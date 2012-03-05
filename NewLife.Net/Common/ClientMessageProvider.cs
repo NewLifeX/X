@@ -37,7 +37,7 @@ namespace NewLife.Net.Common
         /// <summary>接收消息。这里将得到所有消息</summary>
         /// <param name="millisecondsTimeout">等待的毫秒数，或为 <see cref="F:System.Threading.Timeout.Infinite" /> (-1)，表示无限期等待。默认0表示不等待</param>
         /// <returns></returns>
-        public override Message Receive(int millisecondsTimeout = 0)
+        public override Message Send(int millisecondsTimeout = 0)
         {
             var session = Session;
             if (!session.UseReceiveAsync)
@@ -48,7 +48,7 @@ namespace NewLife.Net.Common
                 return Message.Read(new MemoryStream(bts));
             }
 
-            return base.Receive(millisecondsTimeout);
+            return base.Send(millisecondsTimeout);
         }
     }
 }

@@ -70,10 +70,13 @@
     <Compile Include="Messaging\CompressionMessage.cs" />
     <Compile Include="Messaging\DataMessage.cs" />
     <Compile Include="Messaging\EntitiesMessage.cs" />
+    <Compile Include="Messaging\HttpClientMessageProvider.cs" />
+    <Compile Include="Messaging\HttpServerMessageProvider.cs" />
     <Compile Include="Messaging\IMessageProvider.cs" />
     <Compile Include="Messaging\MessageKind.cs" />
     <Compile Include="Messaging\EntityMessage.cs" />
     <Compile Include="Messaging\MethodMessage.cs" />
+    <Compile Include="Messaging\StringMessage.cs" />
     <Compile Include="Model\IPlugin.cs" />
     <Compile Include="Reflection\Action.cs" />
     <Compile Include="Extension\EnumHelper.cs" />

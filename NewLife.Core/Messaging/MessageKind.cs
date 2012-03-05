@@ -14,6 +14,9 @@ namespace NewLife.Messaging
         /// <summary>指定长度的字节数据消息</summary>
         Data,
 
+        /// <summary>字符串</summary>
+        String,
+
         /// <summary>指定类型的实体对象消息</summary>
         Entity,
 

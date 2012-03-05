@@ -37,7 +37,12 @@ namespace NewLife.Messaging
             foreach (var item in AssemblyX.FindAllPlugins(typeof(Message), true))
             {
                 var msg = TypeX.CreateInstance(item) as Message;
-                if (msg != null) container.Register(typeof(Message), item, null, msg.Kind);
+                if (msg != null)
+                {
+                    if (msg.Kind < MessageKind.UserDefine) throw new XException("不允许{0}采用小于{1}的保留编码{2}！", item.FullName, MessageKind.UserDefine, msg.Kind);
+
+                    container.Register(typeof(Message), item, null, msg.Kind);
+                }
                 //if (msg != null) container.Register<Message>(msg, msg.Kind);
             }
         }

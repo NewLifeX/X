@@ -6,19 +6,27 @@ using NewLife.Linq;
 namespace NewLife.Messaging
 {
     /// <summary>消息提供者接口</summary>
+    /// <remarks>
+    /// 大多数时候，内部采用异步实现。
+    /// 
+    /// <see cref="SendAndReceive"/>适合客户端的大多数情况，比如同步Http、同步Tcp。
+    /// 如果内部实现是异步模型，则等待指定时间获取异步返回的第一条消息，该消息不再触发消息到达事件<see cref="OnReceived"/>。
+    /// </remarks>
     public interface IMessageProvider
     {
-        /// <summary>发送消息</summary>
+        /// <summary>发送并接收消息。主要用于应答式的请求和响应。该方法的实现不是线程安全的，使用时一定要注意。</summary>
+        /// <remarks>如果内部实现是异步模型，则等待指定时间获取异步返回的第一条消息，该消息不再触发消息到达事件<see cref="OnReceived"/>。</remarks>
+        /// <param name="message"></param>
+        /// <param name="millisecondsTimeout">等待的毫秒数，或为 <see cref="F:System.Threading.Timeout.Infinite" /> (-1)，表示无限期等待。默认0表示不等待</param>
+        /// <returns></returns>
+        Message SendAndReceive(Message message, Int32 millisecondsTimeout = 0);
+
+        /// <summary>发送消息。如果有响应，可在消息到达事件<see cref="OnReceived"/>中获得。</summary>
         /// <param name="message"></param>
         void Send(Message message);
 
         /// <summary>消息到达时触发</summary>
         event EventHandler<MessageEventArgs> OnReceived;
-
-        /// <summary>接收消息。</summary>
-        /// <param name="millisecondsTimeout">等待的毫秒数，或为 <see cref="F:System.Threading.Timeout.Infinite" /> (-1)，表示无限期等待。默认0表示不等待</param>
-        /// <returns></returns>
-        Message Receive(Int32 millisecondsTimeout = 0);
 
         /// <summary>注册消息消费者，仅消费指定范围的消息</summary>
         /// <param name="start">消息范围的起始</param>
@@ -55,9 +63,9 @@ namespace NewLife.Messaging
     public abstract class MessageProvider : DisposeBase, IMessageProvider2
     {
         #region 属性
-        private IMessageProvider _Provider;
+        private IMessageProvider _Parent;
         /// <summary>消息提供者</summary>
-        public IMessageProvider Provider { get { return _Provider; } set { _Provider = value; } }
+        public IMessageProvider Parent { get { return _Parent; } set { _Parent = value; } }
 
         private Byte[] _Kinds;
         /// <summary>响应的消息类型集合</summary>
@@ -65,7 +73,7 @@ namespace NewLife.Messaging
         #endregion
 
         #region 基本收发
-        /// <summary>发送消息</summary>
+        /// <summary>发送消息。如果有响应，可在消息到达事件<see cref="OnReceived"/>中获得。</summary>
         /// <param name="message"></param>
         public abstract void Send(Message message);
 
@@ -118,11 +126,15 @@ namespace NewLife.Messaging
         public event EventHandler<MessageEventArgs> OnReceived;
         event EventHandler<MessageEventArgs> innerOnReceived;
 
-        /// <summary>接收消息。这里将得到所有消息</summary>
+        /// <summary>发送并接收消息。主要用于应答式的请求和响应。</summary>
+        /// <remarks>如果内部实现是异步模型，则等待指定时间获取异步返回的第一条消息，该消息不再触发消息到达事件<see cref="OnReceived"/>。</remarks>
+        /// <param name="message"></param>
         /// <param name="millisecondsTimeout">等待的毫秒数，或为 <see cref="F:System.Threading.Timeout.Infinite" /> (-1)，表示无限期等待。默认0表示不等待</param>
         /// <returns></returns>
-        public virtual Message Receive(Int32 millisecondsTimeout = 0)
+        public virtual Message SendAndReceive(Message message, Int32 millisecondsTimeout = 0)
         {
+            Send(message);
+
             var _wait = new AutoResetEvent(true);
             _wait.Reset();
 
@@ -168,7 +180,7 @@ namespace NewLife.Messaging
                 }
             }
 
-            var mc = new MessageConsumer() { Provider = this, Kinds = kinds };
+            var mc = new MessageConsumer() { Parent = this, Kinds = kinds };
             lock (Consumers)
             {
                 Consumers.Add(mc);
@@ -187,7 +199,7 @@ namespace NewLife.Messaging
         {
             /// <summary>发送消息</summary>
             /// <param name="message"></param>
-            public override void Send(Message message) { Provider.Send(message); }
+            public override void Send(Message message) { Parent.Send(message); }
         }
         #endregion
     }
