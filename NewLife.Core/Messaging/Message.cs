@@ -5,6 +5,7 @@ using NewLife.Exceptions;
 using NewLife.Model;
 using NewLife.Reflection;
 using NewLife.Serialization;
+using System.Reflection;
 
 namespace NewLife.Messaging
 {
@@ -33,13 +34,14 @@ namespace NewLife.Messaging
         static void Init()
         {
             var container = ObjectContainer.Current;
+            var asm = Assembly.GetExecutingAssembly();
             // 搜索已加载程序集里面的消息类型
             foreach (var item in AssemblyX.FindAllPlugins(typeof(Message), true))
             {
                 var msg = TypeX.CreateInstance(item) as Message;
                 if (msg != null)
                 {
-                    if (msg.Kind < MessageKind.UserDefine) throw new XException("不允许{0}采用小于{1}的保留编码{2}！", item.FullName, MessageKind.UserDefine, msg.Kind);
+                    if (item.Assembly != asm && msg.Kind < MessageKind.UserDefine) throw new XException("不允许{0}采用小于{1}的保留编码{2}！", item.FullName, MessageKind.UserDefine, msg.Kind);
 
                     container.Register(typeof(Message), item, null, msg.Kind);
                 }
