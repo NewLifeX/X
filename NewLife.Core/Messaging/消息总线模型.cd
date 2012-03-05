@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ClassDiagram MajorVersion="1" MinorVersion="1" MembersFormat="NameAndType">
   <Class Name="NewLife.Messaging.ExceptionMessage">
-    <Position X="14.75" Y="6.25" Width="1.75" />
+    <Position X="16.75" Y="7.75" Width="1.75" />
     <Compartments>
       <Compartment Name="Fields" Collapsed="true" />
     </Compartments>
@@ -11,7 +11,7 @@
     </TypeIdentifier>
   </Class>
   <Class Name="NewLife.Messaging.Message">
-    <Position X="10.5" Y="0.5" Width="2.25" />
+    <Position X="11.25" Y="0.5" Width="2.25" />
     <Compartments>
       <Compartment Name="Fields" Collapsed="true" />
     </Compartments>
@@ -24,14 +24,14 @@
     </ShowAsAssociation>
   </Class>
   <Class Name="NewLife.Messaging.NullMessage">
-    <Position X="7.25" Y="3.75" Width="1.75" />
+    <Position X="8.75" Y="3.75" Width="1.75" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
       <FileName>Messaging\NullMessage.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="NewLife.Messaging.CompressionMessage">
-    <Position X="3.75" Y="3.75" Width="2.75" />
+    <Position X="5.25" Y="3.75" Width="2.75" />
     <Compartments>
       <Compartment Name="Fields" Collapsed="true" />
     </Compartments>
@@ -42,7 +42,7 @@
     <Lollipop Position="0.2" />
   </Class>
   <Class Name="NewLife.Messaging.DataMessage">
-    <Position X="9.75" Y="3.75" Width="1.75" />
+    <Position X="11.25" Y="3.75" Width="1.75" />
     <Compartments>
       <Compartment Name="Fields" Collapsed="true" />
     </Compartments>
@@ -52,7 +52,7 @@
     </TypeIdentifier>
   </Class>
   <Class Name="NewLife.Messaging.EntitiesMessage">
-    <Position X="12.25" Y="3.75" Width="1.75" />
+    <Position X="13.75" Y="3.75" Width="1.75" />
     <Compartments>
       <Compartment Name="Fields" Collapsed="true" />
     </Compartments>
@@ -62,17 +62,18 @@
     </TypeIdentifier>
   </Class>
   <Class Name="NewLife.Messaging.EntityMessage">
-    <Position X="14.75" Y="3.75" Width="1.75" />
+    <Position X="16.25" Y="3.75" Width="2.75" />
     <Compartments>
       <Compartment Name="Fields" Collapsed="true" />
     </Compartments>
     <TypeIdentifier>
-      <HashCode>AAAAAAAAAABAABAAAAAAAAAAAAAAAAAAAQAgAAAABAA=</HashCode>
+      <HashCode>AAAAAAAAABBAADEAAAAAAAAAAAAAAAAAAQAoACAABQA=</HashCode>
       <FileName>Messaging\EntityMessage.cs</FileName>
     </TypeIdentifier>
+    <Lollipop Position="0.2" />
   </Class>
   <Class Name="NewLife.Messaging.MethodMessage">
-    <Position X="17.25" Y="3.75" Width="2" />
+    <Position X="19.75" Y="3.75" Width="2" />
     <Compartments>
       <Compartment Name="Fields" Collapsed="true" />
     </Compartments>
@@ -81,10 +82,20 @@
       <FileName>Messaging\MethodMessage.cs</FileName>
     </TypeIdentifier>
   </Class>
-  <Enum Name="NewLife.Messaging.MessageKind">
-    <Position X="8" Y="0.5" Width="1.5" />
+  <Class Name="NewLife.Messaging.StringMessage">
+    <Position X="2.75" Y="3.75" Width="1.75" />
+    <Compartments>
+      <Compartment Name="Fields" Collapsed="true" />
+    </Compartments>
     <TypeIdentifier>
-      <HashCode>EAAAIAAAAAAAAAAAAAAgAAAAAAAAABAAAANAAAAAAAA=</HashCode>
+      <HashCode>AAAAAAAAAABAABAAAAAAAAAAAAAAAAAAAAAgAAAAAAA=</HashCode>
+      <FileName>Messaging\StringMessage.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Enum Name="NewLife.Messaging.MessageKind">
+    <Position X="8.75" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>EAAAIAAAAAAAAAAAQAAgAAAAAAAAABAAAANAAAAAAAA=</HashCode>
       <FileName>Messaging\MessageKind.cs</FileName>
     </TypeIdentifier>
   </Enum>

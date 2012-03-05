@@ -23,8 +23,16 @@ namespace NewLife.Net.Common
 
         void client_Received(object sender, ReceivedEventArgs e)
         {
-            var message = Message.Read(e.Stream);
-            OnReceive(message);
+            try
+            {
+                var message = Message.Read(e.Stream);
+                Process(message);
+            }
+            catch (Exception ex)
+            {
+                var msg = new ExceptionMessage() { Value = ex };
+                Process(msg);
+            }
         }
 
         /// <summary>发送消息</summary>
