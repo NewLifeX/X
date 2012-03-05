@@ -99,6 +99,8 @@ namespace XAgent
             }
             else
             {
+                Console.Title = AgentDisplayName;
+
                 #region 命令行
                 XTrace.OnWriteLog += new EventHandler<WriteLogEventArgs>(XTrace_OnWriteLog);
 
