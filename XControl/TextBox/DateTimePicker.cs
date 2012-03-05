@@ -60,6 +60,26 @@ namespace XControl
         }
 
         /// <summary>
+        /// 是否只显示时间部分格式
+        /// </summary>
+        [Bindable(true)]
+        [Category("专用")]
+        [Description("是否只显示时间部分格式")]
+        [DefaultValue(false)]
+        [Localizable(true)]
+        public Boolean MinTime
+        {
+            get
+            {
+                return ViewState["MinTime"] == null ? false : (Boolean)ViewState["MinTime"];
+            }
+            set
+            {
+                ViewState["MinTime"] = value;
+            }
+        }
+
+        /// <summary>
         /// 客户端只读
         /// </summary>
         [Bindable(true)]
@@ -139,7 +159,12 @@ namespace XControl
             set
             {
                 if (LongTime)
-                    Text = value.ToString("yyyy-MM-dd HH:mm:ss");
+                {
+                    if (MinTime)
+                        Text = value.ToString("HH:mm:ss");
+                    else
+                        Text = value.ToString("yyyy-MM-dd HH:mm:ss");
+                }
                 else
                     Text = value.ToString("yyyy-MM-dd");
             }
@@ -193,7 +218,7 @@ namespace XControl
         protected override void OnInit(EventArgs e)
         {
             base.OnInit(e);
-            if (LongTime)
+            if (LongTime&&!MinTime)
                 Width = new Unit(152);
             else
                 Width = new Unit(86);
@@ -213,7 +238,12 @@ namespace XControl
                 sb.Append("WdatePicker({");
                 sb.Append("autoPickDate:true");
                 if (LongTime)
-                    sb.Append(",dateFmt:'yyyy-MM-dd HH:mm:ss'");
+                {
+                    if (MinTime)
+                        sb.Append(",dateFmt:'HH:mm:ss'");
+                    else
+                        sb.Append(",dateFmt:'yyyy-MM-dd HH:mm:ss'");
+                }
                 //else
                 //    sb.Append(",dateFmt:'yyyy-MM-dd'");
                 //if (Skin != null)
@@ -228,7 +258,7 @@ namespace XControl
                 Attributes.Add("onFocus", sb.ToString());
                 CssClass = "Wdate";
 
-                if (LongTime)
+                if (LongTime&&!MinTime)
                     Width = new Unit(152);
                 else
                     Width = new Unit(86);
