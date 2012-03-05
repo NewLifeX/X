@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
 using NewLife.Collections;
 using NewLife.Net.Sockets;
-using System.Text;
 using NewLife.Reflection;
 
 namespace NewLife.Net.DNS
@@ -64,7 +64,7 @@ namespace NewLife.Net.DNS
         #endregion
 
         #region 方法
-        DictionaryCache<String, DNSEntity> cache = new DictionaryCache<string, DNSEntity>();
+        DictionaryCache<String, DNSEntity> cache = new DictionaryCache<string, DNSEntity>() { Expriod = 600, Asynchronous = true };
 
         /// <summary>接收处理</summary>
         /// <param name="sender"></param>
