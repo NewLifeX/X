@@ -8,7 +8,6 @@ using Microsoft.CSharp;
 using Microsoft.VisualBasic;
 using NewLife.Collections;
 using NewLife.Linq;
-using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.Threading;
 using XCode.DataAccessLayer;
@@ -485,7 +484,8 @@ namespace XCoder
 
                 // 计算输出文件名
                 String fileName = Path.GetFileName(item.Name);
-                fileName = fileName.Replace("类名", table.Alias).Replace("中文名", table.DisplayName).Replace("连接名", Config.EntityConnName);
+                var fname = Config.UseCNFileName ? table.DisplayName : table.Alias;
+                fileName = fileName.Replace("类名", fname).Replace("中文名", fname).Replace("连接名", Config.EntityConnName);
 
                 fileName = Path.Combine(OuputPath, fileName);
 
