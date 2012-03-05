@@ -32,12 +32,12 @@ namespace NewLife.Messaging
         /// <param name="start">消息范围的起始</param>
         /// <param name="end">消息范围的结束</param>
         /// <returns>消息消费者</returns>
-        IMessageProvider Register(Byte start, Byte end);
+        IMessageProvider Register(MessageKind start, MessageKind end);
 
         /// <summary>注册消息消费者，仅消费指定范围的消息</summary>
         /// <param name="kinds">消息类型的集合</param>
         /// <returns>消息消费者</returns>
-        IMessageProvider Register(Byte[] kinds);
+        IMessageProvider Register(MessageKind[] kinds);
     }
 
     /// <summary>消息事件参数</summary>
@@ -67,9 +67,9 @@ namespace NewLife.Messaging
         /// <summary>消息提供者</summary>
         public IMessageProvider Parent { get { return _Parent; } set { _Parent = value; } }
 
-        private Byte[] _Kinds;
+        private MessageKind[] _Kinds;
         /// <summary>响应的消息类型集合</summary>
-        public Byte[] Kinds { get { return _Kinds; } set { _Kinds = value; } }
+        public MessageKind[] Kinds { get { return _Kinds; } set { _Kinds = value; } }
         #endregion
 
         #region 基本收发
@@ -84,7 +84,7 @@ namespace NewLife.Messaging
             if (message == null) return;
 
             // 检查消息范围
-            if (Kinds != null && Array.IndexOf(Kinds, message.Kind) < 0) return;
+            if (Kinds != null && Array.IndexOf<MessageKind>(Kinds, message.Kind) < 0) return;
 
             // 为Receive准备的事件，只用一次
             EventHandler<MessageEventArgs> handler;
@@ -155,16 +155,22 @@ namespace NewLife.Messaging
         /// <param name="start">消息范围的起始</param>
         /// <param name="end">消息范围的结束</param>
         /// <returns>消息消费者</returns>
-        public virtual IMessageProvider Register(Byte start, Byte end)
+        public virtual IMessageProvider Register(MessageKind start, MessageKind end)
         {
             if (start > end) throw new ArgumentOutOfRangeException("start", "起始不能大于结束！");
-            return Register(Enumerable.Range(start, end - start + 1).Select(e => (Byte)e).ToArray());
+            //return Register(Enumerable.Range(start, end - start + 1).Select(e => (MessageKind)e).ToArray());
+            var list = new List<MessageKind>();
+            for (MessageKind i = start; i <= end; i++)
+            {
+                list.Add(i);
+            }
+            return Register(list.ToArray());
         }
 
         /// <summary>注册消息消费者，仅消费指定范围的消息</summary>
         /// <param name="kinds">消息类型的集合</param>
         /// <returns>消息消费者</returns>
-        public virtual IMessageProvider Register(Byte[] kinds)
+        public virtual IMessageProvider Register(MessageKind[] kinds)
         {
             if (kinds == null || kinds.Length < 1) throw new ArgumentNullException("kinds");
             kinds = kinds.Distinct().OrderBy(e => e).ToArray();
@@ -176,7 +182,7 @@ namespace NewLife.Messaging
             {
                 foreach (var item in kinds)
                 {
-                    if (Array.IndexOf(ks, item) < 0) throw new ArgumentOutOfRangeException("kinds", "当前消息提供者不支持Kind=" + item + "的消息！");
+                    if (Array.IndexOf<MessageKind>(ks, item) < 0) throw new ArgumentOutOfRangeException("kinds", "当前消息提供者不支持Kind=" + item + "的消息！");
                 }
             }
 
