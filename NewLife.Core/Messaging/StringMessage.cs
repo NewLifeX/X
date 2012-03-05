@@ -19,5 +19,14 @@ namespace NewLife.Messaging
         private String _Value;
         /// <summary>字符串</summary>
         public String Value { get { return _Value; } set { _Value = value; } }
+
+        #region 辅助
+        /// <summary>已重载。</summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            return String.Format("{0} {1}", base.ToString(), Value);
+        }
+        #endregion
     }
 }

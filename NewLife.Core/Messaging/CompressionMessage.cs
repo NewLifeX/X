@@ -55,5 +55,18 @@ namespace NewLife.Messaging
             return success;
         }
         #endregion
+
+        #region 辅助
+        /// <summary>已重载。</summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            var msg = Message;
+            if (msg != null)
+                return String.Format("{0} {1}", base.ToString(), msg);
+            else
+                return base.ToString();
+        }
+        #endregion
     }
 }

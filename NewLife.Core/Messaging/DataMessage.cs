@@ -21,5 +21,18 @@ namespace NewLife.Messaging
         private Byte[] _Data;
         /// <summary>数据</summary>
         public Byte[] Data { get { return _Data; } set { _Data = value; } }
+
+        #region 辅助
+        /// <summary>已重载。</summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            var data = Data;
+            if (data != null)
+                return String.Format("{0} Length={1}", base.ToString(), data.Length);
+            else
+                return base.ToString();
+        }
+        #endregion
     }
 }

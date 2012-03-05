@@ -50,5 +50,14 @@ namespace NewLife.Messaging
 
         Boolean IAccessor.WriteComplete(IWriter writer, Boolean success) { return success; }
         #endregion
+
+        #region 辅助
+        /// <summary>已重载。</summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            return String.Format("{0} {1}", base.ToString(), Value);
+        }
+        #endregion
     }
 }

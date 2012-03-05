@@ -140,7 +140,7 @@ namespace NewLife.Messaging
         /// <returns></returns>
         public override string ToString()
         {
-            return String.Format("Kind={0} {1}", Kind, GetType().Name);
+            return String.Format("Kind=[{0}]", Kind);
         }
         #endregion
     }

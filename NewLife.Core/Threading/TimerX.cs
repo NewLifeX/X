@@ -125,7 +125,7 @@ namespace NewLife.Threading
                     if (thread == null)
                     {
                         thread = new Thread(Process);
-                        thread.Name = "TimerX定时器";
+                        thread.Name = "TimerX";
                         thread.IsBackground = true;
                         thread.Start();
                     }

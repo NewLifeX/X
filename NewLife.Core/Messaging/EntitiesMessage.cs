@@ -30,5 +30,18 @@ namespace NewLife.Messaging
         private IList _Values;
         /// <summary>对象值</summary>
         public IList Values { get { return _Values ?? (_Values = new List<Object>()); } set { _Values = value; } }
+
+        #region 辅助
+        /// <summary>已重载。</summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            var vs = Values;
+            if (vs != null)
+                return String.Format("{0} Type={1} Count={2}", base.ToString(), Type, vs.Count);
+            else
+                return base.ToString();
+        }
+        #endregion
     }
 }
