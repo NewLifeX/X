@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using NewLife.Collections;
+using NewLife.Net.Common;
 using NewLife.Net.Sockets;
-using NewLife.Reflection;
 
 namespace NewLife.Net.DNS
 {
@@ -18,9 +17,24 @@ namespace NewLife.Net.DNS
         /// <summary>域名</summary>
         public String DomainName { get { return _DomainName ?? this.GetType().FullName; } set { _DomainName = value; } }
 
-        private Dictionary<IPEndPoint, ProtocolType> _Parents;
+        private List<NetUri> _Parents;
         /// <summary>上级DNS地址</summary>
-        public Dictionary<IPEndPoint, ProtocolType> Parents { get { return _Parents ?? (_Parents = new Dictionary<IPEndPoint, ProtocolType>()); } set { _Parents = value; } }
+        public List<NetUri> Parents
+        {
+            get
+            {
+                if (_Parents == null)
+                {
+                    var list = new List<NetUri>();
+                    list.Add(new NetUri("tcp://8.8.8.8"));
+                    list.Add(new NetUri("udp://4.4.4.4"));
+
+                    _Parents = list;
+                }
+                return _Parents;
+            }
+            set { _Parents = value; }
+        }
 
         /// <summary>上级DNS地址，多个地址以逗号隔开</summary>
         public String Parent
@@ -34,7 +48,7 @@ namespace NewLife.Net.DNS
                 foreach (var item in ps)
                 {
                     if (sb.Length > 0) sb.Append(",");
-                    sb.AppendFormat("{0}://{1}", item.Value, item.Key);
+                    sb.Append(item);
                 }
                 return sb.ToString();
             }
@@ -45,14 +59,13 @@ namespace NewLife.Net.DNS
 
                 if (value.IsNullOrWhiteSpace()) return;
 
-                var dic = value.SplitAsDictionary("://", ",");
-                if (dic == null || dic.Count < 1) return;
+                var ss = value.Split(",");
+                if (ss == null || ss.Length < 1) return;
 
-                foreach (var item in dic)
+                foreach (var item in ss)
                 {
-                    var ep = NetHelper.ParseEndPoint(item.Value, 53);
-                    var pt = TypeX.ChangeType<ProtocolType>(item.Key);
-                    ps[ep] = pt;
+                    var uri = new NetUri(item);
+                    ps.Add(uri);
                 }
             }
         }
@@ -79,6 +92,26 @@ namespace NewLife.Net.DNS
 
             // 处理，修改
             WriteLog("{0}://{1} 请求 {2}", session.ProtocolType, e.RemoteEndPoint, entity);
+
+            // 如果是PTR请求
+            if (entity is DNS_PTR)
+            {
+                var ptr = entity as DNS_PTR;
+                // 对本地的请求马上返回
+                var ptr2 = new DNS_PTR();
+                ptr2.Name = ptr.Name;
+                ptr2.DomainName = DomainName;
+                if (ptr2.Answers != null && ptr2.Answers.Length > 0)
+                {
+                    foreach (var item in ptr2.Answers)
+                    {
+                        if (item.Type == DNSQueryType.PTR) item.Name = ptr.Name;
+                    }
+                }
+                ptr2.Header.ID = entity.Header.ID;
+                session.Send(ptr2.GetStream(isTcp));
+                return;
+            }
 
             // 读取缓存
             var entity2 = cache.GetItem<DNSEntity>(entity.ToString(), entity, GetDNS, false);
@@ -113,17 +146,12 @@ namespace NewLife.Net.DNS
         DNSEntity GetDNS(String key, DNSEntity entity)
         {
             // 请求父级代理
-            IPEndPoint ep = null;
-            ProtocolType pt = ProtocolType.Tcp;
-            Boolean isTcp = false;
+            NetUri parent = null;
             Byte[] data = null;
             foreach (var item in Parents)
             {
-                isTcp = item.Value == ProtocolType.Tcp;
-                //var client = NetService.Resolve<ISocketClient>(item.Value);
-                var session = NetService.CreateSession(new Common.NetUri(item.Value, item.Key));
-                ep = item.Key;
-                pt = item.Value;
+                var session = NetService.CreateSession(item);
+                parent = item;
                 // 如果是PTR请求
                 if (entity is DNS_PTR)
                 {
@@ -131,15 +159,12 @@ namespace NewLife.Net.DNS
                     entity = new DNS_PTR().CloneFrom(entity);
 
                     var ptr = entity as DNS_PTR;
-                    ptr.Address = ep.Address;
+                    ptr.Address = parent.Address;
                 }
 
                 try
                 {
-                    //client.Connect(ep);
-                    //client.Send(entity.GetStream(isTcp), ep);
-                    //client.CreateSession(ep).Send(entity.GetStream(isTcp));
-                    session.Send(entity.GetStream(isTcp));
+                    session.Send(entity.GetStream(item.ProtocolType == ProtocolType.Tcp));
                     data = session.Receive();
 
                     if (data != null && data.Length > 0) break;
@@ -152,10 +177,10 @@ namespace NewLife.Net.DNS
             try
             {
                 // 解析父级代理返回的数据
-                entity2 = DNSEntity.Read(data, isTcp);
+                entity2 = DNSEntity.Read(data, parent.ProtocolType == ProtocolType.Tcp);
 
                 // 处理，修改
-                WriteLog("{0}://{1} 返回 {2}", pt, ep, entity2);
+                WriteLog("{0} 返回 {1}", parent, entity2);
             }
             catch (Exception ex)
             {
