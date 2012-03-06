@@ -74,7 +74,7 @@ namespace NewLife.Model
                 // 如果名称不为空，则试一试找空的
                 if (dic.TryGetValue(String.Empty, out map)) return map;
             }
-            else
+            else if (extend)
             {
                 // 如果名称为空，找第一个
                 foreach (var item in dic.Values)
