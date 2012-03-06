@@ -70,7 +70,20 @@ namespace NewLife.Net.Common
 
             if (needUpdate && OnUpdate != null) OnUpdate(this, EventArgs.Empty);
 
-            Session.Send(message.GetStream());
+            session = Session;
+            //Session.Send(message.GetStream());
+            var ms = message.GetStream();
+            if (ms.Length < 1460)
+                session.Send(ms);
+            else
+            {
+                var mg = new MessageGroup();
+                mg.Split(ms, 1460);
+                foreach (var item in mg)
+                {
+                    session.Send(item.GetStream());
+                }
+            }
         }
 
         ///// <summary>接收消息。这里将得到所有消息</summary>

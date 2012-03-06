@@ -77,6 +77,7 @@
     <Compile Include="Messaging\EntityMessage.cs" />
     <Compile Include="Messaging\MethodMessage.cs" />
     <Compile Include="Messaging\StringMessage.cs" />
+    <Compile Include="Messaging\GroupMessage.cs" />
     <Compile Include="Model\IPlugin.cs" />
     <Compile Include="Reflection\Action.cs" />
     <Compile Include="Extension\EnumHelper.cs" />
