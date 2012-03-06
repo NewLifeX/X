@@ -26,7 +26,8 @@ namespace NewLife.Net.DNS
             get
             {
                 var p = Keys.IndexOf(key);
-                if (p < 0) throw new XException("DNS名称解析未找到序号为{0}的字符串！", key);
+                //if (p < 0) throw new XException("DNS名称解析未找到序号为{0}的字符串！", key);
+                if (p < 0) return null;
                 return Values[p];
             }
         }
@@ -114,6 +115,7 @@ namespace NewLife.Net.DNS
             var keys = new List<Int32>();
             var values = new List<String>();
 
+            var start = stream.Position;
             Int32 p = 0;
             Boolean isRef = false;
             String[] ss = ("" + value).Split(".");
@@ -138,7 +140,7 @@ namespace NewLife.Net.DNS
                 }
 
                 // 否则，先写长度，后存入引用
-                p = (Int32)stream.Position;
+                p = (Int32)(stream.Position - start);
 
                 Byte[] buffer = Encoding.UTF8.GetBytes(ss[i]);
                 stream.WriteByte((Byte)buffer.Length);

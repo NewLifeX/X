@@ -7,7 +7,7 @@ namespace NewLife.Net.DNS
     /// <remarks>
     /// 查询的时候只需要设置<see cref="DNSEntity.Name"/>，返回的数据里面，<see cref="Address"/>和<see cref="DNSEntity.TTL"/>最有价值。
     /// </remarks>
-    public class DNS_A : DNSBase<DNS_A>
+    public class DNS_A : DNSRecord
     {
         #region 属性
         /// <summary>IP地址</summary>

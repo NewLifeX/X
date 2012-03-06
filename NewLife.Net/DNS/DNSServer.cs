@@ -1,4 +1,5 @@
 ﻿using System;
+using NewLife.Linq;
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Sockets;
@@ -6,6 +7,7 @@ using System.Text;
 using NewLife.Collections;
 using NewLife.Net.Common;
 using NewLife.Net.Sockets;
+using System.Net;
 
 namespace NewLife.Net.DNS
 {
@@ -15,7 +17,7 @@ namespace NewLife.Net.DNS
         #region 属性
         private String _DomainName;
         /// <summary>域名</summary>
-        public String DomainName { get { return _DomainName ?? this.GetType().FullName; } set { _DomainName = value; } }
+        public String DomainName { get { return _DomainName ?? "dns.nnhy.org"; } set { _DomainName = value; } }
 
         private List<NetUri> _Parents;
         /// <summary>上级DNS地址</summary>
@@ -26,6 +28,10 @@ namespace NewLife.Net.DNS
                 if (_Parents == null)
                 {
                     var list = new List<NetUri>();
+                    foreach (var item in NetHelper.GetDns())
+                    {
+                        list.Add(new NetUri(ProtocolType.Udp, item, 53));
+                    }
                     list.Add(new NetUri("tcp://8.8.8.8"));
                     list.Add(new NetUri("udp://4.4.4.4"));
 
@@ -94,23 +100,28 @@ namespace NewLife.Net.DNS
             WriteLog("{0}://{1} 请求 {2}", session.ProtocolType, e.RemoteEndPoint, entity);
 
             // 如果是PTR请求
-            if (entity is DNS_PTR)
+            if (entity.Type == DNSQueryType.PTR)
             {
-                var ptr = entity as DNS_PTR;
+                var ptr = entity.Questions[0] as DNS_PTR;
                 // 对本地的请求马上返回
-                var ptr2 = new DNS_PTR();
-                ptr2.Name = ptr.Name;
-                ptr2.DomainName = DomainName;
-                if (ptr2.Answers != null && ptr2.Answers.Length > 0)
+                var addr = ptr.Address;
+                if (IPAddress.IsLoopback(addr) || NetHelper.GetIPs().Any(ip => ip + "" == addr + ""))
                 {
-                    foreach (var item in ptr2.Answers)
-                    {
-                        if (item.Type == DNSQueryType.PTR) item.Name = ptr.Name;
-                    }
+                    var ptr2 = new DNS_PTR();
+                    ptr2.Name = ptr.Name;
+                    ptr2.DomainName = DomainName;
+
+                    var rs = new DNSEntity();
+                    rs.Questions = entity.Questions;
+
+                    var aw = rs.Answers[0];
+                    aw.Type = DNSQueryType.PTR;
+                    aw.Name = ptr.Name;
+
+                    rs.Header.ID = entity.Header.ID;
+                    session.Send(rs.GetStream(isTcp));
+                    return;
                 }
-                ptr2.Header.ID = entity.Header.ID;
-                session.Send(ptr2.GetStream(isTcp));
-                return;
             }
 
             // 读取缓存
@@ -121,15 +132,15 @@ namespace NewLife.Net.DNS
             if (entity2 != null)
             {
                 // 如果是PTR请求
-                if (entity is DNS_PTR && entity2 is DNS_PTR)
+                if (entity.Type == DNSQueryType.PTR && entity2.Type == DNSQueryType.PTR)
                 {
-                    var ptr = entity as DNS_PTR;
-                    var ptr2 = entity2 as DNS_PTR;
+                    var ptr = entity.Questions[0] as DNS_PTR;
+                    var ptr2 = entity2.GetAnswer() as DNS_PTR;
                     ptr2.Name = ptr.Name;
                     ptr2.DomainName = DomainName;
-                    if (ptr2.Answers != null && ptr2.Answers.Length > 0)
+                    if (entity2.Answers != null && entity2.Answers.Length > 0)
                     {
-                        foreach (var item in ptr2.Answers)
+                        foreach (var item in entity2.Answers)
                         {
                             if (item.Type == DNSQueryType.PTR) item.Name = ptr.Name;
                         }
@@ -153,12 +164,12 @@ namespace NewLife.Net.DNS
                 var session = NetService.CreateSession(item);
                 parent = item;
                 // 如果是PTR请求
-                if (entity is DNS_PTR)
+                if (entity.Type == DNSQueryType.PTR)
                 {
                     // 复制一份，防止修改外部
-                    entity = new DNS_PTR().CloneFrom(entity);
+                    entity = new DNSEntity().CloneFrom(entity);
 
-                    var ptr = entity as DNS_PTR;
+                    var ptr = entity.GetAnswer() as DNS_PTR;
                     ptr.Address = parent.Address;
                 }
 

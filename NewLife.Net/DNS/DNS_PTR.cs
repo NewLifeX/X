@@ -10,7 +10,7 @@ namespace NewLife.Net.DNS
     /// <remarks>
     /// 查询的时候只需要设置<see cref="Address"/>，返回的数据里面，<see cref="DomainName"/>最有价值。
     /// </remarks>
-    public class DNS_PTR : DNSBase<DNS_PTR>
+    public class DNS_PTR : DNSRecord
     {
         #region 属性
         const String _suffix = ".in-addr.arpa";
@@ -24,6 +24,11 @@ namespace NewLife.Net.DNS
                 if (String.IsNullOrEmpty(name)) return null;
 
                 if (name.EndsWith(_suffix, StringComparison.OrdinalIgnoreCase)) name = name.Substring(0, name.Length - _suffix.Length);
+
+                // 倒序
+                var ss = name.Split(".");
+                Array.Reverse(ss);
+                name = String.Join(".", ss);
 
                 IPAddress addr;
                 if (!IPAddress.TryParse(name, out addr)) return null;

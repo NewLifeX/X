@@ -4,7 +4,7 @@ using System.Net;
 namespace NewLife.Net.DNS
 {
     /// <summary>NS记录</summary>
-    public class DNS_NS : DNSBase<DNS_NS>
+    public class DNS_NS : DNSRecord
     {
         #region 属性
         /// <summary>命名服务器</summary>

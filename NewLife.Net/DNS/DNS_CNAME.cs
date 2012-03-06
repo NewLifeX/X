@@ -3,7 +3,7 @@
 namespace NewLife.Net.DNS
 {
     /// <summary>CNAME记录</summary>
-    public class DNS_CNAME : DNSBase<DNS_CNAME>
+    public class DNS_CNAME : DNSRecord
     {
         #region 属性
         /// <summary>IP地址</summary>

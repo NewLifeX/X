@@ -6,7 +6,7 @@ using NewLife.Serialization;
 
 namespace NewLife.Net.DNS
 {
-    /// <summary>资源结构</summary>
+    /// <summary>DNS记录</summary>
     public class DNSRecord : IAccessor
     {
         #region 属性
@@ -17,7 +17,7 @@ namespace NewLife.Net.DNS
 
         private DNSQueryType _Type = DNSQueryType.A;
         /// <summary>查询类型</summary>
-        public DNSQueryType Type { get { return _Type; } set { _Type = value; } }
+        public virtual DNSQueryType Type { get { return _Type; } set { _Type = value; } }
 
         private DNSQueryClass _Class = DNSQueryClass.IN;
         /// <summary>协议组</summary>
@@ -47,9 +47,6 @@ namespace NewLife.Net.DNS
         bool IAccessor.Read(IReader reader)
         {
             // 提前读取名称
-            //var refs = reader.Items["Names"] as Dictionary<Int32, String>;
-            //if (refs == null) reader.Items.Add("Names", refs = new Dictionary<Int32, String>());
-            //Name = ReadName(reader.Stream, 0, refs);
             Name = GetNameAccessor(reader).Read(reader.Stream, 0);
             reader.WriteLog("ReadMember", "_Name", "String", Name);
 
@@ -74,9 +71,6 @@ namespace NewLife.Net.DNS
             // 提前写入名称
             writer.WriteLog("WriteMember", "_Name", "String", Name);
 
-            //var refs = writer.Items["Names"] as Dictionary<String, Int32>;
-            //if (refs == null) writer.Items.Add("Names", refs = new Dictionary<String, Int32>());
-            //WriteName(writer.Stream, Name, 0, refs);
             GetNameAccessor(writer).Write(writer.Stream, Name, 0);
 
             // 如果当前成员是_Questions，忽略三个字段
@@ -141,11 +135,16 @@ namespace NewLife.Net.DNS
             }
             else
             {
-                // 当前指针在数据流后面
-                DataString = GetNameAccessor(reader).Read(new MemoryStream(Data), reader.Stream.Position - _Length);
+                OnReadDataString(reader, reader.Stream.Position - _Length);
             }
 
             reader.WriteLog("ReadMember", "_Data", "String", DataString);
+        }
+
+        internal virtual void OnReadDataString(IReader reader, Int64 position)
+        {
+            // 当前指针在数据流后面
+            DataString = GetNameAccessor(reader).Read(new MemoryStream(Data), position);
         }
 
         /// <summary>写入的最后，处理扩展数据</summary>
@@ -161,8 +160,7 @@ namespace NewLife.Net.DNS
             else
             {
                 var ms = new MemoryStream();
-                // 传入当前流偏移，加2是因为待会要先写2个字节的长度
-                GetNameAccessor(writer).Write(ms, DataString, writer.Stream.Position + 2);
+                OnWriteDataString(writer, ms);
                 Data = ms.ToArray();
             }
 
@@ -178,8 +176,14 @@ namespace NewLife.Net.DNS
             }
         }
 
+        internal virtual void OnWriteDataString(IWriter writer, Stream ms)
+        {
+            // 传入当前流偏移，加2是因为待会要先写2个字节的长度
+            GetNameAccessor(writer).Write(ms, DataString, writer.Stream.Position + 2);
+        }
+
         [DebuggerHidden]
-        static DNSNameAccessor GetNameAccessor(IReaderWriter rw)
+        internal static DNSNameAccessor GetNameAccessor(IReaderWriter rw)
         {
             var accessor = rw.Items["Names"] as DNSNameAccessor;
             if (accessor == null) rw.Items.Add("Names", accessor = new DNSNameAccessor());
@@ -192,6 +196,24 @@ namespace NewLife.Net.DNS
         /// <summary>已重载。</summary>
         /// <returns></returns>
         public override string ToString() { return String.Format("{0} {1}", Type, String.IsNullOrEmpty(DataString) ? Name : DataString); }
+        #endregion
+
+        #region 克隆
+        /// <summary>克隆</summary>
+        /// <param name="dr"></param>
+        /// <returns></returns>
+        public DNSRecord CloneFrom(DNSRecord dr)
+        {
+            Name = dr.Name;
+            Type = dr.Type;
+            Class = dr.Class;
+            TTL = dr.TTL;
+            _Length = dr._Length;
+            Data = dr.Data;
+            DataString = dr.DataString;
+
+            return this;
+        }
         #endregion
     }
 }

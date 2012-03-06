@@ -5,10 +5,10 @@ using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
+using NewLife.Collections;
 using NewLife.Configuration;
 using NewLife.Linq;
 using NewLife.Log;
-using NewLife.Collections;
 
 namespace NewLife.Net
 {
