@@ -70,7 +70,7 @@ namespace NewLife.Messaging
         /// <param name="size"></param>
         public void Split(Stream stream, Int32 size)
         {
-            var count = (Int32)(0.5 + (Double)(stream.Length - stream.Position) / size);
+            var count = (Int32)Math.Ceiling((Double)(stream.Length - stream.Position) / size);
 
             // 估计组消息头部长度。
             var len = 1 + 1 + 1 + 1;
@@ -83,7 +83,6 @@ namespace NewLife.Messaging
             len += size >= 128 ? 4 : 1;
 
             // 计算数据部分大小
-            var buffer = new Byte[size - len];
             var index = 0;
             while (stream.Position < stream.Length)
             {
@@ -92,7 +91,10 @@ namespace NewLife.Messaging
                 msg.Index = ++index;
                 msg.Count = count;
 
-                var c = stream.Read(buffer, 0, buffer.Length);
+                var len2 = stream.Length - stream.Position;
+                if (len2 > size - len) len2 = size - len;
+                var buffer = new Byte[len2];
+                stream.Read(buffer, 0, buffer.Length);
                 msg.Data = buffer;
 
                 Items.Add(msg);
@@ -127,7 +129,7 @@ namespace NewLife.Messaging
             {
                 ms.Write(item.Data, 0, item.Data.Length);
             }
-
+            ms.Position = 0;
             return ms;
         }
 

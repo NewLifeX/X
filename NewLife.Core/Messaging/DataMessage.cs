@@ -28,10 +28,7 @@ namespace NewLife.Messaging
         public override string ToString()
         {
             var data = Data;
-            if (data != null)
-                return String.Format("{0} Length={1}", base.ToString(), data.Length);
-            else
-                return base.ToString();
+            return String.Format("{0} Length={1}", base.ToString(), data != null ? data.Length : 0);
         }
         #endregion
     }
