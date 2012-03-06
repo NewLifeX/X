@@ -79,6 +79,9 @@ namespace NewLife.Messaging
             // 如果数据包个数大于128时，增加
             if (count >= 128) len += 3 + 3;
 
+            // 加上数据大小
+            len += size >= 128 ? 4 : 1;
+
             // 计算数据部分大小
             var buffer = new Byte[size - len];
             var index = 0;
@@ -105,7 +108,7 @@ namespace NewLife.Messaging
         {
             if (Items.Count <= 0)
                 Identity = message.Identity;
-            else if (message.Identity == Identity)
+            else if (message.Identity != Identity)
                 throw new ArgumentException("组消息的标识不匹配！", "message");
 
             if (!Items.Any(e => e.Index == message.Index)) Items.Add(message);

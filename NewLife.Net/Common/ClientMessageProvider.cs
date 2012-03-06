@@ -32,13 +32,6 @@ namespace NewLife.Net.Common
         /// <summary>Session被关闭需要更新时触发。外部应该重新给Session赋值</summary>
         public event EventHandler OnUpdate;
 
-        ///// <summary>实例化一个客户端消息提供者</summary>
-        ///// <param name="session"></param>
-        //public ClientMessageProvider(ISocketSession session)
-        //{
-        //    Session = session;
-        //}
-
         void client_Received(object sender, ReceivedEventArgs e)
         {
             try
@@ -85,22 +78,5 @@ namespace NewLife.Net.Common
                 }
             }
         }
-
-        ///// <summary>接收消息。这里将得到所有消息</summary>
-        ///// <param name="millisecondsTimeout">等待的毫秒数，或为 <see cref="F:System.Threading.Timeout.Infinite" /> (-1)，表示无限期等待。默认0表示不等待</param>
-        ///// <returns></returns>
-        //public override Message Send(int millisecondsTimeout = 0)
-        //{
-        //    var session = Session;
-        //    if (!session.UseReceiveAsync)
-        //    {
-        //        var bts = session.Receive();
-        //        if (bts == null || bts.Length <= 0) return null;
-
-        //        return Message.Read(new MemoryStream(bts));
-        //    }
-
-        //    return base.Send(millisecondsTimeout);
-        //}
     }
 }
