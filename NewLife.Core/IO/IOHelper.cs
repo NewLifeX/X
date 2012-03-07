@@ -597,13 +597,13 @@ namespace NewLife.IO
             return -1;
         }
 
-        /// <summary>比较两个字节数组大小</summary>
+        /// <summary>比较两个字节数组大小。相等返回0，不等则返回不等的位置，如果位置为0，则返回1。</summary>
         /// <param name="source"></param>
         /// <param name="buffer"></param>
         /// <returns></returns>
         public static Int32 CompareTo(this Byte[] source, Byte[] buffer) { return CompareTo(source, 0, 0, buffer, 0, 0); }
 
-        /// <summary>比较两个字节数组大小</summary>
+        /// <summary>比较两个字节数组大小。相等返回0，不等则返回不等的位置，如果位置为0，则返回1。</summary>
         /// <param name="source"></param>
         /// <param name="start"></param>
         /// <param name="count"></param>
@@ -623,10 +623,10 @@ namespace NewLife.IO
             for (int i = 0; i < count && i < length; i++)
             {
                 Int32 rs = source[start + i].CompareTo(buffer[offset + i]);
-                if (rs != 0) return rs;
+                if (rs != 0) return i > 0 ? i : 1;
             }
 
-            // 比较完成。如果长度不想等，则较长者较大
+            // 比较完成。如果长度不相等，则较长者较大
             if (count != length) return count > length ? 1 : -1;
 
             return 0;
