@@ -7,8 +7,9 @@ namespace NewLife.Net.DNS
     public class DNS_NS : DNSRecord
     {
         #region 属性
+        private String _NameServer;
         /// <summary>命名服务器</summary>
-        public String NameServer { get { return DataString; } set { DataString = value; } }
+        public String NameServer { get { return _NameServer; } set { _NameServer = value; } }
         #endregion
 
         #region 构造
@@ -19,5 +20,12 @@ namespace NewLife.Net.DNS
             Class = DNSQueryClass.IN;
         }
         #endregion
+
+        /// <summary>已重载。</summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            return base.ToString() + " " + NameServer;
+        }
     }
 }

@@ -50,8 +50,9 @@ namespace NewLife.Net.DNS
             }
         }
 
+        private String _DomainName;
         /// <summary>域名</summary>
-        public String DomainName { get { return DataString; } set { DataString = value; } }
+        public String DomainName { get { return _DomainName; } set { _DomainName = value; } }
         #endregion
 
         #region 构造
@@ -62,5 +63,12 @@ namespace NewLife.Net.DNS
             Class = DNSQueryClass.IN;
         }
         #endregion
+
+        /// <summary>已重载。</summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            return base.ToString() + " " + DomainName;
+        }
     }
 }

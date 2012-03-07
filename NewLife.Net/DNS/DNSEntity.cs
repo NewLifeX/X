@@ -95,16 +95,16 @@ namespace NewLife.Net.DNS
             set { GetAnswer(true).TTL = value; }
         }
 
-        /// <summary>数据字符串</summary>
-        public virtual String DataString
-        {
-            get
-            {
-                var aw = GetAnswer();
-                return aw != null ? aw.DataString : null;
-            }
-            set { GetAnswer(true).DataString = value; }
-        }
+        ///// <summary>数据字符串</summary>
+        //public virtual String DataString
+        //{
+        //    get
+        //    {
+        //        var aw = GetAnswer();
+        //        return aw != null ? aw.DataString : null;
+        //    }
+        //    set { GetAnswer(true).DataString = value; }
+        //}
         #endregion
 
         #region 读写
@@ -278,6 +278,7 @@ namespace NewLife.Net.DNS
         /// <returns>是否读取成功，若返回成功读取器将不再读取该对象</returns>
         public virtual bool Read(IReader reader)
         {
+            reader.OnMemberReading += new EventHandler<ReadMemberEventArgs>(reader_OnMemberReading);
             reader.OnItemReading += new EventHandler<ReadItemEventArgs>(reader_OnItemReading);
             return false;
         }
@@ -287,8 +288,8 @@ namespace NewLife.Net.DNS
             if (e.Type == typeof(DNSRecord))
             {
                 var reader = sender as IReader;
-                String name = DNSRecord.GetNameAccessor(reader).Read(reader.Stream, reader.Stream.Position);
                 var p = reader.Stream.Position;
+                String name = GetNameAccessor(reader).Read(reader.Stream, 0);
                 DNSQueryType qt = (DNSQueryType)reader.ReadValue(typeof(DNSQueryType));
                 // 退回去，让序列化自己读
                 reader.Stream.Position = p;
@@ -314,7 +315,11 @@ namespace NewLife.Net.DNS
         /// </summary>
         /// <param name="writer">写入器</param>
         /// <returns>是否写入成功，若返回成功写入器将不再读写入对象</returns>
-        public virtual bool Write(IWriter writer) { return false; }
+        public virtual bool Write(IWriter writer)
+        {
+            writer.OnMemberWriting += new EventHandler<WriteMemberEventArgs>(writer_OnMemberWriting);
+            return false;
+        }
 
         /// <summary>
         /// 把对象数据写入到写入器后执行。接口实现者可以在这里取消Write阶段设置的事件
@@ -323,6 +328,50 @@ namespace NewLife.Net.DNS
         /// <param name="success">是否写入成功</param>
         /// <returns>是否写入成功</returns>
         public virtual bool WriteComplete(IWriter writer, bool success) { return success; }
+        #endregion
+
+        #region 特殊处理字符串
+        void reader_OnMemberReading(object sender, ReadMemberEventArgs e)
+        {
+            var reader = sender as IReader;
+            if (e.Type == typeof(String))
+            {
+                e.Member[e.Value] = GetNameAccessor(reader).Read(reader.Stream, 0);
+                //reader.WriteLog("ReadMember", "_Name", "String", e.Member[e.Value]);
+                e.Success = true;
+            }
+            else if (e.Type == typeof(TimeSpan))
+            {
+                e.Member[e.Value] = new TimeSpan(0, 0, reader.ReadInt32());
+                e.Success = true;
+            }
+        }
+
+        void writer_OnMemberWriting(object sender, WriteMemberEventArgs e)
+        {
+            var writer = sender as IWriter;
+            if (e.Type == typeof(String))
+            {
+                //writer.WriteLog("WriteMember", "_Name", "String", e.Member[e.Value]);
+                GetNameAccessor(writer).Write(writer.Stream, (String)e.Member[e.Value], 0);
+                e.Success = true;
+            }
+            else if (e.Type == typeof(TimeSpan))
+            {
+                var ts = (TimeSpan)e.Member[e.Value];
+                writer.Write((Int32)ts.TotalSeconds);
+                e.Success = true;
+            }
+        }
+
+        [DebuggerHidden]
+        internal static DNSNameAccessor GetNameAccessor(IReaderWriter rw)
+        {
+            var accessor = rw.Items["Names"] as DNSNameAccessor;
+            if (accessor == null) rw.Items.Add("Names", accessor = new DNSNameAccessor());
+
+            return accessor;
+        }
         #endregion
 
         #region 辅助

@@ -42,6 +42,10 @@ namespace NewLife.Net.DNS
             }
         }
 
+        /// <summary>从流中读取字符串</summary>
+        /// <param name="stream">数据流</param>
+        /// <param name="offset">数据流相对于真正数据的位移</param>
+        /// <returns></returns>
         public String Read(Stream stream, Int64 offset)
         {
             // 先用局部变量临时保存，因为每新读出来一段，就要全部加上去

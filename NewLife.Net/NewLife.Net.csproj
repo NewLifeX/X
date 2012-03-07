@@ -61,6 +61,8 @@
     <Compile Include="Dhcp\DhcpEntity.cs" />
     <Compile Include="DNS\DNS_NS.cs" />
     <Compile Include="DNS\DNS_MX.cs" />
+    <Compile Include="DNS\DNS_SOA.cs" />
+    <Compile Include="DNS\DNS_TXT.cs" />
     <Compile Include="Fetion\WapFetion.cs" />
     <Compile Include="FTP\FTPClient.cs" />
     <Compile Include="FTP\FTPItem.cs" />

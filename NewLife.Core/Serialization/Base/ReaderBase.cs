@@ -1556,7 +1556,11 @@ namespace NewLife.Serialization
                     callback = e.Callback;
 
                     // 事件处理器可能已经成功读取对象
-                    if (e.Success) return true;
+                    if (e.Success)
+                    {
+                        CurrentMember = old;
+                        return true;
+                    }
                 }
 
                 Object obj = null;

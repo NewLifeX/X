@@ -6,6 +6,7 @@ using NewLife.Net.Proxy;
 using NewLife.Net.Sockets;
 using NewLife.Threading;
 using NewLife.Net.DNS;
+using System.IO;
 
 namespace Test
 {
@@ -70,8 +71,11 @@ namespace Test
             ////server.Dispose();
             //http.Dispose();
 
-            var ds = new DNSServer();
-            ds.Start();
+            //var ds = new DNSServer();
+            //ds.Start();
+
+            var entity2 = DNSEntity.Read(File.ReadAllBytes("dns2.bin"), false);
+            Console.WriteLine(entity2);
         }
 
         static void ShowStatus()

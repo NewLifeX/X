@@ -1,11 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using NewLife.Exceptions;
+using NewLife.IO;
 using NewLife.Log;
 using NewLife.Reflection;
-using NewLife.IO;
-using System.Collections.Generic;
 
 namespace NewLife.Serialization
 {

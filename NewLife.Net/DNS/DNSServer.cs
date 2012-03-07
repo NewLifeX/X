@@ -1,4 +1,5 @@
 ﻿using System;
+using NewLife.IO;
 using NewLife.Linq;
 using System.Collections.Generic;
 using System.IO;
@@ -125,12 +126,16 @@ namespace NewLife.Net.DNS
             }
 
             // 读取缓存
-            var entity2 = cache.GetItem<DNSEntity>(entity.ToString(), entity, GetDNS, false);
-            //var entity2 = GetDNS(null, entity);
+            //var entity2 = cache.GetItem<DNSEntity>(entity.ToString(), entity, GetDNS, false);
+            var entity2 = DNSEntity.Read(File.ReadAllBytes("dns2.bin"), false);
 
             // 返回给客户端
             if (entity2 != null)
             {
+                //var fs = new FileStream("dns.bin", FileMode.CreateNew);
+                //entity2.GetStream().CopyTo(fs);
+                //fs.Close();
+
                 // 如果是PTR请求
                 if (entity.Type == DNSQueryType.PTR && entity2.Type == DNSQueryType.PTR)
                 {

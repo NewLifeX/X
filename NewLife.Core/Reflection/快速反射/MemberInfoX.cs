@@ -136,7 +136,12 @@ namespace NewLife.Reflection
             if (type == null || String.IsNullOrEmpty(name)) return null;
 
             var mis = type.GetMember(name, DefaultBinding | BindingFlags.IgnoreCase);
-            if (mis == null || mis.Length < 1) return null;
+            if (mis == null || mis.Length < 1)
+            {
+                //return null;
+                // 基类的字段是无法通过这种方法得到的
+                return FieldInfoX.Create(type, name);
+            }
             if (mis.Length == 1) return Create(mis[0]);
 
             var ts = new MemberTypes[] { MemberTypes.Property, MemberTypes.Field, MemberTypes.Constructor, MemberTypes.Method, MemberTypes.Event };
