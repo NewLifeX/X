@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Net;
 
 namespace NewLife.Net.DNS
 {
@@ -25,7 +24,7 @@ namespace NewLife.Net.DNS
         /// <returns></returns>
         public override string ToString()
         {
-            return base.ToString() + " " + NameServer;
+            return String.Format("{0} {1}", Type, NameServer);
         }
     }
 }

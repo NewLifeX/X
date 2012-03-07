@@ -48,7 +48,7 @@ namespace NewLife.Net.DNS
         /// <returns></returns>
         public override string ToString()
         {
-            return base.ToString() + " " + PrimaryNameServer;
+            return String.Format("{0} {1}", Type, PrimaryNameServer);
         }
     }
 }

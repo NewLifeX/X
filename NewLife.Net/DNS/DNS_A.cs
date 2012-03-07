@@ -12,13 +12,6 @@ namespace NewLife.Net.DNS
     public class DNS_A : DNSRecord
     {
         #region 属性
-        ///// <summary>IP地址</summary>
-        //public IPAddress Address
-        //{
-        //    get { return !String.IsNullOrEmpty(DataString) ? IPAddress.Parse(DataString) : null; }
-        //    set { DataString = value.ToString(); }
-        //}
-
         [FieldSize("_Length")]
         private IPAddress _Address;
         /// <summary>IP地址</summary>
@@ -34,23 +27,11 @@ namespace NewLife.Net.DNS
         }
         #endregion
 
-        #region 方法
-        //internal override void OnReadDataString(IReader reader, long position)
-        //{
-        //    Address = new IPAddress(Data);
-        //}
-
-        //internal override void OnWriteDataString(IWriter writer, Stream ms)
-        //{
-        //    Data = Address.GetAddressBytes();
-        //}
-        #endregion
-
         /// <summary>已重载。</summary>
         /// <returns></returns>
         public override string ToString()
         {
-            return base.ToString() + " " + Address;
+            return String.Format("{0} {1}", Type, Address);
         }
     }
 }

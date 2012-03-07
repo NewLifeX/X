@@ -334,7 +334,8 @@ namespace NewLife.Net.DNS
         void reader_OnMemberReading(object sender, ReadMemberEventArgs e)
         {
             var reader = sender as IReader;
-            if (e.Type == typeof(String))
+            // TXT记录的Text字段不采用DNS字符串
+            if (e.Type == typeof(String) && e.Member.Name != "_Text")
             {
                 Object ps = reader.Items["Position"];
                 Int64 p = ps is Int64 ? (Int64)ps : 0;
@@ -352,7 +353,8 @@ namespace NewLife.Net.DNS
         void writer_OnMemberWriting(object sender, WriteMemberEventArgs e)
         {
             var writer = sender as IWriter;
-            if (e.Type == typeof(String))
+            // TXT记录的Text字段不采用DNS字符串
+            if (e.Type == typeof(String) && e.Member.Name != "_Text")
             {
                 //writer.WriteLog("WriteMember", "_Name", "String", e.Member[e.Value]);
                 Object ps = writer.Items["Position"];

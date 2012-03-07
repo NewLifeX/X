@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Net;
-using NewLife.Serialization;
 
 namespace NewLife.Net.DNS
 {
@@ -68,7 +65,7 @@ namespace NewLife.Net.DNS
         /// <returns></returns>
         public override string ToString()
         {
-            return base.ToString() + " " + DomainName;
+            return String.Format("{0} {1}", Type, DomainName);
         }
     }
 }
