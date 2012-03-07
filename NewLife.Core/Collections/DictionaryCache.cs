@@ -45,7 +45,7 @@ namespace NewLife.Collections
             public DateTime ExpiredTime;
 
             /// <summary>是否过期</summary>
-            public Boolean Expired { get { return ExpiredTime > DateTime.Now; } }
+            public Boolean Expired { get { return ExpiredTime <= DateTime.Now; } }
 
             public CacheItem(TValue value, Int32 seconds)
             {
