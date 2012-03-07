@@ -68,14 +68,14 @@ namespace NewLife.Net.DNS
         /// <returns></returns>
         internal protected DNSRecord GetAnswer(Boolean create = false)
         {
+            var type = Question.Type;
             if (Answers == null || Answers.Length < 1)
             {
                 if (!create) return null;
 
-                Answers = new DNSRecord[] { new DNSRecord() };
+                Answers = new DNSRecord[] { CreateRecord(type) };
             }
 
-            var type = Question.Type;
             foreach (var item in Answers)
             {
                 if (item.Type == type) return item;
@@ -83,28 +83,6 @@ namespace NewLife.Net.DNS
 
             return Answers[0];
         }
-
-        /// <summary>生存时间。指示RDATA中的资源记录在缓存的生存时间。</summary>
-        public virtual TimeSpan TTL
-        {
-            get
-            {
-                var aw = GetAnswer();
-                return aw != null ? aw.TTL : TimeSpan.MinValue;
-            }
-            set { GetAnswer(true).TTL = value; }
-        }
-
-        ///// <summary>数据字符串</summary>
-        //public virtual String DataString
-        //{
-        //    get
-        //    {
-        //        var aw = GetAnswer();
-        //        return aw != null ? aw.DataString : null;
-        //    }
-        //    set { GetAnswer(true).DataString = value; }
-        //}
         #endregion
 
         #region 读写
@@ -192,45 +170,7 @@ namespace NewLife.Net.DNS
             }
 
             // 先读取
-            var entity = ReadRaw(stream);
-            //if (entity != null && entity.Question != null)
-            //{
-            //    Type type = null;
-            //    if (entitytypes.TryGetValue(entity.Type, out type) && type != null)
-            //    {
-            //        var de = TypeX.CreateInstance(type) as DNSEntity;
-            //        return de.CloneFrom(entity);
-            //    }
-            //}
-            //if (entity != null)
-            //{
-            //    entity.Questions = ReSet(entity.Questions);
-            //    entity.Answers = ReSet(entity.Answers);
-            //    entity.Additionals = ReSet(entity.Additionals);
-            //    entity.Authoritis = ReSet(entity.Authoritis);
-            //}
-
-            return entity;
-        }
-
-        static DNSRecord[] ReSet(DNSRecord[] drs)
-        {
-            if (drs == null || drs.Length < 1) return drs;
-
-            var list = new List<DNSRecord>();
-            foreach (var item in drs)
-            {
-                Type type = null;
-                if (entitytypes.TryGetValue(item.Type, out type))
-                {
-                    var dr = TypeX.CreateInstance(type) as DNSRecord;
-                    if (dr != null) list.Add(dr.CloneFrom(item));
-                }
-                else
-                    list.Add(item);
-            }
-
-            return list.ToArray();
+            return ReadRaw(stream);
         }
 
         /// <summary>从数据流中读取对象，返回DNSEntity对象</summary>
@@ -258,10 +198,6 @@ namespace NewLife.Net.DNS
         static Dictionary<DNSQueryType, Type> entitytypes = new Dictionary<DNSQueryType, Type>();
         static DNSEntity()
         {
-            //entitytypes.Add(DNSQueryType.A, typeof(DNS_A));
-            //entitytypes.Add(DNSQueryType.AAAA, typeof(DNS_AAAA));
-            //entitytypes.Add(DNSQueryType.CNAME, typeof(DNS_CNAME));
-            //entitytypes.Add(DNSQueryType.PTR, typeof(DNS_PTR));
             foreach (var item in AssemblyX.FindAllPlugins(typeof(DNSRecord)))
             {
                 if (item == typeof(DNSRecord)) continue;
@@ -269,6 +205,14 @@ namespace NewLife.Net.DNS
                 var dr = TypeX.CreateInstance(item) as DNSRecord;
                 if (dr != null) entitytypes.Add(dr.Type, item);
             }
+        }
+
+        static DNSRecord CreateRecord(DNSQueryType qt)
+        {
+            Type type = null;
+            if (!entitytypes.TryGetValue(qt, out type) || type == null) return null;
+
+            return TypeX.CreateInstance(type) as DNSRecord;
         }
         #endregion
 
@@ -295,9 +239,14 @@ namespace NewLife.Net.DNS
                 DNSQueryType qt = (DNSQueryType)reader.ReadValue(typeof(DNSQueryType));
                 // 退回去，让序列化自己读
                 reader.Stream.Position = p;
-                Type type = null;
-                if (entitytypes.TryGetValue(qt, out type) && type != null) e.Type = type;
-                var value = TypeX.CreateInstance(e.Type) as DNSRecord;
+                //Type type = null;
+                //if (entitytypes.TryGetValue(qt, out type) && type != null) e.Type = type;
+                //var value = TypeX.CreateInstance(e.Type) as DNSRecord;
+                var value = CreateRecord(qt);
+                if (value != null)
+                    e.Type = value.GetType();
+                else
+                    value = new DNSRecord();
                 value.Name = name;
                 //value.Type = qt;
                 e.Value = value;

@@ -1,4 +1,5 @@
 ﻿using System;
+using NewLife.IO;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
@@ -114,9 +115,6 @@ namespace NewLife.Net.DNS
                     var rs = new DNSEntity();
                     rs.Questions = entity.Questions;
                     rs.Answers = new DNSRecord[] { ptr2 };
-                    //var aw = rs.GetAnswer(true);
-                    //aw.Type = DNSQueryType.PTR;
-                    //aw.Name = ptr.Name;
 
                     rs.Header.ID = entity.Header.ID;
                     session.Send(rs.GetStream(isTcp));
@@ -126,14 +124,12 @@ namespace NewLife.Net.DNS
 
             // 读取缓存
             var entity2 = cache.GetItem<DNSEntity>(entity.ToString(), entity, GetDNS, false);
-            //var entity2 = DNSEntity.Read(File.ReadAllBytes("dns2.bin"), false);
 
             // 返回给客户端
             if (entity2 != null)
             {
-                //var fs = new FileStream("dns.bin", FileMode.CreateNew);
-                //entity2.GetStream().CopyTo(fs);
-                //fs.Close();
+                //String file = String.Format("dns_{0:MMddHHmmss}.bin", DateTime.Now);
+                //File.WriteAllBytes(file, entity2.GetStream().ReadBytes());
 
                 // 如果是PTR请求
                 if (entity.Type == DNSQueryType.PTR && entity2.Type == DNSQueryType.PTR)
@@ -151,10 +147,8 @@ namespace NewLife.Net.DNS
                     }
                 }
                 entity2.Header.ID = entity.Header.ID;
-                //session.Send(entity2.GetStream(isTcp), e.RemoteEndPoint);
                 session.Send(entity2.GetStream(isTcp));
             }
-            //session.Disconnect();
             session.Dispose();
         }
 
@@ -173,7 +167,7 @@ namespace NewLife.Net.DNS
                     // 复制一份，防止修改外部
                     entity = new DNSEntity().CloneFrom(entity);
 
-                    var ptr = entity.GetAnswer() as DNS_PTR;
+                    var ptr = entity.GetAnswer(true) as DNS_PTR;
                     ptr.Address = parent.Address;
                 }
 
