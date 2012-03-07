@@ -3,6 +3,7 @@ using System.Collections;
 using System.IO;
 using NewLife.Linq;
 using NewLife.Log;
+using System.Collections.Generic;
 
 namespace NewLife.Serialization
 {
@@ -97,6 +98,43 @@ namespace NewLife.Serialization
                 return false;
             else
                 return true;
+        }
+        #endregion
+
+        #region 备份还原环境
+        private Stack<Dictionary<String, Object>> _stack;
+
+        /// <summary>备份当前环境，用于临时切换数据流等</summary>
+        /// <returns>本次备份项集合</returns>
+        public virtual IDictionary<String, Object> Backup()
+        {
+            if (_stack == null) _stack = new Stack<Dictionary<String, Object>>();
+
+            var dic = new Dictionary<String, Object>();
+            dic["Stream"] = Stream;
+            dic["Depth"] = Depth;
+            dic["CurrentObject"] = CurrentObject;
+            dic["CurrentMember"] = CurrentMember;
+
+            _stack.Push(dic);
+
+            return dic;
+        }
+
+        /// <summary>恢复最近一次备份</summary>
+        /// <returns>本次还原项集合</returns>
+        public virtual IDictionary<String, Object> Restore()
+        {
+            if (_stack == null || _stack.Count <= 0) throw new Exception("没有任何备份项！");
+
+            var dic = _stack.Pop();
+
+            Stream = dic["Stream"] as Stream;
+            Depth = (Int32)dic["Depth"];
+            CurrentObject = dic["CurrentObject"];
+            CurrentMember = dic["CurrentMember"] as IObjectMemberInfo;
+
+            return dic;
         }
         #endregion
 

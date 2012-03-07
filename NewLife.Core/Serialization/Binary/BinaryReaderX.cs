@@ -5,6 +5,7 @@ using NewLife.Exceptions;
 using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.IO;
+using System.Collections.Generic;
 
 namespace NewLife.Serialization
 {
@@ -36,7 +37,7 @@ namespace NewLife.Serialization
             set
             {
                 _Reader = value;
-                if (Stream != _Reader.BaseStream) Stream = _Reader.BaseStream;
+                if (_Reader != null && Stream != _Reader.BaseStream) Stream = _Reader.BaseStream;
             }
         }
 
@@ -405,6 +406,26 @@ namespace NewLife.Serialization
             var ts = new TraceStream(stream);
             ts.IsLittleEndian = Settings.IsLittleEndian;
             Stream = ts;
+        }
+
+        /// <summary>备份当前环境，用于临时切换数据流等</summary>
+        /// <returns>本次备份项集合</returns>
+        public override IDictionary<String, Object> Backup()
+        {
+            var dic = base.Backup();
+            dic["Reader"] = Reader;
+
+            return dic;
+        }
+
+        /// <summary>恢复最近一次备份</summary>
+        /// <returns>本次还原项集合</returns>
+        public override IDictionary<String, Object> Restore()
+        {
+            var dic = base.Restore();
+            Reader = dic["Reader"] as BinaryReader;
+
+            return dic;
         }
         #endregion
 

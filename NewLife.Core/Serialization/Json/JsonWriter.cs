@@ -537,6 +537,26 @@ namespace NewLife.Serialization
 
             base.Flush();
         }
+
+        /// <summary>备份当前环境，用于临时切换数据流等</summary>
+        /// <returns>本次备份项集合</returns>
+        public override IDictionary<String, Object> Backup()
+        {
+            var dic = base.Backup();
+            dic["Writer"] = Writer;
+
+            return dic;
+        }
+
+        /// <summary>恢复最近一次备份</summary>
+        /// <returns>本次还原项集合</returns>
+        public override IDictionary<String, Object> Restore()
+        {
+            var dic = base.Restore();
+            Writer = dic["Writer"] as TextWriter;
+
+            return dic;
+        }
         #endregion
     }
 }
