@@ -1009,7 +1009,11 @@ namespace NewLife.Serialization
                     OnMemberWriting(this, e);
 
                     // 事件处理器可能已经成功写入对象
-                    if (e.Success) return true;
+                    if (e.Success)
+                    {
+                        CurrentMember = old;
+                        return true;
+                    }
 
                     // 事件里面有可能改变了参数
                     value = e.Value;

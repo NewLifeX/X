@@ -38,6 +38,10 @@ namespace NewLife.Log
         public Boolean IsLittleEndian { get { return _IsLittleEndian; } set { _IsLittleEndian = value; } }
 
         static readonly String[] DefaultTraceMembers = new String[] { "Write", "WriteByte", "Read", "ReadByte", "BeginRead", "BeginWrite", "EndRead", "EndWrite", "Seek", "Close", "Flush", "SetLength", "SetPosition" };
+
+        private Int32 _ShowPositionStep = 10;
+        /// <summary>显示位置的步长，位移超过此长度后输出位置。默认10，设为0不输出位置</summary>
+        public Int32 ShowPositionStep { get { return _ShowPositionStep; } set { _ShowPositionStep = value; } }
         #endregion
 
         #region 基本读写方法
@@ -229,11 +233,28 @@ namespace NewLife.Log
         /// </summary>
         public event EventHandler<EventArgs<String, Object[]>> OnAction;
 
+        Int64 lastPosition = -1;
         void RaiseAction(String action, params Object[] args)
         {
             if (OnAction != null)
             {
                 if (_TraceMembers != null && !_TraceMembers.Contains(action)) return;
+
+                if (ShowPositionStep > 0)
+                {
+                    var cp = Position;
+                    if (lastPosition < 0)
+                    {
+                        lastPosition = cp;
+                        OnAction(this, new EventArgs<string, object[]>("BeginPosition", new Object[] { lastPosition }));
+                    }
+
+                    if (cp > lastPosition + ShowPositionStep)
+                    {
+                        lastPosition = cp;
+                        OnAction(this, new EventArgs<string, object[]>("Position", new Object[] { lastPosition }));
+                    }
+                }
 
                 OnAction(this, new EventArgs<string, object[]>(action, args));
             }
