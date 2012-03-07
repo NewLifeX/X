@@ -1,4 +1,5 @@
 ﻿using System;
+using NewLife.IO;
 using System.Collections.Generic;
 using System.IO;
 using NewLife.Collections;
@@ -84,11 +85,51 @@ namespace NewLife.Net.DNS
             // 如果当前成员是_Questions，忽略三个字段
             AddFilter(writer);
 
+            // 写_Length之前，切换数据流
+            writer.OnMemberWriting += new EventHandler<WriteMemberEventArgs>(writer_OnMemberWriting);
+
             return false;
+        }
+
+        void writer_OnMemberWriting(object sender, WriteMemberEventArgs e)
+        {
+            if (e.Member.Name == "_Length")
+            {
+                var writer = sender as IWriter;
+                // 记住数据流位置，读取字符串的时候需要用到
+                // +2是为了先对长度进行占位，这个位置会影响DNS字符串的相对位置
+                writer.Items["Position"] = writer.Stream.Position + 2;
+                // 切换数据流，使用新数据流完成余下字段的序列化
+                writer.Backup();
+                writer.Stream = new MemoryStream();
+
+
+                e.Success = true;
+            }
         }
 
         bool IAccessor.WriteComplete(IWriter writer, bool success)
         {
+            // 先处理这个再移除过滤，因为这里需要依据被过滤的项来判断
+            if (!writer.Settings.IgnoreMembers.Contains("_Length"))
+            {
+                // 附加数据
+                var ms = writer.Stream;
+                ms.Position = 0;
+                _Length = (Int16)ms.Length;
+
+                // 恢复环境
+                writer.Restore();
+                if (writer.Items.Contains("Position")) writer.Items.Remove("Position");
+
+                // 写入_Length和数据
+                writer.Write(_Length);
+                var buffer = ms.ReadBytes();
+                writer.Write(buffer, 0, buffer.Length);
+            }
+
+            writer.OnMemberWriting -= new EventHandler<WriteMemberEventArgs>(writer_OnMemberWriting);
+
             RemoveFilter(writer);
 
             return success;
@@ -115,7 +156,7 @@ namespace NewLife.Net.DNS
         void RemoveFilter(IReaderWriter rw)
         {
             var ims = rw.Settings.IgnoreMembers;
-            if (rw.CurrentMember != null && rw.CurrentMember.Name == "_Questions")
+            if (ims.Count > 0 && rw.CurrentMember != null && rw.CurrentMember.Name == "_Questions")
             {
                 //if (ims.Contains("_TTL")) ims.Remove("_TTL");
                 //if (ims.Contains("_Length")) ims.Remove("_Length");

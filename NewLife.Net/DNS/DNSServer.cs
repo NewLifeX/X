@@ -126,8 +126,8 @@ namespace NewLife.Net.DNS
             }
 
             // 读取缓存
-            //var entity2 = cache.GetItem<DNSEntity>(entity.ToString(), entity, GetDNS, false);
-            var entity2 = DNSEntity.Read(File.ReadAllBytes("dns2.bin"), false);
+            var entity2 = cache.GetItem<DNSEntity>(entity.ToString(), entity, GetDNS, false);
+            //var entity2 = DNSEntity.Read(File.ReadAllBytes("dns2.bin"), false);
 
             // 返回给客户端
             if (entity2 != null)

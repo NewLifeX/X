@@ -357,6 +357,7 @@ namespace NewLife.Net.DNS
                 //writer.WriteLog("WriteMember", "_Name", "String", e.Member[e.Value]);
                 Object ps = writer.Items["Position"];
                 Int64 p = ps is Int64 ? (Int64)ps : 0;
+                p += writer.Stream.Position;
                 GetNameAccessor(writer).Write(writer.Stream, (String)e.Member[e.Value], p);
                 e.Success = true;
             }

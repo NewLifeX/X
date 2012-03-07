@@ -140,8 +140,16 @@ namespace NewLife.Net.DNS
                 String name = String.Join(".", ss, i, ss.Length - i);
                 if (Values.Contains(name))
                 {
-                    stream.WriteByte(0xC0);
-                    stream.WriteByte((Byte)this[name]);
+                    //stream.WriteByte(0xC0);
+                    //stream.WriteByte((Byte)this[name]);
+
+                    // 偏移量的标准公式是：(Cn-C0)*256+偏移
+                    // 相对位置，注意超长位移（大于0xFF）
+                    Int32 abp = this[name];
+                    Int32 ab = abp / 0xFF;
+                    abp = abp & 0xFF;
+                    stream.WriteByte((Byte)(0xC0 + ab));
+                    stream.WriteByte((Byte)abp);
 
                     // 之前的每个加上str
                     for (int j = 0; j < values.Count; j++) values[j] += "." + name;
