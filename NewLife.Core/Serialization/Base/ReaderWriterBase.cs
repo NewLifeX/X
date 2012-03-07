@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using NewLife.Linq;
 using NewLife.Log;
-using System.Collections.Generic;
 
 namespace NewLife.Serialization
 {
@@ -112,9 +112,9 @@ namespace NewLife.Serialization
 
             var dic = new Dictionary<String, Object>();
             dic["Stream"] = Stream;
-            dic["Depth"] = Depth;
-            dic["CurrentObject"] = CurrentObject;
-            dic["CurrentMember"] = CurrentMember;
+            //dic["Depth"] = Depth;
+            //dic["CurrentObject"] = CurrentObject;
+            //dic["CurrentMember"] = CurrentMember;
 
             _stack.Push(dic);
 
@@ -129,10 +129,12 @@ namespace NewLife.Serialization
 
             var dic = _stack.Pop();
 
-            Stream = dic["Stream"] as Stream;
-            Depth = (Int32)dic["Depth"];
-            CurrentObject = dic["CurrentObject"];
-            CurrentMember = dic["CurrentMember"] as IObjectMemberInfo;
+            Object obj = null;
+            if (dic.TryGetValue("Stream", out obj)) Stream = obj as Stream;
+            //Stream = dic["Stream"] as Stream;
+            //Depth = (Int32)dic["Depth"];
+            //CurrentObject = dic["CurrentObject"];
+            //CurrentMember = dic["CurrentMember"] as IObjectMemberInfo;
 
             return dic;
         }
@@ -147,7 +149,12 @@ namespace NewLife.Serialization
         /// <returns>需要序列化的成员</returns>
         public IObjectMemberInfo[] GetMembers(Type type, Object value)
         {
-            if (type == null) throw new ArgumentNullException("type");
+            if (type == null)
+            {
+                if (value == null) throw new ArgumentNullException("type");
+
+                type = value.GetType();
+            }
 
             IObjectMemberInfo[] mis = OnGetMembers(type, value);
 
