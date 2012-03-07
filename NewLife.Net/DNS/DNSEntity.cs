@@ -12,7 +12,7 @@ namespace NewLife.Net.DNS
     /// <remarks>
     /// 参考博客园 @看那边的人 <a target="_blank" href="http://www.cnblogs.com/topdog/archive/2011/11/15/2250185.html">DIY一个DNS查询器：了解DNS协议</a> <a target="_blank" href="http://www.cnblogs.com/topdog/archive/2011/11/21/2257597.html">DIY一个DNS查询器：程序实现</a>
     /// </remarks>
-    public class DNSEntity //: IAccessor
+    public class DNSEntity : IAccessor
     {
         #region 属性
         private DNSHeader _Header = new DNSHeader();
@@ -201,13 +201,13 @@ namespace NewLife.Net.DNS
             //        return de.CloneFrom(entity);
             //    }
             //}
-            if (entity != null)
-            {
-                entity.Questions = ReSet(entity.Questions);
-                entity.Answers = ReSet(entity.Answers);
-                entity.Additionals = ReSet(entity.Additionals);
-                entity.Authoritis = ReSet(entity.Authoritis);
-            }
+            //if (entity != null)
+            //{
+            //    entity.Questions = ReSet(entity.Questions);
+            //    entity.Answers = ReSet(entity.Answers);
+            //    entity.Additionals = ReSet(entity.Additionals);
+            //    entity.Authoritis = ReSet(entity.Authoritis);
+            //}
 
             return entity;
         }
@@ -271,35 +271,58 @@ namespace NewLife.Net.DNS
         #endregion
 
         #region IAccessor 成员
-        ///// <summary>
-        ///// 从读取器中读取数据到对象。接口实现者可以在这里完全自定义行为（返回true），也可以通过设置事件来影响行为（返回false）
-        ///// </summary>
-        ///// <param name="reader">读取器</param>
-        ///// <returns>是否读取成功，若返回成功读取器将不再读取该对象</returns>
-        //public virtual bool Read(IReader reader) { return false; }
+        /// <summary>
+        /// 从读取器中读取数据到对象。接口实现者可以在这里完全自定义行为（返回true），也可以通过设置事件来影响行为（返回false）
+        /// </summary>
+        /// <param name="reader">读取器</param>
+        /// <returns>是否读取成功，若返回成功读取器将不再读取该对象</returns>
+        public virtual bool Read(IReader reader)
+        {
+            reader.OnItemReading += new EventHandler<ReadItemEventArgs>(reader_OnItemReading);
+            return false;
+        }
 
-        ///// <summary>
-        ///// 从读取器中读取数据到对象后执行。接口实现者可以在这里取消Read阶段设置的事件
-        ///// </summary>
-        ///// <param name="reader">读取器</param>
-        ///// <param name="success">是否读取成功</param>
-        ///// <returns>是否读取成功</returns>
-        //public virtual bool ReadComplete(IReader reader, bool success) { return success; }
+        void reader_OnItemReading(object sender, ReadItemEventArgs e)
+        {
+            if (e.Type == typeof(DNSRecord))
+            {
+                var reader = sender as IReader;
+                String name = DNSRecord.GetNameAccessor(reader).Read(reader.Stream, reader.Stream.Position);
+                var p = reader.Stream.Position;
+                DNSQueryType qt = (DNSQueryType)reader.ReadValue(typeof(DNSQueryType));
+                // 退回去，让序列化自己读
+                reader.Stream.Position = p;
+                Type type = null;
+                if (entitytypes.TryGetValue(qt, out type) && type != null) e.Type = type;
+                var value = TypeX.CreateInstance(e.Type) as DNSRecord;
+                value.Name = name;
+                //value.Type = qt;
+                e.Value = value;
+            }
+        }
 
-        ///// <summary>
-        ///// 把对象数据写入到写入器。接口实现者可以在这里完全自定义行为（返回true），也可以通过设置事件来影响行为（返回false）
-        ///// </summary>
-        ///// <param name="writer">写入器</param>
-        ///// <returns>是否写入成功，若返回成功写入器将不再读写入对象</returns>
-        //public virtual bool Write(IWriter writer) { return false; }
+        /// <summary>
+        /// 从读取器中读取数据到对象后执行。接口实现者可以在这里取消Read阶段设置的事件
+        /// </summary>
+        /// <param name="reader">读取器</param>
+        /// <param name="success">是否读取成功</param>
+        /// <returns>是否读取成功</returns>
+        public virtual bool ReadComplete(IReader reader, bool success) { return success; }
 
-        ///// <summary>
-        ///// 把对象数据写入到写入器后执行。接口实现者可以在这里取消Write阶段设置的事件
-        ///// </summary>
-        ///// <param name="writer">写入器</param>
-        ///// <param name="success">是否写入成功</param>
-        ///// <returns>是否写入成功</returns>
-        //public virtual bool WriteComplete(IWriter writer, bool success) { return success; }
+        /// <summary>
+        /// 把对象数据写入到写入器。接口实现者可以在这里完全自定义行为（返回true），也可以通过设置事件来影响行为（返回false）
+        /// </summary>
+        /// <param name="writer">写入器</param>
+        /// <returns>是否写入成功，若返回成功写入器将不再读写入对象</returns>
+        public virtual bool Write(IWriter writer) { return false; }
+
+        /// <summary>
+        /// 把对象数据写入到写入器后执行。接口实现者可以在这里取消Write阶段设置的事件
+        /// </summary>
+        /// <param name="writer">写入器</param>
+        /// <param name="success">是否写入成功</param>
+        /// <returns>是否写入成功</returns>
+        public virtual bool WriteComplete(IWriter writer, bool success) { return success; }
         #endregion
 
         #region 辅助

@@ -72,7 +72,8 @@ namespace NewLife.Net.DNS
             if (Data == null || Data.Length < 2) return;
 
             var data = new Byte[2];
-            Data.CopyTo(data, 0);
+            Array.Copy(Data, 0, data, 0, data.Length);
+            Array.Reverse(data);
             Preference = BitConverter.ToInt16(data, 0);
 
             // 当前指针在数据流后面
@@ -84,6 +85,7 @@ namespace NewLife.Net.DNS
             //base.OnWriteDataString(writer, ms);
 
             var data = BitConverter.GetBytes(Preference);
+            Array.Reverse(data);
             ms.WriteByte(data[0]);
             ms.WriteByte(data[1]);
 

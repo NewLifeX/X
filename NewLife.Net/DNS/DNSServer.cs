@@ -113,10 +113,10 @@ namespace NewLife.Net.DNS
 
                     var rs = new DNSEntity();
                     rs.Questions = entity.Questions;
-
-                    var aw = rs.Answers[0];
-                    aw.Type = DNSQueryType.PTR;
-                    aw.Name = ptr.Name;
+                    rs.Answers = new DNSRecord[] { ptr2 };
+                    //var aw = rs.GetAnswer(true);
+                    //aw.Type = DNSQueryType.PTR;
+                    //aw.Name = ptr.Name;
 
                     rs.Header.ID = entity.Header.ID;
                     session.Send(rs.GetStream(isTcp));

@@ -46,9 +46,9 @@ namespace NewLife.Net.DNS
 
         bool IAccessor.Read(IReader reader)
         {
-            // 提前读取名称
-            Name = GetNameAccessor(reader).Read(reader.Stream, 0);
-            reader.WriteLog("ReadMember", "_Name", "String", Name);
+            //// 提前读取名称
+            //Name = GetNameAccessor(reader).Read(reader.Stream, reader.Stream.Position);
+            //reader.WriteLog("ReadMember", "_Name", "String", Name);
 
             // 如果当前成员是_Questions，忽略三个字段
             AddFilter(reader);
