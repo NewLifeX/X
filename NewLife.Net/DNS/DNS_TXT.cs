@@ -1,4 +1,5 @@
 ﻿using System;
+using NewLife.Serialization;
 
 namespace NewLife.Net.DNS
 {
@@ -6,6 +7,7 @@ namespace NewLife.Net.DNS
     public class DNS_TXT : DNSRecord
     {
         #region 属性
+        [FieldSize("_Length")]
         private String _Text;
         /// <summary>文本</summary>
         public String Text { get { return _Text; } set { _Text = value; } }

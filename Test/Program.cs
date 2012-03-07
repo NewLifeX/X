@@ -24,7 +24,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test1();
+                Test1();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -72,20 +72,23 @@ namespace Test
             ////server.Dispose();
             //http.Dispose();
 
-            var ds = new DNSServer();
-            ds.Start();
+            //var ds = new DNSServer();
+            //ds.Start();
 
-            //var buffer = File.ReadAllBytes("dns2.bin");
-            //var entity2 = DNSEntity.Read(buffer, false);
-            //Console.WriteLine(entity2);
+            for (int i = 1; i < 5; i++)
+            {
+                var buffer = File.ReadAllBytes("dns" + i + ".bin");
+                var entity2 = DNSEntity.Read(buffer, false);
+                Console.WriteLine(entity2);
 
-            //var buffer2 = entity2.GetStream().ReadBytes();
+                var buffer2 = entity2.GetStream().ReadBytes();
 
-            //var p = buffer.CompareTo(buffer2);
-            //if (p != 0)
-            //{
-            //    Console.WriteLine("{0:X2} {1:X2} {2:X2}", p, buffer[p], buffer2[p]);
-            //}
+                var p = buffer.CompareTo(buffer2);
+                if (p != 0)
+                {
+                    Console.WriteLine("{0:X2} {1:X2} {2:X2}", p, buffer[p], buffer2[p]);
+                }
+            }
         }
 
         static void ShowStatus()

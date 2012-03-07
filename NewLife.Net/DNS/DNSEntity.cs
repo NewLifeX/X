@@ -134,6 +134,7 @@ namespace NewLife.Net.DNS
             BinaryWriterX writer = new BinaryWriterX();
             writer.Settings.IsLittleEndian = false;
             writer.Settings.UseObjRef = false;
+            writer.Settings.Encoding = Encoding.Default;
             writer.Stream = stream;
 #if DEBUG
             if (NetHelper.Debug)
@@ -240,6 +241,7 @@ namespace NewLife.Net.DNS
             BinaryReaderX reader = new BinaryReaderX();
             reader.Settings.IsLittleEndian = false;
             reader.Settings.UseObjRef = false;
+            reader.Settings.Encoding = Encoding.Default;
             reader.Stream = stream;
 #if DEBUG
             if (NetHelper.Debug)

@@ -1,14 +1,13 @@
 ﻿using System;
-using NewLife.IO;
-using NewLife.Linq;
 using System.Collections.Generic;
 using System.IO;
+using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using NewLife.Collections;
+using NewLife.Linq;
 using NewLife.Net.Common;
 using NewLife.Net.Sockets;
-using System.Net;
 
 namespace NewLife.Net.DNS
 {

@@ -40,7 +40,11 @@ namespace NewLife.Serialization
                 {
                     Depth = 1;
 
-                    _Stream = value;
+                    // 如果原来使用跟踪流，新的也使用跟踪流
+                    if (Debug && _Stream is TraceStream && value != null && !(value is TraceStream))
+                        _Stream = new TraceStream(value);
+                    else
+                        _Stream = value;
                 }
             }
         }
