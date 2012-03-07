@@ -26,8 +26,11 @@ namespace NewLife.Net.DNS
             get
             {
                 var p = Keys.IndexOf(key);
-                //if (p < 0) throw new XException("DNS名称解析未找到序号为{0}的字符串！", key);
+#if DEBUG
+                if (p < 0) throw new XException("DNS名称解析未找到序号为{0}的字符串！", key);
+#else
                 if (p < 0) return null;
+#endif
                 return Values[p];
             }
         }
@@ -97,8 +100,11 @@ namespace NewLife.Net.DNS
                 for (int i = 0; i < values.Count; i++) values[i] += "." + str;
 
                 // 加入当前项。因为引用项马上就要跳出了，不会做二次引用，所以不加
-                keys.Add((Int32)(offset + p));
-                values.Add(str);
+                if (!values.Contains(str))
+                {
+                    keys.Add((Int32)(offset + p));
+                    values.Add(str);
+                }
 
                 sb.Append(str);
 
@@ -106,8 +112,11 @@ namespace NewLife.Net.DNS
             }
             for (int i = 0; i < keys.Count; i++)
             {
-                Keys.Add(keys[i]);
-                Values.Add(values[i]);
+                if (!Values.Contains(values[i]))
+                {
+                    Keys.Add(keys[i]);
+                    Values.Add(values[i]);
+                }
             }
 
             return sb.ToString();

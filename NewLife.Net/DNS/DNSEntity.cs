@@ -336,7 +336,9 @@ namespace NewLife.Net.DNS
             var reader = sender as IReader;
             if (e.Type == typeof(String))
             {
-                e.Member[e.Value] = GetNameAccessor(reader).Read(reader.Stream, 0);
+                Object ps = reader.Items["Position"];
+                Int64 p = ps is Int64 ? (Int64)ps : 0;
+                e.Member[e.Value] = GetNameAccessor(reader).Read(reader.Stream, p);
                 //reader.WriteLog("ReadMember", "_Name", "String", e.Member[e.Value]);
                 e.Success = true;
             }
@@ -353,7 +355,9 @@ namespace NewLife.Net.DNS
             if (e.Type == typeof(String))
             {
                 //writer.WriteLog("WriteMember", "_Name", "String", e.Member[e.Value]);
-                GetNameAccessor(writer).Write(writer.Stream, (String)e.Member[e.Value], 0);
+                Object ps = writer.Items["Position"];
+                Int64 p = ps is Int64 ? (Int64)ps : 0;
+                GetNameAccessor(writer).Write(writer.Stream, (String)e.Member[e.Value], p);
                 e.Success = true;
             }
             else if (e.Type == typeof(TimeSpan))

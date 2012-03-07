@@ -38,15 +38,7 @@ namespace NewLife.Net.DNS
         //public Byte[] Data { get { return _Data; } set { _Data = value; } }
         #endregion
 
-        #region 扩展数据
-        //[NonSerialized]
-        //private String _DataString;
-        ///// <summary>数据字符串</summary>
-        //public String DataString { get { return _DataString; } set { _DataString = value; } }
-        #endregion
-
         #region IAccessor 成员
-
         bool IAccessor.Read(IReader reader)
         {
             // 如果当前成员是_Questions，忽略三个字段
@@ -62,11 +54,13 @@ namespace NewLife.Net.DNS
         {
             if (e.Member.Name == "_Length" && (Int16)e.Value > 0)
             {
-                var ir = sender as IReader;
-                var data = ir.ReadBytes((Int16)e.Value);
+                var reader = sender as IReader;
+                // 记住数据流位置，读取字符串的时候需要用到
+                reader.Items["Position"] = reader.Stream.Position;
+                var data = reader.ReadBytes((Int16)e.Value);
                 // 切换数据流，使用新数据流完成余下字段的序列化
-                ir.Backup();
-                ir.Stream = new MemoryStream(data);
+                reader.Backup();
+                reader.Stream = new MemoryStream(data);
             }
         }
 
@@ -75,7 +69,11 @@ namespace NewLife.Net.DNS
             RemoveFilter(reader);
 
             // 恢复环境
-            if (_Length > 0) reader.Restore();
+            if (_Length > 0)
+            {
+                reader.Restore();
+                if (reader.Items.Contains("Position")) reader.Items.Remove("Position");
+            }
             reader.OnMemberReaded -= new EventHandler<ReadMemberEventArgs>(reader_OnMemberReaded);
 
             return success;
@@ -149,8 +147,6 @@ namespace NewLife.Net.DNS
             Class = dr.Class;
             TTL = dr.TTL;
             _Length = dr._Length;
-            //Data = dr.Data;
-            //DataString = dr.DataString;
 
             return this;
         }
