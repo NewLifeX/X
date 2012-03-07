@@ -34,9 +34,13 @@ using System.Runtime.InteropServices;
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("3.7.*")]
-[assembly: AssemblyFileVersion("3.7.2012.0227")]
+[assembly: AssemblyFileVersion("3.7.2012.0307")]
 
 /*
+ * v3.7.2012.0307   简化消息提供者接口，消息模型相当不成熟
+ *                  强化序列化框架，增加备份和恢复环境的机制
+ *                  修正字典缓存中会导致带过期缓存永远过期的BUG
+ * 
  * v3.7.2012.0227   增加通用插件接口IPlugin，插件管理类PluginManager
  *                  增加消息提供者接口IMessageProvider和消息消费者接口IMessageConsumer
  * 
