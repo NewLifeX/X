@@ -669,7 +669,7 @@ namespace XCode.DataAccessLayer
             if (String.IsNullOrEmpty(description)) return name;
 
             String str = description;
-            Int32 p = str.IndexOfAny(new Char[] { '.', '。' });
+            Int32 p = str.IndexOfAny(new Char[] { '.', '。', '\r', '\n' });
             // p=0表示符号在第一位，不考虑
             if (p > 0) str = str.Substring(0, p);
 
