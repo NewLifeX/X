@@ -1,5 +1,4 @@
 ﻿using System;
-using NewLife.IO;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
@@ -72,6 +71,7 @@ namespace NewLife.Net.DNS
                 foreach (var item in ss)
                 {
                     var uri = new NetUri(item);
+                    if (uri.Port <= 0) uri.Port = 53;
                     ps.Add(uri);
                 }
             }
@@ -136,8 +136,11 @@ namespace NewLife.Net.DNS
                 {
                     var ptr = entity.Questions[0] as DNS_PTR;
                     var ptr2 = entity2.GetAnswer() as DNS_PTR;
-                    ptr2.Name = ptr.Name;
-                    ptr2.DomainName = DomainName;
+                    if (ptr2 != null)
+                    {
+                        ptr2.Name = ptr.Name;
+                        ptr2.DomainName = DomainName;
+                    }
                     if (entity2.Answers != null && entity2.Answers.Length > 0)
                     {
                         foreach (var item in entity2.Answers)
@@ -167,8 +170,8 @@ namespace NewLife.Net.DNS
                     // 复制一份，防止修改外部
                     entity = new DNSEntity().CloneFrom(entity);
 
-                    var ptr = entity.GetAnswer(true) as DNS_PTR;
-                    ptr.Address = parent.Address;
+                    var ptr = entity.GetAnswer(0, true) as DNS_PTR;
+                    if (ptr != null) ptr.Address = parent.Address;
                 }
 
                 try

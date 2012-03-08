@@ -64,11 +64,12 @@ namespace NewLife.Net.DNS
         public virtual DNSQueryClass Class { get { return Question.Class; } set { Question.Class = value; } }
 
         /// <summary>获取响应</summary>
+        /// <param name="type"></param>
         /// <param name="create"></param>
         /// <returns></returns>
-        internal protected DNSRecord GetAnswer(Boolean create = false)
+        internal protected DNSRecord GetAnswer(DNSQueryType type = 0, Boolean create = false)
         {
-            var type = Question.Type;
+            if (type == 0) type = Question.Type;
             if (Answers == null || Answers.Length < 1)
             {
                 if (!create) return null;
