@@ -527,9 +527,36 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 辅助
-        /// <summary>
-        /// 获取别名
-        /// </summary>
+        /// <summary>获取别名。过滤特殊符号，过滤_之类的前缀。另外，避免一个表中的字段别名重名</summary>
+        /// <param name="dc"></param>
+        /// <returns></returns>
+        public static String GetAlias(IDataColumn dc)
+        {
+            var name = GetAlias(dc.Name);
+            if (dc.Table != null)
+            {
+                var name2 = name;
+                var index = 0;
+                var cs = dc.Table.Columns;
+                for (int i = 0; i < cs.Count; i++)
+                {
+                    var item = cs[i];
+                    if (item.Name != dc.Name)
+                    {
+                        if (name2.EqualIgnoreCase(item.Alias))
+                        {
+                            name2 = name2 + ++index;
+                            // 从头开始
+                            i = -1;
+                        }
+                    }
+                }
+                name2 = name;
+            }
+            return name;
+        }
+
+        /// <summary>获取别名。过滤特殊符号，过滤_之类的前缀。</summary>
         /// <param name="name"></param>
         /// <returns></returns>
         public static String GetAlias(String name)
