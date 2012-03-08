@@ -30,7 +30,11 @@ namespace NewLife.Net.DNS
         /// <returns></returns>
         public override string ToString()
         {
-            return String.Format("{0} {1}", Type, Address);
+            // Address为空，可能是请求
+            if (Address == null)
+                return String.Format("{0} {1}", Type, Name);
+            else
+                return String.Format("{0} {1}", Type, Address);
         }
     }
 }
