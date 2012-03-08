@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.ServiceProcess;
+using System.Windows.Forms;
 using NewLife.Configuration;
 using NewLife.Log;
 
@@ -356,6 +358,19 @@ namespace XAgent
             }
             return null;
         }
+        #endregion
+
+        #region 运行UI
+        internal static void RunUI()
+        {
+            FreeConsole();
+            Application.EnableVisualStyles();
+            Application.SetCompatibleTextRenderingDefault(false);
+            Application.Run(new FrmMain());
+        }
+
+        [DllImport("kernel32.dll", ExactSpelling = true, SetLastError = true)]
+        internal static extern bool FreeConsole();
         #endregion
     }
 }

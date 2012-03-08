@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
@@ -8,7 +9,6 @@ using NewLife.Configuration;
 using NewLife.Log;
 using NewLife.Model;
 using NewLife.Reflection;
-using System.Collections.Generic;
 
 namespace XAgent
 {
@@ -201,6 +201,9 @@ namespace XAgent
 
                             serivce.StopAttachServers();
                             #endregion
+                            break;
+                        case 7:
+                            RunUI();
                             break;
                         default:
                             break;

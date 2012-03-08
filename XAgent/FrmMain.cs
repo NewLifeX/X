@@ -64,7 +64,7 @@ namespace XAgent
 
         private void FrmMain_Shown(object sender, EventArgs e)
         {
-            this.Visible = false;
+            //this.Visible = false;
         }
 
         private void FrmMain_FormClosing(object sender, FormClosingEventArgs e)
