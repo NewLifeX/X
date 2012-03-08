@@ -170,7 +170,7 @@ namespace NewLife.Net.DNS
                     // 复制一份，防止修改外部
                     entity = new DNSEntity().CloneFrom(entity);
 
-                    var ptr = entity.GetAnswer(0, true) as DNS_PTR;
+                    var ptr = entity.GetAnswer(true) as DNS_PTR;
                     if (ptr != null) ptr.Address = parent.Address;
                 }
 
