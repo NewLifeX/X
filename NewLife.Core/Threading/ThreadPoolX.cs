@@ -545,7 +545,7 @@ namespace NewLife.Threading
                 try
                 {
                     //等待事件量，超时1秒
-                    Event.WaitOne(1000, true);
+                    Event.WaitOne(1000, false);
                     Event.Reset();
 
                     lock (SyncLock_Threads)

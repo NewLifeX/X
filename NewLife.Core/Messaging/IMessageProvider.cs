@@ -143,7 +143,7 @@ namespace NewLife.Messaging
 
             //if (!_wait.WaitOne(millisecondsTimeout, true)) return null;
 
-            _wait.WaitOne(millisecondsTimeout, true);
+            _wait.WaitOne(millisecondsTimeout, false);
             _wait.Close();
 
             return msg;

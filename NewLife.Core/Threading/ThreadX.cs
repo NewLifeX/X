@@ -189,7 +189,7 @@ namespace NewLife.Threading
                 try
                 {
                     //挂起自己，直到下一个任务到来
-                    internalEvent.WaitOne(Timeout.Infinite, true);
+                    internalEvent.WaitOne(Timeout.Infinite, false);
 
                     Running = true;
 
