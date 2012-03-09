@@ -381,7 +381,7 @@ namespace NewLife.Net.DNS
                         sb.Append(item);
                     }
                 }
-                else if (Header.ResponseCode == 3)
+                else if (Header.ResponseCode == DNSRcodeType.NameError)
                     sb.Append("No such name");
 
                 return String.Format("Response {0}", sb);

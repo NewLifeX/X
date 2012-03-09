@@ -23,7 +23,7 @@ namespace NewLife.Net.DNS
         public Boolean Response { get { return _D1.Has(D1.Response); } set { _D1 = _D1.Set<D1>(D1.Response, value); } }
 
         /// <summary>长度4位，值0是标准查询，1是反向查询，2死服务器状态查询。</summary>
-        public Byte Opcode { get { return (Byte)(((UInt16)_D1 >> 3) & 0xFF); } set { _D1 = (D1)((UInt16)_D1 | (value << 3)); } }
+        public DNSOpcodeType Opcode { get { return (DNSOpcodeType)(((UInt16)_D1 >> 3) & 0xFF); } set { _D1 = (D1)((UInt16)_D1 | ((Byte)value << 3)); } }
 
         /// <summary>长度1位，授权应答(Authoritative Answer) - 这个比特位在应答的时候才有意义，指出给出应答的服务器是查询域名的授权解析服务器。</summary>
         public Boolean AuthoritativeAnswer { get { return _D1.Has(D1.AuthoritativeAnswer); } set { _D1 = _D1.Set<D1>(D1.AuthoritativeAnswer, value); } }
@@ -40,13 +40,23 @@ namespace NewLife.Net.DNS
         /// <summary>长度1位，支持递归(Recursion Available) - 这个比特位在应答中设置或取消，用来代表服务器是否支持递归查询。</summary>
         public Boolean RecursionAvailable { get { return (_D2 & 0x80) == 0x80; } set { _D2 = (Byte)(value ? _D2 | 0x80 : _D2 & 0x7F); } }
 
-        //private Byte[] _Z;
-        ///// <summary>长度3位，保留值，值为0.</summary>
-        //public Byte[] Z { get { return _Z; } set { _Z = value; } }
+
+        internal UInt16 Reserved
+        {
+            get { return ((UInt16)_D2).GetBits(4, 3); }
+            set { ((UInt16)_D2).SetBits(4, 3, value); }
+        }
+
+        /// <summary>Broadcast Flag</summary>
+        public bool Broadcast
+        {
+            get { return _D2.GetBit(4); }
+            set { _D2.SetBit(4, value); }
+        }
 
         //private Byte _ResponseCode;
         /// <summary>长度4位，应答码，类似http的stateCode一样，值0没有错误、1格式错误、2服务器错误、3名字错误、4服务器不支持、5拒绝。</summary>
-        public Byte ResponseCode { get { return (Byte)(_D2 & 0x0F); } set { _D2 = (Byte)(_D2 | (value & 0x0F)); } }
+        public DNSRcodeType ResponseCode { get { return (DNSRcodeType)(_D2 & 0x0F); } set { _D2 = (Byte)(_D2 | ((Byte)value & 0x0F)); } }
 
         private Int16 _Questions;
         /// <summary>报文请求段中的问题记录数</summary>
