@@ -65,6 +65,7 @@
     <Compile Include="Compression\ZipConstants.cs" />
     <Compile Include="Compression\ZipEntry.cs" />
     <Compile Include="Compression\ZipFile.cs" />
+    <Compile Include="Extension\BitHelper.cs" />
     <Compile Include="IO\StreamReaderX.cs" />
     <Compile Include="IO\StreamWriterX.cs" />
     <Compile Include="Messaging\CompressionMessage.cs" />
