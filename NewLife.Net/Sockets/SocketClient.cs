@@ -2,6 +2,7 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading;
 
 namespace NewLife.Net.Sockets
 {
@@ -39,6 +40,10 @@ namespace NewLife.Net.Sockets
         /// <returns>返回自身，用于链式写法</returns>
         public virtual ISocketClient Connect(IPAddress address, Int32 port) { return Connect(new IPEndPoint(address, port)); }
 
+        private Int32 _ConnectTimeout;
+        /// <summary>连接超时时间。单位毫秒，默认为0。如果设置了超时时间，则采用异步加等待的方式进行连接。</summary>
+        public Int32 ConnectTimeout { get { return _ConnectTimeout; } set { _ConnectTimeout = value; } }
+
         /// <summary>建立与远程主机的连接</summary>
         /// <param name="remoteEP">表示远程设备。</param>
         /// <returns>返回自身，用于链式写法</returns>
@@ -46,7 +51,31 @@ namespace NewLife.Net.Sockets
         {
             AddressFamily = remoteEP.AddressFamily;
             if (!Client.IsBound) Bind();
-            Client.Connect(remoteEP);
+
+            //if (ConnectTimeout <= 0)
+                Client.Connect(remoteEP);
+            //else
+            //{
+            //    // 建议回调委托，采用自动量通知调用者线程连接已完成。
+            //    //var ae = new AutoResetEvent(true);
+            //    AsyncCallback callback = ar =>
+            //    {
+            //        //var socket = ar.AsyncState as Socket;
+            //        var socket = ar.AsyncState as ISocket;
+            //        if (socket != null && !socket.Disposed) socket.Socket.EndConnect(ar);
+            //        //if (ae != null && ae.SafeWaitHandle != null && !ae.SafeWaitHandle.IsClosed) ae.Set();
+            //    };
+            //    var iar = Client.BeginConnect(remoteEP, callback, Client);
+            //    if (!iar.IsCompleted && !iar.CompletedSynchronously && !iar.AsyncWaitHandle.WaitOne(ConnectTimeout, false))
+            //    {
+            //        //ae.Close();
+            //        throw new NetException("连接{0}超时！{1}ms", remoteEP, ConnectTimeout);
+            //    }
+            //    else
+            //    {
+            //        //ae.Close();
+            //    }
+            //}
 
             // 引发基类重设个地址参数
             Socket = Client;

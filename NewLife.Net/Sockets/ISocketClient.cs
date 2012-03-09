@@ -13,6 +13,9 @@ namespace NewLife.Net.Sockets
         /// <summary>基础Socket对象</summary>
         Socket Client { get; set; }
 
+        /// <summary>连接超时时间。单位毫秒，默认为0。如果设置了超时时间，则采用异步加等待的方式进行连接。</summary>
+        Int32 ConnectTimeout { get; set; }
+
         /// <summary>建立与远程主机的连接</summary>
         /// <param name="remoteEP">表示远程设备。</param>
         /// <returns>返回自身，用于链式写法</returns>

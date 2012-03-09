@@ -362,6 +362,9 @@ namespace NewLife.Net.DNS
             {
                 StringBuilder sb = new StringBuilder();
 
+                if (_Questions != null && _Questions.Length > 0)
+                    sb.AppendFormat("[{0}]", _Questions[0]);
+
                 if (Answers != null && Answers.Length > 0)
                 {
                     foreach (var item in Answers)

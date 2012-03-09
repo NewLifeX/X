@@ -55,6 +55,12 @@ namespace NewLife.Net.DNS
         /// <summary>指定文本信息。</summary>
         TXT = 0x10,
 
+        /// <summary>NetBIOS general Name Service Resource Record</summary>
+        NB = 32,
+
+        /// <summary>NetBIOS NODE STATUS Resource Record</summary>
+        NBSTAT = 33,
+
         /// <summary>IPv6地址</summary>
         AAAA = 0x1C,
 

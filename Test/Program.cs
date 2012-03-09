@@ -8,6 +8,7 @@ using NewLife.Net.Sockets;
 using NewLife.Threading;
 using NewLife.Net.DNS;
 using System.IO;
+using XCode.DataAccessLayer;
 
 namespace Test
 {
@@ -24,7 +25,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test1();
+                    Test2();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -56,24 +57,24 @@ namespace Test
 
             //NewLife.Net.Application.AppTest.Start();
 
-            //http = new HttpProxy();
-            //http.Port = 8080;
-            ////http.OnResponse += new EventHandler<HttpProxyEventArgs>(http_OnResponse);
-            //http.Start();
+            http = new HttpProxy();
+            http.Port = 8080;
+            //http.OnResponse += new EventHandler<HttpProxyEventArgs>(http_OnResponse);
+            http.Start();
 
-            //HttpProxy.SetIEProxy("127.0.0.1:" + http.Port);
-            //Console.WriteLine("已设置IE代理，任意键结束测试，关闭IE代理！");
+            HttpProxy.SetIEProxy("127.0.0.1:" + http.Port);
+            Console.WriteLine("已设置IE代理，任意键结束测试，关闭IE代理！");
 
-            //ThreadPoolX.QueueUserWorkItem(ShowStatus);
+            ThreadPoolX.QueueUserWorkItem(ShowStatus);
 
-            //Console.ReadKey(true);
-            //HttpProxy.SetIEProxy(null);
+            Console.ReadKey(true);
+            HttpProxy.SetIEProxy(null);
 
-            ////server.Dispose();
-            //http.Dispose();
+            //server.Dispose();
+            http.Dispose();
 
-            var ds = new DNSServer();
-            ds.Start();
+            //var ds = new DNSServer();
+            //ds.Start();
 
             //for (int i = 5; i < 6; i++)
             //{
@@ -113,9 +114,16 @@ namespace Test
             }
         }
 
-        //static void http_OnResponse(object sender, HttpProxyEventArgs e)
-        //{
-        //    if (e.Header != null) XTrace.WriteLine(e.Header.ToString());
-        //}
+        static void Test2()
+        {
+            var dal = DAL.Create("Common");
+            var eop = dal.CreateOperate("GTest");
+            eop.ConnName = "Common0";
+            Console.WriteLine(eop.Count);
+            var entity = eop.Create();
+            entity.Save();
+            Console.WriteLine(entity["Guid4"]);
+            Console.WriteLine(eop.Count);
+        }
     }
 }
