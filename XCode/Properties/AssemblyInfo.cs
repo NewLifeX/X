@@ -35,7 +35,7 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
 [assembly: AssemblyVersion("8.4.*")]
-[assembly: AssemblyFileVersion("8.4.2012.0224")]
+[assembly: AssemblyFileVersion("8.4.2012.0309")]
 
 /*
  * XCode的重大改进
@@ -52,6 +52,10 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v8.4.2012.0309   IDatabase接口增加表示Guid获取函数的属性NewGuid
+ *                  数据层增加对Guid默认值的支持，用于DDL操作
+ *                  插入数据时，针对没有赋值的Guid字段或设置了Guid默认值的字符串字段，默认设置一个Guid，由EntityPersistence实现
+ * 
  * v8.4.2012.0224   修正DbSession.InsertAndGetIdentity永远返回0的错误，该错误于20110224产生，影响Oracle和Firebird，感谢 @老徐（279504479）
  *                  针对性优化元数据架构，优化正向工程、反向工程的性能，获取单表模型信息时，仅获取该表架构信息，对Oracle反向工程性能提升较大
  * 

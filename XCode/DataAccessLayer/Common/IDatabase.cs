@@ -82,6 +82,9 @@ namespace XCode.DataAccessLayer
         /// <summary>长文本长度</summary>
         Int32 LongTextLength { get; }
 
+        /// <summary>获取Guid的函数</summary>
+        String NewGuid { get; }
+
         /// <summary>格式化时间为SQL字符串</summary>
         /// <param name="dateTime">时间值</param>
         /// <returns></returns>

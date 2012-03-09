@@ -9,7 +9,6 @@ using System.Text.RegularExpressions;
 using NewLife.Configuration;
 using NewLife.Linq;
 using XCode.Common;
-using XCode.Exceptions;
 
 namespace XCode.DataAccessLayer
 {
@@ -267,14 +266,13 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 数据库特性
-        /// <summary>
-        /// 当前时间函数
-        /// </summary>
+        /// <summary>当前时间函数</summary>
         public override string DateTimeNow { get { return "sysdate"; } }
 
-        /// <summary>
-        /// 已重载。格式化时间
-        /// </summary>
+        /// <summary>获取Guid的函数</summary>
+        public override String NewGuid { get { return "sys_guid()"; } }
+
+        /// <summary>已重载。格式化时间</summary>
         /// <param name="dateTime"></param>
         /// <returns></returns>
         public override string FormatDateTime(DateTime dateTime)
@@ -301,9 +299,7 @@ namespace XCode.DataAccessLayer
             return base.FormatValue(field, value);
         }
 
-        /// <summary>
-        /// 格式化标识列，返回插入数据时所用的表达式，如果字段本身支持自增，则返回空
-        /// </summary>
+        /// <summary>格式化标识列，返回插入数据时所用的表达式，如果字段本身支持自增，则返回空</summary>
         /// <param name="field"></param>
         /// <param name="value"></param>
         /// <returns></returns>

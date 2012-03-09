@@ -1,10 +1,12 @@
 ﻿using System;
+using NewLife.Linq;
 using System.Collections.Generic;
 using System.Text;
 using System.ComponentModel;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
 using XCode.Exceptions;
+using NewLife.Collections;
 
 namespace XCode
 {
@@ -82,6 +84,9 @@ namespace XCode
         /// <returns></returns>
         public virtual Int32 Insert(IEntity entity)
         {
+            // 添加数据前，处理Guid
+            SetGuid(entity);
+
             String sql = SQL(entity, DataObjectMethodType.Insert);
             if (String.IsNullOrEmpty(sql)) return 0;
 
@@ -98,6 +103,7 @@ namespace XCode
             }
             else
             {
+
                 rs = op.Execute(sql);
             }
 
@@ -371,6 +377,56 @@ namespace XCode
                 sb.Append(op.FormatValue(item, entity[item.Name]));
             }
             return sb.ToString();
+        }
+
+        /// <summary>指定了默认值而没有赋值的Guid字段附上默认值</summary>
+        /// <param name="entity"></param>
+        public virtual void SetGuid(IEntity entity)
+        {
+            var fis = GetGuidFieldItems(entity.GetType());
+            if (fis != null & fis.Length > 0)
+            {
+                foreach (var item in fis)
+                {
+                    // 判断是否设置了数据
+                    if (!entity.Dirtys[item.Name])
+                    {
+                        // 如果没有设置，这里给它设置
+                        if (item.Type == typeof(Guid))
+                            entity.SetItem(item.Name, Guid.NewGuid());
+                        else
+                            entity.SetItem(item.Name, Guid.NewGuid().ToString());
+                    }
+                }
+            }
+        }
+
+        static DictionaryCache<Type, FieldItem[]> _guidFields = new DictionaryCache<Type, FieldItem[]>();
+        /// <summary>找到设定了默认值的Guid字段</summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        protected static FieldItem[] GetGuidFieldItems(Type type)
+        {
+            return _guidFields.GetItem(type, key =>
+            {
+                var eop = EntityFactory.CreateOperate(key);
+                var db = DbFactory.Create(eop.Table.DataTable.DbType);
+                var list = new List<FieldItem>();
+                foreach (var item in eop.AllFields)
+                {
+                    //if (String.IsNullOrEmpty(item.DefaultValue)) continue;
+                    var tc = Type.GetTypeCode(item.Type);
+                    if (tc == TypeCode.String)
+                    {
+                        if (item.DefaultValue.EqualIgnoreCase(db.NewGuid)) list.Add(item);
+                    }
+                    else if (item.Type == typeof(Guid))
+                    {
+                        if (item.DefaultValue.EqualIgnoreCase(db.NewGuid) || String.IsNullOrEmpty(item.DefaultValue)) list.Add(item);
+                    }
+                }
+                return list.ToArray();
+            });
         }
     }
 }

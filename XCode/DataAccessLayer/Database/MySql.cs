@@ -126,6 +126,9 @@ namespace XCode.DataAccessLayer
             }
         }
 
+        /// <summary>获取Guid的函数</summary>
+        public override String NewGuid { get { return "uuid()"; } }
+
         //protected override string ReservedWordsStr
         //{
         //    get
@@ -134,9 +137,7 @@ namespace XCode.DataAccessLayer
         //    }
         //}
 
-        /// <summary>
-        /// 格式化时间为SQL字符串
-        /// </summary>
+        /// <summary>格式化时间为SQL字符串</summary>
         /// <param name="dateTime">时间值</param>
         /// <returns></returns>
         public override String FormatDateTime(DateTime dateTime)
@@ -144,9 +145,7 @@ namespace XCode.DataAccessLayer
             return String.Format("'{0:yyyy-MM-dd HH:mm:ss}'", dateTime);
         }
 
-        /// <summary>
-        /// 格式化关键字
-        /// </summary>
+        /// <summary>格式化关键字</summary>
         /// <param name="keyWord">关键字</param>
         /// <returns></returns>
         public override String FormatKeyWord(String keyWord)
@@ -159,9 +158,7 @@ namespace XCode.DataAccessLayer
             return String.Format("`{0}`", keyWord);
         }
 
-        /// <summary>
-        /// 格式化数据为SQL数据
-        /// </summary>
+        /// <summary>格式化数据为SQL数据</summary>
         /// <param name="field"></param>
         /// <param name="value"></param>
         /// <returns></returns>
@@ -182,9 +179,7 @@ namespace XCode.DataAccessLayer
             return base.FormatValue(field, value);
         }
 
-        /// <summary>
-        /// 长文本长度
-        /// </summary>
+        /// <summary>长文本长度</summary>
         public override int LongTextLength { get { return 4000; } }
 
         /// <summary>系统数据库名</summary>
@@ -279,7 +274,7 @@ namespace XCode.DataAccessLayer
             // MySql的默认值不能使用函数，所以无法设置当前时间作为默认值，但是第一个Timestamp类型字段会有当前时间作为默认值效果
             if (typeName.EqualIgnoreCase("datetime"))
             {
-                String d = CheckAndGetDefaultDateTimeNow(field.Table.DbType, field.Default);
+                String d = CheckAndGetDefault(field, field.Default);
                 if (String.IsNullOrEmpty(d)) typeName = "timestamp";
             }
 
@@ -321,7 +316,7 @@ namespace XCode.DataAccessLayer
                     // DateTime的范围是0001到9999
                     // Timestamp的范围是1970到2038
                     // MySql的默认值不能使用函数，所以无法设置当前时间作为默认值，但是第一个Timestamp类型字段会有当前时间作为默认值效果
-                    String d = CheckAndGetDefaultDateTimeNow(field.Table.DbType, field.Default);
+                    String d = CheckAndGetDefault(field, field.Default);
                     foreach (DataRow dr in drs)
                     {
                         String name = GetDataRowValue<String>(dr, "TypeName");

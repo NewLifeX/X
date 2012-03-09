@@ -539,6 +539,9 @@ namespace XCode.DataAccessLayer
         /// <summary>长文本长度</summary>
         public virtual Int32 LongTextLength { get { return 4000; } }
 
+        /// <summary>获取Guid的函数</summary>
+        public virtual String NewGuid { get { return null; } }
+
         ///// <summary>
         ///// 保留字字符串，其实可以在首次使用时动态从Schema中加载
         ///// </summary>

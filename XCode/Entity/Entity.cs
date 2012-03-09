@@ -119,15 +119,11 @@ namespace XCode
         #region 操作
         private static IEntityPersistence persistence { get { return XCodeService.Resolve<IEntityPersistence>(); } }
 
-        /// <summary>
-        /// 插入数据，通过调用OnInsert实现，另外增加了数据验证和事务保护支持，将来可能实现事件支持。
-        /// </summary>
+        /// <summary>插入数据，通过调用OnInsert实现，另外增加了数据验证和事务保护支持，将来可能实现事件支持。</summary>
         /// <returns></returns>
         public override Int32 Insert() { return DoAction(OnInsert, true); }
 
-        /// <summary>
-        /// 把该对象持久化到数据库。该方法提供原生的数据操作，不建议重载，建议重载Insert代替。
-        /// </summary>
+        /// <summary>把该对象持久化到数据库。该方法提供原生的数据操作，不建议重载，建议重载Insert代替。</summary>
         /// <returns></returns>
         protected virtual Int32 OnInsert() { return persistence.Insert(this); }
 

@@ -151,21 +151,34 @@ namespace XCode.DataAccessLayer
             return Database.FormatName(name);
         }
 
-        /// <summary>检查并获取当前数据库的默认时间</summary>
-        /// <param name="oriDbType"></param>
+        /// <summary>检查并获取当前数据库的默认值</summary>
+        /// <param name="dc"></param>
         /// <param name="oriDefault"></param>
         /// <returns></returns>
-        protected virtual String CheckAndGetDefaultDateTimeNow(DatabaseType oriDbType, String oriDefault)
+        protected virtual String CheckAndGetDefault(IDataColumn dc, String oriDefault)
         {
             // 原始数据库类型
-            IDatabase db = DbFactory.Create(oriDbType);
+            IDatabase db = DbFactory.Create(dc.Table.DbType);
             if (db == null) return oriDefault;
 
-            // 原始默认值是否是原始时间
-            //if (!oriDefault.Equals(db.DateTimeNow, StringComparison.OrdinalIgnoreCase)) return oriDefault;
-            if (!oriDefault.EqualIgnoreCase(db.DateTimeNow)) return oriDefault;
+            //// 原始默认值是否是原始时间
+            //if (String.IsNullOrEmpty(oriDefault) || oriDefault.EqualIgnoreCase(db.DateTimeNow)) return Database.DateTimeNow;
 
-            return Database.DateTimeNow;
+            var tc = Type.GetTypeCode(dc.DataType);
+            // 特殊处理时间
+            if (tc == TypeCode.DateTime)
+            {
+                if (String.IsNullOrEmpty(oriDefault) || oriDefault.EqualIgnoreCase(db.DateTimeNow)) return Database.DateTimeNow;
+            }
+            // 特殊处理Guid
+            else if (tc == TypeCode.String || dc.DataType == typeof(Guid))
+            {
+                // 如果字段类型是Guid，不需要设置默认值，则也说明是Guid字段
+                if (String.IsNullOrEmpty(oriDefault) || oriDefault.EqualIgnoreCase(db.NewGuid) ||
+                   String.IsNullOrEmpty(db.NewGuid) && dc.DataType == typeof(Guid)) return Database.NewGuid;
+            }
+
+            return oriDefault;
         }
         #endregion
 

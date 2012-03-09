@@ -198,31 +198,24 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 数据库特性
-        /// <summary>
-        /// 当前时间函数
-        /// </summary>
+        /// <summary>当前时间函数</summary>
         public override String DateTimeNow { get { return "getdate()"; } }
 
-        /// <summary>
-        /// 最小时间
-        /// </summary>
+        /// <summary>最小时间</summary>
         public override DateTime DateTimeMin { get { return SqlDateTime.MinValue.Value; } }
 
-        /// <summary>
-        /// 长文本长度
-        /// </summary>
+        /// <summary>长文本长度</summary>
         public override Int32 LongTextLength { get { return 4000; } }
 
-        /// <summary>
-        /// 格式化时间为SQL字符串
-        /// </summary>
+        /// <summary>获取Guid的函数</summary>
+        public override String NewGuid { get { return "newid()"; } }
+
+        /// <summary>格式化时间为SQL字符串</summary>
         /// <param name="dateTime">时间值</param>
         /// <returns></returns>
         public override String FormatDateTime(DateTime dateTime) { return "{ts" + String.Format("'{0:yyyy-MM-dd HH:mm:ss}'", dateTime) + "}"; }
 
-        /// <summary>
-        /// 格式化关键字
-        /// </summary>
+        /// <summary>格式化关键字</summary>
         /// <param name="keyWord">关键字</param>
         /// <returns></returns>
         public override String FormatKeyWord(String keyWord)
@@ -790,13 +783,24 @@ namespace XCode.DataAccessLayer
         {
             String sql = DropDefaultSQL(field);
             if (!String.IsNullOrEmpty(sql)) sql += ";" + Environment.NewLine;
-            if (Type.GetTypeCode(field.DataType) == TypeCode.String)
-                sql += String.Format("Alter Table {0} Add CONSTRAINT DF_{0}_{1} DEFAULT N'{2}' FOR {1}", field.Table.Name, field.Name, field.Default);
-            else if (Type.GetTypeCode(field.DataType) == TypeCode.DateTime)
+
+            var tc = Type.GetTypeCode(field.DataType);
+
+            if (tc == TypeCode.DateTime || tc == TypeCode.String || field.DataType == typeof(Guid))
             {
-                String dv = CheckAndGetDefaultDateTimeNow(field.Table.DbType, field.Default);
+                String dv = CheckAndGetDefault(field, field.Default);
+                if (String.IsNullOrEmpty(dv)) return sql;
                 sql += String.Format("Alter Table {0} Add CONSTRAINT DF_{0}_{1} DEFAULT {2} FOR {1}", field.Table.Name, field.Name, dv);
+                return sql;
             }
+
+            if (tc == TypeCode.String)
+                sql += String.Format("Alter Table {0} Add CONSTRAINT DF_{0}_{1} DEFAULT N'{2}' FOR {1}", field.Table.Name, field.Name, field.Default);
+            //else if (tc == TypeCode.DateTime)
+            //{
+            //    String dv = CheckAndGetDefault(field, field.Default);
+            //    sql += String.Format("Alter Table {0} Add CONSTRAINT DF_{0}_{1} DEFAULT {2} FOR {1}", field.Table.Name, field.Name, dv);
+            //}
             else
                 sql += String.Format("Alter Table {0} Add CONSTRAINT DF_{0}_{1} DEFAULT {2} FOR {1}", field.Table.Name, field.Name, field.Default);
             return sql;

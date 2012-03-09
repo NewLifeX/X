@@ -479,24 +479,23 @@ namespace XCode.DataAccessLayer
                     // 如果实体存在默认值，则增加
                     if (!String.IsNullOrEmpty(dc.Default))
                     {
-                        if (Type.GetTypeCode(dc.DataType) == TypeCode.DateTime)
+                        var tc = Type.GetTypeCode(dc.DataType);
+                        String dv = dc.Default;
+                        // 特殊处理时间
+                        if (tc == TypeCode.DateTime)
                         {
-                            // 特殊处理时间
-                            String dv = dc.Default;
-
-                            // 开发时的实体数据库
-                            if (entityDb == null) entityDb = DbFactory.Create(table.DbType);
-
-                            // 如果当前默认值是开发数据库的时间默认值，则修改为当前数据库的时间默认值
-                            if (entityDb != null && entityDb.DateTimeNow == dc.Default) dc.Default = Database.DateTimeNow;
-
-                            PerformSchema(sb, onlySql, DDLSchema.AddDefault, dc);
-
-                            // 还原
-                            dc.Default = dv;
+                            if (entityDb != null && dv == entityDb.DateTimeNow) dc.Default = Database.DateTimeNow;
                         }
-                        else
-                            PerformSchema(sb, onlySql, DDLSchema.AddDefault, dc);
+                        // 特殊处理Guid
+                        else if (tc == TypeCode.String || dc.DataType == typeof(Guid))
+                        {
+                            if (entityDb != null && dv == entityDb.NewGuid) dc.Default = Database.NewGuid;
+                        }
+
+                        PerformSchema(sb, onlySql, DDLSchema.AddDefault, dc);
+
+                        // 还原
+                        dc.Default = dv;
                     }
                 }
             }
@@ -589,10 +588,10 @@ namespace XCode.DataAccessLayer
         #region 默认值
         public virtual Boolean AddDefault(IDataColumn field, String value)
         {
-            if (field.DataType == typeof(DateTime))
-            {
-                value = CheckAndGetDefaultDateTimeNow(field.Table.DbType, value);
-            }
+            //if (field.DataType == typeof(DateTime))
+            //{
+            value = CheckAndGetDefault(field, value);
+            //}
 
             try
             {

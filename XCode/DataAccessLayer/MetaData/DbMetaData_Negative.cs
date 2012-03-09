@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Text;
-using NewLife.Linq;
 using NewLife.Collections;
+using NewLife.Linq;
 
 namespace XCode.DataAccessLayer
 {
@@ -406,11 +406,25 @@ namespace XCode.DataAccessLayer
             //比较默认值
             isChanged = !String.Equals(entityColumn.Default + "", dbColumn.Default + "", StringComparison.OrdinalIgnoreCase);
 
-            //特殊处理时间
-            if (isChanged && Type.GetTypeCode(entityColumn.DataType) == TypeCode.DateTime && !String.IsNullOrEmpty(entityColumn.Default) && !String.IsNullOrEmpty(dbColumn.Default))
+            if (isChanged && !String.IsNullOrEmpty(entityColumn.Default) && !String.IsNullOrEmpty(dbColumn.Default))
             {
-                // 如果当前默认值是开发数据库的时间默认值，则判断当前数据库的时间默认值
-                if (entityDb.DateTimeNow == entityColumn.Default && Database.DateTimeNow == dbColumn.Default) isChanged = false;
+                var tc = Type.GetTypeCode(entityColumn.DataType);
+                // 特殊处理时间
+                if (tc == TypeCode.DateTime)
+                {
+                    // 如果当前默认值是开发数据库的时间默认值，则判断当前数据库的时间默认值
+                    if (entityDb.DateTimeNow == entityColumn.Default && Database.DateTimeNow == dbColumn.Default) isChanged = false;
+                }
+                // 特殊处理Guid
+                else if (tc == TypeCode.String)
+                {
+                    if (entityDb.NewGuid == entityColumn.Default && Database.NewGuid == dbColumn.Default) isChanged = false;
+                }
+                // 如果字段类型是Guid，不需要设置默认值，则也说明是Guid字段
+                else if (entityColumn.DataType == typeof(Guid))
+                {
+                    if ((entityDb.NewGuid == entityColumn.Default || String.IsNullOrEmpty(entityColumn.Default)) && Database.NewGuid == dbColumn.Default) isChanged = false;
+                }
             }
 
             return isChanged;
@@ -433,20 +447,28 @@ namespace XCode.DataAccessLayer
             // 如果实体存在默认值，则增加
             if (!String.IsNullOrEmpty(entityColumn.Default))
             {
-                if (Type.GetTypeCode(entityColumn.DataType) == TypeCode.DateTime)
+                var tc = Type.GetTypeCode(entityColumn.DataType);
+                String dv = entityColumn.Default;
+                // 特殊处理时间
+                if (tc == TypeCode.DateTime)
                 {
-                    // 特殊处理时间
-                    String dv = entityColumn.Default;
-                    // 如果当前默认值是开发数据库的时间默认值，则修改为当前数据库的时间默认值
-                    if (entityDb.DateTimeNow == entityColumn.Default) entityColumn.Default = Database.DateTimeNow;
-
-                    PerformSchema(sb, onlySql, DDLSchema.AddDefault, entityColumn);
-
-                    // 还原
-                    entityColumn.Default = dv;
+                    if (dv == entityDb.DateTimeNow) entityColumn.Default = Database.DateTimeNow;
                 }
-                else
-                    PerformSchema(sb, onlySql, DDLSchema.AddDefault, entityColumn);
+                // 特殊处理Guid
+                else if (tc == TypeCode.String || entityColumn.DataType == typeof(Guid))
+                {
+                    if (dv == entityDb.NewGuid) entityColumn.Default = Database.NewGuid;
+                }
+                // 如果字段类型是Guid，不需要设置默认值，则也说明是Guid字段
+                else if (tc == TypeCode.String)
+                {
+                    if (dv == entityDb.NewGuid || String.IsNullOrEmpty(dv)) entityColumn.Default = Database.NewGuid;
+                }
+
+                PerformSchema(sb, onlySql, DDLSchema.AddDefault, entityColumn);
+
+                // 还原
+                entityColumn.Default = dv;
             }
         }
 
@@ -840,37 +862,29 @@ namespace XCode.DataAccessLayer
             if (String.IsNullOrEmpty(field.Default)) return null;
 
             TypeCode tc = Type.GetTypeCode(field.DataType);
-            if (tc == TypeCode.String)
-            {
-                //Boolean isunicode = (Database is DbBase) && (Database as DbBase).IsUnicode(field.RawType);
 
-                //if (isunicode)
-                //{
-                //    if (field.Default.StartsWith("N'", StringComparison.OrdinalIgnoreCase))
-                //        return String.Format(" Default {0}", field.Default);
-                //    else
-                //        return String.Format(" Default N'{0}'", field.Default);
-                //}
-                //else
-                //{
-                //    if (field.Default.StartsWith("'", StringComparison.OrdinalIgnoreCase))
-                //        return String.Format(" Default {0}", field.Default);
-                //    else
-                //        return String.Format(" Default '{0}'", field.Default);
-                //}
-
-                return String.Format(" Default {0}", Database.FormatValue(field, field.Default));
-            }
-            else if (tc == TypeCode.DateTime)
+            // 特殊处理时间和NewGuid
+            if (tc == TypeCode.DateTime || tc == TypeCode.String || field.DataType == typeof(Guid))
             {
-                String d = CheckAndGetDefaultDateTimeNow(field.Table.DbType, field.Default);
+                String d = CheckAndGetDefault(field, field.Default);
                 // 如果数据库特性没有时间默认值，则说明不支持
                 if (String.IsNullOrEmpty(d)) return null;
 
-                //if (String.Equals(d, "getdate()", StringComparison.OrdinalIgnoreCase)) d = "now()";
-                //if (String.Equals(d, "getdate()", StringComparison.OrdinalIgnoreCase)) d = Database.DateTimeNow;
                 return String.Format(" Default {0}", d);
             }
+
+            if (tc == TypeCode.String)
+            {
+                return String.Format(" Default {0}", Database.FormatValue(field, field.Default));
+            }
+            //else if (tc == TypeCode.DateTime)
+            //{
+            //    String d = CheckAndGetDefault(field.Table.DbType, field.Default);
+            //    // 如果数据库特性没有时间默认值，则说明不支持
+            //    if (String.IsNullOrEmpty(d)) return null;
+
+            //    return String.Format(" Default {0}", d);
+            //}
             else
                 return String.Format(" Default {0}", field.Default);
         }
