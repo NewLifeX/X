@@ -167,6 +167,8 @@ namespace NewLife.CommonEntity
 
             // 找到菜单。自下而上递归查找，任意一级没有权限即视为无权限
             Int32 id = menuID;
+            // 避免可能的死循环
+            var list = new List<Int32>();
             while (id > 0)
             {
                 TMenuEntity entity = MenuList.Find(Menu<TMenuEntity>._.ID, id);
@@ -175,6 +177,8 @@ namespace NewLife.CommonEntity
                 if (entity.Parent == null) break;
 
                 id = entity.ParentID;
+                if (list.Contains(id)) return false;
+                list.Add(id);
             }
 
             // 申请权限
