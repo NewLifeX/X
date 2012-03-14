@@ -11,21 +11,11 @@ namespace NewLife.Net.Sockets
     public class NetEventArgs : SocketAsyncEventArgs, IDisposable
     {
         #region 属性
-        //#if DEBUG
         static Int32 _gid;
 
-        private Int32 _ID;
+        private Int32 _ID = ++_gid;
         /// <summary>编号</summary>
         public Int32 ID { get { return _ID; } set { _ID = value; } }
-
-        /// <summary>
-        /// 实例化
-        /// </summary>
-        public NetEventArgs()
-        {
-            ID = ++_gid;
-        }
-        //#endif
 
         private Int32 _Times;
         /// <summary>使用次数</summary>
@@ -64,11 +54,11 @@ namespace NewLife.Net.Sockets
         #endregion
 
         #region 构造
-        ///// <summary>析构</summary>
-        //~NetEventArgs()
-        //{
-        //    Dispose(false);
-        //}
+        /// <summary>析构</summary>
+        ~NetEventArgs()
+        {
+            Dispose(false);
+        }
 
         void IDisposable.Dispose()
         {
@@ -81,38 +71,60 @@ namespace NewLife.Net.Sockets
             if (disposed) return;
             disposed = true;
 
-            XTrace.WriteLine("{0}被抛弃！{1}", RemoteIPEndPoint, LastOperation);
+            XTrace.WriteLine("{0}被抛弃！{1} {2}", ID, LastOperation, RemoteIPEndPoint);
 
+            // 断开所有资源的链接
             _buffer = null;
+            _Completed = null;
+
+            _Socket = null;
+            _Session = null;
+            _Error = null;
 
             base.Dispose();
         }
         #endregion
 
         #region 事件
-        private Boolean hasEvent;
-        private Delegate _Completed;
+        //private Boolean hasEvent;
+        private WeakEventHandler<NetEventArgs> _Completed;
         /// <summary>完成事件。该事件只能设置一个。</summary>
         public new event EventHandler<NetEventArgs> Completed
         {
             add
             {
                 if (_Completed != null) throw new Exception("重复设置了事件！");
-                _Completed = value;
+                //_Completed = value;
+                // 使用弱引用事件
+                _Completed = new WeakEventHandler<NetEventArgs>(value, null, false);
                 // 考虑到该对象将会作为池对象使用，不需要频繁的add和remove事件，所以一次性挂接即可
-                if (!hasEvent)
+                //if (!hasEvent)
                 {
-                    hasEvent = true;
+                    //hasEvent = true;
+                    // 必须采用挂接事件的方式，因为只有这样才能改变基类的m_CompletedChanged，从而清除/更新执行上下文
                     base.Completed += OnCompleted;
                 }
             }
-            remove { _Completed = null; }
+            remove
+            {
+                _Completed = null;
+
+                // 必须每次清除事件，在下次使用的时候重新设置，保证每次重新设置事件，清楚/更新执行上下文m_Context
+                base.Completed -= OnCompleted;
+            }
         }
 
         private void OnCompleted(Object sender, SocketAsyncEventArgs e)
         {
-            if (_Completed != null) (_Completed as EventHandler<NetEventArgs>)(sender, e as NetEventArgs);
+            EventHandler<NetEventArgs> handler = _Completed;
+            if (handler != null) handler(sender, e as NetEventArgs);
         }
+
+        //protected override void OnCompleted(SocketAsyncEventArgs e)
+        //{
+        //    //base.OnCompleted(e);
+        //    if (_Completed != null) _Completed(Socket, e as NetEventArgs);
+        //}
         #endregion
 
         #region 缓冲区

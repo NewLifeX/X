@@ -4,9 +4,7 @@ using NewLife.Reflection;
 
 namespace NewLife
 {
-    /// <summary>
-    /// 弱引用事件
-    /// </summary>
+    /// <summary>弱引用事件</summary>
     /// <remarks>
     /// 很多绑定事件的场合，并不适合取消绑定，这就造成了事件资源无法得到回收。
     /// 更加麻烦的是，事件本身除了包含事件处理方法外，还会包含目标对象，也就导致目标对象无法得到释放。

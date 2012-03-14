@@ -149,7 +149,8 @@ namespace NewLife.Net.Sockets
         public NetUri RemoteUri { get { return new NetUri(ProtocolType, RemoteEndPoint); } }
 
         //private Int32 _BufferSize = 10240;
-        private Int32 _BufferSize = 102400;
+        //! 注意：大于85K会进入LOH（大对象堆）
+        private Int32 _BufferSize = 80 * 1024;
         /// <summary>缓冲区大小</summary>
         public Int32 BufferSize { get { return _BufferSize; } set { _BufferSize = value; } }
 
