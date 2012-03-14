@@ -41,8 +41,8 @@ namespace NewLife.Net.Sockets
         public virtual ISocketClient Connect(IPAddress address, Int32 port) { return Connect(new IPEndPoint(address, port)); }
 
         private Int32 _ConnectTimeout;
-        /// <summary>连接超时时间。单位毫秒，默认为0。如果设置了超时时间，则采用异步加等待的方式进行连接。</summary>
-        public Int32 ConnectTimeout { get { return _ConnectTimeout; } set { _ConnectTimeout = value; } }
+        ///// <summary>连接超时时间。单位毫秒，默认为0。如果设置了超时时间，则采用异步加等待的方式进行连接。</summary>
+        //public Int32 ConnectTimeout { get { return _ConnectTimeout; } set { _ConnectTimeout = value; } }
 
         /// <summary>建立与远程主机的连接</summary>
         /// <param name="remoteEP">表示远程设备。</param>
@@ -53,7 +53,7 @@ namespace NewLife.Net.Sockets
             if (!Client.IsBound) Bind();
 
             //if (ConnectTimeout <= 0)
-                Client.Connect(remoteEP);
+            Client.Connect(remoteEP);
             //else
             //{
             //    // 建议回调委托，采用自动量通知调用者线程连接已完成。

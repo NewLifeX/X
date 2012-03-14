@@ -71,7 +71,12 @@ namespace NewLife.Net.Sockets
             if (disposed) return;
             disposed = true;
 
+            if (disposing) GC.SuppressFinalize(this);
+
             XTrace.WriteLine("{0}被抛弃！{1} {2}", ID, LastOperation, RemoteIPEndPoint);
+
+            //! 清空缓冲区，这一点非常非常重要，内部有个重叠数据对象，挂在一个全局对象池上，它会Pinned住数据缓冲区，这里必须清空被Pinned住的缓冲区
+            SetBuffer(0);
 
             // 断开所有资源的链接
             _buffer = null;
@@ -175,7 +180,7 @@ namespace NewLife.Net.Sockets
         ///// <summary>Socket数据流。每个网络事件参数带有一个，防止多次声明流对象</summary>
         //private SocketStream socketStream;
 
-        /// <summary>从接收缓冲区获取一个流，该流可用于读取已接收数据，写入数据时向远端发送数据</summary>
+        /// <summary>从接收缓冲区获取一个流，该流可用于读取已接收数据，写入数据时向远端发送数据。该流应该在持有事件参数期内使用，否则可能产生冲突。</summary>
         /// <returns></returns>
         public Stream GetStream()
         {

@@ -1,17 +1,13 @@
 ﻿using System;
-using NewLife.Linq;
-using NewLife.IO;
 using System.Diagnostics;
 using System.Threading;
+using NewLife.Collections;
+using NewLife.Linq;
 using NewLife.Log;
 using NewLife.Net.Proxy;
 using NewLife.Net.Sockets;
-using NewLife.Threading;
-using NewLife.Net.DNS;
-using System.IO;
-using XCode.DataAccessLayer;
-using NewLife.Collections;
 using NewLife.Reflection;
+using NewLife.Threading;
 
 namespace Test
 {
@@ -126,18 +122,6 @@ namespace Test
 
                 //GC.Collect();
             }
-        }
-
-        static void Test2()
-        {
-            var dal = DAL.Create("Common");
-            var eop = dal.CreateOperate("GTest");
-            eop.ConnName = "Common0";
-            Console.WriteLine(eop.Count);
-            var entity = eop.Create();
-            entity.Save();
-            Console.WriteLine(entity["Guid4"]);
-            Console.WriteLine(eop.Count);
         }
     }
 }
