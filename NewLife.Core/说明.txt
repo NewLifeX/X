@@ -1,4 +1,7 @@
-﻿2011-11-25
+﻿2012-03-14
+1，发现.Net自身一个很棒的对象池OverlappedDataCacheLine，外部采用链表，内部采用数组，加上CAS，既做到了线程安全，又保证了高效，没有GC压力。
+
+2011-11-25
 1，考虑设计一个HttpModuleLoader的IHttpModule，用于加载子目录web.config中配置的IHttpModule
 
 2011-10-01
