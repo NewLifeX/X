@@ -399,7 +399,7 @@ namespace NewLife.Net.Sockets
 
         private Int32 _AsyncCount;
         /// <summary>异步操作计数</summary>
-        public Int32 AsyncCount { get { return _AsyncCount; } /*set { _AsyncCount = value; }*/ }
+        public virtual Int32 AsyncCount { get { return _AsyncCount; } /*set { _AsyncCount = value; }*/ }
 
         /// <summary>开始异步操作</summary>
         /// <param name="callback"></param>

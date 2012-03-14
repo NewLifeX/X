@@ -27,7 +27,11 @@ namespace NewLife.Collections
         public Int32 StockCount { get { return _Stock.Count; } }
 
         /// <summary>不在库</summary>
-        public Int32 NotStockCount { get { return CreateCount - StockCount; } }
+        public Int32 NotStockCount { get { return CreateCount - StockCount - FreeCount; } }
+
+        private Int32 _FreeCount;
+        /// <summary>被释放的对象数</summary>
+        public Int32 FreeCount { get { return _FreeCount; } set { _FreeCount = value; } }
 
         private Int32 _CreateCount;
         /// <summary>创建数</summary>
@@ -114,7 +118,7 @@ namespace NewLife.Collections
                 IDisposable obj = stack.Pop() as IDisposable;
                 if (obj != null) obj.Dispose();
 
-                Interlocked.Decrement(ref _CreateCount);
+                Interlocked.Increment(ref _FreeCount);
             }
 
             // 没到最大值，关闭定时器？

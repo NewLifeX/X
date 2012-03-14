@@ -44,6 +44,9 @@ namespace NewLife.Net.Sockets
 
         /// <summary>接收数据包统计信息，默认关闭，通过<see cref="IStatistics.Enable"/>打开。</summary>
         IStatistics Statistics { get; }
+
+        /// <summary>异步操作计数</summary>
+        Int32 AsyncCount { get; }
         #endregion
 
         #region 方法

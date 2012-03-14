@@ -1,4 +1,5 @@
 ﻿using System;
+using NewLife.Linq;
 using NewLife.IO;
 using System.Diagnostics;
 using System.Threading;
@@ -9,6 +10,8 @@ using NewLife.Threading;
 using NewLife.Net.DNS;
 using System.IO;
 using XCode.DataAccessLayer;
+using NewLife.Collections;
+using NewLife.Reflection;
 
 namespace Test
 {
@@ -25,7 +28,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test2();
+                    Test1();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -94,19 +97,30 @@ namespace Test
 
         static void ShowStatus()
         {
+            var pool = PropertyInfoX.GetValue<SocketBase, ObjectPool<NetEventArgs>>("Pool");
+
             while (true)
             {
-                var hs = http.Server as SocketBase;
-                Int32 max = 0;
-                Int32 max2 = 0;
-                Int32 min = 0;
-                Int32 min2 = 0;
-                ThreadPool.GetMaxThreads(out max, out max2);
-                ThreadPool.GetMinThreads(out min, out min2);
+                var asyncCount = 0;
+                foreach (var item in http.Servers)
+                {
+                    asyncCount += item.AsyncCount;
+                }
+                foreach (var item in http.Sessions.Values.ToArray())
+                {
+                    var remote = (item as IProxySession).Remote;
+                    if (remote != null) asyncCount += remote.Host.AsyncCount;
+                }
+
                 Int32 wt = 0;
                 Int32 cpt = 0;
                 ThreadPool.GetAvailableThreads(out wt, out cpt);
-                Console.WriteLine("异步：{0} 会话：{1} 用户线程：{8} 工作线程：{2}/{3}/{4} IOCP线程：{5}/{6}/{7}", hs.AsyncCount, http.Sessions.Count, min, max, wt, min2, max2, cpt, Process.GetCurrentProcess().Threads.Count);
+                Int32 threads = Process.GetCurrentProcess().Threads.Count;
+
+                var color = Console.ForegroundColor;
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine("异步:{0} 会话:{1} Thread:{2}/{3}/{4} Pool:{5}/{6}/{7}", asyncCount, http.Sessions.Count, threads, wt, cpt, pool.StockCount, pool.FreeCount, pool.CreateCount);
+                Console.ForegroundColor = color;
 
                 Thread.Sleep(3000);
 

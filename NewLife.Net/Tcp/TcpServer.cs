@@ -36,6 +36,20 @@ namespace NewLife.Net.Tcp
         /// <summary>自动开始会话的异步接收。
         /// 接受连接请求后，自动开始会话的异步接收，默认打开，如果会话需要同步接收数据，需要关闭该选项。</summary>
         public Boolean AutoReceiveAsync { get { return _AutoReceiveAsync; } set { _AutoReceiveAsync = value; } }
+
+        /// <summary>异步操作计数</summary>
+        public override int AsyncCount
+        {
+            get
+            {
+                Int32 n = base.AsyncCount;
+                foreach (var item in Sessions.Values.ToArray())
+                {
+                    n += item.Host.AsyncCount;
+                }
+                return n;
+            }
+        }
         #endregion
 
         #region 构造
