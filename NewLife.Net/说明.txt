@@ -1,4 +1,7 @@
-﻿2012-02-29
+﻿2012-03-15
+1，网络模块产生内存泄漏的原因来自于异步操作既不失败也不完成，大量网络事件参数遗留在Root上，可用OverlapedData入手解决。
+
+2012-02-29
 整个网络模型，划分为四层：
 1，最底层当然是系统的Socket了
 2，第二层是Sockets中所包装的各个ISocket实现，包括TcpClientX、TcpServer、UdpClientX、UdpServer，各种事件采用NetEventArgs
