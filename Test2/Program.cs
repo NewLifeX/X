@@ -180,7 +180,7 @@ namespace Test2
             if (e.Buffer.StartsWith(new Byte[] { 0xFF, 0xFA })) return;
 
             Thread.Sleep(1000);
-            session.Send(e.Buffer, e.Offset, e.BytesTransferred, e.RemoteEndPoint);
+            //session.Send(e.Buffer, e.Offset, e.BytesTransferred, e.RemoteEndPoint);
         }
 
         /*
