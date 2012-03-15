@@ -533,26 +533,26 @@ namespace XCode.DataAccessLayer
         public static String GetAlias(IDataColumn dc)
         {
             var name = GetAlias(dc.Name);
-            if (dc.Table != null)
-            {
-                var name2 = name;
-                var index = 0;
-                var cs = dc.Table.Columns;
-                for (int i = 0; i < cs.Count; i++)
-                {
-                    var item = cs[i];
-                    if (item != dc && item.Name != dc.Name)
-                    {
-                        if (name2.EqualIgnoreCase(item.Alias))
-                        {
-                            name2 = name2 + ++index;
-                            // 从头开始
-                            i = -1;
-                        }
-                    }
-                }
-                name2 = name;
-            }
+            //if (dc.Table != null)
+            //{
+            //    var name2 = name;
+            //    var index = 0;
+            //    var cs = dc.Table.Columns;
+            //    for (int i = 0; i < cs.Count; i++)
+            //    {
+            //        var item = cs[i];
+            //        if (item != dc && item.Name != dc.Name)
+            //        {
+            //            if (name2.EqualIgnoreCase(item.Alias))
+            //            {
+            //                name2 = name2 + ++index;
+            //                // 从头开始
+            //                i = -1;
+            //            }
+            //        }
+            //    }
+            //    name2 = name;
+            //}
             return name;
         }
 
