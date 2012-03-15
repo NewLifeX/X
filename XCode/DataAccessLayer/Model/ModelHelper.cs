@@ -541,7 +541,7 @@ namespace XCode.DataAccessLayer
                 for (int i = 0; i < cs.Count; i++)
                 {
                     var item = cs[i];
-                    if (item.Name != dc.Name)
+                    if (item != dc && item.Name != dc.Name)
                     {
                         if (name2.EqualIgnoreCase(item.Alias))
                         {
