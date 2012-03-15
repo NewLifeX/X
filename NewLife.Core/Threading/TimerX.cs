@@ -130,7 +130,7 @@ namespace NewLife.Threading
                         thread.Start();
                     }
 
-                    if (waitForTimer != null) waitForTimer.Set();
+                    if (waitForTimer != null && waitForTimer.SafeWaitHandle != null && !waitForTimer.SafeWaitHandle.IsClosed) waitForTimer.Set();
                 }
             }
 

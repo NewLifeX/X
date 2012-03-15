@@ -23,13 +23,13 @@ namespace NewLife.Collections
         /// <returns></returns>
         Boolean TryPop(out T item);
 
-        /// <summary>获取栈顶对象，不弹栈</summary>
-        /// <returns></returns>
-        T Peek();
+        ///// <summary>获取栈顶对象，不弹栈</summary>
+        ///// <returns></returns>
+        //T Peek();
 
-        /// <summary>尝试获取栈顶对象，不弹栈</summary>
-        /// <param name="item"></param>
-        /// <returns></returns>
-        Boolean TryPeek(out T item);
+        ///// <summary>尝试获取栈顶对象，不弹栈</summary>
+        ///// <param name="item"></param>
+        ///// <returns></returns>
+        //Boolean TryPeek(out T item);
     }
 }

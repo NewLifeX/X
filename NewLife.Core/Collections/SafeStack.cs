@@ -21,23 +21,18 @@ namespace NewLife.Collections
     /// </remarks>
     /// <typeparam name="T"></typeparam>
     [Serializable]
-    public class SafeStack<T> : DisposeBase, IStack<T>, IEnumerable<T>, ICollection, IEnumerable
+    public class SafeStack<T> : DisposeBase, IStack<T>, IEnumerable<T>, ICollection, IEnumerable where T : class
     {
         #region 属性
         /// <summary>数据数组。用于存放对象。</summary>
         private T[] _array;
-        /// <summary>锁定数组。用于确定每一个位置是否被锁定</summary>
-        private volatile Byte[] _locks;
 
         private Int32 _Count;
         /// <summary>元素个数，同时也是下一个空位的位置指针</summary>
         public Int32 Count { get { return _Count; } }
 
         /// <summary>最大容量</summary>
-        public Int32 Capacity { get { return _array == null ? 0 : _array.Length; } }
-
-        /// <summary>扩容时使用的全局锁。因为扩容时不允许其它任何操作。</summary>
-        private Int32 _lock;
+        public Int32 Capacity { get { return _array.Length; } }
         #endregion
 
         #region 构造
@@ -46,11 +41,7 @@ namespace NewLife.Collections
 
         /// <summary>实例化一个指定大小的安全栈</summary>
         /// <param name="capacity"></param>
-        public SafeStack(Int32 capacity)
-        {
-            _array = new T[capacity];
-            _locks = new Byte[capacity];
-        }
+        public SafeStack(Int32 capacity) { _array = new T[capacity]; }
 
         /// <summary>使用指定枚举实例化一个安全栈</summary>
         /// <param name="collection"></param>
@@ -63,7 +54,6 @@ namespace NewLife.Collections
             }
             _array = list.ToArray();
             _Count = _array.Length;
-            _locks = new Byte[_Count];
         }
 
         /// <summary>子类重载实现资源释放逻辑时必须首先调用基类方法</summary>
@@ -79,84 +69,65 @@ namespace NewLife.Collections
                 _array[i] = default(T);
             }
             _array = null;
-            _locks = null;
         }
         #endregion
 
         #region 核心方法
+        Int32 total = 0;
+        Int32 times = 0;
+
+        /// <summary>平均</summary>
+        public Int32 Avg { get { return times == 0 ? 0 : total / times; } }
+
         /// <summary>向栈压入一个对象</summary>
         /// <remarks>重点解决多线程环境下资源争夺以及使用lock造成性能损失的问题</remarks>
         /// <param name="item"></param>
         public void Push(T item)
         {
-            // 检查锁，因为可能加锁来改变_array
-            // 这个锁主要用于数组扩容，所以设置的可能性很小
-            while (_lock > 0) Thread.SpinWait(1);
-            Debug.Assert(_lock == 0);
-
-            // 先抢位置，抢到后再慢慢赋值
-            // 为了避免别人也抢到同样的位置，通过_locks给该位置加锁
-            Int32 p = -1;
-            do
+            var len = _array.Length;
+            // 从head开始，循环遍历数组
+            var head = LastFree;
+            for (int i = 0; i < len; i++, len = _array.Length)
             {
-                // 解除上一次循环所加的锁
-                if (p >= 0) _locks[p]--;
+                if (_Count >= len) CheckSize();
 
-                p = Count;
+                var k = i + head;
+                if (k >= len) k -= len;
 
-                // 检查是否被锁定，是否在扩容
-                while (p >= _array.Length || _locks[p] > 0)
+                // 尝试交换，成功后返回
+                if (_array[k] == null && Interlocked.CompareExchange<T>(ref _array[k], item, null) == null)
                 {
-                    Thread.SpinWait(1);
-
-                    // 这期间可能有所改变
-                    while (_lock > 0) Thread.SpinWait(10);
-                    p = Count;
+                    // 记录位置，下一次从这里开始找
+                    LastNotFree = k;
+                    Interlocked.Increment(ref _Count);
+                    LastFree = k + 1;
+                    total += i + 1;
+                    times++;
+                    return;
                 }
-                // 锁定该位置，避免同时弹出。可能有多人同时加锁，但是CAS决定只有一个人能抢到
-                _locks[p]++;
-                Debug.Assert(_locks[p] == 1);
             }
-            // 如果Count现在还是p，表明取得这个位置，并把Count后移一位
-            while (Interlocked.CompareExchange(ref _Count, p + 1, p) != p);
-
-            _array[p] = item;
-
-            // 是否容量超标
-            CheckSize(p);
-
-            _locks[p]--;
-            Debug.Assert(_locks[p] == 0);
+            total += len;
+            times++;
+            throw new Exception("Error On Push");
         }
 
-        void CheckSize(Int32 p)
+        Object _lock_CheckSize = new Object();
+        void CheckSize()
         {
             // 如果当前已经用完，那么马上扩容。当然，有可能扩容前就被别人抢到后面的位置，所以，这里要尽快加锁
-            if (p >= _array.Length - 1)
+            if (_Count < _array.Length) return;
+            lock (_lock_CheckSize)
             {
-                // 加锁，扩容
-                // 开始抢锁
-                while (Interlocked.CompareExchange(ref _lock, 1, 0) != 0) Thread.SpinWait(1);
-                // DoubleLock
-                if (p >= _array.Length - 1)
-                {
-                    // 稍等一会，可能某些读取尚未完成
-                    Thread.SpinWait(100);
+                if (_Count < _array.Length) return;
 
-                    // 以4为最小值，成倍扩容
-                    Int32 size = _array.Length < 4 ? 4 : _array.Length * 2;
-                    var _arr = new T[size];
-                    _array.CopyTo(_arr, 0);
-                    _array = _arr;
+                // 稍等一会，可能某些读取尚未完成
+                Thread.SpinWait(100);
 
-                    // 位置锁数组也要扩容
-                    var _arr2 = new Byte[size];
-                    _locks.CopyTo(_arr2, 0);
-                    _locks = _arr2;
-                }
-
-                // 解锁
-                Interlocked.Decrement(ref _lock);
+                // 以4为最小值，成倍扩容
+                Int32 size = _array.Length < 4 ? 4 : _array.Length * 2;
+                var _arr = new T[size];
+                _array.CopyTo(_arr, 0);
+                _array = _arr;
             }
         }
 
@@ -175,79 +146,74 @@ namespace NewLife.Collections
         /// <returns></returns>
         public Boolean TryPop(out T item)
         {
-            // 检查锁，因为可能加锁来改变_array
-            while (_lock > 0) Thread.SpinWait(1);
-            Debug.Assert(_lock == 0);
+            var len = _array.Length;
+            if (_Count >= len) CheckSize();
 
-            T df = default(T);
-            Int32 p = -1;
-            do
+            // 从tails开始，反向循环遍历数组
+            var tails = LastNotFree;
+            for (int i = len - 1; i >= 0; i--)
             {
-                // 解除上一次循环所加的锁
-                if (p >= 0) _locks[p]--;
+                var k = i + tails + 1;
+                if (k >= len) k -= len;
 
-                p = Count;
-
-                if (p < 1)
+                // 先判断一次再交换，掠夺式获取数组元素，Exchange比CompareExchange更轻量级
+                if (_array[k] != null && (item = Interlocked.Exchange<T>(ref _array[k], null)) != null)
                 {
-                    item = df;
-                    return false;
+                    // 记录位置，下一次从这里开始找
+                    LastFree = k;
+                    Interlocked.Decrement(ref _Count);
+                    total += len - i;
+                    times++;
+                    return true;
                 }
-
-                // 检查是否被锁定，是否在扩容
-                while (p >= _array.Length || _locks[p] > 0)
-                {
-                    Thread.SpinWait(1);
-
-                    // 这期间可能有所改变
-                    while (_lock > 0) Thread.SpinWait(10);
-                    p = Count;
-                }
-                // 锁定该位置，避免同时压入。可能有多人同时加锁，但是CAS决定只有一个人能抢到
-                _locks[p]++;
-                Debug.Assert(_locks[p] == 1);
-            }
-            // 如果Count现在还是p，表明取得这个位置，并把Count前移一位
-            while (Interlocked.CompareExchange(ref _Count, p - 1, p) != p);
-
-            // p只是下一个空位置，必须前移一位才能找到最后一个元素
-            p--;
-            item = _array[p];
-            Debug.Assert(item != null);
-            _array[p] = df;
-
-            // 指针加回去才能解锁，该致命错误由 @蓝风网格（442824911）发现
-            p++;
-            _locks[p]--;
-            Debug.Assert(_locks[p] == 0);
-
-            return true;
-        }
-
-        /// <summary>获取栈顶对象，不弹栈</summary>
-        /// <returns></returns>
-        public T Peek()
-        {
-            T item;
-            if (!TryPeek(out item)) throw new InvalidOperationException("栈为空！");
-
-            return item;
-        }
-
-        /// <summary>尝试获取栈顶对象，不弹栈</summary>
-        /// <param name="item"></param>
-        /// <returns></returns>
-        public Boolean TryPeek(out T item)
-        {
-            Int32 p = Count;
-            if (p < 1)
-            {
-                item = default(T);
-                return false;
             }
 
-            item = _array[p - 1];
-            return true;
+            item = null;
+            return false;
+        }
+
+        // 记录最后的空闲位置和非空闲位置，一级缓存
+        const Int32 SIZE_OF_CACHE = 100000;
+        // 指向下一个空位置
+        volatile Int32 lastFreeIndex = 0;
+        volatile Int32 lastNotFreeIndex = 0;
+        volatile Int32[] lastFree = new Int32[SIZE_OF_CACHE];
+        volatile Int32[] lastNotFree = new Int32[SIZE_OF_CACHE];
+
+        Int32 LastFree
+        {
+            get
+            {
+                var k = lastFreeIndex;
+                if (k <= 0) return 0;
+                lastFreeIndex--;
+                return lastFree[k - 1];
+            }
+            set
+            {
+                var k = lastFreeIndex;
+                if (k >= SIZE_OF_CACHE) return;
+                lastFreeIndex++;
+                lastFree[k] = value;
+            }
+        }
+
+        Int32 LastNotFree
+        {
+            get
+            {
+                var k = lastNotFreeIndex;
+                if (k <= 0) return 0;
+                lastNotFreeIndex--;
+                return lastNotFree[k - 1];
+            }
+            set
+            {
+                var k = lastNotFreeIndex;
+                if (k >= SIZE_OF_CACHE) return;
+                lastNotFreeIndex++;
+                lastNotFree[k] = value;
+            }
         }
         #endregion
 

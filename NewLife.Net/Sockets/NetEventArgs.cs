@@ -73,7 +73,7 @@ namespace NewLife.Net.Sockets
 
             if (disposing) GC.SuppressFinalize(this);
 
-            XTrace.WriteLine("{0}被抛弃！{1} {2}", ID, LastOperation, RemoteIPEndPoint);
+            //XTrace.WriteLine("{0}被抛弃！{1} {2}", ID, LastOperation, RemoteIPEndPoint);
 
             //! 清空缓冲区，这一点非常非常重要，内部有个重叠数据对象，挂在一个全局对象池上，它会Pinned住数据缓冲区，这里必须清空被Pinned住的缓冲区
             SetBuffer(0);

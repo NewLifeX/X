@@ -24,7 +24,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test1();
+                    Test2();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -122,6 +122,11 @@ namespace Test
 
                 //GC.Collect();
             }
+        }
+
+        static void Test2()
+        {
+            ObjectPoolTest<NetEventArgs>.Start();
         }
     }
 }
