@@ -1,7 +1,6 @@
 ﻿using System;
-using NewLife.Linq;
-using System.Xml.Serialization;
 using System.Reflection;
+using System.Xml.Serialization;
 using NewLife.Reflection;
 
 namespace NewLife.Messaging
@@ -22,9 +21,30 @@ namespace NewLife.Messaging
         [XmlIgnore]
         public override MessageKind Kind { get { return MessageKind.Method; } }
 
+        [NonSerialized]
         private Type _Type;
         /// <summary>实体类型。可以是接口或抽象类型（要求对象容器能识别）</summary>
-        public Type Type { get { return _Type; } set { _Type = value; } }
+        [XmlIgnore]
+        public Type Type
+        {
+            get
+            {
+                if (_Type == null && !String.IsNullOrEmpty(_TypeName)) _Type = TypeX.GetType(_TypeName);
+                return _Type;
+            }
+            set
+            {
+                _Type = value;
+                if (value != null)
+                    _TypeName = value.FullName;
+                else
+                    _TypeName = null;
+            }
+        }
+
+        private String _TypeName;
+        /// <summary>实体类型名。可以是接口或抽象类型（要求对象容器能识别）</summary>
+        public String TypeName { get { return _TypeName; } set { _TypeName = value; } }
 
         private String _Name;
         /// <summary>方法名</summary>
@@ -69,10 +89,22 @@ namespace NewLife.Messaging
         //    return new MethodMessage() { Type = type, Name = name, Parameters = ps }.Invoke();
         //}
 
-        //public Object Invoke()
-        //{
+        /// <summary>根据包括类型和方法名的完整方法名，以及参数，创建方法消息</summary>
+        /// <param name="fullMethodName">完整方法名</param>
+        /// <param name="ps"></param>
+        /// <returns></returns>
+        public MethodMessage Create(String fullMethodName, params Object[] ps)
+        {
+            if (String.IsNullOrEmpty(fullMethodName)) throw new ArgumentNullException("fullMethodName");
+            Int32 p = fullMethodName.LastIndexOf(".");
+            if (p <= 0 || p == fullMethodName.Length - 1) throw new ArgumentOutOfRangeException("fullMethodName", "完整方法名中未找到类型名！");
 
-        //}
+            var msg = new MethodMessage();
+            msg.TypeName = fullMethodName.Substring(0, p);
+            msg.Name = fullMethodName.Substring(p + 1);
+            msg.Parameters = ps;
+            return msg;
+        }
         #endregion
 
         #region 服务端
@@ -103,7 +135,7 @@ namespace NewLife.Messaging
         /// <returns></returns>
         public override string ToString()
         {
-            return String.Format("{0} {1}.{2}", base.ToString(), Type, Name);
+            return String.Format("{0} {1}.{2}", base.ToString(), TypeName, Name);
         }
         #endregion
     }

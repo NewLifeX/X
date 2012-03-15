@@ -735,7 +735,7 @@ namespace NewLife.Serialization
             // 若想不写对象类型，可以提前设定精确类型
             if (!IsExactType(type))
             {
-                type = value.GetType();
+                if (value != null) type = value.GetType();
                 WriteLog(action, type.Name);
                 WriteObjectType(type);
             }

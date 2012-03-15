@@ -1,7 +1,10 @@
 ﻿using System;
+using System.ComponentModel;
 using System.IO;
 using System.Net;
 using NewLife.IO;
+using NewLife.Security;
+using NewLife.Web;
 
 namespace NewLife.Messaging
 {
@@ -21,8 +24,8 @@ namespace NewLife.Messaging
             {
                 if (_Client == null)
                 {
-                    var client = new WebClient();
-                    client.UploadDataCompleted += new UploadDataCompletedEventHandler(client_UploadDataCompleted);
+                    var client = new WebClientX();
+                    //client.UploadDataCompleted += new UploadDataCompletedEventHandler(client_UploadDataCompleted);
 
                     _Client = client;
                 }
@@ -33,21 +36,68 @@ namespace NewLife.Messaging
                 if (_Client != value)
                 {
                     _Client = value;
-                    if (value != null) value.UploadDataCompleted += new UploadDataCompletedEventHandler(client_UploadDataCompleted);
+                    //if (value != null) value.UploadDataCompleted += new UploadDataCompletedEventHandler(client_UploadDataCompleted);
+                    _hasSetAsync = false;
                 }
             }
         }
         #endregion
 
-        #region 异步接收
-        void client_UploadDataCompleted(object sender, UploadDataCompletedEventArgs e)
+        #region 同步收发
+        /// <summary>发送并接收消息。主要用于应答式的请求和响应。</summary>
+        /// <remarks>如果内部实现是异步模型，则等待指定时间获取异步返回的第一条消息，该消息不再触发消息到达事件<see cref="OnReceived"/>。</remarks>
+        /// <param name="message"></param>
+        /// <param name="millisecondsTimeout">等待的毫秒数，或为 <see cref="F:System.Threading.Timeout.Infinite" /> (-1)，表示无限期等待。默认0表示不等待</param>
+        /// <returns></returns>
+        public override Message SendAndReceive(Message message, int millisecondsTimeout = 0)
+        {
+            //return base.SendAndReceive(message, millisecondsTimeout);
+
+            //var rs = Client.UploadData(Uri, data);
+            Byte[] rs = null;
+            var data = message.GetStream().ReadBytes();
+            if (data.Length < 128)
+                rs = Client.DownloadData(new Uri(Uri.ToString() + "?" + DataHelper.ToHex(data)));
+            else
+                rs = Client.UploadData(Uri, data);
+            if (rs == null || rs.Length < 1) return null;
+
+            return Message.Read(new MemoryStream(rs));
+        }
+        #endregion
+
+        #region 异步收发
+        Boolean _hasSetAsync;
+
+        /// <summary>发送消息。如果有响应，可在消息到达事件中获得。</summary>
+        /// <param name="message"></param>
+        public override void Send(Message message)
+        {
+            var client = Client;
+            if (!_hasSetAsync)
+            {
+                client.UploadDataCompleted += new UploadDataCompletedEventHandler(client_UploadDataCompleted);
+                client.DownloadDataCompleted += new DownloadDataCompletedEventHandler(client_DownloadDataCompleted);
+            }
+            var data = message.GetStream().ReadBytes();
+            if (data.Length < 128)
+                client.DownloadDataAsync(new Uri(Uri.ToString() + "?" + DataHelper.ToHex(data)));
+            else
+                client.UploadDataAsync(Uri, data);
+        }
+
+        void client_UploadDataCompleted(object sender, UploadDataCompletedEventArgs e) { ProcessResponse(e, e.Result); }
+
+        void client_DownloadDataCompleted(object sender, DownloadDataCompletedEventArgs e) { ProcessResponse(e, e.Result); }
+
+        void ProcessResponse(AsyncCompletedEventArgs e, Byte[] result)
         {
             if (e.Error != null)
             {
                 var msg = new ExceptionMessage() { Value = e.Error };
                 Process(msg);
             }
-            else if (e.Result == null || e.Result.Length <= 0)
+            else if (result == null || result.Length <= 0)
             {
                 Process(new NullMessage());
             }
@@ -55,7 +105,7 @@ namespace NewLife.Messaging
             {
                 try
                 {
-                    var ms = new MemoryStream(e.Result);
+                    var ms = new MemoryStream(result);
                     var msg = Message.Read(ms);
                     Process(msg);
                 }
@@ -67,12 +117,5 @@ namespace NewLife.Messaging
             }
         }
         #endregion
-
-        /// <summary>发送消息。如果有响应，可在消息到达事件中获得。</summary>
-        /// <param name="message"></param>
-        public override void Send(Message message)
-        {
-            Client.UploadDataAsync(Uri, message.GetStream().ReadBytes());
-        }
     }
 }

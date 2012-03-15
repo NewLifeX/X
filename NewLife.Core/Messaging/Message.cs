@@ -118,7 +118,7 @@ namespace NewLife.Messaging
         {
             //setting.IsBaseFirst = true;
             setting.EncodeInt = true;
-            setting.UseObjRef = false;
+            setting.UseObjRef = true;
             setting.UseTypeFullName = false;
         }
         #endregion
