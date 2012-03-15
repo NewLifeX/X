@@ -222,7 +222,7 @@ namespace NewLife.Net.Proxy
                 base.OnReceive(e);
             }
 
-            String LastHost;
+            //String LastHost;
             Int32 LastPort;
 
             /// <summary>
@@ -284,12 +284,12 @@ namespace NewLife.Net.Proxy
                     host = uri.Host + ":" + uri.Port;
 
                     // 如果地址或端口改变，则重新连接服务器
-                    if (Remote != null && (uri.Host != LastHost || uri.Port != LastPort))
+                    if (Remote != null && (uri.Host != RemoteHost || uri.Port != LastPort))
                     {
                         Remote.Dispose();
                         Remote = null;
                     }
-                    LastHost = uri.Host;
+                    RemoteHost = uri.Host;
                     LastPort = uri.Port;
 
                     RemoteEndPoint = new IPEndPoint(NetHelper.ParseAddress(uri.Host), uri.Port);

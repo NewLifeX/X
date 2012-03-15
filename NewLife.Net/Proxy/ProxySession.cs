@@ -50,6 +50,10 @@ namespace NewLife.Net.Proxy
 
         /// <summary>服务端地址</summary>
         public NetUri RemoteUri { get { return Remote != null ? Remote.RemoteUri : new NetUri(RemoteProtocolType, RemoteEndPoint); } }
+
+        private String _RemoteHost;
+        /// <summary>远程主机</summary>
+        public virtual String RemoteHost { get { return _RemoteHost; } set { _RemoteHost = value; } }
         #endregion
 
         #region 构造
@@ -126,7 +130,8 @@ namespace NewLife.Net.Proxy
                 this.Dispose();
 
                 var ts = DateTime.Now - start;
-                throw new XException(ex, "无法连接远程服务器{0}！耗时{1}！", RemoteEndPoint, ts);
+                var host = String.IsNullOrEmpty(RemoteHost) ? "" + RemoteEndPoint : RemoteHost;
+                throw new XException(ex, "无法连接远程服务器{0}！耗时{1}！", host, ts);
             }
         }
 
@@ -139,7 +144,7 @@ namespace NewLife.Net.Proxy
         protected virtual ISocketSession CreateRemote(ReceivedEventArgs e)
         {
             var key = "" + RemoteEndPoint;
-            if (String.IsNullOrEmpty(key)) throw new ArgumentNullException("");
+            if (String.IsNullOrEmpty(key)) throw new ArgumentNullException("RemoteEndPoint");
 
             DateTime dt;
             if (_NotConnected.TryGetValue(key, out dt) && dt > DateTime.Now) throw new NetException("指定时间内连接{0}超时，稍候再试！", key);
@@ -153,7 +158,7 @@ namespace NewLife.Net.Proxy
             }
             catch
             {
-                _NotConnected[key] = DateTime.Now.AddMinutes(5);
+                _NotConnected[key] = DateTime.Now.AddMinutes(1);
                 throw;
             }
             return client.CreateSession();
