@@ -35,7 +35,7 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
 [assembly: AssemblyVersion("8.4.*")]
-[assembly: AssemblyFileVersion("8.4.2012.0309")]
+[assembly: AssemblyFileVersion("8.4.2012.0316")]
 
 /*
  * XCode的重大改进
@@ -52,6 +52,8 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v8.4.2012.0316   感谢@晴天（412684802）和@老徐（gregorius 279504479），这里的最小和开始必须是0，插入的时候有++i的效果，才会得到从1开始的编号
+ * 
  * v8.4.2012.0309   IDatabase接口增加表示Guid获取函数的属性NewGuid
  *                  数据层增加对Guid默认值的支持，用于DDL操作
  *                  插入数据时，针对没有赋值的Guid字段或设置了Guid默认值的字符串字段，默认设置一个Guid，由EntityPersistence实现

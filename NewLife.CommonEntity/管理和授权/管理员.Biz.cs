@@ -12,9 +12,7 @@ using XCode;
 
 namespace NewLife.CommonEntity
 {
-    /// <summary>
-    /// 管理员
-    /// </summary>
+    /// <summary>管理员</summary>
     /// <typeparam name="TEntity">管理员实体类</typeparam>
     /// <typeparam name="TRoleEntity">角色实体类</typeparam>
     /// <typeparam name="TMenuEntity">菜单实体类</typeparam>
@@ -67,7 +65,19 @@ namespace NewLife.CommonEntity
         [XmlIgnore]
         public virtual TRoleEntity Role
         {
-            get { return GetExtend<TRoleEntity, TRoleEntity>("Role", e => Role<TRoleEntity, TMenuEntity, TRoleMenuEntity>.FindByID(RoleID), false); }
+            get
+            {
+                if (RoleID <= 0) return null;
+                var role = GetExtend<TRoleEntity, TRoleEntity>("Role", e => Role<TRoleEntity, TMenuEntity, TRoleMenuEntity>.FindByID(RoleID), false);
+                // 如果找不到角色，并且处于初始化状态，则更正数据
+                if (role == null && Meta.Count <= 1 && Role<TRoleEntity>.Meta.Count > 0)
+                {
+                    role = Role<TRoleEntity>.Meta.Cache.Entities[0];
+                    RoleID = role.ID;
+                    this.Save();
+                }
+                return role;
+            }
             set { SetExtend<TRoleEntity>("Role", value); }
         }
 
