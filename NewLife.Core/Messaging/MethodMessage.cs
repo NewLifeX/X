@@ -54,8 +54,10 @@ namespace NewLife.Messaging
         /// <summary>参数数组</summary>
         public Object[] Parameters { get { return _Parameters; } set { _Parameters = value; } }
 
+        [NonSerialized]
         private MethodInfo _Method;
         /// <summary>方法对象</summary>
+        [XmlIgnore]
         public MethodInfo Method
         {
             get
