@@ -34,7 +34,7 @@ namespace XCode.DataAccessLayer
         [Description("名称")]
         public String Name { get { return _Name; } set { _Name = value; _Alias = null; } }
 
-        private String _Alias;
+        internal String _Alias;
         /// <summary>
         /// 别名
         /// </summary>
