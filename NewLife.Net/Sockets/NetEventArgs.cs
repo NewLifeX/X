@@ -4,11 +4,12 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using NewLife.Log;
+using NewLife.Collections;
 
 namespace NewLife.Net.Sockets
 {
     /// <summary>网络事件参数</summary>
-    public class NetEventArgs : SocketAsyncEventArgs, IDisposable
+    public class NetEventArgs : SocketAsyncEventArgs, ISafeStackItem, IDisposable
     {
         #region 属性
         static Int32 _gid;
@@ -224,6 +225,12 @@ namespace NewLife.Net.Sockets
             else
                 return String.Format("[{0}]{1} BytesTransferred={2}", ID, LastOperation, BytesTransferred);
         }
+        #endregion
+
+        #region ISafeStackItem 成员
+        private Int32 _Slot = -1;
+        /// <summary>用于安全栈的位置</summary>
+        Int32 ISafeStackItem.Slot { get { return _Slot; } set { _Slot = value; } }
         #endregion
     }
 }

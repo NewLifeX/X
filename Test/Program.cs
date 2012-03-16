@@ -27,7 +27,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test2();
+                    Test3();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -170,5 +170,10 @@ namespace Test
             public IAdministrator Admin { get { return _Admin; } set { _Admin = value; } }
         }
         #endregion
+
+        static void Test3()
+        {
+            ObjectPoolTest<NetEventArgs>.Start();
+        }
     }
 }

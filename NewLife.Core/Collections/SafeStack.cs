@@ -21,7 +21,7 @@ namespace NewLife.Collections
     /// </remarks>
     /// <typeparam name="T"></typeparam>
     [Serializable]
-    public class SafeStack<T> : DisposeBase, IStack<T>, IEnumerable<T>, ICollection, IEnumerable where T : class
+    public class SafeStack<T> : DisposeBase, IStack<T>, IEnumerable<T>, ICollection, IEnumerable where T : class,ISafeStackItem
     {
         #region 属性
         /// <summary>数据数组。用于存放对象。</summary>
@@ -41,7 +41,7 @@ namespace NewLife.Collections
 
         /// <summary>实例化一个指定大小的安全栈</summary>
         /// <param name="capacity"></param>
-        public SafeStack(Int32 capacity) { _array = new T[capacity]; }
+        public SafeStack(Int32 capacity) { _array = new T[capacity]; lastNotFree = new Int32[capacity]; }
 
         /// <summary>使用指定枚举实例化一个安全栈</summary>
         /// <param name="collection"></param>
@@ -54,6 +54,7 @@ namespace NewLife.Collections
             }
             _array = list.ToArray();
             _Count = _array.Length;
+            lastNotFree = new Int32[_Count];
         }
 
         /// <summary>子类重载实现资源释放逻辑时必须首先调用基类方法</summary>
@@ -73,17 +74,28 @@ namespace NewLife.Collections
         #endregion
 
         #region 核心方法
+#if DEBUG
         Int32 total = 0;
         Int32 times = 0;
 
         /// <summary>平均</summary>
         public Int32 Avg { get { return times == 0 ? 0 : total / times; } }
+#endif
 
         /// <summary>向栈压入一个对象</summary>
         /// <remarks>重点解决多线程环境下资源争夺以及使用lock造成性能损失的问题</remarks>
         /// <param name="item"></param>
         public void Push(T item)
         {
+            // 原有对象直接保存
+            if (item.Slot >= 0)
+            {
+                _array[item.Slot] = item;
+                LastNotFree = item.Slot;
+                Interlocked.Increment(ref _Count);
+                return;
+            }
+
             var len = _array.Length;
             // 从head开始，循环遍历数组
             var head = LastFree;
@@ -97,17 +109,22 @@ namespace NewLife.Collections
                 // 尝试交换，成功后返回
                 if (_array[k] == null && Interlocked.CompareExchange<T>(ref _array[k], item, null) == null)
                 {
+                    item.Slot = k;
                     // 记录位置，下一次从这里开始找
                     LastNotFree = k;
                     Interlocked.Increment(ref _Count);
                     LastFree = k + 1;
+#if DEBUG
                     total += i + 1;
                     times++;
+#endif
                     return;
                 }
             }
+#if DEBUG
             total += len;
             times++;
+#endif
             throw new Exception("Error On Push");
         }
 
@@ -128,6 +145,10 @@ namespace NewLife.Collections
                 var _arr = new T[size];
                 _array.CopyTo(_arr, 0);
                 _array = _arr;
+
+                var _arr2 = new Int32[size];
+                lastNotFree.CopyTo(_arr2, 0);
+                lastNotFree = _arr2;
             }
         }
 
@@ -162,8 +183,10 @@ namespace NewLife.Collections
                     // 记录位置，下一次从这里开始找
                     LastFree = k;
                     Interlocked.Decrement(ref _Count);
+#if DEBUG
                     total += len - i;
                     times++;
+#endif
                     return true;
                 }
             }
@@ -172,31 +195,35 @@ namespace NewLife.Collections
             return false;
         }
 
-        // 记录最后的空闲位置和非空闲位置，一级缓存
-        const Int32 SIZE_OF_CACHE = 100000;
-        // 指向下一个空位置
-        volatile Int32 lastFreeIndex = 0;
-        volatile Int32 lastNotFreeIndex = 0;
-        volatile Int32[] lastFree = new Int32[SIZE_OF_CACHE];
-        volatile Int32[] lastNotFree = new Int32[SIZE_OF_CACHE];
+        //volatile Int32 LastFree = 0;
+        //volatile Int32 LastNotFree = 0;
 
-        Int32 LastFree
-        {
-            get
-            {
-                var k = lastFreeIndex;
-                if (k <= 0) return 0;
-                lastFreeIndex--;
-                return lastFree[k - 1];
-            }
-            set
-            {
-                var k = lastFreeIndex;
-                if (k >= SIZE_OF_CACHE) return;
-                lastFreeIndex++;
-                lastFree[k] = value;
-            }
-        }
+        // 记录最后的空闲位置和非空闲位置，一级缓存
+        //const Int32 SIZE_OF_CACHE = 100000;
+        // 指向下一个空位置
+        //volatile Int32 lastFreeIndex = 0;
+        volatile Int32 lastNotFreeIndex = 0;
+        //Int32[] lastFree = new Int32[SIZE_OF_CACHE];
+        Int32[] lastNotFree;// = new Int32[SIZE_OF_CACHE];
+
+        volatile Int32 LastFree = 0;
+        //Int32 LastFree
+        //{
+        //    get
+        //    {
+        //        var k = lastFreeIndex;
+        //        if (k <= 0) return 0;
+        //        lastFreeIndex--;
+        //        return lastFree[k - 1];
+        //    }
+        //    set
+        //    {
+        //        var k = lastFreeIndex;
+        //        if (k >= SIZE_OF_CACHE) return;
+        //        lastFreeIndex++;
+        //        lastFree[k] = value;
+        //    }
+        //}
 
         Int32 LastNotFree
         {
@@ -210,7 +237,7 @@ namespace NewLife.Collections
             set
             {
                 var k = lastNotFreeIndex;
-                if (k >= SIZE_OF_CACHE) return;
+                if (k >= lastNotFree.Length) return;
                 lastNotFreeIndex++;
                 lastNotFree[k] = value;
             }
@@ -275,5 +302,12 @@ namespace NewLife.Collections
 
         IEnumerator IEnumerable.GetEnumerator() { return _array.GetEnumerator(); }
         #endregion
+    }
+
+    /// <summary>安全栈项接口。采用安全栈存储的数据必须实现该接口</summary>
+    public interface ISafeStackItem
+    {
+        /// <summary>存储位置</summary>
+        Int32 Slot { get; set; }
     }
 }

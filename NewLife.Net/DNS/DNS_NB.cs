@@ -11,7 +11,7 @@ namespace NewLife.Net.DNS
     public class DNS_NB : DNSRecord
     {
         #region 属性
-        private UInt16 _flags;
+        private UInt16 _flags = 0;
 
         /// <summary></summary>
         public bool G { get { return BitHelper.GetBit(_flags, 15); } }

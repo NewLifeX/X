@@ -40,7 +40,7 @@ namespace NewLife.Net.Sockets
         /// <returns>返回自身，用于链式写法</returns>
         public virtual ISocketClient Connect(IPAddress address, Int32 port) { return Connect(new IPEndPoint(address, port)); }
 
-        private Int32 _ConnectTimeout;
+        //private Int32 _ConnectTimeout;
         ///// <summary>连接超时时间。单位毫秒，默认为0。如果设置了超时时间，则采用异步加等待的方式进行连接。</summary>
         //public Int32 ConnectTimeout { get { return _ConnectTimeout; } set { _ConnectTimeout = value; } }
 

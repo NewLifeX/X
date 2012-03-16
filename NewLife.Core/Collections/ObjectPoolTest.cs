@@ -1,22 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
-using NewLife.Log;
-using System.Collections;
-using NewLife.Reflection;
 using System.Diagnostics;
+using NewLife.Log;
 
 namespace NewLife.Collections
 {
     /// <summary>对象池测试</summary>
     /// <typeparam name="T"></typeparam>
-    public static class ObjectPoolTest<T> where T : class,new()
+    public static class ObjectPoolTest<T> where T : class,ISafeStackItem, new()
     {
         /// <summary>开始</summary>
         public static void Start()
         {
+            Int32 max = 10000;
             var pool1 = new ObjectPool<T>();
-            pool1.Stock = new SafeStack<T>();
+            pool1.Stock = new SafeStack<T>(max);
             var pool2 = new ObjectPool<T>();
             pool2.Stock = new InterlockedStack<T>();
             var pool3 = new ObjectPool<T>();
@@ -24,7 +22,6 @@ namespace NewLife.Collections
             var pool4 = new ObjectPool<T>();
             pool4.Stock = new LockStack<T>();
 
-            Int32 max = 10000;
             pool1.Max = pool2.Max = pool3.Max = pool4.Max = max;
 
             // 各准备对象
@@ -44,6 +41,7 @@ namespace NewLife.Collections
 
             Int32 times = 10000000;
 
+            CodeTimer.ShowHeader();
             Test("SafeStack", pool1, max, times);
             Test("InterlockedStack", pool2, max, times);
             Test("InterlockedStack", pool3, max, times);
@@ -114,7 +112,7 @@ namespace NewLife.Collections
             });
             foreach (var item in list) pool.Push(item);
 
-            Console.WriteLine("{2} 借：{0,8:n0} 还：{1,8:n0}", pcount1, pcount2, name);
+            //Console.WriteLine("{2} 借：{0,8:n0} 还：{1,8:n0}", pcount1, pcount2, name);
         }
     }
 }

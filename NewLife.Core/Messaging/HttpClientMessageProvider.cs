@@ -45,7 +45,6 @@ namespace NewLife.Messaging
 
         #region 同步收发
         /// <summary>发送并接收消息。主要用于应答式的请求和响应。</summary>
-        /// <remarks>如果内部实现是异步模型，则等待指定时间获取异步返回的第一条消息，该消息不再触发消息到达事件<see cref="OnReceived"/>。</remarks>
         /// <param name="message"></param>
         /// <param name="millisecondsTimeout">等待的毫秒数，或为 <see cref="F:System.Threading.Timeout.Infinite" /> (-1)，表示无限期等待。默认0表示不等待</param>
         /// <returns></returns>

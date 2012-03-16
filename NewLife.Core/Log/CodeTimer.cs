@@ -54,10 +54,14 @@ namespace NewLife.Log
 
             ConsoleColor currentForeColor = Console.ForegroundColor;
             Console.ForegroundColor = ConsoleColor.Yellow;
+            Int32 left = Console.CursorLeft;
 
             if (needTimeOne) timer.TimeOne();
             timer.Time();
 
+            // 等一会，让进度那边先输出
+            Thread.Sleep(10);
+            Console.CursorLeft = left;
             Console.WriteLine(timer.ToString());
 
             Console.ForegroundColor = currentForeColor;
