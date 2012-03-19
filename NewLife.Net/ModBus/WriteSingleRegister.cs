@@ -12,9 +12,9 @@ namespace NewLife.Net.ModBus
         /// <summary>数据地址</summary>
         public UInt16 DataAddress { get { return _DataAddress; } set { _DataAddress = value; } }
 
-        private Byte[] _Data;
-        /// <summary>数据</summary>
-        public Byte[] Data { get { return _Data; } set { _Data = value; } }
+        private UInt16 _Data;
+        /// <summary>数据内容</summary>
+        public UInt16 Data { get { return _Data; } set { _Data = value; } }
         #endregion
 
         /// <summary>实例化</summary>
