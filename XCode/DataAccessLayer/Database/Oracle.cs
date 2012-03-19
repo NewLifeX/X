@@ -49,7 +49,22 @@ namespace XCode.DataAccessLayer
                             {
                                 String fileName = "Oracle.DataAccess.dll";
                                 _dbProviderFactory = GetProviderFactory(fileName, "Oracle.DataAccess.Client.OracleClientFactory");
-                                if (_dbProviderFactory != null && DAL.Debug) DAL.WriteDebugLog("Oracle使用文件驱动{0}", _dbProviderFactory.GetType().Assembly.Location);
+                                if (_dbProviderFactory != null && DAL.Debug)
+                                {
+                                    var asm = _dbProviderFactory.GetType().Assembly;
+                                    DAL.WriteDebugLog("Oracle使用文件驱动{0} 版本v{1}", asm.Location, asm.GetName().Version);
+
+
+                                    try
+                                    {
+                                        var code = CheckVersionCompatibility(asm.GetName().Version.ToString());
+                                        DAL.WriteDebugLog("检查版本兼容失败结果：{0}", code);
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        DAL.WriteDebugLog("Oracle检查版本兼容失败！{0}", ex.Message);
+                                    }
+                                }
                             }
                             catch (FileNotFoundException) { }
                             catch (Exception ex)
@@ -413,7 +428,17 @@ namespace XCode.DataAccessLayer
             }
 
             CheckAndDownload("OracleClient.zip", target);
+
+            file = Path.Combine(target, file);
+            if (File.Exists(file))
+            {
+                LoadLibrary(file);
+                SetDllDirectory(target);
+            }
         }
+
+        [DllImport("OraOps11w.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+        static extern int CheckVersionCompatibility(string version);
         #endregion
     }
 
