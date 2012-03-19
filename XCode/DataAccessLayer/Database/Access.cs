@@ -29,10 +29,21 @@ namespace XCode.DataAccessLayer
             get { return DatabaseType.Access; }
         }
 
+        private static DbProviderFactory _dbProviderFactory;
         /// <summary>π§≥ß</summary>
         public override DbProviderFactory Factory
         {
-            get { return OleDbFactory.Instance; }
+            get
+            {
+                if (_dbProviderFactory == null)
+                {
+                    _dbProviderFactory = OleDbFactory.Instance;
+
+                    // ºÏ≤ÈADOX
+                    CheckAndDownload("Interop.ADOX.dll");
+                }
+                return _dbProviderFactory;
+            }
         }
 
         protected override string DefaultConnectionString

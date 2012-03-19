@@ -10,6 +10,8 @@ using NewLife;
 using NewLife.IO;
 using NewLife.Reflection;
 using NewLife.Web;
+using NewLife.Compression;
+using NewLife.Configuration;
 
 namespace XCode.DataAccessLayer
 {
@@ -260,38 +262,7 @@ namespace XCode.DataAccessLayer
 
             if (!File.Exists(file))
             {
-                // 从网上下载文件
-                try
-                {
-                    #region 检测64位平台
-                    Module module = typeof(Object).Module;
-
-                    PortableExecutableKinds kind;
-                    ImageFileMachine machine;
-                    module.GetPEKind(out kind, out machine);
-
-                    if (machine != ImageFileMachine.I386) file += "64";
-                    #endregion
-
-                    String url = String.Format("http://nnhy.org/j?id=3&f={0}", Path.GetFileName(file + ".zip"));
-                    DAL.WriteLog("准备从{0}下载相关文件！", url);
-                    WebClientX client = new WebClientX(true, true);
-                    // 同步下载，3秒超时
-                    client.Timeout = 3000;
-                    Byte[] data = client.DownloadData(url);
-                    client.Dispose();
-
-                    String dir = Path.GetDirectoryName(file);
-                    DAL.WriteLog("下载完成，准备解压到{0}！", dir);
-                    MemoryStream ms = new MemoryStream(data);
-                    if (file.EndsWith("64")) file = file.Substring(0, file.Length - 2);
-                    IOHelper.DecompressFile(ms, dir, file, false);
-                    DAL.WriteLog("解压完成！");
-                }
-                catch (Exception ex)
-                {
-                    DAL.WriteLog(ex.ToString());
-                }
+                CheckAndDownload(file);
 
                 // 如果还没有，就写异常
                 if (!File.Exists(file)) throw new FileNotFoundException("缺少文件" + file + "！", file);
@@ -303,15 +274,82 @@ namespace XCode.DataAccessLayer
             Type type = asm.GetType(className);
             if (type == null) return null;
 
-            //FieldInfo field = type.GetField("Instance");
-            //if (field == null) return Activator.CreateInstance(type) as DbProviderFactory;
-
-            //return FieldInfoX.Create(field).GetValue(null) as DbProviderFactory;
-
             var field = FieldInfoX.Create(type, "Instance");
             if (field == null) return Activator.CreateInstance(type) as DbProviderFactory;
 
             return field.GetValue(null) as DbProviderFactory;
+        }
+
+        protected static void CheckAndDownload(String file, String targetPath = null)
+        {
+            if (!Path.IsPathRooted(file))
+            {
+                if (!Runtime.IsWeb)
+                    file = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, file);
+                else
+                    file = Path.Combine(HttpRuntime.BinDirectory, file);
+            }
+
+            if (File.Exists(file) && new FileInfo(file).Length > 0) return;
+
+            // 目标目录
+            String dir = !String.IsNullOrEmpty(targetPath) ? targetPath : Path.GetDirectoryName(file);
+
+            // 从网上下载文件
+            try
+            {
+                var zipfile = Path.GetFileNameWithoutExtension(file);
+
+                #region 检测64位平台
+                Module module = typeof(Object).Module;
+
+                PortableExecutableKinds kind;
+                ImageFileMachine machine;
+                module.GetPEKind(out kind, out machine);
+
+                if (machine != ImageFileMachine.I386) zipfile += "64";
+                #endregion
+
+                zipfile += ".zip";
+                String url = String.Format(ServiceAddress, zipfile);
+
+                // 目标Zip文件
+                zipfile = Path.Combine(dir, zipfile);
+                // Zip文件不存在，准备下载
+                if (!File.Exists(zipfile) || new FileInfo(zipfile).Length <= 0)
+                {
+                    DAL.WriteLog("准备从{0}下载文件到{1}！", url, zipfile);
+                    var client = new WebClientX(true, true);
+                    // 同步下载，3秒超时
+                    client.Timeout = 3000;
+                    //var data = client.DownloadData(url);
+                    if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
+                    client.DownloadFile(url, zipfile);
+                    client.Dispose();
+                }
+
+                DAL.WriteLog("下载完成，准备解压到{0}！", dir);
+                //var ms = new MemoryStream(data);
+                //if (file.EndsWith("64")) file = file.Substring(0, file.Length - 2);
+                //IOHelper.DecompressFile(ms, dir, file, false);
+                ZipFile.Extract(zipfile, dir, true);
+                DAL.WriteLog("解压完成！");
+            }
+            catch (Exception ex)
+            {
+                DAL.WriteLog(ex.ToString());
+            }
+        }
+
+        static String _ServiceAddress;
+        static String ServiceAddress
+        {
+            get
+            {
+                if (_ServiceAddress == null) _ServiceAddress = Config.GetConfig<String>("", "http://j.nnhy.org/?id=3&f={0}");
+
+                return _ServiceAddress;
+            }
         }
 
         /// <summary>

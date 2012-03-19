@@ -73,11 +73,7 @@ namespace NewLife.Compression
 
         private Boolean _UseDirectory;
         /// <summary>是否使用目录。不使用目录可以减少一点点文件大小，网络上的压缩包也这么做，但是Rar压缩的使用了目录</summary>
-        public Boolean UseDirectory
-        {
-            get { return _UseDirectory; }
-            set { _UseDirectory = value; }
-        }
+        public Boolean UseDirectory { get { return _UseDirectory; } set { _UseDirectory = value; } }
         #endregion
 
         #region 构造

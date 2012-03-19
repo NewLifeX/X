@@ -173,7 +173,13 @@ namespace Test
 
         static void Test3()
         {
-            ObjectPoolTest<NetEventArgs>.Start();
+            //var type = TypeX.GetType("OracleInit", true);
+            //var method = MethodInfoX.Create(type, "GetAssemblyVersion");
+            //var ver = method.Invoke(null, null);
+            //Console.WriteLine(ver);
+
+            //ObjectPoolTest<NetEventArgs>.Start();
+            Console.WriteLine(Administrator.Meta.Count);
         }
     }
 }

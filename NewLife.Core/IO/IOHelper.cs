@@ -71,6 +71,7 @@ namespace NewLife.IO
         /// <param name="src"></param>
         /// <param name="des"></param>
         /// <returns></returns>
+        [Obsolete("请使用NewLife.Compression.ZipFile！")]
         public static String CompressFile(String src, String des)
         {
             if (String.IsNullOrEmpty(des)) des = src + ".zip";
@@ -90,6 +91,7 @@ namespace NewLife.IO
         /// </summary>
         /// <param name="root"></param>
         /// <returns></returns>
+        [Obsolete("请使用NewLife.Compression.ZipFile！")]
         public static String CompressFile(String root)
         {
             return CompressFile(root, Directory.GetFiles(root, "*.*", SearchOption.AllDirectories));
@@ -101,6 +103,7 @@ namespace NewLife.IO
         /// <param name="root">根目录</param>
         /// <param name="files">文件集合</param>
         /// <returns>压缩的文件名</returns>
+        [Obsolete("请使用NewLife.Compression.ZipFile！")]
         public static String CompressFile(String root, String[] files)
         {
             if (files == null) files = Directory.GetFiles(root, "*.*", SearchOption.AllDirectories);
@@ -136,6 +139,7 @@ namespace NewLife.IO
         /// <param name="files">文件集合</param>
         /// <param name="des">输出文件</param>
         /// <returns></returns>
+        [Obsolete("请使用NewLife.Compression.ZipFile！")]
         public static String CompressFile(String root, String[] files, String des)
         {
             if (String.IsNullOrEmpty(root)) root = AppDomain.CurrentDomain.BaseDirectory;
@@ -159,6 +163,7 @@ namespace NewLife.IO
         /// <param name="root">根目录</param>
         /// <param name="files">文件集合</param>
         /// <param name="outStream">目标</param>
+        [Obsolete("请使用NewLife.Compression.ZipFile！")]
         public static void CompressFile(String root, String[] files, Stream outStream)
         {
             if (String.IsNullOrEmpty(root)) root = AppDomain.CurrentDomain.BaseDirectory;
@@ -223,6 +228,7 @@ namespace NewLife.IO
         /// <param name="src"></param>
         /// <param name="des"></param>
         /// <returns></returns>
+        [Obsolete("请使用NewLife.Compression.ZipFile！")]
         public static String DecompressSingleFile(String src, String des)
         {
             if (String.IsNullOrEmpty(des)) des = Path.GetFileNameWithoutExtension(src);
@@ -244,7 +250,7 @@ namespace NewLife.IO
         /// <param name="targetPath"></param>
         /// <param name="isSub">是否解压到子目录中，仅对多文件有效</param>
         /// <returns></returns>
-        public static String DecompressFile(String src, String targetPath, Boolean isSub)
+        static String DecompressFile(String src, String targetPath, Boolean isSub)
         {
             if (String.IsNullOrEmpty(targetPath)) targetPath = Path.GetDirectoryName(src);
             String des = Path.GetFileNameWithoutExtension(src);
@@ -278,6 +284,7 @@ namespace NewLife.IO
         /// <param name="src"></param>
         /// <param name="targetPath"></param>
         /// <returns></returns>
+        [Obsolete("请使用NewLife.Compression.ZipFile！")]
         public static String DecompressFile(String src, String targetPath)
         {
             //String des = null;
@@ -298,6 +305,7 @@ namespace NewLife.IO
         /// </summary>
         /// <param name="inStream"></param>
         /// <param name="targetPath"></param>
+        [Obsolete("请使用NewLife.Compression.ZipFile！")]
         public static void DecompressFile(Stream inStream, String targetPath)
         {
             DecompressFile(inStream, targetPath, null, false);

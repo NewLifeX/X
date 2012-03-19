@@ -9,6 +9,9 @@ using System.Text.RegularExpressions;
 using NewLife.Configuration;
 using NewLife.Linq;
 using XCode.Common;
+using NewLife.Threading;
+using System.Web;
+using NewLife;
 
 namespace XCode.DataAccessLayer
 {
@@ -38,6 +41,10 @@ namespace XCode.DataAccessLayer
                     {
                         if (_dbProviderFactory == null)
                         {
+                            // 检查Oracle客户端运行时
+                            //ThreadPoolX.QueueUserWorkItem(CheckRuntime);
+                            CheckRuntime();
+
                             try
                             {
                                 String fileName = "Oracle.DataAccess.dll";
@@ -117,11 +124,24 @@ namespace XCode.DataAccessLayer
             set { base.Owner = value; }
         }
 
-        private String _DllPath;
+        private static String _DllPath;
         /// <summary>OCI目录</summary>
-        public String DllPath
+        public static String DllPath
         {
-            get { return _DllPath; }
+            get
+            {
+                if (_DllPath == null)
+                {
+                    _DllPath = "";
+
+                    String ocifile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "oci.dll");
+                    if (!File.Exists(ocifile) && Runtime.IsWeb) ocifile = Path.Combine(HttpRuntime.BinDirectory, "oci.dll");
+                    if (!File.Exists(ocifile)) ocifile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\OracleClient\oci.dll");
+                    if (!File.Exists(ocifile)) ocifile = @"C:\OracleClient\oci.dll";
+                    if (File.Exists(ocifile)) _DllPath = Path.GetDirectoryName(ocifile);
+                }
+                return _DllPath;
+            }
             set
             {
                 _DllPath = value;
@@ -139,9 +159,9 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        private String _OracleHome;
+        private static String _OracleHome;
         /// <summary>Oracle运行时主目录</summary>
-        public String OracleHome
+        public static String OracleHome
         {
             get
             {
@@ -150,15 +170,16 @@ namespace XCode.DataAccessLayer
                     _OracleHome = String.Empty;
 
                     // 如果DllPath目录存在，则基于它找主目录
-                    if (!String.IsNullOrEmpty(DllPath) && Directory.Exists(DllPath))
+                    var dir = DllPath;
+                    if (!String.IsNullOrEmpty(dir) && Directory.Exists(dir))
                     {
-                        _OracleHome = DllPath;
+                        _OracleHome = dir;
 
                         // 如果该目录就有network目录，则使用它作为主目录
-                        if (!Directory.Exists(Path.Combine(DllPath, "network")))
+                        if (!Directory.Exists(Path.Combine(dir, "network")))
                         {
                             // 否则找上一级
-                            DirectoryInfo di = new DirectoryInfo(DllPath);
+                            DirectoryInfo di = new DirectoryInfo(dir);
                             di = di.Parent;
 
                             if (Directory.Exists(Path.Combine(di.FullName, "network"))) _OracleHome = di.FullName;
@@ -175,30 +196,9 @@ namespace XCode.DataAccessLayer
             String str = null;
             // 获取OCI目录
             if (builder.TryGetAndRemove("DllPath", out str) && !String.IsNullOrEmpty(str))
-            {
-                DllPath = str;
-
-                // 设置路径
-                String ocifile = Path.Combine(DllPath, "oci.dll");
-                if (File.Exists(ocifile))
-                {
-                    DAL.WriteDebugLog("设置OCI目录：{0}", DllPath);
-
-                    try
-                    {
-                        LoadLibrary(ocifile);
-                        SetDllDirectory(DllPath);
-                    }
-                    catch { }
-                }
-
-                if (String.IsNullOrEmpty(Environment.GetEnvironmentVariable("ORACLE_HOME")))
-                {
-                    DAL.WriteDebugLog("设置环境变量：{0}={1}", "ORACLE_HOME", OracleHome);
-
-                    Environment.SetEnvironmentVariable("ORACLE_HOME", OracleHome);
-                }
-            }
+                SetDllPath(str);
+            else if (!String.IsNullOrEmpty(str = DllPath))
+                SetDllPath(str);
         }
 
         [DllImport("kernel32.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
@@ -363,6 +363,56 @@ namespace XCode.DataAccessLayer
             cache[key] = dt;
 
             return true;
+        }
+
+        void SetDllPath(String str)
+        {
+            DllPath = str;
+            var dir = DllPath;
+
+            // 设置路径
+            String ocifile = Path.Combine(dir, "oci.dll");
+            if (File.Exists(ocifile))
+            {
+                DAL.WriteDebugLog("设置OCI目录：{0}", dir);
+
+                try
+                {
+                    LoadLibrary(ocifile);
+                    SetDllDirectory(dir);
+                }
+                catch { }
+            }
+
+            if (String.IsNullOrEmpty(Environment.GetEnvironmentVariable("ORACLE_HOME")))
+            {
+                DAL.WriteDebugLog("设置环境变量：{0}={1}", "ORACLE_HOME", OracleHome);
+
+                Environment.SetEnvironmentVariable("ORACLE_HOME", OracleHome);
+            }
+        }
+
+        static void CheckRuntime()
+        {
+            if (!String.IsNullOrEmpty(DllPath)) return;
+
+            var file = "oci.dll";
+            if (File.Exists(file)) return;
+
+            DAL.WriteLog("没有找到OCI.dll，可能是配置不当，准备从网络下载！");
+
+            // 尝试使用C盘目录，然后才使用上级目录
+            var target = @"C:\OracleClient";
+            try
+            {
+                if (!Directory.Exists(target)) Directory.CreateDirectory(target);
+            }
+            catch
+            {
+                target = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\OracleClient"));
+            }
+
+            CheckAndDownload("OracleClient.zip", target);
         }
         #endregion
     }
