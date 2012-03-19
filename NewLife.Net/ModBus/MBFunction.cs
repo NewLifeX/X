@@ -5,7 +5,7 @@ using System.Text;
 namespace NewLife.Net.ModBus
 {
     /// <summary>Modbus支持的功能码</summary>
-    public enum MBFunction
+    public enum MBFunction : byte
     {
         /// <summary>读取线圈状态。取得一组逻辑线圈的当前状态（ON/OFF) </summary>
         ReadCoils = 1,

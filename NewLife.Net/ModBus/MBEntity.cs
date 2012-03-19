@@ -1,4 +1,5 @@
 ﻿using System;
+using NewLife.Linq;
 using NewLife.IO;
 using System.Collections.Generic;
 using System.Text;
@@ -9,6 +10,8 @@ using NewLife.Exceptions;
 using NewLife.Reflection;
 using System.Xml.Serialization;
 using NewLife.Security;
+using System.Reflection;
+using System.Diagnostics;
 
 namespace NewLife.Net.ModBus
 {
@@ -31,29 +34,50 @@ namespace NewLife.Net.ModBus
         public MBFunction Function { get { return _Function; } set { _Function = value; } }
         #endregion
 
+        #region 构造、注册
+        static MBEntity()
+        {
+            Init();
+        }
+
+        /// <summary>初始化</summary>
+        static void Init()
+        {
+            var container = ObjectContainer.Current;
+            var asm = Assembly.GetExecutingAssembly();
+            // 搜索已加载程序集里面的消息类型
+            foreach (var item in AssemblyX.FindAllPlugins(typeof(MBEntity), true))
+            {
+                var msg = TypeX.CreateInstance(item) as MBEntity;
+                if (msg != null) container.Register(typeof(MBEntity), item, null, msg.Function);
+            }
+        }
+        #endregion
+
         #region 读写
         /// <summary>把当前对象写入数据，包括可能的起始符和结束符</summary>
         /// <param name="stream"></param>
         public void Write(Stream stream)
         {
-            var ms = stream;
             // ASCII模式，先写入内存流
-            if (IsAscii) ms = new MemoryStream();
-
+            var ms = new MemoryStream();
             var writer = new BinaryWriterX(ms);
-            Set(writer.Settings);
-
-            //writer.Debug = true;
-            //writer.EnableTraceStream();
-
-            if (IsAscii) writer.Write(':');
+            Set(writer);
 
             writer.WriteObject(this);
 
+            // 计算CRC
+            ms.Position = 0;
             if (IsAscii)
             {
-                writer.Write('\r');
-                writer.Write('\n');
+                // 累加后取补码
+                var crc = (Byte)ms.ReadBytes().Cast<Int32>().Sum();
+                writer.Write(~crc);
+            }
+            else
+            {
+                var crc = new Crc32().Update(ms).Value;
+                writer.Write(crc);
             }
 
             // ASCII模式，需要转为HEX字符编码
@@ -63,7 +87,16 @@ namespace NewLife.Net.ModBus
                 var data = ms.ReadBytes();
                 data = Encoding.ASCII.GetBytes(data.ToHex());
 
-                stream.Write(data, 0, data.Length);
+                writer.Stream = stream;
+                writer.Write(':');
+                writer.Write(data, 0, data.Length);
+                writer.Write('\r');
+                writer.Write('\n');
+            }
+            else
+            {
+                ms.Position = 0;
+                ms.CopyTo(stream);
             }
         }
 
@@ -92,16 +125,28 @@ namespace NewLife.Net.ModBus
                 ms = new MemoryStream(data);
             }
 
+            var start = ms.Position;
             var reader = new BinaryReaderX(ms);
-            Set(reader.Settings);
-
-            reader.Debug = true;
-            reader.EnableTraceStream();
+            Set(reader);
 
             if (isAscii && reader.ReadChar() != ':') return null;
 
             var entity = reader.ReadObject<MBEntity>();
             entity.IsAscii = isAscii;
+
+            // 计算Crc
+            var ori = ms.Position;
+            ms.Position = start;
+            if (isAscii)
+            {
+                var crc = (Byte)ms.ReadBytes(ori - start).Cast<Int32>().Sum();
+                if (~crc != reader.ReadByte()) throw new Exception("Crc校验失败！");
+            }
+            else
+            {
+                var crc = new Crc32().Update(ms, ori - start).Value;
+                if (crc != reader.ReadUInt16()) throw new Exception("Crc校验失败！");
+            }
 
             if (isAscii && (reader.ReadChar() != '\r' || reader.ReadChar() != '\n')) return null;
 
@@ -117,12 +162,22 @@ namespace NewLife.Net.ModBus
             return Read(stream) as TEntity;
         }
 
-        static void Set(BinarySettings setting)
+        static void Set(IReaderWriter rw)
         {
+            var settting = rw.Settings;
             //setting.IsBaseFirst = true;
             //setting.EncodeInt = true;
             //setting.UseObjRef = true;
             //setting.UseTypeFullName = false;
+
+            //SetDebug(rw);
+        }
+
+        [Conditional("DEBUG")]
+        static void SetDebug(IReaderWriter rw)
+        {
+            rw.Debug = true;
+            rw.EnableTraceStream();
         }
         #endregion
     }
