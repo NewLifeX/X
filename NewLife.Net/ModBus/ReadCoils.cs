@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using NewLife.Serialization;
 
 namespace NewLife.Net.ModBus
 {
-    /// <summary>读取保持寄存器。在一个或多个保持寄存器中取得当前的二进制值</summary>
-    public class ReadHoldingRegisters : MBEntity, IModBusRequest
+    /// <summary>读取线圈状态。取得一组逻辑线圈的当前状态（ON/OFF) </summary>
+    public class ReadCoils : MBEntity, IModBusRequest
     {
         #region 属性
         private UInt16 _DataAddress;
@@ -18,11 +19,11 @@ namespace NewLife.Net.ModBus
         #endregion
 
         /// <summary>实例化</summary>
-        public ReadHoldingRegisters() { Function = MBFunction.ReadHoldingRegisters; }
+        public ReadCoils() { Function = MBFunction.ReadCoils; }
     }
 
-    /// <summary>读取保持寄存器响应。在一个或多个保持寄存器中取得当前的二进制值</summary>
-    public class ReadHoldingRegistersResponse : MBEntity, IModBusResponse
+    /// <summary>读取线圈状态。取得一组逻辑线圈的当前状态（ON/OFF) </summary>
+    public class ReadCoilsResponse : MBEntity, IModBusResponse
     {
         #region 属性
         private UInt16 _Length;
@@ -34,6 +35,6 @@ namespace NewLife.Net.ModBus
         #endregion
 
         /// <summary>实例化</summary>
-        public ReadHoldingRegistersResponse() { Function = MBFunction.ReadHoldingRegisters; }
+        public ReadCoilsResponse() { Function = MBFunction.ReadCoils; }
     }
 }
