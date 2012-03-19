@@ -152,6 +152,7 @@ namespace NewLife.Net.ModBus
             }
             catch (Exception ex) { throw new XException(String.Format("无法从数据流中读取{0}（Function={1}）消息！", type.Name, kind), ex); }
 
+            entity.Function = kind;
             entity.IsAscii = isAscii;
 
             // 计算Crc
