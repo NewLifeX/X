@@ -46,10 +46,15 @@ namespace NewLife.Net.ModBus
             var container = ObjectContainer.Current;
             var asm = Assembly.GetExecutingAssembly();
             // 搜索已加载程序集里面的消息类型
-            foreach (var item in AssemblyX.FindAllPlugins(typeof(MBEntity), true))
+            foreach (var item in AssemblyX.FindAllPlugins(typeof(IModBusRequest), true))
             {
-                var msg = TypeX.CreateInstance(item) as MBEntity;
-                if (msg != null) container.Register(typeof(MBEntity), item, null, msg.Function);
+                var msg = TypeX.CreateInstance(item) as IModBusRequest;
+                if (msg != null) container.Register(typeof(IModBusRequest), item, null, msg.Function);
+            }
+            foreach (var item in AssemblyX.FindAllPlugins(typeof(IModBusResponse), true))
+            {
+                var msg = TypeX.CreateInstance(item) as IModBusResponse;
+                if (msg != null) container.Register(typeof(IModBusResponse), item, null, msg.Function);
             }
         }
         #endregion
@@ -131,7 +136,22 @@ namespace NewLife.Net.ModBus
 
             if (isAscii && reader.ReadChar() != ':') return null;
 
-            var entity = reader.ReadObject<MBEntity>();
+            //var entity = reader.ReadObject<MBEntity>();
+
+            // 读取了响应类型和消息类型后，动态创建消息对象
+            var kind = (MBFunction)reader.ReadByte();
+            var type = ObjectContainer.Current.ResolveType<MBEntity>(kind);
+            if (type == null) throw new XException("无法识别的消息类型（Function={0}）！", kind);
+
+            if (stream.Position == stream.Length) return TypeX.CreateInstance(type, null) as MBEntity;
+
+            MBEntity entity = null;
+            try
+            {
+                entity = reader.ReadObject(type) as MBEntity;
+            }
+            catch (Exception ex) { throw new XException(String.Format("无法从数据流中读取{0}（Function={1}）消息！", type.Name, kind), ex); }
+
             entity.IsAscii = isAscii;
 
             // 计算Crc

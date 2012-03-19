@@ -84,8 +84,10 @@
     <Compile Include="Http\WebRequest.cs" />
     <Compile Include="Http\WebServer.cs" />
     <Compile Include="Http\WebSession.cs" />
+    <Compile Include="ModBus\Interface.cs" />
     <Compile Include="ModBus\MBEntity.cs" />
     <Compile Include="ModBus\MBFunction.cs" />
+    <Compile Include="ModBus\ReadHoldingRegisters.cs" />
     <Compile Include="NetService.cs" />
     <Compile Include="DNS\DNSClient.cs" />
     <Compile Include="DNS\DNSEntity.cs" />
