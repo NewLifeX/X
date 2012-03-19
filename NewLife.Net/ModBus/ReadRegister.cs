@@ -41,7 +41,7 @@ namespace NewLife.Net.ModBus
         [FieldSize("_Length")]
         private Byte[] _Data;
         /// <summary>数据</summary>
-        public Byte[] Data { get { return _Data; } set { _Data = value; if (value != null)_Length = (UInt16)value.Length; } }
+        public Byte[] Data { get { return _Data; } set { _Data = value; _Length = (UInt16)(value != null ? value.Length : 0); } }
         #endregion
 
         /// <summary>实例化</summary>
