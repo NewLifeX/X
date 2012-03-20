@@ -17,7 +17,7 @@ title 自动编译
 pushd ..
 set svn=https://svn.nnhy.org/svn/X/trunk
 :: do else 等关键字前后都应该预留空格
-for %%i in (Src DLL) do (
+for %%i in (Src DLL XCoder) do (
 	svn info %svn%/%%i
 	svn update %%i
 )
@@ -36,8 +36,13 @@ copy ..\生成\N*.* ..\DLL\ /y
 copy ..\生成\X*.* ..\DLL\ /y
 del ..\DLL\*.config /f/s/q
 
+for %%i in (XCoder.exe XCoder.exe.config NewLife.Core.dll XCode.dll XTemplate.dll) do (
+	copy ..\代码生成\%%i ..\XCoder\%%i /y
+)
+
 :: 5，提交DLL更新
 svn commit -m "自动编译" ..\DLL
+svn commit -m "自动编译" ..\XCoder
 
 :: 6，打包Src和DLL到FTP
 set rar="C:\Program Files\WinRAR\RAR.exe" -m5 -md4096 -mt2 -s -z..\Src\Readme.txt
@@ -49,7 +54,7 @@ rd XCoder\bin /s/q
 rd XCoder\obj /s/q
 set zipfile=Src.rar
 %rar% -r a %zipfile% NewLife.Core\*.cs NewLife.CommonEntity\*.cs XControl\*.cs XAgent\*.cs XCode\Entity\*.cs XCode\DataAccessLayer\Common\*.cs XCoder\*.* XTemplate\Templating\Template.cs
-move /y Src.%zipfile% %dest%\%zipfile%
+move /y %zipfile% %dest%\%zipfile%
 
 :: 发布XCode例子源码
 rd YWS\bin /s/q
@@ -69,6 +74,15 @@ pushd ..\DLL
 ::"C:\Program Files\WinRAR\WinRAR.exe" a DLL.rar *.dll *.exe *.pdb *.xml
 set zipfile=DLL.rar
 %rar% a %zipfile% *.dll *.exe *.pdb *.xml
+move /y %zipfile% %dest%\%zipfile%
+:: 恢复目录
+popd
+
+:: 发布代码生成器XCoder
+:: 保存当前目录，并切换目录
+pushd ..\XCoder
+set zipfile=XCoder.rar
+%rar% a %zipfile% *.dll *.exe *.config
 move /y %zipfile% %dest%\%zipfile%
 :: 恢复目录
 popd
