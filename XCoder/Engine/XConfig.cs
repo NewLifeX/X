@@ -1,10 +1,7 @@
 ﻿using System;
-using System.IO;
-using System.Xml.Serialization;
-using System.Text;
 using System.Collections.Generic;
-using System.Collections.Specialized;
-using XCoder;
+using System.IO;
+using System.Text;
 using System.Xml;
 
 namespace XCoder
@@ -139,14 +136,6 @@ namespace XCoder
             get { return _LastUpdate; }
             set { _LastUpdate = value; }
         }
-
-        //private String _LastBlogTitle;
-        ///// <summary>最后弹窗的博文地址</summary>
-        //public String LastBlogTitle
-        //{
-        //    get { return _LastBlogTitle; }
-        //    set { _LastBlogTitle = value; }
-        //}
 
         private Dictionary<String, String> _Items;
         /// <summary> 字典属性</summary>

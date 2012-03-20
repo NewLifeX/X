@@ -1,9 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Text;
 using System.Windows.Forms;
 
 namespace XCoder
@@ -23,7 +18,6 @@ namespace XCoder
             FrmText frm = new FrmText();
             if (!String.IsNullOrEmpty(title)) frm.Text = title;
             frm.richTextBox1.Text = content;
-            //frm.Show();
 
             return frm;
         }

@@ -1,16 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
-using System.Drawing;
-using System.Text;
-using System.Windows.Forms;
-using XCode.DataAccessLayer;
-using NewLife.Threading;
-using NewLife;
-using NewLife.Reflection;
-using System.Threading;
 using System.Diagnostics;
+using System.Threading;
+using System.Windows.Forms;
+using NewLife.Threading;
+using XCode.DataAccessLayer;
 
 namespace XCoder
 {

@@ -152,7 +152,7 @@
     <EmbeddedResource Include="NewLife.ProcessHelper.exe" />
     <EmbeddedResource Include="Template\页面\类名.aspx" />
     <EmbeddedResource Include="Template\页面\类名Form.aspx" />
-    <Content Include="UpdateInfo.txt" />
+    <EmbeddedResource Include="UpdateInfo.txt" />
     <EmbeddedResource Include="Template\数据字典\连接名数据字典.htm" />
   </ItemGroup>
   <ItemGroup>

@@ -1,18 +1,20 @@
 using System;
-using NewLife.IO;
+using NewLife.Linq;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Data.Common;
 using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 using System.Text;
 using System.Windows.Forms;
+using NewLife.IO;
 using NewLife.Log;
 using NewLife.Threading;
 using XCode.DataAccessLayer;
 using XTemplate.Templating;
-using System.Reflection;
+using System.Configuration;
 
 namespace XCoder
 {
@@ -41,8 +43,6 @@ namespace XCoder
             this.Icon = FileSource.GetIcon();
 
             AutoLoadTables(Config.ConnName);
-
-            //FileSource.CheckTemplate();
         }
 
         private void FrmMain_Shown(object sender, EventArgs e)
@@ -57,13 +57,7 @@ namespace XCoder
 
             try
             {
-                List<String> list = new List<String>();
-                foreach (String item in DAL.ConnStrs.Keys)
-                {
-                    list.Add(item);
-                }
-                //Conns = list;
-                SetDatabaseList(list);
+                SetDatabaseList(DAL.ConnStrs.Keys.ToList());
 
                 BindTemplate(cb_Template);
             }
@@ -186,9 +180,9 @@ namespace XCoder
             }
             #endregion
 
-            foreach (String item in DAL.ConnStrs.Keys)
+            foreach (var item in DAL.ConnStrs)
             {
-                if (!String.IsNullOrEmpty(DAL.ConnStrs[item].ConnectionString)) list.Add(item);
+                if (!String.IsNullOrEmpty(item.Value.ConnectionString)) list.Add(item.Key);
             }
 
             #region 探测连接中的其它库
@@ -202,7 +196,6 @@ namespace XCoder
                     DAL dal = DAL.Create(item);
                     if (dal.DbType != DatabaseType.SqlServer) continue;
 
-                    //DataSet ds = null;
                     DataTable dt = null;
                     String dbprovider = null;
 
@@ -211,22 +204,6 @@ namespace XCoder
                     DAL.ShowSQL = false;
                     try
                     {
-                        //if (dal.DbType == DatabaseType.SqlServer)
-                        //{
-                        //    if (dal.Db.ServerVersion.StartsWith("08"))
-                        //        ds = dal.Select("SELECT name FROM sysdatabases", "");
-                        //    else
-                        //        ds = dal.Select("SELECT name FROM sys.databases", "");
-
-                        //    dbprovider = dal.Db.ServerVersion.StartsWith("08") ? "sql2000" : "sql2005";
-                        //}
-                        //else if (dal.DbType == DatabaseType.MySql)
-                        //{
-                        //    continue;
-                        //}
-                        //else
-                        //    continue;
-
                         if (dal.Db.CreateMetaData().MetaDataCollections.Contains("Databases"))
                         {
                             dt = dal.Db.CreateSession().GetSchema("Databases", null);
@@ -276,16 +253,15 @@ namespace XCoder
             {
                 list.AddRange(names);
 
-                //Conns = list;
                 this.Invoke(new Action<List<String>>(SetDatabaseList), list);
             }
         }
 
         Boolean ContainConnStr(String connstr)
         {
-            foreach (String item in DAL.ConnStrs.Keys)
+            foreach (var item in DAL.ConnStrs)
             {
-                if (String.Equals(connstr, DAL.ConnStrs[item].ConnectionString, StringComparison.OrdinalIgnoreCase)) return true;
+                if (String.Equals(connstr, item.Value.ConnectionString, StringComparison.OrdinalIgnoreCase)) return true;
             }
             return false;
         }
@@ -298,7 +274,6 @@ namespace XCoder
             cbConn.DisplayMember = "value";
             cbConn.Update();
 
-            //Conns = null;
             if (!String.IsNullOrEmpty(str)) cbConn.Text = str;
 
             if (!String.IsNullOrEmpty(Config.ConnName))
@@ -335,7 +310,9 @@ namespace XCoder
         void AutoLoadTables(String name)
         {
             if (String.IsNullOrEmpty(name)) return;
-            if (!DAL.ConnStrs.ContainsKey(name) || String.IsNullOrEmpty(DAL.ConnStrs[name].ConnectionString)) return;
+            //if (!DAL.ConnStrs.ContainsKey(name) || String.IsNullOrEmpty(DAL.ConnStrs[name].ConnectionString)) return;
+            ConnectionStringSettings setting;
+            if (!DAL.ConnStrs.TryGetValue(name, out setting) || setting.ConnectionString.IsNullOrWhiteSpace()) return;
 
             // 异步加载
             ThreadPoolX.QueueUserWorkItem(delegate(Object state) { IList<IDataTable> tables = DAL.Create((String)state).Tables; }, name, null);
@@ -525,6 +502,13 @@ namespace XCoder
             //Process.Start("explorer.exe", "/root,\"" + dir + "\"");
             //Process.Start("explorer.exe", "/select," + dir);
         }
+
+        private void frmItems_Click(object sender, EventArgs e)
+        {
+            //FrmItems.Create(XConfig.Current.Items).Show();
+
+            FrmItems.Create(XConfig.Current).Show();
+        }
         #endregion
 
         #region 模版相关
@@ -557,13 +541,6 @@ namespace XCoder
             }
         }
         #endregion
-
-        private void frmItems_Click(object sender, EventArgs e)
-        {
-            //FrmItems.Create(XConfig.Current.Items).Show();
-
-            FrmItems.Create(XConfig.Current).Show();
-        }
 
         #region 菜单
         private void 退出XToolStripMenuItem_Click(object sender, EventArgs e)

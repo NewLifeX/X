@@ -52,14 +52,6 @@ namespace XCoder
         void SetTables(Object data)
         {
             List<IDataTable> tables = Db.CreateMetaData().GetTables();
-            //DataTable dt = Db.CreateSession().GetSchema("Tables", null);
-            //if (dt == null || dt.Rows == null) return;
-
-            //ICollection<String> tables = new List<String>();
-            //foreach (DataRow dr in dt.Rows)
-            //{
-            //    tables.Add((String)dr["table_name"]);
-            //}
             this.Invoke(new Func<ComboBox, IEnumerable, Boolean>(SetList), cbTables, tables);
         }
 

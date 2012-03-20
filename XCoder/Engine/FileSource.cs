@@ -1,11 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Reflection;
-using System.Threading;
-using System.Windows.Forms;
-using System.Collections.Generic;
 using System.Text;
-using System.Drawing;
+using System.Windows.Forms;
 
 namespace XCoder
 {

@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
 using System.Windows.Forms;
+using NewLife.Linq;
 using NewLife.Reflection;
 using XCode.DataAccessLayer;
-using System.Text;
 
 namespace XCoder
 {
@@ -33,20 +34,14 @@ namespace XCoder
 
             FrmModel frm = new FrmModel();
             frm.Tables = tables;
-            //frm.Show();
 
             return frm;
         }
 
         private void FrmModel_Load(object sender, EventArgs e)
         {
-            //cbTables.DataSource = Tables;
-            //cbTables.Update();
-
             SetTables(Tables, 0);
             SetDbTypes();
-
-            //gv.DataSource = Tables;
         }
         #endregion
 
@@ -118,11 +113,7 @@ namespace XCoder
             table.Name = "NewTable" + table.ID;
             table.Description = "新建表" + table.ID;
 
-            //cbTables.Items.Clear();
-            //cbTables.DataSource = Tables;
-            //cbTables.Update();
             SetTables(Tables, Tables.Count - 1);
-            //cbTables.SelectedItem = table;
         }
 
         private void btnAddColumn_Click(object sender, EventArgs e)
@@ -171,20 +162,7 @@ namespace XCoder
         #region 建表语句
         void SetDbTypes()
         {
-            //String[] ss = Enum.GetNames(typeof(DatabaseType));
-            //List<String> list = new List<string>(ss);
-            //for (int i = list.Count - 1; i >= 0; i--)
-            //{
-            //    Int32 n = (Int32)Enum.Parse(typeof(DatabaseType), list[i]);
-            //    if (n >= 100) list.RemoveAt(i);
-            //}
-            //cbConn.DataSource = list;
-            var list = new List<String>();
-            foreach (String item in DAL.ConnStrs.Keys)
-            {
-                list.Add(item);
-            }
-            cbConn.DataSource = list;
+            cbConn.DataSource = DAL.ConnStrs.Keys.ToList();
             cbConn.Update();
         }
 
