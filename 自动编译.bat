@@ -26,7 +26,7 @@ popd
 
 :: 3，编译所有组件
 ::"D:\MS\Microsoft Visual Studio 10.0\Common7\IDE\devenv.exe" X组件.sln /Build Release
-set vs="D:\MS\Microsoft Visual Studio 10.0\Common7\IDE\devenv.exe"
+set vs="D:\MS\Microsoft Visual Studio 10.0\Common7\IDE\devenv.com"
 for %%i in (NewLife.Core XCode NewLife.CommonEntity NewLife.Mvc NewLife.Net XAgent XControl XTemplate XCoder) do (
 	%vs% X组件.sln /Build Release /Project %%i
 )
@@ -47,8 +47,9 @@ set dest=E:\快盘\新生命共享\X
 :: 发布Src源码
 rd XCoder\bin /s/q
 rd XCoder\obj /s/q
-%rar% -r a Src.rar NewLife.Core\*.cs NewLife.CommonEntity\*.cs XControl\*.cs XAgent\*.cs XCode\Entity\*.cs XCode\DataAccessLayer\Common\*.cs XCoder\*.* XTemplate\Templating\Template.cs
-move Src.rar %dest% /y
+set zipfile=Src.rar
+%rar% -r a %zipfile% NewLife.Core\*.cs NewLife.CommonEntity\*.cs XControl\*.cs XAgent\*.cs XCode\Entity\*.cs XCode\DataAccessLayer\Common\*.cs XCoder\*.* XTemplate\Templating\Template.cs
+move /y Src.%zipfile% %dest%\%zipfile%
 
 :: 发布XCode例子源码
 rd YWS\bin /s/q
@@ -58,14 +59,16 @@ rd Web\Log /s/q
 rd Web\App_Data /s/q
 md Web\Bin
 Copy ..\DLL\XControl.* Web\Bin\ /y
-%rar% -r a XCodeSample.rar YWS\*.* Web\*.*
-move XCodeSample.rar %dest% /y
+set zipfile=XCodeSample.rar
+%rar% -r a %zipfile% YWS\*.* Web\*.*
+move /y %zipfile% %dest%\%zipfile%
 
 :: 发布DLL压缩包
 :: 保存当前目录，并切换目录
 pushd ..\DLL
 ::"C:\Program Files\WinRAR\WinRAR.exe" a DLL.rar *.dll *.exe *.pdb *.xml
-%rar% a DLL.rar *.dll *.exe *.pdb *.xml
-move DLL.rar %dest% /y
+set zipfile=DLL.rar
+%rar% a %zipfile% *.dll *.exe *.pdb *.xml
+move /y %zipfile% %dest%\%zipfile%
 :: 恢复目录
 popd
