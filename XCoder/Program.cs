@@ -1,9 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Windows.Forms;
+using NewLife;
 using NewLife.Log;
 using NewLife.Threading;
-using NewLife;
 
 namespace XCoder
 {
@@ -25,7 +24,7 @@ namespace XCoder
                 {
                     XConfig.Current.LastUpdate = DateTime.Now;
 
-                    AutoUpdate au = new AutoUpdate();
+                    var au = new AutoUpdate();
                     au.LocalVersion = new Version(Engine.FileVersion);
                     au.VerSrc = "http://www.nnhy.org/jump.ashx?ID=1&f=XCoderVer.xml";
                     au.ProcessAsync();

@@ -35,22 +35,16 @@
             this.cbConn = new System.Windows.Forms.ComboBox();
             this.label4 = new System.Windows.Forms.Label();
             this.gbTable = new System.Windows.Forms.GroupBox();
-            this.btnQuery = new System.Windows.Forms.Button();
-            this.btnExportModel = new System.Windows.Forms.Button();
-            this.btnShowMetaData = new System.Windows.Forms.Button();
-            this.btnShowSchema = new System.Windows.Forms.Button();
             this.bt_GenAll = new System.Windows.Forms.Button();
             this.bt_GenTable = new System.Windows.Forms.Button();
             this.cbTableList = new System.Windows.Forms.ComboBox();
             this.label5 = new System.Windows.Forms.Label();
-            this.btnExpE2C = new System.Windows.Forms.Button();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.lb_Status = new System.Windows.Forms.ToolStripStatusLabel();
             this.pg_Process = new System.Windows.Forms.ToolStripProgressBar();
             this.proc_percent = new System.Windows.Forms.ToolStripStatusLabel();
             this.bw = new System.ComponentModel.BackgroundWorker();
             this.gbConfig = new System.Windows.Forms.GroupBox();
-            this.btnShowCriterion = new System.Windows.Forms.Button();
             this.frmItems = new System.Windows.Forms.Button();
             this.cbRenderGenEntity = new System.Windows.Forms.CheckBox();
             this.btnRelease = new System.Windows.Forms.Button();
@@ -59,7 +53,6 @@
             this.txtBaseClass = new System.Windows.Forms.TextBox();
             this.label10 = new System.Windows.Forms.Label();
             this.btnOpenOutputDir = new System.Windows.Forms.Button();
-            this.webBrowser1 = new System.Windows.Forms.WebBrowser();
             this.checkBox5 = new System.Windows.Forms.CheckBox();
             this.richTextBox2 = new System.Windows.Forms.RichTextBox();
             this.checkBox4 = new System.Windows.Forms.CheckBox();
@@ -80,20 +73,32 @@
             this.btnImport = new System.Windows.Forms.Button();
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.saveFileDialog1 = new System.Windows.Forms.SaveFileDialog();
-            this.timer2 = new System.Windows.Forms.Timer(this.components);
-            this.timer1 = new System.Windows.Forms.Timer(this.components);
             this.label9 = new System.Windows.Forms.Label();
             this.label11 = new System.Windows.Forms.Label();
             this.label12 = new System.Windows.Forms.Label();
+            this.menuStrip1 = new System.Windows.Forms.MenuStrip();
+            this.文件ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.退出XToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.模型ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.模型管理MToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.导出模型EToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.架构管理SToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.sQL查询器QToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.关于ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.表名字段名命名规范ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripMenuItem2 = new System.Windows.Forms.ToolStripSeparator();
+            this.检查更新ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.关于ToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.gbConnect.SuspendLayout();
             this.gbTable.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.gbConfig.SuspendLayout();
+            this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
             // bt_Connection
             // 
-            this.bt_Connection.Location = new System.Drawing.Point(217, 12);
+            this.bt_Connection.Location = new System.Drawing.Point(218, 42);
             this.bt_Connection.Name = "bt_Connection";
             this.bt_Connection.Size = new System.Drawing.Size(52, 23);
             this.bt_Connection.TabIndex = 6;
@@ -106,7 +111,7 @@
             // 
             this.gbConnect.Controls.Add(this.cbConn);
             this.gbConnect.Controls.Add(this.label4);
-            this.gbConnect.Location = new System.Drawing.Point(2, 0);
+            this.gbConnect.Location = new System.Drawing.Point(3, 30);
             this.gbConnect.Name = "gbConnect";
             this.gbConnect.Size = new System.Drawing.Size(205, 38);
             this.gbConnect.TabIndex = 7;
@@ -133,60 +138,16 @@
             // 
             // gbTable
             // 
-            this.gbTable.Controls.Add(this.btnQuery);
-            this.gbTable.Controls.Add(this.btnExportModel);
-            this.gbTable.Controls.Add(this.btnShowMetaData);
-            this.gbTable.Controls.Add(this.btnShowSchema);
             this.gbTable.Controls.Add(this.bt_GenAll);
             this.gbTable.Controls.Add(this.bt_GenTable);
             this.gbTable.Controls.Add(this.cbTableList);
             this.gbTable.Controls.Add(this.label5);
             this.gbTable.Enabled = false;
-            this.gbTable.Location = new System.Drawing.Point(2, 45);
+            this.gbTable.Location = new System.Drawing.Point(2, 71);
             this.gbTable.Name = "gbTable";
             this.gbTable.Size = new System.Drawing.Size(725, 49);
             this.gbTable.TabIndex = 14;
             this.gbTable.TabStop = false;
-            // 
-            // btnQuery
-            // 
-            this.btnQuery.Location = new System.Drawing.Point(668, 20);
-            this.btnQuery.Name = "btnQuery";
-            this.btnQuery.Size = new System.Drawing.Size(47, 23);
-            this.btnQuery.TabIndex = 26;
-            this.btnQuery.Text = "查询";
-            this.btnQuery.UseVisualStyleBackColor = true;
-            this.btnQuery.Click += new System.EventHandler(this.btnQuery_Click);
-            // 
-            // btnExportModel
-            // 
-            this.btnExportModel.Location = new System.Drawing.Point(531, 20);
-            this.btnExportModel.Name = "btnExportModel";
-            this.btnExportModel.Size = new System.Drawing.Size(76, 23);
-            this.btnExportModel.TabIndex = 25;
-            this.btnExportModel.Text = "导出模型";
-            this.btnExportModel.UseVisualStyleBackColor = true;
-            this.btnExportModel.Click += new System.EventHandler(this.btnExportModel_Click);
-            // 
-            // btnShowMetaData
-            // 
-            this.btnShowMetaData.Location = new System.Drawing.Point(448, 20);
-            this.btnShowMetaData.Name = "btnShowMetaData";
-            this.btnShowMetaData.Size = new System.Drawing.Size(76, 23);
-            this.btnShowMetaData.TabIndex = 24;
-            this.btnShowMetaData.Text = "模型管理";
-            this.btnShowMetaData.UseVisualStyleBackColor = true;
-            this.btnShowMetaData.Click += new System.EventHandler(this.btnShowMetaData_Click);
-            // 
-            // btnShowSchema
-            // 
-            this.btnShowSchema.Location = new System.Drawing.Point(614, 20);
-            this.btnShowSchema.Name = "btnShowSchema";
-            this.btnShowSchema.Size = new System.Drawing.Size(47, 23);
-            this.btnShowSchema.TabIndex = 23;
-            this.btnShowSchema.Text = "架构";
-            this.btnShowSchema.UseVisualStyleBackColor = true;
-            this.btnShowSchema.Click += new System.EventHandler(this.btnShowSchema_Click);
             // 
             // bt_GenAll
             // 
@@ -226,24 +187,13 @@
             this.label5.TabIndex = 16;
             this.label5.Text = "数据表：";
             // 
-            // btnExpE2C
-            // 
-            this.btnExpE2C.Location = new System.Drawing.Point(618, 19);
-            this.btnExpE2C.Name = "btnExpE2C";
-            this.btnExpE2C.Size = new System.Drawing.Size(97, 23);
-            this.btnExpE2C.TabIndex = 22;
-            this.btnExpE2C.Text = "导出映射文件";
-            this.btnExpE2C.UseVisualStyleBackColor = true;
-            this.btnExpE2C.Visible = false;
-            this.btnExpE2C.Click += new System.EventHandler(this.button1_Click);
-            // 
             // statusStrip1
             // 
             this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.lb_Status,
             this.pg_Process,
             this.proc_percent});
-            this.statusStrip1.Location = new System.Drawing.Point(0, 372);
+            this.statusStrip1.Location = new System.Drawing.Point(0, 346);
             this.statusStrip1.Name = "statusStrip1";
             this.statusStrip1.Size = new System.Drawing.Size(730, 22);
             this.statusStrip1.TabIndex = 23;
@@ -279,7 +229,6 @@
             // 
             // gbConfig
             // 
-            this.gbConfig.Controls.Add(this.btnShowCriterion);
             this.gbConfig.Controls.Add(this.frmItems);
             this.gbConfig.Controls.Add(this.cbRenderGenEntity);
             this.gbConfig.Controls.Add(this.btnRelease);
@@ -288,7 +237,6 @@
             this.gbConfig.Controls.Add(this.txtBaseClass);
             this.gbConfig.Controls.Add(this.label10);
             this.gbConfig.Controls.Add(this.btnOpenOutputDir);
-            this.gbConfig.Controls.Add(this.webBrowser1);
             this.gbConfig.Controls.Add(this.checkBox5);
             this.gbConfig.Controls.Add(this.richTextBox2);
             this.gbConfig.Controls.Add(this.checkBox4);
@@ -305,25 +253,15 @@
             this.gbConfig.Controls.Add(this.label7);
             this.gbConfig.Controls.Add(this.label6);
             this.gbConfig.Controls.Add(this.cb_Template);
-            this.gbConfig.Location = new System.Drawing.Point(2, 100);
+            this.gbConfig.Location = new System.Drawing.Point(2, 126);
             this.gbConfig.Name = "gbConfig";
-            this.gbConfig.Size = new System.Drawing.Size(725, 269);
+            this.gbConfig.Size = new System.Drawing.Size(725, 215);
             this.gbConfig.TabIndex = 26;
             this.gbConfig.TabStop = false;
             // 
-            // btnShowCriterion
-            // 
-            this.btnShowCriterion.Location = new System.Drawing.Point(247, 237);
-            this.btnShowCriterion.Name = "btnShowCriterion";
-            this.btnShowCriterion.Size = new System.Drawing.Size(124, 23);
-            this.btnShowCriterion.TabIndex = 35;
-            this.btnShowCriterion.Text = "表名字段名命名规范";
-            this.btnShowCriterion.UseVisualStyleBackColor = true;
-            this.btnShowCriterion.Click += new System.EventHandler(this.btnShowCriterion_Click);
-            // 
             // frmItems
             // 
-            this.frmItems.Location = new System.Drawing.Point(540, 46);
+            this.frmItems.Location = new System.Drawing.Point(282, 131);
             this.frmItems.Name = "frmItems";
             this.frmItems.Size = new System.Drawing.Size(99, 23);
             this.frmItems.TabIndex = 50;
@@ -335,7 +273,7 @@
             // cbRenderGenEntity
             // 
             this.cbRenderGenEntity.AutoSize = true;
-            this.cbRenderGenEntity.Location = new System.Drawing.Point(178, 46);
+            this.cbRenderGenEntity.Location = new System.Drawing.Point(178, 79);
             this.cbRenderGenEntity.Name = "cbRenderGenEntity";
             this.cbRenderGenEntity.Size = new System.Drawing.Size(108, 16);
             this.cbRenderGenEntity.TabIndex = 49;
@@ -344,7 +282,7 @@
             // 
             // btnRelease
             // 
-            this.btnRelease.Location = new System.Drawing.Point(540, 15);
+            this.btnRelease.Location = new System.Drawing.Point(167, 20);
             this.btnRelease.Name = "btnRelease";
             this.btnRelease.Size = new System.Drawing.Size(88, 23);
             this.btnRelease.TabIndex = 48;
@@ -356,7 +294,7 @@
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(17, 243);
+            this.label3.Location = new System.Drawing.Point(176, 197);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(143, 12);
             this.label3.TabIndex = 29;
@@ -366,7 +304,7 @@
             // linkLabel1
             // 
             this.linkLabel1.AutoSize = true;
-            this.linkLabel1.Location = new System.Drawing.Point(17, 151);
+            this.linkLabel1.Location = new System.Drawing.Point(10, 197);
             this.linkLabel1.Name = "linkLabel1";
             this.linkLabel1.Size = new System.Drawing.Size(143, 12);
             this.linkLabel1.TabIndex = 28;
@@ -376,7 +314,7 @@
             // 
             // txtBaseClass
             // 
-            this.txtBaseClass.Location = new System.Drawing.Point(71, 44);
+            this.txtBaseClass.Location = new System.Drawing.Point(71, 77);
             this.txtBaseClass.Name = "txtBaseClass";
             this.txtBaseClass.Size = new System.Drawing.Size(97, 21);
             this.txtBaseClass.TabIndex = 47;
@@ -385,7 +323,7 @@
             // label10
             // 
             this.label10.AutoSize = true;
-            this.label10.Location = new System.Drawing.Point(11, 48);
+            this.label10.Location = new System.Drawing.Point(11, 81);
             this.label10.Name = "label10";
             this.label10.Size = new System.Drawing.Size(65, 12);
             this.label10.TabIndex = 46;
@@ -393,7 +331,7 @@
             // 
             // btnOpenOutputDir
             // 
-            this.btnOpenOutputDir.Location = new System.Drawing.Point(283, 71);
+            this.btnOpenOutputDir.Location = new System.Drawing.Point(283, 104);
             this.btnOpenOutputDir.Name = "btnOpenOutputDir";
             this.btnOpenOutputDir.Size = new System.Drawing.Size(75, 23);
             this.btnOpenOutputDir.TabIndex = 45;
@@ -401,22 +339,10 @@
             this.btnOpenOutputDir.UseVisualStyleBackColor = true;
             this.btnOpenOutputDir.Click += new System.EventHandler(this.btnOpenOutputDir_Click);
             // 
-            // webBrowser1
-            // 
-            this.webBrowser1.AllowWebBrowserDrop = false;
-            this.webBrowser1.IsWebBrowserContextMenuEnabled = false;
-            this.webBrowser1.Location = new System.Drawing.Point(10, 171);
-            this.webBrowser1.MinimumSize = new System.Drawing.Size(20, 20);
-            this.webBrowser1.Name = "webBrowser1";
-            this.webBrowser1.ScrollBarsEnabled = false;
-            this.webBrowser1.Size = new System.Drawing.Size(360, 60);
-            this.webBrowser1.TabIndex = 43;
-            this.webBrowser1.Url = new System.Uri("", System.UriKind.Relative);
-            // 
             // checkBox5
             // 
             this.checkBox5.AutoSize = true;
-            this.checkBox5.Location = new System.Drawing.Point(393, 52);
+            this.checkBox5.Location = new System.Drawing.Point(393, 26);
             this.checkBox5.Name = "checkBox5";
             this.checkBox5.Size = new System.Drawing.Size(126, 16);
             this.checkBox5.TabIndex = 42;
@@ -426,26 +352,27 @@
             // 
             // richTextBox2
             // 
-            this.richTextBox2.Location = new System.Drawing.Point(387, 75);
+            this.richTextBox2.Location = new System.Drawing.Point(387, 49);
             this.richTextBox2.Name = "richTextBox2";
-            this.richTextBox2.Size = new System.Drawing.Size(338, 185);
+            this.richTextBox2.Size = new System.Drawing.Size(338, 160);
             this.richTextBox2.TabIndex = 40;
             this.richTextBox2.Text = resources.GetString("richTextBox2.Text");
             // 
             // checkBox4
             // 
             this.checkBox4.AutoSize = true;
-            this.checkBox4.Location = new System.Drawing.Point(644, 18);
+            this.checkBox4.Location = new System.Drawing.Point(271, 23);
             this.checkBox4.Name = "checkBox4";
             this.checkBox4.Size = new System.Drawing.Size(72, 16);
             this.checkBox4.TabIndex = 27;
-            this.checkBox4.Text = "模版调试";
+            this.checkBox4.Text = "调试模版";
+            this.toolTip1.SetToolTip(this.checkBox4, "输出模版编译的中间文件");
             this.checkBox4.UseVisualStyleBackColor = true;
             // 
             // checkBox3
             // 
             this.checkBox3.AutoSize = true;
-            this.checkBox3.Location = new System.Drawing.Point(178, 74);
+            this.checkBox3.Location = new System.Drawing.Point(178, 107);
             this.checkBox3.Name = "checkBox3";
             this.checkBox3.Size = new System.Drawing.Size(84, 16);
             this.checkBox3.TabIndex = 39;
@@ -455,7 +382,7 @@
             // checkBox2
             // 
             this.checkBox2.AutoSize = true;
-            this.checkBox2.Location = new System.Drawing.Point(178, 132);
+            this.checkBox2.Location = new System.Drawing.Point(178, 165);
             this.checkBox2.Name = "checkBox2";
             this.checkBox2.Size = new System.Drawing.Size(132, 16);
             this.checkBox2.TabIndex = 38;
@@ -465,7 +392,7 @@
             // checkBox1
             // 
             this.checkBox1.AutoSize = true;
-            this.checkBox1.Location = new System.Drawing.Point(11, 132);
+            this.checkBox1.Location = new System.Drawing.Point(11, 165);
             this.checkBox1.Name = "checkBox1";
             this.checkBox1.Size = new System.Drawing.Size(162, 16);
             this.checkBox1.TabIndex = 37;
@@ -474,7 +401,7 @@
             // 
             // txtPrefix
             // 
-            this.txtPrefix.Location = new System.Drawing.Point(71, 100);
+            this.txtPrefix.Location = new System.Drawing.Point(71, 133);
             this.txtPrefix.Name = "txtPrefix";
             this.txtPrefix.Size = new System.Drawing.Size(184, 21);
             this.txtPrefix.TabIndex = 36;
@@ -483,7 +410,7 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(11, 104);
+            this.label2.Location = new System.Drawing.Point(11, 137);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(65, 12);
             this.label2.TabIndex = 35;
@@ -491,7 +418,7 @@
             // 
             // txt_ConnName
             // 
-            this.txt_ConnName.Location = new System.Drawing.Point(276, 16);
+            this.txt_ConnName.Location = new System.Drawing.Point(276, 49);
             this.txt_ConnName.Name = "txt_ConnName";
             this.txt_ConnName.Size = new System.Drawing.Size(97, 21);
             this.txt_ConnName.TabIndex = 34;
@@ -500,7 +427,7 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(216, 20);
+            this.label1.Location = new System.Drawing.Point(216, 53);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(53, 12);
             this.label1.TabIndex = 33;
@@ -508,7 +435,7 @@
             // 
             // txt_NameSpace
             // 
-            this.txt_NameSpace.Location = new System.Drawing.Point(71, 16);
+            this.txt_NameSpace.Location = new System.Drawing.Point(71, 49);
             this.txt_NameSpace.Name = "txt_NameSpace";
             this.txt_NameSpace.Size = new System.Drawing.Size(134, 21);
             this.txt_NameSpace.TabIndex = 32;
@@ -517,7 +444,7 @@
             // label8
             // 
             this.label8.AutoSize = true;
-            this.label8.Location = new System.Drawing.Point(11, 20);
+            this.label8.Location = new System.Drawing.Point(11, 53);
             this.label8.Name = "label8";
             this.label8.Size = new System.Drawing.Size(65, 12);
             this.label8.TabIndex = 31;
@@ -525,7 +452,7 @@
             // 
             // txt_OutPath
             // 
-            this.txt_OutPath.Location = new System.Drawing.Point(71, 72);
+            this.txt_OutPath.Location = new System.Drawing.Point(71, 105);
             this.txt_OutPath.Name = "txt_OutPath";
             this.txt_OutPath.Size = new System.Drawing.Size(97, 21);
             this.txt_OutPath.TabIndex = 29;
@@ -534,7 +461,7 @@
             // label7
             // 
             this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(11, 76);
+            this.label7.Location = new System.Drawing.Point(11, 109);
             this.label7.Name = "label7";
             this.label7.Size = new System.Drawing.Size(65, 12);
             this.label7.TabIndex = 28;
@@ -543,7 +470,7 @@
             // label6
             // 
             this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(388, 20);
+            this.label6.Location = new System.Drawing.Point(11, 25);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(41, 12);
             this.label6.TabIndex = 27;
@@ -553,7 +480,7 @@
             // 
             this.cb_Template.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cb_Template.FormattingEnabled = true;
-            this.cb_Template.Location = new System.Drawing.Point(429, 16);
+            this.cb_Template.Location = new System.Drawing.Point(58, 21);
             this.cb_Template.Name = "cb_Template";
             this.cb_Template.Size = new System.Drawing.Size(90, 20);
             this.cb_Template.TabIndex = 26;
@@ -561,7 +488,7 @@
             // 
             // btnImport
             // 
-            this.btnImport.Location = new System.Drawing.Point(279, 12);
+            this.btnImport.Location = new System.Drawing.Point(280, 42);
             this.btnImport.Name = "btnImport";
             this.btnImport.Size = new System.Drawing.Size(80, 23);
             this.btnImport.TabIndex = 30;
@@ -578,31 +505,19 @@
             // 
             this.saveFileDialog1.Filter = "架构文件|*.xml";
             // 
-            // timer2
-            // 
-            this.timer2.Enabled = true;
-            this.timer2.Interval = 5000;
-            this.timer2.Tick += new System.EventHandler(this.timer2_Tick);
-            // 
-            // timer1
-            // 
-            this.timer1.Enabled = true;
-            this.timer1.Interval = 3000;
-            this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
-            // 
             // label9
             // 
             this.label9.AutoSize = true;
-            this.label9.Location = new System.Drawing.Point(387, 9);
+            this.label9.Location = new System.Drawing.Point(388, 39);
             this.label9.Name = "label9";
             this.label9.Size = new System.Drawing.Size(65, 12);
             this.label9.TabIndex = 32;
-            this.label9.Text = "两种方法：";
+            this.label9.Text = "两种用法：";
             // 
             // label11
             // 
             this.label11.AutoSize = true;
-            this.label11.Location = new System.Drawing.Point(445, 30);
+            this.label11.Location = new System.Drawing.Point(446, 60);
             this.label11.Name = "label11";
             this.label11.Size = new System.Drawing.Size(167, 12);
             this.label11.TabIndex = 33;
@@ -611,27 +526,133 @@
             // label12
             // 
             this.label12.AutoSize = true;
-            this.label12.Location = new System.Drawing.Point(445, 9);
+            this.label12.Location = new System.Drawing.Point(446, 39);
             this.label12.Name = "label12";
             this.label12.Size = new System.Drawing.Size(179, 12);
             this.label12.TabIndex = 34;
             this.label12.Text = "1，连接数据库，得到数据表信息";
             // 
+            // menuStrip1
+            // 
+            this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.文件ToolStripMenuItem,
+            this.模型ToolStripMenuItem,
+            this.关于ToolStripMenuItem});
+            this.menuStrip1.Location = new System.Drawing.Point(0, 0);
+            this.menuStrip1.Name = "menuStrip1";
+            this.menuStrip1.Size = new System.Drawing.Size(730, 25);
+            this.menuStrip1.TabIndex = 35;
+            this.menuStrip1.Text = "menuStrip1";
+            // 
+            // 文件ToolStripMenuItem
+            // 
+            this.文件ToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.退出XToolStripMenuItem});
+            this.文件ToolStripMenuItem.Name = "文件ToolStripMenuItem";
+            this.文件ToolStripMenuItem.Size = new System.Drawing.Size(44, 21);
+            this.文件ToolStripMenuItem.Text = "文件";
+            // 
+            // 退出XToolStripMenuItem
+            // 
+            this.退出XToolStripMenuItem.Name = "退出XToolStripMenuItem";
+            this.退出XToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.退出XToolStripMenuItem.Text = "退出(&X)";
+            this.退出XToolStripMenuItem.Click += new System.EventHandler(this.退出XToolStripMenuItem_Click);
+            // 
+            // 模型ToolStripMenuItem
+            // 
+            this.模型ToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.模型管理MToolStripMenuItem,
+            this.导出模型EToolStripMenuItem,
+            this.架构管理SToolStripMenuItem,
+            this.sQL查询器QToolStripMenuItem});
+            this.模型ToolStripMenuItem.Name = "模型ToolStripMenuItem";
+            this.模型ToolStripMenuItem.Size = new System.Drawing.Size(64, 21);
+            this.模型ToolStripMenuItem.Text = "模型(&M)";
+            this.模型ToolStripMenuItem.Visible = false;
+            // 
+            // 模型管理MToolStripMenuItem
+            // 
+            this.模型管理MToolStripMenuItem.Name = "模型管理MToolStripMenuItem";
+            this.模型管理MToolStripMenuItem.Size = new System.Drawing.Size(153, 22);
+            this.模型管理MToolStripMenuItem.Text = "模型管理(&M)";
+            this.模型管理MToolStripMenuItem.Click += new System.EventHandler(this.模型管理MToolStripMenuItem_Click);
+            // 
+            // 导出模型EToolStripMenuItem
+            // 
+            this.导出模型EToolStripMenuItem.Name = "导出模型EToolStripMenuItem";
+            this.导出模型EToolStripMenuItem.Size = new System.Drawing.Size(153, 22);
+            this.导出模型EToolStripMenuItem.Text = "导出模型(&E)";
+            this.导出模型EToolStripMenuItem.Click += new System.EventHandler(this.导出模型EToolStripMenuItem_Click);
+            // 
+            // 架构管理SToolStripMenuItem
+            // 
+            this.架构管理SToolStripMenuItem.Name = "架构管理SToolStripMenuItem";
+            this.架构管理SToolStripMenuItem.Size = new System.Drawing.Size(153, 22);
+            this.架构管理SToolStripMenuItem.Text = "架构管理(&S)";
+            this.架构管理SToolStripMenuItem.Visible = false;
+            this.架构管理SToolStripMenuItem.Click += new System.EventHandler(this.架构管理SToolStripMenuItem_Click);
+            // 
+            // sQL查询器QToolStripMenuItem
+            // 
+            this.sQL查询器QToolStripMenuItem.Name = "sQL查询器QToolStripMenuItem";
+            this.sQL查询器QToolStripMenuItem.Size = new System.Drawing.Size(153, 22);
+            this.sQL查询器QToolStripMenuItem.Text = "SQL查询器(&Q)";
+            this.sQL查询器QToolStripMenuItem.Click += new System.EventHandler(this.sQL查询器QToolStripMenuItem_Click);
+            // 
+            // 关于ToolStripMenuItem
+            // 
+            this.关于ToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.表名字段名命名规范ToolStripMenuItem,
+            this.toolStripMenuItem2,
+            this.检查更新ToolStripMenuItem,
+            this.关于ToolStripMenuItem1});
+            this.关于ToolStripMenuItem.Name = "关于ToolStripMenuItem";
+            this.关于ToolStripMenuItem.Size = new System.Drawing.Size(61, 21);
+            this.关于ToolStripMenuItem.Text = "帮助(&H)";
+            // 
+            // 表名字段名命名规范ToolStripMenuItem
+            // 
+            this.表名字段名命名规范ToolStripMenuItem.Name = "表名字段名命名规范ToolStripMenuItem";
+            this.表名字段名命名规范ToolStripMenuItem.Size = new System.Drawing.Size(202, 22);
+            this.表名字段名命名规范ToolStripMenuItem.Text = "表名字段名命名规范(&N)";
+            this.表名字段名命名规范ToolStripMenuItem.Click += new System.EventHandler(this.表名字段名命名规范ToolStripMenuItem_Click);
+            // 
+            // toolStripMenuItem2
+            // 
+            this.toolStripMenuItem2.Name = "toolStripMenuItem2";
+            this.toolStripMenuItem2.Size = new System.Drawing.Size(199, 6);
+            // 
+            // 检查更新ToolStripMenuItem
+            // 
+            this.检查更新ToolStripMenuItem.Name = "检查更新ToolStripMenuItem";
+            this.检查更新ToolStripMenuItem.Size = new System.Drawing.Size(202, 22);
+            this.检查更新ToolStripMenuItem.Text = "检查更新(&U)";
+            this.检查更新ToolStripMenuItem.Click += new System.EventHandler(this.检查更新ToolStripMenuItem_Click);
+            // 
+            // 关于ToolStripMenuItem1
+            // 
+            this.关于ToolStripMenuItem1.Name = "关于ToolStripMenuItem1";
+            this.关于ToolStripMenuItem1.Size = new System.Drawing.Size(202, 22);
+            this.关于ToolStripMenuItem1.Text = "关于(&A)";
+            this.关于ToolStripMenuItem1.Click += new System.EventHandler(this.关于ToolStripMenuItem1_Click);
+            // 
             // FrmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(730, 394);
+            this.ClientSize = new System.Drawing.Size(730, 368);
             this.Controls.Add(this.label12);
             this.Controls.Add(this.label11);
-            this.Controls.Add(this.btnExpE2C);
             this.Controls.Add(this.label9);
             this.Controls.Add(this.btnImport);
             this.Controls.Add(this.gbConfig);
             this.Controls.Add(this.statusStrip1);
+            this.Controls.Add(this.menuStrip1);
             this.Controls.Add(this.gbTable);
             this.Controls.Add(this.gbConnect);
             this.Controls.Add(this.bt_Connection);
+            this.MainMenuStrip = this.menuStrip1;
             this.MaximizeBox = false;
             this.Name = "FrmMain";
             this.RightToLeftLayout = true;
@@ -648,6 +669,8 @@
             this.statusStrip1.PerformLayout();
             this.gbConfig.ResumeLayout(false);
             this.gbConfig.PerformLayout();
+            this.menuStrip1.ResumeLayout(false);
+            this.menuStrip1.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -682,7 +705,6 @@
         private System.Windows.Forms.CheckBox checkBox1;
         private System.Windows.Forms.ComboBox cbConn;
         private System.Windows.Forms.CheckBox checkBox2;
-        private System.Windows.Forms.Button btnExpE2C;
         private System.Windows.Forms.CheckBox checkBox3;
         private System.Windows.Forms.ToolTip toolTip1;
         private System.Windows.Forms.RichTextBox richTextBox2;
@@ -690,26 +712,31 @@
         private System.Windows.Forms.CheckBox checkBox5;
         private System.Windows.Forms.LinkLabel linkLabel1;
         private System.Windows.Forms.Label label3;
-        private System.Windows.Forms.WebBrowser webBrowser1;
         private System.Windows.Forms.Button btnOpenOutputDir;
         private System.Windows.Forms.Button btnImport;
         private System.Windows.Forms.OpenFileDialog openFileDialog1;
         private System.Windows.Forms.SaveFileDialog saveFileDialog1;
         private System.Windows.Forms.TextBox txtBaseClass;
         private System.Windows.Forms.Label label10;
-        private System.Windows.Forms.Button btnShowSchema;
         private System.Windows.Forms.Button btnRelease;
-        private System.Windows.Forms.Timer timer2;
-        private System.Windows.Forms.Timer timer1;
-        private System.Windows.Forms.Button btnShowMetaData;
         private System.Windows.Forms.Label label9;
         private System.Windows.Forms.Label label11;
         private System.Windows.Forms.Label label12;
-        private System.Windows.Forms.Button btnExportModel;
         private System.Windows.Forms.CheckBox cbRenderGenEntity;
         private System.Windows.Forms.Button frmItems;
-        private System.Windows.Forms.Button btnQuery;
-        private System.Windows.Forms.Button btnShowCriterion;
+        private System.Windows.Forms.MenuStrip menuStrip1;
+        private System.Windows.Forms.ToolStripMenuItem 文件ToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem 模型ToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem 关于ToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem 退出XToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem 模型管理MToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem 导出模型EToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem 架构管理SToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem sQL查询器QToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem 表名字段名命名规范ToolStripMenuItem;
+        private System.Windows.Forms.ToolStripSeparator toolStripMenuItem2;
+        private System.Windows.Forms.ToolStripMenuItem 检查更新ToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem 关于ToolStripMenuItem1;
 	}
 }
 

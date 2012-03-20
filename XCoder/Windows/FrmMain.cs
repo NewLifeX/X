@@ -1,18 +1,18 @@
 using System;
+using NewLife.IO;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Data.Common;
 using System.Diagnostics;
 using System.IO;
-using System.Net;
 using System.Text;
 using System.Windows.Forms;
-using System.Xml;
 using NewLife.Log;
 using NewLife.Threading;
 using XCode.DataAccessLayer;
 using XTemplate.Templating;
+using System.Reflection;
 
 namespace XCoder
 {
@@ -75,7 +75,6 @@ namespace XCoder
             LoadConfig();
 
             ThreadPoolX.QueueUserWorkItem(AutoDetectDatabase, null);
-            ThreadPoolX.QueueUserWorkItem(UpdateArticles, null);
         }
 
         private void FrmMain_FormClosing(object sender, FormClosingEventArgs e)
@@ -103,8 +102,9 @@ namespace XCoder
                 SetTables(Engine.Tables);
 
                 gbConnect.Enabled = false;
-                gbTable.Enabled = true;
-                btnShowSchema.Enabled = true;
+                gbTable.Visible = true;
+                模型ToolStripMenuItem.Visible = true;
+                架构管理SToolStripMenuItem.Enabled = true;
                 btnImport.Enabled = false;
                 bt_Connection.Text = "断开";
             }
@@ -114,7 +114,8 @@ namespace XCoder
 
                 gbConnect.Enabled = true;
                 gbTable.Enabled = false;
-                btnShowSchema.Enabled = false;
+                模型ToolStripMenuItem.Visible = false;
+                架构管理SToolStripMenuItem.Visible = false;
                 btnImport.Enabled = true;
                 bt_Connection.Text = "连接";
                 Engine = null;
@@ -493,27 +494,6 @@ namespace XCoder
         }
         #endregion
 
-        #region 导出映射文件
-        private void button1_Click(object sender, EventArgs e)
-        {
-            //if (Engine == null) return;
-
-            //IList<IDataTable> tables = Engine.Tables;
-            //if (tables == null || tables.Count < 1) return;
-
-            //foreach (IDataTable table in tables)
-            //{
-            //    Engine.AddWord(table.Name, table.Description);
-            //    foreach (IDataColumn field in table.Columns)
-            //    {
-            //        Engine.AddWord(field.Name, field.Description);
-            //    }
-            //}
-
-            //MessageBox.Show("完成！", this.Text);
-        }
-        #endregion
-
         #region 附加信息
         private void linkLabel1_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
@@ -533,116 +513,6 @@ namespace XCoder
             Clipboard.SetData("1600800", null);
             MessageBox.Show("QQ群号已复制到剪切板！", "提示");
         }
-
-        List<Article> articles = new List<Article>();
-
-        void UpdateArticles()
-        {
-            String url = "http://www.cnblogs.com/nnhy/rss";
-            WebClient client = new WebClient();
-            Stream stream = client.OpenRead(url);
-
-            XmlDocument doc = new XmlDocument();
-            doc.Load(stream);
-
-            var nm = new XmlNamespaceManager(doc.NameTable);
-            if (!String.IsNullOrEmpty(doc.DocumentElement.NamespaceURI)) nm.AddNamespace("ns", doc.DocumentElement.NamespaceURI);
-
-            XmlNodeList nodes = doc.SelectNodes(@"//ns:entry", nm);
-            //XmlNodeList nodes = doc.ChildNodes;
-            //if (nodes != null && nodes.Count < 5) nodes = nodes[nodes.Count - 1].ChildNodes;
-            if (nodes != null && nodes.Count > 0)
-            {
-                foreach (XmlNode item in nodes)
-                {
-                    if (item.Name != "entry") continue;
-
-                    Article entity = new Article();
-                    entity.Title = item.SelectSingleNode("ns:title", nm).InnerText;
-                    entity.Link = item.SelectSingleNode("ns:link", nm).Attributes["href"].InnerText;
-                    entity.Description = item.SelectSingleNode("ns:summary", nm).InnerText;
-
-                    try
-                    {
-                        entity.PubDate = Convert.ToDateTime(item.SelectSingleNode("ns:published", nm).InnerText);
-                    }
-                    catch { }
-
-                    #region 强制弹出
-                    //if (entity.PubDate > DateTime.MinValue)
-                    //{
-                    //    Int32 h = (Int32)(DateTime.Now - entity.PubDate).TotalHours;
-                    //    if (h < 24 * 30)
-                    //    {
-                    //        Random rnd = new Random((Int32)DateTime.Now.Ticks);
-                    //        // 时间越久，h越大，随机数为0的可能性就越小，弹出的可能性就越小
-                    //        // 一小时之内，是50%的可能性
-                    //        if (rnd.Next(0, h + 1) == 0)
-                    //        {
-                    //            Process.Start(entity.Link);
-                    //        }
-                    //    }
-                    //}
-                    #endregion
-
-                    articles.Add(entity);
-                }
-            }
-
-            //if (articles.Count > 0)
-            //{
-            //    Article entity = articles[0];
-            //    if (entity.Title != Config.LastBlogTitle)
-            //    {
-            //        Config.LastBlogTitle = entity.Title;
-            //        Config.Save();
-
-            //        Process.Start(entity.Link);
-            //    }
-            //}
-        }
-
-        Int32 articleIndex = 0;
-        private void timer2_Tick(object sender, EventArgs e)
-        {
-            if (articles != null && articles.Count > 0)
-            {
-                if (articleIndex >= articles.Count) articleIndex = 0;
-                Article entity = articles[articleIndex];
-
-                linkLabel1.Text = entity.Title;
-                linkLabel1.Tag = entity.Link;
-
-                webBrowser1.DocumentText = entity.Description;
-
-                articleIndex++;
-            }
-        }
-
-        class Article
-        {
-            public String Title;
-            public String Link;
-            public DateTime PubDate;
-            public String Description;
-        }
-
-        private void timer1_Tick(object sender, EventArgs e)
-        {
-            timer1.Enabled = false;
-
-            try
-            {
-                //String url = "http://www.7765.com/api/";
-                String url = "http://www.nnhy.org/j";
-                url += String.Format("?tag=XCoder_v{0}&r={1}&ID=2", Engine.FileVersion, DateTime.Now.Ticks);
-                webBrowser1.Navigate(url);
-            }
-            catch (Exception ex)
-            {
-                XTrace.WriteException(ex);
-            }
-        }
         #endregion
 
         #region 打开输出目录
@@ -654,91 +524,6 @@ namespace XCoder
             Process.Start("explorer.exe", "\"" + dir + "\"");
             //Process.Start("explorer.exe", "/root,\"" + dir + "\"");
             //Process.Start("explorer.exe", "/select," + dir);
-        }
-        #endregion
-
-        #region 模型管理
-        private void btnShowSchema_Click(object sender, EventArgs e)
-        {
-            String connName = "" + cbConn.SelectedValue;
-            if (String.IsNullOrEmpty(connName)) return;
-
-            FrmSchema.Create(DAL.Create(connName).Db).Show();
-        }
-
-        private void btnQuery_Click(object sender, EventArgs e)
-        {
-            String connName = "" + cbConn.SelectedValue;
-            if (String.IsNullOrEmpty(connName)) return;
-
-            FrmQuery.Create(DAL.Create(connName)).Show();
-        }
-
-        private void btnShowMetaData_Click(object sender, EventArgs e)
-        {
-            List<IDataTable> tables = Engine.Tables;
-            if (tables == null || tables.Count < 1) return;
-
-            FrmModel.Create(tables).Show();
-        }
-
-        private void btnImport_Click(object sender, EventArgs e)
-        {
-            if (openFileDialog1.ShowDialog() != DialogResult.OK || String.IsNullOrEmpty(openFileDialog1.FileName)) return;
-            try
-            {
-                List<IDataTable> list = DAL.Import(File.ReadAllText(openFileDialog1.FileName));
-
-                Engine = null;
-                Engine.Tables = list;
-
-                SetTables(list);
-
-                gbTable.Enabled = true;
-                btnShowSchema.Enabled = false;
-
-                MessageBox.Show("导入架构成功！共" + (list == null ? 0 : list.Count) + "张表！", "导入架构", MessageBoxButtons.OK);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message, this.Text, MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
-            }
-        }
-
-        private void btnExportModel_Click(object sender, EventArgs e)
-        {
-            List<IDataTable> tables = Engine.Tables;
-            if (tables == null || tables.Count < 1)
-            {
-                MessageBox.Show(this.Text, "数据库架构为空！", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-
-            if (!String.IsNullOrEmpty(Config.ConnName))
-            {
-                String file = Config.ConnName + ".xml";
-                String dir = null;
-                if (!String.IsNullOrEmpty(saveFileDialog1.FileName))
-                    dir = Path.GetDirectoryName(saveFileDialog1.FileName);
-                if (String.IsNullOrEmpty(dir)) dir = AppDomain.CurrentDomain.BaseDirectory;
-                //saveFileDialog1.FileName = Path.Combine(dir, file);
-                saveFileDialog1.InitialDirectory = dir;
-                saveFileDialog1.FileName = file;
-            }
-            if (saveFileDialog1.ShowDialog() != DialogResult.OK || String.IsNullOrEmpty(saveFileDialog1.FileName)) return;
-            try
-            {
-                String xml = DAL.Export(tables);
-                File.WriteAllText(saveFileDialog1.FileName, xml);
-
-                MessageBox.Show("导出架构成功！", "导出架构", MessageBoxButtons.OK);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message, this.Text, MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
-            }
         }
         #endregion
 
@@ -780,9 +565,114 @@ namespace XCoder
             FrmItems.Create(XConfig.Current).Show();
         }
 
-        private void btnShowCriterion_Click(object sender, EventArgs e)
+        #region 菜单
+        private void 退出XToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            //Application.Exit();
+            this.Close();
+        }
+
+        private void 表名字段名命名规范ToolStripMenuItem_Click(object sender, EventArgs e)
         {
             FrmCriterion.Create().Show();
         }
+
+        private void 检查更新ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+        }
+
+        private void 关于ToolStripMenuItem1_Click(object sender, EventArgs e)
+        {
+            var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(this.GetType(), "UpdateInfo.txt");
+            var text = Encoding.UTF8.GetString(stream.ReadBytes());
+            FrmText.Create("升级历史", text).Show();
+        }
+        #endregion
+
+        #region 模型管理
+        private void 模型管理MToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            List<IDataTable> tables = Engine.Tables;
+            if (tables == null || tables.Count < 1) return;
+
+            FrmModel.Create(tables).Show();
+        }
+
+        private void 导出模型EToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            List<IDataTable> tables = Engine.Tables;
+            if (tables == null || tables.Count < 1)
+            {
+                MessageBox.Show(this.Text, "数据库架构为空！", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            if (!String.IsNullOrEmpty(Config.ConnName))
+            {
+                String file = Config.ConnName + ".xml";
+                String dir = null;
+                if (!String.IsNullOrEmpty(saveFileDialog1.FileName))
+                    dir = Path.GetDirectoryName(saveFileDialog1.FileName);
+                if (String.IsNullOrEmpty(dir)) dir = AppDomain.CurrentDomain.BaseDirectory;
+                //saveFileDialog1.FileName = Path.Combine(dir, file);
+                saveFileDialog1.InitialDirectory = dir;
+                saveFileDialog1.FileName = file;
+            }
+            if (saveFileDialog1.ShowDialog() != DialogResult.OK || String.IsNullOrEmpty(saveFileDialog1.FileName)) return;
+            try
+            {
+                String xml = DAL.Export(tables);
+                File.WriteAllText(saveFileDialog1.FileName, xml);
+
+                MessageBox.Show("导出架构成功！", "导出架构", MessageBoxButtons.OK);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, this.Text, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+        }
+
+        private void 架构管理SToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            String connName = "" + cbConn.SelectedValue;
+            if (String.IsNullOrEmpty(connName)) return;
+
+            FrmSchema.Create(DAL.Create(connName).Db).Show();
+        }
+
+        private void sQL查询器QToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            String connName = "" + cbConn.SelectedValue;
+            if (String.IsNullOrEmpty(connName)) return;
+
+            FrmQuery.Create(DAL.Create(connName)).Show();
+        }
+
+        private void btnImport_Click(object sender, EventArgs e)
+        {
+            if (openFileDialog1.ShowDialog() != DialogResult.OK || String.IsNullOrEmpty(openFileDialog1.FileName)) return;
+            try
+            {
+                List<IDataTable> list = DAL.Import(File.ReadAllText(openFileDialog1.FileName));
+
+                Engine = null;
+                Engine.Tables = list;
+
+                SetTables(list);
+
+                gbTable.Enabled = true;
+                模型ToolStripMenuItem.Visible = true;
+                架构管理SToolStripMenuItem.Visible = false;
+
+                MessageBox.Show("导入架构成功！共" + (list == null ? 0 : list.Count) + "张表！", "导入架构", MessageBoxButtons.OK);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, this.Text, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+        }
+        #endregion
     }
 }

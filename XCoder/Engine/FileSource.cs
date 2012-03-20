@@ -9,9 +9,7 @@ using System.Drawing;
 
 namespace XCoder
 {
-    /// <summary>
-    /// 文件资源
-    /// </summary>
+    /// <summary>文件资源</summary>
     public static class FileSource
     {
         public static Icon GetIcon()
