@@ -88,10 +88,23 @@ namespace NewLife.Compression
         /// <param name="fileName"></param>
         /// <param name="encoding"></param>
         public ZipFile(String fileName, Encoding encoding)
-            : this(File.OpenRead(fileName), encoding)
+            //: this(File.OpenRead(fileName), encoding)
         {
             //if (!String.IsNullOrEmpty(fileName)) DefaultExtractPath = Path.GetDirectoryName(fileName);
             Name = fileName;
+            Encoding = encoding;
+
+            var fs = File.OpenRead(fileName);
+            try
+            {
+                Read(fs);
+            }
+            catch (Exception ex)
+            {
+                throw new ZipException("不是有效的Zip格式！", ex);
+            }
+
+            if (fs.Length < 10 * 1024 * 1024) fs.Dispose();
         }
 
         /// <summary>实例化一个Zip文件对象</summary>
@@ -99,6 +112,7 @@ namespace NewLife.Compression
         /// <param name="encoding"></param>
         public ZipFile(Stream stream, Encoding encoding)
         {
+            Encoding = encoding;
             try
             {
                 Read(stream);
