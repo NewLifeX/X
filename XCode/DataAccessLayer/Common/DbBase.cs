@@ -296,10 +296,10 @@ namespace XCode.DataAccessLayer
             String dir = !String.IsNullOrEmpty(targetPath) ? targetPath : Path.GetDirectoryName(file);
 
             // 从网上下载文件
+            var zipfile = Path.GetFileNameWithoutExtension(file);
+
             try
             {
-                var zipfile = Path.GetFileNameWithoutExtension(file);
-
                 #region 检测64位平台
                 Module module = typeof(Object).Module;
 
@@ -334,6 +334,11 @@ namespace XCode.DataAccessLayer
                 //IOHelper.DecompressFile(ms, dir, file, false);
                 ZipFile.Extract(zipfile, dir, true);
                 DAL.WriteLog("解压完成！");
+            }
+            catch (ZipException ex)
+            {
+                if (File.Exists(zipfile)) File.Delete(zipfile);
+                DAL.WriteLog("解压失败，删除压缩文件！{0}", ex.ToString());
             }
             catch (Exception ex)
             {

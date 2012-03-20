@@ -425,7 +425,7 @@ namespace XCode.DataAccessLayer
 
         #region 创建数据操作实体
         private Assembly _Assembly;
-        /// <summary>根据数据模型动态创建的程序集。带缓存，如果要更新，建议调用<see cref="EntityAssembly.Create"/></summary>
+        /// <summary>根据数据模型动态创建的程序集。带缓存，如果要更新，建议调用<see cref="EntityAssembly.Create(string, string, System.Collections.Generic.List&lt;XCode.DataAccessLayer.IDataTable&gt;)"/></summary>
         public Assembly Assembly
         {
             get

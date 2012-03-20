@@ -447,10 +447,10 @@ namespace NewLife.Compression
             reader.Settings.UseObjRef = false;
             reader.Settings.SizeFormat = TypeCode.Int16;
             reader.Settings.Encoding = Encoding;
-#if DEBUG
-            reader.Debug = true;
-            reader.EnableTraceStream();
-#endif
+//#if DEBUG
+//            reader.Debug = true;
+//            reader.EnableTraceStream();
+//#endif
             return reader;
         }
 
@@ -461,10 +461,10 @@ namespace NewLife.Compression
             writer.Settings.UseObjRef = false;
             writer.Settings.SizeFormat = TypeCode.Int16;
             writer.Settings.Encoding = Encoding;
-#if DEBUG
-            writer.Debug = true;
-            writer.EnableTraceStream();
-#endif
+//#if DEBUG
+//            writer.Debug = true;
+//            writer.EnableTraceStream();
+//#endif
             return writer;
         }
 

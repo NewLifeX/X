@@ -54,16 +54,15 @@ namespace XCode.DataAccessLayer
                                     var asm = _dbProviderFactory.GetType().Assembly;
                                     DAL.WriteDebugLog("Oracle使用文件驱动{0} 版本v{1}", asm.Location, asm.GetName().Version);
 
-
-                                    try
-                                    {
-                                        var code = CheckVersionCompatibility(asm.GetName().Version.ToString());
-                                        DAL.WriteDebugLog("检查版本兼容失败结果：{0}", code);
-                                    }
-                                    catch (Exception ex)
-                                    {
-                                        DAL.WriteDebugLog("Oracle检查版本兼容失败！{0}", ex.Message);
-                                    }
+                                    //try
+                                    //{
+                                    //    var code = CheckVersionCompatibility(asm.GetName().Version.ToString());
+                                    //    DAL.WriteDebugLog("Oracle检查版本兼容失败结果：{0}", code);
+                                    //}
+                                    //catch (Exception ex)
+                                    //{
+                                    //    DAL.WriteDebugLog("Oracle检查版本兼容失败！{0}", ex.Message);
+                                    //}
                                 }
                             }
                             catch (FileNotFoundException) { }
@@ -437,8 +436,8 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        [DllImport("OraOps11w.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
-        static extern int CheckVersionCompatibility(string version);
+        //[DllImport("OraOps11w.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+        //static extern int CheckVersionCompatibility(string version);
         #endregion
     }
 
