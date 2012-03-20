@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Data;
 using XCode.Cache;
 using XCode.Configuration;
+using XCode.DataAccessLayer;
 
 namespace XCode
 {
@@ -326,7 +327,12 @@ namespace XCode
             /// </summary>
             /// <param name="sql">SQL语句</param>
             /// <returns>记录数</returns>
-            public Int32 QueryCount(String sql) { return Meta.QueryCount(sql); }
+            public Int32 QueryCount(String sql)
+            {
+                var sb = new SelectBuilder();
+                sb.Parse(sql);
+                return Meta.QueryCount(sb);
+            }
 
             /// <summary>
             /// 执行
