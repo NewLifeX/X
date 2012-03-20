@@ -26,7 +26,7 @@ namespace XCoder
 
                     var au = new AutoUpdate();
                     au.LocalVersion = new Version(Engine.FileVersion);
-                    au.VerSrc = "http://www.nnhy.org/jump.ashx?ID=1&f=XCoderVer.xml";
+                    au.VerSrc = "http://j.nnhy.org/?ID=1&f=XCoderVer.xml";
                     au.ProcessAsync();
                 }
 

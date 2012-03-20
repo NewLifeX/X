@@ -556,6 +556,12 @@ namespace XCoder
 
         private void 检查更新ToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            var au = new AutoUpdate();
+            au.LocalVersion = new Version(Engine.FileVersion);
+            au.VerSrc = "http://j.nnhy.org/?ID=1&f=XCoderVer.xml";
+            au.ProcessAsync();
+
+            XConfig.Current.LastUpdate = DateTime.Now;
         }
 
         private void 关于ToolStripMenuItem1_Click(object sender, EventArgs e)
