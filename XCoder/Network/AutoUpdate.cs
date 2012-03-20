@@ -10,6 +10,7 @@ using NewLife.IO;
 using NewLife.Log;
 using NewLife.Threading;
 using NewLife.Web;
+using NewLife.Reflection;
 
 namespace XCoder
 {
@@ -64,7 +65,7 @@ namespace XCoder
                 }
 
                 var mver = new VerFile();
-                mver.Ver = asm.GetName().Version.ToString();
+                mver.Ver = AssemblyX.Create(asm).FileVersion;
                 mver.Src = VerSrc.Replace("XCoderVer.xml", "XCoder.zip");
                 mver.XSrc = VerSrc.Replace("XCoderVer.xml", "Src.zip");
                 mver.DLL = VerSrc.Replace("XCoderVer.xml", "DLL.zip");
@@ -273,8 +274,12 @@ namespace XCoder
                 var root = doc.CreateElement("r");
                 doc.AppendChild(root);
 
-                var node = doc.CreateElement("src");
-                node.InnerText = Src;
+                var node = doc.CreateElement("ver");
+                node.InnerText = Ver;
+                root.AppendChild(node);
+
+                node = doc.CreateElement("src");
+                node.InnerText = XSrc;
                 root.AppendChild(node);
 
                 node = doc.CreateElement("xsrc");
