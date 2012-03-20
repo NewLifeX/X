@@ -7,7 +7,6 @@ using System.Windows.Forms;
 using System.Xml;
 using NewLife.Compression;
 using NewLife.Log;
-using NewLife.Reflection;
 using NewLife.Threading;
 using NewLife.Web;
 
@@ -17,13 +16,11 @@ namespace XCoder
     class AutoUpdate
     {
         #region 属性
-        private String _VerSrc;
+        private String _VerSrc = "http://j.nnhy.org/?ID=1&f=XCoderVer.xml";
         /// <summary>版本地址</summary>
         public String VerSrc { get { return _VerSrc; } set { _VerSrc = value; } }
 
-        private String _TempPath;
-        /// <summary>临时目录</summary>
-        public String TempPath { get { return _TempPath; } set { _TempPath = value; } }
+        const String verfile = "XCoderVer.xml";
         #endregion
 
         #region 方法
@@ -65,13 +62,13 @@ namespace XCoder
 
                 var mver = new VerFile();
                 mver.Ver = asm.GetName().Version.ToString();
-                mver.Src = VerSrc.Replace("XCoderVer.xml", "XCoder.zip");
-                mver.XSrc = VerSrc.Replace("XCoderVer.xml", "Src.zip");
-                mver.DLL = VerSrc.Replace("XCoderVer.xml", "DLL.zip");
+                mver.Src = VerSrc.Replace(verfile, "XCoder.zip");
+                mver.XSrc = VerSrc.Replace(verfile, "Src.zip");
+                mver.DLL = VerSrc.Replace(verfile, "DLL.zip");
                 mver.Description = sb.ToString();
 
                 var mxml = mver.GetXml();
-                File.WriteAllText("XCoderVer.xml", mxml);
+                File.WriteAllText(verfile, mxml);
             }
             #endregion
 
@@ -96,7 +93,7 @@ namespace XCoder
             {
                 String url = ver.Src;
                 if (!url.StartsWith("http", StringComparison.OrdinalIgnoreCase))
-                    url = VerSrc.Replace("XCoderVer.xml", url);
+                    url = VerSrc.Replace(verfile, url);
 
                 XTrace.WriteLine("准备从{0}下载相关文件到{1}！", url, file);
 
@@ -112,7 +109,7 @@ namespace XCoder
                 {
                     String url = ver.XSrc;
                     if (!url.StartsWith("http", StringComparison.OrdinalIgnoreCase))
-                        url = VerSrc.Replace("XCoderVer.xml", url);
+                        url = VerSrc.Replace(verfile, url);
 
                     XTrace.WriteLine("准备从{0}下载相关文件到{1}！", url, xfile);
 
@@ -127,7 +124,7 @@ namespace XCoder
                 {
                     String url = ver.DLL;
                     if (!url.StartsWith("http", StringComparison.OrdinalIgnoreCase))
-                        url = VerSrc.Replace("XCoderVer.xml", url);
+                        url = VerSrc.Replace(verfile, url);
 
                     XTrace.WriteLine("准备从{0}下载相关文件到{1}！", url, dfile);
 

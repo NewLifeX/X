@@ -25,8 +25,6 @@ namespace XCoder
                     XConfig.Current.LastUpdate = DateTime.Now;
 
                     var au = new AutoUpdate();
-                    au.LocalVersion = new Version(Engine.FileVersion);
-                    au.VerSrc = "http://j.nnhy.org/?ID=1&f=XCoderVer.xml";
                     au.ProcessAsync();
                 }
 

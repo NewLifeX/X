@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection;
 using XCode.DataAccessLayer;
 using XTemplate.Templating;
 
@@ -24,7 +25,7 @@ namespace XCoder
 
         #region 扩展属性
         /// <summary>文件版本</summary>
-        public static String Version { get { return Engine.FileVersion; } }
+        public static String Version { get { return Assembly.GetExecutingAssembly().GetName().Version.ToString(); } }
         #endregion
 
         #region 重载

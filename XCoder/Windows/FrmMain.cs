@@ -1,7 +1,7 @@
 using System;
-using NewLife.Linq;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Configuration;
 using System.Data;
 using System.Data.Common;
 using System.Diagnostics;
@@ -10,11 +10,12 @@ using System.Reflection;
 using System.Text;
 using System.Windows.Forms;
 using NewLife.IO;
+using NewLife.Linq;
 using NewLife.Log;
+using NewLife.Reflection;
 using NewLife.Threading;
 using XCode.DataAccessLayer;
 using XTemplate.Templating;
-using System.Configuration;
 
 namespace XCoder
 {
@@ -47,7 +48,7 @@ namespace XCoder
 
         private void FrmMain_Shown(object sender, EventArgs e)
         {
-            Text = "新生命代码生成器 V" + Engine.FullVersion + "编译";
+            Text = "新生命代码生成器 V" + AssemblyX.Create(Assembly.GetExecutingAssembly()).CompileVersion;
             Template.BaseClassName = typeof(XCoderBase).FullName;
         }
 
@@ -557,8 +558,6 @@ namespace XCoder
         private void 检查更新ToolStripMenuItem_Click(object sender, EventArgs e)
         {
             var au = new AutoUpdate();
-            au.LocalVersion = new Version(Engine.FileVersion);
-            au.VerSrc = "http://j.nnhy.org/?ID=1&f=XCoderVer.xml";
             au.ProcessAsync();
 
             XConfig.Current.LastUpdate = DateTime.Now;

@@ -705,44 +705,5 @@ namespace XCoder
             trans.Add(tranText);
         }
         #endregion
-
-        #region ¾²Ì¬
-        private static String _FileVersion;
-        /// <summary>
-        /// ÎÄ¼þ°æ±¾
-        /// </summary>
-        public static String FileVersion
-        {
-            get
-            {
-                if (String.IsNullOrEmpty(_FileVersion))
-                {
-                    Assembly asm = Assembly.GetExecutingAssembly();
-                    AssemblyFileVersionAttribute av = Attribute.GetCustomAttribute(asm, typeof(AssemblyFileVersionAttribute)) as AssemblyFileVersionAttribute;
-                    if (av != null) _FileVersion = av.Version;
-                    if (String.IsNullOrEmpty(_FileVersion)) _FileVersion = "1.0";
-                }
-                return _FileVersion;
-            }
-        }
-
-        public static DateTime Compile
-        {
-            get
-            {
-                return AssemblyX.Create(Assembly.GetExecutingAssembly()).Compile;
-            }
-        }
-
-        public static String FullVersion
-        {
-            get
-            {
-                AssemblyX asm = AssemblyX.Create(Assembly.GetExecutingAssembly());
-                Version ver = asm.Asm.GetName().Version;
-                return String.Format("{0}.{1}.{2:yyyy}.{2:MMdd} {2:HH:mm:ss}", ver.Major, ver.Minor, asm.Compile);
-            }
-        }
-        #endregion
     }
 }
