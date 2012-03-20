@@ -27,13 +27,15 @@ if(!Config.RenderGenEntity){#>
         #region 属性<#
         foreach(IDataColumn Field in Table.Columns)
         {
+            String des=Field.Description;
+            if(!String.IsNullOrEmpty(des)) des=des.Replace("\r\n"," ");
 #>
         private <#=Field.DataType.Name#> _<#=Field.Alias#>;
-        /// <summary><#=Field.Description#></summary>
+        /// <summary><#=des#></summary>
         [DisplayName("<#=Field.DisplayName#>")]
-        [Description("<#=Field.Description#>")]
+        [Description("<#=des#>")]
         [DataObjectField(<#=Field.PrimaryKey.ToString().ToLower()#>, <#=Field.Identity.ToString().ToLower()#>, <#=Field.Nullable.ToString().ToLower()#>, <#=Field.Length#>)]
-        [BindColumn(<#=Field.ID#>, "<#=Field.Name#>", "<#=Field.Description#>", <#=Field.Default==null?"null":"\""+Field.Default+"\""#>, "<#=Field.RawType#>", <#=Field.Precision#>, <#=Field.Scale#>, <#=Field.IsUnicode.ToString().ToLower()#>)]
+        [BindColumn(<#=Field.ID#>, "<#=Field.Name#>", "<#=des#>", <#=Field.Default==null?"null":"\""+Field.Default+"\""#>, "<#=Field.RawType#>", <#=Field.Precision#>, <#=Field.Scale#>, <#=Field.IsUnicode.ToString().ToLower()#>)]
         public virtual <#=Field.DataType.Name#> <#=Field.Alias#>
         {
             get { return _<#=Field.Alias#>; }
@@ -94,8 +96,10 @@ if(!Config.RenderGenEntity){#>
         {<#
        foreach(IDataColumn Field in Table.Columns)
       {
+            String des=Field.Description;
+            if(!String.IsNullOrEmpty(des)) des=des.Replace("\r\n"," ");
 #>
-            ///<summary><#=Field.Description#></summary>
+            ///<summary><#=des#></summary>
             public static readonly Field <#=Field.Alias#> = FindByName("<#=Field.Alias#>");
 <#
       }
@@ -111,8 +115,10 @@ if(!Config.RenderGenEntity){#>
         #region 属性<#
         foreach(IDataColumn Field in Table.Columns)
         {
+            String des=Field.Description;
+            if(!String.IsNullOrEmpty(des)) des=des.Replace("\r\n"," ");
 #>
-        /// <summary><#=Field.Description#></summary>
+        /// <summary><#=des#></summary>
         <#=Field.DataType.Name#> <#=Field.Alias#> { get; set; }
 <#
         }
