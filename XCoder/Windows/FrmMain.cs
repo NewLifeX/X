@@ -97,7 +97,7 @@ namespace XCoder
                 SetTables(Engine.Tables);
 
                 gbConnect.Enabled = false;
-                gbTable.Visible = true;
+                gbTable.Enabled = true;
                 模型ToolStripMenuItem.Visible = true;
                 架构管理SToolStripMenuItem.Visible = true;
                 btnImport.Enabled = false;
