@@ -250,7 +250,7 @@ namespace NewLife.IO
         /// <param name="targetPath"></param>
         /// <param name="isSub">是否解压到子目录中，仅对多文件有效</param>
         /// <returns></returns>
-        static String DecompressFile(String src, String targetPath, Boolean isSub)
+        public static String DecompressFile(String src, String targetPath, Boolean isSub)
         {
             if (String.IsNullOrEmpty(targetPath)) targetPath = Path.GetDirectoryName(src);
             String des = Path.GetFileNameWithoutExtension(src);
