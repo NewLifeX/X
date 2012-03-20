@@ -45,8 +45,8 @@ svn commit -m "自动编译" ..\DLL
 svn commit -m "自动编译" ..\XCoder
 
 :: 6，打包Src和DLL到FTP
-set zip="C:\Program Files\WinRAR\RAR.exe" -m5 -md4096 -mt2 -s -z..\Src\Readme.txt
-set zip="D:\Pro\7-zip\7z.exe" a -tzip -mx9 -mfb258
+set zip="C:\Program Files\WinRAR\WinRAR.exe" a -m5 -s -z..\Src\Readme.txt -ibck
+::set zip="D:\Pro\7-zip\7z.exe" a -tzip -mx9 -mfb258
 set zipfile=%date:~0,4%%date:~5,2%%date:~8,2%%time:~0,2%%time:~3,2%%time:~6,2%.rar
 set dest=E:\快盘\新生命共享\X
 
@@ -54,9 +54,9 @@ set dest=E:\快盘\新生命共享\X
 rd XCoder\bin /s/q
 rd XCoder\obj /s/q
 set zipfile=Src.zip
-del %zipfile% /f/q
+del Src*.zip /f/q
 %zip% -r %zipfile% NewLife.Core\*.cs NewLife.CommonEntity\*.cs XControl\*.cs XAgent\*.cs XCode\Entity\*.cs XCode\DataAccessLayer\Common\*.cs XCoder\*.* XTemplate\Templating\Template.cs
-move /y %zipfile% %dest%\%zipfile%
+move /y Src*.zip %dest%\%zipfile%
 
 :: 发布XCode例子源码
 rd YWS\bin /s/q
@@ -67,18 +67,18 @@ rd Web\App_Data /s/q
 md Web\Bin
 Copy ..\DLL\XControl.* Web\Bin\ /y
 set zipfile=XCodeSample.zip
-del %zipfile% /f/q
+del XCodeSample*.zip /f/q
 %zip% -r %zipfile% YWS\*.* Web\*.*
-move /y %zipfile% %dest%\%zipfile%
+move /y XCodeSample*.zip %dest%\%zipfile%
 
 :: 发布DLL压缩包
 :: 保存当前目录，并切换目录
 pushd ..\DLL
 ::"C:\Program Files\WinRAR\WinRAR.exe" a DLL.rar *.dll *.exe *.pdb *.xml
 set zipfile=DLL.zip
-del %zipfile% /f/q
+del DLL*.zip /f/q
 %zip% %zipfile% *.dll *.exe *.pdb *.xml
-move /y %zipfile% %dest%\%zipfile%
+move /y DLL*.zip %dest%\%zipfile%
 :: 恢复目录
 popd
 
@@ -86,8 +86,8 @@ popd
 :: 保存当前目录，并切换目录
 pushd ..\XCoder
 set zipfile=XCoder.zip
-del %zipfile% /f/q
+del XCoder*.zip /f/q
 %zip% %zipfile% *.dll *.exe *.config
-move /y %zipfile% %dest%\%zipfile%
+move /y XCoder*.zip %dest%\%zipfile%
 :: 恢复目录
 popd
