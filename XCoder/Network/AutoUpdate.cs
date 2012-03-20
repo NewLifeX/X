@@ -6,11 +6,10 @@ using System.Text;
 using System.Windows.Forms;
 using System.Xml;
 using NewLife.Compression;
-using NewLife.IO;
 using NewLife.Log;
+using NewLife.Reflection;
 using NewLife.Threading;
 using NewLife.Web;
-using NewLife.Reflection;
 
 namespace XCoder
 {
@@ -18,10 +17,6 @@ namespace XCoder
     class AutoUpdate
     {
         #region 属性
-        private Version _LocalVersion;
-        /// <summary>本地版本</summary>
-        public Version LocalVersion { get { return _LocalVersion; } set { _LocalVersion = value; } }
-
         private String _VerSrc;
         /// <summary>版本地址</summary>
         public String VerSrc { get { return _VerSrc; } set { _VerSrc = value; } }
@@ -47,11 +42,15 @@ namespace XCoder
             String ProcessHelper = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "NewLife.ProcessHelper.exe");
             if (File.Exists(ProcessHelper)) File.Delete(ProcessHelper);
 
+            // 删除Update目录，避免重复使用错误的升级文件
+            var update = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Update");
+            if (Directory.Exists(update)) Directory.Delete(update, true);
+
             // 开发环境下，自动生成版本文件
             var svn = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ".svn");
+            var asm = Assembly.GetExecutingAssembly();
             if (Directory.Exists(svn))
             {
-                var asm = Assembly.GetExecutingAssembly();
                 var stream = asm.GetManifestResourceStream(this.GetType(), "UpdateInfo.txt");
                 var sb = new StringBuilder();
                 // 只要前五行
@@ -65,7 +64,7 @@ namespace XCoder
                 }
 
                 var mver = new VerFile();
-                mver.Ver = AssemblyX.Create(asm).FileVersion;
+                mver.Ver = asm.GetName().Version.ToString();
                 mver.Src = VerSrc.Replace("XCoderVer.xml", "XCoder.zip");
                 mver.XSrc = VerSrc.Replace("XCoderVer.xml", "Src.zip");
                 mver.DLL = VerSrc.Replace("XCoderVer.xml", "DLL.zip");
@@ -85,11 +84,10 @@ namespace XCoder
             if (String.IsNullOrEmpty(xml)) return;
 
             var ver = new VerFile(xml);
-            if (LocalVersion >= ver.GetVersion()) return;
+            if (asm.GetName().Version >= ver.GetVersion()) return;
             #endregion
 
             #region 下载
-            var update = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Update");
             String file = Path.Combine(update, "XCoder.zip");
             String dir = Path.GetDirectoryName(file);
             if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
