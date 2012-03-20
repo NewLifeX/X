@@ -10,6 +10,8 @@ v2.0 数据架构功能，实体和数据结构双向映射
 v1.2 使用泛型基类
 v1.0 创建XCode
 
+v8.4.2012.0320   FieldItem增加IsNullOrEmpty和NotIsNullOrEmpty方法
+
 v8.4.2012.0316   感谢@晴天（412684802）和@老徐（gregorius 279504479），这里的最小和开始必须是0，插入的时候有++i的效果，才会得到从1开始的编号
 
 v8.4.2012.0309   IDatabase接口增加表示Guid获取函数的属性NewGuid

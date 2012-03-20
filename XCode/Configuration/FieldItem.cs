@@ -93,8 +93,7 @@ namespace XCode.Configuration
         static Char[] COLUMNNAME_FLAG = new Char[] { '[', ']', '\'', '"', '`' };
 
         private String _ColumnName;
-        /// <summary>
-        /// 用于数据绑定的字段名。
+        /// <summary>用于数据绑定的字段名。
         /// 默认使用BindColumn特性中指定的字段名，如果没有指定，则使用属性名。
         /// </summary>
         public String ColumnName
@@ -146,9 +145,7 @@ namespace XCode.Configuration
         #endregion
 
         #region 构造
-        /// <summary>
-        /// 构造函数
-        /// </summary>
+        /// <summary>构造函数</summary>
         /// <param name="table"></param>
         /// <param name="property"></param>
         public FieldItem(TableItem table, PropertyInfo property)
@@ -165,9 +162,7 @@ namespace XCode.Configuration
         #endregion
 
         #region 方法
-        /// <summary>
-        /// 已重载。
-        /// </summary>
+        /// <summary>已重载。</summary>
         /// <returns></returns>
         public override string ToString()
         {
@@ -180,9 +175,7 @@ namespace XCode.Configuration
             return ColumnName;
         }
 
-        /// <summary>
-        /// 填充到XField中去
-        /// </summary>
+        /// <summary>填充到XField中去</summary>
         /// <param name="field"></param>
         public void Fill(IDataColumn field)
         {
@@ -222,9 +215,7 @@ namespace XCode.Configuration
             }
         }
 
-        /// <summary>
-        /// 建立表达式
-        /// </summary>
+        /// <summary>建立表达式</summary>
         /// <param name="action"></param>
         /// <param name="value"></param>
         /// <returns></returns>
@@ -247,16 +238,12 @@ namespace XCode.Configuration
         #endregion
 
         #region 重载运算符
-        /// <summary>
-        /// 等于
-        /// </summary>
+        /// <summary>等于</summary>
         /// <param name="value"></param>
         /// <returns></returns>
         public WhereExpression Equal(object value) { return MakeCondition(this, value, "="); }
 
-        /// <summary>
-        /// 不等于
-        /// </summary>
+        /// <summary>不等于</summary>
         /// <param name="value"></param>
         /// <returns></returns>
         public WhereExpression NotEqual(object value) { return MakeCondition(this, value, "<>"); }
@@ -264,41 +251,31 @@ namespace XCode.Configuration
         //public static String operator ==(FieldItem field, Object value) { return MakeCondition(field, value, "=="); }
         //public static String operator !=(FieldItem field, Object value) { return MakeCondition(field, value, "<>"); }
 
-        /// <summary>
-        /// 以某个字符串开始
-        /// </summary>
+        /// <summary>以某个字符串开始,{0}%操作</summary>
         /// <param name="value"></param>
         /// <returns></returns>
         public WhereExpression StartsWith(Object value) { return CreateExpression("{0}%", value); }
 
-        /// <summary>
-        /// 以某个字符串结束
-        /// </summary>
+        /// <summary>以某个字符串结束，%{0}操作</summary>
         /// <param name="value"></param>
         /// <returns></returns>
         public WhereExpression EndsWith(Object value) { return CreateExpression("%{0}", value); }
 
-        /// <summary>
-        /// 包含某个字符串
-        /// </summary>
+        /// <summary>包含某个字符串，%{0}%操作</summary>
         /// <param name="value"></param>
         /// <returns></returns>
         public WhereExpression Contains(Object value) { return CreateExpression("%{0}%", value); }
 
-        /// <summary>
-        /// In操作
-        /// </summary>
-        /// <param name="value"></param>
+        /// <summary>In操作</summary>
+        /// <param name="value">逗号分割的数据</param>
         /// <returns></returns>
         public WhereExpression In(String value)
         {
             return new WhereExpression(String.Format("{0} In({1})", Factory.FormatName(ColumnName), value));
         }
 
-        /// <summary>
-        /// In操作
-        /// </summary>
-        /// <param name="value"></param>
+        /// <summary>In操作</summary>
+        /// <param name="value">枚举数据，会转化为字符串</param>
         /// <returns></returns>
         public WhereExpression In(IEnumerable value)
         {
@@ -324,9 +301,7 @@ namespace XCode.Configuration
             return new WhereExpression(String.Format("{0} In({1})", name, String.Join(",", list.ToArray())));
         }
 
-        /// <summary>
-        /// NotIn操作
-        /// </summary>
+        /// <summary>NotIn操作</summary>
         /// <param name="value"></param>
         /// <returns></returns>
         public WhereExpression NotIn(String value)
@@ -334,9 +309,7 @@ namespace XCode.Configuration
             return new WhereExpression(String.Format("{0} Not In({1})", Factory.FormatName(ColumnName), value));
         }
 
-        /// <summary>
-        /// NotIn操作
-        /// </summary>
+        /// <summary>NotIn操作</summary>
         /// <param name="value"></param>
         /// <returns></returns>
         public WhereExpression NotIn(IEnumerable value)
@@ -363,51 +336,53 @@ namespace XCode.Configuration
             return new WhereExpression(String.Format("{0} Not In({1})", name, String.Join(",", list.ToArray())));
         }
 
-        /// <summary>
-        /// IsNull操作
-        /// </summary>
+        /// <summary>IsNull操作，不为空，一般用于字符串，但不匹配0长度字符串</summary>
         /// <returns></returns>
         public WhereExpression IsNull()
         {
             return new WhereExpression(String.Format("{0} Is Null", Factory.FormatName(ColumnName)));
         }
 
-        /// <summary>
-        /// NotIn操作
-        /// </summary>
+        /// <summary>NotIn操作</summary>
         /// <returns></returns>
         public WhereExpression NotIsNull()
         {
             return new WhereExpression(String.Format("Not {0} Is Null", Factory.FormatName(ColumnName)));
         }
 
-        /// <summary>
-        /// 大于
-        /// </summary>
+        /// <summary>IsNullOrEmpty操作，用于空或者0长度字符串</summary>
+        /// <returns></returns>
+        public WhereExpression IsNullOrEmpty()
+        {
+            return IsNull().Or(Equal(""));
+        }
+
+        /// <summary>NotIsNullOrEmpty操作</summary>
+        /// <returns></returns>
+        public WhereExpression NotIsNullOrEmpty()
+        {
+            return NotIsNull().And(NotEqual(""));
+        }
+
+        /// <summary>大于</summary>
         /// <param name="field"></param>
         /// <param name="value"></param>
         /// <returns></returns>
         public static WhereExpression operator >(FieldItem field, Object value) { return MakeCondition(field, value, ">"); }
 
-        /// <summary>
-        /// 小于
-        /// </summary>
+        /// <summary>小于</summary>
         /// <param name="field"></param>
         /// <param name="value"></param>
         /// <returns></returns>
         public static WhereExpression operator <(FieldItem field, Object value) { return MakeCondition(field, value, "<"); }
 
-        /// <summary>
-        /// 大于等于
-        /// </summary>
+        /// <summary>大于等于</summary>
         /// <param name="field"></param>
         /// <param name="value"></param>
         /// <returns></returns>
         public static WhereExpression operator >=(FieldItem field, Object value) { return MakeCondition(field, value, ">="); }
 
-        /// <summary>
-        /// 小于等于
-        /// </summary>
+        /// <summary>小于等于</summary>
         /// <param name="field"></param>
         /// <param name="value"></param>
         /// <returns></returns>
