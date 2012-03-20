@@ -271,6 +271,8 @@ namespace NewLife.IO
                 {
                     ms = new MemoryStream((Int32)inStream.Length);
                     CopyTo(inStream, ms);
+                    // 必须复位，否则悲剧。。。。
+                    ms.Position = 0;
                 }
             }
             if (ms != null) DecompressFile(ms, targetPath, des, isSub);
