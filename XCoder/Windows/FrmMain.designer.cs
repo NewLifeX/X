@@ -549,8 +549,8 @@
             this.文件ToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.退出XToolStripMenuItem});
             this.文件ToolStripMenuItem.Name = "文件ToolStripMenuItem";
-            this.文件ToolStripMenuItem.Size = new System.Drawing.Size(44, 21);
-            this.文件ToolStripMenuItem.Text = "文件";
+            this.文件ToolStripMenuItem.Size = new System.Drawing.Size(58, 21);
+            this.文件ToolStripMenuItem.Text = "文件(&F)";
             // 
             // 退出XToolStripMenuItem
             // 
