@@ -98,7 +98,7 @@ namespace XCoder
                 gbConnect.Enabled = false;
                 gbTable.Visible = true;
                 模型ToolStripMenuItem.Visible = true;
-                架构管理SToolStripMenuItem.Enabled = true;
+                架构管理SToolStripMenuItem.Visible = true;
                 btnImport.Enabled = false;
                 bt_Connection.Text = "断开";
             }

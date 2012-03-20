@@ -1,14 +1,15 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 using System.Text;
 using System.Windows.Forms;
 using System.Xml;
+using NewLife.Compression;
 using NewLife.IO;
 using NewLife.Log;
 using NewLife.Threading;
 using NewLife.Web;
-using NewLife.Compression;
 
 namespace XCoder
 {
@@ -44,12 +45,41 @@ namespace XCoder
             #region 准备工作
             String ProcessHelper = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "NewLife.ProcessHelper.exe");
             if (File.Exists(ProcessHelper)) File.Delete(ProcessHelper);
+
+            // 开发环境下，自动生成版本文件
+            var svn = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ".svn");
+            if (Directory.Exists(svn))
+            {
+                var asm = Assembly.GetExecutingAssembly();
+                var stream = asm.GetManifestResourceStream(this.GetType(), "UpdateInfo.txt");
+                var sb = new StringBuilder();
+                // 只要前五行
+                sb.AppendLine();
+                using (var reader = new StreamReader(stream))
+                {
+                    for (int i = 0; i < 5 && !reader.EndOfStream; i++)
+                    {
+                        sb.AppendLine(reader.ReadLine());
+                    }
+                }
+
+                var mver = new VerFile();
+                mver.Ver = asm.GetName().Version.ToString();
+                mver.Src = VerSrc.Replace("XCoderVer.xml", "XCoder.zip");
+                mver.XSrc = VerSrc.Replace("XCoderVer.xml", "Src.zip");
+                mver.DLL = VerSrc.Replace("XCoderVer.xml", "DLL.zip");
+                mver.Description = sb.ToString();
+
+                var mxml = mver.GetXml();
+                File.WriteAllText("XCoderVer.xml", mxml);
+            }
             #endregion
 
             #region 取版本、对比版本
             var client = new WebClientX();
             // 同步下载，3秒超时
             client.Timeout = 3000;
+            XTrace.WriteLine("准备从{0}下载版本文件！", VerSrc);
             String xml = client.DownloadString(VerSrc);
             if (String.IsNullOrEmpty(xml)) return;
 
@@ -59,7 +89,7 @@ namespace XCoder
 
             #region 下载
             var update = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Update");
-            String file = Path.Combine(update, String.Format("XCoder_{0}.zip", ver.Ver));
+            String file = Path.Combine(update, "XCoder.zip");
             String dir = Path.GetDirectoryName(file);
             if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
 
@@ -76,7 +106,7 @@ namespace XCoder
 
             // 检查是否需要更新源码
             var srcPath = @"C:\X\Src";
-            String xfile = Path.Combine(update, String.Format("Src_{0}.zip", ver.Ver));
+            String xfile = Path.Combine(update, "Src.zip");
             if (!Directory.Exists(srcPath) || !Directory.Exists(Path.Combine(srcPath, ".svn")))
             {
                 if (!File.Exists(xfile))
@@ -91,7 +121,7 @@ namespace XCoder
                 }
             }
             var dllPath = @"C:\X\DLL";
-            String dfile = Path.Combine(update, String.Format("DLL_{0}.zip", ver.Ver));
+            String dfile = Path.Combine(update, "DLL.zip");
             if (!Directory.Exists(dllPath) || !Directory.Exists(Path.Combine(dllPath, ".svn")))
             {
                 if (!File.Exists(dfile))
@@ -201,6 +231,8 @@ namespace XCoder
             public String Description { get { return _Description; } set { _Description = value; } }
             #endregion
 
+            public VerFile() { }
+
             public VerFile(String xml)
             {
                 try
@@ -218,7 +250,7 @@ namespace XCoder
 
             void Parse(String xml)
             {
-                XmlDocument doc = new XmlDocument();
+                var doc = new XmlDocument();
                 doc.LoadXml(xml);
 
                 XmlNode node = doc.SelectSingleNode(@"//ver");
@@ -234,6 +266,31 @@ namespace XCoder
             }
 
             public Version GetVersion() { return new Version(Ver); }
+
+            public String GetXml()
+            {
+                var doc = new XmlDocument();
+                var root = doc.CreateElement("r");
+                doc.AppendChild(root);
+
+                var node = doc.CreateElement("src");
+                node.InnerText = Src;
+                root.AppendChild(node);
+
+                node = doc.CreateElement("xsrc");
+                node.InnerText = XSrc;
+                root.AppendChild(node);
+
+                node = doc.CreateElement("dll");
+                node.InnerText = DLL;
+                root.AppendChild(node);
+
+                node = doc.CreateElement("description");
+                node.InnerText = Description;
+                root.AppendChild(node);
+
+                return doc.OuterXml;
+            }
         }
         #endregion
     }
