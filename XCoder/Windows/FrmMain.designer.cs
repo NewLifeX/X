@@ -89,6 +89,7 @@
             this.toolStripMenuItem2 = new System.Windows.Forms.ToolStripSeparator();
             this.检查更新ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.关于ToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
+            this.组件手册ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.gbConnect.SuspendLayout();
             this.gbTable.SuspendLayout();
             this.statusStrip1.SuspendLayout();
@@ -555,7 +556,7 @@
             // 退出XToolStripMenuItem
             // 
             this.退出XToolStripMenuItem.Name = "退出XToolStripMenuItem";
-            this.退出XToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.退出XToolStripMenuItem.Size = new System.Drawing.Size(116, 22);
             this.退出XToolStripMenuItem.Text = "退出(&X)";
             this.退出XToolStripMenuItem.Click += new System.EventHandler(this.退出XToolStripMenuItem_Click);
             // 
@@ -603,6 +604,7 @@
             // 关于ToolStripMenuItem
             // 
             this.关于ToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.组件手册ToolStripMenuItem,
             this.表名字段名命名规范ToolStripMenuItem,
             this.toolStripMenuItem2,
             this.检查更新ToolStripMenuItem,
@@ -636,6 +638,13 @@
             this.关于ToolStripMenuItem1.Size = new System.Drawing.Size(202, 22);
             this.关于ToolStripMenuItem1.Text = "关于(&A)";
             this.关于ToolStripMenuItem1.Click += new System.EventHandler(this.关于ToolStripMenuItem1_Click);
+            // 
+            // 组件手册ToolStripMenuItem
+            // 
+            this.组件手册ToolStripMenuItem.Name = "组件手册ToolStripMenuItem";
+            this.组件手册ToolStripMenuItem.Size = new System.Drawing.Size(202, 22);
+            this.组件手册ToolStripMenuItem.Text = "组件手册(&X)";
+            this.组件手册ToolStripMenuItem.Click += new System.EventHandler(this.组件手册ToolStripMenuItem_Click);
             // 
             // FrmMain
             // 
@@ -737,6 +746,7 @@
         private System.Windows.Forms.ToolStripSeparator toolStripMenuItem2;
         private System.Windows.Forms.ToolStripMenuItem 检查更新ToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem 关于ToolStripMenuItem1;
+        private System.Windows.Forms.ToolStripMenuItem 组件手册ToolStripMenuItem;
 	}
 }
 

@@ -77,7 +77,7 @@ pushd ..\DLL
 ::"C:\Program Files\WinRAR\WinRAR.exe" a DLL.rar *.dll *.exe *.pdb *.xml
 set zipfile=DLL.zip
 del DLL*.zip /f/q
-%zip% %zipfile% *.dll *.exe *.pdb *.xml
+%zip% %zipfile% *.dll *.exe *.pdb *.xml *.chm
 move /y DLL*.zip %dest%\%zipfile%
 :: »Ö¸´Ä¿Â¼
 popd

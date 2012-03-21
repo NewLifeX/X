@@ -550,6 +550,13 @@ namespace XCoder
             this.Close();
         }
 
+        private void 组件手册ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var file = "X组件手册.chm";
+            if (!File.Exists(file)) file = Path.Combine(@"C:\X\DLL", file);
+            if (!File.Exists(file)) Process.Start(file);
+        }
+
         private void 表名字段名命名规范ToolStripMenuItem_Click(object sender, EventArgs e)
         {
             FrmCriterion.Create().Show();
