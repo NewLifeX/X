@@ -552,7 +552,7 @@ namespace XCode.DataAccessLayer
                     if (IsSQL2005)
                         _IndexSql = "select ind.* from sys.indexes ind inner join sys.objects obj on ind.object_id = obj.object_id where obj.type='u'";
                     else
-                        _IndexSql = "select case ObjectProperty(object_id(ind.name),'IsUniqueCnst') as is_unique,case ObjectProperty(object_id(ind.name),'IsPrimaryKey') as is_primary_key,ind.* from sysindexes ind inner join sysobjects obj on ind.id = obj.id where obj.type='u'";
+                        _IndexSql = "select IndexProperty(obj.id, ind.name,'IsUnique') as is_unique, ObjectProperty(object_id(ind.name),'IsPrimaryKey') as is_primary_key,ind.* from sysindexes ind inner join sysobjects obj on ind.id = obj.id where obj.type='u'";
                 }
                 return _IndexSql;
             }
