@@ -25,7 +25,7 @@ namespace XCoder
                     XConfig.Current.LastUpdate = DateTime.Now;
 
                     var au = new AutoUpdate();
-                    au.ProcessAsync();
+                    au.UpdateAsync();
                 }
 
                 new TimerX(s => Runtime.ReleaseMemory(), null, 5000, 10000);

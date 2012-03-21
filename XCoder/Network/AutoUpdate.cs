@@ -25,9 +25,9 @@ namespace XCoder
 
         #region 方法
         /// <summary>执行处理</summary>
-        public void ProcessAsync() { ThreadPoolX.QueueUserWorkItem(Process); }
+        public void UpdateAsync() { ThreadPoolX.QueueUserWorkItem(Update); }
 
-        public void Process()
+        public void Update()
         {
             // 取版本
             // 对比版本
