@@ -302,7 +302,7 @@ namespace NewLife.Net.Proxy
                 else
                     throw new NetException("无法处理的请求！{0}", entity);
 
-                WriteLog("请求：{0} {1} [{2}]", entity.Method, oriUrl, entity.ContentLength);
+                WriteLog("{3} 请求：{0} {1} [{2}]", entity.Method, oriUrl, entity.ContentLength, ClientEndPoint);
 
                 // 可能不含Host
                 if (String.IsNullOrEmpty(entity.Host)) entity.Host = host;

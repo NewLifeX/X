@@ -93,7 +93,7 @@ namespace NewLife.Net.Proxy
         /// <param name="e"></param>
         protected override void OnReceive(ReceivedEventArgs e)
         {
-            WriteLog("{0}客户数据：{1}", ID, e.Stream.Length);
+            WriteLog("{0} {1}客户数据：{2}", ID, ClientEndPoint, e.Stream.Length);
 
             if (e.Stream != null)
             {

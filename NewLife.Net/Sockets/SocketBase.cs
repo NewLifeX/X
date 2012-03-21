@@ -231,6 +231,9 @@ namespace NewLife.Net.Sockets
             {
                 // 写在另外一个方法里面，保证不会在当前方法编译的时候就报错
                 CheckNet21();
+
+                // 回收一次，引发编译NetEventArgs的析构函数
+                GC.Collect();
             }
             catch (TypeLoadException ex)
             {
@@ -243,8 +246,9 @@ namespace NewLife.Net.Sockets
 
         static void CheckNet21()
         {
-            var e = new SocketAsyncEventArgs();
-            e.Dispose();
+            var e = new NetEventArgs();
+            //(e as IDisposable).Dispose();
+            e.Used = true;
         }
 
         /// <summary>实例化</summary>
