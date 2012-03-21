@@ -1,4 +1,6 @@
-﻿v2.8.2012.0215   扩展ICommonManageProvider接口，增加FindByMenuID、GetMySubMenus等方法
+﻿v2.8.2012.0321   感谢 @波波（136879642），因为页面上可能关闭ViewState，所以IManagerPage每次都要检查权限
+
+v2.8.2012.0215   扩展ICommonManageProvider接口，增加FindByMenuID、GetMySubMenus等方法
 
 v2.8.2011.1209   IEntityForm接口开放更多成员
                  IEntityForm增加对另存为的支持，需要表单页增加btnCopy按钮

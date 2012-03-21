@@ -143,8 +143,9 @@ namespace NewLife.CommonEntity
                 XTrace.WriteException(ex);
             }
 
-            if (!Page.IsPostBack) CheckAddAndDeletePermission();
-
+            //if (!Page.IsPostBack) CheckAddAndDeletePermission();
+            // 感谢 @波波（136879642），因为页面上可能关闭ViewState，所以这里每次都要检查
+            CheckAddAndDeletePermission();
         }
 
         void OnLoadComplete(object sender, EventArgs e)
@@ -315,6 +316,13 @@ namespace NewLife.CommonEntity
                         if (dcf is HyperLinkField) (dcf as HyperLinkField).Text = "查看";
                     }
                 }
+            }
+
+            // 如果没有删除权限，屏蔽ObjectDataSource中的删除方法
+            if (!Acquire(PermissionFlags.Delete))
+            {
+                var ods = ControlHelper.FindControlInPage<ObjectDataSource>(gv != null ? gv.DataSourceID : null);
+                if (ods != null) ods.DeleteMethod = null;
             }
         }
         #endregion

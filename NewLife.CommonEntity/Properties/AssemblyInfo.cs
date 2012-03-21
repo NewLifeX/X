@@ -36,9 +36,11 @@ using System.Runtime.InteropServices;
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("2.8.*")]
-[assembly: AssemblyFileVersion("2.8.2012.0215")]
+[assembly: AssemblyFileVersion("2.8.2012.0321")]
 
 /*
+ * v2.8.2012.0321   感谢 @波波（136879642），因为页面上可能关闭ViewState，所以IManagerPage每次都要检查权限
+ * 
  * v2.8.2012.0215   扩展ICommonManageProvider接口，增加FindByMenuID、GetMySubMenus等方法
  * 
  * v2.8.2011.1209   IEntityForm接口开放更多成员
