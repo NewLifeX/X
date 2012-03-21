@@ -67,9 +67,9 @@ namespace NewLife.Compression
         /// <summary>注释</summary>
         public String Comment { get { return _Comment; } set { _Comment = value; } }
 
-        private Encoding _Encoding = Encoding.Default;
+        private Encoding _Encoding ;
         /// <summary>字符串编码</summary>
-        public Encoding Encoding { get { return _Encoding; } set { _Encoding = value; } }
+        public Encoding Encoding { get { return _Encoding ?? Encoding.Default; } set { _Encoding = value; } }
 
         private Boolean _UseDirectory;
         /// <summary>是否使用目录。不使用目录可以减少一点点文件大小，网络上的压缩包也这么做，但是Rar压缩的使用了目录</summary>

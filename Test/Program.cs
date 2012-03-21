@@ -1,16 +1,17 @@
 ﻿using System;
-using NewLife.IO;
 using System.Diagnostics;
 using System.Threading;
 using NewLife.Collections;
+using NewLife.CommonEntity;
+using NewLife.IO;
 using NewLife.Linq;
 using NewLife.Log;
+using NewLife.Messaging;
 using NewLife.Net.Proxy;
 using NewLife.Net.Sockets;
 using NewLife.Reflection;
 using NewLife.Threading;
-using NewLife.Messaging;
-using NewLife.CommonEntity;
+using NewLife.Compression;
 
 namespace Test
 {
@@ -173,6 +174,11 @@ namespace Test
 
         static void Test3()
         {
+            var file = @"E:\快盘\新生命共享\X\Src.zip";
+            var zf = new ZipFile(file);
+            Console.WriteLine(zf.Count);
+            zf.Extract(@"C:\X2\");
+
             //var type = TypeX.GetType("OracleInit", true);
             //var method = MethodInfoX.Create(type, "GetAssemblyVersion");
             //var ver = method.Invoke(null, null);
