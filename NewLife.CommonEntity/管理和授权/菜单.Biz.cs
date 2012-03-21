@@ -501,9 +501,9 @@ namespace NewLife.CommonEntity
             TEntity top = null;
 
             String[] AppDirs = Config.GetConfigSplit<String>("NewLife.CommonEntity.AppDirs", null);
-            if (AppDirs == null)
+            if (AppDirs == null || AppDirs.Length == 0)
                 AppDirs = new String[] { "Admin" };
-            else if (AppDirs.Length <= 0)
+            else if (AppDirs.Length > 0)
             {
                 List<String> list = new List<string>(AppDirs);
                 if (!list.Contains("Admin")) list.Add("Admin");
