@@ -8,86 +8,72 @@ using System.Web.UI;
 using System.Web;
 using System.Xml.XPath;
 using System.Xml.Xsl;
+using NewLife.Reflection;
 
-[assembly: WebResource("NewLife.Web.Menu.RS.tree.js", "text/javascript", PerformSubstitution = true)]
-[assembly: WebResource("NewLife.Web.Menu.RS.XSL.xsl", "text/xml", PerformSubstitution = true)]
+[assembly: WebResource("XControl.Menu.RS.tree.js", "text/javascript", PerformSubstitution = true)]
+[assembly: WebResource("XControl.Menu.RS.XSL.xsl", "text/xml", PerformSubstitution = true)]
 
-[assembly: WebResource("NewLife.Web.Menu.RS.book.gif", "image/gif")]
-[assembly: WebResource("NewLife.Web.Menu.RS.bookopen.gif", "image/gif")]
-[assembly: WebResource("NewLife.Web.Menu.RS.paper.gif", "image/gif")]
+[assembly: WebResource("XControl.Menu.RS.book.gif", "image/gif")]
+[assembly: WebResource("XControl.Menu.RS.bookopen.gif", "image/gif")]
+[assembly: WebResource("XControl.Menu.RS.paper.gif", "image/gif")]
 
 
-namespace NewLife
+namespace XControl
 {
-    /// <summary>
-    /// 树菜单根
-    /// </summary>
+    /// <summary>树菜单根</summary>
     [Serializable]
     public class TreeMenuRoot
     {
         private List<TreeMenuNode> _Nodes;
         /// <summary>节点</summary>
-        public List<TreeMenuNode> Nodes
-        {
-            get { return _Nodes; }
-            set { _Nodes = value; }
-        }
+        public List<TreeMenuNode> Nodes { get { return _Nodes; } set { _Nodes = value; } }
 
         #region 资源
         /// <summary>
         /// 默认Xsl
         /// </summary>
-        public static String xslFilePath = Page().ClientScript.GetWebResourceUrl(typeof(TreeMenuRoot), "NewLife.Web.Menu.RS.XSL.xsl").Replace("&", "&amp;");
+        public static String xslFilePath = Page().ClientScript.GetWebResourceUrl(typeof(TreeMenuRoot), "XControl.Menu.RS.XSL.xsl").Replace("&", "&amp;");
 
         /// <summary>
         /// 菜单js资源路径
         /// </summary>
-        public static String jsFilePath = Page().ClientScript.GetWebResourceUrl(typeof(TreeMenuRoot), "NewLife.Web.Menu.RS.tree.js").Replace("&", "&amp;");
+        public static String jsFilePath = Page().ClientScript.GetWebResourceUrl(typeof(TreeMenuRoot), "XControl.Menu.RS.tree.js").Replace("&", "&amp;");
 
         /// <summary>
         /// 关闭
         /// </summary>
-        public static String ImagePath = Page().ClientScript.GetWebResourceUrl(typeof(TreeMenuRoot), "NewLife.Web.Menu.RS.book.gif");
+        public static String ImagePath = Page().ClientScript.GetWebResourceUrl(typeof(TreeMenuRoot), "XControl.Menu.RS.book.gif");
 
         /// <summary>
         /// 打开
         /// </summary>
-        public static String ImageOpenPath = Page().ClientScript.GetWebResourceUrl(typeof(TreeMenuRoot), "NewLife.Web.Menu.RS.bookopen.gif");
+        public static String ImageOpenPath = Page().ClientScript.GetWebResourceUrl(typeof(TreeMenuRoot), "XControl.Menu.RS.bookopen.gif");
 
         /// <summary>
         /// 无子级
         /// </summary>
-        public static String ImagePagePath = Page().ClientScript.GetWebResourceUrl(typeof(TreeMenuRoot), "NewLife.Web.Menu.RS.paper.gif");
-
-
+        public static String ImagePagePath = Page().ClientScript.GetWebResourceUrl(typeof(TreeMenuRoot), "XControl.Menu.RS.paper.gif");
         #endregion
 
-        /// <summary>
-        /// 构造方法
-        /// </summary>
-        public TreeMenuRoot()
-        {
-        }
+        ///// <summary>
+        ///// 构造方法
+        ///// </summary>
+        //public TreeMenuRoot() { }
 
         #region 方法
         /// <summary>
         /// 用于获取资源URL
         /// </summary>
         /// <returns></returns>
-        private static Page Page()
-        {
-            return HttpContext.Current.Handler as Page ?? new Page();
-        }
+        private static Page Page() { return HttpContext.Current.Handler as Page ?? new Page(); }
 
-        /// <summary>
-        /// 获取菜单树
-        /// </summary>
+        /// <summary>获取菜单树</summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="rootNode"></param>
         /// <param name="getChildsfun"></param>
         /// <param name="convertToTreeMenu"></param>
         /// <returns></returns>
-        private static List<TreeMenuNode> GetTreeMenu<T>(T rootNode, NewLife.Reflection.Func<T, List<T>> getChildsfun, NewLife.Reflection.Func<T, TreeMenuNode> convertToTreeMenu)
+        private static List<TreeMenuNode> GetTreeMenu<T>(T rootNode, Func<T, List<T>> getChildsfun, Func<T, TreeMenuNode> convertToTreeMenu)
         {
             //Root root = new Root();
             List<TreeMenuNode> r = new List<TreeMenuNode>();
@@ -111,15 +97,13 @@ namespace NewLife
             return r.Count > 0 ? r : null;
         }
 
-        /// <summary>
-        /// 通过根节点获取
-        /// </summary>
+        /// <summary>通过根节点获取</summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="rootNode"></param>
         /// <param name="getChildsfun"></param>
         /// <param name="convertToTreeMenu"></param>
         /// <returns></returns>
-        public static TreeMenuRoot GetTreeMenuRoot<T>(T rootNode, NewLife.Reflection.Func<T, List<T>> getChildsfun, NewLife.Reflection.Func<T, TreeMenuNode> convertToTreeMenu)
+        public static TreeMenuRoot GetTreeMenuRoot<T>(T rootNode, Func<T, List<T>> getChildsfun, Func<T, TreeMenuNode> convertToTreeMenu)
         {
             TreeMenuRoot root = new TreeMenuRoot();
             root.Nodes = GetTreeMenu<T>(rootNode, getChildsfun, convertToTreeMenu);
@@ -135,7 +119,7 @@ namespace NewLife
         /// <param name="getChildsfun"></param>
         /// <param name="convertToTreeMenu"></param>
         /// <returns></returns>
-        public static TreeMenuRoot GetTreeMenuRoot<T>(List<T> nodeList, NewLife.Reflection.Func<T, List<T>> getChildsfun, NewLife.Reflection.Func<T, TreeMenuNode> convertToTreeMenu)
+        public static TreeMenuRoot GetTreeMenuRoot<T>(List<T> nodeList, Func<T, List<T>> getChildsfun, Func<T, TreeMenuNode> convertToTreeMenu)
         {
             TreeMenuRoot root = new TreeMenuRoot();
             root.Nodes = new List<TreeMenuNode>();
@@ -155,18 +139,11 @@ namespace NewLife
             return root;
         }
 
-        /// <summary>
-        /// 序列化
-        /// </summary>
+        /// <summary>序列化</summary>
         /// <returns></returns>
-        public XmlDocument Serialize()
-        {
-            return Serialize(xslFilePath);
-        }
+        public XmlDocument Serialize() { return Serialize(xslFilePath); }
 
-        /// <summary>
-        /// 序列化
-        /// </summary>
+        /// <summary>序列化</summary>
         /// <param name="xsl">xsl文件</param>
         /// <returns></returns>
         public XmlDocument Serialize(String xsl)
@@ -213,42 +190,32 @@ namespace NewLife
             return ToHtml(url, true);
         }
 
-        /// <summary>
-        /// 转换为Html
-        /// </summary>
+        /// <summary>转换为Html</summary>
         /// <param name="xsl"></param>
         /// <param name="isAddTreeJS"></param>
         /// <returns></returns>
         public String ToHtml(String xsl, bool isAddTreeJS)
         {
-            using (TextWriter stringWriter = new StringWriter())
+            using (var writer = new StringWriter())
             {
-                if (isAddTreeJS)
-                    stringWriter.WriteLine("<script src=\"" + jsFilePath + "\" type=\"text/javascript\"></script>");
+                if (isAddTreeJS) writer.WriteLine("<script src=\"" + jsFilePath + "\" type=\"text/javascript\"></script>");
 
-                using (TextReader stringReader = new StringReader(Serialize(null).InnerXml))
+                using (var stringReader = new StringReader(Serialize(null).InnerXml))
                 {
-                    using (XmlReader read = XmlReader.Create(stringReader))
+                    using (var read = XmlReader.Create(stringReader))
                     {
-
-                        XslCompiledTransform xsltransform = new XslCompiledTransform();
-
+                        var xsltransform = new XslCompiledTransform();
                         xsltransform.Load(xsl);
-
-                        xsltransform.Transform(read, null, stringWriter);
+                        xsltransform.Transform(read, null, writer);
                     }
                 }
-                return stringWriter.ToString();
+                return writer.ToString();
             }
         }
         #endregion
-
     }
 
-
-    /// <summary>
-    /// Xml树状菜单节点
-    /// </summary>
+    /// <summary>Xml树状菜单节点</summary>
     [Serializable]
     public class TreeMenuNode
     {
@@ -308,26 +275,21 @@ namespace NewLife
         }
         #endregion
 
-        /// <summary>
-        /// 构造方法
-        /// </summary>
-        public TreeMenuNode()
-        {
-        }
+        ///// <summary>
+        ///// 构造方法
+        ///// </summary>
+        //public TreeMenuNode()
+        //{
+        //}
 
         #region 扩展方法
         /// <summary>
         /// 设置默认图片
         /// </summary>
         /// <returns></returns>
-        public TreeMenuNode ResetImage()
-        {
-            return ResetTreeNode(this);
-        }
+        public TreeMenuNode ResetImage() { return ResetTreeNode(this); }
 
-        /// <summary>
-        /// 设置默认数据
-        /// </summary>
+        /// <summary>设置默认数据</summary>
         /// <param name="node"></param>
         /// <returns></returns>
         public static TreeMenuNode ResetTreeNode(TreeMenuNode node)
@@ -352,6 +314,5 @@ namespace NewLife
             return node;
         }
         #endregion
-
     }
 }

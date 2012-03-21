@@ -48,6 +48,7 @@
     <Compile Include="Box\LinkBoxField.cs" />
     <Compile Include="Button\LinkButtonField.cs" />
     <Compile Include="MenuField\MenuParameterItem.cs" />
+    <Compile Include="Menu\TreeMenu.cs" />
     <Compile Include="XControlConfig.cs" />
     <Compile Include="MenuField\MenuTemplateItem.cs" />
     <Compile Include="MenuField\MenuField.cs" />
@@ -147,6 +148,13 @@
     <EmbeddedResource Include="TextBox\DateTime\lhgcalendar.min.js" />
     <EmbeddedResource Include="TextBox\DateTime\lhgcore.min.js" />
     <EmbeddedResource Include="View\GridViewExtender.js" />
+    <EmbeddedResource Include="Menu\RS\book.gif" />
+    <EmbeddedResource Include="Menu\RS\bookopen.gif" />
+    <EmbeddedResource Include="Menu\RS\paper.gif" />
+    <EmbeddedResource Include="Menu\RS\tree.js" />
+    <EmbeddedResource Include="Menu\RS\XSL.xsl">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
     <Content Include="说明.txt" />
   </ItemGroup>
   <ItemGroup>

@@ -226,7 +226,6 @@
     <Compile Include="Web\Modules\RunTimeModule.cs" />
     <Compile Include="Web\Modules\ViewStateCompressionModule.cs" />
     <Compile Include="Web\Modules\SystemStartModule.cs" />
-    <Compile Include="Web\Menu\TreeMenu.cs" />
     <Compile Include="Web\WebClientX.cs">
       <SubType>Component</SubType>
     </Compile>
@@ -241,13 +240,6 @@
   <ItemGroup>
     <EmbeddedResource Include="X组件.txt" />
     <EmbeddedResource Include="Web\Modules\SystemStart.htm" />
-    <EmbeddedResource Include="Web\Menu\RS\book.gif" />
-    <EmbeddedResource Include="Web\Menu\RS\bookopen.gif" />
-    <EmbeddedResource Include="Web\Menu\RS\paper.gif" />
-    <EmbeddedResource Include="Web\Menu\RS\tree.js" />
-    <EmbeddedResource Include="Web\Menu\RS\XSL.xsl">
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
     <Content Include="说明.txt" />
     <EmbeddedResource Include="UpdateInfo.txt" />
     <Content Include="Serialization\序列化_写入器.png" />
