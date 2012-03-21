@@ -279,7 +279,17 @@ namespace NewLife.Web
                                 String[] ss = host.Split('.');
                                 //host = ss[ss.Length - 2] + "." + ss[ss.Length - 1];
 
-                                if (ss[ss.Length - 1].ToLower().Equals("cn"))
+                                String r2 = ss[ss.Length - 2].ToLower();
+                                if (ss[ss.Length - 1].ToLower().Equals("cn")
+                                    &&
+                                    r2.Equals("com")
+                                    &&
+                                    r2.Equals("net")
+                                    &&
+                                    r2.Equals("gov")
+                                    &&
+                                    r2.Equals("org")
+                                    )
                                     host = ss[ss.Length - 3] + "." + ss[ss.Length - 2] + "." + ss[ss.Length - 1];
                                 else
                                     host = ss[ss.Length - 2] + "." + ss[ss.Length - 1];
