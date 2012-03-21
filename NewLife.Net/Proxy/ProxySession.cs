@@ -147,7 +147,11 @@ namespace NewLife.Net.Proxy
             if (String.IsNullOrEmpty(key)) throw new ArgumentNullException("RemoteEndPoint");
 
             DateTime dt;
-            if (_NotConnected.TryGetValue(key, out dt) && dt > DateTime.Now) throw new NetException("指定时间内连接{0}超时，稍候再试！", key);
+            if (_NotConnected.TryGetValue(key, out dt))
+            {
+                if (dt > DateTime.Now) throw new NetException("指定时间内连接{0}超时，稍候再试！", key);
+                _NotConnected.Remove(key);
+            }
 
             var client = NetService.Resolve<ISocketClient>(RemoteProtocolType);
             if (RemoteEndPoint != null) client.AddressFamily = RemoteEndPoint.AddressFamily;
