@@ -276,15 +276,14 @@ namespace NewLife.Web
                             Int32 n = 0;
                             if (!Int32.TryParse(last, out n))
                             {
-                                //String[] ss = host.Split('.');
+                                String[] ss = host.Split('.');
                                 //host = ss[ss.Length - 2] + "." + ss[ss.Length - 1];
-                                //上面注掉的方法不能正常解出域名根如www.baidu.com.cn
-                                //没有想到方法来分解出根域名
-                                if (host.Split('.')[0].Equals("www", StringComparison.CurrentCultureIgnoreCase))
-                                {
-                                    Int32 s = host.IndexOf(".");
-                                    host = host.Substring(s + 1, host.Length - s);
-                                }
+
+                                if (ss[ss.Length - 1].ToLower().Equals("cn"))
+                                    host = ss[ss.Length - 3] + "." + ss[ss.Length - 2] + "." + ss[ss.Length - 1];
+                                else
+                                    host = ss[ss.Length - 2] + "." + ss[ss.Length - 1];
+
                                 cookie.Domain = host;
                             }
                         }
