@@ -153,12 +153,14 @@ namespace XCoder
             if (File.Exists(xfile))
             {
                 // 解压缩，删除压缩文件
+                XTrace.WriteLine("解压缩{0}到{1}！", xfile, srcPath);
                 ZipFile.Extract(xfile, srcPath);
                 File.Delete(xfile);
             }
             if (File.Exists(dfile))
             {
                 // 解压缩，删除压缩文件
+                XTrace.WriteLine("解压缩{0}到{1}！", dfile, dllPath);
                 ZipFile.Extract(dfile, dllPath);
                 File.Delete(dfile);
             }
@@ -167,7 +169,9 @@ namespace XCoder
             {
                 // 解压缩，删除压缩文件
                 //IOHelper.DecompressFile(file, null, false);
-                ZipFile.Extract(file, Path.GetDirectoryName(file));
+                var xcoderPath = Path.GetDirectoryName(file);
+                XTrace.WriteLine("解压缩{0}到{1}！", file, xcoderPath);
+                ZipFile.Extract(file, xcoderPath);
                 File.Delete(file);
 
                 StringBuilder sb = new StringBuilder();
@@ -195,6 +199,8 @@ namespace XCoder
                     si.WindowStyle = ProcessWindowStyle.Hidden;
                 }
                 Process.Start(si);
+
+                XTrace.WriteLine("已启动进程助手来升级，升级脚本：{0}", tmpfile);
 
                 Application.Exit();
             }
