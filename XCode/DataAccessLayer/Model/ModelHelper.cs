@@ -290,7 +290,7 @@ namespace XCode.DataAccessLayer
         public static void Fix(this IDataTable table)
         {
             #region 根据单字段索引修正对应的关系
-            //TODO 给所有单字段索引建立关系，特别是一对一关系
+            // 给所有单字段索引建立关系，特别是一对一关系
             foreach (IDataIndex item in table.Indexes)
             {
                 if (item.Columns == null || item.Columns.Length != 1) continue;
@@ -396,6 +396,20 @@ namespace XCode.DataAccessLayer
                     // 不管是不是原来有的索引，都要唯一
                     di.Unique = true;
                 }
+            }
+            #endregion
+
+            #region 索引应该具有跟字段一样的唯一和主键约束
+            // 主要针对MSSQL2000
+            foreach (var di in table.Indexes)
+            {
+                if (di.Columns == null) continue;
+
+                var dcs = table.GetColumns(di.Columns);
+                if (dcs == null || dcs.Length <= 0) continue;
+
+                if (!di.Unique) di.Unique = dcs.All(dc => dc.Identity);
+                if (!di.PrimaryKey) di.PrimaryKey = dcs.All(dc => dc.PrimaryKey);
             }
             #endregion
 
