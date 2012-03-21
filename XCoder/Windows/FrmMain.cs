@@ -565,7 +565,7 @@ namespace XCoder
         private void ¼ì²é¸üÐÂToolStripMenuItem_Click(object sender, EventArgs e)
         {
             var au = new AutoUpdate();
-            au.ProcessAsync();
+            au.Process();
 
             XConfig.Current.LastUpdate = DateTime.Now;
         }
