@@ -91,7 +91,15 @@ namespace XCoder
             if (bt_Connection.Text == "Á¬½Ó")
             {
                 Engine = null;
-                Engine.Tables = DAL.Create(Config.ConnName).Tables;
+                try
+                {
+                    Engine.Tables = DAL.Create(Config.ConnName).Tables;
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.ToString(), this.Text);
+                    return;
+                }
 
                 SetTables(Engine.Tables);
                 SetTables(null);

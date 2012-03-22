@@ -9,6 +9,7 @@ using NewLife.Compression;
 using NewLife.Log;
 using NewLife.Threading;
 using NewLife.Web;
+using System.Net;
 
 namespace XCoder
 {
@@ -36,40 +37,19 @@ namespace XCoder
             // 执行更新
 
             #region 准备工作
-            String ProcessHelper = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "NewLife.ProcessHelper.exe");
+            var curdir = AppDomain.CurrentDomain.BaseDirectory;
+
+            String ProcessHelper = Path.Combine(curdir, "NewLife.ProcessHelper.exe");
             if (File.Exists(ProcessHelper)) File.Delete(ProcessHelper);
 
             // 删除Update目录，避免重复使用错误的升级文件
-            var update = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Update");
-            if (Directory.Exists(update)) Directory.Delete(update, true);
+            var update = Path.Combine(curdir, "Update");
+            if (Directory.Exists(update)) { try { Directory.Delete(update, true); } catch { } }
+            var updatebat = Path.Combine(curdir, "Update.bat");
+            if (File.Exists(updatebat)) { try { File.Delete(updatebat); } catch { } }
 
             // 开发环境下，自动生成版本文件
-            var svn = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ".svn");
-            var asm = Assembly.GetExecutingAssembly();
-            if (Directory.Exists(svn))
-            {
-                var stream = asm.GetManifestResourceStream(this.GetType(), "UpdateInfo.txt");
-                var sb = new StringBuilder();
-                // 只要前五行
-                sb.AppendLine();
-                using (var reader = new StreamReader(stream))
-                {
-                    for (int i = 0; i < 5 && !reader.EndOfStream; i++)
-                    {
-                        sb.AppendLine(reader.ReadLine());
-                    }
-                }
-
-                var mver = new VerFile();
-                mver.Ver = asm.GetName().Version.ToString();
-                mver.Src = VerSrc.Replace(verfile, "XCoder.zip");
-                mver.XSrc = VerSrc.Replace(verfile, "Src.zip");
-                mver.DLL = VerSrc.Replace(verfile, "DLL.zip");
-                mver.Description = sb.ToString();
-
-                var mxml = mver.GetXml();
-                File.WriteAllText(verfile, mxml);
-            }
+            if (IsDevelop()) MakeVerFile();
             #endregion
 
             #region 取版本、对比版本
@@ -86,56 +66,8 @@ namespace XCoder
             }
 
             var ver = new VerFile(xml);
+            var asm = Assembly.GetExecutingAssembly();
             if (asm.GetName().Version >= ver.GetVersion()) return;
-            #endregion
-
-            #region 下载
-            String file = Path.Combine(update, "XCoder.zip");
-            String dir = Path.GetDirectoryName(file);
-            if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
-
-            if (!File.Exists(file))
-            {
-                String url = ver.Src;
-                if (!url.StartsWith("http", StringComparison.OrdinalIgnoreCase))
-                    url = VerSrc.Replace(verfile, url);
-
-                XTrace.WriteLine("准备从{0}下载相关文件到{1}！", url, file);
-
-                client.DownloadFile(url, file);
-            }
-
-            // 检查是否需要更新源码
-            var srcPath = @"C:\X\Src";
-            String xfile = Path.Combine(update, "Src.zip");
-            if (!Directory.Exists(srcPath) || !Directory.Exists(Path.Combine(srcPath, ".svn")))
-            {
-                if (!File.Exists(xfile))
-                {
-                    String url = ver.XSrc;
-                    if (!url.StartsWith("http", StringComparison.OrdinalIgnoreCase))
-                        url = VerSrc.Replace(verfile, url);
-
-                    XTrace.WriteLine("准备从{0}下载相关文件到{1}！", url, xfile);
-
-                    client.DownloadFile(url, xfile);
-                }
-            }
-            var dllPath = @"C:\X\DLL";
-            String dfile = Path.Combine(update, "DLL.zip");
-            if (!Directory.Exists(dllPath) || !Directory.Exists(Path.Combine(dllPath, ".svn")))
-            {
-                if (!File.Exists(dfile))
-                {
-                    String url = ver.DLL;
-                    if (!url.StartsWith("http", StringComparison.OrdinalIgnoreCase))
-                        url = VerSrc.Replace(verfile, url);
-
-                    XTrace.WriteLine("准备从{0}下载相关文件到{1}！", url, dfile);
-
-                    client.DownloadFile(url, dfile);
-                }
-            }
             #endregion
 
             #region 提示更新
@@ -154,59 +86,52 @@ namespace XCoder
             }
             #endregion
 
+            #region 下载
+            String file = Path.Combine(update, "XCoder.zip");
+            CheckAndDownload(client, file, ver.Src);
+
+            // 检查是否需要更新源码
+            String xfile = Path.Combine(@"C:\X\Src", "Src.zip");
+            String dfile = Path.Combine(@"C:\X\DLL", "DLL.zip");
+
+            CheckAndDownload(client, xfile, ver.XSrc);
+            CheckAndDownload(client, dfile, ver.DLL);
+            #endregion
+
             #region 更新
             // 先更新源代码
-            if (File.Exists(xfile))
-            {
-                // 解压缩，删除压缩文件
-                XTrace.WriteLine("解压缩{0}到{1}！", xfile, srcPath);
-                try
-                {
-                    ZipFile.Extract(xfile, srcPath);
-                }
-                catch (Exception ex) { XTrace.WriteException(ex); }
-                //File.Delete(xfile);
-            }
-            if (File.Exists(dfile))
-            {
-                // 解压缩，删除压缩文件
-                XTrace.WriteLine("解压缩{0}到{1}！", dfile, dllPath);
-                try
-                {
-                    ZipFile.Extract(dfile, dllPath);
-                }
-                catch (Exception ex) { XTrace.WriteException(ex); }
-                //File.Delete(dfile);
-            }
+            Extract(xfile, null);
+            Extract(dfile, null);
 
-            if (File.Exists(file))
+            var dir = Path.GetDirectoryName(file);
+            if (Extract(file, dir))
             {
-                // 解压缩，删除压缩文件
-                //IOHelper.DecompressFile(file, null, false);
-                var xcoderPath = Path.GetDirectoryName(file);
-                XTrace.WriteLine("解压缩{0}到{1}！", file, xcoderPath);
-                ZipFile.Extract(file, xcoderPath);
-                //File.Delete(file);
-
-                StringBuilder sb = new StringBuilder();
+                var sb = new StringBuilder();
                 // 复制
-                sb.AppendFormat("copy {0}\\*.* {1} /y", dir, AppDomain.CurrentDomain.BaseDirectory);
+                sb.AppendFormat("copy \"{0}\\*.*\" \"{1}\" /y", dir, curdir);
                 sb.AppendLine();
                 sb.AppendLine("rd \"" + dir + "\" /s /q");
 
                 // 启动XCoder
-                sb.AppendLine("start " + Application.ExecutablePath);
+                sb.AppendFormat("start {0}", Path.GetFileName(Application.ExecutablePath));
+                sb.AppendLine();
                 // 删除dir目录
-                sb.AppendLine("rd \"" + dir + "\" /s /q");
+                //sb.AppendLine("rd \"" + dir + "\" /s /q");
 
-                String tmpfile = Path.GetTempFileName() + ".bat";
-                File.WriteAllText(tmpfile, sb.ToString(), Encoding.Default);
+                sb.AppendFormat("del \"{0}\" /f/q", ProcessHelper);
+                sb.AppendLine();
+                sb.AppendFormat("del \"{0}\" /f/q", updatebat);
+                sb.AppendLine();
+
+                //String tmpfile = Path.GetTempFileName() + ".bat";
+                //String tmpfile = "Update.bat";
+                File.WriteAllText(updatebat, sb.ToString(), Encoding.Default);
 
                 FileSource.ReleaseFile("XCoder.NewLife.ProcessHelper.exe", ProcessHelper);
 
                 ProcessStartInfo si = new ProcessStartInfo();
                 si.FileName = ProcessHelper;
-                si.Arguments = Process.GetCurrentProcess().Id + " " + tmpfile;
+                si.Arguments = Process.GetCurrentProcess().Id + " " + updatebat;
                 if (!XTrace.Debug)
                 {
                     si.CreateNoWindow = true;
@@ -214,11 +139,82 @@ namespace XCoder
                 }
                 Process.Start(si);
 
-                XTrace.WriteLine("已启动进程助手来升级，升级脚本：{0}", tmpfile);
+                XTrace.WriteLine("已启动进程助手来升级，升级脚本：{0}", updatebat);
 
                 Application.Exit();
             }
             #endregion
+        }
+
+        static Boolean IsDevelop(String path = null)
+        {
+            var svn = Path.Combine(path ?? AppDomain.CurrentDomain.BaseDirectory, ".svn");
+            return Directory.Exists(svn);
+        }
+
+        void MakeVerFile()
+        {
+            var asm = Assembly.GetExecutingAssembly();
+            var stream = asm.GetManifestResourceStream(this.GetType(), "UpdateInfo.txt");
+            var sb = new StringBuilder();
+            // 只要前五行
+            sb.AppendLine();
+            using (var reader = new StreamReader(stream))
+            {
+                for (int i = 0; i < 5 && !reader.EndOfStream; i++)
+                {
+                    sb.AppendLine(reader.ReadLine());
+                }
+            }
+
+            var mver = new VerFile();
+            mver.Ver = asm.GetName().Version.ToString();
+            mver.Src = VerSrc.Replace(verfile, "XCoder.zip");
+            mver.XSrc = VerSrc.Replace(verfile, "Src.zip");
+            mver.DLL = VerSrc.Replace(verfile, "DLL.zip");
+            mver.Description = sb.ToString();
+
+            var mxml = mver.GetXml();
+            File.WriteAllText(verfile, mxml);
+        }
+
+        void CheckAndDownload(WebClient client, String file, String url)
+        {
+            if (File.Exists(file) || String.IsNullOrEmpty(url)) return;
+
+            String dir = Path.GetDirectoryName(file);
+            if (!Directory.Exists(dir))
+                Directory.CreateDirectory(dir);
+            else if (IsDevelop(dir))
+                return;
+
+            if (!url.StartsWith("http", StringComparison.OrdinalIgnoreCase))
+                url = VerSrc.Replace(verfile, url);
+
+            XTrace.WriteLine("准备从{0}下载相关文件到{1}！", url, file);
+
+            client.DownloadFile(url, file);
+        }
+
+        Boolean Extract(String file, String path)
+        {
+            if (!File.Exists(file)) return false;
+            if (String.IsNullOrEmpty(path)) path = Path.GetDirectoryName(file);
+
+            // 解压缩，删除压缩文件
+            XTrace.WriteLine("解压缩{0}到{1}！", file, path);
+            try
+            {
+                ZipFile.Extract(file, path);
+            }
+            catch (Exception ex) { XTrace.WriteException(ex); }
+            try
+            {
+                File.Delete(file);
+            }
+            catch (Exception ex) { XTrace.WriteException(ex); return false; }
+
+            return true;
         }
         #endregion
 

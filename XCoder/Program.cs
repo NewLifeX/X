@@ -3,6 +3,7 @@ using System.Windows.Forms;
 using NewLife;
 using NewLife.Log;
 using NewLife.Threading;
+using System.IO;
 
 namespace XCoder
 {
@@ -27,6 +28,8 @@ namespace XCoder
                     var au = new AutoUpdate();
                     au.UpdateAsync();
                 }
+                String ProcessHelper = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "NewLife.ProcessHelper.exe");
+                if (File.Exists(ProcessHelper)) File.Delete(ProcessHelper);
 
                 new TimerX(s => Runtime.ReleaseMemory(), null, 5000, 10000);
             }
