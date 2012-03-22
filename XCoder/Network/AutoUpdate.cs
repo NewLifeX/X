@@ -74,11 +74,16 @@ namespace XCoder
 
             #region 取版本、对比版本
             var client = new WebClientX();
+            client.Encoding = Encoding.UTF8;
             // 同步下载，3秒超时
             client.Timeout = 3000;
             XTrace.WriteLine("准备从{0}下载版本文件！", VerSrc);
             String xml = client.DownloadString(VerSrc);
-            if (String.IsNullOrEmpty(xml)) return;
+            if (String.IsNullOrEmpty(xml))
+            {
+                XTrace.WriteLine("无法从{0}获取版本信息！", VerSrc);
+                return;
+            }
 
             var ver = new VerFile(xml);
             if (asm.GetName().Version >= ver.GetVersion()) return;

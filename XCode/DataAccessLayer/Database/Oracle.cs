@@ -6,12 +6,11 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Web;
+using NewLife;
 using NewLife.Configuration;
 using NewLife.Linq;
 using XCode.Common;
-using NewLife.Threading;
-using System.Web;
-using NewLife;
 
 namespace XCode.DataAccessLayer
 {
@@ -52,7 +51,7 @@ namespace XCode.DataAccessLayer
                                 if (_dbProviderFactory != null && DAL.Debug)
                                 {
                                     var asm = _dbProviderFactory.GetType().Assembly;
-                                    DAL.WriteDebugLog("Oracle使用文件驱动{0} 版本v{1}", asm.Location, asm.GetName().Version);
+                                    if (DAL.Debug) DAL.WriteLog("Oracle使用文件驱动{0} 版本v{1}", asm.Location, asm.GetName().Version);
 
                                     //try
                                     //{
@@ -76,13 +75,13 @@ namespace XCode.DataAccessLayer
                         if (_dbProviderFactory == null)
                         {
                             _dbProviderFactory = DbProviderFactories.GetFactory("System.Data.OracleClient");
-                            if (_dbProviderFactory != null && DAL.Debug) DAL.WriteDebugLog("Oracle使用配置驱动{0}", _dbProviderFactory.GetType().Assembly.Location);
+                            if (_dbProviderFactory != null && DAL.Debug) DAL.WriteLog("Oracle使用配置驱动{0}", _dbProviderFactory.GetType().Assembly.Location);
                         }
                         if (_dbProviderFactory == null)
                         {
                             String fileName = "System.Data.OracleClient.dll";
                             _dbProviderFactory = GetProviderFactory(fileName, "System.Data.OracleClient.OracleClientFactory");
-                            if (_dbProviderFactory != null && DAL.Debug) DAL.WriteDebugLog("Oracle使用系统驱动{0}", _dbProviderFactory.GetType().Assembly.Location);
+                            if (_dbProviderFactory != null && DAL.Debug) DAL.WriteLog("Oracle使用系统驱动{0}", _dbProviderFactory.GetType().Assembly.Location);
                         }
                         //if (_dbProviderFactory == null) _dbProviderFactory = OracleClientFactory.Instance;
                     }
@@ -388,7 +387,7 @@ namespace XCode.DataAccessLayer
             String ocifile = Path.Combine(dir, "oci.dll");
             if (File.Exists(ocifile))
             {
-                DAL.WriteDebugLog("设置OCI目录：{0}", dir);
+                if (DAL.Debug) DAL.WriteLog("设置OCI目录：{0}", dir);
 
                 try
                 {
@@ -400,7 +399,7 @@ namespace XCode.DataAccessLayer
 
             if (String.IsNullOrEmpty(Environment.GetEnvironmentVariable("ORACLE_HOME")))
             {
-                DAL.WriteDebugLog("设置环境变量：{0}={1}", "ORACLE_HOME", OracleHome);
+                if (DAL.Debug) DAL.WriteLog("设置环境变量：{0}={1}", "ORACLE_HOME", OracleHome);
 
                 Environment.SetEnvironmentVariable("ORACLE_HOME", OracleHome);
             }
@@ -408,7 +407,12 @@ namespace XCode.DataAccessLayer
 
         static void CheckRuntime()
         {
-            if (!String.IsNullOrEmpty(DllPath)) return;
+            var dp = DllPath;
+            if (!String.IsNullOrEmpty(dp))
+            {
+                if (DAL.Debug) DAL.WriteLog("Oracle的OCI目录：{0}", dp);
+                return;
+            }
 
             var file = "oci.dll";
             if (File.Exists(file)) return;

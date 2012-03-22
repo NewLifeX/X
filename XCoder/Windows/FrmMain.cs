@@ -48,7 +48,8 @@ namespace XCoder
 
         private void FrmMain_Shown(object sender, EventArgs e)
         {
-            Text = "新生命代码生成器 V" + AssemblyX.Create(Assembly.GetExecutingAssembly()).CompileVersion;
+            var asm = AssemblyX.Create(Assembly.GetExecutingAssembly());
+            Text = String.Format("新生命代码生成器 V{0} {1:HH:mm:ss}编译", asm.CompileVersion, asm.Compile);
             Template.BaseClassName = typeof(XCoderBase).FullName;
         }
 
@@ -564,10 +565,12 @@ namespace XCoder
 
         private void 检查更新ToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            XConfig.Current.LastUpdate = DateTime.Now;
+
             var au = new AutoUpdate();
             au.Update();
 
-            XConfig.Current.LastUpdate = DateTime.Now;
+            MessageBox.Show("没有可用更新！", "自动更新");
         }
 
         private void 关于ToolStripMenuItem1_Click(object sender, EventArgs e)
