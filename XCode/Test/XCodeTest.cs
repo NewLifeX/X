@@ -9,6 +9,7 @@ using NewLife.Log;
 using XCode.Code;
 using XCode.DataAccessLayer;
 
+#if DEBUG
 namespace XCode.Test
 {
     /// <summary>
@@ -16,7 +17,7 @@ namespace XCode.Test
     /// </summary>
     public class XCodeTest
     {
-        #region 静态
+#region 静态
         /// <summary>
         /// 多线程
         /// </summary>
@@ -64,7 +65,7 @@ namespace XCode.Test
         }
         #endregion
 
-        #region 属性
+#region 属性
         private Int32 _ID;
         /// <summary>编号</summary>
         public Int32 ID
@@ -86,7 +87,7 @@ namespace XCode.Test
         private IMetaData MetaData { get { return Dal.Db.CreateMetaData() as IMetaData; } }
         #endregion
 
-        #region 测试
+#region 测试
         /// <summary>
         /// 单线程
         /// </summary>
@@ -141,7 +142,7 @@ namespace XCode.Test
             }
 
             //创建字段
-            #region 创建字段
+#region 创建字段
             XField field = table.CreateField();
             field.ID = table.Columns.Count + 1;
             field.Name = "ID";
@@ -360,7 +361,7 @@ namespace XCode.Test
         }
         #endregion
 
-        #region 生成代码测试
+#region 生成代码测试
         /// <summary>
         /// 代码生成测试
         /// </summary>
@@ -407,7 +408,7 @@ namespace XCode.Test
         }
         #endregion
 
-        #region 动态访问测试
+#region 动态访问测试
         /// <summary>
         /// 动态访问测试
         /// </summary>
@@ -487,3 +488,4 @@ namespace XCode.Test
         #endregion
     }
 }
+#endif

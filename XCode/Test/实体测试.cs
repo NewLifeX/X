@@ -11,6 +11,7 @@ using XCode;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
 
+#if DEBUG
 namespace XCode.Test
 {
     /// <summary>实体测试</summary>
@@ -475,3 +476,4 @@ namespace XCode.Test
         #endregion
     }
 }
+#endif

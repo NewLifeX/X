@@ -12,6 +12,7 @@ using System.Xml.Serialization;
 using XCode;
 using XCode.Configuration;
 
+#if DEBUG
 namespace XCode.Test
 {
     /// <summary>实体测试</summary>
@@ -227,3 +228,4 @@ namespace XCode.Test
         #endregion
     }
 }
+#endif

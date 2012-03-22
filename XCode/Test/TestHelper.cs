@@ -4,6 +4,7 @@ using System.Threading;
 using NewLife.Log;
 using XCode.DataAccessLayer;
 
+#if DEBUG
 namespace XCode.Test
 {
     /// <summary>我的基类</summary>
@@ -102,3 +103,4 @@ namespace XCode.Test
         }
     }
 }
+#endif
