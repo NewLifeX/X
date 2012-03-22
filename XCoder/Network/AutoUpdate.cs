@@ -294,7 +294,7 @@ namespace XCoder
                 root.AppendChild(node);
 
                 node = doc.CreateElement("src");
-                node.InnerText = XSrc;
+                node.InnerText = Src;
                 root.AppendChild(node);
 
                 node = doc.CreateElement("xsrc");
