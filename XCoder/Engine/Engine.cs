@@ -2,13 +2,11 @@ using System;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.IO;
-using System.Reflection;
 using System.Text;
 using Microsoft.CSharp;
 using Microsoft.VisualBasic;
 using NewLife.Collections;
 using NewLife.Linq;
-using NewLife.Reflection;
 using NewLife.Threading;
 using XCode.DataAccessLayer;
 using XTemplate.Templating;
@@ -84,7 +82,7 @@ namespace XCoder
             get
             {
                 // 不同的前缀、大小写选项，得到的表集合是不一样的。这里用字典来缓存
-                String key = String.Format("{0}_{1}_{2}", Config.AutoCutPrefix, Config.AutoFixWord, Config.Prefix);
+                String key = String.Format("{0}_{1}_{2}_{3}", Config.AutoCutPrefix, Config.AutoFixWord, Config.Prefix, Config.UseId);
                 return _cache.GetItem(key, k => FixTable(_Tables));
                 //return _Tables;
             }
@@ -506,26 +504,17 @@ namespace XCoder
         {
             if (tables == null || tables.Count < 1) return tables;
 
-            List<IDataTable> list = new List<IDataTable>();
-            //foreach (IDataTable item in DAL.Create(Config.ConnName).Tables)
-            //{
-            //    list.Add(item.Clone() as IDataTable);
-            //}
-            foreach (IDataTable item in tables)
-            {
-                list.Add(item.Clone() as IDataTable);
-            }
-            //Tables = list;
+            var list = tables.Select(dt => (dt.Clone() as IDataTable).CopyAllFrom(dt)).ToList();
 
             Dictionary<Object, String> noCNDic = new Dictionary<object, string>();
             List<string> existTrans = new List<string>();
 
             #region 修正数据
-            foreach (IDataTable table in list)
+            foreach (var table in list)
             {
                 // 别名、类名
                 String name = table.Name;
-                if (IsKeyWord(name)) name = name + "1";
+                if (IsKeyWord(name)) name += "1";
                 if (Config.AutoCutPrefix || !string.IsNullOrEmpty(Config.Prefix)) name = CutPrefix(name);
                 if (Config.AutoFixWord) name = FixWord(name);
                 table.Alias = name;
@@ -538,7 +527,7 @@ namespace XCoder
                 }
 
                 // 字段
-                foreach (IDataColumn dc in table.Columns)
+                foreach (var dc in table.Columns)
                 {
                     name = dc.Name;
                     if (Config.AutoCutPrefix || !string.IsNullOrEmpty(Config.Prefix))
@@ -552,10 +541,9 @@ namespace XCoder
                             s = s.Substring(str.Length);
                         if (dc.Table.Columns.Exists(item => item.Name == s)) name = s;
                     }
-                    if (Config.AutoFixWord)
-                    {
-                        name = FixWord(name);
-                    }
+                    if (Config.AutoFixWord) name = FixWord(name);
+
+                    if (Config.UseId && name.EqualIgnoreCase("ID")) name = "Id";
 
                     dc.Alias = name;
 

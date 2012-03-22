@@ -85,11 +85,12 @@
             this.架构管理SToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.sQL查询器QToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.关于ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.组件手册ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.表名字段名命名规范ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem2 = new System.Windows.Forms.ToolStripSeparator();
             this.检查更新ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.关于ToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
-            this.组件手册ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.cbUseId = new System.Windows.Forms.CheckBox();
             this.gbConnect.SuspendLayout();
             this.gbTable.SuspendLayout();
             this.statusStrip1.SuspendLayout();
@@ -230,6 +231,7 @@
             // 
             // gbConfig
             // 
+            this.gbConfig.Controls.Add(this.cbUseId);
             this.gbConfig.Controls.Add(this.frmItems);
             this.gbConfig.Controls.Add(this.cbRenderGenEntity);
             this.gbConfig.Controls.Add(this.btnRelease);
@@ -383,11 +385,11 @@
             // checkBox2
             // 
             this.checkBox2.AutoSize = true;
-            this.checkBox2.Location = new System.Drawing.Point(178, 165);
+            this.checkBox2.Location = new System.Drawing.Point(151, 165);
             this.checkBox2.Name = "checkBox2";
-            this.checkBox2.Size = new System.Drawing.Size(132, 16);
+            this.checkBox2.Size = new System.Drawing.Size(108, 16);
             this.checkBox2.TabIndex = 38;
-            this.checkBox2.Text = "自动更正名称大小写";
+            this.checkBox2.Text = "更正名称大小写";
             this.checkBox2.UseVisualStyleBackColor = true;
             // 
             // checkBox1
@@ -395,9 +397,9 @@
             this.checkBox1.AutoSize = true;
             this.checkBox1.Location = new System.Drawing.Point(11, 165);
             this.checkBox1.Name = "checkBox1";
-            this.checkBox1.Size = new System.Drawing.Size(162, 16);
+            this.checkBox1.Size = new System.Drawing.Size(138, 16);
             this.checkBox1.TabIndex = 37;
-            this.checkBox1.Text = "自动去除前缀（以_为准）";
+            this.checkBox1.Text = "去除前缀（以_为准）";
             this.checkBox1.UseVisualStyleBackColor = true;
             // 
             // txtPrefix
@@ -613,6 +615,13 @@
             this.关于ToolStripMenuItem.Size = new System.Drawing.Size(61, 21);
             this.关于ToolStripMenuItem.Text = "帮助(&H)";
             // 
+            // 组件手册ToolStripMenuItem
+            // 
+            this.组件手册ToolStripMenuItem.Name = "组件手册ToolStripMenuItem";
+            this.组件手册ToolStripMenuItem.Size = new System.Drawing.Size(202, 22);
+            this.组件手册ToolStripMenuItem.Text = "组件手册(&X)";
+            this.组件手册ToolStripMenuItem.Click += new System.EventHandler(this.组件手册ToolStripMenuItem_Click);
+            // 
             // 表名字段名命名规范ToolStripMenuItem
             // 
             this.表名字段名命名规范ToolStripMenuItem.Name = "表名字段名命名规范ToolStripMenuItem";
@@ -639,12 +648,15 @@
             this.关于ToolStripMenuItem1.Text = "关于(&A)";
             this.关于ToolStripMenuItem1.Click += new System.EventHandler(this.关于ToolStripMenuItem1_Click);
             // 
-            // 组件手册ToolStripMenuItem
+            // cbUseId
             // 
-            this.组件手册ToolStripMenuItem.Name = "组件手册ToolStripMenuItem";
-            this.组件手册ToolStripMenuItem.Size = new System.Drawing.Size(202, 22);
-            this.组件手册ToolStripMenuItem.Text = "组件手册(&X)";
-            this.组件手册ToolStripMenuItem.Click += new System.EventHandler(this.组件手册ToolStripMenuItem_Click);
+            this.cbUseId.AutoSize = true;
+            this.cbUseId.Location = new System.Drawing.Point(261, 165);
+            this.cbUseId.Name = "cbUseId";
+            this.cbUseId.Size = new System.Drawing.Size(96, 16);
+            this.cbUseId.TabIndex = 51;
+            this.cbUseId.Text = "使用Id替代ID";
+            this.cbUseId.UseVisualStyleBackColor = true;
             // 
             // FrmMain
             // 
@@ -747,6 +759,7 @@
         private System.Windows.Forms.ToolStripMenuItem 检查更新ToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem 关于ToolStripMenuItem1;
         private System.Windows.Forms.ToolStripMenuItem 组件手册ToolStripMenuItem;
+        private System.Windows.Forms.CheckBox cbUseId;
 	}
 }
 

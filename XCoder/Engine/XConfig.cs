@@ -99,11 +99,11 @@ namespace XCoder
 
         private Boolean _UseCNFileName;
         /// <summary>使用中文文件名</summary>
-        public Boolean UseCNFileName
-        {
-            get { return _UseCNFileName; }
-            set { _UseCNFileName = value; }
-        }
+        public Boolean UseCNFileName { get { return _UseCNFileName; } set { _UseCNFileName = value; } }
+
+        private Boolean _UseId;
+        /// <summary>使用Id代替ID</summary>
+        public Boolean UseId { get { return _UseId; } set { _UseId = value; } }
 
         private Boolean _UseHeadTemplate;
         /// <summary>使用头部模版</summary>
