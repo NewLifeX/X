@@ -544,6 +544,26 @@
             <param name="nbytelen">The length (IN BYTES) of the string</param>
             <returns>A .NET string</returns>
         </member>
+        <member name="T:System.Data.SQLite.SQLiteConnectionFlags">
+            <summary>
+            The extra behavioral flags that can be applied to a connection.
+            </summary>
+        </member>
+        <member name="F:System.Data.SQLite.SQLiteConnectionFlags.None">
+            <summary>
+            No extra flags.
+            </summary>
+        </member>
+        <member name="F:System.Data.SQLite.SQLiteConnectionFlags.LogPrepare">
+            <summary>
+            Enable logging of all SQL statements to be prepared.
+            </summary>
+        </member>
+        <member name="F:System.Data.SQLite.SQLiteConnectionFlags.Default">
+            <summary>
+            The default extra flags for new connections.
+            </summary>
+        </member>
         <member name="T:System.Data.SQLite.SQLiteCommand">
             <summary>
             SQLite implementation of DbCommand.
@@ -1076,6 +1096,12 @@
             <description>N</description>
             <description>False</description>
             </item>
+            <item>
+            <description>Flags</description>
+            <description>Extra behavioral flags for the connection.  See the SQLiteConnectionFlags enumeration for possible values.</description>
+            <description>N</description>
+            <description>Default</description>
+            </item>
             </list>
             </remarks>
         </member>
@@ -1134,6 +1160,12 @@
             column schema information.
             </summary>
         </member>
+        <member name="F:System.Data.SQLite.SQLiteConnection._flags">
+            <summary>
+            The extra behavioral flags for this connection, if any.  See the
+            SQLiteConnectionFlags enumeration for a list of possible values.
+            </summary>
+        </member>
         <member name="F:System.Data.SQLite.SQLiteConnection._defaultTimeout">
             <summary>
             Default command timeout
@@ -1167,12 +1199,6 @@
             will also be opened.
             </summary>
             <returns></returns>
-        </member>
-        <member name="M:System.Data.SQLite.SQLiteConnection.Dispose(System.Boolean)">
-            <summary>
-            Disposes of the SQLiteConnection, closing it if it is active.
-            </summary>
-            <param name="disposing">True if the connection is being explicitly closed.</param>
         </member>
         <member name="M:System.Data.SQLite.SQLiteConnection.CreateFile(System.String)">
             <summary>
@@ -1655,6 +1681,12 @@
             This can also be set in the ConnectionString with "Default Timeout"
             </summary>
         </member>
+        <member name="P:System.Data.SQLite.SQLiteConnection.Flags">
+            <summary>
+            Gets/sets the extra behavioral flags for this connection.  See the
+            SQLiteConnectionFlags enumeration for a list of possible values.
+            </summary>
+        </member>
         <member name="P:System.Data.SQLite.SQLiteConnection.ServerVersion">
             <summary>
             Returns the version of the underlying SQLite database engine
@@ -2025,7 +2057,18 @@
         </member>
         <member name="P:System.Data.SQLite.SQLiteConnectionStringBuilder.DateTimeFormat">
             <summary>
-            Gets/Sets the datetime format for the connection.
+            Gets/Sets the DateTime format for the connection.
+            </summary>
+        </member>
+        <member name="P:System.Data.SQLite.SQLiteConnectionStringBuilder.DateTimeKind">
+            <summary>
+            Gets/Sets the DateTime kind for the connection.
+            </summary>
+        </member>
+        <member name="P:System.Data.SQLite.SQLiteConnectionStringBuilder.BaseSchemaName">
+            <summary>
+            Gets/Sets the placeholder base schema name used for
+            .NET Framework compatibility purposes.
             </summary>
         </member>
         <member name="P:System.Data.SQLite.SQLiteConnectionStringBuilder.JournalMode">
@@ -2041,6 +2084,11 @@
         <member name="P:System.Data.SQLite.SQLiteConnectionStringBuilder.ForeignKeys">
             <summary>
             If enabled, use foreign key constraints
+            </summary>
+        </member>
+        <member name="P:System.Data.SQLite.SQLiteConnectionStringBuilder.Flags">
+            <summary>
+            Gets/Sets the extra behavioral flags.
             </summary>
         </member>
         <member name="T:System.Data.SQLite.TypeAffinity">
@@ -2340,11 +2388,6 @@
         <member name="F:System.Data.SQLite.SQLiteDataReader._throwOnDisposed">
             <summary>
             If set, then raise an exception when the object is accessed after being disposed.
-            </summary>
-        </member>
-        <member name="F:System.Data.SQLite.SQLiteDataReader._disposing">
-            <summary>
-            If set, then the object is currently being disposed.
             </summary>
         </member>
         <member name="F:System.Data.SQLite.SQLiteDataReader._keyInfo">
@@ -2972,6 +3015,18 @@
             Internal constructor, initializes the function's internal variables.
             </summary>
         </member>
+        <member name="M:System.Data.SQLite.SQLiteFunction.Dispose">
+            <summary>
+            Disposes of any active contextData variables that were not automatically cleaned up.  Sometimes this can happen if
+            someone closes the connection while a DataReader is open.
+            </summary>
+        </member>
+        <member name="M:System.Data.SQLite.SQLiteFunction.Dispose(System.Boolean)">
+            <summary>
+            Placeholder for a user-defined disposal routine
+            </summary>
+            <param name="disposing">True if the object is being disposed explicitly</param>
+        </member>
         <member name="M:System.Data.SQLite.SQLiteFunction.Invoke(System.Object[])">
             <summary>
             Scalar functions override this method to do their magic.
@@ -3081,18 +3136,6 @@
             An internal aggregate Final function callback, which wraps the context pointer and calls the virtual Final() method.
             </summary>
             <param name="context">A raw context pointer</param>
-        </member>
-        <member name="M:System.Data.SQLite.SQLiteFunction.Dispose(System.Boolean)">
-            <summary>
-            Placeholder for a user-defined disposal routine
-            </summary>
-            <param name="disposing">True if the object is being disposed explicitly</param>
-        </member>
-        <member name="M:System.Data.SQLite.SQLiteFunction.Dispose">
-            <summary>
-            Disposes of any active contextData variables that were not automatically cleaned up.  Sometimes this can happen if
-            someone closes the connection while a DataReader is open.
-            </summary>
         </member>
         <member name="M:System.Data.SQLite.SQLiteFunction.#cctor">
             <summary>
@@ -4069,6 +4112,11 @@
             <param name="strCommand">The command text for this statement</param>
             <param name="previous">The previous command in a multi-statement command</param>
         </member>
+        <member name="M:System.Data.SQLite.SQLiteStatement.Dispose">
+            <summary>
+            Disposes and finalizes the statement
+            </summary>
+        </member>
         <member name="M:System.Data.SQLite.SQLiteStatement.MapParameter(System.String,System.Data.SQLite.SQLiteParameter)">
             <summary>
             Called by SQLiteParameterCollection, this function determines if the specified parameter name belongs to
@@ -4077,15 +4125,20 @@
             <param name="s">The parameter name to map</param>
             <param name="p">The parameter to assign it</param>
         </member>
-        <member name="M:System.Data.SQLite.SQLiteStatement.Dispose">
-            <summary>
-            Disposes and finalizes the statement
-            </summary>
-        </member>
         <member name="M:System.Data.SQLite.SQLiteStatement.BindParameters">
             <summary>
              Bind all parameters, making sure the caller didn't miss any
             </summary>
+        </member>
+        <member name="M:System.Data.SQLite.SQLiteStatement.ToBoolean(System.Object,System.IFormatProvider)">
+            <summary>
+            Attempts to convert an arbitrary object to the Boolean data type.
+            Null object values are converted to false.  Throws a SQLiteException
+            upon failure.
+            </summary>
+            <param name="obj">The object value to convert.</param>
+            <param name="provider">The format provider to use.</param>
+            <returns>The converted boolean value.</returns>
         </member>
         <member name="M:System.Data.SQLite.SQLiteStatement.BindParameter(System.Int32,System.Data.SQLite.SQLiteParameter)">
             <summary>
@@ -4111,14 +4164,14 @@
             <param name="connection">The connection to open a transaction on</param>
             <param name="deferredLock">TRUE to defer the writelock, or FALSE to lock immediately</param>
         </member>
-        <member name="M:System.Data.SQLite.SQLiteTransaction.Commit">
-            <summary>
-            Commits the current transaction.
-            </summary>
-        </member>
         <member name="M:System.Data.SQLite.SQLiteTransaction.Dispose(System.Boolean)">
             <summary>
             Disposes the transaction.  If it is currently active, any changes are rolled back.
+            </summary>
+        </member>
+        <member name="M:System.Data.SQLite.SQLiteTransaction.Commit">
+            <summary>
+            Commits the current transaction.
             </summary>
         </member>
         <member name="M:System.Data.SQLite.SQLiteTransaction.Rollback">
