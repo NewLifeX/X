@@ -149,8 +149,24 @@ namespace XCode.DataAccessLayer
 
                     String ocifile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "oci.dll");
                     if (!File.Exists(ocifile) && Runtime.IsWeb) ocifile = Path.Combine(HttpRuntime.BinDirectory, "oci.dll");
+                    if (!File.Exists(ocifile)) ocifile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"OracleClient\oci.dll");
                     if (!File.Exists(ocifile)) ocifile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\OracleClient\oci.dll");
-                    if (!File.Exists(ocifile)) ocifile = @"C:\OracleClient\oci.dll";
+                    if (!File.Exists(ocifile))
+                    {
+                        // 全盘搜索
+                        try
+                        {
+                            foreach (var item in DriveInfo.GetDrives())
+                            {
+                                if (!item.IsReady) continue;
+
+                                ocifile = Path.Combine(item.RootDirectory.FullName, @"OracleClient\oci.dll");
+                                if (File.Exists(ocifile)) break;
+                            }
+                        }
+                        catch { }
+                        //ocifile = @"C:\OracleClient\oci.dll";
+                    }
                     if (File.Exists(ocifile)) _DllPath = Path.GetDirectoryName(ocifile);
                 }
                 return _DllPath;
@@ -417,7 +433,7 @@ namespace XCode.DataAccessLayer
             var file = "oci.dll";
             if (File.Exists(file)) return;
 
-            DAL.WriteLog("没有找到OCI.dll，可能是配置不当，准备从网络下载！");
+            DAL.WriteLog(@"已搜索当前目录、上级目录、各个盘根目录，没有找到OracleClient\OCI.dll，可能是配置不当，准备从网络下载！");
 
             // 尝试使用C盘目录，然后才使用上级目录
             var target = @"C:\OracleClient";
@@ -427,9 +443,18 @@ namespace XCode.DataAccessLayer
             }
             catch
             {
-                target = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\OracleClient"));
+                try
+                {
+                    target = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\OracleClient"));
+                    if (!Directory.Exists(target)) Directory.CreateDirectory(target);
+                }
+                catch
+                {
+                    target = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "OracleClient"));
+                }
             }
 
+            DAL.WriteLog("准备下载Oracle客户端运行时到{0}，将来直接解压使用！", target);
             CheckAndDownload("OracleClient.zip", target);
 
             file = Path.Combine(target, file);
