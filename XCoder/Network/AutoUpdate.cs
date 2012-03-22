@@ -161,14 +161,14 @@ namespace XCoder
                 // 解压缩，删除压缩文件
                 XTrace.WriteLine("解压缩{0}到{1}！", xfile, srcPath);
                 ZipFile.Extract(xfile, srcPath);
-                File.Delete(xfile);
+                //File.Delete(xfile);
             }
             if (File.Exists(dfile))
             {
                 // 解压缩，删除压缩文件
                 XTrace.WriteLine("解压缩{0}到{1}！", dfile, dllPath);
                 ZipFile.Extract(dfile, dllPath);
-                File.Delete(dfile);
+                //File.Delete(dfile);
             }
 
             if (File.Exists(file))
@@ -178,7 +178,7 @@ namespace XCoder
                 var xcoderPath = Path.GetDirectoryName(file);
                 XTrace.WriteLine("解压缩{0}到{1}！", file, xcoderPath);
                 ZipFile.Extract(file, xcoderPath);
-                File.Delete(file);
+                //File.Delete(file);
 
                 StringBuilder sb = new StringBuilder();
                 // 复制
