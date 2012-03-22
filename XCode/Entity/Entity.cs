@@ -210,7 +210,9 @@ namespace XCode
             if (fi != null) return Convert.ToInt64(this[fi.Name]) > 0 ? Update() : Insert();
 
             fi = Meta.Unique;
-            if (fi != null) return Helper.IsNullKey(this[fi.Name]) ? Insert() : Update();
+            //if (fi != null) return Helper.IsNullKey(this[fi.Name]) ? Insert() : Update();
+            // 如果唯一主键不为空，应该通过后面判断，而不是直接Update
+            if (fi != null && Helper.IsNullKey(this[fi.Name])) return Insert();
 
             return FindCount(persistence.GetPrimaryCondition(this), null, null, 0, 0) > 0 ? Update() : Insert();
         }

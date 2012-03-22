@@ -35,7 +35,7 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
 [assembly: AssemblyVersion("8.4.*")]
-[assembly: AssemblyFileVersion("8.4.2012.0320")]
+[assembly: AssemblyFileVersion("8.4.2012.0322")]
 
 /*
  * XCode的重大改进
@@ -52,6 +52,8 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v8.4.2012.0322   Entity.Save中，对于非自增主键，如果唯一主键不为空，应该通过后面判断，而不是直接Update
+ * 
  * v8.4.2012.0320   FieldItem增加IsNullOrEmpty和NotIsNullOrEmpty方法
  * 
  * v8.4.2012.0316   感谢@晴天（412684802）和@老徐（gregorius 279504479），这里的最小和开始必须是0，插入的时候有++i的效果，才会得到从1开始的编号
