@@ -454,7 +454,7 @@ namespace XCode.DataAccessLayer
                 }
             }
 
-            DAL.WriteLog("准备下载Oracle客户端运行时到{0}，将来直接解压使用！", target);
+            DAL.WriteLog("准备下载Oracle客户端运行时到{0}，可保存压缩包供将来直接解压使用！", target);
             CheckAndDownload("OracleClient.zip", target);
 
             file = Path.Combine(target, file);
