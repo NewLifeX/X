@@ -567,10 +567,18 @@ namespace XCoder
         {
             XConfig.Current.LastUpdate = DateTime.Now;
 
-            var au = new AutoUpdate();
-            au.Update();
+            try
+            {
+                var au = new AutoUpdate();
+                au.Update();
 
-            MessageBox.Show("没有可用更新！", "自动更新");
+                MessageBox.Show("没有可用更新！", "自动更新");
+            }
+            catch (Exception ex)
+            {
+                XTrace.WriteException(ex);
+                MessageBox.Show("更新失败！" + ex.Message, "自动更新");
+            }
         }
 
         private void 关于ToolStripMenuItem1_Click(object sender, EventArgs e)
