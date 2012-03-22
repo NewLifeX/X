@@ -143,6 +143,7 @@ namespace XCoder
                 var sb = new StringBuilder();
                 sb.AppendFormat("是否更新到最新版本：{0}", ver.Ver);
                 sb.AppendLine();
+                sb.AppendLine("XCoder会自动关闭以进行更新，更新完成后会启动新版本！");
                 if (!String.IsNullOrEmpty(ver.Description))
                 {
                     sb.AppendLine("更新内容：");
