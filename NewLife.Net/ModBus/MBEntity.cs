@@ -42,6 +42,12 @@ namespace NewLife.Net.ModBus
         /// <summary>功能码</summary>
         [XmlIgnore]
         public MBFunction Function { get { return _Function; } set { _Function = value; } }
+
+        [NonSerialized]
+        private Byte[] _Data;
+        /// <summary>扩展业务数据，对于某些没有实现或者未完全实现的功能码有用</summary>
+        [XmlIgnore]
+        public Byte[] Data { get { return _Data; } set { _Data = value; } }
         #endregion
 
         #region 构造、注册
@@ -83,6 +89,9 @@ namespace NewLife.Net.ModBus
             writer.Write((Byte)Function);
 
             writer.WriteObject(this);
+
+            var dt = Data;
+            if (dt != null && dt.Length > 0) writer.Write(dt, 0, dt.Length);
 
             // 计算CRC
             ms.Position = 0;
@@ -155,7 +164,8 @@ namespace NewLife.Net.ModBus
             var func = (MBFunction)reader.ReadByte();
 
             var type = ObjectContainer.Current.ResolveType<MBEntity>(func);
-            if (type == null) throw new XException("无法识别的消息类型（Function={0}）！", func);
+            //if (type == null) throw new XException("无法识别的消息类型（Function={0}）！", func);
+            if (type == null) type = typeof(MBEntity);
 
             if (stream.Position == stream.Length) return TypeX.CreateInstance(type, null) as MBEntity;
 
@@ -163,6 +173,9 @@ namespace NewLife.Net.ModBus
             try
             {
                 entity = reader.ReadObject(type) as MBEntity;
+                // 读取剩余的数据
+                var len = ms.Length - ms.Position;
+                if (len > 0) entity.Data = reader.ReadBytes(len);
             }
             catch (Exception ex) { throw new XException(String.Format("无法从数据流中读取{0}（Function={1}）消息！", type.Name, func), ex); }
 

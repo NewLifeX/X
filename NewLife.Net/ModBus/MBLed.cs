@@ -36,7 +36,7 @@ namespace NewLife.Net.ModBus
         /// <param name="msg">要发送的字符串</param>
         /// <param name="btSendValue">返回的要发送的字节数组</param>
         /// <returns>构造好的字符数组对应的字符串（发送的命令包对应的字符串）</returns>
-        public static String CreateSendValue(String color, String addr, String msg, out byte[] btSendValue)
+        public static String CreateSendValue(String color, String addr, String msg)
         {
             int nSendLen = Encoding.Default.GetByteCount(msg);
 
@@ -78,7 +78,7 @@ namespace NewLife.Net.ModBus
                 }
             }
 
-            byte[] btHead = System.Text.Encoding.Default.GetBytes("#@&");
+            byte[] btHead = Encoding.Default.GetBytes("#@&");
 
             btSendValue = new byte[btSend.Length + 4];
 
@@ -95,7 +95,7 @@ namespace NewLife.Net.ModBus
             }
             btSendValue[i] = btCrc;
 
-            sSendCommandValue = System.Text.Encoding.Default.GetString(btSendValue);
+            sSendCommandValue = Encoding.Default.GetString(btSendValue);
             return sSendCommandValue;
         }
 
