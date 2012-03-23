@@ -12,6 +12,7 @@ using NewLife.Reflection;
 using NewLife.Web;
 using NewLife.Compression;
 using NewLife.Configuration;
+using System.Threading;
 
 namespace XCode.DataAccessLayer
 {
@@ -31,13 +32,13 @@ namespace XCode.DataAccessLayer
         {
             base.OnDispose(disposing);
 
-            if (_sessions != null)
-            {
-                // 销毁本线程的数据库会话，似乎无法销毁别的线程的数据库会话
-                if (_sessions.ContainsKey(this)) _sessions.Remove(this);
-            }
+            //if (_sessions != null)
+            //{
+            //    // 销毁本线程的数据库会话，似乎无法销毁别的线程的数据库会话
+            //    if (_sessions.ContainsKey(this)) _sessions.Remove(this);
+            //}
 
-            if (_MySessions != null) ReleaseSession();
+            if (_sessions != null) ReleaseSession();
 
             if (_metadata != null)
             {
@@ -56,19 +57,22 @@ namespace XCode.DataAccessLayer
         /// </summary>
         internal void ReleaseSession()
         {
-            if (_MySessions != null)
+            if (_sessions != null)
             {
                 // 销毁本数据库的所有数据库会话
-                foreach (IDbSession session in _MySessions)
+                lock (_sessions)
                 {
-                    try
+                    foreach (var session in _sessions.Values)
                     {
-                        session.Dispose();
+                        try
+                        {
+                            session.Dispose();
+                        }
+                        catch { }
                     }
-                    catch { }
+                    _sessions.Clear();
+                    _sessions = null;
                 }
-                _MySessions.Clear();
-                _MySessions = null;
             }
         }
         #endregion
@@ -110,6 +114,8 @@ namespace XCode.DataAccessLayer
                 OnSetConnectionString(builder);
 
                 _ConnectionString = builder.ConnectionString;
+
+                ReleaseSession();
             }
         }
 
@@ -153,57 +159,38 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 方法
-        /// <summary>
-        /// 保证数据库在每一个线程都有唯一的一个实例
-        /// </summary>
-        [ThreadStatic]
-        private static Dictionary<DbBase, IDbSession> _sessions;
+        /// <summary>保证数据库在每一个线程都有唯一的一个实例</summary>
+        private Dictionary<Int32, IDbSession> _sessions;
 
-        /// <summary>
-        /// 保存当前数据库的所有会话
-        /// </summary>
-        private List<IDbSession> _MySessions;
+        ///// <summary>
+        ///// 保存当前数据库的所有会话
+        ///// </summary>
+        //private List<IDbSession> _MySessions;
 
-        /// <summary>
-        /// 创建数据库会话，数据库在每一个线程都有唯一的一个实例
-        /// </summary>
+        /// <summary>创建数据库会话，数据库在每一个线程都有唯一的一个实例</summary>
         /// <returns></returns>
         public IDbSession CreateSession()
         {
-            if (_sessions == null) _sessions = new Dictionary<DbBase, IDbSession>();
+            if (_sessions == null) _sessions = new Dictionary<Int32, IDbSession>();
 
+            var tid = Thread.CurrentThread.ManagedThreadId;
             IDbSession session = null;
-            if (_sessions.TryGetValue(this, out session))
-            {
-                // 会话可能已经被销毁
-                if (!(session is DbSession) || !(session as DbSession).Disposed) return session;
-            }
+            // 会话可能已经被销毁
+            if (_sessions.TryGetValue(tid, out session) && !session.Disposed) return session;
             lock (_sessions)
             {
-                if (_sessions.TryGetValue(this, out session))
-                {
-                    // 会话可能已经被销毁
-                    if (!(session is DbSession) || !(session as DbSession).Disposed) return session;
-                }
+                if (_sessions.TryGetValue(tid, out session) && !session.Disposed) return session;
 
-                if (_MySessions == null) _MySessions = new List<IDbSession>();
-                if (session != null && _MySessions.Contains(session)) _MySessions.Remove(session);
-
-                Boolean isNew = session == null;
+                //if (_MySessions == null) _MySessions = new List<IDbSession>();
+                //if (session != null && _MySessions.Contains(session)) _MySessions.Remove(session);
 
                 session = OnCreateSession();
                 session.ConnectionString = ConnectionString;
                 if (session is DbSession) (session as DbSession).Database = this;
 
-                if (isNew)
-                    _sessions.Add(this, session);
-                else
-                    _sessions[this] = session;
+                _sessions[tid] = session;
 
-                _MySessions.Add(session);
-
-                //// 检查数据库架构。在这里检查，避免线程冲突
-                //DatabaseSchema.Create(this).CheckDatabaseOnce();
+                //_MySessions.Add(session);
 
                 return session;
             }
@@ -226,11 +213,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public IMetaData CreateMetaData()
         {
-            if (_metadata != null)
-            {
-                // 实例可能已经被销毁
-                if (!(_metadata is DbMetaData) || !(_metadata as DbMetaData).Disposed) return _metadata;
-            }
+            if (_metadata != null && !_metadata.Disposed) return _metadata;
 
             _metadata = OnCreateMetaData();
             if (_metadata is DbMetaData) (_metadata as DbMetaData).Database = this;

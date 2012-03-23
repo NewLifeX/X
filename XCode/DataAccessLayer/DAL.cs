@@ -166,7 +166,7 @@ namespace XCode.DataAccessLayer
         public String ConnStr
         {
             get { return _ConnStr; }
-            private set
+            set
             {
                 if (_ConnStr != value)
                 {

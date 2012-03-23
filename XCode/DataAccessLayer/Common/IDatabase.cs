@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Data.Common;
+using NewLife;
 
 namespace XCode.DataAccessLayer
 {
@@ -8,7 +9,7 @@ namespace XCode.DataAccessLayer
     /// 抽象数据库的功能特点。
     /// 对于每一个连接字符串配置，都有一个数据库实例，而不是每个数据库类型一个实例，因为同类型数据库不同版本行为不同。
     /// </remarks>
-    public interface IDatabase : IDisposable
+    public interface IDatabase : IDisposable2
     {
         #region 属性
         /// <summary>数据库类型</summary>

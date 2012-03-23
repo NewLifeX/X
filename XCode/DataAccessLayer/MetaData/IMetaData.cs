@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using NewLife;
 
 namespace XCode.DataAccessLayer
 {
     /// <summary>
     /// 数据库元数据接口
     /// </summary>
-    public interface IMetaData : IDisposable
+    public interface IMetaData : IDisposable2
     {
         #region 属性
         /// <summary>数据库</summary>

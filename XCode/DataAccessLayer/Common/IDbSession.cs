@@ -1,7 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+using NewLife;
 
 namespace XCode.DataAccessLayer
 {
@@ -9,7 +9,7 @@ namespace XCode.DataAccessLayer
     /// 数据库会话接口。
     /// 对应于与数据库的一次会话连接。
     /// </summary>
-    public interface IDbSession : IDisposable
+    public interface IDbSession : IDisposable2
     {
         #region 属性
         /// <summary>
