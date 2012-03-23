@@ -127,6 +127,7 @@
     <Compile Include="Reflection\TypeResolverProvider.cs" />
     <Compile Include="Scripting\ScriptEngine.cs" />
     <Compile Include="Security\Certificate.cs" />
+    <Compile Include="Security\Crc16.cs" />
     <Compile Include="Serialization\Base\TextReaderBase.cs" />
     <Compile Include="Serialization\Binary\BinaryReaderX.cs" />
     <Compile Include="Serialization\Binary\BinarySettings.cs" />
@@ -205,7 +206,7 @@
     <Compile Include="Reflection\快速反射\MemberInfoX.cs" />
     <Compile Include="Reflection\快速反射\MethodInfoX.cs" />
     <Compile Include="Reflection\快速反射\PropertyInfoX.cs" />
-    <Compile Include="Security\CRC32.cs" />
+    <Compile Include="Security\Crc32.cs" />
     <Compile Include="Security\DataHelper.cs" />
     <Compile Include="Common\HardInfo.cs" />
     <Compile Include="Common\IdentityCard.cs" />
