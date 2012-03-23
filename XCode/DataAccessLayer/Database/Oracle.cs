@@ -337,6 +337,8 @@ namespace XCode.DataAccessLayer
             return String.Format("SEQ_{0}.nextval", field.Table.Name);
         }
 
+        internal protected override String ParamPrefix { get { return ":"; } }
+
         /// <summary>×Ö·û´®Ïà¼Ó</summary>
         /// <param name="left"></param>
         /// <param name="right"></param>

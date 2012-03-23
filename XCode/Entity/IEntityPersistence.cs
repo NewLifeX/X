@@ -1,12 +1,13 @@
 ﻿using System;
-using NewLife.Linq;
 using System.Collections.Generic;
-using System.Text;
 using System.ComponentModel;
+using System.Data.Common;
+using System.Text;
+using NewLife.Collections;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
 using XCode.Exceptions;
-using NewLife.Collections;
+using System.Data;
 
 namespace XCode
 {
@@ -87,7 +88,8 @@ namespace XCode
             // 添加数据前，处理Guid
             SetGuid(entity);
 
-            String sql = SQL(entity, DataObjectMethodType.Insert);
+            DbParameter[] dps = null;
+            String sql = SQL(entity, DataObjectMethodType.Insert, ref dps);
             if (String.IsNullOrEmpty(sql)) return 0;
 
             Int32 rs = 0;
@@ -97,14 +99,14 @@ namespace XCode
             FieldItem field = op.Table.Identity;
             if (field != null && field.IsIdentity)
             {
-                Int64 res = op.InsertAndGetIdentity(sql);
+                Int64 res = dps != null && dps.Length > 0 ? op.InsertAndGetIdentity(sql, CommandType.Text, dps) : op.InsertAndGetIdentity(sql);
                 if (res > 0) entity[field.Name] = res;
                 rs = res > 0 ? 1 : 0;
             }
             else
             {
 
-                rs = op.Execute(sql);
+                rs = dps != null && dps.Length > 0 ? op.Execute(sql, CommandType.Text, dps) : op.Execute(sql);
             }
 
             //清除脏数据，避免连续两次调用Save造成重复提交
@@ -121,11 +123,12 @@ namespace XCode
             //没有脏数据，不需要更新
             if (entity.Dirtys == null || entity.Dirtys.Count <= 0) return 0;
 
-            String sql = SQL(entity, DataObjectMethodType.Update);
+            DbParameter[] dps = null;
+            String sql = SQL(entity, DataObjectMethodType.Update, ref dps);
             if (String.IsNullOrEmpty(sql)) return 0;
 
             IEntityOperate op = EntityFactory.CreateOperate(entity.GetType());
-            Int32 rs = op.Execute(sql);
+            Int32 rs = dps != null && dps.Length > 0 ? op.Execute(sql, CommandType.Text, dps) : op.Execute(sql);
 
             //清除脏数据，避免重复提交
             if (entity.Dirtys != null) entity.Dirtys.Clear();
@@ -240,19 +243,25 @@ namespace XCode
         /// <param name="entity">实体对象</param>
         /// <param name="methodType"></param>
         /// <returns>SQL字符串</returns>
-        public virtual String GetSql(IEntity entity, DataObjectMethodType methodType) { return SQL(entity, methodType); }
+        public virtual String GetSql(IEntity entity, DataObjectMethodType methodType) { DbParameter[] dps = null; return SQL(entity, methodType, ref dps); }
 
         /// <summary>把SQL模版格式化为SQL语句</summary>
         /// <param name="entity">实体对象</param>
         /// <param name="methodType"></param>
         /// <returns>SQL字符串</returns>
-        static String SQL(IEntity entity, DataObjectMethodType methodType)
+        static String SQL(IEntity entity, DataObjectMethodType methodType, ref DbParameter[] parameters)
         {
             IEntityOperate op = EntityFactory.CreateOperate(entity.GetType());
 
             String sql;
             StringBuilder sbNames;
             StringBuilder sbValues;
+
+            // sbParams用于存储参数化操作时格式化的参数名，参数化和非参数化同时使用，如果存在大字段是，才使用参数化
+            //StringBuilder sbParams;
+            List<DbParameter> dps;
+            //Boolean hasBigField = false;
+
             Boolean isFirst = true;
             switch (methodType)
             {
@@ -266,8 +275,10 @@ namespace XCode
                 case DataObjectMethodType.Insert:
                     sbNames = new StringBuilder();
                     sbValues = new StringBuilder();
+                    //sbParams = new StringBuilder();
+                    dps = new List<DbParameter>();
                     // 只读列没有插入操作
-                    foreach (FieldItem fi in op.Fields)
+                    foreach (var fi in op.Fields)
                     {
                         // 标识列不需要插入，别的类型都需要
                         String idv = null;
@@ -282,10 +293,11 @@ namespace XCode
                         // 有默认值，并且没有设置值时，不参与插入操作
                         if (!String.IsNullOrEmpty(fi.DefaultValue) && !entity.Dirtys[fi.Name]) continue;
 
-                        if (!isFirst) sbNames.Append(", "); // 加逗号
-                        sbNames.Append(op.FormatName(fi.ColumnName));
+                        if (!isFirst) sbNames.Append(", ");
+                        var name = op.FormatName(fi.ColumnName);
+                        sbNames.Append(name);
                         if (!isFirst)
-                            sbValues.Append(", "); // 加逗号
+                            sbValues.Append(", ");
                         else
                             isFirst = false;
 
@@ -296,16 +308,33 @@ namespace XCode
                         //sbValues.Append(SqlDataFormat(obj[fi.Name], fi)); // 数据
 
                         if (!fi.IsIdentity)
-                            sbValues.Append(op.FormatValue(fi, entity[fi.Name])); // 数据
+                        {
+                            if (!UseParam(fi))
+                                sbValues.Append(op.FormatValue(fi, entity[fi.Name]));
+                            else
+                            {
+                                var paraname = op.FormatParameterName(fi.ColumnName);
+                                sbValues.Append(paraname);
+
+                                var dp = op.CreateParameter();
+                                dp.ParameterName = paraname;
+                                dp.Value = entity[fi.Name] ?? DBNull.Value;
+                                dp.IsNullable = fi.IsNullable;
+                                dps.Add(dp);
+                            }
+                        }
                         else
                             sbValues.Append(idv);
                     }
 
                     if (sbNames.Length <= 0) return null;
 
-                    return String.Format("Insert Into {0}({1}) Values({2})", op.FormatName(op.TableName), sbNames.ToString(), sbValues.ToString());
+                    if (dps.Count > 0) parameters = dps.ToArray();
+                    return String.Format("Insert Into {0}({1}) Values({2})", op.FormatName(op.TableName), sbNames, sbValues);
                 case DataObjectMethodType.Update:
                     sbNames = new StringBuilder();
+                    //sbParams = new StringBuilder();
+                    dps = new List<DbParameter>();
                     // 只读列没有更新操作
                     foreach (FieldItem fi in op.Fields)
                     {
@@ -318,17 +347,34 @@ namespace XCode
                             sbNames.Append(", "); // 加逗号
                         else
                             isFirst = false;
-                        sbNames.Append(op.FormatName(fi.ColumnName));
+
+                        var name = op.FormatName(fi.ColumnName);
+                        sbNames.Append(name);
                         sbNames.Append("=");
                         //sbNames.Append(SqlDataFormat(obj[fi.Name], fi)); // 数据
-                        sbNames.Append(op.FormatValue(fi, entity[fi.Name])); // 数据
+
+                        if (!UseParam(fi))
+                            sbNames.Append(op.FormatValue(fi, entity[fi.Name])); // 数据
+                        else
+                        {
+                            var paraname = op.FormatParameterName(fi.ColumnName);
+                            sbNames.Append(paraname);
+
+                            var dp = op.CreateParameter();
+                            dp.ParameterName = paraname;
+                            dp.Value = entity[fi.Name] ?? DBNull.Value;
+                            dp.IsNullable = fi.IsNullable;
+                            dps.Add(dp);
+                        }
                     }
 
                     if (sbNames.Length <= 0) return null;
 
                     sql = DefaultCondition(entity);
                     if (String.IsNullOrEmpty(sql)) return null;
-                    return String.Format("Update {0} Set {1} Where {2}", op.FormatName(op.TableName), sbNames.ToString(), sql);
+
+                    if (dps.Count > 0) parameters = dps.ToArray();
+                    return String.Format("Update {0} Set {1} Where {2}", op.FormatName(op.TableName), sbNames, sql);
                 case DataObjectMethodType.Delete:
                     // 标识列作为删除关键字
                     sql = DefaultCondition(entity);
@@ -337,6 +383,11 @@ namespace XCode
                     return String.Format("Delete From {0} Where {1}", op.FormatName(op.TableName), sql);
             }
             return null;
+        }
+
+        static Boolean UseParam(FieldItem fi)
+        {
+            return (fi.Length <= 0 || fi.Length > 4000) && (fi.Type == typeof(Byte[]) || fi.Type == typeof(String));
         }
 
         /// <summary>获取主键条件</summary>

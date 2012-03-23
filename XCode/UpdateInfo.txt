@@ -10,6 +10,9 @@ v2.0 数据架构功能，实体和数据结构双向映射
 v1.2 使用泛型基类
 v1.0 创建XCode
 
+v8.5.2012.0323   Insert和Update时，大字段使用参数传递，至此，XCode完整支持所有数据类型。感谢@老徐（gregorius 279504479）
+                 修正对默认值的处理的错误，该错误导致创建表时无法使用字符串默认值
+
 v8.4.2012.0322   Entity.Save中，对于非自增主键，如果唯一主键不为空，应该通过后面判断，而不是直接Update
 
 v8.4.2012.0320   FieldItem增加IsNullOrEmpty和NotIsNullOrEmpty方法

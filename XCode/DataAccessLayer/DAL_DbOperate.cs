@@ -207,6 +207,34 @@ namespace XCode.DataAccessLayer
             return Session.InsertAndGetIdentity(sql);
         }
 
+        /// <summary>执行SQL语句，返回受影响的行数</summary>
+        /// <param name="sql">SQL语句</param>
+        /// <param name="type">命令类型，默认SQL文本</param>
+        /// <param name="ps">命令参数</param>
+        /// <param name="tableNames">受影响的表的表名</param>
+        /// <returns></returns>
+        public Int32 Execute(String sql, CommandType type, DbParameter[] ps, params String[] tableNames)
+        {
+            // 移除所有和受影响表有关的缓存
+            if (EnableCache) XCache.Remove(tableNames);
+            Interlocked.Increment(ref _ExecuteTimes);
+            return Session.Execute(sql, type, ps);
+        }
+
+        /// <summary>执行插入语句并返回新增行的自动编号</summary>
+        /// <param name="sql"></param>
+        /// <param name="type">命令类型，默认SQL文本</param>
+        /// <param name="ps">命令参数</param>
+        /// <param name="tableNames">受影响的表的表名</param>
+        /// <returns>新增行的自动编号</returns>
+        public Int64 InsertAndGetIdentity(String sql, CommandType type, DbParameter[] ps, params String[] tableNames)
+        {
+            // 移除所有和受影响表有关的缓存
+            if (EnableCache) XCache.Remove(tableNames);
+            Interlocked.Increment(ref _ExecuteTimes);
+            return Session.InsertAndGetIdentity(sql, type, ps);
+        }
+
         /// <summary>执行CMD，返回记录集</summary>
         /// <param name="cmd">CMD</param>
         /// <param name="tableNames">所依赖的表的表名</param>

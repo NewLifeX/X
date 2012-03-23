@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using XCode.Cache;
 using XCode.Configuration;
+using System.Data.Common;
 
 namespace XCode
 {
@@ -263,19 +264,29 @@ namespace XCode
         /// <returns>记录数</returns>
         Int32 QueryCount(String sql);
 
-        /// <summary>
-        /// 执行
-        /// </summary>
+        /// <summary>执行</summary>
         /// <param name="sql">SQL语句</param>
         /// <returns>影响的结果</returns>
         Int32 Execute(String sql);
 
-        /// <summary>
-        /// 执行插入语句并返回新增行的自动编号
-        /// </summary>
+        /// <summary>执行插入语句并返回新增行的自动编号</summary>
         /// <param name="sql">SQL语句</param>
         /// <returns>新增行的自动编号</returns>
         Int64 InsertAndGetIdentity(String sql);
+
+        /// <summary>执行</summary>
+        /// <param name="sql">SQL语句</param>
+        /// <param name="type">命令类型，默认SQL文本</param>
+        /// <param name="ps">命令参数</param>
+        /// <returns>影响的结果</returns>
+        Int32 Execute(String sql, CommandType type = CommandType.Text, params DbParameter[] ps);
+
+        /// <summary>执行插入语句并返回新增行的自动编号</summary>
+        /// <param name="sql">SQL语句</param>
+        /// <param name="type">命令类型，默认SQL文本</param>
+        /// <param name="ps">命令参数</param>
+        /// <returns>新增行的自动编号</returns>
+        Int64 InsertAndGetIdentity(String sql, CommandType type = CommandType.Text, params DbParameter[] ps);
         #endregion
 
         #region 事务
@@ -296,6 +307,17 @@ namespace XCode
         /// </summary>
         /// <returns></returns>
         Int32 Rollback();
+        #endregion
+
+        #region 参数化
+        /// <summary>创建参数</summary>
+        /// <returns></returns>
+        DbParameter CreateParameter();
+
+        /// <summary>格式化参数名</summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        String FormatParameterName(String name);
         #endregion
 
         #region 辅助方法

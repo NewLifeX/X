@@ -681,7 +681,24 @@ namespace XCode.DataAccessLayer
                 for (int i = 0; i < ps.Length; i++)
                 {
                     if (i > 0) sb.Append(", ");
-                    sb.AppendFormat("{1}:{0}={2}", ps[i].ParameterName, ps[i].DbType, ps[i].Value);
+                    var v = ps[i].Value;
+                    var sv = "";
+                    if (v is Byte[])
+                    {
+                        var bv = v as Byte[];
+                        if (bv.Length > 8)
+                            sv = String.Format("[{0}]0x{1}...", bv.Length, BitConverter.ToString(bv, 0, 8));
+                        else
+                            sv = String.Format("[{0}]0x{1}", bv.Length, BitConverter.ToString(bv));
+                    }
+                    else if (v is String)
+                    {
+                        sv = v as String;
+                        if (sv.Length > 8) sv = String.Format("[{0}]{1}...", sv.Length, sv.Substring(0, 8));
+                    }
+                    else
+                        sv = "" + v;
+                    sb.AppendFormat("{1}:{0}={2}", ps[i].ParameterName, ps[i].DbType, sv);
                 }
                 sb.Append("]");
                 sql = sb.ToString();

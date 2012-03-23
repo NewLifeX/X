@@ -5,6 +5,7 @@ using System.Data;
 using XCode.Cache;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
+using System.Data.Common;
 
 namespace XCode
 {
@@ -347,6 +348,24 @@ namespace XCode
             /// <param name="sql">SQL语句</param>
             /// <returns>新增行的自动编号</returns>
             public Int64 InsertAndGetIdentity(String sql) { return Meta.InsertAndGetIdentity(sql); }
+
+            /// <summary>
+            /// 执行
+            /// </summary>
+            /// <param name="sql">SQL语句</param>
+            /// <param name="type">命令类型，默认SQL文本</param>
+            /// <param name="ps">命令参数</param>
+            /// <returns>影响的结果</returns>
+            public Int32 Execute(String sql, CommandType type, DbParameter[] ps) { return Meta.Execute(sql, type, ps); }
+
+            /// <summary>
+            /// 执行插入语句并返回新增行的自动编号
+            /// </summary>
+            /// <param name="sql">SQL语句</param>
+            /// <param name="type">命令类型，默认SQL文本</param>
+            /// <param name="ps">命令参数</param>
+            /// <returns>新增行的自动编号</returns>
+            public Int64 InsertAndGetIdentity(String sql, CommandType type, DbParameter[] ps) { return Meta.InsertAndGetIdentity(sql, type, ps); }
             #endregion
 
             #region 事务
@@ -367,6 +386,12 @@ namespace XCode
             /// </summary>
             /// <returns></returns>
             public Int32 Rollback() { return Meta.Rollback(); }
+            #endregion
+
+            #region 参数化
+            public DbParameter CreateParameter() { return Meta.CreateParameter(); }
+
+            public String FormatParameterName(String name) { return Meta.FormatParameterName(name); }
             #endregion
 
             #region 辅助方法

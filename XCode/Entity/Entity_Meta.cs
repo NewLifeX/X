@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using System.Diagnostics;
 using System.Threading;
 using System.Web;
@@ -212,6 +213,36 @@ namespace XCode
                 return rs;
             }
 
+            /// <summary>执行</summary>
+            /// <param name="sql">SQL语句</param>
+            /// <param name="type">命令类型，默认SQL文本</param>
+            /// <param name="ps">命令参数</param>
+            /// <returns>影响的结果</returns>
+            public static Int32 Execute(String sql, CommandType type = CommandType.Text, params DbParameter[] ps)
+            {
+                WaitForInitData();
+
+                Int32 rs = DBO.Execute(sql, type, ps, Meta.TableName);
+                executeCount++;
+                DataChange();
+                return rs;
+            }
+
+            /// <summary>执行插入语句并返回新增行的自动编号</summary>
+            /// <param name="sql">SQL语句</param>
+            /// <param name="type">命令类型，默认SQL文本</param>
+            /// <param name="ps">命令参数</param>
+            /// <returns>新增行的自动编号</returns>
+            public static Int64 InsertAndGetIdentity(String sql, CommandType type = CommandType.Text, params DbParameter[] ps)
+            {
+                WaitForInitData();
+
+                Int64 rs = DBO.InsertAndGetIdentity(sql, type, ps, Meta.TableName);
+                executeCount++;
+                DataChange();
+                return rs;
+            }
+
             static void DataChange()
             {
                 // 还在事务保护里面，不更新缓存，最后提交或者回滚的时候再更新
@@ -398,6 +429,17 @@ namespace XCode
                 if (TransCount <= 0 && executeCount > 0) executeCount = 0;
                 return TransCount;
             }
+            #endregion
+
+            #region 参数化
+            /// <summary>创建参数</summary>
+            /// <returns></returns>
+            public static DbParameter CreateParameter() { return DBO.Db.Factory.CreateParameter(); }
+
+            /// <summary>格式化参数名</summary>
+            /// <param name="name"></param>
+            /// <returns></returns>
+            public static String FormatParameterName(String name) { return DBO.Db.FormatParameterName(name); }
             #endregion
 
             #region 辅助方法

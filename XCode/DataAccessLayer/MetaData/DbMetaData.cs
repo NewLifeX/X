@@ -66,28 +66,28 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        String _ParamPrefix;
-        /// <summary>参数前缀</summary>
-        public String ParamPrefix
-        {
-            get
-            {
-                if (_ParamPrefix == null)
-                {
-                    var dt = GetSchema(DbMetaDataCollectionNames.DataSourceInformation, null);
-                    if (dt != null && dt.Rows != null && dt.Rows.Count > 0)
-                    {
-                        String str = null;
-                        if (TryGetDataRowValue<String>(dt.Rows[0], DbMetaDataColumnNames.ParameterMarkerPattern, out str) ||
-                            TryGetDataRowValue<String>(dt.Rows[0], DbMetaDataColumnNames.ParameterMarkerFormat, out str))
-                            _ParamPrefix = str.StartsWith("\\") ? str.Substring(1, 1) : str.Substring(0, 1);
-                    }
+        //String _ParamPrefix;
+        ///// <summary>参数前缀</summary>
+        //public String ParamPrefix
+        //{
+        //    get
+        //    {
+        //        if (_ParamPrefix == null)
+        //        {
+        //            var dt = GetSchema(DbMetaDataCollectionNames.DataSourceInformation, null);
+        //            if (dt != null && dt.Rows != null && dt.Rows.Count > 0)
+        //            {
+        //                String str = null;
+        //                if (TryGetDataRowValue<String>(dt.Rows[0], DbMetaDataColumnNames.ParameterMarkerPattern, out str) ||
+        //                    TryGetDataRowValue<String>(dt.Rows[0], DbMetaDataColumnNames.ParameterMarkerFormat, out str))
+        //                    _ParamPrefix = str.StartsWith("\\") ? str.Substring(1, 1) : str.Substring(0, 1);
+        //            }
 
-                    if (_ParamPrefix == null) _ParamPrefix = "";
-                }
-                return _ParamPrefix;
-            }
-        }
+        //            if (_ParamPrefix == null) _ParamPrefix = "";
+        //        }
+        //        return _ParamPrefix;
+        //    }
+        //}
         #endregion
 
         #region GetSchema方法

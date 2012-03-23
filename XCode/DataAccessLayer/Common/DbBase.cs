@@ -725,9 +725,24 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public virtual String FormatIdentity(IDataColumn field, Object value) { return null; }
 
-        /// <summary>
-        /// 是否Unicode编码。只是固定判断n开头的几个常见类型为Unicode编码，这种方法不是很严谨，可以考虑读取DataTypes架构
-        /// </summary>
+        /// <summary>格式化参数名</summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public virtual String FormatParameterName(String name)
+        {
+            if (String.IsNullOrEmpty(name)) return name;
+
+            //DbMetaData md = CreateMetaData() as DbMetaData;
+            //if (md != null) name = md.ParamPrefix + name;
+
+            //return name;
+
+            return ParamPrefix + name;
+        }
+
+        internal protected virtual String ParamPrefix { get { return "@"; } }
+
+        /// <summary>是否Unicode编码。只是固定判断n开头的几个常见类型为Unicode编码，这种方法不是很严谨，可以考虑读取DataTypes架构</summary>
         /// <param name="rawType"></param>
         /// <returns></returns>
         internal protected virtual Boolean IsUnicode(String rawType)

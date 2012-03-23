@@ -12,6 +12,7 @@ using NewLife.Net.Sockets;
 using NewLife.Reflection;
 using NewLife.Threading;
 using NewLife.Compression;
+using XCode.Test;
 
 namespace Test
 {
@@ -28,7 +29,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test1();
+                Test3();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -174,18 +175,12 @@ namespace Test
 
         static void Test3()
         {
-            var file = @"E:\快盘\新生命共享\X\Src.zip";
-            var zf = new ZipFile(file);
-            Console.WriteLine(zf.Count);
-            zf.Extract(@"C:\X2\");
-
-            //var type = TypeX.GetType("OracleInit", true);
-            //var method = MethodInfoX.Create(type, "GetAssemblyVersion");
-            //var ver = method.Invoke(null, null);
-            //Console.WriteLine(ver);
-
-            //ObjectPoolTest<NetEventArgs>.Start();
-            Console.WriteLine(Administrator.Meta.Count);
+            var entity = new EntityTest();
+            var rnd = new Random((Int32)DateTime.Now.Ticks);
+            entity.Name = "Name" + rnd.Next(10000, 99999);
+            entity.File = new Byte[1024];
+            rnd.NextBytes(entity.File);
+            entity.Save();
         }
     }
 }

@@ -182,6 +182,8 @@ namespace XCode.DataAccessLayer
         /// <summary>长文本长度</summary>
         public override int LongTextLength { get { return 4000; } }
 
+        internal protected override String ParamPrefix { get { return "?"; } }
+
         /// <summary>系统数据库名</summary>
         public override String SystemDatabaseName { get { return "mysql"; } }
 
