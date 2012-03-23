@@ -28,7 +28,7 @@ namespace Test2
                 try
                 {
 #endif
-                    Test3();
+                Test3();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -40,7 +40,7 @@ namespace Test2
                 Console.WriteLine("OK!");
                 ConsoleKeyInfo key = Console.ReadKey(true);
                 if (key.Key != ConsoleKey.C) break;
-                Console.Clear();
+                //Console.Clear();
             }
         }
 
@@ -187,10 +187,39 @@ namespace Test2
 
         static void Test3()
         {
-            Console.WriteLine("任意键开始测试：");
-            Console.ReadKey(true);
+            //Console.WriteLine("任意键开始测试：");
+            //Console.ReadKey(true);
 
             //Console.WriteLine("点动开始");
+
+            Console.WriteLine("伺服状态：");
+            UInt16 rs = 0;
+            try
+            {
+                rs = Read(0x1001);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("错误！" + ex.Message);
+            }
+            switch (rs)
+            {
+                case 1:
+                    Console.WriteLine("正转运行中");
+                    break;
+                case 2:
+                    Console.WriteLine("反转运行中");
+                    break;
+                case 3:
+                    Console.WriteLine("伺服驱动器待机中");
+                    break;
+                case 4:
+                    Console.WriteLine("故障中");
+                    break;
+                default:
+                    Console.WriteLine("未知！");
+                    break;
+            }
         }
 
         static void Write(UInt16 addr, UInt16 data)
