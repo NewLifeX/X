@@ -601,7 +601,7 @@ namespace XCode.DataAccessLayer
         {
             //if (field.DataType == typeof(DateTime))
             //{
-            value = CheckAndGetDefault(field, value);
+            CheckAndGetDefault(field, ref value);
             //}
 
             try

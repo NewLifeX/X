@@ -274,8 +274,8 @@ namespace XCode.DataAccessLayer
             // MySql的默认值不能使用函数，所以无法设置当前时间作为默认值，但是第一个Timestamp类型字段会有当前时间作为默认值效果
             if (typeName.EqualIgnoreCase("datetime"))
             {
-                String d = CheckAndGetDefault(field, field.Default);
-                if (String.IsNullOrEmpty(d)) typeName = "timestamp";
+                String d = field.Default; ;
+                if (CheckAndGetDefault(field, ref d) && String.IsNullOrEmpty(d)) typeName = "timestamp";
             }
 
             DataRow[] drs = base.FindDataType(field, typeName, isLong);
@@ -316,7 +316,9 @@ namespace XCode.DataAccessLayer
                     // DateTime的范围是0001到9999
                     // Timestamp的范围是1970到2038
                     // MySql的默认值不能使用函数，所以无法设置当前时间作为默认值，但是第一个Timestamp类型字段会有当前时间作为默认值效果
-                    String d = CheckAndGetDefault(field, field.Default);
+                    String d = field.Default; ;
+                    CheckAndGetDefault(field, ref d);
+                    //String d = CheckAndGetDefault(field, field.Default);
                     foreach (DataRow dr in drs)
                     {
                         String name = GetDataRowValue<String>(dr, "TypeName");

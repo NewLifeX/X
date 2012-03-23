@@ -863,11 +863,11 @@ namespace XCode.DataAccessLayer
 
             TypeCode tc = Type.GetTypeCode(field.DataType);
 
-            // 特殊处理时间和NewGuid
-            if (tc == TypeCode.DateTime || tc == TypeCode.String || field.DataType == typeof(Guid))
+            // 特殊处理时间和NewGuid默认值
+            String d = field.Default;
+            if (CheckAndGetDefault(field, ref d))
             {
-                String d = CheckAndGetDefault(field, field.Default);
-                // 如果数据库特性没有时间默认值，则说明不支持
+                // 如果数据库特性没有默认值，则说明不支持
                 if (String.IsNullOrEmpty(d)) return null;
 
                 return String.Format(" Default {0}", d);

@@ -786,9 +786,9 @@ namespace XCode.DataAccessLayer
 
             var tc = Type.GetTypeCode(field.DataType);
 
-            if (tc == TypeCode.DateTime || tc == TypeCode.String || field.DataType == typeof(Guid))
+            String dv = field.Default;
+            if (CheckAndGetDefault(field, ref dv))
             {
-                String dv = CheckAndGetDefault(field, field.Default);
                 if (String.IsNullOrEmpty(dv)) return sql;
                 sql += String.Format("Alter Table {0} Add CONSTRAINT DF_{0}_{1} DEFAULT {2} FOR {1}", field.Table.Name, field.Name, dv);
                 return sql;

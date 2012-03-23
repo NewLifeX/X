@@ -293,7 +293,8 @@ namespace XCode.DataAccessLayer
                 {
                     // DateTime的范围是0001到9999
                     // Timestamp的范围是1970到2038
-                    String d = CheckAndGetDefault(field, field.Default);
+                    String d = field.Default;
+                    CheckAndGetDefault(field, ref d);
                     foreach (DataRow dr in drs)
                     {
                         String name = GetDataRowValue<String>(dr, "TypeName");

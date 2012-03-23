@@ -65,6 +65,29 @@ namespace XCode.DataAccessLayer
                 return _ReservedWords;
             }
         }
+
+        String _ParamPrefix;
+        /// <summary>参数前缀</summary>
+        public String ParamPrefix
+        {
+            get
+            {
+                if (_ParamPrefix == null)
+                {
+                    var dt = GetSchema(DbMetaDataCollectionNames.DataSourceInformation, null);
+                    if (dt != null && dt.Rows != null && dt.Rows.Count > 0)
+                    {
+                        String str = null;
+                        if (TryGetDataRowValue<String>(dt.Rows[0], DbMetaDataColumnNames.ParameterMarkerPattern, out str) ||
+                            TryGetDataRowValue<String>(dt.Rows[0], DbMetaDataColumnNames.ParameterMarkerFormat, out str))
+                            _ParamPrefix = str.StartsWith("\\") ? str.Substring(1, 1) : str.Substring(0, 1);
+                    }
+
+                    if (_ParamPrefix == null) _ParamPrefix = "";
+                }
+                return _ParamPrefix;
+            }
+        }
         #endregion
 
         #region GetSchema方法
@@ -155,30 +178,35 @@ namespace XCode.DataAccessLayer
         /// <param name="dc"></param>
         /// <param name="oriDefault"></param>
         /// <returns></returns>
-        protected virtual String CheckAndGetDefault(IDataColumn dc, String oriDefault)
+        protected virtual Boolean CheckAndGetDefault(IDataColumn dc, ref String oriDefault)
         {
             // 原始数据库类型
             IDatabase db = DbFactory.Create(dc.Table.DbType);
-            if (db == null) return oriDefault;
-
-            //// 原始默认值是否是原始时间
-            //if (String.IsNullOrEmpty(oriDefault) || oriDefault.EqualIgnoreCase(db.DateTimeNow)) return Database.DateTimeNow;
+            if (db == null) return false;
 
             var tc = Type.GetTypeCode(dc.DataType);
             // 特殊处理时间
             if (tc == TypeCode.DateTime)
             {
-                if (String.IsNullOrEmpty(oriDefault) || oriDefault.EqualIgnoreCase(db.DateTimeNow)) return Database.DateTimeNow;
+                if (String.IsNullOrEmpty(oriDefault) || oriDefault.EqualIgnoreCase(db.DateTimeNow))
+                {
+                    oriDefault = Database.DateTimeNow;
+                    return true;
+                }
             }
             // 特殊处理Guid
             else if (tc == TypeCode.String || dc.DataType == typeof(Guid))
             {
                 // 如果字段类型是Guid，不需要设置默认值，则也说明是Guid字段
                 if (String.IsNullOrEmpty(oriDefault) || oriDefault.EqualIgnoreCase(db.NewGuid) ||
-                   String.IsNullOrEmpty(db.NewGuid) && dc.DataType == typeof(Guid)) return Database.NewGuid;
+                   String.IsNullOrEmpty(db.NewGuid) && dc.DataType == typeof(Guid))
+                {
+                    oriDefault = Database.NewGuid;
+                    return true;
+                }
             }
 
-            return oriDefault;
+            return false;
         }
         #endregion
 
