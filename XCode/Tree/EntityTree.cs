@@ -209,9 +209,11 @@ namespace XCode
         }
 
         /// <summary>斜杠分隔的全路径</summary>
+        [XmlIgnore]
         public String FullPath { get { return GetFullPath2(true); } }
 
         /// <summary>斜杠分隔的全父路径</summary>
+        [XmlIgnore]
         public String FullParentPath { get { return GetFullPath2(false); } }
         #endregion
 
@@ -450,6 +452,7 @@ namespace XCode
         /// <summary>
         /// 子级键值集合
         /// </summary>
+        [XmlIgnore]
         public List<TKey> ChildKeys
         {
             get
@@ -464,6 +467,7 @@ namespace XCode
         /// <summary>
         /// 逗号分隔的子级键值字符串，一般可用于SQL语句中
         /// </summary>
+        [XmlIgnore]
         public String ChildKeyString
         {
             get
@@ -484,6 +488,7 @@ namespace XCode
         /// <summary>
         /// 子孙键值集合
         /// </summary>
+        [XmlIgnore]
         public List<TKey> AllChildKeys
         {
             get
@@ -498,6 +503,7 @@ namespace XCode
         /// <summary>
         /// 逗号分隔的子孙键值字符串，一般可用于SQL语句中
         /// </summary>
+        [XmlIgnore]
         public String AllChildKeyString
         {
             get
