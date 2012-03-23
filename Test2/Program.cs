@@ -14,6 +14,7 @@ using System.IO.Ports;
 using NewLife.Net.DNS;
 using NewLife.Net.ModBus;
 using System.IO;
+using System.Text;
 
 namespace Test2
 {
@@ -28,7 +29,7 @@ namespace Test2
                 try
                 {
 #endif
-                Test3();
+                    Test3();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -185,12 +186,47 @@ namespace Test2
             //session.Send(e.Buffer, e.Offset, e.BytesTransferred, e.RemoteEndPoint);
         }
 
+        static String pname = null;
         static void Test3()
         {
             //Console.WriteLine("任意键开始测试：");
             //Console.ReadKey(true);
 
             //Console.WriteLine("点动开始");
+
+            //Byte crc = 0x12;
+            //crc = (Byte)~crc;
+            //Console.WriteLine(crc);
+
+            Console.Write("发现串口：");
+            foreach (var item in SerialPort.GetPortNames())
+            {
+                if (pname == null) pname = item;
+                Console.Write(" " + item);
+            }
+            Console.WriteLine();
+
+            Read(0x0401, 2);
+            Write(0x0101, 5);
+
+            Console.WriteLine("开始读取寄存器状态：");
+            for (int i = 0; i < 1; i++)
+            {
+                for (int j = 0; j < 19; j++)
+                {
+                    Console.Write("P{0}{1:00}=", (Char)('A' + i), j);
+                    UInt16 r = 0;
+                    try
+                    {
+                        r = Read((UInt16)((i + 1) * 0x100 + j));
+                    }
+                    catch { }
+                    Console.WriteLine(r);
+                }
+            }
+
+            Console.WriteLine("点动开始");
+            Write(0x1000, 1);
 
             Console.WriteLine("伺服状态：");
             UInt16 rs = 0;
@@ -200,7 +236,7 @@ namespace Test2
             }
             catch (Exception ex)
             {
-                Console.WriteLine("错误！" + ex.Message);
+                Console.WriteLine("错误！" + ex.ToString());
             }
             switch (rs)
             {
@@ -220,48 +256,72 @@ namespace Test2
                     Console.WriteLine("未知！");
                     break;
             }
+
+            Console.WriteLine("点动结束");
+            Write(0x1000, 0);
         }
 
         static void Write(UInt16 addr, UInt16 data)
         {
             var msg = new WriteRegister();
+            msg.IsAscii = true;
+            msg.UseAddress = true;
+            msg.Address = 0;
             msg.Function = MBFunction.WriteSingleRegister;
-            msg.Address = addr;
+            msg.DataAddress = addr;
             msg.Data = data;
 
             var dt = msg.GetStream().ReadBytes();
+            if (msg.IsAscii)
+                Console.WriteLine("发送：{0}", Encoding.ASCII.GetString(dt));
+            else
+                Console.WriteLine("发送：{0}", BitConverter.ToString(dt));
 
-            using (var sp = new SerialPort("COM1"))
+            using (var sp = new SerialPort(pname))
             {
-                sp.DiscardOutBuffer();
+                sp.Open();
+                //sp.DiscardOutBuffer();
                 sp.Write(dt, 0, dt.Length);
             }
         }
 
-        static UInt16 Read(UInt16 addr)
+        static UInt16 Read(UInt16 addr, UInt16 len = 1)
         {
             var msg = new ReadRegister();
-            msg.Function = MBFunction.WriteSingleRegister;
-            msg.Address = addr;
-            msg.DataLength = 1;
+            msg.IsAscii = true;
+            msg.UseAddress = true;
+            msg.Address = 0;
+            msg.Function = MBFunction.ReadHoldingRegisters;
+            msg.DataAddress = addr;
+            msg.DataLength = len;
 
             var dt = msg.GetStream().ReadBytes();
+            if (msg.IsAscii)
+                Console.WriteLine("发送：{0}", Encoding.ASCII.GetString(dt));
+            else
+                Console.WriteLine("发送：{0}", BitConverter.ToString(dt));
 
-            using (var sp = new SerialPort("COM1"))
+            using (var sp = new SerialPort(pname))
             {
-                sp.DiscardInBuffer();
-                sp.DiscardOutBuffer();
+                sp.Open();
+                //sp.DiscardInBuffer();
+                //sp.DiscardOutBuffer();
                 sp.Write(dt, 0, dt.Length);
 
                 dt = new Byte[100];
                 Int32 i = 0;
+                Thread.Sleep(500);
                 while (i < dt.Length && sp.BytesToRead > 0)
                 {
                     var count = sp.Read(dt, i, dt.Length - i);
                     i += count;
                     if (i >= dt.Length) break;
-                    Thread.Sleep(100);
+                    Thread.Sleep(1000);
                 }
+                if (i <= 0) return 0;
+
+                //Console.WriteLine("收到数据：{0}", i);
+                Console.WriteLine("接收：{0}", BitConverter.ToString(dt));
 
                 var ms = new MemoryStream(dt, 0, i);
                 var rs = MBEntity.Read<ReadRegisterResponse>(ms);

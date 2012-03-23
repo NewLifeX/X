@@ -32,10 +32,10 @@ namespace NewLife.Net.ModBus
         public Boolean UseAddress { get { return _UseAddress; } set { _UseAddress = value; } }
 
         [NonSerialized]
-        private UInt16 _Address;
+        private Byte _Address;
         /// <summary>地址码</summary>
         [XmlIgnore]
-        public UInt16 Address { get { return _Address; } set { _Address = value; } }
+        public Byte Address { get { return _Address; } set { _Address = value; } }
 
         [NonSerialized]
         private MBFunction _Function;
@@ -98,12 +98,15 @@ namespace NewLife.Net.ModBus
             if (IsAscii)
             {
                 // 累加后取补码
-                var crc = (Byte)ms.ReadBytes().Cast<Int32>().Sum();
-                writer.Write(~crc);
+                var crc = (Byte)ms.ReadBytes().Select(e => (Int32)e).Sum();
+                //crc = (Byte)(~crc + 1);
+                crc = (Byte)(0x100 - crc);
+                writer.Write(crc);
             }
             else
             {
-                var crc = new Crc32().Update(ms).Value;
+                var crc = new Crc16().Update(ms).Value;
+                writer.Settings.IsLittleEndian = true;
                 writer.Write(crc);
             }
 
@@ -160,7 +163,7 @@ namespace NewLife.Net.ModBus
             if (isAscii && reader.ReadChar() != ':') return null;
 
             // 读取地址和功能码
-            var addr = useAddress ? reader.ReadUInt16() : (UInt16)0;
+            var addr = useAddress ? reader.ReadByte() : (Byte)0;
             var func = (MBFunction)reader.ReadByte();
 
             var type = ObjectContainer.Current.ResolveType<MBEntity>(func);
@@ -194,7 +197,8 @@ namespace NewLife.Net.ModBus
             }
             else
             {
-                var crc = new Crc32().Update(ms, ori - start).Value;
+                var crc = new Crc16().Update(ms, ori - start).Value;
+                reader.Settings.IsLittleEndian = true;
                 if (crc != reader.ReadUInt16()) throw new Exception("Crc校验失败！");
             }
 
@@ -214,7 +218,8 @@ namespace NewLife.Net.ModBus
 
         static void Set(IReaderWriter rw)
         {
-            var settting = rw.Settings;
+            var settting = rw.Settings as BinarySettings;
+            settting.IsLittleEndian = false;
             //setting.IsBaseFirst = true;
             //setting.EncodeInt = true;
             //setting.UseObjRef = true;
