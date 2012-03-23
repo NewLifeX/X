@@ -10,6 +10,7 @@ using NewLife.Linq;
 using NewLife.Threading;
 using XCode.DataAccessLayer;
 using XTemplate.Templating;
+using NewLife.Reflection;
 
 namespace XCoder
 {
@@ -504,7 +505,8 @@ namespace XCoder
         {
             if (tables == null || tables.Count < 1) return tables;
 
-            var list = tables.Select(dt => (dt.Clone() as IDataTable).CopyAllFrom(dt)).ToList();
+            var type = tables[0].GetType();
+            var list = tables.Select(dt => (TypeX.CreateInstance(type) as IDataTable).CopyAllFrom(dt)).ToList();
 
             Dictionary<Object, String> noCNDic = new Dictionary<object, string>();
             List<string> existTrans = new List<string>();

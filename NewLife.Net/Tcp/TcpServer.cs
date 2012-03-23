@@ -45,7 +45,7 @@ namespace NewLife.Net.Tcp
                 Int32 n = base.AsyncCount;
                 foreach (var item in Sessions.Values.ToArray())
                 {
-                    n += item.Host.AsyncCount;
+                    if (item.Host != null) n += item.Host.AsyncCount;
                 }
                 return n;
             }
