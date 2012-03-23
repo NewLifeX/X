@@ -163,7 +163,18 @@ namespace XCode.DataAccessLayer
 
         private String _ConnStr;
         /// <summary>连接字符串</summary>
-        public String ConnStr { get { return _ConnStr; } private set { _ConnStr = value; } }
+        public String ConnStr
+        {
+            get { return _ConnStr; }
+            private set
+            {
+                if (_ConnStr != value)
+                {
+                    _ConnStr = value;
+                    _Db = null;
+                }
+            }
+        }
 
         private IDatabase _Db;
         /// <summary>数据库。所有数据库操作在此统一管理，强烈建议不要直接使用该属性，在不同版本中IDatabase可能有较大改变</summary>
