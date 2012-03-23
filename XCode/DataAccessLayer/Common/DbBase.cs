@@ -695,7 +695,7 @@ namespace XCode.DataAccessLayer
             else if (type == typeof(Byte[]))
             {
                 Byte[] bts = (Byte[])value;
-                if (bts == null || bts.Length < 1) return "0x0";
+                if (bts == null || bts.Length < 1) return isNullable ? "null" : "0x0";
 
                 return "0x" + BitConverter.ToString(bts).Replace("-", null);
             }
