@@ -387,7 +387,7 @@ namespace XCode
 
         static Boolean UseParam(FieldItem fi)
         {
-            return (fi.Length <= 0 || fi.Length > 4000) && (fi.Type == typeof(Byte[]) || fi.Type == typeof(String));
+            return (fi.Length <= 0 || fi.Length >= 4000) && (fi.Type == typeof(Byte[]) || fi.Type == typeof(String));
         }
 
         /// <summary>获取主键条件</summary>
