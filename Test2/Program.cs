@@ -12,6 +12,8 @@ using System.Threading;
 using NewLife.Net.Proxy;
 using System.IO.Ports;
 using NewLife.Net.DNS;
+using NewLife.Net.ModBus;
+using System.IO;
 
 namespace Test2
 {
@@ -183,140 +185,65 @@ namespace Test2
             //session.Send(e.Buffer, e.Offset, e.BytesTransferred, e.RemoteEndPoint);
         }
 
-        /*
-        送别
-        歌手:青燕子演唱组
-        专辑:森林和原野
-        作词:李叔同(弘一大师)
-        */
-        const Int32 ONE_BEEP = 600;
-        const Int32 HALF_BEEP = 300;
-        //{
-        //NOTE_1 = 440;
-        //NOTE_2 = 495;
-        //NOTE_3 = 550;
-        //NOTE_4 = 587;
-        //NOTE_5 = 660;
-        //NOTE_6 = 733;
-        //NOTE_7 = 825;
-        //}
-        const Int32 NOTE_1 = 440 * 1;
-        const Int32 NOTE_2 = 495 * 1;
-        const Int32 NOTE_3 = 550 * 1;
-        const Int32 NOTE_4 = 587 * 1;
-        const Int32 NOTE_5 = 660 * 1;
-        const Int32 NOTE_6 = 733 * 1;
-        const Int32 NOTE_7 = 825 * 1;
-
         static void Test3()
         {
-            //长亭外  
-            Beep(NOTE_5, ONE_BEEP);
-            Beep(NOTE_3, HALF_BEEP);
-            Beep(NOTE_5, HALF_BEEP);
-            Beep(NOTE_1 * 2, ONE_BEEP * 2);
+            Console.WriteLine("任意键开始测试：");
+            Console.ReadKey(true);
 
-            //古道边  
-            Beep(NOTE_6, ONE_BEEP);
-            Beep(NOTE_1 * 2, ONE_BEEP);
-            Beep(NOTE_5, ONE_BEEP * 2);
+            //Console.WriteLine("点动开始");
+        }
 
-            //芳草碧连天  
-            Beep(NOTE_5, ONE_BEEP);
-            Beep(NOTE_1, HALF_BEEP);
-            Beep(NOTE_2, HALF_BEEP);
-            Beep(NOTE_3, ONE_BEEP);
-            Beep(NOTE_2, HALF_BEEP);
-            Beep(NOTE_1, HALF_BEEP);
-            Beep(NOTE_2, ONE_BEEP * 4);
+        static void Write(UInt16 addr, UInt16 data)
+        {
+            var msg = new WriteRegister();
+            msg.Function = MBFunction.WriteSingleRegister;
+            msg.Address = addr;
+            msg.Data = data;
 
-            //晚风扶柳笛声残  
-            Beep(NOTE_5, ONE_BEEP);
-            Beep(NOTE_3, HALF_BEEP);
-            Beep(NOTE_5, HALF_BEEP);
-            Beep(NOTE_1 * 2, HALF_BEEP * 3);
-            Beep(NOTE_7, HALF_BEEP);
-            Beep(NOTE_6, ONE_BEEP);
-            Beep(NOTE_1 * 2, ONE_BEEP);
-            Beep(NOTE_5, ONE_BEEP * 2);
+            var dt = msg.GetStream().ReadBytes();
 
-            //夕阳山外山  
-            Beep(NOTE_5, ONE_BEEP);
-            Beep(NOTE_2, HALF_BEEP);
-            Beep(NOTE_3, HALF_BEEP);
-            Beep(NOTE_4, HALF_BEEP * 3);
-            Beep((Int32)Math.Round((Double)NOTE_7 / 2), HALF_BEEP);
-            Beep(NOTE_1, ONE_BEEP * 4);
-
-            //天之涯  
-            Beep(NOTE_6, ONE_BEEP);
-            Beep(NOTE_1 * 2, ONE_BEEP);
-            Beep(NOTE_1 * 2, ONE_BEEP * 2);
-
-            //地之角  
-            Beep(NOTE_7, ONE_BEEP);
-            Beep(NOTE_6, HALF_BEEP);
-            Beep(NOTE_7, HALF_BEEP);
-            Beep(NOTE_1 * 2, ONE_BEEP * 2);
-
-            //知交半零落  
-            Beep(NOTE_6, HALF_BEEP);
-            Beep(NOTE_7, HALF_BEEP);
-            Beep(NOTE_1 * 2, HALF_BEEP);
-            Beep(NOTE_6, HALF_BEEP);
-            Beep(NOTE_6, HALF_BEEP);
-            Beep(NOTE_5, HALF_BEEP);
-            Beep(NOTE_3, HALF_BEEP);
-            Beep(NOTE_1, HALF_BEEP);
-            Beep(NOTE_2, ONE_BEEP * 4);
-
-            //一壶浊酒尽余欢  
-            Beep(NOTE_5, ONE_BEEP);
-            Beep(NOTE_3, HALF_BEEP);
-            Beep(NOTE_5, HALF_BEEP);
-            Beep(NOTE_1 * 2, HALF_BEEP * 3);
-            Beep(NOTE_7, HALF_BEEP);
-            Beep(NOTE_6, ONE_BEEP);
-            Beep(NOTE_1 * 2, ONE_BEEP);
-            Beep(NOTE_5, ONE_BEEP * 2);
-
-            //今宵别梦寒  
-            Beep(NOTE_5, ONE_BEEP);
-            Beep(NOTE_2, HALF_BEEP);
-            Beep(NOTE_3, HALF_BEEP);
-            Beep(NOTE_4, HALF_BEEP * 3);
-            Beep((Int32)Math.Round((Double)NOTE_7 / 2), HALF_BEEP);
-            Beep(NOTE_1, ONE_BEEP * 3);
-
-            Thread.Sleep(2);
-            // 播放  生日快乐
-            Int32[] FREQUENCY = {392,392,440,392,523,494,  
-
-              392,392,440,392,587,523,  
-
-              392,392,784,659,523,494,440,  
-
-              689,689,523,587,523};
-
-
-
-            Int32[] DELAY = {375,125,500,500,500,1000,  
-
-              375,125,500,500,500,1000,  
-
-              375,125,500,500,500,500,1000,  
-
-              375,125,500,500,500,1000};
-
-            for (int i = 0; i < FREQUENCY.Length; i++)
+            using (var sp = new SerialPort("COM1"))
             {
-                Console.Beep(FREQUENCY[i], DELAY[i]);
+                sp.DiscardOutBuffer();
+                sp.Write(dt, 0, dt.Length);
             }
         }
 
-        static void Beep(int frequency, int duration)
+        static UInt16 Read(UInt16 addr)
         {
-            Console.Beep(frequency, duration);
+            var msg = new ReadRegister();
+            msg.Function = MBFunction.WriteSingleRegister;
+            msg.Address = addr;
+            msg.DataLength = 1;
+
+            var dt = msg.GetStream().ReadBytes();
+
+            using (var sp = new SerialPort("COM1"))
+            {
+                sp.DiscardInBuffer();
+                sp.DiscardOutBuffer();
+                sp.Write(dt, 0, dt.Length);
+
+                dt = new Byte[100];
+                Int32 i = 0;
+                while (i < dt.Length && sp.BytesToRead > 0)
+                {
+                    var count = sp.Read(dt, i, dt.Length - i);
+                    i += count;
+                    if (i >= dt.Length) break;
+                    Thread.Sleep(100);
+                }
+
+                var ms = new MemoryStream(dt, 0, i);
+                var rs = MBEntity.Read<ReadRegisterResponse>(ms);
+                if (rs != null)
+                {
+                    dt = rs.Data;
+                    Array.Reverse(dt);
+                    return BitConverter.ToUInt16(dt, 0);
+                }
+                return 0;
+            }
         }
     }
 }

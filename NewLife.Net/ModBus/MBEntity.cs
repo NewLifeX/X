@@ -44,10 +44,10 @@ namespace NewLife.Net.ModBus
         public MBFunction Function { get { return _Function; } set { _Function = value; } }
 
         [NonSerialized]
-        private Byte[] _Data;
+        private Byte[] _ExtendData;
         /// <summary>扩展业务数据，对于某些没有实现或者未完全实现的功能码有用</summary>
         [XmlIgnore]
-        public Byte[] Data { get { return _Data; } set { _Data = value; } }
+        public Byte[] ExtendData { get { return _ExtendData; } set { _ExtendData = value; } }
         #endregion
 
         #region 构造、注册
@@ -90,7 +90,7 @@ namespace NewLife.Net.ModBus
 
             writer.WriteObject(this);
 
-            var dt = Data;
+            var dt = ExtendData;
             if (dt != null && dt.Length > 0) writer.Write(dt, 0, dt.Length);
 
             // 计算CRC
@@ -175,7 +175,7 @@ namespace NewLife.Net.ModBus
                 entity = reader.ReadObject(type) as MBEntity;
                 // 读取剩余的数据
                 var len = ms.Length - ms.Position;
-                if (len > 0) entity.Data = reader.ReadBytes(len);
+                if (len > 0) entity.ExtendData = reader.ReadBytes((Int32)len);
             }
             catch (Exception ex) { throw new XException(String.Format("无法从数据流中读取{0}（Function={1}）消息！", type.Name, func), ex); }
 
