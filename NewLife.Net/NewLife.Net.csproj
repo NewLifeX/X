@@ -88,6 +88,7 @@
     <Compile Include="ModBus\Interface.cs" />
     <Compile Include="ModBus\MBEntity.cs" />
     <Compile Include="ModBus\MBFunction.cs" />
+    <Compile Include="ModBus\MBLed.cs" />
     <Compile Include="ModBus\ReadRegister.cs" />
     <Compile Include="ModBus\WriteRegister.cs" />
     <Compile Include="NetService.cs" />

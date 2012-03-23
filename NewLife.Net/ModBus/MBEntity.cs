@@ -25,12 +25,22 @@ namespace NewLife.Net.ModBus
         [XmlIgnore]
         public Boolean IsAscii { get { return _IsAscii; } set { _IsAscii = value; } }
 
+        [NonSerialized]
+        private Boolean _UseAddress;
+        /// <summary>是否使用地址。实际使用中，没有总线结构时，地址是没有意义的</summary>
+        [XmlIgnore]
+        public Boolean UseAddress { get { return _UseAddress; } set { _UseAddress = value; } }
+
+        [NonSerialized]
         private UInt16 _Address;
         /// <summary>地址码</summary>
+        [XmlIgnore]
         public UInt16 Address { get { return _Address; } set { _Address = value; } }
 
+        [NonSerialized]
         private MBFunction _Function;
         /// <summary>功能码</summary>
+        [XmlIgnore]
         public MBFunction Function { get { return _Function; } set { _Function = value; } }
         #endregion
 
@@ -68,6 +78,9 @@ namespace NewLife.Net.ModBus
             var ms = new MemoryStream();
             var writer = new BinaryWriterX(ms);
             Set(writer);
+
+            if (UseAddress) writer.Write(Address);
+            writer.Write((Byte)Function);
 
             writer.WriteObject(this);
 
@@ -117,9 +130,10 @@ namespace NewLife.Net.ModBus
 
         /// <summary>从流中读取消息</summary>
         /// <param name="stream"></param>
+        /// <param name="useAddress">是否使用地址</param>
         /// <param name="isAscii">是否ASCII方式</param>
         /// <returns></returns>
-        public static MBEntity Read(Stream stream, Boolean isAscii = false)
+        public static MBEntity Read(Stream stream, Boolean useAddress = false, Boolean isAscii = false)
         {
             // ASCII模式，需要先从HEX字符转回来
             var ms = stream;
@@ -137,9 +151,8 @@ namespace NewLife.Net.ModBus
             if (isAscii && reader.ReadChar() != ':') return null;
 
             // 读取地址和功能码
-            var addr = reader.ReadUInt16();
+            var addr = useAddress ? reader.ReadUInt16() : (UInt16)0;
             var func = (MBFunction)reader.ReadByte();
-            ms.Seek(-3, SeekOrigin.Current);
 
             var type = ObjectContainer.Current.ResolveType<MBEntity>(func);
             if (type == null) throw new XException("无法识别的消息类型（Function={0}）！", func);
@@ -153,9 +166,10 @@ namespace NewLife.Net.ModBus
             }
             catch (Exception ex) { throw new XException(String.Format("无法从数据流中读取{0}（Function={1}）消息！", type.Name, func), ex); }
 
-            //entity.Address = addr;
-            entity.Function = func;
+            entity.UseAddress = useAddress;
             entity.IsAscii = isAscii;
+            entity.Address = addr;
+            entity.Function = func;
 
             // 计算Crc
             var ori = ms.Position;
