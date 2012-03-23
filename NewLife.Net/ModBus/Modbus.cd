@@ -1,0 +1,64 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="NewLife.Net.ModBus.Diagnostics" Collapsed="true">
+    <Position X="4.25" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAIAAAAAAAAAAAAAAACAAAAABAAAAAEAAAAAAA=</HashCode>
+      <FileName>ModBus\Diagnostics.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="NewLife.Net.ModBus.MBEntity" Collapsed="true">
+    <Position X="7.5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAQEAAAAABAAAAAAAIEIgAAAAAAICAgACAAEAAAA=</HashCode>
+      <FileName>ModBus\MBEntity.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="NewLife.Net.ModBus.ReadRegister" Collapsed="true">
+    <Position X="11" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAACAECAAAAAACAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>ModBus\ReadRegister.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="NewLife.Net.ModBus.ReadRegisterResponse" Collapsed="true">
+    <Position X="6.5" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAQAAAAAAAAAAAAAAAAAAAAAABAAAAAEAAAAAAA=</HashCode>
+      <FileName>ModBus\ReadRegister.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="NewLife.Net.ModBus.WriteRegister" Collapsed="true">
+    <Position X="8.75" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAECAAAAAAAAAAAAAAAABAAAAAEAAAAAAA=</HashCode>
+      <FileName>ModBus\WriteRegister.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Interface Name="NewLife.Net.ModBus.IModBusRequest" Collapsed="true">
+    <Position X="13.5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>ModBus\Interface.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="NewLife.Net.ModBus.IModBusResponse" Collapsed="true">
+    <Position X="15.25" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>ModBus\Interface.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Enum Name="NewLife.Net.ModBus.MBFunction" Collapsed="true">
+    <Position X="11.5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>EQYAAAAAIAAQBBIAIAACABAAKACAAAAAAAAEACAAAAg=</HashCode>
+      <FileName>ModBus\MBFunction.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Font Name="宋体" Size="9" />
+</ClassDiagram>
