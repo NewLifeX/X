@@ -136,12 +136,13 @@ namespace NewLife.Net.ModBus
 
             if (isAscii && reader.ReadChar() != ':') return null;
 
-            //var entity = reader.ReadObject<MBEntity>();
+            // 读取地址和功能码
+            var addr = reader.ReadUInt16();
+            var func = (MBFunction)reader.ReadByte();
+            ms.Seek(-3, SeekOrigin.Current);
 
-            // 读取了响应类型和消息类型后，动态创建消息对象
-            var kind = (MBFunction)reader.ReadByte();
-            var type = ObjectContainer.Current.ResolveType<MBEntity>(kind);
-            if (type == null) throw new XException("无法识别的消息类型（Function={0}）！", kind);
+            var type = ObjectContainer.Current.ResolveType<MBEntity>(func);
+            if (type == null) throw new XException("无法识别的消息类型（Function={0}）！", func);
 
             if (stream.Position == stream.Length) return TypeX.CreateInstance(type, null) as MBEntity;
 
@@ -150,9 +151,10 @@ namespace NewLife.Net.ModBus
             {
                 entity = reader.ReadObject(type) as MBEntity;
             }
-            catch (Exception ex) { throw new XException(String.Format("无法从数据流中读取{0}（Function={1}）消息！", type.Name, kind), ex); }
+            catch (Exception ex) { throw new XException(String.Format("无法从数据流中读取{0}（Function={1}）消息！", type.Name, func), ex); }
 
-            entity.Function = kind;
+            //entity.Address = addr;
+            entity.Function = func;
             entity.IsAscii = isAscii;
 
             // 计算Crc
