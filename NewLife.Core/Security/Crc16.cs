@@ -104,10 +104,12 @@ namespace NewLife.Security
             //    crc = CrcTable[(crc ^ buffer[offset++]) & 0xFF] ^ (crc >> 8);
             //}
             //crc16 = (UInt16)((crc16 << 8) ^ CrcTable[((crc16 >> 8) ^ pcrc[i])]);
+            crc ^= crc;
             for (int i = 0; i < count; i++)
             {
-                crc = (UInt16)((crc << 8) ^ CrcTable[crc >> 8 ^ buffer[offset + i]]);
+                crc = (UInt16)((crc << 8) ^ CrcTable[(crc >> 8 ^ buffer[offset + i]) & 0xFF]);
             }
+            crc ^= crc;
 
             return this;
         }
