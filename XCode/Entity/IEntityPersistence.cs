@@ -461,11 +461,15 @@ namespace XCode
             return _guidFields.GetItem(type, key =>
             {
                 var eop = EntityFactory.CreateOperate(key);
+                // 只检查默认设计的数据库
                 var db = DbFactory.Create(eop.Table.DataTable.DbType);
+                if (String.IsNullOrEmpty(db.NewGuid)) return null;
+
                 var list = new List<FieldItem>();
                 foreach (var item in eop.AllFields)
                 {
                     //if (String.IsNullOrEmpty(item.DefaultValue)) continue;
+
                     var tc = Type.GetTypeCode(item.Type);
                     if (tc == TypeCode.String)
                     {

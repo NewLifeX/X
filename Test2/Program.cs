@@ -186,7 +186,7 @@ namespace Test2
             //session.Send(e.Buffer, e.Offset, e.BytesTransferred, e.RemoteEndPoint);
         }
 
-        static String pname = null;
+        static String pname = "COM1";
         static void Test3()
         {
             //Console.WriteLine("任意键开始测试：");
@@ -206,19 +206,28 @@ namespace Test2
             }
             Console.WriteLine();
 
-            Read(0x0401, 2);
-            Write(0x0101, 5);
+            Byte host = 1;
+
+            // 01 08 00 00 12 AB AD 14
+
+            //Read(host, 0x0401, 2);
+            //Write(host, 0x0109, 0x1388);
+            //Read(host, 0x3016, 1);
+            //Write(0x0100, 1);
+            //Write(0x0101, 1);
+            Console.WriteLine("内部伺服使能");
+            Write(host, 0x0103, 1);
 
             Console.WriteLine("开始读取寄存器状态：");
-            for (int i = 0; i < 1; i++)
+            for (int i = 0; i < 4; i += 2)
             {
-                for (int j = 0; j < 19; j++)
+                for (int j = i * 10; j < 5 + i * 10; j++)
                 {
                     Console.Write("P{0}{1:00}=", (Char)('A' + i), j);
                     UInt16 r = 0;
                     try
                     {
-                        r = Read((UInt16)((i + 1) * 0x100 + j));
+                        r = Read(host, (UInt16)((i + 1) * 0x100 + j));
                     }
                     catch { }
                     Console.WriteLine(r);
@@ -226,13 +235,13 @@ namespace Test2
             }
 
             Console.WriteLine("点动开始");
-            Write(0x1000, 1);
+            Write(host, 0x1000, 1);
 
             Console.WriteLine("伺服状态：");
             UInt16 rs = 0;
             try
             {
-                rs = Read(0x1001);
+                rs = Read(host, 0x1001);
             }
             catch (Exception ex)
             {
@@ -258,15 +267,15 @@ namespace Test2
             }
 
             Console.WriteLine("点动结束");
-            Write(0x1000, 0);
+            Write(1, 0x1000, 0);
         }
 
-        static void Write(UInt16 addr, UInt16 data)
+        static void Write(Byte host, UInt16 addr, UInt16 data)
         {
             var msg = new WriteRegister();
-            msg.IsAscii = true;
+            //msg.IsAscii = true;
             msg.UseAddress = true;
-            msg.Address = 0;
+            msg.Address = host;
             msg.Function = MBFunction.WriteSingleRegister;
             msg.DataAddress = addr;
             msg.Data = data;
@@ -279,18 +288,19 @@ namespace Test2
 
             using (var sp = new SerialPort(pname))
             {
+                sp.ReadTimeout = sp.WriteTimeout = 500;
                 sp.Open();
                 //sp.DiscardOutBuffer();
                 sp.Write(dt, 0, dt.Length);
             }
         }
 
-        static UInt16 Read(UInt16 addr, UInt16 len = 1)
+        static UInt16 Read(Byte host, UInt16 addr, UInt16 len = 1)
         {
             var msg = new ReadRegister();
-            msg.IsAscii = true;
+            //msg.IsAscii = true;
             msg.UseAddress = true;
-            msg.Address = 0;
+            msg.Address = host;
             msg.Function = MBFunction.ReadHoldingRegisters;
             msg.DataAddress = addr;
             msg.DataLength = len;
@@ -303,6 +313,7 @@ namespace Test2
 
             using (var sp = new SerialPort(pname))
             {
+                sp.ReadTimeout = sp.WriteTimeout = 500;
                 sp.Open();
                 //sp.DiscardInBuffer();
                 //sp.DiscardOutBuffer();
@@ -310,14 +321,17 @@ namespace Test2
 
                 dt = new Byte[100];
                 Int32 i = 0;
-                Thread.Sleep(500);
-                while (i < dt.Length && sp.BytesToRead > 0)
+                do
                 {
-                    var count = sp.Read(dt, i, dt.Length - i);
-                    i += count;
+                    try
+                    {
+                        var count = sp.Read(dt, i, dt.Length - i);
+                        i += count;
+                    }
+                    catch { }
                     if (i >= dt.Length) break;
                     Thread.Sleep(1000);
-                }
+                } while (i < dt.Length && sp.BytesToRead > 0);
                 if (i <= 0) return 0;
 
                 //Console.WriteLine("收到数据：{0}", i);
