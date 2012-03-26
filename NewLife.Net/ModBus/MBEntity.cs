@@ -261,8 +261,8 @@ namespace NewLife.Net.ModBus
                         i += count;
                     }
                     catch { }
-                    if (i >= dt.Length) break;
-                    Thread.Sleep(1000);
+                    //if (i >= dt.Length) break;
+                    //Thread.Sleep(1000);
                 } while (i < dt.Length && sp.BytesToRead > 0);
                 if (i <= 0) return null;
 
