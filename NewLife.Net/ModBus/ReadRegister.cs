@@ -36,12 +36,12 @@ namespace NewLife.Net.ModBus
     public class ReadRegisterResponse : MBEntity, IModBusResponse
     {
         #region 属性
-        private UInt16 _Length;
+        private Byte _Length;
 
         [FieldSize("_Length")]
         private Byte[] _Data;
         /// <summary>数据</summary>
-        public Byte[] Data { get { return _Data; } set { _Data = value; _Length = (UInt16)(value != null ? value.Length : 0); } }
+        public Byte[] Data { get { return _Data; } set { _Data = value; _Length = (Byte)(value != null ? value.Length : 0); } }
         #endregion
 
         /// <summary>实例化</summary>

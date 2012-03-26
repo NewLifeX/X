@@ -1,17 +1,18 @@
 ﻿using System;
-using NewLife.Linq;
-using NewLife.IO;
-using System.Collections.Generic;
-using System.Text;
-using System.IO;
-using NewLife.Serialization;
-using NewLife.Model;
-using NewLife.Exceptions;
-using NewLife.Reflection;
-using System.Xml.Serialization;
-using NewLife.Security;
-using System.Reflection;
 using System.Diagnostics;
+using System.IO;
+using System.Reflection;
+using System.Text;
+using System.Xml.Serialization;
+using NewLife.Exceptions;
+using NewLife.IO;
+using NewLife.Linq;
+using NewLife.Model;
+using NewLife.Reflection;
+using NewLife.Security;
+using NewLife.Serialization;
+using System.IO.Ports;
+using System.Threading;
 
 namespace NewLife.Net.ModBus
 {
@@ -35,7 +36,7 @@ namespace NewLife.Net.ModBus
         private Byte _Address;
         /// <summary>地址码</summary>
         [XmlIgnore]
-        public Byte Address { get { return _Address; } set { _Address = value; } }
+        public Byte Address { get { return _Address; } set { _Address = value; UseAddress = value > 0; } }
 
         [NonSerialized]
         private MBFunction _Function;
@@ -142,10 +143,11 @@ namespace NewLife.Net.ModBus
 
         /// <summary>从流中读取消息</summary>
         /// <param name="stream"></param>
+        /// <param name="isResponse">是否响应</param>
         /// <param name="useAddress">是否使用地址</param>
         /// <param name="isAscii">是否ASCII方式</param>
         /// <returns></returns>
-        public static MBEntity Read(Stream stream, Boolean useAddress = false, Boolean isAscii = false)
+        public static MBEntity Read(Stream stream, Boolean isResponse = false, Boolean useAddress = false, Boolean isAscii = false)
         {
             // ASCII模式，需要先从HEX字符转回来
             var ms = stream;
@@ -166,7 +168,7 @@ namespace NewLife.Net.ModBus
             var addr = useAddress ? reader.ReadByte() : (Byte)0;
             var func = (MBFunction)reader.ReadByte();
 
-            var type = ObjectContainer.Current.ResolveType<MBEntity>(func);
+            var type = !isResponse ? ObjectContainer.Current.ResolveType<IModBusRequest>(func) : ObjectContainer.Current.ResolveType<IModBusResponse>(func);
             //if (type == null) throw new XException("无法识别的消息类型（Function={0}）！", func);
             if (type == null) type = typeof(MBEntity);
 
@@ -176,8 +178,10 @@ namespace NewLife.Net.ModBus
             try
             {
                 entity = reader.ReadObject(type) as MBEntity;
-                // 读取剩余的数据
-                var len = ms.Length - ms.Position;
+                if (entity == null) entity = TypeX.CreateInstance(type, null) as MBEntity;
+
+                // 读取剩余的数据，注意扣除校验部分
+                var len = ms.Length - ms.Position - (isAscii ? 1 : 2);
                 if (len > 0) entity.ExtendData = reader.ReadBytes((Int32)len);
             }
             catch (Exception ex) { throw new XException(String.Format("无法从数据流中读取{0}（Function={1}）消息！", type.Name, func), ex); }
@@ -210,10 +214,66 @@ namespace NewLife.Net.ModBus
         /// <summary>从流中读取消息</summary>
         /// <typeparam name="TEntity"></typeparam>
         /// <param name="stream"></param>
+        /// <param name="isResponse">是否响应</param>
+        /// <param name="useAddress">是否使用地址</param>
+        /// <param name="isAscii">是否ASCII方式</param>
         /// <returns></returns>
-        public static TEntity Read<TEntity>(Stream stream) where TEntity : MBEntity
+        public static TEntity Read<TEntity>(Stream stream, Boolean isResponse = false, Boolean useAddress = false, Boolean isAscii = false) where TEntity : MBEntity
         {
-            return Read(stream) as TEntity;
+            return Read(stream, isResponse, useAddress, isAscii) as TEntity;
+        }
+
+        /// <summary>处理消息，通过数据回调来发出或收回数据</summary>
+        /// <param name="request"></param>
+        /// <param name="dataCallback"></param>
+        /// <returns></returns>
+        public static MBEntity Process(MBEntity request, Func<Byte[], Byte[]> dataCallback)
+        {
+            var dt = request.GetStream().ReadBytes();
+
+            var data = dataCallback(dt);
+            if (data == null || data.Length < 1) return null;
+
+            var ms = new MemoryStream(data);
+            return Read(ms, true, request.UseAddress, request.IsAscii);
+        }
+
+        static Byte[] Read(Byte[] dt, Boolean isascii)
+        {
+            using (var sp = new SerialPort(pname))
+            {
+                sp.ReadTimeout = sp.WriteTimeout = 500;
+                sp.Open();
+
+                if (isascii)
+                    Console.WriteLine("发送：{0}", Encoding.ASCII.GetString(dt));
+                else
+                    Console.WriteLine("发送：{0}", BitConverter.ToString(dt));
+                sp.Write(dt, 0, dt.Length);
+
+                dt = new Byte[256];
+                Int32 i = 0;
+                do
+                {
+                    try
+                    {
+                        var count = sp.Read(dt, i, dt.Length - i);
+                        i += count;
+                    }
+                    catch { }
+                    if (i >= dt.Length) break;
+                    Thread.Sleep(1000);
+                } while (i < dt.Length && sp.BytesToRead > 0);
+                if (i <= 0) return null;
+
+                //Console.WriteLine("收到数据：{0}", i);
+                var data = new Byte[i];
+                //dt.CopyTo(data, 0);
+                Buffer.BlockCopy(dt, 0, data, 0, data.Length);
+                Console.WriteLine("接收：{0}", BitConverter.ToString(data));
+
+                return data;
+            }
         }
 
         static void Set(IReaderWriter rw)

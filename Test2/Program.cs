@@ -209,6 +209,9 @@ namespace Test2
             Byte host = 1;
 
             // 01 08 00 00 12 AB AD 14
+            var isonline = ReadTest(host);
+            Console.WriteLine("连接状态：{0}", isonline);
+            if (!isonline) return;
 
             //Read(host, 0x0401, 2);
             //Write(host, 0x0109, 0x1388);
@@ -233,9 +236,6 @@ namespace Test2
                     Console.WriteLine(r);
                 }
             }
-
-            Console.WriteLine("点动开始");
-            Write(host, 0x1000, 1);
 
             Console.WriteLine("伺服状态：");
             UInt16 rs = 0;
@@ -266,6 +266,21 @@ namespace Test2
                     break;
             }
 
+            Console.WriteLine("Any...");
+            Console.ReadKey(true);
+
+            Console.WriteLine("停机");
+            Write(host, 0x0103, 0);
+
+            Console.WriteLine("Any...");
+            Console.ReadKey(true);
+
+            Console.WriteLine("点动开始");
+            Write(host, 0x1000, 1);
+
+            //Thread.Sleep(3000);
+            Console.ReadKey(true);
+
             Console.WriteLine("点动结束");
             Write(1, 0x1000, 0);
         }
@@ -274,7 +289,6 @@ namespace Test2
         {
             var msg = new WriteRegister();
             //msg.IsAscii = true;
-            msg.UseAddress = true;
             msg.Address = host;
             msg.Function = MBFunction.WriteSingleRegister;
             msg.DataAddress = addr;
@@ -299,24 +313,57 @@ namespace Test2
         {
             var msg = new ReadRegister();
             //msg.IsAscii = true;
-            msg.UseAddress = true;
             msg.Address = host;
             msg.Function = MBFunction.ReadHoldingRegisters;
             msg.DataAddress = addr;
             msg.DataLength = len;
 
             var dt = msg.GetStream().ReadBytes();
-            if (msg.IsAscii)
-                Console.WriteLine("发送：{0}", Encoding.ASCII.GetString(dt));
-            else
-                Console.WriteLine("发送：{0}", BitConverter.ToString(dt));
 
+            dt = Read(dt, msg.IsAscii);
+            if (dt == null || dt.Length < 1) return 0;
+
+            var ms = new MemoryStream(dt);
+            var rs = MBEntity.Read<ReadRegisterResponse>(ms, msg.UseAddress, msg.IsAscii);
+            if (rs != null)
+            {
+                dt = rs.Data;
+                Array.Reverse(dt);
+                return BitConverter.ToUInt16(dt, 0);
+            }
+            return 0;
+        }
+
+        static Boolean ReadTest(Byte host)
+        {
+            var msg = new MBEntity();
+            msg.Address = host;
+            msg.Function = MBFunction.Diagnostics;
+            msg.ExtendData = new Byte[] { 0x00, 0x00, 0x12, 0xAB };
+
+            var dt = msg.GetStream().ReadBytes();
+
+            var data = Read(dt, msg.IsAscii);
+            if (data == null || data.Length < 1) return false;
+
+            var ms = new MemoryStream(data);
+            var rs = MBEntity.Read(ms, msg.UseAddress, msg.IsAscii);
+            return rs != null && rs.ExtendData.CompareTo(msg.ExtendData) == 0;
+        }
+
+        static Byte[] Read(Byte[] dt, Boolean isascii)
+        {
             using (var sp = new SerialPort(pname))
             {
                 sp.ReadTimeout = sp.WriteTimeout = 500;
                 sp.Open();
                 //sp.DiscardInBuffer();
                 //sp.DiscardOutBuffer();
+
+                if (isascii)
+                    Console.WriteLine("发送：{0}", Encoding.ASCII.GetString(dt));
+                else
+                    Console.WriteLine("发送：{0}", BitConverter.ToString(dt));
                 sp.Write(dt, 0, dt.Length);
 
                 dt = new Byte[100];
@@ -332,20 +379,15 @@ namespace Test2
                     if (i >= dt.Length) break;
                     Thread.Sleep(1000);
                 } while (i < dt.Length && sp.BytesToRead > 0);
-                if (i <= 0) return 0;
+                if (i <= 0) return null;
 
                 //Console.WriteLine("收到数据：{0}", i);
-                Console.WriteLine("接收：{0}", BitConverter.ToString(dt));
+                var data = new Byte[i];
+                //dt.CopyTo(data, 0);
+                Buffer.BlockCopy(dt, 0, data, 0, data.Length);
+                Console.WriteLine("接收：{0}", BitConverter.ToString(data));
 
-                var ms = new MemoryStream(dt, 0, i);
-                var rs = MBEntity.Read<ReadRegisterResponse>(ms);
-                if (rs != null)
-                {
-                    dt = rs.Data;
-                    Array.Reverse(dt);
-                    return BitConverter.ToUInt16(dt, 0);
-                }
-                return 0;
+                return data;
             }
         }
     }
