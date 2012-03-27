@@ -147,6 +147,10 @@ namespace NewLife.Net.Sockets
         private IDictionary _Items;
         /// <summary>数据字典</summary>
         public IDictionary Items { get { return _Items ?? (_Items = new Hashtable(StringComparer.OrdinalIgnoreCase)); } }
+
+        private Int32 _AsyncCount;
+        /// <summary>异步操作计数</summary>
+        public virtual Int32 AsyncCount { get { return _AsyncCount; } /*set { _AsyncCount = value; }*/ }
         #endregion
 
         #region 构造
@@ -310,10 +314,6 @@ namespace NewLife.Net.Sockets
             }
         }
 
-        private Int32 _AsyncCount;
-        /// <summary>异步操作计数</summary>
-        public virtual Int32 AsyncCount { get { return _AsyncCount; } /*set { _AsyncCount = value; }*/ }
-
         /// <summary>开始异步操作</summary>
         /// <param name="callback"></param>
         /// <param name="e"></param>
@@ -335,7 +335,6 @@ namespace NewLife.Net.Sockets
                 if (!callback(e)) RaiseCompleteAsync(e);
 
                 // 异步开始，增加一个计数
-                //AsyncCount++;
                 Interlocked.Increment(ref _AsyncCount);
             }
             catch

@@ -32,7 +32,7 @@ namespace NewLife.Net.Sockets
         private Boolean Used { get { return _Used; } set { _Used = value; } }
 
         private ISocket _Socket;
-        /// <summary>当前对象的使用者，默认就是从对象池<see cref="SocketBase.Pool"/>中借出当前网络事件参数的那个SocketBase。
+        /// <summary>当前对象的使用者，默认就是从对象池<see cref="Pool"/>中借出当前网络事件参数的那个SocketBase。
         /// 比如，如果是Server程序，那么它往往就是与客户端通讯的那个Socket(TcpSession)。
         /// 在TcpServer中，它就是TcpSession。
         /// </summary>

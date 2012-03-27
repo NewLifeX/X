@@ -152,7 +152,7 @@ namespace NewLife.Net
         }
 
         /// <summary>获取相对于指定远程地址的本地地址</summary>
-        /// <param name="address"></param>
+        /// <param name="local"></param>
         /// <param name="remote"></param>
         /// <returns></returns>
         public static IPEndPoint GetRelativeEndPoint(this IPEndPoint local, IPAddress remote)

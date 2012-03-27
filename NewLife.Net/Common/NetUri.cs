@@ -8,7 +8,7 @@ namespace NewLife.Net.Common
 {
     /// <summary>网络资源标识，指定协议、地址、端口、地址族（IPv4/IPv6）</summary>
     /// <remarks>
-    /// 仅序列化<see cref="ProtocolType"/>和<see cref="Endpoint"/>，其它均是配角！
+    /// 仅序列化<see cref="ProtocolType"/>和<see cref="EndPoint"/>，其它均是配角！
     /// 有可能<see cref="Host"/>代表主机域名，而<see cref="Address"/>指定主机IP地址。
     /// </remarks>
     public class NetUri : IAccessor
