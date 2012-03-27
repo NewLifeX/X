@@ -246,7 +246,8 @@ namespace XCode.Configuration
             //if (BindTableAttribute.GetCustomAttribute(type) == null)
             //    throw new ArgumentOutOfRangeException("type", "类型" + type + "没有" + typeof(BindTableAttribute).Name + "特性！");
 
-            return cache.GetItem(type, key => new TableItem(key));
+            // 不能给没有BindTableAttribute特性的类型创建TableItem，否则可能会在InitFields中抛出异常
+            return cache.GetItem(type, key => BindTableAttribute.GetCustomAttribute(key) != null ? new TableItem(key) : null);
         }
 
         //Boolean hasInitFields = false;
