@@ -167,7 +167,7 @@ namespace XControl
         }
 
         /// <summary>显示前参数添加</summary>
-        [DefaultValue(""), Themeable(false), Category(" "), Description("显示前参数添加")]
+        [DefaultValue(""), Themeable(false), Category(" "), Description("显示前利用js参数添加（参数实际为function类型）")]
         public String BeforeShow
         {
             get
