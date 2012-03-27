@@ -643,7 +643,7 @@ function ShowDialog(options){
         dialog[o]=options[o];
     }
     if(typeof dialog.BeforeShow === 'function'){
-        dialog.BeforeShow(options);
+        dialog.BeforeShow();
     }
 
     dialog.show();
