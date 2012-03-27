@@ -176,19 +176,19 @@ namespace XCode
         /// <returns></returns>
         public static List<IDataTable> GetTables(String connName)
         {
-            List<IDataTable> tables = new List<IDataTable>();
+            var tables = new List<IDataTable>();
             // 记录每个表名对应的实体类
-            Dictionary<String, Type> dic = new Dictionary<String, Type>(StringComparer.OrdinalIgnoreCase);
-            List<String> list = new List<String>();
+            var dic = new Dictionary<String, Type>(StringComparer.OrdinalIgnoreCase);
+            var list = new List<String>();
             foreach (Type item in LoadEntities(connName))
             {
                 list.Add(item.Name);
 
                 // 过滤掉第一次使用才加载的
-                ModelCheckModeAttribute att = ModelCheckModeAttribute.GetCustomAttribute(item);
+                var att = ModelCheckModeAttribute.GetCustomAttribute(item);
                 if (att != null && att.Mode != ModelCheckModes.CheckAllTablesWhenInit) continue;
 
-                IDataTable table = TableItem.Create(item).DataTable;
+                var table = TableItem.Create(item).DataTable;
 
                 // 判断表名是否已存在
                 Type type = null;
@@ -254,34 +254,47 @@ namespace XCode
 
         private static Type GetTypeInternal(String typeName)
         {
-            Type type = TypeX.GetType(typeName, true);
-            if (type == null)
+            var type = TypeX.GetType(typeName, true);
+            if (type != null) return type;
+
+            var entities = LoadEntities();
+            if (entities == null || entities.Count <= 0) return null;
+
+            var p = typeName.LastIndexOf(".");
+            if (p >= typeName.Length - 1) return null;
+            if (p > 0)
             {
-                List<Type> entities = LoadEntities();
-                if (entities != null && entities.Count > 0)
+                foreach (var item in entities)
                 {
-                    if (!typeName.Contains("."))
-                        //type = entities.Find(delegate(Type item) { return item.Name == typeName; });
-                        foreach (Type item in entities)
-                        {
-                            if (item.Name == typeName)
-                            {
-                                type = item;
-                                break;
-                            }
-                        }
+                    if (item.FullName == typeName) return item;
+
+                    // 同时按照不区分大小写查找，遍历完成后如果还没有找到，就返回不区分大小写查找的结果
+                    if (type == null && typeName.EqualIgnoreCase(item.FullName)) type = item;
+                }
+                if (type != null) return type;
+
+                // 去掉前面的命名空间，采用表名匹配
+                typeName = typeName.Substring(p + 1);
+            }
+
+            foreach (var item in entities)
+            {
+                if (item.Name == typeName) return item;
+
+                // 同时按照不区分大小写查找，遍历完成后如果还没有找到，就返回不区分大小写查找的结果
+                if (type == null)
+                {
+                    if (typeName.EqualIgnoreCase(item.Name))
+                        type = item;
                     else
-                        //type = entities.Find(delegate(Type item) { return item.FullName == typeName; });
-                        foreach (Type item in entities)
-                        {
-                            if (item.Name == typeName)
-                            {
-                                type = item;
-                                break;
-                            }
-                        }
+                    {
+                        // 有可能用于查找的是表名，而表名曾经被格式化（大小写、去前缀等）
+                        var ti = TableItem.Create(item);
+                        if (ti != null && ti.DataTable != null && typeName.EqualIgnoreCase(ti.TableName)) type = item;
+                    }
                 }
             }
+
             return type;
         }
         #endregion
