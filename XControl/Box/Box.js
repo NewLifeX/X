@@ -1,5 +1,5 @@
 ﻿//var IMGFOLDERPATH = '../images/Dialog/'; //图片路径配置
-var CONTEXTPATH = ''; //弹出框内页面路径配置 
+var CONTEXTPATH = ''; //弹出框内页面路径配置
 var isIE = navigator.userAgent.toLowerCase().indexOf("msie") != -1;
 var isIE6 = navigator.userAgent.toLowerCase().indexOf("msie 6.0") != -1;
 var isGecko = navigator.userAgent.toLowerCase().indexOf("gecko") != -1;
@@ -59,51 +59,63 @@ Array.prototype.remove = function(s)
             this.splice(i, 1);
         }
     }
-}
+};
+
 if (typeof window.HTMLElement != 'undefined' &&
-    typeof HTMLElement.prototype.__defineGetter__ != 'undefined' &&
-    typeof HTMLElement.prototype.outerHTML == 'undefined' )
-{//给FF添加IE专有的属性和方法
-    HTMLElement.prototype.__defineGetter__("parentElement", function()
+    typeof HTMLElement.prototype != 'undefined' &&
+    typeof HTMLElement.prototype.__defineGetter__ != 'undefined')
+{
+    //给FF添加IE专有的属性和方法
+    var elept = HTMLElement.prototype;
+    if(!elept.hasOwnProperty('parentElement'))
     {
-        if (this.parentNode == this.ownerDocument) return null;
-        return this.parentNode;
-    });
-    HTMLElement.prototype.__defineSetter__("outerHTML", function(sHTML)
-    {
-        var r = this.ownerDocument.createRange();
-        r.setStartBefore(this);
-        var df = r.createContextualFragment(sHTML);
-        this.parentNode.replaceChild(df, this);
-        return sHTML;
-    });
-    HTMLElement.prototype.__defineGetter__("outerHTML", function()
-    {
-        var attr;
-        var attrs = this.attributes;
-        var str = "<" + this.tagName;
-        for (var i = 0; i < attrs.length; i++)
+        elept.__defineGetter__("parentElement", function()
         {
-            attr = attrs[i];
-            if (attr.specified)
-                str += " " + attr.name + '="' + attr.value + '"';
-        }
-        if (!this.canHaveChildren)
-            return str + ">";
-        return str + ">" + this.innerHTML + "</" + this.tagName + ">";
-    });
-    HTMLElement.prototype.__defineSetter__("innerText", function(sText)
+            if (this.parentNode == this.ownerDocument) return null;
+            return this.parentNode;
+        });
+    }
+    if(!elept.hasOwnProperty('outerHTML'))
     {
-        var parsedText = document.createTextNode(sText);
-        this.innerHTML = parsedText;
-        return parsedText;
-    });
-    HTMLElement.prototype.__defineGetter__("innerText", function()
+        elept.__defineSetter__("outerHTML", function(sHTML)
+        {
+            var r = this.ownerDocument.createRange();
+            r.setStartBefore(this);
+            var df = r.createContextualFragment(sHTML);
+            this.parentNode.replaceChild(df, this);
+            return sHTML;
+        });
+        elept.__defineGetter__("outerHTML", function()
+        {
+            var attr;
+            var attrs = this.attributes;
+            var str = "<" + this.tagName;
+            for (var i = 0; i < attrs.length; i++)
+            {
+                attr = attrs[i];
+                if (attr.specified)
+                    str += " " + attr.name + '="' + attr.value + '"';
+            }
+            if (!this.canHaveChildren)
+                return str + ">";
+            return str + ">" + this.innerHTML + "</" + this.tagName + ">";
+        });
+    }
+    if(!elept.hasOwnProperty('innerText'))
     {
-        var r = this.ownerDocument.createRange();
-        r.selectNodeContents(this);
-        return r.toString();
-    });
+        elept.__defineSetter__("innerText", function(sText)
+        {
+            var parsedText = document.createTextNode(sText);
+            this.innerHTML = parsedText;
+            return parsedText;
+        });
+        elept.__defineGetter__("innerText", function()
+        {
+            var r = this.ownerDocument.createRange();
+            r.selectNodeContents(this);
+            return r.toString();
+        });
+    }
 }
 
 var $E = {};
@@ -112,7 +124,7 @@ $E.$A = function(attr, ele)
     ele = ele || this;
     ele = GetObjID(ele);
     return ele.getAttribute ? ele.getAttribute(attr) : null;
-}
+};
 $E.getTopLevelWindow = function()
 {
     var pw = window, lastPW;
@@ -141,19 +153,19 @@ $E.getTopLevelWindow = function()
         }
     }
     return pw;
-}
+};
 $E.hide = function(ele)
 {
     ele = ele || this;
     ele = GetObjID(ele);
     ele.style.display = 'none';
-}
+};
 $E.show = function(ele)
 {
     ele = ele || this;
     ele = GetObjID(ele);
     ele.style.display = '';
-}
+};
 $E.visible = function(ele)
 {
     ele = ele || this;
@@ -163,7 +175,7 @@ $E.visible = function(ele)
         return false;
     }
     return true;
-}
+};
 
 var Core = {};
 Core.attachMethod = function(ele)
@@ -194,7 +206,7 @@ Core.attachMethod = function(ele)
     {
         //alert("Core.attachMethod:"+ele)//有些对象不能附加属性，如flash
     }
-}
+};
 
 function Dialog(strID)
 {
@@ -261,7 +273,7 @@ Dialog.prototype.showWindow = function() {
         w.Parent = this.ParentWindow;
         w.dialogArguments = this.DialogArguments;
     }
-}
+};
 
 Dialog.prototype.show = function() {
     var pw = $E.getTopLevelWindow();
@@ -349,7 +361,6 @@ Dialog.prototype.show = function() {
                 else {
                     arr.push("         <input id='_Button_my_" + btn.ID + "'  style='cursor:pointer;'  type='button' value='" + btn.displayname + "'>");
                 }
-
             }
         }
     }
@@ -530,12 +541,12 @@ Dialog.prototype.show = function() {
     */
 
     pw.Dialog._Array.push(this.ID); //放入队列中，以便于ESC时正确关闭
-}
+};
 
 Dialog.prototype.addParam = function(paramName, paramValue)
 {
     this.DialogArguments[paramName] = paramValue;
-}
+};
 
 //添加可调整窗体大小
 Dialog.prototype.resize = function(width, height)
@@ -553,12 +564,11 @@ Dialog.prototype.resize = function(width, height)
         layout.style.height = height+"px";
 
         this.setPosition();
-
     }catch(e)
     {
        //alert(e);
     }
-}
+};
 
 Dialog.prototype.close = function()
 {
@@ -578,7 +588,6 @@ Dialog.prototype.close = function()
             {
                 $T("body")[0].appendChild(innerElement)
             }
-
         }
         if (this.WindowFlag)
         {
@@ -625,7 +634,7 @@ Dialog.prototype.close = function()
             this.AfterClose();
         }
     }
-}
+};
 
 Dialog.prototype.addButton = function(id, txt, func)
 {
@@ -633,7 +642,7 @@ Dialog.prototype.addButton = function(id, txt, func)
     var pw = $E.getTopLevelWindow();
     pw.GetObjID("_DialogButtons_" + this.ID).$T("input")[0].getParent("a").insertAdjacentHTML("beforeBegin", html);
     pw.GetObjID("_Button_" + this.ID + "_" + id).onclick = func;
-}
+};
 
 /// 显示窗口
 function ShowDialog(options){
@@ -649,18 +658,17 @@ function ShowDialog(options){
 
     dialog.show();
     return dialog;
-}
+};
 
 Dialog.close = function(evt)
 {
     window.Args._DialogInstance.close();
-}
+};
 
 Dialog.GetDialogForFrame = function(frameElement)
 {
     var r = null;
     try {
-
         var ele=frameElement;
         while(true){
             ele=ele.parentNode;
@@ -678,7 +686,7 @@ Dialog.GetDialogForFrame = function(frameElement)
     
     }
     return r;
-}
+};
 
 Dialog.Resize = function(frameElement,width,height)
 {
@@ -688,7 +696,7 @@ Dialog.Resize = function(frameElement,width,height)
     }catch(e)
     {
     }
-}
+};
 
 Dialog.CloseSelfDialog = function (frameElement) {
     try {
@@ -696,7 +704,7 @@ Dialog.CloseSelfDialog = function (frameElement) {
     } catch (e) {
     //    alert(e);
     }
-}
+};
 
 Dialog.CloseAndRefresh = function (frameElement) {
     try {
@@ -713,7 +721,7 @@ Dialog.CloseAndRefresh = function (frameElement) {
     } catch (e) {
         //alert(e);
     }
-}
+};
 
 Dialog.getInstance = function(id)
 {
@@ -724,12 +732,12 @@ Dialog.getInstance = function(id)
         return null;
     }
     return f.DialogInstance;
-}
+};
 
 Dialog.AlertNo = 0;
 Dialog.alert = function(msg, func, w, h) {
     Dialog.zalert({ msg: msg, func: func, w: w, h: h });
-}
+};
 Dialog.zalert = function(option) {
     var pw = $E.getTopLevelWindow()
     var diag = new Dialog("_DialogAlert" + Dialog.AlertNo++);
@@ -774,7 +782,7 @@ Dialog.zalert = function(option) {
         diag.CancelButton.value = "确 定";
     diag.CancelButton.focus();
     pw.GetObjID("_DialogButtons_" + diag.ID).style.textAlign = "center";
-}
+};
 
 Dialog.confirm = function(msg, func1, func2, w, h)
 {
@@ -817,8 +825,7 @@ Dialog.confirm = function(msg, func1, func2, w, h)
     doc.close();
     diag.OKButton.focus();
     pw.GetObjID("_DialogButtons_" + diag.ID).style.textAlign = "center";
-}
-
+};
 
 //Dialog.zconfirm = function(option) {
 //    var pw = $E.getTopLevelWindow()
@@ -876,7 +883,7 @@ Page.onDialogLoad = function()
         _DialogInstance.Window = window;
         window.Parent = _DialogInstance.ParentWindow;
     }
-}
+};
 
 Page.onDialogLoad();
 
@@ -885,7 +892,6 @@ PageOnLoad = function()
     var d = _DialogInstance;
     if (d)
     {
-
         try
         {
             d.ParentWindow.$D = d;
@@ -925,7 +931,7 @@ PageOnLoad = function()
            //alert("DialogOnLoad:" + ex.message + "\t(" + ex.fileName + " " + ex.lineNumber + ")"); 
         }
     }
-}
+};
 
 Dialog.onKeyDown = function(event) {
     var pw = $E.getTopLevelWindow();
@@ -946,12 +952,12 @@ Dialog.onKeyDown = function(event) {
             }
         }
     }
-}
+};
 
 Dialog.dragStart = function(evt)
 {
     //DragManager.doDrag(evt,this.getParent("div"));//拖拽处理
-}
+};
 Dialog.setPosition = function()
 {
     if (window.parent != window) return;
@@ -963,7 +969,7 @@ Dialog.setPosition = function()
     {
         pw.GetObjID("_DialogDiv_" + DialogArr[i]).DialogInstance.setPosition();
     }
-}
+};
 Dialog.prototype.setPosition = function()
 {
     var pw = $E.getTopLevelWindow();
@@ -986,7 +992,7 @@ Dialog.prototype.setPosition = function()
     this.DialogDiv.style.left = this.Left + "px";
     //pw.$$$(this.bgdivID).style.width= sw + "px";
     pw.GetObjID(this.bgdivID).style.height = sh + "px";
-}
+};
 
 var Drag = {
     "obj": null,
@@ -1119,7 +1125,6 @@ function QueryString(fieldName)
 }
 String.format = function()
 {
-
     if (arguments.length == 0)
     {
         return null;
@@ -1129,9 +1134,8 @@ String.format = function()
 
     for (var i = 1; i < arguments.length; i++)
     {
-
         var re = new RegExp('\\{' + (i - 1) + '\\}', 'gm');
         str = str.replace(re, arguments[i]);
     }
     return str;
-}
+};

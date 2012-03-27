@@ -197,7 +197,7 @@ namespace XControl
             sb.AppendFormat("MessageTitle:'{0}', ", MessageTitle);
             sb.AppendFormat("Message:'{0}', ", Message);
             sb.AppendFormat("ShowButtonRow:{0},", ShowButtonRow.ToString().ToLower());
-            sb.AppendFormat("BeforeShow:{0}", BeforeShow);
+            if (!string.IsNullOrEmpty(BeforeShow)) sb.AppendFormat("BeforeShow:{0}", BeforeShow);
             
             OnClientClick = "ShowDialog({" + sb.ToString() + "}); return false;";
 
