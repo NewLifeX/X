@@ -262,6 +262,11 @@ namespace XCode
 
             var p = typeName.LastIndexOf(".");
             if (p >= typeName.Length - 1) return null;
+
+            // 记录命名空间，命名空间必须精确匹配
+            var ns = "";
+
+            // 先处理带有命名空间的
             if (p > 0)
             {
                 foreach (var item in entities)
@@ -274,11 +279,15 @@ namespace XCode
                 if (type != null) return type;
 
                 // 去掉前面的命名空间，采用表名匹配
+                ns = typeName.Substring(0, p);
                 typeName = typeName.Substring(p + 1);
             }
 
             foreach (var item in entities)
             {
+                // 命名空间必须匹配，允许不区分大小写
+                if (!String.IsNullOrEmpty(ns) && !ns.EqualIgnoreCase(item.Namespace)) continue;
+
                 if (item.Name == typeName) return item;
 
                 // 同时按照不区分大小写查找，遍历完成后如果还没有找到，就返回不区分大小写查找的结果
