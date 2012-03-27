@@ -234,7 +234,7 @@ namespace NewLife.Serialization
             var stream = Stream;
             if (stream == null || stream is TraceStream) return;
 
-            Stream = new TraceStream(stream);
+            Stream = new TraceStream(stream) { Encoding = Settings.Encoding };
         }
 
         /// <summary>调试输出</summary>
