@@ -637,13 +637,15 @@ Dialog.prototype.addButton = function(id, txt, func)
 
 /// 显示窗口
 function ShowDialog(options){
-    var dialog=new Dialog(options.ID);
-    for (var o in options) {
-        dialog[o]=options[o];
-    }
+     //在显示前修改属性，方便动态修改参数
     if(typeof dialog.BeforeShow === 'function'){
         dialog.BeforeShow(options);
     }
+   var dialog=new Dialog(options.ID);
+    for (var o in options) {
+        dialog[o]=options[o];
+    }
+    
     dialog.show();
     return dialog;
 }

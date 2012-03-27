@@ -165,6 +165,20 @@ namespace XControl
                 ViewState["IconRight"] = value;
             }
         }
+
+        /// <summary>显示前参数添加</summary>
+        [DefaultValue(""), Themeable(false), Category(" "), Description("显示前参数添加")]
+        public String BeforeShow
+        {
+            get
+            {
+                return (String)ViewState["BeforeShow"];
+            }
+            set
+            {
+                ViewState["BeforeShow"] = value;
+            }
+        }
         #endregion
 
         void UpdateOnClientClick()
@@ -182,8 +196,9 @@ namespace XControl
             sb.AppendFormat("ShowMessageRow:{0}, ", ShowMessageRow.ToString().ToLower());
             sb.AppendFormat("MessageTitle:'{0}', ", MessageTitle);
             sb.AppendFormat("Message:'{0}', ", Message);
-            sb.AppendFormat("ShowButtonRow:{0}", ShowButtonRow.ToString().ToLower());
-
+            sb.AppendFormat("ShowButtonRow:{0},", ShowButtonRow.ToString().ToLower());
+            sb.AppendFormat("BeforeShow:{0}", BeforeShow);
+            
             OnClientClick = "ShowDialog({" + sb.ToString() + "}); return false;";
 
             RegisterReloadFormJs(Page.ClientScript, Page.IsPostBack);
@@ -222,7 +237,7 @@ namespace XControl
             {
                 script.RegisterClientScriptBlock(typeof(LinkBox), "ReloadFormJs", Helper.JsMinSimple(!XControlConfig.Debug, @"
 function reloadForm(){
-    if(!" + (""+isPostback).ToLower() + @"){
+    if(!" + ("" + isPostback).ToLower() + @"){
         location.reload();
         return true;
     }
