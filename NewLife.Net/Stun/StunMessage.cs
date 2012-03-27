@@ -1,10 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Text;
-using NewLife.Serialization;
-using System.Collections.Generic;
 using NewLife.Reflection;
+using NewLife.Serialization;
 
 namespace NewLife.Net.Stun
 {
@@ -318,7 +318,7 @@ namespace NewLife.Net.Stun
                     wr.WriteObject(item.Value);
                 }
                 wr.Stream.Position = 0;
-                Data = NewLife.IO.IOHelper.ReadBytes(wr.Stream);
+                Data = wr.Stream.ReadBytes();
             }
 
             return false;

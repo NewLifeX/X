@@ -1,8 +1,8 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using NewLife.IO;
-using NewLife.Net;
 
 namespace NewLife.Net.Sockets
 {

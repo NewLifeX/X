@@ -126,7 +126,7 @@ namespace NewLife.Xml
         {
             Type t = type;
             if (value != null) t = value.GetType();
-            String name = AttributeX.GetCustomAttributeValue<XmlRootAttribute, String>(t, true);
+            String name = t.GetCustomAttributeValue<XmlRootAttribute, String>(true);
             if (String.IsNullOrEmpty(name) && t != null) name = t.Name;
 
             Writer.WriteStartElement(name);
@@ -206,8 +206,8 @@ namespace NewLife.Xml
             if (String.IsNullOrEmpty(name))
             {
                 // 优先采用类型上的XmlRoot特性
-                if (type != null) name = AttributeX.GetCustomAttributeValue<XmlRootAttribute, String>(type, true);
-                if (String.IsNullOrEmpty(name) && t != null) name = AttributeX.GetCustomAttributeValue<XmlRootAttribute, String>(t, true);
+                if (type != null) name = type.GetCustomAttributeValue<XmlRootAttribute, String>(true);
+                if (String.IsNullOrEmpty(name) && t != null) name = t.GetCustomAttributeValue<XmlRootAttribute, String>(true);
                 if (String.IsNullOrEmpty(name))
                 {
                     if (t != null) name = GetName(t);

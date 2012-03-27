@@ -14,10 +14,7 @@ namespace NewLife.Reflection
         #region 属性
         private Assembly _Asm;
         /// <summary>程序集</summary>
-        public Assembly Asm
-        {
-            get { return _Asm; }
-        }
+        public Assembly Asm { get { return _Asm; } }
 
         [NonSerialized]
         private List<String> hasLoaded = new List<String>();
@@ -66,7 +63,7 @@ namespace NewLife.Reflection
                 {
                     hasLoaded.Add("Title");
 
-                    _Title = GetCustomAttributeValue<AssemblyTitleAttribute, String>();
+                    _Title = Asm.GetCustomAttributeValue<AssemblyTitleAttribute, String>();
                 }
                 return _Title;
             }
@@ -82,7 +79,7 @@ namespace NewLife.Reflection
                 {
                     hasLoaded.Add("FileVersion");
 
-                    _FileVersion = GetCustomAttributeValue<AssemblyFileVersionAttribute, String>();
+                    _FileVersion = Asm.GetCustomAttributeValue<AssemblyFileVersionAttribute, String>();
                 }
                 return _FileVersion;
             }
@@ -144,7 +141,7 @@ namespace NewLife.Reflection
                 {
                     hasLoaded.Add("Company");
 
-                    _Company = GetCustomAttributeValue<AssemblyCompanyAttribute, String>();
+                    _Company = Asm.GetCustomAttributeValue<AssemblyCompanyAttribute, String>();
                 }
                 return _Company;
             }
@@ -160,7 +157,7 @@ namespace NewLife.Reflection
                 {
                     hasLoaded.Add("Description");
 
-                    _Description = GetCustomAttributeValue<AssemblyDescriptionAttribute, String>();
+                    _Description = Asm.GetCustomAttributeValue<AssemblyDescriptionAttribute, String>();
                 }
                 return _Description;
             }
@@ -313,25 +310,17 @@ namespace NewLife.Reflection
         #endregion
 
         #region 获取特性
-        /// <summary>
-        /// 获取自定义属性
-        /// </summary>
+        /// <summary>获取自定义属性</summary>
         /// <typeparam name="TAttribute"></typeparam>
         /// <returns></returns>
-        public TAttribute GetCustomAttribute<TAttribute>()
-        {
-            TAttribute[] avs = Asm.GetCustomAttributes(typeof(TAttribute), true) as TAttribute[];
-            if (avs == null || avs.Length < 1) return default(TAttribute);
+        [Obsolete("=>Asm.GetCustomAttribute<TAttribute>")]
+        public TAttribute GetCustomAttribute<TAttribute>() { return Asm.GetCustomAttribute<TAttribute>(); }
 
-            return avs[0];
-        }
-
-        /// <summary>
-        /// 获取自定义属性的值。可用于ReflectionOnly加载的程序集
-        /// </summary>
+        /// <summary>获取自定义属性的值。可用于ReflectionOnly加载的程序集</summary>
         /// <typeparam name="TAttribute"></typeparam>
         /// <typeparam name="TResult"></typeparam>
         /// <returns></returns>
+        [Obsolete("=>Asm.GetCustomAttributeValue<TAttribute, TResult>")]
         public TResult GetCustomAttributeValue<TAttribute, TResult>()
         {
             IList<CustomAttributeData> list = CustomAttributeData.GetCustomAttributes(Asm);

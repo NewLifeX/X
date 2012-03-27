@@ -72,14 +72,14 @@ namespace XCode
             Description = description;
         }
 
-        /// <summary>
-        /// 检索应用于类型成员的自定义属性。
-        /// </summary>
-        /// <param name="element"></param>
-        /// <returns></returns>
-        public static BindTableAttribute GetCustomAttribute(MemberInfo element)
-        {
-            return GetCustomAttribute(element, typeof(BindTableAttribute)) as BindTableAttribute;
-        }
+        ///// <summary>
+        ///// 检索应用于类型成员的自定义属性。
+        ///// </summary>
+        ///// <param name="element"></param>
+        ///// <returns></returns>
+        //public static BindTableAttribute GetCustomAttribute(MemberInfo element)
+        //{
+        //    return GetCustomAttribute(element, typeof(BindTableAttribute)) as BindTableAttribute;
+        //}
     }
 }

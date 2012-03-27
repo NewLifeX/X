@@ -8,6 +8,7 @@ using System.Xml.Serialization;
 using NewLife.Collections;
 using NewLife.Configuration;
 using XCode.DataAccessLayer;
+using NewLife.Reflection;
 
 namespace XCode.Configuration
 {
@@ -221,15 +222,15 @@ namespace XCode.Configuration
         private TableItem(Type type)
         {
             _EntityType = type;
-            _Table = BindTableAttribute.GetCustomAttribute(EntityType);
+            _Table = type.GetCustomAttribute<BindTableAttribute>(true);
             if (_Table == null) throw new ArgumentOutOfRangeException("type", "类型" + type + "没有" + typeof(BindTableAttribute).Name + "特性！");
 
-            _Indexes = BindIndexAttribute.GetCustomAttributes(EntityType);
-            _Relations = BindRelationAttribute.GetCustomAttributes(EntityType);
+            _Indexes = type.GetCustomAttributes<BindIndexAttribute>(true);
+            _Relations = type.GetCustomAttributes<BindRelationAttribute>(true);
 
-            _Description = DescriptionAttribute.GetCustomAttribute(EntityType, typeof(DescriptionAttribute)) as DescriptionAttribute;
+            _Description = type.GetCustomAttribute<DescriptionAttribute>(true);
 
-            _ModelCheckMode = ModelCheckModeAttribute.GetCustomAttribute(EntityType);
+            _ModelCheckMode = type.GetCustomAttribute<ModelCheckModeAttribute>(true);
 
             InitFields();
         }
@@ -247,7 +248,7 @@ namespace XCode.Configuration
             //    throw new ArgumentOutOfRangeException("type", "类型" + type + "没有" + typeof(BindTableAttribute).Name + "特性！");
 
             // 不能给没有BindTableAttribute特性的类型创建TableItem，否则可能会在InitFields中抛出异常
-            return cache.GetItem(type, key => BindTableAttribute.GetCustomAttribute(key) != null ? new TableItem(key) : null);
+            return cache.GetItem(type, key => key.GetCustomAttribute<BindTableAttribute>(true) != null ? new TableItem(key) : null);
         }
 
         //Boolean hasInitFields = false;

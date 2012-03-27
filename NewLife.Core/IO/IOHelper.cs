@@ -4,7 +4,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Text;
 
-namespace NewLife.IO
+namespace System
 {
     /// <summary>IO工具类</summary>
     public static class IOHelper

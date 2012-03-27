@@ -584,7 +584,7 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public TResult GetCustomAttributeValue<TAttribute, TResult>()
         {
-            return AttributeX.GetCustomAttributeValue<TAttribute, TResult>(BaseType, true);
+            return BaseType.GetCustomAttributeValue<TAttribute, TResult>(true);
         }
 
         /// <summary>类型转换</summary>

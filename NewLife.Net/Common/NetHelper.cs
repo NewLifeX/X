@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Globalization;
 using System.Net;
 using System.Net.NetworkInformation;
@@ -9,8 +8,9 @@ using NewLife.Collections;
 using NewLife.Configuration;
 using NewLife.Linq;
 using NewLife.Log;
+using NewLife.Net;
 
-namespace NewLife.Net
+namespace System
 {
     /// <summary>网络工具类</summary>
     public static class NetHelper

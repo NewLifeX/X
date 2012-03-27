@@ -98,7 +98,7 @@ namespace NewLife.Net.SGIP
             // 写入长度
             writer.Write((UInt32)ms.Length);
             ms.Position = 0;
-            NewLife.IO.IOHelper.CopyTo(ms, stream);
+            ms.CopyTo(stream);
         }
 
         /// <summary>获取数据流</summary>

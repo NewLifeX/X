@@ -225,7 +225,7 @@ namespace NewLife.Xml
         /// <returns></returns>
         protected override bool OnReadItem(Type type, ref object value, Int32 index, ReadObjectCallback callback)
         {
-            String name = AttributeX.GetCustomAttributeValue<XmlRootAttribute, String>(type, true);
+            String name = type.GetCustomAttributeValue<XmlRootAttribute, String>(true);
             if (String.IsNullOrEmpty(name) && type != null) name = type.Name;
 
             if (Reader.NodeType == XmlNodeType.EndElement || Reader.Name != name) return false;

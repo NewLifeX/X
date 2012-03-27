@@ -33,10 +33,12 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“内部版本号”和“修订号”的默认值，
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("3.7.*")]
-[assembly: AssemblyFileVersion("3.7.2012.0307")]
+[assembly: AssemblyVersion("3.8.*")]
+[assembly: AssemblyFileVersion("3.8.2012.0328")]
 
 /*
+ * v3.8.2012.0328   所有扩展方法辅助类，全部使用System命名空间
+ * 
  * v3.7.2012.0307   简化消息提供者接口，消息模型相当不成熟
  *                  强化序列化框架，增加备份和恢复环境的机制
  *                  修正字典缓存中会导致带过期缓存永远过期的BUG

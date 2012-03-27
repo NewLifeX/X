@@ -64,23 +64,23 @@ namespace XCode
         #endregion
 
         #region 方法
-        /// <summary>
-        /// 检索应用于类型成员的自定义属性。
-        /// </summary>
-        /// <param name="element"></param>
-        /// <returns></returns>
-        public new static BindRelationAttribute[] GetCustomAttributes(MemberInfo element)
-        {
-            Attribute[] atts = GetCustomAttributes(element, typeof(BindRelationAttribute), true);
-            if (atts == null || atts.Length < 1) return null;
+        ///// <summary>
+        ///// 检索应用于类型成员的自定义属性。
+        ///// </summary>
+        ///// <param name="element"></param>
+        ///// <returns></returns>
+        //public new static BindRelationAttribute[] GetCustomAttributes(MemberInfo element)
+        //{
+        //    Attribute[] atts = GetCustomAttributes(element, typeof(BindRelationAttribute), true);
+        //    if (atts == null || atts.Length < 1) return null;
 
-            List<BindRelationAttribute> list = new List<BindRelationAttribute>();
-            foreach (Attribute item in atts)
-            {
-                list.Add(item as BindRelationAttribute);
-            }
-            return list.ToArray();
-        }
+        //    List<BindRelationAttribute> list = new List<BindRelationAttribute>();
+        //    foreach (Attribute item in atts)
+        //    {
+        //        list.Add(item as BindRelationAttribute);
+        //    }
+        //    return list.ToArray();
+        //}
 
         /// <summary>
         /// 填充索引
