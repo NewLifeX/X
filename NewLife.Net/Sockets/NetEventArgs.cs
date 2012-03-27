@@ -20,7 +20,7 @@ namespace NewLife.Net.Sockets
 
         private Int32 _Times;
         /// <summary>使用次数</summary>
-        public Int32 Times { get { return _Times; } set { _Times = value; } }
+        private Int32 Times { get { return _Times; } set { _Times = value; } }
 
         private Boolean _Used;
         /// <summary>使用中</summary>
@@ -29,7 +29,7 @@ namespace NewLife.Net.Sockets
         /// 一个正确的架构，是不会出现事件参数丢失或者被重用的情况。
         /// 所以，该属性主要作为对设计人员的限制，提醒设计人员架构上可能出现了问题。
         /// </remarks>
-        public Boolean Used { get { return _Used; } set { _Used = value; } }
+        private Boolean Used { get { return _Used; } set { _Used = value; } }
 
         private ISocket _Socket;
         /// <summary>当前对象的使用者，默认就是从对象池<see cref="SocketBase.Pool"/>中借出当前网络事件参数的那个SocketBase。
@@ -164,6 +164,56 @@ namespace NewLife.Net.Sockets
                 // 事件内有缓冲区时才清空，不管它多长，必须清空
                 if (Buffer != null) SetBuffer(null, 0, 0);
             }
+        }
+        #endregion
+
+        #region 对象池
+        private static ObjectPool<NetEventArgs> _Pool;
+        /// <summary>套接字事件参数池。静态，所有实例共享使用</summary>
+        static ObjectPool<NetEventArgs> Pool { get { return _Pool ?? (_Pool = new ObjectPool<NetEventArgs>() { Max = 1000 }); } }
+
+        /// <summary>从池里拿一个对象。回收原则参考<see cref="Push"/></summary>
+        /// <returns></returns>
+        public static NetEventArgs Pop()
+        {
+            NetEventArgs e = Pool.Pop();
+            if (e.Used) throw new Exception("才刚出炉，怎么可能使用中呢？");
+
+            e.Times++;
+            e.Used = true;
+
+            return e;
+        }
+
+        /// <summary>把对象归还到池里</summary>
+        /// <remarks>
+        /// 网络事件参数使用原则：
+        /// 1，得到者负责回收（通过方法参数得到）
+        /// 2，正常执行时自己负责回收，异常时顶级或OnError负责回收
+        /// 3，把回收责任交给别的方法
+        /// 4，事件订阅者不允许回收，不允许另作他用
+        /// </remarks>
+        /// <param name="e"></param>
+        public static void Push(NetEventArgs e)
+        {
+            if (e == null) return;
+            if (!e.Used) throw new Exception("准备回炉，怎么可能已经不再使用呢？");
+
+            e.Error = null;
+            e.UserToken = null;
+            e.Socket = null;
+            e.Session = null;
+            e.AcceptSocket = null;
+            e.RemoteEndPoint = null;
+            //e.Completed -= OnCompleted;
+            e._Completed = null;
+
+            // 清空缓冲区，避免事件池里面的对象占用内存
+            e.SetBuffer(0);
+
+            e.Used = false;
+
+            Pool.Push(e);
         }
         #endregion
 

@@ -6,7 +6,11 @@ using NewLife.Serialization;
 
 namespace NewLife.Net.Common
 {
-    /// <summary>网络地址标识</summary>
+    /// <summary>网络资源标识，指定协议、地址、端口、地址族（IPv4/IPv6）</summary>
+    /// <remarks>
+    /// 仅序列化<see cref="ProtocolType"/>和<see cref="Endpoint"/>，其它均是配角！
+    /// 有可能<see cref="Host"/>代表主机域名，而<see cref="Address"/>指定主机IP地址。
+    /// </remarks>
     public class NetUri : IAccessor
     {
         #region 属性
@@ -132,6 +136,7 @@ namespace NewLife.Net.Common
 
         bool IAccessor.ReadComplete(IReader reader, bool success)
         {
+            // 因为反序列化仅给字段复制，重新设置一下，保证Protocol等属性有值
             ProtocolType = ProtocolType;
             EndPoint = EndPoint;
 

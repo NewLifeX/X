@@ -240,7 +240,7 @@ namespace NewLife.Net.ModBus
 
         static Byte[] Read(Byte[] dt, Boolean isascii)
         {
-            using (var sp = new SerialPort(pname))
+            using (var sp = new SerialPort("COM1"))
             {
                 sp.ReadTimeout = sp.WriteTimeout = 500;
                 sp.Open();

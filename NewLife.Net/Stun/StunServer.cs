@@ -137,7 +137,7 @@ namespace NewLife.Net.Stun
                 // 是否需要发给伙伴
                 if (request.ChangeIP)
                 {
-                    if (Partner != null && !Partner.Equals(session.Host.GetRelativeEndPoint(Partner.Address)))
+                    if (Partner != null && !Partner.Equals(session.Host.LocalEndPoint.GetRelativeEndPoint(Partner.Address)))
                     {
                         // 发给伙伴
                         request.ChangeIP = false;

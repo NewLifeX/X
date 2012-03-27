@@ -39,9 +39,6 @@ namespace NewLife.Net.Sockets
         ///// <summary>数据字典</summary>
         //IDictionary Items { get; }
 
-        ///// <summary>是否已经释放</summary>
-        //Boolean Disposed { get; }
-
         /// <summary>接收数据包统计信息，默认关闭，通过<see cref="IStatistics.Enable"/>打开。</summary>
         IStatistics Statistics { get; }
 
@@ -55,22 +52,6 @@ namespace NewLife.Net.Sockets
 
         /// <summary>关闭网络操作</summary>
         void Close();
-
-        ///// <summary>从池里拿一个对象</summary>
-        //NetEventArgs Pop();
-
-        ///// <summary>把对象归还到池里</summary>
-        //void Push(NetEventArgs e);
-
-        /// <summary>获取相对于指定远程地址的本地地址</summary>
-        /// <param name="remote"></param>
-        /// <returns></returns>
-        IPAddress GetRelativeAddress(IPAddress remote);
-
-        /// <summary>获取相对于指定远程地址的本地地址</summary>
-        /// <param name="remote"></param>
-        /// <returns></returns>
-        IPEndPoint GetRelativeEndPoint(IPAddress remote);
         #endregion
 
         #region 事件

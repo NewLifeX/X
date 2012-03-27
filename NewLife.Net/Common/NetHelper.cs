@@ -105,20 +105,6 @@ namespace NewLife.Net
                 return new IPEndPoint(ParseAddress(address), defaultPort);
         }
 
-        ///// <summary>获取本地IPV4列表</summary>
-        ///// <returns></returns>
-        //public static List<IPAddress> GetIPV4()
-        //{
-        //    IPAddress[] IPList = Dns.GetHostAddresses(Dns.GetHostName());
-        //    List<IPAddress> list = new List<IPAddress>();
-        //    foreach (IPAddress item in IPList)
-        //    {
-        //        if (item.AddressFamily == AddressFamily.InterNetwork) list.Add(item);
-        //    }
-
-        //    return list;
-        //}
-
         /// <summary>针对IPv4和IPv6获取合适的Any地址</summary>
         /// <param name="address"></param>
         /// <param name="family"></param>
@@ -142,6 +128,40 @@ namespace NewLife.Net
         /// <param name="address"></param>
         /// <returns></returns>
         public static Boolean IsAny(this IPAddress address) { return IPAddress.Any.Equals(address) || IPAddress.IPv6Any.Equals(address); }
+
+        /// <summary>获取相对于指定远程地址的本地地址</summary>
+        /// <param name="address"></param>
+        /// <param name="remote"></param>
+        /// <returns></returns>
+        public static IPAddress GetRelativeAddress(this IPAddress address, IPAddress remote)
+        {
+            // 如果不是任意地址，直接返回
+            var addr = address;
+            if (addr == null || !addr.IsAny()) return addr;
+
+            // 如果是本地环回地址，返回环回地址
+            if (IPAddress.IsLoopback(remote))
+                return addr.AddressFamily == AddressFamily.InterNetwork ? IPAddress.Loopback : IPAddress.IPv6Loopback;
+
+            // 否则返回本地第一个IP地址
+            foreach (var item in NetHelper.GetIPs())
+            {
+                if (item.AddressFamily == addr.AddressFamily) return item;
+            }
+            return null;
+        }
+
+        /// <summary>获取相对于指定远程地址的本地地址</summary>
+        /// <param name="address"></param>
+        /// <param name="remote"></param>
+        /// <returns></returns>
+        public static IPEndPoint GetRelativeEndPoint(this IPEndPoint local, IPAddress remote)
+        {
+            if (local == null || remote == null) return local;
+
+            var addr = GetRelativeAddress(local.Address, remote);
+            return addr == null ? local : new IPEndPoint(addr, local.Port);
+        }
 
         /// <summary>指定地址的指定端口是否已被使用，似乎没办法判断IPv6地址</summary>
         /// <param name="protocol"></param>

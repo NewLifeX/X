@@ -178,6 +178,7 @@
     <Compile Include="Sockets\NetSession.cs" />
     <Compile Include="Sockets\SocketBase.cs" />
     <Compile Include="Sockets\SocketClient.cs" />
+    <Compile Include="Sockets\SocketPool.cs" />
     <Compile Include="Sockets\SocketServer.cs" />
     <Compile Include="Sockets\NetEventArgs.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

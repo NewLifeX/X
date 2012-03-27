@@ -17,8 +17,13 @@ namespace NewLife.Net.Sockets
     /// <summary>Socket基类</summary>
     /// <remarks>
     /// 主要是对Socket封装一层，把所有异步操作结果转移到事件中<see cref="Completed"/>去。
-    /// 参数池<see cref="Pool"/>维护这所有事件参数，借出<see cref="Pop"/>时挂接<see cref="Completed"/>事件，
+    /// 参数池维护这所有事件参数，借出<see cref="Pop"/>时挂接<see cref="Completed"/>事件，
     /// 归还<see cref="Push"/>时，取消<see cref="Completed"/>事件。
+    /// 
+    /// 网络模型处理流程
+    /// 1，实例化对象，Socket属性为空，可以由外部赋值。此时可以设置协议和监听地址端口等。
+    /// 2，如果外部没有给Socket赋值，EnsureCreate构造Socket。此时可以给Socket设置各种参数。
+    /// 3，使用Bind绑定本地监听地址和端口。到此完成了初始化的所有工作。
     /// </remarks>
     public class SocketBase : Netbase, ISocket
     {
@@ -30,15 +35,7 @@ namespace NewLife.Net.Sockets
             get { return _Socket; }
             set
             {
-                if (value != null)
-                {
-                    if (_Socket != value)
-                    {
-                        _LocalEndPoint = null;
-                        _RemoteEndPoint = null;
-                    }
-                    OnSocketChange(value);
-                }
+                if (value != null) _LocalUri = _RemoteUri = null;
 
                 _Socket = value;
             }
@@ -47,106 +44,71 @@ namespace NewLife.Net.Sockets
         /// <summary>基础Socket对象</summary>
         Socket ISocket.Socket { get { return Socket; } set { Socket = value; } }
 
-        private ProtocolType _ProtocolType = ProtocolType.Tcp;
         /// <summary>协议类型</summary>
-        public virtual ProtocolType ProtocolType { get { return _ProtocolType; } }
+        public virtual ProtocolType ProtocolType { get { return LocalUri.ProtocolType; } }
 
-        private IPAddress _Address = IPAddress.Any;
         /// <summary>监听本地地址</summary>
-        public IPAddress Address
-        {
-            get
-            {
-                var socket = Socket;
-                try
-                {
-                    if (socket != null && socket.LocalEndPoint is IPEndPoint) _Address = (socket.LocalEndPoint as IPEndPoint).Address;
-                }
-                catch (ObjectDisposedException) { }
+        public IPAddress Address { get { return LocalUri.Address; } set { LocalUri.Address = value; } }
 
-                return _Address;
-            }
-            set
-            {
-                _Address = value;
-                if (value != null) AddressFamily = value.AddressFamily;
-            }
-        }
-
-        private Int32 _Port;
         /// <summary>监听本地端口</summary>
-        public Int32 Port
-        {
-            get
-            {
-                var socket = Socket;
-                try
-                {
-                    if (socket != null && socket.LocalEndPoint is IPEndPoint) _Port = (socket.LocalEndPoint as IPEndPoint).Port;
-                }
-                catch (ObjectDisposedException) { }
+        public Int32 Port { get { return LocalUri.Port; } set { LocalUri.Port = value; } }
 
-                return _Port;
-            }
-            set { _Port = value; }
-        }
-
-        private AddressFamily _AddressFamily = AddressFamily.InterNetwork;
         /// <summary>本地地址族</summary>
         public AddressFamily AddressFamily
         {
-            get { return _AddressFamily; }
+            get { return Address.AddressFamily; }
             set
             {
-                _AddressFamily = value;
-
                 // 根据地址族选择合适的本地地址
-                _Address = _Address.GetRightAny(value);
+                LocalUri.Address = LocalUri.Address.GetRightAny(value);
             }
         }
 
-        private IPEndPoint _LocalEndPoint;
         /// <summary>本地终结点</summary>
-        public IPEndPoint LocalEndPoint
+        public IPEndPoint LocalEndPoint { get { return LocalUri.EndPoint; } }
+
+        /// <summary>远程终结点</summary>
+        public IPEndPoint RemoteEndPoint { get { return RemoteUri.EndPoint; } }
+
+        private NetUri _LocalUri;
+        /// <summary>本地地址</summary>
+        public NetUri LocalUri
         {
             get
             {
-                if (_LocalEndPoint != null) return _LocalEndPoint;
+                if (_LocalUri != null) return _LocalUri;
 
+                var uri = new NetUri();
                 var socket = Socket;
                 try
                 {
-                    if (socket != null) _LocalEndPoint = socket.LocalEndPoint as IPEndPoint;
+                    if (socket != null) uri.EndPoint = socket.LocalEndPoint as IPEndPoint;
                 }
                 catch (ObjectDisposedException) { }
 
-                return _LocalEndPoint ?? new IPEndPoint(Address, Port);
+                return _LocalUri = uri;
             }
         }
 
-        private IPEndPoint _RemoteEndPoint;
-        /// <summary>远程终结点</summary>
-        public IPEndPoint RemoteEndPoint
+        private NetUri _RemoteUri;
+        /// <summary>远程地址</summary>
+        public NetUri RemoteUri
         {
             get
             {
-                if (_RemoteEndPoint != null) return _RemoteEndPoint;
+                if (_RemoteUri != null) return _RemoteUri;
 
+                var uri = new NetUri();
                 var socket = Socket;
-                if (socket != null && socket.Connected)
+                try
                 {
-                    _RemoteEndPoint = socket.RemoteEndPoint as IPEndPoint;
+                    if (socket != null && socket.Connected) uri.EndPoint = socket.RemoteEndPoint as IPEndPoint;
                 }
+                catch (ObjectDisposedException) { }
 
-                return _RemoteEndPoint;
+                return _RemoteUri = uri;
             }
         }
-
-        /// <summary>本地地址</summary>
-        public NetUri LocalUri { get { return new NetUri(ProtocolType, LocalEndPoint); } }
-
-        /// <summary>远程地址</summary>
-        public NetUri RemoteUri { get { return new NetUri(ProtocolType, RemoteEndPoint); } }
 
         //private Int32 _BufferSize = 10240;
         //! 注意：大于85K会进入LOH（大对象堆）
@@ -173,42 +135,12 @@ namespace NewLife.Net.Sockets
                 if (Socket == null) return _ReuseAddress;
 
                 Object value = Socket.GetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress);
-                return Convert.ToBoolean(value);
+                return value != null && Convert.ToBoolean(value);
             }
             set
             {
                 if (Socket != null) Socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, value);
                 _ReuseAddress = value;
-            }
-        }
-
-        private static MemberInfoX[] _mSafeHandle;
-        /// <summary>SafeHandle字段</summary>
-        private static MemberInfoX mSafeHandle
-        {
-            get
-            {
-                if (_mSafeHandle != null && _mSafeHandle.Length > 0) return _mSafeHandle[0];
-
-                MemberInfoX pix = FieldInfoX.Create(typeof(Socket), "m_Handle");
-                if (pix == null) pix = PropertyInfoX.Create(typeof(Socket), "SafeHandle");
-                _mSafeHandle = new MemberInfoX[] { pix };
-
-                return pix;
-            }
-        }
-
-        /// <summary>安全句柄</summary>
-        private SafeHandle SafeHandle
-        {
-            get
-            {
-                if (Socket == null) return null;
-
-                var pix = mSafeHandle;
-                if (pix != null) return pix.GetValue(Socket) as SafeHandle;
-
-                return null;
             }
         }
 
@@ -248,7 +180,7 @@ namespace NewLife.Net.Sockets
         {
             var e = new NetEventArgs();
             //(e as IDisposable).Dispose();
-            e.Used = true;
+            e.AcceptSocket = null;
         }
 
         /// <summary>实例化</summary>
@@ -301,6 +233,36 @@ namespace NewLife.Net.Sockets
                 _Statistics = null;
             }
         }
+
+        private static MemberInfoX[] _mSafeHandle;
+        /// <summary>SafeHandle字段</summary>
+        private static MemberInfoX mSafeHandle
+        {
+            get
+            {
+                if (_mSafeHandle != null && _mSafeHandle.Length > 0) return _mSafeHandle[0];
+
+                MemberInfoX pix = FieldInfoX.Create(typeof(Socket), "m_Handle");
+                if (pix == null) pix = PropertyInfoX.Create(typeof(Socket), "SafeHandle");
+                _mSafeHandle = new MemberInfoX[] { pix };
+
+                return pix;
+            }
+        }
+
+        /// <summary>安全句柄</summary>
+        private SafeHandle SafeHandle
+        {
+            get
+            {
+                if (Socket == null) return null;
+
+                var pix = mSafeHandle;
+                if (pix != null) return pix.GetValue(Socket) as SafeHandle;
+
+                return null;
+            }
+        }
         #endregion
 
         #region 方法
@@ -309,23 +271,28 @@ namespace NewLife.Net.Sockets
         {
             if (Socket != null || Disposed) return;
 
+            Socket socket = null;
+            var addrf = AddressFamily;
+            var protocol = ProtocolType;
             switch (ProtocolType)
             {
                 case ProtocolType.Tcp:
-                    Socket = new Socket(AddressFamily, SocketType.Stream, ProtocolType);
-                    Socket.SetTcpKeepAlive(true);
+                    socket = new Socket(addrf, SocketType.Stream, protocol);
+                    socket.SetTcpKeepAlive(true);
                     break;
                 case ProtocolType.Udp:
-                    Socket = new Socket(AddressFamily, SocketType.Dgram, ProtocolType);
+                    socket = new Socket(addrf, SocketType.Dgram, protocol);
                     break;
                 default:
-                    Socket = new Socket(AddressFamily, SocketType.Unknown, ProtocolType);
+                    socket = new Socket(addrf, SocketType.Unknown, protocol);
                     break;
             }
 
             // 设置超时时间
-            Socket.SendTimeout = 10000;
-            Socket.ReceiveTimeout = 10000;
+            socket.SendTimeout = 10000;
+            socket.ReceiveTimeout = 10000;
+
+            Socket = socket;
 
             if (_ReuseAddress) ReuseAddress = true;
         }
@@ -339,65 +306,7 @@ namespace NewLife.Net.Sockets
             {
                 socket.Bind(new IPEndPoint(Address, Port));
 
-                OnSocketChange(socket);
-            }
-        }
-
-        /// <summary>获取相对于指定远程地址的本地地址</summary>
-        /// <param name="remote"></param>
-        /// <returns></returns>
-        public IPAddress GetRelativeAddress(IPAddress remote)
-        {
-            // 如果不是任意地址，直接返回
-            var addr = LocalEndPoint.Address;
-            if (!addr.IsAny()) return addr;
-
-            // 如果是本地环回地址，返回环回地址
-            if (IPAddress.IsLoopback(remote))
-                return addr.AddressFamily == AddressFamily.InterNetwork ? IPAddress.Loopback : IPAddress.IPv6Loopback;
-
-            // 否则返回本地第一个IP地址
-            foreach (var item in NetHelper.GetIPs())
-            {
-                if (item.AddressFamily == addr.AddressFamily) return item;
-            }
-            return null;
-        }
-
-        /// <summary>获取相对于指定远程地址的本地地址</summary>
-        /// <param name="remote"></param>
-        /// <returns></returns>
-        public IPEndPoint GetRelativeEndPoint(IPAddress remote)
-        {
-            var addr = GetRelativeAddress(remote);
-            return addr == null ? LocalEndPoint : new IPEndPoint(addr, LocalEndPoint.Port);
-        }
-
-        void OnSocketChange(Socket socket)
-        {
-            if (socket == null) return;
-
-            _ProtocolType = socket.ProtocolType;
-            _AddressFamily = socket.AddressFamily;
-
-            if (_LocalEndPoint == null)
-            {
-                try
-                {
-                    var ep = socket.LocalEndPoint as IPEndPoint;
-                    if (ep != null)
-                    {
-                        _Address = ep.Address;
-                        _Port = ep.Port;
-                    }
-                    _LocalEndPoint = ep;
-                }
-                catch (ObjectDisposedException) { }
-            }
-
-            if (_RemoteEndPoint == null)
-            {
-                if (socket.Connected) _RemoteEndPoint = socket.RemoteEndPoint as IPEndPoint;
+                _LocalUri = _RemoteUri = null;
             }
         }
 
@@ -439,26 +348,16 @@ namespace NewLife.Net.Sockets
         }
         #endregion
 
-        #region 套接字事件参数池
-        private static ObjectPool<NetEventArgs> _Pool;
-        /// <summary>套接字事件参数池。静态，所有实例共享使用</summary>
-        static ObjectPool<NetEventArgs> Pool { get { return _Pool ?? (_Pool = new ObjectPool<NetEventArgs>() { Max = 1000 }); } }
-
+        #region 完成事件
         /// <summary>从池里拿一个对象。回收原则参考<see cref="Push"/></summary>
         /// <returns></returns>
         public NetEventArgs Pop()
         {
-            NetEventArgs e = Pool.Pop();
-            if (e.Used) throw new Exception("才刚出炉，怎么可能使用中呢？");
+            var e = NetEventArgs.Pop();
 
             e.AcceptSocket = Socket;
-            //e.UserToken = this;
             e.Socket = this;
             e.Completed += OnCompleted;
-            //if (e.Buffer == null) e.SetBuffer(BufferSize);
-
-            e.Times++;
-            e.Used = true;
 
             return e;
         }
@@ -472,36 +371,14 @@ namespace NewLife.Net.Sockets
         /// 4，事件订阅者不允许回收，不允许另作他用
         /// </remarks>
         /// <param name="e"></param>
-        public void Push(NetEventArgs e)
-        {
-            if (e == null) return;
-            if (!e.Used) throw new Exception("准备回炉，怎么可能已经不再使用呢？");
+        public void Push(NetEventArgs e) { NetEventArgs.Push(e); }
 
-            e.Error = null;
-            e.UserToken = null;
-            e.Socket = null;
-            e.Session = null;
-            e.AcceptSocket = null;
-            e.RemoteEndPoint = null;
-            e.Completed -= OnCompleted;
-
-            // 清空缓冲区，避免事件池里面的对象占用内存
-            e.SetBuffer(0);
-
-            e.Used = false;
-
-            Pool.Push(e);
-        }
-        #endregion
-
-        #region 完成事件
         /// <summary>完成事件，将在工作线程中被调用，不要占用太多时间。</summary>
         public event EventHandler<NetEventArgs> Completed;
 
         private void OnCompleted(Object sender, SocketAsyncEventArgs e)
         {
             // 异步完成，减少一个计数
-            //AsyncCount--;
             Interlocked.Decrement(ref _AsyncCount);
 
             if (e is NetEventArgs)
@@ -540,36 +417,11 @@ namespace NewLife.Net.Sockets
             }
         }
 
-        private Boolean _ShowEventLog;
-        /// <summary>是否显示事件日志</summary>
-        public Boolean ShowEventLog { get { return _ShowEventLog; } set { _ShowEventLog = value; } }
-
-        [Conditional("DEBUG")]
-        void SetShowEventLog() { ShowEventLog = true; }
-
-        void ShowEvent(NetEventArgs e)
-        {
-            //WriteLog("Completed[{4}] {0} {1} {2} [{3}]", this, e.LastOperation, e.SocketError, e.BytesTransferred, e.ID);
-            var sb = new StringBuilder();
-            sb.AppendFormat("[{0}] {1}://{2}", e.ID, ProtocolType, LocalEndPoint);
-            var ep = e.RemoteIPEndPoint;
-            if (ep == null || ep.Address.IsAny()) ep = RemoteEndPoint;
-            if ((ep == null || ep.Address.IsAny()) && e.LastOperation == SocketAsyncOperation.Accept && e.AcceptSocket != null) ep = e.AcceptSocket.RemoteEndPoint as IPEndPoint;
-            if (ep != null && !ep.Address.IsAny()) sb.AppendFormat("=>{0}", ep);
-            sb.AppendFormat(" {0}", e.LastOperation);
-            if (e.SocketError != SocketError.Success) sb.AppendFormat(" {0}", e.SocketError);
-            sb.AppendFormat(" [{0}]", e.BytesTransferred);
-            WriteLog(sb.ToString());
-        }
-
         /// <summary>异步触发完成事件处理程序</summary>
         /// <param name="e"></param>
         protected void RaiseCompleteAsync(NetEventArgs e)
         {
-            ThreadPool.QueueUserWorkItem(delegate(Object state)
-            {
-                RaiseComplete(state as NetEventArgs);
-            }, e);
+            ThreadPool.QueueUserWorkItem(state => RaiseComplete(state as NetEventArgs), e);
         }
 
         /// <summary>完成事件分发中心。
@@ -691,6 +543,28 @@ namespace NewLife.Net.Sockets
             //{
             //    WriteLog("接收的实际数据大小{0}超过了缓冲区大小，需要根据真实MTU调整缓冲区大小以提高效率！", n);
             //}
+        }
+
+        private Boolean _ShowEventLog;
+        /// <summary>是否显示事件日志</summary>
+        public Boolean ShowEventLog { get { return _ShowEventLog; } set { _ShowEventLog = value; } }
+
+        [Conditional("DEBUG")]
+        void SetShowEventLog() { ShowEventLog = true; }
+
+        void ShowEvent(NetEventArgs e)
+        {
+            //WriteLog("Completed[{4}] {0} {1} {2} [{3}]", this, e.LastOperation, e.SocketError, e.BytesTransferred, e.ID);
+            var sb = new StringBuilder();
+            sb.AppendFormat("[{0}] {1}://{2}", e.ID, ProtocolType, LocalEndPoint);
+            var ep = e.RemoteIPEndPoint;
+            if (ep == null || ep.Address.IsAny()) ep = RemoteEndPoint;
+            if ((ep == null || ep.Address.IsAny()) && e.LastOperation == SocketAsyncOperation.Accept && e.AcceptSocket != null) ep = e.AcceptSocket.RemoteEndPoint as IPEndPoint;
+            if (ep != null && !ep.Address.IsAny()) sb.AppendFormat("=>{0}", ep);
+            sb.AppendFormat(" {0}", e.LastOperation);
+            if (e.SocketError != SocketError.Success) sb.AppendFormat(" {0}", e.SocketError);
+            sb.AppendFormat(" [{0}]", e.BytesTransferred);
+            WriteLog(sb.ToString());
         }
 
         /// <summary>已重载。</summary>

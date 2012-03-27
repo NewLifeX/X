@@ -10,15 +10,7 @@ namespace NewLife.Net.Sockets
     {
         #region 属性
         /// <summary>基础Socket对象</summary>
-        public Socket Server
-        {
-            get
-            {
-                if (Socket == null) EnsureCreate();
-                return Socket;
-            }
-            set { Socket = value; }
-        }
+        public Socket Server { get { if (Socket == null) EnsureCreate(); return Socket; } set { Socket = value; } }
         #endregion
 
         #region 构造
