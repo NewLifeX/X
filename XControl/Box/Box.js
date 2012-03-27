@@ -643,6 +643,7 @@ function ShowDialog(options){
         dialog[o]=options[o];
     }
     if(typeof dialog.BeforeShow === 'function'){
+        //返回false 终止打开窗口
         if(dialog.BeforeShow()==false) return;
     }
 
