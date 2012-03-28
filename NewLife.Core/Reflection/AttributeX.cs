@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Reflection;
 using NewLife.Reflection;
+using NewLife.Collections;
 
 namespace System
 {
@@ -8,8 +9,7 @@ namespace System
     public static class AttributeX
     {
         #region 静态方法
-        private static Dictionary<MemberInfo, Object> _micache1 = new Dictionary<MemberInfo, Object>();
-        private static Dictionary<MemberInfo, Object> _micache2 = new Dictionary<MemberInfo, Object>();
+        private static DictionaryCache<String, Object> _miCache = new DictionaryCache<String, Object>();
 
         /// <summary>获取自定义特性，带有缓存功能，避免因.Net内部GetCustomAttributes没有缓存而带来的损耗</summary>
         /// <typeparam name="TAttribute"></typeparam>
@@ -20,20 +20,13 @@ namespace System
         {
             if (member == null) return new TAttribute[0];
 
-            // 根据是否可继承，分属两个缓存集合
-            var cache = inherit ? _micache1 : _micache2;
+            var key = String.Format("{0}_{1}_{2}_{3}", member.DeclaringType.FullName, member.Name, typeof(TAttribute).FullName, inherit);
 
-            Object obj = null;
-            if (cache.TryGetValue(member, out obj)) return (TAttribute[])obj;
-            lock (cache)
+            return (TAttribute[])_miCache.GetItem<MemberInfo, Boolean>(key, member, inherit, (k, m, h) =>
             {
-                if (cache.TryGetValue(member, out obj)) return (TAttribute[])obj;
-
-                var atts = member.GetCustomAttributes(typeof(TAttribute), inherit) as TAttribute[];
-                var att = atts == null ? new TAttribute[0] : atts;
-                cache[member] = att;
-                return att;
-            }
+                var atts = m.GetCustomAttributes(typeof(TAttribute), h) as TAttribute[];
+                return atts == null ? new TAttribute[0] : atts;
+            });
         }
 
         /// <summary>获取自定义属性</summary>
@@ -49,7 +42,7 @@ namespace System
             return atts[0];
         }
 
-        private static Dictionary<Assembly, Object> _micache3 = new Dictionary<Assembly, Object>();
+        private static DictionaryCache<String, Object> _asmCache = new DictionaryCache<String, Object>();
 
         /// <summary>获取自定义属性，带有缓存功能，避免因.Net内部GetCustomAttributes没有缓存而带来的损耗</summary>
         /// <typeparam name="TAttribute"></typeparam>
@@ -59,21 +52,13 @@ namespace System
         {
             if (assembly == null) return new TAttribute[0];
 
-            // 根据是否可继承，分属两个缓存集合
-            var cache = _micache3;
+            var key = String.Format("{0}_{1}", assembly.FullName, typeof(TAttribute).FullName);
 
-            Object obj = null;
-            if (cache.TryGetValue(assembly, out obj)) return (TAttribute[])obj;
-            lock (cache)
+            return (TAttribute[])_asmCache.GetItem<Assembly>(key, assembly, (k, m) =>
             {
-                if (cache.TryGetValue(assembly, out obj)) return (TAttribute[])obj;
-
-                // GetCustomAttributes的第二参数会被忽略
-                var atts = assembly.GetCustomAttributes(typeof(TAttribute), true) as TAttribute[];
-                var att = atts == null ? new TAttribute[0] : atts;
-                cache[assembly] = att;
-                return att;
-            }
+                var atts = m.GetCustomAttributes(typeof(TAttribute), true) as TAttribute[];
+                return atts == null ? new TAttribute[0] : atts;
+            });
         }
 
         /// <summary>获取自定义属性</summary>
