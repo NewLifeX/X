@@ -21,7 +21,7 @@ namespace System
             if (member == null) return new TAttribute[0];
 
             //var type = (member as Type) ?? member.DeclaringType ?? member.ReflectedType;
-            var key = String.Format("{0}_{1}_{2}_{3}", member.MetadataToken, typeof(TAttribute).FullName, inherit);
+            var key = String.Format("{0}_{1}_{2}", member.MetadataToken, typeof(TAttribute).FullName, inherit);
 
             return (TAttribute[])_miCache.GetItem<MemberInfo, Boolean>(key, member, inherit, (k, m, h) =>
             {
