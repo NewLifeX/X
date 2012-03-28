@@ -29,7 +29,7 @@ namespace Test2
                 try
                 {
 #endif
-                    Test3();
+                Test3();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -186,17 +186,24 @@ namespace Test2
             //session.Send(e.Buffer, e.Offset, e.BytesTransferred, e.RemoteEndPoint);
         }
 
-        static String pname = "COM1";
+        static String pname;
         static void Test3()
         {
-            //Console.WriteLine("任意键开始测试：");
-            //Console.ReadKey(true);
+            Console.ReadKey(true);
+            using (var sp = new SerialPort("COM11"))
+            {
+                sp.Open();
+                for (int i = 0; i < 100; i++)
+                {
+                    var dt = i % 2 == 0 ? new Byte[] { 0 } : new Byte[] { 1 };
+                    Console.WriteLine(dt[0]);
+                    sp.Write(dt, 0, dt.Length);
+                    Thread.Sleep(1000);
+                }
+            }
 
-            //Console.WriteLine("点动开始");
-
-            //Byte crc = 0x12;
-            //crc = (Byte)~crc;
-            //Console.WriteLine(crc);
+            Console.WriteLine("任意键开始测试：");
+            Console.ReadKey(true);
 
             Console.Write("发现串口：");
             foreach (var item in SerialPort.GetPortNames())
@@ -294,19 +301,7 @@ namespace Test2
             msg.DataAddress = addr;
             msg.Data = data;
 
-            var dt = msg.GetStream().ReadBytes();
-            if (msg.IsAscii)
-                Console.WriteLine("发送：{0}", Encoding.ASCII.GetString(dt));
-            else
-                Console.WriteLine("发送：{0}", BitConverter.ToString(dt));
-
-            using (var sp = new SerialPort(pname))
-            {
-                sp.ReadTimeout = sp.WriteTimeout = 500;
-                sp.Open();
-                //sp.DiscardOutBuffer();
-                sp.Write(dt, 0, dt.Length);
-            }
+            var rs = MBEntity.Process(msg, null, pname);
         }
 
         static UInt16 Read(Byte host, UInt16 addr, UInt16 len = 1)
@@ -318,16 +313,11 @@ namespace Test2
             msg.DataAddress = addr;
             msg.DataLength = len;
 
-            var dt = msg.GetStream().ReadBytes();
-
-            dt = Read(dt, msg.IsAscii);
-            if (dt == null || dt.Length < 1) return 0;
-
-            var ms = new MemoryStream(dt);
-            var rs = MBEntity.Read<ReadRegisterResponse>(ms, msg.UseAddress, msg.IsAscii);
+            var rs = msg.Process<ReadRegisterResponse>(null, pname);
+            //var rs = MBEntity.Read<ReadRegisterResponse>(ms, msg.UseAddress, msg.IsAscii);
             if (rs != null)
             {
-                dt = rs.Data;
+                var dt = rs.Data;
                 Array.Reverse(dt);
                 return BitConverter.ToUInt16(dt, 0);
             }
@@ -341,54 +331,8 @@ namespace Test2
             msg.Function = MBFunction.Diagnostics;
             msg.ExtendData = new Byte[] { 0x00, 0x00, 0x12, 0xAB };
 
-            var dt = msg.GetStream().ReadBytes();
-
-            var data = Read(dt, msg.IsAscii);
-            if (data == null || data.Length < 1) return false;
-
-            var ms = new MemoryStream(data);
-            var rs = MBEntity.Read(ms, msg.UseAddress, msg.IsAscii);
+            var rs = MBEntity.Process(msg, null, pname);
             return rs != null && rs.ExtendData.CompareTo(msg.ExtendData) == 0;
-        }
-
-        static Byte[] Read(Byte[] dt, Boolean isascii)
-        {
-            using (var sp = new SerialPort(pname))
-            {
-                sp.ReadTimeout = sp.WriteTimeout = 500;
-                sp.Open();
-                //sp.DiscardInBuffer();
-                //sp.DiscardOutBuffer();
-
-                if (isascii)
-                    Console.WriteLine("发送：{0}", Encoding.ASCII.GetString(dt));
-                else
-                    Console.WriteLine("发送：{0}", BitConverter.ToString(dt));
-                sp.Write(dt, 0, dt.Length);
-
-                dt = new Byte[100];
-                Int32 i = 0;
-                do
-                {
-                    try
-                    {
-                        var count = sp.Read(dt, i, dt.Length - i);
-                        i += count;
-                    }
-                    catch { }
-                    //if (i >= dt.Length) break;
-                    //Thread.Sleep(1000);
-                } while (i < dt.Length && sp.BytesToRead > 0);
-                if (i <= 0) return null;
-
-                //Console.WriteLine("收到数据：{0}", i);
-                var data = new Byte[i];
-                //dt.CopyTo(data, 0);
-                Buffer.BlockCopy(dt, 0, data, 0, data.Length);
-                Console.WriteLine("接收：{0}", BitConverter.ToString(data));
-
-                return data;
-            }
         }
     }
 }

@@ -246,12 +246,23 @@ namespace NewLife.Net.ModBus
 
         #region 业务处理
         /// <summary>处理消息，通过数据回调来发出或收回数据</summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="callback">用于处理数据的回调方法，其中第二个参数是用户变量。
+        /// 回调方法为空时，默认采用串口通信，用户变量指定串口对象或串口名，不指定时采用COM1</param>
+        /// <param name="state">需要传递给回调方法的用户变量</param>
+        /// <returns></returns>
+        public T Process<T>(Func<Byte[], Object, Byte[]> callback = null, Object state = null) where T : MBEntity
+        {
+            return (T)Process(this, callback, state);
+        }
+
+        /// <summary>处理消息，通过数据回调来发出或收回数据</summary>
         /// <param name="request">需要发出的请求消息</param>
         /// <param name="callback">用于处理数据的回调方法，其中第二个参数是用户变量。
         /// 回调方法为空时，默认采用串口通信，用户变量指定串口对象或串口名，不指定时采用COM1</param>
         /// <param name="state">需要传递给回调方法的用户变量</param>
         /// <returns></returns>
-        public static MBEntity Process(MBEntity request, Func<Byte[], Object, Byte[]> callback, Object state)
+        public static MBEntity Process(MBEntity request, Func<Byte[], Object, Byte[]> callback = null, Object state = null)
         {
             var dt = request.GetStream().ReadBytes();
             if (request.IsAscii)
@@ -259,6 +270,7 @@ namespace NewLife.Net.ModBus
             else
                 WriteLog("发送：{0}", BitConverter.ToString(dt));
 
+            if (callback == null) callback = ReadSerialPort;
             var data = callback(dt, state);
             if (data == null || data.Length < 1) return null;
 
@@ -268,7 +280,7 @@ namespace NewLife.Net.ModBus
             return Read(ms, true, request.UseAddress, request.IsAscii);
         }
 
-        static Byte[] Read(Byte[] dt, Object state)
+        static Byte[] ReadSerialPort(Byte[] dt, Object state)
         {
             var sp = state as SerialPort;
             if (sp == null)
