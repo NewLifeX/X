@@ -189,21 +189,21 @@ namespace Test2
         static String pname;
         static void Test3()
         {
-            Console.ReadKey(true);
-            using (var sp = new SerialPort("COM11"))
-            {
-                sp.Open();
-                for (int i = 0; i < 100; i++)
-                {
-                    var dt = i % 2 == 0 ? new Byte[] { 0 } : new Byte[] { 1 };
-                    Console.WriteLine(dt[0]);
-                    sp.Write(dt, 0, dt.Length);
-                    Thread.Sleep(1000);
-                }
-            }
+            //Console.ReadKey(true);
+            //using (var sp = new SerialPort("COM11"))
+            //{
+            //    sp.Open();
+            //    for (int i = 0; i < 100; i++)
+            //    {
+            //        var dt = i % 2 == 0 ? new Byte[] { 0 } : new Byte[] { 1 };
+            //        Console.WriteLine(dt[0]);
+            //        sp.Write(dt, 0, dt.Length);
+            //        Thread.Sleep(1000);
+            //    }
+            //}
 
-            Console.WriteLine("任意键开始测试：");
-            Console.ReadKey(true);
+            //Console.WriteLine("任意键开始测试：");
+            //Console.ReadKey(true);
 
             Console.Write("发现串口：");
             foreach (var item in SerialPort.GetPortNames())
@@ -220,32 +220,61 @@ namespace Test2
             Console.WriteLine("连接状态：{0}", isonline);
             if (!isonline) return;
 
-            //Read(host, 0x0401, 2);
-            //Write(host, 0x0109, 0x1388);
-            //Read(host, 0x3016, 1);
-            //Write(0x0100, 1);
-            //Write(0x0101, 1);
-            Console.WriteLine("内部伺服使能");
-            Write(host, 0x0103, 1);
+            //Console.WriteLine("内部伺服使能");
+            //Write(host, 0x0103, 1);
 
-            Console.WriteLine("开始读取寄存器状态：");
-            for (int i = 0; i < 4; i += 2)
+            //Console.WriteLine("开始读取寄存器状态：");
+            //for (int i = 0; i < 4; i += 2)
+            //{
+            //    for (int j = i * 10; j < 5 + i * 10; j++)
+            //    {
+            //        Console.Write("P{0}{1:00}=", (Char)('A' + i), j);
+            //        Int16 r = 0;
+            //        try
+            //        {
+            //            r = Read(host, (UInt16)((i + 1) * 0x100 + j));
+            //        }
+            //        catch { }
+            //        Console.WriteLine(r);
+            //    }
+            //}
+            ShowStatus(host);
+
+            //Console.WriteLine("任意键停机...");
+            //Console.ReadKey(true);
+
+            //Console.WriteLine("停机");
+            //Write(host, 0x0103, 0);
+
+            Console.WriteLine("任意键开始点动测试...");
+            Console.ReadKey(true);
+
+            Console.WriteLine("点动开始");
+            Write(host, 0x1000, 1);
+            for (int i = 0; i < 10; i++)
             {
-                for (int j = i * 10; j < 5 + i * 10; j++)
-                {
-                    Console.Write("P{0}{1:00}=", (Char)('A' + i), j);
-                    UInt16 r = 0;
-                    try
-                    {
-                        r = Read(host, (UInt16)((i + 1) * 0x100 + j));
-                    }
-                    catch { }
-                    Console.WriteLine(r);
-                }
+                Write(host, 0x1000, 2);
+                Thread.Sleep(10);
+                ShowStatus(host);
+                Write(host, 0x1000, 4);
+                Thread.Sleep(2000);
+                ShowStatus(host);
             }
 
+            //Thread.Sleep(3000);
+            Console.WriteLine("任意键结束点动测试");
+            Console.ReadKey(true);
+
+            Console.WriteLine("点动结束");
+            Write(host, 0x1000, 0);
+
+            ShowStatus(host);
+        }
+
+        static void ShowStatus(Byte host)
+        {
             Console.WriteLine("伺服状态：");
-            UInt16 rs = 0;
+            Int16 rs = 0;
             try
             {
                 rs = Read(host, 0x1001);
@@ -269,33 +298,14 @@ namespace Test2
                     Console.WriteLine("故障中");
                     break;
                 default:
-                    Console.WriteLine("未知！");
+                    Console.WriteLine("未知！" + rs);
                     break;
             }
-
-            Console.WriteLine("Any...");
-            Console.ReadKey(true);
-
-            Console.WriteLine("停机");
-            Write(host, 0x0103, 0);
-
-            Console.WriteLine("Any...");
-            Console.ReadKey(true);
-
-            Console.WriteLine("点动开始");
-            Write(host, 0x1000, 1);
-
-            //Thread.Sleep(3000);
-            Console.ReadKey(true);
-
-            Console.WriteLine("点动结束");
-            Write(1, 0x1000, 0);
         }
 
         static void Write(Byte host, UInt16 addr, UInt16 data)
         {
             var msg = new WriteRegister();
-            //msg.IsAscii = true;
             msg.Address = host;
             msg.Function = MBFunction.WriteSingleRegister;
             msg.DataAddress = addr;
@@ -304,35 +314,29 @@ namespace Test2
             var rs = MBEntity.Process(msg, null, pname);
         }
 
-        static UInt16 Read(Byte host, UInt16 addr, UInt16 len = 1)
+        static Int16 Read(Byte host, UInt16 addr, UInt16 len = 1)
         {
             var msg = new ReadRegister();
-            //msg.IsAscii = true;
             msg.Address = host;
             msg.Function = MBFunction.ReadHoldingRegisters;
             msg.DataAddress = addr;
             msg.DataLength = len;
 
             var rs = msg.Process<ReadRegisterResponse>(null, pname);
-            //var rs = MBEntity.Read<ReadRegisterResponse>(ms, msg.UseAddress, msg.IsAscii);
-            if (rs != null)
-            {
-                var dt = rs.Data;
-                Array.Reverse(dt);
-                return BitConverter.ToUInt16(dt, 0);
-            }
-            return 0;
+            if (rs != null) return (Int16)rs.WordData;
+
+            return -1;
         }
 
         static Boolean ReadTest(Byte host)
         {
-            var msg = new MBEntity();
+            var msg = new Diagnostics();
             msg.Address = host;
-            msg.Function = MBFunction.Diagnostics;
-            msg.ExtendData = new Byte[] { 0x00, 0x00, 0x12, 0xAB };
+            msg.SubFunction = 0;
+            msg.Data = 0x12AB;
 
-            var rs = MBEntity.Process(msg, null, pname);
-            return rs != null && rs.ExtendData.CompareTo(msg.ExtendData) == 0;
+            var rs = msg.Process<Diagnostics>(null, pname);
+            return rs != null && rs.SubFunction == msg.SubFunction && rs.Data == msg.Data;
         }
     }
 }
