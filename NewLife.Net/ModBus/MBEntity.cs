@@ -13,6 +13,7 @@ using NewLife.Security;
 using NewLife.Serialization;
 using System.IO.Ports;
 using System.Threading;
+using NewLife.Log;
 
 namespace NewLife.Net.ModBus
 {
@@ -223,59 +224,6 @@ namespace NewLife.Net.ModBus
             return Read(stream, isResponse, useAddress, isAscii) as TEntity;
         }
 
-        /// <summary>处理消息，通过数据回调来发出或收回数据</summary>
-        /// <param name="request"></param>
-        /// <param name="dataCallback"></param>
-        /// <returns></returns>
-        public static MBEntity Process(MBEntity request, Func<Byte[], Byte[]> dataCallback)
-        {
-            var dt = request.GetStream().ReadBytes();
-
-            var data = dataCallback(dt);
-            if (data == null || data.Length < 1) return null;
-
-            var ms = new MemoryStream(data);
-            return Read(ms, true, request.UseAddress, request.IsAscii);
-        }
-
-        static Byte[] Read(Byte[] dt, Boolean isascii)
-        {
-            using (var sp = new SerialPort("COM1"))
-            {
-                sp.ReadTimeout = sp.WriteTimeout = 500;
-                sp.Open();
-
-                if (isascii)
-                    Console.WriteLine("发送：{0}", Encoding.ASCII.GetString(dt));
-                else
-                    Console.WriteLine("发送：{0}", BitConverter.ToString(dt));
-                sp.Write(dt, 0, dt.Length);
-
-                dt = new Byte[256];
-                Int32 i = 0;
-                do
-                {
-                    try
-                    {
-                        var count = sp.Read(dt, i, dt.Length - i);
-                        i += count;
-                    }
-                    catch { }
-                    //if (i >= dt.Length) break;
-                    //Thread.Sleep(1000);
-                } while (i < dt.Length && sp.BytesToRead > 0);
-                if (i <= 0) return null;
-
-                //Console.WriteLine("收到数据：{0}", i);
-                var data = new Byte[i];
-                //dt.CopyTo(data, 0);
-                Buffer.BlockCopy(dt, 0, data, 0, data.Length);
-                Console.WriteLine("接收：{0}", BitConverter.ToString(data));
-
-                return data;
-            }
-        }
-
         static void Set(IReaderWriter rw)
         {
             var settting = rw.Settings as BinarySettings;
@@ -293,6 +241,80 @@ namespace NewLife.Net.ModBus
         {
             rw.Debug = true;
             rw.EnableTraceStream();
+        }
+        #endregion
+
+        #region 业务处理
+        /// <summary>处理消息，通过数据回调来发出或收回数据</summary>
+        /// <param name="request">需要发出的请求消息</param>
+        /// <param name="callback">用于处理数据的回调方法，其中第二个参数是用户变量。
+        /// 回调方法为空时，默认采用串口通信，用户变量指定串口对象或串口名，不指定时采用COM1</param>
+        /// <param name="state">需要传递给回调方法的用户变量</param>
+        /// <returns></returns>
+        public static MBEntity Process(MBEntity request, Func<Byte[], Object, Byte[]> callback, Object state)
+        {
+            var dt = request.GetStream().ReadBytes();
+            if (request.IsAscii)
+                WriteLog("发送：{0}", Encoding.ASCII.GetString(dt));
+            else
+                WriteLog("发送：{0}", BitConverter.ToString(dt));
+
+            var data = callback(dt, state);
+            if (data == null || data.Length < 1) return null;
+
+            WriteLog("接收：{0}", BitConverter.ToString(data));
+
+            var ms = new MemoryStream(data);
+            return Read(ms, true, request.UseAddress, request.IsAscii);
+        }
+
+        static Byte[] Read(Byte[] dt, Object state)
+        {
+            var sp = state as SerialPort;
+            if (sp == null)
+            {
+                sp = new SerialPort(state == null ? "COM1" : "" + state);
+                sp.ReadTimeout = sp.WriteTimeout = 500;
+                sp.Open();
+            }
+
+            try
+            {
+                sp.Write(dt, 0, dt.Length);
+
+                dt = new Byte[256];
+                Int32 i = 0;
+                do
+                {
+                    try
+                    {
+                        var count = sp.Read(dt, i, dt.Length - i);
+                        i += count;
+                    }
+                    catch { }
+                    //if (i >= dt.Length) break;
+                    //Thread.Sleep(1000);
+                } while (i < dt.Length && sp.BytesToRead > 0);
+                if (i <= 0) return null;
+
+                //var data = new Byte[i];
+                //Buffer.BlockCopy(dt, 0, data, 0, data.Length);
+
+                return dt.ReadBytes(0, i);
+            }
+            finally
+            {
+                // 如果不是外部传入，则销毁
+                if (!(state is SerialPort)) sp.Dispose();
+            }
+        }
+        #endregion
+
+        #region 辅助
+        [Conditional("DEBUG")]
+        static void WriteLog(String format, params Object[] args)
+        {
+            if (XTrace.Debug) XTrace.WriteLine(format, args);
         }
         #endregion
     }

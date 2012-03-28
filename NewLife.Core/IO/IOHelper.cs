@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Text;
@@ -394,9 +393,7 @@ namespace System
         #endregion
 
         #region 复制数据流
-        /// <summary>
-        /// 复制数据流
-        /// </summary>
+        /// <summary>复制数据流</summary>
         /// <param name="src">源数据流</param>
         /// <param name="des">目的数据流</param>
         /// <param name="bufferSize">缓冲区大小，也就是每次复制的大小</param>
@@ -426,6 +423,21 @@ namespace System
             }
 
             return total;
+        }
+
+        /// <summary>复制数组</summary>
+        /// <param name="src">源数组</param>
+        /// <param name="offset">起始位置</param>
+        /// <param name="count">复制字节数</param>
+        /// <returns>返回复制的总字节数</returns>
+        public static Byte[] ReadBytes(this Byte[] src, Int32 offset = 0, Int32 count = 0)
+        {
+            // 即使是全部，也要复制一份，而不只是返回原数组，因为可能就是为了复制数组
+            if (count <= 0) count = src.Length;
+
+            var bts = new Byte[count];
+            Buffer.BlockCopy(src, offset, bts, 0, bts.Length);
+            return bts;
         }
         #endregion
 
