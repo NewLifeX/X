@@ -226,11 +226,11 @@ namespace NewLife.Net.ModBus
 
         static void Set(IReaderWriter rw)
         {
-            var settting = rw.Settings as BinarySettings;
-            settting.IsLittleEndian = false;
+            var setting = rw.Settings as BinarySettings;
+            setting.IsLittleEndian = false;
             //setting.IsBaseFirst = true;
             //setting.EncodeInt = true;
-            //setting.UseObjRef = true;
+            setting.UseObjRef = false;
             //setting.UseTypeFullName = false;
 
             //SetDebug(rw);

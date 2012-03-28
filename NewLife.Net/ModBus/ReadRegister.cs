@@ -42,6 +42,26 @@ namespace NewLife.Net.ModBus
         private Byte[] _Data;
         /// <summary>数据</summary>
         public Byte[] Data { get { return _Data; } set { _Data = value; _Length = (Byte)(value != null ? value.Length : 0); } }
+
+        /// <summary>字数据，前2字节</summary>
+        public UInt16 WordData
+        {
+            get
+            {
+                if (Data == null || Data.Length < 2) return 0;
+
+                // 复制一份，不要改变原来的数据
+                var dt = Data.ReadBytes(0, 2);
+                Array.Reverse(dt);
+                return BitConverter.ToUInt16(dt, 0);
+            }
+            set
+            {
+                if (Data == null || Data.Length < 2) Data = new Byte[2];
+
+                BitConverter.GetBytes(value).CopyTo(Data, 0);
+            }
+        }
         #endregion
 
         /// <summary>实例化</summary>
