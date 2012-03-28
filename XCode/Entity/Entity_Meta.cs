@@ -283,6 +283,12 @@ namespace XCode
                 {
                     if (hasCheckModel[0] > 0) return;
 
+                    if (!DAL.NegativeEnable || DAL.NegativeExclude.Contains(ConnName) || DAL.NegativeExclude.Contains(TableName))
+                    {
+                        hasCheckModel[0] = 1;
+                        return;
+                    }
+
                     // 输出调用者，方便调试
                     if (DAL.Debug) DAL.WriteLog("检查实体{0}的数据表架构，模式：{1}，调用栈：{2}", ThisType.FullName, Table.ModelCheckMode, Helper.GetCaller());
 
@@ -300,8 +306,6 @@ namespace XCode
                     }
                     if (ck)
                     {
-                        if (!DAL.NegativeEnable || DAL.NegativeExclude.Contains(ConnName) || DAL.NegativeExclude.Contains(TableName)) return;
-
                         Func check = delegate
                         {
                             DAL.WriteLog("开始{2}检查表[{0}/{1}]的数据表架构……", Table.DataTable.Name, DbType, DAL.NegativeCheckOnly ? "异步" : "同步");
