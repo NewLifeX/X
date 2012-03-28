@@ -189,21 +189,21 @@ namespace Test2
         static String pname;
         static void Test3()
         {
-            //Console.ReadKey(true);
-            //using (var sp = new SerialPort("COM11"))
-            //{
-            //    sp.Open();
-            //    for (int i = 0; i < 100; i++)
-            //    {
-            //        var dt = i % 2 == 0 ? new Byte[] { 0 } : new Byte[] { 1 };
-            //        Console.WriteLine(dt[0]);
-            //        sp.Write(dt, 0, dt.Length);
-            //        Thread.Sleep(1000);
-            //    }
-            //}
+            Console.ReadKey(true);
+            using (var sp = new SerialPort("COM11"))
+            {
+                sp.Open();
+                for (int i = 0; i < 10000; i++)
+                {
+                    var dt = i % 2 == 0 ? new Byte[] { 0 } : new Byte[] { 1 };
+                    Console.WriteLine(dt[0]);
+                    sp.Write(dt, 0, dt.Length);
+                    //Thread.Sleep(100);
+                }
+            }
 
-            //Console.WriteLine("任意键开始测试：");
-            //Console.ReadKey(true);
+            Console.WriteLine("任意键开始测试：");
+            Console.ReadKey(true);
 
             Console.Write("发现串口：");
             foreach (var item in SerialPort.GetPortNames())

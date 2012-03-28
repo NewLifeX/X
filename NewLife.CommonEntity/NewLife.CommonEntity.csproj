@@ -68,47 +68,94 @@
     <Compile Include="Web\WebPageBase.cs">
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
-    <Compile Include="实体\Guid分类.Biz.cs" />
+    <Compile Include="实体\Guid分类.Biz.cs">
+      <DependentUpon>Guid分类.cs</DependentUpon>
+    </Compile>
     <Compile Include="实体\Guid分类.cs" />
-    <Compile Include="实体\分类.Biz.cs" />
+    <!--<Compile Include="实体\分类.Biz.cs" />-->
     <Compile Include="实体\分类.cs" />
-    <Compile Include="实体\地区.Biz.cs" />
+    <Compile Include="实体\分类.Biz.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>分类.cs</DependentUpon>
+    </Compile>
+    <Compile Include="实体\地区.Biz.cs">
+      <DependentUpon>地区.cs</DependentUpon>
+    </Compile>
     <Compile Include="实体\地区.cs" />
-    <Compile Include="实体\地区.Init.cs" />
-    <None Include="实体\地区编码.Biz.cs" />
+    <Compile Include="实体\地区.Init.cs">
+      <DependentUpon>地区.cs</DependentUpon>
+    </Compile>
+    <None Include="实体\地区编码.Biz.cs">
+      <DependentUpon>地区编码.cs</DependentUpon>
+    </None>
     <None Include="实体\地区编码.cs" />
-    <Compile Include="实体\序列.Biz.cs" />
+    <Compile Include="实体\序列.Biz.cs">
+      <DependentUpon>序列.cs</DependentUpon>
+    </Compile>
     <Compile Include="实体\序列.cs" />
-    <Compile Include="实体\用户配置.Biz.cs" />
+    <Compile Include="实体\用户配置.Biz.cs">
+      <DependentUpon>用户配置.cs</DependentUpon>
+    </Compile>
     <Compile Include="实体\用户配置.cs" />
-    <Compile Include="实体\简单信息.Biz.cs" />
+    <Compile Include="实体\简单信息.Biz.cs">
+      <DependentUpon>简单信息.cs</DependentUpon>
+    </Compile>
     <Compile Include="实体\简单信息.cs" />
-    <Compile Include="实体\简单分类.Biz.cs" />
-    <Compile Include="实体\简单分类.cs" />
-    <Compile Include="实体\设置.Biz.cs" />
+    <Compile Include="实体\简单分类.Biz.cs">
+      <DependentUpon>简单分类.cs</DependentUpon>
+    </Compile>
+    <Compile Include="实体\简单分类.cs">
+    </Compile>
+    <Compile Include="实体\设置.Biz.cs">
+      <DependentUpon>设置.cs</DependentUpon>
+    </Compile>
     <Compile Include="实体\设置.cs" />
-    <Compile Include="模版\模版.Biz.cs" />
+    <Compile Include="模版\模版.Biz.cs">
+      <DependentUpon>模版.cs</DependentUpon>
+    </Compile>
     <Compile Include="模版\模版.cs" />
-    <Compile Include="模版\模版内容.Biz.cs" />
+    <Compile Include="模版\模版内容.Biz.cs">
+      <DependentUpon>模版内容.cs</DependentUpon>
+    </Compile>
     <Compile Include="模版\模版内容.cs" />
-    <Compile Include="模版\模版项.Biz.cs" />
+    <Compile Include="模版\模版项.Biz.cs">
+      <DependentUpon>模版项.cs</DependentUpon>
+    </Compile>
     <Compile Include="模版\模版项.cs" />
-    <Compile Include="管理和授权\日志.Biz.cs" />
+    <Compile Include="管理和授权\日志.Biz.cs">
+      <DependentUpon>日志.cs</DependentUpon>
+    </Compile>
     <Compile Include="管理和授权\日志.cs" />
-    <Compile Include="管理和授权\用户.Biz.cs" />
+    <Compile Include="管理和授权\用户.Biz.cs">
+      <DependentUpon>用户.cs</DependentUpon>
+    </Compile>
     <Compile Include="管理和授权\用户.cs" />
-    <Compile Include="管理和授权\管理员.Biz.cs" />
+    <Compile Include="管理和授权\管理员.Biz.cs">
+      <DependentUpon>管理员.cs</DependentUpon>
+    </Compile>
     <Compile Include="管理和授权\管理员.cs" />
-    <Compile Include="实体\统计.Biz.cs" />
+    <Compile Include="实体\统计.Biz.cs">
+      <DependentUpon>统计.cs</DependentUpon>
+    </Compile>
     <Compile Include="实体\统计.cs" />
-    <Compile Include="管理和授权\菜单.Biz.cs" />
+    <Compile Include="管理和授权\菜单.Biz.cs">
+      <DependentUpon>菜单.cs</DependentUpon>
+    </Compile>
     <Compile Include="管理和授权\菜单.cs" />
-    <Compile Include="管理和授权\角色.Biz.cs" />
+    <Compile Include="管理和授权\角色.Biz.cs">
+      <DependentUpon>角色.cs</DependentUpon>
+    </Compile>
     <Compile Include="管理和授权\角色.cs" />
-    <Compile Include="管理和授权\角色和菜单.Biz.cs" />
+    <Compile Include="管理和授权\角色和菜单.Biz.cs">
+      <DependentUpon>角色和菜单.cs</DependentUpon>
+    </Compile>
     <Compile Include="管理和授权\角色和菜单.cs" />
-    <Compile Include="实体\附件.Biz.cs" />
-    <Compile Include="实体\附件.cs" />
+    <Compile Include="实体\附件.Biz.cs">
+      <DependentUpon>附件.cs</DependentUpon>
+    </Compile>
+    <Compile Include="实体\附件.cs">
+    </Compile>
     <Compile Include="管理和授权\默认后台.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -124,7 +171,9 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="mssql_Common.xml" />
-    <EmbeddedResource Include="实体\AreaCode.txt" />
+    <EmbeddedResource Include="实体\AreaCode.txt">
+      <DependentUpon>地区.cs</DependentUpon>
+    </EmbeddedResource>
     <Content Include="模版\模版.xml">
       <SubType>Designer</SubType>
     </Content>
