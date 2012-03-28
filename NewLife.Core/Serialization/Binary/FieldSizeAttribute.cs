@@ -71,7 +71,7 @@ namespace NewLife.Serialization
 
             // 目标字段必须是整型
             TypeCode tc = Type.GetTypeCode(mx.Type);
-            if (tc >= TypeCode.Int16 && tc <= TypeCode.UInt64) return mx;
+            if (tc >= TypeCode.SByte && tc <= TypeCode.UInt64) return mx;
 
             return null;
         }

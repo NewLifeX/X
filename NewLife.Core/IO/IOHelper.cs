@@ -430,7 +430,7 @@ namespace System
         /// <param name="offset">起始位置</param>
         /// <param name="count">复制字节数</param>
         /// <returns>返回复制的总字节数</returns>
-        public static Byte[] ReadBytes(this Byte[] src, Int32 offset = 0, Int32 count = 0)
+        public static Byte[] ReadBytes(this Byte[] src, Int32 offset, Int32 count)
         {
             // 即使是全部，也要复制一份，而不只是返回原数组，因为可能就是为了复制数组
             if (count <= 0) count = src.Length;
