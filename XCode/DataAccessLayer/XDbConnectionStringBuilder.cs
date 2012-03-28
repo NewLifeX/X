@@ -6,9 +6,7 @@ using System.Text;
 
 namespace XCode.DataAccessLayer
 {
-    /// <summary>
-    /// 连接字符串构造器
-    /// </summary>
+    /// <summary>连接字符串构造器</summary>
     /// <remarks>未稳定，仅供XCode内部使用，不建议外部使用</remarks>
     class XDbConnectionStringBuilder : StringDictionary
     {

@@ -47,7 +47,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Templating\Directive.cs" />
-    <Compile Include="Templating\Template2.cs" />
+    <Compile Include="Templating\Template2.cs">
+      <DependentUpon>Template.cs</DependentUpon>
+    </Compile>
     <Compile Include="Templating\TemplateException.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Templating\Block.cs" />

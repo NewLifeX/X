@@ -46,18 +46,34 @@
     <Reference Include="System.XML" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Accessors\BinaryEntityAccessor.cs" />
-    <Compile Include="Accessors\EntityAccessorBase.cs" />
+    <Compile Include="Accessors\BinaryEntityAccessor.cs">
+      <DependentUpon>SerializationEntityAccessorBase.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Accessors\EntityAccessorBase.cs">
+      <DependentUpon>IEntityAccessor.cs</DependentUpon>
+    </Compile>
     <Compile Include="Accessors\EntityAccessorEventArgs.cs" />
     <Compile Include="Accessors\EntityAccessorFactory.cs" />
     <Compile Include="Accessors\EntityAccessorOptions.cs" />
     <Compile Include="Accessors\EntityAccessorTypes.cs" />
-    <Compile Include="Accessors\HttpEntityAccessor.cs" />
-    <Compile Include="Accessors\JsonEntityAccessor.cs" />
-    <Compile Include="Accessors\SerializationEntityAccessorBase.cs" />
-    <Compile Include="Accessors\WebFormEntityAccessor.cs" />
-    <Compile Include="Accessors\WinFormEntityAccessor.cs" />
-    <Compile Include="Accessors\XmlEntityAccessor.cs" />
+    <Compile Include="Accessors\HttpEntityAccessor.cs">
+      <DependentUpon>EntityAccessorBase.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Accessors\JsonEntityAccessor.cs">
+      <DependentUpon>SerializationEntityAccessorBase.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Accessors\SerializationEntityAccessorBase.cs">
+      <DependentUpon>EntityAccessorBase.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Accessors\WebFormEntityAccessor.cs">
+      <DependentUpon>EntityAccessorBase.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Accessors\WinFormEntityAccessor.cs">
+      <DependentUpon>EntityAccessorBase.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Accessors\XmlEntityAccessor.cs">
+      <DependentUpon>SerializationEntityAccessorBase.cs</DependentUpon>
+    </Compile>
     <Compile Include="Attributes\BindColumnAttribute.cs" />
     <Compile Include="Attributes\BindIndexAttribute.cs" />
     <Compile Include="Attributes\BindTableAttribute.cs" />
@@ -69,15 +85,21 @@
     <Compile Include="Code\EntityAssembly.cs" />
     <Compile Include="Code\EntityClass.cs" />
     <Compile Include="Code\EntityClassBiz.cs" />
-    <Compile Include="Common\FileSource.cs" />
-    <Compile Include="Common\HashSet.cs" />
     <Compile Include="Common\Helper.cs" />
     <Compile Include="Configuration\TableItem.cs" />
     <Compile Include="DataAccessLayer\Common\DatabaseType.cs" />
-    <Compile Include="DataAccessLayer\Common\FileDb.cs" />
-    <Compile Include="DataAccessLayer\Common\RemoteDb.cs" />
-    <Compile Include="DataAccessLayer\DAL_DbOperate.cs" />
-    <Compile Include="DataAccessLayer\DAL_Setting.cs" />
+    <Compile Include="DataAccessLayer\Common\FileDb.cs">
+      <DependentUpon>DbBase.cs</DependentUpon>
+    </Compile>
+    <Compile Include="DataAccessLayer\Common\RemoteDb.cs">
+      <DependentUpon>DbBase.cs</DependentUpon>
+    </Compile>
+    <Compile Include="DataAccessLayer\DAL_DbOperate.cs">
+      <DependentUpon>DAL.cs</DependentUpon>
+    </Compile>
+    <Compile Include="DataAccessLayer\DAL_Setting.cs">
+      <DependentUpon>DAL.cs</DependentUpon>
+    </Compile>
     <Compile Include="DataAccessLayer\Database\Distributed.cs" />
     <Compile Include="DataAccessLayer\Database\Firebird.cs" />
     <Compile Include="DataAccessLayer\Database\Network.cs" />
@@ -86,8 +108,12 @@
     <Compile Include="DataAccessLayer\Common\DbBase.cs" />
     <Compile Include="DataAccessLayer\Common\DbFactory.cs" />
     <Compile Include="DataAccessLayer\Common\IDatabase.cs" />
-    <Compile Include="DataAccessLayer\MetaData\DbMetaData_Negative.cs" />
-    <Compile Include="DataAccessLayer\MetaData\DbMetaData_Positive.cs" />
+    <Compile Include="DataAccessLayer\MetaData\DbMetaData_Negative.cs">
+      <DependentUpon>DbMetaData.cs</DependentUpon>
+    </Compile>
+    <Compile Include="DataAccessLayer\MetaData\DbMetaData_Positive.cs">
+      <DependentUpon>DbMetaData.cs</DependentUpon>
+    </Compile>
     <Compile Include="DataAccessLayer\Model\ModelHelper.cs" />
     <Compile Include="DataAccessLayer\Model\IDataColumn.cs" />
     <Compile Include="DataAccessLayer\Model\IDataRelation.cs" />
@@ -101,11 +127,10 @@
     <Compile Include="DataAccessLayer\Model\XIndex.cs" />
     <Compile Include="DataAccessLayer\Model\XRelation.cs" />
     <Compile Include="Entity\DataRowEntityAccessor.cs" />
-    <Compile Include="Entity\DbEntityHandler.cs" />
-    <Compile Include="Entity\EntityHandlerManager.cs" />
     <Compile Include="Entity\EntityListView.cs" />
-    <Compile Include="Entity\EntityBase_Interface.cs" />
-    <Compile Include="Entity\IEntityHandler.cs" />
+    <Compile Include="Entity\EntityBase_Interface.cs">
+      <DependentUpon>EntityBase.cs</DependentUpon>
+    </Compile>
     <Compile Include="Entity\IEntityList.cs" />
     <Compile Include="Entity\IEntityPersistence.cs" />
     <Compile Include="Exceptions\XDbException.cs" />
@@ -135,8 +160,12 @@
     <Compile Include="Cache\EntityCache.cs" />
     <Compile Include="Entity\EntityFactory.cs" />
     <Compile Include="Entity\EntityList.cs" />
-    <Compile Include="Entity\Entity_Meta.cs" />
-    <Compile Include="Entity\Entity_Operate.cs" />
+    <Compile Include="Entity\Entity_Meta.cs">
+      <DependentUpon>Entity.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Entity\Entity_Operate.cs">
+      <DependentUpon>Entity.cs</DependentUpon>
+    </Compile>
     <Compile Include="Entity\IEntity.cs" />
     <Compile Include="Entity\IEntityOperate.cs" />
     <Compile Include="Cache\SingleEntityCache.cs" />
@@ -147,7 +176,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Web\DbRunTimeModule.cs" />
     <Compile Include="Test\TestHelper.cs" />
-    <Compile Include="Test\实体测试.Biz.cs" />
+    <Compile Include="Test\实体测试.Biz.cs">
+      <DependentUpon>实体测试.cs</DependentUpon>
+    </Compile>
     <Compile Include="Test\实体测试.cs" />
     <Compile Include="Tree\EntityTree.cs" />
     <Compile Include="Tree\IEntityTree.cs" />
@@ -162,6 +193,7 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="DataAccessLayer\Database\Database.mdb">
+      <DependentUpon>Access.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
@@ -194,7 +226,9 @@
     </COMReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="DataAccessLayer\DAL结构.cd" />
+    <None Include="DataAccessLayer\DAL结构.cd">
+      <DependentUpon>DAL.cs</DependentUpon>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NewLife.Core\NewLife.Core.csproj">

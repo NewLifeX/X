@@ -6,9 +6,7 @@ using XCode.Configuration;
 
 namespace XCode
 {
-    /// <summary>
-    /// 实体列表视图
-    /// </summary>
+    /// <summary>实体列表视图</summary>
     /// <typeparam name="T"></typeparam>
     partial class EntityListView<T> : ListBase<T>, ITypedList, IBindingList, IBindingListView, ICancelAddNew where T : IEntity
     {

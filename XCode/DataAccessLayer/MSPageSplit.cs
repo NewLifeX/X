@@ -1,6 +1,6 @@
 ﻿using System;
-using XCode.Exceptions;
 using NewLife.Reflection;
+using XCode.Exceptions;
 
 namespace XCode.DataAccessLayer
 {

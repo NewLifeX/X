@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Data;
 using System.Data.Common;
 using System.Text;
 using NewLife.Collections;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
 using XCode.Exceptions;
-using System.Data;
 
 namespace XCode
 {
