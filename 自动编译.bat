@@ -18,8 +18,12 @@ pushd ..
 set svn=https://svn.nnhy.org/svn/X/trunk
 :: do else 等关键字前后都应该预留空格
 for %%i in (Src DLL XCoder) do (
-	svn info %svn%/%%i
-	svn update %%i
+	if not exist %%i (
+		svn checkout %svn%/%%i %%i
+	) else (
+		svn info %svn%/%%i
+		svn update %%i
+	)
 )
 :: 恢复目录
 popd
