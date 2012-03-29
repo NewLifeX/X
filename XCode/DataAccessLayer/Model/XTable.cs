@@ -53,7 +53,18 @@ namespace XCode.DataAccessLayer
         [XmlAttribute]
         [DisplayName("表说明")]
         [Description("表说明")]
-        public String Description { get { return _Description; } set { _Description = value; } }
+        public String Description
+        {
+            get { return _Description; }
+            set
+            {
+                if (!String.IsNullOrEmpty(value))
+                    value = value.Replace("\r\n", "。")
+                        .Replace("\r", " ")
+                        .Replace("\n", " ");
+                _Description = value;
+            }
+        }
 
         private Boolean _IsView = false;
         /// <summary>
