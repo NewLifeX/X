@@ -19,9 +19,7 @@ namespace NewLife.CommonEntity
     public partial class Menu<TEntity> : EntityTree<TEntity>, IMenu where TEntity : Menu<TEntity>, new()
     {
         #region 对象操作
-        /// <summary>
-        /// 首次连接数据库时初始化数据，仅用于实体类重载，用户不应该调用该方法
-        /// </summary>
+        /// <summary>首次连接数据库时初始化数据，仅用于实体类重载，用户不应该调用该方法</summary>>
         [EditorBrowsable(EditorBrowsableState.Never)]
         protected override void InitData()
         {
@@ -53,9 +51,7 @@ namespace NewLife.CommonEntity
             catch { Meta.Rollback(); throw; }
         }
 
-        /// <summary>
-        /// 已重载。调用Save时写日志，而调用Insert和Update时不写日志
-        /// </summary>
+        /// <summary>已重载。调用Save时写日志，而调用Insert和Update时不写日志</summary>>
         /// <returns></returns>
         public override int Save()
         {
@@ -73,9 +69,7 @@ namespace NewLife.CommonEntity
             return base.Save();
         }
 
-        /// <summary>
-        /// 已重载。
-        /// </summary>
+        /// <summary>已重载。</summary>>
         /// <returns></returns>
         public override int Delete()
         {
@@ -96,9 +90,7 @@ namespace NewLife.CommonEntity
         [XmlIgnore]
         public virtual String ParentMenuName { get { return Parent == null ? null : Parent.Name; } set { } }
 
-        /// <summary>
-        /// 当前页所对应的菜单项
-        /// </summary>
+        /// <summary>当前页所对应的菜单项</summary>>
         public static TEntity Current
         {
             get
@@ -189,9 +181,7 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region 扩展查询
-        /// <summary>
-        /// 根据编号查找
-        /// </summary>
+        /// <summary>根据编号查找</summary>>
         /// <param name="id"></param>
         /// <returns></returns>
         public static TEntity FindByID(Int32 id)
@@ -200,23 +190,17 @@ namespace NewLife.CommonEntity
             return Meta.Cache.Entities.Find(_.ID, id);
         }
 
-        /// <summary>
-        /// 根据名字查找
-        /// </summary>
+        /// <summary>根据名字查找</summary>>
         /// <param name="name"></param>
         /// <returns></returns>
         public static TEntity FindByName(String name) { return Meta.Cache.Entities.Find(_.Name, name); }
 
-        /// <summary>
-        /// 根据Url查找
-        /// </summary>
+        /// <summary>根据Url查找</summary>>
         /// <param name="url"></param>
         /// <returns></returns>
         public static TEntity FindByUrl(String url) { return Meta.Cache.Entities.FindIgnoreCase(_.Url, url); }
 
-        /// <summary>
-        /// 根据名字查找，支持路径查找
-        /// </summary>
+        /// <summary>根据名字查找，支持路径查找</summary>>
         /// <param name="name"></param>
         /// <returns></returns>
         public static TEntity FindForName(String name)
@@ -228,16 +212,12 @@ namespace NewLife.CommonEntity
             return Root.FindByPath(name, _.Name, _.Permission, _.Remark);
         }
 
-        /// <summary>
-        /// 根据权限名查找
-        /// </summary>
+        /// <summary>根据权限名查找</summary>>
         /// <param name="name"></param>
         /// <returns></returns>
         public static TEntity FindByPerssion(String name) { return Meta.Cache.Entities.Find(_.Permission, name); }
 
-        /// <summary>
-        /// 为了权限而查找，支持路径查找
-        /// </summary>
+        /// <summary>为了权限而查找，支持路径查找</summary>>
         /// <param name="name"></param>
         /// <returns></returns>
         public static TEntity FindForPerssion(String name)
@@ -340,9 +320,7 @@ namespace NewLife.CommonEntity
         //    //    return null;
         //}
 
-        /// <summary>
-        /// 查找指定菜单的子菜单
-        /// </summary>
+        /// <summary>查找指定菜单的子菜单</summary>>
         /// <param name="id"></param>
         /// <returns></returns>
         public static EntityList<TEntity> FindAllByParentID(Int32 id)
@@ -354,9 +332,7 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region 扩展操作
-        /// <summary>
-        /// 检查并重新设置名称和权限项
-        /// </summary>
+        /// <summary>检查并重新设置名称和权限项</summary>>
         /// <param name="name"></param>
         /// <returns></returns>
         public Boolean ResetName(String name)
@@ -374,9 +350,7 @@ namespace NewLife.CommonEntity
             return false;
         }
 
-        /// <summary>
-        /// 是否全英文
-        /// </summary>
+        /// <summary>是否全英文</summary>>
         /// <param name="str"></param>
         /// <returns></returns>
         private static Boolean IsEnglish(String str)
@@ -398,9 +372,7 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region 业务
-        /// <summary>
-        /// 导入
-        /// </summary>
+        /// <summary>导入</summary>>
         public virtual void Import()
         {
             Meta.BeginTrans();
@@ -449,9 +421,7 @@ namespace NewLife.CommonEntity
             }
         }
 
-        /// <summary>
-        /// 添加子菜单
-        /// </summary>
+        /// <summary>添加子菜单</summary>>
         /// <param name="name"></param>
         /// <param name="url"></param>
         /// <returns></returns>
@@ -469,9 +439,7 @@ namespace NewLife.CommonEntity
             return entity;
         }
 
-        /// <summary>
-        /// 添加子菜单
-        /// </summary>
+        /// <summary>添加子菜单</summary>>
         /// <param name="name"></param>
         /// <param name="url"></param>
         /// <param name="sort"></param>
@@ -492,9 +460,7 @@ namespace NewLife.CommonEntity
             return entity;
         }
 
-        /// <summary>
-        ///  扫描配置文件中指定的目录
-        /// </summary>
+        /// <summary>扫描配置文件中指定的目录</summary>>
         /// <returns></returns>
         public static Int32 ScanAndAdd()
         {
@@ -553,9 +519,7 @@ namespace NewLife.CommonEntity
             return top;
         }
 
-        /// <summary>
-        /// 扫描指定目录并添加文件到第一个顶级菜单之下
-        /// </summary>
+        /// <summary>扫描指定目录并添加文件到第一个顶级菜单之下</summary>>
         /// <param name="dir"></param>
         /// <returns></returns>
         public static Int32 ScanAndAdd(String dir)
@@ -563,9 +527,7 @@ namespace NewLife.CommonEntity
             return ScanAndAdd(dir, GetTopForDir(dir));
         }
 
-        /// <summary>
-        /// 获取目录层级
-        /// </summary>
+        /// <summary>获取目录层级</summary>>
         /// <param name="dir"></param>
         /// <returns></returns>
         public static String GetPathForScan(String dir)
@@ -585,9 +547,7 @@ namespace NewLife.CommonEntity
             return currentPath;
         }
 
-        /// <summary>
-        /// 扫描指定目录并添加文件到顶级菜单之下
-        /// </summary>
+        /// <summary>扫描指定目录并添加文件到顶级菜单之下</summary>>
         /// <param name="dir"></param>
         /// <param name="top"></param>
         /// <returns></returns>
@@ -835,9 +795,7 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region 日志
-        /// <summary>
-        /// 写日志
-        /// </summary>
+        /// <summary>写日志</summary>>
         /// <param name="action">操作</param>
         /// <param name="remark">备注</param>
         public static void WriteLog(String action, String remark)
@@ -849,9 +807,7 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region IMenu 成员
-        /// <summary>
-        /// 取得全路径的实体，由上向下排序
-        /// </summary>
+        /// <summary>取得全路径的实体，由上向下排序</summary>>
         /// <param name="includeSelf">是否包含自己</param>
         /// <param name="separator">分隔符</param>
         /// <param name="func">回调</param>
@@ -864,9 +820,7 @@ namespace NewLife.CommonEntity
             return GetFullPath(includeSelf, separator, d);
         }
 
-        /// <summary>
-        /// 检查菜单名称，修改为新名称。返回自身，支持链式写法
-        /// </summary>
+        /// <summary>检查菜单名称，修改为新名称。返回自身，支持链式写法</summary>>
         /// <param name="oldName"></param>
         /// <param name="newName"></param>
         IMenu IMenu.CheckMenuName(String oldName, String newName)
@@ -900,18 +854,14 @@ namespace NewLife.CommonEntity
 
     public partial interface IMenu
     {
-        /// <summary>
-        /// 取得全路径的实体，由上向下排序
-        /// </summary>
+        /// <summary>取得全路径的实体，由上向下排序</summary>>
         /// <param name="includeSelf">是否包含自己</param>
         /// <param name="separator">分隔符</param>
         /// <param name="func">回调</param>
         /// <returns></returns>
         String GetFullPath(Boolean includeSelf, String separator, Func<IMenu, String> func);
 
-        /// <summary>
-        /// 检查菜单名称，修改为新名称。返回自身，支持链式写法
-        /// </summary>
+        /// <summary>检查菜单名称，修改为新名称。返回自身，支持链式写法</summary>>
         /// <param name="oldName"></param>
         /// <param name="newName"></param>
         IMenu CheckMenuName(String oldName, String newName);

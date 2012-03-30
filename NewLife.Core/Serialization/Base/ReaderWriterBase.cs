@@ -145,9 +145,7 @@ namespace NewLife.Serialization
         #endregion
 
         #region 获取成员
-        /// <summary>
-        /// 获取需要序列化的成员
-        /// </summary>
+        /// <summary>获取需要序列化的成员</summary>>
         /// <param name="type">类型</param>
         /// <param name="value">对象</param>
         /// <returns>需要序列化的成员</returns>
@@ -190,16 +188,12 @@ namespace NewLife.Serialization
             return ObjectInfo.GetMembers(type, value, Settings.UseField, Settings.IsBaseFirst);
         }
 
-        /// <summary>
-        /// 获取指定类型中需要序列化的成员时触发。使用者可以修改、排序要序列化的成员。
-        /// </summary>
+        /// <summary>获取指定类型中需要序列化的成员时触发。使用者可以修改、排序要序列化的成员。</summary>>
         public event EventHandler<EventArgs<Type, Object, IObjectMemberInfo[]>> OnGotMembers;
         #endregion
 
         #region 对象默认值
-        /// <summary>
-        /// 判断一个对象的某个成员是否默认值
-        /// </summary>
+        /// <summary>判断一个对象的某个成员是否默认值</summary>>
         /// <param name="value"></param>
         /// <param name="member"></param>
         /// <returns></returns>

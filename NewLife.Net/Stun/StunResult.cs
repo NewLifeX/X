@@ -18,9 +18,7 @@ namespace NewLife.Net.Stun
         /// <param name="ep"></param>
         public StunResult(StunNetType type, IPEndPoint ep) { Type = type; Public = ep; }
 
-        /// <summary>
-        /// 已重载。
-        /// </summary>
+        /// <summary>已重载。</summary>>
         /// <returns></returns>
         public override string ToString()
         {

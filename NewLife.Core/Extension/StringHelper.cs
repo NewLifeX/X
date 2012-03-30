@@ -73,9 +73,7 @@ namespace System
         #endregion
 
         #region LD编辑距离算法
-        /// <summary>
-        /// 编辑距离搜索，从词组中找到最接近关键字的若干匹配项
-        /// </summary>
+        /// <summary>编辑距离搜索，从词组中找到最接近关键字的若干匹配项</summary>>
         /// <remarks>
         /// 算法代码由@Aimeast 独立完成。http://www.cnblogs.com/Aimeast/archive/2011/09/05/2167844.html
         /// </remarks>
@@ -111,9 +109,7 @@ namespace System
             return words;
         }
 
-        /// <summary>
-        /// 编辑距离，又称Levenshtein距离（也叫做Edit Distance），是指两个字串之间，由一个转成另一个所需的最少编辑操作次数。许可的编辑操作包括将一个字符替换成另一个字符，插入一个字符，删除一个字符。 
-        /// </summary>
+        /// <summary>编辑距离，又称Levenshtein距离（也叫做Edit Distance），是指两个字串之间，由一个转成另一个所需的最少编辑操作次数。许可的编辑操作包括将一个字符替换成另一个字符，插入一个字符，删除一个字符。</summary>>
         /// <remarks>
         /// 算法代码由@Aimeast 独立完成。http://www.cnblogs.com/Aimeast/archive/2011/09/05/2167844.html
         /// </remarks>
@@ -146,9 +142,7 @@ namespace System
         #endregion
 
         #region LCS算法
-        /// <summary>
-        /// 最长公共子序列搜索，从词组中找到最接近关键字的若干匹配项
-        /// </summary>
+        /// <summary>最长公共子序列搜索，从词组中找到最接近关键字的若干匹配项</summary>>
         /// <remarks>
         /// 算法代码由@Aimeast 独立完成。http://www.cnblogs.com/Aimeast/archive/2011/09/05/2167844.html
         /// </remarks>

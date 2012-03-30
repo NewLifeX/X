@@ -28,19 +28,13 @@ namespace XAgent
         #endregion
 
         #region 静态属性
-        /// <summary>
-        /// 服务名
-        /// </summary>
+        /// <summary>服务名</summary>>
         public static String AgentServiceName { get { return Instance.ServiceName; } }
 
-        /// <summary>
-        /// 显示名
-        /// </summary>
+        /// <summary>显示名</summary>>
         public static String AgentDisplayName { get { return Config.GetConfig<String>("XAgent.DisplayName", Instance.DisplayName); } }
 
-        /// <summary>
-        /// 服务描述
-        /// </summary>
+        /// <summary>服务描述</summary>>
         public static String AgentDescription { get { return Config.GetConfig<String>("XAgent.Description", Instance.Description); } }
 
         /// <summary>Exe程序名</summary>
@@ -66,9 +60,7 @@ namespace XAgent
         /// <summary>服务实例</summary>
         public static AgentServiceBase Instance { get { return _Instance; } set { _Instance = value; } }
 
-        /// <summary>
-        /// 是否已安装
-        /// </summary>
+        /// <summary>是否已安装</summary>>
         public static Boolean? IsInstalled
         {
             get
@@ -91,9 +83,7 @@ namespace XAgent
             }
         }
 
-        /// <summary>
-        /// 是否已启动
-        /// </summary>
+        /// <summary>是否已启动</summary>>
         public static Boolean? IsRunning
         {
             get
@@ -133,9 +123,7 @@ namespace XAgent
 
         #region 辅助函数及属性
         private static Int32[] _Intervals;
-        /// <summary>
-        /// 间隔数组。默认60秒
-        /// </summary>
+        /// <summary>间隔数组。默认60秒</summary>>
         public static Int32[] Intervals
         {
             get
@@ -172,9 +160,7 @@ namespace XAgent
         }
 
         private static Int32? _MaxActive;
-        /// <summary>
-        /// 最大活动时间。超过最大活动时间都还没有响应的线程将会被重启，防止线程执行时间过长。默认0秒，表示无限
-        /// </summary>
+        /// <summary>最大活动时间。超过最大活动时间都还没有响应的线程将会被重启，防止线程执行时间过长。默认0秒，表示无限</summary>>
         public static Int32 MaxActive
         {
             get
@@ -186,9 +172,7 @@ namespace XAgent
         }
 
         private static Int32? _MaxMemory;
-        /// <summary>
-        /// 最大占用内存。超过最大占用时，整个服务进程将会重启，以释放资源。默认0秒，表示无限
-        /// </summary>
+        /// <summary>最大占用内存。超过最大占用时，整个服务进程将会重启，以释放资源。默认0秒，表示无限</summary>>
         public static Int32 MaxMemory
         {
             get
@@ -200,9 +184,7 @@ namespace XAgent
         }
 
         private static Int32? _MaxThread;
-        /// <summary>
-        /// 最大总线程数。超过最大占用时，整个服务进程将会重启，以释放资源。默认0秒，表示无限
-        /// </summary>
+        /// <summary>最大总线程数。超过最大占用时，整个服务进程将会重启，以释放资源。默认0秒，表示无限</summary>>
         public static Int32 MaxThread
         {
             get
@@ -214,9 +196,7 @@ namespace XAgent
         }
 
         private static Int32? _AutoRestart;
-        /// <summary>
-        /// 自动重启时间，单位：分钟。到达自动重启时间时，整个服务进程将会重启，以释放资源。默认0秒，表示无限
-        /// </summary>
+        /// <summary>自动重启时间，单位：分钟。到达自动重启时间时，整个服务进程将会重启，以释放资源。默认0秒，表示无限</summary>>
         public static Int32 AutoRestart
         {
             get
@@ -229,9 +209,7 @@ namespace XAgent
         #endregion
 
         #region 服务安装和启动
-        /// <summary>
-        /// 安装、卸载 服务
-        /// </summary>
+        /// <summary>安装、卸载 服务</summary>>
         /// <param name="isinstall">是否安装</param>
         public static void Install(Boolean isinstall)
         {
@@ -248,9 +226,7 @@ namespace XAgent
             }
         }
 
-        /// <summary>
-        /// 启动、停止 服务
-        /// </summary>
+        /// <summary>启动、停止 服务</summary>>
         /// <param name="isstart"></param>
         public static void ControlService(Boolean isstart)
         {
@@ -260,9 +236,7 @@ namespace XAgent
                 RunCmd("net stop " + AgentServiceName, false, true);
         }
 
-        /// <summary>
-        /// 执行一个命令
-        /// </summary>
+        /// <summary>执行一个命令</summary>>
         /// <param name="cmd"></param>
         /// <param name="showWindow"></param>
         /// <param name="waitForExit"></param>
@@ -295,9 +269,7 @@ namespace XAgent
             }
         }
 
-        /// <summary>
-        /// 执行SC命令
-        /// </summary>
+        /// <summary>执行SC命令</summary>>
         /// <param name="cmd"></param>
         protected static void RunSC(String cmd)
         {
@@ -310,9 +282,7 @@ namespace XAgent
         #endregion
 
         #region 日志
-        /// <summary>
-        /// 写日志
-        /// </summary>
+        /// <summary>写日志</summary>>
         /// <param name="format"></param>
         /// <param name="args"></param>
         public static void WriteLine(String format, params Object[] args)
@@ -320,18 +290,14 @@ namespace XAgent
             if (XTrace.Debug) XTrace.WriteLine(format, args);
         }
 
-        /// <summary>
-        /// 写日志
-        /// </summary>
+        /// <summary>写日志</summary>>
         /// <param name="msg"></param>
         public static void WriteLine(String msg)
         {
             if (XTrace.Debug) XTrace.WriteLine(msg);
         }
 
-        /// <summary>
-        /// 写日志
-        /// </summary>
+        /// <summary>写日志</summary>>
         /// <param name="msg"></param>
         [Obsolete("请改用WriteLine")]
         public static void WriteLog(String msg)
@@ -341,9 +307,7 @@ namespace XAgent
         #endregion
 
         #region 辅助
-        /// <summary>
-        /// 取得服务
-        /// </summary>
+        /// <summary>取得服务</summary>>
         /// <param name="name"></param>
         /// <returns></returns>
         public static ServiceController GetService(String name)

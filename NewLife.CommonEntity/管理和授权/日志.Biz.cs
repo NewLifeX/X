@@ -9,17 +9,13 @@ using XCode.Cache;
 
 namespace NewLife.CommonEntity
 {
-    /// <summary>
-    /// 日志
-    /// </summary>
+    /// <summary>日志</summary>>
     [BindIndex("IX_Log_Category", false, "Category")]
     [BindIndex("PK__Log__3214EC271DE57479", true, "ID")]
     public partial class Log<TEntity> : Entity<TEntity> where TEntity : Log<TEntity>, new()
     {
         #region 对象操作
-        /// <summary>
-        /// 已重载。把该对象插入到数据库。这里可以做数据插入前的检查
-        /// </summary>
+        /// <summary>已重载。把该对象插入到数据库。这里可以做数据插入前的检查</summary>>
         /// <returns>影响的行数</returns>
         public override Int32 Insert()
         {
@@ -40,9 +36,7 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region 扩展查询
-        /// <summary>
-        /// 根据主键查询一个日志实体对象用于表单编辑
-        /// </summary>
+        /// <summary>根据主键查询一个日志实体对象用于表单编辑</summary>>
         /// <param name="__ID">编号</param>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
@@ -56,9 +50,7 @@ namespace NewLife.CommonEntity
             return entity;
         }
 
-        /// <summary>
-        /// 查询
-        /// </summary>
+        /// <summary>查询</summary>>
         /// <param name="key"></param>
         /// <param name="adminid"></param>
         /// <param name="category"></param>
@@ -75,9 +67,7 @@ namespace NewLife.CommonEntity
             return FindAll(SearchWhere(key, adminid, category, start, end), orderClause, null, startRowIndex, maximumRows);
         }
 
-        /// <summary>
-        /// 查询
-        /// </summary>
+        /// <summary>查询</summary>>
         /// <param name="key"></param>
         /// <param name="adminid"></param>
         /// <param name="category"></param>
@@ -94,9 +84,7 @@ namespace NewLife.CommonEntity
             return FindCount(where, null, null, 0, 0);
         }
 
-        /// <summary>
-        /// 查询
-        /// </summary>
+        /// <summary>查询</summary>>
         /// <param name="key"></param>
         /// <param name="adminid"></param>
         /// <param name="category"></param>
@@ -122,9 +110,7 @@ namespace NewLife.CommonEntity
 
         #region 扩展操作
         static EntityCache<TEntity> _categoryCache;
-        /// <summary>
-        /// 类别名实体缓存，异步，缓存10分钟
-        /// </summary>
+        /// <summary>类别名实体缓存，异步，缓存10分钟</summary>>
         static EntityCache<TEntity> CategoryCache
         {
             get
@@ -141,9 +127,7 @@ namespace NewLife.CommonEntity
             }
         }
 
-        /// <summary>
-        /// 查找所有类别名
-        /// </summary>
+        /// <summary>查找所有类别名</summary>>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
         public static EntityList<TEntity> FindAllCategory()
@@ -153,9 +137,7 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region 业务
-        /// <summary>
-        /// 创建日志
-        /// </summary>
+        /// <summary>创建日志</summary>>
         /// <param name="category"></param>
         /// <param name="action"></param>
         /// <returns></returns>
@@ -169,9 +151,7 @@ namespace NewLife.CommonEntity
             return entity;
         }
 
-        /// <summary>
-        /// 创建日志
-        /// </summary>
+        /// <summary>创建日志</summary>>
         /// <param name="type"></param>
         /// <param name="action"></param>
         /// <returns></returns>
@@ -184,9 +164,7 @@ namespace NewLife.CommonEntity
         }
 
         static DictionaryCache<Type, String> desCache = new DictionaryCache<Type, string>();
-        /// <summary>
-        /// 获取实体类的描述名
-        /// </summary>
+        /// <summary>获取实体类的描述名</summary>>
         /// <param name="type"></param>
         /// <returns></returns>
         static String GetDescription(Type type)
@@ -205,9 +183,7 @@ namespace NewLife.CommonEntity
             });
         }
 
-        /// <summary>
-        /// 写日志
-        /// </summary>
+        /// <summary>写日志</summary>>
         /// <param name="type">类型</param>
         /// <param name="action">操作</param>
         /// <param name="remark">备注</param>
@@ -225,9 +201,7 @@ namespace NewLife.CommonEntity
 
     public partial interface ILog
     {
-        /// <summary>
-        /// 写日志
-        /// </summary>
+        /// <summary>写日志</summary>>
         /// <param name="type">类型</param>
         /// <param name="action">操作</param>
         /// <param name="remark">备注</param>

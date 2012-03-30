@@ -12,9 +12,7 @@ namespace NewLife.Mvc
     {
         static IController _Controller;
 
-        /// <summary>
-        /// 在自定义的工厂内部使用的,忽略请求
-        /// </summary>
+        /// <summary>在自定义的工厂内部使用的,忽略请求</summary>>
         public static IController Controller
         {
             get
@@ -29,9 +27,7 @@ namespace NewLife.Mvc
 
         static IgnoreRoute _Instance;
 
-        /// <summary>
-        /// IgnoreRoute类的全局实例
-        /// </summary>
+        /// <summary>IgnoreRoute类的全局实例</summary>>
         public static IgnoreRoute Instance
         {
             get
@@ -44,18 +40,14 @@ namespace NewLife.Mvc
             }
         }
 
-        /// <summary>
-        /// 返回IgnoreRoute类的全局实例
-        /// </summary>
+        /// <summary>返回IgnoreRoute类的全局实例</summary>>
         /// <returns></returns>
         internal static IControllerFactory InstanceFunc()
         {
             return Instance;
         }
 
-        /// <summary>
-        /// 返回指定控制器是否表示忽略请求,如果参数ctl为null也将返回true;
-        /// </summary>
+        /// <summary>返回指定控制器是否表示忽略请求,如果参数ctl为null也将返回true;</summary>>
         /// <param name="ctl"></param>
         /// <returns></returns>
         public static bool IsIgnore(IController ctl)
@@ -63,9 +55,7 @@ namespace NewLife.Mvc
             return ctl == null || ctl == Controller || ctl is IgnoreRouteController;
         }
 
-        /// <summary>
-        /// 实现 IControllerFactory 接口
-        /// </summary>
+        /// <summary>实现 IControllerFactory 接口</summary>>
         /// <param name="context"></param>
         /// <returns></returns>
         public IController GetController(IRouteContext context)
@@ -73,17 +63,13 @@ namespace NewLife.Mvc
             return Controller;
         }
 
-        /// <summary>
-        /// 实现 IControllerFactory 接口
-        /// </summary>
+        /// <summary>实现 IControllerFactory 接口</summary>>
         /// <param name="handler"></param>
         public void ReleaseController(IController handler)
         {
         }
 
-        /// <summary>
-        /// 忽略路由请求 的控制器
-        /// </summary>
+        /// <summary>忽略路由请求 的控制器</summary>>
         internal class IgnoreRouteController : IController
         {
             public void ProcessRequest(IRouteContext context)

@@ -7,15 +7,11 @@ using System.Web.UI.Design.WebControls;
 
 namespace XControl
 {
-    /// <summary>
-    /// GridView扩展控件设计时
-    /// </summary>
+    /// <summary>GridView扩展控件设计时</summary>>
     public class GridViewExtenderDesigner : ExtenderControlDesigner<GridViewExtender, GridView>
     {
         #region 智能标记
-        /// <summary>
-        /// 已重载。
-        /// </summary>
+        /// <summary>已重载。</summary>>
         public override DesignerActionListCollection ActionLists
         {
             get
@@ -37,9 +33,7 @@ namespace XControl
                 _parent = parent;
             }
 
-            /// <summary>
-            /// 已重载。
-            /// </summary>
+            /// <summary>已重载。</summary>>
             /// <returns></returns>
             public override DesignerActionItemCollection GetSortedActionItems()
             {
@@ -53,9 +47,7 @@ namespace XControl
                 return items;
             }
 
-            /// <summary>
-            /// 是否自动显示
-            /// </summary>
+            /// <summary>是否自动显示</summary>>
             public override bool AutoShow { get { return true; } set { } }
 
             void SetPagerTemplate()
@@ -66,9 +58,7 @@ namespace XControl
         #endregion
 
         #region 设置分页模版
-        /// <summary>
-        /// 设置分页模版
-        /// </summary>
+        /// <summary>设置分页模版</summary>>
         public void SetPagerTemplate()
         {
             Cursor current = Cursor.Current;

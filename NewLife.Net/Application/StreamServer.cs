@@ -5,14 +5,10 @@ using NewLife.Net.Sockets;
 
 namespace NewLife.Net.Application
 {
-    /// <summary>
-    /// 数据流服务器
-    /// </summary>
+    /// <summary>数据流服务器</summary>>
     public class StreamServer : NetServer
     {
-        /// <summary>
-        /// 实例化一个数据流服务器
-        /// </summary>
+        /// <summary>实例化一个数据流服务器</summary>>
         public StreamServer()
         {
             //// 默认Udp协议

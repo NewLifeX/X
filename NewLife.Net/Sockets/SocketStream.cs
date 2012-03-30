@@ -79,9 +79,7 @@ namespace NewLife.Net.Sockets
         #endregion
 
         #region 方法
-        /// <summary>
-        /// 重新设置流
-        /// </summary>
+        /// <summary>重新设置流</summary>>
         /// <param name="socket"></param>
         /// <param name="input"></param>
         /// <param name="remote"></param>

@@ -5,9 +5,7 @@ using XCode.DataAccessLayer;
 
 namespace XCode.Exceptions
 {
-    /// <summary>
-    /// 数据访问层异常
-    /// </summary>
+    /// <summary>数据访问层异常</summary>>
     public class XDbSessionException : XDbException
     {
         private IDbSession _Session;
@@ -19,22 +17,16 @@ namespace XCode.Exceptions
         }
 
         #region 构造
-        /// <summary>
-        /// 初始化
-        /// </summary>
+        /// <summary>初始化</summary>>
         /// <param name="session"></param>
         public XDbSessionException(IDbSession session) : base(session.Database) { _Session = session; }
 
-        /// <summary>
-        /// 初始化
-        /// </summary>
+        /// <summary>初始化</summary>>
         /// <param name="session"></param>
         /// <param name="message"></param>
         public XDbSessionException(IDbSession session, String message) : base(session.Database, message) { _Session = session; }
 
-        /// <summary>
-        /// 初始化
-        /// </summary>
+        /// <summary>初始化</summary>>
         /// <param name="session"></param>
         /// <param name="message"></param>
         /// <param name="innerException"></param>
@@ -44,9 +36,7 @@ namespace XCode.Exceptions
             _Session = session;
         }
 
-        /// <summary>
-        /// 初始化
-        /// </summary>
+        /// <summary>初始化</summary>>
         /// <param name="session"></param>
         /// <param name="innerException"></param>
         public XDbSessionException(IDbSession session, Exception innerException)

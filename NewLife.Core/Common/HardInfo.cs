@@ -9,18 +9,14 @@ using NewLife.Xml;
 
 namespace NewLife.Common
 {
-    /// <summary>
-    /// 硬件信息
-    /// </summary>
+    /// <summary>硬件信息</summary>>
     public class HardInfo
     {
         #region 获取信息
         class _
         {
             private static String _BaseBoard;
-            /// <summary>
-            /// 主板序列号
-            /// </summary>
+            /// <summary>主板序列号</summary>>
             public static String BaseBoard
             {
                 get
@@ -36,9 +32,7 @@ namespace NewLife.Common
             }
 
             private static String _Processors;
-            /// <summary>
-            /// 处理器序列号
-            /// </summary>
+            /// <summary>处理器序列号</summary>>
             public static String Processors
             {
                 get
@@ -52,9 +46,7 @@ namespace NewLife.Common
             }
 
             private static Int64? _Memory;
-            /// <summary>
-            /// 内存总量
-            /// </summary>
+            /// <summary>内存总量</summary>>
             public static Int64 Memory
             {
                 get
@@ -69,9 +61,7 @@ namespace NewLife.Common
             }
 
             private static String _Disk;
-            /// <summary>
-            /// 磁盘名称
-            /// </summary>
+            /// <summary>磁盘名称</summary>>
             public static String Disk
             {
                 get
@@ -84,9 +74,7 @@ namespace NewLife.Common
             }
 
             private static String _DiskSerial = String.Empty;
-            /// <summary>
-            /// 磁盘序列号
-            /// </summary>
+            /// <summary>磁盘序列号</summary>>
             public static String DiskSerial
             {
                 get
@@ -97,9 +85,7 @@ namespace NewLife.Common
             }
 
             private static String _Volume;
-            /// <summary>
-            /// 驱动器序列号
-            /// </summary>
+            /// <summary>驱动器序列号</summary>>
             public static String Volume
             {
                 get
@@ -113,9 +99,7 @@ namespace NewLife.Common
             }
 
             private static String _Macs;
-            /// <summary>
-            /// 网卡地址序列号
-            /// </summary>
+            /// <summary>网卡地址序列号</summary>>
             public static String Macs
             {
                 get
@@ -152,9 +136,7 @@ namespace NewLife.Common
             }
 
             private static String _IPs;
-            /// <summary>
-            /// IP地址
-            /// </summary>
+            /// <summary>IP地址</summary>>
             public static String IPs
             {
                 get
@@ -405,9 +387,7 @@ namespace NewLife.Common
         #endregion
 
         #region 导入导出
-        /// <summary>
-        /// 
-        /// </summary>
+        /// <summary></summary>>
         /// <returns></returns>
         public ExtendData ToExtend()
         {
@@ -429,9 +409,7 @@ namespace NewLife.Common
             return data;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
+        /// <summary></summary>>
         /// <param name="data"></param>
         /// <returns></returns>
         public static HardInfo FromExtend(ExtendData data)
@@ -454,18 +432,14 @@ namespace NewLife.Common
             return entity;
         }
 
-        /// <summary>
-        /// 导出XML
-        /// </summary>
+        /// <summary>导出XML</summary>>
         /// <returns></returns>
         public virtual String ToXml()
         {
             return ToExtend().ToXml();
         }
 
-        /// <summary>
-        /// 导入
-        /// </summary>
+        /// <summary>导入</summary>>
         /// <param name="xml"></param>
         /// <returns></returns>
         public static HardInfo FromXml(String xml)

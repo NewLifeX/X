@@ -13,9 +13,7 @@ using XCode.Configuration;
 
 namespace NewLife.CommonEntity
 {
-	/// <summary>
-	/// 设置
-	/// </summary>
+	/// <summary>设置</summary>>
 	[Serializable]
 	[DataObject]
 	[Description("设置")]
@@ -24,9 +22,7 @@ namespace NewLife.CommonEntity
 	{
 		#region 属性
 		private Int32 _ID;
-		/// <summary>
-		/// 编号
-		/// </summary>
+		/// <summary>编号</summary>>
 		[Description("编号")]
 		[DataObjectField(true, true, false, 10)]
 		[BindColumn(1, "ID", "编号", "", "int", 10, 0, false)]
@@ -37,9 +33,7 @@ namespace NewLife.CommonEntity
 		}
 
 		private String _Name;
-		/// <summary>
-		/// 名称
-		/// </summary>
+		/// <summary>名称</summary>>
 		[Description("名称")]
 		[DataObjectField(false, false, true, 50)]
 		[BindColumn(2, "Name", "名称", "", "nvarchar(50)", 0, 0, true)]
@@ -50,9 +44,7 @@ namespace NewLife.CommonEntity
 		}
 
 		private Int32 _ParentID;
-		/// <summary>
-		/// 父编号
-		/// </summary>
+		/// <summary>父编号</summary>>
 		[Description("父编号")]
 		[DataObjectField(false, false, true, 10)]
 		[BindColumn(3, "ParentID", "父编号", "", "int", 10, 0, false)]
@@ -63,9 +55,7 @@ namespace NewLife.CommonEntity
 		}
 
 		private Int32 _Kind;
-		/// <summary>
-		/// 值类型
-		/// </summary>
+		/// <summary>值类型</summary>>
 		[Description("值类型")]
 		[DataObjectField(false, false, true, 10)]
 		[BindColumn(4, "Kind", "值类型", "", "int", 10, 0, false)]
@@ -76,9 +66,7 @@ namespace NewLife.CommonEntity
 		}
 
 		private String _Value;
-		/// <summary>
-		/// 值
-		/// </summary>
+		/// <summary>值</summary>>
 		[Description("值")]
 		[DataObjectField(false, false, true, 500)]
 		[BindColumn(5, "Value", "值", "", "nvarchar(500)", 0, 0, true)]
@@ -127,9 +115,7 @@ namespace NewLife.CommonEntity
 		#endregion
 
 		#region 字段名
-		/// <summary>
-		/// 取得设置字段名的快捷方式
-		/// </summary>
+		/// <summary>取得设置字段名的快捷方式</summary>>
 		public class _
 		{
             ///<summary>编号</summary>

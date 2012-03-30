@@ -15,17 +15,13 @@ using System.Drawing;
 
 namespace XControl
 {
-    /// <summary>
-    /// 日期选择控件
-    /// </summary>
+    /// <summary>日期选择控件</summary>>
     [Description("日期选择控件")]
     [ToolboxData("<{0}:DateBox runat=server></{0}:DateBox>")]
     [ToolboxBitmap(typeof(TextBox))]
     public class DateBox : TextBox
     {
-        /// <summary>
-        /// 初始化选择框的样式。
-        /// </summary>
+        /// <summary>初始化选择框的样式。</summary>>
         public DateBox()
             : base()
         {
@@ -39,9 +35,7 @@ namespace XControl
             if (String.IsNullOrEmpty(Attributes["style"])) this.Attributes.Add("style", "border-bottom-width:1px;");
         }
 
-        /// <summary>
-        /// 已重载。
-        /// </summary>
+        /// <summary>已重载。</summary>>
         /// <param name="e"></param>
         protected override void OnPreRender(EventArgs e)
         {
@@ -51,9 +45,7 @@ namespace XControl
             this.Page.ClientScript.RegisterClientScriptResource(this.GetType(), "XControl.TextBox.DateBox.SelectDate.js");
         }
 
-        /// <summary>
-        /// 当前值
-        /// </summary>
+        /// <summary>当前值</summary>>
         [Category(" 专用属性"), DefaultValue(0), Description("当前值")]
         public DateTime Value
         {

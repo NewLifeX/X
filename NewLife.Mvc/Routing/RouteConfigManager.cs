@@ -10,9 +10,7 @@ namespace NewLife.Mvc
     {
         #region 公共
 
-        /// <summary>
-        /// 指定路径路由到指定控制器
-        /// </summary>
+        /// <summary>指定路径路由到指定控制器</summary>>
         /// <typeparam name="T"></typeparam>
         /// <param name="path"></param>
         /// <returns></returns>
@@ -21,9 +19,7 @@ namespace NewLife.Mvc
             return Route(path, typeof(T), typeof(IController));
         }
 
-        /// <summary>
-        /// 指定路径路由到控制器工厂,工厂是单例的
-        /// </summary>
+        /// <summary>指定路径路由到控制器工厂,工厂是单例的</summary>>
         /// <typeparam name="T"></typeparam>
         /// <param name="path"></param>
         /// <returns></returns>
@@ -32,9 +28,7 @@ namespace NewLife.Mvc
             return Route(path, typeof(T), typeof(IControllerFactory));
         }
 
-        /// <summary>
-        /// 指定路径路由到控制器工厂,自定义工厂的初始化
-        /// </summary>
+        /// <summary>指定路径路由到控制器工厂,自定义工厂的初始化</summary>>
         /// <param name="path"></param>
         /// <param name="newFunc">工厂实例化方式</param>
         /// <returns></returns>
@@ -47,9 +41,7 @@ namespace NewLife.Mvc
             });
         }
 
-        /// <summary>
-        /// 指定路径路由到模块,模块是一个独立的路由配置,可以相对于自身所路由的路径,进一步路由到具体的控制器或者工厂
-        /// </summary>
+        /// <summary>指定路径路由到模块,模块是一个独立的路由配置,可以相对于自身所路由的路径,进一步路由到具体的控制器或者工厂</summary>>
         /// <typeparam name="T"></typeparam>
         /// <param name="path"></param>
         /// <returns></returns>
@@ -58,9 +50,7 @@ namespace NewLife.Mvc
             return Route(path, typeof(T), typeof(IRouteConfigModule));
         }
 
-        /// <summary>
-        /// 指定路径路由到指定名称的类型,目标类型需要是IController,IControllerFactory,IRouteConfigMoudule其中之一
-        /// </summary>
+        /// <summary>指定路径路由到指定名称的类型,目标类型需要是IController,IControllerFactory,IRouteConfigMoudule其中之一</summary>>
         /// <param name="path"></param>
         /// <param name="type">目标类型的完整名称,包括名称空间和类名</param>
         /// <returns></returns>
@@ -69,9 +59,7 @@ namespace NewLife.Mvc
             return Route(path, TypeX.GetType(type));
         }
 
-        /// <summary>
-        /// 指定路径路由到指定类型,类型需要是IController,IControllerFactory,IRouteConfigMoudule其中之一
-        /// </summary>
+        /// <summary>指定路径路由到指定类型,类型需要是IController,IControllerFactory,IRouteConfigMoudule其中之一</summary>>
         /// <param name="path"></param>
         /// <param name="type"></param>
         /// <returns></returns>
@@ -94,9 +82,7 @@ namespace NewLife.Mvc
             return Route(path, type, typeof(object), null);
         }
 
-        /// <summary>
-        /// 指定多个路径路由到指定的目标,目标需要是IController,IControllerFactory,IRouteConfigMoudule其中之一
-        /// </summary>
+        /// <summary>指定多个路径路由到指定的目标,目标需要是IController,IControllerFactory,IRouteConfigMoudule其中之一</summary>>
         /// <example>
         /// 一般用法:
         /// <code>
@@ -150,9 +136,7 @@ namespace NewLife.Mvc
             return this;
         }
 
-        /// <summary>
-        /// 将指定过滤器返回true的请求忽略 如果忽略的请求是静态资源请使用Static
-        /// </summary>
+        /// <summary>将指定过滤器返回true的请求忽略 如果忽略的请求是静态资源请使用Static</summary>>
         /// <param name="path"></param>
         /// <param name="filter"></param>
         /// <returns></returns>
@@ -161,9 +145,7 @@ namespace NewLife.Mvc
             return RouteToFactory(path, () => new IgnoreRoute() { Filter = filter });
         }
 
-        /// <summary>
-        /// 将指定路径作为静态资源路由 静态资源会在Http Header中增加相关的缓存标识 根据HttpCacheConfig
-        /// </summary>
+        /// <summary>将指定路径作为静态资源路由 静态资源会在Http Header中增加相关的缓存标识 根据HttpCacheConfig</summary>>
         /// <param name="path"></param>
         /// <returns></returns>
         public RouteConfigManager Static(params string[] path)
@@ -175,9 +157,7 @@ namespace NewLife.Mvc
             return this;
         }
 
-        /// <summary>
-        /// 将指定过滤器返回true的请求作为静态资源路由
-        /// </summary>
+        /// <summary>将指定过滤器返回true的请求作为静态资源路由</summary>>
         /// <param name="path"></param>
         /// <param name="filter"></param>
         /// <returns></returns>
@@ -186,9 +166,7 @@ namespace NewLife.Mvc
             return RouteToFactory(path, () => new StaticRoute() { Filter = filter });
         }
 
-        /// <summary>
-        /// 重定向指定路径的请求到指定目标
-        /// </summary>
+        /// <summary>重定向指定路径的请求到指定目标</summary>>
         /// <param name="path">指定路径,当请求匹配当前模块的这个路径时重定向生效</param>
         /// <param name="to">重定向目标,相对于当前模块</param>
         /// <returns></returns>
@@ -224,9 +202,7 @@ namespace NewLife.Mvc
             return RouteToFactory(path, () => new RedirectRoute(toFunc));
         }
 
-        /// <summary>
-        /// 加载指定模块类型的路由配置,不同于RouteToModule(string path),这个相当于IRouteConfigModule.Config(this)
-        /// </summary>
+        /// <summary>加载指定模块类型的路由配置,不同于RouteToModule(string path),这个相当于IRouteConfigModule.Config(this)</summary>>
         /// <returns></returns>
         public RouteConfigManager Load<T>() where T : IRouteConfigModule, new()
         {
@@ -251,9 +227,7 @@ namespace NewLife.Mvc
             return this;
         }
 
-        /// <summary>
-        /// 加载指定模块类型的路由配置,不同于RouteToModule(string path),这个相当于IRouteConfigModule.Config(this)
-        /// </summary>
+        /// <summary>加载指定模块类型的路由配置,不同于RouteToModule(string path),这个相当于IRouteConfigModule.Config(this)</summary>>
         /// <param name="type"></param>
         /// <returns></returns>
         public RouteConfigManager Load(Type type)
@@ -282,9 +256,7 @@ namespace NewLife.Mvc
             return this;
         }
 
-        /// <summary>
-        /// 加载指定模块的路由配置,不同于RouteToModule(string path),这个相当于IRouteConfigModule.Config(this)
-        /// </summary>
+        /// <summary>加载指定模块的路由配置,不同于RouteToModule(string path),这个相当于IRouteConfigModule.Config(this)</summary>>
         /// <param name="module"></param>
         /// <returns></returns>
         public RouteConfigManager Load(IRouteConfigModule module)
@@ -304,18 +276,14 @@ namespace NewLife.Mvc
             return this;
         }
 
-        /// <summary>
-        /// 对路由规则进行排序 在使用这个路由配置前建议进行排序
-        /// </summary>
+        /// <summary>对路由规则进行排序 在使用这个路由配置前建议进行排序</summary>>
         /// <returns></returns>
         public RouteConfigManager Sort()
         {
             return Sort(false);
         }
 
-        /// <summary>
-        /// 对路由规则进行排序 在使用这个路由配置前建议进行排序
-        /// </summary>
+        /// <summary>对路由规则进行排序 在使用这个路由配置前建议进行排序</summary>>
         /// <param name="force">是否强制排序,一般使用false</param>
         public RouteConfigManager Sort(bool force)
         {
@@ -344,9 +312,7 @@ namespace NewLife.Mvc
 
         bool sorted = false;
 
-        /// <summary>
-        /// 最终添加路由配置的方法,上面的公共方法都会调用到这里
-        /// </summary>
+        /// <summary>最终添加路由配置的方法,上面的公共方法都会调用到这里</summary>>
         /// <param name="path"></param>
         /// <param name="type"></param>
         /// <param name="ruleType">路由规则类型,未知类型使用null或者typeof(object)</param>
@@ -372,9 +338,7 @@ namespace NewLife.Mvc
 
         static DictionaryCache<Type, IRouteConfigModule>[] _LoadModuleCache = new DictionaryCache<Type, IRouteConfigModule>[] { null };
 
-        /// <summary>
-        /// 加载模块的IRouteConfigModule实例缓存,Type为键,用于Load&lt;Type&gt;()和Load(Type type)方法
-        /// </summary>
+        /// <summary>加载模块的IRouteConfigModule实例缓存,Type为键,用于Load&lt;Type&gt;()和Load(Type type)方法</summary>>
         internal static DictionaryCache<Type, IRouteConfigModule> LoadModuleCache
         {
             get
@@ -397,9 +361,7 @@ namespace NewLife.Mvc
 
         #region 静态方法
 
-        /// <summary>
-        /// 提供稳定排序,因为内部实现还是快速排序,所以需要指定isDesc参数
-        /// </summary>
+        /// <summary>提供稳定排序,因为内部实现还是快速排序,所以需要指定isDesc参数</summary>>
         /// <typeparam name="T"></typeparam>
         /// <param name="list">待排序的的列表,返回值也将是这个</param>
         /// <param name="isDesc">使用comp比较相同的元素是否使用和默认顺序相反的顺序排列,想保持默认顺序的话应使用false</param>
@@ -433,27 +395,21 @@ namespace NewLife.Mvc
 
         #region 实现IList接口
 
-        /// <summary>
-        /// 实现IList接口
-        /// </summary>
+        /// <summary>实现IList接口</summary>>
         /// <returns></returns>
         public IEnumerator<Rule> GetEnumerator()
         {
             return Rules.GetEnumerator();
         }
 
-        /// <summary>
-        /// 实现IList接口
-        /// </summary>
+        /// <summary>实现IList接口</summary>>
         /// <returns></returns>
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
         {
             return GetEnumerator();
         }
 
-        /// <summary>
-        /// 实现IList接口
-        /// </summary>
+        /// <summary>实现IList接口</summary>>
         public int Count
         {
             get
@@ -462,9 +418,7 @@ namespace NewLife.Mvc
             }
         }
 
-        /// <summary>
-        /// 实现IList接口
-        /// </summary>
+        /// <summary>实现IList接口</summary>>
         /// <param name="item"></param>
         /// <returns></returns>
         public int IndexOf(Rule item)
@@ -472,9 +426,7 @@ namespace NewLife.Mvc
             return Rules.IndexOf(item);
         }
 
-        /// <summary>
-        /// 实现IList接口
-        /// </summary>
+        /// <summary>实现IList接口</summary>>
         /// <param name="index"></param>
         /// <param name="item"></param>
         [Obsolete("请使用Route方法系列或Load方法", true)]
@@ -482,18 +434,14 @@ namespace NewLife.Mvc
         {
         }
 
-        /// <summary>
-        /// 实现IList接口
-        /// </summary>
+        /// <summary>实现IList接口</summary>>
         /// <param name="index"></param>
         public void RemoveAt(int index)
         {
             Rules.RemoveAt(index);
         }
 
-        /// <summary>
-        /// 实现IList接口 get是可用的,set将抛出NotImplementedException异常,请使用Route方法系列或Load方法
-        /// </summary>
+        /// <summary>实现IList接口 get是可用的,set将抛出NotImplementedException异常,请使用Route方法系列或Load方法</summary>>
         /// <param name="index"></param>
         /// <returns></returns>
         public Rule this[int index]
@@ -508,9 +456,7 @@ namespace NewLife.Mvc
             }
         }
 
-        /// <summary>
-        /// 实现IList接口
-        /// </summary>
+        /// <summary>实现IList接口</summary>>
         /// <param name="item"></param>
         [Obsolete("请使用Route方法系列或Load方法", true)]
         public void Add(Rule item)
@@ -518,17 +464,13 @@ namespace NewLife.Mvc
             throw new NotImplementedException();
         }
 
-        /// <summary>
-        /// 实现IList接口
-        /// </summary>
+        /// <summary>实现IList接口</summary>>
         public void Clear()
         {
             Rules.Clear();
         }
 
-        /// <summary>
-        /// 实现IList接口
-        /// </summary>
+        /// <summary>实现IList接口</summary>>
         /// <param name="item"></param>
         /// <returns></returns>
         public bool Contains(Rule item)
@@ -536,9 +478,7 @@ namespace NewLife.Mvc
             return Rules.Contains(item);
         }
 
-        /// <summary>
-        /// 实现IList接口
-        /// </summary>
+        /// <summary>实现IList接口</summary>>
         /// <param name="array"></param>
         /// <param name="arrayIndex"></param>
         public void CopyTo(Rule[] array, int arrayIndex)
@@ -546,17 +486,13 @@ namespace NewLife.Mvc
             Rules.CopyTo(array, arrayIndex);
         }
 
-        /// <summary>
-        /// 实现IList接口
-        /// </summary>
+        /// <summary>实现IList接口</summary>>
         public bool IsReadOnly
         {
             get { return false; }
         }
 
-        /// <summary>
-        /// 实现IList接口
-        /// </summary>
+        /// <summary>实现IList接口</summary>>
         /// <param name="item"></param>
         /// <returns></returns>
         public bool Remove(Rule item)
@@ -567,29 +503,21 @@ namespace NewLife.Mvc
         #endregion 实现IList接口
     }
 
-    /// <summary>
-    /// 路由配置异常
-    /// </summary>
+    /// <summary>路由配置异常</summary>>
     public class RouteConfigException : ArgumentException
     {
-        /// <summary>
-        /// 构造方法
-        /// </summary>
+        /// <summary>构造方法</summary>>
         /// <param name="message"></param>
         public RouteConfigException(string message)
             : base(message) { }
 
-        /// <summary>
-        /// 构造方法
-        /// </summary>
+        /// <summary>构造方法</summary>>
         /// <param name="message"></param>
         /// <param name="paramName"></param>
         public RouteConfigException(string message, string paramName)
             : base(message, paramName) { }
 
-        /// <summary>
-        /// 路由配置异常消息
-        /// </summary>
+        /// <summary>路由配置异常消息</summary>>
         public override string Message
         {
             get

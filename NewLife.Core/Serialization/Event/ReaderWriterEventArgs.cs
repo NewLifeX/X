@@ -4,9 +4,7 @@ using System.Text;
 
 namespace NewLife.Serialization
 {
-    /// <summary>
-    /// 读写器事件参数
-    /// </summary>
+    /// <summary>读写器事件参数</summary>>
     public class ReaderWriterEventArgs : EventArgs
     {
         #region 属性

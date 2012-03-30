@@ -53,49 +53,37 @@ namespace XCode
         #endregion
 
         #region 填充数据
-        /// <summary>
-        /// 加载记录集
-        /// </summary>
+        /// <summary>加载记录集</summary>>
         /// <param name="ds">记录集</param>
         /// <returns>实体数组</returns>
         IEntityList LoadData(DataSet ds);
         #endregion
 
         #region 查找单个实体
-        /// <summary>
-        /// 根据属性以及对应的值，查找单个实体
-        /// </summary>
+        /// <summary>根据属性以及对应的值，查找单个实体</summary>>
         /// <param name="name"></param>
         /// <param name="value"></param>
         /// <returns></returns>
         IEntity Find(String name, Object value);
 
-        /// <summary>
-        /// 根据条件查找单个实体
-        /// </summary>
+        /// <summary>根据条件查找单个实体</summary>>
         /// <param name="whereClause"></param>
         /// <returns></returns>
         IEntity Find(String whereClause);
 
-        /// <summary>
-        /// 根据主键查找单个实体
-        /// </summary>
+        /// <summary>根据主键查找单个实体</summary>>
         /// <param name="key"></param>
         /// <returns></returns>
         IEntity FindByKey(Object key);
 
-        /// <summary>
-        /// 根据主键查询一个实体对象用于表单编辑
-        /// </summary>
+        /// <summary>根据主键查询一个实体对象用于表单编辑</summary>>
         /// <param name="key"></param>
         /// <returns></returns>
         IEntity FindByKeyForEdit(Object key);
         #endregion
 
         #region 静态查询
-        /// <summary>
-        /// 获取所有实体对象。获取大量数据时会非常慢，慎用
-        /// </summary>
+        /// <summary>获取所有实体对象。获取大量数据时会非常慢，慎用</summary>>
         /// <returns>实体数组</returns>
         IEntityList FindAll();
 
@@ -111,25 +99,19 @@ namespace XCode
         /// <returns>实体数组</returns>
         IEntityList FindAll(String whereClause, String orderClause, String selects, Int32 startRowIndex, Int32 maximumRows);
 
-        /// <summary>
-        /// 根据属性列表以及对应的值列表，获取所有实体对象
-        /// </summary>
+        /// <summary>根据属性列表以及对应的值列表，获取所有实体对象</summary>>
         /// <param name="names">属性列表</param>
         /// <param name="values">值列表</param>
         /// <returns>实体数组</returns>
         IEntityList FindAll(String[] names, Object[] values);
 
-        /// <summary>
-        /// 根据属性以及对应的值，获取所有实体对象
-        /// </summary>
+        /// <summary>根据属性以及对应的值，获取所有实体对象</summary>>
         /// <param name="name">属性</param>
         /// <param name="value">值</param>
         /// <returns>实体数组</returns>
         IEntityList FindAll(String name, Object value);
 
-        /// <summary>
-        /// 根据属性以及对应的值，获取所有实体对象
-        /// </summary>
+        /// <summary>根据属性以及对应的值，获取所有实体对象</summary>>
         /// <param name="name">属性</param>
         /// <param name="value">值</param>
         /// <param name="startRowIndex">开始行，0表示第一行</param>
@@ -137,9 +119,7 @@ namespace XCode
         /// <returns>实体数组</returns>
         IEntityList FindAll(String name, Object value, Int32 startRowIndex, Int32 maximumRows);
 
-        /// <summary>
-        /// 根据属性以及对应的值，获取所有实体对象
-        /// </summary>
+        /// <summary>根据属性以及对应的值，获取所有实体对象</summary>>
         /// <param name="name">属性</param>
         /// <param name="value">值</param>
         /// <param name="orderClause">排序，不带Order By</param>
@@ -150,23 +130,17 @@ namespace XCode
         #endregion
 
         #region 缓存查询
-        /// <summary>
-        /// 根据属性以及对应的值，在缓存中查找单个实体
-        /// </summary>
+        /// <summary>根据属性以及对应的值，在缓存中查找单个实体</summary>>
         /// <param name="name">属性名称</param>
         /// <param name="value">属性值</param>
         /// <returns></returns>
         IEntity FindWithCache(String name, Object value);
 
-        /// <summary>
-        /// 查找所有缓存
-        /// </summary>
+        /// <summary>查找所有缓存</summary>>
         /// <returns></returns>
         IEntityList FindAllWithCache();
 
-        /// <summary>
-        /// 根据属性以及对应的值，在缓存中获取所有实体对象
-        /// </summary>
+        /// <summary>根据属性以及对应的值，在缓存中获取所有实体对象</summary>>
         /// <param name="name">属性</param>
         /// <param name="value">值</param>
         /// <returns>实体数组</returns>
@@ -174,15 +148,11 @@ namespace XCode
         #endregion
 
         #region 取总记录数
-        /// <summary>
-        /// 返回总记录数
-        /// </summary>
+        /// <summary>返回总记录数</summary>>
         /// <returns></returns>
         Int32 FindCount();
 
-        /// <summary>
-        /// 返回总记录数
-        /// </summary>
+        /// <summary>返回总记录数</summary>>
         /// <param name="whereClause">条件，不带Where</param>
         /// <param name="orderClause">排序，不带Order By</param>
         /// <param name="selects">查询列</param>
@@ -191,25 +161,19 @@ namespace XCode
         /// <returns>总行数</returns>
         Int32 FindCount(String whereClause, String orderClause, String selects, Int32 startRowIndex, Int32 maximumRows);
 
-        /// <summary>
-        /// 根据属性列表以及对应的值列表，返回总记录数
-        /// </summary>
+        /// <summary>根据属性列表以及对应的值列表，返回总记录数</summary>>
         /// <param name="names">属性列表</param>
         /// <param name="values">值列表</param>
         /// <returns>总行数</returns>
         Int32 FindCount(String[] names, Object[] values);
 
-        /// <summary>
-        /// 根据属性以及对应的值，返回总记录数
-        /// </summary>
+        /// <summary>根据属性以及对应的值，返回总记录数</summary>>
         /// <param name="name">属性</param>
         /// <param name="value">值</param>
         /// <returns>总行数</returns>
         Int32 FindCount(String name, Object value);
 
-        /// <summary>
-        /// 根据属性以及对应的值，返回总记录数
-        /// </summary>
+        /// <summary>根据属性以及对应的值，返回总记录数</summary>>
         /// <param name="name">属性</param>
         /// <param name="value">值</param>
         /// <param name="startRowIndex">开始行，0表示第一行</param>
@@ -217,9 +181,7 @@ namespace XCode
         /// <returns>总行数</returns>
         Int32 FindCount(String name, Object value, Int32 startRowIndex, Int32 maximumRows);
 
-        /// <summary>
-        /// 根据属性以及对应的值，返回总记录数
-        /// </summary>
+        /// <summary>根据属性以及对应的值，返回总记录数</summary>>
         /// <param name="name">属性</param>
         /// <param name="value">值</param>
         /// <param name="orderClause">排序，不带Order By</param>
@@ -230,9 +192,7 @@ namespace XCode
         #endregion
 
         #region 导入导出XML
-        /// <summary>
-        /// 导入
-        /// </summary>
+        /// <summary>导入</summary>>
         /// <param name="xml"></param>
         /// <returns></returns>
         [Obsolete("该成员在后续版本中将不再被支持！请使用实体访问器IEntityAccessor替代！")]
@@ -240,9 +200,7 @@ namespace XCode
         #endregion
 
         #region 导入导出Json
-        /// <summary>
-        /// 导入
-        /// </summary>
+        /// <summary>导入</summary>>
         /// <param name="json"></param>
         /// <returns></returns>
         [Obsolete("该成员在后续版本中将不再被支持！请使用实体访问器IEntityAccessor替代！")]
@@ -250,16 +208,12 @@ namespace XCode
         #endregion
 
         #region 数据库操作
-        /// <summary>
-        /// 查询
-        /// </summary>
+        /// <summary>查询</summary>>
         /// <param name="sql">SQL语句</param>
         /// <returns>结果记录集</returns>
         DataSet Query(String sql);
 
-        /// <summary>
-        /// 查询记录数
-        /// </summary>
+        /// <summary>查询记录数</summary>>
         /// <param name="sql">SQL语句</param>
         /// <returns>记录数</returns>
         Int32 QueryCount(String sql);
@@ -290,21 +244,15 @@ namespace XCode
         #endregion
 
         #region 事务
-        /// <summary>
-        /// 开始事务
-        /// </summary>
+        /// <summary>开始事务</summary>>
         /// <returns></returns>
         Int32 BeginTransaction();
 
-        /// <summary>
-        /// 提交事务
-        /// </summary>
+        /// <summary>提交事务</summary>>
         /// <returns></returns>
         Int32 Commit();
 
-        /// <summary>
-        /// 回滚事务
-        /// </summary>
+        /// <summary>回滚事务</summary>>
         /// <returns></returns>
         Int32 Rollback();
         #endregion
@@ -321,9 +269,7 @@ namespace XCode
         #endregion
 
         #region 辅助方法
-        /// <summary>
-        /// 格式化关键字
-        /// </summary>
+        /// <summary>格式化关键字</summary>>
         /// <param name="name"></param>
         /// <returns></returns>
         String FormatName(String name);
@@ -337,9 +283,7 @@ namespace XCode
         /// <returns>Sql值的字符串形式</returns>
         String FormatValue(String name, Object value);
 
-        /// <summary>
-        /// 格式化数据为SQL数据
-        /// </summary>
+        /// <summary>格式化数据为SQL数据</summary>>
         /// <param name="field"></param>
         /// <param name="value"></param>
         /// <returns></returns>
@@ -355,18 +299,14 @@ namespace XCode
         /// <returns>条件子串</returns>
         String MakeCondition(String[] names, Object[] values, String action);
 
-        /// <summary>
-        /// 构造条件
-        /// </summary>
+        /// <summary>构造条件</summary>>
         /// <param name="name">名称</param>
         /// <param name="value">值</param>
         /// <param name="action">大于小于等符号</param>
         /// <returns></returns>
         String MakeCondition(String name, Object value, String action);
 
-        /// <summary>
-        /// 构造条件
-        /// </summary>
+        /// <summary>构造条件</summary>>
         /// <param name="field">名称</param>
         /// <param name="value">值</param>
         /// <param name="action">大于小于等符号</param>

@@ -55,14 +55,10 @@ namespace NewLife.CommonEntity.Web
         #endregion
 
         #region 构造
-        /// <summary>
-        /// 实例化一个实体表单
-        /// </summary>
+        /// <summary>实例化一个实体表单</summary>>
         public EntityForm2() { }
 
-        /// <summary>
-        /// 指定控件容器和实体类型，实例化一个实体表单
-        /// </summary>
+        /// <summary>指定控件容器和实体类型，实例化一个实体表单</summary>>
         /// <param name="container"></param>
         /// <param name="type"></param>
         public EntityForm2(Control container, Type type)
@@ -268,9 +264,7 @@ namespace NewLife.CommonEntity.Web
             set { _Entity = value; }
         }
 
-        /// <summary>
-        /// 使用Request参数填充entity
-        /// </summary>
+        /// <summary>使用Request参数填充entity</summary>>
         /// <param name="entity"></param>
         protected virtual void FillEntityWithRequest(IEntity entity)
         {
@@ -458,9 +452,7 @@ namespace NewLife.CommonEntity.Web
             return true;
         }
 
-        /// <summary>
-        /// 验证表单项
-        /// </summary>
+        /// <summary>验证表单项</summary>>
         /// <param name="field"></param>
         /// <param name="control"></param>
         /// <returns></returns>
@@ -527,9 +519,7 @@ namespace NewLife.CommonEntity.Web
         /// <summary>保存表单，把实体保存到数据库，当前方法处于事务保护之中</summary>
         protected virtual void SaveForm() { Entity.Save(); }
 
-        /// <summary>
-        /// 保存成功
-        /// </summary>
+        /// <summary>保存成功</summary>>
         protected virtual void SaveFormSuccess()
         {
             if (OnSaveSuccess != null)
@@ -554,9 +544,7 @@ namespace NewLife.CommonEntity.Web
 ", true);
         }
 
-        /// <summary>
-        /// 保存失败
-        /// </summary>
+        /// <summary>保存失败</summary>>
         /// <param name="ex"></param>
         protected virtual void SaveFormFailure(Exception ex)
         {
@@ -580,9 +568,7 @@ namespace NewLife.CommonEntity.Web
         #endregion
 
         #region 辅助
-        /// <summary>
-        /// 查找表单控件
-        /// </summary>
+        /// <summary>查找表单控件</summary>>
         /// <param name="id"></param>
         /// <returns></returns>
         protected virtual Control FindControl(string id)
@@ -596,9 +582,7 @@ namespace NewLife.CommonEntity.Web
             return ControlHelper.FindControl<Control>(Container, id);
         }
 
-        /// <summary>
-        /// 查找字段对应的控件
-        /// </summary>
+        /// <summary>查找字段对应的控件</summary>>
         /// <param name="field"></param>
         /// <returns></returns>
         protected virtual Control FindControlByField(FieldItem field)
@@ -608,9 +592,7 @@ namespace NewLife.CommonEntity.Web
         #endregion
 
         #region IEntityForm 成员
-        /// <summary>
-        /// 使用控件容器和实体类初始化接口
-        /// </summary>
+        /// <summary>使用控件容器和实体类初始化接口</summary>>
         /// <param name="container"></param>
         /// <param name="entityType"></param>
         IEntityForm IEntityForm.Init(Control container, Type entityType)

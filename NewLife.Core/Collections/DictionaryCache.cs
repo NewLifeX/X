@@ -298,35 +298,25 @@ namespace NewLife.Collections
         #endregion
 
         #region IDictionary<TKey,TValue> 成员
-        /// <summary>
-        /// 
-        /// </summary>
+        /// <summary></summary>>
         /// <param name="key"></param>
         /// <param name="value"></param>
         public void Add(TKey key, TValue value) { Items.Add(key, new CacheItem(value, Expriod)); }
 
-        /// <summary>
-        /// 
-        /// </summary>
+        /// <summary></summary>>
         /// <param name="key"></param>
         /// <returns></returns>
         public bool ContainsKey(TKey key) { return Items.ContainsKey(key); }
 
-        /// <summary>
-        /// 
-        /// </summary>
+        /// <summary></summary>>
         public ICollection<TKey> Keys { get { return Items.Keys; } }
 
-        /// <summary>
-        /// 
-        /// </summary>
+        /// <summary></summary>>
         /// <param name="key"></param>
         /// <returns></returns>
         public bool Remove(TKey key) { return Items.Remove(key); }
 
-        /// <summary>
-        /// 
-        /// </summary>
+        /// <summary></summary>>
         /// <param name="key"></param>
         /// <param name="value"></param>
         /// <returns></returns>
@@ -338,53 +328,37 @@ namespace NewLife.Collections
             return rs;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
+        /// <summary></summary>>
         public ICollection<TValue> Values { get { return Items.Values.Select(e => e.Value).ToArray(); } }
 
         #endregion
 
         #region ICollection<KeyValuePair<TKey,TValue>> 成员
 
-        /// <summary>
-        /// 
-        /// </summary>
+        /// <summary></summary>>
         /// <param name="item"></param>
         public void Add(KeyValuePair<TKey, TValue> item) { Add(item.Key, item.Value); }
 
-        /// <summary>
-        /// 
-        /// </summary>
+        /// <summary></summary>>
         public void Clear() { Items.Clear(); }
 
-        /// <summary>
-        /// 
-        /// </summary>
+        /// <summary></summary>>
         /// <param name="item"></param>
         /// <returns></returns>
         public bool Contains(KeyValuePair<TKey, TValue> item) { return Items.ContainsKey(item.Key); }
 
-        /// <summary>
-        /// 
-        /// </summary>
+        /// <summary></summary>>
         /// <param name="array"></param>
         /// <param name="arrayIndex"></param>
         public void CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex) { throw new NotImplementedException(); }
 
-        /// <summary>
-        /// 
-        /// </summary>
+        /// <summary></summary>>
         public int Count { get { return Items.Count; } }
 
-        /// <summary>
-        /// 
-        /// </summary>
+        /// <summary></summary>>
         public bool IsReadOnly { get { return (Items as ICollection<KeyValuePair<TKey, CacheItem>>).IsReadOnly; } }
 
-        /// <summary>
-        /// 
-        /// </summary>
+        /// <summary></summary>>
         /// <param name="item"></param>
         /// <returns></returns>
         public bool Remove(KeyValuePair<TKey, TValue> item) { return Items.Remove(item.Key); }
@@ -392,9 +366,7 @@ namespace NewLife.Collections
         #endregion
 
         #region IEnumerable<KeyValuePair<TKey,TValue>> 成员
-        /// <summary>
-        /// 
-        /// </summary>
+        /// <summary></summary>>
         /// <returns></returns>
         public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
         {

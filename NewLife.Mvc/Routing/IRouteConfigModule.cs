@@ -1,13 +1,9 @@
 ﻿namespace NewLife.Mvc
 {
-    /// <summary>
-    /// 模块路由配置,可以在其它路由中
-    /// </summary>
+    /// <summary>模块路由配置,可以在其它路由中</summary>>
     public interface IRouteConfigModule
     {
-        /// <summary>
-        /// 配置方法
-        /// </summary>
+        /// <summary>配置方法</summary>>
         /// <param name="cfg"></param>
         void Config(RouteConfigManager cfg);
     }

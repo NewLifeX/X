@@ -15,28 +15,22 @@ namespace XCode.Cache
     /// <summary>实体缓存接口</summary>
     public interface IEntityCache : IEntityCacheBase
     {
-        /// <summary>实体集合。因为涉及一个转换，数据量大是很耗性能，建议不要使用。</summary>
+        /// <summary>实体集合。因为涉及一个转换，数据量大时很耗性能，建议不要使用。</summary>
         EntityList<IEntity> Entities { get; }
 
-        /// <summary>
-        /// 根据指定项查找
-        /// </summary>
+        /// <summary>根据指定项查找</summary>>
         /// <param name="name">属性名</param>
         /// <param name="value">属性值</param>
         /// <returns></returns>
         IEntity Find(String name, Object value);
 
-        /// <summary>
-        /// 根据指定项查找
-        /// </summary>
+        /// <summary>根据指定项查找</summary>>
         /// <param name="name">属性名</param>
         /// <param name="value">属性值</param>
         /// <returns></returns>
         EntityList<IEntity> FindAll(String name, Object value);
 
-        /// <summary>
-        /// 检索与指定谓词定义的条件匹配的所有元素。
-        /// </summary>
+        /// <summary>检索与指定谓词定义的条件匹配的所有元素。</summary>>
         /// <param name="match">条件</param>
         /// <returns></returns>
         EntityList<IEntity> FindAll(Predicate<IEntity> match);

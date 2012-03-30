@@ -160,9 +160,7 @@ namespace XCode.Cache
         /// <summary>下一次显示时间</summary>
         public DateTime NextShow;
 
-        /// <summary>
-        /// 显示统计信息
-        /// </summary>
+        /// <summary>显示统计信息</summary>>
         public void ShowStatics()
         {
             if (Total > 0)
@@ -195,17 +193,13 @@ namespace XCode.Cache
             }
         }
 
-        /// <summary>
-        /// 根据指定项查找
-        /// </summary>
+        /// <summary>根据指定项查找</summary>>
         /// <param name="name">属性名</param>
         /// <param name="value">属性值</param>
         /// <returns></returns>
         public IEntity Find(string name, object value) { return Entities.Find(name, value); }
 
-        /// <summary>
-        /// 根据指定项查找
-        /// </summary>
+        /// <summary>根据指定项查找</summary>>
         /// <param name="name">属性名</param>
         /// <param name="value">属性值</param>
         /// <returns></returns>
@@ -223,9 +217,7 @@ namespace XCode.Cache
         }
 
 
-        /// <summary>
-        /// 检索与指定谓词定义的条件匹配的所有元素。
-        /// </summary>
+        /// <summary>检索与指定谓词定义的条件匹配的所有元素。</summary>>
         /// <param name="match">条件</param>
         /// <returns></returns>
         public EntityList<IEntity> FindAll(Predicate<IEntity> match)
@@ -243,9 +235,7 @@ namespace XCode.Cache
         #endregion
     }
 
-    /// <summary>
-    /// 填充数据的方法
-    /// </summary>
+    /// <summary>填充数据的方法</summary>>
     /// <typeparam name="TEntity">实体类型</typeparam>
     /// <returns></returns>
     public delegate EntityList<TEntity> FillListDelegate<TEntity>() where TEntity : Entity<TEntity>, new();

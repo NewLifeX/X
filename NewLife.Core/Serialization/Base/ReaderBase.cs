@@ -25,15 +25,11 @@ namespace NewLife.Serialization
     {
         #region 基元类型
         #region 字节
-        /// <summary>
-        /// 从当前流中读取下一个字节，并使流的当前位置提升 1 个字节。
-        /// </summary>
+        /// <summary>从当前流中读取下一个字节，并使流的当前位置提升 1 个字节。</summary>>
         /// <returns></returns>
         public abstract byte ReadByte();
 
-        /// <summary>
-        /// 从当前流中将 count 个字节读入字节数组，如果count小于0，则先读取字节数组长度。
-        /// </summary>
+        /// <summary>从当前流中将 count 个字节读入字节数组，如果count小于0，则先读取字节数组长度。</summary>>
         /// <param name="count">要读取的字节数。</param>
         /// <returns></returns>
         public virtual byte[] ReadBytes(int count)
@@ -51,9 +47,7 @@ namespace NewLife.Serialization
             return buffer;
         }
 
-        /// <summary>
-        /// 从此流中读取一个有符号字节，并使流的当前位置提升 1 个字节。
-        /// </summary>
+        /// <summary>从此流中读取一个有符号字节，并使流的当前位置提升 1 个字节。</summary>>
         /// <returns></returns>
         //[CLSCompliant(false)]
         public virtual sbyte ReadSByte() { return (SByte)ReadByte(); }
@@ -65,72 +59,52 @@ namespace NewLife.Serialization
         /// <returns></returns>
         protected virtual Byte[] ReadIntBytes(Int32 count) { return ReadBytes(count); }
 
-        /// <summary>
-        /// 从当前流中读取 2 字节有符号整数，并使流的当前位置提升 2 个字节。
-        /// </summary>
+        /// <summary>从当前流中读取 2 字节有符号整数，并使流的当前位置提升 2 个字节。</summary>>
         /// <returns></returns>
         public virtual short ReadInt16() { return BitConverter.ToInt16(ReadIntBytes(2), 0); }
 
-        /// <summary>
-        /// 从当前流中读取 4 字节有符号整数，并使流的当前位置提升 4 个字节。
-        /// </summary>
+        /// <summary>从当前流中读取 4 字节有符号整数，并使流的当前位置提升 4 个字节。</summary>>
         /// <returns></returns>
         public virtual int ReadInt32() { return BitConverter.ToInt32(ReadIntBytes(4), 0); }
 
-        /// <summary>
-        /// 从当前流中读取 8 字节有符号整数，并使流的当前位置向前移动 8 个字节。
-        /// </summary>
+        /// <summary>从当前流中读取 8 字节有符号整数，并使流的当前位置向前移动 8 个字节。</summary>>
         /// <returns></returns>
         public virtual long ReadInt64() { return BitConverter.ToInt64(ReadIntBytes(8), 0); }
         #endregion
 
         #region 无符号整数
-        /// <summary>
-        /// 使用 Little-Endian 编码从当前流中读取 2 字节无符号整数，并将流的位置提升 2 个字节。
-        /// </summary>
+        /// <summary>使用 Little-Endian 编码从当前流中读取 2 字节无符号整数，并将流的位置提升 2 个字节。</summary>>
         /// <returns></returns>
         //[CLSCompliant(false)]
         public virtual ushort ReadUInt16() { return (UInt16)ReadInt16(); }
 
-        /// <summary>
-        /// 从当前流中读取 4 字节无符号整数并使流的当前位置提升 4 个字节。
-        /// </summary>
+        /// <summary>从当前流中读取 4 字节无符号整数并使流的当前位置提升 4 个字节。</summary>>
         /// <returns></returns>
         //[CLSCompliant(false)]
         public virtual uint ReadUInt32() { return (UInt32)ReadInt32(); }
 
-        /// <summary>
-        /// 从当前流中读取 8 字节无符号整数并使流的当前位置提升 8 个字节。
-        /// </summary>
+        /// <summary>从当前流中读取 8 字节无符号整数并使流的当前位置提升 8 个字节。</summary>>
         /// <returns></returns>
         //[CLSCompliant(false)]
         public virtual ulong ReadUInt64() { return (UInt64)ReadInt64(); }
         #endregion
 
         #region 浮点数
-        /// <summary>
-        /// 从当前流中读取 4 字节浮点值，并使流的当前位置提升 4 个字节。
-        /// </summary>
+        /// <summary>从当前流中读取 4 字节浮点值，并使流的当前位置提升 4 个字节。</summary>>
         /// <returns></returns>
         public virtual float ReadSingle() { return BitConverter.ToSingle(ReadBytes(4), 0); }
 
-        /// <summary>
-        /// 从当前流中读取 8 字节浮点值，并使流的当前位置提升 8 个字节。
-        /// </summary>
+        /// <summary>从当前流中读取 8 字节浮点值，并使流的当前位置提升 8 个字节。</summary>>
         /// <returns></returns>
         public virtual double ReadDouble() { return BitConverter.ToDouble(ReadBytes(8), 0); }
         #endregion
 
         #region 字符串
-        /// <summary>
-        /// 从当前流中读取下一个字符，并根据所使用的 Encoding 和从流中读取的特定字符，提升流的当前位置。
-        /// </summary>
+        /// <summary>从当前流中读取下一个字符，并根据所使用的 Encoding 和从流中读取的特定字符，提升流的当前位置。</summary>>
         /// <returns></returns>
         public virtual char ReadChar() { return Convert.ToChar(ReadByte()); }
 
-        /// <summary>
-        /// 从当前流中读取 count 个字符，以字符数组的形式返回数据，并根据所使用的 Encoding 和从流中读取的特定字符，提升当前位置。
-        /// </summary>
+        /// <summary>从当前流中读取 count 个字符，以字符数组的形式返回数据，并根据所使用的 Encoding 和从流中读取的特定字符，提升当前位置。</summary>>
         /// <param name="count">要读取的字符数。</param>
         /// <returns></returns>
         public virtual char[] ReadChars(int count)
@@ -164,9 +138,7 @@ namespace NewLife.Serialization
             return Settings.Encoding.GetChars(buffer, 0, i);
         }
 
-        /// <summary>
-        /// 从当前流中读取一个字符串。字符串有长度前缀，一次 7 位地被编码为整数。
-        /// </summary>
+        /// <summary>从当前流中读取一个字符串。字符串有长度前缀，一次 7 位地被编码为整数。</summary>>
         /// <returns></returns>
         public virtual string ReadString()
         {
@@ -182,15 +154,11 @@ namespace NewLife.Serialization
         #endregion
 
         #region 其它
-        /// <summary>
-        /// 从当前流中读取 Boolean 值，并使该流的当前位置提升 1 个字节。
-        /// </summary>
+        /// <summary>从当前流中读取 Boolean 值，并使该流的当前位置提升 1 个字节。</summary>>
         /// <returns></returns>
         public virtual bool ReadBoolean() { return ReadByte() != 0; }
 
-        /// <summary>
-        /// 从当前流中读取十进制数值，并将该流的当前位置提升十六个字节。
-        /// </summary>
+        /// <summary>从当前流中读取十进制数值，并将该流的当前位置提升十六个字节。</summary>>
         /// <returns></returns>
         public virtual decimal ReadDecimal()
         {
@@ -202,9 +170,7 @@ namespace NewLife.Serialization
             return new Decimal(data);
         }
 
-        /// <summary>
-        /// 读取一个时间日期
-        /// </summary>
+        /// <summary>读取一个时间日期</summary>>
         /// <returns></returns>
         public virtual DateTime ReadDateTime() { return Settings.ConvertInt64ToDateTime(ReadInt64()); }
         #endregion
@@ -296,9 +262,7 @@ namespace NewLife.Serialization
         #endregion
 
         #region 字典
-        /// <summary>
-        /// 尝试读取字典类型对象
-        /// </summary>
+        /// <summary>尝试读取字典类型对象</summary>>
         /// <param name="type">类型</param>
         /// <param name="value">对象</param>
         /// <returns>是否读取成功</returns>
@@ -307,9 +271,7 @@ namespace NewLife.Serialization
             return ReadDictionary(type, ref value, ReadMember);
         }
 
-        /// <summary>
-        /// 尝试读取字典类型对象
-        /// </summary>
+        /// <summary>尝试读取字典类型对象</summary>>
         /// <param name="type">类型</param>
         /// <param name="value">对象</param>
         /// <param name="callback">处理成员的方法</param>
@@ -364,9 +326,7 @@ namespace NewLife.Serialization
             return true;
         }
 
-        /// <summary>
-        /// 读取字典项集合，以读取键值失败作为读完字典项的标识，子类可以重载实现以字典项数量来读取
-        /// </summary>
+        /// <summary>读取字典项集合，以读取键值失败作为读完字典项的标识，子类可以重载实现以字典项数量来读取</summary>>
         /// <param name="keyType">键类型</param>
         /// <param name="valueType">值类型</param>
         /// <param name="count">元素个数</param>
@@ -395,9 +355,7 @@ namespace NewLife.Serialization
             return list;
         }
 
-        /// <summary>
-        /// 读取字典项
-        /// </summary>
+        /// <summary>读取字典项</summary>>
         /// <param name="keyType">键类型</param>
         /// <param name="valueType">值类型</param>
         /// <param name="value">字典项</param>
@@ -444,9 +402,7 @@ namespace NewLife.Serialization
             return rs;
         }
 
-        /// <summary>
-        /// 读取字典项
-        /// </summary>
+        /// <summary>读取字典项</summary>>
         /// <param name="keyType">键类型</param>
         /// <param name="valueType">值类型</param>
         /// <param name="value">字典项</param>
@@ -485,9 +441,7 @@ namespace NewLife.Serialization
             return true;
         }
 
-        /// <summary>
-        /// 取得字典的键值类型，默认只支持获取两个泛型参数的字典的键值类型
-        /// </summary>
+        /// <summary>取得字典的键值类型，默认只支持获取两个泛型参数的字典的键值类型</summary>>
         /// <param name="type">字典类型</param>
         /// <param name="keyType">键类型</param>
         /// <param name="valueType">值类型</param>
@@ -512,9 +466,7 @@ namespace NewLife.Serialization
         #endregion
 
         #region 枚举
-        /// <summary>
-        /// 尝试读取枚举
-        /// </summary>
+        /// <summary>尝试读取枚举</summary>>
         /// <param name="type">要读取的对象类型</param>
         /// <param name="value">要读取的对象</param>
         /// <returns>是否读取成功</returns>
@@ -523,9 +475,7 @@ namespace NewLife.Serialization
             return ReadEnumerable(type, ref value, ReadMember);
         }
 
-        /// <summary>
-        /// 尝试读取枚举
-        /// </summary>
+        /// <summary>尝试读取枚举</summary>>
         /// <remarks>重点和难点在于如果得知枚举元素类型，这里假设所有元素类型一致，否则实在无法处理</remarks>
         /// <param name="type">要读取的对象类型</param>
         /// <param name="value">要读取的对象</param>
@@ -588,9 +538,7 @@ namespace NewLife.Serialization
             return true;
         }
 
-        /// <summary>
-        /// 尝试读取枚举
-        /// </summary>
+        /// <summary>尝试读取枚举</summary>>
         /// <remarks>重点和难点在于如果得知枚举元素类型，这里假设所有元素类型一致，否则实在无法处理</remarks>
         /// <param name="type">类型</param>
         /// <param name="elementType">元素类型数组</param>
@@ -640,9 +588,7 @@ namespace NewLife.Serialization
             return false;
         }
 
-        /// <summary>
-        /// 读取元素集合
-        /// </summary>
+        /// <summary>读取元素集合</summary>>
         /// <param name="type"></param>
         /// <param name="elementType"></param>
         /// <param name="count">元素个数</param>
@@ -673,9 +619,7 @@ namespace NewLife.Serialization
             return list;
         }
 
-        /// <summary>
-        /// 读取项
-        /// </summary>
+        /// <summary>读取项</summary>>
         /// <param name="type"></param>
         /// <param name="value"></param>
         /// <param name="index">元素序号</param>
@@ -720,9 +664,7 @@ namespace NewLife.Serialization
             return rs;
         }
 
-        /// <summary>
-        /// 读取项
-        /// </summary>
+        /// <summary>读取项</summary>>
         /// <param name="type"></param>
         /// <param name="value"></param>
         /// <param name="index">元素序号</param>
@@ -742,9 +684,7 @@ namespace NewLife.Serialization
             return ReadObject(type, ref value, callback);
         }
 
-        /// <summary>
-        /// 处理结果集
-        /// </summary>
+        /// <summary>处理结果集</summary>>
         /// <param name="type"></param>
         /// <param name="elementType"></param>
         /// <param name="value"></param>
@@ -876,9 +816,7 @@ namespace NewLife.Serialization
         #endregion
 
         #region 序列化接口
-        /// <summary>
-        /// 读取实现了可序列化接口的对象
-        /// </summary>
+        /// <summary>读取实现了可序列化接口的对象</summary>>
         /// <param name="type">要读取的对象类型</param>
         /// <param name="value">要读取的对象</param>
         /// <param name="callback">处理成员的方法</param>
@@ -925,9 +863,7 @@ namespace NewLife.Serialization
         #endregion
 
         #region 未知对象
-        /// <summary>
-        /// 读取未知对象（其它所有方法都无法识别的对象），采用BinaryFormatter或者XmlSerialization
-        /// </summary>
+        /// <summary>读取未知对象（其它所有方法都无法识别的对象），采用BinaryFormatter或者XmlSerialization</summary>>
         /// <param name="type">要读取的对象类型</param>
         /// <param name="value">要读取的对象</param>
         /// <param name="callback">处理成员的方法</param>
@@ -1174,9 +1110,7 @@ namespace NewLife.Serialization
         /// <returns>是否读取成功</returns>
         public Boolean ReadObject(Type type, ref Object value) { return ReadObject(type, ref value, ReadMember); }
 
-        /// <summary>
-        /// 尝试读取目标对象指定成员的值，处理基础类型、特殊类型、基础类型数组、特殊类型数组，通过委托方法处理成员
-        /// </summary>
+        /// <summary>尝试读取目标对象指定成员的值，处理基础类型、特殊类型、基础类型数组、特殊类型数组，通过委托方法处理成员</summary>>
         /// <param name="type">要读取的对象类型</param>
         /// <param name="value">要读取的对象</param>
         /// <param name="callback">处理成员的方法</param>
@@ -1255,9 +1189,7 @@ namespace NewLife.Serialization
             return rs;
         }
 
-        /// <summary>
-        /// 尝试读取目标对象指定成员的值，处理基础类型、特殊类型、基础类型数组、特殊类型数组，通过委托方法处理成员
-        /// </summary>
+        /// <summary>尝试读取目标对象指定成员的值，处理基础类型、特殊类型、基础类型数组、特殊类型数组，通过委托方法处理成员</summary>>
         /// <param name="type">要读取的对象类型</param>
         /// <param name="value">要读取的对象</param>
         /// <param name="callback">处理成员的方法</param>
@@ -1352,9 +1284,7 @@ namespace NewLife.Serialization
         }
 
         #region 对象引用
-        /// <summary>
-        /// 读取引用对象的包装，能自动从引用对象集合里面读取，如果不存在，则调用委托读取对象，并加入引用对象集合
-        /// </summary>
+        /// <summary>读取引用对象的包装，能自动从引用对象集合里面读取，如果不存在，则调用委托读取对象，并加入引用对象集合</summary>>
         /// <typeparam name="T"></typeparam>
         /// <param name="func"></param>
         /// <returns></returns>
@@ -1498,9 +1428,7 @@ namespace NewLife.Serialization
             finally { CurrentObject = old; }
         }
 
-        /// <summary>
-        /// 读取成员之前获取要读取的成员，默认是index处的成员，实现者可以重载，改变当前要读取的成员，如果当前成员不在数组里面，则实现者自己跳到下一个可读成员。
-        /// </summary>
+        /// <summary>读取成员之前获取要读取的成员，默认是index处的成员，实现者可以重载，改变当前要读取的成员，如果当前成员不在数组里面，则实现者自己跳到下一个可读成员。</summary>>
         /// <param name="type">要读取的对象类型</param>
         /// <param name="value">要读取的对象</param>
         /// <param name="members">可匹配成员数组</param>
@@ -1620,44 +1548,28 @@ namespace NewLife.Serialization
         #endregion
 
         #region 事件
-        /// <summary>
-        /// 读对象前触发。
-        /// </summary>
+        /// <summary>读对象前触发。</summary>>
         public event EventHandler<ReadObjectEventArgs> OnObjectReading;
 
-        /// <summary>
-        /// 读对象后触发。
-        /// </summary>
+        /// <summary>读对象后触发。</summary>>
         public event EventHandler<ReadObjectEventArgs> OnObjectReaded;
 
-        /// <summary>
-        /// 读成员前触发。
-        /// </summary>
+        /// <summary>读成员前触发。</summary>>
         public event EventHandler<ReadMemberEventArgs> OnMemberReading;
 
-        /// <summary>
-        /// 读成员后触发。
-        /// </summary>
+        /// <summary>读成员后触发。</summary>>
         public event EventHandler<ReadMemberEventArgs> OnMemberReaded;
 
-        /// <summary>
-        /// 读字典项前触发。
-        /// </summary>
+        /// <summary>读字典项前触发。</summary>>
         public event EventHandler<ReadDictionaryEventArgs> OnDictionaryReading;
 
-        /// <summary>
-        /// 读字典项后触发。
-        /// </summary>
+        /// <summary>读字典项后触发。</summary>>
         public event EventHandler<ReadDictionaryEventArgs> OnDictionaryReaded;
 
-        /// <summary>
-        /// 读枚举项前触发。
-        /// </summary>
+        /// <summary>读枚举项前触发。</summary>>
         public event EventHandler<ReadItemEventArgs> OnItemReading;
 
-        /// <summary>
-        /// 读枚举项后触发。
-        /// </summary>
+        /// <summary>读枚举项后触发。</summary>>
         public event EventHandler<ReadItemEventArgs> OnItemReaded;
         #endregion
 
@@ -1693,9 +1605,7 @@ namespace NewLife.Serialization
             }
         }
 
-        /// <summary>
-        /// 读取多维数组相关参数
-        /// </summary>
+        /// <summary>读取多维数组相关参数</summary>>
         /// <returns></returns>
         protected virtual String ReadLengths()
         {
@@ -1706,9 +1616,7 @@ namespace NewLife.Serialization
         #endregion
 
         #region 辅助方法
-        /// <summary>
-        /// 给多维数组赋值
-        /// </summary>
+        /// <summary>给多维数组赋值</summary>>
         /// <param name="arr"></param>
         /// <param name="func"></param>
         /// <param name="value"></param>

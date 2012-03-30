@@ -4,21 +4,15 @@ using System.Web.UI.WebControls;
 using NewLife.Web;
 using XCode;
 
-/// <summary>
-/// 实体表单基类
-/// </summary>
+/// <summary>实体表单基类</summary>>
 /// <typeparam name="TKey">主键类型</typeparam>
 /// <typeparam name="TEntity">表单实体类</typeparam>
 public class EntityForm<TKey, TEntity> : NewLife.CommonEntity.Web.EntityForm<TKey, TEntity> where TEntity : Entity<TEntity>, new()
 {
-    /// <summary>
-    /// 是否管理员
-    /// </summary>
+    /// <summary>是否管理员</summary>>
     public Boolean IsAdmin { get { return Current.RoleName == "管理员"; } }
 
-    /// <summary>
-    /// 校验权限
-    /// </summary>
+    /// <summary>校验权限</summary>>
     /// <returns></returns>
     public override Boolean CheckPermission()
     {

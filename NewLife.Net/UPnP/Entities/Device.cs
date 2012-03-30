@@ -111,9 +111,7 @@ namespace NewLife.Net.UPnP
         #endregion
 
         #region 方法
-        /// <summary>
-        /// 已重载。
-        /// </summary>
+        /// <summary>已重载。</summary>>
         /// <returns></returns>
         public override string ToString()
         {

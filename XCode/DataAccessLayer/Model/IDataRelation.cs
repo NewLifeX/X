@@ -11,43 +11,29 @@ namespace XCode.DataAccessLayer
     public interface IDataRelation
     {
         #region 属性
-        /// <summary>
-        /// 数据列
-        /// </summary>
+        /// <summary>数据列</summary>>
         String Column { get; set; }
 
-        /// <summary>
-        /// 引用表
-        /// </summary>
+        /// <summary>引用表</summary>>
         String RelationTable { get; set; }
 
-        /// <summary>
-        /// 引用列
-        /// </summary>
+        /// <summary>引用列</summary>>
         String RelationColumn { get; set; }
 
-        /// <summary>
-        /// 是否唯一
-        /// </summary>
+        /// <summary>是否唯一</summary>>
         Boolean Unique { get; set; }
 
-        /// <summary>
-        /// 是否计算出来的，而不是数据库内置的
-        /// </summary>
+        /// <summary>是否计算出来的，而不是数据库内置的</summary>>
         Boolean Computed { get; set; }
         #endregion
 
         #region 扩展属性
-        /// <summary>
-        /// 说明数据表
-        /// </summary>
+        /// <summary>说明数据表</summary>>
         IDataTable Table { get; }
         #endregion
 
         #region 方法
-        /// <summary>
-        /// 克隆到指定的数据表
-        /// </summary>
+        /// <summary>克隆到指定的数据表</summary>>
         /// <param name="table"></param>
         IDataRelation Clone(IDataTable table);
         #endregion

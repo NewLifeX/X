@@ -15,39 +15,25 @@ namespace NewLife.Mvc
         /// </summary>
         string Path { get; }
 
-        /// <summary>
-        /// 获取Path属性使用/分割后的片段,不包含空白的,对于/foo/bar.foo这样的路径,将会返回["foo","bar.foo"]
-        /// </summary>
+        /// <summary>获取Path属性使用/分割后的片段,不包含空白的,对于/foo/bar.foo这样的路径,将会返回["foo","bar.foo"]</summary>>
         string[] PathFragments { get; }
 
-        /// <summary>
-        /// 当前路由处理的原始路径,完整的路径,从Url中网站根路径开始的
-        /// </summary>
+        /// <summary>当前路由处理的原始路径,完整的路径,从Url中网站根路径开始的</summary>>
         string RoutePath { get; }
 
-        /// <summary>
-        /// 当前Mvc路由是否已经路由到一个有效的控制器,忽略的路由IgnoreRoute不算有效的控制器
-        /// </summary>
+        /// <summary>当前Mvc路由是否已经路由到一个有效的控制器,忽略的路由IgnoreRoute不算有效的控制器</summary>>
         bool Routed { get; }
 
-        /// <summary>
-        /// 返回路由最近的一个控制器,如果没有路由进控制器则返回null
-        /// </summary>
+        /// <summary>返回路由最近的一个控制器,如果没有路由进控制器则返回null</summary>>
         RouteFrag Controller { get; }
 
-        /// <summary>
-        /// 返回路由最近的一个控制器工厂,如果没有路由进工厂则返回null
-        /// </summary>
+        /// <summary>返回路由最近的一个控制器工厂,如果没有路由进工厂则返回null</summary>>
         RouteFrag Factory { get; }
 
-        /// <summary>
-        /// 返回路由最近的一个模块
-        /// </summary>
+        /// <summary>返回路由最近的一个模块</summary>>
         RouteFrag Module { get; }
 
-        /// <summary>
-        /// 当前路由最近的一个路由配置
-        /// </summary>
+        /// <summary>当前路由最近的一个路由配置</summary>>
         [Obsolete("不再使用Config类型的上下文,不需要使用这个方法了")]
         RouteFrag Config { get; }
 

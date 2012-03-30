@@ -35,9 +35,7 @@ namespace XCode.Accessors
         #endregion
 
         #region IEntityAccessor 成员
-        /// <summary>
-        /// 设置参数。返回自身，方便链式写法。
-        /// </summary>
+        /// <summary>设置参数。返回自身，方便链式写法。</summary>>
         /// <param name="name">参数名</param>
         /// <param name="value">参数值</param>
         /// <returns></returns>
@@ -54,9 +52,7 @@ namespace XCode.Accessors
         /// <summary>是否支持把信息写入到外部</summary>
         public override bool CanWrite { get { return false; } }
 
-        /// <summary>
-        /// 外部=>实体，从外部读取指定实体字段的信息
-        /// </summary>
+        /// <summary>外部=>实体，从外部读取指定实体字段的信息</summary>>
         /// <param name="entity">实体对象</param>
         /// <param name="item">实体字段</param>
         protected override void ReadItem(IEntity entity, FieldItem item)
@@ -138,9 +134,7 @@ namespace XCode.Accessors
             return file;
         }
 
-        /// <summary>
-        /// 采用该方法而不再用Request[name]，主要是后者还处理服务器变量ServerVar，这是不需要的，还有可能得到错误的数据
-        /// </summary>
+        /// <summary>采用该方法而不再用Request[name]，主要是后者还处理服务器变量ServerVar，这是不需要的，还有可能得到错误的数据</summary>>
         /// <param name="name"></param>
         /// <returns></returns>
         String GetRequest(String name)

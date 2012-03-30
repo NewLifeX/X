@@ -21,9 +21,7 @@ namespace XCode.DataAccessLayer
     class Access : FileDbBase
     {
         #region 属性
-        /// <summary>
-        /// 返回数据库类型。外部DAL数据库类请使用Other
-        /// </summary>
+        /// <summary>返回数据库类型。外部DAL数据库类请使用Other</summary>>
         public override DatabaseType DbType
         {
             get { return DatabaseType.Access; }
@@ -67,18 +65,14 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 方法
-        /// <summary>
-        /// 创建数据库会话
-        /// </summary>
+        /// <summary>创建数据库会话</summary>>
         /// <returns></returns>
         protected override IDbSession OnCreateSession()
         {
             return new AccessSession();
         }
 
-        /// <summary>
-        /// 创建元数据对象
-        /// </summary>
+        /// <summary>创建元数据对象</summary>>
         /// <returns></returns>
         protected override IMetaData OnCreateMetaData()
         {
@@ -111,19 +105,13 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 数据库特性
-        /// <summary>
-        /// 当前时间函数
-        /// </summary>
+        /// <summary>当前时间函数</summary>>
         public override String DateTimeNow { get { return "now()"; } }
 
-        /// <summary>
-        /// 最小时间
-        /// </summary>
+        /// <summary>最小时间</summary>>
         public override DateTime DateTimeMin { get { return DateTime.MinValue; } }
 
-        /// <summary>
-        /// 长文本长度
-        /// </summary>
+        /// <summary>长文本长度</summary>>
         public override Int32 LongTextLength { get { return 255; } }
 
         //protected override string ReservedWordsStr
@@ -139,9 +127,7 @@ namespace XCode.DataAccessLayer
                 return base.FormatName(name);
         }
 
-        /// <summary>
-        /// 格式化时间为SQL字符串
-        /// </summary>
+        /// <summary>格式化时间为SQL字符串</summary>>
         /// <param name="dateTime">时间值</param>
         /// <returns></returns>
         public override String FormatDateTime(DateTime dateTime)
@@ -149,9 +135,7 @@ namespace XCode.DataAccessLayer
             return String.Format("#{0:yyyy-MM-dd HH:mm:ss}#", dateTime);
         }
 
-        /// <summary>
-        /// 格式化关键字
-        /// </summary>
+        /// <summary>格式化关键字</summary>>
         /// <param name="keyWord">关键字</param>
         /// <returns></returns>
         public override String FormatKeyWord(String keyWord)
@@ -165,9 +149,7 @@ namespace XCode.DataAccessLayer
             //return keyWord;
         }
 
-        /// <summary>
-        /// 格式化数据为SQL数据
-        /// </summary>
+        /// <summary>格式化数据为SQL数据</summary>>
         /// <param name="field"></param>
         /// <param name="value"></param>
         /// <returns></returns>
@@ -192,9 +174,7 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 平台检查
-        /// <summary>
-        /// 是否支持
-        /// </summary>
+        /// <summary>是否支持</summary>>
         public static void CheckSupport()
         {
             Module module = typeof(Object).Module;
@@ -208,15 +188,11 @@ namespace XCode.DataAccessLayer
         #endregion
     }
 
-    /// <summary>
-    /// Access数据库
-    /// </summary>
+    /// <summary>Access数据库</summary>>
     internal class AccessSession : FileDbSession
     {
         #region 方法
-        /// <summary>
-        /// 打开。已重写，为了建立数据库
-        /// </summary>
+        /// <summary>打开。已重写，为了建立数据库</summary>>
         public override void Open()
         {
             Access.CheckSupport();
@@ -226,9 +202,7 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 基本方法 查询/执行
-        /// <summary>
-        /// 执行插入语句并返回新增行的自动编号
-        /// </summary>
+        /// <summary>执行插入语句并返回新增行的自动编号</summary>>
         /// <param name="sql">SQL语句</param>
         /// <param name="type">命令类型，默认SQL文本</param>
         /// <param name="ps">命令参数</param>
@@ -257,9 +231,7 @@ namespace XCode.DataAccessLayer
         #endregion
     }
 
-    /// <summary>
-    /// Access元数据
-    /// </summary>
+    /// <summary>Access元数据</summary>>
     class AccessMetaData : FileDbMetaData
     {
         #region 构架
@@ -410,9 +382,7 @@ namespace XCode.DataAccessLayer
             return str;
         }
 
-        /// <summary>
-        /// 取得字段默认值
-        /// </summary>
+        /// <summary>取得字段默认值</summary>>
         /// <param name="field"></param>
         /// <param name="onlyDefine">仅仅定义</param>
         /// <returns></returns>
@@ -424,9 +394,7 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 数据定义
-        /// <summary>
-        /// 设置数据定义模式
-        /// </summary>
+        /// <summary>设置数据定义模式</summary>>
         /// <param name="schema"></param>
         /// <param name="values"></param>
         /// <returns></returns>
@@ -468,9 +436,7 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 创建数据库
-        /// <summary>
-        /// 创建数据库
-        /// </summary>
+        /// <summary>创建数据库</summary>>
         protected override void CreateDatabase()
         {
             FileSource.ReleaseFile(Assembly.GetExecutingAssembly(), "Database.mdb", FileName, true);
@@ -820,9 +786,7 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        /// <summary>
-        /// 是否支持
-        /// </summary>
+        /// <summary>是否支持</summary>>
         public Boolean Supported
         {
             get
@@ -958,9 +922,7 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 扩展属性
-        /// <summary>
-        /// 名称
-        /// </summary>
+        /// <summary>名称</summary>>
         public String Name
         {
             get { return Column.Name; }
@@ -1009,9 +971,7 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        /// <summary>
-        /// 是否自增
-        /// </summary>
+        /// <summary>是否自增</summary>>
         public Boolean AutoIncrement
         {
             get
@@ -1032,9 +992,7 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        /// <summary>
-        /// 是否允许空
-        /// </summary>
+        /// <summary>是否允许空</summary>>
         public Boolean Nullable
         {
             get

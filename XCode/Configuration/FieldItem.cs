@@ -407,9 +407,7 @@ namespace XCode.Configuration
         #endregion
 
         #region 类型转换
-        /// <summary>
-        /// 类型转换
-        /// </summary>
+        /// <summary>类型转换</summary>>
         /// <param name="obj"></param>
         /// <returns></returns>
         public static implicit operator String(FieldItem obj)
@@ -424,9 +422,7 @@ namespace XCode.Configuration
     public class Field : FieldItem
     {
         #region 构造
-        /// <summary>
-        /// 构造函数
-        /// </summary>
+        /// <summary>构造函数</summary>>
         /// <param name="table"></param>
         /// <param name="property"></param>
         public Field(TableItem table, PropertyInfo property) : base(table, property) { }
@@ -454,9 +450,7 @@ namespace XCode.Configuration
         public override bool Equals(object obj) { return base.Equals(obj); }
 
         #region 类型转换
-        /// <summary>
-        /// 类型转换
-        /// </summary>
+        /// <summary>类型转换</summary>>
         /// <param name="obj"></param>
         /// <returns></returns>
         public static implicit operator String(Field obj)

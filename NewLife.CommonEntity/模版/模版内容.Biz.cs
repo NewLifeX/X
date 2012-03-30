@@ -44,9 +44,7 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region 扩展查询﻿
-        /// <summary>
-        /// 根据模版项、版本查找
-        /// </summary>
+        /// <summary>根据模版项、版本查找</summary>>
         /// <param name="templateitemid">模版项</param>
         /// <param name="version">版本</param>
         /// <returns></returns>
@@ -56,9 +54,7 @@ namespace NewLife.CommonEntity
             return Find(new String[] { _.TemplateItemID, _.Version }, new Object[] { templateitemid, version });
         }
 
-        /// <summary>
-        /// 根据作者编号查找
-        /// </summary>
+        /// <summary>根据作者编号查找</summary>>
         /// <param name="userid">作者编号</param>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
@@ -69,9 +65,7 @@ namespace NewLife.CommonEntity
             else // 实体缓存
                 return Meta.Cache.Entities.FindAll(_.UserID, userid);
         }
-        /// <summary>
-        /// 根据编号查找
-        /// </summary>
+        /// <summary>根据编号查找</summary>>
         /// <param name="id">编号</param>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
@@ -85,9 +79,7 @@ namespace NewLife.CommonEntity
             //return Meta.SingleCache[id];
         }
 
-        /// <summary>
-        /// 根据模版项查找
-        /// </summary>
+        /// <summary>根据模版项查找</summary>>
         /// <param name="templateitemid">模版项</param>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
@@ -99,9 +91,7 @@ namespace NewLife.CommonEntity
                 return Meta.Cache.Entities.FindAll(_.TemplateItemID, templateitemid);
         }
 
-        /// <summary>
-        /// 根据模版项查找最后一个版本
-        /// </summary>
+        /// <summary>根据模版项查找最后一个版本</summary>>
         /// <param name="templateitemid"></param>
         /// <returns></returns>
         public static TEntity FindLastByTemplateItemID(Int32 templateitemid)
@@ -129,9 +119,7 @@ namespace NewLife.CommonEntity
         //    return base.OnInsert();
         //}
 
-        /// <summary>
-        /// 验证数据，通过抛出异常的方式提示验证失败。
-        /// </summary>
+        /// <summary>验证数据，通过抛出异常的方式提示验证失败。</summary>>
         /// <param name="isNew"></param>
         public override void Valid(Boolean isNew)
         {
@@ -215,9 +203,7 @@ namespace NewLife.CommonEntity
         //    return FindCount(SearchWhere(key), null, null, 0, 0);
         //}
 
-        /// <summary>
-        /// 构造搜索条件
-        /// </summary>
+        /// <summary>构造搜索条件</summary>>
         /// <param name="key">关键字</param>
         /// <returns></returns>
         private static String SearchWhere(String key)

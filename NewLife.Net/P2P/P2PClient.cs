@@ -57,9 +57,7 @@ namespace NewLife.Net.P2P
         #endregion
 
         #region 方法
-        /// <summary>
-        /// 
-        /// </summary>
+        /// <summary></summary>>
         public void EnsureServer()
         {
             if (Server == null)

@@ -35,38 +35,28 @@ namespace NewLife.IO
         /// <summary>实例化</summary>
         public StreamClient() { }
 
-        /// <summary>
-        /// 实例化
-        /// </summary>
+        /// <summary>实例化</summary>>
         /// <param name="uri"></param>
         public StreamClient(Uri uri) { Uri = uri; }
 
-        /// <summary>
-        /// 实例化
-        /// </summary>
+        /// <summary>实例化</summary>>
         /// <param name="url"></param>
         public StreamClient(String url) { Uri = new Uri(url); }
         #endregion
 
         #region 发送数据
-        /// <summary>
-        /// 同步发送数据
-        /// </summary>
+        /// <summary>同步发送数据</summary>>
         /// <param name="data">待发送数据</param>
         /// <returns>服务端响应数据</returns>
         protected abstract Byte[] Send(Byte[] data);
 
-        /// <summary>
-        /// 异步发送数据，服务端响应数据将由数据流总线处理
-        /// </summary>
+        /// <summary>异步发送数据，服务端响应数据将由数据流总线处理</summary>>
         /// <param name="data">待发送数据</param>
         protected abstract void SendAsync(Byte[] data);
         #endregion
 
         #region 数据流处理
-        /// <summary>
-        /// 处理数据流
-        /// </summary>
+        /// <summary>处理数据流</summary>>
         /// <param name="stream"></param>
         protected virtual void Process(Stream stream)
         {
@@ -81,9 +71,7 @@ namespace NewLife.IO
         /// <summary>内部数据流</summary>
         private InternalStream _Stream;
 
-        /// <summary>
-        /// 获取用于收发数据的数据流
-        /// </summary>
+        /// <summary>获取用于收发数据的数据流</summary>>
         /// <returns></returns>
         public virtual Stream GetStream()
         {
@@ -91,9 +79,7 @@ namespace NewLife.IO
             return _Stream;
         }
 
-        /// <summary>
-        /// 内部数据流。重写输入行为，然后使用一个内存流作为输出。
-        /// </summary>
+        /// <summary>内部数据流。重写输入行为，然后使用一个内存流作为输出。</summary>>
         class InternalStream : ReadWriteStream
         {
             private StreamClient _Client;

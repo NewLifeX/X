@@ -90,9 +90,7 @@ namespace NewLife.Xml
             }
         }
 
-        /// <summary>
-        /// 输出内部XML
-        /// </summary>
+        /// <summary>输出内部XML</summary>>
         /// <returns></returns>
         public virtual String ToInnerXml()
         {

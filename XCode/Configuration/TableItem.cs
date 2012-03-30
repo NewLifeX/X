@@ -126,9 +126,7 @@ namespace XCode.Configuration
             }
         }
 
-        /// <summary>
-        /// 根据连接名和类名查找连接名映射
-        /// </summary>
+        /// <summary>根据连接名和类名查找连接名映射</summary>>
         /// <param name="connName"></param>
         /// <param name="className"></param>
         /// <returns></returns>
@@ -236,9 +234,7 @@ namespace XCode.Configuration
         }
 
         static DictionaryCache<Type, TableItem> cache = new DictionaryCache<Type, TableItem>();
-        /// <summary>
-        /// 创建
-        /// </summary>
+        /// <summary>创建</summary>>
         /// <param name="type"></param>
         /// <returns></returns>
         public static TableItem Create(Type type)
@@ -344,9 +340,7 @@ namespace XCode.Configuration
         #endregion
 
         #region 方法
-        /// <summary>
-        /// 根据名称查找
-        /// </summary>
+        /// <summary>根据名称查找</summary>>
         /// <param name="name"></param>
         /// <returns></returns>
         public Field FindByName(String name)
@@ -366,9 +360,7 @@ namespace XCode.Configuration
             return null;
         }
 
-        /// <summary>
-        /// 已重载。
-        /// </summary>
+        /// <summary>已重载。</summary>>
         /// <returns></returns>
         public override string ToString()
         {

@@ -25,18 +25,14 @@ namespace XTemplate.Templating
 
         #region 缩进
         private String _CurrentIndent = "";
-        /// <summary>
-        /// 当前缩进
-        /// </summary>
+        /// <summary>当前缩进</summary>>
         public String CurrentIndent
         {
             get { return _CurrentIndent; }
         }
 
         private List<Int32> _indentLengths;
-        /// <summary>
-        /// 缩进长度集合
-        /// </summary>
+        /// <summary>缩进长度集合</summary>>
         private List<Int32> indentLengths
         {
             get
@@ -47,18 +43,14 @@ namespace XTemplate.Templating
             }
         }
 
-        /// <summary>
-        /// 清除缩进
-        /// </summary>
+        /// <summary>清除缩进</summary>>
         public void ClearIndent()
         {
             indentLengths.Clear();
             _CurrentIndent = "";
         }
 
-        /// <summary>
-        /// 弹出缩进
-        /// </summary>
+        /// <summary>弹出缩进</summary>>
         /// <returns></returns>
         public String RemoveIndent()
         {
@@ -76,9 +68,7 @@ namespace XTemplate.Templating
             return str;
         }
 
-        /// <summary>
-        /// 压入缩进
-        /// </summary>
+        /// <summary>压入缩进</summary>>
         /// <param name="indent"></param>
         public void AddIndent(String indent)
         {
@@ -91,9 +81,7 @@ namespace XTemplate.Templating
 
         #region 输出
         private Boolean endsWithNewline;
-        /// <summary>
-        /// 写入文本
-        /// </summary>
+        /// <summary>写入文本</summary>>
         /// <param name="str"></param>
         public void Write(String str)
         {
@@ -119,9 +107,7 @@ namespace XTemplate.Templating
             }
         }
 
-        /// <summary>
-        /// 写入文本
-        /// </summary>
+        /// <summary>写入文本</summary>>
         /// <param name="obj"></param>
         public void Write(Object obj)
         {
@@ -129,9 +115,7 @@ namespace XTemplate.Templating
             Write(obj.ToString());
         }
 
-        /// <summary>
-        /// 写入文本
-        /// </summary>
+        /// <summary>写入文本</summary>>
         /// <param name="format"></param>
         /// <param name="args"></param>
         public void Write(String format, params Object[] args)
@@ -144,9 +128,7 @@ namespace XTemplate.Templating
                 Write(format);
         }
 
-        /// <summary>
-        /// 写入文本
-        /// </summary>
+        /// <summary>写入文本</summary>>
         /// <param name="str"></param>
         public void WriteLine(String str)
         {
@@ -156,9 +138,7 @@ namespace XTemplate.Templating
             endsWithNewline = true;
         }
 
-        /// <summary>
-        /// 写入文本
-        /// </summary>
+        /// <summary>写入文本</summary>>
         /// <param name="obj"></param>
         public void WriteLine(Object obj)
         {
@@ -168,9 +148,7 @@ namespace XTemplate.Templating
             endsWithNewline = true;
         }
 
-        /// <summary>
-        /// 写入行
-        /// </summary>
+        /// <summary>写入行</summary>>
         /// <param name="format"></param>
         /// <param name="args"></param>
         public void WriteLine(String format, params Object[] args)
@@ -187,9 +165,7 @@ namespace XTemplate.Templating
             endsWithNewline = true;
         }
 
-        /// <summary>
-        /// 写入一个换行
-        /// </summary>
+        /// <summary>写入一个换行</summary>>
         public void WriteLine()
         {
             Output.AppendLine();
@@ -208,21 +184,15 @@ namespace XTemplate.Templating
         #endregion
 
         #region 生成
-        /// <summary>
-        /// 初始化
-        /// </summary>
+        /// <summary>初始化</summary>>
         public virtual void Initialize() { }
 
-        /// <summary>
-        /// 转换文本
-        /// </summary>
+        /// <summary>转换文本</summary>>
         /// <returns></returns>
         public virtual String Render() { return Output.ToString(); }
 
         private StringBuilder _Output;
-        /// <summary>
-        /// 输出
-        /// </summary>
+        /// <summary>输出</summary>>
         protected StringBuilder Output
         {
             get

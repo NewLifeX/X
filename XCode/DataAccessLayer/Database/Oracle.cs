@@ -17,18 +17,14 @@ namespace XCode.DataAccessLayer
     class Oracle : RemoteDb
     {
         #region 属性
-        /// <summary>
-        /// 返回数据库类型。外部DAL数据库类请使用Other
-        /// </summary>
+        /// <summary>返回数据库类型。外部DAL数据库类请使用Other</summary>>
         public override DatabaseType DbType
         {
             get { return DatabaseType.Oracle; }
         }
 
         private static DbProviderFactory _dbProviderFactory;
-        /// <summary>
-        /// 提供者工厂
-        /// </summary>
+        /// <summary>提供者工厂</summary>>
         static DbProviderFactory dbProviderFactory
         {
             get
@@ -99,9 +95,7 @@ namespace XCode.DataAccessLayer
         }
 
         private String _UserID;
-        /// <summary>
-        /// 用户名UserID
-        /// </summary>
+        /// <summary>用户名UserID</summary>>
         public String UserID
         {
             get
@@ -238,18 +232,14 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 方法
-        /// <summary>
-        /// 创建数据库会话
-        /// </summary>
+        /// <summary>创建数据库会话</summary>>
         /// <returns></returns>
         protected override IDbSession OnCreateSession()
         {
             return new OracleSession();
         }
 
-        /// <summary>
-        /// 创建元数据对象
-        /// </summary>
+        /// <summary>创建元数据对象</summary>>
         /// <returns></returns>
         protected override IMetaData OnCreateMetaData()
         {
@@ -267,9 +257,7 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 分页
-        /// <summary>
-        /// 已重写。获取分页
-        /// </summary>
+        /// <summary>已重写。获取分页</summary>>
         /// <param name="sql">SQL语句</param>
         /// <param name="startRowIndex">开始行，0表示第一行</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
@@ -352,9 +340,7 @@ namespace XCode.DataAccessLayer
         //    get { return "ALL,ALTER,AND,ANY,AS,ASC,BETWEEN,BY,CHAR,CHECK,CLUSTER,COMPRESS,CONNECT,CREATE,DATE,DECIMAL,DEFAULT,DELETE,DESC,DISTINCT,DROP,ELSE,EXCLUSIVE,EXISTS,FLOAT,FOR,FROM,GRANT,GROUP,HAVING,IDENTIFIED,IN,INDEX,INSERT,INTEGER,INTERSECT,INTO,IS,LIKE,LOCK,LONG,MINUS,MODE,NOCOMPRESS,NOT,NOWAIT,NULL,NUMBER,OF,ON,OPTION,OR,ORDER,PCTFREE,PRIOR,PUBLIC,RAW,RENAME,RESOURCE,REVOKE,SELECT,SET,SHARE,SIZE,SMALLINT,START,SYNONYM,TABLE,THEN,TO,TRIGGER,UNION,UNIQUE,UPDATE,VALUES,VARCHAR,VARCHAR2,VIEW,WHERE,WITH"; }
         //}
 
-        /// <summary>
-        /// 格式化关键字
-        /// </summary>
+        /// <summary>格式化关键字</summary>>
         /// <param name="keyWord">表名</param>
         /// <returns></returns>
         public override String FormatKeyWord(String keyWord)
@@ -472,9 +458,7 @@ namespace XCode.DataAccessLayer
         #endregion
     }
 
-    /// <summary>
-    /// Oracle数据库
-    /// </summary>
+    /// <summary>Oracle数据库</summary>>
     internal class OracleSession : RemoteDbSession
     {
         static OracleSession()
@@ -485,9 +469,7 @@ namespace XCode.DataAccessLayer
         }
 
         #region 基本方法 查询/执行
-        /// <summary>
-        /// 快速查询单表记录数，稍有偏差
-        /// </summary>
+        /// <summary>快速查询单表记录数，稍有偏差</summary>>
         /// <param name="tableName"></param>
         /// <returns></returns>
         public override Int64 QueryCountFast(string tableName)
@@ -507,9 +489,7 @@ namespace XCode.DataAccessLayer
         }
 
         static Regex reg_SEQ = new Regex(@"\b(\w+)\.nextval\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
-        /// <summary>
-        /// 执行插入语句并返回新增行的自动编号
-        /// </summary>
+        /// <summary>执行插入语句并返回新增行的自动编号</summary>>
         /// <param name="sql">SQL语句</param>
         /// <param name="type">命令类型，默认SQL文本</param>
         /// <param name="ps">命令参数</param>
@@ -543,9 +523,7 @@ namespace XCode.DataAccessLayer
         #endregion
     }
 
-    /// <summary>
-    /// Oracle元数据
-    /// </summary>
+    /// <summary>Oracle元数据</summary>>
     class OracleMeta : RemoteDbMetaData
     {
         /// <summary>拥有者</summary>
@@ -554,9 +532,7 @@ namespace XCode.DataAccessLayer
         /// <summary>是否限制只能访问拥有者的信息</summary>
         Boolean IsUseOwner { get { return Config.GetConfig<Boolean>("XCode.Oracle.IsUseOwner"); } }
 
-        /// <summary>
-        /// 取得所有表构架
-        /// </summary>
+        /// <summary>取得所有表构架</summary>>
         /// <returns></returns>
         protected override List<IDataTable> OnGetTables(ICollection<String> names)
         {
@@ -677,13 +653,9 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        /// <summary>
-        /// 序列
-        /// </summary>
+        /// <summary>序列</summary>>
         DataTable dtSequences;
-        /// <summary>
-        /// 检查序列是否存在
-        /// </summary>
+        /// <summary>检查序列是否存在</summary>>
         /// <param name="name"></param>
         /// <returns></returns>
         Boolean CheckSeqExists(String name)
@@ -738,9 +710,7 @@ namespace XCode.DataAccessLayer
             //String comment = (String)Database.CreateSession().ExecuteScalar(sql);
         }
 
-        /// <summary>
-        /// 取得指定表的所有列构架
-        /// </summary>
+        /// <summary>取得指定表的所有列构架</summary>>
         /// <param name="table"></param>
         /// <returns></returns>
         protected override List<IDataColumn> GetFields(IDataTable table)

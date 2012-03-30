@@ -13,9 +13,7 @@ namespace NewLife.Web
         #region IHttpModule Members
         void IHttpModule.Dispose() { }
 
-        /// <summary>
-        /// 初始化模块，准备拦截请求。
-        /// </summary>
+        /// <summary>初始化模块，准备拦截请求。</summary>>
         /// <param name="context"></param>
         void IHttpModule.Init(HttpApplication context)
         {
@@ -57,17 +55,13 @@ namespace NewLife.Web
             }
         }
 
-        /// <summary>
-        /// 检查请求头，确认客户端是否支持压缩编码
-        /// </summary>
+        /// <summary>检查请求头，确认客户端是否支持压缩编码</summary>>
         private static bool IsEncodingAccepted(string encoding)
         {
             return HttpContext.Current.Request.Headers["Accept-encoding"] != null && HttpContext.Current.Request.Headers["Accept-encoding"].Contains(encoding);
         }
 
-        /// <summary>
-        /// 添加压缩编码到响应头
-        /// </summary>
+        /// <summary>添加压缩编码到响应头</summary>>
         /// <param name="encoding"></param>
         private static void SetEncoding(string encoding)
         {

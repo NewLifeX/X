@@ -11,18 +11,14 @@ namespace XCode.DataAccessLayer
     class MySql : RemoteDb
     {
         #region 属性
-        /// <summary>
-        /// 返回数据库类型。
-        /// </summary>
+        /// <summary>返回数据库类型。</summary>>
         public override DatabaseType DbType
         {
             get { return DatabaseType.MySql; }
         }
 
         private static DbProviderFactory _dbProviderFactory;
-        /// <summary>
-        /// 提供者工厂
-        /// </summary>
+        /// <summary>提供者工厂</summary>>
         static DbProviderFactory dbProviderFactory
         {
             get
@@ -60,18 +56,14 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 方法
-        /// <summary>
-        /// 创建数据库会话
-        /// </summary>
+        /// <summary>创建数据库会话</summary>>
         /// <returns></returns>
         protected override IDbSession OnCreateSession()
         {
             return new MySqlSession();
         }
 
-        /// <summary>
-        /// 创建元数据对象
-        /// </summary>
+        /// <summary>创建元数据对象</summary>>
         /// <returns></returns>
         protected override IMetaData OnCreateMetaData()
         {
@@ -89,9 +81,7 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 分页
-        /// <summary>
-        /// 已重写。获取分页
-        /// </summary>
+        /// <summary>已重写。获取分页</summary>>
         /// <param name="sql">SQL语句</param>
         /// <param name="startRowIndex">开始行，0表示第一行</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
@@ -195,15 +185,11 @@ namespace XCode.DataAccessLayer
         #endregion
     }
 
-    /// <summary>
-    /// MySql数据库
-    /// </summary>
+    /// <summary>MySql数据库</summary>>
     internal class MySqlSession : RemoteDbSession
     {
         #region 基本方法 查询/执行
-        /// <summary>
-        /// 执行插入语句并返回新增行的自动编号
-        /// </summary>
+        /// <summary>执行插入语句并返回新增行的自动编号</summary>>
         /// <param name="sql">SQL语句</param>
         /// <param name="type">命令类型，默认SQL文本</param>
         /// <param name="ps">命令参数</param>
@@ -215,9 +201,7 @@ namespace XCode.DataAccessLayer
         #endregion
     }
 
-    /// <summary>
-    /// MySql元数据
-    /// </summary>
+    /// <summary>MySql元数据</summary>>
     class MySqlMetaData : RemoteDbMetaData
     {
         protected override void FixTable(IDataTable table, DataRow dr)

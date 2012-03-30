@@ -15,9 +15,7 @@ using System.Web.UI.HtmlControls;
 
 namespace XControl
 {
-    /// <summary>
-    ///MenuField 的摘要说明
-    /// </summary>
+    /// <summary>MenuField 的摘要说明</summary>>
     public class MenuField : DataControlField
     {
 
@@ -40,9 +38,7 @@ namespace XControl
         }
 
 
-        /// <summary>
-        /// 重写CssClass
-        /// </summary>
+        /// <summary>重写CssClass</summary>>
         [DefaultValue(""), Themeable(false), WebCategory("Css"), WebSysDescription("Control.Css")]
         public virtual String ControlCss
         {
@@ -57,9 +53,7 @@ namespace XControl
         }
 
         private List<MenuParameterItem> _MenuParameters;
-        /// <summary>
-        /// 重写CssClass
-        /// </summary>
+        /// <summary>重写CssClass</summary>>
         [DefaultValue(null), WebCategory("Data"), WebSysDescription("MenuField_MenuParameters"), PersistenceMode(PersistenceMode.InnerProperty)]
         public virtual List<MenuParameterItem> MenuParameters
         {
@@ -77,9 +71,7 @@ namespace XControl
             }
         }
 
-        /// <summary>
-        /// 项显示内容
-        /// </summary>
+        /// <summary>项显示内容</summary>>
         [WebCategory("Appearance"), DefaultValue(""), WebSysDescription("MenuField_Text")]
         public virtual String Text
         {
@@ -99,9 +91,7 @@ namespace XControl
         }
 
 
-        /// <summary>
-        /// 菜单响应事件
-        /// </summary>
+        /// <summary>菜单响应事件</summary>>
         [Localizable(true), WebCategory("Menu"), DefaultValue("click"), WebSysDescription("MenuField_Mouse")]
         public virtual String TriggerEvent
         {
@@ -121,9 +111,7 @@ namespace XControl
             }
         }
 
-        /// <summary>
-        /// 绑定字段
-        /// </summary>
+        /// <summary>绑定字段</summary>>
         [WebCategory("Data"), DefaultValue(""), WebSysDescription("MenuField_Data")]
         public virtual String DataField
         {
@@ -165,9 +153,7 @@ namespace XControl
         }
 
         private List<MenuTemplateItem> _MenuTemplate;
-        /// <summary>
-        /// 条件模版
-        /// </summary>
+        /// <summary>条件模版</summary>>
         [DefaultValue(null), MergableProperty(false), PersistenceMode(PersistenceMode.InnerProperty), WebCategory("Menu"), WebSysDescription("MenuField_MenuTemplate")]
         public virtual List<MenuTemplateItem> MenuTemplate
         {
@@ -187,17 +173,13 @@ namespace XControl
         }
         #endregion
 
-        /// <summary>
-        /// 构造方法
-        /// </summary>
+        /// <summary>构造方法</summary>>
         public MenuField()
         {
 
         }
 
-        /// <summary>
-        /// 重写
-        /// </summary>
+        /// <summary>重写</summary>>
         /// <returns></returns>
         protected override DataControlField CreateField()
         {
@@ -205,9 +187,7 @@ namespace XControl
         }
 
 
-        /// <summary>
-        /// 初始化单元格
-        /// </summary>
+        /// <summary>初始化单元格</summary>>
         /// <param name="cell"></param>
         /// <param name="cellType"></param>
         /// <param name="rowState"></param>
@@ -252,9 +232,7 @@ namespace XControl
             }
         }
 
-        /// <summary>
-        /// 单无格数据绑定事件
-        /// </summary>
+        /// <summary>单无格数据绑定事件</summary>>
         /// <param name="sender"></param>
         /// <param name="args"></param>
         public void CellDataBinding(Object sender, EventArgs args)
@@ -287,9 +265,7 @@ namespace XControl
             cell.Controls.Add(MenuEnd);
         }
 
-        /// <summary>
-        /// 生成菜单
-        /// </summary>
+        /// <summary>生成菜单</summary>>
         /// <param name="cell"></param>
         public void CreateMenu(DataControlFieldCell cell)
         {
@@ -374,9 +350,7 @@ namespace XControl
         }
 
 
-        /// <summary>
-        /// 生成菜单 JS
-        /// </summary>
+        /// <summary>生成菜单 JS</summary>>
         /// <param name="control"></param>
         /// <returns></returns>
         private String CreateJSBlack(Control control)
@@ -388,9 +362,7 @@ namespace XControl
                             </script>", control.ClientID, CreateMenuDivID(control.ClientID), TriggerEvent);
         }
 
-        /// <summary>
-        /// 生成菜单DIVID
-        /// </summary>
+        /// <summary>生成菜单DIVID</summary>>
         /// <param name="id"></param>
         /// <returns></returns>
         public String CreateMenuDivID(String id)
@@ -399,9 +371,7 @@ namespace XControl
         }
 
 
-        /// <summary>
-        /// 菜单按钮
-        /// </summary>
+        /// <summary>菜单按钮</summary>>
         private Panel CreateMenuButton()
         {
 
@@ -411,9 +381,7 @@ namespace XControl
 
         }
 
-        /// <summary>
-        /// 菜单按钮呈显
-        /// </summary>
+        /// <summary>菜单按钮呈显</summary>>
         /// <param name="sender"></param>
         /// <param name="arg"></param>
         private void MenuButtonPreRender(object sender, EventArgs arg)
@@ -443,9 +411,7 @@ namespace XControl
             //      ((HtmlControls.HtmlHead)Page.Header).Controls.Add(include);
         }
 
-        /// <summary>
-        /// 已重载。
-        /// </summary>
+        /// <summary>已重载。</summary>>
         /// <param name="newField"></param>
         protected override void CopyProperties(DataControlField newField)
         {
@@ -463,9 +429,7 @@ namespace XControl
             base.CopyProperties(newField);
         }
 
-        /// <summary>
-        /// 获取字段值
-        /// </summary>
+        /// <summary>获取字段值</summary>>
         /// <param name="component"></param>
         /// <param name="field"></param>
         /// <returns></returns>

@@ -29,28 +29,20 @@ namespace NewLife.IO
         #endregion
 
         #region 构造
-        /// <summary>
-        /// 实例化
-        /// </summary>
+        /// <summary>实例化</summary>>
         public HttpStreamClient() { }
 
-        /// <summary>
-        /// 实例化
-        /// </summary>
+        /// <summary>实例化</summary>>
         /// <param name="uri"></param>
         public HttpStreamClient(Uri uri) : base(uri) { }
 
-        /// <summary>
-        /// 实例化
-        /// </summary>
+        /// <summary>实例化</summary>>
         /// <param name="url"></param>
         public HttpStreamClient(String url) : base(url) { }
         #endregion
 
         #region 发送数据
-        /// <summary>
-        /// 同步发送数据
-        /// </summary>
+        /// <summary>同步发送数据</summary>>
         /// <param name="data">待发送数据</param>
         /// <returns>服务端响应数据</returns>
         protected override byte[] Send(byte[] data)
@@ -69,9 +61,7 @@ namespace NewLife.IO
                 return Client.UploadData(Uri, data);
         }
 
-        /// <summary>
-        /// 异步发送数据，服务端响应数据将由数据流总线处理
-        /// </summary>
+        /// <summary>异步发送数据，服务端响应数据将由数据流总线处理</summary>>
         /// <param name="data">待发送数据</param>
         protected override void SendAsync(byte[] data)
         {

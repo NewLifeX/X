@@ -81,19 +81,13 @@ namespace XCode.Cache
         #endregion
 
         #region 缓存维护
-        /// <summary>
-        /// 缓存维护定时器
-        /// </summary>
+        /// <summary>缓存维护定时器</summary>>
         private static Timer AutoCheckCacheTimer;
 
-        /// <summary>
-        /// 维护定时器的检查周期，默认5秒
-        /// </summary>
+        /// <summary>维护定时器的检查周期，默认5秒</summary>>
         public static Int32 CheckPeriod = 5;
 
-        /// <summary>
-        /// 维护
-        /// </summary>
+        /// <summary>维护</summary>>
         /// <param name="obj"></param>
         private static void Check(Object obj)
         {
@@ -447,9 +441,7 @@ namespace XCode.Cache
             Interlocked.Increment(ref total);
         }
 
-        /// <summary>
-        /// 显示统计信息
-        /// </summary>
+        /// <summary>显示统计信息</summary>>
         public static void ShowStatics()
         {
             if (Total > 0)

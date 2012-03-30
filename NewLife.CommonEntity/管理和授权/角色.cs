@@ -12,9 +12,7 @@ using XCode.DataAccessLayer;
 
 namespace NewLife.CommonEntity
 {
-    /// <summary>
-    /// 角色
-    /// </summary>
+    /// <summary>角色</summary>>
     [Serializable]
     [DataObject]
     [BindIndex("IX_Role_Name", true, "Name")]
@@ -27,9 +25,7 @@ namespace NewLife.CommonEntity
     {
         #region 属性
         private Int32 _ID;
-        /// <summary>
-        /// 编号
-        /// </summary>
+        /// <summary>编号</summary>>
         [Description("编号")]
         [DataObjectField(true, true, false, 10)]
         [BindColumn(1, "ID", "编号", "", "int", 10, 0, false)]
@@ -40,9 +36,7 @@ namespace NewLife.CommonEntity
         }
 
         private String _Name;
-        /// <summary>
-        /// 角色名称
-        /// </summary>
+        /// <summary>角色名称</summary>>
         [Description("角色名称")]
         [DataObjectField(false, false, true, 50)]
         [BindColumn(2, "Name", "角色名称", "", "nvarchar(50)", 0, 0, true)]
@@ -85,9 +79,7 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region 字段名
-        /// <summary>
-        /// 取得角色字段名的快捷方式
-        /// </summary>
+        /// <summary>取得角色字段名的快捷方式</summary>>
         public class _
         {
             ///<summary>编号</summary>
@@ -99,20 +91,14 @@ namespace NewLife.CommonEntity
         #endregion
     }
 
-    /// <summary>
-    /// 角色接口
-    /// </summary>
+    /// <summary>角色接口</summary>>
     public partial interface IRole
     {
         #region 属性
-        /// <summary>
-        /// 编号
-        /// </summary>
+        /// <summary>编号</summary>>
         Int32 ID { get; set; }
 
-        /// <summary>
-        /// 角色名称
-        /// </summary>
+        /// <summary>角色名称</summary>>
         String Name { get; set; }
         #endregion
 

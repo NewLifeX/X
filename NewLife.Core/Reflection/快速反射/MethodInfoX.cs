@@ -8,9 +8,7 @@ using NewLife.Exceptions;
 
 namespace NewLife.Reflection
 {
-    /// <summary>
-    /// 快速调用。基于DynamicMethod和Emit实现。
-    /// </summary>
+    /// <summary>快速调用。基于DynamicMethod和Emit实现。</summary>>
     public class MethodInfoX : MemberInfoX
     {
         #region 属性
@@ -23,9 +21,7 @@ namespace NewLife.Reflection
         }
 
         FastInvokeHandler _Handler;
-        /// <summary>
-        /// 快速调用委托，延迟到首次使用才创建
-        /// </summary>
+        /// <summary>快速调用委托，延迟到首次使用才创建</summary>>
         FastInvokeHandler Handler
         {
             get
@@ -41,9 +37,7 @@ namespace NewLife.Reflection
         private MethodInfoX(MethodInfo method) : base(method) { Method = method; }
 
         private static DictionaryCache<MethodInfo, MethodInfoX> cache = new DictionaryCache<MethodInfo, MethodInfoX>();
-        /// <summary>
-        /// 创建
-        /// </summary>
+        /// <summary>创建</summary>>
         /// <param name="method"></param>
         /// <returns></returns>
         public static MethodInfoX Create(MethodInfo method)
@@ -56,9 +50,7 @@ namespace NewLife.Reflection
             });
         }
 
-        /// <summary>
-        /// 创建
-        /// </summary>
+        /// <summary>创建</summary>>
         /// <param name="type"></param>
         /// <param name="name"></param>
         /// <returns></returns>
@@ -73,9 +65,7 @@ namespace NewLife.Reflection
             return Create(method);
         }
 
-        /// <summary>
-        /// 创建
-        /// </summary>
+        /// <summary>创建</summary>>
         /// <param name="type"></param>
         /// <param name="name"></param>
         /// <param name="paramTypes">参数类型</param>
@@ -145,9 +135,7 @@ namespace NewLife.Reflection
             //il.Emit(OpCodes.Ret);
         }
 
-        /// <summary>
-        /// 快速调用委托
-        /// </summary>
+        /// <summary>快速调用委托</summary>>
         /// <param name="obj"></param>
         /// <param name="parameters"></param>
         /// <returns></returns>
@@ -155,9 +143,7 @@ namespace NewLife.Reflection
         #endregion
 
         #region 调用
-        /// <summary>
-        /// 参数调用
-        /// </summary>
+        /// <summary>参数调用</summary>>
         /// <param name="obj"></param>
         /// <param name="parameters"></param>
         /// <returns></returns>
@@ -179,9 +165,7 @@ namespace NewLife.Reflection
             }
         }
 
-        /// <summary>
-        /// 通过字典参数调用
-        /// </summary>
+        /// <summary>通过字典参数调用</summary>>
         /// <param name="obj"></param>
         /// <param name="parameters"></param>
         /// <returns></returns>
@@ -206,9 +190,7 @@ namespace NewLife.Reflection
             return Handler.Invoke(obj, ps);
         }
 
-        /// <summary>
-        /// 快速调用方法成员
-        /// </summary>
+        /// <summary>快速调用方法成员</summary>>
         /// <typeparam name="TResult"></typeparam>
         /// <param name="target"></param>
         /// <param name="name"></param>
@@ -225,9 +207,7 @@ namespace NewLife.Reflection
             return (TResult)mix.Invoke(target, parameters);
         }
 
-        /// <summary>
-        /// 快速调用静态方法
-        /// </summary>
+        /// <summary>快速调用静态方法</summary>>
         /// <typeparam name="TTarget">目标类型</typeparam>
         /// <typeparam name="TResult">返回类型</typeparam>
         /// <param name="name"></param>
@@ -243,9 +223,7 @@ namespace NewLife.Reflection
             return (TResult)mix.Invoke(null, parameters);
         }
 
-        /// <summary>
-        /// 通过传入参数字典快速调用方法
-        /// </summary>
+        /// <summary>通过传入参数字典快速调用方法</summary>>
         /// <typeparam name="TResult"></typeparam>
         /// <param name="target"></param>
         /// <param name="name"></param>
@@ -262,9 +240,7 @@ namespace NewLife.Reflection
             return (TResult)mix.InvokeByDictionaryParameter(target, parameters);
         }
 
-        /// <summary>
-        /// 通过传入参数字典快速调用静态方法
-        /// </summary>
+        /// <summary>通过传入参数字典快速调用静态方法</summary>>
         /// <typeparam name="TTarget"></typeparam>
         /// <typeparam name="TResult"></typeparam>
         /// <param name="name"></param>
@@ -282,9 +258,7 @@ namespace NewLife.Reflection
         #endregion
 
         #region 类型转换
-        /// <summary>
-        /// 类型转换
-        /// </summary>
+        /// <summary>类型转换</summary>>
         /// <param name="obj"></param>
         /// <returns></returns>
         public static implicit operator MethodInfo(MethodInfoX obj)
@@ -292,9 +266,7 @@ namespace NewLife.Reflection
             return obj != null ? obj.Method : null;
         }
 
-        /// <summary>
-        /// 类型转换
-        /// </summary>
+        /// <summary>类型转换</summary>>
         /// <param name="obj"></param>
         /// <returns></returns>
         public static implicit operator MethodInfoX(MethodInfo obj)

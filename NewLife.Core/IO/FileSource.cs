@@ -49,9 +49,7 @@ namespace NewLife.IO
             finally { stream.Dispose(); }
         }
 
-        /// <summary>
-        /// 释放文件夹
-        /// </summary>
+        /// <summary>释放文件夹</summary>>
         /// <param name="asm"></param>
         /// <param name="prefix"></param>
         /// <param name="dest"></param>
@@ -62,9 +60,7 @@ namespace NewLife.IO
             ReleaseFolder(asm, prefix, dest, overWrite, null);
         }
 
-        /// <summary>
-        /// 释放文件夹
-        /// </summary>
+        /// <summary>释放文件夹</summary>>
         /// <param name="asm"></param>
         /// <param name="prefix"></param>
         /// <param name="dest"></param>
@@ -131,9 +127,7 @@ namespace NewLife.IO
             }
         }
 
-        /// <summary>
-        /// 获取文件资源
-        /// </summary>
+        /// <summary>获取文件资源</summary>>
         /// <param name="asm"></param>
         /// <param name="filename"></param>
         /// <returns></returns>

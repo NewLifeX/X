@@ -25,9 +25,7 @@ namespace XAgent
         #endregion
 
         #region 静态辅助函数
-        /// <summary>
-        /// 服务主函数
-        /// </summary>
+        /// <summary>服务主函数</summary>>
         public static void ServiceMain()
         {
             //提升进程优先级
@@ -213,9 +211,7 @@ namespace XAgent
             }
         }
 
-        /// <summary>
-        /// 生成批处理
-        /// </summary>
+        /// <summary>生成批处理</summary>>
         protected virtual void MakeBat()
         {
             File.WriteAllText("安装.bat", ExeName + " -i");
@@ -229,9 +225,7 @@ namespace XAgent
             Console.WriteLine(e.ToString());
         }
 
-        /// <summary>
-        /// 显示状态
-        /// </summary>
+        /// <summary>显示状态</summary>>
         protected virtual void ShowStatus()
         {
             var color = Console.ForegroundColor;
@@ -274,9 +268,7 @@ namespace XAgent
             Console.ForegroundColor = color;
         }
 
-        /// <summary>
-        /// 显示菜单
-        /// </summary>
+        /// <summary>显示菜单</summary>>
         protected virtual void ShowMenu()
         {
             var color = Console.ForegroundColor;
@@ -431,9 +423,7 @@ namespace XAgent
             }
         }
 
-        /// <summary>
-        /// 销毁资源
-        /// </summary>
+        /// <summary>销毁资源</summary>>
         /// <param name="disposing"></param>
         protected override void Dispose(bool disposing)
         {
@@ -448,9 +438,7 @@ namespace XAgent
             base.Dispose(disposing);
         }
 
-        /// <summary>
-        /// 开始循环工作
-        /// </summary>
+        /// <summary>开始循环工作</summary>>
         public virtual void StartWork()
         {
             WriteLine("服务启动");
@@ -474,9 +462,7 @@ namespace XAgent
             }
         }
 
-        /// <summary>
-        /// 开始循环工作
-        /// </summary>
+        /// <summary>开始循环工作</summary>>
         /// <param name="index">线程序号</param>
         public virtual void StartWork(Int32 index)
         {
@@ -498,9 +484,7 @@ namespace XAgent
             Threads[index].Start(index);
         }
 
-        /// <summary>
-        /// 线程包装
-        /// </summary>
+        /// <summary>线程包装</summary>>
         /// <param name="data">线程序号</param>
         private void workWaper(Object data)
         {
@@ -561,9 +545,7 @@ namespace XAgent
             }
         }
 
-        /// <summary>
-        /// 核心工作方法。调度线程会定期调用该方法
-        /// </summary>
+        /// <summary>核心工作方法。调度线程会定期调用该方法</summary>>
         /// <param name="index">线程序号</param>
         /// <returns>是否立即开始下一步工作。某些任务能达到满负荷，线程可以不做等待</returns>
         public abstract Boolean Work(Int32 index);
@@ -599,9 +581,7 @@ namespace XAgent
             //Interactive.Hide();
         }
 
-        /// <summary>
-        /// 停止循环工作
-        /// </summary>
+        /// <summary>停止循环工作</summary>>
         /// <param name="index">线程序号</param>
         public virtual void StopWork(Int32 index)
         {
@@ -620,14 +600,10 @@ namespace XAgent
         #endregion
 
         #region 服务维护线程
-        /// <summary>
-        /// 服务管理线程
-        /// </summary>
+        /// <summary>服务管理线程</summary>>
         private Thread ManagerThread;
 
-        /// <summary>
-        /// 开始服务管理线程
-        /// </summary>
+        /// <summary>开始服务管理线程</summary>>
         public void StartManagerThread()
         {
             ManagerThread = new Thread(ManagerThreadWaper);
@@ -637,9 +613,7 @@ namespace XAgent
             ManagerThread.Start();
         }
 
-        /// <summary>
-        /// 停止服务管理线程
-        /// </summary>
+        /// <summary>停止服务管理线程</summary>>
         public void StopManagerThread()
         {
             if (ManagerThread == null) return;
@@ -656,9 +630,7 @@ namespace XAgent
             }
         }
 
-        /// <summary>
-        /// 服务管理线程封装
-        /// </summary>
+        /// <summary>服务管理线程封装</summary>>
         /// <param name="data"></param>
         protected virtual void ManagerThreadWaper(Object data)
         {
@@ -705,9 +677,7 @@ namespace XAgent
             set { _Active = value; }
         }
 
-        /// <summary>
-        /// 检查是否有工作线程死亡
-        /// </summary>
+        /// <summary>检查是否有工作线程死亡</summary>>
         protected virtual void CheckActive()
         {
             if (Threads == null || Threads.Length < 1) return;
@@ -741,9 +711,7 @@ namespace XAgent
             }
         }
 
-        /// <summary>
-        /// 检查内存是否超标
-        /// </summary>
+        /// <summary>检查内存是否超标</summary>>
         /// <returns>是否超标重启</returns>
         protected virtual Boolean CheckMemory()
         {
@@ -764,9 +732,7 @@ namespace XAgent
             return false;
         }
 
-        /// <summary>
-        /// 检查服务进程的总线程数是否超标
-        /// </summary>
+        /// <summary>检查服务进程的总线程数是否超标</summary>>
         /// <returns></returns>
         protected virtual Boolean CheckThread()
         {
@@ -785,14 +751,10 @@ namespace XAgent
             return false;
         }
 
-        /// <summary>
-        /// 服务开始时间
-        /// </summary>
+        /// <summary>服务开始时间</summary>>
         private DateTime Start = DateTime.Now;
 
-        /// <summary>
-        /// 检查自动重启
-        /// </summary>
+        /// <summary>检查自动重启</summary>>
         /// <returns></returns>
         protected virtual Boolean CheckAutoRestart()
         {
@@ -811,14 +773,10 @@ namespace XAgent
             return false;
         }
 
-        /// <summary>
-        /// 是否正在重启
-        /// </summary>
+        /// <summary>是否正在重启</summary>>
         private Boolean IsShutdowning = false;
 
-        /// <summary>
-        /// 重启服务
-        /// </summary>
+        /// <summary>重启服务</summary>>
         protected void RestartService()
         {
             WriteLine("重启服务！");

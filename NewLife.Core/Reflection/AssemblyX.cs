@@ -163,9 +163,7 @@ namespace NewLife.Reflection
             }
         }
 
-        /// <summary>
-        /// 获取包含清单的已加载文件的路径或 UNC 位置。
-        /// </summary>
+        /// <summary>获取包含清单的已加载文件的路径或 UNC 位置。</summary>>
         public String Location
         {
             get
@@ -186,9 +184,7 @@ namespace NewLife.Reflection
         }
 
         private static DictionaryCache<Assembly, AssemblyX> cache = new DictionaryCache<Assembly, AssemblyX>();
-        /// <summary>
-        /// 创建程序集辅助对象
-        /// </summary>
+        /// <summary>创建程序集辅助对象</summary>>
         /// <param name="asm"></param>
         /// <returns></returns>
         public static AssemblyX Create(Assembly asm)
@@ -293,9 +289,7 @@ namespace NewLife.Reflection
             }
         }
 
-        /// <summary>
-        /// 是否系统程序集
-        /// </summary>
+        /// <summary>是否系统程序集</summary>>
         public Boolean IsSystemAssembly
         {
             get
@@ -382,9 +376,7 @@ namespace NewLife.Reflection
         #endregion
 
         #region 插件
-        /// <summary>
-        /// 查找插件
-        /// </summary>
+        /// <summary>查找插件</summary>>
         /// <typeparam name="TPlugin"></typeparam>
         /// <returns></returns>
         public List<Type> FindPlugins<TPlugin>()
@@ -393,9 +385,7 @@ namespace NewLife.Reflection
         }
 
         private Dictionary<Type, List<Type>> _plugins = new Dictionary<Type, List<Type>>();
-        /// <summary>
-        /// 查找插件，带缓存
-        /// </summary>
+        /// <summary>查找插件，带缓存</summary>>
         /// <param name="type"></param>
         /// <returns></returns>
         public List<Type> FindPlugins(Type type)
@@ -421,9 +411,7 @@ namespace NewLife.Reflection
             }
         }
 
-        /// <summary>
-        /// 查找所有非系统程序集中的所有插件
-        /// </summary>
+        /// <summary>查找所有非系统程序集中的所有插件</summary>>
         /// <param name="type"></param>
         /// <returns></returns>
         public static IEnumerable<Type> FindAllPlugins(Type type)
@@ -431,9 +419,7 @@ namespace NewLife.Reflection
             return FindAllPlugins(type, false);
         }
 
-        /// <summary>
-        /// 查找所有非系统程序集中的所有插件
-        /// </summary>
+        /// <summary>查找所有非系统程序集中的所有插件</summary>>
         /// <remarks>继承类所在的程序集会引用baseType所在的程序集，利用这一点可以做一定程度的性能优化。</remarks>
         /// <param name="baseType"></param>
         /// <param name="isLoadAssembly">是否从未加载程序集中获取类型。使用仅反射的方法检查目标类型，如果存在，则进行常规加载</param>
@@ -443,9 +429,7 @@ namespace NewLife.Reflection
             return FindAllPlugins(baseType, isLoadAssembly, true);
         }
 
-        /// <summary>
-        /// 查找所有非系统程序集中的所有插件
-        /// </summary>
+        /// <summary>查找所有非系统程序集中的所有插件</summary>>
         /// <remarks>继承类所在的程序集会引用baseType所在的程序集，利用这一点可以做一定程度的性能优化。</remarks>
         /// <param name="baseType"></param>
         /// <param name="isLoadAssembly">是否从未加载程序集中获取类型。使用仅反射的方法检查目标类型，如果存在，则进行常规加载</param>
@@ -515,9 +499,7 @@ namespace NewLife.Reflection
             }
         }
 
-        /// <summary>
-        /// <paramref name="asm"/> 是否引用了 <paramref name="baseAsmName"/>
-        /// </summary>
+        /// <summary><paramref name="asm"/> 是否引用了 <paramref name="baseAsmName"/></summary>>
         /// <param name="asm">程序集</param>
         /// <param name="baseAsmName">被引用程序集全名</param>
         /// <returns></returns>
@@ -649,9 +631,7 @@ namespace NewLife.Reflection
         #endregion
 
         #region 重载
-        /// <summary>
-        /// 已重载。
-        /// </summary>
+        /// <summary>已重载。</summary>>
         /// <returns></returns>
         public override string ToString()
         {
@@ -662,9 +642,7 @@ namespace NewLife.Reflection
                 return Name;
         }
 
-        /// <summary>
-        /// 判断两个程序集是否相同，避免引用加载和执行上下文加载的相同程序集显示不同
-        /// </summary>
+        /// <summary>判断两个程序集是否相同，避免引用加载和执行上下文加载的相同程序集显示不同</summary>>
         /// <param name="asm1"></param>
         /// <param name="asm2"></param>
         /// <returns></returns>

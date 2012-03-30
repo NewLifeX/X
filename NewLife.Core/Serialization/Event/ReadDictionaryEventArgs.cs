@@ -5,9 +5,7 @@ using System.Collections;
 
 namespace NewLife.Serialization
 {
-    /// <summary>
-    /// 读取字典项事件参数
-    /// </summary>
+    /// <summary>读取字典项事件参数</summary>>
     public class ReadDictionaryEventArgs : ReadIndexEventArgs
     {
         private DictionaryEntry _Value;
@@ -35,9 +33,7 @@ namespace NewLife.Serialization
         }
 
         #region 构造
-        /// <summary>
-        /// 实例化
-        /// </summary>
+        /// <summary>实例化</summary>>
         /// <param name="value">对象</param>
         /// <param name="keyType">键类型</param>
         /// <param name="valueType">值类型</param>

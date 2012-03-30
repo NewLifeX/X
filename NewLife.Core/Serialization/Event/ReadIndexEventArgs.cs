@@ -4,9 +4,7 @@ using System.Text;
 
 namespace NewLife.Serialization
 {
-    /// <summary>
-    /// 读取序数事件参数
-    /// </summary>
+    /// <summary>读取序数事件参数</summary>>
     public class ReadIndexEventArgs : ReaderEventArgs
     {
         private Int32 _Index;
@@ -18,9 +16,7 @@ namespace NewLife.Serialization
         }
 
         #region 构造
-        /// <summary>
-        /// 实例化
-        /// </summary>
+        /// <summary>实例化</summary>>
         /// <param name="index">成员序号</param>
         /// <param name="callback"></param>
         public ReadIndexEventArgs(Int32 index, ReadObjectCallback callback)

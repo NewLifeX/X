@@ -68,15 +68,11 @@ namespace NewLife.Log
         /// <summary>实例化一个日志事件参数</summary>
         internal WriteLogEventArgs() { }
 
-        /// <summary>
-        /// 构造函数
-        /// </summary>
+        /// <summary>构造函数</summary>>
         /// <param name="message">日志</param>
         public WriteLogEventArgs(String message) : this(message, null) { }
 
-        /// <summary>
-        /// 构造函数
-        /// </summary>
+        /// <summary>构造函数</summary>>
         /// <param name="message">日志</param>
         /// <param name="exception">异常</param>
         public WriteLogEventArgs(String message, Exception exception)
@@ -99,9 +95,7 @@ namespace NewLife.Log
             IsWeb = HttpContext.Current != null;
         }
 
-        /// <summary>
-        /// 已重载。
-        /// </summary>
+        /// <summary>已重载。</summary>>
         /// <returns></returns>
         public override string ToString()
         {

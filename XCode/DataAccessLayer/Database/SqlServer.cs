@@ -15,9 +15,7 @@ namespace XCode.DataAccessLayer
     class SqlServer : RemoteDb
     {
         #region 属性
-        /// <summary>
-        /// 返回数据库类型。外部DAL数据库类请使用Other
-        /// </summary>
+        /// <summary>返回数据库类型。外部DAL数据库类请使用Other</summary>>
         public override DatabaseType DbType { get { return DatabaseType.SqlServer; } }
 
         /// <summary>工厂</summary>
@@ -88,15 +86,11 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 方法
-        /// <summary>
-        /// 创建数据库会话
-        /// </summary>
+        /// <summary>创建数据库会话</summary>>
         /// <returns></returns>
         protected override IDbSession OnCreateSession() { return new SqlServerSession(); }
 
-        /// <summary>
-        /// 创建元数据对象
-        /// </summary>
+        /// <summary>创建元数据对象</summary>>
         /// <returns></returns>
         protected override IMetaData OnCreateMetaData() { return new SqlServerMetaData(); }
 
@@ -115,9 +109,7 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 分页
-        /// <summary>
-        /// 构造分页SQL
-        /// </summary>
+        /// <summary>构造分页SQL</summary>>
         /// <param name="sql">SQL语句</param>
         /// <param name="startRowIndex">开始行，0表示第一行</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
@@ -266,15 +258,11 @@ namespace XCode.DataAccessLayer
         #endregion
     }
 
-    /// <summary>
-    /// SqlServer数据库
-    /// </summary>
+    /// <summary>SqlServer数据库</summary>>
     internal class SqlServerSession : RemoteDbSession
     {
         #region 查询
-        /// <summary>
-        /// 快速查询单表记录数，稍有偏差
-        /// </summary>
+        /// <summary>快速查询单表记录数，稍有偏差</summary>>
         /// <param name="tableName"></param>
         /// <returns></returns>
         public override Int64 QueryCountFast(string tableName)
@@ -297,9 +285,7 @@ namespace XCode.DataAccessLayer
             //finally { AutoClose(); }
         }
 
-        /// <summary>
-        /// 执行插入语句并返回新增行的自动编号
-        /// </summary>
+        /// <summary>执行插入语句并返回新增行的自动编号</summary>>
         /// <param name="sql">SQL语句</param>
         /// <param name="type">命令类型，默认SQL文本</param>
         /// <param name="ps">命令参数</param>
@@ -311,27 +297,19 @@ namespace XCode.DataAccessLayer
         #endregion
     }
 
-    /// <summary>
-    /// SqlServer元数据
-    /// </summary>
+    /// <summary>SqlServer元数据</summary>>
     class SqlServerMetaData : RemoteDbMetaData
     {
         #region 属性
-        /// <summary>
-        /// 是否SQL2005
-        /// </summary>
+        /// <summary>是否SQL2005</summary>>
         public Boolean IsSQL2005 { get { return (Database as SqlServer).IsSQL2005; } }
 
-        /// <summary>
-        /// 0级类型
-        /// </summary>
+        /// <summary>0级类型</summary>>
         public String level0type { get { return IsSQL2005 ? "SCHEMA" : "USER"; } }
         #endregion
 
         #region 构架
-        /// <summary>
-        /// 取得所有表构架
-        /// </summary>
+        /// <summary>取得所有表构架</summary>>
         /// <returns></returns>
         protected override List<IDataTable> OnGetTables(ICollection<String> names)
         {
@@ -676,9 +654,7 @@ namespace XCode.DataAccessLayer
             return String.Format("SELECT * FROM sysdatabases WHERE name = N'{0}'", dbname);
         }
 
-        /// <summary>
-        /// 使用数据架构确定数据库是否存在，因为使用系统视图可能没有权限
-        /// </summary>
+        /// <summary>使用数据架构确定数据库是否存在，因为使用系统视图可能没有权限</summary>>
         /// <param name="dbname"></param>
         /// <returns></returns>
         public Boolean DatabaseExist(string dbname)
@@ -695,9 +671,7 @@ namespace XCode.DataAccessLayer
                 return String.Format("SELECT * FROM sysobjects WHERE id = OBJECT_ID(N'[dbo].{0}') AND OBJECTPROPERTY(id, N'IsUserTable') = 1", FormatName(tableName));
         }
 
-        /// <summary>
-        /// 使用数据架构确定数据表是否存在，因为使用系统视图可能没有权限
-        /// </summary>
+        /// <summary>使用数据架构确定数据表是否存在，因为使用系统视图可能没有权限</summary>>
         /// <param name="table"></param>
         /// <returns></returns>
         public Boolean TableExist(IDataTable table)
@@ -874,9 +848,7 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 辅助函数
-        /// <summary>
-        /// 除去字符串两端成对出现的符号
-        /// </summary>
+        /// <summary>除去字符串两端成对出现的符号</summary>>
         /// <param name="str"></param>
         /// <param name="prefix"></param>
         /// <param name="suffix"></param>

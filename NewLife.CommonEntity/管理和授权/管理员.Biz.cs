@@ -27,9 +27,7 @@ namespace NewLife.CommonEntity
         where TLogEntity : Log<TLogEntity>, new()
     {
         #region 对象操作
-        /// <summary>
-        /// 已重载。调用Save时写日志，而调用Insert和Update时不写日志
-        /// </summary>
+        /// <summary>已重载。调用Save时写日志，而调用Insert和Update时不写日志</summary>>
         /// <returns></returns>
         public override int Save()
         {
@@ -41,9 +39,7 @@ namespace NewLife.CommonEntity
             return base.Save();
         }
 
-        /// <summary>
-        /// 已重载。
-        /// </summary>
+        /// <summary>已重载。</summary>>
         /// <returns></returns>
         public override int Delete()
         {
@@ -84,9 +80,7 @@ namespace NewLife.CommonEntity
         /// <summary>角色</summary>
         internal protected override IRole RoleInternal { get { return Role; } set { Role = (TRoleEntity)value; } }
 
-        /// <summary>
-        /// 根据权限名（权限路径）找到权限菜单实体
-        /// </summary>
+        /// <summary>根据权限名（权限路径）找到权限菜单实体</summary>>
         /// <param name="name"></param>
         /// <returns></returns>
         public override IMenu FindPermissionMenu(string name)
@@ -111,9 +105,7 @@ namespace NewLife.CommonEntity
             return menu;
         }
 
-        /// <summary>
-        /// 创建当前管理员的日志实体
-        /// </summary>
+        /// <summary>创建当前管理员的日志实体</summary>>
         /// <param name="type"></param>
         /// <param name="action"></param>
         /// <returns></returns>
@@ -128,9 +120,7 @@ namespace NewLife.CommonEntity
         #endregion
     }
 
-    /// <summary>
-    /// 管理员
-    /// </summary>
+    /// <summary>管理员</summary>>
     /// <remarks>
     /// 基础实体类应该是只有一个泛型参数的，需要用到别的类型时，可以继承一个，也可以通过虚拟重载等手段让基类实现
     /// </remarks>
@@ -145,9 +135,7 @@ namespace NewLife.CommonEntity
             TEntity entity = new TEntity();
         }
 
-        /// <summary>
-        /// 首次连接数据库时初始化数据，仅用于实体类重载，用户不应该调用该方法
-        /// </summary>
+        /// <summary>首次连接数据库时初始化数据，仅用于实体类重载，用户不应该调用该方法</summary>>
         [EditorBrowsable(EditorBrowsableState.Never)]
         protected override void InitData()
         {
@@ -168,9 +156,7 @@ namespace NewLife.CommonEntity
             if (XTrace.Debug) XTrace.WriteLine("完成初始化{0}管理员数据！", typeof(TEntity).Name);
         }
 
-        /// <summary>
-        /// 验证
-        /// </summary>
+        /// <summary>验证</summary>>
         /// <param name="isNew"></param>
         public override void Valid(bool isNew)
         {
@@ -183,9 +169,7 @@ namespace NewLife.CommonEntity
 
         #region 扩展属性
         static HttpState<TEntity> _httpState;
-        /// <summary>
-        /// Http状态，子类可以重新给HttpState赋值，以控制保存Http状态的过程
-        /// </summary>
+        /// <summary>Http状态，子类可以重新给HttpState赋值，以控制保存Http状态的过程</summary>>
         public static HttpState<TEntity> HttpState
         {
             get
@@ -265,9 +249,7 @@ namespace NewLife.CommonEntity
             }
         }
 
-        /// <summary>
-        /// 友好名字
-        /// </summary>
+        /// <summary>友好名字</summary>>
         public virtual String FriendName
         {
             get
@@ -278,9 +260,7 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region 扩展查询
-        /// <summary>
-        /// 根据主键查询一个管理员实体对象用于表单编辑
-        /// </summary>
+        /// <summary>根据主键查询一个管理员实体对象用于表单编辑</summary>>
         /// <param name="__ID">编号</param>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
@@ -295,9 +275,7 @@ namespace NewLife.CommonEntity
             return entity;
         }
 
-        /// <summary>
-        /// 根据编号查找
-        /// </summary>
+        /// <summary>根据编号查找</summary>>
         /// <param name="__ID"></param>
         /// <returns></returns>
         public static TEntity FindByID(Int32 __ID)
@@ -309,9 +287,7 @@ namespace NewLife.CommonEntity
             //return Meta.SingleCache[__ID];
         }
 
-        /// <summary>
-        /// 根据名称查找
-        /// </summary>
+        /// <summary>根据名称查找</summary>>
         /// <param name="name"></param>
         /// <returns></returns>
         public static TEntity FindByName(String name)
@@ -321,9 +297,7 @@ namespace NewLife.CommonEntity
             return Meta.Cache.Entities.Find(_.Name, name);
         }
 
-        /// <summary>
-        /// 根据SSOUserID查找
-        /// </summary>
+        /// <summary>根据SSOUserID查找</summary>>
         /// <param name="id"></param>
         /// <returns></returns>
         public static TEntity FindBySSOUserID(Int32 id)
@@ -331,9 +305,7 @@ namespace NewLife.CommonEntity
             return Meta.Cache.Entities.Find(_.SSOUserID, id);
         }
 
-        /// <summary>
-        /// 根据SSOUserID查找所有帐户
-        /// </summary>
+        /// <summary>根据SSOUserID查找所有帐户</summary>>
         /// <param name="id"></param>
         /// <returns></returns>
         public static EntityList<TEntity> FindAllBySSOUserID(Int32 id)
@@ -341,9 +313,7 @@ namespace NewLife.CommonEntity
             return Meta.Cache.Entities.FindAll(_.SSOUserID, id);
         }
 
-        /// <summary>
-        /// 查询满足条件的记录集，分页、排序
-        /// </summary>
+        /// <summary>查询满足条件的记录集，分页、排序</summary>>
         /// <param name="key">关键字</param>
         ///<param name="roleId">角色ID</param>
         /// <param name="orderClause">排序，不带Order By</param>
@@ -356,9 +326,7 @@ namespace NewLife.CommonEntity
             return FindAll(SearchWhere(key, roleId), orderClause, null, startRowIndex, maximumRows);
         }
 
-        /// <summary>
-        /// 查询满足条件的记录总数，分页和排序无效，带参数是因为ObjectDataSource要求它跟Search统一
-        /// </summary>
+        /// <summary>查询满足条件的记录总数，分页和排序无效，带参数是因为ObjectDataSource要求它跟Search统一</summary>>
         /// <param name="key">关键字</param>
         ///<param name="roleId">角色ID</param>
         /// <param name="orderClause">排序，不带Order By</param>
@@ -370,9 +338,7 @@ namespace NewLife.CommonEntity
             return FindCount(SearchWhere(key, roleId), null, null, 0, 0);
         }
 
-        /// <summary>
-        /// 构造搜索条件
-        /// </summary>
+        /// <summary>构造搜索条件</summary>>
         /// <param name="key">关键字</param>
         /// <param name="roleId">角色ID</param>
         /// <returns></returns>
@@ -390,17 +356,13 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region 扩展操作
-        /// <summary>
-        /// 已重载。显示友好名字
-        /// </summary>
+        /// <summary>已重载。显示友好名字</summary>>
         /// <returns></returns>
         public override string ToString() { return FriendName; }
         #endregion
 
         #region 业务
-        /// <summary>
-        /// 登录
-        /// </summary>
+        /// <summary>登录</summary>>
         /// <param name="username"></param>
         /// <param name="password"></param>
         /// <returns></returns>
@@ -467,9 +429,7 @@ namespace NewLife.CommonEntity
             return user;
         }
 
-        /// <summary>
-        /// 保存登录信息
-        /// </summary>
+        /// <summary>保存登录信息</summary>>
         /// <returns></returns>
         protected virtual Int32 SaveLoginInfo()
         {
@@ -479,9 +439,7 @@ namespace NewLife.CommonEntity
             return Update();
         }
 
-        /// <summary>
-        /// 注销
-        /// </summary>
+        /// <summary>注销</summary>>
         public virtual void Logout()
         {
             WriteLog("注销", Name);
@@ -489,16 +447,12 @@ namespace NewLife.CommonEntity
             //Thread.CurrentPrincipal = null;
         }
 
-        /// <summary>
-        /// 根据权限名（权限路径）找到权限菜单实体
-        /// </summary>
+        /// <summary>根据权限名（权限路径）找到权限菜单实体</summary>>
         /// <param name="name"></param>
         /// <returns></returns>
         public abstract IMenu FindPermissionMenu(String name);
 
-        /// <summary>
-        /// 拥有指定菜单的权限
-        /// </summary>
+        /// <summary>拥有指定菜单的权限</summary>>
         /// <param name="name"></param>
         /// <returns></returns>
         public virtual Boolean HasMenu(String name)
@@ -512,9 +466,7 @@ namespace NewLife.CommonEntity
             return Acquire(menu.ID, PermissionFlags.None);
         }
 
-        /// <summary>
-        /// 申请指定菜单指定操作的权限
-        /// </summary>
+        /// <summary>申请指定菜单指定操作的权限</summary>>
         /// <param name="name"></param>
         /// <param name="flag"></param>
         /// <returns></returns>
@@ -526,9 +478,7 @@ namespace NewLife.CommonEntity
             return Acquire(menu.ID, flag);
         }
 
-        /// <summary>
-        /// 申请指定菜单指定操作的权限
-        /// </summary>
+        /// <summary>申请指定菜单指定操作的权限</summary>>
         /// <param name="name"></param>
         /// <returns></returns>
         public virtual Boolean Acquire(String name)
@@ -536,9 +486,7 @@ namespace NewLife.CommonEntity
             return Acquire(name, PermissionFlags.None);
         }
 
-        /// <summary>
-        /// 申请指定菜单指定操作的权限
-        /// </summary>
+        /// <summary>申请指定菜单指定操作的权限</summary>>
         /// <param name="menuID"></param>
         /// <param name="flag"></param>
         /// <returns></returns>
@@ -553,17 +501,13 @@ namespace NewLife.CommonEntity
             return entity.Acquire(menuID, flag);
         }
 
-        /// <summary>
-        /// 创建当前管理员的日志实体
-        /// </summary>
+        /// <summary>创建当前管理员的日志实体</summary>>
         /// <param name="type"></param>
         /// <param name="action"></param>
         /// <returns></returns>
         public abstract ILog CreateLog(Type type, String action);
 
-        /// <summary>
-        /// 写日志
-        /// </summary>
+        /// <summary>写日志</summary>>
         /// <param name="action">操作</param>
         /// <param name="remark">备注</param>
         public static void WriteLog(String action, String remark)
@@ -588,14 +532,10 @@ namespace NewLife.CommonEntity
         [XmlIgnore]
         internal protected abstract IRole RoleInternal { get; set; }
 
-        /// <summary>
-        /// 角色名
-        /// </summary>
+        /// <summary>角色名</summary>>
         public virtual String RoleName { get { return RoleInternal == null ? null : RoleInternal.Name; } set { } }
 
-        /// <summary>
-        /// 写日志
-        /// </summary>
+        /// <summary>写日志</summary>>
         /// <param name="type">类型</param>
         /// <param name="action">操作</param>
         /// <param name="remark">备注</param>
@@ -683,68 +623,50 @@ namespace NewLife.CommonEntity
 
     public partial interface IAdministrator
     {
-        /// <summary>
-        /// 友好名字
-        /// </summary>
+        /// <summary>友好名字</summary>>
         String FriendName { get; }
 
         /// <summary>角色</summary>
         IRole Role { get; set; }
 
-        /// <summary>
-        /// 角色名
-        /// </summary>
+        /// <summary>角色名</summary>>
         String RoleName { get; set; }
 
-        /// <summary>
-        /// 根据权限名（权限路径）找到权限菜单实体
-        /// </summary>
+        /// <summary>根据权限名（权限路径）找到权限菜单实体</summary>>
         /// <param name="name"></param>
         /// <returns></returns>
         IMenu FindPermissionMenu(String name);
 
-        /// <summary>
-        /// 申请指定菜单指定操作的权限
-        /// </summary>
+        /// <summary>申请指定菜单指定操作的权限</summary>>
         /// <param name="menuID"></param>
         /// <param name="flag"></param>
         /// <returns></returns>
         Boolean Acquire(Int32 menuID, PermissionFlags flag);
 
-        /// <summary>
-        /// 申请指定菜单指定操作的权限
-        /// </summary>
+        /// <summary>申请指定菜单指定操作的权限</summary>>
         /// <param name="name"></param>
         /// <param name="flag"></param>
         /// <returns></returns>
         Boolean Acquire(String name, PermissionFlags flag);
 
-        /// <summary>
-        /// 申请指定菜单指定操作的权限
-        /// </summary>
+        /// <summary>申请指定菜单指定操作的权限</summary>>
         /// <param name="name"></param>
         /// <returns></returns>
         Boolean Acquire(String name);
 
-        /// <summary>
-        /// 创建指定类型指定动作的日志实体
-        /// </summary>
+        /// <summary>创建指定类型指定动作的日志实体</summary>>
         /// <param name="type"></param>
         /// <param name="action"></param>
         /// <returns></returns>
         ILog CreateLog(Type type, String action);
 
-        /// <summary>
-        /// 写日志
-        /// </summary>
+        /// <summary>写日志</summary>>
         /// <param name="type">类型</param>
         /// <param name="action">操作</param>
         /// <param name="remark">备注</param>
         void WriteLog(Type type, String action, String remark);
 
-        /// <summary>
-        /// 注销
-        /// </summary>
+        /// <summary>注销</summary>>
         void Logout();
     }
 }

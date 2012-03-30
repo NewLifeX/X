@@ -27,18 +27,14 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region 页面和表单
-        /// <summary>
-        /// 创建管理页控制器
-        /// </summary>
+        /// <summary>创建管理页控制器</summary>>
         /// <param name="container"></param>
         /// <param name="entityType"></param>
         /// <returns></returns>
         [Obsolete("该成员在后续版本中讲不再被支持！")]
         IManagePage CreatePage(Control container, Type entityType);
 
-        /// <summary>
-        /// 创建实体表单控制器
-        /// </summary>
+        /// <summary>创建实体表单控制器</summary>>
         /// <param name="container"></param>
         /// <param name="entityType"></param>
         /// <returns></returns>
@@ -81,23 +77,17 @@ namespace NewLife.CommonEntity
         /// <summary>当前用户</summary>
         public override IManageUser Current { get { return Administrator<TAdministrator>.Current; } }
 
-        /// <summary>
-        /// 根据用户编号查找
-        /// </summary>
+        /// <summary>根据用户编号查找</summary>>
         /// <param name="userid"></param>
         /// <returns></returns>
         public override IManageUser FindByID(Object userid) { return Administrator<TAdministrator>.FindByID((Int32)userid); }
 
-        /// <summary>
-        /// 根据用户帐号查找
-        /// </summary>
+        /// <summary>根据用户帐号查找</summary>>
         /// <param name="account"></param>
         /// <returns></returns>
         public override IManageUser FindByAccount(String account) { return Administrator<TAdministrator>.FindByName(account); }
 
-        /// <summary>
-        /// 登录
-        /// </summary>
+        /// <summary>登录</summary>>
         /// <param name="account"></param>
         /// <param name="password"></param>
         /// <returns></returns>
@@ -122,9 +112,7 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region 页面和表单
-        /// <summary>
-        /// 创建管理页控制器
-        /// </summary>
+        /// <summary>创建管理页控制器</summary>>
         /// <param name="container"></param>
         /// <param name="entityType"></param>
         /// <returns></returns>
@@ -137,9 +125,7 @@ namespace NewLife.CommonEntity
             return page;
         }
 
-        /// <summary>
-        /// 创建实体表单控制器
-        /// </summary>
+        /// <summary>创建实体表单控制器</summary>>
         /// <param name="container"></param>
         /// <param name="entityType"></param>
         /// <returns></returns>

@@ -25,9 +25,7 @@ namespace NewLife.CommonEntity
         //你可以重载它们，以改变它们的行为
         //如：
         /*
-        /// <summary>
-        /// 已重载。把该对象插入到数据库。这里可以做数据插入前的检查
-        /// </summary>
+        /// <summary>已重载。把该对象插入到数据库。这里可以做数据插入前的检查</summary>>
         /// <returns>影响的行数</returns>
         public override Int32 Insert()
         {
@@ -59,9 +57,7 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region 扩展查询
-        /// <summary>
-        /// 根据主键查询一个统计实体对象用于表单编辑
-        /// </summary>
+        /// <summary>根据主键查询一个统计实体对象用于表单编辑</summary>>
         ///<param name="__ID">编号</param>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
@@ -75,9 +71,7 @@ namespace NewLife.CommonEntity
             return entity;
         }
 
-        /// <summary>
-        /// 根据编号查找
-        /// </summary>
+        /// <summary>根据编号查找</summary>>
         /// <param name="id"></param>
         /// <returns></returns>
         public static TEntity FindByID(Int32 id)
@@ -120,9 +114,7 @@ namespace NewLife.CommonEntity
         //    return FindCount(SearchWhere(key), null, null, 0, 0);
         //}
 
-        /// <summary>
-        /// 构造搜索条件
-        /// </summary>
+        /// <summary>构造搜索条件</summary>>
         /// <param name="key">关键字</param>
         /// <returns></returns>
         private static String SearchWhere(String key)
@@ -147,9 +139,7 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region 业务
-        /// <summary>
-        /// 增加计数
-        /// </summary>
+        /// <summary>增加计数</summary>>
         /// <param name="remark">备注</param>
         public void Increment(String remark)
         {
@@ -224,9 +214,7 @@ namespace NewLife.CommonEntity
             }
         }
 
-        /// <summary>
-        /// 增加指定编号的计数
-        /// </summary>
+        /// <summary>增加指定编号的计数</summary>>
         /// <param name="id"></param>
         public static void Increment(Int32 id)
         {

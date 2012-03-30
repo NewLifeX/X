@@ -5,9 +5,7 @@ using NewLife.Reflection;
 
 namespace NewLife.Serialization
 {
-    /// <summary>
-    /// 反射成员信息
-    /// </summary>
+    /// <summary>反射成员信息</summary>>
     class ReflectMemberInfo : IObjectMemberInfo
     {
         #region 属性
@@ -25,9 +23,7 @@ namespace NewLife.Serialization
         #endregion
 
         #region 构造
-        /// <summary>
-        /// 实例化
-        /// </summary>
+        /// <summary>实例化</summary>>
         /// <param name="member"></param>
         public ReflectMemberInfo(MemberInfo member)
         {
@@ -36,26 +32,18 @@ namespace NewLife.Serialization
         #endregion
 
         #region IObjectMemberInfo 成员
-        /// <summary>
-        /// 名称
-        /// </summary>
+        /// <summary>名称</summary>>
         public string Name { get { return GetName(); } }
 
-        /// <summary>
-        /// 类型
-        /// </summary>
+        /// <summary>类型</summary>>
         public Type Type { get { return Mix.Type; } }
 
-        /// <summary>
-        /// 对目标对象取值赋值
-        /// </summary>
+        /// <summary>对目标对象取值赋值</summary>>
         /// <param name="target"></param>
         /// <returns></returns>
         public object this[object target] { get { return Mix.GetValue(target); } set { Mix.SetValue(target, value); } }
 
-        /// <summary>
-        /// 是否可读
-        /// </summary>
+        /// <summary>是否可读</summary>>
         public bool CanRead
         {
             get
@@ -66,9 +54,7 @@ namespace NewLife.Serialization
             }
         }
 
-        /// <summary>
-        /// 是否可写
-        /// </summary>
+        /// <summary>是否可写</summary>>
         public bool CanWrite
         {
             get
@@ -108,9 +94,7 @@ namespace NewLife.Serialization
         #endregion
 
         #region 已重载
-        /// <summary>
-        /// 已重载。
-        /// </summary>
+        /// <summary>已重载。</summary>>
         /// <returns></returns>
         public override string ToString() { return Name; }
         #endregion

@@ -62,9 +62,7 @@ namespace XCode.Accessors
         //    Container = container;
         //}
 
-        /// <summary>
-        /// 设置参数。返回自身，方便链式写法。
-        /// </summary>
+        /// <summary>设置参数。返回自身，方便链式写法。</summary>>
         /// <param name="name">参数名</param>
         /// <param name="value">参数值</param>
         /// <returns></returns>
@@ -84,9 +82,7 @@ namespace XCode.Accessors
         #endregion
 
         #region 读取
-        /// <summary>
-        /// 外部=>实体，从外部读取指定实体字段的信息
-        /// </summary>
+        /// <summary>外部=>实体，从外部读取指定实体字段的信息</summary>>
         /// <param name="entity">实体对象</param>
         /// <param name="item">实体字段</param>
         protected override void ReadItem(IEntity entity, FieldItem item)
@@ -145,9 +141,7 @@ namespace XCode.Accessors
 
         }
 
-        /// <summary>
-        /// 设置实体类值
-        /// </summary>
+        /// <summary>设置实体类值</summary>>
         /// <param name="entity"></param>
         /// <param name="field"></param>
         /// <param name="value"></param>
@@ -160,9 +154,7 @@ namespace XCode.Accessors
             entity.SetItem(field.Name, value);
         }
 
-        /// <summary>
-        /// 获取TextBoxBase填充实体类
-        /// </summary>
+        /// <summary>获取TextBoxBase填充实体类</summary>>
         /// <param name="entity"></param>
         /// <param name="field"></param>
         /// <param name="control"></param>
@@ -195,9 +187,7 @@ namespace XCode.Accessors
             if (!Object.Equals(entity[field.Name], v)) SetEntityItem(entity, field, v);
         }
 
-        /// <summary>
-        /// 获取DateTimePicker填充实体类
-        /// </summary>
+        /// <summary>获取DateTimePicker填充实体类</summary>>
         /// <param name="entity"></param>
         /// <param name="field"></param>
         /// <param name="control"></param>
@@ -207,9 +197,7 @@ namespace XCode.Accessors
             if (!Object.Equals(entity[field.Name], v)) SetEntityItem(entity, field, v);
         }
 
-        /// <summary>
-        /// 获取NumericUpDown填充实体类
-        /// </summary>
+        /// <summary>获取NumericUpDown填充实体类</summary>>
         /// <param name="entity"></param>
         /// <param name="field"></param>
         /// <param name="control"></param>
@@ -219,9 +207,7 @@ namespace XCode.Accessors
             if (!Object.Equals(entity[field.Name], v)) SetEntityItem(entity, field, v);
         }
 
-        /// <summary>
-        /// 获取ListControl填充实体类
-        /// </summary>
+        /// <summary>获取ListControl填充实体类</summary>>
         /// <param name="entity"></param>
         /// <param name="field"></param>
         /// <param name="control"></param>
@@ -233,9 +219,7 @@ namespace XCode.Accessors
             if (!Object.Equals(entity[field.Name], v)) SetEntityItem(entity, field, v);
         }
 
-        /// <summary>
-        /// 获取Label填充实体类
-        /// </summary>
+        /// <summary>获取Label填充实体类</summary>>
         /// <param name="entity"></param>
         /// <param name="field"></param>
         /// <param name="control"></param>
@@ -247,9 +231,7 @@ namespace XCode.Accessors
         #endregion
 
         #region 写入
-        /// <summary>
-        /// 实体=>外部，把指定实体字段的信息写入到外部
-        /// </summary>
+        /// <summary>实体=>外部，把指定实体字段的信息写入到外部</summary>>
         /// <param name="entity">实体对象</param>
         /// <param name="item">实体字段</param>
         protected override void WriteItem(IEntity entity, FieldItem item)
@@ -268,9 +250,7 @@ namespace XCode.Accessors
             }
         }
 
-        /// <summary>
-        /// 把实体成员的值设置到控件上
-        /// </summary>
+        /// <summary>把实体成员的值设置到控件上</summary>>
         /// <param name="entity"></param>
         /// <param name="field"></param>
         /// <param name="control"></param>
@@ -325,9 +305,7 @@ namespace XCode.Accessors
             }
         }
 
-        /// <summary>
-        /// 将实体信息添充至TextBoxBase
-        /// </summary>
+        /// <summary>将实体信息添充至TextBoxBase</summary>>
         /// <param name="entity"></param>
         /// <param name="field"></param>
         /// <param name="control"></param>
@@ -346,9 +324,7 @@ namespace XCode.Accessors
             }
         }
 
-        /// <summary>
-        /// 将实体信息添充至ButtonBase
-        /// </summary>
+        /// <summary>将实体信息添充至ButtonBase</summary>>
         /// <param name="entity"></param>
         /// <param name="field"></param>
         /// <param name="control"></param>
@@ -382,9 +358,7 @@ namespace XCode.Accessors
         }
 
 
-        /// <summary>
-        /// 将实体信息添充至DateTimePicker
-        /// </summary>
+        /// <summary>将实体信息添充至DateTimePicker</summary>>
         /// <param name="entity"></param>
         /// <param name="field"></param>
         /// <param name="control"></param>
@@ -400,9 +374,7 @@ namespace XCode.Accessors
             control.Value = valueDateTime;
         }
 
-        /// <summary>
-        /// 将实体信息添充至NumericUpDown
-        /// </summary>
+        /// <summary>将实体信息添充至NumericUpDown</summary>>
         /// <param name="entity"></param>
         /// <param name="field"></param>
         /// <param name="control"></param>
@@ -417,9 +389,7 @@ namespace XCode.Accessors
             control.Value = valuedecimal;
         }
 
-        /// <summary>
-        /// 将实体信息添充至ListControl
-        /// </summary>
+        /// <summary>将实体信息添充至ListControl</summary>>
         /// <param name="entity"></param>
         /// <param name="field"></param>
         /// <param name="control"></param>
@@ -448,9 +418,7 @@ namespace XCode.Accessors
             }
         }
 
-        /// <summary>
-        /// 将实体信息添充至Label
-        /// </summary>
+        /// <summary>将实体信息添充至Label</summary>>
         /// <param name="entity"></param>
         /// <param name="field"></param>
         /// <param name="control"></param>
@@ -466,9 +434,7 @@ namespace XCode.Accessors
         #endregion
 
         #region 辅助
-        /// <summary>
-        /// 查找字段对应的控件
-        /// </summary>
+        /// <summary>查找字段对应的控件</summary>>
         /// <param name="field"></param>
         /// <returns></returns>
         protected virtual Control FindControlByField(FieldItem field)
@@ -480,9 +446,7 @@ namespace XCode.Accessors
             return FindControlInContainer(name);
         }
 
-        /// <summary>
-        /// 在页面查找指定ID的控件
-        /// </summary>
+        /// <summary>在页面查找指定ID的控件</summary>>
         /// <param name="name"></param>
         /// <returns></returns>
         public Control FindControlInContainer(String name)
@@ -490,9 +454,7 @@ namespace XCode.Accessors
             return FindControlByName(Container, name);
         }
 
-        /// <summary>
-        /// 按名称查询
-        /// </summary>
+        /// <summary>按名称查询</summary>>
         /// <param name="control"></param>
         /// <param name="name"></param>
         /// <returns></returns>
@@ -520,9 +482,7 @@ namespace XCode.Accessors
             return r;
         }
 
-        /// <summary>
-        /// 在窗体中查询ToolTip
-        /// </summary>
+        /// <summary>在窗体中查询ToolTip</summary>>
         /// <returns></returns>
         private ToolTip FindToolTipParentForm()
         {
@@ -557,9 +517,7 @@ namespace XCode.Accessors
 
         }
 
-        /// <summary>
-        /// 设置ToolTip
-        /// </summary>
+        /// <summary>设置ToolTip</summary>>
         /// <param name="control"></param>
         /// <param name="caption"></param>
         private void SetToolTip(Control control, String caption)
@@ -572,9 +530,7 @@ namespace XCode.Accessors
 
         }
 
-        /// <summary>
-        /// 设置控件Enable值
-        /// </summary>
+        /// <summary>设置控件Enable值</summary>>
         /// <param name="control"></param>
         /// <param name="canSave"></param>
         private void SetControlEnable(Control control, Boolean canSave)

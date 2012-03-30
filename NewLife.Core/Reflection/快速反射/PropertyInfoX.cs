@@ -8,9 +8,7 @@ using NewLife.Exceptions;
 
 namespace NewLife.Reflection
 {
-    /// <summary>
-    /// 快速属性访问
-    /// </summary>
+    /// <summary>快速属性访问</summary>>
     public class PropertyInfoX : MemberInfoX
     {
         #region 属性
@@ -59,9 +57,7 @@ namespace NewLife.Reflection
         }
 
         FastGetValueHandler _GetHandler;
-        /// <summary>
-        /// 快速调用委托，延迟到首次使用才创建
-        /// </summary>
+        /// <summary>快速调用委托，延迟到首次使用才创建</summary>>
         FastGetValueHandler GetHandler
         {
             get
@@ -75,9 +71,7 @@ namespace NewLife.Reflection
         }
 
         FastSetValueHandler _SetHandler;
-        /// <summary>
-        /// 快速调用委托，延迟到首次使用才创建
-        /// </summary>
+        /// <summary>快速调用委托，延迟到首次使用才创建</summary>>
         FastSetValueHandler SetHandler
         {
             get
@@ -95,9 +89,7 @@ namespace NewLife.Reflection
         private PropertyInfoX(PropertyInfo property) : base(property) { Property = property; }
 
         private static DictionaryCache<PropertyInfo, PropertyInfoX> cache = new DictionaryCache<PropertyInfo, PropertyInfoX>();
-        /// <summary>
-        /// 创建
-        /// </summary>
+        /// <summary>创建</summary>>
         /// <param name="property"></param>
         /// <returns></returns>
         public static PropertyInfoX Create(PropertyInfo property)
@@ -136,9 +128,7 @@ namespace NewLife.Reflection
             //}
         }
 
-        /// <summary>
-        /// 创建
-        /// </summary>
+        /// <summary>创建</summary>>
         /// <param name="type"></param>
         /// <param name="name"></param>
         /// <returns></returns>
@@ -207,9 +197,7 @@ namespace NewLife.Reflection
         #endregion
 
         #region 调用
-        /// <summary>
-        /// 取值
-        /// </summary>
+        /// <summary>取值</summary>>
         /// <param name="obj"></param>
         /// <returns></returns>
         [DebuggerStepThrough]
@@ -219,9 +207,7 @@ namespace NewLife.Reflection
             return GetHandler.Invoke(obj);
         }
 
-        /// <summary>
-        /// 赋值
-        /// </summary>
+        /// <summary>赋值</summary>>
         /// <param name="obj"></param>
         /// <param name="value"></param>
         [DebuggerStepThrough]
@@ -316,9 +302,7 @@ namespace NewLife.Reflection
         #endregion
 
         #region 类型转换
-        /// <summary>
-        /// 类型转换
-        /// </summary>
+        /// <summary>类型转换</summary>>
         /// <param name="obj"></param>
         /// <returns></returns>
         public static implicit operator PropertyInfo(PropertyInfoX obj)
@@ -326,9 +310,7 @@ namespace NewLife.Reflection
             return obj != null ? obj.Property : null;
         }
 
-        /// <summary>
-        /// 类型转换
-        /// </summary>
+        /// <summary>类型转换</summary>>
         /// <param name="obj"></param>
         /// <returns></returns>
         public static implicit operator PropertyInfoX(PropertyInfo obj)

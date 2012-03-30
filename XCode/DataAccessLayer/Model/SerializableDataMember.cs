@@ -10,9 +10,7 @@ using NewLife.Reflection;
 
 namespace XCode.DataAccessLayer
 {
-    /// <summary>
-    /// 可序列化数据成员
-    /// </summary>
+    /// <summary>可序列化数据成员</summary>>
     abstract class SerializableDataMember : IXmlSerializable
     {
         #region IXmlSerializable 成员
@@ -49,9 +47,7 @@ namespace XCode.DataAccessLayer
             return cache.GetItem(type, item => TypeX.CreateInstance(item));
         }
 
-        /// <summary>
-        /// 是否写数值为默认值的成员。为了节省空间，默认不写。
-        /// </summary>
+        /// <summary>是否写数值为默认值的成员。为了节省空间，默认不写。</summary>>
         protected virtual Boolean WriteDefaultValueMember { get { return false; } }
 
         void IXmlSerializable.WriteXml(XmlWriter writer)

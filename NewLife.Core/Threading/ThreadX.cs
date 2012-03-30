@@ -6,9 +6,7 @@ using NewLife.Configuration;
 
 namespace NewLife.Threading
 {
-    /// <summary>
-    /// 线程扩展
-    /// </summary>
+    /// <summary>线程扩展</summary>>
     class ThreadX : IDisposable
     {
         #region 属性
@@ -76,9 +74,7 @@ namespace NewLife.Threading
             //set { _Alive = value; }
         }
 
-        /// <summary>
-        /// 是否能够释放
-        /// </summary>
+        /// <summary>是否能够释放</summary>>
         public Boolean CanRelease
         {
             get
@@ -130,16 +126,12 @@ namespace NewLife.Threading
         //    }
         //}
 
-        /// <summary>
-        /// 内部控制事件
-        /// </summary>
+        /// <summary>内部控制事件</summary>>
         private AutoResetEvent internalEvent = new AutoResetEvent(false);
         #endregion
 
         #region 方法
-        /// <summary>
-        /// 开始
-        /// </summary>
+        /// <summary>开始</summary>>
         public void Start()
         {
             if (internalEvent == null) internalEvent = new AutoResetEvent(false);
@@ -167,9 +159,7 @@ namespace NewLife.Threading
             internalEvent.Set();
         }
 
-        /// <summary>
-        /// 取消
-        /// </summary>
+        /// <summary>取消</summary>>
         /// <param name="onlytask">是否仅仅取消任务</param>
         public void Abort(Boolean onlytask)
         {
@@ -289,9 +279,7 @@ namespace NewLife.Threading
         #region IDisposable 成员
         private Boolean _isDisposed = false;
 
-        /// <summary>
-        /// 释放资源
-        /// </summary>
+        /// <summary>释放资源</summary>>
         public void Dispose()
         {
             Dispose(true);
@@ -299,9 +287,7 @@ namespace NewLife.Threading
             GC.SuppressFinalize(this);
         }
 
-        /// <summary>
-        /// 释放资源。非用户代码调用时，仅释放非托管资源
-        /// </summary>
+        /// <summary>释放资源。非用户代码调用时，仅释放非托管资源</summary>>
         /// <param name="disposing">是否用户代码调用</param>
         private void Dispose(Boolean disposing)
         {
@@ -331,9 +317,7 @@ namespace NewLife.Threading
         #endregion
 
         #region 重载
-        /// <summary>
-        /// 已重载。
-        /// </summary>
+        /// <summary>已重载。</summary>>
         /// <returns></returns>
         public override string ToString()
         {
@@ -348,9 +332,7 @@ namespace NewLife.Threading
         }
 
         private static Boolean? _Debug;
-        /// <summary>
-        /// 是否调试
-        /// </summary>
+        /// <summary>是否调试</summary>>
         public static Boolean Debug
         {
             get
@@ -364,9 +346,7 @@ namespace NewLife.Threading
             set { _Debug = value; }
         }
 
-        /// <summary>
-        /// 查找指定类型的异常
-        /// </summary>
+        /// <summary>查找指定类型的异常</summary>>
         /// <typeparam name="T"></typeparam>
         /// <param name="ex"></param>
         /// <returns></returns>

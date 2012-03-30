@@ -7,9 +7,7 @@ using NewLife.Reflection;
 
 namespace XControl
 {
-    /// <summary>
-    /// System.Web的资源包装
-    /// </summary>
+    /// <summary>System.Web的资源包装</summary>>
     public static class SR
     {
         #region 属性
@@ -37,9 +35,7 @@ namespace XControl
         }
         #endregion
 
-        /// <summary>
-        /// 取得System.Web资源中的字符串
-        /// </summary>
+        /// <summary>取得System.Web资源中的字符串</summary>>
         /// <param name="name"></param>
         /// <param name="args"></param>
         /// <returns></returns>
@@ -55,9 +51,7 @@ namespace XControl
         }
 
         static Dictionary<String, String> cache = new Dictionary<string, string>();
-        /// <summary>
-        /// 取得System.Web资源中的字符串
-        /// </summary>
+        /// <summary>取得System.Web资源中的字符串</summary>>
         /// <param name="name"></param>
         /// <returns></returns>
         public static string GetString(string name)

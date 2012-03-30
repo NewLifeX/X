@@ -5,9 +5,7 @@ using System.Text.RegularExpressions;
 
 namespace XControl
 {
-    /// <summary>
-    /// 汉字转拼音类
-    /// </summary>
+    /// <summary>汉字转拼音类</summary>>
     public class PinYin
     {
         private static int[] pyValue = new int[]
@@ -84,14 +82,10 @@ namespace XControl
     "Zhuang","Zhui","Zhun","Zhuo","Zi","Zong","Zou","Zu","Zuan","Zui","Zun","Zuo"
     };
 
-        /// <summary>
-        /// 匹配中文字符
-        /// </summary>
+        /// <summary>匹配中文字符</summary>>
         private static Regex CNRegex = new Regex("^[\u4e00-\u9fa5]$");
 
-        /// <summary>
-        /// 取拼音第一个字段
-        /// </summary>
+        /// <summary>取拼音第一个字段</summary>>
         /// <param name="word"></param>
         /// <returns></returns>
         public static string ConvertFast(string words)
@@ -110,9 +104,7 @@ namespace XControl
             return pyString;
         }
 
-        /// <summary>
-        /// 取拼音第一个字段
-        /// </summary>
+        /// <summary>取拼音第一个字段</summary>>
         /// <param name="word"></param>
         /// <returns></returns>
         public static string ConvertFast(char word)
@@ -124,9 +116,7 @@ namespace XControl
             return r;
         }
 
-        /// <summary>
-        /// 获取单字拼音
-        /// </summary>
+        /// <summary>获取单字拼音</summary>>
         /// <param name="word"></param>
         /// <returns></returns>
         public static string Convert(char word)
@@ -178,9 +168,7 @@ namespace XControl
             return r;
         }
 
-        /// <summary>
-        /// 把汉字转换成拼音(全拼)
-        /// </summary>
+        /// <summary>把汉字转换成拼音(全拼)</summary>>
         /// <param name="hzString">汉字字符串</param>
         /// <returns>转换后的拼音(全拼)字符串</returns>
         public static string Convert(string hzString)

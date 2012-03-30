@@ -6,9 +6,7 @@ using XCode.Model;
 
 namespace XCode.DataAccessLayer
 {
-    /// <summary>
-    /// 数据库工厂
-    /// </summary>
+    /// <summary>数据库工厂</summary>>
     public static class DbFactory
     {
         #region 创建
@@ -49,9 +47,7 @@ namespace XCode.DataAccessLayer
 
         #region 默认提供者
         private static DictionaryCache<DatabaseType, IDatabase> defaultDbs = new DictionaryCache<DatabaseType, IDatabase>();
-        /// <summary>
-        /// 根据名称获取默认提供者
-        /// </summary>
+        /// <summary>根据名称获取默认提供者</summary>>
         /// <param name="dbType"></param>
         /// <returns></returns>
         public static IDatabase GetDefault(DatabaseType dbType)

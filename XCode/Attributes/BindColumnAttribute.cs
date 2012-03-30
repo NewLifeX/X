@@ -3,9 +3,7 @@ using System.Reflection;
 
 namespace XCode
 {
-    /// <summary>
-    /// 指定实体类属性所绑定数据字段信息。
-    /// </summary>
+    /// <summary>指定实体类属性所绑定数据字段信息。</summary>>
     [AttributeUsage(AttributeTargets.Property, AllowMultiple = false)]
     public sealed class BindColumnAttribute : Attribute
     {
@@ -79,23 +77,17 @@ namespace XCode
         #endregion
 
         #region 构造
-        /// <summary>
-        /// 构造函数
-        /// </summary>
+        /// <summary>构造函数</summary>>
         public BindColumnAttribute() { }
 
-        /// <summary>
-        /// 构造函数
-        /// </summary>
+        /// <summary>构造函数</summary>>
         /// <param name="name">字段名</param>
         public BindColumnAttribute(String name)
         {
             Name = name;
         }
 
-        /// <summary>
-        /// 构造函数
-        /// </summary>
+        /// <summary>构造函数</summary>>
         /// <param name="order"></param>
         /// <param name="name"></param>
         /// <param name="description"></param>
@@ -108,9 +100,7 @@ namespace XCode
             DefaultValue = defaultValue;
         }
 
-        /// <summary>
-        /// 构造函数
-        /// </summary>
+        /// <summary>构造函数</summary>>
         /// <param name="order"></param>
         /// <param name="name"></param>
         /// <param name="description"></param>
@@ -130,9 +120,7 @@ namespace XCode
         #endregion
 
         #region 方法
-        /// <summary>
-        /// 检索应用于类型成员的自定义属性。
-        /// </summary>
+        /// <summary>检索应用于类型成员的自定义属性。</summary>>
         /// <param name="element"></param>
         /// <returns></returns>
         public static BindColumnAttribute GetCustomAttribute(MemberInfo element)

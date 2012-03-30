@@ -8,9 +8,7 @@ using System.Xml.Serialization;
 
 namespace XCode.DataAccessLayer
 {
-    /// <summary>
-    /// 表模型
-    /// </summary>
+    /// <summary>表模型</summary>>
     [DebuggerDisplay("ID={ID} Name={Name} Description={Description}")]
     [Serializable]
     [DisplayName("表模型")]
@@ -20,36 +18,28 @@ namespace XCode.DataAccessLayer
     {
         #region 基本属性
         private Int32 _ID;
-        /// <summary>
-        /// 编号
-        /// </summary>
+        /// <summary>编号</summary>>
         [XmlAttribute]
         [DisplayName("编号")]
         [Description("编号")]
         public Int32 ID { get { return _ID; } set { _ID = value; } }
 
         private String _Name;
-        /// <summary>
-        /// 表名
-        /// </summary>
+        /// <summary>表名</summary>>
         [XmlAttribute]
         [DisplayName("表名")]
         [Description("表名")]
         public String Name { get { return _Name; } set { _Name = value; _Alias = null; } }
 
         private String _Alias;
-        /// <summary>
-        /// 别名
-        /// </summary>
+        /// <summary>别名</summary>>
         [XmlAttribute]
         [DisplayName("别名")]
         [Description("别名")]
         public String Alias { get { return _Alias ?? (_Alias = ModelHelper.GetAlias(Name)); } set { _Alias = value; } }
 
         private String _Description;
-        /// <summary>
-        /// 表说明
-        /// </summary>
+        /// <summary>表说明</summary>>
         [XmlAttribute]
         [DisplayName("表说明")]
         [Description("表说明")]
@@ -67,9 +57,7 @@ namespace XCode.DataAccessLayer
         }
 
         private Boolean _IsView = false;
-        /// <summary>
-        /// 是否视图
-        /// </summary>
+        /// <summary>是否视图</summary>>
         [XmlAttribute]
         [DisplayName("是否视图")]
         [Description("是否视图")]
@@ -92,9 +80,7 @@ namespace XCode.DataAccessLayer
 
         #region 扩展属性
         private List<IDataColumn> _Columns;
-        /// <summary>
-        /// 字段集合。可以是空集合，但不能为null。
-        /// </summary>
+        /// <summary>字段集合。可以是空集合，但不能为null。</summary>>
         [XmlArray("Columns")]
         [Category("集合")]
         [DisplayName("字段集合")]
@@ -102,9 +88,7 @@ namespace XCode.DataAccessLayer
         public List<IDataColumn> Columns { get { return _Columns ?? (_Columns = new List<IDataColumn>()); } }
 
         private List<IDataRelation> _Relations;
-        /// <summary>
-        /// 关系集合。可以是空集合，但不能为null。
-        /// </summary>
+        /// <summary>关系集合。可以是空集合，但不能为null。</summary>>
         [XmlArray]
         [Category("集合")]
         [DisplayName("关系集合")]
@@ -112,9 +96,7 @@ namespace XCode.DataAccessLayer
         public List<IDataRelation> Relations { get { return _Relations ?? (_Relations = new List<IDataRelation>()); } }
 
         private List<IDataIndex> _Indexes;
-        /// <summary>
-        /// 索引集合。可以是空集合，但不能为null。
-        /// </summary>
+        /// <summary>索引集合。可以是空集合，但不能为null。</summary>>
         [XmlArray]
         [Category("集合")]
         [DisplayName("索引集合")]
@@ -140,31 +122,23 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 构造
-        /// <summary>
-        /// 初始化
-        /// </summary>
+        /// <summary>初始化</summary>>
         public XTable() { }
 
-        /// <summary>
-        /// 初始化
-        /// </summary>
+        /// <summary>初始化</summary>>
         /// <param name="name"></param>
         public XTable(String name) { Name = name; }
         #endregion
 
         #region 方法
-        /// <summary>
-        /// 创建字段
-        /// </summary>
+        /// <summary>创建字段</summary>>
         /// <returns></returns>
         public virtual IDataColumn CreateColumn()
         {
             return XField.Create(this);
         }
 
-        /// <summary>
-        /// 创建外键
-        /// </summary>
+        /// <summary>创建外键</summary>>
         /// <returns></returns>
         public virtual IDataRelation CreateRelation()
         {
@@ -173,9 +147,7 @@ namespace XCode.DataAccessLayer
             return fk;
         }
 
-        /// <summary>
-        /// 创建索引
-        /// </summary>
+        /// <summary>创建索引</summary>>
         /// <returns></returns>
         public virtual IDataIndex CreateIndex()
         {
@@ -184,9 +156,7 @@ namespace XCode.DataAccessLayer
             return idx;
         }
 
-        /// <summary>
-        /// 根据字段名获取字段
-        /// </summary>
+        /// <summary>根据字段名获取字段</summary>>
         /// <param name="name"></param>
         /// <returns></returns>
         public virtual IDataColumn GetColumn(String name)
@@ -194,9 +164,7 @@ namespace XCode.DataAccessLayer
             return ModelHelper.GetColumn(this, name);
         }
 
-        /// <summary>
-        /// 根据字段名数组获取字段数组
-        /// </summary>
+        /// <summary>根据字段名数组获取字段数组</summary>>
         /// <param name="names"></param>
         /// <returns></returns>
         public virtual IDataColumn[] GetColumns(String[] names)
@@ -204,26 +172,20 @@ namespace XCode.DataAccessLayer
             return ModelHelper.GetColumns(this, names);
         }
 
-        /// <summary>
-        /// 连接另一个表，处理两表间关系
-        /// </summary>
+        /// <summary>连接另一个表，处理两表间关系</summary>>
         /// <param name="table"></param>
         public virtual void Connect(IDataTable table)
         {
             ModelHelper.Connect(this, table);
         }
 
-        /// <summary>
-        /// 修正数据
-        /// </summary>
+        /// <summary>修正数据</summary>>
         public virtual void Fix()
         {
             ModelHelper.Fix(this);
         }
 
-        /// <summary>
-        /// 已重载。
-        /// </summary>
+        /// <summary>已重载。</summary>>
         /// <returns></returns>
         public override string ToString()
         {
@@ -235,9 +197,7 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 导入导出
-        /// <summary>
-        /// 导出
-        /// </summary>
+        /// <summary>导出</summary>>
         /// <returns></returns>
         public String Export()
         {
@@ -249,9 +209,7 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        /// <summary>
-        /// 导入
-        /// </summary>
+        /// <summary>导入</summary>>
         /// <param name="xml"></param>
         /// <returns></returns>
         public static XTable Import(String xml)
@@ -267,18 +225,14 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region ICloneable 成员
-        /// <summary>
-        /// 克隆
-        /// </summary>
+        /// <summary>克隆</summary>>
         /// <returns></returns>
         object ICloneable.Clone()
         {
             return Clone();
         }
 
-        /// <summary>
-        /// 克隆
-        /// </summary>
+        /// <summary>克隆</summary>>
         /// <returns></returns>
         public XTable Clone()
         {
@@ -348,18 +302,14 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region IXmlSerializable 成员
-        /// <summary>
-        /// 获取架构
-        /// </summary>
+        /// <summary>获取架构</summary>>
         /// <returns></returns>
         System.Xml.Schema.XmlSchema IXmlSerializable.GetSchema()
         {
             return null;
         }
 
-        /// <summary>
-        /// 读取
-        /// </summary>
+        /// <summary>读取</summary>>
         /// <param name="reader"></param>
         public virtual void ReadXml(XmlReader reader)
         {
@@ -447,9 +397,7 @@ namespace XCode.DataAccessLayer
             if (reader.NodeType == XmlNodeType.EndElement) reader.ReadEndElement();
         }
 
-        /// <summary>
-        /// 写入
-        /// </summary>
+        /// <summary>写入</summary>>
         /// <param name="writer"></param>
         public virtual void WriteXml(XmlWriter writer)
         {

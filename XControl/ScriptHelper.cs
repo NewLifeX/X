@@ -7,17 +7,13 @@ using System.Web.UI;
 
 namespace XControl
 {
-    /// <summary>
-    /// 脚本助手
-    /// </summary>
+    /// <summary>脚本助手</summary>>
     public class ScriptHelper
     {
         #region 当前页面
         private Page _page = null;
 
-        /// <summary>
-        /// 当前页面
-        /// </summary>        
+        /// <summary>当前页面</summary>>        
         public Page page
         {
             get
@@ -30,18 +26,14 @@ namespace XControl
         }
         #endregion
 
-        /// <summary>
-        /// 向当前页面注册客户端脚本
-        /// </summary>
+        /// <summary>向当前页面注册客户端脚本</summary>>
         /// <param name="script"></param>
         public void RegisterScript(string script)
         {
             RegisterScript(Guid.NewGuid().ToString(), script);
         }
 
-        /// <summary>
-        /// 向当前页面注册客户端脚本
-        /// </summary>
+        /// <summary>向当前页面注册客户端脚本</summary>>
         /// <param name="key"></param>
         /// <param name="script"></param>
         public void RegisterScript(string key, string script)
@@ -60,9 +52,7 @@ namespace XControl
             page.ClientScript.RegisterHiddenField(as_hfieldid, as_value);
         }
 
-        /// <summary>
-        /// 使用键和 URL 向 System.Web.UI.Page 对象注册客户端脚本。
-        /// </summary>
+        /// <summary>使用键和 URL 向 System.Web.UI.Page 对象注册客户端脚本。</summary>>
         /// <param name="key"></param>
         /// <param name="url"></param>
         /// <param name="ieVer"></param>
@@ -81,9 +71,7 @@ namespace XControl
             }
         }
 
-        /// <summary>
-        /// 去除换行和多余空白字符
-        /// </summary>
+        /// <summary>去除换行和多余空白字符</summary>>
         /// <param name="str"></param>
         /// <returns></returns>
         public string Compressed(string str)

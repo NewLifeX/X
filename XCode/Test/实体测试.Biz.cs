@@ -26,9 +26,7 @@ namespace XCode.Test
         #endregion
 
         #region 扩展查询﻿
-        /// <summary>
-        /// 根据主键查询一个实体测试实体对象用于表单编辑
-        /// </summary>
+        /// <summary>根据主键查询一个实体测试实体对象用于表单编辑</summary>>
         /// <param name="guid">主键一</param>
         /// <param name="guid2">主键二</param>
         /// <returns></returns>
@@ -44,9 +42,7 @@ namespace XCode.Test
         }
 
 
-        /// <summary>
-        /// 根据名称查找
-        /// </summary>
+        /// <summary>根据名称查找</summary>>
         /// <param name="name">名称</param>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
@@ -60,9 +56,7 @@ namespace XCode.Test
             //return Meta.SingleCache[name];
         }
 
-        /// <summary>
-        /// 根据启用、开始日期、结束时间查找
-        /// </summary>
+        /// <summary>根据启用、开始日期、结束时间查找</summary>>
         /// <param name="isenable">启用</param>
         /// <param name="startdate">开始日期</param>
         /// <param name="endtime">结束时间</param>
@@ -73,9 +67,7 @@ namespace XCode.Test
             return FindAll(new String[] { _.IsEnable, _.StartDate, _.EndTime }, new Object[] { isenable, startdate, endtime });
         }
 
-        /// <summary>
-        /// 根据自增编号查找
-        /// </summary>
+        /// <summary>根据自增编号查找</summary>>
         /// <param name="id">自增编号</param>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
@@ -89,9 +81,7 @@ namespace XCode.Test
             //return Meta.SingleCache[id];
         }
 
-        /// <summary>
-        /// 根据主键一、主键二查找
-        /// </summary>
+        /// <summary>根据主键一、主键二查找</summary>>
         /// <param name="guid">主键一</param>
         /// <param name="guid2">主键二</param>
         /// <returns></returns>
@@ -198,9 +188,7 @@ namespace XCode.Test
         //    return FindCount(SearchWhere(key), null, null, 0, 0);
         //}
 
-        /// <summary>
-        /// 构造搜索条件
-        /// </summary>
+        /// <summary>构造搜索条件</summary>>
         /// <param name="key">关键字</param>
         /// <returns></returns>
         private static String SearchWhere(String key)

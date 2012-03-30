@@ -4,9 +4,7 @@ using System.Text;
 
 namespace XControl
 {
-    /// <summary>
-    /// 目标控件类型
-    /// </summary>
+    /// <summary>目标控件类型</summary>>
     [AttributeUsage(AttributeTargets.Class)]
     public class TargetControlTypeAttribute : Attribute
     {
@@ -18,9 +16,7 @@ namespace XControl
             set { _Type = value; }
         }
 
-        /// <summary>
-        /// 指定目标控件类型
-        /// </summary>
+        /// <summary>指定目标控件类型</summary>>
         /// <param name="type"></param>
         public TargetControlTypeAttribute(Type type)
         {

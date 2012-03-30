@@ -26,9 +26,7 @@ namespace XCode.DataAccessLayer
     public partial class DAL
     {
         #region 创建函数
-        /// <summary>
-        /// 构造函数
-        /// </summary>
+        /// <summary>构造函数</summary>>
         /// <param name="connName">配置名</param>
         private DAL(String connName)
         {
@@ -54,9 +52,7 @@ namespace XCode.DataAccessLayer
         }
 
         private static Dictionary<String, DAL> _dals = new Dictionary<String, DAL>(StringComparer.OrdinalIgnoreCase);
-        /// <summary>
-        /// 创建一个数据访问层对象。
-        /// </summary>
+        /// <summary>创建一个数据访问层对象。</summary>>
         /// <param name="connName">配置名，或链接字符串</param>
         /// <returns>对应于指定链接的全局唯一的数据访问层对象</returns>
         public static DAL Create(String connName)
@@ -247,9 +243,7 @@ namespace XCode.DataAccessLayer
 
         #region 正向工程
         private List<IDataTable> _Tables;
-        /// <summary>
-        /// 取得所有表和视图的构架信息，为了提高性能，得到的只是准实时信息，可能会有1秒到3秒的延迟
-        /// </summary>
+        /// <summary>取得所有表和视图的构架信息，为了提高性能，得到的只是准实时信息，可能会有1秒到3秒的延迟</summary>>
         /// <remarks>如果不存在缓存，则获取后返回；否则使用线程池线程获取，而主线程返回缓存</remarks>
         /// <returns></returns>
         public List<IDataTable> Tables
@@ -372,9 +366,7 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 反向工程
-        /// <summary>
-        /// 反向工程
-        /// </summary>
+        /// <summary>反向工程</summary>>
         private void SetTables()
         {
             if (!NegativeEnable || NegativeExclude.Contains(ConnName)) return;

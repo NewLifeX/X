@@ -39,9 +39,7 @@ namespace XCode.Accessors
         #endregion
 
         #region 设置
-        /// <summary>
-        /// 设置参数。返回自身，方便链式写法。
-        /// </summary>
+        /// <summary>设置参数。返回自身，方便链式写法。</summary>>
         /// <param name="name">参数名</param>
         /// <param name="value">参数值</param>
         /// <returns></returns>
@@ -59,9 +57,7 @@ namespace XCode.Accessors
         #endregion
 
         #region 读取
-        /// <summary>
-        /// 外部=>实体，从外部读取指定实体字段的信息
-        /// </summary>
+        /// <summary>外部=>实体，从外部读取指定实体字段的信息</summary>>
         /// <param name="entity">实体对象</param>
         /// <param name="item">实体字段</param>
         protected override void ReadItem(IEntity entity, FieldItem item)
@@ -79,9 +75,7 @@ namespace XCode.Accessors
             //}
         }
 
-        /// <summary>
-        /// 把控件的值设置到实体属性上
-        /// </summary>
+        /// <summary>把控件的值设置到实体属性上</summary>>
         /// <param name="entity"></param>
         /// <param name="field"></param>
         /// <param name="control"></param>
@@ -126,9 +120,7 @@ namespace XCode.Accessors
             entity.SetItem(field.Name, value);
         }
 
-        /// <summary>
-        /// 文本框
-        /// </summary>
+        /// <summary>文本框</summary>>
         /// <param name="entity"></param>
         /// <param name="field"></param>
         /// <param name="control"></param>
@@ -146,9 +138,7 @@ namespace XCode.Accessors
             }
         }
 
-        /// <summary>
-        /// 标签，不做任何操作
-        /// </summary>
+        /// <summary>标签，不做任何操作</summary>>
         /// <param name="entity"></param>
         /// <param name="field"></param>
         /// <param name="control"></param>
@@ -157,9 +147,7 @@ namespace XCode.Accessors
 
         }
 
-        /// <summary>
-        /// 复选框
-        /// </summary>
+        /// <summary>复选框</summary>>
         /// <param name="entity"></param>
         /// <param name="field"></param>
         /// <param name="control"></param>
@@ -177,9 +165,7 @@ namespace XCode.Accessors
             if (!Object.Equals(entity[field.Name], v)) SetEntityItem(entity, field, v);
         }
 
-        /// <summary>
-        /// 列表框
-        /// </summary>
+        /// <summary>列表框</summary>>
         /// <param name="entity"></param>
         /// <param name="field"></param>
         /// <param name="control"></param>
@@ -191,9 +177,7 @@ namespace XCode.Accessors
             if (!Object.Equals(entity[field.Name], v)) SetEntityItem(entity, field, v);
         }
 
-        /// <summary>
-        /// 单选框
-        /// </summary>
+        /// <summary>单选框</summary>>
         /// <param name="entity"></param>
         /// <param name="field"></param>
         /// <param name="control"></param>
@@ -244,9 +228,7 @@ namespace XCode.Accessors
         #endregion
 
         #region 写入
-        /// <summary>
-        /// 实体=>外部，把指定实体字段的信息写入到外部
-        /// </summary>
+        /// <summary>实体=>外部，把指定实体字段的信息写入到外部</summary>>
         /// <param name="entity">实体对象</param>
         /// <param name="item">实体字段</param>
         protected override void WriteItem(IEntity entity, FieldItem item)
@@ -265,9 +247,7 @@ namespace XCode.Accessors
             //}
         }
 
-        /// <summary>
-        /// 把实体成员的值设置到控件上
-        /// </summary>
+        /// <summary>把实体成员的值设置到控件上</summary>>
         /// <param name="entity"></param>
         /// <param name="field"></param>
         /// <param name="control"></param>
@@ -331,9 +311,7 @@ namespace XCode.Accessors
             }
         }
 
-        /// <summary>
-        /// 文本框
-        /// </summary>
+        /// <summary>文本框</summary>>
         /// <param name="entity"></param>
         /// <param name="field"></param>
         /// <param name="control"></param>
@@ -353,9 +331,7 @@ namespace XCode.Accessors
             if (!SetControlValue(control, value)) control.Text = value != null ? value.ToString() : "";
         }
 
-        /// <summary>
-        /// 标签
-        /// </summary>
+        /// <summary>标签</summary>>
         /// <param name="entity"></param>
         /// <param name="field"></param>
         /// <param name="control"></param>
@@ -378,9 +354,7 @@ namespace XCode.Accessors
                 control.Text = String.Empty + entity[field.Name];
         }
 
-        /// <summary>
-        /// 复选框
-        /// </summary>
+        /// <summary>复选框</summary>>
         /// <param name="entity"></param>
         /// <param name="field"></param>
         /// <param name="control"></param>
@@ -396,9 +370,7 @@ namespace XCode.Accessors
                 control.Checked = entity[field.Name] != null;
         }
 
-        /// <summary>
-        /// 列表框
-        /// </summary>
+        /// <summary>列表框</summary>>
         /// <param name="entity"></param>
         /// <param name="field"></param>
         /// <param name="control"></param>
@@ -426,9 +398,7 @@ namespace XCode.Accessors
             }
         }
 
-        /// <summary>
-        /// 单选框
-        /// </summary>
+        /// <summary>单选框</summary>>
         /// <param name="entity"></param>
         /// <param name="field"></param>
         /// <param name="control"></param>
@@ -469,9 +439,7 @@ namespace XCode.Accessors
             }
         }
 
-        /// <summary>
-        /// 设置控件的不允许空
-        /// </summary>
+        /// <summary>设置控件的不允许空</summary>>
         /// <param name="field"></param>
         /// <param name="control"></param>
         /// <param name="canSave"></param>
@@ -531,9 +499,7 @@ namespace XCode.Accessors
             return false;
         }
 
-        /// <summary>
-        /// 查找表单控件
-        /// </summary>
+        /// <summary>查找表单控件</summary>>
         /// <param name="id"></param>
         /// <returns></returns>
         protected virtual Control FindControl(string id)
@@ -547,9 +513,7 @@ namespace XCode.Accessors
             return ControlHelper.FindControl<Control>(Container, id);
         }
 
-        /// <summary>
-        /// 查找字段对应的控件
-        /// </summary>
+        /// <summary>查找字段对应的控件</summary>>
         /// <param name="field"></param>
         /// <returns></returns>
         protected virtual Control FindControlByField(FieldItem field)

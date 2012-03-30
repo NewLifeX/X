@@ -12,9 +12,7 @@ namespace XCode.DataAccessLayer
     {
         #region 属性
         private Dictionary<String, String> _Keys = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-        /// <summary>
-        /// 已重载。
-        /// </summary>
+        /// <summary>已重载。</summary>>
         public override ICollection Keys
         {
             get
@@ -25,9 +23,7 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 方法
-        /// <summary>
-        /// 已重载。
-        /// </summary>
+        /// <summary>已重载。</summary>>
         /// <param name="key"></param>
         /// <param name="value"></param>
         public override void Add(string key, string value)
@@ -37,9 +33,7 @@ namespace XCode.DataAccessLayer
             _Keys.Add(key, key.ToLower());
         }
 
-        /// <summary>
-        /// 已重载。
-        /// </summary>
+        /// <summary>已重载。</summary>>
         /// <param name="key"></param>
         public override void Remove(string key)
         {
@@ -48,9 +42,7 @@ namespace XCode.DataAccessLayer
             _Keys.Remove(key);
         }
 
-        /// <summary>
-        /// 已重载。
-        /// </summary>
+        /// <summary>已重载。</summary>>
         public override void Clear()
         {
             base.Clear();
@@ -58,9 +50,7 @@ namespace XCode.DataAccessLayer
             _Keys.Clear();
         }
 
-        /// <summary>
-        /// 已重载。
-        /// </summary>
+        /// <summary>已重载。</summary>>
         /// <param name="key"></param>
         /// <returns></returns>
         public override string this[string key]
@@ -119,9 +109,7 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 方法
-        /// <summary>
-        /// 尝试获取值
-        /// </summary>
+        /// <summary>尝试获取值</summary>>
         /// <param name="key"></param>
         /// <param name="value"></param>
         /// <returns></returns>
@@ -136,9 +124,7 @@ namespace XCode.DataAccessLayer
             return true;
         }
 
-        /// <summary>
-        /// 获取并删除连接字符串中的项
-        /// </summary>
+        /// <summary>获取并删除连接字符串中的项</summary>>
         /// <param name="key"></param>
         /// <param name="value"></param>
         /// <returns></returns>
@@ -155,9 +141,7 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 辅助
-        /// <summary>
-        /// 已重载。
-        /// </summary>
+        /// <summary>已重载。</summary>>
         /// <returns></returns>
         public override string ToString()
         {

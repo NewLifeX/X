@@ -39,9 +39,7 @@ namespace NewLife.Configuration
         #endregion
 
         #region 方法
-        /// <summary>
-        /// 获取httpHandlers
-        /// </summary>
+        /// <summary>获取httpHandlers</summary>>
         /// <returns></returns>
         public static List<HttpHandlerAction> GethttpHandlers()
         {
@@ -60,9 +58,7 @@ namespace NewLife.Configuration
             return value;
         }
 
-        /// <summary>
-        /// 是否包含指定项的设置
-        /// </summary>
+        /// <summary>是否包含指定项的设置</summary>>
         /// <param name="name"></param>
         /// <returns></returns>
         public static Boolean Contain(String name)
@@ -219,9 +215,7 @@ namespace NewLife.Configuration
             catch (ConfigurationErrorsException) { return null; }
         }
 
-        /// <summary>
-        /// 取得指定名称的设置项，并分割为指定类型数组
-        /// </summary>
+        /// <summary>取得指定名称的设置项，并分割为指定类型数组</summary>>
         /// <typeparam name="T"></typeparam>
         /// <param name="name"></param>
         /// <param name="split"></param>
@@ -238,9 +232,7 @@ namespace NewLife.Configuration
             catch (ConfigurationErrorsException) { return new T[0]; }
         }
 
-        /// <summary>
-        /// 取得指定名称的设置项，并分割为指定类型数组
-        /// </summary>
+        /// <summary>取得指定名称的设置项，并分割为指定类型数组</summary>>
         /// <typeparam name="T"></typeparam>
         /// <param name="name"></param>
         /// <param name="split"></param>

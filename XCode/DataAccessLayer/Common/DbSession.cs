@@ -14,9 +14,7 @@ namespace XCode.DataAccessLayer
     abstract partial class DbSession : DisposeBase, IDbSession
     {
         #region 构造函数
-        /// <summary>
-        /// 销毁资源时，回滚未提交事务，并关闭数据库连接
-        /// </summary>
+        /// <summary>销毁资源时，回滚未提交事务，并关闭数据库连接</summary>>
         /// <param name="disposing"></param>
         protected override void OnDispose(bool disposing)
         {
@@ -43,9 +41,7 @@ namespace XCode.DataAccessLayer
         /// <summary>数据库</summary>
         public IDatabase Database { get { return _Database; } set { _Database = value; } }
 
-        /// <summary>
-        /// 返回数据库类型。外部DAL数据库类请使用Other
-        /// </summary>
+        /// <summary>返回数据库类型。外部DAL数据库类请使用Other</summary>>
         private DatabaseType DbType { get { return Database.DbType; } }
 
         /// <summary>工厂</summary>
@@ -60,9 +56,7 @@ namespace XCode.DataAccessLayer
         }
 
         private DbConnection _Conn;
-        /// <summary>
-        /// 数据连接对象。
-        /// </summary>
+        /// <summary>数据连接对象。</summary>>
         public DbConnection Conn
         {
             get
@@ -79,9 +73,7 @@ namespace XCode.DataAccessLayer
         }
 
         private Int32 _QueryTimes;
-        /// <summary>
-        /// 查询次数
-        /// </summary>
+        /// <summary>查询次数</summary>>
         public Int32 QueryTimes
         {
             get { return _QueryTimes; }
@@ -89,9 +81,7 @@ namespace XCode.DataAccessLayer
         }
 
         private Int32 _ExecuteTimes;
-        /// <summary>
-        /// 执行次数
-        /// </summary>
+        /// <summary>执行次数</summary>>
         public Int32 ExecuteTimes
         {
             get { return _ExecuteTimes; }
@@ -120,17 +110,13 @@ namespace XCode.DataAccessLayer
             set { _IsAutoClose = value; }
         }
 
-        /// <summary>
-        /// 连接是否已经打开
-        /// </summary>
+        /// <summary>连接是否已经打开</summary>>
         public Boolean Opened
         {
             get { return _Conn != null && _Conn.State != ConnectionState.Closed; }
         }
 
-        /// <summary>
-        /// 打开
-        /// </summary>
+        /// <summary>打开</summary>>
         public virtual void Open()
         {
             if (DAL.Debug && ThreadID != Thread.CurrentThread.ManagedThreadId) DAL.WriteLog("本会话由线程{0}创建，当前线程{1}非法使用该会话！");
@@ -138,9 +124,7 @@ namespace XCode.DataAccessLayer
             if (Conn != null && Conn.State == ConnectionState.Closed) Conn.Open();
         }
 
-        /// <summary>
-        /// 关闭
-        /// </summary>
+        /// <summary>关闭</summary>>
         public virtual void Close()
         {
             if (_Conn != null && Conn.State != ConnectionState.Closed)
@@ -201,9 +185,7 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        /// <summary>
-        /// 当异常发生时触发。关闭数据库连接，或者返还连接到连接池。
-        /// </summary>
+        /// <summary>当异常发生时触发。关闭数据库连接，或者返还连接到连接池。</summary>>
         /// <param name="ex"></param>
         /// <returns></returns>
         protected virtual XDbException OnException(Exception ex)
@@ -215,9 +197,7 @@ namespace XCode.DataAccessLayer
                 return new XDbSessionException(this);
         }
 
-        /// <summary>
-        /// 当异常发生时触发。关闭数据库连接，或者返还连接到连接池。
-        /// </summary>
+        /// <summary>当异常发生时触发。关闭数据库连接，或者返还连接到连接池。</summary>>
         /// <param name="ex"></param>
         /// <param name="sql"></param>
         /// <returns></returns>
@@ -233,9 +213,7 @@ namespace XCode.DataAccessLayer
 
         #region 事务
         private DbTransaction _Trans;
-        /// <summary>
-        /// 数据库事务
-        /// </summary>
+        /// <summary>数据库事务</summary>>
         protected DbTransaction Trans
         {
             get { return _Trans; }
@@ -248,9 +226,7 @@ namespace XCode.DataAccessLayer
         /// </summary>
         private Int32 TransactionCount = 0;
 
-        /// <summary>
-        /// 开始事务
-        /// </summary>
+        /// <summary>开始事务</summary>>
         /// <returns></returns>
         public Int32 BeginTransaction()
         {
@@ -270,9 +246,7 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        /// <summary>
-        /// 提交事务
-        /// </summary>
+        /// <summary>提交事务</summary>>
         public Int32 Commit()
         {
             TransactionCount--;
@@ -293,9 +267,7 @@ namespace XCode.DataAccessLayer
             return TransactionCount;
         }
 
-        /// <summary>
-        /// 回滚事务
-        /// </summary>
+        /// <summary>回滚事务</summary>>
         public Int32 Rollback()
         {
             // 这里要小心，在多层事务中，如果内层回滚，而最外层提交，则内层的回滚会变成提交
@@ -363,9 +335,7 @@ namespace XCode.DataAccessLayer
         //    return Query(Database.PageSplit(builder, startRowIndex, maximumRows).ToString(), CommandType.Text, builder.Parameters.ToArray());
         //}
 
-        /// <summary>
-        /// 执行DbCommand，返回记录集
-        /// </summary>
+        /// <summary>执行DbCommand，返回记录集</summary>>
         /// <param name="cmd">DbCommand</param>
         /// <returns></returns>
         public virtual DataSet Query(DbCommand cmd)
@@ -396,9 +366,7 @@ namespace XCode.DataAccessLayer
         }
 
         private static Regex reg_QueryCount = new Regex(@"^\s*select\s+\*\s+from\s+([\w\W]+)\s*$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-        /// <summary>
-        /// 执行SQL查询，返回总记录数
-        /// </summary>
+        /// <summary>执行SQL查询，返回总记录数</summary>>
         /// <param name="sql">SQL语句</param>
         /// <param name="type">命令类型，默认SQL文本</param>
         /// <param name="ps">命令参数</param>
@@ -427,9 +395,7 @@ namespace XCode.DataAccessLayer
             return ExecuteScalar<Int64>(sql, type, ps);
         }
 
-        /// <summary>
-        /// 执行SQL查询，返回总记录数
-        /// </summary>
+        /// <summary>执行SQL查询，返回总记录数</summary>>
         /// <param name="builder">查询生成器</param>
         /// <returns>总记录数</returns>
         public virtual Int64 QueryCount(SelectBuilder builder)
@@ -437,9 +403,7 @@ namespace XCode.DataAccessLayer
             return ExecuteScalar<Int64>(builder.SelectCount().ToString(), CommandType.Text, builder.Parameters.ToArray());
         }
 
-        /// <summary>
-        /// 快速查询单表记录数，稍有偏差
-        /// </summary>
+        /// <summary>快速查询单表记录数，稍有偏差</summary>>
         /// <param name="tableName"></param>
         /// <returns></returns>
         public virtual Int64 QueryCountFast(String tableName) { return QueryCount(tableName); }
@@ -470,9 +434,7 @@ namespace XCode.DataAccessLayer
             //finally { AutoClose(); }
         }
 
-        /// <summary>
-        /// 执行DbCommand，返回受影响的行数
-        /// </summary>
+        /// <summary>执行DbCommand，返回受影响的行数</summary>>
         /// <param name="cmd">DbCommand</param>
         /// <returns></returns>
         public virtual Int32 Execute(DbCommand cmd)
@@ -493,9 +455,7 @@ namespace XCode.DataAccessLayer
             finally { AutoClose(); }
         }
 
-        /// <summary>
-        /// 执行插入语句并返回新增行的自动编号
-        /// </summary>
+        /// <summary>执行插入语句并返回新增行的自动编号</summary>>
         /// <param name="sql">SQL语句</param>
         /// <param name="type">命令类型，默认SQL文本</param>
         /// <param name="ps">命令参数</param>
@@ -505,9 +465,7 @@ namespace XCode.DataAccessLayer
             return Execute(sql, type, ps);
         }
 
-        /// <summary>
-        /// 执行SQL语句，返回结果中的第一行第一列
-        /// </summary>
+        /// <summary>执行SQL语句，返回结果中的第一行第一列</summary>>
         /// <typeparam name="T">返回类型</typeparam>
         /// <param name="sql">SQL语句</param>
         /// <param name="type">命令类型，默认SQL文本</param>
@@ -580,9 +538,7 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 架构
-        /// <summary>
-        /// 返回数据源的架构信息
-        /// </summary>
+        /// <summary>返回数据源的架构信息</summary>>
         /// <param name="collectionName">指定要返回的架构的名称。</param>
         /// <param name="restrictionValues">为请求的架构指定一组限制值。</param>
         /// <returns></returns>
@@ -649,9 +605,7 @@ namespace XCode.DataAccessLayer
         #region Sql日志输出
         [ThreadStatic]
         private static Boolean? _ShowSQL;
-        /// <summary>
-        /// 是否输出SQL语句，默认为XCode调试开关XCode.Debug
-        /// </summary>
+        /// <summary>是否输出SQL语句，默认为XCode调试开关XCode.Debug</summary>>
         public static Boolean ShowSQL
         {
             get
@@ -664,9 +618,7 @@ namespace XCode.DataAccessLayer
 
         static TextFileLog logger;
 
-        /// <summary>
-        /// 写入SQL到文本中
-        /// </summary>
+        /// <summary>写入SQL到文本中</summary>>
         /// <param name="sql"></param>
         /// <param name="ps"></param>
         public static void WriteSQL(String sql, params DbParameter[] ps)
@@ -733,15 +685,11 @@ namespace XCode.DataAccessLayer
             WriteSQL(sql, ps);
         }
 
-        /// <summary>
-        /// 输出日志
-        /// </summary>
+        /// <summary>输出日志</summary>>
         /// <param name="msg"></param>
         public static void WriteLog(String msg) { DAL.WriteLog(msg); }
 
-        /// <summary>
-        /// 输出日志
-        /// </summary>
+        /// <summary>输出日志</summary>>
         /// <param name="format"></param>
         /// <param name="args"></param>
         public static void WriteLog(String format, params Object[] args) { DAL.WriteLog(format, args); }

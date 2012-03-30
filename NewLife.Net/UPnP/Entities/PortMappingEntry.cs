@@ -5,9 +5,7 @@ using System.Xml.Serialization;
 
 namespace NewLife.Net.UPnP
 {
-    /// <summary>
-    /// 端口映射实体
-    /// </summary>
+    /// <summary>端口映射实体</summary>>
     public class PortMappingEntryRequest : PortMappingEntry
     {
         private Int32 _NewPortMappingIndex;
@@ -19,9 +17,7 @@ namespace NewLife.Net.UPnP
         }
     }
 
-    /// <summary>
-    /// 端口映射实体
-    /// </summary>
+    /// <summary>端口映射实体</summary>>
     public class PortMappingEntry : UPnPAction<PortMappingEntry>
     {
         #region 属性
@@ -98,9 +94,7 @@ namespace NewLife.Net.UPnP
         }
         #endregion
 
-        /// <summary>
-        /// 已重载。
-        /// </summary>
+        /// <summary>已重载。</summary>>
         /// <returns></returns>
         public override string ToString()
         {

@@ -23,9 +23,7 @@ namespace NewLife.CommonEntity.Web
         #endregion
 
         #region 属性
-        /// <summary>
-        /// 文件编号
-        /// </summary>
+        /// <summary>文件编号</summary>>
         public Int32 ID
         {
             get
@@ -56,9 +54,7 @@ namespace NewLife.CommonEntity.Web
         #endregion
 
         #region 文件流
-        /// <summary>
-        /// 获取文件数据流。这里可以实现小文件缓存进入内容以减少磁盘IO
-        /// </summary>
+        /// <summary>获取文件数据流。这里可以实现小文件缓存进入内容以减少磁盘IO</summary>>
         /// <param name="context"></param>
         /// <param name="attachment"></param>
         /// <returns></returns>
@@ -83,22 +79,16 @@ namespace NewLife.CommonEntity.Web
             return stream;
         }
 
-        /// <summary>
-        /// 小于指定大小才缓存文件
-        /// </summary>
+        /// <summary>小于指定大小才缓存文件</summary>>
         protected virtual Int64 MaxFileSize { get { return 100 * 1024; } }
 
-        /// <summary>
-        /// 小文件缓存时间，默认10分钟
-        /// </summary>
+        /// <summary>小文件缓存时间，默认10分钟</summary>>
         /// <returns></returns>
         protected virtual TimeSpan CacheTime { get { return new TimeSpan(0, 10, 0); } }
         #endregion
 
         #region 方法
-        /// <summary>
-        /// 处理
-        /// </summary>
+        /// <summary>处理</summary>>
         /// <param name="context"></param>
         protected virtual void OnProcess(HttpContext context)
         {
@@ -130,9 +120,7 @@ namespace NewLife.CommonEntity.Web
             }
         }
 
-        /// <summary>
-        /// 取得附件对象
-        /// </summary>
+        /// <summary>取得附件对象</summary>>
         /// <returns></returns>
         protected virtual Attachment GetAttachment()
         {
@@ -142,9 +130,7 @@ namespace NewLife.CommonEntity.Web
                 return null;
         }
 
-        /// <summary>
-        /// 没找到附件
-        /// </summary>
+        /// <summary>没找到附件</summary>>
         /// <param name="context"></param>
         protected virtual void OnNotFound(HttpContext context)
         {
@@ -155,9 +141,7 @@ namespace NewLife.CommonEntity.Web
 
         }
 
-        /// <summary>
-        /// 响应
-        /// </summary>
+        /// <summary>响应</summary>>
         /// <param name="context"></param>
         /// <param name="attachment"></param>
         /// <param name="stream"></param>

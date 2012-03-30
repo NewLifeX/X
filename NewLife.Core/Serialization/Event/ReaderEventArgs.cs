@@ -4,9 +4,7 @@ using System.Text;
 
 namespace NewLife.Serialization
 {
-    /// <summary>
-    /// 读取器事件参数
-    /// </summary>
+    /// <summary>读取器事件参数</summary>>
     public class ReaderEventArgs : ReaderWriterEventArgs
     {
         private ReadObjectCallback _Callback;
@@ -18,9 +16,7 @@ namespace NewLife.Serialization
         }
 
         #region 构造
-        /// <summary>
-        /// 实例化
-        /// </summary>
+        /// <summary>实例化</summary>>
         /// <param name="callback"></param>
         public ReaderEventArgs(ReadObjectCallback callback)
         {

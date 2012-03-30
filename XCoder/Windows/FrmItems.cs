@@ -8,9 +8,7 @@ namespace XCoder
     {
         #region 属性
         private Dictionary<String, String> _Dic;
-        /// <summary>
-        /// 数据字典
-        /// </summary>
+        /// <summary>数据字典</summary>>
         public Dictionary<String, String> Dic
         {
             get { return _Dic; }
@@ -36,9 +34,7 @@ namespace XCoder
             this.Icon = FileSource.GetIcon();
         }
 
-        /// <summary>
-        /// 初始化界面
-        /// </summary>
+        /// <summary>初始化界面</summary>>
         /// <param name="dic"></param>
         /// <returns></returns>
         public static FrmItems Create(Dictionary<string, string> dic)
@@ -52,9 +48,7 @@ namespace XCoder
             return item;
         }
 
-        /// <summary>
-        /// 初始化界面
-        /// </summary>
+        /// <summary>初始化界面</summary>>
         /// <param name="xconfig"></param>
         /// <returns></returns>
         public static FrmItems Create(XConfig xconfig)
@@ -72,9 +66,7 @@ namespace XCoder
             return item;
         }
 
-        /// <summary>
-        /// 初始化字典
-        /// </summary>
+        /// <summary>初始化字典</summary>>
         private void CreatDic()
         {
             Dictionary<string, string> dic = new Dictionary<string, string>();

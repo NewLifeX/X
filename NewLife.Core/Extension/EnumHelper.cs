@@ -48,9 +48,7 @@ namespace System
             return (T)Enum.ToObject(typeof(T), s);
         }
 
-        /// <summary>
-        /// 获取枚举字段的注释
-        /// </summary>
+        /// <summary>获取枚举字段的注释</summary>>
         /// <param name="value"></param>
         /// <returns></returns>
         public static String GetDescription(this Enum value)

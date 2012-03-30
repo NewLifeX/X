@@ -35,42 +35,24 @@ namespace NewLife.Net.SGIP
         #endregion
     }
 
-    /// <summary>
-    /// Bind操作，登录类型。
-    /// </summary>
+    /// <summary>Bind操作，登录类型。</summary>>
     public enum LoginTypes : byte
     {
-        /// <summary>
-        /// 1：SP向SMG建立的连接，用于发送命令
-        /// </summary>
+        /// <summary>1：SP向SMG建立的连接，用于发送命令</summary>>
         SpToSmg = 1,
-        /// <summary>
-        /// 2：SMG向SP建立的连接，用于发送命令
-        /// </summary>
+        /// <summary>2：SMG向SP建立的连接，用于发送命令</summary>>
         SmgToSp = 2,
-        /// <summary>
-        /// 3：SMG之间建立的连接，用于转发命令
-        /// </summary>
+        /// <summary>3：SMG之间建立的连接，用于转发命令</summary>>
         SmgToSmg = 3,
-        /// <summary>
-        /// 4：SMG向GNS建立的连接，用于路由表的检索和维护
-        /// </summary>
+        /// <summary>4：SMG向GNS建立的连接，用于路由表的检索和维护</summary>>
         SmgToGns = 4,
-        /// <summary>
-        /// 5：GNS向SMG建立的连接，用于路由表的更新
-        /// </summary>
+        /// <summary>5：GNS向SMG建立的连接，用于路由表的更新</summary>>
         GnsToSmg = 5,
-        /// <summary>
-        /// 6：主备GNS之间建立的连接，用于主备路由表的一致性
-        /// </summary>
+        /// <summary>6：主备GNS之间建立的连接，用于主备路由表的一致性</summary>>
         GnsToGns = 6,
-        /// <summary>
-        /// 11：SP与SMG以及SMG之间建立的测试连接，用于跟踪测试
-        /// </summary>
+        /// <summary>11：SP与SMG以及SMG之间建立的测试连接，用于跟踪测试</summary>>
         Test = 11,
-        /// <summary>
-        /// 其它：保留
-        /// </summary>
+        /// <summary>其它：保留</summary>>
         Unknown = 0,
     }
 }

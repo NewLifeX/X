@@ -5,9 +5,7 @@ namespace XControl
     {
         private static bool? _Debug;
 
-        /// <summary>
-        /// 控件的Debug开关,配置项的名称是XControl.Debug
-        /// </summary>
+        /// <summary>控件的Debug开关,配置项的名称是XControl.Debug</summary>>
         public static bool Debug
         {
             get

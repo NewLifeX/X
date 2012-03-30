@@ -167,9 +167,7 @@ namespace XCode.Cache
         /// <summary>下一次显示时间</summary>
         public DateTime NextShow;
 
-        /// <summary>
-        /// 显示统计信息
-        /// </summary>
+        /// <summary>显示统计信息</summary>>
         public void ShowStatics()
         {
             if (Total > 0)

@@ -6,9 +6,7 @@ using NewLife.Collections;
 
 namespace NewLife.Reflection
 {
-    /// <summary>
-    /// 快速调用构造函数。基于DynamicMethod和Emit实现。
-    /// </summary>
+    /// <summary>快速调用构造函数。基于DynamicMethod和Emit实现。</summary>>
     public class ConstructorInfoX : MemberInfoX
     {
         #region 属性
@@ -21,9 +19,7 @@ namespace NewLife.Reflection
         }
 
         FastHandler _Handler;
-        /// <summary>
-        /// 快速调用委托，延迟到首次使用才创建
-        /// </summary>
+        /// <summary>快速调用委托，延迟到首次使用才创建</summary>>
         FastHandler Handler
         {
             get
@@ -66,9 +62,7 @@ namespace NewLife.Reflection
         private ConstructorInfoX(ConstructorInfo constructor) : base(constructor) { Constructor = constructor; }
 
         private static DictionaryCache<ConstructorInfo, ConstructorInfoX> cache = new DictionaryCache<ConstructorInfo, ConstructorInfoX>();
-        /// <summary>
-        /// 创建
-        /// </summary>
+        /// <summary>创建</summary>>
         /// <param name="constructor"></param>
         /// <returns></returns>
         public static ConstructorInfoX Create(ConstructorInfo constructor)
@@ -81,9 +75,7 @@ namespace NewLife.Reflection
             });
         }
 
-        /// <summary>
-        /// 创建
-        /// </summary>
+        /// <summary>创建</summary>>
         /// <param name="type"></param>
         /// <param name="types"></param>
         /// <returns></returns>
@@ -117,9 +109,7 @@ namespace NewLife.Reflection
             return null;
         }
 
-        /// <summary>
-        /// 创建
-        /// </summary>
+        /// <summary>创建</summary>>
         /// <param name="type"></param>
         /// <returns></returns>
         public static ConstructorInfoX Create(Type type)
@@ -152,9 +142,7 @@ namespace NewLife.Reflection
         #endregion
 
         #region 调用
-        /// <summary>
-        /// 创建实例
-        /// </summary>
+        /// <summary>创建实例</summary>>
         /// <param name="parameters"></param>
         /// <returns></returns>
         [DebuggerStepThrough]
@@ -165,9 +153,7 @@ namespace NewLife.Reflection
         #endregion
 
         #region 类型转换
-        /// <summary>
-        /// 类型转换
-        /// </summary>
+        /// <summary>类型转换</summary>>
         /// <param name="obj"></param>
         /// <returns></returns>
         public static implicit operator ConstructorInfo(ConstructorInfoX obj)
@@ -175,9 +161,7 @@ namespace NewLife.Reflection
             return obj != null ? obj.Constructor : null;
         }
 
-        /// <summary>
-        /// 类型转换
-        /// </summary>
+        /// <summary>类型转换</summary>>
         /// <param name="obj"></param>
         /// <returns></returns>
         public static implicit operator ConstructorInfoX(ConstructorInfo obj)

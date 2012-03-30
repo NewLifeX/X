@@ -4,9 +4,7 @@ using System.Text;
 
 namespace NewLife.Net.UPnP
 {
-    /// <summary>
-    /// SpecVersion
-    /// </summary>
+    /// <summary>SpecVersion</summary>>
     public class SpecVersion
     {
         private Int32 _major;

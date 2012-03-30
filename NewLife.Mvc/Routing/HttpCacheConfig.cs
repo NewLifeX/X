@@ -12,9 +12,7 @@ namespace NewLife.Mvc
     {
         // TODO 考虑默认缓存配置文件设置方式
 
-        /// <summary>
-        /// 重定向路由的缓存
-        /// </summary>
+        /// <summary>重定向路由的缓存</summary>>
         /// <param name="c"></param>
         /// <param name="isPermanently"></param>
         public static void RedirectCache(HttpCachePolicy c, bool isPermanently)
@@ -37,9 +35,7 @@ namespace NewLife.Mvc
             }
         }
 
-        /// <summary>
-        /// 指定不缓存
-        /// </summary>
+        /// <summary>指定不缓存</summary>>
         /// <param name="c"></param>
         public static void NoCache(HttpCachePolicy c)
         {
@@ -48,9 +44,7 @@ namespace NewLife.Mvc
             c.SetMaxAge(TimeSpan.FromMilliseconds(0));
         }
 
-        /// <summary>
-        /// 静态资源的缓存
-        /// </summary>
+        /// <summary>静态资源的缓存</summary>>
         /// <param name="c"></param>
         public static void StaticCache(HttpCachePolicy c)
         {

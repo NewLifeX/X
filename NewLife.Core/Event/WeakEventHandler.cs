@@ -17,35 +17,23 @@ namespace NewLife
     public class WeakEventHandler<TEventArgs> where TEventArgs : EventArgs
     {
         #region 属性
-        /// <summary>
-        /// 目标对象。弱引用，使得调用方对象可以被GC回收
-        /// </summary>
+        /// <summary>目标对象。弱引用，使得调用方对象可以被GC回收</summary>>
         WeakReference Target;
 
-        /// <summary>
-        /// 委托方法
-        /// </summary>
+        /// <summary>委托方法</summary>>
         MethodInfoX Method;
 
-        /// <summary>
-        /// 经过包装的新的委托
-        /// </summary>
+        /// <summary>经过包装的新的委托</summary>>
         EventHandler<TEventArgs> Handler;
 
-        /// <summary>
-        /// 取消注册的委托
-        /// </summary>
+        /// <summary>取消注册的委托</summary>>
         Action<EventHandler<TEventArgs>> UnHandler;
 
-        /// <summary>
-        /// 是否只使用一次，如果只使用一次，执行委托后马上取消注册
-        /// </summary>
+        /// <summary>是否只使用一次，如果只使用一次，执行委托后马上取消注册</summary>>
         Boolean Once;
         #endregion
 
-        /// <summary>
-        /// 使用事件处理器、取消注册回调、是否一次性事件来初始化
-        /// </summary>
+        /// <summary>使用事件处理器、取消注册回调、是否一次性事件来初始化</summary>>
         /// <param name="handler"></param>
         /// <param name="unHandler"></param>
         /// <param name="once"></param>
@@ -67,9 +55,7 @@ namespace NewLife
             Once = once;
         }
 
-        /// <summary>
-        /// 调用委托
-        /// </summary>
+        /// <summary>调用委托</summary>>
         /// <param name="sender"></param>
         /// <param name="e"></param>
         public void Invoke(Object sender, TEventArgs e)
@@ -96,9 +82,7 @@ namespace NewLife
             }
         }
 
-        /// <summary>
-        /// 把弱引用事件处理器转换为普通事件处理器
-        /// </summary>
+        /// <summary>把弱引用事件处理器转换为普通事件处理器</summary>>
         /// <param name="handler"></param>
         /// <returns></returns>
         public static implicit operator EventHandler<TEventArgs>(WeakEventHandler<TEventArgs> handler)
@@ -106,9 +90,7 @@ namespace NewLife
             return handler.Handler;
         }
 
-        /// <summary>
-        /// 绑定
-        /// </summary>
+        /// <summary>绑定</summary>>
         /// <param name="handler"></param>
         public void Combine(ref EventHandler<TEventArgs> handler)
         {
@@ -126,9 +108,7 @@ namespace NewLife
             } while (Interlocked.CompareExchange<EventHandler<TEventArgs>>(ref handler, newHandler, oldHandler) != oldHandler);
         }
 
-        /// <summary>
-        /// 移除
-        /// </summary>
+        /// <summary>移除</summary>>
         /// <param name="handler"></param>
         /// <param name="value"></param>
         public static void Remove(ref EventHandler<TEventArgs> handler, EventHandler<TEventArgs> value)

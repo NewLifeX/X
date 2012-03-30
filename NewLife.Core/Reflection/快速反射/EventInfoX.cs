@@ -20,9 +20,7 @@ namespace NewLife.Reflection
         private EventInfoX(EventInfo ev) : base(ev) { Event = ev; }
 
         private static DictionaryCache<EventInfo, EventInfoX> cache = new DictionaryCache<EventInfo, EventInfoX>();
-        /// <summary>
-        /// 创建
-        /// </summary>
+        /// <summary>创建</summary>>
         /// <param name="ev"></param>
         /// <returns></returns>
         public static EventInfoX Create(EventInfo ev)

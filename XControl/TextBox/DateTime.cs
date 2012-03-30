@@ -20,18 +20,14 @@ using System.Web.UI.HtmlControls;
 #endregion
 namespace XControl
 {
-    /// <summary>
-    /// 日期时间选择器
-    /// </summary>
+    /// <summary>日期时间选择器</summary>>
     [DefaultProperty("Text")]
     [ToolboxData("<{0}:DateTimelhg runat=server></{0}:DateTimelhg>")]
     [ControlValueProperty("Value")]
     public class DateTimelhg : TextBox
     {
         #region 属性
-        /// <summary>
-        /// 是否长时间格式
-        /// </summary>
+        /// <summary>是否长时间格式</summary>>
         [Bindable(true)]
         [Category("专用")]
         [Description("是否长时间格式")]
@@ -48,9 +44,7 @@ namespace XControl
                 ViewState["LongTime"] = value;
             }
         }
-        /// <summary>
-        /// 客户端只读
-        /// </summary>
+        /// <summary>客户端只读</summary>>
         [Bindable(true)]
         [Category("专用")]
         [Description("客户端只读")]
@@ -67,9 +61,7 @@ namespace XControl
                 ViewState["ClientReadOnly"] = value;
             }
         }
-        /// <summary>
-        /// 客户端只读
-        /// </summary>
+        /// <summary>客户端只读</summary>>
         [Bindable(true)]
         [Category("专用")]
         [Description("工具栏")]
@@ -86,9 +78,7 @@ namespace XControl
                 ViewState["btnBar"] = value;
             }
         }
-        /// <summary>
-        /// 客户端只读
-        /// </summary>
+        /// <summary>客户端只读</summary>>
         [Bindable(true)]
         [Category("专用")]
         [Description("工具栏")]
@@ -105,9 +95,7 @@ namespace XControl
                 ViewState["disWeek"] = value;
             }
         }
-        /// <summary>
-        /// 联动日历选择
-        /// </summary>
+        /// <summary>联动日历选择</summary>>
         [Bindable(true)]
         [Category("专用")]
         [Description("联动日历选择")]
@@ -124,9 +112,7 @@ namespace XControl
                 ViewState["linkageObj"] = value;
             }
         }
-        /// <summary>
-        /// 联动日历选择
-        /// </summary>
+        /// <summary>联动日历选择</summary>>
         [Bindable(true)]
         [Category("专用")]
         [Description("联动日历选择")]
@@ -143,9 +129,7 @@ namespace XControl
                 ViewState["linkage"] = value;
             }
         }
-        /// <summary>
-        /// 联动日历选择
-        /// </summary>
+        /// <summary>联动日历选择</summary>>
         [Bindable(true)]
         [Category("专用")]
         [Description("联动日历选择")]
@@ -162,9 +146,7 @@ namespace XControl
                 ViewState["maxDateID"] = value;
             }
         }
-        /// <summary>
-        /// 联动日历选择
-        /// </summary>
+        /// <summary>联动日历选择</summary>>
         [Bindable(true)]
         [Category("专用")]
         [Description("联动日历选择")]
@@ -181,9 +163,7 @@ namespace XControl
                 ViewState["minDateID"] = value;
             }
         }
-        /// <summary>
-        /// 联动日历选择
-        /// </summary>
+        /// <summary>联动日历选择</summary>>
         [Bindable(true)]
         [Category("专用")]
         [Description("联动日历选择")]
@@ -200,9 +180,7 @@ namespace XControl
                 ViewState["disDate"] = value;
             }
         }
-        /// <summary>
-        /// 
-        /// </summary>
+        /// <summary></summary>>
         [Bindable(true)]
         [Category("专用")]
         [DefaultValue("")]
@@ -223,9 +201,7 @@ namespace XControl
                     Text = value.ToString("yyyy-MM-dd");
             }
         }
-        /// <summary>
-        /// 
-        /// </summary>
+        /// <summary></summary>>
         [Bindable(true)]
         [Category("专用")]
         [DefaultValue("")]
@@ -241,9 +217,7 @@ namespace XControl
                 ViewState["minDate"] = value;
             }
         }
-        /// <summary>
-        /// 
-        /// </summary>
+        /// <summary></summary>>
         [Bindable(true)]
         [Category("专用")]
         [DefaultValue("")]
@@ -260,9 +234,7 @@ namespace XControl
             }
         }
         #endregion
-        /// <summary>
-        /// 
-        /// </summary>
+        /// <summary></summary>>
         /// <param name="e"></param>
         protected override void OnInit(EventArgs e)
         {
@@ -278,9 +250,7 @@ namespace XControl
                     Width = new Unit(86);
             }
         }
-        /// <summary>
-        /// 
-        /// </summary>
+        /// <summary></summary>>
         /// <param name="e"></param>
         protected override void OnLoad(EventArgs e)
         {

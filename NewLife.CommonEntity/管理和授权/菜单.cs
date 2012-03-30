@@ -12,9 +12,7 @@ using XCode.DataAccessLayer;
 
 namespace NewLife.CommonEntity
 {
-	/// <summary>
-	/// 菜单
-	/// </summary>
+	/// <summary>菜单</summary>>
 	[Serializable]
 	[DataObject]
     [BindIndex("IX_Menu_Url", false, "Url")]
@@ -27,9 +25,7 @@ namespace NewLife.CommonEntity
 	{
 		#region 属性
 		private Int32 _ID;
-		/// <summary>
-		/// 编号
-		/// </summary>
+		/// <summary>编号</summary>>
 		[Description("编号")]
 		[DataObjectField(true, true, false, 10)]
 		[BindColumn(1, "ID", "编号", "", "int", 10, 0, false)]
@@ -40,9 +36,7 @@ namespace NewLife.CommonEntity
 		}
 
 		private String _Name;
-		/// <summary>
-		/// 名称
-		/// </summary>
+		/// <summary>名称</summary>>
 		[Description("名称")]
 		[DataObjectField(false, false, true, 50)]
 		[BindColumn(2, "Name", "名称", "", "nvarchar(50)", 0, 0, true)]
@@ -53,9 +47,7 @@ namespace NewLife.CommonEntity
 		}
 
 		private Int32 _ParentID;
-		/// <summary>
-		/// 父编号
-		/// </summary>
+		/// <summary>父编号</summary>>
 		[Description("父编号")]
 		[DataObjectField(false, false, true, 10)]
 		[BindColumn(3, "ParentID", "父编号", "", "int", 10, 0, false)]
@@ -66,9 +58,7 @@ namespace NewLife.CommonEntity
 		}
 
 		private String _Url;
-		/// <summary>
-		/// 链接
-		/// </summary>
+		/// <summary>链接</summary>>
 		[Description("链接")]
 		[DataObjectField(false, false, true, 200)]
 		[BindColumn(4, "Url", "链接", "", "nvarchar(200)", 0, 0, true)]
@@ -79,9 +69,7 @@ namespace NewLife.CommonEntity
 		}
 
 		private Int32 _Sort;
-		/// <summary>
-		/// 序号
-		/// </summary>
+		/// <summary>序号</summary>>
 		[Description("序号")]
 		[DataObjectField(false, false, true, 10)]
 		[BindColumn(5, "Sort", "序号", "", "int", 10, 0, false)]
@@ -92,9 +80,7 @@ namespace NewLife.CommonEntity
 		}
 
 		private String _Remark;
-		/// <summary>
-		/// 备注
-		/// </summary>
+		/// <summary>备注</summary>>
 		[Description("备注")]
 		[DataObjectField(false, false, true, 500)]
 		[BindColumn(6, "Remark", "备注", "", "nvarchar(500)", 0, 0, true)]
@@ -105,9 +91,7 @@ namespace NewLife.CommonEntity
 		}
 
 		private String _Permission;
-		/// <summary>
-		/// 权限
-		/// </summary>
+		/// <summary>权限</summary>>
 		[Description("权限")]
 		[DataObjectField(false, false, true, 50)]
 		[BindColumn(7, "Permission", "权限", "", "nvarchar(50)", 0, 0, true)]
@@ -118,9 +102,7 @@ namespace NewLife.CommonEntity
 		}
 
 		private Boolean _IsShow;
-		/// <summary>
-		/// 是否显示
-		/// </summary>
+		/// <summary>是否显示</summary>>
 		[Description("是否显示")]
 		[DataObjectField(false, false, true, 1)]
 		[BindColumn(8, "IsShow", "是否显示", "", "bit", 0, 0, false)]
@@ -175,9 +157,7 @@ namespace NewLife.CommonEntity
 		#endregion
 
 		#region 字段名
-		/// <summary>
-		/// 取得菜单字段名的快捷方式
-		/// </summary>
+		/// <summary>取得菜单字段名的快捷方式</summary>>
 		public class _
 		{
             ///<summary>编号</summary>
@@ -207,50 +187,32 @@ namespace NewLife.CommonEntity
 		#endregion
 	}
 
-	/// <summary>
-	/// 菜单接口
-	/// </summary>
+	/// <summary>菜单接口</summary>>
 	public partial interface IMenu
 	{
 		#region 属性
-		/// <summary>
-		/// 编号
-		/// </summary>
+		/// <summary>编号</summary>>
 		Int32 ID { get; set; }
 
-		/// <summary>
-		/// 名称
-		/// </summary>
+		/// <summary>名称</summary>>
 		String Name { get; set; }
 
-		/// <summary>
-		/// 父编号
-		/// </summary>
+		/// <summary>父编号</summary>>
 		Int32 ParentID { get; set; }
 
-		/// <summary>
-		/// 链接
-		/// </summary>
+		/// <summary>链接</summary>>
 		String Url { get; set; }
 
-		/// <summary>
-		/// 序号
-		/// </summary>
+		/// <summary>序号</summary>>
 		Int32 Sort { get; set; }
 
-		/// <summary>
-		/// 备注
-		/// </summary>
+		/// <summary>备注</summary>>
 		String Remark { get; set; }
 
-		/// <summary>
-		/// 权限
-		/// </summary>
+		/// <summary>权限</summary>>
 		String Permission { get; set; }
 
-		/// <summary>
-		/// 是否显示
-		/// </summary>
+		/// <summary>是否显示</summary>>
 		Boolean IsShow { get; set; }
 		#endregion
 

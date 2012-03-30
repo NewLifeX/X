@@ -4,9 +4,7 @@ using System.Text;
 
 namespace NewLife.Serialization
 {
-    /// <summary>
-    /// 名值读写器设置
-    /// </summary>
+    /// <summary>名值读写器设置</summary>>
     public class NameValueSetting : TextReaderWriterSetting
     {
         private String _Separator = "=";

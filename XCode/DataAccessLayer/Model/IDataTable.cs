@@ -3,30 +3,20 @@ using System.Collections.Generic;
 
 namespace XCode.DataAccessLayer
 {
-    /// <summary>
-    /// 数据表
-    /// </summary>
+    /// <summary>数据表</summary>>
     public interface IDataTable : ICloneable
     {
         #region 属性
-        /// <summary>
-        /// 编号
-        /// </summary>
+        /// <summary>编号</summary>>
         Int32 ID { get; set; }
 
-        /// <summary>
-        /// 名称
-        /// </summary>
+        /// <summary>名称</summary>>
         String Name { get; set; }
 
-        /// <summary>
-        /// 别名。实际上用作类名。
-        /// </summary>
+        /// <summary>别名。实际上用作类名。</summary>>
         String Alias { get; set; }
 
-        /// <summary>
-        /// 所有者
-        /// </summary>
+        /// <summary>所有者</summary>>
         String Owner { get; set; }
 
         /// <summary>
@@ -35,14 +25,10 @@ namespace XCode.DataAccessLayer
         /// </summary>
         DatabaseType DbType { get; set; }
 
-        /// <summary>
-        /// 是否视图
-        /// </summary>
+        /// <summary>是否视图</summary>>
         Boolean IsView { get; set; }
 
-        /// <summary>
-        /// 说明
-        /// </summary>
+        /// <summary>说明</summary>>
         String Description { get; set; }
         #endregion
 
@@ -64,47 +50,33 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 方法
-        /// <summary>
-        /// 创建数据列
-        /// </summary>
+        /// <summary>创建数据列</summary>>
         /// <returns></returns>
         IDataColumn CreateColumn();
 
-        /// <summary>
-        /// 创建数据关系
-        /// </summary>
+        /// <summary>创建数据关系</summary>>
         /// <returns></returns>
         IDataRelation CreateRelation();
 
-        /// <summary>
-        /// 创建数据索引
-        /// </summary>
+        /// <summary>创建数据索引</summary>>
         /// <returns></returns>
         IDataIndex CreateIndex();
 
-        /// <summary>
-        /// 根据字段名获取字段
-        /// </summary>
+        /// <summary>根据字段名获取字段</summary>>
         /// <param name="name"></param>
         /// <returns></returns>
         IDataColumn GetColumn(String name);
 
-        /// <summary>
-        /// 根据字段名数组获取字段数组
-        /// </summary>
+        /// <summary>根据字段名数组获取字段数组</summary>>
         /// <param name="names"></param>
         /// <returns></returns>
         IDataColumn[] GetColumns(String[] names);
 
-        /// <summary>
-        /// 连接另一个表，处理两表间关系
-        /// </summary>
+        /// <summary>连接另一个表，处理两表间关系</summary>>
         /// <param name="table"></param>
         void Connect(IDataTable table);
 
-        /// <summary>
-        /// 修正数据
-        /// </summary>
+        /// <summary>修正数据</summary>>
         void Fix();
         #endregion
     }

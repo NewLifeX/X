@@ -26,9 +26,7 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region 扩展查询﻿
-        /// <summary>
-        /// 根据Code查找
-        /// </summary>
+        /// <summary>根据Code查找</summary>>
         /// <param name="code"></param>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
@@ -42,9 +40,7 @@ namespace NewLife.CommonEntity
             //return Meta.SingleCache[code];
         }
 
-        /// <summary>
-        /// 根据Name查找
-        /// </summary>
+        /// <summary>根据Name查找</summary>>
         /// <param name="name"></param>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
@@ -56,9 +52,7 @@ namespace NewLife.CommonEntity
                 return Meta.Cache.Entities.FindAll(_.Name, name);
         }
 
-        /// <summary>
-        /// 根据ID查找
-        /// </summary>
+        /// <summary>根据ID查找</summary>>
         /// <param name="id"></param>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
@@ -175,9 +169,7 @@ namespace NewLife.CommonEntity
         //    return FindCount(SearchWhere(key), null, null, 0, 0);
         //}
 
-        /// <summary>
-        /// 构造搜索条件
-        /// </summary>
+        /// <summary>构造搜索条件</summary>>
         /// <param name="key">关键字</param>
         /// <returns></returns>
         private static String SearchWhere(String key)

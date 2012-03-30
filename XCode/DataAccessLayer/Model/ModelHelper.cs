@@ -10,9 +10,7 @@ namespace XCode.DataAccessLayer
     public static class ModelHelper
     {
         #region 模型扩展方法
-        /// <summary>
-        /// 根据字段名获取字段
-        /// </summary>
+        /// <summary>根据字段名获取字段</summary>>
         /// <param name="table"></param>
         /// <param name="name"></param>
         /// <returns></returns>
@@ -34,9 +32,7 @@ namespace XCode.DataAccessLayer
             return table.Columns.FirstOrDefault(c => c.Is(name));
         }
 
-        /// <summary>
-        /// 根据字段名数组获取字段数组
-        /// </summary>
+        /// <summary>根据字段名数组获取字段数组</summary>>
         /// <param name="table"></param>
         /// <param name="names"></param>
         /// <returns></returns>
@@ -79,9 +75,7 @@ namespace XCode.DataAccessLayer
             return column.Name.EqualIgnoreCase(name) || column.Alias.EqualIgnoreCase(name);
         }
 
-        /// <summary>
-        /// 根据字段名找索引
-        /// </summary>
+        /// <summary>根据字段名找索引</summary>>
         /// <param name="table"></param>
         /// <param name="columnNames"></param>
         /// <returns></returns>
@@ -153,9 +147,7 @@ namespace XCode.DataAccessLayer
         //    return list.ToArray();
         //}
 
-        /// <summary>
-        /// 根据字段从指定表中查找关系
-        /// </summary>
+        /// <summary>根据字段从指定表中查找关系</summary>>
         /// <param name="table"></param>
         /// <param name="columnName"></param>
         /// <returns></returns>
@@ -170,9 +162,7 @@ namespace XCode.DataAccessLayer
             return null;
         }
 
-        /// <summary>
-        /// 根据字段、关联表、关联字段从指定表中查找关系
-        /// </summary>
+        /// <summary>根据字段、关联表、关联字段从指定表中查找关系</summary>>
         /// <param name="table"></param>
         /// <param name="dr"></param>
         /// <returns></returns>
@@ -181,9 +171,7 @@ namespace XCode.DataAccessLayer
             return table.GetRelation(dr.Column, dr.RelationTable, dr.RelationColumn);
         }
 
-        /// <summary>
-        /// 根据字段、关联表、关联字段从指定表中查找关系
-        /// </summary>
+        /// <summary>根据字段、关联表、关联字段从指定表中查找关系</summary>>
         /// <param name="table"></param>
         /// <param name="columnName"></param>
         /// <param name="rtableName"></param>
@@ -201,9 +189,7 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 模型扩展业务方法
-        /// <summary>
-        /// 连接两个表，实际上是猜测它们之间的关系，根据一个字段名是否等于另一个表的表名加某个字段名来判断是否存在关系。
-        /// </summary>
+        /// <summary>连接两个表，实际上是猜测它们之间的关系，根据一个字段名是否等于另一个表的表名加某个字段名来判断是否存在关系。</summary>>
         /// <param name="table"></param>
         /// <param name="rtable"></param>
         public static void Connect(this IDataTable table, IDataTable rtable)
@@ -440,9 +426,7 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 复制扩展方法
-        /// <summary>
-        /// 复制数据表到另一个数据表，不复制数据列、索引和关系
-        /// </summary>
+        /// <summary>复制数据表到另一个数据表，不复制数据列、索引和关系</summary>>
         /// <param name="src"></param>
         /// <param name="des"></param>
         /// <returns></returns>
@@ -459,9 +443,7 @@ namespace XCode.DataAccessLayer
             return src;
         }
 
-        /// <summary>
-        /// 复制数据表到另一个数据表，复制所有数据列、索引和关系
-        /// </summary>
+        /// <summary>复制数据表到另一个数据表，复制所有数据列、索引和关系</summary>>
         /// <param name="src"></param>
         /// <param name="des"></param>
         /// <param name="resetColumnID">是否重置列ID</param>
@@ -478,9 +460,7 @@ namespace XCode.DataAccessLayer
             return src;
         }
 
-        /// <summary>
-        /// 赋值数据列到另一个数据列
-        /// </summary>
+        /// <summary>赋值数据列到另一个数据列</summary>>
         /// <param name="src"></param>
         /// <param name="des"></param>
         /// <returns></returns>
@@ -505,9 +485,7 @@ namespace XCode.DataAccessLayer
             return src;
         }
 
-        /// <summary>
-        /// 赋值数据列到另一个数据列
-        /// </summary>
+        /// <summary>赋值数据列到另一个数据列</summary>>
         /// <param name="src"></param>
         /// <param name="des"></param>
         /// <returns></returns>
@@ -522,9 +500,7 @@ namespace XCode.DataAccessLayer
             return src;
         }
 
-        /// <summary>
-        /// 赋值数据列到另一个数据列
-        /// </summary>
+        /// <summary>赋值数据列到另一个数据列</summary>>
         /// <param name="src"></param>
         /// <param name="des"></param>
         /// <returns></returns>
@@ -621,9 +597,7 @@ namespace XCode.DataAccessLayer
             return name;
         }
 
-        /// <summary>
-        /// 自动处理大小写
-        /// </summary>
+        /// <summary>自动处理大小写</summary>>
         /// <param name="name"></param>
         /// <returns></returns>
         static String FixWord(String name)
@@ -700,9 +674,7 @@ namespace XCode.DataAccessLayer
             return false;
         }
 
-        /// <summary>
-        /// 获取显示名，如果描述不存在，则使用名称，否则使用描述前面部分，句号（中英文皆可）分隔
-        /// </summary>
+        /// <summary>获取显示名，如果描述不存在，则使用名称，否则使用描述前面部分，句号（中英文皆可）分隔</summary>>
         /// <param name="name"></param>
         /// <param name="description"></param>
         /// <returns></returns>

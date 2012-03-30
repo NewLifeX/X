@@ -22,9 +22,7 @@ namespace XCoder
     public partial class FrmMain : Form
     {
         #region  Ù–‘
-        /// <summary>
-        /// ≈‰÷√
-        /// </summary>
+        /// <summary>≈‰÷√</summary>>
         public static XConfig Config { get { return XConfig.Current; } }
 
         private Engine _Engine;

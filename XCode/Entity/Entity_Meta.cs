@@ -96,9 +96,7 @@ namespace XCode
             /// <summary>字段名列表</summary>
             public static IList<String> FieldNames { get { return Table.FieldNames; } }
 
-            /// <summary>
-            /// 唯一键，返回第一个标识列或者唯一的主键
-            /// </summary>
+            /// <summary>唯一键，返回第一个标识列或者唯一的主键</summary>>
             public static FieldItem Unique
             {
                 get
@@ -109,9 +107,7 @@ namespace XCode
                 }
             }
 
-            /// <summary>
-            /// 实体操作者
-            /// </summary>
+            /// <summary>实体操作者</summary>>
             internal static IEntityOperate Factory
             {
                 get
@@ -125,14 +121,10 @@ namespace XCode
             #endregion
 
             #region 数据库操作
-            /// <summary>
-            /// 数据操作对象。
-            /// </summary>
+            /// <summary>数据操作对象。</summary>>
             public static DAL DBO { get { return DAL.Create(ConnName); } }
 
-            /// <summary>
-            /// 数据库类型
-            /// </summary>
+            /// <summary>数据库类型</summary>>
             public static DatabaseType DbType { get { return DBO.DbType; } }
 
             /// <summary>执行SQL查询，返回记录集</summary>
@@ -158,9 +150,7 @@ namespace XCode
                 return DBO.Select(sql, Meta.TableName);
             }
 
-            /// <summary>
-            /// 查询记录数
-            /// </summary>
+            /// <summary>查询记录数</summary>>
             /// <param name="sql">SQL语句</param>
             /// <returns>记录数</returns>
             [Obsolete("请优先考虑使用SelectBuilder参数做查询！")]
@@ -171,9 +161,7 @@ namespace XCode
                 return DBO.SelectCount(sql, Meta.TableName);
             }
 
-            /// <summary>
-            /// 查询记录数
-            /// </summary>
+            /// <summary>查询记录数</summary>>
             /// <param name="sb">查询生成器</param>
             /// <returns>记录数</returns>
             public static Int32 QueryCount(SelectBuilder sb)
@@ -183,9 +171,7 @@ namespace XCode
                 return DBO.SelectCount(sb, new String[] { Meta.TableName });
             }
 
-            /// <summary>
-            /// 执行
-            /// </summary>
+            /// <summary>执行</summary>>
             /// <param name="sql">SQL语句</param>
             /// <returns>影响的结果</returns>
             public static Int32 Execute(String sql)
@@ -198,9 +184,7 @@ namespace XCode
                 return rs;
             }
 
-            /// <summary>
-            /// 执行插入语句并返回新增行的自动编号
-            /// </summary>
+            /// <summary>执行插入语句并返回新增行的自动编号</summary>>
             /// <param name="sql">SQL语句</param>
             /// <returns>新增行的自动编号</returns>
             public static Int64 InsertAndGetIdentity(String sql)
@@ -447,9 +431,7 @@ namespace XCode
             #endregion
 
             #region 辅助方法
-            /// <summary>
-            /// 格式化关键字
-            /// </summary>
+            /// <summary>格式化关键字</summary>>
             /// <param name="name"></param>
             /// <returns></returns>
             public static String FormatName(String name)
@@ -457,9 +439,7 @@ namespace XCode
                 return DBO.Db.FormatName(name);
             }
 
-            /// <summary>
-            /// 格式化关键字
-            /// </summary>
+            /// <summary>格式化关键字</summary>>
             /// <param name="name"></param>
             /// <returns></returns>
             [Obsolete("改为使用FormatName")]
@@ -468,9 +448,7 @@ namespace XCode
                 return FormatName(name);
             }
 
-            /// <summary>
-            /// 格式化时间
-            /// </summary>
+            /// <summary>格式化时间</summary>>
             /// <param name="dateTime"></param>
             /// <returns></returns>
             public static String FormatDateTime(DateTime dateTime)
@@ -478,9 +456,7 @@ namespace XCode
                 return DBO.Db.FormatDateTime(dateTime);
             }
 
-            /// <summary>
-            /// 格式化数据为SQL数据
-            /// </summary>
+            /// <summary>格式化数据为SQL数据</summary>>
             /// <param name="name"></param>
             /// <param name="value"></param>
             /// <returns></returns>
@@ -489,9 +465,7 @@ namespace XCode
                 return FormatValue(Table.FindByName(name), value);
             }
 
-            /// <summary>
-            /// 格式化数据为SQL数据
-            /// </summary>
+            /// <summary>格式化数据为SQL数据</summary>>
             /// <param name="field"></param>
             /// <param name="value"></param>
             /// <returns></returns>
@@ -503,9 +477,7 @@ namespace XCode
 
             #region 缓存
             private static DictionaryCache<String, EntityCache<TEntity>> _cache = new DictionaryCache<string, EntityCache<TEntity>>();
-            /// <summary>
-            /// 实体缓存
-            /// </summary>
+            /// <summary>实体缓存</summary>>
             /// <returns></returns>
             public static EntityCache<TEntity> Cache
             {

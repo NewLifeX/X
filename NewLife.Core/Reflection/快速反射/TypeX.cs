@@ -24,9 +24,7 @@ namespace NewLife.Reflection
         }
 
         FastHandler _Handler;
-        /// <summary>
-        /// 快速调用委托，延迟到首次使用才创建
-        /// </summary>
+        /// <summary>快速调用委托，延迟到首次使用才创建</summary>>
         FastHandler Handler
         {
             get
@@ -47,9 +45,7 @@ namespace NewLife.Reflection
         }
 
         private String _Name;
-        /// <summary>
-        /// 类型名称。主要处理泛型
-        /// </summary>
+        /// <summary>类型名称。主要处理泛型</summary>>
         public override String Name
         {
             get
@@ -121,9 +117,7 @@ namespace NewLife.Reflection
         private TypeX(Type type) : base(type) { _BaseType = type; }
 
         private static DictionaryCache<Type, TypeX> cache = new DictionaryCache<Type, TypeX>();
-        /// <summary>
-        /// 创建类型辅助对象
-        /// </summary>
+        /// <summary>创建类型辅助对象</summary>>
         /// <param name="type"></param>
         /// <returns></returns>
         public static TypeX Create(Type type)
@@ -173,9 +167,7 @@ namespace NewLife.Reflection
         #endregion
 
         #region 调用
-        /// <summary>
-        /// 创建实例
-        /// </summary>
+        /// <summary>创建实例</summary>>
         /// <param name="parameters"></param>
         /// <returns></returns>
         [DebuggerStepThrough]
@@ -220,9 +212,7 @@ namespace NewLife.Reflection
             });
         }
 
-        /// <summary>
-        /// 快速反射创建指定类型的实例
-        /// </summary>
+        /// <summary>快速反射创建指定类型的实例</summary>>
         /// <param name="type"></param>
         /// <param name="parameters"></param>
         /// <returns></returns>
@@ -242,9 +232,7 @@ namespace NewLife.Reflection
             return Create(typeof(T)).CreateInstance(parameters);
         }
 
-        /// <summary>
-        /// 取值，返回自己
-        /// </summary>
+        /// <summary>取值，返回自己</summary>>
         /// <param name="obj"></param>
         /// <returns></returns>
         public override Object GetValue(Object obj)
@@ -256,9 +244,7 @@ namespace NewLife.Reflection
         #region 扩展属性
         private List<String> hasLoad = new List<String>();
 
-        /// <summary>
-        /// 是否系统类型
-        /// </summary>
+        /// <summary>是否系统类型</summary>>
         /// <returns></returns>
         public Boolean IsSystemType
         {
@@ -287,9 +273,7 @@ namespace NewLife.Reflection
         #endregion
 
         #region 方法
-        /// <summary>
-        /// 是否指定类型的插件
-        /// </summary>
+        /// <summary>是否指定类型的插件</summary>>
         /// <param name="type"></param>
         /// <returns></returns>
         public Boolean IsPlugin(Type type)
@@ -330,9 +314,7 @@ namespace NewLife.Reflection
             return true;
         }
 
-        /// <summary>
-        /// 根据名称获取类型
-        /// </summary>
+        /// <summary>根据名称获取类型</summary>>
         /// <param name="typeName">类型名</param>
         /// <returns></returns>
         public static Type GetType(String typeName)
@@ -341,9 +323,7 @@ namespace NewLife.Reflection
         }
 
         static DictionaryCache<String, Type> typeCache = new DictionaryCache<String, Type>();
-        /// <summary>
-        /// 根据名称获取类型
-        /// </summary>
+        /// <summary>根据名称获取类型</summary>>
         /// <param name="typeName">类型名</param>
         /// <param name="isLoadAssembly">是否从未加载程序集中获取类型。使用仅反射的方法检查目标类型，如果存在，则进行常规加载</param>
         /// <returns></returns>
@@ -552,9 +532,7 @@ namespace NewLife.Reflection
         #endregion
 
         #region 辅助方法
-        /// <summary>
-        /// 已重载。
-        /// </summary>
+        /// <summary>已重载。</summary>>
         /// <returns></returns>
         public override string ToString()
         {
@@ -565,9 +543,7 @@ namespace NewLife.Reflection
                 return BaseType.FullName;
         }
 
-        /// <summary>
-        /// 判断两个类型是否相同，避免引用加载和执行上下文加载的相同类型显示不同
-        /// </summary>
+        /// <summary>判断两个类型是否相同，避免引用加载和执行上下文加载的相同类型显示不同</summary>>
         /// <param name="type1"></param>
         /// <param name="type2"></param>
         /// <returns></returns>
@@ -654,9 +630,7 @@ namespace NewLife.Reflection
             return (TResult)ChangeType(value, typeof(TResult));
         }
 
-        /// <summary>
-        /// 判断某个类型是否可空类型
-        /// </summary>
+        /// <summary>判断某个类型是否可空类型</summary>>
         /// <param name="type"></param>
         /// <returns></returns>
         public static Boolean IsNullable(Type type)
@@ -681,9 +655,7 @@ namespace NewLife.Reflection
         //    return type;
         //}
 
-        /// <summary>
-        /// 从参数数组中获取类型数组
-        /// </summary>
+        /// <summary>从参数数组中获取类型数组</summary>>
         /// <param name="args"></param>
         /// <returns></returns>
         public static Type[] GetTypeArray(object[] args)
@@ -703,9 +675,7 @@ namespace NewLife.Reflection
         #endregion
 
         #region 类型转换
-        /// <summary>
-        /// 类型转换
-        /// </summary>
+        /// <summary>类型转换</summary>>
         /// <param name="obj"></param>
         /// <returns></returns>
         public static implicit operator Type(TypeX obj)
@@ -713,9 +683,7 @@ namespace NewLife.Reflection
             return obj != null ? obj.Type : null;
         }
 
-        /// <summary>
-        /// 类型转换
-        /// </summary>
+        /// <summary>类型转换</summary>>
         /// <param name="obj"></param>
         /// <returns></returns>
         public static implicit operator TypeX(Type obj)

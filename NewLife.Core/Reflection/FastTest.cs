@@ -7,15 +7,11 @@ using System.Diagnostics;
 #if DEBUG
 namespace NewLife.Reflection
 {
-    /// <summary>
-    /// 快速反射测试
-    /// </summary>
+    /// <summary>快速反射测试</summary>>
     public class FastTest
     {
         #region 测试
-        /// <summary>
-        /// 
-        /// </summary>
+        /// <summary></summary>>
         public static void Test()
         {
             XTrace.WriteLine("创建类型……");
@@ -105,26 +101,20 @@ namespace NewLife.Reflection
         #endregion
 
         #region 构造
-        /// <summary>
-        /// 
-        /// </summary>
+        /// <summary></summary>>
         public FastTest()
         {
             XTrace.WriteLine("无参数构造函数");
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
+        /// <summary></summary>>
         /// <param name="id"></param>
         public FastTest(Int32 id)
         {
             XTrace.WriteLine("一个参数的构造函数");
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
+        /// <summary></summary>>
         /// <param name="id"></param>
         /// <param name="name"></param>
         public FastTest(Int32 id, String name)
@@ -157,9 +147,7 @@ namespace NewLife.Reflection
             XTrace.WriteLine("调用私有方法！");
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
+        /// <summary></summary>>
         /// <param name="id"></param>
         /// <param name="name"></param>
         /// <returns></returns>

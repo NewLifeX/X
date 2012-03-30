@@ -125,9 +125,7 @@ if(!Config.RenderGenEntity){#>
 #>        #endregion
 
         #region 获取/设置 字段值
-        /// <summary>
-        /// 获取/设置 字段值。
-        /// </summary>
+        /// <summary>获取/设置 字段值。</summary>>
         /// <param name="name">字段名</param>
         /// <returns></returns>
         Object this[String name] { get; set; }

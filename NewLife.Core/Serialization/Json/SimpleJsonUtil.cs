@@ -8,25 +8,19 @@ using NewLife.Reflection;
 
 namespace NewLife.Serialization.Json
 {
-    /// <summary>
-    /// 简单Json工具,不需要创建实体类就可以读取和生成Json
-    /// </summary>
+    /// <summary>简单Json工具,不需要创建实体类就可以读取和生成Json</summary>>
     public class SimpleJsonUtil
     {
         #region 属性
 
-        /// <summary>
-        /// 设置在产生Json字符串的时候是否编码Unicode字符为\uXXXX的格式
-        /// </summary>
+        /// <summary>设置在产生Json字符串的时候是否编码Unicode字符为\uXXXX的格式</summary>>
         public bool IsEncodeUnicode { get; set; }
 
         #endregion
 
         #region 解析Json
 
-        /// <summary>
-        /// 从指定json字符串读取出Json值
-        /// </summary>
+        /// <summary>从指定json字符串读取出Json值</summary>>
         /// <param name="str"></param>
         /// <returns></returns>
         public SimpleJson From(string str)
@@ -37,9 +31,7 @@ namespace NewLife.Serialization.Json
             }
         }
 
-        /// <summary>
-        /// 从指定文本读取流读出Json值
-        /// </summary>
+        /// <summary>从指定文本读取流读出Json值</summary>>
         /// <param name="r"></param>
         /// <returns></returns>
         public SimpleJson From(TextReader r)
@@ -62,9 +54,7 @@ namespace NewLife.Serialization.Json
             return ret;
         }
 
-        /// <summary>
-        /// 从指定Json原子元素读取流读出一个Json值,包括对象和数组
-        /// </summary>
+        /// <summary>从指定Json原子元素读取流读出一个Json值,包括对象和数组</summary>>
         /// <param name="reader"></param>
         /// <returns></returns>
         private SimpleJson Read(JsonAtomStringReader reader)
@@ -130,9 +120,7 @@ namespace NewLife.Serialization.Json
             return ret;
         }
 
-        /// <summary>
-        /// 读取一个Json对象值
-        /// </summary>
+        /// <summary>读取一个Json对象值</summary>>
         /// <param name="reader"></param>
         /// <returns></returns>
         private SimpleJson ReadObject(JsonAtomStringReader reader)
@@ -175,9 +163,7 @@ namespace NewLife.Serialization.Json
             };
         }
 
-        /// <summary>
-        /// 读取一个数组值
-        /// </summary>
+        /// <summary>读取一个数组值</summary>>
         /// <returns></returns>
         private SimpleJson ReadArray(JsonAtomStringReader reader)
         {
@@ -216,9 +202,7 @@ namespace NewLife.Serialization.Json
             };
         }
 
-        /// <summary>
-        /// 尝试从指定字符串解析返回一个代表整型数字的SimpleJson对象
-        /// </summary>
+        /// <summary>尝试从指定字符串解析返回一个代表整型数字的SimpleJson对象</summary>>
         /// <param name="str"></param>
         /// <returns></returns>
         private SimpleJson ParseInteger(string str)
@@ -237,9 +221,7 @@ namespace NewLife.Serialization.Json
             return Number(0); // 无法识别的数字将默认为0
         }
 
-        /// <summary>
-        /// 尝试从指定字符串解析返回一个代表浮点型数字的SimpleJson对象
-        /// </summary>
+        /// <summary>尝试从指定字符串解析返回一个代表浮点型数字的SimpleJson对象</summary>>
         /// <param name="str"></param>
         /// <returns></returns>
         private SimpleJson ParseFloat(string str)
@@ -262,9 +244,7 @@ namespace NewLife.Serialization.Json
 
         #region 产生Json值
 
-        /// <summary>
-        /// 根据传入的值选择合适的SimpleJson返回,如果不是基础类型则返回Type为Unknown的Json值,生成Json字符串时,可以指定ToJson事件以实现比如DateTime类型的生成
-        /// </summary>
+        /// <summary>根据传入的值选择合适的SimpleJson返回,如果不是基础类型则返回Type为Unknown的Json值,生成Json字符串时,可以指定ToJson事件以实现比如DateTime类型的生成</summary>>
         /// <param name="o"></param>
         /// <returns></returns>
         public SimpleJson Value(object o)
@@ -334,27 +314,21 @@ namespace NewLife.Serialization.Json
             return new SimpleJson() { Type = t, Value = v };
         }
 
-        /// <summary>
-        /// 返回一个js undefined的值
-        /// </summary>
+        /// <summary>返回一个js undefined的值</summary>>
         /// <returns></returns>
         public SimpleJson Undefined()
         {
             return new SimpleJson() { Type = SimpleJsonType.Undefined };
         }
 
-        /// <summary>
-        /// 返回一个js null的值
-        /// </summary>
+        /// <summary>返回一个js null的值</summary>>
         /// <returns></returns>
         public SimpleJson Null()
         {
             return new SimpleJson() { Type = SimpleJsonType.Null, Value = null };
         }
 
-        /// <summary>
-        /// 返回一个js 布尔型值
-        /// </summary>
+        /// <summary>返回一个js 布尔型值</summary>>
         /// <param name="value"></param>
         /// <returns></returns>
         public SimpleJson Boolean(bool value)
@@ -362,9 +336,7 @@ namespace NewLife.Serialization.Json
             return new SimpleJson() { Type = SimpleJsonType.Boolean, Value = value };
         }
 
-        /// <summary>
-        /// 返回一个js 整型数字
-        /// </summary>
+        /// <summary>返回一个js 整型数字</summary>>
         /// <param name="value"></param>
         /// <returns></returns>
         public SimpleJson Number(int value)
@@ -372,9 +344,7 @@ namespace NewLife.Serialization.Json
             return new SimpleJson() { Type = SimpleJsonType.Integer, Value = value };
         }
 
-        /// <summary>
-        /// 返回一个js 长整型数字,其在js中的表现和整型完全一样
-        /// </summary>
+        /// <summary>返回一个js 长整型数字,其在js中的表现和整型完全一样</summary>>
         /// <param name="value"></param>
         /// <returns></returns>
         public SimpleJson Number(long value)
@@ -382,9 +352,7 @@ namespace NewLife.Serialization.Json
             return new SimpleJson() { Type = SimpleJsonType.Integer, Value = value };
         }
 
-        /// <summary>
-        /// 返回一个js 浮点数
-        /// </summary>
+        /// <summary>返回一个js 浮点数</summary>>
         /// <param name="value"></param>
         /// <returns></returns>
         public SimpleJson Number(float value)
@@ -392,9 +360,7 @@ namespace NewLife.Serialization.Json
             return new SimpleJson() { Type = SimpleJsonType.Float, Value = value };
         }
 
-        /// <summary>
-        /// 返回一个js 双精度浮点数,其在js中的表现和浮点数完全一样
-        /// </summary>
+        /// <summary>返回一个js 双精度浮点数,其在js中的表现和浮点数完全一样</summary>>
         /// <param name="value"></param>
         /// <returns></returns>
         public SimpleJson Number(double value)
@@ -402,9 +368,7 @@ namespace NewLife.Serialization.Json
             return new SimpleJson() { Type = SimpleJsonType.Float, Value = value };
         }
 
-        /// <summary>
-        /// 返回一个js 字符串值
-        /// </summary>
+        /// <summary>返回一个js 字符串值</summary>>
         /// <param name="value"></param>
         /// <returns></returns>
         public SimpleJson String(string value)
@@ -412,9 +376,7 @@ namespace NewLife.Serialization.Json
             return new SimpleJson() { Type = SimpleJsonType.String, Value = value };
         }
 
-        /// <summary>
-        /// 返回一个js 对象值
-        /// </summary>
+        /// <summary>返回一个js 对象值</summary>>
         /// <param name="args">名值对,必须是成对出现,否则将会抛弃最后一个</param>
         /// <returns></returns>
         public SimpleJson Object(params object[] args)
@@ -436,9 +398,7 @@ namespace NewLife.Serialization.Json
             return new SimpleJson() { Type = SimpleJsonType.Object, Value = v };
         }
 
-        /// <summary>
-        /// 返回一个js 数组值
-        /// </summary>
+        /// <summary>返回一个js 数组值</summary>>
         /// <param name="args">值,可以直接指定基础类型如int string这些</param>
         /// <returns></returns>
         public SimpleJson Array(params object[] args)
@@ -463,9 +423,7 @@ namespace NewLife.Serialization.Json
 
         #region 产生Json字符串
 
-        /// <summary>
-        /// 将指定Json值写入到指定的文本写入流
-        /// </summary>
+        /// <summary>将指定Json值写入到指定的文本写入流</summary>>
         /// <param name="value"></param>
         /// <param name="writer"></param>
         public void To(SimpleJson value, TextWriter writer)
@@ -473,9 +431,7 @@ namespace NewLife.Serialization.Json
             writer.Write(To(value));
         }
 
-        /// <summary>
-        /// 返回指定Json值的Json字符串
-        /// </summary>
+        /// <summary>返回指定Json值的Json字符串</summary>>
         /// <remarks>
         /// 如果value是一个Unknown/Undefined类型的值,则返回空白字符串,但是如果value下的对象或数组的中有Unknown/Undefined类型的值,则会尽可能修正为null或忽略(在数组结尾的Unknown/Undefined类型值会忽略)以符合Json标准
         /// </remarks>
@@ -499,9 +455,7 @@ namespace NewLife.Serialization.Json
             return ret;
         }
 
-        /// <summary>
-        /// 返回指定Json值的Json字符串,私有方法
-        /// </summary>
+        /// <summary>返回指定Json值的Json字符串,私有方法</summary>>
         /// <param name="value"></param>
         /// <returns></returns>
         private string _To(SimpleJson value)
@@ -548,9 +502,7 @@ namespace NewLife.Serialization.Json
             return ret;
         }
 
-        /// <summary>
-        /// 返回指定Json对象的Json字符串
-        /// </summary>
+        /// <summary>返回指定Json对象的Json字符串</summary>>
         /// <param name="value"></param>
         /// <returns></returns>
         private string ToObject(SimpleJson value)
@@ -567,9 +519,7 @@ namespace NewLife.Serialization.Json
             return "{" + string.Join(",", ret) + "}";
         }
 
-        /// <summary>
-        /// 返回指定Json数组的Json字符串
-        /// </summary>
+        /// <summary>返回指定Json数组的Json字符串</summary>>
         /// <param name="value"></param>
         /// <returns></returns>
         private string ToArray(SimpleJson value)
@@ -596,43 +546,29 @@ namespace NewLife.Serialization.Json
 
         #region 扩展事件
 
-        /// <summary>
-        /// 当开始解析一段Json字符串时触发的事件
-        /// </summary>
+        /// <summary>当开始解析一段Json字符串时触发的事件</summary>>
         public event EventHandler<EventArgs<JsonAtomStringReader>> BeginFromJson;
 
-        /// <summary>
-        /// 当解析到一段Json值时触发
-        /// </summary>
+        /// <summary>当解析到一段Json值时触发</summary>>
         public event EventHandler<EventArgs<JsonAtomStringReader, SimpleJson, JsonAtomType>> FromJson;
 
-        /// <summary>
-        /// 当完成解析一段Json字符串时触发
-        /// </summary>
+        /// <summary>当完成解析一段Json字符串时触发</summary>>
         public event EventHandler<EventArgs<JsonAtomStringReader, SimpleJson>> EndFromJson;
 
-        /// <summary>
-        /// 当开始从Json值产生字符串时触发
-        /// </summary>
+        /// <summary>当开始从Json值产生字符串时触发</summary>>
         public event EventHandler<EventArgs<SimpleJson>> BeginToJson;
 
-        /// <summary>
-        /// 当产生了一个Json值对应的Json字符串时触发
-        /// </summary>
+        /// <summary>当产生了一个Json值对应的Json字符串时触发</summary>>
         public event EventHandler<EventArgs<SimpleJson, string>> ToJson;
 
-        /// <summary>
-        /// 当完成从Json值产生字符串时触发
-        /// </summary>
+        /// <summary>当完成从Json值产生字符串时触发</summary>>
         public event EventHandler<EventArgs<SimpleJson, string>> EndToJson;
 
         #endregion
 
         #region 其它
 
-        /// <summary>
-        /// 使用指定的处理方式处理指定字符串
-        /// </summary>
+        /// <summary>使用指定的处理方式处理指定字符串</summary>>
         /// <remarks>
         /// 处理方式有2种类型
         ///   Func&lt;char, string&gt;(用于按字符处理,其中一个返回非null即表示当前字符转换成功)
@@ -692,35 +628,25 @@ namespace NewLife.Serialization.Json
             return ret;
         }
 
-        /// <summary>
-        /// 在双引号中使用的js字符串的处理方式
-        /// </summary>
+        /// <summary>在双引号中使用的js字符串的处理方式</summary>>
         public static readonly Func<char, string> JsStringInDoubleQuote = JsString('"');
 
-        /// <summary>
-        /// 在单引号中间使用的js字符串处理方式
-        /// </summary>
+        /// <summary>在单引号中间使用的js字符串处理方式</summary>>
         public static readonly Func<char, string> JsStringInSingleQuote = JsString('\'');
 
-        /// <summary>
-        /// 在指定字符串两边加上双引号的处理方式
-        /// </summary>
+        /// <summary>在指定字符串两边加上双引号的处理方式</summary>>
         public static readonly Func<string, string> DoubleQuote = delegate(string value)
         {
             return '"' + value + '"';
         };
 
-        /// <summary>
-        /// 在指定字符串两边加上单引号的处理方式
-        /// </summary>
+        /// <summary>在指定字符串两边加上单引号的处理方式</summary>>
         public static readonly Func<string, string> SingleQuote = delegate(string value)
         {
             return "'" + value + "'";
         };
 
-        /// <summary>
-        /// 转换Unicode字符为\uXXXX形式的处理方式
-        /// </summary>
+        /// <summary>转换Unicode字符为\uXXXX形式的处理方式</summary>>
         /// <remarks>
         /// 解码方法参见 JsonAtomStringReader.TryDecodeUnicode
         /// </remarks>
@@ -733,9 +659,7 @@ namespace NewLife.Serialization.Json
             return null;
         };
 
-        /// <summary>
-        /// 返回在StringProcess方法中使用的处理方式,用于将输入的字符串转换为Js字符串字面值
-        /// </summary>
+        /// <summary>返回在StringProcess方法中使用的处理方式,用于将输入的字符串转换为Js字符串字面值</summary>>
         /// <remarks>
         /// 可指定是在什么引号中使用的字符串,如果既不是单引号也不是双引号则所有"和'符号都会使用转义符号\
         ///
@@ -780,9 +704,7 @@ namespace NewLife.Serialization.Json
             };
         }
 
-        /// <summary>
-        /// 返回一个在Js代码中使用的Js字符串声明赋值的值部分
-        /// </summary>
+        /// <summary>返回一个在Js代码中使用的Js字符串声明赋值的值部分</summary>>
         /// <remarks>
         /// <code>
         ///   var a=&lt;%=JsStringDefine("foo bar") %&gt;;
@@ -795,9 +717,7 @@ namespace NewLife.Serialization.Json
             return JsStringDefine(str, false);
         }
 
-        /// <summary>
-        /// 返回一个在Js代码中使用的Js字符串声明复制的值部分,可指定字符串赋值使用单引号还是双引号
-        /// </summary>
+        /// <summary>返回一个在Js代码中使用的Js字符串声明复制的值部分,可指定字符串赋值使用单引号还是双引号</summary>>
         /// <param name="str"></param>
         /// <param name="useSingleQuote">true表示使用单引号,否则使用双引号</param>
         /// <returns></returns>
@@ -809,34 +729,22 @@ namespace NewLife.Serialization.Json
         #endregion
     }
 
-    /// <summary>
-    /// 简单Json值
-    /// </summary>
+    /// <summary>简单Json值</summary>>
     public class SimpleJson
     {
-        /// <summary>
-        /// 值类型
-        /// </summary>
+        /// <summary>值类型</summary>>
         public virtual SimpleJsonType Type { get; set; }
 
-        /// <summary>
-        /// 值,实际类型取决于Type属性
-        /// </summary>
+        /// <summary>值,实际类型取决于Type属性</summary>>
         public virtual object Value { get; set; }
 
-        /// <summary>
-        /// 易用的方法,返回当前值是否是未定义
-        /// </summary>
+        /// <summary>易用的方法,返回当前值是否是未定义</summary>>
         public virtual bool IsUndefined { get { return Type == SimpleJsonType.Undefined; } }
 
-        /// <summary>
-        /// 易用的方法,返回当前值是否是未知的值
-        /// </summary>
+        /// <summary>易用的方法,返回当前值是否是未知的值</summary>>
         public virtual bool IsUnknown { get { return Type == SimpleJsonType.Unknown; } }
 
-        /// <summary>
-        /// 返回对象或数组的元素总数,非对象和数组的情况下返回0
-        /// </summary>
+        /// <summary>返回对象或数组的元素总数,非对象和数组的情况下返回0</summary>>
         public int Count
         {
             get
@@ -867,9 +775,7 @@ namespace NewLife.Serialization.Json
             }
         }
 
-        /// <summary>
-        /// 按下标索引,只在Type为数组是生效,如果不是数组或不存在将返回Undefined
-        /// </summary>
+        /// <summary>按下标索引,只在Type为数组是生效,如果不是数组或不存在将返回Undefined</summary>>
         /// <param name="index"></param>
         /// <returns></returns>
         public SimpleJson this[int index]
@@ -890,9 +796,7 @@ namespace NewLife.Serialization.Json
             }
         }
 
-        /// <summary>
-        /// 按名称索引,只在Type为对象是生效,如果不是对象或不存在将返回Undefined
-        /// </summary>
+        /// <summary>按名称索引,只在Type为对象是生效,如果不是对象或不存在将返回Undefined</summary>>
         /// <param name="key"></param>
         /// <returns></returns>
         public SimpleJson this[string key]
@@ -913,9 +817,7 @@ namespace NewLife.Serialization.Json
             }
         }
 
-        /// <summary>
-        /// 使用检索字符串检索当前Json值
-        /// </summary>
+        /// <summary>使用检索字符串检索当前Json值</summary>>
         /// <remarks>
         /// 检索字符串很类似js,可以象在js中访问json对象一样访问SimpleJson对象树
         /// </remarks>
@@ -959,9 +861,7 @@ namespace NewLife.Serialization.Json
             return new SimpleJson() { Type = SimpleJsonType.Undefined };
         }
 
-        /// <summary>
-        /// 将当前Json值的实际值转换成指定类型返回
-        /// </summary>
+        /// <summary>将当前Json值的实际值转换成指定类型返回</summary>>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
         public virtual T Get<T>()
@@ -971,9 +871,7 @@ namespace NewLife.Serialization.Json
             return default(T);
         }
 
-        /// <summary>
-        /// 使用检索字符串检索当前Json值的实际值,并转换为T类型
-        /// </summary>
+        /// <summary>使用检索字符串检索当前Json值的实际值,并转换为T类型</summary>>
         /// <typeparam name="T"></typeparam>
         /// <param name="query"></param>
         /// <returns></returns>
@@ -982,9 +880,7 @@ namespace NewLife.Serialization.Json
             return Get(query, default(T));
         }
 
-        /// <summary>
-        /// 使用检索字符串检索当前Json值的实际值,并转换为T类型,如果转换失败将返回_default
-        /// </summary>
+        /// <summary>使用检索字符串检索当前Json值的实际值,并转换为T类型,如果转换失败将返回_default</summary>>
         /// <typeparam name="T"></typeparam>
         /// <param name="query"></param>
         /// <param name="_default"></param>
@@ -997,9 +893,7 @@ namespace NewLife.Serialization.Json
             return _default;
         }
 
-        /// <summary>
-        /// 将当前Json值的实际值转换成指定类型返回,如果类型不匹配将返回T类型的默认值
-        /// </summary>
+        /// <summary>将当前Json值的实际值转换成指定类型返回,如果类型不匹配将返回T类型的默认值</summary>>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
         public virtual bool TryGet<T>(out T val)
@@ -1013,9 +907,7 @@ namespace NewLife.Serialization.Json
             return false;
         }
 
-        /// <summary>
-        /// 重载
-        /// </summary>
+        /// <summary>重载</summary>>
         /// <returns></returns>
         public override string ToString()
         {
@@ -1031,50 +923,28 @@ namespace NewLife.Serialization.Json
         }
     }
 
-    /// <summary>
-    /// 简单Json值类型,针对SimpleJsonReader的需要,对JsonAtomType的一些精简,并提供js中Undefined类型
-    /// </summary>
+    /// <summary>简单Json值类型,针对SimpleJsonReader的需要,对JsonAtomType的一些精简,并提供js中Undefined类型</summary>>
     public enum SimpleJsonType
     {
-        /// <summary>
-        /// 未知,不属于基础Json类型的类型
-        /// </summary>
+        /// <summary>未知,不属于基础Json类型的类型</summary>>
         Unknown,
-        /// <summary>
-        /// 对象类型,即{"key":"value"}
-        /// </summary>
+        /// <summary>对象类型,即{"key":"value"}</summary>>
         Object,
-        /// <summary>
-        /// 数组类型,即["value",1,2,3]
-        /// </summary>
+        /// <summary>数组类型,即["value",1,2,3]</summary>>
         Array,
-        /// <summary>
-        /// 字符串
-        /// </summary>
+        /// <summary>字符串</summary>>
         String,
-        /// <summary>
-        /// 整数
-        /// </summary>
+        /// <summary>整数</summary>>
         Integer,
-        /// <summary>
-        /// 浮点数
-        /// </summary>
+        /// <summary>浮点数</summary>>
         Float,
-        /// <summary>
-        /// 布尔型,true/false
-        /// </summary>
+        /// <summary>布尔型,true/false</summary>>
         Boolean,
-        /// <summary>
-        /// null
-        /// </summary>
+        /// <summary>null</summary>>
         Null,
-        /// <summary>
-        /// 字面值,用于处理不严谨的json字符串,比如{aa:'bb'}
-        /// </summary>
+        /// <summary>字面值,用于处理不严谨的json字符串,比如{aa:'bb'}</summary>>
         Literal,
-        /// <summary>
-        /// 未初始化的值,用于处理不严谨的json字符串,比如[,,]
-        /// </summary>
+        /// <summary>未初始化的值,用于处理不严谨的json字符串,比如[,,]</summary>>
         Undefined
     }
 }

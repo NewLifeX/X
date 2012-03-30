@@ -6,9 +6,7 @@ using XCode.DataAccessLayer;
 
 namespace XCode
 {
-    /// <summary>
-    /// 用于指定数据类所绑定到的索引
-    /// </summary>
+    /// <summary>用于指定数据类所绑定到的索引</summary>>
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
     public class BindIndexAttribute : Attribute
     {
@@ -39,9 +37,7 @@ namespace XCode
         #endregion
 
         #region 构造
-        /// <summary>
-        /// 指定一个索引
-        /// </summary>
+        /// <summary>指定一个索引</summary>>
         /// <param name="name"></param>
         /// <param name="unique"></param>
         /// <param name="columns"></param>
@@ -72,9 +68,7 @@ namespace XCode
         //    return list.ToArray();
         //}
 
-        /// <summary>
-        /// 填充索引
-        /// </summary>
+        /// <summary>填充索引</summary>>
         /// <param name="index"></param>
         internal void Fill(IDataIndex index)
         {

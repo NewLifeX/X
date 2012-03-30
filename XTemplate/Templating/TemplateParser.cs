@@ -5,9 +5,7 @@ using System.Text.RegularExpressions;
 
 namespace XTemplate.Templating
 {
-    /// <summary>
-    /// 模版分析器
-    /// </summary>
+    /// <summary>模版分析器</summary>>
     internal static class TemplateParser
     {
         #region 分析模版的正则表达式
@@ -50,9 +48,7 @@ namespace XTemplate.Templating
 
         #region 分析模版
         private static Regex unescapedTagFindingRegex = new Regex(@"(^|[^\\])(\\\\)*(<\#|\#>)", RegexOptions.Singleline | RegexOptions.Compiled | RegexOptions.ExplicitCapture);
-        /// <summary>
-        /// 把模版分割成块
-        /// </summary>
+        /// <summary>把模版分割成块</summary>>
         /// <param name="name"></param>
         /// <param name="content"></param>
         /// <returns></returns>
@@ -97,9 +93,7 @@ namespace XTemplate.Templating
         }
 
         private static Regex newlineFindingRegex = new Regex(Environment.NewLine, RegexOptions.Singleline | RegexOptions.Compiled);
-        /// <summary>
-        /// 插入位置信息
-        /// </summary>
+        /// <summary>插入位置信息</summary>>
         /// <param name="blocks"></param>
         private static void InsertPosition(List<Block> blocks)
         {
@@ -144,9 +138,7 @@ namespace XTemplate.Templating
 
         private static Regex escapeFindingRegex = new Regex(@"\\+(?=<\\#)|\\+(?=\\#>)", RegexOptions.Singleline | RegexOptions.Compiled | RegexOptions.ExplicitCapture);
         private static Regex eolEscapeFindingRegex = new Regex(@"\\+(?=$)", RegexOptions.Singleline | RegexOptions.Compiled | RegexOptions.ExplicitCapture);
-        /// <summary>
-        /// 对编码的字符进行解码
-        /// </summary>
+        /// <summary>对编码的字符进行解码</summary>>
         /// <param name="blocks"></param>
         private static void StripEscapeCharacters(List<Block> blocks)
         {
@@ -193,9 +185,7 @@ namespace XTemplate.Templating
         #region 分析指令
         private static Regex directiveEscapeFindingRegex = new Regex("\\\\+(?=\")|\\\\+(?=$)", RegexOptions.Singleline | RegexOptions.Compiled | RegexOptions.ExplicitCapture);
         private static Regex directiveParsingRegex = new Regex("(?<pname>\\S+?)\\s*=\\s*\"(?<pvalue>.*?)(?<=[^\\\\](\\\\\\\\)*)\"|(?<name>\\S+)", RegexOptions.IgnorePatternWhitespace | RegexOptions.Singleline | RegexOptions.Compiled | RegexOptions.ExplicitCapture);
-        /// <summary>
-        /// 分析指令块
-        /// </summary>
+        /// <summary>分析指令块</summary>>
         /// <param name="block"></param>
         /// <returns></returns>
         public static Directive ParseDirectiveBlock(Block block)
@@ -237,9 +227,7 @@ namespace XTemplate.Templating
 
         private static Regex nameValidatingRegex = new Regex(@"^\s*[\w\.]+\s+", RegexOptions.Singleline | RegexOptions.Compiled | RegexOptions.ExplicitCapture);
         private static Regex paramValueValidatingRegex = new Regex("[\\w\\.]+\\s*=\\s*\"(.*?)(?<=[^\\\\](\\\\\\\\)*)\"\\s*", RegexOptions.Singleline | RegexOptions.Compiled | RegexOptions.ExplicitCapture);
-        /// <summary>
-        /// 验证指令字符串格式是否正确
-        /// </summary>
+        /// <summary>验证指令字符串格式是否正确</summary>>
         /// <param name="block"></param>
         /// <returns></returns>
         private static Boolean ValidateDirectiveString(Block block)
@@ -267,9 +255,7 @@ namespace XTemplate.Templating
         private static Regex allNewlineRegex = new Regex(@"^\s*$", RegexOptions.Singleline | RegexOptions.Compiled);
         private static Regex newlineAtLineStartRegex = new Regex(@"^[ \t]*((\r\n)|\n)", RegexOptions.Singleline | RegexOptions.Compiled);
         private static Regex newlineAtLineEndRegex = new Regex(@"(?=(\r\n)|\n)[ \t]*$", RegexOptions.Singleline | RegexOptions.Compiled);
-        /// <summary>
-        /// 删除多余的换行
-        /// </summary>
+        /// <summary>删除多余的换行</summary>>
         /// <remarks>
         /// 本方法的目的是为了让模版的编写更加随意灵活，有以下功能：
         /// 1，文本后面如果是语句代码段或者类成员代码段，允许忽略代码段前的一个换行和空白符 (?=(\r\n)|\n)[ \t]*$

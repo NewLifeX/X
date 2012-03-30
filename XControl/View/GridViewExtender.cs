@@ -16,9 +16,7 @@ using System.Collections;
 
 namespace XControl
 {
-    /// <summary>
-    /// GridView扩展控件
-    /// </summary>
+    /// <summary>GridView扩展控件</summary>>
     [Description("GridView扩展控件")]
     [ToolboxData("<{0}:GridViewExtender runat=server></{0}:GridViewExtender>")]
     //[TargetControlType(typeof(GridView))]
@@ -79,9 +77,7 @@ namespace XControl
             set { SetPropertyValue<Int32>("CheckBoxIndex", value); }
         }
 
-        /// <summary>
-        /// 双击行时点击的列文本,一般在前端表现为A标签的内容
-        /// </summary>
+        /// <summary>双击行时点击的列文本,一般在前端表现为A标签的内容</summary>>
         [Description("双击行时点击的列文本,一般在前端表现为A标签的内容")]
         [DefaultValue("编辑")]
         public string DblClickRowFieldText
@@ -242,9 +238,7 @@ namespace XControl
         #endregion 扩展属性
 
         #region 方法
-        /// <summary>
-        /// 已重载。
-        /// </summary>
+        /// <summary>已重载。</summary>>
         /// <param name="e"></param>
         protected override void OnInit(EventArgs e)
         {
@@ -270,9 +264,7 @@ namespace XControl
             }
         }
 
-        /// <summary>
-        /// 已重载。
-        /// </summary>
+        /// <summary>已重载。</summary>>
         /// <param name="e"></param>
         protected override void OnPreRender(EventArgs e)
         {
@@ -367,9 +359,7 @@ e.ClickElement('a',function(i){{
             }
         }
 
-        /// <summary>
-        /// 将指定的字符串作为javascript中使用的字符串内容返回,没有js字符串声明两边的双引号
-        /// </summary>
+        /// <summary>将指定的字符串作为javascript中使用的字符串内容返回,没有js字符串声明两边的双引号</summary>>
         /// <param name="i"></param>
         /// <returns></returns>
         [Obsolete("使用XControl.Helper.JsStringEscape")]
@@ -380,9 +370,7 @@ e.ClickElement('a',function(i){{
 
         static Regex reMinJs = new Regex(@"\s*(?:\r\n|\r|\n)+\s*", RegexOptions.Compiled);
 
-        /// <summary>
-        /// 将指定的javascript代码做简单压缩,去除换行和缩进
-        /// </summary>
+        /// <summary>将指定的javascript代码做简单压缩,去除换行和缩进</summary>>
         /// <param name="i"></param>
         /// <returns></returns>
         [Obsolete("使用XControl.Helper.JsMinSimple")]
@@ -391,9 +379,7 @@ e.ClickElement('a',function(i){{
             return reMinJs.Replace(i + "", "");
         }
 
-        /// <summary>
-        /// 将指定字符串作为html标签属性中可使用的字符串返回
-        /// </summary>
+        /// <summary>将指定字符串作为html标签属性中可使用的字符串返回</summary>>
         /// <param name="i"></param>
         /// <returns></returns>
         [Obsolete("使用XControl.Helper.HTMLPropertyEscape")]
@@ -437,9 +423,7 @@ e.ClickElement('a',function(i){{
 
         static String _pagerTemplate;
 
-        /// <summary>
-        /// 分页模版
-        /// </summary>
+        /// <summary>分页模版</summary>>
         public static String PagerTemplateString
         {
             get

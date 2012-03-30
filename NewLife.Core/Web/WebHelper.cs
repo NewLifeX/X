@@ -9,26 +9,20 @@ using NewLife.Exceptions;
 
 namespace NewLife.Web
 {
-    /// <summary>
-    /// 网页工具类
-    /// </summary>
+    /// <summary>网页工具类</summary>>
     public static class WebHelper
     {
         static Page Page { get { return HttpContext.Current.Handler as Page; } }
 
         #region 辅助
-        /// <summary>
-        /// 输出脚本
-        /// </summary>
+        /// <summary>输出脚本</summary>>
         /// <param name="script"></param>
         public static void WriteScript(String script)
         {
             HttpContext.Current.Response.Write(String.Format("<script type=\"text/javascript\">\n{0}\n</script>", script));
         }
 
-        /// <summary>
-        /// 按字节截取
-        /// </summary>
+        /// <summary>按字节截取</summary>>
         /// <param name="Str">字符串</param>
         /// <param name="StartIndex">开始位置</param>
         /// <param name="Len">长度</param>
@@ -57,9 +51,7 @@ namespace NewLife.Web
         #endregion
 
         #region 弹出信息
-        /// <summary>
-        /// Js脚本编码
-        /// </summary>
+        /// <summary>Js脚本编码</summary>>
         /// <param name="str"></param>
         /// <returns></returns>
         public static String JsEncode(String str)
@@ -75,18 +67,14 @@ namespace NewLife.Web
             return str;
         }
 
-        /// <summary>
-        /// 弹出页面提示
-        /// </summary>
+        /// <summary>弹出页面提示</summary>>
         /// <param name="msg"></param>
         public static void Alert(String msg)
         {
             Page.ClientScript.RegisterStartupScript(Page.GetType(), "alert", "alert('" + JsEncode(msg) + "');", true);
         }
 
-        /// <summary>
-        /// 弹出页面提示并停止输出后退一步！
-        /// </summary>
+        /// <summary>弹出页面提示并停止输出后退一步！</summary>>
         /// <param name="msg"></param>
         public static void AlertAndEnd(String msg)
         {
@@ -94,9 +82,7 @@ namespace NewLife.Web
             HttpContext.Current.Response.End();
         }
 
-        /// <summary>
-        /// 弹出页面提示，并刷新该页面
-        /// </summary>
+        /// <summary>弹出页面提示，并刷新该页面</summary>>
         /// <param name="msg"></param>
         public static void AlertAndRefresh(String msg)
         {
@@ -106,9 +92,7 @@ namespace NewLife.Web
             HttpContext.Current.Response.End();
         }
 
-        /// <summary>
-        /// 弹出页面提示并重定向到另外的页面
-        /// </summary>
+        /// <summary>弹出页面提示并重定向到另外的页面</summary>>
         /// <param name="msg"></param>
         /// <param name="url"></param>
         public static void AlertAndRedirect(String msg, String url)
@@ -127,9 +111,7 @@ namespace NewLife.Web
             HttpContext.Current.Response.End();
         }
 
-        /// <summary>
-        /// 弹出页面提示并关闭当前页面
-        /// </summary>
+        /// <summary>弹出页面提示并关闭当前页面</summary>>
         /// <param name="msg"></param>
         public static void AlertAndClose(String msg)
         {
@@ -139,9 +121,7 @@ namespace NewLife.Web
         #endregion
 
         #region 输入检查
-        /// <summary>
-        /// 检查控件值是否为空，若为空，显示错误信息，并聚焦到控件上
-        /// </summary>
+        /// <summary>检查控件值是否为空，若为空，显示错误信息，并聚焦到控件上</summary>>
         /// <param name="control">要检查的控件</param>
         /// <param name="errmsg">错误信息。若为空，将使用ToolTip</param>
         /// <returns></returns>
@@ -171,9 +151,7 @@ namespace NewLife.Web
         #endregion
 
         #region 用户主机
-        /// <summary>
-        /// 用户主机
-        /// </summary>
+        /// <summary>用户主机</summary>>
         public static String UserHost
         {
             get
@@ -197,9 +175,7 @@ namespace NewLife.Web
         #endregion
 
         #region 导出Excel
-        /// <summary>
-        /// 导出Excel
-        /// </summary>
+        /// <summary>导出Excel</summary>>
         /// <param name="gv"></param>
         /// <param name="filename"></param>
         /// <param name="max"></param>
@@ -208,9 +184,7 @@ namespace NewLife.Web
             ExportExcel(gv, filename, max, Encoding.Default);
         }
 
-        /// <summary>
-        /// 导出Excel
-        /// </summary>
+        /// <summary>导出Excel</summary>>
         /// <param name="gv"></param>
         /// <param name="filename"></param>
         /// <param name="max"></param>
@@ -259,9 +233,7 @@ namespace NewLife.Web
         #endregion
 
         #region 请求相关
-        /// <summary>
-        /// 获取整型参数
-        /// </summary>
+        /// <summary>获取整型参数</summary>>
         /// <param name="name"></param>
         /// <returns></returns>
         public static Int32 RequestInt(String name)
@@ -275,9 +247,7 @@ namespace NewLife.Web
             return n;
         }
 
-        /// <summary>
-        /// 接收布尔值
-        /// </summary>
+        /// <summary>接收布尔值</summary>>
         /// <param name="name"></param>
         /// <returns></returns>
         public static bool RequestBool(String name)
@@ -285,9 +255,7 @@ namespace NewLife.Web
             return ConvertBool(HttpContext.Current.Request[name]);
         }
 
-        /// <summary>
-        /// 接收时间
-        /// </summary>
+        /// <summary>接收时间</summary>>
         /// <param name="name"></param>
         /// <returns></returns>
         public static DateTime RequestDateTime(String name)
@@ -295,9 +263,7 @@ namespace NewLife.Web
             return ConvertDateTime(HttpContext.Current.Request[name]);
         }
 
-        /// <summary>
-        /// 接收Double
-        /// </summary>
+        /// <summary>接收Double</summary>>
         /// <param name="name"></param>
         /// <returns></returns>
         public static Double RequestDouble(String name)
@@ -305,9 +271,7 @@ namespace NewLife.Web
             return ConvertDouble(HttpContext.Current.Request[name]);
         }
 
-        /// <summary>
-        /// 字符转换为数字
-        /// </summary>
+        /// <summary>字符转换为数字</summary>>
         /// <param name="val"></param>
         /// <returns></returns>
         public static Int32 ConvertInt(String val)
@@ -318,9 +282,7 @@ namespace NewLife.Web
             return r;
         }
 
-        /// <summary>
-        /// 字符转换为布尔
-        /// </summary>
+        /// <summary>字符转换为布尔</summary>>
         /// <param name="val"></param>
         /// <returns></returns>
         public static bool ConvertBool(String val)
@@ -342,9 +304,7 @@ namespace NewLife.Web
             return r;
         }
 
-        /// <summary>
-        /// 字符转换为时间
-        /// </summary>
+        /// <summary>字符转换为时间</summary>>
         /// <param name="val"></param>
         /// <returns></returns>
         public static DateTime ConvertDateTime(String val)
@@ -355,9 +315,7 @@ namespace NewLife.Web
             return r;
         }
 
-        /// <summary>
-        /// 字符转换
-        /// </summary>
+        /// <summary>字符转换</summary>>
         /// <param name="val"></param>
         /// <returns></returns>
         public static Double ConvertDouble(String val)

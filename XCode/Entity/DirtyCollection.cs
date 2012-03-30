@@ -8,9 +8,7 @@ namespace XCode
     [Serializable]
     class DirtyCollection : Dictionary<String, Boolean>, IDictionary<String, Boolean>
     {
-        /// <summary>
-        /// 获取或设置与指定的属性是否有脏数据。
-        /// </summary>
+        /// <summary>获取或设置与指定的属性是否有脏数据。</summary>>
         /// <param name="item"></param>
         /// <returns></returns>
         public new Boolean this[String item]

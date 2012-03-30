@@ -204,9 +204,7 @@ namespace NewLife.Net.SGIP
         #endregion
 
         #region 发命令
-        /// <summary>
-        /// 发送指令，返回响应
-        /// </summary>
+        /// <summary>发送指令，返回响应</summary>>
         /// <param name="command">指令</param>
         /// <returns>响应</returns>
         private SGIPEntity Send(SGIPEntity command)
@@ -218,9 +216,7 @@ namespace NewLife.Net.SGIP
         #endregion
 
         #region 读写命令
-        /// <summary>
-        /// 读命令
-        /// </summary>
+        /// <summary>读命令</summary>>
         /// <returns></returns>
         private SGIPEntity Read()
         {
@@ -240,9 +236,7 @@ namespace NewLife.Net.SGIP
             }
         }
 
-        /// <summary>
-        /// 写命令
-        /// </summary>
+        /// <summary>写命令</summary>>
         /// <param name="cmd"></param>
         private void Write(SGIPEntity cmd)
         {

@@ -4,9 +4,7 @@ using System;
 
 namespace XAgent
 {
-    /// <summary>
-    /// 代理服务例子。自定义服务程序可参照该类实现。
-    /// </summary>
+    /// <summary>代理服务例子。自定义服务程序可参照该类实现。</summary>>
     class AgentService : AgentServiceBase<AgentService>
     {
         #region 属性
@@ -30,9 +28,7 @@ namespace XAgent
         #endregion
 
         #region 核心
-        /// <summary>
-        /// 核心工作方法。调度线程会定期调用该方法
-        /// </summary>
+        /// <summary>核心工作方法。调度线程会定期调用该方法</summary>>
         /// <param name="index">线程序号</param>
         /// <returns>是否立即开始下一步工作。某些任务能达到满负荷，线程可以不做等待</returns>
         public override bool Work(int index)

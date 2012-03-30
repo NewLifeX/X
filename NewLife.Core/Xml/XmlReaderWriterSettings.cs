@@ -3,9 +3,7 @@ using NewLife.Serialization;
 
 namespace NewLife.Xml
 {
-    /// <summary>
-    /// Xml序列化设置
-    /// </summary>
+    /// <summary>Xml序列化设置</summary>>
     public class XmlReaderWriterSettings : TextReaderWriterSetting
     {
         #region 属性

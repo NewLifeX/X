@@ -19,9 +19,7 @@ namespace NewLife.CommonEntity.Web
     ///// </summary>
     //public class WebPageBase : WebPageBase<Administrator, Menu> { }
 
-    /// <summary>
-    /// 指定具体管理员类和菜单类的页面基类
-    /// </summary>
+    /// <summary>指定具体管理员类和菜单类的页面基类</summary>>
     /// <typeparam name="TAdminEntity"></typeparam>
     /// <typeparam name="TMenuEntity"></typeparam>
     [Obsolete("不再需要指定管理员类和菜单类，请改用WebPageBase类替代！")]
@@ -95,17 +93,13 @@ namespace NewLife.CommonEntity.Web
         //#endregion
     }
 
-    /// <summary>
-    /// 指定具体管理员类的页面基类
-    /// </summary>
+    /// <summary>指定具体管理员类的页面基类</summary>>
     /// <typeparam name="TAdminEntity"></typeparam>
     [Obsolete("不再需要指定管理员类和菜单类，请改用WebPageBase类替代！")]
     public class WebPageBase<TAdminEntity> : WebPageBase
         where TAdminEntity : Administrator<TAdminEntity>, new()
     {
-        /// <summary>
-        /// 当前管理员
-        /// </summary>
+        /// <summary>当前管理员</summary>>
         public override IAdministrator Current
         {
             get
@@ -115,15 +109,11 @@ namespace NewLife.CommonEntity.Web
         }
     }
 
-    /// <summary>
-    /// 页面基类
-    /// </summary>
+    /// <summary>页面基类</summary>>
     public class WebPageBase : System.Web.UI.Page
     {
         #region 菜单
-        /// <summary>
-        /// 导航 分为三级：栏目－子栏目－页面
-        /// </summary>
+        /// <summary>导航 分为三级：栏目－子栏目－页面</summary>>
         public virtual String Navigation
         {
             get
@@ -177,9 +167,7 @@ namespace NewLife.CommonEntity.Web
             set { _ValidatePermission = value; }
         }
 
-        /// <summary>
-        /// 权限名。默认是页面标题
-        /// </summary>
+        /// <summary>权限名。默认是页面标题</summary>>
         public virtual String PermissionName
         {
             get
@@ -196,9 +184,7 @@ namespace NewLife.CommonEntity.Web
             }
         }
 
-        /// <summary>
-        /// 检查是否已登录
-        /// </summary>
+        /// <summary>检查是否已登录</summary>>
         /// <returns></returns>
         public virtual Boolean CheckLogin()
         {
@@ -209,18 +195,14 @@ namespace NewLife.CommonEntity.Web
             return true;
         }
 
-        /// <summary>
-        /// 检查权限，实际上就是Acquire(PermissionFlags.None)
-        /// </summary>
+        /// <summary>检查权限，实际上就是Acquire(PermissionFlags.None)</summary>>
         /// <returns></returns>
         public virtual Boolean CheckPermission()
         {
             return Acquire(PermissionFlags.None);
         }
 
-        /// <summary>
-        /// 申请指定操作的权限
-        /// </summary>
+        /// <summary>申请指定操作的权限</summary>>
         /// <param name="flag"></param>
         /// <returns></returns>
         public virtual Boolean Acquire(PermissionFlags flag)
@@ -244,9 +226,7 @@ namespace NewLife.CommonEntity.Web
             return admin.Acquire(menu.ID, flag);
         }
 
-        /// <summary>
-        /// 申请指定操作的权限
-        /// </summary>
+        /// <summary>申请指定操作的权限</summary>>
         /// <param name="name"></param>
         /// <param name="flag"></param>
         /// <returns></returns>
@@ -264,9 +244,7 @@ namespace NewLife.CommonEntity.Web
             return admin.Acquire(name, flag);
         }
 
-        /// <summary>
-        /// 申请指定操作的权限
-        /// </summary>
+        /// <summary>申请指定操作的权限</summary>>
         /// <param name="name"></param>
         /// <returns></returns>
         public virtual Boolean Acquire(String name)
@@ -276,9 +254,7 @@ namespace NewLife.CommonEntity.Web
         #endregion
 
         #region 登录用户控制
-        /// <summary>
-        /// 当前管理员
-        /// </summary>
+        /// <summary>当前管理员</summary>>
         public virtual IAdministrator Current
         {
             get
@@ -292,9 +268,7 @@ namespace NewLife.CommonEntity.Web
             }
         }
 
-        /// <summary>
-        /// 已重载。
-        /// </summary>
+        /// <summary>已重载。</summary>>
         /// <param name="e"></param>
         protected override void OnPreLoad(EventArgs e)
         {
@@ -342,9 +316,7 @@ namespace NewLife.CommonEntity.Web
         private Int32 StartQueryTimes = DAL.QueryTimes;
         private Int32 StartExecuteTimes = DAL.ExecuteTimes;
 
-        /// <summary>
-        /// 是否输出执行时间
-        /// </summary>
+        /// <summary>是否输出执行时间</summary>>
         [Obsolete("后续版本将不再支持该属性，请重写CheckPermission来判断是否验证授权！")]
         protected virtual Boolean IsWriteRunTime
         {
@@ -355,15 +327,11 @@ namespace NewLife.CommonEntity.Web
             }
         }
 
-        /// <summary>
-        /// 执行时间字符串
-        /// </summary>
+        /// <summary>执行时间字符串</summary>>
         [Obsolete("后续版本将不再支持该属性，请重写CheckPermission来判断是否验证授权！")]
         protected virtual String RunTimeString { get { return "查询{0}次，执行{1}次，耗时{2}毫秒！"; } }
 
-        /// <summary>
-        /// 
-        /// </summary>
+        /// <summary></summary>>
         /// <param name="writer"></param>
         protected override void Render(HtmlTextWriter writer)
         {
@@ -375,9 +343,7 @@ namespace NewLife.CommonEntity.Web
             if (lt == null) WriteRunTime();
         }
 
-        /// <summary>
-        /// 输出运行时间
-        /// </summary>
+        /// <summary>输出运行时间</summary>>
         protected virtual void WriteRunTime()
         {
             if (!Request.PhysicalPath.EndsWith(".aspx", StringComparison.OrdinalIgnoreCase)) return;
@@ -400,19 +366,13 @@ namespace NewLife.CommonEntity.Web
         #endregion
 
         #region 压缩ViewState
-        /// <summary>
-        /// 设定序列化后的字符串长度为多少后启用压缩
-        /// </summary>
+        /// <summary>设定序列化后的字符串长度为多少后启用压缩</summary>>
         private static Int32 LimitLength = 1096;
 
-        /// <summary>
-        /// 是否压缩ViewState
-        /// </summary>
+        /// <summary>是否压缩ViewState</summary>>
         protected virtual Boolean CompressViewState { get { return Config.GetConfig<Boolean>("NewLife.CommonEntity.CompressViewState", true); } }
 
-        /// <summary>
-        /// 重写保存页的所有视图状态信息
-        /// </summary>
+        /// <summary>重写保存页的所有视图状态信息</summary>>
         /// <param name="state">要在其中存储视图状态信息的对象</param>
         protected override void SavePageStateToPersistenceMedium(Object state)
         {
@@ -443,9 +403,7 @@ namespace NewLife.CommonEntity.Web
             ClientScript.RegisterHiddenField("__VSTATE", vs);
         }
 
-        /// <summary>
-        /// 重写将所有保存的视图状态信息加载到页面对象
-        /// </summary>
+        /// <summary>重写将所有保存的视图状态信息加载到页面对象</summary>>
         /// <returns>保存的视图状态</returns>
         protected override Object LoadPageStateFromPersistenceMedium()
         {
@@ -468,9 +426,7 @@ namespace NewLife.CommonEntity.Web
 
         #region 系统启动中
         static Boolean SystemStarted = false;
-        /// <summary>
-        /// 检查系统是否启动中，如果启动中，则显示进度条
-        /// </summary>
+        /// <summary>检查系统是否启动中，如果启动中，则显示进度条</summary>>
         public static void CheckStarting()
         {
             if (HttpContext.Current == null) return;

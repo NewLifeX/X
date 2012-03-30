@@ -12,9 +12,7 @@ namespace NewLife.Mvc
 
         private static string _TempleteDir;
 
-        /// <summary>
-        /// 一般控制器的模版根目录,默认为网站根目录,即空白字符串,始终以普通字符开始,并且始终不以/符号结尾
-        /// </summary>
+        /// <summary>一般控制器的模版根目录,默认为网站根目录,即空白字符串,始终以普通字符开始,并且始终不以/符号结尾</summary>>
         public static string TempleteDir
         {
             get
@@ -34,9 +32,7 @@ namespace NewLife.Mvc
 
         private static string[] _AcceptSuffixs;
 
-        /// <summary>
-        /// 一般控制器接受处理的请求后缀名,默认包含aspx,xt
-        /// </summary>
+        /// <summary>一般控制器接受处理的请求后缀名,默认包含aspx,xt</summary>>
         public static string[] AcceptSuffixs
         {
             get
@@ -62,9 +58,7 @@ namespace NewLife.Mvc
             }
         }
 
-        /// <summary>
-        /// 将指定的路径解析为模板文件物理路径,不检查文件是否存在
-        /// </summary>
+        /// <summary>将指定的路径解析为模板文件物理路径,不检查文件是否存在</summary>>
         /// <param name="path">以/ ~/ 或普通字符开始都可以</param>
         /// <returns></returns>
         public static string ResolveTempletePath(string path)
@@ -76,9 +70,7 @@ namespace NewLife.Mvc
             return Path.GetFullPath(Path.Combine(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, TempleteDir), path.TrimStart('/')));
         }
 
-        /// <summary>
-        /// 当前控制器工厂产生的控制器是否支持指定路径的请求
-        /// </summary>
+        /// <summary>当前控制器工厂产生的控制器是否支持指定路径的请求</summary>>
         /// <param name="path"></param>
         /// <returns></returns>
         public bool Support(string path)

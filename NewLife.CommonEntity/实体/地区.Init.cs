@@ -9,15 +9,11 @@ using NewLife.Threading;
 
 namespace NewLife.CommonEntity
 {
-    /// <summary>
-    /// 地区
-    /// </summary>
+    /// <summary>地区</summary>>
     public partial class Area<TEntity>
     {
         #region 数据
-        /// <summary>
-        /// 首次连接数据库时初始化数据，仅用于实体类重载，用户不应该调用该方法
-        /// </summary>
+        /// <summary>首次连接数据库时初始化数据，仅用于实体类重载，用户不应该调用该方法</summary>>
         [EditorBrowsable(EditorBrowsableState.Never)]
         protected override void InitData()
         {

@@ -71,9 +71,7 @@ namespace NewLife.Net.UPnP
         #endregion
 
         #region 方法
-        /// <summary>
-        /// 分析URLBase 并赋值HOST和Port
-        /// </summary>
+        /// <summary>分析URLBase 并赋值HOST和Port</summary>>
         public void GetHOSTAndPort()
         {
             //Regex Regex = new Regex(@"\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3}:\d{1,5}");
@@ -94,9 +92,7 @@ namespace NewLife.Net.UPnP
             ServerPort = uri.Port;
         }
 
-        /// <summary>
-        /// 已重载。
-        /// </summary>
+        /// <summary>已重载。</summary>>
         /// <returns></returns>
         public override string ToString()
         {

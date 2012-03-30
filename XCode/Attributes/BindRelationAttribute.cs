@@ -6,9 +6,7 @@ using XCode.DataAccessLayer;
 
 namespace XCode
 {
-    /// <summary>
-    /// 用于指定数据类所绑定到的关系
-    /// </summary>
+    /// <summary>用于指定数据类所绑定到的关系</summary>>
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
     public class BindRelationAttribute : Attribute
     {
@@ -47,9 +45,7 @@ namespace XCode
         #endregion
 
         #region 构造
-        /// <summary>
-        /// 指定一个关系
-        /// </summary>
+        /// <summary>指定一个关系</summary>>
         /// <param name="column"></param>
         /// <param name="unique"></param>
         /// <param name="relationtable"></param>
@@ -82,9 +78,7 @@ namespace XCode
         //    return list.ToArray();
         //}
 
-        /// <summary>
-        /// 填充索引
-        /// </summary>
+        /// <summary>填充索引</summary>>
         /// <param name="relation"></param>
         internal void Fill(IDataRelation relation)
         {

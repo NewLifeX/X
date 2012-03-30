@@ -10,9 +10,7 @@ using System.Web.UI.WebControls;
 
 namespace XControl
 {
-    /// <summary>
-    /// 分页控件
-    /// </summary>
+    /// <summary>分页控件</summary>>
     [SupportsEventValidation]
     [Themeable(true)]
     [PersistChildren(false)]
@@ -21,9 +19,7 @@ namespace XControl
     public class DataPager : CompositeControl, INamingContainer, IPostBackContainer, IPostBackEventHandler, IPagedDataSource
     {
         #region 属性
-        /// <summary>
-        /// 页数
-        /// </summary>
+        /// <summary>页数</summary>>
         [Browsable(false), WebSysDescription("GridView_PageCount"), DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public virtual Int32 PageCount
         {
@@ -34,9 +30,7 @@ namespace XControl
             }
         }
 
-        /// <summary>
-        /// 页数
-        /// </summary>
+        /// <summary>页数</summary>>
         [WebCategory("Paging"), Browsable(false), DefaultValue(0), Description("总记录数"), DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public virtual Int32 TotalRowCount
         {
@@ -57,9 +51,7 @@ namespace XControl
             }
         }
 
-        /// <summary>
-        /// 缓存页数
-        /// </summary>
+        /// <summary>缓存页数</summary>>
         [WebCategory("Paging"), Browsable(true), DefaultValue(true), Description("是否缓存总记录数")]
         public virtual Boolean TotalRowCountCache
         {
@@ -77,9 +69,7 @@ namespace XControl
         }
 
         //private Int32 _PageIndex;
-        /// <summary>
-        /// 当前页
-        /// </summary>
+        /// <summary>当前页</summary>>
         [WebCategory("Paging"), Browsable(true), DefaultValue(0), WebSysDescription("GridView_PageIndex")]
         public virtual Int32 PageIndex
         {
@@ -102,15 +92,11 @@ namespace XControl
             }
         }
 
-        /// <summary>
-        /// 当前页，等于PageIndex+1
-        /// </summary>
+        /// <summary>当前页，等于PageIndex+1</summary>>
         public Int32 PageIndex2 { get { return PageIndex + 1; } set { PageIndex = value - 1; } }
 
         private Int32 _PageSize = 10;
-        /// <summary>
-        /// 页大小
-        /// </summary>
+        /// <summary>页大小</summary>>
         [WebCategory("Paging"), WebSysDescription("GridView_PageSize"), DefaultValue(10)]
         public virtual Int32 PageSize
         {
@@ -134,9 +120,7 @@ namespace XControl
         }
 
         PagerSettings _pagerSettings;
-        /// <summary>
-        /// 分页设置
-        /// </summary>
+        /// <summary>分页设置</summary>>
         [WebCategory("Paging"), WebSysDescription("GridView_PagerSettings"), DesignerSerializationVisibility(DesignerSerializationVisibility.Content), NotifyParentProperty(true), PersistenceMode(PersistenceMode.InnerProperty)]
         public virtual PagerSettings PagerSettings
         {
@@ -156,9 +140,7 @@ namespace XControl
         }
 
         TableItemStyle _pagerStyle;
-        /// <summary>
-        /// 分页样式
-        /// </summary>
+        /// <summary>分页样式</summary>>
         [WebCategory("Styles"), WebSysDescription("WebControl_PagerStyle"), DesignerSerializationVisibility(DesignerSerializationVisibility.Content), NotifyParentProperty(true), PersistenceMode(PersistenceMode.InnerProperty)]
         public TableItemStyle PagerStyle
         {
@@ -177,9 +159,7 @@ namespace XControl
         }
 
         ITemplate _pagerTemplate;
-        /// <summary>
-        /// 分页模版
-        /// </summary>
+        /// <summary>分页模版</summary>>
         [WebSysDescription("View_PagerTemplate"), Browsable(false), DefaultValue((string)null), PersistenceMode(PersistenceMode.InnerProperty), TemplateContainer(typeof(DataPagerItem))]
         public virtual ITemplate PagerTemplate
         {
@@ -194,9 +174,7 @@ namespace XControl
         }
 
         String _DataSourceID;
-        /// <summary>
-        /// 数据源
-        /// </summary>
+        /// <summary>数据源</summary>>
         [WebSysDescription("BaseDataBoundControl_DataSourceID")]
         [DefaultValue("")]
         [IDReferenceProperty(typeof(DataSourceControl))]
@@ -251,9 +229,7 @@ namespace XControl
 
         #region 事件
         private static readonly Object EventPageIndexChanged = new Object();
-        /// <summary>
-        /// 处理分页操作之后发生
-        /// </summary>
+        /// <summary>处理分页操作之后发生</summary>>
         [WebSysDescription("GridView_OnPageIndexChanged"), WebCategory("Action")]
         public event EventHandler PageIndexChanged
         {
@@ -268,9 +244,7 @@ namespace XControl
         }
 
         private static readonly Object EventPageIndexChanging = new Object();
-        /// <summary>
-        /// 处理分页操作之前发生
-        /// </summary>
+        /// <summary>处理分页操作之前发生</summary>>
         [WebSysDescription("GridView_OnPageIndexChanging"), WebCategory("Action")]
         public event GridViewPageEventHandler PageIndexChanging
         {
@@ -285,9 +259,7 @@ namespace XControl
         }
 
         private static readonly Object EventCommand = new Object();
-        /// <summary>
-        /// 当单击控件中的按钮时发生
-        /// </summary>
+        /// <summary>当单击控件中的按钮时发生</summary>>
         [WebSysDescription("GridView_OnRowCommand"), WebCategory("Action")]
         public event CommandEventHandler PageCommand
         {
@@ -301,9 +273,7 @@ namespace XControl
             }
         }
 
-        /// <summary>
-        /// 引发 PageIndexChanging 事件
-        /// </summary>
+        /// <summary>引发 PageIndexChanging 事件</summary>>
         /// <param name="e"></param>
         protected virtual void OnPageIndexChanging(GridViewPageEventArgs e)
         {
@@ -319,9 +289,7 @@ namespace XControl
             //}
         }
 
-        /// <summary>
-        /// 引发 PageIndexChanged 事件
-        /// </summary>
+        /// <summary>引发 PageIndexChanged 事件</summary>>
         /// <param name="e"></param>
         protected virtual void OnPageIndexChanged(EventArgs e)
         {
@@ -334,9 +302,7 @@ namespace XControl
             }
         }
 
-        /// <summary>
-        /// 引发 Command 事件
-        /// </summary>
+        /// <summary>引发 Command 事件</summary>>
         /// <param name="e"></param>
         protected virtual void OnCommand(CommandEventArgs e)
         {
@@ -349,9 +315,7 @@ namespace XControl
         #endregion
 
         #region 子控件
-        /// <summary>
-        /// 建立子控件
-        /// </summary>
+        /// <summary>建立子控件</summary>>
         protected override void CreateChildControls()
         {
             // 当且仅当总记录数TotalRowCount准备好之后才创建子控件
@@ -656,9 +620,7 @@ namespace XControl
         #endregion
 
         #region 分页
-        /// <summary>
-        /// 处理分页事件
-        /// </summary>
+        /// <summary>处理分页事件</summary>>
         /// <param name="newPage"></param>
         private void HandlePage(int newPage)
         {
@@ -675,9 +637,7 @@ namespace XControl
             }
         }
 
-        /// <summary>
-        /// 仅处理分页事件
-        /// </summary>
+        /// <summary>仅处理分页事件</summary>>
         /// <param name="e"></param>
         /// <param name="causesValidation"></param>
         /// <param name="validationGroup"></param>
@@ -721,9 +681,7 @@ namespace XControl
             return flag;
         }
 
-        /// <summary>
-        /// 已重载。确定 Web 服务器控件的事件是否沿页的用户界面 (UI) 服务器控件层次结构向上传递。
-        /// </summary>
+        /// <summary>已重载。确定 Web 服务器控件的事件是否沿页的用户界面 (UI) 服务器控件层次结构向上传递。</summary>>
         /// <param name="source"></param>
         /// <param name="e"></param>
         /// <returns></returns>
@@ -744,9 +702,7 @@ namespace XControl
             return HandleEvent(e, causesValidation, validationGroup);
         }
 
-        /// <summary>
-        /// 当 DataPager 控件回发到服务器时引发此控件的合适的事件。
-        /// </summary>
+        /// <summary>当 DataPager 控件回发到服务器时引发此控件的合适的事件。</summary>>
         /// <param name="eventArgument"></param>
         protected virtual void RaisePostBackEvent(string eventArgument)
         {
@@ -925,9 +881,7 @@ namespace XControl
         //    return true;
         //}
 
-        /// <summary>
-        /// 加载ViewState
-        /// </summary>
+        /// <summary>加载ViewState</summary>>
         /// <param name="savedState"></param>
         protected override void LoadViewState(object savedState)
         {
@@ -954,9 +908,7 @@ namespace XControl
             }
         }
 
-        /// <summary>
-        /// 保存ViewState
-        /// </summary>
+        /// <summary>保存ViewState</summary>>
         /// <returns></returns>
         protected override object SaveViewState()
         {
@@ -967,9 +919,7 @@ namespace XControl
             return new object[] { obj2, obj4, obj12, obj13 };
         }
 
-        /// <summary>
-        /// 检查ViewState
-        /// </summary>
+        /// <summary>检查ViewState</summary>>
         protected override void TrackViewState()
         {
             base.TrackViewState();
@@ -987,9 +937,7 @@ namespace XControl
             }
         }
 
-        /// <summary>
-        /// 已重写。保证建立子控件
-        /// </summary>
+        /// <summary>已重写。保证建立子控件</summary>>
         /// <param name="e"></param>
         protected override void OnPreRender(EventArgs e)
         {
@@ -999,9 +947,7 @@ namespace XControl
             base.OnPreRender(e);
         }
 
-        /// <summary>
-        /// 已重写。保证建立子控件
-        /// </summary>
+        /// <summary>已重写。保证建立子控件</summary>>
         /// <param name="writer"></param>
         protected override void Render(HtmlTextWriter writer)
         {
@@ -1015,9 +961,7 @@ namespace XControl
             //if (Page.IsPostBack) DataBind();
         }
 
-        /// <summary>
-        /// 加载时触发
-        /// </summary>
+        /// <summary>加载时触发</summary>>
         /// <param name="e"></param>
         protected override void OnLoad(EventArgs e)
         {
@@ -1032,9 +976,7 @@ namespace XControl
             //RequiresDataBinding = true;
         }
 
-        /// <summary>
-        /// 初始化时触发
-        /// </summary>
+        /// <summary>初始化时触发</summary>>
         /// <param name="e"></param>
         protected override void OnInit(EventArgs e)
         {
@@ -1043,18 +985,14 @@ namespace XControl
             BindDataSource();
         }
 
-        /// <summary>
-        /// 已重写。不输出开始标签
-        /// </summary>
+        /// <summary>已重写。不输出开始标签</summary>>
         /// <param name="writer"></param>
         public override void RenderBeginTag(HtmlTextWriter writer)
         {
             //base.RenderBeginTag(writer);
         }
 
-        /// <summary>
-        /// 已重写。不输出结束标签
-        /// </summary>
+        /// <summary>已重写。不输出结束标签</summary>>
         /// <param name="writer"></param>
         public override void RenderEndTag(HtmlTextWriter writer)
         {
@@ -1074,25 +1012,19 @@ namespace XControl
         #endregion
 
         #region IPagedDataSource
-        /// <summary>
-        /// 是否第一页
-        /// </summary>
+        /// <summary>是否第一页</summary>>
         public bool IsFirstPage
         {
             get { return PageIndex == 0; }
         }
 
-        /// <summary>
-        /// 是否最后一页
-        /// </summary>
+        /// <summary>是否最后一页</summary>>
         public bool IsLastPage
         {
             get { return PageIndex == PageCount - 1; }
         }
 
-        /// <summary>
-        /// 当前页开始行
-        /// </summary>
+        /// <summary>当前页开始行</summary>>
         public Int32 StartRowIndex
         {
             get { return PageIndex * PageSize; }

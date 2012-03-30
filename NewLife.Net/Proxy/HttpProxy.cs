@@ -132,14 +132,10 @@ namespace NewLife.Net.Proxy
         /// <summary>Http反向代理会话</summary>
         public class Session : ProxySession<HttpProxy, Session>
         {
-            /// <summary>
-            /// 当前正在处理的请求。一个连接同时只能处理一个请求，除非是Http 1.2
-            /// </summary>
+            /// <summary>当前正在处理的请求。一个连接同时只能处理一个请求，除非是Http 1.2</summary>>
             HttpHeader Request;
 
-            /// <summary>
-            /// 已完成处理，正在转发数据的请求头
-            /// </summary>
+            /// <summary>已完成处理，正在转发数据的请求头</summary>>
             public HttpHeader CurrentRequest;
 
             //HttpCacheItem CacheItem = null;
@@ -225,9 +221,7 @@ namespace NewLife.Net.Proxy
             //String LastHost;
             Int32 LastPort;
 
-            /// <summary>
-            /// 是否保持连接
-            /// </summary>
+            /// <summary>是否保持连接</summary>>
             Boolean KeepAlive = false;
 
             /// <summary>收到请求时</summary>
@@ -524,14 +518,10 @@ namespace NewLife.Net.Proxy
         /// <summary>是否取消操作</summary>
         public Boolean Cancel { get { return _Cancel; } set { _Cancel = value; } }
 
-        /// <summary>
-        /// 实例化
-        /// </summary>
+        /// <summary>实例化</summary>>
         public HttpProxyEventArgs() { }
 
-        /// <summary>
-        /// 实例化
-        /// </summary>
+        /// <summary>实例化</summary>>
         /// <param name="header"></param>
         /// <param name="stream"></param>
         public HttpProxyEventArgs(HttpHeader header, Stream stream)

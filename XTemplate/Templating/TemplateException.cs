@@ -6,9 +6,7 @@ using NewLife.Exceptions;
 
 namespace XTemplate.Templating
 {
-    /// <summary>
-    /// 模版异常
-    /// </summary>
+    /// <summary>模版异常</summary>>
     public class TemplateException : XException
     {
         #region 属性
@@ -21,9 +19,7 @@ namespace XTemplate.Templating
         }
 
         private CompilerError _Error;
-        /// <summary>
-        /// 编译器错误
-        /// </summary>
+        /// <summary>编译器错误</summary>>
         public CompilerError Error
         {
             get
@@ -40,15 +36,11 @@ namespace XTemplate.Templating
         #endregion
 
         #region 构造
-        /// <summary>
-        /// 实例化一个模版处理异常
-        /// </summary>
+        /// <summary>实例化一个模版处理异常</summary>>
         /// <param name="message"></param>
         public TemplateException(String message) : base(message) { }
 
-        /// <summary>
-        /// 实例化一个模版处理异常
-        /// </summary>
+        /// <summary>实例化一个模版处理异常</summary>>
         /// <param name="block"></param>
         /// <param name="message"></param>
         internal TemplateException(Block block, String message)

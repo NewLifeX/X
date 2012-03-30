@@ -5,9 +5,7 @@ using XCode.DataAccessLayer;
 
 namespace XCode.Exceptions
 {
-    /// <summary>
-    /// 数据访问层异常
-    /// </summary>
+    /// <summary>数据访问层异常</summary>>
     public class XDbException : XCodeException
     {
         private IDatabase _Database;
@@ -19,22 +17,16 @@ namespace XCode.Exceptions
         }
 
         #region 构造
-        /// <summary>
-        /// 初始化
-        /// </summary>
+        /// <summary>初始化</summary>>
         /// <param name="db"></param>
         public XDbException(IDatabase db) { _Database = db; }
 
-        /// <summary>
-        /// 初始化
-        /// </summary>
+        /// <summary>初始化</summary>>
         /// <param name="db"></param>
         /// <param name="message"></param>
         public XDbException(IDatabase db, String message) : base(message) { _Database = db; }
 
-        /// <summary>
-        /// 初始化
-        /// </summary>
+        /// <summary>初始化</summary>>
         /// <param name="db"></param>
         /// <param name="message"></param>
         /// <param name="innerException"></param>
@@ -44,9 +36,7 @@ namespace XCode.Exceptions
             _Database = db;
         }
 
-        /// <summary>
-        /// 初始化
-        /// </summary>
+        /// <summary>初始化</summary>>
         /// <param name="db"></param>
         /// <param name="innerException"></param>
         public XDbException(IDatabase db, Exception innerException)

@@ -22,20 +22,14 @@ namespace NewLife.Collections
             set { _Next = value; }
         }
 
-        /// <summary>
-        /// 初始化
-        /// </summary>
+        /// <summary>初始化</summary>>
         public SingleListNode() { }
 
-        /// <summary>
-        /// 使用一个对象初始化一个节点
-        /// </summary>
+        /// <summary>使用一个对象初始化一个节点</summary>>
         /// <param name="item"></param>
         public SingleListNode(T item) : this(item, null) { }
 
-        /// <summary>
-        /// 使用一个对象和下一个节点初始化一个节点
-        /// </summary>
+        /// <summary>使用一个对象和下一个节点初始化一个节点</summary>>
         /// <param name="item"></param>
         /// <param name="next"></param>
         public SingleListNode(T item, SingleListNode<T> next)
@@ -44,9 +38,7 @@ namespace NewLife.Collections
             Next = next;
         }
 
-        /// <summary>
-        /// 在单向链表中查找指定项
-        /// </summary>
+        /// <summary>在单向链表中查找指定项</summary>>
         /// <param name="item"></param>
         /// <returns></returns>
         public Boolean Contain(T item)
@@ -58,9 +50,7 @@ namespace NewLife.Collections
             return false;
         }
 
-        /// <summary>
-        /// 在单向链表中移除指定项
-        /// </summary>
+        /// <summary>在单向链表中移除指定项</summary>>
         /// <param name="item">指定项</param>
         /// <returns></returns>
         public Boolean Remove(T item)

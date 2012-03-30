@@ -13,9 +13,7 @@ namespace NewLife.Web
         #region IHttpModule Members
         void IHttpModule.Dispose() { }
 
-        /// <summary>
-        /// 初始化模块，准备拦截请求。
-        /// </summary>
+        /// <summary>初始化模块，准备拦截请求。</summary>>
         /// <param name="context"></param>
         void IHttpModule.Init(HttpApplication context)
         {

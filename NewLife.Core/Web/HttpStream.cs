@@ -6,9 +6,7 @@ using NewLife.Reflection;
 
 namespace NewLife.Web
 {
-    /// <summary>
-    /// HTTP输入输出流
-    /// </summary>
+    /// <summary>HTTP输入输出流</summary>>
     public class HttpStream : ReadWriteStream
     {
         #region 属性
@@ -57,9 +55,7 @@ namespace NewLife.Web
         #endregion
 
         #region 构造
-        /// <summary>
-        /// 初始化
-        /// </summary>
+        /// <summary>初始化</summary>>
         /// <param name="context"></param>
         public HttpStream(HttpContext context)
             : base(context.Request.InputStream, context.Response.OutputStream)
@@ -68,9 +64,7 @@ namespace NewLife.Web
         }
         #endregion
 
-        /// <summary>
-        /// 已重载。
-        /// </summary>
+        /// <summary>已重载。</summary>>
         public override void Flush()
         {
             Context.Response.Flush();

@@ -6,27 +6,19 @@ namespace NewLife
     /// <typeparam name="T"></typeparam>
     public class WeakReference<T> : WeakReference
     {
-        /// <summary>
-        /// 实例化
-        /// </summary>
+        /// <summary>实例化</summary>>
         public WeakReference() : base(null) { }
 
-        /// <summary>
-        /// 实例化
-        /// </summary>
+        /// <summary>实例化</summary>>
         /// <param name="target"></param>
         public WeakReference(T target) : base(target) { }
 
-        /// <summary>
-        /// 实例化
-        /// </summary>
+        /// <summary>实例化</summary>>
         /// <param name="target"></param>
         /// <param name="trackResurrection"></param>
         public WeakReference(T target, bool trackResurrection) : base(target, trackResurrection) { }
 
-        /// <summary>
-        /// 目标引用对象
-        /// </summary>
+        /// <summary>目标引用对象</summary>>
         public new T Target
         {
             get { return (T)base.Target; }
@@ -42,9 +34,7 @@ namespace NewLife
             return IsAlive;
         }
 
-        /// <summary>
-        /// 类型转换
-        /// </summary>
+        /// <summary>类型转换</summary>>
         /// <param name="obj"></param>
         /// <returns></returns>
         public static implicit operator T(WeakReference<T> obj)
@@ -53,9 +43,7 @@ namespace NewLife
             return default(T);
         }
 
-        /// <summary>
-        /// 类型转换
-        /// </summary>
+        /// <summary>类型转换</summary>>
         /// <param name="target"></param>
         /// <returns></returns>
         public static implicit operator WeakReference<T>(T target)

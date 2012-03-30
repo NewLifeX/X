@@ -10,37 +10,27 @@ namespace XCode
     /// <summary>在数据行和实体类之间映射数据的接口</summary>
     public interface IDataRowEntityAccessor
     {
-        /// <summary>
-        /// 加载数据表。无数据时返回空集合而不是null。
-        /// </summary>
+        /// <summary>加载数据表。无数据时返回空集合而不是null。</summary>>
         /// <param name="dt">数据表</param>
         /// <returns>实体数组</returns>
         IEntityList LoadData(DataTable dt);
 
-        /// <summary>
-        /// 从一个数据行对象加载数据。不加载关联对象。
-        /// </summary>
+        /// <summary>从一个数据行对象加载数据。不加载关联对象。</summary>>
         /// <param name="dr">数据行</param>
         /// <param name="entity">实体对象</param>
         void LoadData(DataRow dr, IEntity entity);
 
-        /// <summary>
-        /// 从数据读写器加载数据。无数据时返回空集合而不是null。
-        /// </summary>
+        /// <summary>从数据读写器加载数据。无数据时返回空集合而不是null。</summary>>
         /// <param name="dr">数据读写器</param>
         /// <returns>实体数组</returns>
         IEntityList LoadData(IDataReader dr);
 
-        /// <summary>
-        /// 从一个数据行对象加载数据。不加载关联对象。
-        /// </summary>
+        /// <summary>从一个数据行对象加载数据。不加载关联对象。</summary>>
         /// <param name="dr">数据读写器</param>
         /// <param name="entity">实体对象</param>
         void LoadData(IDataReader dr, IEntity entity);
 
-        /// <summary>
-        /// 把数据复制到数据行对象中。
-        /// </summary>
+        /// <summary>把数据复制到数据行对象中。</summary>>
         /// <param name="entity">实体对象</param>
         /// <param name="dr">数据行</param>
         DataRow ToData(IEntity entity, ref DataRow dr);
@@ -49,9 +39,7 @@ namespace XCode
     /// <summary>在数据行和实体类之间映射数据接口的提供者</summary>
     public interface IDataRowEntityAccessorProvider
     {
-        /// <summary>
-        /// 创建实体类的数据行访问器
-        /// </summary>
+        /// <summary>创建实体类的数据行访问器</summary>>
         /// <param name="entityType"></param>
         /// <returns></returns>
         IDataRowEntityAccessor CreateDataRowEntityAccessor(Type entityType);
@@ -59,9 +47,7 @@ namespace XCode
 
     class DataRowEntityAccessorProvider : IDataRowEntityAccessorProvider
     {
-        /// <summary>
-        /// 创建实体类的数据行访问器
-        /// </summary>
+        /// <summary>创建实体类的数据行访问器</summary>>
         /// <param name="entityType"></param>
         /// <returns></returns>
         public IDataRowEntityAccessor CreateDataRowEntityAccessor(Type entityType)
@@ -112,9 +98,7 @@ namespace XCode
         #endregion
 
         #region 存取
-        /// <summary>
-        /// 加载数据表。无数据时返回空集合而不是null。
-        /// </summary>
+        /// <summary>加载数据表。无数据时返回空集合而不是null。</summary>>
         /// <param name="dt">数据表</param>
         /// <returns>实体数组</returns>
         public IEntityList LoadData(DataTable dt)
@@ -150,9 +134,7 @@ namespace XCode
             return list;
         }
 
-        /// <summary>
-        /// 从一个数据行对象加载数据。不加载关联对象。
-        /// </summary>
+        /// <summary>从一个数据行对象加载数据。不加载关联对象。</summary>>
         /// <param name="dr">数据行</param>
         /// <param name="entity">实体对象</param>
         public void LoadData(DataRow dr, IEntity entity)
@@ -174,9 +156,7 @@ namespace XCode
             LoadData(dr, entity, ps, exts);
         }
 
-        /// <summary>
-        /// 从数据读写器加载数据。无数据时返回空集合而不是null。
-        /// </summary>
+        /// <summary>从数据读写器加载数据。无数据时返回空集合而不是null。</summary>>
         /// <param name="dr">数据读写器</param>
         /// <returns>实体数组</returns>
         public IEntityList LoadData(IDataReader dr)
@@ -226,9 +206,7 @@ namespace XCode
             return list;
         }
 
-        /// <summary>
-        /// 从一个数据读写器加载数据。不加载关联对象。
-        /// </summary>
+        /// <summary>从一个数据读写器加载数据。不加载关联对象。</summary>>
         /// <param name="dr">数据读写器</param>
         /// <param name="entity">实体对象</param>
         public void LoadData(IDataReader dr, IEntity entity)
@@ -252,9 +230,7 @@ namespace XCode
             }
         }
 
-        /// <summary>
-        /// 把数据复制到数据行对象中。
-        /// </summary>
+        /// <summary>把数据复制到数据行对象中。</summary>>
         /// <param name="entity">实体对象</param>
         /// <param name="dr">数据行</param>
         public DataRow ToData(IEntity entity, ref DataRow dr)

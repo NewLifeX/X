@@ -12,9 +12,7 @@ using XCode.DataAccessLayer;
 
 namespace NewLife.CommonEntity
 {
-	/// <summary>
-	/// 序列
-	/// </summary>
+	/// <summary>序列</summary>>
 	[Serializable]
 	[DataObject]
 	[Description("序列")]
@@ -23,9 +21,7 @@ namespace NewLife.CommonEntity
 	{
 		#region 属性
 		private Int32 _ID;
-		/// <summary>
-		/// 编号
-		/// </summary>
+		/// <summary>编号</summary>>
 		[Description("编号")]
 		[DataObjectField(true, true, false, 10)]
 		[BindColumn(1, "ID", "编号", "", "int", 10, 0, false)]
@@ -36,9 +32,7 @@ namespace NewLife.CommonEntity
 		}
 
 		private String _Name;
-		/// <summary>
-		/// 名称
-		/// </summary>
+		/// <summary>名称</summary>>
 		[Description("名称")]
 		[DataObjectField(false, false, true, 50)]
 		[BindColumn(2, "Name", "名称", "", "nvarchar(50)", 0, 0, true)]
@@ -49,9 +43,7 @@ namespace NewLife.CommonEntity
 		}
 
 		private Int32 _Kind;
-		/// <summary>
-		/// 种类
-		/// </summary>
+		/// <summary>种类</summary>>
 		[Description("种类")]
 		[DataObjectField(false, false, true, 10)]
 		[BindColumn(3, "Kind", "种类", "", "int", 10, 0, false)]
@@ -62,9 +54,7 @@ namespace NewLife.CommonEntity
 		}
 
 		private Int32 _Num;
-		/// <summary>
-		/// 数字
-		/// </summary>
+		/// <summary>数字</summary>>
 		[Description("数字")]
 		[DataObjectField(false, false, true, 10)]
 		[BindColumn(4, "Num", "数字", "", "int", 10, 0, false)]
@@ -75,9 +65,7 @@ namespace NewLife.CommonEntity
 		}
 
 		private DateTime _LastUpdate;
-		/// <summary>
-		/// 最后更新
-		/// </summary>
+		/// <summary>最后更新</summary>>
 		[Description("最后更新")]
 		[DataObjectField(false, false, true, 3)]
 		[BindColumn(5, "LastUpdate", "最后更新", "", "datetime", 3, 0, false)]

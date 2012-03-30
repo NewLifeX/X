@@ -4,9 +4,7 @@ using System.Text;
 
 namespace NewLife.Serialization
 {
-    /// <summary>
-    /// 读取成员事件参数
-    /// </summary>
+    /// <summary>读取成员事件参数</summary>>
     public class ReadMemberEventArgs : ReadIndexEventArgs
     {
         private Object _Value;
@@ -34,9 +32,7 @@ namespace NewLife.Serialization
         }
 
         #region 构造
-        /// <summary>
-        /// 实例化
-        /// </summary>
+        /// <summary>实例化</summary>>
         /// <param name="value">对象</param>
         /// <param name="type">对象类型</param>
         /// <param name="member">成员</param>

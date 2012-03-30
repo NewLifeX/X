@@ -62,16 +62,12 @@ namespace XCode
         #endregion
 
         #region 填充数据
-        /// <summary>
-        /// 加载记录集。无数据时返回空集合而不是null。
-        /// </summary>
+        /// <summary>加载记录集。无数据时返回空集合而不是null。</summary>>
         /// <param name="ds">记录集</param>
         /// <returns>实体数组</returns>
         public static EntityList<TEntity> LoadData(DataSet ds) { return LoadData(ds.Tables[0]); }
 
-        /// <summary>
-        /// 加载数据表。无数据时返回空集合而不是null。
-        /// </summary>
+        /// <summary>加载数据表。无数据时返回空集合而不是null。</summary>>
         /// <param name="dt">数据表</param>
         /// <returns>实体数组</returns>
         public static EntityList<TEntity> LoadData(DataTable dt)
@@ -82,15 +78,11 @@ namespace XCode
             return new EntityList<TEntity>(list);
         }
 
-        /// <summary>
-        /// 从一个数据行对象加载数据。不加载关联对象。
-        /// </summary>
+        /// <summary>从一个数据行对象加载数据。不加载关联对象。</summary>>
         /// <param name="dr">数据行</param>
         public override void LoadData(DataRow dr) { if (dr != null) dreAccessor.LoadData(dr, this); }
 
-        /// <summary>
-        /// 加载数据读写器。无数据时返回空集合而不是null。
-        /// </summary>
+        /// <summary>加载数据读写器。无数据时返回空集合而不是null。</summary>>
         /// <param name="dr">数据读写器</param>
         /// <returns>实体数组</returns>
         public static EntityList<TEntity> LoadData(IDataReader dr)
@@ -101,15 +93,11 @@ namespace XCode
             return new EntityList<TEntity>(list);
         }
 
-        /// <summary>
-        /// 从一个数据行对象加载数据。不加载关联对象。
-        /// </summary>
+        /// <summary>从一个数据行对象加载数据。不加载关联对象。</summary>>
         /// <param name="dr">数据读写器</param>
         public override void LoadDataReader(IDataReader dr) { if (dr != null)  dreAccessor.LoadData(dr, this); }
 
-        /// <summary>
-        /// 把数据复制到数据行对象中。
-        /// </summary>
+        /// <summary>把数据复制到数据行对象中。</summary>>
         /// <param name="dr">数据行</param>
         public virtual DataRow ToData(ref DataRow dr) { return dr == null ? null : dreAccessor.ToData(this, ref dr); }
 
@@ -127,21 +115,15 @@ namespace XCode
         /// <returns></returns>
         protected virtual Int32 OnInsert() { return persistence.Insert(this); }
 
-        /// <summary>
-        /// 更新数据，通过调用OnUpdate实现，另外增加了数据验证和事务保护支持，将来可能实现事件支持。
-        /// </summary>
+        /// <summary>更新数据，通过调用OnUpdate实现，另外增加了数据验证和事务保护支持，将来可能实现事件支持。</summary>>
         /// <returns></returns>
         public override Int32 Update() { return DoAction(OnUpdate, false); }
 
-        /// <summary>
-        /// 更新数据库
-        /// </summary>
+        /// <summary>更新数据库</summary>>
         /// <returns></returns>
         protected virtual Int32 OnUpdate() { return persistence.Update(this); }
 
-        /// <summary>
-        /// 删除数据，通过调用OnDelete实现，另外增加了数据验证和事务保护支持，将来可能实现事件支持。
-        /// </summary>
+        /// <summary>删除数据，通过调用OnDelete实现，另外增加了数据验证和事务保护支持，将来可能实现事件支持。</summary>>
         /// <remarks>
         /// 删除时，如果有且仅有主键有脏数据，则可能是ObjectDataSource之类的删除操作。
         /// 该情况下，实体类没有完整的信息（仅有主键信息），将会导致无法通过扩展属性删除附属数据。
@@ -177,9 +159,7 @@ namespace XCode
             return DoAction(OnDelete, null);
         }
 
-        /// <summary>
-        /// 从数据库中删除该对象
-        /// </summary>
+        /// <summary>从数据库中删除该对象</summary>>
         /// <returns></returns>
         protected virtual Int32 OnDelete() { return persistence.Delete(this); }
 
@@ -199,9 +179,7 @@ namespace XCode
             catch { Meta.Rollback(); throw; }
         }
 
-        /// <summary>
-        /// 保存。根据主键检查数据库中是否已存在该对象，再决定调用Insert或Update
-        /// </summary>
+        /// <summary>保存。根据主键检查数据库中是否已存在该对象，再决定调用Insert或Update</summary>>
         /// <returns></returns>
         public override Int32 Save()
         {
@@ -229,9 +207,7 @@ namespace XCode
         [NonSerialized]
         Boolean enableValid = true;
 
-        /// <summary>
-        /// 验证数据，通过抛出异常的方式提示验证失败。建议重写者调用基类的实现，因为将来可能根据数据字段的特性进行数据验证。
-        /// </summary>
+        /// <summary>验证数据，通过抛出异常的方式提示验证失败。建议重写者调用基类的实现，因为将来可能根据数据字段的特性进行数据验证。</summary>>
         /// <param name="isNew">是否新数据</param>
         public virtual void Valid(Boolean isNew)
         {
@@ -262,9 +238,7 @@ namespace XCode
             }
         }
 
-        /// <summary>
-        /// 根据指定键检查数据是否已存在，若不存在，抛出ArgumentOutOfRangeException异常
-        /// </summary>
+        /// <summary>根据指定键检查数据是否已存在，若不存在，抛出ArgumentOutOfRangeException异常</summary>>
         /// <param name="names"></param>
         public virtual void CheckExist(params String[] names)
         {
@@ -291,9 +265,7 @@ namespace XCode
             }
         }
 
-        /// <summary>
-        /// 根据指定键检查数据，返回数据是否已存在
-        /// </summary>
+        /// <summary>根据指定键检查数据，返回数据是否已存在</summary>>
         /// <param name="names"></param>
         /// <returns></returns>
         public virtual Boolean Exist(params String[] names)
@@ -319,18 +291,14 @@ namespace XCode
         #endregion
 
         #region 查找单个实体
-        /// <summary>
-        /// 根据属性以及对应的值，查找单个实体
-        /// </summary>
+        /// <summary>根据属性以及对应的值，查找单个实体</summary>>
         /// <param name="name">属性名称</param>
         /// <param name="value">属性值</param>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
         public static TEntity Find(String name, Object value) { return Find(new String[] { name }, new Object[] { value }); }
 
-        /// <summary>
-        /// 根据属性列表以及对应的值列表，查找单个实体
-        /// </summary>
+        /// <summary>根据属性列表以及对应的值列表，查找单个实体</summary>>
         /// <param name="names">属性名称集合</param>
         /// <param name="values">属性值集合</param>
         /// <returns></returns>
@@ -379,9 +347,7 @@ namespace XCode
             return list[0];
         }
 
-        /// <summary>
-        /// 根据条件查找单个实体
-        /// </summary>
+        /// <summary>根据条件查找单个实体</summary>>
         /// <param name="whereClause">查询条件</param>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
@@ -394,9 +360,7 @@ namespace XCode
                 return list[0];
         }
 
-        /// <summary>
-        /// 根据主键查找单个实体
-        /// </summary>
+        /// <summary>根据主键查找单个实体</summary>>
         /// <param name="key">唯一主键的值</param>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
@@ -411,9 +375,7 @@ namespace XCode
             return Find(field.Name, key);
         }
 
-        /// <summary>
-        /// 根据主键查询一个实体对象用于表单编辑
-        /// </summary>
+        /// <summary>根据主键查询一个实体对象用于表单编辑</summary>>
         /// <param name="key">唯一主键的值</param>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
@@ -459,9 +421,7 @@ namespace XCode
         #endregion
 
         #region 静态查询
-        /// <summary>
-        /// 获取所有实体对象。获取大量数据时会非常慢，慎用
-        /// </summary>
+        /// <summary>获取所有实体对象。获取大量数据时会非常慢，慎用</summary>>
         /// <returns>实体数组</returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
         public static EntityList<TEntity> FindAll() { return FindAll(String.Format("Select * From {0}", Meta.FormatName(Meta.TableName))); }
@@ -567,9 +527,7 @@ namespace XCode
             return LoadData(Meta.Query(builder, startRowIndex, maximumRows));
         }
 
-        /// <summary>
-        /// 根据属性列表以及对应的值列表，获取所有实体对象
-        /// </summary>
+        /// <summary>根据属性列表以及对应的值列表，获取所有实体对象</summary>>
         /// <param name="names">属性列表</param>
         /// <param name="values">值列表</param>
         /// <returns>实体数组</returns>
@@ -589,18 +547,14 @@ namespace XCode
             return FindAll(MakeCondition(names, values, "And"), null, null, 0, 0);
         }
 
-        /// <summary>
-        /// 根据属性以及对应的值，获取所有实体对象
-        /// </summary>
+        /// <summary>根据属性以及对应的值，获取所有实体对象</summary>>
         /// <param name="name">属性</param>
         /// <param name="value">值</param>
         /// <returns>实体数组</returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
         public static EntityList<TEntity> FindAll(String name, Object value) { return FindAll(new String[] { name }, new Object[] { value }); }
 
-        /// <summary>
-        /// 根据属性以及对应的值，获取所有实体对象
-        /// </summary>
+        /// <summary>根据属性以及对应的值，获取所有实体对象</summary>>
         /// <param name="name">属性</param>
         /// <param name="value">值</param>
         /// <param name="startRowIndex">开始行，0表示第一行</param>
@@ -609,9 +563,7 @@ namespace XCode
         [DataObjectMethod(DataObjectMethodType.Select, false)]
         public static EntityList<TEntity> FindAll(String name, Object value, Int32 startRowIndex, Int32 maximumRows) { return FindAllByName(name, value, null, startRowIndex, maximumRows); }
 
-        /// <summary>
-        /// 根据属性以及对应的值，获取所有实体对象
-        /// </summary>
+        /// <summary>根据属性以及对应的值，获取所有实体对象</summary>>
         /// <param name="name">属性</param>
         /// <param name="value">值</param>
         /// <param name="orderClause">排序，不带Order By</param>
@@ -650,9 +602,7 @@ namespace XCode
         #endregion
 
         #region 高级查询
-        /// <summary>
-        /// 查询满足条件的记录集，分页、排序
-        /// </summary>
+        /// <summary>查询满足条件的记录集，分页、排序</summary>>
         /// <param name="key">关键字</param>
         /// <param name="orderClause">排序，不带Order By</param>
         /// <param name="startRowIndex">开始行，0表示第一行</param>
@@ -661,9 +611,7 @@ namespace XCode
         [DataObjectMethod(DataObjectMethodType.Select, true)]
         public static EntityList<TEntity> Search(String key, String orderClause, Int32 startRowIndex, Int32 maximumRows) { return FindAll(SearchWhereByKeys(key, null), orderClause, null, startRowIndex, maximumRows); }
 
-        /// <summary>
-        /// 查询满足条件的记录总数，分页和排序无效，带参数是因为ObjectDataSource要求它跟Search统一
-        /// </summary>
+        /// <summary>查询满足条件的记录总数，分页和排序无效，带参数是因为ObjectDataSource要求它跟Search统一</summary>>
         /// <param name="key">关键字</param>
         /// <param name="orderClause">排序，不带Order By</param>
         /// <param name="startRowIndex">开始行，0表示第一行</param>
@@ -671,16 +619,12 @@ namespace XCode
         /// <returns>记录数</returns>
         public static Int32 SearchCount(String key, String orderClause, Int32 startRowIndex, Int32 maximumRows) { return FindCount(SearchWhereByKeys(key, null), null, null, 0, 0); }
 
-        /// <summary>
-        /// 构建关键字查询条件
-        /// </summary>
+        /// <summary>构建关键字查询条件</summary>>
         /// <param name="sb"></param>
         /// <param name="keys"></param>
         public static void SearchWhereByKeys(StringBuilder sb, String keys) { SearchWhereByKeys(sb, keys, null); }
 
-        /// <summary>
-        /// 构建关键字查询条件
-        /// </summary>
+        /// <summary>构建关键字查询条件</summary>>
         /// <param name="sb"></param>
         /// <param name="keys"></param>
         /// <param name="func"></param>
@@ -698,9 +642,7 @@ namespace XCode
                 sb.Append(str);
         }
 
-        /// <summary>
-        /// 构建关键字查询条件
-        /// </summary>
+        /// <summary>构建关键字查询条件</summary>>
         /// <param name="keys"></param>
         /// <param name="func"></param>
         /// <returns></returns>
@@ -730,9 +672,7 @@ namespace XCode
             return sb.Length <= 0 ? null : sb.ToString();
         }
 
-        /// <summary>
-        /// 构建关键字查询条件
-        /// </summary>
+        /// <summary>构建关键字查询条件</summary>>
         /// <param name="key"></param>
         /// <returns></returns>
         public static String SearchWhereByKey(String key)
@@ -751,25 +691,19 @@ namespace XCode
         #endregion
 
         #region 缓存查询
-        /// <summary>
-        /// 根据属性以及对应的值，在缓存中查找单个实体
-        /// </summary>
+        /// <summary>根据属性以及对应的值，在缓存中查找单个实体</summary>>
         /// <param name="name">属性名称</param>
         /// <param name="value">属性值</param>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
         public static TEntity FindWithCache(String name, Object value) { return Meta.Cache.Entities.Find(name, value); }
 
-        /// <summary>
-        /// 查找所有缓存
-        /// </summary>
+        /// <summary>查找所有缓存</summary>>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
         public static EntityList<TEntity> FindAllWithCache() { return Meta.Cache.Entities; }
 
-        /// <summary>
-        /// 根据属性以及对应的值，在缓存中获取所有实体对象
-        /// </summary>
+        /// <summary>根据属性以及对应的值，在缓存中获取所有实体对象</summary>>
         /// <param name="name">属性</param>
         /// <param name="value">值</param>
         /// <returns>实体数组</returns>
@@ -778,15 +712,11 @@ namespace XCode
         #endregion
 
         #region 取总记录数
-        /// <summary>
-        /// 返回总记录数
-        /// </summary>
+        /// <summary>返回总记录数</summary>>
         /// <returns></returns>
         public static Int32 FindCount() { return FindCount(null, null, null, 0, 0); }
 
-        /// <summary>
-        /// 返回总记录数
-        /// </summary>
+        /// <summary>返回总记录数</summary>>
         /// <param name="whereClause">条件，不带Where</param>
         /// <param name="orderClause">排序，不带Order By。这里无意义，仅仅为了保持与FindAll相同的方法签名</param>
         /// <param name="selects">查询列。这里无意义，仅仅为了保持与FindAll相同的方法签名</param>
@@ -802,9 +732,7 @@ namespace XCode
             return Meta.QueryCount(sb);
         }
 
-        /// <summary>
-        /// 根据属性列表以及对应的值列表，返回总记录数
-        /// </summary>
+        /// <summary>根据属性列表以及对应的值列表，返回总记录数</summary>>
         /// <param name="names">属性列表</param>
         /// <param name="values">值列表</param>
         /// <returns>总行数</returns>
@@ -824,17 +752,13 @@ namespace XCode
             return FindCount(MakeCondition(names, values, "And"), null, null, 0, 0);
         }
 
-        /// <summary>
-        /// 根据属性以及对应的值，返回总记录数
-        /// </summary>
+        /// <summary>根据属性以及对应的值，返回总记录数</summary>>
         /// <param name="name">属性</param>
         /// <param name="value">值</param>
         /// <returns>总行数</returns>
         public static Int32 FindCount(String name, Object value) { return FindCount(name, value, 0, 0); }
 
-        /// <summary>
-        /// 根据属性以及对应的值，返回总记录数
-        /// </summary>
+        /// <summary>根据属性以及对应的值，返回总记录数</summary>>
         /// <param name="name">属性</param>
         /// <param name="value">值</param>
         /// <param name="startRowIndex">开始行，0表示第一行。这里无意义，仅仅为了保持与FindAll相同的方法签名</param>
@@ -842,9 +766,7 @@ namespace XCode
         /// <returns>总行数</returns>
         public static Int32 FindCount(String name, Object value, Int32 startRowIndex, Int32 maximumRows) { return FindCountByName(name, value, null, startRowIndex, maximumRows); }
 
-        /// <summary>
-        /// 根据属性以及对应的值，返回总记录数
-        /// </summary>
+        /// <summary>根据属性以及对应的值，返回总记录数</summary>>
         /// <param name="name">属性</param>
         /// <param name="value">值</param>
         /// <param name="orderClause">排序，不带Order By。这里无意义，仅仅为了保持与FindAll相同的方法签名</param>
@@ -861,41 +783,31 @@ namespace XCode
         #endregion
 
         #region 静态操作
-        /// <summary>
-        /// 把一个实体对象持久化到数据库
-        /// </summary>
+        /// <summary>把一个实体对象持久化到数据库</summary>>
         /// <param name="obj">实体对象</param>
         /// <returns>返回受影响的行数</returns>
         [DataObjectMethod(DataObjectMethodType.Insert, true)]
         public static Int32 Insert(TEntity obj) { return obj.Insert(); }
 
-        /// <summary>
-        /// 把一个实体对象持久化到数据库
-        /// </summary>
+        /// <summary>把一个实体对象持久化到数据库</summary>>
         /// <param name="names">更新属性列表</param>
         /// <param name="values">更新值列表</param>
         /// <returns>返回受影响的行数</returns>
         public static Int32 Insert(String[] names, Object[] values) { return persistence.Insert(Meta.ThisType, names, values); }
 
-        /// <summary>
-        /// 把一个实体对象更新到数据库
-        /// </summary>
+        /// <summary>把一个实体对象更新到数据库</summary>>
         /// <param name="obj">实体对象</param>
         /// <returns>返回受影响的行数</returns>
         [DataObjectMethod(DataObjectMethodType.Update, true)]
         public static Int32 Update(TEntity obj) { return obj.Update(); }
 
-        /// <summary>
-        /// 更新一批实体数据
-        /// </summary>
+        /// <summary>更新一批实体数据</summary>>
         /// <param name="setClause">要更新的项和数据</param>
         /// <param name="whereClause">指定要更新的实体</param>
         /// <returns></returns>
         public static Int32 Update(String setClause, String whereClause) { return persistence.Update(Meta.ThisType, setClause, whereClause); }
 
-        /// <summary>
-        /// 更新一批实体数据
-        /// </summary>
+        /// <summary>更新一批实体数据</summary>>
         /// <param name="setNames">更新属性列表</param>
         /// <param name="setValues">更新值列表</param>
         /// <param name="whereNames">条件属性列表</param>
@@ -912,33 +824,25 @@ namespace XCode
         [DataObjectMethod(DataObjectMethodType.Delete, true)]
         public static Int32 Delete(TEntity obj) { return obj.Delete(); }
 
-        /// <summary>
-        /// 从数据库中删除指定条件的实体对象。
-        /// </summary>
+        /// <summary>从数据库中删除指定条件的实体对象。</summary>>
         /// <param name="whereClause">限制条件</param>
         /// <returns></returns>
         public static Int32 Delete(String whereClause) { return persistence.Delete(Meta.ThisType, whereClause); }
 
-        /// <summary>
-        /// 从数据库中删除指定属性列表和值列表所限定的实体对象。
-        /// </summary>
+        /// <summary>从数据库中删除指定属性列表和值列表所限定的实体对象。</summary>>
         /// <param name="names">属性列表</param>
         /// <param name="values">值列表</param>
         /// <returns></returns>
         public static Int32 Delete(String[] names, Object[] values) { return persistence.Delete(Meta.ThisType, names, values); }
 
-        /// <summary>
-        /// 把一个实体对象更新到数据库
-        /// </summary>
+        /// <summary>把一个实体对象更新到数据库</summary>>
         /// <param name="obj">实体对象</param>
         /// <returns>返回受影响的行数</returns>
         public static Int32 Save(TEntity obj) { return obj.Save(); }
         #endregion
 
         #region 构造SQL语句
-        /// <summary>
-        /// 把SQL模版格式化为SQL语句
-        /// </summary>
+        /// <summary>把SQL模版格式化为SQL语句</summary>>
         /// <param name="obj">实体对象</param>
         /// <param name="methodType"></param>
         /// <returns>SQL字符串</returns>
@@ -975,9 +879,7 @@ namespace XCode
             return sb.ToString();
         }
 
-        /// <summary>
-        /// 构造条件
-        /// </summary>
+        /// <summary>构造条件</summary>>
         /// <param name="name">名称</param>
         /// <param name="value">值</param>
         /// <param name="action">大于小于等符号</param>
@@ -990,9 +892,7 @@ namespace XCode
             return MakeCondition(field, value, action);
         }
 
-        /// <summary>
-        /// 构造条件
-        /// </summary>
+        /// <summary>构造条件</summary>>
         /// <param name="field">名称</param>
         /// <param name="value">值</param>
         /// <param name="action">大于小于等符号</param>
@@ -1126,9 +1026,7 @@ namespace XCode
         #endregion
 
         #region 导入导出XML
-        /// <summary>
-        /// 建立Xml序列化器
-        /// </summary>
+        /// <summary>建立Xml序列化器</summary>>
         /// <returns></returns>
         //[Obsolete("该成员在后续版本中将不再被支持！")]
         protected override XmlSerializer CreateXmlSerializer()
@@ -1146,9 +1044,7 @@ namespace XCode
             return new XmlSerializer(this.GetType(), ovs);
         }
 
-        /// <summary>
-        /// 导入
-        /// </summary>
+        /// <summary>导入</summary>>
         /// <param name="xml"></param>
         /// <returns></returns>
         [Obsolete("该成员在后续版本中将不再被支持！")]
@@ -1171,9 +1067,7 @@ namespace XCode
         #endregion
 
         #region 导入导出Json
-        /// <summary>
-        /// 导入
-        /// </summary>
+        /// <summary>导入</summary>>
         /// <param name="json"></param>
         /// <returns></returns>
         [Obsolete("该成员在后续版本中将不再被支持！")]
@@ -1184,15 +1078,11 @@ namespace XCode
         #endregion
 
         #region 克隆
-        /// <summary>
-        /// 创建当前对象的克隆对象，仅拷贝基本字段
-        /// </summary>
+        /// <summary>创建当前对象的克隆对象，仅拷贝基本字段</summary>>
         /// <returns></returns>
         public override Object Clone() { return CloneEntity(); }
 
-        /// <summary>
-        /// 克隆实体。创建当前对象的克隆对象，仅拷贝基本字段
-        /// </summary>
+        /// <summary>克隆实体。创建当前对象的克隆对象，仅拷贝基本字段</summary>>
         /// <returns></returns>
         public virtual TEntity CloneEntity()
         {
@@ -1294,9 +1184,7 @@ namespace XCode
             return count;
         }
 
-        /// <summary>
-        /// 如果字段带有默认值，则需要设置脏数据，因为显然用户想设置该字段，而不是采用数据库的默认值
-        /// </summary>
+        /// <summary>如果字段带有默认值，则需要设置脏数据，因为显然用户想设置该字段，而不是采用数据库的默认值</summary>>
         /// <param name="fieldName"></param>
         /// <param name="newValue"></param>
         /// <returns></returns>
@@ -1318,18 +1206,14 @@ namespace XCode
         #endregion
 
         #region 扩展属性
-        /// <summary>
-        /// 获取依赖于当前实体类的扩展属性
-        /// </summary>
+        /// <summary>获取依赖于当前实体类的扩展属性</summary>>
         /// <typeparam name="TResult">返回类型</typeparam>
         /// <param name="key">键</param>
         /// <param name="func">回调</param>
         /// <returns></returns>
         protected TResult GetExtend<TResult>(String key, Func<String, Object> func) { return GetExtend<TEntity, TResult>(key, func); }
 
-        /// <summary>
-        /// 获取依赖于当前实体类的扩展属性
-        /// </summary>
+        /// <summary>获取依赖于当前实体类的扩展属性</summary>>
         /// <typeparam name="TResult">返回类型</typeparam>
         /// <param name="key">键</param>
         /// <param name="func">回调</param>
@@ -1337,9 +1221,7 @@ namespace XCode
         /// <returns></returns>
         protected TResult GetExtend<TResult>(String key, Func<String, Object> func, Boolean cacheDefault) { return GetExtend<TEntity, TResult>(key, func, cacheDefault); }
 
-        /// <summary>
-        /// 设置依赖于当前实体类的扩展属性
-        /// </summary>
+        /// <summary>设置依赖于当前实体类的扩展属性</summary>>
         /// <param name="key">键</param>
         /// <param name="value">值</param>
         protected void SetExtend(String key, Object value) { SetExtend<TEntity>(key, value); }

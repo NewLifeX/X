@@ -56,13 +56,9 @@ namespace NewLife.Threading
         #endregion
 
         #region 线程
-        /// <summary>
-        /// 用于维护管理线程的锁
-        /// </summary>
+        /// <summary>用于维护管理线程的锁</summary>>
         private Object SynLock_mt = new Object();
-        /// <summary>
-        /// 使用volatile关键字，等到对象创建完成
-        /// </summary>
+        /// <summary>使用volatile关键字，等到对象创建完成</summary>>
         private volatile Thread _ManagerThread;
         /// <summary>维护线程</summary>
         private Thread ManagerThread
@@ -136,9 +132,7 @@ namespace NewLife.Threading
             //set { _Event = value; }
         }
 
-        /// <summary>
-        /// 用户维护线程组的锁
-        /// </summary>
+        /// <summary>用户维护线程组的锁</summary>>
         private Object SyncLock_Threads = new object();
         #endregion
 
@@ -167,16 +161,12 @@ namespace NewLife.Threading
         //    set { _TaskEvents = value; }
         //}
 
-        /// <summary>
-        /// 任务队列同步锁
-        /// </summary>
+        /// <summary>任务队列同步锁</summary>>
         private Object Sync_Tasks = new object();
         #endregion
 
         #region 构造
-        /// <summary>
-        /// 构造一个线程池
-        /// </summary>
+        /// <summary>构造一个线程池</summary>>
         /// <param name="name">线程池名</param>
         private ThreadPoolX(String name)
         {
@@ -191,9 +181,7 @@ namespace NewLife.Threading
         }
 
         private static DictionaryCache<String, ThreadPoolX> _cache = new DictionaryCache<String, ThreadPoolX>();
-        /// <summary>
-        /// 创建线程池。一个名字只能创建一个线程池。线程安全。
-        /// </summary>
+        /// <summary>创建线程池。一个名字只能创建一个线程池。线程安全。</summary>>
         /// <param name="name">线程池名</param>
         /// <returns></returns>
         public static ThreadPoolX Create(String name)
@@ -220,9 +208,7 @@ namespace NewLife.Threading
         #endregion
 
         #region 队列操作
-        /// <summary>
-        /// 把用户工作项放入队列
-        /// </summary>
+        /// <summary>把用户工作项放入队列</summary>>
         /// <param name="method">任务方法</param>
         /// <returns>任务编号</returns>
         public Int32 Queue(WaitCallback method)
@@ -230,9 +216,7 @@ namespace NewLife.Threading
             return Queue(method, null);
         }
 
-        /// <summary>
-        /// 把用户工作项放入队列
-        /// </summary>
+        /// <summary>把用户工作项放入队列</summary>>
         /// <param name="method">任务方法</param>
         /// <param name="argument">任务参数</param>
         /// <returns>任务编号</returns>
@@ -241,9 +225,7 @@ namespace NewLife.Threading
             return Queue(new ThreadTask(method, argument));
         }
 
-        /// <summary>
-        /// 把用户工作项放入队列。指定任务被取消时执行的方法，该方法仅针对尚未被线程开始调用时的任务有效
-        /// </summary>
+        /// <summary>把用户工作项放入队列。指定任务被取消时执行的方法，该方法仅针对尚未被线程开始调用时的任务有效</summary>>
         /// <param name="method">任务方法</param>
         /// <param name="abortMethod">任务被取消时执行的方法</param>
         /// <param name="argument">任务参数</param>
@@ -253,9 +235,7 @@ namespace NewLife.Threading
             return Queue(new ThreadTask(method, abortMethod, argument));
         }
 
-        /// <summary>
-        /// 把用户工作项放入队列
-        /// </summary>
+        /// <summary>把用户工作项放入队列</summary>>
         /// <param name="task">任务</param>
         /// <returns>任务编号</returns>
         private Int32 Queue(ThreadTask task)
@@ -275,9 +255,7 @@ namespace NewLife.Threading
             return task.ID;
         }
 
-        /// <summary>
-        /// 取消任务
-        /// </summary>
+        /// <summary>取消任务</summary>>
         /// <param name="id">任务编号</param>
         /// <returns>任务状态</returns>
         public TaskState Abort(Int32 id)
@@ -344,9 +322,7 @@ namespace NewLife.Threading
             return state;
         }
 
-        /// <summary>
-        /// 取消所有未开始任务
-        /// </summary>
+        /// <summary>取消所有未开始任务</summary>>
         /// <remarks>这里不要调用上面Abort取消单个任务，否则可能会造成死锁</remarks>
         public void AbortAllTask()
         {
@@ -379,9 +355,7 @@ namespace NewLife.Threading
             }
         }
 
-        /// <summary>
-        /// 取消所有进行中任务
-        /// </summary>
+        /// <summary>取消所有进行中任务</summary>>
         /// <remarks>这里不要调用上面Abort取消单个任务，否则可能会造成死锁</remarks>
         public void AbortAllThread()
         {
@@ -417,9 +391,7 @@ namespace NewLife.Threading
             }
         }
 
-        /// <summary>
-        /// 取消所有任务
-        /// </summary>
+        /// <summary>取消所有任务</summary>>
         /// <remarks>这里不要调用上面Abort取消单个任务，否则可能会造成死锁</remarks>
         public void AbortAll()
         {
@@ -427,9 +399,7 @@ namespace NewLife.Threading
             AbortAllThread();
         }
 
-        /// <summary>
-        /// 查询任务状态
-        /// </summary>
+        /// <summary>查询任务状态</summary>>
         /// <param name="id">任务编号</param>
         /// <returns>任务状态</returns>
         public TaskState Query(Int32 id)
@@ -458,9 +428,7 @@ namespace NewLife.Threading
             return TaskState.Finished;
         }
 
-        /// <summary>
-        /// 查询任务个数
-        /// </summary>
+        /// <summary>查询任务个数</summary>>
         /// <returns></returns>
         public Int32 QueryCount()
         {
@@ -470,9 +438,7 @@ namespace NewLife.Threading
             }
         }
 
-        /// <summary>
-        /// 等待所有任务完成，并指定是否在等待之前退出同步域。
-        /// </summary>
+        /// <summary>等待所有任务完成，并指定是否在等待之前退出同步域。</summary>>
         /// <param name="millisecondsTimeout"></param>
         /// <returns>是否在等待之前退出同步域</returns>
         public Boolean WaitAll(Int32 millisecondsTimeout)
@@ -535,9 +501,7 @@ namespace NewLife.Threading
         #endregion
 
         #region 维护
-        /// <summary>
-        /// 调度包装
-        /// </summary>
+        /// <summary>调度包装</summary>>
         private void Work()
         {
             while (true)
@@ -667,9 +631,7 @@ namespace NewLife.Threading
             AbortAll();
         }
 
-        /// <summary>
-        /// 添加线程。本方法不是线程安全，调用者需要自己维护线程安全
-        /// </summary>
+        /// <summary>添加线程。本方法不是线程安全，调用者需要自己维护线程安全</summary>>
         /// <returns></returns>
         private ThreadX AddThread()
         {
@@ -708,9 +670,7 @@ namespace NewLife.Threading
         #endregion
 
         #region 线程调度
-        /// <summary>
-        /// 借用线程
-        /// </summary>
+        /// <summary>借用线程</summary>>
         /// <returns></returns>
         private ThreadX Open()
         {
@@ -737,9 +697,7 @@ namespace NewLife.Threading
             return null;
         }
 
-        /// <summary>
-        /// 归还线程
-        /// </summary>
+        /// <summary>归还线程</summary>>
         /// <param name="thread"></param>
         private void Close(ThreadX thread)
         {
@@ -768,22 +726,16 @@ namespace NewLife.Threading
         #endregion
 
         #region 全局线程池助手
-        /// <summary>
-        /// 带异常处理的线程池任务调度
-        /// </summary>
+        /// <summary>带异常处理的线程池任务调度</summary>>
         /// <param name="callback"></param>
         public static void QueueUserWorkItem(WaitCallback callback) { QueueUserWorkItem(callback, null); }
 
-        /// <summary>
-        /// 带异常处理的线程池任务调度
-        /// </summary>
+        /// <summary>带异常处理的线程池任务调度</summary>>
         /// <param name="callback"></param>
         /// <param name="state"></param>
         public static void QueueUserWorkItem(WaitCallback callback, Object state) { QueueUserWorkItem(callback, state, XTrace.WriteExceptionWhenDebug); }
 
-        /// <summary>
-        /// 带异常处理的线程池任务调度，即使不指定异常处理方法，也不允许异常抛出，以免造成应用程序退出
-        /// </summary>
+        /// <summary>带异常处理的线程池任务调度，即使不指定异常处理方法，也不允许异常抛出，以免造成应用程序退出</summary>>
         /// <param name="callback"></param>
         /// <param name="state"></param>
         /// <param name="errCallback">发生异常时调用的方法</param>
@@ -815,9 +767,7 @@ namespace NewLife.Threading
             ThreadPool.QueueUserWorkItem(cb, new Object[] { callback, state, errCallback });
         }
 
-        /// <summary>
-        /// 带异常处理的线程池任务调度
-        /// </summary>
+        /// <summary>带异常处理的线程池任务调度</summary>>
         /// <param name="callback"></param>
         public static void QueueUserWorkItem(Func callback)
         {
@@ -827,9 +777,7 @@ namespace NewLife.Threading
             });
         }
 
-        /// <summary>
-        /// 带异常处理的线程池任务调度，即使不指定异常处理方法，也不允许异常抛出，以免造成应用程序退出
-        /// </summary>
+        /// <summary>带异常处理的线程池任务调度，即使不指定异常处理方法，也不允许异常抛出，以免造成应用程序退出</summary>>
         /// <param name="callback"></param>
         /// <param name="errCallback">发生异常时调用的方法</param>
         public static void QueueUserWorkItem(Func callback, Action<Exception> errCallback)
@@ -861,9 +809,7 @@ namespace NewLife.Threading
         #endregion
 
         #region IDisposable 成员
-        /// <summary>
-        /// 释放资源
-        /// </summary>
+        /// <summary>释放资源</summary>>
         public void Dispose()
         {
             Dispose(true);
@@ -897,9 +843,7 @@ namespace NewLife.Threading
             if (_Event != null) _Event.Close();
         }
 
-        /// <summary>
-        /// 析构
-        /// </summary>
+        /// <summary>析构</summary>>
         ~ThreadPoolX()
         {
             Dispose(false);
@@ -912,9 +856,7 @@ namespace NewLife.Threading
             if (Debug) XTrace.WriteLine("线程：" + Thread.CurrentThread.Name + " 信息：" + msg);
         }
 
-        /// <summary>
-        /// 已重载。
-        /// </summary>
+        /// <summary>已重载。</summary>>
         /// <returns></returns>
         public override string ToString()
         {
@@ -922,9 +864,7 @@ namespace NewLife.Threading
         }
 
         private static Boolean? _Debug;
-        /// <summary>
-        /// 是否调试
-        /// </summary>
+        /// <summary>是否调试</summary>>
         public static Boolean Debug
         {
             get

@@ -9,18 +9,14 @@ using NewLife.Exceptions;
 
 namespace XControl
 {
-    /// <summary>
-    /// 价格输入控件，只能输入数字，通常只作为输入价格时候使用
-    /// </summary>
+    /// <summary>价格输入控件，只能输入数字，通常只作为输入价格时候使用</summary>>
     [Description("价格输入控件")]
     [ToolboxData("<{0}:DecimalBox runat=server></{0}:DecimalBox>")]
     [ToolboxBitmap(typeof(TextBox))]
     [ControlValueProperty("Value")]
     public class DecimalBox : TextBox
     {
-        /// <summary>
-        /// 小数点右边位数
-        /// </summary>
+        /// <summary>小数点右边位数</summary>>
         [Description("小数点右边精度值（默认为2位）")]
         [DefaultValue(2)]
         public Int32? CurrencyDecimalDigits
@@ -44,9 +40,7 @@ namespace XControl
             }
         }
 
-        /// <summary>
-        /// 小数点左边部分每组数字位数
-        /// </summary>
+        /// <summary>小数点左边部分每组数字位数</summary>>
         [Description("小数点部分每一组位数（如果多重分组使用逗号分隔）")]
         public String CurrencyGroupSizes
         {
@@ -67,9 +61,7 @@ namespace XControl
             }
         }
 
-        /// <summary>
-        /// 小数点左边部分每组数字分组符
-        /// </summary>
+        /// <summary>小数点左边部分每组数字分组符</summary>>
         [Description("小数点左边部分每组数字分组符")]
         [DefaultValue(",")]
         public String CurrencyGroupSeparator
@@ -91,9 +83,7 @@ namespace XControl
             }
         }
 
-        /// <summary>
-        /// 获取或设置用作货币符号的字符串
-        /// </summary>
+        /// <summary>获取或设置用作货币符号的字符串</summary>>
         [Description("获取或设置用作货币符号的字符串")]
         [DefaultValue("￥")]
         public String CurrencySymbol
@@ -113,9 +103,7 @@ namespace XControl
             }
         }
 
-        /// <summary>
-        /// 初始化价格输入控件的样式
-        /// </summary>
+        /// <summary>初始化价格输入控件的样式</summary>>
         public DecimalBox()
             : base()
         {
@@ -129,9 +117,7 @@ namespace XControl
             //if (String.IsNullOrEmpty(Attributes["CurrencyDecimalDigits"])) this.Attributes.Add("CurrencyDecimalDigits","2");
         }
 
-        /// <summary>
-        /// 已重载
-        /// </summary>
+        /// <summary>已重载</summary>>
         /// <param name="e"></param>
         protected override void OnPreRender(EventArgs e)
         {
@@ -148,9 +134,7 @@ namespace XControl
             this.Page.ClientScript.RegisterClientScriptResource(typeof(NumberBox), "XControl.TextBox.Validator.js");
         }
 
-        /// <summary>
-        /// 当前值
-        /// </summary>
+        /// <summary>当前值</summary>>
         [Category("专用属性"), DefaultValue(0), Description("当前值")]
         public Decimal Value
         {
@@ -168,9 +152,7 @@ namespace XControl
             }
         }
 
-        /// <summary>
-        /// 是否允许负数
-        /// </summary>
+        /// <summary>是否允许负数</summary>>
         [Category(" 专用属性"), DefaultValue(true), Description("是否允许负数,默认true")]
         public bool AllowMinus
         {
@@ -188,9 +170,7 @@ namespace XControl
             }
         }
 
-        /// <summary>
-        /// 重新包装Text属性，数据转换以及格式化部分在Text内完成
-        /// </summary>
+        /// <summary>重新包装Text属性，数据转换以及格式化部分在Text内完成</summary>>
         public override string Text
         {
             get

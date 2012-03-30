@@ -62,23 +62,17 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 方法
-        /// <summary>
-        /// 创建数据库会话
-        /// </summary>
+        /// <summary>创建数据库会话</summary>>
         /// <returns></returns>
         protected override IDbSession OnCreateSession() { return new SQLiteSession(); }
 
-        /// <summary>
-        /// 创建元数据对象
-        /// </summary>
+        /// <summary>创建元数据对象</summary>>
         /// <returns></returns>
         protected override IMetaData OnCreateMetaData() { return new SQLiteMetaData(); }
         #endregion
 
         #region 分页
-        /// <summary>
-        /// 已重写。获取分页
-        /// </summary>
+        /// <summary>已重写。获取分页</summary>>
         /// <param name="sql">SQL语句</param>
         /// <param name="startRowIndex">开始行，0表示第一行</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
@@ -103,26 +97,18 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 数据库特性
-        /// <summary>
-        /// 当前时间函数
-        /// </summary>
+        /// <summary>当前时间函数</summary>>
         public override String DateTimeNow { get { return "CURRENT_TIMESTAMP"; } }
 
-        /// <summary>
-        /// 最小时间
-        /// </summary>
+        /// <summary>最小时间</summary>>
         public override DateTime DateTimeMin { get { return DateTime.MinValue; } }
 
-        /// <summary>
-        /// 格式化时间为SQL字符串
-        /// </summary>
+        /// <summary>格式化时间为SQL字符串</summary>>
         /// <param name="dateTime">时间值</param>
         /// <returns></returns>
         public override String FormatDateTime(DateTime dateTime) { return String.Format("'{0:yyyy-MM-dd HH:mm:ss}'", dateTime); }
 
-        /// <summary>
-        /// 格式化关键字
-        /// </summary>
+        /// <summary>格式化关键字</summary>>
         /// <param name="keyWord">关键字</param>
         /// <returns></returns>
         public override String FormatKeyWord(String keyWord)
@@ -157,9 +143,7 @@ namespace XCode.DataAccessLayer
         #endregion
     }
 
-    /// <summary>
-    /// SQLite数据库
-    /// </summary>
+    /// <summary>SQLite数据库</summary>>
     internal class SQLiteSession : FileDbSession
     {
         #region 方法
@@ -173,9 +157,7 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 基本方法 查询/执行
-        /// <summary>
-        /// 文件锁定重试次数
-        /// </summary>
+        /// <summary>文件锁定重试次数</summary>>
         const Int32 RetryTimes = 5;
 
         TResult Retry<TArg, TResult>(Func<TArg, TResult> func, TArg arg)
@@ -212,16 +194,12 @@ namespace XCode.DataAccessLayer
         ///// <returns></returns>
         //public override Int32 Execute(string sql, CommandType type = CommandType.Text, params DbParameter[] ps) { return Retry<String, Int32>(base.Execute, sql); }
 
-        /// <summary>
-        /// 已重载。增加锁
-        /// </summary>
+        /// <summary>已重载。增加锁</summary>>
         /// <param name="cmd"></param>
         /// <returns></returns>
         public override Int32 Execute(DbCommand cmd) { return Retry<DbCommand, Int32>(base.Execute, cmd); }
 
-        /// <summary>
-        /// 执行插入语句并返回新增行的自动编号
-        /// </summary>
+        /// <summary>执行插入语句并返回新增行的自动编号</summary>>
         /// <param name="sql">SQL语句</param>
         /// <param name="type">命令类型，默认SQL文本</param>
         /// <param name="ps">命令参数</param>
@@ -236,9 +214,7 @@ namespace XCode.DataAccessLayer
         #endregion
     }
 
-    /// <summary>
-    /// SQLite元数据
-    /// </summary>
+    /// <summary>SQLite元数据</summary>>
     class SQLiteMetaData : FileDbMetaData
     {
         #region 构架
@@ -337,9 +313,7 @@ namespace XCode.DataAccessLayer
             if (!(Database as SQLite).IsMemoryDatabase) base.DropDatabase();
         }
 
-        /// <summary>
-        /// 删除索引方法
-        /// </summary>
+        /// <summary>删除索引方法</summary>>
         /// <param name="index"></param>
         /// <returns></returns>
         public override string DropIndexSQL(IDataIndex index)

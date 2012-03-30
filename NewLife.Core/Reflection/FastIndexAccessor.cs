@@ -2,9 +2,7 @@
 
 namespace NewLife.Reflection
 {
-    /// <summary>
-    /// 快速索引器接口的默认实现
-    /// </summary>
+    /// <summary>快速索引器接口的默认实现</summary>>
     [Serializable]
     public class FastIndexAccessor : IIndexAccessor
     {
@@ -17,9 +15,7 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public virtual Object this[String name] { get { return GetValue(this, name); } set { SetValue(this, name, value); } }
 
-        /// <summary>
-        /// 获取目标对象指定属性字段的值
-        /// </summary>
+        /// <summary>获取目标对象指定属性字段的值</summary>>
         /// <param name="target">目标对象</param>
         /// <param name="name"></param>
         /// <returns></returns>
@@ -31,9 +27,7 @@ namespace NewLife.Reflection
             throw new ArgumentException("类[" + target.GetType().FullName + "]中不存在[" + name + "]属性或字段。");
         }
 
-        /// <summary>
-        /// 尝试获取目标对象指定属性字段的值，返回是否成功
-        /// </summary>
+        /// <summary>尝试获取目标对象指定属性字段的值，返回是否成功</summary>>
         /// <param name="target">目标对象</param>
         /// <param name="name"></param>
         /// <param name="value"></param>
@@ -64,9 +58,7 @@ namespace NewLife.Reflection
             return false;
         }
 
-        /// <summary>
-        /// 获取目标对象指定属性字段的值
-        /// </summary>
+        /// <summary>获取目标对象指定属性字段的值</summary>>
         /// <typeparam name="T"></typeparam>
         /// <param name="name"></param>
         /// <returns></returns>
@@ -75,9 +67,7 @@ namespace NewLife.Reflection
             return (T)GetValue(this, name);
         }
 
-        /// <summary>
-        /// 尝试获取目标对象指定属性字段的值，返回是否成功
-        /// </summary>
+        /// <summary>尝试获取目标对象指定属性字段的值，返回是否成功</summary>>
         /// <typeparam name="T"></typeparam>
         /// <param name="name"></param>
         /// <param name="value"></param>
@@ -93,9 +83,7 @@ namespace NewLife.Reflection
             return true;
         }
 
-        /// <summary>
-        /// 设置目标对象指定属性字段的值
-        /// </summary>
+        /// <summary>设置目标对象指定属性字段的值</summary>>
         /// <param name="target">目标对象</param>
         /// <param name="name"></param>
         /// <param name="value"></param>
@@ -106,9 +94,7 @@ namespace NewLife.Reflection
             throw new ArgumentException("类[" + target.GetType().FullName + "]中不存在[" + name + "]属性或字段。");
         }
 
-        /// <summary>
-        /// 尝试设置目标对象指定属性字段的值，返回是否成功
-        /// </summary>
+        /// <summary>尝试设置目标对象指定属性字段的值，返回是否成功</summary>>
         /// <param name="target">目标对象</param>
         /// <param name="name"></param>
         /// <param name="value"></param>

@@ -172,9 +172,7 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        /// <summary>
-        /// 检查字段改变。某些数据库（如SQLite）没有添删改字段的DDL语法，可重载该方法，使用重建表方法ReBuildTable
-        /// </summary>
+        /// <summary>检查字段改变。某些数据库（如SQLite）没有添删改字段的DDL语法，可重载该方法，使用重建表方法ReBuildTable</summary>>
         /// <param name="entitytable"></param>
         /// <param name="dbtable"></param>
         /// <param name="onlySql"></param>
@@ -272,9 +270,7 @@ namespace XCode.DataAccessLayer
             return sb.ToString();
         }
 
-        /// <summary>
-        /// 检查表说明和索引
-        /// </summary>
+        /// <summary>检查表说明和索引</summary>>
         /// <param name="entitytable"></param>
         /// <param name="dbtable"></param>
         /// <param name="onlySql"></param>
@@ -341,9 +337,7 @@ namespace XCode.DataAccessLayer
             return sb.ToString();
         }
 
-        /// <summary>
-        /// 检查字段是否有改变，除了默认值和备注以外
-        /// </summary>
+        /// <summary>检查字段是否有改变，除了默认值和备注以外</summary>>
         /// <param name="entityColumn"></param>
         /// <param name="dbColumn"></param>
         /// <param name="entityDb"></param>
@@ -391,9 +385,7 @@ namespace XCode.DataAccessLayer
             return isChanged;
         }
 
-        /// <summary>
-        /// 检查字段默认值是否有改变
-        /// </summary>
+        /// <summary>检查字段默认值是否有改变</summary>>
         /// <param name="entityColumn"></param>
         /// <param name="dbColumn"></param>
         /// <param name="entityDb"></param>
@@ -430,9 +422,7 @@ namespace XCode.DataAccessLayer
             return isChanged;
         }
 
-        /// <summary>
-        /// 改变字段默认值。这里仅仅默认处理了时间日期，如果需要兼容多数据库，子类需要重载
-        /// </summary>
+        /// <summary>改变字段默认值。这里仅仅默认处理了时间日期，如果需要兼容多数据库，子类需要重载</summary>>
         /// <param name="sb"></param>
         /// <param name="onlySql"></param>
         /// <param name="entityColumn"></param>
