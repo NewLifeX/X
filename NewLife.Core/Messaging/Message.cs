@@ -58,10 +58,11 @@ namespace NewLife.Messaging
             var writer = new BinaryWriterX(stream);
             Set(writer.Settings);
 
-            //#if DEBUG
-            //            writer.Debug = true;
-            //            writer.EnableTraceStream();
-            //#endif
+            if (Debug)
+            {
+                writer.Debug = true;
+                writer.EnableTraceStream();
+            }
 
             // 基类写入编号，保证编号在最前面
             writer.Write((Byte)Kind);
@@ -86,10 +87,11 @@ namespace NewLife.Messaging
             var reader = new BinaryReaderX(stream);
             Set(reader.Settings);
 
-            //#if DEBUG
-            //            reader.Debug = true;
-            //            reader.EnableTraceStream();
-            //#endif
+            if (Debug)
+            {
+                reader.Debug = true;
+                reader.EnableTraceStream();
+            }
 
             // 读取了响应类型和消息类型后，动态创建消息对象
             var kind = (MessageKind)reader.ReadByte();
@@ -121,6 +123,11 @@ namespace NewLife.Messaging
             setting.UseObjRef = true;
             setting.UseTypeFullName = false;
         }
+
+        [ThreadStatic]
+        private static Boolean _Debug;
+        /// <summary>是否调试，输出序列化过程</summary>
+        public static Boolean Debug { get { return _Debug; } set { _Debug = value; } }
         #endregion
 
         #region 方法

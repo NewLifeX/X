@@ -34,9 +34,11 @@ using System.Runtime.InteropServices;
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("3.8.*")]
-[assembly: AssemblyFileVersion("3.8.2012.0328")]
+[assembly: AssemblyFileVersion("3.8.2012.0331")]
 
 /*
+ * v3.8.2012.0331   增加TypeX.GetMethod方法，用于反射获取类中的方法，适用于多态场合
+ * 
  * v3.8.2012.0328   所有扩展方法辅助类，全部使用System命名空间
  * 
  * v3.7.2012.0307   简化消息提供者接口，消息模型相当不成熟

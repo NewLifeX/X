@@ -8,6 +8,7 @@ using System.Text;
 using NewLife.Collections;
 using NewLife.Exceptions;
 using NewLife.Linq;
+using System.Globalization;
 
 namespace NewLife.Reflection
 {
@@ -528,6 +529,111 @@ namespace NewLife.Reflection
 
         //    return type;
         //}
+        #endregion
+
+        #region 获取方法
+        //private DictionaryCache<String, MethodInfo> _mdCache = new DictionaryCache<String, MethodInfo>();
+
+        /// <summary>获取方法。</summary>
+        /// <remarks>用于具有多个签名的同名方法的场合，不确定是否存在性能问题，不建议普通场合使用</remarks>
+        /// <param name="type"></param>
+        /// <param name="name"></param>
+        /// <param name="paramTypes"></param>
+        /// <returns></returns>
+        public static MethodInfo GetMethod(Type type, String name, Type[] paramTypes)
+        {
+            var bf = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance;
+            MethodInfo mi = null;
+            while (type != null && type != typeof(Object))
+            {
+                mi = type.GetMethod(name, bf, Binder, paramTypes, null);
+                if (mi != null) return mi;
+
+                type = type.BaseType;
+            }
+            return mi;
+        }
+
+        /// <summary>获取方法。</summary>
+        /// <remarks>用于具有多个签名的同名方法的场合，不确定是否存在性能问题，不建议普通场合使用</remarks>
+        /// <param name="name"></param>
+        /// <param name="paramTypes"></param>
+        /// <returns></returns>
+        public MethodInfo GetMethod(String name, Type[] paramTypes) { return GetMethod(BaseType, name, paramTypes); }
+
+        //private MethodInfo[] _Methods;
+        ///// <summary>方法集合</summary>
+        //private MethodInfo[] Methods { get { return _Methods ?? (_Methods = BaseType.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance) ?? new MethodInfo[0]); } }
+
+        private static Binder _Binder;
+        /// <summary>专用绑定器</summary>
+        private static Binder Binder { get { return _Binder ?? (_Binder = new MyBinder()); } }
+
+        class MyBinder : Binder
+        {
+            public override FieldInfo BindToField(BindingFlags bindingAttr, FieldInfo[] match, object value, CultureInfo culture)
+            {
+                throw new NotImplementedException();
+            }
+
+            public override MethodBase BindToMethod(BindingFlags bindingAttr, MethodBase[] match, ref object[] args, ParameterModifier[] modifiers, CultureInfo culture, string[] names, out object state)
+            {
+                throw new NotImplementedException();
+            }
+
+            public override object ChangeType(object value, Type type, CultureInfo culture)
+            {
+                throw new NotImplementedException();
+            }
+
+            public override void ReorderArgumentArray(ref object[] args, object state)
+            {
+                throw new NotImplementedException();
+            }
+
+            public override MethodBase SelectMethod(BindingFlags bindingAttr, MethodBase[] match, Type[] types, ParameterModifier[] modifiers)
+            {
+                // 参数个数
+                var pcount = types == null ? 0 : types.Length;
+
+                foreach (var item in match)
+                {
+                    // 参数比对
+                    var mps = item.GetParameters();
+                    // 无参数时
+                    if (mps == null || mps.Length < 1)
+                        if (pcount == 0)
+                            return item;
+                        else
+                            continue;
+
+                    // 比对参数个数
+                    if (mps.Length != pcount) continue;
+
+                    Boolean valid = true;
+                    for (int i = 0; i < pcount; i++)
+                    {
+                        // 传入的参数类型为空或者Object，可以匹配所有参数
+                        if (types[i] == null || types[i] == typeof(Object)) continue;
+
+                        // 检查参数继承，不一定是精确匹配。任何一个不匹配就失败
+                        if (!types[i].IsAssignableFrom(mps[i].ParameterType))
+                        {
+                            valid = false;
+                            break;
+                        }
+                    }
+                    if (valid) return item;
+                }
+
+                return null;
+            }
+
+            public override PropertyInfo SelectProperty(BindingFlags bindingAttr, PropertyInfo[] match, Type returnType, Type[] indexes, ParameterModifier[] modifiers)
+            {
+                throw new NotImplementedException();
+            }
+        }
         #endregion
 
         #region 辅助方法

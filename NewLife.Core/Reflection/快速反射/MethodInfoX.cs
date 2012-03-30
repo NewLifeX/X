@@ -53,10 +53,11 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public new static MethodInfoX Create(Type type, String name)
         {
-            var method = type.GetMethod(name);
-            if (method == null) method = type.GetMethod(name, DefaultBinding);
-            if (method == null) method = type.GetMethod(name, DefaultBinding | BindingFlags.IgnoreCase);
-            if (method == null && type.BaseType != typeof(Object)) return Create(type.BaseType, name);
+            //var method = type.GetMethod(name);
+            //if (method == null) method = type.GetMethod(name, DefaultBinding);
+            //if (method == null) method = type.GetMethod(name, DefaultBinding | BindingFlags.IgnoreCase);
+            //if (method == null && type.BaseType != typeof(Object)) return Create(type.BaseType, name);
+            var method = TypeX.GetMethod(type, name, null);
             if (method == null) return null;
 
             return Create(method);
@@ -69,29 +70,14 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public static MethodInfoX Create(Type type, String name, Type[] paramTypes)
         {
-            var method = type.GetMethod(name, paramTypes);
-            if (method == null) method = type.GetMethod(name, DefaultBinding, null, paramTypes, null);
-            if (method == null) method = type.GetMethod(name, DefaultBinding | BindingFlags.IgnoreCase, null, paramTypes, null);
-            if (method == null && type.BaseType != typeof(Object)) return Create(type.BaseType, name, paramTypes);
+            //var method = type.GetMethod(name, paramTypes);
+            //if (method == null) method = type.GetMethod(name, DefaultBinding, null, paramTypes, null);
+            //if (method == null) method = type.GetMethod(name, DefaultBinding | BindingFlags.IgnoreCase, null, paramTypes, null);
+            //if (method == null && type.BaseType != typeof(Object)) return Create(type.BaseType, name, paramTypes);
+            var method = TypeX.GetMethod(type, name, paramTypes);
             if (method == null) return null;
 
             return Create(method);
-        }
-        #endregion
-
-        #region 获取方法
-        /// <summary>
-        /// 获取方法。用于具有多个签名的同名方法的场合.
-        /// </summary>
-        /// <param name="type"></param>
-        /// <param name="name"></param>
-        /// <param name="paramTypes"></param>
-        /// <returns></returns>
-        public static MethodInfo GetMethod(Type type, String name, Type[] paramTypes)
-        {
-            var ms = type.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance);
-            if (ms == null || ms.Length < 1) return null;
-            return null;
         }
         #endregion
 
@@ -208,7 +194,7 @@ namespace NewLife.Reflection
         /// <param name="name"></param>
         /// <param name="parameters"></param>
         /// <returns></returns>
-        public static TResult Invoke<TResult>(Object target, String name, params  Object[] parameters)
+        public static TResult Invoke<TResult>(Object target, String name, params Object[] parameters)
         {
             if (target == null) throw new ArgumentNullException("target");
             if (String.IsNullOrEmpty(name)) throw new ArgumentNullException("name");
@@ -225,7 +211,7 @@ namespace NewLife.Reflection
         /// <param name="name"></param>
         /// <param name="parameters"></param>
         /// <returns></returns>
-        public static TResult Invoke<TTarget, TResult>(String name, params  Object[] parameters)
+        public static TResult Invoke<TTarget, TResult>(String name, params Object[] parameters)
         {
             if (String.IsNullOrEmpty(name)) throw new ArgumentNullException("name");
 

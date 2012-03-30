@@ -29,7 +29,7 @@ namespace Test2
                 try
                 {
 #endif
-                Test3();
+                    Test3();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -190,13 +190,16 @@ namespace Test2
         static void Test3()
         {
             Console.ReadKey(true);
-            using (var sp = new SerialPort("COM11"))
+            using (var sp = new SerialPort("COM9"))
             {
                 sp.Open();
+                var dt = new Byte[] { 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA };
                 for (int i = 0; i < 10000; i++)
                 {
-                    var dt = i % 2 == 0 ? new Byte[] { 0 } : new Byte[] { 1 };
-                    Console.WriteLine(dt[0]);
+                    //var dt = i % 2 == 0 ? new Byte[] { 0 } : new Byte[] { 1 };
+                    //Console.WriteLine(dt[0]);
+                    //sp.Write(dt, 0, dt.Length);
+                    //Console.WriteLine(i);
                     sp.Write(dt, 0, dt.Length);
                     //Thread.Sleep(100);
                 }

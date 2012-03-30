@@ -3,7 +3,6 @@ using System.Diagnostics;
 using System.Threading;
 using NewLife.Collections;
 using NewLife.CommonEntity;
-using NewLife.IO;
 using NewLife.Linq;
 using NewLife.Log;
 using NewLife.Messaging;
@@ -11,8 +10,6 @@ using NewLife.Net.Proxy;
 using NewLife.Net.Sockets;
 using NewLife.Reflection;
 using NewLife.Threading;
-using NewLife.Compression;
-using XCode.Test;
 
 namespace Test
 {
@@ -29,7 +26,7 @@ namespace Test
                 try
                 {
 #endif
-                Test3();
+                    Test3();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -175,12 +172,20 @@ namespace Test
 
         static void Test3()
         {
-            var entity = new EntityTest();
-            var rnd = new Random((Int32)DateTime.Now.Ticks);
-            entity.Name = "Name" + rnd.Next(10000, 99999);
-            entity.File = new Byte[1024];
-            rnd.NextBytes(entity.File);
-            entity.Save();
+            //var entity = new EntityTest();
+            //var rnd = new Random((Int32)DateTime.Now.Ticks);
+            //entity.Name = "Name" + rnd.Next(10000, 99999);
+            //entity.File = new Byte[1024];
+            //rnd.NextBytes(entity.File);
+            //entity.Save();
+
+            var type = typeof(User).BaseType;
+            var ps = new Object[] { null, null, null, 0, 3 };
+            var pts = TypeX.GetTypeArray(ps);
+            var method = type.GetMethod("FindCount");
+            Console.WriteLine(method);
+            method = TypeX.Create(type).GetMethod("FindCount", pts);
+            Console.WriteLine(method);
         }
     }
 }
