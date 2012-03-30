@@ -19,7 +19,7 @@ namespace XCode.Accessors
                 .Register<IEntityAccessor, JsonEntityAccessor>(EntityAccessorTypes.Json);
         }
 
-        /// <summary>创建指定类型的实体访问器</summary>>
+        /// <summary>创建指定类型的实体访问器</summary>
         /// <param name="name"></param>
         /// <returns></returns>
         public static IEntityAccessor Create(String name)
@@ -27,7 +27,7 @@ namespace XCode.Accessors
             return XCodeService.Resolve<IEntityAccessor>(Enum.Parse(typeof(EntityAccessorTypes), name));
         }
 
-        /// <summary>创建指定类型的实体访问器</summary>>
+        /// <summary>创建指定类型的实体访问器</summary>
         /// <param name="kind"></param>
         /// <returns></returns>
         public static IEntityAccessor Create(EntityAccessorTypes kind)

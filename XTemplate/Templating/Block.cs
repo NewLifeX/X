@@ -3,14 +3,14 @@ using System.Diagnostics;
 
 namespace XTemplate.Templating
 {
-    /// <summary>代码块</summary>>
+    /// <summary>代码块</summary>
     internal sealed class Block
     {
         #region 构造
-        /// <summary>实例化一个代码块对象</summary>>
+        /// <summary>实例化一个代码块对象</summary>
         public Block() { }
 
-        /// <summary>实例化一个代码块对象</summary>>
+        /// <summary>实例化一个代码块对象</summary>
         /// <param name="type"></param>
         /// <param name="text"></param>
         public Block(BlockType type, String text)
@@ -22,7 +22,7 @@ namespace XTemplate.Templating
 
         #region 行号/列数
         private Int32 _StartColumn;
-        /// <summary>开始列数</summary>>
+        /// <summary>开始列数</summary>
         public Int32 StartColumn
         {
             get { return _StartColumn; }
@@ -30,7 +30,7 @@ namespace XTemplate.Templating
         }
 
         private Int32 _StartLine;
-        /// <summary>开始行数</summary>>
+        /// <summary>开始行数</summary>
         public Int32 StartLine
         {
             get { return _StartLine; }
@@ -38,7 +38,7 @@ namespace XTemplate.Templating
         }
 
         private Int32 _EndColumn;
-        /// <summary>结束列数</summary>>
+        /// <summary>结束列数</summary>
         public Int32 EndColumn
         {
             get { return _EndColumn; }
@@ -46,7 +46,7 @@ namespace XTemplate.Templating
         }
 
         private Int32 _EndLine;
-        /// <summary>结束行数</summary>>
+        /// <summary>结束行数</summary>
         public Int32 EndLine
         {
             get { return _EndLine; }
@@ -56,7 +56,7 @@ namespace XTemplate.Templating
 
         #region 基本属性
         private String _Name;
-        /// <summary>文件名</summary>>
+        /// <summary>文件名</summary>
         public String Name
         {
             get { return _Name; }
@@ -64,7 +64,7 @@ namespace XTemplate.Templating
         }
 
         private String _Text;
-        /// <summary>文本</summary>>
+        /// <summary>文本</summary>
         public String Text
         {
             get { return _Text; }
@@ -72,7 +72,7 @@ namespace XTemplate.Templating
         }
 
         private BlockType _Type;
-        /// <summary>块类型</summary>>
+        /// <summary>块类型</summary>
         public BlockType Type
         {
             get { return _Type; }
@@ -81,14 +81,14 @@ namespace XTemplate.Templating
         #endregion
 
         #region 方法
-        /// <summary>已重载。</summary>>
+        /// <summary>已重载。</summary>
         /// <returns></returns>
         public override String ToString()
         {
             return ToFullString();
         }
 
-        /// <summary>转为完成字符串</summary>>
+        /// <summary>转为完成字符串</summary>
         /// <returns></returns>
         public String ToFullString()
         {

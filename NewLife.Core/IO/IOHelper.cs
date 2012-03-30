@@ -64,7 +64,7 @@ namespace System
          * 于是就有了问题，解压缩的时候，需要自己判断是单文件还是多文件。
          */
 
-        /// <summary>压缩单个文件，纯文件流压缩</summary>>
+        /// <summary>压缩单个文件，纯文件流压缩</summary>
         /// <param name="src"></param>
         /// <param name="des"></param>
         /// <returns></returns>
@@ -83,7 +83,7 @@ namespace System
             return des;
         }
 
-        /// <summary>压缩目录</summary>>
+        /// <summary>压缩目录</summary>
         /// <param name="root"></param>
         /// <returns></returns>
         [Obsolete("请使用NewLife.Compression.ZipFile！")]
@@ -92,7 +92,7 @@ namespace System
             return CompressFile(root, Directory.GetFiles(root, "*.*", SearchOption.AllDirectories));
         }
 
-        /// <summary>压缩多个文件</summary>>
+        /// <summary>压缩多个文件</summary>
         /// <param name="root">根目录</param>
         /// <param name="files">文件集合</param>
         /// <returns>压缩的文件名</returns>
@@ -125,7 +125,7 @@ namespace System
             return f;
         }
 
-        /// <summary>压缩多个文件</summary>>
+        /// <summary>压缩多个文件</summary>
         /// <param name="root">根目录</param>
         /// <param name="files">文件集合</param>
         /// <param name="des">输出文件</param>
@@ -148,7 +148,7 @@ namespace System
             return des;
         }
 
-        /// <summary>压缩多个文件，每个文件流之前都写入相对文件路径（包括相对于根目录）和文件长度等头部信息</summary>>
+        /// <summary>压缩多个文件，每个文件流之前都写入相对文件路径（包括相对于根目录）和文件长度等头部信息</summary>
         /// <param name="root">根目录</param>
         /// <param name="files">文件集合</param>
         /// <param name="outStream">目标</param>
@@ -211,7 +211,7 @@ namespace System
             }
         }
 
-        /// <summary>解压缩单个文件，纯文件流解压缩</summary>>
+        /// <summary>解压缩单个文件，纯文件流解压缩</summary>
         /// <param name="src"></param>
         /// <param name="des"></param>
         /// <returns></returns>
@@ -230,7 +230,7 @@ namespace System
             return des;
         }
 
-        /// <summary>解压缩，并指定是否解压到子目录中</summary>>
+        /// <summary>解压缩，并指定是否解压到子目录中</summary>
         /// <param name="src"></param>
         /// <param name="targetPath"></param>
         /// <param name="isSub">是否解压到子目录中，仅对多文件有效</param>
@@ -265,7 +265,7 @@ namespace System
             return targetPath;
         }
 
-        /// <summary>解压缩</summary>>
+        /// <summary>解压缩</summary>
         /// <param name="src"></param>
         /// <param name="targetPath"></param>
         /// <returns></returns>
@@ -285,7 +285,7 @@ namespace System
             return DecompressFile(src, targetPath, false);
         }
 
-        /// <summary>解压缩多个文件</summary>>
+        /// <summary>解压缩多个文件</summary>
         /// <param name="inStream"></param>
         /// <param name="targetPath"></param>
         [Obsolete("请使用NewLife.Compression.ZipFile！")]
@@ -294,7 +294,7 @@ namespace System
             DecompressFile(inStream, targetPath, null, false);
         }
 
-        /// <summary>解压缩。如果单文件，就解压到targetPath下的des文件；如果多文件，就解压到targetPath的des子目录下，此时des可以为空。</summary>>
+        /// <summary>解压缩。如果单文件，就解压到targetPath下的des文件；如果多文件，就解压到targetPath的des子目录下，此时des可以为空。</summary>
         /// <param name="inStream"></param>
         /// <param name="targetPath"></param>
         /// <param name="des">多文件时，指代子目录，为空表示当前目录；单文件时表示目标文件</param>

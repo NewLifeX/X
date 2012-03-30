@@ -19,7 +19,7 @@ namespace NewLife.CommonEntity
     /// <summary>管理页接口，用于控制页面权限等</summary>
     public interface IManagePage
     {
-        /// <summary>使用控件容器和实体类初始化接口</summary>>
+        /// <summary>使用控件容器和实体类初始化接口</summary>
         /// <param name="container"></param>
         /// <param name="entityType"></param>
         IManagePage Init(Control container, Type entityType);
@@ -80,7 +80,7 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region IManagerPage 成员
-        /// <summary>使用控件容器和实体类初始化接口</summary>>
+        /// <summary>使用控件容器和实体类初始化接口</summary>
         /// <param name="container"></param>
         /// <param name="entityType"></param>
         public IManagePage Init(Control container, Type entityType)
@@ -220,7 +220,7 @@ namespace NewLife.CommonEntity
             }
         }
 
-        /// <summary>检查是否已登录</summary>>
+        /// <summary>检查是否已登录</summary>
         /// <returns></returns>
         public virtual Boolean CheckLogin()
         {
@@ -231,7 +231,7 @@ namespace NewLife.CommonEntity
             return true;
         }
 
-        /// <summary>检查权限，实际上就是Acquire(PermissionFlags.None)</summary>>
+        /// <summary>检查权限，实际上就是Acquire(PermissionFlags.None)</summary>
         /// <returns></returns>
         public virtual Boolean CheckPermission()
         {
@@ -240,7 +240,7 @@ namespace NewLife.CommonEntity
             return Acquire(PermissionFlags.None);
         }
 
-        /// <summary>申请指定操作的权限</summary>>
+        /// <summary>申请指定操作的权限</summary>
         /// <param name="flag"></param>
         /// <returns></returns>
         public virtual Boolean Acquire(PermissionFlags flag)
@@ -255,7 +255,7 @@ namespace NewLife.CommonEntity
             return admin.Acquire(menu.ID, flag);
         }
 
-        /// <summary>申请指定操作的权限</summary>>
+        /// <summary>申请指定操作的权限</summary>
         /// <param name="name"></param>
         /// <param name="flag"></param>
         /// <returns></returns>
@@ -268,7 +268,7 @@ namespace NewLife.CommonEntity
             return admin.Acquire(name, flag);
         }
 
-        /// <summary>申请指定操作的权限</summary>>
+        /// <summary>申请指定操作的权限</summary>
         /// <param name="name"></param>
         /// <returns></returns>
         public virtual Boolean Acquire(String name)
@@ -314,7 +314,7 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region ObjectDataSource完善
-        /// <summary>如果没有设置TypeName，则说明该控件还没有人工控制，采用自动控制</summary>>
+        /// <summary>如果没有设置TypeName，则说明该控件还没有人工控制，采用自动控制</summary>
         void FixObjectDataSource()
         {
             ObjectDataSource ods = ControlHelper.FindControlInPage<ObjectDataSource>("ods");
@@ -326,7 +326,7 @@ namespace NewLife.CommonEntity
             }
         }
 
-        /// <summary>如果没有设置TypeName，则说明该控件还没有人工控制，采用自动控制</summary>>
+        /// <summary>如果没有设置TypeName，则说明该控件还没有人工控制，采用自动控制</summary>
         /// <param name="ods"></param>
         void FixObjectDataSource(ObjectDataSource ods)
         {
@@ -346,7 +346,7 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region 关键字搜索按回车提交
-        /// <summary>写reloadForm，弹出层可能会调用该方法</summary>>
+        /// <summary>写reloadForm，弹出层可能会调用该方法</summary>
         protected virtual void WriteReloadForm()
         {
             // 在页面回发后，如果reload页面，会提示重新发送啥啥啥的。找到搜索按钮，改变页面重刷为点击按钮
@@ -383,7 +383,7 @@ namespace NewLife.CommonEntity
             }
         }
 
-        /// <summary>在关键字输入框按下回车时，调用查询</summary>>
+        /// <summary>在关键字输入框按下回车时，调用查询</summary>
         protected virtual void WriteEnterKeyPress()
         {
             TextBox box = ControlHelper.FindControlInPage<TextBox>("txtKey");

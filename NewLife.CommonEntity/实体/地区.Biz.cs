@@ -76,7 +76,7 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region 扩展查询
-        /// <summary>根据主键查询一个地区实体对象用于表单编辑</summary>>
+        /// <summary>根据主键查询一个地区实体对象用于表单编辑</summary>
         /// <param name="id">编号</param>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
@@ -90,7 +90,7 @@ namespace NewLife.CommonEntity
             return entity;
         }
 
-        /// <summary>根据编号查找。实体缓存</summary>>
+        /// <summary>根据编号查找。实体缓存</summary>
         /// <param name="id"></param>
         /// <returns></returns>
         public static TEntity FindByID(Int32 id)
@@ -99,7 +99,7 @@ namespace NewLife.CommonEntity
             return Meta.Cache.Entities.Find(_.ID, id);
         }
 
-        /// <summary>按Code查找。实体缓存</summary>>
+        /// <summary>按Code查找。实体缓存</summary>
         /// <param name="code"></param>
         /// <returns></returns>
         public static TEntity FindByCode(Int32 code)
@@ -112,7 +112,7 @@ namespace NewLife.CommonEntity
             return Meta.Cache.Entities.Find(a => a.OldArea.ContainsKey(code));
         }
 
-        /// <summary>按名称查找。实体缓存</summary>>
+        /// <summary>按名称查找。实体缓存</summary>
         /// <param name="name"></param>
         /// <returns></returns>
         [Obsolete("请改为使用指定地区下的FindAllByName或Root.FindAllByName！")]
@@ -125,7 +125,7 @@ namespace NewLife.CommonEntity
             return Root.FindAllByName(name);
         }
 
-        /// <summary>按名称查找。实体缓存</summary>>
+        /// <summary>按名称查找。实体缓存</summary>
         /// <param name="name">地区名称</param>
         /// <param name="withLike">未找到时，是否查找相似的地区。因为地区可能有市、县、区等字样，而查询名称没填</param>
         /// <param name="deepth">地区路径的最大可能层次。内置地区数据库只有三层</param>
@@ -247,7 +247,7 @@ namespace NewLife.CommonEntity
             return name;
         }
 
-        /// <summary>查找指定名称的父菜单下一级的子菜单</summary>>
+        /// <summary>查找指定名称的父菜单下一级的子菜单</summary>
         /// <param name="parentname"></param>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select)]
@@ -265,7 +265,7 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region 对象操作
-        /// <summary>已重载。基类先调用Valid(true)验证数据，然后在事务保护内调用OnInsert</summary>>
+        /// <summary>已重载。基类先调用Valid(true)验证数据，然后在事务保护内调用OnInsert</summary>
         /// <returns></returns>
         public override Int32 Insert()
         {
@@ -274,7 +274,7 @@ namespace NewLife.CommonEntity
             return base.Insert();
         }
 
-        /// <summary>已重载</summary>>
+        /// <summary>已重载</summary>
         /// <returns></returns>
         public override Int32 Update()
         {
@@ -306,7 +306,7 @@ namespace NewLife.CommonEntity
         //    return base.OnInsert();
         //}
 
-        /// <summary>验证数据，通过抛出异常的方式提示验证失败。</summary>>
+        /// <summary>验证数据，通过抛出异常的方式提示验证失败。</summary>
         /// <param name="isNew"></param>
         public override void Valid(Boolean isNew)
         {
@@ -380,7 +380,7 @@ namespace NewLife.CommonEntity
         //    return FindCount(SearchWhere(key), null, null, 0, 0);
         //}
 
-        /// <summary>构造搜索条件</summary>>
+        /// <summary>构造搜索条件</summary>
         /// <param name="key">关键字</param>
         /// <returns></returns>
         private static String SearchWhere(String key)
@@ -499,7 +499,7 @@ namespace NewLife.CommonEntity
             return parent;
         }
 
-        /// <summary>已重载。</summary>>
+        /// <summary>已重载。</summary>
         /// <returns></returns>
         public override string ToString()
         {

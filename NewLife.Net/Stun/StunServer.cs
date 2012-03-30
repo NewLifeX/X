@@ -31,7 +31,7 @@ namespace NewLife.Net.Stun
         #endregion
 
         #region 构造
-        /// <summary>实例化</summary>>
+        /// <summary>实例化</summary>
         public StunServer()
         {
             Port = 3478;

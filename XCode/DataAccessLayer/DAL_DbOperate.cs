@@ -25,7 +25,7 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        /// <summary>缓存个数</summary>>
+        /// <summary>缓存个数</summary>
         public Int32 CacheCount
         {
             get
@@ -36,7 +36,7 @@ namespace XCode.DataAccessLayer
 
         [ThreadStatic]
         private static Int32 _QueryTimes;
-        /// <summary>查询次数</summary>>
+        /// <summary>查询次数</summary>
         public static Int32 QueryTimes
         {
             //get { return DB != null ? DB.QueryTimes : 0; }
@@ -45,7 +45,7 @@ namespace XCode.DataAccessLayer
 
         [ThreadStatic]
         private static Int32 _ExecuteTimes;
-        /// <summary>执行次数</summary>>
+        /// <summary>执行次数</summary>
         public static Int32 ExecuteTimes
         {
             //get { return DB != null ? DB.ExecuteTimes : 0; }

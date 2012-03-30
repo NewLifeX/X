@@ -118,53 +118,53 @@ namespace NewLife.Net.SGIP
         #endregion
  }
 
-    /// <summary>代收费标志，0：应收；1：实收</summary>>
+    /// <summary>代收费标志，0：应收；1：实收</summary>
     public enum SubmitAgentFlags : byte
     {
-        /// <summary>0：应收</summary>>
+        /// <summary>0：应收</summary>
         SouldIncome = 0,
-        /// <summary>1：实收</summary>>
+        /// <summary>1：实收</summary>
         RealIncome = 1,
     }
 
-    /// <summary>状态报告标记</summary>>
+    /// <summary>状态报告标记</summary>
     public enum SubmitReportFlags : byte
     {
-        /// <summary>0-该条消息只有最后出错时要返回状态报告</summary>>
+        /// <summary>0-该条消息只有最后出错时要返回状态报告</summary>
         ErrorReport = 0,
-        /// <summary>1-该条消息无论最后是否成功都要返回状态报告</summary>>
+        /// <summary>1-该条消息无论最后是否成功都要返回状态报告</summary>
         Always = 1,
-        /// <summary>2-该条消息不需要返回状态报告</summary>>
+        /// <summary>2-该条消息不需要返回状态报告</summary>
         NoReport = 2,
-        /// <summary>3-该条消息仅携带包月计费信息，不下发给用户，要返回状态报告</summary>>
+        /// <summary>3-该条消息仅携带包月计费信息，不下发给用户，要返回状态报告</summary>
         MonthReport = 3,
     }
 
-    /// <summary>引起MT消息的原因</summary>>
+    /// <summary>引起MT消息的原因</summary>
     public enum SubmitMorelatetoMTFlags : byte
     {
-        /// <summary>0-MO点播引起的第一条MT消息；</summary>>
+        /// <summary>0-MO点播引起的第一条MT消息；</summary>
         VoteFirst = 0,
-        /// <summary>1-MO点播引起的非第一条MT消息；</summary>>
+        /// <summary>1-MO点播引起的非第一条MT消息；</summary>
         VoteNonFirst = 1,
-        /// <summary>2-非MO点播引起的MT消息；</summary>>
+        /// <summary>2-非MO点播引起的MT消息；</summary>
         NormalFirst = 2,
-        /// <summary>3-系统反馈引起的MT消息。</summary>>
+        /// <summary>3-系统反馈引起的MT消息。</summary>
         NormalNonFirst = 3,
     }
 
-    /// <summary>计费类别定义</summary>>
+    /// <summary>计费类别定义</summary>
     public enum FeeTypes : byte
     {
-        /// <summary>0	“短消息类型”为“发送”，对“计费用户号码”不计信息费，此类话单仅用于核减SP对称的信道费</summary>>
+        /// <summary>0	“短消息类型”为“发送”，对“计费用户号码”不计信息费，此类话单仅用于核减SP对称的信道费</summary>
         FreeSend = 0,
-        /// <summary>1	对“计费用户号码”免费</summary>>
+        /// <summary>1	对“计费用户号码”免费</summary>
         Free = 1,
-        /// <summary>2	对“计费用户号码”按条计信息费</summary>>
+        /// <summary>2	对“计费用户号码”按条计信息费</summary>
         RowNumFee = 2,
-        /// <summary>3	对“计费用户号码”按包月收取信息费</summary>>
+        /// <summary>3	对“计费用户号码”按包月收取信息费</summary>
         MonthFee = 3,
-        /// <summary>4	对“计费用户号码”的收费是由SP实现</summary>>
+        /// <summary>4	对“计费用户号码”的收费是由SP实现</summary>
         SpFee = 4,
     }
 }

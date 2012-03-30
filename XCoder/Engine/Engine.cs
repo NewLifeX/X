@@ -32,7 +32,7 @@ namespace XCoder
         }
 
         private static List<String> _FileTemplates;
-        /// <summary>文件模版</summary>>
+        /// <summary>文件模版</summary>
         public static List<String> FileTemplates
         {
             get
@@ -111,7 +111,7 @@ namespace XCoder
         #endregion
 
         #region 辅助函数
-        /// <summary>处理前缀</summary>>
+        /// <summary>处理前缀</summary>
         /// <param name="name"></param>
         /// <returns></returns>
         public static String CutPrefix(String name)
@@ -163,7 +163,7 @@ namespace XCoder
             }
         }
 
-        /// <summary>检查是否为c#关键字</summary>>
+        /// <summary>检查是否为c#关键字</summary>
         /// <param name="name"></param>
         /// <returns></returns>
         static Boolean IsKeyWord(String name)
@@ -184,7 +184,7 @@ namespace XCoder
             return false;
         }
 
-        /// <summary>自动处理大小写</summary>>
+        /// <summary>自动处理大小写</summary>
         /// <param name="name"></param>
         /// <returns></returns>
         public static String FixWord(String name)
@@ -239,7 +239,7 @@ namespace XCoder
             return name;
         }
 
-        /// <summary>英文名转中文名,为了兼容旧的代码而保留,使用翻译服务实现,所以速度不是很快,密集调用应使用ITranslate</summary>>
+        /// <summary>英文名转中文名,为了兼容旧的代码而保留,使用翻译服务实现,所以速度不是很快,密集调用应使用ITranslate</summary>
         /// <param name="name"></param>
         /// <returns></returns>
         public static String ENameToCName(String name)
@@ -389,7 +389,7 @@ namespace XCoder
         #endregion
 
         #region 生成
-        /// <summary>生成代码，参数由Config传入</summary>>
+        /// <summary>生成代码，参数由Config传入</summary>
         /// <param name="tableName"></param>
         /// <returns></returns>
         public String[] Render(String tableName)

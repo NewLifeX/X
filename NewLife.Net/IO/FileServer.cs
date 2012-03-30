@@ -6,7 +6,7 @@ using NewLife.Net.Udp;
 
 namespace NewLife.Net.IO
 {
-    /// <summary>文件服务端</summary>>
+    /// <summary>文件服务端</summary>
     public class FileServer : NetServer
     {
         #region 属性
@@ -20,7 +20,7 @@ namespace NewLife.Net.IO
         #endregion
 
         #region 方法
-        /// <summary>已重载。</summary>>
+        /// <summary>已重载。</summary>
         protected override void EnsureCreateServer()
         {
             Name = "文件服务";

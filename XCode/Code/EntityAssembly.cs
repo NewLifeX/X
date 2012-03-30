@@ -144,7 +144,7 @@ namespace XCode.Code
         #endregion
 
         #region 方法
-        /// <summary>在该程序集中创建一个实体类</summary>>
+        /// <summary>在该程序集中创建一个实体类</summary>
         /// <param name="table"></param>
         /// <returns></returns>
         public EntityClass Create(IDataTable table)
@@ -186,7 +186,7 @@ namespace XCode.Code
             return entity;
         }
 
-        /// <summary>根据名称创建</summary>>
+        /// <summary>根据名称创建</summary>
         /// <param name="name"></param>
         /// <returns></returns>
         public EntityClass Create(String name)
@@ -198,7 +198,7 @@ namespace XCode.Code
             return null;
         }
 
-        /// <summary>创建所以表的实体类</summary>>
+        /// <summary>创建所以表的实体类</summary>
         public void CreateAll()
         {
             if (Tables == null) return;
@@ -215,7 +215,7 @@ namespace XCode.Code
         #endregion
 
         #region 生成代码
-        /// <summary>生成C#代码</summary>>
+        /// <summary>生成C#代码</summary>
         /// <returns></returns>
         public String GenerateCSharpCode()
         {
@@ -241,7 +241,7 @@ namespace XCode.Code
         #endregion
 
         #region 编译
-        /// <summary>编译</summary>>
+        /// <summary>编译</summary>
         /// <param name="options"></param>
         /// <returns></returns>
         public CompilerResults Compile(CompilerParameters options)
@@ -329,7 +329,7 @@ namespace XCode.Code
             return rs;
         }
 
-        /// <summary>编译并返回程序集</summary>>
+        /// <summary>编译并返回程序集</summary>
         /// <returns></returns>
         public Assembly Compile()
         {
@@ -362,7 +362,7 @@ namespace XCode.Code
         #endregion
 
         #region 辅助函数
-        /// <summary>已重载。</summary>>
+        /// <summary>已重载。</summary>
         /// <returns></returns>
         public override string ToString() { return Name; }
         #endregion

@@ -17,7 +17,7 @@ namespace NewLife.Serialization
         #endregion
 
         #region 创建成员信息
-        /// <summary>创建反射成员信息</summary>>
+        /// <summary>创建反射成员信息</summary>
         /// <param name="member"></param>
         /// <returns></returns>
         public static IObjectMemberInfo CreateObjectMemberInfo(MemberInfo member)
@@ -25,7 +25,7 @@ namespace NewLife.Serialization
             return new ReflectMemberInfo(member);
         }
 
-        /// <summary>创建简单成员信息</summary>>
+        /// <summary>创建简单成员信息</summary>
         /// <param name="name"></param>
         /// <param name="type"></param>
         /// <param name="value"></param>
@@ -118,7 +118,7 @@ namespace NewLife.Serialization
         }
 
         static DictionaryCache<Type, MemberInfo[]> cache1 = new DictionaryCache<Type, MemberInfo[]>();
-        /// <summary>取得所有字段</summary>>
+        /// <summary>取得所有字段</summary>
         /// <param name="type"></param>
         /// <param name="isBaseFirst"></param>
         /// <returns></returns>
@@ -160,7 +160,7 @@ namespace NewLife.Serialization
             return list.ToArray();
         }
 
-        /// <summary>取得所有属性</summary>>
+        /// <summary>取得所有属性</summary>
         /// <param name="type"></param>
         /// <param name="isBaseFirst"></param>
         /// <returns></returns>
@@ -246,7 +246,7 @@ namespace NewLife.Serialization
 
         #region 默认对象
         static DictionaryCache<Type, Object> defCache = new DictionaryCache<Type, object>();
-        /// <summary>获取某个类型的默认对象</summary>>
+        /// <summary>获取某个类型的默认对象</summary>
         /// <param name="type"></param>
         /// <returns></returns>
         public static Object GetDefaultObject(Type type)

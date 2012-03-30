@@ -39,7 +39,7 @@ namespace NewLife.Serialization
         #endregion
 
         #region 构造方法
-        /// <summary>构造方法</summary>>
+        /// <summary>构造方法</summary>
         public JsonWriter()
             : base()
         {
@@ -51,7 +51,7 @@ namespace NewLife.Serialization
         #endregion
 
         #region 字节/字节数组
-        /// <summary>将字节数组部分写入当前流。</summary>>
+        /// <summary>将字节数组部分写入当前流。</summary>
         /// <param name="buffer">包含要写入的数据的字节数组。</param>
         /// <param name="index">buffer 中开始写入的起始点。</param>
         /// <param name="count">要写入的字节数。</param>
@@ -59,7 +59,7 @@ namespace NewLife.Serialization
         #endregion
 
         #region 时间
-        /// <summary>将一个时间日期写入</summary>>
+        /// <summary>将一个时间日期写入</summary>
         /// <param name="value"></param>
         public override void Write(DateTime value)
         {
@@ -99,7 +99,7 @@ namespace NewLife.Serialization
 
         void WriteLine() { if (Settings.AllowMultiline) Writer.WriteLine(); }
 
-        /// <summary>将 Unicode 字符写入当前流，并根据所使用的 Encoding 和向流中写入的特定字符，提升流的当前位置。</summary>>
+        /// <summary>将 Unicode 字符写入当前流，并根据所使用的 Encoding 和向流中写入的特定字符，提升流的当前位置。</summary>
         /// <param name="ch">要写入的非代理项 Unicode 字符。</param>
         public override void Write(char ch)
         {
@@ -109,7 +109,7 @@ namespace NewLife.Serialization
                 Write(ch.ToString());
         }
 
-        /// <summary>将 Unicode 字符写入当前流，并根据所使用的 Encoding 和向流中写入的特定字符，提升流的当前位置。</summary>>
+        /// <summary>将 Unicode 字符写入当前流，并根据所使用的 Encoding 和向流中写入的特定字符，提升流的当前位置。</summary>
         /// <param name="chars"></param>
         public override void Write(char[] chars)
         {
@@ -119,7 +119,7 @@ namespace NewLife.Serialization
                 Write(chars, 0, chars.Length);
         }
 
-        /// <summary>将 Unicode 字符写入当前流，并根据所使用的 Encoding 和向流中写入的特定字符，提升流的当前位置。</summary>>
+        /// <summary>将 Unicode 字符写入当前流，并根据所使用的 Encoding 和向流中写入的特定字符，提升流的当前位置。</summary>
         /// <param name="chars"></param>
         /// <param name="index"></param>
         /// <param name="count"></param>
@@ -131,7 +131,7 @@ namespace NewLife.Serialization
                 WriteEnumerable(Slice(chars, index, count), typeof(char[]), null);
         }
 
-        /// <summary>写入字符串</summary>>
+        /// <summary>写入字符串</summary>
         /// <param name="value">要写入的值。</param>
         public override void Write(string value)
         {
@@ -142,12 +142,12 @@ namespace NewLife.Serialization
             Depth--;
         }
 
-        /// <summary>将指定字符串编码成json中表示的字符串,将编码Unicode字符为\uXXXX</summary>>
+        /// <summary>将指定字符串编码成json中表示的字符串,将编码Unicode字符为\uXXXX</summary>
         /// <param name="value"></param>
         /// <returns></returns>
         public static string JavascriptStringEncode(string value) { return JavascriptStringEncode(value, true); }
 
-        /// <summary>将指定字符串编码成javascript的字面字符串(即写入到js代码中的和value内容相同的代码),开始和结尾不包含双引号</summary>>
+        /// <summary>将指定字符串编码成javascript的字面字符串(即写入到js代码中的和value内容相同的代码),开始和结尾不包含双引号</summary>
         /// <param name="value">要编码的字符串,value为null时返回""</param>
         /// <param name="encodeUnicode">是否将Unicode字符编码为\uXXXX的格式</param>
         /// <returns></returns>
@@ -211,7 +211,7 @@ namespace NewLife.Serialization
         #endregion
 
         #region 枚举
-        /// <summary>写入枚举数据，复杂类型使用委托方法进行处理</summary>>
+        /// <summary>写入枚举数据，复杂类型使用委托方法进行处理</summary>
         /// <param name="value">对象</param>
         /// <param name="type">类型</param>
         /// <param name="callback">使用指定委托方法处理复杂数据</param>
@@ -249,7 +249,7 @@ namespace NewLife.Serialization
             return rs;
         }
 
-        /// <summary>写入枚举项</summary>>
+        /// <summary>写入枚举项</summary>
         /// <param name="value">对象</param>
         /// <param name="type">类型</param>
         /// <param name="index">成员索引</param>
@@ -279,7 +279,7 @@ namespace NewLife.Serialization
             return ret;
         }
 
-        /// <summary>返回指定数组的一个片段,始终返回的是array参数的一个副本</summary>>
+        /// <summary>返回指定数组的一个片段,始终返回的是array参数的一个副本</summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="array"></param>
         /// <param name="index"></param>
@@ -295,7 +295,7 @@ namespace NewLife.Serialization
         #endregion
 
         #region 字典
-        /// <summary>将字典类型数据写入到当前流位置</summary>>
+        /// <summary>将字典类型数据写入到当前流位置</summary>
         /// <param name="value"></param>
         /// <param name="type"></param>
         /// <param name="callback"></param>
@@ -329,7 +329,7 @@ namespace NewLife.Serialization
             return ret;
         }
 
-        /// <summary>写入字典键和值</summary>>
+        /// <summary>写入字典键和值</summary>
         /// <param name="value"></param>
         /// <param name="keyType"></param>
         /// <param name="valueType"></param>
@@ -358,18 +358,18 @@ namespace NewLife.Serialization
         #endregion
 
         #region 写入对象
-        /// <summary>是否需要写入值类型信息的标志,为null时表示不需要,非null时并且等于待写入的值时写入值类型</summary>>
+        /// <summary>是否需要写入值类型信息的标志,为null时表示不需要,非null时并且等于待写入的值时写入值类型</summary>
         object writeValueType = null;
-        /// <summary>写入的复合对象深度,指使用{} []包括的深度</summary>>
+        /// <summary>写入的复合对象深度,指使用{} []包括的深度</summary>
         int ComplexObjectDepth = 0;
-        /// <summary>是否写入成员的计数器,用于控制换行输出</summary>>
+        /// <summary>是否写入成员的计数器,用于控制换行输出</summary>
         int WriteMemberCount = 0;
 
-        /// <summary>JsonWriter的对象类型由writeValueType写入,作为第一个成员,所以不需要</summary>>
+        /// <summary>JsonWriter的对象类型由writeValueType写入,作为第一个成员,所以不需要</summary>
         /// <param name="type"></param>
         protected override void WriteObjectType(Type type) { }
 
-        /// <summary>写入对象。具体读写器可以重载该方法以修改写入对象前后的行为。</summary>>
+        /// <summary>写入对象。具体读写器可以重载该方法以修改写入对象前后的行为。</summary>
         /// <param name="value">对象</param>
         /// <param name="type">要写入的对象类型</param>
         /// <param name="callback">处理成员的方法</param>
@@ -397,7 +397,7 @@ namespace NewLife.Serialization
             return base.OnWriteObject(value, type, callback);
         }
 
-        /// <summary>写对象成员</summary>>
+        /// <summary>写对象成员</summary>
         /// <param name="value">要写入的对象</param>
         /// <param name="type">要写入的对象类型</param>
         /// <param name="callback">处理成员的方法</param>
@@ -444,7 +444,7 @@ namespace NewLife.Serialization
             return rs;
         }
 
-        /// <summary>写入成员</summary>>
+        /// <summary>写入成员</summary>
         /// <param name="value">要写入的对象</param>
         /// <param name="memberType">要写入的成员类型</param>
         /// <param name="member">要写入的成员信息,可以通过[value]取得成员值</param>
@@ -475,7 +475,7 @@ namespace NewLife.Serialization
             return ret;
         }
 
-        /// <summary>当前解析复合对象深度是否超出,用于避免循环引用可能引起的堆栈溢出,仅在Settings.RepeatedActionType是RepeatedAction.DepthLimit时才可能返回true</summary>>
+        /// <summary>当前解析复合对象深度是否超出,用于避免循环引用可能引起的堆栈溢出,仅在Settings.RepeatedActionType是RepeatedAction.DepthLimit时才可能返回true</summary>
         /// <returns></returns>
         public bool ComplexObjectDepthIsOverflow()
         {
@@ -484,7 +484,7 @@ namespace NewLife.Serialization
         #endregion
 
         #region 方法
-        /// <summary>刷新缓存中的数据</summary>>
+        /// <summary>刷新缓存中的数据</summary>
         public override void Flush()
         {
             Writer.Flush();

@@ -17,7 +17,7 @@ namespace XCode.Web
         /// <summary>执行时间字符串</summary>
         public static String DbRunTimeFormat { get { return _RunTimeFormat; } set { _RunTimeFormat = value; } }
 
-        /// <summary>初始化模块，准备拦截请求。</summary>>
+        /// <summary>初始化模块，准备拦截请求。</summary>
         protected override void OnInit()
         {
             Context.Items["DAL.QueryTimes"] = DAL.QueryTimes;

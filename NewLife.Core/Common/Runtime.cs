@@ -53,7 +53,7 @@ namespace NewLife
             }
         }
 
-        /// <summary>获取PE文件类型。扩展方法</summary>>
+        /// <summary>获取PE文件类型。扩展方法</summary>
         /// <param name="e"></param>
         /// <returns></returns>
         public static PEFileKinds GetPEFileKinds(this MemberInfo e)
@@ -62,7 +62,7 @@ namespace NewLife
 
         }
 
-        /// <summary>Parses the PE header and determines whether the given assembly is a console application.</summary>>
+        /// <summary>Parses the PE header and determines whether the given assembly is a console application.</summary>
         /// <param name="assemblyPath">The path of the assembly to check.</param>
         /// <remarks>The magic numbers in this method are extracted from the PE/COFF file
         /// format specification available from http://www.microsoft.com/whdc/system/platform/firmware/pecoff.mspx
@@ -130,7 +130,7 @@ namespace NewLife
         #endregion
 
         #region JIT方法地址
-        /// <summary>获取方法在JIT编译后的地址(JIT Stubs)</summary>>
+        /// <summary>获取方法在JIT编译后的地址(JIT Stubs)</summary>
         /// <remarks>
         /// MethodBase.DeclaringType.TypeHandle.Value: 指向该类型方法表(编译后)在 JIT Stubs 的起始位置。
         /// Method.MethodHandle.Value: 表示该方法的索引序号。
@@ -196,7 +196,7 @@ namespace NewLife
             }
         }
 
-        /// <summary>替换方法</summary>>
+        /// <summary>替换方法</summary>
         /// <remarks>
         /// Method Address 处所存储的 Native Code Address 是可以修改的，也就意味着我们完全可以用另外一个具有相同签名的方法来替代它，从而达到偷梁换柱(Injection)的目的。
         /// </remarks>

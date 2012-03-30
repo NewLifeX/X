@@ -7,7 +7,7 @@ using System.ComponentModel;
 
 namespace XControl
 {
-    /// <summary>连接按钮字段</summary>>
+    /// <summary>连接按钮字段</summary>
     public class LinkButtonField : HyperLinkField
     {
         #region 属性
@@ -29,14 +29,14 @@ namespace XControl
         }
         #endregion
 
-        /// <summary>建立字段</summary>>
+        /// <summary>建立字段</summary>
         /// <returns></returns>
         protected override DataControlField CreateField()
         {
             return new LinkButtonField();
         }
 
-        /// <summary>已重载。</summary>>
+        /// <summary>已重载。</summary>
         /// <param name="newField"></param>
         protected override void CopyProperties(DataControlField newField)
         {
@@ -44,7 +44,7 @@ namespace XControl
             base.CopyProperties(newField);
         }
 
-        /// <summary>初始化单元格</summary>>
+        /// <summary>初始化单元格</summary>
         /// <param name="cell"></param>
         /// <param name="cellType"></param>
         /// <param name="rowState"></param>
@@ -61,7 +61,7 @@ namespace XControl
             InitializeControl(link);
         }
 
-        /// <summary>初始化链接控件</summary>>
+        /// <summary>初始化链接控件</summary>
         /// <param name="link"></param>
         protected virtual void InitializeControl(HyperLink link)
         {
@@ -76,7 +76,7 @@ namespace XControl
             OnPreRender(link);
         }
 
-        /// <summary>呈现控件时</summary>>
+        /// <summary>呈现控件时</summary>
         /// <param name="link"></param>
         protected virtual void OnPreRender(HyperLink link)
         {

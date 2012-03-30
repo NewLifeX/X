@@ -6,18 +6,18 @@ using System.Text;
 
 namespace NewLife.IO
 {
-    /// <summary>数据流Http处理器。可以在web.config中配置一个处理器指向该类。</summary>>
+    /// <summary>数据流Http处理器。可以在web.config中配置一个处理器指向该类。</summary>
     public class StreamHttpHandler : IHttpHandler
     {
         #region 方法
-        /// <summary>处理请求</summary>>
+        /// <summary>处理请求</summary>
         /// <param name="context"></param>
         public void ProcessRequest(HttpContext context)
         {
             OnProcess(context);
         }
 
-        /// <summary>处理请求</summary>>
+        /// <summary>处理请求</summary>
         /// <param name="context"></param>
         public virtual void OnProcess(HttpContext context)
         {
@@ -40,7 +40,7 @@ namespace NewLife.IO
             }
         }
 
-        /// <summary>从Http上下文获取数据流总线名称</summary>>
+        /// <summary>从Http上下文获取数据流总线名称</summary>
         /// <param name="context"></param>
         /// <returns></returns>
         public virtual String GetName(HttpContext context)
@@ -48,7 +48,7 @@ namespace NewLife.IO
             return Path.GetFileNameWithoutExtension(context.Request.FilePath);
         }
 
-        /// <summary>从Http上下文获取数据流</summary>>
+        /// <summary>从Http上下文获取数据流</summary>
         /// <param name="context"></param>
         /// <returns></returns>
         public virtual Stream GetStream(HttpContext context)
@@ -82,7 +82,7 @@ namespace NewLife.IO
             return stream;
         }
 
-        /// <summary>是否可以重用</summary>>
+        /// <summary>是否可以重用</summary>
         public Boolean IsReusable
         {
             get
@@ -93,7 +93,7 @@ namespace NewLife.IO
         #endregion
 
         #region 编码
-        /// <summary>加密</summary>>
+        /// <summary>加密</summary>
         /// <param name="data"></param>
         /// <returns></returns>
         public static String ToHex(Byte[] data)
@@ -103,7 +103,7 @@ namespace NewLife.IO
             return BitConverter.ToString(data).Replace("-", null);
         }
 
-        /// <summary>解密</summary>>
+        /// <summary>解密</summary>
         /// <param name="data"></param>
         /// <returns></returns>
         public static Byte[] FromHex(String data)

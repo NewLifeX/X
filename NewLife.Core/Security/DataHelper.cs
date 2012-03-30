@@ -9,7 +9,7 @@ namespace NewLife.Security
     public static class DataHelper
     {
         #region 散列
-        /// <summary>MD5散列</summary>>
+        /// <summary>MD5散列</summary>
         /// <param name="str"></param>
         /// <returns></returns>
         public static String Hash(String str)
@@ -22,7 +22,7 @@ namespace NewLife.Security
             return BitConverter.ToString(by).Replace("-", "");
         }
 
-        /// <summary>文件散列</summary>>
+        /// <summary>文件散列</summary>
         /// <param name="filename"></param>
         /// <returns></returns>
         public static String HashFile(String filename)
@@ -41,7 +41,7 @@ namespace NewLife.Security
 
         #region CRC校验
         #region CRC16
-        /// <summary>CRC校验</summary>>
+        /// <summary>CRC校验</summary>
         /// <param name="stream"></param>
         /// <returns></returns>
         public static Int16 CRC16(Stream stream)
@@ -60,7 +60,7 @@ namespace NewLife.Security
             return (Int16)crc;
         }
 
-        /// <summary>CRC校验</summary>>
+        /// <summary>CRC校验</summary>
         /// <param name="buffer"></param>
         /// <returns></returns>
         public static Int16 CRC16(Byte[] buffer)
@@ -76,7 +76,7 @@ namespace NewLife.Security
             return (Int16)crc;
         }
 
-        /// <summary>CRC校验文件</summary>>
+        /// <summary>CRC校验文件</summary>
         /// <param name="filename"></param>
         /// <returns></returns>
         public static Int16 CRC16(String filename)
@@ -185,7 +185,7 @@ namespace NewLife.Security
               };
         #endregion
 
-        /// <summary>CRC校验</summary>>
+        /// <summary>CRC校验</summary>
         /// <param name="stream"></param>
         /// <returns></returns>
         public static Int16 CRC32(Stream stream)
@@ -202,7 +202,7 @@ namespace NewLife.Security
             return (Int16)(crc ^ 0xFFFFFFFF);
         }
 
-        /// <summary>CRC校验</summary>>
+        /// <summary>CRC校验</summary>
         /// <param name="buffer"></param>
         /// <returns></returns>
         public static Int16 CRC32(Byte[] buffer)
@@ -220,7 +220,7 @@ namespace NewLife.Security
             //return (UInt32)crc.Value;
         }
 
-        /// <summary>CRC校验文件</summary>>
+        /// <summary>CRC校验文件</summary>
         /// <param name="filename"></param>
         /// <returns></returns>
         public static Int16 CRC32(String filename)
@@ -258,7 +258,7 @@ namespace NewLife.Security
             return sa;
         }
 
-        /// <summary>加密</summary>>
+        /// <summary>加密</summary>
         /// <param name="content"></param>
         /// <param name="key"></param>
         /// <returns></returns>
@@ -272,7 +272,7 @@ namespace NewLife.Security
             return Convert.ToBase64String(data);
         }
 
-        /// <summary>加密</summary>>
+        /// <summary>加密</summary>
         /// <param name="data"></param>
         /// <param name="key"></param>
         /// <returns></returns>
@@ -294,7 +294,7 @@ namespace NewLife.Security
             return data;
         }
 
-        /// <summary>解密</summary>>
+        /// <summary>解密</summary>
         /// <param name="content"></param>
         /// <param name="key"></param>
         /// <returns></returns>
@@ -308,7 +308,7 @@ namespace NewLife.Security
             return Encoding.UTF8.GetString(data);
         }
 
-        /// <summary>解密</summary>>
+        /// <summary>解密</summary>
         /// <param name="data"></param>
         /// <param name="key"></param>
         /// <returns></returns>
@@ -342,7 +342,7 @@ namespace NewLife.Security
         #endregion
 
         #region RC4加密
-        /// <summary>加密</summary>>
+        /// <summary>加密</summary>
         /// <param name="data">数据</param>
         /// <param name="pass">密码</param>
         /// <returns></returns>
@@ -372,7 +372,7 @@ namespace NewLife.Security
             return output;
         }
 
-        /// <summary>打乱密码</summary>>
+        /// <summary>打乱密码</summary>
         /// <param name="pass">密码</param>
         /// <param name="kLen">密码箱长度</param>
         /// <returns>打乱后的密码</returns>
@@ -397,7 +397,7 @@ namespace NewLife.Security
         #endregion
 
         #region RSA签名
-        /// <summary>签名</summary>>
+        /// <summary>签名</summary>
         /// <param name="data"></param>
         /// <param name="priKey"></param>
         /// <returns></returns>
@@ -417,7 +417,7 @@ namespace NewLife.Security
         #endregion
 
         #region RSA验证签名
-        /// <summary>验证签名</summary>>
+        /// <summary>验证签名</summary>
         /// <param name="data">待验证的数据</param>
         /// <param name="signdata">签名</param>
         /// <param name="pubKey">公钥</param>
@@ -470,7 +470,7 @@ namespace NewLife.Security
             return (char)(i - 10 + 0x41);
         }
 
-        /// <summary>解密</summary>>
+        /// <summary>解密</summary>
         /// <param name="data"></param>
         /// <returns></returns>
         public static Byte[] FromHex(String data)

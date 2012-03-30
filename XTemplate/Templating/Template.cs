@@ -207,7 +207,7 @@ namespace XTemplate.Templating
             });
         }
 
-        /// <summary>释放提供者</summary>>
+        /// <summary>释放提供者</summary>
         /// <param name="disposing"></param>
         protected override void OnDispose(bool disposing)
         {
@@ -227,7 +227,7 @@ namespace XTemplate.Templating
         #endregion
 
         #region 快速处理
-        /// <summary>通过指定模版文件和传入模版的参数处理模版，返回结果</summary>>
+        /// <summary>通过指定模版文件和传入模版的参数处理模版，返回结果</summary>
         /// <remarks>
         /// 该方法是处理模版的快速方法，把分析、编译和运行三步集中在一起。
         /// 带有缓存，避免重复分析模版。尽量以模版内容为key，防止模版内容改变后没有生效。
@@ -251,7 +251,7 @@ namespace XTemplate.Templating
             return ProcessTemplate(templateFile, template, data);
         }
 
-        /// <summary>通过指定模版内容和传入模版的参数处理模版，返回结果</summary>>
+        /// <summary>通过指定模版内容和传入模版的参数处理模版，返回结果</summary>
         /// <example>
         /// 快速用法：
         /// <code>
@@ -268,7 +268,7 @@ namespace XTemplate.Templating
             return ProcessTemplate(null, template, data);
         }
 
-        /// <summary>通过指定模版内容和传入模版的参数处理模版，返回结果</summary>>
+        /// <summary>通过指定模版内容和传入模版的参数处理模版，返回结果</summary>
         /// <param name="name">模版名字</param>
         /// <param name="template">模版内容</param>
         /// <param name="data">模版参数</param>
@@ -965,7 +965,7 @@ namespace XTemplate.Templating
             return null;
         }
 
-        /// <summary>找到指定文件指定位置上下三行的代码</summary>>
+        /// <summary>找到指定文件指定位置上下三行的代码</summary>
         /// <param name="name"></param>
         /// <param name="lineNumber"></param>
         /// <returns></returns>
@@ -1055,7 +1055,7 @@ namespace XTemplate.Templating
         #endregion
 
         #region 运行生成
-        /// <summary>创建模版实例</summary>>
+        /// <summary>创建模版实例</summary>
         /// <param name="className"></param>
         /// <returns></returns>
         public TemplateBase CreateInstance(String className)
@@ -1106,7 +1106,7 @@ namespace XTemplate.Templating
             return temp;
         }
 
-        /// <summary>运行代码</summary>>
+        /// <summary>运行代码</summary>
         /// <param name="className"></param>
         /// <param name="data"></param>
         /// <returns></returns>

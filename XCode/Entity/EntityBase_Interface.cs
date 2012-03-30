@@ -12,7 +12,7 @@ namespace XCode
     //, IDataErrorInfo
     {
         #region INotifyPropertyChanged接口
-        /// <summary>属性改变。重载时记得调用基类的该方法，以设置脏数据属性，否则数据将无法Update到数据库。</summary>>
+        /// <summary>属性改变。重载时记得调用基类的该方法，以设置脏数据属性，否则数据将无法Update到数据库。</summary>
         /// <param name="fieldName">字段名</param>
         /// <param name="newValue">新属性值</param>
         /// <returns>是否允许改变</returns>
@@ -33,7 +33,7 @@ namespace XCode
             }
         }
 
-        /// <summary>属性改变。重载时记得调用基类的该方法，以设置脏数据属性，否则数据将无法Update到数据库。</summary>>
+        /// <summary>属性改变。重载时记得调用基类的该方法，以设置脏数据属性，否则数据将无法Update到数据库。</summary>
         /// <param name="fieldName">字段名</param>
         protected virtual void OnPropertyChanged(String fieldName)
         {

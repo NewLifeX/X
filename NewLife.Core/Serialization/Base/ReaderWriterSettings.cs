@@ -63,7 +63,7 @@ namespace NewLife.Serialization
             set { _DateTimeFormat = value; }
         }
 
-        /// <summary>编码时间日期的起始时间，固定1970-01-01</summary>>
+        /// <summary>编码时间日期的起始时间，固定1970-01-01</summary>
         static readonly DateTime _BaseDateTime = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
         /// <summary>编码时间日期的起始时间</summary>
@@ -72,7 +72,7 @@ namespace NewLife.Serialization
             get { return _BaseDateTime; }
         }
 
-        /// <summary>转换时间为64位整数，默认返回毫秒数,具体返回值取决于DateTimeFormat成员的值</summary>>
+        /// <summary>转换时间为64位整数，默认返回毫秒数,具体返回值取决于DateTimeFormat成员的值</summary>
         /// <param name="value">时间</param>
         /// <returns></returns>
         public virtual Int64 ConvertDateTimeToInt64(DateTime value)
@@ -92,7 +92,7 @@ namespace NewLife.Serialization
             return value.Ticks;
         }
 
-        /// <summary>转换64位整数为时间</summary>>
+        /// <summary>转换64位整数为时间</summary>
         /// <param name="value">64位整数</param>
         /// <returns></returns>
         public virtual DateTime ConvertInt64ToDateTime(Int64 value)
@@ -112,16 +112,16 @@ namespace NewLife.Serialization
             return new DateTime(value);
         }
 
-        /// <summary>时间日期格式</summary>>
+        /// <summary>时间日期格式</summary>
         public enum DateTimeFormats
         {
-            /// <summary>嘀嗒数。相对较精确，但是占用空间较大,非utc时间</summary>>
+            /// <summary>嘀嗒数。相对较精确，但是占用空间较大,非utc时间</summary>
             Ticks,
 
-            /// <summary>毫秒数。Json常用格式.指定时间格式为与UTC时间1970.1.1 0:0:0之间的毫秒数</summary>>
+            /// <summary>毫秒数。Json常用格式.指定时间格式为与UTC时间1970.1.1 0:0:0之间的毫秒数</summary>
             Milliseconds,
 
-            /// <summary>秒数。相对较不准确，但占用空间最小，能满足日常要求.指定时间格式为与UTC时间1970.1.1 0:0:0之间的秒数</summary>>
+            /// <summary>秒数。相对较不准确，但占用空间最小，能满足日常要求.指定时间格式为与UTC时间1970.1.1 0:0:0之间的秒数</summary>
             Seconds,
         }
         #endregion

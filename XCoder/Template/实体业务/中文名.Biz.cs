@@ -57,7 +57,7 @@ if(!Config.RenderGenEntity){#>
         //    return FindCount(SearchWhere(key), null, null, 0, 0);
         //}
 
-        /// <summary>构造搜索条件</summary>>
+        /// <summary>构造搜索条件</summary>
         /// <param name="key">关键字</param>
         /// <returns></returns>
         private static String SearchWhere(String key)

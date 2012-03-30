@@ -21,16 +21,16 @@ namespace XCode
                 set { _Default = value; }
             }
 
-            /// <summary>数据表元数据</summary>>
+            /// <summary>数据表元数据</summary>
             public TableItem Table { get { return Meta.Table; } }
 
-            /// <summary>所有数据属性</summary>>
+            /// <summary>所有数据属性</summary>
             public FieldItem[] AllFields { get { return Meta.AllFields; } }
 
-            /// <summary>所有绑定到数据表的属性</summary>>
+            /// <summary>所有绑定到数据表的属性</summary>
             public FieldItem[] Fields { get { return Meta.Fields; } }
 
-            /// <summary>字段名列表</summary>>
+            /// <summary>字段名列表</summary>
             public IList<String> FieldNames { get { return Meta.FieldNames; } }
 
             /// <summary>唯一键，返回第一个标识列或者唯一的主键</summary>
@@ -60,12 +60,12 @@ namespace XCode
             #endregion
 
             #region 填充数据
-            /// <summary>加载记录集</summary>>
+            /// <summary>加载记录集</summary>
             /// <param name="ds">记录集</param>
             /// <returns>实体数组</returns>
             public IEntityList LoadData(DataSet ds) { return ToList(Entity<TEntity>.LoadData(ds)); }
 
-            /// <summary>把一个FindAll返回的集合转为实体接口列表集合</summary>>
+            /// <summary>把一个FindAll返回的集合转为实体接口列表集合</summary>
             /// <param name="collection"></param>
             /// <returns></returns>
             IEntityList ToList(IEntityList collection)
@@ -85,30 +85,30 @@ namespace XCode
             #endregion
 
             #region 查找单个实体
-            /// <summary>根据属性以及对应的值，查找单个实体</summary>>
+            /// <summary>根据属性以及对应的值，查找单个实体</summary>
             /// <param name="name"></param>
             /// <param name="value"></param>
             /// <returns></returns>
             public IEntity Find(String name, Object value) { return Entity<TEntity>.Find(name, value); }
 
-            /// <summary>根据条件查找单个实体</summary>>
+            /// <summary>根据条件查找单个实体</summary>
             /// <param name="whereClause"></param>
             /// <returns></returns>
             public IEntity Find(String whereClause) { return Entity<TEntity>.Find(whereClause); }
 
-            /// <summary>根据主键查找单个实体</summary>>
+            /// <summary>根据主键查找单个实体</summary>
             /// <param name="key"></param>
             /// <returns></returns>
             public IEntity FindByKey(Object key) { return Entity<TEntity>.FindByKey(key); }
 
-            /// <summary>根据主键查询一个实体对象用于表单编辑</summary>>
+            /// <summary>根据主键查询一个实体对象用于表单编辑</summary>
             /// <param name="key"></param>
             /// <returns></returns>
             public IEntity FindByKeyForEdit(Object key) { return Entity<TEntity>.FindByKeyForEdit(key); }
             #endregion
 
             #region 静态查询
-            /// <summary>获取所有实体对象。获取大量数据时会非常慢，慎用</summary>>
+            /// <summary>获取所有实体对象。获取大量数据时会非常慢，慎用</summary>
             /// <returns>实体数组</returns>
             public IEntityList FindAll() { return ToList(Entity<TEntity>.FindAll()); }
 
@@ -127,7 +127,7 @@ namespace XCode
                 return ToList(Entity<TEntity>.FindAll(whereClause, orderClause, selects, startRowIndex, maximumRows));
             }
 
-            /// <summary>根据属性列表以及对应的值列表，获取所有实体对象</summary>>
+            /// <summary>根据属性列表以及对应的值列表，获取所有实体对象</summary>
             /// <param name="names">属性列表</param>
             /// <param name="values">值列表</param>
             /// <returns>实体数组</returns>
@@ -136,7 +136,7 @@ namespace XCode
                 return ToList(Entity<TEntity>.FindAll(names, values));
             }
 
-            /// <summary>根据属性以及对应的值，获取所有实体对象</summary>>
+            /// <summary>根据属性以及对应的值，获取所有实体对象</summary>
             /// <param name="name">属性</param>
             /// <param name="value">值</param>
             /// <returns>实体数组</returns>
@@ -145,7 +145,7 @@ namespace XCode
                 return ToList(Entity<TEntity>.FindAll(name, value));
             }
 
-            /// <summary>根据属性以及对应的值，获取所有实体对象</summary>>
+            /// <summary>根据属性以及对应的值，获取所有实体对象</summary>
             /// <param name="name">属性</param>
             /// <param name="value">值</param>
             /// <param name="startRowIndex">开始行，0表示第一行</param>
@@ -156,7 +156,7 @@ namespace XCode
                 return ToList(Entity<TEntity>.FindAll(name, value, startRowIndex, maximumRows));
             }
 
-            /// <summary>根据属性以及对应的值，获取所有实体对象</summary>>
+            /// <summary>根据属性以及对应的值，获取所有实体对象</summary>
             /// <param name="name">属性</param>
             /// <param name="value">值</param>
             /// <param name="orderClause">排序，不带Order By</param>
@@ -170,17 +170,17 @@ namespace XCode
             #endregion
 
             #region 缓存查询
-            /// <summary>根据属性以及对应的值，在缓存中查找单个实体</summary>>
+            /// <summary>根据属性以及对应的值，在缓存中查找单个实体</summary>
             /// <param name="name">属性名称</param>
             /// <param name="value">属性值</param>
             /// <returns></returns>
             public IEntity FindWithCache(String name, Object value) { return FindWithCache(name, value); }
 
-            /// <summary>查找所有缓存</summary>>
+            /// <summary>查找所有缓存</summary>
             /// <returns></returns>
             public IEntityList FindAllWithCache() { return FindAllWithCache(); }
 
-            /// <summary>根据属性以及对应的值，在缓存中获取所有实体对象</summary>>
+            /// <summary>根据属性以及对应的值，在缓存中获取所有实体对象</summary>
             /// <param name="name">属性</param>
             /// <param name="value">值</param>
             /// <returns>实体数组</returns>
@@ -188,11 +188,11 @@ namespace XCode
             #endregion
 
             #region 取总记录数
-            /// <summary>返回总记录数</summary>>
+            /// <summary>返回总记录数</summary>
             /// <returns></returns>
             public Int32 FindCount() { return Entity<TEntity>.FindCount(); }
 
-            /// <summary>返回总记录数</summary>>
+            /// <summary>返回总记录数</summary>
             /// <param name="whereClause">条件，不带Where</param>
             /// <param name="orderClause">排序，不带Order By</param>
             /// <param name="selects">查询列</param>
@@ -204,7 +204,7 @@ namespace XCode
                 return Entity<TEntity>.FindCount(whereClause, orderClause, selects, startRowIndex, maximumRows);
             }
 
-            /// <summary>根据属性列表以及对应的值列表，返回总记录数</summary>>
+            /// <summary>根据属性列表以及对应的值列表，返回总记录数</summary>
             /// <param name="names">属性列表</param>
             /// <param name="values">值列表</param>
             /// <returns>总行数</returns>
@@ -213,7 +213,7 @@ namespace XCode
                 return Entity<TEntity>.FindCount(names, values);
             }
 
-            /// <summary>根据属性以及对应的值，返回总记录数</summary>>
+            /// <summary>根据属性以及对应的值，返回总记录数</summary>
             /// <param name="name">属性</param>
             /// <param name="value">值</param>
             /// <returns>总行数</returns>
@@ -222,7 +222,7 @@ namespace XCode
                 return Entity<TEntity>.FindCount(name, value);
             }
 
-            /// <summary>根据属性以及对应的值，返回总记录数</summary>>
+            /// <summary>根据属性以及对应的值，返回总记录数</summary>
             /// <param name="name">属性</param>
             /// <param name="value">值</param>
             /// <param name="startRowIndex">开始行，0表示第一行</param>
@@ -233,7 +233,7 @@ namespace XCode
                 return Entity<TEntity>.FindCount(name, value, startRowIndex, maximumRows);
             }
 
-            /// <summary>根据属性以及对应的值，返回总记录数</summary>>
+            /// <summary>根据属性以及对应的值，返回总记录数</summary>
             /// <param name="name">属性</param>
             /// <param name="value">值</param>
             /// <param name="orderClause">排序，不带Order By</param>
@@ -247,7 +247,7 @@ namespace XCode
             #endregion
 
             #region 导入导出XML
-            /// <summary>导入</summary>>
+            /// <summary>导入</summary>
             /// <param name="xml"></param>
             /// <returns></returns>
             [Obsolete("该成员在后续版本中将不再被支持！请使用实体访问器IEntityAccessor替代！")]
@@ -255,7 +255,7 @@ namespace XCode
             #endregion
 
             #region 导入导出Json
-            /// <summary>导入</summary>>
+            /// <summary>导入</summary>
             /// <param name="json"></param>
             /// <returns></returns>
             [Obsolete("该成员在后续版本中将不再被支持！请使用实体访问器IEntityAccessor替代！")]
@@ -263,12 +263,12 @@ namespace XCode
             #endregion
 
             #region 数据库操作
-            /// <summary>查询</summary>>
+            /// <summary>查询</summary>
             /// <param name="sql">SQL语句</param>
             /// <returns>结果记录集</returns>
             public DataSet Query(String sql) { return Meta.Query(sql); }
 
-            /// <summary>查询记录数</summary>>
+            /// <summary>查询记录数</summary>
             /// <param name="sql">SQL语句</param>
             /// <returns>记录数</returns>
             public Int32 QueryCount(String sql)
@@ -278,24 +278,24 @@ namespace XCode
                 return Meta.QueryCount(sb);
             }
 
-            /// <summary>执行</summary>>
+            /// <summary>执行</summary>
             /// <param name="sql">SQL语句</param>
             /// <returns>影响的结果</returns>
             public Int32 Execute(String sql) { return Meta.Execute(sql); }
 
-            /// <summary>执行插入语句并返回新增行的自动编号</summary>>
+            /// <summary>执行插入语句并返回新增行的自动编号</summary>
             /// <param name="sql">SQL语句</param>
             /// <returns>新增行的自动编号</returns>
             public Int64 InsertAndGetIdentity(String sql) { return Meta.InsertAndGetIdentity(sql); }
 
-            /// <summary>执行</summary>>
+            /// <summary>执行</summary>
             /// <param name="sql">SQL语句</param>
             /// <param name="type">命令类型，默认SQL文本</param>
             /// <param name="ps">命令参数</param>
             /// <returns>影响的结果</returns>
             public Int32 Execute(String sql, CommandType type, DbParameter[] ps) { return Meta.Execute(sql, type, ps); }
 
-            /// <summary>执行插入语句并返回新增行的自动编号</summary>>
+            /// <summary>执行插入语句并返回新增行的自动编号</summary>
             /// <param name="sql">SQL语句</param>
             /// <param name="type">命令类型，默认SQL文本</param>
             /// <param name="ps">命令参数</param>
@@ -304,15 +304,15 @@ namespace XCode
             #endregion
 
             #region 事务
-            /// <summary>开始事务</summary>>
+            /// <summary>开始事务</summary>
             /// <returns></returns>
             public Int32 BeginTransaction() { return Meta.BeginTrans(); }
 
-            /// <summary>提交事务</summary>>
+            /// <summary>提交事务</summary>
             /// <returns></returns>
             public Int32 Commit() { return Meta.Commit(); }
 
-            /// <summary>回滚事务</summary>>
+            /// <summary>回滚事务</summary>
             /// <returns></returns>
             public Int32 Rollback() { return Meta.Rollback(); }
             #endregion
@@ -324,7 +324,7 @@ namespace XCode
             #endregion
 
             #region 辅助方法
-            /// <summary>格式化关键字</summary>>
+            /// <summary>格式化关键字</summary>
             /// <param name="name"></param>
             /// <returns></returns>
             public String FormatName(String name) { return Meta.FormatName(name); }
@@ -338,7 +338,7 @@ namespace XCode
             /// <returns>Sql值的字符串形式</returns>
             public String FormatValue(String name, Object value) { return Meta.FormatValue(name, value); }
 
-            /// <summary>格式化数据为SQL数据</summary>>
+            /// <summary>格式化数据为SQL数据</summary>
             /// <param name="field"></param>
             /// <param name="value"></param>
             /// <returns></returns>
@@ -354,14 +354,14 @@ namespace XCode
             /// <returns>条件子串</returns>
             public String MakeCondition(String[] names, Object[] values, String action) { return Entity<TEntity>.MakeCondition(names, values, action); }
 
-            /// <summary>构造条件</summary>>
+            /// <summary>构造条件</summary>
             /// <param name="name">名称</param>
             /// <param name="value">值</param>
             /// <param name="action">大于小于等符号</param>
             /// <returns></returns>
             public String MakeCondition(String name, Object value, String action) { return Entity<TEntity>.MakeCondition(name, value, action); }
 
-            /// <summary>构造条件</summary>>
+            /// <summary>构造条件</summary>
             /// <param name="field">名称</param>
             /// <param name="value">值</param>
             /// <param name="action">大于小于等符号</param>

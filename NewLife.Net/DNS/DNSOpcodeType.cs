@@ -10,60 +10,60 @@ namespace NewLife.Net.DNS
     /// </summary>
     public enum DNSOpcodeType : byte
     {
-        /// <summary>A standard query (QUERY); used for NetBIOS, too</summary>>
+        /// <summary>A standard query (QUERY); used for NetBIOS, too</summary>
         Query = 0,
 
-        /// <summary>An inverse query (IQUERY)</summary>>
+        /// <summary>An inverse query (IQUERY)</summary>
         InverseQuery = 1,
 
-        /// <summary>A server status request (STATUS)</summary>>
+        /// <summary>A server status request (STATUS)</summary>
         Status = 2,
 
-        /// <summary>Reserved for future use</summary>>
+        /// <summary>Reserved for future use</summary>
         [Obsolete("Reserved for future use.")]
         Reserverd3 = 3,
 
-        /// <summary>Reserved for future use</summary>>
+        /// <summary>Reserved for future use</summary>
         [Obsolete("Reserved for future use.")]
         Reserverd4 = 4,
 
-        /// <summary>NetBIOS registration</summary>>
+        /// <summary>NetBIOS registration</summary>
         Registration = 5,
 
-        /// <summary>NetBIOS release</summary>>
+        /// <summary>NetBIOS release</summary>
         Release = 6,
 
-        /// <summary>NetBIOS WACK</summary>>
+        /// <summary>NetBIOS WACK</summary>
         WACK = 7,
 
-        /// <summary>NetBIOS refresh</summary>>
+        /// <summary>NetBIOS refresh</summary>
         Refresh = 8,
 
-        /// <summary>Reserved for future use</summary>>
+        /// <summary>Reserved for future use</summary>
         [Obsolete("Reserved for future use.")]
         Reserverd9 = 9,
 
-        /// <summary>Reserved for future use</summary>>
+        /// <summary>Reserved for future use</summary>
         [Obsolete("Reserved for future use.")]
         Reserverd10 = 10,
 
-        /// <summary>Reserved for future use</summary>>
+        /// <summary>Reserved for future use</summary>
         [Obsolete("Reserved for future use.")]
         Reserverd11 = 11,
 
-        /// <summary>Reserved for future use</summary>>
+        /// <summary>Reserved for future use</summary>
         [Obsolete("Reserved for future use.")]
         Reserverd12 = 12,
 
-        /// <summary>Reserved for future use</summary>>
+        /// <summary>Reserved for future use</summary>
         [Obsolete("Reserved for future use.")]
         Reserverd13 = 13,
 
-        /// <summary>Reserved for future use</summary>>
+        /// <summary>Reserved for future use</summary>
         [Obsolete("Reserved for future use.")]
         Reserverd14 = 14,
 
-        /// <summary>Reserved for future use</summary>>
+        /// <summary>Reserved for future use</summary>
         [Obsolete("Reserved for future use.")]
         Reserverd15 = 15
     }

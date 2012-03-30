@@ -11,7 +11,7 @@ namespace NewLife.Scripting
         #endregion
 
         #region 传入表达式或代码
-        /// <summary>从字符串创建脚本</summary>>
+        /// <summary>从字符串创建脚本</summary>
         /// <param name="expression"></param>
         /// <returns></returns>
         public ScriptEngine CreateScriptSourceFromString(String expression)
@@ -19,7 +19,7 @@ namespace NewLife.Scripting
             return this;
         }
 
-        /// <summary>从文件创建脚本</summary>>
+        /// <summary>从文件创建脚本</summary>
         /// <param name="file"></param>
         /// <returns></returns>
         public ScriptEngine CreateScriptSourceFromFile(String file)
@@ -29,7 +29,7 @@ namespace NewLife.Scripting
         #endregion
 
         #region 执行方法
-        /// <summary>执行</summary>>
+        /// <summary>执行</summary>
         /// <returns></returns>
         public Object Execute()
         {

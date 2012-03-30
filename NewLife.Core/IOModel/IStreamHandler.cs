@@ -8,15 +8,15 @@ using NewLife.Reflection;
 
 namespace NewLife.IO
 {
-    /// <summary>数据流处理器接口</summary>>
+    /// <summary>数据流处理器接口</summary>
     public interface IStreamHandler : ICloneable
     {
-        /// <summary>处理数据流</summary>>
+        /// <summary>处理数据流</summary>
         /// <param name="stream">待处理数据流</param>
         /// <returns>转发给下一个处理器的数据流，如果不想让后续处理器处理，返回空</returns>
         Stream Process(Stream stream);
 
-        /// <summary>是否可以重用。</summary>>
+        /// <summary>是否可以重用。</summary>
         Boolean IsReusable { get; }
 
         ///// <summary>
@@ -25,16 +25,16 @@ namespace NewLife.IO
         //IStreamHandler Next { get; set; }
     }
 
-    /// <summary>数据流处理器</summary>>
+    /// <summary>数据流处理器</summary>
     public abstract class StreamHandler : IStreamHandler
     {
         #region 接口
-        /// <summary>处理数据流</summary>>
+        /// <summary>处理数据流</summary>
         /// <param name="stream"></param>
         /// <returns>转发给下一个处理器的数据流，如果不想让后续处理器处理，返回空</returns>
         public abstract Stream Process(Stream stream);
 
-        /// <summary>是否可以重用</summary>>
+        /// <summary>是否可以重用</summary>
         public virtual Boolean IsReusable { get { return false; } }
 
         Object ICloneable.Clone()
@@ -98,7 +98,7 @@ namespace NewLife.IO
             }
         }
 
-        /// <summary>查询注册，返回指定通道的处理器数组。</summary>>
+        /// <summary>查询注册，返回指定通道的处理器数组。</summary>
         /// <param name="name"></param>
         /// <returns></returns>
         public static IStreamHandler[] QueryRegister(String name)
@@ -120,7 +120,7 @@ namespace NewLife.IO
         #region 配置
         const String handlerKey = "NewLife.StreamHandler_";
 
-        /// <summary>获取配置文件指定的处理器</summary>>
+        /// <summary>获取配置文件指定的处理器</summary>
         /// <returns></returns>
         static Dictionary<String, List<Type>> GetHandler()
         {
@@ -157,7 +157,7 @@ namespace NewLife.IO
             return dic.Count > 0 ? dic : null;
         }
 
-        /// <summary>从配置文件中加载工厂</summary>>
+        /// <summary>从配置文件中加载工厂</summary>
         static void LoadConfig()
         {
             try
@@ -183,7 +183,7 @@ namespace NewLife.IO
         #endregion
 
         #region 处理数据流
-        /// <summary>处理数据流。Http、Tcp、Udp等所有数据流都将到达这里，多种传输方式汇聚于此，由数据流总线统一处理！</summary>>
+        /// <summary>处理数据流。Http、Tcp、Udp等所有数据流都将到达这里，多种传输方式汇聚于此，由数据流总线统一处理！</summary>
         /// <param name="name"></param>
         /// <param name="stream"></param>
         public static void Process(String name, Stream stream)

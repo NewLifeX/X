@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace NewLife.Collections
 {
-    /// <summary>泛型列表基类。主要提供一个重载实现自定义列表的基类实现。</summary>>
+    /// <summary>泛型列表基类。主要提供一个重载实现自定义列表的基类实现。</summary>
     /// <typeparam name="T"></typeparam>
     public class ListBase<T> : IList<T>, ICollection<T>, IEnumerable<T>, IList, ICollection, IEnumerable
     {
@@ -17,10 +17,10 @@ namespace NewLife.Collections
             set { _list = value; }
         }
 
-        /// <summary>列表元素个数</summary>>
+        /// <summary>列表元素个数</summary>
         public virtual int Count { get { return InnerList.Count; } }
 
-        /// <summary>是否固定大小</summary>>
+        /// <summary>是否固定大小</summary>
         public virtual bool IsFixedSize
         {
             get
@@ -29,7 +29,7 @@ namespace NewLife.Collections
             }
         }
 
-        /// <summary>是否只读</summary>>
+        /// <summary>是否只读</summary>
         public virtual bool IsReadOnly
         {
             get
@@ -38,7 +38,7 @@ namespace NewLife.Collections
             }
         }
 
-        /// <summary>获取或设置指定索引处的元素。</summary>>
+        /// <summary>获取或设置指定索引处的元素。</summary>
         /// <param name="index"></param>
         /// <returns></returns>
         public virtual T this[int index] { get { return InnerList[index]; } set { InnerList[index] = value; } }
@@ -54,14 +54,14 @@ namespace NewLife.Collections
         #endregion
 
         #region 方法
-        /// <summary>添加</summary>>
+        /// <summary>添加</summary>
         /// <param name="value"></param>
         public virtual void Add(T value)
         {
             this.Insert(this.Count, value);
         }
 
-        /// <summary>清空</summary>>
+        /// <summary>清空</summary>
         public virtual void Clear()
         {
             for (int i = this.Count - 1; i >= 0; i--)
@@ -70,7 +70,7 @@ namespace NewLife.Collections
             }
         }
 
-        /// <summary>是否包含指定元素</summary>>
+        /// <summary>是否包含指定元素</summary>
         /// <param name="value"></param>
         /// <returns></returns>
         public virtual bool Contains(T value)
@@ -78,7 +78,7 @@ namespace NewLife.Collections
             return (this.IndexOf(value) != -1);
         }
 
-        /// <summary>把元素复制到一个数组里面</summary>>
+        /// <summary>把元素复制到一个数组里面</summary>
         /// <param name="array"></param>
         /// <param name="index"></param>
         public virtual void CopyTo(T[] array, int index)
@@ -89,7 +89,7 @@ namespace NewLife.Collections
             }
         }
 
-        /// <summary>获取一个枚举器</summary>>
+        /// <summary>获取一个枚举器</summary>
         /// <returns></returns>
         public virtual IEnumerator<T> GetEnumerator()
         {
@@ -101,7 +101,7 @@ namespace NewLife.Collections
             return InnerList.GetEnumerator();
         }
 
-        /// <summary>确定列表中特定项的索引。</summary>>
+        /// <summary>确定列表中特定项的索引。</summary>
         /// <param name="value">要在列表中定位的对象。</param>
         /// <returns></returns>
         public virtual int IndexOf(T value)
@@ -117,7 +117,7 @@ namespace NewLife.Collections
             return InnerList.IndexOf(value);
         }
 
-        /// <summary>将一个项插入指定索引处的列表。</summary>>
+        /// <summary>将一个项插入指定索引处的列表。</summary>
         /// <param name="index"></param>
         /// <param name="value"></param>
         public virtual void Insert(int index, T value)
@@ -134,7 +134,7 @@ namespace NewLife.Collections
             return true;
         }
 
-        /// <summary>从列表中移除指定对象</summary>>
+        /// <summary>从列表中移除指定对象</summary>
         /// <param name="value"></param>
         /// <returns></returns>
         public virtual bool Remove(T value)
@@ -148,7 +148,7 @@ namespace NewLife.Collections
             return false;
         }
 
-        /// <summary>移除指定索引处的列表项。</summary>>
+        /// <summary>移除指定索引处的列表项。</summary>
         /// <param name="index"></param>
         public virtual void RemoveAt(int index)
         {

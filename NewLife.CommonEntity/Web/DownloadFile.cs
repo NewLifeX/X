@@ -9,7 +9,7 @@ namespace NewLife.CommonEntity.Web
     public class DownloadFile : AttachmentHttpHandler
     {
         #region 业务
-        /// <summary>响应</summary>>
+        /// <summary>响应</summary>
         /// <param name="context"></param>
         /// <param name="attachment"></param>
         /// <param name="stream"></param>

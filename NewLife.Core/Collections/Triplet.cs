@@ -3,25 +3,25 @@ using System.Text;
 
 namespace NewLife.Collections
 {
-    /// <summary>三个一组</summary>>
+    /// <summary>三个一组</summary>
     [Serializable]
     public class Triplet
     {
-        /// <summary>第一个</summary>>
+        /// <summary>第一个</summary>
         public object First;
 
-        /// <summary>第二个</summary>>
+        /// <summary>第二个</summary>
         public object Second;
 
-        /// <summary>第三个</summary>>
+        /// <summary>第三个</summary>
         public object Third;
 
-        /// <summary>初始化</summary>>
+        /// <summary>初始化</summary>
         public Triplet()
         {
         }
 
-        /// <summary>初始化</summary>>
+        /// <summary>初始化</summary>
         /// <param name="x"></param>
         /// <param name="y"></param>
         public Triplet(object x, object y)
@@ -30,7 +30,7 @@ namespace NewLife.Collections
             Second = y;
         }
 
-        /// <summary>初始化</summary>>
+        /// <summary>初始化</summary>
         /// <param name="x"></param>
         /// <param name="y"></param>
         /// <param name="z"></param>
@@ -41,7 +41,7 @@ namespace NewLife.Collections
             Third = z;
         }
 
-        /// <summary>已重载。</summary>>
+        /// <summary>已重载。</summary>
         /// <returns></returns>
         public override string ToString()
         {
@@ -57,28 +57,28 @@ namespace NewLife.Collections
         }
     }
 
-    /// <summary>泛型三个一组</summary>>
+    /// <summary>泛型三个一组</summary>
     /// <typeparam name="TFirst"></typeparam>
     /// <typeparam name="TSecond"></typeparam>
     /// <typeparam name="TThird"></typeparam>
     [Serializable]
     public class Triplet<TFirst, TSecond, TThird>
     {
-        /// <summary>第一个</summary>>
+        /// <summary>第一个</summary>
         public TFirst First;
 
-        /// <summary>第二个</summary>>
+        /// <summary>第二个</summary>
         public TSecond Second;
 
-        /// <summary>第三个</summary>>
+        /// <summary>第三个</summary>
         public TThird Third;
 
-        /// <summary>初始化</summary>>
+        /// <summary>初始化</summary>
         public Triplet()
         {
         }
 
-        /// <summary>初始化</summary>>
+        /// <summary>初始化</summary>
         /// <param name="x"></param>
         /// <param name="y"></param>
         public Triplet(TFirst x, TSecond y)
@@ -87,7 +87,7 @@ namespace NewLife.Collections
             Second = y;
         }
 
-        /// <summary>初始化</summary>>
+        /// <summary>初始化</summary>
         /// <param name="x"></param>
         /// <param name="y"></param>
         /// <param name="z"></param>
@@ -98,7 +98,7 @@ namespace NewLife.Collections
             Third = z;
         }
 
-        /// <summary>已重载。</summary>>
+        /// <summary>已重载。</summary>
         /// <returns></returns>
         public override string ToString()
         {

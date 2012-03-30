@@ -6,7 +6,7 @@ using System.Web.UI.WebControls;
 
 namespace XControl
 {
-    /// <summary>整型选择控件。</summary>>
+    /// <summary>整型选择控件。</summary>
     [Description("整型选择控件")]
     [ToolboxData("<{0}:IntCheckBox runat=server></{0}:IntCheckBox>")]
     [ToolboxBitmap(typeof(CheckBox))]
@@ -14,7 +14,7 @@ namespace XControl
     public class IntCheckBox : CheckBox
     {
 
-        /// <summary>选中值</summary>>
+        /// <summary>选中值</summary>
         [Category(" 专用属性"), DefaultValue(1), Description("选中值")]
         public Int32 SelectedValue
         {
@@ -32,7 +32,7 @@ namespace XControl
             }
         }
 
-        /// <summary>非选中值</summary>>
+        /// <summary>非选中值</summary>
         [Category(" 专用属性"), DefaultValue(0), Description("非选中值")]
         public Int32 UnSelectedValue
         {
@@ -50,7 +50,7 @@ namespace XControl
             }
         }
 
-        /// <summary>是否仅仅选中</summary>>
+        /// <summary>是否仅仅选中</summary>
         [Category(" 专用属性"), DefaultValue(false), Description("当前值Value是否仅仅等于选中值时才选中")]
         public Boolean OnlySelect
         {
@@ -68,7 +68,7 @@ namespace XControl
             }
         }
 
-        /// <summary>当前值</summary>>
+        /// <summary>当前值</summary>
         [Category(" 专用属性"), DefaultValue(0), Description("当前值")]
         public Int32 Value
         {

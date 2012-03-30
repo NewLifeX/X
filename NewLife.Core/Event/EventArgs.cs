@@ -2,7 +2,7 @@
 
 namespace NewLife
 {
-    /// <summary>泛型事件参数</summary>>
+    /// <summary>泛型事件参数</summary>
     /// <typeparam name="TArg"></typeparam>
     public class EventArgs<TArg> : EventArgs
     {
@@ -14,11 +14,11 @@ namespace NewLife
             set { _Arg = value; }
         }
 
-        /// <summary>使用参数初始化</summary>>
+        /// <summary>使用参数初始化</summary>
         /// <param name="arg"></param>
         public EventArgs(TArg arg) { Arg = arg; }
 
-        /// <summary>弹出</summary>>
+        /// <summary>弹出</summary>
         /// <param name="arg"></param>
         public void Pop(ref TArg arg)
         {
@@ -26,7 +26,7 @@ namespace NewLife
         }
     }
 
-    /// <summary>泛型事件参数</summary>>
+    /// <summary>泛型事件参数</summary>
     /// <typeparam name="TArg1"></typeparam>
     /// <typeparam name="TArg2"></typeparam>
     public class EventArgs<TArg1, TArg2> : EventArgs
@@ -47,7 +47,7 @@ namespace NewLife
             set { _Arg2 = value; }
         }
 
-        /// <summary>使用参数初始化</summary>>
+        /// <summary>使用参数初始化</summary>
         /// <param name="arg1"></param>
         /// <param name="arg2"></param>
         public EventArgs(TArg1 arg1, TArg2 arg2)
@@ -56,7 +56,7 @@ namespace NewLife
             Arg2 = arg2;
         }
 
-        /// <summary>弹出</summary>>
+        /// <summary>弹出</summary>
         /// <param name="arg1"></param>
         /// <param name="arg2"></param>
         public void Pop(ref TArg1 arg1, ref TArg2 arg2)
@@ -66,7 +66,7 @@ namespace NewLife
         }
     }
 
-    /// <summary>泛型事件参数</summary>>
+    /// <summary>泛型事件参数</summary>
     /// <typeparam name="TArg1"></typeparam>
     /// <typeparam name="TArg2"></typeparam>
     /// <typeparam name="TArg3"></typeparam>
@@ -96,7 +96,7 @@ namespace NewLife
             set { _Arg3 = value; }
         }
 
-        /// <summary>使用参数初始化</summary>>
+        /// <summary>使用参数初始化</summary>
         /// <param name="arg1"></param>
         /// <param name="arg2"></param>
         /// <param name="arg3"></param>
@@ -107,7 +107,7 @@ namespace NewLife
             Arg3 = arg3;
         }
 
-        /// <summary>弹出</summary>>
+        /// <summary>弹出</summary>
         /// <param name="arg1"></param>
         /// <param name="arg2"></param>
         /// <param name="arg3"></param>
@@ -119,7 +119,7 @@ namespace NewLife
         }
     }
 
-    /// <summary>泛型事件参数</summary>>
+    /// <summary>泛型事件参数</summary>
     /// <typeparam name="TArg1"></typeparam>
     /// <typeparam name="TArg2"></typeparam>
     /// <typeparam name="TArg3"></typeparam>
@@ -158,7 +158,7 @@ namespace NewLife
             set { _Arg4 = value; }
         }
 
-        /// <summary>使用参数初始化</summary>>
+        /// <summary>使用参数初始化</summary>
         /// <param name="arg1"></param>
         /// <param name="arg2"></param>
         /// <param name="arg3"></param>
@@ -171,7 +171,7 @@ namespace NewLife
             Arg4 = arg4;
         }
 
-        /// <summary>弹出</summary>>
+        /// <summary>弹出</summary>
         /// <param name="arg1"></param>
         /// <param name="arg2"></param>
         /// <param name="arg3"></param>

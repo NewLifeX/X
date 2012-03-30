@@ -13,7 +13,7 @@ using System.Web.UI.WebControls;
 
 namespace XControl
 {
-    /// <summary>选择输入控件</summary>>
+    /// <summary>选择输入控件</summary>
     [Description("选择输入控件")]
     [ToolboxData("<{0}:ChooseButton runat=server></{0}:ChooseButton>")]
     [ToolboxBitmap(typeof(Button))]
@@ -22,7 +22,7 @@ namespace XControl
     public class ChooseButton : CompositeControl, /*IPostBackDataHandler, IEditableTextControl,*/ ITextControl
     {
         #region 属性
-        /// <summary>文本</summary>>
+        /// <summary>文本</summary>
         [Bindable(true)]
         [Category(" 专用属性"), DefaultValue(null), Description("文本")]
         public String Text
@@ -39,7 +39,7 @@ namespace XControl
             }
         }
 
-        /// <summary>值</summary>>
+        /// <summary>值</summary>
         [Bindable(true)]
         [Category(" 专用属性"), DefaultValue(null), Description("值")]
         public String Value
@@ -60,7 +60,7 @@ namespace XControl
             }
         }
 
-        /// <summary>选择页地址</summary>>
+        /// <summary>选择页地址</summary>
         [Bindable(false)]
         [Category(" 专用属性"), DefaultValue(null), Description("选择页地址")]
         public String Url
@@ -76,7 +76,7 @@ namespace XControl
             }
         }
         private string _ProcessedUrl;
-        /// <summary>返回处理过~/的url地址</summary>>
+        /// <summary>返回处理过~/的url地址</summary>
         internal string ProcessedUrl
         {
             get
@@ -97,7 +97,7 @@ namespace XControl
             }
         }
 
-        /// <summary>控件ID</summary>>
+        /// <summary>控件ID</summary>
         [Bindable(false)]
         [IDReferenceProperty(typeof(Control))]
         [Category(" 专用属性"), DefaultValue(null), Description("控件ID")]
@@ -113,7 +113,7 @@ namespace XControl
             }
         }
 
-        /// <summary>自动回发</summary>>
+        /// <summary>自动回发</summary>
         [Themeable(false), WebCategory("Behavior"), WebSysDescription("TextBox_AutoPostBack"), DefaultValue(false)]
         public virtual bool AutoPostBack
         {
@@ -128,7 +128,7 @@ namespace XControl
             }
         }
 
-        /// <summary>弹出的模式窗口选项</summary>>
+        /// <summary>弹出的模式窗口选项</summary>
         [Category(" 专用属性"), DefaultValue(""), Description("弹出的模式窗口选项")]
         public string ModalDialogOptions
         {
@@ -142,7 +142,7 @@ namespace XControl
             }
 
         }
-        /// <summary>扩展的客户端选项</summary>>
+        /// <summary>扩展的客户端选项</summary>
         [Category(" 专用属性"), DefaultValue(""), Description("扩展的客户端选项")]
         public string ExtraClientOptions
         {
@@ -155,7 +155,7 @@ namespace XControl
                 ViewState["ExtraClientOptions"] = value;
             }
         }
-        /// <summary><see cref="System.Web.UI.Control.ClientID"/></summary>>
+        /// <summary><see cref="System.Web.UI.Control.ClientID"/></summary>
         public override string ClientID
         {
             get
@@ -221,7 +221,7 @@ namespace XControl
             }
         }
 
-        /// <summary>创建一个隐藏子控件</summary>>
+        /// <summary>创建一个隐藏子控件</summary>
         protected override void CreateChildControls()
         {
             base.CreateChildControls();
@@ -264,7 +264,7 @@ namespace XControl
         #endregion
 
         #region 呈现
-        /// <summary>预呈现。输出脚本</summary>>
+        /// <summary>预呈现。输出脚本</summary>
         /// <param name="e"></param>
         protected override void OnPreRender(EventArgs e)
         {
@@ -316,14 +316,14 @@ namespace XControl
             //    BtnControl.OnClientClick = "Choose(this,'" + Url + "');" + BtnControl.OnClientClick;
         }
 
-        /// <summary>已重写。忽略外部标签</summary>>
+        /// <summary>已重写。忽略外部标签</summary>
         /// <param name="writer"></param>
         public override void RenderBeginTag(HtmlTextWriter writer)
         {
             //base.RenderBeginTag(writer);
         }
 
-        /// <summary>已重写。忽略外部标签</summary>>
+        /// <summary>已重写。忽略外部标签</summary>
         /// <param name="writer"></param>
         public override void RenderEndTag(HtmlTextWriter writer)
         {
@@ -333,7 +333,7 @@ namespace XControl
 
         #region 回发事件处理
         private static readonly object EventValueChanged = new object();
-        /// <summary>值改变时触发</summary>>
+        /// <summary>值改变时触发</summary>
         [WebSysDescription("HiddenField_OnValueChanged"), WebCategory("Action")]
         public event EventHandler ValueChanged
         {

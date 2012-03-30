@@ -5,14 +5,14 @@ using System.ComponentModel;
 
 namespace XControl
 {
-    /// <summary>菜单项</summary>>
+    /// <summary>菜单项</summary>
     public class MenuParameterItem
     {
         #region 属性
 
         private String _Text = "无文本";
 
-        /// <summary>菜单项文本</summary>>
+        /// <summary>菜单项文本</summary>
         public String Text
         {
             get { return _Text; }
@@ -20,7 +20,7 @@ namespace XControl
         }
 
         private String _Url = "#";
-        /// <summary>菜单项连接</summary>>
+        /// <summary>菜单项连接</summary>
         [DefaultValue("#"), WebCategory("MenuItem"), WebSysDescription("MenuItem_Url")]
         public String Url
         {
@@ -29,7 +29,7 @@ namespace XControl
         }
 
         private String _OnClick;
-        /// <summary>菜单项事件</summary>>
+        /// <summary>菜单项事件</summary>
         public String OnClick
         {
             get { return _OnClick; }
@@ -37,7 +37,7 @@ namespace XControl
         }
 
         private String _IConCss;
-        /// <summary>菜单项ICon样式</summary>>
+        /// <summary>菜单项ICon样式</summary>
         public String IConCss
         {
             get { return _IConCss; }
@@ -50,7 +50,7 @@ namespace XControl
         #endregion
 
         #region 构造方法
-        /// <summary>构造方法</summary>>
+        /// <summary>构造方法</summary>
         /// <param name="original"></param>
         protected MenuParameterItem(MenuParameterItem original)
         {
@@ -60,11 +60,11 @@ namespace XControl
             this.IConCss = original.IConCss;
         }
 
-        /// <summary>构造方法</summary>>
+        /// <summary>构造方法</summary>
         public MenuParameterItem()
         { }
 
-        /// <summary>构造方法</summary>>
+        /// <summary>构造方法</summary>
         /// <param name="text"></param>
         /// <param name="url"></param>
         /// <param name="onclick"></param>

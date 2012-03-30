@@ -41,7 +41,7 @@ namespace NewLife.IO
         #endregion
 
         #region 方法
-        /// <summary>已重载。</summary>>
+        /// <summary>已重载。</summary>
         /// <param name="offset"></param>
         /// <param name="loc"></param>
         /// <returns></returns>
@@ -61,7 +61,7 @@ namespace NewLife.IO
             return r;
         }
 
-        /// <summary>重设长度，</summary>>
+        /// <summary>重设长度，</summary>
         void ResetLength()
         {
             // 写入指针必须超过最大长度
@@ -89,7 +89,7 @@ namespace NewLife.IO
 
         #region 重载
         private Object rwLock = new Object();
-        /// <summary>已重载。</summary>>
+        /// <summary>已重载。</summary>
         /// <param name="buffer"></param>
         /// <param name="offset"></param>
         /// <param name="count"></param>
@@ -116,7 +116,7 @@ namespace NewLife.IO
             }
         }
 
-        /// <summary>已重载。</summary>>
+        /// <summary>已重载。</summary>
         /// <returns></returns>
         public override int ReadByte()
         {
@@ -172,7 +172,7 @@ namespace NewLife.IO
             }
         }
 
-        /// <summary>已重载。</summary>>
+        /// <summary>已重载。</summary>
         /// <param name="buffer"></param>
         /// <param name="offset"></param>
         /// <param name="count"></param>
@@ -193,7 +193,7 @@ namespace NewLife.IO
             dataArrived.Set();
         }
 
-        /// <summary>已重载。</summary>>
+        /// <summary>已重载。</summary>
         /// <param name="value"></param>
         public override void WriteByte(byte value)
         {
@@ -212,7 +212,7 @@ namespace NewLife.IO
             dataArrived.Set();
         }
 
-        /// <summary>资源释放，关闭事件量</summary>>
+        /// <summary>资源释放，关闭事件量</summary>
         /// <param name="disposing"></param>
         protected override void Dispose(bool disposing)
         {

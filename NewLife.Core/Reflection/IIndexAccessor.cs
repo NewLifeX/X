@@ -10,7 +10,7 @@ namespace NewLife.Reflection
     /// </summary>
     public interface IIndexAccessor
     {
-        /// <summary>获取/设置 指定名称的属性或字段的值</summary>>
+        /// <summary>获取/设置 指定名称的属性或字段的值</summary>
         /// <param name="name"></param>
         /// <returns></returns>
         Object this[String name] { get; set; }

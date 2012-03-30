@@ -3,7 +3,7 @@ using System.Threading;
 
 namespace NewLife.Threading
 {
-    /// <summary>线程任务</summary>>
+    /// <summary>线程任务</summary>
     class ThreadTask
     {
         private Int32 _ID;
@@ -56,7 +56,7 @@ namespace NewLife.Threading
 
         private static Object newID_Lock = new object();
         private static Int32 _newID;
-        /// <summary>取一个新编号</summary>>
+        /// <summary>取一个新编号</summary>
         private static Int32 newID
         {
             get
@@ -69,7 +69,7 @@ namespace NewLife.Threading
             }
         }
 
-        /// <summary>构造一个线程任务</summary>>
+        /// <summary>构造一个线程任务</summary>
         /// <param name="method">任务方法</param>
         /// <param name="argument">任务参数</param>
         public ThreadTask(WaitCallback method, Object argument)
@@ -79,7 +79,7 @@ namespace NewLife.Threading
             ID = newID;
         }
 
-        /// <summary>构造一个线程任务</summary>>
+        /// <summary>构造一个线程任务</summary>
         /// <param name="method">任务方法</param>
         /// <param name="abortMethod">任务被取消时执行的方法</param>
         /// <param name="argument">任务参数</param>

@@ -9,7 +9,7 @@ namespace XControl
 {
     internal static class Helper
     {
-        /// <summary>逐层向上找控件</summary>>
+        /// <summary>逐层向上找控件</summary>
         /// <typeparam name="TControl"></typeparam>
         /// <param name="control"></param>
         /// <param name="id"></param>
@@ -41,7 +41,7 @@ namespace XControl
             return FindControlUp<TControl>(parent, id);
         }
 
-        /// <summary>逐层向下找控件</summary>>
+        /// <summary>逐层向下找控件</summary>
         /// <typeparam name="TControl"></typeparam>
         /// <param name="control"></param>
         /// <param name="id"></param>
@@ -81,7 +81,7 @@ namespace XControl
 
         #region Javascript和控件HTML属性工具方法
 
-        /// <summary>将指定字符串作为html标签属性中可使用的字符串返回</summary>>
+        /// <summary>将指定字符串作为html标签属性中可使用的字符串返回</summary>
         /// <param name="s"></param>
         public static string HTMLPropertyEscape(string s)
         {
@@ -90,7 +90,7 @@ namespace XControl
                 .Replace("\r", "&#13;").Replace("\n", "&#10;");
         }
 
-        /// <summary>将指定字符串作为html标签属性中可使用的字符串返回</summary>>
+        /// <summary>将指定字符串作为html标签属性中可使用的字符串返回</summary>
         /// <param name="fmt"></param>
         /// <param name="args"></param>
         /// <returns></returns>
@@ -99,7 +99,7 @@ namespace XControl
             return HTMLPropertyEscape(string.Format(fmt, args));
         }
 
-        /// <summary>将指定字符串作为html标签属性中可使用的字符串返回</summary>>
+        /// <summary>将指定字符串作为html标签属性中可使用的字符串返回</summary>
         /// <param name="ctl">需要添加属性的控件</param>
         /// <param name="attname">需要添加的html属性名,以on开头的名称将会使用JsMinSimple处理换行</param>
         /// <param name="fmt"></param>
@@ -117,7 +117,7 @@ namespace XControl
             return s;
         }
 
-        /// <summary>使用指定的名值对创建对应的Javascript Object的声明字符串</summary>>
+        /// <summary>使用指定的名值对创建对应的Javascript Object的声明字符串</summary>
         /// <param name="args"></param>
         /// <returns></returns>
         public static string JsObjectString(params object[] args)
@@ -142,7 +142,7 @@ namespace XControl
 
         static Regex JsIdentityWord = new Regex(@"^[a-zA-Z_][a-zA-Z0-9_]*$", RegexOptions.Compiled | RegexOptions.Singleline);
 
-        /// <summary>使用指定的名值对创建对应的Javascript Object的声明字符串</summary>>
+        /// <summary>使用指定的名值对创建对应的Javascript Object的声明字符串</summary>
         /// <param name="escapeValue"></param>
         /// <param name="filter"></param>
         /// <param name="args"></param>
@@ -173,7 +173,7 @@ namespace XControl
             return "{" + string.Join(",", r.ToArray()) + "}";
         }
 
-        /// <summary>指定变量是否属于js的字面值类型,字面值类型可以直接ToString输出</summary>>
+        /// <summary>指定变量是否属于js的字面值类型,字面值类型可以直接ToString输出</summary>
         /// <param name="v"></param>
         /// <returns></returns>
         public static bool IsJsLiteralValue(object v)
@@ -181,7 +181,7 @@ namespace XControl
             return v is bool || v is byte || v is double || v is Int16 || v is Int32 || v is Int64 || v is sbyte || v is float || v is UInt16 || v is UInt32 || v is UInt64;
         }
 
-        /// <summary>将指定的字符串作为javascript中使用的字符串内容返回,没有js字符串声明两边的双引号</summary>>
+        /// <summary>将指定的字符串作为javascript中使用的字符串内容返回,没有js字符串声明两边的双引号</summary>
         /// <param name="i"></param>
         /// <returns></returns>
         public static string JsStringEscape(string i)
@@ -189,7 +189,7 @@ namespace XControl
             return (i + "").Replace(@"\", @"\\").Replace("'", @"\'").Replace("\"", @"\""").Replace("\r", @"\r").Replace("\n", @"\n");
         }
 
-        /// <summary>将指定的字符串作为javascript中使用的字符串内容返回,没有js字符串声明两边的双引号</summary>>
+        /// <summary>将指定的字符串作为javascript中使用的字符串内容返回,没有js字符串声明两边的双引号</summary>
         /// <param name="fmt"></param>
         /// <param name="args"></param>
         /// <returns></returns>
@@ -200,7 +200,7 @@ namespace XControl
 
         static Regex reMinJs = new Regex(@"\s*(?:\r\n|\r|\n)+\s*", RegexOptions.Compiled);
 
-        /// <summary>将指定的javascript代码做简单压缩,去除换行和缩进</summary>>
+        /// <summary>将指定的javascript代码做简单压缩,去除换行和缩进</summary>
         /// <param name="i"></param>
         /// <returns></returns>
         public static string JsMinSimple(string i)
@@ -208,7 +208,7 @@ namespace XControl
             return reMinJs.Replace(i + "", "");
         }
 
-        /// <summary>将指定的javascript代码做简单压缩,去除换行和缩进</summary>>
+        /// <summary>将指定的javascript代码做简单压缩,去除换行和缩进</summary>
         /// <param name="toggle"></param>
         /// <param name="i"></param>
         /// <returns></returns>
@@ -217,7 +217,7 @@ namespace XControl
             return toggle ? JsMinSimple(i) : i;
         }
 
-        /// <summary>将指定的javascript代码做简单压缩,去除换行和缩进</summary>>
+        /// <summary>将指定的javascript代码做简单压缩,去除换行和缩进</summary>
         /// <param name="fmt"></param>
         /// <param name="args"></param>
         /// <returns></returns>
@@ -226,7 +226,7 @@ namespace XControl
             return JsMinSimple(true, fmt, args);
         }
 
-        /// <summary>将指定的javascript代码做简单压缩,去除换行和缩进</summary>>
+        /// <summary>将指定的javascript代码做简单压缩,去除换行和缩进</summary>
         /// <param name="toggle">开关,为true时才会压缩</param>
         /// <param name="fmt"></param>
         /// <param name="args"></param>

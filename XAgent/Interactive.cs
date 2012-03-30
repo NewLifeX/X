@@ -18,7 +18,7 @@ namespace XAgent
 
         static Boolean hasShown = false;
 
-        /// <summary>隐藏</summary>>
+        /// <summary>隐藏</summary>
         public static void Hide()
         {
             if (!hasShown) return;
@@ -30,7 +30,7 @@ namespace XAgent
             catch { }
         }
 
-        /// <summary>显示窗体</summary>>
+        /// <summary>显示窗体</summary>
         public static void ShowForm()
         {
             if (hasShown) return;

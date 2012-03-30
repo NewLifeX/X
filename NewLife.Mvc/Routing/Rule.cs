@@ -4,7 +4,7 @@ using NewLife.Reflection;
 
 namespace NewLife.Mvc
 {
-    /// <summary>路由规则</summary>>
+    /// <summary>路由规则</summary>
     public class Rule
     {
         private bool IsCompleteMatch;
@@ -38,7 +38,7 @@ namespace NewLife.Mvc
             }
         }
 
-        /// <summary>路由的目标类型,需要实现了IController,IControllerFactory,IRouteConfigMoudule任意一个</summary>>
+        /// <summary>路由的目标类型,需要实现了IController,IControllerFactory,IRouteConfigMoudule任意一个</summary>
         public virtual Type Type { get; set; }
 
         #endregion 公共属性
@@ -47,7 +47,7 @@ namespace NewLife.Mvc
 
         static List<RuleType>[] _RuleTypeList = new List<RuleType>[] { null };
 
-        /// <summary>规则类型到具体类型的Rule子类映射</summary>>
+        /// <summary>规则类型到具体类型的Rule子类映射</summary>
         private static List<RuleType> RuleTypeList
         {
             get
@@ -69,7 +69,7 @@ namespace NewLife.Mvc
             }
         }
 
-        /// <summary>创建指定路径到指定类型的路由,路由类型由ruleType指定,如果未指定则会自动检测</summary>>
+        /// <summary>创建指定路径到指定类型的路由,路由类型由ruleType指定,如果未指定则会自动检测</summary>
         /// <param name="path"></param>
         /// <param name="type"></param>
         /// <param name="ruleType"></param>
@@ -98,7 +98,7 @@ namespace NewLife.Mvc
             return r;
         }
 
-        /// <summary>路由规则类型,及其对应的创建方法</summary>>
+        /// <summary>路由规则类型,及其对应的创建方法</summary>
         struct RuleType
         {
             public static RuleType Create<T>(Func<Rule> func)
@@ -110,15 +110,15 @@ namespace NewLife.Mvc
                 };
             }
 
-            /// <summary>路由规则类型</summary>>
+            /// <summary>路由规则类型</summary>
             public Type Type;
-            /// <summary>对应规则的Rule实例创建方法</summary>>
+            /// <summary>对应规则的Rule实例创建方法</summary>
             public Func<Rule> New;
         }
 
         static string _RuleTypeNames;
 
-        /// <summary>RuleTypeList中所有规则类型名称,逗号分割的</summary>>
+        /// <summary>RuleTypeList中所有规则类型名称,逗号分割的</summary>
         private static string RuleTypeNames
         {
             get
@@ -135,7 +135,7 @@ namespace NewLife.Mvc
 
         #region 路由
 
-        /// <summary>路由当前上下文,子类根据自己的匹配逻辑重写</summary>>
+        /// <summary>路由当前上下文,子类根据自己的匹配逻辑重写</summary>
         /// <param name="ctx"></param>
         /// <returns></returns>
         internal virtual IController RouteTo(RouteContext ctx)
@@ -153,7 +153,7 @@ namespace NewLife.Mvc
             return null;
         }
 
-        /// <summary>使用当前路由规则的路径匹配指定的路径,返回是否匹配</summary>>
+        /// <summary>使用当前路由规则的路径匹配指定的路径,返回是否匹配</summary>
         /// <param name="path"></param>
         /// <param name="match">返回匹配到的路径片段</param>
         /// <returns></returns>
@@ -193,15 +193,15 @@ namespace NewLife.Mvc
         }
     }
 
-    /// <summary>工厂路由规则,会使用工厂的创建方法获取控制器,以及使用工厂的Support检查是否支持</summary>>
+    /// <summary>工厂路由规则,会使用工厂的创建方法获取控制器,以及使用工厂的Support检查是否支持</summary>
     public class FactoryRule : Rule
     {
-        /// <summary>工厂的创建方式,默认为直接创建Type指定的类型</summary>>
+        /// <summary>工厂的创建方式,默认为直接创建Type指定的类型</summary>
         public Func<IControllerFactory> NewFactoryFunc { get; set; }
 
         IControllerFactory[] _Factory = new IControllerFactory[] { null };
 
-        /// <summary>当前路由规则对应的控制器工厂实例</summary>>
+        /// <summary>当前路由规则对应的控制器工厂实例</summary>
         public IControllerFactory Factory
         {
             get
@@ -276,10 +276,10 @@ namespace NewLife.Mvc
         }
     }
 
-    /// <summary>模块路由规则,按需要初始化模块的路由配置,使用对应的RouteConfigManager路由请求</summary>>
+    /// <summary>模块路由规则,按需要初始化模块的路由配置,使用对应的RouteConfigManager路由请求</summary>
     public class ModuleRule : Rule
     {
-        /// <summary>重写,路由目标类型</summary>>
+        /// <summary>重写,路由目标类型</summary>
         public override Type Type
         {
             get
@@ -298,7 +298,7 @@ namespace NewLife.Mvc
 
         IRouteConfigModule[] _Module = { null };
 
-        /// <summary>当前模块路由规则对应的模块</summary>>
+        /// <summary>当前模块路由规则对应的模块</summary>
         public IRouteConfigModule Module
         {
             get
@@ -331,7 +331,7 @@ namespace NewLife.Mvc
 
         RouteConfigManager[] _Config = new RouteConfigManager[] { null };
 
-        /// <summary>当前模块路由规则对应的路由配置</summary>>
+        /// <summary>当前模块路由规则对应的路由配置</summary>
         public RouteConfigManager Config
         {
             get

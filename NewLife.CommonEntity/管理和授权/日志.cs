@@ -12,7 +12,7 @@ using XCode.DataAccessLayer;
 
 namespace NewLife.CommonEntity
 {
-	/// <summary>日志</summary>>
+	/// <summary>日志</summary>
 	[Serializable]
 	[DataObject]
 	[Description("日志")]
@@ -21,7 +21,7 @@ namespace NewLife.CommonEntity
 	{
 		#region 属性
 		private Int32 _ID;
-		/// <summary>编号</summary>>
+		/// <summary>编号</summary>
 		[Description("编号")]
 		[DataObjectField(true, true, false, 10)]
 		[BindColumn(1, "ID", "编号", "", "int", 10, 0, false)]
@@ -32,7 +32,7 @@ namespace NewLife.CommonEntity
 		}
 
 		private String _Category;
-		/// <summary>类别</summary>>
+		/// <summary>类别</summary>
 		[Description("类别")]
 		[DataObjectField(false, false, false, 50)]
 		[BindColumn(2, "Category", "类别", "", "nvarchar(50)", 0, 0, true)]
@@ -43,7 +43,7 @@ namespace NewLife.CommonEntity
 		}
 
 		private String _Action;
-		/// <summary>操作</summary>>
+		/// <summary>操作</summary>
 		[Description("操作")]
 		[DataObjectField(false, false, false, 50)]
 		[BindColumn(3, "Action", "操作", "", "nvarchar(50)", 0, 0, true)]
@@ -54,7 +54,7 @@ namespace NewLife.CommonEntity
 		}
 
 		private Int32 _UserID;
-		/// <summary>用户编号</summary>>
+		/// <summary>用户编号</summary>
 		[Description("用户编号")]
 		[DataObjectField(false, false, false, 10)]
 		[BindColumn(4, "UserID", "用户编号", "0", "int", 10, 0, false)]
@@ -65,7 +65,7 @@ namespace NewLife.CommonEntity
 		}
 
 		private String _UserName;
-		/// <summary>用户名</summary>>
+		/// <summary>用户名</summary>
 		[Description("用户名")]
 		[DataObjectField(false, false, true, 50)]
 		[BindColumn(5, "UserName", "用户名", "", "nvarchar(50)", 0, 0, true)]
@@ -76,7 +76,7 @@ namespace NewLife.CommonEntity
 		}
 
 		private String _IP;
-		/// <summary>IP地址</summary>>
+		/// <summary>IP地址</summary>
 		[Description("IP地址")]
 		[DataObjectField(false, false, true, 50)]
 		[BindColumn(6, "IP", "IP地址", "", "nvarchar(50)", 0, 0, true)]
@@ -87,7 +87,7 @@ namespace NewLife.CommonEntity
 		}
 
 		private DateTime _OccurTime;
-		/// <summary>时间</summary>>
+		/// <summary>时间</summary>
 		[Description("时间")]
 		[DataObjectField(false, false, false, 3)]
 		[BindColumn(7, "OccurTime", "时间", "getdate()", "datetime", 3, 0, false)]
@@ -98,7 +98,7 @@ namespace NewLife.CommonEntity
 		}
 
 		private String _Remark;
-		/// <summary>详细信息</summary>>
+		/// <summary>详细信息</summary>
 		[Description("详细信息")]
 		[DataObjectField(false, false, true, 500)]
 		[BindColumn(8, "Remark", "详细信息", "", "nvarchar(500)", 0, 0, true)]
@@ -153,7 +153,7 @@ namespace NewLife.CommonEntity
 		#endregion
 
 		#region 字段名
-		/// <summary>取得日志字段名的快捷方式</summary>>
+		/// <summary>取得日志字段名的快捷方式</summary>
 		public class _
 		{
             ///<summary>编号</summary>
@@ -183,32 +183,32 @@ namespace NewLife.CommonEntity
 		#endregion
 	}
 
-	/// <summary>日志接口</summary>>
+	/// <summary>日志接口</summary>
 	public partial interface ILog
 	{
 		#region 属性
-		/// <summary>编号</summary>>
+		/// <summary>编号</summary>
 		Int32 ID { get; set; }
 
-		/// <summary>类别</summary>>
+		/// <summary>类别</summary>
 		String Category { get; set; }
 
-		/// <summary>操作</summary>>
+		/// <summary>操作</summary>
 		String Action { get; set; }
 
-		/// <summary>用户编号</summary>>
+		/// <summary>用户编号</summary>
 		Int32 UserID { get; set; }
 
-		/// <summary>用户名</summary>>
+		/// <summary>用户名</summary>
 		String UserName { get; set; }
 
-		/// <summary>IP地址</summary>>
+		/// <summary>IP地址</summary>
 		String IP { get; set; }
 
-		/// <summary>时间</summary>>
+		/// <summary>时间</summary>
 		DateTime OccurTime { get; set; }
 
-		/// <summary>详细信息</summary>>
+		/// <summary>详细信息</summary>
 		String Remark { get; set; }
 		#endregion
 

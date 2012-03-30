@@ -10,27 +10,27 @@ using XCode;
 
 namespace NewLife.CommonEntity
 {
-    /// <summary>序列种类</summary>>
+    /// <summary>序列种类</summary>
     public enum SequenceKinds
     {
-        /// <summary>全局</summary>>
+        /// <summary>全局</summary>
         Global,
 
-        /// <summary>年</summary>>
+        /// <summary>年</summary>
         Year,
 
-        /// <summary>月</summary>>
+        /// <summary>月</summary>
         Month,
 
-        /// <summary>日</summary>>
+        /// <summary>日</summary>
         Day
     }
 
-    /// <summary>序列</summary>>
+    /// <summary>序列</summary>
     [ModelCheckMode(ModelCheckModes.CheckTableWhenFirstUse)]
     public class Sequence : Sequence<Sequence> { }
 
-    /// <summary>序列</summary>>
+    /// <summary>序列</summary>
     [BindIndex("IX_Sequence_Name", true, "Name")]
     [BindIndex("PK__Sequence__3214EC270EA330E9", true, "ID")]
     public partial class Sequence<TEntity> : Entity<TEntity> where TEntity : Sequence<TEntity>, new()
@@ -41,7 +41,7 @@ namespace NewLife.CommonEntity
             Meta.SingleCache.FindKeyMethod = delegate(Object name) { return Find(_.Name, name); };
         }
 
-        /// <summary>验证</summary>>
+        /// <summary>验证</summary>
         /// <param name="isNew"></param>
         public override void Valid(bool isNew)
         {
@@ -75,7 +75,7 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region 扩展查询
-        /// <summary>根据主键查询一个序列实体对象用于表单编辑</summary>>
+        /// <summary>根据主键查询一个序列实体对象用于表单编辑</summary>
         ///<param name="__ID">编号</param>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
@@ -89,7 +89,7 @@ namespace NewLife.CommonEntity
             return entity;
         }
 
-        /// <summary>根据编号查找</summary>>
+        /// <summary>根据编号查找</summary>
         /// <param name="__ID"></param>
         /// <returns></returns>
         public static TEntity FindByID(Int32 __ID)
@@ -101,7 +101,7 @@ namespace NewLife.CommonEntity
             //return Meta.SingleCache[__ID];
         }
 
-        /// <summary>根据名称查找</summary>>
+        /// <summary>根据名称查找</summary>
         /// <param name="__Name"></param>
         /// <returns></returns>
         public static TEntity FindByName(String __Name)
@@ -117,7 +117,7 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region 高级查询
-        /// <summary>查询满足条件的记录集，分页、排序</summary>>
+        /// <summary>查询满足条件的记录集，分页、排序</summary>
         /// <param name="key">关键字</param>
         /// <param name="orderClause">排序，不带Order By</param>
         /// <param name="startRowIndex">开始行，0表示第一行</param>
@@ -129,7 +129,7 @@ namespace NewLife.CommonEntity
             return FindAll(SearchWhere(key), orderClause, null, startRowIndex, maximumRows);
         }
 
-        /// <summary>查询满足条件的记录总数，分页和排序无效，带参数是因为ObjectDataSource要求它跟Search统一</summary>>
+        /// <summary>查询满足条件的记录总数，分页和排序无效，带参数是因为ObjectDataSource要求它跟Search统一</summary>
         /// <param name="key">关键字</param>
         /// <param name="orderClause">排序，不带Order By</param>
         /// <param name="startRowIndex">开始行，0表示第一行</param>
@@ -140,7 +140,7 @@ namespace NewLife.CommonEntity
             return FindCount(SearchWhere(key), null, null, 0, 0);
         }
 
-        /// <summary>构造搜索条件</summary>>
+        /// <summary>构造搜索条件</summary>
         /// <param name="key">关键字</param>
         /// <returns></returns>
         private static String SearchWhere(String key)
@@ -166,7 +166,7 @@ namespace NewLife.CommonEntity
 
         #region 业务
         private static Object objLock = new Object();
-        /// <summary>获取</summary>>
+        /// <summary>获取</summary>
         /// <param name="name"></param>
         /// <returns></returns>
         public static Int32 Acquire(String name)
@@ -232,7 +232,7 @@ namespace NewLife.CommonEntity
         //    }
         //}
 
-        /// <summary>设置序列类型，序列不存在时自动增加</summary>>
+        /// <summary>设置序列类型，序列不存在时自动增加</summary>
         /// <param name="name"></param>
         /// <param name="kind"></param>
         public static void SetKind(String name, SequenceKinds kind)

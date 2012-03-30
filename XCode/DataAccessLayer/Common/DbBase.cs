@@ -24,7 +24,7 @@ namespace XCode.DataAccessLayer
     abstract class DbBase : DisposeBase, IDatabase
     {
         #region 构造函数
-        /// <summary>销毁资源时，回滚未提交事务，并关闭数据库连接</summary>>
+        /// <summary>销毁资源时，回滚未提交事务，并关闭数据库连接</summary>
         /// <param name="disposing"></param>
         protected override void OnDispose(bool disposing)
         {
@@ -50,7 +50,7 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        /// <summary>释放所有会话</summary>>
+        /// <summary>释放所有会话</summary>
         internal void ReleaseSession()
         {
             if (_sessions != null)
@@ -81,7 +81,7 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 属性
-        /// <summary>返回数据库类型。外部DAL数据库类请使用Other</summary>>
+        /// <summary>返回数据库类型。外部DAL数据库类请使用Other</summary>
         public virtual DatabaseType DbType { get { return DatabaseType.Other; } }
 
         /// <summary>工厂</summary>
@@ -116,7 +116,7 @@ namespace XCode.DataAccessLayer
         protected virtual String DefaultConnectionString { get { return String.Empty; } }
 
         const String KEY_OWNER = "Owner";
-        /// <summary>设置连接字符串时允许从中取值或修改，基类用于读取拥有者Owner，子类重写时应调用基类</summary>>
+        /// <summary>设置连接字符串时允许从中取值或修改，基类用于读取拥有者Owner，子类重写时应调用基类</summary>
         /// <param name="builder"></param>
         protected virtual void OnSetConnectionString(XDbConnectionStringBuilder builder)
         {
@@ -188,14 +188,14 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        /// <summary>创建数据库会话</summary>>
+        /// <summary>创建数据库会话</summary>
         /// <returns></returns>
         protected abstract IDbSession OnCreateSession();
 
-        /// <summary>唯一实例</summary>>
+        /// <summary>唯一实例</summary>
         private IMetaData _metadata;
 
-        /// <summary>创建元数据对象，唯一实例</summary>>
+        /// <summary>创建元数据对象，唯一实例</summary>
         /// <returns></returns>
         public IMetaData CreateMetaData()
         {
@@ -207,11 +207,11 @@ namespace XCode.DataAccessLayer
             return _metadata;
         }
 
-        /// <summary>创建元数据对象</summary>>
+        /// <summary>创建元数据对象</summary>
         /// <returns></returns>
         protected abstract IMetaData OnCreateMetaData();
 
-        /// <summary>获取提供者工厂</summary>>
+        /// <summary>获取提供者工厂</summary>
         /// <param name="assemblyFile"></param>
         /// <param name="className"></param>
         /// <returns></returns>
@@ -322,14 +322,14 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        /// <summary>是否支持该提供者所描述的数据库</summary>>
+        /// <summary>是否支持该提供者所描述的数据库</summary>
         /// <param name="providerName">提供者</param>
         /// <returns></returns>
         public virtual Boolean Support(String providerName) { return !String.IsNullOrEmpty(providerName) && providerName.ToLower().Contains(this.DbType.ToString().ToLower()); }
         #endregion
 
         #region 分页
-        /// <summary>构造分页SQL，优先选择max/min，然后选择not in</summary>>
+        /// <summary>构造分页SQL，优先选择max/min，然后选择not in</summary>
         /// <remarks>
         /// 两个构造分页SQL的方法，区别就在于查询生成器能够构造出来更好的分页语句，尽可能的避免子查询。
         /// MS体系的分页精髓就在于唯一键，当唯一键带有Asc/Desc/Unkown等排序结尾时，就采用最大最小值分页，否则使用较次的TopNotIn分页。
@@ -381,7 +381,7 @@ namespace XCode.DataAccessLayer
             return sql;
         }
 
-        /// <summary>按唯一数字最大最小分析</summary>>
+        /// <summary>按唯一数字最大最小分析</summary>
         /// <param name="sql">SQL语句</param>
         /// <param name="startRowIndex">开始行，0表示第一行</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
@@ -475,7 +475,7 @@ namespace XCode.DataAccessLayer
         }
 
         private static Regex reg_SimpleSQL = new Regex(@"^\s*select\s+\*\s+from\s+([\w\[\]\""\""\']+)\s*$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-        /// <summary>检查简单SQL语句，比如Select * From table</summary>>
+        /// <summary>检查简单SQL语句，比如Select * From table</summary>
         /// <param name="sql">待检查SQL语句</param>
         /// <returns>如果是简单SQL语句则返回表名，否则返回子查询(sql) XCode_Temp_a</returns>
         internal protected static String CheckSimpleSQL(String sql)
@@ -489,7 +489,7 @@ namespace XCode.DataAccessLayer
         }
 
         private static Regex reg_Order = new Regex(@"\border\s*by\b([^)]+)$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-        /// <summary>检查是否以Order子句结尾，如果是，分割sql为前后两部分</summary>>
+        /// <summary>检查是否以Order子句结尾，如果是，分割sql为前后两部分</summary>
         /// <param name="sql"></param>
         /// <returns></returns>
         internal protected static String CheckOrderClause(ref String sql)
@@ -574,17 +574,17 @@ namespace XCode.DataAccessLayer
         ///// <returns></returns>
         //private Boolean IsReservedWord(String word) { return String.IsNullOrEmpty(word) ? false : ReservedWords.ContainsKey(word); }
 
-        /// <summary>格式化时间为SQL字符串</summary>>
+        /// <summary>格式化时间为SQL字符串</summary>
         /// <param name="dateTime">时间值</param>
         /// <returns></returns>
         public virtual String FormatDateTime(DateTime dateTime) { return String.Format("'{0:yyyy-MM-dd HH:mm:ss}'", dateTime); }
 
-        /// <summary>格式化关键字</summary>>
+        /// <summary>格式化关键字</summary>
         /// <param name="keyWord">表名</param>
         /// <returns></returns>
         public virtual String FormatKeyWord(String keyWord) { return keyWord; }
 
-        /// <summary>格式化名称，如果是关键字，则格式化后返回，否则原样返回</summary>>
+        /// <summary>格式化名称，如果是关键字，则格式化后返回，否则原样返回</summary>
         /// <param name="name">名称</param>
         /// <returns></returns>
         public virtual String FormatName(String name)
@@ -598,7 +598,7 @@ namespace XCode.DataAccessLayer
             return name;
         }
 
-        /// <summary>格式化数据为SQL数据</summary>>
+        /// <summary>格式化数据为SQL数据</summary>
         /// <param name="field"></param>
         /// <param name="value"></param>
         /// <returns></returns>
@@ -664,7 +664,7 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        /// <summary>格式化标识列，返回插入数据时所用的表达式，如果字段本身支持自增，则返回空</summary>>
+        /// <summary>格式化标识列，返回插入数据时所用的表达式，如果字段本身支持自增，则返回空</summary>
         /// <param name="field"></param>
         /// <param name="value"></param>
         /// <returns></returns>
@@ -708,7 +708,7 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 辅助函数
-        /// <summary>已重载。</summary>>
+        /// <summary>已重载。</summary>
         /// <returns></returns>
         public override string ToString()
         {

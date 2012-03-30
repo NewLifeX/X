@@ -5,7 +5,7 @@ using System.IO;
 
 namespace NewLife.Net.IO
 {
-    /// <summary>文件格式</summary>>
+    /// <summary>文件格式</summary>
     public class FileFormat
     {
         #region 属性
@@ -47,10 +47,10 @@ namespace NewLife.Net.IO
         #endregion
 
         #region 构造
-        /// <summary>初始化一个实例</summary>>
+        /// <summary>初始化一个实例</summary>
         public FileFormat() { }
 
-        /// <summary>使用文件路径和根路径初始化一个文件格式对象</summary>>
+        /// <summary>使用文件路径和根路径初始化一个文件格式对象</summary>
         /// <param name="fileName"></param>
         /// <param name="root"></param>
         public FileFormat(String fileName, String root)
@@ -75,7 +75,7 @@ namespace NewLife.Net.IO
         #endregion
 
         #region 方法
-        /// <summary>读取</summary>>
+        /// <summary>读取</summary>
         /// <param name="reader"></param>
         public void Read(BinaryReader reader)
         {
@@ -83,7 +83,7 @@ namespace NewLife.Net.IO
             Length = reader.ReadInt64();
         }
 
-        /// <summary>写入</summary>>
+        /// <summary>写入</summary>
         /// <param name="writer"></param>
         public void Write(BinaryWriter writer)
         {
@@ -91,21 +91,21 @@ namespace NewLife.Net.IO
             writer.Write(Length);
         }
 
-        /// <summary>读取</summary>>
+        /// <summary>读取</summary>
         /// <param name="stream"></param>
         public void Read(Stream stream)
         {
             Read(new BinaryReader(stream));
         }
 
-        /// <summary>写入</summary>>
+        /// <summary>写入</summary>
         /// <param name="stream"></param>
         public void Write(Stream stream)
         {
             Write(new BinaryWriter(stream));
         }
 
-        /// <summary>从流中加载一个文件格式对象</summary>>
+        /// <summary>从流中加载一个文件格式对象</summary>
         /// <param name="stream"></param>
         /// <returns></returns>
         public static FileFormat Load(Stream stream)
@@ -115,7 +115,7 @@ namespace NewLife.Net.IO
             return ff;
         }
 
-        /// <summary>保存文件</summary>>
+        /// <summary>保存文件</summary>
         /// <param name="root"></param>
         /// <param name="stream"></param>
         public void Save(String root, Stream stream)

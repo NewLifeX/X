@@ -131,25 +131,25 @@ namespace NewLife.Net.SGIP
     /// <summary>指令枚举</summary>
     public enum SGIPCommands : uint
     {
-        /// <summary>绑定</summary>>
+        /// <summary>绑定</summary>
         Bind = 0x1,
-        /// <summary>绑定响应</summary>>
+        /// <summary>绑定响应</summary>
         Bind_Resp = 0x80000001,
-        /// <summary>取消绑定</summary>>
+        /// <summary>取消绑定</summary>
         Unbind = 0x2,
-        /// <summary>取消绑定响应</summary>>
+        /// <summary>取消绑定响应</summary>
         Unbind_Resp = 0x80000002,
-        /// <summary>提交</summary>>
+        /// <summary>提交</summary>
         Submit = 0x3,
-        /// <summary>提交响应</summary>>
+        /// <summary>提交响应</summary>
         Submit_Resp = 0x80000003,
-        /// <summary>分发</summary>>
+        /// <summary>分发</summary>
         Deliver = 0x4,
-        /// <summary>分发响应</summary>>
+        /// <summary>分发响应</summary>
         Deliver_Resp = 0x80000004,
-        /// <summary>报告</summary>>
+        /// <summary>报告</summary>
         Report = 0x5,
-        /// <summary>报告响应</summary>>
+        /// <summary>报告响应</summary>
         Report_Resp = 0x80000005,
         //ADDSP = 0x6,
         //ADDSP_RESP = 0x80000006,
@@ -179,7 +179,7 @@ namespace NewLife.Net.SGIP
         //TRACE_RESP = 0x80001000,
     }
 
-    /// <summary>错误代码</summary>>
+    /// <summary>错误代码</summary>
     public enum SGIPErrorCodes : byte
     {
         /// <summary>无错误，命令正确接收</summary>

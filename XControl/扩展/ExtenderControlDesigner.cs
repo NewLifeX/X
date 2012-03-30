@@ -9,7 +9,7 @@ using Control = System.Web.UI.Control;
 
 namespace XControl
 {
-    /// <summary>扩展控件设计时</summary>>
+    /// <summary>扩展控件设计时</summary>
     /// <typeparam name="TControl">扩展控件</typeparam>
     /// <typeparam name="TTargetControl">目标控件</typeparam>
     public class ExtenderControlDesigner<TControl, TTargetControl> : ExtenderControlDesigner
@@ -31,7 +31,7 @@ namespace XControl
         #endregion
 
         #region 重载
-        /// <summary>已重载。</summary>>
+        /// <summary>已重载。</summary>
         /// <returns></returns>
         public override void UpdateDesignTimeHtml()
         {
@@ -43,11 +43,11 @@ namespace XControl
         #endregion
     }
 
-    /// <summary>扩展控件设计时</summary>>
+    /// <summary>扩展控件设计时</summary>
     public class ExtenderControlDesigner : ControlDesigner
     {
         #region 重载
-        /// <summary>已重载。</summary>>
+        /// <summary>已重载。</summary>
         /// <returns></returns>
         public override string GetDesignTimeHtml()
         {
@@ -56,7 +56,7 @@ namespace XControl
         #endregion
 
         #region 更新目标设计时
-        /// <summary>更新目标设计时</summary>>
+        /// <summary>更新目标设计时</summary>
         /// <param name="component"></param>
         public static void UpdateTargetDesignTimeHtml(Control component)
         {

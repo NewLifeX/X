@@ -4,7 +4,7 @@ using XCode.DataAccessLayer;
 
 namespace XCode
 {
-    /// <summary>指定实体类所绑定的数据表信息。</summary>>
+    /// <summary>指定实体类所绑定的数据表信息。</summary>
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
     public sealed class BindTableAttribute : Attribute
     {
@@ -51,13 +51,13 @@ namespace XCode
             set { _DbType = value; }
         }
 
-        /// <summary>构造函数</summary>>
+        /// <summary>构造函数</summary>
         /// <param name="name">表名</param>
         public BindTableAttribute(String name)
         {
             Name = name;
         }
-        /// <summary>构造函数</summary>>
+        /// <summary>构造函数</summary>
         /// <param name="name">表名</param>
         /// <param name="description">描述</param>
         public BindTableAttribute(String name, String description)

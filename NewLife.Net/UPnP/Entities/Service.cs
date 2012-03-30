@@ -47,7 +47,7 @@ namespace NewLife.Net.UPnP
             set { _SCPDURL = value; }
         }
 
-        /// <summary>已重载。</summary>>
+        /// <summary>已重载。</summary>
         /// <returns></returns>
         public override string ToString()
         {

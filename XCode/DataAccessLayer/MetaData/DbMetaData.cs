@@ -211,11 +211,11 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 日志输出
-        /// <summary>输出日志</summary>>
+        /// <summary>输出日志</summary>
         /// <param name="msg"></param>
         public static void WriteLog(String msg) { DAL.WriteLog(msg); }
 
-        /// <summary>输出日志</summary>>
+        /// <summary>输出日志</summary>
         /// <param name="format"></param>
         /// <param name="args"></param>
         public static void WriteLog(String format, params Object[] args) { DAL.WriteLog(format, args); }

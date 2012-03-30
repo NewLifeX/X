@@ -7,7 +7,7 @@ using System.ComponentModel;
 namespace XControl
 {
 
-    /// <summary>菜单模版项</summary>>
+    /// <summary>菜单模版项</summary>
     public class MenuTemplateItem
     {
         private String _ConditionFieldValue;

@@ -17,11 +17,11 @@ using NewLife.CommonEntity.Web;
 
 namespace NewLife.CommonEntity
 {
-    /// <summary>附件</summary>>
+    /// <summary>附件</summary>
     [ModelCheckMode(ModelCheckModes.CheckTableWhenFirstUse)]
     public class Attachment : Attachment<Attachment, Statistics> { }
 
-    /// <summary>附件</summary>>
+    /// <summary>附件</summary>
     /// <typeparam name="TEntity"></typeparam>
     /// <typeparam name="TStatistics"></typeparam>
     public class Attachment<TEntity, TStatistics> : Attachment<TEntity>
@@ -46,7 +46,7 @@ namespace NewLife.CommonEntity
         }
 
         private static Object _incLock = new Object();
-        /// <summary>增加统计</summary>>
+        /// <summary>增加统计</summary>
         /// <param name="remark"></param>
         public void Increment(String remark)
         {
@@ -73,7 +73,7 @@ namespace NewLife.CommonEntity
         #endregion
     }
 
-    /// <summary>附件</summary>>
+    /// <summary>附件</summary>
     /// <remarks>
     /// 对于文件的存放，可以考虑同一个文件只存放一份，方法就是通过名称、大小、散列三个同时比较
     /// </remarks>
@@ -82,7 +82,7 @@ namespace NewLife.CommonEntity
     public partial class Attachment<TEntity> : Entity<TEntity> where TEntity : Attachment<TEntity>, new()
     {
         #region 对象操作
-        /// <summary>已重载。</summary>>
+        /// <summary>已重载。</summary>
         /// <returns></returns>
         public override int Delete()
         {
@@ -99,7 +99,7 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region 扩展属性
-        /// <summary>是否进行过查询</summary>>
+        /// <summary>是否进行过查询</summary>
         private static Boolean IsFindhttpHandler = false;
         private static HttpHandlerAction _httpHandler;
         /// <summary>Att httpHandler</summary>
@@ -126,7 +126,7 @@ namespace NewLife.CommonEntity
             }
         }
 
-        /// <summary>获取Config中Handler设置</summary>>
+        /// <summary>获取Config中Handler设置</summary>
         [Obsolete("这个是不是拼写错误？使用HandlerUrl？")]
         public String HenderUrl { get { return HandlerUrl; } }
 
@@ -134,7 +134,7 @@ namespace NewLife.CommonEntity
         public String HandlerUrl { get { return httpHandler == null ? null : String.Format("{0}?ID={1}", httpHandler.Path, ID); } }
 
 
-        /// <summary>完全文件路径</summary>>
+        /// <summary>完全文件路径</summary>
         public String FullFilePath
         {
             get
@@ -169,7 +169,7 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region 扩展查询
-        /// <summary>根据分类找附件</summary>>
+        /// <summary>根据分类找附件</summary>
         /// <param name="catetory"></param>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select, true)]
@@ -179,7 +179,7 @@ namespace NewLife.CommonEntity
             return FindAll(_.Category, catetory);
         }
 
-        /// <summary>根据主键查询一个附件实体对象用于表单编辑</summary>>
+        /// <summary>根据主键查询一个附件实体对象用于表单编辑</summary>
         /// <param name="id">编号</param>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
@@ -193,7 +193,7 @@ namespace NewLife.CommonEntity
             return entity;
         }
 
-        /// <summary>根据编号查找</summary>>
+        /// <summary>根据编号查找</summary>
         /// <param name="id"></param>
         /// <returns></returns>
         public static TEntity FindByID(Int32 id)
@@ -205,7 +205,7 @@ namespace NewLife.CommonEntity
             return Meta.SingleCache[id];
         }
 
-        /// <summary>根据分类查找</summary>>
+        /// <summary>根据分类查找</summary>
         /// <param name="category">分类</param>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
@@ -248,7 +248,7 @@ namespace NewLife.CommonEntity
         //    return FindCount(SearchWhere(key), null, null, 0, 0);
         //}
 
-        /// <summary>构造搜索条件</summary>>
+        /// <summary>构造搜索条件</summary>
         /// <param name="key">关键字</param>
         /// <returns></returns>
         private static String SearchWhere(String key)
@@ -276,7 +276,7 @@ namespace NewLife.CommonEntity
         const String AttachmentPathKey = "NewLife.Attachment.Path";
         const String DefaultPath = @"..\Attachment\";
 
-        /// <summary>根据类别获取相应的存放路径设置，如果不存在，则返回顶级设置路径后加上类别作为目录名</summary>>
+        /// <summary>根据类别获取相应的存放路径设置，如果不存在，则返回顶级设置路径后加上类别作为目录名</summary>
         /// <param name="category"></param>
         /// <returns></returns>
         static String GetConfigPath(String category)
@@ -308,7 +308,7 @@ namespace NewLife.CommonEntity
         const String AttachmentFormatKey = "NewLife.Attachment.Format";
         const String DefaultFormat = @"yyyy\\MMdd";
 
-        /// <summary>取得时间格式化的路径</summary>>
+        /// <summary>取得时间格式化的路径</summary>
         /// <returns></returns>
         static String GetFormatPath()
         {
@@ -319,7 +319,7 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region 业务
-        /// <summary>检查并设置文件存放名称，先尝试以原名存放，若有同名文件，则删除</summary>>
+        /// <summary>检查并设置文件存放名称，先尝试以原名存放，若有同名文件，则删除</summary>
         void GetFilePath()
         {
             if (String.IsNullOrEmpty(FileName)) throw new ArgumentNullException("FileName");
@@ -344,10 +344,10 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region 上传
-        /// <summary>图片分类</summary>>
+        /// <summary>图片分类</summary>
         public static readonly String Category_Image = "Image";
 
-        /// <summary>文件分类</summary>>
+        /// <summary>文件分类</summary>
         public static readonly String Category_File = "File";
 
         ///// <summary>
@@ -364,7 +364,7 @@ namespace NewLife.CommonEntity
         //    // 5，保存文件并且再次保存附件信息
         //}
 
-        /// <summary>保存上传文件</summary>>
+        /// <summary>保存上传文件</summary>
         /// <param name="fileUpload"></param>
         /// <param name="category"></param>
         /// <param name="userName"></param>
@@ -376,7 +376,7 @@ namespace NewLife.CommonEntity
             return SaveFile(fileUpload.PostedFile, category, userName);
         }
 
-        /// <summary>保存上传文件</summary>>
+        /// <summary>保存上传文件</summary>
         /// <param name="file"></param>
         /// <param name="category"></param>
         /// <param name="userName"></param>
@@ -420,7 +420,7 @@ namespace NewLife.CommonEntity
             }
         }
 
-        /// <summary>保存上传文件</summary>>
+        /// <summary>保存上传文件</summary>
         /// <param name="fileUploads"></param>
         /// <param name="category"></param>
         /// <param name="userName"></param>

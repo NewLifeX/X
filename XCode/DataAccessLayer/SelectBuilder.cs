@@ -235,7 +235,7 @@ $";
         #endregion
 
         #region 导出SQL
-        /// <summary>已重写。获取本Builder所分析的SQL语句</summary>>
+        /// <summary>已重写。获取本Builder所分析的SQL语句</summary>
         /// <returns></returns>
         public override String ToString()
         {
@@ -252,7 +252,7 @@ $";
             return sb.ToString();
         }
 
-        /// <summary>获取记录数的语句</summary>>
+        /// <summary>获取记录数的语句</summary>
         /// <returns></returns>
         public virtual SelectBuilder SelectCount()
         {
@@ -294,7 +294,7 @@ $";
             return sb;
         }
 
-        /// <summary>增加Where条件</summary>>
+        /// <summary>增加Where条件</summary>
         /// <param name="format"></param>
         /// <param name="args"></param>
         /// <returns></returns>

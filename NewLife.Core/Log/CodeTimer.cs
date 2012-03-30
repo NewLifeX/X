@@ -8,13 +8,13 @@ using System.Text;
 
 namespace NewLife.Log
 {
-    /// <summary>代码性能计时器</summary>>
+    /// <summary>代码性能计时器</summary>
     /// <remarks>参考了老赵（http://www.cnblogs.com/jeffreyzhao/archive/2009/03/10/codetimer.html）和eaglet（http://www.cnblogs.com/eaglet/archive/2009/03/10/1407791.html）两位的作品</remarks>
     /// <remarks>为了保证性能比较的公平性，采用了多种指标，并使用计时器重写等手段来避免各种不必要的损耗</remarks>
     public class CodeTimer
     {
         #region 静态快速计时
-        /// <summary>计时</summary>>
+        /// <summary>计时</summary>
         /// <param name="times">次数</param>
         /// <param name="action">需要计时的委托</param>
         /// <param name="needTimeOne">是否需要预热</param>
@@ -31,7 +31,7 @@ namespace NewLife.Log
             return timer;
         }
 
-        /// <summary>计时，并用控制台输出行</summary>>
+        /// <summary>计时，并用控制台输出行</summary>
         /// <param name="title">标题</param>
         /// <param name="times">次数</param>
         /// <param name="action">需要计时的委托</param>
@@ -202,7 +202,7 @@ namespace NewLife.Log
         #endregion
 
         #region 方法
-        /// <summary>计时核心方法，处理进程和线程优先级</summary>>
+        /// <summary>计时核心方法，处理进程和线程优先级</summary>
         public virtual void Time()
         {
             if (Times <= 0) throw new XException("非法迭代次数！");
@@ -285,7 +285,7 @@ namespace NewLife.Log
             Gen = list.ToArray();
         }
 
-        /// <summary>执行一次迭代，预热所有方法</summary>>
+        /// <summary>执行一次迭代，预热所有方法</summary>
         public void TimeOne()
         {
             Int32 n = Times;
@@ -298,14 +298,14 @@ namespace NewLife.Log
             finally { Times = n; }
         }
 
-        /// <summary>迭代前执行，计算时间</summary>>
+        /// <summary>迭代前执行，计算时间</summary>
         public virtual void Init() { }
 
-        /// <summary>每一次迭代，计算时间</summary>>
+        /// <summary>每一次迭代，计算时间</summary>
         /// <param name="index"></param>
         public virtual void Time(Int32 index) { }
 
-        /// <summary>迭代后执行，计算时间</summary>>
+        /// <summary>迭代后执行，计算时间</summary>
         public virtual void Finish() { }
         #endregion
 
@@ -371,7 +371,7 @@ namespace NewLife.Log
         #endregion
 
         #region 重载
-        /// <summary>已重载。输出依次分别是：执行时间、CPU线程时间、时钟周期、GC代数</summary>>
+        /// <summary>已重载。输出依次分别是：执行时间、CPU线程时间、时钟周期、GC代数</summary>
         /// <returns></returns>
         public override string ToString()
         {

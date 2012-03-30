@@ -69,7 +69,7 @@ namespace NewLife.Serialization
         #endregion
 
         #region 字节
-        /// <summary>读取字节</summary>>
+        /// <summary>读取字节</summary>
         /// <returns></returns>
         public override byte ReadByte()
         {
@@ -78,7 +78,7 @@ namespace NewLife.Serialization
             return Reader.ReadByte();
         }
 
-        /// <summary>从当前流中将 count 个字节读入字节数组，并使当前位置提升 count 个字节。</summary>>
+        /// <summary>从当前流中将 count 个字节读入字节数组，并使当前位置提升 count 个字节。</summary>
         /// <param name="count">要读取的字节数。</param>
         /// <returns></returns>
         public override byte[] ReadBytes(int count)
@@ -97,7 +97,7 @@ namespace NewLife.Serialization
             return buffer;
         }
 
-        /// <summary>判断字节顺序</summary>>
+        /// <summary>判断字节顺序</summary>
         /// <param name="count"></param>
         /// <returns></returns>
         protected override byte[] ReadIntBytes(int count)
@@ -112,7 +112,7 @@ namespace NewLife.Serialization
         #endregion
 
         #region 整数
-        /// <summary>从当前流中读取 2 字节有符号整数，并使流的当前位置提升 2 个字节。</summary>>
+        /// <summary>从当前流中读取 2 字节有符号整数，并使流的当前位置提升 2 个字节。</summary>
         /// <returns></returns>
         public override short ReadInt16()
         {
@@ -122,7 +122,7 @@ namespace NewLife.Serialization
                 return base.ReadInt16();
         }
 
-        /// <summary>从当前流中读取 4 字节有符号整数，并使流的当前位置提升 4 个字节。</summary>>
+        /// <summary>从当前流中读取 4 字节有符号整数，并使流的当前位置提升 4 个字节。</summary>
         /// <returns></returns>
         public override int ReadInt32()
         {
@@ -132,7 +132,7 @@ namespace NewLife.Serialization
                 return base.ReadInt32();
         }
 
-        /// <summary>从当前流中读取 8 字节有符号整数，并使流的当前位置向前移动 8 个字节。</summary>>
+        /// <summary>从当前流中读取 8 字节有符号整数，并使流的当前位置向前移动 8 个字节。</summary>
         /// <returns></returns>
         public override long ReadInt64()
         {
@@ -144,7 +144,7 @@ namespace NewLife.Serialization
         #endregion
 
         #region 7位压缩编码整数
-        /// <summary>以压缩格式读取16位整数</summary>>
+        /// <summary>以压缩格式读取16位整数</summary>
         /// <returns></returns>
         public Int16 ReadEncodedInt16()
         {
@@ -164,7 +164,7 @@ namespace NewLife.Serialization
             return rs;
         }
 
-        /// <summary>以压缩格式读取32位整数</summary>>
+        /// <summary>以压缩格式读取32位整数</summary>
         /// <returns></returns>
         public Int32 ReadEncodedInt32()
         {
@@ -184,7 +184,7 @@ namespace NewLife.Serialization
             return rs;
         }
 
-        /// <summary>以压缩格式读取64位整数</summary>>
+        /// <summary>以压缩格式读取64位整数</summary>
         /// <returns></returns>
         public Int64 ReadEncodedInt64()
         {
@@ -206,7 +206,7 @@ namespace NewLife.Serialization
         #endregion
 
         #region 扩展处理类型
-        /// <summary>读取Type</summary>>
+        /// <summary>读取Type</summary>
         /// <returns></returns>
         protected override Type OnReadType()
         {
@@ -251,7 +251,7 @@ namespace NewLife.Serialization
         #endregion
 
         #region 读取对象
-        /// <summary>尝试读取引用对象</summary>>
+        /// <summary>尝试读取引用对象</summary>
         /// <param name="type">要读取的对象类型</param>
         /// <param name="value">要读取的对象</param>
         /// <param name="callback">处理成员的方法</param>
@@ -267,7 +267,7 @@ namespace NewLife.Serialization
         #endregion
 
         #region 自定义对象
-        /// <summary>读取成员之前获取要读取的成员，默认是index处的成员，实现者可以重载，改变当前要读取的成员，如果当前成员不在数组里面，则实现者自己跳到下一个可读成员。</summary>>
+        /// <summary>读取成员之前获取要读取的成员，默认是index处的成员，实现者可以重载，改变当前要读取的成员，如果当前成员不在数组里面，则实现者自己跳到下一个可读成员。</summary>
         /// <param name="type">要读取的对象类型</param>
         /// <param name="value">要读取的对象</param>
         /// <param name="members">可匹配成员数组</param>

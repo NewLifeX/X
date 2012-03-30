@@ -50,20 +50,20 @@ namespace NewLife.Net.SGIP
         #endregion
 }
 
-    /// <summary>短消息的编码格式。</summary>>
+    /// <summary>短消息的编码格式。</summary>
     public enum SGIPMessageCodings : byte
     {
-        /// <summary>0：纯ASCII字符串</summary>>
+        /// <summary>0：纯ASCII字符串</summary>
         Ascii = 0,
-        /// <summary>3：写卡操作</summary>>
+        /// <summary>3：写卡操作</summary>
         WriteCard = 3,
-        /// <summary>4：二进制编码</summary>>
+        /// <summary>4：二进制编码</summary>
         Binary = 4,
-        /// <summary>8：UCS2编码</summary>>
+        /// <summary>8：UCS2编码</summary>
         Ucs2 = 8,
-        /// <summary>15: GBK编码</summary>>
+        /// <summary>15: GBK编码</summary>
         Gbk = 15,
-        /// <summary>其它参见GSM3.38第4节：SMS Data Coding Scheme</summary>>
+        /// <summary>其它参见GSM3.38第4节：SMS Data Coding Scheme</summary>
         Others = 99,
     }
 }

@@ -85,7 +85,7 @@ namespace NewLife.Xml
         #endregion
 
         #region 基础元数据
-        /// <summary>从当前流中读取一个字符串。字符串有长度前缀，一次 7 位地被编码为整数。</summary>>
+        /// <summary>从当前流中读取一个字符串。字符串有长度前缀，一次 7 位地被编码为整数。</summary>
         /// <returns></returns>
         public override string ReadString()
         {
@@ -237,7 +237,7 @@ namespace NewLife.Xml
         #endregion
 
         #region 读取对象
-        /// <summary>尝试读取目标对象指定成员的值，通过委托方法递归处理成员</summary>>
+        /// <summary>尝试读取目标对象指定成员的值，通过委托方法递归处理成员</summary>
         /// <param name="type">要读取的对象类型</param>
         /// <param name="value">要读取的对象</param>
         /// <param name="callback">处理成员的方法</param>
@@ -252,7 +252,7 @@ namespace NewLife.Xml
             return base.OnReadObject(type, ref value, callback);
         }
 
-        /// <summary>尝试读取引用对象</summary>>
+        /// <summary>尝试读取引用对象</summary>
         /// <param name="type">要读取的对象类型</param>
         /// <param name="value">要读取的对象</param>
         /// <param name="callback">处理成员的方法</param>
@@ -280,7 +280,7 @@ namespace NewLife.Xml
             return b;
         }
 
-        /// <summary>读取成员之前获取要读取的成员，默认是index处的成员，实现者可以重载，改变当前要读取的成员，如果当前成员不在数组里面，则实现者自己跳到下一个可读成员。</summary>>
+        /// <summary>读取成员之前获取要读取的成员，默认是index处的成员，实现者可以重载，改变当前要读取的成员，如果当前成员不在数组里面，则实现者自己跳到下一个可读成员。</summary>
         /// <param name="type">要读取的对象类型</param>
         /// <param name="value">要读取的对象</param>
         /// <param name="members">可匹配成员数组</param>
@@ -346,7 +346,7 @@ namespace NewLife.Xml
         #endregion
 
         #region 未知对象
-        /// <summary>读取未知对象（其它所有方法都无法识别的对象），采用BinaryFormatter或者XmlSerialization</summary>>
+        /// <summary>读取未知对象（其它所有方法都无法识别的对象），采用BinaryFormatter或者XmlSerialization</summary>
         /// <param name="type">要读取的对象类型</param>
         /// <param name="value">要读取的对象</param>
         /// <param name="callback">处理成员的方法</param>
@@ -414,7 +414,7 @@ namespace NewLife.Xml
         #endregion
 
         #region 序列化接口
-        /// <summary>读取实现了可序列化接口的对象</summary>>
+        /// <summary>读取实现了可序列化接口的对象</summary>
         /// <param name="type">要读取的对象类型</param>
         /// <param name="value">要读取的对象</param>
         /// <param name="callback">处理成员的方法</param>

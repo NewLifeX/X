@@ -13,11 +13,11 @@ using Control = System.Web.UI.Control;
 
 namespace XControl
 {
-    /// <summary>分页控件设计器</summary>>
+    /// <summary>分页控件设计器</summary>
     public class DataPagerDesigner : CompositeControlDesigner
     {
         #region 属性
-        /// <summary>文档编辑器中的控件，可以更改持久化属性</summary>>
+        /// <summary>文档编辑器中的控件，可以更改持久化属性</summary>
         DataPager control { get { return base.Component as DataPager; } }
 
         ///// <summary>
@@ -54,7 +54,7 @@ namespace XControl
         //    }
         //}
 
-        /// <summary>模版组</summary>>
+        /// <summary>模版组</summary>
         public override TemplateGroupCollection TemplateGroups
         {
             get
@@ -75,11 +75,11 @@ namespace XControl
             }
         }
 
-        /// <summary>是否预览控件</summary>>
+        /// <summary>是否预览控件</summary>
         protected override bool UsePreviewControl { get { return true; } }
 
         DataPagerActionList _actionLists;
-        /// <summary>动作列表集合</summary>>
+        /// <summary>动作列表集合</summary>
         public override DesignerActionListCollection ActionLists
         {
             get
@@ -107,7 +107,7 @@ namespace XControl
         #endregion
 
         #region 设计时Html
-        /// <summary>取得设计时Html</summary>>
+        /// <summary>取得设计时Html</summary>
         /// <returns></returns>
         public override string GetDesignTimeHtml()
         {
@@ -132,7 +132,7 @@ namespace XControl
             return CreatePlaceHolderDesignTimeHtml("请选择分页样式或设置分页模版！");
         }
 
-        /// <summary>取得空Html</summary>>
+        /// <summary>取得空Html</summary>
         /// <returns></returns>
         protected override string GetEmptyDesignTimeHtml()
         {
@@ -140,7 +140,7 @@ namespace XControl
             return "没有设置分页模版";
         }
 
-        /// <summary>取得异常发生时的Html</summary>>
+        /// <summary>取得异常发生时的Html</summary>
         /// <param name="e"></param>
         /// <returns></returns>
         protected override string GetErrorDesignTimeHtml(Exception e)
@@ -151,7 +151,7 @@ namespace XControl
         #endregion
 
         #region 初始化
-        /// <summary>初始化</summary>>
+        /// <summary>初始化</summary>
         /// <param name="component"></param>
         public override void Initialize(IComponent component)
         {

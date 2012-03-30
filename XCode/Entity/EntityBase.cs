@@ -19,35 +19,35 @@ namespace XCode
     public abstract partial class EntityBase : /*BinaryAccessor,*/ IEntity, ICloneable
     {
         #region 初始化数据
-        /// <summary>首次连接数据库时初始化数据，仅用于实体类重载，用户不应该调用该方法</summary>>
+        /// <summary>首次连接数据库时初始化数据，仅用于实体类重载，用户不应该调用该方法</summary>
         [EditorBrowsable(EditorBrowsableState.Never)]
         internal protected virtual void InitData() { }
         #endregion
 
         #region 填充数据
-        /// <summary>从一个数据行对象加载数据。不加载关联对象。</summary>>
+        /// <summary>从一个数据行对象加载数据。不加载关联对象。</summary>
         /// <param name="dr">数据行</param>
         public abstract void LoadData(DataRow dr);
 
-        /// <summary>从一个数据行对象加载数据。不加载关联对象。</summary>>
+        /// <summary>从一个数据行对象加载数据。不加载关联对象。</summary>
         /// <param name="dr">数据读写器</param>
         public abstract void LoadDataReader(IDataReader dr);
         #endregion
 
         #region 操作
-        /// <summary>把该对象持久化到数据库</summary>>
+        /// <summary>把该对象持久化到数据库</summary>
         /// <returns></returns>
         public abstract Int32 Insert();
 
-        /// <summary>更新数据库</summary>>
+        /// <summary>更新数据库</summary>
         /// <returns></returns>
         public abstract Int32 Update();
 
-        /// <summary>从数据库中删除该对象</summary>>
+        /// <summary>从数据库中删除该对象</summary>
         /// <returns></returns>
         public abstract Int32 Delete();
 
-        /// <summary>保存。根据主键检查数据库中是否已存在该对象，再决定调用Insert或Update</summary>>
+        /// <summary>保存。根据主键检查数据库中是否已存在该对象，再决定调用Insert或Update</summary>
         /// <returns></returns>
         public abstract Int32 Save();
 
@@ -68,7 +68,7 @@ namespace XCode
         /// <returns></returns>
         public abstract Object this[String name] { get; set; }
 
-        /// <summary>设置字段值，该方法影响脏数据。</summary>>
+        /// <summary>设置字段值，该方法影响脏数据。</summary>
         /// <param name="name">字段名</param>
         /// <param name="value">值</param>
         /// <returns>返回是否成功设置了数据</returns>
@@ -87,7 +87,7 @@ namespace XCode
         #endregion
 
         #region 导入导出XML
-        /// <summary>建立Xml序列化器</summary>>
+        /// <summary>建立Xml序列化器</summary>
         /// <returns></returns>
         //[Obsolete("该成员在后续版本中将不再被支持！")]
         protected virtual XmlSerializer CreateXmlSerializer()
@@ -95,7 +95,7 @@ namespace XCode
             return new XmlSerializer(this.GetType());
         }
 
-        /// <summary>导出XML</summary>>
+        /// <summary>导出XML</summary>
         /// <returns></returns>
         [Obsolete("该成员在后续版本中将不再被支持！请使用实体访问器IEntityAccessor替代！")]
         public virtual String ToXml()
@@ -115,7 +115,7 @@ namespace XCode
         #endregion
 
         #region 导入导出Json
-        /// <summary>导出Json</summary>>
+        /// <summary>导出Json</summary>
         /// <returns></returns>
         [Obsolete("该成员在后续版本中将不再被支持！")]
         public virtual String ToJson()
@@ -126,11 +126,11 @@ namespace XCode
         #endregion
 
         #region 克隆
-        /// <summary>创建当前对象的克隆对象，仅拷贝基本字段</summary>>
+        /// <summary>创建当前对象的克隆对象，仅拷贝基本字段</summary>
         /// <returns></returns>
         public abstract Object Clone();
 
-        /// <summary>复制来自指定实体的成员，可以是不同类型的实体，只复制共有的基本字段，影响脏数据</summary>>
+        /// <summary>复制来自指定实体的成员，可以是不同类型的实体，只复制共有的基本字段，影响脏数据</summary>
         /// <param name="entity">来源实体对象</param>
         /// <param name="setDirty">是否设置脏数据</param>
         /// <returns>实际复制成员数</returns>
@@ -188,7 +188,7 @@ namespace XCode
         /// <summary>脏属性。存储哪些属性的数据被修改过了。</summary>
         IDictionary<String, Boolean> IEntity.Dirtys { get { return Dirtys; } }
 
-        /// <summary>设置所有数据的脏属性</summary>>
+        /// <summary>设置所有数据的脏属性</summary>
         /// <param name="isDirty">改变脏属性的属性个数</param>
         /// <returns></returns>
         protected virtual Int32 SetDirty(Boolean isDirty)
@@ -207,7 +207,7 @@ namespace XCode
             return count;
         }
 
-        /// <summary>属性改变。重载时记得调用基类的该方法，以设置脏数据属性，否则数据将无法Update到数据库。</summary>>
+        /// <summary>属性改变。重载时记得调用基类的该方法，以设置脏数据属性，否则数据将无法Update到数据库。</summary>
         /// <param name="fieldName">字段名</param>
         /// <param name="newValue">新属性值</param>
         /// <returns>是否允许改变</returns>
@@ -240,17 +240,17 @@ namespace XCode
 
         [NonSerialized]
         private Dictionary<Type, List<String>> _depends;
-        /// <summary>类型依赖</summary>>
+        /// <summary>类型依赖</summary>
         [XmlIgnore]
         private Dictionary<Type, List<String>> Depends
         {
             get { return _depends ?? (_depends = new Dictionary<Type, List<String>>()); }
         }
 
-        /// <summary>改为线程静态，避免线程间干扰。注意初始化赋值对线程静态无效，只有第一个生效</summary>>
+        /// <summary>改为线程静态，避免线程间干扰。注意初始化赋值对线程静态无效，只有第一个生效</summary>
         [ThreadStatic]
         private static Boolean? _StopExtend = false;
-        /// <summary>是否停止扩展属性，停止扩展属性后，可以避免扩展属性自动触发获取数据的功能</summary>>
+        /// <summary>是否停止扩展属性，停止扩展属性后，可以避免扩展属性自动触发获取数据的功能</summary>
         public static Boolean StopExtend
         {
             get
@@ -262,7 +262,7 @@ namespace XCode
             set { _StopExtend = value; }
         }
 
-        /// <summary>获取扩展属性，获取数据时向指定的依赖实体类注册数据更改事件</summary>>
+        /// <summary>获取扩展属性，获取数据时向指定的依赖实体类注册数据更改事件</summary>
         /// <typeparam name="TDependEntity">依赖实体类，该实体类数据更改时清空所有依赖于实体类的扩展属性</typeparam>
         /// <typeparam name="TResult">返回类型</typeparam>
         /// <param name="key">键值</param>
@@ -274,7 +274,7 @@ namespace XCode
             return GetExtend<TDependEntity, TResult>(key, func, true);
         }
 
-        /// <summary>获取扩展属性，获取数据时向指定的依赖实体类注册数据更改事件</summary>>
+        /// <summary>获取扩展属性，获取数据时向指定的依赖实体类注册数据更改事件</summary>
         /// <typeparam name="TDependEntity">依赖实体类，该实体类数据更改时清空所有依赖于实体类的扩展属性</typeparam>
         /// <typeparam name="TResult">返回类型</typeparam>
         /// <param name="key">键值</param>
@@ -323,7 +323,7 @@ namespace XCode
             return value;
         }
 
-        /// <summary>清理依赖于某类型的缓存</summary>>
+        /// <summary>清理依赖于某类型的缓存</summary>
         /// <param name="dependType">依赖类型</param>
         void RemoveExtend(Type dependType)
         {
@@ -355,7 +355,7 @@ namespace XCode
             }
         }
 
-        /// <summary>设置扩展属性</summary>>
+        /// <summary>设置扩展属性</summary>
         /// <typeparam name="TDependEntity"></typeparam>
         /// <param name="key"></param>
         /// <param name="value"></param>

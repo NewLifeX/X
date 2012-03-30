@@ -6,7 +6,7 @@ using System.IO;
 
 namespace XCode.DataAccessLayer
 {
-    /// <summary>文件型数据库</summary>>
+    /// <summary>文件型数据库</summary>
     abstract class FileDbBase : DbBase
     {
         #region 属性
@@ -50,7 +50,7 @@ namespace XCode.DataAccessLayer
         #endregion
     }
 
-    /// <summary>文件型数据库会话</summary>>
+    /// <summary>文件型数据库会话</summary>
     abstract class FileDbSession : DbSession
     {
         #region 属性
@@ -64,7 +64,7 @@ namespace XCode.DataAccessLayer
         #region 方法
         private static List<String> hasChecked = new List<string>();
 
-        /// <summary>已重载。打开数据库连接前创建数据库</summary>>
+        /// <summary>已重载。打开数据库连接前创建数据库</summary>
         public override void Open()
         {
             if (!String.IsNullOrEmpty(FileName))
@@ -86,7 +86,7 @@ namespace XCode.DataAccessLayer
         #endregion
     }
 
-    /// <summary>文件型数据库元数据</summary>>
+    /// <summary>文件型数据库元数据</summary>
     abstract class FileDbMetaData : DbMetaData
     {
         #region 属性
@@ -98,7 +98,7 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 数据定义
-        /// <summary>设置数据定义模式</summary>>
+        /// <summary>设置数据定义模式</summary>
         /// <param name="schema"></param>
         /// <param name="values"></param>
         /// <returns></returns>
@@ -121,7 +121,7 @@ namespace XCode.DataAccessLayer
             return base.SetSchema(schema, values);
         }
 
-        /// <summary>创建数据库</summary>>
+        /// <summary>创建数据库</summary>
         protected virtual void CreateDatabase()
         {
             if (String.IsNullOrEmpty(FileName)) return;

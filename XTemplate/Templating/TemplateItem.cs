@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace XTemplate.Templating
 {
-    /// <summary>模版项。包含模版名和模版内容等基本信息，还包含运行时相关信息。</summary>>
+    /// <summary>模版项。包含模版名和模版内容等基本信息，还包含运行时相关信息。</summary>
     public class TemplateItem
     {
         #region 属性
@@ -85,7 +85,7 @@ namespace XTemplate.Templating
         #endregion
 
         #region 方法
-        /// <summary>已重载。</summary>>
+        /// <summary>已重载。</summary>
         /// <returns></returns>
         public override string ToString()
         {

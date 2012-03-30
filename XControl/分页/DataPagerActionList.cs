@@ -28,7 +28,7 @@ namespace XControl
             set { _Designer = value; }
         }
 
-        /// <summary>自动显示</summary>>
+        /// <summary>自动显示</summary>
         public override bool AutoShow
         {
             get { return true; }

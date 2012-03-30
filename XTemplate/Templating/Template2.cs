@@ -14,7 +14,7 @@ namespace XTemplate.Templating
     partial class Template
     {
         #region 辅助函数
-        /// <summary>MD5散列</summary>>
+        /// <summary>MD5散列</summary>
         /// <param name="str"></param>
         /// <returns></returns>
         protected static String Hash(String str)
@@ -25,7 +25,7 @@ namespace XTemplate.Templating
             return BitConverter.ToString(md5.ComputeHash(Encoding.UTF8.GetBytes(str))).Replace("-", null);
         }
 
-        /// <summary>把名称处理为标准类名</summary>>
+        /// <summary>把名称处理为标准类名</summary>
         /// <param name="fileName"></param>
         /// <returns></returns>
         public static String GetClassName(String fileName)
@@ -38,7 +38,7 @@ namespace XTemplate.Templating
             return name;
         }
 
-        /// <summary>已重载。</summary>>
+        /// <summary>已重载。</summary>
         /// <returns></returns>
         public override string ToString()
         {
@@ -49,7 +49,7 @@ namespace XTemplate.Templating
 
         #region 调试
         private static Boolean? _Debug;
-        /// <summary>是否调试</summary>>
+        /// <summary>是否调试</summary>
         public static Boolean Debug
         {
             get
@@ -63,14 +63,14 @@ namespace XTemplate.Templating
             set { _Debug = value; }
         }
 
-        /// <summary>输出日志</summary>>
+        /// <summary>输出日志</summary>
         /// <param name="msg"></param>
         public static void WriteLog(String msg)
         {
             XTrace.WriteLine(msg);
         }
 
-        /// <summary>输出日志</summary>>
+        /// <summary>输出日志</summary>
         /// <param name="format"></param>
         /// <param name="args"></param>
         public static void WriteLog(String format, params Object[] args)

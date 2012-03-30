@@ -8,7 +8,7 @@ using NewLife.Linq;
 
 namespace NewLife.Reflection
 {
-    /// <summary>全局方法程序集</summary>>
+    /// <summary>全局方法程序集</summary>
     internal class DynamicAssembly
     {
         private String _Name;
@@ -57,7 +57,7 @@ namespace NewLife.Reflection
             private set { _TypeBuilder = value; }
         }
 
-        /// <summary>添加全局方法</summary>>
+        /// <summary>添加全局方法</summary>
         /// <param name="method"></param>
         /// <param name="fun"></param>
         public void AddGlobalMethod(MethodInfo method, Action<ILGenerator> fun)
@@ -79,7 +79,7 @@ namespace NewLife.Reflection
             fun(il);
         }
 
-        /// <summary>保存</summary>>
+        /// <summary>保存</summary>
         /// <param name="fileName"></param>
         public void Save(String fileName)
         {

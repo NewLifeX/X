@@ -12,11 +12,11 @@ using XCode.DataAccessLayer;
 #if DEBUG
 namespace XCode.Test
 {
-    /// <summary>测试</summary>>
+    /// <summary>测试</summary>
     public class XCodeTest
     {
 #region 静态
-        /// <summary>多线程</summary>>
+        /// <summary>多线程</summary>
         /// <param name="num">线程数</param>
         public static void MulThread(Int32 num)
         {
@@ -84,7 +84,7 @@ namespace XCode.Test
         #endregion
 
 #region 测试
-        /// <summary>单线程</summary>>
+        /// <summary>单线程</summary>
         public void Single()
         {
             Random rnd = new Random((Int32)DateTime.Now.Ticks);
@@ -356,7 +356,7 @@ namespace XCode.Test
         #endregion
 
 #region 生成代码测试
-        /// <summary>代码生成测试</summary>>
+        /// <summary>代码生成测试</summary>
         /// <param name="dal"></param>
         public static void CodeTest(DAL dal)
         {
@@ -401,7 +401,7 @@ namespace XCode.Test
         #endregion
 
 #region 动态访问测试
-        /// <summary>动态访问测试</summary>>
+        /// <summary>动态访问测试</summary>
         public static void DynTest()
         {
             Stopwatch sw = new Stopwatch();

@@ -6,7 +6,7 @@ using XCode.DataAccessLayer;
 
 namespace XCode.Model
 {
-    /// <summary>XCode服务对象提供者</summary>>
+    /// <summary>XCode服务对象提供者</summary>
     class XCodeService : ServiceContainer<XCodeService>
     {
         static XCodeService()
@@ -41,7 +41,7 @@ namespace XCode.Model
             return Container.Resolve<IDataTable>();
         }
 
-        /// <summary>创建实体类的数据行访问器</summary>>
+        /// <summary>创建实体类的数据行访问器</summary>
         /// <param name="entityType"></param>
         /// <returns></returns>
         public static IDataRowEntityAccessor CreateDataRowEntityAccessor(Type entityType)

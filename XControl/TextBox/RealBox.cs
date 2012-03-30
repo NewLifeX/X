@@ -6,14 +6,14 @@ using System.Web.UI.WebControls;
 
 namespace XControl
 {
-    /// <summary>浮点数输入控件。只能输入数字，并可以规定范围、间隔。</summary>>
+    /// <summary>浮点数输入控件。只能输入数字，并可以规定范围、间隔。</summary>
     [Description("浮点数输入控件")]
     [ToolboxData("<{0}:RealBox runat=server></{0}:RealBox>")]
     [ToolboxBitmap(typeof(TextBox))]
     [ControlValueProperty("Value")]
     public class RealBox : TextBox
     {
-        /// <summary>初始化数字输入控件的样式。</summary>>
+        /// <summary>初始化数字输入控件的样式。</summary>
         public RealBox()
             : base()
         {
@@ -26,7 +26,7 @@ namespace XControl
             if (String.IsNullOrEmpty(Attributes["style"])) this.Attributes.Add("style", "border-bottom-width:1px;text-align : right ");
         }
 
-        /// <summary>已重载。</summary>>
+        /// <summary>已重载。</summary>
         /// <param name="e"></param>
         protected override void OnPreRender(EventArgs e)
         {
@@ -45,7 +45,7 @@ namespace XControl
             if (String.IsNullOrEmpty(Text)) Text = "0";
         }
 
-        /// <summary>当前值</summary>>
+        /// <summary>当前值</summary>
         [Category(" 专用属性"), DefaultValue(0), Description("当前值")]
         public Double Value
         {
@@ -62,7 +62,7 @@ namespace XControl
             }
         }
 
-        /// <summary>是否允许负数</summary>>
+        /// <summary>是否允许负数</summary>
         [Category(" 专用属性"), DefaultValue(true), Description("是否允许负数,默认true")]
         public bool AllowMinus
         {

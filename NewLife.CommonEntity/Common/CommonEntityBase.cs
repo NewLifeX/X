@@ -5,7 +5,7 @@ using XCode;
 
 namespace NewLife.CommonEntity
 {
-    /// <summary>通用实体类基类</summary>>
+    /// <summary>通用实体类基类</summary>
     /// <typeparam name="TEntity"></typeparam>
     [Serializable]
     public class CommonEntityBase<TEntity> : Entity<TEntity> where TEntity : CommonEntityBase<TEntity>, new()
@@ -32,7 +32,7 @@ namespace NewLife.CommonEntity
         //    return admin.CreateLog(typeof(TEntity), action);
         //}
 
-        /// <summary>写日志</summary>>
+        /// <summary>写日志</summary>
         /// <param name="action">操作</param>
         /// <param name="remark">备注</param>
         public static void WriteLog(String action, String remark)

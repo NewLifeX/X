@@ -13,10 +13,10 @@ namespace XCode
         #endregion
 
         #region 构造
-        /// <summary>实例化</summary>>
+        /// <summary>实例化</summary>
         public WhereExpression() { }
 
-        /// <summary>实例化</summary>>
+        /// <summary>实例化</summary>
         /// <param name="exp"></param>
         public WhereExpression(String exp)
         {
@@ -31,7 +31,7 @@ namespace XCode
             Builder.Append(content);
         }
 
-        /// <summary>And操作</summary>>
+        /// <summary>And操作</summary>
         /// <param name="exp"></param>
         /// <returns></returns>
         public WhereExpression And(String exp)
@@ -66,7 +66,7 @@ namespace XCode
             return this;
         }
 
-        /// <summary>Or操作</summary>>
+        /// <summary>Or操作</summary>
         /// <param name="exp"></param>
         /// <returns></returns>
         public WhereExpression Or(String exp)
@@ -80,13 +80,13 @@ namespace XCode
             return this;
         }
 
-        /// <summary>有条件And操作</summary>>
+        /// <summary>有条件And操作</summary>
         /// <param name="condition"></param>
         /// <param name="exp"></param>
         /// <returns></returns>
         public WhereExpression AndIf(Boolean condition, String exp) { return condition ? And(exp) : this; }
 
-        /// <summary>有条件Or操作</summary>>
+        /// <summary>有条件Or操作</summary>
         /// <param name="condition"></param>
         /// <param name="exp"></param>
         /// <returns></returns>
@@ -100,7 +100,7 @@ namespace XCode
         /// <returns></returns>
         public WhereExpression Right() { Builder.Append(")"); return this; }
 
-        /// <summary>已重载。</summary>>
+        /// <summary>已重载。</summary>
         /// <returns></returns>
         public override string ToString()
         {
@@ -111,7 +111,7 @@ namespace XCode
             return str;
         }
 
-        /// <summary>类型转换</summary>>
+        /// <summary>类型转换</summary>
         /// <param name="obj"></param>
         /// <returns></returns>
         public static implicit operator String(WhereExpression obj)
@@ -123,7 +123,7 @@ namespace XCode
         #region 重载运算符
         private Boolean skipNext = false;
 
-        /// <summary>重载运算符实现And操作，同时通过布尔型支持AndIf</summary>>
+        /// <summary>重载运算符实现And操作，同时通过布尔型支持AndIf</summary>
         /// <param name="exp"></param>
         /// <param name="value"></param>
         /// <returns></returns>
@@ -148,7 +148,7 @@ namespace XCode
             return exp;
         }
 
-        /// <summary>重载运算符实现Or操作，同时通过布尔型支持OrIf</summary>>
+        /// <summary>重载运算符实现Or操作，同时通过布尔型支持OrIf</summary>
         /// <param name="exp"></param>
         /// <param name="value"></param>
         /// <returns></returns>

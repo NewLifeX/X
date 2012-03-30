@@ -7,7 +7,7 @@ using XCode.DataAccessLayer;
 
 namespace XCode.Exceptions
 {
-    /// <summary>数据访问层SQL异常</summary>>
+    /// <summary>数据访问层SQL异常</summary>
     [Serializable]
     public class XSqlException : XDbSessionException
     {
@@ -22,18 +22,18 @@ namespace XCode.Exceptions
         #endregion
 
         #region 构造
-        /// <summary>初始化</summary>>
+        /// <summary>初始化</summary>
         /// <param name="sql"></param>
         /// <param name="session"></param>
         public XSqlException(String sql, IDbSession session) : base(session) { Sql = sql; }
 
-        /// <summary>初始化</summary>>
+        /// <summary>初始化</summary>
         /// <param name="sql"></param>
         /// <param name="session"></param>
         /// <param name="message"></param>
         public XSqlException(String sql, IDbSession session, String message) : base(session, message + "[SQL:" + FormatSql(sql) + "]") { Sql = sql; }
 
-        /// <summary>初始化</summary>>
+        /// <summary>初始化</summary>
         /// <param name="sql"></param>
         /// <param name="session"></param>
         /// <param name="message"></param>
@@ -44,7 +44,7 @@ namespace XCode.Exceptions
             Sql = sql;
         }
 
-        /// <summary>初始化</summary>>
+        /// <summary>初始化</summary>
         /// <param name="sql"></param>
         /// <param name="session"></param>
         /// <param name="innerException"></param>
@@ -79,7 +79,7 @@ namespace XCode.Exceptions
                 return sql;
         }
 
-        /// <summary>从序列化信息中读取Sql</summary>>
+        /// <summary>从序列化信息中读取Sql</summary>
         /// <param name="info"></param>
         /// <param name="context"></param>
         [SecurityPermission(SecurityAction.LinkDemand, Flags = SecurityPermissionFlag.SerializationFormatter)]

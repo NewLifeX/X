@@ -8,7 +8,7 @@ namespace NewLife.Net.Application
     /// <summary>Daytime服务器。返回服务端的时间日期</summary>
     public class DaytimeServer : NetServer
     {
-        /// <summary>实例化一个Daytime服务</summary>>
+        /// <summary>实例化一个Daytime服务</summary>
         public DaytimeServer()
         {
             // 默认13端口
@@ -17,7 +17,7 @@ namespace NewLife.Net.Application
             Name = "Daytime服务";
         }
 
-        /// <summary>已重载。</summary>>
+        /// <summary>已重载。</summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
         protected override void OnAccepted(object sender, NetEventArgs e)

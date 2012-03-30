@@ -5,7 +5,7 @@ using NewLife.Net.Tcp;
 
 namespace NewLife.Net.IO
 {
-    /// <summary>文件客户端</summary>>
+    /// <summary>文件客户端</summary>
     public class FileClient
     {
         #region 属性
@@ -19,7 +19,7 @@ namespace NewLife.Net.IO
         #endregion
 
         #region 方法
-        /// <summary>连接文件服务器</summary>>
+        /// <summary>连接文件服务器</summary>
         /// <param name="hostname"></param>
         /// <param name="port"></param>
         public void Connect(String hostname, Int32 port)
@@ -28,7 +28,7 @@ namespace NewLife.Net.IO
             Client.Connect(hostname, port);
         }
 
-        /// <summary>发送文件</summary>>
+        /// <summary>发送文件</summary>
         /// <param name="fileName"></param>
         public void SendFile(String fileName)
         {
@@ -48,7 +48,7 @@ namespace NewLife.Net.IO
                 .Send(entity.Stream);
         }
 
-        /// <summary>发送目录</summary>>
+        /// <summary>发送目录</summary>
         /// <param name="directoryName"></param>
         public void SendDirectory(String directoryName)
         {

@@ -111,7 +111,7 @@ namespace NewLife.YWS.Entities
         #endregion
 
         #region 扩展查询﻿
-        /// <summary>根据主键查询一个客户实体对象用于表单编辑</summary>>
+        /// <summary>根据主键查询一个客户实体对象用于表单编辑</summary>
         /// <param name="id">编号</param>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
@@ -125,7 +125,7 @@ namespace NewLife.YWS.Entities
             return entity;
         }
 
-        /// <summary>根据客户编号查找</summary>>
+        /// <summary>根据客户编号查找</summary>
         /// <param name="no">客户编号</param>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
@@ -139,7 +139,7 @@ namespace NewLife.YWS.Entities
             //return Meta.SingleCache[no];
         }
 
-        /// <summary>根据名称查找</summary>>
+        /// <summary>根据名称查找</summary>
         /// <param name="name">名称</param>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
@@ -153,7 +153,7 @@ namespace NewLife.YWS.Entities
             //return Meta.SingleCache[name];
         }
 
-        /// <summary>根据编号查找</summary>>
+        /// <summary>根据编号查找</summary>
         /// <param name="id">编号</param>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
@@ -167,7 +167,7 @@ namespace NewLife.YWS.Entities
             //return Meta.SingleCache[id];
         }
 
-        /// <summary>根据类别查找</summary>>
+        /// <summary>根据类别查找</summary>
         /// <param name="customertypeid">类别</param>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
@@ -260,7 +260,7 @@ namespace NewLife.YWS.Entities
         #endregion
 
         #region 高级查询
-        /// <summary>查询满足条件的记录集，分页、排序</summary>>
+        /// <summary>查询满足条件的记录集，分页、排序</summary>
         /// <param name="name"></param>
         /// <param name="orderClause">排序，不带Order By</param>
         /// <param name="startRowIndex">开始行，0开始</param>
@@ -272,7 +272,7 @@ namespace NewLife.YWS.Entities
             return FindAll(SearchWhere(name, depart, linkman), orderClause, null, startRowIndex, maximumRows);
         }
 
-        /// <summary>查询满足条件的记录总数，分页和排序无效，带参数是因为ObjectDataSource要求它跟Search统一</summary>>
+        /// <summary>查询满足条件的记录总数，分页和排序无效，带参数是因为ObjectDataSource要求它跟Search统一</summary>
         /// <param name="name"></param>
         /// <param name="orderClause">排序，不带Order By</param>
         /// <param name="startRowIndex">开始行，0开始</param>
@@ -283,7 +283,7 @@ namespace NewLife.YWS.Entities
             return FindCount(SearchWhere(name, depart, linkman), null, null, 0, 0);
         }
 
-        /// <summary>构造搜索条件</summary>>
+        /// <summary>构造搜索条件</summary>
         /// <param name="name"></param>
         /// <returns></returns>
         private static String SearchWhere(String name, String depart, String linkman)
@@ -301,7 +301,7 @@ namespace NewLife.YWS.Entities
                 return sb.ToString();
         }
 
-        /// <summary>构造搜索条件</summary>>
+        /// <summary>构造搜索条件</summary>
         /// <param name="key">关键字</param>
         /// <returns></returns>
         private static String SearchWhere(String key)

@@ -18,18 +18,18 @@ namespace XCode
     public partial class EntityList<T> : List<T>, IEntityList, IList, IList<IEntity>, IListSource, IEnumerable where T : IEntity
     {
         #region 构造函数
-        /// <summary>构造一个实体对象集合</summary>>
+        /// <summary>构造一个实体对象集合</summary>
         public EntityList() { }
 
-        /// <summary>构造一个实体对象集合</summary>>
+        /// <summary>构造一个实体对象集合</summary>
         /// <param name="collection"></param>
         public EntityList(IEnumerable<T> collection) : base(collection) { }
 
-        /// <summary>构造一个实体对象集合</summary>>
+        /// <summary>构造一个实体对象集合</summary>
         /// <param name="capacity"></param>
         public EntityList(Int32 capacity) : base(capacity) { }
 
-        /// <summary>初始化</summary>>
+        /// <summary>初始化</summary>
         /// <param name="collection"></param>
         public EntityList(IEnumerable collection)
         {
@@ -42,7 +42,7 @@ namespace XCode
             }
         }
 
-        /// <summary>已重载。</summary>>
+        /// <summary>已重载。</summary>
         /// <returns></returns>
         public override string ToString()
         {
@@ -51,7 +51,7 @@ namespace XCode
         #endregion
 
         #region 重载运算符
-        /// <summary>集合相加</summary>>
+        /// <summary>集合相加</summary>
         /// <param name="entities1">第一个实体集合</param>
         /// <param name="entities2">第二个实体集合</param>
         /// <returns></returns>
@@ -67,7 +67,7 @@ namespace XCode
             return list;
         }
 
-        /// <summary>集合相减</summary>>
+        /// <summary>集合相减</summary>
         /// <param name="entities1">第一个实体集合</param>
         /// <param name="entities2">第二个实体集合</param>
         /// <returns></returns>
@@ -89,7 +89,7 @@ namespace XCode
         #endregion
 
         #region 集合操作
-        /// <summary>从集合中移除另一个集合指定的元素</summary>>
+        /// <summary>从集合中移除另一个集合指定的元素</summary>
         /// <param name="collection"></param>
         public void RemoveRange(IEnumerable<T> collection)
         {
@@ -103,7 +103,7 @@ namespace XCode
         #endregion
 
         #region 对象查询
-        /// <summary>根据指定项查找</summary>>
+        /// <summary>根据指定项查找</summary>
         /// <param name="name">属性名</param>
         /// <param name="value">属性值</param>
         /// <returns></returns>
@@ -129,7 +129,7 @@ namespace XCode
             return list;
         }
 
-        /// <summary>根据指定项查找</summary>>
+        /// <summary>根据指定项查找</summary>
         /// <param name="names">属性名</param>
         /// <param name="values">属性值</param>
         /// <returns></returns>
@@ -165,7 +165,7 @@ namespace XCode
             return list;
         }
 
-        /// <summary>检索与指定谓词定义的条件匹配的所有元素。</summary>>
+        /// <summary>检索与指定谓词定义的条件匹配的所有元素。</summary>
         /// <param name="match">条件</param>
         /// <returns></returns>
         public new EntityList<T> FindAll(Predicate<T> match)
@@ -183,7 +183,7 @@ namespace XCode
             return list;
         }
 
-        /// <summary>根据指定项查找</summary>>
+        /// <summary>根据指定项查找</summary>
         /// <param name="name">属性名</param>
         /// <param name="value">属性值</param>
         /// <returns></returns>
@@ -199,7 +199,7 @@ namespace XCode
             return default(T);
         }
 
-        /// <summary>根据指定项查找字符串。忽略大小写</summary>>
+        /// <summary>根据指定项查找字符串。忽略大小写</summary>
         /// <param name="name">属性名</param>
         /// <param name="value">属性值</param>
         /// <returns></returns>
@@ -218,7 +218,7 @@ namespace XCode
             return list;
         }
 
-        /// <summary>根据指定项查找字符串。忽略大小写</summary>>
+        /// <summary>根据指定项查找字符串。忽略大小写</summary>
         /// <param name="name">属性名</param>
         /// <param name="value">属性值</param>
         /// <returns></returns>
@@ -235,38 +235,38 @@ namespace XCode
         }
 
         #region IEntityList接口
-        /// <summary>根据指定项查找</summary>>
+        /// <summary>根据指定项查找</summary>
         /// <param name="name">属性名</param>
         /// <param name="value">属性值</param>
         /// <returns></returns>
         IEntityList IEntityList.FindAll(String name, Object value) { return FindAll(name, value); }
 
-        /// <summary>根据指定项查找</summary>>
+        /// <summary>根据指定项查找</summary>
         /// <param name="names">属性名</param>
         /// <param name="values">属性值</param>
         /// <returns></returns>
         IEntityList IEntityList.FindAll(String[] names, Object[] values) { return FindAll(names, values); }
 
-        /// <summary>根据指定项查找</summary>>
+        /// <summary>根据指定项查找</summary>
         /// <param name="name">属性名</param>
         /// <param name="value">属性值</param>
         /// <returns></returns>
         IEntity IEntityList.Find(String name, Object value) { return Find(name, value); }
 
-        /// <summary>根据指定项查找字符串。忽略大小写</summary>>
+        /// <summary>根据指定项查找字符串。忽略大小写</summary>
         /// <param name="name">属性名</param>
         /// <param name="value">属性值</param>
         /// <returns></returns>
         IEntityList IEntityList.FindAllIgnoreCase(String name, String value) { return FindAllIgnoreCase(name, value); }
 
-        /// <summary>根据指定项查找字符串。忽略大小写</summary>>
+        /// <summary>根据指定项查找字符串。忽略大小写</summary>
         /// <param name="name">属性名</param>
         /// <param name="value">属性值</param>
         /// <returns></returns>
         IEntity IEntityList.FindIgnoreCase(String name, String value) { return FindIgnoreCase(name, value); }
         #endregion
 
-        /// <summary>集合是否包含指定项</summary>>
+        /// <summary>集合是否包含指定项</summary>
         /// <param name="name"></param>
         /// <param name="value"></param>
         /// <returns></returns>
@@ -284,7 +284,7 @@ namespace XCode
         #endregion
 
         #region 对象操作
-        /// <summary>把整个集合插入到数据库</summary>>
+        /// <summary>把整个集合插入到数据库</summary>
         /// <param name="useTransition">是否使用事务保护</param>
         /// <returns></returns>
         public Int32 Insert(Boolean useTransition)
@@ -323,14 +323,14 @@ namespace XCode
             return count;
         }
 
-        /// <summary>把整个集合插入到数据库</summary>>
+        /// <summary>把整个集合插入到数据库</summary>
         /// <returns></returns>
         public Int32 Insert()
         {
             return Insert(true);
         }
 
-        /// <summary>把整个集合更新到数据库</summary>>
+        /// <summary>把整个集合更新到数据库</summary>
         /// <param name="useTransition">是否使用事务保护</param>
         /// <returns></returns>
         public Int32 Update(Boolean useTransition)
@@ -369,14 +369,14 @@ namespace XCode
             return count;
         }
 
-        /// <summary>把整个集合更新到数据库</summary>>
+        /// <summary>把整个集合更新到数据库</summary>
         /// <returns></returns>
         public Int32 Update()
         {
             return Update(true);
         }
 
-        /// <summary>把整个保存更新到数据库</summary>>
+        /// <summary>把整个保存更新到数据库</summary>
         /// <param name="useTransition">是否使用事务保护</param>
         /// <returns></returns>
         public Int32 Save(Boolean useTransition)
@@ -415,14 +415,14 @@ namespace XCode
             return count;
         }
 
-        /// <summary>把整个集合保存到数据库</summary>>
+        /// <summary>把整个集合保存到数据库</summary>
         /// <returns></returns>
         public Int32 Save()
         {
             return Save(true);
         }
 
-        /// <summary>把整个集合从数据库中删除</summary>>
+        /// <summary>把整个集合从数据库中删除</summary>
         /// <param name="useTransition">是否使用事务保护</param>
         /// <returns></returns>
         public Int32 Delete(Boolean useTransition)
@@ -461,14 +461,14 @@ namespace XCode
             return count;
         }
 
-        /// <summary>把整个集合从数据库中删除</summary>>
+        /// <summary>把整个集合从数据库中删除</summary>
         /// <returns></returns>
         public Int32 Delete()
         {
             return Delete(true);
         }
 
-        /// <summary>设置所有实体中指定项的值</summary>>
+        /// <summary>设置所有实体中指定项的值</summary>
         /// <param name="name"></param>
         /// <param name="value"></param>
         public void SetItem(String name, Object value)
@@ -482,7 +482,7 @@ namespace XCode
             }
         }
 
-        /// <summary>获取所有实体中指定项的值</summary>>
+        /// <summary>获取所有实体中指定项的值</summary>
         /// <typeparam name="TResult">指定项的类型</typeparam>
         /// <param name="name"></param>
         /// <returns></returns>
@@ -514,7 +514,7 @@ namespace XCode
             return list;
         }
 
-        /// <summary>串联指定成员，方便由实体集合构造用于查询的子字符串</summary>>
+        /// <summary>串联指定成员，方便由实体集合构造用于查询的子字符串</summary>
         /// <param name="name"></param>
         /// <param name="separator"></param>
         /// <returns></returns>
@@ -530,7 +530,7 @@ namespace XCode
             return String.Join(separator, list.ToArray());
         }
 
-        /// <summary>串联</summary>>
+        /// <summary>串联</summary>
         /// <param name="separator"></param>
         /// <returns></returns>
         public String Join(String separator)
@@ -548,7 +548,7 @@ namespace XCode
         #endregion
 
         #region 排序
-        /// <summary>按指定字段排序</summary>>
+        /// <summary>按指定字段排序</summary>
         /// <param name="name">字段</param>
         /// <param name="isDesc">是否降序</param>
         public EntityList<T> Sort(String name, Boolean isDesc)
@@ -571,7 +571,7 @@ namespace XCode
             return this;
         }
 
-        /// <summary>按指定字段数组排序</summary>>
+        /// <summary>按指定字段数组排序</summary>
         /// <param name="names">字段</param>
         /// <param name="isDescs">是否降序</param>
         public EntityList<T> Sort(String[] names, Boolean[] isDescs)
@@ -624,12 +624,12 @@ namespace XCode
             return null;
         }
 
-        /// <summary>按指定字段排序</summary>>
+        /// <summary>按指定字段排序</summary>
         /// <param name="name">字段</param>
         /// <param name="isDesc">是否降序</param>
         IEntityList IEntityList.Sort(String name, Boolean isDesc) { return Sort(name, isDesc); }
 
-        /// <summary>按指定字段数组排序</summary>>
+        /// <summary>按指定字段数组排序</summary>
         /// <param name="names">字段</param>
         /// <param name="isDescs">是否降序</param>
         IEntityList IEntityList.Sort(String[] names, Boolean[] isDescs) { return Sort(names, isDescs); }
@@ -708,7 +708,7 @@ namespace XCode
         #endregion
 
         #region 导入导出
-        /// <summary>导出</summary>>
+        /// <summary>导出</summary>
         /// <param name="writer"></param>
         public virtual void Export(TextWriter writer)
         {
@@ -742,7 +742,7 @@ namespace XCode
             //xmlwriter.WriteEndDocument();
         }
 
-        /// <summary>导入</summary>>
+        /// <summary>导入</summary>
         /// <param name="reader"></param>
         /// <returns></returns>
         public virtual void Import(TextReader reader)
@@ -777,7 +777,7 @@ namespace XCode
             return new XmlSerializer(type, ovs);
         }
 
-        /// <summary>导出Xml文本</summary>>
+        /// <summary>导出Xml文本</summary>
         /// <returns></returns>
         public virtual String ToXml()
         {
@@ -793,7 +793,7 @@ namespace XCode
             }
         }
 
-        /// <summary>导入Xml文本</summary>>
+        /// <summary>导入Xml文本</summary>
         /// <param name="xml"></param>
         public virtual void FromXml(String xml)
         {
@@ -805,14 +805,14 @@ namespace XCode
             }
         }
 
-        /// <summary>导出Json</summary>>
+        /// <summary>导出Json</summary>
         /// <returns></returns>
         public virtual String ToJson()
         {
             return new Json().Serialize(this);
         }
 
-        /// <summary>导入Json</summary>>
+        /// <summary>导入Json</summary>
         /// <param name="json"></param>
         /// <returns></returns>
         public static EntityList<T> FromJson(String json)
@@ -822,7 +822,7 @@ namespace XCode
         #endregion
 
         #region 导出DataSet数据集
-        /// <summary>转为DataTable</summary>>
+        /// <summary>转为DataTable</summary>
         /// <param name="allowUpdate">是否允许更新数据，如果允许，将可以对DataTable进行添删改等操作</param>
         /// <returns></returns>
         public DataTable ToDataTable(Boolean allowUpdate = true)
@@ -909,7 +909,7 @@ namespace XCode
             entity.Delete();
         }
 
-        /// <summary>转为DataSet</summary>>
+        /// <summary>转为DataSet</summary>
         /// <returns></returns>
         public DataSet ToDataSet()
         {
@@ -920,7 +920,7 @@ namespace XCode
         #endregion
 
         #region 转换
-        /// <summary>任意集合转为实体集合</summary>>
+        /// <summary>任意集合转为实体集合</summary>
         /// <param name="collection"></param>
         /// <returns></returns>
         public static EntityList<T> From(IEnumerable collection)
@@ -930,7 +930,7 @@ namespace XCode
             return new EntityList<T>(collection);
         }
 
-        /// <summary>拥有指定类型转换器的转换</summary>>
+        /// <summary>拥有指定类型转换器的转换</summary>
         /// <typeparam name="T2"></typeparam>
         /// <param name="collection"></param>
         /// <param name="func"></param>
@@ -999,7 +999,7 @@ namespace XCode
         /// <summary>空集合</summary>
         public static EntityList<T> Empty { get { return _Empty ?? (_Empty = new EntityList<T>()); } }
 
-        /// <summary>真正的实体类型。有些场合为了需要会使用IEntity。</summary>>
+        /// <summary>真正的实体类型。有些场合为了需要会使用IEntity。</summary>
         Type EntityType
         {
             get
@@ -1013,7 +1013,7 @@ namespace XCode
             }
         }
 
-        /// <summary>实体操作者</summary>>
+        /// <summary>实体操作者</summary>
         IEntityOperate Factory
         {
             get

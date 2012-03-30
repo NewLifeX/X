@@ -46,7 +46,7 @@ namespace NewLife.IO
 
         #region 方法
         #region 反序列化
-        /// <summary></summary>>
+        /// <summary></summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="obj"></param>
         /// <returns></returns>
@@ -55,7 +55,7 @@ namespace NewLife.IO
             return (T)ObjectConverter.ConvertObjectToType(obj, typeof(T), this);
         }
 
-        /// <summary></summary>>
+        /// <summary></summary>
         /// <param name="obj"></param>
         /// <param name="targetType"></param>
         /// <returns></returns>
@@ -64,7 +64,7 @@ namespace NewLife.IO
             return ObjectConverter.ConvertObjectToType(obj, targetType, this);
         }
 
-        /// <summary></summary>>
+        /// <summary></summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="input"></param>
         /// <returns></returns>
@@ -73,7 +73,7 @@ namespace NewLife.IO
             return (T)Deserialize(this, input, typeof(T), RecursionLimit);
         }
 
-        /// <summary></summary>>
+        /// <summary></summary>
         /// <param name="input"></param>
         /// <param name="targetType"></param>
         /// <returns></returns>
@@ -90,7 +90,7 @@ namespace NewLife.IO
             return ObjectConverter.ConvertObjectToType(JsonObjectDeserializer.BasicDeserialize(input, depthLimit, serializer), type, serializer);
         }
 
-        /// <summary></summary>>
+        /// <summary></summary>
         /// <param name="input"></param>
         /// <returns></returns>
         public object DeserializeObject(string input)
@@ -100,7 +100,7 @@ namespace NewLife.IO
         #endregion
 
         #region 序列化
-        /// <summary></summary>>
+        /// <summary></summary>
         /// <param name="obj"></param>
         /// <returns></returns>
         public string Serialize(object obj)
@@ -108,7 +108,7 @@ namespace NewLife.IO
             return Serialize(obj, SerializationFormat.JSON);
         }
 
-        /// <summary></summary>>
+        /// <summary></summary>
         /// <param name="obj"></param>
         /// <param name="output"></param>
         public void Serialize(object obj, StringBuilder output)

@@ -12,7 +12,7 @@ using XCode.DataAccessLayer;
 
 namespace NewLife.CommonEntity
 {
-	/// <summary>角色和菜单</summary>>
+	/// <summary>角色和菜单</summary>
 	[Serializable]
 	[DataObject]
     [BindIndex("IX_RoleMenu_MenuID_RoleID", true, "MenuID,RoleID")]
@@ -27,7 +27,7 @@ namespace NewLife.CommonEntity
 	{
 		#region 属性
 		private Int32 _ID;
-		/// <summary>编号</summary>>
+		/// <summary>编号</summary>
 		[Description("编号")]
 		[DataObjectField(true, true, false, 10)]
 		[BindColumn(1, "ID", "编号", "", "int", 10, 0, false)]
@@ -38,7 +38,7 @@ namespace NewLife.CommonEntity
 		}
 
 		private Int32 _RoleID;
-		/// <summary>角色编号</summary>>
+		/// <summary>角色编号</summary>
 		[Description("角色编号")]
 		[DataObjectField(false, false, true, 10)]
 		[BindColumn(2, "RoleID", "角色编号", "", "int", 10, 0, false)]
@@ -49,7 +49,7 @@ namespace NewLife.CommonEntity
 		}
 
 		private Int32 _MenuID;
-		/// <summary>菜单编号</summary>>
+		/// <summary>菜单编号</summary>
 		[Description("菜单编号")]
 		[DataObjectField(false, false, true, 10)]
 		[BindColumn(3, "MenuID", "菜单编号", "", "int", 10, 0, false)]
@@ -60,7 +60,7 @@ namespace NewLife.CommonEntity
 		}
 
 		private Int32 _Permission;
-		/// <summary>权限</summary>>
+		/// <summary>权限</summary>
 		[Description("权限")]
 		[DataObjectField(false, false, true, 10)]
 		[BindColumn(4, "Permission", "权限", "", "int", 10, 0, false)]
@@ -107,7 +107,7 @@ namespace NewLife.CommonEntity
 		#endregion
 
 		#region 字段名
-		/// <summary>取得角色和菜单字段名的快捷方式</summary>>
+		/// <summary>取得角色和菜单字段名的快捷方式</summary>
 		public class _
 		{
             ///<summary>编号</summary>
@@ -125,20 +125,20 @@ namespace NewLife.CommonEntity
 		#endregion
 	}
 
-	/// <summary>角色和菜单接口</summary>>
+	/// <summary>角色和菜单接口</summary>
 	public partial interface IRoleMenu
 	{
 		#region 属性
-		/// <summary>编号</summary>>
+		/// <summary>编号</summary>
 		Int32 ID { get; set; }
 
-		/// <summary>角色编号</summary>>
+		/// <summary>角色编号</summary>
 		Int32 RoleID { get; set; }
 
-		/// <summary>菜单编号</summary>>
+		/// <summary>菜单编号</summary>
 		Int32 MenuID { get; set; }
 
-		/// <summary>权限</summary>>
+		/// <summary>权限</summary>
 		Int32 Permission { get; set; }
 		#endregion
 

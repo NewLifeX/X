@@ -6,11 +6,11 @@ using System.Data;
 
 namespace XCode.DataAccessLayer
 {
-    /// <summary>网络数据库</summary>>
+    /// <summary>网络数据库</summary>
     class Network : DbBase
     {
         #region 属性
-        /// <summary>返回数据库类型。</summary>>
+        /// <summary>返回数据库类型。</summary>
         public override DatabaseType DbType
         {
             get { return DatabaseType.Network; }
@@ -24,14 +24,14 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 方法
-        /// <summary>创建数据库会话</summary>>
+        /// <summary>创建数据库会话</summary>
         /// <returns></returns>
         protected override IDbSession OnCreateSession()
         {
             return new NetworkSession();
         }
 
-        /// <summary>创建元数据对象</summary>>
+        /// <summary>创建元数据对象</summary>
         /// <returns></returns>
         protected override IMetaData OnCreateMetaData()
         {
@@ -48,7 +48,7 @@ namespace XCode.DataAccessLayer
             private set { _Server = value; }
         }
 
-        /// <summary>请求服务器，更新基本信息到本地</summary>>
+        /// <summary>请求服务器，更新基本信息到本地</summary>
         void UpdateInfo()
         {
 
@@ -56,7 +56,7 @@ namespace XCode.DataAccessLayer
         #endregion
     }
 
-    /// <summary>网络数据库会话</summary>>
+    /// <summary>网络数据库会话</summary>
     class NetworkSession : DbSession
     {
         #region 重载
@@ -80,7 +80,7 @@ namespace XCode.DataAccessLayer
         //    return base.QueryWithKey(sql);
         //}
 
-        /// <summary>不支持</summary>>
+        /// <summary>不支持</summary>
         /// <param name="cmd"></param>
         /// <returns></returns>
         public override DataSet Query(DbCommand cmd)
@@ -98,7 +98,7 @@ namespace XCode.DataAccessLayer
         //    return base.QueryCountInternal(sql);
         //}
 
-        /// <summary>快速查询单表记录数，稍有偏差</summary>>
+        /// <summary>快速查询单表记录数，稍有偏差</summary>
         /// <param name="tableName"></param>
         /// <returns></returns>
         public override Int64 QueryCountFast(string tableName)
@@ -118,7 +118,7 @@ namespace XCode.DataAccessLayer
         //    return base.Execute(sql);
         //}
 
-        /// <summary>执行DbCommand，返回受影响的行数</summary>>
+        /// <summary>执行DbCommand，返回受影响的行数</summary>
         /// <param name="cmd">DbCommand</param>
         /// <returns></returns>
         public override int Execute(DbCommand cmd)
@@ -136,14 +136,14 @@ namespace XCode.DataAccessLayer
         //    return base.InsertAndGetIdentity(sql);
         //}
 
-        /// <summary>不支持</summary>>
+        /// <summary>不支持</summary>
         /// <returns></returns>
         public override DbCommand CreateCommand()
         {
             throw new NotSupportedException();
         }
 
-        /// <summary>返回数据源的架构信息</summary>>
+        /// <summary>返回数据源的架构信息</summary>
         /// <param name="collectionName">指定要返回的架构的名称。</param>
         /// <param name="restrictionValues">为请求的架构指定一组限制值。</param>
         /// <returns></returns>
@@ -154,13 +154,13 @@ namespace XCode.DataAccessLayer
         #endregion
     }
 
-    /// <summary>网络数据库元数据</summary>>
+    /// <summary>网络数据库元数据</summary>
     class NetworkMetaData : DbMetaData
     {
 
     }
 
-    /// <summary>网络数据库服务器，处理客户端发来的数据库请求</summary>>
+    /// <summary>网络数据库服务器，处理客户端发来的数据库请求</summary>
     class NetworkDbServer
     {
 

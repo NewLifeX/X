@@ -6,11 +6,11 @@ using RuntimeHelpers = System.Runtime.CompilerServices.RuntimeHelpers;
 
 namespace NewLife.Security
 {
-    /// <summary>证书</summary>>
+    /// <summary>证书</summary>
     /// <remarks>http://blogs.msdn.com/b/dcook/archive/2008/11/25/creating-a-self-signed-certificate-in-c.aspx</remarks>
     public class Certificate
     {
-        /// <summary>建立自签名证书</summary>>
+        /// <summary>建立自签名证书</summary>
         /// <param name="x500"></param>
         /// <returns></returns>
         public static byte[] CreateSelfSignCertificatePfx(string x500)
@@ -19,7 +19,7 @@ namespace NewLife.Security
             return CreateSelfSignCertificatePfx(x500, dt, dt.AddYears(2), (SecureString)null);
         }
 
-        /// <summary>建立自签名证书</summary>>
+        /// <summary>建立自签名证书</summary>
         /// <param name="x500"></param>
         /// <param name="startTime"></param>
         /// <param name="endTime"></param>
@@ -29,7 +29,7 @@ namespace NewLife.Security
             return CreateSelfSignCertificatePfx(x500, startTime, endTime, (SecureString)null);
         }
 
-        /// <summary>建立自签名证书</summary>>
+        /// <summary>建立自签名证书</summary>
         /// <param name="x500"></param>
         /// <param name="startTime"></param>
         /// <param name="endTime"></param>
@@ -60,7 +60,7 @@ namespace NewLife.Security
             }
         }
 
-        /// <summary>建立自签名证书</summary>>
+        /// <summary>建立自签名证书</summary>
         /// <param name="x500">例如CN=SelfSignCertificate;C=China;OU=NewLife;O=Development Team;E=nnhy@vip.qq.com，其中CN是显示名</param>
         /// <param name="startTime"></param>
         /// <param name="endTime"></param>
@@ -74,7 +74,7 @@ namespace NewLife.Security
             return CreateSelfSignCertificatePfx(new X500DistinguishedName(x500), startTime, endTime, password);
         }
 
-        /// <summary>建立自签名证书</summary>>
+        /// <summary>建立自签名证书</summary>
         /// <param name="distName"></param>
         /// <param name="startTime"></param>
         /// <param name="endTime"></param>

@@ -12,7 +12,7 @@ using XCode.DataAccessLayer;
 
 namespace NewLife.CommonEntity
 {
-    /// <summary>附件</summary>>
+    /// <summary>附件</summary>
     [Serializable]
     [DataObject]
     [Description("附件")]
@@ -21,7 +21,7 @@ namespace NewLife.CommonEntity
     {
         #region 属性
         private Int32 _ID;
-        /// <summary>编号</summary>>
+        /// <summary>编号</summary>
         [Description("编号")]
         [DataObjectField(true, true, false, 10)]
         [BindColumn(1, "ID", "编号", "", "int", 10, 0, false)]
@@ -32,7 +32,7 @@ namespace NewLife.CommonEntity
         }
 
         private String _FileName;
-        /// <summary>文件名</summary>>
+        /// <summary>文件名</summary>
         [Description("文件名")]
         [DataObjectField(false, false, true, 200)]
         [BindColumn(2, "FileName", "文件名", "", "nvarchar(200)", 0, 0, true)]
@@ -43,7 +43,7 @@ namespace NewLife.CommonEntity
         }
 
         private Int32 _Size;
-        /// <summary>大小</summary>>
+        /// <summary>大小</summary>
         [Description("大小")]
         [DataObjectField(false, false, true, 10)]
         [BindColumn(3, "Size", "大小", "", "int", 10, 0, false)]
@@ -54,7 +54,7 @@ namespace NewLife.CommonEntity
         }
 
         private String _Extension;
-        /// <summary>扩展名</summary>>
+        /// <summary>扩展名</summary>
         [Description("扩展名")]
         [DataObjectField(false, false, true, 50)]
         [BindColumn(4, "Extension", "扩展名", "", "nvarchar(50)", 0, 0, true)]
@@ -65,7 +65,7 @@ namespace NewLife.CommonEntity
         }
 
         private String _Category;
-        /// <summary>分类</summary>>
+        /// <summary>分类</summary>
         [Description("分类")]
         [DataObjectField(false, false, true, 50)]
         [BindColumn(5, "Category", "分类", "", "nvarchar(50)", 0, 0, true)]
@@ -76,7 +76,7 @@ namespace NewLife.CommonEntity
         }
 
         private String _FilePath;
-        /// <summary>文件路径</summary>>
+        /// <summary>文件路径</summary>
         [Description("文件路径")]
         [DataObjectField(false, false, true, 200)]
         [BindColumn(6, "FilePath", "文件路径", "", "nvarchar(200)", 0, 0, true)]
@@ -87,7 +87,7 @@ namespace NewLife.CommonEntity
         }
 
         private String _UserName;
-        /// <summary>上传者</summary>>
+        /// <summary>上传者</summary>
         [Description("上传者")]
         [DataObjectField(false, false, true, 50)]
         [BindColumn(7, "UserName", "上传者", "", "nvarchar(50)", 0, 0, true)]
@@ -98,7 +98,7 @@ namespace NewLife.CommonEntity
         }
 
         private DateTime _UploadTime;
-        /// <summary>上传时间</summary>>
+        /// <summary>上传时间</summary>
         [Description("上传时间")]
         [DataObjectField(false, false, true, 3)]
         [BindColumn(8, "UploadTime", "上传时间", "", "datetime", 3, 0, false)]
@@ -109,7 +109,7 @@ namespace NewLife.CommonEntity
         }
 
         private String _ContentType;
-        /// <summary>内容类型</summary>>
+        /// <summary>内容类型</summary>
         [Description("内容类型")]
         [DataObjectField(false, false, true, 50)]
         [BindColumn(9, "ContentType", "内容类型", "", "nvarchar(50)", 0, 0, true)]
@@ -120,7 +120,7 @@ namespace NewLife.CommonEntity
         }
 
         private Int32 _StatID;
-        /// <summary>访问统计</summary>>
+        /// <summary>访问统计</summary>
         [Description("访问统计")]
         [DataObjectField(false, false, true, 10)]
         [BindColumn(10, "StatID", "访问统计", "", "int", 10, 0, false)]
@@ -131,7 +131,7 @@ namespace NewLife.CommonEntity
         }
 
         private Boolean _IsEnable;
-        /// <summary>是否启用</summary>>
+        /// <summary>是否启用</summary>
         [Description("是否启用")]
         [DataObjectField(false, false, true, 1)]
         [BindColumn(11, "IsEnable", "是否启用", "", "bit", 0, 0, false)]
@@ -231,41 +231,41 @@ namespace NewLife.CommonEntity
         #endregion
     }
 
-    /// <summary>附件接口</summary>>
+    /// <summary>附件接口</summary>
     public partial interface IAttachment
     {
         #region 属性
-        /// <summary>编号</summary>>
+        /// <summary>编号</summary>
         Int32 ID { get; set; }
 
-        /// <summary>文件名</summary>>
+        /// <summary>文件名</summary>
         String FileName { get; set; }
 
-        /// <summary>大小</summary>>
+        /// <summary>大小</summary>
         Int32 Size { get; set; }
 
-        /// <summary>扩展名</summary>>
+        /// <summary>扩展名</summary>
         String Extension { get; set; }
 
-        /// <summary>分类</summary>>
+        /// <summary>分类</summary>
         String Category { get; set; }
 
-        /// <summary>文件路径</summary>>
+        /// <summary>文件路径</summary>
         String FilePath { get; set; }
 
-        /// <summary>上传者</summary>>
+        /// <summary>上传者</summary>
         String UserName { get; set; }
 
-        /// <summary>上传时间</summary>>
+        /// <summary>上传时间</summary>
         DateTime UploadTime { get; set; }
 
-        /// <summary>内容类型</summary>>
+        /// <summary>内容类型</summary>
         String ContentType { get; set; }
 
-        /// <summary>访问统计</summary>>
+        /// <summary>访问统计</summary>
         Int32 StatID { get; set; }
 
-        /// <summary>是否启用</summary>>
+        /// <summary>是否启用</summary>
         Boolean IsEnable { get; set; }
         #endregion
 

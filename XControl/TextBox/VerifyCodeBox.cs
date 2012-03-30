@@ -10,13 +10,13 @@ using Image = System.Web.UI.WebControls.Image;
 
 namespace XControl
 {
-    /// <summary>验证码图片控件</summary>>
+    /// <summary>验证码图片控件</summary>
     [Description("验证码图片控件")]
     [ToolboxData("<{0}:VerifyCodeBox runat=server></{0}:VerifyCodeBox>")]
     [ToolboxBitmap(typeof(Image))]
     public class VerifyCodeBox : BaseValidator
     {
-        /// <summary>验证码图片控件构造方法</summary>>
+        /// <summary>验证码图片控件构造方法</summary>
         public VerifyCodeBox()
             : base()
         {
@@ -24,7 +24,7 @@ namespace XControl
             ContainerTag = HtmlTextWriterTag.Span;
         }
 
-        /// <summary>验证</summary>>
+        /// <summary>验证</summary>
         /// <returns></returns>
         protected override bool EvaluateIsValid()
         {
@@ -34,7 +34,7 @@ namespace XControl
             return IsValid;
         }
 
-        /// <summary></summary>>
+        /// <summary></summary>
         /// <param name="e"></param>
         protected override void OnLoad(EventArgs e)
         {
@@ -44,7 +44,7 @@ namespace XControl
         }
 
         #region 控件呈现
-        /// <summary>已重载</summary>>
+        /// <summary>已重载</summary>
         protected override HtmlTextWriterTag TagKey
         {
             get
@@ -53,13 +53,13 @@ namespace XControl
             }
         }
 
-        /// <summary>容器标签名,如果设置有,则将整个图片和提示信息包含到这个标签内</summary>>
+        /// <summary>容器标签名,如果设置有,则将整个图片和提示信息包含到这个标签内</summary>
         [Description("容器标签名,如果设置有,则将整个图片和提示信息包含到这个标签内")]
         [Category(" 专用属性")]
         [DefaultValue(0)]
         public HtmlTextWriterTag ContainerTag { get; set; }
 
-        /// <summary>已重载</summary>>
+        /// <summary>已重载</summary>
         /// <param name="e"></param>
         protected override void OnPreRender(EventArgs e)
         {
@@ -79,7 +79,7 @@ namespace XControl
             base.OnPreRender(e);
         }
 
-        /// <summary>已重载</summary>>
+        /// <summary>已重载</summary>
         /// <param name="writer"></param>
         protected override void AddAttributesToRender(HtmlTextWriter writer)
         {
@@ -87,7 +87,7 @@ namespace XControl
         }
 
         private AttributeCollection origAttr;
-        /// <summary>已重载</summary>>
+        /// <summary>已重载</summary>
         /// <param name="writer"></param>
         protected override void Render(HtmlTextWriter writer)
         {
@@ -113,7 +113,7 @@ namespace XControl
 
         private string oldErrorMessage;
         private string[] ErrorMessagePacks = { "<span class=\"error-message-text\">", "", "</span>" };
-        /// <summary>已重载</summary>>
+        /// <summary>已重载</summary>
         /// <param name="writer"></param>
         public override void RenderBeginTag(HtmlTextWriter writer)
         {
@@ -160,14 +160,14 @@ namespace XControl
 
         }
 
-        /// <summary>已重载</summary>>
+        /// <summary>已重载</summary>
         /// <param name="writer"></param>
         protected override void RenderContents(HtmlTextWriter writer)
         {
             base.RenderContents(writer);
         }
 
-        /// <summary>已重载</summary>>
+        /// <summary>已重载</summary>
         /// <param name="writer"></param>
         public override void RenderEndTag(HtmlTextWriter writer)
         {
@@ -189,14 +189,14 @@ namespace XControl
         #endregion
 
         #region 保持VerifyGUID标识
-        /// <summary>已重载</summary>>
+        /// <summary>已重载</summary>
         /// <param name="e"></param>
         protected override void OnInit(EventArgs e)
         {
             base.OnInit(e);
             Page.RegisterRequiresControlState(this);
         }
-        /// <summary>已重载,保存VerifyGUID属性</summary>>
+        /// <summary>已重载,保存VerifyGUID属性</summary>
         /// <returns></returns>
         protected override object SaveControlState()
         {
@@ -211,7 +211,7 @@ namespace XControl
             }
             return new Pair(obj, VerifyGUID);
         }
-        /// <summary>已重载,读取VerifyGUID属性</summary>>
+        /// <summary>已重载,读取VerifyGUID属性</summary>
         /// <param name="savedState"></param>
         protected override void LoadControlState(object savedState)
         {
@@ -236,16 +236,16 @@ namespace XControl
         #endregion
 
         #region 控件属性
-        /// <summary>内部使用的,用于标识一个表单请求,以便在表单提交时获得当前表单的验证码</summary>>
+        /// <summary>内部使用的,用于标识一个表单请求,以便在表单提交时获得当前表单的验证码</summary>
         private string VerifyGUID { get; set; }
 
-        /// <summary>效验码图片地址,默认为~/VerifyCodeImage.aspx,其对应于VerifyCodeImageHttpHandler</summary>>
+        /// <summary>效验码图片地址,默认为~/VerifyCodeImage.aspx,其对应于VerifyCodeImageHttpHandler</summary>
         [Description("效验码图片地址,一般建议通过在Web.config中按照约定设置,而不是在这里设置,除非有特别的需要")]
         [Category(" 专用属性")]
         [DefaultValue("")]
         public string ImageHandlerUrl { get; set; }
 
-        /// <summary>需要效验的效验码文本框</summary>>
+        /// <summary>需要效验的效验码文本框</summary>
         [Description("需要效验的效验码文本框")]
         [Category(" 专用属性")]
         [DefaultValue("")]
@@ -254,7 +254,7 @@ namespace XControl
         #endregion
 
         #region 工具方法
-        /// <summary>根据key从集合获取元素的委托</summary>>
+        /// <summary>根据key从集合获取元素的委托</summary>
         /// <typeparam name="T"></typeparam>
         /// <typeparam name="TValue"></typeparam>
         /// <param name="getcoll"></param>
@@ -262,7 +262,7 @@ namespace XControl
         /// <returns></returns>
         public delegate TValue GetItemByKey<T, TValue>(T getcoll, object key);
 
-        /// <summary>根据key向集合写入元素的委托</summary>>
+        /// <summary>根据key向集合写入元素的委托</summary>
         /// <typeparam name="T"></typeparam>
         /// <typeparam name="TValue"></typeparam>
         /// <param name="setcoll"></param>
@@ -270,7 +270,7 @@ namespace XControl
         /// <param name="value"></param>
         public delegate void SetItemByKey<T, TValue>(T setcoll, object key, TValue value);
 
-        /// <summary>复制集合的过滤器,返回是否不过滤掉,即返回true保留,返回false不保留</summary>>
+        /// <summary>复制集合的过滤器,返回是否不过滤掉,即返回true保留,返回false不保留</summary>
         /// <typeparam name="TSource"></typeparam>
         /// <typeparam name="TDest"></typeparam>
         /// <typeparam name="TValue"></typeparam>
@@ -281,7 +281,7 @@ namespace XControl
         /// <returns></returns>
         public delegate bool CopyFilter<TSource, TDest, TValue>(TSource source, TDest dest, object key, TValue value);
 
-        /// <summary>复制集合,根据ICollection接口的key</summary>>
+        /// <summary>复制集合,根据ICollection接口的key</summary>
         /// <typeparam name="TSource"></typeparam>
         /// <typeparam name="TDest"></typeparam>
         /// <typeparam name="TValue"></typeparam>
@@ -298,7 +298,7 @@ namespace XControl
             CopyCollection(source, dest, getItem, setItem, filter, ary);
         }
 
-        /// <summary>复制集合,根据传递的keys键</summary>>
+        /// <summary>复制集合,根据传递的keys键</summary>
         /// <typeparam name="TSource"></typeparam>
         /// <typeparam name="TDest"></typeparam>
         /// <typeparam name="TValue"></typeparam>
@@ -321,7 +321,7 @@ namespace XControl
             }
         }
 
-        /// <summary>AttributeCollection的get方法</summary>>
+        /// <summary>AttributeCollection的get方法</summary>
         /// <param name="coll"></param>
         /// <param name="key"></param>
         /// <returns></returns>
@@ -330,7 +330,7 @@ namespace XControl
             return coll[key.ToString()];
         }
 
-        /// <summary>AttributeCollection的set方法</summary>>
+        /// <summary>AttributeCollection的set方法</summary>
         /// <param name="coll"></param>
         /// <param name="key"></param>
         /// <param name="value"></param>
@@ -339,7 +339,7 @@ namespace XControl
             coll[key.ToString()] = value;
         }
 
-        /// <summary>过滤掉html属性中的style属性</summary>>
+        /// <summary>过滤掉html属性中的style属性</summary>
         /// <param name="s"></param>
         /// <param name="d"></param>
         /// <param name="key"></param>
@@ -358,7 +358,7 @@ namespace XControl
             return true;
         }
 
-        /// <summary>CssStyleCollection的Get方法</summary>>
+        /// <summary>CssStyleCollection的Get方法</summary>
         /// <param name="coll"></param>
         /// <param name="key"></param>
         /// <returns></returns>
@@ -374,7 +374,7 @@ namespace XControl
             }
         }
 
-        /// <summary>CssStyleCollection的Set方法</summary>>
+        /// <summary>CssStyleCollection的Set方法</summary>
         /// <param name="coll"></param>
         /// <param name="key"></param>
         /// <param name="value"></param>

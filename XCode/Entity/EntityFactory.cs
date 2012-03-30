@@ -15,12 +15,12 @@ namespace XCode
     public static class EntityFactory
     {
         #region 创建实体
-        /// <summary>创建指定类型的实例</summary>>
+        /// <summary>创建指定类型的实例</summary>
         /// <param name="typeName"></param>
         /// <returns></returns>
         public static IEntity Create(String typeName) { return Create(GetType(typeName)); }
 
-        /// <summary>创建指定类型的实例</summary>>
+        /// <summary>创建指定类型的实例</summary>
         /// <param name="type"></param>
         /// <returns></returns>
         public static IEntity Create(Type type)
@@ -118,7 +118,7 @@ namespace XCode
             return null;
         }
 
-        /// <summary>使用指定的实体对象创建实体操作接口，主要用于Entity内部调用，避免反射带来的损耗</summary>>
+        /// <summary>使用指定的实体对象创建实体操作接口，主要用于Entity内部调用，避免反射带来的损耗</summary>
         /// <param name="type"></param>
         /// <param name="entity"></param>
         /// <returns></returns>
@@ -144,14 +144,14 @@ namespace XCode
         #endregion
 
         #region 加载插件
-        /// <summary>列出所有实体类</summary>>
+        /// <summary>列出所有实体类</summary>
         /// <returns></returns>
         public static List<Type> LoadEntities()
         {
             return AssemblyX.FindAllPlugins(typeof(IEntity)).ToList();
         }
 
-        /// <summary>获取指定连接名下的所有实体类</summary>>
+        /// <summary>获取指定连接名下的所有实体类</summary>
         /// <param name="connName"></param>
         /// <returns></returns>
         public static IEnumerable<Type> LoadEntities(String connName)
@@ -159,7 +159,7 @@ namespace XCode
             return AssemblyX.FindAllPlugins(typeof(IEntity)).Where(t => TableItem.Create(t).ConnName == connName);
         }
 
-        /// <summary>获取指定连接名下的所有实体数据表</summary>>
+        /// <summary>获取指定连接名下的所有实体数据表</summary>
         /// <param name="connName"></param>
         /// <returns></returns>
         public static List<IDataTable> GetTables(String connName)
@@ -215,7 +215,7 @@ namespace XCode
             return tables;
         }
 
-        /// <summary>是否普通实体类</summary>>
+        /// <summary>是否普通实体类</summary>
         /// <param name="type"></param>
         /// <returns></returns>
         private static Boolean IsCommonEntity(Type type)

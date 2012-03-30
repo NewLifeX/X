@@ -7,12 +7,12 @@ using NewLife.CommonEntity;
 
 namespace NewLife.YWS.Entities
 {
-    /// <summary>YWS实体基类。增加写日志等功能。</summary>>
+    /// <summary>YWS实体基类。增加写日志等功能。</summary>
     /// <typeparam name="TEntity"></typeparam>
     public class YWSEntityBase<TEntity> : Entity<TEntity> where TEntity : YWSEntityBase<TEntity>, new()
     {
         #region 对象操作
-        /// <summary>已重载。调用Save时写日志，而调用Insert和Update时不写日志</summary>>
+        /// <summary>已重载。调用Save时写日志，而调用Insert和Update时不写日志</summary>
         /// <returns></returns>
         public override int Save()
         {
@@ -38,7 +38,7 @@ namespace NewLife.YWS.Entities
             return ret;
         }
 
-        /// <summary>已重载。</summary>>
+        /// <summary>已重载。</summary>
         /// <returns></returns>
         public override int Delete()
         {
@@ -69,7 +69,7 @@ namespace NewLife.YWS.Entities
         //    return admin.CreateLog(typeof(TEntity), action);
         //}
 
-        /// <summary>写日志</summary>>
+        /// <summary>写日志</summary>
         /// <param name="action">操作</param>
         /// <param name="remark">备注</param>
         public static void WriteLog(String action, String remark)

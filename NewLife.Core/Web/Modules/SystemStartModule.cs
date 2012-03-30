@@ -12,7 +12,7 @@ namespace NewLife.Web
         #region IHttpModule Members
         void IHttpModule.Dispose() { }
 
-        /// <summary>初始化模块，准备拦截请求。</summary>>
+        /// <summary>初始化模块，准备拦截请求。</summary>
         /// <param name="context"></param>
         void IHttpModule.Init(HttpApplication context)
         {
@@ -22,7 +22,7 @@ namespace NewLife.Web
 
         #region 系统启动中
         static Boolean SystemStarted = false;
-        /// <summary>检查系统是否启动中，如果启动中，则显示进度条</summary>>
+        /// <summary>检查系统是否启动中，如果启动中，则显示进度条</summary>
         public static void CheckStarting()
         {
             if (SystemStarted) return;

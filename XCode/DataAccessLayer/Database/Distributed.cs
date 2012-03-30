@@ -22,7 +22,7 @@ namespace XCode.DataAccessLayer
     class Distributed : DbBase
     {
         #region 属性
-        /// <summary>返回数据库类型。</summary>>
+        /// <summary>返回数据库类型。</summary>
         public override DatabaseType DbType
         {
             get { return DatabaseType.Distributed; }
@@ -36,14 +36,14 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 方法
-        /// <summary>创建数据库会话</summary>>
+        /// <summary>创建数据库会话</summary>
         /// <returns></returns>
         protected override IDbSession OnCreateSession()
         {
             return new DistributedDbSession();
         }
 
-        /// <summary>创建元数据对象</summary>>
+        /// <summary>创建元数据对象</summary>
         /// <returns></returns>
         protected override IMetaData OnCreateMetaData()
         {
@@ -174,7 +174,7 @@ namespace XCode.DataAccessLayer
 
         #region 获取数据库操作接口
         private Int32 _Inited = 0;
-        /// <summary>初始化</summary>>
+        /// <summary>初始化</summary>
         void Init()
         {
             if (_Inited > 0) return;
@@ -184,7 +184,7 @@ namespace XCode.DataAccessLayer
         }
 
         Random _Rnd;
-        /// <summary>随机数产生器</summary>>
+        /// <summary>随机数产生器</summary>
         /// <returns></returns>
         Random GetRnd()
         {
@@ -192,7 +192,7 @@ namespace XCode.DataAccessLayer
             return _Rnd;
         }
 
-        /// <summary>获取一个用于读取的数据库对象</summary>>
+        /// <summary>获取一个用于读取的数据库对象</summary>
         /// <returns></returns>
         public IDatabase GetReadDb()
         {

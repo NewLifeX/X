@@ -7,7 +7,7 @@ namespace NewLife.Net.Application
     /// <summary>Discard服务器。抛弃所有收到的数据包，不做任何响应</summary>
     public class DiscardServer : NetServer
     {
-        /// <summary>实例化一个Discard服务</summary>>
+        /// <summary>实例化一个Discard服务</summary>
         public DiscardServer()
         {
             // 默认9端口

@@ -9,7 +9,7 @@ using XCode.Configuration;
 
 namespace XCode.Common
 {
-    /// <summary>助手类</summary>>
+    /// <summary>助手类</summary>
     static class Helper
     {
         public static Boolean IsIntType(Type type)
@@ -31,7 +31,7 @@ namespace XCode.Common
             return false;
         }
 
-        /// <summary>指定键是否为空。一般业务系统设计不允许主键为空，包括自增的0和字符串的空</summary>>
+        /// <summary>指定键是否为空。一般业务系统设计不允许主键为空，包括自增的0和字符串的空</summary>
         /// <param name="key"></param>
         /// <returns></returns>
         public static Boolean IsNullKey(Object key)
@@ -60,7 +60,7 @@ namespace XCode.Common
             return false;
         }
 
-        /// <summary>是否空主键的实体</summary>>
+        /// <summary>是否空主键的实体</summary>
         /// <param name="entity"></param>
         /// <returns></returns>
         public static Boolean IsEntityNullKey(IEntity entity)

@@ -45,7 +45,7 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region 扩展查询﻿
-        /// <summary>根据父编号、名称查找</summary>>
+        /// <summary>根据父编号、名称查找</summary>
         /// <param name="parentid">父编号</param>
         /// <param name="name">名称</param>
         /// <returns></returns>
@@ -58,7 +58,7 @@ namespace NewLife.CommonEntity
                 return Meta.Cache.Entities.Find(e => e.ParentID == parentid && e.Name == name);
         }
 
-        /// <summary>根据用户编号查找</summary>>
+        /// <summary>根据用户编号查找</summary>
         /// <param name="userid">用户编号</param>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
@@ -70,7 +70,7 @@ namespace NewLife.CommonEntity
                 return Meta.Cache.Entities.FindAll(_.UserID, userid);
         }
 
-        /// <summary>根据编号查找</summary>>
+        /// <summary>根据编号查找</summary>
         /// <param name="id">编号</param>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
@@ -115,7 +115,7 @@ namespace NewLife.CommonEntity
         //    return base.OnInsert();
         //}
 
-        /// <summary>验证数据，通过抛出异常的方式提示验证失败。</summary>>
+        /// <summary>验证数据，通过抛出异常的方式提示验证失败。</summary>
         /// <param name="isNew"></param>
         public override void Valid(Boolean isNew)
         {
@@ -141,7 +141,7 @@ namespace NewLife.CommonEntity
             }
         }
 
-        /// <summary>已重载。删除关联数据</summary>>
+        /// <summary>已重载。删除关联数据</summary>
         /// <returns></returns>
         protected override int OnDelete()
         {
@@ -209,7 +209,7 @@ namespace NewLife.CommonEntity
         //    return FindCount(SearchWhere(key), null, null, 0, 0);
         //}
 
-        /// <summary>构造搜索条件</summary>>
+        /// <summary>构造搜索条件</summary>
         /// <param name="key">关键字</param>
         /// <returns></returns>
         private static String SearchWhere(String key)

@@ -22,7 +22,7 @@ namespace NewLife.CommonEntity
 	{
 		#region 属性
 		private Int32 _ID;
-		/// <summary>编号</summary>>
+		/// <summary>编号</summary>
 		[Description("编号")]
 		[DataObjectField(true, true, false, 10)]
 		[BindColumn(1, "ID", "编号", "", "int", 10, 0, false)]
@@ -33,7 +33,7 @@ namespace NewLife.CommonEntity
 		}
 
 		private Int32 _Total;
-		/// <summary>总数</summary>>
+		/// <summary>总数</summary>
 		[Description("总数")]
 		[DataObjectField(false, false, true, 10)]
 		[BindColumn(2, "Total", "总数", "", "int", 10, 0, false)]
@@ -44,7 +44,7 @@ namespace NewLife.CommonEntity
 		}
 
 		private Int32 _Today;
-		/// <summary>今天</summary>>
+		/// <summary>今天</summary>
 		[Description("今天")]
 		[DataObjectField(false, false, true, 10)]
 		[BindColumn(3, "Today", "今天", "", "int", 10, 0, false)]
@@ -55,7 +55,7 @@ namespace NewLife.CommonEntity
 		}
 
 		private Int32 _Yesterday;
-		/// <summary>昨天</summary>>
+		/// <summary>昨天</summary>
 		[Description("昨天")]
 		[DataObjectField(false, false, true, 10)]
 		[BindColumn(4, "Yesterday", "昨天", "", "int", 10, 0, false)]
@@ -66,7 +66,7 @@ namespace NewLife.CommonEntity
 		}
 
 		private Int32 _ThisWeek;
-		/// <summary>本周</summary>>
+		/// <summary>本周</summary>
 		[Description("本周")]
 		[DataObjectField(false, false, true, 10)]
 		[BindColumn(5, "ThisWeek", "本周", "", "int", 10, 0, false)]
@@ -77,7 +77,7 @@ namespace NewLife.CommonEntity
 		}
 
 		private Int32 _LastWeek;
-		/// <summary>上周</summary>>
+		/// <summary>上周</summary>
 		[Description("上周")]
 		[DataObjectField(false, false, true, 10)]
 		[BindColumn(6, "LastWeek", "上周", "", "int", 10, 0, false)]
@@ -88,7 +88,7 @@ namespace NewLife.CommonEntity
 		}
 
 		private Int32 _ThisMonth;
-		/// <summary>本月</summary>>
+		/// <summary>本月</summary>
 		[Description("本月")]
 		[DataObjectField(false, false, true, 10)]
 		[BindColumn(7, "ThisMonth", "本月", "", "int", 10, 0, false)]
@@ -99,7 +99,7 @@ namespace NewLife.CommonEntity
 		}
 
 		private Int32 _LastMonth;
-		/// <summary>上月</summary>>
+		/// <summary>上月</summary>
 		[Description("上月")]
 		[DataObjectField(false, false, true, 10)]
 		[BindColumn(8, "LastMonth", "上月", "", "int", 10, 0, false)]
@@ -110,7 +110,7 @@ namespace NewLife.CommonEntity
 		}
 
 		private Int32 _ThisYear;
-		/// <summary>本年</summary>>
+		/// <summary>本年</summary>
 		[Description("本年")]
 		[DataObjectField(false, false, true, 10)]
 		[BindColumn(9, "ThisYear", "本年", "", "int", 10, 0, false)]
@@ -121,7 +121,7 @@ namespace NewLife.CommonEntity
 		}
 
 		private Int32 _LastYear;
-		/// <summary>去年</summary>>
+		/// <summary>去年</summary>
 		[Description("去年")]
 		[DataObjectField(false, false, true, 10)]
 		[BindColumn(10, "LastYear", "去年", "", "int", 10, 0, false)]
@@ -132,7 +132,7 @@ namespace NewLife.CommonEntity
 		}
 
 		private DateTime _LastTime;
-		/// <summary>最后时间</summary>>
+		/// <summary>最后时间</summary>
 		[Description("最后时间")]
 		[DataObjectField(false, false, true, 3)]
 		[BindColumn(11, "LastTime", "最后时间", "", "datetime", 3, 0, false)]
@@ -143,7 +143,7 @@ namespace NewLife.CommonEntity
 		}
 
 		private String _LastIP;
-		/// <summary>最后IP</summary>>
+		/// <summary>最后IP</summary>
 		[Description("最后IP")]
 		[DataObjectField(false, false, true, 50)]
 		[BindColumn(12, "LastIP", "最后IP", "", "nvarchar(50)", 0, 0, true)]
@@ -154,7 +154,7 @@ namespace NewLife.CommonEntity
 		}
 
 		private String _Remark;
-		/// <summary>备注</summary>>
+		/// <summary>备注</summary>
 		[Description("备注")]
 		[DataObjectField(false, false, true, 500)]
 		[BindColumn(13, "Remark", "备注", "", "nvarchar(500)", 0, 0, true)]
@@ -219,7 +219,7 @@ namespace NewLife.CommonEntity
 		#endregion
 
 		#region 字段名
-		/// <summary>取得统计字段名的快捷方式</summary>>
+		/// <summary>取得统计字段名的快捷方式</summary>
 		public class _
 		{
             ///<summary>编号</summary>
@@ -264,47 +264,47 @@ namespace NewLife.CommonEntity
 		#endregion
 	}
 
-	/// <summary>统计接口</summary>>
+	/// <summary>统计接口</summary>
 	public partial interface IStatistics
 	{
 		#region 属性
-		/// <summary>编号</summary>>
+		/// <summary>编号</summary>
 		Int32 ID { get; set; }
 
-		/// <summary>总数</summary>>
+		/// <summary>总数</summary>
 		Int32 Total { get; set; }
 
-		/// <summary>今天</summary>>
+		/// <summary>今天</summary>
 		Int32 Today { get; set; }
 
-		/// <summary>昨天</summary>>
+		/// <summary>昨天</summary>
 		Int32 Yesterday { get; set; }
 
-		/// <summary>本周</summary>>
+		/// <summary>本周</summary>
 		Int32 ThisWeek { get; set; }
 
-		/// <summary>上周</summary>>
+		/// <summary>上周</summary>
 		Int32 LastWeek { get; set; }
 
-		/// <summary>本月</summary>>
+		/// <summary>本月</summary>
 		Int32 ThisMonth { get; set; }
 
-		/// <summary>上月</summary>>
+		/// <summary>上月</summary>
 		Int32 LastMonth { get; set; }
 
-		/// <summary>本年</summary>>
+		/// <summary>本年</summary>
 		Int32 ThisYear { get; set; }
 
-		/// <summary>去年</summary>>
+		/// <summary>去年</summary>
 		Int32 LastYear { get; set; }
 
-		/// <summary>最后时间</summary>>
+		/// <summary>最后时间</summary>
 		DateTime LastTime { get; set; }
 
-		/// <summary>最后IP</summary>>
+		/// <summary>最后IP</summary>
 		String LastIP { get; set; }
 
-		/// <summary>备注</summary>>
+		/// <summary>备注</summary>
 		String Remark { get; set; }
 		#endregion
 

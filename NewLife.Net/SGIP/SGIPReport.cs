@@ -50,23 +50,23 @@ namespace NewLife.Net.SGIP
         #endregion
     }
 
-    /// <summary>Report命令类型</summary>>
+    /// <summary>Report命令类型</summary>
     public enum SGIPReportTypes : byte
     {
-        /// <summary>0：对先前一条Submit命令的状态报告</summary>>
+        /// <summary>0：对先前一条Submit命令的状态报告</summary>
         Submit = 0,
-        /// <summary>1：对先前一条前转Deliver命令的状态报告</summary>>
+        /// <summary>1：对先前一条前转Deliver命令的状态报告</summary>
         Deliver = 1,
     }
 
-    /// <summary>该命令所涉及的短消息的当前执行状态</summary>>
+    /// <summary>该命令所涉及的短消息的当前执行状态</summary>
     public enum SGIPReportStates : byte
     {
-        /// <summary>0：发送成功</summary>>
+        /// <summary>0：发送成功</summary>
         Success = 0,
-        /// <summary>1：等待发送</summary>>
+        /// <summary>1：等待发送</summary>
         Accepted = 1,
-        /// <summary>2：发送失败</summary>>
+        /// <summary>2：发送失败</summary>
         Error = 2,
     }
 }

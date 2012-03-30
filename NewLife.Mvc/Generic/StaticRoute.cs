@@ -3,12 +3,12 @@ using NewLife.Reflection;
 
 namespace NewLife.Mvc
 {
-    /// <summary>静态资源控制器工厂</summary>>
+    /// <summary>静态资源控制器工厂</summary>
     public class StaticRoute : IControllerFactory
     {
         static StaticRoute _Instance;
 
-        /// <summary>StaticRoute类的全局实例</summary>>
+        /// <summary>StaticRoute类的全局实例</summary>
         public static StaticRoute Instance
         {
             get
@@ -21,7 +21,7 @@ namespace NewLife.Mvc
             }
         }
 
-        /// <summary>返回StaticRoute类的全局实例</summary>>
+        /// <summary>返回StaticRoute类的全局实例</summary>
         /// <returns></returns>
         internal static IControllerFactory InstanceFunc()
         {
@@ -30,7 +30,7 @@ namespace NewLife.Mvc
 
         internal Func<IRouteContext, bool> Filter { get; set; }
 
-        /// <summary>实现静态资源路由</summary>>
+        /// <summary>实现静态资源路由</summary>
         /// <param name="context"></param>
         /// <returns></returns>
         public IController GetController(IRouteContext context)
@@ -42,7 +42,7 @@ namespace NewLife.Mvc
             }
             return null;
         }
-        /// <summary>实现IControllerFactory接口</summary>>
+        /// <summary>实现IControllerFactory接口</summary>
         /// <param name="handler"></param>
         public void ReleaseController(IController handler)
         {

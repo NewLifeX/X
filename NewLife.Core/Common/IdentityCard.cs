@@ -4,7 +4,7 @@ using NewLife.Exceptions;
 
 namespace NewLife.Common
 {
-    /// <summary>身份证</summary>>
+    /// <summary>身份证</summary>
     public class IdentityCard
     {
         #region 属性
@@ -16,13 +16,13 @@ namespace NewLife.Common
             set { _Birthday = value; }
         }
 
-        /// <summary>性别</summary>>
+        /// <summary>性别</summary>
         public enum SexType
         {
-            /// <summary>男</summary>>
+            /// <summary>男</summary>
             Man,
 
-            /// <summary>女</summary>>
+            /// <summary>女</summary>
             Woman
         }
 
@@ -52,12 +52,12 @@ namespace NewLife.Common
         #endregion
 
         #region 构造函数
-        /// <summary>初始化</summary>>
+        /// <summary>初始化</summary>
         public IdentityCard() { }
         #endregion
 
         #region 验证
-        /// <summary>验证身份证是否合法</summary>>
+        /// <summary>验证身份证是否合法</summary>
         /// <param name="card"></param>
         /// <returns></returns>
         public static Boolean Valid(String card)
@@ -75,7 +75,7 @@ namespace NewLife.Common
         #region 分析
         private static Dictionary<String, IdentityCard> cache = new Dictionary<String, IdentityCard>();
 
-        /// <summary>使用身份证号码初始化</summary>>
+        /// <summary>使用身份证号码初始化</summary>
         /// <param name="card"></param>
         /// <returns></returns>
         public static IdentityCard Parse(String card)

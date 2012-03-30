@@ -21,12 +21,12 @@ namespace NewLife.Reflection
             get { return Member.Name; }
         }
 
-        /// <summary>默认查找标志</summary>>
+        /// <summary>默认查找标志</summary>
         public const BindingFlags DefaultBinding = BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
         #endregion
 
         #region 扩展属性
-        /// <summary>成员类型</summary>>
+        /// <summary>成员类型</summary>
         public virtual Type Type
         {
             get
@@ -52,10 +52,10 @@ namespace NewLife.Reflection
             }
         }
 
-        /// <summary>目标类型</summary>>
+        /// <summary>目标类型</summary>
         public Type TargetType { get { return Member.DeclaringType; } }
 
-        /// <summary>是否类型</summary>>
+        /// <summary>是否类型</summary>
         public Boolean IsType
         {
             get
@@ -150,31 +150,31 @@ namespace NewLife.Reflection
         #endregion
 
         #region 调用
-        /// <summary>执行方法</summary>>
+        /// <summary>执行方法</summary>
         /// <param name="obj"></param>
         /// <param name="parameters"></param>
         /// <returns></returns>
         public virtual Object Invoke(Object obj, params Object[] parameters) { throw new NotImplementedException(); }
 
-        /// <summary>取值</summary>>
+        /// <summary>取值</summary>
         /// <param name="obj"></param>
         /// <returns></returns>
         public virtual Object GetValue(Object obj) { throw new NotImplementedException(); }
 
-        /// <summary>赋值</summary>>
+        /// <summary>赋值</summary>
         /// <param name="obj"></param>
         /// <param name="value"></param>
         public virtual void SetValue(Object obj, Object value) { throw new NotImplementedException(); }
 
-        /// <summary>静态 取值</summary>>
+        /// <summary>静态 取值</summary>
         /// <returns></returns>
         public Object GetValue() { return GetValue(null); }
 
-        /// <summary>静态 赋值</summary>>
+        /// <summary>静态 赋值</summary>
         /// <param name="value"></param>
         public void SetValue(Object value) { SetValue(null, value); }
 
-        /// <summary>属性/字段 索引器</summary>>
+        /// <summary>属性/字段 索引器</summary>
         /// <param name="obj"></param>
         /// <returns></returns>
         public virtual Object this[Object obj]
@@ -190,14 +190,14 @@ namespace NewLife.Reflection
             set { SetValue(null, value); }
         }
 
-        /// <summary>创建实例</summary>>
+        /// <summary>创建实例</summary>
         /// <param name="parameters"></param>
         /// <returns></returns>
         public virtual Object CreateInstance(params Object[] parameters) { throw new NotImplementedException(); }
         #endregion
 
         #region 类型转换
-        /// <summary>类型转换</summary>>
+        /// <summary>类型转换</summary>
         /// <param name="obj"></param>
         /// <returns></returns>
         public static implicit operator MemberInfo(MemberInfoX obj)
@@ -205,7 +205,7 @@ namespace NewLife.Reflection
             return obj != null ? obj.Member : null;
         }
 
-        /// <summary>类型转换</summary>>
+        /// <summary>类型转换</summary>
         /// <param name="obj"></param>
         /// <returns></returns>
         public static implicit operator MemberInfoX(MemberInfo obj)
@@ -215,7 +215,7 @@ namespace NewLife.Reflection
         #endregion
 
         #region 重载
-        /// <summary>已重载。</summary>>
+        /// <summary>已重载。</summary>
         /// <returns></returns>
         public override string ToString()
         {
@@ -224,7 +224,7 @@ namespace NewLife.Reflection
         #endregion
 
         #region 辅助
-        /// <summary>是否有引用参数</summary>>
+        /// <summary>是否有引用参数</summary>
         /// <param name="method"></param>
         /// <returns></returns>
         protected static Boolean HasRefParam(MethodBase method)

@@ -36,12 +36,12 @@ namespace NewLife.YWS.Entities
         //    set { _Customers = value; }
         //}
 
-        /// <summary>父节点名称</summary>>
+        /// <summary>父节点名称</summary>
         public String ParentName { get { return Parent == null ? null : Parent.Name; } }
         #endregion
 
         #region 扩展查询﻿
-        /// <summary>根据主键查询一个客户类型实体对象用于表单编辑</summary>>
+        /// <summary>根据主键查询一个客户类型实体对象用于表单编辑</summary>
         /// <param name="id">编号</param>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
@@ -56,7 +56,7 @@ namespace NewLife.YWS.Entities
         }
 
 
-        /// <summary>根据名称、ParentID查找</summary>>
+        /// <summary>根据名称、ParentID查找</summary>
         /// <param name="name">名称</param>
         /// <param name="parentid">ParentID</param>
         /// <returns></returns>
@@ -66,7 +66,7 @@ namespace NewLife.YWS.Entities
             return Find(new String[] { _.Name, _.ParentID }, new Object[] { name, parentid });
         }
 
-        /// <summary>根据名称查找</summary>>
+        /// <summary>根据名称查找</summary>
         /// <param name="name">名称</param>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
@@ -78,7 +78,7 @@ namespace NewLife.YWS.Entities
                 return Meta.Cache.Entities.FindAll(_.Name, name);
         }
 
-        /// <summary>根据ParentID查找</summary>>
+        /// <summary>根据ParentID查找</summary>
         /// <param name="parentid">ParentID</param>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
@@ -90,7 +90,7 @@ namespace NewLife.YWS.Entities
                 return Meta.Cache.Entities.FindAll(_.ParentID, parentid);
         }
 
-        /// <summary>根据编号查找</summary>>
+        /// <summary>根据编号查找</summary>
         /// <param name="id">编号</param>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
@@ -211,7 +211,7 @@ namespace NewLife.YWS.Entities
         //    return FindCount(SearchWhere(key), null, null, 0, 0);
         //}
 
-        /// <summary>构造搜索条件</summary>>
+        /// <summary>构造搜索条件</summary>
         /// <param name="key">关键字</param>
         /// <returns></returns>
         private static String SearchWhere(String key)

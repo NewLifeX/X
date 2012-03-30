@@ -19,28 +19,28 @@ namespace NewLife.CommonEntity
         /// <summary>当前用户</summary>
         IManageUser Current { get; }
 
-        /// <summary>根据用户编号查找</summary>>
+        /// <summary>根据用户编号查找</summary>
         /// <param name="userid"></param>
         /// <returns></returns>
         IManageUser FindByID(Object userid);
 
-        /// <summary>根据用户帐号查找</summary>>
+        /// <summary>根据用户帐号查找</summary>
         /// <param name="account"></param>
         /// <returns></returns>
         IManageUser FindByAccount(String account);
 
-        /// <summary>登录</summary>>
+        /// <summary>登录</summary>
         /// <param name="account"></param>
         /// <param name="password"></param>
         /// <returns></returns>
         IManageUser Login(String account, String password);
 
-        /// <summary>获取服务</summary>>
+        /// <summary>获取服务</summary>
         /// <typeparam name="TService"></typeparam>
         /// <returns></returns>
         TService GetService<TService>();
 
-        /// <summary>获取服务</summary>>
+        /// <summary>获取服务</summary>
         /// <param name="serviceType"></param>
         /// <returns></returns>
         Object GetService(Type serviceType);
@@ -61,7 +61,7 @@ namespace NewLife.CommonEntity
         /// <summary>当前用户</summary>
         public virtual IManageUser Current { get { return User.Current; } }
 
-        /// <summary>根据用户编号查找</summary>>
+        /// <summary>根据用户编号查找</summary>
         /// <param name="userid"></param>
         /// <returns></returns>
         public virtual IManageUser FindByID(Object userid)
@@ -69,7 +69,7 @@ namespace NewLife.CommonEntity
             return User.FindByID((Int32)userid);
         }
 
-        /// <summary>根据用户帐号查找</summary>>
+        /// <summary>根据用户帐号查找</summary>
         /// <param name="account"></param>
         /// <returns></returns>
         public virtual IManageUser FindByAccount(String account)
@@ -77,7 +77,7 @@ namespace NewLife.CommonEntity
             return User.FindByAccount(account);
         }
 
-        /// <summary>登录</summary>>
+        /// <summary>登录</summary>
         /// <param name="account"></param>
         /// <param name="password"></param>
         /// <returns></returns>
@@ -86,12 +86,12 @@ namespace NewLife.CommonEntity
             return User.Login(account, password);
         }
 
-        /// <summary>获取服务</summary>>
+        /// <summary>获取服务</summary>
         /// <typeparam name="TService"></typeparam>
         /// <returns></returns>
         public TService GetService<TService>() { return (TService)GetService(typeof(TService)); }
 
-        /// <summary>获取服务</summary>>
+        /// <summary>获取服务</summary>
         /// <param name="serviceType"></param>
         /// <returns></returns>
         public virtual Object GetService(Type serviceType)

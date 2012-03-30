@@ -9,7 +9,7 @@ using XCode.Configuration;
 
 namespace NewLife.CommonEntity.Web
 {
-    /// <summary>实体表单基类</summary>>
+    /// <summary>实体表单基类</summary>
     /// <typeparam name="TKey">主键类型</typeparam>
     /// <typeparam name="TEntity">表单实体类</typeparam>
     /// <typeparam name="TAdminEntity">管理员类</typeparam>
@@ -22,14 +22,14 @@ namespace NewLife.CommonEntity.Web
     {
     }
 
-    /// <summary>实体表单基类</summary>>
+    /// <summary>实体表单基类</summary>
     /// <typeparam name="TKey">主键类型</typeparam>
     /// <typeparam name="TEntity">表单实体类</typeparam>
     public class EntityForm<TKey, TEntity> : WebPageBase
         where TEntity : Entity<TEntity>, new()
     {
         #region 基本属性
-        /// <summary>主键名称，字符串默认返回Guid，其它默认返回ID</summary>>
+        /// <summary>主键名称，字符串默认返回Guid，其它默认返回ID</summary>
         protected virtual String EntityKeyName
         {
             get
@@ -84,12 +84,12 @@ namespace NewLife.CommonEntity.Web
             return Entity<TEntity>.FindByKeyForEdit(EntityID);
         }
 
-        /// <summary>表单项名字前缀，默认frm</summary>>
+        /// <summary>表单项名字前缀，默认frm</summary>
         protected virtual String FormItemPrefix { get { return "frm"; } }
         #endregion
 
         #region 扩展属性
-        /// <summary>保存按钮，查找名为btnSave或UpdateButton（兼容旧版本）的按钮，如果没找到，将使用第一个使用了提交行为的按钮</summary>>
+        /// <summary>保存按钮，查找名为btnSave或UpdateButton（兼容旧版本）的按钮，如果没找到，将使用第一个使用了提交行为的按钮</summary>
         protected virtual Control SaveButton
         {
             get
@@ -108,7 +108,7 @@ namespace NewLife.CommonEntity.Web
             }
         }
 
-        /// <summary>是否空主键</summary>>
+        /// <summary>是否空主键</summary>
         protected virtual Boolean IsNullKey
         {
             get
@@ -129,7 +129,7 @@ namespace NewLife.CommonEntity.Web
         #endregion
 
         #region 事件
-        /// <summary>已重载。设置控件必填项</summary>>
+        /// <summary>已重载。设置控件必填项</summary>
         /// <param name="e"></param>
         protected override void OnInitComplete(EventArgs e)
         {
@@ -145,7 +145,7 @@ namespace NewLife.CommonEntity.Web
             }
         }
 
-        /// <summary>已重载。</summary>>
+        /// <summary>已重载。</summary>
         /// <param name="e"></param>
         protected override void OnPreLoad(EventArgs e)
         {
@@ -197,7 +197,7 @@ namespace NewLife.CommonEntity.Web
             }
         }
 
-        /// <summary>已重载。当没有按钮时保存表单</summary>>
+        /// <summary>已重载。当没有按钮时保存表单</summary>
         /// <param name="e"></param>
         protected override void OnLoadComplete(EventArgs e)
         {
@@ -214,7 +214,7 @@ namespace NewLife.CommonEntity.Web
             }
         }
 
-        /// <summary>查找表单控件</summary>>
+        /// <summary>查找表单控件</summary>
         /// <param name="id"></param>
         /// <returns></returns>
         public override Control FindControl(string id)
@@ -228,7 +228,7 @@ namespace NewLife.CommonEntity.Web
             return ControlHelper.FindControl<Control>(Page.Form, id);
         }
 
-        /// <summary>查找字段对应的控件</summary>>
+        /// <summary>查找字段对应的控件</summary>
         /// <param name="field"></param>
         /// <returns></returns>
         protected virtual Control FindControlByField(FieldItem field)
@@ -238,7 +238,7 @@ namespace NewLife.CommonEntity.Web
         #endregion
 
         #region 加载
-        /// <summary>把实体的属性设置到控件上</summary>>
+        /// <summary>把实体的属性设置到控件上</summary>
         protected virtual void SetForm()
         {
             // 是否有权限保存数据
@@ -261,7 +261,7 @@ namespace NewLife.CommonEntity.Web
             }
         }
 
-        /// <summary>是否有权限保存数据</summary>>
+        /// <summary>是否有权限保存数据</summary>
         protected virtual Boolean CanSave
         {
             get
@@ -270,7 +270,7 @@ namespace NewLife.CommonEntity.Web
             }
         }
 
-        /// <summary>把实体成员的值设置到控件上</summary>>
+        /// <summary>把实体成员的值设置到控件上</summary>
         /// <param name="field"></param>
         /// <param name="control"></param>
         /// <param name="canSave"></param>
@@ -333,7 +333,7 @@ namespace NewLife.CommonEntity.Web
             }
         }
 
-        /// <summary>文本框</summary>>
+        /// <summary>文本框</summary>
         /// <param name="field"></param>
         /// <param name="control"></param>
         /// <param name="canSave"></param>
@@ -356,7 +356,7 @@ namespace NewLife.CommonEntity.Web
             if (!SetControlValue(control, value)) control.Text = value.ToString();
         }
 
-        /// <summary>标签</summary>>
+        /// <summary>标签</summary>
         /// <param name="field"></param>
         /// <param name="control"></param>
         /// <param name="canSave"></param>
@@ -378,7 +378,7 @@ namespace NewLife.CommonEntity.Web
                 control.Text = String.Empty + Entity[field.Name];
         }
 
-        /// <summary>复选框</summary>>
+        /// <summary>复选框</summary>
         /// <param name="field"></param>
         /// <param name="control"></param>
         /// <param name="canSave"></param>
@@ -393,7 +393,7 @@ namespace NewLife.CommonEntity.Web
                 control.Checked = Entity[field.Name] != null;
         }
 
-        /// <summary>列表框</summary>>
+        /// <summary>列表框</summary>
         /// <param name="field"></param>
         /// <param name="control"></param>
         /// <param name="canSave"></param>
@@ -415,7 +415,7 @@ namespace NewLife.CommonEntity.Web
             }
         }
 
-        /// <summary>单选框</summary>>
+        /// <summary>单选框</summary>
         /// <param name="field"></param>
         /// <param name="control"></param>
         /// <param name="canSave"></param>
@@ -455,7 +455,7 @@ namespace NewLife.CommonEntity.Web
             }
         }
 
-        /// <summary>设置控件的不允许空</summary>>
+        /// <summary>设置控件的不允许空</summary>
         /// <param name="field"></param>
         /// <param name="control"></param>
         /// <param name="canSave"></param>
@@ -479,7 +479,7 @@ namespace NewLife.CommonEntity.Web
         #endregion
 
         #region 读取
-        /// <summary>读取控件的数据保存到实体中去</summary>>
+        /// <summary>读取控件的数据保存到实体中去</summary>
         protected virtual void GetForm()
         {
             foreach (FieldItem item in Entity<TEntity>.Meta.AllFields)
@@ -499,7 +499,7 @@ namespace NewLife.CommonEntity.Web
             }
         }
 
-        /// <summary>把控件的值设置到实体属性上</summary>>
+        /// <summary>把控件的值设置到实体属性上</summary>
         /// <param name="field"></param>
         /// <param name="control"></param>
         protected virtual void GetFormItem(FieldItem field, Control control)
@@ -543,7 +543,7 @@ namespace NewLife.CommonEntity.Web
             Entity.SetItem(field.Name, value);
         }
 
-        /// <summary>文本框</summary>>
+        /// <summary>文本框</summary>
         /// <param name="field"></param>
         /// <param name="control"></param>
         protected virtual void GetFormItemTextBox(FieldItem field, TextBox control)
@@ -556,7 +556,7 @@ namespace NewLife.CommonEntity.Web
             if (!Object.Equals(Entity[field.Name], v)) SetEntityItem(field, v);
         }
 
-        /// <summary>标签，不做任何操作</summary>>
+        /// <summary>标签，不做任何操作</summary>
         /// <param name="field"></param>
         /// <param name="control"></param>
         protected virtual void GetFormItemLabel(FieldItem field, Label control)
@@ -564,7 +564,7 @@ namespace NewLife.CommonEntity.Web
 
         }
 
-        /// <summary>复选框</summary>>
+        /// <summary>复选框</summary>
         /// <param name="field"></param>
         /// <param name="control"></param>
         protected virtual void GetFormItemCheckBox(FieldItem field, CheckBox control)
@@ -581,7 +581,7 @@ namespace NewLife.CommonEntity.Web
             if (!Object.Equals(Entity[field.Name], v)) SetEntityItem(field, v);
         }
 
-        /// <summary>列表框</summary>>
+        /// <summary>列表框</summary>
         /// <param name="field"></param>
         /// <param name="control"></param>
         protected virtual void GetFormItemListControl(FieldItem field, ListControl control)
@@ -592,7 +592,7 @@ namespace NewLife.CommonEntity.Web
             if (!Object.Equals(Entity[field.Name], v)) SetEntityItem(field, v);
         }
 
-        /// <summary>单选框</summary>>
+        /// <summary>单选框</summary>
         /// <param name="field"></param>
         /// <param name="control"></param>
         protected virtual void GetFormItemRadioButton(FieldItem field, RadioButton control)
@@ -638,7 +638,7 @@ namespace NewLife.CommonEntity.Web
         #endregion
 
         #region 验证
-        /// <summary>验证表单，返回是否有效数据</summary>>
+        /// <summary>验证表单，返回是否有效数据</summary>
         /// <returns></returns>
         protected virtual Boolean ValidForm()
         {
@@ -653,7 +653,7 @@ namespace NewLife.CommonEntity.Web
             return true;
         }
 
-        /// <summary>验证表单项</summary>>
+        /// <summary>验证表单项</summary>
         /// <param name="field"></param>
         /// <param name="control"></param>
         /// <returns></returns>
@@ -707,13 +707,13 @@ namespace NewLife.CommonEntity.Web
             }
         }
 
-        /// <summary>保存表单，把实体保存到数据库，当前方法处于事务保护之中</summary>>
+        /// <summary>保存表单，把实体保存到数据库，当前方法处于事务保护之中</summary>
         protected virtual void SaveForm()
         {
             Entity.Save();
         }
 
-        /// <summary>保存成功</summary>>
+        /// <summary>保存成功</summary>
         protected virtual void SaveFormSuccess()
         {
             // 这个地方需要考虑一个问题，就是列表页查询之后再打开某记录进行编辑，编辑成功后，如果强行的reload列表页，浏览器会循环是否重新提交
@@ -729,7 +729,7 @@ namespace NewLife.CommonEntity.Web
 ", true);
         }
 
-        /// <summary>保存失败</summary>>
+        /// <summary>保存失败</summary>
         /// <param name="ex"></param>
         protected virtual void SaveFormUnsuccess(Exception ex)
         {

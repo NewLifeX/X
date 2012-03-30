@@ -8,11 +8,11 @@ using NewLife.Reflection;
 
 namespace NewLife.Net.UPnP
 {
-    /// <summary>UPnP操作</summary>>
+    /// <summary>UPnP操作</summary>
     /// <typeparam name="TEntity"></typeparam>
     public class UPnPAction<TEntity> : UPnPAction where TEntity : UPnPAction<TEntity>, new()
     {
-        /// <summary>XML反序列化为实体</summary>>
+        /// <summary>XML反序列化为实体</summary>
         /// <param name="xml"></param>
         /// <returns></returns>
         public static TEntity FromXml(String xml)
@@ -46,7 +46,7 @@ namespace NewLife.Net.UPnP
         }
     }
 
-    /// <summary>UPnP操作</summary>>
+    /// <summary>UPnP操作</summary>
     public abstract class UPnPAction
     {
         private String _Name;
@@ -58,7 +58,7 @@ namespace NewLife.Net.UPnP
             set { _Name = value; }
         }
 
-        /// <summary>序列化实体为Xml</summary>>
+        /// <summary>序列化实体为Xml</summary>
         /// <param name="xmlns"></param>
         /// <returns></returns>
         public virtual String ToXml(String xmlns)
@@ -113,7 +113,7 @@ namespace NewLife.Net.UPnP
             //}
         }
 
-        /// <summary>序列化实体为Soap</summary>>
+        /// <summary>序列化实体为Soap</summary>
         /// <param name="xmlns"></param>
         /// <returns></returns>
         public virtual String ToSoap(String xmlns)

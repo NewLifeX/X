@@ -37,7 +37,7 @@ namespace NewLife.Reflection
         #endregion
 
         #region 构造函数
-        /// <summary>为方法信息创建方法体读取器</summary>>
+        /// <summary>为方法信息创建方法体读取器</summary>
         /// <param name="method"></param>
         public MethodBodyReader(MethodInfo method)
         {
@@ -85,7 +85,7 @@ namespace NewLife.Reflection
         #endregion
 
         #region 方法
-        /// <summary>通过IL字节码构建指令集合</summary>>
+        /// <summary>通过IL字节码构建指令集合</summary>
         /// <param name="mi"></param>
         private static List<ILInstruction> ConstructInstructions(MethodInfo mi)
         {

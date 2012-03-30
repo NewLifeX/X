@@ -35,7 +35,7 @@ namespace XCoder
             }
         }
 
-        /// <summary>释放模版文件</summary>>
+        /// <summary>释放模版文件</summary>
         public static Dictionary<String, String> GetTemplates()
         {
             String[] ss = Assembly.GetExecutingAssembly().GetManifestResourceNames();
@@ -65,7 +65,7 @@ namespace XCoder
             return dic;
         }
 
-        /// <summary>读取资源，并写入到文件</summary>>
+        /// <summary>读取资源，并写入到文件</summary>
         /// <param name="name"></param>
         /// <param name="fileName"></param>
         public static void ReleaseFile(String name, String fileName)

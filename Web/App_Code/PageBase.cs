@@ -9,15 +9,15 @@ using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.Web;
 
-/// <summary>页面基类</summary>>
+/// <summary>页面基类</summary>
 /// <typeparam name="TAdminEntity"></typeparam>
 /// <typeparam name="TMenuEntity"></typeparam>
 public abstract class PageBase : WebPageBase
 {
-    /// <summary>是否管理员</summary>>
+    /// <summary>是否管理员</summary>
     public Boolean IsAdmin { get { return Current != null && Current.RoleName == "管理员"; } }
 
-    /// <summary>校验权限</summary>>
+    /// <summary>校验权限</summary>
     /// <returns></returns>
     public override Boolean CheckPermission()
     {
@@ -158,7 +158,7 @@ public abstract class PageBase : WebPageBase
         }
     }
 
-    /// <summary>在关键字输入框按下回车时，调用查询</summary>>
+    /// <summary>在关键字输入框按下回车时，调用查询</summary>
     protected virtual void WriteEntterKeyPress()
     {
         FieldInfoX fix = FieldInfoX.Create(this.GetType(), "txtKey");

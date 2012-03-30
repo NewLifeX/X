@@ -4,7 +4,7 @@ using System.Text;
 
 namespace NewLife.Serialization
 {
-    /// <summary>Json设置</summary>>
+    /// <summary>Json设置</summary>
     public class JsonSettings : TextReaderWriterSetting, ICloneable
     {
         #region 属性
@@ -17,7 +17,7 @@ namespace NewLife.Serialization
         }
 
         private JsonDateTimeWriteFormat _JsonDateTimeFormat;
-        /// <summary>指定日期时间输出成什么格式,具体格式说明见JsonDateTimeWriteFormat,默认是ISO8601格式</summary>>
+        /// <summary>指定日期时间输出成什么格式,具体格式说明见JsonDateTimeWriteFormat,默认是ISO8601格式</summary>
         public JsonDateTimeWriteFormat JsonDateTimeFormat
         {
             get { return _JsonDateTimeFormat; }
@@ -25,7 +25,7 @@ namespace NewLife.Serialization
         }
 
         private DateTimeKind _JsonDateTimeKind;
-        /// <summary>指定日期时间输出成什么时间,本地还是UTC时间,默认是UTC时间</summary>>
+        /// <summary>指定日期时间输出成什么时间,本地还是UTC时间,默认是UTC时间</summary>
         public DateTimeKind JsonDateTimeKind
         {
             get { return _JsonDateTimeKind; }
@@ -45,14 +45,14 @@ namespace NewLife.Serialization
         }
 
         private bool _AllowMultiline;
-        /// <summary>是否允许输出多行结果,这会便于阅读结果,当为false时可以用作jsonp回调(还需要做字符串转义)</summary>>
+        /// <summary>是否允许输出多行结果,这会便于阅读结果,当为false时可以用作jsonp回调(还需要做字符串转义)</summary>
         public bool AllowMultiline
         {
             get { return _AllowMultiline; }
             set { _AllowMultiline = value; }
         }
         private DuplicatedObjectWriteMode _DuplicatedObjectWriteMode;
-        /// <summary>重复对象的处理方式,仅用于JsonWriter,默认是深度限制,使用DepthLimit执行的深度</summary>>
+        /// <summary>重复对象的处理方式,仅用于JsonWriter,默认是深度限制,使用DepthLimit执行的深度</summary>
         public DuplicatedObjectWriteMode DuplicatedObjectWriteMode
         {
             get { return _DuplicatedObjectWriteMode; }
@@ -75,7 +75,7 @@ namespace NewLife.Serialization
             set { _DepthLimit = value; }
         }
         private bool _UseCharsWriteToString;
-        /// <summary>是否将char[]输出为string,这会减少数据长度,仅会影响JsonWriter,默认true</summary>>
+        /// <summary>是否将char[]输出为string,这会减少数据长度,仅会影响JsonWriter,默认true</summary>
         public bool UseCharsWriteToString
         {
             get { return _UseCharsWriteToString; }
@@ -84,7 +84,7 @@ namespace NewLife.Serialization
         #endregion
 
         #region 构造
-        /// <summary>实例化</summary>>
+        /// <summary>实例化</summary>
         public JsonSettings()
         {
             // 指定时间的格式
@@ -101,7 +101,7 @@ namespace NewLife.Serialization
             return MemberwiseClone();
         }
     }
-    /// <summary>json序列化时用于指定日期时间输出成什么格式</summary>>
+    /// <summary>json序列化时用于指定日期时间输出成什么格式</summary>
     public enum JsonDateTimeWriteFormat
     {
         /// <summary>
@@ -118,15 +118,15 @@ namespace NewLife.Serialization
         /// 类似"\/Date(1304572339844)\/"格式的从 UTC 1970.1.1 午夜开始已经经过的毫秒数
         /// </summary>
         DotnetDateTick,
-        /// <summary>数字,具体值依赖于DateTimeFormat的配置</summary>>
+        /// <summary>数字,具体值依赖于DateTimeFormat的配置</summary>
         Tick
     }
-    /// <summary>重复对象的处理方式</summary>>
+    /// <summary>重复对象的处理方式</summary>
     public enum DuplicatedObjectWriteMode
     {
-        /// <summary>限制处理复合对象的深度</summary>>
+        /// <summary>限制处理复合对象的深度</summary>
         DepthLimit,
-        /// <summary>对象引用方式,暂未实现</summary>>
+        /// <summary>对象引用方式,暂未实现</summary>
         [Obsolete("暂未实现")]
         ObjectRef
     }

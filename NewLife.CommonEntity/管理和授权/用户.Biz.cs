@@ -25,7 +25,7 @@ namespace NewLife.CommonEntity
     {
         #region 扩展属性﻿
         static HttpState<TEntity> _httpState;
-        /// <summary>Http状态，子类可以重新给HttpState赋值，以控制保存Http状态的过程</summary>>
+        /// <summary>Http状态，子类可以重新给HttpState赋值，以控制保存Http状态的过程</summary>
         public static HttpState<TEntity> HttpState
         {
             get
@@ -96,7 +96,7 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region 扩展查询﻿
-        /// <summary>根据主键查询一个用户实体对象用于表单编辑</summary>>
+        /// <summary>根据主键查询一个用户实体对象用于表单编辑</summary>
         /// <param name="id">编号</param>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
@@ -110,7 +110,7 @@ namespace NewLife.CommonEntity
             return entity;
         }
 
-        /// <summary>根据账号查找</summary>>
+        /// <summary>根据账号查找</summary>
         /// <param name="account">账号</param>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
@@ -124,7 +124,7 @@ namespace NewLife.CommonEntity
             //return Meta.SingleCache[account];
         }
 
-        /// <summary>根据编号查找</summary>>
+        /// <summary>根据编号查找</summary>
         /// <param name="id">编号</param>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
@@ -146,7 +146,7 @@ namespace NewLife.CommonEntity
             TEntity entity = new TEntity();
         }
 
-        /// <summary>首次连接数据库时初始化数据，仅用于实体类重载，用户不应该调用该方法</summary>>
+        /// <summary>首次连接数据库时初始化数据，仅用于实体类重载，用户不应该调用该方法</summary>
         [EditorBrowsable(EditorBrowsableState.Never)]
         protected override void InitData()
         {
@@ -259,7 +259,7 @@ namespace NewLife.CommonEntity
         //    return FindCount(SearchWhere(key), null, null, 0, 0);
         //}
 
-        /// <summary>构造搜索条件</summary>>
+        /// <summary>构造搜索条件</summary>
         /// <param name="key">关键字</param>
         /// <returns></returns>
         private static String SearchWhere(String key)
@@ -284,7 +284,7 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region 业务
-        /// <summary>登录</summary>>
+        /// <summary>登录</summary>
         /// <param name="account"></param>
         /// <param name="password"></param>
         /// <returns></returns>

@@ -17,7 +17,7 @@ namespace XControl
     [ControlValueProperty("Value")]
     public class NumberBox : TextBox
     {
-        /// <summary>初始化数字输入控件的样式。</summary>>
+        /// <summary>初始化数字输入控件的样式。</summary>
         public NumberBox()
             : base()
         {
@@ -30,7 +30,7 @@ namespace XControl
             if (String.IsNullOrEmpty(Attributes["style"])) this.Attributes.Add("style", "border-bottom-width:1px;text-align : right ");
         }
 
-        /// <summary>已重载。</summary>>
+        /// <summary>已重载。</summary>
         /// <param name="e"></param>
         protected override void OnPreRender(EventArgs e)
         {
@@ -63,7 +63,7 @@ namespace XControl
             if (String.IsNullOrEmpty(Text)) Text = "0";
         }
 
-        /// <summary>处理错误。</summary>>
+        /// <summary>处理错误。</summary>
         /// <param name="err">错误信息</param>
         private void ShowError(String err)
         {
@@ -77,7 +77,7 @@ namespace XControl
             }
         }
 
-        /// <summary>最小值</summary>>
+        /// <summary>最小值</summary>
         [Category(" 专用属性"), DefaultValue(null), Description("最小值")]
         public Int32? Min
         {
@@ -115,7 +115,7 @@ namespace XControl
             }
         }
 
-        /// <summary>最大值</summary>>
+        /// <summary>最大值</summary>
         [Category(" 专用属性"), DefaultValue(null), Description("最大值")]
         public Int32? Max
         {
@@ -157,7 +157,7 @@ namespace XControl
             }
         }
 
-        /// <summary>当前值</summary>>
+        /// <summary>当前值</summary>
         [Category(" 专用属性"), DefaultValue(0), Description("当前值")]
         public Int32 Value
         {
@@ -176,7 +176,7 @@ namespace XControl
             }
         }
 
-        /// <summary>是否允许负数</summary>>
+        /// <summary>是否允许负数</summary>
         [Category(" 专用属性"), DefaultValue(true), Description("是否允许负数,默认true")]
         public bool AllowMinus
         {
@@ -194,7 +194,7 @@ namespace XControl
             }
         }
 
-        /// <summary>已重载。校验输入数据是否在指定范围内</summary>>
+        /// <summary>已重载。校验输入数据是否在指定范围内</summary>
         protected override void RaisePostDataChangedEvent()
         {
             try

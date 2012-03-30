@@ -42,7 +42,7 @@ namespace NewLife.Reflection
         }
         #endregion
 
-        /// <summary>已重载。返回指令的字符串形式</summary>>
+        /// <summary>已重载。返回指令的字符串形式</summary>
         /// <returns></returns>
         public override string ToString()
         {
@@ -98,7 +98,7 @@ namespace NewLife.Reflection
 
         }
 
-        /// <summary>取得类型的友好名</summary>>
+        /// <summary>取得类型的友好名</summary>
         /// <param name="type"></param>
         /// <returns></returns>
         static string FixType(Type type)

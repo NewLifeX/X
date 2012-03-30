@@ -8,7 +8,7 @@ using System.Threading;
 
 namespace XCode.DataAccessLayer
 {
-    /// <summary>远程数据库。一般是分为客户端服务器的中大型数据库，该类数据库支持完整的SQL92</summary>>
+    /// <summary>远程数据库。一般是分为客户端服务器的中大型数据库，该类数据库支持完整的SQL92</summary>
     abstract class RemoteDb : DbBase
     {
         #region 属性
@@ -16,7 +16,7 @@ namespace XCode.DataAccessLayer
         public virtual String SystemDatabaseName { get { return "master"; } }
 
         private String _ServerVersion;
-        /// <summary>数据库服务器版本</summary>>
+        /// <summary>数据库服务器版本</summary>
         public override String ServerVersion
         {
             get
@@ -61,7 +61,7 @@ namespace XCode.DataAccessLayer
         #endregion
     }
 
-    /// <summary>远程数据库会话</summary>>
+    /// <summary>远程数据库会话</summary>
     abstract class RemoteDbSession : DbSession
     {
         #region 属性
@@ -97,7 +97,7 @@ namespace XCode.DataAccessLayer
         #endregion
     }
 
-    /// <summary>远程数据库元数据</summary>>
+    /// <summary>远程数据库元数据</summary>
     abstract class RemoteDbMetaData : DbMetaData
     {
         #region 属性

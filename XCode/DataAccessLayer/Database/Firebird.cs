@@ -12,14 +12,14 @@ namespace XCode.DataAccessLayer
     class Firebird : FileDbBase
     {
         #region 属性
-        /// <summary>返回数据库类型。</summary>>
+        /// <summary>返回数据库类型。</summary>
         public override DatabaseType DbType
         {
             get { return DatabaseType.Firebird; }
         }
 
         private static DbProviderFactory _dbProviderFactory;
-        /// <summary>提供者工厂</summary>>
+        /// <summary>提供者工厂</summary>
         static DbProviderFactory dbProviderFactory
         {
             get
@@ -57,14 +57,14 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 方法
-        /// <summary>创建数据库会话</summary>>
+        /// <summary>创建数据库会话</summary>
         /// <returns></returns>
         protected override IDbSession OnCreateSession()
         {
             return new FirebirdSession();
         }
 
-        /// <summary>创建元数据对象</summary>>
+        /// <summary>创建元数据对象</summary>
         /// <returns></returns>
         protected override IMetaData OnCreateMetaData()
         {
@@ -73,7 +73,7 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 分页
-        /// <summary>已重写。获取分页</summary>>
+        /// <summary>已重写。获取分页</summary>
         /// <param name="sql">SQL语句</param>
         /// <param name="startRowIndex">开始行，0表示第一行</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
@@ -98,7 +98,7 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 数据库特性
-        /// <summary>当前时间函数</summary>>
+        /// <summary>当前时间函数</summary>
         public override String DateTimeNow { get { return "now()"; } }
 
         //protected override string ReservedWordsStr
@@ -109,7 +109,7 @@ namespace XCode.DataAccessLayer
         //    }
         //}
 
-        /// <summary>格式化时间为SQL字符串</summary>>
+        /// <summary>格式化时间为SQL字符串</summary>
         /// <param name="dateTime">时间值</param>
         /// <returns></returns>
         public override String FormatDateTime(DateTime dateTime)
@@ -117,7 +117,7 @@ namespace XCode.DataAccessLayer
             return String.Format("'{0:yyyy-MM-dd HH:mm:ss}'", dateTime);
         }
 
-        /// <summary>格式化关键字</summary>>
+        /// <summary>格式化关键字</summary>
         /// <param name="keyWord">关键字</param>
         /// <returns></returns>
         public override String FormatKeyWord(String keyWord)
@@ -152,10 +152,10 @@ namespace XCode.DataAccessLayer
         //    return base.FormatValue(field, value);
         //}
 
-        /// <summary>长文本长度</summary>>
+        /// <summary>长文本长度</summary>
         public override int LongTextLength { get { return 32767; } }
 
-        /// <summary>格式化标识列，返回插入数据时所用的表达式，如果字段本身支持自增，则返回空</summary>>
+        /// <summary>格式化标识列，返回插入数据时所用的表达式，如果字段本身支持自增，则返回空</summary>
         /// <param name="field"></param>
         /// <param name="value"></param>
         /// <returns></returns>
@@ -175,12 +175,12 @@ namespace XCode.DataAccessLayer
         #endregion
     }
 
-    /// <summary>Firebird数据库</summary>>
+    /// <summary>Firebird数据库</summary>
     internal class FirebirdSession : FileDbSession
     {
         #region 基本方法 查询/执行
         static Regex reg_SEQ = new Regex(@"\bGEN_ID\((\w+)\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
-        /// <summary>执行插入语句并返回新增行的自动编号</summary>>
+        /// <summary>执行插入语句并返回新增行的自动编号</summary>
         /// <param name="sql">SQL语句</param>
         /// <param name="type">命令类型，默认SQL文本</param>
         /// <param name="ps">命令参数</param>
@@ -214,10 +214,10 @@ namespace XCode.DataAccessLayer
         #endregion
     }
 
-    /// <summary>Firebird元数据</summary>>
+    /// <summary>Firebird元数据</summary>
     class FirebirdMetaData : FileDbMetaData
     {
-        /// <summary>取得所有表构架</summary>>
+        /// <summary>取得所有表构架</summary>
         /// <returns></returns>
         protected override List<IDataTable> OnGetTables(ICollection<String> names)
         {

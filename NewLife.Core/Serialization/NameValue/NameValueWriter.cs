@@ -4,7 +4,7 @@ using System.IO;
 
 namespace NewLife.Serialization
 {
-    /// <summary>名值写入器。用于Http请求、Http接口响应、Cookie值等读写操作。</summary>>
+    /// <summary>名值写入器。用于Http请求、Http接口响应、Cookie值等读写操作。</summary>
     public class NameValueWriter : TextWriterBase<NameValueSetting>
     {
         #region 属性

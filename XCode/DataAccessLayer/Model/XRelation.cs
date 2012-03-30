@@ -4,7 +4,7 @@ using System.Xml.Serialization;
 
 namespace XCode.DataAccessLayer
 {
-    /// <summary>数据关系</summary>>
+    /// <summary>数据关系</summary>
     [Serializable]
     [DisplayName("关系模型")]
     [Description("关系模型")]
@@ -79,14 +79,14 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region ICloneable 成员
-        /// <summary>克隆</summary>>
+        /// <summary>克隆</summary>
         /// <returns></returns>
         object ICloneable.Clone()
         {
             return Clone(Table);
         }
 
-        /// <summary>克隆</summary>>
+        /// <summary>克隆</summary>
         /// <param name="table"></param>
         /// <returns></returns>
         public IDataRelation Clone(IDataTable table)
@@ -98,7 +98,7 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 辅助
-        /// <summary>已重载。</summary>>
+        /// <summary>已重载。</summary>
         /// <returns></returns>
         public override string ToString()
         {

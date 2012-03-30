@@ -33,7 +33,7 @@ public abstract class MyEntityList : Page
         AutoAddParamForAdd();
     }
 
-    /// <summary>自动为添加按钮附加参数，Request中，只要是当前实体成员的参数，否附加上去</summary>>
+    /// <summary>自动为添加按钮附加参数，Request中，只要是当前实体成员的参数，否附加上去</summary>
     void AutoAddParamForAdd()
     {
         if (Request.QueryString == null || Request.QueryString.Count < 1) return;

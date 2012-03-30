@@ -6,7 +6,7 @@ using NewLife.Exceptions;
 
 namespace NewLife.Serialization
 {
-    /// <summary>Json 原子元素读取器</summary>>
+    /// <summary>Json 原子元素读取器</summary>
     /// <remarks>
     /// 原子元素是指在Json中不可嵌套的元素,包括
     ///   基础类型: 数字(整型,浮点型) 字符串 null true/false
@@ -19,23 +19,23 @@ namespace NewLife.Serialization
     /// </remarks>
     public class JsonAtomStringReader
     {
-        /// <summary>所有的数字类型,包括整数和浮点数</summary>>
+        /// <summary>所有的数字类型,包括整数和浮点数</summary>
         public static readonly JsonAtomType[] NUMBER_TYPES = { JsonAtomType.NUMBER, JsonAtomType.NUMBER_EXP, JsonAtomType.FLOAT, JsonAtomType.FLOAT_EXP };
-        /// <summary>所有的整数类型</summary>>
+        /// <summary>所有的整数类型</summary>
         public static readonly JsonAtomType[] INTEGER_TYPES = { JsonAtomType.NUMBER, JsonAtomType.NUMBER_EXP };
 
         TextReader Reader;
 
-        /// <summary>当前读取到的行号,从1开始</summary>>
+        /// <summary>当前读取到的行号,从1开始</summary>
         public long Line { get; protected set; }
 
-        /// <summary>当前读取到的列号,从1开始</summary>>
+        /// <summary>当前读取到的列号,从1开始</summary>
         public long Column { get; protected set; }
 
-        /// <summary>是否允许单引号字符串,单引号字符串不符合JSON标准,默认false</summary>>
+        /// <summary>是否允许单引号字符串,单引号字符串不符合JSON标准,默认false</summary>
         public bool SingleQuotesString { get; set; }
 
-        /// <summary>构造方法</summary>>
+        /// <summary>构造方法</summary>
         /// <param name="reader"></param>
         public JsonAtomStringReader(TextReader reader)
         {
@@ -43,7 +43,7 @@ namespace NewLife.Serialization
             Reader = reader;
         }
 
-        /// <summary>读取下一个原子元素,返回原子元素的类型,输出参数str表示读到的字符串</summary>>
+        /// <summary>读取下一个原子元素,返回原子元素的类型,输出参数str表示读到的字符串</summary>
         /// <remarks>
         /// 一般情况下isDetect可以为false,如果需要探测下一个可读元素,则需要给isDetect参数为true
         /// </remarks>
@@ -109,7 +109,7 @@ namespace NewLife.Serialization
             }
         }
 
-        /// <summary>将当前输入流位置向后移动一个字符,并返回读取到的字符</summary>>
+        /// <summary>将当前输入流位置向后移动一个字符,并返回读取到的字符</summary>
         /// <returns></returns>
         private int MoveNext()
         {
@@ -117,7 +117,7 @@ namespace NewLife.Serialization
             return Reader.Read();
         }
 
-        /// <summary>读取字符串,流位置以处于"之后,读到的字符串不包含结尾的",但流会被移动到"之后</summary>>
+        /// <summary>读取字符串,流位置以处于"之后,读到的字符串不包含结尾的",但流会被移动到"之后</summary>
         /// <param name="quotesChar"></param>
         /// <param name="str"></param>
         /// <returns></returns>
@@ -172,7 +172,7 @@ namespace NewLife.Serialization
             return JsonAtomType.STRING;
         }
 
-        /// <summary>读取下一个转义字符,流已处于转义符\之后</summary>>
+        /// <summary>读取下一个转义字符,流已处于转义符\之后</summary>
         /// <returns></returns>
         private string ReadEscapeChar()
         {
@@ -338,14 +338,14 @@ namespace NewLife.Serialization
             }
         }
 
-        /// <summary>跳过下一个读到的值,包括复合格式{...} [...]</summary>>
+        /// <summary>跳过下一个读到的值,包括复合格式{...} [...]</summary>
         /// <returns></returns>
         public JsonAtomStringReader Skip()
         {
             return Skip(0);
         }
 
-        /// <summary>跳过接下来读到的值,可指定要跳过的复合对象深度</summary>>
+        /// <summary>跳过接下来读到的值,可指定要跳过的复合对象深度</summary>
         /// <remarks>
         /// 复合对象深度值是指当流位置和目标处于以下位置时
         ///
@@ -382,7 +382,7 @@ namespace NewLife.Serialization
             return this;
         }
 
-        /// <summary>尝试解码指定4个16进制字符表示的Unicode字符</summary>>
+        /// <summary>尝试解码指定4个16进制字符表示的Unicode字符</summary>
         /// <param name="str"></param>
         /// <param name="cc"></param>
         /// <returns></returns>
@@ -405,40 +405,40 @@ namespace NewLife.Serialization
     /// <summary>原子元素类型</summary>
     public enum JsonAtomType
     {
-        /// <summary>无 一般表示结尾</summary>>
+        /// <summary>无 一般表示结尾</summary>
         NONE,
-        /// <summary>大括号开始 {</summary>>
+        /// <summary>大括号开始 {</summary>
         BRACE_OPEN,
-        /// <summary>大括号结束 }</summary>>
+        /// <summary>大括号结束 }</summary>
         BRACE_CLOSE,
-        /// <summary>方括号开始 [</summary>>
+        /// <summary>方括号开始 [</summary>
         BRACKET_OPEN,
-        /// <summary>方括号结束 ]</summary>>
+        /// <summary>方括号结束 ]</summary>
         BRACKET_CLOSE,
-        /// <summary>冒号 :</summary>>
+        /// <summary>冒号 :</summary>
         COLON,
-        /// <summary>逗号 ,</summary>>
+        /// <summary>逗号 ,</summary>
         COMMA,
-        /// <summary>字符串 "包含的</summary>>
+        /// <summary>字符串 "包含的</summary>
         STRING,
 
         #region 字面值部分
 
-        /// <summary>字面值 无法识别的字面值</summary>>
+        /// <summary>字面值 无法识别的字面值</summary>
         LITERAL,
-        /// <summary>字面值 true</summary>>
+        /// <summary>字面值 true</summary>
         TRUE,
-        /// <summary>字面值 false</summary>>
+        /// <summary>字面值 false</summary>
         FALSE,
-        /// <summary>字面值 null</summary>>
+        /// <summary>字面值 null</summary>
         NULL,
-        /// <summary>字面值 数字,非科学计数法表示的</summary>>
+        /// <summary>字面值 数字,非科学计数法表示的</summary>
         NUMBER,
-        /// <summary>字面值 数字,科学计数发表示的</summary>>
+        /// <summary>字面值 数字,科学计数发表示的</summary>
         NUMBER_EXP,
-        /// <summary>字面值 浮点数,非科学计数法表示的浮点数</summary>>
+        /// <summary>字面值 浮点数,非科学计数法表示的浮点数</summary>
         FLOAT,
-        /// <summary>字面值 浮点数,科学计数法表示的浮点数</summary>>
+        /// <summary>字面值 浮点数,科学计数法表示的浮点数</summary>
         FLOAT_EXP
 
         #endregion
@@ -458,13 +458,13 @@ namespace NewLife.Serialization
             this.Column = column;
         }
 
-        /// <summary>解析异常的行</summary>>
+        /// <summary>解析异常的行</summary>
         public long Line { get; protected set; }
 
-        /// <summary>解析异常的列</summary>>
+        /// <summary>解析异常的列</summary>
         public long Column { get; protected set; }
 
-        /// <summary>解析异常的详细信息</summary>>
+        /// <summary>解析异常的详细信息</summary>
         public override string Message { get { return string.Format("在解析行{0}:字符{1}时发生了异常:{2}", Line, Column, base.Message); } }
     }
 }

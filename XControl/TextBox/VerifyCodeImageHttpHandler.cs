@@ -36,7 +36,7 @@ namespace XControl
             }
         }
         private static Random rand;
-        /// <summary>构造方法</summary>>
+        /// <summary>构造方法</summary>
         public VerifyCodeImageHttpHandler()
         {
             if (rand == null)
@@ -44,12 +44,12 @@ namespace XControl
                 rand = new Random();
             }
         }
-        /// <summary>可重用</summary>>
+        /// <summary>可重用</summary>
         public bool IsReusable
         {
             get { return true; }
         }
-        /// <summary>处理请求</summary>>
+        /// <summary>处理请求</summary>
         /// <param name="context"></param>
         public void ProcessRequest(HttpContext context)
         {
@@ -80,7 +80,7 @@ namespace XControl
                 context.Session[VerifyCodeSessionPrefix + "_" + verify] = verifyCode.ToLower();
             }
         }
-        /// <summary>效验指定输入是否和指定请求产生的验证码相同</summary>>
+        /// <summary>效验指定输入是否和指定请求产生的验证码相同</summary>
         /// <param name="input">用户输入</param>
         /// <param name="verify">验证标识,一般是VerifyCodeBox.VerifyGUID</param>
         /// <param name="context"></param>
@@ -90,7 +90,7 @@ namespace XControl
             if (string.IsNullOrEmpty(input)) return false;
             return input.ToLower().Equals(context.Session[VerifyCodeSessionPrefix + "_" + verify]);
         }
-        /// <summary>复位指定验证标识,除非再次请求验证码,否则任何VerifyCode方法的调用都会返回false</summary>>
+        /// <summary>复位指定验证标识,除非再次请求验证码,否则任何VerifyCode方法的调用都会返回false</summary>
         /// <param name="verify"></param>
         /// <param name="context"></param>
         public static void ResetVerifyCode(string verify, HttpContext context)
@@ -161,7 +161,7 @@ namespace XControl
         private SolidBrush ErrorBrush;
         private Font ErrorFont;
         Dictionary<string, byte[]> Messages = new Dictionary<string, byte[]>();
-        /// <summary>创建错误图片,不要使用这个方法显示动态错误消息</summary>>
+        /// <summary>创建错误图片,不要使用这个方法显示动态错误消息</summary>
         /// <param name="msg"></param>
         /// <param name="stream"></param>
         private void CreateErrorImage(string msg, Stream stream)
@@ -199,7 +199,7 @@ namespace XControl
         }
 
         private static string _DefaultPath;
-        /// <summary>获取验证码图片当前配置的默认路径</summary>>
+        /// <summary>获取验证码图片当前配置的默认路径</summary>
         public static string DefaultPath
         {
             get

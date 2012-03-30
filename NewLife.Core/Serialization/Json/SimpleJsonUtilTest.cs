@@ -4,10 +4,10 @@ using System.Diagnostics;
 namespace NewLife.Serialization.Json
 {
 #if DEBUG
-    /// <summary></summary>>
+    /// <summary></summary>
     public class SimpleJsonUtilTest
     {
-        /// <summary></summary>>
+        /// <summary></summary>
         /// <param name="args"></param>
         public static void Main(string[] args)
         {
@@ -96,7 +96,7 @@ namespace NewLife.Serialization.Json
             Console.WriteLine(jsstrdefine);
         }
 
-        /// <summary></summary>>
+        /// <summary></summary>
         /// <param name="b"></param>
         public static void assert(bool b)
         {

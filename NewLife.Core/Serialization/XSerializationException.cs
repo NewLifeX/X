@@ -3,7 +3,7 @@ using NewLife.Exceptions;
 
 namespace NewLife.Serialization
 {
-    /// <summary>序列化异常</summary>>
+    /// <summary>序列化异常</summary>
     [Serializable]
     public class XSerializationException : XException
     {
@@ -20,16 +20,16 @@ namespace NewLife.Serialization
         public Object Value { get { return _Value; } set { _Value = value; } }
 
         #region 构造
-        /// <summary>初始化</summary>>
+        /// <summary>初始化</summary>
         /// <param name="member"></param>
         public XSerializationException(IObjectMemberInfo member) { _Member = member; }
 
-        /// <summary>初始化</summary>>
+        /// <summary>初始化</summary>
         /// <param name="member"></param>
         /// <param name="message"></param>
         public XSerializationException(IObjectMemberInfo member, String message) : base(message) { _Member = member; }
 
-        /// <summary>初始化</summary>>
+        /// <summary>初始化</summary>
         /// <param name="member"></param>
         /// <param name="message"></param>
         /// <param name="innerException"></param>
@@ -39,7 +39,7 @@ namespace NewLife.Serialization
             _Member = member;
         }
 
-        /// <summary>初始化</summary>>
+        /// <summary>初始化</summary>
         /// <param name="member"></param>
         /// <param name="innerException"></param>
         public XSerializationException(IObjectMemberInfo member, Exception innerException)

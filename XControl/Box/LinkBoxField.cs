@@ -41,7 +41,7 @@ using NewLife.Log;
 
 namespace XControl
 {
-    /// <summary>链接弹出框字段</summary>>
+    /// <summary>链接弹出框字段</summary>
     public class LinkBoxField : LinkButtonField
     {
         #region 属性
@@ -176,7 +176,7 @@ namespace XControl
                 ViewState["ShowButtonRow"] = value;
             }
         }
-        /// <summary>打开窗口后将所在GridView中所在行高亮的颜色</summary>>
+        /// <summary>打开窗口后将所在GridView中所在行高亮的颜色</summary>
         [DefaultValue(typeof(Color), ""),
         Themeable(false),
         Category(" "),
@@ -209,14 +209,14 @@ namespace XControl
         }
         #endregion
 
-        /// <summary>创建字段</summary>>
+        /// <summary>创建字段</summary>
         /// <returns></returns>
         protected override DataControlField CreateField()
         {
             return new LinkBoxField();
         }
 
-        /// <summary>已重载。</summary>>
+        /// <summary>已重载。</summary>
         /// <param name="newField"></param>
         protected override void CopyProperties(DataControlField newField)
         {
@@ -311,7 +311,7 @@ AfterClose:function(){{GridViewExtender.HighlightRow(ele,'{0}',false);}},
 
         }
 
-        /// <summary>已重载。</summary>>
+        /// <summary>已重载。</summary>
         /// <param name="link"></param>
         protected override void InitializeControl(HyperLink link)
         {
@@ -320,7 +320,7 @@ AfterClose:function(){{GridViewExtender.HighlightRow(ele,'{0}',false);}},
             base.InitializeControl(link);
         }
 
-        /// <summary>已重载。</summary>>
+        /// <summary>已重载。</summary>
         /// <param name="link"></param>
         protected override void OnPreRender(HyperLink link)
         {

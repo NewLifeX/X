@@ -19,7 +19,7 @@ namespace NewLife.Mvc
     {
         #region 构造方法
 
-        /// <summary>构造方法,初始化一个路由上下文信息,指定初始的路由路径</summary>>
+        /// <summary>构造方法,初始化一个路由上下文信息,指定初始的路由路径</summary>
         /// <param name="routePath"></param>
         public RouteContext(string routePath)
         {
@@ -49,12 +49,12 @@ namespace NewLife.Mvc
         /// </summary>
         public string RoutePath { get; private set; }
 
-        /// <summary>当前Mvc路由是否已经路由到一个有效的控制器,忽略的路由IgnoreRoute不算有效的控制器</summary>>
+        /// <summary>当前Mvc路由是否已经路由到一个有效的控制器,忽略的路由IgnoreRoute不算有效的控制器</summary>
         public bool Routed { get; internal set; }
 
         Stack<RouteFrag> _Frags = new Stack<RouteFrag>();
 
-        /// <summary>当前路由的片段,Url从左向右,分别表示数组下标从0开始的路由片段</summary>>
+        /// <summary>当前路由的片段,Url从左向右,分别表示数组下标从0开始的路由片段</summary>
         public RouteFrag[] Frags
         {
             get
@@ -65,7 +65,7 @@ namespace NewLife.Mvc
             }
         }
 
-        /// <summary>当前路由最近的一个路由配置</summary>>
+        /// <summary>当前路由最近的一个路由配置</summary>
         [Obsolete("不再使用Config类型的上下文,不需要使用这个方法了")]
         public RouteFrag Config
         {
@@ -79,7 +79,7 @@ namespace NewLife.Mvc
             }
         }
 
-        /// <summary>返回路由最近的一个模块</summary>>
+        /// <summary>返回路由最近的一个模块</summary>
         public RouteFrag Module
         {
             get
@@ -92,7 +92,7 @@ namespace NewLife.Mvc
             }
         }
 
-        /// <summary>返回路由最近的一个控制器工厂,如果没有路由进工厂则返回null</summary>>
+        /// <summary>返回路由最近的一个控制器工厂,如果没有路由进工厂则返回null</summary>
         public RouteFrag Factory
         {
             get
@@ -107,7 +107,7 @@ namespace NewLife.Mvc
             }
         }
 
-        /// <summary>返回路由最近的一个控制器,如果没有路由进控制器则返回null</summary>>
+        /// <summary>返回路由最近的一个控制器,如果没有路由进控制器则返回null</summary>
         public RouteFrag Controller
         {
             get
@@ -144,7 +144,7 @@ namespace NewLife.Mvc
 
         private string[] _PathFragments = null;
 
-        /// <summary>当前路径使用/分割后的片段,不包含空白的,对于/foo/bar.foo这样的路径,将会返回["foo","bar.foo"]</summary>>
+        /// <summary>当前路径使用/分割后的片段,不包含空白的,对于/foo/bar.foo这样的路径,将会返回["foo","bar.foo"]</summary>
         public string[] PathFragments
         {
             get
@@ -301,7 +301,7 @@ namespace NewLife.Mvc
 
         #region 上下文状态进出
 
-        /// <summary>上下文进入特定路由配置</summary>>
+        /// <summary>上下文进入特定路由配置</summary>
         /// <param name="match"></param>
         /// <param name="path"></param>
         /// <param name="r"></param>
@@ -319,7 +319,7 @@ namespace NewLife.Mvc
             });
         }
 
-        /// <summary>上下文退出特定路由配置</summary>>
+        /// <summary>上下文退出特定路由配置</summary>
         /// <param name="match"></param>
         /// <param name="path"></param>
         /// <param name="r"></param>
@@ -338,7 +338,7 @@ namespace NewLife.Mvc
             _Frags.Pop();
         }
 
-        /// <summary>上下文进入模块</summary>>
+        /// <summary>上下文进入模块</summary>
         /// <param name="match">匹配到的路径,需要是Path参数的开始部分</param>
         /// <param name="path">进入模块前的路径</param>
         /// <param name="r">当前匹配的路由规则</param>
@@ -364,7 +364,7 @@ namespace NewLife.Mvc
             return true;
         }
 
-        /// <summary>上下文退出模块</summary>>
+        /// <summary>上下文退出模块</summary>
         /// <param name="match"></param>
         /// <param name="path"></param>
         /// <param name="r"></param>
@@ -382,7 +382,7 @@ namespace NewLife.Mvc
             _Frags.Pop();
         }
 
-        /// <summary>上下文进入工厂</summary>>
+        /// <summary>上下文进入工厂</summary>
         /// <param name="match"></param>
         /// <param name="path"></param>
         /// <param name="r"></param>
@@ -399,7 +399,7 @@ namespace NewLife.Mvc
             });
         }
 
-        /// <summary>上下文退出工厂</summary>>
+        /// <summary>上下文退出工厂</summary>
         /// <param name="match"></param>
         /// <param name="path"></param>
         /// <param name="r"></param>
@@ -418,7 +418,7 @@ namespace NewLife.Mvc
             _Frags.Pop();
         }
 
-        /// <summary>上下文进入控制器</summary>>
+        /// <summary>上下文进入控制器</summary>
         /// <param name="match"></param>
         /// <param name="path"></param>
         /// <param name="r"></param>
@@ -453,7 +453,7 @@ namespace NewLife.Mvc
 
         #region 实现IEnumerable接口
 
-        /// <summary>实现IEnumerable接口</summary>>
+        /// <summary>实现IEnumerable接口</summary>
         /// <returns></returns>
         public IEnumerator<RouteFrag> GetEnumerator()
         {
@@ -489,7 +489,7 @@ namespace NewLife.Mvc
         #region 私有成员
         static DictionaryCache<Type, ModuleRule>[] _ModuleRouteCache = { null };
 
-        /// <summary>RouteTo(Type type)方法使用的缓存的RouteConfigManager,方便在工厂中使用,避免重复创建路由配置</summary>>
+        /// <summary>RouteTo(Type type)方法使用的缓存的RouteConfigManager,方便在工厂中使用,避免重复创建路由配置</summary>
         internal static DictionaryCache<Type, ModuleRule> RouteToModuleCache
         {
             get
@@ -511,14 +511,14 @@ namespace NewLife.Mvc
         #endregion 私有成员
     }
 
-    /// <summary>路由片段,表示当前请求路径每个匹配的路径信息</summary>>
+    /// <summary>路由片段,表示当前请求路径每个匹配的路径信息</summary>
     public class RouteFrag
     {
         internal bool ReadOnly { get; set; }
 
         private RouteFragType _Type;
 
-        /// <summary>片段类型</summary>>
+        /// <summary>片段类型</summary>
         public RouteFragType Type
         {
             get
@@ -536,7 +536,7 @@ namespace NewLife.Mvc
 
         private string _Path;
 
-        /// <summary>片段匹配的实际路径</summary>>
+        /// <summary>片段匹配的实际路径</summary>
         public string Path
         {
             get
@@ -554,7 +554,7 @@ namespace NewLife.Mvc
 
         private Rule _Rule;
 
-        /// <summary>片段匹配的路由规则实例</summary>>
+        /// <summary>片段匹配的路由规则实例</summary>
         public Rule Rule
         {
             get
@@ -572,7 +572,7 @@ namespace NewLife.Mvc
 
         private object _Related;
 
-        /// <summary>相关的对象,和Type关联</summary>>
+        /// <summary>相关的对象,和Type关联</summary>
         public object Related
         {
             get
@@ -601,7 +601,7 @@ namespace NewLife.Mvc
             return string.Format("{{RouteFrag \"{0}\" -> [{1}]{2} Rule:{3}}}", Path, Type, Related, Rule);
         }
 
-        /// <summary>返回当前片段关联对象的强类型实例,如果和指定类型不符则返回default(T)</summary>>
+        /// <summary>返回当前片段关联对象的强类型实例,如果和指定类型不符则返回default(T)</summary>
         /// <typeparam name="T">一般是IController IControllerFactory IRouteConfigModule RouteConfigManager类型</typeparam>
         /// <returns></returns>
         public T GetRelated<T>()
@@ -625,16 +625,16 @@ namespace NewLife.Mvc
         }
     }
 
-    /// <summary>路由片段类型</summary>>
+    /// <summary>路由片段类型</summary>
     public enum RouteFragType
     {
-        /// <summary>控制器,Related是IController类型</summary>>
+        /// <summary>控制器,Related是IController类型</summary>
         Controller,
-        /// <summary>控制器工厂,Related是IControllerFactory类型</summary>>
+        /// <summary>控制器工厂,Related是IControllerFactory类型</summary>
         Factory,
-        /// <summary>模块,Related是IRouteConfigModule类型</summary>>
+        /// <summary>模块,Related是IRouteConfigModule类型</summary>
         Module,
-        /// <summary>路由配置,Related是RouteConfigManager类型</summary>>
+        /// <summary>路由配置,Related是RouteConfigManager类型</summary>
         [Obsolete("不再使用Config类型的上下文,不需要使用这个方法了")]
         Config
     }

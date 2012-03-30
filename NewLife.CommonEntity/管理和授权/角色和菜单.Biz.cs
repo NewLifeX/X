@@ -4,70 +4,70 @@ using XCode;
 
 namespace NewLife.CommonEntity
 {
-    /// <summary>操作权限</summary>>
+    /// <summary>操作权限</summary>
     [Flags]
     [Description("操作权限")]
     public enum PermissionFlags
     {
-        /// <summary>无权限</summary>>
+        /// <summary>无权限</summary>
         [Description("无")]
         None = 0,
 
-        /// <summary>所有权限</summary>>
+        /// <summary>所有权限</summary>
         [Description("所有")]
         All = 1,
 
-        /// <summary>添加权限</summary>>
+        /// <summary>添加权限</summary>
         [Description("添加")]
         Insert = 2,
 
-        /// <summary>修改权限</summary>>
+        /// <summary>修改权限</summary>
         [Description("修改")]
         Update = 4,
 
-        /// <summary>删除权限</summary>>
+        /// <summary>删除权限</summary>
         [Description("删除")]
         Delete = 8,
 
-        /// <summary>自定义1权限</summary>>
+        /// <summary>自定义1权限</summary>
         /// <remarks>这里没有接着排16，为了保留给上面使用</remarks>
         [Description("自定义1")]
         Custom1 = 0x20,
 
-        /// <summary>自定义2权限</summary>>
+        /// <summary>自定义2权限</summary>
         [Description("自定义2")]
         Custom2 = Custom1 * 2,
 
-        /// <summary>自定义3权限</summary>>
+        /// <summary>自定义3权限</summary>
         [Description("自定义3")]
         Custom3 = Custom2 * 2,
 
-        /// <summary>自定义4权限</summary>>
+        /// <summary>自定义4权限</summary>
         [Description("自定义4")]
         Custom4 = Custom3 * 2,
 
-        /// <summary>自定义5权限</summary>>
+        /// <summary>自定义5权限</summary>
         [Description("自定义5")]
         Custom5 = Custom4 * 2,
 
-        /// <summary>自定义6权限</summary>>
+        /// <summary>自定义6权限</summary>
         [Description("自定义6")]
         Custom6 = Custom5 * 2,
 
-        /// <summary>自定义7权限</summary>>
+        /// <summary>自定义7权限</summary>
         [Description("自定义7")]
         Custom7 = Custom6 * 2,
 
-        /// <summary>自定义8权限</summary>>
+        /// <summary>自定义8权限</summary>
         [Description("自定义8")]
         Custom8 = Custom7 * 2
     }
 
-    /// <summary>角色和菜单</summary>>
+    /// <summary>角色和菜单</summary>
     public partial class RoleMenu<TEntity> : CommonEntityBase<TEntity> where TEntity : RoleMenu<TEntity>, new()
     {
         #region 对象操作
-        /// <summary>已重载。调用Save时写日志，而调用Insert和Update时不写日志</summary>>
+        /// <summary>已重载。调用Save时写日志，而调用Insert和Update时不写日志</summary>
         /// <returns></returns>
         public override int Save()
         {
@@ -79,7 +79,7 @@ namespace NewLife.CommonEntity
             return base.Save();
         }
 
-        /// <summary>已重载。</summary>>
+        /// <summary>已重载。</summary>
         /// <returns></returns>
         public override int Delete()
         {
@@ -115,7 +115,7 @@ namespace NewLife.CommonEntity
         //    }
         //}
 
-        /// <summary>检查指定菜单编号的权限，保证至少有一个角色有权限控制该菜单</summary>>
+        /// <summary>检查指定菜单编号的权限，保证至少有一个角色有权限控制该菜单</summary>
         /// <param name="menuID"></param>
         public static void CheckNonePerssion(Int32 menuID)
         {
@@ -137,7 +137,7 @@ namespace NewLife.CommonEntity
             }
         }
 
-        /// <summary>已重载。</summary>>
+        /// <summary>已重载。</summary>
         /// <returns></returns>
         public override string ToString()
         {
@@ -155,7 +155,7 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region 扩展查询
-        /// <summary>根据主键查询一个角色和菜单实体对象用于表单编辑</summary>>
+        /// <summary>根据主键查询一个角色和菜单实体对象用于表单编辑</summary>
         /// <param name="__ID">编号</param>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
@@ -169,7 +169,7 @@ namespace NewLife.CommonEntity
             return entity;
         }
 
-        /// <summary>根据角色编号查询所有角色和菜单实体对象</summary>>
+        /// <summary>根据角色编号查询所有角色和菜单实体对象</summary>
         /// <param name="roleID">编号</param>
         /// <returns>角色和菜单 实体对象</returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
@@ -180,7 +180,7 @@ namespace NewLife.CommonEntity
             return Meta.Cache.Entities.FindAll(_.RoleID, roleID);
         }
 
-        /// <summary>根据菜单编号查询所有角色和菜单实体对象</summary>>
+        /// <summary>根据菜单编号查询所有角色和菜单实体对象</summary>
         /// <param name="menuID">编号</param>
         /// <returns>角色和菜单 实体对象</returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
@@ -191,7 +191,7 @@ namespace NewLife.CommonEntity
             return Meta.Cache.Entities.FindAll(_.MenuID, menuID);
         }
 
-        /// <summary>根据角色编号和菜单查询一个角色和菜单实体对象</summary>>
+        /// <summary>根据角色编号和菜单查询一个角色和菜单实体对象</summary>
         /// <param name="roleID">编号</param>
         /// <param name="menuID">编号</param>
         /// <returns>角色和菜单 实体对象</returns>
@@ -209,7 +209,7 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region 扩展操作
-        /// <summary>根据角色编号和菜单编号创建一个角色菜单实体，默认授予完全控制权限</summary>>
+        /// <summary>根据角色编号和菜单编号创建一个角色菜单实体，默认授予完全控制权限</summary>
         /// <param name="roleID"></param>
         /// <param name="menuID"></param>
         /// <returns></returns>
@@ -224,7 +224,7 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region 业务
-        /// <summary>检查是否有指定权限</summary>>
+        /// <summary>检查是否有指定权限</summary>
         /// <param name="flag"></param>
         /// <returns></returns>
         public Boolean Acquire(PermissionFlags flag)
@@ -236,7 +236,7 @@ namespace NewLife.CommonEntity
             return (PermissionFlag & flag) == flag;
         }
 
-        /// <summary>添加权限</summary>>
+        /// <summary>添加权限</summary>
         /// <param name="flag"></param>
         /// <returns></returns>
         public RoleMenu<TEntity> Add(PermissionFlags flag)
@@ -246,7 +246,7 @@ namespace NewLife.CommonEntity
             return this;
         }
 
-        /// <summary>删除权限</summary>>
+        /// <summary>删除权限</summary>
         /// <param name="flag"></param>
         /// <returns></returns>
         public RoleMenu<TEntity> Remove(PermissionFlags flag)

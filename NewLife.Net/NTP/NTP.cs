@@ -4,7 +4,7 @@ using System.Text;
 
 namespace NewLife.Net.NTP
 {
-    /// <summary>Network Time Protocol（NTP）是用来使计算机时间同步化的一种协议</summary>>
+    /// <summary>Network Time Protocol（NTP）是用来使计算机时间同步化的一种协议</summary>
     public class NTP
     {
         #region 属性

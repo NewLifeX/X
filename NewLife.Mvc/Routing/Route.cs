@@ -15,12 +15,12 @@ namespace NewLife.Mvc
     {
         #region IHttpModule 成员
 
-        /// <summary>销毁</summary>>
+        /// <summary>销毁</summary>
         public void Dispose()
         {
         }
 
-        /// <summary>初始化仅执行一次,在不重新加载应用前</summary>>
+        /// <summary>初始化仅执行一次,在不重新加载应用前</summary>
         /// <param name="context"></param>
         public void Init(HttpApplication context)
         {
@@ -68,7 +68,7 @@ namespace NewLife.Mvc
 
         static ModuleRule[] _RootModule = { null };
 
-        /// <summary>根路由配置,自动加载实现了IRouteConfig接口的类中配置的路由规则</summary>>
+        /// <summary>根路由配置,自动加载实现了IRouteConfig接口的类中配置的路由规则</summary>
         public static ModuleRule RootModule
         {
             get
@@ -120,7 +120,7 @@ namespace NewLife.Mvc
 
         private static bool? _Debug;
 
-        /// <summary>控制器路由调试开关,打开将会在路由和控制器执行期间发生异常时输出详细的异常信息,默认为false</summary>>
+        /// <summary>控制器路由调试开关,打开将会在路由和控制器执行期间发生异常时输出详细的异常信息,默认为false</summary>
         public static bool Debug
         {
             get
@@ -172,7 +172,7 @@ namespace NewLife.Mvc
             }
         }
 
-        /// <summary>创建指定控制器实例的IHttpHandler包装实例,会根据需要创建可以读写Session的IHttpHandler实现</summary>>
+        /// <summary>创建指定控制器实例的IHttpHandler包装实例,会根据需要创建可以读写Session的IHttpHandler实现</summary>
         /// <param name="context"></param>
         /// <param name="controller"></param>
         /// <returns></returns>
@@ -192,13 +192,13 @@ namespace NewLife.Mvc
             }
         }
 
-        /// <summary>提供只读访问HttpSession的HttpHandlerWrap子类</summary>>
+        /// <summary>提供只读访问HttpSession的HttpHandlerWrap子类</summary>
         private class ReadOnlySession : HttpHandlerWrap, IReadOnlySessionState
         {
             public ReadOnlySession(IRouteContext context, IController controller) : base(context, controller) { }
         }
 
-        /// <summary>提供读写访问HttpSession的HttpHandlerWrap子类</summary>>
+        /// <summary>提供读写访问HttpSession的HttpHandlerWrap子类</summary>
         private class ReadWriteSession : HttpHandlerWrap, IRequiresSessionState
         {
             public ReadWriteSession(IRouteContext context, IController controller) : base(context, controller) { }

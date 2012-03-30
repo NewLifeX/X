@@ -228,7 +228,7 @@ namespace NewLife.Log
         #endregion
 
         #region 事件
-        /// <summary>操作时触发</summary>>
+        /// <summary>操作时触发</summary>
         public event EventHandler<EventArgs<String, Object[]>> OnAction;
 
         Int64 lastPosition = -1;

@@ -8,7 +8,7 @@ using NewLife.Exceptions;
 
 namespace NewLife.Net.UPnP
 {
-    /// <summary>端口映射结构</summary>>
+    /// <summary>端口映射结构</summary>
     [Serializable, XmlRoot("Envelope", Namespace = "http://schemas.xmlsoap.org/soap/envelope/")]
     public class Envelope
     {
@@ -30,7 +30,7 @@ namespace NewLife.Net.UPnP
             set { _Body = value; }
         }
 
-        /// <summary>信封主体</summary>>
+        /// <summary>信封主体</summary>
         public class EnvelopeBody : IXmlSerializable
         {
             private String _Xml;
@@ -49,14 +49,14 @@ namespace NewLife.Net.UPnP
                 set { _Fault = value; }
             }
 
-            /// <summary>获取架构</summary>>
+            /// <summary>获取架构</summary>
             /// <returns></returns>
             public XmlSchema GetSchema()
             {
                 return null;
             }
 
-            /// <summary>读取Xml</summary>>
+            /// <summary>读取Xml</summary>
             /// <param name="reader"></param>
             public void ReadXml(XmlReader reader)
             {
@@ -69,14 +69,14 @@ namespace NewLife.Net.UPnP
                     Xml = xml;
             }
 
-            /// <summary>写入Xml</summary>>
+            /// <summary>写入Xml</summary>
             /// <param name="writer"></param>
             public void WriteXml(XmlWriter writer)
             {
                 writer.WriteRaw(Xml);
             }
 
-            /// <summary>抛出异常</summary>>
+            /// <summary>抛出异常</summary>
             /// <returns></returns>
             public Exception ThrowException()
             {

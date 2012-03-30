@@ -425,7 +425,7 @@ namespace XCode
         #endregion
 
         #region 集合运算
-        /// <summary>是否包含子节点</summary>>
+        /// <summary>是否包含子节点</summary>
         /// <param name="key">子节点键值</param>
         /// <returns></returns>
         public Boolean Contains(TKey key)
@@ -447,7 +447,7 @@ namespace XCode
             return false;
         }
 
-        /// <summary>子级键值集合</summary>>
+        /// <summary>子级键值集合</summary>
         [XmlIgnore]
         public List<TKey> ChildKeys
         {
@@ -460,7 +460,7 @@ namespace XCode
             }
         }
 
-        /// <summary>逗号分隔的子级键值字符串，一般可用于SQL语句中</summary>>
+        /// <summary>逗号分隔的子级键值字符串，一般可用于SQL语句中</summary>
         [XmlIgnore]
         public String ChildKeyString
         {
@@ -479,7 +479,7 @@ namespace XCode
             }
         }
 
-        /// <summary>子孙键值集合</summary>>
+        /// <summary>子孙键值集合</summary>
         [XmlIgnore]
         public List<TKey> AllChildKeys
         {
@@ -492,7 +492,7 @@ namespace XCode
             }
         }
 
-        /// <summary>逗号分隔的子孙键值字符串，一般可用于SQL语句中</summary>>
+        /// <summary>逗号分隔的子孙键值字符串，一般可用于SQL语句中</summary>
         [XmlIgnore]
         public String AllChildKeyString
         {
@@ -513,7 +513,7 @@ namespace XCode
         #endregion
 
         #region 业务
-        /// <summary>创建菜单树</summary>>
+        /// <summary>创建菜单树</summary>
         /// <param name="nodes">父集合</param>
         /// <param name="list">菜单列表</param>
         /// <param name="url">格式化地址，可以使用{ID}和{Name}</param>
@@ -567,7 +567,7 @@ namespace XCode
             }
         }
 
-        /// <summary>取得全路径的实体，由上向下排序</summary>>
+        /// <summary>取得全路径的实体，由上向下排序</summary>
         /// <param name="includeSelf"></param>
         /// <returns></returns>
         public EntityList<TEntity> GetFullPath(Boolean includeSelf)
@@ -585,7 +585,7 @@ namespace XCode
             return list2;
         }
 
-        /// <summary>取得全路径的实体，由上向下排序</summary>>
+        /// <summary>取得全路径的实体，由上向下排序</summary>
         /// <param name="includeSelf">是否包含自己</param>
         /// <param name="separator">分隔符</param>
         /// <param name="func">回调</param>
@@ -638,7 +638,7 @@ namespace XCode
             return sb.ToString();
         }
 
-        /// <summary>删除子级到本级的关系。导出数据前可以先删除关系，以减少导出的大小</summary>>
+        /// <summary>删除子级到本级的关系。导出数据前可以先删除关系，以减少导出的大小</summary>
         public virtual void ClearRelation()
         {
             var list = Childs;
@@ -653,7 +653,7 @@ namespace XCode
             }
         }
 
-        /// <summary>批量保存，保存整棵树</summary>>
+        /// <summary>批量保存，保存整棵树</summary>
         /// <param name="saveSelf">是否保存自己</param>
         /// <returns></returns>
         public virtual Int32 BatchSave(Boolean saveSelf)
@@ -686,7 +686,7 @@ namespace XCode
             }
         }
 
-        /// <summary>排序上升</summary>>
+        /// <summary>排序上升</summary>
         public void Up()
         {
             EntityList<TEntity> list = FindAllByParent((TKey)this[ParentKeyName]);
@@ -704,7 +704,7 @@ namespace XCode
             list.Save();
         }
 
-        /// <summary>排序下降</summary>>
+        /// <summary>排序下降</summary>
         public void Down()
         {
             EntityList<TEntity> list = FindAllByParent((TKey)this[ParentKeyName]);
@@ -735,7 +735,7 @@ namespace XCode
         #endregion
 
         #region 数据检查
-        /// <summary>验证树形数据是否有效</summary>>
+        /// <summary>验证树形数据是否有效</summary>
         /// <param name="isNew">是否新数据</param>
         public override void Valid(Boolean isNew)
         {

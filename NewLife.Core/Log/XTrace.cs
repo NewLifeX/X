@@ -6,29 +6,29 @@ using NewLife.Configuration;
 
 namespace NewLife.Log
 {
-    /// <summary>日志类，包含跟踪调试功能</summary>>
+    /// <summary>日志类，包含跟踪调试功能</summary>
     public class XTrace
     {
         #region 写日志
         private static TextFileLog Log = TextFileLog.Create(Config.GetConfig<String>("NewLife.LogPath"));
-        /// <summary>日志路径</summary>>
+        /// <summary>日志路径</summary>
         public static String LogPath { get { return Log.LogPath; } }
 
-        /// <summary>输出日志</summary>>
+        /// <summary>输出日志</summary>
         /// <param name="msg">信息</param>
         public static void WriteLine(String msg)
         {
             Log.WriteLine(msg);
         }
 
-        /// <summary>输出异常日志</summary>>
+        /// <summary>输出异常日志</summary>
         /// <param name="ex">异常信息</param>
         public static void WriteException(Exception ex)
         {
             Log.WriteException(ex);
         }
 
-        /// <summary>输出异常日志</summary>>
+        /// <summary>输出异常日志</summary>
         /// <param name="ex">异常信息</param>
         public static void WriteExceptionWhenDebug(Exception ex)
         {
@@ -45,7 +45,7 @@ namespace NewLife.Log
             Log.DebugStack();
         }
 
-        /// <summary>堆栈调试。</summary>>
+        /// <summary>堆栈调试。</summary>
         /// <param name="maxNum">最大捕获堆栈方法数</param>
         public static void DebugStack(int maxNum)
         {
@@ -60,7 +60,7 @@ namespace NewLife.Log
             Log.DebugStack(start, maxNum);
         }
 
-        /// <summary>写日志事件。绑定该事件后，XTrace将不再把日志写到日志文件中去。</summary>>
+        /// <summary>写日志事件。绑定该事件后，XTrace将不再把日志写到日志文件中去。</summary>
         public static event EventHandler<WriteLogEventArgs> OnWriteLog
         {
             add { Log.OnWriteLog += value; }
@@ -68,7 +68,7 @@ namespace NewLife.Log
         }
         //public static event EventHandler<WriteLogEventArgs> OnWriteLog;
 
-        /// <summary>写日志</summary>>
+        /// <summary>写日志</summary>
         /// <param name="format"></param>
         /// <param name="args"></param>
         public static void WriteLine(String format, params Object[] args)
@@ -118,7 +118,7 @@ namespace NewLife.Log
         #endregion
 
         #region Dump
-        /// <summary>写当前线程的MiniDump</summary>>
+        /// <summary>写当前线程的MiniDump</summary>
         /// <param name="dumpFile">如果不指定，则自动写入日志目录</param>
         public static void WriteMiniDump(String dumpFile)
         {
@@ -147,7 +147,7 @@ namespace NewLife.Log
             IntPtr userInfo,
             IntPtr extInfo);
 
-            /// <summary>MINIDUMP_EXCEPTION_INFORMATION</summary>>
+            /// <summary>MINIDUMP_EXCEPTION_INFORMATION</summary>
             struct MinidumpExceptionInfo
             {
                 public UInt32 ThreadId;

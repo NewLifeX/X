@@ -59,7 +59,7 @@ namespace XCode.Code
         #endregion
 
         #region 方法
-        /// <summary>创建实体类</summary>>
+        /// <summary>创建实体类</summary>
         public void Create()
         {
             Class = new CodeTypeDeclaration(ClassName);
@@ -119,7 +119,7 @@ namespace XCode.Code
             Assembly.NameSpace.Types.Add(Class);
         }
 
-        /// <summary>添加属性集合</summary>>
+        /// <summary>添加属性集合</summary>
         public void AddProperties()
         {
             if (Table.Columns == null || Table.Columns.Count < 1) return;
@@ -136,7 +136,7 @@ namespace XCode.Code
             Class.Members[n - 1].EndDirectives.Add(new CodeRegionDirective(CodeRegionMode.End, null));
         }
 
-        /// <summary>添加私有字段</summary>>
+        /// <summary>添加私有字段</summary>
         /// <param name="field"></param>
         public CodeMemberField AddField(IDataColumn field)
         {
@@ -150,7 +150,7 @@ namespace XCode.Code
             return f;
         }
 
-        /// <summary>添加单个属性</summary>>
+        /// <summary>添加单个属性</summary>
         /// <param name="field"></param>
         public CodeMemberProperty AddProperty(IDataColumn field)
         {
@@ -201,7 +201,7 @@ namespace XCode.Code
             return p;
         }
 
-        /// <summary>添加索引器</summary>>
+        /// <summary>添加索引器</summary>
         public CodeMemberProperty AddIndexs()
         {
             CodeMemberProperty p = new CodeMemberProperty();
@@ -330,7 +330,7 @@ namespace XCode.Code
         #endregion
 
         #region 生成代码
-        /// <summary>生成C#代码</summary>>
+        /// <summary>生成C#代码</summary>
         /// <returns></returns>
         public String GenerateCSharpCode()
         {

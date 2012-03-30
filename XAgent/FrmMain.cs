@@ -10,7 +10,7 @@ using NewLife.Reflection;
 
 namespace XAgent
 {
-    /// <summary>服务主界面</summary>>
+    /// <summary>服务主界面</summary>
     public partial class FrmMain : Form
     {
         #region 初始化

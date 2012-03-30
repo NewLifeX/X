@@ -22,11 +22,11 @@ namespace NewLife.Serialization
     {
         #region 基元类型
         #region 字节
-        /// <summary>将一个无符号字节写入</summary>>
+        /// <summary>将一个无符号字节写入</summary>
         /// <param name="value">要写入的无符号字节。</param>
         public abstract void Write(Byte value);
 
-        /// <summary>将字节数组写入，如果设置了UseSize，则先写入数组长度。</summary>>
+        /// <summary>将字节数组写入，如果设置了UseSize，则先写入数组长度。</summary>
         /// <param name="buffer">包含要写入的数据的字节数组。</param>
         public virtual void Write(byte[] buffer)
         {
@@ -40,12 +40,12 @@ namespace NewLife.Serialization
             Write(buffer, 0, buffer.Length);
         }
 
-        /// <summary>将一个有符号字节写入当前流，并将流的位置提升 1 个字节。</summary>>
+        /// <summary>将一个有符号字节写入当前流，并将流的位置提升 1 个字节。</summary>
         /// <param name="value">要写入的有符号字节。</param>
         //[CLSCompliant(false)]
         public virtual void Write(sbyte value) { Write((Byte)value); }
 
-        /// <summary>将字节数组部分写入当前流，不写入数组长度。</summary>>
+        /// <summary>将字节数组部分写入当前流，不写入数组长度。</summary>
         /// <param name="buffer">包含要写入的数据的字节数组。</param>
         /// <param name="index">buffer 中开始写入的起始点。</param>
         /// <param name="count">要写入的字节数。</param>
@@ -59,7 +59,7 @@ namespace NewLife.Serialization
             }
         }
 
-        /// <summary>写入字节数组，自动计算长度</summary>>
+        /// <summary>写入字节数组，自动计算长度</summary>
         /// <param name="buffer"></param>
         /// <param name="count"></param>
         private void Write(Byte[] buffer, Int32 count)
@@ -73,60 +73,60 @@ namespace NewLife.Serialization
         #endregion
 
         #region 有符号整数
-        /// <summary>写入整数的字节数组，某些写入器（如二进制写入器）可能需要改变字节顺序</summary>>
+        /// <summary>写入整数的字节数组，某些写入器（如二进制写入器）可能需要改变字节顺序</summary>
         /// <param name="buffer"></param>
         protected virtual void WriteIntBytes(Byte[] buffer) { Write(buffer, -1); }
 
-        /// <summary>将 2 字节有符号整数写入当前流，并将流的位置提升 2 个字节。</summary>>
+        /// <summary>将 2 字节有符号整数写入当前流，并将流的位置提升 2 个字节。</summary>
         /// <param name="value">要写入的 2 字节有符号整数。</param>
         public virtual void Write(short value) { WriteIntBytes(BitConverter.GetBytes(value)); }
 
-        /// <summary>将 4 字节有符号整数写入当前流，并将流的位置提升 4 个字节。</summary>>
+        /// <summary>将 4 字节有符号整数写入当前流，并将流的位置提升 4 个字节。</summary>
         /// <param name="value">要写入的 4 字节有符号整数。</param>
         public virtual void Write(int value) { WriteIntBytes(BitConverter.GetBytes(value)); }
 
-        /// <summary>将 8 字节有符号整数写入当前流，并将流的位置提升 8 个字节。</summary>>
+        /// <summary>将 8 字节有符号整数写入当前流，并将流的位置提升 8 个字节。</summary>
         /// <param name="value">要写入的 8 字节有符号整数。</param>
         public virtual void Write(long value) { WriteIntBytes(BitConverter.GetBytes(value)); }
         #endregion
 
         #region 无符号整数
-        /// <summary>将 2 字节无符号整数写入当前流，并将流的位置提升 2 个字节。</summary>>
+        /// <summary>将 2 字节无符号整数写入当前流，并将流的位置提升 2 个字节。</summary>
         /// <param name="value">要写入的 2 字节无符号整数。</param>
         //[CLSCompliant(false)]
         public virtual void Write(ushort value) { Write((Int16)value); }
 
-        /// <summary>将 4 字节无符号整数写入当前流，并将流的位置提升 4 个字节。</summary>>
+        /// <summary>将 4 字节无符号整数写入当前流，并将流的位置提升 4 个字节。</summary>
         /// <param name="value">要写入的 4 字节无符号整数。</param>
         //[CLSCompliant(false)]
         public virtual void Write(uint value) { Write((Int32)value); }
 
-        /// <summary>将 8 字节无符号整数写入当前流，并将流的位置提升 8 个字节。</summary>>
+        /// <summary>将 8 字节无符号整数写入当前流，并将流的位置提升 8 个字节。</summary>
         /// <param name="value">要写入的 8 字节无符号整数。</param>
         //[CLSCompliant(false)]
         public virtual void Write(ulong value) { Write((Int64)value); }
         #endregion
 
         #region 浮点数
-        /// <summary>将 4 字节浮点值写入当前流，并将流的位置提升 4 个字节。</summary>>
+        /// <summary>将 4 字节浮点值写入当前流，并将流的位置提升 4 个字节。</summary>
         /// <param name="value">要写入的 4 字节浮点值。</param>
         public virtual void Write(float value) { Write(BitConverter.GetBytes(value), -1); }
 
-        /// <summary>将 8 字节浮点值写入当前流，并将流的位置提升 8 个字节。</summary>>
+        /// <summary>将 8 字节浮点值写入当前流，并将流的位置提升 8 个字节。</summary>
         /// <param name="value">要写入的 8 字节浮点值。</param>
         public virtual void Write(double value) { Write(BitConverter.GetBytes(value), -1); }
         #endregion
 
         #region 字符串
-        /// <summary>将 Unicode 字符写入当前流，并根据所使用的 Encoding 和向流中写入的特定字符，提升流的当前位置。</summary>>
+        /// <summary>将 Unicode 字符写入当前流，并根据所使用的 Encoding 和向流中写入的特定字符，提升流的当前位置。</summary>
         /// <param name="ch">要写入的非代理项 Unicode 字符。</param>
         public virtual void Write(char ch) { Write(Convert.ToByte(ch)); }
 
-        /// <summary>将字符数组写入当前流，并根据所使用的 Encoding 和向流中写入的特定字符，提升流的当前位置。</summary>>
+        /// <summary>将字符数组写入当前流，并根据所使用的 Encoding 和向流中写入的特定字符，提升流的当前位置。</summary>
         /// <param name="chars">包含要写入的数据的字符数组。</param>
         public virtual void Write(char[] chars) { Write(chars, 0, chars == null ? 0 : chars.Length); }
 
-        /// <summary>将字符数组部分写入当前流，并根据所使用的 Encoding（可能还根据向流中写入的特定字符），提升流的当前位置。</summary>>
+        /// <summary>将字符数组部分写入当前流，并根据所使用的 Encoding（可能还根据向流中写入的特定字符），提升流的当前位置。</summary>
         /// <param name="chars">包含要写入的数据的字符数组。</param>
         /// <param name="index">chars 中开始写入的起始点。</param>
         /// <param name="count">要写入的字符数。</param>
@@ -149,17 +149,17 @@ namespace NewLife.Serialization
             Write(buffer);
         }
 
-        /// <summary>写入字符串</summary>>
+        /// <summary>写入字符串</summary>
         /// <param name="value">要写入的值。</param>
         public virtual void Write(string value) { Write(value == null ? null : value.ToCharArray()); }
         #endregion
 
         #region 其它
-        /// <summary>将单字节 Boolean 值写入</summary>>
+        /// <summary>将单字节 Boolean 值写入</summary>
         /// <param name="value">要写入的 Boolean 值</param>
         public virtual void Write(Boolean value) { Write((Byte)(value ? 1 : 0)); }
 
-        /// <summary>将一个十进制值写入当前流，并将流位置提升十六个字节。</summary>>
+        /// <summary>将一个十进制值写入当前流，并将流位置提升十六个字节。</summary>
         /// <param name="value">要写入的十进制值。</param>
         public virtual void Write(decimal value)
         {
@@ -170,7 +170,7 @@ namespace NewLife.Serialization
             }
         }
 
-        /// <summary>将一个时间日期写入</summary>>
+        /// <summary>将一个时间日期写入</summary>
         /// <param name="value"></param>
         public virtual void Write(DateTime value) { Write(Settings.ConvertDateTimeToInt64(value)); }
         #endregion
@@ -182,7 +182,7 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public Boolean WriteValue(Object value) { return WriteValue(value, null); }
 
-        /// <summary>写入值类型，只能识别基础类型，对于不能识别的类型，方法返回false</summary>>
+        /// <summary>写入值类型，只能识别基础类型，对于不能识别的类型，方法返回false</summary>
         /// <param name="value">要写入的对象</param>
         /// <param name="type">要写入的对象类型</param>
         /// <returns>是否写入成功</returns>
@@ -302,7 +302,7 @@ namespace NewLife.Serialization
             return true;
         }
 
-        /// <summary>写入字典项</summary>>
+        /// <summary>写入字典项</summary>
         /// <param name="value">对象</param>
         /// <param name="keyType">键类型</param>
         /// <param name="valueType">值类型</param>
@@ -347,7 +347,7 @@ namespace NewLife.Serialization
             return rs;
         }
 
-        /// <summary>写入字典项</summary>>
+        /// <summary>写入字典项</summary>
         /// <param name="value">对象</param>
         /// <param name="keyType">键类型</param>
         /// <param name="valueType">值类型</param>
@@ -366,7 +366,7 @@ namespace NewLife.Serialization
             return true;
         }
 
-        /// <summary>取得字典的键值类型，默认只支持获取两个泛型参数的字典的键值类型</summary>>
+        /// <summary>取得字典的键值类型，默认只支持获取两个泛型参数的字典的键值类型</summary>
         /// <param name="type">字典类型</param>
         /// <param name="keyType">键类型</param>
         /// <param name="valueType">值类型</param>
@@ -391,7 +391,7 @@ namespace NewLife.Serialization
         #endregion
 
         #region 枚举
-        /// <summary>写入枚举类型数据</summary>>
+        /// <summary>写入枚举类型数据</summary>
         /// <param name="value">枚举数据</param>
         /// <returns>是否写入成功</returns>
         public Boolean Write(IEnumerable value)
@@ -399,7 +399,7 @@ namespace NewLife.Serialization
             return WriteEnumerable(value, null, WriteMember);
         }
 
-        /// <summary>写入枚举数据，复杂类型使用委托方法进行处理</summary>>
+        /// <summary>写入枚举数据，复杂类型使用委托方法进行处理</summary>
         /// <param name="value">对象</param>
         /// <param name="type">类型</param>
         /// <param name="callback">使用指定委托方法处理复杂数据</param>
@@ -443,7 +443,7 @@ namespace NewLife.Serialization
             return true;
         }
 
-        /// <summary>写入枚举项</summary>>
+        /// <summary>写入枚举项</summary>
         /// <param name="value">对象</param>
         /// <param name="type">元素类型</param>
         /// <param name="index">元素索引</param>
@@ -486,7 +486,7 @@ namespace NewLife.Serialization
             return rs;
         }
 
-        /// <summary>写入枚举项</summary>>
+        /// <summary>写入枚举项</summary>
         /// <param name="value">对象</param>
         /// <param name="type">元素类型</param>
         /// <param name="index">元素索引</param>
@@ -501,7 +501,7 @@ namespace NewLife.Serialization
         #endregion
 
         #region 序列化接口
-        /// <summary>写入实现了可序列化接口的对象</summary>>
+        /// <summary>写入实现了可序列化接口的对象</summary>
         /// <param name="value">要写入的对象</param>
         /// <param name="type">要写入的对象类型</param>
         /// <param name="callback">处理成员的方法</param>
@@ -517,7 +517,7 @@ namespace NewLife.Serialization
         #endregion
 
         #region 未知对象
-        /// <summary>写入未知对象（其它所有方法都无法识别的对象），采用BinaryFormatter或者XmlSerialization</summary>>
+        /// <summary>写入未知对象（其它所有方法都无法识别的对象），采用BinaryFormatter或者XmlSerialization</summary>
         /// <param name="value">要写入的对象</param>
         /// <param name="type">要写入的对象类型</param>
         /// <param name="callback">处理成员的方法</param>
@@ -538,7 +538,7 @@ namespace NewLife.Serialization
         #endregion
 
         #region 扩展处理类型
-        /// <summary>扩展写入，反射查找合适的写入方法</summary>>
+        /// <summary>扩展写入，反射查找合适的写入方法</summary>
         /// <param name="value"></param>
         /// <param name="type"></param>
         /// <returns></returns>
@@ -580,27 +580,27 @@ namespace NewLife.Serialization
             return false;
         }
 
-        /// <summary>写入Guid</summary>>
+        /// <summary>写入Guid</summary>
         /// <param name="value"></param>
         public virtual void Write(Guid value) { if (!WriteObjRef(value))  OnWrite(value); }
 
-        /// <summary>写入Guid</summary>>
+        /// <summary>写入Guid</summary>
         /// <param name="value"></param>
         protected virtual void OnWrite(Guid value) { Write(((Guid)value).ToByteArray(), -1); }
 
-        /// <summary>写入IPAddress</summary>>
+        /// <summary>写入IPAddress</summary>
         /// <param name="value"></param>
         public virtual void Write(IPAddress value) { if (!WriteObjRef(value)) OnWrite(value); }
 
-        /// <summary>写入IPAddress</summary>>
+        /// <summary>写入IPAddress</summary>
         /// <param name="value"></param>
         protected virtual void OnWrite(IPAddress value) { Write((value as IPAddress).GetAddressBytes()); }
 
-        /// <summary>写入IPEndPoint</summary>>
+        /// <summary>写入IPEndPoint</summary>
         /// <param name="value"></param>
         public virtual void Write(IPEndPoint value) { if (!WriteObjRef(value)) OnWrite(value); }
 
-        /// <summary>写入IPEndPoint</summary>>
+        /// <summary>写入IPEndPoint</summary>
         /// <param name="value"></param>
         protected virtual void OnWrite(IPEndPoint value)
         {
@@ -611,11 +611,11 @@ namespace NewLife.Serialization
             Write(value.Port);
         }
 
-        /// <summary>写入Type</summary>>
+        /// <summary>写入Type</summary>
         /// <param name="value"></param>
         public void Write(Type value) { if (!WriteObjRef(value))  OnWrite(value); }
 
-        /// <summary>写入Type</summary>>
+        /// <summary>写入Type</summary>
         /// <param name="value"></param>
         protected virtual void OnWrite(Type value)
         {
@@ -627,7 +627,7 @@ namespace NewLife.Serialization
             Depth--;
         }
 
-        /// <summary>写入Type</summary>>
+        /// <summary>写入Type</summary>
         /// <param name="value"></param>
         protected virtual void OnWriteType(Type value)
         {
@@ -672,7 +672,7 @@ namespace NewLife.Serialization
         /// <returns>是否写入成功</returns>
         public Boolean WriteObject(Object value) { return WriteObject(value, null, WriteMember); }
 
-        /// <summary>主要入口方法。把目标对象指定成员写入数据流，处理基础类型、特殊类型、基础类型数组、特殊类型数组，通过委托方法处理成员</summary>>
+        /// <summary>主要入口方法。把目标对象指定成员写入数据流，处理基础类型、特殊类型、基础类型数组、特殊类型数组，通过委托方法处理成员</summary>
         /// <param name="value">要写入的对象</param>
         /// <param name="type">要写入的对象类型</param>
         /// <param name="callback">处理成员的方法</param>
@@ -730,7 +730,7 @@ namespace NewLife.Serialization
             return rs;
         }
 
-        /// <summary>把目标对象指定成员写入数据流，处理基础类型、特殊类型、基础类型数组、特殊类型数组，通过委托方法处理成员</summary>>
+        /// <summary>把目标对象指定成员写入数据流，处理基础类型、特殊类型、基础类型数组、特殊类型数组，通过委托方法处理成员</summary>
         /// <param name="value">要写入的对象</param>
         /// <param name="type">要写入的对象类型</param>
         /// <param name="callback">处理成员的方法</param>
@@ -778,7 +778,7 @@ namespace NewLife.Serialization
             return true;
         }
 
-        /// <summary>写入引用对象</summary>>
+        /// <summary>写入引用对象</summary>
         /// <param name="value">要写入的对象</param>
         /// <param name="type">要写入的对象类型</param>
         /// <param name="callback">处理成员的方法</param>
@@ -974,28 +974,28 @@ namespace NewLife.Serialization
         #endregion
 
         #region 事件
-        /// <summary>写对象前触发。</summary>>
+        /// <summary>写对象前触发。</summary>
         public event EventHandler<WriteObjectEventArgs> OnObjectWriting;
 
-        /// <summary>写对象后触发。</summary>>
+        /// <summary>写对象后触发。</summary>
         public event EventHandler<WriteObjectEventArgs> OnObjectWrited;
 
-        /// <summary>写成员前触发。</summary>>
+        /// <summary>写成员前触发。</summary>
         public event EventHandler<WriteMemberEventArgs> OnMemberWriting;
 
-        /// <summary>写成员后触发。</summary>>
+        /// <summary>写成员后触发。</summary>
         public event EventHandler<WriteMemberEventArgs> OnMemberWrited;
 
-        /// <summary>写字典项前触发。</summary>>
+        /// <summary>写字典项前触发。</summary>
         public event EventHandler<WriteDictionaryEventArgs> OnDictionaryWriting;
 
-        /// <summary>写字典项后触发。</summary>>
+        /// <summary>写字典项后触发。</summary>
         public event EventHandler<WriteDictionaryEventArgs> OnDictionaryWrited;
 
-        /// <summary>写枚举项前触发。</summary>>
+        /// <summary>写枚举项前触发。</summary>
         public event EventHandler<WriteItemEventArgs> OnItemWriting;
 
-        /// <summary>写枚举项后触发。</summary>>
+        /// <summary>写枚举项后触发。</summary>
         public event EventHandler<WriteItemEventArgs> OnItemWrited;
         #endregion
 

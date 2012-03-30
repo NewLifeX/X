@@ -10,7 +10,7 @@ using TextTrans = NewLife.ServiceLib.TranslateResult.TextTrans;
 
 namespace XCoder
 {
-    /// <summary>使用s.nnhy.org的翻译服务翻译指定词汇</summary>>
+    /// <summary>使用s.nnhy.org的翻译服务翻译指定词汇</summary>
     class NnhyServiceTranslate : ITranslate
     {
 
@@ -83,14 +83,14 @@ namespace XCoder
                     result.Status, string.Join(", ", result.Messages.ToArray())));
             }
         }
-        /// <summary>向翻译服务添加新的翻译条目</summary>>
+        /// <summary>向翻译服务添加新的翻译条目</summary>
         /// <param name="trans"></param>
         /// <returns></returns>
         public int TranslateNew(string Kind, params string[] trans)
         {
             return TranslateNewWithSource(Kind, "XCoder.exe", trans);
         }
-        /// <summary>向翻译服务添加新的翻译条目</summary>>
+        /// <summary>向翻译服务添加新的翻译条目</summary>
         /// <param name="Kind"></param>
         /// <param name="Source"></param>
         /// <param name="trans"></param>

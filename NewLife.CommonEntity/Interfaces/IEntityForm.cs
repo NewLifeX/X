@@ -10,7 +10,7 @@ namespace NewLife.CommonEntity
     public interface IEntityForm
     {
         #region 初始化
-        /// <summary>使用控件容器和实体类初始化接口</summary>>
+        /// <summary>使用控件容器和实体类初始化接口</summary>
         /// <param name="container"></param>
         /// <param name="entityType"></param>
         IEntityForm Init(Control container, Type entityType);

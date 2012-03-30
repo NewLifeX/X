@@ -8,7 +8,7 @@ using System.Security.Permissions;
 
 namespace XControl
 {
-    /// <summary>分页模版项</summary>>
+    /// <summary>分页模版项</summary>
     [ToolboxItem(false)]
     [AspNetHostingPermission(SecurityAction.InheritanceDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     [AspNetHostingPermission(SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]

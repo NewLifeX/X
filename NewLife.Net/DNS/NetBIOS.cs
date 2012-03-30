@@ -9,7 +9,7 @@ namespace NewLife.Net.DNS
     /// <summary>NetBIOS名称</summary>
     public class NetBIOS
     {
-        /// <summary>查询名称</summary>>
+        /// <summary>查询名称</summary>
         /// <param name="name"></param>
         /// <returns></returns>
         public IPAddress QueryName(string name)
@@ -31,7 +31,7 @@ namespace NewLife.Net.DNS
             return nb.Address;
         }
 
-        /// <summary>注册</summary>>
+        /// <summary>注册</summary>
         /// <param name="name"></param>
         /// <param name="address"></param>
         /// <returns></returns>

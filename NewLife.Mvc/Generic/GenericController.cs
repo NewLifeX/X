@@ -29,7 +29,7 @@ namespace NewLife.Mvc
 
         #region 方法
 
-        /// <summary>使用指定的参数产生模版中使用的数据</summary>>
+        /// <summary>使用指定的参数产生模版中使用的数据</summary>
         /// <example>
         /// 一般用法:
         /// <code>
@@ -47,7 +47,7 @@ namespace NewLife.Mvc
             return Data(null, args);
         }
 
-        /// <summary>向指定模版数据添加额外的,如果参数data为null会自动创建一个新的data,返回添加了数据的data</summary>>
+        /// <summary>向指定模版数据添加额外的,如果参数data为null会自动创建一个新的data,返回添加了数据的data</summary>
         /// <example>
         /// 一般用法:
         /// <code>
@@ -71,7 +71,7 @@ namespace NewLife.Mvc
             return data;
         }
 
-        /// <summary>使用默认的模版生成页面</summary>>
+        /// <summary>使用默认的模版生成页面</summary>
         /// <param name="data"></param>
         public virtual void Render(IDictionary<string, object> data)
         {
@@ -79,7 +79,7 @@ namespace NewLife.Mvc
             Render(RouteContext.Current.RoutePath, data);
         }
 
-        /// <summary>使用指定模版生成页面</summary>>
+        /// <summary>使用指定模版生成页面</summary>
         /// <param name="path">相对于模版路径的</param>
         /// <param name="data"></param>
         public virtual void Render(string path, IDictionary<string, object> data)

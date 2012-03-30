@@ -16,7 +16,7 @@ namespace NewLife.CommonEntity
         where TRoleMenuEntity : RoleMenu<TRoleMenuEntity>, new()
     {
         #region 对象操作
-        /// <summary>首次连接数据库时初始化数据，仅用于实体类重载，用户不应该调用该方法</summary>>
+        /// <summary>首次连接数据库时初始化数据，仅用于实体类重载，用户不应该调用该方法</summary>
         [EditorBrowsable(EditorBrowsableState.Never)]
         protected override void InitData()
         {
@@ -110,7 +110,7 @@ namespace NewLife.CommonEntity
             rms.Delete();
         }
 
-        /// <summary>已重载。关联删除权限项。</summary>>
+        /// <summary>已重载。关联删除权限项。</summary>
         /// <returns></returns>
         protected override int OnDelete()
         {
@@ -120,7 +120,7 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region 扩展属性
-        /// <summary>菜单</summary>>
+        /// <summary>菜单</summary>
         [XmlIgnore]
         public virtual EntityList<TRoleMenuEntity> Menus
         {
@@ -128,7 +128,7 @@ namespace NewLife.CommonEntity
             set { Extends["Menus"] = value; }
         }
 
-        /// <summary>拥有权限的菜单</summary>>
+        /// <summary>拥有权限的菜单</summary>
         [XmlIgnore]
         public virtual EntityList<TMenuEntity> MenuList
         {
@@ -147,7 +147,7 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region 业务
-        /// <summary>申请指定菜单指定操作的权限</summary>>
+        /// <summary>申请指定菜单指定操作的权限</summary>
         /// <param name="menuID"></param>
         /// <param name="flag"></param>
         /// <returns></returns>
@@ -180,7 +180,7 @@ namespace NewLife.CommonEntity
             return rm.Acquire(flag);
         }
 
-        /// <summary>取得当前角色的子菜单，有权限、可显示、排序</summary>>
+        /// <summary>取得当前角色的子菜单，有权限、可显示、排序</summary>
         /// <param name="parentID"></param>
         /// <returns></returns>
         public EntityList<TMenuEntity> GetMySubMenus(Int32 parentID)
@@ -196,7 +196,7 @@ namespace NewLife.CommonEntity
             return list;
         }
 
-        /// <summary>取得当前角色的子菜单，有权限、可显示、排序</summary>>
+        /// <summary>取得当前角色的子菜单，有权限、可显示、排序</summary>
         /// <param name="parentID"></param>
         /// <returns></returns>
         protected internal override List<IMenu> GetMySubMenusInternal(int parentID)
@@ -229,7 +229,7 @@ namespace NewLife.CommonEntity
             TEntity entity = new TEntity();
         }
 
-        /// <summary>首次连接数据库时初始化数据，仅用于实体类重载，用户不应该调用该方法</summary>>
+        /// <summary>首次连接数据库时初始化数据，仅用于实体类重载，用户不应该调用该方法</summary>
         [EditorBrowsable(EditorBrowsableState.Never)]
         protected override void InitData()
         {
@@ -246,7 +246,7 @@ namespace NewLife.CommonEntity
             if (XTrace.Debug) XTrace.WriteLine("完成初始化{0}角色数据！", typeof(TEntity).Name);
         }
 
-        /// <summary>已重载。调用Save时写日志，而调用Insert和Update时不写日志</summary>>
+        /// <summary>已重载。调用Save时写日志，而调用Insert和Update时不写日志</summary>
         /// <returns></returns>
         public override int Save()
         {
@@ -258,7 +258,7 @@ namespace NewLife.CommonEntity
             return base.Save();
         }
 
-        /// <summary>已重载。</summary>>
+        /// <summary>已重载。</summary>
         /// <returns></returns>
         public override int Delete()
         {
@@ -275,7 +275,7 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region 扩展查询
-        /// <summary>根据主键查询一个角色实体对象用于表单编辑</summary>>
+        /// <summary>根据主键查询一个角色实体对象用于表单编辑</summary>
         /// <param name="__ID">角色编号</param>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
@@ -289,7 +289,7 @@ namespace NewLife.CommonEntity
             return entity;
         }
 
-        /// <summary>根据编号查找角色</summary>>
+        /// <summary>根据编号查找角色</summary>
         /// <param name="id"></param>
         /// <returns></returns>
         public static TEntity FindByID(Int32 id)
@@ -304,18 +304,18 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region 业务
-        /// <summary>申请指定菜单指定操作的权限</summary>>
+        /// <summary>申请指定菜单指定操作的权限</summary>
         /// <param name="menuID"></param>
         /// <param name="flag"></param>
         /// <returns></returns>
         public abstract Boolean Acquire(Int32 menuID, PermissionFlags flag);
 
-        /// <summary>取得当前角色的子菜单，有权限、可显示、排序</summary>>
+        /// <summary>取得当前角色的子菜单，有权限、可显示、排序</summary>
         /// <param name="parentID"></param>
         /// <returns></returns>
         List<IMenu> IRole.GetMySubMenus(Int32 parentID) { return GetMySubMenusInternal(parentID); }
 
-        /// <summary>取得当前角色的子菜单，有权限、可显示、排序</summary>>
+        /// <summary>取得当前角色的子菜单，有权限、可显示、排序</summary>
         /// <param name="parentID"></param>
         /// <returns></returns>
         internal protected abstract List<IMenu> GetMySubMenusInternal(Int32 parentID);
@@ -324,13 +324,13 @@ namespace NewLife.CommonEntity
 
     public partial interface IRole
     {
-        /// <summary>申请指定菜单指定操作的权限</summary>>
+        /// <summary>申请指定菜单指定操作的权限</summary>
         /// <param name="menuID"></param>
         /// <param name="flag"></param>
         /// <returns></returns>
         Boolean Acquire(Int32 menuID, PermissionFlags flag);
 
-        /// <summary>取得当前角色的子菜单，有权限、可显示、排序</summary>>
+        /// <summary>取得当前角色的子菜单，有权限、可显示、排序</summary>
         /// <param name="parentID"></param>
         /// <returns></returns>
         List<IMenu> GetMySubMenus(Int32 parentID);

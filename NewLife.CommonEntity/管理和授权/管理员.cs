@@ -12,7 +12,7 @@ using XCode.DataAccessLayer;
 
 namespace NewLife.CommonEntity
 {
-    /// <summary>管理员</summary>>
+    /// <summary>管理员</summary>
     [Serializable]
     [DataObject]
     [BindIndex("IX_Administrator_Name", true, "Name")]
@@ -25,7 +25,7 @@ namespace NewLife.CommonEntity
     {
         #region 属性
         private Int32 _ID;
-        /// <summary>编号</summary>>
+        /// <summary>编号</summary>
         [Description("编号")]
         [DataObjectField(true, true, false, 10)]
         [BindColumn(1, "ID", "编号", "", "int", 10, 0, false)]
@@ -36,7 +36,7 @@ namespace NewLife.CommonEntity
         }
 
         private String _Name;
-        /// <summary>名称</summary>>
+        /// <summary>名称</summary>
         [Description("名称")]
         [DataObjectField(false, false, true, 50)]
         [BindColumn(2, "Name", "名称", "", "nvarchar(50)", 0, 0, true)]
@@ -47,7 +47,7 @@ namespace NewLife.CommonEntity
         }
 
         private String _Password;
-        /// <summary>密码</summary>>
+        /// <summary>密码</summary>
         [Description("密码")]
         [DataObjectField(false, false, true, 50)]
         [BindColumn(3, "Password", "密码", "", "nvarchar(50)", 0, 0, true)]
@@ -58,7 +58,7 @@ namespace NewLife.CommonEntity
         }
 
         private String _DisplayName;
-        /// <summary>显示名</summary>>
+        /// <summary>显示名</summary>
         [Description("显示名")]
         [DataObjectField(false, false, true, 50)]
         [BindColumn(4, "DisplayName", "显示名", "", "nvarchar(50)", 0, 0, true)]
@@ -69,7 +69,7 @@ namespace NewLife.CommonEntity
         }
 
         private Int32 _RoleID;
-        /// <summary>角色</summary>>
+        /// <summary>角色</summary>
         [Description("角色")]
         [DataObjectField(false, false, true, 10)]
         [BindColumn(5, "RoleID", "角色", "", "int", 10, 0, false)]
@@ -80,7 +80,7 @@ namespace NewLife.CommonEntity
         }
 
         private Int32 _Logins;
-        /// <summary>登录次数</summary>>
+        /// <summary>登录次数</summary>
         [Description("登录次数")]
         [DataObjectField(false, false, true, 10)]
         [BindColumn(6, "Logins", "登录次数", "", "int", 10, 0, false)]
@@ -91,7 +91,7 @@ namespace NewLife.CommonEntity
         }
 
         private DateTime _LastLogin;
-        /// <summary>最后登录</summary>>
+        /// <summary>最后登录</summary>
         [Description("最后登录")]
         [DataObjectField(false, false, true, 3)]
         [BindColumn(7, "LastLogin", "最后登录", "", "datetime", 3, 0, false)]
@@ -102,7 +102,7 @@ namespace NewLife.CommonEntity
         }
 
         private String _LastLoginIP;
-        /// <summary>最后登陆IP</summary>>
+        /// <summary>最后登陆IP</summary>
         [Description("最后登陆IP")]
         [DataObjectField(false, false, true, 50)]
         [BindColumn(8, "LastLoginIP", "最后登陆IP", "", "nvarchar(50)", 0, 0, true)]
@@ -113,7 +113,7 @@ namespace NewLife.CommonEntity
         }
 
         private Int32 _SSOUserID;
-        /// <summary>登录用户编号</summary>>
+        /// <summary>登录用户编号</summary>
         [Description("登录用户编号")]
         [DataObjectField(false, false, true, 10)]
         [BindColumn(9, "SSOUserID", "登录用户编号", "", "int", 10, 0, false)]
@@ -124,7 +124,7 @@ namespace NewLife.CommonEntity
         }
 
         private Boolean _IsEnable;
-        /// <summary>是否使用</summary>>
+        /// <summary>是否使用</summary>
         [Description("是否使用")]
         [DataObjectField(false, false, true, 1)]
         [BindColumn(10, "IsEnable", "是否使用", "", "bit", 0, 0, false)]
@@ -183,7 +183,7 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region 字段名
-        /// <summary>取得管理员字段名的快捷方式</summary>>
+        /// <summary>取得管理员字段名的快捷方式</summary>
         public class _
         {
             ///<summary>编号</summary>
@@ -219,38 +219,38 @@ namespace NewLife.CommonEntity
         #endregion
     }
 
-    /// <summary>管理员接口</summary>>
+    /// <summary>管理员接口</summary>
     public partial interface IAdministrator
     {
         #region 属性
-        /// <summary>编号</summary>>
+        /// <summary>编号</summary>
         Int32 ID { get; set; }
 
-        /// <summary>名称</summary>>
+        /// <summary>名称</summary>
         String Name { get; set; }
 
-        /// <summary>密码</summary>>
+        /// <summary>密码</summary>
         String Password { get; set; }
 
-        /// <summary>显示名</summary>>
+        /// <summary>显示名</summary>
         String DisplayName { get; set; }
 
-        /// <summary>角色</summary>>
+        /// <summary>角色</summary>
         Int32 RoleID { get; set; }
 
-        /// <summary>登录次数</summary>>
+        /// <summary>登录次数</summary>
         Int32 Logins { get; set; }
 
-        /// <summary>最后登录</summary>>
+        /// <summary>最后登录</summary>
         DateTime LastLogin { get; set; }
 
-        /// <summary>最后登陆IP</summary>>
+        /// <summary>最后登陆IP</summary>
         String LastLoginIP { get; set; }
 
-        /// <summary>登录用户编号</summary>>
+        /// <summary>登录用户编号</summary>
         Int32 SSOUserID { get; set; }
 
-        /// <summary>是否使用</summary>>
+        /// <summary>是否使用</summary>
         Boolean IsEnable { get; set; }
         #endregion
 

@@ -22,7 +22,7 @@ namespace XControl
      * 
      * */
 
-    /// <summary>下拉列表。绑定时，如果没有对应的选择项，则自动加上。</summary>>
+    /// <summary>下拉列表。绑定时，如果没有对应的选择项，则自动加上。</summary>
     [ToolboxData("<{0}:DropDownList runat=\"server\"> </{0}:DropDownList>")]
     public class DropDownList : DropDownList_Old
     {
@@ -46,7 +46,7 @@ namespace XControl
         }
 
         //private String cachedSelectedValue;
-        /// <summary>已重载。加上未添加到列表的项。</summary>>
+        /// <summary>已重载。加上未添加到列表的项。</summary>
         public override string SelectedValue
         {
             get
@@ -70,7 +70,7 @@ namespace XControl
             }
         }
 
-        /// <summary>绑定数据</summary>>
+        /// <summary>绑定数据</summary>
         /// <param name="dataSource"></param>
         protected override void PerformDataBinding(IEnumerable dataSource)
         {
@@ -177,7 +177,7 @@ namespace XControl
         }
 
         private Boolean selecting = false;
-        /// <summary>已重载。避免绑定时重入该方法</summary>>
+        /// <summary>已重载。避免绑定时重入该方法</summary>
         protected override void PerformSelect()
         {
             if (selecting) return;

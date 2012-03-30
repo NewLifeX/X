@@ -75,7 +75,7 @@ namespace NewLife.Serialization
             AutoFlush();
         }
 
-        /// <summary>将字节数组部分写入当前流。</summary>>
+        /// <summary>将字节数组部分写入当前流。</summary>
         /// <param name="buffer">包含要写入的数据的字节数组。</param>
         /// <param name="index">buffer 中开始写入的起始点。</param>
         /// <param name="count">要写入的字节数。</param>
@@ -104,7 +104,7 @@ namespace NewLife.Serialization
         #endregion
 
         #region 整数
-        /// <summary>将 2 字节有符号整数写入当前流，并将流的位置提升 2 个字节。</summary>>
+        /// <summary>将 2 字节有符号整数写入当前流，并将流的位置提升 2 个字节。</summary>
         /// <param name="value">要写入的 2 字节有符号整数。</param>
         public override void Write(short value)
         {
@@ -114,7 +114,7 @@ namespace NewLife.Serialization
                 base.Write(value);
         }
 
-        /// <summary>将 4 字节有符号整数写入当前流，并将流的位置提升 4 个字节。</summary>>
+        /// <summary>将 4 字节有符号整数写入当前流，并将流的位置提升 4 个字节。</summary>
         /// <param name="value">要写入的 4 字节有符号整数。</param>
         public override void Write(int value)
         {
@@ -124,7 +124,7 @@ namespace NewLife.Serialization
                 base.Write(value);
         }
 
-        /// <summary>将 8 字节有符号整数写入当前流，并将流的位置提升 8 个字节。</summary>>
+        /// <summary>将 8 字节有符号整数写入当前流，并将流的位置提升 8 个字节。</summary>
         /// <param name="value">要写入的 8 字节有符号整数。</param>
         public override void Write(long value)
         {
@@ -216,7 +216,7 @@ namespace NewLife.Serialization
         #endregion
 
         #region 扩展处理类型
-        /// <summary>写入Type</summary>>
+        /// <summary>写入Type</summary>
         /// <param name="value"></param>
         protected override void OnWriteType(Type value)
         {
@@ -315,7 +315,7 @@ namespace NewLife.Serialization
         #endregion
 
         #region 枚举
-        /// <summary>写入枚举数据，复杂类型使用委托方法进行处理</summary>>
+        /// <summary>写入枚举数据，复杂类型使用委托方法进行处理</summary>
         /// <param name="value">对象</param>
         /// <param name="type">类型</param>
         /// <param name="callback">使用指定委托方法处理复杂数据</param>

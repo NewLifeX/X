@@ -30,14 +30,14 @@ using System.Web.UI.WebControls;
 
 namespace XControl
 {
-    /// <summary>日期时间选择器</summary>>
+    /// <summary>日期时间选择器</summary>
     [DefaultProperty("Text")]
     [ToolboxData("<{0}:DateTimePicker runat=server></{0}:DateTimePicker>")]
     [ControlValueProperty("Value")]
     public class DateTimePicker : TextBox
     {
         #region 属性
-        /// <summary>是否长时间格式</summary>>
+        /// <summary>是否长时间格式</summary>
         [Bindable(true)]
         [Category("专用")]
         [Description("是否长时间格式")]
@@ -55,7 +55,7 @@ namespace XControl
             }
         }
 
-        /// <summary>是否只显示时间部分格式</summary>>
+        /// <summary>是否只显示时间部分格式</summary>
         [Bindable(true)]
         [Category("专用")]
         [Description("是否只显示时间部分格式")]
@@ -73,7 +73,7 @@ namespace XControl
             }
         }
 
-        /// <summary>客户端只读</summary>>
+        /// <summary>客户端只读</summary>
         [Bindable(true)]
         [Category("专用")]
         [Description("客户端只读")]
@@ -91,7 +91,7 @@ namespace XControl
             }
         }
 
-        /// <summary></summary>>
+        /// <summary></summary>
         [Bindable(true)]
         [Category("专用")]
         [Description("皮肤")]
@@ -110,7 +110,7 @@ namespace XControl
             }
         }
 
-        /// <summary>语言</summary>>
+        /// <summary>语言</summary>
         [Bindable(true)]
         [Category("专用")]
         [Description("语言")]
@@ -129,7 +129,7 @@ namespace XControl
             }
         }
 
-        /// <summary></summary>>
+        /// <summary></summary>
         [Bindable(true)]
         [Category("专用")]
         [DefaultValue("")]
@@ -197,7 +197,7 @@ namespace XControl
         //}
         #endregion
 
-        /// <summary></summary>>
+        /// <summary></summary>
         /// <param name="e"></param>
         protected override void OnInit(EventArgs e)
         {
@@ -208,7 +208,7 @@ namespace XControl
                 Width = new Unit(86);
         }
 
-        /// <summary></summary>>
+        /// <summary></summary>
         /// <param name="e"></param>
         protected override void OnLoad(EventArgs e)
         {
@@ -281,28 +281,28 @@ namespace XControl
         }
     }
 
-    /// <summary>皮肤</summary>>
+    /// <summary>皮肤</summary>
     public enum Skins
     {
-        /// <summary>默认</summary>>
+        /// <summary>默认</summary>
         默认,
 
-        /// <summary>绿色</summary>>
+        /// <summary>绿色</summary>
         绿色
     }
-    /// <summary>语言</summary>>
+    /// <summary>语言</summary>
     public enum Langs
     {
-        /// <summary>自动</summary>>
+        /// <summary>自动</summary>
         自动,
 
-        /// <summary>英文</summary>>
+        /// <summary>英文</summary>
         英文,
 
-        /// <summary>简体中文</summary>>
+        /// <summary>简体中文</summary>
         简体中文,
 
-        /// <summary>繁体中文</summary>>
+        /// <summary>繁体中文</summary>
         繁体中文
     }
 }

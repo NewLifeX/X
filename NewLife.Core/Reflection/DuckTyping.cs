@@ -8,13 +8,13 @@ using NewLife.Collections;
 
 namespace NewLife.Reflection
 {
-    /// <summary>鸭子类型。用于解决编写插件时必须实现插件接口的问题。使用适配器模式，动态生成代理类。</summary>>
+    /// <summary>鸭子类型。用于解决编写插件时必须实现插件接口的问题。使用适配器模式，动态生成代理类。</summary>
     static class DuckTyping
     {
         static DictionaryCache<KeyValuePair<Type, Type>, Type> _cache = new DictionaryCache<KeyValuePair<Type, Type>, Type>();
         static CodeDomDuckTypeGenerator _generator = new CodeDomDuckTypeGenerator();
 
-        /// <summary>转换多个对象</summary>>
+        /// <summary>转换多个对象</summary>
         /// <typeparam name="TInterface"></typeparam>
         /// <param name="objects"></param>
         /// <returns></returns>
@@ -41,7 +41,7 @@ namespace NewLife.Reflection
             return ducks;
         }
 
-        /// <summary>转换单个对象</summary>>
+        /// <summary>转换单个对象</summary>
         /// <typeparam name="TInterface"></typeparam>
         /// <param name="obj"></param>
         /// <returns></returns>
@@ -62,7 +62,7 @@ namespace NewLife.Reflection
             //return duck;
         }
 
-        /// <summary>转换单个对象</summary>>
+        /// <summary>转换单个对象</summary>
         /// <param name="obj"></param>
         /// <param name="interfaceType"></param>
         /// <returns></returns>
@@ -80,7 +80,7 @@ namespace NewLife.Reflection
             return TypeX.CreateInstance(duckType, obj);
         }
 
-        /// <summary>准备鸭子类型</summary>>
+        /// <summary>准备鸭子类型</summary>
         /// <typeparam name="TInterface"></typeparam>
         /// <param name="duckedTypes"></param>
         public static void PrepareDuckTypes<TInterface>(params Type[] duckedTypes)
@@ -151,7 +151,7 @@ namespace NewLife.Reflection
             return duckTypes;
         }
 
-        /// <summary>Core-Creation of the DuckTypes. It asumes that all arguments are validated before the method is called.</summary>>
+        /// <summary>Core-Creation of the DuckTypes. It asumes that all arguments are validated before the method is called.</summary>
         /// <param name="interfaceType"></param>
         /// <param name="duckedTypes">a distinct list of Types to create the Duck-Types</param>
         /// <returns></returns>

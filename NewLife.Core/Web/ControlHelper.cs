@@ -9,10 +9,10 @@ using NewLife.Reflection;
 
 namespace NewLife.Web
 {
-    /// <summary>控件助手</summary>>
+    /// <summary>控件助手</summary>
     public static class ControlHelper
     {
-        /// <summary>查找指定类型的子孙控件</summary>>
+        /// <summary>查找指定类型的子孙控件</summary>
         /// <typeparam name="T">目标控件类型</typeparam>
         /// <param name="control">父控件，从该控件开始向下进行广度搜索</param>
         /// <param name="id">控件ID，不指定表示不限制</param>
@@ -51,7 +51,7 @@ namespace NewLife.Web
             return null;
         }
 
-        /// <summary>查找指定控件附近的控件，向上搜索</summary>>
+        /// <summary>查找指定控件附近的控件，向上搜索</summary>
         /// <typeparam name="T">目标控件类型</typeparam>
         /// <param name="control">指定控件</param>
         /// <param name="id">控件ID，不指定表示不限制</param>
@@ -100,7 +100,7 @@ namespace NewLife.Web
             return null;
         }
 
-        /// <summary>在页面查找指定ID的控件，采用反射字段的方法，避免遍历Controls引起子控件构造</summary>>
+        /// <summary>在页面查找指定ID的控件，采用反射字段的方法，避免遍历Controls引起子控件构造</summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="id"></param>
         /// <returns></returns>

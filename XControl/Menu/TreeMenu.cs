@@ -29,19 +29,19 @@ namespace XControl
         public List<TreeMenuNode> Nodes { get { return _Nodes; } set { _Nodes = value; } }
 
         #region 资源
-        /// <summary>默认Xsl</summary>>
+        /// <summary>默认Xsl</summary>
         public static String xslFilePath = Page().ClientScript.GetWebResourceUrl(typeof(TreeMenuRoot), "XControl.Menu.RS.XSL.xsl").Replace("&", "&amp;");
 
-        /// <summary>菜单js资源路径</summary>>
+        /// <summary>菜单js资源路径</summary>
         public static String jsFilePath = Page().ClientScript.GetWebResourceUrl(typeof(TreeMenuRoot), "XControl.Menu.RS.tree.js").Replace("&", "&amp;");
 
-        /// <summary>关闭</summary>>
+        /// <summary>关闭</summary>
         public static String ImagePath = Page().ClientScript.GetWebResourceUrl(typeof(TreeMenuRoot), "XControl.Menu.RS.book.gif");
 
-        /// <summary>打开</summary>>
+        /// <summary>打开</summary>
         public static String ImageOpenPath = Page().ClientScript.GetWebResourceUrl(typeof(TreeMenuRoot), "XControl.Menu.RS.bookopen.gif");
 
-        /// <summary>无子级</summary>>
+        /// <summary>无子级</summary>
         public static String ImagePagePath = Page().ClientScript.GetWebResourceUrl(typeof(TreeMenuRoot), "XControl.Menu.RS.paper.gif");
         #endregion
 
@@ -51,7 +51,7 @@ namespace XControl
         //public TreeMenuRoot() { }
 
         #region 方法
-        /// <summary>用于获取资源URL</summary>>
+        /// <summary>用于获取资源URL</summary>
         /// <returns></returns>
         private static Page Page() { return HttpContext.Current.Handler as Page ?? new Page(); }
 
@@ -99,7 +99,7 @@ namespace XControl
             return root;
         }
 
-        /// <summary>通过节点列表</summary>>
+        /// <summary>通过节点列表</summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="nodeList"></param>
         /// <param name="getChildsfun"></param>
@@ -269,7 +269,7 @@ namespace XControl
         //}
 
         #region 扩展方法
-        /// <summary>设置默认图片</summary>>
+        /// <summary>设置默认图片</summary>
         /// <returns></returns>
         public TreeMenuNode ResetImage() { return ResetTreeNode(this); }
 

@@ -95,7 +95,7 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region 扩展查询﻿
-        /// <summary>根据模版、名称查找</summary>>
+        /// <summary>根据模版、名称查找</summary>
         /// <param name="templateid">模版</param>
         /// <param name="name">名称</param>
         /// <returns></returns>
@@ -108,7 +108,7 @@ namespace NewLife.CommonEntity
                 return Meta.Cache.Entities.Find(e => e.TemplateID == templateid && e.Name == name);
         }
 
-        /// <summary>根据模版查找</summary>>
+        /// <summary>根据模版查找</summary>
         /// <param name="templateid">模版</param>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
@@ -120,7 +120,7 @@ namespace NewLife.CommonEntity
                 return Meta.Cache.Entities.FindAll(_.TemplateID, templateid);
         }
 
-        /// <summary>根据编号查找</summary>>
+        /// <summary>根据编号查找</summary>
         /// <param name="id">编号</param>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
@@ -136,7 +136,7 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region 对象操作﻿
-        /// <summary>已重载。</summary>>
+        /// <summary>已重载。</summary>
         /// <param name="forEdit"></param>
         /// <returns></returns>
         protected override TEntity CreateInstance(bool forEdit = false)
@@ -155,7 +155,7 @@ namespace NewLife.CommonEntity
         //    return base.Insert();
         //}
 
-        /// <summary>已重载。在事务保护范围内处理业务，位于Valid之后</summary>>
+        /// <summary>已重载。在事务保护范围内处理业务，位于Valid之后</summary>
         /// <returns></returns>
         protected override Int32 OnInsert()
         {
@@ -170,7 +170,7 @@ namespace NewLife.CommonEntity
             return rs;
         }
 
-        /// <summary>已重载</summary>>
+        /// <summary>已重载</summary>
         /// <returns></returns>
         protected override int OnUpdate()
         {
@@ -189,7 +189,7 @@ namespace NewLife.CommonEntity
             return base.OnUpdate();
         }
 
-        /// <summary>验证数据，通过抛出异常的方式提示验证失败。</summary>>
+        /// <summary>验证数据，通过抛出异常的方式提示验证失败。</summary>
         /// <param name="isNew"></param>
         public override void Valid(Boolean isNew)
         {
@@ -203,7 +203,7 @@ namespace NewLife.CommonEntity
             if (isNew && !Dirtys[_.Kind]) Kind = "XTemplate";
         }
 
-        /// <summary>已重载。删除关联数据</summary>>
+        /// <summary>已重载。删除关联数据</summary>
         /// <returns></returns>
         protected override int OnDelete()
         {
@@ -240,7 +240,7 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region 高级查询
-        /// <summary>查询满足条件的记录集，分页、排序</summary>>
+        /// <summary>查询满足条件的记录集，分页、排序</summary>
         /// <param name="templateid">模版编号</param>
         /// <param name="key">关键字</param>
         /// <param name="orderClause">排序，不带Order By</param>
@@ -253,7 +253,7 @@ namespace NewLife.CommonEntity
             return FindAll(SearchWhere(templateid, key), orderClause, null, startRowIndex, maximumRows);
         }
 
-        /// <summary>查询满足条件的记录总数，分页和排序无效，带参数是因为ObjectDataSource要求它跟Search统一</summary>>
+        /// <summary>查询满足条件的记录总数，分页和排序无效，带参数是因为ObjectDataSource要求它跟Search统一</summary>
         /// <param name="templateid">模版编号</param>
         /// <param name="key">关键字</param>
         /// <param name="orderClause">排序，不带Order By</param>
@@ -265,7 +265,7 @@ namespace NewLife.CommonEntity
             return FindCount(SearchWhere(templateid, key), null, null, 0, 0);
         }
 
-        /// <summary>构造搜索条件</summary>>
+        /// <summary>构造搜索条件</summary>
         /// <param name="templateid">模版编号</param>
         /// <param name="key">关键字</param>
         /// <returns></returns>

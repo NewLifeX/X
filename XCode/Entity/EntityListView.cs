@@ -11,14 +11,14 @@ namespace XCode
     partial class EntityListView<T> : ListBase<T>, ITypedList, IBindingList, IBindingListView, ICancelAddNew where T : IEntity
     {
         #region 重载
-        /// <summary>初始化</summary>>
+        /// <summary>初始化</summary>
         public EntityListView()
         {
             // 使用实体列表作为内部列表，便于提供排序等功能
             InnerList = new EntityList<T>();
         }
 
-        /// <summary>已重载。新增元素时，触发事件改变</summary>>
+        /// <summary>已重载。新增元素时，触发事件改变</summary>
         /// <param name="index"></param>
         /// <param name="value"></param>
         public override void Insert(int index, T value)
@@ -28,7 +28,7 @@ namespace XCode
             OnListChanged(new ListChangedEventArgs(ListChangedType.ItemAdded, index));
         }
 
-        /// <summary>已重载。从列表中删除项时，同时从数据库中删除实体</summary>>
+        /// <summary>已重载。从列表中删除项时，同时从数据库中删除实体</summary>
         /// <param name="index"></param>
         public override void RemoveAt(int index)
         {
@@ -429,7 +429,7 @@ namespace XCode
         #endregion
 
         #region 辅助函数
-        /// <summary>真正的实体类型。有些场合为了需要会使用IEntity。</summary>>
+        /// <summary>真正的实体类型。有些场合为了需要会使用IEntity。</summary>
         Type EntityType
         {
             get
@@ -443,7 +443,7 @@ namespace XCode
             }
         }
 
-        /// <summary>实体操作者</summary>>
+        /// <summary>实体操作者</summary>
         IEntityOperate Factory
         {
             get

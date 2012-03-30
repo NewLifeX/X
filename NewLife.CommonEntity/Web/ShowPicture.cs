@@ -10,7 +10,7 @@ using System.Reflection;
 
 namespace NewLife.CommonEntity.Web
 {
-    /// <summary>显示图片</summary>>
+    /// <summary>显示图片</summary>
     public class ShowPicture : AttachmentHttpHandler
     {
         #region 属性
@@ -53,7 +53,7 @@ namespace NewLife.CommonEntity.Web
         //}
 
         //static Stream nopic = null;
-        /// <summary>未找到</summary>>
+        /// <summary>未找到</summary>
         /// <param name="context"></param>
         protected override void OnNotFound(HttpContext context)
         {
@@ -73,7 +73,7 @@ namespace NewLife.CommonEntity.Web
             OnResponse(context, entity, stream, null);
         }
 
-        /// <summary>取得文件流，判断是否小图片，特殊处理</summary>>
+        /// <summary>取得文件流，判断是否小图片，特殊处理</summary>
         /// <param name="context"></param>
         /// <param name="attachment"></param>
         /// <returns></returns>
@@ -106,7 +106,7 @@ namespace NewLife.CommonEntity.Web
             return stream;
         }
 
-        /// <summary>生成缩略图</summary>>
+        /// <summary>生成缩略图</summary>
         /// <param name="stream">源图</param>
         /// <param name="width">缩略图宽度</param>
         /// <param name="height">缩略图高度</param>

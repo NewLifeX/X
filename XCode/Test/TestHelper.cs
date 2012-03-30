@@ -20,7 +20,7 @@ namespace XCode.Test
             if (!DAL.ConnStrs.ContainsKey(Meta.ConnName)) DAL.AddConnStr(Meta.ConnName, "Server=.;Integrated Security=SSPI;Database=" + Meta.ConnName, null, "mssql");
         }
 
-        /// <summary>初始化数据</summary>>
+        /// <summary>初始化数据</summary>
         protected internal override void InitData()
         {
             base.InitData();
@@ -47,7 +47,7 @@ namespace XCode.Test
             entity.Save();
         }
 
-        /// <summary>测试主方法</summary>>
+        /// <summary>测试主方法</summary>
         public static void Test()
         {
             while (Meta.Count < 1) Thread.Sleep(100);

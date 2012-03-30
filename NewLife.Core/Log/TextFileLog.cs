@@ -10,14 +10,14 @@ using NewLife.Reflection;
 
 namespace NewLife.Log
 {
-    /// <summary>文本文件日志类。提供向文本文件写日志的能力</summary>>
+    /// <summary>文本文件日志类。提供向文本文件写日志的能力</summary>
     public class TextFileLog
     {
         #region 构造
         private TextFileLog(String path) { FilePath = path; }
 
         static DictionaryCache<String, TextFileLog> cache = new DictionaryCache<string, TextFileLog>();
-        /// <summary>每个目录的日志实例应该只有一个，所以采用静态创建</summary>>
+        /// <summary>每个目录的日志实例应该只有一个，所以采用静态创建</summary>
         /// <param name="path"></param>
         /// <returns></returns>
         public static TextFileLog Create(String path)
@@ -39,7 +39,7 @@ namespace NewLife.Log
         }
 
         private String _LogPath;
-        /// <summary>日志目录</summary>>
+        /// <summary>日志目录</summary>
         public String LogPath
         {
             get
@@ -57,14 +57,14 @@ namespace NewLife.Log
             }
         }
 
-        /// <summary>是否当前进程的第一次写日志</summary>>
+        /// <summary>是否当前进程的第一次写日志</summary>
         private Boolean isFirst = false;
         #endregion
 
         #region 内部方法
         private StreamWriter LogWriter;
 
-        /// <summary>初始化日志记录文件</summary>>
+        /// <summary>初始化日志记录文件</summary>
         private void InitLog()
         {
             String path = LogPath;
@@ -145,7 +145,7 @@ namespace NewLife.Log
             LogWriter.WriteLine("#Fields: Time ThreadID IsPoolThread ThreadName Message");
         }
 
-        /// <summary>停止日志</summary>>
+        /// <summary>停止日志</summary>
         private void CloseWriter(Object obj)
         {
             if (LogWriter == null) return;
@@ -167,7 +167,7 @@ namespace NewLife.Log
         private Timer AutoCloseWriterTimer;
         private object Log_Lock = new object();
 
-        /// <summary>使用线程池线程异步执行日志写入动作</summary>>
+        /// <summary>使用线程池线程异步执行日志写入动作</summary>
         /// <param name="obj"></param>
         private void PerformWriteLog(Object obj)
         {
@@ -190,7 +190,7 @@ namespace NewLife.Log
         #endregion
 
         #region 写日志
-        /// <summary>输出日志</summary>>
+        /// <summary>输出日志</summary>
         /// <param name="msg">信息</param>
         public void WriteLine(String msg)
         {
@@ -212,7 +212,7 @@ namespace NewLife.Log
             //finally { WriteLogEventArgs.Push(e); }
         }
 
-        /// <summary>输出异常日志</summary>>
+        /// <summary>输出异常日志</summary>
         /// <param name="ex">异常信息</param>
         public void WriteException(Exception ex)
         {
@@ -237,7 +237,7 @@ namespace NewLife.Log
             DebugStack(1, int.MaxValue);
         }
 
-        /// <summary>堆栈调试。</summary>>
+        /// <summary>堆栈调试。</summary>
         /// <param name="maxNum">最大捕获堆栈方法数</param>
         public void DebugStack(int maxNum)
         {
@@ -264,10 +264,10 @@ namespace NewLife.Log
             WriteLine(sb.ToString());
         }
 
-        /// <summary>写日志事件。绑定该事件后，XTrace将不再把日志写到日志文件中去。</summary>>
+        /// <summary>写日志事件。绑定该事件后，XTrace将不再把日志写到日志文件中去。</summary>
         public event EventHandler<WriteLogEventArgs> OnWriteLog;
 
-        /// <summary>写日志</summary>>
+        /// <summary>写日志</summary>
         /// <param name="format"></param>
         /// <param name="args"></param>
         public void WriteLine(String format, params Object[] args)

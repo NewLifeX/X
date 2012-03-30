@@ -5,7 +5,7 @@ using NewLife.Exceptions;
 
 namespace NewLife.Reflection
 {
-    /// <summary>动态生成代码Emit助手。仅提供扩展功能，不封装基本功能</summary>>
+    /// <summary>动态生成代码Emit助手。仅提供扩展功能，不封装基本功能</summary>
     public class EmitHelper
     {
         #region 属性
@@ -19,13 +19,13 @@ namespace NewLife.Reflection
         #endregion
 
         #region 构造
-        /// <summary>实例化</summary>>
+        /// <summary>实例化</summary>
         /// <param name="il"></param>
         public EmitHelper(ILGenerator il) { IL = il; }
         #endregion
 
         #region 方法
-        /// <summary>基于Ldc_I4指令的整数推送，自动选择最合适的指令</summary>>
+        /// <summary>基于Ldc_I4指令的整数推送，自动选择最合适的指令</summary>
         /// <param name="value"></param>
         /// <returns></returns>
         public EmitHelper Ldc_I4(Int32 value)
@@ -72,7 +72,7 @@ namespace NewLife.Reflection
             return this;
         }
 
-        /// <summary>基于Ldarg指令的参数加载，自动选择最合适的指令</summary>>
+        /// <summary>基于Ldarg指令的参数加载，自动选择最合适的指令</summary>
         /// <param name="value"></param>
         /// <returns></returns>
         public EmitHelper Ldarg(Int32 value)
@@ -97,7 +97,7 @@ namespace NewLife.Reflection
             }
         }
 
-        /// <summary>基于Stloc指令的弹栈，自动选择最合适的指令</summary>>
+        /// <summary>基于Stloc指令的弹栈，自动选择最合适的指令</summary>
         /// <param name="value"></param>
         /// <returns></returns>
         public EmitHelper Stloc(Int32 value)
@@ -122,7 +122,7 @@ namespace NewLife.Reflection
             }
         }
 
-        /// <summary>基于Ldloc指令的压栈，自动选择最合适的指令</summary>>
+        /// <summary>基于Ldloc指令的压栈，自动选择最合适的指令</summary>
         /// <param name="value"></param>
         /// <returns></returns>
         public EmitHelper Ldloc(Int32 value)
@@ -147,7 +147,7 @@ namespace NewLife.Reflection
             }
         }
 
-        /// <summary>查找对象中其引用当前位于计算堆栈的字段的值。</summary>>
+        /// <summary>查找对象中其引用当前位于计算堆栈的字段的值。</summary>
         /// <param name="field"></param>
         /// <returns></returns>
         public EmitHelper Ldfld(FieldInfo field)
@@ -157,7 +157,7 @@ namespace NewLife.Reflection
             return this;
         }
 
-        /// <summary>间接加载到计算堆栈</summary>>
+        /// <summary>间接加载到计算堆栈</summary>
         /// <param name="type"></param>
         /// <returns></returns>
         public EmitHelper Ldind(Type type)
@@ -218,7 +218,7 @@ namespace NewLife.Reflection
             return this;
         }
 
-        /// <summary>间接加载到计算堆栈</summary>>
+        /// <summary>间接加载到计算堆栈</summary>
         /// <param name="type"></param>
         /// <returns></returns>
         public EmitHelper Stind(Type type)
@@ -279,7 +279,7 @@ namespace NewLife.Reflection
             return this;
         }
 
-        /// <summary>将位于指定数组索引处的包含对象引用的元素作为 O 类型（对象引用）加载到计算堆栈的顶部。</summary>>
+        /// <summary>将位于指定数组索引处的包含对象引用的元素作为 O 类型（对象引用）加载到计算堆栈的顶部。</summary>
         /// <returns></returns>
         public EmitHelper Ldelem_Ref()
         {
@@ -287,7 +287,7 @@ namespace NewLife.Reflection
             return this;
         }
 
-        /// <summary>用计算堆栈上的对象 ref 值（O 类型）替换给定索引处的数组元素。</summary>>
+        /// <summary>用计算堆栈上的对象 ref 值（O 类型）替换给定索引处的数组元素。</summary>
         /// <returns></returns>
         public EmitHelper Stelem_Ref()
         {
@@ -295,7 +295,7 @@ namespace NewLife.Reflection
             return this;
         }
 
-        /// <summary>把一个类型转为指定类型，值类型装箱，引用类型直接Cast</summary>>
+        /// <summary>把一个类型转为指定类型，值类型装箱，引用类型直接Cast</summary>
         /// <param name="type"></param>
         /// <returns></returns>
         public EmitHelper CastFromObject(Type type)
@@ -313,7 +313,7 @@ namespace NewLife.Reflection
             return this;
         }
 
-        /// <summary>装箱</summary>>
+        /// <summary>装箱</summary>
         /// <param name="type"></param>
         /// <returns></returns>
         public EmitHelper BoxIfValueType(Type type)
@@ -324,7 +324,7 @@ namespace NewLife.Reflection
             return this;
         }
 
-        /// <summary>调用</summary>>
+        /// <summary>调用</summary>
         /// <param name="method"></param>
         /// <returns></returns>
         public EmitHelper Call(MethodInfo method)
@@ -341,7 +341,7 @@ namespace NewLife.Reflection
             return this;
         }
 
-        /// <summary>加载空</summary>>
+        /// <summary>加载空</summary>
         /// <returns></returns>
         public EmitHelper Ldnull()
         {
@@ -350,7 +350,7 @@ namespace NewLife.Reflection
             return this;
         }
 
-        /// <summary>返回</summary>>
+        /// <summary>返回</summary>
         /// <returns></returns>
         public EmitHelper Ret()
         {
@@ -361,7 +361,7 @@ namespace NewLife.Reflection
         #endregion
 
         #region 创建对象
-        /// <summary>创建值类型，对象位于栈上</summary>>
+        /// <summary>创建值类型，对象位于栈上</summary>
         /// <param name="type"></param>
         /// <returns></returns>
         public EmitHelper NewValueType(Type type)
@@ -379,7 +379,7 @@ namespace NewLife.Reflection
             return this;
         }
 
-        /// <summary>创建数组，参数必须是Object[]</summary>>
+        /// <summary>创建数组，参数必须是Object[]</summary>
         /// <param name="type"></param>
         /// <returns></returns>
         public EmitHelper NewArray(Type type)
@@ -389,7 +389,7 @@ namespace NewLife.Reflection
             return this;
         }
 
-        /// <summary>创建对象</summary>>
+        /// <summary>创建对象</summary>
         /// <param name="constructor"></param>
         /// <returns></returns>
         public EmitHelper NewObj(ConstructorInfo constructor)
@@ -401,7 +401,7 @@ namespace NewLife.Reflection
         #endregion
 
         #region 复杂方法
-        /// <summary>为引用参数声明本地变量</summary>>
+        /// <summary>为引用参数声明本地变量</summary>
         /// <param name="method"></param>
         /// <returns></returns>
         public EmitHelper CreateLocalsForByRefParams(MethodBase method)
@@ -431,7 +431,7 @@ namespace NewLife.Reflection
             return this;
         }
 
-        /// <summary>将引用参数赋值到数组</summary>>
+        /// <summary>将引用参数赋值到数组</summary>
         /// <param name="method"></param>
         /// <returns></returns>
         public EmitHelper AssignByRefParamsToArray(MethodBase method)
@@ -454,7 +454,7 @@ namespace NewLife.Reflection
             return this;
         }
 
-        /// <summary>将参数压栈</summary>>
+        /// <summary>将参数压栈</summary>
         /// <param name="method"></param>
         /// <returns></returns>
         public EmitHelper PushParamsOrLocalsToStack(MethodBase method)
@@ -480,7 +480,7 @@ namespace NewLife.Reflection
             return this;
         }
 
-        /// <summary>将指定参数位置的数组参数按照方法参数要求压栈</summary>>
+        /// <summary>将指定参数位置的数组参数按照方法参数要求压栈</summary>
         /// <param name="paramIndex"></param>
         /// <param name="method"></param>
         /// <returns></returns>
@@ -498,7 +498,7 @@ namespace NewLife.Reflection
             return this;
         }
 
-        /// <summary>将指定参数位置的数组参数一个个压栈</summary>>
+        /// <summary>将指定参数位置的数组参数一个个压栈</summary>
         /// <param name="paramIndex"></param>
         /// <param name="paramTypes"></param>
         /// <returns></returns>
