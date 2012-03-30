@@ -44,5 +44,4 @@ using System.Runtime.InteropServices;
  * 
  * v1.1.2011.1212    修正一处可能读取到错误的配置文件路径的问题
  * 
- * 
  */

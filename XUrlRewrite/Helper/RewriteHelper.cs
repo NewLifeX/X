@@ -185,9 +185,9 @@ namespace XUrlRewrite.Helper
         /// <returns></returns>
         public override string ToString()
         {
-            return string.Format("{0}重写为{1} 规则{2}",
+            return string.Format("{0} 重写为 {1} 规则:{2}",
                     fromPath + ("?" + fromQuery).TrimEnd('?'),
-                    toTemplateDir + toPath + ("?" + toQuery).TrimEnd('?') + ("&" + fromQuery).TrimEnd('&'),
+                    toTemplateDir + toPath + ("?" + (toQuery + "&" + fromQuery).Trim('&')).TrimEnd('?'),
                     matchRule);
         }
 

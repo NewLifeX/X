@@ -123,6 +123,9 @@ namespace XUrlRewrite.Configuration
         }
 
         private Regex _regex;
+        /// <summary>
+        /// Url对应的正则对象,如果Type是regexp
+        /// </summary>
         internal Regex Regex
         {
             get
@@ -136,6 +139,9 @@ namespace XUrlRewrite.Configuration
         }
 
         private RegexOptions _regexOptions = RegexOptions.None;
+        /// <summary>
+        /// RegexFlag对应的正则选项
+        /// </summary>
         private RegexOptions RegexFlags
         {
             get
@@ -188,7 +194,7 @@ namespace XUrlRewrite.Configuration
             }
         }
 
-        private ProcessRewriteURL _ProcessRewriteUrl = null;
+        private ProcessRewriteURL RewriteUrlFunc = null;
         /// <summary>
         /// 处理Url重写的委托
         /// </summary>
@@ -197,7 +203,7 @@ namespace XUrlRewrite.Configuration
         /// <returns>重写目标的path部分,如果不符合当前重写规则应该返回null</returns>
         delegate String ProcessRewriteURL(String form, out String query);
 
-        Boolean HavQuerySymbol = true;
+        bool HavQuerySymbol = true;
 
         /// <summary>
         /// 用于处理正则表达式类型Url重写的方法
@@ -207,27 +213,26 @@ namespace XUrlRewrite.Configuration
         /// <returns></returns>
         internal String ProcessRegexpRewriteURL(String form, out String query)
         {
-            String ret = this.Regex.Replace(form, "token" + this.To);
-            if (ret != form)
+            var match = false;
+            var ret = Regex.Replace(form, delegate(Match m)
             {
-                ret = ret.Substring(5);//对应上面的token,避免替换结果和源完全一样,无法区分是否已替换的情况
-                query = "";
+                match = true;
+                return m.Result(To);
+            });
+            query = "";
+            if (match)
+            {
                 if (HavQuerySymbol)
                 {
                     SeparateUrl(ret, out ret, out query);
-                    if (query.Length == 0)
-                    {
-                        HavQuerySymbol = false;
-                    }
+                    if (string.IsNullOrEmpty(query)) HavQuerySymbol = false;
                 }
                 return ret;
             }
-            query = "";
             return null;
         }
 
         private String ProcessNormalRewriteURLResult, ProcessNormalRewriteURLQuery;
-
         /// <summary>
         /// 用于处理普通Url重写的方法
         /// </summary>
@@ -254,26 +259,33 @@ namespace XUrlRewrite.Configuration
             query = "";
             return null;
         }
-
+        /// <summary>
+        /// 尝试重写指定路径,如果重写成功返回true,并会调用app.Context.RewritePath实现重写
+        /// </summary>
+        /// <param name="path">尝试重写的路径</param>
+        /// <param name="query">原始的query字符串,如果重写成功会附加到重写目标的query字符串中</param>
+        /// <param name="app"></param>
+        /// <param name="cfg"></param>
+        /// <returns></returns>
         internal Boolean RewriteUrl(String path, String query, HttpApplication app, UrlRewriteConfig cfg)
         {
-            if (_ProcessRewriteUrl == null)
+            if (RewriteUrlFunc == null)
             {
                 switch (this.Type)
                 {
                     case "normal":
-                        _ProcessRewriteUrl = ProcessNormalRewriteURL;
+                        RewriteUrlFunc = ProcessNormalRewriteURL;
                         break;
                     case "regex":
                     case "regexp":
-                        _ProcessRewriteUrl = ProcessRegexpRewriteURL;
+                        RewriteUrlFunc = ProcessRegexpRewriteURL;
                         break;
                     default:
                         break;
                 }
             }
             String queryString = "";
-            String filePath = _ProcessRewriteUrl != null ? _ProcessRewriteUrl(path, out queryString) : null;
+            String filePath = RewriteUrlFunc != null ? RewriteUrlFunc(path, out queryString) : null;
             if (filePath != null)
             {
                 RewriteHelper.Create(path, query, ToString(), app)
@@ -281,11 +293,11 @@ namespace XUrlRewrite.Configuration
                     .TraceLog();
                 if (File.Exists(app.Server.MapPath(cfg.Directory + filePath)))
                 {
-                    if (query.Length > 0)
+                    if (!string.IsNullOrEmpty(query))
                     {
-                        queryString = queryString + (queryString.Length > 0 ? "&" : "") + query;
+                        queryString = (queryString + "&" + query).TrimStart('&');
                     }
-                    app.Context.RewritePath(cfg.Directory + filePath, String.Empty, queryString, false);
+                    app.Context.RewritePath(cfg.Directory + filePath, app.Request.PathInfo, queryString, true);
                 }
 #if DEBUG
                 else
@@ -303,6 +315,10 @@ namespace XUrlRewrite.Configuration
         /// </summary>
         public String UpdateKey { get; set; }
 
+        /// <summary>
+        /// 重写
+        /// </summary>
+        /// <returns></returns>
         public override string ToString()
         {
             var sb = new StringBuilder();
@@ -310,7 +326,7 @@ namespace XUrlRewrite.Configuration
             if (!string.IsNullOrEmpty(RegexFlag)) sb.AppendFormat(" regexFlag=\"{0}\"", RegexFlag);
             if (!IgnoreCase) sb.Append(" ignoreCase=\"false\"");
             if (!Enabled) sb.Append(" enabled=\"false\"");
-            return string.Format("<add url=\"{0}\" to=\"{1}\"{2}", Url, To, sb);
+            return string.Format("<add url=\"{0}\" to=\"{1}\"{2}/>", Url, To, sb);
         }
     }
 }
