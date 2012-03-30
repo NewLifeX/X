@@ -79,6 +79,22 @@ namespace NewLife.Reflection
         }
         #endregion
 
+        #region 获取方法
+        /// <summary>
+        /// 获取方法。用于具有多个签名的同名方法的场合.
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="name"></param>
+        /// <param name="paramTypes"></param>
+        /// <returns></returns>
+        public static MethodInfo GetMethod(Type type, String name, Type[] paramTypes)
+        {
+            var ms = type.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance);
+            if (ms == null || ms.Length < 1) return null;
+            return null;
+        }
+        #endregion
+
         #region 创建动态方法
         private FastInvokeHandler GetMethodInvoker(MethodInfo method)
         {
