@@ -597,6 +597,7 @@ namespace NewLife.CommonEntity
         /// <summary>密码</summary>
         string IManageUser.Password { get { return Password; } }
 
+        [NonSerialized]
         IDictionary<String, Object> _Properties;
         /// <summary>属性集合</summary>
         IDictionary<String, Object> IManageUser.Properties
