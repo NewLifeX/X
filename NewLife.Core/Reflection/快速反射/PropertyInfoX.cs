@@ -163,14 +163,13 @@ namespace NewLife.Reflection
         private static FastGetValueHandler GetValueInvoker(MethodInfo method)
         {
             //定义一个没有名字的动态方法
-            DynamicMethod dynamicMethod = new DynamicMethod(String.Empty, typeof(Object), new Type[] { typeof(Object) }, method.DeclaringType.Module, true);
-            ILGenerator il = dynamicMethod.GetILGenerator();
+            var dynamicMethod = new DynamicMethod(String.Empty, typeof(Object), new Type[] { typeof(Object) }, method.DeclaringType.Module, true);
+            var il = dynamicMethod.GetILGenerator();
 
-            EmitHelper help = new EmitHelper(il);
             //if (!method.IsStatic) il.Emit(OpCodes.Ldarg_0);
-            if (!method.IsStatic) help.Ldarg(0).CastFromObject(method.DeclaringType);
+            if (!method.IsStatic) il.Ldarg(0).CastFromObject(method.DeclaringType);
             // 目标方法没有参数
-            help.Call(method)
+            il.Call(method)
                 .BoxIfValueType(method.ReturnType)
                 .Ret();
 
@@ -180,14 +179,13 @@ namespace NewLife.Reflection
         private static FastSetValueHandler SetValueInvoker(MethodInfo method)
         {
             //定义一个没有名字的动态方法
-            DynamicMethod dynamicMethod = new DynamicMethod(String.Empty, null, new Type[] { typeof(Object), typeof(Object) }, method.DeclaringType.Module, true);
-            ILGenerator il = dynamicMethod.GetILGenerator();
+            var dynamicMethod = new DynamicMethod(String.Empty, null, new Type[] { typeof(Object), typeof(Object) }, method.DeclaringType.Module, true);
+            var il = dynamicMethod.GetILGenerator();
 
-            EmitHelper help = new EmitHelper(il);
             //if (!method.IsStatic) il.Emit(OpCodes.Ldarg_0);
-            if (!method.IsStatic) help.Ldarg(0).CastFromObject(method.DeclaringType);
+            if (!method.IsStatic) il.Ldarg(0).CastFromObject(method.DeclaringType);
             // 目标方法只有一个参数
-            help.Ldarg(1)
+            il.Ldarg(1)
                 .CastFromObject(method.GetParameters()[0].ParameterType)
                 .Call(method)
                 .Ret();

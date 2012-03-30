@@ -96,13 +96,12 @@ namespace NewLife.Reflection
         private static FastGetValueHandler GetValueInvoker(FieldInfo field)
         {
             //定义一个没有名字的动态方法
-            DynamicMethod dynamicMethod = new DynamicMethod(String.Empty, typeof(Object), new Type[] { typeof(Object) }, field.DeclaringType.Module, true);
-            ILGenerator il = dynamicMethod.GetILGenerator();
-            EmitHelper help = new EmitHelper(il);
+            var dynamicMethod = new DynamicMethod(String.Empty, typeof(Object), new Type[] { typeof(Object) }, field.DeclaringType.Module, true);
+            var il = dynamicMethod.GetILGenerator();
 
             // 必须考虑对象是值类型的情况，需要拆箱
             // 其它地方看到的程序从来都没有人处理
-            help.Ldarg(0)
+            il.Ldarg(0)
                 .CastFromObject(field.DeclaringType)
                 .Ldfld(field)
                 .BoxIfValueType(field.FieldType)
@@ -151,20 +150,19 @@ namespace NewLife.Reflection
             //定义一个没有名字的动态方法
             var dynamicMethod = new DynamicMethod(String.Empty, null, new Type[] { typeof(Object), typeof(Object) }, field.DeclaringType.Module, true);
             var il = dynamicMethod.GetILGenerator();
-            var help = new EmitHelper(il);
 
             // 必须考虑对象是值类型的情况，需要拆箱
             // 其它地方看到的程序从来都没有人处理
             // 值类型是不支持这样子赋值的，暂时没有找到更好的替代方法
-            help.Ldarg(0)
+            il.Ldarg(0)
                 .CastFromObject(field.DeclaringType)
                 .Ldarg(1);
 
             var method = GetMethod(field.FieldType);
             if (method != null)
-                help.Call(method);
+                il.Call(method);
             else
-                help.CastFromObject(field.FieldType);
+                il.CastFromObject(field.FieldType);
 
             il.Emit(OpCodes.Stfld, field);
             il.Emit(OpCodes.Ret);

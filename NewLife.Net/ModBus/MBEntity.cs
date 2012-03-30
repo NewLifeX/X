@@ -1,19 +1,17 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Ports;
 using System.Reflection;
 using System.Text;
 using System.Xml.Serialization;
 using NewLife.Exceptions;
-using NewLife.IO;
 using NewLife.Linq;
+using NewLife.Log;
 using NewLife.Model;
 using NewLife.Reflection;
 using NewLife.Security;
 using NewLife.Serialization;
-using System.IO.Ports;
-using System.Threading;
-using NewLife.Log;
 
 namespace NewLife.Net.ModBus
 {

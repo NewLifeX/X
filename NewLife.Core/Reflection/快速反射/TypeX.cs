@@ -138,16 +138,15 @@ namespace NewLife.Reflection
         {
             // 定义一个没有名字的动态方法。
             // 关联到模块，并且跳过JIT可见性检查，可以访问所有类型的所有成员
-            DynamicMethod dynamicMethod = new DynamicMethod(String.Empty, typeof(Object), new Type[] { typeof(Object[]) }, target.Module, true);
+            var dynamicMethod = new DynamicMethod(String.Empty, typeof(Object), new Type[] { typeof(Object[]) }, target.Module, true);
             {
-                ILGenerator il = dynamicMethod.GetILGenerator();
-                EmitHelper help = new EmitHelper(il);
+                var il = dynamicMethod.GetILGenerator();
                 if (target.IsValueType)
-                    help.NewValueType(target).BoxIfValueType(target).Ret();
+                    il.NewValueType(target).BoxIfValueType(target).Ret();
                 else if (target.IsArray)
-                    help.PushParams(0, new Type[] { typeof(Int32) }).NewArray(target.GetElementType()).Ret();
+                    il.PushParams(0, new Type[] { typeof(Int32) }).NewArray(target.GetElementType()).Ret();
                 else
-                    help.PushParams(0, constructor).NewObj(constructor).Ret();
+                    il.PushParams(0, constructor).NewObj(constructor).Ret();
             }
 #if DEBUG
             //SaveIL(dynamicMethod, delegate(ILGenerator il)

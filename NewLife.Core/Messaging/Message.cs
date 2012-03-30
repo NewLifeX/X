@@ -1,11 +1,11 @@
 ﻿using System;
 using System.IO;
+using System.Reflection;
 using System.Xml.Serialization;
 using NewLife.Exceptions;
 using NewLife.Model;
 using NewLife.Reflection;
 using NewLife.Serialization;
-using System.Reflection;
 
 namespace NewLife.Messaging
 {

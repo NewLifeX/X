@@ -44,10 +44,7 @@ namespace NewLife.Reflection
         {
             if (method == null) return null;
 
-            return cache.GetItem(method, delegate(MethodInfo key)
-            {
-                return new MethodInfoX(key);
-            });
+            return cache.GetItem(method, key => new MethodInfoX(key));
         }
 
         /// <summary>创建</summary>
@@ -87,8 +84,8 @@ namespace NewLife.Reflection
         {
             // 定义一个没有名字的动态方法。
             // 关联到模块，并且跳过JIT可见性检查，可以访问所有类型的所有成员
-            DynamicMethod dynamicMethod = new DynamicMethod(String.Empty, typeof(Object), new Type[] { typeof(Object), typeof(Object[]) }, method.DeclaringType.Module, true);
-            ILGenerator il = dynamicMethod.GetILGenerator();
+            var dynamicMethod = new DynamicMethod(String.Empty, typeof(Object), new Type[] { typeof(Object), typeof(Object[]) }, method.DeclaringType.Module, true);
+            var il = dynamicMethod.GetILGenerator();
 
             GetMethodInvoker(il, method);
 #if DEBUG
@@ -103,22 +100,21 @@ namespace NewLife.Reflection
 
         static void GetMethodInvoker(ILGenerator il, MethodInfo method)
         {
-            EmitHelper help = new EmitHelper(il);
             Type retType = method.ReturnType;
 
             //if (!method.IsStatic) il.Emit(OpCodes.Ldarg_0);
-            if (!method.IsStatic) help.Ldarg(0).CastFromObject(method.DeclaringType);
+            if (!method.IsStatic) il.Ldarg(0).CastFromObject(method.DeclaringType);
 
             // 方法的参数数组放在动态方法的第二位，所以是1
-            help.PushParams(1, method)
+            il.PushParams(1, method)
                 .Call(method)
                 .BoxIfValueType(retType);
 
             //处理返回值，如果调用的方法没有返回值，则需要返回一个空
             if (retType == null || retType == typeof(void))
-                help.Ldnull().Ret();
+                il.Ldnull().Ret();
             else
-                help.Ret();
+                il.Ret();
 
             //调用目标方法
             //if (method.IsVirtual)
