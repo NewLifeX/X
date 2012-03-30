@@ -543,6 +543,7 @@ namespace NewLife.Reflection
         public static MethodInfo GetMethod(Type type, String name, Type[] paramTypes)
         {
             var bf = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance;
+            if (paramTypes == null) paramTypes = Type.EmptyTypes;
             MethodInfo mi = null;
             while (type != null && type != typeof(Object))
             {
