@@ -5,6 +5,7 @@ using System.IO;
 using System.Web;
 using System.Web.Configuration;
 using NewLife.Log;
+using NewLife.Configuration;
 
 namespace XUrlRewrite.Configuration
 {
@@ -105,7 +106,6 @@ namespace XUrlRewrite.Configuration
         }
 
         private String _ConfigFilePath;
-
         /// <summary>
         /// 配置文件路径
         /// </summary>
@@ -137,7 +137,9 @@ namespace XUrlRewrite.Configuration
         }
 
         private String _AbsoluteConfigFilePath = null;
-
+        /// <summary>
+        /// 配置文件路径,物理路径
+        /// </summary>
         internal String AbsoluteConfigFilePath
         {
             get
@@ -162,7 +164,6 @@ namespace XUrlRewrite.Configuration
         }
 
         private DateTime LastConfigFileWriteTime = DateTime.MinValue;
-
         /// <summary>
         /// 获取配置文件最后的修改时间
         /// </summary>
@@ -175,7 +176,6 @@ namespace XUrlRewrite.Configuration
         }
 
         private DateTime LastNeedForReloadCheckTime = DateTime.MinValue;
-
         private TimeSpan LastNeedForReloadInterval = TimeSpan.FromSeconds(10); //需要重新读取配置文件的间隔时间
         /// <summary>
         /// 获取或设置是否需要重新读取配置文件
@@ -226,7 +226,6 @@ namespace XUrlRewrite.Configuration
         }
 
         private static bool? _Debug;
-
         /// <summary>
         /// 是否调试状态的开关
         /// </summary>
@@ -234,15 +233,11 @@ namespace XUrlRewrite.Configuration
         {
             get
             {
-                if (_Debug != null) return _Debug.Value;
-                String str = ConfigurationManager.AppSettings["XUrlRewrite.Debug"];
-                if (String.IsNullOrEmpty(str)) str = ConfigurationManager.AppSettings["Debug"];
-                if (String.IsNullOrEmpty(str)) return false;
-                if (str == "1") return true;
-                if (str == "0") return false;
-                if (str.Equals(Boolean.FalseString, StringComparison.OrdinalIgnoreCase)) return false;
-                if (str.Equals(Boolean.TrueString, StringComparison.OrdinalIgnoreCase)) return true;
-                return false;
+                if (_Debug == null)
+                {
+                    _Debug = Config.GetConfig<bool>("XUrlRewrite.Debug");
+                }
+                return _Debug.Value;
             }
             set
             {

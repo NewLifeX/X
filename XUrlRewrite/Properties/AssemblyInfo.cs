@@ -33,10 +33,12 @@ using System.Runtime.InteropServices;
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("1.1.*")]
-[assembly: AssemblyFileVersion("1.1.2012.0215")]
+[assembly: AssemblyFileVersion("1.1.2012.0330")]
 
 
 /**
+ * 
+ * v1.1.2012.0330    增加重写跟踪日志,打开XUrlRewrite.Debug开关就可以在日志中看到
  * 
  * v1.1.2012.0215    配置文件增加可选的过滤参数,可以控制特定的请求不使用Url重写
  * 

@@ -3,7 +3,6 @@ using System.Web;
 using NewLife.Log;
 using NewLife.Reflection;
 using XUrlRewrite.Configuration;
-using System.Reflection;
 
 namespace XUrlRewrite.Helper
 {
@@ -59,27 +58,27 @@ namespace XUrlRewrite.Helper
                 if (IsCustomFilterEnabled(manager, cfg, path, query, app))
                 {
 #if DEBUG
-                Int32 debugInt = 0;
+                    bool hasRewrite = false;
 #endif
                     foreach (Object _url in cfg.Urls)
                     {
-#if DEBUG
-                    debugInt++;
-#endif
                         if (_url is UrlElement)
                         {
                             UrlElement url = (UrlElement)_url;
                             if (url.Enabled && url.RewriteUrl(path, query, app, cfg))
                             {
+#if DEBUG
+                                hasRewrite = true;
+#endif
                                 break;
                             }
                         }
                     }
 #if DEBUG
-                if (debugInt==cfg.Urls.Count)
-                {
-                    if (Manager.Debug) XTrace.WriteLine("Not found any matched:{0}", path);
-                }
+                    if (!hasRewrite)
+                    {
+                        if (Manager.Debug) XTrace.WriteLine("没有任何规则匹配请求{0},不重写", path);
+                    }
 #endif
                 }
             }

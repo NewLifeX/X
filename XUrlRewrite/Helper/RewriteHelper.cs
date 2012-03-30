@@ -1,8 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Web;
-
+using NewLife.Log;
+using XUrlRewrite.Configuration;
 
 namespace XUrlRewrite.Helper
 {
@@ -11,12 +10,13 @@ namespace XUrlRewrite.Helper
     /// </summary>
     public class RewriteHelper
     {
-        private String _rTemplateDir;
-        private String _rPath;
-        private String _rQuery;
-        private String uPath;
-        private String uQuery;
-        
+        private String toTemplateDir;
+        private String toPath;
+        private String toQuery;
+        private String fromPath;
+        private String fromQuery;
+        private String matchRule;
+
         /// <summary>
         /// 构造方法
         /// </summary>
@@ -27,24 +27,26 @@ namespace XUrlRewrite.Helper
         /// <summary>
         /// 创建Url重写辅助工具,主要用于在模板页解析相对于模板的路径
         /// </summary>
-        /// <param name="uPath"></param>
-        /// <param name="uQuery"></param>
+        /// <param name="fromPath"></param>
+        /// <param name="fromQuery"></param>
         /// <param name="app"></param>
         /// <returns></returns>
-        internal static RewriteHelper Create(String uPath, String uQuery, HttpApplication app)
+        internal static RewriteHelper Create(String fromPath, String fromQuery, string matchRule, HttpApplication app)
         {
             RewriteHelper ret = new RewriteHelper();
-            ret.uPath = uPath;
-            ret.uQuery = uQuery;
-            ret.Path = app.Request.ApplicationPath.TrimEnd('/') + uPath;
-            ret.AppRelativeCurrentExecutionFilePath = "~" + uPath;
-            
+            ret.fromPath = fromPath;
+            ret.fromQuery = fromQuery;
+            ret.matchRule = matchRule;
+            ret.Path = app.Request.ApplicationPath.TrimEnd('/') + fromPath;
+            ret.AppRelativeCurrentExecutionFilePath = "~" + fromPath;
+
             ret.QueryString = HttpUtility.ParseQueryString("");
             ret.QueryString.Add(app.Request.QueryString);
 
             HttpContext.Current.Items[typeof(RewriteHelper).FullName] = ret;
             return ret;
         }
+
         /// <summary>
         /// 获取当前请求中的RewriteHelper类,如果不存在会返回空白类,即所有涉及路径的操作和普通Page相关的路径操作一致
         /// </summary>
@@ -70,10 +72,21 @@ namespace XUrlRewrite.Helper
         /// <returns></returns>
         internal RewriteHelper RewriteToInfo(String rTemplateDir, String rPath, String rQuery)
         {
-            _rTemplateDir = rTemplateDir;
-            _rPath = rPath;
-            _rQuery = rQuery;
+            toTemplateDir = rTemplateDir;
+            toPath = rPath;
+            toQuery = rQuery;
             return this;
+        }
+
+        /// <summary>
+        /// 输出Url重写跟踪日志
+        /// </summary>
+        public void TraceLog()
+        {
+            if (Manager.Debug)
+            {
+                XTrace.WriteLine("Url重写跟踪 " + ToString());
+            }
         }
 
         /// <summary>
@@ -123,8 +136,8 @@ namespace XUrlRewrite.Helper
             {
                 if (null == _FormAction)
                 {
-                    _FormAction = VirtualPathUtility.GetFileName(uPath);
-                    _FormAction += uQuery.Length > 0 ? "?" + uQuery : "";
+                    _FormAction = VirtualPathUtility.GetFileName(fromPath);
+                    _FormAction += fromQuery.Length > 0 ? "?" + fromQuery : "";
                 }
                 return _FormAction;
             }
@@ -154,7 +167,7 @@ namespace XUrlRewrite.Helper
         {
             if (url[0] == '~' && url[1] == '/')
             {
-                return VirtualPathUtility.RemoveTrailingSlash(_rTemplateDir) + url.Substring(1);
+                return VirtualPathUtility.RemoveTrailingSlash(toTemplateDir) + url.Substring(1);
             }
             else if (url[0] == '/')
             {
@@ -162,15 +175,28 @@ namespace XUrlRewrite.Helper
             }
             else
             {
-                return VirtualPathUtility.RemoveTrailingSlash(_rTemplateDir) + VirtualPathUtility.GetDirectory(_rPath) + url;
+                return VirtualPathUtility.RemoveTrailingSlash(toTemplateDir) + VirtualPathUtility.GetDirectory(toPath) + url;
             }
         }
 
+        /// <summary>
+        /// 重写
+        /// </summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            return string.Format("{0}重写为{1} 规则{2}",
+                    fromPath + ("?" + fromQuery).TrimEnd('?'),
+                    toTemplateDir + toPath + ("?" + toQuery).TrimEnd('?') + ("&" + fromQuery).TrimEnd('&'),
+                    matchRule);
+        }
+
         static RewriteHelper RewriteHelperEmpty = new RewriteHelperEmptyWrap();
+
         /// <summary>
         /// 空重写辅助工具
         /// </summary>
-        class RewriteHelperEmptyWrap : RewriteHelper
+        private class RewriteHelperEmptyWrap : RewriteHelper
         {
             public RewriteHelperEmptyWrap()
             {

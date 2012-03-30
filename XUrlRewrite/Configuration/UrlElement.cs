@@ -1,18 +1,17 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Configuration;
-using System.Web;
-using System.Text.RegularExpressions;
 using System.IO;
-using XUrlRewrite.Helper;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Web;
 using NewLife.Log;
+using XUrlRewrite.Helper;
 
 namespace XUrlRewrite.Configuration
 {
     /// <summary>
     /// Url映射配置元素
-    /// 
+    ///
     /// 需要注意的是在配置文件中,xml标签的属性写&amp;符号时需要写为&amp;amp;
     /// <see cref="System.Text.RegularExpressions.Regex"/>
     /// </summary>
@@ -21,7 +20,7 @@ namespace XUrlRewrite.Configuration
         /// <summary>
         /// 映射类型,主要有normal和regexp,默认regexp
         /// </summary>
-        [ConfigurationProperty("type",DefaultValue="regexp")]
+        [ConfigurationProperty("type", DefaultValue = "regexp")]
         public String Type
         {
             get
@@ -32,20 +31,21 @@ namespace XUrlRewrite.Configuration
             }
             set
             {
-                String val=value.Trim().ToLower();
+                String val = value.Trim().ToLower();
                 if (val == "regex") val = "regexp";
                 if (val != "normal" && val != "regexp")
                 {
                     throw new Exception(String.Format("{0} is invalid url type", val));
                 }
-                
+
                 this["type"] = val;
             }
         }
+
         /// <summary>
         /// 需要重写的Url,如果是regexp类型的话这里是正则表达式
         /// </summary>
-        [ConfigurationProperty("url",IsRequired=true,IsKey=true)]
+        [ConfigurationProperty("url", IsRequired = true, IsKey = true)]
         public String Url
         {
             get
@@ -57,10 +57,11 @@ namespace XUrlRewrite.Configuration
                 this["url"] = value;
             }
         }
+
         /// <summary>
         /// Url重写的目标,如果是regexp类型的话这里可以使用$1...9表示正则的子匹配
         /// </summary>
-        [ConfigurationProperty("to",IsRequired=true)]
+        [ConfigurationProperty("to", IsRequired = true)]
         public String To
         {
             get
@@ -72,6 +73,7 @@ namespace XUrlRewrite.Configuration
                 this["to"] = value;
             }
         }
+
         /// <summary>
         /// 是否启用,默认是
         /// </summary>
@@ -87,10 +89,11 @@ namespace XUrlRewrite.Configuration
                 this["enabled"] = value;
             }
         }
+
         /// <summary>
         /// 正则额外标记,主要有i忽略大小 c忽略语言中的区域性差异 m多行模式 s单行模式
         /// </summary>
-        [ConfigurationProperty("regexFlag",DefaultValue="")]
+        [ConfigurationProperty("regexFlag", DefaultValue = "")]
         public String RegexFlag
         {
             get
@@ -102,6 +105,7 @@ namespace XUrlRewrite.Configuration
                 this["regexFlag"] = value;
             }
         }
+
         /// <summary>
         /// 忽略大小写,仅在普通模式生效
         /// </summary>
@@ -117,6 +121,7 @@ namespace XUrlRewrite.Configuration
                 this["ignoreCase"] = value;
             }
         }
+
         private Regex _regex;
         internal Regex Regex
         {
@@ -125,12 +130,12 @@ namespace XUrlRewrite.Configuration
                 if (_regex == null)
                 {
                     _regex = new Regex(Url, this.RegexFlags);
-
                 }
                 return _regex;
             }
         }
-        private RegexOptions _regexOptions=RegexOptions.None;
+
+        private RegexOptions _regexOptions = RegexOptions.None;
         private RegexOptions RegexFlags
         {
             get
@@ -157,19 +162,18 @@ namespace XUrlRewrite.Configuration
                             _regexOptions = _regexOptions | RegexOptions.Singleline;
                         }
                     }
-
                 }
                 return _regexOptions;
-
             }
         }
+
         /// <summary>
         /// 分离指定url中path和query部分
         /// </summary>
         /// <param name="url"></param>
         /// <param name="path">输出path部分</param>
         /// <param name="query">输出query部分,不包含?,如果url不存在query部分则返回空白字符串</param>
-        static void SeparateUrl(String url, out String path, out String query)
+        private static void SeparateUrl(String url, out String path, out String query)
         {
             Int32 indexOf = url.IndexOf("?");
             if (indexOf != -1)
@@ -194,6 +198,7 @@ namespace XUrlRewrite.Configuration
         delegate String ProcessRewriteURL(String form, out String query);
 
         Boolean HavQuerySymbol = true;
+
         /// <summary>
         /// 用于处理正则表达式类型Url重写的方法
         /// </summary>
@@ -202,7 +207,7 @@ namespace XUrlRewrite.Configuration
         /// <returns></returns>
         internal String ProcessRegexpRewriteURL(String form, out String query)
         {
-            String ret=this.Regex.Replace(form, "token"+this.To);
+            String ret = this.Regex.Replace(form, "token" + this.To);
             if (ret != form)
             {
                 ret = ret.Substring(5);//对应上面的token,避免替换结果和源完全一样,无法区分是否已替换的情况
@@ -222,6 +227,7 @@ namespace XUrlRewrite.Configuration
         }
 
         private String ProcessNormalRewriteURLResult, ProcessNormalRewriteURLQuery;
+
         /// <summary>
         /// 用于处理普通Url重写的方法
         /// </summary>
@@ -230,12 +236,13 @@ namespace XUrlRewrite.Configuration
         /// <returns></returns>
         internal String ProcessNormalRewriteURL(String form, out String query)
         {
-            String a=form,b=this.Url;
-            if(this.IgnoreCase){
+            String a = form, b = this.Url;
+            if (this.IgnoreCase)
+            {
                 a = a.ToLower();
                 b = b.ToLower();
             }
-            if (a==b)
+            if (a == b)
             {
                 if (ProcessNormalRewriteURLResult == null)
                 {
@@ -247,6 +254,7 @@ namespace XUrlRewrite.Configuration
             query = "";
             return null;
         }
+
         internal Boolean RewriteUrl(String path, String query, HttpApplication app, UrlRewriteConfig cfg)
         {
             if (_ProcessRewriteUrl == null)
@@ -264,35 +272,45 @@ namespace XUrlRewrite.Configuration
                         break;
                 }
             }
-            String queryString="";
+            String queryString = "";
             String filePath = _ProcessRewriteUrl != null ? _ProcessRewriteUrl(path, out queryString) : null;
             if (filePath != null)
             {
+                RewriteHelper.Create(path, query, ToString(), app)
+                    .RewriteToInfo(cfg.Directory, filePath, queryString)
+                    .TraceLog();
                 if (File.Exists(app.Server.MapPath(cfg.Directory + filePath)))
                 {
-                    RewriteHelper.Create(path, query, app).RewriteToInfo(cfg.Directory, filePath, queryString);
                     if (query.Length > 0)
                     {
-                        queryString = queryString +  (queryString.Length > 0 ? "&" : "") + query;
+                        queryString = queryString + (queryString.Length > 0 ? "&" : "") + query;
                     }
                     app.Context.RewritePath(cfg.Directory + filePath, String.Empty, queryString, false);
-#if DEBUG
-                    if (Manager.Debug) XTrace.WriteLine("Rewrite url:{0} to {1}.", path, cfg.Directory + filePath);
-#endif
                 }
 #if DEBUG
                 else
                 {
-                    if (Manager.Debug) XTrace.WriteLine("Fail rewrite url:{0} to {1}, {1} not found.", path, cfg.Directory + filePath);
+                    if (Manager.Debug) XTrace.WriteLine("重写目标{0}文件不存在", cfg.Directory + filePath);
                 }
 #endif
                 return true;
             }
             return false;
         }
+
         /// <summary>
         /// 更新时使用,用于保存旧Url
         /// </summary>
         public String UpdateKey { get; set; }
+
+        public override string ToString()
+        {
+            var sb = new StringBuilder();
+            if (Type != "regexp") sb.AppendFormat(" type=\"{0}\"", Type);
+            if (!string.IsNullOrEmpty(RegexFlag)) sb.AppendFormat(" regexFlag=\"{0}\"", RegexFlag);
+            if (!IgnoreCase) sb.Append(" ignoreCase=\"false\"");
+            if (!Enabled) sb.Append(" enabled=\"false\"");
+            return string.Format("<add url=\"{0}\" to=\"{1}\"{2}", Url, To, sb);
+        }
     }
 }
