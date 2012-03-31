@@ -29,7 +29,7 @@ namespace NewLife.Messaging
 
         private IList _Values;
         /// <summary>对象值</summary>
-        public IList Values { get { return _Values ?? (_Values = new List<Object>()); } set { _Values = value; } }
+        public IList Values { get { return _Values ?? (_Values = new List<Object>()); } set { _Values = value; if (value != null && value.Count > 0)_Type = value[0].GetType(); } }
 
         #region 辅助
         /// <summary>已重载。</summary>
