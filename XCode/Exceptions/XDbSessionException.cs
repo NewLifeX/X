@@ -19,12 +19,12 @@ namespace XCode.Exceptions
         #region 构造
         /// <summary>初始化</summary>
         /// <param name="session"></param>
-        public XDbSessionException(IDbSession session) : base(session.Database) { _Session = session; }
+        public XDbSessionException(IDbSession session) : base(session == null ? null : session.Database) { _Session = session; }
 
         /// <summary>初始化</summary>
         /// <param name="session"></param>
         /// <param name="message"></param>
-        public XDbSessionException(IDbSession session, String message) : base(session.Database, message) { _Session = session; }
+        public XDbSessionException(IDbSession session, String message) : base(session == null ? null : session.Database, message) { _Session = session; }
 
         /// <summary>初始化</summary>
         /// <param name="session"></param>
