@@ -466,7 +466,15 @@ namespace NewLife.CommonEntity
         {
             TEntity top = null;
 
+            //扫描目录
             String[] AppDirs = Config.GetConfigSplit<String>("NewLife.CommonEntity.AppDirs", null);
+            //过滤文件
+            String[] AppDirsFileFilter = Config.GetConfigSplit<String>("NewLife.CommonEntity.AppDirsFileFilter", null);
+            //是否在子目中过滤
+            Boolean AppDirsIsAllFilter = Config.GetConfig<Boolean>("NewLife.CommonEntity.AppDirsIsAllDirs", false);
+
+            List<String> AppDirsFileFilterList = AppDirsFileFilter == null ? null : new List<String>(AppDirsFileFilter);
+
             if (AppDirs == null || AppDirs.Length == 0)
                 AppDirs = new String[] { "Admin" };
             else if (AppDirs.Length > 0)
@@ -492,7 +500,8 @@ namespace NewLife.CommonEntity
                 top = FindForName(item);
                 if (top == null) top = Meta.Cache.Entities.Find(_.Remark, item);
                 if (top == null) top = Root.AddChild(item, null, 0, item);
-                total += ScanAndAdd(item, top);
+                //total += ScanAndAdd(item, top);
+                total += ScanAndAdd(item, top, AppDirsFileFilterList, AppDirsIsAllFilter);
             }
 
             return total;
@@ -547,11 +556,15 @@ namespace NewLife.CommonEntity
             return currentPath;
         }
 
-        /// <summary>扫描指定目录并添加文件到顶级菜单之下</summary>
-        /// <param name="dir"></param>
-        /// <param name="top"></param>
+        /// <summary>
+        /// 扫描指定目录并添加文件到顶级菜单之下
+        /// </summary>
+        /// <param name="dir">扫描目录</param>
+        /// <param name="top">父级</param>
+        /// <param name="fileFilter">过滤文件名</param>
+        /// <param name="isFilterChildDir">是否在子目录中过滤</param>
         /// <returns></returns>
-        public static Int32 ScanAndAdd(String dir, TEntity top)
+        public static Int32 ScanAndAdd(String dir, TEntity top, List<String> fileFilter, Boolean isFilterChildDir)
         {
             if (String.IsNullOrEmpty(dir)) throw new ArgumentNullException("dir");
             if (top == null) throw new ArgumentNullException("top");
@@ -590,12 +603,19 @@ namespace NewLife.CommonEntity
             }
 
             //aspx
-            if (fs != null && fs.Length > 1)
+            if (fs != null && fs.Length > 0)
             {
 
                 List<String> files = new List<String>();
                 foreach (String elm in fs)
                 {
+                    //过滤特定文件名文件
+                    if (fileFilter != null && fileFilter.Count() > 0 && null != fileFilter.Find(delegate(String item)
+                    {
+                        return item.Equals(Path.GetFileName(elm), StringComparison.CurrentCultureIgnoreCase);
+                    }))
+                        continue;
+
                     // 过滤掉表单页面
                     if (Path.GetFileNameWithoutExtension(elm).EndsWith("Form", StringComparison.OrdinalIgnoreCase)) continue;
                     // 过滤掉选择页面
@@ -604,48 +624,64 @@ namespace NewLife.CommonEntity
 
                     files.Add(elm);
                 }
-                if (files.Count < 1) return num;
 
-                String currentPath = GetPathForScan(p);
-                //aspx页面
-                foreach (String elm in files)
+                if (files.Count > 0)
                 {
-                    String url = null;
-                    if (elm.Equals("Default.aspx", StringComparison.OrdinalIgnoreCase))
+                    String currentPath = GetPathForScan(p);
+                    //aspx页面
+                    foreach (String elm in files)
                     {
-                        parent.Url = Path.Combine(currentPath, "Default.aspx");
-                        String title = GetPageTitle(elm);
-                        if (!String.IsNullOrEmpty(title)) parent.Name = parent.Permission = title;
-                        parent.Save();
+                        String url = null;
+                        if (Path.GetFileName(elm).Equals("Default.aspx", StringComparison.OrdinalIgnoreCase))
+                        {
+                            parent.Url = Path.Combine(currentPath, "Default.aspx");
+                            String title = GetPageTitle(elm);
+                            if (!String.IsNullOrEmpty(title)) parent.Name = parent.Permission = title;
+                            parent.Save();
+                        }
+
+                        // 全部使用全路径
+                        //if (String.Equals(dir, "Admin", StringComparison.OrdinalIgnoreCase))
+                        //    url = String.Format(@"../{0}/{1}", dirName, Path.GetFileName(elm));
+                        //else
+                        url = Path.Combine(currentPath, Path.GetFileName(elm));
+                        TEntity entity = Find(_.Url, url);
+                        if (entity != null) continue;
+
+                        entity = parent.AddChild(Path.GetFileNameWithoutExtension(elm), url);
+                        String elmTitle = GetPageTitle(elm);
+                        if (!String.IsNullOrEmpty(elmTitle)) entity.Name = entity.Permission = elmTitle;
+                        entity.Save();
+
+                        num++;
                     }
-
-                    // 全部使用全路径
-                    //if (String.Equals(dir, "Admin", StringComparison.OrdinalIgnoreCase))
-                    //    url = String.Format(@"../{0}/{1}", dirName, Path.GetFileName(elm));
-                    //else
-                    url = Path.Combine(currentPath, Path.GetFileName(elm));
-                    TEntity entity = Find(_.Url, url);
-                    if (entity != null) continue;
-
-                    entity = parent.AddChild(Path.GetFileNameWithoutExtension(elm), url);
-                    String elmTitle = GetPageTitle(elm);
-                    if (!String.IsNullOrEmpty(elmTitle)) entity.Name = entity.Permission = elmTitle;
-                    entity.Save();
-
-                    num++;
                 }
             }
 
             // 子级目录
-            if (dis == null || dis.Length <= 0)
-                return num;
-            else
+            if (dis == null || dis.Length > 0)
                 foreach (String item in dis)
                 {
-                    num += ScanAndAdd(item, parent);
+                    num += isFilterChildDir ? ScanAndAdd(item, parent, fileFilter, isFilterChildDir) : ScanAndAdd(item, parent, null, !isFilterChildDir);
                 }
 
+            //如果目录中没有菜单，移除目录
+            if (parent.Childs == null || parent.Childs.Count == 0)
+            { 
+                top.Childs.Remove(parent);
+                parent.Delete();
+            }
+
             return num;
+        }
+
+        /// <summary>扫描指定目录并添加文件到顶级菜单之下</summary>
+        /// <param name="dir"></param>
+        /// <param name="top"></param>
+        /// <returns></returns>
+        public static Int32 ScanAndAdd(String dir, TEntity top)
+        {
+            return ScanAndAdd(dir, top, null, false);
         }
 
         ///// <summary>
