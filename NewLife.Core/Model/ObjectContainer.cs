@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
-using System.Reflection;
 using NewLife.Configuration;
 using NewLife.Exceptions;
 using NewLife.Reflection;
@@ -349,6 +347,7 @@ namespace NewLife.Model
                                 {
                                     pscache.Add(pi.ParameterType, pv);
                                     ps.Add(pv);
+                                    continue;
                                 }
                             }
 

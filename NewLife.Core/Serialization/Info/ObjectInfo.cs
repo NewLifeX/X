@@ -5,6 +5,7 @@ using System.Runtime.Serialization;
 using System.Xml.Serialization;
 using NewLife.Collections;
 using NewLife.Reflection;
+using NewLife.Linq;
 
 namespace NewLife.Serialization
 {
@@ -55,25 +56,13 @@ namespace NewLife.Serialization
                 // 如果异常，改用后面的方法获取成员信息
                 try
                 {
-                    //return CreateDictionary(GetMembers(value as ISerializable, type));
                     return GetMembers(value as ISerializable, type);
                 }
                 catch { }
             }
 
-            //return CreateDictionary(GetMembers(type, isField));
             return GetMembers(type, isField, isBaseFirst);
         }
-
-        //static IDictionary<String, IObjectMemberInfo> CreateDictionary(IObjectMemberInfo[] mis)
-        //{
-        //    Dictionary<String, IObjectMemberInfo> dic = new Dictionary<string, IObjectMemberInfo>();
-        //    foreach (IObjectMemberInfo item in mis)
-        //    {
-        //        dic.Add(item.Name, item);
-        //    }
-        //    return dic;
-        //}
 
         static DictionaryCache<Type, IObjectMemberInfo[]> fieldCache = new DictionaryCache<Type, IObjectMemberInfo[]>();
         static DictionaryCache<Type, IObjectMemberInfo[]> fieldCache2 = new DictionaryCache<Type, IObjectMemberInfo[]>();
@@ -81,40 +70,42 @@ namespace NewLife.Serialization
         static DictionaryCache<Type, IObjectMemberInfo[]> propertyCache2 = new DictionaryCache<Type, IObjectMemberInfo[]>();
         static IObjectMemberInfo[] GetMembers(Type type, Boolean isField, Boolean isBaseFirst)
         {
-            if (isField)
-            {
-                if (isBaseFirst)
-                    return fieldCache.GetItem(type, delegate(Type t)
-                    {
-                        MemberInfo[] mis = FindFields(t, true);
-                        if (mis == null || mis.Length < 1) return null;
-                        return Array.ConvertAll<MemberInfo, IObjectMemberInfo>(mis, CreateObjectMemberInfo);
-                    });
-                else
-                    return fieldCache2.GetItem(type, delegate(Type t)
-                    {
-                        MemberInfo[] mis = FindFields(t, false);
-                        if (mis == null || mis.Length < 1) return null;
-                        return Array.ConvertAll<MemberInfo, IObjectMemberInfo>(mis, CreateObjectMemberInfo);
-                    });
-            }
-            else
-            {
-                if (isBaseFirst)
-                    return propertyCache.GetItem(type, delegate(Type t)
-                    {
-                        MemberInfo[] mis = FindProperties(t, true);
-                        if (mis == null || mis.Length < 1) return null;
-                        return Array.ConvertAll<MemberInfo, IObjectMemberInfo>(mis, CreateObjectMemberInfo);
-                    });
-                else
-                    return propertyCache2.GetItem(type, delegate(Type t)
-                    {
-                        MemberInfo[] mis = FindProperties(t, false);
-                        if (mis == null || mis.Length < 1) return null;
-                        return Array.ConvertAll<MemberInfo, IObjectMemberInfo>(mis, CreateObjectMemberInfo);
-                    });
-            }
+            var cache = isField ? (isBaseFirst ? fieldCache : fieldCache2) : (isBaseFirst ? propertyCache : propertyCache2);
+            return cache.GetItem<Boolean, Boolean>(type, isField, isBaseFirst, (t, isf, isb) => (isf ? FindFields(t, isb) : FindProperties(t, isb)).Select(CreateObjectMemberInfo).ToArray());
+            //if (isField)
+            //{
+            //    if (isBaseFirst)
+            //        return fieldCache.GetItem(type, delegate(Type t)
+            //        {
+            //            var mis = FindFields(t, true);
+            //            if (mis == null || mis.Length < 1) return null;
+            //            return Array.ConvertAll<MemberInfo, IObjectMemberInfo>(mis, CreateObjectMemberInfo);
+            //        });
+            //    else
+            //        return fieldCache2.GetItem(type, delegate(Type t)
+            //        {
+            //            var mis = FindFields(t, false);
+            //            if (mis == null || mis.Length < 1) return null;
+            //            return Array.ConvertAll<MemberInfo, IObjectMemberInfo>(mis, CreateObjectMemberInfo);
+            //        });
+            //}
+            //else
+            //{
+            //    if (isBaseFirst)
+            //        return propertyCache.GetItem(type, delegate(Type t)
+            //        {
+            //            var mis = FindProperties(t, true);
+            //            if (mis == null || mis.Length < 1) return null;
+            //            return Array.ConvertAll<MemberInfo, IObjectMemberInfo>(mis, CreateObjectMemberInfo);
+            //        });
+            //    else
+            //        return propertyCache2.GetItem(type, delegate(Type t)
+            //        {
+            //            var mis = FindProperties(t, false);
+            //            if (mis == null || mis.Length < 1) return null;
+            //            return Array.ConvertAll<MemberInfo, IObjectMemberInfo>(mis, CreateObjectMemberInfo);
+            //        });
+            //}
         }
 
         static DictionaryCache<Type, MemberInfo[]> cache1 = new DictionaryCache<Type, MemberInfo[]>();
@@ -124,15 +115,15 @@ namespace NewLife.Serialization
         /// <returns></returns>
         static MemberInfo[] FindFields(Type type, Boolean isBaseFirst)
         {
-            if (type == null) return null;
+            if (type == null) return new MemberInfo[0];
 
-            List<MemberInfo> list = new List<MemberInfo>();
+            var list = new List<MemberInfo>();
 
             // GetFields只能取得本类的字段，没办法取得基类的字段
-            FieldInfo[] fis = type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            var fis = type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
             if (fis != null && fis.Length > 0)
             {
-                foreach (FieldInfo item in fis)
+                foreach (var item in fis)
                 {
                     if (!Attribute.IsDefined(item, typeof(NonSerializedAttribute))) list.Add(item);
                 }
@@ -141,13 +132,13 @@ namespace NewLife.Serialization
             // 递归取父级的字段
             if (type.BaseType != null && type.BaseType != typeof(Object))
             {
-                MemberInfo[] mis = FindFields(type.BaseType, isBaseFirst);
+                var mis = FindFields(type.BaseType, isBaseFirst);
                 if (mis != null)
                 {
                     if (isBaseFirst)
                     {
                         // 基类的字段排在子类字段前面
-                        List<MemberInfo> list2 = new List<MemberInfo>(mis);
+                        var list2 = new List<MemberInfo>(mis);
                         if (list.Count > 0) list2.AddRange(list);
                         list = list2;
                     }
@@ -156,7 +147,6 @@ namespace NewLife.Serialization
                 }
             }
 
-            if (list == null || list.Count < 1) return null;
             return list.ToArray();
         }
 
@@ -166,20 +156,20 @@ namespace NewLife.Serialization
         /// <returns></returns>
         static MemberInfo[] FindProperties(Type type, Boolean isBaseFirst)
         {
-            if (type == null) return null;
+            if (type == null) return new MemberInfo[0];
 
-            List<MemberInfo> list = new List<MemberInfo>();
+            var list = new List<MemberInfo>();
 
             // 只返回本级的属性，递归返回，保证排序
-            PropertyInfo[] pis = type.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly);
+            var pis = type.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly);
             if (pis != null && pis.Length > 0)
             {
-                foreach (PropertyInfo item in pis)
+                foreach (var item in pis)
                 {
                     // 必须可读写
                     if (!item.CanRead || !item.CanWrite) continue;
 
-                    ParameterInfo[] ps = item.GetIndexParameters();
+                    var ps = item.GetIndexParameters();
                     if (ps != null && ps.Length > 0) continue;
 
                     if (!Attribute.IsDefined(item, typeof(XmlIgnoreAttribute))) list.Add(item);
@@ -189,13 +179,13 @@ namespace NewLife.Serialization
             // 递归取父级的属性
             if (type.BaseType != null && type.BaseType != typeof(Object))
             {
-                MemberInfo[] mis = FindProperties(type.BaseType, isBaseFirst);
+                var mis = FindProperties(type.BaseType, isBaseFirst);
                 if (mis != null)
                 {
                     if (isBaseFirst)
                     {
                         // 基类的属性排在子类属性前面
-                        List<MemberInfo> list2 = new List<MemberInfo>(mis);
+                        var list2 = new List<MemberInfo>(mis);
                         if (list.Count > 0) list2.AddRange(list);
                         list = list2;
                     }
@@ -204,7 +194,6 @@ namespace NewLife.Serialization
                 }
             }
 
-            if (list == null || list.Count < 1) return null;
             return list.ToArray();
         }
 
@@ -221,12 +210,12 @@ namespace NewLife.Serialization
                 value = GetDefaultObject(type) as ISerializable;
             }
 
-            SerializationInfo info = new SerializationInfo(type, new FormatterConverter());
+            var info = new SerializationInfo(type, new FormatterConverter());
 
             value.GetObjectData(info, DefaultStreamingContext);
 
-            List<IObjectMemberInfo> list = new List<IObjectMemberInfo>();
-            foreach (SerializationEntry item in info)
+            var list = new List<IObjectMemberInfo>();
+            foreach (var item in info)
             {
                 list.Add(CreateObjectMemberInfo(item.Name, item.ObjectType, item.Value));
             }

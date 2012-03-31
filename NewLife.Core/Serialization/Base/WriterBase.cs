@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
+using System.Text;
 
 namespace NewLife.Serialization
 {
@@ -875,6 +875,9 @@ namespace NewLife.Serialization
             {
                 IObjectMemberInfo[] mis = GetMembers(type, value);
                 if (mis == null || mis.Length < 1) return true;
+
+                // 调试输出成员列表
+                if (Debug) ShowMembers("WriteCustomObject", mis);
 
                 for (int i = 0; i < mis.Length; i++)
                 {

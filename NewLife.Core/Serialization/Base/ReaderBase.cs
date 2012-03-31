@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Net;
+using System.Reflection;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using NewLife.Exceptions;
 using NewLife.Linq;
+using NewLife.Log;
 using NewLife.Reflection;
 
 namespace NewLife.Serialization
@@ -512,6 +513,15 @@ namespace NewLife.Serialization
                     }
                 }
             }
+            // 通过索引器猜测元素类型
+            if (elementType == null)
+            {
+                var pi = type.GetProperty("Item", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+                if (pi != null) elementType = pi.PropertyType;
+            }
+
+            // 找不到元素类型
+            if (elementType == null) throw new SerializationException("无法找到" + type.FullName + "的元素类型！");
 
             if (!ReadEnumerable(type, elementType, ref value, callback)) return false;
 
@@ -584,6 +594,10 @@ namespace NewLife.Serialization
             }
 
             if (ProcessItems(type, elementType, ref value, list)) return true;
+
+            // 无法处理
+            //WriteLog("ReadEnumerable", String.Format("已完成{1}元素列表的读取，但无法写入到{0}的枚举对象中", type, elementType));
+            XTrace.WriteLine("已完成{1}元素列表的读取，但无法写入到{0}的枚举对象中", type, elementType);
 
             return false;
         }
@@ -732,15 +746,15 @@ namespace NewLife.Serialization
                     }
                 }
 
-                method = MethodInfoX.Create(type, "Add", new Type[] { elementType });
-                if (method != null)
-                {
-                    foreach (Object item in items)
-                    {
-                        method.Invoke(value, item);
-                    }
-                    return true;
-                }
+                //method = MethodInfoX.Create(type, "Add", new Type[] { elementType });
+                //if (method != null)
+                //{
+                //    foreach (Object item in items)
+                //    {
+                //        method.Invoke(value, item);
+                //    }
+                //    return true;
+                //}
             }
             #endregion
 
@@ -802,11 +816,20 @@ namespace NewLife.Serialization
             if (method == null) method = MethodInfoX.Create(type, "Add", new Type[] { elementType });
             if (method != null)
             {
-                if (value != null) value = TypeX.CreateInstance(type);
+                if (value == null) value = TypeX.CreateInstance(type);
                 foreach (Object item in items)
                 {
                     method.Invoke(value, item);
                 }
+                return true;
+            }
+
+            method = MethodInfoX.Create(type, "AddRange", new Type[] { typeof(ICollection) });
+            if (method == null) method = MethodInfoX.Create(type, "AddRange", new Type[] { typeof(IList) });
+            if (method != null)
+            {
+                method.Invoke(value, items);
+
                 return true;
             }
             #endregion
@@ -829,6 +852,9 @@ namespace NewLife.Serialization
 
             IObjectMemberInfo[] mis = GetMembers(type, value);
             if (mis == null || mis.Length < 1) return true;
+
+            // 调试输出成员列表
+            if (Debug) ShowMembers("ReadSerializable", mis);
 
             for (int i = 0; i < mis.Length; i++)
             {
@@ -1401,6 +1427,9 @@ namespace NewLife.Serialization
 
                     if (value != null) AddObjRef(objRefIndex, value);
                 }
+
+                // 调试输出成员列表
+                if (Debug) ShowMembers("ReadCustomObject", mis);
 
                 for (int i = 0; i < mis.Length; i++)
                 {

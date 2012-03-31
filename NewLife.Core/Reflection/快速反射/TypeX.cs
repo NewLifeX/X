@@ -9,6 +9,7 @@ using NewLife.Collections;
 using NewLife.Exceptions;
 using NewLife.Linq;
 using System.Globalization;
+using System.Runtime.Serialization;
 
 namespace NewLife.Reflection
 {
@@ -176,40 +177,80 @@ namespace NewLife.Reflection
             if (BaseType.ContainsGenericParameters || BaseType.IsGenericTypeDefinition)
                 throw new XException(BaseType.FullName + "类是泛型定义类，缺少泛型参数！");
 
-            if (BaseType.IsValueType || BaseType.IsArray)
-                return Handler.Invoke(parameters);
-            else
+            if (BaseType.IsValueType || BaseType.IsArray) return Handler.Invoke(parameters);
+
+            // 准备参数类型数组，以匹配构造函数
+            //var paramTypes = Type.EmptyTypes;
+            //if (parameters != null && parameters.Length > 0)
+            //{
+            //    var list = new List<Type>();
+            //    foreach (var item in parameters)
+            //    {
+            //        if (item != null)
+            //            list.Add(item.GetType());
+            //        else
+            //            list.Add(typeof(Object));
+            //    }
+            //    paramTypes = list.ToArray();
+            //}
+            var paramTypes = Type.GetTypeArray(parameters);
+            var ctor = GetConstructor(paramTypes);
+            var handler = GetHandler(ctor);
+            if (handler != null) return handler.Invoke(parameters);
+            if (paramTypes != Type.EmptyTypes)
             {
-                // 准备参数类型数组，以匹配构造函数
-                Type[] paramTypes = Type.EmptyTypes;
-                if (parameters != null && parameters.Length > 0)
+                paramTypes = Type.EmptyTypes;
+                ctor = GetConstructor(paramTypes);
+                handler = GetHandler(ctor);
+                if (handler != null)
                 {
-                    List<Type> list = new List<Type>();
-                    foreach (Object item in parameters)
+                    // 更换了构造函数，要重新构造构造函数的参数
+                    var ps = ctor.GetParameters();
+                    parameters = new Object[ps.Length];
+                    for (int i = 0; i < ps.Length; i++)
                     {
-                        if (item != null)
-                            list.Add(item.GetType());
+                        // 处理值类型
+                        if (ps[i].ParameterType.IsValueType)
+                            parameters[i] = TypeX.CreateInstance(ps[i].ParameterType);
                         else
-                            list.Add(typeof(Object));
+                            parameters[i] = null;
                     }
-                    paramTypes = list.ToArray();
+
+                    return handler.Invoke(parameters);
                 }
-                //Type[] paramTypes = Type.GetTypeArray(parameters);
-                return GetHandler(paramTypes).Invoke(parameters);
             }
+
+            // 如果没有找到构造函数，则创建一个未初始化的对象
+            return FormatterServices.GetSafeUninitializedObject(BaseType);
         }
 
         DictionaryCache<ConstructorInfo, FastHandler> _cache = new DictionaryCache<ConstructorInfo, FastHandler>();
-        FastHandler GetHandler(Type[] paramTypes)
+        FastHandler GetHandler(ConstructorInfo constructor)
         {
-            ConstructorInfo constructor = BaseType.GetConstructor(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null, paramTypes, null);
-            //if (constructor == null) throw new Exception("没有找到匹配的构造函数！");
             if (constructor == null) return null;
 
-            return _cache.GetItem(constructor, delegate(ConstructorInfo key)
+            return _cache.GetItem(constructor, key => GetConstructorInvoker(BaseType, key));
+        }
+
+        ConstructorInfo GetConstructor(Type[] paramTypes)
+        {
+            var bf = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
+
+            // 1，如果参数为null，则找第一个参数
+            // 2，根据参数找一次，如果参数为空，也许能找到无参构造函数
+            // 3，如果还没找到，参数又为空，采用第一个构造函数。这里之所以没有和第一步合并，主要是可能调用者只想要无参构造函数，而第一个不是
+
+            ConstructorInfo constructor = null;
+            if (paramTypes == null)
             {
-                return GetConstructorInvoker(BaseType, key);
-            });
+                constructor = BaseType.GetConstructors(bf).FirstOrDefault();
+                paramTypes = Type.EmptyTypes;
+            }
+            if (constructor == null) constructor = BaseType.GetConstructor(bf, null, paramTypes, null);
+            //if (constructor == null) throw new Exception("没有找到匹配的构造函数！");
+            if (constructor == null && paramTypes == Type.EmptyTypes) constructor = BaseType.GetConstructors(bf).FirstOrDefault();
+
+            return constructor;
         }
 
         /// <summary>快速反射创建指定类型的实例</summary>
@@ -768,7 +809,7 @@ namespace NewLife.Reflection
         {
             if (args == null) return Type.EmptyTypes;
 
-            Type[] typeArray = new Type[args.Length];
+            var typeArray = new Type[args.Length];
             for (int i = 0; i < typeArray.Length; i++)
             {
                 if (args[i] == null)

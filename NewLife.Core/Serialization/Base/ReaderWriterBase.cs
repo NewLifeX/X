@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using NewLife.Linq;
 using NewLife.Log;
+using System.Text;
 
 namespace NewLife.Serialization
 {
@@ -98,7 +99,7 @@ namespace NewLife.Serialization
         protected static Boolean IsExactType(Type type)
         {
             // 特殊处理Type
-            if (type == null || type.IsInterface || type.IsAbstract && type != typeof(Type) || type == typeof(Object))
+            if (type == null || type.IsInterface || type.IsAbstract && type != typeof(Type) || type == typeof(Object) || type == typeof(Exception))
                 return false;
             else
                 return true;
@@ -229,6 +230,22 @@ namespace NewLife.Serialization
             if (stream == null || stream is TraceStream) return;
 
             Stream = new TraceStream(stream) { Encoding = Settings.Encoding };
+        }
+
+        /// <summary>显示成员列表</summary>
+        /// <param name="action"></param>
+        /// <param name="members"></param>
+        protected void ShowMembers(String action, IObjectMemberInfo[] members)
+        {
+            if (!Debug || !IsConsole) return;
+
+            var sb = new StringBuilder();
+            foreach (var item in members)
+            {
+                if (sb.Length > 0) sb.Append(",");
+                sb.Append(item.Name);
+            }
+            WriteLog(action, sb.ToString());
         }
 
         /// <summary>调试输出</summary>

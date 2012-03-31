@@ -10,6 +10,7 @@ using NewLife.Net.Proxy;
 using NewLife.Net.Sockets;
 using NewLife.Reflection;
 using NewLife.Threading;
+using XCode.DataAccessLayer;
 
 namespace Test
 {
@@ -26,7 +27,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test3();
+                Test3();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -179,13 +180,31 @@ namespace Test
             //rnd.NextBytes(entity.File);
             //entity.Save();
 
-            var type = typeof(User).BaseType;
-            var ps = new Object[] { null, null, null, 0, 3 };
-            var pts = TypeX.GetTypeArray(ps);
-            var method = type.GetMethod("FindCount");
-            Console.WriteLine(method);
-            method = TypeX.Create(type).GetMethod("FindCount", pts);
-            Console.WriteLine(method);
+            //var type = typeof(User).BaseType;
+            //var ps = new Object[] { null, null, null, 0, 3 };
+            //var pts = TypeX.GetTypeArray(ps);
+            //var method = type.GetMethod("FindCount");
+            //Console.WriteLine(method);
+            //method = TypeX.Create(type).GetMethod("FindCount", pts);
+            //Console.WriteLine(method);
+
+            var dal = DAL.Create("Common");
+            try
+            {
+                dal.Select("select * from abc");
+            }
+            catch (Exception ex)
+            {
+                Message.Debug = true;
+                var msg = new ExceptionMessage();
+                msg.Value = ex;
+
+                var ms = msg.GetStream();
+                Console.WriteLine(ms.Length);
+
+                var msg2 = Message.Read<ExceptionMessage>(ms);
+                Console.WriteLine(msg2 != null);
+            }
         }
     }
 }
