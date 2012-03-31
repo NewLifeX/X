@@ -86,7 +86,9 @@ namespace XCode.Exceptions
         public override void GetObjectData(SerializationInfo info, StreamingContext context)
         {
             base.GetObjectData(info, context);
-            info.AddValue("sql", Sql);
+            //info.AddValue("sql", Sql);
+            // 必须明确指定类型，否则可能因为Sql==null，而导致内部当作Object写入
+            info.AddValue("sql", Sql, typeof(String));
         }
         #endregion
     }
