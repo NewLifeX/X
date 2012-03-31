@@ -2,14 +2,14 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Runtime.Serialization;
 using System.Text;
 using NewLife.Collections;
 using NewLife.Exceptions;
 using NewLife.Linq;
-using System.Globalization;
-using System.Runtime.Serialization;
 
 namespace NewLife.Reflection
 {
@@ -216,7 +216,12 @@ namespace NewLife.Reflection
                             parameters[i] = null;
                     }
 
-                    return handler.Invoke(parameters);
+                    // 如果这里创建失败，后面还可以创建一个未初始化
+                    try
+                    {
+                        return handler.Invoke(parameters);
+                    }
+                    catch { }
                 }
             }
 
