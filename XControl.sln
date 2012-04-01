@@ -1,0 +1,45 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XControl", "XControl\XControl.csproj", "{A82E3AA8-6181-460D-A6EE-CC453B83D340}"
+EndProject
+Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "XControlTest", "XControlTest\", "{50D6E082-38DC-426E-9985-52432B85101F}"
+	ProjectSection(WebsiteProperties) = preProject
+		TargetFrameworkMoniker = ".NETFramework,Version%3Dv2.0"
+		ProjectReferences = "{A82E3AA8-6181-460D-A6EE-CC453B83D340}|XControl.dll;"
+		Debug.AspNetCompiler.VirtualPath = "/XControlTest"
+		Debug.AspNetCompiler.PhysicalPath = "XControlTest\"
+		Debug.AspNetCompiler.TargetPath = "PrecompiledWeb\XControlTest\"
+		Debug.AspNetCompiler.Updateable = "true"
+		Debug.AspNetCompiler.ForceOverwrite = "true"
+		Debug.AspNetCompiler.FixedNames = "false"
+		Debug.AspNetCompiler.Debug = "True"
+		Release.AspNetCompiler.VirtualPath = "/XControlTest"
+		Release.AspNetCompiler.PhysicalPath = "XControlTest\"
+		Release.AspNetCompiler.TargetPath = "PrecompiledWeb\XControlTest\"
+		Release.AspNetCompiler.Updateable = "true"
+		Release.AspNetCompiler.ForceOverwrite = "true"
+		Release.AspNetCompiler.FixedNames = "false"
+		Release.AspNetCompiler.Debug = "False"
+		VWDPort = "64877"
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A82E3AA8-6181-460D-A6EE-CC453B83D340}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A82E3AA8-6181-460D-A6EE-CC453B83D340}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A82E3AA8-6181-460D-A6EE-CC453B83D340}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A82E3AA8-6181-460D-A6EE-CC453B83D340}.Release|Any CPU.Build.0 = Release|Any CPU
+		{50D6E082-38DC-426E-9985-52432B85101F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{50D6E082-38DC-426E-9985-52432B85101F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{50D6E082-38DC-426E-9985-52432B85101F}.Release|Any CPU.ActiveCfg = Debug|Any CPU
+		{50D6E082-38DC-426E-9985-52432B85101F}.Release|Any CPU.Build.0 = Debug|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
