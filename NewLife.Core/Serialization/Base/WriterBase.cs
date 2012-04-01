@@ -5,7 +5,7 @@ using System.IO;
 using System.Net;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
-using System.Text;
+using NewLife.Reflection;
 
 namespace NewLife.Serialization
 {
@@ -262,10 +262,7 @@ namespace NewLife.Serialization
         /// <summary>写入枚举类型数据</summary>
         /// <param name="value">枚举数据</param>
         /// <returns>是否写入成功</returns>
-        public Boolean Write(IDictionary value)
-        {
-            return WriteDictionary(value, null, WriteMember);
-        }
+        public Boolean Write(IDictionary value) { return WriteDictionary(value, null, WriteMember); }
 
         /// <summary>写入字典类型数据</summary>
         /// <param name="value">字典数据</param>
@@ -394,10 +391,7 @@ namespace NewLife.Serialization
         /// <summary>写入枚举类型数据</summary>
         /// <param name="value">枚举数据</param>
         /// <returns>是否写入成功</returns>
-        public Boolean Write(IEnumerable value)
-        {
-            return WriteEnumerable(value, null, WriteMember);
-        }
+        public Boolean Write(IEnumerable value) { return WriteEnumerable(value, null, WriteMember); }
 
         /// <summary>写入枚举数据，复杂类型使用委托方法进行处理</summary>
         /// <param name="value">对象</param>
@@ -414,27 +408,12 @@ namespace NewLife.Serialization
             if (type != null && !typeof(IEnumerable).IsAssignableFrom(type)) throw new InvalidOperationException("目标类型不是枚举类型！");
 
             // 计算元素类型，如果无法计算，这里不能处理，否则能写不能读（因为不知道元素类型）
-            Type elementType = null;
-            if (type.HasElementType) elementType = type.GetElementType();
-
-            // 如果实现了IEnumerable<>接口，那么取泛型参数
-            if (elementType == null)
-            {
-                Type[] ts = type.GetInterfaces();
-                foreach (Type item in ts)
-                {
-                    if (item.IsGenericType && item.GetGenericTypeDefinition() == typeof(IEnumerable<>))
-                    {
-                        elementType = item.GetGenericArguments()[0];
-                        break;
-                    }
-                }
-            }
+            var elementType = TypeX.GetElementType(type);
 
             //if (elementType == null) return false;
 
             Int32 i = 0;
-            foreach (Object item in value)
+            foreach (var item in value)
             {
                 Depth++;
                 if (!WriteItem(item, elementType, i++, callback)) return false;

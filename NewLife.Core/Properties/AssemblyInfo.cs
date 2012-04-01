@@ -34,9 +34,11 @@ using System.Runtime.InteropServices;
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("3.8.*")]
-[assembly: AssemblyFileVersion("3.8.2012.0331")]
+[assembly: AssemblyFileVersion("3.8.2012.0401")]
 
 /*
+ * v3.8.2012.0401   增加TypeX.GetElementType方法，用于获取枚举类型的元素类型
+ * 
  * v3.8.2012.0331   增加TypeX.GetMethod方法，用于反射获取类中的方法，适用于多态场合
  * 
  * v3.8.2012.0328   所有扩展方法辅助类，全部使用System命名空间

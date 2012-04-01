@@ -497,28 +497,7 @@ namespace NewLife.Serialization
             if (!typeof(IEnumerable).IsAssignableFrom(type)) return false;
 
             // 计算元素类型，如果无法计算，这里不能处理，否则能写不能读（因为不知道元素类型）
-            Type elementType = null;
-            if (type.HasElementType) elementType = type.GetElementType();
-
-            // 如果实现了IEnumerable<>接口，那么取泛型参数
-            if (elementType == null)
-            {
-                Type[] ts = type.GetInterfaces();
-                foreach (Type item in ts)
-                {
-                    if (item.IsGenericType && item.GetGenericTypeDefinition() == typeof(IEnumerable<>))
-                    {
-                        elementType = item.GetGenericArguments()[0];
-                        break;
-                    }
-                }
-            }
-            // 通过索引器猜测元素类型
-            if (elementType == null)
-            {
-                var pi = type.GetProperty("Item", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-                if (pi != null) elementType = pi.PropertyType;
-            }
+            Type elementType = TypeX.GetElementType(type);
 
             // 找不到元素类型
             if (elementType == null) throw new SerializationException("无法找到" + type.FullName + "的元素类型！");

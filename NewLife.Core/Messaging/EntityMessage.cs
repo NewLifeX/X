@@ -17,11 +17,11 @@ namespace NewLife.Messaging
 
         private Type _Type;
         /// <summary>实体类型。可以是接口或抽象类型（要求对象容器能识别）</summary>
-        public Type Type { get { return _Type; } set { _Type = value; } }
+        public Type Type { get { if (_Type == null && _Value != null)_Type = _Value.GetType(); return _Type; } set { _Type = value; } }
 
         private Object _Value;
         /// <summary>对象值</summary>
-        public Object Value { get { return _Value; } set { _Value = value; if (value != null && Type == null)Type = value.GetType(); } }
+        public Object Value { get { return _Value; } set { _Value = value; if (value != null) Type = value.GetType(); } }
 
         #region IAccessor 成员
         Boolean IAccessor.Read(IReader reader)
