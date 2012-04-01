@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Data;
 
 namespace XCode
 {
@@ -132,6 +133,17 @@ namespace XCode
         ///// <param name="json"></param>
         ///// <returns></returns>
         //IEntityList FromJson(String json);
+        #endregion
+
+        #region 导出DataSet数据集
+        /// <summary>转为DataTable</summary>
+        /// <param name="allowUpdate">是否允许更新数据，如果允许，将可以对DataTable进行添删改等操作</param>
+        /// <returns></returns>
+        DataTable ToDataTable(Boolean allowUpdate = true);
+
+        /// <summary>转为DataSet</summary>
+        /// <returns></returns>
+        DataSet ToDataSet();
         #endregion
     }
 }

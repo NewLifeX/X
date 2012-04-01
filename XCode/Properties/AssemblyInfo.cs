@@ -35,7 +35,7 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
 [assembly: AssemblyVersion("8.5.*")]
-[assembly: AssemblyFileVersion("8.5.2012.0323")]
+[assembly: AssemblyFileVersion("8.5.2012.0401")]
 
 /*
  * XCode的重大改进
@@ -52,6 +52,8 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v8.5.2012.0401   IEntityList接口增加ToDataTable等方法
+ * 
  * v8.5.2012.0323   Insert和Update时，大字段使用参数传递，至此，XCode完整支持所有数据类型。感谢@老徐（gregorius 279504479）
  *                  修正对默认值的处理的错误，该错误导致创建表时无法使用字符串默认值
  *                  
