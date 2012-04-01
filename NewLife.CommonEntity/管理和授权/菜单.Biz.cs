@@ -666,10 +666,13 @@ namespace NewLife.CommonEntity
                 }
 
             //如果目录中没有菜单，移除目录
-            if (parent.Childs == null || parent.Childs.Count == 0)
-            { 
-                top.Childs.Remove(parent);
+            if (parent != null && parent.ID > 0 && FindCount(_.ParentID, parent.ID) == 0)
+            {
+                TEntity remove = top.Childs.Find(_.ID, parent.ID);
+                if (remove != null)
+                    top.Childs.Remove(remove);
                 parent.Delete();
+                num = num - 1;
             }
 
             return num;
