@@ -156,6 +156,7 @@
     <EmbeddedResource Include="Menu\RS\XSL.xsl">
       <SubType>Designer</SubType>
     </EmbeddedResource>
+    <EmbeddedResource Include="TextBox\VerifyCodeImage.gif" />
     <Content Include="说明.txt" />
   </ItemGroup>
   <ItemGroup>

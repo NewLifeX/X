@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
+using System.IO;
 using System.Reflection;
 using System.Web.UI;
 using System.Web.UI.HtmlControls;
@@ -36,9 +37,14 @@ namespace XControl
     ///     &lt;XCL:VerifyCodeBox runat="server" ID="VerifyCodeBox1" ControlToValidate="TextBox1"&gt;&lt;/XCL:VerifyCodeBox&gt;
     ///     &lt;asp:Button runat="server" ID="Button1" Text="提交"/&gt;
     /// </code>
+    ///
+    /// 输出到前端的标签结构如下,注意label的id和内部span的id变化
+    /// <code>
+    ///     &lt;label id="ClientIDContainer"&gt;&lt;img src="verifyCode.aspx"/&gt;&lt;span id="ClientID"&gt;ErrorMessage&lt;/span&gt;&lt;/label&gt;
+    /// </code>
     /// </remarks>
     [Description("验证码图片控件")]
-    [ToolboxData("<{0}:VerifyCodeBox runat=server></{0}:VerifyCodeBox>")]
+    [ToolboxData("<{0}:VerifyCodeBox runat=\"server\" ControlToValidate=\"\"></{0}:VerifyCodeBox>")]
     [ToolboxBitmap(typeof(Image))]
     public class VerifyCodeBox : BaseValidator
     {
@@ -61,7 +67,8 @@ namespace XControl
         /// <summary>验证码图片控件构造方法</summary>
         public VerifyCodeBox()
         {
-            ToolTip = "看不清? 点击另换一个.";
+            ToolTip = "看不清? 点击图片另换一个。";
+            ErrorMessage = "请输入图中的字符！";
         }
 
         /// <summary>
@@ -71,7 +78,6 @@ namespace XControl
         protected override void OnLoad(EventArgs e)
         {
             base.OnLoad(e);
-
             Page.ClientScript.RegisterClientScriptResource(this.GetType(), "XControl.TextBox.VerifyCode.js");
         }
 
@@ -80,9 +86,13 @@ namespace XControl
         protected override bool EvaluateIsValid()
         {
             string input = GetControlValidationValue(ControlToValidate);
-            var ret = VerifyCodeImageHttpHandler.VerifyCode(input, VerifyGUID, Context);
-            if (!ret) VerifyCodeImageHttpHandler.ResetVerifyCode(VerifyGUID, Context);
-            return ret;
+            if (!DesignMode)
+            {
+                var ret = VerifyCodeImageHttpHandler.VerifyCode(input, VerifyGUID, Context);
+                if (!ret) VerifyCodeImageHttpHandler.ResetVerifyCode(VerifyGUID, Context);
+                return ret;
+            }
+            return false;
         }
 
         #region 控件状态的保存和加载
@@ -92,7 +102,10 @@ namespace XControl
         protected override void OnInit(EventArgs e)
         {
             base.OnInit(e);
-            Page.RegisterRequiresControlState(this);
+            if (!DesignMode)
+            {
+                Page.RegisterRequiresControlState(this);
+            }
         }
 
         /// <summary>
@@ -190,18 +203,36 @@ namespace XControl
             {
                 VerifyGUID = Guid.NewGuid().ToString();
             }
-
             // 图片
             var img = new HtmlImage();
-            var src = ResolveUrl(ImageHandlerUrl ?? DefaultImageHandler);
-            src += string.Format("{0}verify={1}&rnd={2}", src.Contains("?") ? "&" : "?", VerifyGUID,
-                DateTime.Now.TimeOfDay.TotalMilliseconds);
-            img.Src = src;
-            img.Attributes.Add("onclick", "VerifyCodeBox_Refresh(this)");
-            img.Attributes.Add("title", ToolTip);
-            img.Style.Add(HtmlTextWriterStyle.Cursor, "pointer");
-            if (DesignMode)
+            if (!DesignMode)
             {
+                var src = ResolveUrl(ImageHandlerUrl ?? DefaultImageHandler);
+                src += string.Format("{0}verify={1}&rnd={2}", src.Contains("?") ? "&" : "?", VerifyGUID,
+                    DateTime.Now.TimeOfDay.TotalMilliseconds);
+                img.Src = src;
+                img.Attributes.Add("onclick", "VerifyCodeBox_Refresh(this,'" + GetControlRenderID(ControlToValidate) + "')");
+                img.Style.Add(HtmlTextWriterStyle.Cursor, "pointer");
+            }
+            else
+            {
+                var path = Path.Combine(Path.GetTempPath(), "VerifyCodeImage.gif");
+                if (!File.Exists(path))
+                {
+                    using (var stream = GetType().Assembly.GetManifestResourceStream("XControl.TextBox.VerifyCodeImage.gif"))
+                    {
+                        using (var file = File.Create(path))
+                        {
+                            var buffer = new byte[2048];
+                            var n = 0;
+                            while ((n = stream.Read(buffer, 0, buffer.Length)) != 0)
+                            {
+                                file.Write(buffer, 0, n);
+                            }
+                        }
+                    }
+                }
+                img.Src = path;
                 img.Width = 143;
                 img.Height = 30;
             }
@@ -210,7 +241,7 @@ namespace XControl
             // 文本
             SpanCtl = new HtmlGenericControl("span")
             {
-                InnerText = Text
+                InnerText = string.IsNullOrEmpty(Text) ? ErrorMessage : Text
             };
             Controls.Add(SpanCtl);
 
@@ -233,7 +264,15 @@ namespace XControl
                 SpanCtl.Style.Add("visibility", Style["visibility"]);
                 Style.Remove("visibility");
             }
-            CheckCallClientID = true;
+
+            if (TagKey == HtmlTextWriterTag.Label)
+            {
+                Attributes.Add("for", GetControlRenderID(this.ControlToValidate));
+            }
+            if (!DesignMode)
+            {
+                CheckCallClientID = true;
+            }
             try
             {
                 base.AddAttributesToRender(writer);
@@ -242,7 +281,12 @@ namespace XControl
             {
                 CheckCallClientID = false;
             }
-            SpanCtl.ID = ID;
+            if (!DesignMode)
+            {
+                SpanCtl.ID = ID;
+                Page.ClientScript.RegisterExpandoAttribute(ClientID, "evaluationfunction", "RequiredFieldValidatorEvaluateIsValid", false);
+                Page.ClientScript.RegisterExpandoAttribute(ClientID, "initialvalue", "", false);
+            }
         }
 
         //private AttributeCollection origAttr;
@@ -367,6 +411,9 @@ namespace XControl
             }
         }
 
+        /// <summary>
+        /// 已重载,客户端的ID
+        /// </summary>
         public override string ClientID
         {
             get
