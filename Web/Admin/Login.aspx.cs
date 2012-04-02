@@ -31,7 +31,7 @@ public partial class Login : System.Web.UI.Page
             {
                 // 单一用户自动填写密码
                 IEntityOperate eop = EntityFactory.CreateOperate(ManageProvider.Provider.ManageUserType);
-                if (eop.Count <= 1)
+                if (eop.Count == 1)
                 {
                     user = eop.FindAll(null, null, null, 0, 1)[0] as IManageUser;
                     if (user != null)
