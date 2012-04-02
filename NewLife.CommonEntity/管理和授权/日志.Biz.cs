@@ -93,18 +93,27 @@ namespace NewLife.CommonEntity
         /// <returns></returns>
         public static String SearchWhere(String key, Int32 adminid, String category, DateTime start, DateTime end)
         {
-            StringBuilder sb = new StringBuilder();
-            sb.Append("1=1");
-            if (!String.IsNullOrEmpty(key)) sb.AppendFormat(" And {0} like '%{1}%'", _.Remark, key.Replace("'", "''"));
-            if (!String.IsNullOrEmpty(category) && category != "全部") sb.AppendFormat(" And {0}='{1}'", _.Category, category.Replace("'", "''"));
-            if (adminid > 0) sb.AppendFormat(" And {0}={1}", _.UserID, adminid);
-            if (start > DateTime.MinValue) sb.AppendFormat(" And {0}>={1}", _.OccurTime, Meta.FormatDateTime(start));
-            if (end > DateTime.MinValue) sb.AppendFormat(" And {0}<{1}", _.OccurTime, Meta.FormatDateTime(end.Date.AddDays(1)));
+            var exp = new WhereExpression();
+            if (!String.IsNullOrEmpty(key)) exp &= _.Remark.Contains(key);
+            if (!String.IsNullOrEmpty(category) && category != "全部") exp &= _.Category == category;
+            if (adminid > 0) exp &= _.UserID == adminid;
+            if (start > DateTime.MinValue) exp &= _.OccurTime >= start;
+            if (end > DateTime.MinValue) exp &= _.OccurTime < end.Date.AddDays(1);
 
-            if (sb.ToString() == "1=1")
-                return null;
-            else
-                return sb.ToString();
+            return exp;
+
+            //StringBuilder sb = new StringBuilder();
+            //sb.Append("1=1");
+            //if (!String.IsNullOrEmpty(key)) sb.AppendFormat(" And {0} like '%{1}%'", _.Remark, key.Replace("'", "''"));
+            //if (!String.IsNullOrEmpty(category) && category != "全部") sb.AppendFormat(" And {0}='{1}'", _.Category, category.Replace("'", "''"));
+            //if (adminid > 0) sb.AppendFormat(" And {0}={1}", _.UserID, adminid);
+            //if (start > DateTime.MinValue) sb.AppendFormat(" And {0}>={1}", _.OccurTime, Meta.FormatDateTime(start));
+            //if (end > DateTime.MinValue) sb.AppendFormat(" And {0}<{1}", _.OccurTime, Meta.FormatDateTime(end.Date.AddDays(1)));
+
+            //if (sb.ToString() == "1=1")
+            //    return null;
+            //else
+            //    return sb.ToString();
         }
         #endregion
 
