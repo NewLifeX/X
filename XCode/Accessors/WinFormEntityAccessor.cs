@@ -368,8 +368,9 @@ namespace XCode.Accessors
             Object value = entity[field.Name];
 
             DateTime valueDateTime = DateTime.MinValue;
-            if (type != typeof(DateTime))
-                DateTime.TryParse(value.ToString(), out valueDateTime);
+            //不需要判断 hfmedical
+            //if (type != typeof(DateTime))
+            DateTime.TryParse(value.ToString(), out valueDateTime);
 
             control.Value = valueDateTime;
         }
