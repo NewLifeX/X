@@ -571,6 +571,8 @@ namespace NewLife.CommonEntity
 
             // 添加
             Int32 num = 0;
+            //目录是否做为新菜单
+            Boolean isAddDir = false;
 
             // 要扫描的目录
             String p = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, dir);
@@ -600,6 +602,8 @@ namespace NewLife.CommonEntity
                 parent = top.AddChild(dirName, null, 0, dirName);
                 parent.Save();
                 num++;
+                //目录为新增菜单
+                isAddDir = true;
             }
 
             //aspx
@@ -666,7 +670,9 @@ namespace NewLife.CommonEntity
                 }
 
             //如果目录中没有菜单，移除目录
-            if (parent != null && parent.ID > 0 && FindCount(_.ParentID, parent.ID) == 0)
+            //if (parent != null && parent.ID > 0 && FindCount(_.ParentID, parent.ID) == 0)
+            //目录为新增加菜单且本级以下num为1则认为只增加了目录，并无子级
+            if (isAddDir && num == 1)
             {
                 TEntity remove = top.Childs.Find(_.ID, parent.ID);
                 if (remove != null)
