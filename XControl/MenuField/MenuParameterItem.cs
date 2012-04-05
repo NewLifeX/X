@@ -1,55 +1,69 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.ComponentModel;
+using System.Web.UI;
 
 namespace XControl
 {
     /// <summary>菜单项</summary>
-    public class MenuParameterItem
+    public class MenuParameterItem : IStateManager, IViewState
     {
         #region 属性
 
-        private String _Text = "无文本";
-
         /// <summary>菜单项文本</summary>
+        [DefaultValue("#")]
         public String Text
         {
-            get { return _Text; }
-            set { _Text = value; }
+            get { return (string)((IViewState)this).ViewState["Text"]; }
+            set { ((IViewState)this).ViewState["Text"] = value; }
         }
 
-        private String _Url = "#";
         /// <summary>菜单项连接</summary>
         [DefaultValue("#"), WebCategory("MenuItem"), WebSysDescription("MenuItem_Url")]
         public String Url
         {
-            get { return _Url; }
-            set { _Url = value; }
+            get { return (string)((IViewState)this).ViewState["Url"]; }
+            set { ((IViewState)this).ViewState["Url"] = value; }
         }
 
-        private String _OnClick;
         /// <summary>菜单项事件</summary>
         public String OnClick
         {
-            get { return _OnClick; }
-            set { _OnClick = value; }
+            get { return (string)((IViewState)this).ViewState["OnClick"]; }
+            set { ((IViewState)this).ViewState["OnClick"] = value; }
         }
 
-        private String _IConCss;
         /// <summary>菜单项ICon样式</summary>
         public String IConCss
         {
-            get { return _IConCss; }
-            set { _IConCss = value; }
+            get { return (string)((IViewState)this).ViewState["IConCss"]; }
+            set { ((IViewState)this).ViewState["IConCss"] = value; }
         }
+
         #endregion
 
         #region 内部属性
 
+        private StateBag _ViewState;
+        StateBag IViewState.ViewState
+        {
+            get
+            {
+                if (_ViewState == null)
+                {
+                    _ViewState = new StateBag();
+                    if (IsTrackingViewState)
+                    {
+                        ((IStateManager)_ViewState).TrackViewState();
+                    }
+                }
+                return _ViewState;
+            }
+        }
+
         #endregion
 
         #region 构造方法
+
         /// <summary>构造方法</summary>
         /// <param name="original"></param>
         protected MenuParameterItem(MenuParameterItem original)
@@ -76,9 +90,11 @@ namespace XControl
             this.OnClick = onclick;
             this.IConCss = icon;
         }
+
         #endregion
 
         #region 接口实现
+
         ///// <summary>
         ///// 重构
         ///// </summary>
@@ -181,6 +197,54 @@ namespace XControl
         //        ViewState.LoadViewState(savedState);
         //    }
         //}
+
+        #endregion
+
+        #region 实现IStateManager接口
+
+        private bool _IsTrackingViewState;
+        /// <summary>
+        /// 实现IStateManager接口
+        /// </summary>
+        public bool IsTrackingViewState
+        {
+            get { return _IsTrackingViewState; }
+        }
+        /// <summary>
+        /// 实现IStateManager接口
+        /// </summary>
+        /// <param name="state"></param>
+        public void LoadViewState(object state)
+        {
+            var st = (object[])state;
+            if (st.Length != 1) throw new Exception("无效的MenuParameterItem视图状态");
+            ((IStateManager)((IViewState)this).ViewState).LoadViewState(st[0]);
+        }
+        /// <summary>
+        /// 实现IStateManager接口
+        /// </summary>
+        /// <returns></returns>
+        public object SaveViewState()
+        {
+            var st = new object[1];
+            if (_ViewState != null)
+            {
+                st[0] = ((IStateManager)((IViewState)this).ViewState).SaveViewState();
+            }
+            return st;
+        }
+        /// <summary>
+        /// 实现IStateManager接口
+        /// </summary>
+        public void TrackViewState()
+        {
+            _IsTrackingViewState = true;
+            if (_ViewState != null)
+            {
+                ((IStateManager)((IViewState)this).ViewState).TrackViewState();
+            }
+        }
+
         #endregion
     }
 }

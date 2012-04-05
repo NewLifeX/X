@@ -86,7 +86,7 @@ namespace XControl
         private static Regex CNRegex = new Regex("^[\u4e00-\u9fa5]$");
 
         /// <summary>取拼音第一个字段</summary>
-        /// <param name="word"></param>
+        /// <param name="words"></param>
         /// <returns></returns>
         public static string ConvertFast(string words)
         {

@@ -7,24 +7,13 @@
 </head>
 <body>
     <form id="form1" runat="server">
-    <asp:BulletedList ID="BulletedList1" runat="server">
-        <asp:ListItem></asp:ListItem>
-        <asp:ListItem></asp:ListItem>
-    </asp:BulletedList>
-    <asp:Menu ID="Menu1" runat="server">
-        <Items>
-            <asp:MenuItem Text="新建项" Value="新建项"></asp:MenuItem>
-            <asp:MenuItem Text="新建项" Value="新建项"></asp:MenuItem>
-        </Items>
-    </asp:Menu>
-        <asp:GridView ID="gv" runat="server" AutoGenerateColumns="False" DataKeyNames="ID"
+    <asp:GridView ID="gv" runat="server" AutoGenerateColumns="False" DataKeyNames="ID"
         DataSourceID="ods" AllowPaging="True" AllowSorting="True" CssClass="m_table"
         PageSize="20" CellPadding="0" GridLines="None" EnableModelValidation="True">
         <Columns>
             <XCL:MenuField HeaderText="操作" Text="" ControlCss="controlCss" MenuCss="menuCss" DataField="ID" ConditionField="Status" ItemStyle-Width="80px">
                 <MenuTemplate>
-
-<%--                    <XCL:MenuTemplateItem ConditionFieldValue="0">
+                    <XCL:MenuTemplateItem ConditionFieldValue="0">
                         <Template>
                             <ul>
                                 <li class="iconCss"><a href="Gov_ProposalView.aspx?ID=">查看信息</a></li>
@@ -96,12 +85,15 @@
                             </ul>
                         </Template>
                     </XCL:MenuTemplateItem>
---%>                </MenuTemplate>
+                </MenuTemplate>
                 <MenuParameters>
+                    <XCL:MenuParameterItem />
+                    <XCL:MenuParameterItem />
                 </MenuParameters>
             </XCL:MenuField>
         </Columns>
     </asp:GridView>
+
     </form>
 </body>
 </html>

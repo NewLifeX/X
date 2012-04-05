@@ -1,12 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Web.UI.WebControls;
-using System.Web.UI;
+using System.Collections;
 using System.ComponentModel;
-using System.Drawing.Design;
+using System.Text;
 using System.Web;
-using System.Web.UI.HtmlControls;
+using System.Web.UI;
+using System.Web.UI.WebControls;
 
 // 特别要注意，这里得加上默认命名空间和目录名，因为vs2005编译的时候会给文件加上这些东东的
 [assembly: WebResource("XControl.MenuField.jquery.contextmenu.r2.packed.js", "text/javascript", PerformSubstitution = true)]
@@ -18,8 +16,8 @@ namespace XControl
     /// <summary>MenuField 的摘要说明</summary>
     public class MenuField : DataControlField
     {
-
         #region 属性
+
         /// <summary>菜单层样式</summary>
         [DefaultValue(""), Themeable(false), WebCategory("Css"), WebSysDescription("DIV.Css")]
         public virtual String MenuCss
@@ -37,7 +35,6 @@ namespace XControl
             }
         }
 
-
         /// <summary>重写CssClass</summary>
         [DefaultValue(""), Themeable(false), WebCategory("Css"), WebSysDescription("Control.Css")]
         public virtual String ControlCss
@@ -52,22 +49,17 @@ namespace XControl
             }
         }
 
-        private List<MenuParameterItem> _MenuParameters;
+        private ViewStateCollection<MenuParameterItem> _MenuParameters;
         /// <summary>重写CssClass</summary>
         [DefaultValue(null), WebCategory("Data"), WebSysDescription("MenuField_MenuParameters"), PersistenceMode(PersistenceMode.InnerProperty)]
-        public virtual List<MenuParameterItem> MenuParameters
+        public virtual ViewStateCollection<MenuParameterItem> MenuParameters
         {
             get
             {
                 if (_MenuParameters == null)
-                    _MenuParameters = new List<MenuParameterItem>();
+                    _MenuParameters = new ViewStateCollection<MenuParameterItem>();
 
                 return _MenuParameters;
-            }
-            set
-            {
-                _MenuParameters = value;
-                this.OnFieldChanged();
             }
         }
 
@@ -90,7 +82,6 @@ namespace XControl
             }
         }
 
-
         /// <summary>菜单响应事件</summary>
         [Localizable(true), WebCategory("Menu"), DefaultValue("click"), WebSysDescription("MenuField_Mouse")]
         public virtual String TriggerEvent
@@ -106,7 +97,6 @@ namespace XControl
             }
             set
             {
-
                 ViewState["TriggerEvent"] = value;
             }
         }
@@ -152,31 +142,25 @@ namespace XControl
             }
         }
 
-        private List<MenuTemplateItem> _MenuTemplate;
+        private ViewStateCollection<MenuTemplateItem> _MenuTemplate;
         /// <summary>条件模版</summary>
         [DefaultValue(null), MergableProperty(false), PersistenceMode(PersistenceMode.InnerProperty), WebCategory("Menu"), WebSysDescription("MenuField_MenuTemplate")]
-        public virtual List<MenuTemplateItem> MenuTemplate
+        public virtual ViewStateCollection<MenuTemplateItem> MenuTemplate
         {
             get
             {
                 if (_MenuTemplate == null)
-                    _MenuTemplate = new List<MenuTemplateItem>();
+                    _MenuTemplate = new ViewStateCollection<MenuTemplateItem>();
 
                 return _MenuTemplate;
             }
-            set
-            {
-                _MenuTemplate = value;
-                this.OnFieldChanged();
-            }
-
         }
+
         #endregion
 
         /// <summary>构造方法</summary>
         public MenuField()
         {
-
         }
 
         /// <summary>重写</summary>
@@ -185,7 +169,6 @@ namespace XControl
         {
             return new MenuField();
         }
-
 
         /// <summary>初始化单元格</summary>
         /// <param name="cell"></param>
@@ -203,6 +186,7 @@ namespace XControl
                     cell.DataBinding += new EventHandler(CellDataBinding);
 
                     #region 原始实现
+
                     //if (cellType != DataControlCellType.DataCell) return;
 
                     //////添加按钮
@@ -219,7 +203,9 @@ namespace XControl
                     //}
 
                     //cell.Controls.Add(lit);
+
                     #endregion
+
                     break;
                 case DataControlCellType.Footer:
                     cell.Text = FooterText;
@@ -237,7 +223,6 @@ namespace XControl
         /// <param name="args"></param>
         public void CellDataBinding(Object sender, EventArgs args)
         {
-
             DataControlFieldCell cell = sender as DataControlFieldCell;
 
             ////添加按钮
@@ -286,7 +271,6 @@ namespace XControl
 
             //获取条件模版字段值
             String ConditionFieldValue = GetDataFileValue(component, ConditionField);
-
 
             //菜单参数创建
             if (MenuParameters != null && MenuParameters.Count > 0)
@@ -349,7 +333,6 @@ namespace XControl
             }
         }
 
-
         /// <summary>生成菜单 JS</summary>
         /// <param name="control"></param>
         /// <returns></returns>
@@ -370,15 +353,12 @@ namespace XControl
             return id + "_Menu";
         }
 
-
         /// <summary>菜单按钮</summary>
         private Panel CreateMenuButton()
         {
-
             Panel r = new Panel();
             r.PreRender += new EventHandler(MenuButtonPreRender);
             return r;
-
         }
 
         /// <summary>菜单按钮呈显</summary>
@@ -401,7 +381,6 @@ namespace XControl
             //      link.Attributes["type"] = "text/css";
             //      p.Page.Form.Controls.Add(link);
 
-
             //      string includeTemplate =
             //"<link rel='stylesheet' text='text/css' href='{0}' />";
             //      string includeLocation =
@@ -415,17 +394,15 @@ namespace XControl
         /// <param name="newField"></param>
         protected override void CopyProperties(DataControlField newField)
         {
-
             MenuField f = newField as MenuField;
             f.MenuCss = this.MenuCss;
             f.ControlCss = this.ControlCss;
-            f.MenuParameters = this.MenuParameters;
+            //f.MenuParameters = this.MenuParameters;
             f.Text = this.Text;
             f.TriggerEvent = this.TriggerEvent;
             f.DataField = this.DataField;
             f.ConditionField = this.ConditionField;
-            f.MenuTemplate = this.MenuTemplate;
-
+            //f.MenuTemplate = this.MenuTemplate;
             base.CopyProperties(newField);
         }
 
@@ -462,6 +439,7 @@ namespace XControl
         }
 
         #region 原始实现
+
         //        /// <summary>
         //        /// 创建菜单
         //        /// </summary>
@@ -498,7 +476,6 @@ namespace XControl
         //        /// <returns></returns>
         //        private String CreateMenuDiv(XLiteral literalControl, Control buttoncontrol)
         //        {
-
         //            String menu = "<div class=\"{0}\" id=\"{1}\" style=\"display:none;\"><ul>{2}</ul></div>{3}";
 
         //            StringBuilder sb = new StringBuilder();
@@ -594,7 +571,170 @@ namespace XControl
         //            xl.ConditionFieldValue = GetDataFileValue(component, ConditionField);
         //            xl.ConditionField = ConditionField;
         //        }
+
         #endregion
     }
 
+    /// <summary>
+    /// 视图状态集合,用于作为服务端控件集合属性的类型,T是集合元素类型
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    public class ViewStateCollection<T> : StateManagedCollection where T : IViewState, new()
+    {
+        private Type[] types = { typeof(T) };
+
+        /// <summary>
+        /// 重写自StateManagedCollection类
+        /// </summary>
+        /// <param name="index"></param>
+        /// <returns></returns>
+        protected override object CreateKnownType(int index)
+        {
+            return new T();
+        }
+
+        /// <summary>
+        /// 重写自StateManagedCollection类
+        /// </summary>
+        /// <returns></returns>
+        protected override Type[] GetKnownTypes()
+        {
+            return types;
+        }
+
+        /// <summary>
+        /// 实现StateManagedCollection类
+        /// </summary>
+        /// <param name="o"></param>
+        protected override void SetDirtyObject(object o)
+        {
+            var item = o as IViewState;
+            if (item != null)
+            {
+                item.ViewState.SetDirty(true);
+            }
+        }
+
+        /// <summary>
+        /// 实现IList接口
+        /// </summary>
+        /// <param name="index"></param>
+        /// <returns></returns>
+        public T this[int index]
+        {
+            get
+            {
+                return (T)(this as IList)[index];
+            }
+            set
+            {
+                (this as IList)[index] = value;
+            }
+        }
+
+        /// <summary>
+        /// 实现IList接口
+        /// </summary>
+        /// <param name="item"></param>
+        public void Add(T item)
+        {
+            (this as IList).Add(item);
+        }
+
+        /// <summary>
+        /// 实现IList接口
+        /// </summary>
+        /// <param name="index"></param>
+        /// <param name="item"></param>
+        public void AddAt(int index, T item)
+        {
+            (this as IList).Insert(index, item);
+        }
+
+        /// <summary>
+        /// 实现IList接口
+        /// </summary>
+        public new void Clear()
+        {
+            (this as IList).Clear();
+        }
+
+        /// <summary>
+        /// 实现IList接口
+        /// </summary>
+        /// <param name="item"></param>
+        /// <returns></returns>
+        public bool Contains(T item)
+        {
+            return (this as IList).Contains(item);
+        }
+
+        /// <summary>
+        /// 实现IList接口
+        /// </summary>
+        /// <param name="array"></param>
+        /// <param name="index"></param>
+        public void CopyTo(T[] array, int index)
+        {
+            (this as IList).CopyTo(array, index);
+        }
+
+        /// <summary>
+        /// 实现IList接口
+        /// </summary>
+        /// <param name="array"></param>
+        /// <param name="index"></param>
+        public new void CopyTo(Array array, int index)
+        {
+            (this as IList).CopyTo(array, index);
+        }
+
+        /// <summary>
+        /// 实现IList接口
+        /// </summary>
+        /// <returns></returns>
+        public new IEnumerator GetEnumerator()
+        {
+            return (this as IList).GetEnumerator();
+        }
+
+        /// <summary>
+        /// 实现IList接口
+        /// </summary>
+        /// <param name="item"></param>
+        /// <returns></returns>
+        public int IndexOf(T item)
+        {
+            return (this as IList).IndexOf(item);
+        }
+
+        /// <summary>
+        /// 实现IList接口
+        /// </summary>
+        /// <param name="item"></param>
+        public void Remove(T item)
+        {
+            (this as IList).Remove(item);
+        }
+
+        /// <summary>
+        /// 实现IList接口
+        /// </summary>
+        /// <param name="index"></param>
+        public void RemoveAt(int index)
+        {
+            (this as IList).RemoveAt(index);
+        }
+    }
+
+    /// <summary>
+    /// 可访问到ViewState属性的接口
+    /// </summary>
+    public interface IViewState
+    {
+        /// <summary>
+        /// 视图状态属性
+        /// </summary>
+        StateBag ViewState { get; }
+    }
 }
