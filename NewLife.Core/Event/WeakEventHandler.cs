@@ -87,7 +87,7 @@ namespace NewLife
         /// <returns></returns>
         public static implicit operator EventHandler<TEventArgs>(WeakEventHandler<TEventArgs> handler)
         {
-            return handler.Handler;
+            return handler == null ? null : handler.Handler;
         }
 
         /// <summary>绑定</summary>

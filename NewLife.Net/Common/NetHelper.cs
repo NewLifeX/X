@@ -55,6 +55,7 @@ namespace System
         /// <param name="interval">探测时间间隔（单位：毫秒）</param>
         public static void SetTcpKeepAlive(this Socket socket, Boolean iskeepalive, Int32 starttime = 10000, Int32 interval = 10000)
         {
+            if (socket == null || !socket.Connected) return;
             uint dummy = 0;
             byte[] inOptionValues = new byte[Marshal.SizeOf(dummy) * 3];
             BitConverter.GetBytes((uint)(iskeepalive ? 1 : 0)).CopyTo(inOptionValues, 0);

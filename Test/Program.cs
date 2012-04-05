@@ -27,7 +27,7 @@ namespace Test
                 try
                 {
 #endif
-                Test3();
+                Test1();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -96,7 +96,8 @@ namespace Test
 
         static void ShowStatus()
         {
-            var pool = PropertyInfoX.GetValue<SocketBase, ObjectPool<NetEventArgs>>("Pool");
+            //var pool = PropertyInfoX.GetValue<SocketBase, ObjectPool<NetEventArgs>>("Pool");
+            var pool = NetEventArgs.Pool;
 
             while (true)
             {

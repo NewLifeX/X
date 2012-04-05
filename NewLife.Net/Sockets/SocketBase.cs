@@ -35,7 +35,8 @@ namespace NewLife.Net.Sockets
             get { return _Socket; }
             set
             {
-                if (value != null) _LocalUri = _RemoteUri = null;
+                // 外部设置套接字时，除非是已绑定的，否则不清除本地Uri
+                if (value != null && value.IsBound) _LocalUri = _RemoteUri = null;
 
                 _Socket = value;
             }
@@ -308,7 +309,8 @@ namespace NewLife.Net.Sockets
             var socket = Socket;
             if (socket != null && !socket.IsBound)
             {
-                socket.Bind(new IPEndPoint(Address, Port));
+                var ep = new IPEndPoint(Address, Port);
+                socket.Bind(ep);
 
                 _LocalUri = _RemoteUri = null;
             }
@@ -467,10 +469,10 @@ namespace NewLife.Net.Sockets
                 // 业务处理
                 process(e);
 
-                if (NoDelay)
-                    Push(e);
-                else
-                    start(e);
+                // 每次用完都还，保证不出错丢失
+                if (NoDelay) Push(e);
+
+                start(null);
             }
             catch (Exception ex)
             {
