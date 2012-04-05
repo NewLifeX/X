@@ -8,7 +8,7 @@
 <body>
     <form id="form1" runat="server">
     <asp:GridView ID="gv" runat="server" AutoGenerateColumns="False" DataKeyNames="ID"
-        DataSourceID="ods" AllowPaging="True" AllowSorting="True" CssClass="m_table"
+        AllowPaging="True" AllowSorting="True" CssClass="m_table"
         PageSize="20" CellPadding="0" GridLines="None" EnableModelValidation="True">
         <Columns>
             <XCL:MenuField HeaderText="操作" Text="" ControlCss="controlCss" MenuCss="menuCss" DataField="ID" ConditionField="Status" ItemStyle-Width="80px">
