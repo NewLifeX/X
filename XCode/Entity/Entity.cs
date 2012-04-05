@@ -560,6 +560,7 @@ namespace XCode
         /// <param name="startRowIndex">开始行，0表示第一行</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>实体数组</returns>
+        [Obsolete("请改用FindAllByName！这个FindAll跟5参数那个太容易搞混了，害人不浅！")]
         [DataObjectMethod(DataObjectMethodType.Select, false)]
         public static EntityList<TEntity> FindAll(String name, Object value, Int32 startRowIndex, Int32 maximumRows) { return FindAllByName(name, value, null, startRowIndex, maximumRows); }
 

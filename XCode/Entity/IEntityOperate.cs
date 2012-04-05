@@ -117,6 +117,7 @@ namespace XCode
         /// <param name="startRowIndex">开始行，0表示第一行</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>实体数组</returns>
+        [Obsolete("请改用FindAllByName！这个FindAll跟5参数那个太容易搞混了，害人不浅！")]
         IEntityList FindAll(String name, Object value, Int32 startRowIndex, Int32 maximumRows);
 
         /// <summary>根据属性以及对应的值，获取所有实体对象</summary>
