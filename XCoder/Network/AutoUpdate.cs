@@ -127,7 +127,13 @@ namespace XCoder
                 //String tmpfile = "Update.bat";
                 File.WriteAllText(updatebat, sb.ToString(), Encoding.Default);
 
-                FileSource.ReleaseFile("XCoder.NewLife.ProcessHelper.exe", ProcessHelper);
+                #region 老树修改
+                // FileSource.ReleaseFile("XCoder.NewLife.ProcessHelper.exe", ProcessHelper);
+                //修改部分
+                string assemFullName = Assembly.GetExecutingAssembly().FullName;
+                string assemNamespace = assemFullName.Substring(0, assemFullName.IndexOf(',')); //命名空间名称
+                FileSource.ReleaseFile(assemNamespace + ".NewLife.ProcessHelper.exe", ProcessHelper);
+                #endregion
 
                 ProcessStartInfo si = new ProcessStartInfo();
                 si.FileName = ProcessHelper;
@@ -137,6 +143,7 @@ namespace XCoder
                     si.CreateNoWindow = true;
                     si.WindowStyle = ProcessWindowStyle.Hidden;
                 }
+                si.UseShellExecute = false;
                 Process.Start(si);
 
                 XTrace.WriteLine("已启动进程助手来升级，升级脚本：{0}", updatebat);
