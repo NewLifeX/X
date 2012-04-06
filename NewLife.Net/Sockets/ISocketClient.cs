@@ -39,8 +39,7 @@ namespace NewLife.Net.Sockets
         ISocketSession CreateSession(IPEndPoint remoteEP = null);
 
         /// <summary>开始异步接收数据</summary>
-        /// <param name="e"></param>
-        void ReceiveAsync(NetEventArgs e = null);
+        void ReceiveAsync();
 
         /// <summary>接收数据</summary>
         /// <returns></returns>

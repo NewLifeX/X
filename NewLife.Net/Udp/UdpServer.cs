@@ -70,8 +70,7 @@ namespace NewLife.Net.Udp
         }
 
         /// <summary>开始异步接收数据</summary>
-        /// <param name="e"></param>
-        public virtual void ReceiveAsync(NetEventArgs e = null)
+        public virtual void ReceiveAsync()
         {
             StartAsync(ev =>
             {
@@ -80,7 +79,7 @@ namespace NewLife.Net.Udp
                 ev.RemoteEndPoint = new IPEndPoint(address, 0);
                 // 不能用ReceiveAsync，否则得不到远程地址
                 return Server.ReceiveFromAsync(ev);
-            }, e);
+            });
         }
 
         ///// <summary>断开客户端连接。Tcp断开，UdpClient不处理</summary>
@@ -105,7 +104,8 @@ namespace NewLife.Net.Udp
             // 没有接收事件时，马上开始处理重建委托
             if (Received == null)
             {
-                ReceiveAsync(e);
+                Push(e);
+                ReceiveAsync();
                 return;
             }
 

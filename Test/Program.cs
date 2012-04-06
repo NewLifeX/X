@@ -11,6 +11,7 @@ using NewLife.Net.Sockets;
 using NewLife.Reflection;
 using NewLife.Threading;
 using XCode.DataAccessLayer;
+using System.Collections.Generic;
 
 namespace Test
 {
@@ -18,7 +19,7 @@ namespace Test
     {
         private static void Main(string[] args)
         {
-            XTrace.OnWriteLog += new EventHandler<WriteLogEventArgs>(XTrace_OnWriteLog);
+            XTrace.UseConsole(true);
             while (true)
             {
                 Stopwatch sw = new Stopwatch();
@@ -43,11 +44,6 @@ namespace Test
             }
         }
 
-        private static void XTrace_OnWriteLog(object sender, WriteLogEventArgs e)
-        {
-            Console.WriteLine(e.ToString());
-        }
-
         static HttpProxy http = null;
         private static void Test1()
         {
@@ -56,6 +52,14 @@ namespace Test
             //server.ServerHost = "www.cnblogs.com";
             //server.ServerPort = 80;
             //server.Start();
+
+            //var ns = Enum.GetNames(typeof(ConsoleColor));
+            //var vs = Enum.GetValues(typeof(ConsoleColor));
+            //for (int i = 0; i < ns.Length; i++)
+            //{
+            //    Console.ForegroundColor = (ConsoleColor)vs.GetValue(i);
+            //    Console.WriteLine(ns[i]);
+            //}
 
             //NewLife.Net.Application.AppTest.Start();
 

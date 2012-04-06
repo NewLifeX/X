@@ -316,28 +316,37 @@ namespace NewLife.Net.Sockets
             }
         }
 
-        /// <summary>开始异步操作</summary>
+        /// <summary>开始异步操作。由用户调用，所以该方法在异常时需要回收网络事件</summary>
         /// <param name="callback"></param>
         /// <param name="e"></param>
         /// <param name="needBuffer">是否需要缓冲区，默认需要，只有Accept不需要</param>
-        internal protected void StartAsync(Func<NetEventArgs, Boolean> callback, NetEventArgs e, Boolean needBuffer = true)
+        internal protected void StartAsync(Func<NetEventArgs, Boolean> callback, Boolean needBuffer = true)
         {
+            //! 特别需要注意：外部已经把网络事件转交给当前函数，当前函数要负责，所以退出前要回收
+            if (Disposed) return;
+
             EnsureCreate();
-            if (Socket == null) return;
-            if (!Socket.IsBound) Bind();
+            var socket = Socket;
+            if (socket == null) return;
+
+            // Accepti得到的socket不需要绑定
+            //if (!socket.IsBound) Bind();
 
             // 如果没有传入网络事件参数，从对象池借用
-            if (e == null) e = Pop();
+            var e = Pop();
 
             e.SetBuffer(needBuffer ? BufferSize : 0);
+            WriteLog("{0} {1}", callback.Method.Name, e.ID);
+            xxx // 让编译通不过
 
             try
             {
                 // 如果立即返回，则异步处理完成事件
-                if (!callback(e)) RaiseCompleteAsync(e);
-
-                // 异步开始，增加一个计数
-                Interlocked.Increment(ref _AsyncCount);
+                if (!callback(e))
+                    RaiseCompleteAsync(e);
+                else
+                    // 异步开始，增加一个计数
+                    Interlocked.Increment(ref _AsyncCount);
             }
             catch
             {
@@ -360,6 +369,8 @@ namespace NewLife.Net.Sockets
             e.Socket = this;
             e.Completed += OnCompleted;
 
+            WriteLog("Pop {0}", e.ID);
+
             return e;
         }
 
@@ -372,7 +383,11 @@ namespace NewLife.Net.Sockets
         /// 4，事件订阅者不允许回收，不允许另作他用
         /// </remarks>
         /// <param name="e"></param>
-        public void Push(NetEventArgs e) { NetEventArgs.Push(e); }
+        public void Push(NetEventArgs e)
+        {
+            WriteLog("Push {0}", e.ID);
+            NetEventArgs.Push(e);
+        }
 
         /// <summary>完成事件，将在工作线程中被调用，不要占用太多时间。</summary>
         public event EventHandler<NetEventArgs> Completed;
@@ -388,12 +403,12 @@ namespace NewLife.Net.Sockets
                 throw new InvalidOperationException("所有套接字事件参数必须来自于事件参数池Pool！");
         }
 
-        /// <summary>触发完成事件。
+        /// <summary>触发完成事件。如果是异步返回，则在IO线程池中执行；如果是同步返回，则在用户线程池中执行。
         /// 可能由工作线程（事件触发）调用，也可能由用户线程通过线程池线程调用。
         /// 作为顶级，将会处理所有异常并调用OnError，其中OnError有能力回收参数e。
         /// </summary>
         /// <param name="e"></param>
-        protected void RaiseComplete(NetEventArgs e)
+        void RaiseComplete(NetEventArgs e)
         {
             if (ShowEventLog && EnableLog) ShowEvent(e);
 
@@ -403,7 +418,11 @@ namespace NewLife.Net.Sockets
                 {
                     e.Cancel = false;
                     Completed(this, e);
-                    if (e.Cancel) return;
+                    if (e.Cancel)
+                    {
+                        Push(e);
+                        return;
+                    }
                 }
 
                 OnComplete(e);
@@ -420,7 +439,7 @@ namespace NewLife.Net.Sockets
 
         /// <summary>异步触发完成事件处理程序</summary>
         /// <param name="e"></param>
-        protected void RaiseCompleteAsync(NetEventArgs e)
+        void RaiseCompleteAsync(NetEventArgs e)
         {
             ThreadPool.QueueUserWorkItem(state => RaiseComplete(state as NetEventArgs), e);
         }
@@ -437,7 +456,7 @@ namespace NewLife.Net.Sockets
         /// <param name="e">事件参数</param>
         /// <param name="start">开始新异步操作的委托</param>
         /// <param name="process">处理结果的委托</param>
-        protected virtual void Process(NetEventArgs e, Action<NetEventArgs> start, Action<NetEventArgs> process)
+        protected virtual void Process(NetEventArgs e, Func start, Action<NetEventArgs> process)
         {
             if (UseThreadPool)
             {
@@ -452,10 +471,11 @@ namespace NewLife.Net.Sockets
             }
         }
 
-        void OnProcess(NetEventArgs e, Action<NetEventArgs> start, Action<NetEventArgs> process)
+        void OnProcess(NetEventArgs e, Func start, Action<NetEventArgs> process)
         {
             // 再次开始
-            if (NoDelay && e.SocketError != SocketError.OperationAborted) start(null);
+            var nodelay = NoDelay && e.SocketError != SocketError.OperationAborted;
+            if (nodelay) start();
 
             // Socket错误由各个处理器来处理
             if (e.SocketError != SocketError.Success)
@@ -470,9 +490,7 @@ namespace NewLife.Net.Sockets
                 process(e);
 
                 // 每次用完都还，保证不出错丢失
-                if (NoDelay) Push(e);
-
-                start(null);
+                Push(e);
             }
             catch (Exception ex)
             {
@@ -482,6 +500,9 @@ namespace NewLife.Net.Sockets
                 }
                 catch { }
             }
+
+            // 这里异常不做OnError处理，以为这里的网络事件不归start管
+            if (!nodelay) start();
         }
         #endregion
 

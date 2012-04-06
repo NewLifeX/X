@@ -93,13 +93,13 @@ namespace NewLife.Net.Tcp
             for (int i = 0; i < count; i++) AcceptAsync();
         }
 
-        void AcceptAsync(NetEventArgs e = null)
+        void AcceptAsync()
         {
             StartAsync(ev =>
             {
                 ev.AcceptSocket = null;
                 return Server.AcceptAsync(ev);
-            }, e, false);
+            }, false);
         }
 
         /// <summary>确定是否有挂起的连接请求。</summary>
@@ -126,7 +126,8 @@ namespace NewLife.Net.Tcp
             // 没有接收事件时，马上开始处理重建委托
             if (Accepted == null)
             {
-                AcceptAsync(e);
+                Push(e);
+                AcceptAsync();
                 return;
             }
 
@@ -149,6 +150,9 @@ namespace NewLife.Net.Tcp
             //e.Socket = session;
             e.Socket = session.Host;
             e.Session = session;
+            session.LocalUri.Protocol = LocalUri.Protocol;
+            session.LocalUri.Host = LocalUri.Host;
+            session.LocalUri.Port = LocalUri.Port;
             if (Accepted != null)
             {
                 e.Cancel = false;

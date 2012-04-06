@@ -16,8 +16,7 @@ namespace NewLife.Net.Udp
 
         #region 接收
         /// <summary>异步接收</summary>
-        /// <param name="e"></param>
-        public override void ReceiveAsync(NetEventArgs e = null)
+        public override void ReceiveAsync()
         {
             StartAsync(ev =>
             {
@@ -26,7 +25,7 @@ namespace NewLife.Net.Udp
                 ev.RemoteEndPoint = new IPEndPoint(address, 0);
                 // 不能用ReceiveAsync，否则得不到远程地址
                 return Client.ReceiveFromAsync(ev);
-            }, e);
+            });
         }
         #endregion
 

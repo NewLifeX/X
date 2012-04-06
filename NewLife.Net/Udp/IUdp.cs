@@ -21,8 +21,7 @@ namespace NewLife.Net.Udp
         void Send(byte[] buffer, int offset = 0, int size = 0, EndPoint remoteEP = null);
 
         /// <summary>异步接收</summary>
-        /// <param name="e"></param>
-        void ReceiveAsync(NetEventArgs e = null);
+        void ReceiveAsync();
 
         /// <summary>接收数据</summary>
         /// <returns></returns>

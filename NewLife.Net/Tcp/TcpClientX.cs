@@ -129,15 +129,14 @@ namespace NewLife.Net.Tcp
         /// <summary>是否异步接收数据</summary>
         public Boolean UseReceiveAsync { get { return _UseReceiveAsync; } }
 
-        /// <summary>开始异步接收数据</summary>
-        void ISocketSession.ReceiveAsync() { ReceiveAsync(null); }
+        ///// <summary>开始异步接收数据</summary>
+        //void ISocketSession.ReceiveAsync() { ReceiveAsync(null); }
 
         /// <summary>开始异步接收数据</summary>
-        /// <param name="e"></param>
-        public override void ReceiveAsync(NetEventArgs e = null)
+        public override void ReceiveAsync()
         {
             _UseReceiveAsync = true;
-            base.ReceiveAsync(e);
+            base.ReceiveAsync();
             //Received += new EventHandler<NetEventArgs>(TcpClientX_Received);
         }
 

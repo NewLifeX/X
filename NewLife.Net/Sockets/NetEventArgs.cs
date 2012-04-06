@@ -147,6 +147,9 @@ namespace NewLife.Net.Sockets
         /// <param name="size"></param>
         internal void SetBuffer(Int32 size)
         {
+            // 销毁时，使用中是无法释放的
+            if (Used && disposed) return;
+
             if (size > 0)
             {
                 // 没有缓冲区，或者大小不相同时，重新设置
