@@ -86,6 +86,7 @@ namespace NewLife.Log
         public static void UseConsole(Boolean useColor)
         {
             if (init > 0 || Interlocked.CompareExchange(ref init, 1, 0) != 0) return;
+            if (!Runtime.IsConsole) return;
 
             if (useColor)
                 OnWriteLog += XTrace_OnWriteLog2;
