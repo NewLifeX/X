@@ -195,7 +195,7 @@ namespace NewLife.Net.ModBus
             ms.Position = start;
             if (isAscii)
             {
-                var crc = (Byte)ms.ReadBytes(ori - start).Cast<Int32>().Sum();
+                var crc = (Byte)ms.ReadBytes(ori - start).Select<Byte, Int32>(e => (Int32)e).Sum();
                 if (~crc != reader.ReadByte()) throw new Exception("Crc校验失败！");
             }
             else
