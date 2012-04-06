@@ -3,6 +3,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using NewLife.Configuration;
+using System.Collections.Generic;
+using System.Threading;
 
 namespace NewLife.Log
 {
@@ -74,6 +76,50 @@ namespace NewLife.Log
         public static void WriteLine(String format, params Object[] args)
         {
             Log.WriteLine(format, args);
+        }
+        #endregion
+
+        #region 使用控制台输出
+        private static Int32 init = 0;
+        /// <summary>使用控制台输出日志，只能调用一次</summary>
+        /// <param name="useColor"></param>
+        public static void UseConsole(Boolean useColor)
+        {
+            if (init > 0 || Interlocked.CompareExchange(ref init, 1, 0) != 0) return;
+
+            if (useColor)
+                OnWriteLog += XTrace_OnWriteLog2;
+            else
+                OnWriteLog += XTrace_OnWriteLog;
+        }
+
+        private static void XTrace_OnWriteLog(object sender, WriteLogEventArgs e)
+        {
+            Console.WriteLine(e.ToString());
+        }
+
+        static Dictionary<Int32, ConsoleColor> dic = new Dictionary<Int32, ConsoleColor>();
+        static ConsoleColor[] colors = new ConsoleColor[] { ConsoleColor.White, ConsoleColor.Yellow, ConsoleColor.Magenta, ConsoleColor.Red, ConsoleColor.Cyan, ConsoleColor.Green, ConsoleColor.Blue };
+        private static void XTrace_OnWriteLog2(object sender, WriteLogEventArgs e)
+        {
+            //Console.WriteLine(e.ToString());
+            ConsoleColor cc;
+            var key = e.ThreadID;
+            if (!dic.TryGetValue(key, out cc))
+            {
+                lock (dic)
+                {
+                    if (!dic.TryGetValue(key, out cc))
+                    {
+                        cc = colors[dic.Count % 7];
+                        dic[key] = cc;
+                    }
+                }
+            }
+            var old = Console.ForegroundColor;
+            Console.ForegroundColor = cc;
+            Console.WriteLine(e.ToString());
+            Console.ForegroundColor = old;
         }
         #endregion
 
