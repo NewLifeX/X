@@ -194,7 +194,7 @@ namespace NewLife.Reflection
             //    }
             //    paramTypes = list.ToArray();
             //}
-            var paramTypes = Type.GetTypeArray(parameters);
+            var paramTypes = TypeX.GetTypeArray(parameters);
             var ctor = GetConstructor(paramTypes);
             var handler = GetHandler(ctor);
             if (handler != null) return handler.Invoke(parameters);
