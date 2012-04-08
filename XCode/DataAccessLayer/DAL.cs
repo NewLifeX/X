@@ -155,7 +155,16 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>数据库类型</summary>
-        public DatabaseType DbType { get { return Db.DbType; } }
+        public DatabaseType DbType
+        {
+            get
+            {
+                var db = DbFactory.GetDefault(ProviderType);
+                if (db == null) return DatabaseType.Other;
+                return db.DbType;
+            }
+        }
+        //public DatabaseType DbType { get { return Db.DbType; } }
 
         private String _ConnStr;
         /// <summary>连接字符串</summary>
