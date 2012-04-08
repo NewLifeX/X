@@ -11,6 +11,7 @@ using NewLife;
 using NewLife.Configuration;
 using NewLife.Linq;
 using XCode.Common;
+using System.Threading;
 
 namespace XCode.DataAccessLayer
 {
@@ -152,7 +153,8 @@ namespace XCode.DataAccessLayer
                         {
                             foreach (var item in DriveInfo.GetDrives())
                             {
-                                if (!item.IsReady) continue;
+                                // 仅搜索硬盘和移动存储
+                                if (item.DriveType != DriveType.Fixed && item.DriveType != DriveType.Removable || !item.IsReady) continue;
 
                                 ocifile = Path.Combine(item.RootDirectory.FullName, @"OracleClient\oci.dll");
                                 if (File.Exists(ocifile)) break;
@@ -220,8 +222,15 @@ namespace XCode.DataAccessLayer
             // 获取OCI目录
             if (builder.TryGetAndRemove("DllPath", out str) && !String.IsNullOrEmpty(str))
                 SetDllPath(str);
-            else if (!String.IsNullOrEmpty(str = DllPath))
-                SetDllPath(str);
+            //else if (!String.IsNullOrEmpty(str = DllPath))
+            //    SetDllPath(str);
+            else
+            {
+                //if (!String.IsNullOrEmpty(str = DllPath)) SetDllPath(str);
+                // 异步设置DLL目录
+                ThreadPool.QueueUserWorkItem(ss => SetDllPath(DllPath));
+                Thread.Sleep(500);
+            }
         }
 
         [DllImport("kernel32.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
@@ -384,6 +393,8 @@ namespace XCode.DataAccessLayer
 
         void SetDllPath(String str)
         {
+            if (String.IsNullOrEmpty(str)) return;
+
             DllPath = str;
             var dir = DllPath;
 
