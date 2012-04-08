@@ -49,6 +49,21 @@
     <Compile Include="Engine\FileSource.cs" />
     <Compile Include="Engine\XConfig.cs" />
     <Compile Include="Engine\XCoderBase.cs" />
+    <EmbeddedResource Include="Template\页面ExtAspNet\类名.aspx.cs">
+      <DependentUpon>类名.aspx</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Template\页面ExtAspNet\类名Form.aspx.cs">
+      <DependentUpon>类名Form.aspx</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Template\页面基类ExtAspNet\MyEntityForm.cs">
+      <SubType>ASPXCodeBehind</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Template\页面基类ExtAspNet\MyEntityList.cs">
+      <SubType>ASPXCodeBehind</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Template\页面基类ExtAspNet\MyEntityUserControl.cs">
+      <SubType>ASPXCodeBehind</SubType>
+    </EmbeddedResource>
     <Compile Include="Windows\FrmCriterion.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -178,7 +193,12 @@
       <Name>XTemplate</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <EmbeddedResource Include="Template\页面ExtAspNet\类名.aspx" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Template\页面ExtAspNet\类名Form.aspx" />
+  </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
