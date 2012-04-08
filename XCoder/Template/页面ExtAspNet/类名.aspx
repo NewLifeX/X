@@ -3,7 +3,6 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head id="Head1" runat="server">
-    <title></title>
     <link href="../css/main.css" rel="stylesheet" type="text/css" />
 </head>
 <body>
@@ -48,23 +47,26 @@ foreach(IDataColumn Field in Table.Columns){
                 <Toolbars>
                     <ext:Toolbar ID="gvbar" runat="server">
                         <Items>
-                            <ext:Label runat="server" Text="关键字：" />
-                            <ext:TextBox ID="txtKey" runat="server" Label="关键字" EmptyText="关键字">
-                            </ext:TextBox>
-                            <ext:Button ID="btnSearch" runat="server" Text="查询" />
-                            <ext:ToolbarSeparator runat="server" />
                             <ext:Button ID="btnNew" Text="新增数据" Icon="Add" EnablePostBack="false" runat="server">
                             </ext:Button>
                             <ext:Button ID="btnDelete" Text="删除选中项" Icon="Delete" OnClick="btnDelete_Click" runat="server"
                                 ConfirmText="删除将不可恢复，是否删除？" ConfirmTitle="确认删除">
                             </ext:Button>
+                            <ext:ToolbarSeparator runat="server" />
+                            <ext:Label runat="server" Text="关键字：" />
+                            <ext:TextBox ID="txtKey" runat="server" Label="关键字" EmptyText="关键字">
+                            </ext:TextBox>
+                            <ext:Button ID="btnSearch" runat="server" Text="查询" />
                         </Items>
                     </ext:Toolbar>
                 </Toolbars>
                 <Columns>
 <#
+// 列表页不宜显示过多列
+Int32 fieldMaxCount=10;
 foreach(IDataColumn Field in Table.Columns){
     String pname = Field.Alias;
+    if(fieldMaxCount--<=0) break;
 
     // 查找关系，如果对方有名为Name的字符串字段，则加一个扩展属性
     IDataRelation dr=ModelHelper.GetRelation(Table, Field.Name);

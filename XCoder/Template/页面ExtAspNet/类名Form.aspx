@@ -1,47 +1,68 @@
-<%@ Page Title="<#=Table.DisplayName#>管理" Language="C#" MasterPageFile="~/Admin/ManagerPage.master" AutoEventWireup="true" CodeFile="<#=Table.Alias#>Form.aspx.cs" Inherits="<#=Config.EntityConnName+"_"+Table.Alias#>Form"%>
+<%@ Page Language="C#" AutoEventWireup="true" CodeFile="<#=Table.Alias#>Form.aspx.cs" Inherits="<#=Config.EntityConnName+"_"+Table.Alias#>Form" Title="<#=Table.DisplayName#>管理"%>
 
-<asp:Content ID="Content1" runat="server" ContentPlaceHolderID="C">
-    <table border="0" class="m_table" cellspacing="1" cellpadding="0" align="Center">
-        <tr>
-            <th colspan="2"><#=Table.DisplayName#></th>
-        </tr>
-        <# 
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head id="Head1" runat="server">
+    <link href="../css/main.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+    <form id="form1" runat="server">
+    <ext:PageManager ID="PageManager1" runat="server" />
+    <ext:SimpleForm ID="SimpleForm1" ShowBorder="false" ShowHeader="false" runat="server"
+        BodyPadding="5px" EnableBackgroundColor="true" Title="SimpleForm">
+        <Toolbars>
+            <ext:Toolbar ID="Toolbar1" runat="server">
+                <Items>
+                    <ext:Button ID="btnClose" Icon="SystemClose" EnablePostBack="false" runat="server"
+                        Text="关闭">
+                    </ext:Button>
+                    <ext:ToolbarSeparator runat="server" />
+                    <%--<ext:Button ID="btnSaveContinue" ValidateForms="SimpleForm1" Icon="SystemSaveNew"
+                        OnClick="btnSaveContinue_Click" runat="server" Text="保存并继续">
+                    </ext:Button>--%>
+                    <ext:Button ID="btnSaveClose" ValidateForms="SimpleForm1" Icon="SystemSaveClose"
+                        runat="server" Text="保存后关闭">
+                    </ext:Button>
+                </Items>
+            </ext:Toolbar>
+        </Toolbars>
+        <Items><# 
         foreach(IDataColumn Field in Table.Columns) { 
             String pname = Field.Alias;
             if(Field.PrimaryKey) continue;
+
             String frmName = "frm" + pname;
             TypeCode code = Type.GetTypeCode(Field.DataType);
-        #><tr>
-            <td align="right"><#=Field.DisplayName#>：</td>
-            <td><#
-                if(code == TypeCode.String){
-                    if(pname.Equals("Password", StringComparison.OrdinalIgnoreCase) || pname.Equals("Pass", StringComparison.OrdinalIgnoreCase)){
-                #><asp:TextBox ID="<#=frmName#>" runat="server" TextMode="Password"></asp:TextBox><#
-                    }else if(Field.Length>300 || Field.Length<0){
-                #><asp:TextBox ID="<#=frmName#>" runat="server" TextMode="MultiLine" Width="300px" Height="80px"></asp:TextBox><#
-                    }else{
-                #><asp:TextBox ID="<#=frmName#>" runat="server" Width="<#=Field.Length+100#>px"></asp:TextBox><#
-                    }
-                }else if(code == TypeCode.Int32){
-                #><XCL:NumberBox ID="<#=frmName#>" runat="server" Width="80px"></XCL:NumberBox><#
-                }else if(code == TypeCode.Double){
-                #><XCL:RealBox ID="<#=frmName#>" runat="server" Width="80px"></XCL:RealBox><#
-                }else if(code == TypeCode.DateTime){
-                #><XCL:DateTimePicker ID="<#=frmName#>" runat="server"></XCL:DateTimePicker><#
-                }else if(code == TypeCode.Decimal){
-                #><XCL:DecimalBox ID="<#=frmName#>" runat="server" Width="80px"></XCL:DecimalBox><#
-                }else if(code == TypeCode.Boolean){
-                #><asp:CheckBox ID="<#=frmName#>" runat="server" Text="<#=Field.DisplayName#>" /><#}
-            #></td>
-        </tr>
-<#}#>    </table>
-    <table border="0" align="Center" width="100%">
-        <tr>
-            <td align="center">
-                <asp:Button ID="btnSave" runat="server" CausesValidation="True" Text='保存' />
-                &nbsp;<asp:Button ID="btnCopy" runat="server" CausesValidation="True" Text='另存为新<#=Table.DisplayName#>' />
-                &nbsp;<asp:Button ID="btnReturn" runat="server" OnClientClick="parent.Dialog.CloseSelfDialog(frameElement);return false;" Text="返回" />
-            </td>
-        </tr>
-    </table>
-</asp:Content>
+        
+            if(code == TypeCode.String){
+                if(pname.Equals("Password", StringComparison.OrdinalIgnoreCase) || pname.Equals("Pass", StringComparison.OrdinalIgnoreCase)){
+            #>
+            <ext:TextBox ID="<#=frmName#>" Label="<#=Field.DisplayName#>" runat="server" TextMode="Password" Width="<#=Field.Length+100#>px" /><#
+                }else if(Field.Length>300 || Field.Length<0){
+            #>
+            <ext:TextArea ID="<#=frmName#>" Label="<#=Field.DisplayName#>" runat="server" Width="300px" Height="80px" /><#
+                }else{
+            #>
+            <ext:TextBox ID="<#=frmName#>" Label="<#=Field.DisplayName#>" runat="server" Width="<#=Field.Length+100#>px" /><#
+                }
+            }else if(code == TypeCode.Int32){
+            #>
+            <ext:NumberBox ID="<#=frmName#>" Label="<#=Field.DisplayName#>" runat="server" NoDecimal="true" Width="80px" /><#
+            }else if(code == TypeCode.Double){
+            #>
+            <ext:NumberBox ID="<#=frmName#>" Label="<#=Field.DisplayName#>" runat="server" NoDecimal="false" Width="80px" /><#
+            }else if(code == TypeCode.DateTime){
+            #>
+            <ext:DatePicker ID="<#=frmName#>" Label="<#=Field.DisplayName#>" runat="server" Width="150px" /><#
+            }else if(code == TypeCode.Decimal){
+            #>
+            <ext:NumberBox ID="<#=frmName#>" Label="<#=Field.DisplayName#>" runat="server" NoDecimal="false" Width="80px" /><#
+            }else if(code == TypeCode.Boolean){
+            #>
+            <ext:CheckBox ID="<#=frmName#>" Label="<#=Field.DisplayName#>" runat="server" Text="<#=Field.DisplayName#>" /><#}
+        }#>
+        </Items>
+    </ext:SimpleForm>
+    </form>
+</body>
+</html>
