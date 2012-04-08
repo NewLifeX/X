@@ -39,7 +39,7 @@ foreach(IDataColumn Field in Table.Columns){
 }
     #>
     <ext:Panel ID="pnl" runat="server" BodyPadding="5px" EnableLargeHeader="false" EnableBackgroundColor="true"
-        ShowBorder="true" ShowHeader="true" Title="日志" Layout="Anchor">
+        ShowBorder="true" ShowHeader="true" Title="<#=Table.DisplayName#>" Layout="Anchor">
         <Items>
             <ext:Grid ID="gv" runat="server" DataSourceID="ods" ShowBorder="true" ShowHeader="false"
                 AutoHeight="true" AllowPaging="true" EnableRowNumber="True" EnableCheckBoxSelect="True"
