@@ -24,10 +24,15 @@ foreach(IDataColumn Field in Table.Columns){
         <asp:Button ID="btnSearch" runat="server" Text="查询" />
     </div><#
 StringBuilder sbpk=new StringBuilder();
+StringBuilder sbpk2=new StringBuilder();
+Int32 pki=0;
 foreach(IDataColumn Field in Table.Columns){
     if(Field.PrimaryKey) {
         if(sbpk.Length>0)sbpk.Append(",");
         sbpk.Append(Field.Alias);
+
+        if(sbpk2.Length>0)sbpk2.Append("&");
+        sbpk2.Append(Field.Alias+"={"+pki+++"}");
     } 
 }
     #>
@@ -90,7 +95,7 @@ foreach(IDataColumn Field in Table.Columns){
        Field.Length>0 && Field.Length<300){#>
             <asp:BoundField DataField="<#=pname#>" HeaderText="<#=Field.DisplayName#>" SortExpression="<#=pname#>" <# if(Field.PrimaryKey){#>InsertVisible="False" ReadOnly="True" <#}#>/><#
 }}#>
-            <XCL:LinkBoxField HeaderText="编辑" DataNavigateUrlFields="ID" DataNavigateUrlFormatString="<#=Table.Alias#>Form.aspx?ID={0}" Height="<#=boxHeight#>px" Text="编辑" Width="440px" Title="编辑<#=Table.DisplayName#>">
+            <XCL:LinkBoxField HeaderText="编辑" DataNavigateUrlFields="<#=sbpk#>" DataNavigateUrlFormatString="<#=Table.Alias#>Form.aspx?<#=sbpk2#>" Height="<#=boxHeight#>px" Text="编辑" Width="440px" Title="编辑<#=Table.DisplayName#>">
                 <ItemStyle HorizontalAlign="Center" VerticalAlign="Middle" />
                 <HeaderStyle HorizontalAlign="Center" VerticalAlign="Middle" Width="30px" />
             </XCL:LinkBoxField>

@@ -9,5 +9,15 @@ public partial class <#=Config.EntityConnName+"_"+Table.Alias#> : MyEntityList<<
 {
     protected void Page_Load(object sender, EventArgs e)
     {
+        if (!IsPostBack)
+        {
+            btnDelete.OnClientClick = gv.GetNoSelectionAlertReference("至少选择一项！");
+            btnNew.OnClientClick = win.GetShowReference("<#=Table.Alias#>Form.aspx", "新增 - <#=Table.DisplayName#>");
+        }
+    }
+
+    protected void btnDelete_Click(object sender, EventArgs e)
+    {
+        gv.DeleteSelected();
     }
 }

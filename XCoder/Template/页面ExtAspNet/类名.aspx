@@ -27,10 +27,15 @@ foreach(IDataColumn Field in Table.Columns){
 }
 
 StringBuilder sbpk=new StringBuilder();
+StringBuilder sbpk2=new StringBuilder();
+Int32 pki=0;
 foreach(IDataColumn Field in Table.Columns){
     if(Field.PrimaryKey) {
         if(sbpk.Length>0)sbpk.Append(",");
         sbpk.Append(Field.Alias);
+
+        if(sbpk2.Length>0)sbpk2.Append("&");
+        sbpk2.Append(Field.Alias+"={"+pki+++"}");
     } 
 }
     #>
@@ -79,30 +84,19 @@ foreach(IDataColumn Field in Table.Columns){
     else if(Field.DataType == typeof(DateTime)){#>
                     <ext:BoundField DataField="<#=pname#>" HeaderText="<#=Field.DisplayName#>" SortField="<#=pname#>" DataFormatString="{0:yyyy-MM-dd HH:mm:ss}" Width="140px" /><#}
     else if(Field.DataType == typeof(Decimal)){#>
-                    <ext:BoundField DataField="<#=pname#>" HeaderText="<#=Field.DisplayName#>" SortField="<#=pname#>" DataFormatString="{0:c}">
-                <ItemStyle HorizontalAlign="Right" Font-Bold="True" ForeColor="Blue" />
-            </ext:BoundField><#}
+                    <ext:BoundField DataField="<#=pname#>" HeaderText="<#=Field.DisplayName#>" SortField="<#=pname#>" DataFormatString="{0:c}" /><#}
     else if(Type.GetTypeCode(Field.DataType)>=TypeCode.Int16&&Type.GetTypeCode(Field.DataType)<=TypeCode.UInt64){#>
-                    <ext:BoundField DataField="<#=pname#>" HeaderText="<#=Field.DisplayName#>" SortField="<#=pname#>" DataFormatString="{0:n0}">
-                <ItemStyle HorizontalAlign="Right" Font-Bold="True" />
-            </ext:BoundField><#}
+                    <ext:BoundField DataField="<#=pname#>" HeaderText="<#=Field.DisplayName#>" SortField="<#=pname#>" DataFormatString="{0:n0}" /><#}
     else if(Field.DataType == typeof(Boolean)){#>
-                    <ext:TemplateField HeaderText="<#=Field.DisplayName#>" SortField="<#=pname#>">
-                        <ItemTemplate>
-                            <asp:Label ID="<#=pname#>1" runat="server" Text="√" Visible='<%# Eval("<#=pname#>") %>' Font-Bold="True" Font-Size="14pt" ForeColor="Green"></asp:Label>
-                            <asp:Label ID="<#=pname#>2" runat="server" Text="×" Visible='<%# !(Boolean)Eval("<#=pname#>") %>' Font-Bold="True" Font-Size="16pt" ForeColor="Red"></asp:Label>
-                        </ItemTemplate>
-                        <ItemStyle HorizontalAlign="Center" />
-                    </ext:TemplateField><#}
+                    <ext:CheckBoxField DataField="<#=pname#>" HeaderText="<#=Field.DisplayName#>" SortField="<#=pname#>" RenderAsStaticField="true" /><#}
     // 密码字段和大文本字段不输出
     else if(!pname.Equals("Password", StringComparison.OrdinalIgnoreCase) && 
        !pname.Equals("Pass", StringComparison.OrdinalIgnoreCase) && 
        !pname.Equals("Pwd", StringComparison.OrdinalIgnoreCase) && 
        Field.Length>0 && Field.Length<300){#>
-                    <ext:BoundField DataField="<#=pname#>" HeaderText="<#=Field.DisplayName#>" SortField="<#=pname#>" <# if(Field.PrimaryKey){#>InsertVisible="False" ReadOnly="True" <#}#>/><#
+                    <ext:BoundField DataField="<#=pname#>" HeaderText="<#=Field.DisplayName#>" SortField="<#=pname#>" /><#
 }}#>
-                    <ext:WindowField WindowID="win" HeaderText="编辑" Icon="TableEdit" ToolTip="编辑" DataTextFormatString="{0}"
-                        DataIFrameUrlFields="ID" DataIFrameUrlFormatString="LogForm.aspx?id={0}" Width="40px" />
+                    <ext:WindowField WindowID="win" HeaderText="编辑" Icon="TableEdit" ToolTip="编辑" DataIFrameUrlFields="<#=sbpk#>" DataIFrameUrlFormatString="<#=Table.Alias#>Form.aspx?<#=sbpk2#>" Width="40px" />
                     <ext:LinkButtonField CommandName="Delete" HeaderText="删除" Text="删除" ConfirmText="删除将不可恢复，是否删除？"
                         ConfirmTitle="确认删除" Width="40px" />
                 </Columns>
