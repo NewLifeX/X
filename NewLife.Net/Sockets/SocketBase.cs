@@ -24,6 +24,28 @@ namespace NewLife.Net.Sockets
     /// 1，实例化对象，Socket属性为空，可以由外部赋值。此时可以设置协议和监听地址端口等。
     /// 2，如果外部没有给Socket赋值，EnsureCreate构造Socket。此时可以给Socket设置各种参数。
     /// 3，使用Bind绑定本地监听地址和端口。到此完成了初始化的所有工作。
+    /// 
+    /// 异步处理流程:
+    /// AcceptAsync/ReceiveAsync    异步接受/异步接收
+    ///     StartAsync             统一的开始异步方法，如果异步方法同步返回，则采用线程池调用回调方法，转为异步处理
+    ///         EnsureCreate       确保已创建Socket
+    ///         Bind               确保Socket已绑定到本地地址和端口
+    ///         Pop                借出网络参数
+    ///         =>RaiseComplete    异步回调方法，处理所有异步事件的起始点
+    ///             ->Completed    完成事件，可以取消处理
+    ///                 Push       取消处理时，归还网络参数
+    ///             OnComplete     子类通过重载来处理各种异步事件
+    ///                 Process    这里<see cref="UseThreadPool"/>决定是否采用线程池处理，因此OnProcess必须有独立的异常处理能力，保证回收网络参数
+    ///                     OnProcess   统一的事件处理核心
+    ///                         AcceptAsync/ReceiveAsync    这里<see cref="NoDelay"/>觉得是否马上开始异步。
+    ///                         OnError 如果异步处理失败，不是<see cref="SocketError.Success"/>，则触发错误事件，然后退出
+    ///                         ProcessAccept/ProcessReceive
+    ///                         Push    每次用完都还，保证不出错丢失
+    ///                         OnError 处理异常时触发错误事件
+    ///                         AcceptAsync/ReceiveAsync
+    ///                         OnError 重新开始异步处理出错，触发错误事件，但不干涉当前处理中的网络参数
+    ///             OnError
+    ///         Push   开始异步处理异常时，归还网络参数再抛出异常
     /// </remarks>
     public class SocketBase : Netbase, ISocket
     {
@@ -473,9 +495,16 @@ namespace NewLife.Net.Sockets
 
         void OnProcess(NetEventArgs e, Func start, Action<NetEventArgs> process)
         {
-            // 再次开始
-            var nodelay = NoDelay && e.SocketError != SocketError.OperationAborted;
-            if (nodelay) start();
+            // 再次开始，如果异常，记录异常信息，待业务处理完成后再抛出异常
+            Exception err = null;
+            if (NoDelay && e.SocketError != SocketError.OperationAborted)
+            {
+                try
+                {
+                    start();
+                }
+                catch (Exception ex) { err = ex; }
+            }
 
             // Socket错误由各个处理器来处理
             if (e.SocketError != SocketError.Success)
@@ -494,7 +523,7 @@ namespace NewLife.Net.Sockets
                 var b = FieldInfoX.GetValue<Int32>(e, "m_Operating");
                 WriteLog("m_Operating={0}", b);
 #endif
-                xxx // 让编译不能通过
+                //xxx // 让编译不能通过
 
                 // 每次用完都还，保证不出错丢失
                 Push(e);
@@ -508,23 +537,24 @@ namespace NewLife.Net.Sockets
                 }
                 catch { }
             }
-            //finally
+
+            // 重新抛出前面捕获的异常
+            if (err != null) throw err;
+
+            // 如果不是操作取消，在处理业务完成后再开始异步操作
+            if (!NoDelay && e.SocketError != SocketError.OperationAborted)
             {
-                // 这里异常不做OnError处理，因为这里的网络事件不归start管
-                if (!nodelay)
+                try
+                {
+                    start();
+                }
+                catch (Exception ex)
                 {
                     try
                     {
-                        start();
+                        OnError(null, ex);
                     }
-                    catch (Exception ex)
-                    {
-                        try
-                        {
-                            OnError(null, ex);
-                        }
-                        catch { }
-                    }
+                    catch { }
                 }
             }
         }
