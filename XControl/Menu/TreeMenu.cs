@@ -228,21 +228,30 @@ namespace XControl
             set { _Title = value; }
         }
 
-        private String _Image;
+        private String _DirImage;
         /// <summary>前缀图标 关闭状态</summary>
-        public String Image
+        public String DirImage
         {
-            get { return _Image; }
-            set { _Image = value; }
+            get { return _DirImage; }
+            set { _DirImage = value; }
         }
 
-        private String _ImageOpen;
-        /// <summary>前缀图片 关闭状态</summary>
-        public String ImageOpen
+        private String _DirImageOpen;
+        /// <summary>前缀图片 打开状态</summary>
+        public String DirImageOpen
         {
-            get { return _ImageOpen; }
-            set { _ImageOpen = value; }
+            get { return _DirImageOpen; }
+            set { _DirImageOpen = value; }
         }
+
+        private String _PagerImage;
+        /// <summary>单页图片</summary>
+        public String PagerImage
+        {
+            get { return _PagerImage; }
+            set { _PagerImage = value; }
+        }
+
 
         private String _Url;
         /// <summary>菜单连接</summary>
@@ -280,20 +289,27 @@ namespace XControl
         {
             if (node == null) return null;
 
-            if (node.Childs != null && node.Childs.Count > 0)
-            {
-                if (String.IsNullOrEmpty(node.Image))
-                    node.Image = TreeMenuRoot.ImagePath;
-                if (String.IsNullOrEmpty(node.ImageOpen))
-                    node.ImageOpen = TreeMenuRoot.ImageOpenPath;
-            }
-            else
-            {
-                if (String.IsNullOrEmpty(node.Image))
-                    node.Image = TreeMenuRoot.ImagePagePath;
-                if (String.IsNullOrEmpty(node.ImageOpen))
-                    node.ImageOpen = TreeMenuRoot.ImagePagePath;
-            }
+            if (String.IsNullOrEmpty(node.DirImage))
+                node.DirImage = TreeMenuRoot.ImagePath;
+            if (String.IsNullOrEmpty(node.DirImageOpen))
+                node.DirImageOpen = TreeMenuRoot.ImageOpenPath;
+            if (String.IsNullOrEmpty(node.PagerImage))
+                node.PagerImage = TreeMenuRoot.ImagePagePath;
+
+            //if (node.Childs != null && node.Childs.Count > 0)
+            //{
+            //    if (String.IsNullOrEmpty(node.Image))
+            //        node.Image = TreeMenuRoot.ImagePath;
+            //    if (String.IsNullOrEmpty(node.ImageOpen))
+            //        node.ImageOpen = TreeMenuRoot.ImageOpenPath;
+            //}
+            //else
+            //{
+            //    if (String.IsNullOrEmpty(node.Image))
+            //        node.Image = TreeMenuRoot.ImagePagePath;
+            //    if (String.IsNullOrEmpty(node.ImageOpen))
+            //        node.ImageOpen = TreeMenuRoot.ImagePagePath;
+            //}
 
             return node;
         }
