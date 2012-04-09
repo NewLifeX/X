@@ -5,6 +5,7 @@ using System.Net.Sockets;
 using System.Text;
 using NewLife.Log;
 using NewLife.Collections;
+using System.Reflection;
 
 namespace NewLife.Net.Sockets
 {
@@ -184,6 +185,9 @@ namespace NewLife.Net.Sockets
 
             e.Times++;
             e.Used = true;
+#if DEBUG
+            e.LastUse = GetCalling(4);
+#endif
 
             return e;
         }
@@ -212,9 +216,20 @@ namespace NewLife.Net.Sockets
             e._Completed = null;
 
             // 清空缓冲区，避免事件池里面的对象占用内存
-            e.SetBuffer(0);
+            //e.SetBuffer(0);
+            try
+            {
+                e.SetBuffer(0);
+            }
+            catch
+            {
+                throw;
+            }
 
             e.Used = false;
+#if DEBUG
+            e.LastUse = GetCalling(3);
+#endif
 
             Pool.Push(e);
         }
@@ -278,6 +293,20 @@ namespace NewLife.Net.Sockets
             else
                 return String.Format("[{0}]{1} BytesTransferred={2}", ID, LastOperation, BytesTransferred);
         }
+        #endregion
+
+        #region 调试
+#if DEBUG
+        private String _LastUse;
+        /// <summary>最后使用者</summary>
+        public String LastUse { get { return _LastUse; } set { _LastUse = value; } }
+
+        static String GetCalling(Int32 skips)
+        {
+            var method = new System.Diagnostics.StackTrace(skips, true).GetFrame(0).GetMethod();
+            return String.Format("{0}.{1}", method.DeclaringType.Name, method.Name);
+        }
+#endif
         #endregion
 
         #region ISafeStackItem 成员

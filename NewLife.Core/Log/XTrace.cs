@@ -83,7 +83,7 @@ namespace NewLife.Log
         private static Int32 init = 0;
         /// <summary>使用控制台输出日志，只能调用一次</summary>
         /// <param name="useColor"></param>
-        public static void UseConsole(Boolean useColor)
+        public static void UseConsole(Boolean useColor = true)
         {
             if (init > 0 || Interlocked.CompareExchange(ref init, 1, 0) != 0) return;
             if (!Runtime.IsConsole) return;
@@ -103,24 +103,26 @@ namespace NewLife.Log
         static ConsoleColor[] colors = new ConsoleColor[] { ConsoleColor.White, ConsoleColor.Yellow, ConsoleColor.Magenta, ConsoleColor.Red, ConsoleColor.Cyan, ConsoleColor.Green, ConsoleColor.Blue };
         private static void XTrace_OnWriteLog2(object sender, WriteLogEventArgs e)
         {
-            //Console.WriteLine(e.ToString());
-            ConsoleColor cc;
-            var key = e.ThreadID;
-            if (!dic.TryGetValue(key, out cc))
+            lock (dic)
             {
-                lock (dic)
+                ConsoleColor cc;
+                var key = e.ThreadID;
+                if (!dic.TryGetValue(key, out cc))
                 {
-                    if (!dic.TryGetValue(key, out cc))
+                    //lock (dic)
                     {
-                        cc = colors[dic.Count % 7];
-                        dic[key] = cc;
+                        //if (!dic.TryGetValue(key, out cc))
+                        {
+                            cc = colors[dic.Count % 7];
+                            dic[key] = cc;
+                        }
                     }
                 }
+                var old = Console.ForegroundColor;
+                Console.ForegroundColor = cc;
+                Console.WriteLine(e.ToString());
+                Console.ForegroundColor = old;
             }
-            var old = Console.ForegroundColor;
-            Console.ForegroundColor = cc;
-            Console.WriteLine(e.ToString());
-            Console.ForegroundColor = old;
         }
         #endregion
 

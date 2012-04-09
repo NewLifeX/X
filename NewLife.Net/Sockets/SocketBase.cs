@@ -330,14 +330,16 @@ namespace NewLife.Net.Sockets
             if (socket == null) return;
 
             // Accepti得到的socket不需要绑定
-            //if (!socket.IsBound) Bind();
+            if (!socket.IsBound) Bind();
 
             // 如果没有传入网络事件参数，从对象池借用
             var e = Pop();
 
             e.SetBuffer(needBuffer ? BufferSize : 0);
-            WriteLog("{0} {1}", callback.Method.Name, e.ID);
-            xxx // 让编译通不过
+#if DEBUG
+            var method = new StackTrace(1, true).GetFrame(0).GetMethod();
+            WriteLog("{0}.{1} {2}", method.DeclaringType.Name, method.Name, e.ID);
+#endif
 
             try
             {
@@ -368,8 +370,6 @@ namespace NewLife.Net.Sockets
             e.AcceptSocket = Socket;
             e.Socket = this;
             e.Completed += OnCompleted;
-
-            WriteLog("Pop {0}", e.ID);
 
             return e;
         }
@@ -488,10 +488,18 @@ namespace NewLife.Net.Sockets
             {
                 // 业务处理
                 process(e);
+#if DEBUG
+                // 非常见鬼，这里居然会出现等于1的情况，也就是异步进行中
+                // 经过调试，发现似乎跟ExecutionContext.IsFlowSuppressed有关
+                xxx // 让编译不能通过
+                var b = FieldInfoX.GetValue<Int32>(e, "m_Operating");
+                WriteLog("m_Operating={0}", b);
+#endif
 
                 // 每次用完都还，保证不出错丢失
                 Push(e);
             }
+            // 这里不能捕获异常，让它向上抛出，由RaiseComplete处理
             catch (Exception ex)
             {
                 try
@@ -500,9 +508,25 @@ namespace NewLife.Net.Sockets
                 }
                 catch { }
             }
-
-            // 这里异常不做OnError处理，以为这里的网络事件不归start管
-            if (!nodelay) start();
+            //finally
+            {
+                // 这里异常不做OnError处理，因为这里的网络事件不归start管
+                if (!nodelay)
+                {
+                    try
+                    {
+                        start();
+                    }
+                    catch (Exception ex)
+                    {
+                        try
+                        {
+                            OnError(null, ex);
+                        }
+                        catch { }
+                    }
+                }
+            }
         }
         #endregion
 
@@ -519,7 +543,11 @@ namespace NewLife.Net.Sockets
             {
                 if (ex != null)
                 {
-                    if (e == null) e = Pop();
+                    if (e == null)
+                    {
+                        e = Pop();
+                        WriteLog("Error {0}", e.ID);
+                    }
                     e.Error = ex;
                 }
 
@@ -578,12 +606,12 @@ namespace NewLife.Net.Sockets
         {
             //WriteLog("Completed[{4}] {0} {1} {2} [{3}]", this, e.LastOperation, e.SocketError, e.BytesTransferred, e.ID);
             var sb = new StringBuilder();
-            sb.AppendFormat("[{0}] {1}://{2}", e.ID, ProtocolType, LocalEndPoint);
+            sb.AppendFormat("[{0}] {1} {2}://{3}", e.ID, e.LastOperation, ProtocolType, LocalEndPoint);
             var ep = e.RemoteIPEndPoint;
             if (ep == null || ep.Address.IsAny()) ep = RemoteEndPoint;
             if ((ep == null || ep.Address.IsAny()) && e.LastOperation == SocketAsyncOperation.Accept && e.AcceptSocket != null) ep = e.AcceptSocket.RemoteEndPoint as IPEndPoint;
             if (ep != null && !ep.Address.IsAny()) sb.AppendFormat("=>{0}", ep);
-            sb.AppendFormat(" {0}", e.LastOperation);
+            //sb.AppendFormat(" {0}", e.LastOperation);
             if (e.SocketError != SocketError.Success) sb.AppendFormat(" {0}", e.SocketError);
             sb.AppendFormat(" [{0}]", e.BytesTransferred);
             WriteLog(sb.ToString());
