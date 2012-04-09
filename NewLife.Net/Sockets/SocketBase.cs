@@ -491,10 +491,10 @@ namespace NewLife.Net.Sockets
 #if DEBUG
                 // 非常见鬼，这里居然会出现等于1的情况，也就是异步进行中
                 // 经过调试，发现似乎跟ExecutionContext.IsFlowSuppressed有关
-                xxx // 让编译不能通过
                 var b = FieldInfoX.GetValue<Int32>(e, "m_Operating");
                 WriteLog("m_Operating={0}", b);
 #endif
+                xxx // 让编译不能通过
 
                 // 每次用完都还，保证不出错丢失
                 Push(e);
