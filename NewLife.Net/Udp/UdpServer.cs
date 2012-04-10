@@ -80,6 +80,7 @@ namespace NewLife.Net.Udp
                 var server = Server;
                 if (server == null || Disposed) { ev.Cancel = true; return false; }
                 // 不能用ReceiveAsync，否则得不到远程地址
+                WriteLog("UdpServer.ReceiveFromAsync2 {0}", ev.ID);
                 return server.ReceiveFromAsync(ev);
             });
         }

@@ -124,6 +124,7 @@ namespace NewLife.Net.Sockets
         private void OnCompleted(Object sender, SocketAsyncEventArgs e)
         {
             EventHandler<NetEventArgs> handler = _Completed;
+            (e as NetEventArgs).LastThread = System.Threading.Thread.CurrentThread.ManagedThreadId;
             if (handler != null) handler(sender, e as NetEventArgs);
         }
 
@@ -187,6 +188,7 @@ namespace NewLife.Net.Sockets
             e.Used = true;
 #if DEBUG
             e.LastUse = GetCalling(4);
+            e.LastThread = System.Threading.Thread.CurrentThread.ManagedThreadId;
 #endif
 
             return e;
@@ -229,6 +231,7 @@ namespace NewLife.Net.Sockets
             e.Used = false;
 #if DEBUG
             e.LastUse = GetCalling(3);
+            e.LastThread = 0;
 #endif
 
             Pool.Push(e);
@@ -306,6 +309,13 @@ namespace NewLife.Net.Sockets
             var method = new System.Diagnostics.StackTrace(skips, true).GetFrame(0).GetMethod();
             return String.Format("{0}.{1}", method.DeclaringType.Name, method.Name);
         }
+
+        private Int32 _LastThread;
+        /// <summary>最后线程</summary>
+        public Int32 LastThread { get { return _LastThread; } set { _LastThread = value; } }
+
+        /// <summary>操作状态</summary>
+        public Int32 Operating { get { return NewLife.Reflection.FieldInfoX.GetValue<Int32>(this, "m_Operating"); } }
 #endif
         #endregion
 

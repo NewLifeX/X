@@ -26,6 +26,7 @@ namespace NewLife.Net.Udp
                 var client = Client;
                 if (client == null || Disposed) { ev.Cancel = true; return false; }
                 // 不能用ReceiveAsync，否则得不到远程地址
+                WriteLog("UdpClientX.ReceiveFromAsync2 {0}", ev.ID);
                 return client.ReceiveFromAsync(ev);
             });
         }

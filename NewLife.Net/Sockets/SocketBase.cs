@@ -358,11 +358,12 @@ namespace NewLife.Net.Sockets
 
             // 如果没有传入网络事件参数，从对象池借用
             var e = Pop();
+            WriteLog("Pop {0} {1} Operating={2}", e.ID, e.LastThread, e.Operating);
 
             e.SetBuffer(needBuffer ? BufferSize : 0);
 #if DEBUG
-            var method = new StackTrace(1, true).GetFrame(0).GetMethod();
-            WriteLog("{0}.{1} {2}", method.DeclaringType.Name, method.Name, e.ID);
+            //var method = new StackTrace(1, true).GetFrame(0).GetMethod();
+            //WriteLog("{0}.{1} {2}", this.GetType().Name, method.Name, e.ID);
 #endif
 
             try
@@ -373,6 +374,7 @@ namespace NewLife.Net.Sockets
                 else
                     // 异步开始，增加一个计数
                     Interlocked.Increment(ref _AsyncCount);
+                WriteLog("callback Operating={0}", e.Operating);
             }
             catch
             {
@@ -416,7 +418,7 @@ namespace NewLife.Net.Sockets
         /// <summary>完成事件，将在工作线程中被调用，不要占用太多时间。</summary>
         public event EventHandler<NetEventArgs> Completed;
 
-        private void OnCompleted(Object sender, SocketAsyncEventArgs e)
+        private void OnCompleted(Object sender, NetEventArgs e)
         {
             // 异步完成，减少一个计数
             Interlocked.Decrement(ref _AsyncCount);
@@ -521,14 +523,10 @@ namespace NewLife.Net.Sockets
 
             try
             {
+                WriteLog("Operating={0}", e.Operating);
                 // 业务处理
                 process(e);
-#if DEBUG
-                // 非常见鬼，这里居然会出现等于1的情况，也就是异步进行中
-                // 经过调试，发现似乎跟ExecutionContext.IsFlowSuppressed有关
-                var b = FieldInfoX.GetValue<Int32>(e, "m_Operating");
-                WriteLog("m_Operating={0}", b);
-#endif
+                WriteLog("Operating={0}", e.Operating);
                 //xxx // 让编译不能通过
 
                 // 每次用完都还，保证不出错丢失

@@ -15,7 +15,7 @@ namespace NewLife.Net.Application
     public static class AppTest
     {
         /// <summary>开始测试</summary>
-        public static void Start()
+        public static void StartServer()
         {
             var ts = new Type[] { typeof(ChargenServer), typeof(DaytimeServer), typeof(DiscardServer), typeof(EchoServer), typeof(TimeServer) };
             //Type[] ts = new Type[] { typeof(EchoServer) };
@@ -27,7 +27,10 @@ namespace NewLife.Net.Application
                 server.Servers.ForEach(s => s.UseThreadPool = false);
                 list.Add(server);
             }
+        }
 
+        public static void StartClient()
+        {
             StartEchoServer(7);
             StartDaytimeServer(13);
             StartTimeServer(37);

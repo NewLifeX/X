@@ -28,11 +28,16 @@ namespace NewLife.Net.Common
             set
             {
                 _Protocol = value;
-                try
+                if (String.IsNullOrEmpty(value))
+                    _ProtocolType = ProtocolType.Unknown;
+                else
                 {
-                    _ProtocolType = (ProtocolType)Enum.Parse(typeof(ProtocolType), value, true);
+                    try
+                    {
+                        _ProtocolType = (ProtocolType)Enum.Parse(typeof(ProtocolType), value, true);
+                    }
+                    catch { _ProtocolType = ProtocolType.Unknown; }
                 }
-                catch { _ProtocolType = ProtocolType.Unknown; }
             }
         }
 
@@ -115,6 +120,25 @@ namespace NewLife.Net.Common
             }
 
             Host = uri;
+        }
+
+        /// <summary>克隆</summary>
+        /// <returns></returns>
+        public NetUri Clone()
+        {
+            return new NetUri().CopyFrom(this);
+        }
+
+        /// <summary>从另一个对象复制</summary>
+        /// <param name="uri"></param>
+        /// <returns></returns>
+        public NetUri CopyFrom(NetUri uri)
+        {
+            this.Protocol = uri == null ? null : uri.Protocol;
+            this.Host = uri == null ? null : uri.Host;
+            this.Port = uri == null ? 0 : uri.Port;
+
+            return this;
         }
         #endregion
 

@@ -61,7 +61,7 @@ namespace Test
             //    Console.WriteLine(ns[i]);
             //}
 
-            NewLife.Net.Application.AppTest.Start();
+            NewLife.Net.Application.AppTest.StartServer();
 
             //http = new HttpProxy();
             //http.Port = 8080;

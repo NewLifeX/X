@@ -100,6 +100,7 @@ namespace NewLife.Net.Tcp
                 ev.AcceptSocket = null;
                 var server = Server;
                 if (server == null || Disposed) { ev.Cancel = true; return false; }
+                WriteLog("TcpServer.AcceptAsync2 {0}", ev.ID);
                 return server.AcceptAsync(ev);
             }, false);
         }
@@ -152,9 +153,7 @@ namespace NewLife.Net.Tcp
             //e.Socket = session;
             e.Socket = session.Host;
             e.Session = session;
-            session.LocalUri.Protocol = LocalUri.Protocol;
-            session.LocalUri.Host = LocalUri.Host;
-            session.LocalUri.Port = LocalUri.Port;
+            session.LocalUri.CopyFrom(LocalUri);
             if (Accepted != null)
             {
                 e.Cancel = false;

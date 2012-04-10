@@ -66,6 +66,7 @@ namespace NewLife.Net.Sockets
             {
                 var client = Client;
                 if (client == null || Disposed) return false;
+                WriteLog("{0}.ReceiveAsync2 {1}", this.GetType().Name, ev.ID);
                 return client.ReceiveAsync(ev);
             });
         }

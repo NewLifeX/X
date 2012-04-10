@@ -22,7 +22,7 @@ namespace Test2
     {
         static void Main(string[] args)
         {
-            XTrace.OnWriteLog += new EventHandler<WriteLogEventArgs>(XTrace_OnWriteLog);
+            XTrace.UseConsole();
             while (true)
             {
 #if !DEBUG
@@ -43,11 +43,6 @@ namespace Test2
                 if (key.Key != ConsoleKey.C) break;
                 //Console.Clear();
             }
-        }
-
-        static void XTrace_OnWriteLog(object sender, WriteLogEventArgs e)
-        {
-            Console.WriteLine(e.ToString());
         }
 
         static void Test1()
@@ -189,6 +184,8 @@ namespace Test2
         static String pname;
         static void Test3()
         {
+            NewLife.Net.Application.AppTest.StartClient();
+
             Console.ReadKey(true);
             using (var sp = new SerialPort("COM9"))
             {
