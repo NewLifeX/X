@@ -64,9 +64,11 @@ namespace NewLife.Net.Common
         public void Increment(Int32 n = 1)
         {
             //_Total++;
-            if (n == 1)
-                Interlocked.Increment(ref _Total);
-            else
+
+            //老树注释，删除多余代码
+            //if (n == 1)
+            //    Interlocked.Increment(ref _Total);
+            //else
                 Interlocked.Add(ref _Total, n);
 
             DateTime now = DateTime.Now;
