@@ -77,16 +77,18 @@ namespace NewLife.Net.Common
 
             //_TotalPerMinute++;
             //_TotalPerHour++;
-            if (n == 1)
-            {
-                Interlocked.Increment(ref _TotalPerMinute);
-                Interlocked.Increment(ref _TotalPerHour);
-            }
-            else
-            {
+
+            //老树注释，删除多余代码
+            //if (n == 1)
+            //{
+            //    Interlocked.Increment(ref _TotalPerMinute);
+            //    Interlocked.Increment(ref _TotalPerHour);
+            //}
+            //else
+            //{
                 Interlocked.Add(ref _TotalPerMinute, n);
                 Interlocked.Add(ref _TotalPerHour, n);
-            }
+            //}
 
             if (_NextPerMinute < now)
             {
