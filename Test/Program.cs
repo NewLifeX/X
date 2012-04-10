@@ -182,42 +182,56 @@ namespace Test
             Int32 y = 3;
             Int32 n = 0;
 
+            var p = new Program();
+            Func<Int32, Int32, Int32> add = Add;
+            Func<Int32, Int32, Int32> mul = Mul;
+
             Console.WriteLine("Hook前：");
-            n = Add(x, y);
+            n = add(x, y);
             Console.WriteLine(n);
 
-            n = Mul(x, y);
+            n = mul(x, y);
             Console.WriteLine(n);
             //Console.ReadKey(true);
 
-            Func<Int32, Int32, Int32> callback = Add;
-            Func<Int32, Int32, Int32> callback2 = Mul;
-
             var hook = new ApiHook();
-            hook.OriMethod = callback.Method;
-            hook.NewMethod = callback2.Method;
+            hook.OriMethod = add.Method;
+            hook.NewMethod = mul.Method;
             hook.Hook();
 
             Console.WriteLine("Hook后：");
-            n = Add(x, y);
+            n = add(x, y);
             Console.WriteLine(n);
 
-            n = Mul(x, y);
+            n = mul(x, y);
             Console.WriteLine(n);
             //Console.ReadKey(true);
 
             hook.UnHook();
 
             Console.WriteLine("Hook还原：");
-            n = Add(x, y);
+            n = add(x, y);
+            Console.WriteLine(n);
+            n = mul(x, y);
             Console.WriteLine(n);
 
-            n = Mul(x, y);
+            hook.Hook();
+            n = add(x, y);
+            Console.WriteLine(n);
+            n = mul(x, y);
             Console.WriteLine(n);
         }
 
-        static Int32 Add(Int32 x, Int32 y) { return x + y; }
+        static Int32 Add(Int32 x, Int32 y)
+        {
+            Console.WriteLine("Add");
+            return x + y;
+        }
 
-        static Int32 Mul(Int32 x, Int32 y) { return x * y; }
+        static Int32 Mul(Int32 x, Int32 y)
+        {
+            Console.WriteLine("Mul");
+            return x * y;
+        }
     }
 }

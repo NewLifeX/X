@@ -8,6 +8,12 @@ using NewLife.Log;
 namespace NewLife.Reflection
 {
     /// <summary>API钩子</summary>
+    /// <remarks>
+    /// 实现上，是两个方法的非托管指针互换，为了方便后面换回来。
+    /// 但是很奇怪，UnHook换回来后，执行的代码还是更换后的，也就是无法复原。
+    /// 
+    /// 一定要注意，在vs中调试会导致Hook失败，尽管换了指针，也无法变更代码执行流程。
+    /// </remarks>
     public class ApiHook : DisposeBase
     {
         #region 属性
@@ -34,40 +40,15 @@ namespace NewLife.Reflection
 
         #region 方法
         private Boolean ishooked;
-        private IntPtr[] addresses;
-        private uint ori;
-        private ulong ori64;
+        //private IntPtr[] addresses;
+        //private uint ori;
+        //private ulong ori64;
 
         /// <summary>挂钩</summary>
         public void Hook()
         {
             ishooked = true;
-
-            var adds = GetAddress(OriMethod, NewMethod);
-            addresses = adds;
-            unsafe
-            {
-                if (IntPtr.Size == 8)
-                {
-                    var s = (ulong*)adds[0].ToPointer();
-                    var d = (ulong*)adds[1].ToPointer();
-                    WriteLog("ApiHook Src:[{0}.{1}] 0x{2:X8} = 0x{3:X8}", OriMethod.DeclaringType.Name, OriMethod.Name, (ulong)s, *s);
-                    WriteLog("ApiHook Des:[{0}.{1}] 0x{2:X8} = 0x{3:X8}", NewMethod.DeclaringType.Name, NewMethod.Name, (ulong)d, *d);
-
-                    ori64 = *s;
-                    *s = *((ulong*)adds[1].ToPointer());
-                }
-                else
-                {
-                    var s = (uint*)adds[0].ToPointer();
-                    var d = (uint*)adds[1].ToPointer();
-                    WriteLog("ApiHook Src:[{0}.{1}] 0x{2:X8} = 0x{3:X8}", OriMethod.DeclaringType.Name, OriMethod.Name, (uint)s, *s);
-                    WriteLog("ApiHook Des:[{0}.{1}] 0x{2:X8} = 0x{3:X8}", NewMethod.DeclaringType.Name, NewMethod.Name, (uint)d, *d);
-
-                    ori = *s;
-                    *s = *((uint*)adds[1].ToPointer());
-                }
-            }
+            Exchange("ApiHook");
         }
 
         /// <summary>取消挂钩</summary>
@@ -76,22 +57,35 @@ namespace NewLife.Reflection
             if (!ishooked) return;
             ishooked = false;
 
+            Exchange("ApiUnHook");
+        }
+
+        void Exchange(String action)
+        {
+            var adds = GetAddress(OriMethod, NewMethod);
             unsafe
             {
-                var adds = addresses;
                 if (IntPtr.Size == 8)
                 {
                     var s = (ulong*)adds[0].ToPointer();
-                    WriteLog("ApiUnHook [{0}.{1}] 0x{2:X8} = 0x{3:X8} => 0x{4:X8}", OriMethod.DeclaringType.Name, OriMethod.Name, (ulong)s, *s, ori64);
+                    var d = (ulong*)adds[1].ToPointer();
+                    WriteLog("{4} [{0}.{1}] 0x{2:X8} = 0x{3:X8}", OriMethod.DeclaringType.Name, OriMethod.Name, (ulong)s, *s, action);
+                    WriteLog("{4} [{0}.{1}] 0x{2:X8} = 0x{3:X8}", NewMethod.DeclaringType.Name, NewMethod.Name, (ulong)d, *d, action);
 
-                    *s = ori64;
+                    var ori64 = *s;
+                    *s = *((ulong*)adds[1].ToPointer());
+                    *d = ori64;
                 }
                 else
                 {
                     var s = (uint*)adds[0].ToPointer();
-                    WriteLog("ApiUnHook [{0}.{1}] 0x{2:X8} = 0x{3:X8} => 0x{4:X8}", OriMethod.DeclaringType.Name, OriMethod.Name, (uint)s, *s, ori);
+                    var d = (uint*)adds[1].ToPointer();
+                    WriteLog("{4} [{0}.{1}] 0x{2:X8} = 0x{3:X8}", OriMethod.DeclaringType.Name, OriMethod.Name, (uint)s, *s, action);
+                    WriteLog("{4} [{0}.{1}] 0x{2:X8} = 0x{3:X8}", NewMethod.DeclaringType.Name, NewMethod.Name, (uint)d, *d, action);
 
-                    *s = ori;
+                    var ori = *s;
+                    *s = *((uint*)adds[1].ToPointer());
+                    *d = ori;
                 }
             }
         }
@@ -178,26 +172,26 @@ namespace NewLife.Reflection
         /// Method Address 处所存储的 Native Code Address 是可以修改的，也就意味着我们完全可以用另外一个具有相同签名的方法来替代它，从而达到偷梁换柱(Injection)的目的。
         /// </remarks>
         /// <param name="src"></param>
-        /// <param name="dest"></param>
-        public static void ReplaceMethod(MethodBase src, MethodBase dest)
+        /// <param name="des"></param>
+        public static void ReplaceMethod(MethodBase src, MethodBase des)
         {
-            var adds = GetAddress(src, dest);
+            var adds = GetAddress(src, des);
             ReplaceMethod(adds[0], adds[1]);
         }
 
-        unsafe static IntPtr[] GetAddress(MethodBase src, MethodBase dest)
+        unsafe static IntPtr[] GetAddress(MethodBase src, MethodBase des)
         {
             var adds = new IntPtr[2];
-            if (src.IsStatic && dest.IsStatic ||
-                !mbroType.IsAssignableFrom(src.DeclaringType) && !mbroType.IsAssignableFrom(dest.DeclaringType))
+            if (src.IsStatic && des.IsStatic ||
+                !mbroType.IsAssignableFrom(src.DeclaringType) && !mbroType.IsAssignableFrom(des.DeclaringType))
             {
                 adds[0] = GetMethodAddress(src);
-                adds[1] = GetMethodAddress(dest);
+                adds[1] = GetMethodAddress(des);
             }
-            else if (mbroType.IsAssignableFrom(src.DeclaringType) && mbroType.IsAssignableFrom(dest.DeclaringType))
+            else if (mbroType.IsAssignableFrom(src.DeclaringType) && mbroType.IsAssignableFrom(des.DeclaringType))
             {
                 adds[0] = src.MethodHandle.GetFunctionPointer();
-                adds[1] = dest.MethodHandle.GetFunctionPointer();
+                adds[1] = des.MethodHandle.GetFunctionPointer();
             }
 
             return adds;
