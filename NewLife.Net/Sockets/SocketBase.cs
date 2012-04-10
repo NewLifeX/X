@@ -327,6 +327,8 @@ namespace NewLife.Net.Sockets
         /// <summary>绑定本地终结点</summary>
         public virtual void Bind()
         {
+            if (Disposed) return;
+
             EnsureCreate();
             var socket = Socket;
             if (socket != null && !socket.IsBound)
@@ -463,6 +465,10 @@ namespace NewLife.Net.Sockets
         /// <param name="e"></param>
         void RaiseCompleteAsync(NetEventArgs e)
         {
+            // 如果已销毁或取消，则不处理
+            //if (Disposed) return;
+            if (e.Cancel) return;
+
             ThreadPool.QueueUserWorkItem(state => RaiseComplete(state as NetEventArgs), e);
         }
 
@@ -497,7 +503,7 @@ namespace NewLife.Net.Sockets
         {
             // 再次开始，如果异常，记录异常信息，待业务处理完成后再抛出异常
             Exception err = null;
-            if (NoDelay && e.SocketError != SocketError.OperationAborted)
+            if (NoDelay && e.SocketError != SocketError.OperationAborted && !Disposed)
             {
                 try
                 {
@@ -542,7 +548,7 @@ namespace NewLife.Net.Sockets
             if (err != null) throw err;
 
             // 如果不是操作取消，在处理业务完成后再开始异步操作
-            if (!NoDelay && e.SocketError != SocketError.OperationAborted)
+            if (!NoDelay && e.SocketError != SocketError.OperationAborted && !Disposed)
             {
                 try
                 {

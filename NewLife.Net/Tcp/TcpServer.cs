@@ -98,7 +98,9 @@ namespace NewLife.Net.Tcp
             StartAsync(ev =>
             {
                 ev.AcceptSocket = null;
-                return Server.AcceptAsync(ev);
+                var server = Server;
+                if (server == null || Disposed) { ev.Cancel = true; return false; }
+                return server.AcceptAsync(ev);
             }, false);
         }
 

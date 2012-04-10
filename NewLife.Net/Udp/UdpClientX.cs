@@ -23,8 +23,10 @@ namespace NewLife.Net.Udp
                 // 兼容IPV6
                 IPAddress address = AddressFamily == AddressFamily.InterNetworkV6 ? IPAddress.IPv6Any : IPAddress.Any;
                 ev.RemoteEndPoint = new IPEndPoint(address, 0);
+                var client = Client;
+                if (client == null || Disposed) { ev.Cancel = true; return false; }
                 // 不能用ReceiveAsync，否则得不到远程地址
-                return Client.ReceiveFromAsync(ev);
+                return client.ReceiveFromAsync(ev);
             });
         }
         #endregion

@@ -77,8 +77,10 @@ namespace NewLife.Net.Udp
                 // 兼容IPV6
                 IPAddress address = AddressFamily == AddressFamily.InterNetworkV6 ? IPAddress.IPv6Any : IPAddress.Any;
                 ev.RemoteEndPoint = new IPEndPoint(address, 0);
+                var server = Server;
+                if (server == null || Disposed) { ev.Cancel = true; return false; }
                 // 不能用ReceiveAsync，否则得不到远程地址
-                return Server.ReceiveFromAsync(ev);
+                return server.ReceiveFromAsync(ev);
             });
         }
 
