@@ -116,6 +116,7 @@
     <Compile Include="Model\IServer.cs" />
     <Compile Include="Model\ServiceProvider.cs" />
     <Compile Include="Model\TypeResolutionService.cs" />
+    <Compile Include="Reflection\ApiHook.cs" />
     <Compile Include="Reflection\CodeDomDuckTypeGenerator.cs" />
     <Compile Include="Reflection\DuckTyping.cs" />
     <Compile Include="Reflection\IL\ILInstruction.cs" />

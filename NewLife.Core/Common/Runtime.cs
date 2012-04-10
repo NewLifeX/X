@@ -3,12 +3,10 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Reflection.Emit;
-using System.Runtime.CompilerServices;
 using System.Runtime.ConstrainedExecution;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Web;
-using NewLife.Reflection;
 
 namespace NewLife
 {
@@ -127,103 +125,6 @@ namespace NewLife
         /// <summary>确定当前进程是否为 64 位进程。</summary>
         /// <returns>如果进程为 64 位进程，则为 true；否则为 false。</returns>
         public static bool Is64BitProcess { get { return IntPtr.Size == 8; } }
-        #endregion
-
-        #region JIT方法地址
-        /// <summary>获取方法在JIT编译后的地址(JIT Stubs)</summary>
-        /// <remarks>
-        /// MethodBase.DeclaringType.TypeHandle.Value: 指向该类型方法表(编译后)在 JIT Stubs 的起始位置。
-        /// Method.MethodHandle.Value: 表示该方法的索引序号。
-        /// CLR 2.0 SP2 (2.0.50727.3053) 及其后续版本中，该地址的内存布局发生了变化。直接用 "Method.MethodHandle.Value + 2" 即可得到编译后的地址。
-        /// </remarks>
-        /// <param name="method"></param>
-        /// <returns></returns>
-        unsafe public static IntPtr GetMethodAddress(MethodBase method)
-        {
-            // 处理动态方法
-            if (method is DynamicMethod)
-            {
-                //byte* ptr = (byte*)GetDynamicMethodRuntimeHandle(method).ToPointer();
-
-                FieldInfo fieldInfo = typeof(DynamicMethod).GetField("m_method", BindingFlags.NonPublic | BindingFlags.Instance);
-                byte* ptr = (byte*)((RuntimeMethodHandle)FieldInfoX.Create(fieldInfo).GetValue(method)).Value.ToPointer();
-
-                if (IntPtr.Size == 8)
-                {
-                    ulong* address = (ulong*)ptr;
-                    address += 6;
-                    return new IntPtr(address);
-                }
-                else
-                {
-                    uint* address = (uint*)ptr;
-                    address += 6;
-                    return new IntPtr(address);
-                }
-            }
-
-            // 确保方法已经被编译
-            RuntimeHelpers.PrepareMethod(method.MethodHandle);
-
-            if (Environment.Version.Major >= 2 && Environment.Version.MinorRevision >= 3053)
-            {
-                return new IntPtr((int*)method.MethodHandle.Value.ToPointer() + 2);
-            }
-            else
-            {
-                // 要跳过的
-                var skip = 10;
-
-                // 读取方法索引
-                var location = (UInt64*)(method.MethodHandle.Value.ToPointer());
-                var index = (int)(((*location) >> 32) & 0xFF);
-
-                // 区分处理x86和x64
-                if (IntPtr.Size == 8)
-                {
-                    // 获取方法表
-                    var classStart = (ulong*)method.DeclaringType.TypeHandle.Value.ToPointer();
-                    var address = classStart + index + skip;
-                    return new IntPtr(address);
-                }
-                else
-                {
-                    // 获取方法表
-                    var classStart = (uint*)method.DeclaringType.TypeHandle.Value.ToPointer();
-                    var address = classStart + index + skip;
-                    return new IntPtr(address);
-                }
-            }
-        }
-
-        /// <summary>替换方法</summary>
-        /// <remarks>
-        /// Method Address 处所存储的 Native Code Address 是可以修改的，也就意味着我们完全可以用另外一个具有相同签名的方法来替代它，从而达到偷梁换柱(Injection)的目的。
-        /// </remarks>
-        /// <param name="src"></param>
-        /// <param name="dest"></param>
-        public static void ReplaceMethod(MethodBase src, MethodBase dest)
-        {
-            IntPtr s = GetMethodAddress(src);
-            IntPtr d = GetMethodAddress(dest);
-
-            ReplaceMethod(s, d);
-        }
-
-        unsafe private static void ReplaceMethod(IntPtr src, IntPtr dest)
-        {
-            // 区分处理x86和x64
-            if (IntPtr.Size == 8)
-            {
-                var d = (ulong*)src.ToPointer();
-                *d = *((ulong*)dest.ToPointer());
-            }
-            else
-            {
-                var d = (uint*)src.ToPointer();
-                *d = *((uint*)dest.ToPointer());
-            }
-        }
         #endregion
 
         #region 内存设置

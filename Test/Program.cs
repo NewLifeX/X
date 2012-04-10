@@ -28,7 +28,7 @@ namespace Test
                 try
                 {
 #endif
-                Test1();
+                Test3();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -178,38 +178,46 @@ namespace Test
 
         static void Test3()
         {
-            //var entity = new EntityTest();
-            //var rnd = new Random((Int32)DateTime.Now.Ticks);
-            //entity.Name = "Name" + rnd.Next(10000, 99999);
-            //entity.File = new Byte[1024];
-            //rnd.NextBytes(entity.File);
-            //entity.Save();
+            Int32 x = 2;
+            Int32 y = 3;
+            Int32 n = 0;
 
-            //var type = typeof(User).BaseType;
-            //var ps = new Object[] { null, null, null, 0, 3 };
-            //var pts = TypeX.GetTypeArray(ps);
-            //var method = type.GetMethod("FindCount");
-            //Console.WriteLine(method);
-            //method = TypeX.Create(type).GetMethod("FindCount", pts);
-            //Console.WriteLine(method);
+            Console.WriteLine("Hook前：");
+            n = Add(x, y);
+            Console.WriteLine(n);
 
-            var dal = DAL.Create("Common");
-            try
-            {
-                dal.Select("select * from abc");
-            }
-            catch (Exception ex)
-            {
-                Message.Debug = true;
-                var msg = new ExceptionMessage();
-                msg.Value = ex;
+            n = Mul(x, y);
+            Console.WriteLine(n);
+            //Console.ReadKey(true);
 
-                var ms = msg.GetStream();
-                Console.WriteLine(ms.Length);
+            Func<Int32, Int32, Int32> callback = Add;
+            Func<Int32, Int32, Int32> callback2 = Mul;
 
-                var msg2 = Message.Read<ExceptionMessage>(ms);
-                Console.WriteLine(msg2 != null);
-            }
+            var hook = new ApiHook();
+            hook.OriMethod = callback.Method;
+            hook.NewMethod = callback2.Method;
+            hook.Hook();
+
+            Console.WriteLine("Hook后：");
+            n = Add(x, y);
+            Console.WriteLine(n);
+
+            n = Mul(x, y);
+            Console.WriteLine(n);
+            //Console.ReadKey(true);
+
+            hook.UnHook();
+
+            Console.WriteLine("Hook还原：");
+            n = Add(x, y);
+            Console.WriteLine(n);
+
+            n = Mul(x, y);
+            Console.WriteLine(n);
         }
+
+        static Int32 Add(Int32 x, Int32 y) { return x + y; }
+
+        static Int32 Mul(Int32 x, Int32 y) { return x * y; }
     }
 }
