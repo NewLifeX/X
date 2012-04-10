@@ -188,7 +188,6 @@ namespace NewLife.Net.Sockets
             e.Used = true;
 #if DEBUG
             e.LastUse = GetCalling(4);
-            e.LastThread = System.Threading.Thread.CurrentThread.ManagedThreadId;
 #endif
 
             return e;

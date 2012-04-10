@@ -70,8 +70,6 @@ namespace NewLife.Net.Sockets
                 return client.ReceiveAsync(ev);
             });
         }
-
-        //public virtual void ReceiveAsync(NetEventArgs e = null) { StartAsync(Client.ReceiveAsync, e); }
         #endregion
 
         #region 事件

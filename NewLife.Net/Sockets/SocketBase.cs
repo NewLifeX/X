@@ -34,11 +34,17 @@ namespace NewLife.Net.Sockets
     ///         =>RaiseComplete    异步回调方法，处理所有异步事件的起始点
     ///             ->Completed    完成事件，可以取消处理
     ///                 Push       取消处理时，归还网络参数
+    ///                 return
     ///             OnComplete     子类通过重载来处理各种异步事件
+    ///                 OnAccept/OnReceive
+    ///                     Push    如果处理过程中，没有外部注册事件，则马上归还事件，然后开始新的异步操作
+    ///                     AcceptAsync/ReceiveAsync
+    ///                     return
     ///                 Process    这里<see cref="UseThreadPool"/>决定是否采用线程池处理，因此OnProcess必须有独立的异常处理能力，保证回收网络参数
-    ///                     OnProcess   统一的事件处理核心
+    ///                     ->OnProcess   统一的事件处理核心
     ///                         AcceptAsync/ReceiveAsync    这里<see cref="NoDelay"/>觉得是否马上开始异步。
     ///                         OnError 如果异步处理失败，不是<see cref="SocketError.Success"/>，则触发错误事件，然后退出
+    ///                             return
     ///                         ProcessAccept/ProcessReceive
     ///                         Push    每次用完都还，保证不出错丢失
     ///                         OnError 处理异常时触发错误事件
@@ -342,7 +348,6 @@ namespace NewLife.Net.Sockets
 
         /// <summary>开始异步操作。由用户调用，所以该方法在异常时需要回收网络事件</summary>
         /// <param name="callback"></param>
-        /// <param name="e"></param>
         /// <param name="needBuffer">是否需要缓冲区，默认需要，只有Accept不需要</param>
         internal protected void StartAsync(Func<NetEventArgs, Boolean> callback, Boolean needBuffer = true)
         {
@@ -364,6 +369,8 @@ namespace NewLife.Net.Sockets
 #if DEBUG
             //var method = new StackTrace(1, true).GetFrame(0).GetMethod();
             //WriteLog("{0}.{1} {2}", this.GetType().Name, method.Name, e.ID);
+            if (e.LastThread > 0) throw new XException("{0}已被{1}使用中！", e.ID, e.LastThread);
+            e.LastThread = System.Threading.Thread.CurrentThread.ManagedThreadId;
 #endif
 
             try
@@ -411,7 +418,7 @@ namespace NewLife.Net.Sockets
         /// <param name="e"></param>
         public void Push(NetEventArgs e)
         {
-            WriteLog("Push {0}", e.ID);
+            WriteLog("Push {0} {1}", e.ID, e.LastOperation);
             NetEventArgs.Push(e);
         }
 
@@ -523,11 +530,8 @@ namespace NewLife.Net.Sockets
 
             try
             {
-                WriteLog("Operating={0}", e.Operating);
                 // 业务处理
                 process(e);
-                WriteLog("Operating={0}", e.Operating);
-                //xxx // 让编译不能通过
 
                 // 每次用完都还，保证不出错丢失
                 Push(e);

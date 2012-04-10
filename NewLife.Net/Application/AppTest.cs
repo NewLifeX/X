@@ -15,6 +15,13 @@ namespace NewLife.Net.Application
     public static class AppTest
     {
         /// <summary>开始测试</summary>
+        public static void Start()
+        {
+            StartServer();
+            StartClient();
+        }
+
+        /// <summary>开始测试</summary>
         public static void StartServer()
         {
             var ts = new Type[] { typeof(ChargenServer), typeof(DaytimeServer), typeof(DiscardServer), typeof(EchoServer), typeof(TimeServer) };
@@ -29,6 +36,7 @@ namespace NewLife.Net.Application
             }
         }
 
+        /// <summary>开始测试</summary>
         public static void StartClient()
         {
             StartEchoServer(7);

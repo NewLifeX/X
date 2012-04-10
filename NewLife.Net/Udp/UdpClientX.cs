@@ -54,43 +54,6 @@ namespace NewLife.Net.Udp
             //return this;
         }
 
-        //IUdp IUdp.Send(Byte[] buffer, Int32 offset = 0, Int32 size = 0, EndPoint remoteEP = null) { return Send(buffer, offset, size, remoteEP); }
-
-        ///// <summary>发送数据流</summary>
-        ///// <param name="stream"></param>
-        ///// <param name="remoteEP"></param>
-        ///// <returns></returns>
-        //public virtual Int64 Send(Stream stream, EndPoint remoteEP = null)
-        //{
-        //    Int64 total = 0;
-
-        //    var size = stream.CanSeek ? stream.Length - stream.Position : BufferSize;
-        //    Byte[] buffer = new Byte[size];
-        //    while (true)
-        //    {
-        //        Int32 n = stream.Read(buffer, 0, buffer.Length);
-        //        if (n <= 0) break;
-
-        //        Send(buffer, 0, n, remoteEP);
-        //        total += n;
-
-        //        if (n < buffer.Length) break;
-        //    }
-        //    return total;
-        //}
-
-        ///// <summary>发送字符串</summary>
-        ///// <param name="msg"></param>
-        ///// <param name="encoding"></param>
-        ///// <param name="remoteEP">远程终结点</param>
-        //public void Send(String msg, Encoding encoding = null, EndPoint remoteEP = null)
-        //{
-        //    if (String.IsNullOrEmpty(msg)) return;
-
-        //    if (encoding == null) encoding = Encoding.UTF8;
-        //    Send(encoding.GetBytes(msg), 0, 0, remoteEP);
-        //}
-
         /// <summary>广播数据包</summary>
         /// <param name="buffer"></param>
         /// <param name="offset"></param>
