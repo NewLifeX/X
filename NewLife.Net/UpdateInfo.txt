@@ -1,4 +1,6 @@
-﻿v2.0.2012.0229   完全重构网络模型。划分为四层：Socket层、封装层ISocket、数据会话层ISocketSession、网络会话INetSession
+﻿v2.1.2012.0411   精简核心结构，进一步完善网络模型
+
+v2.0.2012.0229   完全重构网络模型。划分为四层：Socket层、封装层ISocket、数据会话层ISocketSession、网络会话INetSession
 
 v1.7.2012.0209   完善串口服务器和DNS服务器
 
