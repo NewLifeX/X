@@ -47,7 +47,7 @@ namespace NewLife.Serialization
         /// <param name="isField">是否字段</param>
         /// <param name="isBaseFirst">是否基类成员排在前面</param>
         /// <returns></returns>
-        public static IObjectMemberInfo[] GetMembers(Type type, Object value, Boolean isField, Boolean isBaseFirst)
+        public static IObjectMemberInfo[] GetMembers(Type type, Object value = null, Boolean isField = true, Boolean isBaseFirst = true)
         {
             if (type == null && value != null) type = value.GetType();
 

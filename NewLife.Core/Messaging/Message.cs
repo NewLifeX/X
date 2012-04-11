@@ -140,6 +140,22 @@ namespace NewLife.Messaging
             stream.Seek(-1, SeekOrigin.Current);
             return (MessageKind)n;
         }
+
+        /// <summary>从源消息克隆设置和可序列化成员数据</summary>
+        /// <param name="msg"></param>
+        /// <returns></returns>
+        public virtual Message CopyFrom(Message msg)
+        {
+            if (msg != null)
+            {
+                // 遍历可序列化成员
+                foreach (var item in ObjectInfo.GetMembers(this.GetType()))
+                {
+                    item[this] = item[msg];
+                }
+            }
+            return this;
+        }
         #endregion
 
         #region 重载

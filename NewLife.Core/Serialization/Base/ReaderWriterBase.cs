@@ -2,9 +2,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using NewLife.Linq;
 using NewLife.Log;
-using System.Text;
 
 namespace NewLife.Serialization
 {
