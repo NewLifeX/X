@@ -23,6 +23,16 @@ namespace NewLife.Net.Sockets
         /// <summary>使用次数</summary>
         private Int32 Times { get { return _Times; } set { _Times = value; } }
 
+#if DEBUG
+        private Boolean _Used;
+        /// <summary>使用中</summary>
+        /// <remarks>
+        /// 尽管能够通过该属性判断参数是否在使用中，然后避免线程池操作失误，但是并没有那么做。
+        /// 一个正确的架构，是不会出现事件参数丢失或者被重用的情况。
+        /// 所以，该属性主要作为对设计人员的限制，提醒设计人员架构上可能出现了问题。
+        /// </remarks>
+        public Boolean Used { get { return _Used; } set { _Used = value; } }
+#else
         private Boolean _Used;
         /// <summary>使用中</summary>
         /// <remarks>
@@ -31,6 +41,7 @@ namespace NewLife.Net.Sockets
         /// 所以，该属性主要作为对设计人员的限制，提醒设计人员架构上可能出现了问题。
         /// </remarks>
         private Boolean Used { get { return _Used; } set { _Used = value; } }
+#endif
 
         private ISocket _Socket;
         /// <summary>当前对象的使用者，默认就是从对象池<see cref="Pool"/>中借出当前网络事件参数的那个SocketBase。
