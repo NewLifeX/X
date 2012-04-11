@@ -11,6 +11,7 @@ using NewLife.Exceptions;
 using NewLife.Net.Common;
 using NewLife.Reflection;
 using NewLife.Threading;
+using NewLife.Log;
 
 namespace NewLife.Net.Sockets
 {
@@ -363,25 +364,22 @@ namespace NewLife.Net.Sockets
 
             // 如果没有传入网络事件参数，从对象池借用
             var e = Pop();
-            WriteLog("Pop {0} {1} Operating={2}", e.ID, e.LastThread, e.Operating);
+            var id = e.ID;
+            WriteLog("Pop {0} {1} Operating={2}", id, e.LastThread, e.Operating);
 
             e.SetBuffer(needBuffer ? BufferSize : 0);
 #if DEBUG
             //var method = new StackTrace(1, true).GetFrame(0).GetMethod();
             //WriteLog("{0}.{1} {2}", this.GetType().Name, method.Name, e.ID);
-            if (e.LastThread > 0) throw new XException("{0}已被{1}使用中！", e.ID, e.LastThread);
+            if (e.LastThread > 0) throw new XException("{0}已被{1}使用中！", id, e.LastThread);
             e.LastThread = System.Threading.Thread.CurrentThread.ManagedThreadId;
 #endif
 
+            Boolean result;
             try
             {
-                // 如果立即返回，则异步处理完成事件
-                if (!callback(e))
-                    RaiseCompleteAsync(e);
-                else
-                    // 异步开始，增加一个计数
-                    Interlocked.Increment(ref _AsyncCount);
-                WriteLog("callback Operating={0}", e.Operating);
+                // 除非同步返回，否则这里以后不允许再碰这个e，用result保存，就是考虑到异步完成，e将具有不可预测性
+                result = callback(e);
             }
             catch
             {
@@ -390,6 +388,26 @@ namespace NewLife.Net.Sockets
                 Push(e);
                 throw;
             }
+
+            // 如果立即返回，则异步处理完成事件
+            if (!result)
+            {
+                // 这一句日志只有同步返回时有用
+                WriteLog("Sync {0} {1} Operating={2}", id, e.LastThread, e.Operating);
+                // 如果已销毁或取消，则不处理
+                if (!e.Cancel)
+                    ThreadPool.QueueUserWorkItem(state => RaiseComplete(state as NetEventArgs), e);
+                else
+                    Push(e);
+            }
+            else
+            {
+                WriteLog("Async {0} {1} Operating={2}", id, e.LastThread, e.Operating);
+                // 异步开始，增加一个计数
+                Interlocked.Increment(ref _AsyncCount);
+            }
+
+            //XTrace.DebugStack();
         }
         #endregion
 
@@ -404,6 +422,8 @@ namespace NewLife.Net.Sockets
             e.Socket = this;
             e.Completed += OnCompleted;
 
+            WriteLog("Pop {0} {1} {2}", e.ID, e.LastOperation, e.LastThread);
+            //XTrace.DebugStack();
             return e;
         }
 
@@ -418,7 +438,8 @@ namespace NewLife.Net.Sockets
         /// <param name="e"></param>
         public void Push(NetEventArgs e)
         {
-            WriteLog("Push {0} {1}", e.ID, e.LastOperation);
+            WriteLog("Push {0} {1} {2}", e.ID, e.LastOperation, e.LastThread);
+            //XTrace.DebugStack();
             NetEventArgs.Push(e);
         }
 
@@ -445,6 +466,7 @@ namespace NewLife.Net.Sockets
         {
             if (ShowEventLog && EnableLog) ShowEvent(e);
 
+            WriteLog("RaiseComplete {0} {1} Operating={2}", e.ID, e.LastThread, e.Operating);
             try
             {
                 if (Completed != null)
@@ -458,7 +480,11 @@ namespace NewLife.Net.Sockets
                     }
                 }
 
-                OnComplete(e);
+                // 这里直接处理操作取消
+                if (e.SocketError != SocketError.OperationAborted)
+                    OnComplete(e);
+                else
+                    OnError(e, null);
                 // 这里可以改造为使用多线程处理事件
                 //ThreadPoolCallback(OnCompleted, e);
             }
@@ -468,17 +494,6 @@ namespace NewLife.Net.Sockets
                 // 都是在线程池线程里面了，不要往外抛出异常
                 //throw;
             }
-        }
-
-        /// <summary>异步触发完成事件处理程序</summary>
-        /// <param name="e"></param>
-        void RaiseCompleteAsync(NetEventArgs e)
-        {
-            // 如果已销毁或取消，则不处理
-            //if (Disposed) return;
-            if (e.Cancel) return;
-
-            ThreadPool.QueueUserWorkItem(state => RaiseComplete(state as NetEventArgs), e);
         }
 
         /// <summary>完成事件分发中心。
@@ -512,8 +527,10 @@ namespace NewLife.Net.Sockets
         {
             // 再次开始，如果异常，记录异常信息，待业务处理完成后再抛出异常
             Exception err = null;
-            if (NoDelay && e.SocketError != SocketError.OperationAborted && !Disposed)
+            var isAborted = e.SocketError == SocketError.OperationAborted;
+            if (NoDelay && !isAborted && !Disposed)
             {
+                WriteLog("Process NoDelay Start");
                 try
                 {
                     start();
@@ -528,15 +545,15 @@ namespace NewLife.Net.Sockets
                 return;
             }
 
+            Boolean result = false;
             try
             {
-                // 业务处理
+                // 业务处理的任何异常，都将引发Error事件，但不会影响重新建立新的异步操作
                 process(e);
 
-                // 每次用完都还，保证不出错丢失
-                Push(e);
+                WriteLog("Process 业务处理完成");
+                result = true;
             }
-            // 这里不能捕获异常，让它向上抛出，由RaiseComplete处理
             catch (Exception ex)
             {
                 try
@@ -546,24 +563,17 @@ namespace NewLife.Net.Sockets
                 catch { }
             }
 
+            // 每次用完都还，保证不出错丢失
+            if (result) Push(e);
+
             // 重新抛出前面捕获的异常
             if (err != null) throw err;
 
             // 如果不是操作取消，在处理业务完成后再开始异步操作
-            if (!NoDelay && e.SocketError != SocketError.OperationAborted && !Disposed)
+            if (!NoDelay && !isAborted && !Disposed)
             {
-                try
-                {
-                    start();
-                }
-                catch (Exception ex)
-                {
-                    try
-                    {
-                        OnError(null, ex);
-                    }
-                    catch { }
-                }
+                WriteLog("Process Delay Start");
+                start();
             }
         }
         #endregion

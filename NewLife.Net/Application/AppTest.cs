@@ -24,8 +24,8 @@ namespace NewLife.Net.Application
         /// <summary>开始测试</summary>
         public static void StartServer()
         {
-            //var ts = new Type[] { typeof(ChargenServer), typeof(DaytimeServer), typeof(DiscardServer), typeof(EchoServer), typeof(TimeServer) };
-            var ts = new Type[] { typeof(EchoServer) };
+            var ts = new Type[] { typeof(ChargenServer), typeof(DaytimeServer), typeof(DiscardServer), typeof(EchoServer), typeof(TimeServer) };
+            //var ts = new Type[] { typeof(EchoServer) };
             var list = new List<NetServer>();
             foreach (var item in ts)
             {
@@ -40,10 +40,10 @@ namespace NewLife.Net.Application
         public static void StartClient()
         {
             StartEchoServer(7);
-            //StartDaytimeServer(13);
-            //StartTimeServer(37);
-            //StartDiscardServer(9);
-            //StartChargenServer(19);
+            StartDaytimeServer(13);
+            StartTimeServer(37);
+            StartDiscardServer(9);
+            StartChargenServer(19);
         }
 
         static AutoResetEvent _are = new AutoResetEvent(true);

@@ -62,12 +62,13 @@ namespace NewLife.Net.Sockets
         public virtual void ReceiveAsync()
         {
             // 这里居然在委托的CtorClosed方法里面报this为空对错误
-            StartAsync(ev =>
+            StartAsync(e =>
             {
                 var client = Client;
-                if (client == null || Disposed) return false;
-                WriteLog("{0}.ReceiveAsync2 {1}", this.GetType().Name, ev.ID);
-                return client.ReceiveAsync(ev);
+                if (client == null || Disposed) { e.Cancel = true; return false; }
+
+                WriteLog("{0}.ReceiveAsync {1}", this.GetType().Name, e.ID);
+                return client.ReceiveAsync(e);
             });
         }
         #endregion

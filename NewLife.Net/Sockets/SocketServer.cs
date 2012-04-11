@@ -94,13 +94,14 @@ namespace NewLife.Net.Sockets
         /// <param name="ex"></param>
         protected override void OnError(NetEventArgs e, Exception ex)
         {
+            var isAborted = e.SocketError == SocketError.OperationAborted;
             try
             {
                 ProcessError(e, ex);
             }
             finally
             {
-                if (e.SocketError == SocketError.OperationAborted) Close();
+                if (isAborted) Close();
             }
         }
         #endregion

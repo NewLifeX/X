@@ -72,16 +72,17 @@ namespace NewLife.Net.Udp
         /// <summary>开始异步接收数据</summary>
         public virtual void ReceiveAsync()
         {
-            StartAsync(ev =>
+            StartAsync(e =>
             {
-                // 兼容IPV6
-                IPAddress address = AddressFamily == AddressFamily.InterNetworkV6 ? IPAddress.IPv6Any : IPAddress.Any;
-                ev.RemoteEndPoint = new IPEndPoint(address, 0);
                 var server = Server;
-                if (server == null || Disposed) { ev.Cancel = true; return false; }
+                if (server == null || Disposed) { e.Cancel = true; return false; }
+
+                // 兼容IPV6
+                var address = AddressFamily == AddressFamily.InterNetworkV6 ? IPAddress.IPv6Any : IPAddress.Any;
+                e.RemoteEndPoint = new IPEndPoint(address, 0);
                 // 不能用ReceiveAsync，否则得不到远程地址
-                WriteLog("UdpServer.ReceiveFromAsync2 {0}", ev.ID);
-                return server.ReceiveFromAsync(ev);
+                WriteLog("UdpServer.ReceiveFromAsync {0}", e.ID);
+                return server.ReceiveFromAsync(e);
             });
         }
 
@@ -97,12 +98,12 @@ namespace NewLife.Net.Udp
         /// <param name="e"></param>
         protected virtual void OnReceive(NetEventArgs e)
         {
-            // Socket错误由各个处理器来处理
-            if (e.SocketError == SocketError.OperationAborted)
-            {
-                OnError(e, null);
-                return;
-            }
+            //// Socket错误由各个处理器来处理
+            //if (e.SocketError == SocketError.OperationAborted)
+            //{
+            //    OnError(e, null);
+            //    return;
+            //}
 
             // 没有接收事件时，马上开始处理重建委托
             if (Received == null)

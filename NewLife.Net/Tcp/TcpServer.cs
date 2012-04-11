@@ -95,13 +95,14 @@ namespace NewLife.Net.Tcp
 
         void AcceptAsync()
         {
-            StartAsync(ev =>
+            StartAsync(e =>
             {
-                ev.AcceptSocket = null;
                 var server = Server;
-                if (server == null || Disposed) { ev.Cancel = true; return false; }
-                WriteLog("TcpServer.AcceptAsync2 {0}", ev.ID);
-                return server.AcceptAsync(ev);
+                if (server == null || Disposed) { e.Cancel = true; return false; }
+
+                e.AcceptSocket = null;
+                WriteLog("TcpServer.AcceptAsync {0}", e.ID);
+                return server.AcceptAsync(e);
             }, false);
         }
 
@@ -119,12 +120,12 @@ namespace NewLife.Net.Tcp
         /// <param name="e"></param>
         protected virtual void OnAccept(NetEventArgs e)
         {
-            // Socket错误由各个处理器来处理
-            if (e.SocketError == SocketError.OperationAborted)
-            {
-                OnError(e, null);
-                return;
-            }
+            //// Socket错误由各个处理器来处理
+            //if (e.SocketError == SocketError.OperationAborted)
+            //{
+            //    OnError(e, null);
+            //    return;
+            //}
 
             // 没有接收事件时，马上开始处理重建委托
             if (Accepted == null)

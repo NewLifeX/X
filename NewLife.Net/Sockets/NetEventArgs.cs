@@ -93,7 +93,8 @@ namespace NewLife.Net.Sockets
 
             // 断开所有资源的链接
             _buffer = null;
-            _Completed = null;
+            //_Completed = null;
+            DettachEvent();
 
             _Socket = null;
             _Session = null;
@@ -125,11 +126,16 @@ namespace NewLife.Net.Sockets
             }
             remove
             {
-                _Completed = null;
-
-                // 必须每次清除事件，在下次使用的时候重新设置，保证每次重新设置事件，清楚/更新执行上下文m_Context
-                base.Completed -= OnCompleted;
+                DettachEvent();
             }
+        }
+
+        private void DettachEvent()
+        {
+            _Completed = null;
+
+            // 必须每次清除事件，在下次使用的时候重新设置，保证每次重新设置事件，清楚/更新执行上下文m_Context
+            base.Completed -= OnCompleted;
         }
 
         private void OnCompleted(Object sender, SocketAsyncEventArgs e)
@@ -225,8 +231,13 @@ namespace NewLife.Net.Sockets
             e.AcceptSocket = null;
             e.RemoteEndPoint = null;
             //e.Completed -= OnCompleted;
-            e._Completed = null;
+            //e._Completed = null;
+            e.DettachEvent();
 
+#if DEBUG
+            e.LastUse = GetCalling(3);
+            e.LastThread = 0;
+#endif
             // 清空缓冲区，避免事件池里面的对象占用内存
             //e.SetBuffer(0);
             try
@@ -239,10 +250,6 @@ namespace NewLife.Net.Sockets
             }
 
             e.Used = false;
-#if DEBUG
-            e.LastUse = GetCalling(3);
-            e.LastThread = 0;
-#endif
 
             Pool.Push(e);
         }
