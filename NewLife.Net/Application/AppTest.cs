@@ -7,12 +7,15 @@ using System.Threading;
 using NewLife.Linq;
 using NewLife.Net.Common;
 using NewLife.Net.Sockets;
+using NewLife.Threading;
+using NewLife.Net.Tcp;
 
 namespace NewLife.Net.Application
 {
     /// <summary>网络应用程序测试</summary>
     public static class AppTest
     {
+        #region 基础服务测试
         /// <summary>开始测试</summary>
         public static void Start()
         {
@@ -176,5 +179,216 @@ namespace NewLife.Net.Application
 
             TestSends("Chargen IPv6", ep, true);
         }
+        #endregion
+
+        #region TCP大量连接测试
+        /// <summary>TCP大量连接测试</summary>
+        public static void TcpConnectionTest()
+        {
+            while (true)
+            {
+                Console.Write("请选择模式：（1，服务端 2，客户端）");
+                var str = Console.ReadLine();
+
+                if (str == "1")
+                {
+                    TestServer();
+                    break;
+                }
+                else if (str == "2")
+                {
+                    TestClient();
+                    break;
+                }
+            }
+        }
+
+        static NetServer server = null;
+        static void TestServer()
+        {
+            Int32 port = ReadInt("请输入监听端口：", 1, 65535);
+
+            // 扩大事件池
+            NetEventArgs.Pool.Max = 200000;
+
+            server = new NetServer();
+            server.ProtocolType = ProtocolType.Tcp;
+            server.Port = port;
+            server.Received += OnReceived;
+            // 最大不活跃时间设为10分钟
+            foreach (TcpServer item in server.Servers)
+            {
+                item.MaxNotActive = 10 * 60;
+            }
+            server.Start();
+            server.EnableLog = false;
+
+            ThreadPoolX.QueueUserWorkItem(ShowStatus);
+
+            Console.WriteLine("服务端准备就绪，任何时候任意键退出服务程序！");
+            Console.ReadKey(true);
+
+            server.Dispose();
+        }
+
+        /// <summary>已重载。</summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        static void OnReceived(object sender, NetEventArgs e)
+        {
+            var session = e.Session;
+
+            //if (e.BytesTransferred > 100)
+            //    Console.WriteLine("Echo {0} [{1}]", session.RemoteUri, e.BytesTransferred);
+            //else
+            //    Console.WriteLine("Echo {0} [{1}] {2}", session.RemoteUri, e.BytesTransferred, e.GetString());
+            var msg = "";
+            if (e.BytesTransferred > 100)
+                msg = String.Format("Echo {0} [{1}]", session.RemoteUri, e.BytesTransferred);
+            else
+                msg = String.Format("Echo {0} [{1}] {2}", session.RemoteUri, e.BytesTransferred, e.GetString());
+
+            session.Send(e.Buffer, e.Offset, e.BytesTransferred);
+        }
+
+        static void ShowStatus()
+        {
+            var pool = NetEventArgs.Pool;
+
+            while (true)
+            {
+                try
+                {
+                    var asyncCount = 0;
+                    foreach (var item in server.Servers)
+                    {
+                        asyncCount += item.AsyncCount;
+                    }
+                    //foreach (var item in server.Sessions.Values.ToArray())
+                    //{
+                    //    var remote = (item as IProxySession).Remote;
+                    //    if (remote != null) asyncCount += remote.Host.AsyncCount;
+                    //}
+
+                    Int32 wt = 0;
+                    Int32 cpt = 0;
+                    ThreadPool.GetAvailableThreads(out wt, out cpt);
+                    Int32 threads = Process.GetCurrentProcess().Threads.Count;
+
+                    var color = Console.ForegroundColor;
+                    Console.ForegroundColor = ConsoleColor.Yellow;
+                    Console.WriteLine("异步:{0} 会话:{1} Thread:{2}/{3}/{4} Pool:{5}/{6}/{7}", asyncCount, server.Sessions.Count, threads, wt, cpt, pool.StockCount, pool.FreeCount, pool.CreateCount);
+                    Console.ForegroundColor = color;
+                }
+                catch { }
+
+                Thread.Sleep(3000);
+            }
+        }
+
+        static Thread[] threads;
+        static void TestClient()
+        {
+            Console.Write("请输入服务器地址：");
+            var host = Console.ReadLine();
+            var port = ReadInt("请输入服务器端口：", 1, 65535);
+
+            var ep = NetHelper.ParseEndPoint(host, port);
+            var uri = new NetUri(ProtocolType.Tcp, ep);
+
+            Console.WriteLine("开始测试连接{0}……", uri);
+
+            var session = NetService.CreateSession(uri);
+            session.Send("Hi");
+            var rs = session.ReceiveString();
+            session.Dispose();
+            if (rs.IsNullOrWhiteSpace())
+            {
+                Console.WriteLine("连接失败！");
+                return;
+            }
+
+            var threadcount = ReadInt("请输入线程数（建议20）：", 1, 10000);
+            var perthread = ReadInt("请输入每线程连接数（建议500）：", 1, 10000);
+            //var time = ReadInt("请输入连接间隔（毫秒，建议10毫秒）：", 1, 10000);
+            var time = 10;
+
+            var threads = new Thread[threadcount];
+            for (int i = 0; i < threadcount; i++)
+            {
+                var th = new Thread(ClientProcess);
+                th.IsBackground = true;
+                th.Priority = ThreadPriority.BelowNormal;
+                th.Name = "Client_" + (i + 1);
+
+                threads[i] = th;
+                var p = new TCParam() { ID = i + 1, Count = perthread, Period = time, Uri = uri };
+                th.Start(p);
+
+                Thread.Sleep(100);
+            }
+        }
+
+        static void ClientProcess(Object state)
+        {
+            var p = state as TCParam;
+
+            var msg = String.Format("Hi I am {0}!", p.ID);
+
+            var sessions = new ISocketSession[p.Count];
+            for (int k = 0; k < 100; k++)
+            {
+                Console.WriteLine("第{1}轮处理：{0}", p.ID, k + 1);
+
+                for (int i = 0; i < p.Count; i++)
+                {
+                    try
+                    {
+                        var session = sessions[i];
+                        if (session == null || session.Disposed)
+                        {
+                            session = NetService.CreateSession(p.Uri);
+                            // 异步接收，什么也不做
+                            //session.Received += (s, e) => { };
+                            session.ReceiveAsync();
+
+                            sessions[i] = session;
+                        }
+
+                        session.Send(msg);
+                    }
+                    catch { }
+
+                    if (p.Period > 0) Thread.Sleep(p.Period);
+                }
+            }
+        }
+
+        class TCParam
+        {
+            public Int32 ID;
+            public Int32 Count;
+            public Int32 Period;
+
+            public NetUri Uri;
+        }
+
+        static Int32 ReadInt(String title, Int32 min, Int32 max)
+        {
+            if (String.IsNullOrEmpty(title))
+                title = "请输入数字：";
+            else if (title[title.Length - 1] != '：')
+                title += "：";
+
+            Int32 n = 0;
+            while (n < min || n > max)
+            {
+                Console.Write(title);
+                var str = Console.ReadLine();
+                if (!String.IsNullOrEmpty(str)) Int32.TryParse(str, out n);
+            }
+            return n;
+        }
+        #endregion
     }
 }

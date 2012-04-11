@@ -101,10 +101,13 @@ namespace NewLife.Net.Tcp
         /// <returns>返回自身，用于链式写法</returns>
         public virtual ISocketSession Send(Byte[] buffer, Int32 offset = 0, Int32 size = 0)
         {
-            if (!Client.IsBound) Bind();
+            var socket = Client;
+            if (socket == null || Disposed) throw new ObjectDisposedException("Client");
+
+            if (!socket.IsBound) Bind();
 
             if (size <= 0) size = buffer.Length - offset;
-            Client.Send(buffer, offset, size, SocketFlags.None);
+            socket.Send(buffer, offset, size, SocketFlags.None);
 
             return this;
         }

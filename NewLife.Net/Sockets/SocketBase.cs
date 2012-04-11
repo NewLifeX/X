@@ -6,12 +6,10 @@ using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
-using NewLife.Collections;
 using NewLife.Exceptions;
 using NewLife.Net.Common;
 using NewLife.Reflection;
 using NewLife.Threading;
-using NewLife.Log;
 
 namespace NewLife.Net.Sockets
 {
@@ -142,7 +140,8 @@ namespace NewLife.Net.Sockets
 
         //private Int32 _BufferSize = 10240;
         //! 注意：大于85K会进入LOH（大对象堆）
-        private Int32 _BufferSize = 80 * 1024;
+        //private Int32 _BufferSize = 80 * 1024;
+        private Int32 _BufferSize = 8 * 1024;
         /// <summary>缓冲区大小</summary>
         public Int32 BufferSize { get { return _BufferSize; } set { _BufferSize = value; } }
 
