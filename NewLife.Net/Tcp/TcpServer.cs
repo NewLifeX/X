@@ -90,7 +90,7 @@ namespace NewLife.Net.Tcp
             // 需要注意的是，该设计会导致销毁时触发多次（每个工人一次）Error事件
 
             Int32 count = NoDelay ? 10 * Environment.ProcessorCount : 1;
-            for (int i = 0; i < 1; i++) AcceptAsync();
+            for (int i = 0; i < count; i++) AcceptAsync();
         }
 
         void AcceptAsync()
@@ -101,7 +101,6 @@ namespace NewLife.Net.Tcp
                 if (server == null || Disposed) { e.Cancel = true; return false; }
 
                 e.AcceptSocket = null;
-                WriteLog("TcpServer.AcceptAsync {0}", e.ID);
                 return server.AcceptAsync(e);
             }, false);
         }

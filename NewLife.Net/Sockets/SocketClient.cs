@@ -2,7 +2,6 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using System.Threading;
 
 namespace NewLife.Net.Sockets
 {
@@ -67,7 +66,6 @@ namespace NewLife.Net.Sockets
                 var client = Client;
                 if (client == null || Disposed) { e.Cancel = true; return false; }
 
-                WriteLog("{0}.ReceiveAsync {1}", this.GetType().Name, e.ID);
                 return client.ReceiveAsync(e);
             });
         }

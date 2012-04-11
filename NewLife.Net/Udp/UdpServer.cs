@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -59,8 +58,8 @@ namespace NewLife.Net.Udp
             // 指定10名工人待命，等待处理新连接
             // 一方面避免因没有及时安排工人而造成堵塞，另一方面避免工人中途死亡或逃跑而导致无人迎宾
 
-            //Int32 count = NoDelay ? 10 * Environment.ProcessorCount : 1;
-            //for (int i = 0; i < count; i++)
+            Int32 count = NoDelay ? 10 * Environment.ProcessorCount : 1;
+            for (int i = 0; i < count; i++)
             // 这里不能开多个，否则可能会造成不同事件的RemoteEndPoint错乱
             // 这里http://stackoverflow.com/questions/5802998/is-this-receivefromasync-bug
             // 暂时未找到根本原因，先这样用着
@@ -81,7 +80,6 @@ namespace NewLife.Net.Udp
                 var address = AddressFamily == AddressFamily.InterNetworkV6 ? IPAddress.IPv6Any : IPAddress.Any;
                 e.RemoteEndPoint = new IPEndPoint(address, 0);
                 // 不能用ReceiveAsync，否则得不到远程地址
-                WriteLog("UdpServer.ReceiveFromAsync {0}", e.ID);
                 return server.ReceiveFromAsync(e);
             });
         }

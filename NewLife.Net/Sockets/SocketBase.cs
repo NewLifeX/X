@@ -364,16 +364,8 @@ namespace NewLife.Net.Sockets
 
             // 如果没有传入网络事件参数，从对象池借用
             var e = Pop();
-            var id = e.ID;
-            WriteLog("Pop {0} {1} Operating={2}", id, e.LastThread, e.Operating);
 
             e.SetBuffer(needBuffer ? BufferSize : 0);
-#if DEBUG
-            //var method = new StackTrace(1, true).GetFrame(0).GetMethod();
-            //WriteLog("{0}.{1} {2}", this.GetType().Name, method.Name, e.ID);
-            if (e.LastThread > 0) throw new XException("{0}已被{1}使用中！", id, e.LastThread);
-            e.LastThread = System.Threading.Thread.CurrentThread.ManagedThreadId;
-#endif
 
             Boolean result;
             try
@@ -392,8 +384,6 @@ namespace NewLife.Net.Sockets
             // 如果立即返回，则异步处理完成事件
             if (!result)
             {
-                // 这一句日志只有同步返回时有用
-                WriteLog("Sync {0} {1} Operating={2}", id, e.LastThread, e.Operating);
                 // 如果已销毁或取消，则不处理
                 if (!e.Cancel)
                     ThreadPool.QueueUserWorkItem(state => RaiseComplete(state as NetEventArgs), e);
@@ -401,13 +391,8 @@ namespace NewLife.Net.Sockets
                     Push(e);
             }
             else
-            {
-                WriteLog("Async {0} {1} Operating={2}", id, e.LastThread, e.Operating);
                 // 异步开始，增加一个计数
                 Interlocked.Increment(ref _AsyncCount);
-            }
-
-            //XTrace.DebugStack();
         }
         #endregion
 
@@ -422,8 +407,6 @@ namespace NewLife.Net.Sockets
             e.Socket = this;
             e.Completed += OnCompleted;
 
-            WriteLog("Pop {0} {1} {2}", e.ID, e.LastOperation, e.LastThread);
-            //XTrace.DebugStack();
             return e;
         }
 
@@ -438,8 +421,7 @@ namespace NewLife.Net.Sockets
         /// <param name="e"></param>
         public void Push(NetEventArgs e)
         {
-            WriteLog("Push {0} {1} {2}", e.ID, e.LastOperation, e.LastThread);
-            //XTrace.DebugStack();
+            //e.Completed -= OnCompleted;
             NetEventArgs.Push(e);
         }
 
@@ -466,7 +448,6 @@ namespace NewLife.Net.Sockets
         {
             if (ShowEventLog && EnableLog) ShowEvent(e);
 
-            WriteLog("RaiseComplete {0} {1} Operating={2}", e.ID, e.LastThread, e.Operating);
             try
             {
                 if (Completed != null)
@@ -530,7 +511,6 @@ namespace NewLife.Net.Sockets
             var isAborted = e.SocketError == SocketError.OperationAborted;
             if (NoDelay && !isAborted && !Disposed)
             {
-                WriteLog("Process NoDelay Start");
                 try
                 {
                     start();
@@ -551,7 +531,6 @@ namespace NewLife.Net.Sockets
                 // 业务处理的任何异常，都将引发Error事件，但不会影响重新建立新的异步操作
                 process(e);
 
-                WriteLog("Process 业务处理完成");
                 result = true;
             }
             catch (Exception ex)
@@ -570,11 +549,7 @@ namespace NewLife.Net.Sockets
             if (err != null) throw err;
 
             // 如果不是操作取消，在处理业务完成后再开始异步操作
-            if (!NoDelay && !isAborted && !Disposed)
-            {
-                WriteLog("Process Delay Start");
-                start();
-            }
+            if (!NoDelay && !isAborted && !Disposed) start();
         }
         #endregion
 
@@ -591,11 +566,7 @@ namespace NewLife.Net.Sockets
             {
                 if (ex != null)
                 {
-                    if (e == null)
-                    {
-                        e = Pop();
-                        WriteLog("Error {0}", e.ID);
-                    }
+                    if (e == null) e = Pop();
                     e.Error = ex;
                 }
 

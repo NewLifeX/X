@@ -129,9 +129,6 @@ namespace NewLife.Net.Tcp
         /// <summary>是否异步接收数据</summary>
         public Boolean UseReceiveAsync { get { return _UseReceiveAsync; } }
 
-        ///// <summary>开始异步接收数据</summary>
-        //void ISocketSession.ReceiveAsync() { ReceiveAsync(null); }
-
         /// <summary>开始异步接收数据</summary>
         public override void ReceiveAsync()
         {

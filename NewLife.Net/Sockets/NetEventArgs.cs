@@ -10,7 +10,7 @@ using System.Reflection;
 namespace NewLife.Net.Sockets
 {
     /// <summary>网络事件参数</summary>
-    public class NetEventArgs : SocketAsyncEventArgs, ISafeStackItem, IDisposable
+    public class NetEventArgs : SocketAsyncEventArgs, /*ISafeStackItem,*/ IDisposable
     {
         #region 属性
         static Int32 _gid;
@@ -141,15 +141,8 @@ namespace NewLife.Net.Sockets
         private void OnCompleted(Object sender, SocketAsyncEventArgs e)
         {
             EventHandler<NetEventArgs> handler = _Completed;
-            (e as NetEventArgs).LastThread = System.Threading.Thread.CurrentThread.ManagedThreadId;
             if (handler != null) handler(sender, e as NetEventArgs);
         }
-
-        //protected override void OnCompleted(SocketAsyncEventArgs e)
-        //{
-        //    //base.OnCompleted(e);
-        //    if (_Completed != null) _Completed(Socket, e as NetEventArgs);
-        //}
         #endregion
 
         #region 缓冲区
@@ -239,15 +232,15 @@ namespace NewLife.Net.Sockets
             e.LastThread = 0;
 #endif
             // 清空缓冲区，避免事件池里面的对象占用内存
-            //e.SetBuffer(0);
-            try
-            {
-                e.SetBuffer(0);
-            }
-            catch
-            {
-                throw;
-            }
+            e.SetBuffer(0);
+            //try
+            //{
+            //    e.SetBuffer(0);
+            //}
+            //catch
+            //{
+            //    throw;
+            //}
 
             e.Used = false;
 
@@ -337,9 +330,9 @@ namespace NewLife.Net.Sockets
         #endregion
 
         #region ISafeStackItem 成员
-        private Int32 _Slot = -1;
-        /// <summary>用于安全栈的位置</summary>
-        Int32 ISafeStackItem.Slot { get { return _Slot; } set { _Slot = value; } }
+        //private Int32 _Slot = -1;
+        ///// <summary>用于安全栈的位置</summary>
+        //Int32 ISafeStackItem.Slot { get { return _Slot; } set { _Slot = value; } }
         #endregion
     }
 }

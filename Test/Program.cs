@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Threading;
-using NewLife.Collections;
 using NewLife.CommonEntity;
 using NewLife.Linq;
 using NewLife.Log;
@@ -10,8 +9,6 @@ using NewLife.Net.Proxy;
 using NewLife.Net.Sockets;
 using NewLife.Reflection;
 using NewLife.Threading;
-using XCode.DataAccessLayer;
-using System.Collections.Generic;
 
 namespace Test
 {
@@ -61,23 +58,23 @@ namespace Test
             //    Console.WriteLine(ns[i]);
             //}
 
-            NewLife.Net.Application.AppTest.Start();
+            //NewLife.Net.Application.AppTest.Start();
 
-            //http = new HttpProxy();
-            //http.Port = 8080;
-            ////http.OnResponse += new EventHandler<HttpProxyEventArgs>(http_OnResponse);
-            //http.Start();
+            http = new HttpProxy();
+            http.Port = 8080;
+            //http.OnResponse += new EventHandler<HttpProxyEventArgs>(http_OnResponse);
+            http.Start();
 
-            //HttpProxy.SetIEProxy("127.0.0.1:" + http.Port);
-            //Console.WriteLine("已设置IE代理，任意键结束测试，关闭IE代理！");
+            HttpProxy.SetIEProxy("127.0.0.1:" + http.Port);
+            Console.WriteLine("已设置IE代理，任意键结束测试，关闭IE代理！");
 
-            //ThreadPoolX.QueueUserWorkItem(ShowStatus);
+            ThreadPoolX.QueueUserWorkItem(ShowStatus);
 
-            //Console.ReadKey(true);
-            //HttpProxy.SetIEProxy(null);
+            Console.ReadKey(true);
+            HttpProxy.SetIEProxy(null);
 
-            ////server.Dispose();
-            //http.Dispose();
+            //server.Dispose();
+            http.Dispose();
 
             //var ds = new DNSServer();
             //ds.Start();
