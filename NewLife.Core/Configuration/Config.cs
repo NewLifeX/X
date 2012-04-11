@@ -31,14 +31,14 @@ namespace NewLife.Configuration
                 if (_httpHandlers == null && !hasLoad.Contains("httpHandlers"))
                 {
                     _httpHandlers = ConfigurationManager.GetSection("system.web/httpHandlers");
-                    hasLoad.Add("ConnectionStrings");
+                    hasLoad.Add("httpHandlers");
                 }
                 return _httpHandlers;
             }
         }
         #endregion
 
-        #region 方法
+        #region 获取
         /// <summary>获取httpHandlers</summary>
         /// <returns></returns>
         public static List<HttpHandlerAction> GethttpHandlers()
@@ -265,23 +265,21 @@ namespace NewLife.Configuration
             }
             catch (ConfigurationErrorsException) { return defaultValue; }
         }
-
-
+        #endregion
 
         #region 设置参数 老树添加
-        /// <summary>
-        /// 设置配置文件参数
-        /// </summary>
+        /// <summary>设置配置文件参数</summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="name"></param>
         /// <param name="defaultValue"></param>
         public static void SetConfig<T>(String name, T defaultValue)
         {
-            SetConfig(name, defaultValue.ToString());
+            //SetConfig(name, defaultValue.ToString());
+            // 小心空引用
+            SetConfig(name, "" + defaultValue);
         }
-        /// <summary>
-        /// 设置配置文件参数
-        /// </summary>
+
+        /// <summary>设置配置文件参数</summary>
         /// <param name="name"></param>
         /// <param name="value"></param>
         public static void SetConfig(String name, String value)
@@ -291,8 +289,6 @@ namespace NewLife.Configuration
 
             nvs[name] = value;
         }
-        #endregion
-
         #endregion
     }
 }
