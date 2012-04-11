@@ -421,7 +421,7 @@ namespace NewLife.Net.Sockets
         /// <param name="e"></param>
         public void Push(NetEventArgs e)
         {
-            //e.Completed -= OnCompleted;
+            e.Completed -= OnCompleted;
             NetEventArgs.Push(e);
         }
 

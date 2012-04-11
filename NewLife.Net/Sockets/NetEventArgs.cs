@@ -134,6 +134,8 @@ namespace NewLife.Net.Sockets
         {
             _Completed = null;
 
+            //!!! 曾经因为没有取消事件，导致频繁出现不可预测的异常：现在已经正在使用此 SocketAsyncEventArgs 实例进行异步套接字操作。
+
             // 必须每次清除事件，在下次使用的时候重新设置，保证每次重新设置事件，清楚/更新执行上下文m_Context
             base.Completed -= OnCompleted;
         }
