@@ -265,6 +265,34 @@ namespace NewLife.Configuration
             }
             catch (ConfigurationErrorsException) { return defaultValue; }
         }
+
+
+
+        #region 设置参数 老树添加
+        /// <summary>
+        /// 设置配置文件参数
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="name"></param>
+        /// <param name="defaultValue"></param>
+        public static void SetConfig<T>(String name, T defaultValue)
+        {
+            SetConfig(name, defaultValue.ToString());
+        }
+        /// <summary>
+        /// 设置配置文件参数
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="value"></param>
+        public static void SetConfig(String name, String value)
+        {
+            NameValueCollection nvs = AppSettings;
+            if (nvs == null || nvs.Count < 1) return;
+
+            nvs[name] = value;
+        }
+        #endregion
+
         #endregion
     }
 }
