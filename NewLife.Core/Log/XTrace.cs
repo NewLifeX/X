@@ -44,7 +44,7 @@ namespace NewLife.Log
         /// </summary>
         public static void DebugStack()
         {
-            Log.DebugStack();
+            Log.DebugStack(2, Int32.MaxValue);
         }
 
         /// <summary>¶ÑÕ»µ÷ÊÔ¡£</summary>

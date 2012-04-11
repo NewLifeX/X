@@ -251,14 +251,24 @@ namespace NewLife.Log
         {
             int skipFrames = 1;
             if (maxNum == int.MaxValue) skipFrames = 2;
-            StackTrace st = new StackTrace(skipFrames, true);
-            StringBuilder sb = new StringBuilder();
+            var st = new StackTrace(skipFrames, true);
+            var sb = new StringBuilder();
             sb.AppendLine("调用堆栈：");
             int count = Math.Min(maxNum, st.FrameCount);
             for (int i = 0; i < count; i++)
             {
-                StackFrame sf = st.GetFrame(i);
-                sb.AppendFormat("{0}->{1}", TypeX.Create(sf.GetMethod().DeclaringType).FullName, sf.GetMethod().ToString());
+                var sf = st.GetFrame(i);
+                var method = sf.GetMethod();
+
+                var name = method.ToString();
+                // 去掉前面的返回类型
+                if (name.Contains(" ")) name = name.Substring(name.IndexOf(" ") + 1);
+                
+                var type = method.DeclaringType ?? method.ReflectedType;
+                if (type != null)
+                    sb.AppendFormat("{0}.{1}", TypeX.Create(type).Name, name);
+                else
+                    sb.AppendFormat("UnkownType.{0}", name);
                 if (i < count - 1) sb.AppendLine();
             }
             WriteLine(sb.ToString());
