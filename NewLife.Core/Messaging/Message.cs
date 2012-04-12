@@ -19,7 +19,14 @@ namespace NewLife.Messaging
     public abstract class Message
     {
         #region 属性
+        [NonSerialized]
+        private MessageHeader _Header;
+        /// <summary>消息头。</summary>
+        [XmlIgnore]
+        public MessageHeader Header { get { return _Header; } set { _Header = value; } }
+
         /// <summary>消息类型</summary>
+        /// <remarks>第一个字节的第一位决定是否存在消息头。</remarks>
         [XmlIgnore]
         public abstract MessageKind Kind { get; }
         #endregion
@@ -64,6 +71,9 @@ namespace NewLife.Messaging
                 writer.EnableTraceStream();
             }
 
+            // 判断并写入消息头
+            if (Header != null && Header.HasFlag(MessageHeader.Flags.Header)) Header.Write(writer.Stream);
+
             // 基类写入编号，保证编号在最前面
             writer.Write((Byte)Kind);
             writer.WriteObject(this);
@@ -93,18 +103,34 @@ namespace NewLife.Messaging
                 reader.EnableTraceStream();
             }
 
+            // 检查第一个字节
+            var first = (Byte)reader.Reader.PeekChar();
+            MessageHeader header = null;
+            // 第一个字节的最高位决定是否扩展
+            if (MessageHeader.IsValid(first))
+            {
+                header = new MessageHeader();
+                header.Read(reader.Stream);
+            }
+
             // 读取了响应类型和消息类型后，动态创建消息对象
             var kind = (MessageKind)reader.ReadByte();
             var type = ObjectContainer.Current.ResolveType<Message>(kind);
             if (type == null) throw new XException("无法识别的消息类型（Kind={0}）！", kind);
 
-            if (stream.Position == stream.Length) return TypeX.CreateInstance(type, null) as Message;
-
-            try
+            Message msg;
+            if (stream.Position == stream.Length)
+                msg = TypeX.CreateInstance(type, null) as Message;
+            else
             {
-                return reader.ReadObject(type) as Message;
+                try
+                {
+                    msg = reader.ReadObject(type) as Message;
+                }
+                catch (Exception ex) { throw new XException(String.Format("无法从数据流中读取{0}（Kind={1}）消息！{2}", type.Name, kind, ex.Message), ex); }
             }
-            catch (Exception ex) { throw new XException(String.Format("无法从数据流中读取{0}（Kind={1}）消息！{2}", type.Name, kind, ex.Message), ex); }
+            msg.Header = header;
+            return msg;
         }
 
         /// <summary>从流中读取消息</summary>
