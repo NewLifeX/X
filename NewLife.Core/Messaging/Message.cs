@@ -23,7 +23,7 @@ namespace NewLife.Messaging
         private MessageHeader _Header;
         /// <summary>消息头。</summary>
         [XmlIgnore]
-        public MessageHeader Header { get { return _Header; } set { _Header = value; } }
+        public MessageHeader Header { get { return _Header ?? (_Header = new MessageHeader()); } set { _Header = value; } }
 
         /// <summary>消息类型</summary>
         /// <remarks>第一个字节的第一位决定是否存在消息头。</remarks>
@@ -72,7 +72,7 @@ namespace NewLife.Messaging
             }
 
             // 判断并写入消息头
-            if (Header != null && Header.HasFlag(MessageHeader.Flags.Header)) Header.Write(writer.Stream);
+            if (_Header != null && _Header.UseHeader) Header.Write(writer.Stream);
 
             // 基类写入编号，保证编号在最前面
             writer.Write((Byte)Kind);

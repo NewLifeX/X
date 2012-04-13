@@ -19,13 +19,16 @@ namespace NewLife.Messaging
         /// <summary>标识位</summary>
         public Flags Flag { get { return _Flag; } set { _Flag = value; } }
 
+        /// <summary>是否采用消息头</summary>
+        public Boolean UseHeader { get { return HasFlag(Flags.Header); } set { SetFlag(Flags.Header, value); } }
+
         private Byte _Channel;
         /// <summary>消息通道</summary>
-        public Byte Channel { get { return _Channel; } set { _Channel = value; } }
+        public Byte Channel { get { return _Channel; } set { _Channel = value; SetFlag(Flags.Channel, value != 0); } }
 
         private Int32 _SessionID;
         /// <summary>会话编号</summary>
-        public Int32 SessionID { get { return _SessionID; } set { _SessionID = value; } }
+        public Int32 SessionID { get { return _SessionID; } set { _SessionID = value; SetFlag(Flags.SessionID, value != 0); } }
         #endregion
 
         #region 读写
@@ -67,8 +70,26 @@ namespace NewLife.Messaging
 
         /// <summary>设置标识位</summary>
         /// <param name="flag"></param>
+        /// <param name="value"></param>
         /// <returns></returns>
-        public MessageHeader SetFlag(Flags flag) { Flag.Set(flag, true); return this; }
+        public MessageHeader SetFlag(Flags flag, Boolean value)
+        {
+            if (flag != Flags.Header)
+            {
+                // 设置任意标识，会启用头。取消所有标识，会禁用头
+                if (value)
+                {
+                    Flag.Set(Flags.Header, true);
+                }
+                else
+                {
+                    if ((Byte)flag == 0) Flag.Set(Flags.Header, false);
+                }
+            }
+
+            Flag.Set(flag, value);
+            return this;
+        }
 
         /// <summary>是否有效消息头</summary>
         /// <param name="bit"></param>
