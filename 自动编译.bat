@@ -72,7 +72,7 @@ md Web\Bin
 Copy ..\DLL\XControl.* Web\Bin\ /y
 set zipfile=XCodeSample.zip
 del XCodeSample*.zip /f/q
-%zip% -r %zipfile% YWS\*.* Web\*.*
+%zip% -r %zipfile% YWS\*.* Web\*.* XCodeSample.sln
 move /y XCodeSample*.zip %dest%\%zipfile%
 
 :: ·¢²¼DLLÑ¹Ëõ°ü
