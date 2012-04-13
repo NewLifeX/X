@@ -96,7 +96,7 @@ namespace NewLife.Messaging
         /// <param name="fullMethodName">完整方法名</param>
         /// <param name="ps"></param>
         /// <returns></returns>
-        public MethodMessage Create(String fullMethodName, params Object[] ps)
+        public static MethodMessage Create(String fullMethodName, params Object[] ps)
         {
             if (String.IsNullOrEmpty(fullMethodName)) throw new ArgumentNullException("fullMethodName");
             Int32 p = fullMethodName.LastIndexOf(".");

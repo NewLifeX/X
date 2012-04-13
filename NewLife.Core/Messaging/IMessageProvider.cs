@@ -151,6 +151,29 @@ namespace NewLife.Messaging
                     }
                 }
             }
+
+            // 记录已过期的，要删除
+            var list2 = new List<WeakReference<MessageConsumer2>>();
+            var cs2 = Consumers2;
+            foreach (var item in cs2)
+            {
+                MessageConsumer2 mp;
+                if (item.TryGetTarget(out mp) && mp != null)
+                    mp.Process(message);
+                else
+                    list2.Add(item);
+            }
+
+            if (list2.Count > 0)
+            {
+                lock (cs2)
+                {
+                    foreach (var item in list2)
+                    {
+                        if (cs2.Contains(item)) cs2.Remove(item);
+                    }
+                }
+            }
         }
 
         /// <summary>消息到达时触发。这里将得到所有消息</summary>
@@ -208,6 +231,7 @@ namespace NewLife.Messaging
 
         class MessageConsumer2 : DisposeBase, IMessageConsumer
         {
+            #region 属性
             private Byte _Channel;
             /// <summary>通道</summary>
             public Byte Channel { get { return _Channel; } set { _Channel = value; } }
@@ -215,19 +239,31 @@ namespace NewLife.Messaging
             private IMessageProvider _Provider;
             /// <summary>消息提供者</summary>
             public IMessageProvider Provider { get { return _Provider; } set { _Provider = value; } }
+            #endregion
 
             #region 基本收发
             /// <summary>发送消息</summary>
             /// <param name="message"></param>
-            public override void Send(Message message)
+            public void Send(Message message)
             {
                 message.Header.Channel = Channel;
                 Provider.Send(message);
             }
 
+            /// <summary>发送并接收消息。主要用于应答式的请求和响应。</summary>
+            /// <remarks>如果内部实现是异步模型，则等待指定时间获取异步返回的第一条消息，该消息不再触发消息到达事件<see cref="OnReceived"/>。</remarks>
+            /// <param name="message"></param>
+            /// <param name="millisecondsTimeout">等待的毫秒数，或为 <see cref="F:System.Threading.Timeout.Infinite" /> (-1)，表示无限期等待。默认0表示不等待</param>
+            /// <returns></returns>
+            public virtual Message SendAndReceive(Message message, Int32 millisecondsTimeout = 0)
+            {
+                message.Header.Channel = Channel;
+                return Provider.SendAndReceive(message);
+            }
+
             /// <summary>收到消息时调用该方法</summary>
             /// <param name="message"></param>
-            public virtual void Process(Message message)
+            public void Process(Message message)
             {
                 if (message == null) return;
 
@@ -245,57 +281,11 @@ namespace NewLife.Messaging
                 if (handler != null) handler(this, new MessageEventArgs(message));
 
                 if (OnReceived != null) OnReceived(this, new MessageEventArgs(message));
-
-                // 记录已过期的，要删除
-                var list = new List<WeakReference<IMessageProvider2>>();
-                var cs = Consumers;
-                foreach (var item in cs)
-                {
-                    IMessageProvider2 mp;
-                    if (item.TryGetTarget(out mp) && mp != null)
-                        mp.Process(message);
-                    else
-                        list.Add(item);
-                }
-
-                if (list.Count > 0)
-                {
-                    lock (cs)
-                    {
-                        foreach (var item in list)
-                        {
-                            if (cs.Contains(item)) cs.Remove(item);
-                        }
-                    }
-                }
             }
 
             /// <summary>消息到达时触发。这里将得到所有消息</summary>
             public event EventHandler<MessageEventArgs> OnReceived;
             event EventHandler<MessageEventArgs> innerOnReceived;
-
-            /// <summary>发送并接收消息。主要用于应答式的请求和响应。</summary>
-            /// <remarks>如果内部实现是异步模型，则等待指定时间获取异步返回的第一条消息，该消息不再触发消息到达事件<see cref="OnReceived"/>。</remarks>
-            /// <param name="message"></param>
-            /// <param name="millisecondsTimeout">等待的毫秒数，或为 <see cref="F:System.Threading.Timeout.Infinite" /> (-1)，表示无限期等待。默认0表示不等待</param>
-            /// <returns></returns>
-            public virtual Message SendAndReceive(Message message, Int32 millisecondsTimeout = 0)
-            {
-                Send(message);
-
-                var _wait = new AutoResetEvent(true);
-                _wait.Reset();
-
-                Message msg = null;
-                innerOnReceived += (s, e) => { msg = e.Message; _wait.Set(); };
-
-                //if (!_wait.WaitOne(millisecondsTimeout, true)) return null;
-
-                _wait.WaitOne(millisecondsTimeout, false);
-                _wait.Close();
-
-                return msg;
-            }
             #endregion
         }
         #endregion

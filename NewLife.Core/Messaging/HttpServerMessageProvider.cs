@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Web;
 using NewLife.IO;
+using System.IO;
+using NewLife.Security;
 
 namespace NewLife.Messaging
 {
@@ -13,7 +15,7 @@ namespace NewLife.Messaging
 
         /// <summary>处理。</summary>
         /// <param name="context"></param>
-        public void ProcessRequest(HttpContext context)
+        public virtual void ProcessRequest(HttpContext context)
         {
             HttpServerMessageProvider.Instance.Process();
         }
@@ -56,15 +58,28 @@ namespace NewLife.Messaging
         /// <summary>处理。</summary>
         public void Process()
         {
+            var context = Context;
             try
             {
-                var msg = Message.Read(Context.Request.InputStream);
+                var s = context.Request.InputStream;
+                if (s == null || s.Position >= s.Length)
+                {
+                    var d = context.Request.Url.Query;
+                    if (!String.IsNullOrEmpty(d))
+                    {
+                        if (d.StartsWith("?")) d = d.Substring(1);
+                        s = new MemoryStream(DataHelper.FromHex(d));
+                    }
+                }
+                var msg = Message.Read(s);
+                //var msg = Message.Read(Context.Request.InputStream);
                 Process(msg);
             }
             catch (Exception ex)
             {
                 var msg = new ExceptionMessage() { Value = ex };
-                Process(msg);
+                var data = msg.GetStream().ReadBytes();
+                context.Response.BinaryWrite(data);
             }
         }
     }

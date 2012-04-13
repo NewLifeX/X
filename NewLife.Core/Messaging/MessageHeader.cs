@@ -79,15 +79,15 @@ namespace NewLife.Messaging
                 // 设置任意标识，会启用头。取消所有标识，会禁用头
                 if (value)
                 {
-                    Flag.Set(Flags.Header, true);
+                    Flag = Flag.Set(Flags.Header, true);
                 }
                 else
                 {
-                    if ((Byte)flag == 0) Flag.Set(Flags.Header, false);
+                    if ((Byte)flag == 0) Flag = Flag.Set(Flags.Header, false);
                 }
             }
 
-            Flag.Set(flag, value);
+            Flag = Flag.Set(flag, value);
             return this;
         }
 
