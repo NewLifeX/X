@@ -135,7 +135,8 @@ namespace Test
             client.Uri = new Uri("http://localhost:8/Web/MessageHandler.ashx");
 
             var rm = MethodMessage.Create("Admin.Login", "admin", "admin");
-            rm.Header.SessionID = 88;
+            rm.Header.Channel = 88;
+            //rm.Header.SessionID = 88;
 
             Message msg = client.SendAndReceive(rm, 0);
             var rs = msg as EntityMessage;
