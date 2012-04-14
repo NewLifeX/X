@@ -1219,12 +1219,20 @@ namespace NewLife.Serialization
                 objRefIndex = index;
 
                 // 特殊类型
-                if (ReadX(type, ref value)) return true;
+                if (ReadX(type, ref value))
+                {
+                    if (value != null) AddObjRef(index, value);
+                    return true;
+                }
 
                 // 读取引用对象
-                if (!ReadRefObject(type, ref value, callback)) return false;
+                if (ReadRefObject(type, ref value, callback))
+                {
+                    if (value != null) AddObjRef(index, value);
+                    return true;
+                }
 
-                if (value != null) AddObjRef(index, value);
+                return false;
             }
             else
             {
@@ -1238,16 +1246,28 @@ namespace NewLife.Serialization
                 Depth--;
 
                 // 基本类型
-                if (ReadValue(type, ref value)) return true;
+                if (ReadValue(type, ref value))
+                {
+                    if (value != null) AddObjRef(index, value);
+                    return true;
+                }
 
                 // 特殊类型
-                if (ReadX(type, ref value)) return true;
+                if (ReadX(type, ref value))
+                {
+                    if (value != null) AddObjRef(index, value);
+                    return true;
+                }
 
                 // 读取引用对象
                 objRefIndex = index;
-                if (!ReadRefObject(type, ref value, callback)) return false;
+                if (ReadRefObject(type, ref value, callback))
+                {
+                    if (value != null) AddObjRef(index, value);
+                    return true;
+                }
 
-                if (value != null) AddObjRef(index, value);
+                return false;
             }
 
             return true;

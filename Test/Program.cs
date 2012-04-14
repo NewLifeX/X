@@ -9,6 +9,7 @@ using NewLife.Net.Proxy;
 using NewLife.Net.Sockets;
 using NewLife.Reflection;
 using NewLife.Threading;
+using System.IO.Ports;
 
 namespace Test
 {
@@ -25,7 +26,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test2();
+                Test2();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -138,6 +139,10 @@ namespace Test
             rm.Header.Channel = 88;
             //rm.Header.SessionID = 88;
 
+            Message.Debug = true;
+            var ms = rm.GetStream();
+            var m2 = Message.Read(ms);
+
             Message msg = client.SendAndReceive(rm, 0);
             var rs = msg as EntityMessage;
             Console.WriteLine("返回：" + rs.Value);
@@ -145,60 +150,21 @@ namespace Test
 
         static void Test3()
         {
-            Int32 x = 2;
-            Int32 y = 3;
-            Int32 n = 0;
+            using (var sp = new SerialPort("COM2"))
+            {
+                sp.Open();
 
-            var p = new Program();
-            Func<Int32, Int32, Int32> add = Add;
-            Func<Int32, Int32, Int32> mul = Mul;
+                var b = 0;
+                while (true)
+                {
+                    Console.WriteLine(b);
+                    var bs = new Byte[] { (Byte)b };
+                    sp.Write(bs, 0, bs.Length);
+                    b = b == 0 ? 0xFF : 0;
 
-            Console.WriteLine("Hook前：");
-            n = add(x, y);
-            Console.WriteLine(n);
-
-            n = mul(x, y);
-            Console.WriteLine(n);
-            //Console.ReadKey(true);
-
-            var hook = new ApiHook();
-            hook.OriMethod = add.Method;
-            hook.NewMethod = mul.Method;
-            hook.Hook();
-
-            Console.WriteLine("Hook后：");
-            n = add(x, y);
-            Console.WriteLine(n);
-
-            n = mul(x, y);
-            Console.WriteLine(n);
-            //Console.ReadKey(true);
-
-            hook.UnHook();
-
-            Console.WriteLine("Hook还原：");
-            n = add(x, y);
-            Console.WriteLine(n);
-            n = mul(x, y);
-            Console.WriteLine(n);
-
-            hook.Hook();
-            n = add(x, y);
-            Console.WriteLine(n);
-            n = mul(x, y);
-            Console.WriteLine(n);
-        }
-
-        static Int32 Add(Int32 x, Int32 y)
-        {
-            Console.WriteLine("Add");
-            return x + y;
-        }
-
-        static Int32 Mul(Int32 x, Int32 y)
-        {
-            Console.WriteLine("Mul");
-            return x * y;
+                    Thread.Sleep(1000);
+                }
+            }
         }
     }
 }
