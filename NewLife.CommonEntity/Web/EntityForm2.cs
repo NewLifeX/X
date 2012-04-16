@@ -350,6 +350,10 @@ namespace NewLife.CommonEntity.Web
                     if (btn is IButtonControl) (btn as IButtonControl).Text = entity.IsNullKey ? "新增" : "更新";
                 }
 
+                //利用js控制按钮点击状态
+                RegButtonOnClientClick(btn);
+                RegButtonOnClientClick(btncopy);
+
                 SetForm();
             }
             else
@@ -565,6 +569,24 @@ namespace NewLife.CommonEntity.Web
 
             WebHelper.Alert("失败！" + ex.Message);
         }
+
+        /// <summary>
+        /// 设置保存按钮名称
+        /// </summary>
+        /// <param name="text"></param>
+        public virtual void SetSaveButtonText(String text)
+        {
+            SetControlMemberValue(SaveButton, "Text", text);
+        }
+
+        /// <summary>
+        /// 设置另存为按钮名称
+        /// </summary>
+        /// <param name="text"></param>
+        public virtual void SetCopyButtonText(String text)
+        {
+            SetControlMemberValue(CopyButton, "Text", text);
+        }
         #endregion
 
         #region 辅助
@@ -588,6 +610,40 @@ namespace NewLife.CommonEntity.Web
         protected virtual Control FindControlByField(FieldItem field)
         {
             return FindControl(ItemPrefix + field.Name);
+        }
+
+        /// <summary>
+        /// 设置按钮状态脚本
+        /// </summary>
+        /// <param name="btn"></param>
+        protected virtual void RegButtonOnClientClick(Control btn)
+        {
+            //利用js控制按钮点击状态
+            if (btn != null && btn.Visible == true)
+            {
+                String btnClientOnclick = "javascript:this.disabled=true;this.value='正在提交';";
+
+                if (btn is Button || btn is LinkButton)
+                    SetControlMemberValue(btn, "OnClientClick", btnClientOnclick);
+
+                //if (btn is Button)
+                //    (btn as Button).OnClientClick = btnClientOnclick;
+                //else if (btn is LinkButton)
+                //    (btn as LinkButton).OnClientClick = btnClientOnclick;
+            }
+        }
+
+        /// <summary>
+        /// 设置控件成员值
+        /// </summary>
+        /// <param name="control"></param>
+        /// <param name="fieldName"></param>
+        /// <param name="text"></param>
+        private void SetControlMemberValue(Control control, String fieldName, String text)
+        {
+            if (control == null) return;
+
+            NewLife.Reflection.MemberInfoX.Create(control.GetType(), fieldName).SetValue(control, text);
         }
         #endregion
 
