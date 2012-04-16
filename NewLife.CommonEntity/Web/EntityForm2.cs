@@ -621,7 +621,7 @@ namespace NewLife.CommonEntity.Web
             //利用js控制按钮点击状态
             if (btn != null && btn.Visible == true)
             {
-                String btnClientOnclick = "javascript:this.disabled=true;this.value='正在提交';";
+                String btnClientOnclick = "javascript:var self=this;setTimeout(function(){self.disabled=true;self.value='正在提交'},0);";
 
                 if (btn is Button || btn is LinkButton)
                     SetControlMemberValue(btn, "OnClientClick", btnClientOnclick);
