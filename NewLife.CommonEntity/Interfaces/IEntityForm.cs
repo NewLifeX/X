@@ -43,6 +43,18 @@ namespace NewLife.CommonEntity
 
         /// <summary>保存表单，把实体保存到数据库</summary>
         void SaveForm();
+
+        /// <summary>
+        /// 设置保存按钮名称
+        /// </summary>
+        /// <param name="text"></param>
+        void SetSaveButtonText(String text);
+
+        /// <summary>
+        /// 设置另存为按钮名称
+        /// </summary>
+        /// <param name="text"></param>
+        void SetCopyButtonText(String text);
         #endregion
 
         #region 事件
