@@ -1,10 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Web.UI.WebControls;
 using System.ComponentModel;
-using System.Web.UI;
 using System.Drawing;
+using System.Text;
+using System.Web.UI;
+using System.Web.UI.WebControls;
 
 namespace XControl
 {
@@ -15,6 +14,7 @@ namespace XControl
     public class LinkBox : LinkButton
     {
         #region 属性
+
         /// <summary>标题</summary>
         [DefaultValue(""), Themeable(false), Category(" "), Description("标题")]
         public String Title
@@ -177,26 +177,64 @@ namespace XControl
                 ViewState["BeforeShow"] = value;
             }
         }
+
+        /// <summary>
+        /// 需要弹出在哪个窗口中
+        /// </summary>
+        /// <remarks>
+        /// js代码,默认为尽可能上级窗口中有Box.js的窗口,可指定的值比如window,parent,也可以是调用js函数
+        /// </remarks>
+        [DefaultValue(""), Category(" "), Description("需要弹出在哪个窗口中,js代码,默认为尽可能上级窗口中有Box.js的窗口,可指定的值比如window,parent,也可以是调用js函数")]
+        public string InWindow
+        {
+            get
+            {
+                return (String)ViewState["InWindow"];
+            }
+            set
+            {
+                ViewState["InWindow"] = value;
+            }
+        }
+
+        /// <summary>
+        /// 逻辑父窗口,如果调用关闭并刷新,将会刷新这个属性指定的窗口,默认为放置当前LinkBox所在的窗口
+        /// </summary>
+        [DefaultValue(""), Category(" "), Description("逻辑父窗口,如果调用关闭并刷新,将会刷新这个属性指定的窗口,默认为放置当前LinkBox所在的窗口")]
+        public string ParentWindow
+        {
+            get
+            {
+                return (String)ViewState["ParentWindow"];
+            }
+            set
+            {
+                ViewState["ParentWindow"] = value;
+            }
+        }
+
         #endregion
 
-        void UpdateOnClientClick()
+        private void UpdateOnClientClick()
         {
             StringBuilder sb = new StringBuilder();
-            sb.AppendFormat("ID:'win{0}', ", new Random((Int32)DateTime.Now.Ticks).Next(1, 1000));
-            sb.AppendFormat("Title:'{0}', ", Title);
+            sb.AppendFormat("ID:'win{0}'", new Random((Int32)DateTime.Now.Ticks).Next(1, 1000));
+            sb.AppendFormat(", Title:'{0}'", Title);
 
             String url = Url;
             if (!String.IsNullOrEmpty(url) && !url.StartsWith("http://", StringComparison.OrdinalIgnoreCase))
                 url = ResolveUrl(url);
-            sb.AppendFormat("URL:'{0}', ", url);
-            if (BoxWidth != Unit.Empty) sb.AppendFormat("Width:{0}, ", (Int32)BoxWidth.Value);
-            if (BoxHeight != Unit.Empty) sb.AppendFormat("Height:{0}, ", (Int32)BoxHeight.Value);
-            sb.AppendFormat("ShowMessageRow:{0}, ", ShowMessageRow.ToString().ToLower());
-            sb.AppendFormat("MessageTitle:'{0}', ", MessageTitle);
-            sb.AppendFormat("Message:'{0}', ", Message);
-            sb.AppendFormat("ShowButtonRow:{0},", ShowButtonRow.ToString().ToLower());
-            if (!string.IsNullOrEmpty(BeforeShow)) sb.AppendFormat("BeforeShow:{0}", BeforeShow);
-            
+            sb.AppendFormat(", URL:'{0}'", url);
+            if (BoxWidth != Unit.Empty) sb.AppendFormat(", Width:{0}", (Int32)BoxWidth.Value);
+            if (BoxHeight != Unit.Empty) sb.AppendFormat(", Height:{0}", (Int32)BoxHeight.Value);
+            sb.AppendFormat(", ShowMessageRow:{0}", ShowMessageRow.ToString().ToLower());
+            sb.AppendFormat(", MessageTitle:'{0}'", MessageTitle);
+            sb.AppendFormat(", Message:'{0}'", Message);
+            sb.AppendFormat(", ShowButtonRow:{0}", ShowButtonRow.ToString().ToLower());
+            if (!string.IsNullOrEmpty(BeforeShow)) sb.AppendFormat(", BeforeShow:{0}", BeforeShow);
+            if (!string.IsNullOrEmpty(InWindow)) sb.AppendFormat(", InWindow:{0}", InWindow);
+            if (!string.IsNullOrEmpty(ParentWindow)) sb.AppendFormat(", ParentWindow:{0}", ParentWindow);
+
             OnClientClick = "ShowDialog({" + sb.ToString() + "}); return false;";
 
             RegisterReloadFormJs(Page.ClientScript, Page.IsPostBack);
@@ -221,6 +259,7 @@ namespace XControl
             base.RenderContents(writer);
             if (!String.IsNullOrEmpty(IconRight)) writer.Write("<img src=\"{0}\" style=\"border:none;\" />", ResolveUrl(IconRight));
         }
+
         /// <summary>返回默认的reloadForm实现,配合Box.js中的Dialog.CloseAndRefresh</summary>
         /// <returns></returns>
         public static bool RegisterReloadFormJs(ClientScriptManager script, bool isPostback)

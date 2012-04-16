@@ -221,7 +221,7 @@ function Dialog(strID)
     this.Height = 300;
     this.Top = 0;
     this.Left = 0;
-    this.ParentWindow = null;
+    this.ParentWindow = null; // 当前窗口的逻辑父窗口,默认为调用弹出时所在的窗口
     this.onLoad = null;
     this.Window = null;
     this.HideScroll = true; //是否禁止出现滚动条
@@ -244,6 +244,7 @@ function Dialog(strID)
     //this.btOKText = "";//确定按钮默认文字
     this.BeforeShow = null;
     this.AfterClose = null;
+    this.InWindow=null; // 显示在指定的window内
 }
 
 Dialog._Array = [];
@@ -252,9 +253,7 @@ Dialog.prototype.showWindow = function() {
     if (isIE) {
         alert(typeof (this.ParentWindow));
         for (var m in this.ParentWindow.window) {
-           
                 alert(m);
-           
         }
         this.ParentWindow.showModalessDialog(this.URL, this.DialogArguments, "dialogWidth:" + this.Width + ";dialogHeight:" + this.Height + ";help:no;scroll:no;status:no");
     }
@@ -276,7 +275,7 @@ Dialog.prototype.showWindow = function() {
 };
 
 Dialog.prototype.show = function() {
-    var pw = $E.getTopLevelWindow();
+    var pw = this.InWindow || $E.getTopLevelWindow();
     var doc = pw.document;
     var cw = doc.compatMode == "BackCompat" ? doc.body.clientWidth : doc.documentElement.clientWidth;
     var ch = doc.compatMode == "BackCompat" ? doc.body.clientHeight : doc.documentElement.clientHeight; //必须考虑文本框处于页面边缘处，控件显示不全的问题
@@ -599,7 +598,7 @@ Dialog.prototype.close = function()
         } else
         {
             //如果上级窗口是对话框，则将其置于bgdiv前
-            var pw = $E.getTopLevelWindow();
+            var pw = this.InWindow || $E.getTopLevelWindow();
             var doc = pw.document;
             var win = window;
             var flag = false;
@@ -619,8 +618,8 @@ Dialog.prototype.close = function()
             }
             if (!flag && !this.AlertFlag)
             {//此处是为处理弹出窗口被关闭后iframe立即被重定向时背景层不消失的问题
-                pw.eval('window._OpacityFunc = function(){var w = $E.getTopLevelWindow();$E.hide(w.GetObjID("_DialogBGDiv"));}');
-                pw._OpacityFunc();
+                pw.eval('window._OpacityFunc = function(w){$E.hide(w.GetObjID("_DialogBGDiv"));}');
+                pw._OpacityFunc(pw);
             }
             this.DialogDiv.outerHTML = "";
             /* // @netwjx 不修改父窗口的html标签样式
@@ -633,6 +632,8 @@ Dialog.prototype.close = function()
         if(typeof this.AfterClose === 'function'){
             this.AfterClose();
         }
+        this.InWindow = null;
+        this.ParentWindow = null;
     }
 };
 
@@ -655,7 +656,7 @@ function ShowDialog(options){
         //返回false 终止打开窗口
         if(dialog.BeforeShow()==false) return;
     }
-
+    
     dialog.show();
     return dialog;
 };
@@ -680,10 +681,11 @@ Dialog.GetDialogForFrame = function(frameElement)
             }
         }
         if(ele){
-            r= Dialog.getInstance(/_DialogDiv_(.+)/.exec(ele.id)[1]);
+            var w = frameElement.ownerDocument;
+            w = w.defaultView || w.parentWindow;
+            r = w.Dialog.getInstance(/_DialogDiv_(.+)/.exec(ele.id)[1]);
         }
     } catch (e) {
-    
     }
     return r;
 };
@@ -706,17 +708,19 @@ Dialog.CloseSelfDialog = function (frameElement) {
     }
 };
 
-Dialog.CloseAndRefresh = function (frameElement) {
+Dialog.CloseAndRefresh = function (frameElement, w) {
     try {
-        Dialog.CloseSelfDialog(frameElement);
+        var dialog = Dialog.GetDialogForFrame(frameElement);
+        w = w || dialog.ParentWindow;
+        dialog.close();
         //window.frames["main"].location.reload()
         // 大石头 刷新本页面
-        if(typeof window.reloadForm == 'function'){
-            reloadForm();
-        } else if(window.__doPostBack && !window.DisableDoPostBack){ // 如果DisableDoPostBack=true表示禁用了__doPostBack方式的刷新
-            __doPostBack();
+        if(typeof w.reloadForm == 'function'){
+            w.reloadForm();
+        } else if(w.__doPostBack && !w.DisableDoPostBack){ // 如果DisableDoPostBack=true表示禁用了__doPostBack方式的刷新
+            w.__doPostBack();
         } else {
-            location.reload();
+            w.location.reload();
         }
     } catch (e) {
         //alert(e);
@@ -725,13 +729,16 @@ Dialog.CloseAndRefresh = function (frameElement) {
 
 Dialog.getInstance = function(id)
 {
-    var pw = $E.getTopLevelWindow()
-    var f = pw.GetObjID("_DialogDiv_" + id);
-    if (!f)
-    {
-        return null;
+    var wins=[$E.getTopLevelWindow(), window], pw, f;
+    try{
+        do {
+            pw = wins.shift() || pw.parent;
+            f = pw.GetObjID("_DialogDiv_" + id)
+        } while(!f || wins.length == 0 && pw.parent == pw);
+    }catch(ex){
+        f = null;
     }
-    return f.DialogInstance;
+    return f && f.DialogInstance || null;
 };
 
 Dialog.AlertNo = 0;
@@ -739,7 +746,7 @@ Dialog.alert = function(msg, func, w, h) {
     Dialog.zalert({ msg: msg, func: func, w: w, h: h });
 };
 Dialog.zalert = function(option) {
-    var pw = $E.getTopLevelWindow()
+    var pw = $E.getTopLevelWindow();
     var diag = new Dialog("_DialogAlert" + Dialog.AlertNo++);
     diag.ParentWindow = pw;
     diag.Width = option.w ? option.w : 300;
@@ -786,7 +793,7 @@ Dialog.zalert = function(option) {
 
 Dialog.confirm = function(msg, func1, func2, w, h)
 {
-    var pw = $E.getTopLevelWindow()
+    var pw = $E.getTopLevelWindow();
     var diag = new Dialog("_DialogAlert" + Dialog.AlertNo++);
     diag.Width = w ? w : 300;
     diag.Height = h ? h : 120;
@@ -868,7 +875,7 @@ var _DialogInstance = null;
 try {
     _DialogInstance = window.frameElement.DialogInstance;
 }
-catch (ex) { 
+catch (ex) {
 }
 var Page = {};
 Page.onDialogLoad = function()
@@ -927,8 +934,8 @@ PageOnLoad = function()
             {
                 d.onLoad();
             }
-        } catch (ex) { 
-           //alert("DialogOnLoad:" + ex.message + "\t(" + ex.fileName + " " + ex.lineNumber + ")"); 
+        } catch (ex) {
+           //alert("DialogOnLoad:" + ex.message + "\t(" + ex.fileName + " " + ex.lineNumber + ")");
         }
     }
 };
@@ -937,7 +944,6 @@ Dialog.onKeyDown = function(event) {
     var pw = $E.getTopLevelWindow();
     if (pw.Dialog) {
         if (event.shiftKey && event.keyCode == 9) {//shift键
-            
             if (pw.Dialog._Array.length > 0) {
                 stopEvent(event);
                 return false;

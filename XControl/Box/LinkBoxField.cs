@@ -1,14 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Web.UI.WebControls;
-using System.Web.UI;
 using System.ComponentModel;
-using System.Drawing.Design;
 using System.Drawing;
+using System.Text;
+using System.Web.UI;
+using System.Web.UI.WebControls;
 using NewLife.Configuration;
 using NewLife.Log;
-
 
 // 特别要注意，这里得加上默认命名空间和目录名，因为vs2005编译的时候会给文件加上这些东东的
 [assembly: WebResource("XControl.Box.Box.js", "text/javascript", PerformSubstitution = true)]
@@ -45,6 +42,7 @@ namespace XControl
     public class LinkBoxField : LinkButtonField
     {
         #region 属性
+
         ///// <summary>标识</summary>
         //public String ID
         //{
@@ -176,6 +174,42 @@ namespace XControl
                 ViewState["ShowButtonRow"] = value;
             }
         }
+
+        /// <summary>
+        /// 需要弹出在哪个窗口中
+        /// </summary>
+        /// <remarks>
+        /// js代码,默认为尽可能上级窗口中有Box.js的窗口,可指定的值比如window,parent,也可以是调用js函数
+        /// </remarks>
+        [DefaultValue(""), Category(" "), Description("需要弹出在哪个窗口中,js代码,默认为尽可能上级窗口中有Box.js的窗口,可指定的值比如window,parent,也可以是调用js函数")]
+        public string InWindow
+        {
+            get
+            {
+                return (String)ViewState["InWindow"];
+            }
+            set
+            {
+                ViewState["InWindow"] = value;
+            }
+        }
+
+        /// <summary>
+        /// 逻辑父窗口,如果调用关闭并刷新,将会刷新这个属性指定的窗口,默认为放置当前LinkBox所在的窗口
+        /// </summary>
+        [DefaultValue(""), Category(" "), Description("逻辑父窗口,如果调用关闭并刷新,将会刷新这个属性指定的窗口,默认为放置当前LinkBox所在的窗口")]
+        public string ParentWindow
+        {
+            get
+            {
+                return (String)ViewState["ParentWindow"];
+            }
+            set
+            {
+                ViewState["ParentWindow"] = value;
+            }
+        }
+
         /// <summary>打开窗口后将所在GridView中所在行高亮的颜色</summary>
         [DefaultValue(typeof(Color), ""),
         Themeable(false),
@@ -207,6 +241,7 @@ namespace XControl
                 ViewState["ClickedRowBackColor"] = value;
             }
         }
+
         #endregion
 
         /// <summary>创建字段</summary>
@@ -233,11 +268,10 @@ namespace XControl
             base.CopyProperties(newField);
         }
 
-        void UpdateOnClientClick()
+        private void UpdateOnClientClick()
         {
             String url = Url;
             url = Control.ResolveUrl(url); // ResolveUrl会自行处理绝对路径的问题
-
 
             string jsFuncName = "LinkBoxFieldShow" + GetHashCode();
 
@@ -256,6 +290,15 @@ AfterClose:function(){{GridViewExtender.HighlightRow(ele,'{0}',false);}},
                     // 使用到GridViewExtender的地方引入相关的js
                     Control.Page.ClientScript.RegisterClientScriptResource(typeof(GridViewExtender), "XControl.View.GridViewExtender.js");
                 }
+                if (!string.IsNullOrEmpty(InWindow))
+                {
+                    showJs.AppendFormat("InWindow:{0},", InWindow);
+                }
+                if (!string.IsNullOrEmpty(ParentWindow))
+                {
+                    showJs.AppendFormat("ParentWindow:{0},", ParentWindow);
+                }
+
                 if (this.Control is GridView)
                 {
                     moreJs.AppendFormat("stopEventPropagation(event);");
@@ -308,7 +351,6 @@ AfterClose:function(){{GridViewExtender.HighlightRow(ele,'{0}',false);}},
                 Helper.JsStringEscape(MessageTitle), Helper.JsStringEscape(Message),
                 ShowButtonRow.ToString().ToLower()
             );
-
         }
 
         /// <summary>已重载。</summary>
