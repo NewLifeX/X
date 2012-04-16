@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -10,7 +11,6 @@ using System.Text;
 using NewLife.Collections;
 using NewLife.Exceptions;
 using NewLife.Linq;
-using System.Collections;
 
 namespace NewLife.Reflection
 {

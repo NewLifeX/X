@@ -1,15 +1,13 @@
 ﻿using System;
 using System.Diagnostics;
+using System.IO.Ports;
 using System.Threading;
-using NewLife.CommonEntity;
 using NewLife.Linq;
 using NewLife.Log;
 using NewLife.Messaging;
 using NewLife.Net.Proxy;
 using NewLife.Net.Sockets;
-using NewLife.Reflection;
 using NewLife.Threading;
-using System.IO.Ports;
 
 namespace Test
 {
@@ -26,7 +24,7 @@ namespace Test
                 try
                 {
 #endif
-                Test2();
+                Test1();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -103,16 +101,19 @@ namespace Test
 
             while (true)
             {
-                var asyncCount = 0;
-                foreach (var item in http.Servers)
+                var asyncCount = 0; try
                 {
-                    asyncCount += item.AsyncCount;
+                    foreach (var item in http.Servers)
+                    {
+                        asyncCount += item.AsyncCount;
+                    }
+                    foreach (var item in http.Sessions.Values.ToArray())
+                    {
+                        var remote = (item as IProxySession).Remote;
+                        if (remote != null) asyncCount += remote.Host.AsyncCount;
+                    }
                 }
-                foreach (var item in http.Sessions.Values.ToArray())
-                {
-                    var remote = (item as IProxySession).Remote;
-                    if (remote != null) asyncCount += remote.Host.AsyncCount;
-                }
+                catch (Exception ex) { Console.WriteLine(ex.ToString()); }
 
                 Int32 wt = 0;
                 Int32 cpt = 0;
@@ -137,14 +138,17 @@ namespace Test
 
             var rm = MethodMessage.Create("Admin.Login", "admin", "admin");
             rm.Header.Channel = 88;
-            //rm.Header.SessionID = 88;
 
-            Message.Debug = true;
-            var ms = rm.GetStream();
-            var m2 = Message.Read(ms);
+            //Message.Debug = true;
+            //var ms = rm.GetStream();
+            //var m2 = Message.Read(ms);
 
             Message msg = client.SendAndReceive(rm, 0);
             var rs = msg as EntityMessage;
+            Console.WriteLine("返回：" + rs.Value);
+
+            msg = client.SendAndReceive(rm, 0);
+            rs = msg as EntityMessage;
             Console.WriteLine("返回：" + rs.Value);
         }
 
