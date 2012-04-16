@@ -78,7 +78,7 @@ namespace XCode.DataAccessLayer
             }
             catch (Exception ex)
             {
-                DAL.WriteDebugLog("GetSchema({0})异常重试！{1}", collectionName, ex.Message);
+                DAL.WriteDebugLog("GetSchema({0})异常重试！{1},连接字符串 {2}", collectionName, ex.Message, ConnectionString);
 
                 String dbname = DatabaseName;
                 if (dbname != SystemDatabaseName) DatabaseName = SystemDatabaseName;

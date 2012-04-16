@@ -155,7 +155,8 @@ namespace XCode.DataAccessLayer
                 CreateTable(sb, entitytable, onlySql);
 
                 // 仅获取语句
-                if (onlySql) WriteLog("XCode.Negative.Enable没有设置为True，请手工创建表：" + entitytable.Name + Environment.NewLine + sb.ToString());
+                //if (onlySql) WriteLog("XCode.Negative.Enable没有设置为True，请手工创建表：" + entitytable.Name + Environment.NewLine + sb.ToString());
+                if (onlySql) WriteLog("XCode.Negative.CheckOnly设置为True 只是检查不对数据库进行操作,请手工创建表：" + entitytable.Name + Environment.NewLine + sb.ToString());
                 #endregion
             }
             else
