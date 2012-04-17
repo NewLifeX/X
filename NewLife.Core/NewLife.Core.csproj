@@ -81,6 +81,7 @@
     <Compile Include="Messaging\StringMessage.cs" />
     <Compile Include="Messaging\GroupMessage.cs" />
     <Compile Include="Model\IPlugin.cs" />
+    <Compile Include="Model\ModelHelper.cs" />
     <Compile Include="Reflection\Action.cs" />
     <Compile Include="Extension\EnumHelper.cs" />
     <Compile Include="Extension\Linq\Buffer.cs" />
