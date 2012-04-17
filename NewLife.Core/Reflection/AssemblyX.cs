@@ -450,7 +450,7 @@ namespace NewLife.Reflection
                 // 不搜索系统程序集，不搜索未引用基类所在程序集的程序集，优化性能
                 if (item.IsSystemAssembly || !IsReferencedFrom(item.Asm, baseAssemblyName)) continue;
 
-                List<Type> ts = item.FindPlugins(baseType);
+                var ts = item.FindPlugins(baseType);
                 if (ts != null && ts.Count > 0)
                 {
                     //list.AddRange(ts);

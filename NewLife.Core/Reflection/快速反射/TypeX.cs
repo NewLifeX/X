@@ -355,10 +355,17 @@ namespace NewLife.Reflection
             }
             else
             {
-                if (!type.IsAssignableFrom(BaseType)) return false;
-            }
+                if (type.IsAssignableFrom(BaseType)) return true;
 
-            return true;
+                var e = BaseType;
+                while (e != null && e != typeof(Object))
+                {
+                    if (e.FullName == type.FullName && e.AssemblyQualifiedName == type.AssemblyQualifiedName) return true;
+                    e = e.BaseType;
+                }
+
+                return false;
+            }
         }
 
         /// <summary>根据名称获取类型</summary>
