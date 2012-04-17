@@ -1270,7 +1270,7 @@ namespace NewLife.Serialization
                 return false;
             }
 
-            return true;
+            //return true;
         }
 
         /// <summary>尝试读取引用对象</summary>
