@@ -541,7 +541,7 @@ namespace XAgent
                 //if (hasdberr) time *= 10;
                 if (oldEx != null) time *= 10;
 
-                if (oldEx == null && !isContinute) Thread.Sleep(time * 1000);
+                if (!isContinute) Thread.Sleep(time * 1000);
             }
         }
 
