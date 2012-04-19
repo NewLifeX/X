@@ -213,6 +213,7 @@ namespace XAgent
         /// <param name="isinstall">是否安装</param>
         public static void Install(Boolean isinstall)
         {
+            WriteLine("在win7/win2008及更高系统中，可能需要管理员权限执行才能安装/卸载服务。");
             if (isinstall)
             {
                 RunSC("create " + AgentServiceName + " BinPath= \"" + Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ExeName) + " -s\" start= auto DisplayName= \"" + AgentDisplayName + "\"");
