@@ -32,10 +32,12 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“内部版本号”和“修订号”的默认值，
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("2.2.*")]
-[assembly: AssemblyFileVersion("2.2.2012.0209")]
+[assembly: AssemblyVersion("2.3.*")]
+[assembly: AssemblyFileVersion("2.3.2012.0419")]
 
 /*
+ * v2.3.2012.0419   增加看门狗功能，守护其它服务。
+ * 
  * v2.2.2012.0209   完善对附加代理服务的支持，支持通过配置来设置附加代理服务
  * 
  * v2.1.2011.1019   项目类型由类库修改为控制台项目，不仅可供其它程序集引用，也可直接作为服务代理，承载各种实现IServer接口的服务

@@ -61,64 +61,10 @@ namespace XAgent
         public static AgentServiceBase Instance { get { return _Instance; } set { _Instance = value; } }
 
         /// <summary>是否已安装</summary>
-        public static Boolean? IsInstalled
-        {
-            get
-            {
-                try
-                {
-                    ServiceController control = GetService(AgentServiceName);
-                    if (control == null) return false;
-                    try
-                    {
-                        //尝试访问一下才知道是否已安装
-                        Boolean b = control.CanShutdown;
-                        return true;
-                    }
-                    catch { return false; }
-                }
-                catch { return null; }
-
-                //return Controller != null;
-            }
-        }
+        public static Boolean? IsInstalled { get { return IsServiceInstalled(AgentServiceName); } }
 
         /// <summary>是否已启动</summary>
-        public static Boolean? IsRunning
-        {
-            get
-            {
-                ServiceController control = null;
-                try
-                {
-                    //ServiceController control = GetService(AgentServiceName);
-                    //ServiceController control = Controller;
-                    try
-                    {
-                        control = GetService(AgentServiceName);
-                        if (control != null)
-                        {
-                            try
-                            {
-                                //尝试访问一下才知道是否已安装
-                                Boolean b = control.CanShutdown;
-                            }
-                            catch { }
-                        }
-                    }
-                    catch { }
-
-                    if (control == null) return null;
-
-                    control.Refresh();
-                    if (control.Status == ServiceControllerStatus.Running) return true;
-                    if (control.Status == ServiceControllerStatus.Stopped) return false;
-                    return null;
-                }
-                catch { return null; }
-                finally { if (control != null)control.Dispose(); }
-            }
-        }
+        public static Boolean? IsRunning { get { return IsServiceRunning(AgentServiceName); } }
         #endregion
 
         #region 辅助函数及属性
@@ -213,17 +159,18 @@ namespace XAgent
         /// <param name="isinstall">是否安装</param>
         public static void Install(Boolean isinstall)
         {
+            var name = AgentServiceName.Replace(" ", "_");
             WriteLine("在win7/win2008及更高系统中，可能需要管理员权限执行才能安装/卸载服务。");
             if (isinstall)
             {
-                RunSC("create " + AgentServiceName + " BinPath= \"" + Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ExeName) + " -s\" start= auto DisplayName= \"" + AgentDisplayName + "\"");
-                RunSC("description " + AgentServiceName + " \"" + AgentDescription + "\"");
+                RunSC("create " + name + " BinPath= \"" + Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ExeName) + " -s\" start= auto DisplayName= \"" + AgentDisplayName + "\"");
+                RunSC("description " + name + " \"" + AgentDescription + "\"");
             }
             else
             {
                 ControlService(false);
 
-                RunSC("Delete " + AgentServiceName);
+                RunSC("Delete " + name);
             }
         }
 
@@ -313,7 +260,7 @@ namespace XAgent
         /// <returns></returns>
         public static ServiceController GetService(String name)
         {
-            List<ServiceController> list = new List<ServiceController>(ServiceController.GetServices());
+            var list = new List<ServiceController>(ServiceController.GetServices());
             if (list == null || list.Count < 1) return null;
 
             //return list.Find(delegate(ServiceController item) { return item.ServiceName == name; });
@@ -322,6 +269,51 @@ namespace XAgent
                 if (item.ServiceName == name) return item;
             }
             return null;
+        }
+
+        /// <summary>是否已安装</summary>
+        public static Boolean? IsServiceInstalled(String name)
+        {
+            ServiceController control = null;
+            try
+            {
+                // 取的时候就抛异常，是不知道是否安装的
+                control = GetService(name);
+                if (control == null) return false;
+                try
+                {
+                    //尝试访问一下才知道是否已安装
+                    Boolean b = control.CanShutdown;
+                    return true;
+                }
+                catch { return false; }
+            }
+            catch { return null; }
+            finally { if (control != null)control.Dispose(); }
+        }
+
+        /// <summary>是否已启动</summary>
+        public static Boolean? IsServiceRunning(String name)
+        {
+            ServiceController control = null;
+            try
+            {
+                control = GetService(name);
+                if (control == null) return false;
+                try
+                {
+                    //尝试访问一下才知道是否已安装
+                    Boolean b = control.CanShutdown;
+                }
+                catch { return false; }
+
+                control.Refresh();
+                if (control.Status == ServiceControllerStatus.Running) return true;
+                if (control.Status == ServiceControllerStatus.Stopped) return false;
+                return null;
+            }
+            catch { return null; }
+            finally { if (control != null)control.Dispose(); }
         }
         #endregion
 

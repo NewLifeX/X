@@ -9,6 +9,7 @@ using NewLife.Configuration;
 using NewLife.Log;
 using NewLife.Model;
 using NewLife.Reflection;
+using NewLife.Threading;
 
 namespace XAgent
 {
@@ -645,6 +646,10 @@ namespace XAgent
                     if (CheckThread()) break;
                     if (CheckAutoRestart()) break;
 
+                    // 检查看门狗
+                    //CheckWatchDog();
+                    ThreadPoolX.QueueUserWorkItem(CheckWatchDog);
+
                     Thread.Sleep(60 * 1000);
                 }
                 catch (ThreadAbortException)
@@ -820,6 +825,30 @@ namespace XAgent
             p.Start();
 
             //if (File.Exists(filename)) File.Delete(filename);
+        }
+        #endregion
+
+        #region 看门狗
+        /// <summary>检查看门狗。</summary>
+        /// <remarks>
+        /// XAgent看门狗功能由管理线程完成，每分钟一次。
+        /// 检查指定的任务是否已经停止，如果已经停止，则启动它。
+        /// </remarks>
+        public static void CheckWatchDog()
+        {
+            var ss = Config.GetConfigSplit<String>("XAgent.WatchLog", null);
+            if (ss == null || ss.Length < 1) return;
+
+            foreach (var item in ss)
+            {
+                // 注意：IsServiceRunning返回三种状态，null表示未知
+                if (IsServiceRunning(item) == false)
+                {
+                    WriteLine("发现服务{0}被关闭，准备启动！", item);
+
+                    RunCmd("net start " + item, false, true);
+                }
+            }
         }
         #endregion
     }
