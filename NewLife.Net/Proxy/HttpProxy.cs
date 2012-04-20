@@ -526,7 +526,7 @@ namespace NewLife.Net.Proxy
                 StringComparer.OrdinalIgnoreCase);
 
             static readonly HashSet<String> cacheContentType = new HashSet<string>(
-                new String[] { "text/css", "application/javascript", "application/x-javascript", "image/jpeg", "image/png", "image/gif" },
+                new String[] { "text/css", "application/javascript", "text/javascript", "application/x-javascript", "image/jpeg", "image/png", "image/gif" },
                 StringComparer.OrdinalIgnoreCase);
 
             /// <summary>如果符合缓存条件，则设置缓存</summary>
