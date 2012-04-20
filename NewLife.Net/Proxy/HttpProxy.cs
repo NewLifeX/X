@@ -245,6 +245,7 @@ namespace NewLife.Net.Proxy
 
             /// <summary>是否保持连接</summary>
             Boolean KeepAlive = false;
+            DateTime RequestTime;
 
             /// <summary>收到请求时</summary>
             /// <param name="entity"></param>
@@ -306,26 +307,7 @@ namespace NewLife.Net.Proxy
                     KeepAlive = entity.ProxyKeepAlive;
                 }
 
-                #region 缓存
-                //// 缓存Get请求的304响应
-                //if (Proxy.EnableCache && entity != null && entity.Method.EqualIgnoreCase("GET"))
-                //{
-                //    // 查找缓存
-                //    var citem = Proxy.Cache.GetItem(entity.Url.ToString());
-                //    if (citem != null)
-                //    {
-                //        // 响应缓存
-                //        var cs = citem.Stream.ReadBytes();
-                //        lock (cs)
-                //        {
-                //            //var p = cs.Position;
-                //            Send(cs);
-                //            //cs.Position = p;
-                //        }
-                //        return false;
-                //    }
-                //}
-                #endregion
+                RequestTime = DateTime.Now;
 
                 return true;
             }
@@ -417,12 +399,12 @@ namespace NewLife.Net.Proxy
                 var parseHeader = Proxy.EnableCache || Proxy.GetHandler(EventKind.OnResponse) != null;
                 var parseBody = Proxy.EnableCache || Proxy.GetHandler(EventKind.OnResponseBody) != null;
 
+                var entity = UnFinishedResponse;
+                var stream = e.Stream;
                 if (parseHeader || parseBody)
                 {
-                    var stream = e.Stream;
                     #region 解析响应头
                     // 解析头部
-                    var entity = UnFinishedResponse;
                     if (entity == null)
                     {
                         #region 未完成响应为空，可能是第一个响应包，也可能是后续数据包
@@ -497,7 +479,19 @@ namespace NewLife.Net.Proxy
                         stream = he.Stream;
                     }
 
-                    // 重新构造响应
+                    // 写入头部扩展
+                    entity.Headers["Powered-By-Proxy"] = Proxy.Name;
+                    entity.Headers["RequestTime"] = RequestTime.ToString("yyyy-MM-dd HH:mm:ss.fff");
+                    entity.Headers["TotalTime"] = (DateTime.Now - RequestTime).ToString();
+                }
+
+                #region 缓存
+                if (Proxy.EnableCache) SetCache(Response, e);
+                #endregion
+
+                #region 重构响应包
+                if (entity != null)
+                {
                     var ms = new MemoryStream();
                     entity.Write(ms);
 
@@ -515,16 +509,12 @@ namespace NewLife.Net.Proxy
                     e.Stream = ms;
                 }
 
-                #region 缓存
-                if (Proxy.EnableCache && SetCache(Response, e))
+                if (cacheItem != null)
                 {
-                    if (cacheItem != null)
-                    {
-                        var p = e.Stream.Position;
-                        var count = e.Stream.CopyTo(cacheItem.Stream);
-                        e.Stream.Position = p;
-                        WriteLog("[{0}] {1} 增加缓存[{2}]", ID, Request.RawUrl, count);
-                    }
+                    var p = e.Stream.Position;
+                    var count = e.Stream.CopyTo(cacheItem.Stream);
+                    e.Stream.Position = p;
+                    WriteLog("[{0}] {1} 增加缓存[{2}]", ID, Request.RawUrl, count);
                 }
                 #endregion
 
@@ -533,6 +523,10 @@ namespace NewLife.Net.Proxy
 
             static readonly HashSet<String> cacheSuffix = new HashSet<string>(
                 new String[] { ".htm", ".html", ".js", ".css", ".jpg", ".png", ".gif", ".swf" },
+                StringComparer.OrdinalIgnoreCase);
+
+            static readonly HashSet<String> cacheContentType = new HashSet<string>(
+                new String[] { "text/css", "application/javascript", "application/x-javascript", "image/jpeg", "image/png", "image/gif" },
                 StringComparer.OrdinalIgnoreCase);
 
             /// <summary>如果符合缓存条件，则设置缓存</summary>
@@ -552,6 +546,7 @@ namespace NewLife.Net.Proxy
                 {
                     if (response.StatusCode == 304)
                     {
+                        response.Headers["HttpProxyCache"] = "304";
                         cacheItem = Proxy.Cache.Add(request, response);
                         return true;
                     }
@@ -559,6 +554,15 @@ namespace NewLife.Net.Proxy
                     var url = request.RawUrl;
                     if (!String.IsNullOrEmpty(url) && url[url.Length - 1] != '/' && cacheSuffix.Contains(Path.GetExtension(url)))
                     {
+                        response.Headers["HttpProxyCache"] = Path.GetExtension(url);
+                        cacheItem = Proxy.Cache.Add(request, response);
+                        return true;
+                    }
+
+                    var contentType = response.ContentType;
+                    if (!String.IsNullOrEmpty(contentType) && contentType.Contains(";") && cacheContentType.Contains(contentType.Substring(0, contentType.IndexOf(";"))))
+                    {
+                        response.Headers["HttpProxyCache"] = contentType;
                         cacheItem = Proxy.Cache.Add(request, response);
                         return true;
                     }
@@ -592,6 +596,21 @@ namespace NewLife.Net.Proxy
         /// <returns></returns>
         [DllImport("wininet.dll", SetLastError = true)]
         private static extern bool InternetSetOption(IntPtr hInternet, int dwOption, IntPtr lpBuffer, int lpdwBufferLength);
+
+        /// <summary>获取IE代理设置</summary>
+        public static String GetIEProxy()
+        {
+            using (var key = Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings", true))
+            {
+                if (key == null) return null;
+
+                var obj = key.GetValue("ProxyEnable", 0);
+                if (obj == null || (Int32)obj == 0) return null;
+
+                obj = key.GetValue("ProxyServer");
+                return obj == null ? null : "" + obj;
+            }
+        }
 
         /// <summary>设置IE代理。传入空地址取消代理设置</summary>
         /// <param name="proxy">地址与端口以冒号分开</param>

@@ -24,7 +24,7 @@ namespace Test
                 try
                 {
 #endif
-                Test1();
+                    Test1();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -65,13 +65,15 @@ namespace Test
             //http.OnResponse += new EventHandler<HttpProxyEventArgs>(http_OnResponse);
             http.Start();
 
+            var old = HttpProxy.GetIEProxy();
+            if (!old.IsNullOrWhiteSpace()) Console.WriteLine("旧代理：{0}", old);
             HttpProxy.SetIEProxy("127.0.0.1:" + http.Port);
             Console.WriteLine("已设置IE代理，任意键结束测试，关闭IE代理！");
 
             ThreadPoolX.QueueUserWorkItem(ShowStatus);
 
             Console.ReadKey(true);
-            HttpProxy.SetIEProxy(null);
+            HttpProxy.SetIEProxy(old);
 
             //server.Dispose();
             http.Dispose();
