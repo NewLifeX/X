@@ -560,11 +560,15 @@ namespace NewLife.Net.Proxy
                     }
 
                     var contentType = response.ContentType;
-                    if (!String.IsNullOrEmpty(contentType) && contentType.Contains(";") && cacheContentType.Contains(contentType.Substring(0, contentType.IndexOf(";"))))
+                    if (!String.IsNullOrEmpty(contentType))
                     {
-                        response.Headers["HttpProxyCache"] = contentType;
-                        cacheItem = Proxy.Cache.Add(request, response);
-                        return true;
+                        var p = contentType.IndexOf(";");
+                        if (p < 0 || cacheContentType.Contains(contentType.Substring(0, p)))
+                        {
+                            response.Headers["HttpProxyCache"] = contentType;
+                            cacheItem = Proxy.Cache.Add(request, response);
+                            return true;
+                        }
                     }
                 }
                 return false;
