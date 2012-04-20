@@ -7,6 +7,7 @@ using Microsoft.Win32;
 using NewLife.Net.Http;
 using NewLife.Net.Sockets;
 using NewLife.Serialization;
+using NewLife.Collections;
 
 namespace NewLife.Net.Proxy
 {
@@ -101,19 +102,69 @@ namespace NewLife.Net.Proxy
 
         void HttpProxy_OnRequest(object sender, HttpProxyEventArgs e)
         {
-            throw new NotImplementedException();
+            var session = sender as Session;
+            if (session == null) return;
+
+            // 缓存Get请求的304响应
+            var entity = e.Header;
+            if (EnableCache && entity != null && entity.Method.EqualIgnoreCase("GET"))
+            {
+                // 查找缓存
+                var citem = Cache.GetItem(entity.RawUrl);
+                if (citem != null)
+                {
+                    // 响应缓存
+                    //Byte[] cs = null;
+                    //var ms = citem.Stream;
+                    //lock (ms)
+                    //{
+                    //    ms.Position = 0;
+                    //    cs = ms.ReadBytes();
+                    //}
+                    var cs = citem.Response.GetStream();
+
+                    WriteLog("[{0}] {1} 缓存命中[{2}]", session.ID, entity.RawUrl, cs.Length);
+
+                    //lock (cs)
+                    {
+                        //var p = cs.Position;
+                        //Send(cs);
+                        //cs.Position = p;
+                        session.Send(cs);
+                    }
+                    e.Cancel = true;
+                }
+            }
         }
 
+        static readonly HashSet<String> cacheSuffix = new HashSet<string>(
+            new String[] { ".htm", ".html", ".js", ".css", ".jpg", ".png", ".gif", ".swf" },
+            StringComparer.OrdinalIgnoreCase);
         void HttpProxy_OnResponse(object sender, HttpProxyEventArgs e)
         {
-            //// 缓存Get请求的304响应
-            //var request = e.Session.CurrentRequest;
-            //var response = e.Header;
-            //if (request != null && request.Method.EqualIgnoreCase("GET")
-            //    && response != null && request.StatusCode == 304)
-            //{
+            var session = sender as Session;
+            if (session == null) return;
 
-            //}
+            // 缓存Get请求的304响应
+            var request = session.Request;
+            var response = e.Header;
+            if (request == null || response == null) return;
+
+            if (request.Method.EqualIgnoreCase("GET"))
+            {
+                if (response.StatusCode == 304)
+                {
+                    Cache.Add(request, response);
+                }
+                else
+                {
+                    var url = request.RawUrl;
+                    if (!String.IsNullOrEmpty(url) && url[url.Length - 1] != '/' && cacheSuffix.Contains(Path.GetExtension(url)))
+                    {
+                        Cache.Add(request, response);
+                    }
+                }
+            }
         }
 
         private HttpCache _Cache;
@@ -130,8 +181,6 @@ namespace NewLife.Net.Proxy
 
             /// <summary>已完成处理，正在转发数据的请求头</summary>
             public HttpHeader Request;
-
-            //HttpCacheItem CacheItem = null;
 
             /// <summary>收到客户端发来的数据。子类可通过重载该方法来修改数据</summary>
             /// <remarks>
@@ -222,9 +271,6 @@ namespace NewLife.Net.Proxy
                 base.OnReceive(e);
             }
 
-            //String LastHost;
-            //Int32 LastPort;
-
             /// <summary>是否保持连接</summary>
             Boolean KeepAlive = false;
 
@@ -286,24 +332,24 @@ namespace NewLife.Net.Proxy
                 }
 
                 #region 缓存
-                // 缓存Get请求的304响应
-                if (Proxy.EnableCache && entity != null && entity.Method.EqualIgnoreCase("GET"))
-                {
-                    // 查找缓存
-                    var citem = Proxy.Cache.GetItem(entity.Url.ToString());
-                    if (citem != null)
-                    {
-                        // 响应缓存
-                        var cs = citem.Stream;
-                        lock (cs)
-                        {
-                            var p = cs.Position;
-                            Send(cs);
-                            cs.Position = p;
-                        }
-                        return false;
-                    }
-                }
+                //// 缓存Get请求的304响应
+                //if (Proxy.EnableCache && entity != null && entity.Method.EqualIgnoreCase("GET"))
+                //{
+                //    // 查找缓存
+                //    var citem = Proxy.Cache.GetItem(entity.Url.ToString());
+                //    if (citem != null)
+                //    {
+                //        // 响应缓存
+                //        var cs = citem.Stream.ReadBytes();
+                //        lock (cs)
+                //        {
+                //            //var p = cs.Position;
+                //            Send(cs);
+                //            //cs.Position = p;
+                //        }
+                //        return false;
+                //    }
+                //}
                 #endregion
 
                 return true;
@@ -349,14 +395,15 @@ namespace NewLife.Net.Proxy
                 return false;
             }
 
+            HttpHeader UnFinishedResponse;
             HttpHeader Response;
-            HttpHeader CurrentResponse;
 
             /// <summary>收到客户端发来的数据。子类可通过重载该方法来修改数据</summary>
             /// <param name="e"></param>
             /// <returns>修改后的数据</returns>
             protected override void OnReceiveRemote(ReceivedEventArgs e)
             {
+                #region 解析响应头
                 var parseHeader = Proxy.GetHandler(EventKind.OnResponse) != null;
                 var parseBody = Proxy.GetHandler(EventKind.OnResponseBody) != null;
 
@@ -364,14 +411,14 @@ namespace NewLife.Net.Proxy
                 if (parseHeader || parseBody)
                 {
                     // 解析头部
-                    var entity = Response;
+                    var entity = UnFinishedResponse;
                     if (entity == null)
                     {
                         // 如果当前请求为空，说明这是第一个数据包，可能包含头部
                         entity = HttpHeader.Read(stream, HttpHeaderReadMode.Response);
                         if (entity == null)
                         {
-                            var he = new HttpProxyEventArgs(CurrentResponse, stream);
+                            var he = new HttpProxyEventArgs(Response, stream);
                             if (Proxy.RaiseEvent(this, EventKind.OnResponseBody, he)) return;
                             e.Stream = he.Stream;
                             base.OnReceiveRemote(e);
@@ -379,9 +426,9 @@ namespace NewLife.Net.Proxy
                         }
 
                         if (!entity.IsFinish)
-                            Response = entity;
+                            UnFinishedResponse = entity;
                         else
-                            CurrentResponse = entity;
+                            Response = entity;
                     }
                     else if (!entity.IsFinish)
                     {
@@ -389,14 +436,14 @@ namespace NewLife.Net.Proxy
                         entity.ReadHeaders(new BinaryReaderX(stream));
                         if (entity.IsFinish)
                         {
-                            CurrentResponse = entity;
-                            Response = null;
+                            Response = entity;
+                            UnFinishedResponse = null;
                         }
                     }
                     else
                     {
                         // 否则，头部已完成，现在就是内容
-                        var he = new HttpProxyEventArgs(CurrentResponse, stream);
+                        var he = new HttpProxyEventArgs(Response, stream);
                         if (Proxy.RaiseEvent(this, EventKind.OnResponseBody, he)) return;
                         base.OnReceiveRemote(e);
                         e.Stream = he.Stream;
@@ -420,27 +467,21 @@ namespace NewLife.Net.Proxy
 
                     stream = ms;
                 }
+                #endregion
 
+                #region 重构响应包
                 if (parseBody && stream.Position < stream.Length)
                 {
-                    var he = new HttpProxyEventArgs(CurrentResponse, stream);
+                    var he = new HttpProxyEventArgs(Response, stream);
                     if (Proxy.RaiseEvent(this, EventKind.OnResponseBody, he)) return;
                     stream = he.Stream;
                 }
 
                 e.Stream = stream;
+                #endregion
+
                 base.OnReceiveRemote(e);
             }
-
-            ///// <summary>收到响应时</summary>
-            ///// <param name="entity"></param>
-            ///// <param name="e"></param>
-            ///// <param name="stream"></param>
-            ///// <returns></returns>
-            //protected virtual Boolean OnResponse(HttpHeader entity, NetEventArgs e, Stream stream)
-            //{
-
-            //}
 
             /// <summary>远程连接断开时触发。默认销毁整个会话，子类可根据业务情况决定客户端与代理的链接是否重用。</summary>
             /// <param name="session"></param>

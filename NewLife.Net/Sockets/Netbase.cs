@@ -20,7 +20,7 @@ namespace NewLife.Net.Sockets
             base.OnDispose(disposing);
 
 #if DEBUG
-            WriteLog("Dispose {0} {1}", this.GetType().Name, this);
+            //WriteLog("Dispose {0} {1}", this.GetType().Name, this);
 #endif
         }
         #endregion

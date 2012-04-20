@@ -19,22 +19,30 @@ namespace NewLife.Net.Http
         {
             HttpCacheItem item = null;
             if (!Items.TryGetValue(url, out item)) return null;
-
-            // 移除过期
-            if (item.ExpiredTime < DateTime.Now)
+            lock (Items)
             {
-                Items.Remove(url);
-                item = null;
-            }
+                if (!Items.TryGetValue(url, out item)) return null;
 
-            return item;
+                // 移除过期
+                if (item.ExpiredTime < DateTime.Now)
+                {
+                    Items.Remove(url);
+                    item = null;
+                }
+
+                return item;
+            }
         }
 
-        public HttpCacheItem Add(HttpHeader request)
+        public HttpCacheItem Add(HttpHeader request, HttpHeader response)
         {
-            var url = request.Url.ToString();
-            var item = new HttpCacheItem() { Url = url, Request = request };
-            Items[url] = item;
+            String url = request.RawUrl;
+            var item = new HttpCacheItem() { Url = url, Request = request, Response = response };
+            item.Stream = response.GetStream();
+            lock (Items)
+            {
+                Items[url] = item;
+            }
 
             return item;
         }

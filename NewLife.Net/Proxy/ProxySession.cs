@@ -175,14 +175,14 @@ namespace NewLife.Net.Proxy
             {
                 OnReceiveRemote(e);
             }
-            catch { this.Dispose(); throw; }
+            catch (Exception ex) { this.Dispose(); WriteLog(ex.Message); throw; }
         }
 
         /// <summary>收到远程服务器返回的数据</summary>
         /// <param name="e"></param>
         protected virtual void OnReceiveRemote(ReceivedEventArgs e)
         {
-            WriteLog("[{0}] {1} <= {2}", ID, RemoteUri.EndPoint, e.Stream.Length);
+            //WriteLog("[{0}] {1} <= {2}", ID, RemoteUri.EndPoint, e.Stream.Length);
 
             if (e.Stream != null)
             {

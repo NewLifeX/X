@@ -91,6 +91,10 @@ namespace NewLife.Net.Sockets
         private ProtocolType _Protocol = ProtocolType.Unknown;
         /// <summary>协议类型。如果使用Unknown，将同时使用Tcp和Udp</summary>
         public ProtocolType ProtocolType { get { return _Protocol; } set { _Protocol = value; } }
+
+        private Boolean _ShowAbortAsError;
+        /// <summary>显示取消操作作为错误</summary>
+        public Boolean ShowAbortAsError { get { return _ShowAbortAsError; } set { _ShowAbortAsError = value; } }
         #endregion
 
         #region 构造
@@ -308,6 +312,8 @@ namespace NewLife.Net.Sockets
         protected virtual void OnError(object sender, NetEventArgs e)
         {
             if (!EnableLog) return;
+
+            if (e.SocketError == SocketError.OperationAborted && !ShowAbortAsError) return;
 
             if (e.SocketError != SocketError.Success || e.Error != null)
                 WriteLog("{0} {1}错误 {2} {3}", sender, e.LastOperation, e.SocketError, e.Error);

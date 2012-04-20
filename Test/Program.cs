@@ -61,6 +61,7 @@ namespace Test
 
             http = new HttpProxy();
             http.Port = 8080;
+            http.EnableCache = true;
             //http.OnResponse += new EventHandler<HttpProxyEventArgs>(http_OnResponse);
             http.Start();
 
