@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Net.Sockets;
 using NewLife.Messaging;
 using NewLife.Net.Sockets;
@@ -19,11 +20,11 @@ namespace NewLife.Net.Common
                 {
                     _Session = value;
 
-                    if (value != null)
+                    if (value != null && value.UseReceiveAsync)
                     {
                         value.Received += new EventHandler<ReceivedEventArgs>(client_Received);
 
-                        if (!value.UseReceiveAsync) value.ReceiveAsync();
+                        //if (!value.UseReceiveAsync) value.ReceiveAsync();
                     }
                 }
             }
@@ -77,6 +78,23 @@ namespace NewLife.Net.Common
                     session.Send(item.GetStream());
                 }
             }
+        }
+
+        /// <summary>发送并接收</summary>
+        /// <param name="message"></param>
+        /// <param name="millisecondsTimeout"></param>
+        /// <returns></returns>
+        public override Message SendAndReceive(Message message, int millisecondsTimeout = 0)
+        {
+            var session = Session;
+            if (session.UseReceiveAsync) return base.SendAndReceive(message, millisecondsTimeout);
+
+            Send(message);
+            var data = session.Receive();
+            if (data == null || data.Length < 1) return null;
+
+            var ms = new MemoryStream(data);
+            return Message.Read(ms);
         }
     }
 }
