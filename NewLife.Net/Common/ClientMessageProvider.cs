@@ -51,20 +51,8 @@ namespace NewLife.Net.Common
         /// <param name="message"></param>
         public override void Send(Message message)
         {
-            var session = Session;
-            Boolean needUpdate = false;
-            if (session == null || session.Disposed || session.Host == null)
-                needUpdate = true;
-            else
-            {
-                var socket = session.Host.Socket;
-                if (socket == null || socket.ProtocolType == ProtocolType.Tcp && !socket.Connected)
-                    needUpdate = true;
-            }
+            var session = GetSession();
 
-            if (needUpdate && OnUpdate != null) OnUpdate(this, EventArgs.Empty);
-
-            session = Session;
             //Session.Send(message.GetStream());
             var ms = message.GetStream();
             if (ms.Length < 1460)
@@ -80,13 +68,31 @@ namespace NewLife.Net.Common
             }
         }
 
+        ISocketSession GetSession()
+        {
+            var session = Session;
+            Boolean needUpdate = false;
+            if (session == null || session.Disposed || session.Host == null)
+                needUpdate = true;
+            else
+            {
+                var socket = session.Host.Socket;
+                if (socket == null || socket.ProtocolType == ProtocolType.Tcp && !socket.Connected)
+                    needUpdate = true;
+            }
+
+            if (needUpdate && OnUpdate != null) OnUpdate(this, EventArgs.Empty);
+
+            return Session;
+        }
+
         /// <summary>发送并接收</summary>
         /// <param name="message"></param>
         /// <param name="millisecondsTimeout"></param>
         /// <returns></returns>
         public override Message SendAndReceive(Message message, int millisecondsTimeout = 0)
         {
-            var session = Session;
+            var session = GetSession();
             if (session.UseReceiveAsync) return base.SendAndReceive(message, millisecondsTimeout);
 
             Send(message);
