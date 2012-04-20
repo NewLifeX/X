@@ -189,7 +189,7 @@ namespace NewLife.Messaging
         /// <returns></returns>
         public override string ToString()
         {
-            return String.Format("Kind={0}", Kind);
+            return String.Format("Kind={0} Type={1}", Kind, this.GetType().FullName);
         }
         #endregion
     }
