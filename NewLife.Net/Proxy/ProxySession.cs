@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
@@ -7,8 +6,6 @@ using System.Text;
 using NewLife.Exceptions;
 using NewLife.Net.Common;
 using NewLife.Net.Sockets;
-using NewLife.Collections;
-using System.Collections.Generic;
 
 namespace NewLife.Net.Proxy
 {
@@ -40,20 +37,21 @@ namespace NewLife.Net.Proxy
         /// <summary>远程服务端。跟目标服务端通讯的那个Socket，其实是客户端TcpClientX/UdpClientX</summary>
         public ISocketSession Remote { get { return _Remote; } set { _Remote = value; } }
 
-        private IPEndPoint _RemoteEndPoint;
-        /// <summary>服务端远程IP终结点</summary>
-        public IPEndPoint RemoteEndPoint { get { return _RemoteEndPoint; } set { _RemoteEndPoint = value; } }
+        //private IPEndPoint _RemoteEndPoint;
+        ///// <summary>服务端远程IP终结点</summary>
+        //public IPEndPoint RemoteEndPoint { get { return _RemoteEndPoint; } set { _RemoteEndPoint = value; } }
 
-        private ProtocolType _RemoteProtocolType;
-        /// <summary>服务端协议。默认与客户端协议相同</summary>
-        public ProtocolType RemoteProtocolType { get { return _RemoteProtocolType; } set { _RemoteProtocolType = value; } }
+        //private ProtocolType _RemoteProtocolType;
+        ///// <summary>服务端协议。默认与客户端协议相同</summary>
+        //public ProtocolType RemoteProtocolType { get { return _RemoteProtocolType; } set { _RemoteProtocolType = value; } }
 
+        private NetUri _RemoteUri;
         /// <summary>服务端地址</summary>
-        public NetUri RemoteUri { get { return Remote != null ? Remote.RemoteUri : new NetUri(RemoteProtocolType, RemoteEndPoint); } }
+        public NetUri RemoteUri { get { return _RemoteUri ?? (_RemoteUri = new NetUri()); } }
 
-        private String _RemoteHost;
-        /// <summary>远程主机</summary>
-        public virtual String RemoteHost { get { return _RemoteHost; } set { _RemoteHost = value; } }
+        //private String _RemoteHost;
+        ///// <summary>远程主机</summary>
+        //public virtual String RemoteHost { get { return _RemoteHost; } set { _RemoteHost = value; } }
         #endregion
 
         #region 构造
@@ -84,7 +82,7 @@ namespace NewLife.Net.Proxy
         public override void Start(ReceivedEventArgs e)
         {
             // 如果未指定远程协议，则与来源协议一致
-            if (RemoteProtocolType == 0) RemoteProtocolType = Session.ProtocolType;
+            if (RemoteUri.ProtocolType == 0) RemoteUri.ProtocolType = Session.ProtocolType;
 
             base.Start(e);
         }
@@ -93,7 +91,7 @@ namespace NewLife.Net.Proxy
         /// <param name="e"></param>
         protected override void OnReceive(ReceivedEventArgs e)
         {
-            WriteLog("{0} {1}客户数据：{2}", ID, ClientEndPoint, e.Stream.Length);
+            WriteLog("[{0}] {1} => {2}", ID, ClientEndPoint, e.Stream.Length);
 
             if (e.Stream != null)
             {
@@ -109,9 +107,10 @@ namespace NewLife.Net.Proxy
         protected virtual void StartRemote(ReceivedEventArgs e)
         {
             var start = DateTime.Now;
+            ISocketSession session = null;
             try
             {
-                var session = CreateRemote(e);
+                session = CreateRemote(e);
                 //if (client.ProtocolType == ProtocolType.Tcp && !client.Client.Connected) client.Connect(RemoteEndPoint);
                 session.OnDisposed += (s, e2) =>
                 {
@@ -127,11 +126,12 @@ namespace NewLife.Net.Proxy
             }
             catch (Exception ex)
             {
+                if (session != null) session.Dispose();
                 this.Dispose();
 
                 var ts = DateTime.Now - start;
-                var host = String.IsNullOrEmpty(RemoteHost) ? "" + RemoteEndPoint : RemoteHost;
-                throw new XException(ex, "无法连接远程服务器{0}！耗时{1}！", host, ts);
+                //var host = String.IsNullOrEmpty(RemoteHost) ? "" + RemoteEndPoint : RemoteHost;
+                throw new XException(ex, "无法连接远程服务器{0}！耗时{1}！", RemoteUri, ts);
             }
         }
 
@@ -153,18 +153,13 @@ namespace NewLife.Net.Proxy
             //    _NotConnected.Remove(key);
             //}
 
-            var client = NetService.Resolve<ISocketClient>(RemoteProtocolType);
-            if (RemoteEndPoint != null) client.AddressFamily = RemoteEndPoint.AddressFamily;
-            //client.ConnectTimeout = 5000;
-            //try
-            //{
-            client.Connect(RemoteEndPoint);
-            //}
-            //catch
-            //{
-            //    _NotConnected[key] = DateTime.Now.AddMinutes(1);
-            //    throw;
-            //}
+            var client = NetService.Resolve<ISocketClient>(RemoteUri.ProtocolType);
+            var rep = RemoteUri.EndPoint;
+            if (rep != null)
+            {
+                client.AddressFamily = rep.AddressFamily;
+                client.Connect(rep);
+            }
             return client.CreateSession();
 
             //return NetService.CreateSession(new NetUri(RemoteProtocolType, RemoteEndPoint));
@@ -187,7 +182,7 @@ namespace NewLife.Net.Proxy
         /// <param name="e"></param>
         protected virtual void OnReceiveRemote(ReceivedEventArgs e)
         {
-            //WriteLog("{0}远程数据：{1}", ID, e.Stream.Length);
+            WriteLog("[{0}] {1} <= {2}", ID, RemoteUri.EndPoint, e.Stream.Length);
 
             if (e.Stream != null)
             {

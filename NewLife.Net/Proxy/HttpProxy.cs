@@ -4,7 +4,6 @@ using System.Net;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using Microsoft.Win32;
-using NewLife.IO;
 using NewLife.Net.Http;
 using NewLife.Net.Sockets;
 using NewLife.Serialization;
@@ -46,14 +45,8 @@ namespace NewLife.Net.Proxy
         {
             var handler = GetHandler(kind);
 
-            if (handler != null)
-            {
-                handler(session, he);
+            if (handler != null) handler(session, he);
 
-                //return he.Cancel;
-            }
-
-            //return false;
             return he.Cancel;
         }
 
@@ -133,10 +126,10 @@ namespace NewLife.Net.Proxy
         public class Session : ProxySession<HttpProxy, Session>
         {
             /// <summary>当前正在处理的请求。一个连接同时只能处理一个请求，除非是Http 1.2</summary>
-            HttpHeader Request;
+            HttpHeader UnFinishedRequest;
 
             /// <summary>已完成处理，正在转发数据的请求头</summary>
-            public HttpHeader CurrentRequest;
+            public HttpHeader Request;
 
             //HttpCacheItem CacheItem = null;
 
@@ -148,16 +141,20 @@ namespace NewLife.Net.Proxy
             /// <param name="e"></param>
             protected override void OnReceive(ReceivedEventArgs e)
             {
+                #region 解析请求头
                 // 解析请求头。
                 var stream = e.Stream;
-                var entity = Request;
+                // 当前正在处理的未完整的头部，浏览器可能把请求头分成几块发过来
+                var entity = UnFinishedRequest;
+                // 如果当前请求为空，说明这是第一个数据包，可能包含头部
                 if (entity == null)
                 {
-                    // 如果当前请求为空，说明这是第一个数据包，可能包含头部
+                    // 读取并分析头部
                     entity = HttpHeader.Read(stream, HttpHeaderReadMode.Request);
                     if (entity == null)
                     {
-                        var he = new HttpProxyEventArgs(CurrentRequest, stream);
+                        // 分析失败？这个可能不是Http请求头
+                        var he = new HttpProxyEventArgs(Request, stream);
                         if (Proxy.RaiseEvent(this, EventKind.OnRequestBody, he)) return;
                         e.Stream = he.Stream;
                         base.OnReceive(e);
@@ -165,10 +162,11 @@ namespace NewLife.Net.Proxy
                         return;
                     }
 
+                    // 根据完成情况保存到不同的本地变量中
                     if (!entity.IsFinish)
-                        Request = entity;
+                        UnFinishedRequest = entity;
                     else
-                        CurrentRequest = entity;
+                        Request = entity;
                 }
                 else if (!entity.IsFinish)
                 {
@@ -176,14 +174,14 @@ namespace NewLife.Net.Proxy
                     entity.ReadHeaders(new BinaryReaderX(stream));
                     if (entity.IsFinish)
                     {
-                        CurrentRequest = entity;
-                        Request = null;
+                        Request = entity;
+                        UnFinishedRequest = null;
                     }
                 }
                 else
                 {
-                    // 否则，头部已完成，现在就是内容
-                    var he = new HttpProxyEventArgs(CurrentRequest, stream);
+                    // 否则，头部已完成，现在就是内容，直接转发
+                    var he = new HttpProxyEventArgs(Request, stream);
                     if (Proxy.RaiseEvent(this, EventKind.OnRequestBody, he)) return;
                     e.Stream = he.Stream;
                     base.OnReceive(e);
@@ -192,18 +190,22 @@ namespace NewLife.Net.Proxy
 
                 // 请求头不完整，不发送，等下一部分到来
                 if (!entity.IsFinish) return;
+                #endregion
 
+                #region 重构请求包
+                // 现在所在位置是一个全新的请求
                 var rs = OnRequest(entity, e);
                 {
-                    var he = new HttpProxyEventArgs(CurrentRequest, stream);
+                    var he = new HttpProxyEventArgs(Request, stream);
                     he.Cancel = !rs;
                     rs = !Proxy.RaiseEvent(this, EventKind.OnRequest, he);
                 }
                 if (!rs) return;
 
+                // 如果流中还有数据，可能是请求体，也要拷贝
                 if (stream.Position < stream.Length)
                 {
-                    var he = new HttpProxyEventArgs(CurrentRequest, stream);
+                    var he = new HttpProxyEventArgs(Request, stream);
                     if (Proxy.RaiseEvent(this, EventKind.OnRequestBody, he)) return;
                     stream = he.Stream;
                 }
@@ -215,11 +217,13 @@ namespace NewLife.Net.Proxy
                 ms.Position = 0;
 
                 e.Stream = ms;
+                #endregion
+
                 base.OnReceive(e);
             }
 
             //String LastHost;
-            Int32 LastPort;
+            //Int32 LastPort;
 
             /// <summary>是否保持连接</summary>
             Boolean KeepAlive = false;
@@ -234,69 +238,39 @@ namespace NewLife.Net.Proxy
                 var oriUrl = entity.Url;
 
                 // 特殊处理CONNECT
-                #region 特殊处理CONNECT
-                if (entity.Method.EqualIgnoreCase("CONNECT"))
-                {
-                    WriteLog("请求：{0} {1} [{2}]", entity.Method, entity.Url, entity.ContentLength);
+                if (entity.Method.EqualIgnoreCase("CONNECT")) return ProcessConnect(entity, e);
 
-                    host = entity.Url.ToString();
-                    RemoteEndPoint = NetHelper.ParseEndPoint(entity.Url.ToString(), 80);
-
-                    // 不要连自己，避免死循环
-                    if (RemoteEndPoint.Port == Proxy.Server.Port &&
-                        (RemoteEndPoint.Address == IPAddress.Loopback || RemoteEndPoint.Address == IPAddress.IPv6Loopback))
-                    {
-                        this.Dispose();
-                        return false;
-                    }
-
-                    var rs = new HttpHeader();
-                    rs.Version = entity.Version;
-                    try
-                    {
-                        // 连接远程服务器，启动数据交换
-                        if (Remote == null) StartRemote(e);
-
-                        rs.StatusCode = 200;
-                        rs.StatusDescription = "OK";
-                    }
-                    catch (Exception ex)
-                    {
-                        rs.StatusCode = 500;
-                        rs.StatusDescription = ex.Message;
-                    }
-
-                    var session = Session;
-                    if (session != null) session.Send(rs.GetStream());
-                    return false;
-                }
-                #endregion
-
+                var remote = Remote;
+                var ruri = RemoteUri;
                 if (entity.Url.IsAbsoluteUri)
                 {
                     var uri = entity.Url;
                     host = uri.Host + ":" + uri.Port;
 
                     // 如果地址或端口改变，则重新连接服务器
-                    if (Remote != null && (uri.Host != RemoteHost || uri.Port != LastPort))
+                    if (remote != null && (uri.Host != ruri.Host || uri.Port != ruri.Port))
                     {
-                        Remote.Dispose();
+                        remote.Dispose();
                         Remote = null;
                     }
-                    RemoteHost = uri.Host;
-                    LastPort = uri.Port;
+                    //RemoteHost = uri.Host;
+                    //LastPort = uri.Port;
 
-                    RemoteEndPoint = new IPEndPoint(NetHelper.ParseAddress(uri.Host), uri.Port);
+                    //RemoteEndPoint = new IPEndPoint(NetHelper.ParseAddress(uri.Host), uri.Port);
+                    ruri.Host = uri.Host;
+                    ruri.Port = uri.Port;
                     entity.Url = new Uri(uri.PathAndQuery, UriKind.Relative);
                 }
                 else if (!String.IsNullOrEmpty(entity.Host))
                 {
-                    RemoteEndPoint = NetHelper.ParseEndPoint(entity.Host, 80);
+                    //RemoteEndPoint = NetHelper.ParseEndPoint(entity.Host, 80);
+                    ruri.Host = entity.Host;
+                    ruri.Port = 80;
                 }
                 else
                     throw new NetException("无法处理的请求！{0}", entity);
 
-                WriteLog("{3} 请求：{0} {1} [{2}]", entity.Method, oriUrl, entity.ContentLength, ClientEndPoint);
+                WriteLog("[{4}] {3} => {0} {1} [{2}]", entity.Method, oriUrl, entity.ContentLength, ClientEndPoint, ID);
 
                 // 可能不含Host
                 if (String.IsNullOrEmpty(entity.Host)) entity.Host = host;
@@ -333,6 +307,46 @@ namespace NewLife.Net.Proxy
                 #endregion
 
                 return true;
+            }
+
+            Boolean ProcessConnect(HttpHeader entity, ReceivedEventArgs e)
+            {
+                WriteLog("[{3}] {0} {1} [{2}]", entity.Method, entity.Url, entity.ContentLength, ID);
+
+                //var host = entity.Url.ToString();
+                var uri = RemoteUri;
+                var ep = NetHelper.ParseEndPoint(entity.Url.ToString(), 80);
+                uri.EndPoint = ep;
+
+                // 不要连自己，避免死循环
+                if (ep.Port == Proxy.Server.Port &&
+                    (ep.Address == IPAddress.Loopback || ep.Address == IPAddress.IPv6Loopback))
+                {
+                    WriteLog("不要连自己，避免死循环");
+                    this.Dispose();
+                    return false;
+                }
+
+                var rs = new HttpHeader();
+                rs.Version = entity.Version;
+                try
+                {
+                    // 连接远程服务器，启动数据交换
+                    if (Remote == null) StartRemote(e);
+
+                    rs.StatusCode = 200;
+                    rs.StatusDescription = "OK";
+                }
+                catch (Exception ex)
+                {
+                    rs.StatusCode = 500;
+                    rs.StatusDescription = ex.Message;
+                }
+
+                // 告诉客户端，已经连上了服务端，或者没有连上，这里不需要向服务端发送任何数据
+                var session = Session;
+                if (session != null) session.Send(rs.GetStream());
+                return false;
             }
 
             HttpHeader Response;

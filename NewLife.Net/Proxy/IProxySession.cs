@@ -23,11 +23,11 @@ namespace NewLife.Net.Proxy
         /// <summary>远程客户端。跟目标服务端通讯的那个Socket，其实是客户端TcpClientX/UdpClientX</summary>
         ISocketSession Remote { get; set; }
 
-        /// <summary>远程客户端IP终结点</summary>
-        IPEndPoint RemoteEndPoint { get; set; }
+        ///// <summary>远程客户端IP终结点</summary>
+        //IPEndPoint RemoteEndPoint { get; set; }
 
-        /// <summary>服务端协议。默认与客户端协议相同</summary>
-        ProtocolType RemoteProtocolType { get; set; }
+        ///// <summary>服务端协议。默认与客户端协议相同</summary>
+        //ProtocolType RemoteProtocolType { get; set; }
 
         /// <summary>服务端地址</summary>
         NetUri RemoteUri { get; }

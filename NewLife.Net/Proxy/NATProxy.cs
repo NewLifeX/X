@@ -77,11 +77,14 @@ namespace NewLife.Net.Proxy
         protected override void AddSession(INetSession session)
         {
             var s = session as ProxySession;
-            s.RemoteEndPoint = new IPEndPoint(ServerAddress, ServerPort);
+            //s.RemoteEndPoint = new IPEndPoint(ServerAddress, ServerPort);
+            var uri = s.RemoteUri;
+            uri.Address = ServerAddress;
+            uri.Port = ServerPort;
             if (ServerProtocolType == ProtocolType.Tcp || ServerProtocolType == ProtocolType.Udp)
-                s.RemoteProtocolType = ServerProtocolType;
+                uri.ProtocolType = ServerProtocolType;
             else
-                s.RemoteProtocolType = session.Server.ProtocolType;
+                uri.ProtocolType = session.Server.ProtocolType;
 
             base.AddSession(session);
         }
