@@ -202,6 +202,9 @@ namespace XAgent
                             #endregion
                             break;
                         case 7:
+                            if (WatchDogs.Length > 0) CheckWatchDog();
+                            break;
+                        case 8:
                             RunUI();
                             break;
                         default:
@@ -310,6 +313,11 @@ namespace XAgent
                         Console.WriteLine("{0,10} = {1}", item.Key, item.Value);
                     }
                 }
+            }
+
+            if (WatchDogs.Length > 0)
+            {
+                Console.WriteLine("7 看门狗保护服务 {0}", String.Join(",", WatchDogs));
             }
 
             Console.WriteLine("0 退出");
@@ -648,7 +656,7 @@ namespace XAgent
 
                     // 检查看门狗
                     //CheckWatchDog();
-                    ThreadPoolX.QueueUserWorkItem(CheckWatchDog);
+                    if (WatchDogs.Length > 0) ThreadPoolX.QueueUserWorkItem(CheckWatchDog);
 
                     Thread.Sleep(60 * 1000);
                 }
@@ -829,6 +837,21 @@ namespace XAgent
         #endregion
 
         #region 看门狗
+        private static String[] _WatchDogs;
+        /// <summary>看门狗要保护的服务</summary>
+        public static String[] WatchDogs
+        {
+            get
+            {
+                if (_WatchDogs == null)
+                {
+                    _WatchDogs = Config.GetConfigSplit<String>("XAgent.WatchLog", null);
+                    if (_WatchDogs == null) _WatchDogs = new String[0];
+                }
+                return _WatchDogs;
+            }
+        }
+
         /// <summary>检查看门狗。</summary>
         /// <remarks>
         /// XAgent看门狗功能由管理线程完成，每分钟一次。
