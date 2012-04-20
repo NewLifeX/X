@@ -135,36 +135,36 @@ namespace NewLife.Net.Proxy
             }
         }
 
-        /// <summary>用于记录不可连接的地址，带超时时间。</summary>
-        static Dictionary<String, DateTime> _NotConnected = new Dictionary<string, DateTime>();
+        ///// <summary>用于记录不可连接的地址，带超时时间。</summary>
+        //static Dictionary<String, DateTime> _NotConnected = new Dictionary<string, DateTime>();
 
         /// <summary>为会话创建与远程服务器通讯的Socket。可以使用Socket池达到重用的目的。默认实现创建与服务器相同类型的客户端</summary>
         /// <param name="e"></param>
         /// <returns></returns>
         protected virtual ISocketSession CreateRemote(ReceivedEventArgs e)
         {
-            var key = "" + RemoteEndPoint;
-            if (String.IsNullOrEmpty(key)) throw new ArgumentNullException("RemoteEndPoint");
+            //var key = "" + RemoteEndPoint;
+            //if (String.IsNullOrEmpty(key)) throw new ArgumentNullException("RemoteEndPoint");
 
-            DateTime dt;
-            if (_NotConnected.TryGetValue(key, out dt))
-            {
-                if (dt > DateTime.Now) throw new NetException("指定时间内连接{0}超时，稍候再试！", key);
-                _NotConnected.Remove(key);
-            }
+            //DateTime dt;
+            //if (_NotConnected.TryGetValue(key, out dt))
+            //{
+            //    if (dt > DateTime.Now) throw new NetException("指定时间内连接{0}超时，稍候再试！", key);
+            //    _NotConnected.Remove(key);
+            //}
 
             var client = NetService.Resolve<ISocketClient>(RemoteProtocolType);
             if (RemoteEndPoint != null) client.AddressFamily = RemoteEndPoint.AddressFamily;
             //client.ConnectTimeout = 5000;
-            try
-            {
-                client.Connect(RemoteEndPoint);
-            }
-            catch
-            {
-                _NotConnected[key] = DateTime.Now.AddMinutes(1);
-                throw;
-            }
+            //try
+            //{
+            client.Connect(RemoteEndPoint);
+            //}
+            //catch
+            //{
+            //    _NotConnected[key] = DateTime.Now.AddMinutes(1);
+            //    throw;
+            //}
             return client.CreateSession();
 
             //return NetService.CreateSession(new NetUri(RemoteProtocolType, RemoteEndPoint));
