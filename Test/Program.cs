@@ -10,6 +10,7 @@ using NewLife.Net.Sockets;
 using NewLife.Threading;
 using NewLife.Net;
 using NewLife.Net.Common;
+using System.Collections.Generic;
 
 namespace Test
 {
@@ -214,14 +215,61 @@ namespace Test
             Console.WriteLine("客户端收到：{0}", e.Message);
         }
 
+        private static Dictionary<Int32, MessageGroup> groups = new Dictionary<Int32, MessageGroup>();
         static void server_Received(object sender, NetEventArgs e)
         {
-            var msg = Message.Read(e.GetStream());
-            Console.WriteLine("服务端收到：[{0}] {1}", e.BytesTransferred, msg.Kind);
+            var ms = e.GetStream();
+            Console.WriteLine("服务端收到：[{0}]", ms.Length);
 
-            var rs = new EntityMessage();
-            rs.Value = "收到" + msg;
-            (sender as ISocketSession).Send(rs.GetStream());
+            Message gm = null;
+            while (ms.Position < ms.Length)
+            {
+                var msg = Message.Read(ms);
+                Console.WriteLine("{0}消息：{1}", e.RemoteIPEndPoint, msg);
+
+                gm = OnReceiveMessage(msg, e.Session);
+            }
+
+            if (gm != null)
+            {
+                var rs = new EntityMessage();
+                rs.Value = "收到" + gm;
+                (sender as ISocketSession).Send(rs.GetStream());
+            }
+        }
+
+        static Message OnReceiveMessage(Message msg, ISocketSession session)
+        {
+            // 测试，返回源消息
+            if (msg.Kind == MessageKind.Null)
+            {
+                session.Send(msg.GetStream());
+                return null;
+            }
+
+            // 组消息需要封包
+            if (msg.Kind == MessageKind.Group)
+            {
+                var gmsg = msg as GroupMessage;
+
+                MessageGroup mg = null;
+                if (!groups.TryGetValue(gmsg.Identity, out mg))
+                {
+                    mg = new MessageGroup();
+                    mg.Identity = gmsg.Identity;
+                    groups.Add(mg.Identity, mg);
+                }
+
+                // 加入到组，如果返回false，表示未收到所有消息
+                if (!mg.Add(gmsg)) return null;
+
+                // 否则，表示收到所有消息
+                groups.Remove(mg.Identity);
+
+                // 读取真正的消息
+                return mg.GetMessage();
+            }
+            return null;
         }
     }
 }
