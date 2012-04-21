@@ -1,7 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.IO;
+using NewLife.Serialization;
 
 namespace NewLife.Messaging
 {
@@ -15,7 +14,7 @@ namespace NewLife.Messaging
     public class MessageHeader
     {
         #region 属性
-        private Flags _Flag = Flags.Header;
+        private Flags _Flag;
         /// <summary>标识位</summary>
         public Flags Flag { get { return _Flag; } set { _Flag = value; } }
 
@@ -36,7 +35,10 @@ namespace NewLife.Messaging
         /// <param name="stream"></param>
         public void Write(Stream stream)
         {
-            var writer = new BinaryWriter(stream);
+            if (!UseHeader) return;
+
+            var writer = new BinaryWriterX(stream);
+            writer.Settings.EncodeInt = true;
             writer.Write((Byte)Flag);
             if (HasFlag(Flags.Channel)) writer.Write(Channel);
             if (HasFlag(Flags.SessionID)) writer.Write(SessionID);
@@ -46,6 +48,8 @@ namespace NewLife.Messaging
         /// <returns></returns>
         public Byte[] ToArray()
         {
+            if (!UseHeader) return new Byte[0];
+
             var ms = new MemoryStream();
             Write(ms);
             return ms.ToArray();
@@ -55,7 +59,8 @@ namespace NewLife.Messaging
         /// <param name="stream"></param>
         public void Read(Stream stream)
         {
-            var reader = new BinaryReader(stream);
+            var reader = new BinaryReaderX(stream);
+            reader.Settings.EncodeInt = true;
             Flag = (Flags)reader.ReadByte();
             if (HasFlag(Flags.Channel)) Channel = reader.ReadByte();
             if (HasFlag(Flags.SessionID)) SessionID = reader.ReadInt32();

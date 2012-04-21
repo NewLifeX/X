@@ -1,10 +1,10 @@
 ﻿using System;
-using NewLife.Linq;
-using System.Xml.Serialization;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Collections;
-using NewLife.Exceptions;
+using System.Xml.Serialization;
+using NewLife.Linq;
+using NewLife.Serialization;
 
 namespace NewLife.Messaging
 {
@@ -68,37 +68,63 @@ namespace NewLife.Messaging
         /// <summary>拆分数据流为多个消息</summary>
         /// <param name="stream"></param>
         /// <param name="size"></param>
-        public void Split(Stream stream, Int32 size)
+        /// <param name="header"></param>
+        public void Split(Stream stream, Int32 size, MessageHeader header = null)
         {
-            var count = (Int32)Math.Ceiling((Double)(stream.Length - stream.Position) / size);
+            // 消息头大小
+            var headerLength = 0;
+            if (header != null) headerLength = header.ToArray().Length;
 
-            // 估计组消息头部长度。
-            var len = 1 + 1 + 1 + 1;
-            // 如果标识大于128，增加
-            if (Identity >= 128) len += 3;
-            // 如果数据包个数大于128时，增加
-            if (count >= 128) len += 3 + 3;
+            // 先估算数据包个数
+            var count = (Int32)Math.Ceiling((Double)(stream.Length - stream.Position) / (size - (1 + 4 * 3 + 1) - headerLength));
 
-            // 加上数据大小
-            len += size >= 128 ? 4 : 1;
+            // 估计组消息头部长度，最大化构造包。
+            // Kind + 消息头
+            var len = 1 + headerLength;
+            // Identity
+            len += BinaryWriterX.GetEncodedIntSize(Identity);
+            // Count
+            len += 1;
+
+            // 加上数据包大小。因为压缩整数的存在，这里不是绝对准确，但是大多数时候不会有问题
+            len += BinaryWriterX.GetEncodedIntSize(size);
+            // !!!不要忘了数据部分的对象引用
+            len += 1;
 
             // 计算数据部分大小
-            var index = 0;
+            var index = Items.Count;
             while (stream.Position < stream.Length)
             {
                 var msg = new GroupMessage();
+                msg.Header = header;
                 msg.Identity = Identity;
                 msg.Index = ++index;
-                msg.Count = count;
+                //msg.Count = count;
+
+                // 预计索引长度
+                var trueLen = len + BinaryWriterX.GetEncodedIntSize(msg.Index);
+                // 第一个元素采用精确Count
+                if (msg.Index == 1) len += BinaryWriterX.GetEncodedIntSize(count) - 1;
 
                 var len2 = stream.Length - stream.Position;
-                if (len2 > size - len) len2 = size - len;
-                var buffer = new Byte[len2];
-                stream.Read(buffer, 0, buffer.Length);
-                msg.Data = buffer;
+                if (len2 > size - trueLen) len2 = size - trueLen;
+                //var buffer = new Byte[len2];
+                //stream.Read(buffer, 0, buffer.Length);
+                //msg.Data = buffer;
+                msg.Data = stream.ReadBytes(len2);
 
                 Items.Add(msg);
             }
+
+            //if (Items.Count > 0) Items[0].Count = Items.Count;
+            // 第一个组消息的Count是准确的，总数Count小于128的全部使用实际总数Count，其它都是用0
+            count = Items.Count;
+            var isLittle = count < 128;
+            foreach (var item in Items)
+            {
+                item.Count = isLittle ? count : 0;
+            }
+            if (count > 0) Items[0].Count = count;
         }
         #endregion
 

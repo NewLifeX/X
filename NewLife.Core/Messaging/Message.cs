@@ -114,7 +114,7 @@ namespace NewLife.Messaging
             }
 
             // 读取了响应类型和消息类型后，动态创建消息对象
-            var kind = (MessageKind)reader.ReadByte();
+            var kind = (MessageKind)(reader.ReadByte() & 0x0F);
             var type = ObjectContainer.Current.ResolveType<Message>(kind);
             if (type == null) throw new XException("无法识别的消息类型（Kind={0}）！", kind);
 

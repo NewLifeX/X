@@ -2,18 +2,27 @@
 using System.Collections.Generic;
 using System.Threading;
 using NewLife.Linq;
+using System.IO;
+using NewLife.Log;
 
 namespace NewLife.Messaging
 {
     /// <summary>消息提供者接口</summary>
     /// <remarks>
-    /// 大多数时候，内部采用异步实现。
+    /// 同步结构使用<see cref="SendAndReceive"/>；
+    /// 异步结构使用<see cref="Send"/>和<see cref="OnReceived"/>；
+    /// 异步结构中也可以使用<see cref="SendAndReceive"/>，但是因为通过事件量完成，会极为不稳定。
+    /// 
+    /// 如果只需要操作某个通道的消息，可通过<see cref="M:IMessageConsumer Register(Byte channel)"/>实现。
     /// 
     /// <see cref="SendAndReceive"/>适合客户端的大多数情况，比如同步Http、同步Tcp。
     /// 如果内部实现是异步模型，则等待指定时间获取异步返回的第一条消息，该消息不再触发消息到达事件<see cref="OnReceived"/>。
     /// </remarks>
     public interface IMessageProvider
     {
+        /// <summary>最大消息大小，超过该大小将分包发送。0表示不限制。</summary>
+        Int32 MaxMessageSize { get; set; }
+
         /// <summary>发送并接收消息。主要用于应答式的请求和响应。该方法的实现不是线程安全的，使用时一定要注意。</summary>
         /// <remarks>如果内部实现是异步模型，则等待指定时间获取异步返回的第一条消息，该消息不再触发消息到达事件<see cref="OnReceived"/>。</remarks>
         /// <param name="message"></param>
@@ -32,13 +41,13 @@ namespace NewLife.Messaging
         /// <param name="start">消息范围的起始</param>
         /// <param name="end">消息范围的结束</param>
         /// <returns>消息消费者</returns>
-        [Obsolete("请采用消息消费者接口！")]
+        [Obsolete("请采用消息消费者接口IMessageConsumer Register(Byte channel)！")]
         IMessageProvider Register(MessageKind start, MessageKind end);
 
         /// <summary>注册消息消费者，仅消费指定范围的消息</summary>
         /// <param name="kinds">消息类型的集合</param>
         /// <returns>消息消费者</returns>
-        [Obsolete("请采用消息消费者接口！")]
+        [Obsolete("请采用消息消费者接口IMessageConsumer Register(Byte channel)！")]
         IMessageProvider Register(MessageKind[] kinds);
 
         /// <summary>注册消息消费者，仅消费指定通道的消息</summary>
@@ -94,6 +103,10 @@ namespace NewLife.Messaging
     public abstract class MessageProvider : DisposeBase, IMessageProvider2
     {
         #region 属性
+        private Int32 _MaxMessageSize;
+        /// <summary>最大消息大小，超过该大小将分包发送。0表示不限制。</summary>
+        public Int32 MaxMessageSize { get { return _MaxMessageSize; } set { _MaxMessageSize = value; } }
+
         private IMessageProvider _Parent;
         /// <summary>消息提供者</summary>
         public IMessageProvider Parent { get { return _Parent; } set { _Parent = value; } }
@@ -104,9 +117,30 @@ namespace NewLife.Messaging
         #endregion
 
         #region 基本收发
-        /// <summary>发送消息。如果有响应，可在消息到达事件<see cref="OnReceived"/>中获得。</summary>
+        /// <summary>发送消息。如果有响应，可在消息到达事件<see cref="OnReceived"/>中获得。这里会实现大消息分包。</summary>
         /// <param name="message"></param>
-        public abstract void Send(Message message);
+        public virtual void Send(Message message)
+        {
+            var ms = message.GetStream();
+            WriteLog("发送消息 [{0}] {1}", ms.Length, message);
+            if (MaxMessageSize <= 0 || ms.Length < MaxMessageSize)
+                OnSend(ms);
+            else
+            {
+                var mg = new MessageGroup();
+                mg.Split(ms, MaxMessageSize, message.Header);
+                foreach (var item in mg)
+                {
+                    ms = item.GetStream();
+                    WriteLog("发送分组 {0}/{1} [{2}]", item.Index, item.Count, ms.Length);
+                    OnSend(ms);
+                }
+            }
+        }
+
+        /// <summary>发送数据流。</summary>
+        /// <param name="stream"></param>
+        protected abstract void OnSend(Stream stream);
 
         /// <summary>收到消息时调用该方法</summary>
         /// <param name="message"></param>
@@ -224,7 +258,7 @@ namespace NewLife.Messaging
             {
                 Consumers2.Add(mc);
             }
-            mc.OnDisposed += (s, e) => Consumers2.Remove(s as MessageConsumer2);
+            mc.OnDisposed += (s, e) => { lock (Consumers2) { Consumers2.Remove(s as MessageConsumer2); } };
 
             return mc;
         }
@@ -348,6 +382,17 @@ namespace NewLife.Messaging
             /// <summary>发送消息</summary>
             /// <param name="message"></param>
             public override void Send(Message message) { Parent.Send(message); }
+
+            /// <summary>发送数据流。</summary>
+            /// <param name="stream"></param>
+            protected override void OnSend(Stream stream) { }
+        }
+        #endregion
+
+        #region 日志
+        static void WriteLog(String format, params Object[] args)
+        {
+            if (XTrace.Debug) XTrace.WriteLine(format, args);
         }
         #endregion
     }

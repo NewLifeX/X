@@ -68,9 +68,9 @@ namespace NewLife.Messaging
         #region 异步收发
         Boolean _hasSetAsync;
 
-        /// <summary>发送消息。如果有响应，可在消息到达事件中获得。</summary>
-        /// <param name="message"></param>
-        public override void Send(Message message)
+        /// <summary>发送数据流。</summary>
+        /// <param name="stream"></param>
+        protected override void OnSend(Stream stream)
         {
             var client = Client;
             if (!_hasSetAsync)
@@ -78,7 +78,7 @@ namespace NewLife.Messaging
                 client.UploadDataCompleted += new UploadDataCompletedEventHandler(client_UploadDataCompleted);
                 client.DownloadDataCompleted += new DownloadDataCompletedEventHandler(client_DownloadDataCompleted);
             }
-            var data = message.GetStream().ReadBytes();
+            var data = stream.ReadBytes();
             if (data.Length < 128)
                 client.DownloadDataAsync(new Uri(Uri.ToString() + "?" + DataHelper.ToHex(data)));
             else

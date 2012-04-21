@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Net;
+using System.IO;
 using NewLife.Messaging;
 using NewLife.Net.Sockets;
 
@@ -35,11 +35,8 @@ namespace NewLife.Net.Common
             }
         }
 
-        /// <summary>发送消息</summary>
-        /// <param name="message"></param>
-        public override void Send(Message message)
-        {
-            Session.Send(message.GetStream());
-        }
+        /// <summary>发送数据流。</summary>
+        /// <param name="stream"></param>
+        protected override void OnSend(Stream stream) { Session.Send(stream); }
     }
 }

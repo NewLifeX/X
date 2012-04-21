@@ -8,6 +8,8 @@ using NewLife.Messaging;
 using NewLife.Net.Proxy;
 using NewLife.Net.Sockets;
 using NewLife.Threading;
+using NewLife.Net;
+using NewLife.Net.Common;
 
 namespace Test
 {
@@ -24,7 +26,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test1();
+                Test4();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -172,6 +174,54 @@ namespace Test
                     Thread.Sleep(1000);
                 }
             }
+        }
+
+        static NetServer server = null;
+        static IMessageProvider cmp = null;
+        static void Test4()
+        {
+            if (server == null)
+            {
+                server = new NetServer();
+                server.Port = 1234;
+                server.Received += new EventHandler<NetEventArgs>(server_Received);
+
+                //var smp = new SessionMessageProvider();
+                server.Start();
+            }
+
+            if (cmp == null)
+            {
+                var client = NetService.CreateSession(new NetUri("tcp://::1:1234"));
+                client.ReceiveAsync();
+                cmp = new ClientMessageProvider() { Session = client };
+            }
+
+            //Message.Debug = true;
+            var msg = new EntityMessage();
+            var rnd = new Random((Int32)DateTime.Now.Ticks);
+            var bts = new Byte[rnd.Next(5000, 10000)];
+            rnd.NextBytes(bts);
+            msg.Value = bts;
+
+            //var rs = cmp.SendAndReceive(msg, 5000);
+            cmp.OnReceived += new EventHandler<MessageEventArgs>(cmp_OnReceived);
+            cmp.Send(msg);
+        }
+
+        static void cmp_OnReceived(object sender, MessageEventArgs e)
+        {
+            Console.WriteLine("客户端收到：{0}", e.Message);
+        }
+
+        static void server_Received(object sender, NetEventArgs e)
+        {
+            var msg = Message.Read(e.GetStream());
+            Console.WriteLine("服务端收到：[{0}] {1}", e.BytesTransferred, msg.Kind);
+
+            var rs = new EntityMessage();
+            rs.Value = "收到" + msg;
+            (sender as ISocketSession).Send(rs.GetStream());
         }
     }
 }

@@ -20,11 +20,18 @@ namespace NewLife.Net.Common
                 {
                     _Session = value;
 
-                    if (value != null && value.UseReceiveAsync)
+                    if (value != null)
                     {
-                        value.Received += new EventHandler<ReceivedEventArgs>(client_Received);
+                        //// 只有Udp需要控制包大小
+                        //MaxMessageSize = value.ProtocolType == ProtocolType.Udp ? 1460 : 0;
+                        MaxMessageSize = 1460;
 
-                        //if (!value.UseReceiveAsync) value.ReceiveAsync();
+                        if (value.UseReceiveAsync)
+                        {
+                            value.Received += new EventHandler<ReceivedEventArgs>(client_Received);
+
+                            //if (!value.UseReceiveAsync) value.ReceiveAsync();
+                        }
                     }
                 }
             }
@@ -47,26 +54,9 @@ namespace NewLife.Net.Common
             }
         }
 
-        /// <summary>发送消息。如果有响应，可在消息到达事件中获得。</summary>
-        /// <param name="message"></param>
-        public override void Send(Message message)
-        {
-            var session = GetSession();
-
-            //Session.Send(message.GetStream());
-            var ms = message.GetStream();
-            if (ms.Length < 1460)
-                session.Send(ms);
-            else
-            {
-                var mg = new MessageGroup();
-                mg.Split(ms, 1460);
-                foreach (var item in mg)
-                {
-                    session.Send(item.GetStream());
-                }
-            }
-        }
+        /// <summary>发送数据流。</summary>
+        /// <param name="stream"></param>
+        protected override void OnSend(Stream stream) { GetSession().Send(stream); }
 
         ISocketSession GetSession()
         {

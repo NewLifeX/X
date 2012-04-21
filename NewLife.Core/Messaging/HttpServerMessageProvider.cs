@@ -1,12 +1,11 @@
 ﻿using System;
-using System.Web;
-using NewLife.IO;
 using System.IO;
+using System.Web;
 using NewLife.Security;
 
 namespace NewLife.Messaging
 {
-    /// <summary>Http消息提供者处理器。为消息提供者提供承载</summary>
+    /// <summary>Http消息提供者处理器。为消息提供者提供承载，核心是调用<see cref="M:HttpServerMessageProvider.Instance.Process"/></summary>
     public class HttpMessageProviderHandler : IHttpHandler
     {
         #region IHttpHandler 成员
@@ -22,7 +21,8 @@ namespace NewLife.Messaging
         #endregion
     }
 
-    /// <summary>Http服务器消息提供者</summary>
+    /// <summary>Http服务器消息提供者。单例模式，通过静态属性<see cref="Instance"/>访问单一实例。</summary>
+    /// <remarks>不支持<see cref="M:SendAnReceive"/>方法</remarks>
     public class HttpServerMessageProvider : MessageProvider
     {
         #region 属性
@@ -38,13 +38,9 @@ namespace NewLife.Messaging
         public static HttpServerMessageProvider Instance { get { return _Instance ?? (_Instance = new HttpServerMessageProvider()); } }
         #endregion
 
-        /// <summary>发送消息。如果有响应，可在消息到达事件中获得。</summary>
-        /// <param name="message"></param>
-        public override void Send(Message message)
-        {
-            var rs = Context.Response;
-            rs.BinaryWrite(message.GetStream().ReadBytes());
-        }
+        /// <summary>发送数据流。</summary>
+        /// <param name="stream"></param>
+        protected override void OnSend(Stream stream) { Context.Response.BinaryWrite(stream.ReadBytes()); }
 
         /// <summary>已重载。不支持。</summary>
         /// <param name="message"></param>
