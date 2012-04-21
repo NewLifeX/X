@@ -213,6 +213,23 @@ namespace NewLife.Serialization
 
             return count;
         }
+
+        /// <summary>获取整数编码后所占字节数</summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static Int32 GetEncodedIntSize(Int64 value)
+        {
+            Int32 count = 1;
+            UInt64 num = (UInt64)value;
+            while (num >= 0x80)
+            {
+                num = num >> 7;
+
+                count++;
+            }
+
+            return count;
+        }
         #endregion
 
         #region 扩展处理类型
