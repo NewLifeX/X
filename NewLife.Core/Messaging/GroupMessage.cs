@@ -104,7 +104,7 @@ namespace NewLife.Messaging
                 // 预计索引长度
                 var trueLen = len + BinaryWriterX.GetEncodedIntSize(msg.Index);
                 // 第一个元素采用精确Count
-                if (msg.Index == 1) len += BinaryWriterX.GetEncodedIntSize(count) - 1;
+                if (msg.Index == 1) trueLen += BinaryWriterX.GetEncodedIntSize(count) - 1;
 
                 var len2 = stream.Length - stream.Position;
                 if (len2 > size - trueLen) len2 = size - trueLen;

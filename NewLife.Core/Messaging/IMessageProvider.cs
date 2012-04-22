@@ -4,6 +4,7 @@ using System.IO;
 using System.Threading;
 using NewLife.Linq;
 using NewLife.Log;
+using System.Diagnostics;
 
 namespace NewLife.Messaging
 {
@@ -143,10 +144,13 @@ namespace NewLife.Messaging
             {
                 var mg = new MessageGroup();
                 mg.Split(ms, MaxMessageSize, message.Header);
+                var count = 0;
                 foreach (var item in mg)
                 {
+                    if (item.Index == 1) count = item.Count;
                     ms = item.GetStream();
                     WriteLog("发送分组 Identity={0} {1}/{2} [{3}] [{4}]", item.Identity, item.Index, item.Count, item.Data == null ? 0 : item.Data.Length, ms.Length);
+                    Debug.Assert(item.Index == count || ms.Length == MaxMessageSize, "分拆的组消息大小不合适！");
                     OnSend(ms);
                 }
             }
