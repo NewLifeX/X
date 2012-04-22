@@ -146,7 +146,7 @@ namespace NewLife.Messaging
                 foreach (var item in mg)
                 {
                     ms = item.GetStream();
-                    WriteLog("发送分组 {0}/{1} [{2}]", item.Index, item.Count, ms.Length);
+                    WriteLog("发送分组 Identity={0} {1}/{2} [{3}] [{4}]", item.Identity, item.Index, item.Count, item.Data == null ? 0 : item.Data.Length, ms.Length);
                     OnSend(ms);
                 }
             }
@@ -171,6 +171,8 @@ namespace NewLife.Messaging
                 // 如果为空，表明还没完成组合，直接返回
                 if (message == null) return;
             }
+
+            WriteLog("接收消息 {0}", message);
 
             // 为Receive准备的事件，只用一次
             EventHandler<MessageEventArgs> handler;
@@ -237,6 +239,8 @@ namespace NewLife.Messaging
         /// <returns></returns>
         protected virtual Message JoinGroup(GroupMessage message)
         {
+            WriteLog("接收分组 Identity={0} {1}/{2} [{3}]", message.Identity, message.Index, message.Count, message.Data == null ? 0 : message.Data.Length);
+
             MessageGroup mg = null;
             if (!groups.TryGetValue(message.Identity, out mg))
             {

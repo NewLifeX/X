@@ -29,6 +29,12 @@ namespace NewLife.Messaging
         /// <remarks>第一个字节的第一位决定是否存在消息头。</remarks>
         [XmlIgnore]
         public abstract MessageKind Kind { get; }
+
+        [NonSerialized]
+        private Object _UserState;
+        /// <summary>在消息处理过程中附带的用户对象。不参与序列化</summary>
+        [XmlIgnore]
+        public Object UserState { get { return _UserState; } set { _UserState = value; } }
         #endregion
 
         #region 构造、注册

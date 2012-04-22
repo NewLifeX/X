@@ -178,6 +178,7 @@ namespace Test
         }
 
         static NetServer server = null;
+        static IMessageProvider smp = null;
         static IMessageProvider cmp = null;
         static void Test4()
         {
@@ -185,9 +186,13 @@ namespace Test
             {
                 server = new NetServer();
                 server.Port = 1234;
-                server.Received += new EventHandler<NetEventArgs>(server_Received);
+                //server.Received += new EventHandler<NetEventArgs>(server_Received);
 
-                //var smp = new SessionMessageProvider();
+                var mp = new ServerMessageProvider(server);
+                mp.OnReceived += new EventHandler<MessageEventArgs>(smp_OnReceived);
+                mp.AutoJoinGroup = true;
+                smp = mp;
+
                 server.Start();
             }
 
@@ -196,6 +201,7 @@ namespace Test
                 var client = NetService.CreateSession(new NetUri("tcp://::1:1234"));
                 client.ReceiveAsync();
                 cmp = new ClientMessageProvider() { Session = client };
+                cmp.OnReceived += new EventHandler<MessageEventArgs>(cmp_OnReceived);
             }
 
             //Message.Debug = true;
@@ -206,8 +212,16 @@ namespace Test
             msg.Value = bts;
 
             //var rs = cmp.SendAndReceive(msg, 5000);
-            cmp.OnReceived += new EventHandler<MessageEventArgs>(cmp_OnReceived);
             cmp.Send(msg);
+        }
+
+        static void smp_OnReceived(object sender, MessageEventArgs e)
+        {
+            var msg = e.Message;
+            Console.WriteLine("服务端收到：[{0}]", msg);
+            var rs = new EntityMessage();
+            rs.Value = "收到" + msg;
+            (sender as IMessageProvider).Send(rs);
         }
 
         static void cmp_OnReceived(object sender, MessageEventArgs e)

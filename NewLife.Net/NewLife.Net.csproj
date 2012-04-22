@@ -57,6 +57,7 @@
     <Compile Include="Common\NetUri.cs" />
     <Compile Include="Common\SessionMessageProvider.cs" />
     <Compile Include="Common\Statistics.cs" />
+    <Compile Include="Common\ServerMessageProvider.cs" />
     <Compile Include="Dhcp\DchpMessageType.cs" />
     <Compile Include="Dhcp\DhcpEntity.cs" />
     <Compile Include="DNS\DNSOpcodeType.cs" />
