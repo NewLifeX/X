@@ -27,7 +27,7 @@ namespace NewLife.Net.Common
             {
                 //var message = Message.Read(e.Stream);
                 var s = e.Stream;
-                while (s.Position < s.Length) Process(Message.Read(s));
+                while (s.Position < s.Length && Message.IsMessage(s)) Process(Message.Read(s));
             }
             catch (Exception ex)
             {

@@ -176,6 +176,11 @@ namespace NewLife.Messaging
             return ObjectContainer.Current.ResolveType<Message>(kind);
         }
 
+        /// <summary>通过首字节判断数据流是否消息。首字节作为Kind，然后查找是否有消息注册该Kind</summary>
+        /// <param name="stream"></param>
+        /// <returns></returns>
+        public static Boolean IsMessage(Stream stream) { return PeekType(stream) != null; }
+
         /// <summary>从源消息克隆设置和可序列化成员数据</summary>
         /// <param name="msg"></param>
         /// <returns></returns>

@@ -71,7 +71,7 @@ namespace NewLife.Messaging
                 //var msg = Message.Read(Context.Request.InputStream);
 
                 // 支持多消息
-                while (s.Position < s.Length) Process(Message.Read(s));
+                while (s.Position < s.Length && Message.IsMessage(s)) Process(Message.Read(s));
             }
             catch (Exception ex)
             {
