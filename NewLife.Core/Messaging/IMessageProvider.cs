@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading;
 using NewLife.Linq;
-using System.IO;
 using NewLife.Log;
 
 namespace NewLife.Messaging
@@ -22,6 +22,12 @@ namespace NewLife.Messaging
     {
         /// <summary>最大消息大小，超过该大小将分包发送。0表示不限制。</summary>
         Int32 MaxMessageSize { get; set; }
+
+        /// <summary>是否自动组合<see cref="GroupMessage"/>消息。</summary>
+        Boolean AutoJoinGroup { get; set; }
+
+        /// <summary>组合组消息超时时间，毫秒。对于<see cref="GroupMessage"/>，如果后续包不能在当前时间之内到达，则认为超时，放弃该组。</summary>
+        Int32 JoinGroupTimeout { get; set; }
 
         /// <summary>发送并接收消息。主要用于应答式的请求和响应。该方法的实现不是线程安全的，使用时一定要注意。</summary>
         /// <remarks>如果内部实现是异步模型，则等待指定时间获取异步返回的第一条消息，该消息不再触发消息到达事件<see cref="OnReceived"/>。</remarks>
@@ -107,6 +113,14 @@ namespace NewLife.Messaging
         /// <summary>最大消息大小，超过该大小将分包发送。0表示不限制。</summary>
         public Int32 MaxMessageSize { get { return _MaxMessageSize; } set { _MaxMessageSize = value; } }
 
+        private Boolean _AutoJoinGroup;
+        /// <summary>是否自动组合<see cref="GroupMessage"/>消息。</summary>
+        public Boolean AutoJoinGroup { get { return _AutoJoinGroup; } set { _AutoJoinGroup = value; } }
+
+        private Int32 _JoinGroupTimeout;
+        /// <summary>组合组消息超时时间，毫秒。对于<see cref="GroupMessage"/>，如果后续包不能在当前时间之内到达，则认为超时，放弃该组。</summary>
+        public Int32 JoinGroupTimeout { get { return _JoinGroupTimeout; } set { _JoinGroupTimeout = value; } }
+
         private IMessageProvider _Parent;
         /// <summary>消息提供者</summary>
         public IMessageProvider Parent { get { return _Parent; } set { _Parent = value; } }
@@ -150,6 +164,13 @@ namespace NewLife.Messaging
 
             // 检查消息范围
             if (Kinds != null && Array.IndexOf<MessageKind>(Kinds, message.Kind) < 0) return;
+
+            if (message.Kind == MessageKind.Group && AutoJoinGroup)
+            {
+                message = JoinGroup(message as GroupMessage);
+                // 如果为空，表明还没完成组合，直接返回
+                if (message == null) return;
+            }
 
             // 为Receive准备的事件，只用一次
             EventHandler<MessageEventArgs> handler;
@@ -208,6 +229,30 @@ namespace NewLife.Messaging
                     }
                 }
             }
+        }
+
+        private Dictionary<Int32, MessageGroup> groups = new Dictionary<Int32, MessageGroup>();
+        /// <summary>组合组消息</summary>
+        /// <param name="message"></param>
+        /// <returns></returns>
+        protected virtual Message JoinGroup(GroupMessage message)
+        {
+            MessageGroup mg = null;
+            if (!groups.TryGetValue(message.Identity, out mg))
+            {
+                mg = new MessageGroup();
+                mg.Identity = message.Identity;
+                groups.Add(mg.Identity, mg);
+            }
+
+            // 加入到组，如果返回false，表示未收到所有消息
+            if (!mg.Add(message)) return null;
+
+            // 否则，表示收到所有消息
+            groups.Remove(mg.Identity);
+
+            // 读取真正的消息
+            return mg.GetMessage();
         }
 
         /// <summary>消息到达时触发。这里将得到所有消息</summary>

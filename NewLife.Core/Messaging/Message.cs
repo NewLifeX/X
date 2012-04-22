@@ -164,7 +164,16 @@ namespace NewLife.Messaging
         {
             Int32 n = stream.ReadByte();
             stream.Seek(-1, SeekOrigin.Current);
-            return (MessageKind)n;
+            return (MessageKind)(n & 0x0F);
+        }
+
+        /// <summary>探测消息类型，不移动流指针</summary>
+        /// <param name="stream"></param>
+        /// <returns></returns>
+        public static Type PeekType(Stream stream)
+        {
+            var kind = PeekKind(stream);
+            return ObjectContainer.Current.ResolveType<Message>(kind);
         }
 
         /// <summary>从源消息克隆设置和可序列化成员数据</summary>
