@@ -149,7 +149,7 @@ namespace NewLife.Messaging
                 {
                     if (item.Index == 1) count = item.Count;
                     ms = item.GetStream();
-                    WriteLog("发送分组 Identity={0} {1}/{2} [{3}] [{4}]", item.Identity, item.Index, item.Count, item.Data == null ? 0 : item.Data.Length, ms.Length);
+                    WriteLog("发送分组 Identity={0} {1}/{2} [{3}] [{4}]", item.Identity, item.Index, count, item.Data == null ? 0 : item.Data.Length, ms.Length);
                     Debug.Assert(item.Index == count || ms.Length == MaxMessageSize, "分拆的组消息大小不合适！");
                     OnSend(ms);
                 }
@@ -243,8 +243,6 @@ namespace NewLife.Messaging
         /// <returns></returns>
         protected virtual Message JoinGroup(GroupMessage message)
         {
-            WriteLog("接收分组 Identity={0} {1}/{2} [{3}]", message.Identity, message.Index, message.Count, message.Data == null ? 0 : message.Data.Length);
-
             MessageGroup mg = null;
             if (!groups.TryGetValue(message.Identity, out mg))
             {
@@ -254,7 +252,14 @@ namespace NewLife.Messaging
             }
 
             // 加入到组，如果返回false，表示未收到所有消息
-            if (!mg.Add(message)) return null;
+            if (!mg.Add(message))
+            {
+                WriteLog("接收分组 Identity={0} {1}/{2} [{3}] 已完成：{4}/{5}", message.Identity, message.Index, message.Count, message.Data == null ? 0 : message.Data.Length, mg.Count, mg.Total);
+
+                return null;
+            }
+
+            WriteLog("接收分组 Identity={0} {1}/{2} [{3}] 已完成：{4}/{5}", message.Identity, message.Index, message.Count, message.Data == null ? 0 : message.Data.Length, mg.Count, mg.Total);
 
             // 否则，表示收到所有消息
             groups.Remove(mg.Identity);

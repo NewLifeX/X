@@ -31,7 +31,7 @@ namespace NewLife.Net.Common
 
         void server_Received(object sender, NetEventArgs e)
         {
-            var session = (sender as ISocketSession);
+            var session = e.Session;
             Session = new WeakReference<ISocketSession>(session);
             try
             {

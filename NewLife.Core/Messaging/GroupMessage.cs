@@ -62,6 +62,16 @@ namespace NewLife.Messaging
         private List<GroupMessage> _Items;
         /// <summary>消息集合</summary>
         List<GroupMessage> Items { get { return _Items ?? (_Items = new List<GroupMessage>()); } /*set { _Items = value; }*/ }
+
+        /// <summary>第一个组消息，上面有总记录数</summary>
+        public GroupMessage First { get { return Items.Count > 0 ? Items[0] : null; } }
+
+        private Int32 _Total;
+        /// <summary>总的组消息数</summary>
+        public Int32 Total { get { return _Total; } private set { _Total = value; } }
+
+        /// <summary>组消息个数</summary>
+        public Int32 Count { get { return Items.Count; } }
         #endregion
 
         #region 拆分
@@ -125,6 +135,8 @@ namespace NewLife.Messaging
                 item.Count = isLittle ? count : 0;
             }
             if (count > 0) Items[0].Count = count;
+
+            Total = count;
         }
         #endregion
 
@@ -141,7 +153,9 @@ namespace NewLife.Messaging
 
             if (!Items.Any(e => e.Index == message.Index)) Items.Add(message);
 
-            return Items.Count > 0 && Items.Count == Items[0].Count;
+            if (message.Index == 1) Total = message.Count;
+
+            return Items.Count > 0 && Items.Count == Total;
         }
         #endregion
 

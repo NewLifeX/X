@@ -198,7 +198,7 @@ namespace Test
 
             if (cmp == null)
             {
-                var client = NetService.CreateSession(new NetUri("tcp://::1:1234"));
+                var client = NetService.CreateSession(new NetUri("udp://::1:1234"));
                 client.ReceiveAsync();
                 cmp = new ClientMessageProvider() { Session = client };
                 cmp.OnReceived += new EventHandler<MessageEventArgs>(cmp_OnReceived);
