@@ -5,6 +5,7 @@ using System.Threading;
 using NewLife.Linq;
 using NewLife.Log;
 using System.Diagnostics;
+using NewLife.Serialization;
 
 namespace NewLife.Messaging
 {

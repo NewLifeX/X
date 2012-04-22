@@ -81,6 +81,10 @@ namespace NewLife.Messaging
         /// <param name="header"></param>
         public void Split(Stream stream, Int32 size, MessageHeader header = null)
         {
+            // 组包消息全部采用消息头长度，这里估算，方便内部预留大小
+            if (header == null) header = new MessageHeader();
+            header.Length = BinaryWriterX.GetEncodedIntSize(size);
+
             // 消息头大小
             var headerLength = 0;
             if (header != null) headerLength = header.ToArray().Length;
@@ -106,7 +110,7 @@ namespace NewLife.Messaging
             while (stream.Position < stream.Length)
             {
                 var msg = new GroupMessage();
-                msg.Header = header;
+                msg.Header = header.Clone();
                 msg.Identity = Identity;
                 msg.Index = ++index;
                 //msg.Count = count;
@@ -122,6 +126,9 @@ namespace NewLife.Messaging
                 //stream.Read(buffer, 0, buffer.Length);
                 //msg.Data = buffer;
                 msg.Data = stream.ReadBytes(len2);
+
+                // 组包消息全部采用消息头长度，不要忘了对象引用和数组大小
+                msg.Header.Length = (Int32)trueLen - headerLength;
 
                 Items.Add(msg);
             }

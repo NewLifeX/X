@@ -185,7 +185,45 @@ namespace NewLife.Messaging
         /// <summary>通过首字节判断数据流是否消息。首字节作为Kind，然后查找是否有消息注册该Kind</summary>
         /// <param name="stream"></param>
         /// <returns></returns>
-        public static Boolean IsMessage(Stream stream) { return PeekType(stream) != null; }
+        public static Boolean IsMessage(Stream stream)
+        {
+            //return PeekType(stream) != null;
+            var p = stream.Position;
+            try
+            {
+                // 第一个字节很重要
+                var n = stream.ReadByte();
+                if (n < 0) return false;
+                var b = (Byte)n;
+                // 查一下该消息类型是否以注册，如果未注册，直接返回false
+                var type = ObjectContainer.Current.ResolveType<Message>((MessageKind)(b & 0x0F));
+                if (type == null) return false;
+
+                // 如果没用消息头，直接返回true
+                if (!MessageHeader.IsValid(b)) return true;
+
+                // 如果使用了消息头，判断一下数据流长度是否满足
+                try
+                {
+                    var header = new MessageHeader();
+                    header.Read(stream);
+
+                    // 如果指定了消息头，则判断长度
+                    if (header.HasFlag(MessageHeader.Flags.Length) && header.Length > stream.Length - stream.Position) return false;
+                }
+                catch
+                {
+                    // 如果连消息头都读取不了，显然不对
+                    return false;
+                }
+
+                return true;
+            }
+            finally
+            {
+                stream.Position = p;
+            }
+        }
 
         /// <summary>从源消息克隆设置和可序列化成员数据</summary>
         /// <param name="msg"></param>

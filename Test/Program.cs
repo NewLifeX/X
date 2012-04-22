@@ -2,16 +2,15 @@
 using System.Diagnostics;
 using System.IO.Ports;
 using System.Threading;
+using NewLife.CommonEntity;
 using NewLife.Linq;
 using NewLife.Log;
 using NewLife.Messaging;
+using NewLife.Net;
+using NewLife.Net.Common;
 using NewLife.Net.Proxy;
 using NewLife.Net.Sockets;
 using NewLife.Threading;
-using NewLife.Net;
-using NewLife.Net.Common;
-using System.Collections.Generic;
-using NewLife.CommonEntity;
 
 namespace Test
 {
@@ -28,7 +27,7 @@ namespace Test
                 try
                 {
 #endif
-                Test5();
+                Test4();
 #if !DEBUG
                 }
                 catch (Exception ex)

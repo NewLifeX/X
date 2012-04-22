@@ -34,6 +34,14 @@ namespace NewLife.Net.Common
             var session = e.Session;
             Session = new WeakReference<ISocketSession>(session);
             var s = e.GetStream();
+            // 如果上次还留有数据，复制进去
+            if (session.Stream != null && session.Stream.Position < session.Stream.Length)
+            {
+                var ms = session.Stream;
+                //var ms = new MemoryStream();
+                s.CopyTo(ms);
+                s = ms;
+            }
             try
             {
                 while (s.Position < s.Length && Message.IsMessage(s))
@@ -42,6 +50,11 @@ namespace NewLife.Net.Common
                     msg.UserState = session;
                     Process(msg);
                 }
+                // 如果还有剩下，写入数据流，供下次使用
+                if (s.Position < s.Length)
+                    session.Stream = s;
+                else
+                    session.Stream = null;
             }
             catch (Exception ex)
             {

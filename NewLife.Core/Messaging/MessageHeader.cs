@@ -28,6 +28,10 @@ namespace NewLife.Messaging
         private Int32 _SessionID;
         /// <summary>会话编号</summary>
         public Int32 SessionID { get { return _SessionID; } set { _SessionID = value; SetFlag(Flags.SessionID, value != 0); } }
+
+        private Int32 _Length;
+        /// <summary>消息长度，消息头以外的长度，也不包括Kind。建议在较长消息中指定消息体长度，便于接收方处理粘包的问题。</summary>
+        public Int32 Length { get { return _Length; } set { _Length = value; SetFlag(Flags.Length, value != 0); } }
         #endregion
 
         #region 读写
@@ -42,6 +46,7 @@ namespace NewLife.Messaging
             writer.Write((Byte)Flag);
             if (HasFlag(Flags.Channel)) writer.Write(Channel);
             if (HasFlag(Flags.SessionID)) writer.Write(SessionID);
+            if (HasFlag(Flags.Length)) writer.Write(Length);
         }
 
         /// <summary>把消息头转为字节数组</summary>
@@ -64,6 +69,27 @@ namespace NewLife.Messaging
             Flag = (Flags)reader.ReadByte();
             if (HasFlag(Flags.Channel)) Channel = reader.ReadByte();
             if (HasFlag(Flags.SessionID)) SessionID = reader.ReadInt32();
+            if (HasFlag(Flags.Length)) Length = reader.ReadInt32();
+        }
+        #endregion
+
+        #region 方法
+        ///// <summary>计算指定类型消息头所需要的长度</summary>
+        ///// <param name="flag"></param>
+        ///// <returns></returns>
+        //public static Int32 GetSize(Flags flag)
+        //{
+        //    // 第一个字节Flag
+        //    var n = 1;
+        //    if (HasFlag(Flags.Channel)) n++;
+        //    if (HasFlag(Flags.SessionID)) n += 4;
+        //}
+
+        /// <summary>克隆</summary>
+        /// <returns></returns>
+        public MessageHeader Clone()
+        {
+            return this.MemberwiseClone() as MessageHeader;
         }
         #endregion
 
@@ -99,7 +125,7 @@ namespace NewLife.Messaging
         /// <summary>是否有效消息头</summary>
         /// <param name="bit"></param>
         /// <returns></returns>
-        public static Boolean IsValid(Byte bit) { return (bit & 0x80) == 0x80; }
+        public static Boolean IsValid(Byte bit) { return ((Flags)bit).Has(Flags.Header); }
         #endregion
 
         #region 枚举
@@ -114,6 +140,9 @@ namespace NewLife.Messaging
 
             /// <summary>是否使用会话</summary>
             SessionID = 4,
+
+            /// <summary>是否使用长度</summary>
+            Length = 8
         }
         #endregion
     }
