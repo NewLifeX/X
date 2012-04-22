@@ -31,8 +31,8 @@ namespace NewLife.Net.Common
                         // 局域网环境下,UDP包大小为1024*8,速度达到2M/s,丢包情况理想.
                         // 外网环境下,UDP包大小为548,速度理想,丢包情况理想.
                         // http://www.cnblogs.com/begingame/archive/2011/08/18/2145138.html
-                        //MaxMessageSize = value.ProtocolType == ProtocolType.Udp ? 1472 : 1460;
-                        MaxMessageSize = value.ProtocolType == ProtocolType.Udp ? 1024 * 8 : 1460;
+                        MaxMessageSize = value.ProtocolType == ProtocolType.Udp ? 1472 : 1460;
+                        //MaxMessageSize = value.ProtocolType == ProtocolType.Udp ? 1024 * 8 : 1460;
                         value.Host.Socket.DontFragment = true;
 
                         if (value.UseReceiveAsync)
