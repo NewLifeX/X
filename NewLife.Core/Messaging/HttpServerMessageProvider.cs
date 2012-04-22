@@ -67,9 +67,11 @@ namespace NewLife.Messaging
                         s = new MemoryStream(DataHelper.FromHex(d));
                     }
                 }
-                var msg = Message.Read(s);
+                //var msg = Message.Read(s);
                 //var msg = Message.Read(Context.Request.InputStream);
-                Process(msg);
+
+                // 支持多消息
+                while (s.Position < s.Length) Process(Message.Read(s));
             }
             catch (Exception ex)
             {
