@@ -24,7 +24,15 @@ namespace NewLife.Net.Common
                     {
                         //// 只有Udp需要控制包大小
                         //MaxMessageSize = value.ProtocolType == ProtocolType.Udp ? 1460 : 0;
-                        MaxMessageSize = 1460;
+                        //MaxMessageSize = 1460;
+
+                        // 鉴于Internet上的标准MTU值为576字节,所以我建议在进行Internet的UDP编程时.
+                        // 最好将UDP的数据长度控件在548字节(576-8-20)以内.
+                        // 局域网环境下,UDP包大小为1024*8,速度达到2M/s,丢包情况理想.
+                        // 外网环境下,UDP包大小为548,速度理想,丢包情况理想.
+                        // http://www.cnblogs.com/begingame/archive/2011/08/18/2145138.html
+                        MaxMessageSize = value.ProtocolType == ProtocolType.Udp ? 1472 : 1460;
+                        //MaxMessageSize = value.ProtocolType == ProtocolType.Udp ? 1024 * 8 : 1460;
 
                         if (value.UseReceiveAsync)
                         {
