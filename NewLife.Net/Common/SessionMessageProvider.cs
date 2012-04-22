@@ -30,8 +30,11 @@ namespace NewLife.Net.Common
             }
             catch (Exception ex)
             {
+                //var msg = new ExceptionMessage() { Value = ex };
+                //Process(msg);
                 var msg = new ExceptionMessage() { Value = ex };
-                Process(msg);
+                var session = (sender as ISocketSession);
+                session.Send(msg.GetStream());
             }
         }
 
