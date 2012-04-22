@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Xml.Serialization;
 using NewLife.Serialization;
+using System.Collections;
 
 namespace NewLife.Messaging
 {
@@ -56,7 +57,16 @@ namespace NewLife.Messaging
         /// <returns></returns>
         public override string ToString()
         {
-            return String.Format("{0} {1}", base.ToString(), Value);
+            var type = Type;
+            if (type != null && typeof(IList).IsAssignableFrom(type))
+                return String.Format("{0} {1}[{2}]", base.ToString(), type, Value == null ? 0 : (Value as IList).Count);
+            else if (type == typeof(String))
+            {
+                var str = "" + Value;
+                return String.Format("{0} {1}", base.ToString(), str.Length < 30 ? str : str.Substring(0, 27) + "...");
+            }
+            else
+                return String.Format("{0} {1}", base.ToString(), Value);
         }
         #endregion
     }

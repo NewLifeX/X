@@ -204,6 +204,7 @@ namespace Test
             var bts = new Byte[rnd.Next(5000, 10000)];
             rnd.NextBytes(bts);
             msg.Value = bts;
+            msg.Value = "adminadminadmin";
 
             //var rs = cmp.SendAndReceive(msg, 5000);
             cmp.OnReceived += new EventHandler<MessageEventArgs>(cmp_OnReceived);
