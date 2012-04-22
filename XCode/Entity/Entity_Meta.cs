@@ -14,6 +14,7 @@ using XCode.Cache;
 using XCode.Common;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
+using System.Text;
 
 namespace XCode
 {
@@ -71,19 +72,41 @@ namespace XCode
             private static ICollection<String> hasCheckedTables = new HashSet<String>(StringComparer.OrdinalIgnoreCase);
             private static void CheckTable(String connName, String tableName)
             {
-                if (hasCheckedTables.Contains(tableName)) return;
+                var key = String.Format("{0}#{1}", connName, tableName);
+                if (hasCheckedTables.Contains(key)) return;
                 lock (hasCheckedTables)
                 {
-                    if (hasCheckedTables.Contains(tableName)) return;
+                    if (hasCheckedTables.Contains(key)) return;
 
                     // 检查新表名对应的数据表
                     IDataTable table = TableItem.Create(ThisType).DataTable;
                     // 克隆一份，防止修改
                     table = table.Clone() as IDataTable;
-                    table.Name = tableName;
 
-                    //DatabaseSchema.Check(DAL.Create(connName).Db, table);
+                    if (table.Name != tableName)
+                    {
+                        // 修改一下索引名，否则，可能因为同一个表里面不同的索引冲突
+                        if (table.Indexes != null)
+                        {
+                            foreach (var di in table.Indexes)
+                            {
+                                var sb = new StringBuilder();
+                                sb.AppendFormat("IX_{0}", tableName);
+                                foreach (var item in di.Columns)
+                                {
+                                    sb.Append("_");
+                                    sb.Append(item);
+                                }
+
+                                di.Name = sb.ToString();
+                            }
+                        }
+                        table.Name = tableName;
+                    }
+
                     DAL.Create(connName).Db.CreateMetaData().SetTables(table);
+
+                    hasCheckedTables.Add(key);
                 }
             }
 
