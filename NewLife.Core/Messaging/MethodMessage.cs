@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Reflection;
 using System.Xml.Serialization;
 using NewLife.Reflection;
@@ -123,6 +124,9 @@ namespace NewLife.Messaging
                 var rs = MethodInfoX.Create(method).Invoke(null, Parameters);
                 if (rs == null)
                     return new NullMessage();
+                else if (rs is IList)
+                    // 采用实体集合消息返回列表型数据，避免序列化反序列化实体集合所带来的各种问题，到了客户端后，一律转化为List<T>
+                    return new EntitiesMessage() { Values = rs as IList };
                 else
                     return new EntityMessage() { Value = rs };
             }

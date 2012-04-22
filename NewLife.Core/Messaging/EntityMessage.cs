@@ -1,7 +1,7 @@
 ﻿using System;
+using System.Collections;
 using System.Xml.Serialization;
 using NewLife.Serialization;
-using System.Collections;
 
 namespace NewLife.Messaging
 {
