@@ -26,6 +26,9 @@ namespace NewLife.Net.Sockets
 
         /// <summary>宿主对象。除了<see cref="Udp.UdpServer"/>外，都是<see cref="ISocketClient"/>接口。</summary>
         ISocket Host { get; }
+
+        /// <summary>会话数据流，供用户程序使用，内部不做处理。可用于解决Tcp粘包的问题，把多余的分片放入该数据流中。</summary>
+        Stream Stream { get; set; }
         #endregion
 
         #region 方法

@@ -50,6 +50,10 @@ namespace NewLife.Net.Udp
         #region 扩展属性
         /// <summary>对象</summary>
         IUdp Udp { get { return Host as IUdp; } }
+
+        private Stream _Stream;
+        /// <summary>会话数据流，供用户程序使用，内部不做处理。可用于解决Tcp粘包的问题，把多余的分片放入该数据流中。</summary>
+        public Stream Stream { get { return _Stream; } set { _Stream = value; } }
         #endregion
 
         #region 构造

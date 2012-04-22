@@ -33,9 +33,9 @@ namespace NewLife.Net.Common
         {
             var session = e.Session;
             Session = new WeakReference<ISocketSession>(session);
+            var s = e.GetStream();
             try
             {
-                var s = e.GetStream();
                 while (s.Position < s.Length && Message.IsMessage(s))
                 {
                     var msg = Message.Read(s);
