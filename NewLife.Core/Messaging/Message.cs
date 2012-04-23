@@ -12,9 +12,13 @@ namespace NewLife.Messaging
     /// <summary>消息实体基类</summary>
     /// <remarks>
     /// 用消息实体来表达行为和数据，更加直观。
-    /// 同时，指定一套序列化和反序列化机制，实现消息实体与传输形式（二进制数据、XML、Json）的互相转换。
+    /// 同时，指定一套序列化和反序列化机制，实现消息实体与传输形式（二进制数据、XML、Json）的互相转换，目前仅支持二进制。
     /// 
-    /// 消息实体仿照Windows消息来设计，拥有一部分系统内置消息，同时运行用户自定义消息
+    /// 消息实体仿照Windows消息来设计，拥有一部分系统内置消息，同时允许用户自定义消息。
+    /// 
+    /// 消息模型同时具有扩展功能，关键在于第一个字节。
+    /// 普通消息第一个字节表示消息类型，但如果该自己最高位为1，表示使用消息头扩展<see cref="MessageHeader"/>。
+    /// 消息头扩展允许指定通道<see cref="MessageHeader.Channel"/>、会话<see cref="MessageHeader.SessionID"/>和消息长度<see cref="MessageHeader.Length"/>（不含扩展头）等。
     /// </remarks>
     public abstract class Message
     {
@@ -96,10 +100,18 @@ namespace NewLife.Messaging
         }
 
         /// <summary>从流中读取消息</summary>
-        /// <param name="stream"></param>
+        /// <param name="stream">数据流</param>
         /// <returns></returns>
-        public static Message Read(Stream stream)
+        public static Message Read(Stream stream) { return Read(stream, false); }
+
+        /// <summary>从流中读取消息</summary>
+        /// <param name="stream">数据流</param>
+        /// <param name="ignoreException">忽略异常。如果忽略异常，读取失败时将返回空，并还原数据流位置</param>
+        /// <returns></returns>
+        public static Message Read(Stream stream, Boolean ignoreException)
         {
+            if (stream == null || stream.Length - stream.Position < 1) return null;
+
             var reader = new BinaryReaderX(stream);
             Set(reader.Settings);
 
@@ -109,21 +121,56 @@ namespace NewLife.Messaging
                 reader.EnableTraceStream();
             }
 
+            var p = stream.Position;
+
             // 检查第一个字节
-            var first = (Byte)reader.Reader.PeekChar();
+            var ch = reader.Reader.PeekChar();
+            if (ch < 0) return null;
+
+            var first = (Byte)ch;
+
+            #region 消息头部扩展
             MessageHeader header = null;
             // 第一个字节的最高位决定是否扩展
             if (MessageHeader.IsValid(first))
             {
-                header = new MessageHeader();
-                header.Read(reader.Stream);
-            }
+                try
+                {
+                    header = new MessageHeader();
+                    header.Read(reader.Stream);
+                }
+                catch
+                {
+                    stream.Position = p;
+                    return null;
+                }
 
+                // 如果使用了消息头，判断一下数据流长度是否满足
+                if (header.HasFlag(MessageHeader.Flags.Length) && header.Length > stream.Length - stream.Position)
+                {
+                    stream.Position = p;
+                    return null;
+                }
+            }
+            #endregion
+
+            #region 识别消息类型
             // 读取了响应类型和消息类型后，动态创建消息对象
             var kind = (MessageKind)(reader.ReadByte() & 0x0F);
             var type = ObjectContainer.Current.ResolveType<Message>(kind);
-            if (type == null) throw new XException("无法识别的消息类型（Kind={0}）！", kind);
+            if (type == null)
+            {
+                if (ignoreException)
+                {
+                    stream.Position = p;
+                    return null;
+                }
+                else
+                    throw new XException("无法识别的消息类型（Kind={0}）！", kind);
+            }
+            #endregion
 
+            #region 读取消息
             Message msg;
             if (stream.Position == stream.Length)
                 msg = TypeX.CreateInstance(type, null) as Message;
@@ -133,10 +180,20 @@ namespace NewLife.Messaging
                 {
                     msg = reader.ReadObject(type) as Message;
                 }
-                catch (Exception ex) { throw new XException(String.Format("无法从数据流中读取{0}（Kind={1}）消息！{2}", type.Name, kind, ex.Message), ex); }
+                catch (Exception ex)
+                {
+                    if (ignoreException)
+                    {
+                        stream.Position = p;
+                        return null;
+                    }
+                    else
+                        throw new XException(String.Format("无法从数据流中读取{0}（Kind={1}）消息！{2}", type.Name, kind, ex.Message), ex);
+                }
             }
             msg.Header = header;
             return msg;
+            #endregion
         }
 
         /// <summary>从流中读取消息</summary>
@@ -182,7 +239,11 @@ namespace NewLife.Messaging
             return ObjectContainer.Current.ResolveType<Message>(kind);
         }
 
-        /// <summary>通过首字节判断数据流是否消息。首字节作为Kind，然后查找是否有消息注册该Kind</summary>
+        /// <summary>通过首字节和扩展头的Length判断数据流是否消息。</summary>
+        /// <remarks>
+        /// 首字节作为Kind，然后查找是否有消息注册该Kind。
+        /// 对于大小写，一般要求使用扩展头的Length。
+        /// </remarks>
         /// <param name="stream"></param>
         /// <returns></returns>
         public static Boolean IsMessage(Stream stream)
@@ -195,27 +256,38 @@ namespace NewLife.Messaging
                 var n = stream.ReadByte();
                 if (n < 0) return false;
                 var first = (Byte)n;
-                // 查一下该消息类型是否以注册，如果未注册，直接返回false
-                var type = ObjectContainer.Current.ResolveType<Message>((MessageKind)(first & 0x0F));
-                if (type == null) return false;
 
-                // 如果没用消息头，直接返回true
-                if (!MessageHeader.IsValid(first)) return true;
+                // 如果没用消息头
+                if (!MessageHeader.IsValid(first))
+                {
+                    // 查一下该消息类型是否以注册，如果未注册，直接返回false
+                    var type = ObjectContainer.Current.ResolveType<Message>((MessageKind)(first & 0x0F));
+                    if (type == null) return false;
+                }
 
-                // 如果使用了消息头，判断一下数据流长度是否满足
                 try
                 {
                     stream.Position = p;
                     var header = new MessageHeader();
                     header.Read(stream);
 
-                    // 如果指定了消息头，则判断长度
+                    // 如果使用了消息头，判断一下数据流长度是否满足
                     if (header.HasFlag(MessageHeader.Flags.Length) && header.Length > stream.Length - stream.Position) return false;
                 }
                 catch
                 {
                     // 如果连消息头都读取不了，显然不对
                     return false;
+                }
+
+                // 重新判断一下至粗恶类型
+                {
+                    n = stream.ReadByte();
+                    if (n < 0) return false;
+                    first = (Byte)n;
+                    // 查一下该消息类型是否以注册，如果未注册，直接返回false
+                    var type = ObjectContainer.Current.ResolveType<Message>((MessageKind)(first & 0x0F));
+                    if (type == null) return false;
                 }
 
                 return true;

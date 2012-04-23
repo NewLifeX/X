@@ -169,9 +169,13 @@ namespace NewLife.Messaging
         {
             var len = 0L;
             // 如果大小大于一个数据包大小，就认为这有一个完整的数据包
-            while ((len = stream.Length - stream.Position) > 0 && (MaxMessageSize > 0 && len >= MaxMessageSize || Message.IsMessage(stream)))
+            while ((len = stream.Length - stream.Position) > 0)
             {
-                var msg = Message.Read(stream);
+                // 只有数据流大小小于包大小时，才忽略异常
+                var msg = Message.Read(stream, MaxMessageSize > 0 && len >= MaxMessageSize);
+                // 如果返回空，表示不是完整的消息
+                if (msg == null) break;
+
                 msg.UserState = state;
                 Process(msg, remoteIdentity);
             }

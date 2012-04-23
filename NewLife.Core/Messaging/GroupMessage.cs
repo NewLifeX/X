@@ -81,9 +81,9 @@ namespace NewLife.Messaging
         /// <param name="header"></param>
         public void Split(Stream stream, Int32 size, MessageHeader header = null)
         {
-            // 组包消息全部采用消息头长度，这里估算，方便内部预留大小
+            // 组包消息全部采用消息头长度，这里估算，方便内部预留大小，如果包大小刚好在边界上，可能会浪费一个字节空间，不过这个可能性很小
             if (header == null) header = new MessageHeader();
-            header.Length = BinaryWriterX.GetEncodedIntSize(size);
+            header.Length = size;
 
             // 消息头大小
             var headerLength = 0;
@@ -96,12 +96,12 @@ namespace NewLife.Messaging
             // Kind + 消息头
             var len = 1 + headerLength;
             // Identity
-            len += BinaryWriterX.GetEncodedIntSize(Identity);
+            len += GetBytesCount(Identity);
             // Count
             len += 1;
 
             // 加上数据包大小。因为压缩整数的存在，这里不是绝对准确，但是大多数时候不会有问题
-            len += BinaryWriterX.GetEncodedIntSize(size);
+            len += GetBytesCount(size);
             // !!!不要忘了数据部分的对象引用
             len += 1;
 
@@ -115,10 +115,10 @@ namespace NewLife.Messaging
                 msg.Index = ++index;
                 //msg.Count = count;
 
-                // 预计索引长度
-                var trueLen = len + BinaryWriterX.GetEncodedIntSize(msg.Index);
+                // 加上索引长度，计算真正的头部长度
+                var trueLen = len + GetBytesCount(msg.Index);
                 // 第一个元素采用精确Count
-                if (msg.Index == 1) trueLen += BinaryWriterX.GetEncodedIntSize(count) - 1;
+                if (msg.Index == 1) trueLen += GetBytesCount(count) - 1;
 
                 var len2 = stream.Length - stream.Position;
                 if (len2 > size - trueLen) len2 = size - trueLen;
@@ -127,8 +127,11 @@ namespace NewLife.Messaging
                 //msg.Data = buffer;
                 msg.Data = stream.ReadBytes(len2);
 
-                // 组包消息全部采用消息头长度，不要忘了对象引用和数组大小
-                msg.Header.Length = (Int32)trueLen - headerLength;
+                // 减去Header以外的全部长度
+                msg.Header.Length = (Int32)(trueLen + len2) - headerLength;
+
+                // 最后一个修正长度，因为数据量可能很少，前面的GetBytesCount(size)可能不对。
+                if (len2 < size - trueLen) msg.Header.Length += GetBytesCount(len2) - GetBytesCount(size);
 
                 Items.Add(msg);
             }
@@ -194,6 +197,8 @@ namespace NewLife.Messaging
             var count = ts.Count > 0 ? ts[0].Count : 0;
             return String.Format("{0} {1}/{2}", Identity, ts.Count, count);
         }
+
+        static Int32 GetBytesCount(Int64 n) { return BinaryWriterX.GetEncodedIntSize(n); }
         #endregion
 
         #region IEnumerable<GroupMessage> 成员

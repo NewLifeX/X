@@ -1,9 +1,8 @@
 ﻿using System;
 using System.IO;
+using System.Net.Sockets;
 using NewLife.Messaging;
 using NewLife.Net.Sockets;
-using System.Net.Sockets;
-using NewLife.Log;
 
 namespace NewLife.Net.Common
 {
@@ -50,8 +49,8 @@ namespace NewLife.Net.Common
             // 如果上次还留有数据，复制进去
             if (session.Stream != null && session.Stream.Position < session.Stream.Length)
             {
-                var ms = session.Stream;
-                //var ms = new MemoryStream();
+                var ms = new MemoryStream();
+                session.Stream.CopyTo(ms);
                 s.CopyTo(ms);
                 s = ms;
             }
@@ -67,10 +66,13 @@ namespace NewLife.Net.Common
             }
             catch (Exception ex)
             {
-                if (NetHelper.Debug) XTrace.WriteException(ex);
+                if (NetHelper.Debug) NetHelper.WriteLog(ex.ToString());
 
                 var msg = new ExceptionMessage() { Value = ex };
                 session.Send(msg.GetStream());
+
+                // 出错后清空数据流，避免连锁反应
+                session.Stream = null;
             }
         }
 

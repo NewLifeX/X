@@ -181,6 +181,7 @@ namespace Test
         static IMessageProvider cmp = null;
         static void Test4()
         {
+            Console.Clear();
             if (server == null)
             {
                 server = new NetServer();
@@ -208,6 +209,7 @@ namespace Test
             var msg = new EntityMessage();
             var rnd = new Random((Int32)DateTime.Now.Ticks);
             var bts = new Byte[rnd.Next(50000, 100000)];
+            //var bts = new Byte[1460 * 1 - rnd.Next(0, 20)];
             rnd.NextBytes(bts);
             msg.Value = bts;
 

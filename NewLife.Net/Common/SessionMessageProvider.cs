@@ -23,19 +23,35 @@ namespace NewLife.Net.Common
 
         void client_Received(object sender, ReceivedEventArgs e)
         {
+            var session = Session.Session;
+            var s = e.Stream;
+            // 如果上次还留有数据，复制进去
+            if (session.Stream != null && session.Stream.Position < session.Stream.Length)
+            {
+                var ms = new MemoryStream();
+                session.Stream.CopyTo(ms);
+                s.CopyTo(ms);
+                s = ms;
+            }
             try
             {
-                //var message = Message.Read(e.Stream);
-                var s = e.Stream;
-                while (s.Position < s.Length && Message.IsMessage(s)) Process(Message.Read(s), Session.Session.RemoteUri);
+                Process(s, session, session.RemoteUri);
+
+                // 如果还有剩下，写入数据流，供下次使用
+                if (s.Position < s.Length)
+                    session.Stream = s;
+                else
+                    session.Stream = null;
             }
             catch (Exception ex)
             {
-                //var msg = new ExceptionMessage() { Value = ex };
-                //Process(msg);
+                if (NetHelper.Debug) NetHelper.WriteLog(ex.ToString());
+
                 var msg = new ExceptionMessage() { Value = ex };
-                var session = (sender as ISocketSession);
                 session.Send(msg.GetStream());
+
+                // 出错后清空数据流，避免连锁反应
+                session.Stream = null;
             }
         }
 
