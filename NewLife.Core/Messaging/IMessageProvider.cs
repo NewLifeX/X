@@ -172,9 +172,13 @@ namespace NewLife.Messaging
             while ((len = stream.Length - stream.Position) > 0)
             {
                 // 只有数据流大小小于包大小时，才忽略异常
-                var msg = Message.Read(stream, MaxMessageSize > 0 && len >= MaxMessageSize);
+                var msg = Message.Read(stream, MaxMessageSize > 0 && len < MaxMessageSize);
                 // 如果返回空，表示不是完整的消息
-                if (msg == null) break;
+                if (msg == null)
+                {
+                    //XTrace.WriteLine("数据流中无法读取消息 {0},{1}=>{2}", stream.Position, stream.Length, stream.Length - stream.Position);
+                    break;
+                }
 
                 msg.UserState = state;
                 Process(msg, remoteIdentity);
@@ -473,6 +477,7 @@ namespace NewLife.Messaging
         #endregion
 
         #region 日志
+        [Conditional("DEBUG")]
         static void WriteLog(String format, params Object[] args)
         {
             if (XTrace.Debug) XTrace.WriteLine(format, args);

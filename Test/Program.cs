@@ -208,7 +208,7 @@ namespace Test
             //Message.Debug = true;
             var msg = new EntityMessage();
             var rnd = new Random((Int32)DateTime.Now.Ticks);
-            var bts = new Byte[rnd.Next(50000, 100000)];
+            var bts = new Byte[rnd.Next(1000000, 2000000)];
             //var bts = new Byte[1460 * 1 - rnd.Next(0, 20)];
             rnd.NextBytes(bts);
             msg.Value = bts;

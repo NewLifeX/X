@@ -49,18 +49,41 @@ namespace NewLife.Net.Common
             // 如果上次还留有数据，复制进去
             if (session.Stream != null && session.Stream.Position < session.Stream.Length)
             {
-                var ms = new MemoryStream();
-                session.Stream.CopyTo(ms);
+                //var p = session.Stream.Position;
+                //NetHelper.WriteLog("合并开头位置 {0}", session.Stream.ReadByte());
+                //session.Stream.Position = p;
+
+                //var ms = new MemoryStream();
+                //session.Stream.CopyTo(ms);
+                // 这个流是上一次的完整数据，位置在最后，直接合并即可
+                var ms = session.Stream;
+                var p = ms.Position;
+                ms.Position = ms.Length;
                 s.CopyTo(ms);
+                ms.Position = p;
                 s = ms;
+
+                //p = s.Position;
+                //NetHelper.WriteLog("合并开头位置 {0}", s.ReadByte());
+                //s.Position = p;
             }
             try
             {
                 Process(s, session, session.RemoteUri);
-                
+
                 // 如果还有剩下，写入数据流，供下次使用
                 if (s.Position < s.Length)
-                    session.Stream = s;
+                {
+                    //NetHelper.WriteLog("剩下一点，留下次：{0},{1}=>{2}", s.Position, s.Length, s.Length - s.Position);
+                    //var p = s.Position;
+                    //NetHelper.WriteLog("保留开头位置 {0}", s.ReadByte());
+                    //s.Position = p;
+
+                    var ms = new MemoryStream();
+                    s.CopyTo(ms);
+                    ms.Position = 0;
+                    session.Stream = ms;
+                }
                 else
                     session.Stream = null;
             }

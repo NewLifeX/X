@@ -179,6 +179,7 @@ namespace NewLife.Messaging
                 try
                 {
                     msg = reader.ReadObject(type) as Message;
+                    if (msg == null) throw new XException("数据格式不正确！");
                 }
                 catch (Exception ex)
                 {
