@@ -38,6 +38,7 @@ using System.Runtime.InteropServices;
 
 /*
  * v3.8.2012.0423   消息提供者内部支持消息的分片和组装
+ *                  DictionaryCache增加清理过期缓存项功能，在缓存项过期后，如果再超过清理过期时间则被扫描任务清理
  * 
  * v3.8.2012.0410   增加ApiHook，用于挂钩托管函数
  * 

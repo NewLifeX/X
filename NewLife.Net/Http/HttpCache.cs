@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.IO;
+using NewLife.Collections;
 
 namespace NewLife.Net.Http
 {
@@ -9,29 +10,30 @@ namespace NewLife.Net.Http
     class HttpCache
     {
         #region 属性
-        private Dictionary<String, HttpCacheItem> _Items;
+        private DictionaryCache<String, HttpCacheItem> _Items;
         /// <summary>缓存项</summary>
-        public Dictionary<String, HttpCacheItem> Items { get { return _Items ?? (_Items = new Dictionary<string, HttpCacheItem>(StringComparer.OrdinalIgnoreCase)); } set { _Items = value; } }
+        public DictionaryCache<String, HttpCacheItem> Items { get { return _Items ?? (_Items = new DictionaryCache<string, HttpCacheItem>(StringComparer.OrdinalIgnoreCase)); } set { _Items = value; } }
         #endregion
 
         #region 方法
         public HttpCacheItem GetItem(String url)
         {
-            HttpCacheItem item = null;
-            if (!Items.TryGetValue(url, out item)) return null;
-            lock (Items)
-            {
-                if (!Items.TryGetValue(url, out item)) return null;
+            return Items[url];
+            //HttpCacheItem item = null;
+            //if (!Items.TryGetValue(url, out item)) return null;
+            //lock (Items)
+            //{
+            //    if (!Items.TryGetValue(url, out item)) return null;
 
-                // 移除过期
-                if (item.ExpiredTime < DateTime.Now)
-                {
-                    Items.Remove(url);
-                    item = null;
-                }
+            //    // 移除过期
+            //    if (item.ExpiredTime < DateTime.Now)
+            //    {
+            //        Items.Remove(url);
+            //        item = null;
+            //    }
 
-                return item;
-            }
+            //    return item;
+            //}
         }
 
         public HttpCacheItem Add(HttpHeader request, HttpHeader response)

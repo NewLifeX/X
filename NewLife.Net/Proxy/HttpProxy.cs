@@ -4,10 +4,10 @@ using System.Net;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using Microsoft.Win32;
+using NewLife.Collections;
 using NewLife.Net.Http;
 using NewLife.Net.Sockets;
 using NewLife.Serialization;
-using NewLife.Collections;
 
 namespace NewLife.Net.Proxy
 {

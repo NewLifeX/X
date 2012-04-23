@@ -1,9 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using NewLife.Reflection;
-using NewLife.Linq;
 using System.Collections;
+using System.Collections.Generic;
+using NewLife.Linq;
+using NewLife.Reflection;
+using NewLife.Threading;
 
 namespace NewLife.Collections
 {
@@ -11,12 +11,49 @@ namespace NewLife.Collections
     /// <remarks>常用匿名函数或者Lambda表达式作为委托。</remarks>
     /// <typeparam name="TKey">键类型</typeparam>
     /// <typeparam name="TValue">值类型</typeparam>
-    public class DictionaryCache<TKey, TValue> : IDictionary<TKey, TValue>
+    public class DictionaryCache<TKey, TValue> : DisposeBase, IDictionary<TKey, TValue>
     {
         #region 属性
         private Int32 _Expriod = 0;
         /// <summary>过期时间。单位是秒，默认0秒，表示永不过期</summary>
-        public Int32 Expriod { get { return _Expriod; } set { _Expriod = value; } }
+        public Int32 Expriod
+        {
+            get { return _Expriod; }
+            set
+            {
+                _Expriod = value;
+
+                var ce = ClearExpriod;
+                if (value > 0)
+                {
+                    // 10倍清理过期时间
+                    if (ce <= 0) ClearExpriod = value * 10;
+                }
+                else
+                {
+                    ClearExpriod = 0;
+                }
+            }
+        }
+
+        private Int32 _ClearExpriod;
+        /// <summary>过期清理时间，缓存项过期后达到这个时间时，将被移除缓存。单位是秒，默认0秒，表示不清理过期项</summary>
+        public Int32 ClearExpriod
+        {
+            get { return _ClearExpriod; }
+            set
+            {
+                _ClearExpriod = value;
+                if (value > 0)
+                {
+                    if (clearTimer == null) clearTimer = new TimerX(RemoveNotAlive, null, value, value);
+                }
+                else
+                {
+                    if (clearTimer != null) clearTimer.Dispose();
+                }
+            }
+        }
 
         private Boolean _Asynchronous;
         /// <summary>异步更新</summary>
@@ -32,6 +69,16 @@ namespace NewLife.Collections
         /// <summary>实例化一个字典缓存</summary>
         /// <param name="comparer"></param>
         public DictionaryCache(IEqualityComparer<TKey> comparer) { Items = new Dictionary<TKey, CacheItem>(comparer); }
+
+        /// <summary>子类重载实现资源释放逻辑时必须首先调用基类方法</summary>
+        /// <param name="disposing">从Dispose调用（释放所有资源）还是析构函数调用（释放非托管资源）。
+        /// 因为该方法只会被调用一次，所以该参数的意义不太大。</param>
+        protected override void OnDispose(bool disposing)
+        {
+            base.OnDispose(disposing);
+
+            if (clearTimer != null) clearTimer.Dispose();
+        }
         #endregion
 
         #region 缓存项
@@ -41,8 +88,9 @@ namespace NewLife.Collections
             /// <summary>数值</summary>
             public TValue Value;
 
+            private DateTime _ExpiredTime;
             /// <summary>过期时间</summary>
-            public DateTime ExpiredTime;
+            public DateTime ExpiredTime { get { return _ExpiredTime; } set { _ExpiredTime = value; } }
 
             /// <summary>是否过期</summary>
             public Boolean Expired { get { return ExpiredTime <= DateTime.Now; } }
@@ -64,7 +112,7 @@ namespace NewLife.Collections
             get
             {
                 CacheItem item;
-                if (Items.TryGetValue(key, out item)) return item.Value;
+                if (Items.TryGetValue(key, out item) && (Expriod <= 0 || !item.Expired)) return item.Value;
 
                 return default(TValue);
             }
@@ -81,10 +129,6 @@ namespace NewLife.Collections
                         Items[key] = new CacheItem(value, Expriod);
                     }
                 }
-                ////if (ContainsKey(key))
-                //Items[key] = value;
-                ////else
-                ////    base.Add(key, value);
             }
         }
 
@@ -118,10 +162,19 @@ namespace NewLife.Collections
                     if (item != null) item.ExpiredTime = DateTime.Now.AddSeconds(expriod);
                 }
 
-                var value = func(key);
-                if (cacheDefault || !Object.Equals(value, default(TValue))) items[key] = new CacheItem(value, expriod);
+                if (func == null)
+                {
+                    var value = default(TValue);
+                    if (cacheDefault) items[key] = new CacheItem(value, expriod);
+                    return value;
+                }
+                else
+                {
+                    var value = func(key);
+                    if (cacheDefault || !Object.Equals(value, default(TValue))) items[key] = new CacheItem(value, expriod);
 
-                return value;
+                    return value;
+                }
             }
         }
 
@@ -297,6 +350,34 @@ namespace NewLife.Collections
         }
         #endregion
 
+        #region 清理过期缓存
+        /// <summary>清理会话计时器</summary>
+        private TimerX clearTimer;
+
+        /// <summary>移除过期的缓存项</summary>
+        void RemoveNotAlive(Object state)
+        {
+            var expriod = ClearExpriod;
+            if (expriod <= 0) return;
+
+            var dic = Items;
+            if (dic.Count < 1) return;
+            lock (dic)
+            {
+                if (dic.Count < 1) return;
+
+                // 这里先计算，性能很重要
+                var now = DateTime.Now;
+                var exp = now.AddSeconds(-1 * expriod);
+                foreach (var item in dic.ToArray())
+                {
+                    var t = item.Value.ExpiredTime;
+                    if (t < exp) dic.Remove(item.Key);
+                }
+            }
+        }
+        #endregion
+
         #region IDictionary<TKey,TValue> 成员
         /// <summary></summary>
         /// <param name="key"></param>
@@ -324,7 +405,7 @@ namespace NewLife.Collections
         {
             CacheItem item = null;
             var rs = Items.TryGetValue(key, out item);
-            value = rs && item != null ? item.Value : default(TValue);
+            value = rs && item != null && (Expriod <= 0 || !item.Expired) ? item.Value : default(TValue);
             return rs;
         }
 
@@ -345,7 +426,7 @@ namespace NewLife.Collections
         /// <summary></summary>
         /// <param name="item"></param>
         /// <returns></returns>
-        public bool Contains(KeyValuePair<TKey, TValue> item) { return Items.ContainsKey(item.Key); }
+        public bool Contains(KeyValuePair<TKey, TValue> item) { return ContainsKey(item.Key); }
 
         /// <summary></summary>
         /// <param name="array"></param>
@@ -361,7 +442,7 @@ namespace NewLife.Collections
         /// <summary></summary>
         /// <param name="item"></param>
         /// <returns></returns>
-        public bool Remove(KeyValuePair<TKey, TValue> item) { return Items.Remove(item.Key); }
+        public bool Remove(KeyValuePair<TKey, TValue> item) { return Remove(item.Key); }
 
         #endregion
 
