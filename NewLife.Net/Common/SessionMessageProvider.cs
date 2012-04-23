@@ -2,6 +2,7 @@
 using System.IO;
 using NewLife.Messaging;
 using NewLife.Net.Sockets;
+using NewLife.Reflection;
 
 namespace NewLife.Net.Common
 {
@@ -47,6 +48,8 @@ namespace NewLife.Net.Common
             {
                 if (NetHelper.Debug) NetHelper.WriteLog(ex.ToString());
 
+                // 去掉内部异常，以免过大
+                if (ex.InnerException != null) FieldInfoX.SetValue(ex, "_innerException", null);
                 var msg = new ExceptionMessage() { Value = ex };
                 session.Send(msg.GetStream());
 

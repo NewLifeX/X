@@ -1,9 +1,9 @@
 ﻿using System;
 using System.IO;
 using System.Net.Sockets;
+using System.Threading;
 using NewLife.Messaging;
 using NewLife.Net.Sockets;
-using System.Threading;
 
 namespace NewLife.Net.Common
 {
