@@ -120,7 +120,10 @@ namespace NewLife.Collections
             {
                 CacheItem item;
                 if (Items.TryGetValue(key, out item))
+                {
+                    item.Value = value;
                     item.ExpiredTime = DateTime.Now;
+                }
                 else
                 {
                     // 加锁，避免意外
