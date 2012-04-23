@@ -368,10 +368,15 @@ namespace NewLife.Net.Proxy
                         // 响应缓存
                         Byte[] cs = null;
                         var ms = citem.Stream;
-                        lock (ms)
+                        if (ms is MemoryStream)
+                            cs = (ms as MemoryStream).ToArray();
+                        else
                         {
-                            ms.Position = 0;
-                            cs = ms.ReadBytes();
+                            lock (ms)
+                            {
+                                ms.Position = 0;
+                                cs = ms.ReadBytes();
+                            }
                         }
                         //var cs = citem.Response.GetStream();
 
