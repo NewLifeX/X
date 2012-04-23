@@ -2,6 +2,8 @@
 using System.IO;
 using NewLife.Messaging;
 using NewLife.Net.Sockets;
+using System.Net.Sockets;
+using NewLife.Log;
 
 namespace NewLife.Net.Common
 {
@@ -14,7 +16,18 @@ namespace NewLife.Net.Common
     {
         private NetServer _Server;
         /// <summary>网络会话</summary>
-        public NetServer Server { get { return _Server; } set { _Server = value; } }
+        public NetServer Server
+        {
+            get { return _Server; }
+            set
+            {
+                _Server = value;
+                if (value != null)
+                    MaxMessageSize = value.ProtocolType == ProtocolType.Udp ? 1472 : 1460;
+                else
+                    MaxMessageSize = 0;
+            }
+        }
 
         /// <summary>实例化一个网络服务消息提供者</summary>
         /// <param name="server"></param>
@@ -44,12 +57,8 @@ namespace NewLife.Net.Common
             }
             try
             {
-                while (s.Position < s.Length && Message.IsMessage(s))
-                {
-                    var msg = Message.Read(s);
-                    msg.UserState = session;
-                    Process(msg);
-                }
+                Process(s, session, session.RemoteUri);
+                
                 // 如果还有剩下，写入数据流，供下次使用
                 if (s.Position < s.Length)
                     session.Stream = s;
@@ -58,6 +67,8 @@ namespace NewLife.Net.Common
             }
             catch (Exception ex)
             {
+                if (NetHelper.Debug) XTrace.WriteException(ex);
+
                 var msg = new ExceptionMessage() { Value = ex };
                 session.Send(msg.GetStream());
             }

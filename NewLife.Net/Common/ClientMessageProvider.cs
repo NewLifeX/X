@@ -51,15 +51,16 @@ namespace NewLife.Net.Common
 
         void client_Received(object sender, ReceivedEventArgs e)
         {
+            var session = Session;
             try
             {
                 var message = Message.Read(e.Stream);
-                Process(message);
+                Process(message, session.RemoteUri);
             }
             catch (Exception ex)
             {
                 var msg = new ExceptionMessage() { Value = ex };
-                Process(msg);
+                Process(msg, session.RemoteUri);
             }
         }
 

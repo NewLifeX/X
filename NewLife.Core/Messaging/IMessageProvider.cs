@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using NewLife.Linq;
 using NewLife.Log;
-using System.Diagnostics;
-using NewLife.Serialization;
 
 namespace NewLife.Messaging
 {
@@ -103,8 +102,9 @@ namespace NewLife.Messaging
     interface IMessageProvider2 : IMessageProvider
     {
         /// <summary>收到消息时调用该方法</summary>
-        /// <param name="message"></param>
-        void Process(Message message);
+        /// <param name="message">消息</param>
+        /// <param name="remoteIdentity">远程标识</param>
+        void Process(Message message, Object remoteIdentity = null);
     }
 
     /// <summary>消息提供者基类</summary>
@@ -162,8 +162,25 @@ namespace NewLife.Messaging
         protected abstract void OnSend(Stream stream);
 
         /// <summary>收到消息时调用该方法</summary>
-        /// <param name="message"></param>
-        public virtual void Process(Message message)
+        /// <param name="stream">数据流</param>
+        /// <param name="state">用户状态</param>
+        /// <param name="remoteIdentity">远程标识</param>
+        public virtual void Process(Stream stream, Object state, Object remoteIdentity = null)
+        {
+            var len = 0L;
+            // 如果大小大于一个数据包大小，就认为这有一个完整的数据包
+            while ((len = stream.Length - stream.Position) > 0 && (MaxMessageSize > 0 && len >= MaxMessageSize || Message.IsMessage(stream)))
+            {
+                var msg = Message.Read(stream);
+                msg.UserState = state;
+                Process(msg, remoteIdentity);
+            }
+        }
+
+        /// <summary>收到消息时调用该方法</summary>
+        /// <param name="message">消息</param>
+        /// <param name="remoteIdentity">远程标识</param>
+        public virtual void Process(Message message, Object remoteIdentity = null)
         {
             if (message == null) return;
 
@@ -238,18 +255,21 @@ namespace NewLife.Messaging
             }
         }
 
-        private Dictionary<Int32, MessageGroup> groups = new Dictionary<Int32, MessageGroup>();
+        private Dictionary<String, MessageGroup> groups = new Dictionary<String, MessageGroup>();
         /// <summary>组合组消息</summary>
-        /// <param name="message"></param>
+        /// <param name="message">消息</param>
+        /// <param name="remoteIdentity">远程标识</param>
         /// <returns></returns>
-        protected virtual Message JoinGroup(GroupMessage message)
+        protected virtual Message JoinGroup(GroupMessage message, Object remoteIdentity = null)
         {
+            var key = String.Format("{0}#{1}", remoteIdentity, message.Identity);
+
             MessageGroup mg = null;
-            if (!groups.TryGetValue(message.Identity, out mg))
+            if (!groups.TryGetValue(key, out mg))
             {
                 mg = new MessageGroup();
                 mg.Identity = message.Identity;
-                groups.Add(mg.Identity, mg);
+                groups.Add(key, mg);
             }
 
             // 加入到组，如果返回false，表示未收到所有消息
@@ -263,7 +283,7 @@ namespace NewLife.Messaging
             WriteLog("接收分组 Identity={0} {1}/{2} [{3}] 已完成：{4}/{5}", message.Identity, message.Index, message.Count, message.Data == null ? 0 : message.Data.Length, mg.Count, mg.Total);
 
             // 否则，表示收到所有消息
-            groups.Remove(mg.Identity);
+            groups.Remove(key);
 
             // 读取真正的消息
             return mg.GetMessage();

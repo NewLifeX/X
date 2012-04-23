@@ -194,17 +194,18 @@ namespace NewLife.Messaging
                 // 第一个字节很重要
                 var n = stream.ReadByte();
                 if (n < 0) return false;
-                var b = (Byte)n;
+                var first = (Byte)n;
                 // 查一下该消息类型是否以注册，如果未注册，直接返回false
-                var type = ObjectContainer.Current.ResolveType<Message>((MessageKind)(b & 0x0F));
+                var type = ObjectContainer.Current.ResolveType<Message>((MessageKind)(first & 0x0F));
                 if (type == null) return false;
 
                 // 如果没用消息头，直接返回true
-                if (!MessageHeader.IsValid(b)) return true;
+                if (!MessageHeader.IsValid(first)) return true;
 
                 // 如果使用了消息头，判断一下数据流长度是否满足
                 try
                 {
+                    stream.Position = p;
                     var header = new MessageHeader();
                     header.Read(stream);
 

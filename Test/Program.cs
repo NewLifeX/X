@@ -2,7 +2,6 @@
 using System.Diagnostics;
 using System.IO.Ports;
 using System.Threading;
-using NewLife.CommonEntity;
 using NewLife.Linq;
 using NewLife.Log;
 using NewLife.Messaging;
@@ -190,6 +189,7 @@ namespace Test
 
                 var mp = new ServerMessageProvider(server);
                 mp.OnReceived += new EventHandler<MessageEventArgs>(smp_OnReceived);
+                //mp.MaxMessageSize = 1460;
                 mp.AutoJoinGroup = true;
                 smp = mp;
 
@@ -207,7 +207,7 @@ namespace Test
             //Message.Debug = true;
             var msg = new EntityMessage();
             var rnd = new Random((Int32)DateTime.Now.Ticks);
-            var bts = new Byte[rnd.Next(500000, 1000000)];
+            var bts = new Byte[rnd.Next(50000, 100000)];
             rnd.NextBytes(bts);
             msg.Value = bts;
 
@@ -218,7 +218,7 @@ namespace Test
         static void smp_OnReceived(object sender, MessageEventArgs e)
         {
             var msg = e.Message;
-            Console.WriteLine("服务端收到：[{0}]", msg);
+            Console.WriteLine("服务端收到：{0}", msg);
             var rs = new EntityMessage();
             rs.Value = "收到" + msg;
             (sender as IMessageProvider).Send(rs);
@@ -231,19 +231,19 @@ namespace Test
 
         static void Test5()
         {
-            var rnd = new Random((Int32)DateTime.Now.Ticks);
-            var entity = Administrator.FindByID(1);
-            for (int k = 0; k < 10; k++)
-            {
-                for (int i = 0; i < 4; i++)
-                {
-                    Administrator.Meta.TableName = "Admin" + (i + 1);
-                    entity.Name = "Admin" + rnd.Next(1000, 10000);
-                    entity.Insert();
+            //var rnd = new Random((Int32)DateTime.Now.Ticks);
+            //var entity = Administrator.FindByID(1);
+            //for (int k = 0; k < 10; k++)
+            //{
+            //    for (int i = 0; i < 4; i++)
+            //    {
+            //        Administrator.Meta.TableName = "Admin" + (i + 1);
+            //        entity.Name = "Admin" + rnd.Next(1000, 10000);
+            //        entity.Insert();
 
-                    Console.WriteLine("{0} {1}", Administrator.Meta.TableName, Administrator.Meta.Count);
-                }
-            }
+            //        Console.WriteLine("{0} {1}", Administrator.Meta.TableName, Administrator.Meta.Count);
+            //    }
+            //}
         }
     }
 }
