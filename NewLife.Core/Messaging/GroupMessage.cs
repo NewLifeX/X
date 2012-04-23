@@ -51,6 +51,9 @@ namespace NewLife.Messaging
     }
 
     /// <summary>消息组。</summary>
+    /// <remarks>
+    /// 20120421，连续两天半，完成消息分片组装算法，尽可能的让分片占用最大大小。
+    /// </remarks>
     public class MessageGroup : IEnumerable<GroupMessage>
     {
         #region 属性
