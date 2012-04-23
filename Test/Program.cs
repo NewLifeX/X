@@ -199,7 +199,7 @@ namespace Test
 
             if (cmp == null)
             {
-                var client = NetService.CreateSession(new NetUri("tcp://127.0.0.1:1234"));
+                var client = NetService.CreateSession(new NetUri("udp://::1:1234"));
                 client.ReceiveAsync();
                 cmp = new ClientMessageProvider() { Session = client };
                 cmp.OnReceived += new EventHandler<MessageEventArgs>(cmp_OnReceived);
@@ -208,7 +208,7 @@ namespace Test
             //Message.Debug = true;
             var msg = new EntityMessage();
             var rnd = new Random((Int32)DateTime.Now.Ticks);
-            var bts = new Byte[rnd.Next(1000000, 2000000)];
+            var bts = new Byte[rnd.Next(100000, 500000)];
             //var bts = new Byte[1460 * 1 - rnd.Next(0, 20)];
             rnd.NextBytes(bts);
             msg.Value = bts;

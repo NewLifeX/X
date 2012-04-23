@@ -3,6 +3,7 @@ using System.IO;
 using System.Net.Sockets;
 using NewLife.Messaging;
 using NewLife.Net.Sockets;
+using System.Threading;
 
 namespace NewLife.Net.Common
 {
@@ -33,7 +34,7 @@ namespace NewLife.Net.Common
                         // http://www.cnblogs.com/begingame/archive/2011/08/18/2145138.html
                         MaxMessageSize = value.ProtocolType == ProtocolType.Udp ? 1472 : 1460;
                         //MaxMessageSize = value.ProtocolType == ProtocolType.Udp ? 1024 * 8 : 1460;
-                        value.Host.Socket.DontFragment = true;
+                        //value.Host.Socket.DontFragment = true;
 
                         if (value.UseReceiveAsync)
                         {
@@ -66,7 +67,14 @@ namespace NewLife.Net.Common
 
         /// <summary>发送数据流。</summary>
         /// <param name="stream"></param>
-        protected override void OnSend(Stream stream) { GetSession().Send(stream); }
+        protected override void OnSend(Stream stream)
+        {
+            var session = GetSession();
+            session.Send(stream);
+
+            // UDP暂停一会，避免连续发送导致数据包丢失
+            if (session.ProtocolType == ProtocolType.Udp) Thread.Sleep(10);
+        }
 
         ISocketSession GetSession()
         {

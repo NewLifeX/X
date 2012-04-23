@@ -133,7 +133,10 @@ namespace NewLife.Messaging
                 // 最后一个修正长度，因为数据量可能很少，前面的GetBytesCount(size)可能不对。
                 if (len2 < size - trueLen) msg.Header.Length += GetBytesCount(len2) - GetBytesCount(size);
 
-                Items.Add(msg);
+                lock (Items)
+                {
+                    Items.Add(msg);
+                }
             }
 
             //if (Items.Count > 0) Items[0].Count = Items.Count;
@@ -161,7 +164,10 @@ namespace NewLife.Messaging
             else if (message.Identity != Identity)
                 throw new ArgumentException("组消息的标识不匹配！", "message");
 
-            if (!Items.Any(e => e.Index == message.Index)) Items.Add(message);
+            lock (Items)
+            {
+                if (!Items.Any(e => e.Index == message.Index)) Items.Add(message);
+            }
 
             if (message.Index == 1) Total = message.Count;
 

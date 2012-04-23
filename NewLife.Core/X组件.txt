@@ -1,4 +1,10 @@
-﻿X组件是.Net之上的常用功能集合，前身是ASP组件通用类Gen，始于2002年，最后版本是v3.0，可百度找到http://www.baidu.com/baidu?wd=%CD%A8%D3%C3%C0%E0+Gen&tn=monline_4_dg。
+﻿
+新生命开发团队
+QQ群：1600800
+博客：http://nnhy.cnblogs.com
+论坛：http://www.53wb.com
+
+X组件是.Net之上的常用功能集合，前身是ASP组件通用类Gen，始于2002年，最后版本是v3.0，可百度找到http://www.baidu.com/baidu?wd=%CD%A8%D3%C3%C0%E0+Gen&tn=monline_4_dg。
 
 X组件原则：以有限的条件，提供无限的支持！
 说明：

@@ -325,6 +325,11 @@ namespace NewLife.Net.Sockets
             socket.SendTimeout = 10000;
             socket.ReceiveTimeout = 10000;
 
+            // 加大接收缓冲区，为BufferSize的10倍，但不超过80k
+            var bufsize = BufferSize * 10;
+            if (bufsize > 80 * 1024) bufsize = 80 * 1024;
+            socket.ReceiveBufferSize = bufsize;
+
             Socket = socket;
 
             if (_ReuseAddress) ReuseAddress = true;
