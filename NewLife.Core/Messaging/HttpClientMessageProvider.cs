@@ -50,18 +50,18 @@ namespace NewLife.Messaging
         /// <returns></returns>
         public override Message SendAndReceive(Message message, int millisecondsTimeout = 0)
         {
-            //return base.SendAndReceive(message, millisecondsTimeout);
+            lock (this)
+            {
+                Byte[] rs = null;
+                var data = message.GetStream().ReadBytes();
+                if (data.Length < 128)
+                    rs = Client.DownloadData(new Uri(Uri.ToString() + "?" + DataHelper.ToHex(data)));
+                else
+                    rs = Client.UploadData(Uri, data);
+                if (rs == null || rs.Length < 1) return null;
 
-            //var rs = Client.UploadData(Uri, data);
-            Byte[] rs = null;
-            var data = message.GetStream().ReadBytes();
-            if (data.Length < 128)
-                rs = Client.DownloadData(new Uri(Uri.ToString() + "?" + DataHelper.ToHex(data)));
-            else
-                rs = Client.UploadData(Uri, data);
-            if (rs == null || rs.Length < 1) return null;
-
-            return Message.Read(new MemoryStream(rs));
+                return Message.Read(new MemoryStream(rs));
+            }
         }
         #endregion
 
@@ -72,17 +72,20 @@ namespace NewLife.Messaging
         /// <param name="stream"></param>
         protected override void OnSend(Stream stream)
         {
-            var client = Client;
-            if (!_hasSetAsync)
+            lock (this)
             {
-                client.UploadDataCompleted += new UploadDataCompletedEventHandler(client_UploadDataCompleted);
-                client.DownloadDataCompleted += new DownloadDataCompletedEventHandler(client_DownloadDataCompleted);
+                var client = Client;
+                if (!_hasSetAsync)
+                {
+                    client.UploadDataCompleted += new UploadDataCompletedEventHandler(client_UploadDataCompleted);
+                    client.DownloadDataCompleted += new DownloadDataCompletedEventHandler(client_DownloadDataCompleted);
+                }
+                var data = stream.ReadBytes();
+                if (data.Length < 128)
+                    client.DownloadDataAsync(new Uri(Uri.ToString() + "?" + DataHelper.ToHex(data)));
+                else
+                    client.UploadDataAsync(Uri, data);
             }
-            var data = stream.ReadBytes();
-            if (data.Length < 128)
-                client.DownloadDataAsync(new Uri(Uri.ToString() + "?" + DataHelper.ToHex(data)));
-            else
-                client.UploadDataAsync(Uri, data);
         }
 
         void client_UploadDataCompleted(object sender, UploadDataCompletedEventArgs e) { ProcessResponse(e, e.Result); }

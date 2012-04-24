@@ -1,9 +1,9 @@
 ﻿using System;
+using System.IO;
 using System.Windows.Forms;
 using NewLife;
 using NewLife.Log;
 using NewLife.Threading;
-using System.IO;
 
 namespace XCoder
 {

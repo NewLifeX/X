@@ -130,6 +130,7 @@ namespace NewLife.Messaging
 
         #region 枚举
         /// <summary>用于指定消息头采用那些字段的标识</summary>
+        [Flags]
         public enum Flags : byte
         {
             /// <summary>是否使用消息头</summary>

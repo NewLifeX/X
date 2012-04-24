@@ -672,7 +672,8 @@ namespace NewLife.Reflection
                         if (types[i] == null || types[i] == typeof(Object)) continue;
 
                         // 检查参数继承，不一定是精确匹配。任何一个不匹配就失败
-                        if (!types[i].IsAssignableFrom(mps[i].ParameterType))
+                        //if (!types[i].IsAssignableFrom(mps[i].ParameterType))
+                        if (mps[i].ParameterType != typeof(Object) && !mps[i].ParameterType.IsAssignableFrom(types[i]))
                         {
                             valid = false;
                             break;
