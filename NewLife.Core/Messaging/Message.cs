@@ -156,7 +156,7 @@ namespace NewLife.Messaging
 
             #region 识别消息类型
             // 读取了响应类型和消息类型后，动态创建消息对象
-            var kind = (MessageKind)(reader.ReadByte() & 0x0F);
+            var kind = (MessageKind)(reader.ReadByte() & 0x7F);
             var type = ObjectContainer.Current.ResolveType<Message>(kind);
             if (type == null)
             {
@@ -228,7 +228,7 @@ namespace NewLife.Messaging
         {
             Int32 n = stream.ReadByte();
             stream.Seek(-1, SeekOrigin.Current);
-            return (MessageKind)(n & 0x0F);
+            return (MessageKind)(n & 0x7F);
         }
 
         /// <summary>探测消息类型，不移动流指针</summary>
@@ -262,7 +262,7 @@ namespace NewLife.Messaging
                 if (!MessageHeader.IsValid(first))
                 {
                     // 查一下该消息类型是否以注册，如果未注册，直接返回false
-                    var type = ObjectContainer.Current.ResolveType<Message>((MessageKind)(first & 0x0F));
+                    var type = ObjectContainer.Current.ResolveType<Message>((MessageKind)(first & 0x7F));
                     if (type == null) return false;
                 }
 
@@ -287,7 +287,7 @@ namespace NewLife.Messaging
                     if (n < 0) return false;
                     first = (Byte)n;
                     // 查一下该消息类型是否以注册，如果未注册，直接返回false
-                    var type = ObjectContainer.Current.ResolveType<Message>((MessageKind)(first & 0x0F));
+                    var type = ObjectContainer.Current.ResolveType<Message>((MessageKind)(first & 0x7F));
                     if (type == null) return false;
                 }
 
