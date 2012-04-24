@@ -159,6 +159,15 @@ namespace XCode
             return AssemblyX.FindAllPlugins(typeof(IEntity)).Where(t => TableItem.Create(t).ConnName == connName);
         }
 
+        /// <summary>获取指定连接名下的所有实体类</summary>
+        /// <param name="connName"></param>
+        /// <param name="isLoadAssembly">是否从未加载程序集中获取类型。使用仅反射的方法检查目标类型，如果存在，则进行常规加载</param>
+        /// <returns></returns>
+        public static IEnumerable<Type> LoadEntities(String connName, Boolean isLoadAssembly)
+        {
+            return AssemblyX.FindAllPlugins(typeof(IEntity), isLoadAssembly).Where(t => TableItem.Create(t).ConnName == connName);
+        }
+
         /// <summary>获取指定连接名下的所有实体数据表</summary>
         /// <param name="connName"></param>
         /// <returns></returns>
