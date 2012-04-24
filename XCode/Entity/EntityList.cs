@@ -1088,6 +1088,8 @@ namespace XCode
 
         void ICollection<IEntity>.CopyTo(IEntity[] array, int arrayIndex)
         {
+            if (array == null || array.Length == 0) return;
+
             VerifyValueType(array[0]);
             T[] arr = new T[array.Length];
             CopyTo(arr, arrayIndex);
