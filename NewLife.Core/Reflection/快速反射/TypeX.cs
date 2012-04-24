@@ -538,23 +538,6 @@ namespace NewLife.Reflection
             return null;
         }
 
-        /// <summary>返回当前数组、指针或引用类型包含的或引用的对象的 <see cref="T:System.Type" /></summary>
-        /// <returns></returns>
-        public Type GetElementType()
-        {
-            var type = BaseType.GetElementType();
-            if (type != null) return type;
-
-            if (BaseType.IsGenericType && !BaseType.IsGenericTypeDefinition)
-            {
-                if (typeof(IEnumerable<>).IsAssignableFrom(BaseType.GetGenericTypeDefinition()))
-                {
-                    return type.GetGenericArguments()[0];
-                }
-            }
-            return null;
-        }
-
         //static DictionaryCache<String, Type> typeCache2 = new DictionaryCache<String, Type>();
         ///// <summary>
         ///// 从指定程序集查找指定名称的类型，如果查找不到，则进行忽略大小写的查找
