@@ -180,6 +180,9 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         protected virtual Boolean CheckAndGetDefault(IDataColumn dc, ref String oriDefault)
         {
+            // 如果数据库类型等于原始类型，则直接通过
+            if (dc.Table.DbType == Database.DbType) return true;
+
             // 原始数据库类型
             IDatabase db = DbFactory.Create(dc.Table.DbType);
             if (db == null) return false;
@@ -191,6 +194,14 @@ namespace XCode.DataAccessLayer
                 if (String.IsNullOrEmpty(oriDefault) || oriDefault.EqualIgnoreCase(db.DateTimeNow))
                 {
                     oriDefault = Database.DateTimeNow;
+                    return true;
+                }
+                else
+                {
+                    // 出现了不支持的时间默认值
+                    if (DAL.Debug) DAL.WriteLog("出现了{0}不支持的时间默认值：{1}.{2}={3}", Database.DbType, dc.Table.Name, dc.Name, oriDefault);
+
+                    oriDefault = null;
                     return true;
                 }
             }
