@@ -189,7 +189,7 @@ namespace NewLife.Messaging
                         return null;
                     }
                     else
-                        throw new XException(String.Format("无法从数据流中读取{0}（Kind={1}）消息！{2}", type.Name, kind, ex.Message), ex);
+                        throw new XException(String.Format("无法从数据流中读取{0}（Kind={1}）消息！{2}", type.Name, kind, ex.Message));
                 }
             }
             msg.Header = header;
