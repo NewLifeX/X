@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Diagnostics;
+using System.Text;
 using System.Threading;
 using System.Web;
 using NewLife;
@@ -14,7 +15,6 @@ using XCode.Cache;
 using XCode.Common;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
-using System.Text;
 
 namespace XCode
 {
@@ -297,7 +297,9 @@ namespace XCode
                     }
 
                     // 输出调用者，方便调试
+#if DEBUG
                     if (DAL.Debug) DAL.WriteLog("检查实体{0}的数据表架构，模式：{1}，调用栈：{2}", ThisType.FullName, Table.ModelCheckMode, Helper.GetCaller());
+#endif
 
                     // 第一次使用才检查的，此时检查
                     Boolean ck = false;
@@ -307,7 +309,9 @@ namespace XCode
                     {
                         DBO.HasCheckTables.Add(TableName);
 
+#if DEBUG
                         if (!ck && DAL.Debug) DAL.WriteLog("集中初始化表架构时没赶上，现在补上！");
+#endif
 
                         ck = true;
                     }
@@ -315,7 +319,9 @@ namespace XCode
                     {
                         Func check = delegate
                         {
+#if DEBUG
                             DAL.WriteLog("开始{2}检查表[{0}/{1}]的数据表架构……", Table.DataTable.Name, DbType, DAL.NegativeCheckOnly ? "异步" : "同步");
+#endif
 
                             Stopwatch sw = new Stopwatch();
                             sw.Start();
@@ -328,7 +334,9 @@ namespace XCode
                             {
                                 sw.Stop();
 
+#if DEBUG
                                 DAL.WriteLog("检查表[{0}/{1}]的数据表架构耗时{2}", Table.DataTable.Name, DbType, sw.Elapsed);
+#endif
                             }
                         };
 
@@ -360,7 +368,9 @@ namespace XCode
                     // 是否需要等待
                     if (millisecondsTimeout != 0 && e != null)
                     {
+#if DEBUG
                         if (DAL.Debug) DAL.WriteLog("开始等待初始化{0}数据{2}ms，调用栈：{1}", ThisType.FullName, Helper.GetCaller(), millisecondsTimeout);
+#endif
                         try
                         {
                             // 如果未收到信号，表示超时
@@ -368,7 +378,9 @@ namespace XCode
                         }
                         finally
                         {
+#if DEBUG
                             if (DAL.Debug) DAL.WriteLog("结束等待初始化{0}数据，调用栈：{1}", ThisType.FullName, Helper.GetCaller());
+#endif
                         }
                     }
                     return true;
@@ -382,7 +394,9 @@ namespace XCode
                 CheckModel();
 
                 // 输出调用者，方便调试
+#if DEBUG
                 if (DAL.Debug) DAL.WriteLog("初始化{0}数据，调用栈：{1}", ThisType.FullName, Helper.GetCaller());
+#endif
 
                 try
                 {
