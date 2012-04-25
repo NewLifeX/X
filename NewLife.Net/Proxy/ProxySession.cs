@@ -98,7 +98,7 @@ namespace NewLife.Net.Proxy
                 if (Remote == null) StartRemote(e);
 
                 //Remote.Send(stream, RemoteEndPoint);
-                SendRemote(e.Stream);
+                if (Remote != null) SendRemote(e.Stream);
             }
         }
 
