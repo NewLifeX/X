@@ -292,7 +292,7 @@ namespace NewLife.Net.Proxy
                 else
                     throw new NetException("无法处理的请求！{0}", entity);
 
-                WriteLog("[{4}] {3} => {0} {1} [{2}]", entity.Method, oriUrl, entity.ContentLength, ClientEndPoint, ID);
+                WriteDebugLog("[{4}] {3} => {0} {1} [{2}]", entity.Method, oriUrl, entity.ContentLength, ClientEndPoint, ID);
 
                 // 可能不含Host
                 if (String.IsNullOrEmpty(entity.Host)) entity.Host = host;
@@ -314,7 +314,7 @@ namespace NewLife.Net.Proxy
 
             Boolean ProcessConnect(HttpHeader entity, ReceivedEventArgs e)
             {
-                WriteLog("[{3}] {0} {1} [{2}]", entity.Method, entity.Url, entity.ContentLength, ID);
+                WriteDebugLog("[{3}] {0} {1} [{2}]", entity.Method, entity.Url, entity.ContentLength, ID);
 
                 //var host = entity.Url.ToString();
                 var uri = RemoteUri;
@@ -380,7 +380,7 @@ namespace NewLife.Net.Proxy
                         }
                         //var cs = citem.Response.GetStream();
 
-                        WriteLog("[{0}] {1} 缓存命中[{2}]", ID, entity.RawUrl, cs.Length);
+                        WriteDebugLog("[{0}] {1} 缓存命中[{2}]", ID, entity.RawUrl, cs.Length);
 
                         Send(cs);
 
@@ -427,7 +427,7 @@ namespace NewLife.Net.Proxy
                                 var p = e.Stream.Position;
                                 var count = e.Stream.CopyTo(cacheItem.Stream);
                                 e.Stream.Position = p;
-                                WriteLog("[{0}] {1} 缓存数据[{2}]", ID, Request.RawUrl, count);
+                                WriteDebugLog("[{0}] {1} 缓存数据[{2}]", ID, Request.RawUrl, count);
                             }
 
                             base.OnReceiveRemote(e);
@@ -467,7 +467,7 @@ namespace NewLife.Net.Proxy
                             var p = e.Stream.Position;
                             var count = e.Stream.CopyTo(cacheItem.Stream);
                             e.Stream.Position = p;
-                            WriteLog("[{0}] {1} 缓存数据[{2}]", ID, Request.RawUrl, count);
+                            WriteDebugLog("[{0}] {1} 缓存数据[{2}]", ID, Request.RawUrl, count);
                         }
 
                         return;
@@ -519,7 +519,7 @@ namespace NewLife.Net.Proxy
                     var p = e.Stream.Position;
                     var count = e.Stream.CopyTo(cacheItem.Stream);
                     e.Stream.Position = p;
-                    WriteLog("[{0}] {1} 增加缓存[{2}]", ID, Request.RawUrl, count);
+                    WriteDebugLog("[{0}] {1} 增加缓存[{2}]", ID, Request.RawUrl, count);
                 }
                 #endregion
 

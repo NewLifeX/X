@@ -1,5 +1,6 @@
 ﻿using System;
 using NewLife.Net;
+using System.Diagnostics;
 
 namespace NewLife.Net.Sockets
 {
@@ -41,6 +42,23 @@ namespace NewLife.Net.Sockets
         /// <param name="format"></param>
         /// <param name="args"></param>
         public void WriteLog(String format, params Object[] args)
+        {
+            if (EnableLog) NetHelper.WriteLog(format, args);
+        }
+
+        /// <summary>写调试日志</summary>
+        /// <param name="msg"></param>
+        [Conditional("DEBUG")]
+        public void WriteDebugLog(String msg)
+        {
+            if (EnableLog) NetHelper.WriteLog(msg);
+        }
+
+        /// <summary>写调试日志</summary>
+        /// <param name="format"></param>
+        /// <param name="args"></param>
+        [Conditional("DEBUG")]
+        public void WriteDebugLog(String format, params Object[] args)
         {
             if (EnableLog) NetHelper.WriteLog(format, args);
         }

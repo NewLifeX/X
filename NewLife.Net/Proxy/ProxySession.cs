@@ -91,7 +91,7 @@ namespace NewLife.Net.Proxy
         /// <param name="e"></param>
         protected override void OnReceive(ReceivedEventArgs e)
         {
-            WriteLog("[{0}] {1} => {2}", ID, ClientEndPoint, e.Stream.Length);
+            WriteDebugLog("[{0}] {1} => {2}", ID, ClientEndPoint, e.Stream.Length);
 
             if (e.Stream != null)
             {
@@ -182,7 +182,7 @@ namespace NewLife.Net.Proxy
         /// <param name="e"></param>
         protected virtual void OnReceiveRemote(ReceivedEventArgs e)
         {
-            //WriteLog("[{0}] {1} <= {2}", ID, RemoteUri.EndPoint, e.Stream.Length);
+            //WriteDebugLog("[{0}] {1} <= {2}", ID, RemoteUri.EndPoint, e.Stream.Length);
 
             if (e.Stream != null)
             {
