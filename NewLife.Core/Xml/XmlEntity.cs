@@ -27,16 +27,17 @@ namespace NewLife.Xml
         }
 
         /// <summary>从一个XML文件中加载对象</summary>
-        /// <param name="filename"></param>
+        /// <param name="filename">若为空，则默认为类名加xml后缀</param>
         /// <returns></returns>
         public static TEntity LoadFile(String filename)
         {
-            if (String.IsNullOrEmpty(filename) || !File.Exists(filename)) return null;
+            if (String.IsNullOrEmpty(filename)) filename = typeof(TEntity).Name + ".xml";
+            if (!File.Exists(filename)) return new TEntity();
 
-            XmlSerializer serial = new XmlSerializer(typeof(TEntity));
-            using (FileStream stream = new FileStream(filename, FileMode.Open, FileAccess.Read))
+            var serial = new XmlSerializer(typeof(TEntity));
+            using (var stream = new FileStream(filename, FileMode.Open, FileAccess.Read))
             {
-                using (StreamReader reader = new StreamReader(stream, Encoding.UTF8))
+                using (var reader = new StreamReader(stream, Encoding.UTF8))
                 {
                     return (serial.Deserialize(reader) as TEntity);
                 }
@@ -120,15 +121,17 @@ namespace NewLife.Xml
         }
 
         /// <summary>保存到文件中</summary>
-        /// <param name="filename"></param>
+        /// <param name="filename">若为空，则默认为类名加xml后缀</param>
         public virtual void Save(String filename)
         {
-            if (String.IsNullOrEmpty(filename)) return;
+            //if (String.IsNullOrEmpty(filename)) return;
+            if (String.IsNullOrEmpty(filename)) filename = typeof(TEntity).Name + ".xml";
 
-            XmlSerializer serial = new XmlSerializer(typeof(TEntity));
-            using (FileStream stream = new FileStream(filename, FileMode.OpenOrCreate, FileAccess.Write))
+            if (File.Exists(filename)) File.Delete(filename);
+            var serial = new XmlSerializer(typeof(TEntity));
+            using (var stream = new FileStream(filename, FileMode.OpenOrCreate, FileAccess.Write))
             {
-                using (StreamWriter writer = new StreamWriter(stream, Encoding.UTF8))
+                using (var writer = new StreamWriter(stream, Encoding.UTF8))
                 {
                     serial.Serialize((TextWriter)writer, this);
                 }
