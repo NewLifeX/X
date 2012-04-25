@@ -101,7 +101,8 @@ namespace XAgent
                 Console.Title = AgentDisplayName;
 
                 #region 命令行
-                XTrace.OnWriteLog += new EventHandler<WriteLogEventArgs>(XTrace_OnWriteLog);
+                //XTrace.OnWriteLog += new EventHandler<WriteLogEventArgs>(XTrace_OnWriteLog);
+                XTrace.UseConsole();
 
                 TService serivce = Instance as TService;
 
@@ -224,10 +225,10 @@ namespace XAgent
             File.WriteAllText("停止.bat", ExeName + " -stop");
         }
 
-        static void XTrace_OnWriteLog(object sender, WriteLogEventArgs e)
-        {
-            Console.WriteLine(e.ToString());
-        }
+        //static void XTrace_OnWriteLog(object sender, WriteLogEventArgs e)
+        //{
+        //    Console.WriteLine(e.ToString());
+        //}
 
         /// <summary>显示状态</summary>
         protected virtual void ShowStatus()
