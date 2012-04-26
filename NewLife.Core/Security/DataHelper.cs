@@ -258,9 +258,9 @@ namespace NewLife.Security
             return sa;
         }
 
-        /// <summary>加密</summary>
-        /// <param name="content"></param>
-        /// <param name="key"></param>
+        /// <summary>TripleDES加密</summary>
+        /// <param name="content">UTD8编码的明文</param>
+        /// <param name="key">密码字符串经MD5散列后作为DES密码</param>
         /// <returns></returns>
         public static String Encrypt(String content, String key)
         {
@@ -272,9 +272,9 @@ namespace NewLife.Security
             return Convert.ToBase64String(data);
         }
 
-        /// <summary>加密</summary>
+        /// <summary>TripleDES加密</summary>
         /// <param name="data"></param>
-        /// <param name="key"></param>
+        /// <param name="key">密码字符串经MD5散列后作为DES密码</param>
         /// <returns></returns>
         public static Byte[] Encrypt(Byte[] data, String key)
         {
@@ -294,9 +294,9 @@ namespace NewLife.Security
             return data;
         }
 
-        /// <summary>解密</summary>
-        /// <param name="content"></param>
-        /// <param name="key"></param>
+        /// <summary>TripleDES解密</summary>
+        /// <param name="content">UTD8编码的密文</param>
+        /// <param name="key">密码字符串经MD5散列后作为DES密码</param>
         /// <returns></returns>
         public static String Descrypt(String content, String key)
         {
@@ -308,9 +308,9 @@ namespace NewLife.Security
             return Encoding.UTF8.GetString(data);
         }
 
-        /// <summary>解密</summary>
+        /// <summary>TripleDES解密</summary>
         /// <param name="data"></param>
-        /// <param name="key"></param>
+        /// <param name="key">密码字符串经MD5散列后作为DES密码</param>
         /// <returns></returns>
         public static Byte[] Descrypt(Byte[] data, String key)
         {
@@ -342,9 +342,9 @@ namespace NewLife.Security
         #endregion
 
         #region RC4加密
-        /// <summary>加密</summary>
+        /// <summary>RC4加密解密</summary>
         /// <param name="data">数据</param>
-        /// <param name="pass">密码</param>
+        /// <param name="pass">UTF8编码的密码</param>
         /// <returns></returns>
         public static Byte[] RC4(Byte[] data, String pass)
         {
@@ -400,13 +400,13 @@ namespace NewLife.Security
         /// <summary>签名</summary>
         /// <param name="data"></param>
         /// <param name="priKey"></param>
-        /// <returns></returns>
+        /// <returns>Base64编码的签名</returns>
         internal static String Sign(Byte[] data, String priKey)
         {
             if (data == null | String.IsNullOrEmpty(priKey)) return null;
 
-            RSACryptoServiceProvider rsa = new RSACryptoServiceProvider();
-            MD5CryptoServiceProvider md5 = new MD5CryptoServiceProvider();
+            var rsa = new RSACryptoServiceProvider();
+            var md5 = new MD5CryptoServiceProvider();
             try
             {
                 rsa.FromXmlString(priKey);
@@ -419,7 +419,7 @@ namespace NewLife.Security
         #region RSA验证签名
         /// <summary>验证签名</summary>
         /// <param name="data">待验证的数据</param>
-        /// <param name="signdata">签名</param>
+        /// <param name="signdata">Base64编码的签名</param>
         /// <param name="pubKey">公钥</param>
         /// <returns></returns>
         internal static Boolean Verify(Byte[] data, String signdata, String pubKey)
@@ -429,8 +429,8 @@ namespace NewLife.Security
                 String.IsNullOrEmpty(signdata) ||
                 String.IsNullOrEmpty(pubKey)) return false;
 
-            RSACryptoServiceProvider rsa = new RSACryptoServiceProvider();
-            MD5CryptoServiceProvider md5 = new MD5CryptoServiceProvider();
+            var rsa = new RSACryptoServiceProvider();
+            var md5 = new MD5CryptoServiceProvider();
             try
             {
                 rsa.FromXmlString(pubKey);
