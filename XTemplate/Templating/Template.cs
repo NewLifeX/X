@@ -8,9 +8,13 @@ using System.Text;
 using Microsoft.CSharp;
 using NewLife;
 using NewLife.Collections;
-using NewLife.Linq;
 using NewLife.Log;
 using NewLife.Reflection;
+#if NET4
+using System.Linq;
+#else
+using NewLife.Linq;
+#endif
 
 namespace XTemplate.Templating
 {
