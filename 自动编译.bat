@@ -17,7 +17,7 @@ title 自动编译
 pushd ..
 set svn=https://svn.nnhy.org/svn/X/trunk
 :: do else 等关键字前后都应该预留空格
-for %%i in (Src DLL XCoder) do (
+for %%i in (Src DLL DLL4 XCoder) do (
 	if not exist %%i (
 		svn checkout %svn%/%%i %%i
 	) else (
@@ -33,12 +33,16 @@ popd
 set vs="D:\MS\Microsoft Visual Studio 10.0\Common7\IDE\devenv.com"
 for %%i in (NewLife.Core XCode NewLife.CommonEntity NewLife.Mvc NewLife.Net XAgent XControl XTemplate XCoder) do (
 	%vs% X组件.sln /Build Release /Project %%i
+	%vs% X组件.sln /Build Net4Release /Project %%i
 )
 
 :: 4，拷贝DLL
-copy ..\生成\N*.* ..\DLL\ /y
-copy ..\生成\X*.* ..\DLL\ /y
+copy ..\Bin\N*.* ..\DLL\ /y
+copy ..\Bin\X*.* ..\DLL\ /y
 del ..\DLL\*.config /f/s/q
+copy ..\Bin4\N*.* ..\DLL4\ /y
+copy ..\Bin4\X*.* ..\DLL4\ /y
+del ..\DLL4\*.config /f/s/q
 
 for %%i in (XCoder.exe XCoder.exe.config NewLife.Core.dll XCode.dll XTemplate.dll) do (
 	copy ..\代码生成\%%i ..\XCoder\%%i /y
@@ -46,6 +50,7 @@ for %%i in (XCoder.exe XCoder.exe.config NewLife.Core.dll XCode.dll XTemplate.dl
 
 :: 5，提交DLL更新
 svn commit -m "自动编译" ..\DLL
+svn commit -m "自动编译" ..\DLL4
 svn commit -m "自动编译" ..\XCoder
 
 :: 6，打包Src和DLL到FTP
@@ -80,6 +85,14 @@ move /y XCodeSample*.zip %dest%\%zipfile%
 pushd ..\DLL
 ::"C:\Program Files\WinRAR\WinRAR.exe" a DLL.rar *.dll *.exe *.pdb *.xml
 set zipfile=DLL.zip
+del DLL*.zip /f/q
+%zip% %zipfile% *.dll *.exe *.pdb *.xml *.chm
+move /y DLL*.zip %dest%\%zipfile%
+:: 恢复目录
+popd
+pushd ..\DLL4
+::"C:\Program Files\WinRAR\WinRAR.exe" a DLL.rar *.dll *.exe *.pdb *.xml
+set zipfile=DLL4.zip
 del DLL*.zip /f/q
 %zip% %zipfile% *.dll *.exe *.pdb *.xml *.chm
 move /y DLL*.zip %dest%\%zipfile%
