@@ -1,6 +1,10 @@
 ﻿using System;
 using System.IO.Compression;
+#if NET4
+using System.Linq;
+#else
 using NewLife.Linq;
+#endif
 using System.Web;
 using NewLife.Configuration;
 using NewLife.Reflection;

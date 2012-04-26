@@ -5,6 +5,7 @@ using System.Runtime;
 using System.Threading;
 using NewLife.Reflection;
 
+#if !NET4
 #pragma warning disable 1734
 namespace NewLife.Linq
 {
@@ -4763,3 +4764,4 @@ namespace NewLife.Linq
     }
 }
 #pragma warning restore 1734
+#endif

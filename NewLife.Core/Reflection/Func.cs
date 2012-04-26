@@ -4,6 +4,7 @@ namespace NewLife.Reflection
     /// <summary>没有参数和返回值的委托</summary>
     public delegate void Func();
 
+#if !NET4
     /// <summary>具有指定类型返回的委托</summary>
     /// <typeparam name="TResult"></typeparam>
     /// <returns></returns>
@@ -63,4 +64,5 @@ namespace NewLife.Reflection
     /// <param name="arg5"></param>
     /// <returns></returns>
     public delegate TResult Func<T, T2, T3, T4, T5, TResult>(T arg, T2 arg2, T3 arg3, T4 arg4, T5 arg5);
+#endif
 }

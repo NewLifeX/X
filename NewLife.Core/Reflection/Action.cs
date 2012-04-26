@@ -11,6 +11,7 @@ namespace NewLife.Reflection
     ///// <param name="arg"></param>
     //public delegate void Action<T>(T arg);
 
+#if !NET4
     /// <summary>两个参数</summary>
     /// <typeparam name="T"></typeparam>
     /// <typeparam name="T2"></typeparam>
@@ -37,5 +38,5 @@ namespace NewLife.Reflection
     /// <param name="arg3"></param>
     /// <param name="arg4"></param>
     public delegate void Action<T, T2, T3, T4>(T arg, T2 arg2, T3 arg3, T4 arg4);
-
+#endif
 }

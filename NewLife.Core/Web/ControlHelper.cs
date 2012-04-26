@@ -4,7 +4,11 @@ using System.ComponentModel;
 using System.Reflection;
 using System.Web;
 using System.Web.UI;
+#if NET4
+using System.Linq;
+#else
 using NewLife.Linq;
+#endif
 using NewLife.Reflection;
 
 namespace NewLife.Web

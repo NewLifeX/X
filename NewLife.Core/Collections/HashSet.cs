@@ -5,6 +5,7 @@ using NewLife.Exceptions;
 
 namespace NewLife.Collections
 {
+#if !NET4
     /// <summary>哈希集合。内部采用泛型字典实现，如若在.Net 4.0环境，可直接使用.Net 4.0的HashSet。</summary>
     /// <typeparam name="T"></typeparam>
     public class HashSet<T> : ICollection<T>
@@ -122,4 +123,5 @@ namespace NewLife.Collections
         }
         #endregion
     }
+#endif
 }

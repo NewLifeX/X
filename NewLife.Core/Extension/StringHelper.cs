@@ -1,5 +1,9 @@
 ﻿using System.Collections.Generic;
+#if NET4
+using System.Linq;
+#else
 using NewLife.Linq;
+#endif
 
 namespace System
 {

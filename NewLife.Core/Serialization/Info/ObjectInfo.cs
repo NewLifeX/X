@@ -5,7 +5,11 @@ using System.Runtime.Serialization;
 using System.Xml.Serialization;
 using NewLife.Collections;
 using NewLife.Reflection;
+#if NET4
+using System.Linq;
+#else
 using NewLife.Linq;
+#endif
 
 namespace NewLife.Serialization
 {

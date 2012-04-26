@@ -465,7 +465,11 @@ namespace NewLife.Compression
         #endregion
 
         #region 辅助
+#if NET4
+        internal static readonly ICollection<String> dirMembers = new HashSet<String>(new String[] { "_VersionMadeBy", "_CommentLength", "_DiskNumber", "_InternalFileAttrs", "_ExternalFileAttrs", "_RelativeOffsetOfLocalHeader", "_Comment" }, StringComparer.OrdinalIgnoreCase);
+#else
         internal static readonly ICollection<String> dirMembers = new HashSet<String>(new String[] { "_VersionMadeBy", "_CommentLength", "_DiskNumber", "_InternalFileAttrs", "_ExternalFileAttrs", "_RelativeOffsetOfLocalHeader", "_Comment" }, StringComparer.OrdinalIgnoreCase) { IsReadOnly = true };
+#endif
         /// <summary>复制DirEntry专属的字段</summary>
         /// <param name="entry"></param>
         internal void CopyFromDirEntry(ZipEntry entry)

@@ -94,7 +94,7 @@ namespace NewLife.Collections
 
         private static TObject DecodeNullObject<TObject>(object innerValue)
         {
-            if (innerValue == NullObj) return default(TObject);
+            if (innerValue as Type == NullObj) return default(TObject);
 
             return (TObject)innerValue;
         }

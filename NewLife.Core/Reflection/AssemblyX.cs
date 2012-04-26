@@ -4,7 +4,11 @@ using System.IO;
 using System.Reflection;
 using System.Web;
 using NewLife.Collections;
+#if NET4
+using System.Linq;
+#else
 using NewLife.Linq;
+#endif
 
 namespace NewLife.Reflection
 {

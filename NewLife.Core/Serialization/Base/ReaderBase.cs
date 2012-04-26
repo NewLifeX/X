@@ -7,9 +7,13 @@ using System.Reflection;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using NewLife.Exceptions;
-using NewLife.Linq;
 using NewLife.Log;
 using NewLife.Reflection;
+#if NET4
+using System.Linq;
+#else
+using NewLife.Linq;
+#endif
 
 namespace NewLife.Serialization
 {
