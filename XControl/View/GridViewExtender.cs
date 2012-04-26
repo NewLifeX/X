@@ -1,5 +1,4 @@
 ﻿using System;
-using NewLife.Linq;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
@@ -11,6 +10,11 @@ using System.Web.UI.WebControls;
 using NewLife.Reflection;
 using NewLife.Web;
 using System.Collections;
+#if NET4
+using System.Linq;
+#else
+using NewLife.Linq;
+#endif
 
 [assembly: WebResource("XControl.View.GridViewExtender.js", "text/javascript")]
 
