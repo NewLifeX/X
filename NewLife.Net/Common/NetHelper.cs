@@ -6,9 +6,13 @@ using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using NewLife.Collections;
 using NewLife.Configuration;
-using NewLife.Linq;
 using NewLife.Log;
 using NewLife.Net;
+#if NET4
+using System.Linq;
+#else
+using NewLife.Linq;
+#endif
 
 namespace System
 {

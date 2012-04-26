@@ -3,10 +3,14 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using NewLife.Linq;
 using NewLife.Model;
 using NewLife.Net.Tcp;
 using NewLife.Net.Udp;
+#if NET4
+using System.Linq;
+#else
+using NewLife.Linq;
+#endif
 
 namespace NewLife.Net.Sockets
 {
@@ -401,7 +405,11 @@ namespace NewLife.Net.Sockets
                     break;
                 default:
                     // 其它情况表示同时支持IPv4和IPv6
+#if !NET4
                     if (Socket.SupportsIPv4) list.AddRange(CreateServer<T>(address, port, AddressFamily.InterNetwork));
+#else
+                    if (Socket.OSSupportsIPv4) list.AddRange(CreateServer<T>(address, port, AddressFamily.InterNetwork));
+#endif
                     if (Socket.OSSupportsIPv6) list.AddRange(CreateServer<T>(address, port, AddressFamily.InterNetworkV6));
                     break;
             }

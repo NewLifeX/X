@@ -286,7 +286,7 @@ namespace NewLife.Net.Application
             }
         }
 
-        static Thread[] threads;
+        //static Thread[] threads;
         static void TestClient()
         {
             Console.Write("请输入服务器地址：");

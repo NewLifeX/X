@@ -3,11 +3,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
-using NewLife.IO;
-using NewLife.Linq;
-using NewLife.Net.Sockets;
-using NewLife.Net.Udp;
 using NewLife.Configuration;
+using NewLife.Net.Sockets;
+
+#if NET4
+using System.Linq;
+#else
+using NewLife.Linq;
+#endif
 
 namespace NewLife.Net.Stun
 {

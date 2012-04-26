@@ -6,12 +6,16 @@ using System.Reflection;
 using System.Text;
 using System.Xml.Serialization;
 using NewLife.Exceptions;
-using NewLife.Linq;
 using NewLife.Log;
 using NewLife.Model;
 using NewLife.Reflection;
 using NewLife.Security;
 using NewLife.Serialization;
+#if NET4
+using System.Linq;
+#else
+using NewLife.Linq;
+#endif
 
 namespace NewLife.Net.ModBus
 {

@@ -8,6 +8,7 @@ using NewLife.Collections;
 using NewLife.Net.Http;
 using NewLife.Net.Sockets;
 using NewLife.Serialization;
+using System.Collections.Generic;
 
 namespace NewLife.Net.Proxy
 {
@@ -425,7 +426,8 @@ namespace NewLife.Net.Proxy
                             if (cacheItem != null)
                             {
                                 var p = e.Stream.Position;
-                                var count = e.Stream.CopyTo(cacheItem.Stream);
+                                e.Stream.CopyTo(cacheItem.Stream);
+                                var count = e.Stream.Position = p;
                                 e.Stream.Position = p;
                                 WriteDebugLog("[{0}] {1} 缓存数据[{2}]", ID, Request.RawUrl, count);
                             }
@@ -465,7 +467,8 @@ namespace NewLife.Net.Proxy
                         if (cacheItem != null)
                         {
                             var p = e.Stream.Position;
-                            var count = e.Stream.CopyTo(cacheItem.Stream);
+                            e.Stream.CopyTo(cacheItem.Stream);
+                            var count = e.Stream.Position = p;
                             e.Stream.Position = p;
                             WriteDebugLog("[{0}] {1} 缓存数据[{2}]", ID, Request.RawUrl, count);
                         }
@@ -517,7 +520,8 @@ namespace NewLife.Net.Proxy
                 if (cacheItem != null)
                 {
                     var p = e.Stream.Position;
-                    var count = e.Stream.CopyTo(cacheItem.Stream);
+                    e.Stream.CopyTo(cacheItem.Stream);
+                    var count = e.Stream.Position = p;
                     e.Stream.Position = p;
                     WriteDebugLog("[{0}] {1} 增加缓存[{2}]", ID, Request.RawUrl, count);
                 }

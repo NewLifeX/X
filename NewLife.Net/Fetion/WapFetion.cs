@@ -1,5 +1,4 @@
 ﻿using System;
-using NewLife.Linq;
 using System.Collections.Generic;
 using System.Net;
 using System.Text;
@@ -7,6 +6,11 @@ using System.Text.RegularExpressions;
 using System.Web;
 using NewLife.Exceptions;
 using NewLife.Web;
+#if NET4
+using System.Linq;
+#else
+using NewLife.Linq;
+#endif
 
 namespace NewLife.Net.Fetion
 {

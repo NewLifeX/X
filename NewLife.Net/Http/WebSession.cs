@@ -8,7 +8,12 @@ using System.Web;
 using System.Globalization;
 using NewLife.Reflection;
 using System.Reflection;
+
+#if NET4
+using System.Linq;
+#else
 using NewLife.Linq;
+#endif
 
 namespace NewLife.Net.Http
 {
@@ -60,7 +65,11 @@ namespace NewLife.Net.Http
             {
                 if (string.IsNullOrEmpty(_defaultLoalhostIP))
                 {
+#if !NET4
                     if (!Socket.SupportsIPv4 && Socket.OSSupportsIPv6)
+#else
+                    if (!Socket.OSSupportsIPv4 && Socket.OSSupportsIPv6)
+#endif
                         _defaultLoalhostIP = "::1";
                     else
                         _defaultLoalhostIP = "127.0.0.1";
