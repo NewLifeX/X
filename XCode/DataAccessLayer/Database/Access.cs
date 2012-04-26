@@ -16,6 +16,12 @@ using NewLife.Log;
 using NewLife.Reflection;
 using XCode.Exceptions;
 
+#if NET4
+using ConnectionClass = ADODB.Connection;
+using DBEngineClass = DAO.DBEngine;
+using CatalogClass = ADOX.Catalog;
+#endif
+
 namespace XCode.DataAccessLayer
 {
     class Access : FileDbBase

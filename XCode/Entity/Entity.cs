@@ -7,13 +7,16 @@ using System.IO;
 using System.Text;
 using System.Xml.Serialization;
 using NewLife.IO;
-using NewLife.Linq;
 using NewLife.Reflection;
 using XCode.Common;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
 using XCode.Exceptions;
 using XCode.Model;
+using NewLife.Linq;
+#if NET4
+using System.Linq;
+#endif
 
 namespace XCode
 {

@@ -2,12 +2,16 @@
 using System.Collections.Generic;
 using System.Reflection;
 using NewLife.Collections;
-using NewLife.Linq;
 using NewLife.Log;
 using NewLife.Reflection;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
 using XCode.Exceptions;
+#if NET4
+using System.Linq;
+#else
+using NewLife.Linq;
+#endif
 
 namespace XCode
 {

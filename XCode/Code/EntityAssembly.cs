@@ -7,11 +7,15 @@ using System.Reflection;
 using System.Text;
 using NewLife.Collections;
 using NewLife.Configuration;
-using NewLife.Linq;
 using NewLife.Log;
 using NewLife.Security;
 using XCode.DataAccessLayer;
 using XCode.Exceptions;
+#if NET4
+using System.Linq;
+#else
+using NewLife.Linq;
+#endif
 
 namespace XCode.Code
 {

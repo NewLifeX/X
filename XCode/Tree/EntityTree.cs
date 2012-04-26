@@ -6,7 +6,11 @@ using System.Web.UI.WebControls;
 using System.Xml.Serialization;
 using NewLife.Exceptions;
 using NewLife.Reflection;
+#if NET4
+using System.Linq;
+#else
 using NewLife.Linq;
+#endif
 
 namespace XCode
 {

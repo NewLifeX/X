@@ -6,12 +6,16 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Web;
 using NewLife;
 using NewLife.Configuration;
-using NewLife.Linq;
 using XCode.Common;
-using System.Threading;
+#if NET4
+using System.Linq;
+#else
+using NewLife.Linq;
+#endif
 
 namespace XCode.DataAccessLayer
 {

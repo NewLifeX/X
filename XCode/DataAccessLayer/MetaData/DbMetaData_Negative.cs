@@ -3,7 +3,11 @@ using System.Collections.Generic;
 using System.Data;
 using System.Text;
 using NewLife.Collections;
+#if NET4
+using System.Linq;
+#else
 using NewLife.Linq;
+#endif
 
 namespace XCode.DataAccessLayer
 {

@@ -3,6 +3,9 @@ using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using Microsoft.CSharp;
 using NewLife.Linq;
+#if NET4
+using System.Linq;
+#endif
 
 namespace XCode.DataAccessLayer
 {
