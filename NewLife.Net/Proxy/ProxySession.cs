@@ -132,7 +132,7 @@ namespace NewLife.Net.Proxy
                 var ts = DateTime.Now - start;
                 //var host = String.IsNullOrEmpty(RemoteHost) ? "" + RemoteEndPoint : RemoteHost;
                 //throw new XException(ex, "无法连接远程服务器{0}！耗时{1}！", RemoteUri, ts);
-                WriteLog("无法连接远程服务器{0}！耗时{1}！{2}", RemoteUri, ts, ex.Message);
+                WriteLog("无法为{0}连接远程服务器{1}！耗时{2}！{3}", ClientUri, RemoteUri, ts, ex.Message);
             }
         }
 
