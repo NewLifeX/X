@@ -6,11 +6,15 @@ using System.Text;
 using Microsoft.CSharp;
 using Microsoft.VisualBasic;
 using NewLife.Collections;
-using NewLife.Linq;
+using NewLife.Reflection;
 using NewLife.Threading;
 using XCode.DataAccessLayer;
 using XTemplate.Templating;
-using NewLife.Reflection;
+#if NET4
+using System.Linq;
+#else
+using NewLife.Linq;
+#endif
 
 namespace XCoder
 {

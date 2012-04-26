@@ -9,13 +9,16 @@ using System.IO;
 using System.Reflection;
 using System.Text;
 using System.Windows.Forms;
-using NewLife.IO;
-using NewLife.Linq;
 using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.Threading;
 using XCode.DataAccessLayer;
 using XTemplate.Templating;
+#if NET4
+using System.Linq;
+#else
+using NewLife.Linq;
+#endif
 
 namespace XCoder
 {

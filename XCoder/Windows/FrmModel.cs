@@ -2,9 +2,13 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Windows.Forms;
-using NewLife.Linq;
 using NewLife.Reflection;
 using XCode.DataAccessLayer;
+#if NET4
+using System.Linq;
+#else
+using NewLife.Linq;
+#endif
 
 namespace XCoder
 {
