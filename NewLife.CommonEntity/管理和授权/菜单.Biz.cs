@@ -8,10 +8,14 @@ using System.Web;
 using System.Web.UI;
 using System.Xml.Serialization;
 using NewLife.Configuration;
-using NewLife.Linq;
 using NewLife.Log;
 using NewLife.Reflection;
 using XCode;
+#if NET4
+using System.Linq;
+#else
+using NewLife.Linq;
+#endif
 
 namespace NewLife.CommonEntity
 {

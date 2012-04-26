@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using NewLife.Linq;
-using System.Threading;
 using System.Xml.Serialization;
 using NewLife.Log;
 using XCode;
+#if NET4
+using System.Linq;
+#else
+using NewLife.Linq;
+#endif
 
 namespace NewLife.CommonEntity
 {

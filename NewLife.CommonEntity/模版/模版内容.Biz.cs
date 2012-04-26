@@ -7,8 +7,12 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Xml.Serialization;
-using NewLife.Linq;
 using XCode;
+#if NET4
+using System.Linq;
+#else
+using NewLife.Linq;
+#endif
 
 namespace NewLife.CommonEntity
 {
