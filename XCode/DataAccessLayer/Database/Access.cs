@@ -44,7 +44,9 @@ namespace XCode.DataAccessLayer
                     _dbProviderFactory = OleDbFactory.Instance;
 
                     // ºÏ≤ÈADOX
+#if !NET4
                     CheckAndDownload("Interop.ADOX.dll");
+#endif
                 }
                 return _dbProviderFactory;
             }

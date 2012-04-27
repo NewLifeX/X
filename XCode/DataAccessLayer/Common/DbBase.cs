@@ -5,14 +5,13 @@ using System.Data.OleDb;
 using System.IO;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Web;
 using NewLife;
-using NewLife.IO;
-using NewLife.Reflection;
-using NewLife.Web;
 using NewLife.Compression;
 using NewLife.Configuration;
-using System.Threading;
+using NewLife.Reflection;
+using NewLife.Web;
 
 namespace XCode.DataAccessLayer
 {
