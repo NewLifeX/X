@@ -402,8 +402,9 @@ namespace XCode.Configuration
         public OrderExpression Asc() { return new OrderExpression(Factory.FormatName(Name)); }
 
         /// <summary>降序</summary>
+        /// <remarks>感谢 树懒（303409914）发现这里的错误</remarks>
         /// <returns></returns>
-        public OrderExpression Desc() { return new OrderExpression(Factory.FormatName(Name)); }
+        public OrderExpression Desc() { return new OrderExpression().Desc(Factory.FormatName(Name)); }
         #endregion
 
         #region 类型转换
