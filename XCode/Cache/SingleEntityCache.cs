@@ -232,6 +232,7 @@ namespace XCode.Cache
                 }
 
                 item = new CacheItem();
+                item.Key = key;
 
                 //队列满时，移除最老的一个
                 if (Entities.Count >= MaxEntity)
