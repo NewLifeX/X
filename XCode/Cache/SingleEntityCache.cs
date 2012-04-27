@@ -100,22 +100,38 @@ namespace XCode.Cache
 
             if (cs != null && cs.Length > 0)
             {
+                var list = new List<TKey>();
                 foreach (var item in cs)
                 {
                     // 是否过期
-                    if (item.ExpireTime > DateTime.Now && item.Entity != null)
+                    if (item.ExpireTime > DateTime.Now)
                     {
-                        // 自动保存
-                        if (AutoSave)
+                        if (item.Entity != null)
                         {
-                            // 捕获异常，不影响别人
-                            try
+                            // 自动保存
+                            if (AutoSave)
                             {
-                                item.Entity.Update();
+                                // 捕获异常，不影响别人
+                                try
+                                {
+                                    item.Entity.Update();
+                                }
+                                catch { }
                             }
-                            catch { }
+                            item.Entity = null;
                         }
-                        item.Entity = null;
+                        list.Add(item.Key);
+                    }
+                }
+                // 从缓存中删除
+                if (list.Count > 0)
+                {
+                    lock (Entities)
+                    {
+                        foreach (var item in list)
+                        {
+                            if (Entities.ContainsKey(item)) Entities.Remove(item);
+                        }
                     }
                 }
             }
@@ -126,6 +142,9 @@ namespace XCode.Cache
         /// <summary>缓存对象</summary>
         class CacheItem
         {
+            /// <summary>键</summary>
+            public TKey Key;
+
             /// <summary>实体</summary>
             public TEntity Entity;
 
