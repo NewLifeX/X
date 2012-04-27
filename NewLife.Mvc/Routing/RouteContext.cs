@@ -277,7 +277,8 @@ namespace NewLife.Mvc
         /// <returns></returns>
         public IController RouteTo(string match, ModuleRule rule, Func<RouteFrag, RouteFrag> adjustRouteFrag)
         {
-            bool entered = EnterModule("" + match, Path, rule, rule.Module, adjustRouteFrag);
+            var path = Path;
+            bool entered = EnterModule("" + match, path, rule, rule.Module, adjustRouteFrag);
             RouteConfigManager cfg = rule.Config.Sort();
             IController c = null;
             try
@@ -292,7 +293,7 @@ namespace NewLife.Mvc
             {
                 if (c == null && entered)
                 {
-                    ExitModule("" + match, Path, rule, rule.Module);
+                    ExitModule("" + match, path, rule, rule.Module);
                 }
             }
             return c;
