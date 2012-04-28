@@ -72,7 +72,16 @@ namespace NewLife.Net.Udp
         /// <param name="encoding"></param>
         /// <param name="remoteEP"></param>
         /// <returns>返回自身，用于链式写法</returns>
-        public static IUdp Send(this IUdp udp, String message, Encoding encoding = null, EndPoint remoteEP = null) { Send(udp, Encoding.UTF8.GetBytes(message), remoteEP); return udp; }
+        public static IUdp Send(this IUdp udp, String message, Encoding encoding = null, EndPoint remoteEP = null)
+        {
+            //Send(udp, Encoding.UTF8.GetBytes(message), remoteEP);
+
+            if (encoding == null)
+                Send(udp, Encoding.UTF8.GetBytes(message), remoteEP);
+            else
+                Send(udp, encoding.GetBytes(message), remoteEP);
+            return udp;
+        }
 
         /// <summary>接收字符串</summary>
         /// <param name="udp"></param>
