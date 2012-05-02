@@ -49,7 +49,7 @@ foreach(IDataColumn Field in Table.Columns){
     String pname = Field.Alias;
 
     // 查找关系，如果对方有名为Name的字符串字段，则加一个扩展属性
-    IDataRelation dr=ModelHelper.GetRelation(Table, Field.Name);
+    IDataRelation dr=XCode.DataAccessLayer.ModelHelper.GetRelation(Table, Field.Name);
     if(dr!=null&&!dr.Unique){
         IDataTable rtable=FindTable(dr.RelationTable);
         if(rtable!=null){
