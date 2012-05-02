@@ -8,6 +8,7 @@ using NewLife.Log;
 using System.Linq;
 #else
 using NewLife.Linq;
+using NewLife.Serialization;
 #endif
 
 namespace NewLife.Messaging
@@ -176,7 +177,7 @@ namespace NewLife.Messaging
             while ((len = stream.Length - stream.Position) > 0)
             {
                 // 只有数据流大小小于包大小时，才忽略异常
-                var msg = Message.Read(stream, MaxMessageSize > 0 && len < MaxMessageSize);
+                var msg = Message.Read(stream, RWKinds.Binary, MaxMessageSize > 0 && len < MaxMessageSize);
                 // 如果返回空，表示不是完整的消息
                 if (msg == null)
                 {

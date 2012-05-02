@@ -68,11 +68,18 @@ namespace NewLife.Messaging
         #endregion
 
         #region 序列化/反序列化
+        ///// <summary>序列化当前消息到流中</summary>
+        ///// <param name="stream"></param>
+        //public void Write(Stream stream) { Write(stream, SerializationKinds.Binary); }
+
         /// <summary>序列化当前消息到流中</summary>
         /// <param name="stream"></param>
-        public void Write(Stream stream)
+        /// <param name="rwkind"></param>
+        public void Write(Stream stream, RWKinds rwkind = RWKinds.Binary)
         {
-            var writer = new BinaryWriterX(stream);
+            //var writer = new BinaryWriterX(stream);
+            var writer = RWService.CreateWriter(rwkind);
+            writer.Stream = stream;
             Set(writer.Settings);
 
             if (Debug)
@@ -82,7 +89,7 @@ namespace NewLife.Messaging
             }
 
             // 判断并写入消息头
-            if (_Header != null && _Header.UseHeader) Header.Write(writer.Stream);
+            if (rwkind == RWKinds.Binary && _Header != null && _Header.UseHeader) Header.Write(writer.Stream);
 
             // 基类写入编号，保证编号在最前面
             writer.Write((Byte)Kind);
@@ -90,29 +97,33 @@ namespace NewLife.Messaging
         }
 
         /// <summary>序列化为数据流</summary>
+        /// <param name="rwkind"></param>
         /// <returns></returns>
-        public Stream GetStream()
+        public Stream GetStream(RWKinds rwkind = RWKinds.Binary)
         {
             var ms = new MemoryStream();
-            Write(ms);
+            Write(ms, rwkind);
             ms.Position = 0;
             return ms;
         }
 
-        /// <summary>从流中读取消息</summary>
-        /// <param name="stream">数据流</param>
-        /// <returns></returns>
-        public static Message Read(Stream stream) { return Read(stream, false); }
+        ///// <summary>从流中读取消息</summary>
+        ///// <param name="stream">数据流</param>
+        ///// <returns></returns>
+        //public static Message Read(Stream stream) { return Read(stream, false); }
 
         /// <summary>从流中读取消息</summary>
         /// <param name="stream">数据流</param>
+        /// <param name="rwkind"></param>
         /// <param name="ignoreException">忽略异常。如果忽略异常，读取失败时将返回空，并还原数据流位置</param>
         /// <returns></returns>
-        public static Message Read(Stream stream, Boolean ignoreException)
+        public static Message Read(Stream stream, RWKinds rwkind = RWKinds.Binary, Boolean ignoreException = false)
         {
             if (stream == null || stream.Length - stream.Position < 1) return null;
 
-            var reader = new BinaryReaderX(stream);
+            //var reader = new BinaryReaderX(stream);
+            var reader = RWService.CreateReader(rwkind);
+            reader.Stream = stream;
             Set(reader.Settings);
 
             if (Debug)
@@ -124,8 +135,10 @@ namespace NewLife.Messaging
             var p = stream.Position;
 
             // 检查第一个字节
-            var ch = reader.Reader.PeekChar();
+            //var ch = reader.Reader.PeekChar();
+            var ch = stream.ReadByte();
             if (ch < 0) return null;
+            stream.Seek(-1, SeekOrigin.Current);
 
             var first = (Byte)ch;
 
@@ -206,12 +219,18 @@ namespace NewLife.Messaging
             return Read(stream) as TMessage;
         }
 
-        static void Set(BinarySettings setting)
+        static void Set(ReaderWriterSetting setting)
         {
             //setting.IsBaseFirst = true;
-            setting.EncodeInt = true;
+            //setting.EncodeInt = true;
             setting.UseObjRef = true;
             setting.UseTypeFullName = false;
+
+            if (setting is BinarySettings)
+            {
+                var bset = setting as BinarySettings;
+                bset.EncodeInt = true;
+            }
         }
 
         [ThreadStatic]

@@ -217,6 +217,8 @@
     <Compile Include="Serialization\Event\WriteItemEventArgs.cs" />
     <Compile Include="Serialization\Event\WriteMemberEventArgs.cs" />
     <Compile Include="Serialization\Event\WriteObjectEventArgs.cs" />
+    <Compile Include="Serialization\RWKinds.cs" />
+    <Compile Include="Serialization\RWService.cs" />
     <Compile Include="Serialization\XSerializationException.cs" />
     <Compile Include="Threading\ReadWriteLock.cs" />
     <Compile Include="Reflection\快速反射\TypeX.cs" />
