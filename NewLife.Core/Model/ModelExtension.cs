@@ -5,7 +5,7 @@ using System.Text;
 namespace NewLife.Model
 {
     /// <summary>模型扩展</summary>
-    public static class ModelHelper
+    public static class ModelExtension
     {
         /// <summary>获取指定类型的服务对象</summary>
         /// <typeparam name="T"></typeparam>
