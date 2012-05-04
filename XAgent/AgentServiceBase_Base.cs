@@ -7,6 +7,7 @@ using System.ServiceProcess;
 using System.Windows.Forms;
 using NewLife.Configuration;
 using NewLife.Log;
+using NewLife.Reflection;
 
 namespace XAgent
 {
@@ -58,7 +59,32 @@ namespace XAgent
 
         private static AgentServiceBase _Instance;
         /// <summary>服务实例</summary>
-        public static AgentServiceBase Instance { get { return _Instance; } set { _Instance = value; } }
+        public static AgentServiceBase Instance
+        {
+            get
+            {
+                // 如果用户代码直接访问当前类静态属性，就无法触发AgentServiceBase<TService>的类型构造函数，无法为Instance赋值，从而报错
+                // 我们可以采用反射来进行处理
+                if (_Instance == null)
+                {
+                    foreach (var item in AssemblyX.FindAllPlugins(typeof(AgentServiceBase)))
+                    {
+                        try
+                        {
+                            // 这里实例化一次，按理应该可以除非AgentServiceBase<TService>的类型构造函数了，如果还是没有赋值，则这里赋值
+                            var obj = TypeX.CreateInstance(item);
+                            if (_Instance == null && obj != null && obj is AgentServiceBase)
+                            {
+                                _Instance = obj as AgentServiceBase;
+                            }
+                        }
+                        catch { }
+                    }
+                }
+                return _Instance;
+            }
+            set { _Instance = value; }
+        }
 
         /// <summary>是否已安装</summary>
         public static Boolean? IsInstalled { get { return IsServiceInstalled(AgentServiceName); } }
