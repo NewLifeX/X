@@ -58,7 +58,7 @@ namespace XAgent
         }
 
         private static AgentServiceBase _Instance;
-        /// <summary>服务实例</summary>
+        /// <summary>服务实例。每个应用程序域只有一个服务实例</summary>
         public static AgentServiceBase Instance
         {
             get
@@ -67,19 +67,21 @@ namespace XAgent
                 // 我们可以采用反射来进行处理
                 if (_Instance == null)
                 {
-                    foreach (var item in AssemblyX.FindAllPlugins(typeof(AgentServiceBase)))
+                    AgentServiceBase last = null;
+                    foreach (var item in AssemblyX.FindAllPlugins(typeof(AgentServiceBase), true))
                     {
                         try
                         {
                             // 这里实例化一次，按理应该可以除非AgentServiceBase<TService>的类型构造函数了，如果还是没有赋值，则这里赋值
                             var obj = TypeX.CreateInstance(item);
-                            if (_Instance == null && obj != null && obj is AgentServiceBase)
+                            if ((last == null || last is AgentService) && obj != null && obj is AgentServiceBase)
                             {
-                                _Instance = obj as AgentServiceBase;
+                                last = obj as AgentServiceBase;
                             }
                         }
                         catch { }
                     }
+                    if (_Instance == null) _Instance = last;
                 }
                 return _Instance;
             }
