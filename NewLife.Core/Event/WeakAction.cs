@@ -119,5 +119,14 @@ namespace NewLife
             return handler.Handler;
         }
         #endregion
+
+        #region 辅助
+        /// <summary>已重载</summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            return Method != null ? "" + Method.Method : base.ToString();
+        }
+        #endregion
     }
 }

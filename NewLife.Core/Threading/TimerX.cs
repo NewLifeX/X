@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading;
+using NewLife.Log;
 
 namespace NewLife.Threading
 {
@@ -17,43 +18,23 @@ namespace NewLife.Threading
         #region 属性
         private WeakAction<Object> _Callback;
         /// <summary>回调</summary>
-        public WeakAction<Object> Callback
-        {
-            get { return _Callback; }
-            set { _Callback = value; }
-        }
+        public WeakAction<Object> Callback { get { return _Callback; } set { _Callback = value; } }
 
         private Object _State;
         /// <summary>用户数据</summary>
-        public Object State
-        {
-            get { return _State; }
-            set { _State = value; }
-        }
+        public Object State { get { return _State; } set { _State = value; } }
 
         private DateTime _NextTime;
         /// <summary>下一次调用时间</summary>
-        public DateTime NextTime
-        {
-            get { return _NextTime; }
-            set { _NextTime = value; }
-        }
+        public DateTime NextTime { get { return _NextTime; } set { _NextTime = value; } }
 
         private Int32 _Timers;
         /// <summary>调用次数</summary>
-        public Int32 Timers
-        {
-            get { return _Timers; }
-            set { _Timers = value; }
-        }
+        public Int32 Timers { get { return _Timers; } set { _Timers = value; } }
 
         private Int32 _Period;
         /// <summary>间隔周期</summary>
-        public Int32 Period
-        {
-            get { return _Period; }
-            set { _Period = value; }
-        }
+        public Int32 Period { get { return _Period; } set { _Period = value; } }
 
         private Boolean _UseThreadPool;
         /// <summary>是否使用线程池。对于耗时短小且比较频繁的操作，不好使用线程池，减少线程切换。</summary>
@@ -61,11 +42,7 @@ namespace NewLife.Threading
 
         private Boolean _Calling;
         /// <summary>调用中</summary>
-        public Boolean Calling
-        {
-            get { return _Calling; }
-            set { _Calling = value; }
-        }
+        public Boolean Calling { get { return _Calling; } set { _Calling = value; } }
         #endregion
 
         #region 构造
@@ -99,6 +76,26 @@ namespace NewLife.Threading
         }
         #endregion
 
+        #region 辅助
+        /// <summary>已重载</summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            return Callback != null ? "" + Callback : base.ToString();
+        }
+        #endregion
+
+        #region 设置
+        private static Boolean _Debug;
+        /// <summary>是否开启调试，输出更多信息</summary>
+        public static Boolean Debug { get { return _Debug; } set { _Debug = value; } }
+
+        static void WriteLog(String format, params Object[] args)
+        {
+            if (Debug) XTrace.WriteLine(format, args);
+        }
+        #endregion
+
         #region 内部助手
         static class TimerXHelper
         {
@@ -112,12 +109,16 @@ namespace NewLife.Threading
                 {
                     timers.Add(timer);
 
+                    WriteLog("TimerX.Add {0}", timer);
+
                     timer.OnDisposed += new EventHandler(delegate(Object sender, EventArgs e)
                     {
-                        TimerX tx = sender as TimerX;
+                        var tx = sender as TimerX;
                         if (tx == null) return;
                         lock (timers)
                         {
+                            WriteLog("TimerX.Remove {0}", tx);
+
                             if (timers.Contains(tx)) timers.Remove(tx);
                         }
                     });
@@ -195,9 +196,12 @@ namespace NewLife.Threading
                     lock (timers)
                     {
                         timers.Remove(timer);
+                        timer.Dispose();
                     }
                     return;
                 }
+
+                WriteLog("TimerX.Process {0}", timer);
 
                 TimeSpan ts = timer.NextTime - DateTime.Now;
                 Int32 d = (Int32)ts.TotalMilliseconds;
