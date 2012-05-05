@@ -1,18 +1,27 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
-using NewLife.Configuration;
-using System.Collections.Generic;
 using System.Threading;
+using NewLife.Configuration;
 
 namespace NewLife.Log
 {
     /// <summary>日志类，包含跟踪调试功能</summary>
-    public class XTrace
+    /// <remarks>
+    /// 该静态类包括写日志、写调用栈和Dump进程内存等调试功能。
+    /// 
+    /// 默认写日志到文本文件，可通过挂接<see cref="OnWriteLog"/>事件来改变日志输出方式。
+    /// 改变日志输出方式后，将不再向文本文件输出日志，但可通过<see cref="Log"/>继续写日志到文本文件中。
+    /// 对于控制台工程，可以直接通过<see cref="UseConsole"/>方法，把日志输出重定向为控制台输出，并且可以为不同线程使用不同颜色。
+    /// </remarks>
+    public static class XTrace
     {
         #region 写日志
-        private static TextFileLog Log = TextFileLog.Create(Config.GetConfig<String>("NewLife.LogPath"));
+        /// <summary>文本文件日志</summary>
+        public static TextFileLog Log = TextFileLog.Create(Config.GetConfig<String>("NewLife.LogPath"));
+
         /// <summary>日志路径</summary>
         public static String LogPath { get { return Log.LogPath; } }
 
@@ -20,6 +29,13 @@ namespace NewLife.Log
         /// <param name="msg">信息</param>
         public static void WriteLine(String msg)
         {
+            if (OnWriteLog != null)
+            {
+                var e = new WriteLogEventArgs(msg);
+                OnWriteLog(null, e);
+                return;
+            }
+
             Log.WriteLine(msg);
         }
 
@@ -27,6 +43,12 @@ namespace NewLife.Log
         /// <param name="ex">异常信息</param>
         public static void WriteException(Exception ex)
         {
+            if (OnWriteLog != null)
+            {
+                var e = new WriteLogEventArgs(null, ex);
+                OnWriteLog(null, e);
+                return;
+            }
             Log.WriteException(ex);
         }
 
@@ -63,12 +85,12 @@ namespace NewLife.Log
         }
 
         /// <summary>写日志事件。绑定该事件后，XTrace将不再把日志写到日志文件中去。</summary>
-        public static event EventHandler<WriteLogEventArgs> OnWriteLog
-        {
-            add { Log.OnWriteLog += value; }
-            remove { Log.OnWriteLog -= value; }
-        }
-        //public static event EventHandler<WriteLogEventArgs> OnWriteLog;
+        //public static event EventHandler<WriteLogEventArgs> OnWriteLog
+        //{
+        //    add { Log.OnWriteLog += value; }
+        //    remove { Log.OnWriteLog -= value; }
+        //}
+        public static event EventHandler<WriteLogEventArgs> OnWriteLog;
 
         /// <summary>写日志</summary>
         /// <param name="format"></param>

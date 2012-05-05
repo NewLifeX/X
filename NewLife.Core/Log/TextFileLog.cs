@@ -197,19 +197,13 @@ namespace NewLife.Log
             // 小对象，采用对象池的成本太高了
             var e = new WriteLogEventArgs(msg);
 
-            //// 采用对象池，避免太多小对象造成GC压力
-            //var e = WriteLogEventArgs.Create(msg, null);
-            //try
+            //if (OnWriteLog != null)
             //{
-            if (OnWriteLog != null)
-            {
-                OnWriteLog(null, e);
-                return;
-            }
+            //    OnWriteLog(null, e);
+            //    return;
+            //}
 
             PerformWriteLog(e.ToString());
-            //}
-            //finally { WriteLogEventArgs.Push(e); }
         }
 
         /// <summary>输出异常日志</summary>
@@ -218,11 +212,11 @@ namespace NewLife.Log
         {
             var e = new WriteLogEventArgs(null, ex);
 
-            if (OnWriteLog != null)
-            {
-                OnWriteLog(null, e);
-                return;
-            }
+            //if (OnWriteLog != null)
+            //{
+            //    OnWriteLog(null, e);
+            //    return;
+            //}
 
             PerformWriteLog(e.ToString());
         }
@@ -263,7 +257,7 @@ namespace NewLife.Log
                 var name = method.ToString();
                 // 去掉前面的返回类型
                 if (name.Contains(" ")) name = name.Substring(name.IndexOf(" ") + 1);
-                
+
                 var type = method.DeclaringType ?? method.ReflectedType;
                 if (type != null)
                     sb.AppendFormat("{0}.{1}", TypeX.Create(type).Name, name);
@@ -273,9 +267,6 @@ namespace NewLife.Log
             }
             WriteLine(sb.ToString());
         }
-
-        /// <summary>写日志事件。绑定该事件后，XTrace将不再把日志写到日志文件中去。</summary>
-        public event EventHandler<WriteLogEventArgs> OnWriteLog;
 
         /// <summary>写日志</summary>
         /// <param name="format"></param>
