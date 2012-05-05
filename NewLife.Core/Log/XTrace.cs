@@ -13,7 +13,7 @@ namespace NewLife.Log
     /// 该静态类包括写日志、写调用栈和Dump进程内存等调试功能。
     /// 
     /// 默认写日志到文本文件，可通过挂接<see cref="OnWriteLog"/>事件来改变日志输出方式。
-    /// 改变日志输出方式后，将不再向文本文件输出日志，但可通过<see cref="Log"/>继续写日志到文本文件中。
+    /// 改变日志输出方式后，将不再向文本文件输出日志，但可通过<see cref="UseFileLog"/>继续写日志到文本文件中。
     /// 对于控制台工程，可以直接通过<see cref="UseConsole"/>方法，把日志输出重定向为控制台输出，并且可以为不同线程使用不同颜色。
     /// </remarks>
     public static class XTrace
@@ -22,6 +22,10 @@ namespace NewLife.Log
         /// <summary>文本文件日志</summary>
         public static TextFileLog Log = TextFileLog.Create(Config.GetConfig<String>("NewLife.LogPath"));
 
+        private static Boolean _UseFileLog = true;
+        /// <summary>使用文件日志</summary>
+        public static Boolean UseFileLog { get { return _UseFileLog; } set { _UseFileLog = value; } }
+
         /// <summary>日志路径</summary>
         public static String LogPath { get { return Log.LogPath; } }
 
@@ -29,27 +33,25 @@ namespace NewLife.Log
         /// <param name="msg">信息</param>
         public static void WriteLine(String msg)
         {
-            if (OnWriteLog != null)
+            if (_OnWriteLog != null)
             {
                 var e = new WriteLogEventArgs(msg);
-                OnWriteLog(null, e);
-                return;
+                _OnWriteLog(null, e);
             }
 
-            Log.WriteLine(msg);
+            if (UseFileLog) Log.WriteLine(msg);
         }
 
         /// <summary>输出异常日志</summary>
         /// <param name="ex">异常信息</param>
         public static void WriteException(Exception ex)
         {
-            if (OnWriteLog != null)
+            if (_OnWriteLog != null)
             {
                 var e = new WriteLogEventArgs(null, ex);
-                OnWriteLog(null, e);
-                return;
+                _OnWriteLog(null, e);
             }
-            Log.WriteException(ex);
+            if (UseFileLog) Log.WriteException(ex);
         }
 
         /// <summary>输出异常日志</summary>
@@ -59,8 +61,7 @@ namespace NewLife.Log
             if (Debug) Log.WriteLine(ex.ToString());
         }
 
-        /// <summary>
-        /// 堆栈调试。
+        /// <summary>堆栈调试。
         /// 输出堆栈信息，用于调试时处理调用上下文。
         /// 本方法会造成大量日志，请慎用。
         /// </summary>
@@ -84,20 +85,28 @@ namespace NewLife.Log
             Log.DebugStack(start, maxNum);
         }
 
+        private static event EventHandler<WriteLogEventArgs> _OnWriteLog;
         /// <summary>写日志事件。绑定该事件后，XTrace将不再把日志写到日志文件中去。</summary>
-        //public static event EventHandler<WriteLogEventArgs> OnWriteLog
-        //{
-        //    add { Log.OnWriteLog += value; }
-        //    remove { Log.OnWriteLog -= value; }
-        //}
-        public static event EventHandler<WriteLogEventArgs> OnWriteLog;
+        public static event EventHandler<WriteLogEventArgs> OnWriteLog
+        {
+            add { _OnWriteLog += value; UseFileLog = false; }
+            remove { _OnWriteLog -= value; }
+        }
+        //public static event EventHandler<WriteLogEventArgs> OnWriteLog;
 
         /// <summary>写日志</summary>
         /// <param name="format"></param>
         /// <param name="args"></param>
         public static void WriteLine(String format, params Object[] args)
         {
-            Log.WriteLine(format, args);
+            if (_OnWriteLog != null)
+            {
+                var msg = String.Format(format, args);
+                var e = new WriteLogEventArgs(msg);
+                _OnWriteLog(null, e);
+            }
+
+            if (UseFileLog) Log.WriteLine(format, args);
         }
         #endregion
 
