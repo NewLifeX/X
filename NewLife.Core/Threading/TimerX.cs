@@ -12,6 +12,8 @@ namespace NewLife.Threading
     /// 因为挂载在静态列表上，必须从外部主动调用<see cref="IDisposable.Dispose"/>才能销毁定时器。
     /// 
     /// 该定时器不能放入太多任务，否则适得其反！
+    /// 
+    /// TimerX必须维持对象，否则很容易被GC回收。
     /// </remarks>
     public class TimerX : DisposeBase
     {
