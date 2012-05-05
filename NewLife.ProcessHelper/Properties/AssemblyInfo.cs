@@ -32,10 +32,12 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“内部版本号”和“修订号”的默认值，
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyFileVersion("1.0.2011.0829")]
+[assembly: AssemblyVersion("1.1.*")]
+[assembly: AssemblyFileVersion("1.1.2012.0505")]
 
 /*
+ * v1.1.2012.0505   进程助手在执行的同时输出日志
+ * 
  * v1.0.2011.0829   创建进程助手，用于解决自动更新中需要自我更新时，使用批处理非常不稳定的问题。
  *                  本助手程序需要极其精简，以便作为资源内嵌于其它程序集中。
  *
