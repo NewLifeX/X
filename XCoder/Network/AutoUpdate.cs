@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.Net;
 using System.Reflection;
 using System.Text;
 using System.Windows.Forms;
@@ -9,7 +10,6 @@ using NewLife.Compression;
 using NewLife.Log;
 using NewLife.Threading;
 using NewLife.Web;
-using System.Net;
 
 namespace XCoder
 {
@@ -137,6 +137,7 @@ namespace XCoder
 
                 ProcessStartInfo si = new ProcessStartInfo();
                 si.FileName = ProcessHelper;
+                si.WorkingDirectory = Path.GetDirectoryName(si.FileName);
                 si.Arguments = Process.GetCurrentProcess().Id + " " + updatebat;
                 if (!XTrace.Debug)
                 {

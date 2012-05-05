@@ -38,6 +38,11 @@ namespace NewLife.ProcessHelper
         /// <param name="context"></param>
         static void Run(Context context)
         {
+            #region 准备日志信息
+            WriteLog("");
+            WriteLog("PID={0},Date={1:yyyy-MM-dd}", Process.GetCurrentProcess().Id, DateTime.Now);
+            #endregion
+
             #region 等待目标进程结束
             if (context.PID > 0)
             {
@@ -90,7 +95,9 @@ namespace NewLife.ProcessHelper
 
                 if (!process.WaitForExit(30000))
                 {
-                    WriteLine("已等待30秒，进程[PID={0}]{1}仍未结束，当前进程助手退出！", process.Id, context.FileName);
+                    // 强行结束
+                    process.Kill();
+                    WriteLine("已等待30秒，进程[PID={0}]{1}仍未结束，强行结束，当前进程助手退出！", process.Id, context.FileName);
                 }
             }
             #endregion
@@ -163,6 +170,7 @@ namespace NewLife.ProcessHelper
         static void WriteLog(String format, params Object[] args)
         {
             var msg = String.Format(format, args);
+            msg = String.Format("{0:HH:mm:ss.fff} {1}", DateTime.Now, msg);
             File.AppendAllText("ProcessHelper.log", msg + Environment.NewLine);
         }
         #endregion
