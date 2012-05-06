@@ -13,7 +13,7 @@ using NewLife.Linq;
 namespace NewLife.Reflection
 {
     /// <summary>程序集辅助类。使用Create创建，保证每个程序集只有一个辅助类</summary>
-    public class AssemblyX : FastIndexAccessor
+    public class AssemblyX //: FastIndexAccessor
     {
         #region 属性
         private Assembly _Asm;
@@ -25,69 +25,19 @@ namespace NewLife.Reflection
 
         private String _Name;
         /// <summary>名称</summary>
-        public String Name
-        {
-            get
-            {
-                if (String.IsNullOrEmpty(_Name) && !hasLoaded.Contains("Name"))
-                {
-                    hasLoaded.Add("Name");
-
-                    _Name = Asm.GetName().Name;
-                    //if (String.IsNullOrEmpty(_Name)) _Name = "未知";
-                }
-                return _Name;
-            }
-        }
+        public String Name { get { return _Name ?? (_Name = "" + Asm.GetName().Name); } }
 
         private String _Version;
         /// <summary>程序集版本</summary>
-        public String Version
-        {
-            get
-            {
-                if (String.IsNullOrEmpty(_Version) && !hasLoaded.Contains("Version"))
-                {
-                    hasLoaded.Add("Version");
-
-                    _Version = Asm.GetName().Version.ToString();
-                    if (String.IsNullOrEmpty(_Version)) _Version = "1.0";
-                }
-                return _Version;
-            }
-        }
+        public String Version { get { return _Version ?? (_Version = "" + Asm.GetName().Version); } }
 
         private String _Title;
         /// <summary>程序集标题</summary>
-        public String Title
-        {
-            get
-            {
-                if (String.IsNullOrEmpty(_Title) && !hasLoaded.Contains("Title"))
-                {
-                    hasLoaded.Add("Title");
-
-                    _Title = Asm.GetCustomAttributeValue<AssemblyTitleAttribute, String>();
-                }
-                return _Title;
-            }
-        }
+        public String Title { get { return _Title ?? (_Title = "" + Asm.GetCustomAttributeValue<AssemblyTitleAttribute, String>()); } }
 
         private String _FileVersion;
         /// <summary>文件版本</summary>
-        public String FileVersion
-        {
-            get
-            {
-                if (String.IsNullOrEmpty(_FileVersion) && !hasLoaded.Contains("FileVersion"))
-                {
-                    hasLoaded.Add("FileVersion");
-
-                    _FileVersion = Asm.GetCustomAttributeValue<AssemblyFileVersionAttribute, String>();
-                }
-                return _FileVersion;
-            }
-        }
+        public String FileVersion { get { return _FileVersion ?? (_FileVersion = "" + Asm.GetCustomAttributeValue<AssemblyFileVersionAttribute, String>()); } }
 
         private DateTime _Compile;
         /// <summary>编译时间</summary>
@@ -101,11 +51,11 @@ namespace NewLife.Reflection
 
                     if (!String.IsNullOrEmpty(Version))
                     {
-                        String[] ss = Version.Split(new Char[] { '.' });
-                        Int32 d = Convert.ToInt32(ss[2]);
-                        Int32 s = Convert.ToInt32(ss[3]);
+                        var ss = Version.Split(new Char[] { '.' });
+                        var d = Convert.ToInt32(ss[2]);
+                        var s = Convert.ToInt32(ss[3]);
 
-                        DateTime dt = new DateTime(2000, 1, 1);
+                        var dt = new DateTime(2000, 1, 1);
                         dt = dt.AddDays(d).AddSeconds(s * 2);
 
                         _Compile = dt;
@@ -137,67 +87,24 @@ namespace NewLife.Reflection
 
         private String _Company;
         /// <summary>公司名称</summary>
-        public String Company
-        {
-            get
-            {
-                if (String.IsNullOrEmpty(_Company) && !hasLoaded.Contains("Company"))
-                {
-                    hasLoaded.Add("Company");
-
-                    _Company = Asm.GetCustomAttributeValue<AssemblyCompanyAttribute, String>();
-                }
-                return _Company;
-            }
-        }
+        public String Company { get { return _Company ?? (_Company = "" + Asm.GetCustomAttributeValue<AssemblyCompanyAttribute, String>()); } }
 
         private String _Description;
         /// <summary>说明</summary>
-        public String Description
-        {
-            get
-            {
-                if (String.IsNullOrEmpty(_Description) && !hasLoaded.Contains("Description"))
-                {
-                    hasLoaded.Add("Description");
-
-                    _Description = Asm.GetCustomAttributeValue<AssemblyDescriptionAttribute, String>();
-                }
-                return _Description;
-            }
-        }
+        public String Description { get { return _Description ?? (_Description = "" + Asm.GetCustomAttributeValue<AssemblyDescriptionAttribute, String>()); } }
 
         /// <summary>获取包含清单的已加载文件的路径或 UNC 位置。</summary>
-        public String Location
-        {
-            get
-            {
-                try
-                {
-                    return Asm == null ? null : Asm.Location;
-                }
-                catch { return null; }
-            }
-        }
+        public String Location { get { try { return Asm == null ? null : Asm.Location; } catch { return null; } } }
         #endregion
 
         #region 构造
-        private AssemblyX(Assembly asm)
-        {
-            _Asm = asm;
-        }
+        private AssemblyX(Assembly asm) { _Asm = asm; }
 
         private static DictionaryCache<Assembly, AssemblyX> cache = new DictionaryCache<Assembly, AssemblyX>();
         /// <summary>创建程序集辅助对象</summary>
         /// <param name="asm"></param>
         /// <returns></returns>
-        public static AssemblyX Create(Assembly asm)
-        {
-            return cache.GetItem(asm, delegate(Assembly key)
-            {
-                return new AssemblyX(key);
-            });
-        }
+        public static AssemblyX Create(Assembly asm) { return cache.GetItem(asm, key => new AssemblyX(key)); }
 
         static AssemblyX()
         {
@@ -217,26 +124,6 @@ namespace NewLife.Reflection
         {
             get
             {
-                //if (_Types == null)
-                //{
-                //    IEnumerable<Type> list = new ListX<Type>(Asm.GetTypes());
-                //    for (int i = 0; i < list.Count; i++)
-                //    {
-                //        Type[] types = list[i].GetNestedTypes(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance);
-                //        if (types != null && types.Length > 0)
-                //        {
-                //            // 从下一个元素开始插入，让内嵌类紧挨着主类
-                //            Int32 k = i + 1;
-                //            foreach (Type item in types)
-                //            {
-                //                if (!list.Contains(item)) list.Insert(k++, item);
-                //            }
-                //        }
-                //    }
-                //    _Types = list;
-                //}
-                //return _Types == null ? null : _Types.Clone();
-
                 Type[] ts = null;
                 try
                 {
@@ -246,30 +133,29 @@ namespace NewLife.Reflection
                 if (ts == null || ts.Length < 1) yield break;
 
                 // 先遍历一次ts，避免取内嵌类型带来不必要的性能损耗
-                foreach (Type item in ts)
+                foreach (var item in ts)
                 {
                     if (item != null) yield return item;
                 }
 
-                List<Type> list = new List<Type>(ts);
-                for (int i = 0; i < list.Count; i++)
+                var queue = new Queue<Type>(ts);
+                while (queue.Count > 0)
                 {
-                    if (list[i] == null) continue;
+                    var item = queue.Dequeue();
+                    if (item == null) continue;
 
-                    //yield return list[i];
-
-                    Type[] ts2 = list[i].GetNestedTypes(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance);
+                    var ts2 = item.GetNestedTypes(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance);
                     if (ts2 != null && ts2.Length > 0)
                     {
                         // 从下一个元素开始插入，让内嵌类紧挨着主类
                         //Int32 k = i + 1;
-                        foreach (Type item in ts2)
+                        foreach (var elm in ts2)
                         {
                             //if (!list.Contains(item)) list.Insert(k++, item);
                             // Insert将会导致大量的数组复制
-                            list.Add(item);
+                            queue.Enqueue(elm);
 
-                            yield return item;
+                            yield return elm;
                         }
                     }
                 }
@@ -282,10 +168,6 @@ namespace NewLife.Reflection
         {
             get
             {
-                //if (_TypeXs == null)
-                //    _TypeXs = ListX<TypeX>.From<Type>(Types, delegate(Type type) { return TypeX.Create(type); });
-                //return _TypeXs == null ? null : _TypeXs.Clone();
-
                 foreach (Type item in Types)
                 {
                     yield return TypeX.Create(item);
@@ -321,10 +203,10 @@ namespace NewLife.Reflection
         [Obsolete("=>Asm.GetCustomAttributeValue<TAttribute, TResult>")]
         public TResult GetCustomAttributeValue<TAttribute, TResult>()
         {
-            IList<CustomAttributeData> list = CustomAttributeData.GetCustomAttributes(Asm);
+            var list = CustomAttributeData.GetCustomAttributes(Asm);
             if (list == null || list.Count < 1) return default(TResult);
 
-            foreach (CustomAttributeData item in list)
+            foreach (var item in list)
             {
                 if (typeof(TAttribute) != item.Constructor.DeclaringType) continue;
 
@@ -353,16 +235,16 @@ namespace NewLife.Reflection
         /// <returns></returns>
         Type GetTypeInternal(String typeName)
         {
-            Type type = Asm.GetType(typeName);
+            var type = Asm.GetType(typeName);
             if (type != null) return type;
 
             // 如果没有包含圆点，说明其不是FullName
             if (!typeName.Contains("."))
             {
-                Type[] types = Asm.GetTypes();
+                var types = Asm.GetTypes();
                 if (types != null && types.Length > 0)
                 {
-                    foreach (Type item in types)
+                    foreach (var item in types)
                     {
                         if (item.Name == typeName) return item;
                     }
@@ -383,10 +265,7 @@ namespace NewLife.Reflection
         /// <summary>查找插件</summary>
         /// <typeparam name="TPlugin"></typeparam>
         /// <returns></returns>
-        public List<Type> FindPlugins<TPlugin>()
-        {
-            return FindPlugins(typeof(TPlugin));
-        }
+        public List<Type> FindPlugins<TPlugin>() { return FindPlugins(typeof(TPlugin)); }
 
         private Dictionary<Type, List<Type>> _plugins = new Dictionary<Type, List<Type>>();
         /// <summary>查找插件，带缓存</summary>
@@ -403,7 +282,7 @@ namespace NewLife.Reflection
                 if (_plugins.TryGetValue(type, out list)) return list;
 
                 list = new List<Type>();
-                foreach (Type item in Types)
+                foreach (var item in Types)
                 {
                     if (TypeX.Create(item).IsPlugin(type)) list.Add(item);
                 }
@@ -418,20 +297,14 @@ namespace NewLife.Reflection
         /// <summary>查找所有非系统程序集中的所有插件</summary>
         /// <param name="type"></param>
         /// <returns></returns>
-        public static IEnumerable<Type> FindAllPlugins(Type type)
-        {
-            return FindAllPlugins(type, false);
-        }
+        public static IEnumerable<Type> FindAllPlugins(Type type) { return FindAllPlugins(type, false); }
 
         /// <summary>查找所有非系统程序集中的所有插件</summary>
         /// <remarks>继承类所在的程序集会引用baseType所在的程序集，利用这一点可以做一定程度的性能优化。</remarks>
         /// <param name="baseType"></param>
         /// <param name="isLoadAssembly">是否从未加载程序集中获取类型。使用仅反射的方法检查目标类型，如果存在，则进行常规加载</param>
         /// <returns></returns>
-        public static IEnumerable<Type> FindAllPlugins(Type baseType, Boolean isLoadAssembly)
-        {
-            return FindAllPlugins(baseType, isLoadAssembly, true);
-        }
+        public static IEnumerable<Type> FindAllPlugins(Type baseType, Boolean isLoadAssembly) { return FindAllPlugins(baseType, isLoadAssembly, true); }
 
         /// <summary>查找所有非系统程序集中的所有插件</summary>
         /// <remarks>继承类所在的程序集会引用baseType所在的程序集，利用这一点可以做一定程度的性能优化。</remarks>
@@ -441,12 +314,10 @@ namespace NewLife.Reflection
         /// <returns></returns>
         internal static IEnumerable<Type> FindAllPlugins(Type baseType, Boolean isLoadAssembly, Boolean excludeGlobalTypes)
         {
-            //if (baseType == null) throw new ArgumentNullException("baseType");
+            var baseAssemblyName = baseType.Assembly.FullName;
 
-            String baseAssemblyName = baseType.Assembly.FullName;
-
-            List<Type> list = new List<Type>();
-            foreach (AssemblyX item in GetAssemblies())
+            var list = new List<Type>();
+            foreach (var item in GetAssemblies())
             {
                 // 如果excludeGlobalTypes为true，则指检查来自非GAC引用的程序集
                 if (excludeGlobalTypes && item.Asm.GlobalAssemblyCache) continue;
@@ -457,8 +328,7 @@ namespace NewLife.Reflection
                 var ts = item.FindPlugins(baseType);
                 if (ts != null && ts.Count > 0)
                 {
-                    //list.AddRange(ts);
-                    foreach (Type elm in ts)
+                    foreach (var elm in ts)
                     {
                         if (!list.Contains(elm))
                         {
@@ -470,9 +340,7 @@ namespace NewLife.Reflection
             }
             if (isLoadAssembly)
             {
-                //// 尝试加载程序集
-                //AssemblyX.ReflectionOnlyLoad();
-                foreach (AssemblyX item in AssemblyX.ReflectionOnlyGetAssemblies())
+                foreach (var item in AssemblyX.ReflectionOnlyGetAssemblies())
                 {
                     // 如果excludeGlobalTypes为true，则指检查来自非GAC引用的程序集
                     if (excludeGlobalTypes && item.Asm.GlobalAssemblyCache) continue;
@@ -480,16 +348,16 @@ namespace NewLife.Reflection
                     // 不搜索系统程序集，不搜索未引用基类所在程序集的程序集，优化性能
                     if (item.IsSystemAssembly || !IsReferencedFrom(item.Asm, baseAssemblyName)) continue;
 
-                    List<Type> ts = item.FindPlugins(baseType);
+                    var ts = item.FindPlugins(baseType);
                     if (ts != null && ts.Count > 0)
                     {
                         // 真实加载
-                        Assembly asm2 = Assembly.LoadFile(item.Asm.Location);
+                        var asm2 = Assembly.LoadFile(item.Asm.Location);
                         ts = AssemblyX.Create(asm2).FindPlugins(baseType);
 
                         if (ts != null && ts.Count > 0)
                         {
-                            foreach (Type elm in ts)
+                            foreach (var elm in ts)
                             {
                                 if (!list.Contains(elm))
                                 {
@@ -511,7 +379,7 @@ namespace NewLife.Reflection
         {
             if (asm.FullName.EqualIgnoreCase(baseAsmName)) return true;
 
-            foreach (AssemblyName item in asm.GetReferencedAssemblies())
+            foreach (var item in asm.GetReferencedAssemblies())
             {
                 if (item.FullName.EqualIgnoreCase(baseAsmName)) return true;
             }
@@ -520,7 +388,7 @@ namespace NewLife.Reflection
         }
         #endregion
 
-        #region 静态方法
+        #region 静态加载
         /// <summary>获取指定程序域所有程序集</summary>
         /// <param name="domain"></param>
         /// <returns></returns>
@@ -528,7 +396,7 @@ namespace NewLife.Reflection
         {
             if (domain == null) domain = AppDomain.CurrentDomain;
 
-            Assembly[] asms = domain.GetAssemblies();
+            var asms = domain.GetAssemblies();
             if (asms == null || asms.Length < 1) return Enumerable.Empty<AssemblyX>();
 
             //return asms.Select(item => Create(item));
@@ -544,62 +412,46 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public static IEnumerable<AssemblyX> GetAssemblies() { return GetAssemblies(AppDomain.CurrentDomain); }
 
-        ///// <summary>
-        ///// 只反射加载有效路径（应用程序是当前路径，Web是Bin目录）的所有程序集
-        ///// </summary>
-        ///// <param name="domain"></param>
-        ///// <returns></returns>
-        //[Obsolete("该成员在后续版本中将不再被支持！")]
-        //public static IEnumerable<AssemblyX> ReflectionOnlyGetAssemblies(AppDomain domain)
-        //{
-        //    if (domain == null) domain = AppDomain.CurrentDomain;
+        private static ICollection<String> _AssemblyPaths;
+        /// <summary>程序集目录集合</summary>
+        public static ICollection<String> AssemblyPaths { get { return _AssemblyPaths ?? (_AssemblyPaths = new HashSet<String>(StringComparer.OrdinalIgnoreCase)); } set { _AssemblyPaths = value; } }
 
-        //    Assembly[] asms = domain.ReflectionOnlyGetAssemblies();
-        //    if (asms == null || asms.Length < 1) return Enumerable.Empty<AssemblyX>();
-
-        //    //List<AssemblyX> list = new List<AssemblyX>();
-        //    //foreach (Assembly item in asms)
-        //    //{
-        //    //    list.Add(AssemblyX.Create(item));
-        //    //}
-
-        //    //return list;
-
-        //    return asms.Select(item => Create(item));
-        //}
-
-        /// <summary>获取当前程序域所有程序集的辅助类</summary>
+        /// <summary>获取当前程序域所有只反射程序集的辅助类</summary>
         /// <returns></returns>
         public static IEnumerable<AssemblyX> ReflectionOnlyGetAssemblies()
         {
-            //TODO: 将来这里可以改进为指定加载目录，也就是插件目录
-            if (HttpRuntime.AppDomainId == null)
-                return ReflectionOnlyLoad(AppDomain.CurrentDomain.BaseDirectory);
-            else
-                return ReflectionOnlyLoad(HttpRuntime.BinDirectory);
+            var path = AppDomain.CurrentDomain.BaseDirectory;
+            if (HttpRuntime.AppDomainId != null) path = HttpRuntime.BinDirectory;
+
+            foreach (var asm in ReflectionOnlyLoad(path)) yield return asm;
+
+            foreach (var item in AssemblyPaths)
+            {
+                foreach (var asm in ReflectionOnlyLoad(item)) yield return asm;
+            }
         }
 
         /// <summary>只反射加载指定路径的所有程序集</summary>
         /// <param name="path"></param>
         /// <returns></returns>
-        static IEnumerable<AssemblyX> ReflectionOnlyLoad(String path)
+        public static IEnumerable<AssemblyX> ReflectionOnlyLoad(String path)
         {
             if (!Directory.Exists(path)) yield break;
 
             // 先返回已加载的只加载程序集
-            List<AssemblyX> loadeds2 = AppDomain.CurrentDomain.ReflectionOnlyGetAssemblies().Select(e => Create(e)).ToList();
-            foreach (AssemblyX item in loadeds2)
+            var loadeds2 = AppDomain.CurrentDomain.ReflectionOnlyGetAssemblies().Select(e => Create(e)).ToList();
+            foreach (var item in loadeds2)
             {
                 yield return item;
             }
 
             // 再去遍历目录
-            String[] ss = Directory.GetFiles(path, "*.*", SearchOption.TopDirectoryOnly);
+            var ss = Directory.GetFiles(path, "*.*", SearchOption.TopDirectoryOnly);
             if (ss == null || ss.Length < 1) yield break;
 
-            List<AssemblyX> loadeds = AssemblyX.GetAssemblies().ToList<AssemblyX>();
+            var loadeds = AssemblyX.GetAssemblies().ToList();
 
-            foreach (String item in ss)
+            foreach (var item in ss)
             {
                 if (!item.EndsWith(".dll", StringComparison.OrdinalIgnoreCase) &&
                     !item.EndsWith(".exe", StringComparison.OrdinalIgnoreCase)) continue;
@@ -610,7 +462,7 @@ namespace NewLife.Reflection
                 try
                 {
                     //Assembly asm = Assembly.ReflectionOnlyLoad(File.ReadAllBytes(item));
-                    Assembly asm = Assembly.ReflectionOnlyLoadFrom(item);
+                    var asm = Assembly.ReflectionOnlyLoadFrom(item);
 
                     asmx = Create(asm);
                 }
@@ -619,19 +471,6 @@ namespace NewLife.Reflection
                 if (asmx != null) yield return asmx;
             }
         }
-
-        ///// <summary>
-        ///// 只反射加载有效路径（应用程序是当前路径，Web是Bin目录）的所有程序集
-        ///// </summary>
-        ///// <returns></returns>
-        //[Obsolete("该成员在后续版本中将不再被支持！")]
-        //public static IEnumerable<AssemblyX> ReflectionOnlyLoad()
-        //{
-        //    if (HttpRuntime.AppDomainId == null)
-        //        return ReflectionOnlyLoad(AppDomain.CurrentDomain.BaseDirectory);
-        //    else
-        //        return ReflectionOnlyLoad(HttpRuntime.BinDirectory);
-        //}
         #endregion
 
         #region 重载

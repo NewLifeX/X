@@ -515,14 +515,14 @@ namespace NewLife.Reflection
 
             if (isLoadAssembly)
             {
-                foreach (AssemblyX asm in AssemblyX.ReflectionOnlyGetAssemblies())
+                foreach (var asm in AssemblyX.ReflectionOnlyGetAssemblies())
                 {
                     type = asm.GetType(typeName);
                     if (type != null)
                     {
                         // 真实加载
-                        Assembly asm2 = Assembly.LoadFile(asm.Asm.Location);
-                        Type type2 = AssemblyX.Create(asm2).GetType(typeName);
+                        var asm2 = Assembly.LoadFile(asm.Asm.Location);
+                        var type2 = AssemblyX.Create(asm2).GetType(typeName);
                         if (type2 != null) type = type2;
 
                         return type;
