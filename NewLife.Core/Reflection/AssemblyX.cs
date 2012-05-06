@@ -423,6 +423,13 @@ namespace NewLife.Reflection
             var path = AppDomain.CurrentDomain.BaseDirectory;
             if (HttpRuntime.AppDomainId != null) path = HttpRuntime.BinDirectory;
 
+            // 先返回已加载的只加载程序集
+            var loadeds2 = AppDomain.CurrentDomain.ReflectionOnlyGetAssemblies().Select(e => Create(e)).ToList();
+            foreach (var item in loadeds2)
+            {
+                yield return item;
+            }
+
             foreach (var asm in ReflectionOnlyLoad(path)) yield return asm;
 
             foreach (var item in AssemblyPaths)
@@ -440,10 +447,6 @@ namespace NewLife.Reflection
 
             // 先返回已加载的只加载程序集
             var loadeds2 = AppDomain.CurrentDomain.ReflectionOnlyGetAssemblies().Select(e => Create(e)).ToList();
-            foreach (var item in loadeds2)
-            {
-                yield return item;
-            }
 
             // 再去遍历目录
             var ss = Directory.GetFiles(path, "*.*", SearchOption.TopDirectoryOnly);
