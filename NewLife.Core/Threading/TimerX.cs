@@ -111,7 +111,7 @@ namespace NewLife.Threading
                 {
                     timers.Add(timer);
 
-                    WriteLog("TimerX.Add {0}", timer);
+                    WriteLog("TimerX.Add {0}ms {1}", timer.Period, timer);
 
                     timer.OnDisposed += new EventHandler(delegate(Object sender, EventArgs e)
                     {
@@ -203,8 +203,6 @@ namespace NewLife.Threading
                     return;
                 }
 
-                WriteLog("TimerX.Process {0}", timer);
-
                 TimeSpan ts = timer.NextTime - DateTime.Now;
                 Int32 d = (Int32)ts.TotalMilliseconds;
                 if (d > 0)
@@ -214,6 +212,8 @@ namespace NewLife.Threading
 
                     return;
                 }
+
+                WriteLog("TimerX.Process {0}", timer);
 
                 try
                 {
