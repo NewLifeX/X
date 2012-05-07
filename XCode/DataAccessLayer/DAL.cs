@@ -458,6 +458,7 @@ namespace XCode.DataAccessLayer
             if (asm == null) return null;
             //Type type = TypeX.GetType(asm, tableName);
             var type = AssemblyX.Create(asm).GetType(tableName);
+            if (type == null) type = EntityFactory.GetType(tableName);
             if (type == null) return null;
 
             return EntityFactory.CreateOperate(type);

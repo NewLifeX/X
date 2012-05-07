@@ -246,7 +246,7 @@ namespace XCode
         }
 
         static DictionaryCache<String, Type> typeCache = new DictionaryCache<String, Type>();
-        private static Type GetType(String typeName)
+        internal static Type GetType(String typeName)
         {
             return typeCache.GetItem(typeName, GetTypeInternal);
         }
