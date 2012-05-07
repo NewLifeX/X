@@ -24,11 +24,7 @@ namespace NewLife.Reflection
         #region 属性
         private Type _BaseType;
         /// <summary>类型</summary>
-        public Type BaseType
-        {
-            get { return _BaseType; }
-            //set { _Type = value; }
-        }
+        public Type BaseType { get { return _BaseType; } }
 
         FastHandler _Handler;
         /// <summary>快速调用委托，延迟到首次使用才创建</summary>
@@ -42,81 +38,54 @@ namespace NewLife.Reflection
                         _Handler = GetConstructorInvoker(BaseType, null);
                     else
                     {
-                        //ListX<ConstructorInfo> list = Constructors;
-                        ConstructorInfo[] cs = BaseType.GetConstructors(DefaultBinding);
+                        var cs = BaseType.GetConstructors(DefaultBinding);
                         if (cs != null && cs.Length > 0) _Handler = GetConstructorInvoker(BaseType, cs[0]);
                     }
                 }
                 return _Handler;
             }
         }
+        #endregion
 
+        #region 名称
         private String _Name;
         /// <summary>类型名称。主要处理泛型</summary>
-        public override String Name
-        {
-            get
-            {
-                if (_Name != null) return _Name;
-                _Name = "";
-
-                Type type = BaseType;
-                if (type.IsGenericType && !type.IsGenericTypeDefinition)
-                {
-                    StringBuilder sb = new StringBuilder();
-                    String name = type.GetGenericTypeDefinition().Name;
-                    sb.Append(name.Substring(0, name.IndexOf("`")));
-                    sb.Append("<");
-                    Type[] ts = type.GetGenericArguments();
-                    for (int i = 0; i < ts.Length; i++)
-                    {
-                        if (i > 0) sb.Append(",");
-                        if (!ts[i].IsGenericParameter) sb.Append(TypeX.Create(ts[i]).Name);
-                    }
-                    sb.Append(">");
-                    _Name = sb.ToString();
-                }
-                else
-                    _Name = type.Name;
-
-                return _Name;
-            }
-        }
+        public override String Name { get { return _Name ?? (_Name = GetName(false)); } }
 
         private String _FullName;
         /// <summary>完整类型名称。包含命名空间，但是不包含程序集信息</summary>
-        public String FullName
+        public String FullName { get { return _FullName ?? (_FullName = GetName(true)); } }
+
+        String GetName(Boolean includeNamespace)
         {
-            get
+            Type type = BaseType;
+            if (type.IsGenericType)
             {
-                if (_FullName != null) return _FullName;
-                _FullName = "";
-
-                Type type = BaseType;
-                if (type.IsGenericType)
+                var sb = new StringBuilder();
+                var typeDef = type.GetGenericTypeDefinition();
+                var name = includeNamespace ? typeDef.FullName : typeDef.Name;
+                sb.Append(name.Substring(0, name.IndexOf("`")));
+                sb.Append("<");
+                var ts = type.GetGenericArguments();
+                for (int i = 0; i < ts.Length; i++)
                 {
-                    StringBuilder sb = new StringBuilder();
-                    String name = type.GetGenericTypeDefinition().FullName;
-                    sb.Append(name.Substring(0, name.IndexOf("`")));
-                    sb.Append("<");
-                    Type[] ts = type.GetGenericArguments();
-                    for (int i = 0; i < ts.Length; i++)
+                    if (i > 0) sb.Append(",");
+                    if (!ts[i].IsGenericParameter)
                     {
-                        if (i > 0) sb.Append(",");
-                        if (!ts[i].IsGenericParameter) sb.Append(TypeX.Create(ts[i]).FullName);
+                        var tx = TypeX.Create(ts[i]);
+                        sb.Append(includeNamespace ? tx.FullName : tx.Name);
                     }
-                    sb.Append(">");
-                    _FullName = sb.ToString();
                 }
-                else if (type.IsNested)
-                {
-                    _FullName = TypeX.Create(type.DeclaringType).FullName + "." + type.Name;
-                }
-                else
-                    _FullName = type.FullName;
-
-                return _FullName;
+                sb.Append(">");
+                return sb.ToString();
             }
+            else if (type.IsNested)
+            {
+                var tx = TypeX.Create(type.DeclaringType);
+                return (includeNamespace ? tx.FullName : tx.Name) + "." + type.Name;
+            }
+            else
+                return includeNamespace ? type.FullName : type.Name;
         }
         #endregion
 
