@@ -30,8 +30,8 @@ namespace NewLife.Collections
                 var ce = ClearExpriod;
                 if (value > 0)
                 {
-                    // 10倍清理过期时间
-                    if (ce <= 0) ClearExpriod = value * 10;
+                    // 2倍清理过期时间
+                    if (ce <= 0) ClearExpriod = value * 2;
                 }
                 else
                 {

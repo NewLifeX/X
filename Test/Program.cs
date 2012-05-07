@@ -13,6 +13,9 @@ using NewLife.Threading;
 using System.Linq;
 #else
 using NewLife.Linq;
+using NewLife.Reflection;
+using NewLife.Model;
+using System.Collections.Generic;
 #endif
 
 namespace Test
@@ -30,7 +33,7 @@ namespace Test
                 try
                 {
 #endif
-                Test1();
+                    Test5();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -237,19 +240,45 @@ namespace Test
 
         static void Test5()
         {
-            //var rnd = new Random((Int32)DateTime.Now.Ticks);
-            //var entity = Administrator.FindByID(1);
-            //for (int k = 0; k < 10; k++)
-            //{
-            //    for (int i = 0; i < 4; i++)
-            //    {
-            //        Administrator.Meta.TableName = "Admin" + (i + 1);
-            //        entity.Name = "Admin" + rnd.Next(1000, 10000);
-            //        entity.Insert();
+            //var mgr = new PluginManager();
+            //mgr.Identity = "PSService";
+            ////mgr.Provider = this;
 
-            //        Console.WriteLine("{0} {1}", Administrator.Meta.TableName, Administrator.Meta.Count);
+            //Console.WriteLine("加载插件……");
+            //mgr.Load();
+            //Console.WriteLine("发现插件{0:n0}个！", mgr.Plugins.Count);
+
+            //Console.WriteLine("初始化插件……");
+            //mgr.Init();
+            //Console.WriteLine("完成初始化插件{0:n0}个！", mgr.Plugins.Count);
+
+            //Console.ReadKey();
+
+            //var http = new HttpProxy();
+            //foreach (var asm in AssemblyX.GetAssemblies())
+            //{
+            //    Console.WriteLine("程序集：{0} {1}", asm.Name, asm.Location);
+            //    foreach (var type in asm.TypeXs)
+            //    {
+            //        Console.WriteLine("{0}.{1}", type.BaseType.Namespace, type.Name);
             //    }
+            //    Console.WriteLine("程序集：{0} {1}", asm.Name, asm.Location);
+            //    Console.ReadKey();
             //}
+
+            var type = TypeX.Create(typeof(List<Dictionary<Int32, String>>));
+            Console.WriteLine(type.BaseType.Name);
+            Console.WriteLine(type.BaseType.FullName);
+            Console.WriteLine(type.Name);
+            Console.WriteLine(type.FullName);
+            Console.WriteLine(type.DocName);
+
+            var add = MethodInfoX.Create(type.BaseType, "Add");
+            Console.WriteLine(add.Method);
+            Console.WriteLine(add.Method.Name);
+            Console.WriteLine(add.Name);
+            Console.WriteLine(add.FullName);
+            Console.WriteLine(add.DocName);
         }
     }
 }
