@@ -125,7 +125,7 @@ namespace NewLife
         /// <returns></returns>
         public override string ToString()
         {
-            return Method != null ? "" + Method.Method : base.ToString();
+            return Method != null ? "" + Method.Name : base.ToString();
         }
         #endregion
     }
