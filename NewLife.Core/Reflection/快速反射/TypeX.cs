@@ -64,7 +64,8 @@ namespace NewLife.Reflection
                 var sb = new StringBuilder();
                 var typeDef = type.GetGenericTypeDefinition();
                 var name = isfull ? typeDef.FullName : typeDef.Name;
-                sb.Append(name.Substring(0, name.IndexOf("`")));
+                var p = name.IndexOf("`");
+                if (p >= 0) sb.Append(name.Substring(0, p));
                 sb.Append("<");
                 var ts = type.GetGenericArguments();
                 for (int i = 0; i < ts.Length; i++)
