@@ -244,21 +244,51 @@ namespace Test
 
         static void Test5()
         {
-            //DAL.AddConnStr("xxgk", "Data Source=192.168.1.21;Initial Catalog=信息公开;user id=sa;password=Pass@word", null, "mssql");
-            //var dal = DAL.Create("xxgk");
+            DAL.AddConnStr("xxgk", "Data Source=192.168.1.21;Initial Catalog=信息公开;user id=sa;password=Pass@word", null, "mssql");
+            var dal = DAL.Create("xxgk");
 
-            Menu.Meta.ConnName = "Common0";
-            var list = Menu.FindAll();
-            Console.WriteLine(list.Count);
+            DAL.AddConnStr("xxgk2", "Data Source=XXGK.db;Version=3;", null, "sqlite");
+            //var dal2 = DAL.Create("xxgk2");
 
-            Menu.Meta.ConnName = "Common4";
-            Menu.Meta.DBO.Execute("delete from Menu", "");
-            Menu.Meta.AllowInsertIdentity = true;
-            list.Insert();
-            Menu.Meta.AllowInsertIdentity = false;
-            list[0].Insert();
-            list = Menu.FindAll();
-            Console.WriteLine(list.Count);
+            //var ts = new String[] { "DepartmentCategory", "AssemblyCategory", "", "", "" };
+            foreach (var item in dal.Tables)
+            {
+                if (item.IsView) continue;
+                try
+                {
+                    var op = dal.CreateOperate(item.Name);
+                    Console.WriteLine("{0} {1}", item.Name, op.Count);
+
+                    var list = op.FindAll();
+
+                    var old = op.ConnName;
+                    op.ConnName = "xxgk2";
+                    op.AllowInsertIdentity = true;
+
+                    var rs = list.Insert(true);
+                    Console.WriteLine("Import {0} {1}", item.Name, rs);
+
+                    op.AllowInsertIdentity = false;
+                    op.ConnName = old;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("{0} Error {1}", item.Name, ex.Message);
+                }
+            }
+
+            //Menu.Meta.ConnName = "Common0";
+            //var list = Menu.FindAll();
+            //Console.WriteLine(list.Count);
+
+            //Menu.Meta.ConnName = "Common4";
+            //Menu.Meta.DBO.Execute("delete from Menu", "");
+            //Menu.Meta.AllowInsertIdentity = true;
+            //list.Insert();
+            //Menu.Meta.AllowInsertIdentity = false;
+            //list[0].Insert();
+            //list = Menu.FindAll();
+            //Console.WriteLine(list.Count);
         }
     }
 }
