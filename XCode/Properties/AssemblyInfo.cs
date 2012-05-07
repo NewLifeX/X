@@ -35,7 +35,7 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
 [assembly: AssemblyVersion("8.5.*")]
-[assembly: AssemblyFileVersion("8.5.2012.0422")]
+[assembly: AssemblyFileVersion("8.5.2012.0507")]
 
 /*
  * XCode的重大改进
@@ -52,6 +52,10 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v8.5.2012.0507   修改IEntityPersistence接口，增加两个事件用于是否自动设置Guid和是否允许向自增列插入值
+ *                  默认不再自动设置Guid
+ *                  可通过设置允许向自增列插入值，可用于数据复制
+ * 
  * v8.5.2012.0422   修正更改实体类的连接名和表名时没有正确处理架构检查，导致性能低下的BUG
  * 
  * v8.5.2012.0401   IEntityList接口增加ToDataTable等方法

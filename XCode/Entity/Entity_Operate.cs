@@ -368,6 +368,14 @@ namespace XCode
             /// <returns></returns>
             public String MakeCondition(FieldItem field, Object value, String action) { return Entity<TEntity>.MakeCondition(field, value, action); }
             #endregion
+
+            #region 一些设置
+            /// <summary>是否允许向自增列插入数据。为免冲突，仅本线程有效</summary>
+            public Boolean AllowInsertIdentity { get { return Meta.AllowInsertIdentity; } set { Meta.AllowInsertIdentity = value; } }
+
+            /// <summary>自动设置Guid的字段。对实体类有效，可在实体类类型构造函数里面设置</summary>
+            public FieldItem AutoSetGuidField { get { return Meta.AutoSetGuidField; } set { Meta.AutoSetGuidField = value; } }
+            #endregion
         }
     }
 }

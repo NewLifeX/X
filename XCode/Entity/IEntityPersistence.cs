@@ -14,6 +14,7 @@ namespace XCode
     /// <summary>实体持久化接口。可通过实现该接口来自定义实体类持久化行为。</summary>
     public interface IEntityPersistence
     {
+        #region 添删改方法
         /// <summary>插入</summary>
         /// <param name="entity"></param>
         /// <returns></returns>
@@ -64,7 +65,9 @@ namespace XCode
         /// <param name="values">值列表</param>
         /// <returns></returns>
         Int32 Delete(Type entityType, String[] names, Object[] values);
+        #endregion
 
+        #region 获取语句
         /// <summary>获取主键条件</summary>
         /// <param name="entity"></param>
         /// <returns></returns>
@@ -75,29 +78,85 @@ namespace XCode
         /// <param name="methodType"></param>
         /// <returns>SQL字符串</returns>
         String GetSql(IEntity entity, DataObjectMethodType methodType);
+        #endregion
+
+        //#region 事件
+        ///// <summary>设置实体Guid之前触发事件，通过Cancel控制是否取消Guid的自动设置</summary>
+        //event EventHandler<EntityPersistEventArgs> OnSetGuid;
+
+        ///// <summary>插入自增之前触发事件，通过Cancel控制是否插入自增</summary>
+        //event EventHandler<EntityPersistEventArgs> OnInsertIdentity;
+        //#endregion
     }
 
     /// <summary>默认实体持久化</summary>
     public class EntityPersistence : IEntityPersistence
     {
+        //#region 事件
+        ///// <summary>设置实体Guid之前触发事件，通过Cancel控制是否取消Guid的自动设置</summary>
+        //public event EventHandler<EntityPersistEventArgs> OnSetGuid;
+
+        //Boolean AllowSetGuid(IEntity entity)
+        //{
+        //    if (OnSetGuid != null)
+        //    {
+        //        var e = new EntityPersistEventArgs() { Entity = entity };
+        //        OnSetGuid(this, e);
+        //        return !e.Cancel;
+        //    }
+        //    return false;
+        //}
+
+        ///// <summary>插入自增之前触发事件，通过Cancel控制是否插入自增</summary>
+        //public event EventHandler<EntityPersistEventArgs> OnInsertIdentity;
+
+        //Boolean AllowInsertIdentity(IEntity entity)
+        //{
+        //    if (OnInsertIdentity != null)
+        //    {
+        //        var e = new EntityPersistEventArgs() { Entity = entity };
+        //        OnInsertIdentity(this, e);
+        //        return !e.Cancel;
+        //    }
+        //    return false;
+        //}
+        //#endregion
+
+        #region 添删改方法
         /// <summary>插入</summary>
         /// <param name="entity"></param>
         /// <returns></returns>
         public virtual Int32 Insert(IEntity entity)
         {
+            var op = EntityFactory.CreateOperate(entity.GetType());
+
             // 添加数据前，处理Guid
-            SetGuid(entity);
+            var fi = op.AutoSetGuidField;
+            if (fi != null)
+            {
+                //SetGuid(entity);
+
+                // 判断是否设置了数据
+                if (!entity.Dirtys[fi.Name])
+                {
+                    // 如果没有设置，这里给它设置
+                    if (fi.Type == typeof(Guid))
+                        entity.SetItem(fi.Name, Guid.NewGuid());
+                    else
+                        entity.SetItem(fi.Name, Guid.NewGuid().ToString());
+                }
+            }
 
             DbParameter[] dps = null;
-            String sql = SQL(entity, DataObjectMethodType.Insert, ref dps);
+            var sql = SQL(entity, DataObjectMethodType.Insert, ref dps);
             if (String.IsNullOrEmpty(sql)) return 0;
 
             Int32 rs = 0;
-            IEntityOperate op = EntityFactory.CreateOperate(entity.GetType());
 
             //检查是否有标识列，标识列需要特殊处理
-            FieldItem field = op.Table.Identity;
-            if (field != null && field.IsIdentity)
+            var field = op.Table.Identity;
+            var bAllow = op.AllowInsertIdentity;
+            if (field != null && field.IsIdentity && !bAllow)
             {
                 Int64 res = dps != null && dps.Length > 0 ? op.InsertAndGetIdentity(sql, CommandType.Text, dps) : op.InsertAndGetIdentity(sql);
                 if (res > 0) entity[field.Name] = res;
@@ -105,7 +164,12 @@ namespace XCode
             }
             else
             {
-
+                if (bAllow)
+                {
+                    var dal = DAL.Create(op.ConnName);
+                    if (dal.DbType == DatabaseType.SqlServer)
+                        sql = String.Format("SET IDENTITY_INSERT {1} ON;{0};SET IDENTITY_INSERT {1} OFF", sql, op.FormatName(op.TableName));
+                }
                 rs = dps != null && dps.Length > 0 ? op.Execute(sql, CommandType.Text, dps) : op.Execute(sql);
             }
 
@@ -238,7 +302,9 @@ namespace XCode
 
             return Delete(entityType, op.MakeCondition(names, values, "And"));
         }
+        #endregion
 
+        #region 获取语句
         /// <summary>把SQL模版格式化为SQL语句</summary>
         /// <param name="entity">实体对象</param>
         /// <param name="methodType"></param>
@@ -250,7 +316,7 @@ namespace XCode
         /// <param name="methodType"></param>
         /// <param name="parameters"></param>
         /// <returns>SQL字符串</returns>
-        static String SQL(IEntity entity, DataObjectMethodType methodType, ref DbParameter[] parameters)
+        String SQL(IEntity entity, DataObjectMethodType methodType, ref DbParameter[] parameters)
         {
             IEntityOperate op = EntityFactory.CreateOperate(entity.GetType());
 
@@ -285,7 +351,10 @@ namespace XCode
                         String idv = null;
                         if (fi.IsIdentity)
                         {
-                            idv = DAL.Create(op.ConnName).Db.FormatIdentity(fi.Field, entity[fi.Name]);
+                            if (op.AllowInsertIdentity)
+                                idv = "" + entity[fi.Name];
+                            else
+                                idv = DAL.Create(op.ConnName).Db.FormatIdentity(fi.Field, entity[fi.Name]);
                             //if (String.IsNullOrEmpty(idv)) continue;
                             // 允许返回String.Empty作为插入空
                             if (idv == null) continue;
@@ -430,59 +499,73 @@ namespace XCode
             }
             return sb.ToString();
         }
+        #endregion
 
-        /// <summary>指定了默认值而没有赋值的Guid字段附上默认值</summary>
-        /// <param name="entity"></param>
-        public virtual void SetGuid(IEntity entity)
-        {
-            var fis = GetGuidFieldItems(entity.GetType());
-            if (fis != null & fis.Length > 0)
-            {
-                foreach (var item in fis)
-                {
-                    // 判断是否设置了数据
-                    if (!entity.Dirtys[item.Name])
-                    {
-                        // 如果没有设置，这里给它设置
-                        if (item.Type == typeof(Guid))
-                            entity.SetItem(item.Name, Guid.NewGuid());
-                        else
-                            entity.SetItem(item.Name, Guid.NewGuid().ToString());
-                    }
-                }
-            }
-        }
+        #region 设置Guid
+        ///// <summary>指定了默认值而没有赋值的Guid字段附上默认值</summary>
+        ///// <param name="entity"></param>
+        //public virtual void SetGuid(IEntity entity)
+        //{
+        //    var fis = GetGuidFieldItems(entity.GetType());
+        //    if (fis != null & fis.Length > 0)
+        //    {
+        //        foreach (var item in fis)
+        //        {
+        //            // 判断是否设置了数据
+        //            if (!entity.Dirtys[item.Name])
+        //            {
+        //                // 如果没有设置，这里给它设置
+        //                if (item.Type == typeof(Guid))
+        //                    entity.SetItem(item.Name, Guid.NewGuid());
+        //                else
+        //                    entity.SetItem(item.Name, Guid.NewGuid().ToString());
+        //            }
+        //        }
+        //    }
+        //}
 
-        static DictionaryCache<Type, FieldItem[]> _guidFields = new DictionaryCache<Type, FieldItem[]>();
-        /// <summary>找到设定了默认值的Guid字段</summary>
-        /// <param name="type"></param>
-        /// <returns></returns>
-        protected static FieldItem[] GetGuidFieldItems(Type type)
-        {
-            return _guidFields.GetItem(type, key =>
-            {
-                var eop = EntityFactory.CreateOperate(key);
-                // 只检查默认设计的数据库
-                var db = DbFactory.Create(eop.Table.DataTable.DbType);
-                if (String.IsNullOrEmpty(db.NewGuid)) return null;
+        //static DictionaryCache<Type, FieldItem[]> _guidFields = new DictionaryCache<Type, FieldItem[]>();
+        ///// <summary>找到设定了默认值的Guid字段</summary>
+        ///// <param name="type"></param>
+        ///// <returns></returns>
+        //protected static FieldItem[] GetGuidFieldItems(Type type)
+        //{
+        //    return _guidFields.GetItem(type, key =>
+        //    {
+        //        var eop = EntityFactory.CreateOperate(key);
+        //        // 只检查默认设计的数据库
+        //        var db = DbFactory.Create(eop.Table.DataTable.DbType);
+        //        if (String.IsNullOrEmpty(db.NewGuid)) return null;
 
-                var list = new List<FieldItem>();
-                foreach (var item in eop.AllFields)
-                {
-                    //if (String.IsNullOrEmpty(item.DefaultValue)) continue;
+        //        var list = new List<FieldItem>();
+        //        foreach (var item in eop.AllFields)
+        //        {
+        //            //if (String.IsNullOrEmpty(item.DefaultValue)) continue;
 
-                    var tc = Type.GetTypeCode(item.Type);
-                    if (tc == TypeCode.String)
-                    {
-                        if (item.DefaultValue.EqualIgnoreCase(db.NewGuid)) list.Add(item);
-                    }
-                    else if (item.Type == typeof(Guid))
-                    {
-                        if (item.DefaultValue.EqualIgnoreCase(db.NewGuid) || String.IsNullOrEmpty(item.DefaultValue)) list.Add(item);
-                    }
-                }
-                return list.ToArray();
-            });
-        }
+        //            var tc = Type.GetTypeCode(item.Type);
+        //            if (tc == TypeCode.String)
+        //            {
+        //                if (item.DefaultValue.EqualIgnoreCase(db.NewGuid)) list.Add(item);
+        //            }
+        //            else if (item.Type == typeof(Guid))
+        //            {
+        //                if (item.DefaultValue.EqualIgnoreCase(db.NewGuid) || String.IsNullOrEmpty(item.DefaultValue)) list.Add(item);
+        //            }
+        //        }
+        //        return list.ToArray();
+        //    });
+        //}
+        #endregion
     }
+
+    //public class EntityPersistEventArgs : EventArgs
+    //{
+    //    private IEntity _Entity;
+    //    /// <summary>实体</summary>
+    //    public IEntity Entity { get { return _Entity; } set { _Entity = value; } }
+
+    //    private Boolean _Cancel;
+    //    /// <summary>是否取消</summary>
+    //    public Boolean Cancel { get { return _Cancel; } set { _Cancel = value; } }
+    //}
 }

@@ -16,6 +16,10 @@ using NewLife.Linq;
 using NewLife.Reflection;
 using NewLife.Model;
 using System.Collections.Generic;
+using System.Net.Sockets;
+using XCode.DataAccessLayer;
+using NewLife.CommonEntity;
+using XCode;
 #endif
 
 namespace Test
@@ -240,45 +244,21 @@ namespace Test
 
         static void Test5()
         {
-            //var mgr = new PluginManager();
-            //mgr.Identity = "PSService";
-            ////mgr.Provider = this;
+            //DAL.AddConnStr("xxgk", "Data Source=192.168.1.21;Initial Catalog=信息公开;user id=sa;password=Pass@word", null, "mssql");
+            //var dal = DAL.Create("xxgk");
 
-            //Console.WriteLine("加载插件……");
-            //mgr.Load();
-            //Console.WriteLine("发现插件{0:n0}个！", mgr.Plugins.Count);
+            Menu.Meta.ConnName = "Common0";
+            var list = Menu.FindAll();
+            Console.WriteLine(list.Count);
 
-            //Console.WriteLine("初始化插件……");
-            //mgr.Init();
-            //Console.WriteLine("完成初始化插件{0:n0}个！", mgr.Plugins.Count);
-
-            //Console.ReadKey();
-
-            //var http = new HttpProxy();
-            //foreach (var asm in AssemblyX.GetAssemblies())
-            //{
-            //    Console.WriteLine("程序集：{0} {1}", asm.Name, asm.Location);
-            //    foreach (var type in asm.TypeXs)
-            //    {
-            //        Console.WriteLine("{0}.{1}", type.BaseType.Namespace, type.Name);
-            //    }
-            //    Console.WriteLine("程序集：{0} {1}", asm.Name, asm.Location);
-            //    Console.ReadKey();
-            //}
-
-            var type = TypeX.Create(typeof(List<Dictionary<Int32, String>>));
-            Console.WriteLine(type.BaseType.Name);
-            Console.WriteLine(type.BaseType.FullName);
-            Console.WriteLine(type.Name);
-            Console.WriteLine(type.FullName);
-            Console.WriteLine(type.DocName);
-
-            var add = MethodInfoX.Create(type.BaseType, "Add");
-            Console.WriteLine(add.Method);
-            Console.WriteLine(add.Method.Name);
-            Console.WriteLine(add.Name);
-            Console.WriteLine(add.FullName);
-            Console.WriteLine(add.DocName);
+            Menu.Meta.ConnName = "Common4";
+            Menu.Meta.DBO.Execute("delete from Menu", "");
+            Menu.Meta.AllowInsertIdentity = true;
+            list.Insert();
+            Menu.Meta.AllowInsertIdentity = false;
+            list[0].Insert();
+            list = Menu.FindAll();
+            Console.WriteLine(list.Count);
         }
     }
 }

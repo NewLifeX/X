@@ -614,6 +614,17 @@ namespace XCode
                 HttpRuntime.Cache.Remove(key);
             }
             #endregion
+
+            #region 一些设置
+            [ThreadStatic]
+            private static Boolean _AllowInsertIdentity;
+            /// <summary>是否允许向自增列插入数据。为免冲突，仅本线程有效</summary>
+            public static Boolean AllowInsertIdentity { get { return _AllowInsertIdentity; } set { _AllowInsertIdentity = value; } }
+
+            private static FieldItem _AutoSetGuidField;
+            /// <summary>自动设置Guid的字段。对实体类有效，可在实体类类型构造函数里面设置</summary>
+            public static FieldItem AutoSetGuidField { get { return _AutoSetGuidField; } set { _AutoSetGuidField = value; } }
+            #endregion
         }
     }
 }

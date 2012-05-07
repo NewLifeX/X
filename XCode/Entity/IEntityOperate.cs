@@ -314,5 +314,13 @@ namespace XCode
         /// <returns></returns>
         String MakeCondition(FieldItem field, Object value, String action);
         #endregion
+
+        #region 一些设置
+        /// <summary>是否允许向自增列插入数据。为免冲突，仅本线程有效</summary>
+        Boolean AllowInsertIdentity { get; set; }
+
+        /// <summary>自动设置Guid的字段。对实体类有效，可在实体类类型构造函数里面设置</summary>
+        FieldItem AutoSetGuidField { get; set; }
+        #endregion
     }
 }

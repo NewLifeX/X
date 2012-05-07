@@ -14,7 +14,7 @@ namespace XCode.Model
             IObjectContainer container = Container;
             container.Register<IDataTable, XTable>()
                 .Register<IDataRowEntityAccessorProvider>(new DataRowEntityAccessorProvider())
-                .Register<IEntityPersistence, EntityPersistence>();
+                .Register<IEntityPersistence>(new EntityPersistence());
 
             DbFactory.Reg(container);
 

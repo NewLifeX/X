@@ -161,6 +161,7 @@
       <DependentUpon>EntityBase.cs</DependentUpon>
     </Compile>
     <Compile Include="Entity\IEntityList.cs" />
+    <None Include="Entity\IEntityModule.cs" />
     <Compile Include="Entity\IEntityPersistence.cs" />
     <Compile Include="Exceptions\XDbException.cs" />
     <Compile Include="Exceptions\XCodeException.cs" />
