@@ -314,7 +314,7 @@ namespace NewLife.Reflection
         /// <returns></returns>
         internal static IEnumerable<Type> FindAllPlugins(Type baseType, Boolean isLoadAssembly, Boolean excludeGlobalTypes)
         {
-            var baseAssemblyName = baseType.Assembly.FullName;
+            var baseAssemblyName = baseType.Assembly.GetName().Name;
 
             var list = new List<Type>();
             foreach (var item in GetAssemblies())
@@ -381,7 +381,8 @@ namespace NewLife.Reflection
 
             foreach (var item in asm.GetReferencedAssemblies())
             {
-                if (item.FullName.EqualIgnoreCase(baseAsmName)) return true;
+                //if (item.FullName.EqualIgnoreCase(baseAsmName)) return true;
+                if (item.Name.EqualIgnoreCase(baseAsmName)) return true;
             }
 
             return false;
