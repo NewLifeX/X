@@ -56,14 +56,14 @@ namespace NewLife.Reflection
         /// <summary>完整类型名称。包含命名空间，但是不包含程序集信息</summary>
         public String FullName { get { return _FullName ?? (_FullName = GetName(true)); } }
 
-        String GetName(Boolean includeNamespace)
+        String GetName(Boolean isfull)
         {
             Type type = BaseType;
             if (type.IsGenericType)
             {
                 var sb = new StringBuilder();
                 var typeDef = type.GetGenericTypeDefinition();
-                var name = includeNamespace ? typeDef.FullName : typeDef.Name;
+                var name = isfull ? typeDef.FullName : typeDef.Name;
                 sb.Append(name.Substring(0, name.IndexOf("`")));
                 sb.Append("<");
                 var ts = type.GetGenericArguments();
@@ -73,7 +73,7 @@ namespace NewLife.Reflection
                     if (!ts[i].IsGenericParameter)
                     {
                         var tx = TypeX.Create(ts[i]);
-                        sb.Append(includeNamespace ? tx.FullName : tx.Name);
+                        sb.Append(isfull ? tx.FullName : tx.Name);
                     }
                 }
                 sb.Append(">");
@@ -82,10 +82,10 @@ namespace NewLife.Reflection
             else if (type.IsNested)
             {
                 var tx = TypeX.Create(type.DeclaringType);
-                return (includeNamespace ? tx.FullName : tx.Name) + "." + type.Name;
+                return (isfull ? tx.FullName : tx.Name) + "." + type.Name;
             }
             else
-                return includeNamespace ? type.FullName : type.Name;
+                return isfull ? type.FullName : type.Name;
         }
         #endregion
 
@@ -571,14 +571,43 @@ namespace NewLife.Reflection
         {
             var bf = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance;
             if (paramTypes == null) paramTypes = Type.EmptyTypes;
-            MethodInfo mi = null;
-            while (type != null && type != typeof(Object))
-            {
-                mi = type.GetMethod(name, bf, Binder, paramTypes, null);
-                if (mi != null) return mi;
 
-                type = type.BaseType;
+            MethodInfo mi = null;
+            // 如果没有传入参数类型，则考虑返回第一个符合的
+            if (paramTypes.Length <= 0)
+            {
+                var t = type;
+                while (t != null && t != typeof(Object))
+                {
+                    var mis = t.GetMethods(bf).Where(m => m.Name == name);
+                    if (mis != null)
+                    {
+                        foreach (var item in mis)
+                        {
+                            // 碰巧找到也是无参的方法
+                            if (item.GetParameters().Length == 0) return item;
+
+                            // 记录第一个
+                            if (mi == null) mi = item;
+                        }
+                    }
+
+                    t = t.BaseType;
+                }
             }
+
+            {
+                var t = type;
+                while (t != null && t != typeof(Object))
+                {
+                    var m = t.GetMethod(name, bf, Binder, paramTypes, null);
+                    if (m != null) return m;
+
+                    t = t.BaseType;
+                }
+            }
+
+            // 如果没有找到匹配项，返回第一个
             return mi;
         }
 
