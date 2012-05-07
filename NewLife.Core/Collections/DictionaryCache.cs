@@ -50,7 +50,7 @@ namespace NewLife.Collections
                 _ClearExpriod = value;
                 if (value > 0)
                 {
-                    if (clearTimer == null) clearTimer = new TimerX(RemoveNotAlive, null, value, value);
+                    if (clearTimer == null) clearTimer = new TimerX(RemoveNotAlive, null, value * 1000, value * 1000);
                 }
                 else
                 {
