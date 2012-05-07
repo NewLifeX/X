@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Reflection.Emit;
 using NewLife.Collections;
 using NewLife.Exceptions;
+using System.Text;
 
 namespace NewLife.Reflection
 {
@@ -14,11 +15,7 @@ namespace NewLife.Reflection
         #region 属性
         private MethodInfo _Method;
         /// <summary>目标方法</summary>
-        public MethodInfo Method
-        {
-            get { return _Method; }
-            private set { _Method = value; }
-        }
+        public MethodInfo Method { get { return _Method; } private set { _Method = value; } }
 
         FastInvokeHandler _Handler;
         /// <summary>快速调用委托，延迟到首次使用才创建</summary>
@@ -26,10 +23,41 @@ namespace NewLife.Reflection
         {
             get
             {
-                //if (_Handler == null) _Handler = CreateDelegate<FastInvokeHandler>(Method, typeof(Object), new Type[] { typeof(Object), typeof(Object[]) });
                 if (_Handler == null) _Handler = GetMethodInvoker(Method);
                 return _Handler;
             }
+        }
+        #endregion
+
+        #region 名称
+        private String _Name;
+        /// <summary>类型名称。主要处理泛型</summary>
+        public override String Name { get { return _Name ?? (_Name = GetName(false)); } }
+
+        private String _FullName;
+        /// <summary>完整类型名称。包含命名空间，但是不包含程序集信息</summary>
+        public String FullName { get { return _FullName ?? (_FullName = GetName(true)); } }
+
+        String GetName(Boolean isfull)
+        {
+            var method = Method;
+            var tx = TypeX.Create(method.DeclaringType);
+
+            var sb = new StringBuilder();
+            var name = isfull ? tx.FullName : tx.Name;
+            sb.AppendFormat("{0}.{1}", name, method.Name);
+            sb.Append("(");
+            var ps = method.GetParameters();
+            for (int i = 0; i < ps.Length; i++)
+            {
+                if (i > 0) sb.Append(",");
+
+                tx = TypeX.Create(ps[i].ParameterType);
+                name = isfull ? tx.FullName : tx.Name;
+                sb.AppendFormat("{0} {1}", name, ps[i].Name);
+            }
+            sb.Append(")");
+            return sb.ToString();
         }
         #endregion
 
