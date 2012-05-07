@@ -343,7 +343,7 @@ namespace XCode.DataAccessLayer
             #endregion
 
             // 列出用户表
-            DataRow[] rows = dt.Select(String.Format("{0}='BASE TABLE' Or {0}='VIEW'", "TABLE_TYPE"));
+            DataRow[] rows = dt.Select(String.Format("({0}='BASE TABLE' Or {0}='VIEW') AND TABLE_NAME<>'Sysdiagrams'", "TABLE_TYPE"));
             rows = OnGetTables(names, rows);
             if (rows == null || rows.Length < 1) return null;
 
