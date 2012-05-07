@@ -377,7 +377,8 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public static Boolean IsReferencedFrom(Assembly asm, String baseAsmName)
         {
-            if (asm.FullName.EqualIgnoreCase(baseAsmName)) return true;
+            //if (asm.FullName.EqualIgnoreCase(baseAsmName)) return true;
+            if (asm.GetName().Name.EqualIgnoreCase(baseAsmName)) return true;
 
             foreach (var item in asm.GetReferencedAssemblies())
             {
