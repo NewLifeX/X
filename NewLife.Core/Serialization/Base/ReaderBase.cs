@@ -1103,7 +1103,7 @@ namespace NewLife.Serialization
             catch (Exception ex)
             {
                 // 如果不是序列化异常，则包括内部异常链
-                var se = new XSerializationException(null, "读取对象出错，可能已读取部分，请查看Value属性！", ex);
+                var se = new XSerializationException(null, "读取对象出错，可能已读取部分，请查看Value属性！" + ex.Message, ex);
                 se.Value = value;
                 throw se;
             }
