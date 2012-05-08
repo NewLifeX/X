@@ -204,9 +204,9 @@
     <Compile Include="Model\WhereExpression.cs" />
     <Compile Include="Model\XCodeService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Transform\DataTransform.cs" />
+    <None Include="Transform\DataTransform.cs" />
     <Compile Include="Transform\EntityTransform.cs" />
-    <Compile Include="Transform\TransformBase.cs" />
+    <None Include="Transform\TransformBase.cs" />
     <Compile Include="Web\DbRunTimeModule.cs" />
     <Compile Include="Test\TestHelper.cs" />
     <Compile Include="Test\实体测试.Biz.cs">

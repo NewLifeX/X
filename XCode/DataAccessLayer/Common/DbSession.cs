@@ -604,7 +604,7 @@ namespace XCode.DataAccessLayer
 
         #region Sql日志输出
         [ThreadStatic]
-        private static Boolean? _ShowSQL;
+        internal static Boolean? _ShowSQL;
         /// <summary>是否输出SQL语句，默认为XCode调试开关XCode.Debug</summary>
         public static Boolean ShowSQL
         {

@@ -20,6 +20,8 @@ using System.Net.Sockets;
 using XCode.DataAccessLayer;
 using NewLife.CommonEntity;
 using XCode;
+using XCode.Transform;
+using System.IO;
 #endif
 
 namespace Test
@@ -248,34 +250,45 @@ namespace Test
             var dal = DAL.Create("xxgk");
 
             DAL.AddConnStr("xxgk2", "Data Source=XXGK.db;Version=3;", null, "sqlite");
-            //var dal2 = DAL.Create("xxgk2");
+            File.Delete("XXGK.db");
+
+            //DAL.ShowSQL = false;
+
+            var etf = new EntityTransform();
+            etf.SrcConn = "xxgk";
+            etf.DesConn = "xxgk2";
+            etf.AllowInsertIdentity = true;
+            etf.TableNames.Remove("PubInfoLog");
+            //etf.OnTransformTable += (s, e) => { if (e.Arg.Name == "")e.Arg = null; };
+            var rs = etf.Transform();
+            Console.WriteLine("共转移：{0}", rs);
 
             //var ts = new String[] { "DepartmentCategory", "AssemblyCategory", "", "", "" };
-            foreach (var item in dal.Tables)
-            {
-                if (item.IsView) continue;
-                try
-                {
-                    var op = dal.CreateOperate(item.Name);
-                    Console.WriteLine("{0} {1}", item.Name, op.Count);
+            //foreach (var item in dal.Tables)
+            //{
+            //    if (item.IsView) continue;
+            //    try
+            //    {
+            //        var op = dal.CreateOperate(item.Name);
+            //        Console.WriteLine("{0} {1}", item.Name, op.Count);
 
-                    var list = op.FindAll();
+            //        var list = op.FindAll(null, null, null, 0, 5000);
 
-                    var old = op.ConnName;
-                    op.ConnName = "xxgk2";
-                    op.AllowInsertIdentity = true;
+            //        var old = op.ConnName;
+            //        op.ConnName = "xxgk2";
+            //        op.AllowInsertIdentity = true;
 
-                    var rs = list.Insert(true);
-                    Console.WriteLine("Import {0} {1}", item.Name, rs);
+            //        var rs = list.Insert(true);
+            //        Console.WriteLine("Import {0} {1}", item.Name, rs);
 
-                    op.AllowInsertIdentity = false;
-                    op.ConnName = old;
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine("{0} Error {1}", item.Name, ex.Message);
-                }
-            }
+            //        op.AllowInsertIdentity = false;
+            //        op.ConnName = old;
+            //    }
+            //    catch (Exception ex)
+            //    {
+            //        Console.WriteLine("{0} Error {1}", item.Name, ex.Message);
+            //    }
+            //}
 
             //Menu.Meta.ConnName = "Common0";
             //var list = Menu.FindAll();
