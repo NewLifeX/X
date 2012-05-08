@@ -317,7 +317,7 @@ namespace NewLife.Net.Sockets
         {
             if (!EnableLog) return;
 
-            if (e.SocketError == SocketError.OperationAborted && !ShowAbortAsError) return;
+            if ((e.SocketError == SocketError.OperationAborted || e.SocketError == SocketError.ConnectionReset) && !ShowAbortAsError) return;
 
             if (e.SocketError != SocketError.Success || e.Error != null)
                 WriteLog("{0} {1}错误 {2} {3}", sender, e.LastOperation, e.SocketError, e.Error);
