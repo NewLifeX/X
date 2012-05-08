@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Web;
@@ -12,7 +13,6 @@ using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.Threading;
 using XCode.Cache;
-using XCode.Common;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
 
@@ -290,7 +290,7 @@ namespace XCode
                 {
                     if (hasCheckModel[0] > 0) return;
 
-                    if (!DAL.NegativeEnable || DAL.NegativeExclude.Contains(ConnName) || DAL.NegativeExclude.Contains(TableName))
+                    if (!DAL.NegativeEnable || DAL.NegativeExclude.Contains(ConnName) || DAL.NegativeExclude.Contains(TableName) || IsGenerated)
                     {
                         hasCheckModel[0] = 1;
                         return;
@@ -351,6 +351,8 @@ namespace XCode
                     hasCheckModel[0] = 1;
                 }
             }
+
+            private static Boolean IsGenerated { get { return ThisType.GetCustomAttribute<CompilerGeneratedAttribute>(true) != null; } }
 
             /// <summary>记录已进行数据初始化的表</summary>
             static Dictionary<String, AutoResetEvent> hasCheckInitData = new Dictionary<string, AutoResetEvent>(StringComparer.OrdinalIgnoreCase);
