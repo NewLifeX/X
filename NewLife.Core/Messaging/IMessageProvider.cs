@@ -8,8 +8,8 @@ using NewLife.Log;
 using System.Linq;
 #else
 using NewLife.Linq;
-using NewLife.Serialization;
 #endif
+using NewLife.Serialization;
 
 namespace NewLife.Messaging
 {
