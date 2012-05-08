@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using NewLife;
 using NewLife.Collections;
 using NewLife.Log;
+#if !NET4
+using NewLife.Reflection;
+#endif
 using XCode.DataAccessLayer;
 
 namespace XCode.Transform
@@ -72,67 +75,80 @@ namespace XCode.Transform
                     if (e.Arg == null) continue;
                 }
 
-                var op = dal.CreateOperate(item.Name);
-                var count = op.Count;
-
-                // 在目标链接上启用事务保护
-                op.ConnName = DesConn;
-                op.BeginTransaction();
-                try
-                {
-                    XTrace.WriteLine("{0} 共 {1}", item.Name, count);
-
-                    // 允许插入自增
-                    var oldII = op.AllowInsertIdentity;
-                    if (AllowInsertIdentity) op.AllowInsertIdentity = true;
-                    // 关闭SQL日志
-                    var oldShowSql = DAL.ShowSQL;
-                    DAL.ShowSQL = false;
-
-                    var index = 0;
-                    while (true)
-                    {
-                        op.ConnName = SrcConn;
-                        var list = op.FindAll(null, null, null, index, BatchSize);
-                        if (list == null || list.Count < 1) break;
-                        index += list.Count;
-
-                        // 处理事件，外部可以修改实体数据
-                        if (OnTransformEntity != null)
-                        {
-                            var e = new EventArgs<IEntity>(null);
-                            foreach (var entity in list)
-                            {
-                                e.Arg = entity;
-                                OnTransformEntity(this, e);
-                            }
-                        }
-
-                        op.ConnName = DesConn;
-                        var rs = list.Insert(true);
-                        XTrace.WriteLine("{0} 导入 {1}/{2} {3:p}", item.Name, index, count, (Double)index / count);
-
-                        total += rs;
-                    }
-                    DAL.ShowSQL = oldShowSql;
-                    // 关闭插入自增
-                    if (AllowInsertIdentity) op.AllowInsertIdentity = oldII;
-
-                    // 在目标链接上启用事务保护
-                    op.ConnName = DesConn;
-                    op.Commit();
-                }
-                catch (Exception ex)
-                {
-                    XTrace.WriteLine("{0} 错误 {1}", item.Name, ex.Message);
-                    // 在目标链接上启用事务保护
-                    op.ConnName = DesConn;
-                    op.Rollback();
-                    throw;
-                }
+                total += TransformTable(dal.CreateOperate(item.Name));
             }
 
             return total;
+        }
+
+        /// <summary>把一个表的数据全部导入到另一个表</summary>
+        /// <param name="eop">实体操作者。</param>
+        /// <param name="getData">用于获取数据的委托</param>
+        /// <returns></returns>
+        public Int32 TransformTable(IEntityOperate eop, Func<Int32, Int32, IEntityList> getData = null)
+        {
+            var name = eop.TableName;
+            var count = eop.Count;
+            if (getData == null) getData = (start, max) => eop.FindAll(null, null, null, start, max);
+
+            // 在目标链接上启用事务保护
+            eop.ConnName = DesConn;
+            eop.BeginTransaction();
+            try
+            {
+                XTrace.WriteLine("{0} 共 {1}", name, count);
+
+                // 允许插入自增
+                var oldII = eop.AllowInsertIdentity;
+                if (AllowInsertIdentity) eop.AllowInsertIdentity = true;
+                // 关闭SQL日志
+                var oldShowSql = DAL.ShowSQL;
+                DAL.ShowSQL = false;
+
+                var total = 0;
+                var index = 0;
+                while (true)
+                {
+                    eop.ConnName = SrcConn;
+                    var list = getData(index, BatchSize);
+                    if (list == null || list.Count < 1) break;
+                    index += list.Count;
+
+                    // 处理事件，外部可以修改实体数据
+                    if (OnTransformEntity != null)
+                    {
+                        var e = new EventArgs<IEntity>(null);
+                        foreach (var entity in list)
+                        {
+                            e.Arg = entity;
+                            OnTransformEntity(this, e);
+                        }
+                    }
+
+                    eop.ConnName = DesConn;
+                    var rs = list.Insert(true);
+                    XTrace.WriteLine("{0} 导入 {1}/{2} {3:p}", name, index, count, (Double)index / count);
+
+                    total += rs;
+                }
+                DAL.ShowSQL = oldShowSql;
+                // 关闭插入自增
+                if (AllowInsertIdentity) eop.AllowInsertIdentity = oldII;
+
+                // 在目标链接上启用事务保护
+                eop.ConnName = DesConn;
+                eop.Commit();
+
+                return total;
+            }
+            catch (Exception ex)
+            {
+                XTrace.WriteLine("{0} 错误 {1}", name, ex.Message);
+                // 在目标链接上启用事务保护
+                eop.ConnName = DesConn;
+                eop.Rollback();
+                throw;
+            }
         }
         #endregion
 

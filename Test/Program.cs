@@ -13,6 +13,7 @@ using NewLife.Threading;
 using System.Linq;
 #else
 using NewLife.Linq;
+#endif
 using NewLife.Reflection;
 using NewLife.Model;
 using System.Collections.Generic;
@@ -22,7 +23,6 @@ using NewLife.CommonEntity;
 using XCode;
 using XCode.Transform;
 using System.IO;
-#endif
 
 namespace Test
 {
