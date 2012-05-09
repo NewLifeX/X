@@ -340,6 +340,7 @@ namespace XCode
                     if (String.IsNullOrEmpty(sql)) throw new XCodeException("实体类缺少主键！");
                     return String.Format("Select * From {0} Where {1}", op.FormatName(op.TableName), sql);
                 case DataObjectMethodType.Insert:
+                    #region Insert
                     sbNames = new StringBuilder();
                     sbValues = new StringBuilder();
                     //sbParams = new StringBuilder();
@@ -388,7 +389,8 @@ namespace XCode
 
                                 var dp = op.CreateParameter();
                                 dp.ParameterName = paraname;
-                                dp.Value = entity[fi.Name] ?? DBNull.Value;
+                                //dp.Value = entity[fi.Name] ?? DBNull.Value;
+                                dp.Value = FormatParamValue(fi, entity[fi.Name], op);
                                 dp.IsNullable = fi.IsNullable;
                                 dps.Add(dp);
                             }
@@ -401,7 +403,9 @@ namespace XCode
 
                     if (dps.Count > 0) parameters = dps.ToArray();
                     return String.Format("Insert Into {0}({1}) Values({2})", op.FormatName(op.TableName), sbNames, sbValues);
+                    #endregion
                 case DataObjectMethodType.Update:
+                    #region Update
                     sbNames = new StringBuilder();
                     //sbParams = new StringBuilder();
                     dps = new List<DbParameter>();
@@ -432,7 +436,7 @@ namespace XCode
 
                             var dp = op.CreateParameter();
                             dp.ParameterName = paraname;
-                            dp.Value = entity[fi.Name] ?? DBNull.Value;
+                            dp.Value = FormatParamValue(fi, entity[fi.Name], op);
                             dp.IsNullable = fi.IsNullable;
                             dps.Add(dp);
                         }
@@ -445,6 +449,7 @@ namespace XCode
 
                     if (dps.Count > 0) parameters = dps.ToArray();
                     return String.Format("Update {0} Set {1} Where {2}", op.FormatName(op.TableName), sbNames, sql);
+                    #endregion
                 case DataObjectMethodType.Delete:
                     // 标识列作为删除关键字
                     sql = DefaultCondition(entity);
@@ -458,6 +463,43 @@ namespace XCode
         static Boolean UseParam(FieldItem fi)
         {
             return (fi.Length <= 0 || fi.Length >= 4000) && (fi.Type == typeof(Byte[]) || fi.Type == typeof(String));
+        }
+
+        static Object FormatParamValue(FieldItem fi, Object value, IEntityOperate eop)
+        {
+            if (value != null) return value;
+
+            if (fi.IsNullable) return DBNull.Value;
+
+            switch (Type.GetTypeCode(fi.Type))
+            {
+                case TypeCode.Boolean:
+                    return false;
+                case TypeCode.DBNull:
+                case TypeCode.Empty:
+                    return DBNull.Value;
+                case TypeCode.DateTime:
+                    return DAL.Create(eop.ConnName).Db.DateTimeMin;
+                case TypeCode.Byte:
+                case TypeCode.Char:
+                case TypeCode.Decimal:
+                case TypeCode.Double:
+                case TypeCode.Int16:
+                case TypeCode.Int32:
+                case TypeCode.Int64:
+                case TypeCode.SByte:
+                case TypeCode.Single:
+                case TypeCode.UInt16:
+                case TypeCode.UInt32:
+                case TypeCode.UInt64:
+                    return 0;
+                case TypeCode.String:
+                    return String.Empty;
+                default:
+                    break;
+            }
+
+            return DBNull.Value;
         }
 
         /// <summary>获取主键条件</summary>
