@@ -359,14 +359,14 @@ namespace XCode.DataAccessLayer
                 IDataColumn dc = null;
                 if ((dc = table.Columns.FirstOrDefault(c => c.Identity)) != null)
                     dc.PrimaryKey = true;
-                else if ((dc = table.Columns.FirstOrDefault(c => c.Is("ID"))) != null)
-                    dc.PrimaryKey = true;
-                else if ((dc = table.Columns.FirstOrDefault(c => c.Is("Guid"))) != null)
-                    dc.PrimaryKey = true;
-                else if ((dc = table.Columns.FirstOrDefault(c => c.Is("UID"))) != null)
-                    dc.PrimaryKey = true;
-                else if ((dc = table.Columns.FirstOrDefault()) != null)
-                    dc.PrimaryKey = true;
+                //else if ((dc = table.Columns.FirstOrDefault(c => c.Is("ID"))) != null)
+                //    dc.PrimaryKey = true;
+                //else if ((dc = table.Columns.FirstOrDefault(c => c.Is("Guid"))) != null)
+                //    dc.PrimaryKey = true;
+                //else if ((dc = table.Columns.FirstOrDefault(c => c.Is("UID"))) != null)
+                //    dc.PrimaryKey = true;
+                //else if ((dc = table.Columns.FirstOrDefault()) != null)
+                //    dc.PrimaryKey = true;
             }
             #endregion
 
