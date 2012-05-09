@@ -13,6 +13,9 @@ using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.Threading;
 using XCode.Cache;
+#if DEBUG
+using XCode.Common;
+#endif
 using XCode.Configuration;
 using XCode.DataAccessLayer;
 
