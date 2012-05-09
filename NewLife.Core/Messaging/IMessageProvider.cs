@@ -184,6 +184,7 @@ namespace NewLife.Messaging
                     //XTrace.WriteLine("数据流中无法读取消息 {0},{1}=>{2}", stream.Position, stream.Length, stream.Length - stream.Position);
                     break;
                 }
+                if (msg is CompressionMessage) msg = (msg as CompressionMessage).Message;
 
                 msg.UserState = state;
                 Process(msg, remoteIdentity);
