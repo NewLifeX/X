@@ -39,7 +39,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test5();
+                Test6();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -302,6 +302,20 @@ namespace Test
             //list[0].Insert();
             //list = Menu.FindAll();
             //Console.WriteLine(list.Count);
+        }
+
+        static void Test6()
+        {
+            Message.DumpStreamWhenError = true;
+            var msg = new EntityMessage();
+            msg.Value = Guid.NewGuid();
+
+            var ms = msg.GetStream();
+            ms = new MemoryStream(ms.ReadBytes(ms.Length - 1));
+
+            Message.Debug = true;
+            var rs = Message.Read(ms);
+            Console.WriteLine(rs);
         }
     }
 }

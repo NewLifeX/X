@@ -6,6 +6,7 @@ using NewLife.Exceptions;
 using NewLife.Model;
 using NewLife.Reflection;
 using NewLife.Serialization;
+using NewLife.Log;
 
 namespace NewLife.Messaging
 {
@@ -132,7 +133,7 @@ namespace NewLife.Messaging
                 reader.EnableTraceStream();
             }
 
-            var p = stream.Position;
+            var start = stream.Position;
 
             // 检查第一个字节
             //var ch = reader.Reader.PeekChar();
@@ -154,14 +155,14 @@ namespace NewLife.Messaging
                 }
                 catch
                 {
-                    stream.Position = p;
+                    stream.Position = start;
                     return null;
                 }
 
                 // 如果使用了消息头，判断一下数据流长度是否满足
                 if (header.HasFlag(MessageHeader.Flags.Length) && header.Length > stream.Length - stream.Position)
                 {
-                    stream.Position = p;
+                    stream.Position = start;
                     return null;
                 }
             }
@@ -175,7 +176,7 @@ namespace NewLife.Messaging
             {
                 if (ignoreException)
                 {
-                    stream.Position = p;
+                    stream.Position = start;
                     return null;
                 }
                 else
@@ -198,11 +199,27 @@ namespace NewLife.Messaging
                 {
                     if (ignoreException)
                     {
-                        stream.Position = p;
+                        stream.Position = start;
                         return null;
                     }
                     else
-                        throw new XException(String.Format("无法从数据流中读取{0}（Kind={1}）消息！{2}", type.Name, kind, ex.Message));
+                    {
+                        var em = ex.Message;
+                        if (DumpStreamWhenError)
+                        {
+                            stream.Position = start;
+                            var bin = String.Format("{0:yyyy_MM_dd_HHmmss_fff}.msg", DateTime.Now);
+                            bin = Path.Combine(XTrace.LogPath, bin);
+                            if (!Path.IsPathRooted(bin)) bin = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, bin);
+                            bin = Path.GetFullPath(bin);
+                            var dir = Path.GetDirectoryName(bin);
+                            if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
+                            File.WriteAllBytes(bin, stream.ReadBytes());
+                            em = String.Format("已Dump数据流到{0}。{1}", bin, em);
+                        }
+                        var ex2 = new XException("无法从数据流中读取{0}（Kind={1}）消息！{2}", type.Name, kind, em);
+                        throw ex2;
+                    }
                 }
             }
             msg.Header = header;
@@ -232,11 +249,6 @@ namespace NewLife.Messaging
                 bset.EncodeInt = true;
             }
         }
-
-        [ThreadStatic]
-        private static Boolean _Debug;
-        /// <summary>是否调试，输出序列化过程</summary>
-        public static Boolean Debug { get { return _Debug; } set { _Debug = value; } }
         #endregion
 
         #region 方法
@@ -333,6 +345,17 @@ namespace NewLife.Messaging
             }
             return this;
         }
+        #endregion
+
+        #region 设置
+        [ThreadStatic]
+        private static Boolean _Debug;
+        /// <summary>是否调试，输出序列化过程</summary>
+        public static Boolean Debug { get { return _Debug; } set { _Debug = value; } }
+
+        private static Boolean _DumpStreamWhenError;
+        /// <summary>出错是Dump数据流到文件中</summary>
+        public static Boolean DumpStreamWhenError { get { return _DumpStreamWhenError; } set { _DumpStreamWhenError = value; } }
         #endregion
 
         #region 重载
