@@ -362,7 +362,8 @@ namespace XCode
                         }
 
                         // 有默认值，并且没有设置值时，不参与插入操作
-                        if (!String.IsNullOrEmpty(fi.DefaultValue) && !entity.Dirtys[fi.Name]) continue;
+                        // 20120509增加，同时还得判断是否相同数据库或者数据库默认值，比如MSSQL数据库默认值不是GetDate，那么其它数据库是不可能使用的
+                        if (!String.IsNullOrEmpty(fi.DefaultValue) && !entity.Dirtys[fi.Name] && CanUseDefault(fi, op)) continue;
 
                         if (!isFirst) sbNames.Append(", ");
                         var name = op.FormatName(fi.ColumnName);
@@ -500,6 +501,26 @@ namespace XCode
             }
 
             return DBNull.Value;
+        }
+
+        static Boolean CanUseDefault(FieldItem fi, IEntityOperate eop)
+        {
+            var dbType = fi.Table.Table.DbType;
+            var dal = DAL.Create(eop.ConnName);
+            if (dbType == dal.DbType) return true;
+
+            // 原始数据库类型
+            IDatabase db = DbFactory.Create(dbType);
+            if (db == null) return false;
+
+            var tc = Type.GetTypeCode(fi.Type);
+            // 特殊处理时间
+            if (tc == TypeCode.DateTime)
+            {
+                if (String.Equals(db.DateTimeNow, fi.DefaultValue, StringComparison.OrdinalIgnoreCase)) return true;
+            }
+
+            return false;
         }
 
         /// <summary>获取主键条件</summary>
