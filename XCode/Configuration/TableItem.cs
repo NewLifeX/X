@@ -296,13 +296,13 @@ namespace XCode.Configuration
 
                     if (ModelHelper.GetIndex(table, di.Columns) != null) continue;
 
-                    // 判断主键
-                    IDataColumn[] dcs = table.GetColumns(di.Columns);
-                    if (Array.TrueForAll<IDataColumn>(dcs, dc => dc.PrimaryKey))
-                    {
-                        di.PrimaryKey = true;
-                        di.Unique = true;
-                    }
+                    //// 判断主键
+                    //IDataColumn[] dcs = table.GetColumns(di.Columns);
+                    //if (Array.TrueForAll<IDataColumn>(dcs, dc => dc.PrimaryKey))
+                    //{
+                    //    di.PrimaryKey = true;
+                    //    di.Unique = true;
+                    //}
 
                     table.Indexes.Add(di);
                 }
