@@ -31,40 +31,14 @@ namespace NewLife.CommonEntity.Web
         }
         #endregion
 
-        ///// <summary>
-        ///// 无法取得附件对象时，使用默认附件
-        ///// </summary>
-        ///// <returns></returns>
-        //protected override Attachment GetAttachment()
-        //{
-        //    Attachment entity = base.GetAttachment();
-        //    if (entity != null && entity.IsEnable) return entity;
-
-        //    entity = new Attachment();
-        //    entity.FileName = "NoPic";
-        //    entity.ContentType = "image/jpeg";
-
-        //    entity.FilePath = GetNoPic();
-
-        //    //读取资源
-        //    Stream stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("NewLife.CommonEntity.Web.nopic.jpg");
-
-        //    return entity;
-        //}
-
-        //static Stream nopic = null;
         /// <summary>未找到</summary>
         /// <param name="context"></param>
         protected override void OnNotFound(HttpContext context)
         {
             //读取资源
-            //if (nopic == null)
-            //{
-            Stream stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("NewLife.CommonEntity.Web.nopic.jpg");
+            var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("NewLife.CommonEntity.Web.nopic.jpg");
 
-            //}
-
-            Attachment entity = new Attachment();
+            var entity = new Attachment();
             entity.FileName = "NoPic";
             entity.ContentType = "image/jpeg";
 

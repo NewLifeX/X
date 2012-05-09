@@ -37,20 +37,6 @@ namespace NewLife.CommonEntity.Web
                 return n;
             }
         }
-
-        //private Attachment _Attachment;
-        ///// <summary>附件</summary>
-        //public Attachment Attachment
-        //{
-        //    get
-        //    {
-        //        if (_Attachment == null && ID > 0)
-        //        {
-        //            _Attachment = Attachment.FindByID(ID);
-        //        }
-        //        return _Attachment;
-        //    }
-        //}
         #endregion
 
         #region 文件流
@@ -154,38 +140,6 @@ namespace NewLife.CommonEntity.Web
             if (!String.IsNullOrEmpty(dispositionMode)) wd.Mode = (WebDownload.DispositionMode)Enum.Parse(typeof(WebDownload.DispositionMode), dispositionMode);
             if (!String.IsNullOrEmpty(attachment.ContentType)) wd.ContentType = attachment.ContentType;
             wd.Render();
-
-            //HttpRequest Request = context.Request;
-            //HttpResponse Response = context.Response;
-
-            //Response.Buffer = false;
-            //long fileLength = stream.Length;
-
-            //int pack = 1024000;
-
-            //Response.AddHeader("Content-Length", fileLength.ToString());
-            //if (!String.IsNullOrEmpty(attachment.ContentType)) Response.ContentType = attachment.ContentType;
-            //if (String.IsNullOrEmpty(dispositionMode)) dispositionMode = "inline"; // attachment/inline
-            //Response.AddHeader("Content-Disposition", dispositionMode + "; filename=" + HttpUtility.UrlEncode(attachment.FileName, Encoding.UTF8));
-
-            //if (stream.CanSeek && stream.Position >= stream.Length) stream.Position = 0;
-            //Byte[] buffer = new Byte[pack];
-            //while (true)
-            //{
-            //    if (!Response.IsClientConnected) break;
-
-            //    Int32 count = stream.Read(buffer, 0, buffer.Length);
-            //    if (count <= 0) break;
-
-            //    if (count == pack)
-            //        Response.BinaryWrite(buffer);
-            //    else
-            //    {
-            //        Byte[] data = new Byte[count];
-            //        Buffer.BlockCopy(buffer, 0, data, 0, count);
-            //        Response.BinaryWrite(data);
-            //    }
-            //}
         }
         #endregion
     }
