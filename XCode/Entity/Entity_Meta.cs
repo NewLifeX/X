@@ -571,13 +571,14 @@ namespace XCode
             {
                 get
                 {
-                    Int64? n = _Count;
-                    if (n != null && n.HasValue)
+                    String key = String.Format("{0}_{1}_{2}_Count", ConnName, TableName, ThisType.Name);
+
+                    //Int64? n = _Count;
+                    //if (n != null && n.HasValue)
                     {
-                        if (n.Value > 0 && n.Value < 1000) return n.Value;
+                        //if (n.Value > 0 && n.Value < 1000) return n.Value;
 
                         // 大于1000，使用HttpCache
-                        String key = ThisType.Name + "_Count";
                         Int64? k = (Int64?)HttpRuntime.Cache[key];
                         if (k != null && k.HasValue) return k.Value;
                     }
@@ -585,13 +586,15 @@ namespace XCode
                     CheckModel();
 
                     Int64 m = 0;
+                    //if (n != null && n.HasValue && n.Value < 1000)
+                    Int64? n = _Count;
                     if (n != null && n.HasValue && n.Value < 1000)
                         m = FindCount();
                     else
                         m = DBO.Session.QueryCountFast(TableName);
                     _Count = m;
 
-                    if (m >= 1000) HttpRuntime.Cache.Insert(ThisType.Name + "_Count", m, null, DateTime.Now.AddMinutes(10), System.Web.Caching.Cache.NoSlidingExpiration);
+                    if (m >= 1000) HttpRuntime.Cache.Insert(key, m, null, DateTime.Now.AddMinutes(10), System.Web.Caching.Cache.NoSlidingExpiration);
 
                     // 先拿到记录数再初始化，因为初始化时会用到记录数，同时也避免了死循环
                     WaitForInitData();
@@ -605,14 +608,15 @@ namespace XCode
                 Int64? n = _Count;
                 if (n == null || !n.HasValue) return;
 
-                // 只有小于1000时才清空_Count，因为大于1000时它要作为HttpCache的见证
-                if (n.Value < 1000)
-                {
-                    _Count = null;
-                    return;
-                }
+                //// 只有小于1000时才清空_Count，因为大于1000时它要作为HttpCache的见证
+                //if (n.Value < 1000)
+                //{
+                //    _Count = null;
+                //    return;
+                //}
 
-                String key = ThisType.Name + "_Count";
+                //String key = ThisType.Name + "_Count";
+                String key = String.Format("{0}_{1}_{2}_Count", ConnName, TableName, ThisType.Name);
                 HttpRuntime.Cache.Remove(key);
             }
             #endregion
