@@ -51,6 +51,10 @@ namespace XCode.Transform
         private Boolean _AllowInsertIdentity;
         /// <summary>是否允许插入自增列</summary>
         public Boolean AllowInsertIdentity { get { return _AllowInsertIdentity; } set { _AllowInsertIdentity = value; } }
+
+        private Boolean _OnlyTransformToEmptyTable;
+        /// <summary>仅迁移到空表。对于已有数据的表，不执行迁移。</summary>
+        public Boolean OnlyTransformToEmptyTable { get { return _OnlyTransformToEmptyTable; } set { _OnlyTransformToEmptyTable = value; } }
         #endregion
 
         #region 方法
@@ -97,6 +101,11 @@ namespace XCode.Transform
             try
             {
                 XTrace.WriteLine("{0} 共 {1}", name, count);
+                if (OnlyTransformToEmptyTable && eop.Count > 0)
+                {
+                    XTrace.WriteLine("{0} 非空，跳过", name);
+                    return 0;
+                }
 
                 // 允许插入自增
                 var oldII = eop.AllowInsertIdentity;
