@@ -939,7 +939,7 @@ namespace XCode
             FieldItem fi = Meta.Unique;
             if (fi != null)
             {
-                builder.Key = fi.Name;
+                builder.Key = Meta.FormatName(fi.ColumnName);
 
                 // 默认获取数据时，还是需要指定按照自增字段降序，符合使用习惯
                 // 有GroupBy也不能加排序
