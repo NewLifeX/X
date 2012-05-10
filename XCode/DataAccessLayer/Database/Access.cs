@@ -92,6 +92,7 @@ namespace XCode.DataAccessLayer
             providerName = providerName.ToLower();
             if (providerName.Contains("microsoft.jet.oledb")) return true;
             if (providerName.Contains("access")) return true;
+            if (providerName.Contains("oledb")) return true;
 
             return false;
         }
