@@ -65,6 +65,16 @@ namespace NewLife.Net.Common
             }
         }
 
+        /// <summary>发送消息。如果有响应，可在消息到达事件中获得。这里会实现大消息分包。</summary>
+        /// <param name="message"></param>
+        public override void Send(Message message)
+        {
+            // MaxMessageSize未设置时，先取一次Session，触发MaxMessageSize的设置
+            if (MaxMessageSize <= 0 && GetSession() == null) throw new ArgumentNullException("会话为空！可能没有设置OnUpdate事件！");
+
+            base.Send(message);
+        }
+
         /// <summary>发送数据流。</summary>
         /// <param name="stream"></param>
         protected override void OnSend(Stream stream)
