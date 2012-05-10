@@ -12,6 +12,7 @@ using NewLife.Reflection;
 using NewLife.Threading;
 using XCode.Code;
 using XCode.Exceptions;
+using NewLife.Log;
 
 namespace XCode.DataAccessLayer
 {
@@ -103,7 +104,8 @@ namespace XCode.DataAccessLayer
                             if (String.IsNullOrEmpty(set.ConnectionString.Trim())) continue;
 
                             Type type = DbFactory.GetProviderType(set.ConnectionString, set.ProviderName);
-                            if (type == null) throw new XCodeException("无法识别的提供者" + set.ProviderName + "！");
+                            //if (type == null) throw new XCodeException("无法识别的提供者" + set.ProviderName + "！");
+                            if (type == null) XTrace.WriteLine("无法识别{0}的提供者{1}！", set.Name, set.ProviderName);
 
                             cs.Add(set.Name, set);
                             _connTypes.Add(set.Name, type);
