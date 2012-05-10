@@ -7,6 +7,7 @@ using NewLife.Model;
 using NewLife.Reflection;
 using NewLife.Serialization;
 using NewLife.Log;
+using NewLife.Configuration;
 
 namespace NewLife.Messaging
 {
@@ -349,13 +350,29 @@ namespace NewLife.Messaging
 
         #region 设置
         [ThreadStatic]
-        private static Boolean _Debug;
+        private static Boolean? _Debug;
         /// <summary>是否调试，输出序列化过程</summary>
-        public static Boolean Debug { get { return _Debug; } set { _Debug = value; } }
+        public static Boolean Debug
+        {
+            get
+            {
+                if (_Debug == null) _Debug = Config.GetConfig<Boolean>("NewLife.Message.Debug", false);
+                return _Debug.Value;
+            }
+            set { _Debug = value; }
+        }
 
-        private static Boolean _DumpStreamWhenError;
-        /// <summary>出错是Dump数据流到文件中</summary>
-        public static Boolean DumpStreamWhenError { get { return _DumpStreamWhenError; } set { _DumpStreamWhenError = value; } }
+        private static Boolean? _DumpStreamWhenError;
+        /// <summary>出错时Dump数据流到文件中</summary>
+        public static Boolean DumpStreamWhenError
+        {
+            get
+            {
+                if (_DumpStreamWhenError == null) _DumpStreamWhenError = Config.GetConfig<Boolean>("NewLife.Message.DumpStreamWhenError", false);
+                return _DumpStreamWhenError.Value;
+            }
+            set { _DumpStreamWhenError = value; }
+        }
         #endregion
 
         #region 重载
