@@ -62,7 +62,7 @@ namespace NewLife.Messaging
                 {
                     if (item.Assembly != asm && msg.Kind < MessageKind.UserDefine) throw new XException("不允许{0}采用小于{1}的保留编码{2}！", item.FullName, MessageKind.UserDefine, msg.Kind);
 
-                    container.Register(typeof(Message), item, null, msg.Kind);
+                    container.Register(typeof(Message), null, msg, msg.Kind);
                 }
                 //if (msg != null) container.Register<Message>(msg, msg.Kind);
             }

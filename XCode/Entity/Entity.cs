@@ -108,7 +108,7 @@ namespace XCode
         #endregion
 
         #region 操作
-        private static IEntityPersistence persistence { get { return XCodeService.Resolve<IEntityPersistence>(); } }
+        private static IEntityPersistence persistence { get { return XCodeService.Container.ResolveInstance<IEntityPersistence>(); } }
 
         /// <summary>插入数据，通过调用OnInsert实现，另外增加了数据验证和事务保护支持，将来可能实现事件支持。</summary>
         /// <returns></returns>
