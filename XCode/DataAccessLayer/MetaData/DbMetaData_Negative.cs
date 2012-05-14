@@ -250,7 +250,7 @@ namespace XCode.DataAccessLayer
 
             #region 修改列
             // 开发时的实体数据库
-            IDatabase entityDb = DbFactory.Create(entitytable.DbType);
+            var entityDb = DbFactory.Create(entitytable.DbType);
 
             foreach (IDataColumn item in entitytable.Columns)
             {

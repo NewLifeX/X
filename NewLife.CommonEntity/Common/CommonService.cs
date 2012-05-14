@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using NewLife.CommonEntity.Web;
 using NewLife.Model;
-using NewLife.CommonEntity.Web;
 
 namespace NewLife.CommonEntity
 {

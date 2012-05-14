@@ -184,7 +184,7 @@ namespace XCode.DataAccessLayer
             if (dc.Table.DbType == Database.DbType) return true;
 
             // 原始数据库类型
-            IDatabase db = DbFactory.Create(dc.Table.DbType);
+            var db = DbFactory.Create(dc.Table.DbType);
             if (db == null) return false;
 
             var tc = Type.GetTypeCode(dc.DataType);

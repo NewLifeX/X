@@ -15,7 +15,8 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public static IDatabase Create(DatabaseType dbType)
         {
-            return GetDefault(dbType);
+            //return GetDefault(dbType);
+            return XCodeService.Container.ResolveInstance<IDatabase>(dbType);
         }
         #endregion
 
@@ -46,20 +47,20 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 默认提供者
-        private static DictionaryCache<DatabaseType, IDatabase> defaultDbs = new DictionaryCache<DatabaseType, IDatabase>();
-        /// <summary>根据名称获取默认提供者</summary>
-        /// <param name="dbType"></param>
-        /// <returns></returns>
-        public static IDatabase GetDefault(DatabaseType dbType)
-        {
-            return defaultDbs.GetItem(dbType, dt => (IDatabase)TypeX.CreateInstance(XCodeService.ResolveType<IDatabase>(dt)));
-        }
+        //private static DictionaryCache<DatabaseType, IDatabase> defaultDbs = new DictionaryCache<DatabaseType, IDatabase>();
+        ///// <summary>根据名称获取默认提供者</summary>
+        ///// <param name="dbType"></param>
+        ///// <returns></returns>
+        //public static IDatabase GetDefault(DatabaseType dbType)
+        //{
+        //    return defaultDbs.GetItem(dbType, dt => (IDatabase)TypeX.CreateInstance(XCodeService.ResolveType<IDatabase>(dt)));
+        //}
 
         private static DictionaryCache<Type, IDatabase> defaultDbs2 = new DictionaryCache<Type, IDatabase>();
         /// <summary>根据名称获取默认提供者</summary>
         /// <param name="dbType"></param>
         /// <returns></returns>
-        public static IDatabase GetDefault(Type dbType)
+        internal static IDatabase GetDefault(Type dbType)
         {
             if (dbType == null) return null;
             return defaultDbs2.GetItem(dbType, dt => (IDatabase)TypeX.CreateInstance(dt));
@@ -75,11 +76,18 @@ namespace XCode.DataAccessLayer
         {
             if (!String.IsNullOrEmpty(provider))
             {
-                Type type = XCodeService.ResolveType<IDatabase>(m => "" + m.Identity != "" && GetDefault((DatabaseType)m.Identity).Support(provider));
-                if (type != null) return type;
+                //Type type = XCodeService.ResolveType<IDatabase>(m => "" + m.Identity != "" && GetDefault((DatabaseType)m.Identity).Support(provider));
+                //if (type != null) return type;
+                foreach (var item in XCodeService.Container.ResolveAllMaps(typeof(IDatabase)))
+                {
+                    if ("" + item.Identity == "") continue;
 
-                type = TypeX.GetType(provider, true);
-                XCodeService.Register<IDatabase>(type, provider);
+                    var db = item.Instance as IDatabase;
+                    if (db != null && db.Support(provider)) return item.ImplementType;
+                }
+
+                var type = TypeX.GetType(provider, true);
+                if (type != null) XCodeService.Register<IDatabase>(type, provider);
                 return type;
             }
             else

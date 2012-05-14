@@ -34,9 +34,11 @@ using System.Runtime.InteropServices;
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("3.8.*")]
-[assembly: AssemblyFileVersion("3.8.2012.0505")]
+[assembly: AssemblyFileVersion("3.8.2012.0514")]
 
 /*
+ * v3.8.2012.0514   对象容器增加ResolveInstance，用于指定获取实例，而Resolve每次返回新实例
+ * 
  * v3.8.2012.0505   提供一种方法，允许在日志输出被重定向后仍然向文件输出日志
  * 
  * v3.8.2012.0423   消息提供者内部支持消息的分片和组装

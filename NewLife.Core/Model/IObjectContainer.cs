@@ -3,8 +3,6 @@ using System.Collections.Generic;
 
 namespace NewLife.Model
 {
-    //TODO 考虑把标识对象的String name改为Object id，这样子方便使用任何类型作为标识，比如很多时候使用的就是枚举。
-
     /// <summary>对象容器接口</summary>
     /// <remarks>
     /// 1，如果容器里面没有这个类型，则返回空；
@@ -62,6 +60,20 @@ namespace NewLife.Model
         /// <returns></returns>
         TInterface Resolve<TInterface>(Object id = null, Boolean extend = false);
 
+        /// <summary>解析类型指定名称的实例</summary>
+        /// <param name="from">接口类型</param>
+        /// <param name="id">标识</param>
+        /// <param name="extend">扩展。若为ture，id为null而找不到时，采用第一个注册项；id不为null而找不到时，采用null注册项</param>
+        /// <returns></returns>
+        Object ResolveInstance(Type from, Object id = null, Boolean extend = false);
+
+        /// <summary>解析类型指定名称的实例</summary>
+        /// <typeparam name="TInterface">接口类型</typeparam>
+        /// <param name="id">标识</param>
+        /// <param name="extend">扩展。若为ture，id为null而找不到时，采用第一个注册项；id不为null而找不到时，采用null注册项</param>
+        /// <returns></returns>
+        TInterface ResolveInstance<TInterface>(Object id = null, Boolean extend = false);
+
         /// <summary>解析类型所有已注册的实例</summary>
         /// <param name="from">接口类型</param>
         /// <returns></returns>
@@ -112,7 +124,7 @@ namespace NewLife.Model
         /// <summary>对象实例</summary>
         Object Instance { get; }
 
-        /// <summary>单一实例</summary>
-        Boolean Singleton { get; }
+        ///// <summary>单一实例</summary>
+        //Boolean Singleton { get; }
     }
 }

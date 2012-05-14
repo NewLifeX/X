@@ -110,9 +110,9 @@ namespace NewLife.Model
                 set { _ImplementType = value; }
             }
 
-            private Boolean _Singleton;
-            /// <summary>单一实例</summary>
-            public Boolean Singleton { get { return _Singleton; } set { _Singleton = value; } }
+            //private Boolean _Singleton;
+            ///// <summary>单一实例</summary>
+            //public Boolean Singleton { get { return _Singleton; } set { _Singleton = value; } }
 
             private Int32 _Priority;
             /// <summary>优先级</summary>
@@ -128,16 +128,16 @@ namespace NewLife.Model
                 {
                     if (_Instance != null || hasCheck) return _Instance;
 
-                    // 如果模式指定使用实例，而实例又为空，则初始化一个实例
-                    //if ((Mode & ModeFlags.Singleton) != ModeFlags.Singleton) return _Instance;
-                    if (!Singleton) return _Instance;
+                    //// 如果模式指定使用实例，而实例又为空，则初始化一个实例
+                    ////if ((Mode & ModeFlags.Singleton) != ModeFlags.Singleton) return _Instance;
+                    //if (!Singleton) return _Instance;
 
-                    hasCheck = true;
                     try
                     {
                         if (ImplementType != null) _Instance = TypeX.CreateInstance(ImplementType);
                     }
                     catch { }
+                    hasCheck = true;
 
                     return _Instance;
                 }
@@ -195,29 +195,28 @@ namespace NewLife.Model
             return Register(from, to, instance, null, ModeFlags.None, id, priority);
         }
 
-        private IObjectContainer Register(Type from, Type to, Object instance, String typeName, ModeFlags mode, Object id, Int32 priority, Boolean singleton = false)
+        private IObjectContainer Register(Type from, Type to, Object instance, String typeName, ModeFlags mode, Object id, Int32 priority/*, Boolean singleton = false*/)
         {
             if (from == null) throw new ArgumentNullException("from");
             // 名称不能是null，否则字典里面会报错
             if (id == null) id = String.Empty;
 
             var dic = Find(from, true);
-            // 删除已有的
-            //if (dic.ContainsKey(name)) dic.Remove(name);
             IObjectMap old = null;
             Map map = null;
             if (dic.TryGetValue(id, out old))
             {
-                if (old is Map)
+                map = old as Map;
+                if (map != null)
                 {
-                    map = old as Map;
+                    // 优先级太小不能覆盖
                     if (priority <= map.Priority) return this;
 
                     map.TypeName = typeName;
                     map.Mode = mode;
                     map.ImplementType = to;
                     map.Instance = instance;
-                    map.Singleton = instance != null || singleton;
+                    //map.Singleton = instance != null || singleton;
 
                     if (OnRegistering != null) OnRegistering(this, new EventArgs<Type, IObjectMap>(from, map));
                     if (OnRegistered != null) OnRegistered(this, new EventArgs<Type, IObjectMap>(from, map));
@@ -234,7 +233,7 @@ namespace NewLife.Model
             map.Mode = mode;
             if (to != null) map.ImplementType = to;
             if (instance != null) map.Instance = instance;
-            map.Singleton = instance != null || singleton;
+            //map.Singleton = instance != null || singleton;
 
             if (!dic.ContainsKey(id))
             {
@@ -272,12 +271,7 @@ namespace NewLife.Model
         #endregion
 
         #region 解析
-        /// <summary>解析类型指定名称的实例</summary>
-        /// <param name="from">接口类型</param>
-        /// <param name="id">标识</param>
-        /// <param name="extend">扩展。若为ture，name为null而找不到时，采用第一个注册项；name不为null而找不到时，采用null注册项</param>
-        /// <returns></returns>
-        public virtual Object Resolve(Type from, Object id = null, Boolean extend = false)
+        private Object Resolve(Type from, Boolean getInstance, Object id, Boolean extend)
         {
             if (from == null) throw new ArgumentNullException("from");
             // 名称不能是null，否则字典里面会报错
@@ -290,12 +284,14 @@ namespace NewLife.Model
 
             // 2，如果容器里面包含这个类型，并且指向的实例不为空，则返回
             // 根据名称去找，找不到返回空
-            //if (!dic.TryGetValue(name, out map) || map == null) return null;
             var map = FindMap(dic, id, extend);
             if (map == null) return null;
-            if (map.Instance != null) return map.Instance;
+            // 如果就是为了取实例，直接返回
+            if (getInstance) return map.Instance;
+            // 否则每次都实例化
+            //if (map.Instance != null) return map.Instance;
 
-            // 检查是否指定实现类型
+            // 检查是否指定实现类型，这种可能性极低，根本就不应该存在
             if (map.ImplementType == null) throw new XException("设计错误，名为{0}的{1}实现未找到！", id, from);
 
             Object obj = null;
@@ -379,11 +375,38 @@ namespace NewLife.Model
         }
 
         /// <summary>解析类型指定名称的实例</summary>
+        /// <param name="from">接口类型</param>
+        /// <param name="id">标识</param>
+        /// <param name="extend">扩展。若为ture，id为null而找不到时，采用第一个注册项；id不为null而找不到时，采用null注册项</param>
+        /// <returns></returns>
+        public virtual Object Resolve(Type from, Object id = null, Boolean extend = false)
+        {
+            return Resolve(from, false, id, extend);
+        }
+
+        /// <summary>解析类型指定名称的实例</summary>
         /// <typeparam name="TInterface">接口类型</typeparam>
         /// <param name="id">标识</param>
         /// <param name="extend">扩展。若为ture，name为null而找不到时，采用第一个注册项；name不为null而找不到时，采用null注册项</param>
         /// <returns></returns>
         public virtual TInterface Resolve<TInterface>(Object id = null, Boolean extend = false) { return (TInterface)Resolve(typeof(TInterface), id, extend); }
+
+        /// <summary>解析类型指定名称的实例</summary>
+        /// <param name="from">接口类型</param>
+        /// <param name="id">标识</param>
+        /// <param name="extend">扩展。若为ture，id为null而找不到时，采用第一个注册项；id不为null而找不到时，采用null注册项</param>
+        /// <returns></returns>
+        public virtual Object ResolveInstance(Type from, Object id = null, Boolean extend = false)
+        {
+            return Resolve(from, true, id, extend);
+        }
+
+        /// <summary>解析类型指定名称的实例</summary>
+        /// <typeparam name="TInterface">接口类型</typeparam>
+        /// <param name="id">标识</param>
+        /// <param name="extend">扩展。若为ture，name为null而找不到时，采用第一个注册项；name不为null而找不到时，采用null注册项</param>
+        /// <returns></returns>
+        public virtual TInterface ResolveInstance<TInterface>(Object id = null, Boolean extend = false) { return (TInterface)ResolveInstance(typeof(TInterface), id, extend); }
 
         /// <summary>解析类型所有已注册的实例</summary>
         /// <param name="from">接口类型</param>
@@ -487,13 +510,8 @@ namespace NewLife.Model
 
             foreach (var item in nvs)
             {
-                //String key = item;
-                //String value = nvs[key];
-
                 if (item.Value.IsNullOrWhiteSpace()) continue;
 
-                // 砍掉前缀，得到接口名
-                //var name = item.Key.Substring(CONFIG_PREFIX.Length);
                 var name = item.Key;
                 if (name.IsNullOrWhiteSpace()) continue;
 
@@ -503,17 +521,7 @@ namespace NewLife.Model
                 var map = GetConfig(item.Value);
                 if (map == null) continue;
 
-                //// 扩展。马上实例化目标类型，目标类型要借助这个机会请求系统
-                //if (map.ImplementType != null && map.Mode.Has(ModeFlags.Extend))
-                //{
-                //    try
-                //    {
-                //        TypeX.CreateInstance(map.ImplementType);
-                //    }
-                //    catch { }
-                //}
-
-                Register(type, null, null, map.TypeName, map.Mode, map.Identity, map.Priority, map.Singleton);
+                Register(type, null, null, map.TypeName, map.Mode, map.Identity, map.Priority/*, map.Singleton*/);
             }
         }
 
@@ -538,7 +546,7 @@ namespace NewLife.Model
                         map.TypeName = item.Value;
                         break;
                     case "singleton":
-                        map.Singleton = item.Value.EqualIgnoreCase("true") || item.Value == "1";
+                        //map.Singleton = item.Value.EqualIgnoreCase("true") || item.Value == "1";
                         break;
                     case "priority":
                         Int32 n = 0;
@@ -570,7 +578,7 @@ namespace NewLife.Model
         #region 辅助
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override string ToString() { return String.Format("[Count={0}]", Stores.Count); }
+        public override string ToString() { return String.Format("{0}[Count={1}]", this.GetType().Name, Stores.Count); }
         #endregion
     }
 }

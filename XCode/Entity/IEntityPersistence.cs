@@ -4,7 +4,6 @@ using System.ComponentModel;
 using System.Data;
 using System.Data.Common;
 using System.Text;
-using NewLife.Collections;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
 using XCode.Exceptions;
@@ -510,7 +509,7 @@ namespace XCode
             if (dbType == dal.DbType) return true;
 
             // 原始数据库类型
-            IDatabase db = DbFactory.Create(dbType);
+            var db = DbFactory.Create(dbType);
             if (db == null) return false;
 
             var tc = Type.GetTypeCode(fi.Type);

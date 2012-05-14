@@ -8,11 +8,11 @@ using System.Text;
 using System.Threading;
 using System.Xml;
 using System.Xml.Serialization;
+using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.Threading;
 using XCode.Code;
 using XCode.Exceptions;
-using NewLife.Log;
 
 namespace XCode.DataAccessLayer
 {

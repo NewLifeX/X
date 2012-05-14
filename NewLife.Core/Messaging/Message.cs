@@ -2,12 +2,12 @@
 using System.IO;
 using System.Reflection;
 using System.Xml.Serialization;
+using NewLife.Configuration;
 using NewLife.Exceptions;
+using NewLife.Log;
 using NewLife.Model;
 using NewLife.Reflection;
 using NewLife.Serialization;
-using NewLife.Log;
-using NewLife.Configuration;
 
 namespace NewLife.Messaging
 {

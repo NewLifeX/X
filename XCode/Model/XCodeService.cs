@@ -46,7 +46,7 @@ namespace XCode.Model
         /// <returns></returns>
         public static IDataRowEntityAccessor CreateDataRowEntityAccessor(Type entityType)
         {
-            return Container.Resolve<IDataRowEntityAccessorProvider>().CreateDataRowEntityAccessor(entityType);
+            return Container.ResolveInstance<IDataRowEntityAccessorProvider>().CreateDataRowEntityAccessor(entityType);
         }
         #endregion
     }
