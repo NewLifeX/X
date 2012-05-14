@@ -5,6 +5,7 @@ using NewLife.Xml;
 
 namespace NewLife.Serialization
 {
+    /// <summary>读写器服务。将来可以改为对象容器支持</summary>
     class RWService
     {
         public static IReader CreateReader(RWKinds kind)

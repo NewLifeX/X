@@ -163,11 +163,11 @@ namespace NewLife.Serialization
                 type = value.GetType();
             }
 
-            IObjectMemberInfo[] mis = OnGetMembers(type, value);
+            var mis = OnGetMembers(type, value);
 
             if (OnGotMembers != null)
             {
-                EventArgs<Type, Object, IObjectMemberInfo[]> e = new EventArgs<Type, Object, IObjectMemberInfo[]>(type, value, mis);
+                var e = new EventArgs<Type, Object, IObjectMemberInfo[]>(type, value, mis);
                 OnGotMembers(this, e);
                 mis = e.Arg3;
             }

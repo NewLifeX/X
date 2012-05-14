@@ -22,7 +22,7 @@ namespace NewLife.Xml
             {
                 if (_Reader == null)
                 {
-                    XmlReaderSettings settings = new XmlReaderSettings();
+                    var settings = new XmlReaderSettings();
                     settings.IgnoreWhitespace = true;
                     settings.IgnoreComments = true;
                     _Reader = XmlReader.Create(Stream, settings);
@@ -33,7 +33,7 @@ namespace NewLife.Xml
             {
                 _Reader = value;
 
-                XmlTextReader xr = _Reader as XmlTextReader;
+                var xr = _Reader as XmlTextReader;
                 if (xr != null && Settings.Encoding != xr.Encoding) Settings.Encoding = xr.Encoding;
             }
         }

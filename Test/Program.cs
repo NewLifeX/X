@@ -1,4 +1,5 @@
 ﻿using System;
+using NewLife.IO;
 using System.Diagnostics;
 using System.IO.Ports;
 using System.Threading;
@@ -23,6 +24,9 @@ using NewLife.CommonEntity;
 using XCode;
 using XCode.Transform;
 using System.IO;
+using NewLife.Serialization;
+using System.Text;
+using NewLife.Security;
 
 namespace Test
 {
@@ -39,7 +43,7 @@ namespace Test
                 try
                 {
 #endif
-                Test6();
+                    Test6();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -307,14 +311,24 @@ namespace Test
         static void Test6()
         {
             Message.DumpStreamWhenError = true;
-            var msg = new EntityMessage();
-            msg.Value = Guid.NewGuid();
+            //var msg = new EntityMessage();
+            //msg.Value = Guid.NewGuid();
+            var msg = new MethodMessage();
+            msg.TypeName = "Admin";
+            msg.Name = "Login";
+            msg.Parameters = new Object[] { "admin", "password" };
 
-            var ms = msg.GetStream();
-            ms = new MemoryStream(ms.ReadBytes(ms.Length - 1));
+            var kind = RWKinds.Json;
+            var ms = msg.GetStream(kind);
+            //ms = new MemoryStream(ms.ReadBytes(ms.Length - 1));
+            //Console.WriteLine(ms.ReadBytes().ToHex());
+            Console.WriteLine(ms.ToStr());
+            //ms = msg.GetStream(RWKinds.Xml);
+            //Console.WriteLine(ms.ToStr());
 
             Message.Debug = true;
-            var rs = Message.Read(ms);
+            ms.Position = 0;
+            var rs = Message.Read(ms, kind);
             Console.WriteLine(rs);
         }
     }

@@ -76,40 +76,6 @@ namespace NewLife.Serialization
         {
             var cache = isField ? (isBaseFirst ? fieldCache : fieldCache2) : (isBaseFirst ? propertyCache : propertyCache2);
             return cache.GetItem<Boolean, Boolean>(type, isField, isBaseFirst, (t, isf, isb) => (isf ? FindFields(t, isb) : FindProperties(t, isb)).Select(CreateObjectMemberInfo).ToArray());
-            //if (isField)
-            //{
-            //    if (isBaseFirst)
-            //        return fieldCache.GetItem(type, delegate(Type t)
-            //        {
-            //            var mis = FindFields(t, true);
-            //            if (mis == null || mis.Length < 1) return null;
-            //            return Array.ConvertAll<MemberInfo, IObjectMemberInfo>(mis, CreateObjectMemberInfo);
-            //        });
-            //    else
-            //        return fieldCache2.GetItem(type, delegate(Type t)
-            //        {
-            //            var mis = FindFields(t, false);
-            //            if (mis == null || mis.Length < 1) return null;
-            //            return Array.ConvertAll<MemberInfo, IObjectMemberInfo>(mis, CreateObjectMemberInfo);
-            //        });
-            //}
-            //else
-            //{
-            //    if (isBaseFirst)
-            //        return propertyCache.GetItem(type, delegate(Type t)
-            //        {
-            //            var mis = FindProperties(t, true);
-            //            if (mis == null || mis.Length < 1) return null;
-            //            return Array.ConvertAll<MemberInfo, IObjectMemberInfo>(mis, CreateObjectMemberInfo);
-            //        });
-            //    else
-            //        return propertyCache2.GetItem(type, delegate(Type t)
-            //        {
-            //            var mis = FindProperties(t, false);
-            //            if (mis == null || mis.Length < 1) return null;
-            //            return Array.ConvertAll<MemberInfo, IObjectMemberInfo>(mis, CreateObjectMemberInfo);
-            //        });
-            //}
         }
 
         static DictionaryCache<Type, MemberInfo[]> cache1 = new DictionaryCache<Type, MemberInfo[]>();

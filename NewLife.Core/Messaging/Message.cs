@@ -8,6 +8,9 @@ using NewLife.Log;
 using NewLife.Model;
 using NewLife.Reflection;
 using NewLife.Serialization;
+using System.Text;
+using System.Xml;
+using NewLife.Xml;
 
 namespace NewLife.Messaging
 {
@@ -83,6 +86,7 @@ namespace NewLife.Messaging
             var writer = RWService.CreateWriter(rwkind);
             writer.Stream = stream;
             Set(writer.Settings);
+            writer.Settings.Encoding = new UTF8Encoding(false);
 
             if (Debug)
             {
@@ -90,12 +94,24 @@ namespace NewLife.Messaging
                 writer.EnableTraceStream();
             }
 
-            // 判断并写入消息头
-            if (rwkind == RWKinds.Binary && _Header != null && _Header.UseHeader) Header.Write(writer.Stream);
+            // 二进制增加头部
+            if (rwkind == RWKinds.Binary)
+            {
+                // 判断并写入消息头
+                if (_Header != null && _Header.UseHeader) Header.Write(writer.Stream);
 
-            // 基类写入编号，保证编号在最前面
-            writer.Write((Byte)Kind);
+                // 基类写入编号，保证编号在最前面
+                writer.Write((Byte)Kind);
+            }
+            else
+            {
+                var n = (Byte)Kind;
+                var bts = Encoding.ASCII.GetBytes(n.ToString());
+                stream.Write(bts, 0, bts.Length);
+            }
+
             writer.WriteObject(this);
+            writer.Flush();
         }
 
         /// <summary>序列化为数据流</summary>
@@ -135,44 +151,85 @@ namespace NewLife.Messaging
             }
 
             var start = stream.Position;
-
-            // 检查第一个字节
-            //var ch = reader.Reader.PeekChar();
-            var ch = stream.ReadByte();
-            if (ch < 0) return null;
-            stream.Seek(-1, SeekOrigin.Current);
-
-            var first = (Byte)ch;
-
-            #region 消息头部扩展
+            // 消息类型，不同序列化方法的识别方式不同
+            MessageKind kind = (MessageKind)0;
+            Type type = null;
             MessageHeader header = null;
-            // 第一个字节的最高位决定是否扩展
-            if (MessageHeader.IsValid(first))
-            {
-                try
-                {
-                    header = new MessageHeader();
-                    header.Read(reader.Stream);
-                }
-                catch
-                {
-                    stream.Position = start;
-                    return null;
-                }
 
-                // 如果使用了消息头，判断一下数据流长度是否满足
-                if (header.HasFlag(MessageHeader.Flags.Length) && header.Length > stream.Length - stream.Position)
+            if (rwkind == RWKinds.Binary)
+            {
+                // 检查第一个字节
+                //var ch = reader.Reader.PeekChar();
+                var ch = stream.ReadByte();
+                if (ch < 0) return null;
+                stream.Seek(-1, SeekOrigin.Current);
+
+                var first = (Byte)ch;
+
+                #region 消息头部扩展
+                // 第一个字节的最高位决定是否扩展
+                if (MessageHeader.IsValid(first))
                 {
-                    stream.Position = start;
-                    return null;
+                    try
+                    {
+                        header = new MessageHeader();
+                        header.Read(reader.Stream);
+                    }
+                    catch
+                    {
+                        stream.Position = start;
+                        return null;
+                    }
+
+                    // 如果使用了消息头，判断一下数据流长度是否满足
+                    if (header.HasFlag(MessageHeader.Flags.Length) && header.Length > stream.Length - stream.Position)
+                    {
+                        stream.Position = start;
+                        return null;
+                    }
                 }
+                #endregion
+
+                // 读取了响应类型和消息类型后，动态创建消息对象
+                kind = (MessageKind)(reader.ReadByte() & 0x7F);
             }
-            #endregion
+            else
+            {
+                // 前面的数字表示消息种类
+                var sb = new StringBuilder();
+                Char c;
+                while (true)
+                {
+                    c = (Char)stream.ReadByte();
+                    if (c < '0' || c > '9') break;
+                    sb.Append(c);
+                }
+                // 多读了一个，退回去
+                stream.Seek(-1, SeekOrigin.Current);
+                kind = (MessageKind)Convert.ToByte(sb.ToString());
+
+                //var s = stream.IndexOf(new Byte[] { (Byte)'<' });
+                //if (s >= 0)
+                //{
+                //    var e = stream.IndexOf(new Byte[] { (Byte)'>' }, s + 1);
+                //    if (e >= 0)
+                //    {
+                //        stream.Position = s;
+                //        var msgName = Encoding.UTF8.GetString(stream.ReadBytes(e - s - 1));
+                //        if (!String.IsNullOrEmpty(msgName) && !msgName.Contains(" ")) type = TypeX.GetType(msgName);
+                //    }
+                //}
+                //var settings = new XmlReaderSettings();
+                //settings.IgnoreWhitespace = true;
+                //settings.IgnoreComments = true;
+                //var xr = XmlReader.Create(stream, settings);
+                //while (xr.NodeType != XmlNodeType.Element) { if (!xr.Read())break; }
+
+                //stream.Position = start;
+            }
 
             #region 识别消息类型
-            // 读取了响应类型和消息类型后，动态创建消息对象
-            var kind = (MessageKind)(reader.ReadByte() & 0x7F);
-            var type = ObjectContainer.Current.ResolveType<Message>(kind);
+            if (type == null) type = ObjectContainer.Current.ResolveType<Message>(kind);
             if (type == null)
             {
                 if (ignoreException)
@@ -241,13 +298,18 @@ namespace NewLife.Messaging
         {
             //setting.IsBaseFirst = true;
             //setting.EncodeInt = true;
-            setting.UseObjRef = true;
             setting.UseTypeFullName = false;
 
             if (setting is BinarySettings)
             {
                 var bset = setting as BinarySettings;
                 bset.EncodeInt = true;
+
+                setting.UseObjRef = true;
+            }
+            else
+            {
+                //setting.Encoding = new UTF8Encoding(false);
             }
         }
         #endregion
