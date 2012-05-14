@@ -21,7 +21,7 @@ namespace NewLife.Serialization
                 _Writer = value;
                 if (Settings.Encoding != _Writer.Encoding) Settings.Encoding = _Writer.Encoding;
 
-                StreamWriter sw = _Writer as StreamWriter;
+                var sw = _Writer as StreamWriter;
                 if (sw != null && sw.BaseStream != Stream) Stream = sw.BaseStream;
             }
         }

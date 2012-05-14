@@ -51,11 +51,11 @@ namespace NewLife.Serialization
         {
             get
             {
-                var s = Stream;
-                if (s != null) return s.Position == s.Length;
-
                 var r = Reader as StreamReader;
                 if (r != null) return r.EndOfStream;
+
+                var s = Stream;
+                if (s != null) return s.Position == s.Length;
 
                 return false;
             }
