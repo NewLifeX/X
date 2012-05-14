@@ -286,7 +286,7 @@ namespace NewLife.Model
                 {
                     if (XTrace.Debug) XTrace.WriteLine("为{0}自动注册{1}！", from.FullName, item.FullName);
 
-                    Register(from, item, null);
+                    Register(from, item, null, null, 1);
                     break;
                 }
             }
