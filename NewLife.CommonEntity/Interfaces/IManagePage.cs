@@ -8,14 +8,9 @@ using System.Web.UI;
 using System.Web.UI.WebControls;
 using NewLife.Log;
 using NewLife.Web;
-using NewLife.Reflection;
 
 namespace NewLife.CommonEntity
 {
-    ///// <summary>管理页接口，用于控制页面权限等</summary>
-    //[Obsolete("该成员在后续版本中讲不再被支持！")]
-    //public interface IManagerPage : IManagePage { }
-
     /// <summary>管理页接口，用于控制页面权限等</summary>
     public interface IManagePage
     {

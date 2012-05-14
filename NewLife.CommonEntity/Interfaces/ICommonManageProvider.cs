@@ -67,7 +67,7 @@ namespace NewLife.CommonEntity
     {
         #region 静态实例
         /// <summary>当前提供者</summary>
-        public new static ICommonManageProvider Provider { get { return CommonService.Resolve<IManageProvider>() as ICommonManageProvider; } }
+        public new static ICommonManageProvider Provider { get { return CommonService.ResolveInstance<IManageProvider>() as ICommonManageProvider; } }
         #endregion
 
         #region IManageProvider 接口
