@@ -189,6 +189,17 @@ namespace NewLife.Reflection
         }
         #endregion
 
+        #region 静态属性
+        /// <summary>当前执行代码程序集</summary>
+        public AssemblyX Executing { get { return AssemblyX.Create(Assembly.GetExecutingAssembly()); } }
+
+        /// <summary>入口程序集</summary>
+        public AssemblyX Entry { get { return AssemblyX.Create(Assembly.GetEntryAssembly()); } }
+
+        /// <summary>调用者</summary>
+        public AssemblyX Calling { get { return AssemblyX.Create(Assembly.GetCallingAssembly()); } }
+        #endregion
+
         #region 获取特性
         /// <summary>获取自定义属性</summary>
         /// <typeparam name="TAttribute"></typeparam>
