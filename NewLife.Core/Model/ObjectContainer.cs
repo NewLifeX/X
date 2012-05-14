@@ -3,19 +3,19 @@ using System.Collections.Generic;
 using NewLife.Configuration;
 using NewLife.Exceptions;
 using NewLife.Reflection;
+using NewLife.Log;
 
 namespace NewLife.Model
 {
     /// <summary>实现 <seealso cref="IObjectContainer"/> 接口的对象容器</summary>
     /// <remarks>
     /// 1，如果容器里面没有这个类型，则返回空；
-    /// 2，如果容器里面包含这个类型，并且指向的实例不为空，则返回，单例；
-    /// 3，如果容器里面包含这个类型，并且指向的实例为空，则创建对象返回，多实例；
+    /// 2，如果容器里面包含这个类型，<see cref="ResolveInstance"/>返回单例；
+    /// 3，如果容器里面包含这个类型，<see cref="Resolve"/>创建对象返回多实例；
     /// 4，如果有带参数构造函数，则从容器内获取各个参数的实例，最后创建对象返回。
     /// 
-    /// 这里有一点跟我们以往的想法非常不同，我们都习惯没有对象的时候，创建并加入字典。
-    /// 这里采用两种方式，注册类型的时候，如果指定了实例，则表示这个类型对应单一的实例；
-    /// 如果不指定实例，则表示支持该类型，每次创建。
+    /// 这里有一点跟大多数对象容器非常不同，其它对象容器会控制对象的生命周期，在对象不再使用时收回到容器里面。
+    /// 这里的对象容器主要是为了用于解耦，所以只有最简单的功能实现。
     /// </remarks>
     public class ObjectContainer : IObjectContainer
     {
@@ -268,6 +268,31 @@ namespace NewLife.Model
         /// <param name="priority">优先级</param>
         /// <returns></returns>
         public virtual IObjectContainer Register<TInterface>(Object instance, Object id = null, Int32 priority = 0) { return Register(typeof(TInterface), null, instance, id, priority); }
+
+        /// <summary>遍历所有程序集的所有类型，自动注册实现了指定接口或基类的类型</summary>
+        /// <param name="from">接口或基类</param>
+        /// <param name="excludeTypes">要排除的类型，一般是内部默认实现</param>
+        /// <returns></returns>
+        public virtual IObjectContainer AutoRegister(Type from, params Type[] excludeTypes)
+        {
+            if (from == null) throw new ArgumentNullException("from");
+
+            if (excludeTypes == null) excludeTypes = Type.EmptyTypes;
+
+            // 遍历所有程序集，自动加载
+            foreach (var item in AssemblyX.FindAllPlugins(from, true))
+            {
+                if (Array.IndexOf(excludeTypes, item) < 0)
+                {
+                    if (XTrace.Debug) XTrace.WriteLine("为{0}自动注册{1}！", from.FullName, item.FullName);
+
+                    Register(from, item, null);
+                    break;
+                }
+            }
+
+            return this;
+        }
         #endregion
 
         #region 解析
@@ -389,7 +414,7 @@ namespace NewLife.Model
         /// <param name="id">标识</param>
         /// <param name="extend">扩展。若为ture，name为null而找不到时，采用第一个注册项；name不为null而找不到时，采用null注册项</param>
         /// <returns></returns>
-        public virtual TInterface Resolve<TInterface>(Object id = null, Boolean extend = false) { return (TInterface)Resolve(typeof(TInterface), id, extend); }
+        public virtual TInterface Resolve<TInterface>(Object id = null, Boolean extend = false) { return (TInterface)Resolve(typeof(TInterface), false, id, extend); }
 
         /// <summary>解析类型指定名称的实例</summary>
         /// <param name="from">接口类型</param>
@@ -406,7 +431,7 @@ namespace NewLife.Model
         /// <param name="id">标识</param>
         /// <param name="extend">扩展。若为ture，name为null而找不到时，采用第一个注册项；name不为null而找不到时，采用null注册项</param>
         /// <returns></returns>
-        public virtual TInterface ResolveInstance<TInterface>(Object id = null, Boolean extend = false) { return (TInterface)ResolveInstance(typeof(TInterface), id, extend); }
+        public virtual TInterface ResolveInstance<TInterface>(Object id = null, Boolean extend = false) { return (TInterface)Resolve(typeof(TInterface), true, id, extend); }
 
         /// <summary>解析类型所有已注册的实例</summary>
         /// <param name="from">接口类型</param>

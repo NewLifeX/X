@@ -54,6 +54,20 @@ namespace NewLife.Model
         /// <returns></returns>
         public static TInterface Resolve<TInterface>(Object id = null, Boolean extend = false) { return Container.Resolve<TInterface>(id, extend); }
 
+        /// <summary>解析类型指定名称的实例</summary>
+        /// <param name="type"></param>
+        /// <param name="id">标识</param>
+        /// <param name="extend"></param>
+        /// <returns></returns>
+        public static Object ResolveInstance(Type type, Object id = null, Boolean extend = false) { return Container.ResolveInstance(type, id, extend); }
+
+        /// <summary>解析类型指定名称的实例</summary>
+        /// <typeparam name="TInterface">接口类型</typeparam>
+        /// <param name="id">标识</param>
+        /// <param name="extend">扩展。若为ture，name为null而找不到时，采用第一个注册项；name不为null而找不到时，采用null注册项</param>
+        /// <returns></returns>
+        public static TInterface ResolveInstance<TInterface>(Object id = null, Boolean extend = false) { return Container.ResolveInstance<TInterface>(id, extend); }
+
         /// <summary>解析类型</summary>
         /// <typeparam name="TInterface">接口类型</typeparam>
         /// <param name="id">标识</param>

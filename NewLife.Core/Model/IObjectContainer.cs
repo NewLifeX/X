@@ -6,9 +6,12 @@ namespace NewLife.Model
     /// <summary>对象容器接口</summary>
     /// <remarks>
     /// 1，如果容器里面没有这个类型，则返回空；
-    /// 2，如果容器里面包含这个类型，并且指向的实例不为空，则返回，单例；
-    /// 3，如果容器里面包含这个类型，并且指向的实例为空，则创建对象返回，多实例；
+    /// 2，如果容器里面包含这个类型，<see cref="ResolveInstance"/>返回单例；
+    /// 3，如果容器里面包含这个类型，<see cref="Resolve"/>创建对象返回多实例；
     /// 4，如果有带参数构造函数，则从容器内获取各个参数的实例，最后创建对象返回。
+    /// 
+    /// 这里有一点跟大多数对象容器非常不同，其它对象容器会控制对象的生命周期，在对象不再使用时收回到容器里面。
+    /// 这里的对象容器主要是为了用于解耦，所以只有最简单的功能实现。
     /// </remarks>
     public interface IObjectContainer
     {
@@ -43,6 +46,12 @@ namespace NewLife.Model
 
         /// <summary>注册后事件</summary>
         event EventHandler<EventArgs<Type, IObjectMap>> OnRegistered;
+
+        /// <summary>遍历所有程序集的所有类型，自动注册实现了指定接口或基类的类型</summary>
+        /// <param name="from">接口或基类</param>
+        /// <param name="excludeTypes">要排除的类型，一般是内部默认实现</param>
+        /// <returns></returns>
+        IObjectContainer AutoRegister(Type from, params Type[] excludeTypes);
         #endregion
 
         #region 解析
