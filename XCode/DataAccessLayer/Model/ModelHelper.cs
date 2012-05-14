@@ -2,9 +2,10 @@
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using Microsoft.CSharp;
-using NewLife.Linq;
 #if NET4
 using System.Linq;
+#else
+using NewLife.Linq;
 #endif
 
 namespace XCode.DataAccessLayer
@@ -21,17 +22,6 @@ namespace XCode.DataAccessLayer
         {
             if (String.IsNullOrEmpty(name)) return null;
 
-            //foreach (IDataColumn item in table.Columns)
-            //{
-            //    if (String.Equals(name, item.Name, StringComparison.OrdinalIgnoreCase)) return item;
-            //}
-
-            //foreach (IDataColumn item in table.Columns)
-            //{
-            //    if (String.Equals(name, item.Alias, StringComparison.OrdinalIgnoreCase)) return item;
-            //}
-            //return null;
-
             return table.Columns.FirstOrDefault(c => c.Is(name));
         }
 
@@ -42,16 +32,6 @@ namespace XCode.DataAccessLayer
         public static IDataColumn[] GetColumns(this IDataTable table, String[] names)
         {
             if (names == null || names.Length < 1) return null;
-
-            //List<IDataColumn> list = new List<IDataColumn>();
-            //foreach (String item in names)
-            //{
-            //    IDataColumn dc = table.GetColumn(item);
-            //    if (dc != null) list.Add(dc);
-            //}
-
-            //if (list.Count < 1) return null;
-            //return list.ToArray();
 
             return table.Columns.Where(c => names.Any(n => c.Is(n))).ToArray();
         }
@@ -86,14 +66,14 @@ namespace XCode.DataAccessLayer
         {
             if (table == null || table.Indexes == null || table.Indexes.Count < 1) return null;
 
-            IDataIndex di = table.Indexes.FirstOrDefault(
+            var di = table.Indexes.FirstOrDefault(
                 e => e.Columns != null &&
                     e.Columns.Length == columnNames.Length &&
                     !e.Columns.Except(columnNames, StringComparer.OrdinalIgnoreCase).Any());
             if (di != null) return di;
 
             // 用别名再试一次
-            IDataColumn[] columns = table.GetColumns(columnNames);
+            var columns = table.GetColumns(columnNames);
             if (columns == null || columns.Length < 1) return null;
             columnNames = columns.Select(e => e.Alias).ToArray();
             di = table.Indexes.FirstOrDefault(
@@ -105,64 +85,19 @@ namespace XCode.DataAccessLayer
             return null;
         }
 
-        //private static Boolean CompareStringArray(String[] arr1, String[] arr2)
-        //{
-        //    arr1 = prepare(arr1);
-        //    arr2 = prepare(arr2);
-        //    if (arr1 == arr2) return true;
-        //    if (arr1.Length != arr2.Length) return false;
-
-        //    for (int i = 0; i < arr1.Length; i++)
-        //    {
-        //        if (arr1[i] != arr2[i]) return false;
-        //    }
-
-        //    //for (int i = 0; i < arr1.Length; i++)
-        //    //{
-        //    //    Boolean b = false;
-        //    //    for (int j = 0; j < arr2.Length; j++)
-        //    //    {
-        //    //        if (String.Equals(arr1[i], arr2[j], StringComparison.OrdinalIgnoreCase))
-        //    //        {
-        //    //            b = true;
-        //    //            // 清空该项，不再跟后续项匹配
-        //    //            arr2[j] = null;
-        //    //            break;
-        //    //        }
-        //    //    }
-        //    //    // 只要有一个找不到对应项，就是不存在
-        //    //    if (!b) return false;
-        //    //}
-
-        //    return true;
-        //}
-
-        //private static String[] prepare(String[] arr)
-        //{
-        //    if (arr == null || arr.Length < 1) return null;
-
-        //    List<String> list = new List<string>();
-        //    for (int i = 0; i < arr.Length; i++)
-        //    {
-        //        String item = arr[i] == null ? "" : arr[i].ToLower();
-        //        if (!list.Contains(item)) list.Add(item);
-        //    }
-        //    return list.ToArray();
-        //}
-
         /// <summary>根据字段从指定表中查找关系</summary>
         /// <param name="table"></param>
         /// <param name="columnName"></param>
         /// <returns></returns>
         public static IDataRelation GetRelation(this IDataTable table, String columnName)
         {
-            //return table.Relations.FirstOrDefault(e => e.Column.EqualIgnoreCase(columnName));
-            foreach (IDataRelation item in table.Relations)
-            {
-                if (String.Equals(item.Column, columnName, StringComparison.OrdinalIgnoreCase)) return item;
-            }
+            return table.Relations.FirstOrDefault(e => e.Column.EqualIgnoreCase(columnName));
+            //foreach (var item in table.Relations)
+            //{
+            //    if (String.Equals(item.Column, columnName, StringComparison.OrdinalIgnoreCase)) return item;
+            //}
 
-            return null;
+            //return null;
         }
 
         /// <summary>根据字段、关联表、关联字段从指定表中查找关系</summary>
@@ -182,7 +117,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public static IDataRelation GetRelation(this IDataTable table, String columnName, String rtableName, String rcolumnName)
         {
-            foreach (IDataRelation item in table.Relations)
+            foreach (var item in table.Relations)
             {
                 if (item.Column == columnName && item.RelationTable == rtableName && item.RelationColumn == rcolumnName) return item;
             }
@@ -192,12 +127,13 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 模型扩展业务方法
-        /// <summary>连接两个表，实际上是猜测它们之间的关系，根据一个字段名是否等于另一个表的表名加某个字段名来判断是否存在关系。</summary>
+        /// <summary>连接两个表。
+        /// 实际上是猜测它们之间的关系，根据一个字段名是否等于另一个表的表名加某个字段名来判断是否存在关系。</summary>
         /// <param name="table"></param>
         /// <param name="rtable"></param>
         public static void Connect(this IDataTable table, IDataTable rtable)
         {
-            foreach (IDataColumn dc in table.Columns)
+            foreach (var dc in table.Columns)
             {
                 if (dc.PrimaryKey || dc.Identity) continue;
 
@@ -223,13 +159,13 @@ namespace XCode.DataAccessLayer
         {
             if (name.Length <= rtable.Name.Length || !name.StartsWith(rtable.Name, StringComparison.OrdinalIgnoreCase)) return null;
 
-            String key = name.Substring(rtable.Name.Length);
-            IDataColumn dc = rtable.GetColumn(key);
+            var key = name.Substring(rtable.Name.Length);
+            var dc = rtable.GetColumn(key);
             // 猜测两表关联关系时，两个字段的类型也必须一致
             if (dc == null || dc.DataType != column.DataType) return null;
 
             // 建立关系
-            IDataRelation dr = table.CreateRelation();
+            var dr = table.CreateRelation();
             dr.Column = column.Name;
             dr.RelationTable = rtable.Name;
             dr.RelationColumn = dc.Name;
@@ -240,7 +176,7 @@ namespace XCode.DataAccessLayer
                 dr.Unique = true;
             else
             {
-                IDataIndex di = GetIndex(table, column.Name);
+                var di = GetIndex(table, column.Name);
                 if (di != null && di.Unique) dr.Unique = true;
             }
 
@@ -263,7 +199,7 @@ namespace XCode.DataAccessLayer
             // 当然，如果字段dc不是主键，也没有唯一索引，那么关系就不是唯一的。这就是典型的多对多
             if (!dc.PrimaryKey && !dc.Identity)
             {
-                IDataIndex di = GetIndex(rtable, dc.Name);
+                var di = GetIndex(rtable, dc.Name);
                 // 没有索引，或者索引不是唯一的
                 if (di == null || !di.Unique) dr.Unique = false;
             }

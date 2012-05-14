@@ -135,14 +135,16 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public virtual IDataColumn CreateColumn()
         {
-            return XField.Create(this);
+            var dc = new XField();
+            dc.Table = this;
+            return dc;
         }
 
         /// <summary>创建外键</summary>
         /// <returns></returns>
         public virtual IDataRelation CreateRelation()
         {
-            XRelation fk = new XRelation();
+            var fk = new XRelation();
             fk.Table = this;
             return fk;
         }
@@ -151,7 +153,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public virtual IDataIndex CreateIndex()
         {
-            XIndex idx = new XIndex();
+            var idx = new XIndex();
             idx.Table = this;
             return idx;
         }
@@ -201,8 +203,8 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public String Export()
         {
-            XmlSerializer serializer = new XmlSerializer(typeof(XTable));
-            using (StringWriter sw = new StringWriter())
+            var serializer = new XmlSerializer(typeof(XTable));
+            using (var sw = new StringWriter())
             {
                 serializer.Serialize(sw, this);
                 return sw.ToString();
@@ -216,8 +218,8 @@ namespace XCode.DataAccessLayer
         {
             if (String.IsNullOrEmpty(xml)) return null;
 
-            XmlSerializer serializer = new XmlSerializer(typeof(XTable));
-            using (StringReader sr = new StringReader(xml))
+            var serializer = new XmlSerializer(typeof(XTable));
+            using (var sr = new StringReader(xml))
             {
                 return serializer.Deserialize(sr) as XTable;
             }
@@ -227,29 +229,26 @@ namespace XCode.DataAccessLayer
         #region ICloneable 成员
         /// <summary>克隆</summary>
         /// <returns></returns>
-        object ICloneable.Clone()
-        {
-            return Clone();
-        }
+        object ICloneable.Clone() { return Clone(); }
 
         /// <summary>克隆</summary>
         /// <returns></returns>
         public XTable Clone()
         {
-            XTable table = base.MemberwiseClone() as XTable;
+            var table = base.MemberwiseClone() as XTable;
             // 浅表克隆后，集合还是指向旧的
             table._Columns = null;
-            foreach (IDataColumn item in Columns)
+            foreach (var item in Columns)
             {
                 table.Columns.Add(item.Clone(table));
             }
             table._Relations = null;
-            foreach (IDataRelation item in Relations)
+            foreach (var item in Relations)
             {
                 table.Relations.Add(item.Clone(table));
             }
             table._Indexes = null;
-            foreach (IDataIndex item in Indexes)
+            foreach (var item in Indexes)
             {
                 table.Indexes.Add(item.Clone(table));
             }
@@ -304,10 +303,7 @@ namespace XCode.DataAccessLayer
         #region IXmlSerializable 成员
         /// <summary>获取架构</summary>
         /// <returns></returns>
-        System.Xml.Schema.XmlSchema IXmlSerializable.GetSchema()
-        {
-            return null;
-        }
+        System.Xml.Schema.XmlSchema IXmlSerializable.GetSchema() { return null; }
 
         /// <summary>读取</summary>
         /// <param name="reader"></param>
@@ -362,7 +358,7 @@ namespace XCode.DataAccessLayer
                         reader.ReadStartElement();
                         while (reader.IsStartElement())
                         {
-                            IDataColumn dc = CreateColumn();
+                            var dc = CreateColumn();
                             (dc as IXmlSerializable).ReadXml(reader);
                             Columns.Add(dc);
                         }
@@ -372,7 +368,7 @@ namespace XCode.DataAccessLayer
                         reader.ReadStartElement();
                         while (reader.IsStartElement())
                         {
-                            IDataIndex di = CreateIndex();
+                            var di = CreateIndex();
                             (di as IXmlSerializable).ReadXml(reader);
                             Indexes.Add(di);
                         }
@@ -382,7 +378,7 @@ namespace XCode.DataAccessLayer
                         reader.ReadStartElement();
                         while (reader.IsStartElement())
                         {
-                            IDataRelation dr = CreateRelation();
+                            var dr = CreateRelation();
                             (dr as IXmlSerializable).ReadXml(reader);
                             Relations.Add(dr);
                         }

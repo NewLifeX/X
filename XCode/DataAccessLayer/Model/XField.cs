@@ -142,11 +142,7 @@ namespace XCode.DataAccessLayer
         private IDataTable _Table;
         /// <summary>表</summary>
         [XmlIgnore]
-        public IDataTable Table
-        {
-            get { return _Table; }
-            set { _Table = value; }
-        }
+        public IDataTable Table { get { return _Table; } set { _Table = value; } }
 
         /// <summary>显示名。如果有Description则使用Description，否则使用Name</summary>
         [XmlIgnore]
@@ -154,22 +150,19 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 构造
-        private XField() { }
+        //private XField() { }
 
-        private XField(IDataTable table)
-        {
-            Table = table;
-        }
+        //private XField(IDataTable table) { Table = table; }
 
-        /// <summary>为制定表创建字段</summary>
-        /// <param name="table"></param>
-        /// <returns></returns>
-        internal static XField Create(IDataTable table)
-        {
-            if (table == null) throw new ArgumentNullException("table");
+        ///// <summary>为制定表创建字段</summary>
+        ///// <param name="table"></param>
+        ///// <returns></returns>
+        //internal static XField Create(IDataTable table)
+        //{
+        //    if (table == null) throw new ArgumentNullException("table");
 
-            return new XField(table);
-        }
+        //    return new XField(table);
+        //}
         #endregion
 
         #region 方法
@@ -194,7 +187,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public IDataColumn Clone(IDataTable table)
         {
-            XField field = base.MemberwiseClone() as XField;
+            var field = base.MemberwiseClone() as XField;
             field.Table = table;
             return field;
         }
