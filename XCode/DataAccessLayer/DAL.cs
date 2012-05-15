@@ -277,18 +277,9 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public String Export()
         {
-            List<IDataTable> list = Tables;
+            var list = Tables;
 
             if (list == null || list.Count < 1) return null;
-
-            //XmlWriterX writer = new XmlWriterX();
-            //writer.Settings.WriteType = false;
-            //writer.Settings.UseObjRef = false;
-            //writer.Settings.IgnoreDefault = true;
-            //writer.Settings.MemberAsAttribute = true;
-            //writer.RootName = "Tables";
-            //writer.WriteObject(list);
-            //return writer.ToString();
 
             return Export(list);
         }
@@ -327,18 +318,18 @@ namespace XCode.DataAccessLayer
         {
             if (String.IsNullOrEmpty(xml)) return null;
 
-            XmlReaderSettings settings = new XmlReaderSettings();
+            var settings = new XmlReaderSettings();
             settings.IgnoreWhitespace = true;
             settings.IgnoreComments = true;
 
-            XmlReader reader = XmlReader.Create(new MemoryStream(Encoding.UTF8.GetBytes(xml)), settings);
+            var reader = XmlReader.Create(new MemoryStream(Encoding.UTF8.GetBytes(xml)), settings);
             while (reader.NodeType != XmlNodeType.Element) { if (!reader.Read())return null; }
             reader.ReadStartElement();
 
-            List<IDataTable> list = new List<IDataTable>();
+            var list = new List<IDataTable>();
             while (reader.IsStartElement())
             {
-                IDataTable table = CreateTable();
+                var table = CreateTable();
                 list.Add(table);
 
                 //reader.ReadStartElement();
@@ -346,33 +337,6 @@ namespace XCode.DataAccessLayer
                 //if (reader.NodeType == XmlNodeType.EndElement) reader.ReadEndElement();
             }
             return list;
-
-            //XmlReaderX reader = new XmlReaderX(xml);
-            ////XmlSerializer serial = new XmlSerializer(typeof(List<XTable>));
-            ////List<XTable> ts = serial.Deserialize(reader.Stream) as List<XTable>;
-
-            //reader.Settings.MemberAsAttribute = true;
-            //List<XTable> list = reader.ReadObject(typeof(List<XTable>)) as List<XTable>;
-            //if (list == null || list.Count < 1) return null;
-
-            //List<IDataTable> dts = new List<IDataTable>();
-            //// 修正字段中的Table引用
-            //foreach (XTable item in list)
-            //{
-            //    if (item.Columns == null || item.Columns.Count < 1) continue;
-
-            //    List<IDataColumn> fs = new List<IDataColumn>();
-            //    foreach (IDataColumn field in item.Columns)
-            //    {
-            //        //fs.Add(field.Clone(item));
-            //        item.Columns.Add(field.Clone(item));
-            //    }
-            //    //item.Columns = fs.ToArray();
-
-            //    dts.Add(item);
-            //}
-
-            //return dts;
         }
         #endregion
 

@@ -43,7 +43,7 @@ namespace XCode.Test
         [DisplayName("主键二")]
         [Description("主键二")]
         [DataObjectField(true, false, false, 16)]
-        [BindColumn(2, "guid2", "主键二", null, "char(16)", 0, 0, false)]
+        [BindColumn(2, "guid2", "主键二", "newid()", "char(16)", 0, 0, false)]
         public String Guid2
         {
             get { return _Guid2; }
@@ -265,9 +265,9 @@ namespace XCode.Test
             get { return _Description; }
             set { if (OnPropertyChanging("Description", value)) { _Description = value; OnPropertyChanged("Description"); } }
         }
-		#endregion
+        #endregion
 
-        #region 获取/设置 字段值
+#region 获取/设置 字段值
         /// <summary>
         /// 获取/设置 字段值。
         /// 一个索引，基类使用反射实现。
@@ -332,9 +332,9 @@ namespace XCode.Test
                 }
             }
         }
-        #endregion
+#endregion
 
-        #region 字段名
+#region 字段名
         /// <summary>取得实体测试字段信息的快捷方式</summary>
         public class _
         {
@@ -398,13 +398,13 @@ namespace XCode.Test
             ///<summary>说明</summary>
             public static readonly Field Description = Meta.Table.FindByName("Description");
         }
-        #endregion
+#endregion
     }
 
     /// <summary>实体测试接口</summary>
     public partial interface IEntityTest
     {
-        #region 属性
+#region 属性
         /// <summary>主键一</summary>
         Guid Guid { get; set; }
 
@@ -464,14 +464,14 @@ namespace XCode.Test
 
         /// <summary>说明</summary>
         String Description { get; set; }
-        #endregion
+#endregion
 
-        #region 获取/设置 字段值
+#region 获取/设置 字段值
         /// <summary>获取/设置 字段值。</summary>
         /// <param name="name">字段名</param>
         /// <returns></returns>
         Object this[String name] { get; set; }
-        #endregion
+#endregion
     }
 }
 #endif
