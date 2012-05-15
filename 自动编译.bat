@@ -31,9 +31,12 @@ popd
 :: 3，编译所有组件
 ::"D:\MS\Microsoft Visual Studio 10.0\Common7\IDE\devenv.exe" X组件.sln /Build Release
 set vs="D:\MS\Microsoft Visual Studio 10.0\Common7\IDE\devenv.com"
-for %%i in (NewLife.Core XCode NewLife.CommonEntity NewLife.Mvc NewLife.Net XAgent XControl XTemplate XCoder) do (
+for %%i in (NewLife.Core XCode NewLife.CommonEntity NewLife.Mvc NewLife.Net XAgent XControl XTemplate) do (
 	%vs% X组件.sln /Build Release /Project %%i
 	%vs% X组件.sln /Build Net4Release /Project %%i
+)
+for %%i in (XCoder) do (
+	%vs% X组件.sln /Build Release /Project %%i
 )
 
 :: 4，拷贝DLL
