@@ -100,6 +100,8 @@ namespace XCode.DataAccessLayer.Model
         public virtual String GetAlias(IDataColumn dc)
         {
             var name = dc.Name;
+            // 对于自增字段，如果强制使用ID，并且字段名以ID结尾，则直接取用ID
+            if (dc.Identity && UseID && name.EndsWith("ID", StringComparison.OrdinalIgnoreCase)) return "ID";
 
             #region 先去掉表前缀
             var dt = dc.Table;
