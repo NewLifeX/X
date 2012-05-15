@@ -280,6 +280,14 @@ namespace NewLife.Model
 
             if (excludeTypes == null) excludeTypes = Type.EmptyTypes;
 
+            // 如果存在已注册项，并且优先级大于0，那么这里就不要注册了
+            var dic = Find(from, false);
+            if (dic != null)
+            {
+                var map = FindMap(dic, null, false) as Map;
+                if (map != null && map.Priority > 0) return this;
+            }
+
             // 遍历所有程序集，自动加载
             foreach (var item in AssemblyX.FindAllPlugins(from, true))
             {
@@ -296,7 +304,6 @@ namespace NewLife.Model
             // 如果没有注册任何实现，则默认注册第一个排除类型
             if (excludeTypes.Length > 0)
             {
-                var dic = Find(from, false);
                 if (dic == null)
                 {
                     Register(from, excludeTypes[0], null);

@@ -6,9 +6,9 @@ using Microsoft.CSharp;
 using System.Linq;
 #else
 using NewLife.Linq;
+#endif
 using XCode.Model;
 using NewLife.Reflection;
-#endif
 
 namespace XCode.DataAccessLayer.Model
 {
@@ -84,18 +84,17 @@ namespace XCode.DataAccessLayer.Model
         public virtual String GetAlias(IDataColumn dc)
         {
             var name = GetAlias(dc.Name);
-            var df = dc as XField;
-            if (df != null && dc.Table != null)
+            if (dc.Table != null)
             {
                 var lastname = name;
                 var index = 0;
                 var cs = dc.Table.Columns;
                 for (int i = 0; i < cs.Count; i++)
                 {
-                    var item = cs[i] as XField;
+                    var item = cs[i];
                     if (item != dc && item.Name != dc.Name)
                     {
-                        if (lastname.EqualIgnoreCase(item._Alias))
+                        if (lastname.EqualIgnoreCase(item.Alias))
                         {
                             lastname = name + ++index;
                             // 从头开始
