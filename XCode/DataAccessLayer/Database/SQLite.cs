@@ -103,6 +103,9 @@ namespace XCode.DataAccessLayer
         /// <summary>最小时间</summary>
         public override DateTime DateTimeMin { get { return DateTime.MinValue; } }
 
+        /// <summary>获取Guid的函数，@老树 说SQLite没有这个函数</summary>
+        public override String NewGuid { get { return null; } }
+
         /// <summary>格式化时间为SQL字符串</summary>
         /// <param name="dateTime">时间值</param>
         /// <returns></returns>
