@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Xml;
 using System.Xml.Serialization;
+using XCode.DataAccessLayer.Model;
 
 namespace XCode.DataAccessLayer
 {
@@ -36,7 +37,7 @@ namespace XCode.DataAccessLayer
         [XmlAttribute]
         [DisplayName("别名")]
         [Description("别名")]
-        public String Alias { get { return _Alias ?? (_Alias = ModelHelper.GetAlias(Name)); } set { _Alias = value; } }
+        public String Alias { get { return _Alias ?? (_Alias = NameResolver.Current.GetAlias(Name)); } set { _Alias = value; } }
 
         private String _Description;
         /// <summary>表说明</summary>
@@ -118,7 +119,7 @@ namespace XCode.DataAccessLayer
 
         /// <summary>显示名。如果有Description则使用Description，否则使用Name</summary>
         [XmlIgnore]
-        public String DisplayName { get { return ModelHelper.GetDisplayName(Alias ?? Name, Description); } }
+        public String DisplayName { get { return NameResolver.Current.GetDisplayName(Alias ?? Name, Description); } }
         #endregion
 
         #region 构造

@@ -143,6 +143,7 @@
     <Compile Include="DataAccessLayer\MetaData\DbMetaData_Positive.cs">
       <DependentUpon>DbMetaData.cs</DependentUpon>
     </Compile>
+    <Compile Include="DataAccessLayer\Model\INameResolver.cs" />
     <Compile Include="DataAccessLayer\Model\ModelHelper.cs" />
     <Compile Include="DataAccessLayer\Model\IDataColumn.cs" />
     <Compile Include="DataAccessLayer\Model\IDataRelation.cs" />

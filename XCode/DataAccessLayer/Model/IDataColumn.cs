@@ -64,6 +64,10 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 方法
+        /// <summary>重新计算修正别名。避免与其它字段名或表名相同，避免关键字</summary>
+        /// <returns></returns>
+        IDataColumn FixAlias();
+
         /// <summary>克隆到指定的数据表</summary>
         /// <param name="table"></param>
         IDataColumn Clone(IDataTable table);

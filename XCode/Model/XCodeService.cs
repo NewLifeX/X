@@ -3,6 +3,7 @@ using NewLife.Model;
 using NewLife.Reflection;
 using XCode.Accessors;
 using XCode.DataAccessLayer;
+using XCode.DataAccessLayer.Model;
 
 namespace XCode.Model
 {
@@ -11,10 +12,11 @@ namespace XCode.Model
     {
         static XCodeService()
         {
-            IObjectContainer container = Container;
+            var container = Container;
             container.Register<IDataTable, XTable>()
-                .Register<IDataRowEntityAccessorProvider>(new DataRowEntityAccessorProvider())
-                .Register<IEntityPersistence>(new EntityPersistence());
+                .AutoRegister<IDataRowEntityAccessorProvider, DataRowEntityAccessorProvider>()
+                .AutoRegister<IEntityPersistence, EntityPersistence>()
+                .AutoRegister<INameResolver, NameResolver>();
 
             DbFactory.Reg(container);
 

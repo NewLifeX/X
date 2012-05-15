@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Xml;
 using System.Xml.Serialization;
 using NewLife.Reflection;
+using XCode.DataAccessLayer.Model;
 
 namespace XCode.DataAccessLayer
 {
@@ -33,7 +34,7 @@ namespace XCode.DataAccessLayer
         [XmlAttribute]
         [DisplayName("别名")]
         [Description("别名")]
-        public String Alias { get { return _Alias ?? (_Alias = ModelHelper.GetAlias(this)); } set { _Alias = value; } }
+        public String Alias { get { return _Alias; } set { _Alias = value; } }
 
         private Type _DataType;
         /// <summary>数据类型</summary>
@@ -146,7 +147,7 @@ namespace XCode.DataAccessLayer
 
         /// <summary>显示名。如果有Description则使用Description，否则使用Name</summary>
         [XmlIgnore]
-        public String DisplayName { get { return ModelHelper.GetDisplayName(Alias ?? Name, Description); } }
+        public String DisplayName { get { return NameResolver.Current.GetDisplayName(Alias ?? Name, Description); } }
         #endregion
 
         #region 构造
@@ -166,6 +167,14 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 方法
+        /// <summary>重新计算修正别名。避免与其它字段名或表名相同，避免关键字</summary>
+        /// <returns></returns>
+        public IDataColumn FixAlias()
+        {
+            _Alias = NameResolver.Current.GetAlias(this);
+            return this;
+        }
+
         /// <summary>已重载。</summary>
         /// <returns></returns>
         public override string ToString()
@@ -189,6 +198,7 @@ namespace XCode.DataAccessLayer
         {
             var field = base.MemberwiseClone() as XField;
             field.Table = table;
+            field.FixAlias();
             return field;
         }
         #endregion
