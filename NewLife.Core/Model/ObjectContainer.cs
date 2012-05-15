@@ -11,7 +11,7 @@ namespace NewLife.Model
     /// <remarks>
     /// 1，如果容器里面没有这个类型，则返回空；
     /// 2，如果容器里面包含这个类型，<see cref="ResolveInstance"/>返回单例；
-    /// 3，如果容器里面包含这个类型，<see cref="Resolve"/>创建对象返回多实例；
+    /// 3，如果容器里面包含这个类型，<see cref="Resolve(Type, Object, Boolean)"/>创建对象返回多实例；
     /// 4，如果有带参数构造函数，则从容器内获取各个参数的实例，最后创建对象返回。
     /// 
     /// 这里有一点跟大多数对象容器非常不同，其它对象容器会控制对象的生命周期，在对象不再使用时收回到容器里面。
@@ -269,7 +269,8 @@ namespace NewLife.Model
         /// <returns></returns>
         public virtual IObjectContainer Register<TInterface>(Object instance, Object id = null, Int32 priority = 0) { return Register(typeof(TInterface), null, instance, id, priority); }
 
-        /// <summary>遍历所有程序集的所有类型，自动注册实现了指定接口或基类的类型</summary>
+        /// <summary>遍历所有程序集的所有类型，自动注册实现了指定接口或基类的类型。如果没有注册任何实现，则默认注册第一个排除类型</summary>
+        /// <remarks>自动注册一般用于单实例功能扩展型接口</remarks>
         /// <param name="from">接口或基类</param>
         /// <param name="excludeTypes">要排除的类型，一般是内部默认实现</param>
         /// <returns></returns>
@@ -288,12 +289,29 @@ namespace NewLife.Model
 
                     // 自动注册的优先级是1，高于默认的0
                     Register(from, item, null, null, 1);
-                    break;
+                    return this;
+                }
+            }
+
+            // 如果没有注册任何实现，则默认注册第一个排除类型
+            if (excludeTypes.Length > 0)
+            {
+                var dic = Find(from, false);
+                if (dic == null)
+                {
+                    Register(from, excludeTypes[0], null);
                 }
             }
 
             return this;
         }
+
+        /// <summary>遍历所有程序集的所有类型，自动注册实现了指定接口或基类的类型。如果没有注册任何实现，则默认注册第一个排除类型</summary>
+        /// <remarks>自动注册一般用于单实例功能扩展型接口</remarks>
+        /// <typeparam name="TInterface">接口类型</typeparam>
+        /// <typeparam name="TImplement">要排除的类型，一般是内部默认实现</typeparam>
+        /// <returns></returns>
+        public virtual IObjectContainer AutoRegister<TInterface, TImplement>() { return AutoRegister(typeof(TInterface), typeof(TImplement)); }
         #endregion
 
         #region 解析

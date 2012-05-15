@@ -47,11 +47,19 @@ namespace NewLife.Model
         /// <summary>注册后事件</summary>
         event EventHandler<EventArgs<Type, IObjectMap>> OnRegistered;
 
-        /// <summary>遍历所有程序集的所有类型，自动注册实现了指定接口或基类的类型</summary>
+        /// <summary>遍历所有程序集的所有类型，自动注册实现了指定接口或基类的类型。如果没有注册任何实现，则默认注册第一个排除类型</summary>
+        /// <remarks>自动注册一般用于单实例功能扩展型接口</remarks>
         /// <param name="from">接口或基类</param>
         /// <param name="excludeTypes">要排除的类型，一般是内部默认实现</param>
         /// <returns></returns>
         IObjectContainer AutoRegister(Type from, params Type[] excludeTypes);
+
+        /// <summary>遍历所有程序集的所有类型，自动注册实现了指定接口或基类的类型。如果没有注册任何实现，则默认注册第一个排除类型</summary>
+        /// <remarks>自动注册一般用于单实例功能扩展型接口</remarks>
+        /// <typeparam name="TInterface">接口类型</typeparam>
+        /// <typeparam name="TImplement">要排除的类型，一般是内部默认实现</typeparam>
+        /// <returns></returns>
+        IObjectContainer AutoRegister<TInterface, TImplement>();
         #endregion
 
         #region 解析
