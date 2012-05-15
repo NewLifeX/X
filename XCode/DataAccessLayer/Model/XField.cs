@@ -29,12 +29,25 @@ namespace XCode.DataAccessLayer
         [Description("名称")]
         public String Name { get { return _Name; } set { _Name = value; _Alias = null; } }
 
-        internal String _Alias;
+        private String _Alias;
         /// <summary>别名</summary>
         [XmlAttribute]
         [DisplayName("别名")]
         [Description("别名")]
-        public String Alias { get { return _Alias; } set { _Alias = value; } }
+        public String Alias
+        {
+            get
+            {
+                if (!String.IsNullOrEmpty(_Alias)) return _Alias;
+
+                //!! 先赋值，非常重要。后面GetAlias时会用到其它列的别名，然后可能形成死循环。先赋值之后，下一次来到这里时将直接返回。
+                _Alias = Name;
+                _Alias = ModelResolver.Current.GetAlias(this);
+
+                return _Alias;
+            }
+            set { _Alias = value; }
+        }
 
         private Type _DataType;
         /// <summary>数据类型</summary>
@@ -171,7 +184,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public IDataColumn Fix()
         {
-            _Alias = ModelResolver.Current.GetAlias(this);
+            //_Alias = ModelResolver.Current.GetAlias(this);
             return ModelResolver.Current.Fix(this);
         }
 
@@ -179,7 +192,10 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public override string ToString()
         {
-            return String.Format("ID={0} Name={1} FieldType={2} RawType={3} Description={4}", ID, Name, FieldType, RawType, Description);
+            if (!String.IsNullOrEmpty(Description))
+                return String.Format("ID={0} Name={1} FieldType={2} RawType={3} Description={4}", ID, Name, FieldType, RawType, Description);
+            else
+                return String.Format("ID={0} Name={1} FieldType={2} RawType={3}", ID, Name, FieldType, RawType);
         }
         #endregion
 

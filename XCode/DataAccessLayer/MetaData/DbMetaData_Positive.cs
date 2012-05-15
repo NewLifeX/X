@@ -144,10 +144,10 @@ namespace XCode.DataAccessLayer
                     // 字段的获取可能有异常，但不应该影响整体架构的获取
                     try
                     {
-                        List<IDataColumn> columns = GetFields(table);
+                        var columns = GetFields(table);
                         if (columns != null && columns.Count > 0) table.Columns.AddRange(columns);
 
-                        List<IDataIndex> indexes = GetIndexes(table);
+                        var indexes = GetIndexes(table);
                         if (indexes != null && indexes.Count > 0) table.Indexes.AddRange(indexes);
 
                         // 先修正一次关系数据
@@ -166,16 +166,16 @@ namespace XCode.DataAccessLayer
 
                 #region 表间关系处理
                 // 某字段名，为另一个表的（表名+单主键名）形式时，作为关联字段处理
-                foreach (IDataTable table in list)
+                foreach (var table in list)
                 {
-                    foreach (IDataTable rtable in list)
+                    foreach (var rtable in list)
                     {
                         if (table != rtable) table.Connect(rtable);
                     }
                 }
 
                 // 因为可能修改了表间关系，再修正一次
-                foreach (IDataTable table in list)
+                foreach (var table in list)
                 {
                     table.Fix();
                 }
@@ -227,12 +227,12 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         protected virtual List<IDataColumn> GetFields(IDataTable table, DataRow[] rows)
         {
-            List<IDataColumn> list = new List<IDataColumn>();
+            var list = new List<IDataColumn>();
             // 开始序号
             Int32 startIndex = 0;
-            foreach (DataRow dr in rows)
+            foreach (var dr in rows)
             {
-                IDataColumn field = table.CreateColumn();
+                var field = table.CreateColumn();
 
                 // 序号
                 Int32 n = 0;
@@ -324,6 +324,7 @@ namespace XCode.DataAccessLayer
                 // 检查是否已正确识别类型
                 if (field.DataType == null) WriteLog("无法识别{0}.{1}的类型{2}！", table.Name, field.Name, field.RawType);
 
+                field.Fix();
                 list.Add(field);
             }
 

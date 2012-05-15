@@ -535,7 +535,7 @@ namespace XCode.DataAccessLayer.Model
 
         #region 设置
         private static Boolean? _UseID;
-        /// <summary>是否ID作为id的格式化，否则使用Id。默认使用ID</summary>
+        /// <summary>是否ID作为id的格式化，否则使用原名。默认使用ID</summary>
         public static Boolean UseID { get { return _UseID != null ? _UseID.Value : (_UseID = Config.GetConfig<Boolean>("XCode.Model.UseID", true)).Value; } set { _UseID = value; } }
 
         private static String[] _FilterPrefixs;

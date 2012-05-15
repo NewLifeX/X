@@ -43,7 +43,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test6();
+                    Test7();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -330,6 +330,21 @@ namespace Test
             ms.Position = 0;
             var rs = Message.Read(ms, kind);
             Console.WriteLine(rs);
+        }
+
+        static void Test7()
+        {
+            var dal = DAL.Create("Common");
+            //foreach (var dt in dal.Tables)
+            //{
+            //    Console.WriteLine("Table:{0}", dt);
+            //    foreach (var dc in dt.Columns)
+            //    {
+            //        Console.WriteLine("{0} ", dc);
+            //    }
+            //}
+            var xml = dal.Export();
+            Console.WriteLine(xml);
         }
     }
 }

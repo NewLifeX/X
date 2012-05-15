@@ -298,16 +298,16 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public static String Export(List<IDataTable> tables)
         {
-            MemoryStream ms = new MemoryStream();
+            var ms = new MemoryStream();
 
-            XmlWriterSettings settings = new XmlWriterSettings();
-            settings.Encoding = Encoding.UTF8;
+            var settings = new XmlWriterSettings();
+            settings.Encoding = new UTF8Encoding(false);
             settings.Indent = true;
 
-            XmlWriter writer = XmlWriter.Create(ms, settings);
+            var writer = XmlWriter.Create(ms, settings);
             writer.WriteStartDocument();
             writer.WriteStartElement("Tables");
-            foreach (IDataTable item in tables)
+            foreach (var item in tables)
             {
                 writer.WriteStartElement("Table");
                 (item as IXmlSerializable).WriteXml(writer);
