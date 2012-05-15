@@ -9,6 +9,7 @@ using NewLife.Linq;
 #endif
 using XCode.Model;
 using NewLife.Reflection;
+using NewLife.Configuration;
 
 namespace XCode.DataAccessLayer.Model
 {
@@ -142,17 +143,17 @@ namespace XCode.DataAccessLayer.Model
                 if (!IsKeyWord(str)) name = str;
             }
 
-            String[] ss = new String[] { "tbl", "table" };
-            foreach (String s in ss)
+            //String[] ss = new String[] { "tbl", "table" };
+            foreach (var s in FilterPrefixs)
             {
                 if (name.StartsWith(s))
                 {
-                    String str = name.Substring(s.Length);
+                    var str = name.Substring(s.Length);
                     if (!IsKeyWord(str)) name = str;
                 }
                 else if (name.EndsWith(s))
                 {
-                    String str = name.Substring(0, name.Length - s.Length);
+                    var str = name.Substring(0, name.Length - s.Length);
                     if (!IsKeyWord(str)) name = str;
                 }
             }
@@ -167,7 +168,7 @@ namespace XCode.DataAccessLayer.Model
         {
             if (String.IsNullOrEmpty(name)) return null;
 
-            if (name.Equals("ID", StringComparison.OrdinalIgnoreCase)) return "ID";
+            if (UseID && name.Equals("ID", StringComparison.OrdinalIgnoreCase)) return "ID";
 
             if (name.Length <= 2) return name;
 
@@ -338,78 +339,14 @@ namespace XCode.DataAccessLayer.Model
         /// <param name="table"></param>
         public virtual IDataTable Fix(IDataTable table)
         {
-            #region 根据单字段索引修正对应的关系
-            // 给所有单字段索引建立关系，特别是一对一关系
-            foreach (IDataIndex item in table.Indexes)
-            {
-                if (item.Columns == null || item.Columns.Length != 1) continue;
+            // 根据单字段索引修正对应的关系
+            FixRelationBySingleIndex(table);
 
-                IDataRelation dr = table.GetRelation(item.Columns[0]);
-                if (dr == null) continue;
+            // 给所有关系字段建立索引
+            CreateIndexForRelation(table);
 
-                dr.Unique = item.Unique;
-                // 跟关系有关联的索引
-                dr.Computed = item.Computed;
-            }
-            #endregion
-
-            #region 给所有关系字段建立索引
-            foreach (IDataRelation dr in table.Relations)
-            {
-                // 跳过主键
-                IDataColumn dc = table.GetColumn(dr.Column);
-                if (dc == null || dc.PrimaryKey) continue;
-
-                if (table.GetIndex(dr.Column) == null)
-                {
-                    IDataIndex di = table.CreateIndex();
-                    di.Columns = new String[] { dr.Column };
-                    // 这两个的关系，唯一性
-                    di.Unique = dr.Unique;
-                    di.Computed = true;
-                    table.Indexes.Add(di);
-                }
-            }
-            #endregion
-
-            #region 从索引中修正主键
-            IDataColumn[] pks = table.PrimaryKeys;
-            if (pks == null || pks.Length < 1)
-            {
-                // 在索引中找唯一索引作为主键
-                foreach (IDataIndex item in table.Indexes)
-                {
-                    if (!item.PrimaryKey || item.Columns == null || item.Columns.Length < 1) continue;
-
-                    pks = table.GetColumns(item.Columns);
-                    if (pks != null && pks.Length > 0) Array.ForEach<IDataColumn>(pks, dc => dc.PrimaryKey = true);
-                }
-            }
-            pks = table.PrimaryKeys;
-            if (pks == null || pks.Length < 1)
-            {
-                // 在索引中找唯一索引作为主键
-                foreach (IDataIndex item in table.Indexes)
-                {
-                    if (!item.Unique || item.Columns == null || item.Columns.Length < 1) continue;
-
-                    pks = table.GetColumns(item.Columns);
-                    if (pks != null && pks.Length > 0) Array.ForEach<IDataColumn>(pks, dc => dc.PrimaryKey = true);
-                }
-            }
-            pks = table.PrimaryKeys;
-            if (pks == null || pks.Length < 1)
-            {
-                // 如果还没有主键，把第一个索引作为主键
-                foreach (IDataIndex item in table.Indexes)
-                {
-                    if (item.Columns == null || item.Columns.Length < 1) continue;
-
-                    pks = table.GetColumns(item.Columns);
-                    if (pks != null && pks.Length > 0) Array.ForEach<IDataColumn>(pks, dc => dc.PrimaryKey = true);
-                }
-            }
-            #endregion
+            // 从索引中修正主键
+            FixPrimaryByIndex(table);
 
             #region 最后修复主键
             if (table.PrimaryKeys.Length < 1)
@@ -430,37 +367,11 @@ namespace XCode.DataAccessLayer.Model
             }
             #endregion
 
-            #region 给非主键的自增字段建立唯一索引
-            foreach (var dc in table.Columns)
-            {
-                if (dc.Identity && !dc.PrimaryKey)
-                {
-                    var di = table.GetIndex(dc.Name);
-                    if (di == null)
-                    {
-                        di = table.CreateIndex();
-                        di.Columns = new String[] { dc.Name };
-                        di.Computed = true;
-                    }
-                    // 不管是不是原来有的索引，都要唯一
-                    di.Unique = true;
-                }
-            }
-            #endregion
+            // 给非主键的自增字段建立唯一索引
+            CreateUniqueIndexForIdentity(table);
 
-            #region 索引应该具有跟字段一样的唯一和主键约束
-            // 主要针对MSSQL2000
-            foreach (var di in table.Indexes)
-            {
-                if (di.Columns == null) continue;
-
-                var dcs = table.GetColumns(di.Columns);
-                if (dcs == null || dcs.Length <= 0) continue;
-
-                if (!di.Unique) di.Unique = dcs.All(dc => dc.Identity);
-                if (!di.PrimaryKey) di.PrimaryKey = dcs.All(dc => dc.PrimaryKey);
-            }
-            #endregion
+            // 索引应该具有跟字段一样的唯一和主键约束
+            FixIndex(table);
 
             #region 修正可能错误的别名
             var ns = new List<String>();
@@ -472,7 +383,7 @@ namespace XCode.DataAccessLayer.Model
                     // 通过加数字的方式，解决关键字问题
                     for (int i = 2; i < table.Columns.Count; i++)
                     {
-                        String name = item.Alias + i;
+                        var name = item.Alias + i;
                         // 加了数字后，不可能是关键字
                         if (!ns.Contains(name))
                         {
@@ -489,6 +400,126 @@ namespace XCode.DataAccessLayer.Model
             return table;
         }
 
+        /// <summary>根据单字段索引修正对应的关系</summary>
+        /// <param name="table"></param>
+        protected virtual void FixRelationBySingleIndex(IDataTable table)
+        {
+            // 给所有单字段索引建立关系，特别是一对一关系
+            foreach (var item in table.Indexes)
+            {
+                if (item.Columns == null || item.Columns.Length != 1) continue;
+
+                var dr = table.GetRelation(item.Columns[0]);
+                if (dr == null) continue;
+
+                dr.Unique = item.Unique;
+                // 跟关系有关联的索引
+                dr.Computed = item.Computed;
+            }
+        }
+
+        /// <summary>给所有关系字段建立索引</summary>
+        /// <param name="table"></param>
+        protected virtual void CreateIndexForRelation(IDataTable table)
+        {
+            foreach (var dr in table.Relations)
+            {
+                // 跳过主键
+                var dc = table.GetColumn(dr.Column);
+                if (dc == null || dc.PrimaryKey) continue;
+
+                if (table.GetIndex(dr.Column) == null)
+                {
+                    var di = table.CreateIndex();
+                    di.Columns = new String[] { dr.Column };
+                    // 这两个的关系，唯一性
+                    di.Unique = dr.Unique;
+                    di.Computed = true;
+                    table.Indexes.Add(di);
+                }
+            }
+        }
+
+        /// <summary>从索引中修正主键</summary>
+        /// <param name="table"></param>
+        protected virtual void FixPrimaryByIndex(IDataTable table)
+        {
+            var pks = table.PrimaryKeys;
+            if (pks == null || pks.Length < 1)
+            {
+                // 在索引中找唯一索引作为主键
+                foreach (var item in table.Indexes)
+                {
+                    if (!item.PrimaryKey || item.Columns == null || item.Columns.Length < 1) continue;
+
+                    pks = table.GetColumns(item.Columns);
+                    if (pks != null && pks.Length > 0) Array.ForEach<IDataColumn>(pks, dc => dc.PrimaryKey = true);
+                }
+            }
+            pks = table.PrimaryKeys;
+            if (pks == null || pks.Length < 1)
+            {
+                // 在索引中找唯一索引作为主键
+                foreach (var item in table.Indexes)
+                {
+                    if (!item.Unique || item.Columns == null || item.Columns.Length < 1) continue;
+
+                    pks = table.GetColumns(item.Columns);
+                    if (pks != null && pks.Length > 0) Array.ForEach<IDataColumn>(pks, dc => dc.PrimaryKey = true);
+                }
+            }
+            pks = table.PrimaryKeys;
+            if (pks == null || pks.Length < 1)
+            {
+                // 如果还没有主键，把第一个索引作为主键
+                foreach (var item in table.Indexes)
+                {
+                    if (item.Columns == null || item.Columns.Length < 1) continue;
+
+                    pks = table.GetColumns(item.Columns);
+                    if (pks != null && pks.Length > 0) Array.ForEach<IDataColumn>(pks, dc => dc.PrimaryKey = true);
+                }
+            }
+        }
+
+        /// <summary>给非主键的自增字段建立唯一索引</summary>
+        /// <param name="table"></param>
+        protected virtual void CreateUniqueIndexForIdentity(IDataTable table)
+        {
+            foreach (var dc in table.Columns)
+            {
+                if (dc.Identity && !dc.PrimaryKey)
+                {
+                    var di = table.GetIndex(dc.Name);
+                    if (di == null)
+                    {
+                        di = table.CreateIndex();
+                        di.Columns = new String[] { dc.Name };
+                        di.Computed = true;
+                    }
+                    // 不管是不是原来有的索引，都要唯一
+                    di.Unique = true;
+                }
+            }
+        }
+
+        /// <summary>索引应该具有跟字段一样的唯一和主键约束</summary>
+        /// <param name="table"></param>
+        protected virtual void FixIndex(IDataTable table)
+        {
+            // 主要针对MSSQL2000
+            foreach (var di in table.Indexes)
+            {
+                if (di.Columns == null) continue;
+
+                var dcs = table.GetColumns(di.Columns);
+                if (dcs == null || dcs.Length <= 0) continue;
+
+                if (!di.Unique) di.Unique = dcs.All(dc => dc.Identity);
+                if (!di.PrimaryKey) di.PrimaryKey = dcs.All(dc => dc.PrimaryKey);
+            }
+        }
+
         /// <summary>修正数据列</summary>
         /// <param name="column"></param>
         public virtual IDataColumn Fix(IDataColumn column)
@@ -500,6 +531,16 @@ namespace XCode.DataAccessLayer.Model
         #region 静态实例
         /// <summary>当前名称解析器</summary>
         public static IModelResolver Current { get { return XCodeService.ResolveInstance<IModelResolver>(); } }
+        #endregion
+
+        #region 设置
+        private static Boolean? _UseID;
+        /// <summary>是否ID作为id的格式化，否则使用Id。默认使用ID</summary>
+        public static Boolean UseID { get { return _UseID != null ? _UseID.Value : (_UseID = Config.GetConfig<Boolean>("XCode.Model.UseID", true)).Value; } set { _UseID = value; } }
+
+        private static String[] _FilterPrefixs;
+        /// <summary>要过滤的前缀</summary>
+        public static String[] FilterPrefixs { get { return _FilterPrefixs ?? (_FilterPrefixs = Config.GetConfigSplit<String>("XCode.Model.FilterPrefixs", null, new String[] { "tbl", "table" })); } set { _FilterPrefixs = value; } }
         #endregion
     }
 }
