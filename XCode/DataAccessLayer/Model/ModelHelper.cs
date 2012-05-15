@@ -6,8 +6,8 @@ using Microsoft.CSharp;
 using System.Linq;
 #else
 using NewLife.Linq;
-using XCode.DataAccessLayer.Model;
 #endif
+using XCode.DataAccessLayer.Model;
 
 namespace XCode.DataAccessLayer
 {
@@ -226,6 +226,25 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 辅助
+        /// <summary>表间连接，猜测关系</summary>
+        /// <param name="tables"></param>
+        public static void Connect(IEnumerable<IDataTable> tables)
+        {
+            // 某字段名，为另一个表的（表名+单主键名）形式时，作为关联字段处理
+            foreach (var table in tables)
+            {
+                foreach (var rtable in tables)
+                {
+                    if (table != rtable) table.Connect(rtable);
+                }
+            }
+
+            // 因为可能修改了表间关系，再修正一次
+            foreach (var table in tables)
+            {
+                table.Fix();
+            }
+        }
         #endregion
     }
 }

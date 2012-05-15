@@ -22,6 +22,7 @@ foreach(IDataTable table in Tables){
   <tr align="center" valign="middle" class="caption">
     <td width="150">中文名</td>
     <td width="150">英文名</td>
+    <td width="150">字段名</td>
     <td width="75">数据类型</td>
     <td width="75">大小</td>
     <td width="75">是否主键</td>
@@ -34,6 +35,7 @@ foreach(IDataTable table in Tables){
   #>
   <tr class="dbbody">
     <td><#=Field.Description#></td>
+    <td><#=Field.Alias#></td>
     <td><#=Field.Name#></td>
     <td><#=Field.DataType.Name#></td>
     <td><#=Field.Length#></td>

@@ -456,7 +456,7 @@ namespace XCoder
             checkBox1.Checked = Config.AutoCutPrefix;
             checkBox2.Checked = Config.AutoFixWord;
             checkBox3.Checked = Config.UseCNFileName;
-            cbUseId.Checked = Config.UseId;
+            cbUseId.Checked = Config.UseID;
             checkBox5.Checked = Config.UseHeadTemplate;
             richTextBox2.Text = Config.HeadTemplate;
             checkBox4.Checked = Config.Debug;
@@ -475,7 +475,7 @@ namespace XCoder
             Config.AutoCutPrefix = checkBox1.Checked;
             Config.AutoFixWord = checkBox2.Checked;
             Config.UseCNFileName = checkBox3.Checked;
-            Config.UseId = cbUseId.Checked;
+            Config.UseID = cbUseId.Checked;
             Config.UseHeadTemplate = checkBox5.Checked;
             Config.HeadTemplate = richTextBox2.Text;
             Config.Debug = checkBox4.Checked;

@@ -10,6 +10,7 @@ using NewLife.Linq;
 using XCode.Model;
 using NewLife.Reflection;
 using NewLife.Configuration;
+using NewLife.Collections;
 
 namespace XCode.DataAccessLayer.Model
 {
@@ -73,6 +74,20 @@ namespace XCode.DataAccessLayer.Model
         /// <param name="column"></param>
         IDataColumn Fix(IDataColumn column);
         #endregion
+
+        #region 设置
+        /// <summary>是否ID作为id的格式化，否则使用原名。默认使用ID</summary>
+        Boolean UseID { get; set; }
+
+        /// <summary>是否自动去除前缀。默认启用</summary>
+        Boolean AutoCutPrefix { get; set; }
+
+        /// <summary>是否自动纠正大小写。默认启用</summary>
+        Boolean AutoFixWord { get; set; }
+
+        /// <summary>要过滤的前缀</summary>
+        String[] FilterPrefixs { get; set; }
+        #endregion
     }
 
     /// <summary>模型解析器。解决名称大小写、去前缀、关键字等多个问题</summary>
@@ -85,15 +100,45 @@ namespace XCode.DataAccessLayer.Model
         public virtual String GetAlias(IDataColumn dc)
         {
             var name = dc.Name;
-            // 先去掉表前缀
+
+            #region 先去掉表前缀
             var dt = dc.Table;
-            if (dt != null && CutTableNameOnColumn)
+            if (dt != null && AutoCutPrefix)
             {
-                if (name.StartsWith(dt.Name, StringComparison.OrdinalIgnoreCase))
-                    name = name.Substring(dt.Name.Length);
-                else if (name.StartsWith(dt.Alias, StringComparison.OrdinalIgnoreCase))
-                    name = name.Substring(dt.Alias.Length);
+                //if (name.StartsWith(dt.Name, StringComparison.OrdinalIgnoreCase))
+                //    name = name.Substring(dt.Name.Length);
+                //else if (name.StartsWith(dt.Alias, StringComparison.OrdinalIgnoreCase))
+                //    name = name.Substring(dt.Alias.Length);
+                var pfs = new HashSet<String>(StringComparer.OrdinalIgnoreCase);
+                pfs.Add(dt.Name);
+                // 如果包括下划线，再分割
+                if (dt.Name.Contains("_"))
+                {
+                    foreach (var item in dt.Name.Split('_'))
+                    {
+                        if (item != null && item.Length >= 2 && !pfs.Contains(item)) pfs.Add(item);
+                    }
+                }
+                if (!pfs.Contains(dt.Alias))
+                {
+                    pfs.Add(dt.Alias);
+                    // 如果包括下划线，再分割
+                    if (dt.Alias.Contains("_"))
+                    {
+                        foreach (var item in dt.Alias.Split('_'))
+                        {
+                            if (item != null && item.Length >= 2 && !pfs.Contains(item)) pfs.Add(item);
+                        }
+                    }
+                }
+
+                foreach (var item in pfs)
+                {
+                    if (name.StartsWith(item, StringComparison.OrdinalIgnoreCase)) name = name.Substring(item.Length);
+                }
+                if (name[0] == '_') name = name.Substring(1);
             }
+            #endregion
 
             name = GetAlias(name);
             if (dt != null)
@@ -106,7 +151,8 @@ namespace XCode.DataAccessLayer.Model
                     var item = cs[i];
                     if (item != dc && item.Name != dc.Name)
                     {
-                        if (lastname.EqualIgnoreCase(item.Alias))
+                        // 对于小于当前的采用别名，对于大于当前的，采用字段名，保证同名有优先级
+                        if (lastname.EqualIgnoreCase(item.ID < dc.ID ? item.Alias : item.Name))
                         {
                             lastname = name + ++index;
                             // 从头开始
@@ -133,9 +179,15 @@ namespace XCode.DataAccessLayer.Model
             name = name.Replace("）", null);
             name = name.Replace(" ", null);
             name = name.Replace("　", null);
+            if (name[0] == '_') name = name.Substring(1);
 
             // 很多时候，这个别名就是表名
-            return FixWord(CutPrefix(name));
+            //return FixWord(CutPrefix(name));
+            //if (AutoCutPrefix) name = CutPrefix(name);
+            name = CutPrefix(name);
+            if (AutoFixWord) name = FixWord(name);
+            if (name[0] == '_') name = name.Substring(1);
+            return name;
         }
 
         /// <summary>去除前缀。默认去除第一个_前面部分，去除tbl和table前缀</summary>
@@ -145,26 +197,29 @@ namespace XCode.DataAccessLayer.Model
         {
             if (String.IsNullOrEmpty(name)) return null;
 
-            // 自动去掉前缀
-            Int32 n = name.IndexOf("_");
-            // _后至少要有2个字母，并且后一个不能是_
-            if (n >= 0 && n < name.Length - 2 && name[n + 1] != '_')
-            {
-                String str = name.Substring(n + 1);
-                if (!IsKeyWord(str)) name = str;
-            }
-
-            //String[] ss = new String[] { "tbl", "table" };
+            var old = name;
             foreach (var s in FilterPrefixs)
             {
-                if (name.StartsWith(s))
+                if (name.StartsWith(s, StringComparison.OrdinalIgnoreCase))
                 {
                     var str = name.Substring(s.Length);
                     if (!IsKeyWord(str)) name = str;
                 }
-                else if (name.EndsWith(s))
+                else if (name.EndsWith(s, StringComparison.OrdinalIgnoreCase))
                 {
                     var str = name.Substring(0, name.Length - s.Length);
+                    if (!IsKeyWord(str)) name = str;
+                }
+            }
+
+            // 自动去掉前缀，如果上面有过滤，这里是不能去除的，否则可能过度
+            if (AutoCutPrefix && name == old)
+            {
+                Int32 n = name.IndexOf("_");
+                // _后至少要有2个字母，并且后一个不能是_
+                if (n >= 0 && n < name.Length - 2 && name[n + 1] != '_')
+                {
+                    String str = name.Substring(n + 1);
                     if (!IsKeyWord(str)) name = str;
                 }
             }
@@ -201,6 +256,15 @@ namespace XCode.DataAccessLayer.Model
                 Char c = name[0];
                 if (c >= 'a' && c <= 'z') c = (Char)(c - 'a' + 'A');
                 name = c + name.Substring(1);
+            }
+            else
+            {
+                Char c = name[0];
+                if (c >= 'a' && c <= 'z')
+                {
+                    c = (Char)(c - 'a' + 'A');
+                    name = c + name.Substring(1);
+                }
             }
 
             //处理Is开头的，第三个字母要大写
@@ -549,17 +613,21 @@ namespace XCode.DataAccessLayer.Model
         #endregion
 
         #region 设置
-        private static Boolean? _UseID;
+        private Boolean? _UseID;
         /// <summary>是否ID作为id的格式化，否则使用原名。默认使用ID</summary>
-        public static Boolean UseID { get { return _UseID != null ? _UseID.Value : (_UseID = Config.GetConfig<Boolean>("XCode.Model.UseID", true)).Value; } set { _UseID = value; } }
+        public Boolean UseID { get { return _UseID != null ? _UseID.Value : (_UseID = Config.GetConfig<Boolean>("XCode.Model.UseID", true)).Value; } set { _UseID = value; } }
 
-        private static Boolean? _CutTableNameOnColumn;
-        /// <summary>是否去除字段名前的表名。默认启用</summary>
-        public static Boolean CutTableNameOnColumn { get { return _CutTableNameOnColumn != null ? _CutTableNameOnColumn.Value : (_CutTableNameOnColumn = Config.GetConfig<Boolean>("XCode.Model.CutTableNameOnColumn", true)).Value; } set { _CutTableNameOnColumn = value; } }
+        private Boolean? _AutoCutPrefix;
+        /// <summary>是否自动去除前缀。默认启用</summary>
+        public Boolean AutoCutPrefix { get { return _AutoCutPrefix != null ? _AutoCutPrefix.Value : (_AutoCutPrefix = Config.GetConfig<Boolean>("XCode.Model.AutoCutPrefix", true)).Value; } set { _AutoCutPrefix = value; } }
 
-        private static String[] _FilterPrefixs;
+        private Boolean? _AutoFixWord;
+        /// <summary>是否自动纠正大小写。默认启用</summary>
+        public Boolean AutoFixWord { get { return _AutoFixWord != null ? _AutoFixWord.Value : (_AutoFixWord = Config.GetConfig<Boolean>("XCode.Model.AutoFixWord", true)).Value; } set { _AutoFixWord = value; } }
+
+        private String[] _FilterPrefixs;
         /// <summary>要过滤的前缀</summary>
-        public static String[] FilterPrefixs { get { return _FilterPrefixs ?? (_FilterPrefixs = Config.GetConfigSplit<String>("XCode.Model.FilterPrefixs", null, new String[] { "tbl", "table" })); } set { _FilterPrefixs = value; } }
+        public String[] FilterPrefixs { get { return _FilterPrefixs ?? (_FilterPrefixs = Config.GetConfigSplit<String>("XCode.Model.FilterPrefixs", null, new String[] { "tbl", "table" })); } set { _FilterPrefixs = value; } }
         #endregion
     }
 }

@@ -14,6 +14,8 @@ using XTemplate.Templating;
 using System.Linq;
 #else
 using NewLife.Linq;
+using XCode.DataAccessLayer.Model;
+using NewLife.Model;
 #endif
 
 namespace XCoder
@@ -85,7 +87,7 @@ namespace XCoder
             get
             {
                 // 不同的前缀、大小写选项，得到的表集合是不一样的。这里用字典来缓存
-                String key = String.Format("{0}_{1}_{2}_{3}", Config.AutoCutPrefix, Config.AutoFixWord, Config.Prefix, Config.UseId);
+                String key = String.Format("{0}_{1}_{2}_{3}", Config.AutoCutPrefix, Config.AutoFixWord, Config.Prefix, Config.UseID);
                 return _cache.GetItem(key, k => FixTable(_Tables));
                 //return _Tables;
             }
@@ -500,18 +502,19 @@ namespace XCoder
             var type = tables[0].GetType();
             var list = tables.Select(dt => (TypeX.CreateInstance(type) as IDataTable).CopyAllFrom(dt)).ToList();
 
-            Dictionary<Object, String> noCNDic = new Dictionary<object, string>();
-            List<string> existTrans = new List<string>();
+            var noCNDic = new Dictionary<object, string>();
+            var existTrans = new List<string>();
+
+            var mr = ObjectContainer.Current.Resolve<IModelResolver>();
+            mr.AutoCutPrefix = Config.AutoCutPrefix;
+            mr.AutoFixWord = Config.AutoFixWord;
+            mr.FilterPrefixs = Config.Prefix.Split(',', ';');
+            mr.UseID = Config.UseID;
 
             #region 修正数据
             foreach (var table in list)
             {
-                // 别名、类名
-                String name = table.Name;
-                if (IsKeyWord(name)) name += "1";
-                if (Config.AutoCutPrefix || !string.IsNullOrEmpty(Config.Prefix)) name = CutPrefix(name);
-                if (Config.AutoFixWord) name = FixWord(name);
-                table.Alias = name;
+                table.Alias = mr.GetAlias(table.Name);
 
                 if (String.IsNullOrEmpty(table.Description)) noCNDic.Add(table, table.Alias);
 
@@ -523,23 +526,7 @@ namespace XCoder
                 // 字段
                 foreach (var dc in table.Columns)
                 {
-                    name = dc.Name;
-                    if (Config.AutoCutPrefix || !string.IsNullOrEmpty(Config.Prefix))
-                    {
-                        String s = CutPrefix(name);
-                        if (dc.Table.Columns.Exists(item => item.Name == s)) name = s;
-                        String str = table.Alias;
-                        if (!s.Equals(str, StringComparison.OrdinalIgnoreCase) &&
-                            s.StartsWith(str, StringComparison.OrdinalIgnoreCase) &&
-                            s.Length > str.Length && Char.IsLetter(s, str.Length))
-                            s = s.Substring(str.Length);
-                        if (dc.Table.Columns.Exists(item => item.Name == s)) name = s;
-                    }
-                    if (Config.AutoFixWord) name = FixWord(name);
-
-                    if (Config.UseId && name.EqualIgnoreCase("ID")) name = "Id";
-
-                    dc.Alias = name;
+                    dc.Alias = mr.GetAlias(dc);
 
                     if (String.IsNullOrEmpty(dc.Description)) noCNDic.Add(dc, dc.Alias);
 
@@ -549,8 +536,10 @@ namespace XCoder
                     }
                 }
 
-                table.Fix();
+                //table.Fix();
             }
+
+            ModelHelper.Connect(list);
             #endregion
 
             #region 异步调用接口修正中文名
@@ -572,19 +561,7 @@ namespace XCoder
 
         void TranslateWords(Object state)
         {
-            Dictionary<Object, String> dic = state as Dictionary<Object, String>;
-            //List<String> words = new List<string>();
-            //foreach (String item in dic.Values)
-            //{
-            //    if (Encoding.UTF8.GetByteCount(item) != item.Length) continue;
-
-            //    // 分词
-            //    String str = item;
-            //    List<String> ks = UpperCaseSplitWord(str);
-            //    str = String.Join(" ", ks.ToArray());
-
-            //    if (!String.IsNullOrEmpty(str) && !words.Contains(str)) words.Add(str);
-            //}
+            var dic = state as Dictionary<Object, String>;
 
             //ITranslate trs = new BingTranslate();
             string[] words = new string[dic.Values.Count];

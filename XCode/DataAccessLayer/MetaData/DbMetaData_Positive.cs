@@ -165,20 +165,21 @@ namespace XCode.DataAccessLayer
                 }
 
                 #region 表间关系处理
-                // 某字段名，为另一个表的（表名+单主键名）形式时，作为关联字段处理
-                foreach (var table in list)
-                {
-                    foreach (var rtable in list)
-                    {
-                        if (table != rtable) table.Connect(rtable);
-                    }
-                }
+                //// 某字段名，为另一个表的（表名+单主键名）形式时，作为关联字段处理
+                //foreach (var table in list)
+                //{
+                //    foreach (var rtable in list)
+                //    {
+                //        if (table != rtable) table.Connect(rtable);
+                //    }
+                //}
+                ModelHelper.Connect(list);
 
-                // 因为可能修改了表间关系，再修正一次
-                foreach (var table in list)
-                {
-                    table.Fix();
-                }
+                //// 因为可能修改了表间关系，再修正一次
+                //foreach (var table in list)
+                //{
+                //    table.Fix();
+                //}
                 #endregion
 
                 return list;
