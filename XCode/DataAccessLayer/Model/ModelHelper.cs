@@ -157,7 +157,14 @@ namespace XCode.DataAccessLayer
             src.Indexes.AddRange(des.Indexes.Select(i => src.CreateIndex().CopyFrom(i)));
             src.Relations.AddRange(des.Relations.Select(i => src.CreateRelation().CopyFrom(i)));
             // 重载ID
-            if (resetColumnID) src.Columns.ForEach((it, i) => it.ID = i + 1);
+            //if (resetColumnID) src.Columns.ForEach((it, i) => it.ID = i + 1);
+            if (resetColumnID)
+            {
+                for (int i = 0; i < src.Columns.Count; i++)
+                {
+                    src.Columns[i].ID = i + 1;
+                }
+            }
 
             return src;
         }
