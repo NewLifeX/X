@@ -37,7 +37,7 @@ namespace XCode.DataAccessLayer
         [XmlAttribute]
         [DisplayName("别名")]
         [Description("别名")]
-        public String Alias { get { return _Alias ?? (_Alias = NameResolver.Current.GetAlias(Name)); } set { _Alias = value; } }
+        public String Alias { get { return _Alias ?? (_Alias = ModelResolver.Current.GetAlias(Name)); } set { _Alias = value; } }
 
         private String _Description;
         /// <summary>表说明</summary>
@@ -119,7 +119,7 @@ namespace XCode.DataAccessLayer
 
         /// <summary>显示名。如果有Description则使用Description，否则使用Name</summary>
         [XmlIgnore]
-        public String DisplayName { get { return NameResolver.Current.GetDisplayName(Alias ?? Name, Description); } }
+        public String DisplayName { get { return ModelResolver.Current.GetDisplayName(Alias ?? Name, Description); } }
         #endregion
 
         #region 构造
@@ -177,15 +177,15 @@ namespace XCode.DataAccessLayer
 
         /// <summary>连接另一个表，处理两表间关系</summary>
         /// <param name="table"></param>
-        public virtual void Connect(IDataTable table)
+        public virtual IDataTable Connect(IDataTable table)
         {
-            ModelHelper.Connect(this, table);
+           return ModelResolver.Current.Connect(this, table);
         }
 
         /// <summary>修正数据</summary>
-        public virtual void Fix()
+        public virtual IDataTable Fix()
         {
-            ModelHelper.Fix(this);
+            return ModelResolver.Current.Fix(this);
         }
 
         /// <summary>已重载。</summary>

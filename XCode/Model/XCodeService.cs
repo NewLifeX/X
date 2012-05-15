@@ -16,7 +16,7 @@ namespace XCode.Model
             container.Register<IDataTable, XTable>()
                 .AutoRegister<IDataRowEntityAccessorProvider, DataRowEntityAccessorProvider>()
                 .AutoRegister<IEntityPersistence, EntityPersistence>()
-                .AutoRegister<INameResolver, NameResolver>();
+                .AutoRegister<IModelResolver, ModelResolver>();
 
             DbFactory.Reg(container);
 

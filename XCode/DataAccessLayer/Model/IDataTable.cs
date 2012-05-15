@@ -74,10 +74,10 @@ namespace XCode.DataAccessLayer
 
         /// <summary>连接另一个表，处理两表间关系</summary>
         /// <param name="table"></param>
-        void Connect(IDataTable table);
+        IDataTable Connect(IDataTable table);
 
         /// <summary>修正数据</summary>
-        void Fix();
+        IDataTable Fix();
         #endregion
     }
 }

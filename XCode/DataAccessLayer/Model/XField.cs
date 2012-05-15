@@ -147,7 +147,7 @@ namespace XCode.DataAccessLayer
 
         /// <summary>显示名。如果有Description则使用Description，否则使用Name</summary>
         [XmlIgnore]
-        public String DisplayName { get { return NameResolver.Current.GetDisplayName(Alias ?? Name, Description); } }
+        public String DisplayName { get { return ModelResolver.Current.GetDisplayName(Alias ?? Name, Description); } }
         #endregion
 
         #region 构造
@@ -169,10 +169,10 @@ namespace XCode.DataAccessLayer
         #region 方法
         /// <summary>重新计算修正别名。避免与其它字段名或表名相同，避免关键字</summary>
         /// <returns></returns>
-        public IDataColumn FixAlias()
+        public IDataColumn Fix()
         {
-            _Alias = NameResolver.Current.GetAlias(this);
-            return this;
+            _Alias = ModelResolver.Current.GetAlias(this);
+            return ModelResolver.Current.Fix(this);
         }
 
         /// <summary>已重载。</summary>
@@ -198,7 +198,7 @@ namespace XCode.DataAccessLayer
         {
             var field = base.MemberwiseClone() as XField;
             field.Table = table;
-            field.FixAlias();
+            field.Fix();
             return field;
         }
         #endregion
