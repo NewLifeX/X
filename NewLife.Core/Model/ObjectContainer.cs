@@ -296,7 +296,9 @@ namespace NewLife.Model
                     if (XTrace.Debug) XTrace.WriteLine("为{0}自动注册{1}！", from.FullName, item.FullName);
 
                     // 自动注册的优先级是1，高于默认的0
-                    Register(from, item, null, null, 1);
+                    //Register(from, item, null, null, 1);
+                    // 实例化一次，让这个类有机会执行类型构造函数，可以获取旧的类型实现
+                    Register(from, null, TypeX.CreateInstance(item), null, 1);
                     return this;
                 }
             }
