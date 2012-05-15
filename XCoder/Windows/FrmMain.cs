@@ -18,6 +18,7 @@ using XTemplate.Templating;
 using System.Linq;
 #else
 using NewLife.Linq;
+
 #endif
 
 namespace XCoder
@@ -453,10 +454,11 @@ namespace XCoder
             txtBaseClass.Text = Config.BaseClass;
             cbRenderGenEntity.Checked = Config.RenderGenEntity;
             txtPrefix.Text = Config.Prefix;
-            checkBox1.Checked = Config.AutoCutPrefix;
-            checkBox2.Checked = Config.AutoFixWord;
+            cbCutPrefix.Checked = Config.AutoCutPrefix;
+            cbCutTableName.Checked = Config.AutoCutTableName;
+            cbFixWord.Checked = Config.AutoFixWord;
             checkBox3.Checked = Config.UseCNFileName;
-            cbUseId.Checked = Config.UseID;
+            cbUseID.Checked = Config.UseID;
             checkBox5.Checked = Config.UseHeadTemplate;
             richTextBox2.Text = Config.HeadTemplate;
             checkBox4.Checked = Config.Debug;
@@ -472,10 +474,11 @@ namespace XCoder
             Config.BaseClass = txtBaseClass.Text;
             Config.RenderGenEntity = cbRenderGenEntity.Checked;
             Config.Prefix = txtPrefix.Text;
-            Config.AutoCutPrefix = checkBox1.Checked;
-            Config.AutoFixWord = checkBox2.Checked;
+            Config.AutoCutPrefix = cbCutPrefix.Checked;
+            Config.AutoCutTableName = cbCutTableName.Checked;
+            Config.AutoFixWord = cbFixWord.Checked;
             Config.UseCNFileName = checkBox3.Checked;
-            Config.UseID = cbUseId.Checked;
+            Config.UseID = cbUseID.Checked;
             Config.UseHeadTemplate = checkBox5.Checked;
             Config.HeadTemplate = richTextBox2.Text;
             Config.Debug = checkBox4.Checked;
@@ -685,5 +688,30 @@ namespace XCoder
             }
         }
         #endregion
+
+        private void 博客ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Process.Start("http://nnhy.cnblogs.com");
+        }
+
+        private void oracle客户端运行时检查ToolStripMenuItem1_Click(object sender, EventArgs e)
+        {
+            ThreadPoolX.QueueUserWorkItem(CheckOracle);
+        }
+        void CheckOracle()
+        {
+            if (!DAL.ConnStrs.ContainsKey("Oracle")) return;
+
+            try
+            {
+                var list = DAL.Create("Oracle").Tables;
+
+                MessageBox.Show("Oracle客户端运行时检查通过！");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Oracle客户端运行时检查失败！也可能是用户名密码错误！" + ex.ToString());
+            }
+        }
     }
 }

@@ -82,6 +82,9 @@ namespace XCode.DataAccessLayer.Model
         /// <summary>是否自动去除前缀。默认启用</summary>
         Boolean AutoCutPrefix { get; set; }
 
+        /// <summary>是否自动去除字段前面的表名。默认启用</summary>
+        Boolean AutoCutTableName { get; set; }
+
         /// <summary>是否自动纠正大小写。默认启用</summary>
         Boolean AutoFixWord { get; set; }
 
@@ -105,7 +108,7 @@ namespace XCode.DataAccessLayer.Model
 
             #region 先去掉表前缀
             var dt = dc.Table;
-            if (dt != null && AutoCutPrefix)
+            if (dt != null && AutoCutTableName)
             {
                 //if (name.StartsWith(dt.Name, StringComparison.OrdinalIgnoreCase))
                 //    name = name.Substring(dt.Name.Length);
@@ -136,7 +139,7 @@ namespace XCode.DataAccessLayer.Model
 
                 foreach (var item in pfs)
                 {
-                    if (name.StartsWith(item, StringComparison.OrdinalIgnoreCase)) name = name.Substring(item.Length);
+                    if (name.StartsWith(item, StringComparison.OrdinalIgnoreCase) && name.Length != item.Length) name = name.Substring(item.Length);
                 }
                 if (name[0] == '_') name = name.Substring(1);
             }
@@ -202,12 +205,12 @@ namespace XCode.DataAccessLayer.Model
             var old = name;
             foreach (var s in FilterPrefixs)
             {
-                if (name.StartsWith(s, StringComparison.OrdinalIgnoreCase))
+                if (name.StartsWith(s, StringComparison.OrdinalIgnoreCase) && name.Length != s.Length)
                 {
                     var str = name.Substring(s.Length);
                     if (!IsKeyWord(str)) name = str;
                 }
-                else if (name.EndsWith(s, StringComparison.OrdinalIgnoreCase))
+                else if (name.EndsWith(s, StringComparison.OrdinalIgnoreCase) && name.Length != s.Length)
                 {
                     var str = name.Substring(0, name.Length - s.Length);
                     if (!IsKeyWord(str)) name = str;
@@ -239,6 +242,17 @@ namespace XCode.DataAccessLayer.Model
             if (UseID && name.Equals("ID", StringComparison.OrdinalIgnoreCase)) return "ID";
 
             if (name.Length <= 2) return name;
+
+            // 如果包括下划线，特殊处理
+            if (name.Contains("_"))
+            {
+                var ss = name.Split('_');
+                for (int i = 0; i < ss.Length; i++)
+                {
+                    if (!ss[i].IsNullOrWhiteSpace()) ss[i] = FixWord(ss[i]);
+                }
+                return String.Join("_", ss);
+            }
 
             Int32 lowerCount = 0;
             Int32 upperCount = 0;
@@ -622,6 +636,10 @@ namespace XCode.DataAccessLayer.Model
         private Boolean? _AutoCutPrefix;
         /// <summary>是否自动去除前缀。默认启用</summary>
         public Boolean AutoCutPrefix { get { return _AutoCutPrefix != null ? _AutoCutPrefix.Value : (_AutoCutPrefix = Config.GetConfig<Boolean>("XCode.Model.AutoCutPrefix", true)).Value; } set { _AutoCutPrefix = value; } }
+
+        private Boolean? _AutoCutTableName;
+        /// <summary>是否自动去除字段前面的表名。默认启用</summary>
+        public Boolean AutoCutTableName { get { return _AutoCutTableName != null ? _AutoCutTableName.Value : (_AutoCutTableName = Config.GetConfig<Boolean>("XCode.Model.AutoCutTableName", true)).Value; } set { _AutoCutTableName = value; } }
 
         private Boolean? _AutoFixWord;
         /// <summary>是否自动纠正大小写。默认启用</summary>

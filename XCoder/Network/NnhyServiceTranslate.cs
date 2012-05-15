@@ -30,26 +30,32 @@ namespace XCoder
         {
             if (words == null || words.Length == 0) return null;
             bool multi = words.Length > 1;
-            string text = multi ? string.Join("\u0000", words) : words[0];
+            //string text = multi ? string.Join("\u0000", words) : words[0];
+            // 暂时限制400个单词，否则URL超长
+            string text = multi ? string.Join("\u0000", words, 0, Math.Min(words.Length, 100)) : words[0];
 
-            StringBuilder url = new StringBuilder(UrlPrefix);
-            url.AppendFormat("/Translate.ashx?Text={0}&Kind={1}&OneTrans=&NoWords=", HttpUtility.UrlEncode(text), "1");
+            var url = String.Format("{0}/Translate.ashx", UrlPrefix);
+            var urlData = new StringBuilder();
+            urlData.AppendFormat("Text={0}&Kind={1}&OneTrans=&NoWords=", HttpUtility.UrlEncode(text), "1");
             if (multi)
             {
-                url.Append("&MultiText=");
+                urlData.Append("&MultiText=");
             }
             TranslateResult result = null;
             try
             {
-                using (WebClient web = new WebClient())
+                using (var web = new WebClient())
                 {
-                    byte[] buffer = web.DownloadData(url.ToString());
-                    using (MemoryStream stream = new MemoryStream(buffer))
-                    {
-                        XmlReaderX reader = new XmlReaderX();
-                        reader.Stream = stream;
-                        result = reader.ReadObject(typeof(TranslateResult)) as TranslateResult;
-                    }
+                    //byte[] buffer = web.DownloadData(url.ToString());
+                    //using (MemoryStream stream = new MemoryStream(buffer))
+                    //{
+
+                    //var buffer = web.UploadData(url, Encoding.UTF8.GetBytes(urlData.ToString()));
+                    var buffer = web.DownloadData(url + "?" + urlData.ToString());
+                    var reader = new XmlReaderX();
+                    reader.Stream = new MemoryStream(buffer);
+                    result = reader.ReadObject(typeof(TranslateResult)) as TranslateResult;
+                    //}
                 }
             }
             catch (Exception ex)

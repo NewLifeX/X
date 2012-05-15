@@ -507,6 +507,7 @@ namespace XCoder
 
             var mr = ObjectContainer.Current.Resolve<IModelResolver>();
             mr.AutoCutPrefix = Config.AutoCutPrefix;
+            mr.AutoCutTableName = Config.AutoCutTableName;
             mr.AutoFixWord = Config.AutoFixWord;
             mr.FilterPrefixs = Config.Prefix.Split(',', ';');
             mr.UseID = Config.UseID;

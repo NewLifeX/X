@@ -89,6 +89,10 @@ namespace XCoder
             set { _AutoCutPrefix = value; }
         }
 
+        private Boolean _CutTableName;
+        /// <summary>是否自动去除字段前面的表名</summary>
+        public Boolean AutoCutTableName { get { return _CutTableName; } set { _CutTableName = value; } }
+
         private Boolean _AutoFixWord;
         /// <summary>自动纠正大小写</summary>
         public Boolean AutoFixWord
