@@ -84,12 +84,23 @@ namespace XCode.DataAccessLayer.Model
         /// <returns></returns>
         public virtual String GetAlias(IDataColumn dc)
         {
-            var name = GetAlias(dc.Name);
-            if (dc.Table != null)
+            var name = dc.Name;
+            // 先去掉表前缀
+            var dt = dc.Table;
+            if (dt != null && CutTableNameOnColumn)
+            {
+                if (name.StartsWith(dt.Name, StringComparison.OrdinalIgnoreCase))
+                    name = name.Substring(dt.Name.Length);
+                else if (name.StartsWith(dt.Alias, StringComparison.OrdinalIgnoreCase))
+                    name = name.Substring(dt.Alias.Length);
+            }
+
+            name = GetAlias(name);
+            if (dt != null)
             {
                 var lastname = name;
                 var index = 0;
-                var cs = dc.Table.Columns;
+                var cs = dt.Columns;
                 for (int i = 0; i < cs.Count; i++)
                 {
                     var item = cs[i];
@@ -103,7 +114,7 @@ namespace XCode.DataAccessLayer.Model
                         }
                     }
                 }
-                lastname = name;
+                name = lastname;
             }
             return name;
         }
@@ -374,26 +385,30 @@ namespace XCode.DataAccessLayer.Model
             FixIndex(table);
 
             #region 修正可能错误的别名
-            var ns = new List<String>();
-            ns.Add(table.Alias);
-            foreach (var item in table.Columns)
-            {
-                if (ns.Contains(item.Alias) || IsKeyWord(item.Alias))
-                {
-                    // 通过加数字的方式，解决关键字问题
-                    for (int i = 2; i < table.Columns.Count; i++)
-                    {
-                        var name = item.Alias + i;
-                        // 加了数字后，不可能是关键字
-                        if (!ns.Contains(name))
-                        {
-                            item.Alias = name;
-                            break;
-                        }
-                    }
-                }
+            //var ns = new List<String>();
+            //ns.Add(table.Alias);
+            //foreach (var item in table.Columns)
+            //{
+            //    if (ns.Contains(item.Alias) || IsKeyWord(item.Alias))
+            //    {
+            //        // 通过加数字的方式，解决关键字问题
+            //        for (int i = 2; i < table.Columns.Count; i++)
+            //        {
+            //            var name = item.Alias + i;
+            //            // 加了数字后，不可能是关键字
+            //            if (!ns.Contains(name))
+            //            {
+            //                item.Alias = name;
+            //                break;
+            //            }
+            //        }
+            //    }
 
-                ns.Add(item.Alias);
+            //    ns.Add(item.Alias);
+            //}
+            foreach (var dc in table.Columns)
+            {
+                dc.Fix();
             }
             #endregion
 
@@ -537,6 +552,10 @@ namespace XCode.DataAccessLayer.Model
         private static Boolean? _UseID;
         /// <summary>是否ID作为id的格式化，否则使用原名。默认使用ID</summary>
         public static Boolean UseID { get { return _UseID != null ? _UseID.Value : (_UseID = Config.GetConfig<Boolean>("XCode.Model.UseID", true)).Value; } set { _UseID = value; } }
+
+        private static Boolean? _CutTableNameOnColumn;
+        /// <summary>是否去除字段名前的表名。默认启用</summary>
+        public static Boolean CutTableNameOnColumn { get { return _CutTableNameOnColumn != null ? _CutTableNameOnColumn.Value : (_CutTableNameOnColumn = Config.GetConfig<Boolean>("XCode.Model.CutTableNameOnColumn", true)).Value; } set { _CutTableNameOnColumn = value; } }
 
         private static String[] _FilterPrefixs;
         /// <summary>要过滤的前缀</summary>
