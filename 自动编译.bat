@@ -97,7 +97,8 @@ pushd ..\DLL4
 ::"C:\Program Files\WinRAR\WinRAR.exe" a DLL.rar *.dll *.exe *.pdb *.xml
 set zipfile=DLL4.zip
 del DLL*.zip /f/q
-%zip% %zipfile% *.dll *.exe *.pdb *.xml *.chm
+set zip4="C:\Program Files\WinRAR\WinRAR.exe" a -m5 -s -z..\Src\Readme4.txt -ibck
+%zip4% %zipfile% *.dll *.exe *.pdb *.xml *.chm
 move /y DLL*.zip %dest%\%zipfile%
 :: »Ö¸´Ä¿Â¼
 popd
