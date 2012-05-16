@@ -29,9 +29,9 @@ namespace XCoder
         {
             if (words == null || words.Length == 0) return null;
             bool multi = words.Length > 1;
-            //string text = multi ? string.Join("\u0000", words) : words[0];
-            // 暂时限制400个单词，否则URL超长
-            string text = multi ? string.Join("\u0000", words, 0, Math.Min(words.Length, 100)) : words[0];
+            string text = multi ? string.Join("\u0000", words) : words[0];
+            //// 暂时限制400个单词，否则URL超长
+            //string text = multi ? string.Join("\u0000", words, 0, Math.Min(words.Length, 100)) : words[0];
 
             var url = String.Format("{0}/Translate.ashx", UrlPrefix);
             var urlData = new StringBuilder();
@@ -48,9 +48,11 @@ namespace XCoder
                     //byte[] buffer = web.DownloadData(url.ToString());
                     //using (MemoryStream stream = new MemoryStream(buffer))
                     //{
+                    web.Encoding = Encoding.UTF8;
+                    web.Headers[HttpRequestHeader.ContentType] = "application/x-www-form-urlencoded";
 
-                    //var buffer = web.UploadData(url, Encoding.UTF8.GetBytes(urlData.ToString()));
-                    var buffer = web.DownloadData(url + "?" + urlData.ToString());
+                    var buffer = web.UploadData(url, Encoding.UTF8.GetBytes(urlData.ToString()));
+                    //var buffer = web.DownloadData(url + "?" + urlData.ToString());
                     var reader = new XmlReaderX();
                     reader.Stream = new MemoryStream(buffer);
                     result = reader.ReadObject(typeof(TranslateResult)) as TranslateResult;
@@ -88,6 +90,7 @@ namespace XCoder
                     result.Status, string.Join(", ", result.Messages.ToArray())));
             }
         }
+
         /// <summary>向翻译服务添加新的翻译条目</summary>
         /// <param name="trans"></param>
         /// <returns></returns>
@@ -95,6 +98,7 @@ namespace XCoder
         {
             return TranslateNewWithSource(Kind, "XCoder.exe", trans);
         }
+
         /// <summary>向翻译服务添加新的翻译条目</summary>
         /// <param name="Kind"></param>
         /// <param name="Source"></param>
