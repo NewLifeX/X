@@ -9,6 +9,7 @@ using System.Linq;
 #else
 using NewLife.Linq;
 #endif
+using System.Runtime.InteropServices;
 
 namespace NewLife.Reflection
 {
@@ -94,7 +95,7 @@ namespace NewLife.Reflection
         public String Description { get { return _Description ?? (_Description = "" + Asm.GetCustomAttributeValue<AssemblyDescriptionAttribute, String>()); } }
 
         /// <summary>获取包含清单的已加载文件的路径或 UNC 位置。</summary>
-        public String Location { get { try { return Asm == null ? null : Asm.Location; } catch { return null; } } }
+        public String Location { get { try { return Asm == null || Asm is _AssemblyBuilder ? null : Asm.Location; } catch { return null; } } }
         #endregion
 
         #region 构造

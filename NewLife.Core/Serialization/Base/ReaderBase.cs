@@ -550,7 +550,7 @@ namespace NewLife.Serialization
             {
                 if (type.IsArray && type.HasElementType && type.GetElementType() == elementType)
                 {
-                    //TODO 如果是数组，在不知道元素个数时，不处理
+                    // 如果是数组，在不知道元素个数时，不处理
                     if (count > 0)
                     {
                         Array arr = TypeX.CreateInstance(type, count) as Array;

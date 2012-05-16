@@ -90,7 +90,7 @@ namespace NewLife.Serialization
             // 指定时间的格式
             DateTimeFormat = DateTimeFormats.Milliseconds;
             JsonDateTimeKind = DateTimeKind.Utc;
-            UseObjRef = false; // TODO 如果实现ObjectRef则需要将这个设置为true
+            UseObjRef = false; // 如果实现ObjectRef则需要将这个设置为true
             UseCharsWriteToString = true;
         }
         #endregion

@@ -132,7 +132,7 @@
 //        #endregion
 
 //        #region 注册
-//        //TODO 非常需要一个线程安全，而又有很高性能的字典
+//        // 非常需要一个线程安全，而又有很高性能的字典
 //        private IDictionary<Type, Object> dic = new Dictionary<Type, Object>();
 //        /// <summary>
 //        /// 注册服务对象
