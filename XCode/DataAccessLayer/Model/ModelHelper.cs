@@ -8,6 +8,14 @@ using System.Linq;
 using NewLife.Linq;
 #endif
 using XCode.DataAccessLayer.Model;
+using System.Xml;
+using System.Text;
+using System.Collections;
+using NewLife.Reflection;
+using System.Reflection;
+using System.Xml.Serialization;
+using NewLife.Collections;
+using NewLife.Log;
 
 namespace XCode.DataAccessLayer
 {
@@ -124,6 +132,254 @@ namespace XCode.DataAccessLayer
             }
 
             return null;
+        }
+        #endregion
+
+        #region 序列化扩展
+        /// <summary>读取</summary>
+        /// <param name="table"></param>
+        /// <param name="reader"></param>
+        /// <returns></returns>
+        public static IDataTable ReadXml(this IDataTable table, XmlReader reader)
+        {
+            // 读属性
+            if (reader.HasAttributes)
+            {
+                reader.MoveToFirstAttribute();
+                //do
+                //{
+                //    switch (reader.Name)
+                //    {
+                //        case "ID":
+                //            table.ID = reader.ReadContentAsInt();
+                //            break;
+                //        case "Name":
+                //            table.Name = reader.ReadContentAsString();
+                //            break;
+                //        case "Alias":
+                //            table.Alias = reader.ReadContentAsString();
+                //            break;
+                //        case "Owner":
+                //            table.Owner = reader.ReadContentAsString();
+                //            break;
+                //        case "DbType":
+                //            table.DbType = (DatabaseType)Enum.Parse(typeof(DatabaseType), reader.ReadContentAsString());
+                //            break;
+                //        case "IsView":
+                //            table.IsView = Boolean.Parse(reader.ReadContentAsString());
+                //            break;
+                //        case "Description":
+                //            table.Description = reader.ReadContentAsString();
+                //            break;
+                //        default:
+                //            break;
+                //    }
+                //} while (reader.MoveToNextAttribute());
+                ReadXml(reader, table);
+            }
+
+            reader.ReadStartElement();
+
+            // 读字段
+            reader.MoveToElement();
+            while (reader.NodeType != XmlNodeType.EndElement)
+            {
+                switch (reader.Name)
+                {
+                    case "Columns":
+                        reader.ReadStartElement();
+                        while (reader.IsStartElement())
+                        {
+                            var dc = table.CreateColumn();
+                            (dc as IXmlSerializable).ReadXml(reader);
+                            table.Columns.Add(dc);
+                        }
+                        reader.ReadEndElement();
+                        break;
+                    case "Indexes":
+                        reader.ReadStartElement();
+                        while (reader.IsStartElement())
+                        {
+                            var di = table.CreateIndex();
+                            (di as IXmlSerializable).ReadXml(reader);
+                            table.Indexes.Add(di);
+                        }
+                        reader.ReadEndElement();
+                        break;
+                    case "Relations":
+                        reader.ReadStartElement();
+                        while (reader.IsStartElement())
+                        {
+                            var dr = table.CreateRelation();
+                            (dr as IXmlSerializable).ReadXml(reader);
+                            table.Relations.Add(dr);
+                        }
+                        reader.ReadEndElement();
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            //reader.ReadEndElement();
+            if (reader.NodeType == XmlNodeType.EndElement) reader.ReadEndElement();
+
+            return table;
+        }
+
+        /// <summary>写入</summary>
+        /// <param name="table"></param>
+        /// <param name="writer"></param>
+        public static IDataTable WriteXml(this IDataTable table, XmlWriter writer)
+        {
+            // 写属性
+            //writer.WriteAttributeString("ID", table.ID.ToString());
+            //writer.WriteAttributeString("Name", table.Name);
+            //writer.WriteAttributeString("Alias", table.Alias);
+            //if (!String.IsNullOrEmpty(table.Owner)) writer.WriteAttributeString("Owner", table.Owner);
+            //writer.WriteAttributeString("DbType", table.DbType.ToString());
+            //writer.WriteAttributeString("IsView", table.IsView.ToString());
+            //if (!String.IsNullOrEmpty(table.Description)) writer.WriteAttributeString("Description", table.Description);
+            WriteXml(writer, table);
+
+            // 写字段
+            if (table.Columns != null && table.Columns.Count > 0 && table.Columns[0] is IXmlSerializable)
+            {
+                writer.WriteStartElement("Columns");
+                foreach (IXmlSerializable item in table.Columns)
+                {
+                    writer.WriteStartElement("Column");
+                    item.WriteXml(writer);
+                    writer.WriteEndElement();
+                }
+                writer.WriteEndElement();
+            }
+            if (table.Indexes != null && table.Indexes.Count > 0 && table.Indexes[0] is IXmlSerializable)
+            {
+                writer.WriteStartElement("Indexes");
+                foreach (IXmlSerializable item in table.Indexes)
+                {
+                    writer.WriteStartElement("Index");
+                    item.WriteXml(writer);
+                    writer.WriteEndElement();
+                }
+                writer.WriteEndElement();
+            }
+            if (table.Relations != null && table.Relations.Count > 0 && table.Relations[0] is IXmlSerializable)
+            {
+                writer.WriteStartElement("Relations");
+                foreach (IXmlSerializable item in table.Relations)
+                {
+                    writer.WriteStartElement("Relation");
+                    item.WriteXml(writer);
+                    writer.WriteEndElement();
+                }
+                writer.WriteEndElement();
+            }
+
+            return table;
+        }
+
+        /// <summary>读取</summary>
+        /// <param name="reader"></param>
+        /// <param name="value"></param>
+        public static void ReadXml(XmlReader reader, Object value)
+        {
+            foreach (var item in GetProperties(value.GetType()))
+            {
+                if (!item.Property.CanRead) continue;
+                if (AttributeX.GetCustomAttribute<XmlIgnoreAttribute>(item.Member, false) != null) continue;
+
+                var v = reader.GetAttribute(item.Name);
+                if (String.IsNullOrEmpty(v)) continue;
+
+                if (item.Type == typeof(String[]))
+                {
+                    var ss = v.Split(new String[] { "," }, StringSplitOptions.RemoveEmptyEntries);
+                    item.SetValue(value, ss);
+                }
+                else
+                    item.SetValue(value, TypeX.ChangeType(v, item.Type));
+            }
+            //reader.Skip();
+        }
+
+        /// <summary>写入</summary>
+        /// <param name="writer"></param>
+        /// <param name="value"></param>
+        /// <param name="writeDefaultValueMember">是否写数值为默认值的成员。为了节省空间，默认不写。</param>
+        public static void WriteXml(XmlWriter writer, Object value, Boolean writeDefaultValueMember = false)
+        {
+            var type = value.GetType();
+            Object def = GetDefault(type);
+
+            String name = null;
+
+            // 基本类型，输出为特性
+            foreach (var item in GetProperties(type))
+            {
+                if (!item.Property.CanWrite) continue;
+                if (AttributeX.GetCustomAttribute<XmlIgnoreAttribute>(item.Member, false) != null) continue;
+
+                var code = Type.GetTypeCode(item.Type);
+
+                var obj = item.GetValue(value);
+                // 默认值不参与序列化，节省空间
+                if (!writeDefaultValueMember)
+                {
+                    var dobj = item.GetValue(def);
+                    if (Object.Equals(obj, dobj)) continue;
+                    if (code == TypeCode.String && "" + obj == "" + dobj) continue;
+                }
+
+                if (code == TypeCode.String)
+                {
+                    // 如果别名与名称相同，则跳过
+                    if (item.Name == "Name")
+                        name = (String)obj;
+                    else if (item.Name == "Alias")
+                        if (name == (String)obj) continue;
+                }
+                else if (code == TypeCode.Object)
+                {
+                    if (item.Type.IsArray || typeof(IEnumerable).IsAssignableFrom(item.Type) || obj is IEnumerable)
+                    {
+                        var sb = new StringBuilder();
+                        var arr = obj as IEnumerable;
+                        foreach (Object elm in arr)
+                        {
+                            if (sb.Length > 0) sb.Append(",");
+                            sb.Append(elm);
+                        }
+                        obj = sb.ToString();
+                    }
+                    else if (item.Type == typeof(Type))
+                    {
+                        obj = (obj as Type).Name;
+                    }
+                    else
+                    {
+                        // 其它的不支持，跳过
+                        if (XTrace.Debug) XTrace.WriteLine("不支持的类型[{0} {1}]！", item.Type.Name, item.Name);
+
+                        continue;
+                    }
+                    //if (item.Type == typeof(Type)) obj = (obj as Type).Name;
+                }
+                writer.WriteAttributeString(item.Name, obj == null ? null : obj.ToString());
+            }
+        }
+
+        static DictionaryCache<Type, Object> cache = new DictionaryCache<Type, object>();
+        static Object GetDefault(Type type)
+        {
+            return cache.GetItem(type, item => TypeX.CreateInstance(item));
+        }
+
+        static DictionaryCache<Type, PropertyInfoX[]> cache2 = new DictionaryCache<Type, PropertyInfoX[]>();
+        static PropertyInfoX[] GetProperties(Type type)
+        {
+            return cache2.GetItem(type, item => item.GetProperties(BindingFlags.Instance | BindingFlags.Public).Select(p => PropertyInfoX.Create(p)).ToArray());
         }
         #endregion
 

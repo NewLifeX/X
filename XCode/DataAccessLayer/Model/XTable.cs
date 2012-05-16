@@ -257,50 +257,6 @@ namespace XCode.DataAccessLayer
         }
         #endregion
 
-        #region IAccessor 成员
-        //bool IAccessor.Read(IReader reader)
-        //{
-        //    //XmlReaderX xr = reader as XmlReaderX;
-        //    //if (xr != null)
-        //    //{
-        //    //    xr.Settings.MemberAsAttribute = true;
-        //    //}
-
-        //    return false;
-        //}
-
-        //bool IAccessor.ReadComplete(IReader reader, bool success)
-        //{
-        //    return success;
-        //}
-
-        //bool IAccessor.Write(IWriter writer)
-        //{
-        //    //XmlWriterX xw = writer as XmlWriterX;
-        //    //if (xw != null)
-        //    //{
-        //    //    xw.Settings.MemberAsAttribute = true;
-        //    //}
-
-        //    writer.OnMemberWriting += new EventHandler<WriteMemberEventArgs>(writer_OnMemberWriting);
-
-        //    return false;
-        //}
-
-        //void writer_OnMemberWriting(object sender, WriteMemberEventArgs e)
-        //{
-        //    //if (e.Member.Type == typeof(IDataColumn[]))
-        //    //{
-        //    //    e.Member.Name = "";
-        //    //}
-        //}
-
-        //bool IAccessor.WriteComplete(IWriter writer, bool success)
-        //{
-        //    return success;
-        //}
-        #endregion
-
         #region IXmlSerializable 成员
         /// <summary>获取架构</summary>
         /// <returns></returns>
@@ -308,141 +264,20 @@ namespace XCode.DataAccessLayer
 
         /// <summary>读取</summary>
         /// <param name="reader"></param>
-        public virtual void ReadXml(XmlReader reader)
+        void IXmlSerializable.ReadXml(XmlReader reader)
         {
             //reader.ReadStartElement();
 
-            // 读属性
-            if (reader.HasAttributes)
-            {
-                reader.MoveToFirstAttribute();
-                do
-                {
-                    switch (reader.Name)
-                    {
-                        case "ID":
-                            ID = reader.ReadContentAsInt();
-                            break;
-                        case "Name":
-                            Name = reader.ReadContentAsString();
-                            break;
-                        case "Alias":
-                            Alias = reader.ReadContentAsString();
-                            break;
-                        case "Owner":
-                            Owner = reader.ReadContentAsString();
-                            break;
-                        case "DbType":
-                            DbType = (DatabaseType)Enum.Parse(typeof(DatabaseType), reader.ReadContentAsString());
-                            break;
-                        case "IsView":
-                            IsView = Boolean.Parse(reader.ReadContentAsString());
-                            break;
-                        case "Description":
-                            Description = reader.ReadContentAsString();
-                            break;
-                        default:
-                            break;
-                    }
-                } while (reader.MoveToNextAttribute());
-            }
-
-            reader.ReadStartElement();
-
-            // 读字段
-            reader.MoveToElement();
-            while (reader.NodeType != XmlNodeType.EndElement)
-            {
-                switch (reader.Name)
-                {
-                    case "Columns":
-                        reader.ReadStartElement();
-                        while (reader.IsStartElement())
-                        {
-                            var dc = CreateColumn();
-                            (dc as IXmlSerializable).ReadXml(reader);
-                            Columns.Add(dc);
-                        }
-                        reader.ReadEndElement();
-                        break;
-                    case "Indexes":
-                        reader.ReadStartElement();
-                        while (reader.IsStartElement())
-                        {
-                            var di = CreateIndex();
-                            (di as IXmlSerializable).ReadXml(reader);
-                            Indexes.Add(di);
-                        }
-                        reader.ReadEndElement();
-                        break;
-                    case "Relations":
-                        reader.ReadStartElement();
-                        while (reader.IsStartElement())
-                        {
-                            var dr = CreateRelation();
-                            (dr as IXmlSerializable).ReadXml(reader);
-                            Relations.Add(dr);
-                        }
-                        reader.ReadEndElement();
-                        break;
-                    default:
-                        break;
-                }
-            }
-
-            //reader.ReadEndElement();
-            if (reader.NodeType == XmlNodeType.EndElement) reader.ReadEndElement();
+            ModelHelper.ReadXml(this, reader);
         }
 
         /// <summary>写入</summary>
         /// <param name="writer"></param>
-        public virtual void WriteXml(XmlWriter writer)
+        void IXmlSerializable.WriteXml(XmlWriter writer)
         {
             //writer.WriteStartElement("Table");
 
-            // 写属性
-            writer.WriteAttributeString("ID", ID.ToString());
-            writer.WriteAttributeString("Name", Name);
-            writer.WriteAttributeString("Alias", Alias);
-            if (!String.IsNullOrEmpty(Owner)) writer.WriteAttributeString("Owner", Owner);
-            writer.WriteAttributeString("DbType", DbType.ToString());
-            writer.WriteAttributeString("IsView", IsView.ToString());
-            if (!String.IsNullOrEmpty(Description)) writer.WriteAttributeString("Description", Description);
-
-            // 写字段
-            if (Columns != null && Columns.Count > 0 && Columns[0] is IXmlSerializable)
-            {
-                writer.WriteStartElement("Columns");
-                foreach (IXmlSerializable item in Columns)
-                {
-                    writer.WriteStartElement("Column");
-                    item.WriteXml(writer);
-                    writer.WriteEndElement();
-                }
-                writer.WriteEndElement();
-            }
-            if (Indexes != null && Indexes.Count > 0 && Indexes[0] is IXmlSerializable)
-            {
-                writer.WriteStartElement("Indexes");
-                foreach (IXmlSerializable item in Indexes)
-                {
-                    writer.WriteStartElement("Index");
-                    item.WriteXml(writer);
-                    writer.WriteEndElement();
-                }
-                writer.WriteEndElement();
-            }
-            if (Relations != null && Relations.Count > 0 && Relations[0] is IXmlSerializable)
-            {
-                writer.WriteStartElement("Relations");
-                foreach (IXmlSerializable item in Relations)
-                {
-                    writer.WriteStartElement("Relation");
-                    item.WriteXml(writer);
-                    writer.WriteEndElement();
-                }
-                writer.WriteEndElement();
-            }
+            ModelHelper.WriteXml(this, writer);
 
             //writer.WriteEndElement();
         }

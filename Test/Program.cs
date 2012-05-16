@@ -338,6 +338,9 @@ namespace Test
             var dal = DAL.Create("Common");
             var xml = dal.Export();
             Console.WriteLine(xml);
+
+            var list = DAL.Import(xml);
+            Console.WriteLine(list);
         }
 
         class ModelResolver2 : ModelResolver
