@@ -442,7 +442,7 @@ namespace XCode.Accessors
         {
             String name = ItemPrefix + field.Name;
             //Control control = FieldInfoX.GetValue<Control>(Container, name);
-            //TODO:这里可能极为不完善，需要找到WinForm中控件默认命名方式
+            // 这里可能极为不完善，需要找到WinForm中控件默认命名方式
 
             return FindControlInContainer(name);
         }

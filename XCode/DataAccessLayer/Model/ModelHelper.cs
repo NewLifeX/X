@@ -376,7 +376,7 @@ namespace XCode.DataAccessLayer
         static DictionaryCache<Type, PropertyInfoX[]> cache2 = new DictionaryCache<Type, PropertyInfoX[]>();
         static PropertyInfoX[] GetProperties(Type type)
         {
-            return cache2.GetItem(type, item => item.GetProperties(BindingFlags.Instance | BindingFlags.Public).Select(p => PropertyInfoX.Create(p)).ToArray());
+            return cache2.GetItem(type, item => item.GetProperties(BindingFlags.Instance | BindingFlags.Public).Where(p => !p.Name.EqualIgnoreCase("Item")).Select(p => PropertyInfoX.Create(p)).ToArray());
         }
         #endregion
 

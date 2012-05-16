@@ -204,7 +204,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public String Export()
         {
-            var serializer = new XmlSerializer(typeof(XTable));
+            var serializer = new XmlSerializer(this.GetType());
             using (var sw = new StringWriter())
             {
                 serializer.Serialize(sw, this);
