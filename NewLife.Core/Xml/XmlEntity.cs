@@ -19,8 +19,8 @@ namespace NewLife.Xml
 
             xml = xml.Trim();
 
-            XmlSerializer serial = new XmlSerializer(typeof(TEntity));
-            using (StringReader reader = new StringReader(xml))
+            var serial = new XmlSerializer(typeof(TEntity));
+            using (var reader = new StringReader(xml))
             {
                 return (serial.Deserialize(reader) as TEntity);
             }
@@ -48,18 +48,26 @@ namespace NewLife.Xml
         /// <returns></returns>
         public virtual String ToXml()
         {
-            XmlSerializer serial = new XmlSerializer(typeof(TEntity));
-            using (MemoryStream stream = new MemoryStream())
+            var serial = new XmlSerializer(typeof(TEntity));
+            using (var stream = new MemoryStream())
             {
-                using (StreamWriter writer = new StreamWriter(stream, Encoding.UTF8))
+                var setting = new XmlWriterSettings();
+                setting.Encoding = new UTF8Encoding(false);
+                setting.Indent = true;
+                using (var writer = XmlWriter.Create(stream, setting))
                 {
-                    serial.Serialize((TextWriter)writer, this);
-                    byte[] bts = stream.ToArray();
-                    String xml = Encoding.UTF8.GetString(bts);
+                    // 去掉默认命名空间xmlns:xsd和xmlns:xsi
+                    var xsns = new XmlSerializerNamespaces();
+                    xsns.Add("", "");
 
-                    if (!String.IsNullOrEmpty(xml)) xml = xml.Trim();
+                    serial.Serialize(writer, this, xsns);
+                    return Encoding.UTF8.GetString(stream.ToArray());
+                    //byte[] bts = stream.ToArray();
+                    //String xml = Encoding.UTF8.GetString(bts);
 
-                    return xml;
+                    //if (!String.IsNullOrEmpty(xml)) xml = xml.Trim();
+
+                    //return xml;
                 }
             }
         }
@@ -68,25 +76,23 @@ namespace NewLife.Xml
         /// <returns></returns>
         public virtual String ToXml(String prefix, String ns)
         {
-            XmlSerializer serial = new XmlSerializer(typeof(TEntity));
-            using (MemoryStream stream = new MemoryStream())
+            var serial = new XmlSerializer(typeof(TEntity));
+            using (var stream = new MemoryStream())
             {
-                using (StreamWriter writer = new StreamWriter(stream, Encoding.UTF8))
+                var setting = new XmlWriterSettings();
+                setting.Encoding = new UTF8Encoding(false);
+                setting.Indent = true;
+                using (var writer = XmlWriter.Create(stream, setting))
                 {
                     if (String.IsNullOrEmpty(ns))
-                        serial.Serialize((TextWriter)writer, this);
+                        serial.Serialize(writer, this);
                     else
                     {
-                        XmlSerializerNamespaces xsns = new XmlSerializerNamespaces();
+                        var xsns = new XmlSerializerNamespaces();
                         xsns.Add(prefix, ns);
-                        serial.Serialize((TextWriter)writer, this, xsns);
+                        serial.Serialize(writer, this, xsns);
                     }
-                    byte[] bts = stream.ToArray();
-                    String xml = Encoding.UTF8.GetString(bts);
-
-                    if (!String.IsNullOrEmpty(xml)) xml = xml.Trim();
-
-                    return xml;
+                    return Encoding.UTF8.GetString(stream.ToArray());
                 }
             }
         }
@@ -95,27 +101,23 @@ namespace NewLife.Xml
         /// <returns></returns>
         public virtual String ToInnerXml()
         {
-            XmlSerializer serial = new XmlSerializer(typeof(TEntity));
-            using (MemoryStream stream = new MemoryStream())
+            var serial = new XmlSerializer(typeof(TEntity));
+            using (var stream = new MemoryStream())
             {
-                XmlWriterSettings setting = new XmlWriterSettings();
-                setting.Encoding = Encoding.UTF8;
+                var setting = new XmlWriterSettings();
+                setting.Encoding = new UTF8Encoding(false);
+                setting.Indent = true;
                 // 去掉开头 <?xml version="1.0" encoding="utf-8"?>
                 setting.OmitXmlDeclaration = true;
 
-                using (XmlWriter writer = XmlWriter.Create(stream, setting))
+                using (var writer = XmlWriter.Create(stream, setting))
                 {
                     // 去掉默认命名空间xmlns:xsd和xmlns:xsi
-                    XmlSerializerNamespaces xsns = new XmlSerializerNamespaces();
+                    var xsns = new XmlSerializerNamespaces();
                     xsns.Add("", "");
 
                     serial.Serialize(writer, this, xsns);
-                    byte[] bts = stream.ToArray();
-                    String xml = Encoding.UTF8.GetString(bts);
-
-                    if (!String.IsNullOrEmpty(xml)) xml = xml.Trim();
-
-                    return xml;
+                    return Encoding.UTF8.GetString(stream.ToArray());
                 }
             }
         }
