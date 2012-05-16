@@ -1,21 +1,18 @@
 ﻿using System;
-using System.CodeDom.Compiler;
+using System.Collections;
 using System.Collections.Generic;
-using Microsoft.CSharp;
+using System.Reflection;
+using System.Text;
+using System.Xml;
+using System.Xml.Serialization;
+using NewLife.Collections;
+using NewLife.Log;
+using NewLife.Reflection;
 #if NET4
 using System.Linq;
 #else
 using NewLife.Linq;
 #endif
-using XCode.DataAccessLayer.Model;
-using System.Xml;
-using System.Text;
-using System.Collections;
-using NewLife.Reflection;
-using System.Reflection;
-using System.Xml.Serialization;
-using NewLife.Collections;
-using NewLife.Log;
 
 namespace XCode.DataAccessLayer
 {

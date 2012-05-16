@@ -150,10 +150,16 @@ namespace XCode
                     if (entity == null) return 0;
 
                     // 复制脏数据和扩展数据
-                    names.ForEach((n, i) => entity.Dirtys[n] = true);
-                    //names.ForEach(n => entity.Dirtys[n] = true);
-                    this.Extends.ForEach((d, i) => entity.Extends[d.Key] = d.Value);
-                    //this.Extends.ForEach(d => entity.Extends[d.Key] = d.Value);
+                    //names.ForEach((n, i) => entity.Dirtys[n] = true);
+                    //this.Extends.ForEach((d, i) => entity.Extends[d.Key] = d.Value);
+                    foreach (var item in names)
+                    {
+                        entity.Dirtys[item] = true;
+                    }
+                    foreach (var item in Extends)
+                    {
+                        entity.Extends[item.Key] = item.Value;
+                    }
 
                     return entity.OnDelete();
                 }

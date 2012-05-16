@@ -1,5 +1,4 @@
 ﻿using System;
-using NewLife.IO;
 using System.Diagnostics;
 using System.IO.Ports;
 using System.Threading;
@@ -15,18 +14,10 @@ using System.Linq;
 #else
 using NewLife.Linq;
 #endif
-using NewLife.Reflection;
-using NewLife.Model;
-using System.Collections.Generic;
-using System.Net.Sockets;
 using XCode.DataAccessLayer;
-using NewLife.CommonEntity;
-using XCode;
 using XCode.Transform;
 using System.IO;
 using NewLife.Serialization;
-using System.Text;
-using NewLife.Security;
 using XCode.DataAccessLayer.Model;
 
 namespace Test

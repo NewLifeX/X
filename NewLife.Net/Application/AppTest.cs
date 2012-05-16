@@ -33,7 +33,11 @@ namespace NewLife.Net.Application
             {
                 var server = Activator.CreateInstance(item) as NetServer;
                 server.Start();
-                server.Servers.ForEach(s => s.UseThreadPool = false);
+                //server.Servers.ForEach(s => s.UseThreadPool = false);
+                foreach (var s in server.Servers)
+                {
+                    s.UseThreadPool = false;
+                }
                 list.Add(server);
             }
         }
