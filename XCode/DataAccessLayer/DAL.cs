@@ -287,28 +287,9 @@ namespace XCode.DataAccessLayer
         /// <summary>导出模型</summary>
         /// <param name="tables"></param>
         /// <returns></returns>
-        public static String Export(List<IDataTable> tables)
+        public static String Export(IEnumerable<IDataTable> tables)
         {
-            var ms = new MemoryStream();
-
-            var settings = new XmlWriterSettings();
-            settings.Encoding = new UTF8Encoding(false);
-            settings.Indent = true;
-
-            var writer = XmlWriter.Create(ms, settings);
-            writer.WriteStartDocument();
-            writer.WriteStartElement("Tables");
-            foreach (var item in tables)
-            {
-                writer.WriteStartElement("Table");
-                (item as IXmlSerializable).WriteXml(writer);
-                writer.WriteEndElement();
-            }
-            writer.WriteEndElement();
-            writer.WriteEndDocument();
-            writer.Flush();
-
-            return Encoding.UTF8.GetString(ms.ToArray());
+            return ModelHelper.ToXml(tables);
         }
 
         /// <summary>导入模型</summary>
@@ -318,25 +299,7 @@ namespace XCode.DataAccessLayer
         {
             if (String.IsNullOrEmpty(xml)) return null;
 
-            var settings = new XmlReaderSettings();
-            settings.IgnoreWhitespace = true;
-            settings.IgnoreComments = true;
-
-            var reader = XmlReader.Create(new MemoryStream(Encoding.UTF8.GetBytes(xml)), settings);
-            while (reader.NodeType != XmlNodeType.Element) { if (!reader.Read())return null; }
-            reader.ReadStartElement();
-
-            var list = new List<IDataTable>();
-            while (reader.IsStartElement())
-            {
-                var table = CreateTable();
-                list.Add(table);
-
-                //reader.ReadStartElement();
-                (table as IXmlSerializable).ReadXml(reader);
-                //if (reader.NodeType == XmlNodeType.EndElement) reader.ReadEndElement();
-            }
-            return list;
+            return ModelHelper.FromXml(xml, CreateTable);
         }
         #endregion
 

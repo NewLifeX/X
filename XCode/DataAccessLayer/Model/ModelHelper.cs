@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Reflection;
 using System.Text;
 using System.Xml;
@@ -133,6 +134,96 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 序列化扩展
+
+        /// <summary>导出模型</summary>
+        /// <param name="tables"></param>
+        /// <param name="atts">附加属性</param>
+        /// <returns></returns>
+        public static String ToXml(IEnumerable<IDataTable> tables, IDictionary<String, String> atts = null)
+        {
+            var ms = new MemoryStream();
+
+            var settings = new XmlWriterSettings();
+            settings.Encoding = new UTF8Encoding(false);
+            settings.Indent = true;
+
+            var writer = XmlWriter.Create(ms, settings);
+            writer.WriteStartDocument();
+            writer.WriteStartElement("Tables");
+            if (atts != null && atts.Count > 0)
+            {
+                foreach (var item in atts)
+                {
+                    //writer.WriteAttributeString(item.Key, item.Value);
+                    if (!String.IsNullOrEmpty(item.Value)) writer.WriteElementString(item.Key, item.Value);
+                }
+            }
+            foreach (var item in tables)
+            {
+                writer.WriteStartElement("Table");
+                (item as IXmlSerializable).WriteXml(writer);
+                writer.WriteEndElement();
+            }
+            writer.WriteEndElement();
+            writer.WriteEndDocument();
+            writer.Flush();
+
+            return Encoding.UTF8.GetString(ms.ToArray());
+        }
+
+        /// <summary>导入模型</summary>
+        /// <param name="xml"></param>
+        /// <param name="createTable">用于创建<see cref="IDataTable"/>实例的委托</param>
+        /// <param name="atts">附加属性</param>
+        /// <returns></returns>
+        public static List<IDataTable> FromXml(String xml, Func<IDataTable> createTable, IDictionary<String, String> atts = null)
+        {
+            if (String.IsNullOrEmpty(xml)) return null;
+            if (createTable == null) throw new ArgumentNullException("createTable");
+
+            var settings = new XmlReaderSettings();
+            settings.IgnoreWhitespace = true;
+            settings.IgnoreComments = true;
+
+            var reader = XmlReader.Create(new MemoryStream(Encoding.UTF8.GetBytes(xml)), settings);
+            while (reader.NodeType != XmlNodeType.Element) { if (!reader.Read())return null; }
+            reader.ReadStartElement();
+            //if (atts != null && reader.HasAttributes)
+            //{
+            //    reader.MoveToFirstAttribute();
+            //    do
+            //    {
+            //        atts[reader.Name] = reader.Value;
+            //    }
+            //    while (reader.MoveToNextAttribute());
+            //}
+
+            var list = new List<IDataTable>();
+            while (reader.IsStartElement())
+            {
+                if (reader.Name.EqualIgnoreCase("Table"))
+                {
+                    var table = createTable();
+                    list.Add(table);
+
+                    //reader.ReadStartElement();
+                    (table as IXmlSerializable).ReadXml(reader);
+                    //if (reader.NodeType == XmlNodeType.EndElement) reader.ReadEndElement();
+                }
+                else if (atts != null)
+                {
+                    var name = reader.Name;
+                    reader.ReadStartElement();
+                    if (reader.NodeType == XmlNodeType.Text)
+                    {
+                        atts[name] = reader.ReadString();
+                    }
+                    reader.ReadEndElement();
+                }
+            }
+            return list;
+        }
+
         /// <summary>读取</summary>
         /// <param name="table"></param>
         /// <param name="reader"></param>
