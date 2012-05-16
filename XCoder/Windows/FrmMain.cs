@@ -530,13 +530,17 @@ namespace XCoder
         #region 模版相关
         public void BindTemplate(ComboBox cb)
         {
-            List<String> list = Engine.FileTemplates;
+            var list = new List<String>();
+            foreach (var item in Engine.FileTemplates)
+            {
+                list.Add("[文件]" + item);
+            }
             foreach (String item in Engine.Templates.Keys)
             {
                 String[] ks = item.Split('.');
                 if (ks == null || ks.Length < 1) continue;
 
-                String name = "*" + ks[0];
+                String name = "[内置]" + ks[0];
                 if (!list.Contains(name)) list.Add(name);
             }
             cb.Items.Clear();

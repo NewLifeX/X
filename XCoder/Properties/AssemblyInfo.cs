@@ -29,10 +29,12 @@ using System.Runtime.InteropServices;
 //      内部版本号
 //      修订号
 //
-[assembly: AssemblyVersion("4.7.*")]
-[assembly: AssemblyFileVersion("4.7.2012.0320")]
+[assembly: AssemblyVersion("4.8.*")]
+[assembly: AssemblyFileVersion("4.8.2012.0516")]
 
 /*
+ * v4.8.2012.0516   采用新的数据模型格式化架构，优化表名及字段名的生成
+ * 
  * v4.7.2012.0320   调整拥挤的主界面，删除不需要的元素
  *                  调整自动更新，支持组件和源代码的同步升级
  * 

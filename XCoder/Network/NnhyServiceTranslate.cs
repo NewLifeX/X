@@ -13,7 +13,6 @@ namespace XCoder
     /// <summary>使用s.nnhy.org的翻译服务翻译指定词汇</summary>
     class NnhyServiceTranslate : ITranslate
     {
-
         static string UrlPrefix = "http://s.nnhy.org";
 
         public string Translate(string word)
@@ -117,7 +116,7 @@ namespace XCoder
 
             string url = UrlPrefix + string.Format("/TranslateNew.ashx?Kind={0}&Source={1}", HttpUtility.UrlEncode(Kind), HttpUtility.UrlEncode(Source));
 
-            StringBuilder data = new StringBuilder();
+            var data = new StringBuilder();
             for (int i = 0; i < trans.Length; i += 2)
             {
                 string o = trans[i], t = trans[i + 1];
@@ -138,14 +137,14 @@ namespace XCoder
             TranslateNewResult result = null;
             try
             {
-                using (WebClient web = new WebClient())
+                using (var web = new WebClient())
                 {
                     web.Encoding = Encoding.UTF8;
                     web.Headers[HttpRequestHeader.ContentType] = "application/x-www-form-urlencoded";
                     byte[] buffer = web.UploadData(url, Encoding.UTF8.GetBytes(data.ToString()));
-                    using (MemoryStream stream = new MemoryStream(buffer))
+                    using (var stream = new MemoryStream(buffer))
                     {
-                        XmlReaderX reader = new XmlReaderX();
+                        var reader = new XmlReaderX();
                         reader.Stream = stream;
                         result = reader.ReadObject(typeof(TranslateNewResult)) as TranslateNewResult;
                     }
