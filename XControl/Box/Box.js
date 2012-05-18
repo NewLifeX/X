@@ -5,11 +5,17 @@ var isIE6 = navigator.userAgent.toLowerCase().indexOf("msie 6.0") != -1;
 var isGecko = navigator.userAgent.toLowerCase().indexOf("gecko") != -1;
 var isQuirks = document.compatMode == "BackCompat";
 
-function GetObjID(ele)
+function GetObjID(ele, ownWindowEle)
 {
+    var doc = ownWindowEle ? (function(){
+        var d = ownWindowEle.ownerDocument;
+        var w = d && (d.defaultView || d.parentWindow) || window;
+        return w.document;
+    })() : document;
+
     if (typeof (ele) == 'string')
     {
-        ele = document.getElementById(ele)
+        ele = doc.getElementById(ele)
         if (!ele)
         {
             return null;
@@ -555,8 +561,8 @@ Dialog.prototype.resize = function(width, height)
 
     try
     {
-        var table = GetObjID("_DialogTable_"+this.ID);
-        var layout = GetObjID("_DialogLayout_"+this.ID);
+        var table = GetObjID("_DialogTable_"+this.ID, this.DialogDiv);
+        var layout = GetObjID("_DialogLayout_"+this.ID, this.DialogDiv);
 
         table.width = width+26;
         layout.style.width = width+"px";
