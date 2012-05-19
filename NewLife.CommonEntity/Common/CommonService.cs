@@ -10,9 +10,9 @@ namespace NewLife.CommonEntity
             Container
                 //.Register<IManageProvider, ManageProvider>()
                 //.Register<ICommonManageProvider, CommonManageProvider>()
-                .Register<IManageProvider, CommonManageProvider>()
-                .Register<IEntityForm, EntityForm2>()
-                .Register<IManagePage, ManagePage>();
+                .AutoRegister(typeof(IManageProvider), typeof(CommonManageProvider), typeof(ManageProvider))
+                .AutoRegister<IEntityForm, EntityForm2>()
+                .AutoRegister<IManagePage, ManagePage>();
         }
     }
 }
