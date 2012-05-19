@@ -298,7 +298,7 @@ namespace NewLife.CommonEntity.Web
             Page.PreLoad += new EventHandler(OnPreLoad);
         }
 
-        void OnPreLoad(object sender, EventArgs e)
+        public virtual void OnPreLoad(object sender, EventArgs e)
         {
             IEntity entity = null;
             try
