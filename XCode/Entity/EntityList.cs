@@ -13,7 +13,7 @@ using XCode.Configuration;
 
 namespace XCode
 {
-    /// <summary>实体集合，提供批量查询和批量操作实体等操作</summary>
+    /// <summary>实体集合，提供批量查询和批量操作实体等操作。若需要使用Linq，需要先用<see cref="ToList"/>方法。</summary>
     [Serializable]
     public partial class EntityList<T> : List<T>, IEntityList, IList, IList<IEntity>, IListSource, IEnumerable where T : IEntity
     {
@@ -920,6 +920,10 @@ namespace XCode
         #endregion
 
         #region 转换
+        /// <summary>转为泛型List，方便进行Linq</summary>
+        /// <returns></returns>
+        public List<T> ToList() { return this; }
+
         /// <summary>任意集合转为实体集合</summary>
         /// <param name="collection"></param>
         /// <returns></returns>
