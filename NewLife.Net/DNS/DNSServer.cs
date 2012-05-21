@@ -7,6 +7,7 @@ using System.Text;
 using NewLife.Collections;
 using NewLife.Net.Common;
 using NewLife.Net.Sockets;
+using NewLife.Log;
 #if NET4
 using System.Linq;
 #else
@@ -102,7 +103,7 @@ namespace NewLife.Net.DNS
             var entity = DNSEntity.Read(e.GetStream(), isTcp);
 
             // 处理，修改
-            WriteLog("{0}://{1} 请求 {2}", session.ProtocolType, e.RemoteEndPoint, entity);
+            WriteDNSLog("{0}://{1} 请求 {2}", session.ProtocolType, e.RemoteEndPoint, entity);
 
             // 如果是PTR请求
             if (entity.Type == DNSQueryType.PTR)
@@ -110,7 +111,7 @@ namespace NewLife.Net.DNS
                 var ptr = entity.Questions[0] as DNS_PTR;
                 // 对本地的请求马上返回
                 var addr = ptr.Address;
-                if (IPAddress.IsLoopback(addr) || NetHelper.GetIPs().Any(ip => ip + "" == addr + ""))
+                if (addr != null && (IPAddress.IsLoopback(addr) || NetHelper.GetIPs().Any(ip => ip + "" == addr + "")))
                 {
                     var ptr2 = new DNS_PTR();
                     ptr2.Name = ptr.Name;
@@ -196,16 +197,24 @@ namespace NewLife.Net.DNS
                 entity2 = DNSEntity.Read(data, parent.ProtocolType == ProtocolType.Tcp);
 
                 // 处理，修改
-                WriteLog("{0} 返回 {1}", parent, entity2);
+                WriteDNSLog("{0} 返回 {1}", parent, entity2);
             }
             catch (Exception ex)
             {
                 String file = String.Format("dns_{0:MMddHHmmss}.bin", DateTime.Now);
-                WriteLog("解析父级代理返回数据出错！数据保存于" + file + "。" + ex.Message);
+                WriteDNSLog("解析父级代理返回数据出错！数据保存于" + file + "。" + ex.Message);
                 File.WriteAllBytes(file, data);
             }
 
             return entity2;
+        }
+        #endregion
+
+        #region 写日志
+        static TextFileLog log = TextFileLog.Create("DNSLog");
+        void WriteDNSLog(String format,params Object[] args)
+        {
+            log.WriteLine(format, args);
         }
         #endregion
     }
