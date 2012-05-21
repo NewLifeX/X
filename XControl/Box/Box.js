@@ -714,19 +714,32 @@ Dialog.CloseSelfDialog = function (frameElement) {
     }
 };
 
-Dialog.CloseAndRefresh = function (frameElement, w) {
+Dialog.CloseAndRefresh = function (frameElement, w, url) {
     try {
         var dialog = Dialog.GetDialogForFrame(frameElement);
+        if(typeof w === 'string'){
+            url = w;
+            w = null;
+        }else if(typeof w === 'object' && w.alert && w.document && w.location){ // window对象特性探测
+            
+        }else{
+            // 拒绝其它形式的参数, 避免w参数发生例外
+            w = null;
+        }
         w = w || dialog.ParentWindow;
         dialog.close();
-        //window.frames["main"].location.reload()
-        // 大石头 刷新本页面
-        if(typeof w.reloadForm == 'function'){
-            w.reloadForm();
-        } else if(w.__doPostBack && !w.DisableDoPostBack){ // 如果DisableDoPostBack=true表示禁用了__doPostBack方式的刷新
-            w.__doPostBack();
-        } else {
-            w.location.reload();
+        if(url){
+            w.location = url;
+        }else{
+            //window.frames["main"].location.reload()
+            // 大石头 刷新本页面
+            if(typeof w.reloadForm == 'function'){
+                w.reloadForm();
+            } else if(w.__doPostBack && !w.DisableDoPostBack){ // 如果DisableDoPostBack=true表示禁用了__doPostBack方式的刷新
+                w.__doPostBack();
+            } else {
+                w.location.reload();
+            }
         }
     } catch (e) {
         //alert(e);
