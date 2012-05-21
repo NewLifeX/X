@@ -19,6 +19,7 @@ using XCode.Transform;
 using System.IO;
 using NewLife.Serialization;
 using XCode.DataAccessLayer.Model;
+using NewLife.CommonEntity;
 
 namespace Test
 {
@@ -35,7 +36,7 @@ namespace Test
                 try
                 {
 #endif
-                Test7();
+                    Test7();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -326,32 +327,7 @@ namespace Test
 
         static void Test7()
         {
-            var dal = DAL.Create("Common");
-            var xml = dal.Export();
-            Console.WriteLine(xml);
-
-            var list = DAL.Import(xml);
-            Console.WriteLine(list);
-        }
-
-        class ModelResolver2 : ModelResolver
-        {
-            static ModelResolver2()
-            {
-                Console.WriteLine("ModelResolver2.cctor");
-            }
-
-            public ModelResolver2()
-            {
-                Console.WriteLine("ModelResolver2.cctor");
-            }
-
-            public override IDataColumn Fix(IDataColumn column)
-            {
-                //Console.WriteLine("{0}.{1}", column.Table.Alias, column.Alias);
-                Console.WriteLine(column);
-                return base.Fix(column);
-            }
+            var entity = Area.FindAll().ToList().FirstOrDefault();
         }
     }
 }
