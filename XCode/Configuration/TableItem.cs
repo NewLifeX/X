@@ -8,7 +8,6 @@ using System.Xml.Serialization;
 using NewLife.Collections;
 using NewLife.Configuration;
 using XCode.DataAccessLayer;
-using NewLife.Reflection;
 
 namespace XCode.Configuration
 {
@@ -253,34 +252,34 @@ namespace XCode.Configuration
             //if (hasInitFields) return;
             //hasInitFields = true;
 
-            BindTableAttribute bt = Table;
-            IDataTable table = DAL.CreateTable();
+            var bt = Table;
+            var table = DAL.CreateTable();
             _DataTable = table;
             table.Name = bt.Name;
             table.Alias = EntityType.Name;
             table.DbType = bt.DbType;
             table.Description = Description;
 
-            List<FieldItem> allfields = new List<FieldItem>();
-            List<FieldItem> fields = new List<FieldItem>();
-            List<FieldItem> pkeys = new List<FieldItem>();
-            PropertyInfo[] pis = EntityType.GetProperties();
-            foreach (PropertyInfo item in pis)
+            var allfields = new List<FieldItem>();
+            var fields = new List<FieldItem>();
+            var pkeys = new List<FieldItem>();
+            //var pis = EntityType.GetProperties();
+            foreach (var item in GetFields(EntityType))
             {
-                // 排除索引器
-                if (item.GetIndexParameters().Length > 0) continue;
+                //// 排除索引器
+                //if (item.GetIndexParameters().Length > 0) continue;
 
-                FieldItem fi = new Field(this, item);
+                //var fi = new Field(this, item);
+                var fi = item;
                 allfields.Add(fi);
 
                 if (fi.IsDataObjectField)
                 {
                     fields.Add(fi);
 
-                    IDataColumn f = table.CreateColumn();
+                    var f = table.CreateColumn();
                     fi.Fill(f);
 
-                    //list.Add(f);
                     table.Columns.Add(f);
                 }
 
@@ -289,9 +288,9 @@ namespace XCode.Configuration
             }
             if (_Indexes != null && _Indexes.Length > 0)
             {
-                foreach (BindIndexAttribute item in _Indexes)
+                foreach (var item in _Indexes)
                 {
-                    IDataIndex di = table.CreateIndex();
+                    var di = table.CreateIndex();
                     item.Fill(di);
 
                     if (ModelHelper.GetIndex(table, di.Columns) != null) continue;
@@ -309,13 +308,13 @@ namespace XCode.Configuration
             }
             if (_Relations != null && _Relations.Length > 0)
             {
-                foreach (BindRelationAttribute item in _Relations)
+                foreach (var item in _Relations)
                 {
-                    IDataRelation dr = table.CreateRelation();
+                    var dr = table.CreateRelation();
                     item.Fill(dr);
 
                     Boolean exists = false;
-                    foreach (IDataRelation elm in table.Relations)
+                    foreach (var elm in table.Relations)
                     {
                         if (!String.Equals(elm.Column, dr.Column, StringComparison.OrdinalIgnoreCase)) continue;
                         if (!String.Equals(elm.RelationTable, dr.RelationTable, StringComparison.OrdinalIgnoreCase)) continue;
@@ -336,6 +335,51 @@ namespace XCode.Configuration
             _AllFields = allfields.ToArray();
             _Fields = fields.ToArray();
             _PrimaryKeys = pkeys.ToArray();
+        }
+
+        /// <summary>获取属性，保证基类属性在前</summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        IEnumerable<Field> GetFields(Type type)
+        {
+            // 先拿到所有属性，可能是先排子类，再排父类
+            var list = new List<Field>();
+            foreach (var item in type.GetProperties())
+            {
+                if (item.GetIndexParameters().Length <= 0) list.Add(new Field(this, item));
+            }
+            // 然后用栈来处理
+            var stack = new Stack<Field>();
+            var t = type;
+            while (t != null && t != typeof(EntityBase) && list.Count > 0)
+            {
+                // 反序入栈，因为属性可能是顺序的，这里先反序，待会出来再反一次
+                // 没有数据属性的
+                for (int i = list.Count - 1; i >= 0; i--)
+                {
+                    var item = list[i];
+                    if (item.DeclaringType == t && !item.IsDataObjectField)
+                    {
+                        stack.Push(item);
+                        list.RemoveAt(i);
+                    }
+                }
+                // 有数据属性的
+                for (int i = list.Count - 1; i >= 0; i--)
+                {
+                    var item = list[i];
+                    if (item.DeclaringType == t && item.IsDataObjectField)
+                    {
+                        stack.Push(item);
+                        list.RemoveAt(i);
+                    }
+                }
+                t = t.BaseType;
+            }
+            foreach (var item in stack)
+            {
+                yield return item;
+            }
         }
         #endregion
 
