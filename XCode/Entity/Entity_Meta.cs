@@ -13,9 +13,7 @@ using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.Threading;
 using XCode.Cache;
-#if DEBUG
 using XCode.Common;
-#endif
 using XCode.Configuration;
 using XCode.DataAccessLayer;
 
@@ -302,6 +300,10 @@ namespace XCode
                     // 输出调用者，方便调试
 #if DEBUG
                     if (DAL.Debug) DAL.WriteLog("检查实体{0}的数据表架构，模式：{1}，调用栈：{2}", ThisType.FullName, Table.ModelCheckMode, Helper.GetCaller());
+#else
+                    // CheckTableWhenFirstUse的实体类，在这里检查，有点意思，记下来
+                    if (DAL.Debug && Table.ModelCheckMode == ModelCheckModes.CheckTableWhenFirstUse)
+                        DAL.WriteLog("检查实体{0}的数据表架构，模式：{1}，调用栈：{2}", ThisType.FullName, Table.ModelCheckMode, Helper.GetCaller());
 #endif
 
                     // 第一次使用才检查的，此时检查

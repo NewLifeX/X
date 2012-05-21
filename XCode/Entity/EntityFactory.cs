@@ -181,6 +181,7 @@ namespace XCode
             // 记录每个表名对应的实体类
             var dic = new Dictionary<String, Type>(StringComparer.OrdinalIgnoreCase);
             var list = new List<String>();
+            var list2 = new List<String>();
             foreach (Type item in LoadEntities(connName))
             {
                 list.Add(item.Name);
@@ -188,6 +189,7 @@ namespace XCode
                 // 过滤掉第一次使用才加载的
                 var att = ModelCheckModeAttribute.GetCustomAttribute(item);
                 if (att != null && att.Mode != ModelCheckModes.CheckAllTablesWhenInit) continue;
+                list2.Add(item.Name);
 
                 var table = TableItem.Create(item).DataTable;
 
@@ -223,7 +225,11 @@ namespace XCode
                 tables.Add(table);
             }
 
-            if (DAL.Debug) DAL.WriteLog("[{0}]的所有实体类（{1}个）：{2}", connName, list.Count, String.Join(",", list.ToArray()));
+            if (DAL.Debug)
+            {
+                DAL.WriteLog("[{0}]的所有实体类（{1}个）：{2}", connName, list.Count, String.Join(",", list.ToArray()));
+                DAL.WriteLog("[{0}]需要检查架构的实体类（{1}个）：{2}", connName, list2.Count, String.Join(",", list2.ToArray()));
+            }
 
             return tables;
         }
