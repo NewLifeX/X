@@ -258,4 +258,10 @@ namespace NewLife.CommonEntity
         }
         #endregion
     }
+
+    partial interface IRoleMenu
+    {
+        /// <summary>操作权限</summary>
+        PermissionFlags PermissionFlag { get; set; }
+    }
 }

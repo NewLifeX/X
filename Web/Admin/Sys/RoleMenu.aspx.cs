@@ -6,10 +6,13 @@ using System.Web.UI.WebControls;
 using NewLife.CommonEntity;
 using NewLife.Reflection;
 using NewLife.Web;
-using Menu = NewLife.CommonEntity.Menu;
+using XCode;
 
 public partial class Pages_RoleMenu : MyEntityList
 {
+    /// <summary>实体类型</summary>
+    public override Type EntityType { get { return CommonManageProvider.Provider.RoleMenuType; } set { base.EntityType = value; } }
+
     protected override void OnInit(EventArgs e)
     {
         base.OnInit(e);
@@ -43,14 +46,14 @@ public partial class Pages_RoleMenu : MyEntityList
     {
         if (e.Row == null) return;
 
-        Menu entity = e.Row.DataItem as Menu;
+        IMenu entity = e.Row.DataItem as IMenu;
         if (entity == null) return;
 
         CheckBox cb = e.Row.FindControl("CheckBox1") as CheckBox;
         CheckBoxList cblist = e.Row.FindControl("CheckBoxList1") as CheckBoxList;
 
         // 检查权限
-        RoleMenu rm = RoleMenu.FindByRoleAndMenu(RoleID, entity.ID);
+        IRoleMenu rm = FindByRoleAndMenu(RoleID, entity.ID);
         cb.Checked = (rm != null);
         if (rm != null) cb.ToolTip = rm.PermissionFlag.ToString();
         //if (rm != null) cb.Text = rm.PermissionFlag.ToString();
@@ -86,12 +89,12 @@ public partial class Pages_RoleMenu : MyEntityList
         GridViewRow row = cb.BindingContainer as GridViewRow;
         if (row == null) return;
 
-        Menu entity = Menu.Root.AllChilds[row.DataItemIndex] as Menu;
+        IMenu entity = CommonManageProvider.Provider.MenuRoot.AllChilds[row.DataItemIndex] as IMenu;
         if (entity == null) return;
         formtitle = entity.Name;
 
         // 检查权限
-        RoleMenu rm = RoleMenu.FindByRoleAndMenu(RoleID, entity.ID);
+        IRoleMenu rm = FindByRoleAndMenu(RoleID, entity.ID);
         if (cb.Checked)
         {
             // 没有权限，增加
@@ -103,11 +106,11 @@ public partial class Pages_RoleMenu : MyEntityList
                     return;
                 }
 
-                rm = new RoleMenu();
+                rm = TypeX.CreateInstance(EntityType) as IRoleMenu;
                 rm.RoleID = RoleID;
                 rm.MenuID = entity.ID;
                 rm.PermissionFlag = PermissionFlags.All;
-                rm.Save();
+                (rm as IEntity).Save();
             }
         }
         else
@@ -121,7 +124,7 @@ public partial class Pages_RoleMenu : MyEntityList
                     return;
                 }
 
-                rm.Delete();
+                (rm as IEntity).Delete();
             }
         }
 
@@ -141,12 +144,12 @@ public partial class Pages_RoleMenu : MyEntityList
         GridViewRow row = cb.BindingContainer as GridViewRow;
         if (row == null) return;
 
-        Menu entity = Menu.Root.AllChilds[row.DataItemIndex] as Menu;
+        IMenu entity = CommonManageProvider.Provider.MenuRoot.AllChilds[row.DataItemIndex] as IMenu;
         if (entity == null) return;
         formtitle = entity.Name;
 
         // 检查权限
-        RoleMenu rm = RoleMenu.FindByRoleAndMenu(RoleID, entity.ID);
+        IRoleMenu rm = FindByRoleAndMenu(RoleID, entity.ID);
         // 没有权限，增加
         if (rm == null)
         {
@@ -156,7 +159,7 @@ public partial class Pages_RoleMenu : MyEntityList
                 return;
             }
 
-            rm = new RoleMenu();
+            rm = TypeX.CreateInstance(EntityType) as IRoleMenu;
             rm.RoleID = RoleID;
             rm.MenuID = entity.ID;
         }
@@ -177,10 +180,17 @@ public partial class Pages_RoleMenu : MyEntityList
             }
 
             rm.PermissionFlag = flag;
-            rm.Save();
+            (rm as IEntity).Save();
         }
 
         GridView1.DataBind();
+    }
+
+    IRoleMenu FindByRoleAndMenu(Int32 roleID, Int32 menuID)
+    {
+        MethodInfoX mix = MethodInfoX.Create(EntityType, "FindByRoleAndMenu");
+        if (mix == null) return null;
+        return mix.Invoke(null, roleID, menuID) as IRoleMenu;
     }
 
     static Dictionary<PermissionFlags, String> flagCache;
