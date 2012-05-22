@@ -55,12 +55,18 @@ namespace NewLife.Mvc
             return ctl == null || ctl == Controller || ctl is IgnoreRouteController;
         }
 
+        internal Func<IRouteContext, bool> Filter { get; set; }
+
         /// <summary>实现 IControllerFactory 接口</summary>
         /// <param name="context"></param>
         /// <returns></returns>
         public IController GetController(IRouteContext context)
         {
-            return Controller;
+            if (Filter == null || Filter(context))
+            {
+                return Controller;
+            }
+            return null;
         }
 
         /// <summary>实现 IControllerFactory 接口</summary>
@@ -82,7 +88,5 @@ namespace NewLife.Mvc
                 get { return true; }
             }
         }
-
-        internal Func<IRouteContext, bool> Filter { get; set; }
     }
 }
