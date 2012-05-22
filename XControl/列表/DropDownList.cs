@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections;
+using System.ComponentModel;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 using DropDownList_Old = System.Web.UI.WebControls.DropDownList;
-using System.Collections.Generic;
 
 namespace XControl
 {
@@ -14,38 +14,64 @@ namespace XControl
      *  在这种情况下，多次绑定后，会造成叠加，一般不使用。绑定前和绑定后一样，区别只是选择项加在开头还是结尾而已
      *      绑定前：如果静态Items没有，往里面加一个项，绑定的时候保留静态项。
      *      绑定后：每次绑定都会保留原来的项，这就导致了一直增加重复的选项！
-     * 
+     *
      * AppendDataBoundItems=false
      *      绑定前：如果静态Items没有，往里面加一个项，绑定的时候会清空静态项，如果绑定的列表项刚好没有选择项，会抛异常！
      *              解决方法，绑定前一刻，人为清空所有项，添加选择项，绑定完成后视情况决定是否删除。
      *      绑定后：如果列表项中没有选择项，就会多一个异常项。正确！
-     * 
+     *
+     * */
+
+    /*
+     * 2012-05-22 by netwjx :
+     *
+     * 针对SelectedValue赋值和DataBind()可能会抛出异常的现象修改, 理想的策略是
+     *
+     * 无论任何时候 给SelectedValue赋值, 都确保不抛出异常, 而是选择添加异常项或缓存设置的值,暂时使用旧值
+     * 无论任何时候 DataBind()时, 都确保不抛出异常, 而是选择添加异常项或尝试使用缓存的值或者使用默认第一项,或者null
+     * TODO 尚未实现SelectedIndex赋值的处理
      * */
 
     /// <summary>下拉列表。绑定时，如果没有对应的选择项，则自动加上。</summary>
     [ToolboxData("<{0}:DropDownList runat=\"server\"> </{0}:DropDownList>")]
     public class DropDownList : DropDownList_Old
     {
-        private const String ExceptionString = "（异常）";
+        private const String ExceptionString = "无效的值:{0}";
 
-        private string cachedSelectedValue
+        private string _RealSelectedValue;
+        /// <summary>
+        /// 真实的选中项的值,因为避免给SelectedValue赋值要避免抛出异常,所以SelectedValue属性可以返回的是假值
+        /// </summary>
+        public string RealSelectedValue
         {
             get
             {
-                object obj2 = this.ViewState["cachedSelectedValue"];
-                if (obj2 != null)
-                {
-                    return (string)obj2;
-                }
-                return string.Empty;
-            }
-            set
-            {
-                this.ViewState["cachedSelectedValue"] = value;
+                return _RealSelectedValue ?? SelectedValue;
             }
         }
 
-        //private String cachedSelectedValue;
+        /// <summary>
+        /// 是否不添加异常项
+        /// </summary>
+        [WebCategory("专用属性 "), DefaultValue(false),
+        Description("当SelectedValue的值是不存在的项时会添加一个异常的项, 这个属性控制是否不要添加这个项, 注意: 最终仍旧不存在时将会默认选中第一项")]
+        public bool NoExceptionItem
+        {
+            get
+            {
+                object val = ViewState["NoExceptionItem"];
+                if (val != null)
+                {
+                    return (bool)val;
+                }
+                return false;
+            }
+            set
+            {
+                ViewState["NoExceptionItem"] = value;
+            }
+        }
+
         /// <summary>已重载。加上未添加到列表的项。</summary>
         public override string SelectedValue
         {
@@ -55,18 +81,39 @@ namespace XControl
             }
             set
             {
-                if (Items.FindByValue(value) == null)
+                if (_RealSelectedValue != null)
                 {
-                    // 列表项中并没有该选项，自动加入，并打上异常标识
-                    ListItem item = new ListItem(value + ExceptionString, value);
-                    item.Selected = true;
-                    Items.Add(item);
-                    cachedSelectedValue = value;
-
-                    //AppendDataBoundItems = true;
+                    // 尝试移除上次调用时产生的异常项
+                    var item = Items.FindByValue(_RealSelectedValue);
+                    if (item != null)
+                    {
+                        Items.Remove(item);
+                    }
+                    _RealSelectedValue = null;
                 }
+                try
+                {
+                    base.SelectedValue = value;
+                    if (base.SelectedValue != value) throw new ArgumentOutOfRangeException();
+                }
+                catch (ArgumentOutOfRangeException)
+                {
+                    _RealSelectedValue = value;
+                    if (NoExceptionItem)
+                    {
+                        // 记录真实值后跳出
+                        return;
+                    }
+                    else
+                    {
+                        // 列表项中并没有该选项，自动加入，并打上异常标识
+                        ClearSelection();
+                        var item = new ListItem(string.Format(ExceptionString, value), value) { Selected = true };
+                        Items.Insert(0, item);
 
-                base.SelectedValue = value;
+                        base.SelectedValue = value;
+                    }
+                }
             }
         }
 
@@ -74,109 +121,54 @@ namespace XControl
         /// <param name="dataSource"></param>
         protected override void PerformDataBinding(IEnumerable dataSource)
         {
-            ListItem item = null;
-            //Boolean isUserCache = false;
-            if (!AppendDataBoundItems)
+            string real = RealSelectedValue;
+            ListItem item;
+            if (_RealSelectedValue != null)
             {
-                //isUserCache = true;
-                if (!String.IsNullOrEmpty(cachedSelectedValue))
+                item = Items.FindByValue(_RealSelectedValue);
+                if (item != null)
                 {
-                    AppendDataBoundItems = true;
-
-                    // 设置AppendDataBoundItems的目的就是为了在PerformDataBinding的时候清空
-                    Items.Clear();
-
-                    // 必须加上这一项，否则base.PerformDataBinding里面会抛出异常
-                    // 因为基类还有一个类似cachedSelectedValue的东西
-                    ClearSelection();
-                    item = new ListItem(cachedSelectedValue + ExceptionString, cachedSelectedValue);
-                    item.Selected = true;
-                    Items.Add(item);
+                    Items.Remove(item);
                 }
             }
-
-            //try
+            try
             {
                 base.PerformDataBinding(dataSource);
             }
-            //catch (ArgumentOutOfRangeException ex)
-            //{
-            //    if (ex.ParamName == "value" && !AppendDataBoundItems)
-            //        throw new ArgumentOutOfRangeException("value", "没有设置AppendDataBoundItems属性为true！");
-            //    else
-            //        throw;
-            //}
-
-            if (item != null)
+            catch (ArgumentException)
             {
-                AppendDataBoundItems = false;
-
-                // 尝试移除这一项
-                Items.Remove(item);
-
-                // 如果现有列表里面没有这一项，则加上
-                ListItem item2 = Items.FindByValue(cachedSelectedValue);
-                if (item2 == null)
-                    Items.Add(item);
-                else
-                    item2.Selected = true;
+                // SelectedValue会在抛出异常时改变为第一项的Value
             }
-
-            //if (!AppendDataBoundItems)
-            //{
-            //    ClearSelection();
-
-            //    Items.Add(item);
-            //}
-
-            ////处理异常重复值
-            //List<String> list = new List<string>();
-            //List<String> todel = new List<string>();
-            //foreach (ListItem item in Items)
-            //{
-            //    // 重复出现的值进入todel
-            //    if (list.Contains(item.Value))
-            //        todel.Add(item.Value);
-            //    else
-            //        list.Add(item.Value);
-            //}
-            //String selectstr = SelectedValue;
-            //for (int i = Items.Count - 1; i >= 0; i--)
-            //{
-            //    if (todel.Contains(Items[i].Value) && Items[i].Text.EndsWith(ExceptionString))
-            //    {
-            //        String value = Items[i].Value;
-            //        Boolean bSelected = Items[i].Selected;
-
-            //        Items.RemoveAt(i);
-
-            //        //修正选择项
-            //        if (bSelected)
-            //        {
-            //            //找到同值的另一项
-            //            ListItem item = Items.FindByValue(value);
-            //            //并标为选中
-            //            if (item != null) item.Selected = true;
-            //        }
-            //    }
-            //}
-
-            //if (cachedSelectedValue != null)
-            //{
-            //    ClearSelection();
-
-            //    // 重新设置选中项
-            //    ListItem item = Items.FindByValue(cachedSelectedValue);
-            //    if (item == null)
-            //    {
-            //        item = new ListItem(cachedSelectedValue + ExceptionString, cachedSelectedValue);
-            //        Items.Add(item);
-            //    }
-            //    item.Selected = true;
-            //}
+            if (!string.IsNullOrEmpty(real) && SelectedValue != real)
+            {
+                item = Items.FindByValue(real);
+                if (item != null)
+                {
+                    ClearSelection();
+                    item.Selected = true;
+                }
+                else
+                {
+                    if (NoExceptionItem)
+                    {
+                        if (Items.Count > 0)
+                        {
+                            ClearSelection();
+                            Items[0].Selected = true;
+                        }
+                    }
+                    else
+                    {
+                        ClearSelection();
+                        item = new ListItem(string.Format(ExceptionString, real), real) { Selected = true };
+                        Items.Insert(0, item);
+                    }
+                }
+            }
         }
 
         private Boolean selecting = false;
+
         /// <summary>已重载。避免绑定时重入该方法</summary>
         protected override void PerformSelect()
         {
