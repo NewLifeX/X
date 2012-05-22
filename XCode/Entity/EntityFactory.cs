@@ -133,10 +133,10 @@ namespace XCode
             // 重新使用判断，减少锁争夺
             var oc = op_cache;
             if (oc.ContainsKey(type)) return oc[type];
-            //lock (op_cache)
+            lock (op_cache)
             // op_cache曾经是两次非常严重的死锁的核心所在
             // 事实上，不管怎么样处理，只要这里还锁定op_cache，那么实体类静态构造函数和CreateOperate方法，就有可能导致死锁产生
-            lock ("op_cache" + type.FullName)
+            //lock ("op_cache" + type.FullName)
             {
                 if (oc.ContainsKey(type)) return oc[type];
 
@@ -320,10 +320,10 @@ namespace XCode
         internal static void EnsureInit(Type type)
         {
             if (_hasInited.Contains(type)) return;
-            //lock (_hasInited)
+            lock (_hasInited)
             // 如果这里锁定_hasInited，还是有可能死锁，因为可能实体类A的静态构造函数中可能导致调用另一个实体类的EnsureInit
             // 其实我们这里加锁的目的，本来就是为了避免重复添加同一个type而已
-            lock ("_hasInited" + type.FullName)
+            //lock ("_hasInited" + type.FullName)
             {
                 if (_hasInited.Contains(type)) return;
 
