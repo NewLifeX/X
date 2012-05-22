@@ -42,7 +42,6 @@ namespace NewLife.YWS.Entities
         /// <returns></returns>
         public override int Delete()
         {
-
             StringBuilder sb = new StringBuilder();
             for (int i = 0; i < Meta.FieldNames.Count; i++)
             {
@@ -56,25 +55,11 @@ namespace NewLife.YWS.Entities
         #endregion
 
         #region 日志
-        ///// <summary>
-        ///// 创建指定动作的日志实体。通过Http状态访问当前管理员对象，创建日志实体
-        ///// </summary>
-        ///// <param name="action"></param>
-        ///// <returns></returns>
-        //public static ILog CreateLog(String action)
-        //{
-        //    Admin admin = Admin.Current;
-        //    if (admin == null) return null;
-
-        //    return admin.CreateLog(typeof(TEntity), action);
-        //}
-
         /// <summary>写日志</summary>
         /// <param name="action">操作</param>
         /// <param name="remark">备注</param>
         public static void WriteLog(String action, String remark)
         {
-            //IAdministrator admin = Administrator.CurrentAdministrator;
             IAdministrator admin = ManageProvider.Provider.Current as IAdministrator;
             if (admin != null) admin.WriteLog(typeof(TEntity), action, remark);
         }

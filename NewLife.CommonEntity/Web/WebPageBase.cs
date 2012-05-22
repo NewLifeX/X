@@ -1,24 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Security.Principal;
 using System.Text;
 using System.Threading;
 using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 using NewLife.Configuration;
-using NewLife.IO;
 using NewLife.Log;
 using XCode.DataAccessLayer;
 
 namespace NewLife.CommonEntity.Web
 {
-    ///// <summary>
-    ///// 页面基类
-    ///// </summary>
-    //public class WebPageBase : WebPageBase<Administrator, Menu> { }
-
     /// <summary>指定具体管理员类和菜单类的页面基类</summary>
     /// <typeparam name="TAdminEntity"></typeparam>
     /// <typeparam name="TMenuEntity"></typeparam>
@@ -27,70 +20,6 @@ namespace NewLife.CommonEntity.Web
         where TAdminEntity : Administrator<TAdminEntity>, new()
         where TMenuEntity : Menu<TMenuEntity>, new()
     {
-        //#region 菜单
-        ///// <summary>
-        ///// 导航 分为三级：栏目－子栏目－页面
-        ///// </summary>
-        //public virtual String Navigation
-        //{
-        //    get
-        //    {
-        //        if (MyMenu == null) return null;
-
-        //        // 无限路径
-        //        EntityList<TMenuEntity> list = MyMenu.GetFullPath(true);
-        //        //StringBuilder sb = new StringBuilder();
-        //        //foreach (TMenuEntity item in list)
-        //        //{
-        //        //    if (sb.Length > 0) sb.Append(" - ");
-        //        //    sb.AppendFormat("[{0}]", item.Name);
-        //        //}
-
-        //        //return sb.ToString();
-
-        //        return MyMenu.GetFullPath(true, " - ", delegate(TMenuEntity item)
-        //        {
-        //            return String.Format("[{0}]", item.Name);
-        //        });
-        //    }
-        //}
-
-        //private List<String> hasLoaded = new List<String>();
-        //private TMenuEntity _MyMenu;
-        ///// <summary>本页菜单</summary>
-        //public virtual TMenuEntity MyMenu
-        //{
-        //    get
-        //    {
-        //        if (_MyMenu == null && !hasLoaded.Contains("MyMenu"))
-        //        {
-        //            _MyMenu = Menu<TMenuEntity>.FindForPerssion(PermissionName);
-        //            if (_MyMenu == null) _MyMenu = Menu<TMenuEntity>.Current;
-        //            hasLoaded.Add("MyMenu");
-        //        }
-        //        return _MyMenu;
-        //    }
-        //    set { _MyMenu = value; }
-        //}
-        //#endregion
-
-        //#region 权限控制
-        ///// <summary>
-        ///// 申请指定操作的权限
-        ///// </summary>
-        ///// <param name="flag"></param>
-        ///// <returns></returns>
-        //public override Boolean Acquire(PermissionFlags flag)
-        //{
-        //    if (MyMenu == null) return base.Acquire(flag);
-
-        //    // 当前管理员
-        //    IAdministrator entity = Current;
-        //    if (entity == null) return false;
-
-        //    return entity.Acquire(MyMenu.ID, flag);
-        //}
-        //#endregion
     }
 
     /// <summary>指定具体管理员类的页面基类</summary>
@@ -259,11 +188,6 @@ namespace NewLife.CommonEntity.Web
         {
             get
             {
-                //return http == null ? null : http.Current;
-                //return (IAdministrator)Thread.CurrentPrincipal;
-
-                //return Administrator.CurrentAdministrator;
-
                 return ManageProvider.Provider.Current as IAdministrator;
             }
         }
@@ -273,11 +197,6 @@ namespace NewLife.CommonEntity.Web
         protected override void OnPreLoad(EventArgs e)
         {
             CheckStarting();
-
-            //Thread.CurrentPrincipal = (IPrincipal)Current;
-            ////Thread.CurrentPrincipal = (IPrincipal)http.Current;
-
-            //Unload += new EventHandler(WebPageBase_Unload);
 
             base.OnPreLoad(e);
 
@@ -305,11 +224,6 @@ namespace NewLife.CommonEntity.Web
                 XTrace.WriteException(ex);
             }
         }
-
-        //void WebPageBase_Unload(object sender, EventArgs e)
-        //{
-        //    Thread.CurrentPrincipal = null;
-        //}
         #endregion
 
         #region 运行时输出
