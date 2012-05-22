@@ -4,6 +4,7 @@ using System.IO;
 using System.IO.Ports;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using System.Xml.Serialization;
 using NewLife.Exceptions;
 using NewLife.Log;
@@ -307,7 +308,7 @@ namespace NewLife.Net.ModBus
                     }
                     catch { }
                     //if (i >= dt.Length) break;
-                    //Thread.Sleep(1000);
+                    Thread.Sleep(500);
                 } while (i < dt.Length && sp.BytesToRead > 0);
                 if (i <= 0) return null;
 
