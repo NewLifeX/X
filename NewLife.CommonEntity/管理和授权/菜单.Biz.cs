@@ -854,6 +854,36 @@ namespace NewLife.CommonEntity
         }
         #endregion
 
+        #region 导入导出
+        /// <summary>导出</summary>
+        /// <param name="list"></param>
+        /// <returns></returns>
+        public static String Export(IList<IMenu> list)
+        {
+            return Export(new EntityList<TEntity>(list));
+        }
+
+        /// <summary>导出</summary>
+        /// <param name="list"></param>
+        /// <returns></returns>
+        public static String Export(EntityList<TEntity> list)
+        {
+            return list.ToXml();
+        }
+
+        /// <summary>导入</summary>
+        /// <param name="xml"></param>
+        public static void Import(String xml)
+        {
+            var list = new EntityList<TEntity>();
+            list.FromXml(xml);
+            foreach (var item in list)
+            {
+                item.Import();
+            }
+        }
+        #endregion
+
         #region IMenu 成员
         /// <summary>取得全路径的实体，由上向下排序</summary>
         /// <param name="includeSelf">是否包含自己</param>
@@ -930,5 +960,11 @@ namespace NewLife.CommonEntity
         /// <param name="path">层次路径</param>
         /// <returns></returns>
         IMenu FindByPath(String path);
+
+        /// <summary>排序上升</summary>
+        void Up();
+
+        /// <summary>排序下降</summary>
+        void Down();
     }
 }

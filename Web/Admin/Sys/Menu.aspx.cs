@@ -2,9 +2,8 @@
 using System.Text;
 using NewLife.CommonEntity;
 using NewLife.Log;
+using NewLife.Reflection;
 using NewLife.Web;
-using XCode;
-using Menu = NewLife.CommonEntity.Menu;
 
 public partial class Pages_Menu : MyEntityList
 {
@@ -26,7 +25,7 @@ public partial class Pages_Menu : MyEntityList
     {
         try
         {
-            Int32 n = Menu.ScanAndAdd();
+            Int32 n = (Int32)MethodInfoX.Create(EntityType, "ScanAndAdd").Invoke(null);
 
             WebHelper.Alert("扫描完成，共添加菜单" + n + "个！");
         }
@@ -38,11 +37,7 @@ public partial class Pages_Menu : MyEntityList
 
     protected void Button2_Click(object sender, EventArgs e)
     {
-        //Menu m = Menu.Find(Menu._.ParentID, 0);
-        //if (m == null) return;
-        EntityList<Menu> list = Menu.Root.Childs;
-
-        String xml = list.ToXml();
+        String xml = MethodInfoX.Create(EntityType, "Export").Invoke(null, CommonManageProvider.Provider.MenuRoot.Childs) as String;
 
         Response.Clear();
         Response.Buffer = true;
@@ -63,18 +58,7 @@ public partial class Pages_Menu : MyEntityList
 
         try
         {
-            //Menu m = Menu.FromXML(xml);
-            //m.Import();
-            EntityList<Menu> list = new EntityList<Menu>();
-            list.FromXml(xml);
-
-            if (list.Count > 0)
-            {
-                foreach (Menu item in list)
-                {
-                    item.Import();
-                }
-            }
+            MethodInfoX.Create(EntityType, "Import").Invoke(null, xml);
 
             gv.DataBind();
         }
@@ -91,7 +75,7 @@ public partial class Pages_Menu : MyEntityList
     {
         if (e.CommandName == "Up")
         {
-            Menu entity = Menu.FindByID(Convert.ToInt32(e.CommandArgument));
+            IMenu entity = CommonManageProvider.Provider.FindByMenuID(Convert.ToInt32(e.CommandArgument));
             if (entity != null)
             {
                 entity.Up();
@@ -100,7 +84,7 @@ public partial class Pages_Menu : MyEntityList
         }
         else if (e.CommandName == "Down")
         {
-            Menu entity = Menu.FindByID(Convert.ToInt32(e.CommandArgument));
+            IMenu entity = CommonManageProvider.Provider.FindByMenuID(Convert.ToInt32(e.CommandArgument));
             if (entity != null)
             {
                 entity.Down();

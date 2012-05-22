@@ -49,17 +49,6 @@ namespace NewLife.CommonEntity.Web
             {
                 if (MyMenu == null) return null;
 
-                // 无限路径
-                //EntityList<TMenuEntity> list = MyMenu.GetFullPath(true);
-                //StringBuilder sb = new StringBuilder();
-                //foreach (TMenuEntity item in list)
-                //{
-                //    if (sb.Length > 0) sb.Append(" - ");
-                //    sb.AppendFormat("[{0}]", item.Name);
-                //}
-
-                //return sb.ToString();
-
                 return MyMenu.GetFullPath(true, " - ", item => String.Format("[{0}]", item.Name));
             }
         }
@@ -73,11 +62,7 @@ namespace NewLife.CommonEntity.Web
             {
                 if (_MyMenu == null && !hasLoaded.Contains("MyMenu"))
                 {
-                    //_MyMenu = Menu<TMenuEntity>.FindForPerssion(PermissionName);
-                    //_MyMenu = EntityShip.Invoke<IMenu>("FindForPerssion", PermissionName) as IMenu;
-
                     _MyMenu = Current.FindPermissionMenu(PermissionName);
-                    //if (_MyMenu == null) _MyMenu = Menu.CurrentMenu;
                     hasLoaded.Add("MyMenu");
                 }
                 return _MyMenu;
