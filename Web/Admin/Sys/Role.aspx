@@ -1,5 +1,6 @@
 ﻿<%@ Page Language="C#" AutoEventWireup="true" CodeFile="Role.aspx.cs" Inherits="Pages_Role"
-    MasterPageFile="~/Admin/ManagerPage.master" Title="角色管理" MaintainScrollPositionOnPostback="true" EnableViewState="false" EnableEventValidation="false" %>
+    MasterPageFile="~/Admin/ManagerPage.master" Title="角色管理" MaintainScrollPositionOnPostback="true"
+    EnableViewState="false" EnableEventValidation="false" %>
 
 <asp:Content ID="Content1" ContentPlaceHolderID="C" runat="server">
     <div class="toolbar">
@@ -8,8 +9,8 @@
         &nbsp;<asp:Button ID="btnAdd" runat="server" Text="添加" OnClick="Button1_Click" />
         <asp:Label ID="Label_Info" runat="server" ForeColor="#FF3300"></asp:Label>
     </div>
-    <asp:GridView ID="GridView1" runat="server" AutoGenerateColumns="False" DataKeyNames="ID"
-        DataSourceID="ObjectDataSource1" AllowPaging="True" AllowSorting="True" CssClass="m_table"
+    <asp:GridView ID="gv" runat="server" AutoGenerateColumns="False" DataKeyNames="ID"
+        DataSourceID="ods" AllowPaging="True" AllowSorting="True" CssClass="m_table"
         CellPadding="0" GridLines="None" PageSize="20" EnableModelValidation="True">
         <Columns>
             <asp:BoundField DataField="ID" HeaderText="编号" InsertVisible="False" ReadOnly="True"
@@ -33,9 +34,8 @@
             没有符合条件的数据！
         </EmptyDataTemplate>
     </asp:GridView>
-    <asp:ObjectDataSource ID="ObjectDataSource1" runat="server" DataObjectTypeName="NewLife.CommonEntity.Role"
-        EnablePaging="True" OldValuesParameterFormatString="original_{0}" SelectCountMethod="FindCountByName"
-        SelectMethod="FindAllByName" SortParameterName="orderClause" TypeName="NewLife.CommonEntity.Role"
+    <asp:ObjectDataSource ID="ods" runat="server" EnablePaging="True" OldValuesParameterFormatString="original_{0}"
+        SelectCountMethod="FindCountByName" SelectMethod="FindAllByName" SortParameterName="orderClause"
         InsertMethod="Insert" DeleteMethod="Delete" UpdateMethod="Update">
         <SelectParameters>
             <asp:Parameter Name="name" Type="String" />

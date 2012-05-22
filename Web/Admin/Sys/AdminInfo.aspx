@@ -104,6 +104,4 @@
             </td>
         </tr>
     </table>
-    <asp:ObjectDataSource ID="ObjectDataSource1" runat="server" TypeName="NewLife.CommonEntity.Role"
-        DataObjectTypeName="NewLife.CommonEntity.Role " SelectMethod="FindAll"></asp:ObjectDataSource>
 </asp:Content>

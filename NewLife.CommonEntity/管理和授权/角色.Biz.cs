@@ -249,6 +249,15 @@ namespace NewLife.CommonEntity
             if (XTrace.Debug) XTrace.WriteLine("完成初始化{0}角色数据！", typeof(TEntity).Name);
         }
 
+        /// <summary>验证数据，通过抛出异常的方式提示验证失败。建议重写者调用基类的实现，因为将来可能根据数据字段的特性进行数据验证。</summary>
+        /// <param name="isNew">是否新数据</param>
+        public override void Valid(bool isNew)
+        {
+            if (String.IsNullOrEmpty(Name)) throw new ArgumentNullException(_.Name, _.Name.DisplayName + "不能为空！");
+
+            base.Valid(isNew);
+        }
+
         /// <summary>已重载。调用Save时写日志，而调用Insert和Update时不写日志</summary>
         /// <returns></returns>
         public override int Save()
