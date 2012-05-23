@@ -1,4 +1,5 @@
 ﻿using System;
+using NewLife.Linq;
 using System.Collections.Generic;
 using System.Reflection;
 using XCode.DataAccessLayer;
@@ -47,6 +48,14 @@ namespace XCoder
         public IDataTable FindTable(String tableName)
         {
             return Tables.Find(t => t.Name.EqualIgnoreCase(tableName) || t.Alias.EqualIgnoreCase(tableName));
+        }
+
+        /// <summary>判断是否存在指定列</summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public Boolean HasColumn(String name)
+        {
+            return Table.Columns.Any(dc => dc.Alias.EqualIgnoreCase(name));
         }
         #endregion
     }

@@ -128,7 +128,7 @@ namespace XCoder
             var p = tempName.IndexOf(']');
             if (p >= 0)
             {
-                tempKind = tempName.Substring(0, p);
+                tempKind = tempName.Substring(0, p + 1);
                 tempName = tempName.Substring(p + 1);
             }
             if (tempKind == "[ÄÚÖÃ]")
@@ -138,7 +138,7 @@ namespace XCoder
                 {
                     var key = item.Key;
                     String name = key.Substring(0, key.IndexOf("."));
-                    if ("*" + name != tempName) continue;
+                    if (name != tempName) continue;
 
                     String content = item.Value;
 
