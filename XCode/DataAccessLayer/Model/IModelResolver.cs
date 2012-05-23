@@ -184,6 +184,8 @@ namespace XCode.DataAccessLayer.Model
             name = name.Replace("）", null);
             name = name.Replace(" ", null);
             name = name.Replace("　", null);
+            name = name.Replace("/", "_");
+            name = name.Replace("\\", "_");
             if (name[0] == '_') name = name.Substring(1);
 
             // 很多时候，这个别名就是表名
@@ -324,12 +326,23 @@ namespace XCode.DataAccessLayer.Model
         {
             if (String.IsNullOrEmpty(description)) return name;
 
-            String str = description.Trim();
-            Int32 p = str.IndexOfAny(new Char[] { '.', '。', '\r', '\n' });
+            name = description.Trim();
+            var p = name.IndexOfAny(new Char[] { '.', '。', '\r', '\n' });
             // p=0表示符号在第一位，不考虑
-            if (p > 0) str = str.Substring(0, p).Trim();
+            if (p > 0) name = name.Substring(0, p).Trim();
 
-            return str;
+            name = name.Replace("$", null);
+            name = name.Replace("(", null);
+            name = name.Replace(")", null);
+            name = name.Replace("（", null);
+            name = name.Replace("）", null);
+            name = name.Replace(" ", null);
+            name = name.Replace("　", null);
+            name = name.Replace("/", "_");
+            name = name.Replace("\\", "_");
+            if (name[0] == '_') name = name.Substring(1);
+
+            return name;
         }
         #endregion
 

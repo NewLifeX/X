@@ -258,6 +258,7 @@ namespace XCode.Configuration
             table.Name = bt.Name;
             table.Alias = EntityType.Name;
             table.DbType = bt.DbType;
+            table.IsView = bt.IsView;
             table.Description = Description;
 
             var allfields = new List<FieldItem>();

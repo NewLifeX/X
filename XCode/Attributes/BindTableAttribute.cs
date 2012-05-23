@@ -51,6 +51,10 @@ namespace XCode
             set { _DbType = value; }
         }
 
+        private Boolean _IsView;
+        /// <summary>是否视图</summary>
+        public Boolean IsView { get { return _IsView; } set { _IsView = value; } }
+
         /// <summary>构造函数</summary>
         /// <param name="name">表名</param>
         public BindTableAttribute(String name)
@@ -65,15 +69,5 @@ namespace XCode
             Name = name;
             Description = description;
         }
-
-        ///// <summary>
-        ///// 检索应用于类型成员的自定义属性。
-        ///// </summary>
-        ///// <param name="element"></param>
-        ///// <returns></returns>
-        //public static BindTableAttribute GetCustomAttribute(MemberInfo element)
-        //{
-        //    return GetCustomAttribute(element, typeof(BindTableAttribute)) as BindTableAttribute;
-        //}
     }
 }
