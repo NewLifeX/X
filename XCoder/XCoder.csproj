@@ -80,6 +80,7 @@
     <EmbeddedResource Include="Template\页面基类ExtAspNet\MyEntityUserControl.cs">
       <SubType>ASPXCodeBehind</SubType>
     </EmbeddedResource>
+    <EmbeddedResource Include="Template\实体业务_增强\中文名.Biz.cs" />
     <Compile Include="Windows\FrmCriterion.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -194,6 +195,9 @@
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
+    <EmbeddedResource Include="Template\实体业务_增强\对象操作.xt" />
+    <EmbeddedResource Include="Template\实体业务_增强\扩展查询.xt" />
+    <EmbeddedResource Include="Template\实体业务_增强\扩展属性.xt" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NewLife.Core\NewLife.Core.csproj">
