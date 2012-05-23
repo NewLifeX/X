@@ -6,20 +6,6 @@
         }<#
 }#>
 
-        ///// <summary>已重载。基类先调用Valid(true)验证数据，然后在事务保护内调用OnInsert</summary>
-        ///// <returns></returns>
-        //public override Int32 Insert()
-        //{
-        //    return base.Insert();
-        //}
-
-        ///// <summary>已重载。在事务保护范围内处理业务，位于Valid之后</summary>
-        ///// <returns></returns>
-        //protected override Int32 OnInsert()
-        //{
-        //    return base.OnInsert();
-        //}
-
         /// <summary>验证数据，通过抛出异常的方式提示验证失败。</summary>
         /// <param name="isNew"></param>
         public override void Valid(Boolean isNew)
@@ -93,6 +79,46 @@
             }
             #>
         }
+
+        ///// <summary>首次连接数据库时初始化数据，仅用于实体类重载，用户不应该调用该方法</summary>
+        //[EditorBrowsable(EditorBrowsableState.Never)]
+        //protected override void InitData()
+        //{
+        //    base.InitData();
+
+        //    // InitData一般用于当数据表没有数据时添加一些默认数据，该实体类的任何第一次数据库操作都会触发该方法，默认异步调用
+        //    // Meta.Count是快速取得表记录数
+        //    if (Meta.Count > 0) return;
+
+        //    // 需要注意的是，如果该方法调用了其它实体类的首次数据库操作，目标实体类的数据初始化将会在同一个线程完成
+        //    if (XTrace.Debug) XTrace.WriteLine("开始初始化{0}<#=Table.DisplayName#>数据……", typeof(<#=Config.RenderGenEntity?"TEntity":Table.Alias#>).Name);
+
+        //    var entity = new <#=Table.Alias#>();<#
+		foreach (IDataColumn dc in Table.Columns)
+		{
+			if(dc.Identity)continue;
+
+			if(dc.DataType==typeof(Int32)){#>
+        //    entity.<#=dc.Alias#> = 0;<#}
+			else if(dc.DataType==typeof(String)){#>
+        //    entity.<#=dc.Alias#> = "abc";<#}
+			else if(dc.DataType==typeof(DateTime)){#>
+        //    entity.<#=dc.Alias#> = DateTime.Now;<#}
+			else if(dc.DataType==typeof(Double)){#>
+        //    entity.<#=dc.Alias#> = 0;<#}
+			else if(dc.DataType==typeof(Boolean)){#>
+        //    entity.<#=dc.Alias#> = true;<#}
+			else if(dc.DataType==typeof(Decimal)){#>
+        //    entity.<#=dc.Alias#> = 0;<#}
+			else if(dc.DataType==typeof(Guid)){#>
+        //    entity.<#=dc.Alias#> = Guid.NewGuid();<#}
+			else{#>
+        //    entity.<#=dc.Alias#> = <#=TypeX.CreateInstance(dc.DataType)#>;<#}
+		}#>
+        //    entity.Insert();
+
+        //    if (XTrace.Debug) XTrace.WriteLine("完成初始化{0}<#=Table.DisplayName#>数据！", typeof(<#=Config.RenderGenEntity?"TEntity":Table.Alias#>).Name);
+        //}
 <#
 if(Table.Relations!=null && Table.Relations.Count>0)
 {
@@ -146,26 +172,16 @@ if(Table.Relations!=null && Table.Relations.Count>0)
 	}
 }#>
 
-        ///// <summary>首次连接数据库时初始化数据，仅用于实体类重载，用户不应该调用该方法</summary>
-        //[EditorBrowsable(EditorBrowsableState.Never)]
-        //protected override void InitData()
+        ///// <summary>已重载。基类先调用Valid(true)验证数据，然后在事务保护内调用OnInsert</summary>
+        ///// <returns></returns>
+        //public override Int32 Insert()
         //{
-        //    base.InitData();
+        //    return base.Insert();
+        //}
 
-        //    // InitData一般用于当数据表没有数据时添加一些默认数据，该实体类的任何第一次数据库操作都会触发该方法，默认异步调用
-        //    // Meta.Count是快速取得表记录数
-        //    if (Meta.Count > 0) return;
-
-        //    // 需要注意的是，如果该方法调用了其它实体类的首次数据库操作，目标实体类的数据初始化将会在同一个线程完成
-        //    if (XTrace.Debug) XTrace.WriteLine("开始初始化{0}<#=Table.DisplayName#>数据……", typeof(<#=Config.RenderGenEntity?"TEntity":Table.Alias#>).Name);
-
-        //    TEntity user = new TEntity();
-        //    user.Name = "admin";
-        //    user.Password = DataHelper.Hash("admin");
-        //    user.DisplayName = "管理员";
-        //    user.RoleID = 1;
-        //    user.IsEnable = true;
-        //    user.Insert();
-
-        //    if (XTrace.Debug) XTrace.WriteLine("完成初始化{0}<#=Table.DisplayName#>数据！", typeof(<#=Config.RenderGenEntity?"TEntity":Table.Alias#>).Name);
+        ///// <summary>已重载。在事务保护范围内处理业务，位于Valid之后</summary>
+        ///// <returns></returns>
+        //protected override Int32 OnInsert()
+        //{
+        //    return base.OnInsert();
         //}

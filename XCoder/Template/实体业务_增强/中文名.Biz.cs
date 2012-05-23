@@ -65,7 +65,7 @@ if(!Config.RenderGenEntity){#>
         private static String SearchWhere(String key)
         {
             // WhereExpression重载&和|运算符，作为And和Or的替代
-            WhereExpression exp = new WhereExpression();
+            var exp = new WhereExpression();
 
             // SearchWhereByKeys系列方法用于构建针对字符串字段的模糊搜索
             if (!String.IsNullOrEmpty(key)) SearchWhereByKeys(exp.Builder, key);
