@@ -63,6 +63,8 @@ namespace NewLife.Model
         private IObjectMap FindMap(IDictionary<Object, IObjectMap> dic, Object id, Boolean extend = false)
         {
             IObjectMap map = null;
+            // 名称不能是null，否则字典里面会报错
+            if (id == null) id = String.Empty;
             // 如果找到，直接返回
             if (dic.TryGetValue(id, out map)) return map;
 
