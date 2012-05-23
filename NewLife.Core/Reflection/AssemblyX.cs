@@ -10,6 +10,7 @@ using System.Linq;
 using NewLife.Linq;
 #endif
 using System.Runtime.InteropServices;
+using NewLife.Log;
 
 namespace NewLife.Reflection
 {
@@ -130,7 +131,18 @@ namespace NewLife.Reflection
                 {
                     ts = Asm.GetTypes();
                 }
-                catch (ReflectionTypeLoadException ex) { ts = ex.Types; }
+                catch (ReflectionTypeLoadException ex)
+                {
+                    if (ex.LoaderExceptions != null)
+                    {
+                        XTrace.WriteLine("加载[{0}]{1}的类型时发生个{2}错误！", this, Location, ex.LoaderExceptions.Length);
+                        foreach (var le in ex.LoaderExceptions)
+                        {
+                            XTrace.WriteException(le);
+                        }
+                    }
+                    ts = ex.Types;
+                }
                 if (ts == null || ts.Length < 1) yield break;
 
                 // 先遍历一次ts，避免取内嵌类型带来不必要的性能损耗
