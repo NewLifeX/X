@@ -571,7 +571,12 @@ namespace NewLife.Model
                 if (name.IsNullOrWhiteSpace()) continue;
 
                 var type = TypeX.GetType(name, true);
-                if (type == null) throw new XException("未找到对象容器配置{0}中的类型{1}！", item.Key, name);
+                if (type == null) 
+                {
+                    XTrace.WriteLine("未找到对象容器配置{0}中的类型{1}！",item.Key,name);
+                    continue;
+                }
+                    
 
                 var map = GetConfig(item.Value);
                 if (map == null) continue;
