@@ -51,7 +51,7 @@ namespace NewLife.CommonEntity
     {
         #region 静态实例
         /// <summary>当前提供者</summary>
-        public static IManageProvider Provider { get { return CommonService.Resolve<IManageProvider>(); } }
+        public static IManageProvider Provider { get { return CommonService.ResolveInstance<IManageProvider>(); } }
         #endregion
 
         #region IManageProvider 接口
