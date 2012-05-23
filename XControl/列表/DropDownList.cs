@@ -33,20 +33,29 @@ namespace XControl
      * */
 
     /// <summary>下拉列表。绑定时，如果没有对应的选择项，则自动加上。</summary>
+    /// <remarks>
+    /// 注意:在实践中发现DropDownList.SelectedIndex有可能修改this.Items[0].Selected 为true
+    ///
+    /// 进而会导致错误的结果,所以尽量不在这个控件内部使用SelectedIndex SelectedValue属性
+    /// </remarks>
     [ToolboxData("<{0}:DropDownList runat=\"server\"> </{0}:DropDownList>")]
     public class DropDownList : DropDownList_Old
     {
         private const String ExceptionString = "无效的值:{0}";
 
-        private string _RealSelectedValue;
         /// <summary>
-        /// 真实的选中项的值,因为避免给SelectedValue赋值要避免抛出异常,所以SelectedValue属性可以返回的是假值
+        /// 当前实际选中项的值,没有值将返回null,而不是SelectedValue会修改为第一项默认值
         /// </summary>
         public string RealSelectedValue
         {
             get
             {
-                return _RealSelectedValue ?? SelectedValue;
+                for (int i = 0; i < Items.Count; i++)
+                {
+                    var item = Items[i];
+                    if (item.Selected) return item.Value;
+                }
+                return null;
             }
         }
 
@@ -72,6 +81,9 @@ namespace XControl
             }
         }
 
+        private bool hasExceptItem;
+        private string cachedSelectedValue;
+
         /// <summary>已重载。加上未添加到列表的项。</summary>
         public override string SelectedValue
         {
@@ -81,24 +93,16 @@ namespace XControl
             }
             set
             {
-                if (_RealSelectedValue != null)
-                {
-                    // 尝试移除上次调用时产生的异常项
-                    var item = Items.FindByValue(_RealSelectedValue);
-                    if (item != null)
-                    {
-                        Items.Remove(item);
-                    }
-                    _RealSelectedValue = null;
-                }
+                RemoveExceptItem();
+                cachedSelectedValue = null;
                 try
                 {
                     base.SelectedValue = value;
-                    if (base.SelectedValue != value) throw new ArgumentOutOfRangeException();
+                    if (value != null && base.SelectedValue != value) throw new ArgumentOutOfRangeException();
                 }
                 catch (ArgumentOutOfRangeException)
                 {
-                    _RealSelectedValue = value;
+                    cachedSelectedValue = value;
                     if (NoExceptionItem)
                     {
                         // 记录真实值后跳出
@@ -108,11 +112,23 @@ namespace XControl
                     {
                         // 列表项中并没有该选项，自动加入，并打上异常标识
                         ClearSelection();
-                        var item = new ListItem(string.Format(ExceptionString, value), value) { Selected = true };
-                        Items.Insert(0, item);
-
+                        Items.Insert(0, new ListItem(string.Format(ExceptionString, value), value) { Selected = true });
+                        hasExceptItem = true;
                         base.SelectedValue = value;
                     }
+                }
+            }
+        }
+
+        private void RemoveExceptItem()
+        {
+            if (hasExceptItem && cachedSelectedValue != null)
+            {
+                // 尝试移除上次调用时产生的异常项
+                var item = Items.FindByValue(cachedSelectedValue);
+                if (item != null)
+                {
+                    Items.Remove(item);
                 }
             }
         }
@@ -121,16 +137,8 @@ namespace XControl
         /// <param name="dataSource"></param>
         protected override void PerformDataBinding(IEnumerable dataSource)
         {
-            string real = RealSelectedValue;
-            ListItem item;
-            if (_RealSelectedValue != null)
-            {
-                item = Items.FindByValue(_RealSelectedValue);
-                if (item != null)
-                {
-                    Items.Remove(item);
-                }
-            }
+            string real = cachedSelectedValue ?? RealSelectedValue;
+            RemoveExceptItem();
             try
             {
                 base.PerformDataBinding(dataSource);
@@ -141,7 +149,7 @@ namespace XControl
             }
             if (!string.IsNullOrEmpty(real) && SelectedValue != real)
             {
-                item = Items.FindByValue(real);
+                var item = Items.FindByValue(real);
                 if (item != null)
                 {
                     ClearSelection();
@@ -165,6 +173,11 @@ namespace XControl
                     }
                 }
             }
+        }
+
+        protected override void RenderContents(HtmlTextWriter writer)
+        {
+            base.RenderContents(writer);
         }
 
         private Boolean selecting = false;

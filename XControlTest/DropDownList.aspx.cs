@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Web.UI.WebControls;
 
 public partial class DropDownList : System.Web.UI.Page
 {
@@ -28,7 +29,18 @@ public partial class DropDownList : System.Web.UI.Page
         {
             return new XControl.DropDownList[] {
                 DropDownList1, DropDownList2, DropDownList3, DropDownList4,
-                DropDownList5, DropDownList6, DropDownList7, DropDownList8
+                DropDownList5, DropDownList6, DropDownList7, DropDownList8,
+                DropDownList9, DropDownList10, DropDownList11, DropDownList12
+            };
+        }
+    }
+
+    public XControl.DropDownList[] UseSelectedItems
+    {
+        get
+        {
+            return new XControl.DropDownList[] {
+                DropDownList9, DropDownList10, DropDownList11, DropDownList12
             };
         }
     }
@@ -39,12 +51,28 @@ public partial class DropDownList : System.Web.UI.Page
         {
             if (Request.QueryString["badval"] != null)
             {
-                item.SelectedValue = "设置为无效值";
+                SetValue(item, "设置为无效值");
             }
             else
             {
-                item.SelectedValue = "3";
+                SetValue(item, "3");
             }
+        }
+    }
+
+    private void SetValue(XControl.DropDownList item, string value)
+    {
+        if (new List<XControl.DropDownList>(UseSelectedItems).Contains(item))
+        {
+            ListItem i = item.Items.FindByValue(value);
+            if (i != null)
+            {
+                i.Selected = true;
+            }
+        }
+        else
+        {
+            item.SelectedValue = value;
         }
     }
 
