@@ -35,7 +35,7 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
 [assembly: AssemblyVersion("8.6.*")]
-[assembly: AssemblyFileVersion("8.6.2012.0521")]
+[assembly: AssemblyFileVersion("8.6.2012.0523")]
 
 /*
  * XCode的重大改进
@@ -52,6 +52,8 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v8.6.2012.0523   数据迁移EntityTransform引用局部迁移，允许某些表只迁移开头或结尾的指定数量的数据
+ * 
  * v8.6.2012.0521   改进EntityList，增加ToList方法，返回List<T>形式的列表，方便使用Linq
  * 
  * v8.6.2012.0515   增加模型解析接口，用于格式化数据模型表名字段名等，形成更优的别名（类名和属性名）

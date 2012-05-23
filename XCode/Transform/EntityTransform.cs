@@ -57,6 +57,20 @@ namespace XCode.Transform
         public Boolean OnlyTransformToEmptyTable { get { return _OnlyTransformToEmptyTable; } set { _OnlyTransformToEmptyTable = value; } }
         #endregion
 
+        #region 局部迁移
+        private ICollection<String> _PartialTableNames;
+        /// <summary>需要局部迁移的表。局部迁移就是只迁移一部分数据。</summary>
+        public ICollection<String> PartialTableNames { get { return _PartialTableNames ?? (_PartialTableNames = new HashSet<String>(StringComparer.OrdinalIgnoreCase)); } set { _PartialTableNames = value; } }
+
+        private Int32 _PartialCount = 1000;
+        /// <summary>举报迁移记录数。默认1000</summary>
+        public Int32 PartialCount { get { return _PartialCount; } set { _PartialCount = value; } }
+
+        private Boolean _PartialDesc = true;
+        /// <summary>局部迁移降序。默认为true，也就是只迁移最后的一批数据。</summary>
+        public Boolean PartialDesc { get { return _PartialDesc; } set { _PartialDesc = value; } }
+        #endregion
+
         #region 方法
         /// <summary>把一个链接的数据全部导入到另一个链接</summary>
         /// <returns></returns>
@@ -64,9 +78,11 @@ namespace XCode.Transform
         {
             var dal = DAL.Create(SrcConn);
 
+            // 取得实际数据库所有表，把视图过滤掉
             var tables = dal.Tables;
             tables.RemoveAll(t => t.IsView);
-            var tns = TableNames;
+            // 取所有需要迁移的表，过滤得出最后需要迁移的表
+            var tns = _TableNames;
             if (tns != null && tns.Count > 0) tables.RemoveAll(t => !tns.Contains(t.Name) && !tns.Contains(t.Alias));
 
             var total = 0;
@@ -79,7 +95,10 @@ namespace XCode.Transform
                     if (e.Arg == null) continue;
                 }
 
-                total += TransformTable(dal.CreateOperate(item.Name));
+                if (!PartialTableNames.Contains(item.Name) && !PartialTableNames.Contains(item.Alias))
+                    total += TransformTable(dal.CreateOperate(item.Name));
+                else
+                    total += TransformTable(dal.CreateOperate(item.Name), PartialCount, PartialDesc);
             }
 
             return total;
@@ -87,13 +106,24 @@ namespace XCode.Transform
 
         /// <summary>把一个表的数据全部导入到另一个表</summary>
         /// <param name="eop">实体操作者。</param>
+        /// <param name="count">要迁移的记录数，默认0表示全部</param>
+        /// <param name="isDesc">是否降序。默认升序</param>
         /// <param name="getData">用于获取数据的委托</param>
         /// <returns></returns>
-        public Int32 TransformTable(IEntityOperate eop, Func<Int32, Int32, IEntityList> getData = null)
+        public Int32 TransformTable(IEntityOperate eop, Int32 count = 0, Boolean? isDesc = null, Func<Int32, Int32, IEntityList> getData = null)
         {
             var name = eop.TableName;
-            var count = eop.Count;
-            if (getData == null) getData = (start, max) => eop.FindAll(null, null, null, start, max);
+            if (count <= 0) count = eop.Count;
+            if (getData == null)
+            {
+                var order = "";
+                if (isDesc != null)
+                {
+                    var fi = eop.Unique;
+                    if (fi != null) order = isDesc.Value ? fi.Desc() : fi.Asc();
+                }
+                getData = (start, max) => eop.FindAll(null, order, null, start, max);
+            }
 
             // 在目标链接上启用事务保护
             eop.ConnName = DesConn;
@@ -118,8 +148,11 @@ namespace XCode.Transform
                 var index = 0;
                 while (true)
                 {
+                    var size = Math.Min(BatchSize, count - index);
+                    if (size <= 0) break;
+
                     eop.ConnName = SrcConn;
-                    var list = getData(index, BatchSize);
+                    var list = getData(index, size);
                     if (list == null || list.Count < 1) break;
                     index += list.Count;
 
