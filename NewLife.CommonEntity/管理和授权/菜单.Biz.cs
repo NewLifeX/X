@@ -525,7 +525,7 @@ namespace NewLife.CommonEntity
                     top = childs[0];
                 else
                 {
-                    EntityList<TEntity> list = FindAllByName(_.ParentID, 0, _.ID + " Desc", 0, 1);
+                    var list = FindAllByName(_.ParentID, 0, _.ID.Desc(), 0, 1);
                     if (list != null && list.Count > 1) top = list[0];
                 }
             }
@@ -542,8 +542,9 @@ namespace NewLife.CommonEntity
 
         /// <summary>获取目录层级</summary>
         /// <param name="dir"></param>
+        /// <param name="isTop">是否顶级目录</param>
         /// <returns></returns>
-        public static String GetPathForScan(String dir)
+        public static String GetPathForScan(String dir, Boolean isTop)
         {
             if (String.IsNullOrEmpty(dir)) throw new ArgumentNullException("dir");
 
@@ -552,7 +553,8 @@ namespace NewLife.CommonEntity
             if (!Directory.Exists(p)) return "";
 
             //获取层级
-            String currentPath = Path.Combine("../../", p.Replace(AppDomain.CurrentDomain.BaseDirectory, null)).Replace("\\", "/");
+            var currentPath = isTop ? "../" : "../../";
+            currentPath = Path.Combine(currentPath, p.Replace(AppDomain.CurrentDomain.BaseDirectory, null)).Replace("\\", "/");
 
             if (!currentPath.EndsWith("/"))
                 currentPath += "/";
@@ -635,7 +637,7 @@ namespace NewLife.CommonEntity
 
                 if (files.Count > 0)
                 {
-                    String currentPath = GetPathForScan(p);
+                    String currentPath = GetPathForScan(p, !dir.Contains("/") && !dir.Contains("\\"));
                     //aspx页面
                     foreach (String elm in files)
                     {
