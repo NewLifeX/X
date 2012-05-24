@@ -15,83 +15,58 @@ namespace NewLife.CommonEntity
     public class Setting : Setting<Setting> { }
 
     /// <summary>设置</summary>
-    public partial class Setting<TEntity> : Entity<TEntity> where TEntity : Setting<TEntity>, new()
+    public partial class Setting<TEntity> : EntityTree<TEntity> where TEntity : Setting<TEntity>, new()
     {
         #region 对象操作
-        //基类Entity中包含三个对象操作：Insert、Update、Delete
-        //你可以重载它们，以改变它们的行为
-        //如：
-        /*
-        /// <summary>已重载。把该对象插入到数据库。这里可以做数据插入前的检查</summary>
-        /// <returns>影响的行数</returns>
-        public override Int32 Insert()
+        static Setting()
         {
-            return base.Insert();
+            // 用于引发基类的静态构造函数，所有层次的泛型实体类都应该有一个
+            TEntity entity = new TEntity();
         }
-         * */
+
+        /// <summary>验证数据，通过抛出异常的方式提示验证失败。</summary>
+        /// <param name="isNew"></param>
+        public override void Valid(bool isNew)
+        {
+            if (String.IsNullOrEmpty(Name)) throw new ArgumentNullException(_.Name, _.Name.DisplayName + "不能为空！");
+
+            base.Valid(isNew);
+        }
         #endregion
 
         #region 扩展属性
-        // 本类与哪些类有关联，可以在这里放置一个属性，使用延迟加载的方式获取关联对象
-
-        /*
-        private Category _Category;
-        /// <summary>该商品所对应的类别</summary>
-        [XmlIgnore]
-        public Category Category
-        {
-            get
-            {
-                if (_Category == null && CategoryID > 0 && !Dirtys.ContainsKey("Category"))
-                {
-                    _Category = Category.FindByKey(CategoryID);
-                    Dirtys.Add("Category", true);
-                }
-                return _Category;
-            }
-            set { _Category = value; }
-        }
-         * */
+        private TypeCode _KindCode;
+        /// <summary>类型编码</summary>
+        public TypeCode KindCode { get { return (TypeCode)Kind; } set { Kind = (Int32)value; } }
         #endregion
 
         #region 扩展查询
-        /// <summary>根据主键查询一个设置实体对象用于表单编辑</summary>
-        ///<param name="__ID">编号</param>
+        /// <summary>根据父编号、名称查找</summary>
+        /// <param name="parentid">父编号</param>
+        /// <param name="name">名称</param>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
-        public static TEntity FindByKeyForEdit(Int32 __ID)
+        public static TEntity FindByParentIDAndName(Int32 parentid, String name)
         {
-            TEntity entity = Find(new String[] { _.ID }, new Object[] { __ID });
-            if (entity == null)
-            {
-                entity = new TEntity();
-            }
-            return entity;
+            if (Meta.Count >= 1000)
+                return Find(new String[] { _.ParentID, _.Name }, new Object[] { parentid, name });
+            else // 实体缓存
+                return Meta.Cache.Entities.Find(e => e.ParentID == parentid && e.Name == name);
         }
 
-        /// <summary>根据编号查找</summary>
-        /// <param name="__ID"></param>
-        /// <returns></returns>
-        public static TEntity FindByID(Int32 __ID)
-        {
-            return Find(_.ID, __ID);
-            // 实体缓存
-            //return Meta.Cache.Entities.Find(_.ID, __ID);
-            // 单对象缓存
-            //return Meta.SingleCache[__ID];
-        }
-
-        /// <summary>根据名称查找</summary>
-        /// <param name="__Name"></param>
-        /// <returns></returns>
-        public static TEntity FindByName(String __Name)
-        {
-            return Find(_.Name, __Name);
-            // 实体缓存
-            //return Meta.Cache.Entities.Find(_.Name, __Name);
-            // 单对象缓存
-            //return Meta.SingleCache[__Name];
-        }
+        ///// <summary>根据编号查找</summary>
+        ///// <param name="id">编号</param>
+        ///// <returns></returns>
+        //[DataObjectMethod(DataObjectMethodType.Select, false)]
+        //public static TEntity FindByID(Int32 id)
+        //{
+        //    if (Meta.Count >= 1000)
+        //        return Find(_.ID, id);
+        //    else // 实体缓存
+        //        return Meta.Cache.Entities.Find(_.ID, id);
+        //    // 单对象缓存
+        //    //return Meta.SingleCache[id];
+        //}
         #endregion
 
         #region 对象操作
@@ -161,60 +136,129 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region 高级查询
-        // 以下为自定义高级查询的例子
-
-        ///// <summary>
-        ///// 查询满足条件的记录集，分页、排序
-        ///// </summary>
-        ///// <param name="key">关键字</param>
-        ///// <param name="orderClause">排序，不带Order By</param>
-        ///// <param name="startRowIndex">开始行，0表示第一行</param>
-        ///// <param name="maximumRows">最大返回行数，0表示所有行</param>
-        ///// <returns>实体集</returns>
-        //[DataObjectMethod(DataObjectMethodType.Select, true)]
-        //public static EntityList<Setting> Search(String key, String orderClause, Int32 startRowIndex, Int32 maximumRows)
-        //{
-        //    return FindAll(SearchWhere(key), orderClause, null, startRowIndex, maximumRows);
-        //}
-
-        ///// <summary>
-        ///// 查询满足条件的记录总数，分页和排序无效，带参数是因为ObjectDataSource要求它跟Search统一
-        ///// </summary>
-        ///// <param name="key">关键字</param>
-        ///// <param name="orderClause">排序，不带Order By</param>
-        ///// <param name="startRowIndex">开始行，0表示第一行</param>
-        ///// <param name="maximumRows">最大返回行数，0表示所有行</param>
-        ///// <returns>记录数</returns>
-        //public static Int32 SearchCount(String key, String orderClause, Int32 startRowIndex, Int32 maximumRows)
-        //{
-        //    return FindCount(SearchWhere(key), null, null, 0, 0);
-        //}
-
-        /// <summary>构造搜索条件</summary>
-        /// <param name="key">关键字</param>
-        /// <returns></returns>
-        private static String SearchWhere(String key)
-        {
-            // WhereExpression重载&和|运算符，作为And和Or的替代
-            WhereExpression exp = new WhereExpression();
-
-            // SearchWhereByKeys系列方法用于构建针对字符串字段的模糊搜索
-            if (!String.IsNullOrEmpty(key)) SearchWhereByKeys(exp.Builder, key);
-
-            // 以下仅为演示，2、3行是同一个意思的不同写法，FieldItem重载了等于以外的运算符（第4行）
-            //exp &= _.Name.Equal("testName")
-            //    & !String.IsNullOrEmpty(key) & _.Name.Equal(key)
-            //    .AndIf(!String.IsNullOrEmpty(key), _.Name.Equal(key))
-            //    | _.ID > 0;
-
-            return exp;
-        }
         #endregion
 
         #region 扩展操作
         #endregion
 
         #region 业务
+        /// <summary>若不存在则创建指定名称的子级</summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public virtual ISetting Create(String name)
+        {
+            if (String.IsNullOrEmpty(name)) throw new ArgumentNullException("name");
+
+            var entity = FindByParentIDAndName(ID, name);
+            if (entity == null)
+            {
+                entity = new TEntity();
+                entity.ParentID = ID;
+                entity.Name = name;
+                entity.Save();
+            }
+
+            return entity;
+        }
+
+        //ISetting ISetting.Create(String name) { return Create(name); }
+
+        /// <summary>取值</summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public virtual T Get<T>() { return (T)Convert.ChangeType(Value, Type.GetTypeCode(typeof(T))); }
+
+        /// <summary>取值</summary>
+        /// <returns></returns>
+        public virtual Object Get()
+        {
+            if (KindCode == TypeCode.Empty) return null;
+
+            return Convert.ChangeType(Value, KindCode);
+        }
+
+        /// <summary>设置值</summary>
+        /// <param name="val"></param>
+        public virtual void Set<T>(T val)
+        {
+            Value = "" + val;
+            KindCode = Type.GetTypeCode(typeof(T));
+            Save();
+        }
+
+        /// <summary>设置值</summary>
+        /// <param name="val"></param>
+        public virtual void Set(Object val)
+        {
+            if (val == null)
+            {
+                KindCode = TypeCode.Empty;
+                Value = null;
+            }
+            else
+            {
+                KindCode = Type.GetTypeCode(val.GetType());
+                Value = "" + val;
+            }
+            Save();
+        }
+
+        /// <summary>确保设置项存在</summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="name"></param>
+        /// <param name="defval"></param>
+        /// <param name="displayName"></param>
+        /// <returns></returns>
+        public virtual ISetting Ensure<T>(String name, T defval, String displayName)
+        {
+            if (String.IsNullOrEmpty(name)) throw new ArgumentNullException("name");
+
+            var entity = FindByParentIDAndName(ID, name);
+            if (entity == null)
+            {
+                entity = new TEntity();
+                entity.ParentID = ID;
+                entity.Name = name;
+            }
+            if (String.IsNullOrEmpty(entity.Value)) entity.Set<T>(defval);
+            if (String.IsNullOrEmpty(entity.DisplayName)) entity.DisplayName = DisplayName;
+            entity.Save();
+
+            return this;
+        }
         #endregion
+    }
+
+    partial interface ISetting
+    {
+        /// <summary>若不存在则创建指定名称的子级</summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        ISetting Create(String name);
+
+        /// <summary>取值</summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        T Get<T>();
+
+        ///// <summary>取值</summary>
+        ///// <returns></returns>
+        //Object Get();
+
+        /// <summary>设置值</summary>
+        /// <param name="val"></param>
+        void Set<T>(T val);
+
+        ///// <summary>设置值</summary>
+        ///// <param name="val"></param>
+        //void Set(Object val);
+
+        /// <summary>确保设置项存在</summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="name"></param>
+        /// <param name="defval"></param>
+        /// <param name="displayName"></param>
+        /// <returns></returns>
+        ISetting Ensure<T>(String name, T defval, String displayName);
     }
 }

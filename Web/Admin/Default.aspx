@@ -44,7 +44,7 @@
             <td style="height: 70px; overflow: hidden" colspan="3" id="top" valign="bottom">
                 <div style="padding-left: 30px; font-size: 20px; line-height: 35px; font-weight: bold;
                     color: #019401">
-                    新生命管理平台 v1.0
+                    <%=SysSetting.DisplayName%> v<%=SysSetting.Version %><font style="font-size:12px; color:Blue;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;——<%=SysSetting.Company%></font>
                 </div>
                 <div class="toolbar" style="height: 23px;">
                     <div style="float: left; padding-left: 10px;">

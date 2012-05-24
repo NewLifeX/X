@@ -106,7 +106,12 @@ namespace NewLife.Reflection
         /// <summary>创建程序集辅助对象</summary>
         /// <param name="asm"></param>
         /// <returns></returns>
-        public static AssemblyX Create(Assembly asm) { return cache.GetItem(asm, key => new AssemblyX(key)); }
+        public static AssemblyX Create(Assembly asm)
+        {
+            if (asm == null) return null;
+
+            return cache.GetItem(asm, key => new AssemblyX(key));
+        }
 
         static AssemblyX()
         {
@@ -204,13 +209,13 @@ namespace NewLife.Reflection
 
         #region 静态属性
         /// <summary>当前执行代码程序集</summary>
-        public AssemblyX Executing { get { return AssemblyX.Create(Assembly.GetExecutingAssembly()); } }
+        public static AssemblyX Executing { get { return AssemblyX.Create(Assembly.GetExecutingAssembly()); } }
 
         /// <summary>入口程序集</summary>
-        public AssemblyX Entry { get { return AssemblyX.Create(Assembly.GetEntryAssembly()); } }
+        public static AssemblyX Entry { get { return AssemblyX.Create(Assembly.GetEntryAssembly()); } }
 
         /// <summary>调用者</summary>
-        public AssemblyX Calling { get { return AssemblyX.Create(Assembly.GetCallingAssembly()); } }
+        public static AssemblyX Calling { get { return AssemblyX.Create(Assembly.GetCallingAssembly()); } }
         #endregion
 
         #region 获取特性

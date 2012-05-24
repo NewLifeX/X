@@ -36,7 +36,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test5();
+                    Test7();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -293,7 +293,7 @@ namespace Test
 
         static void Test7()
         {
-            var entity = Area.FindAll().ToList().FirstOrDefault();
+            Console.WriteLine(SimpleTree.Meta.Count);
         }
     }
 }

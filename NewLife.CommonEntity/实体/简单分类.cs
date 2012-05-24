@@ -1,19 +1,17 @@
 ﻿/*
- * XCoder v4.3.2011.0920
- * 作者：X/X-PC
- * 时间：2011-10-27 10:48:28
- * 版权：版权所有 (C) 新生命开发团队 2011
+ * XCoder v4.8.4526.33278
+ * 作者：nnhy/NEWLIFE
+ * 时间：2012-05-24 16:52:29
+ * 版权：版权所有 (C) 新生命开发团队 2012
 */
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using XCode;
 using System.Xml.Serialization;
+using XCode;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
 
-#pragma warning disable 3021
-#pragma warning disable 3008
 namespace NewLife.CommonEntity
 {
     /// <summary>简单分类</summary>
@@ -21,14 +19,14 @@ namespace NewLife.CommonEntity
     [DataObject]
     [Description("简单分类")]
     [BindIndex("IX_SimpleTree", true, "Name")]
+    [BindIndex("PK__SimpleTr__3214EC270EA330E9", true, "ID")]
     [BindIndex("PK_SimpleTree", true, "ID")]
     [BindTable("SimpleTree", Description = "简单分类", ConnName = "Common", DbType = DatabaseType.SqlServer)]
     public partial class SimpleTree<TEntity> : ISimpleTree
-    
     {
         #region 属性
         private Int32 _ID;
-        /// <summary></summary>
+        /// <summary>编号</summary>
         [DisplayName("编号")]
         [Description("编号")]
         [DataObjectField(true, true, false, 10)]
@@ -52,11 +50,11 @@ namespace NewLife.CommonEntity
         }
 
         private Int32 _ParentID;
-        /// <summary></summary>
-        [DisplayName("")]
-        [Description("")]
+        /// <summary>父编号</summary>
+        [DisplayName("父编号")]
+        [Description("父编号")]
         [DataObjectField(false, false, true, 10)]
-        [BindColumn(3, "ParentID", "", null, "int", 10, 0, false)]
+        [BindColumn(3, "ParentID", "父编号", null, "int", 10, 0, false)]
         public virtual Int32 ParentID
         {
             get { return _ParentID; }
@@ -64,11 +62,11 @@ namespace NewLife.CommonEntity
         }
 
         private String _Sort;
-        /// <summary></summary>
-        [DisplayName("")]
-        [Description("")]
+        /// <summary>序号</summary>
+        [DisplayName("序号")]
+        [Description("序号")]
         [DataObjectField(false, false, true, 50)]
-        [BindColumn(4, "Sort", "", null, "nvarchar(50)", 0, 0, true)]
+        [BindColumn(4, "Sort", "序号", null, "nvarchar(50)", 0, 0, true)]
         public virtual String Sort
         {
             get { return _Sort; }
@@ -115,17 +113,19 @@ namespace NewLife.CommonEntity
         /// <summary>取得简单分类字段信息的快捷方式</summary>
         public class _
         {
-            ///<summary></summary>
-            public static readonly Field ID = Meta.Table.FindByName("ID");
+            ///<summary>编号</summary>
+            public static readonly Field ID = FindByName("ID");
 
             ///<summary>名称索引</summary>
-            public static readonly Field Name = Meta.Table.FindByName("Name");
+            public static readonly Field Name = FindByName("Name");
 
-            ///<summary></summary>
-            public static readonly Field ParentID = Meta.Table.FindByName("ParentID");
+            ///<summary>父编号</summary>
+            public static readonly Field ParentID = FindByName("ParentID");
 
-            ///<summary></summary>
-            public static readonly Field Sort = Meta.Table.FindByName("Sort");
+            ///<summary>序号</summary>
+            public static readonly Field Sort = FindByName("Sort");
+
+            static Field FindByName(String name) { return Meta.Table.FindByName(name); }
         }
         #endregion
     }
@@ -134,16 +134,16 @@ namespace NewLife.CommonEntity
     public partial interface ISimpleTree
     {
         #region 属性
-        /// <summary></summary>
+        /// <summary>编号</summary>
         Int32 ID { get; set; }
 
         /// <summary>名称索引</summary>
         String Name { get; set; }
 
-        /// <summary></summary>
+        /// <summary>父编号</summary>
         Int32 ParentID { get; set; }
 
-        /// <summary></summary>
+        /// <summary>序号</summary>
         String Sort { get; set; }
         #endregion
 
@@ -155,5 +155,3 @@ namespace NewLife.CommonEntity
         #endregion
     }
 }
-#pragma warning restore 3008
-#pragma warning restore 3021

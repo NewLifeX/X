@@ -11,6 +11,8 @@ public partial class Login : System.Web.UI.Page
 {
     protected void Page_Load(object sender, EventArgs e)
     {
+        this.Title = SysSetting.DisplayName;
+
         if (!IsPostBack)
         {
             // 引发反向工程

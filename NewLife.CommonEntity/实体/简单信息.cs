@@ -1,19 +1,17 @@
 ﻿/*
- * XCoder v4.3.2011.0920
- * 作者：X/X-PC
- * 时间：2011-10-27 10:48:06
- * 版权：版权所有 (C) 新生命开发团队 2011
+ * XCoder v4.8.4526.33278
+ * 作者：nnhy/NEWLIFE
+ * 时间：2012-05-24 16:52:27
+ * 版权：版权所有 (C) 新生命开发团队 2012
 */
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using XCode;
 using System.Xml.Serialization;
+using XCode;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
 
-#pragma warning disable 3021
-#pragma warning disable 3008
 namespace NewLife.CommonEntity
 {
     /// <summary>简单信息</summary>
@@ -21,10 +19,10 @@ namespace NewLife.CommonEntity
     [DataObject]
     [Description("简单信息")]
     [BindIndex("IX_Simple", true, "Name")]
+    [BindIndex("PK__Simple__3214EC270AD2A005", true, "ID")]
     [BindIndex("PK_Simple", true, "ID")]
     [BindTable("Simple", Description = "简单信息", ConnName = "Common", DbType = DatabaseType.SqlServer)]
     public partial class Simple<TEntity> : ISimple
-    
     {
         #region 属性
         private Int32 _ID;
@@ -88,10 +86,12 @@ namespace NewLife.CommonEntity
         public class _
         {
             ///<summary>编号</summary>
-            public static readonly Field ID = Meta.Table.FindByName("ID");
+            public static readonly Field ID = FindByName("ID");
 
             ///<summary>信息名称</summary>
-            public static readonly Field Name = Meta.Table.FindByName("Name");
+            public static readonly Field Name = FindByName("Name");
+
+            static Field FindByName(String name) { return Meta.Table.FindByName(name); }
         }
         #endregion
     }
@@ -115,5 +115,3 @@ namespace NewLife.CommonEntity
         #endregion
     }
 }
-#pragma warning restore 3008
-#pragma warning restore 3021
