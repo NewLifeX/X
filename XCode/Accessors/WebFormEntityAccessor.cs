@@ -10,9 +10,10 @@ using XCode.Configuration;
 namespace XCode.Accessors
 {
     /// <summary>WebForm实体访问器</summary>
-    class WebFormEntityAccessor : EntityAccessorBase
+    internal class WebFormEntityAccessor : EntityAccessorBase
     {
         #region 属性
+
         private Control _Container;
         /// <summary>页面</summary>
         public Control Container
@@ -36,9 +37,11 @@ namespace XCode.Accessors
             get { return _ItemPrefix; }
             set { _ItemPrefix = value; }
         }
+
         #endregion
 
         #region 设置
+
         /// <summary>设置参数。返回自身，方便链式写法。</summary>
         /// <param name="name">参数名</param>
         /// <param name="value">参数值</param>
@@ -54,9 +57,11 @@ namespace XCode.Accessors
 
             return base.SetConfig(name, value);
         }
+
         #endregion
 
         #region 读取
+
         /// <summary>外部=>实体，从外部读取指定实体字段的信息</summary>
         /// <param name="entity">实体对象</param>
         /// <param name="item">实体字段</param>
@@ -111,7 +116,7 @@ namespace XCode.Accessors
             }
         }
 
-        void SetEntityItem(IEntity entity, FieldItem field, Object value)
+        private void SetEntityItem(IEntity entity, FieldItem field, Object value)
         {
             // 先转为目标类型
             value = TypeX.ChangeType(value, field.Type);
@@ -144,7 +149,6 @@ namespace XCode.Accessors
         /// <param name="control"></param>
         protected virtual void GetFormItemLabel(IEntity entity, FieldItem field, Label control)
         {
-
         }
 
         /// <summary>复选框</summary>
@@ -225,9 +229,11 @@ namespace XCode.Accessors
                 }
             }
         }
+
         #endregion
 
         #region 写入
+
         /// <summary>实体=>外部，把指定实体字段的信息写入到外部</summary>
         /// <param name="entity">实体对象</param>
         /// <param name="item">实体字段</param>
@@ -386,14 +392,45 @@ namespace XCode.Accessors
             if (control.Items.Count < 1) return;
 
             String value = String.Empty + entity[field.Name];
-
-            ListItem li = control.Items.FindByValue(value);
-            if (li != null)
-                li.Selected = true;
-            else
+            try
             {
-                li = new ListItem(value, value);
-                control.Items.Add(li);
+                control.SelectedValue = value;
+                if (control.GetType() == typeof(DropDownList) || control.GetType() == typeof(ListControl))
+                {
+                    /*
+                     * 对于ListControl和DropDownList,仅PostBack时有可能抛出异常,初次打开有可能在PerformDataBinding中抛出异常,所以要做额外检测
+                     *
+                     * 因为DropDownList.SelectedIndex get时有可能修改Items[0].Selected, 所以下面代码最好避免访问SelectedIndex,SelectedValue
+                     *
+                     * 对于XControl.DropDownList始终没问题
+                     * */
+
+                    var selected = false;
+                    for (int i = 0; i < control.Items.Count; i++)
+                    {
+                        var item = control.Items[i];
+                        if (item.Selected)
+                        {
+                            selected = item.Value == value;
+                            break;
+                        }
+                    }
+                    if (!selected)
+                    {
+                        // 没有任何选中项或选中项不是设置的值
+                        throw new ArgumentException();
+                    }
+                }
+            }
+            catch (ArgumentException)
+            {
+                var li = control.Items.FindByValue(value);
+                if (li == null)
+                {
+                    li = new ListItem(value, value);
+                    control.Items.Add(li);
+                }
+                control.ClearSelection();
                 li.Selected = true;
             }
         }
@@ -460,10 +497,12 @@ namespace XCode.Accessors
             }
             catch { }
         }
+
         #endregion
 
         #region 辅助
-        static Boolean GetControlValue(Control control, out Object value)
+
+        private static Boolean GetControlValue(Control control, out Object value)
         {
             TypeX tx = control.GetType();
             String name = tx.GetCustomAttributeValue<ControlValuePropertyAttribute, String>();
@@ -481,7 +520,7 @@ namespace XCode.Accessors
             return false;
         }
 
-        static Boolean SetControlValue(Control control, Object value)
+        private static Boolean SetControlValue(Control control, Object value)
         {
             TypeX tx = control.GetType();
             String name = tx.GetCustomAttributeValue<ControlValuePropertyAttribute, String>();
@@ -520,6 +559,7 @@ namespace XCode.Accessors
         {
             return FindControl(ItemPrefix + field.Name);
         }
+
         #endregion
     }
 }
