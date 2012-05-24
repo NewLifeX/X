@@ -221,7 +221,7 @@ namespace NewLife.CommonEntity
                 entity.Name = name;
             }
             if (String.IsNullOrEmpty(entity.Value)) entity.Set<T>(defval);
-            if (String.IsNullOrEmpty(entity.DisplayName)) entity.DisplayName = DisplayName;
+            if (String.IsNullOrEmpty(entity.DisplayName)) entity.DisplayName = displayName;
             entity.Save();
 
             return this;

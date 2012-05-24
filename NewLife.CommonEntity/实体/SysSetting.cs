@@ -1,8 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using XCode;
+using System.Reflection;
 using NewLife.Reflection;
+using XCode;
 
 namespace NewLife.CommonEntity
 {
@@ -40,17 +39,21 @@ namespace NewLife.CommonEntity
         static SysSetting()
         {
             var asmx = AssemblyX.Entry;
-            var asmx2 = AssemblyX.Executing;
-            if (asmx == null) asmx = asmx2;
             Sys
-                .Ensure<String>("Name", asmx.Name ?? asmx2.Name, "系统名称")
-                .Ensure<String>("Version", asmx.Version ?? asmx2.Version, "系统版本")
-                .Ensure<String>("DisplayName", asmx.Title ?? asmx.Name ?? asmx2.Title ?? asmx2.Name, "显示名称")
-                .Ensure<String>("Company", asmx.Company ?? asmx2.Company, "公司")
+                .Ensure<String>("Name", asmx != null ? asmx.Name : "NewLifePlatform", "系统名称")
+                .Ensure<String>("Version", asmx != null ? asmx.Version : "0.1", "系统版本")
+                .Ensure<String>("DisplayName", asmx != null ? (asmx.Title ?? asmx.Name) : "新生命管理平台", "显示名称")
+                .Ensure<String>("Company", asmx != null ? asmx.Company : "新生命开发团队", "公司")
                 .Ensure<String>("Address", "新生命开发团队", "地址")
                 .Ensure<String>("Tel", "", "电话")
                 .Ensure<String>("Fax", "", "传真")
                 .Ensure<String>("EMail", "", "电子邮件");
+
+            if (String.IsNullOrEmpty(Sys.DisplayName))
+            {
+                Sys.DisplayName = "系统设置";
+                (Sys as IEntity).Save();
+            }
         }
         #endregion
 

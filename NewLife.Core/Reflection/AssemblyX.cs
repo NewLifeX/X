@@ -208,14 +208,14 @@ namespace NewLife.Reflection
         #endregion
 
         #region 静态属性
-        /// <summary>当前执行代码程序集</summary>
-        public static AssemblyX Executing { get { return AssemblyX.Create(Assembly.GetExecutingAssembly()); } }
+        ///// <summary>当前执行代码程序集</summary>
+        //public static AssemblyX Executing { get { return AssemblyX.Create(Assembly.GetExecutingAssembly()); } }
 
         /// <summary>入口程序集</summary>
         public static AssemblyX Entry { get { return AssemblyX.Create(Assembly.GetEntryAssembly()); } }
 
-        /// <summary>调用者</summary>
-        public static AssemblyX Calling { get { return AssemblyX.Create(Assembly.GetCallingAssembly()); } }
+        ///// <summary>调用者</summary>
+        //public static AssemblyX Calling { get { return AssemblyX.Create(Assembly.GetCallingAssembly()); } }
         #endregion
 
         #region 获取特性
