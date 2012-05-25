@@ -293,6 +293,7 @@ namespace Test
 
         static void Test7()
         {
+            XTrace.UseWinForm();
             Console.WriteLine(SimpleTree.Meta.Count);
         }
     }

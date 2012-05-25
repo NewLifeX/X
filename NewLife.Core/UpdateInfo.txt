@@ -1,4 +1,6 @@
-﻿v3.8.2012.0514   对象容器增加ResolveInstance，用于指定获取实例，而Resolve每次返回新实例
+﻿v3.8.2012.0525   XTrace增加UseWinForm方法，用于挂载处理WinForm未处理异常
+
+v3.8.2012.0514   对象容器增加ResolveInstance，用于指定获取实例，而Resolve每次返回新实例
 
 v3.8.2012.0505   提供一种方法，允许在日志输出被重定向后仍然向文件输出日志
 

@@ -5,6 +5,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
 using NewLife.Configuration;
+using System.Windows.Forms;
 
 namespace NewLife.Log
 {
@@ -154,6 +155,49 @@ namespace NewLife.Log
                 Console.WriteLine(e.ToString());
                 Console.ForegroundColor = old;
             }
+        }
+        #endregion
+
+        #region 拦截WinForm异常
+        private static Int32 initWF = 0;
+        private static Boolean _ShowErrorMessage;
+        //private static String _Title;
+
+        /// <summary>拦截WinForm异常并记录日志，可指定是否用<see cref="MessageBox"/>显示。</summary>
+        /// <param name="showErrorMessage">发为捕获异常时，是否显示提示，默认显示</param>
+        public static void UseWinForm(Boolean showErrorMessage = true)
+        {
+            if (initWF > 0 || Interlocked.CompareExchange(ref initWF, 1, 0) != 0) return;
+            if (!Application.MessageLoop) return;
+
+            _ShowErrorMessage = showErrorMessage;
+
+            Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
+            Application.ThreadException += new ThreadExceptionEventHandler(Application_ThreadException);
+            AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
+        }
+
+        static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+        {
+            XTrace.WriteLine("" + e.ExceptionObject);
+            if (e.IsTerminating)
+            {
+                var title = "";
+                try
+                {
+                    title = Process.GetCurrentProcess().MainWindowTitle;
+                }
+                catch { }
+
+                XTrace.WriteLine("{0}异常退出！", title);
+                //XTrace.WriteMiniDump(null);
+                if (_ShowErrorMessage) MessageBox.Show("" + e.ExceptionObject, title + "异常退出", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        static void Application_ThreadException(object sender, ThreadExceptionEventArgs e)
+        {
+            XTrace.WriteLine(e.Exception.ToString());
         }
         #endregion
 
