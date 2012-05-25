@@ -37,7 +37,7 @@ namespace XCode.DataAccessLayer
         [XmlAttribute]
         [DisplayName("别名")]
         [Description("别名")]
-        public String Alias { get { return _Alias ?? (_Alias = ModelResolver.Current.GetAlias(Name)); } set { _Alias = value; } }
+        public String Alias { get { return !String.IsNullOrEmpty(_Alias) ? _Alias : (_Alias = ModelResolver.Current.GetAlias(Name)); } set { _Alias = value; } }
 
         private String _Description;
         /// <summary>表说明</summary>
@@ -179,7 +179,7 @@ namespace XCode.DataAccessLayer
         /// <param name="table"></param>
         public virtual IDataTable Connect(IDataTable table)
         {
-           return ModelResolver.Current.Connect(this, table);
+            return ModelResolver.Current.Connect(this, table);
         }
 
         /// <summary>修正数据</summary>

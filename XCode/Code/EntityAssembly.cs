@@ -15,6 +15,7 @@ using XCode.Exceptions;
 using System.Linq;
 #else
 using NewLife.Linq;
+using System.Reflection.Emit;
 #endif
 
 namespace XCode.Code
@@ -153,30 +154,12 @@ namespace XCode.Code
         /// <returns></returns>
         public EntityClass Create(IDataTable table)
         {
+            if (String.IsNullOrEmpty(table.Alias)) throw new ArgumentNullException("Alias", "数据表中将用作实体类名的别名Alias不能为空！");
+
             // 复制一份，以免修改原来的结构
-            IDataTable tb = table.Clone() as IDataTable;
-            //String className = tb.Name.Replace("$", null);
+            var tb = table.Clone() as IDataTable;
 
-            //// 计算名称，防止属性名和类型名重名
-            //StringCollection list = new StringCollection();
-            //list.Add("Item");
-            //list.Add("System");
-            //list.Add(className);
-
-            //// 保存属性名，可能跟字段名不一致
-            //Dictionary<String, String> fieldNames = new Dictionary<String, String>(StringComparer.OrdinalIgnoreCase);
-            //foreach (IDataColumn item in tb.Columns)
-            //{
-            //    String name = item.Name;
-            //    for (int i = 2; list.Contains(name); i++)
-            //    {
-            //        name = item.Name + i;
-            //    }
-            //    //item.Name = name;
-            //    fieldNames.Add(item.Name, name);
-            //}
-
-            EntityClass entity = new EntityClass();
+            var entity = new EntityClass();
             entity.Assembly = this;
             entity.ClassName = tb.Alias;
             entity.Table = tb;
@@ -259,7 +242,7 @@ namespace XCode.Code
                 {
                     options.GenerateInMemory = false;
 
-                    String tempPath = XTrace.TempPath;
+                    var tempPath = XTrace.TempPath;
                     //if (!String.IsNullOrEmpty(tempPath)) tempPath = Path.Combine(tempPath, Name);
                     if (!Directory.Exists(tempPath)) Directory.CreateDirectory(tempPath);
                     options.OutputAssembly = Path.Combine(tempPath, String.Format("XCode.{0}.dll", Name));
@@ -267,10 +250,11 @@ namespace XCode.Code
                 }
             }
 
-            String[] refs = new String[] { "System.dll", "XCode.dll", "NewLife.Core.dll" };
-            Assembly[] asms = AppDomain.CurrentDomain.GetAssemblies();
-            foreach (Assembly item in asms)
+            var refs = new String[] { "System.dll", "XCode.dll", "NewLife.Core.dll" };
+            foreach (Assembly item in AppDomain.CurrentDomain.GetAssemblies())
             {
+                if (item is AssemblyBuilder) continue;
+
                 String name = null;
                 try
                 {
@@ -279,13 +263,13 @@ namespace XCode.Code
                 catch { }
                 if (String.IsNullOrEmpty(name)) continue;
 
-                String fileName = Path.GetFileName(name);
+                var fileName = Path.GetFileName(name);
                 if (!refs.Contains(fileName, StringComparer.OrdinalIgnoreCase)) continue;
 
                 if (!options.ReferencedAssemblies.Contains(name)) options.ReferencedAssemblies.Add(name);
             }
 
-            CodeDomProvider provider = CodeDomProvider.CreateProvider("CSharp");
+            var provider = CodeDomProvider.CreateProvider("CSharp");
 
             CompilerResults rs = null;
             if (!Debug)
@@ -293,7 +277,7 @@ namespace XCode.Code
             else
             {
                 // 先生成代码文件，方便调试
-                String fileName = Path.Combine(XTrace.TempPath, Name + ".cs");
+                var fileName = Path.Combine(XTrace.TempPath, Name + ".cs");
                 using (StreamWriter writer = new StreamWriter(fileName))
                 {
                     var op = new CodeGeneratorOptions();
@@ -303,15 +287,32 @@ namespace XCode.Code
                     provider.GenerateCodeFromCompileUnit(Unit, writer, op);
                 }
 
+                // 如果目标DLL文件已经存在，则尝试删除，如果删除失败，则不要输出DLL
+                var dllfile = Path.Combine(XTrace.TempPath, options.OutputAssembly);
+                if (File.Exists(dllfile))
+                {
+                    try
+                    {
+                        File.Delete(dllfile);
+                    }
+                    catch
+                    {
+                        options.GenerateInMemory = true;
+                    }
+                }
+
                 // 编译
                 rs = provider.CompileAssemblyFromFile(options, fileName);
 
                 // 既然编译正常，这里就删除临时文件
-                try
+                if (!rs.Errors.HasErrors)
                 {
-                    File.Delete(fileName);
+                    try
+                    {
+                        File.Delete(fileName);
+                    }
+                    catch { }
                 }
-                catch { }
 
                 //#region 既然编译正常，这里就删除临时文件
                 //var tp = options.TempFiles.BasePath;

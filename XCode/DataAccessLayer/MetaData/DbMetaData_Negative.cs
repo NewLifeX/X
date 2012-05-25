@@ -264,7 +264,8 @@ namespace XCode.DataAccessLayer
                 {
                     // 先删除旧注释
                     //if (!String.IsNullOrEmpty(dbf.Description)) DropColumnDescription(sb, dbf, onlySql);
-                    if (!String.IsNullOrEmpty(dbf.Description)) PerformSchema(sb, onlySql, DDLSchema.DropColumnDescription, dbf);
+                    //if (!String.IsNullOrEmpty(dbf.Description)) PerformSchema(sb, onlySql, DDLSchema.DropColumnDescription, dbf);
+                    if (dbf.Description != null) PerformSchema(sb, onlySql, DDLSchema.DropColumnDescription, dbf);
 
                     // 加上新注释
                     if (!String.IsNullOrEmpty(item.Description)) PerformSchema(sb, onlySql, DDLSchema.AddColumnDescription, item);
