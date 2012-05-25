@@ -766,7 +766,7 @@ namespace XCode
         /// <param name="name">属性</param>
         /// <param name="value">值</param>
         /// <returns>总行数</returns>
-        public static Int32 FindCount(String name, Object value) { return FindCount(name, value, 0, 0); }
+        public static Int32 FindCount(String name, Object value) { return FindCountByName(name, value, null, 0, 0); }
 
         /// <summary>根据属性以及对应的值，返回总记录数</summary>
         /// <param name="name">属性</param>
@@ -774,6 +774,7 @@ namespace XCode
         /// <param name="startRowIndex">开始行，0表示第一行。这里无意义，仅仅为了保持与FindAll相同的方法签名</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行。这里无意义，仅仅为了保持与FindAll相同的方法签名</param>
         /// <returns>总行数</returns>
+        [Obsolete("请改用FindCountByName！这个FindCount跟5参数那个太容易搞混了，害人不浅！")]
         public static Int32 FindCount(String name, Object value, Int32 startRowIndex, Int32 maximumRows) { return FindCountByName(name, value, null, startRowIndex, maximumRows); }
 
         /// <summary>根据属性以及对应的值，返回总记录数</summary>

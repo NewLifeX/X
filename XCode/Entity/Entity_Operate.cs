@@ -145,16 +145,16 @@ namespace XCode
                 return ToList(Entity<TEntity>.FindAll(name, value));
             }
 
-            /// <summary>根据属性以及对应的值，获取所有实体对象</summary>
-            /// <param name="name">属性</param>
-            /// <param name="value">值</param>
-            /// <param name="startRowIndex">开始行，0表示第一行</param>
-            /// <param name="maximumRows">最大返回行数，0表示所有行</param>
-            /// <returns>实体数组</returns>
-            public IEntityList FindAll(String name, Object value, Int32 startRowIndex, Int32 maximumRows)
-            {
-                return ToList(Entity<TEntity>.FindAll(name, value, startRowIndex, maximumRows));
-            }
+            ///// <summary>根据属性以及对应的值，获取所有实体对象</summary>
+            ///// <param name="name">属性</param>
+            ///// <param name="value">值</param>
+            ///// <param name="startRowIndex">开始行，0表示第一行</param>
+            ///// <param name="maximumRows">最大返回行数，0表示所有行</param>
+            ///// <returns>实体数组</returns>
+            //public IEntityList FindAll(String name, Object value, Int32 startRowIndex, Int32 maximumRows)
+            //{
+            //    return ToList(Entity<TEntity>.FindAll(name, value, startRowIndex, maximumRows));
+            //}
 
             /// <summary>根据属性以及对应的值，获取所有实体对象</summary>
             /// <param name="name">属性</param>
@@ -222,16 +222,16 @@ namespace XCode
                 return Entity<TEntity>.FindCount(name, value);
             }
 
-            /// <summary>根据属性以及对应的值，返回总记录数</summary>
-            /// <param name="name">属性</param>
-            /// <param name="value">值</param>
-            /// <param name="startRowIndex">开始行，0表示第一行</param>
-            /// <param name="maximumRows">最大返回行数，0表示所有行</param>
-            /// <returns>总行数</returns>
-            public Int32 FindCount(String name, Object value, Int32 startRowIndex, Int32 maximumRows)
-            {
-                return Entity<TEntity>.FindCount(name, value, startRowIndex, maximumRows);
-            }
+            ///// <summary>根据属性以及对应的值，返回总记录数</summary>
+            ///// <param name="name">属性</param>
+            ///// <param name="value">值</param>
+            ///// <param name="startRowIndex">开始行，0表示第一行</param>
+            ///// <param name="maximumRows">最大返回行数，0表示所有行</param>
+            ///// <returns>总行数</returns>
+            //public Int32 FindCount(String name, Object value, Int32 startRowIndex, Int32 maximumRows)
+            //{
+            //    return Entity<TEntity>.FindCount(name, value, startRowIndex, maximumRows);
+            //}
 
             /// <summary>根据属性以及对应的值，返回总记录数</summary>
             /// <param name="name">属性</param>
