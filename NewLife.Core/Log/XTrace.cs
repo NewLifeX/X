@@ -189,22 +189,20 @@ namespace NewLife.Log
             XTrace.WriteLine("" + e.ExceptionObject);
             if (e.IsTerminating)
             {
-                var title = "";
-                try
-                {
-                    title = Process.GetCurrentProcess().MainWindowTitle;
-                }
-                catch { }
-
-                XTrace.WriteLine("{0}异常退出！", title);
+                XTrace.WriteLine("异常退出！");
                 //XTrace.WriteMiniDump(null);
-                if (_ShowErrorMessage && Application.MessageLoop) MessageBox.Show("" + e.ExceptionObject, title + "异常退出", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                if (_ShowErrorMessage && Application.MessageLoop) MessageBox.Show("" + e.ExceptionObject, "异常退出", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            else
+            {
+                if (_ShowErrorMessage && Application.MessageLoop) MessageBox.Show("" + e.ExceptionObject, "出错", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
         static void Application_ThreadException(object sender, ThreadExceptionEventArgs e)
         {
             XTrace.WriteLine(e.Exception.ToString());
+            if (_ShowErrorMessage && Application.MessageLoop) MessageBox.Show("" + e.Exception, "出错", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
         #endregion
 
