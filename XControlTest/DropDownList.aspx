@@ -61,7 +61,6 @@
             <p>
             将无法缓存到当前选中项的值
             </p>
-                <br />
             <XCL:DropDownList runat="server" ID="DropDownList9">
                 <asp:ListItem>请选择</asp:ListItem>
             </XCL:DropDownList>

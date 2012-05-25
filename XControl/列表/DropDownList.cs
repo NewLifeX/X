@@ -190,8 +190,11 @@ namespace XControl
             selecting = true;
             if (!this.AppendDataBoundItems)
             {
-                // DropDownList在绑定时，如果数据源返回null，它将不做任何动作，而我们一般习惯清空
-                this.Items.Clear();
+                if (this.DataSource != null || !string.IsNullOrEmpty(this.DataSourceID))
+                {
+                    // DropDownList在绑定时，如果数据源返回null，它将不做任何动作，而我们一般习惯清空
+                    this.Items.Clear();
+                }
             }
             base.PerformSelect();
             selecting = false;
