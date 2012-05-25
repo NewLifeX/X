@@ -111,6 +111,13 @@ namespace NewLife.Log
         }
         #endregion
 
+        #region 构造
+        static XTrace()
+        {
+            AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
+        }
+        #endregion
+
         #region 使用控制台输出
         private static Int32 init = 0;
         /// <summary>使用控制台输出日志，只能调用一次</summary>
@@ -167,14 +174,14 @@ namespace NewLife.Log
         /// <param name="showErrorMessage">发为捕获异常时，是否显示提示，默认显示</param>
         public static void UseWinForm(Boolean showErrorMessage = true)
         {
-            if (initWF > 0 || Interlocked.CompareExchange(ref initWF, 1, 0) != 0) return;
-            if (!Application.MessageLoop) return;
-
             _ShowErrorMessage = showErrorMessage;
+
+            if (initWF > 0 || Interlocked.CompareExchange(ref initWF, 1, 0) != 0) return;
+            //if (!Application.MessageLoop) return;
 
             Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
             Application.ThreadException += new ThreadExceptionEventHandler(Application_ThreadException);
-            AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
+            //AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
         }
 
         static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
@@ -191,7 +198,7 @@ namespace NewLife.Log
 
                 XTrace.WriteLine("{0}异常退出！", title);
                 //XTrace.WriteMiniDump(null);
-                if (_ShowErrorMessage) MessageBox.Show("" + e.ExceptionObject, title + "异常退出", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                if (_ShowErrorMessage && Application.MessageLoop) MessageBox.Show("" + e.ExceptionObject, title + "异常退出", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
