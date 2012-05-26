@@ -134,6 +134,16 @@ namespace XCode.Accessors
         {
             return AllFields ? eop.AllFields : eop.Fields;
         }
+
+        /// <summary>已重载。</summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            if ((Int32)Kind == 0)
+                return base.ToString();
+            else
+                return Kind.ToString();
+        }
         #endregion
     }
 }
