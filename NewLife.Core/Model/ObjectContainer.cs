@@ -316,7 +316,8 @@ namespace NewLife.Model
                     //Register(from, item, null, null, 1);
                     // 实例化一次，让这个类有机会执行类型构造函数，可以获取旧的类型实现
                     var obj = TypeX.CreateInstance(item);
-                    if (getidCallback != null) id = getidCallback(obj);
+                    // 如果指定了获取ID的委托，并且取得的ID与传入ID不一致，则不承认
+                    if (getidCallback != null && id != getidCallback(obj)) continue;
 
                     if (XTrace.Debug) XTrace.WriteLine("为{0}自动注册{1}，标识={2}，优先级={3}！", from.FullName, item.FullName, id, priority + 1);
 
@@ -328,7 +329,7 @@ namespace NewLife.Model
             // 如果没有注册任何实现，则默认注册第一个排除类型
             if (excludeTypes.Length > 0)
             {
-                if (dic == null)
+                //if (dic == null)
                 {
                     Register(from, excludeTypes[0], null, id, priority);
                 }
