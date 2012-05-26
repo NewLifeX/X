@@ -13,6 +13,8 @@ namespace XCode.Accessors
     public class WebFormEntityAccessor : EntityAccessorBase
     {
         #region 属性
+        /// <summary>种类</summary>
+        public override EntityAccessorTypes Kind { get { return EntityAccessorTypes.WebForm; } }
 
         private Control _Container;
         /// <summary>页面</summary>

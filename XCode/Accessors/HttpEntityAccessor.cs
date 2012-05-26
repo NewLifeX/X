@@ -10,6 +10,9 @@ namespace XCode.Accessors
     public class HttpEntityAccessor : EntityAccessorBase
     {
         #region 属性
+        /// <summary>种类</summary>
+        public override EntityAccessorTypes Kind { get { return EntityAccessorTypes.Http; } }
+
         private HttpRequest _Request;
         /// <summary>请求</summary>
         public HttpRequest Request

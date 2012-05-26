@@ -16,6 +16,9 @@ namespace XCode.Accessors
             get { return _AllFields; }
             set { _AllFields = value; }
         }
+
+        /// <summary>种类</summary>
+        public abstract EntityAccessorTypes Kind { get; }
         #endregion
 
         #region 事件

@@ -11,6 +11,9 @@ namespace XCode.Accessors
     public class WinFormEntityAccessor : EntityAccessorBase
     {
         #region 属性
+        /// <summary>种类</summary>
+        public override EntityAccessorTypes Kind { get { return EntityAccessorTypes.WinForm; } }
+
         private Control _Container;
         /// <summary>容器</summary>
         public Control Container

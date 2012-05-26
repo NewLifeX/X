@@ -1,6 +1,7 @@
 ﻿using System;
 using NewLife.Model;
 using XCode.Model;
+using NewLife.Reflection;
 
 namespace XCode.Accessors
 {
@@ -9,14 +10,21 @@ namespace XCode.Accessors
     {
         internal static void Reg(IObjectContainer container)
         {
+            Func<Object, Object> callback = e =>
+            {
+                var ea = e as EntityAccessorBase;
+                if (ea != null) return ea.Kind;
+
+                return null;
+            };
             // 注册内置访问器
             container
-                .Register<IEntityAccessor, HttpEntityAccessor>(EntityAccessorTypes.Http)
-                .Register<IEntityAccessor, WebFormEntityAccessor>(EntityAccessorTypes.WebForm)
-                .Register<IEntityAccessor, WinFormEntityAccessor>(EntityAccessorTypes.WinForm)
-                .Register<IEntityAccessor, BinaryEntityAccessor>(EntityAccessorTypes.Binary)
-                .Register<IEntityAccessor, XmlEntityAccessor>(EntityAccessorTypes.Xml)
-                .Register<IEntityAccessor, JsonEntityAccessor>(EntityAccessorTypes.Json);
+                .AutoRegister<IEntityAccessor, HttpEntityAccessor>(callback, EntityAccessorTypes.Http)
+                .AutoRegister<IEntityAccessor, WebFormEntityAccessor>(callback, EntityAccessorTypes.WebForm)
+                .AutoRegister<IEntityAccessor, WinFormEntityAccessor>(callback, EntityAccessorTypes.WinForm)
+                .AutoRegister<IEntityAccessor, BinaryEntityAccessor>(callback, EntityAccessorTypes.Binary)
+                .AutoRegister<IEntityAccessor, XmlEntityAccessor>(callback, EntityAccessorTypes.Xml)
+                .AutoRegister<IEntityAccessor, JsonEntityAccessor>(callback, EntityAccessorTypes.Json);
         }
 
         /// <summary>创建指定类型的实体访问器</summary>

@@ -7,7 +7,8 @@ using XCode.Configuration;
 
 namespace XCode.Accessors
 {
-    abstract class SerializationEntityAccessorBase : EntityAccessorBase
+    /// <summary>序列化实体访问器基类。用于二进制、Json、Xml三种序列化</summary>
+    public abstract class SerializationEntityAccessorBase : EntityAccessorBase
     {
         #region 属性
         private Stream _Stream;
