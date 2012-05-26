@@ -36,7 +36,7 @@ namespace NewLife.CommonEntity.Web
         protected override void OnNotFound(HttpContext context)
         {
             //读取资源
-            var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("NewLife.CommonEntity.Web.nopic.jpg");
+            var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("NewLife.CommonEntity.附件.nopic.jpg");
 
             var entity = new Attachment();
             entity.FileName = "NoPic";
