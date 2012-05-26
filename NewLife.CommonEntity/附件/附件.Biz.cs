@@ -93,10 +93,10 @@ namespace NewLife.CommonEntity
         /// <returns></returns>
         protected override int OnInsert()
         {
-            var rs = base.OnInsert();
-
             // 外部也可以提前调用GetFilePath
             if (String.IsNullOrEmpty(FilePath)) GetFilePath();
+
+            var rs = base.OnInsert();
 
             var file = FullFilePath;
             if (PostedFile != null && !String.IsNullOrEmpty(file))

@@ -19,7 +19,8 @@ namespace NewLife.CommonEntity.Web
             WebDownload wd = new WebDownload();
             wd.Stream = stream;
             wd.FileName = attachment.FileName;
-            if (!String.IsNullOrEmpty(dispositionMode)) wd.Mode = (WebDownload.DispositionMode)Enum.Parse(typeof(WebDownload.DispositionMode), dispositionMode);
+            //if (!String.IsNullOrEmpty(dispositionMode)) wd.Mode = (WebDownload.DispositionMode)Enum.Parse(typeof(WebDownload.DispositionMode), dispositionMode);
+            wd.Mode = WebDownload.DispositionMode.Attachment;
             if (!String.IsNullOrEmpty(attachment.ContentType)) wd.ContentType = attachment.ContentType;
             wd.Speed = 1024;
             wd.Render();
