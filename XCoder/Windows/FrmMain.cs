@@ -148,7 +148,11 @@ namespace XCoder
             String localstr = "Data Source=.;Initial Catalog=master;Integrated Security=True;";
             if (!ContainConnStr(localstr)) DAL.AddConnStr(localName, localstr, null, "mssql");
 
+            var sw = new Stopwatch();
+            sw.Start();
+
             #region 检测本地Access和SQLite
+            var n = 0;
             String[] ss = Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*.*", SearchOption.TopDirectoryOnly);
             foreach (String item in ss)
             {
@@ -157,49 +161,33 @@ namespace XCoder
                 if (String.Equals(ext, ".dll", StringComparison.OrdinalIgnoreCase)) continue;
                 if (String.Equals(ext, ".zip", StringComparison.OrdinalIgnoreCase)) continue;
                 if (String.Equals(ext, ".rar", StringComparison.OrdinalIgnoreCase)) continue;
-                if (String.Equals(ext, ".xml", StringComparison.OrdinalIgnoreCase)) continue;
-
-                String access = "Standard Jet DB";
-                String sqlite = "SQLite";
+                if (String.Equals(ext, ".txt", StringComparison.OrdinalIgnoreCase)) continue;
+                if (String.Equals(ext, ".config", StringComparison.OrdinalIgnoreCase)) continue;
 
                 try
                 {
-                    using (FileStream fs = new FileStream(item, FileMode.Open, FileAccess.Read, FileShare.Read))
-                    {
-                        BinaryReader reader = new BinaryReader(fs);
-                        Byte[] bts = reader.ReadBytes(sqlite.Length);
-                        if (bts != null && bts.Length > 0)
-                        {
-                            if (bts[0] == 'S' && bts[1] == 'Q' && Encoding.ASCII.GetString(bts) == sqlite)
-                            {
-                                localstr = String.Format("Data Source={0};", item);
-                                if (!ContainConnStr(localstr)) DAL.AddConnStr("SQLite_" + Path.GetFileNameWithoutExtension(item), localstr, null, "SQLite");
-                            }
-                            else if (bts[4] == 'S' && bts[5] == 't')
-                            {
-                                fs.Seek(4, SeekOrigin.Begin);
-                                bts = reader.ReadBytes(access.Length);
-                                if (Encoding.ASCII.GetString(bts) == access)
-                                {
-                                    localstr = String.Format("Provider=Microsoft.Jet.OLEDB.4.0; Data Source={0};Persist Security Info=False;OLE DB Services=-1", item);
-                                    if (!ContainConnStr(localstr)) DAL.AddConnStr("Access_" + Path.GetFileNameWithoutExtension(item), localstr, null, "Access");
-                                }
-                            }
-                        }
-                    }
+                    if (DetectFileDb(item)) n++;
                 }
-                catch { }
+                catch (Exception ex) { XTrace.WriteException(ex); }
             }
             #endregion
+
+            sw.Stop();
+            XTrace.WriteLine("自动检测文件{0}个，发现数据库{1}个，耗时：{2}！", ss.Length, n, sw.Elapsed);
 
             foreach (var item in DAL.ConnStrs)
             {
                 if (!String.IsNullOrEmpty(item.Value.ConnectionString)) list.Add(item.Key);
             }
 
+            // 远程数据库耗时太长，这里先列出来
+            this.Invoke(new Action<List<String>>(SetDatabaseList), list);
+
+            sw.Reset();
+            sw.Start();
             #region 探测连接中的其它库
             String[] sysdbnames = new String[] { "master", "tempdb", "model", "msdb" };
-
+            n = 0;
             List<String> names = new List<String>();
             foreach (String item in list)
             {
@@ -239,6 +227,7 @@ namespace XCoder
 
                         builder["Database"] = dbname;
                         DAL.AddConnStr(connName, builder.ToString(), null, dbprovider);
+                        n++;
 
                         try
                         {
@@ -258,6 +247,9 @@ namespace XCoder
             }
             #endregion
 
+            sw.Stop();
+            XTrace.WriteLine("发现远程数据库{0}个，耗时：{1}！", n, sw.Elapsed);
+
             if (DAL.ConnStrs.ContainsKey(localName)) DAL.ConnStrs.Remove(localName);
             if (list.Contains(localName)) list.Remove(localName);
 
@@ -267,6 +259,58 @@ namespace XCoder
 
                 this.Invoke(new Action<List<String>>(SetDatabaseList), list);
             }
+        }
+
+        Boolean DetectFileDb(String item)
+        {
+            String access = "Standard Jet DB";
+            String sqlite = "SQLite";
+
+            using (var fs = new FileStream(item, FileMode.Open, FileAccess.Read, FileShare.Read))
+            {
+                if (fs.Length <= 0) return false;
+
+                var reader = new BinaryReader(fs);
+                var bts = reader.ReadBytes(sqlite.Length);
+                if (bts != null && bts.Length > 0)
+                {
+                    if (bts[0] == 'S' && bts[1] == 'Q' && Encoding.ASCII.GetString(bts) == sqlite)
+                    {
+                        var localstr = String.Format("Data Source={0};", item);
+                        if (!ContainConnStr(localstr)) DAL.AddConnStr("SQLite_" + Path.GetFileNameWithoutExtension(item), localstr, null, "SQLite");
+                        return true;
+                    }
+                    else if (bts[4] == 'S' && bts[5] == 't')
+                    {
+                        fs.Seek(4, SeekOrigin.Begin);
+                        bts = reader.ReadBytes(access.Length);
+                        if (Encoding.ASCII.GetString(bts) == access)
+                        {
+                            var localstr = String.Format("Provider=Microsoft.Jet.OLEDB.4.0; Data Source={0};Persist Security Info=False", item);
+                            if (!ContainConnStr(localstr)) DAL.AddConnStr("Access_" + Path.GetFileNameWithoutExtension(item), localstr, null, "Access");
+                            return true;
+                        }
+                    }
+                }
+
+                if (fs.Length > 20)
+                {
+                    fs.Seek(16, SeekOrigin.Begin);
+                    var ver = reader.ReadInt32();
+                    if (ver == 0x73616261 ||
+                        ver == 0x002dd714 ||
+                        ver == 0x00357b9d ||
+                        ver == 0x003d0900
+                        )
+                    {
+                        var localstr = String.Format("Data Source={0};", item);
+                        if (!ContainConnStr(localstr)) DAL.AddConnStr("SqlCe_" + Path.GetFileNameWithoutExtension(item), localstr, null, "SqlCe");
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
 
         Boolean ContainConnStr(String connstr)
