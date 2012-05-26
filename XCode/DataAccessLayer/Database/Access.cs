@@ -448,7 +448,30 @@ namespace XCode.DataAccessLayer
         /// <summary>创建数据库</summary>
         protected override void CreateDatabase()
         {
-            FileSource.ReleaseFile(Assembly.GetExecutingAssembly(), "Database.mdb", FileName, true);
+            if (String.IsNullOrEmpty(FileName) || File.Exists(FileName)) return;
+
+            DAL.WriteDebugLog("创建数据库：{0}", FileName);
+
+            //FileSource.ReleaseFile(Assembly.GetExecutingAssembly(), "Database.mdb", FileName, true);
+
+            var dbe = new DBEngineClass();
+            try
+            {
+                var db = dbe.CreateDatabase(FileName, LanguageConstants.dbLangChineseSimplified);
+                if (db != null)
+                {
+                    db.Close();
+                    Marshal.ReleaseComObject(db);
+                }
+            }
+            catch (Exception ex)
+            {
+                XTrace.WriteException(ex);
+            }
+            finally
+            {
+                Marshal.ReleaseComObject(dbe);
+            }
         }
         #endregion
 

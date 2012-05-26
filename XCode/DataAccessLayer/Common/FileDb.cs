@@ -130,7 +130,12 @@ namespace XCode.DataAccessLayer
             String dir = Path.GetDirectoryName(FileName);
             if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
 
-            if (!File.Exists(FileName)) File.Create(FileName).Dispose();
+            if (!File.Exists(FileName))
+            {
+                DAL.WriteDebugLog("创建数据库：{0}", FileName);
+
+                File.Create(FileName).Dispose();
+            }
         }
 
         protected virtual void DropDatabase()

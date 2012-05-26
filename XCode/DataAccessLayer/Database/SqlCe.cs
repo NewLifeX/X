@@ -9,6 +9,8 @@ using System.Reflection;
 using System.Text;
 using NewLife.Log;
 using NewLife.IO;
+using NewLife;
+using NewLife.Reflection;
 
 namespace XCode.DataAccessLayer
 {
@@ -33,6 +35,17 @@ namespace XCode.DataAccessLayer
                     lock (typeof(SqlCe))
                     {
                         if (_dbProviderFactory == null) _dbProviderFactory = GetProviderFactory("System.Data.SqlServerCe.dll", "System.Data.SqlServerCe.SqlCeProviderFactory");
+
+                        if (_dbProviderFactory != null)
+                        {
+                            using (var conn = _dbProviderFactory.CreateConnection())
+                            {
+                                if (conn.ServerVersion.StartsWith("4"))
+                                    _SqlCeProviderVersion = SQLCEVersion.SQLCE40;
+                                else
+                                    _SqlCeProviderVersion = SQLCEVersion.SQLCE35;
+                            }
+                        }
                     }
                 }
 
@@ -46,23 +59,10 @@ namespace XCode.DataAccessLayer
             get { return dbProviderFactory; }
         }
 
-        ///// <summary>SqlCe版本,默认3.5</summary>
-        //public SQLCEVersion SqlCeVer
-        //{
-        //    get
-        //    {
-        //        if (FileName == null) return SQLCEVersion.SQLCE35;
+        private static SQLCEVersion _SqlCeProviderVersion = SQLCEVersion.SQLCE40;
+        /// <summary>SqlCe提供者版本</summary>
+        public static SQLCEVersion SqlCeProviderVersion { get { return _SqlCeProviderVersion; } }
 
-        //        try
-        //        {
-        //            return SqlCeHelper.DetermineVersion(FileName);
-        //        }
-        //        catch
-        //        {
-        //            return SQLCEVersion.SQLCE35;
-        //        }
-        //    }
-        //}
         private SQLCEVersion _SqlCeVer = SQLCEVersion.SQLCE40;
         /// <summary>SqlCe版本,默认4.0</summary>
         public SQLCEVersion SqlCeVer { get { return _SqlCeVer; } set { _SqlCeVer = value; } }
@@ -73,7 +73,7 @@ namespace XCode.DataAccessLayer
 
             SqlCeVer = SQLCEVersion.SQLCE40;
 
-            if (!String.IsNullOrEmpty(FileName))
+            if (!String.IsNullOrEmpty(FileName) && File.Exists(FileName))
             {
                 try
                 {
@@ -163,12 +163,16 @@ namespace XCode.DataAccessLayer
     /// <summary>SqlCe会话</summary>
     class SqlCeSession : FileDbSession
     {
-        #region 方法
         protected override void CreateDatabase()
         {
-            FileSource.ReleaseFile(Assembly.GetExecutingAssembly(), "SqlCe.sdf", FileName, true);
+            if (String.IsNullOrEmpty(FileName) || File.Exists(FileName)) return;
+
+            //FileSource.ReleaseFile(Assembly.GetExecutingAssembly(), "SqlCe.sdf", FileName, true);
+            DAL.WriteDebugLog("创建数据库：{0}", FileName);
+
+            var sce = SqlCeEngine.Create(ConnectionString);
+            if (sce != null) sce.CreateDatabase();
         }
-        #endregion
 
         /// <summary>执行插入语句并返回新增行的自动编号</summary>
         /// <param name="sql">SQL语句</param>
@@ -204,7 +208,7 @@ namespace XCode.DataAccessLayer
         public override DataTable GetSchema(string collectionName, string[] restrictionValues)
         {
             //sqlce3.5 不支持GetSchema
-            if ((Database as SqlCe).SqlCeVer < SQLCEVersion.SQLCE40 &&
+            if (SqlCe.SqlCeProviderVersion < SQLCEVersion.SQLCE40 &&
                 String.Equals(collectionName, DbMetaDataCollectionNames.MetaDataCollections, StringComparison.OrdinalIgnoreCase))
                 return null;
             else
@@ -229,7 +233,7 @@ namespace XCode.DataAccessLayer
             _indexes = session.Query(_AllIndexSql).Tables[0];
 
             //数据类型DBType --〉DotNetType转换
-            if ((Database as SqlCe).SqlCeVer <= SQLCEVersion.SQLCE40)
+            if (SqlCe.SqlCeProviderVersion < SQLCEVersion.SQLCE40)
                 DataTypes = CreateSqlCeDataType(session.Query(_DataTypeSql).Tables[0]);
             #endregion
 
@@ -497,6 +501,51 @@ namespace XCode.DataAccessLayer
                 return false;
             }
             return true;
+        }
+    }
+
+    class SqlCeEngine : DisposeBase
+    {
+        private static Type _EngineType = TypeX.GetType("System.Data.SqlServerCe.SqlCeEngine", true);
+        /// <summary></summary>
+        public static Type EngineType { get { return _EngineType; } set { _EngineType = value; } }
+
+        private Object _Engine;
+        /// <summary>引擎</summary>
+        public Object Engine { get { return _Engine; } set { _Engine = value; } }
+
+        public static SqlCeEngine Create(String connstr)
+        {
+            if (EngineType == null) return null;
+            if (String.IsNullOrEmpty(connstr)) return null;
+
+            try
+            {
+                var e = TypeX.CreateInstance(EngineType, connstr);
+                if (e == null) return null;
+
+                var sce = new SqlCeEngine();
+                sce.Engine = e;
+                return sce;
+            }
+            catch { return null; }
+        }
+
+        protected override void OnDispose(bool disposing)
+        {
+            base.OnDispose(disposing);
+
+            if (Engine != null && Engine is IDisposable) (Engine as IDisposable).Dispose();
+        }
+
+        public void CreateDatabase()
+        {
+            MethodInfoX.Invoke<Object>(Engine, "CreateDatabase");
+        }
+
+        public void Shrink()
+        {
+            MethodInfoX.Invoke<Object>(Engine, "Shrink");
         }
     }
 }

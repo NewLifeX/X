@@ -252,6 +252,8 @@ namespace XCode.DataAccessLayer
             //parameters.Add("Database", @"c:\database.fdb");
             //FbConnection.CreateDatabase(parameters);
 
+            DAL.WriteDebugLog("创建数据库：{0}", FileName);
+
             DbConnection conn = Database.Factory.CreateConnection();
             MethodInfoX method = MethodInfoX.Create(conn.GetType(), "CreateDatabase", new Type[] { typeof(String) });
             if (method == null) return;

@@ -9,6 +9,7 @@ using System.Text;
 using System.Web.UI;
 using NewLife.Collections;
 using NewLife.CommonEntity;
+using NewLife.Web;
 using XCode;
 using XControl;
 

@@ -23,10 +23,10 @@
                 <ItemStyle HorizontalAlign="Right" Font-Bold="True" />
             </asp:BoundField>
             <asp:BoundField DataField="Name" HeaderText="名称" SortExpression="Name" />
+            <asp:BoundField DataField="DisplayName" HeaderText="显示名" SortExpression="DisplayName" />
             <asp:BoundField DataField="KindCode" HeaderText="值类型" SortExpression="Kind">
                 <ItemStyle HorizontalAlign="Right" Font-Bold="True" ForeColor="Green" />
             </asp:BoundField>
-            <asp:BoundField DataField="DisplayName" HeaderText="显示名" SortExpression="DisplayName" />
             <asp:BoundField DataField="Value" HeaderText="值" SortExpression="Value" />
             <asp:BoundField DataField="Sort" HeaderText="排序" SortExpression="Sort" DataFormatString="{0:n0}">
                 <ItemStyle HorizontalAlign="Right" Font-Bold="True" />

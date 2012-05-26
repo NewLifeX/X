@@ -14,16 +14,16 @@
             <td><asp:TextBox ID="frmName" runat="server" Width="150px"></asp:TextBox></td>
         </tr>
 <tr>
+            <td align="right">显示名：</td>
+            <td><asp:TextBox ID="frmDisplayName" runat="server" Width="150px"></asp:TextBox></td>
+        </tr>
+<tr>
             <td align="right">值类型：</td>
             <td><XCL:NumberBox ID="frmKind" runat="server" Width="80px"></XCL:NumberBox></td>
         </tr>
 <tr>
             <td align="right">值：</td>
             <td><asp:TextBox ID="frmValue" runat="server" TextMode="MultiLine" Width="300px" Height="80px"></asp:TextBox></td>
-        </tr>
-<tr>
-            <td align="right">显示名：</td>
-            <td><asp:TextBox ID="frmDisplayName" runat="server" Width="150px"></asp:TextBox></td>
         </tr>
 <tr>
             <td align="right">排序：</td>
