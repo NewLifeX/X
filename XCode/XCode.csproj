@@ -275,6 +275,7 @@
     <Content Include="..\NewLife.Core\X组件.txt">
       <Link>X组件.txt</Link>
     </Content>
+    <EmbeddedResource Include="DataAccessLayer\Database\SqlCe.sdf" />
     <Content Include="Test\EntityTest.xml" />
     <Content Include="说明.txt" />
   </ItemGroup>

@@ -56,10 +56,10 @@ namespace XCode.DataAccessLayer
         {
             get
             {
-                DbConnectionStringBuilder builder = Factory.CreateConnectionStringBuilder();
+                var builder = Factory.CreateConnectionStringBuilder();
                 if (builder != null)
                 {
-                    String name = Path.GetTempFileName();
+                    var name = Path.GetTempFileName();
                     FileSource.ReleaseFile(Assembly.GetExecutingAssembly(), "Database.mdb", name, true);
 
                     builder[_.DataSource] = name;

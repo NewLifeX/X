@@ -7,6 +7,8 @@ using System.Data.SqlTypes;
 using System.IO;
 using System.Reflection;
 using System.Text;
+using NewLife.Log;
+using NewLife.IO;
 
 namespace XCode.DataAccessLayer
 {
@@ -44,21 +46,63 @@ namespace XCode.DataAccessLayer
             get { return dbProviderFactory; }
         }
 
-        /// <summary>SqlCe版本,默认3.5</summary>
-        public SQLCEVersion SqlCeVer
+        ///// <summary>SqlCe版本,默认3.5</summary>
+        //public SQLCEVersion SqlCeVer
+        //{
+        //    get
+        //    {
+        //        if (FileName == null) return SQLCEVersion.SQLCE35;
+
+        //        try
+        //        {
+        //            return SqlCeHelper.DetermineVersion(FileName);
+        //        }
+        //        catch
+        //        {
+        //            return SQLCEVersion.SQLCE35;
+        //        }
+        //    }
+        //}
+        private SQLCEVersion _SqlCeVer = SQLCEVersion.SQLCE40;
+        /// <summary>SqlCe版本,默认4.0</summary>
+        public SQLCEVersion SqlCeVer { get { return _SqlCeVer; } set { _SqlCeVer = value; } }
+
+        protected override void OnSetConnectionString(XDbConnectionStringBuilder builder)
+        {
+            base.OnSetConnectionString(builder);
+
+            SqlCeVer = SQLCEVersion.SQLCE40;
+
+            if (!String.IsNullOrEmpty(FileName))
+            {
+                try
+                {
+                    SqlCeVer = SqlCeHelper.DetermineVersion(FileName);
+                }
+                catch (Exception ex)
+                {
+                    XTrace.WriteException(ex);
+
+                    SqlCeVer = SQLCEVersion.SQLCE40;
+                }
+            }
+        }
+
+        protected override string DefaultConnectionString
         {
             get
             {
-                if (FileName == null) return SQLCEVersion.SQLCE35;
+                var builder = Factory.CreateConnectionStringBuilder();
+                if (builder != null)
+                {
+                    var name = Path.GetTempFileName();
+                    FileSource.ReleaseFile(Assembly.GetExecutingAssembly(), "SqlCe.sdf", name, true);
 
-                try
-                {
-                    return SqlCeHelper.DetermineVersion(FileName);
+                    builder[_.DataSource] = name;
+                    return builder.ToString();
                 }
-                catch
-                {
-                    return SQLCEVersion.SQLCE35;
-                }
+
+                return base.DefaultConnectionString;
             }
         }
         #endregion
@@ -122,9 +166,7 @@ namespace XCode.DataAccessLayer
         #region 方法
         protected override void CreateDatabase()
         {
-            //不能用脚本创建
-            return;
-
+            FileSource.ReleaseFile(Assembly.GetExecutingAssembly(), "SqlCe.sdf", FileName, true);
         }
         #endregion
 
@@ -162,7 +204,8 @@ namespace XCode.DataAccessLayer
         public override DataTable GetSchema(string collectionName, string[] restrictionValues)
         {
             //sqlce3.5 不支持GetSchema
-            if (String.Equals(collectionName, DbMetaDataCollectionNames.MetaDataCollections, StringComparison.OrdinalIgnoreCase))
+            if ((Database as SqlCe).SqlCeVer < SQLCEVersion.SQLCE40 &&
+                String.Equals(collectionName, DbMetaDataCollectionNames.MetaDataCollections, StringComparison.OrdinalIgnoreCase))
                 return null;
             else
                 return base.GetSchema(collectionName, restrictionValues);
@@ -186,7 +229,8 @@ namespace XCode.DataAccessLayer
             _indexes = session.Query(_AllIndexSql).Tables[0];
 
             //数据类型DBType --〉DotNetType转换
-            DataTypes = CreateSqlCeDataType(session.Query(_DataTypeSql).Tables[0]);
+            if ((Database as SqlCe).SqlCeVer <= SQLCEVersion.SQLCE40)
+                DataTypes = CreateSqlCeDataType(session.Query(_DataTypeSql).Tables[0]);
             #endregion
 
             if (dt == null || dt.Rows == null || dt.Rows.Count < 1) return null;
