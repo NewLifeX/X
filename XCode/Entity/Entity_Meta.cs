@@ -578,10 +578,12 @@ namespace XCode
                 {
                     String key = String.Format("{0}_{1}_{2}_Count", ConnName, TableName, ThisType.Name);
 
-                    //Int64? n = _Count;
-                    //if (n != null && n.HasValue)
+                    // By 大石头 2012-05-27
+                    // 这里好像有问题，不明白上次为什么要注释
+                    Int64? n = _Count;
+                    if (n != null && n.HasValue)
                     {
-                        //if (n.Value > 0 && n.Value < 1000) return n.Value;
+                        if (n.Value > 0 && n.Value < 1000) return n.Value;
 
                         // 大于1000，使用HttpCache
                         Int64? k = (Int64?)HttpRuntime.Cache[key];
