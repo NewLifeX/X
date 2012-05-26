@@ -594,7 +594,7 @@ namespace XCode
 
                     Int64 m = 0;
                     //if (n != null && n.HasValue && n.Value < 1000)
-                    Int64? n = _Count;
+                    //Int64? n = _Count;
                     if (n != null && n.HasValue && n.Value < 1000)
                         m = FindCount();
                     else

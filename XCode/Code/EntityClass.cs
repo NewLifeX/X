@@ -108,7 +108,8 @@ namespace XCode.Code
                 new CodeAttributeArgument(new CodePrimitiveExpression(Table.Name)),
                 new CodeAttributeArgument("Description", new CodePrimitiveExpression(Table.Description)),
                 new CodeAttributeArgument("ConnName", new CodePrimitiveExpression(Assembly.ConnName)),
-                new CodeAttributeArgument("DbType", new CodeFieldReferenceExpression(new CodeTypeReferenceExpression(typeof(DatabaseType)), Table.DbType.ToString()))
+                new CodeAttributeArgument("DbType", new CodeFieldReferenceExpression(new CodeTypeReferenceExpression(typeof(DatabaseType)), Table.DbType.ToString())),
+                new CodeAttributeArgument("IsView", new CodePrimitiveExpression(Table.IsView))
                 ));
 
             // 基类
