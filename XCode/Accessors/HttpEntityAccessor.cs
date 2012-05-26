@@ -121,6 +121,9 @@ namespace XCode.Accessors
             }
         }
 
+        /// <summary>从请求中获取指定字段的值</summary>
+        /// <param name="item"></param>
+        /// <returns></returns>
         protected virtual Object GetRequestItem(FieldItem item)
         {
             if (item == null) return null;
