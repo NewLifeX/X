@@ -7,6 +7,11 @@
 using System;
 using System.ComponentModel;
 using XCode;
+#if NET4
+using System.Linq;
+#else
+using NewLife.Linq;
+#endif
 
 namespace NewLife.CommonEntity
 {
@@ -35,7 +40,6 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region 扩展属性
-        private TypeCode _KindCode;
         /// <summary>类型编码</summary>
         public TypeCode KindCode { get { return (TypeCode)Kind; } set { Kind = (Int32)value; } }
         #endregion

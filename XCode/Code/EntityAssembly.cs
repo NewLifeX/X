@@ -4,6 +4,7 @@ using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using System.Reflection.Emit;
 using System.Text;
 using NewLife.Collections;
 using NewLife.Configuration;
@@ -15,7 +16,6 @@ using XCode.Exceptions;
 using System.Linq;
 #else
 using NewLife.Linq;
-using System.Reflection.Emit;
 #endif
 
 namespace XCode.Code

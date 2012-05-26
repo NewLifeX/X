@@ -445,6 +445,8 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 创建数据库
+        const string dbLangChineseSimplified = ";LANGID=0x0804;CP=936;COUNTRY=0";
+
         /// <summary>创建数据库</summary>
         protected override void CreateDatabase()
         {
@@ -457,7 +459,7 @@ namespace XCode.DataAccessLayer
             var dbe = new DBEngineClass();
             try
             {
-                var db = dbe.CreateDatabase(FileName, LanguageConstants.dbLangChineseSimplified);
+                var db = dbe.CreateDatabase(FileName, dbLangChineseSimplified);
                 if (db != null)
                 {
                     db.Close();

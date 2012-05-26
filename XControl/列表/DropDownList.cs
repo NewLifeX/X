@@ -175,10 +175,10 @@ namespace XControl
             }
         }
 
-        protected override void RenderContents(HtmlTextWriter writer)
-        {
-            base.RenderContents(writer);
-        }
+        //protected override void RenderContents(HtmlTextWriter writer)
+        //{
+        //    base.RenderContents(writer);
+        //}
 
         private Boolean selecting = false;
 
