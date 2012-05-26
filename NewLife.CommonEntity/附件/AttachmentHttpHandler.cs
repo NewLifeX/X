@@ -123,7 +123,7 @@ namespace NewLife.CommonEntity.Web
             HttpResponse Response = context.Response;
 
             Response.StatusCode = 400;
-            Response.Status = "文件未找到！";
+            //Response.Status = "文件未找到！";
 
         }
 
