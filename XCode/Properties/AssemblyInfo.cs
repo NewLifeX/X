@@ -35,7 +35,7 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
 [assembly: AssemblyVersion("8.6.*")]
-[assembly: AssemblyFileVersion("8.6.2012.0525")]
+[assembly: AssemblyFileVersion("8.6.2012.0526")]
 
 /*
  * XCode的重大改进
@@ -52,6 +52,8 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v8.6.2012.0526   由 @Goon(12600112) 测试并完善SqlCe的正向反向工程
+ * 
  * v8.6.2012.0525   实体类把四参数的FindAll和FindCount标为已过期，IEntityOperate中直接注释
  * 
  * v8.6.2012.0523   数据迁移EntityTransform引用局部迁移，允许某些表只迁移开头或结尾的指定数量的数据

@@ -460,6 +460,7 @@ namespace XCode.DataAccessLayer
         public DataTable DataTypes
         {
             get { return _DataTypes ?? (_DataTypes = GetSchema(DbMetaDataCollectionNames.DataTypes, null)); }
+            internal protected set { _DataTypes = value; }
         }
 
         private List<KeyValuePair<Type, Type>> _FieldTypeMaps;
