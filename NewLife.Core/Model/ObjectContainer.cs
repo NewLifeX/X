@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using NewLife.Configuration;
 using NewLife.Exceptions;
-using NewLife.Reflection;
 using NewLife.Log;
+using NewLife.Reflection;
 
 namespace NewLife.Model
 {
@@ -16,6 +16,11 @@ namespace NewLife.Model
     /// 
     /// 这里有一点跟大多数对象容器非常不同，其它对象容器会控制对象的生命周期，在对象不再使用时收回到容器里面。
     /// 这里的对象容器主要是为了用于解耦，所以只有最简单的功能实现。
+    /// 
+    /// 代码注册的默认优先级是0；
+    /// 配置注册的默认优先级是1；
+    /// 自动注册的外部实现（非排除项）的默认优先级是1，排除项的优先级是0；
+    /// 所以，配置注册的优先级最高
     /// </remarks>
     public class ObjectContainer : IObjectContainer
     {
@@ -66,7 +71,7 @@ namespace NewLife.Model
             // 名称不能是null，否则字典里面会报错
             if (id == null) id = String.Empty;
             // 如果找到，直接返回
-            if (dic.TryGetValue(id, out map)) return map;
+            if (dic.TryGetValue(id, out map) || dic.TryGetValue(id + "", out map)) return map;
 
             //if (!String.IsNullOrEmpty(id))
             if (id == null || "" + id == String.Empty)
@@ -206,7 +211,7 @@ namespace NewLife.Model
             var dic = Find(from, true);
             IObjectMap old = null;
             Map map = null;
-            if (dic.TryGetValue(id, out old))
+            if (dic.TryGetValue(id, out old) || dic.TryGetValue(id + "", out old))
             {
                 map = old as Map;
                 if (map != null)
@@ -278,6 +283,18 @@ namespace NewLife.Model
         /// <returns></returns>
         public virtual IObjectContainer AutoRegister(Type from, params Type[] excludeTypes)
         {
+            return AutoRegister(from, null, null, 0, excludeTypes);
+        }
+
+        /// <summary>遍历所有程序集的所有类型，自动注册实现了指定接口或基类的类型。如果没有注册任何实现，则默认注册第一个排除类型</summary>
+        /// <param name="from">接口或基类</param>
+        /// <param name="getidCallback">用于从外部类型对象中获取标识的委托</param>
+        /// <param name="id">标识</param>
+        /// <param name="priority">优先级</param>
+        /// <param name="excludeTypes">要排除的类型，一般是内部默认实现</param>
+        /// <returns></returns>
+        public virtual IObjectContainer AutoRegister(Type from, Func<Object, Object> getidCallback = null, Object id = null, Int32 priority = 0, params Type[] excludeTypes)
+        {
             if (from == null) throw new ArgumentNullException("from");
 
             if (excludeTypes == null) excludeTypes = Type.EmptyTypes;
@@ -295,12 +312,15 @@ namespace NewLife.Model
             {
                 if (Array.IndexOf(excludeTypes, item) < 0)
                 {
-                    if (XTrace.Debug) XTrace.WriteLine("为{0}自动注册{1}！", from.FullName, item.FullName);
-
                     // 自动注册的优先级是1，高于默认的0
                     //Register(from, item, null, null, 1);
                     // 实例化一次，让这个类有机会执行类型构造函数，可以获取旧的类型实现
-                    Register(from, null, TypeX.CreateInstance(item), null, 1);
+                    var obj = TypeX.CreateInstance(item);
+                    if (getidCallback != null) id = getidCallback(obj);
+
+                    if (XTrace.Debug) XTrace.WriteLine("为{0}自动注册{1}，标识={2}，优先级={3}！", from.FullName, item.FullName, id, priority + 1);
+
+                    Register(from, null, obj, id, priority + 1);
                     return this;
                 }
             }
@@ -310,7 +330,7 @@ namespace NewLife.Model
             {
                 if (dic == null)
                 {
-                    Register(from, excludeTypes[0], null);
+                    Register(from, excludeTypes[0], null, id, priority);
                 }
             }
 
@@ -323,6 +343,16 @@ namespace NewLife.Model
         /// <typeparam name="TImplement">要排除的类型，一般是内部默认实现</typeparam>
         /// <returns></returns>
         public virtual IObjectContainer AutoRegister<TInterface, TImplement>() { return AutoRegister(typeof(TInterface), typeof(TImplement)); }
+
+        /// <summary>遍历所有程序集的所有类型，自动注册实现了指定接口或基类的类型。如果没有注册任何实现，则默认注册第一个排除类型</summary>
+        /// <remarks>自动注册一般用于单实例功能扩展型接口</remarks>
+        /// <typeparam name="TInterface">接口类型</typeparam>
+        /// <typeparam name="TImplement">要排除的类型，一般是内部默认实现</typeparam>
+        /// <param name="getidCallback">用于从外部类型对象中获取标识的委托</param>
+        /// <param name="id">标识</param>
+        /// <param name="priority">优先级</param>
+        /// <returns></returns>
+        public virtual IObjectContainer AutoRegister<TInterface, TImplement>(Func<Object, Object> getidCallback = null, Object id = null, Int32 priority = 0) { return AutoRegister(typeof(TInterface), getidCallback, id, priority, typeof(TImplement)); }
         #endregion
 
         #region 解析
@@ -571,15 +601,16 @@ namespace NewLife.Model
                 if (name.IsNullOrWhiteSpace()) continue;
 
                 var type = TypeX.GetType(name, true);
-                if (type == null) 
+                if (type == null)
                 {
-                    XTrace.WriteLine("未找到对象容器配置{0}中的类型{1}！",item.Key,name);
+                    XTrace.WriteLine("未找到对象容器配置{0}中的类型{1}！", item.Key, name);
                     continue;
                 }
-                    
 
                 var map = GetConfig(item.Value);
                 if (map == null) continue;
+
+                if (XTrace.Debug) XTrace.WriteLine("为{0}配置注册{1}，标识={2}，优先级={3}！", type.FullName, map.TypeName, map.Identity, map.Priority);
 
                 Register(type, null, null, map.TypeName, map.Mode, map.Identity, map.Priority/*, map.Singleton*/);
             }
@@ -587,6 +618,9 @@ namespace NewLife.Model
 
         static Map GetConfig(String str)
         {
+            // 如果不含=，表示整个str就是类型Type
+            if (!str.Contains("=")) return new Map() { TypeName = str };
+
             var dic = str.SplitAsDictionary();
             if (dic == null || dic.Count < 1)
             {

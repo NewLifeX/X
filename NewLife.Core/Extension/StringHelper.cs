@@ -53,7 +53,7 @@ namespace System
         /// <returns></returns>
         public static IDictionary<String, String> SplitAsDictionary(this String str, String nameValueSeparator = "=", params String[] separators)
         {
-            IDictionary<String, String> dic = new Dictionary<String, String>();
+            var dic = new Dictionary<String, String>();
             if (str.IsNullOrWhiteSpace()) return dic;
 
             if (String.IsNullOrEmpty(nameValueSeparator)) nameValueSeparator = "=";

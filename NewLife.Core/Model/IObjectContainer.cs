@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using NewLife.Reflection;
 
 namespace NewLife.Model
 {
@@ -12,6 +13,11 @@ namespace NewLife.Model
     /// 
     /// 这里有一点跟大多数对象容器非常不同，其它对象容器会控制对象的生命周期，在对象不再使用时收回到容器里面。
     /// 这里的对象容器主要是为了用于解耦，所以只有最简单的功能实现。
+    /// 
+    /// 代码注册的默认优先级是0；
+    /// 配置注册的默认优先级是1；
+    /// 自动注册的外部实现（非排除项）的默认优先级是1，排除项的优先级是0；
+    /// 所以，配置注册的优先级最高
     /// </remarks>
     public interface IObjectContainer
     {
@@ -55,11 +61,30 @@ namespace NewLife.Model
         IObjectContainer AutoRegister(Type from, params Type[] excludeTypes);
 
         /// <summary>遍历所有程序集的所有类型，自动注册实现了指定接口或基类的类型。如果没有注册任何实现，则默认注册第一个排除类型</summary>
+        /// <param name="from">接口或基类</param>
+        /// <param name="getidCallback">用于从外部类型对象中获取标识的委托</param>
+        /// <param name="id">标识</param>
+        /// <param name="priority">优先级</param>
+        /// <param name="excludeTypes">要排除的类型，一般是内部默认实现</param>
+        /// <returns></returns>
+        IObjectContainer AutoRegister(Type from, Func<Object, Object> getidCallback = null, Object id = null, Int32 priority = 0, params Type[] excludeTypes);
+
+        /// <summary>遍历所有程序集的所有类型，自动注册实现了指定接口或基类的类型。如果没有注册任何实现，则默认注册第一个排除类型</summary>
         /// <remarks>自动注册一般用于单实例功能扩展型接口</remarks>
         /// <typeparam name="TInterface">接口类型</typeparam>
         /// <typeparam name="TImplement">要排除的类型，一般是内部默认实现</typeparam>
         /// <returns></returns>
         IObjectContainer AutoRegister<TInterface, TImplement>();
+
+        /// <summary>遍历所有程序集的所有类型，自动注册实现了指定接口或基类的类型。如果没有注册任何实现，则默认注册第一个排除类型</summary>
+        /// <remarks>自动注册一般用于单实例功能扩展型接口</remarks>
+        /// <typeparam name="TInterface">接口类型</typeparam>
+        /// <typeparam name="TImplement">要排除的类型，一般是内部默认实现</typeparam>
+        /// <param name="getidCallback">用于从外部类型对象中获取标识的委托</param>
+        /// <param name="id">标识</param>
+        /// <param name="priority">优先级</param>
+        /// <returns></returns>
+        IObjectContainer AutoRegister<TInterface, TImplement>(Func<Object, Object> getidCallback = null, Object id = null, Int32 priority = 0);
         #endregion
 
         #region 解析
