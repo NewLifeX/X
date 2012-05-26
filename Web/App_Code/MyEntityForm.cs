@@ -40,7 +40,6 @@ public class MyEntityForm<TEntity> : MyEntityForm where TEntity : Entity<TEntity
     /// <summary>实体类</summary>
     public override Type EntityType { get { return base.EntityType ?? (base.EntityType = typeof(TEntity)); } set { base.EntityType = value; } }
 
-    private TEntity _Entity;
     /// <summary>实体</summary>
     public virtual TEntity Entity { get { return EntityForm == null ? null : EntityForm.Entity as TEntity; } set { if (EntityForm != null) EntityForm.Entity = value; } }
 }
