@@ -9,11 +9,12 @@ using System;
 using System.ComponentModel;
 using System.IO;
 using System.Web;
+using System.Web.Configuration;
 using System.Web.UI.WebControls;
+using System.Xml.Serialization;
+using NewLife.CommonEntity.Web;
 using NewLife.Configuration;
 using XCode;
-using System.Web.Configuration;
-using NewLife.CommonEntity.Web;
 
 namespace NewLife.CommonEntity
 {
@@ -82,6 +83,36 @@ namespace NewLife.CommonEntity
     public partial class Attachment<TEntity> : Entity<TEntity> where TEntity : Attachment<TEntity>, new()
     {
         #region 对象操作
+        [NonSerialized]
+        private HttpPostedFile _PostedFile;
+        /// <summary>上传文件</summary>
+        [XmlIgnore]
+        public HttpPostedFile PostedFile { get { return _PostedFile; } set { _PostedFile = value; } }
+
+        /// <summary>重载插入操作，在此保存附件，保存异常时自动回滚</summary>
+        /// <returns></returns>
+        protected override int OnInsert()
+        {
+            var rs = base.OnInsert();
+
+            // 外部也可以提前调用GetFilePath
+            if (String.IsNullOrEmpty(FilePath)) GetFilePath();
+
+            var file = FullFilePath;
+            if (PostedFile != null && !String.IsNullOrEmpty(file))
+            {
+                String path = Path.GetDirectoryName(file);
+                if (!Directory.Exists(path)) Directory.CreateDirectory(path);
+
+                // 如果文件已存在，也不保存。这个不大可能，只是为了保证万无一失
+                if (!File.Exists(file)) PostedFile.SaveAs(file);
+
+                PostedFile = null;
+            }
+
+            return rs;
+        }
+
         /// <summary>已重载。</summary>
         /// <returns></returns>
         public override int Delete()
@@ -96,6 +127,13 @@ namespace NewLife.CommonEntity
             }
             return base.Delete();
         }
+
+        ///// <summary>验证数据。计算文件全路径</summary>
+        ///// <param name="isNew"></param>
+        //public override void Valid(bool isNew)
+        //{
+        //    base.Valid(isNew);
+        //}
         #endregion
 
         #region 扩展属性
@@ -132,7 +170,6 @@ namespace NewLife.CommonEntity
 
         /// <summary>获取Config中Handler设置的用于访问当前附件的Url</summary>
         public String HandlerUrl { get { return httpHandler == null ? null : String.Format("{0}?ID={1}", httpHandler.Path, ID); } }
-
 
         /// <summary>完全文件路径</summary>
         public String FullFilePath
@@ -320,7 +357,7 @@ namespace NewLife.CommonEntity
 
         #region 业务
         /// <summary>检查并设置文件存放名称，先尝试以原名存放，若有同名文件，则删除</summary>
-        void GetFilePath()
+        protected virtual void GetFilePath()
         {
             if (String.IsNullOrEmpty(FileName)) throw new ArgumentNullException("FileName");
 
@@ -350,20 +387,6 @@ namespace NewLife.CommonEntity
         /// <summary>文件分类</summary>
         public static readonly String Category_File = "File";
 
-        ///// <summary>
-        ///// 保存文件
-        ///// </summary>
-        //public void SaveFile()
-        //{
-        //    //Request.Files
-
-        //    // 1，根据文件上传控件创建附件实例
-        //    // 2，使用读取基本信息到附件实例
-        //    // 3，保存附件信息，取得ID
-        //    // 4，调用GetFilePath取得文件存放路径
-        //    // 5，保存文件并且再次保存附件信息
-        //}
-
         /// <summary>保存上传文件</summary>
         /// <param name="fileUpload"></param>
         /// <param name="category"></param>
@@ -385,39 +408,15 @@ namespace NewLife.CommonEntity
         {
             if (file == null) return null;
 
-            //使用事务保护，保存文件不成功时，回滚记录
-            Meta.BeginTrans();
-            try
-            {
-                TEntity att = new TEntity();
-                att.FileName = file.FileName;
-                att.Size = file.ContentLength;// / 1024;
-                att.Extension = Path.GetExtension(file.FileName);
-                att.Category = category;
-                att.IsEnable = true;
-                //att.FilePath = 
-                att.ContentType = file.ContentType;
-                att.UploadTime = DateTime.Now;
-                att.UserName = userName;
-                //att.Save();
-                att.GetFilePath();
-                att.Save();
+            // 内部保存文件，位于事务保护之后
+            var att = Create(file);
+            att.Category = category;
+            att.UserName = userName;
 
+            //att.GetFilePath();
+            att.Save();
 
-                Meta.Commit();
-
-                String path = Path.GetDirectoryName(att.FullFilePath);
-                if (!Directory.Exists(path)) Directory.CreateDirectory(path);
-
-                file.SaveAs(att.FullFilePath);
-
-                return att;
-            }
-            catch
-            {
-                Meta.Rollback();
-                throw;
-            }
+            return att;
         }
 
         /// <summary>保存上传文件</summary>
@@ -443,6 +442,32 @@ namespace NewLife.CommonEntity
             }
 
             return atts.Count > 0 ? atts : null;
+        }
+
+        /// <summary>为上传文件创建附件实体对象</summary>
+        /// <param name="file"></param>
+        /// <returns></returns>
+        public static TEntity Create(HttpPostedFile file)
+        {
+            if (file == null || file.ContentLength <= 0) return null;
+
+            var att = new TEntity();
+            att.FileName = file.FileName;
+            att.Size = file.ContentLength;// / 1024;
+            att.Extension = Path.GetExtension(file.FileName);
+            //att.Category = category;
+            att.IsEnable = true;
+            //att.FilePath = 
+            att.ContentType = file.ContentType;
+            att.UploadTime = DateTime.Now;
+            //att.UserName = userName;
+            //att.Save();
+            //att.GetFilePath();
+
+            // 这里必须赋值，在OnInsert阶段会保存附件
+            att.PostedFile = file;
+
+            return att;
         }
 
         //public Boolean SaveChecked(HttpFileCollection fileUploads)

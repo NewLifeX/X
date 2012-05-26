@@ -60,6 +60,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="附件\AttachmentEntityAccessor.cs" />
     <Compile Include="Common\CommonService.cs" />
     <Compile Include="Common\CommonEntityBase.cs" />
     <Compile Include="Exceptions\EntityException.cs" />
