@@ -7,11 +7,8 @@ using XCode.Exceptions;
 
 namespace XCode.Accessors
 {
-    /// <summary>
-    /// WinForm实体访问器
-    /// 功能基本完成但未进行测试
-    /// </summary>
-    class WinFormEntityAccessor : EntityAccessorBase
+    /// <summary>WinForm实体访问器。功能基本完成但未进行测试</summary>
+    public class WinFormEntityAccessor : EntityAccessorBase
     {
         #region 属性
         private Control _Container;

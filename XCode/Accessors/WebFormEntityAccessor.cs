@@ -10,7 +10,7 @@ using XCode.Configuration;
 namespace XCode.Accessors
 {
     /// <summary>WebForm实体访问器</summary>
-    internal class WebFormEntityAccessor : EntityAccessorBase
+    public class WebFormEntityAccessor : EntityAccessorBase
     {
         #region 属性
 
@@ -61,7 +61,6 @@ namespace XCode.Accessors
         #endregion
 
         #region 读取
-
         /// <summary>外部=>实体，从外部读取指定实体字段的信息</summary>
         /// <param name="entity">实体对象</param>
         /// <param name="item">实体字段</param>
@@ -90,7 +89,7 @@ namespace XCode.Accessors
 
             if (control is WebControl)
             {
-                WebControl wc = control as WebControl;
+                var wc = control as WebControl;
 
                 // 分控件处理
                 if (wc is TextBox)
@@ -103,6 +102,9 @@ namespace XCode.Accessors
                     GetFormItemCheckBox(entity, field, wc as CheckBox);
                 else if (wc is ListControl)
                     GetFormItemListControl(entity, field, wc as ListControl);
+                // 不处理文件上传
+                else if (wc is FileUpload)
+                    return;
                 else
                 {
                     Object v = null;
@@ -229,11 +231,9 @@ namespace XCode.Accessors
                 }
             }
         }
-
         #endregion
 
         #region 写入
-
         /// <summary>实体=>外部，把指定实体字段的信息写入到外部</summary>
         /// <param name="entity">实体对象</param>
         /// <param name="item">实体字段</param>
@@ -253,12 +253,10 @@ namespace XCode.Accessors
             //}
         }
 
-        /// <summary>把实体成员的值设置到控件上</summary>
-        /// <param name="entity"></param>
+        /// <summary>设置控件的ToolTip提示信息</summary>
         /// <param name="field"></param>
         /// <param name="control"></param>
-        /// <param name="canSave"></param>
-        protected virtual void SetFormItem(IEntity entity, FieldItem field, Control control, Boolean canSave)
+        protected virtual void SetToolTip(FieldItem field, Control control)
         {
             if (field == null || control == null) return;
 
@@ -268,14 +266,38 @@ namespace XCode.Accessors
             else
                 toolTip = String.Format("必须填写{0}！", toolTip);
 
-            if (control is Label) toolTip = null;
+            //if (control is Label) toolTip = null;
+            if (control is Label) return;
 
             if (control is WebControl)
             {
-                WebControl wc = control as WebControl;
+                var wc = control as WebControl;
 
                 // 设置ToolTip
                 if (String.IsNullOrEmpty(wc.ToolTip) && !String.IsNullOrEmpty(toolTip)) wc.ToolTip = toolTip;
+            }
+            else
+            {
+                var pix = PropertyInfoX.Create(control.GetType(), "ToolTip");
+                if (pix != null && String.IsNullOrEmpty((String)pix.GetValue(control)))
+                {
+                    pix.SetValue(control, toolTip);
+                }
+            }
+        }
+
+        /// <summary>把实体成员的值设置到控件上</summary>
+        /// <param name="entity"></param>
+        /// <param name="field"></param>
+        /// <param name="control"></param>
+        /// <param name="canSave"></param>
+        protected virtual void SetFormItem(IEntity entity, FieldItem field, Control control, Boolean canSave)
+        {
+            if (field == null || control == null) return;
+
+            if (control is WebControl)
+            {
+                var wc = control as WebControl;
 
                 //// 必填项
                 //if (!field.IsNullable) SetNotAllowNull(field, control, canSave);
@@ -300,6 +322,9 @@ namespace XCode.Accessors
                     SetFormItemCheckBox(entity, field, wc as CheckBox, canSave);
                 else if (wc is ListControl)
                     SetFormItemListControl(entity, field, wc as ListControl, canSave);
+                // 不处理文件上传
+                else if (wc is FileUpload)
+                    return;
                 else
                 {
                     SetControlValue(control, entity[field.Name]);
@@ -308,12 +333,6 @@ namespace XCode.Accessors
             else
             {
                 SetControlValue(control, entity[field.Name]);
-
-                PropertyInfoX pix = PropertyInfoX.Create(control.GetType(), "ToolTip");
-                if (pix != null && String.IsNullOrEmpty((String)pix.GetValue(control)))
-                {
-                    pix.SetValue(control, toolTip);
-                }
             }
         }
 
@@ -486,7 +505,7 @@ namespace XCode.Accessors
             // Label后面不需要
             if (control is Label) return;
 
-            LiteralControl lc = new LiteralControl();
+            var lc = new LiteralControl();
             lc.Text = "<font style='color:#FF0000;font-size:16pt;'> *</font>";
 
             Int32 p = control.Parent.Controls.IndexOf(control);
@@ -497,11 +516,9 @@ namespace XCode.Accessors
             }
             catch { }
         }
-
         #endregion
 
         #region 辅助
-
         private static Boolean GetControlValue(Control control, out Object value)
         {
             TypeX tx = control.GetType();
@@ -559,7 +576,6 @@ namespace XCode.Accessors
         {
             return FindControl(ItemPrefix + field.Name);
         }
-
         #endregion
     }
 }

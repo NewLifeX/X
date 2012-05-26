@@ -6,7 +6,7 @@ using XCode.Exceptions;
 namespace XCode.Accessors
 {
     /// <summary>实体访问器基类</summary>
-    abstract class EntityAccessorBase : IEntityAccessor
+    public abstract class EntityAccessorBase : IEntityAccessor
     {
         #region 属性
         private Boolean _AllFields = true;
