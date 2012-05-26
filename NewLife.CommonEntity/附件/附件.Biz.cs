@@ -444,7 +444,7 @@ namespace NewLife.CommonEntity
             return atts.Count > 0 ? atts : null;
         }
 
-        /// <summary>为上传文件创建附件实体对象</summary>
+        /// <summary>为上传文件创建附件实体对象。根据附件对象准备各种信息填充到附件对象中</summary>
         /// <param name="file"></param>
         /// <returns></returns>
         public static TEntity Create(HttpPostedFile file)
