@@ -49,7 +49,7 @@ namespace NewLife.CommonEntity
         private static Object _incLock = new Object();
         /// <summary>增加统计</summary>
         /// <param name="remark"></param>
-        public void Increment(String remark)
+        public void Increment(String remark = null)
         {
             if (Stat == null)
             {
