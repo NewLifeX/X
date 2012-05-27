@@ -70,7 +70,6 @@ namespace NewLife.CommonEntity
 
             Stat.Increment(remark);
         }
-
         #endregion
     }
 
@@ -478,5 +477,11 @@ namespace NewLife.CommonEntity
         //    return false;
         //}
         #endregion
+    }
+
+    partial interface IAttachment
+    {
+        /// <summary>完全文件路径</summary>
+        String FullFilePath { get; }
     }
 }

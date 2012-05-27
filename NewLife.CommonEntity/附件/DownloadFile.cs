@@ -14,9 +14,9 @@ namespace NewLife.CommonEntity.Web
         /// <param name="attachment"></param>
         /// <param name="stream"></param>
         /// <param name="dispositionMode"></param>
-        protected override void OnResponse(HttpContext context, Attachment attachment, Stream stream, string dispositionMode)
+        protected override void OnResponse(HttpContext context, IAttachment attachment, Stream stream, string dispositionMode)
         {
-            WebDownload wd = new WebDownload();
+            var wd = new WebDownload();
             wd.Stream = stream;
             wd.FileName = attachment.FileName;
             //if (!String.IsNullOrEmpty(dispositionMode)) wd.Mode = (WebDownload.DispositionMode)Enum.Parse(typeof(WebDownload.DispositionMode), dispositionMode);

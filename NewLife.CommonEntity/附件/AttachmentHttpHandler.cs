@@ -44,19 +44,19 @@ namespace NewLife.CommonEntity.Web
         /// <param name="context"></param>
         /// <param name="attachment"></param>
         /// <returns></returns>
-        protected virtual Stream GetStream(HttpContext context, Attachment attachment)
+        protected virtual Stream GetStream(HttpContext context, IAttachment attachment)
         {
             if (attachment.Size > MaxFileSize) return new FileStream(attachment.FullFilePath, FileMode.Open, FileAccess.Read);
 
-            String key = "NewLife.Attachment.Cache_" + attachment.ID;
-            Stream stream = HttpRuntime.Cache[key] as Stream;
+            var key = "NewLife.Attachment.Cache_" + attachment.ID;
+            var stream = HttpRuntime.Cache[key] as Stream;
             if (stream != null) return stream;
 
-            FileStream fs = new FileStream(attachment.FullFilePath, FileMode.Open, FileAccess.Read);
+            var fs = new FileStream(attachment.FullFilePath, FileMode.Open, FileAccess.Read);
             // 再次判断，防止记录的文件大小不正确而导致系统占用大量内存
             if (fs.Length > MaxFileSize) return fs;
 
-            Byte[] buffer = new Byte[fs.Length];
+            var buffer = new Byte[fs.Length];
             fs.Read(buffer, 0, buffer.Length);
             fs.Close();
 
@@ -78,7 +78,7 @@ namespace NewLife.CommonEntity.Web
         /// <param name="context"></param>
         protected virtual void OnProcess(HttpContext context)
         {
-            Attachment attachment = GetAttachment();
+            var attachment = GetAttachment();
 
             if (attachment == null || !attachment.IsEnable || !File.Exists(attachment.FullFilePath))
             {
@@ -87,9 +87,10 @@ namespace NewLife.CommonEntity.Web
             }
 
             // 增加统计
-            attachment.Increment(null);
+            var att = attachment as Attachment;
+            if (att != null) att.Increment(null);
 
-            Stream stream = GetStream(context, attachment);
+            var stream = GetStream(context, attachment);
             if (stream.CanSeek && stream.Position >= stream.Length) stream.Position = 0;
             try
             {
@@ -108,7 +109,7 @@ namespace NewLife.CommonEntity.Web
 
         /// <summary>取得附件对象</summary>
         /// <returns></returns>
-        protected virtual Attachment GetAttachment()
+        protected virtual IAttachment GetAttachment()
         {
             if (ID > 0)
                 return Attachment.FindByID(ID);
@@ -132,12 +133,12 @@ namespace NewLife.CommonEntity.Web
         /// <param name="attachment"></param>
         /// <param name="stream"></param>
         /// <param name="dispositionMode"></param>
-        protected virtual void OnResponse(HttpContext context, Attachment attachment, Stream stream, String dispositionMode)
+        protected virtual void OnResponse(HttpContext context, IAttachment attachment, Stream stream, String dispositionMode)
         {
-            WebDownload wd = new WebDownload();
+            var wd = new WebDownload();
             wd.Stream = stream;
             wd.FileName = attachment.FileName;
-            if (!String.IsNullOrEmpty(dispositionMode)) wd.Mode = (WebDownload.DispositionMode)Enum.Parse(typeof(WebDownload.DispositionMode), dispositionMode);
+            if (!String.IsNullOrEmpty(dispositionMode)) wd.Mode = WebDownload.ParseMode(dispositionMode);
             if (!String.IsNullOrEmpty(attachment.ContentType)) wd.ContentType = attachment.ContentType;
             wd.Render();
         }

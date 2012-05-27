@@ -51,9 +51,9 @@ namespace NewLife.CommonEntity.Web
         /// <param name="context"></param>
         /// <param name="attachment"></param>
         /// <returns></returns>
-        protected override Stream GetStream(HttpContext context, Attachment attachment)
+        protected override Stream GetStream(HttpContext context, IAttachment attachment)
         {
-            Stream stream = base.GetStream(context, attachment);
+            var stream = base.GetStream(context, attachment);
 
             stream = MakeThumbnail(context, stream);
 

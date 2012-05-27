@@ -41,15 +41,23 @@ namespace NewLife.Web
             /// <summary>附件模式，提示另存为</summary>
             Attachment
         }
+
+        /// <summary>分析模式</summary>
+        /// <param name="mode"></param>
+        /// <returns></returns>
+        public static DispositionMode ParseMode(String mode)
+        {
+            return (WebDownload.DispositionMode)Enum.Parse(typeof(WebDownload.DispositionMode), mode);
+        }
         #endregion
 
         /// <summary>输出数据流</summary>
         public virtual void Render()
         {
-            HttpRequest Request = HttpContext.Current.Request;
-            HttpResponse Response = HttpContext.Current.Response;
+            var Request = HttpContext.Current.Request;
+            var Response = HttpContext.Current.Response;
 
-            Stream stream = Stream;
+            var stream = Stream;
 
             // 速度
             long speed = Speed;
