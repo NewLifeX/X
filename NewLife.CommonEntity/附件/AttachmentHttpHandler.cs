@@ -87,8 +87,7 @@ namespace NewLife.CommonEntity.Web
             }
 
             // 增加统计
-            var att = attachment as Attachment;
-            if (att != null) att.Increment(null);
+            attachment.Increment(null);
 
             var stream = GetStream(context, attachment);
             if (stream.CanSeek && stream.Position >= stream.Length) stream.Position = 0;

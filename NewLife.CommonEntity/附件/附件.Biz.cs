@@ -49,7 +49,7 @@ namespace NewLife.CommonEntity
         private static Object _incLock = new Object();
         /// <summary>增加统计</summary>
         /// <param name="remark"></param>
-        public void Increment(String remark = null)
+        public override void Increment(String remark = null)
         {
             if (Stat == null)
             {
@@ -57,7 +57,7 @@ namespace NewLife.CommonEntity
                 {
                     if (Stat == null)
                     {
-                        TStatistics entity = new TStatistics();
+                        var entity = new TStatistics();
                         entity.Save();
 
                         this.StatID = entity.ID;
@@ -377,6 +377,10 @@ namespace NewLife.CommonEntity
             if (file.StartsWith(@"/")) file = file.Substring(1);
             FilePath = file;
         }
+
+        /// <summary>增加统计</summary>
+        /// <param name="remark"></param>
+        public virtual void Increment(String remark = null) { }
         #endregion
 
         #region 上传
@@ -483,5 +487,9 @@ namespace NewLife.CommonEntity
     {
         /// <summary>完全文件路径</summary>
         String FullFilePath { get; }
+
+        /// <summary>增加统计</summary>
+        /// <param name="remark"></param>
+        void Increment(String remark = null);
     }
 }
