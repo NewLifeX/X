@@ -115,22 +115,22 @@ namespace XCode.DataAccessLayer.Model
                 //else if (name.StartsWith(dt.Alias, StringComparison.OrdinalIgnoreCase))
                 //    name = name.Substring(dt.Alias.Length);
                 var pfs = new HashSet<String>(StringComparer.OrdinalIgnoreCase);
-                pfs.Add(dt.Name);
+                if (!dt.Name.IsNullOrWhiteSpace()) pfs.Add(dt.Name);
                 // 如果包括下划线，再分割
                 if (dt.Name.Contains("_"))
                 {
-                    foreach (var item in dt.Name.Split('_'))
+                    foreach (var item in dt.Name.Split("_"))
                     {
                         if (item != null && item.Length >= 2 && !pfs.Contains(item)) pfs.Add(item);
                     }
                 }
-                if (!pfs.Contains(dt.Alias))
+                if (!dt.Alias.IsNullOrWhiteSpace() && !pfs.Contains(dt.Alias))
                 {
                     pfs.Add(dt.Alias);
                     // 如果包括下划线，再分割
                     if (dt.Alias.Contains("_"))
                     {
-                        foreach (var item in dt.Alias.Split('_'))
+                        foreach (var item in dt.Alias.Split("_"))
                         {
                             if (item != null && item.Length >= 2 && !pfs.Contains(item)) pfs.Add(item);
                         }

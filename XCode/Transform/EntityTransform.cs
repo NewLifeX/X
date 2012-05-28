@@ -30,14 +30,15 @@ namespace XCode.Transform
             {
                 if (_TableNames == null)
                 {
-                    _TableNames = new HashSet<String>(StringComparer.OrdinalIgnoreCase);
+                    var list = new HashSet<String>(StringComparer.OrdinalIgnoreCase);
                     if (!String.IsNullOrEmpty(SrcConn))
                     {
                         foreach (var item in DAL.Create(SrcConn).Tables)
                         {
-                            _TableNames.Add(item.Name);
+                            if (!String.IsNullOrEmpty(item.Name)) list.Add(item.Name);
                         }
                     }
+                    _TableNames = list;
                 }
                 return _TableNames;
             }

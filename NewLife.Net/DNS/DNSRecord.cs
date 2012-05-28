@@ -148,7 +148,7 @@ namespace NewLife.Net.DNS
                 // 只保留Name/Type/Class
                 foreach (var item in rw.GetMembers(null, this))
                 {
-                    if (!fix.Contains(item.Name) && !ims.Contains(item.Name)) ims.Add(item.Name);
+                    if (!String.IsNullOrEmpty(item.Name) && !fix.Contains(item.Name) && !ims.Contains(item.Name)) ims.Add(item.Name);
                 }
             }
         }

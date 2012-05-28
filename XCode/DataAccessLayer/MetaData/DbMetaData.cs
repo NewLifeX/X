@@ -23,8 +23,8 @@ namespace XCode.DataAccessLayer
             {
                 if (_MetaDataCollections == null)
                 {
-                    ICollection<String> list = new HashSet<String>(StringComparer.OrdinalIgnoreCase);
-                    DataTable dt = GetSchema(DbMetaDataCollectionNames.MetaDataCollections, null);
+                    var list = new HashSet<String>(StringComparer.OrdinalIgnoreCase);
+                    var dt = GetSchema(DbMetaDataCollectionNames.MetaDataCollections, null);
                     if (dt != null && dt.Rows != null && dt.Rows.Count > 0)
                     {
                         foreach (DataRow dr in dt.Rows)
@@ -47,10 +47,10 @@ namespace XCode.DataAccessLayer
             {
                 if (_ReservedWords == null)
                 {
-                    ICollection<String> list = new HashSet<String>(StringComparer.OrdinalIgnoreCase);
+                    var list = new HashSet<String>(StringComparer.OrdinalIgnoreCase);
                     if (MetaDataCollections.Contains(DbMetaDataCollectionNames.ReservedWords))
                     {
-                        DataTable dt = GetSchema(DbMetaDataCollectionNames.ReservedWords, null);
+                        var dt = GetSchema(DbMetaDataCollectionNames.ReservedWords, null);
                         if (dt != null && dt.Rows != null && dt.Rows.Count > 0)
                         {
                             foreach (DataRow dr in dt.Rows)
