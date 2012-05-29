@@ -352,10 +352,19 @@ namespace XCode.DataAccessLayer
             if (String.IsNullOrEmpty(sql) || setting.CheckOnly) return sql;
 
             Boolean flag = true;
-            // 如果设定不允许删，只要sql带有drop，就不能执行
+            // 如果设定不允许删
             if (setting.NoDelete)
             {
-                if (sql.ToLower().Contains("drop ")) flag = false;
+                // 看看有没有数据库里面有而实体库里没有的
+                foreach (var item in dbtable.Columns)
+                {
+                    var dc = entitytable.GetColumn(item.Name);
+                    if (dc == null)
+                    {
+                        flag = false;
+                        break;
+                    }
+                }
             }
             if (flag) Database.CreateSession().Execute(sql);
 
