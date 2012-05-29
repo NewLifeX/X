@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using NewLife.Collections;
 using NewLife.Reflection;
-using System.Diagnostics;
 
 namespace NewLife.Mvc
 {
@@ -279,7 +278,7 @@ namespace NewLife.Mvc
         {
             var path = Path;
             bool entered = EnterModule("" + match, path, rule, rule.Module, adjustRouteFrag);
-            RouteConfigManager cfg = rule.Config.Sort();
+            RouteConfigManager cfg = rule.Config;
             IController c = null;
             try
             {
@@ -298,6 +297,7 @@ namespace NewLife.Mvc
             }
             return c;
         }
+
         #endregion 公共方法
 
         #region 上下文状态进出
@@ -488,6 +488,7 @@ namespace NewLife.Mvc
         }
 
         #region 私有成员
+
         static DictionaryCache<Type, ModuleRule>[] _ModuleRouteCache = { null };
 
         /// <summary>RouteTo(Type type)方法使用的缓存的RouteConfigManager,方便在工厂中使用,避免重复创建路由配置</summary>

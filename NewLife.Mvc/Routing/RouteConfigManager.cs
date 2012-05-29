@@ -1,14 +1,85 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 using NewLife.Collections;
 using NewLife.Reflection;
 
 namespace NewLife.Mvc
 {
     /// <summary>路由配置管理器</summary>
+    /// <remarks>
+    /// 这个类是线程安全,如果会反复调用涉及到写的操作,建议使用AcquireWriterLock方法,可以避免反复的申请和释放写入锁
+    /// </remarks>
     public class RouteConfigManager : IList<Rule>
     {
         #region 公共
+
+        private ReaderWriterLock _Locker = new ReaderWriterLock();
+        /// <summary>
+        /// 路由配置管理内部的读写锁,一般建议使用当前类的AcquireReaderLock和AcquireWriterLock方法
+        /// </summary>
+        public ReaderWriterLock Locker
+        {
+            get { return _Locker; }
+        }
+
+        /// <summary>
+        /// 提供对Locker的简便访问方式,当获取到读取锁后回调指定的方法
+        /// 
+        /// 在外部调用这个方法可以避免当前类内部再度请求锁
+        /// </summary>
+        /// <param name="callback">当成功获取到锁时的回调</param>
+        /// <param name="release">执行完callback是否自动释放锁</param>
+        /// <param name="timeout">获取锁超时,如果发生超时则会抛出ApplicationException异常</param>
+        public T AcquireReaderLock<T>(Func<T> callback, bool release = true, int timeout = 20000)
+        {
+            bool acquire = false;
+            if (!Locker.IsReaderLockHeld && !Locker.IsWriterLockHeld) // 拥有写入锁即表示拥有读取锁
+            {
+                Locker.AcquireReaderLock(timeout);
+                acquire = true;
+            }
+            try
+            {
+                return callback();
+            }
+            finally
+            {
+                if (release && acquire)
+                {
+                    Locker.ReleaseReaderLock();
+                }
+            }
+        }
+
+        /// <summary>
+        /// 提供对Locker的简便访问方式,当获取到读取锁后回调指定的方法
+        /// 
+        /// 在外部调用这个方法可以避免当前类内部再度请求锁
+        /// </summary>
+        /// <param name="callback">当成功获取到锁时的回调</param>
+        /// <param name="release">执行完callback是否自动释放锁,只有在执行过获取锁才有可能释放</param>
+        /// <param name="timeout">获取锁超时,如果发生超时则会抛出ApplicationException异常</param>
+        public T AcquireWriterLock<T>(Func<T> callback, bool release = true, int timeout = 20000)
+        {
+            bool acquire = false;
+            if (!Locker.IsWriterLockHeld)
+            {
+                Locker.AcquireWriterLock(timeout);
+                acquire = true;
+            }
+            try
+            {
+                return callback();
+            }
+            finally
+            {
+                if (release && acquire)
+                {
+                    Locker.ReleaseWriterLock();
+                }
+            }
+        }
 
         /// <summary>指定路径路由到指定控制器</summary>
         /// <typeparam name="T"></typeparam>
@@ -263,15 +334,19 @@ namespace NewLife.Mvc
         {
             if (module != null)
             {
-                try
+                AcquireWriterLock<bool>(() =>
                 {
-                    module.Config(this);
-                }
-                catch (RouteConfigException ex)
-                {
-                    if (ex.Module == null) ex.Module = module;
-                    throw;
-                }
+                    try
+                    {
+                        module.Config(this);
+                    }
+                    catch (RouteConfigException ex)
+                    {
+                        if (ex.Module == null) ex.Module = module;
+                        throw;
+                    }
+                    return true;
+                });
             }
             return this;
         }
@@ -289,8 +364,12 @@ namespace NewLife.Mvc
         {
             if (!sorted || force)
             {
-                StableSort(Rules, false, (a, b) => -(a.Path.Length - b.Path.Length));
-                sorted = true;
+                AcquireWriterLock<bool>(() =>
+                {
+                    StableSort(Rules, false, (a, b) => -(a.Path.Length - b.Path.Length));
+                    sorted = true;
+                    return true;
+                });
             }
             return this;
         }
@@ -299,7 +378,7 @@ namespace NewLife.Mvc
 
         #region 私有
 
-        List<Rule> _Rules;
+        private List<Rule> _Rules;
 
         internal List<Rule> Rules
         {
@@ -310,7 +389,7 @@ namespace NewLife.Mvc
             }
         }
 
-        bool sorted = false;
+        private bool sorted = false;
 
         /// <summary>最终添加路由配置的方法,上面的公共方法都会调用到这里</summary>
         /// <param name="path"></param>
@@ -331,12 +410,16 @@ namespace NewLife.Mvc
                 throw;
             }
             if (onCreatedRule != null) r = onCreatedRule(r);
-            Rules.Add(r);
-            sorted = false;
+            AcquireWriterLock<bool>(() =>
+            {
+                Rules.Add(r);
+                sorted = false;
+                return true;
+            });
             return this;
         }
 
-        static DictionaryCache<Type, IRouteConfigModule>[] _LoadModuleCache = new DictionaryCache<Type, IRouteConfigModule>[] { null };
+        private static DictionaryCache<Type, IRouteConfigModule>[] _LoadModuleCache = new DictionaryCache<Type, IRouteConfigModule>[] { null };
 
         /// <summary>加载模块的IRouteConfigModule实例缓存,Type为键,用于Load&lt;Type&gt;()和Load(Type type)方法</summary>
         internal static DictionaryCache<Type, IRouteConfigModule> LoadModuleCache
@@ -399,7 +482,12 @@ namespace NewLife.Mvc
         /// <returns></returns>
         public IEnumerator<Rule> GetEnumerator()
         {
-            return Rules.GetEnumerator();
+            var rules = AcquireReaderLock<Rule[]>(() => Rules.ToArray());
+            foreach (var item in rules)
+            {
+                yield return item;
+            }
+            yield break;
         }
 
         /// <summary>实现IList接口</summary>
@@ -414,7 +502,7 @@ namespace NewLife.Mvc
         {
             get
             {
-                return Rules != null ? Rules.Count : 0;
+                return AcquireReaderLock<int>(() => Rules != null ? Rules.Count : 0);
             }
         }
 
@@ -423,7 +511,7 @@ namespace NewLife.Mvc
         /// <returns></returns>
         public int IndexOf(Rule item)
         {
-            return Rules.IndexOf(item);
+            return AcquireReaderLock<int>(() => Rules.IndexOf(item));
         }
 
         /// <summary>实现IList接口</summary>
@@ -438,7 +526,11 @@ namespace NewLife.Mvc
         /// <param name="index"></param>
         public void RemoveAt(int index)
         {
-            Rules.RemoveAt(index);
+            AcquireWriterLock<bool>(() =>
+            {
+                Rules.RemoveAt(index);
+                return true;
+            });
         }
 
         /// <summary>实现IList接口 get是可用的,set将抛出NotImplementedException异常,请使用Route方法系列或Load方法</summary>
@@ -448,7 +540,7 @@ namespace NewLife.Mvc
         {
             get
             {
-                return Rules[index];
+                return AcquireReaderLock<Rule>(() => Rules[index]);
             }
             set
             {
@@ -467,7 +559,11 @@ namespace NewLife.Mvc
         /// <summary>实现IList接口</summary>
         public void Clear()
         {
-            Rules.Clear();
+            AcquireWriterLock<bool>(() =>
+            {
+                Rules.Clear();
+                return true;
+            });
         }
 
         /// <summary>实现IList接口</summary>
@@ -475,7 +571,7 @@ namespace NewLife.Mvc
         /// <returns></returns>
         public bool Contains(Rule item)
         {
-            return Rules.Contains(item);
+            return AcquireReaderLock<bool>(() => Rules.Contains(item));
         }
 
         /// <summary>实现IList接口</summary>
@@ -483,7 +579,11 @@ namespace NewLife.Mvc
         /// <param name="arrayIndex"></param>
         public void CopyTo(Rule[] array, int arrayIndex)
         {
-            Rules.CopyTo(array, arrayIndex);
+            AcquireReaderLock<bool>(() =>
+            {
+                Rules.CopyTo(array, arrayIndex);
+                return true;
+            });
         }
 
         /// <summary>实现IList接口</summary>
@@ -497,7 +597,7 @@ namespace NewLife.Mvc
         /// <returns></returns>
         public bool Remove(Rule item)
         {
-            return Rules.Remove(item);
+            return AcquireWriterLock<bool>(() => Rules.Remove(item));
         }
 
         #endregion 实现IList接口

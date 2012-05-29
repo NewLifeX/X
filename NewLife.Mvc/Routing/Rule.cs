@@ -344,8 +344,11 @@ namespace NewLife.Mvc
                         {
                             var cfg = _Config[0];
                             if (cfg == null) cfg = new RouteConfigManager();
-                            reloadConfig = false;
-                            _Config[0] = cfg.Load(Module).Sort();
+                            _Config[0] = cfg.AcquireWriterLock<RouteConfigManager>(() =>
+                            {
+                                reloadConfig = false;
+                                return cfg.Load(Module).Sort();
+                            });
                         }
                     }
                 }
@@ -383,6 +386,7 @@ namespace NewLife.Mvc
             }
             return null;
         }
+
         /// <summary>
         /// 重写,将输出
         /// {ModuleRule 规则配置的路径 -> 规则配置的目标类型 目标模块类型实例 模块产生的路由配置数量}

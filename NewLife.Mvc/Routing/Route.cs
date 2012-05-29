@@ -66,7 +66,7 @@ namespace NewLife.Mvc
             RouteContext.Current = null; // 复位路由上下文
         }
 
-        static ModuleRule[] _RootModule = { null };
+        private static ModuleRule[] _RootModule = { null };
 
         /// <summary>根路由配置,自动加载实现了IRouteConfig接口的类中配置的路由规则</summary>
         public static ModuleRule RootModule
@@ -80,11 +80,16 @@ namespace NewLife.Mvc
                         if (_RootModule[0] == null)
                         {
                             RouteConfigManager cfg = new RouteConfigManager();
-                            // 找到所有实现IRouteConfig接口的类
-                            foreach (Type item in AssemblyX.FindAllPlugins(typeof(IRouteConfig)))
+                            cfg.AcquireWriterLock<bool>(() =>
                             {
-                                cfg.Load(item);
-                            }
+                                // 找到所有实现IRouteConfig接口的类
+                                foreach (Type item in AssemblyX.FindAllPlugins(typeof(IRouteConfig)))
+                                {
+                                    cfg.Load(item);
+                                }
+                                cfg.Sort();
+                                return true;
+                            });
                             //cfg.RouteToFactory("", () => Service.Resolve<IControllerFactory>()); // 从对象容器中取默认控制器工厂
                             _RootModule[0] = new ModuleRule() { Config = cfg };
                         }
