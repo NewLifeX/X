@@ -324,9 +324,9 @@ namespace XCode.DataAccessLayer
             return String.Format("Drop Index {0}", FormatName(index.Name));
         }
 
-        protected override string CheckColumnsChange(IDataTable entitytable, IDataTable dbtable, bool onlySql)
+        protected override string CheckColumnsChange(IDataTable entitytable, IDataTable dbtable, NegativeSetting setting)
         {
-            foreach (IDataColumn item in entitytable.Columns)
+            foreach (var item in entitytable.Columns)
             {
                 // 自增字段必须是主键
                 if (item.Identity && !item.PrimaryKey)
@@ -342,7 +342,10 @@ namespace XCode.DataAccessLayer
 
             //String sql = base.CheckColumnsChange(entitytable, dbtable, onlySql);
             // 把onlySql设为true，让基类只产生语句而不执行
-            String sql = base.CheckColumnsChange(entitytable, dbtable, true);
+            var set = new NegativeSetting();
+            set.CheckOnly = true;
+            set.NoDelete = setting.NoDelete;
+            var sql = base.CheckColumnsChange(entitytable, dbtable, set);
             if (String.IsNullOrEmpty(sql)) return sql;
 
             sql = ReBuildTable(entitytable, dbtable);

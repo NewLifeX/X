@@ -66,20 +66,32 @@ namespace XCode.DataAccessLayer
         #region 反向工程
         /// <summary>设置表模型，检查数据表是否匹配表模型，反向工程</summary>
         /// <param name="tables"></param>
+        [Obsolete("请改用多参数版本！")]
         public void SetTables(params IDataTable[] tables)
         {
-            OnSetTables(tables);
+            var set = new NegativeSetting();
+            set.CheckOnly = DAL.NegativeCheckOnly;
+            set.NoDelete = DAL.NegativeNoDelete;
+            OnSetTables(tables, set);
         }
 
-        protected virtual void OnSetTables(IDataTable[] tables)
+        /// <summary>设置表模型，检查数据表是否匹配表模型，反向工程</summary>
+        /// <param name="setting">设置</param>
+        /// <param name="tables"></param>
+        public void SetTables(NegativeSetting setting, params IDataTable[] tables)
         {
-            CheckDatabase();
+            OnSetTables(tables, setting);
+        }
 
-            CheckAllTables(tables);
+        protected virtual void OnSetTables(IDataTable[] tables, NegativeSetting setting)
+        {
+            CheckDatabase(setting);
+
+            CheckAllTables(tables, setting);
         }
 
         Boolean hasCheckedDatabase;
-        private void CheckDatabase()
+        private void CheckDatabase(NegativeSetting setting)
         {
             if (hasCheckedDatabase) return;
             hasCheckedDatabase = true;
@@ -96,9 +108,9 @@ namespace XCode.DataAccessLayer
                 dbExist = true;
             }
 
-            if (!dbExist && DAL.NegativeEnable)
+            if (!dbExist)
             {
-                if (!DAL.NegativeCheckOnly)
+                if (!setting.CheckOnly)
                 {
                     WriteLog("创建数据库：{0}", ConnName);
                     SetSchema(DDLSchema.CreateDatabase, null, null);
@@ -114,29 +126,29 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        private void CheckAllTables(IDataTable[] tables)
+        private void CheckAllTables(IDataTable[] tables, NegativeSetting setting)
         {
             // 数据库表进入字典
-            Dictionary<String, IDataTable> dic = new Dictionary<String, IDataTable>(StringComparer.OrdinalIgnoreCase);
-            List<IDataTable> dbtables = OnGetTables(new HashSet<String>(tables.Select(t => t.Name), StringComparer.OrdinalIgnoreCase));
+            var dic = new Dictionary<String, IDataTable>(StringComparer.OrdinalIgnoreCase);
+            var dbtables = OnGetTables(new HashSet<String>(tables.Select(t => t.Name), StringComparer.OrdinalIgnoreCase));
             if (dbtables != null && dbtables.Count > 0)
             {
-                foreach (IDataTable item in dbtables)
+                foreach (var item in dbtables)
                 {
                     dic.Add(item.Name, item);
                 }
             }
 
-            foreach (IDataTable item in tables)
+            foreach (var item in tables)
             {
                 try
                 {
                     // 判断指定表是否存在于数据库中，以决定是创建表还是修改表
                     IDataTable dbtable = null;
                     if (dic.TryGetValue(item.Name, out dbtable))
-                        CheckTable(item, dbtable);
+                        CheckTable(item, dbtable, setting);
                     else
-                        CheckTable(item, null);
+                        CheckTable(item, null, setting);
                 }
                 catch (Exception ex)
                 {
@@ -145,33 +157,33 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        private void CheckTable(IDataTable entitytable, IDataTable dbtable)
+        private void CheckTable(IDataTable entitytable, IDataTable dbtable, NegativeSetting setting)
         {
-            Boolean onlySql = DAL.NegativeCheckOnly;
+            //Boolean onlySql = DAL.NegativeCheckOnly;
 
             if (dbtable == null)
             {
                 #region 创建表
                 WriteLog("创建表：{0}({1})", entitytable.Name, entitytable.Description);
 
-                StringBuilder sb = new StringBuilder();
+                var sb = new StringBuilder();
                 // 建表，如果不是onlySql，执行时DAL会输出SQL日志
-                CreateTable(sb, entitytable, onlySql);
+                CreateTable(sb, entitytable, setting.CheckOnly);
 
                 // 仅获取语句
                 //if (onlySql) WriteLog("XCode.Negative.Enable没有设置为True，请手工创建表：" + entitytable.Name + Environment.NewLine + sb.ToString());
-                if (onlySql) WriteLog("XCode.Negative.CheckOnly设置为True 只是检查不对数据库进行操作,请手工创建表：" + entitytable.Name + Environment.NewLine + sb.ToString());
+                if (setting.CheckOnly) WriteLog("XCode.Negative.CheckOnly设置为True，只是检查不对数据库进行操作,请手工创建表：" + entitytable.Name + Environment.NewLine + sb.ToString());
                 #endregion
             }
             else
             {
                 #region 修改表
-                String sql = CheckColumnsChange(entitytable, dbtable, onlySql);
+                String sql = CheckColumnsChange(entitytable, dbtable, setting);
                 if (!String.IsNullOrEmpty(sql)) sql += ";";
-                sql += CheckTableDescriptionAndIndex(entitytable, dbtable, onlySql);
-                if (!String.IsNullOrEmpty(sql) && onlySql)
+                sql += CheckTableDescriptionAndIndex(entitytable, dbtable, setting.CheckOnly);
+                if (!String.IsNullOrEmpty(sql) && setting.CheckOnly)
                 {
-                    WriteLog("XCode.Negative.Enable没有设置为True，请手工使用以下语句修改表：" + Environment.NewLine + sql);
+                    WriteLog("XCode.Negative.CheckOnly设置为True，只是检查不对数据库进行操作,请手工使用以下语句修改表：" + Environment.NewLine + sql);
                 }
                 #endregion
             }
@@ -180,25 +192,26 @@ namespace XCode.DataAccessLayer
         /// <summary>检查字段改变。某些数据库（如SQLite）没有添删改字段的DDL语法，可重载该方法，使用重建表方法ReBuildTable</summary>
         /// <param name="entitytable"></param>
         /// <param name="dbtable"></param>
-        /// <param name="onlySql"></param>
+        /// <param name="setting"></param>
         /// <returns></returns>
-        protected virtual String CheckColumnsChange(IDataTable entitytable, IDataTable dbtable, Boolean onlySql)
+        protected virtual String CheckColumnsChange(IDataTable entitytable, IDataTable dbtable, NegativeSetting setting)
         {
             #region 准备工作
-            String sql = String.Empty;
-            StringBuilder sb = new StringBuilder();
-            Dictionary<String, IDataColumn> entitydic = new Dictionary<String, IDataColumn>(StringComparer.OrdinalIgnoreCase);
+            var onlySql = setting.CheckOnly;
+            var sql = String.Empty;
+            var sb = new StringBuilder();
+            var entitydic = new Dictionary<String, IDataColumn>(StringComparer.OrdinalIgnoreCase);
             if (entitytable.Columns != null)
             {
-                foreach (IDataColumn item in entitytable.Columns)
+                foreach (var item in entitytable.Columns)
                 {
                     entitydic.Add(item.Name.ToLower(), item);
                 }
             }
-            Dictionary<String, IDataColumn> dbdic = new Dictionary<String, IDataColumn>(StringComparer.OrdinalIgnoreCase);
+            var dbdic = new Dictionary<String, IDataColumn>(StringComparer.OrdinalIgnoreCase);
             if (dbtable.Columns != null)
             {
-                foreach (IDataColumn item in dbtable.Columns)
+                foreach (var item in dbtable.Columns)
                 {
                     dbdic.Add(item.Name.ToLower(), item);
                 }
@@ -223,10 +236,10 @@ namespace XCode.DataAccessLayer
             #endregion
 
             #region 删除列
-            StringBuilder sbDelete = new StringBuilder();
+            var sbDelete = new StringBuilder();
             for (int i = dbtable.Columns.Count - 1; i >= 0; i--)
             {
-                IDataColumn item = dbtable.Columns[i];
+                var item = dbtable.Columns[i];
                 if (!entitydic.ContainsKey(item.Name.ToLower()))
                 {
                     if (!String.IsNullOrEmpty(item.Description)) PerformSchema(sb, onlySql, DDLSchema.DropColumnDescription, item);
@@ -235,10 +248,10 @@ namespace XCode.DataAccessLayer
             }
             if (sbDelete.Length > 0)
             {
-                if (DAL.NegativeNoDelete)
+                if (setting.NoDelete)
                 {
                     //不许删除列，显示日志
-                    WriteLog("数据表中发现有多余字段，XCode.Negative.NoDelete被设置为True，请手工执行以下语句删除：" + Environment.NewLine + sbDelete.ToString());
+                    WriteLog("数据表中发现有多余字段，请手工执行以下语句删除：" + Environment.NewLine + sbDelete.ToString());
                 }
                 else
                 {
@@ -283,7 +296,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         protected virtual String CheckTableDescriptionAndIndex(IDataTable entitytable, IDataTable dbtable, Boolean onlySql)
         {
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
 
             #region 表说明
             if (entitytable.Description + "" != dbtable.Description + "")
@@ -477,7 +490,7 @@ namespace XCode.DataAccessLayer
             tempTableName = FormatName(tempTableName);
 
             // 每个分号后面故意加上空格，是为了让DbMetaData执行SQL时，不要按照分号加换行来拆分这个SQL语句
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
             sb.AppendLine("BEGIN TRANSACTION; ");
             sb.AppendFormat("Alter Table {0} Rename To {1}", tableName, tempTableName);
             sb.AppendLine("; ");
@@ -487,12 +500,12 @@ namespace XCode.DataAccessLayer
             // 如果指定了新列和旧列，则构建两个集合
             if (entitytable.Columns != null && entitytable.Columns.Count > 0 && dbtable.Columns != null && dbtable.Columns.Count > 0)
             {
-                StringBuilder sbName = new StringBuilder();
-                StringBuilder sbValue = new StringBuilder();
-                foreach (IDataColumn item in entitytable.Columns)
+                var sbName = new StringBuilder();
+                var sbValue = new StringBuilder();
+                foreach (var item in entitytable.Columns)
                 {
                     String name = item.Name;
-                    IDataColumn field = dbtable.GetColumn(item.Name);
+                    var field = dbtable.GetColumn(item.Name);
                     if (field == null)
                     {
                         // 如果新增了不允许空的列，则处理一下默认值

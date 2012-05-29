@@ -328,11 +328,11 @@ namespace XCode.DataAccessLayer
 
             try
             {
-                List<IDataTable> list = EntityFactory.GetTables(ConnName);
+                var list = EntityFactory.GetTables(ConnName);
                 if (list != null && list.Count > 0)
                 {
                     // 全都标为已初始化的
-                    foreach (IDataTable item in list)
+                    foreach (var item in list)
                     {
                         if (!HasCheckTables.Contains(item.Name)) HasCheckTables.Add(item.Name);
                     }
@@ -351,7 +351,10 @@ namespace XCode.DataAccessLayer
                     {
                         WriteLog(ConnName + "待检查表架构的实体个数：" + list.Count);
 
-                        Db.CreateMetaData().SetTables(list.ToArray());
+                        var set = new NegativeSetting();
+                        set.CheckOnly = NegativeCheckOnly;
+                        set.NoDelete = NegativeNoDelete;
+                        Db.CreateMetaData().SetTables(set, list.ToArray());
                     }
                 }
             }

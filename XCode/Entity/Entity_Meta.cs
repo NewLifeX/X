@@ -80,7 +80,7 @@ namespace XCode
                     if (hasCheckedTables.Contains(key)) return;
 
                     // 检查新表名对应的数据表
-                    IDataTable table = TableItem.Create(ThisType).DataTable;
+                    var table = TableItem.Create(ThisType).DataTable;
                     // 克隆一份，防止修改
                     table = table.Clone() as IDataTable;
 
@@ -105,7 +105,10 @@ namespace XCode
                         table.Name = tableName;
                     }
 
-                    DAL.Create(connName).Db.CreateMetaData().SetTables(table);
+                    var set = new NegativeSetting();
+                    set.CheckOnly = DAL.NegativeCheckOnly;
+                    set.NoDelete = DAL.NegativeNoDelete;
+                    DAL.Create(connName).Db.CreateMetaData().SetTables(set, table);
 
                     hasCheckedTables.Add(key);
                 }
@@ -333,7 +336,10 @@ namespace XCode
 
                             try
                             {
-                                DBO.Db.CreateMetaData().SetTables(Table.DataTable);
+                                var set = new NegativeSetting();
+                                set.CheckOnly = DAL.NegativeCheckOnly;
+                                set.NoDelete = DAL.NegativeNoDelete;
+                                DBO.Db.CreateMetaData().SetTables(set, Table.DataTable);
                             }
                             finally
                             {
