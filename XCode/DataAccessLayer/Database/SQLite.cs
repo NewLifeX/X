@@ -349,7 +349,15 @@ namespace XCode.DataAccessLayer
             if (String.IsNullOrEmpty(sql)) return sql;
 
             sql = ReBuildTable(entitytable, dbtable);
-            if (!String.IsNullOrEmpty(sql)) Database.CreateSession().Execute(sql);
+            if (String.IsNullOrEmpty(sql) || setting.CheckOnly) return sql;
+
+            Boolean flag = true;
+            // 如果设定不允许删，只要sql带有drop，就不能执行
+            if (setting.NoDelete)
+            {
+                if (sql.ToLower().Contains("drop ")) flag = false;
+            }
+            if (flag) Database.CreateSession().Execute(sql);
 
             return sql;
         }
