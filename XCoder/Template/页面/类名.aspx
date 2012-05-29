@@ -66,7 +66,7 @@ foreach(IDataColumn Field in Table.Columns){
 
     if(Field.Identity){#>
             <asp:BoundField DataField="<#=pname#>" HeaderText="<#=Field.DisplayName#>" SortExpression="<#=pname#>" <# if(Field.PrimaryKey){#>InsertVisible="False" ReadOnly="True" <#}#>>
-                <ItemStyle HorizontalAlign="Center" VerticalAlign="Middle" CssClass="key" Width="50px" />
+                <ItemStyle HorizontalAlign="Center" VerticalAlign="Middle" CssClass="Ikey" />
             </asp:BoundField><#}
     else if(Field.DataType == typeof(DateTime)){#>
             <asp:BoundField DataField="<#=pname#>" HeaderText="<#=Field.DisplayName#>" SortExpression="<#=pname#>" DataFormatString="{0:yyyy-MM-dd HH:mm:ss}" <# if(Field.PrimaryKey){#>InsertVisible="False" ReadOnly="True" <#}#>>
