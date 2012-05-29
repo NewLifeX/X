@@ -243,7 +243,7 @@ namespace XCode.DataAccessLayer
                 if (!entitydic.ContainsKey(item.Name.ToLower()))
                 {
                     if (!String.IsNullOrEmpty(item.Description)) PerformSchema(sb, onlySql, DDLSchema.DropColumnDescription, item);
-                    PerformSchema(sb, onlySql, DDLSchema.DropColumn, item);
+                    PerformSchema(sbDelete, setting.NoDelete, DDLSchema.DropColumn, item);
                 }
             }
             if (sbDelete.Length > 0)
