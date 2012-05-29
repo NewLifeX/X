@@ -105,10 +105,11 @@ namespace XCode
                         table.Name = tableName;
                     }
 
-                    var set = new NegativeSetting();
-                    set.CheckOnly = DAL.NegativeCheckOnly;
-                    set.NoDelete = DAL.NegativeNoDelete;
-                    DAL.Create(connName).Db.CreateMetaData().SetTables(set, table);
+                    //var set = new NegativeSetting();
+                    //set.CheckOnly = DAL.NegativeCheckOnly;
+                    //set.NoDelete = DAL.NegativeNoDelete;
+                    //DAL.Create(connName).Db.CreateMetaData().SetTables(set, table);
+                    DAL.Create(connName).SetTables(table);
 
                     hasCheckedTables.Add(key);
                 }
@@ -331,15 +332,16 @@ namespace XCode
                             DAL.WriteLog("开始{2}检查表[{0}/{1}]的数据表架构……", Table.DataTable.Name, DbType, DAL.NegativeCheckOnly ? "异步" : "同步");
 #endif
 
-                            Stopwatch sw = new Stopwatch();
+                            var sw = new Stopwatch();
                             sw.Start();
 
                             try
                             {
-                                var set = new NegativeSetting();
-                                set.CheckOnly = DAL.NegativeCheckOnly;
-                                set.NoDelete = DAL.NegativeNoDelete;
-                                DBO.Db.CreateMetaData().SetTables(set, Table.DataTable);
+                                //var set = new NegativeSetting();
+                                //set.CheckOnly = DAL.NegativeCheckOnly;
+                                //set.NoDelete = DAL.NegativeNoDelete;
+                                //DBO.Db.CreateMetaData().SetTables(set, Table.DataTable);
+                                DBO.SetTables(Table.DataTable);
                             }
                             finally
                             {

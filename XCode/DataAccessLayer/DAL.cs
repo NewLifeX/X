@@ -304,7 +304,7 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 反向工程
-        /// <summary>反向工程</summary>
+        /// <summary>反向工程。检查所有采用当前连接的实体类的数据表架构</summary>
         private void SetTables()
         {
             if (!NegativeEnable || NegativeExclude.Contains(ConnName)) return;
@@ -351,10 +351,7 @@ namespace XCode.DataAccessLayer
                     {
                         WriteLog(ConnName + "待检查表架构的实体个数：" + list.Count);
 
-                        var set = new NegativeSetting();
-                        set.CheckOnly = NegativeCheckOnly;
-                        set.NoDelete = NegativeNoDelete;
-                        Db.CreateMetaData().SetTables(set, list.ToArray());
+                        SetTables(list.ToArray());
                     }
                 }
             }
@@ -364,6 +361,18 @@ namespace XCode.DataAccessLayer
 
                 WriteLog("检查连接[{0}/{1}]的数据库架构耗时{2}", ConnName, DbType, sw.Elapsed);
             }
+        }
+
+        /// <summary>在当前连接上检查指定数据表的架构</summary>
+        /// <param name="tables"></param>
+        public void SetTables(params IDataTable[] tables)
+        {
+            var set = new NegativeSetting();
+            set.CheckOnly = DAL.NegativeCheckOnly;
+            set.NoDelete = DAL.NegativeNoDelete;
+            if (set.CheckOnly) WriteLog("XCode.Negative.CheckOnly设置为True，只是检查不对数据库进行操作");
+            if (set.NoDelete) WriteLog("XCode.Negative.NoDelete设置为True，不会删除数据表多余字段");
+            Db.CreateMetaData().SetTables(set, tables);
         }
         #endregion
 

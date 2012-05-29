@@ -172,7 +172,7 @@ namespace XCode.DataAccessLayer
 
                 // 仅获取语句
                 //if (onlySql) WriteLog("XCode.Negative.Enable没有设置为True，请手工创建表：" + entitytable.Name + Environment.NewLine + sb.ToString());
-                if (setting.CheckOnly) WriteLog("XCode.Negative.CheckOnly设置为True，只是检查不对数据库进行操作,请手工创建表：" + entitytable.Name + Environment.NewLine + sb.ToString());
+                if (setting.CheckOnly) WriteLog("只检查不对数据库进行操作,请手工创建表：" + entitytable.Name + Environment.NewLine + sb.ToString());
                 #endregion
             }
             else
@@ -183,7 +183,7 @@ namespace XCode.DataAccessLayer
                 sql += CheckTableDescriptionAndIndex(entitytable, dbtable, setting.CheckOnly);
                 if (!String.IsNullOrEmpty(sql) && setting.CheckOnly)
                 {
-                    WriteLog("XCode.Negative.CheckOnly设置为True，只是检查不对数据库进行操作,请手工使用以下语句修改表：" + Environment.NewLine + sql);
+                    WriteLog("只检查不对数据库进行操作,请手工使用以下语句修改表：" + Environment.NewLine + sql);
                 }
                 #endregion
             }
@@ -265,7 +265,7 @@ namespace XCode.DataAccessLayer
             // 开发时的实体数据库
             var entityDb = DbFactory.Create(entitytable.DbType);
 
-            foreach (IDataColumn item in entitytable.Columns)
+            foreach (var item in entitytable.Columns)
             {
                 IDataColumn dbf = null;
                 if (!dbdic.TryGetValue(item.Name, out dbf)) continue;
