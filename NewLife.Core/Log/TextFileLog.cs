@@ -221,53 +221,6 @@ namespace NewLife.Log
             PerformWriteLog(e.ToString());
         }
 
-        /// <summary>
-        /// 堆栈调试。
-        /// 输出堆栈信息，用于调试时处理调用上下文。
-        /// 本方法会造成大量日志，请慎用。
-        /// </summary>
-        public void DebugStack()
-        {
-            DebugStack(1, int.MaxValue);
-        }
-
-        /// <summary>堆栈调试。</summary>
-        /// <param name="maxNum">最大捕获堆栈方法数</param>
-        public void DebugStack(int maxNum)
-        {
-            DebugStack(1, maxNum);
-        }
-
-        /// <summary>堆栈调试</summary>
-        /// <param name="start">开始方法数，0是DebugStack的直接调用者</param>
-        /// <param name="maxNum">最大捕获堆栈方法数</param>
-        public void DebugStack(int start, int maxNum)
-        {
-            int skipFrames = 1;
-            if (maxNum == int.MaxValue) skipFrames = 2;
-            var st = new StackTrace(skipFrames, true);
-            var sb = new StringBuilder();
-            sb.AppendLine("调用堆栈：");
-            int count = Math.Min(maxNum, st.FrameCount);
-            for (int i = 0; i < count; i++)
-            {
-                var sf = st.GetFrame(i);
-                var method = sf.GetMethod();
-
-                var name = method.ToString();
-                // 去掉前面的返回类型
-                if (name.Contains(" ")) name = name.Substring(name.IndexOf(" ") + 1);
-
-                var type = method.DeclaringType ?? method.ReflectedType;
-                if (type != null)
-                    sb.AppendFormat("{0}.{1}", TypeX.Create(type).Name, name);
-                else
-                    sb.AppendFormat("UnkownType.{0}", name);
-                if (i < count - 1) sb.AppendLine();
-            }
-            WriteLine(sb.ToString());
-        }
-
         /// <summary>写日志</summary>
         /// <param name="format"></param>
         /// <param name="args"></param>

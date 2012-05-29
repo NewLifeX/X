@@ -6,6 +6,9 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using NewLife.Configuration;
 using System.Windows.Forms;
+using System.Text;
+using System.Reflection;
+using NewLife.Reflection;
 
 namespace NewLife.Log
 {
@@ -60,30 +63,6 @@ namespace NewLife.Log
         public static void WriteExceptionWhenDebug(Exception ex)
         {
             if (Debug) Log.WriteLine(ex.ToString());
-        }
-
-        /// <summary>堆栈调试。
-        /// 输出堆栈信息，用于调试时处理调用上下文。
-        /// 本方法会造成大量日志，请慎用。
-        /// </summary>
-        public static void DebugStack()
-        {
-            Log.DebugStack(2, Int32.MaxValue);
-        }
-
-        /// <summary>堆栈调试。</summary>
-        /// <param name="maxNum">最大捕获堆栈方法数</param>
-        public static void DebugStack(int maxNum)
-        {
-            Log.DebugStack(maxNum);
-        }
-
-        /// <summary>堆栈调试</summary>
-        /// <param name="start">开始方法数，0是DebugStack的直接调用者</param>
-        /// <param name="maxNum">最大捕获堆栈方法数</param>
-        public static void DebugStack(int start, int maxNum)
-        {
-            Log.DebugStack(start, maxNum);
         }
 
         //private static event EventHandler<WriteLogEventArgs> _OnWriteLog;
@@ -339,6 +318,88 @@ namespace NewLife.Log
                 WithThreadInfo = 0x00001000,
                 WithCodeSegs = 0x00002000
             }
+        }
+        #endregion
+
+        #region 调用栈
+        /// <summary>堆栈调试。
+        /// 输出堆栈信息，用于调试时处理调用上下文。
+        /// 本方法会造成大量日志，请慎用。
+        /// </summary>
+        public static void DebugStack()
+        {
+            var msg = GetCaller(2, 0, Environment.NewLine);
+            WriteLine("调用堆栈：" + Environment.NewLine, msg);
+        }
+
+        /// <summary>堆栈调试。</summary>
+        /// <param name="maxNum">最大捕获堆栈方法数</param>
+        public static void DebugStack(int maxNum)
+        {
+            var msg = GetCaller(2, maxNum, Environment.NewLine);
+            WriteLine("调用堆栈：" + Environment.NewLine, msg);
+        }
+
+        /// <summary>堆栈调试</summary>
+        /// <param name="start">开始方法数，0是DebugStack的直接调用者</param>
+        /// <param name="maxNum">最大捕获堆栈方法数</param>
+        public static void DebugStack(int start, int maxNum)
+        {
+            // 至少跳过当前这个
+            if (start < 1) start = 1;
+            var msg = GetCaller(start + 1, maxNum, Environment.NewLine);
+            WriteLine("调用堆栈：" + Environment.NewLine, msg);
+        }
+
+        /// <summary>获取调用栈</summary>
+        /// <param name="start"></param>
+        /// <param name="maxNum"></param>
+        /// <param name="split"></param>
+        /// <returns></returns>
+        public static String GetCaller(int start = 1, int maxNum = 0, String split = null)
+        {
+            // 至少跳过当前这个
+            if (start < 1) start = 1;
+            var st = new StackTrace(start, true);
+
+            if (String.IsNullOrEmpty(split)) split = "<-";
+
+            Type last = null;
+            var asm = Assembly.GetEntryAssembly();
+            var entry = asm == null ? null : asm.EntryPoint;
+
+            var sb = new StringBuilder();
+            int count = st.FrameCount;
+            if (maxNum > 0 && maxNum < count) count = maxNum;
+            for (int i = 0; i < count; i++)
+            {
+                var sf = st.GetFrame(i);
+                var method = sf.GetMethod();
+
+                var name = method.ToString();
+                // 去掉前面的返回类型
+                var p = name.IndexOf(" ");
+                if (p >= 0) name = name.Substring(p + 1);
+
+                var type = method.DeclaringType ?? method.ReflectedType;
+                if (type != null)
+                {
+                    if (type != last)
+                        sb.AppendFormat("{0}.{1}", TypeX.Create(type).Name, name);
+                    else
+                        sb.AppendFormat("{0}", name);
+                }
+                else
+                    sb.AppendFormat("UnkownType.{0}", name);
+
+                if (i < count - 1) sb.Append(split);
+
+                last = type;
+
+                // 如果到达了入口点，可以结束了
+                if (method == entry) break;
+            }
+            return sb.ToString();
         }
         #endregion
     }

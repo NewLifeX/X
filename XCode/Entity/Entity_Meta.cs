@@ -307,7 +307,7 @@ namespace XCode
 #else
                     // CheckTableWhenFirstUse的实体类，在这里检查，有点意思，记下来
                     if (DAL.Debug && Table.ModelCheckMode == ModelCheckModes.CheckTableWhenFirstUse)
-                        DAL.WriteLog("检查实体{0}的数据表架构，模式：{1}，调用栈：{2}", ThisType.FullName, Table.ModelCheckMode, Helper.GetCaller());
+                        DAL.WriteLog("检查实体{0}的数据表架构，模式：{1}，调用栈：{2}", ThisType.FullName, Table.ModelCheckMode, XTrace.GetCaller(0, 0, "<-"));
 #endif
 
                     // 第一次使用才检查的，此时检查
