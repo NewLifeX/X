@@ -370,8 +370,8 @@ namespace XCode.DataAccessLayer
             var set = new NegativeSetting();
             set.CheckOnly = DAL.NegativeCheckOnly;
             set.NoDelete = DAL.NegativeNoDelete;
-            if (set.CheckOnly) WriteLog("XCode.Negative.CheckOnly设置为True，只是检查不对数据库进行操作");
-            if (set.NoDelete) WriteLog("XCode.Negative.NoDelete设置为True，不会删除数据表多余字段");
+            if (set.CheckOnly && DAL.Debug) WriteLog("XCode.Negative.CheckOnly设置为True，只是检查不对数据库进行操作");
+            if (set.NoDelete && DAL.Debug) WriteLog("XCode.Negative.NoDelete设置为True，不会删除数据表多余字段");
             Db.CreateMetaData().SetTables(set, tables);
         }
         #endregion
