@@ -30,6 +30,24 @@ namespace NewLife.CommonEntity
 
             return base.Insert();
         }
+
+        /// <summary>已重载。记录当前管理员</summary>
+        /// <param name="isNew"></param>
+        public override void Valid(bool isNew)
+        {
+            base.Valid(isNew);
+
+            // 自动设置当前登录用户
+            if (!Dirtys[_.UserID] && !Dirtys[_.UserName])
+            {
+                var user = ManageProvider.Provider.Current;
+                if (user != null)
+                {
+                    if (!Dirtys[_.UserID]) UserID = (Int32)user.ID;
+                    if (!Dirtys[_.UserName]) UserName = user.ToString();
+                }
+            }
+        }
         #endregion
 
         #region 扩展属性
