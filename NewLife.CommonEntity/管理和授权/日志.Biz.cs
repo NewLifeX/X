@@ -47,6 +47,11 @@ namespace NewLife.CommonEntity
                     if (!Dirtys[_.UserName]) UserName = user.ToString();
                 }
             }
+
+            // 自动设置IP地址
+            if (!Dirtys[_.IP]) IP = WebHelper.UserHost;
+            // 自动设置当前时间
+            if (!Dirtys[_.OccurTime]) OccurTime = DateTime.Now;
         }
         #endregion
 
