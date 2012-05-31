@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
-using System.Xml.Serialization;
 using System.IO;
-using System.Xml;
-using System.Web.UI;
 using System.Web;
-using System.Xml.XPath;
+using System.Web.UI;
+using System.Xml;
+using System.Xml.Serialization;
 using System.Xml.Xsl;
 using NewLife.Reflection;
 
@@ -16,7 +14,6 @@ using NewLife.Reflection;
 [assembly: WebResource("XControl.Menu.RS.book.gif", "image/gif")]
 [assembly: WebResource("XControl.Menu.RS.bookopen.gif", "image/gif")]
 [assembly: WebResource("XControl.Menu.RS.paper.gif", "image/gif")]
-
 
 namespace XControl
 {
@@ -29,6 +26,7 @@ namespace XControl
         public List<TreeMenuNode> Nodes { get { return _Nodes; } set { _Nodes = value; } }
 
         #region 资源
+
         /// <summary>默认Xsl</summary>
         public static String xslFilePath = Page().ClientScript.GetWebResourceUrl(typeof(TreeMenuRoot), "XControl.Menu.RS.XSL.xsl").Replace("&", "&amp;");
 
@@ -43,6 +41,15 @@ namespace XControl
 
         /// <summary>无子级</summary>
         public static String ImagePagePath = Page().ClientScript.GetWebResourceUrl(typeof(TreeMenuRoot), "XControl.Menu.RS.paper.gif");
+
+        private XmlReader DefaultXslReader
+        {
+            get
+            {
+                return XmlReader.Create(GetType().Assembly.GetManifestResourceStream("XControl.Menu.RS.XSL.xsl"));
+            }
+        }
+
         #endregion
 
         ///// <summary>
@@ -51,6 +58,7 @@ namespace XControl
         //public TreeMenuRoot() { }
 
         #region 方法
+
         /// <summary>用于获取资源URL</summary>
         /// <returns></returns>
         private static Page Page() { return HttpContext.Current.Handler as Page ?? new Page(); }
@@ -80,7 +88,6 @@ namespace XControl
                         menu.ResetImage();
                     }
                 }
-
 
             return r.Count > 0 ? r : null;
         }
@@ -166,14 +173,7 @@ namespace XControl
         /// <returns></returns>
         public String ToHtml(bool isAddTreeJS)
         {
-            HttpContext hc = HttpContext.Current;
-
-            if (hc == null)
-                throw new Exception("获取HttpContext.Current失败，不能把资源地址转换！");
-
-            String url = String.Format("{0}://{1}{2}", hc.Request.Url.Scheme, hc.Request.Headers["Host"], xslFilePath);
-
-            return ToHtml(url, true);
+            return ToHtml(null, true);
         }
 
         /// <summary>转换为Html</summary>
@@ -191,13 +191,24 @@ namespace XControl
                     using (var read = XmlReader.Create(stringReader))
                     {
                         var xsltransform = new XslCompiledTransform();
-                        xsltransform.Load(xsl);
+                        if (string.IsNullOrEmpty(xsl))
+                        {
+                            using (var xmlreader = DefaultXslReader)
+                            {
+                                xsltransform.Load(xmlreader);
+                            }
+                        }
+                        else
+                        {
+                            xsltransform.Load(xsl);
+                        }
                         xsltransform.Transform(read, null, writer);
                     }
                 }
                 return writer.ToString();
             }
         }
+
         #endregion
     }
 
@@ -206,6 +217,7 @@ namespace XControl
     public class TreeMenuNode
     {
         #region 菜单属性
+
         private String _ID;
         /// <summary>菜单项ID</summary>
         [XmlAttribute]
@@ -252,7 +264,6 @@ namespace XControl
             set { _PagerImage = value; }
         }
 
-
         private String _Url;
         /// <summary>菜单连接</summary>
         public String Url
@@ -268,6 +279,7 @@ namespace XControl
             get { return _Childs; }
             set { _Childs = value; }
         }
+
         #endregion
 
         ///// <summary>
@@ -278,6 +290,7 @@ namespace XControl
         //}
 
         #region 扩展方法
+
         /// <summary>设置默认图片</summary>
         /// <returns></returns>
         public TreeMenuNode ResetImage() { return ResetTreeNode(this); }
@@ -313,6 +326,7 @@ namespace XControl
 
             return node;
         }
+
         #endregion
     }
 }
