@@ -729,7 +729,7 @@ Dialog.CloseAndRefresh = function (frameElement, w, url) {
         w = w || dialog.ParentWindow;
         dialog.close();
         if(url){
-            w.location = url;
+            w.setTimeout('location = "'+url+'"', 0); // 使用setTimeout('....')可以使重定向代码执行上下文是目标窗口,而不是当前窗口
         }else{
             //window.frames["main"].location.reload()
             // 大石头 刷新本页面
