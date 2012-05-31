@@ -171,7 +171,7 @@ namespace XControl
             if (hc == null)
                 throw new Exception("获取HttpContext.Current失败，不能把资源地址转换！");
 
-            String url = String.Format("{0}://{1}{2}", hc.Request.Url.Scheme, hc.Request.Url.Authority, xslFilePath);
+            String url = String.Format("{0}://{1}{2}", hc.Request.Url.Scheme, hc.Request.Headers["Host"], xslFilePath);
 
             return ToHtml(url, true);
         }
