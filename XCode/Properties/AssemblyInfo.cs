@@ -35,7 +35,7 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
 [assembly: AssemblyVersion("8.6.*")]
-[assembly: AssemblyFileVersion("8.6.2012.0529")]
+[assembly: AssemblyFileVersion("8.6.2012.0604")]
 
 /*
  * XCode的重大改进
@@ -52,6 +52,8 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v8.6.2012.0604   修正XCode中会导致IEntityOperate.FindAllWithCache死循环的BUG
+ * 
  * v8.6.2012.0529   重构反向工程设置项的设计，以参数的方式接受反向设置，摆脱受配置项的限制
  * 
  * v8.6.2012.0526   由 @Goon(12600112) 测试并完善SqlCe的正向反向工程
