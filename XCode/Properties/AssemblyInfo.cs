@@ -53,6 +53,7 @@ using System.Runtime.InteropServices;
 
 /*
  * v8.6.2012.0604   修正XCode中会导致IEntityOperate.FindAllWithCache死循环的BUG
+ *                  为SQL格式化数值时，如果字符串是Empty，将不再格式化为null
  * 
  * v8.6.2012.0529   重构反向工程设置项的设计，以参数的方式接受反向设置，摆脱受配置项的限制
  * 

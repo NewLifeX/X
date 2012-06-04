@@ -618,7 +618,8 @@ namespace XCode.DataAccessLayer
             if (code == TypeCode.String)
             {
                 if (value == null) return isNullable ? "null" : "''";
-                if (String.IsNullOrEmpty(value.ToString()) && isNullable) return "null";
+                //!!! 为SQL格式化数值时，如果字符串是Empty，将不再格式化为null
+                //if (String.IsNullOrEmpty(value.ToString()) && isNullable) return "null";
 
                 return "'" + value.ToString().Replace("'", "''") + "'";
             }
