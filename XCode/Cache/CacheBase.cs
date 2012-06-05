@@ -1,11 +1,12 @@
 ﻿using System;
+using NewLife.Configuration;
 using NewLife.Reflection;
 using XCode.DataAccessLayer;
 
 namespace XCode.Cache
 {
     /// <summary>缓存基类</summary>
-    public abstract class CacheBase<TEntity> where TEntity : Entity<TEntity>, new()
+    public abstract class CacheBase<TEntity> : CacheBase where TEntity : Entity<TEntity>, new()
     {
         #region 属性
         private String _ConnName;
@@ -48,5 +49,26 @@ namespace XCode.Cache
                 if (tn != TableName) Entity<TEntity>.Meta.TableName = tn;
             }
         }
+    }
+
+    /// <summary>缓存基类</summary>
+    public abstract class CacheBase
+    {
+        #region 设置
+        private static Boolean? _Debug;
+        /// <summary>是否调试缓存模块</summary>
+        public static Boolean Debug
+        {
+            get
+            {
+                if (_Debug != null) return _Debug.Value;
+
+                _Debug = Config.GetConfig<Boolean>("XCode.Cache.Debug", false);
+
+                return _Debug.Value;
+            }
+            set { _Debug = value; }
+        }
+        #endregion
     }
 }

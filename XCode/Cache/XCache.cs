@@ -53,7 +53,7 @@ namespace XCode.Cache
 
             if (DAL.Debug)
             {
-                // 需要处理一下，而不是直接用Kind转换而来的字符串，否则可能因为枚举呗混淆后而无法显示正确的名字
+                // 需要处理一下，而不是直接用Kind转换而来的字符串，否则可能因为枚举被混淆后而无法显示正确的名字
                 String name = null;
                 switch (Kind)
                 {

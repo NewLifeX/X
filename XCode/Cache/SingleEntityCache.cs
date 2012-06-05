@@ -243,7 +243,7 @@ namespace XCode.Cache
                         CacheItem item2 = null;
                         if (Entities.TryGetValue(keyFirst, out item2) && item2 != null)
                         {
-                            if (DAL.Debug) DAL.WriteLog("单实体缓存{0}超过最大数量限制{1}，准备移除第一项{2}", typeof(TEntity).FullName, MaxEntity, keyFirst);
+                            if (Debug) DAL.WriteLog("单实体缓存{0}超过最大数量限制{1}，准备移除第一项{2}", typeof(TEntity).FullName, MaxEntity, keyFirst);
 
                             Entities.Remove(keyFirst);
 
@@ -349,7 +349,7 @@ namespace XCode.Cache
         /// <summary>清除所有数据</summary>
         public void Clear()
         {
-            if (DAL.Debug) DAL.WriteLog("清空单对象缓存：{0}", typeof(TEntity).FullName);
+            if (Debug) DAL.WriteLog("清空单对象缓存：{0}", typeof(TEntity).FullName);
 
             if (AutoSave)
             {

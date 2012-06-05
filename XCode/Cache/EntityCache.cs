@@ -4,7 +4,6 @@ using System.Text;
 using System.Threading;
 using NewLife.Log;
 using XCode.DataAccessLayer;
-using NewLife.Threading;
 
 namespace XCode.Cache
 {
@@ -38,7 +37,7 @@ namespace XCode.Cache
                                 ExpiredTime = DateTime.Now.AddSeconds(Expriod);
                                 Times++;
 
-                                if (DAL.Debug)
+                                if (Debug)
                                 {
                                     String reason = ExpiredTime <= DateTime.MinValue ? "第一次" : (isnull ? "无缓存数据" : Expriod + "秒过期");
                                     DAL.WriteLog("异步更新实体缓存（第{2}次）：{0} 原因：{1}", typeof(TEntity).FullName, reason, Times);
@@ -49,7 +48,7 @@ namespace XCode.Cache
                             else
                             {
                                 Times++;
-                                if (DAL.Debug)
+                                if (Debug)
                                 {
                                     String reason = ExpiredTime <= DateTime.MinValue ? "第一次" : (isnull ? "无缓存数据" : Expriod + "秒过期");
                                     DAL.WriteLog("更新实体缓存（第{2}次）：{0} 原因：{1}", typeof(TEntity).FullName, reason, Times);
@@ -82,7 +81,7 @@ namespace XCode.Cache
                 // 清空
                 if (_Entities != null && _Entities.Count < 1) _Entities = null;
 
-                if (DAL.Debug) DAL.WriteLog("完成更新缓存（第{1}次）：{0}", typeof(TEntity).FullName, Times);
+                if (Debug) DAL.WriteLog("完成更新缓存（第{1}次）：{0}", typeof(TEntity).FullName, Times);
             }
             catch (Exception ex)
             {
@@ -140,7 +139,7 @@ namespace XCode.Cache
         /// <summary>清除缓存</summary>
         public void Clear()
         {
-            if (_Entities != null && _Entities.Count > 0 && DAL.Debug) DAL.WriteLog("清空实体缓存：{0}", typeof(TEntity).FullName);
+            if (_Entities != null && _Entities.Count > 0 && Debug) DAL.WriteLog("清空实体缓存：{0}", typeof(TEntity).FullName);
 
             ExpiredTime = DateTime.Now;
             _Entities = null;
