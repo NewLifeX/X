@@ -18,7 +18,7 @@ namespace NewLife.CommonEntity.Web
     /// 之所以选择PreLoad阶段，是因为这是在Page_Load之前最早能拿到Request等数据的阶段，这样子使用者就可以在Page_Load中处理已经赋值完成的表单。
     /// 保存表单时，PreLoad阶段仅仅是给保存按钮设置点击事件，真正的保存动作在点击事件里面，因为在保存表单之前，使用者可能在Page_Load里面对控件进行处理。
     /// 所以，在Page_Load之前给表单控件赋值，在Page_Load之后从表单控件取值并保存。
-    /// 
+    ///
     /// 另外，DropDownList等数据绑定控件绑定ObjectDataSource时，会在OnPreRender阶段执行绑定，其中的开关是RequiresDataBinding。
     /// 绑定方法DataBind会导致RequiresDataBinding=false，这样子人工DataBind之后，控件就不会在OnPreRender阶段自动绑定了。
     /// 实体表单在SetForm时有个机制，如果遇到数据绑定的列表控件，会调用一次DataBind，取得列表值，然后再赋值，本以为这样子可以避免OnPreRender阶段的自动绑定。
@@ -29,6 +29,7 @@ namespace NewLife.CommonEntity.Web
     public class EntityForm2 : IEntityForm
     {
         #region 属性
+
         private Control _Container;
         /// <summary>容器</summary>
         public Control Container
@@ -52,9 +53,11 @@ namespace NewLife.CommonEntity.Web
             get { return _ItemPrefix; }
             set { _ItemPrefix = value; Accessor = null; }
         }
+
         #endregion
 
         #region 构造
+
         /// <summary>实例化一个实体表单</summary>
         public EntityForm2() { }
 
@@ -65,9 +68,11 @@ namespace NewLife.CommonEntity.Web
         {
             (this as IEntityForm).Init(container, type);
         }
+
         #endregion
 
         #region 扩展属性
+
         private IEntityAccessor _Accessor;
         /// <summary>访问器</summary>
         public IEntityAccessor Accessor
@@ -150,9 +155,11 @@ namespace NewLife.CommonEntity.Web
         private Boolean _CanSave = true;
         /// <summary>是否有权限保存数据</summary>
         public virtual Boolean CanSave { get { return _CanSave; } set { _CanSave = value; } }
+
         #endregion
 
         #region 事件
+
         /// <summary>获取数据实体，允许页面重载改变实体</summary>
         public event EventHandler<EntityFormEventArgs> OnGetEntity;
 
@@ -173,9 +180,11 @@ namespace NewLife.CommonEntity.Web
 
         /// <summary>保存失败后触发，位于事务保护外</summary>
         public event EventHandler<EntityFormEventArgs> OnSaveFailure;
+
         #endregion
 
         #region 实体相关
+
         private String _KeyName;
         /// <summary>键名。使用者可以通过给KeyName置空来避免内部自动根据Request[KeyName]取值</summary>
         public virtual String KeyName
@@ -279,11 +288,14 @@ namespace NewLife.CommonEntity.Web
             }
             catch { }
         }
+
         #endregion
 
         #region 生命周期
+
         Boolean hasInit = false;
-        void Init()
+
+        private void Init()
         {
             if (hasInit) return;
             hasInit = true;
@@ -293,7 +305,7 @@ namespace NewLife.CommonEntity.Web
             //Page.LoadComplete += new EventHandler(OnLoadComplete);
         }
 
-        void Page_InitComplete(object sender, EventArgs e)
+        private void Page_InitComplete(object sender, EventArgs e)
         {
             Page.PreLoad += new EventHandler(OnPreLoad);
         }
@@ -403,9 +415,11 @@ namespace NewLife.CommonEntity.Web
         //        }
         //    }
         //}
+
         #endregion
 
         #region 方法
+
         /// <summary>把实体的属性设置到控件上</summary>
         public virtual void SetForm()
         {
@@ -415,7 +429,7 @@ namespace NewLife.CommonEntity.Web
             if (OnSetForm != null) OnSetForm(this, new EntityFormEventArgs());
         }
 
-        void Accessor_OnWrite(object sender, EntityAccessorEventArgs e)
+        private void Accessor_OnWrite(object sender, EntityAccessorEventArgs e)
         {
             WebControl wc = ControlHelper.FindControlInPage<WebControl>(ItemPrefix + e.Field.Name);
             if (wc == null) return;
@@ -496,6 +510,7 @@ namespace NewLife.CommonEntity.Web
         {
             var eop = Factory;
             eop.BeginTransaction();
+            Exception _ex = null;
             try
             {
                 Boolean cancel = false;
@@ -509,14 +524,28 @@ namespace NewLife.CommonEntity.Web
                 if (!cancel) SaveForm();
 
                 eop.Commit();
-
-                SaveFormSuccess();
             }
             catch (Exception ex)
             {
                 eop.Rollback();
-
-                SaveFormFailure(ex);
+                _ex = ex;
+            }
+            try
+            {
+                if (_ex == null)
+                {
+                    SaveFormSuccess();
+                }
+                else
+                {
+                    SaveFormFailure(_ex);
+                }
+            }
+            catch (Exception ex)
+            {
+                XTrace.WriteException(ex);
+                Page.ClientScript.RegisterStartupScript(this.GetType(), "SaveFormError",
+                    "alert('保存后触发" + _ex == null ? "完成" : "失败" + "事件发生了异常,请检查日志!');");
             }
         }
 
@@ -590,9 +619,11 @@ namespace NewLife.CommonEntity.Web
         {
             SetControlMemberValue(CopyButton, "Text", text);
         }
+
         #endregion
 
         #region 辅助
+
         /// <summary>查找表单控件</summary>
         /// <param name="id"></param>
         /// <returns></returns>
@@ -648,9 +679,11 @@ namespace NewLife.CommonEntity.Web
 
             NewLife.Reflection.MemberInfoX.Create(control.GetType(), fieldName).SetValue(control, text);
         }
+
         #endregion
 
         #region IEntityForm 成员
+
         /// <summary>使用控件容器和实体类初始化接口</summary>
         /// <param name="container"></param>
         /// <param name="entityType"></param>
@@ -668,6 +701,7 @@ namespace NewLife.CommonEntity.Web
 
             return this;
         }
+
         #endregion
     }
 }
