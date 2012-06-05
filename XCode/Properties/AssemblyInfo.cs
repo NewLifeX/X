@@ -34,8 +34,8 @@ using System.Runtime.InteropServices;
 //
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
-[assembly: AssemblyVersion("8.6.*")]
-[assembly: AssemblyFileVersion("8.6.2012.0604")]
+[assembly: AssemblyVersion("8.7.*")]
+[assembly: AssemblyFileVersion("8.7.2012.0605")]
 
 /*
  * XCode的重大改进
@@ -52,6 +52,8 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v8.7.2012.0605   实体类增加FindSQL方法，获取查询SQL，主要用于构造子查询
+ * 
  * v8.6.2012.0604   修正XCode中会导致IEntityOperate.FindAllWithCache死循环的BUG
  *                  为SQL格式化数值时，如果字符串是Empty，将不再格式化为null
  * 

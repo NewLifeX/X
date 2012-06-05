@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using XCode;
+using System.Collections.Generic;
 
 namespace NewLife.CommonEntity
 {
@@ -155,19 +156,19 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region 扩展查询
-        /// <summary>根据主键查询一个角色和菜单实体对象用于表单编辑</summary>
-        /// <param name="__ID">编号</param>
-        /// <returns></returns>
-        [DataObjectMethod(DataObjectMethodType.Select, false)]
-        public static TEntity FindByKeyForEdit(Int32 __ID)
-        {
-            TEntity entity = FindByKey(__ID);
-            if (entity == null)
-            {
-                entity = new TEntity();
-            }
-            return entity;
-        }
+        ///// <summary>根据主键查询一个角色和菜单实体对象用于表单编辑</summary>
+        ///// <param name="__ID">编号</param>
+        ///// <returns></returns>
+        //[DataObjectMethod(DataObjectMethodType.Select, false)]
+        //public static TEntity FindByKeyForEdit(Int32 __ID)
+        //{
+        //    TEntity entity = FindByKey(__ID);
+        //    if (entity == null)
+        //    {
+        //        entity = new TEntity();
+        //    }
+        //    return entity;
+        //}
 
         /// <summary>根据角色编号查询所有角色和菜单实体对象</summary>
         /// <param name="roleID">编号</param>
@@ -205,6 +206,19 @@ namespace NewLife.CommonEntity
             if (list == null || list.Count < 1) return null;
 
             return list.Find(_.MenuID, menuID);
+        }
+
+        /// <summary>查找所有无效的对应关系</summary>
+        /// <param name="roleSql"></param>
+        /// <param name="menuSql"></param>
+        /// <returns></returns>
+        internal static EntityList<TEntity> FindAllInvalid(String roleSql, String menuSql)
+        {
+            var exp = new WhereExpression();
+            exp &= _.RoleID.NotIn(roleSql);
+            exp |= _.MenuID.NotIn(menuSql);
+
+            return FindAll(exp, null, null, 0, 0);
         }
         #endregion
 
@@ -255,6 +269,26 @@ namespace NewLife.CommonEntity
             if ((PermissionFlag & flag) == flag) PermissionFlag ^= flag;
 
             return this;
+        }
+
+        /// <summary>授权指定角色访问所有菜单的权限</summary>
+        /// <param name="roleID"></param>
+        /// <param name="menuIDs"></param>
+        internal static void GrantAll(Int32 roleID, List<Int32> menuIDs)
+        {
+            if (roleID <= 0) return;
+
+            var rms = FindAllByRoleID(roleID);
+            if (rms == null || rms.Count < 1) return;
+
+            foreach (var item in menuIDs)
+            {
+                // 是否已存在
+                if (rms != null && rms.Exists(_.MenuID, item)) continue;
+
+                var entity = Create(roleID, item);
+                entity.Save();
+            }
         }
         #endregion
     }

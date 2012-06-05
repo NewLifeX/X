@@ -10,6 +10,8 @@ v2.0 数据架构功能，实体和数据结构双向映射
 v1.2 使用泛型基类
 v1.0 创建XCode
 
+v8.7.2012.0605   实体类增加FindSQL方法，获取查询SQL，主要用于构造子查询
+
 v8.6.2012.0604   修正XCode中会导致IEntityOperate.FindAllWithCache死循环的BUG
                  为SQL格式化数值时，如果字符串是Empty，将不再格式化为null
 

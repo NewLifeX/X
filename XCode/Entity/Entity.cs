@@ -13,9 +13,11 @@ using XCode.Configuration;
 using XCode.DataAccessLayer;
 using XCode.Exceptions;
 using XCode.Model;
-using NewLife.Linq;
+
 #if NET4
 using System.Linq;
+#else
+using NewLife.Linq;
 #endif
 
 namespace XCode
@@ -593,7 +595,7 @@ namespace XCode
 
                 // 自增或者主键查询，记录集肯定是唯一的，不需要指定记录数和排序
                 //return FindAll(MakeCondition(field, value, "="), null, null, 0, 0);
-                SelectBuilder builder = new SelectBuilder();
+                var builder = new SelectBuilder();
                 builder.Table = Meta.FormatName(Meta.TableName);
                 builder.Where = MakeCondition(field, value, "=");
                 return FindAll(builder.ToString());
@@ -609,6 +611,30 @@ namespace XCode
         /// <param name="sql">查询语句</param>
         /// <returns>实体数组</returns>
         public static EntityList<TEntity> FindAll(String sql) { return LoadData(Meta.Query(sql)); }
+        #endregion
+
+        #region 获取查询SQL
+        /// <summary>获取查询SQL。主要用于构造子查询</summary>
+        /// <param name="whereClause">条件，不带Where</param>
+        /// <param name="orderClause">排序，不带Order By</param>
+        /// <param name="selects">查询列</param>
+        /// <param name="startRowIndex">开始行，0表示第一行</param>
+        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
+        /// <returns>实体集</returns>
+        public static SelectBuilder FindSQL(String whereClause, String orderClause, String selects, Int32 startRowIndex = 0, Int32 maximumRows = 0)
+        {
+            var builder = CreateBuilder(whereClause, orderClause, selects, startRowIndex, maximumRows);
+            return Meta.DBO.PageSplit(builder, startRowIndex, maximumRows);
+        }
+
+        /// <summary>获取查询唯一键的SQL。比如Select ID From Table</summary>
+        /// <param name="whereClause"></param>
+        /// <returns></returns>
+        public static SelectBuilder FindSQLWithKey(String whereClause = null)
+        {
+            var f = Meta.Unique;
+            return FindSQL(whereClause, null, f != null ? Meta.FormatName(f.ColumnName) : null, 0, 0);
+        }
         #endregion
 
         #region 高级查询

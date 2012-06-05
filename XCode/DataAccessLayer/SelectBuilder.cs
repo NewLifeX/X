@@ -243,7 +243,7 @@ $";
         /// <returns></returns>
         public override String ToString()
         {
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
             sb.Append("Select ");
             sb.Append(ColumnOrDefault);
             sb.Append(" From ");
@@ -422,6 +422,16 @@ $";
                 if (isdescs != null && isdescs.Length > i && isdescs[i]) sb.Append(" Desc");
             }
             return sb.ToString();
+        }
+        #endregion
+
+        #region 类型转换
+        /// <summary>类型转换</summary>
+        /// <param name="obj"></param>
+        /// <returns></returns>
+        public static implicit operator String(SelectBuilder obj)
+        {
+            return !obj.Equals(null) ? obj.ToString() : null;
         }
         #endregion
     }

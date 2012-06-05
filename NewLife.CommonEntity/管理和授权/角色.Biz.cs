@@ -28,9 +28,9 @@ namespace NewLife.CommonEntity
             // 如果角色菜单对应关系为空或者只有一个，则授权第一个角色访问所有菜单
             if (RoleMenu<TRoleMenuEntity>.Meta.Count > 0)
             {
-                if (XTrace.Debug) XTrace.WriteLine("如果角色菜单对应关系为空或者只有一个，则授权第一个角色访问所有菜单！");
+                if (XTrace.Debug) XTrace.WriteLine("如果某一个菜单对应的RoleMenu（角色菜单对应关系）为空或者只有一个，则授权第一个角色访问所有菜单！");
 
-                foreach (TMenuEntity item in Menu<TMenuEntity>.Root.AllChilds)
+                foreach (var item in Menu<TMenuEntity>.Root.AllChilds)
                 {
                     RoleMenu<TRoleMenuEntity>.CheckNonePerssion(item.ID);
                 }
@@ -38,20 +38,6 @@ namespace NewLife.CommonEntity
                 ClearRoleMenu();
                 return;
             }
-
-            //EntityList<TMenuEntity> ms = null;
-            //// 等一下菜单那边初始化
-            //for (int i = 0; i < 100; i++)
-            //{
-            //    ms = Menu<TMenuEntity>.Meta.Cache.Entities;
-            //    if (ms != null && ms.Count > 0) break;
-
-            //    Thread.Sleep(100);
-            //}
-            //if (ms == null || ms.Count < 1) return;
-
-            //// 上面通过缓存获取可能不完整，这里完整获取一次。其实能到达这里的，基本上就是系统初始化。这里经常因为无法取到完整的菜单列表就开始初始化权限
-            //ms = Menu<TMenuEntity>.FindAll();
 
             Menu<TMenuEntity>.Meta.WaitForInitData(10000);
             var ms = Menu<TMenuEntity>.Meta.Cache.Entities;
@@ -62,25 +48,14 @@ namespace NewLife.CommonEntity
             try
             {
                 Int32 id = 1;
-                EntityList<TEntity> rs = Meta.Cache.Entities;
+                var rs = Meta.Cache.Entities;
                 if (rs != null && rs.Count > 0)
                 {
                     id = rs[0].ID;
                 }
 
                 // 授权访问所有菜单
-                if (ms != null && ms.Count > 0)
-                {
-                    EntityList<TRoleMenuEntity> rms = RoleMenu<TRoleMenuEntity>.FindAllByRoleID(id);
-                    foreach (TMenuEntity item in ms)
-                    {
-                        // 是否已存在
-                        if (rms != null && rms.Exists(RoleMenu<TRoleMenuEntity>._.MenuID, item.ID)) continue;
-
-                        TRoleMenuEntity entity = RoleMenu<TRoleMenuEntity>.Create(id, item.ID);
-                        entity.Save();
-                    }
-                }
+                if (ms != null && ms.Count > 0) RoleMenu<TRoleMenuEntity>.GrantAll(id, ms.GetItem<Int32>(Menu<TMenuEntity>._.ID));
 
                 Meta.Commit();
                 if (XTrace.Debug) XTrace.WriteLine("完成初始化{0}授权数据！", typeof(TRoleMenuEntity).Name);
@@ -95,17 +70,16 @@ namespace NewLife.CommonEntity
             Int32 count = RoleMenu<TRoleMenuEntity>.Meta.Count;
             count = Menu<TMenuEntity>.Meta.Count;
 
-            // 统计所有RoleID和MenuID
-            List<TEntity> list1 = Meta.Cache.Entities;
-            List<TMenuEntity> list2 = Menu<TMenuEntity>.Meta.Cache.Entities;
+            //// 统计所有RoleID和MenuID
+            //var list1 = Meta.Cache.Entities.ToList();
+            //var list2 = Menu<TMenuEntity>.Meta.Cache.Entities.ToList();
 
-            WhereExpression exp = new WhereExpression();
-            exp &= RoleMenu<TRoleMenuEntity>._.RoleID.NotIn(list1.Select(e => e.ID));
-            exp |= RoleMenu<TRoleMenuEntity>._.MenuID.NotIn(list2.Select(e => e.ID));
-            if (exp.Builder.Length < 1) return;
+            //var exp = new WhereExpression();
+            //exp &= RoleMenu<TRoleMenuEntity>._.RoleID.NotIn(list1.Select(e => e.ID));
+            //exp |= RoleMenu<TRoleMenuEntity>._.MenuID.NotIn(list2.Select(e => e.ID));
 
             // 查询所有。之所以不是调用Delete删除，是为了引发RoleMenu里面的Delete写日志
-            EntityList<TRoleMenuEntity> rms = RoleMenu<TRoleMenuEntity>.FindAll(exp.ToString(), null, null, 0, 0);
+            var rms = RoleMenu<TRoleMenuEntity>.FindAllInvalid(FindSQLWithKey(), Menu<TMenuEntity>.FindSQLWithKey());
             if (rms == null || rms.Count < 1) return;
 
             if (XTrace.Debug) XTrace.WriteLine("删除RoleMenu中无效的RoleID和无效的MenuID！");
