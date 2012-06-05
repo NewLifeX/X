@@ -545,7 +545,8 @@ namespace NewLife.CommonEntity.Web
             {
                 XTrace.WriteException(ex);
                 Page.ClientScript.RegisterStartupScript(this.GetType(), "SaveFormError",
-                    "alert('保存后触发" + _ex == null ? "完成" : "失败" + "事件发生了异常,请检查日志!');");
+                    "alert('保存后触发" + _ex == null ? "完成" : "失败" + "事件发生了异常,请检查日志!');",
+                    true);
             }
         }
 
