@@ -103,6 +103,12 @@ namespace XCode.DataAccessLayer
             // 输出当前版本
             var asm = AssemblyX.Create(System.Reflection.Assembly.GetExecutingAssembly());
             XTrace.WriteLine("{0} 文件版本{1} 编译时间{2}", asm.Name, asm.FileVersion, asm.Compile);
+
+            if (DAL.Debug && DAL.NegativeEnable)
+            {
+                if (DAL.NegativeCheckOnly) WriteLog("XCode.Negative.CheckOnly设置为True，只是检查不对数据库进行操作");
+                if (DAL.NegativeNoDelete) WriteLog("XCode.Negative.NoDelete设置为True，不会删除数据表多余字段");
+            }
         }
         #endregion
 
