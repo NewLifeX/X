@@ -101,7 +101,7 @@ namespace XCode.DataAccessLayer
             if (Interlocked.CompareExchange(ref hasInitLog, 1, 0) > 0) return;
 
             // 输出当前版本
-            AssemblyX asm = AssemblyX.Create(Assembly.GetExecutingAssembly());
+            var asm = AssemblyX.Create(System.Reflection.Assembly.GetExecutingAssembly());
             XTrace.WriteLine("{0} 文件版本{1} 编译时间{2}", asm.Name, asm.FileVersion, asm.Compile);
         }
         #endregion

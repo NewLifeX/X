@@ -377,9 +377,9 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 创建数据操作实体
-        private Assembly _Assembly;
+        private EntityAssembly _Assembly;
         /// <summary>根据数据模型动态创建的程序集。带缓存，如果要更新，建议调用<see cref="EntityAssembly.Create(string, string, System.Collections.Generic.List&lt;XCode.DataAccessLayer.IDataTable&gt;)"/></summary>
-        public Assembly Assembly
+        public EntityAssembly Assembly
         {
             get
             {
@@ -398,9 +398,11 @@ namespace XCode.DataAccessLayer
             var asm = Assembly;
             if (asm == null) return null;
             //Type type = TypeX.GetType(asm, tableName);
-            var type = AssemblyX.Create(asm).GetType(tableName);
+            //var type = AssemblyX.Create(asm).GetType(tableName);
+            var type = asm.GetType(tableName);
             if (type == null)
-                return EntityFactory.CreateOperate(tableName);
+                //return EntityFactory.CreateOperate(tableName);
+                return null;
             else
                 return EntityFactory.CreateOperate(type);
         }

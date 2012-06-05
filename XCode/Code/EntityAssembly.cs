@@ -16,6 +16,7 @@ using XCode.Exceptions;
 using System.Linq;
 #else
 using NewLife.Linq;
+using NewLife.Reflection;
 #endif
 
 namespace XCode.Code
@@ -50,6 +51,14 @@ namespace XCode.Code
             get { return _Classes ?? (_Classes = new List<EntityClass>()); }
             //set { _Classes = value; }
         }
+
+        private Assembly _Assembly;
+        /// <summary>程序集</summary>
+        public Assembly Assembly { get { return _Assembly; } }
+
+        private Dictionary<String, String> _TypeMaps;
+        /// <summary>类型映射。数据表映射到哪个类上</summary>
+        public Dictionary<String, String> TypeMaps { get { return _TypeMaps; } }
         #endregion
 
         #region 生成属性
@@ -92,12 +101,12 @@ namespace XCode.Code
         #endregion
 
         #region 构造
-        private static DictionaryCache<String, Assembly> cache = new DictionaryCache<String, Assembly>();
+        private static DictionaryCache<String, EntityAssembly> cache = new DictionaryCache<String, EntityAssembly>();
         /// <summary>为数据模型创建实体程序集，带缓存，依赖于表和字段名称，不依赖名称以外的信息。</summary>
         /// <param name="name"></param>
         /// <param name="tables"></param>
         /// <returns></returns>
-        public static Assembly CreateWithCache(String name, List<IDataTable> tables)
+        public static EntityAssembly CreateWithCache(String name, List<IDataTable> tables)
         {
             if (String.IsNullOrEmpty(name)) return null;
             if (tables == null) return null;
@@ -119,12 +128,13 @@ namespace XCode.Code
 
             return cache.GetItem<String, List<IDataTable>>(key, name, tables, (k, n, ts) =>
             {
-                EntityAssembly asm = new EntityAssembly();
+                var asm = new EntityAssembly();
                 asm.Name = n;
                 asm.Tables = ts;
                 asm.CreateAll();
 
-                return asm.Compile();
+                asm.Compile();
+                return asm;
             });
         }
 
@@ -133,18 +143,20 @@ namespace XCode.Code
         /// <param name="connName">连接名</param>
         /// <param name="tables">模型表</param>
         /// <returns></returns>
-        public static Assembly Create(String name, String connName, List<IDataTable> tables)
+        public static EntityAssembly Create(String name, String connName, List<IDataTable> tables)
         {
             if (String.IsNullOrEmpty(name)) return null;
             if (tables == null) return null;
 
-            EntityAssembly asm = new EntityAssembly();
+            var asm = new EntityAssembly();
             asm.Name = name;
             asm.ConnName = connName;
             asm.Tables = tables;
             asm.CreateAll();
 
-            return asm.Compile();
+            asm.Compile();
+
+            return asm;
         }
         #endregion
 
@@ -158,11 +170,15 @@ namespace XCode.Code
 
             // 复制一份，以免修改原来的结构
             var tb = table.Clone() as IDataTable;
+            return Create2(tb);
+        }
 
+        EntityClass Create2(IDataTable table)
+        {
             var entity = new EntityClass();
             entity.Assembly = this;
-            entity.ClassName = tb.Alias;
-            entity.Table = tb;
+            entity.ClassName = table.Alias;
+            entity.Table = table;
             //entity.FieldNames = fieldNames;
             entity.Create();
             entity.AddProperties();
@@ -178,26 +194,78 @@ namespace XCode.Code
         /// <returns></returns>
         public EntityClass Create(String name)
         {
-            foreach (IDataTable item in Tables)
+            foreach (var item in Tables)
             {
                 if (item.Name == name) return Create(item);
             }
             return null;
         }
 
-        /// <summary>创建所以表的实体类</summary>
+        /// <summary>创建所有表的实体类</summary>
         public void CreateAll()
         {
             if (Tables == null) return;
 
-            foreach (IDataTable item in Tables)
+            var dic = new Dictionary<String, String>();
+            var list = new List<String>();
+            foreach (var item in Tables)
             {
-                EntityClass entity = Create(item);
+                // 复制一份，以免修改原来的结构
+                var tb = item.Clone() as IDataTable;
+
+                #region 避免类名重名
+                if (!list.Contains(tb.Alias))
+                    list.Add(tb.Alias);
+                else
+                {
+                    if (!list.Contains(tb.Name))
+                    {
+                        tb.Alias = tb.Name;
+                        list.Add(tb.Alias);
+                    }
+                    else
+                    {
+                        var name = tb.Alias;
+                        for (int i = 2; i < Int32.MaxValue; i++)
+                        {
+                            name = tb.Alias + i;
+                            if (!list.Contains(name))
+                            {
+                                tb.Alias = name;
+                                list.Add(tb.Alias);
+                                break;
+                            }
+                        }
+                    }
+                }
+                #endregion
+
+                dic.Add(tb.Name, tb.Alias);
+                var entity = Create2(tb);
+
                 //entity.Create();
                 //entity.AddProperties();
                 //entity.AddIndexs();
                 //entity.AddNames();
             }
+            _TypeMaps = dic;
+        }
+
+        /// <summary>获取类型</summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public Type GetType(String name)
+        {
+            if (String.IsNullOrEmpty(name)) throw new ArgumentNullException("name");
+            if (Assembly == null) throw new Exception("未编译！");
+
+            var asmx = AssemblyX.Create(Assembly);
+
+            String typeName = null;
+            if (TypeMaps.TryGetValue(name, out typeName))
+                return asmx.GetType(typeName);
+            else
+                return asmx.GetType(name);
         }
         #endregion
 
@@ -278,7 +346,7 @@ namespace XCode.Code
             {
                 // 先生成代码文件，方便调试
                 var fileName = Path.Combine(XTrace.TempPath, Name + ".cs");
-                using (StreamWriter writer = new StreamWriter(fileName))
+                using (var writer = new StreamWriter(fileName))
                 {
                     var op = new CodeGeneratorOptions();
                     op.BracingStyle = "C";
@@ -339,12 +407,12 @@ namespace XCode.Code
         public Assembly Compile()
         {
             CompilerResults rs = Compile(null);
-            if (rs.Errors == null || !rs.Errors.HasErrors) return rs.CompiledAssembly;
+            if (rs.Errors == null || !rs.Errors.HasErrors) return _Assembly = rs.CompiledAssembly;
 
             //throw new XCodeException(rs.Errors[0].ErrorText);
 
-            CompilerError err = rs.Errors[0];
-            String msg = String.Format("{0} {1} {2}({3},{4})", err.ErrorNumber, err.ErrorText, err.FileName, err.Line, err.Column);
+            var err = rs.Errors[0];
+            var msg = String.Format("{0} {1} {2}({3},{4})", err.ErrorNumber, err.ErrorText, err.FileName, err.Line, err.Column);
             throw new XCodeException(msg);
         }
         #endregion

@@ -64,7 +64,7 @@ namespace XCode.Transform
         public ICollection<String> PartialTableNames { get { return _PartialTableNames ?? (_PartialTableNames = new HashSet<String>(StringComparer.OrdinalIgnoreCase)); } set { _PartialTableNames = value; } }
 
         private Int32 _PartialCount = 1000;
-        /// <summary>举报迁移记录数。默认1000</summary>
+        /// <summary>局部迁移记录数。默认1000</summary>
         public Int32 PartialCount { get { return _PartialCount; } set { _PartialCount = value; } }
 
         private Boolean _PartialDesc = true;
