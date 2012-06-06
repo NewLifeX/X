@@ -12,11 +12,11 @@ using NewLife.Log;
 using NewLife.Security;
 using XCode.DataAccessLayer;
 using XCode.Exceptions;
+using NewLife.Reflection;
 #if NET4
 using System.Linq;
 #else
 using NewLife.Linq;
-using NewLife.Reflection;
 #endif
 
 namespace XCode.Code
