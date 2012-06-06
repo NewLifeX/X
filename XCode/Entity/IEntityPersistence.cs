@@ -161,12 +161,6 @@ namespace XCode
             //检查是否有标识列，标识列需要特殊处理
             var field = op.Table.Identity;
             var bAllow = op.AllowInsertIdentity;
-            // 判断有没有自增字段
-            if (bAllow)
-            {
-                // 如果所有字段都不是自增，则取消对自增的处理
-                if (op.Fields.All(f => !f.IsIdentity)) bAllow = false;
-            }
             if (field != null && field.IsIdentity && !bAllow)
             {
                 Int64 res = dps != null && dps.Length > 0 ? op.InsertAndGetIdentity(sql, CommandType.Text, dps) : op.InsertAndGetIdentity(sql);
@@ -179,7 +173,11 @@ namespace XCode
                 {
                     var dal = DAL.Create(op.ConnName);
                     if (dal.DbType == DatabaseType.SqlServer)
-                        sql = String.Format("SET IDENTITY_INSERT {1} ON;{0};SET IDENTITY_INSERT {1} OFF", sql, op.FormatName(op.TableName));
+                    {
+                        // 如果所有字段都不是自增，则取消对自增的处理
+                        if (op.Fields.All(f => !f.IsIdentity)) bAllow = false;
+                        if (bAllow) sql = String.Format("SET IDENTITY_INSERT {1} ON;{0};SET IDENTITY_INSERT {1} OFF", sql, op.FormatName(op.TableName));
+                    }
                 }
                 rs = dps != null && dps.Length > 0 ? op.Execute(sql, CommandType.Text, dps) : op.Execute(sql);
             }

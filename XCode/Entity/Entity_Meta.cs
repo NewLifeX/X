@@ -43,6 +43,9 @@ namespace XCode
                     if (!String.IsNullOrEmpty(value) && !String.Equals(_ConnName, value, StringComparison.OrdinalIgnoreCase))
                     {
                         CheckTable(value, TableName);
+
+                        // 清空记录数缓存
+                        ClearCountCache();
                     }
                     _ConnName = value;
 
@@ -62,6 +65,9 @@ namespace XCode
                     if (!String.IsNullOrEmpty(value) && !String.Equals(_TableName, value, StringComparison.OrdinalIgnoreCase))
                     {
                         CheckTable(ConnName, value);
+
+                        // 清空记录数缓存
+                        ClearCountCache();
                     }
                     _TableName = value;
 
@@ -622,12 +628,12 @@ namespace XCode
                 Int64? n = _Count;
                 if (n == null || !n.HasValue) return;
 
-                //// 只有小于1000时才清空_Count，因为大于1000时它要作为HttpCache的见证
-                //if (n.Value < 1000)
-                //{
-                //    _Count = null;
-                //    return;
-                //}
+                // 只有小于1000时才清空_Count，因为大于1000时它要作为HttpCache的见证
+                if (n.Value < 1000)
+                {
+                    _Count = null;
+                    return;
+                }
 
                 //String key = ThisType.Name + "_Count";
                 String key = String.Format("{0}_{1}_{2}_Count", ConnName, TableName, ThisType.Name);

@@ -35,7 +35,7 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
 [assembly: AssemblyVersion("8.7.*")]
-[assembly: AssemblyFileVersion("8.7.2012.0605")]
+[assembly: AssemblyFileVersion("8.7.2012.0607")]
 
 /*
  * XCode的重大改进
@@ -52,6 +52,12 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v8.7.2012.0607   修正TableItem中连接名映射ConnMaps可能因为多线程冲突而导致小几率失败的问题
+ *                  插入数据时，如果没有自增字段，则无视允许插入自增字段的设置
+ *                  为了最大程度保证兼容性，反向时所有数据库的Decimal和DateTime类型不指定精度，均采用数据库默认值
+ *                  修正EntityTransform中一个使用事务保护的错误
+ *                  修正Entity.Meta.ClearCountCache处理记录数缓存的错误，增加支持切换连接或表名时清除记录数缓存
+ * 
  * v8.7.2012.0605   实体类增加FindSQL方法，获取查询SQL，主要用于构造子查询
  * 
  * v8.6.2012.0604   修正XCode中会导致IEntityOperate.FindAllWithCache死循环的BUG
