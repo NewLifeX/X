@@ -7,6 +7,7 @@ using System.Text;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
 using XCode.Exceptions;
+using NewLife.Linq;
 
 namespace XCode
 {
@@ -155,6 +156,12 @@ namespace XCode
             //检查是否有标识列，标识列需要特殊处理
             var field = op.Table.Identity;
             var bAllow = op.AllowInsertIdentity;
+            // 判断有没有自增字段
+            if (bAllow)
+            {
+                // 如果所有字段都不是自增，则取消对自增的处理
+                if (op.Fields.All(f => !f.IsIdentity)) bAllow = false;
+            }
             if (field != null && field.IsIdentity && !bAllow)
             {
                 Int64 res = dps != null && dps.Length > 0 ? op.InsertAndGetIdentity(sql, CommandType.Text, dps) : op.InsertAndGetIdentity(sql);
