@@ -13,7 +13,6 @@ using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.Threading;
 using XCode.Cache;
-using XCode.Common;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
 

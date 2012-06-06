@@ -7,7 +7,12 @@ using System.Text;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
 using XCode.Exceptions;
+
+#if NET4
+using System.Linq;
+#else
 using NewLife.Linq;
+#endif
 
 namespace XCode
 {
