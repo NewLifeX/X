@@ -81,7 +81,11 @@ namespace XCode.Transform
 
             // 取得实际数据库所有表，把视图过滤掉
             var tables = dal.Tables;
+            if (tables == null || tables.Count < 1) return 0;
+
             tables.RemoveAll(t => t.IsView);
+            if (tables == null || tables.Count < 1) return 0;
+
             // 取所有需要迁移的表，过滤得出最后需要迁移的表
             var tns = _TableNames;
             if (tns != null && tns.Count > 0) tables.RemoveAll(t => !tns.Contains(t.Name) && !tns.Contains(t.Alias));
