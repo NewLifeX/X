@@ -110,18 +110,26 @@ namespace XCode.Configuration
         {
             get
             {
+                // 加锁，并且先实例化本地变量，最后再赋值，避免返回空集合
+                // 原来的写法存在线程冲突，可能第一个线程实例化列表后，还来不及填充，后续线程就已经把集合拿走
                 if (_ConnMaps != null) return _ConnMaps;
-
-                _ConnMaps = new List<String>();
-                String str = Config.GetMutilConfig<String>(null, "XCode.ConnMaps", "XCodeConnMaps");
-                if (String.IsNullOrEmpty(str)) return _ConnMaps;
-                String[] ss = str.Split(',');
-                foreach (String item in ss)
+                lock (typeof(TableItem))
                 {
-                    if (item.Contains("#") && !item.EndsWith("#") ||
-                        item.Contains("@") && !item.EndsWith("@")) _ConnMaps.Add(item.Trim());
+                    if (_ConnMaps != null) return _ConnMaps;
+                    
+                    var list = new List<String>();
+                    String str = Config.GetMutilConfig<String>(null, "XCode.ConnMaps", "XCodeConnMaps");
+                    if (String.IsNullOrEmpty(str)) return _ConnMaps = list;
+                    String[] ss = str.Split(",");
+                    foreach (String item in ss)
+                    {
+                        if (list.Contains(item.Trim())) continue;
+
+                        if (item.Contains("#") && !item.EndsWith("#") ||
+                            item.Contains("@") && !item.EndsWith("@")) list.Add(item.Trim());
+                    }
+                    return _ConnMaps = list;
                 }
-                return _ConnMaps;
             }
         }
 
