@@ -657,6 +657,10 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         protected virtual String GetFormatParam(IDataColumn field, DataRow dr)
         {
+            // 为了最大程度保证兼容性，所有数据库的Decimal和DateTime类型不指定精度，均采用数据库默认值
+            if (field.DataType == typeof(Decimal)) return null;
+            if (field.DataType == typeof(DateTime)) return null;
+
             String ps = null;
             if (!TryGetDataRowValue<String>(dr, "CreateParameters", out ps) || String.IsNullOrEmpty(ps)) return null;
 
