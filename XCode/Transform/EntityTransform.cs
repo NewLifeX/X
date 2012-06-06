@@ -139,6 +139,7 @@ namespace XCode.Transform
                 if (OnlyTransformToEmptyTable && eop.Count > 0)
                 {
                     XTrace.WriteLine("{0} 非空，跳过", name);
+                    eop.Rollback();
                     return 0;
                 }
 
