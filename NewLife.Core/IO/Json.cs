@@ -19,7 +19,7 @@ namespace NewLife.IO
         internal static readonly long DatetimeMinTimeTicks;
         internal const string ServerTypeFieldName = "__type";
 
-        private Int32 _MaxJsonLength = 0x200000;
+        private Int32 _MaxJsonLength = 0x20000000;
         /// <summary>最大长度</summary>
         public Int32 MaxJsonLength
         {
