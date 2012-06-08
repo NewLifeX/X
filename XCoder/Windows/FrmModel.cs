@@ -267,8 +267,11 @@ namespace XCoder
 
             try
             {
-                IMetaData md = dal.Db.CreateMetaData();
-                md.SetTables(Tables.ToArray());
+                var md = dal.Db.CreateMetaData();
+                var set = new NegativeSetting();
+                set.CheckOnly = false;
+                set.NoDelete = false;
+                md.SetTables(set, Tables.ToArray());
 
                 MessageBox.Show("成功建立" + Tables.Count + "张数据表！", this.Text);
             }

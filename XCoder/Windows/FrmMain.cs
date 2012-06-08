@@ -130,7 +130,7 @@ namespace XCoder
 
         private void cbConn_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (!String.IsNullOrEmpty(Config.ConnName)) toolTip1.SetToolTip(cbConn, DAL.Create(cbConn.Text).ConnStr);
+            if (!String.IsNullOrEmpty(cbConn.Text)) toolTip1.SetToolTip(cbConn, DAL.Create(cbConn.Text).ConnStr);
 
             AutoLoadTables(cbConn.Text);
 
@@ -141,7 +141,7 @@ namespace XCoder
 
         void AutoDetectDatabase()
         {
-            List<String> list = new List<String>();
+            var list = new List<String>();
 
             // 加上本机MSSQL
             String localName = "local_MSSQL";
@@ -182,18 +182,21 @@ namespace XCoder
 
             // 远程数据库耗时太长，这里先列出来
             this.Invoke(new Action<List<String>>(SetDatabaseList), list);
+            //!!! 必须另外实例化一个列表，否则作为数据源绑定时，会因为是同一个对象而被跳过
+            list = new List<String>(list);
 
             sw.Reset();
             sw.Start();
+
             #region 探测连接中的其它库
-            String[] sysdbnames = new String[] { "master", "tempdb", "model", "msdb" };
+            var sysdbnames = new String[] { "master", "tempdb", "model", "msdb" };
             n = 0;
-            List<String> names = new List<String>();
-            foreach (String item in list)
+            var names = new List<String>();
+            foreach (var item in list)
             {
                 try
                 {
-                    DAL dal = DAL.Create(item);
+                    var dal = DAL.Create(item);
                     if (dal.DbType != DatabaseType.SqlServer) continue;
 
                     DataTable dt = null;
@@ -214,7 +217,7 @@ namespace XCoder
 
                     if (dt == null) continue;
 
-                    DbConnectionStringBuilder builder = new DbConnectionStringBuilder();
+                    var builder = new DbConnectionStringBuilder();
                     builder.ConnectionString = dal.ConnStr;
 
                     // 统计库名
@@ -328,7 +331,6 @@ namespace XCoder
 
             cbConn.DataSource = list;
             cbConn.DisplayMember = "value";
-            cbConn.Update();
 
             if (!String.IsNullOrEmpty(str)) cbConn.Text = str;
 
