@@ -143,6 +143,9 @@ namespace NewLife.Log
             LogWriter.WriteLine("#BaseDirectory: {0}", AppDomain.CurrentDomain.BaseDirectory);
             LogWriter.WriteLine("#Date: {0:yyyy-MM-dd}", DateTime.Now);
             LogWriter.WriteLine("#Fields: Time ThreadID IsPoolThread ThreadName Message");
+
+            var asmx = AssemblyX.Create(System.Reflection.Assembly.GetExecutingAssembly());
+            XTrace.WriteLine("{0} 文件版本{1} 编译时间{2}", asmx.Name, asmx.FileVersion, asmx.Compile);
         }
 
         /// <summary>停止日志</summary>
