@@ -96,32 +96,34 @@ namespace NewLife.CommonEntity
         /// <returns></returns>
         public virtual Object GetService(Type serviceType)
         {
+            //if (serviceType == typeof(IManagePage))
+            //    return CommonService.Resolve<IManagePage>();
+            //else if (serviceType == typeof(IEntityForm))
+            //    return CommonService.Resolve<IEntityForm>();
             if (serviceType == typeof(IManagePage))
-                return CommonService.Resolve<IManagePage>();
+                return GetHttpCache(typeof(IManagePage), k => CommonService.Resolve<IManagePage>());
             else if (serviceType == typeof(IEntityForm))
-                return CommonService.Resolve<IEntityForm>();
+                return GetHttpCache(typeof(IEntityForm), k => CommonService.Resolve<IEntityForm>());
 
             return CommonService.Resolve(serviceType);
         }
         #endregion
 
         #region 辅助
-        ///// <summary>
-        ///// 获取Http缓存，如果不存在，则调用func去计算
-        ///// </summary>
-        ///// <param name="key"></param>
-        ///// <param name="func"></param>
-        ///// <returns></returns>
-        //protected Object GetHttpCache(Object key, Func<Object, Object> func)
-        //{
-        //    if (HttpContext.Current.Items[key] != null) return HttpContext.Current.Items[key];
+        /// <summary>获取Http缓存，如果不存在，则调用func去计算</summary>
+        /// <param name="key"></param>
+        /// <param name="func"></param>
+        /// <returns></returns>
+        protected Object GetHttpCache(Object key, Func<Object, Object> func)
+        {
+            if (HttpContext.Current.Items[key] != null) return HttpContext.Current.Items[key];
 
-        //    Object value = func(key);
+            Object value = func(key);
 
-        //    HttpContext.Current.Items[key] = value;
+            HttpContext.Current.Items[key] = value;
 
-        //    return value;
-        //}
+            return value;
+        }
         #endregion
     }
 }
