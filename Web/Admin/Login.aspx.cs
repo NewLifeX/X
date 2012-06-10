@@ -68,7 +68,15 @@ public partial class Login : System.Web.UI.Page
         try
         {
             ManageProvider.Provider.Login(UserName.Text, Password.Text);
-            if (ManageProvider.Provider.Current != null) Response.Redirect("Default.aspx");
+            if (ManageProvider.Provider.Current != null)
+                Response.Redirect("Default.aspx");
+            else
+            {
+                XTrace.WriteLine("{0}登录失败，但是没有异常，很是奇怪！", UserName.Text);
+
+                String msg = "登录失败";
+                WebHelper.Alert(msg);
+            }
         }
         catch (Exception ex)
         {
