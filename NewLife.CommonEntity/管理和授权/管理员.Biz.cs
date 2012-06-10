@@ -9,6 +9,7 @@ using NewLife.Log;
 using NewLife.Security;
 using NewLife.Web;
 using XCode;
+using System.Data.Common;
 
 namespace NewLife.CommonEntity
 {
@@ -187,6 +188,11 @@ namespace NewLife.CommonEntity
                     try
                     {
                         return Login(user, pass, -1);
+                    }
+                    catch (DbException ex)
+                    {
+                        XTrace.WriteLine("{0}登录失败！{1}", user, ex);
+                        return null;
                     }
                     catch (Exception ex)
                     {
