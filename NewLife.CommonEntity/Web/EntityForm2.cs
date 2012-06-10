@@ -217,28 +217,30 @@ namespace NewLife.CommonEntity.Web
                 // 如果实体已经存在，则使用实体的主键值。
                 if (_Entity != null && Factory.Unique != null) return _Entity[Factory.Unique.Name];
 
-                // 使用者可以通过给KeyName置空来避免内部自动根据Request[KeyName]取值
-                if (String.IsNullOrEmpty(KeyName)) return null;
+                //// 使用者可以通过给KeyName置空来避免内部自动根据Request[KeyName]取值
+                //if (String.IsNullOrEmpty(KeyName)) return null;
 
-                String str = HttpContext.Current.Request[KeyName];
-                if (String.IsNullOrEmpty(str)) return null;
+                //String str = HttpContext.Current.Request[KeyName];
+                //if (String.IsNullOrEmpty(str)) return null;
 
-                FieldItem fi = Factory.Unique;
-                if (fi != null)
-                {
-                    Type type = Factory.Unique.Type;
-                    if (type == typeof(Int32) || type == typeof(Int64))
-                    {
-                        Int32 id = 0;
-                        if (!Int32.TryParse(str, out id)) id = 0;
-                        return (Object)id;
-                    }
-                    else if (type == typeof(String))
-                    {
-                        return (Object)str;
-                    }
-                }
-                throw new NotSupportedException("仅支持整数和字符串类型！");
+                //FieldItem fi = Factory.Unique;
+                //if (fi != null)
+                //{
+                //    Type type = Factory.Unique.Type;
+                //    if (type == typeof(Int32) || type == typeof(Int64))
+                //    {
+                //        Int32 id = 0;
+                //        if (!Int32.TryParse(str, out id)) id = 0;
+                //        return (Object)id;
+                //    }
+                //    else if (type == typeof(String))
+                //    {
+                //        return (Object)str;
+                //    }
+                //}
+                //throw new NotSupportedException("仅支持整数和字符串类型！");
+
+                return null;
             }
         }
 
@@ -262,6 +264,33 @@ namespace NewLife.CommonEntity.Web
                     if (OnGetEntity != null) OnGetEntity(this, new EntityFormEventArgs());
 
                     if (_Entity == null && !String.IsNullOrEmpty(KeyName)) _Entity = Factory.FindByKeyForEdit(eid);
+
+                    if (_Entity == null)
+                    {
+                        String str = HttpContext.Current.Request[KeyName];
+                        if (!String.IsNullOrEmpty(str))
+                        {
+                            Object getKey = null;
+                            FieldItem fi = Factory.Unique;
+                            if (fi != null)
+                            {
+                                Type type = Factory.Unique.Type;
+                                if (type == typeof(Int32) || type == typeof(Int64))
+                                {
+                                    Int32 id = 0;
+                                    if (!Int32.TryParse(str, out id)) id = 0;
+                                    getKey = (Object)id;
+                                }
+                                else if (type == typeof(String))
+                                {
+                                    getKey = (Object)str;
+                                }
+                            }
+
+                            if (getKey != null)
+                                _Entity = Factory.FindByKeyForEdit(getKey);
+                        }
+                    }
 
                     // 把Request参数读入到实体里面
                     FillEntityWithRequest(_Entity);
