@@ -14,6 +14,9 @@ public partial class Pages_AdminInfo : MyEntityForm
     {
         base.OnInit(e);
 
+        // 用户信息页面，无需进行权限控制，只能修改自己短信息
+        Manager.ValidatePermission = false;
+
         EntityForm.OnSetForm += EntityForm_OnSetForm;
         EntityForm.OnGetForm += EntityForm_OnGetForm;
     }
