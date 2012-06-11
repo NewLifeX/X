@@ -33,7 +33,7 @@ namespace XCode
 
             [ThreadStatic]
             private static String _ConnName;
-            /// <summary>链接名。线程内允许修改，修改者负责还原</summary>
+            /// <summary>链接名。线程内允许修改，修改者负责还原。若要还原默认值，设为null即可</summary>
             public static String ConnName
             {
                 get { return _ConnName ?? (_ConnName = Table.ConnName); }
