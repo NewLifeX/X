@@ -238,6 +238,7 @@ namespace NewLife.Model
             map.Identity = id;
             map.TypeName = typeName;
             map.Mode = mode;
+            map.Priority = priority;
             if (to != null) map.ImplementType = to;
             if (instance != null) map.Instance = instance;
             //map.Singleton = instance != null || singleton;

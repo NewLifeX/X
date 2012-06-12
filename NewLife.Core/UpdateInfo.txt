@@ -1,4 +1,6 @@
-﻿v3.8.2012.0525   XTrace增加UseWinForm方法，用于挂载处理WinForm未处理异常
+﻿v3.8.2012.0612   修正对象容器中注册时没有记录优先级的BUG
+
+v3.8.2012.0525   XTrace增加UseWinForm方法，用于挂载处理WinForm未处理异常
 
 v3.8.2012.0514   对象容器增加ResolveInstance，用于指定获取实例，而Resolve每次返回新实例
 
