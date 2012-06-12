@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 // 特性集控制。更改这些特性值可修改
 // 与程序集关联的信息。
 [assembly: AssemblyTitle("新生命核心库")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("各种基础功能")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("新生命开发团队")]
 [assembly: AssemblyProduct("NewLife.Core")]

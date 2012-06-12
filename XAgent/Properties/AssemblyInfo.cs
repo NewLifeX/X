@@ -5,8 +5,8 @@ using System.Runtime.InteropServices;
 // 有关程序集的常规信息通过下列属性集
 // 控制。更改这些属性值可修改
 // 与程序集关联的信息。
-[assembly: AssemblyTitle("服务组件")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyTitle("新生命服务组件")]
+[assembly: AssemblyDescription("支撑Windows服务应用的基础组件")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("新生命开发团队")]
 [assembly: AssemblyProduct("XAgent")]

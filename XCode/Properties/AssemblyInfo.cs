@@ -6,8 +6,8 @@ using System.Runtime.InteropServices;
 // 有关程序集的常规信息通过下列属性集
 // 控制。更改这些属性值可修改
 // 与程序集关联的信息。
-[assembly: AssemblyTitle("数据映射框架")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyTitle("新生命数据映射框架")]
+[assembly: AssemblyDescription("包括并大于Orm的数据映射框架")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("新生命开发团队")]
 [assembly: AssemblyProduct("XCode")]

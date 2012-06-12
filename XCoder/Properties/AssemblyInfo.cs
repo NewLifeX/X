@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 // 控制。更改这些属性值可修改
 // 与程序集关联的信息。
 [assembly: AssemblyTitle("代码生成器")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("基于编译型模版引擎的代码生成器")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("新生命开发团队")]
 [assembly: AssemblyProduct("代码生成器")]

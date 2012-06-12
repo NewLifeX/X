@@ -5,8 +5,8 @@ using System.Runtime.InteropServices;
 // 有关程序集的常规信息通过以下
 // 特性集控制。更改这些特性值可修改
 // 与程序集关联的信息。
-[assembly: AssemblyTitle("网络库")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyTitle("新生命网络库")]
+[assembly: AssemblyDescription("网络通讯基础框架及各种协议实现")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("新生命开发团队")]
 [assembly: AssemblyProduct("NewLife.Net")]

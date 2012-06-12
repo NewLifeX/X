@@ -5,8 +5,8 @@ using System.Runtime.InteropServices;
 // 有关程序集的常规信息通过以下
 // 特性集控制。更改这些特性值可修改
 // 与程序集关联的信息。
-[assembly: AssemblyTitle("模版模块")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyTitle("新生命模版")]
+[assembly: AssemblyDescription("编译型模版引擎")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("新生命开发团队")]
 [assembly: AssemblyProduct("XTemplate")]
