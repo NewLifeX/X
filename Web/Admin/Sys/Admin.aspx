@@ -65,7 +65,7 @@
             <asp:ControlParameter ControlID="DropdownList1" Name="roleID" Type="Int32" PropertyName="SelectedValue" />
             <asp:Parameter Name="orderClause" Type="String" />
             <asp:Parameter DefaultValue="0" Name="startRowIndex" Type="Int32" />
-            <asp:Parameter DefaultValue="2000" Name="maximumRows" Type="Int32" />
+            <asp:Parameter DefaultValue="0" Name="maximumRows" Type="Int32" />
         </SelectParameters>
     </asp:ObjectDataSource>
     <asp:ObjectDataSource ID="ObjectDataSource2" runat="server" SelectMethod="FindAllByName">
