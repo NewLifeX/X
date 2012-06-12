@@ -162,7 +162,7 @@ namespace NewLife.CommonEntity
         /// <returns></returns>
         public EntityList<TMenuEntity> GetMySubMenus(Int32 parentID)
         {
-            EntityList<TMenuEntity> list = MenuList;
+            var list = MenuList;
             if (list == null || list.Count < 1) return null;
 
             list = list.FindAll(Menu<TMenuEntity>._.ParentID, parentID);
@@ -178,18 +178,10 @@ namespace NewLife.CommonEntity
         /// <returns></returns>
         protected internal override List<IMenu> GetMySubMenusInternal(int parentID)
         {
-            EntityList<TMenuEntity> list = GetMySubMenus(parentID);
+            var list = GetMySubMenus(parentID);
             if (list == null || list.Count < 1) return null;
 
             return list.Cast<IMenu>().ToList();
-
-            //List<IMenu> list2 = new List<IMenu>();
-            //foreach (TMenuEntity item in list)
-            //{
-            //    list2.Add(item);
-            //}
-
-            //return list2;
         }
         #endregion
     }
@@ -251,7 +243,7 @@ namespace NewLife.CommonEntity
             String name = Name;
             if (String.IsNullOrEmpty(name))
             {
-                TEntity entity = FindByID(ID);
+                var entity = FindByID(ID);
                 if (entity != null) name = entity.Name;
             }
             WriteLog("删除", name);
@@ -261,19 +253,19 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region 扩展查询
-        /// <summary>根据主键查询一个角色实体对象用于表单编辑</summary>
-        /// <param name="__ID">角色编号</param>
-        /// <returns></returns>
-        [DataObjectMethod(DataObjectMethodType.Select, false)]
-        public static TEntity FindByKeyForEdit(Int32 __ID)
-        {
-            TEntity entity = FindByKey(__ID);
-            if (entity == null)
-            {
-                entity = new TEntity();
-            }
-            return entity;
-        }
+        ///// <summary>根据主键查询一个角色实体对象用于表单编辑</summary>
+        ///// <param name="__ID">角色编号</param>
+        ///// <returns></returns>
+        //[DataObjectMethod(DataObjectMethodType.Select, false)]
+        //public static TEntity FindByKeyForEdit(Int32 __ID)
+        //{
+        //    TEntity entity = FindByKey(__ID);
+        //    if (entity == null)
+        //    {
+        //        entity = new TEntity();
+        //    }
+        //    return entity;
+        //}
 
         /// <summary>根据编号查找角色</summary>
         /// <param name="id"></param>

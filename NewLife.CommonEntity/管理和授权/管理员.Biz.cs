@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Data.Common;
 using System.Web;
 using System.Xml.Serialization;
 using NewLife.CommonEntity.Exceptions;
@@ -9,7 +10,6 @@ using NewLife.Log;
 using NewLife.Security;
 using NewLife.Web;
 using XCode;
-using System.Data.Common;
 
 namespace NewLife.CommonEntity
 {
@@ -47,7 +47,7 @@ namespace NewLife.CommonEntity
             String name = Name;
             if (String.IsNullOrEmpty(name))
             {
-                TEntity entity = Find(_.ID, ID);
+                var entity = Find(_.ID, ID);
                 if (entity != null) name = entity.Name;
             }
             WriteLog(null, "删除", name);
@@ -87,11 +87,11 @@ namespace NewLife.CommonEntity
         public override IMenu FindPermissionMenu(string name)
         {
             // 优先使用当前页，除非当前页与权限名不同
-            TMenuEntity entity = Menu<TMenuEntity>.Current;
+            var entity = Menu<TMenuEntity>.Current;
             if (entity != null && entity.Permission == name) return entity;
 
             // 根据权限名找
-            TMenuEntity menu = Menu<TMenuEntity>.FindForPerssion(name);
+            var menu = Menu<TMenuEntity>.FindForPerssion(name);
             if (menu != null) return menu;
 
             // 找不到的时候，修改当前页面
@@ -112,7 +112,7 @@ namespace NewLife.CommonEntity
         /// <returns></returns>
         public override ILog CreateLog(Type type, string action)
         {
-            Log<TLogEntity> log = Log<TLogEntity>.Create(type, action);
+            var log = Log<TLogEntity>.Create(type, action);
             log.UserID = ID;
             log.UserName = FriendName;
 
@@ -181,8 +181,8 @@ namespace NewLife.CommonEntity
                 {
                     if (cookie == null) return null;
 
-                    String user = HttpUtility.UrlDecode(cookie["u"]);
-                    String pass = cookie["p"];
+                    var user = HttpUtility.UrlDecode(cookie["u"]);
+                    var pass = cookie["p"];
                     if (String.IsNullOrEmpty(user) || String.IsNullOrEmpty(pass)) return null;
 
                     try
@@ -202,7 +202,7 @@ namespace NewLife.CommonEntity
                 });
                 _httpState.EntityToCookie = new Converter<TEntity, HttpCookie>(delegate(TEntity entity)
                 {
-                    HttpCookie cookie = HttpContext.Current.Response.Cookies[_httpState.Key];
+                    var cookie = HttpContext.Current.Response.Cookies[_httpState.Key];
                     if (entity != null)
                     {
                         cookie["u"] = HttpUtility.UrlEncode(entity.Name);
@@ -226,7 +226,7 @@ namespace NewLife.CommonEntity
         {
             get
             {
-                TEntity entity = HttpState.Current;
+                var entity = HttpState.Current;
                 if (HttpState.Get(null, null) != entity) HttpState.Current = entity;
                 return entity;
             }
@@ -266,20 +266,20 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region 扩展查询
-        /// <summary>根据主键查询一个管理员实体对象用于表单编辑</summary>
-        /// <param name="__ID">编号</param>
-        /// <returns></returns>
-        [DataObjectMethod(DataObjectMethodType.Select, false)]
-        public static TEntity FindByKeyForEdit(Int32 __ID)
-        {
-            TEntity entity = FindByKey(__ID);
-            if (entity == null)
-            {
-                entity = new TEntity();
-                entity.IsEnable = true;
-            }
-            return entity;
-        }
+        ///// <summary>根据主键查询一个管理员实体对象用于表单编辑</summary>
+        ///// <param name="__ID">编号</param>
+        ///// <returns></returns>
+        //[DataObjectMethod(DataObjectMethodType.Select, false)]
+        //public static TEntity FindByKeyForEdit(Int32 __ID)
+        //{
+        //    TEntity entity = FindByKey(__ID);
+        //    if (entity == null)
+        //    {
+        //        entity = new TEntity();
+        //        entity.IsEnable = true;
+        //    }
+        //    return entity;
+        //}
 
         /// <summary>根据编号查找</summary>
         /// <param name="__ID"></param>
@@ -350,12 +350,12 @@ namespace NewLife.CommonEntity
         /// <returns></returns>
         private static String SearchWhere(String key, Int32 roleId)
         {
-            WhereExpression exp = new WhereExpression();
+            var exp = new WhereExpression();
 
             // SearchWhereByKeys系列方法用于构建针对字符串字段的模糊搜索
             if (!String.IsNullOrEmpty(key)) SearchWhereByKeys(exp.Builder, key);
 
-            if (roleId > 0) exp &= _.RoleID.Equal(roleId);
+            if (roleId > 0) exp &= _.RoleID == roleId;
 
             return exp;
         }
@@ -392,7 +392,7 @@ namespace NewLife.CommonEntity
         {
             if (String.IsNullOrEmpty(username)) return null;
 
-            TEntity user = FindByName(username);
+            var user = FindByName(username);
             if (user == null) return null;
 
             if (!user.IsEnable) throw new EntityException("账号被禁用！");
@@ -465,7 +465,7 @@ namespace NewLife.CommonEntity
         {
             if (String.IsNullOrEmpty(name)) throw new ArgumentNullException("name");
 
-            IMenu menu = FindPermissionMenu(name);
+            var menu = FindPermissionMenu(name);
             if (menu == null) return false;
 
             //return Acquire((Int32)menu["ID"], PermissionFlags.None);
@@ -478,7 +478,7 @@ namespace NewLife.CommonEntity
         /// <returns></returns>
         public virtual Boolean Acquire(String name, PermissionFlags flag)
         {
-            IMenu menu = FindPermissionMenu(name);
+            var menu = FindPermissionMenu(name);
             if (menu == null) return false;
 
             return Acquire(menu.ID, flag);
@@ -500,7 +500,7 @@ namespace NewLife.CommonEntity
         {
             if (menuID <= 0) throw new ArgumentNullException("menuID");
 
-            IRole entity = (this as IAdministrator).Role;
+            var entity = (this as IAdministrator).Role;
             if (entity == null) return false;
 
             // 申请权限
@@ -520,11 +520,11 @@ namespace NewLife.CommonEntity
         {
             //IEntityOperate op = EntityFactory.CreateOperate(TypeResolver.Resolve(typeof(IAdministrator), null));
 
-            ICommonManageProvider provider = CommonManageProvider.Provider;
+            var provider = CommonManageProvider.Provider;
             if (provider == null) return;
 
-            IEntityOperate op = EntityFactory.CreateOperate(provider.AdminstratorType);
-            IAdministrator admin = op.Default as IAdministrator;
+            var op = EntityFactory.CreateOperate(provider.AdminstratorType);
+            var admin = op.Default as IAdministrator;
             if (admin != null) admin.WriteLog(typeof(TEntity), action, remark);
         }
         #endregion
@@ -550,7 +550,7 @@ namespace NewLife.CommonEntity
             if (!Config.GetConfig<Boolean>("NewLife.CommonEntity.WriteEntityLog", true)) return;
 
             if (type == null) type = this.GetType();
-            ILog log = CreateLog(type, action);
+            var log = CreateLog(type, action);
             if (log != null)
             {
                 log.Remark = remark;

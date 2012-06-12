@@ -1,8 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
-using System.Text;
 using NewLife.Collections;
-using NewLife.Reflection;
 using NewLife.Web;
 using XCode;
 using XCode.Cache;
@@ -15,21 +13,21 @@ namespace NewLife.CommonEntity
     public partial class Log<TEntity> : Entity<TEntity> where TEntity : Log<TEntity>, new()
     {
         #region 对象操作
-        /// <summary>已重载。把该对象插入到数据库。这里可以做数据插入前的检查</summary>
-        /// <returns>影响的行数</returns>
-        public override Int32 Insert()
-        {
-            if (String.IsNullOrEmpty(IP)) IP = WebHelper.UserHost;
-            if (OccurTime <= DateTime.MinValue) OccurTime = DateTime.Now;
+        ///// <summary>已重载。把该对象插入到数据库。这里可以做数据插入前的检查</summary>
+        ///// <returns>影响的行数</returns>
+        //public override Int32 Insert()
+        //{
+        //    if (String.IsNullOrEmpty(IP)) IP = WebHelper.UserHost;
+        //    if (OccurTime <= DateTime.MinValue) OccurTime = DateTime.Now;
 
-            // 处理过长的备注
-            if (!String.IsNullOrEmpty(Remark) && Remark.Length > 500)
-            {
-                Remark = Remark.Substring(0, 500);
-            }
+        //    // 处理过长的备注
+        //    if (!String.IsNullOrEmpty(Remark) && Remark.Length > 500)
+        //    {
+        //        Remark = Remark.Substring(0, 500);
+        //    }
 
-            return base.Insert();
-        }
+        //    return base.Insert();
+        //}
 
         /// <summary>已重载。记录当前管理员</summary>
         /// <param name="isNew"></param>
@@ -52,6 +50,12 @@ namespace NewLife.CommonEntity
             if (!Dirtys[_.IP]) IP = WebHelper.UserHost;
             // 自动设置当前时间
             if (!Dirtys[_.OccurTime]) OccurTime = DateTime.Now;
+
+            // 处理过长的备注
+            if (!String.IsNullOrEmpty(Remark) && Remark.Length > 500)
+            {
+                Remark = Remark.Substring(0, 500);
+            }
         }
         #endregion
 
@@ -59,19 +63,19 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region 扩展查询
-        /// <summary>根据主键查询一个日志实体对象用于表单编辑</summary>
-        /// <param name="__ID">编号</param>
-        /// <returns></returns>
-        [DataObjectMethod(DataObjectMethodType.Select, false)]
-        public static TEntity FindByKeyForEdit(Int32 __ID)
-        {
-            TEntity entity = FindByKey(__ID);
-            if (entity == null)
-            {
-                entity = new TEntity();
-            }
-            return entity;
-        }
+        ///// <summary>根据主键查询一个日志实体对象用于表单编辑</summary>
+        ///// <param name="__ID">编号</param>
+        ///// <returns></returns>
+        //[DataObjectMethod(DataObjectMethodType.Select, false)]
+        //public static TEntity FindByKeyForEdit(Int32 __ID)
+        //{
+        //    TEntity entity = FindByKey(__ID);
+        //    if (entity == null)
+        //    {
+        //        entity = new TEntity();
+        //    }
+        //    return entity;
+        //}
 
         /// <summary>查询</summary>
         /// <param name="key"></param>
