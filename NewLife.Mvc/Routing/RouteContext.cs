@@ -3,6 +3,10 @@ using System.Collections.Generic;
 using NewLife.Collections;
 using NewLife.Reflection;
 
+#if DEBUG
+using System.Diagnostics;
+#endif
+
 namespace NewLife.Mvc
 {
     /// <summary>

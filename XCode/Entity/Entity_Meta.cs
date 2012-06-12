@@ -16,6 +16,10 @@ using XCode.Cache;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
 
+#if DEBUG
+using XCode.Common;
+#endif
+
 namespace XCode
 {
     partial class Entity<TEntity>
