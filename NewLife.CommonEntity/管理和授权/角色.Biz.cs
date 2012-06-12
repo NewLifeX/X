@@ -276,6 +276,16 @@ namespace NewLife.CommonEntity
 
             return Meta.Cache.Entities.Find(_.ID, id);
         }
+
+        /// <summary>根据名称查找角色</summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public static TEntity FindByName(String name)
+        {
+            if (String.IsNullOrEmpty(name) || Meta.Cache.Entities == null || Meta.Cache.Entities.Count < 1) return null;
+
+            return Meta.Cache.Entities.Find(_.Name, name);
+        }
         #endregion
 
         #region 扩展操作
