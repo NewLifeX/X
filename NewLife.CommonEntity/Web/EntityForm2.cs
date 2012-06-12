@@ -246,7 +246,7 @@ namespace NewLife.CommonEntity.Web
 
         private Boolean _isGettingEntity;
         private IEntity _Entity;
-        /// <summary>数据实体。使用者可以通过给KeyName置空来避免内部自动根据Request[KeyName]取值</summary>
+        /// <summary>数据实体。使用者可以通过给KeyName置空来避免内部自动根据Request[KeyName]取值</summary>1
         public virtual IEntity Entity
         {
             get
