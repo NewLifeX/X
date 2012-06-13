@@ -156,6 +156,9 @@ namespace NewLife.CommonEntity.Web
         /// <summary>是否有权限保存数据</summary>
         public virtual Boolean CanSave { get { return _CanSave; } set { _CanSave = value; } }
 
+        private IManagePage _ManagePage;
+        /// <summary>管理页。用于控制权限</summary>
+        public virtual IManagePage ManagePage { get { return _ManagePage ?? (_ManagePage = ManageProvider.Provider.GetService<IManagePage>()); } set { _ManagePage = value; } }
         #endregion
 
         #region 事件
@@ -346,7 +349,8 @@ namespace NewLife.CommonEntity.Web
             if (!Page.IsPostBack)
             {
                 // 尝试获取页面控制器，如果取得，则可以控制权限
-                IManagePage manager = ManageProvider.Provider.GetService<IManagePage>();
+                //IManagePage manager = ManageProvider.Provider.GetService<IManagePage>();
+                var manager = ManagePage;
                 if (manager != null && manager.Container != null)
                 {
                     CanSave = entity.IsNullKey && manager.Acquire(PermissionFlags.Insert) || manager.Acquire(PermissionFlags.Update);
