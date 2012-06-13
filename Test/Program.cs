@@ -36,7 +36,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test7();
+                Test7();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -293,8 +293,33 @@ namespace Test
 
         static void Test7()
         {
-            XTrace.UseWinForm();
-            Console.WriteLine(SimpleTree.Meta.Count);
+            //XTrace.UseWinForm();
+            //Console.WriteLine(SimpleTree.Meta.Count);
+
+            var n = Administrator.Meta.Count;
+            Console.WriteLine(n);
+
+            var admin = Administrator.Meta.Cache.Entities[0];
+            admin.LastLogin = DateTime.Now;
+            admin.Save();
+
+            admin = Administrator.FindByName("123321");
+            Console.WriteLine("Find=", admin);
+
+            Administrator.Meta.BeginTrans();
+            admin = new Administrator();
+            admin.Name = "123321";
+            admin.RoleID = 1;
+            admin.Save();
+
+            admin = Administrator.FindByName("123321");
+            Console.WriteLine("Find=", admin);
+
+            //Administrator.Meta.Rollback();
+            Administrator.Meta.Commit();
+
+            admin = Administrator.FindByName("123321");
+            Console.WriteLine("Find=", admin);
         }
     }
 }

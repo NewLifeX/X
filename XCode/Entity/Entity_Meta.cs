@@ -459,6 +459,7 @@ namespace XCode
                 TransCount = DBO.Commit();
                 // 提交事务时更新数据，虽然不是绝对准确，但没有更好的办法
                 // 即使提交了事务，但只要事务内没有执行更新数据的操作，也不更新
+                // 2012-06-13 测试证明，修改数据后，提交事务后会更新缓存等数据
                 if (TransCount <= 0 && executeCount > 0)
                 {
                     DataChange();
