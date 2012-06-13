@@ -141,7 +141,7 @@ namespace NewLife.CommonEntity
 
         #region 菜单
         /// <summary>菜单根</summary>
-        IMenu ICommonManageProvider.MenuRoot { get { return Menu.Root; } }
+        public virtual IMenu MenuRoot { get { return Menu.Root; } }
 
         /// <summary>根据编号找到菜单</summary>
         /// <param name="id"></param>
