@@ -28,7 +28,6 @@ public class MyEntityForm : Page
         // 让页面管理器先注册，因为页面管理器要控制权限
         Manager = ManageProvider.Provider.GetService<IManagePage>().Init(this, EntityType);
         EntityForm = ManageProvider.Provider.GetService<IEntityForm>().Init(this, EntityType);
-        EntityForm.ManagePage = Manager;
 
         base.OnPreInit(e);
     }

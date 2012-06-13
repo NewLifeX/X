@@ -29,8 +29,8 @@ namespace NewLife.CommonEntity
         /// <summary>是否新增</summary>
         Boolean IsNew { get; }
 
-        /// <summary>管理页。用于控制权限</summary>
-        IManagePage ManagePage { get; set; }
+        ///// <summary>管理页。用于控制权限</summary>
+        //IManagePage ManagePage { get; set; }
         #endregion
 
         #region 方法
