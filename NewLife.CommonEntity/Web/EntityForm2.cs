@@ -351,7 +351,7 @@ namespace NewLife.CommonEntity.Web
                 // 尝试获取页面控制器，如果取得，则可以控制权限
                 //IManagePage manager = ManageProvider.Provider.GetService<IManagePage>();
                 var manager = ManagePage;
-                if (manager != null && manager.Container != null)
+                if (manager != null && manager.Container != null && manager.ValidatePermission)
                 {
                     CanSave = entity.IsNullKey && manager.Acquire(PermissionFlags.Insert) || manager.Acquire(PermissionFlags.Update);
 
