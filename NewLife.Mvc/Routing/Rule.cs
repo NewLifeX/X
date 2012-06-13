@@ -319,8 +319,6 @@ namespace NewLife.Mvc
             {
                 if (_Module[0] != null && _Module[0] != value)
                 {
-                    var cfg = _Config[0];
-                    if (cfg != null) cfg.Clear();
                     reloadConfig = true;
                 }
                 _Module[0] = value;
@@ -344,6 +342,7 @@ namespace NewLife.Mvc
                         {
                             var cfg = _Config[0];
                             if (cfg == null) cfg = new RouteConfigManager();
+                            else cfg.Clear();
                             _Config[0] = cfg.AcquireWriterLock<RouteConfigManager>(() =>
                             {
                                 reloadConfig = false;
