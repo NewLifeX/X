@@ -279,7 +279,7 @@ namespace NewLife.CommonEntity
             if (roleID <= 0) return;
 
             var rms = FindAllByRoleID(roleID);
-            if (rms == null || rms.Count < 1) return;
+            //if (rms == null || rms.Count < 1) return;
 
             foreach (var item in menuIDs)
             {
