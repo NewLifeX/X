@@ -280,9 +280,10 @@ namespace NewLife.Mvc
         /// <returns></returns>
         public IController RouteTo(string match, ModuleRule rule, Func<RouteFrag, RouteFrag> adjustRouteFrag)
         {
+            RouteConfigManager cfg = rule.Config;
+            if (cfg == null) return null;
             var path = Path;
             bool entered = EnterModule("" + match, path, rule, rule.Module, adjustRouteFrag);
-            RouteConfigManager cfg = rule.Config;
             IController c = null;
             try
             {
