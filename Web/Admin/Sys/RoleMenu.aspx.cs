@@ -1,12 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Reflection;
 using System.Web.UI.WebControls;
 using NewLife.CommonEntity;
 using NewLife.Reflection;
 using NewLife.Web;
 using XCode;
+
+/*
+ * 该页面极为复杂，如无特殊需求，不建议修改。
+ * 如果不想要八个自定义权限，可以设置IsFullPermission为true
+ */
 
 public partial class Pages_RoleMenu : MyEntityList
 {
@@ -32,6 +35,9 @@ public partial class Pages_RoleMenu : MyEntityList
     protected void Page_Load(object sender, EventArgs e) { }
 
     public Int32 RoleID { get { return String.IsNullOrEmpty(ddlRole.SelectedValue) ? 0 : Convert.ToInt32(ddlRole.SelectedValue); } }
+
+    /// <summary>是否使用完整权限。完整权限包括8个自定义权限</summary>
+    protected Boolean IsFullPermission { get { return true; } }
 
     protected void ddlRole_SelectedIndexChanged(object sender, EventArgs e) { gv.DataBind(); }
 
@@ -65,6 +71,7 @@ public partial class Pages_RoleMenu : MyEntityList
         foreach (PermissionFlags item in flags.Keys)
         {
             if (item == PermissionFlags.None) continue;
+            if (!IsFullPermission && item >= PermissionFlags.Custom1) continue;
 
             ListItem li = new ListItem(flags[item], ((Int32)item).ToString());
             if (rm != null && (rm.PermissionFlag & item) == item) li.Selected = true;
@@ -105,6 +112,20 @@ public partial class Pages_RoleMenu : MyEntityList
                 rm.MenuID = entity.ID;
                 rm.PermissionFlag = PermissionFlags.All;
                 (rm as IEntity).Save();
+
+                // 如果父级没有授权，则授权
+                while ((entity = entity.Parent) != null)
+                {
+                    rm = FindByRoleAndMenu(RoleID, entity.ID);
+                    if (rm == null)
+                    {
+                        rm = TypeX.CreateInstance(EntityType) as IRoleMenu;
+                        rm.RoleID = RoleID;
+                        rm.MenuID = entity.ID;
+                        rm.PermissionFlag = PermissionFlags.All;
+                        (rm as IEntity).Save();
+                    }
+                }
             }
         }
         else
