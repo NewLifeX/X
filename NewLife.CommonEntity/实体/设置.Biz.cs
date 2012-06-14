@@ -188,7 +188,7 @@ namespace NewLife.CommonEntity
         /// <param name="val"></param>
         public virtual void Set<T>(T val)
         {
-            Value = "" + val;
+            Value = val != null ? "" + val : null;
             KindCode = Type.GetTypeCode(typeof(T));
             Save();
         }

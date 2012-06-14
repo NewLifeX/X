@@ -49,9 +49,9 @@ namespace NewLife.CommonEntity
                     .Ensure<String>("DisplayName", asmx != null ? (asmx.Title ?? asmx.Name) : "新生命管理平台", "显示名称")
                     .Ensure<String>("Company", asmx != null ? asmx.Company : "新生命开发团队", "公司")
                     .Ensure<String>("Address", "新生命开发团队", "地址")
-                    .Ensure<String>("Tel", "", "电话")
-                    .Ensure<String>("Fax", "", "传真")
-                    .Ensure<String>("EMail", "", "电子邮件");
+                    .Ensure<String>("Tel", null, "电话")
+                    .Ensure<String>("Fax", null, "传真")
+                    .Ensure<String>("EMail", null, "电子邮件");
 
                 if (String.IsNullOrEmpty(Sys.DisplayName))
                 {
