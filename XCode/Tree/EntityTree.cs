@@ -753,7 +753,8 @@ namespace XCode
 
             // 无主检查
             //if (!pisnull && !Meta.Cache.Entities.Exists(KeyName, pkey)) throw new Exception("无效上级[" + pkey + "]！");
-            if (!pisnull && FindCount(KeyName, pkey) <= 0) throw new XException("无效上级[" + pkey + "]！");
+            // 先检查实体缓存，可以命中绝大部分，因为绝大多数时候父级都存在
+            if (!pisnull && !Meta.Cache.Entities.Exists(KeyName, pkey) && FindCount(KeyName, pkey) <= 0) throw new XException("无效上级[" + pkey + "]！");
 
             // 死循环检查
             if (isnull)
