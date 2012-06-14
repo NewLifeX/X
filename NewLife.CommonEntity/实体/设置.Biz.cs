@@ -42,6 +42,9 @@ namespace NewLife.CommonEntity
         #region 扩展属性
         /// <summary>类型编码</summary>
         public TypeCode KindCode { get { return (TypeCode)Kind; } set { Kind = (Int32)value; } }
+
+        /// <summary>父级</summary>
+        public String ParentName { get { return Parent != null ? Parent.Name : null; } }
         #endregion
 
         #region 扩展查询
