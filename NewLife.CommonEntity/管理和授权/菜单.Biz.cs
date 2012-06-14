@@ -538,10 +538,7 @@ namespace NewLife.CommonEntity
         /// <summary>扫描指定目录并添加文件到第一个顶级菜单之下</summary>
         /// <param name="dir"></param>
         /// <returns></returns>
-        public static Int32 ScanAndAdd(String dir)
-        {
-            return ScanAndAdd(dir, GetTopForDir(dir));
-        }
+        public static Int32 ScanAndAdd(String dir) { return ScanAndAdd(dir, GetTopForDir(dir)); }
 
         /// <summary>获取目录层级</summary>
         /// <param name="dir"></param>
@@ -565,15 +562,13 @@ namespace NewLife.CommonEntity
             return currentPath;
         }
 
-        /// <summary>
-        /// 扫描指定目录并添加文件到顶级菜单之下
-        /// </summary>
+        /// <summary>扫描指定目录并添加文件到顶级菜单之下</summary>
         /// <param name="dir">扫描目录</param>
         /// <param name="top">父级</param>
         /// <param name="fileFilter">过滤文件名</param>
         /// <param name="isFilterChildDir">是否在子目录中过滤</param>
         /// <returns></returns>
-        public static Int32 ScanAndAdd(String dir, TEntity top, ICollection<String> fileFilter, Boolean isFilterChildDir)
+        static Int32 ScanAndAdd(String dir, TEntity top, ICollection<String> fileFilter = null, Boolean isFilterChildDir = false)
         {
             if (String.IsNullOrEmpty(dir)) throw new ArgumentNullException("dir");
             if (top == null) throw new ArgumentNullException("top");
@@ -620,9 +615,8 @@ namespace NewLife.CommonEntity
             //aspx
             if (fs != null && fs.Length > 0)
             {
-
-                List<String> files = new List<String>();
-                foreach (String elm in fs)
+                var files = new List<String>();
+                foreach (var elm in fs)
                 {
                     //过滤特定文件名文件
                     //if (fileFilter != null && fileFilter.Count() > 0 && null != fileFilter.Find(delegate(String item)
@@ -631,7 +625,7 @@ namespace NewLife.CommonEntity
                     //}))
                     //    continue;
                     // 采用哈希集合查询字符串更快
-                    if (fileFilter.Contains(Path.GetFileName(elm))) continue;
+                    if (fileFilter != null && fileFilter.Contains(Path.GetFileName(elm))) continue;
 
                     // 过滤掉表单页面
                     if (Path.GetFileNameWithoutExtension(elm).EndsWith("Form", StringComparison.OrdinalIgnoreCase)) continue;
@@ -695,15 +689,6 @@ namespace NewLife.CommonEntity
             }
 
             return num;
-        }
-
-        /// <summary>扫描指定目录并添加文件到顶级菜单之下</summary>
-        /// <param name="dir"></param>
-        /// <param name="top"></param>
-        /// <returns></returns>
-        public static Int32 ScanAndAdd(String dir, TEntity top)
-        {
-            return ScanAndAdd(dir, top, null, false);
         }
 
         ///// <summary>
