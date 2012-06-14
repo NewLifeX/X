@@ -10,15 +10,18 @@ using XCode;
 
 public partial class Login : System.Web.UI.Page
 {
+    static Login()
+    {
+        // 引发反向工程
+        ThreadPoolX.QueueUserWorkItem(delegate() { EntityFactory.CreateOperate(ManageProvider.Provider.ManageUserType).FindCount(); });
+    }
+
     protected void Page_Load(object sender, EventArgs e)
     {
         this.Title = SysSetting.DisplayName;
 
         if (!IsPostBack)
         {
-            // 引发反向工程
-            ThreadPoolX.QueueUserWorkItem(delegate() { EntityFactory.CreateOperate(ManageProvider.Provider.ManageUserType).FindCount(); });
-
             IManageUser user = ManageProvider.Provider.Current;
             if (user != null)
             {

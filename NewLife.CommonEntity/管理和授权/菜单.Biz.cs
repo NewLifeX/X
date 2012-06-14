@@ -167,7 +167,7 @@ namespace NewLife.CommonEntity
             if (list.Count == 1) return list[0];
 
             // 查找所有以该文件名结尾的菜单
-            EntityList<TEntity> list2 = list.FindAll(delegate(TEntity item)
+            var list2 = list.FindAll(delegate(TEntity item)
             {
                 return !String.IsNullOrEmpty(item.Url) && item.Url.Trim().EndsWith(@"/" + fileName, StringComparison.OrdinalIgnoreCase);
             });
@@ -175,13 +175,13 @@ namespace NewLife.CommonEntity
             if (list2.Count == 1) return list2[0];
 
             // 优先全路径
-            String url = String.Format(@"../../{0}/{1}/{2}", di.Parent.Name, di.Name, fileName);
-            TEntity entity = Meta.Cache.Entities.FindIgnoreCase(_.Url, url);
+            var url = String.Format(@"../../{0}/{1}/{2}", di.Parent.Name, di.Name, fileName);
+            var entity = FindByUrl(url);
             if (entity != null) return entity;
 
             // 兼容旧版本
             url = String.Format(@"../{0}/{1}", di.Name, fileName);
-            return Meta.Cache.Entities.FindIgnoreCase(_.Url, url);
+            return FindByUrl(url);
         }
         #endregion
 
@@ -429,38 +429,20 @@ namespace NewLife.CommonEntity
         /// <summary>添加子菜单</summary>
         /// <param name="name"></param>
         /// <param name="url"></param>
-        /// <returns></returns>
-        public virtual TEntity AddChild(String name, String url)
-        {
-            TEntity entity = new TEntity();
-            entity.ParentID = ID;
-            entity.Name = name;
-            entity.Permission = name;
-            entity.Url = url;
-            entity.IsShow = true;
-            entity.Remark = name;
-            entity.Save();
-
-            return entity;
-        }
-
-        /// <summary>添加子菜单</summary>
-        /// <param name="name"></param>
-        /// <param name="url"></param>
         /// <param name="sort"></param>
         /// <param name="reamark"></param>
         /// <returns></returns>
-        public virtual TEntity AddChild(String name, String url, Int32 sort, String reamark)
+        public virtual TEntity AddChild(String name, String url, Int32 sort = 0, String reamark = null)
         {
-            TEntity entity = new TEntity();
+            var entity = new TEntity();
             entity.ParentID = ID;
             entity.Name = name;
             entity.Permission = name;
             entity.Url = url;
             entity.Sort = sort;
             entity.IsShow = true;
-            entity.Remark = reamark;
-            entity.Save();
+            entity.Remark = reamark ?? name;
+            //entity.Save();
 
             return entity;
         }
@@ -505,7 +487,11 @@ namespace NewLife.CommonEntity
                 // 根据目录找菜单，它将作为顶级菜单
                 top = FindForName(item);
                 if (top == null) top = Meta.Cache.Entities.Find(_.Remark, item);
-                if (top == null) top = Root.AddChild(item, null, 0, item);
+                if (top == null)
+                {
+                    top = Root.AddChild(item, null, 0, item);
+                    top.Save();
+                }
                 //total += ScanAndAdd(item, top);
                 total += ScanAndAdd(item, top, filters, AppDirsIsAllFilter);
             }
@@ -656,7 +642,8 @@ namespace NewLife.CommonEntity
                         //    url = String.Format(@"../{0}/{1}", dirName, Path.GetFileName(elm));
                         //else
                         url = Path.Combine(currentPath, Path.GetFileName(elm));
-                        TEntity entity = Find(_.Url, url);
+                        //TEntity entity = Find(_.Url, url);
+                        var entity = FindByUrl(url);
                         if (entity != null) continue;
 
                         entity = parent.AddChild(Path.GetFileNameWithoutExtension(elm), url);
