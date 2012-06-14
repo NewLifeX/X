@@ -6,6 +6,7 @@ using NewLife.Threading;
 using NewLife.Web;
 using XCode;
 using NewLife.Security;
+using System.Threading;
 
 public partial class Login : System.Web.UI.Page
 {
@@ -78,6 +79,7 @@ public partial class Login : System.Web.UI.Page
                 WebHelper.Alert(msg);
             }
         }
+        catch (ThreadAbortException) { }
         catch (Exception ex)
         {
             String msg = "登录失败";
