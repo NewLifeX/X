@@ -217,7 +217,7 @@ namespace XCode
 
                 Int32 rs = DBO.Execute(sql, Meta.TableName);
                 executeCount++;
-                DataChange();
+                DataChange("修改数据");
                 return rs;
             }
 
@@ -230,7 +230,7 @@ namespace XCode
 
                 Int64 rs = DBO.InsertAndGetIdentity(sql, Meta.TableName);
                 executeCount++;
-                DataChange();
+                DataChange("修改数据");
                 return rs;
             }
 
@@ -245,7 +245,7 @@ namespace XCode
 
                 Int32 rs = DBO.Execute(sql, type, ps, Meta.TableName);
                 executeCount++;
-                DataChange();
+                DataChange("修改数据");
                 return rs;
             }
 
@@ -260,17 +260,17 @@ namespace XCode
 
                 Int64 rs = DBO.InsertAndGetIdentity(sql, type, ps, Meta.TableName);
                 executeCount++;
-                DataChange();
+                DataChange("修改数据");
                 return rs;
             }
 
-            static void DataChange()
+            static void DataChange(String reason = null)
             {
                 // 还在事务保护里面，不更新缓存，最后提交或者回滚的时候再更新
                 // 一般事务保护用于批量更新数据，次数频繁删除缓存将会打来巨大的性能损耗
                 if (TransCount > 0) return;
 
-                Cache.Clear();
+                Cache.Clear(reason);
                 //_Count = null;
                 ClearCountCache();
 
@@ -462,7 +462,7 @@ namespace XCode
                 // 2012-06-13 测试证明，修改数据后，提交事务后会更新缓存等数据
                 if (TransCount <= 0 && executeCount > 0)
                 {
-                    DataChange();
+                    DataChange("修改数据后提交事务");
                     // 回滚到顶层才更新数据
                     executeCount = 0;
                 }
@@ -476,9 +476,17 @@ namespace XCode
                 TransCount = DBO.Rollback();
                 // 回滚的时候貌似不需要更新缓存
                 //if (TransCount <= 0 && executeCount > 0) DataChange();
-                if (TransCount <= 0 && executeCount > 0) executeCount = 0;
+                if (TransCount <= 0 && executeCount > 0)
+                {
+                    // 因为在事务保护中添加或删除实体时直接操作了实体缓存，所以需要更新
+                    DataChange("修改数据后回滚事务");
+                    executeCount = 0;
+                }
                 return TransCount;
             }
+
+            /// <summary>是否在事务保护中</summary>
+            internal static Boolean UsingTrans { get { return TransCount > 0; } }
             #endregion
 
             #region 参数化
@@ -554,7 +562,7 @@ namespace XCode
 
                     return _cache.GetItem(String.Format("{0}_{1}", ConnName, TableName), delegate(String key)
                     {
-                        EntityCache<TEntity> ec = new EntityCache<TEntity>();
+                        var ec = new EntityCache<TEntity>();
                         ec.ConnName = ConnName;
                         ec.TableName = TableName;
                         //_cache.Add(key, ec);
@@ -563,6 +571,9 @@ namespace XCode
                     });
                 }
             }
+
+            ///// <summary>是否在使用缓存</summary>
+            //internal static Boolean UsingCache { get { return _cache.ContainsKey(String.Format("{0}_{1}", ConnName, TableName)); } }
 
             private static DictionaryCache<String, SingleEntityCache<Object, TEntity>> _singleCache = new DictionaryCache<String, SingleEntityCache<Object, TEntity>>();
             /// <summary>

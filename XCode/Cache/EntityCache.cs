@@ -51,7 +51,7 @@ namespace XCode.Cache
                                 if (Debug)
                                 {
                                     String reason = ExpiredTime <= DateTime.MinValue ? "第一次" : (isnull ? "无缓存数据" : Expriod + "秒过期");
-                                    DAL.WriteLog("更新实体缓存（第{2}次）：{0} 原因：{1}", typeof(TEntity).FullName, reason, Times);
+                                    DAL.WriteLog("更新实体缓存（第{2}次）：{0} 原因：{1} {3}", typeof(TEntity).FullName, reason, Times, XTrace.GetCaller(2, 2));
                                 }
 
                                 FillWaper(isnull);
@@ -67,6 +67,8 @@ namespace XCode.Cache
                 }
                 else
                     Interlocked.Increment(ref Shoot1);
+
+                Using = true;
 
                 return _Entities ?? EntityList<TEntity>.Empty;
             }
@@ -137,13 +139,17 @@ namespace XCode.Cache
         }
 
         /// <summary>清除缓存</summary>
-        public void Clear()
+        public void Clear(String reason = null)
         {
-            if (_Entities != null && _Entities.Count > 0 && Debug) DAL.WriteLog("清空实体缓存：{0}", typeof(TEntity).FullName);
+            if (_Entities != null && _Entities.Count > 0 && Debug) DAL.WriteLog("清空实体缓存：{0} 原因：{1}", typeof(TEntity).FullName, reason);
 
             ExpiredTime = DateTime.Now;
             _Entities = null;
         }
+
+        private Boolean _Using;
+        /// <summary>是否在使用缓存</summary>
+        public Boolean Using { get { return _Using; } private set { _Using = value; } }
         #endregion
 
         #region 统计

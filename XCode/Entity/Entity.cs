@@ -119,7 +119,18 @@ namespace XCode
 
         /// <summary>把该对象持久化到数据库。该方法提供原生的数据操作，不建议重载，建议重载Insert代替。</summary>
         /// <returns></returns>
-        protected virtual Int32 OnInsert() { return persistence.Insert(this); }
+        protected virtual Int32 OnInsert()
+        {
+            var rs = persistence.Insert(this);
+
+            // 如果当前在事务中，并使用了缓存，则尝试更新缓存
+            if (Meta.UsingTrans && Meta.Cache.Using)
+            {
+                Meta.Cache.Entities.Add(this as TEntity);
+            }
+
+            return rs;
+        }
 
         /// <summary>更新数据，通过调用OnUpdate实现，另外增加了数据验证和事务保护支持，将来可能实现事件支持。</summary>
         /// <returns></returns>
@@ -173,7 +184,23 @@ namespace XCode
 
         /// <summary>从数据库中删除该对象</summary>
         /// <returns></returns>
-        protected virtual Int32 OnDelete() { return persistence.Delete(this); }
+        protected virtual Int32 OnDelete()
+        {
+            var rs = persistence.Delete(this);
+
+            // 如果当前在事务中，并使用了缓存，则尝试更新缓存
+            if (Meta.UsingTrans && Meta.Cache.Using)
+            {
+                var fi = Meta.Unique;
+                //var entity = Meta.Cache.Entities.Find(fi.Name, this[fi.Name]);
+                //if (entity != null) Meta.Cache.Entities.Remove(entity);
+
+                if (fi != null)
+                    Meta.Cache.Entities.RemoveAll(e => Object.Equals(e[fi.Name], this[fi.Name]));
+            }
+
+            return rs;
+        }
 
         Int32 DoAction(Func<Int32> func, Boolean? isnew)
         {
@@ -1143,6 +1170,9 @@ namespace XCode
             return obj;
         }
 
+        /// <summary>克隆实体</summary>
+        /// <param name="setDirty"></param>
+        /// <returns></returns>
         internal protected override IEntity CloneEntityInternal(Boolean setDirty = true) { return CloneEntity(setDirty); }
         #endregion
 

@@ -135,6 +135,9 @@ namespace XCode
         /// <returns></returns>
         IEntity IEntity.CloneEntity(Boolean setDirty) { return CloneEntityInternal(setDirty); }
 
+        /// <summary>克隆实体</summary>
+        /// <param name="setDirty"></param>
+        /// <returns></returns>
         internal protected abstract IEntity CloneEntityInternal(Boolean setDirty = true);
 
         /// <summary>复制来自指定实体的成员，可以是不同类型的实体，只复制共有的基本字段，影响脏数据</summary>

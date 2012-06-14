@@ -53,6 +53,7 @@ using System.Runtime.InteropServices;
 
 /*
  * v8.7.2012.0614   IEntity接口增加CloneEntity和CopyFrom方法，增强对实体克隆的支持
+ *                  在事务保护中，为了避免性能损耗，不会实时更新实体缓存，直到提交或回滚事务，插入或删除实体时直接操作实体缓存
  * 
  * v8.7.2012.0607   修正TableItem中连接名映射ConnMaps可能因为多线程冲突而导致小几率失败的问题
  *                  插入数据时，如果没有自增字段，则无视允许插入自增字段的设置
