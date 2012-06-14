@@ -553,7 +553,8 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public virtual DataTable GetSchema(String collectionName, String[] restrictionValues)
         {
-            var key = collectionName;
+            // 小心collectionName为空，此时列出所有架构名称
+            var key = "" + collectionName;
             if (restrictionValues != null && restrictionValues.Length > 0) key += "_" + String.Join("_", restrictionValues);
             return _schCache.GetItem<String, String[]>(key, collectionName, restrictionValues, GetSchemaInternal);
         }
