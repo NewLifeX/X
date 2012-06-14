@@ -4,14 +4,13 @@
 <asp:Content ID="C" ContentPlaceHolderID="C" runat="server">
     <div class="toolbar">
         <asp:Label Text="关键字" runat="server" />
-        &nbsp;<asp:TextBox runat="server" ID="TB_key" />
+        &nbsp;<asp:TextBox runat="server" ID="txtKey" />
         角色：<XCL:DropDownList ID="ddlRole" runat="server" DataSourceID="odsRole"
             AppendDataBoundItems="true" DataTextField="Name" DataValueField="ID" 
             AutoPostBack="True">
             <asp:ListItem Value="0">请选择</asp:ListItem>
         </XCL:DropDownList>
         &nbsp;<asp:Button ID="Button1" runat="server" Text="查询" />
-        <asp:Label ID="Label_Info" runat="server" ForeColor="#FF3300"></asp:Label>
         <XCL:LinkBox ID="lbAdd" runat="server" BoxHeight="370px" BoxWidth="440px" Url="AdminForm.aspx"
             IconLeft="~/Admin/images/icons/new.gif"><b>添加管理员</b></XCL:LinkBox>
         &nbsp;<asp:Button ID="btnDelete" runat="server" Text="批量删除" OnClientClick='return confirm("确定批量删除吗？")'
@@ -79,8 +78,8 @@
     </asp:GridView>
     <asp:ObjectDataSource ID="ods" runat="server" SelectMethod="Search" DeleteMethod="Delete">
         <SelectParameters>
-            <asp:ControlParameter ControlID="TB_key" Name="key" Type="String" PropertyName="Text" />
-            <asp:ControlParameter ControlID="DropdownList1" Name="roleID" Type="Int32" PropertyName="SelectedValue" />
+            <asp:ControlParameter ControlID="txtKey" Name="key" Type="String" PropertyName="Text" />
+            <asp:ControlParameter ControlID="ddlRole" Name="roleID" Type="Int32" PropertyName="SelectedValue" />
             <asp:Parameter Name="orderClause" Type="String" />
             <asp:Parameter DefaultValue="0" Name="startRowIndex" Type="Int32" />
             <asp:Parameter DefaultValue="0" Name="maximumRows" Type="Int32" />
