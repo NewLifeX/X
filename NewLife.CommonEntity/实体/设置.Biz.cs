@@ -227,8 +227,9 @@ namespace NewLife.CommonEntity
                 entity.ParentID = ID;
                 entity.Name = name;
             }
-            if (String.IsNullOrEmpty(entity.Value)) entity.Set<T>(defval);
+            // Set放在最后，因为里面有个Save，避免做了一次Insert后再做一次Update
             if (String.IsNullOrEmpty(entity.DisplayName)) entity.DisplayName = displayName;
+            if (String.IsNullOrEmpty(entity.Value)) entity.Set<T>(defval);
             entity.Save();
 
             return this;
