@@ -5,6 +5,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using NewLife;
+using NewLife.Collections;
 using NewLife.Log;
 using XCode.Exceptions;
 
@@ -538,11 +539,26 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 架构
-        /// <summary>返回数据源的架构信息</summary>
+        private DictionaryCache<String, DataTable> _schCache = new DictionaryCache<String, DataTable>(StringComparer.OrdinalIgnoreCase)
+        {
+            Expriod = 10,
+            ClearExpriod = 10 * 60//,
+            // 不能异步。否则，修改表结构后，第一次获取会是旧的
+            //Asynchronous = true
+        };
+
+        /// <summary>返回数据源的架构信息。缓存10分钟</summary>
         /// <param name="collectionName">指定要返回的架构的名称。</param>
         /// <param name="restrictionValues">为请求的架构指定一组限制值。</param>
         /// <returns></returns>
-        public virtual DataTable GetSchema(string collectionName, string[] restrictionValues)
+        public virtual DataTable GetSchema(String collectionName, String[] restrictionValues)
+        {
+            var key = collectionName;
+            if (restrictionValues != null && restrictionValues.Length > 0) key += "_" + String.Join("_", restrictionValues);
+            return _schCache.GetItem<String, String[]>(key, collectionName, restrictionValues, GetSchemaInternal);
+        }
+
+        DataTable GetSchemaInternal(String key, String collectionName, String[] restrictionValues)
         {
             QueryTimes++;
             if (!Opened) Open();
