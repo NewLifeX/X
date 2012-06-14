@@ -149,7 +149,7 @@ namespace XCode.Cache
 
         private Boolean _Using;
         /// <summary>是否在使用缓存</summary>
-        public Boolean Using { get { return _Using; } private set { _Using = value; } }
+        internal Boolean Using { get { return _Using; } private set { _Using = value; } }
         #endregion
 
         #region 统计

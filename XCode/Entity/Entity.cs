@@ -317,15 +317,29 @@ namespace XCode
                 values[i] = this[names[i]];
             }
 
-            FieldItem field = Meta.Unique;
-            // 如果是空主键，则采用直接判断记录数的方式，以加快速度
-            if (Helper.IsNullKey(this[field.Name])) return FindCount(names, values) > 0;
+            var field = Meta.Unique;
+            if (!Meta.Cache.Using)
+            {
+                // 如果是空主键，则采用直接判断记录数的方式，以加快速度
+                if (Helper.IsNullKey(this[field.Name])) return FindCount(names, values) > 0;
 
-            EntityList<TEntity> list = FindAll(names, values);
-            if (list == null || list.Count < 1) return false;
-            if (list.Count > 1) return true;
+                var list = FindAll(names, values);
+                if (list == null || list.Count < 1) return false;
+                if (list.Count > 1) return true;
 
-            return !Object.Equals(this[field.Name], list[0][field.Name]);
+                return !Object.Equals(this[field.Name], list[0][field.Name]);
+            }
+            else
+            {
+                // 如果是空主键，则采用直接判断记录数的方式，以加快速度
+                if (Helper.IsNullKey(this[field.Name])) return Meta.Cache.Entities.FindAll(names, values).Count > 0;
+
+                var list = Meta.Cache.Entities.FindAll(names, values);
+                if (list == null || list.Count < 1) return false;
+                if (list.Count > 1) return true;
+
+                return !Object.Equals(this[field.Name], list[0][field.Name]);
+            }
         }
         #endregion
 
