@@ -17,32 +17,25 @@ public partial class Pages_RoleMenu : MyEntityList
     {
         base.OnInit(e);
 
-        ObjectDataSource1.DataObjectTypeName = ObjectDataSource1.TypeName = CommonManageProvider.Provider.MenuType.FullName;
-        ObjectDataSource2.DataObjectTypeName = ObjectDataSource2.TypeName = CommonManageProvider.Provider.RoleType.FullName;
-    }
+        ods.DataObjectTypeName = ods.TypeName = CommonManageProvider.Provider.MenuType.FullName;
+        odsRole.DataObjectTypeName = odsRole.TypeName = CommonManageProvider.Provider.RoleType.FullName;
 
-    protected void Page_Load(object sender, EventArgs e)
-    {
-        //if (!IsPostBack)
-        //{
-        //    DropDownList1.DataBind();
-        //}
-    }
-
-    public Int32 RoleID
-    {
-        get
+        Int32 roleID = WebHelper.RequestInt("RoleID");
+        if (roleID > 0)
         {
-            return String.IsNullOrEmpty(DropDownList1.SelectedValue) ? 0 : Convert.ToInt32(DropDownList1.SelectedValue);
+            ddlRole.DataBind();
+
+            ddlRole.SelectedValue = roleID.ToString();
         }
     }
 
-    protected void DropDownList1_SelectedIndexChanged(object sender, EventArgs e)
-    {
-        GridView1.DataBind();
-    }
+    protected void Page_Load(object sender, EventArgs e) { }
 
-    protected void GridView1_RowDataBound(object sender, GridViewRowEventArgs e)
+    public Int32 RoleID { get { return String.IsNullOrEmpty(ddlRole.SelectedValue) ? 0 : Convert.ToInt32(ddlRole.SelectedValue); } }
+
+    protected void ddlRole_SelectedIndexChanged(object sender, EventArgs e) { gv.DataBind(); }
+
+    protected void gv_RowDataBound(object sender, GridViewRowEventArgs e)
     {
         if (e.Row == null) return;
 
@@ -67,7 +60,7 @@ public partial class Pages_RoleMenu : MyEntityList
         }
 
         // 检查权限
-        Dictionary<PermissionFlags, String> flags = GetDescriptions();
+        Dictionary<PermissionFlags, String> flags = EnumHelper.GetDescriptions<PermissionFlags>();
         cblist.Items.Clear();
         foreach (PermissionFlags item in flags.Keys)
         {
@@ -78,6 +71,7 @@ public partial class Pages_RoleMenu : MyEntityList
             cblist.Items.Add(li);
         }
     }
+
     string formtitle = string.Empty;
     protected void CheckBox1_CheckedChanged(object sender, EventArgs e)
     {
@@ -128,7 +122,7 @@ public partial class Pages_RoleMenu : MyEntityList
             }
         }
 
-        GridView1.DataBind();
+        gv.DataBind();
     }
 
     protected void CheckBoxList1_SelectedIndexChanged(object sender, EventArgs e)
@@ -183,7 +177,7 @@ public partial class Pages_RoleMenu : MyEntityList
             (rm as IEntity).Save();
         }
 
-        GridView1.DataBind();
+        gv.DataBind();
     }
 
     IRoleMenu FindByRoleAndMenu(Int32 roleID, Int32 menuID)
@@ -192,40 +186,4 @@ public partial class Pages_RoleMenu : MyEntityList
         if (mix == null) return null;
         return mix.Invoke(null, roleID, menuID) as IRoleMenu;
     }
-
-    static Dictionary<PermissionFlags, String> flagCache;
-    static Dictionary<PermissionFlags, String> GetDescriptions()
-    {
-        if (flagCache != null) return flagCache;
-
-        flagCache = new Dictionary<PermissionFlags, string>();
-
-        TypeX type = typeof(PermissionFlags);
-        foreach (FieldInfo item in type.BaseType.GetFields(BindingFlags.Public | BindingFlags.Static))
-        {
-            if (!item.IsStatic) continue;
-
-            // 这里的快速访问方法会报错
-            //FieldInfoX fix = FieldInfoX.Create(item);
-            //PermissionFlags value = (PermissionFlags)fix.GetValue(null);
-            PermissionFlags value = (PermissionFlags)item.GetValue(null);
-
-            String des = item.Name;
-            DescriptionAttribute att = AttributeX.GetCustomAttribute<DescriptionAttribute>(item, false);
-            if (att != null && !String.IsNullOrEmpty(att.Description)) des = att.Description;
-            flagCache.Add(value, des);
-        }
-
-        return flagCache;
-    }
-
-    ////重写权限验证方法，对网站配置文件加强控制
-    //public override bool Acquire(PermissionFlags flag)
-    //{
-    //    if (!string.IsNullOrEmpty(formtitle) && (formtitle == "网站配置" || formtitle == "网站数据库" || formtitle == "网站日志"))
-    //    {
-    //        if ((CommonManageProvider.Provider.Current.Role.Menus.Find(RoleMenu._.MenuID, MyMenu.ID).PermissionFlag & PermissionFlags.Custom1) == 0) return false;
-    //    }
-    //    return base.Acquire(flag);
-    //}
 }

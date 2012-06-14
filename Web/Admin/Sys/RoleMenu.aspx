@@ -3,14 +3,15 @@
 
 <asp:Content ID="Content1" ContentPlaceHolderID="C" runat="server">
     <div class="toolbar">
-        &nbsp;角色：<asp:DropDownList ID="DropDownList1" runat="server" DataSourceID="ObjectDataSource2"
-            DataTextField="Name" DataValueField="ID" OnSelectedIndexChanged="DropDownList1_SelectedIndexChanged"
+        &nbsp;角色：<asp:DropDownList ID="ddlRole" runat="server" DataSourceID="odsRole"
+            DataTextField="Name" DataValueField="ID" OnSelectedIndexChanged="ddlRole_SelectedIndexChanged"
             AutoPostBack="True">
         </asp:DropDownList>
     </div>
-    <asp:GridView ID="GridView1" runat="server" AutoGenerateColumns="False" DataKeyNames="ID"
+    <asp:GridView ID="gv" runat="server" AutoGenerateColumns="False" DataKeyNames="ID"
         CssClass="m_table" CellPadding="0" GridLines="None" PageSize="15" EnableModelValidation="True"
-        DataSourceID="ObjectDataSource1" OnRowDataBound="GridView1_RowDataBound" EnableViewState="False">
+        DataSourceID="ods" OnRowDataBound="gv_RowDataBound" 
+        EnableViewState="False">
         <Columns>
             <asp:BoundField DataField="ID" HeaderText="编号" InsertVisible="False" ReadOnly="True"
                 SortExpression="ID">
@@ -43,12 +44,13 @@
             没有符合条件的数据！
         </EmptyDataTemplate>
     </asp:GridView>
-    <asp:ObjectDataSource ID="ObjectDataSource1" runat="server" SelectMethod="FindAllChildsNoParent">
+    <asp:ObjectDataSource ID="ods" runat="server" 
+        SelectMethod="FindAllChildsNoParent">
         <SelectParameters>
             <asp:Parameter DefaultValue="0" Name="parentKey" Type="Object" />
         </SelectParameters>
     </asp:ObjectDataSource>
-    <asp:ObjectDataSource ID="ObjectDataSource2" runat="server" SelectMethod="FindAllByName">
+    <asp:ObjectDataSource ID="odsRole" runat="server" SelectMethod="FindAllByName">
         <SelectParameters>
             <asp:Parameter Name="name" Type="String" />
             <asp:Parameter Name="value" Type="Object" />
