@@ -884,7 +884,9 @@ namespace XCode
             DataRow dr = e.Row;
             foreach (FieldItem item in Factory.Fields)
             {
-                entity[item.Name] = dr[item.Name];
+                //entity[item.Name] = dr[item.Name];
+                // 影响脏数据
+                entity.SetItem(item.Name, dr[item.Name]);
             }
 
             if (e.Action == DataRowAction.Add)
