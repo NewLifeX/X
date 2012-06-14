@@ -96,37 +96,17 @@ namespace NewLife.CommonEntity
             return base.Delete();
         }
 
-        ///// <summary>
-        ///// 首次连接数据库时初始化数据，仅用于实体类重载，用户不应该调用该方法
-        ///// </summary>
-        //[EditorBrowsable(EditorBrowsableState.Never)]
-        //protected override void InitData()
-        //{
-        //    base.InitData();
-
-        //    if (Meta.Count > 0)
-        //    {
-        //        // 检查是否所有人都没有权限
-        //        //CheckNonePerssion(0);
-        //        foreach (Menu item in Menu.Root.AllChilds)
-        //        {
-        //            CheckNonePerssion(item.ID);
-        //        }
-        //        return;
-        //    }
-        //}
-
         /// <summary>检查指定菜单编号的权限，保证至少有一个角色有权限控制该菜单</summary>
         /// <param name="menuID"></param>
         public static void CheckNonePerssion(Int32 menuID)
         {
             if (Meta.Cache.Entities.Count < 1) return;
 
-            EntityList<TEntity> list = Meta.Cache.Entities;
+            var list = Meta.Cache.Entities;
             if (menuID > 0) list = list.FindAll(_.MenuID, menuID);
             if (list == null || list.Count < 1) return;
 
-            EntityList<TEntity> list2 = list.FindAll(_.Permission, (Int32)PermissionFlags.None);
+            var list2 = list.FindAll(_.Permission, (Int32)PermissionFlags.None);
             // 判断是否所有实体都是None权限
             if (list2 != null && list2.Count == list.Count)
             {
@@ -148,28 +128,10 @@ namespace NewLife.CommonEntity
 
         #region 扩展属性
         /// <summary>操作权限</summary>
-        public PermissionFlags PermissionFlag
-        {
-            get { return (PermissionFlags)Permission; }
-            set { Permission = (Int32)value; }
-        }
+        public PermissionFlags PermissionFlag { get { return (PermissionFlags)Permission; } set { Permission = (Int32)value; } }
         #endregion
 
         #region 扩展查询
-        ///// <summary>根据主键查询一个角色和菜单实体对象用于表单编辑</summary>
-        ///// <param name="__ID">编号</param>
-        ///// <returns></returns>
-        //[DataObjectMethod(DataObjectMethodType.Select, false)]
-        //public static TEntity FindByKeyForEdit(Int32 __ID)
-        //{
-        //    TEntity entity = FindByKey(__ID);
-        //    if (entity == null)
-        //    {
-        //        entity = new TEntity();
-        //    }
-        //    return entity;
-        //}
-
         /// <summary>根据角色编号查询所有角色和菜单实体对象</summary>
         /// <param name="roleID">编号</param>
         /// <returns>角色和菜单 实体对象</returns>
@@ -202,7 +164,7 @@ namespace NewLife.CommonEntity
             if (roleID <= 0 || menuID <= 0 || Meta.Cache.Entities == null || Meta.Cache.Entities.Count < 1) return null;
 
             // 分两次查询
-            EntityList<TEntity> list = FindAllByRoleID(roleID);
+            var list = FindAllByRoleID(roleID);
             if (list == null || list.Count < 1) return null;
 
             return list.Find(_.MenuID, menuID);
@@ -214,11 +176,7 @@ namespace NewLife.CommonEntity
         /// <returns></returns>
         internal static EntityList<TEntity> FindAllInvalid(String roleSql, String menuSql)
         {
-            var exp = new WhereExpression();
-            exp &= _.RoleID.NotIn(roleSql);
-            exp |= _.MenuID.NotIn(menuSql);
-
-            return FindAll(exp, null, null, 0, 0);
+            return FindAll(_.RoleID.NotIn(roleSql) | _.MenuID.NotIn(menuSql), null, null, 0, 0);
         }
         #endregion
 
@@ -229,7 +187,7 @@ namespace NewLife.CommonEntity
         /// <returns></returns>
         public static TEntity Create(Int32 roleID, Int32 menuID)
         {
-            TEntity entity = new TEntity();
+            var entity = new TEntity();
             entity.RoleID = roleID;
             entity.MenuID = menuID;
             entity.PermissionFlag = PermissionFlags.All;

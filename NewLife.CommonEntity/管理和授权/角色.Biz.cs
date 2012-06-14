@@ -111,12 +111,17 @@ namespace NewLife.CommonEntity
         {
             get
             {
-                return GetExtend<TMenuEntity, EntityList<TMenuEntity>>("MenuList", e =>
+                return GetExtend<TMenuEntity, EntityList<TMenuEntity>>("MenuList", m =>
                 {
-                    EntityList<TMenuEntity> list = EntityList<TMenuEntity>.From<TRoleMenuEntity>(Menus, item => Menu<TMenuEntity>.FindByID(item.MenuID));
-                    // 先按Sort降序，再按ID升序，的确更加完善
-                    if (list != null) list.Sort(new String[] { Menu<TMenuEntity>._.Sort, Menu<TMenuEntity>._.ID }, new bool[] { true, false });
-                    return list;
+                    //var list = EntityList<TMenuEntity>.From<TRoleMenuEntity>(Menus, item => Menu<TMenuEntity>.FindByID(item.MenuID));
+                    //// 先按Sort降序，再按ID升序，的确更加完善
+                    //if (list != null) list.Sort(new String[] { Menu<TMenuEntity>._.Sort, Menu<TMenuEntity>._.ID }, new bool[] { true, false });
+                    //return list;
+                    var list = Menus.ToList()
+                        .Select(e => Menu<TMenuEntity>.FindByID(e.MenuID))
+                        .OrderByDescending(e => e.Sort)
+                        .ThenBy(e => e.ID);
+                    return new EntityList<TMenuEntity>(list);
                 }, false);
             }
             set { Extends["MenuList"] = value; }
@@ -138,7 +143,7 @@ namespace NewLife.CommonEntity
             var list = new List<Int32>();
             while (id > 0)
             {
-                TMenuEntity entity = MenuList.Find(Menu<TMenuEntity>._.ID, id);
+                var entity = MenuList.Find(Menu<TMenuEntity>._.ID, id);
                 if (entity == null) return false;
 
                 if (entity.Parent == null) break;
@@ -259,20 +264,6 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region 扩展查询
-        ///// <summary>根据主键查询一个角色实体对象用于表单编辑</summary>
-        ///// <param name="__ID">角色编号</param>
-        ///// <returns></returns>
-        //[DataObjectMethod(DataObjectMethodType.Select, false)]
-        //public static TEntity FindByKeyForEdit(Int32 __ID)
-        //{
-        //    TEntity entity = FindByKey(__ID);
-        //    if (entity == null)
-        //    {
-        //        entity = new TEntity();
-        //    }
-        //    return entity;
-        //}
-
         /// <summary>根据编号查找角色</summary>
         /// <param name="id"></param>
         /// <returns></returns>

@@ -432,7 +432,7 @@ namespace NewLife.CommonEntity
         /// <param name="sort"></param>
         /// <param name="reamark"></param>
         /// <returns></returns>
-        public virtual TEntity AddChild(String name, String url, Int32 sort = 0, String reamark = null)
+        public virtual TEntity Create(String name, String url, Int32 sort = 0, String reamark = null)
         {
             var entity = new TEntity();
             entity.ParentID = ID;
@@ -489,7 +489,7 @@ namespace NewLife.CommonEntity
                 if (top == null) top = Meta.Cache.Entities.Find(_.Remark, item);
                 if (top == null)
                 {
-                    top = Root.AddChild(item, null, 0, item);
+                    top = Root.Create(item, null, 0, item);
                     top.Save();
                 }
                 //total += ScanAndAdd(item, top);
@@ -515,7 +515,7 @@ namespace NewLife.CommonEntity
                 {
                     //var list = FindAllByName(_.ParentID, 0, _.ID.Desc(), 0, 1);
                     //if (list != null && list.Count > 1) top = list[0];
-                    return Meta.Cache.Entities.ToList().OrderBy(e => -1 * e.Sort).FirstOrDefault(e => e.ParentID == 1);
+                    return Meta.Cache.Entities.ToList().OrderByDescending(e => e.Sort).FirstOrDefault(e => e.ParentID == 0);
                 }
             }
             return top;
@@ -591,7 +591,7 @@ namespace NewLife.CommonEntity
             if (parent == null) parent = Meta.Cache.Entities.Find(_.Remark, dirName);
             if (parent == null)
             {
-                parent = top.AddChild(dirName, null, 0, dirName);
+                parent = top.Create(dirName, null, 0, dirName);
                 parent.Save();
                 num++;
                 //目录为新增菜单
@@ -646,7 +646,7 @@ namespace NewLife.CommonEntity
                         var entity = FindByUrl(url);
                         if (entity != null) continue;
 
-                        entity = parent.AddChild(Path.GetFileNameWithoutExtension(elm), url);
+                        entity = parent.Create(Path.GetFileNameWithoutExtension(elm), url);
                         String elmTitle = GetPageTitle(elm);
                         if (!String.IsNullOrEmpty(elmTitle)) entity.Name = entity.Permission = elmTitle;
                         entity.Save();
