@@ -20,6 +20,7 @@ using System.IO;
 using NewLife.Serialization;
 using XCode.DataAccessLayer.Model;
 using NewLife.CommonEntity;
+using NewLife.Reflection;
 
 namespace Test
 {
@@ -293,33 +294,10 @@ namespace Test
 
         static void Test7()
         {
-            //XTrace.UseWinForm();
-            //Console.WriteLine(SimpleTree.Meta.Count);
-
-            var n = Administrator.Meta.Count;
-            Console.WriteLine(n);
-
-            var admin = Administrator.Meta.Cache.Entities[0];
-            admin.LastLogin = DateTime.Now;
-            admin.Save();
-
-            admin = Administrator.FindByName("123321");
-            Console.WriteLine("Find=", admin);
-
-            Administrator.Meta.BeginTrans();
-            admin = new Administrator();
-            admin.Name = "123321";
-            admin.RoleID = 1;
-            admin.Save();
-
-            admin = Administrator.FindByName("123321");
-            Console.WriteLine("Find=", admin);
-
-            //Administrator.Meta.Rollback();
-            Administrator.Meta.Commit();
-
-            admin = Administrator.FindByName("123321");
-            Console.WriteLine("Find=", admin);
+            var type = typeof(Log);
+            Console.WriteLine(TypeX.Create(type).Name);
+            type = type.BaseType;
+            Console.WriteLine(TypeX.Create(type).Name);
         }
     }
 }

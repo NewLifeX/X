@@ -13,9 +13,9 @@ namespace NewLife.Reflection
     public class MethodInfoX : MemberInfoX
     {
         #region 属性
-        private MethodInfo _Method;
+        private MethodBase _Method;
         /// <summary>目标方法</summary>
-        public MethodInfo Method { get { return _Method; } private set { _Method = value; } }
+        public MethodBase Method { get { return _Method; } private set { _Method = value; } }
 
         FastInvokeHandler _Handler;
         /// <summary>快速调用委托，延迟到首次使用才创建</summary>
@@ -23,7 +23,12 @@ namespace NewLife.Reflection
         {
             get
             {
-                if (_Handler == null) _Handler = GetMethodInvoker(Method);
+                if (_Handler == null)
+                {
+                    var m = Method as MethodInfo;
+                    if (m == null) throw new XException("不支持{0}类型方法的快速反射！", Method.GetType().Name);
+                    _Handler = GetMethodInvoker(m);
+                }
                 return _Handler;
             }
         }
@@ -38,14 +43,20 @@ namespace NewLife.Reflection
         /// <summary>完整类型名称。包含命名空间，但是不包含程序集信息</summary>
         public String FullName { get { return _FullName ?? (_FullName = GetName(true)); } }
 
-        String GetName(Boolean isfull)
+        private String _TinyName;
+        /// <summary>不带定义类型的精简类型名称。主要处理泛型</summary>
+        public String TinyName { get { return _TinyName ?? (_TinyName = GetName(false, false)); } }
+
+        String GetName(Boolean isfull, Boolean includeDefType = true)
         {
             var method = Method;
-            var tx = TypeX.Create(method.DeclaringType);
+            var tx = TypeX.Create(method.DeclaringType ?? method.ReflectedType);
 
             var sb = new StringBuilder();
             var name = isfull ? tx.FullName : tx.Name;
-            sb.AppendFormat("{0}.{1}", name, method.Name);
+            //sb.AppendFormat("{0}.{1}", name, method.Name);
+            if (includeDefType) sb.AppendFormat("{0}.", name);
+            sb.Append(method.Name);
             sb.Append("(");
             var ps = method.GetParameters();
             for (int i = 0; i < ps.Length; i++)
@@ -62,13 +73,13 @@ namespace NewLife.Reflection
         #endregion
 
         #region 构造
-        private MethodInfoX(MethodInfo method) : base(method) { Method = method; }
+        private MethodInfoX(MethodBase method) : base(method) { Method = method; }
 
-        private static DictionaryCache<MethodInfo, MethodInfoX> cache = new DictionaryCache<MethodInfo, MethodInfoX>();
+        private static DictionaryCache<MethodBase, MethodInfoX> cache = new DictionaryCache<MethodBase, MethodInfoX>();
         /// <summary>创建</summary>
         /// <param name="method"></param>
         /// <returns></returns>
-        public static MethodInfoX Create(MethodInfo method)
+        public static MethodInfoX Create(MethodBase method)
         {
             if (method == null) return null;
 
@@ -289,7 +300,7 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public static implicit operator MethodInfo(MethodInfoX obj)
         {
-            return obj != null ? obj.Method : null;
+            return obj != null ? obj.Method as MethodInfo : null;
         }
 
         /// <summary>类型转换</summary>

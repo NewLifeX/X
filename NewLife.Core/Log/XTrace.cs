@@ -2,12 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Runtime.InteropServices;
-using System.Threading;
-using NewLife.Configuration;
-using System.Windows.Forms;
-using System.Text;
 using System.Reflection;
+using System.Runtime.InteropServices;
+using System.Text;
+using System.Threading;
+using System.Windows.Forms;
+using NewLife.Configuration;
 using NewLife.Reflection;
 
 namespace NewLife.Log
@@ -375,22 +375,26 @@ namespace NewLife.Log
             {
                 var sf = st.GetFrame(i);
                 var method = sf.GetMethod();
+                // 跳过<>类型的匿名方法
+                if (method.Name[0] == '<' && method.Name.Contains(">")) continue;
 
-                var name = method.ToString();
-                // 去掉前面的返回类型
-                var p = name.IndexOf(" ");
-                if (p >= 0) name = name.Substring(p + 1);
+                //var name = method.ToString();
+                //// 去掉前面的返回类型
+                //var p = name.IndexOf(" ");
+                //if (p >= 0) name = name.Substring(p + 1);
 
+                var mix = MethodInfoX.Create(method);
                 var type = method.DeclaringType ?? method.ReflectedType;
                 if (type != null)
                 {
                     if (type != last)
-                        sb.AppendFormat("{0}.{1}", TypeX.Create(type).Name, name);
+                        sb.Append(mix.Name);
                     else
-                        sb.AppendFormat("{0}", name);
+                        sb.Append(mix.TinyName);
                 }
                 else
-                    sb.AppendFormat("UnkownType.{0}", name);
+                    sb.Append(mix.Name);
+                //sb.Append(MethodInfoX.Create(method).Name);
 
                 if (i < count - 1) sb.Append(split);
 

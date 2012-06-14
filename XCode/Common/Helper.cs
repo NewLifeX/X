@@ -6,6 +6,7 @@ using System.Text;
 using NewLife.Linq;
 using NewLife.Reflection;
 using XCode.Configuration;
+using NewLife.Log;
 
 namespace XCode.Common
 {
@@ -95,35 +96,36 @@ namespace XCode.Common
         /// <returns></returns>
         public static String GetCaller(Int32 maxNum = 10)
         {
-            var st = new StackTrace(2, true);
-            var sb = new StringBuilder();
-            int count = Math.Min(maxNum, st.FrameCount);
-            Type last = null;
-            var asm = Assembly.GetEntryAssembly();
-            var entry = asm == null ? null : asm.EntryPoint;
-            for (int i = 0; i < count; i++)
-            {
-                var sf = st.GetFrame(i);
-                var method = sf.GetMethod();
+            return XTrace.GetCaller(2, maxNum, "<-");
+            //var st = new StackTrace(2, true);
+            //var sb = new StringBuilder();
+            //int count = Math.Min(maxNum, st.FrameCount);
+            //Type last = null;
+            //var asm = Assembly.GetEntryAssembly();
+            //var entry = asm == null ? null : asm.EntryPoint;
+            //for (int i = 0; i < count; i++)
+            //{
+            //    var sf = st.GetFrame(i);
+            //    var method = sf.GetMethod();
 
-                var name = method.ToString();
-                // 去掉前面的返回类型
-                if (name.Contains(" ")) name = name.Substring(name.IndexOf(" ") + 1);
+            //    var name = method.ToString();
+            //    // 去掉前面的返回类型
+            //    if (name.Contains(" ")) name = name.Substring(name.IndexOf(" ") + 1);
 
-                var type = method.DeclaringType ?? method.ReflectedType;
-                if (type != null && type != last)
-                    sb.AppendFormat("{0}.{1}", TypeX.Create(type).Name, name);
-                else
-                    sb.AppendFormat("{0}", name);
+            //    var type = method.DeclaringType ?? method.ReflectedType;
+            //    if (type != null && type != last)
+            //        sb.AppendFormat("{0}.{1}", TypeX.Create(type).Name, name);
+            //    else
+            //        sb.AppendFormat("{0}", name);
 
-                if (i < count - 1) sb.Append("<-");
+            //    if (i < count - 1) sb.Append("<-");
 
-                last = type;
+            //    last = type;
 
-                // 如果到达了入口点，可以结束了
-                if (method == entry) break;
-            }
-            return sb.ToString();
+            //    // 如果到达了入口点，可以结束了
+            //    if (method == entry) break;
+            //}
+            //return sb.ToString();
         }
     }
 }

@@ -59,13 +59,21 @@ namespace NewLife.Reflection
         String GetName(Boolean isfull)
         {
             Type type = BaseType;
-            if (type.IsGenericType)
+            if (type.IsNested)
+            {
+                var tx = TypeX.Create(type.DeclaringType);
+                return (isfull ? tx.FullName : tx.Name) + "." + type.Name;
+            }
+            else if (type.IsGenericType)
             {
                 var sb = new StringBuilder();
                 var typeDef = type.GetGenericTypeDefinition();
                 var name = isfull ? typeDef.FullName : typeDef.Name;
                 var p = name.IndexOf("`");
-                if (p >= 0) sb.Append(name.Substring(0, p));
+                if (p >= 0)
+                    sb.Append(name.Substring(0, p));
+                else
+                    sb.Append(name);
                 sb.Append("<");
                 var ts = type.GetGenericArguments();
                 for (int i = 0; i < ts.Length; i++)
@@ -79,11 +87,6 @@ namespace NewLife.Reflection
                 }
                 sb.Append(">");
                 return sb.ToString();
-            }
-            else if (type.IsNested)
-            {
-                var tx = TypeX.Create(type.DeclaringType);
-                return (isfull ? tx.FullName : tx.Name) + "." + type.Name;
             }
             else
                 return isfull ? type.FullName : type.Name;
