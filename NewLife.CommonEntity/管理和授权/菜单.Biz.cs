@@ -15,6 +15,7 @@ using XCode;
 using System.Linq;
 #else
 using NewLife.Linq;
+using NewLife.Collections;
 #endif
 
 namespace NewLife.CommonEntity
@@ -477,7 +478,8 @@ namespace NewLife.CommonEntity
             //是否在子目中过滤
             Boolean AppDirsIsAllFilter = Config.GetConfig<Boolean>("NewLife.CommonEntity.AppDirsIsAllDirs", false);
 
-            List<String> AppDirsFileFilterList = AppDirsFileFilter == null ? null : new List<String>(AppDirsFileFilter);
+            //List<String> AppDirsFileFilterList = AppDirsFileFilter == null ? null : new List<String>(AppDirsFileFilter);
+            var filters = new HashSet<String>(AppDirsFileFilter, StringComparer.OrdinalIgnoreCase);
 
             if (AppDirs == null || AppDirs.Length == 0)
                 AppDirs = new String[] { "Admin" };
@@ -505,7 +507,7 @@ namespace NewLife.CommonEntity
                 if (top == null) top = Meta.Cache.Entities.Find(_.Remark, item);
                 if (top == null) top = Root.AddChild(item, null, 0, item);
                 //total += ScanAndAdd(item, top);
-                total += ScanAndAdd(item, top, AppDirsFileFilterList, AppDirsIsAllFilter);
+                total += ScanAndAdd(item, top, filters, AppDirsIsAllFilter);
             }
 
             return total;
@@ -525,8 +527,9 @@ namespace NewLife.CommonEntity
                     top = childs[0];
                 else
                 {
-                    var list = FindAllByName(_.ParentID, 0, _.ID.Desc(), 0, 1);
-                    if (list != null && list.Count > 1) top = list[0];
+                    //var list = FindAllByName(_.ParentID, 0, _.ID.Desc(), 0, 1);
+                    //if (list != null && list.Count > 1) top = list[0];
+                    return Meta.Cache.Entities.ToList().OrderBy(e => -1 * e.Sort).FirstOrDefault(e => e.ParentID == 1);
                 }
             }
             return top;
@@ -570,7 +573,7 @@ namespace NewLife.CommonEntity
         /// <param name="fileFilter">过滤文件名</param>
         /// <param name="isFilterChildDir">是否在子目录中过滤</param>
         /// <returns></returns>
-        public static Int32 ScanAndAdd(String dir, TEntity top, List<String> fileFilter, Boolean isFilterChildDir)
+        public static Int32 ScanAndAdd(String dir, TEntity top, ICollection<String> fileFilter, Boolean isFilterChildDir)
         {
             if (String.IsNullOrEmpty(dir)) throw new ArgumentNullException("dir");
             if (top == null) throw new ArgumentNullException("top");
@@ -601,8 +604,10 @@ namespace NewLife.CommonEntity
                 return num;
 
             //本目录菜单
-            TEntity parent = Find(_.Name, dirName);
-            if (parent == null) parent = Find(_.Remark, dirName);
+            //TEntity parent = Find(_.Name, dirName);
+            //if (parent == null) parent = Find(_.Remark, dirName);
+            var parent = FindByName(dirName);
+            if (parent == null) parent = Meta.Cache.Entities.Find(_.Remark, dirName);
             if (parent == null)
             {
                 parent = top.AddChild(dirName, null, 0, dirName);
@@ -620,11 +625,13 @@ namespace NewLife.CommonEntity
                 foreach (String elm in fs)
                 {
                     //过滤特定文件名文件
-                    if (fileFilter != null && fileFilter.Count() > 0 && null != fileFilter.Find(delegate(String item)
-                    {
-                        return item.Equals(Path.GetFileName(elm), StringComparison.CurrentCultureIgnoreCase);
-                    }))
-                        continue;
+                    //if (fileFilter != null && fileFilter.Count() > 0 && null != fileFilter.Find(delegate(String item)
+                    //{
+                    //    return item.Equals(Path.GetFileName(elm), StringComparison.CurrentCultureIgnoreCase);
+                    //}))
+                    //    continue;
+                    // 采用哈希集合查询字符串更快
+                    if (fileFilter.Contains(Path.GetFileName(elm))) continue;
 
                     // 过滤掉表单页面
                     if (Path.GetFileNameWithoutExtension(elm).EndsWith("Form", StringComparison.OrdinalIgnoreCase)) continue;
