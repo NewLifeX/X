@@ -1,5 +1,10 @@
 ﻿using System;
 using NewLife.CommonEntity;
+using NewLife.Reflection;
+using XCode;
+using NewLife.Web;
+using System.IO;
+using NewLife.Security;
 
 public partial class Pages_Admin : MyEntityList
 {
@@ -9,7 +14,116 @@ public partial class Pages_Admin : MyEntityList
     protected void Page_Load(object sender, EventArgs e)
     {
         Type type = CommonManageProvider.Provider.RoleType;
-        ObjectDataSource2.TypeName = type.FullName;
-        ObjectDataSource2.DataObjectTypeName = type.FullName;
+        odsRole.TypeName = type.FullName;
+        odsRole.DataObjectTypeName = type.FullName;
+    }
+
+    protected void btnEnable_Click(object sender, EventArgs e) { EnableOrDisable(true); }
+
+    protected void btnDisable_Click(object sender, EventArgs e) { EnableOrDisable(false); }
+
+    void EnableOrDisable(Boolean isenable)
+    {
+        DoBatch(isenable ? "启用" : "禁用", delegate(IAdministrator admin)
+        {
+            if (admin.IsEnable != isenable)
+            {
+                admin.IsEnable = isenable;
+                return true;
+            }
+            return false;
+        });
+    }
+
+    void DoBatch(String action, Func<IAdministrator, Boolean> callback)
+    {
+        Int32[] vs = gvExt.SelectedIntValues;
+        if (vs == null || vs.Length < 1) return;
+
+        Int32 n = 0;
+        IEntityOperate eop = EntityFactory.CreateOperate(EntityType);
+        eop.BeginTransaction();
+        try
+        {
+            foreach (Int32 item in vs)
+            {
+                IEntity entity = eop.FindByKey(item);
+                IAdministrator admin = entity as IAdministrator;
+                if (admin != null && callback(admin))
+                {
+                    entity.Save();
+                    n++;
+                }
+            }
+
+            eop.Commit();
+
+            WebHelper.Alert("成功" + action + n + "个管理员！");
+        }
+        catch (Exception ex)
+        {
+            eop.Rollback();
+
+            WebHelper.Alert("操作失败！" + ex.Message);
+        }
+
+        if (n > 0) gv.DataBind();
+    }
+
+    protected void btnUpgradeToRole_Click(object sender, EventArgs e)
+    {
+        DoBatch("升级", delegate(IAdministrator admin)
+        {
+            if (admin.RoleName != "管理员" || admin.Name == "admin") return false;
+
+            IRole role = FindByRoleName(admin.FriendName);
+            if (role == null)
+            {
+                role = TypeX.CreateInstance(CommonManageProvider.Provider.RoleType) as IRole;
+                role.Name = admin.FriendName;
+                (role as IEntity).Insert();
+            }
+
+            admin.RoleID = role.ID;
+
+            return true;
+        });
+    }
+
+    IRole FindByRoleName(String name)
+    {
+        return MethodInfoX.Create(CommonManageProvider.Provider.RoleType, "Find", new Type[] { typeof(String), typeof(Object) }).Invoke(null, "Name", name) as IRole;
+    }
+
+    protected void btnDelete_Click(object sender, EventArgs e)
+    {
+        DoBatch("删除", delegate(IAdministrator admin)
+        {
+            if (admin.Name == "admin") return false;
+
+            (admin as IEntity).Delete();
+
+            return false;
+        });
+    }
+
+    protected void btnChangePass_Click(object sender, EventArgs e)
+    {
+        String file = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\WebData\Pass.txt");
+        //if (File.Exists(file)) File.Delete(file);
+        File.AppendAllText(file, String.Format("{0}{0}{1:yyyy-MM-dd HH:ss:mm} 随机生成密码{0}", Environment.NewLine, DateTime.Now));
+
+        Random rnd = new Random((Int32)DateTime.Now.Ticks);
+
+        DoBatch("修改密码", delegate(IAdministrator admin)
+        {
+            if (admin.Name == "admin") return false;
+
+            String pass = DataHelper.Hash(admin.Name + rnd.Next(0, 10000)).Substring(0, 8).ToUpper();
+            admin.Password = DataHelper.Hash(pass);
+            File.AppendAllText(file, String.Format("{0}\t{1}\t{2}\r\n", admin.DisplayName, admin.Name, pass));
+
+            return true;
+        });
     }
 }

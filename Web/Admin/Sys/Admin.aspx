@@ -5,19 +5,37 @@
     <div class="toolbar">
         <asp:Label Text="关键字" runat="server" />
         &nbsp;<asp:TextBox runat="server" ID="TB_key" />
-        角色：<XCL:DropDownList ID="DropdownList1" runat="server" DataSourceID="ObjectDataSource2"
-            AppendDataBoundItems="true" DataTextField="Name" DataValueField="ID" AutoPostBack="True">
+        角色：<XCL:DropDownList ID="ddlRole" runat="server" DataSourceID="odsRole"
+            AppendDataBoundItems="true" DataTextField="Name" DataValueField="ID" 
+            AutoPostBack="True">
             <asp:ListItem Value="0">请选择</asp:ListItem>
         </XCL:DropDownList>
         &nbsp;<asp:Button ID="Button1" runat="server" Text="查询" />
         <asp:Label ID="Label_Info" runat="server" ForeColor="#FF3300"></asp:Label>
         <XCL:LinkBox ID="lbAdd" runat="server" BoxHeight="370px" BoxWidth="440px" Url="AdminForm.aspx"
             IconLeft="~/Admin/images/icons/new.gif"><b>添加管理员</b></XCL:LinkBox>
+        &nbsp;<asp:Button ID="btnDelete" runat="server" Text="批量删除" OnClientClick='return confirm("确定批量删除吗？")'
+            OnClick="btnDelete_Click" />
+        &nbsp;<asp:Button ID="btnEnable" runat="server" Text="批量启用" OnClientClick='return confirm("确定批量启用吗？")'
+            OnClick="btnEnable_Click" />
+        &nbsp;<asp:Button ID="btnDisable" runat="server" Text="批量禁用" OnClientClick='return confirm("确定批量禁用吗？")'
+            OnClick="btnDisable_Click" />
+        &nbsp;<asp:Button ID="btnUpgradeToRole" runat="server" Text="批量升级为角色" OnClientClick='return confirm("确定批量升级吗？")'
+            OnClick="btnUpgradeToRole_Click" Visible="false" />
+        &nbsp;<asp:Button ID="btnChangePass" Visible="false" runat="server" Text="批量修改密码"
+            OnClientClick='return confirm("确定批量修改密码吗？")' OnClick="btnChangePass_Click" />
     </div>
     <asp:GridView ID="gv" runat="server" AutoGenerateColumns="False" DataKeyNames="ID"
-        DataSourceID="ods" CssClass="m_table" CellPadding="0" GridLines="None"
-        EnableModelValidation="True" EnableViewState="False">
+        DataSourceID="ods" CssClass="m_table" CellPadding="0" GridLines="None" EnableModelValidation="True"
+        EnableViewState="False">
         <Columns>
+            <asp:TemplateField>
+                <ItemTemplate>
+                    <asp:CheckBox ID="cb" runat="server" />
+                </ItemTemplate>
+                <HeaderStyle Width="20px" />
+                <ItemStyle HorizontalAlign="Center" />
+            </asp:TemplateField>
             <asp:BoundField DataField="ID" HeaderText="编号" SortExpression="ID" InsertVisible="False"
                 ReadOnly="True">
                 <HeaderStyle Width="40px" />
@@ -68,7 +86,7 @@
             <asp:Parameter DefaultValue="0" Name="maximumRows" Type="Int32" />
         </SelectParameters>
     </asp:ObjectDataSource>
-    <asp:ObjectDataSource ID="ObjectDataSource2" runat="server" SelectMethod="FindAllByName">
+    <asp:ObjectDataSource ID="odsRole" runat="server" SelectMethod="FindAllByName">
         <SelectParameters>
             <asp:Parameter Name="name" Type="String" />
             <asp:Parameter Name="value" Type="Object" />
