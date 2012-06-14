@@ -573,7 +573,8 @@ namespace NewLife.CommonEntity
 
 
             if (dirName.Equals("Frame", StringComparison.OrdinalIgnoreCase)) return num;
-            //if (dirName.Equals("System", StringComparison.OrdinalIgnoreCase)) continue;
+            if (dirName.Equals("Asc", StringComparison.OrdinalIgnoreCase)) return num;
+            if (dirName.Equals("images", StringComparison.OrdinalIgnoreCase)) return num;
             if (dirName.StartsWith("img", StringComparison.OrdinalIgnoreCase)) return num;
 
             //本目录aspx页面
@@ -601,9 +602,19 @@ namespace NewLife.CommonEntity
             //aspx
             if (fs != null && fs.Length > 0)
             {
+                String currentPath = GetPathForScan(p, !dir.Contains("/") && !dir.Contains("\\"));
                 var files = new List<String>();
                 foreach (var elm in fs)
                 {
+                    var file = Path.GetFileName(elm);
+                    if (file.EqualIgnoreCase("Default.aspx"))
+                    {
+                        parent.Url = Path.Combine(currentPath, "Default.aspx");
+                        String title = GetPageTitle(elm);
+                        if (!String.IsNullOrEmpty(title)) parent.Name = parent.Permission = title;
+                        parent.Save();
+                    }
+
                     //过滤特定文件名文件
                     //if (fileFilter != null && fileFilter.Count() > 0 && null != fileFilter.Find(delegate(String item)
                     //{
@@ -611,7 +622,7 @@ namespace NewLife.CommonEntity
                     //}))
                     //    continue;
                     // 采用哈希集合查询字符串更快
-                    if (fileFilter != null && fileFilter.Contains(Path.GetFileName(elm))) continue;
+                    if (fileFilter != null && fileFilter.Contains(file)) continue;
 
                     // 过滤掉表单页面
                     if (Path.GetFileNameWithoutExtension(elm).EndsWith("Form", StringComparison.OrdinalIgnoreCase)) continue;
@@ -624,18 +635,11 @@ namespace NewLife.CommonEntity
 
                 if (files.Count > 0)
                 {
-                    String currentPath = GetPathForScan(p, !dir.Contains("/") && !dir.Contains("\\"));
                     //aspx页面
                     foreach (String elm in files)
                     {
+                        var file = Path.GetFileName(elm);
                         String url = null;
-                        if (Path.GetFileName(elm).Equals("Default.aspx", StringComparison.OrdinalIgnoreCase))
-                        {
-                            parent.Url = Path.Combine(currentPath, "Default.aspx");
-                            String title = GetPageTitle(elm);
-                            if (!String.IsNullOrEmpty(title)) parent.Name = parent.Permission = title;
-                            parent.Save();
-                        }
 
                         // 全部使用全路径
                         //if (String.Equals(dir, "Admin", StringComparison.OrdinalIgnoreCase))
@@ -660,7 +664,7 @@ namespace NewLife.CommonEntity
             if (dis == null || dis.Length > 0)
                 foreach (String item in dis)
                 {
-                    num += isFilterChildDir ? ScanAndAdd(item, parent, fileFilter, isFilterChildDir) : ScanAndAdd(item, parent, null, !isFilterChildDir);
+                    num += isFilterChildDir ? ScanAndAdd(item, parent, fileFilter, true) : ScanAndAdd(item, parent, null, false);
                 }
 
             //如果目录中没有菜单，移除目录
@@ -668,9 +672,8 @@ namespace NewLife.CommonEntity
             //目录为新增加菜单且本级以下num为1则认为只增加了目录，并无子级
             if (isAddDir && num == 1)
             {
-                TEntity remove = top.Childs.Find(_.ID, parent.ID);
-                if (remove != null)
-                    top.Childs.Remove(remove);
+                var remove = top.Childs.Find(_.ID, parent.ID);
+                if (remove != null) top.Childs.Remove(remove);
                 parent.Delete();
                 num = num - 1;
             }
