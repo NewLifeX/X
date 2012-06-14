@@ -1,5 +1,5 @@
 ﻿<%@ Page Language="C#" AutoEventWireup="true" CodeFile="WebLog.aspx.cs" Inherits="Admin_System_WebLog"
-    Title="网站日志" MasterPageFile="~/Admin/ManagerPage.master" EnableEventValidation="false" %>
+    Title="网站日志" MasterPageFile="~/Admin/ManagerPage.master" EnableEventValidation="false" ValidateRequest="false" %>
 
 <asp:Content ID="Content1" ContentPlaceHolderID="C" runat="server">
     <div class="toolbar">

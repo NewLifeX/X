@@ -80,7 +80,7 @@
         <SelectParameters>
             <asp:ControlParameter ControlID="txtKey" Name="key" Type="String" PropertyName="Text" />
             <asp:ControlParameter ControlID="ddlRole" Name="roleID" Type="Int32" PropertyName="SelectedValue" />
-            <asp:Parameter Name="orderClause" Type="String" />
+            <asp:Parameter Name="orderClause" Type="String" DefaultValue="ID Desc" />
             <asp:Parameter DefaultValue="0" Name="startRowIndex" Type="Int32" />
             <asp:Parameter DefaultValue="0" Name="maximumRows" Type="Int32" />
         </SelectParameters>
