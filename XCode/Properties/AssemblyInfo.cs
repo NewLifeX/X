@@ -35,7 +35,7 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
 [assembly: AssemblyVersion("8.7.*")]
-[assembly: AssemblyFileVersion("8.7.2012.0607")]
+[assembly: AssemblyFileVersion("8.7.2012.0614")]
 
 /*
  * XCode的重大改进
@@ -52,6 +52,8 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v8.7.2012.0614   IEntity接口增加CloneEntity和CopyFrom方法，增强对实体克隆的支持
+ * 
  * v8.7.2012.0607   修正TableItem中连接名映射ConnMaps可能因为多线程冲突而导致小几率失败的问题
  *                  插入数据时，如果没有自增字段，则无视允许插入自增字段的设置
  *                  为了最大程度保证兼容性，反向时所有数据库的Decimal和DateTime类型不指定精度，均采用数据库默认值

@@ -130,20 +130,27 @@ namespace XCode
         /// <returns></returns>
         public abstract Object Clone();
 
+        /// <summary>克隆实体。创建当前对象的克隆对象，仅拷贝基本字段</summary>
+        /// <param name="setDirty">是否设置脏数据</param>
+        /// <returns></returns>
+        IEntity IEntity.CloneEntity(Boolean setDirty) { return CloneEntityInternal(setDirty); }
+
+        internal protected abstract IEntity CloneEntityInternal(Boolean setDirty = true);
+
         /// <summary>复制来自指定实体的成员，可以是不同类型的实体，只复制共有的基本字段，影响脏数据</summary>
         /// <param name="entity">来源实体对象</param>
         /// <param name="setDirty">是否设置脏数据</param>
         /// <returns>实际复制成员数</returns>
-        public virtual Int32 CopyFrom(IEntity entity, Boolean setDirty)
+        public virtual Int32 CopyFrom(IEntity entity, Boolean setDirty = true)
         {
             IEntity src = this;
-            IList<String> names1 = EntityFactory.CreateOperate(src.GetType()).FieldNames;
+            var names1 = EntityFactory.CreateOperate(src.GetType()).FieldNames;
             if (names1 == null || names1.Count < 1) return 0;
-            IList<String> names2 = EntityFactory.CreateOperate(entity.GetType()).FieldNames;
+            var names2 = EntityFactory.CreateOperate(entity.GetType()).FieldNames;
             if (names2 == null || names2.Count < 1) return 0;
 
             Int32 n = 0;
-            foreach (String item in names1)
+            foreach (var item in names1)
             {
                 if (names2.Contains(item))
                 {

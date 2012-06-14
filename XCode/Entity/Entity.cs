@@ -62,7 +62,8 @@ namespace XCode
             //return new TEntity();
             // new TEntity会被编译为Activator.CreateInstance<TEntity>()，还不如Activator.CreateInstance()呢
             // Activator.CreateInstance()有缓存功能，而泛型的那个没有
-            return Activator.CreateInstance(Meta.ThisType) as TEntity;
+            //return Activator.CreateInstance(Meta.ThisType) as TEntity;
+            return TypeX.CreateInstance(Meta.ThisType) as TEntity;
         }
         #endregion
 
@@ -1121,12 +1122,16 @@ namespace XCode
 
         /// <summary>克隆实体。创建当前对象的克隆对象，仅拷贝基本字段</summary>
         /// <returns></returns>
-        public virtual TEntity CloneEntity()
+        public virtual TEntity CloneEntity(Boolean setDirty = true)
         {
             TEntity obj = CreateInstance();
             foreach (FieldItem fi in Meta.Fields)
             {
-                obj[fi.Name] = this[fi.Name];
+                //obj[fi.Name] = this[fi.Name];
+                if (setDirty)
+                    obj.SetItem(fi.Name, this[fi.Name]);
+                else
+                    obj[fi.Name] = this[fi.Name];
             }
             if (Extends != null && Extends.Count > 0)
             {
@@ -1137,6 +1142,8 @@ namespace XCode
             }
             return obj;
         }
+
+        internal protected override IEntity CloneEntityInternal(Boolean setDirty = true) { return CloneEntity(setDirty); }
         #endregion
 
         #region 其它

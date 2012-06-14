@@ -63,6 +63,17 @@ namespace XCode
         /// <param name="value">值</param>
         /// <returns>返回是否成功设置了数据</returns>
         Boolean SetItem(String name, Object value);
+
+        /// <summary>克隆实体。创建当前对象的克隆对象，仅拷贝基本字段</summary>
+        /// <param name="setDirty">是否设置脏数据</param>
+        /// <returns></returns>
+        IEntity CloneEntity(Boolean setDirty = true);
+
+        /// <summary>复制来自指定实体的成员，可以是不同类型的实体，只复制共有的基本字段，影响脏数据</summary>
+        /// <param name="entity">来源实体对象</param>
+        /// <param name="setDirty">是否设置脏数据</param>
+        /// <returns>实际复制成员数</returns>
+        Int32 CopyFrom(IEntity entity, Boolean setDirty = true);
         #endregion
 
         #region 导入导出XML
