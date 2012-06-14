@@ -138,7 +138,11 @@ namespace XControl
         {
             get
             {
-                if (String.IsNullOrEmpty(Text)) return DateTime.MinValue;
+                if (String.IsNullOrEmpty(Text))
+                    if (ValueNullSetCurrent)
+                        Value = DateTime.Now;
+                    else
+                        return DateTime.MinValue;
 
                 return Convert.ToDateTime(Text);
             }
@@ -153,6 +157,24 @@ namespace XControl
                 }
                 else
                     Text = value.ToString("yyyy-MM-dd");
+            }
+        }
+
+        /// <summary></summary>
+        [Bindable(true)]
+        [Category("专用")]
+        [DefaultValue(false)]
+        [Localizable(true)]
+        [Description("时间未设置，使用当前时间")]
+        public Boolean ValueNullSetCurrent
+        {
+            get
+            {
+                return ViewState["ValueNullSetCurrent"] == null ? false : (Boolean)ViewState["ValueNullSetCurrent"];
+            }
+            set
+            {
+                ViewState["ValueNullSetCurrent"] = value;
             }
         }
 
@@ -202,7 +224,7 @@ namespace XControl
         protected override void OnInit(EventArgs e)
         {
             base.OnInit(e);
-            if (LongTime&&!MinTime)
+            if (LongTime && !MinTime)
                 Width = new Unit(152);
             else
                 Width = new Unit(86);
@@ -240,7 +262,7 @@ namespace XControl
                 Attributes.Add("onFocus", sb.ToString());
                 CssClass = "Wdate";
 
-                if (LongTime&&!MinTime)
+                if (LongTime && !MinTime)
                     Width = new Unit(152);
                 else
                     Width = new Unit(86);
@@ -248,6 +270,16 @@ namespace XControl
 
             //Page.ClientScript.RegisterClientScriptInclude("My97DatePicker", JsPath);
             Page.ClientScript.RegisterClientScriptResource(this.GetType(), "XControl.TextBox.DateTimePicker.WdatePicker.js");
+        }
+
+        /// <summary>
+        /// 呈现前修改初始化一次Text
+        /// </summary>
+        /// <param name="writer"></param>
+        protected override void Render(HtmlTextWriter writer)
+        {
+            DateTime v = Value;
+            base.Render(writer);
         }
 
         static String GetSkin(Skins skin)
