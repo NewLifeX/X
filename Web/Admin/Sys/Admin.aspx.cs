@@ -1,15 +1,17 @@
 ﻿using System;
+using System.IO;
 using NewLife.CommonEntity;
 using NewLife.Reflection;
-using XCode;
-using NewLife.Web;
-using System.IO;
 using NewLife.Security;
+using NewLife.Web;
+using XCode;
 
 public partial class Pages_Admin : MyEntityList
 {
     /// <summary>实体类型</summary>
     public override Type EntityType { get { return CommonManageProvider.Provider.AdminstratorType; } set { base.EntityType = value; } }
+
+    IEntityOperate RoleFactory { get { return EntityFactory.CreateOperate(CommonManageProvider.Provider.RoleType); } }
 
     protected void Page_Load(object sender, EventArgs e)
     {
@@ -79,9 +81,9 @@ public partial class Pages_Admin : MyEntityList
             IRole role = FindByRoleName(admin.FriendName);
             if (role == null)
             {
-                role = TypeX.CreateInstance(CommonManageProvider.Provider.RoleType) as IRole;
+                role = RoleFactory.Create(false) as IRole;
                 role.Name = admin.FriendName;
-                (role as IEntity).Insert();
+                role.Save();
             }
 
             admin.RoleID = role.ID;
@@ -92,7 +94,8 @@ public partial class Pages_Admin : MyEntityList
 
     IRole FindByRoleName(String name)
     {
-        return MethodInfoX.Create(CommonManageProvider.Provider.RoleType, "Find", new Type[] { typeof(String), typeof(Object) }).Invoke(null, "Name", name) as IRole;
+        return RoleFactory.FindWithCache("Name", name) as IRole;
+        //return MethodInfoX.Create(CommonManageProvider.Provider.RoleType, "Find", new Type[] { typeof(String), typeof(Object) }).Invoke(null, "Name", name) as IRole;
     }
 
     protected void btnDelete_Click(object sender, EventArgs e)

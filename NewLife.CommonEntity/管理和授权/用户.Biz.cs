@@ -369,4 +369,11 @@ namespace NewLife.CommonEntity
         }
         #endregion
     }
+
+    partial interface IUser
+    {
+        /// <summary>保存</summary>
+        /// <returns></returns>
+        Int32 Save();
+    }
 }

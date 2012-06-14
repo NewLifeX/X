@@ -183,6 +183,12 @@ namespace NewLife.CommonEntity
 
             return list.Cast<IMenu>().ToList();
         }
+
+        /// <summary>当前角色拥有的权限</summary>
+        public override List<IRoleMenu> RoleMenus { get { return Menus.ToList().Cast<IRoleMenu>().ToList(); } }
+
+        /// <summary>当前角色拥有的菜单</summary>
+        internal protected override List<IMenu> MenusInternal { get { return MenuList.ToList().Cast<IMenu>().ToList(); } }
         #endregion
     }
 
@@ -307,6 +313,44 @@ namespace NewLife.CommonEntity
         /// <param name="parentID"></param>
         /// <returns></returns>
         internal protected abstract List<IMenu> GetMySubMenusInternal(Int32 parentID);
+
+        /// <summary>当前角色拥有的权限</summary>
+        public abstract List<IRoleMenu> RoleMenus { get; }
+
+        /// <summary>当前角色拥有的菜单</summary>
+        List<IMenu> IRole.Menus { get { return MenusInternal; } }
+
+        /// <summary>当前角色拥有的菜单</summary>
+        internal protected abstract List<IMenu> MenusInternal { get; }
+
+        /// <summary>从另一个角色上复制权限</summary>
+        /// <param name="role"></param>
+        /// <returns></returns>
+        public virtual Int32 CopyRoleMenuFrom(IRole role)
+        {
+            var rms = role.RoleMenus;
+            if (rms == null || rms.Count < 1) return 0;
+
+            var myrms = RoleMenus;
+
+            var n = 0;
+            foreach (var item in rms)
+            {
+                var rm = myrms.FirstOrDefault(r => r.MenuID == item.MenuID);
+                if (rm != null)
+                {
+                    rm = (item as IEntity).CloneEntity() as IRoleMenu;
+                    rm.ID = 0;
+                    rm.RoleID = this.ID;
+                }
+                else
+                    rm.Permission = item.Permission;
+                rm.Save();
+
+                n++;
+            }
+            return n;
+        }
         #endregion
     }
 
@@ -322,5 +366,20 @@ namespace NewLife.CommonEntity
         /// <param name="parentID"></param>
         /// <returns></returns>
         List<IMenu> GetMySubMenus(Int32 parentID);
+
+        /// <summary>当前角色拥有的权限</summary>
+        List<IRoleMenu> RoleMenus { get; }
+
+        /// <summary>当前角色拥有的菜单</summary>
+        List<IMenu> Menus { get; }
+
+        /// <summary>保存</summary>
+        /// <returns></returns>
+        Int32 Save();
+
+        /// <summary>从另一个角色上复制权限</summary>
+        /// <param name="role"></param>
+        /// <returns></returns>
+        Int32 CopyRoleMenuFrom(IRole role);
     }
 }

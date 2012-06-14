@@ -52,7 +52,7 @@ namespace NewLife.CommonEntity
             if (String.IsNullOrEmpty(Sys.DisplayName))
             {
                 Sys.DisplayName = "系统设置";
-                (Sys as IEntity).Save();
+                Sys.Save();
             }
         }
         #endregion

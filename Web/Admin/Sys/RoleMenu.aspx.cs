@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Web.UI.WebControls;
 using NewLife.CommonEntity;
-using NewLife.Reflection;
 using NewLife.Web;
 using XCode;
 
@@ -15,6 +14,8 @@ public partial class Pages_RoleMenu : MyEntityList
 {
     /// <summary>实体类型</summary>
     public override Type EntityType { get { return CommonManageProvider.Provider.RoleMenuType; } set { base.EntityType = value; } }
+
+    IEntityOperate Factory { get { return EntityFactory.CreateOperate(EntityType); } }
 
     protected override void OnInit(EventArgs e)
     {
@@ -107,11 +108,11 @@ public partial class Pages_RoleMenu : MyEntityList
                     return;
                 }
 
-                rm = TypeX.CreateInstance(EntityType) as IRoleMenu;
+                rm = Factory.Create(false) as IRoleMenu;
                 rm.RoleID = RoleID;
                 rm.MenuID = entity.ID;
                 rm.PermissionFlag = PermissionFlags.All;
-                (rm as IEntity).Save();
+                rm.Save();
 
                 // 如果父级没有授权，则授权
                 while ((entity = entity.Parent) != null)
@@ -119,11 +120,11 @@ public partial class Pages_RoleMenu : MyEntityList
                     rm = FindByRoleAndMenu(RoleID, entity.ID);
                     if (rm == null)
                     {
-                        rm = TypeX.CreateInstance(EntityType) as IRoleMenu;
+                        rm = Factory.Create(false) as IRoleMenu;
                         rm.RoleID = RoleID;
                         rm.MenuID = entity.ID;
                         rm.PermissionFlag = PermissionFlags.All;
-                        (rm as IEntity).Save();
+                        rm.Save();
                     }
                 }
             }
@@ -174,7 +175,7 @@ public partial class Pages_RoleMenu : MyEntityList
                 return;
             }
 
-            rm = TypeX.CreateInstance(EntityType) as IRoleMenu;
+            rm = Factory.Create(false) as IRoleMenu;
             rm.RoleID = RoleID;
             rm.MenuID = entity.ID;
         }
@@ -195,7 +196,7 @@ public partial class Pages_RoleMenu : MyEntityList
             }
 
             rm.PermissionFlag = flag;
-            (rm as IEntity).Save();
+            rm.Save();
         }
 
         gv.DataBind();
@@ -203,8 +204,13 @@ public partial class Pages_RoleMenu : MyEntityList
 
     IRoleMenu FindByRoleAndMenu(Int32 roleID, Int32 menuID)
     {
-        MethodInfoX mix = MethodInfoX.Create(EntityType, "FindByRoleAndMenu");
-        if (mix == null) return null;
-        return mix.Invoke(null, roleID, menuID) as IRoleMenu;
+        //MethodInfoX mix = MethodInfoX.Create(EntityType, "FindByRoleAndMenu");
+        //if (mix == null) return null;
+        //return mix.Invoke(null, roleID, menuID) as IRoleMenu;
+        return Factory.Cache.Entities.Find(delegate(IEntity e)
+        {
+            IRoleMenu rm = e as IRoleMenu;
+            return rm.RoleID == roleID && rm.MenuID == menuID;
+        }) as IRoleMenu;
     }
 }

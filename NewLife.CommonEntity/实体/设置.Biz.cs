@@ -267,5 +267,9 @@ namespace NewLife.CommonEntity
         /// <param name="displayName"></param>
         /// <returns></returns>
         ISetting Ensure<T>(String name, T defval, String displayName);
+
+        /// <summary>保存</summary>
+        /// <returns></returns>
+        Int32 Save();
     }
 }

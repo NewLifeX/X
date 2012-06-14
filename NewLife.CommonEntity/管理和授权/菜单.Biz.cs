@@ -910,7 +910,7 @@ namespace NewLife.CommonEntity
             if (menu != null && menu.Name != newName)
             {
                 menu.Name = menu.Permission = newName;
-                (menu as IEntity).Save();
+                menu.Save();
             }
 
             return this;
@@ -968,5 +968,9 @@ namespace NewLife.CommonEntity
 
         /// <summary>排序下降</summary>
         void Down();
+
+        /// <summary>保存</summary>
+        /// <returns></returns>
+        Int32 Save();
     }
 }

@@ -5,14 +5,23 @@
 <asp:Content ID="Content1" ContentPlaceHolderID="C" runat="server">
     <div class="toolbar">
         角色名称：
-        <asp:TextBox ID="TextBox_Name" runat="server" CssClass="textfield"></asp:TextBox>
+        <asp:TextBox ID="txtName" runat="server" CssClass="textfield"></asp:TextBox>
         &nbsp;<asp:Button ID="btnAdd" runat="server" Text="添加" OnClick="Button1_Click" />
-        <asp:Label ID="Label_Info" runat="server" ForeColor="#FF3300"></asp:Label>
+        &nbsp;模版角色：<asp:TextBox ID="txtRoleTemplate" runat="server" CssClass="textfield"></asp:TextBox>
+        &nbsp;<asp:Button ID="btnCopyRole" runat="server" Text="批量复制权限" 
+            OnClientClick='return confirm("确定批量操作吗？")' onclick="btnCopyRole_Click" />
     </div>
     <asp:GridView ID="gv" runat="server" AutoGenerateColumns="False" DataKeyNames="ID"
         DataSourceID="ods" AllowPaging="True" AllowSorting="True" CssClass="m_table"
         CellPadding="0" GridLines="None" PageSize="20" EnableModelValidation="True">
         <Columns>
+            <asp:TemplateField>
+                <ItemTemplate>
+                    <asp:CheckBox ID="cb" runat="server" />
+                </ItemTemplate>
+                <HeaderStyle Width="20px" />
+                <ItemStyle HorizontalAlign="Center" />
+            </asp:TemplateField>
             <asp:BoundField DataField="ID" HeaderText="编号" InsertVisible="False" ReadOnly="True"
                 SortExpression="ID">
                 <HeaderStyle Width="40px" />

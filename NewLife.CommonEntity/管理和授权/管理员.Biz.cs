@@ -554,7 +554,7 @@ namespace NewLife.CommonEntity
             if (log != null)
             {
                 log.Remark = remark;
-                (log as IEntity).Save();
+                log.Save();
             }
         }
         #endregion
@@ -675,5 +675,9 @@ namespace NewLife.CommonEntity
 
         /// <summary>注销</summary>
         void Logout();
+
+        /// <summary>保存</summary>
+        /// <returns></returns>
+        Int32 Save();
     }
 }

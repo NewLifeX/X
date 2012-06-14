@@ -297,5 +297,9 @@ namespace NewLife.CommonEntity
     {
         /// <summary>操作权限</summary>
         PermissionFlags PermissionFlag { get; set; }
+
+        /// <summary>保存</summary>
+        /// <returns></returns>
+        Int32 Save();
     }
 }
