@@ -337,7 +337,7 @@ namespace NewLife.CommonEntity
             foreach (var item in rms)
             {
                 var rm = myrms.FirstOrDefault(r => r.MenuID == item.MenuID);
-                if (rm != null)
+                if (rm == null)
                 {
                     rm = (item as IEntity).CloneEntity() as IRoleMenu;
                     rm.ID = 0;
