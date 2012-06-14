@@ -19,7 +19,7 @@
             <asp:BoundField DataField="ID" HeaderText="编号" SortExpression="ID" InsertVisible="False" ReadOnly="True" >
                 <ItemStyle HorizontalAlign="Center" VerticalAlign="Middle" CssClass="key" />
             </asp:BoundField>
-            <asp:BoundField DataField="ParentID" HeaderText="父编号" SortExpression="ParentID" DataFormatString="{0:n0}">
+            <asp:BoundField DataField="ParentName" HeaderText="父级" SortExpression="ParentID" DataFormatString="{0:n0}">
                 <ItemStyle HorizontalAlign="Right" Font-Bold="True" />
             </asp:BoundField>
             <asp:BoundField DataField="Name" HeaderText="名称" SortExpression="Name" />
