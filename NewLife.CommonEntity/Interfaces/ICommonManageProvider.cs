@@ -151,7 +151,8 @@ namespace NewLife.CommonEntity
             if (id < 1) return null;
 
             var eop = EntityFactory.CreateOperate(MenuType);
-            return eop.FindByKey(id) as IMenu;
+            //return eop.FindByKey(id) as IMenu;
+            return eop.FindWithCache(eop.Unique.Name, id) as IMenu;
         }
 
         /// <summary>获取指定菜单下，当前用户有权访问的子菜单。</summary>
