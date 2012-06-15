@@ -289,6 +289,31 @@ namespace NewLife.Configuration
 
             nvs[name] = value;
         }
+
+        /// <summary>
+        /// 判断appSettings中是否有此项
+        /// </summary>
+        private static bool AppSettingsKeyExists(string strKey, System.Configuration.Configuration config)
+        {
+            foreach (string str in config.AppSettings.Settings.AllKeys)
+            {
+                if (str == strKey) return true;
+            }
+            return false;
+        }
+        /// <summary>设置配置文件参数</summary>
+        /// <param name="name"></param>
+        /// <param name="value"></param>
+        public static void UpdateConfig(String name, String value)
+        {
+            System.Configuration.Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+            if (AppSettingsKeyExists(name, config))
+            {
+                config.AppSettings.Settings[name].Value = value;
+                config.Save(ConfigurationSaveMode.Modified);
+                ConfigurationManager.RefreshSection("appSettings");
+            }
+        }
         #endregion
     }
 }
