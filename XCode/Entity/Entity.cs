@@ -126,7 +126,15 @@ namespace XCode
             // 如果当前在事务中，并使用了缓存，则尝试更新缓存
             if (Meta.UsingTrans && Meta.Cache.Using)
             {
-                Meta.Cache.Entities.Add(this as TEntity);
+                // 尽管用了事务保护，但是仍然可能有别的地方导致实体缓存更新，这点务必要注意
+                var fi = Meta.Unique;
+                var entity = Meta.Cache.Entities.Find(fi.Name, this[fi.Name]);
+                if (entity != null)
+                {
+                    if (entity != this) entity.CopyFrom(this);
+                }
+                else
+                    Meta.Cache.Entities.Add(this as TEntity);
             }
 
             return rs;
@@ -138,7 +146,26 @@ namespace XCode
 
         /// <summary>更新数据库</summary>
         /// <returns></returns>
-        protected virtual Int32 OnUpdate() { return persistence.Update(this); }
+        protected virtual Int32 OnUpdate()
+        {
+            var rs = persistence.Update(this);
+
+            // 如果当前在事务中，并使用了缓存，则尝试更新缓存
+            if (Meta.UsingTrans && Meta.Cache.Using)
+            {
+                // 尽管用了事务保护，但是仍然可能有别的地方导致实体缓存更新，这点务必要注意
+                var fi = Meta.Unique;
+                var entity = Meta.Cache.Entities.Find(fi.Name, this[fi.Name]);
+                if (entity != null)
+                {
+                    if (entity != this) entity.CopyFrom(this);
+                }
+                else
+                    Meta.Cache.Entities.Add(this as TEntity);
+            }
+
+            return rs;
+        }
 
         /// <summary>删除数据，通过调用OnDelete实现，另外增加了数据验证和事务保护支持，将来可能实现事件支持。</summary>
         /// <remarks>
