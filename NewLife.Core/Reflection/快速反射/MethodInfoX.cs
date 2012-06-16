@@ -3,9 +3,9 @@ using System.Collections;
 using System.Diagnostics;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Text;
 using NewLife.Collections;
 using NewLife.Exceptions;
-using System.Text;
 
 namespace NewLife.Reflection
 {
@@ -50,12 +50,21 @@ namespace NewLife.Reflection
         String GetName(Boolean isfull, Boolean includeDefType = true)
         {
             var method = Method;
-            var tx = TypeX.Create(method.DeclaringType ?? method.ReflectedType);
 
             var sb = new StringBuilder();
-            var name = isfull ? tx.FullName : tx.Name;
-            //sb.AppendFormat("{0}.{1}", name, method.Name);
-            if (includeDefType) sb.AppendFormat("{0}.", name);
+            String name = null;
+            if (includeDefType)
+            {
+                var type = method.DeclaringType ?? method.ReflectedType;
+                if (type != null)
+                {
+                    var tx = TypeX.Create(type);
+                    name = isfull ? tx.FullName : tx.Name;
+                }
+                else
+                    name = "";
+            }
+            sb.AppendFormat("{0}.", name);
             sb.Append(method.Name);
             sb.Append("(");
             var ps = method.GetParameters();
@@ -63,8 +72,13 @@ namespace NewLife.Reflection
             {
                 if (i > 0) sb.Append(",");
 
-                tx = TypeX.Create(ps[i].ParameterType);
-                name = isfull ? tx.FullName : tx.Name;
+                if (ps[i].ParameterType != null)
+                {
+                    var tx = TypeX.Create(ps[i].ParameterType);
+                    name = isfull ? tx.FullName : tx.Name;
+                }
+                else
+                    name = "";
                 sb.AppendFormat("{0} {1}", name, ps[i].Name);
             }
             sb.Append(")");
