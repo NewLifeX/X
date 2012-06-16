@@ -1,12 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-using Microsoft.CSharp;
 using System.CodeDom.Compiler;
-using System.Reflection;
+using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
+using System.Text;
 using System.Text.RegularExpressions;
+using Microsoft.CSharp;
 
 namespace NewLife.Scripting
 {
@@ -15,51 +14,47 @@ namespace NewLife.Scripting
     {
         #region 属性
         private String _Expression;
-        /// <summary>
-        /// 源码脚本
-        /// </summary>
-        public String Expression
-        {
-            get { return _Expression; }
-            private set { _Expression = value; }
-        }
+        /// <summary>源码脚本</summary>
+        public String Expression { get { return _Expression; } private set { _Expression = value; } }
 
         private static String _TypeName = "NewLife.Core.DynamicScriptEngine";
 
+        /// <summary></summary>
         public Object DynamicInstance = null;
         #endregion
 
+        #region 创建
+        #endregion
+
         #region 动态编译
-        /// <summary>
-        /// 动态编译
-        /// </summary>
+        /// <summary>动态编译</summary>
         /// <param name="expression"></param>
         /// <returns></returns>
         private static object DynamicCompile(String expression)
         {
             //创建Provider
-            CSharpCodeProvider objCSharpCodePrivoder = new CSharpCodeProvider();
+            var provider = new CSharpCodeProvider();
             //创建编译参数
-            CompilerParameters objCompilerParameters = new CompilerParameters();
-            objCompilerParameters.ReferencedAssemblies.Add("System.dll");
+            var ps = new CompilerParameters();
+            ps.ReferencedAssemblies.Add("System.dll");
             //objCompilerParameters.ReferencedAssemblies.Add("System.Windows.Forms.dll");
-            objCompilerParameters.GenerateInMemory = true;
+            ps.GenerateInMemory = true;
             //创建编译器返回结果
-            CompilerResults cr = objCSharpCodePrivoder.CompileAssemblyFromSource(objCompilerParameters, expression);
+            var cr = provider.CompileAssemblyFromSource(ps, expression);
             //检测是否存在编译错误
             if (cr.Errors.HasErrors)
             {
                 string strErrorMsg = cr.Errors.Count.ToString() + " Errors:";
                 for (int x = 0; x < cr.Errors.Count; x++)
                 {
-                    strErrorMsg = strErrorMsg + "/r/nLine: " +
+                    strErrorMsg = strErrorMsg + Environment.NewLine + "Line: " +
                                  cr.Errors[x].Line.ToString() + " - " +
                                  cr.Errors[x].ErrorText;
                 }
                 throw new Exception(strErrorMsg);
             }
             //获取编译结果的程序集
-            Assembly objAssembly = cr.CompiledAssembly;
+            var objAssembly = cr.CompiledAssembly;
 
             _TypeName = GetNameSpacesInSourceCode(expression) + "." + GetClassInSourceCode(expression);
 
@@ -69,18 +64,19 @@ namespace NewLife.Scripting
         #endregion
 
         #region 提取命名空间及类名
-        static public List<string> GetNameSpacesInSourceCode(string code)
+        static List<string> GetNameSpacesInSourceCode(string code)
         {
             return GetMatchStrings(code, @"using\s+(.+?)\s*;", false);
         }
-        static public List<string> GetClassInSourceCode(string code)
+
+        static List<string> GetClassInSourceCode(string code)
         {
             return GetMatchStrings(code, @"class\s+(.+?)\s*;", false);
         }
-        static public List<string> GetMatchStrings(String text, String regx,
-            bool ignoreCase)
+
+        static List<string> GetMatchStrings(String text, String regx, bool ignoreCase)
         {
-            List<string> output = new List<string>();
+            var output = new List<string>();
 
             Regex reg;
 
@@ -121,10 +117,7 @@ namespace NewLife.Scripting
 
             MatchCollection m = reg.Matches(text);
 
-            if (m.Count == 0)
-            {
-                return output;
-            }
+            if (m.Count == 0) return output;
 
             for (int j = 0; j < m.Count; j++)
             {
@@ -140,7 +133,7 @@ namespace NewLife.Scripting
 
         }
 
-        static public String GetMatch(String text, String regx, bool ignoreCase)
+        static String GetMatch(String text, String regx, bool ignoreCase)
         {
             Regex reg;
 
@@ -209,6 +202,7 @@ namespace NewLife.Scripting
 
         /// <summary>从文件创建脚本</summary>
         /// <param name="file"></param>
+        /// <param name="encoding"></param>
         /// <returns></returns>
         public ScriptEngine CreateScriptSourceFromFile(String file, Encoding encoding = null)
         {
