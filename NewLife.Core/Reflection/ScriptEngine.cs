@@ -5,6 +5,7 @@ using System.Reflection.Emit;
 using System.Text;
 using NewLife.Collections;
 using NewLife.Exceptions;
+using System.Reflection;
 
 namespace NewLife.Reflection
 {
@@ -38,9 +39,13 @@ namespace NewLife.Reflection
         /// <summary>最终代码</summary>
         public String FinalCode { get { return _FinalCode; } private set { _FinalCode = value; } }
 
-        private MethodInfoX _Method;
+        private MethodInfo _Method;
         /// <summary>根据代码编译出来可供直接调用的方法</summary>
-        public MethodInfoX Method { get { return _Method; } private set { _Method = value; } }
+        public MethodInfo Method { get { return _Method; } private set { _Method = value; } }
+
+        private MethodInfoX _Mix;
+        /// <summary>快速反射</summary>
+        public MethodInfoX Mix { get { if (_Mix == null && Method != null)_Mix = MethodInfoX.Create(Method); return _Mix; } }
 
         static readonly String Refs =
             "using System;\r\n" +
@@ -129,7 +134,7 @@ namespace NewLife.Reflection
 
         #region 动态编译
         /// <summary>编译</summary>
-        void Compile()
+        public void Compile()
         {
             if (Method != null) return;
             lock (Parameters)
@@ -184,7 +189,8 @@ namespace NewLife.Reflection
                 if (rs.Errors == null || !rs.Errors.HasErrors)
                 {
                     var type = rs.CompiledAssembly.GetTypes()[0];
-                    Method = MethodInfoX.Create(type, "Execute");
+                    //Method = MethodInfoX.Create(type, "Execute");
+                    Method = type.GetMethod("Execute");
                 }
                 else
                 {
@@ -237,7 +243,7 @@ namespace NewLife.Reflection
             if (Method == null) Compile();
             if (Method == null) throw new XException("脚本引擎未编译表达式！");
 
-            return Method.Invoke(null, parameters);
+            return Mix.Invoke(null, parameters);
         }
         #endregion
     }

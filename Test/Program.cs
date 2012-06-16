@@ -19,11 +19,12 @@ using XCode.Transform;
 using System.Linq;
 #else
 using NewLife.Linq;
+using System.Reflection;
 #endif
 
 namespace Test
 {
-    internal class Program
+    public class Program
     {
         private static void Main(string[] args)
         {
@@ -36,7 +37,7 @@ namespace Test
                 try
                 {
 #endif
-                Test7();
+                    Test7();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -293,8 +294,43 @@ namespace Test
 
         static void Test7()
         {
-            var rs = ScriptEngine.Execute("a+b", new Dictionary<String, Object> { { "a", 222 }, { "b", 333 } });
-            Console.WriteLine(rs);
+            //Console.Write("请输入表达式：");
+            //var code = Console.ReadLine();
+
+            //var rs = ScriptEngine.Execute(code, new Dictionary<String, Object> { { "a", 222 }, { "b", 333 } });
+            ////Console.WriteLine(rs);
+
+            //var se = ScriptEngine.Create(code);
+            //var fm = code.Replace("a", "{0}").Replace("b", "{1}");
+            //for (int i = 1; i <= 9; i++)
+            //{
+            //    for (int j = 1; j <= i; j++)
+            //    {
+            //        Console.Write(fm + "={2}\t", j, i, se.Invoke(i, j));
+            //    }
+            //    Console.WriteLine();
+            //}
+
+            var se = ScriptEngine.Create("Test.Program.TestMath(k)");
+            if (se.Method == null)
+            {
+                se.Parameters.Add("k", typeof(Double));
+                se.Compile();
+            }
+
+            var fun = (DM)(Object)Delegate.CreateDelegate(typeof(DM), se.Method as MethodInfo);
+
+            var timer = 1000000;
+            var k = 123;
+            CodeTimer.ShowHeader();
+            CodeTimer.TimeLine("原生", timer, n => TestMath(k));
+            CodeTimer.TimeLine("动态", timer, n => se.Invoke(k));
+            CodeTimer.TimeLine("动态2", timer, n => fun(k));
         }
+        public static Double TestMath(Double k)
+        {
+            return Math.Sin(k) * Math.Log10(k) * Math.Exp(k);
+        }
+        delegate Object DM(Double k);
     }
 }

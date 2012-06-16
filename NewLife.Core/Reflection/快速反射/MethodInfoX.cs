@@ -206,7 +206,7 @@ namespace NewLife.Reflection
             else
             {
                 // 预处理参数类型
-                ParameterInfo[] pis = Method.GetParameters();
+                var pis = Method.GetParameters();
                 for (int i = 0; i < parameters.Length && i < pis.Length; i++)
                 {
                     parameters[i] = TypeX.ChangeType(parameters[i], pis[i].ParameterType);

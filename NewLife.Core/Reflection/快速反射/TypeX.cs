@@ -738,7 +738,8 @@ namespace NewLife.Reflection
         {
             Type vtype = null;
             if (value != null) vtype = value.GetType();
-            if (vtype == conversionType || conversionType.IsAssignableFrom(vtype)) return value;
+            //if (vtype == conversionType || conversionType.IsAssignableFrom(vtype)) return value;
+            if (vtype == conversionType) return value;
 
             // 处理可空类型
             if (IsNullable(conversionType))
@@ -783,6 +784,7 @@ namespace NewLife.Reflection
                 if (conversionType.IsValueType) value = CreateInstance(conversionType);
             }
 
+            if (conversionType.IsAssignableFrom(vtype)) return value;
             return value;
         }
 
@@ -802,6 +804,8 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public static Boolean IsNullable(Type type)
         {
+            if (type.IsValueType) return false;
+
             if (type.IsGenericType && !type.IsGenericTypeDefinition &&
                 object.ReferenceEquals(type.GetGenericTypeDefinition(), typeof(Nullable<>))) return true;
 
