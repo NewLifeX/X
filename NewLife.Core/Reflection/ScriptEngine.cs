@@ -13,7 +13,10 @@ namespace NewLife.Reflection
     /// 三大用法：
     /// 1，单个表达式，根据参数计算表达式结果并返回
     /// 2，多个语句，最后有返回语句
-    /// 3，多个方法，有一个名为Main的静态方法作为入口方法
+    /// 3，多个方法，有一个名为Execute的静态方法作为入口方法
+    /// 
+    /// 脚本引擎禁止实例化，必须通过<see cref="Create"/>方法创建，以代码为键进行缓存，避免重复创建反复编译形成泄漏。
+    /// 其中<see cref="Create"/>方法的第二个参数为true表示前两种用法，为false表示第三种用法。
     /// </remarks>
     /// <example></example>
     public class ScriptEngine
