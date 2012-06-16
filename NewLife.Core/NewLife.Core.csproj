@@ -152,7 +152,7 @@
     <Compile Include="Reflection\OrcasNamer.cs" />
     <Compile Include="Reflection\TypeResolver.cs" />
     <Compile Include="Reflection\TypeResolverProvider.cs" />
-    <Compile Include="Scripting\ScriptEngine.cs" />
+    <Compile Include="Reflection\ScriptEngine.cs" />
     <Compile Include="Security\Certificate.cs" />
     <Compile Include="Security\Crc16.cs" />
     <Compile Include="Serialization\Base\TextReaderBase.cs" />

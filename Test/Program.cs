@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.IO.Ports;
 using System.Threading;
 using NewLife.Log;
@@ -8,19 +10,16 @@ using NewLife.Net;
 using NewLife.Net.Common;
 using NewLife.Net.Proxy;
 using NewLife.Net.Sockets;
+using NewLife.Reflection;
+using NewLife.Serialization;
 using NewLife.Threading;
+using XCode.DataAccessLayer;
+using XCode.Transform;
 #if NET4
 using System.Linq;
 #else
 using NewLife.Linq;
 #endif
-using XCode.DataAccessLayer;
-using XCode.Transform;
-using System.IO;
-using NewLife.Serialization;
-using XCode.DataAccessLayer.Model;
-using NewLife.CommonEntity;
-using NewLife.Reflection;
 
 namespace Test
 {
@@ -294,10 +293,8 @@ namespace Test
 
         static void Test7()
         {
-            var type = typeof(Log);
-            Console.WriteLine(TypeX.Create(type).Name);
-            type = type.BaseType;
-            Console.WriteLine(TypeX.Create(type).Name);
+            var rs = ScriptEngine.Execute("a+b", new Dictionary<String, Object> { { "a", 222 }, { "b", 333 } });
+            Console.WriteLine(rs);
         }
     }
 }
