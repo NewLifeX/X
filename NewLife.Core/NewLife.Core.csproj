@@ -146,6 +146,7 @@
     <Compile Include="Reflection\ApiHook.cs" />
     <Compile Include="Reflection\CodeDomDuckTypeGenerator.cs" />
     <Compile Include="Reflection\DuckTyping.cs" />
+    <None Include="Reflection\快速反射\FastMethod.cs" />
     <Compile Include="Reflection\IL\ILInstruction.cs" />
     <Compile Include="Reflection\IL\MethodBodyReader.cs" />
     <Compile Include="Reflection\快速反射\EventInfoX.cs" />

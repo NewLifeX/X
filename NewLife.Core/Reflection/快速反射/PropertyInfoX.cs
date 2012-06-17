@@ -205,6 +205,16 @@ namespace NewLife.Reflection
             return GetHandler.Invoke(obj);
         }
 
+        // 快速委托没有什么性能优势，Emit已经足够快
+        //public Object GetValue2(Object obj)
+        //{
+        //    var fg = FastGet;
+        //    if (fg != null) return fg.Invoke(obj);
+
+        //    if (GetHandler == null) throw new InvalidOperationException("不支持GetValue操作！");
+        //    return GetHandler.Invoke(obj);
+        //}
+
         /// <summary>赋值</summary>
         /// <param name="obj"></param>
         /// <param name="value"></param>
@@ -315,6 +325,28 @@ namespace NewLife.Reflection
         {
             return obj != null ? Create(obj) : null;
         }
+        #endregion
+
+        #region 快速委托调用
+        // 快速委托没有什么性能优势，Emit已经足够快
+
+        //private Boolean initFastGet;
+        //private FastMethod _FastGet;
+        ///// <summary>快速获取</summary>
+        //FastMethod FastGet
+        //{
+        //    get
+        //    {
+        //        if (!initFastGet)
+        //        {
+        //            var fm = new FastMethod(GetMethod);
+        //            if (fm.Supported) _FastGet = fm;
+
+        //            initFastGet = true;
+        //        }
+        //        return _FastGet;
+        //    }
+        //}
         #endregion
     }
 }
