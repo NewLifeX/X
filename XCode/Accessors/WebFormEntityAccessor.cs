@@ -526,9 +526,9 @@ namespace XCode.Accessors
             TypeX tx = control.GetType();
             String name = tx.GetCustomAttributeValue<ControlValuePropertyAttribute, String>();
             PropertyInfoX pix = null;
-            if (!String.IsNullOrEmpty(name)) pix = PropertyInfoX.Create(tx.BaseType, name);
-            if (pix == null) pix = PropertyInfoX.Create(tx.BaseType, "Value");
-            if (pix == null) pix = PropertyInfoX.Create(tx.BaseType, "Text");
+            if (!String.IsNullOrEmpty(name)) pix = PropertyInfoX.Create(tx.Type, name);
+            if (pix == null) pix = PropertyInfoX.Create(tx.Type, "Value");
+            if (pix == null) pix = PropertyInfoX.Create(tx.Type, "Text");
             if (pix != null)
             {
                 value = pix.GetValue(control);
@@ -544,9 +544,9 @@ namespace XCode.Accessors
             TypeX tx = control.GetType();
             String name = tx.GetCustomAttributeValue<ControlValuePropertyAttribute, String>();
             PropertyInfoX pix = null;
-            if (!String.IsNullOrEmpty(name)) pix = PropertyInfoX.Create(tx.BaseType, name);
-            if (pix == null) pix = PropertyInfoX.Create(tx.BaseType, "Value");
-            if (pix == null) pix = PropertyInfoX.Create(tx.BaseType, "Text");
+            if (!String.IsNullOrEmpty(name)) pix = PropertyInfoX.Create(tx.Type, name);
+            if (pix == null) pix = PropertyInfoX.Create(tx.Type, "Value");
+            if (pix == null) pix = PropertyInfoX.Create(tx.Type, "Text");
             if (pix != null)
             {
                 if (value == null && pix.Type.IsValueType) return false;

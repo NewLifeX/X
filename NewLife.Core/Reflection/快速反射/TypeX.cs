@@ -22,9 +22,9 @@ namespace NewLife.Reflection
     public class TypeX : MemberInfoX
     {
         #region 属性
-        private Type _BaseType;
+        private Type _Type;
         /// <summary>类型</summary>
-        public Type BaseType { get { return _BaseType; } }
+        public override Type Type { get { return _Type; } }
 
         FastHandler _Handler;
         /// <summary>快速调用委托，延迟到首次使用才创建</summary>
@@ -34,12 +34,12 @@ namespace NewLife.Reflection
             {
                 if (_Handler == null)
                 {
-                    if (BaseType.IsValueType || BaseType.IsArray)
-                        _Handler = GetConstructorInvoker(BaseType, null);
+                    if (Type.IsValueType || Type.IsArray)
+                        _Handler = GetConstructorInvoker(Type, null);
                     else
                     {
-                        var cs = BaseType.GetConstructors(DefaultBinding);
-                        if (cs != null && cs.Length > 0) _Handler = GetConstructorInvoker(BaseType, cs[0]);
+                        var cs = Type.GetConstructors(DefaultBinding);
+                        if (cs != null && cs.Length > 0) _Handler = GetConstructorInvoker(Type, cs[0]);
                     }
                 }
                 return _Handler;
@@ -58,7 +58,7 @@ namespace NewLife.Reflection
 
         String GetName(Boolean isfull)
         {
-            Type type = BaseType;
+            Type type = Type;
             if (type.IsNested)
             {
                 var tx = TypeX.Create(type.DeclaringType);
@@ -94,7 +94,7 @@ namespace NewLife.Reflection
         #endregion
 
         #region 构造
-        private TypeX(Type type) : base(type) { _BaseType = type; }
+        private TypeX(Type type) : base(type) { _Type = type; }
 
         private static DictionaryCache<Type, TypeX> cache = new DictionaryCache<Type, TypeX>();
         /// <summary>创建类型辅助对象</summary>
@@ -152,10 +152,10 @@ namespace NewLife.Reflection
         [DebuggerStepThrough]
         public override Object CreateInstance(params Object[] parameters)
         {
-            if (BaseType.ContainsGenericParameters || BaseType.IsGenericTypeDefinition)
-                throw new XException(BaseType.FullName + "类是泛型定义类，缺少泛型参数！");
+            if (Type.ContainsGenericParameters || Type.IsGenericTypeDefinition)
+                throw new XException(Type.FullName + "类是泛型定义类，缺少泛型参数！");
 
-            if (BaseType.IsValueType || BaseType.IsArray) return Handler.Invoke(parameters);
+            if (Type.IsValueType || Type.IsArray) return Handler.Invoke(parameters);
 
             // 准备参数类型数组，以匹配构造函数
             //var paramTypes = Type.EmptyTypes;
@@ -204,7 +204,7 @@ namespace NewLife.Reflection
             }
 
             // 如果没有找到构造函数，则创建一个未初始化的对象
-            return FormatterServices.GetSafeUninitializedObject(BaseType);
+            return FormatterServices.GetSafeUninitializedObject(Type);
         }
 
         DictionaryCache<ConstructorInfo, FastHandler> _cache = new DictionaryCache<ConstructorInfo, FastHandler>();
@@ -212,7 +212,7 @@ namespace NewLife.Reflection
         {
             if (constructor == null) return null;
 
-            return _cache.GetItem(constructor, key => GetConstructorInvoker(BaseType, key));
+            return _cache.GetItem(constructor, key => GetConstructorInvoker(Type, key));
         }
 
         ConstructorInfo GetConstructor(Type[] paramTypes)
@@ -226,12 +226,12 @@ namespace NewLife.Reflection
             ConstructorInfo constructor = null;
             if (paramTypes == null)
             {
-                constructor = BaseType.GetConstructors(bf).FirstOrDefault();
+                constructor = Type.GetConstructors(bf).FirstOrDefault();
                 paramTypes = Type.EmptyTypes;
             }
-            if (constructor == null) constructor = BaseType.GetConstructor(bf, null, paramTypes, null);
+            if (constructor == null) constructor = Type.GetConstructor(bf, null, paramTypes, null);
             //if (constructor == null) throw new Exception("没有找到匹配的构造函数！");
-            if (constructor == null && paramTypes == Type.EmptyTypes) constructor = BaseType.GetConstructors(bf).FirstOrDefault();
+            if (constructor == null && paramTypes == Type.EmptyTypes) constructor = Type.GetConstructors(bf).FirstOrDefault();
 
             return constructor;
         }
@@ -274,7 +274,7 @@ namespace NewLife.Reflection
         {
             get
             {
-                return BaseType.Assembly.FullName.EndsWith("PublicKeyToken=b77a5c561934e089");
+                return Type.Assembly.FullName.EndsWith("PublicKeyToken=b77a5c561934e089");
             }
         }
 
@@ -309,7 +309,7 @@ namespace NewLife.Reflection
             //为空、不是类、抽象类、泛型类 都不是实体类
             //if (!BaseType.IsClass || BaseType.IsAbstract || BaseType.IsGenericType) return false;
             // 允许值类型，仅排除接口
-            if (BaseType.IsInterface || BaseType.IsAbstract || BaseType.IsGenericType) return false;
+            if (Type.IsInterface || Type.IsAbstract || Type.IsGenericType) return false;
 
             if (type.IsInterface)
             {
@@ -325,16 +325,16 @@ namespace NewLife.Reflection
                 //}
                 //if (!b) return false;
 
-                Type[] ts = BaseType.GetInterfaces();
+                Type[] ts = Type.GetInterfaces();
                 if (ts == null || ts.Length < 1) return false;
 
                 return ts.Any(e => e == type || e.FullName == type.FullName && e.AssemblyQualifiedName == type.AssemblyQualifiedName);
             }
             else
             {
-                if (type.IsAssignableFrom(BaseType)) return true;
+                if (type.IsAssignableFrom(Type)) return true;
 
-                var e = BaseType;
+                var e = Type;
                 while (e != null && e != typeof(Object))
                 {
                     if (e.FullName == type.FullName && e.AssemblyQualifiedName == type.AssemblyQualifiedName) return true;
@@ -620,7 +620,7 @@ namespace NewLife.Reflection
         /// <param name="name"></param>
         /// <param name="paramTypes"></param>
         /// <returns></returns>
-        public MethodInfo GetMethod(String name, Type[] paramTypes) { return GetMethod(BaseType, name, paramTypes); }
+        public MethodInfo GetMethod(String name, Type[] paramTypes) { return GetMethod(Type, name, paramTypes); }
 
         //private MethodInfo[] _Methods;
         ///// <summary>方法集合</summary>
@@ -707,7 +707,7 @@ namespace NewLife.Reflection
             if (!String.IsNullOrEmpty(des))
                 return des;
             else
-                return BaseType.FullName;
+                return Type.FullName;
         }
 
         /// <summary>判断两个类型是否相同，避免引用加载和执行上下文加载的相同类型显示不同</summary>
@@ -727,7 +727,7 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public TResult GetCustomAttributeValue<TAttribute, TResult>()
         {
-            return BaseType.GetCustomAttributeValue<TAttribute, TResult>(true);
+            return Type.GetCustomAttributeValue<TAttribute, TResult>(true);
         }
 
         /// <summary>类型转换</summary>
@@ -846,7 +846,7 @@ namespace NewLife.Reflection
 
         /// <summary>获取元素类型</summary>
         /// <returns></returns>
-        public Type GetElementType() { return GetElementType(BaseType); }
+        public Type GetElementType() { return GetElementType(Type); }
 
         private static DictionaryCache<Type, Type> _elmCache = new DictionaryCache<Type, Type>();
         /// <summary>获取一个类型的元素类型</summary>
@@ -891,6 +891,26 @@ namespace NewLife.Reflection
         {
             return obj != null ? Create(obj) : null;
         }
+        #endregion
+
+        #region 原生扩展
+        //private TypeX[] _BaseType;
+        ///// <summary>基类。因计算类型基类极慢，故缓存</summary>
+        //public TypeX BaseType
+        //{
+        //    get
+        //    {
+        //        if (_BaseType == null)
+        //        {
+        //            var bt = Type.BaseType;
+        //            if (bt != null)
+        //                _BaseType = new TypeX[] { TypeX.Create(bt) };
+        //            else
+        //                _BaseType = new TypeX[0];
+        //        }
+        //        return _BaseType;
+        //    }
+        //}
         #endregion
     }
 }
