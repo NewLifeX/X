@@ -741,24 +741,26 @@ namespace NewLife.Reflection
             //if (vtype == conversionType || conversionType.IsAssignableFrom(vtype)) return value;
             if (vtype == conversionType) return value;
 
+            var cx = Create(conversionType);
+
             // 处理可空类型
-            if (IsNullable(conversionType))
+            if (!cx.IsValueType && IsNullable(conversionType))
             {
                 if (value == null) return null;
 
                 conversionType = Nullable.GetUnderlyingType(conversionType);
             }
 
-            if (conversionType.IsEnum)
+            if (cx.IsEnum)
             {
-                if (vtype == typeof(String))
+                if (vtype == _.String)
                     return Enum.Parse(conversionType, (String)value, true);
                 else
                     return Enum.ToObject(conversionType, value);
             }
 
             // 字符串转为货币类型，处理一下
-            if (vtype == typeof(String))
+            if (vtype == _.String)
             {
                 if (Type.GetTypeCode(conversionType) == TypeCode.Decimal)
                 {
@@ -781,7 +783,7 @@ namespace NewLife.Reflection
             else
             {
                 // 如果原始值是null，要转为值类型，则new一个空白的返回
-                if (conversionType.IsValueType) value = CreateInstance(conversionType);
+                if (cx.IsValueType) value = CreateInstance(conversionType);
             }
 
             if (conversionType.IsAssignableFrom(vtype)) return value;
@@ -804,7 +806,7 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public static Boolean IsNullable(Type type)
         {
-            if (type.IsValueType) return false;
+            //if (type.IsValueType) return false;
 
             if (type.IsGenericType && !type.IsGenericTypeDefinition &&
                 object.ReferenceEquals(type.GetGenericTypeDefinition(), typeof(Nullable<>))) return true;
@@ -893,24 +895,98 @@ namespace NewLife.Reflection
         }
         #endregion
 
+        #region 常用类型
+        /// <summary>常用类型</summary>
+        public static class _
+        {
+            /// <summary>类型</summary>
+            public static readonly Type Type = typeof(Type);
+
+            /// <summary>值类型</summary>
+            public static readonly Type ValueType = typeof(ValueType);
+
+            /// <summary>枚举类型</summary>
+            public static readonly Type Enum = typeof(Enum);
+
+            /// <summary>对象类型</summary>
+            public static readonly Type Object = typeof(Object);
+
+            /// <summary>字符串类型</summary>
+            public static readonly Type String = typeof(String);
+        }
+        #endregion
+
         #region 原生扩展
-        //private TypeX[] _BaseType;
-        ///// <summary>基类。因计算类型基类极慢，故缓存</summary>
-        //public TypeX BaseType
+        private Boolean initBaseType;
+        private TypeX _BaseType;
+        /// <summary>基类。因计算类型基类极慢，故缓存</summary>
+        /// <remarks><see cref="P:Type.BaseType"/>实在太慢了</remarks>
+        public TypeX BaseType
+        {
+            get
+            {
+                if (!initBaseType)
+                {
+                    var bt = Type.BaseType;
+                    if (bt != null) _BaseType = TypeX.Create(bt);
+
+                    initBaseType = true;
+                }
+                return _BaseType;
+            }
+        }
+
+        /// <summary>确定当前 <see cref="T:System.Type" /> 表示的类是否是从指定的 <see cref="T:System.Type" /> 表示的类派生的。</summary>
+        /// <returns>如果 Type 由 <paramref name="c" /> 参数表示并且当前的 Type 表示类，并且当前的 Type 所表示的类是从 <paramref name="c" /> 所表示的类派生的，则为 true；否则为 false。如果 <paramref name="c" /> 和当前的 Type 表示相同的类，则此方法还返回 false。</returns>
+        /// <param name="c">与当前的 Type 进行比较的 Type。</param>
+        /// <exception cref="T:System.ArgumentNullException"><paramref name="c" /> 参数为 null。</exception>
+        public Boolean IsSubclassOf(Type c)
+        {
+            var baseType = this;
+            if (baseType.Type != c)
+            {
+                while (baseType != null)
+                {
+                    if (baseType.Type == c) return true;
+                    baseType = baseType.BaseType;
+                }
+                return false;
+            }
+            return false;
+        }
+
+        ///// <summary>确定当前的 <see cref="T:System.Type" /> 的实例是否可以从指定 Type 的实例分配。</summary>
+        ///// <returns>如果满足下列任一条件，则为 true：<paramref name="c" /> 和当前 Type 表示同一类型；当前 Type 位于 <paramref name="c" /> 的继承层次结构中；当前 Type 是 <paramref name="c" /> 实现的接口；<paramref name="c" /> 是泛型类型参数且当前 Type 表示 <paramref name="c" /> 的约束之一。如果不满足上述任何一个条件或者 <paramref name="c" /> 为 null，则为 false。</returns>
+        ///// <param name="c">与当前的 Type 进行比较的 Type。</param>
+        //public Boolean IsAssignableFrom(Type c)
         //{
-        //    get
-        //    {
-        //        if (_BaseType == null)
-        //        {
-        //            var bt = Type.BaseType;
-        //            if (bt != null)
-        //                _BaseType = new TypeX[] { TypeX.Create(bt) };
-        //            else
-        //                _BaseType = new TypeX[0];
-        //        }
-        //        return _BaseType;
-        //    }
+        //    var cx = Create(c);
+        //    if (cx.IsSubclassOf(Type)) return true;
+
+        //    return Type.IsAssignableFrom(c);
         //}
+
+        /// <summary>获取一个值，该值指示当前的 <see cref="T:System.Type" /> 是否表示枚举。</summary>
+        /// <returns>如果当前 <see cref="T:System.Type" /> 表示枚举，则为 true；否则为 false。</returns>
+        public Boolean IsEnum { get { return IsSubclassOf(_.Enum); } }
+
+        private Boolean initIsValueType;
+        private Boolean _IsValueType;
+        /// <summary>获取一个值，通过该值指示 <see cref="T:System.Type" /> 是否为值类型。</summary>
+        /// <returns>如果 <see cref="T:System.Type" /> 是值类型，则为 true；否则为 false。</returns>
+        public Boolean IsValueType
+        {
+            get
+            {
+                if (!initIsValueType)
+                {
+                    var type = Type;
+                    _IsValueType = type != _.ValueType && type != _.Enum && IsSubclassOf(_.ValueType);
+                    initIsValueType = true;
+                }
+                return _IsValueType;
+            }
+        }
         #endregion
     }
 }

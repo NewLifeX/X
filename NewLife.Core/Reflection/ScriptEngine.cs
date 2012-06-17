@@ -243,6 +243,9 @@ namespace NewLife.Reflection
             if (Method == null) Compile();
             if (Method == null) throw new XException("脚本引擎未编译表达式！");
 
+            // 这里反射调用方法，为了提高性能，我们采用快速反射
+            //Method.Invoke(null, parameters);
+
             return Mix.Invoke(null, parameters);
         }
         #endregion
