@@ -329,6 +329,7 @@ namespace Test
         }
         public static Double TestMath(Double k)
         {
+            //var bts = File.ReadAllBytes(Assembly.GetExecutingAssembly().Location);
             return Math.Sin(k) * Math.Log10(k) * Math.Exp(k);
         }
         delegate Object DM(Double k);

@@ -17,6 +17,10 @@ namespace NewLife.Reflection
         /// <summary>目标方法</summary>
         public MethodBase Method { get { return _Method; } private set { _Method = value; } }
 
+        private ParameterInfo[] _Parameters;
+        /// <summary>参数数组</summary>
+        public ParameterInfo[] Parameters { get { return _Parameters ?? (_Parameters = Method.GetParameters()); } }
+
         FastInvokeHandler _Handler;
         /// <summary>快速调用委托，延迟到首次使用才创建</summary>
         FastInvokeHandler Handler
@@ -206,7 +210,7 @@ namespace NewLife.Reflection
             else
             {
                 // 预处理参数类型
-                var pis = Method.GetParameters();
+                var pis = Parameters;
                 for (int i = 0; i < parameters.Length && i < pis.Length; i++)
                 {
                     parameters[i] = TypeX.ChangeType(parameters[i], pis[i].ParameterType);
