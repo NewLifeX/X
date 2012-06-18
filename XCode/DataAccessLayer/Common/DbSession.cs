@@ -50,11 +50,7 @@ namespace XCode.DataAccessLayer
 
         private String _ConnectionString;
         /// <summary>链接字符串，会话单独保存，允许修改，修改不会影响数据库中的连接字符串</summary>
-        public String ConnectionString
-        {
-            get { return _ConnectionString; }
-            set { _ConnectionString = value; }
-        }
+        public String ConnectionString { get { return _ConnectionString; } set { _ConnectionString = value; } }
 
         private DbConnection _Conn;
         /// <summary>数据连接对象。</summary>
@@ -75,54 +71,45 @@ namespace XCode.DataAccessLayer
 
         private Int32 _QueryTimes;
         /// <summary>查询次数</summary>
-        public Int32 QueryTimes
-        {
-            get { return _QueryTimes; }
-            set { _QueryTimes = value; }
-        }
+        public Int32 QueryTimes { get { return _QueryTimes; } set { _QueryTimes = value; } }
 
         private Int32 _ExecuteTimes;
         /// <summary>执行次数</summary>
-        public Int32 ExecuteTimes
-        {
-            get { return _ExecuteTimes; }
-            set { _ExecuteTimes = value; }
-        }
+        public Int32 ExecuteTimes { get { return _ExecuteTimes; } set { _ExecuteTimes = value; } }
 
         private Int32 _ThreadID = Thread.CurrentThread.ManagedThreadId;
         /// <summary>线程编号，每个数据库会话应该只属于一个线程，该属性用于检查错误的跨线程操作</summary>
-        public Int32 ThreadID
-        {
-            get { return _ThreadID; }
-            set { _ThreadID = value; }
-        }
+        public Int32 ThreadID { get { return _ThreadID; } set { _ThreadID = value; } }
         #endregion
 
         #region 打开/关闭
         private Boolean _IsAutoClose = true;
-        /// <summary>
-        /// 是否自动关闭。
+        /// <summary>是否自动关闭。
         /// 启用事务后，该设置无效。
         /// 在提交或回滚事务时，如果IsAutoClose为true，则会自动关闭
         /// </summary>
-        public Boolean IsAutoClose
-        {
-            get { return _IsAutoClose; }
-            set { _IsAutoClose = value; }
-        }
+        public Boolean IsAutoClose { get { return _IsAutoClose; } set { _IsAutoClose = value; } }
 
         /// <summary>连接是否已经打开</summary>
-        public Boolean Opened
-        {
-            get { return _Conn != null && _Conn.State != ConnectionState.Closed; }
-        }
+        public Boolean Opened { get { return _Conn != null && _Conn.State != ConnectionState.Closed; } }
 
         /// <summary>打开</summary>
         public virtual void Open()
         {
             if (DAL.Debug && ThreadID != Thread.CurrentThread.ManagedThreadId) DAL.WriteLog("本会话由线程{0}创建，当前线程{1}非法使用该会话！");
 
-            if (Conn != null && Conn.State == ConnectionState.Closed) Conn.Open();
+            if (Conn != null && Conn.State == ConnectionState.Closed)
+            {
+                try
+                {
+                    Conn.Open();
+                }
+                catch (DbException)
+                {
+                    DAL.WriteLog("错误的连接字符串：{0}", ConnectionString);
+                    throw;
+                }
+            }
         }
 
         /// <summary>关闭</summary>
@@ -138,8 +125,7 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        /// <summary>
-        /// 自动关闭。
+        /// <summary>自动关闭。
         /// 启用事务后，不关闭连接。
         /// 在提交或回滚事务时，如果IsAutoClose为true，则会自动关闭
         /// </summary>
@@ -157,6 +143,8 @@ namespace XCode.DataAccessLayer
             }
             set
             {
+                if (DatabaseName == value) return;
+
                 if (Opened)
                 {
                     //如果已打开，则调用链接来切换
@@ -168,7 +156,7 @@ namespace XCode.DataAccessLayer
                     ////XTrace.DebugStack(3);
 
                     //如果没有打开，则改变链接字符串
-                    DbConnectionStringBuilder builder = new DbConnectionStringBuilder();
+                    var builder = new DbConnectionStringBuilder();
                     builder.ConnectionString = ConnectionString;
                     if (builder.ContainsKey("Database"))
                     {
@@ -562,19 +550,32 @@ namespace XCode.DataAccessLayer
         DataTable GetSchemaInternal(String key, String collectionName, String[] restrictionValues)
         {
             QueryTimes++;
-            if (!Opened) Open();
+            // 如果启用了事务保护，这里要新开一个连接，否则MSSQL里面报错，SQLite不报错，其它数据库未测试
+            var isTrans = TransactionCount > 0;
 
-            DbConnection conn = Conn;
-            try
+            DbConnection conn;
+            if (isTrans)
             {
-                // 如果启用了事务保护，这里要新开一个连接，否则MSSQL里面报错，SQLite不报错，其它数据库未测试
-                if (TransactionCount > 0)
+                try
                 {
                     conn = Factory.CreateConnection();
                     conn.ConnectionString = ConnectionString;
                     conn.Open();
                 }
+                catch (DbException ex)
+                {
+                    DAL.WriteLog("错误的连接字符串：{0}", ConnectionString);
+                    throw new XDbSessionException(this, "取得所有表构架出错！连接字符串有问题，请查看日志！", ex);
+                }
+            }
+            else
+            {
+                if (!Opened) Open();
+                conn = Conn;
+            }
 
+            try
+            {
                 DataTable dt;
 
                 if (restrictionValues == null || restrictionValues.Length < 1)
@@ -592,8 +593,8 @@ namespace XCode.DataAccessLayer
                 }
                 else
                 {
-                    StringBuilder sb = new StringBuilder();
-                    foreach (String item in restrictionValues)
+                    var sb = new StringBuilder();
+                    foreach (var item in restrictionValues)
                     {
                         sb.Append(", ");
                         if (item == null)
@@ -613,8 +614,10 @@ namespace XCode.DataAccessLayer
             }
             finally
             {
-                AutoClose();
-                if (conn != Conn) conn.Close();
+                if (isTrans)
+                    conn.Close();
+                else
+                    AutoClose();
             }
         }
         #endregion

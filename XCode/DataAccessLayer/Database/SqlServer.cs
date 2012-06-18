@@ -30,16 +30,22 @@ namespace XCode.DataAccessLayer
                 if (_IsSQL2005 == null)
                 {
                     if (String.IsNullOrEmpty(ConnectionString)) return false;
+
+                    // 独立Session，避免因切换数据库而导致出错
+                    var session = OnCreateSession() as DbSession;
+                    session.ConnectionString = ConnectionString;
+                    session.Database = this;
                     try
                     {
-                        //切换到master库
-                        DbSession session = CreateSession() as DbSession;
-                        String dbname = session.DatabaseName;
+                        ////切换到master库
+                        //String dbname = session.DatabaseName;
+                        ////如果指定了数据库名，并且不是master，则切换到master
+                        //if (!String.IsNullOrEmpty(dbname) && !dbname.EqualIgnoreCase(SystemDatabaseName))
+                        //{
+                        //    session.DatabaseName = SystemDatabaseName;
+                        //}
                         //如果指定了数据库名，并且不是master，则切换到master
-                        if (!String.IsNullOrEmpty(dbname) && !String.Equals(dbname, SystemDatabaseName, StringComparison.OrdinalIgnoreCase))
-                        {
-                            session.DatabaseName = SystemDatabaseName;
-                        }
+                        session.DatabaseName = SystemDatabaseName;
 
                         //取数据库版本
                         if (!session.Opened) session.Open();
@@ -49,12 +55,13 @@ namespace XCode.DataAccessLayer
                         //_IsSQL2005 = !ver.StartsWith("08");
                         _IsSQL2005 = Int32.Parse(ver.Substring(0, 2)) >= 8;
 
-                        if (!String.IsNullOrEmpty(dbname) && !String.Equals(dbname, SystemDatabaseName, StringComparison.OrdinalIgnoreCase))
-                        {
-                            session.DatabaseName = dbname;
-                        }
+                        //if (!String.IsNullOrEmpty(dbname) && !dbname.EqualIgnoreCase(SystemDatabaseName))
+                        //{
+                        //    session.DatabaseName = dbname;
+                        //}
                     }
                     catch { _IsSQL2005 = false; }
+                    finally { session.Dispose(); }
                 }
                 return _IsSQL2005.Value;
             }
@@ -560,9 +567,11 @@ namespace XCode.DataAccessLayer
 
                     dbname = session.DatabaseName;
                     session.DatabaseName = SystemDatabaseName;
-                    obj = DatabaseExist(databaseName);
-
-                    session.DatabaseName = dbname;
+                    try
+                    {
+                        obj = DatabaseExist(databaseName);
+                    }
+                    finally { session.DatabaseName = dbname; }
                     return obj;
                 case DDLSchema.DropDatabase:
                     databaseName = values == null || values.Length < 1 ? null : (String)values[0];
@@ -571,35 +580,37 @@ namespace XCode.DataAccessLayer
 
                     dbname = session.DatabaseName;
                     session.DatabaseName = SystemDatabaseName;
-                    //obj = base.SetSchema(schema, values);
-                    //if (Execute(String.Format("Drop Database [{0}]", dbname)) < 1)
-                    //{
-                    //    Execute(DropDatabaseSQL(databaseName));
-                    //}
-                    StringBuilder sb = new StringBuilder();
-                    sb.AppendLine("use master");
-                    sb.AppendLine(";");
-                    sb.AppendLine("declare   @spid   varchar(20),@dbname   varchar(20)");
-                    sb.AppendLine("declare   #spid   cursor   for");
-                    sb.AppendFormat("select   spid=cast(spid   as   varchar(20))   from   master..sysprocesses   where   dbid=db_id('{0}')", dbname);
-                    sb.AppendLine();
-                    sb.AppendLine("open   #spid");
-                    sb.AppendLine("fetch   next   from   #spid   into   @spid");
-                    sb.AppendLine("while   @@fetch_status=0");
-                    sb.AppendLine("begin");
-                    sb.AppendLine("exec('kill   '+@spid)");
-                    sb.AppendLine("fetch   next   from   #spid   into   @spid");
-                    sb.AppendLine("end");
-                    sb.AppendLine("close   #spid");
-                    sb.AppendLine("deallocate   #spid");
+                    try
+                    {
+                        //obj = base.SetSchema(schema, values);
+                        //if (Execute(String.Format("Drop Database [{0}]", dbname)) < 1)
+                        //{
+                        //    Execute(DropDatabaseSQL(databaseName));
+                        //}
+                        var sb = new StringBuilder();
+                        sb.AppendLine("use master");
+                        sb.AppendLine(";");
+                        sb.AppendLine("declare   @spid   varchar(20),@dbname   varchar(20)");
+                        sb.AppendLine("declare   #spid   cursor   for");
+                        sb.AppendFormat("select   spid=cast(spid   as   varchar(20))   from   master..sysprocesses   where   dbid=db_id('{0}')", dbname);
+                        sb.AppendLine();
+                        sb.AppendLine("open   #spid");
+                        sb.AppendLine("fetch   next   from   #spid   into   @spid");
+                        sb.AppendLine("while   @@fetch_status=0");
+                        sb.AppendLine("begin");
+                        sb.AppendLine("exec('kill   '+@spid)");
+                        sb.AppendLine("fetch   next   from   #spid   into   @spid");
+                        sb.AppendLine("end");
+                        sb.AppendLine("close   #spid");
+                        sb.AppendLine("deallocate   #spid");
 
-                    Int32 count = 0;
-                    try { count = session.Execute(sb.ToString()); }
-                    catch { }
-                    obj = session.Execute(String.Format("Drop Database {0}", FormatName(dbname))) > 0;
-                    //sb.AppendFormat("Drop Database [{0}]", dbname);
-
-                    session.DatabaseName = dbname;
+                        Int32 count = 0;
+                        try { count = session.Execute(sb.ToString()); }
+                        catch { }
+                        obj = session.Execute(String.Format("Drop Database {0}", FormatName(dbname))) > 0;
+                        //sb.AppendFormat("Drop Database [{0}]", dbname);
+                    }
+                    finally { session.DatabaseName = dbname; }
                     return obj;
                 case DDLSchema.TableExist:
                     return TableExist((IDataTable)values[0]);
