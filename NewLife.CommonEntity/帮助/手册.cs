@@ -1,7 +1,7 @@
 ﻿/*
  * XCoder v4.8.4548.28140
  * 作者：nnhy/NEWLIFE
- * 时间：2012-06-18 11:05:27
+ * 时间：2012-06-18 11:52:47
  * 版权：版权所有 (C) 新生命开发团队 2012
 */
 ﻿using System;
@@ -18,7 +18,7 @@ namespace NewLife.CommonEntity
     [Serializable]
     [DataObject]
     [Description("手册")]
-    [BindIndex("IX_Manual_Url", false, "Url")]
+    [BindIndex("IX_Manual_Url", true, "Url")]
     [BindIndex("PK_Manual", true, "ID")]
     [BindTable("Manual", Description = "手册", ConnName = "Manual", DbType = DatabaseType.SqlServer)]
     public partial class Manual<TEntity> : IManual
@@ -71,6 +71,42 @@ namespace NewLife.CommonEntity
             get { return _Content; }
             set { if (OnPropertyChanging("Content", value)) { _Content = value; OnPropertyChanged("Content"); } }
         }
+
+        private String _UserName;
+        /// <summary>作者</summary>
+        [DisplayName("作者")]
+        [Description("作者")]
+        [DataObjectField(false, false, true, 50)]
+        [BindColumn(5, "UserName", "作者", null, "nvarchar(50)", 0, 0, true)]
+        public virtual String UserName
+        {
+            get { return _UserName; }
+            set { if (OnPropertyChanging("UserName", value)) { _UserName = value; OnPropertyChanged("UserName"); } }
+        }
+
+        private DateTime _CreateTime;
+        /// <summary>创建时间</summary>
+        [DisplayName("创建时间")]
+        [Description("创建时间")]
+        [DataObjectField(false, false, true, 3)]
+        [BindColumn(6, "CreateTime", "创建时间", null, "datetime", 3, 0, false)]
+        public virtual DateTime CreateTime
+        {
+            get { return _CreateTime; }
+            set { if (OnPropertyChanging("CreateTime", value)) { _CreateTime = value; OnPropertyChanged("CreateTime"); } }
+        }
+
+        private DateTime _UpdateTime;
+        /// <summary>更新时间</summary>
+        [DisplayName("更新时间")]
+        [Description("更新时间")]
+        [DataObjectField(false, false, true, 3)]
+        [BindColumn(7, "UpdateTime", "更新时间", null, "datetime", 3, 0, false)]
+        public virtual DateTime UpdateTime
+        {
+            get { return _UpdateTime; }
+            set { if (OnPropertyChanging("UpdateTime", value)) { _UpdateTime = value; OnPropertyChanged("UpdateTime"); } }
+        }
 		#endregion
 
         #region 获取/设置 字段值
@@ -91,6 +127,9 @@ namespace NewLife.CommonEntity
                     case "Url" : return _Url;
                     case "Summary" : return _Summary;
                     case "Content" : return _Content;
+                    case "UserName" : return _UserName;
+                    case "CreateTime" : return _CreateTime;
+                    case "UpdateTime" : return _UpdateTime;
                     default: return base[name];
                 }
             }
@@ -102,6 +141,9 @@ namespace NewLife.CommonEntity
                     case "Url" : _Url = Convert.ToString(value); break;
                     case "Summary" : _Summary = Convert.ToString(value); break;
                     case "Content" : _Content = Convert.ToString(value); break;
+                    case "UserName" : _UserName = Convert.ToString(value); break;
+                    case "CreateTime" : _CreateTime = Convert.ToDateTime(value); break;
+                    case "UpdateTime" : _UpdateTime = Convert.ToDateTime(value); break;
                     default: base[name] = value; break;
                 }
             }
@@ -124,6 +166,15 @@ namespace NewLife.CommonEntity
             ///<summary>内容</summary>
             public static readonly Field Content = FindByName("Content");
 
+            ///<summary>作者</summary>
+            public static readonly Field UserName = FindByName("UserName");
+
+            ///<summary>创建时间</summary>
+            public static readonly Field CreateTime = FindByName("CreateTime");
+
+            ///<summary>更新时间</summary>
+            public static readonly Field UpdateTime = FindByName("UpdateTime");
+
             static Field FindByName(String name) { return Meta.Table.FindByName(name); }
         }
         #endregion
@@ -144,6 +195,15 @@ namespace NewLife.CommonEntity
 
         /// <summary>内容</summary>
         String Content { get; set; }
+
+        /// <summary>作者</summary>
+        String UserName { get; set; }
+
+        /// <summary>创建时间</summary>
+        DateTime CreateTime { get; set; }
+
+        /// <summary>更新时间</summary>
+        DateTime UpdateTime { get; set; }
         #endregion
 
         #region 获取/设置 字段值

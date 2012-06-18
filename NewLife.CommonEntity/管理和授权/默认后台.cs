@@ -1,7 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using XCode;
+using XCode.DataAccessLayer;
 
 namespace NewLife.CommonEntity
 {
@@ -34,4 +33,9 @@ namespace NewLife.CommonEntity
     [Serializable]
     [ModelCheckMode(ModelCheckModes.CheckTableWhenFirstUse)]
     public class Area : Area<Area> { }
+
+    /// <summary>手册</summary>
+    [ModelCheckMode(ModelCheckModes.CheckTableWhenFirstUse)]
+    [BindTable("CommonManual", Description = "手册", ConnName = "CommonManual", DbType = DatabaseType.SqlServer)]
+    public class CommonManual : Manual<CommonManual> { }
 }

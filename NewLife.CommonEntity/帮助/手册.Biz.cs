@@ -1,19 +1,15 @@
 ﻿/*
  * XCoder v4.8.4548.28140
  * 作者：nnhy/NEWLIFE
- * 时间：2012-06-18 11:07:37
+ * 时间：2012-06-18 11:52:45
  * 版权：版权所有 (C) 新生命开发团队 2012
 */
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Text;
-using System.Xml.Serialization;
-using NewLife.CommonEntity;
-using NewLife.Log;
-using NewLife.Web;
 using XCode;
-using XCode.Configuration;
+using System.Web;
+using System.Web.UI;
+using System.Web.UI.WebControls;
 
 namespace NewLife.CommonEntity
 {
@@ -21,7 +17,7 @@ namespace NewLife.CommonEntity
     ///// <summary>手册</summary>
     //[ModelCheckMode(ModelCheckModes.CheckTableWhenFirstUse)]
     //public class Manual : Manual<Manual> { }
-    
+
     /// <summary>手册</summary>
     /// <remarks>
     /// 各个模块应该实现自己的手册类，指定专用的数据库连接。
@@ -40,7 +36,8 @@ namespace NewLife.CommonEntity
         public override void Valid(Boolean isNew)
         {
             // 这里验证参数范围，建议抛出参数异常，指定参数名，前端用户界面可以捕获参数异常并聚焦到对应的参数输入框
-            //if (String.IsNullOrEmpty(Name)) throw new ArgumentNullException(_.Name, _.Name.DisplayName + "无效！");
+            if (String.IsNullOrEmpty(Summary) && String.IsNullOrEmpty(Content))
+                throw new ArgumentNullException(_.Content, _.Summary.DisplayName + "与" + _.Content.DisplayName + "不能同时为空！");
             //if (!isNew && ID < 1) throw new ArgumentOutOfRangeException(_.ID, _.ID.DisplayName + "必须大于0！");
 
             // 建议先调用基类方法，基类方法会对唯一索引的数据进行验证
@@ -48,7 +45,13 @@ namespace NewLife.CommonEntity
 
             // 在新插入数据或者修改了指定字段时进行唯一性验证，CheckExist内部抛出参数异常
             //if (isNew || Dirtys[_.Name]) CheckExist(_.Name);
-            
+
+            // 处理当前已登录用户信息
+            if (!Dirtys[_.UserName] && ManageProvider.Provider.Current != null) UserName = ManageProvider.Provider.Current.Account;
+            if (isNew && !Dirtys[_.CreateTime]) CreateTime = DateTime.Now;
+            if (!Dirtys[_.UpdateTime]) UpdateTime = DateTime.Now;
+
+            if (!Dirtys[_.Summary] && !String.IsNullOrEmpty(Content)) Summary = Content.Substring(0, 100);
         }
 
         ///// <summary>首次连接数据库时初始化数据，仅用于实体类重载，用户不应该调用该方法</summary>
@@ -68,6 +71,9 @@ namespace NewLife.CommonEntity
         //    entity.Url = "abc";
         //    entity.Summary = "abc";
         //    entity.Content = "abc";
+        //    entity.UserName = "abc";
+        //    entity.CreateTime = DateTime.Now;
+        //    entity.UpdateTime = DateTime.Now;
         //    entity.Insert();
 
         //    if (XTrace.Debug) XTrace.WriteLine("完成初始化{0}手册数据！", typeof(TEntity).Name);
@@ -177,6 +183,55 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region 业务
+        /// <summary>当前页面默认帮助</summary>
+        public static TEntity Current { get { return FindInPage(null); } }
+
+        /// <summary>在当前页面上查找指定序号的帮助</summary>
+        /// <param name="index"></param>
+        /// <returns></returns>
+        public static TEntity FindInPage(Int32 index) { return FindInPage(index); }
+
+        static TEntity FindInPage(Int32? index)
+        {
+            if (HttpContext.Current == null) return null;
+
+            var url = HttpContext.Current.Request.Url;
+            if (url == null) return null;
+
+            // 取最后三级
+            var url2 = url.AbsolutePath;
+            var ss = url2.Split("/");
+            if (ss == null || ss.Length < 3)
+            {
+                url2 = "/" + String.Join("/", ss, ss.Length - 3 - 1, 3);
+            }
+
+            if (index != null) url2 += "/" + index.Value;
+
+            return FindByUrl(url2);
+        }
+
+        /// <summary>绑定到控件</summary>
+        /// <param name="control"></param>
+        /// <param name="index"></param>
+        public static void Bind(Control control, Int32 index)
+        {
+            var entity = FindInPage(index);
+            if (entity == null) return;
+
+            if (control is Label)
+            {
+                (control as Label).Text = entity.Summary;
+            }
+            else if (control is Literal)
+            {
+                (control as Label).Text = entity.Summary;
+            }
+            else if (control is WebControl)
+            {
+                (control as WebControl).ToolTip = entity.Summary;
+            }
+        }
         #endregion
     }
 }
