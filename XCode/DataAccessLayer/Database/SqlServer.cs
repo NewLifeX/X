@@ -46,7 +46,8 @@ namespace XCode.DataAccessLayer
                         String ver = session.Conn.ServerVersion;
                         session.AutoClose();
 
-                        _IsSQL2005 = !ver.StartsWith("08");
+                        //_IsSQL2005 = !ver.StartsWith("08");
+                        _IsSQL2005 = Int32.Parse(ver.Substring(0, 2)) >= 8;
 
                         if (!String.IsNullOrEmpty(dbname) && !String.Equals(dbname, SystemDatabaseName, StringComparison.OrdinalIgnoreCase))
                         {
@@ -98,10 +99,11 @@ namespace XCode.DataAccessLayer
         {
             providerName = providerName.ToLower();
             if (providerName.Contains("system.data.sqlclient")) return true;
+            if (providerName.Contains("sql2012")) return true;
             if (providerName.Contains("sql2008")) return true;
             if (providerName.Contains("sql2005")) return true;
             if (providerName.Contains("sql2000")) return true;
-            //if (providerName.Contains("sqlclient")) return true;
+            if (providerName == "sqlclient") return true;
             if (providerName.Contains("mssql")) return true;
 
             return false;
