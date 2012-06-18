@@ -287,7 +287,8 @@ namespace NewLife.Configuration
             NameValueCollection nvs = AppSettings;
             if (nvs == null || nvs.Count < 1) return;
 
-            nvs[name] = value;
+            //nvs[name] = value;
+			UpdateConfig(name,value);            
         }
 
         /// <summary>
