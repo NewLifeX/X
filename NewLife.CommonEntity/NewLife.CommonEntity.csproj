@@ -71,6 +71,8 @@
     <Compile Include="Interfaces\IManageUser.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="实体\SysSetting.cs" />
+    <Compile Include="帮助\手册.Biz.cs" />
+    <Compile Include="帮助\手册.cs" />
     <Compile Include="附件\AttachmentHttpHandler.cs" />
     <Compile Include="附件\DownloadFile.cs" />
     <Compile Include="Web\EntityForm.cs">
