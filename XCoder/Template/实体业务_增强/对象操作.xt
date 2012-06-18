@@ -36,6 +36,7 @@
                     }
                     else if (name.StartsWith("Update", StringComparison.OrdinalIgnoreCase)
                     || name.StartsWith("Change", StringComparison.OrdinalIgnoreCase)
+                    || name.StartsWith("Modify", StringComparison.OrdinalIgnoreCase)
                     || name.StartsWith("up", StringComparison.OrdinalIgnoreCase) // Upload
                     || name.StartsWith("Save", StringComparison.OrdinalIgnoreCase))
                     {
@@ -58,23 +59,24 @@
             // 货币保留6位小数
             if (Dirtys[_.<#=name#>]) <#=name#> = Math.Round(<#=name#>, 6);<#
                 }
-                // 处理当然已登录用户信息
                 else if (dc.DataType==typeof(Int32) 
                     && (name.Equals("UserID", StringComparison.OrdinalIgnoreCase) 
                     || name.Equals("OperatorID", StringComparison.OrdinalIgnoreCase)))
                 {
                     #>
-            // 处理当然已登录用户信息
-            if (!Dirtys[_.<#=name#>]) <#=name#> = (Int32)ManageProvider.Provider.Current.ID;<#
+            // 处理当前已登录用户信息
+            if (!Dirtys[_.<#=name#>] && ManageProvider.Provider.Current != null) <#=name#> = (Int32)ManageProvider.Provider.Current.ID;<#
                 }
                 else if (dc.DataType==typeof(String) 
                     && (name.Equals("User", StringComparison.OrdinalIgnoreCase) 
                     || name.Equals("UserName", StringComparison.OrdinalIgnoreCase)
+                    || name.Equals("LastUpdate", StringComparison.OrdinalIgnoreCase)
+                    || name.Equals("LastModify", StringComparison.OrdinalIgnoreCase)
                     || name.Equals("Operator", StringComparison.OrdinalIgnoreCase)))
                 {
                     #>
-            // 处理当然已登录用户信息
-            if (!Dirtys[_.<#=name#>]) <#=name#> = ManageProvider.Provider.Current.Account;<#
+            // 处理当前已登录用户信息
+            if (!Dirtys[_.<#=name#>] && ManageProvider.Provider.Current != null) <#=name#> = ManageProvider.Provider.Current.Account;<#
                 }
             }
             #>
