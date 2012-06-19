@@ -15,7 +15,7 @@ namespace NewLife.Reflection
         #region 属性
         private MethodBase _Method;
         /// <summary>目标方法</summary>
-        public MethodBase Method { get { return _Method; } private set { _Method = value; } }
+        public MethodInfo Method { get { return _Method as MethodInfo; } private set { _Method = value; } }
 
         private ParameterInfo[] _Parameters;
         /// <summary>参数数组</summary>
@@ -53,7 +53,7 @@ namespace NewLife.Reflection
 
         String GetName(Boolean isfull, Boolean includeDefType = true)
         {
-            var method = Method;
+            var method = _Method;
 
             var sb = new StringBuilder();
             String name = null;
@@ -91,7 +91,7 @@ namespace NewLife.Reflection
         #endregion
 
         #region 构造
-        private MethodInfoX(MethodBase method) : base(method) { Method = method; }
+        private MethodInfoX(MethodBase method) : base(method) { _Method = method; }
 
         private static DictionaryCache<MethodBase, MethodInfoX> cache = new DictionaryCache<MethodBase, MethodInfoX>();
         /// <summary>创建</summary>
@@ -231,7 +231,7 @@ namespace NewLife.Reflection
             //! 注意：有可能没有传入参数，但是该方法是需要参数的，这个时候采用全部null的方法
 
             // 该方法没有参数，无视外部传入参数
-            ParameterInfo[] pis = Method.GetParameters();
+            var pis = Method.GetParameters();
             if (pis == null || pis.Length < 1) return Invoke(obj, null);
 
             Object[] ps = new Object[pis.Length];
