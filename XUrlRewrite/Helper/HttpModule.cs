@@ -3,6 +3,7 @@ using System.Web;
 using NewLife.Log;
 using NewLife.Reflection;
 using XUrlRewrite.Configuration;
+using System.Reflection;
 
 namespace XUrlRewrite.Helper
 {
@@ -173,7 +174,7 @@ namespace XUrlRewrite.Helper
                 return EmptyCustomFilterFunc;
             }
 
-            if (methodInfoX.Method.ReturnType != typeof(bool))
+            if ((methodInfoX.Method as MethodInfo).ReturnType != typeof(bool))
             {
                 if (Manager.Debug) XTrace.WriteLine("Url重写配置的自定义过滤器方法返回值不是bool", method);
                 return EmptyCustomFilterFunc;
