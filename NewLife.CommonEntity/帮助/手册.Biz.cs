@@ -6,10 +6,10 @@
 */
 ﻿using System;
 using System.ComponentModel;
-using XCode;
 using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
+using XCode;
 
 namespace NewLife.CommonEntity
 {
@@ -187,11 +187,9 @@ namespace NewLife.CommonEntity
         public static TEntity Current { get { return FindInPage(null); } }
 
         /// <summary>在当前页面上查找指定序号的帮助</summary>
-        /// <param name="index"></param>
+        /// <param name="tag"></param>
         /// <returns></returns>
-        public static TEntity FindInPage(Int32 index) { return FindInPage(index); }
-
-        static TEntity FindInPage(Int32? index)
+        public static TEntity FindInPage(String tag)
         {
             if (HttpContext.Current == null) return null;
 
@@ -206,17 +204,17 @@ namespace NewLife.CommonEntity
                 url2 = "/" + String.Join("/", ss, ss.Length - 3 - 1, 3);
             }
 
-            if (index != null) url2 += "/" + index.Value;
+            if (!String.IsNullOrEmpty(tag)) url2 += "#" + tag;
 
             return FindByUrl(url2);
         }
 
         /// <summary>绑定到控件</summary>
         /// <param name="control"></param>
-        /// <param name="index"></param>
-        public static void Bind(Control control, Int32 index)
+        /// <param name="tag"></param>
+        public static void Bind(Control control, String tag)
         {
-            var entity = FindInPage(index);
+            var entity = FindInPage(tag);
             if (entity == null) return;
 
             if (control is Label)
