@@ -57,7 +57,8 @@ public partial class Center_Default : System.Web.UI.Page
         {
             root.CheckMenuName("Admin", "管理平台")
                 .CheckMenuName(@"Admin\Sys", "系统管理")
-                .CheckMenuName(@"Admin\Advance", "高级设置");
+                .CheckMenuName(@"Admin\Advance", "高级设置")
+                .CheckMenuName(@"Admin\Help", "帮助手册");
         }
     }
 
