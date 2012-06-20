@@ -312,7 +312,7 @@ namespace XControl
             {
                 clickElement = string.Format(@"
 e.ClickElement('a',function(i){{
-    return i.innerHTML==='{0}';
+    return i.className.toLowerCase().indexOf('dblclickrow') > -1 || i.innerHTML==='{0}';
 }})
 ", Helper.JsStringEscape(editLinkBoxText));  // 这里的'a'表示是html标签a,因为编辑列字段 LinkBoxField 输出的是a标签
             }
