@@ -8,13 +8,13 @@ using System;
 using System.ComponentModel;
 using System.Xml.Serialization;
 using NewLife.Exceptions;
+using NewLife.Log;
 using XCode;
 
 #if NET4
 using System.Linq;
 #else
 using NewLife.Linq;
-using NewLife.Log;
 #endif
 
 namespace NewLife.CommonEntity
@@ -69,14 +69,9 @@ namespace NewLife.CommonEntity
             {
                 if (p != null)
                 {
-                    ////XTrace.WriteLine("插入设置项{0}（ID={1}），删除{2}（ID={3}）的子项缓存", Name, ID, p.Name, p.ID);
-                    //p.Dirtys["Childs"] = false;
-                    //p.Childs = null;
-                    ////XTrace.WriteLine("Insert:{0}.Childs[{1}]", p.Name, p.Childs.Count);
-
-                    // 可以试试不清理，直接加入
+                    // 可以试试不清理，查找缓存后加入，必须查找缓存
                     var list = p._Childs;
-                    if (list != null && !list.Exists(_.ID, this.ID)) list.Add(this as TEntity);
+                    if (list != null && !list.Exists(_.ID, this.ID)) list.Add(FindByID(this.ID));
                 }
             }
 
@@ -99,14 +94,18 @@ namespace NewLife.CommonEntity
         /// <summary>类型编码</summary>
         public TypeCode KindCode { get { return (TypeCode)Kind; } set { Kind = (Int32)value; } }
 
+        private static Object _lock_Root = new Object();
         private static TEntity _Root;
         /// <summary>根</summary>
         public static TEntity Root
         {
             get
             {
-                if (_Root == null)
+                if (_Root != null) return _Root;
+                lock (_lock_Root)
                 {
+                    if (_Root != null) return _Root;
+
                     _Root = new TEntity();
                     Meta.OnDataChange += delegate { _Root = null; };
                 }
@@ -135,7 +134,6 @@ namespace NewLife.CommonEntity
                     var list = FindAll(_.ParentID, ID);
 
                     _Childs = new EntityList<TEntity>(list.ToList().Select(e => FindByID(e.ID)));
-                    //XTrace.WriteLine("{0}.Childs[{1}]", Name, _Childs.Count);
 
                     Dirtys["Childs"] = true;
                 }
@@ -289,8 +287,8 @@ namespace NewLife.CommonEntity
                 entity.Save();
 
                 // 如果空，需要重新查找，让其进入缓存
-                //entity = FindByID(entity.ID);
-                entity = FindByName(name);
+                entity = FindByID(entity.ID);
+                //entity = FindByName(name);
                 if (entity == null) throw new XException("设计错误！新添加的设置项{0}马上进行单对象缓存查找居然为空！", name);
             }
 

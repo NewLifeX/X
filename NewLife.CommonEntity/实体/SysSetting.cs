@@ -23,7 +23,7 @@ namespace NewLife.CommonEntity
                 {
                     if (_Sys != null) return _Sys;
 
-                    return _Sys = Setting.Root.Create("Sys");
+                    return _Sys = Setting.Root.Ensure<String>("Sys", "", "系统设置").Create("Sys");
                 }
             }
             set { _Sys = value; }
