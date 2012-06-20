@@ -35,7 +35,7 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
 [assembly: AssemblyVersion("8.7.*")]
-[assembly: AssemblyFileVersion("8.7.2012.0614")]
+[assembly: AssemblyFileVersion("8.7.2012.0620")]
 
 /*
  * XCode的重大改进
@@ -52,6 +52,8 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v8.7.2012.0620   修正Entity<>.CopyFrom中复制扩展属性时，设置脏数据出错的BUG，而8.7的实体缓存OnUpdate刚好用到
+ * 
  * v8.7.2012.0614   IEntity接口增加CloneEntity和CopyFrom方法，增强对实体克隆的支持
  *                  在事务保护中，为了避免性能损耗，不会实时更新实体缓存，直到提交或回滚事务，插入或删除实体时直接操作实体缓存
  *                  DbSession.GetSchema缓存10秒，既提升了正向反向工程的性能，又避免了修改表结构后无法及时得到更新

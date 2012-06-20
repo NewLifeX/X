@@ -171,7 +171,7 @@ namespace XCode
                 foreach (var item in entity.Extends)
                 {
                     src.Extends[item.Key] = item.Value;
-                    if (setDirty) src[item.Key] = true;
+                    if (setDirty) Dirtys[item.Key] = true;
 
                     n++;
                 }
