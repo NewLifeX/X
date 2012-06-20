@@ -20,35 +20,19 @@ namespace XCode.Cache
         #region 属性
         private Int32 _Expriod = 60;
         /// <summary>过期时间。单位是秒，默认60秒</summary>
-        public Int32 Expriod
-        {
-            get { return _Expriod; }
-            set { _Expriod = value; }
-        }
+        public Int32 Expriod { get { return _Expriod; } set { _Expriod = value; } }
 
         private Int32 _MaxEntity = 10000;
         /// <summary>最大实体数。默认10000</summary>
-        public Int32 MaxEntity
-        {
-            get { return _MaxEntity; }
-            set { _MaxEntity = value; }
-        }
+        public Int32 MaxEntity { get { return _MaxEntity; } set { _MaxEntity = value; } }
 
         private Boolean _AutoSave = true;
         /// <summary>缓存到期时自动保存</summary>
-        public Boolean AutoSave
-        {
-            get { return _AutoSave; }
-            set { _AutoSave = value; }
-        }
+        public Boolean AutoSave { get { return _AutoSave; } set { _AutoSave = value; } }
 
         private Boolean _AllowNull;
         /// <summary>允许缓存空对象</summary>
-        public Boolean AllowNull
-        {
-            get { return _AllowNull; }
-            set { _AllowNull = value; }
-        }
+        public Boolean AllowNull { get { return _AllowNull; } set { _AllowNull = value; } }
 
         private FindKeyDelegate<TKey, TEntity> _FindKeyMethod;
         /// <summary>查找数据的方法</summary>
@@ -81,7 +65,6 @@ namespace XCode.Cache
         /// <summary>实例化一个实体缓存</summary>
         public SingleEntityCache()
         {
-
             timer = new TimerX(d => Check(), null, Expriod * 1000, Expriod * 1000);
         }
 
@@ -158,13 +141,6 @@ namespace XCode.Cache
         //! Dictionary在集合方面具有较好查找性能，直接用字段，提高可能的性能
         /// <summary>单对象缓存</summary>
         private Dictionary<TKey, CacheItem> Entities = new Dictionary<TKey, CacheItem>();
-        //{
-        //    get
-        //    {
-        //        if (_Entities == null) _Entities = new Dictionary<TKey, CacheItem>();
-        //        return _Entities;
-        //    }
-        //}
         #endregion
 
         #region 统计
@@ -207,6 +183,7 @@ namespace XCode.Cache
         #region 获取数据
         private TEntity GetItem(TKey key)
         {
+            // 为空的key，直接返回null，不进行缓存查找
             if (key == null) return null;
             if (Type.GetTypeCode(typeof(TKey)) == TypeCode.String)
             {
@@ -214,8 +191,10 @@ namespace XCode.Cache
                 if (String.IsNullOrEmpty(value)) return null;
             }
 
+            // 更新统计信息
             XCache.CheckShowStatics(ref NextShow, ref Total, ShowStatics);
 
+            // 如果找到项，返回
             CacheItem item = null;
             if (Entities.TryGetValue(key, out item) && item != null)
             {
@@ -223,8 +202,10 @@ namespace XCode.Cache
                 return GetItem(item, key);
             }
 
+            // 加锁
             lock (Entities)
             {
+                // 如果找到项，返回
                 if (Entities.TryGetValue(key, out item) && item != null)
                 {
                     Interlocked.Increment(ref Shoot2);
@@ -273,8 +254,7 @@ namespace XCode.Cache
             }
         }
 
-        /// <summary>
-        /// 内部处理返回对象。
+        /// <summary>内部处理返回对象。
         /// 把对象传进来，而不是只传键值然后查找，是为了避免别的线程移除该项
         /// </summary>
         /// <param name="item"></param>
@@ -314,13 +294,6 @@ namespace XCode.Cache
                 return item.Key;
             }
             return default(TKey);
-
-            //Dictionary<TKey, CacheItem>.Enumerator em = Entities.GetEnumerator();
-            //if (!em.MoveNext()) return default(TKey);
-
-            //TKey key = em.Current.Key;
-            //em.Dispose();
-            //return key;
         }
         #endregion
 

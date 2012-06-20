@@ -587,7 +587,7 @@ namespace XCode
                     // 以连接名和表名为key，因为不同的库不同的表，缓存也不一样
                     return _singleCache.GetItem(String.Format("{0}_{1}", ConnName, TableName), delegate(String key)
                     {
-                        SingleEntityCache<Object, TEntity> ec = new SingleEntityCache<Object, TEntity>();
+                        var ec = new SingleEntityCache<Object, TEntity>();
                         ec.ConnName = ConnName;
                         ec.TableName = TableName;
                         return ec;
