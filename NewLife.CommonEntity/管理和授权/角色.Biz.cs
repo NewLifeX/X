@@ -113,17 +113,19 @@ namespace NewLife.CommonEntity
             {
                 return GetExtend<TMenuEntity, EntityList<TMenuEntity>>("MenuList", m =>
                 {
-                    //var list = EntityList<TMenuEntity>.From<TRoleMenuEntity>(Menus, item => Menu<TMenuEntity>.FindByID(item.MenuID));
-                    //// 先按Sort降序，再按ID升序，的确更加完善
-                    //if (list != null) list.Sort(new String[] { Menu<TMenuEntity>._.Sort, Menu<TMenuEntity>._.ID }, new bool[] { true, false });
-                    //return list;
-                    if (Menus == null || Menus.Count < 1) return null;
+                    var list = EntityList<TMenuEntity>.From<TRoleMenuEntity>(Menus, item => Menu<TMenuEntity>.FindByID(item.MenuID));
+                    // 先按Sort降序，再按ID升序，的确更加完善
+                    if (list != null) list.Sort(new String[] { Menu<TMenuEntity>._.Sort, Menu<TMenuEntity>._.ID }, new bool[] { true, false });
+                    return list;
 
-                    var list = Menus.ToList()
-                        .Select(e => Menu<TMenuEntity>.FindByID(e.MenuID))
-                        .OrderByDescending(e => e.Sort)
-                        .ThenBy(e => e.ID);
-                    return new EntityList<TMenuEntity>(list);
+                    // 新代码很不稳定，先用旧的
+                    //if (Menus == null || Menus.Count < 1) return null;
+
+                    //var list = Menus.ToList()
+                    //    .Select(e => Menu<TMenuEntity>.FindByID(e.MenuID))
+                    //    .OrderByDescending(e => e.Sort)
+                    //    .ThenBy(e => e.ID);
+                    //return new EntityList<TMenuEntity>(list);
                 }, false);
             }
             set { Extends["MenuList"] = value; }
