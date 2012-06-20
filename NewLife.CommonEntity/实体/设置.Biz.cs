@@ -6,21 +6,27 @@
 */
 using System;
 using System.ComponentModel;
+using System.Xml.Serialization;
+using NewLife.Exceptions;
 using XCode;
+
 #if NET4
 using System.Linq;
 #else
 using NewLife.Linq;
+using NewLife.Log;
 #endif
 
 namespace NewLife.CommonEntity
 {
     /// <summary>设置</summary>
+    /// <remarks>所有设置项，都挂在单对象缓存上</remarks>
     [ModelCheckMode(ModelCheckModes.CheckTableWhenFirstUse)]
     public class Setting : Setting<Setting> { }
 
     /// <summary>设置</summary>
-    public partial class Setting<TEntity> : EntityTree<TEntity> where TEntity : Setting<TEntity>, new()
+    /// <remarks>所有设置项，都挂在单对象缓存上</remarks>
+    public partial class Setting<TEntity> : Entity<TEntity> where TEntity : Setting<TEntity>, new()
     {
         #region 对象操作
         static Setting()
@@ -28,15 +34,15 @@ namespace NewLife.CommonEntity
             // 用于引发基类的静态构造函数，所有层次的泛型实体类都应该有一个
             TEntity entity = new TEntity();
 
-            var cache = Meta.SingleCache;
-            //cache.AllowNull = false;
-            //cache.AutoSave = true;
-            cache.FindKeyMethod = k =>
-            {
-                var key = k.ToString();
-                var p = key.IndexOf("_");
-                return FindByParentIDAndName(Int32.Parse(key.Substring(0, p)), key.Substring(p + 1));
-            };
+            //var cache = Meta.SingleCache;
+            ////cache.AllowNull = false;
+            ////cache.AutoSave = true;
+            //cache.FindKeyMethod = k =>
+            //{
+            //    var key = k.ToString();
+            //    var p = key.IndexOf("_");
+            //    return FindByParentIDAndName(Int32.Parse(key.Substring(0, p)), key.Substring(p + 1));
+            //};
         }
 
         /// <summary>验证数据，通过抛出异常的方式提示验证失败。</summary>
@@ -47,53 +53,151 @@ namespace NewLife.CommonEntity
 
             base.Valid(isNew);
         }
+
+        /// <summary>添加后清理上级的子级缓存</summary>
+        /// <returns></returns>
+        public override int Insert()
+        {
+            // 清理缓存
+            var ps = new TEntity[] { Parent, null };
+
+            var rs = base.Insert();
+
+            // 清理缓存
+            ps[1] = Parent;
+            foreach (var p in ps)
+            {
+                if (p != null)
+                {
+                    ////XTrace.WriteLine("插入设置项{0}（ID={1}），删除{2}（ID={3}）的子项缓存", Name, ID, p.Name, p.ID);
+                    //p.Dirtys["Childs"] = false;
+                    //p.Childs = null;
+                    ////XTrace.WriteLine("Insert:{0}.Childs[{1}]", p.Name, p.Childs.Count);
+
+                    // 可以试试不清理，直接加入
+                    var list = p._Childs;
+                    if (list != null && !list.Exists(_.ID, this.ID)) list.Add(this as TEntity);
+                }
+            }
+
+            return rs;
+        }
+
+        /// <summary>已重载。</summary>
+        /// <returns></returns>
+        protected override int OnDelete()
+        {
+            var list = Childs;
+            //if (list != null) list.Delete();
+            if (list == null || list.Count > 0) throw new XException("设置项{0}下有{1}个子项，禁止删除！", Name, list == null ? 0 : list.Count);
+
+            return base.OnDelete();
+        }
         #endregion
 
         #region 扩展属性
         /// <summary>类型编码</summary>
         public TypeCode KindCode { get { return (TypeCode)Kind; } set { Kind = (Int32)value; } }
 
+        private static TEntity _Root;
+        /// <summary>根</summary>
+        public static TEntity Root
+        {
+            get
+            {
+                if (_Root == null)
+                {
+                    _Root = new TEntity();
+                    Meta.OnDataChange += delegate { _Root = null; };
+                }
+                return _Root;
+            }
+            set { _Root = null; }
+        }
+
+        /// <summary>父节点</summary>
+        [XmlIgnore]
+        public TEntity Parent { get { return FindByID(ParentID); } }
+
         /// <summary>父级</summary>
         public String ParentName { get { return Parent != null ? Parent.Name : null; } }
+
+        [NonSerialized]
+        private EntityList<TEntity> _Childs;
+        /// <summary>子节点</summary>
+        public EntityList<TEntity> Childs
+        {
+            get
+            {
+                if (_Childs == null && !Dirtys["Childs"])
+                {
+                    // 先从数据库读取，然后从实体缓存读取
+                    var list = FindAll(_.ParentID, ID);
+
+                    _Childs = new EntityList<TEntity>(list.ToList().Select(e => FindByID(e.ID)));
+                    //XTrace.WriteLine("{0}.Childs[{1}]", Name, _Childs.Count);
+
+                    Dirtys["Childs"] = true;
+                }
+                return _Childs;
+            }
+            set { _Childs = value; }
+        }
         #endregion
 
         #region 扩展查询
-        /// <summary>根据父编号、名称查找</summary>
-        /// <param name="parentid">父编号</param>
-        /// <param name="name">名称</param>
-        /// <returns></returns>
-        [DataObjectMethod(DataObjectMethodType.Select, false)]
-        static TEntity FindByParentIDAndName(Int32 parentid, String name)
-        {
-            if (Meta.Count >= 1000)
-                return Find(new String[] { _.ParentID, _.Name }, new Object[] { parentid, name });
-            else // 实体缓存
-                return Meta.Cache.Entities.Find(e => e.ParentID == parentid && e.Name == name);
-        }
-
-        /// <summary>根据父编号、名称查找，单对象缓存</summary>
-        /// <param name="parentid">父编号</param>
-        /// <param name="name">名称</param>
-        /// <returns></returns>
-        public static TEntity FindWithCache(Int32 parentid, String name)
-        {
-            var key = String.Format("{0}_{1}", parentid, name);
-            return Meta.SingleCache[key];
-        }
-
-        ///// <summary>根据编号查找</summary>
-        ///// <param name="id">编号</param>
+        ///// <summary>根据父编号、名称查找</summary>
+        ///// <param name="parentid">父编号</param>
+        ///// <param name="name">名称</param>
         ///// <returns></returns>
         //[DataObjectMethod(DataObjectMethodType.Select, false)]
-        //public static TEntity FindByID(Int32 id)
+        //static TEntity FindByParentIDAndName(Int32 parentid, String name)
         //{
-        //    if (Meta.Count >= 1000)
-        //        return Find(_.ID, id);
-        //    else // 实体缓存
-        //        return Meta.Cache.Entities.Find(_.ID, id);
-        //    // 单对象缓存
-        //    //return Meta.SingleCache[id];
+        //    //if (Meta.Count >= 1000)
+        //    return Find(new String[] { _.ParentID, _.Name }, new Object[] { parentid, name });
+        //    //else // 实体缓存
+        //    //    return Meta.Cache.Entities.Find(e => e.ParentID == parentid && e.Name == name);
         //}
+
+        ///// <summary>根据父编号、名称查找，单对象缓存</summary>
+        ///// <param name="parentid">父编号</param>
+        ///// <param name="name">名称</param>
+        ///// <returns></returns>
+        //public static TEntity FindWithCache(Int32 parentid, String name)
+        //{
+        //    var key = String.Format("{0}_{1}", parentid, name);
+        //    return Meta.SingleCache[key];
+        //}
+
+        /// <summary>根据名称查找子节点</summary>
+        /// <param name="name">名称</param>
+        /// <returns></returns>
+        public TEntity FindByName(String name)
+        {
+            if (String.IsNullOrEmpty(name)) return null;
+
+            var list = Childs;
+            //XTrace.WriteLine("FindByName:{0}.Childs[{1}]", Name, _Childs.Count);
+            if (list == null || list.Count < 1) return null;
+
+            return list.Find(_.Name, name);
+        }
+
+        /// <summary>根据编号查找</summary>
+        /// <param name="id">编号</param>
+        /// <returns></returns>
+        [DataObjectMethod(DataObjectMethodType.Select, false)]
+        public static TEntity FindByID(Int32 id)
+        {
+            if (id <= 0) return Root;
+
+            //if (Meta.Count >= 1000)
+            //    return Find(_.ID, id);
+            //else // 实体缓存
+            //    return Meta.Cache.Entities.Find(_.ID, id);
+            // 单对象缓存
+            return Meta.SingleCache[id];
+        }
         #endregion
 
         #region 对象操作
@@ -176,7 +280,7 @@ namespace NewLife.CommonEntity
         {
             if (String.IsNullOrEmpty(name)) throw new ArgumentNullException("name");
 
-            var entity = FindWithCache(ID, name);
+            var entity = FindByName(name);
             if (entity == null)
             {
                 entity = new TEntity();
@@ -185,7 +289,9 @@ namespace NewLife.CommonEntity
                 entity.Save();
 
                 // 如果空，需要重新查找，让其进入缓存
-                entity = FindWithCache(ID, name);
+                //entity = FindByID(entity.ID);
+                entity = FindByName(name);
+                if (entity == null) throw new XException("设计错误！新添加的设置项{0}马上进行单对象缓存查找居然为空！", name);
             }
 
             return entity;
@@ -246,7 +352,7 @@ namespace NewLife.CommonEntity
             // 是否空
             var isnull = false;
 
-            var entity = FindWithCache(ID, name);
+            var entity = FindByName(name);
             if (entity == null)
             {
                 entity = new TEntity();
@@ -261,7 +367,7 @@ namespace NewLife.CommonEntity
             entity.Save();
 
             // 如果空，需要重新查找，让其进入缓存
-            if (isnull) entity = FindWithCache(ID, name);
+            if (isnull) entity = FindByName(name);
 
             return this;
         }

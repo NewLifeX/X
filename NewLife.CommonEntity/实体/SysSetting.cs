@@ -14,7 +14,20 @@ namespace NewLife.CommonEntity
         #region 属性
         private static ISetting _Sys;
         /// <summary>系统设置</summary>
-        public static ISetting Sys { get { return _Sys ?? (_Sys = Setting.Root.Create("Sys")); } set { _Sys = value; } }
+        public static ISetting Sys
+        {
+            get
+            {
+                if (_Sys != null) return _Sys;
+                lock (typeof(SysSetting))
+                {
+                    if (_Sys != null) return _Sys;
+
+                    return _Sys = Setting.Root.Create("Sys");
+                }
+            }
+            set { _Sys = value; }
+        }
 
         /// <summary>获取设置</summary>
         /// <typeparam name="T"></typeparam>
