@@ -27,6 +27,16 @@ namespace NewLife.CommonEntity
         {
             // 用于引发基类的静态构造函数，所有层次的泛型实体类都应该有一个
             TEntity entity = new TEntity();
+
+            var cache = Meta.SingleCache;
+            //cache.AllowNull = false;
+            //cache.AutoSave = true;
+            cache.FindKeyMethod = k =>
+            {
+                var key = k.ToString();
+                var p = key.IndexOf("_");
+                return FindByParentIDAndName(Int32.Parse(key.Substring(0, p)), key.Substring(p + 1));
+            };
         }
 
         /// <summary>验证数据，通过抛出异常的方式提示验证失败。</summary>
@@ -53,12 +63,22 @@ namespace NewLife.CommonEntity
         /// <param name="name">名称</param>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
-        public static TEntity FindByParentIDAndName(Int32 parentid, String name)
+        static TEntity FindByParentIDAndName(Int32 parentid, String name)
         {
             if (Meta.Count >= 1000)
                 return Find(new String[] { _.ParentID, _.Name }, new Object[] { parentid, name });
             else // 实体缓存
                 return Meta.Cache.Entities.Find(e => e.ParentID == parentid && e.Name == name);
+        }
+
+        /// <summary>根据父编号、名称查找，单对象缓存</summary>
+        /// <param name="parentid">父编号</param>
+        /// <param name="name">名称</param>
+        /// <returns></returns>
+        public static TEntity FindWithCache(Int32 parentid, String name)
+        {
+            var key = String.Format("{0}_{1}", parentid, name);
+            return Meta.SingleCache[key];
         }
 
         ///// <summary>根据编号查找</summary>
@@ -156,13 +176,16 @@ namespace NewLife.CommonEntity
         {
             if (String.IsNullOrEmpty(name)) throw new ArgumentNullException("name");
 
-            var entity = FindByParentIDAndName(ID, name);
+            var entity = FindWithCache(ID, name);
             if (entity == null)
             {
                 entity = new TEntity();
                 entity.ParentID = ID;
                 entity.Name = name;
                 entity.Save();
+
+                // 如果空，需要重新查找，让其进入缓存
+                entity = FindWithCache(ID, name);
             }
 
             return entity;
@@ -220,17 +243,25 @@ namespace NewLife.CommonEntity
         {
             if (String.IsNullOrEmpty(name)) throw new ArgumentNullException("name");
 
-            var entity = FindByParentIDAndName(ID, name);
+            // 是否空
+            var isnull = false;
+
+            var entity = FindWithCache(ID, name);
             if (entity == null)
             {
                 entity = new TEntity();
                 entity.ParentID = ID;
                 entity.Name = name;
+
+                isnull = true;
             }
             // Set放在最后，因为里面有个Save，避免做了一次Insert后再做一次Update
             if (String.IsNullOrEmpty(entity.DisplayName)) entity.DisplayName = displayName;
             if (String.IsNullOrEmpty(entity.Value)) entity.Set<T>(defval);
             entity.Save();
+
+            // 如果空，需要重新查找，让其进入缓存
+            if (isnull) entity = FindWithCache(ID, name);
 
             return this;
         }
