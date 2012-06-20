@@ -53,6 +53,7 @@ using System.Runtime.InteropServices;
 
 /*
  * v8.7.2012.0620   修正Entity<>.CopyFrom中复制扩展属性时，设置脏数据出错的BUG，而8.7的实体缓存OnUpdate刚好用到
+ *                  XCode对于默认排序的规则：自增主键降序，其它情况默认
  * 
  * v8.7.2012.0614   IEntity接口增加CloneEntity和CopyFrom方法，增强对实体克隆的支持
  *                  在事务保护中，为了避免性能损耗，不会实时更新实体缓存，直到提交或回滚事务，插入或删除实体时直接操作实体缓存

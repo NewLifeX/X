@@ -504,7 +504,11 @@ namespace XCode
         /// <summary>获取所有实体对象。获取大量数据时会非常慢，慎用</summary>
         /// <returns>实体数组</returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
-        public static EntityList<TEntity> FindAll() { return FindAll(String.Format("Select * From {0}", Meta.FormatName(Meta.TableName))); }
+        public static EntityList<TEntity> FindAll()
+        {
+            return FindAll(null, null, null, 0, 0);
+            //return FindAll(String.Format("Select * From {0}", Meta.FormatName(Meta.TableName)));
+        }
 
         /// <summary>
         /// 查询并返回实体对象集合。
@@ -673,8 +677,7 @@ namespace XCode
             return FindAll(MakeCondition(new String[] { name }, new Object[] { value }, "And"), orderClause, null, startRowIndex, maximumRows);
         }
 
-        /// <summary>
-        /// 查询SQL并返回实体对象数组。
+        /// <summary>查询SQL并返回实体对象数组。
         /// Select方法将直接使用参数指定的查询语句进行查询，不进行任何转换。
         /// </summary>
         /// <param name="sql">查询语句</param>
@@ -1035,8 +1038,9 @@ namespace XCode
             // 谨记：某些项目中可能在where中使用了GroupBy，在分页时可能报错
             builder.Where = whereClause;
 
-            // 返回所有记录
-            if (startRowIndex <= 0 && maximumRows <= 0) return builder;
+            // XCode对于默认排序的规则：自增主键降序，其它情况默认
+            //// 返回所有记录
+            //if (startRowIndex <= 0 && maximumRows <= 0) return builder;
 
             FieldItem fi = Meta.Unique;
             if (fi != null)
