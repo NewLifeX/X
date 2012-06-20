@@ -29,7 +29,16 @@ namespace NewLife.Model
         /// <summary>当前容器</summary>
         public static IObjectContainer Current
         {
-            get { return _Current ?? (_Current = new ObjectContainer()); }
+            get
+            {
+                if (_Current != null) return _Current;
+                lock (typeof(ObjectContainer))
+                {
+                    if (_Current != null) return _Current;
+
+                    return _Current = new ObjectContainer();
+                }
+            }
             set { _Current = value; }
         }
         #endregion
@@ -612,7 +621,7 @@ namespace NewLife.Model
                 var map = GetConfig(item.Value);
                 if (map == null) continue;
 
-                if (XTrace.Debug) XTrace.WriteLine("为{0}配置注册{1}，标识={2}，优先级={3}！", type.FullName, map.TypeName, map.Identity, map.Priority);
+                if (XTrace.Debug) XTrace.WriteLine("为{0}配置注册{1}，标识Identity={2}，优先级Priority={3}！", type.FullName, map.TypeName, map.Identity, map.Priority);
 
                 Register(type, null, null, map.TypeName, map.Mode, map.Identity, map.Priority/*, map.Singleton*/);
             }
