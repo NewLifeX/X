@@ -376,7 +376,8 @@ namespace NewLife.Log
                 var sf = st.GetFrame(i);
                 var method = sf.GetMethod();
                 // 跳过<>类型的匿名方法
-                if (method.Name[0] == '<' && method.Name.Contains(">")) continue;
+
+                if (method == null || String.IsNullOrEmpty(method.Name) || method.Name[0] == '<' && method.Name.Contains(">")) continue;
 
                 //var name = method.ToString();
                 //// 去掉前面的返回类型
