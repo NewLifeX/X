@@ -107,7 +107,7 @@ namespace NewLife.CommonEntity
                     if (_Root != null) return _Root;
 
                     _Root = new TEntity();
-                    Meta.OnDataChange += delegate { _Root = null; };
+                    //Meta.OnDataChange += delegate { _Root = null; };
                 }
                 return _Root;
             }
