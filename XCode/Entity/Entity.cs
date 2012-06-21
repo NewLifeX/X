@@ -695,7 +695,7 @@ namespace XCode
         /// <returns>实体集</returns>
         public static SelectBuilder FindSQL(String whereClause, String orderClause, String selects, Int32 startRowIndex = 0, Int32 maximumRows = 0)
         {
-            var builder = CreateBuilder(whereClause, orderClause, selects, startRowIndex, maximumRows);
+            var builder = CreateBuilder(whereClause, orderClause, selects, startRowIndex, maximumRows, false);
             return Meta.DBO.PageSplit(builder, startRowIndex, maximumRows);
         }
 
@@ -1029,7 +1029,7 @@ namespace XCode
         [Obsolete("该成员在后续版本中将不再被支持！请使用XCodeService.Resolve<IEntityPersistence>().GetPrimaryCondition()！")]
         protected static String DefaultCondition(Entity<TEntity> obj) { return persistence.GetPrimaryCondition(obj); }
 
-        static SelectBuilder CreateBuilder(String whereClause, String orderClause, String selects, Int32 startRowIndex, Int32 maximumRows)
+        static SelectBuilder CreateBuilder(String whereClause, String orderClause, String selects, Int32 startRowIndex, Int32 maximumRows, Boolean needOrderByID = true)
         {
             var builder = new SelectBuilder();
             builder.Column = selects;
@@ -1039,8 +1039,8 @@ namespace XCode
             builder.Where = whereClause;
 
             // XCode对于默认排序的规则：自增主键降序，其它情况默认
-            //// 返回所有记录
-            //if (startRowIndex <= 0 && maximumRows <= 0) return builder;
+            // 返回所有记录
+            if (!needOrderByID && startRowIndex <= 0 && maximumRows <= 0) return builder;
 
             FieldItem fi = Meta.Unique;
             if (fi != null)
