@@ -206,6 +206,8 @@ namespace XCode
             //清除脏数据，避免重复提交
             if (entity.Dirtys != null) entity.Dirtys.Clear();
 
+            entity.ClearAdditionalValues();
+
             return rs;
         }
 
@@ -438,7 +440,22 @@ namespace XCode
                         //sbNames.Append(SqlDataFormat(obj[fi.Name], fi)); // 数据
 
                         if (!UseParam(fi))
-                            sbNames.Append(op.FormatValue(fi, entity[fi.Name])); // 数据
+                        {
+                            // 检查累加
+                            Object addvalue = null;
+                            Boolean sign;
+                            if (entity.TryGetAdditionalValue(fi.Name, out addvalue, out sign))
+                            {
+                                if (sign)
+                                    sbNames.AppendFormat("{0}+{1}", name, addvalue);
+                                else
+                                    sbNames.AppendFormat("{0}-{1}", name, addvalue);
+                            }
+                            else
+                            {
+                                sbNames.Append(op.FormatValue(fi, entity[fi.Name])); // 数据
+                            }
+                        }
                         else
                         {
                             var paraname = op.FormatParameterName(fi.ColumnName);

@@ -20,6 +20,7 @@ using System.Linq;
 #else
 using NewLife.Linq;
 using System.Reflection;
+using NewLife.CommonEntity;
 #endif
 
 namespace Test
@@ -37,7 +38,7 @@ namespace Test
                 try
                 {
 #endif
-                Test8();
+                Test9();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -336,28 +337,6 @@ namespace Test
 
         static void Test8()
         {
-            FMTest.Value2 = 234234;
-            var fm = new FMTest();
-            fm.Value = 12345;
-
-            var pix = PropertyInfoX.Create(typeof(FMTest), "Value");
-            var v = (Double)pix.GetValue(fm);
-            Console.WriteLine(v);
-
-            var pix2 = PropertyInfoX.Create(typeof(FMTest), "Value2");
-            var v2 = (Double)pix2.GetValue();
-            Console.WriteLine(v);
-
-            var times = 1000000;
-            CodeTimer.ShowHeader();
-            //CodeTimer.TimeLine("A", times, n => v = fm.Value);
-            //CodeTimer.TimeLine("B", times, n => v = (Double)pix.GetValue(fm));
-            //CodeTimer.TimeLine("C", times, n => v = (Double)pix.GetValue2(fm));
-            //CodeTimer.TimeLine("D", times, n => v = (Double)pix.Property.GetValue(fm, null));
-            CodeTimer.TimeLine("A", times, n => v = FMTest.Value2);
-            CodeTimer.TimeLine("B", times, n => v = (Double)pix2.GetValue(null));
-            CodeTimer.TimeLine("C", times, n => v = (Double)pix2.GetValue2(null));
-            //CodeTimer.TimeLine("D", times, n => v = (Double)pix2.Property.GetValue(null, null));
         }
 
         class FMTest
@@ -389,6 +368,16 @@ namespace Test
                 }
                 set { _Value2 = value; }
             }
+        }
+
+        static void Test9()
+        {
+            var st = Statistics.FindByID(1);
+            if (st == null) st = new Statistics();
+
+            st.Increment("nnhy");
+
+            st.Save();
         }
     }
 }

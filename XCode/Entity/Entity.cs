@@ -78,7 +78,19 @@ namespace XCode
         /// <returns>实体数组</returns>
         public static EntityList<TEntity> LoadData(DataTable dt)
         {
-            IEntityList list = dreAccessor.LoadData(dt);
+            var list = dreAccessor.LoadData(dt);
+            // 设置默认累加字段
+            var fs = AdditionalFields;
+            if (fs.Count > 0)
+            {
+                foreach (var entity in list)
+                {
+                    foreach (var item in fs)
+                    {
+                        entity.SetAdditionalField(item);
+                    }
+                }
+            }
             if (list is EntityList<TEntity>) return list as EntityList<TEntity>;
 
             return new EntityList<TEntity>(list);
@@ -93,7 +105,20 @@ namespace XCode
         /// <returns>实体数组</returns>
         public static EntityList<TEntity> LoadData(IDataReader dr)
         {
-            IEntityList list = dreAccessor.LoadData(dr);
+            var list = dreAccessor.LoadData(dr);
+
+            // 设置默认累加字段
+            var fs = AdditionalFields;
+            if (fs.Count > 0)
+            {
+                foreach (var entity in list)
+                {
+                    foreach (var item in fs)
+                    {
+                        entity.SetAdditionalField(item);
+                    }
+                }
+            }
             if (list is EntityList<TEntity>) return list as EntityList<TEntity>;
 
             return new EntityList<TEntity>(list);
@@ -101,7 +126,23 @@ namespace XCode
 
         /// <summary>从一个数据行对象加载数据。不加载关联对象。</summary>
         /// <param name="dr">数据读写器</param>
-        public override void LoadDataReader(IDataReader dr) { if (dr != null)  dreAccessor.LoadData(dr, this); }
+        public override void LoadDataReader(IDataReader dr)
+        {
+            if (dr != null)
+            {
+                dreAccessor.LoadData(dr, this);
+
+                // 设置默认累加字段
+                var fs = AdditionalFields;
+                if (fs.Count > 0)
+                {
+                    foreach (var item in fs)
+                    {
+                        SetAdditionalField(item);
+                    }
+                }
+            }
+        }
 
         /// <summary>把数据复制到数据行对象中。</summary>
         /// <param name="dr">数据行</param>

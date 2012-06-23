@@ -21,17 +21,14 @@ namespace NewLife.CommonEntity
     public partial class Statistics<TEntity> : Entity<TEntity> where TEntity : Statistics<TEntity>, new()
     {
         #region 对象操作
-        //基类Entity中包含三个对象操作：Insert、Update、Delete
-        //你可以重载它们，以改变它们的行为
-        //如：
-        /*
-        /// <summary>已重载。把该对象插入到数据库。这里可以做数据插入前的检查</summary>
-        /// <returns>影响的行数</returns>
-        public override Int32 Insert()
+        static Statistics()
         {
-            return base.Insert();
+            AdditionalFields.Add(_.Total);
+            AdditionalFields.Add(_.Today);
+            AdditionalFields.Add(_.ThisWeek);
+            AdditionalFields.Add(_.ThisMonth);
+            AdditionalFields.Add(_.ThisYear);
         }
-         * */
         #endregion
 
         #region 扩展属性
