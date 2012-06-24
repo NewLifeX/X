@@ -17,17 +17,17 @@ namespace NewLife.Net.DNS
         /// <summary>文本信息</summary>
         public override String Text
         {
-            get { return String.Format("{0} {1}", Preference, Host); }
+            get { return String.Format("{0},{1}", Preference, Host); }
             set
             {
-                if (String.IsNullOrEmpty(value) || !value.Contains(" "))
+                if (String.IsNullOrEmpty(value) || !value.Contains(","))
                 {
                     Preference = 0;
                     Host = null;
                     return;
                 }
 
-                var p = value.IndexOf(" ");
+                var p = value.IndexOf(",");
                 Preference = Int16.Parse(value.Substring(0, p));
                 Host = value.Substring(p + 1);
             }
