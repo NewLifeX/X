@@ -68,7 +68,7 @@
         </tr>
         <tr>
             <td width="147px" style="border: solid 1px #99bbe8; overflow: hidden;" id="td_left">
-                <iframe height="100%" name="left" id="leftiframe" width="100%" frameborder="0" src="Frame/Left.aspx"
+                <iframe height="100%" name="left" id="leftiframe" width="100%" frameborder="0" src="<%=DefaultLeft %>"
                     scrolling="no"></iframe>
             </td>
             <td style="border-top: solid 1px #99bbe8; width: 8px; overflow: hidden; cursor: pointer;"
@@ -77,7 +77,7 @@
             </td>
             <td style="border: solid 1px #99bbe8" id="td_right">
                 <iframe height="100%" width="100%" border="0" frameborder="0" id="main" name="main"
-                    src="Main.aspx"></iframe>
+                    src="<%=DefaultMain %>"></iframe>
             </td>
         </tr>
         <tr>

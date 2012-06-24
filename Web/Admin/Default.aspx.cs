@@ -6,6 +6,14 @@ using XCode;
 
 public partial class Center_Default : System.Web.UI.Page
 {
+    private String _DefaultLeft = "Frame/Left.aspx";
+    /// <summary>默认左菜单</summary>
+    public String DefaultLeft { get { return _DefaultLeft; } set { _DefaultLeft = value; } }
+
+    private String _DefaultMain = "Main.aspx";
+    /// <summary>默认内容页</summary>
+    public String DefaultMain { get { return _DefaultMain; } set { _DefaultMain = value; } }
+
     protected override void OnPreLoad(EventArgs e)
     {
         //PageBase.CheckStarting();
@@ -39,16 +47,19 @@ public partial class Center_Default : System.Web.UI.Page
 
         if (admin.Role != null)
         {
-            List<IMenu> list2 = admin.Role.GetMySubMenus(root.ID);
-            menuItem.DataSource = list2;
+            List<IMenu> list = admin.Role.GetMySubMenus(root.ID);
+            menuItem.DataSource = list;
             menuItem.DataBind();
 
-            if (list2 != null && list2.Count > 0)
+            if (list != null && list.Count > 0)
             {
-                String js = "document.getElementById('leftiframe').src='Frame/Left.aspx?ID={0}';";
-                js += "document.getElementById('main').src='{1}';";
-                js = String.Format(js, list2[0].ID, list2[0].Url);
-                ClientScript.RegisterStartupScript(this.GetType(), "location", js, true);
+                IMenu first = list[0];
+                DefaultLeft = String.Format("Frame/Left.aspx?ID={0}", first.ID);
+                DefaultMain = String.Format(first.Url);
+                //String js = "document.getElementById('leftiframe').src='Frame/Left.aspx?ID={0}';";
+                //js += "document.getElementById('main').src='{1}';";
+                //js = String.Format(js, list[0].ID, list[0].Url);
+                //ClientScript.RegisterStartupScript(this.GetType(), "location", js, true);
             }
         }
 
