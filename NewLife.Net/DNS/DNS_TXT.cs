@@ -10,7 +10,7 @@ namespace NewLife.Net.DNS
         [FieldSize("_Length")]
         private String _Text;
         /// <summary>文本</summary>
-        public String Text { get { return _Text; } set { _Text = value; } }
+        public override String Text { get { return _Text; } set { _Text = value; } }
         #endregion
 
         #region 构造

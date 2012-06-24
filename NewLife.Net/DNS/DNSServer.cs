@@ -105,6 +105,18 @@ namespace NewLife.Net.DNS
             // 处理，修改
             WriteDNSLog("{0}://{1} 请求 {2}", session.ProtocolType, e.RemoteEndPoint, entity);
 
+            // 请求事件，如果第二参数有值，则直接返回
+            if (OnRequest != null)
+            {
+                var e2 = new EventArgs<DNSEntity, DNSEntity>(entity, null);
+                OnRequest(this, e2);
+                if (e2.Arg2 != null)
+                {
+                    session.Send(e2.Arg2.GetStream(isTcp));
+                    return;
+                }
+            }
+
             // 如果是PTR请求
             if (entity.Type == DNSQueryType.PTR)
             {
@@ -206,13 +218,27 @@ namespace NewLife.Net.DNS
                 File.WriteAllBytes(file, data);
             }
 
+            if (OnResponse != null)
+            {
+                var e = new EventArgs<DNSEntity, DNSEntity>(entity, entity2);
+                OnResponse(this, e);
+            }
+
             return entity2;
         }
         #endregion
 
+        #region 事件
+        /// <summary>请求时触发。第一个参数是请求实体，第二个参数表示响应，主程序可直接返回</summary>
+        public event EventHandler<EventArgs<DNSEntity, DNSEntity>> OnRequest;
+
+        /// <summary>响应时触发。</summary>
+        public event EventHandler<EventArgs<DNSEntity, DNSEntity>> OnResponse;
+        #endregion
+
         #region 写日志
         static TextFileLog log = TextFileLog.Create("DNSLog");
-        void WriteDNSLog(String format,params Object[] args)
+        void WriteDNSLog(String format, params Object[] args)
         {
             log.WriteLine(format, args);
         }

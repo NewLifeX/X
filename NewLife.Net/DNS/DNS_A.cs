@@ -15,6 +15,9 @@ namespace NewLife.Net.DNS
         private IPAddress _Address;
         /// <summary>IP地址</summary>
         public IPAddress Address { get { return _Address; } set { _Address = value; } }
+
+        /// <summary>文本信息</summary>
+        public override String Text { get { return Address + ""; } set { Address = String.IsNullOrEmpty(value) ? null : IPAddress.Parse(value); } }
         #endregion
 
         #region 构造

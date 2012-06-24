@@ -1,5 +1,4 @@
 ﻿using System;
-using NewLife.IO;
 using System.Collections.Generic;
 using System.IO;
 using NewLife.Collections;
@@ -37,6 +36,13 @@ namespace NewLife.Net.DNS
         //private Byte[] _Data;
         ///// <summary>资源数据</summary>
         //public Byte[] Data { get { return _Data; } set { _Data = value; } }
+        #endregion
+
+        #region 扩展属性
+        [NonSerialized]
+        private String _Text;
+        /// <summary>文本信息</summary>
+        public virtual String Text { get { return _Text; } set { _Text = value; } }
         #endregion
 
         #region IAccessor 成员

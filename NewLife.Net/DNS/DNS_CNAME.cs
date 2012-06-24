@@ -9,6 +9,9 @@ namespace NewLife.Net.DNS
         private String _PrimaryName;
         /// <summary>IP地址</summary>
         public String PrimaryName { get { return _PrimaryName; } set { _PrimaryName = value; } }
+
+        /// <summary>文本信息</summary>
+        public override String Text { get { return PrimaryName; } set { PrimaryName = value; } }
         #endregion
 
         #region 构造
