@@ -33,6 +33,9 @@ namespace NewLife.Net.DNS
         private TimeSpan _MinimumTTL;
         /// <summary>最小TTL</summary>
         public TimeSpan MinimumTTL { get { return _MinimumTTL; } set { _MinimumTTL = value; } }
+
+        /// <summary>文本信息</summary>
+        public override String Text { get { return PrimaryNameServer; } set { PrimaryNameServer = value; } }
         #endregion
 
         #region 构造

@@ -50,6 +50,9 @@ namespace NewLife.Net.DNS
         private String _DomainName;
         /// <summary>域名</summary>
         public String DomainName { get { return _DomainName; } set { _DomainName = value; } }
+
+        /// <summary>文本信息</summary>
+        public override String Text { get { return DomainName; } set { DomainName = value; } }
         #endregion
 
         #region 构造

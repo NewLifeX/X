@@ -9,6 +9,9 @@ namespace NewLife.Net.DNS
         private String _NameServer;
         /// <summary>命名服务器</summary>
         public String NameServer { get { return _NameServer; } set { _NameServer = value; } }
+
+        /// <summary>文本信息</summary>
+        public override String Text { get { return NameServer; } set { NameServer = value; } }
         #endregion
 
         #region 构造
