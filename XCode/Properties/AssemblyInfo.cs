@@ -34,8 +34,8 @@ using System.Runtime.InteropServices;
 //
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
-[assembly: AssemblyVersion("8.7.*")]
-[assembly: AssemblyFileVersion("8.7.2012.0620")]
+[assembly: AssemblyVersion("8.8.*")]
+[assembly: AssemblyFileVersion("8.8.2012.0625")]
 
 /*
  * XCode的重大改进
@@ -52,6 +52,9 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v8.8.2012.0625   增加字段累加功能，支持点击数累加和货币累加等，如Update xxx Set Price=Price+100
+ *                  如果索引的唯一字段是主键，则反向工程时无需建立索引
+ * 
  * v8.7.2012.0620   修正Entity<>.CopyFrom中复制扩展属性时，设置脏数据出错的BUG，而8.7的实体缓存OnUpdate刚好用到
  *                  XCode对于默认排序的规则：自增主键降序，其它情况默认
  * 
