@@ -247,6 +247,7 @@
     <Compile Include="Threading\ThreadTask.cs" />
     <Compile Include="Threading\ThreadX.cs" />
     <Compile Include="Threading\TimerX.cs" />
+    <Compile Include="Web\Modules\ErrorModule.cs" />
     <Compile Include="Web\Modules\HttpModuleLoader.cs" />
     <Compile Include="Web\Modules\CompressionModule.cs" />
     <Compile Include="Web\ControlHelper.cs" />
