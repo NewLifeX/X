@@ -53,6 +53,7 @@ using System.Runtime.InteropServices;
 
 /*
  * v8.8.2012.0625   增加字段累加功能，支持点击数累加和货币累加等，如Update xxx Set Price=Price+100
+ *                  累加字段用法：实体类静态构造函数中通过AdditionalFields指定需要累加的字段，其它操作不变
  *                  如果索引的唯一字段是主键，则反向工程时无需建立索引
  * 
  * v8.7.2012.0620   修正Entity<>.CopyFrom中复制扩展属性时，设置脏数据出错的BUG，而8.7的实体缓存OnUpdate刚好用到
