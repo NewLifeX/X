@@ -207,7 +207,10 @@ namespace NewLife.Net.DNS
             }
         }
 
-        static DNSRecord CreateRecord(DNSQueryType qt)
+        /// <summary>创建指定类型的记录</summary>
+        /// <param name="qt"></param>
+        /// <returns></returns>
+        public static DNSRecord CreateRecord(DNSQueryType qt)
         {
             Type type = null;
             if (!entitytypes.TryGetValue(qt, out type) || type == null) return null;
