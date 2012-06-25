@@ -316,14 +316,14 @@ namespace XCode.DataAccessLayer
             {
                 for (int i = dbtable.Indexes.Count - 1; i >= 0; i--)
                 {
-                    IDataIndex item = dbtable.Indexes[i];
+                    var item = dbtable.Indexes[i];
                     // 计算的索引不需要删除
                     if (item.Computed) continue;
 
                     // 主键的索引不能删
                     if (item.PrimaryKey) continue;
 
-                    IDataIndex di = ModelHelper.GetIndex(entitytable, item.Columns);
+                    var di = ModelHelper.GetIndex(entitytable, item.Columns);
                     if (di != null) continue;
 
                     PerformSchema(sb, onlySql, DDLSchema.DropIndex, item);
@@ -335,13 +335,15 @@ namespace XCode.DataAccessLayer
             #region 新增索引
             if (entitytable.Indexes != null)
             {
-                foreach (IDataIndex item in entitytable.Indexes)
+                foreach (var item in entitytable.Indexes)
                 {
                     if (item.PrimaryKey) continue;
 
-                    IDataIndex di = ModelHelper.GetIndex(dbtable, item.Columns);
+                    var di = ModelHelper.GetIndex(dbtable, item.Columns);
                     // 计算出来的索引，也表示没有，需要创建
                     if (di != null && !di.Computed) continue;
+                    // 如果这个索引的唯一字段是主键，则无需建立索引
+                    if (item.Columns.Length == 1 && entitytable.GetColumn(item.Columns[0]).PrimaryKey) continue;
 
                     PerformSchema(sb, onlySql, DDLSchema.CreateIndex, item);
 
@@ -682,7 +684,7 @@ namespace XCode.DataAccessLayer
             if (!String.IsNullOrEmpty(table.Description)) PerformSchema(sb, onlySql, DDLSchema.AddTableDescription, table);
 
             // 加上字段注释
-            foreach (IDataColumn item in table.Columns)
+            foreach (var item in table.Columns)
             {
                 if (!String.IsNullOrEmpty(item.Description)) PerformSchema(sb, onlySql, DDLSchema.AddColumnDescription, item);
             }
@@ -690,9 +692,13 @@ namespace XCode.DataAccessLayer
             // 加上索引
             if (table.Indexes != null)
             {
-                foreach (IDataIndex item in table.Indexes)
+                foreach (var item in table.Indexes)
                 {
-                    if (!item.PrimaryKey) PerformSchema(sb, onlySql, DDLSchema.CreateIndex, item);
+                    if (item.PrimaryKey || item.Computed) continue;
+                    // 如果这个索引的唯一字段是主键，则无需建立索引
+                    if (item.Columns.Length == 1 && table.GetColumn(item.Columns[0]).PrimaryKey) continue;
+
+                    PerformSchema(sb, onlySql, DDLSchema.CreateIndex, item);
                 }
             }
         }

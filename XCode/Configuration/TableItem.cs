@@ -304,6 +304,9 @@ namespace XCode.Configuration
 
                     if (ModelHelper.GetIndex(table, di.Columns) != null) continue;
 
+                    // 如果这个索引的唯一字段是主键，则无需建立索引
+                    if (di.Columns.Length == 1 && table.GetColumn(di.Columns[0]).PrimaryKey) continue;
+
                     //// 判断主键
                     //IDataColumn[] dcs = table.GetColumns(di.Columns);
                     //if (Array.TrueForAll<IDataColumn>(dcs, dc => dc.PrimaryKey))
