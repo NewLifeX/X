@@ -5,9 +5,9 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using NewLife.Collections;
+using NewLife.Log;
 using NewLife.Net.Common;
 using NewLife.Net.Sockets;
-using NewLife.Log;
 #if NET4
 using System.Linq;
 #else
@@ -100,100 +100,141 @@ namespace NewLife.Net.DNS
             Boolean isTcp = session.ProtocolType == ProtocolType.Tcp;
 
             // 解析
-            var entity = DNSEntity.Read(e.GetStream(), isTcp);
+            var request = DNSEntity.Read(e.GetStream(), isTcp);
+
+            var response = Request(session, request);
+            if (response != null)
+            {
+                response.Header.ID = request.Header.ID;
+                Response(session, request, response);
+            }
+
+            session.Dispose();
+        }
+
+        /// <summary>处理请求</summary>
+        /// <param name="session"></param>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        protected virtual DNSEntity Request(ISocketSession session, DNSEntity request)
+        {
+            Boolean isTcp = session.ProtocolType == ProtocolType.Tcp;
 
             // 处理，修改
-            WriteDNSLog("{0}://{1} 请求 {2}", session.ProtocolType, e.RemoteEndPoint, entity);
+            WriteDNSLog("{0}://{1} 请求 {2}", session.ProtocolType, session.RemoteEndPoint, request);
 
             // 请求事件，如果第二参数有值，则直接返回
             if (OnRequest != null)
             {
-                var e2 = new EventArgs<DNSEntity, DNSEntity>(entity, null);
-                OnRequest(this, e2);
-                if (e2.Arg2 != null)
-                {
-                    session.Send(e2.Arg2.GetStream(isTcp));
-                    return;
-                }
+                var e = new DNSEventArgs();
+                e.Request = request;
+                OnRequest(this, e);
+                if (e.Response != null) return e.Response;
             }
 
             // 如果是PTR请求
-            if (entity.Type == DNSQueryType.PTR)
+            if (request.Type == DNSQueryType.PTR)
             {
-                var ptr = entity.Questions[0] as DNS_PTR;
-                // 对本地的请求马上返回
-                var addr = ptr.Address;
-                if (addr != null && (IPAddress.IsLoopback(addr) || NetHelper.GetIPs().Any(ip => ip + "" == addr + "")))
-                {
-                    var ptr2 = new DNS_PTR();
-                    ptr2.Name = ptr.Name;
-                    ptr2.DomainName = DomainName;
-
-                    var rs = new DNSEntity();
-                    rs.Questions = entity.Questions;
-                    rs.Answers = new DNSRecord[] { ptr2 };
-
-                    rs.Header.ID = entity.Header.ID;
-                    session.Send(rs.GetStream(isTcp));
-                    return;
-                }
+                var ptr = RequestPTR(request);
+                if (ptr != null) return ptr;
             }
 
             // 读取缓存
-            var entity2 = cache.GetItem<DNSEntity>(entity.ToString(), entity, GetDNS, false);
+            var rs = cache.GetItem<DNSEntity>(request.ToString(), request, GetDNS, false);
 
             // 返回给客户端
-            if (entity2 != null)
+            if (rs != null)
             {
                 //String file = String.Format("dns_{0:MMddHHmmss}.bin", DateTime.Now);
                 //File.WriteAllBytes(file, entity2.GetStream().ReadBytes());
 
                 // 如果是PTR请求
-                if (entity.Type == DNSQueryType.PTR && entity2.Type == DNSQueryType.PTR)
+                if (request.Type == DNSQueryType.PTR && rs.Type == DNSQueryType.PTR)
                 {
-                    var ptr = entity.Questions[0] as DNS_PTR;
-                    var ptr2 = entity2.GetAnswer() as DNS_PTR;
+                    var ptr = request.Questions[0] as DNS_PTR;
+                    var ptr2 = rs.GetAnswer() as DNS_PTR;
                     if (ptr2 != null)
                     {
                         ptr2.Name = ptr.Name;
                         ptr2.DomainName = DomainName;
                     }
-                    if (entity2.Answers != null && entity2.Answers.Length > 0)
+                    if (rs.Answers != null && rs.Answers.Length > 0)
                     {
-                        foreach (var item in entity2.Answers)
+                        foreach (var item in rs.Answers)
                         {
                             if (item.Type == DNSQueryType.PTR) item.Name = ptr.Name;
                         }
                     }
                 }
-                entity2.Header.ID = entity.Header.ID;
-                session.Send(entity2.GetStream(isTcp));
             }
-            session.Dispose();
+
+            return rs;
         }
 
-        DNSEntity GetDNS(String key, DNSEntity entity)
+        /// <summary>处理PTR请求</summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        protected virtual DNSEntity RequestPTR(DNSEntity request)
+        {
+            var ptr = request.Questions[0] as DNS_PTR;
+            // 对本地的请求马上返回
+            var addr = ptr.Address;
+            if (addr != null && (IPAddress.IsLoopback(addr) || NetHelper.GetIPs().Any(ip => ip + "" == addr + "")))
+            {
+                var ptr2 = new DNS_PTR();
+                ptr2.Name = ptr.Name;
+                ptr2.DomainName = DomainName;
+
+                var rs = new DNSEntity();
+                rs.Questions = request.Questions;
+                rs.Answers = new DNSRecord[] { ptr2 };
+
+                rs.Header.ID = request.Header.ID;
+                return rs;
+            }
+            return null;
+        }
+
+        /// <summary>处理响应</summary>
+        /// <param name="session"></param>
+        /// <param name="request"></param>
+        /// <param name="response"></param>
+        protected virtual void Response(ISocketSession session, DNSEntity request, DNSEntity response)
+        {
+            Boolean isTcp = session.ProtocolType == ProtocolType.Tcp;
+
+            if (OnResponse != null)
+            {
+                var e = new DNSEventArgs { Request = request, Response = response, Session = session };
+                OnResponse(this, e);
+            }
+
+            session.Send(response.GetStream(isTcp));
+        }
+
+        DNSEntity GetDNS(String key, DNSEntity request)
         {
             // 请求父级代理
             NetUri parent = null;
             Byte[] data = null;
+            ISocketSession session = null;
             foreach (var item in Parents)
             {
-                var session = NetService.CreateSession(item);
+                session = NetService.CreateSession(item);
                 parent = item;
                 // 如果是PTR请求
-                if (entity.Type == DNSQueryType.PTR)
+                if (request.Type == DNSQueryType.PTR)
                 {
                     // 复制一份，防止修改外部
-                    entity = new DNSEntity().CloneFrom(entity);
+                    request = new DNSEntity().CloneFrom(request);
 
-                    var ptr = entity.GetAnswer(true) as DNS_PTR;
+                    var ptr = request.GetAnswer(true) as DNS_PTR;
                     if (ptr != null) ptr.Address = parent.Address;
                 }
 
                 try
                 {
-                    session.Send(entity.GetStream(item.ProtocolType == ProtocolType.Tcp));
+                    session.Send(request.GetStream(item.ProtocolType == ProtocolType.Tcp));
                     data = session.Receive();
 
                     if (data != null && data.Length > 0) break;
@@ -202,14 +243,14 @@ namespace NewLife.Net.DNS
             }
             if (data == null || data.Length < 1) return null;
 
-            DNSEntity entity2 = null;
+            DNSEntity response = null;
             try
             {
                 // 解析父级代理返回的数据
-                entity2 = DNSEntity.Read(data, parent.ProtocolType == ProtocolType.Tcp);
+                response = DNSEntity.Read(data, parent.ProtocolType == ProtocolType.Tcp);
 
                 // 处理，修改
-                WriteDNSLog("{0} 返回 {1}", parent, entity2);
+                WriteDNSLog("{0} 返回 {1}", parent, response);
             }
             catch (Exception ex)
             {
@@ -218,22 +259,25 @@ namespace NewLife.Net.DNS
                 File.WriteAllBytes(file, data);
             }
 
-            if (OnResponse != null)
+            if (OnNew != null)
             {
-                var e = new EventArgs<DNSEntity, DNSEntity>(entity, entity2);
-                OnResponse(this, e);
+                var e = new DNSEventArgs { Request = request, Response = response, Session = session };
+                OnNew(this, e);
             }
 
-            return entity2;
+            return response;
         }
         #endregion
 
         #region 事件
-        /// <summary>请求时触发。第一个参数是请求实体，第二个参数表示响应，主程序可直接返回</summary>
-        public event EventHandler<EventArgs<DNSEntity, DNSEntity>> OnRequest;
+        /// <summary>请求时触发。</summary>
+        public event EventHandler<DNSEventArgs> OnRequest;
 
         /// <summary>响应时触发。</summary>
-        public event EventHandler<EventArgs<DNSEntity, DNSEntity>> OnResponse;
+        public event EventHandler<DNSEventArgs> OnResponse;
+
+        /// <summary>取得新DNS时触发。</summary>
+        public event EventHandler<DNSEventArgs> OnNew;
         #endregion
 
         #region 写日志
@@ -243,5 +287,21 @@ namespace NewLife.Net.DNS
             log.WriteLine(format, args);
         }
         #endregion
+    }
+
+    /// <summary>DNS事件参数</summary>
+    public class DNSEventArgs : EventArgs
+    {
+        private DNSEntity _Request;
+        /// <summary>请求</summary>
+        public DNSEntity Request { get { return _Request; } set { _Request = value; } }
+
+        private DNSEntity _Response;
+        /// <summary>响应</summary>
+        public DNSEntity Response { get { return _Response; } set { _Response = value; } }
+
+        private ISocketSession _Session;
+        /// <summary>网络会话</summary>
+        public ISocketSession Session { get { return _Session; } set { _Session = value; } }
     }
 }
