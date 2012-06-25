@@ -392,8 +392,9 @@ namespace NewLife.CommonEntity
         {
             //if (String.IsNullOrEmpty(username)) return null;
             if (String.IsNullOrEmpty(username)) throw new Exception("该帐号不存在！");
-
-            var user = FindByName(username);
+            //过滤帐号中的空格，防止出现无操作无法登录的情况
+            String account = username.Trim();
+            var user = FindByName(account);
             //if (user == null) return null;
             if (user == null) throw new Exception("该帐号错误！");
 
