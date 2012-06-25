@@ -402,12 +402,6 @@ namespace XCode
 
         #region 累加
         [NonSerialized]
-        private static ICollection<String> _AdditionalFields;
-        /// <summary>默认累加字段</summary>
-        [XmlIgnore]
-        protected internal static ICollection<String> AdditionalFields { get { return _AdditionalFields ?? (_AdditionalFields = new HashSet<String>(StringComparer.OrdinalIgnoreCase)); } }
-
-        [NonSerialized]
         private IDictionary<String, Object> _Additions;
 
         /// <summary>设置累加字段。如果是第一次设置该字段，则保存该字段当前数据作为累加基础数据</summary>

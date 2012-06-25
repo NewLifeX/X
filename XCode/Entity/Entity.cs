@@ -6,6 +6,7 @@ using System.Data;
 using System.IO;
 using System.Text;
 using System.Xml.Serialization;
+using NewLife.Collections;
 using NewLife.IO;
 using NewLife.Reflection;
 using XCode.Common;
@@ -1385,6 +1386,14 @@ namespace XCode
         /// <param name="key">键</param>
         /// <param name="value">值</param>
         protected void SetExtend(String key, Object value) { SetExtend<TEntity>(key, value); }
+        #endregion
+
+        #region 累加
+        [NonSerialized]
+        private static ICollection<String> _AdditionalFields;
+        /// <summary>默认累加字段</summary>
+        [XmlIgnore]
+        protected static ICollection<String> AdditionalFields { get { return _AdditionalFields ?? (_AdditionalFields = new HashSet<String>(StringComparer.OrdinalIgnoreCase)); } }
         #endregion
     }
 }
