@@ -390,10 +390,12 @@ namespace NewLife.CommonEntity
 
         static TEntity Login(String username, String password, Int32 hashTimes)
         {
-            if (String.IsNullOrEmpty(username)) return null;
+            //if (String.IsNullOrEmpty(username)) return null;
+            if (String.IsNullOrEmpty(username)) throw new Exception("该帐号不存在！");
 
             var user = FindByName(username);
-            if (user == null) return null;
+            //if (user == null) return null;
+            if (user == null) throw new Exception("该帐号错误！");
 
             if (!user.IsEnable) throw new EntityException("账号被禁用！");
 
