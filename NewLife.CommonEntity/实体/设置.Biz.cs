@@ -54,6 +54,21 @@ namespace NewLife.CommonEntity
             base.Valid(isNew);
         }
 
+        /// <summary>根据指定键检查数据，返回数据是否已存在</summary>
+        /// <param name="names"></param>
+        /// <returns></returns>
+        public override bool Exist(params string[] names)
+        {
+            // 采用单对象缓存判断，减少一次查询
+            if (names.Length == 2 && names[0] == _.ParentID && names[1] == _.Name)
+            {
+                var p = FindByID(ParentID);
+                return p.Childs.Exists(_.Name, Name);
+            }
+
+            return base.Exist(names);
+        }
+
         /// <summary>添加后清理上级的子级缓存</summary>
         /// <returns></returns>
         public override int Insert()
@@ -62,6 +77,8 @@ namespace NewLife.CommonEntity
             var ps = new TEntity[] { Parent, null };
 
             var rs = base.Insert();
+            // 加入到单对象缓存
+            Meta.SingleCache.Add(this.ID, this as TEntity);
 
             // 清理缓存
             ps[1] = Parent;
