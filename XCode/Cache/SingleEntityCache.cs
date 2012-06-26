@@ -303,6 +303,42 @@ namespace XCode.Cache
         /// <returns></returns>
         public Boolean ContainsKey(TKey key) { return Entities.ContainsKey(key); }
 
+        /// <summary>向单对象缓存添加项</summary>
+        /// <param name="key"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public Boolean Add(TKey key, TEntity value)
+        {
+            // 如果找到项，返回
+            CacheItem item = null;
+            if (Entities.TryGetValue(key, out item) && item != null && DateTime.Now <= item.ExpireTime) return false;
+
+            // 加锁
+            lock (Entities)
+            {
+                if (Entities.TryGetValue(key, out item))
+                {
+                    // 如果已存在并且过期，则复制
+                    if (item != null)
+                    {
+                        if (DateTime.Now <= item.ExpireTime) return false;
+                        item.Entity.CopyFrom(value);
+                    }
+
+                    return false;
+                }
+
+                item = new CacheItem();
+                item.Key = key;
+                item.Entity = value;
+                item.ExpireTime = DateTime.Now.AddSeconds(Expriod);
+
+                Entities.Add(key, item);
+
+                return true;
+            }
+        }
+
         /// <summary>移除指定项</summary>
         /// <param name="key"></param>
         public void RemoveKey(TKey key)
