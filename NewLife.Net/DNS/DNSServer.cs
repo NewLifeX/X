@@ -67,6 +67,7 @@ namespace NewLife.Net.DNS
             set
             {
                 var ps = Parents;
+                var list = new HashSet<String>(ps.Select(p => p.ToString()), StringComparer.OrdinalIgnoreCase);
                 ps.Clear();
 
                 if (value.IsNullOrWhiteSpace()) return;
@@ -78,7 +79,11 @@ namespace NewLife.Net.DNS
                 {
                     var uri = new NetUri(item);
                     if (uri.Port <= 0) uri.Port = 53;
-                    ps.Add(uri);
+                    if (!list.Contains(uri.ToString()))
+                    {
+                        ps.Add(uri);
+                        list.Add(uri.ToString());
+                    }
                 }
             }
         }
