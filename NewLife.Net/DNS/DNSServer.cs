@@ -38,8 +38,8 @@ namespace NewLife.Net.DNS
                     {
                         list.Add(new NetUri(ProtocolType.Udp, item, 53));
                     }
-                    list.Add(new NetUri("tcp://8.8.8.8"));
-                    list.Add(new NetUri("udp://4.4.4.4"));
+                    list.Add(new NetUri("tcp://8.8.8.8:53"));
+                    list.Add(new NetUri("udp://4.4.4.4:53"));
 
                     _Parents = list;
                 }
