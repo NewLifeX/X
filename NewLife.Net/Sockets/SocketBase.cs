@@ -124,9 +124,14 @@ namespace NewLife.Net.Sockets
         {
             get
             {
-                if (_RemoteUri != null) return _RemoteUri;
+                if (_RemoteUri != null)
+                {
+                    _RemoteUri.ProtocolType = ProtocolType;
+                    return _RemoteUri;
+                }
 
                 var uri = new NetUri();
+                uri.ProtocolType = ProtocolType;
                 var socket = Socket;
                 try
                 {
