@@ -1,4 +1,5 @@
 ﻿using System;
+using NewLife;
 using NewLife.Configuration;
 using NewLife.Reflection;
 using XCode.DataAccessLayer;
@@ -52,7 +53,7 @@ namespace XCode.Cache
     }
 
     /// <summary>缓存基类</summary>
-    public abstract class CacheBase
+    public abstract class CacheBase : DisposeBase
     {
         #region 设置
         private static Boolean? _Debug;
