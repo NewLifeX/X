@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
@@ -255,7 +256,7 @@ namespace NewLife.Net.DNS
             catch (Exception ex)
             {
                 String file = String.Format("dns_{0:MMddHHmmss}.bin", DateTime.Now);
-                WriteDNSLog("解析父级代理返回数据出错！数据保存于" + file + "。" + ex.Message);
+                XTrace.WriteLine("解析父级代理返回数据出错！数据保存于" + file + "。" + ex.Message);
                 File.WriteAllBytes(file, data);
             }
 
@@ -282,6 +283,7 @@ namespace NewLife.Net.DNS
 
         #region 写日志
         static TextFileLog log = TextFileLog.Create("DNSLog");
+        [Conditional("DEBUG")]
         void WriteDNSLog(String format, params Object[] args)
         {
             log.WriteLine(format, args);
