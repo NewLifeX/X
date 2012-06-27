@@ -43,7 +43,7 @@ if(!Config.RenderGenEntity){#>
         }
 <#
         }
-#>		#endregion
+#>        #endregion
 
         #region 获取/设置 字段值
         /// <summary>

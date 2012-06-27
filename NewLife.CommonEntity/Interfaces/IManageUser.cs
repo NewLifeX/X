@@ -15,6 +15,9 @@ namespace NewLife.CommonEntity
         /// <summary>密码</summary>
         String Password { get; }
 
+        /// <summary>是否管理员</summary>
+        Boolean IsAdmin { get; }
+
         /// <summary>属性集合</summary>
         IDictionary<String, Object> Properties { get; }
     }

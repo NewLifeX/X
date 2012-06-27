@@ -61,7 +61,19 @@ namespace NewLife.CommonEntity
             get { return _Password; }
             set { if (OnPropertyChanging("Password", value)) { _Password = value; OnPropertyChanged("Password"); } }
         }
-		#endregion
+
+        private Boolean _IsAdmin;
+        /// <summary>是否管理员</summary>
+        [DisplayName("是否管理员")]
+        [Description("是否管理员")]
+        [DataObjectField(false, false, true, 1)]
+        [BindColumn(4, "IsAdmin", "是否管理员", null, "bit", 0, 0, true)]
+        public Boolean IsAdmin
+        {
+            get { return _IsAdmin; }
+            set { if (OnPropertyChanging("IsAdmin", value)) { _IsAdmin = value; OnPropertyChanged("IsAdmin"); } }
+        }
+        #endregion
 
         #region 获取/设置 字段值
         /// <summary>
@@ -80,6 +92,7 @@ namespace NewLife.CommonEntity
                     case "ID" : return _ID;
                     case "Account" : return _Account;
                     case "Password" : return _Password;
+                    case "IsAdmin": return _IsAdmin;
                     default: return base[name];
                 }
             }
@@ -90,6 +103,7 @@ namespace NewLife.CommonEntity
                     case "ID" : _ID = Convert.ToInt32(value); break;
                     case "Account" : _Account = Convert.ToString(value); break;
                     case "Password" : _Password = Convert.ToString(value); break;
+                    case "IsAdmin": _IsAdmin = Convert.ToBoolean(value); break;
                     default: base[name] = value; break;
                 }
             }
@@ -108,6 +122,9 @@ namespace NewLife.CommonEntity
 
             ///<summary>密码</summary>
             public static readonly Field Password = Meta.Table.FindByName("Password");
+
+            ///<summary>是否管理员</summary>
+            public static readonly Field IsAdmin = Meta.Table.FindByName("IsAdmin");
         }
         #endregion
     }
@@ -124,6 +141,9 @@ namespace NewLife.CommonEntity
 
         /// <summary>密码</summary>
         String Password { get; set; }
+
+        /// <summary>是否管理员</summary>
+        Boolean IsAdmin { get; }
         #endregion
 
         #region 获取/设置 字段值
