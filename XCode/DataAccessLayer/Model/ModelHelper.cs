@@ -300,7 +300,7 @@ namespace XCode.DataAccessLayer
                         {
                             var dr = table.CreateRelation();
                             (dr as IXmlSerializable).ReadXml(reader);
-                            table.Relations.Add(dr);
+                            if (table.GetRelation(dr) == null) table.Relations.Add(dr);
                         }
                         reader.ReadEndElement();
                         break;

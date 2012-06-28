@@ -410,7 +410,7 @@ namespace XCode.DataAccessLayer.Model
             }
 
             dr.Computed = true;
-            table.Relations.Add(dr);
+            if (table.GetRelation(dr) == null) table.Relations.Add(dr);
 
             // 给另一方建立关系
             //foreach (IDataRelation item in rtable.Relations)
@@ -434,7 +434,7 @@ namespace XCode.DataAccessLayer.Model
             }
 
             dr.Computed = true;
-            rtable.Relations.Add(dr);
+            if (rtable.GetRelation(dr) == null) rtable.Relations.Add(dr);
 
             return true;
         }
