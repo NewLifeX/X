@@ -55,7 +55,7 @@ public partial class Center_Default : System.Web.UI.Page
             {
                 IMenu first = list[0];
                 DefaultLeft = String.Format("Frame/Left.aspx?ID={0}", first.ID);
-                DefaultMain = String.Format(first.Url);
+                DefaultMain = first.Url;
                 //String js = "document.getElementById('leftiframe').src='Frame/Left.aspx?ID={0}';";
                 //js += "document.getElementById('main').src='{1}';";
                 //js = String.Format(js, list[0].ID, list[0].Url);
