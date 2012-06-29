@@ -444,12 +444,9 @@ namespace System
             // 针对MemoryStream进行优化
             if (stream is MemoryStream && (length == 0 || length == stream.Length))
             {
-                if (length == 0)
-                    stream.Position += stream.Length;
-                else
-                    stream.Position += length;
+                stream.Position += stream.Length;
                 return (stream as MemoryStream).ToArray();
-            } 
+            }
             #endregion
 
             if (!stream.CanSeek)
