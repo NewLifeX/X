@@ -430,8 +430,27 @@ namespace System
         {
             if (stream == null) return null;
 
+
+            #region 未处理流指针位置，注释
+            // 此处代码为大石头优化内存流的处理
+            // 由于复制内容后，未改变流指针位置，导致应用中出现错误，
+            // 现改正
+
             // 针对MemoryStream进行优化
-            if (stream is MemoryStream && (length == 0 || length == stream.Length)) return (stream as MemoryStream).ToArray();
+            //  if (stream is MemoryStream && (length == 0 || length == stream.Length)) return (stream as MemoryStream).ToArray(); 
+            #endregion
+
+            #region 陈奇 更改
+            // 针对MemoryStream进行优化
+            if (stream is MemoryStream && (length == 0 || length == stream.Length))
+            {
+                if (length == 0)
+                    stream.Position += stream.Length;
+                else
+                    stream.Position += length;
+                return (stream as MemoryStream).ToArray();
+            } 
+            #endregion
 
             if (!stream.CanSeek)
             {
