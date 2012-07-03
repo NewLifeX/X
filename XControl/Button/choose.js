@@ -37,11 +37,11 @@
     }
 
     function randomUrl(u) {
-        /// <summary>在指定url中复杂一个随机参数,用于始终不缓存,在showModalDialog中有用</summary>
+        /// <summary>在指定url中附加一个随机参数,用于始终不缓存,在showModalDialog中有用</summary>
         /// <param name="u">原始url</param>
         /// <returns>String</returns>
         var r = 'randomflag=' + (+new Date() + Math.random());
-        u += u.indexOf('?') ? '&' : '?';
+        u += u.indexOf('?') > -1 ? '&' : '?';
         u += r;
         return u;
     }
