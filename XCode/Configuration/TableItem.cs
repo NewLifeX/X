@@ -116,7 +116,7 @@ namespace XCode.Configuration
                 lock (typeof(TableItem))
                 {
                     if (_ConnMaps != null) return _ConnMaps;
-                    
+
                     var list = new List<String>();
                     String str = Config.GetMutilConfig<String>(null, "XCode.ConnMaps", "XCodeConnMaps");
                     if (String.IsNullOrEmpty(str)) return _ConnMaps = list;
@@ -305,7 +305,8 @@ namespace XCode.Configuration
                     if (ModelHelper.GetIndex(table, di.Columns) != null) continue;
 
                     // 如果这个索引的唯一字段是主键，则无需建立索引
-                    if (di.Columns.Length == 1 && table.GetColumn(di.Columns[0]).PrimaryKey) continue;
+                    var column = table.GetColumn(di.Columns[0]);
+                    if (column == null || (di.Columns.Length == 1 && column.PrimaryKey)) continue;
 
                     //// 判断主键
                     //IDataColumn[] dcs = table.GetColumns(di.Columns);
