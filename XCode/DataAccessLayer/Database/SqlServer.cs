@@ -36,6 +36,7 @@ namespace XCode.DataAccessLayer
                     var session = OnCreateSession() as DbSession;
                     session.ConnectionString = ConnectionString;
                     session.Database = this;
+                    String ver = null;
                     try
                     {
                         ////切换到master库
@@ -50,7 +51,7 @@ namespace XCode.DataAccessLayer
 
                         //取数据库版本
                         if (!session.Opened) session.Open();
-                        String ver = session.Conn.ServerVersion;
+                        ver = session.Conn.ServerVersion;
                         session.AutoClose();
 
                         //_IsSQL2005 = !ver.StartsWith("08");
@@ -67,6 +68,8 @@ namespace XCode.DataAccessLayer
                         _IsSQL2005 = false;
                     }
                     finally { session.Dispose(); }
+
+                    if (DAL.Debug) DAL.WriteLog("[{0}/{1}]版本：{2}，{3}是MSSQL2000！", ConnName, DbType, _IsSQL2005.Value ? "不" : "");
                 }
                 return _IsSQL2005.Value;
             }
