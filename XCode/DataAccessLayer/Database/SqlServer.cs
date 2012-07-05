@@ -9,6 +9,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Web.Hosting;
 using NewLife;
+using NewLife.Log;
 
 namespace XCode.DataAccessLayer
 {
@@ -60,7 +61,11 @@ namespace XCode.DataAccessLayer
                         //    session.DatabaseName = dbname;
                         //}
                     }
-                    catch { _IsSQL2005 = false; }
+                    catch (Exception ex)
+                    {
+                        XTrace.WriteLine("查询[{0}]的版本时出错，将按MSSQL2000进行分页处理！{1}", ConnName, ex);
+                        _IsSQL2005 = false;
+                    }
                     finally { session.Dispose(); }
                 }
                 return _IsSQL2005.Value;
