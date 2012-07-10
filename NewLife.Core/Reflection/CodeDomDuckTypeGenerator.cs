@@ -307,11 +307,15 @@ namespace NewLife.Reflection
 
             public bool AddReference(Assembly assembly)
             {
-                if (!_lst.Contains(assembly.Location) && assembly != mscorlib)
+                try
                 {
-                    _lst.Add(assembly.Location);
-                    return true;
+                    if (!_lst.Contains(assembly.Location) && assembly != mscorlib)
+                    {
+                        _lst.Add(assembly.Location);
+                        return true;
+                    }
                 }
+                catch { }
 
                 return false;
             }

@@ -777,8 +777,8 @@ namespace NewLife.Reflection
             {
                 if (value is IConvertible)
                     value = Convert.ChangeType(value, conversionType);
-                else if (conversionType.IsInterface)
-                    value = DuckTyping.Implement(value, conversionType);
+                //else if (conversionType.IsInterface)
+                //    value = DuckTyping.Implement(value, conversionType);
             }
             else
             {
