@@ -15,12 +15,12 @@ using NewLife.Serialization;
 using NewLife.Threading;
 using XCode.DataAccessLayer;
 using XCode.Transform;
+using System.Reflection;
+using NewLife.CommonEntity;
 #if NET4
 using System.Linq;
 #else
 using NewLife.Linq;
-using System.Reflection;
-using NewLife.CommonEntity;
 #endif
 
 namespace Test
@@ -372,12 +372,20 @@ namespace Test
 
         static void Test9()
         {
-            var st = Statistics.FindByID(1);
-            if (st == null) st = new Statistics();
+            //// 根据代码创建脚本实例，相同代码只编译一次
+            //var se = ScriptEngine.Create("a+b");
+            //// 如果Method为空说明未编译，可设置参数
+            //if (se.Method == null)
+            //{
+            //    se.Parameters.Add("a", typeof(Int32));
+            //    se.Parameters.Add("b", typeof(Int32));
+            //}
+            //// 脚本固定返回Object类型，需要自己转换
+            //var n = (Int32)se.Invoke(2, 3);
+            //Console.WriteLine("2+3={0}", n);
 
-            st.Increment("nnhy");
-
-            st.Save();
+            var n = (Int32)ScriptEngine.Execute("p0*p1", new Object[] { 2, 3 });
+            Console.WriteLine("2*3={0}", n);
         }
     }
 }

@@ -19,7 +19,33 @@ namespace NewLife.Reflection
     /// 脚本引擎禁止实例化，必须通过<see cref="Create"/>方法创建，以代码为键进行缓存，避免重复创建反复编译形成泄漏。
     /// 其中<see cref="Create"/>方法的第二个参数为true表示前两种用法，为false表示第三种用法。
     /// </remarks>
-    /// <example></example>
+    /// <example>
+    /// 最简单而完整的用法：
+    /// <code>
+    /// // 根据代码创建脚本实例，相同代码只编译一次
+    /// var se = ScriptEngine.Create("a+b");
+    /// // 如果Method为空说明未编译，可设置参数
+    /// if (se.Method == null)
+    /// {
+    ///     se.Parameters.Add("a", typeof(Int32));
+    ///     se.Parameters.Add("b", typeof(Int32));
+    /// }
+    /// // 脚本固定返回Object类型，需要自己转换
+    /// var n = (Int32)se.Invoke(2, 3);
+    /// Console.WriteLine("2+3={0}", n);
+    /// </code>
+    /// 
+    /// 无参数快速调用：
+    /// <code>
+    /// var n = (Int32)ScriptEngine.Execute("2*3");
+    /// </code>
+    /// 
+    /// 约定参数快速调用：
+    /// <code>
+    /// var n = (Int32)ScriptEngine.Execute("p0*p1", new Object[] { 2, 3 });
+    /// Console.WriteLine("2*3={0}", n);
+    /// </code>
+    /// </example>
     public class ScriptEngine
     {
         #region 属性
@@ -31,9 +57,9 @@ namespace NewLife.Reflection
         /// <summary>是否表达式</summary>
         public Boolean IsExpression { get { return _IsExpression; } set { _IsExpression = value; } }
 
-        private Dictionary<String, Type> _Parameters;
+        private IDictionary<String, Type> _Parameters;
         /// <summary>参数集合。编译后就不可修改。</summary>
-        public Dictionary<String, Type> Parameters { get { return _Parameters ?? (_Parameters = new Dictionary<String, Type>()); } }
+        public IDictionary<String, Type> Parameters { get { return _Parameters ?? (_Parameters = new Dictionary<String, Type>()); } }
 
         private String _FinalCode;
         /// <summary>最终代码</summary>
@@ -77,7 +103,8 @@ namespace NewLife.Reflection
         {
             if (String.IsNullOrEmpty(code)) throw new ArgumentNullException("code");
 
-            return _cache.GetItem<String, Boolean>(code + isExpression, code, isExpression, (k, c, b) => new ScriptEngine(c, b));
+            var key = code + isExpression;
+            return _cache.GetItem<String, Boolean>(key, code, isExpression, (k, c, b) => new ScriptEngine(c, b));
         }
         #endregion
 
@@ -128,7 +155,40 @@ namespace NewLife.Reflection
             parameters.Keys.CopyTo(names, 0);
             var types = TypeX.GetTypeArray(ps);
 
-            return Execute(code, names, types, ps);
+            var dic = se.Parameters;
+            for (int i = 0; i < names.Length; i++)
+            {
+                dic.Add(names[i], types[i]);
+            }
+
+            return se.Invoke(ps);
+        }
+
+        /// <summary>执行表达式，返回结果。参数名默认为p0/p1/p2/pn</summary>
+        /// <param name="code"></param>
+        /// <param name="parameters"></param>
+        /// <returns></returns>
+        public static Object Execute(String code, Object[] parameters)
+        {
+            if (parameters == null || parameters.Length < 1) return Execute(code);
+
+            var se = Create(code);
+            if (se != null && se.Method != null) return se.Invoke(parameters);
+
+            var names = new String[parameters.Length];
+            for (int i = 0; i < names.Length; i++)
+            {
+                names[i] = "p" + i;
+            }
+            var types = TypeX.GetTypeArray(parameters);
+
+            var dic = se.Parameters;
+            for (int i = 0; i < names.Length; i++)
+            {
+                dic.Add(names[i], types[i]);
+            }
+
+            return se.Invoke(parameters);
         }
         #endregion
 
