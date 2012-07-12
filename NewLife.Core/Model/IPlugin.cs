@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using NewLife.Linq;
 using NewLife.Log;
 using NewLife.Reflection;
 
@@ -19,6 +20,19 @@ namespace NewLife.Model
         /// <param name="provider">服务提供者</param>
         /// <returns>返回初始化是否成功。如果当前宿主不是所期待的宿主，这里返回false</returns>
         Boolean Init(String identity, IServiceProvider provider);
+    }
+
+    /// <summary>插件特性。用于判断某个插件实现类是否支持某个宿主</summary>
+    [AttributeUsage(AttributeTargets.Class)]
+    public class PluginAttribute : Attribute
+    {
+        private String _Identity;
+        /// <summary>插件宿主标识</summary>
+        public String Identity { get { return _Identity; } set { _Identity = value; } }
+
+        /// <summary>实例化</summary>
+        /// <param name="identity"></param>
+        public PluginAttribute(String identity) { Identity = identity; }
     }
 
     /// <summary>插件管理器</summary>
@@ -81,11 +95,35 @@ namespace NewLife.Model
         {
             var list = new List<IPlugin>();
             // 此时是加载所有插件，无法识别哪些是需要的
-            foreach (var item in AssemblyX.FindAllPlugins(typeof(IPlugin), true))
+            foreach (var item in LoadPlugins())
             {
-                if (item != null) list.Add(TypeX.CreateInstance(item) as IPlugin);
+                if (item != null)
+                {
+                    list.Add(TypeX.CreateInstance(item) as IPlugin);
+                }
             }
             _Plugins = list;
+        }
+
+        IList<Type> pluginTypes;
+        IEnumerable<Type> LoadPlugins()
+        {
+            if (pluginTypes != null) return pluginTypes;
+
+            var list = new List<Type>();
+            // 此时是加载所有插件，无法识别哪些是需要的
+            foreach (var item in AssemblyX.FindAllPlugins(typeof(IPlugin), true))
+            {
+                if (item != null)
+                {
+                    // 如果有插件特性，并且所有特性都不支持当前宿主，则跳过
+                    var atts = item.GetCustomAttributes<PluginAttribute>(true);
+                    if (atts != null && atts.Any(a => a.Identity != Identity)) continue;
+
+                    list.Add(item);
+                }
+            }
+            return pluginTypes = list;
         }
 
         /// <summary>开始初始化。初始化之后，不属于当前宿主的插件将会被过滤掉</summary>
