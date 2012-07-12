@@ -1420,7 +1420,6 @@ namespace NewLife.Serialization
             try
             {
                 IObjectMemberInfo[] mis = GetMembers(type, value);
-                if (mis == null || mis.Length < 1) return true;
                 if (callback == null) callback = ReadMember;
 
                 // 如果为空，实例化并赋值。
@@ -1430,6 +1429,8 @@ namespace NewLife.Serialization
 
                     if (value != null) AddObjRef(objRefIndex, value);
                 }
+
+                if (mis == null || mis.Length < 1) return true;
 
                 // 调试输出成员列表
                 if (Debug) ShowMembers("ReadCustomObject", mis);
