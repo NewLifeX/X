@@ -71,15 +71,16 @@ namespace NewLife.Log
             if (!Directory.Exists(path)) Directory.CreateDirectory(path);
 
             //if (path.Substring(path.Length - 2) != @"\") path += @"\";
-            String logfile = Path.Combine(path, DateTime.Now.ToString("yyyy_MM_dd") + ".log");
+            var logfile = Path.Combine(path, DateTime.Now.ToString("yyyy_MM_dd") + ".log");
+            StreamWriter writer = null;
             int i = 0;
             while (i < 10)
             {
                 try
                 {
-                    FileStream stream = new FileStream(logfile, FileMode.Append, FileAccess.Write, FileShare.ReadWrite);
-                    LogWriter = new StreamWriter(stream, Encoding.UTF8);
-                    LogWriter.AutoFlush = true;
+                    var stream = new FileStream(logfile, FileMode.Append, FileAccess.Write, FileShare.ReadWrite);
+                    writer = new StreamWriter(stream, Encoding.UTF8);
+                    writer.AutoFlush = true;
                     break;
                 }
                 catch
@@ -96,32 +97,33 @@ namespace NewLife.Log
             {
                 isFirst = true;
 
-                WriteHead();
+                WriteHead(writer);
             }
+            LogWriter = writer;
         }
 
-        private void WriteHead()
+        private void WriteHead(StreamWriter writer)
         {
-            Process process = Process.GetCurrentProcess();
-            String name = String.Empty;
-            Assembly asm = Assembly.GetEntryAssembly();
+            var process = Process.GetCurrentProcess();
+            var name = String.Empty;
+            var asm = Assembly.GetEntryAssembly();
             if (asm != null)
             {
                 if (String.IsNullOrEmpty(name))
                 {
-                    AssemblyTitleAttribute att = Attribute.GetCustomAttribute(asm, typeof(AssemblyTitleAttribute)) as AssemblyTitleAttribute;
+                    var att = asm.GetCustomAttribute<AssemblyTitleAttribute>();
                     if (att != null) name = att.Title;
                 }
 
                 if (String.IsNullOrEmpty(name))
                 {
-                    AssemblyProductAttribute att = Attribute.GetCustomAttribute(asm, typeof(AssemblyProductAttribute)) as AssemblyProductAttribute;
+                    var att = asm.GetCustomAttribute<AssemblyProductAttribute>();
                     if (att != null) name = att.Product;
                 }
 
                 if (String.IsNullOrEmpty(name))
                 {
-                    AssemblyDescriptionAttribute att = Attribute.GetCustomAttribute(asm, typeof(AssemblyDescriptionAttribute)) as AssemblyDescriptionAttribute;
+                    var att = asm.GetCustomAttribute<AssemblyDescriptionAttribute>();
                     if (att != null) name = att.Description;
                 }
             }
@@ -136,29 +138,30 @@ namespace NewLife.Log
             // 通过判断LogWriter.BaseStream.Length，解决有时候日志文件为空但仍然加空行的问题
             //if (File.Exists(logfile) && LogWriter.BaseStream.Length > 0) LogWriter.WriteLine();
             // 因为指定了编码，比如UTF8，开头就会写入3个字节，所以这里不能拿长度跟0比较
-            if (LogWriter.BaseStream.Length > 10) LogWriter.WriteLine();
-            LogWriter.WriteLine("#Software: {0}", name);
-            LogWriter.WriteLine("#ProcessID: {0}", process.Id);
-            LogWriter.WriteLine("#AppDomain: {0}", AppDomain.CurrentDomain.FriendlyName);
-            LogWriter.WriteLine("#BaseDirectory: {0}", AppDomain.CurrentDomain.BaseDirectory);
-            LogWriter.WriteLine("#Date: {0:yyyy-MM-dd}", DateTime.Now);
-            LogWriter.WriteLine("#Fields: Time ThreadID IsPoolThread ThreadName Message");
+            if (writer.BaseStream.Length > 10) writer.WriteLine();
+            writer.WriteLine("#Software: {0}", name);
+            writer.WriteLine("#ProcessID: {0}", process.Id);
+            writer.WriteLine("#AppDomain: {0}", AppDomain.CurrentDomain.FriendlyName);
+            writer.WriteLine("#BaseDirectory: {0}", AppDomain.CurrentDomain.BaseDirectory);
+            writer.WriteLine("#Date: {0:yyyy-MM-dd}", DateTime.Now);
+            writer.WriteLine("#Fields: Time ThreadID IsPoolThread ThreadName Message");
 
-            var asmx = AssemblyX.Create(System.Reflection.Assembly.GetExecutingAssembly());
-            XTrace.WriteLine("{0} 文件版本{1} 编译时间{2}", asmx.Name, asmx.FileVersion, asmx.Compile);
+            var asmx = AssemblyX.Create(Assembly.GetExecutingAssembly());
+            XTrace.WriteLine("{0} v{1} Build {2}", asmx.Name, asmx.FileVersion, asmx.Compile);
         }
 
         /// <summary>停止日志</summary>
         private void CloseWriter(Object obj)
         {
-            if (LogWriter == null) return;
+            var writer = LogWriter;
+            if (writer == null) return;
             lock (Log_Lock)
             {
                 try
                 {
-                    if (LogWriter == null) return;
-                    LogWriter.Close();
-                    LogWriter.Dispose();
+                    if (writer == null) return;
+                    writer.Close();
+                    writer.Dispose();
                     LogWriter = null;
                 }
                 catch { }
