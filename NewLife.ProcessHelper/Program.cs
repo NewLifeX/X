@@ -99,6 +99,10 @@ namespace NewLife.ProcessHelper
                     process.Kill();
                     WriteLine("已等待30秒，进程[PID={0}]{1}仍未结束，强行结束，当前进程助手退出！", process.Id, context.FileName);
                 }
+                else
+                {
+                    WriteLine("命令执行完成");
+                }
             }
             #endregion
         }
