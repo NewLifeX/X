@@ -896,14 +896,13 @@ namespace XCode.DataAccessLayer
             {
                 return String.Format(" Default {0}", Database.FormatValue(field, field.Default));
             }
-            //else if (tc == TypeCode.DateTime)
-            //{
-            //    String d = CheckAndGetDefault(field.Table.DbType, field.Default);
-            //    // 如果数据库特性没有时间默认值，则说明不支持
-            //    if (String.IsNullOrEmpty(d)) return null;
-
-            //    return String.Format(" Default {0}", d);
-            //}
+            else if (tc == TypeCode.DateTime)
+            {
+                if (field.Default.Contains("(") || field.Default.EqualIgnoreCase(Database.DateTimeNow))
+                    return String.Format(" Default {0}", d);
+                else
+                    return String.Format(" Default '{0}'", d);
+            }
             else
                 return String.Format(" Default {0}", field.Default);
         }
