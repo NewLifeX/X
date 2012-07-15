@@ -384,10 +384,10 @@ namespace XCode.DataAccessLayer
         {
             base.FixField(field, dr);
 
-            DataRow[] rows = AllFields == null ? null : AllFields.Select("表名='" + field.Table.Name + "' And 字段名='" + field.Name + "'", null);
+            var rows = AllFields == null ? null : AllFields.Select("表名='" + field.Table.Name + "' And 字段名='" + field.Name + "'", null);
             if (rows != null && rows.Length > 0)
             {
-                DataRow dr2 = rows[0];
+                var dr2 = rows[0];
 
                 field.Identity = GetDataRowValue<Boolean>(dr2, "标识");
                 field.PrimaryKey = GetDataRowValue<Boolean>(dr2, "主键");
@@ -403,6 +403,30 @@ namespace XCode.DataAccessLayer
                 field.Default = Trim(field.Default, "\'", "\'");
                 field.Default = Trim(field.Default, "N\'", "\'");
                 field.Default = field.Default.Replace("''", "'");
+
+                // 处理类似CONVERT([datetime],'1753-1-1',(0))的时间默认值
+                if (field.DataType == typeof(DateTime))
+                {
+                    var def = field.Default;
+                    if (def.StartsWith("CONVERT(", StringComparison.OrdinalIgnoreCase))
+                    {
+                        var ss = def.Split(",");
+                        if (ss.Length >= 3)
+                        {
+                            def = ss[1].Trim().Trim('\'').Trim();
+                            DateTime dt;
+                            if (DateTime.TryParse(def, out dt))
+                            {
+                                if (dt == Database.DateTimeMin || dt.Date == Database.DateTimeMin.Date)
+                                {
+                                    //def = Database.DateTimeNow;
+                                    //def = Database.DateTimeMin.ToString("yyyy-MM-dd");
+                                    field.Default = def;
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
 

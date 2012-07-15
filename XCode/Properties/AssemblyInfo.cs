@@ -35,7 +35,7 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
 [assembly: AssemblyVersion("8.8.*")]
-[assembly: AssemblyFileVersion("8.8.2012.0625")]
+[assembly: AssemblyFileVersion("8.8.2012.0715")]
 
 /*
  * XCode的重大改进
@@ -52,6 +52,9 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v8.8.2012.0715   修正反向工程中因为跨数据库处理默认值而导致字符串默认值出错的BUG
+ *                  修正MSSQL中采用CONVERT([datetime],'1753-1-1',(0))作为时间最小值而无法实现跨数据库处理的BUG
+ * 
  * v8.8.2012.0625   增加字段累加功能，支持点击数累加和货币累加等，如Update xxx Set Price=Price+100
  *                  累加字段用法：实体类静态构造函数中通过AdditionalFields指定需要累加的字段，其它操作不变
  *                  如果索引的唯一字段是主键，则反向工程时无需建立索引

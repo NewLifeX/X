@@ -174,14 +174,14 @@ namespace XCode.DataAccessLayer
             return Database.FormatName(name);
         }
 
-        /// <summary>检查并获取当前数据库的默认值</summary>
+        /// <summary>检查并获取当前数据库的默认值。如果数据库类型一致，则直接返回false，因为没有修改</summary>
         /// <param name="dc"></param>
         /// <param name="oriDefault"></param>
         /// <returns></returns>
         protected virtual Boolean CheckAndGetDefault(IDataColumn dc, ref String oriDefault)
         {
             // 如果数据库类型等于原始类型，则直接通过
-            if (dc.Table.DbType == Database.DbType) return true;
+            if (dc.Table.DbType == Database.DbType) return false;
 
             // 原始数据库类型
             var db = DbFactory.Create(dc.Table.DbType);
