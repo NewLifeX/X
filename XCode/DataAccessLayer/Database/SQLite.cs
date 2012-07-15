@@ -4,6 +4,7 @@ using System.Data;
 using System.Data.Common;
 using System.Threading;
 using NewLife.Reflection;
+using System.Text;
 
 namespace XCode.DataAccessLayer
 {
@@ -314,6 +315,35 @@ namespace XCode.DataAccessLayer
         protected override void DropDatabase()
         {
             if (!(Database as SQLite).IsMemoryDatabase) base.DropDatabase();
+        }
+
+        public override String CreateIndexSQL(IDataIndex index)
+        {
+            var sb = new StringBuilder();
+            if (index.Unique)
+                sb.Append("Create Unique Index ");
+            else
+                sb.Append("Create Index ");
+
+            //sb.Append(FormatName(index.Name));
+            // SQLite中不同表的索引名也不能相同
+            sb.Append(FormatName(index.Table.Name));
+            foreach (var item in index.Columns)
+            {
+                sb.AppendFormat("_{0}", item);
+            }
+
+            sb.AppendFormat(" On {0} (", FormatName(index.Table.Name));
+            for (int i = 0; i < index.Columns.Length; i++)
+            {
+                if (i > 0) sb.Append(", ");
+                sb.Append(FormatName(index.Columns[i]));
+                //else
+                //    sb.AppendFormat("{0} {1}", FormatKeyWord(index.Columns[i].Name), isAscs[i].Value ? "Asc" : "Desc");
+            }
+            sb.Append(")");
+
+            return sb.ToString();
         }
 
         /// <summary>删除索引方法</summary>
