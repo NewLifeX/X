@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Data.Common;
-using System.Reflection;
 using System.Xml.Serialization;
 using NewLife.Collections;
 using NewLife.Configuration;
+using NewLife.Linq;
 using XCode.DataAccessLayer;
 
 namespace XCode.Configuration
@@ -304,9 +304,11 @@ namespace XCode.Configuration
 
                     if (ModelHelper.GetIndex(table, di.Columns) != null) continue;
 
-                    // 如果这个索引的唯一字段是主键，则无需建立索引
-                    var column = table.GetColumn(di.Columns[0]);
-                    if (column == null || (di.Columns.Length == 1 && column.PrimaryKey)) continue;
+                    //// 如果这个索引的唯一字段是主键，则无需建立索引
+                    //var column = table.GetColumn(di.Columns[0]);
+                    //if (column == null || (di.Columns.Length == 1 && column.PrimaryKey)) continue;
+                    // 如果索引全部就是主键，无需创建索引
+                    if (table.GetColumns(di.Columns).All(e => e.PrimaryKey)) continue;
 
                     //// 判断主键
                     //IDataColumn[] dcs = table.GetColumns(di.Columns);

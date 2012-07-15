@@ -38,7 +38,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public static IDataColumn[] GetColumns(this IDataTable table, String[] names)
         {
-            if (names == null || names.Length < 1) return null;
+            if (names == null || names.Length < 1) return new IDataColumn[0];
 
             return table.Columns.Where(c => names.Any(n => c.Is(n))).ToArray();
         }
