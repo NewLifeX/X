@@ -198,11 +198,13 @@ namespace XCode.DataAccessLayer
                 }
                 else
                 {
-                    // 出现了不支持的时间默认值
-                    if (DAL.Debug) DAL.WriteLog("出现了{0}不支持的时间默认值：{1}.{2}={3}", Database.DbType, dc.Table.Name, dc.Name, oriDefault);
+                    //// 出现了不支持的时间默认值
+                    //if (DAL.Debug) DAL.WriteLog("出现了{0}不支持的时间默认值：{1}.{2}={3}", Database.DbType, dc.Table.Name, dc.Name, oriDefault);
 
-                    oriDefault = null;
-                    return true;
+                    //oriDefault = null;
+                    //return true;
+
+                    return false;
                 }
             }
             // 特殊处理Guid
