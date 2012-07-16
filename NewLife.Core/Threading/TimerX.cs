@@ -128,7 +128,8 @@ namespace NewLife.Threading
                     if (thread == null)
                     {
                         thread = new Thread(Process);
-                        thread.Name = "TimerX";
+                        //thread.Name = "TimerX";
+                        thread.Name = "T";
                         thread.IsBackground = true;
                         thread.Start();
                     }

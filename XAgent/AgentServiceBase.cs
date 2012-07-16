@@ -259,16 +259,19 @@ namespace XAgent
                 }
             }
 
-            AssemblyX asm = AssemblyX.Create(Assembly.GetExecutingAssembly());
+            var asm = AssemblyX.Create(Assembly.GetExecutingAssembly());
             Console.WriteLine();
             Console.WriteLine("核心：{0}", asm.Version);
             //Console.WriteLine("文件：{0}", asm.FileVersion);
             Console.WriteLine("发布：{0:yyyy-MM-dd HH:mm:ss}", asm.Compile);
 
-            asm = AssemblyX.Create(Assembly.GetEntryAssembly());
-            Console.WriteLine();
-            Console.WriteLine("程序：{0}", asm.Version);
-            Console.WriteLine("发布：{0:yyyy-MM-dd HH:mm:ss}", asm.Compile);
+            var asm2 = AssemblyX.Create(Assembly.GetEntryAssembly());
+            if (asm2 != asm)
+            {
+                Console.WriteLine();
+                Console.WriteLine("程序：{0}", asm2.Version);
+                Console.WriteLine("发布：{0:yyyy-MM-dd HH:mm:ss}", asm2.Compile);
+            }
 
             Console.ForegroundColor = color;
         }
@@ -308,10 +311,20 @@ namespace XAgent
                 var dic = Config.GetConfigByPrefix("XAgent.AttachServer.");
                 if (dic != null && dic.Count > 0)
                 {
-                    Console.WriteLine("6 附加服务调试");
-                    foreach (var item in dic)
+                    var dic2 = new Dictionary<String, String>();
+                    foreach (var item in dic2)
                     {
-                        Console.WriteLine("{0,10} = {1}", item.Key, item.Value);
+                        if (!item.Key.IsNullOrWhiteSpace() && !item.Value.IsNullOrWhiteSpace()) dic2.Add(item.Key, item.Value);
+                    }
+                    dic = dic2;
+
+                    if (dic != null && dic.Count > 0)
+                    {
+                        Console.WriteLine("6 附加服务调试");
+                        foreach (var item in dic)
+                        {
+                            Console.WriteLine("{0,10} = {1}", item.Key, item.Value);
+                        }
                     }
                 }
             }
@@ -485,7 +498,8 @@ namespace XAgent
             if (time < 0) return;
 
             Threads[index] = new Thread(workWaper);
-            String name = "XAgent_" + index;
+            //String name = "XAgent_" + index;
+            String name = "A" + index;
             if (ThreadNames != null && ThreadNames.Length > index && !String.IsNullOrEmpty(ThreadNames[index]))
                 name = ThreadNames[index];
             Threads[index].Name = name;
@@ -617,7 +631,8 @@ namespace XAgent
         public void StartManagerThread()
         {
             ManagerThread = new Thread(ManagerThreadWaper);
-            ManagerThread.Name = "XAgent_Manager";
+            //ManagerThread.Name = "XAgent_Manager";
+            ManagerThread.Name = "AM";
             ManagerThread.IsBackground = true;
             ManagerThread.Priority = ThreadPriority.Highest;
             ManagerThread.Start();

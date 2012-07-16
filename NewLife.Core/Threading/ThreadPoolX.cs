@@ -72,7 +72,8 @@ namespace NewLife.Threading
                         if (_ManagerThread == null)
                         {
                             Thread thread = new Thread(Work);
-                            thread.Name = Name + "线程池维护线程";
+                            //thread.Name = Name + "线程池维护线程";
+                            thread.Name = Name + "PM";
                             thread.IsBackground = true;
                             thread.Priority = ThreadPriority.Highest;//最高优先级
                             //留到第一个任务到来时再开始维护线程
@@ -640,7 +641,8 @@ namespace NewLife.Threading
 
             ThreadX thread = new ThreadX();
             //thread.Name = Name + "线程池" + ThreadCount + "号线程";
-            thread.Name = String.Format("{0}线程池{1,3}号线程", Name, ThreadCount);
+            //thread.Name = String.Format("{0}线程池{1,3}号线程", Name, ThreadCount);
+            thread.Name = Name + "P" + ThreadCount;
             thread.OnTaskFinished += new EventHandler<EventArgs>(thread_OnTaskFinished);
 
             ThreadCount++;
