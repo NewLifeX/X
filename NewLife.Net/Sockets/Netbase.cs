@@ -1,6 +1,8 @@
 ﻿using System;
-using NewLife.Net;
 using System.Diagnostics;
+using System.Reflection;
+using NewLife.Log;
+using NewLife.Reflection;
 
 namespace NewLife.Net.Sockets
 {
@@ -13,7 +15,13 @@ namespace NewLife.Net.Sockets
         public DateTime StartTime { get { return _StartTime; } /*set { _StartTime = value; }*/ }
         #endregion
 
-        #region 销毁
+        #region 构造销毁
+        static Netbase()
+        {
+            var asmx = AssemblyX.Create(Assembly.GetExecutingAssembly());
+            XTrace.WriteLine("{0} v{1} Build {2:yyyy-MM-dd HH:mm:ss}", asmx.Name, asmx.FileVersion, asmx.Compile);
+        }
+
         /// <summary>子类重载实现资源释放逻辑</summary>
         /// <param name="disposing">从Dispose调用（释放所有资源）还是析构函数调用（释放非托管资源）</param>
         protected override void OnDispose(bool disposing)

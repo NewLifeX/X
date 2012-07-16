@@ -147,7 +147,7 @@ namespace NewLife.Log
             writer.WriteLine("#Fields: Time ThreadID IsPoolThread ThreadName Message");
 
             var asmx = AssemblyX.Create(Assembly.GetExecutingAssembly());
-            XTrace.WriteLine("{0} v{1} Build {2}", asmx.Name, asmx.FileVersion, asmx.Compile);
+            XTrace.WriteLine("{0} v{1} Build {2:yyyy-MM-dd HH:mm:ss}", asmx.Name, asmx.FileVersion, asmx.Compile);
         }
 
         /// <summary>停止日志</summary>

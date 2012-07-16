@@ -36,7 +36,14 @@ namespace NewLife.Net.DNS
                     var list = new List<NetUri>();
                     foreach (var item in NetHelper.GetDns())
                     {
-                        list.Add(new NetUri(ProtocolType.Udp, item, 53));
+                        if (item.IsAny())
+                        {
+                            WriteLog("取得的本地DNS[{0}]有误，任意地址不能作为父级DNS地址。", item);
+                            continue;
+                        }
+                        var uri = new NetUri(ProtocolType.Udp, item, 53);
+                        WriteLog("使用本地地址作为父级DNS：{0}", uri);
+                        list.Add(uri);
                     }
                     list.Add(new NetUri("tcp://8.8.8.8:53"));
                     list.Add(new NetUri("udp://4.4.4.4:53"));
@@ -81,6 +88,11 @@ namespace NewLife.Net.DNS
                     if (uri.Port <= 0) uri.Port = 53;
                     if (!list.Contains(uri.ToString()))
                     {
+                        if (uri.Address.IsAny())
+                        {
+                            WriteLog("配置的父级DNS[{0}]有误，任意地址不能作为父级DNS地址。", uri);
+                            continue;
+                        }
                         ps.Add(uri);
                         list.Add(uri.ToString());
                     }
