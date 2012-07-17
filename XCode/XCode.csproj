@@ -162,6 +162,7 @@
     <Compile Include="Entity\EntityBase_Interface.cs">
       <DependentUpon>EntityBase.cs</DependentUpon>
     </Compile>
+    <Compile Include="Entity\EntityTransaction.cs" />
     <Compile Include="Entity\IEntityList.cs" />
     <None Include="Entity\IEntityModule.cs" />
     <Compile Include="Entity\IEntityPersistence.cs" />
