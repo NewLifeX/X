@@ -6,6 +6,18 @@ namespace XCode
 {
     /// <summary>实体事务区域。配合using使用，进入区域事务即开始，直到<see cref="EntityTransaction.Commit"/>提交，否则离开区域时回滚。</summary>
     /// <typeparam name="TEntity"></typeparam>
+    /// <example>
+    /// <code>
+    /// using (var et = new EntityTransaction&lt;Administrator&gt;())
+    /// {
+    ///     var admin = Administrator.FindByName("admin");
+    ///     admin.Logins++;
+    ///     admin.Update();
+    /// 
+    ///     et.Commit();
+    /// }
+    /// </code>
+    /// </example>
     public class EntityTransaction<TEntity> : EntityTransaction where TEntity : Entity<TEntity>, new()
     {
         /// <summary>为实体类实例化一个事务区域</summary>
@@ -29,6 +41,18 @@ namespace XCode
     }
 
     /// <summary>实体事务区域。配合using使用，进入区域事务即开始，直到<see cref="Commit"/>提交，否则离开区域时回滚。</summary>
+    /// <example>
+    /// <code>
+    /// using (var et = new EntityTransaction(DAL.Create("Common")))
+    /// {
+    ///     var admin = Administrator.FindByName("admin");
+    ///     admin.Logins++;
+    ///     admin.Update();
+    /// 
+    ///     et.Commit();
+    /// }
+    /// </code>
+    /// </example>
     public class EntityTransaction : DisposeBase
     {
         #region 属性
@@ -43,7 +67,11 @@ namespace XCode
         #region 构造
         /// <summary>用数据库会话来实例化一个事务区域</summary>
         /// <param name="session"></param>
-        public EntityTransaction(IDbSession session) { Session = session; Session.BeginTransaction(); }
+        public EntityTransaction(IDbSession session)
+        {
+            Session = session;
+            if (session != null) session.BeginTransaction();
+        }
 
         /// <summary>用数据访问对象来实例化一个事务区域</summary>
         /// <param name="dal"></param>

@@ -21,6 +21,7 @@ using NewLife.CommonEntity;
 using System.Linq;
 #else
 using NewLife.Linq;
+using XCode;
 #endif
 
 namespace Test
@@ -38,7 +39,7 @@ namespace Test
                 try
                 {
 #endif
-                Test9();
+                    Test9();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -384,8 +385,17 @@ namespace Test
             //var n = (Int32)se.Invoke(2, 3);
             //Console.WriteLine("2+3={0}", n);
 
-            var n = (Int32)ScriptEngine.Execute("p0*p1", new Object[] { 2, 3 });
-            Console.WriteLine("2*3={0}", n);
+            //var n = (Int32)ScriptEngine.Execute("p0*p1", new Object[] { 2, 3 });
+            //Console.WriteLine("2*3={0}", n);
+
+            using (var et = new EntityTransaction<Administrator>())
+            {
+                var admin = Administrator.FindByName("admin");
+                admin.Logins++;
+                admin.Update();
+
+                et.Commit();
+            }
         }
     }
 }
