@@ -35,7 +35,7 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
 [assembly: AssemblyVersion("8.8.*")]
-[assembly: AssemblyFileVersion("8.8.2012.0715")]
+[assembly: AssemblyFileVersion("8.8.2012.0718")]
 
 /*
  * XCode的重大改进
@@ -52,6 +52,8 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v8.8.2012.0718   增加实体事务区域EntityTransaction
+ * 
  * v8.8.2012.0715   修正反向工程中因为跨数据库处理默认值而导致字符串默认值出错的BUG
  *                  修正MSSQL中采用CONVERT([datetime],'1753-1-1',(0))作为时间最小值而无法实现跨数据库处理的BUG
  *                  如果索引全部就是主键，无需创建索引
