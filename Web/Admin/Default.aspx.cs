@@ -70,6 +70,13 @@ public partial class Center_Default : System.Web.UI.Page
                 .CheckMenuName(@"Admin\Sys", "系统管理")
                 .CheckMenuName(@"Admin\Advance", "高级设置")
                 .CheckMenuName(@"Admin\Help", "帮助手册");
+
+            IMenu menu = root.FindByPath("Admin");
+            if (menu != null && menu.Url == "../Admin/Default.aspx")
+            {
+                menu.Url = "../Admin/Main.aspx";
+                menu.Save();
+            }
         }
     }
 
@@ -77,8 +84,6 @@ public partial class Center_Default : System.Web.UI.Page
     {
         this.Title = SysSetting.DisplayName;
 
-        if (!IsPostBack)
-        {
-        }
+        if (!IsPostBack) { }
     }
 }
