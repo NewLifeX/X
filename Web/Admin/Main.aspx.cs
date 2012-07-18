@@ -2,11 +2,20 @@
 using System.Collections.Generic;
 using System.Web.UI.WebControls;
 using NewLife.Reflection;
+using NewLife.CommonEntity;
+using System.Web;
 
 public partial class Pages_Main : System.Web.UI.Page
 {
     protected void Page_Load(object sender, EventArgs e)
     {
+        if (ManageProvider.Provider.Current == null)
+        {
+            Response.Write("无权访问！");
+            Response.End();
+            return;
+        }
+
         if (!IsPostBack)
         {
             GridView1.DataSource = GetSource();
@@ -16,15 +25,25 @@ public partial class Pages_Main : System.Web.UI.Page
 
     List<AssemblyX> GetSource()
     {
+        String bin = HttpRuntime.BinDirectory.ToLower();
         List<AssemblyX> list = new List<AssemblyX>();
-        foreach (AssemblyX assem in AssemblyX.GetAssemblies())
+        foreach (AssemblyX asmx in AssemblyX.GetAssemblies())
         {
-            if (assem.Company == "新生命开发团队" || assem.Company == "NewLife")
+            if (String.IsNullOrEmpty(asmx.FileVersion)) continue;
+            String file = asmx.Asm.CodeBase;
+            if (String.IsNullOrEmpty(file)) continue;
+            file = file.ToLower();
+            if (file.StartsWith("file:///")) file = file.Substring("file:///".Length);
+            file = file.Replace("/", "\\");
+            if (!file.StartsWith(bin)) continue;
+
+            //if (assem.Company == "新生命开发团队" || assem.Company == "NewLife")
             {
                 //ShowVer(ver);
-                list.Add(assem);
+                list.Add(asmx);
             }
         }
+
         return list;
 
         //return AssemblyX.GetAssemblies().Where(e => e.Company == "新生命开发团队" || e.Company == "NewLife").ToList();
