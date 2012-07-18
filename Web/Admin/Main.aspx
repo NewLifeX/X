@@ -243,51 +243,18 @@
     </table>
     <br />
     <br />
-    <table id="Table3" border="0" class="tb first" cellspacing="0" cellpadding="0" align="Center">
-        <tr>
-            <th colspan="6">
-                程序集版本信息：
-            </th>
-        </tr>
-        <tr>
-            <th>
-                名称
-            </th>
-            <th>
-                标题
-            </th>
-            <th>
-                文件版本
-            </th>
-            <th>
-                内部版本
-            </th>
-            <th>
-                编译时间
-            </th>
-        </tr>
-        <asp:Repeater runat="server" ID="GridView1">
-            <ItemTemplate>
-                <tr>
-                    <td>
-                        <%#Eval("Name")%>
-                    </td>
-                    <td>
-                        <%#Eval("Title")%>
-                    </td>
-                    <td>
-                        <%#Eval("FileVersion")%>
-                    </td>
-                    <td>
-                        <%#Eval("Version")%>
-                    </td>
-                    <td>
-                        <%#Eval("Compile", "{0:yyyy-MM-dd HH:mm:ss}")%>
-                    </td>
-                </tr>
-            </ItemTemplate>
-        </asp:Repeater>
-    </table>
+    <asp:GridView ID="gv" runat="server" AllowSorting="True" AutoGenerateColumns="False"
+        OnSorting="gv_Sorting" CssClass="tb" BorderWidth="0px" CellPadding="0" 
+        BorderStyle="None" GridLines="None">
+        <Columns>
+            <asp:BoundField DataField="Name" HeaderText="名称" SortExpression="Name" />
+            <asp:BoundField DataField="Title" HeaderText="标题" SortExpression="Title" />
+            <asp:BoundField DataField="FileVersion" HeaderText="文件版本" SortExpression="FileVersion" />
+            <asp:BoundField DataField="Version" HeaderText="内部版本" SortExpression="Version" />
+            <asp:BoundField DataField="Compile" DataFormatString="{0:yyyy-MM-dd HH:mm:ss}" HeaderText="编译时间"
+                SortExpression="Compile" />
+        </Columns>
+    </asp:GridView>
     <%}
       if (Request["Act"] == "ProcessModules")
       {

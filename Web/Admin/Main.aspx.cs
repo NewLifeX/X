@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Web.UI.WebControls;
-using NewLife.Reflection;
-using NewLife.CommonEntity;
 using System.Web;
+using System.Web.UI.WebControls;
+using NewLife.CommonEntity;
+using NewLife.Reflection;
 
 public partial class Pages_Main : System.Web.UI.Page
 {
@@ -18,8 +18,8 @@ public partial class Pages_Main : System.Web.UI.Page
 
         if (!IsPostBack)
         {
-            GridView1.DataSource = GetSource();
-            GridView1.DataBind();
+            gv.DataSource = GetSource();
+            gv.DataBind();
         }
     }
 
@@ -49,7 +49,7 @@ public partial class Pages_Main : System.Web.UI.Page
         //return AssemblyX.GetAssemblies().Where(e => e.Company == "新生命开发团队" || e.Company == "NewLife").ToList();
     }
 
-    protected void GridView1_Sorting(object sender, GridViewSortEventArgs e)
+    protected void gv_Sorting(object sender, GridViewSortEventArgs e)
     {
         List<AssemblyX> list = GetSource();
         list.Sort(delegate(AssemblyX item1, AssemblyX item2)
@@ -69,7 +69,7 @@ public partial class Pages_Main : System.Web.UI.Page
                 return d * item1.Name.CompareTo(item2.Name);
         });
 
-        GridView1.DataSource = list;
-        GridView1.DataBind();
+        gv.DataSource = list;
+        gv.DataBind();
     }
 }
