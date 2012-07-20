@@ -243,6 +243,8 @@ namespace NewLife.CommonEntity
         static String[] suffixs = new String[] { "自治区", "自治州", "各族自治县", "自治县", "地区", "辖区", "区", "市", "盟", "州", "县", "旗" };
         static String CutName(String name)
         {
+            if (name == "城区") return name;
+
             foreach (var item in suffixs)
             {
                 if (name.EndsWith(item)) return name = name.Substring(0, name.Length - item.Length);
