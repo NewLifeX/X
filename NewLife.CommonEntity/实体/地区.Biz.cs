@@ -565,9 +565,15 @@ namespace NewLife.CommonEntity
                     if (code % 10000 == 0)
                         entity.ParentCode = 0;
                     else if (code % 100 == 0)
+                    {
                         entity.ParentCode = code / 10000;
+                        entity.ParentCode = entity.ParentCode * 10000;
+                    }
                     else
+                    {
                         entity.ParentCode = code / 100;
+                        entity.ParentCode = entity.ParentCode * 100;
+                    }
 
                     entity.SaveWithoutValid();
                 }
