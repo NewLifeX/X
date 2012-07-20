@@ -187,7 +187,7 @@
   <ItemGroup>
     <Content Include="mssql_Common.xml" />
     <EmbeddedResource Include="实体\AreaCode.txt">
-      <DependentUpon>地区.cs</DependentUpon>
+<!--       <DependentUpon>地区.cs</DependentUpon> -->
     </EmbeddedResource>
     <Content Include="模版\模版.xml">
       <SubType>Designer</SubType>
