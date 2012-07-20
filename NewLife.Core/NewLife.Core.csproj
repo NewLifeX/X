@@ -85,6 +85,7 @@
     <Compile Include="Collections\InterlockedStack.cs" />
     <Compile Include="Collections\Triplet.cs" />
     <Compile Include="Collections\WeakRefDictionary.cs" />
+    <Compile Include="Common\PinYin.cs" />
     <Compile Include="Common\Runtime.cs" />
     <Compile Include="Compression\ZipException.cs" />
     <Compile Include="Compression\ZipConstants.cs" />

@@ -69,7 +69,6 @@
     <Compile Include="Box\LinkBox.cs" />
     <Compile Include="Box\LinkBoxField.cs" />
     <Compile Include="Button\LinkButtonField.cs" />
-    <Compile Include="Convert\PinYin.cs" />
     <Compile Include="MenuField\MenuParameterItem.cs" />
     <Compile Include="Menu\TreeMenu.cs" />
     <Compile Include="XControlConfig.cs" />
@@ -186,6 +185,9 @@
       <Project>{5813C22E-EEB3-4DEE-A45C-BB218041193A}</Project>
       <Name>NewLife.Core</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Convert\" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
