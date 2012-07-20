@@ -257,14 +257,22 @@ namespace NewLife.CommonEntity
         [DataObjectMethod(DataObjectMethodType.Select)]
         public static EntityList<TEntity> FindAllByParent(String parentname)
         {
-            TEntity a = Meta.Cache.Entities.Find(_.Name, parentname);
-            if (a == null) return null;
-            //return FindAllByParent(a.Code);
-            if (FindAllByParent(a.Code) == null)
-                return FindAllByParent(a.OldCode);
-            else
-                return FindAllByParent(a.Code);
+            var parent = Meta.Cache.Entities.Find(_.Name, parentname);
+            if (parent == null) return null;
 
+            var list = FindAllByParent(parent.Code);
+            if (list != null) return list;
+
+            list = FindAllByParent(parent.OldCode);
+            if (list != null) return list;
+
+            list = FindAllByParent(parent.OldCode2);
+            if (list != null) return list;
+
+            list = FindAllByParent(parent.OldCode3);
+            if (list != null) return list;
+
+            return null;
         }
         #endregion
 
