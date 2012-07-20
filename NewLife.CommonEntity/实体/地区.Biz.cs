@@ -155,10 +155,19 @@ namespace NewLife.CommonEntity
             // 试试下一级
             if (deepth >= 2)
             {
+                // 先用严格查找，再用模糊查找，避免在严格匹配项之前就匹配了模糊项
                 foreach (var item in Childs)
                 {
-                    list = item.FindAllByName(name, withLike, deepth - 1);
+                    list = item.FindAllByName(name, false, deepth - 1);
                     if (list != null && list.Count > 0) return list;
+                }
+                if (withLike)
+                {
+                    foreach (var item in Childs)
+                    {
+                        list = item.FindAllByName(name, withLike, deepth - 1);
+                        if (list != null && list.Count > 0) return list;
+                    }
                 }
             }
 
