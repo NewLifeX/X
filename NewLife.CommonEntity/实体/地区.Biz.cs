@@ -119,14 +119,14 @@ namespace NewLife.CommonEntity
         /// <summary>按名称查找。实体缓存</summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        [Obsolete("请改为使用指定地区下的FindAllByName或Root.FindAllByName！")]
-        public static EntityList<TEntity> FindByName(String name)
+        //[Obsolete("请改为使用指定地区下的FindAllByName或Root.FindAllByName！")]
+        public static TEntity FindByName(String name)
         {
             if (String.IsNullOrEmpty(name)) return null;
-            //return Meta.Cache.Entities.FindAll(_.Name, name);
+            return Meta.Cache.Entities.Find(_.Name, name);
 
             //return FindAllByName(name);
-            return Root.FindAllByName(name);
+            //return Root.FindAllByName(name);
         }
 
         /// <summary>按名称查找。实体缓存</summary>
