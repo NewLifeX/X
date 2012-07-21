@@ -36,9 +36,13 @@ using System.Runtime.InteropServices;
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("2.8.*")]
-[assembly: AssemblyFileVersion("2.8.2012.0321")]
+[assembly: AssemblyFileVersion("2.8.2012.0721")]
 
 /*
+ * v2.8.2012.0721   改进ICommonManageProvider对于类型和菜单根的实现，直接从管理员类中获取，不再需要单独重载指定
+ *                  增加设置类、手册类
+ *                  完善菜单、附件、地区等功能
+ * 
  * v2.8.2012.0321   感谢 @波波（136879642），因为页面上可能关闭ViewState，所以IManagerPage每次都要检查权限
  * 
  * v2.8.2012.0215   扩展ICommonManageProvider接口，增加FindByMenuID、GetMySubMenus等方法

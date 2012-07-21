@@ -6,6 +6,8 @@ using XCode.DataAccessLayer;
 
 namespace NewLife.YWS.Entities
 {
+    public class MyRole : Role<MyRole, Menu, RoleMenu> { }
+
     /// <summary>管理员</summary>
     [Serializable]
     [DataObject]
@@ -14,7 +16,7 @@ namespace NewLife.YWS.Entities
     [BindIndex("IX_Administrator_RoleID", false, "RoleID")]
     [BindIndex("PK__Admin__3214EC277F60ED59", true, "ID")]
     [BindTable("Admin", Description = "管理员", ConnName = "Common", DbType = DatabaseType.SqlServer)]
-    public class Admin : Administrator<Admin, Role, Menu, RoleMenu, NewLife.CommonEntity.Log>
+    public class Admin : Administrator<Admin, MyRole, Menu, RoleMenu, NewLife.CommonEntity.Log>
     {
         private String _Phone;
         /// <summary>电话</summary>

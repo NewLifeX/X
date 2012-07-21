@@ -3,6 +3,7 @@ using System.Web.UI;
 using System.Collections.Generic;
 using NewLife.Reflection;
 using XCode;
+using System.Threading;
 
 namespace NewLife.CommonEntity
 {
@@ -94,21 +95,55 @@ namespace NewLife.CommonEntity
         public override IManageUser Login(String account, String password) { return Administrator<TAdministrator>.Login(account, password); }
         #endregion
 
+        #region 构造
+        /// <summary>实例化</summary>
+        public CommonManageProvider() { InitType(); }
+        #endregion
+
         #region 类型
+        private Type _AdministratorType;
         /// <summary>管理员类</summary>
-        public virtual Type AdminstratorType { get { return typeof(TAdministrator); } }
+        public virtual Type AdminstratorType { get { return _AdministratorType; } }
 
+        private Type _LogType;
         /// <summary>日志类</summary>
-        public virtual Type LogType { get { return typeof(Log); } }
+        public virtual Type LogType { get { return _LogType; } }
 
+        private Type _MenuType;
         /// <summary>菜单类</summary>
-        public virtual Type MenuType { get { return typeof(Menu); } }
+        public virtual Type MenuType { get { return _MenuType; } }
 
+        private Type _RoleType;
         /// <summary>角色类</summary>
-        public virtual Type RoleType { get { return typeof(Role); } }
+        public virtual Type RoleType { get { return _RoleType; } }
 
+        private Type _RoleMenuType;
         /// <summary>权限类</summary>
-        public virtual Type RoleMenuType { get { return typeof(RoleMenu); } }
+        public virtual Type RoleMenuType { get { return _RoleMenuType; } }
+
+        Int32 hasInit = 0;
+        void InitType()
+        {
+            if (hasInit > 0 || Interlocked.CompareExchange(ref hasInit, 1, 0) != 0) return;
+
+            var btype = typeof(Object);
+            var adminType = typeof(Administrator<,,,,>);
+            var type = _AdministratorType = typeof(TAdministrator);
+            while (type != typeof(Object))
+            {
+                // 找到五参数泛型，取泛型参数作为各自的类型
+                if (type.IsGenericType && type.GetGenericTypeDefinition() == adminType)
+                {
+                    var ts = type.GetGenericArguments();
+                    _RoleType = ts[1];
+                    _MenuType = ts[2];
+                    _RoleMenuType = ts[3];
+                    _LogType = ts[4];
+                    break;
+                }
+                type = type.BaseType;
+            }
+        }
         #endregion
 
         #region 页面和表单
@@ -140,8 +175,16 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region 菜单
+        private IMenu _MenuRoot;
         /// <summary>菜单根</summary>
-        public virtual IMenu MenuRoot { get { return Menu.Root; } }
+        public virtual IMenu MenuRoot
+        {
+            get
+            {
+                if (_MenuRoot == null) _MenuRoot = PropertyInfoX.Create(MenuType, "Root").GetValue() as IMenu;
+                return _MenuRoot;
+            }
+        }
 
         /// <summary>根据编号找到菜单</summary>
         /// <param name="id"></param>
@@ -161,7 +204,7 @@ namespace NewLife.CommonEntity
         public IList<IMenu> GetMySubMenus(Int32 menuid)
         {
             var provider = this as ICommonManageProvider;
-            IMenu root = provider.MenuRoot;
+            var root = provider.MenuRoot;
 
             // 当前用户
             var admin = provider.Current as IAdministrator;

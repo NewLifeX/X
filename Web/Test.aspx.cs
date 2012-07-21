@@ -14,7 +14,10 @@ public partial class Test : System.Web.UI.Page
 {
     protected void Page_Load(object sender, EventArgs e)
     {
-        Assembly asm = Assembly.LoadFrom(@"E:\X\代码生成\XCoder.exe");
-        Template.ImportFromAssembly(0, asm, "XCoder.Template");
+        ICommonManageProvider provider = CommonManageProvider.Provider;
+        XTrace.WriteLine(provider.AdminstratorType + "");
+        XTrace.WriteLine(provider.RoleType + "");
+        XTrace.WriteLine(provider.MenuType + "");
+        XTrace.WriteLine(provider.MenuRoot + "");
     }
 }
