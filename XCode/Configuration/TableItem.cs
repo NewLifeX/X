@@ -363,37 +363,61 @@ namespace XCode.Configuration
             {
                 if (item.GetIndexParameters().Length <= 0) list.Add(new Field(this, item));
             }
-            // 然后用栈来处理
-            var stack = new Stack<Field>();
-            var t = type;
-            while (t != null && t != typeof(EntityBase) && list.Count > 0)
+
+            var att = type.GetCustomAttribute<ModelSortModeAttribute>(true);
+            if (att == null || att.Mode == ModelSortModes.BaseFirst)
             {
-                // 反序入栈，因为属性可能是顺序的，这里先反序，待会出来再反一次
-                // 没有数据属性的
-                for (int i = list.Count - 1; i >= 0; i--)
+                // 然后用栈来处理，基类优先
+                var stack = new Stack<Field>();
+                var t = type;
+                while (t != null && t != typeof(EntityBase) && list.Count > 0)
                 {
-                    var item = list[i];
-                    if (item.DeclaringType == t && !item.IsDataObjectField)
+                    // 反序入栈，因为属性可能是顺序的，这里先反序，待会出来再反一次
+                    // 没有数据属性的
+                    for (int i = list.Count - 1; i >= 0; i--)
                     {
-                        stack.Push(item);
-                        list.RemoveAt(i);
+                        var item = list[i];
+                        if (item.DeclaringType == t && !item.IsDataObjectField)
+                        {
+                            stack.Push(item);
+                            list.RemoveAt(i);
+                        }
                     }
+                    // 有数据属性的
+                    for (int i = list.Count - 1; i >= 0; i--)
+                    {
+                        var item = list[i];
+                        if (item.DeclaringType == t && item.IsDataObjectField)
+                        {
+                            stack.Push(item);
+                            list.RemoveAt(i);
+                        }
+                    }
+                    t = t.BaseType;
                 }
-                // 有数据属性的
-                for (int i = list.Count - 1; i >= 0; i--)
+                foreach (var item in stack)
                 {
-                    var item = list[i];
-                    if (item.DeclaringType == t && item.IsDataObjectField)
-                    {
-                        stack.Push(item);
-                        list.RemoveAt(i);
-                    }
+                    yield return item;
                 }
-                t = t.BaseType;
             }
-            foreach (var item in stack)
+            else
             {
-                yield return item;
+                // 子类优先
+                var t = type;
+                while (t != null && t != typeof(EntityBase) && list.Count > 0)
+                {
+                    // 有数据属性的
+                    foreach (var item in list)
+                    {
+                        if (item.DeclaringType == t && item.IsDataObjectField) yield return item;
+                    }
+                    // 没有数据属性的
+                    foreach (var item in list)
+                    {
+                        if (item.DeclaringType == t && !item.IsDataObjectField) yield return item;
+                    }
+                    t = t.BaseType;
+                }
             }
         }
         #endregion

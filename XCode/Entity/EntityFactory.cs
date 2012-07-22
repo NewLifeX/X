@@ -187,7 +187,7 @@ namespace XCode
                 list.Add(item.Name);
 
                 // 过滤掉第一次使用才加载的
-                var att = ModelCheckModeAttribute.GetCustomAttribute(item);
+                var att = item.GetCustomAttribute<ModelCheckModeAttribute>(true);
                 if (att != null && att.Mode != ModelCheckModes.CheckAllTablesWhenInit) continue;
                 list2.Add(item.Name);
 
