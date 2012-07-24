@@ -280,9 +280,12 @@
       <Link>X组件.txt</Link>
     </Content>
     <Content Include="Test\EntityTest.xml" />
+    <Content Include="Sync\同步机制.txt" />
     <Content Include="说明.txt" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="文档\" />
+  </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
