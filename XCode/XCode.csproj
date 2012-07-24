@@ -107,6 +107,8 @@
     <Compile Include="Attributes\BindIndexAttribute.cs" />
     <Compile Include="Attributes\BindTableAttribute.cs" />
     <Compile Include="Attributes\BindRelationAttribute.cs" />
+    <Compile Include="Sync\ISyncMaster.cs" />
+    <Compile Include="Sync\ISyncSlave.cs" />
     <Compile Include="Tree\EntityTreeKey.cs" />
     <Compile Include="Attributes\ModelCheckModeAttribute.cs" />
     <Compile Include="Attributes\ModelSortMode.cs" />
