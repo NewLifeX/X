@@ -65,8 +65,8 @@ namespace XCode.Accessors
 
             if (v is String)
             {
-                //如果是主键或者不是实体中的字段脏数据不改变
-                if (item.PrimaryKey || !item.IsDataObjectField) return;
+                ////如果是主键或者不是实体中的字段脏数据不改变
+                //if (item.PrimaryKey || !item.IsDataObjectField) return;
 
                 #region 检查数据类型是否满足目标类型，如果不满足则跳过，以免内部赋值异常导致程序处理出错
                 TypeCode code = Type.GetTypeCode(item.Type);
