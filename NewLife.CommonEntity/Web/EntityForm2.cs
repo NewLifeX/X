@@ -268,6 +268,8 @@ namespace NewLife.CommonEntity.Web
 
                     // 把Request参数读入到实体里面
                     FillEntityWithRequest(_Entity);
+                    //将主键脏数据标记为不修改
+                    _Entity.Dirtys.Remove(Factory.Unique.Name);
 
                     _isGettingEntity = false;
                 }
