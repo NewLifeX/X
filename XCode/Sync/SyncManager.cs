@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using NewLife.Collections;
+using NewLife.Reflection;
 
 namespace XCode.Sync
 {
@@ -27,8 +28,10 @@ namespace XCode.Sync
 
         #region 方法
         /// <summary>开始处理</summary>
-        public void DoWork()
+        public void Start()
         {
+            var now = DateTime.Now;
+
             // 先处理本地添加的数据，因为可能需要修改主键。如果不是先处理添加，自增字段很有可能出现跟提供者一样的主键
             ProcessNew();
 
@@ -37,6 +40,9 @@ namespace XCode.Sync
 
             // 最后处理更新的数据
             ProcessItems();
+
+            // 查找还有哪些没有同步的，可能提供者已经删除
+            ProcessOthers(now);
         }
 
         void ProcessNew()
@@ -109,7 +115,7 @@ namespace XCode.Sync
             var index = 0;
             while (true)
             {
-                var rs = Master.CheckUpdate(last, index, BatchSize);
+                var rs = Master.GetAllUpdated(last, index, BatchSize);
                 if (rs == null || rs.Length < 1) break;
 
                 foreach (var item in rs)
@@ -132,30 +138,58 @@ namespace XCode.Sync
                 return;
             }
 
-            // 本地没有修改
+            // 本地没有修改，提供方覆盖本地
             if (local.LastUpdate < local.LastSync)
             {
-
+                CopyTo(remote, local);
+            }
+            // 本地有修改，本地覆盖提供方
+            else
+            {
+                // 如果有返回值，可能是在更新的过程中数据有修改
+                var rs = Master.Update(Convert(local));
+                if (rs != null) CopyTo(rs, local);
             }
 
-            //switch (local.SyncStatus)
-            //{
-            //    case SyncStatus.None:
-            //        break;
-            //    case SyncStatus.Update:
-            //        break;
-            //    case SyncStatus.Insert:
-            //        break;
-            //    case SyncStatus.Delete:
-            //        break;
-            //    default:
-            //        break;
-            //}
+            local.LastSync = DateTime.Now;
+            local.Save();
         }
 
         void AddItem(ISyncMasterEntity remote)
         {
+            var local = Convert(remote);
+            local.LastUpdate = local.LastSync = DateTime.Now;
+            local.Save();
+        }
 
+        void ProcessOthers(DateTime now)
+        {
+            var index = 0;
+            while (true)
+            {
+                var arr = Slave.GetAllOld(now, index, BatchSize);
+                if (arr == null || arr.Length < 1) break;
+
+                // 准备要删除的主键
+                var keys = new Object[arr.Length];
+                for (int i = 0; i < arr.Length; i++)
+                {
+                    keys[i] = arr[i].Key;
+                }
+                // 提交
+                var rs = Master.CheckExists(keys);
+
+                // 删除本地
+                if (rs != null && rs.Length > 0)
+                {
+                    for (int i = 0; i < arr.Length; i++)
+                    {
+                        if (!rs[i]) arr[i].Delete();
+                    }
+                }
+
+                index += arr.Length;
+            }
         }
         #endregion
 
@@ -203,6 +237,14 @@ namespace XCode.Sync
                 rs[item] = entity[item];
             }
             return rs;
+        }
+
+        void CopyTo(IIndexAccessor src, IIndexAccessor des)
+        {
+            foreach (var item in Names)
+            {
+                des[item] = src[item];
+            }
         }
         #endregion
     }

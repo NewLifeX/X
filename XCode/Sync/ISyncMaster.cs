@@ -12,21 +12,27 @@ namespace XCode.Sync
         /// <param name="start"></param>
         /// <param name="max"></param>
         /// <returns></returns>
-        ISyncMasterEntity[] CheckUpdate(DateTime last, Int32 start, Int32 max);
-
-        //ISyncMasterEntity FindByKey(Object key);
-
-        //ISyncMasterEntity[] FindAllByKeys(Object[] key);
+        ISyncMasterEntity[] GetAllUpdated(DateTime last, Int32 start, Int32 max);
 
         /// <summary>提交新增数据</summary>
         /// <param name="list"></param>
         /// <returns>返回新增成功后的数据，包括自增字段</returns>
         ISyncMasterEntity[] Insert(ISyncMasterEntity[] list);
 
+        /// <summary>更新数据</summary>
+        /// <param name="entity"></param>
+        /// <returns></returns>
+        ISyncMasterEntity Update(ISyncMasterEntity entity);
+
         /// <summary>根据主键数组删除数据</summary>
         /// <param name="keys"></param>
         /// <returns>是否删除成功</returns>
         Boolean[] Delete(Object[] keys);
+
+        /// <summary>根据主键数组检查数据是否仍然存在</summary>
+        /// <param name="keys"></param>
+        /// <returns>是否存在</returns>
+        Boolean[] CheckExists(Object[] keys);
 
         /// <summary>创建一个空白实体</summary>
         /// <returns></returns>
@@ -67,7 +73,7 @@ namespace XCode.Sync
         /// <param name="start"></param>
         /// <param name="max"></param>
         /// <returns></returns>
-        public ISyncMasterEntity[] CheckUpdate(DateTime last, Int32 start, Int32 max)
+        public ISyncMasterEntity[] GetAllUpdated(DateTime last, Int32 start, Int32 max)
         {
             var list = Facotry.FindAll(Facotry.MakeCondition(LastUpdateName, last, ">"), null, null, start, max);
             if (list == null || list.Count < 1) return null;
@@ -98,6 +104,19 @@ namespace XCode.Sync
             return list;
         }
 
+        /// <summary>更新数据</summary>
+        /// <param name="entity"></param>
+        /// <returns></returns>
+        public ISyncMasterEntity Update(ISyncMasterEntity entity)
+        {
+            var e = entity as SyncMasterEntity;
+            if (e == null) return null;
+
+            e.Entity.Update();
+
+            return e;
+        }
+
         /// <summary>根据主键数组删除数据</summary>
         /// <param name="keys"></param>
         /// <returns>是否删除成功</returns>
@@ -115,6 +134,24 @@ namespace XCode.Sync
                     entity.Delete();
                     rs[i] = true;
                 }
+            }
+
+            return rs;
+        }
+
+        /// <summary>根据主键数组检查数据是否仍然存在</summary>
+        /// <param name="keys"></param>
+        /// <returns>是否存在</returns>
+        public Boolean[] CheckExists(Object[] keys)
+        {
+            if (keys == null) return null;
+            if (keys.Length < 1) return new Boolean[0];
+
+            var rs = new Boolean[keys.Length];
+            for (int i = 0; i < keys.Length; i++)
+            {
+                var entity = Facotry.FindByKey(keys[i]);
+                if (entity != null) rs[i] = true;
             }
 
             return rs;

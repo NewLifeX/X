@@ -19,6 +19,13 @@ namespace XCode.Sync
         /// <returns></returns>
         ISyncSlaveEntity[] GetAllDelete(Int32 start, Int32 max);
 
+        /// <summary>获取所有未同步的旧数据</summary>
+        /// <param name="now"></param>
+        /// <param name="start"></param>
+        /// <param name="max"></param>
+        /// <returns></returns>
+        ISyncSlaveEntity[] GetAllOld(DateTime now, Int32 start, Int32 max);
+
         /// <summary>获取最后同步时间</summary>
         /// <returns></returns>
         DateTime GetLastSync();
