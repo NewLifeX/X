@@ -1,9 +1,11 @@
 ﻿using System;
 using NewLife.Reflection;
+using XCode.Configuration;
+using XCode.DataAccessLayer;
 
 namespace XCode.Sync
 {
-    /// <summary>同步框架从方</summary>
+    /// <summary>同步框架从方接口</summary>
     public interface ISyncSlave
     {
         #region 方法
@@ -35,15 +37,13 @@ namespace XCode.Sync
         /// <returns></returns>
         ISyncSlaveEntity FindByKey(Object key);
 
-        //ISyncSlaveEntity[] FindAllByKeys(Object[] key);
-
         /// <summary>创建一个空白实体</summary>
         /// <returns></returns>
         ISyncSlaveEntity Create();
         #endregion
     }
 
-    /// <summary>同步框架从方实体</summary>
+    /// <summary>同步框架从方实体接口</summary>
     public interface ISyncSlaveEntity : IIndexAccessor
     {
         #region 属性
@@ -56,8 +56,8 @@ namespace XCode.Sync
         /// <summary>最后同步时间。包括向主方询问数据是否已删除</summary>
         DateTime LastSync { get; set; }
 
-        /// <summary>同步状态。默认0添加1删除2</summary>
-        Int32 SyncStatus { get; set; }
+        ///// <summary>同步状态。默认0添加1删除2</summary>
+        //Int32 SyncStatus { get; set; }
         #endregion
 
         #region 方法
@@ -75,23 +75,89 @@ namespace XCode.Sync
         #endregion
     }
 
-    ///// <summary>同步状态</summary>
-    //public enum SyncStatus
-    //{
-    //    /// <summary>无</summary>
-    //    [Description("无")]
-    //    None,
+    /// <summary>同步框架从方，实体类默认实现。要求实体类实现<see cref="ISyncSlaveEntity"/>接口</summary>
+    public class SyncSlave : ISyncSlave
+    {
+        #region 属性
+        private IEntityOperate _Facotry;
+        /// <summary>工厂</summary>
+        public IEntityOperate Facotry { get { return _Facotry; } set { _Facotry = value; } }
 
-    //    /// <summary>修改</summary>
-    //    [Description("修改")]
-    //    Update,
+        /// <summary>主键名</summary>
+        protected virtual String KeyName { get { return Facotry.Unique.Name; } }
 
-    //    /// <summary>新增</summary>
-    //    [Description("新增")]
-    //    Insert,
+        /// <summary>最后更新字段名</summary>
+        protected virtual Field LastUpdateField { get { return Facotry.Table.FindByName("LastUpdate"); } }
 
-    //    /// <summary>删除</summary>
-    //    [Description("删除")]
-    //    Delete
-    //}
+        /// <summary>最后同步字段名</summary>
+        protected virtual Field LastSyncField { get { return Facotry.Table.FindByName("LastSync"); } }
+        #endregion
+
+        #region 方法
+        /// <summary>获取所有新添加的数据</summary>
+        /// <param name="start"></param>
+        /// <param name="max"></param>
+        /// <returns></returns>
+        public virtual ISyncSlaveEntity[] GetAllNew(Int32 start, Int32 max)
+        {
+            var dal = DAL.Create(Facotry.ConnName);
+            return GetAll(LastSyncField <= dal.Db.DateTimeMin | LastSyncField == null, start, max);
+        }
+
+        /// <summary>获取所有删除的数据</summary>
+        /// <param name="start"></param>
+        /// <param name="max"></param>
+        /// <returns></returns>
+        public virtual ISyncSlaveEntity[] GetAllDelete(Int32 start, Int32 max)
+        {
+            var dal = DAL.Create(Facotry.ConnName);
+            return GetAll(LastUpdateField <= dal.Db.DateTimeMin | LastUpdateField == null, start, max);
+        }
+
+        /// <summary>获取所有未同步的旧数据</summary>
+        /// <param name="now"></param>
+        /// <param name="start"></param>
+        /// <param name="max"></param>
+        /// <returns></returns>
+        public virtual ISyncSlaveEntity[] GetAllOld(DateTime now, Int32 start, Int32 max)
+        {
+            //var dal = DAL.Create(Facotry.ConnName);
+            return GetAll(LastSyncField < now, start, max);
+        }
+
+        ISyncSlaveEntity[] GetAll(String where, Int32 start, Int32 max)
+        {
+            var list = Facotry.FindAll(where, null, null, start, max);
+            if (list == null || list.Count < 1) return null;
+
+            var rs = new ISyncSlaveEntity[list.Count];
+            for (int i = 0; i < list.Count; i++)
+            {
+                rs[i] = list[i] as ISyncSlaveEntity;
+            }
+            return rs;
+        }
+
+        /// <summary>获取最后同步时间</summary>
+        /// <returns></returns>
+        public virtual DateTime GetLastSync()
+        {
+            var dal = DAL.Create(Facotry.ConnName);
+            // 有效同步时间升序，取一个，极为最小值
+            var list = Facotry.FindAll(LastSyncField > dal.Db.DateTimeMin, LastSyncField.Asc(), null, 0, 1);
+            if (list == null || list.Count < 1) return DateTime.MinValue;
+
+            return (DateTime)list[0][LastSyncField];
+        }
+
+        /// <summary>根据主键查找</summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public virtual ISyncSlaveEntity FindByKey(Object key) { return Facotry.FindByKey(key) as ISyncSlaveEntity; }
+
+        /// <summary>创建一个空白实体</summary>
+        /// <returns></returns>
+        public virtual ISyncSlaveEntity Create() { return Facotry.Create() as ISyncSlaveEntity; }
+        #endregion
+    }
 }
