@@ -50,11 +50,14 @@ namespace XCode.Sync
             var index = 0;
             while (true)
             {
+                // 从本地获取一批数据
                 var arr = Slave.GetAllNew(index, BatchSize);
                 if (arr == null || arr.Length < 1) break;
 
-                // 提交
-                var rs = Convert(Master.Insert(Convert(arr)));
+                // 转换为远程实体后提交
+                var remotearr = Convert(arr);
+                remotearr = Master.Insert(remotearr);
+                var rs = Convert(remotearr);
 
                 // 修正本地。
                 // 这里不得不考虑一个问题，比如本地ID=3，提交到提供者后，ID=5，如果马上更新本地为ID=5，而本地刚好又有ID=5，将会很麻烦
