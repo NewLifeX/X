@@ -55,7 +55,7 @@ namespace XCode.DataAccessLayer
                         session.AutoClose();
 
                         //_IsSQL2005 = !ver.StartsWith("08");
-                        _IsSQL2005 = Int32.Parse(ver.Substring(0, 2)) >= 8;
+                        _IsSQL2005 = Int32.Parse(ver.Substring(0, 2)) > 8;
 
                         //if (!String.IsNullOrEmpty(dbname) && !dbname.EqualIgnoreCase(SystemDatabaseName))
                         //{
