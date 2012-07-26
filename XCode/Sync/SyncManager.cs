@@ -24,6 +24,10 @@ namespace XCode.Sync
         private ICollection<String> _Names;
         /// <summary>字段集合</summary>
         public ICollection<String> Names { get { return _Names ?? (_Names = new HashSet<String>(StringComparer.OrdinalIgnoreCase)); } set { _Names = value; } }
+
+        private Boolean _UpdateConflictByLastUpdate;
+        /// <summary>是否根据最后修改时间来解决双方同时更新而带来的冲突，否则强制优先本地</summary>
+        public Boolean UpdateConflictByLastUpdate { get { return _UpdateConflictByLastUpdate; } set { _UpdateConflictByLastUpdate = value; } }
         #endregion
 
         #region 方法
@@ -87,6 +91,7 @@ namespace XCode.Sync
             var index = 0;
             while (true)
             {
+                // 从本地获取一批数据
                 var arr = Slave.GetAllDelete(index, BatchSize);
                 if (arr == null || arr.Length < 1) break;
 
@@ -118,6 +123,7 @@ namespace XCode.Sync
             var index = 0;
             while (true)
             {
+                // 从远程获取一批数据
                 var rs = Master.GetAllUpdated(last, index, BatchSize);
                 if (rs == null || rs.Length < 1) break;
 
@@ -141,8 +147,8 @@ namespace XCode.Sync
                 return;
             }
 
-            // 本地没有修改，提供方覆盖本地
-            if (local.LastUpdate < local.LastSync)
+            // 本地没有修改，提供方覆盖本地；如果本地有修改，但是修改时间小于提供方，也由提供方覆盖
+            if (local.LastUpdate < local.LastSync || UpdateConflictByLastUpdate && local.LastUpdate < remote.LastUpdate)
             {
                 CopyTo(remote, local);
             }
