@@ -23,6 +23,7 @@ using System.Linq;
 using NewLife.Linq;
 using XCode;
 using NewLife.Common;
+using XCode.Sync;
 #endif
 
 namespace Test
@@ -374,8 +375,36 @@ namespace Test
 
         static void Test9()
         {
-            Console.WriteLine("{0:X4}", Char.MaxValue + 0);
-            Console.WriteLine(PinYin.GetFirst("我是超级大石头！"));
+            var tb = Menu.Meta.Table.DataTable;
+            var table = tb.Clone() as IDataTable;
+            table = table.CopyAllFrom(tb);
+
+            // 添加两个字段
+            var fi = table.CreateColumn();
+            fi.Name = "LastUpdate";
+            fi.DataType = typeof(DateTime);
+            table.Columns.Add(fi);
+
+            fi = table.CreateColumn();
+            fi.Name = "LastAsync";
+            fi.DataType = typeof(DateTime);
+            table.Columns.Add(fi);
+
+            var dal = DAL.Create("Common99");
+            // 检查架构
+            dal.SetTables(table);
+
+            var sl = new SyncSlave();
+            dal.CreateOperate(table.Name);
+
+            var mt = new SyncMaster();
+            mt.Facotry = Menu.Meta.Factory;
+
+            var sm = new SyncManager();
+            sm.Slave = sl;
+            sm.Master = mt;
+
+            sm.Start();
         }
     }
 }

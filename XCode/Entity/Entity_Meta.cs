@@ -145,7 +145,7 @@ namespace XCode
             }
 
             /// <summary>实体操作者</summary>
-            internal static IEntityOperate Factory
+            public static IEntityOperate Factory
             {
                 get
                 {
