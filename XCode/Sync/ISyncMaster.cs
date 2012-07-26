@@ -1,4 +1,5 @@
 ﻿using System;
+using NewLife.Linq;
 using NewLife.Reflection;
 
 namespace XCode.Sync
@@ -37,6 +38,10 @@ namespace XCode.Sync
         /// <summary>创建一个空白实体</summary>
         /// <returns></returns>
         ISyncMasterEntity Create();
+
+        /// <summary>获取要同步的字段名</summary>
+        /// <returns></returns>
+        String[] GetNames();
         #endregion
     }
 
@@ -73,7 +78,7 @@ namespace XCode.Sync
         /// <param name="start"></param>
         /// <param name="max"></param>
         /// <returns></returns>
-        public ISyncMasterEntity[] GetAllUpdated(DateTime last, Int32 start, Int32 max)
+        public virtual ISyncMasterEntity[] GetAllUpdated(DateTime last, Int32 start, Int32 max)
         {
             var list = Facotry.FindAll(Facotry.MakeCondition(LastUpdateName, last, ">"), null, null, start, max);
             if (list == null || list.Count < 1) return null;
@@ -103,7 +108,7 @@ namespace XCode.Sync
         /// <summary>提交新增数据</summary>
         /// <param name="list"></param>
         /// <returns>返回新增成功后的数据，包括自增字段</returns>
-        public ISyncMasterEntity[] Insert(ISyncMasterEntity[] list)
+        public virtual ISyncMasterEntity[] Insert(ISyncMasterEntity[] list)
         {
             if (list == null) return null;
             if (list.Length < 1) return new ISyncMasterEntity[0];
@@ -131,7 +136,7 @@ namespace XCode.Sync
         /// <summary>更新数据</summary>
         /// <param name="entity"></param>
         /// <returns></returns>
-        public ISyncMasterEntity Update(ISyncMasterEntity entity)
+        public virtual ISyncMasterEntity Update(ISyncMasterEntity entity)
         {
             if (entity == null) return null;
 
@@ -148,7 +153,7 @@ namespace XCode.Sync
         /// <summary>根据主键数组删除数据</summary>
         /// <param name="keys"></param>
         /// <returns>是否删除成功</returns>
-        public Boolean[] Delete(Object[] keys)
+        public virtual Boolean[] Delete(Object[] keys)
         {
             if (keys == null) return null;
             if (keys.Length < 1) return new Boolean[0];
@@ -170,7 +175,7 @@ namespace XCode.Sync
         /// <summary>根据主键数组检查数据是否仍然存在</summary>
         /// <param name="keys"></param>
         /// <returns>是否存在</returns>
-        public Boolean[] CheckExists(Object[] keys)
+        public virtual Boolean[] CheckExists(Object[] keys)
         {
             if (keys == null) return null;
             if (keys.Length < 1) return new Boolean[0];
@@ -187,7 +192,7 @@ namespace XCode.Sync
 
         /// <summary>创建一个空白实体</summary>
         /// <returns></returns>
-        public ISyncMasterEntity Create()
+        public virtual ISyncMasterEntity Create()
         {
             var entity = Facotry.Create();
             if (entity is ISyncMasterEntity)
@@ -195,6 +200,10 @@ namespace XCode.Sync
             else
                 return new SyncMasterEntity(this, entity);
         }
+
+        /// <summary>获取要同步的字段名</summary>
+        /// <returns></returns>
+        public virtual String[] GetNames() { return Facotry.FieldNames.ToArray(); }
         #endregion
 
         #region 实体

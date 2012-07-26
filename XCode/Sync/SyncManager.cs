@@ -11,11 +11,11 @@ namespace XCode.Sync
         #region 属性
         private ISyncMaster _Master;
         /// <summary>同步框架主方，数据提供者。</summary>
-        public ISyncMaster Master { get { return _Master; } set { _Master = value; } }
+        public ISyncMaster Master { get { return _Master; } set { _Master = value; _Names = null; } }
 
         private ISyncSlave _Slave;
         /// <summary>同步框架从方，数据消费者</summary>
-        public ISyncSlave Slave { get { return _Slave; } set { _Slave = value; } }
+        public ISyncSlave Slave { get { return _Slave; } set { _Slave = value; _Names = null; } }
 
         private Int32 _BatchSize = 100;
         /// <summary>同步批大小</summary>
@@ -23,7 +23,24 @@ namespace XCode.Sync
 
         private ICollection<String> _Names;
         /// <summary>字段集合</summary>
-        public ICollection<String> Names { get { return _Names ?? (_Names = new HashSet<String>(StringComparer.OrdinalIgnoreCase)); } set { _Names = value; } }
+        public ICollection<String> Names
+        {
+            get
+            {
+                if (_Names == null)
+                {
+                    var set = new HashSet<String>(Master.GetNames(), StringComparer.OrdinalIgnoreCase);
+                    var set2 = new HashSet<String>(StringComparer.OrdinalIgnoreCase);
+                    foreach (var item in Slave.GetNames())
+                    {
+                        if (set.Contains(item)) set2.Add(item);
+                    }
+                    _Names = set2;
+                }
+                return _Names;
+            }
+            set { _Names = value; }
+        }
 
         private Boolean _UpdateConflictByLastUpdate;
         /// <summary>是否根据最后修改时间来解决双方同时更新而带来的冲突，否则强制优先本地</summary>
@@ -32,7 +49,7 @@ namespace XCode.Sync
 
         #region 方法
         /// <summary>开始处理</summary>
-        public void Start()
+        public virtual void Start()
         {
             var now = DateTime.Now;
 
@@ -49,7 +66,8 @@ namespace XCode.Sync
             ProcessOthers(now);
         }
 
-        void ProcessNew()
+        /// <summary>处理本地添加的数据</summary>
+        protected virtual void ProcessNew()
         {
             var index = 0;
             while (true)
@@ -86,7 +104,8 @@ namespace XCode.Sync
             }
         }
 
-        void ProcessDelete()
+        /// <summary>处理本地删除的数据</summary>
+        protected virtual void ProcessDelete()
         {
             var index = 0;
             while (true)
@@ -117,7 +136,8 @@ namespace XCode.Sync
             }
         }
 
-        void ProcessItems()
+        /// <summary>处理更新的数据</summary>
+        protected virtual void ProcessItems()
         {
             var last = Slave.GetLastSync();
             var index = 0;
@@ -136,14 +156,18 @@ namespace XCode.Sync
             }
         }
 
-        private void ProcessItem(ISyncMasterEntity remote)
+        /// <summary>处理更新的数据项</summary>
+        /// <param name="remote"></param>
+        protected virtual void ProcessItem(ISyncMasterEntity remote)
         {
             var local = Slave.FindByKey(remote.Key);
             // 本地不存在，新增；
             // 如果找到，但是同步时间为最小值，表示从未同步，那是新数据，碰巧主键与提供者的某条数据一致，可能性很小
             if (local == null || local.LastSync <= DateTime.MinValue)
             {
-                AddItem(remote);
+                local = Convert(remote);
+                local.LastUpdate = local.LastSync = DateTime.Now;
+                local.Save();
                 return;
             }
 
@@ -164,18 +188,14 @@ namespace XCode.Sync
             local.Save();
         }
 
-        void AddItem(ISyncMasterEntity remote)
-        {
-            var local = Convert(remote);
-            local.LastUpdate = local.LastSync = DateTime.Now;
-            local.Save();
-        }
-
-        void ProcessOthers(DateTime now)
+        /// <summary>查找还有哪些没有同步的，可能提供者已经删除</summary>
+        /// <param name="now"></param>
+        protected virtual void ProcessOthers(DateTime now)
         {
             var index = 0;
             while (true)
             {
+                // 从本地获取一批数据
                 var arr = Slave.GetAllOld(now, index, BatchSize);
                 if (arr == null || arr.Length < 1) break;
 

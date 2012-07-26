@@ -1,4 +1,5 @@
 ﻿using System;
+using NewLife.Linq;
 using NewLife.Reflection;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
@@ -40,6 +41,10 @@ namespace XCode.Sync
         /// <summary>创建一个空白实体</summary>
         /// <returns></returns>
         ISyncSlaveEntity Create();
+
+        /// <summary>获取要同步的字段名</summary>
+        /// <returns></returns>
+        String[] GetNames();
         #endregion
     }
 
@@ -158,6 +163,10 @@ namespace XCode.Sync
         /// <summary>创建一个空白实体</summary>
         /// <returns></returns>
         public virtual ISyncSlaveEntity Create() { return Facotry.Create() as ISyncSlaveEntity; }
+
+        /// <summary>获取要同步的字段名</summary>
+        /// <returns></returns>
+        public virtual String[] GetNames() { return Facotry.FieldNames.ToArray(); }
         #endregion
     }
 }
