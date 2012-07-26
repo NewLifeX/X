@@ -40,7 +40,7 @@ namespace XCode.Sync
         #endregion
     }
 
-    /// <summary>同步框架主方实体接口</summary>
+    /// <summary>同步框架主方实体接口，由主方实体类实现</summary>
     public interface ISyncMasterEntity : IIndexAccessor
     {
         #region 属性
@@ -78,14 +78,26 @@ namespace XCode.Sync
             var list = Facotry.FindAll(Facotry.MakeCondition(LastUpdateName, last, ">"), null, null, start, max);
             if (list == null || list.Count < 1) return null;
 
-            var rs = new SyncMasterEntity[list.Count];
-            for (int i = 0; i < list.Count; i++)
+            // 如果实体类实现了该接口，则返回
+            if (Facotry.Default is ISyncMasterEntity)
             {
-                var entity = new SyncMasterEntity(this);
-                entity.Entity = list[i];
-                rs[i] = entity;
+                var rs = new ISyncMasterEntity[list.Count];
+                for (int i = 0; i < list.Count; i++)
+                {
+                    rs[i] = list[i] as ISyncMasterEntity;
+                }
+                return rs;
             }
-            return rs;
+            // 否则采用内置实现
+            else
+            {
+                var rs = new ISyncMasterEntity[list.Count];
+                for (int i = 0; i < list.Count; i++)
+                {
+                    rs[i] = new SyncMasterEntity(this, list[i]);
+                }
+                return rs;
+            }
         }
 
         /// <summary>提交新增数据</summary>
@@ -96,9 +108,21 @@ namespace XCode.Sync
             if (list == null) return null;
             if (list.Length < 1) return new ISyncMasterEntity[0];
 
-            foreach (SyncMasterEntity item in list)
+            for (int i = 0; i < list.Length; i++)
             {
-                if (item.Entity != null) item.Entity.Insert();
+                var item = list[i];
+                if (item != null)
+                {
+                    var entity = item as IEntity;
+                    if (entity == null && item is SyncMasterEntity) entity = (item as SyncMasterEntity).Entity;
+
+                    if (entity != null)
+                        entity.Insert();
+                    else
+                        list[i] = null;
+                }
+                else
+                    list[i] = null;
             }
 
             return list;
@@ -109,12 +133,16 @@ namespace XCode.Sync
         /// <returns></returns>
         public ISyncMasterEntity Update(ISyncMasterEntity entity)
         {
-            var e = entity as SyncMasterEntity;
+            if (entity == null) return null;
+
+            var e = entity as IEntity;
+            if (e == null && entity is SyncMasterEntity) e = (entity as SyncMasterEntity).Entity;
+
             if (e == null) return null;
 
-            e.Entity.Update();
+            e.Update();
 
-            return e;
+            return entity;
         }
 
         /// <summary>根据主键数组删除数据</summary>
@@ -159,7 +187,14 @@ namespace XCode.Sync
 
         /// <summary>创建一个空白实体</summary>
         /// <returns></returns>
-        public ISyncMasterEntity Create() { return new SyncMasterEntity(this); }
+        public ISyncMasterEntity Create()
+        {
+            var entity = Facotry.Create();
+            if (entity is ISyncMasterEntity)
+                return entity as ISyncMasterEntity;
+            else
+                return new SyncMasterEntity(this, entity);
+        }
         #endregion
 
         #region 实体
@@ -179,7 +214,7 @@ namespace XCode.Sync
 
             public Object this[String name] { get { return Entity[name]; } set { Entity[name] = value; } }
 
-            public SyncMasterEntity(SyncMaster host) { Host = host; }
+            public SyncMasterEntity(SyncMaster host, IEntity entity) { Host = host; Entity = entity; }
         }
         #endregion
     }

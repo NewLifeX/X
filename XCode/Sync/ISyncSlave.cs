@@ -43,7 +43,7 @@ namespace XCode.Sync
         #endregion
     }
 
-    /// <summary>同步框架从方实体接口</summary>
+    /// <summary>同步框架从方实体接口，由从方实体类实现</summary>
     public interface ISyncSlaveEntity : IIndexAccessor
     {
         #region 属性
@@ -143,7 +143,7 @@ namespace XCode.Sync
         public virtual DateTime GetLastSync()
         {
             var dal = DAL.Create(Facotry.ConnName);
-            // 有效同步时间升序，取一个，极为最小值
+            // 有效同步时间升序，取一个，即为最小值
             var list = Facotry.FindAll(LastSyncField > dal.Db.DateTimeMin, LastSyncField.Asc(), null, 0, 1);
             if (list == null || list.Count < 1) return DateTime.MinValue;
 
