@@ -86,7 +86,7 @@ namespace XCode.Sync
         /// <summary>主键名</summary>
         protected virtual String KeyName { get { return Facotry.Unique.Name; } }
 
-        /// <summary>最后更新字段名</summary>
+        /// <summary>最后更新字段名。先硬编码，不考虑可变</summary>
         protected virtual Field LastUpdateField { get { return Facotry.Table.FindByName("LastUpdate"); } }
 
         /// <summary>最后同步字段名</summary>
