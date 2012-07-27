@@ -257,7 +257,14 @@ namespace XCode.Sync
 
             public Object Key { get { return Entity[Host.KeyName]; } }
 
-            public DateTime LastUpdate { get { return (DateTime)Entity[Host.LastUpdateName]; } }
+            public DateTime LastUpdate
+            {
+                get
+                {
+                    var name = Host.LastUpdateName;
+                    return String.IsNullOrEmpty(name) ? DateTime.MinValue : (DateTime)Entity[name];
+                }
+            }
 
             public Object this[String name] { get { return Entity[name]; } set { Entity[name] = value; } }
 

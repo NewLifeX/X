@@ -376,7 +376,7 @@ namespace Test
 
         static void Test9()
         {
-            var tb = Menu.Meta.Table.DataTable;
+            var tb = Administrator.Meta.Table.DataTable;
             var table = ObjectContainer.Current.Resolve<IDataTable>();
             table = table.CopyAllFrom(tb);
 
@@ -399,7 +399,7 @@ namespace Test
             sl.Facotry = dal.CreateOperate(table.Name);
 
             var mt = new SyncMaster();
-            mt.Facotry = Menu.Meta.Factory;
+            mt.Facotry = Administrator.Meta.Factory;
             //mt.LastUpdateName = Administrator._.LastLogin;
 
             var sm = new SyncManager();
