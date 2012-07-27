@@ -302,8 +302,10 @@ namespace NewLife.CommonEntity
         {
             if (String.IsNullOrEmpty(username)) return null;
 
-            TEntity user = FindByAccount(username);
+            var user = FindByAccount(username);
             if (user == null) return null;
+
+            if (!user.IsEnable) throw new EntityException("账户已被禁用！");
 
             // 数据库为空密码，任何密码均可登录
             if (!String.IsNullOrEmpty(user.Password))
