@@ -47,7 +47,10 @@ namespace NewLife.CommonEntity
     }
 
     /// <summary>管理提供者</summary>
-    public class ManageProvider : IManageProvider
+    public class ManageProvider : ManageProvider<User> { }
+
+    /// <summary>管理提供者</summary>
+    public class ManageProvider<TUser> : IManageProvider where TUser : User<TUser>, new()
     {
         #region 静态实例
         /// <summary>当前提供者</summary>
@@ -56,17 +59,17 @@ namespace NewLife.CommonEntity
 
         #region IManageProvider 接口
         /// <summary>管理用户类</summary>
-        public virtual Type ManageUserType { get { return typeof(User); } }
+        public virtual Type ManageUserType { get { return typeof(TUser); } }
 
         /// <summary>当前用户</summary>
-        public virtual IManageUser Current { get { return User.Current; } }
+        public virtual IManageUser Current { get { return User<TUser>.Current; } }
 
         /// <summary>根据用户编号查找</summary>
         /// <param name="userid"></param>
         /// <returns></returns>
         public virtual IManageUser FindByID(Object userid)
         {
-            return User.FindByID((Int32)userid);
+            return User<TUser>.FindByID((Int32)userid);
         }
 
         /// <summary>根据用户帐号查找</summary>
@@ -74,7 +77,7 @@ namespace NewLife.CommonEntity
         /// <returns></returns>
         public virtual IManageUser FindByAccount(String account)
         {
-            return User.FindByAccount(account);
+            return User<TUser>.FindByAccount(account);
         }
 
         /// <summary>登录</summary>
@@ -83,7 +86,7 @@ namespace NewLife.CommonEntity
         /// <returns></returns>
         public virtual IManageUser Login(String account, String password)
         {
-            return User.Login(account, password);
+            return User<TUser>.Login(account, password);
         }
 
         /// <summary>获取服务</summary>
