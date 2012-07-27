@@ -305,7 +305,8 @@ namespace NewLife.CommonEntity
             var user = FindByAccount(username);
             if (user == null) return null;
 
-            if (!user.IsEnable) throw new EntityException("账户已被禁用！");
+            // 如果账户被禁用，并且有一个以上账号时，才有效
+            if (!user.IsEnable && Meta.Count > 1) throw new EntityException("账户已被禁用！");
 
             // 数据库为空密码，任何密码均可登录
             if (!String.IsNullOrEmpty(user.Password))
