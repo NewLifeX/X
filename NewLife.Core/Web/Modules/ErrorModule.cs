@@ -7,6 +7,8 @@ using NewLife.Log;
 using System.Collections.Generic;
 using NewLife.Collections;
 using System.IO;
+using NewLife.Model;
+using NewLife.Reflection;
 
 namespace NewLife.Web
 {
@@ -73,6 +75,14 @@ namespace NewLife.Web
             var id = Thread.CurrentPrincipal;
             if (id != null && id.Identity != null) sb.AppendFormat("用户：{0}({1})\r\n", id.Identity.Name, id.Identity.AuthenticationType);
 
+            if (Providers.Length > 0)
+            {
+                foreach (var item in Providers)
+                {
+                    item.AddInfo(ex, sb);
+                }
+            }
+
             XTrace.WriteLine(sb.ToString());
 
             OnErrorComplete();
@@ -90,6 +100,35 @@ namespace NewLife.Web
                 Response.Write("非常抱歉，服务器遇到错误，请与管理员联系！");
             }
         }
+
+        private static IErrorInfoProvider[] _Providers;
+        /// <summary>提供者集合</summary>
+        static IErrorInfoProvider[] Providers
+        {
+            get
+            {
+                if (_Providers == null)
+                {
+                    var list = new List<IErrorInfoProvider>();
+                    foreach (var item in AssemblyX.FindAllPlugins(typeof(IErrorInfoProvider), true))
+                    {
+                        list.Add(TypeX.CreateInstance(item) as IErrorInfoProvider);
+                    }
+
+                    _Providers = list.ToArray();
+                }
+                return _Providers;
+            }
+        }
         #endregion
+    }
+
+    /// <summary>错误信息提供者。用于为错误处理模块提供扩展信息</summary>
+    public interface IErrorInfoProvider
+    {
+        /// <summary>为指定错误添加附加错误信息。需要自己格式化并加换行</summary>
+        /// <param name="ex"></param>
+        /// <param name="builder"></param>
+        void AddInfo(Exception ex, StringBuilder builder);
     }
 }

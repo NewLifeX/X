@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Web;
 using NewLife.Reflection;
+using NewLife.Web;
+using System.Text;
 
 namespace NewLife.CommonEntity
 {
@@ -54,7 +56,7 @@ namespace NewLife.CommonEntity
     public class ManageProvider : ManageProvider<User> { }
 
     /// <summary>管理提供者</summary>
-    public class ManageProvider<TUser> : IManageProvider where TUser : User<TUser>, new()
+    public class ManageProvider<TUser> : IManageProvider, IErrorInfoProvider where TUser : User<TUser>, new()
     {
         #region 静态实例
         /// <summary>当前提供者</summary>
@@ -134,6 +136,21 @@ namespace NewLife.CommonEntity
             HttpContext.Current.Items[key] = value;
 
             return value;
+        }
+        #endregion
+
+        #region IErrorInfoProvider 成员
+
+        void IErrorInfoProvider.AddInfo(Exception ex, StringBuilder builder)
+        {
+            var user = Current;
+            if (user != null)
+            {
+                if (user.Properties.ContainsKey("RoleName"))
+                    builder.AppendFormat("登录：{0}({1})\r\n", user.Account, user.Properties["RoleName"]);
+                else
+                    builder.AppendFormat("登录：{0}\r\n", user.Account);
+            }
         }
         #endregion
     }
