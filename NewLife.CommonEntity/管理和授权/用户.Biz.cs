@@ -159,6 +159,8 @@ namespace NewLife.CommonEntity
             TEntity user = new TEntity();
             user.Account = "admin";
             user.Password = DataHelper.Hash("admin");
+            user.IsAdmin = true;
+            user.IsEnable = true;
             user.Insert();
 
             if (XTrace.Debug) XTrace.WriteLine("完成初始化{0}用户数据！", typeof(TEntity).Name);
@@ -339,11 +341,11 @@ namespace NewLife.CommonEntity
         /// <summary>编号</summary>
         object IManageUser.ID { get { return ID; } }
 
-        /// <summary>账号</summary>
-        string IManageUser.Account { get { return Account; } }
+        ///// <summary>账号</summary>
+        //string IManageUser.Account { get { return Account; } set { Account = value; } }
 
-        /// <summary>密码</summary>
-        string IManageUser.Password { get { return Password; } }
+        ///// <summary>密码</summary>
+        //string IManageUser.Password { get { return Password; } set { Password = value; } }
 
         [NonSerialized]
         IDictionary<String, Object> _Properties;
@@ -354,15 +356,17 @@ namespace NewLife.CommonEntity
             {
                 if (_Properties == null)
                 {
-                    _Properties = new Dictionary<String, Object>();
+                    var dic = new Dictionary<String, Object>();
                     foreach (var item in Meta.FieldNames)
                     {
-                        _Properties[item] = this[item];
+                        dic[item] = this[item];
                     }
                     foreach (var item in Extends)
                     {
-                        _Properties[item.Key] = item.Value;
+                        dic[item.Key] = item.Value;
                     }
+
+                    _Properties = dic;
                 }
                 return _Properties;
             }

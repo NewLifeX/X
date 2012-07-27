@@ -603,13 +603,13 @@ namespace NewLife.CommonEntity
         object IManageUser.ID { get { return ID; } }
 
         /// <summary>账号</summary>
-        string IManageUser.Account { get { return Name; } }
+        string IManageUser.Account { get { return Name; } set { Name = value; } }
 
         /// <summary>密码</summary>
-        string IManageUser.Password { get { return Password; } }
+        string IManageUser.Password { get { return Password; } set { Password = value; } }
 
         /// <summary>是否管理员</summary>
-        Boolean IManageUser.IsAdmin { get { return RoleName == "管理员" || RoleName == "超级管理员"; } }
+        Boolean IManageUser.IsAdmin { get { return RoleName == "管理员" || RoleName == "超级管理员"; } set { } }
 
         [NonSerialized]
         IDictionary<String, Object> _Properties;

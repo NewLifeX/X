@@ -17,7 +17,7 @@ namespace NewLife.CommonEntity
         Type ManageUserType { get; }
 
         /// <summary>当前用户</summary>
-        IManageUser Current { get; }
+        IManageUser Current { get; set; }
 
         /// <summary>根据用户编号查找</summary>
         /// <param name="userid"></param>
@@ -34,6 +34,10 @@ namespace NewLife.CommonEntity
         /// <param name="password"></param>
         /// <returns></returns>
         IManageUser Login(String account, String password);
+
+        /// <summary>注销</summary>
+        /// <param name="user"></param>
+        void Logout(IManageUser user);
 
         /// <summary>获取服务</summary>
         /// <typeparam name="TService"></typeparam>
@@ -62,7 +66,7 @@ namespace NewLife.CommonEntity
         public virtual Type ManageUserType { get { return typeof(TUser); } }
 
         /// <summary>当前用户</summary>
-        public virtual IManageUser Current { get { return User<TUser>.Current; } }
+        public virtual IManageUser Current { get { return User<TUser>.Current; } set { User<TUser>.Current = value as TUser; } }
 
         /// <summary>根据用户编号查找</summary>
         /// <param name="userid"></param>
@@ -88,6 +92,10 @@ namespace NewLife.CommonEntity
         {
             return User<TUser>.Login(account, password);
         }
+
+        /// <summary>注销</summary>
+        /// <param name="user"></param>
+        public virtual void Logout(IManageUser user) { Current = null; }
 
         /// <summary>获取服务</summary>
         /// <typeparam name="TService"></typeparam>

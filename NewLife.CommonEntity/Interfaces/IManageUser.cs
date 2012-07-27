@@ -10,16 +10,16 @@ namespace NewLife.CommonEntity
         Object ID { get; }
 
         /// <summary>账号</summary>
-        String Account { get; }
+        String Account { get; set; }
 
         /// <summary>密码</summary>
-        String Password { get; }
+        String Password { get; set; }
 
         /// <summary>是否管理员</summary>
-        Boolean IsAdmin { get; }
+        Boolean IsAdmin { get; set; }
 
         /// <summary>是否启用</summary>
-        Boolean IsEnable { get; }
+        Boolean IsEnable { get; set; }
 
         /// <summary>属性集合</summary>
         IDictionary<String, Object> Properties { get; }
