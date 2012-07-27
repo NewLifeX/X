@@ -1,6 +1,7 @@
 ﻿using System;
 using NewLife.Linq;
 using NewLife.Reflection;
+using XCode.Configuration;
 
 namespace XCode.Sync
 {
@@ -8,12 +9,17 @@ namespace XCode.Sync
     public interface ISyncMaster
     {
         #region 方法
-        /// <summary>检查在指定时间后更新过的数据</summary>
+        /// <summary>获取指定时间后更新过的数据</summary>
         /// <param name="last"></param>
         /// <param name="start"></param>
         /// <param name="max"></param>
         /// <returns></returns>
         ISyncMasterEntity[] GetAllUpdated(DateTime last, Int32 start, Int32 max);
+
+        /// <summary>获取指定时间后更新过的数据数量</summary>
+        /// <param name="last"></param>
+        /// <returns></returns>
+        Int32 GetAllUpdatedCount(DateTime last);
 
         /// <summary>提交新增数据</summary>
         /// <param name="list"></param>
@@ -63,13 +69,33 @@ namespace XCode.Sync
         #region 属性
         private IEntityOperate _Facotry;
         /// <summary>工厂</summary>
-        public IEntityOperate Facotry { get { return _Facotry; } set { _Facotry = value; } }
+        public IEntityOperate Facotry { get { return _Facotry; } set { _Facotry = value; _LastUpdateName = null; } }
 
         /// <summary>主键名</summary>
         protected virtual String KeyName { get { return Facotry.Unique.Name; } }
 
-        /// <summary>最后更新字段名</summary>
-        protected virtual String LastUpdateName { get { return "LastUpdate"; } }
+        const String LASTUPDATE = "LastUpdate";
+        private String _LastUpdateName;
+        /// <summary>最后更新字段名。如果没有指定，将每次都同步全部数据</summary>
+        public virtual String LastUpdateName
+        {
+            get
+            {
+                if (_LastUpdateName == null)
+                {
+                    // 尝试查找
+                    FieldItem field = Facotry.Table.FindByName(LASTUPDATE);
+                    if (field != null && field.Type == typeof(DateTime))
+                    {
+                        _LastUpdateName = field.Name;
+                    }
+                    else
+                        _LastUpdateName = "";
+                }
+                return _LastUpdateName;
+            }
+            set { _LastUpdateName = value; }
+        }
         #endregion
 
         #region 方法
@@ -80,7 +106,9 @@ namespace XCode.Sync
         /// <returns></returns>
         public virtual ISyncMasterEntity[] GetAllUpdated(DateTime last, Int32 start, Int32 max)
         {
-            var list = Facotry.FindAll(Facotry.MakeCondition(LastUpdateName, last, ">"), null, null, start, max);
+            var name = LastUpdateName;
+            var where = String.IsNullOrEmpty(name) ? null : Facotry.MakeCondition(LastUpdateName, last, ">");
+            var list = Facotry.FindAll(where, null, null, start, max);
             if (list == null || list.Count < 1) return null;
 
             // 如果实体类实现了该接口，则返回
@@ -103,6 +131,16 @@ namespace XCode.Sync
                 }
                 return rs;
             }
+        }
+
+        /// <summary>获取指定时间后更新过的数据数量</summary>
+        /// <param name="last"></param>
+        /// <returns></returns>
+        public virtual Int32 GetAllUpdatedCount(DateTime last)
+        {
+            var name = LastUpdateName;
+            var where = String.IsNullOrEmpty(name) ? null : Facotry.MakeCondition(LastUpdateName, last, ">");
+            return Facotry.FindCount(where, null, null, 0, 0);
         }
 
         /// <summary>提交新增数据</summary>

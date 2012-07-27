@@ -24,6 +24,7 @@ using NewLife.Linq;
 using XCode;
 using NewLife.Common;
 using XCode.Sync;
+using NewLife.Model;
 #endif
 
 namespace Test
@@ -376,7 +377,7 @@ namespace Test
         static void Test9()
         {
             var tb = Menu.Meta.Table.DataTable;
-            var table = tb.Clone() as IDataTable;
+            var table = ObjectContainer.Current.Resolve<IDataTable>();
             table = table.CopyAllFrom(tb);
 
             // 添加两个字段
@@ -386,7 +387,7 @@ namespace Test
             table.Columns.Add(fi);
 
             fi = table.CreateColumn();
-            fi.Name = "LastAsync";
+            fi.Name = "LastSync";
             fi.DataType = typeof(DateTime);
             table.Columns.Add(fi);
 
@@ -395,10 +396,11 @@ namespace Test
             dal.SetTables(table);
 
             var sl = new SyncSlave();
-            dal.CreateOperate(table.Name);
+            sl.Facotry = dal.CreateOperate(table.Name);
 
             var mt = new SyncMaster();
             mt.Facotry = Menu.Meta.Factory;
+            //mt.LastUpdateName = Administrator._.LastLogin;
 
             var sm = new SyncManager();
             sm.Slave = sl;

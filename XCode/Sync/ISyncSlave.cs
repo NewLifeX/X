@@ -91,11 +91,19 @@ namespace XCode.Sync
         /// <summary>主键名</summary>
         protected virtual String KeyName { get { return Facotry.Unique.Name; } }
 
+        private String _LastUpdateName = "LastUpdate";
+        /// <summary>最后更新字段名</summary>
+        public virtual String LastUpdateName { get { return _LastUpdateName; } set { _LastUpdateName = value; } }
+
+        private String _LastSyncName = "LastSync";
+        /// <summary>最后更新字段名</summary>
+        public virtual String LastSyncName { get { return _LastSyncName; } set { _LastSyncName = value; } }
+
         /// <summary>最后更新字段名。先硬编码，不考虑可变</summary>
-        protected virtual Field LastUpdateField { get { return Facotry.Table.FindByName("LastUpdate"); } }
+        protected virtual Field LastUpdateField { get { return Facotry.Table.FindByName(LastUpdateName); } }
 
         /// <summary>最后同步字段名</summary>
-        protected virtual Field LastSyncField { get { return Facotry.Table.FindByName("LastSync"); } }
+        protected virtual Field LastSyncField { get { return Facotry.Table.FindByName(LastSyncName); } }
         #endregion
 
         #region 方法
