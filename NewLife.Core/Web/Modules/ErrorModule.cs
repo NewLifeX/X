@@ -4,6 +4,9 @@ using System.Text;
 using System.Threading;
 using System.Web;
 using NewLife.Log;
+using System.Collections.Generic;
+using NewLife.Collections;
+using System.IO;
 
 namespace NewLife.Web
 {
@@ -30,8 +33,21 @@ namespace NewLife.Web
             if (ex is ThreadAbortException) return false;
             if (ex is CryptographicException && ex.Message.Contains("填充无效")) return false;
 
+            // 文件不存在的异常只出现一次
+            if (ex is HttpException && (ex.Message.Contains("文件不存在") || ex.Message.Contains("Not Found")))
+            {
+                var url = HttpContext.Current.Request.RawUrl;
+                if (!String.IsNullOrEmpty(url))
+                {
+                    if (fileErrors.Contains(url)) return false;
+                    fileErrors.Add(url);
+                }
+            }
+
             return true;
         }
+
+        ICollection<String> fileErrors = new HashSet<String>(StringComparer.OrdinalIgnoreCase);
 
         /// <summary>错误处理方法</summary>
         /// <param name="sender"></param>
