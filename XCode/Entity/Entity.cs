@@ -92,6 +92,10 @@ namespace XCode
                     }
                 }
             }
+            foreach (EntityBase entity in list)
+            {
+                entity._IsFromDatabase = true;
+            }
             if (list is EntityList<TEntity>) return list as EntityList<TEntity>;
 
             return new EntityList<TEntity>(list);
@@ -99,7 +103,14 @@ namespace XCode
 
         /// <summary>从一个数据行对象加载数据。不加载关联对象。</summary>
         /// <param name="dr">数据行</param>
-        public override void LoadData(DataRow dr) { if (dr != null) dreAccessor.LoadData(dr, this); }
+        public override void LoadData(DataRow dr)
+        {
+            if (dr != null)
+            {
+                dreAccessor.LoadData(dr, this);
+                _IsFromDatabase = true;
+            }
+        }
 
         /// <summary>加载数据读写器。无数据时返回空集合而不是null。</summary>
         /// <param name="dr">数据读写器</param>
@@ -120,6 +131,10 @@ namespace XCode
                     }
                 }
             }
+            foreach (EntityBase entity in list)
+            {
+                entity._IsFromDatabase = true;
+            }
             if (list is EntityList<TEntity>) return list as EntityList<TEntity>;
 
             return new EntityList<TEntity>(list);
@@ -132,6 +147,7 @@ namespace XCode
             if (dr != null)
             {
                 dreAccessor.LoadData(dr, this);
+                _IsFromDatabase = true;
 
                 // 设置默认累加字段
                 var fs = AdditionalFields;

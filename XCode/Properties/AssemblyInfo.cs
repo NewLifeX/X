@@ -35,7 +35,7 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
 [assembly: AssemblyVersion("8.8.*")]
-[assembly: AssemblyFileVersion("8.8.2012.0722")]
+[assembly: AssemblyFileVersion("8.8.2012.0727")]
 
 /*
  * XCode的重大改进
@@ -52,6 +52,8 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v8.8.2012.0727   如果实体来自数据库，在给数据属性赋相同值时，不改变脏数据，其它情况均改变脏数据
+ * 
  * v8.8.2012.0722   增加模型字段排序特性ModelSortModeAttribute，默认指定基类数据字段优先，影响生成数据表字段顺序
  * 
  * v8.8.2012.0718   增加实体事务区域EntityTransaction
