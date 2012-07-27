@@ -18,6 +18,9 @@ namespace NewLife.CommonEntity
         /// <summary>是否管理员</summary>
         Boolean IsAdmin { get; }
 
+        /// <summary>是否启用</summary>
+        Boolean IsEnable { get; }
+
         /// <summary>属性集合</summary>
         IDictionary<String, Object> Properties { get; }
     }

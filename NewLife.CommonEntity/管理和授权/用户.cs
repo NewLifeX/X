@@ -1,19 +1,17 @@
 ﻿/*
- * XCoder v4.3.2011.0920
+ * XCoder v4.8.4562.20871
  * 作者：nnhy/NEWLIFE
- * 时间：2011-10-18 10:51:07
- * 版权：版权所有 (C) 新生命开发团队 2011
+ * 时间：2012-07-27 15:39:04
+ * 版权：版权所有 (C) 新生命开发团队 2012
 */
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using XCode;
 using System.Xml.Serialization;
+using XCode;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
 
-#pragma warning disable 3021
-#pragma warning disable 3008
 namespace NewLife.CommonEntity
 {
     /// <summary>用户</summary>
@@ -21,7 +19,7 @@ namespace NewLife.CommonEntity
     [DataObject]
     [Description("用户")]
     [BindIndex("IX_User", true, "Account")]
-    [BindIndex("PK_User", true, "ID")]
+    [BindIndex("PK__User__3214EC277F60ED59", true, "ID")]
     [BindTable("User", Description = "用户", ConnName = "Common", DbType = DatabaseType.SqlServer)]
     public partial class User<TEntity> : IUser
     {
@@ -32,7 +30,7 @@ namespace NewLife.CommonEntity
         [Description("编号")]
         [DataObjectField(true, true, false, 10)]
         [BindColumn(1, "ID", "编号", null, "int", 10, 0, false)]
-        public Int32 ID
+        public virtual Int32 ID
         {
             get { return _ID; }
             set { if (OnPropertyChanging("ID", value)) { _ID = value; OnPropertyChanged("ID"); } }
@@ -44,7 +42,7 @@ namespace NewLife.CommonEntity
         [Description("账号")]
         [DataObjectField(false, false, true, 50)]
         [BindColumn(2, "Account", "账号", null, "nvarchar(50)", 0, 0, true)]
-        public String Account
+        public virtual String Account
         {
             get { return _Account; }
             set { if (OnPropertyChanging("Account", value)) { _Account = value; OnPropertyChanged("Account"); } }
@@ -56,7 +54,7 @@ namespace NewLife.CommonEntity
         [Description("密码")]
         [DataObjectField(false, false, true, 50)]
         [BindColumn(3, "Password", "密码", null, "nvarchar(50)", 0, 0, true)]
-        public String Password
+        public virtual String Password
         {
             get { return _Password; }
             set { if (OnPropertyChanging("Password", value)) { _Password = value; OnPropertyChanged("Password"); } }
@@ -67,11 +65,23 @@ namespace NewLife.CommonEntity
         [DisplayName("是否管理员")]
         [Description("是否管理员")]
         [DataObjectField(false, false, true, 1)]
-        [BindColumn(4, "IsAdmin", "是否管理员", null, "bit", 0, 0, true)]
-        public Boolean IsAdmin
+        [BindColumn(4, "IsAdmin", "是否管理员", null, "bit", 0, 0, false)]
+        public virtual Boolean IsAdmin
         {
             get { return _IsAdmin; }
             set { if (OnPropertyChanging("IsAdmin", value)) { _IsAdmin = value; OnPropertyChanged("IsAdmin"); } }
+        }
+
+        private Boolean _IsEnable;
+        /// <summary>是否启用</summary>
+        [DisplayName("是否启用")]
+        [Description("是否启用")]
+        [DataObjectField(false, false, true, 1)]
+        [BindColumn(5, "IsEnable", "是否启用", null, "bit", 0, 0, false)]
+        public virtual Boolean IsEnable
+        {
+            get { return _IsEnable; }
+            set { if (OnPropertyChanging("IsEnable", value)) { _IsEnable = value; OnPropertyChanged("IsEnable"); } }
         }
         #endregion
 
@@ -92,7 +102,8 @@ namespace NewLife.CommonEntity
                     case "ID" : return _ID;
                     case "Account" : return _Account;
                     case "Password" : return _Password;
-                    case "IsAdmin": return _IsAdmin;
+                    case "IsAdmin" : return _IsAdmin;
+                    case "IsEnable" : return _IsEnable;
                     default: return base[name];
                 }
             }
@@ -103,7 +114,8 @@ namespace NewLife.CommonEntity
                     case "ID" : _ID = Convert.ToInt32(value); break;
                     case "Account" : _Account = Convert.ToString(value); break;
                     case "Password" : _Password = Convert.ToString(value); break;
-                    case "IsAdmin": _IsAdmin = Convert.ToBoolean(value); break;
+                    case "IsAdmin" : _IsAdmin = Convert.ToBoolean(value); break;
+                    case "IsEnable" : _IsEnable = Convert.ToBoolean(value); break;
                     default: base[name] = value; break;
                 }
             }
@@ -115,16 +127,21 @@ namespace NewLife.CommonEntity
         public class _
         {
             ///<summary>编号</summary>
-            public static readonly Field ID = Meta.Table.FindByName("ID");
+            public static readonly Field ID = FindByName("ID");
 
             ///<summary>账号</summary>
-            public static readonly Field Account = Meta.Table.FindByName("Account");
+            public static readonly Field Account = FindByName("Account");
 
             ///<summary>密码</summary>
-            public static readonly Field Password = Meta.Table.FindByName("Password");
+            public static readonly Field Password = FindByName("Password");
 
             ///<summary>是否管理员</summary>
-            public static readonly Field IsAdmin = Meta.Table.FindByName("IsAdmin");
+            public static readonly Field IsAdmin = FindByName("IsAdmin");
+
+            ///<summary>是否启用</summary>
+            public static readonly Field IsEnable = FindByName("IsEnable");
+
+            static Field FindByName(String name) { return Meta.Table.FindByName(name); }
         }
         #endregion
     }
@@ -143,7 +160,10 @@ namespace NewLife.CommonEntity
         String Password { get; set; }
 
         /// <summary>是否管理员</summary>
-        Boolean IsAdmin { get; }
+        Boolean IsAdmin { get; set; }
+
+        /// <summary>是否启用</summary>
+        Boolean IsEnable { get; set; }
         #endregion
 
         #region 获取/设置 字段值
@@ -154,5 +174,3 @@ namespace NewLife.CommonEntity
         #endregion
     }
 }
-#pragma warning restore 3008
-#pragma warning restore 3021
