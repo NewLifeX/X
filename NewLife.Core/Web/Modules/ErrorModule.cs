@@ -71,7 +71,7 @@ namespace NewLife.Web
             sb.AppendFormat("引用：{0}\r\n", Request.UrlReferrer);
 
             var id = Thread.CurrentPrincipal;
-            if (id != null && id.Identity != null) sb.AppendFormat("用户：{0}\r\n", id.Identity);
+            if (id != null && id.Identity != null) sb.AppendFormat("用户：{0}({1})\r\n", id.Identity.Name, id.Identity.AuthenticationType);
 
             XTrace.WriteLine(sb.ToString());
 
