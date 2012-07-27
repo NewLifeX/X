@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+using System.Text;
 using System.Threading;
 using NewLife.Reflection;
-using System.Text;
 
 namespace XCode.DataAccessLayer
 {
@@ -277,6 +277,7 @@ namespace XCode.DataAccessLayer
             }
             return drs;
         }
+
         protected override string GetFieldConstraints(IDataColumn field, Boolean onlyDefine)
         {
             String str = null;
