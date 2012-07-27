@@ -101,16 +101,42 @@ pushd ..\DLL
 ::"C:\Program Files\WinRAR\WinRAR.exe" a DLL.rar *.dll *.exe *.pdb *.xml
 set zipfile=DLL.zip
 del DLL*.zip /f/q
-%zip% %zipfile% -r *.dll *.exe *.pdb *.xml *.chm
+%zip% %zipfile% *.dll *.exe *.pdb *.xml *.chm
 move /y DLL*.zip %dest%\%zipfile%
 :: 恢复目录
 popd
+
+:: 发布Debug DLL压缩包
+:: 保存当前目录，并切换目录
+pushd ..\DLL\Debug\
+::"C:\Program Files\WinRAR\WinRAR.exe" a DLL.rar *.dll *.exe *.pdb *.xml
+set zipfile=DLL_Debug.zip
+del DLL*.zip /f/q
+%zip% %zipfile% *.dll *.exe *.pdb *.xml *.chm
+move /y DLL*.zip %dest%\%zipfile%
+:: 恢复目录
+popd
+
+:: 发布DLL4压缩包
+:: 保存当前目录，并切换目录
 pushd ..\DLL4
 ::"C:\Program Files\WinRAR\WinRAR.exe" a DLL.rar *.dll *.exe *.pdb *.xml
 set zipfile=DLL4.zip
 del DLL*.zip /f/q
 set zip4="C:\Program Files\WinRAR\WinRAR.exe" a -m5 -s -z..\Src\Readme4.txt -ibck
-%zip4% %zipfile% -r *.dll *.exe *.pdb *.xml *.chm
+%zip4% %zipfile% *.dll *.exe *.pdb *.xml *.chm
+move /y DLL*.zip %dest%\%zipfile%
+:: 恢复目录
+popd
+
+:: 发布Debug DLL4压缩包
+:: 保存当前目录，并切换目录
+pushd ..\DLL4\Debug\
+::"C:\Program Files\WinRAR\WinRAR.exe" a DLL.rar *.dll *.exe *.pdb *.xml
+set zipfile=DLL4_Debug.zip
+del DLL*.zip /f/q
+set zip4="C:\Program Files\WinRAR\WinRAR.exe" a -m5 -s -z..\Src\Readme4.txt -ibck
+%zip4% %zipfile% *.dll *.exe *.pdb *.xml *.chm
 move /y DLL*.zip %dest%\%zipfile%
 :: 恢复目录
 popd
