@@ -30,9 +30,11 @@ using System.Runtime.InteropServices;
 //      修订号
 //
 [assembly: AssemblyVersion("4.8.*")]
-[assembly: AssemblyFileVersion("4.8.2012.0526")]
+[assembly: AssemblyFileVersion("4.8.2012.0731")]
 
 /*
+ * v4.8.2012.0731   升级前备份配置文件，升级后恢复
+ * 
  * v4.8.2012.0526   支持自动探测SqlCe数据库
  * 
  * v4.8.2012.0516   采用新的数据模型格式化架构，优化表名及字段名的生成

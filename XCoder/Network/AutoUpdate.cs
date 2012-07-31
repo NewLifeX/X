@@ -106,11 +106,22 @@ namespace XCoder
             var dir = Path.GetDirectoryName(file);
             if (Extract(file, dir))
             {
+                var cfgfile = Path.Combine(curdir, "XCoder.exe.config");
+                var xmlfile = Path.Combine(curdir, "XCoder.xml");
+
                 var sb = new StringBuilder();
+                // 备份配置文件
+                sb.AppendFormat("mov \"{0}\" \"{0}.bak\" /Y", cfgfile);
+                sb.AppendFormat("mov \"{0}\" \"{0}.bak\" /Y", xmlfile);
+
                 // 复制
                 sb.AppendFormat("copy \"{0}\\*.*\" \"{1}\" /y", dir, curdir);
                 sb.AppendLine();
                 sb.AppendLine("rd \"" + dir + "\" /s /q");
+
+                // 还原配置文件
+                sb.AppendFormat("mov \"{0}.bak\" \"{0}\" /Y", cfgfile);
+                sb.AppendFormat("mov \"{0}.bak\" \"{0}\" /Y", xmlfile);
 
                 // 启动XCoder
                 sb.AppendFormat("start {0}", Path.GetFileName(Application.ExecutablePath));
