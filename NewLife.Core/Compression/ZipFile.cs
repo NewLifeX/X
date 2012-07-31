@@ -105,6 +105,7 @@ namespace NewLife.Compression
             }
             catch (Exception ex)
             {
+                fs.Dispose();
                 throw new ZipException("不是有效的Zip格式！", ex);
             }
 

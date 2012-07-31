@@ -295,7 +295,8 @@ namespace XCode.DataAccessLayer
                     client.Dispose();
                 }
                 sw.Stop();
-                DAL.WriteLog("下载{0}完成，耗时{2}，准备解压到{1}！", zipfile, dir, sw.Elapsed);
+                var size = new FileInfo(zipfile).Length;
+                DAL.WriteLog("下载{0}完成（{3:n0}字节），耗时{2}，准备解压到{1}！", zipfile, dir, sw.Elapsed, size);
                 //var ms = new MemoryStream(data);
                 //if (file.EndsWith("64")) file = file.Substring(0, file.Length - 2);
                 //IOHelper.DecompressFile(ms, dir, file, false);
