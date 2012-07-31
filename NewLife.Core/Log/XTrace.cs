@@ -24,19 +24,20 @@ namespace NewLife.Log
     {
         #region 写日志
         /// <summary>文本文件日志</summary>
-        public static TextFileLog Log = TextFileLog.Create(Config.GetConfig<String>("NewLife.LogPath"));
+        public static TextFileLog Log;
 
         private static Boolean _UseFileLog = true;
         /// <summary>使用文件日志</summary>
         public static Boolean UseFileLog { get { return _UseFileLog; } set { _UseFileLog = value; } }
 
         /// <summary>日志路径</summary>
-        public static String LogPath { get { return Log.LogPath; } }
+        public static String LogPath { get { InitLog(); return Log.LogPath; } }
 
         /// <summary>输出日志</summary>
         /// <param name="msg">信息</param>
         public static void WriteLine(String msg)
         {
+            InitLog();
             if (OnWriteLog != null)
             {
                 var e = new WriteLogEventArgs(msg);
@@ -50,6 +51,7 @@ namespace NewLife.Log
         /// <param name="ex">异常信息</param>
         public static void WriteException(Exception ex)
         {
+            InitLog();
             if (OnWriteLog != null)
             {
                 var e = new WriteLogEventArgs(null, ex);
@@ -62,6 +64,7 @@ namespace NewLife.Log
         /// <param name="ex">异常信息</param>
         public static void WriteExceptionWhenDebug(Exception ex)
         {
+            InitLog();
             if (Debug) Log.WriteLine(ex.ToString());
         }
 
@@ -79,6 +82,7 @@ namespace NewLife.Log
         /// <param name="args"></param>
         public static void WriteLine(String format, params Object[] args)
         {
+            InitLog();
             if (OnWriteLog != null)
             {
                 var msg = String.Format(format, args);
@@ -94,6 +98,17 @@ namespace NewLife.Log
         static XTrace()
         {
             AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
+        }
+
+        static Int32 hasInited = 0;
+        static void InitLog()
+        {
+            if (hasInited > 0 || Interlocked.CompareExchange(ref hasInited, 1, 0) > 0) return;
+
+            Log = TextFileLog.Create(Config.GetConfig<String>("NewLife.LogPath"));
+
+            var asmx = AssemblyX.Create(Assembly.GetExecutingAssembly());
+            XTrace.WriteLine("{0} v{1} Build {2:yyyy-MM-dd HH:mm:ss}", asmx.Name, asmx.FileVersion, asmx.Compile);
         }
         #endregion
 

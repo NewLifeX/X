@@ -12,6 +12,7 @@ using NewLife.Compression;
 using NewLife.Configuration;
 using NewLife.Reflection;
 using NewLife.Web;
+using System.Diagnostics;
 
 namespace XCode.DataAccessLayer
 {
@@ -279,6 +280,8 @@ namespace XCode.DataAccessLayer
 
                 // 目标Zip文件
                 zipfile = Path.Combine(dir, zipfile);
+                var sw = new Stopwatch();
+                sw.Start();
                 // Zip文件不存在，准备下载
                 if (!File.Exists(zipfile) || new FileInfo(zipfile).Length <= 0)
                 {
@@ -291,8 +294,8 @@ namespace XCode.DataAccessLayer
                     client.DownloadFile(url, zipfile);
                     client.Dispose();
                 }
-
-                DAL.WriteLog("下载完成，准备解压到{0}！", dir);
+                sw.Stop();
+                DAL.WriteLog("下载{0}完成，耗时{2}，准备解压到{1}！", zipfile, dir, sw.Elapsed);
                 //var ms = new MemoryStream(data);
                 //if (file.EndsWith("64")) file = file.Substring(0, file.Length - 2);
                 //IOHelper.DecompressFile(ms, dir, file, false);

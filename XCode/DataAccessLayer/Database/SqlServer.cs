@@ -69,7 +69,7 @@ namespace XCode.DataAccessLayer
                     }
                     finally { session.Dispose(); }
 
-                    if (DAL.Debug) DAL.WriteLog("[{0}/{1}]版本：{2}，{3}是MSSQL2000！", ConnName, DbType, ver, _IsSQL2005.Value ? "不" : "");
+                    //if (DAL.Debug) DAL.WriteLog("[{0}/{1}]版本：{2}，{3}是MSSQL2000！", ConnName, DbType, ver, _IsSQL2005.Value ? "不" : "");
                 }
                 return _IsSQL2005.Value;
             }

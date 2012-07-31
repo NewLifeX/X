@@ -101,7 +101,7 @@ namespace XCode.DataAccessLayer
 
             // 输出当前版本
             var asm = AssemblyX.Create(System.Reflection.Assembly.GetExecutingAssembly());
-            XTrace.WriteLine("{0} 文件版本{1} 编译时间{2}", asm.Name, asm.FileVersion, asm.Compile);
+            XTrace.WriteLine("{0} v{1} Build {2:yyyy-MM-dd HH:mm:ss}", asm.Name, asm.FileVersion, asm.Compile);
 
             if (DAL.Debug && DAL.NegativeEnable)
             {
