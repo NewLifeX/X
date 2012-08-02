@@ -1,4 +1,7 @@
 ﻿using System;
+#if NET4
+using System.Linq;
+#endif
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;

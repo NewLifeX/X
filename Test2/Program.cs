@@ -7,6 +7,11 @@ using NewLife.Net.Proxy;
 using NewLife.Net.Sockets;
 using NewLife.Threading;
 using System.Net.Sockets;
+using NewLife.Net.Application;
+using NewLife.Net.Udp;
+using NewLife.Security;
+using System.IO.Ports;
+using NewLife.Net.ModBus;
 
 namespace Test2
 {

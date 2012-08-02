@@ -1,4 +1,7 @@
 ﻿using System;
+#if NET4
+using System.Linq;
+#endif
 using System.Collections.Generic;
 using NewLife.Linq;
 using NewLife.Log;
@@ -118,6 +121,7 @@ namespace NewLife.Model
                 {
                     // 如果有插件特性，并且所有特性都不支持当前宿主，则跳过
                     var atts = item.GetCustomAttributes<PluginAttribute>(true);
+                    
                     if (atts != null && atts.Any(a => a.Identity != Identity)) continue;
 
                     list.Add(item);

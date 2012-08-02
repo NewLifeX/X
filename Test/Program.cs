@@ -21,11 +21,11 @@ using NewLife.CommonEntity;
 using System.Linq;
 #else
 using NewLife.Linq;
+#endif
 using XCode;
 using NewLife.Common;
 using XCode.Sync;
 using NewLife.Model;
-#endif
 
 namespace Test
 {
