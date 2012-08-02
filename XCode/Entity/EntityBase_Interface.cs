@@ -13,6 +13,7 @@ namespace XCode
     {
         #region INotifyPropertyChanged接口
         /// <summary>如果实体来自数据库，在给数据属性赋相同值时，不改变脏数据，其它情况均改变脏数据</summary>
+        [NonSerialized]
         internal protected Boolean _IsFromDatabase;
 
         /// <summary>属性改变。重载时记得调用基类的该方法，以设置脏数据属性，否则数据将无法Update到数据库。</summary>
