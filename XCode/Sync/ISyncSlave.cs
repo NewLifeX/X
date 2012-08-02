@@ -73,9 +73,17 @@ namespace XCode.Sync
         /// <param name="key"></param>
         void ChangeKey(Object key);
 
-        /// <summary>保存</summary>
+        ///// <summary>保存</summary>
+        ///// <returns></returns>
+        //Int32 Save();
+
+        /// <summary>插入</summary>
         /// <returns></returns>
-        Int32 Save();
+        Int32 Insert();
+
+        /// <summary>更新</summary>
+        /// <returns></returns>
+        Int32 Update();
 
         /// <summary>删除本地数据</summary>
         /// <returns></returns>

@@ -97,7 +97,7 @@ namespace XCode.Sync
                 foreach (var item in arr)
                 {
                     item.LastSync = now;
-                    item.Save();
+                    item.Update();
                 }
 
                 index += arr.Length;
@@ -167,7 +167,7 @@ namespace XCode.Sync
             {
                 local = Convert(remote);
                 local.LastUpdate = local.LastSync = DateTime.Now;
-                local.Save();
+                local.Insert();
                 return;
             }
 
@@ -185,7 +185,7 @@ namespace XCode.Sync
             }
 
             local.LastSync = DateTime.Now;
-            local.Save();
+            local.Update();
         }
 
         /// <summary>查找还有哪些没有同步的，可能提供者已经删除</summary>
