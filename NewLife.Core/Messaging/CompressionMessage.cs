@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.IO.Compression;
 using System.Xml.Serialization;
 using NewLife.Serialization;
@@ -17,7 +18,7 @@ namespace NewLife.Messaging
     {
         /// <summary>消息类型</summary>
         [XmlIgnore]
-        public override MessageKind Kind { get { return MessageKind.Entity; } }
+        public override MessageKind Kind { get { return MessageKind.Compression; } }
 
         //private CompressionMethod _Method;
         ///// <summary>压缩算法</summary>
@@ -33,11 +34,15 @@ namespace NewLife.Messaging
 
         Boolean IAccessor.ReadComplete(IReader reader, Boolean success)
         {
+            var ms = new MemoryStream();
             // 读取消息。对剩下的数据流，进行解压缩后，读取成为另一个消息
             using (var stream = new DeflateStream(reader.Stream, CompressionMode.Decompress, true))
             {
-                Message = Read(stream);
+                //Message = Read(stream);
+                // 必须全部复制到内存流，然后再读取，否则可能因为加密流不能读取位置和长度而导致消息读取失败
+                stream.CopyTo(ms);
             }
+            Message = Read(ms);
 
             return success;
         }
