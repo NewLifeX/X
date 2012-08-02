@@ -260,7 +260,19 @@ namespace XCode
                         entity.Extends[item.Key] = item.Value;
                     }
 
-                    return entity.OnDelete();
+                    //return entity.OnDelete();
+                    //return DoAction(entity.OnDelete, null);
+
+                    Meta.BeginTrans();
+                    try
+                    {
+                        Int32 rs = entity.OnDelete();
+
+                        Meta.Commit();
+
+                        return rs;
+                    }
+                    catch { Meta.Rollback(); throw; }
                 }
             }
 
