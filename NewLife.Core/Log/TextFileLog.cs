@@ -169,10 +169,11 @@ namespace NewLife.Log
         #region 异步写日志
         private Timer AutoCloseWriterTimer;
         private object Log_Lock = new object();
+        private Boolean LastIsNewLine;
 
         /// <summary>使用线程池线程异步执行日志写入动作</summary>
-        /// <param name="obj"></param>
-        private void PerformWriteLog(Object obj)
+        /// <param name="e"></param>
+        private void PerformWriteLog(WriteLogEventArgs e)
         {
             lock (Log_Lock)
             {
@@ -181,7 +182,29 @@ namespace NewLife.Log
                     // 初始化日志读写器
                     if (LogWriter == null) InitLog();
                     // 写日志
-                    LogWriter.WriteLine((String)obj);
+                    if (LastIsNewLine)
+                    {
+                        // 如果上一次是换行，则这次需要输出行头信息
+                        if (e.IsNewLine)
+                            LogWriter.WriteLine(e.ToString());
+                        else
+                        {
+                            LogWriter.Write(e.ToString());
+                            LastIsNewLine = false;
+                        }
+                    }
+                    else
+                    {
+                        // 如果上一次不是换行，则这次不需要行头信息
+                        var msg = e.Message + e.Exception;
+                        if (e.IsNewLine)
+                        {
+                            LogWriter.WriteLine(msg);
+                            LastIsNewLine = true;
+                        }
+                        else
+                            LogWriter.Write(msg);
+                    }
                     // 声明自动关闭日志读写器的定时器。无限延长时间，实际上不工作
                     if (AutoCloseWriterTimer == null) AutoCloseWriterTimer = new Timer(new TimerCallback(CloseWriter), null, Timeout.Infinite, Timeout.Infinite);
                     // 改变定时器为5秒后触发一次。如果5秒内有多次写日志操作，估计定时器不会触发，直到空闲五秒为止
@@ -195,39 +218,40 @@ namespace NewLife.Log
         #region 写日志
         /// <summary>输出日志</summary>
         /// <param name="msg">信息</param>
+        public void Write(String msg)
+        {
+            var e = new WriteLogEventArgs(msg, null, false);
+
+            PerformWriteLog(e);
+        }
+
+        /// <summary>写日志</summary>
+        /// <param name="format"></param>
+        /// <param name="args"></param>
+        public void Write(String format, params Object[] args)
+        {
+            Write(Format(format, args));
+        }
+
+        /// <summary>输出日志</summary>
+        /// <param name="msg">信息</param>
         public void WriteLine(String msg)
         {
             // 小对象，采用对象池的成本太高了
-            var e = new WriteLogEventArgs(msg);
+            var e = new WriteLogEventArgs(msg, null, true);
 
-            //if (OnWriteLog != null)
-            //{
-            //    OnWriteLog(null, e);
-            //    return;
-            //}
-
-            PerformWriteLog(e.ToString());
-        }
-
-        /// <summary>输出异常日志</summary>
-        /// <param name="ex">异常信息</param>
-        public void WriteException(Exception ex)
-        {
-            var e = new WriteLogEventArgs(null, ex);
-
-            //if (OnWriteLog != null)
-            //{
-            //    OnWriteLog(null, e);
-            //    return;
-            //}
-
-            PerformWriteLog(e.ToString());
+            PerformWriteLog(e);
         }
 
         /// <summary>写日志</summary>
         /// <param name="format"></param>
         /// <param name="args"></param>
         public void WriteLine(String format, params Object[] args)
+        {
+            WriteLine(Format(format, args));
+        }
+
+        String Format(String format, Object[] args)
         {
             //处理时间的格式化
             if (args != null && args.Length > 0)
@@ -247,7 +271,16 @@ namespace NewLife.Log
                     }
                 }
             }
-            WriteLine(String.Format(format, args));
+            return String.Format(format, args);
+        }
+
+        /// <summary>输出异常日志</summary>
+        /// <param name="ex">异常信息</param>
+        public void WriteException(Exception ex)
+        {
+            var e = new WriteLogEventArgs(null, ex, true);
+
+            PerformWriteLog(e);
         }
         #endregion
     }

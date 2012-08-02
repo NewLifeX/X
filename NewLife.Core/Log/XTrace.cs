@@ -35,47 +35,47 @@ namespace NewLife.Log
 
         /// <summary>输出日志</summary>
         /// <param name="msg">信息</param>
+        public static void Write(String msg)
+        {
+            InitLog();
+            if (OnWriteLog != null)
+            {
+                var e = new WriteLogEventArgs(msg, null, false);
+                OnWriteLog(null, e);
+            }
+
+            if (UseFileLog) Log.Write(msg);
+        }
+
+        /// <summary>写日志</summary>
+        /// <param name="format"></param>
+        /// <param name="args"></param>
+        public static void Write(String format, params Object[] args)
+        {
+            InitLog();
+            if (OnWriteLog != null)
+            {
+                var msg = String.Format(format, args);
+                var e = new WriteLogEventArgs(msg, null, false);
+                OnWriteLog(null, e);
+            }
+
+            if (UseFileLog) Log.Write(format, args);
+        }
+
+        /// <summary>输出日志</summary>
+        /// <param name="msg">信息</param>
         public static void WriteLine(String msg)
         {
             InitLog();
             if (OnWriteLog != null)
             {
-                var e = new WriteLogEventArgs(msg);
+                var e = new WriteLogEventArgs(msg, null, true);
                 OnWriteLog(null, e);
             }
 
             if (UseFileLog) Log.WriteLine(msg);
         }
-
-        /// <summary>输出异常日志</summary>
-        /// <param name="ex">异常信息</param>
-        public static void WriteException(Exception ex)
-        {
-            InitLog();
-            if (OnWriteLog != null)
-            {
-                var e = new WriteLogEventArgs(null, ex);
-                OnWriteLog(null, e);
-            }
-            if (UseFileLog) Log.WriteException(ex);
-        }
-
-        /// <summary>输出异常日志</summary>
-        /// <param name="ex">异常信息</param>
-        public static void WriteExceptionWhenDebug(Exception ex)
-        {
-            InitLog();
-            if (Debug) Log.WriteLine(ex.ToString());
-        }
-
-        //private static event EventHandler<WriteLogEventArgs> _OnWriteLog;
-        /// <summary>写日志事件。绑定该事件后，XTrace将不再把日志写到日志文件中去。</summary>
-        //public static event EventHandler<WriteLogEventArgs> OnWriteLog
-        //{
-        //    add { _OnWriteLog += value; UseFileLog = false; }
-        //    remove { _OnWriteLog -= value; }
-        //}
-        public static event EventHandler<WriteLogEventArgs> OnWriteLog;
 
         /// <summary>写日志</summary>
         /// <param name="format"></param>
@@ -86,12 +86,38 @@ namespace NewLife.Log
             if (OnWriteLog != null)
             {
                 var msg = String.Format(format, args);
-                var e = new WriteLogEventArgs(msg);
+                var e = new WriteLogEventArgs(msg, null, true);
                 OnWriteLog(null, e);
             }
 
             if (UseFileLog) Log.WriteLine(format, args);
         }
+
+        /// <summary>输出异常日志</summary>
+        /// <param name="ex">异常信息</param>
+        public static void WriteException(Exception ex)
+        {
+            InitLog();
+            if (OnWriteLog != null)
+            {
+                var e = new WriteLogEventArgs(null, ex, true);
+                OnWriteLog(null, e);
+            }
+            if (UseFileLog) Log.WriteException(ex);
+        }
+
+        /// <summary>输出异常日志</summary>
+        /// <param name="ex">异常信息</param>
+        public static void WriteExceptionWhenDebug(Exception ex) { if (Debug) WriteException(ex); }
+
+        //private static event EventHandler<WriteLogEventArgs> _OnWriteLog;
+        /// <summary>写日志事件。绑定该事件后，XTrace将不再把日志写到日志文件中去。</summary>
+        //public static event EventHandler<WriteLogEventArgs> OnWriteLog
+        //{
+        //    add { _OnWriteLog += value; UseFileLog = false; }
+        //    remove { _OnWriteLog -= value; }
+        //}
+        public static event EventHandler<WriteLogEventArgs> OnWriteLog;
         #endregion
 
         #region 构造
@@ -129,7 +155,36 @@ namespace NewLife.Log
 
         private static void XTrace_OnWriteLog(object sender, WriteLogEventArgs e)
         {
-            Console.WriteLine(e.ToString());
+            //Console.WriteLine(e.ToString());
+            ConsoleWriteLog(e);
+        }
+
+        private static Boolean LastIsNewLine;
+        private static void ConsoleWriteLog(WriteLogEventArgs e)
+        {
+            if (LastIsNewLine)
+            {
+                // 如果上一次是换行，则这次需要输出行头信息
+                if (e.IsNewLine)
+                    Console.WriteLine(e.ToString());
+                else
+                {
+                    Console.Write(e.ToString());
+                    LastIsNewLine = false;
+                }
+            }
+            else
+            {
+                // 如果上一次不是换行，则这次不需要行头信息
+                var msg = e.Message + e.Exception;
+                if (e.IsNewLine)
+                {
+                    Console.WriteLine(msg);
+                    LastIsNewLine = true;
+                }
+                else
+                    Console.Write(msg);
+            }
         }
 
         static Dictionary<Int32, ConsoleColor> dic = new Dictionary<Int32, ConsoleColor>();
@@ -153,7 +208,7 @@ namespace NewLife.Log
                 }
                 var old = Console.ForegroundColor;
                 Console.ForegroundColor = cc;
-                Console.WriteLine(e.ToString());
+                ConsoleWriteLog(e);
                 Console.ForegroundColor = old;
             }
         }
@@ -180,10 +235,10 @@ namespace NewLife.Log
 
         static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
-            XTrace.WriteLine("" + e.ExceptionObject);
+            WriteLine("" + e.ExceptionObject);
             if (e.IsTerminating)
             {
-                XTrace.WriteLine("异常退出！");
+                WriteLine("异常退出！");
                 //XTrace.WriteMiniDump(null);
                 if (_ShowErrorMessage && Application.MessageLoop) MessageBox.Show("" + e.ExceptionObject, "异常退出", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
@@ -195,7 +250,7 @@ namespace NewLife.Log
 
         static void Application_ThreadException(object sender, ThreadExceptionEventArgs e)
         {
-            XTrace.WriteLine(e.Exception.ToString());
+            WriteException(e.Exception);
             if (_ShowErrorMessage && Application.MessageLoop) MessageBox.Show("" + e.Exception, "出错", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
         #endregion
@@ -412,12 +467,12 @@ namespace NewLife.Log
                     sb.Append(mix.Name);
                 //sb.Append(MethodInfoX.Create(method).Name);
 
+                // 如果到达了入口点，可以结束了
+                if (method == entry) break;
+
                 if (i < count - 1) sb.Append(split);
 
                 last = type;
-
-                // 如果到达了入口点，可以结束了
-                if (method == entry) break;
             }
             return sb.ToString();
         }

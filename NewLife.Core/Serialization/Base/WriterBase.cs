@@ -848,7 +848,7 @@ namespace NewLife.Serialization
             if (callback == null) callback = WriteMember;
 
             Object old = CurrentObject;
-            CurrentObject = old;
+            CurrentObject = value;
 
             try
             {

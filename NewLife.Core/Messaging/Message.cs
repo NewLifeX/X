@@ -258,24 +258,22 @@ namespace NewLife.Messaging
                         stream.Position = start;
                         return null;
                     }
-                    else
+
+                    var em = ex.Message;
+                    if (DumpStreamWhenError)
                     {
-                        var em = ex.Message;
-                        if (DumpStreamWhenError)
-                        {
-                            stream.Position = start;
-                            var bin = String.Format("{0:yyyy_MM_dd_HHmmss_fff}.msg", DateTime.Now);
-                            bin = Path.Combine(XTrace.LogPath, bin);
-                            if (!Path.IsPathRooted(bin)) bin = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, bin);
-                            bin = Path.GetFullPath(bin);
-                            var dir = Path.GetDirectoryName(bin);
-                            if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
-                            File.WriteAllBytes(bin, stream.ReadBytes());
-                            em = String.Format("已Dump数据流到{0}。{1}", bin, em);
-                        }
-                        var ex2 = new XException("无法从数据流中读取{0}（Kind={1}）消息！{2}", type.Name, kind, em);
-                        throw ex2;
+                        stream.Position = start;
+                        var bin = String.Format("{0:yyyy_MM_dd_HHmmss_fff}.msg", DateTime.Now);
+                        bin = Path.Combine(XTrace.LogPath, bin);
+                        if (!Path.IsPathRooted(bin)) bin = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, bin);
+                        bin = Path.GetFullPath(bin);
+                        var dir = Path.GetDirectoryName(bin);
+                        if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
+                        File.WriteAllBytes(bin, stream.ReadBytes());
+                        em = String.Format("已Dump数据流到{0}。{1}", bin, em);
                     }
+                    var ex2 = new XException("无法从数据流中读取{0}（Kind={1}）消息！{2}", type.Name, kind, em);
+                    throw ex2;
                 }
             }
             msg.Header = header;

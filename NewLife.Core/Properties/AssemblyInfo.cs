@@ -34,9 +34,12 @@ using System.Runtime.InteropServices;
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("3.8.*")]
-[assembly: AssemblyFileVersion("3.8.2012.0720")]
+[assembly: AssemblyFileVersion("3.8.2012.0802")]
 
 /*
+ * v3.8.2012.0802   跟踪日志增加不换行的写日志方法Write
+ *                  序列化跟踪日志支持输出到文本日志
+ * 
  * v3.8.2012.0720   增加拼音获取类PinYin，用于从中文获取对应的拼音
  * 
  * v3.8.2012.0612   修正对象容器中注册时没有记录优先级的BUG

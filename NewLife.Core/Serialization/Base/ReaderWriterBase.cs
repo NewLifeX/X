@@ -241,7 +241,7 @@ namespace NewLife.Serialization
         /// <param name="members"></param>
         protected void ShowMembers(String action, IObjectMemberInfo[] members)
         {
-            if (!Debug || !IsConsole) return;
+            if (!Debug) return;
 
             var sb = new StringBuilder();
             foreach (var item in members)
@@ -275,51 +275,81 @@ namespace NewLife.Serialization
         /// <param name="args">参数</param>
         public void WriteLog(Int32 colorIndex, String action, params Object[] args)
         {
-            if (!Debug || !IsConsole) return;
+            if (!Debug) return;
 
-            ConsoleColor color = Console.ForegroundColor;
-
-            // 缩进
-            SetDebugIndent();
-
-            // 红色动作
-            Console.ForegroundColor = colors[colorIndex][0];
-            Console.Write(action);
-
-            if (args != null && args.Length > 0)
+            if (IsConsole)
             {
-                // 白色参数
-                //Console.ForegroundColor = ConsoleColor.White;
+                ConsoleColor color = Console.ForegroundColor;
 
-                for (int i = 0; i < args.Length; i++)
+                // 缩进
+                SetDebugIndent();
+
+                // 红色动作
+                Console.ForegroundColor = colors[colorIndex][0];
+                Console.Write(action);
+
+                if (args != null && args.Length > 0)
                 {
-                    Console.ForegroundColor = colors[colorIndex][i % colors.Length + 1];
-                    Console.Write(" ");
-                    Console.Write(args[i]);
-                }
-            }
+                    // 白色参数
+                    //Console.ForegroundColor = ConsoleColor.White;
 
-            Console.ForegroundColor = color;
-            Console.WriteLine();
+                    for (int i = 0; i < args.Length; i++)
+                    {
+                        Console.ForegroundColor = colors[colorIndex][i % colors.Length + 1];
+                        Console.Write(" ");
+                        Console.Write(args[i]);
+                    }
+                }
+
+                Console.ForegroundColor = color;
+                Console.WriteLine();
+            }
+            else
+            {
+                // 缩进
+                SetDebugIndent();
+
+                // 动作
+                XTrace.Write(action);
+
+                if (args != null && args.Length > 0)
+                {
+                    for (int i = 0; i < args.Length; i++)
+                    {
+                        XTrace.Write(" ");
+                        XTrace.Write("" + args[i]);
+                    }
+                }
+
+                XTrace.WriteLine("");
+            }
         }
 
         /// <summary>设置调试缩进</summary>
         /// <param name="indent">缩进</param>
         public void SetDebugIndent(Int32 indent)
         {
-            if (!Debug || !IsConsole) return;
+            if (!Debug) return;
 
-            try
+            if (IsConsole)
             {
-                Console.CursorLeft = indent * 4;
+                try
+                {
+                    Console.CursorLeft = indent * 4;
+                }
+                catch { }
             }
-            catch { }
+            else
+            {
+                var msg = new String(' ', indent * 4);
+                XTrace.Write(msg);
+            }
         }
 
         /// <summary>设置调试缩进</summary>
         public void SetDebugIndent()
         {
-            if (!Debug || !IsConsole) return;
+            if (!Debug) return;
 
             SetDebugIndent(Depth - 1);
         }

@@ -33,7 +33,12 @@ namespace NewLife.Messaging
 
         void reader_OnMemberReading(object sender, ReadMemberEventArgs e)
         {
-            if (e.Member.Name == "_Value") e.Type = Type;
+            var reader = sender as IReader;
+            if (reader.CurrentObject == this && e.Member.Name == "_Value")
+            {
+                e.Type = Type;
+                reader.OnMemberReading -= new EventHandler<ReadMemberEventArgs>(reader_OnMemberReading);
+            }
         }
 
         Boolean IAccessor.ReadComplete(IReader reader, Boolean success) { return success; }
@@ -46,7 +51,12 @@ namespace NewLife.Messaging
 
         void writer_OnMemberWriting(object sender, WriteMemberEventArgs e)
         {
-            if (e.Member.Name == "_Value") e.Type = Type;
+            var writer = sender as IWriter;
+            if (writer.CurrentObject == this && e.Member.Name == "_Value")
+            {
+                e.Type = Type; 
+                writer.OnMemberWriting -= new EventHandler<WriteMemberEventArgs>(writer_OnMemberWriting);
+            }
         }
 
         Boolean IAccessor.WriteComplete(IWriter writer, Boolean success) { return success; }
