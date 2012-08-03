@@ -782,6 +782,7 @@ namespace NewLife.Threading
         /// <summary>带异常处理的线程池任务调度，即使不指定异常处理方法，也不允许异常抛出，以免造成应用程序退出</summary>
         /// <param name="callback"></param>
         /// <param name="errCallback">发生异常时调用的方法</param>
+        [DebuggerHidden]
         public static void QueueUserWorkItem(Func callback, Action<Exception> errCallback)
         {
             if (callback == null) return;
