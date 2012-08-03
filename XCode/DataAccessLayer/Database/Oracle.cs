@@ -434,7 +434,7 @@ namespace XCode.DataAccessLayer
             DAL.WriteLog(@"已搜索当前目录、上级目录、各个盘根目录，没有找到OracleClient\OCI.dll，可能是配置不当，准备从网络下载！");
 
             // 尝试使用C盘目录，然后才使用上级目录
-            var target = @"C:\OracleClient";
+            var target = Path.Combine(Path.GetPathRoot(Environment.SystemDirectory), @"OracleClient");
             try
             {
                 if (!Directory.Exists(target)) Directory.CreateDirectory(target);

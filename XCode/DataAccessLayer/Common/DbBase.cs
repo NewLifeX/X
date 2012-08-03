@@ -278,21 +278,33 @@ namespace XCode.DataAccessLayer
                 zipfile += ".zip";
                 var url = String.Format(ServiceAddress, zipfile);
 
-                // 目标Zip文件
-                zipfile = Path.Combine(dir, zipfile);
                 var sw = new Stopwatch();
                 sw.Start();
-                // Zip文件不存在，准备下载
-                if (!File.Exists(zipfile) || new FileInfo(zipfile).Length <= 0)
+
+                // 检查缓存文件，一个月内有效
+                var x = Path.Combine(Path.GetPathRoot(Environment.SystemDirectory), @"X");
+                var xfile = Path.Combine(x, zipfile);
+                var xf = new FileInfo(xfile);
+                if (CacheZip && File.Exists(xfile) && xf.Length > 0 && xf.LastWriteTime.AddMonths(1) > DateTime.Now)
+                    zipfile = xfile;
+                else
                 {
-                    DAL.WriteLog("准备从{0}下载文件到{1}！", url, zipfile);
-                    var client = new WebClientX(true, true);
-                    // 同步下载，3秒超时
-                    client.Timeout = 3000;
-                    //var data = client.DownloadData(url);
-                    if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
-                    client.DownloadFile(url, zipfile);
-                    client.Dispose();
+                    // 目标Zip文件
+                    zipfile = Path.Combine(dir, zipfile);
+                    // Zip文件不存在，准备下载
+                    if (!File.Exists(zipfile) || new FileInfo(zipfile).Length <= 0)
+                    {
+                        DAL.WriteLog("准备从{0}下载文件到{1}！", url, zipfile);
+                        var client = new WebClientX(true, true);
+                        // 同步下载，3秒超时
+                        client.Timeout = 10000;
+                        //var data = client.DownloadData(url);
+                        if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
+                        client.DownloadFile(url, zipfile);
+                        client.Dispose();
+                    }
+
+                    if (CacheZip) File.Copy(zipfile, xfile, true);
                 }
                 sw.Stop();
                 var size = new FileInfo(zipfile).Length;
