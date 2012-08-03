@@ -137,8 +137,6 @@ namespace XCode.DataAccessLayer
             {
                 if (_DllPath == null)
                 {
-                    _DllPath = "";
-
                     String ocifile = "oci.dll".GetFullPath();
                     if (!File.Exists(ocifile) && Runtime.IsWeb) ocifile = Path.Combine(HttpRuntime.BinDirectory, "oci.dll");
                     if (!File.Exists(ocifile)) ocifile = @"OracleClient\oci.dll".GetFullPath();
@@ -160,7 +158,10 @@ namespace XCode.DataAccessLayer
                         catch { }
                         //ocifile = @"C:\OracleClient\oci.dll";
                     }
-                    if (File.Exists(ocifile)) _DllPath = Path.GetDirectoryName(ocifile);
+                    if (File.Exists(ocifile))
+                        _DllPath = Path.GetDirectoryName(ocifile);
+                    else
+                        _DllPath = "";
                 }
                 return _DllPath;
             }
