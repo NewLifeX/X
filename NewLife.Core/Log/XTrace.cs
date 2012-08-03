@@ -134,7 +134,7 @@ namespace NewLife.Log
             Log = TextFileLog.Create(Config.GetConfig<String>("NewLife.LogPath"));
 
             var asmx = AssemblyX.Create(Assembly.GetExecutingAssembly());
-            XTrace.WriteLine("{0} v{1} Build {2:yyyy-MM-dd HH:mm:ss}", asmx.Name, asmx.FileVersion, asmx.Compile);
+            WriteLine("{0} v{1} Build {2:yyyy-MM-dd HH:mm:ss}", asmx.Name, asmx.FileVersion, asmx.Compile);
         }
         #endregion
 
@@ -159,7 +159,7 @@ namespace NewLife.Log
             ConsoleWriteLog(e);
         }
 
-        private static Boolean LastIsNewLine;
+        private static Boolean LastIsNewLine = true;
         private static void ConsoleWriteLog(WriteLogEventArgs e)
         {
             if (LastIsNewLine)

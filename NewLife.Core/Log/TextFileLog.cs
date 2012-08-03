@@ -169,7 +169,7 @@ namespace NewLife.Log
         #region 异步写日志
         private Timer AutoCloseWriterTimer;
         private object Log_Lock = new object();
-        private Boolean LastIsNewLine;
+        private Boolean LastIsNewLine = true;
 
         /// <summary>使用线程池线程异步执行日志写入动作</summary>
         /// <param name="e"></param>
