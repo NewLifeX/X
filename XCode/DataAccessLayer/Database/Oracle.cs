@@ -6,10 +6,10 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading;
 using System.Web;
 using NewLife;
 using NewLife.Configuration;
+using NewLife.Threading;
 using XCode.Common;
 #if NET4
 using System.Linq;
@@ -23,10 +23,7 @@ namespace XCode.DataAccessLayer
     {
         #region 属性
         /// <summary>返回数据库类型。外部DAL数据库类请使用Other</summary>
-        public override DatabaseType DbType
-        {
-            get { return DatabaseType.Oracle; }
-        }
+        public override DatabaseType DbType { get { return DatabaseType.Oracle; } }
 
         private static DbProviderFactory _dbProviderFactory;
         /// <summary>提供者工厂</summary>
@@ -41,9 +38,9 @@ namespace XCode.DataAccessLayer
                     {
                         if (_dbProviderFactory == null)
                         {
-                            // 检查Oracle客户端运行时
-                            //ThreadPoolX.QueueUserWorkItem(CheckRuntime);
-                            CheckRuntime();
+                            // 异步检查Oracle客户端运行时，此时可能会先用系统驱动
+                            ThreadPoolX.QueueUserWorkItem(CheckRuntime);
+                            //CheckRuntime();
 
                             try
                             {
@@ -93,11 +90,7 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>工厂</summary>
-        public override DbProviderFactory Factory
-        {
-            //get { return OracleClientFactory.Instance; }
-            get { return dbProviderFactory; }
-        }
+        public override DbProviderFactory Factory { get { return dbProviderFactory; } }
 
         private String _UserID;
         /// <summary>用户名UserID</summary>
@@ -111,7 +104,7 @@ namespace XCode.DataAccessLayer
                 String connStr = ConnectionString;
                 if (String.IsNullOrEmpty(connStr)) return null;
 
-                DbConnectionStringBuilder ocsb = Factory.CreateConnectionStringBuilder();
+                var ocsb = Factory.CreateConnectionStringBuilder();
                 ocsb.ConnectionString = connStr;
 
                 if (ocsb.ContainsKey("User ID")) _UserID = (String)ocsb["User ID"];
@@ -146,10 +139,10 @@ namespace XCode.DataAccessLayer
                 {
                     _DllPath = "";
 
-                    String ocifile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "oci.dll");
+                    String ocifile = "oci.dll".GetFullPath();
                     if (!File.Exists(ocifile) && Runtime.IsWeb) ocifile = Path.Combine(HttpRuntime.BinDirectory, "oci.dll");
-                    if (!File.Exists(ocifile)) ocifile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"OracleClient\oci.dll");
-                    if (!File.Exists(ocifile)) ocifile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\OracleClient\oci.dll");
+                    if (!File.Exists(ocifile)) ocifile = @"OracleClient\oci.dll".GetFullPath();
+                    if (!File.Exists(ocifile)) ocifile = @"..\OracleClient\oci.dll".GetFullPath();
                     if (!File.Exists(ocifile))
                     {
                         // 全盘搜索
@@ -175,16 +168,18 @@ namespace XCode.DataAccessLayer
             {
                 _DllPath = value;
 
-                String ocifile = Path.Combine(value, "oci.dll");
-                if (!File.Exists(ocifile))
+                if (!String.IsNullOrEmpty(value))
                 {
-                    String dir = Path.Combine(value, "bin");
-                    ocifile = Path.Combine(dir, "oci.dll");
-                    if (File.Exists(ocifile)) _DllPath = dir;
-                }
+                    String ocifile = Path.Combine(value, "oci.dll");
+                    if (!File.Exists(ocifile))
+                    {
+                        String dir = Path.Combine(value, "bin");
+                        ocifile = Path.Combine(dir, "oci.dll");
+                        if (File.Exists(ocifile)) _DllPath = dir;
+                    }
 
-                if (!Path.IsPathRooted(_DllPath)) _DllPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, _DllPath);
-                _DllPath = new DirectoryInfo(_DllPath).FullName;
+                    _DllPath = _DllPath.GetFullPath();
+                }
             }
         }
 
@@ -230,10 +225,10 @@ namespace XCode.DataAccessLayer
             //    SetDllPath(str);
             else
             {
-                //if (!String.IsNullOrEmpty(str = DllPath)) SetDllPath(str);
+                if (!String.IsNullOrEmpty(str = DllPath)) SetDllPath(str);
                 // 异步设置DLL目录
-                ThreadPool.QueueUserWorkItem(ss => SetDllPath(DllPath));
-                Thread.Sleep(500);
+                //ThreadPool.QueueUserWorkItem(ss => SetDllPath(DllPath));
+                //Thread.Sleep(500);
             }
         }
 
@@ -395,12 +390,11 @@ namespace XCode.DataAccessLayer
             return true;
         }
 
-        void SetDllPath(String str)
+        static void SetDllPath(String str)
         {
             if (String.IsNullOrEmpty(str)) return;
 
-            DllPath = str;
-            var dir = DllPath;
+            var dir = DllPath = str;
 
             // 设置路径
             String ocifile = Path.Combine(dir, "oci.dll");
@@ -448,12 +442,12 @@ namespace XCode.DataAccessLayer
             {
                 try
                 {
-                    target = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\OracleClient"));
+                    target = @"..\OracleClient".GetFullPath();
                     if (!Directory.Exists(target)) Directory.CreateDirectory(target);
                 }
                 catch
                 {
-                    target = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "OracleClient"));
+                    target = "OracleClient".GetFullPath();
                 }
             }
 
@@ -465,7 +459,9 @@ namespace XCode.DataAccessLayer
             {
                 LoadLibrary(file);
                 SetDllDirectory(target);
+                SetDllPath(target);
             }
+
         }
 
         //[DllImport("OraOps11w.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
