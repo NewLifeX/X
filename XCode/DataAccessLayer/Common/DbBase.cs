@@ -250,7 +250,7 @@ namespace XCode.DataAccessLayer
             if (!Path.IsPathRooted(file))
             {
                 if (!Runtime.IsWeb)
-                    file = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, file);
+                    file = file.GetFullPath();
                 else
                     file = Path.Combine(HttpRuntime.BinDirectory, file);
             }
@@ -266,7 +266,7 @@ namespace XCode.DataAccessLayer
             try
             {
                 #region 检测64位平台
-                Module module = typeof(Object).Module;
+                var module = typeof(Object).Module;
 
                 PortableExecutableKinds kind;
                 ImageFileMachine machine;
@@ -276,7 +276,7 @@ namespace XCode.DataAccessLayer
                 #endregion
 
                 zipfile += ".zip";
-                String url = String.Format(ServiceAddress, zipfile);
+                var url = String.Format(ServiceAddress, zipfile);
 
                 // 目标Zip文件
                 zipfile = Path.Combine(dir, zipfile);
@@ -319,9 +319,20 @@ namespace XCode.DataAccessLayer
         {
             get
             {
-                if (_ServiceAddress == null) _ServiceAddress = Config.GetConfig<String>("", "http://j.nnhy.org/?id=3&f={0}");
+                if (_ServiceAddress == null) _ServiceAddress = Config.GetConfig<String>("XCode.ServiceAddress", "http://j.nnhy.org/?id=3&f={0}");
 
                 return _ServiceAddress;
+            }
+        }
+
+        static Boolean? _CacheZip;
+        static Boolean CacheZip
+        {
+            get
+            {
+                if (_CacheZip == null) _CacheZip = Config.GetConfig<Boolean>("XCode.CacheZip", false);
+
+                return _CacheZip.Value;
             }
         }
 
