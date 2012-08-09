@@ -517,7 +517,7 @@ namespace XCode
         public static TEntity FindByKey(Object key)
         {
             FieldItem field = Meta.Unique;
-            if (field == null) throw new ArgumentNullException("Meta.Unique", "FindByKey方法要求该表有唯一主键！");
+            if (field == null) throw new ArgumentNullException("Meta.Unique", "FindByKey方法要求" + Meta.ThisType.FullName + "有唯一主键！");
 
             // 唯一键为自增且参数小于等于0时，返回空
             if (Helper.IsNullKey(key)) return null;
