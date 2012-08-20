@@ -69,7 +69,8 @@ svn commit -m "自动编译" ..\DLL4
 svn commit -m "自动编译" ..\XCoder
 
 :: 6，打包Src和DLL到FTP
-set zip="C:\Program Files\WinRAR\WinRAR.exe" a -m5 -s -z..\Src\Readme.txt -ibck
+set zipexe="C:\Program Files\WinRAR\WinRAR.exe"
+set zip=%zipexe% a -m5 -s -z..\Src\Readme.txt -ibck
 ::set zip="D:\Pro\7-zip\7z.exe" a -tzip -mx9 -mfb258
 set zipfile=%date:~0,4%%date:~5,2%%date:~8,2%%time:~0,2%%time:~3,2%%time:~6,2%.rar
 set dest=E:\快盘\新生命共享\X
@@ -98,7 +99,6 @@ move /y XCodeSample*.zip %dest%\%zipfile%
 :: 发布DLL压缩包
 :: 保存当前目录，并切换目录
 pushd ..\DLL
-::"C:\Program Files\WinRAR\WinRAR.exe" a DLL.rar *.dll *.exe *.pdb *.xml
 set zipfile=DLL.zip
 del DLL*.zip /f/q
 %zip% %zipfile% *.dll *.exe *.pdb *.xml *.chm
@@ -109,9 +109,9 @@ popd
 :: 发布Debug DLL压缩包
 :: 保存当前目录，并切换目录
 pushd ..\DLL\Debug\
-::"C:\Program Files\WinRAR\WinRAR.exe" a DLL.rar *.dll *.exe *.pdb *.xml
 set zipfile=DLL_Debug.zip
 del DLL*.zip /f/q
+set zip=%zipexe% a -m5 -s -z..\..\Src\Readme.txt -ibck
 %zip% %zipfile% *.dll *.exe *.pdb *.xml *.chm
 move /y DLL*.zip %dest%\%zipfile%
 :: 恢复目录
@@ -120,10 +120,9 @@ popd
 :: 发布DLL4压缩包
 :: 保存当前目录，并切换目录
 pushd ..\DLL4
-::"C:\Program Files\WinRAR\WinRAR.exe" a DLL.rar *.dll *.exe *.pdb *.xml
 set zipfile=DLL4.zip
 del DLL*.zip /f/q
-set zip4="C:\Program Files\WinRAR\WinRAR.exe" a -m5 -s -z..\Src\Readme4.txt -ibck
+set zip4=%zipexe% a -m5 -s -z..\Src\Readme4.txt -ibck
 %zip4% %zipfile% *.dll *.exe *.pdb *.xml *.chm
 move /y DLL*.zip %dest%\%zipfile%
 :: 恢复目录
@@ -132,10 +131,9 @@ popd
 :: 发布Debug DLL4压缩包
 :: 保存当前目录，并切换目录
 pushd ..\DLL4\Debug\
-::"C:\Program Files\WinRAR\WinRAR.exe" a DLL.rar *.dll *.exe *.pdb *.xml
 set zipfile=DLL4_Debug.zip
 del DLL*.zip /f/q
-set zip4="C:\Program Files\WinRAR\WinRAR.exe" a -m5 -s -z..\Src\Readme4.txt -ibck
+set zip4=%zipexe% a -m5 -s -z..\..\Src\Readme4.txt -ibck
 %zip4% %zipfile% *.dll *.exe *.pdb *.xml *.chm
 move /y DLL*.zip %dest%\%zipfile%
 :: 恢复目录
@@ -146,6 +144,7 @@ popd
 pushd ..\XCoder
 set zipfile=XCoder.zip
 del XCoder*.zip /f/q
+set zip=%zipexe% a -m5 -s -z..\Src\Readme.txt -ibck
 %zip% %zipfile% *.dll *.exe *.config
 move /y XCoder*.zip %dest%\%zipfile%
 :: 恢复目录
