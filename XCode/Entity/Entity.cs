@@ -903,6 +903,9 @@ namespace XCode
         /// <returns>总行数</returns>
         public static Int32 FindCount(String whereClause, String orderClause, String selects, Int32 startRowIndex, Int32 maximumRows)
         {
+            // 如果总记录数超过一万，为了提高性能，返回快速查找且带有缓存的总记录数
+            if (String.IsNullOrEmpty(whereClause) && Meta.Count > 10000) return Meta.Count;
+
             var sb = new SelectBuilder();
             sb.Table = Meta.FormatName(Meta.TableName);
             sb.Where = whereClause;
