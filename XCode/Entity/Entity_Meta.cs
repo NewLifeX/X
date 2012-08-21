@@ -635,7 +635,7 @@ namespace XCode
                     //if (n != null && n.HasValue && n.Value < 1000)
                     //Int64? n = _Count;
                     if (n != null && n.HasValue && n.Value < 1000)
-                        m = FindCount();
+                        m = FindCountInternal();
                     else
                         m = DBO.Session.QueryCountFast(TableName);
                     _Count = m;
@@ -647,6 +647,14 @@ namespace XCode
 
                     return m;
                 }
+            }
+
+            static Int32 FindCountInternal()
+            {
+                var sb = new SelectBuilder();
+                sb.Table = Meta.FormatName(Meta.TableName);
+
+                return Meta.QueryCount(sb);
             }
 
             private static void ClearCountCache()
