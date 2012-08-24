@@ -123,7 +123,19 @@ namespace NewLife.CommonEntity
             get { return _Description; }
             set { if (OnPropertyChanging("Description", value)) { _Description = value; OnPropertyChanged("Description"); } }
         }
-		#endregion
+
+        private Int32 _Sort;
+        /// <summary>序号</summary>
+        [DisplayName("序号")]
+        [Description("序号")]
+        [DataObjectField(false, false, true, 10)]
+        [BindColumn(9, "Sort", "序号", "0", "int", 10, 0, false)]
+        public Int32 Sort
+        {
+            get { return _Sort; }
+            set { if (OnPropertyChanging("Sort", value)) { _Sort = value; OnPropertyChanged("Sort"); } }
+        }
+        #endregion
 
         #region 获取/设置 字段值
         /// <summary>
@@ -139,14 +151,15 @@ namespace NewLife.CommonEntity
             {
                 switch (name)
                 {
-                    case "ID" : return _ID;
-                    case "Code" : return _Code;
-                    case "OldCode" : return _OldCode;
-                    case "OldCode2" : return _OldCode2;
-                    case "OldCode3" : return _OldCode3;
-                    case "Name" : return _Name;
-                    case "ParentCode" : return _ParentCode;
-                    case "Description" : return _Description;
+                    case "ID": return _ID;
+                    case "Code": return _Code;
+                    case "OldCode": return _OldCode;
+                    case "OldCode2": return _OldCode2;
+                    case "OldCode3": return _OldCode3;
+                    case "Name": return _Name;
+                    case "ParentCode": return _ParentCode;
+                    case "Description": return _Description;
+                    case "Sort": return _Sort;
                     default: return base[name];
                 }
             }
@@ -154,14 +167,15 @@ namespace NewLife.CommonEntity
             {
                 switch (name)
                 {
-                    case "ID" : _ID = Convert.ToInt32(value); break;
-                    case "Code" : _Code = Convert.ToInt32(value); break;
-                    case "OldCode" : _OldCode = Convert.ToInt32(value); break;
-                    case "OldCode2" : _OldCode2 = Convert.ToInt32(value); break;
-                    case "OldCode3" : _OldCode3 = Convert.ToInt32(value); break;
-                    case "Name" : _Name = Convert.ToString(value); break;
-                    case "ParentCode" : _ParentCode = Convert.ToInt32(value); break;
-                    case "Description" : _Description = Convert.ToString(value); break;
+                    case "ID": _ID = Convert.ToInt32(value); break;
+                    case "Code": _Code = Convert.ToInt32(value); break;
+                    case "OldCode": _OldCode = Convert.ToInt32(value); break;
+                    case "OldCode2": _OldCode2 = Convert.ToInt32(value); break;
+                    case "OldCode3": _OldCode3 = Convert.ToInt32(value); break;
+                    case "Name": _Name = Convert.ToString(value); break;
+                    case "ParentCode": _ParentCode = Convert.ToInt32(value); break;
+                    case "Description": _Description = Convert.ToString(value); break;
+                    case "Sort": _Sort = Convert.ToInt32(value); break;
                     default: base[name] = value; break;
                 }
             }
@@ -195,6 +209,9 @@ namespace NewLife.CommonEntity
 
             ///<summary>描述</summary>
             public static readonly Field Description = Meta.Table.FindByName("Description");
+
+            /// <summary>序号</summary>
+            public static readonly Field Sort = Meta.Table.FindByName("Sort");
         }
         #endregion
     }
@@ -226,6 +243,9 @@ namespace NewLife.CommonEntity
 
         /// <summary>描述</summary>
         String Description { get; set; }
+
+        /// <summary>序号</summary>
+        Int32 Sort { get; set; }
         #endregion
 
         #region 获取/设置 字段值
