@@ -102,6 +102,7 @@ namespace XCode.DataAccessLayer
                 _UserID = String.Empty;
 
                 String connStr = ConnectionString;
+
                 if (String.IsNullOrEmpty(connStr)) return null;
 
                 var ocsb = Factory.CreateConnectionStringBuilder();
@@ -119,11 +120,12 @@ namespace XCode.DataAccessLayer
             get
             {
                 // 利用null和Empty的区别来判断是否已计算
-                if (base.Owner == null)
+                if (string.IsNullOrEmpty(base.Owner))
                 {
                     base.Owner = UserID;
                     if (String.IsNullOrEmpty(base.Owner)) base.Owner = String.Empty;
                 }
+
                 return base.Owner;
             }
             set { base.Owner = value; }
@@ -561,6 +563,8 @@ namespace XCode.DataAccessLayer
             if (IsUseOwner)
             {
                 dt = GetSchema(_.Tables, new String[] { Owner, tableName });
+
+                WriteLog("Dt.Count = {0},Owner = {1},tableName = {2}", dt.Rows.Count, Owner, tableName);
 
                 if (_columns == null) _columns = GetSchema(_.Columns, new String[] { Owner, tableName, null });
                 if (_indexes == null) _indexes = GetSchema(_.Indexes, new String[] { Owner, null, Owner, tableName });
