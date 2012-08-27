@@ -98,7 +98,7 @@ namespace XCode.DataAccessLayer
         {
             get
             {
-                if (_UserID != null) return _UserID;
+                if (!string.IsNullOrEmpty(_UserID)) return _UserID;
                 _UserID = String.Empty;
 
                 String connStr = ConnectionString;
@@ -563,8 +563,6 @@ namespace XCode.DataAccessLayer
             if (IsUseOwner)
             {
                 dt = GetSchema(_.Tables, new String[] { Owner, tableName });
-
-                WriteLog("Dt.Count = {0},Owner = {1},tableName = {2}", dt.Rows.Count, Owner, tableName);
 
                 if (_columns == null) _columns = GetSchema(_.Columns, new String[] { Owner, tableName, null });
                 if (_indexes == null) _indexes = GetSchema(_.Indexes, new String[] { Owner, null, Owner, tableName });
