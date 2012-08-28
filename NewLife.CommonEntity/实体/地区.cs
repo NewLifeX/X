@@ -21,7 +21,7 @@ namespace NewLife.CommonEntity
     [DataObject]
     [Description("地区")]
     [BindIndex("IX_Area_Code", true, "Code")]
-    [BindIndex("IX_Area_ParentID_Name", true, "ParentID,Name")]
+    [BindIndex("IX_Area_ParentCode_Name", true, "ParentCode,Name")]
     [BindIndex("IX_Area_Name", false, "Name")]
     [BindIndex("PK__Area__3214EC2707020F21", true, "ID")]
     [BindTable("Area", Description = "地区", ConnName = "Common", DbType = DatabaseType.SqlServer)]
