@@ -5,6 +5,13 @@ using System.Data.Common;
 using System.Text;
 using System.Threading;
 using NewLife.Reflection;
+using NewLife.Collections;
+
+#if NET4
+using System.Linq;
+#else
+using NewLife.Linq;
+#endif
 
 namespace XCode.DataAccessLayer
 {
@@ -224,11 +231,17 @@ namespace XCode.DataAccessLayer
         #region 构架
         protected override List<IDataTable> OnGetTables(ICollection<String> names)
         {
-            DataTable dt = GetSchema(_.Tables, null);
+            // 特殊处理内存数据库
+            if ((Database as SQLite).IsMemoryDatabase)
+            {
+                return memoryTables.Where(t => names.Contains(t.Name)).ToList();
+            }
+
+            var dt = GetSchema(_.Tables, null);
             if (dt == null || dt.Rows == null || dt.Rows.Count < 1) return null;
 
             // 默认列出所有字段
-            DataRow[] rows = dt.Select("TABLE_TYPE='table'");
+            var rows = dt.Select("TABLE_TYPE='table'");
             rows = OnGetTables(names, rows);
             if (rows == null || rows.Length < 1) return null;
 
@@ -461,6 +474,25 @@ namespace XCode.DataAccessLayer
         public override string DropDefaultSQL(IDataColumn field)
         {
             return String.Empty;
+        }
+        #endregion
+
+        #region 反向工程
+        private List<IDataTable> memoryTables = new List<IDataTable>();
+        /// <summary>已重载。因为内存数据库无法检测到架构，不知道表是否已存在，所以需要自己维护</summary>
+        /// <param name="entitytable"></param>
+        /// <param name="dbtable"></param>
+        /// <param name="setting"></param>
+        protected override void CheckTable(IDataTable entitytable, IDataTable dbtable, NegativeSetting setting)
+        {
+            if (dbtable == null && (Database as SQLite).IsMemoryDatabase)
+            {
+                if (memoryTables.Any(t => t.Name.EqualIgnoreCase(entitytable.Name))) return;
+
+                memoryTables.Add(entitytable);
+            }
+
+            base.CheckTable(entitytable, dbtable, setting);
         }
         #endregion
     }

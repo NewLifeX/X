@@ -157,7 +157,7 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        private void CheckTable(IDataTable entitytable, IDataTable dbtable, NegativeSetting setting)
+        protected virtual void CheckTable(IDataTable entitytable, IDataTable dbtable, NegativeSetting setting)
         {
             //Boolean onlySql = DAL.NegativeCheckOnly;
 

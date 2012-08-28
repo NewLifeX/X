@@ -42,7 +42,7 @@ namespace Test
                 try
                 {
 #endif
-                Test9();
+                    Test8();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -341,37 +341,21 @@ namespace Test
 
         static void Test8()
         {
-        }
+            DAL.AddConnStr("mem", "Data Source=", null, "sqlite");
+            User.Meta.ConnName = "mem";
 
-        class FMTest
-        {
-            static Int32 k1 = 1000;
-            static Int32 k2 = 1024;
-            static Int32 k3 = 230942;
+            Console.WriteLine("Count: {0}", User.Meta.Count);
 
-            private Double _Value;
-            /// <summary>属性说明</summary>
-            public Double Value
+            CodeTimer.ShowHeader("SQLite插入性能测试");
+            CodeTimer.TimeLine("", 100000, n =>
             {
-                get
-                {
-                    //Thread.Sleep(10);
-                    return _Value * k1 * k1 / k2 / k2 * Math.Log10(k3);
-                }
-                set { _Value = value; }
-            }
+                User.Meta.ConnName = "mem";
+                var entity = new User();
+                entity.Account = "User" + n;
+                entity.Insert();
+            });
 
-            private static Double _Value2;
-            /// <summary>属性说明</summary>
-            public static Double Value2
-            {
-                get
-                {
-                    //Thread.Sleep(10);
-                    return _Value2 * k1 * k1 / k2 / k2 * Math.Log10(k3);
-                }
-                set { _Value2 = value; }
-            }
+            Console.WriteLine("Count: {0}", User.Meta.Count);
         }
 
         static void Test9()
