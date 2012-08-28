@@ -232,7 +232,13 @@ namespace XCode.Configuration
                     sql = name + String.Format(action, op.FormatValue(this, value));
             }
             else
-                sql = String.Format("{0}{1}{2}", name, action, op.FormatValue(this, value));
+            {
+                // 右值本身就是FieldItem，属于对本表字段进行操作
+                if (value is FieldItem)
+                    sql = String.Format("{0}{1}{2}", name, action, op.FormatName((value as FieldItem).ColumnName));
+                else
+                    sql = String.Format("{0}{1}{2}", name, action, op.FormatValue(this, value));
+            }
             return new WhereExpression(sql);
         }
         #endregion
