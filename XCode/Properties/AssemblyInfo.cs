@@ -35,7 +35,7 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
 [assembly: AssemblyVersion("8.8.*")]
-[assembly: AssemblyFileVersion("8.8.2012.0821")]
+[assembly: AssemblyFileVersion("8.8.2012.0828")]
 
 /*
  * XCode的重大改进
@@ -52,6 +52,8 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v8.8.2012.0828   DAL中，把反向工程检查延迟到第一次数据库操作之前一刻
+ * 
  * v8.8.2012.0821   无条件FindCount时，如果总记录数超过一万，为了提高性能，返回快速查找且带有缓存的总记录数
  * 
  * v8.8.2012.0803   下载数据库驱动时，增加本地缓存（系统盘X目录），有效期一个月

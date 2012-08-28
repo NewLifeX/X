@@ -38,18 +38,18 @@ namespace XCode.DataAccessLayer
             ConnStr = ConnStrs[connName].ConnectionString;
             if (String.IsNullOrEmpty(ConnStr)) throw new XCodeException("请在使用数据库前设置[" + connName + "]连接字符串");
 
-            // 创建数据库访问对象的时候，就开始检查数据库架构
-            // 尽管这样会占用大量时间，但这种情况往往只存在于安装部署的时候
-            // 要尽可能的减少非安装阶段的时间占用
-            try
-            {
-                //DatabaseSchema.Check(Db);
-                SetTables();
-            }
-            catch (Exception ex)
-            {
-                if (Debug) WriteLog(ex.ToString());
-            }
+            //// 创建数据库访问对象的时候，就开始检查数据库架构
+            //// 尽管这样会占用大量时间，但这种情况往往只存在于安装部署的时候
+            //// 要尽可能的减少非安装阶段的时间占用
+            //try
+            //{
+            //    //DatabaseSchema.Check(Db);
+            //    SetTables();
+            //}
+            //catch (Exception ex)
+            //{
+            //    if (Debug) WriteLog(ex.ToString());
+            //}
         }
 
         private static Dictionary<String, DAL> _dals = new Dictionary<String, DAL>(StringComparer.OrdinalIgnoreCase);
@@ -271,7 +271,11 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        private List<IDataTable> GetTables() { return Db.CreateMetaData().GetTables(); }
+        private List<IDataTable> GetTables()
+        {
+            CheckBeforeUseDatabase();
+            return Db.CreateMetaData().GetTables();
+        }
 
         /// <summary>导出模型</summary>
         /// <returns></returns>
@@ -304,6 +308,22 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 反向工程
+        Int32 _hasCheck;
+        void CheckBeforeUseDatabase()
+        {
+            if (_hasCheck > 0 || Interlocked.CompareExchange(ref _hasCheck, 1, 0) > 0) return;
+
+            try
+            {
+                //DatabaseSchema.Check(Db);
+                SetTables();
+            }
+            catch (Exception ex)
+            {
+                if (Debug) WriteLog(ex.ToString());
+            }
+        }
+
         /// <summary>反向工程。检查所有采用当前连接的实体类的数据表架构</summary>
         private void SetTables()
         {
@@ -323,7 +343,7 @@ namespace XCode.DataAccessLayer
         {
             WriteLog("开始检查连接[{0}/{1}]的数据库架构……", ConnName, DbType);
 
-            Stopwatch sw = new Stopwatch();
+            var sw = new Stopwatch();
             sw.Start();
 
             try

@@ -102,7 +102,9 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public DataSet Select(String sql, params String[] tableNames)
         {
-            String cacheKey = sql + "_" + ConnName;
+            CheckBeforeUseDatabase();
+            
+            var cacheKey = sql + "_" + ConnName;
             DataSet ds = null;
             if (EnableCache && XCache.TryGetItem(cacheKey, out ds)) return ds;
 
@@ -145,6 +147,8 @@ namespace XCode.DataAccessLayer
         [Obsolete("请优先考虑使用SelectBuilder参数做查询！")]
         public Int32 SelectCount(String sql, params String[] tableNames)
         {
+            CheckBeforeUseDatabase();
+
             String cacheKey = sql + "_SelectCount" + "_" + ConnName;
             Int32 rs = 0;
             if (EnableCache && XCache.TryGetItem(cacheKey, out rs)) return rs;
@@ -164,6 +168,8 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public Int32 SelectCount(SelectBuilder sb, params String[] tableNames)
         {
+            CheckBeforeUseDatabase();
+
             String sql = sb.ToString();
             String cacheKey = sql + "_SelectCount" + "_" + ConnName;
             Int32 rs = 0;
@@ -183,6 +189,8 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public Int32 Execute(String sql, params String[] tableNames)
         {
+            CheckBeforeUseDatabase();
+
             // 移除所有和受影响表有关的缓存
             if (EnableCache) XCache.Remove(tableNames);
             Interlocked.Increment(ref _ExecuteTimes);
@@ -195,6 +203,8 @@ namespace XCode.DataAccessLayer
         /// <returns>新增行的自动编号</returns>
         public Int64 InsertAndGetIdentity(String sql, params String[] tableNames)
         {
+            CheckBeforeUseDatabase();
+
             // 移除所有和受影响表有关的缓存
             if (EnableCache) XCache.Remove(tableNames);
             Interlocked.Increment(ref _ExecuteTimes);
@@ -209,6 +219,8 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public Int32 Execute(String sql, CommandType type, DbParameter[] ps, params String[] tableNames)
         {
+            CheckBeforeUseDatabase();
+
             // 移除所有和受影响表有关的缓存
             if (EnableCache) XCache.Remove(tableNames);
             Interlocked.Increment(ref _ExecuteTimes);
@@ -223,6 +235,8 @@ namespace XCode.DataAccessLayer
         /// <returns>新增行的自动编号</returns>
         public Int64 InsertAndGetIdentity(String sql, CommandType type, DbParameter[] ps, params String[] tableNames)
         {
+            CheckBeforeUseDatabase();
+
             // 移除所有和受影响表有关的缓存
             if (EnableCache) XCache.Remove(tableNames);
             Interlocked.Increment(ref _ExecuteTimes);
@@ -235,7 +249,9 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public DataSet Select(DbCommand cmd, String[] tableNames)
         {
-            String cacheKey = cmd.CommandText + "_" + ConnName;
+            CheckBeforeUseDatabase();
+
+            var cacheKey = cmd.CommandText + "_" + ConnName;
             DataSet ds = null;
             if (EnableCache && XCache.TryGetItem(cacheKey, out ds)) return ds;
 
@@ -254,6 +270,8 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public Int32 Execute(DbCommand cmd, String[] tableNames)
         {
+            CheckBeforeUseDatabase();
+
             // 移除所有和受影响表有关的缓存
             if (EnableCache) XCache.Remove(tableNames);
 
@@ -266,7 +284,11 @@ namespace XCode.DataAccessLayer
 
         #region 事务
         /// <summary>开始事务</summary>
-        public Int32 BeginTransaction() { return Session.BeginTransaction(); }
+        public Int32 BeginTransaction()
+        {
+            CheckBeforeUseDatabase();
+            return Session.BeginTransaction();
+        }
 
         /// <summary>提交事务</summary>
         public Int32 Commit() { return Session.Commit(); }
