@@ -83,6 +83,23 @@ namespace XControl
             }
         }
 
+        /// <summary>是否添加货币符号</summary>
+        [Category("专用属性"), DefaultValue(true), Description("是否添加货币符号")]
+        public Boolean IsAddSymbol
+        {
+            get
+            {
+                Object addsymbol = ViewState["IsAddSymbol"];
+                addsymbol = addsymbol == null ? true : addsymbol;
+                Boolean b;
+                return Boolean.TryParse(addsymbol.ToString(), out b) ? b : true;
+            }
+            set
+            {
+                ViewState["IsAddSymbol"] = value;
+            }
+        }
+
         /// <summary>获取或设置用作货币符号的字符串</summary>
         [Description("获取或设置用作货币符号的字符串")]
         [DefaultValue("￥")]
@@ -91,15 +108,21 @@ namespace XControl
             get
             {
                 String symbol = (String)ViewState["CurrencySymbol"];
-                if (String.IsNullOrEmpty(symbol)) symbol = "￥";
-
+                if (IsAddSymbol && String.IsNullOrEmpty(symbol)) symbol = "￥";
+                else
+                    symbol = String.Empty;
                 return symbol;
             }
             set
             {
-                if (String.IsNullOrEmpty(value)) ViewState["CurrencySymbol"] = "￥";
+                if (IsAddSymbol)
+                {
+                    if (String.IsNullOrEmpty(value)) ViewState["CurrencySymbol"] = "￥";
 
-                ViewState["CurrencySymbol"] = value;
+                    ViewState["CurrencySymbol"] = value;
+                }
+                else
+                    ViewState["CuurencySymbol"] = String.Empty;
             }
         }
 
@@ -201,8 +224,7 @@ namespace XControl
                 }
                 if (CurrencyDecimalDigits == null) CurrencyDecimalDigits = 2;
                 nf.CurrencyDecimalDigits = (Int32)CurrencyDecimalDigits;
-                if (!String.IsNullOrEmpty(CurrencyGroupSeparator))
-                    nf.CurrencyGroupSeparator = CurrencyGroupSeparator;
+                if (!String.IsNullOrEmpty(CurrencyGroupSeparator)) nf.CurrencyGroupSeparator = CurrencyGroupSeparator;
                 nf.CurrencySymbol = CurrencySymbol;
 
                 return Value.ToString("c", nf);
