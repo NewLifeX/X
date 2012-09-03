@@ -187,10 +187,9 @@ namespace XCode
         #endregion
 
         #region 脏数据
-        [NonSerialized]
         private DirtyCollection _Dirtys;
         /// <summary>脏属性。存储哪些属性的数据被修改过了。</summary>
-        [XmlIgnore]
+        /// 2012.9.3 HUIYUE 去掉NonSerialized属性，适应SOA架构下的更新操作。
         internal protected IDictionary<String, Boolean> Dirtys
         {
             get
