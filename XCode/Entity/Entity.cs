@@ -374,7 +374,7 @@ namespace XCode
             }
         }
 
-        /// <summary>根据指定键检查数据是否已存在，若不存在，抛出ArgumentOutOfRangeException异常</summary>
+        /// <summary>根据指定键检查数据是否已存在，若已存在，抛出ArgumentOutOfRangeException异常</summary>
         /// <param name="names"></param>
         public virtual void CheckExist(params String[] names)
         {
