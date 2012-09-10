@@ -10,12 +10,12 @@ using System.Web.UI;
 namespace XControl
 {
     /// <summary>邮件地址输入控件。只能输入数字，并可以规定范围、间隔。</summary>
-    [Description("日期选择控件")]
+    [Description("邮件地址输入控件")]
     [ToolboxData("<{0}:MailBox runat=server></{0}:MailBox>")]
     [ToolboxBitmap(typeof(TextBox))]
     public class MailBox : TextBox
     {
-          /// <summary>初始化邮件地址输入控件的样式。</summary>
+        /// <summary>初始化邮件地址输入控件的样式。</summary>
         public MailBox()
             : base()
         {
@@ -38,5 +38,5 @@ namespace XControl
             this.Attributes.Add("onblur", "return ValidMail();");
             this.Page.ClientScript.RegisterClientScriptResource(typeof(NumberBox), "XControl.TextBox.Validator.js");
         }
-   }
+    }
 }
