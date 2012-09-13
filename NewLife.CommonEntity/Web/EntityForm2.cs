@@ -523,6 +523,9 @@ namespace NewLife.CommonEntity.Web
                 if (OnSaving != null)
                 {
                     var e = new EntityFormEventArgs() { Cancel = false };
+                    //表单OnSaving事件取消仅仅是用于用户已经提前保存过表单，防止重复保存的情况
+                    //所以即使取消保存，依然会正常的进如数据保存成功提示
+                    //如果需要进行数据校验，请在OnValid中进行
                     OnSaving(this, e);
                     if (e.Cancel) cancel = true;
                 }
