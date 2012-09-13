@@ -16,7 +16,7 @@ namespace NewLife.CommonEntity
     public class DepartmentStructure : DepartmentStructure<DepartmentStructure> { }
 
     /// <summary>部门架构</summary>
-    public partial class DepartmentStructure<TEntity> : EntityTree<TEntity> where TEntity : DepartmentStructure<TEntity>, new()
+    public partial class DepartmentStructure<TEntity> : EntityTree<TEntity>, IDepartmentStructure where TEntity : DepartmentStructure<TEntity>, new()
     {
         #region 对象操作﻿
         static DepartmentStructure()
@@ -188,7 +188,7 @@ namespace NewLife.CommonEntity
         /// <param name="separator">分隔符</param>
         /// <param name="func">回调</param>
         /// <returns></returns>
-        String GetFullPath(Boolean includeSelf, String separator, Func<IDepartmentStructure, String> func)
+        String IDepartmentStructure.GetFullPath(Boolean includeSelf, String separator, Func<IDepartmentStructure, String> func)
         {
             Func<TEntity, String> d = null;
             if (func != null) d = item => func(item);
@@ -198,9 +198,9 @@ namespace NewLife.CommonEntity
 
         /// <summary>检查部门名称，修改为新的部门名称</summary>
         /// <param name="oldName"></param>
-        /// <param name="NewName"></param>
+        /// <param name="newName"></param>
         /// <returns></returns>
-        IDepartmentStructure CheckDepartmentName(String oldName, String newName)
+        IDepartmentStructure IDepartmentStructure.CheckDepartmentName(String oldName, String newName)
         {
             IDepartmentStructure department = FindByPath(oldName, _.Name, _.Code);
 
@@ -214,13 +214,13 @@ namespace NewLife.CommonEntity
         }
 
         /// <summary>父级部门</summary>
-        IDepartmentStructure Parent { get { return Parent; } }
+        IDepartmentStructure IDepartmentStructure.Parent { get { return Parent; } }
 
         /// <summary>下属一级部门</summary>
-        List<IDepartmentStructure> Chlids { get { return Childs.OfType<IDepartmentStructure>().ToList(); } }
+        IList<IDepartmentStructure> IDepartmentStructure.Chlids { get { return Childs.OfType<IDepartmentStructure>().ToList(); } }
 
         /// <summary>下属所有部门</summary>
-        List<IDepartmentStructure> AllChilds { get { return AllChilds.OfType<IDepartmentStructure>().ToList(); } }
+        IList<IDepartmentStructure> IDepartmentStructure.AllChilds { get { return AllChilds.OfType<IDepartmentStructure>().ToList(); } }
         #endregion
     }
 
@@ -243,10 +243,10 @@ namespace NewLife.CommonEntity
         IDepartmentStructure Parent { get; }
 
         /// <summary>下属一级部门</summary>
-        List<IDepartmentStructure> Chlids { get; }
+        IList<IDepartmentStructure> Chlids { get; }
 
         /// <summary>下属所有部门</summary>
-        List<IDepartmentStructure> AllChilds { get; }
+        IList<IDepartmentStructure> AllChilds { get; }
 
         /// <summary>几级部门</summary>
         Int32 Deepth { get; }
