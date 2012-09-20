@@ -53,11 +53,14 @@ namespace XCode.Sync
         {
             var now = DateTime.Now;
 
-            // 先处理本地添加的数据，因为可能需要修改主键。如果不是先处理添加，自增字段很有可能出现跟提供者一样的主键
-            ProcessNew();
+            if (!Master.ReadOnly)
+            {
+                // 先处理本地添加的数据，因为可能需要修改主键。如果不是先处理添加，自增字段很有可能出现跟提供者一样的主键
+                ProcessNew();
 
-            // 在处理本地删除的数据
-            ProcessDelete();
+                // 在处理本地删除的数据
+                ProcessDelete();
+            }
 
             // 最后处理更新的数据
             ProcessItems();
@@ -177,7 +180,7 @@ namespace XCode.Sync
                 CopyTo(remote, local);
             }
             // 本地有修改，本地覆盖提供方
-            else
+            else if (!Master.ReadOnly)
             {
                 // 如果有返回值，可能是在更新的过程中数据有修改
                 var rs = Master.Update(Convert(local));

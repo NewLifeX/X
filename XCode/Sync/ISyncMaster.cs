@@ -11,6 +11,11 @@ namespace XCode.Sync
     /// <summary>同步架构主方接口</summary>
     public interface ISyncMaster
     {
+        #region 属性
+        /// <summary>是否只读。只读的主方不接受数据提交</summary>
+        Boolean ReadOnly { get; }
+        #endregion
+
         #region 方法
         /// <summary>获取指定时间后更新过的数据</summary>
         /// <param name="last"></param>
@@ -99,6 +104,9 @@ namespace XCode.Sync
             }
             set { _LastUpdateName = value; }
         }
+
+        /// <summary>是否只读。只读的主方不接受数据提交</summary>
+        public virtual Boolean ReadOnly { get { return String.IsNullOrEmpty(LastUpdateName); } }
         #endregion
 
         #region 方法
