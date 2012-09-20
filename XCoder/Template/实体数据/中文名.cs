@@ -39,7 +39,7 @@ if(!Config.RenderGenEntity){#>
         public virtual <#=Field.DataType.Name#> <#=Field.Alias#>
         {
             get { return _<#=Field.Alias#>; }
-            set { if (OnPropertyChanging("<#=Field.Alias#>", value)) { _<#=Field.Alias#> = value; OnPropertyChanged("<#=Field.Alias#>"); } }
+            set { if (OnPropertyChanging(__.<#=Field.Alias#>, value)) { _<#=Field.Alias#> = value; OnPropertyChanged(__.<#=Field.Alias#>); } }
         }
 <#
         }
@@ -62,7 +62,7 @@ if(!Config.RenderGenEntity){#>
     foreach(IDataColumn Field in Table.Columns)
     {
 #>
-                    case "<#=Field.Alias#>" : return _<#=Field.Alias#>;<#
+                    case __.<#=Field.Alias#> : return _<#=Field.Alias#>;<#
     }
 #>
                     default: return base[name];
@@ -77,10 +77,10 @@ if(!Config.RenderGenEntity){#>
     { 
         if(conv.GetMethod("To"+Field.DataType.Name, new Type[]{typeof(Object)})!=null){
 #>
-                    case "<#=Field.Alias#>" : _<#=Field.Alias#> = Convert.To<#=Field.DataType.Name#>(value); break;<#
+                    case __.<#=Field.Alias#> : _<#=Field.Alias#> = Convert.To<#=Field.DataType.Name#>(value); break;<#
         }else{
 #>
-                    case "<#=Field.Alias#>" : _<#=Field.Alias#> = (<#=Field.DataType.Name#>)value; break;<#
+                    case __.<#=Field.Alias#> : _<#=Field.Alias#> = (<#=Field.DataType.Name#>)value; break;<#
         }
     }
 #>
@@ -100,11 +100,26 @@ if(!Config.RenderGenEntity){#>
             if(!String.IsNullOrEmpty(des)) des=des.Replace("\r\n"," ");
 #>
             ///<summary><#=des#></summary>
-            public static readonly Field <#=Field.Alias#> = FindByName("<#=Field.Alias#>");
+            public static readonly Field <#=Field.Alias#> = FindByName(__.<#=Field.Alias#>);
 <#
       }
 #>
             static Field FindByName(String name) { return Meta.Table.FindByName(name); }
+        }
+
+        /// <summary>取得<#=Table.Description#>字段名称的快捷方式</summary>
+        class __
+        {<#
+       foreach(IDataColumn Field in Table.Columns)
+      {
+            String des=Field.Description;
+            if(!String.IsNullOrEmpty(des)) des=des.Replace("\r\n"," ");
+#>
+            ///<summary><#=des#></summary>
+            public const String <#=Field.Alias#> = "<#=Field.Alias#>";
+<#
+      }
+#>
         }
         #endregion
     }
