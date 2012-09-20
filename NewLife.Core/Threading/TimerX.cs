@@ -214,7 +214,7 @@ namespace NewLife.Threading
                     return;
                 }
 
-                WriteLog("TimerX.Process {0}", timer);
+                //WriteLog("TimerX.Process {0}", timer);
 
                 try
                 {
