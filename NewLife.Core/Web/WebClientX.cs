@@ -43,11 +43,22 @@ namespace NewLife.Web
         /// <returns></returns>
         protected override WebResponse GetWebResponse(WebRequest request)
         {
-            WebResponse response = base.GetWebResponse(request);
+#if DEBUG
+            try
+            {
+#endif
+                WebResponse response = base.GetWebResponse(request);
 
-            if (response is HttpWebResponse) Cookie.Add((response as HttpWebResponse).Cookies);
+                if (response is HttpWebResponse) Cookie.Add((response as HttpWebResponse).Cookies);
 
-            return response;
+                return response;
+#if DEBUG
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+#endif
         }
         #endregion
 
