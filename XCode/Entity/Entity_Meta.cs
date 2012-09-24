@@ -622,7 +622,8 @@ namespace XCode
                     Int64? n = _Count;
                     if (n != null && n.HasValue)
                     {
-                        if (n.Value > 0 && n.Value < 1000) return n.Value;
+                        // 等于0的时候也应该缓存，否则会一直查询这个表
+                        if (n.Value >= 0 && n.Value < 1000) return n.Value;
 
                         // 大于1000，使用HttpCache
                         Int64? k = (Int64?)HttpRuntime.Cache[key];
