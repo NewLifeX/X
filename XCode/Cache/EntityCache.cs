@@ -130,7 +130,7 @@ namespace XCode.Cache
             set { _Asynchronous = value; }
         }
 
-        private Boolean _AllowNull;
+        private Boolean _AllowNull = true;
         /// <summary>允许缓存空对象</summary>
         public Boolean AllowNull
         {
