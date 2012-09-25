@@ -282,12 +282,12 @@ namespace XCode.DataAccessLayer
                 if (maximumRows < 1)
                     return sql;
                 else
-                    return String.Format("Select * From ({1}) XCode_Temp_a Where rownum<={0}", maximumRows, sql);
+                    return String.Format("Select * From ({1}) XCode_Temp_a Where rownum<={0}", maximumRows - 1, sql);
             }
             if (maximumRows < 1)
                 sql = String.Format("Select * From ({1}) XCode_Temp_a Where rownum>={0}", startRowIndex, sql);
             else
-                sql = String.Format("Select * From (Select XCode_Temp_a.*, rownum as rowNumber From ({1}) XCode_Temp_a Where rownum<={2}) XCode_Temp_b Where rowNumber>={0}", startRowIndex, sql, startRowIndex + maximumRows);
+                sql = String.Format("Select * From (Select XCode_Temp_a.*, rownum as rowNumber From ({1}) XCode_Temp_a Where rownum<={2}) XCode_Temp_b Where rowNumber>={0}", startRowIndex, sql, startRowIndex + maximumRows - 1);
             //sql = String.Format("Select * From ({1}) a Where rownum>={0} and rownum<={2}", startRowIndex, sql, startRowIndex + maximumRows - 1);
             return sql;
         }
