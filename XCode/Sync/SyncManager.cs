@@ -142,7 +142,7 @@ namespace XCode.Sync
         /// <summary>处理更新的数据</summary>
         protected virtual void ProcessItems()
         {
-            var last = Slave.GetLastSync();
+            var last = Slave.LastSync;
             var index = 0;
             while (true)
             {
@@ -157,6 +157,8 @@ namespace XCode.Sync
 
                 index += rs.Length;
             }
+
+            Slave.LastSync = DateTime.Now;
         }
 
         /// <summary>处理更新的数据项</summary>

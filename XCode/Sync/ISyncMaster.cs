@@ -9,6 +9,10 @@ using XCode.Configuration;
 namespace XCode.Sync
 {
     /// <summary>同步架构主方接口</summary>
+    /// <remarks>
+    /// 同步框架中的数据供应方，同步是双向的，从方可以从主方拿数据，也可以把更新数据提交给主方。
+    /// 可通过<see cref="ReadOnly"/>来指定主方是否只读，只读的主方不接受数据提交。
+    /// </remarks>
     public interface ISyncMaster
     {
         #region 属性
