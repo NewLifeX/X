@@ -268,7 +268,7 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 分页
-        /// <summary>已重写。获取分页 2012.9.5 HUIYUE修正分页BUG</summary>
+        /// <summary>已重写。获取分页 2012.9.26 HUIYUE修正分页BUG</summary>
         /// <param name="sql">SQL语句</param>
         /// <param name="startRowIndex">开始行，0表示第一行</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
@@ -276,19 +276,29 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public override String PageSplit(String sql, Int32 startRowIndex, Int32 maximumRows, String keyColumn)
         {
-            // 从第一行开始，不需要分页
+            // 从第一行开始
             if (startRowIndex <= 0)
             {
-                if (maximumRows < 1)
-                    return sql;
+                if (maximumRows <= 0)
+                {
+                    ;
+                }
                 else
-                    return String.Format("Select * From ({1}) XCode_Temp_a Where rownum<={0}", maximumRows - 1, sql);
+                {
+                    sql = String.Format("Select * From ({1}) XCode_Temp_a Where rownum<={0}", maximumRows, sql);
+                }
             }
-            if (maximumRows < 1)
-                sql = String.Format("Select * From ({1}) XCode_Temp_a Where rownum>={0}", startRowIndex, sql);
             else
-                sql = String.Format("Select * From (Select XCode_Temp_a.*, rownum as rowNumber From ({1}) XCode_Temp_a Where rownum<={2}) XCode_Temp_b Where rowNumber>={0}", startRowIndex, sql, startRowIndex + maximumRows - 1);
-            //sql = String.Format("Select * From ({1}) a Where rownum>={0} and rownum<={2}", startRowIndex, sql, startRowIndex + maximumRows - 1);
+            {
+                if (maximumRows <= 0)
+                {
+                    sql = String.Format("Select * From ({1}) XCode_Temp_a Where rownum>={0}", startRowIndex, sql);
+                }
+                else
+                {
+                    sql = String.Format("Select * From (Select XCode_Temp_a.*, rownum as rowNumber From ({1}) XCode_Temp_a Where rownum<={2}) XCode_Temp_b Where rowNumber>={0}", startRowIndex, sql, startRowIndex + maximumRows - 1);
+                }
+            }
             return sql;
         }
         #endregion
