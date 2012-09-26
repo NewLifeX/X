@@ -73,18 +73,18 @@ namespace NewLife.Net.DNS
             }
             set
             {
-                var ps = Parents;
-                var list = new HashSet<String>(ps.Select(p => p.ToString()), StringComparer.OrdinalIgnoreCase);
-                ps.Clear();
-
                 if (value.IsNullOrWhiteSpace()) return;
 
                 var ss = value.Split(",");
                 if (ss == null || ss.Length < 1) return;
 
-                foreach (var item in ss)
+                var ps = Parents;
+                var list = new HashSet<String>(ps.Select(p => p.ToString()), StringComparer.OrdinalIgnoreCase);
+                //ps.Clear();
+
+                for (int i = ss.Length - 1; i >= 0; i--)
                 {
-                    var uri = new NetUri(item);
+                    var uri = new NetUri(ss[i]);
                     if (uri.Port <= 0) uri.Port = 53;
                     if (!list.Contains(uri.ToString()))
                     {
@@ -93,7 +93,7 @@ namespace NewLife.Net.DNS
                             WriteLog("配置的父级DNS[{0}]有误，任意地址不能作为父级DNS地址。", uri);
                             continue;
                         }
-                        ps.Add(uri);
+                        ps.Insert(0, uri);
                         list.Add(uri.ToString());
                     }
                 }
@@ -236,7 +236,11 @@ namespace NewLife.Net.DNS
             NetUri parent = null;
             Byte[] data = null;
             ISocketSession session = null;
-            foreach (var item in Parents)
+
+            NetUri[] us = null;
+            lock (Parents) { us = Parents.ToArray(); }
+
+            foreach (var item in us)
             {
                 session = NetService.CreateSession(item);
                 parent = item;
@@ -260,6 +264,19 @@ namespace NewLife.Net.DNS
                 catch { }
             }
             if (data == null || data.Length < 1) return null;
+
+            // 调到第一位
+            if (Parents.Count > 1 && Parents[0] != parent)
+            {
+                lock (Parents)
+                {
+                    if (Parents.Count > 1 && Parents[0] != parent)
+                    {
+                        Parents.Remove(parent);
+                        Parents.Insert(0, parent);
+                    }
+                }
+            }
 
             DNSEntity response = null;
             try
