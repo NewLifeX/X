@@ -1266,11 +1266,12 @@ namespace XCode
         public override Object Clone() { return CloneEntity(); }
 
         /// <summary>克隆实体。创建当前对象的克隆对象，仅拷贝基本字段</summary>
+        /// <param name="setDirty">是否设置脏数据。默认不设置</param>
         /// <returns></returns>
-        public virtual TEntity CloneEntity(Boolean setDirty = true)
+        public virtual TEntity CloneEntity(Boolean setDirty = false)
         {
-            TEntity obj = CreateInstance();
-            foreach (FieldItem fi in Meta.Fields)
+            var obj = CreateInstance();
+            foreach (var fi in Meta.Fields)
             {
                 //obj[fi.Name] = this[fi.Name];
                 if (setDirty)
@@ -1280,7 +1281,7 @@ namespace XCode
             }
             if (Extends != null && Extends.Count > 0)
             {
-                foreach (String item in Extends.Keys)
+                foreach (var item in Extends.Keys)
                 {
                     obj.Extends[item] = Extends[item];
                 }
