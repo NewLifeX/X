@@ -137,7 +137,8 @@ namespace XCode.DataAccessLayer
         {
             get
             {
-                if (_DllPath == null)
+                // ÐÞÕý×Ö·û´®ÅÐ¶ÏBUG BY HUIYUE 2012.9.28
+                if (string.IsNullOrEmpty(_DllPath))
                 {
                     String ocifile = "oci.dll".GetFullPath();
                     if (!File.Exists(ocifile) && Runtime.IsWeb) ocifile = Path.Combine(HttpRuntime.BinDirectory, "oci.dll");
