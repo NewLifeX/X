@@ -132,13 +132,12 @@ namespace XCode.DataAccessLayer
         }
 
         private static String _DllPath;
-        /// <summary>OCIÄ¿Â¼</summary>
+        /// <summary>OCIÄ¿Â¼ </summary>
         public static String DllPath
         {
             get
             {
-                // ÐÞÕý×Ö·û´®ÅÐ¶ÏBUG BY HUIYUE 2012.9.28
-                if (string.IsNullOrEmpty(_DllPath))
+                if (_DllPath == null)
                 {
                     String ocifile = "oci.dll".GetFullPath();
                     if (!File.Exists(ocifile) && Runtime.IsWeb) ocifile = Path.Combine(HttpRuntime.BinDirectory, "oci.dll");
@@ -170,6 +169,8 @@ namespace XCode.DataAccessLayer
             }
             set
             {
+                _DllPath = value;
+
                 if (!String.IsNullOrEmpty(value))
                 {
                     String ocifile = Path.Combine(value, "oci.dll");
@@ -180,14 +181,10 @@ namespace XCode.DataAccessLayer
                         if (File.Exists(ocifile))
                         {
                             _DllPath = dir;
-                            _DllPath = _DllPath.GetFullPath();
                         }
                     }
-                    else
-                    {
-                        _DllPath = value;
-                        _DllPath = _DllPath.GetFullPath();
-                    }
+
+                    _DllPath = _DllPath.GetFullPath();
                 }
             }
         }
