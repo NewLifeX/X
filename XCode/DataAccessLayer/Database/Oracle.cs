@@ -170,8 +170,6 @@ namespace XCode.DataAccessLayer
             }
             set
             {
-                _DllPath = value;
-
                 if (!String.IsNullOrEmpty(value))
                 {
                     String ocifile = Path.Combine(value, "oci.dll");
@@ -179,10 +177,17 @@ namespace XCode.DataAccessLayer
                     {
                         String dir = Path.Combine(value, "bin");
                         ocifile = Path.Combine(dir, "oci.dll");
-                        if (File.Exists(ocifile)) _DllPath = dir;
+                        if (File.Exists(ocifile))
+                        {
+                            _DllPath = dir;
+                            _DllPath = _DllPath.GetFullPath();
+                        }
                     }
-
-                    _DllPath = _DllPath.GetFullPath();
+                    else
+                    {
+                        _DllPath = value;
+                        _DllPath = _DllPath.GetFullPath();
+                    }
                 }
             }
         }
