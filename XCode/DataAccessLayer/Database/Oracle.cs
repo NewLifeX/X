@@ -98,7 +98,7 @@ namespace XCode.DataAccessLayer
         {
             get
             {
-                if (!string.IsNullOrEmpty(_UserID)) return _UserID;
+                if (_UserID != null) return _UserID;
                 _UserID = String.Empty;
 
                 String connStr = ConnectionString;
@@ -120,7 +120,7 @@ namespace XCode.DataAccessLayer
             get
             {
                 // 利用null和Empty的区别来判断是否已计算
-                if (string.IsNullOrEmpty(base.Owner))
+                if (base.Owner == null)
                 {
                     base.Owner = UserID;
                     if (String.IsNullOrEmpty(base.Owner)) base.Owner = String.Empty;
@@ -139,7 +139,8 @@ namespace XCode.DataAccessLayer
             {
                 if (_DllPath == null)
                 {
-                    String ocifile = "oci.dll".GetFullPath();
+                    String ocifile = Path.Combine(Config.GetConfig<String>("XCode.Oracle.DllPath",@"C:\Oracle"), "oci.dll");
+                    if (!File.Exists(ocifile)) ocifile = "oci.dll".GetFullPath();
                     if (!File.Exists(ocifile) && Runtime.IsWeb) ocifile = Path.Combine(HttpRuntime.BinDirectory, "oci.dll");
                     if (!File.Exists(ocifile)) ocifile = @"OracleClient\oci.dll".GetFullPath();
                     if (!File.Exists(ocifile)) ocifile = @"..\OracleClient\oci.dll".GetFullPath();
@@ -226,9 +227,11 @@ namespace XCode.DataAccessLayer
             String str = null;
             // 获取OCI目录
             if (builder.TryGetAndRemove("DllPath", out str) && !String.IsNullOrEmpty(str))
+            {
                 SetDllPath(str);
-            //else if (!String.IsNullOrEmpty(str = DllPath))
-            //    SetDllPath(str);
+                //else if (!String.IsNullOrEmpty(str = DllPath))
+                //    SetDllPath(str);
+            }
             else
             {
                 if (!String.IsNullOrEmpty(str = DllPath)) SetDllPath(str);
