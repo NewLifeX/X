@@ -41,6 +41,7 @@
             this.proc_percent = new System.Windows.Forms.ToolStripStatusLabel();
             this.bw = new System.ComponentModel.BackgroundWorker();
             this.gbConfig = new System.Windows.Forms.GroupBox();
+            this.cbCutTableName = new System.Windows.Forms.CheckBox();
             this.cbUseID = new System.Windows.Forms.CheckBox();
             this.frmItems = new System.Windows.Forms.Button();
             this.cbRenderGenEntity = new System.Windows.Forms.CheckBox();
@@ -74,6 +75,7 @@
             this.label12 = new System.Windows.Forms.Label();
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.文件ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.oracle客户端运行时检查ToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.退出XToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.模型ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.模型管理MToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -84,13 +86,11 @@
             this.组件手册ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.表名字段名命名规范ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem2 = new System.Windows.Forms.ToolStripSeparator();
+            this.博客ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.qQ群1600800ToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.检查更新ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.关于ToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.qQ群1600800ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.博客ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.cbCutTableName = new System.Windows.Forms.CheckBox();
-            this.oracle客户端运行时检查ToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
-            this.qQ群1600800ToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.gbConnect.SuspendLayout();
             this.gbTable.SuspendLayout();
             this.statusStrip1.SuspendLayout();
@@ -127,7 +127,7 @@
             this.cbConn.Name = "cbConn";
             this.cbConn.Size = new System.Drawing.Size(141, 20);
             this.cbConn.TabIndex = 13;
-            this.cbConn.SelectedIndexChanged += new System.EventHandler(this.cbConn_SelectedIndexChanged);
+            this.cbConn.SelectionChangeCommitted += new System.EventHandler(this.cbConn_SelectionChangeCommitted);
             // 
             // label4
             // 
@@ -261,6 +261,16 @@
             this.gbConfig.Size = new System.Drawing.Size(725, 215);
             this.gbConfig.TabIndex = 26;
             this.gbConfig.TabStop = false;
+            // 
+            // cbCutTableName
+            // 
+            this.cbCutTableName.AutoSize = true;
+            this.cbCutTableName.Location = new System.Drawing.Point(11, 187);
+            this.cbCutTableName.Name = "cbCutTableName";
+            this.cbCutTableName.Size = new System.Drawing.Size(132, 16);
+            this.cbCutTableName.TabIndex = 52;
+            this.cbCutTableName.Text = "去除字段前面的表名";
+            this.cbCutTableName.UseVisualStyleBackColor = true;
             // 
             // cbUseID
             // 
@@ -555,10 +565,17 @@
             this.文件ToolStripMenuItem.Size = new System.Drawing.Size(58, 21);
             this.文件ToolStripMenuItem.Text = "文件(&F)";
             // 
+            // oracle客户端运行时检查ToolStripMenuItem1
+            // 
+            this.oracle客户端运行时检查ToolStripMenuItem1.Name = "oracle客户端运行时检查ToolStripMenuItem1";
+            this.oracle客户端运行时检查ToolStripMenuItem1.Size = new System.Drawing.Size(210, 22);
+            this.oracle客户端运行时检查ToolStripMenuItem1.Text = "Oracle客户端运行时检查";
+            this.oracle客户端运行时检查ToolStripMenuItem1.Click += new System.EventHandler(this.oracle客户端运行时检查ToolStripMenuItem1_Click);
+            // 
             // 退出XToolStripMenuItem
             // 
             this.退出XToolStripMenuItem.Name = "退出XToolStripMenuItem";
-            this.退出XToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.退出XToolStripMenuItem.Size = new System.Drawing.Size(210, 22);
             this.退出XToolStripMenuItem.Text = "退出(&X)";
             this.退出XToolStripMenuItem.Click += new System.EventHandler(this.退出XToolStripMenuItem_Click);
             // 
@@ -621,41 +638,21 @@
             // 组件手册ToolStripMenuItem
             // 
             this.组件手册ToolStripMenuItem.Name = "组件手册ToolStripMenuItem";
-            this.组件手册ToolStripMenuItem.Size = new System.Drawing.Size(210, 22);
+            this.组件手册ToolStripMenuItem.Size = new System.Drawing.Size(202, 22);
             this.组件手册ToolStripMenuItem.Text = "组件手册(&X)";
             this.组件手册ToolStripMenuItem.Click += new System.EventHandler(this.组件手册ToolStripMenuItem_Click);
             // 
             // 表名字段名命名规范ToolStripMenuItem
             // 
             this.表名字段名命名规范ToolStripMenuItem.Name = "表名字段名命名规范ToolStripMenuItem";
-            this.表名字段名命名规范ToolStripMenuItem.Size = new System.Drawing.Size(210, 22);
+            this.表名字段名命名规范ToolStripMenuItem.Size = new System.Drawing.Size(202, 22);
             this.表名字段名命名规范ToolStripMenuItem.Text = "表名字段名命名规范(&N)";
             this.表名字段名命名规范ToolStripMenuItem.Click += new System.EventHandler(this.表名字段名命名规范ToolStripMenuItem_Click);
             // 
             // toolStripMenuItem2
             // 
             this.toolStripMenuItem2.Name = "toolStripMenuItem2";
-            this.toolStripMenuItem2.Size = new System.Drawing.Size(207, 6);
-            // 
-            // 检查更新ToolStripMenuItem
-            // 
-            this.检查更新ToolStripMenuItem.Name = "检查更新ToolStripMenuItem";
-            this.检查更新ToolStripMenuItem.Size = new System.Drawing.Size(210, 22);
-            this.检查更新ToolStripMenuItem.Text = "检查更新(&U)";
-            this.检查更新ToolStripMenuItem.Click += new System.EventHandler(this.检查更新ToolStripMenuItem_Click);
-            // 
-            // 关于ToolStripMenuItem1
-            // 
-            this.关于ToolStripMenuItem1.Name = "关于ToolStripMenuItem1";
-            this.关于ToolStripMenuItem1.Size = new System.Drawing.Size(210, 22);
-            this.关于ToolStripMenuItem1.Text = "关于(&A)";
-            this.关于ToolStripMenuItem1.Click += new System.EventHandler(this.关于ToolStripMenuItem1_Click);
-            // 
-            // qQ群1600800ToolStripMenuItem
-            // 
-            this.qQ群1600800ToolStripMenuItem.Name = "qQ群1600800ToolStripMenuItem";
-            this.qQ群1600800ToolStripMenuItem.Size = new System.Drawing.Size(210, 22);
-            this.qQ群1600800ToolStripMenuItem.Text = "QQ群1600800";
+            this.toolStripMenuItem2.Size = new System.Drawing.Size(199, 6);
             // 
             // 博客ToolStripMenuItem
             // 
@@ -664,28 +661,31 @@
             this.博客ToolStripMenuItem.Text = "博客";
             this.博客ToolStripMenuItem.Click += new System.EventHandler(this.博客ToolStripMenuItem_Click);
             // 
-            // cbCutTableName
-            // 
-            this.cbCutTableName.AutoSize = true;
-            this.cbCutTableName.Location = new System.Drawing.Point(11, 187);
-            this.cbCutTableName.Name = "cbCutTableName";
-            this.cbCutTableName.Size = new System.Drawing.Size(132, 16);
-            this.cbCutTableName.TabIndex = 52;
-            this.cbCutTableName.Text = "去除字段前面的表名";
-            this.cbCutTableName.UseVisualStyleBackColor = true;
-            // 
-            // oracle客户端运行时检查ToolStripMenuItem1
-            // 
-            this.oracle客户端运行时检查ToolStripMenuItem1.Name = "oracle客户端运行时检查ToolStripMenuItem1";
-            this.oracle客户端运行时检查ToolStripMenuItem1.Size = new System.Drawing.Size(210, 22);
-            this.oracle客户端运行时检查ToolStripMenuItem1.Text = "Oracle客户端运行时检查";
-            this.oracle客户端运行时检查ToolStripMenuItem1.Click += new System.EventHandler(this.oracle客户端运行时检查ToolStripMenuItem1_Click);
-            // 
             // qQ群1600800ToolStripMenuItem1
             // 
             this.qQ群1600800ToolStripMenuItem1.Name = "qQ群1600800ToolStripMenuItem1";
             this.qQ群1600800ToolStripMenuItem1.Size = new System.Drawing.Size(202, 22);
             this.qQ群1600800ToolStripMenuItem1.Text = "QQ群1600800";
+            // 
+            // 检查更新ToolStripMenuItem
+            // 
+            this.检查更新ToolStripMenuItem.Name = "检查更新ToolStripMenuItem";
+            this.检查更新ToolStripMenuItem.Size = new System.Drawing.Size(202, 22);
+            this.检查更新ToolStripMenuItem.Text = "检查更新(&U)";
+            this.检查更新ToolStripMenuItem.Click += new System.EventHandler(this.检查更新ToolStripMenuItem_Click);
+            // 
+            // 关于ToolStripMenuItem1
+            // 
+            this.关于ToolStripMenuItem1.Name = "关于ToolStripMenuItem1";
+            this.关于ToolStripMenuItem1.Size = new System.Drawing.Size(202, 22);
+            this.关于ToolStripMenuItem1.Text = "关于(&A)";
+            this.关于ToolStripMenuItem1.Click += new System.EventHandler(this.关于ToolStripMenuItem1_Click);
+            // 
+            // qQ群1600800ToolStripMenuItem
+            // 
+            this.qQ群1600800ToolStripMenuItem.Name = "qQ群1600800ToolStripMenuItem";
+            this.qQ群1600800ToolStripMenuItem.Size = new System.Drawing.Size(202, 22);
+            this.qQ群1600800ToolStripMenuItem.Text = "QQ群1600800";
             // 
             // FrmMain
             // 

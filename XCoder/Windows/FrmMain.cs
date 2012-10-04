@@ -128,7 +128,7 @@ namespace XCoder
             }
         }
 
-        private void cbConn_SelectedIndexChanged(object sender, EventArgs e)
+        private void cbConn_SelectionChangeCommitted(object sender, EventArgs e)
         {
             if (!String.IsNullOrEmpty(cbConn.Text)) toolTip1.SetToolTip(cbConn, DAL.Create(cbConn.Text).ConnStr);
 
@@ -336,8 +336,7 @@ namespace XCoder
 
             if (!String.IsNullOrEmpty(Config.ConnName))
             {
-                Int32 n = cbConn.FindString(Config.ConnName);
-                if (n >= 0) cbConn.SelectedIndex = n;
+                cbConn.SelectedText = Config.ConnName;
             }
 
             if (cbConn.SelectedIndex < 0 && cbConn.Items != null && cbConn.Items.Count > 0) cbConn.SelectedIndex = 0;
