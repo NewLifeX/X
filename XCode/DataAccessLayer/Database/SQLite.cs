@@ -61,6 +61,9 @@ namespace XCode.DataAccessLayer
         {
             base.OnSetConnectionString(builder);
 
+            // 正常情况下INSERT, UPDATE和DELETE语句不返回数据。 当开启count-changes，以上语句返回一行含一个整数值的数据——该语句插入，修改或删除的行数。
+            if (!builder.ContainsKey("count_changes")) builder["count_changes"] = "1";
+
             // 优化SQLite，如果原始字符串里面没有这些参数，就设置这些参数
             if (!builder.ContainsKey("Pooling")) builder["Pooling"] = "true";
             if (!builder.ContainsKey("Cache Size")) builder["Cache Size"] = "50000";
