@@ -878,7 +878,7 @@ namespace NewLife.Serialization
 
         /// <summary>写入对象成员</summary>
         /// <param name="value">要写入的对象</param>
-        /// <param name="type">要写入的对象类型</param>
+        /// <param name="type">要写入的成员类型</param>
         /// <param name="member">成员</param>
         /// <param name="index">成员索引</param>
         /// <param name="callback">处理成员的方法</param>
@@ -945,7 +945,7 @@ namespace NewLife.Serialization
 
         /// <summary>写入对象成员</summary>
         /// <param name="value">要写入的对象</param>
-        /// <param name="type">要写入的对象类型</param>
+        /// <param name="type">要写入的成员类型</param>
         /// <param name="member">成员</param>
         /// <param name="index">成员索引</param>
         /// <param name="callback">处理成员的方法</param>

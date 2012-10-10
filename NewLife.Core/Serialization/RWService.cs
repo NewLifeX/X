@@ -2,11 +2,12 @@
 using System.Collections.Generic;
 using System.Text;
 using NewLife.Xml;
+using NewLife.Exceptions;
 
 namespace NewLife.Serialization
 {
     /// <summary>读写器服务。将来可以改为对象容器支持</summary>
-    class RWService
+    static class RWService
     {
         public static IReader CreateReader(RWKinds kind)
         {
@@ -38,6 +39,19 @@ namespace NewLife.Serialization
                     break;
             }
             return null;
+        }
+
+        public static RWKinds GetKind(this IReaderWriter rw)
+        {
+            var type = rw.GetType();
+            if (type == typeof(BinaryReaderX)) return RWKinds.Binary;
+            if (type == typeof(BinaryWriterX)) return RWKinds.Binary;
+            if (type == typeof(XmlReaderX)) return RWKinds.Xml;
+            if (type == typeof(XmlWriterX)) return RWKinds.Xml;
+            if (type == typeof(JsonReader)) return RWKinds.Json;
+            if (type == typeof(JsonWriter)) return RWKinds.Json;
+
+            throw new XException("未识别的读写器类型{0}！", type);
         }
     }
 }
