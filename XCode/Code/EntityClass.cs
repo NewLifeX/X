@@ -72,14 +72,17 @@ namespace XCode.Code
             // 特性
             Class.CustomAttributes.Add(new CodeAttributeDeclaration(new CodeTypeReference(typeof(SerializableAttribute))));
             Class.CustomAttributes.Add(new CodeAttributeDeclaration(new CodeTypeReference(typeof(DataObjectAttribute))));
-            Class.CustomAttributes.Add(new CodeAttributeDeclaration(new CodeTypeReference(typeof(DescriptionAttribute)), new CodeAttributeArgument(new CodePrimitiveExpression(Table.Description))));
-            Class.CustomAttributes.Add(new CodeAttributeDeclaration(new CodeTypeReference(typeof(DisplayNameAttribute)), new CodeAttributeArgument(new CodePrimitiveExpression(Table.Description))));
+            if (!Table.Description.IsNullOrWhiteSpace())
+            {
+                Class.CustomAttributes.Add(new CodeAttributeDeclaration(new CodeTypeReference(typeof(DescriptionAttribute)), new CodeAttributeArgument(new CodePrimitiveExpression(Table.Description))));
+                Class.CustomAttributes.Add(new CodeAttributeDeclaration(new CodeTypeReference(typeof(DisplayNameAttribute)), new CodeAttributeArgument(new CodePrimitiveExpression(Table.Description))));
+            }
             Class.CustomAttributes.Add(new CodeAttributeDeclaration(new CodeTypeReference(typeof(CompilerGeneratedAttribute))));
 
             // 索引和关系
             if (Table.Indexes != null && Table.Indexes.Count > 0)
             {
-                foreach (IDataIndex item in Table.Indexes)
+                foreach (var item in Table.Indexes)
                 {
                     if (item.Columns == null || item.Columns.Length < 1) continue;
 
@@ -127,7 +130,7 @@ namespace XCode.Code
             if (Table.Columns == null || Table.Columns.Count < 1) return;
 
             Int32 n = Class.Members.Count;
-            foreach (IDataColumn item in Table.Columns)
+            foreach (var item in Table.Columns)
             {
                 if (item.DataType == null) throw new XCodeException("[{0}]的[{1}]字段类型DataType不能为空！", Table.DisplayName, item.DisplayName);
                 AddField(item);
@@ -142,7 +145,7 @@ namespace XCode.Code
         /// <param name="field"></param>
         public CodeMemberField AddField(IDataColumn field)
         {
-            CodeMemberField f = new CodeMemberField();
+            var f = new CodeMemberField();
             f.Attributes = MemberAttributes.Private;
             //f.Name = "_" + field.Name;
             //f.Name = "_" + FieldNames[field.Name];
@@ -159,15 +162,18 @@ namespace XCode.Code
             //String name = FieldNames[field.Name];
             String name = field.Alias;
 
-            CodeMemberProperty p = new CodeMemberProperty();
+            var p = new CodeMemberProperty();
             p.Attributes = MemberAttributes.Public | MemberAttributes.Final;
             p.Name = name;
             p.Type = new CodeTypeReference(field.DataType);
             p.Comments.Add(AddSummary(field.Description));
 
             // 特性
-            p.CustomAttributes.Add(new CodeAttributeDeclaration(new CodeTypeReference(typeof(DescriptionAttribute)), new CodeAttributeArgument(new CodePrimitiveExpression(field.Description))));
-            p.CustomAttributes.Add(new CodeAttributeDeclaration(new CodeTypeReference(typeof(DisplayNameAttribute)), new CodeAttributeArgument(new CodePrimitiveExpression(field.Description))));
+            if (!field.Description.IsNullOrWhiteSpace())
+            {
+                p.CustomAttributes.Add(new CodeAttributeDeclaration(new CodeTypeReference(typeof(DescriptionAttribute)), new CodeAttributeArgument(new CodePrimitiveExpression(field.Description))));
+                p.CustomAttributes.Add(new CodeAttributeDeclaration(new CodeTypeReference(typeof(DisplayNameAttribute)), new CodeAttributeArgument(new CodePrimitiveExpression(field.Description))));
+            }
             p.CustomAttributes.Add(new CodeAttributeDeclaration(new CodeTypeReference(typeof(DataObjectFieldAttribute)),
                 new CodeAttributeArgument(new CodePrimitiveExpression(field.PrimaryKey)),
                 new CodeAttributeArgument(new CodePrimitiveExpression(field.Identity)),
@@ -190,10 +196,10 @@ namespace XCode.Code
 
             p.GetStatements.Add(new CodeMethodReturnStatement(new CodeFieldReferenceExpression(null, "_" + p.Name)));
 
-            CodeMethodInvokeExpression changing = new CodeMethodInvokeExpression(null, "OnPropertyChanging", new CodePrimitiveExpression(p.Name), new CodeVariableReferenceExpression("value"));
-            CodeMethodInvokeExpression changed = new CodeMethodInvokeExpression(null, "OnPropertyChanged", new CodePrimitiveExpression(p.Name));
+            var changing = new CodeMethodInvokeExpression(null, "OnPropertyChanging", new CodePrimitiveExpression(p.Name), new CodeVariableReferenceExpression("value"));
+            var changed = new CodeMethodInvokeExpression(null, "OnPropertyChanged", new CodePrimitiveExpression(p.Name));
 
-            CodeAssignStatement cas = new CodeAssignStatement();
+            var cas = new CodeAssignStatement();
             cas.Left = new CodeFieldReferenceExpression(null, "_" + p.Name);
             cas.Right = new CodeVariableReferenceExpression("value");
 
@@ -206,7 +212,7 @@ namespace XCode.Code
         /// <summary>添加索引器</summary>
         public CodeMemberProperty AddIndexs()
         {
-            CodeMemberProperty p = new CodeMemberProperty();
+            var p = new CodeMemberProperty();
             p.Attributes = MemberAttributes.Public | MemberAttributes.Override;
             p.Name = "Item";
             p.Type = new CodeTypeReference(typeof(Object));
@@ -218,13 +224,13 @@ namespace XCode.Code
             p.HasGet = true;
             p.HasSet = true;
 
-            foreach (IDataColumn item in Table.Columns)
+            foreach (var item in Table.Columns)
             {
                 //String name = FieldNames[item.Name];
                 String name = item.Alias;
 
                 // 取值
-                CodeConditionStatement cond = new CodeConditionStatement();
+                var cond = new CodeConditionStatement();
                 p.GetStatements.Add(cond);
                 cond.Condition = new CodeBinaryOperatorExpression(new CodeVariableReferenceExpression("name"), CodeBinaryOperatorType.ValueEquality, new CodePrimitiveExpression(name));
                 cond.TrueStatements.Add(new CodeMethodReturnStatement(new CodeFieldReferenceExpression(null, "_" + name)));
@@ -239,7 +245,7 @@ namespace XCode.Code
                 CodeExpression ce = null;
                 if (mi != null)
                 {
-                    CodeMethodInvokeExpression mie = new CodeMethodInvokeExpression();
+                    var mie = new CodeMethodInvokeExpression();
                     mie.Method = new CodeMethodReferenceExpression(new CodeTypeReferenceExpression(typeof(Convert)), "To" + item.DataType.Name);
                     mie.Parameters.Add(new CodeArgumentReferenceExpression("value"));
                     // _Name = Convert.ToString(value);
@@ -247,7 +253,7 @@ namespace XCode.Code
                 }
                 else
                 {
-                    CodeCastExpression cce = new CodeCastExpression();
+                    var cce = new CodeCastExpression();
                     cce.TargetType = new CodeTypeReference(item.DataType);
                     cce.Expression = new CodeArgumentReferenceExpression("value");
                     ce = cce;
@@ -258,7 +264,7 @@ namespace XCode.Code
                 cond.TrueStatements.Add(new CodeMethodReturnStatement());
             }
             // 取值
-            CodeMethodReturnStatement cmrs = new CodeMethodReturnStatement();
+            var cmrs = new CodeMethodReturnStatement();
             cmrs.Expression = new CodeIndexerExpression(new CodeBaseReferenceExpression(), new CodeVariableReferenceExpression("name"));
             p.GetStatements.Add(cmrs);
 
@@ -274,32 +280,6 @@ namespace XCode.Code
 
             return p;
         }
-
-        ///// <summary>
-        ///// 添加字段名类
-        ///// </summary>
-        //public void AddNames()
-        //{
-        //    CodeTypeDeclaration cs = new CodeTypeDeclaration("_");
-        //    cs.IsClass = true;
-        //    cs.Attributes = MemberAttributes.Public;
-        //    cs.Comments.Add(AddSummary("取得字段名的快捷方式"));
-
-        //    foreach (IDataColumn item in Table.Columns)
-        //    {
-        //        CodeMemberField f = new CodeMemberField();
-        //        f.Name = FieldNames[item.Name];
-        //        f.Attributes = MemberAttributes.Public | MemberAttributes.Const;
-        //        f.Type = new CodeTypeReference(typeof(String));
-        //        f.InitExpression = new CodePrimitiveExpression(item.Name);
-        //        f.Comments.Add(AddSummary(item.Description));
-        //        cs.Members.Add(f);
-        //    }
-
-        //    cs.StartDirectives.Add(new CodeRegionDirective(CodeRegionMode.Start, "字段名"));
-        //    cs.EndDirectives.Add(new CodeRegionDirective(CodeRegionMode.End, null));
-        //    Class.Members.Add(cs);
-        //}
         #endregion
 
         #region 注释
