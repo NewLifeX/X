@@ -11,10 +11,8 @@ namespace XCode.DataAccessLayer
     {
         #region 统计属性
         private Boolean _EnableCache = true;
-        /// <summary>
-        /// 是否启用缓存。
+        /// <summary>是否启用缓存</summary>
         /// <remarks>设为false可清空缓存</remarks>
-        /// </summary>
         public Boolean EnableCache
         {
             get { return _EnableCache; }
@@ -103,7 +101,7 @@ namespace XCode.DataAccessLayer
         public DataSet Select(String sql, params String[] tableNames)
         {
             CheckBeforeUseDatabase();
-            
+
             var cacheKey = sql + "_" + ConnName;
             DataSet ds = null;
             if (EnableCache && XCache.TryGetItem(cacheKey, out ds)) return ds;
