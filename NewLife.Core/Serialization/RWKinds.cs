@@ -14,6 +14,9 @@ namespace NewLife.Serialization
         Xml,
 
         /// <summary>Json</summary>
-        Json
+        Json,
+
+        /// <summary>名值</summary>
+        NameValue
     }
 }
