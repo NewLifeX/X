@@ -23,7 +23,7 @@ namespace NewLife.Web
         /// <returns></returns>
         protected override WebRequest GetWebRequest(Uri address)
         {
-            WebRequest request = base.GetWebRequest(address);
+            var request = base.GetWebRequest(address);
 
             //if (request is HttpWebRequest) (request as HttpWebRequest).CookieContainer = Cookie;
             var hr = request as HttpWebRequest;
@@ -43,22 +43,11 @@ namespace NewLife.Web
         /// <returns></returns>
         protected override WebResponse GetWebResponse(WebRequest request)
         {
-#if DEBUG
-            try
-            {
-#endif
-                WebResponse response = base.GetWebResponse(request);
+            var response = base.GetWebResponse(request);
 
-                if (response is HttpWebResponse) Cookie.Add((response as HttpWebResponse).Cookies);
+            if (response is HttpWebResponse) Cookie.Add((response as HttpWebResponse).Cookies);
 
-                return response;
-#if DEBUG
-            }
-            catch (Exception ex)
-            {
-                return null;
-            }
-#endif
+            return response;
         }
         #endregion
 
