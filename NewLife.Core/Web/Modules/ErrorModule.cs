@@ -1,13 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Web;
-using NewLife.Log;
-using System.Collections.Generic;
 using NewLife.Collections;
-using System.IO;
-using NewLife.Model;
+using NewLife.Log;
 using NewLife.Reflection;
 
 namespace NewLife.Web
@@ -69,8 +67,10 @@ namespace NewLife.Web
             sb.AppendLine(ex.ToString());
             sb.AppendFormat("来源：{0}\r\n", Request.UserHostAddress);
             sb.AppendFormat("平台：{0}\r\n", Request.UserAgent);
-            sb.AppendFormat("访问：{0}\r\n", Request.RawUrl);
+            sb.AppendFormat("文件：{0}\r\n", Request.CurrentExecutionFilePath);
+            sb.AppendFormat("访问：{0}\r\n", Request.Url);
             sb.AppendFormat("引用：{0}\r\n", Request.UrlReferrer);
+            sb.AppendFormat("方式：{0} {1:n}\r\n", Request.HttpMethod, Request.ContentLength);
 
             var id = Thread.CurrentPrincipal;
             if (id != null && id.Identity != null) sb.AppendFormat("用户：{0}({1})\r\n", id.Identity.Name, id.Identity.AuthenticationType);
