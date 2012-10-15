@@ -445,13 +445,13 @@ namespace NewLife.Serialization
         }
 
         /// <summary>写入成员</summary>
+        /// <param name="name">成员名字</param>
         /// <param name="value">要写入的对象</param>
-        /// <param name="memberType">要写入的成员类型</param>
-        /// <param name="member">要写入的成员信息,可以通过[value]取得成员值</param>
+        /// <param name="type">要写入的成员类型</param>
         /// <param name="index">成员索引</param>
         /// <param name="callback">处理成员的方法</param>
         /// <returns>是否写入成功</returns>
-        protected override bool OnWriteMember(object value, Type memberType, IObjectMemberInfo member, Int32 index, WriteObjectCallback callback)
+        protected override bool OnWriteMember(String name, Object value, Type type, Int32 index, WriteObjectCallback callback)
         {
             if (index > 0 || writeValueType != null)
             {
@@ -462,15 +462,15 @@ namespace NewLife.Serialization
 
             WriteLine();
 
-            Writer.Write("\"" + JavascriptStringEncode(member.Name) + "\":");
+            Writer.Write("\"" + JavascriptStringEncode(name) + "\":");
 
-            object obj = member[value];
-            if (obj != null && !IsExactType(memberType))
+            object obj = value;
+            if (obj != null && !IsExactType(type))
             {
-                memberType = obj.GetType(); //避免base.OnWriteMember中写入obj.GetType()
+                type = obj.GetType(); //避免base.OnWriteMember中写入obj.GetType()
                 writeValueType = obj;
             }
-            bool ret = base.OnWriteMember(value, memberType, member, index, callback);
+            bool ret = base.OnWriteMember(name, value, type, index, callback);
             writeValueType = null;
             return ret;
         }

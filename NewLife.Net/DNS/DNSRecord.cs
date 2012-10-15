@@ -128,10 +128,11 @@ namespace NewLife.Net.DNS
                 writer.Restore();
                 if (writer.Items.Contains("Position")) writer.Items.Remove("Position");
 
+                var wr = writer as IWriter2;
                 // 写入_Length和数据
-                writer.Write(_Length);
+                wr.Write(_Length);
                 var buffer = ms.ReadBytes();
-                writer.Write(buffer, 0, buffer.Length);
+                wr.Write(buffer, 0, buffer.Length);
             }
 
             writer.OnMemberWriting -= new EventHandler<WriteMemberEventArgs>(writer_OnMemberWriting);

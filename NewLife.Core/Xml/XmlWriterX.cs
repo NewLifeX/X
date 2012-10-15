@@ -236,27 +236,27 @@ namespace NewLife.Xml
         }
 
         /// <summary>写入对象成员</summary>
+        /// <param name="name">成员名字</param>
         /// <param name="value">要写入的对象</param>
         /// <param name="type">要写入的对象类型</param>
-        /// <param name="member">成员</param>
         /// <param name="index">成员索引</param>
         /// <param name="callback">处理成员的方法</param>
         /// <returns>是否写入成功</returns>
-        protected override bool OnWriteMember(object value, Type type, IObjectMemberInfo member, Int32 index, WriteObjectCallback callback)
+        protected override bool OnWriteMember(String name, Object value, Type type, Int32 index, WriteObjectCallback callback)
         {
             // 检查成员的值，如果是默认值，则不输出
-            if (value != null && Settings.IgnoreDefault && IsDefault(value, member)) return true;
+            //if (value != null && Settings.IgnoreDefault && IsDefault(value, member)) return true;
 
             // 特殊处理特性，只有普通值类型才能输出为特性
-            Boolean isAtt = Settings.MemberAsAttribute && IsAttributeType(member.Type);
+            var isAtt = Settings.MemberAsAttribute && IsAttributeType(type);
             if (isAtt)
-                Writer.WriteStartAttribute(member.Name);
+                Writer.WriteStartAttribute(name);
             else
-                Writer.WriteStartElement(member.Name);
+                Writer.WriteStartElement(name);
 
             AutoFlush();
 
-            Boolean rs = base.OnWriteMember(value, type, member, index, callback);
+            var rs = base.OnWriteMember(name, value, type, index, callback);
 
             if (!isAtt) Writer.WriteEndElement();
 

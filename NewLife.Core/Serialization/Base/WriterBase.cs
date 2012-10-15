@@ -18,7 +18,7 @@ namespace NewLife.Serialization
     /// 序列化对象时只能调用<see cref="WriteObject(Object)" />方法，其它所有方法（包括所有Write重载）仅用于内部写入或者自定义序列化时使用。
     /// </remarks>
     /// <typeparam name="TSettings">设置类</typeparam>
-    public abstract class WriterBase<TSettings> : ReaderWriterBase<TSettings>, IWriter where TSettings : ReaderWriterSetting, new()
+    public abstract class WriterBase<TSettings> : ReaderWriterBase<TSettings>, IWriter2 where TSettings : ReaderWriterSetting, new()
     {
         #region 基元类型
         #region 字节
@@ -176,7 +176,14 @@ namespace NewLife.Serialization
         #endregion
         #endregion
 
-        #region 值类型
+        #region 基础名值
+        /// <summary>写入成员名称</summary>
+        /// <param name="name"></param>
+        public virtual void WriteName(String name)
+        {
+
+        }
+
         /// <summary>写入值类型</summary>
         /// <param name="value"></param>
         /// <returns></returns>
@@ -662,10 +669,10 @@ namespace NewLife.Serialization
             if (callback == null) callback = WriteMember;
 
             // 检查IAcessor接口
-            IAccessor accessor = value as IAccessor;
+            var accessor = value as IAccessor;
             if (accessor != null && accessor.Write(this)) return true;
 
-            Boolean rs = WriteObjectWithEvent(value, type, callback);
+            var rs = WriteObjectWithEvent(value, type, callback);
 
             // 检查IAcessor接口
             if (accessor != null) rs = accessor.WriteComplete(this, rs);
@@ -692,7 +699,7 @@ namespace NewLife.Serialization
                 callback = e.Callback;
             }
 
-            Boolean rs = OnWriteObject(value, type, callback);
+            var rs = OnWriteObject(value, type, callback);
 
             // 事件
             if (OnObjectWrited != null)
@@ -847,12 +854,12 @@ namespace NewLife.Serialization
             if (value == null) return true;
             if (callback == null) callback = WriteMember;
 
-            Object old = CurrentObject;
+            var old = CurrentObject;
             CurrentObject = value;
 
             try
             {
-                IObjectMemberInfo[] mis = GetMembers(type, value);
+                var mis = GetMembers(type, value);
                 if (mis == null || mis.Length < 1) return true;
 
                 // 调试输出成员列表
@@ -860,14 +867,17 @@ namespace NewLife.Serialization
 
                 for (int i = 0; i < mis.Length; i++)
                 {
+                    var mi = mis[i];
+                    var v = mi[value];
+
                     Depth++;
                     // 基础类型输出日志时，同时输出值，更直观
                     if (Type.GetTypeCode(mis[i].Type) == TypeCode.Object)
-                        WriteLog("WriteMember", mis[i].Name, mis[i].Type.Name);
+                        WriteLog("WriteMember", mi.Name, mi.Type.Name);
                     else
-                        WriteLog("WriteMember", mis[i].Name, mis[i].Type.Name, mis[i][value]);
+                        WriteLog("WriteMember", mi.Name, mi.Type.Name, v);
 
-                    if (!WriteMember(value, mis[i].Type, mis[i], i, callback)) return false;
+                    if (!WriteMember(mi.Name, v, mi.Type, i, callback)) return false;
                     Depth--;
                 }
 
@@ -877,18 +887,18 @@ namespace NewLife.Serialization
         }
 
         /// <summary>写入对象成员</summary>
+        /// <param name="name">成员名字</param>
         /// <param name="value">要写入的对象</param>
         /// <param name="type">要写入的成员类型</param>
-        /// <param name="member">成员</param>
         /// <param name="index">成员索引</param>
         /// <param name="callback">处理成员的方法</param>
         /// <returns>是否写入成功</returns>
-        public Boolean WriteMember(Object value, Type type, IObjectMemberInfo member, Int32 index, WriteObjectCallback callback)
+        public Boolean WriteMember(String name, Object value, Type type, Int32 index, WriteObjectCallback callback)
         {
             if (callback == null) callback = WriteMember;
 
             IObjectMemberInfo old = CurrentMember;
-            CurrentMember = member;
+            //CurrentMember = member;
 
 #if !DEBUG
             try
@@ -898,7 +908,7 @@ namespace NewLife.Serialization
                 WriteMemberEventArgs e = null;
                 if (OnMemberWriting != null)
                 {
-                    e = new WriteMemberEventArgs(value, type, member, index, callback);
+                    e = new WriteMemberEventArgs(value, type, null, index, callback);
 
                     OnMemberWriting(this, e);
 
@@ -912,17 +922,17 @@ namespace NewLife.Serialization
                     // 事件里面有可能改变了参数
                     value = e.Value;
                     type = e.Type;
-                    member = e.Member;
+                    //member = e.Member;
                     index = e.Index;
                     callback = e.Callback;
                 }
 
-                Boolean rs = OnWriteMember(value, type, member, index, callback);
+                Boolean rs = OnWriteMember(name, value, type, index, callback);
 
                 // 写入成员后
                 if (OnMemberWrited != null)
                 {
-                    e = new WriteMemberEventArgs(value, type, member, index, callback);
+                    e = new WriteMemberEventArgs(value, type, null, index, callback);
                     e.Success = rs;
 
                     OnMemberWrited(this, e);
@@ -944,13 +954,17 @@ namespace NewLife.Serialization
         }
 
         /// <summary>写入对象成员</summary>
+        /// <param name="name">成员名字</param>
         /// <param name="value">要写入的对象</param>
         /// <param name="type">要写入的成员类型</param>
-        /// <param name="member">成员</param>
         /// <param name="index">成员索引</param>
         /// <param name="callback">处理成员的方法</param>
         /// <returns>是否写入成功</returns>
-        protected virtual Boolean OnWriteMember(Object value, Type type, IObjectMemberInfo member, Int32 index, WriteObjectCallback callback) { return callback(this, member[value], type, callback); }
+        protected virtual Boolean OnWriteMember(String name, Object value, Type type, Int32 index, WriteObjectCallback callback)
+        {
+            WriteName(name);
+            return callback(this, value, type, callback);
+        }
 
         private static Boolean WriteMember(IWriter writer, Object value, Type type, WriteObjectCallback callback) { return writer.WriteObject(value, type, callback); }
         #endregion

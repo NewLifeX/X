@@ -312,7 +312,8 @@ namespace NewLife.Net.DNS
             else if (e.Type == typeof(TimeSpan))
             {
                 var ts = (TimeSpan)e.Member[e.Value];
-                writer.Write((Int32)ts.TotalSeconds);
+                var wr = writer as IWriter2;
+                wr.Write((Int32)ts.TotalSeconds);
                 e.Success = true;
             }
         }

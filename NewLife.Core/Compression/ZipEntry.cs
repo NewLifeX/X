@@ -286,7 +286,8 @@ namespace NewLife.Compression
                         p = writer.Stream.Position;
                         // 计算好压缩大小字段所在位置
                         writer.Stream.Seek(RelativeOffsetOfLocalHeader + 18, SeekOrigin.Begin);
-                        writer.Write(CompressedSize);
+                        var wr = writer as IWriter2;
+                        wr.Write(CompressedSize);
                         writer.Stream.Seek(p, SeekOrigin.Begin);
                     }
 

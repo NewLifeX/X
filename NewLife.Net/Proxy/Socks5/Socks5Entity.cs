@@ -160,21 +160,22 @@ namespace NewLife.Net.Proxy
 
         Boolean IAccessor.WriteComplete(IWriter writer, Boolean success)
         {
+            var wr = writer as IWriter2;
             switch (AddressType)
             {
                 case Socks5AddressType.IPv4:
-                    writer.Write(IPAddress.Parse(Address).GetAddressBytes());
+                    wr.Write(IPAddress.Parse(Address).GetAddressBytes());
                     break;
                 case Socks5AddressType.DomainName:
-                    writer.Write(Address);
+                    wr.Write(Address);
                     break;
                 case Socks5AddressType.IPv6:
-                    writer.Write(IPAddress.Parse(Address).GetAddressBytes());
+                    wr.Write(IPAddress.Parse(Address).GetAddressBytes());
                     break;
                 default:
                     break;
             }
-            writer.Write(Port);
+            wr.Write(Port);
             return success;
         }
         #endregion

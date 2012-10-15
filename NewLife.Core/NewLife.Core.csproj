@@ -164,6 +164,7 @@
     <Compile Include="Serialization\Binary\BinaryWriterX.cs" />
     <Compile Include="Serialization\Binary\FieldSizeAttribute.cs" />
     <None Include="Serialization\Binary\FieldExtendAttribute.cs" />
+    <Compile Include="Serialization\Interface\IWriter2.cs" />
     <Compile Include="Serialization\Json\JsonAtomStringReader.cs" />
     <Compile Include="Serialization\Json\SimpleJsonUtil.cs" />
     <Compile Include="Serialization\Json\SimpleJsonUtilTest.cs" />

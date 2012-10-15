@@ -99,7 +99,8 @@ namespace NewLife.Messaging
                 if (_Header != null && _Header.UseHeader) Header.Write(writer.Stream);
 
                 // 基类写入编号，保证编号在最前面
-                writer.Write((Byte)Kind);
+                var wr = writer as IWriter2;
+                wr.Write((Byte)Kind);
             }
             else
             {

@@ -295,7 +295,7 @@ namespace NewLife.Serialization
         void WriteTypeKind(BinarySettings.TypeKinds kind)
         {
             WriteLog("WriteTypeKind", kind);
-            Write((Byte)kind);
+            WriteValue((Byte)kind);
         }
         #endregion
 
@@ -317,17 +317,17 @@ namespace NewLife.Serialization
 
         #region 自定义对象
         /// <summary>写入对象成员</summary>
+        /// <param name="name">成员名字</param>
         /// <param name="value">要写入的对象</param>
         /// <param name="type">要写入的对象类型</param>
-        /// <param name="member">成员</param>
         /// <param name="index">成员索引</param>
         /// <param name="callback">处理成员的方法</param>
         /// <returns>是否写入成功</returns>
-        protected override bool OnWriteMember(object value, Type type, IObjectMemberInfo member, int index, WriteObjectCallback callback)
+        protected override bool OnWriteMember(String name, Object value, Type type, int index, WriteObjectCallback callback)
         {
-            if (!Settings.IgnoreName) Write(member.Name);
+            if (!Settings.IgnoreName) Write(name);
 
-            return base.OnWriteMember(value, type, member, index, callback);
+            return base.OnWriteMember(name, value, type, index, callback);
         }
         #endregion
 
