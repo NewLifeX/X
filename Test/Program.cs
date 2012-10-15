@@ -405,7 +405,7 @@ namespace Test
             dal.SetTables(table);
 
             var sl = new SyncSlave();
-            sl.Facotry = dal.CreateOperate(table.Name);
+            sl.Factory = dal.CreateOperate(table.Name);
 
             var mt = new SyncMaster();
             mt.Facotry = Administrator.Meta.Factory;
