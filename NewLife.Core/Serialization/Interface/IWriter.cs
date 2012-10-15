@@ -12,7 +12,7 @@ namespace NewLife.Serialization
     /// </remarks>
     public interface IWriter : IReaderWriter
     {
-        #region 复杂对象
+        #region 方法
         /// <summary>主要入口方法。把对象写入数据流</summary>
         /// <param name="value">对象</param>
         /// <returns>是否写入成功</returns>
@@ -25,20 +25,6 @@ namespace NewLife.Serialization
         /// <returns>是否写入成功</returns>
         Boolean WriteObject(Object value, Type type, WriteObjectCallback callback);
 
-        ///// <summary>写入对象引用。</summary>
-        ///// <param name="value">对象</param>
-        ///// <returns>是否写入成功</returns>
-        //Boolean WriteObjRef(Object value);
-        #endregion
-
-        #region 自定义对象
-        ///// <summary>写自定义对象</summary>
-        ///// <param name="value">要写入的对象</param>
-        ///// <param name="type">要写入的对象类型</param>
-        ///// <param name="callback">处理成员的方法</param>
-        ///// <returns>是否写入成功</returns>
-        //Boolean WriteCustomObject(Object value, Type type, WriteObjectCallback callback);
-
         /// <summary>写入对象成员</summary>
         /// <param name="name">成员名字</param>
         /// <param name="value">要写入的对象</param>
@@ -47,6 +33,9 @@ namespace NewLife.Serialization
         /// <param name="callback">处理成员的方法</param>
         /// <returns>是否写入成功</returns>
         Boolean WriteMember(String name, Object value, Type type, Int32 index, WriteObjectCallback callback);
+
+        /// <summary>刷新缓存中的数据</summary>
+        void Flush();
         #endregion
 
         #region 事件
@@ -61,32 +50,6 @@ namespace NewLife.Serialization
 
         /// <summary>写成员后触发。</summary>
         event EventHandler<WriteMemberEventArgs> OnMemberWrited;
-
-        ///// <summary>写字典项前触发。</summary>
-        //event EventHandler<WriteDictionaryEventArgs> OnDictionaryWriting;
-
-        ///// <summary>写字典项后触发。</summary>
-        //event EventHandler<WriteDictionaryEventArgs> OnDictionaryWrited;
-
-        ///// <summary>写枚举项前触发。</summary>
-        //event EventHandler<WriteItemEventArgs> OnItemWriting;
-
-        ///// <summary>写枚举项后触发。</summary>
-        //event EventHandler<WriteItemEventArgs> OnItemWrited;
-        #endregion
-
-        #region 方法
-        /// <summary>写入大小</summary>
-        /// <param name="size"></param>
-        void WriteSize(Int32 size);
-
-        /// <summary>刷新缓存中的数据</summary>
-        void Flush();
-
-        // 耗时且影响数据流，慎用！
-        ///// <summary>输出数据转为字节数组</summary>
-        ///// <returns></returns>
-        //Byte[] ToArray();
         #endregion
     }
 

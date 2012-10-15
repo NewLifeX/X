@@ -168,5 +168,12 @@ namespace NewLife.Serialization
         ///// <returns>是否写入成功</returns>
         //Boolean WriteUnKnown(Object value, Type type, WriteObjectCallback callback);
         #endregion
+
+        #region 方法
+
+        /// <summary>写入大小</summary>
+        /// <param name="size"></param>
+        void WriteSize(Int32 size);
+        #endregion
     }
 }
