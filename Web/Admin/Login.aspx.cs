@@ -7,6 +7,7 @@ using NewLife.Security;
 using NewLife.Threading;
 using NewLife.Web;
 using XCode;
+using XControl;
 
 public partial class Login : System.Web.UI.Page
 {
@@ -71,6 +72,12 @@ public partial class Login : System.Web.UI.Page
     {
         try
         {
+            VerifyCodeBox verifyBox = ControlHelper.FindControl<VerifyCodeBox>(Page, "VerifyCodeBox");
+            if (verifyBox != null && !verifyBox.IsValid)
+            {
+                throw new EntityException("效验码错误，请输入正确的效验码！");
+            }
+
             ManageProvider.Provider.Login(UserName.Text, Password.Text);
             if (ManageProvider.Provider.Current != null)
                 Response.Redirect("Default.aspx");

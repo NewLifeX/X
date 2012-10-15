@@ -28,6 +28,47 @@
             cursor: pointer;
             border: 0px;
         }
+        .field-container .verify-code-text,
+        .field-container .verify-code-input-container 
+        {
+            display:none;
+        }
+        /* <% if(NewLife.Web.ControlHelper.FindControl<XControl.VerifyCodeBox>(Page, "VerifyCodeBox") != null) { %> */
+        .field-container
+        {
+            position:relative;
+        }
+        .field-container .verify-code-text,
+        .field-container .verify-code-input-container
+        {
+            position:absolute;
+            top:1.8em;
+        }
+        .field-container .verify-code-text
+        {
+            display: block;
+            width:5em;
+            left:-1.6em;
+        }
+        .field-container .verify-code-input-container
+        {
+            top:1.5em;
+            display: block;
+            width:200px;
+        }
+        .field-container .verify-code-input-container .verify-code
+        {
+            vertical-align:top;
+        }
+        .field-container .verify-code-input-container .verify-code-box img
+        {
+            height:28px;
+        }
+        .field-container .verify-code-input-container .verify-code-box span
+        {
+            display:block;
+        }
+        /* <% } %> */
     </style>
 </head>
 <body>
@@ -69,18 +110,25 @@
                                             </tr>
                                             <tr>
                                                 <td height="25">
-                                                    <div align="right">
-                                                        <span class="STYLE1">密码：</span></div>
-                                                </td>
-                                                <td height="25">
-                                                    <div style="text-align: left;">
-                                                        <asp:TextBox ID="Password" runat="server" TextMode="Password" Style="width: 105px;
-                                                            height: 17px; background-color: #292929; border: solid 1px #7dbad7; font-size: 12px;
-                                                            color: #6cd0ff"></asp:TextBox>
+                                                    <div class="field-container" align="right">
+                                                        <span class="STYLE1">密码：</span>
+                                                        <span class="STYLE1 verify-code-text">验证码：</span>
                                                     </div>
                                                 </td>
                                                 <td height="25">
-                                                    <div align="left">
+                                                    <div class="field-container" style="text-align: left;">
+                                                        <asp:TextBox ID="Password" runat="server" TextMode="Password" Style="width: 105px;
+                                                            height: 17px; background-color: #292929; border: solid 1px #7dbad7; font-size: 12px;
+                                                            color: #6cd0ff"></asp:TextBox>
+                                                        <asp:RequiredFieldValidator ID="RequiredFieldValidator2" runat="server" ControlToValidate="Password" ErrorMessage="必须填写“密码”。" ToolTip="必须填写“密码”。" ValidationGroup="LoginControl">*</asp:RequiredFieldValidator>
+                                                        <div class="verify-code-input-container">
+                                                            <asp:TextBox ID="VerifyCode" CssClass="verify-code" runat="server" MaxLength="5" Style="width:3em;height: 17px; background-color: #292929;border: solid 1px #7dbad7; font-size: 12px;color: #6cd0ff"></asp:TextBox>
+                                                            <%--<XCL:VerifyCodeBox ID="VerifyCodeBox" CssClass="STYLE1 verify-code-box" runat="server" ControlToValidate="VerifyCode" ValidationGroup="LoginControl"></XCL:VerifyCodeBox>--%>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td height="25">
+                                                    <div class="field-container" align="left">
                                                         <asp:Button ID="Button1" runat="server" BackColor="White" BorderColor="#CC9966" BorderWidth="0px"
                                                             CommandName="Login" Font-Size="0.8em" ForeColor="#990000" Text="" CssClass="login"
                                                             ValidationGroup="LoginControl" OnClick="LoginButton_Click" /></div>

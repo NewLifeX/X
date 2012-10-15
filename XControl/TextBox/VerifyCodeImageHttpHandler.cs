@@ -57,6 +57,11 @@ namespace XControl
             string verify = Request["verify"];
             string verifyCode = null;
             Response.ContentType = "image/Gif";
+            Response.Cache.SetCacheability(HttpCacheability.NoCache);
+            Response.Cache.SetNoStore();
+            Response.Cache.SetMaxAge(TimeSpan.FromMilliseconds(0));
+            Response.Cache.SetExpires(DateTime.MinValue);
+
             try
             {
                 if (string.IsNullOrEmpty(verify))

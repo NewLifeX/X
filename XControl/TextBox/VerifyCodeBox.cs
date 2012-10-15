@@ -128,12 +128,12 @@ namespace XControl
                 set { _VerifyGUID = value; }
             }
 
-            private string _ContainerIDPostfix;
-            public string ContainerIDPostfix
-            {
-                get { return _ContainerIDPostfix; }
-                set { _ContainerIDPostfix = value; }
-            }
+            //private string _ContainerIDPostfix;
+            //public string ContainerIDPostfix
+            //{
+            //    get { return _ContainerIDPostfix; }
+            //    set { _ContainerIDPostfix = value; }
+            //}
 
             private string _ContainerTagName;
             public string ContainerTagName
@@ -163,7 +163,7 @@ namespace XControl
             {
                 VerifyGUID = VerifyGUID,
                 ImageHandlerUrl = ImageHandlerUrl,
-                ContainerIDPostfix = ContainerIDPostfix,
+                //ContainerIDPostfix = ContainerIDPostfix,
                 ContainerTagName = ContainerTagName
             };
         }
@@ -184,7 +184,7 @@ namespace XControl
                 VerifyGUID = state.VerifyGUID;
                 ImageHandlerUrl = state.ImageHandlerUrl;
                 ContainerTagName = state.ContainerTagName;
-                ContainerIDPostfix = state.ContainerIDPostfix;
+                //ContainerIDPostfix = state.ContainerIDPostfix;
             }
         }
 
@@ -269,21 +269,21 @@ namespace XControl
             {
                 Attributes.Add("for", GetControlRenderID(this.ControlToValidate));
             }
-            if (!DesignMode)
-            {
-                CheckCallClientID = true;
-            }
-            try
-            {
+            //if (!DesignMode)
+            //{
+            //    CheckCallClientID = true;
+            //}
+            //try
+            //{
                 base.AddAttributesToRender(writer);
-            }
-            finally
-            {
-                CheckCallClientID = false;
-            }
+            //}
+            //finally
+            //{
+            //    CheckCallClientID = false;
+            //}
             if (!DesignMode)
             {
-                SpanCtl.ID = ID;
+                //SpanCtl.ID = ID;
                 Page.ClientScript.RegisterExpandoAttribute(ClientID, "evaluationfunction", "RequiredFieldValidatorEvaluateIsValid", false);
                 Page.ClientScript.RegisterExpandoAttribute(ClientID, "initialvalue", "", false);
             }
@@ -386,7 +386,7 @@ namespace XControl
 
         #region 控件属性
 
-        private bool CheckCallClientID = false;
+        //private bool CheckCallClientID = false;
         /// <summary>内部使用的,用于标识一个表单请求,以便在表单提交时获得当前表单的验证码</summary>
         private string VerifyGUID { get; set; }
 
@@ -411,27 +411,27 @@ namespace XControl
             }
         }
 
-        /// <summary>
-        /// 已重载,客户端的ID
-        /// </summary>
-        public override string ClientID
-        {
-            get
-            {
-                var postfix = "";
-                if (CheckCallClientID)
-                {
-                    var st = new StackTrace(1, false);
-                    if (st.GetFrame(0).GetMethod() == typeof(WebControl).GetMethod("AddAttributesToRender",
-                        BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.InvokeMethod,
-                        null, new Type[] { typeof(HtmlTextWriter) }, null))
-                    {
-                        postfix = string.IsNullOrEmpty(ContainerIDPostfix) ? "Container" : ContainerIDPostfix;
-                    };
-                }
-                return base.ClientID + postfix;
-            }
-        }
+        ///// <summary>
+        ///// 已重载,客户端的ID
+        ///// </summary>
+        //public override string ClientID
+        //{
+        //    get
+        //    {
+        //        var postfix = "";
+        //        if (CheckCallClientID)
+        //        {
+        //            var st = new StackTrace(1, false);
+        //            if (st.GetFrame(0).GetMethod() == typeof(WebControl).GetMethod("AddAttributesToRender",
+        //                BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.InvokeMethod,
+        //                null, new Type[] { typeof(HtmlTextWriter) }, null))
+        //            {
+        //                postfix = string.IsNullOrEmpty(ContainerIDPostfix) ? "Container" : ContainerIDPostfix;
+        //            };
+        //        }
+        //        return base.ClientID + postfix;
+        //    }
+        //}
 
         /// <summary>
         /// 效验码图片地址,建议在web.config中设置XControl.VerifyCode.DefaultImageHandler,除非需要特别设置
@@ -441,13 +441,13 @@ namespace XControl
         [DefaultValue("")]
         public string ImageHandlerUrl { get; set; }
 
-        /// <summary>
-        /// 验证码的容器标签ID后缀,默认为Container
-        /// </summary>
-        [Description("验证码的容器标签ID后缀,默认为Container")]
-        [Category(" 专用属性")]
-        [DefaultValue("Container")]
-        public string ContainerIDPostfix { get; set; }
+        ///// <summary>
+        ///// 验证码的容器标签ID后缀,默认为Container
+        ///// </summary>
+        //[Description("验证码的容器标签ID后缀,默认为Container")]
+        //[Category(" 专用属性")]
+        //[DefaultValue("Container")]
+        //public string ContainerIDPostfix { get; set; }
 
         private string _ContainerTagName;
         /// <summary>
