@@ -140,7 +140,7 @@ namespace NewLife.Xml
         /// <param name="index">元素序号</param>
         /// <param name="callback">处理成员的方法</param>
         /// <returns>是否读取成功</returns>
-        protected override bool OnReadDictionaryEntry(Type keyType, Type valueType, ref DictionaryEntry value, Int32 index, ReadObjectCallback callback)
+        protected override bool ReadDictionaryEntry(Type keyType, Type valueType, ref DictionaryEntry value, Int32 index, ReadObjectCallback callback)
         {
             if (Reader.NodeType == XmlNodeType.EndElement) return false;
 
@@ -221,14 +221,14 @@ namespace NewLife.Xml
         /// <param name="index">元素序号</param>
         /// <param name="callback">处理元素的方法</param>
         /// <returns></returns>
-        protected override bool OnReadItem(Type type, ref object value, Int32 index, ReadObjectCallback callback)
+        protected override bool ReadItem(Type type, ref object value, Int32 index, ReadObjectCallback callback)
         {
             String name = type.GetCustomAttributeValue<XmlRootAttribute, String>(true);
             if (String.IsNullOrEmpty(name) && type != null) name = type.Name;
 
             if (Reader.NodeType == XmlNodeType.EndElement || Reader.Name != name) return false;
 
-            Boolean rs = base.OnReadItem(type, ref value, index, callback);
+            Boolean rs = base.ReadItem(type, ref value, index, callback);
 
             if (Reader.NodeType == XmlNodeType.EndElement) Reader.ReadEndElement();
 

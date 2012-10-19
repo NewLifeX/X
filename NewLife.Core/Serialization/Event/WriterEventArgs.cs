@@ -9,11 +9,7 @@ namespace NewLife.Serialization
     {
         private WriteObjectCallback _Callback;
         /// <summary>处理成员的委托</summary>
-        public WriteObjectCallback Callback
-        {
-            get { return _Callback; }
-            set { _Callback = value; }
-        }
+        public WriteObjectCallback Callback { get { return _Callback; } set { _Callback = value; } }
 
         #region 构造
         /// <summary>实例化</summary>

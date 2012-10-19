@@ -5,7 +5,7 @@ using System.Text;
 namespace NewLife.Serialization
 {
     /// <summary>读取成员事件参数</summary>
-    public class ReadMemberEventArgs : ReadIndexEventArgs
+    public class ReadMemberEventArgs : ReaderEventArgs
     {
         private Object _Value;
         /// <summary>对象</summary>
@@ -31,6 +31,14 @@ namespace NewLife.Serialization
             set { _Member = value; }
         }
 
+        private Int32 _Index;
+        /// <summary>成员序号</summary>
+        public Int32 Index
+        {
+            get { return _Index; }
+            set { _Index = value; }
+        }
+
         #region 构造
         /// <summary>实例化</summary>
         /// <param name="value">对象</param>
@@ -39,11 +47,12 @@ namespace NewLife.Serialization
         /// <param name="index">成员序号</param>
         /// <param name="callback"></param>
         public ReadMemberEventArgs(Object value, Type type, IObjectMemberInfo member, Int32 index, ReadObjectCallback callback)
-            : base(index, callback)
+            : base(callback)
         {
             Value = value;
             Type = type;
             Member = member;
+            Index = index;
         }
         #endregion
     }

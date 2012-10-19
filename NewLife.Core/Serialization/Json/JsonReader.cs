@@ -483,7 +483,7 @@ namespace NewLife.Serialization
         /// <param name="index"></param>
         /// <param name="callback"></param>
         /// <returns></returns>
-        protected override bool OnReadItem(Type type, ref object value, int index, ReadObjectCallback callback)
+        protected override bool ReadItem(Type type, ref object value, int index, ReadObjectCallback callback)
         {
             string str;
             AtomElementType atype = AssertReadNextAtomElement(true, "期望是枚举项目,可以是枚举结束符(]),分隔符逗号,或具体的数组项", out str,
@@ -591,7 +591,7 @@ namespace NewLife.Serialization
         /// <param name="index"></param>
         /// <param name="callback"></param>
         /// <returns></returns>
-        protected override bool OnReadDictionaryEntry(Type keyType, Type valueType, ref System.Collections.DictionaryEntry value, int index, ReadObjectCallback callback)
+        protected override bool ReadDictionaryEntry(Type keyType, Type valueType, ref System.Collections.DictionaryEntry value, int index, ReadObjectCallback callback)
         {
             string str;
             AtomElementType atype = AssertReadNextAtomElement("期望字典项分隔符(逗号)或字典结束或字典项名称", out str, AtomElementType.COMMA, AtomElementType.BRACE_CLOSE, AtomElementType.STRING);

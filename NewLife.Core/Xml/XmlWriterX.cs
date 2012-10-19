@@ -92,7 +92,7 @@ namespace NewLife.Xml
         /// <param name="index">成员索引</param>
         /// <param name="callback">使用指定委托方法处理复杂数据</param>
         /// <returns>是否写入成功</returns>
-        protected override bool OnWriteKeyValue(DictionaryEntry value, Type keyType, Type valueType, int index, WriteObjectCallback callback)
+        protected override bool WriteKeyValue(DictionaryEntry value, Type keyType, Type valueType, int index, WriteObjectCallback callback)
         {
             // 如果无法取得字典项类型，则每个键值都单独写入类型
             Writer.WriteStartElement("Item");
@@ -122,7 +122,7 @@ namespace NewLife.Xml
         /// <param name="index">成员索引</param>
         /// <param name="callback">使用指定委托方法处理复杂数据</param>
         /// <returns>是否写入成功</returns>
-        protected override bool OnWriteItem(Object value, Type type, Int32 index, WriteObjectCallback callback)
+        protected override bool WriteItem(Object value, Type type, Int32 index, WriteObjectCallback callback)
         {
             Type t = type;
             if (value != null) t = value.GetType();
@@ -133,7 +133,7 @@ namespace NewLife.Xml
 
             AutoFlush();
 
-            Boolean rs = base.OnWriteItem(value, type, index, callback);
+            Boolean rs = base.WriteItem(value, type, index, callback);
 
             AutoFlush();
 

@@ -255,7 +255,7 @@ namespace NewLife.Serialization
         /// <param name="index">成员索引</param>
         /// <param name="callback">使用指定委托方法处理复杂数据</param>
         /// <returns>是否写入成功</returns>
-        protected override bool OnWriteItem(object value, Type type, int index, WriteObjectCallback callback)
+        protected override bool WriteItem(object value, Type type, int index, WriteObjectCallback callback)
         {
             WriteLog("WriteEnumerableItem", index, type != null ? type.FullName : "Unknown type");
             if (index > 0) Writer.Write(",");
@@ -273,7 +273,7 @@ namespace NewLife.Serialization
             }
             else
             {
-                ret = base.OnWriteItem(value, type, index, callback);
+                ret = base.WriteItem(value, type, index, callback);
             }
             writeValueType = null;
             return ret;
@@ -336,7 +336,7 @@ namespace NewLife.Serialization
         /// <param name="index"></param>
         /// <param name="callback"></param>
         /// <returns></returns>
-        protected override bool OnWriteKeyValue(DictionaryEntry value, Type keyType, Type valueType, int index, WriteObjectCallback callback)
+        protected override bool WriteKeyValue(DictionaryEntry value, Type keyType, Type valueType, int index, WriteObjectCallback callback)
         {
             if (index > 0)
             {

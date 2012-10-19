@@ -226,11 +226,11 @@ namespace NewLife.Net.DNS
         public virtual bool Read(IReader reader)
         {
             reader.OnMemberReading += new EventHandler<ReadMemberEventArgs>(reader_OnMemberReading);
-            reader.OnItemReading += new EventHandler<ReadItemEventArgs>(reader_OnItemReading);
+            reader.OnObjectReading += new EventHandler<ReadObjectEventArgs>(reader_OnObjectReading);
             return false;
         }
 
-        void reader_OnItemReading(object sender, ReadItemEventArgs e)
+        void reader_OnObjectReading(object sender, ReadObjectEventArgs e)
         {
             if (e.Type == typeof(DNSRecord))
             {

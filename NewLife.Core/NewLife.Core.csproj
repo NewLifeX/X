@@ -187,9 +187,6 @@
     <Compile Include="Serialization\Info\SimpleMemberInfo.cs" />
     <Compile Include="Serialization\Info\ObjectInfo.cs" />
     <Compile Include="Serialization\Event\ReaderEventArgs.cs" />
-    <Compile Include="Serialization\Event\ReadDictionaryEventArgs.cs" />
-    <Compile Include="Serialization\Event\ReadIndexEventArgs.cs" />
-    <Compile Include="Serialization\Event\ReadItemEventArgs.cs" />
     <Compile Include="Serialization\Event\ReadMemberEventArgs.cs" />
     <Compile Include="Serialization\Event\ReadObjectEventArgs.cs" />
     <Compile Include="Serialization\NameValue\NameValueSetting.cs" />
@@ -217,9 +214,6 @@
     <Compile Include="Serialization\Base\TextWriterBase.cs" />
     <Compile Include="Serialization\Base\TextReaderWriterSetting.cs" />
     <Compile Include="Serialization\Event\WriterEventArgs.cs" />
-    <Compile Include="Serialization\Event\WriteDictionaryEventArgs.cs" />
-    <Compile Include="Serialization\Event\WriteIndexEventArgs.cs" />
-    <Compile Include="Serialization\Event\WriteItemEventArgs.cs" />
     <Compile Include="Serialization\Event\WriteMemberEventArgs.cs" />
     <Compile Include="Serialization\Event\WriteObjectEventArgs.cs" />
     <Compile Include="Serialization\RWKinds.cs" />

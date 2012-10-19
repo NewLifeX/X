@@ -313,52 +313,7 @@ namespace NewLife.Serialization
         /// <param name="index">成员索引</param>
         /// <param name="callback">使用指定委托方法处理复杂数据</param>
         /// <returns>是否写入成功</returns>
-        protected Boolean WriteKeyValue(DictionaryEntry value, Type keyType, Type valueType, Int32 index, WriteObjectCallback callback)
-        {
-            // 写入成员前
-            WriteDictionaryEventArgs e = null;
-            if (OnDictionaryWriting != null)
-            {
-                e = new WriteDictionaryEventArgs(value, keyType, valueType, index, callback);
-
-                OnDictionaryWriting(this, e);
-
-                // 事件处理器可能已经成功写入对象
-                if (e.Success) return true;
-
-                // 事件里面有可能改变了参数
-                value = (DictionaryEntry)e.Value;
-                keyType = e.KeyType;
-                valueType = e.ValueType;
-                index = e.Index;
-                callback = e.Callback;
-            }
-
-            Boolean rs = OnWriteKeyValue(value, keyType, valueType, index, callback);
-
-            // 写入成员后
-            if (OnDictionaryWrited != null)
-            {
-                if (e == null) e = new WriteDictionaryEventArgs(value, keyType, valueType, index, callback);
-                e.Success = rs;
-
-                OnDictionaryWrited(this, e);
-
-                // 事件处理器可以影响结果
-                rs = e.Success;
-            }
-
-            return rs;
-        }
-
-        /// <summary>写入字典项</summary>
-        /// <param name="value">对象</param>
-        /// <param name="keyType">键类型</param>
-        /// <param name="valueType">值类型</param>
-        /// <param name="index">成员索引</param>
-        /// <param name="callback">使用指定委托方法处理复杂数据</param>
-        /// <returns>是否写入成功</returns>
-        protected virtual Boolean OnWriteKeyValue(DictionaryEntry value, Type keyType, Type valueType, Int32 index, WriteObjectCallback callback)
+        protected virtual Boolean WriteKeyValue(DictionaryEntry value, Type keyType, Type valueType, Int32 index, WriteObjectCallback callback)
         {
             // 如果无法取得字典项类型，则每个键值都单独写入类型
             //keyType = CheckAndWriteType("WriteKeyType", value.Key, keyType);
@@ -435,50 +390,7 @@ namespace NewLife.Serialization
         /// <param name="index">元素索引</param>
         /// <param name="callback">使用指定委托方法处理复杂数据</param>
         /// <returns>是否写入成功</returns>
-        protected Boolean WriteItem(Object value, Type type, Int32 index, WriteObjectCallback callback)
-        {
-            // 写入成员前
-            WriteItemEventArgs e = null;
-            if (OnItemWriting != null)
-            {
-                e = new WriteItemEventArgs(value, type, index, callback);
-
-                OnItemWriting(this, e);
-
-                // 事件处理器可能已经成功写入对象
-                if (e.Success) return true;
-
-                // 事件里面有可能改变了参数
-                value = e.Value;
-                type = e.Type;
-                index = e.Index;
-                callback = e.Callback;
-            }
-
-            Boolean rs = OnWriteItem(value, type, index, callback);
-
-            // 写入成员后
-            if (OnItemWrited != null)
-            {
-                if (e == null) e = new WriteItemEventArgs(value, type, index, callback);
-                e.Success = rs;
-
-                OnItemWrited(this, e);
-
-                // 事件处理器可以影响结果
-                rs = e.Success;
-            }
-
-            return rs;
-        }
-
-        /// <summary>写入枚举项</summary>
-        /// <param name="value">对象</param>
-        /// <param name="type">元素类型</param>
-        /// <param name="index">元素索引</param>
-        /// <param name="callback">使用指定委托方法处理复杂数据</param>
-        /// <returns>是否写入成功</returns>
-        protected virtual Boolean OnWriteItem(Object value, Type type, Int32 index, WriteObjectCallback callback)
+        protected virtual Boolean WriteItem(Object value, Type type, Int32 index, WriteObjectCallback callback)
         {
             // 如果无法取得元素类型，则每个元素都单独写入类型
             // type = CheckAndWriteType("WriteItemType", value, type);
@@ -981,18 +893,6 @@ namespace NewLife.Serialization
 
         /// <summary>写成员后触发。</summary>
         public event EventHandler<WriteMemberEventArgs> OnMemberWrited;
-
-        /// <summary>写字典项前触发。</summary>
-        public event EventHandler<WriteDictionaryEventArgs> OnDictionaryWriting;
-
-        /// <summary>写字典项后触发。</summary>
-        public event EventHandler<WriteDictionaryEventArgs> OnDictionaryWrited;
-
-        /// <summary>写枚举项前触发。</summary>
-        public event EventHandler<WriteItemEventArgs> OnItemWriting;
-
-        /// <summary>写枚举项后触发。</summary>
-        public event EventHandler<WriteItemEventArgs> OnItemWrited;
         #endregion
 
         #region 方法

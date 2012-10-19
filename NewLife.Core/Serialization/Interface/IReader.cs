@@ -220,18 +220,6 @@ namespace NewLife.Serialization
 
         /// <summary>读成员后触发。</summary>
         event EventHandler<ReadMemberEventArgs> OnMemberReaded;
-
-        /// <summary>读字典项前触发。</summary>
-        event EventHandler<ReadDictionaryEventArgs> OnDictionaryReading;
-
-        /// <summary>读字典项后触发。</summary>
-        event EventHandler<ReadDictionaryEventArgs> OnDictionaryReaded;
-
-        /// <summary>读枚举项前触发。</summary>
-        event EventHandler<ReadItemEventArgs> OnItemReading;
-
-        /// <summary>读枚举项后触发。</summary>
-        event EventHandler<ReadItemEventArgs> OnItemReaded;
         #endregion
 
         #region 方法
