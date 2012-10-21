@@ -38,6 +38,7 @@
     <Reference Include="System.Core">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
+    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <CodeAnalysisDependentAssemblyPaths Condition=" '$(VS100COMNTOOLS)' != '' " Include="$(VS100COMNTOOLS)..\IDE\PrivateAssemblies">
@@ -46,7 +47,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Serialization\ArrayObj.cs" />
     <Compile Include="Serialization\BinaryTest.cs" />
+    <Compile Include="Serialization\DictionaryObj.cs" />
+    <Compile Include="Serialization\ListObj.cs" />
+    <Compile Include="Serialization\Obj.cs" />
     <Compile Include="Serialization\SimpleObj.cs" />
   </ItemGroup>
   <ItemGroup>

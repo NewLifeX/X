@@ -61,37 +61,50 @@ namespace NewLife.Core.Test.Serialization
         //
         #endregion
 
-        [TestMethod]
-        public void TestWriter()
+        void TestWriter(Obj obj, Boolean encodeInt)
         {
-            var obj = SimpleObj.Create();
-
             var writer = new BinaryWriterX();
+            writer.Settings.UseObjRef = false;
+            writer.Settings.EncodeInt = encodeInt;
             writer.WriteObject(obj);
 
-            Assert.AreNotEqual(writer.Stream.Length, 0);
+            //Assert.AreNotEqual(writer.Stream.Length, 0);
 
             var bts1 = writer.Stream.ReadBytes();
-            var bts2 = obj.GetBinaryStream().ReadBytes();
+            var bts2 = obj.GetStream(writer.Settings).ReadBytes();
             Assert.AreEqual(bts1.CompareTo(bts2), 0);
         }
 
         [TestMethod]
-        public void TestWriterWithEncodeInt()
+        public void TestWriter()
         {
             var obj = SimpleObj.Create();
+            TestWriter(obj, false);
+            TestWriter(obj, true);
+        }
 
-            var writer = new BinaryWriterX();
-            writer.Settings.EncodeInt = true;
-            writer.WriteObject(obj);
+        [TestMethod]
+        public void TestWriteArray()
+        {
+            var obj = new ArrayObj();
+            TestWriter(obj, false);
+            TestWriter(obj, true);
+        }
 
-            Assert.AreNotEqual(writer.Stream.Length, 0);
+        [TestMethod]
+        public void TestWriteList()
+        {
+            var obj = new ListObj();
+            TestWriter(obj, false);
+            TestWriter(obj, true);
+        }
 
-            var bts1 = writer.Stream.ReadBytes();
-            var bts2 = obj.GetBinaryStream(true).ReadBytes();
-            File.WriteAllBytes("1.bin", bts1);
-            File.WriteAllBytes("2.bin", bts2);
-            Assert.AreEqual(bts1.CompareTo(bts2), 0);
+        [TestMethod]
+        public void TestWriteDictionary()
+        {
+            var obj = new DictionaryObj();
+            TestWriter(obj, false);
+            TestWriter(obj, true);
         }
     }
 }
