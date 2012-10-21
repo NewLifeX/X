@@ -74,16 +74,49 @@ namespace NewLife.Core.Test.Serialization
         public static SimpleObj Create()
         {
             var obj = new SimpleObj();
-            obj.B = true;
+            obj.OnInit();
 
             return obj;
         }
 
-        public Stream GetBinaryStream()
+        protected virtual void OnInit()
+        {
+            B = true;
+            C = 'X';
+            SB = SByte.MaxValue;
+            Bt = 123;
+            I16 = 16;
+            U16 = 99;
+            I32 = 32;
+            U32 = 999;
+            I64 = 64;
+            U64 = 99999;
+            S = 123.456F;
+            D = 456.890123456;
+            Dec = 99.123456789M;
+            Dt = DateTime.Now;
+            Str = "Design By NewLife \r\nhttp://www.NewLifeX.com";
+        }
+
+        public virtual Stream GetBinaryStream()
         {
             var ms = new MemoryStream();
             var writer = new BinaryWriter(ms);
             writer.Write(B);
+            writer.Write(C);
+            writer.Write(SB);
+            writer.Write(Bt);
+            writer.Write(I16);
+            writer.Write(U16);
+            writer.Write(I32);
+            writer.Write(U32);
+            writer.Write(I64);
+            writer.Write(U64);
+            writer.Write(S);
+            writer.Write(D);
+            writer.Write(Dec);
+            writer.Write(Dt.Ticks);
+            writer.Write(Str);
 
             ms.Position = 0;
 
