@@ -341,46 +341,18 @@ namespace Test
 
         static void Test8()
         {
-            DAL.AddConnStr("mem", "Data Source=", null, "sqlite");
-            User.Meta.ConnName = "mem";
+            var entity = new Administrator();
+            entity.ID = 123;
+            entity.Name = "Test";
+            entity.RoleID = 888;
+            entity.Password = "Pass";
 
-            DAL.ShowSQL = false;
+            var writer = new BinaryWriterX();
+            var wr = writer as IWriter;
+            wr.WriteObject(entity);
 
-            {
-                User.Meta.ConnName = "mem";
-                var entity = new User();
-                entity.Account = "User";
-                entity.SaveWithoutValid();
-            }
-
-            Console.WriteLine("Count: {0}", User.Meta.Count);
-
-            //CodeTimer.ShowHeader("SQLite插入性能测试");
-            //CodeTimer.TimeLine("", 100000, n =>
-            //{
-            //    User.Meta.ConnName = "mem";
-            //    var entity = new User();
-            //    entity.Account = "User" + n;
-            //    entity.SaveWithoutValid();
-            //}, false);
-
-            var sw = new Stopwatch();
-            sw.Start();
-            {
-                User.Meta.BeginTrans();
-                for (int i = 0; i < 100000; i++)
-                {
-                    User.Meta.ConnName = "mem";
-                    var entity = new User();
-                    entity.Account = "User" + i;
-                    entity.SaveWithoutValid();
-                }
-                User.Meta.Commit();
-            }
-            sw.Stop();
-            Console.WriteLine("Elapsed:{0}", sw.Elapsed);
-
-            Console.WriteLine("Count: {0}", User.Meta.Count);
+            var bts = wr.Stream.ReadBytes();
+            File.WriteAllBytes("admin.bin", bts);
         }
 
         static void Test9()
