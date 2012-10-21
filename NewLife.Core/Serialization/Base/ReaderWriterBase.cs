@@ -211,15 +211,19 @@ namespace NewLife.Serialization
         }
         #endregion
 
-        #region 释放
-        ///// <summary>
-        ///// 释放资源
-        ///// </summary>
-        ///// <param name="disposing"></param>
-        //protected override void OnDispose(bool disposing)
-        //{
-        //    base.OnDispose(disposing);
-        //}
+        #region 方法
+        /// <summary>已重载。增加输出设置信息</summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            //var msg = base.ToString();
+            var msg = this.GetType().Name;
+
+            var ms = Stream;
+            if (ms != null && ms.CanRead) msg = String.Format("{0} Stream={1}", msg, ms.Length);
+
+            return msg;
+        }
         #endregion
 
         #region 跟踪日志
