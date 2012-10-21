@@ -98,7 +98,7 @@ namespace NewLife.Core.Test.Serialization
             Str = "Design By NewLife \r\nhttp://www.NewLifeX.com";
         }
 
-        public virtual Stream GetBinaryStream()
+        public virtual Stream GetBinaryStream(Boolean encodeInt = false)
         {
             var ms = new MemoryStream();
             var writer = new BinaryWriter(ms);
@@ -106,21 +106,92 @@ namespace NewLife.Core.Test.Serialization
             writer.Write(C);
             writer.Write(SB);
             writer.Write(Bt);
-            writer.Write(I16);
-            writer.Write(U16);
-            writer.Write(I32);
-            writer.Write(U32);
-            writer.Write(I64);
-            writer.Write(U64);
+
+            if (!encodeInt)
+            {
+                writer.Write(I16);
+                writer.Write(U16);
+                writer.Write(I32);
+                writer.Write(U32);
+                writer.Write(I64);
+                writer.Write(U64);
+            }
+            else
+            {
+                writer.Write(WriteEncoded(I16));
+                writer.Write(WriteEncoded(U16));
+                writer.Write(WriteEncoded(I32));
+                writer.Write(WriteEncoded(U32));
+                writer.Write(WriteEncoded(I64));
+                writer.Write(WriteEncoded(U64));
+            }
+
             writer.Write(S);
             writer.Write(D);
-            writer.Write(Dec);
-            writer.Write(Dt.Ticks);
+            if (!encodeInt)
+            {
+                writer.Write(Dec);
+                writer.Write(Dt.Ticks);
+            }
+            else
+            {
+                var ns = Decimal.GetBits(Dec);
+                for (int i = 0; i < ns.Length; i++)
+                {
+                    writer.Write(WriteEncoded(ns[i]));
+                }
+                writer.Write(WriteEncoded(Dt.Ticks));
+            }
             writer.Write(Str);
 
             ms.Position = 0;
 
             return ms;
+        }
+        #endregion
+
+        #region 7位压缩编码整数
+        public static Byte[] WriteEncoded(Int64 value) { return WriteEncoded((UInt64)value); }
+
+        /// <summary>
+        /// 以7位压缩格式写入64位整数，小于7位用1个字节，小于14位用2个字节。
+        /// 由每次写入的一个字节的第一位标记后面的字节是否还是当前数据，所以每个字节实际可利用存储空间只有后7位。
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns>实际写入字节数</returns>
+        public static Byte[] WriteEncoded(UInt64 value)
+        {
+            List<Byte> list = new List<Byte>();
+
+            Int32 count = 1;
+            UInt64 num = (UInt64)value;
+            while (num >= 0x80)
+            {
+                list.Add((byte)(num | 0x80));
+                num = num >> 7;
+
+                count++;
+            }
+            list.Add((byte)num);
+
+            return list.ToArray();
+        }
+
+        /// <summary>获取整数编码后所占字节数</summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static Int32 GetEncodedIntSize(Int64 value)
+        {
+            Int32 count = 1;
+            UInt64 num = (UInt64)value;
+            while (num >= 0x80)
+            {
+                num = num >> 7;
+
+                count++;
+            }
+
+            return count;
         }
         #endregion
     }

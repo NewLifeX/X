@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NewLife.Serialization;
+using System.IO;
 
 namespace NewLife.Core.Test.Serialization
 {
@@ -73,17 +74,24 @@ namespace NewLife.Core.Test.Serialization
             var bts1 = writer.Stream.ReadBytes();
             var bts2 = obj.GetBinaryStream().ReadBytes();
             Assert.AreEqual(bts1.CompareTo(bts2), 0);
-            //Assert.AreEqual(bts1.Length, bts2.Length);
-            //var b = true;
-            //for (int i = 0; i < bts1.Length; i++)
-            //{
-            //    if (bts1[i] != bts2[i])
-            //    {
-            //        b = false;
-            //        break;
-            //    }
-            //}
-            //Assert.IsTrue(b);
+        }
+
+        [TestMethod]
+        public void TestWriterWithEncodeInt()
+        {
+            var obj = SimpleObj.Create();
+
+            var writer = new BinaryWriterX();
+            writer.Settings.EncodeInt = true;
+            writer.WriteObject(obj);
+
+            Assert.AreNotEqual(writer.Stream.Length, 0);
+
+            var bts1 = writer.Stream.ReadBytes();
+            var bts2 = obj.GetBinaryStream(true).ReadBytes();
+            File.WriteAllBytes("1.bin", bts1);
+            File.WriteAllBytes("2.bin", bts2);
+            Assert.AreEqual(bts1.CompareTo(bts2), 0);
         }
     }
 }
