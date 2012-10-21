@@ -1004,7 +1004,7 @@ namespace NewLife.Serialization
             catch (XSerializationException ex)
             {
                 // 如果本身就是序列化异常，砍断内部的异常链，太长没有意义
-                var se = new XSerializationException(ex.Member, "读取对象的" + (ex.Member == null ? "" : ex.Member.Name) + "出错，可能已读取部分，请查看Value属性！" + ex.Message);
+                var se = new XSerializationException(ex.Member, "读取对象的" + (ex.Member == null ? "" : ex.Member) + "出错，可能已读取部分，请查看Value属性！" + ex.Message);
                 se.Value = value;
                 throw se;
             }
@@ -1460,7 +1460,7 @@ namespace NewLife.Serialization
             catch (XException) { throw; }
             catch (Exception ex)
             {
-                throw new XSerializationException(member, ex);
+                throw new XSerializationException(member.Name, ex);
             }
 #endif
         }

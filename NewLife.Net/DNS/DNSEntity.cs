@@ -300,18 +300,18 @@ namespace NewLife.Net.DNS
         {
             var writer = sender as IWriter;
             // TXT记录的Text字段不采用DNS字符串
-            if (e.Type == typeof(String) && e.Member.Name != "_Text")
+            if (e.Type == typeof(String) && e.Name != "_Text")
             {
                 //writer.WriteLog("WriteMember", "_Name", "String", e.Member[e.Value]);
                 Object ps = writer.Items["Position"];
                 Int64 p = ps is Int64 ? (Int64)ps : 0;
                 p += writer.Stream.Position;
-                GetNameAccessor(writer).Write(writer.Stream, (String)e.Member[e.Value], p);
+                GetNameAccessor(writer).Write(writer.Stream, (String)e.Value, p);
                 e.Success = true;
             }
             else if (e.Type == typeof(TimeSpan))
             {
-                var ts = (TimeSpan)e.Member[e.Value];
+                var ts = (TimeSpan)e.Value;
                 var wr = writer as IWriter2;
                 wr.Write((Int32)ts.TotalSeconds);
                 e.Success = true;

@@ -93,7 +93,7 @@ namespace NewLife.Serialization
             //return Reader.ReadBytes(count);
             var buffer = Reader.ReadBytes(count);
             if (buffer == null || buffer.Length < count)
-                throw new XSerializationException(CurrentMember, String.Format("所读取的字节数据长度不足！预期{0}，实际{1}！", count, buffer == null ? 0 : buffer.Length));
+                throw new XSerializationException(CurrentMember.Name, String.Format("所读取的字节数据长度不足！预期{0}，实际{1}！", count, buffer == null ? 0 : buffer.Length));
             return buffer;
         }
 

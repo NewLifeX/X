@@ -820,7 +820,7 @@ namespace NewLife.Serialization
                 WriteMemberEventArgs e = null;
                 if (OnMemberWriting != null)
                 {
-                    e = new WriteMemberEventArgs(value, type, null, index, callback);
+                    e = new WriteMemberEventArgs(name, value, type, index, callback);
 
                     OnMemberWriting(this, e);
 
@@ -834,17 +834,16 @@ namespace NewLife.Serialization
                     // 事件里面有可能改变了参数
                     value = e.Value;
                     type = e.Type;
-                    //member = e.Member;
                     index = e.Index;
                     callback = e.Callback;
                 }
 
-                Boolean rs = OnWriteMember(name, value, type, index, callback);
+                var rs = OnWriteMember(name, value, type, index, callback);
 
                 // 写入成员后
                 if (OnMemberWrited != null)
                 {
-                    e = new WriteMemberEventArgs(value, type, null, index, callback);
+                    e = new WriteMemberEventArgs(name, value, type, index, callback);
                     e.Success = rs;
 
                     OnMemberWrited(this, e);
@@ -860,7 +859,7 @@ namespace NewLife.Serialization
 #if !DEBUG
             catch (Exception ex)
             {
-                throw new XSerializationException(null, ex);
+                throw new XSerializationException(name, ex);
             }
 #endif
         }

@@ -99,7 +99,7 @@ namespace NewLife.Net.DNS
 
         void writer_OnMemberWriting(object sender, WriteMemberEventArgs e)
         {
-            if (e.Member.Name == "_Length")
+            if (e.Name == "_Length")
             {
                 var writer = sender as IWriter;
                 // 记住数据流位置，读取字符串的时候需要用到

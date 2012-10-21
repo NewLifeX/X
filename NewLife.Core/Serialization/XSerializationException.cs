@@ -7,13 +7,9 @@ namespace NewLife.Serialization
     [Serializable]
     public class XSerializationException : XException
     {
-        private IObjectMemberInfo _Member;
+        private String _Member;
         /// <summary>成员</summary>
-        public IObjectMemberInfo Member
-        {
-            get { return _Member; }
-            //set { _Member = value; }
-        }
+        public String Member { get { return _Member; } }
 
         private Object _Value;
         /// <summary>对象值</summary>
@@ -22,19 +18,19 @@ namespace NewLife.Serialization
         #region 构造
         /// <summary>初始化</summary>
         /// <param name="member"></param>
-        public XSerializationException(IObjectMemberInfo member) { _Member = member; }
+        public XSerializationException(String member) { _Member = member; }
 
         /// <summary>初始化</summary>
         /// <param name="member"></param>
         /// <param name="message"></param>
-        public XSerializationException(IObjectMemberInfo member, String message) : base(message) { _Member = member; }
+        public XSerializationException(String member, String message) : base(message) { _Member = member; }
 
         /// <summary>初始化</summary>
         /// <param name="member"></param>
         /// <param name="message"></param>
         /// <param name="innerException"></param>
-        public XSerializationException(IObjectMemberInfo member, String message, Exception innerException)
-            : base(message + (member != null ? "[Member:" + member.Name + "]" : null), innerException)
+        public XSerializationException(String member, String message, Exception innerException)
+            : base(message + (member != null ? "[Member:" + member + "]" : null), innerException)
         {
             _Member = member;
         }
@@ -42,25 +38,11 @@ namespace NewLife.Serialization
         /// <summary>初始化</summary>
         /// <param name="member"></param>
         /// <param name="innerException"></param>
-        public XSerializationException(IObjectMemberInfo member, Exception innerException)
-            : base((innerException != null ? innerException.Message : null) + (member != null ? "[Member:" + member.Name + "]" : null), innerException)
+        public XSerializationException(String member, Exception innerException)
+            : base((innerException != null ? innerException.Message : null) + (member != null ? "[Member:" + member + "]" : null), innerException)
         {
             _Member = member;
         }
-
-        ///// <summary>
-        ///// 初始化
-        ///// </summary>
-        ///// <param name="info"></param>
-        ///// <param name="context"></param>
-        //protected XSerializationException(SerializationInfo info, StreamingContext context)
-        //    : base(info, context)
-        //{
-        //    if (info != null && info.MemberCount > 0)
-        //    {
-
-        //    }
-        //}
         #endregion
     }
 }

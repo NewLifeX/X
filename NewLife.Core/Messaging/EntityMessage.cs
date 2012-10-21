@@ -52,7 +52,7 @@ namespace NewLife.Messaging
         void writer_OnMemberWriting(object sender, WriteMemberEventArgs e)
         {
             var writer = sender as IWriter;
-            if (writer.CurrentObject == this && e.Member.Name == "_Value")
+            if (writer.CurrentObject == this && e.Name == "_Value")
             {
                 e.Type = Type; 
                 writer.OnMemberWriting -= new EventHandler<WriteMemberEventArgs>(writer_OnMemberWriting);
