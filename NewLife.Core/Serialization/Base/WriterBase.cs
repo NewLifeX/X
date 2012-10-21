@@ -16,6 +16,9 @@ namespace NewLife.Serialization
     /// 序列化框架的处理顺序为：<see cref="IAccessor" />接口 => <see cref="OnObjectWriting" />事件 => 扩展类型 => <see cref="WriteValue(Object)" />基础类型 => <see cref="WriteDictionary" />字典 => <see cref="WriteEnumerable" />枚举 => <see cref="WriteSerializable" />序列化接口 => <see cref="WriteCustomObject" />自定义对象 => <see cref="WriteUnKnown" />未知类型 => <see cref="OnObjectWrited" />事件
     /// 
     /// 序列化对象时只能调用<see cref="WriteObject(Object)" />方法，其它所有方法（包括所有Write重载）仅用于内部写入或者自定义序列化时使用。
+    /// 
+    /// Decimal转为四个Int32整数输出；
+    /// DateTime转为Int64输出。
     /// </remarks>
     /// <typeparam name="TSettings">设置类</typeparam>
     public abstract class WriterBase<TSettings> : ReaderWriterBase<TSettings>, IWriter2 where TSettings : ReaderWriterSetting, new()
