@@ -860,7 +860,7 @@ namespace NewLife.Serialization
 #if !DEBUG
             catch (Exception ex)
             {
-                throw new XSerializationException(member, ex);
+                throw new XSerializationException(null, ex);
             }
 #endif
         }
