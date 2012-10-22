@@ -18,11 +18,12 @@ namespace NewLife.Xml
             if (String.IsNullOrEmpty(xml)) return null;
 
             xml = xml.Trim();
+            if (String.IsNullOrEmpty(xml)) return null;
 
             var serial = new XmlSerializer(typeof(TEntity));
             using (var reader = new StringReader(xml))
             {
-                return (serial.Deserialize(reader) as TEntity);
+                return serial.Deserialize(reader) as TEntity;
             }
         }
 
@@ -39,7 +40,7 @@ namespace NewLife.Xml
             {
                 using (var reader = new StreamReader(stream, Encoding.UTF8))
                 {
-                    return (serial.Deserialize(reader) as TEntity);
+                    return serial.Deserialize(reader) as TEntity;
                 }
             }
         }
@@ -48,33 +49,16 @@ namespace NewLife.Xml
         /// <returns></returns>
         public virtual String ToXml()
         {
-            var serial = new XmlSerializer(typeof(TEntity));
-            using (var stream = new MemoryStream())
-            {
-                var setting = new XmlWriterSettings();
-                setting.Encoding = new UTF8Encoding(false);
-                setting.Indent = true;
-                using (var writer = XmlWriter.Create(stream, setting))
-                {
-                    // 去掉默认命名空间xmlns:xsd和xmlns:xsi
-                    var xsns = new XmlSerializerNamespaces();
-                    xsns.Add("", "");
-
-                    serial.Serialize(writer, this, xsns);
-                    return Encoding.UTF8.GetString(stream.ToArray());
-                    //byte[] bts = stream.ToArray();
-                    //String xml = Encoding.UTF8.GetString(bts);
-
-                    //if (!String.IsNullOrEmpty(xml)) xml = xml.Trim();
-
-                    //return xml;
-                }
-            }
+            // 去掉默认命名空间xmlns:xsd和xmlns:xsi
+            return ToXml("", "");
         }
 
-        /// <summary>输出Xml</summary>
+        /// <summary>输出XML</summary>
+        /// <param name="prefix">前缀</param>
+        /// <param name="ns">命名空间</param>
+        /// <param name="includeDeclaration">是否包含Xml声明</param>
         /// <returns></returns>
-        public virtual String ToXml(String prefix, String ns)
+        public virtual String ToXml(String prefix, String ns, Boolean includeDeclaration = false)
         {
             var serial = new XmlSerializer(typeof(TEntity));
             using (var stream = new MemoryStream())
@@ -82,9 +66,11 @@ namespace NewLife.Xml
                 var setting = new XmlWriterSettings();
                 setting.Encoding = new UTF8Encoding(false);
                 setting.Indent = true;
+                // 去掉开头 <?xml version="1.0" encoding="utf-8"?>
+                setting.OmitXmlDeclaration = includeDeclaration;
                 using (var writer = XmlWriter.Create(stream, setting))
                 {
-                    if (String.IsNullOrEmpty(ns))
+                    if (ns == null)
                         serial.Serialize(writer, this);
                     else
                     {
@@ -99,28 +85,7 @@ namespace NewLife.Xml
 
         /// <summary>输出内部XML</summary>
         /// <returns></returns>
-        public virtual String ToInnerXml()
-        {
-            var serial = new XmlSerializer(typeof(TEntity));
-            using (var stream = new MemoryStream())
-            {
-                var setting = new XmlWriterSettings();
-                setting.Encoding = new UTF8Encoding(false);
-                setting.Indent = true;
-                // 去掉开头 <?xml version="1.0" encoding="utf-8"?>
-                setting.OmitXmlDeclaration = true;
-
-                using (var writer = XmlWriter.Create(stream, setting))
-                {
-                    // 去掉默认命名空间xmlns:xsd和xmlns:xsi
-                    var xsns = new XmlSerializerNamespaces();
-                    xsns.Add("", "");
-
-                    serial.Serialize(writer, this, xsns);
-                    return Encoding.UTF8.GetString(stream.ToArray());
-                }
-            }
-        }
+        public virtual String ToInnerXml() { return ToXml("", "", true); }
 
         /// <summary>保存到文件中</summary>
         /// <param name="filename">若为空，则默认为类名加xml后缀</param>
