@@ -69,7 +69,8 @@ namespace XCode.DataAccessLayer
             if (!builder.ContainsKey("Cache Size")) builder["Cache Size"] = "50000";
             // 这两个设置可以让SQLite拥有数十倍的极限性能，但同时又加大了风险，如果系统遭遇突然断电，数据库会出错，而导致系统无法自动恢复
             if (!builder.ContainsKey("Synchronous")) builder["Synchronous"] = "Off";
-            if (!builder.ContainsKey("Journal Mode")) builder["Journal Mode"] = "Memory";
+            // Journal Mode的内存设置太激进了，容易出事，关闭
+            //if (!builder.ContainsKey("Journal Mode")) builder["Journal Mode"] = "Memory";
         }
         #endregion
 
