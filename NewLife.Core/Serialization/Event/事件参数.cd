@@ -1,93 +1,51 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ClassDiagram MajorVersion="1" MinorVersion="1">
   <Class Name="NewLife.Serialization.ReaderEventArgs" Collapsed="true">
-    <Position X="5.75" Y="3" Width="1.75" />
+    <Position X="2" Y="2" Width="1.75" />
     <TypeIdentifier>
       <HashCode>AAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA=</HashCode>
       <FileName>Serialization\Event\ReaderEventArgs.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="NewLife.Serialization.ReaderWriterEventArgs" Collapsed="true">
-    <Position X="11" Y="1.5" Width="2" />
+    <Position X="4.75" Y="0.5" Width="2" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAgEAAAAAAAAAAAAAAAA=</HashCode>
       <FileName>Serialization\Event\ReaderWriterEventArgs.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="NewLife.Serialization.WriterEventArgs" Collapsed="true">
-    <Position X="16.75" Y="3" Width="1.75" />
+    <Position X="7.5" Y="2" Width="1.75" />
     <TypeIdentifier>
       <HashCode>AAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA=</HashCode>
       <FileName>Serialization\Event\WriterEventArgs.cs</FileName>
     </TypeIdentifier>
   </Class>
-  <Class Name="NewLife.Serialization.WriteIndexEventArgs" Collapsed="true">
-    <Position X="15.25" Y="4.5" Width="2" />
-    <TypeIdentifier>
-      <HashCode>AAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAA=</HashCode>
-      <FileName>Serialization\Event\WriteIndexEventArgs.cs</FileName>
-    </TypeIdentifier>
-  </Class>
   <Class Name="NewLife.Serialization.WriteObjectEventArgs" Collapsed="true">
-    <Position X="20.75" Y="4.5" Width="2" />
+    <Position X="8.75" Y="3.5" Width="2" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAQAgAAAABAA=</HashCode>
       <FileName>Serialization\Event\WriteObjectEventArgs.cs</FileName>
     </TypeIdentifier>
   </Class>
-  <Class Name="NewLife.Serialization.ReadIndexEventArgs" Collapsed="true">
-    <Position X="4.25" Y="4.5" Width="1.75" />
-    <TypeIdentifier>
-      <HashCode>AAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAA=</HashCode>
-      <FileName>Serialization\Event\ReadIndexEventArgs.cs</FileName>
-    </TypeIdentifier>
-  </Class>
   <Class Name="NewLife.Serialization.ReadObjectEventArgs" Collapsed="true">
-    <Position X="9.75" Y="4.5" Width="2" />
+    <Position X="3.25" Y="3.5" Width="2" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAQAgAAAABAA=</HashCode>
       <FileName>Serialization\Event\ReadObjectEventArgs.cs</FileName>
     </TypeIdentifier>
   </Class>
-  <Class Name="NewLife.Serialization.WriteDictionaryEventArgs" Collapsed="true">
-    <Position X="12.5" Y="5.75" Width="2.25" />
-    <TypeIdentifier>
-      <HashCode>AAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAQAgAAAABAA=</HashCode>
-      <FileName>Serialization\Event\WriteDictionaryEventArgs.cs</FileName>
-    </TypeIdentifier>
-  </Class>
-  <Class Name="NewLife.Serialization.WriteItemEventArgs" Collapsed="true">
-    <Position X="15.5" Y="5.75" Width="1.75" />
-    <TypeIdentifier>
-      <HashCode>AAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAQAgAAAABAA=</HashCode>
-      <FileName>Serialization\Event\WriteItemEventArgs.cs</FileName>
-    </TypeIdentifier>
-  </Class>
   <Class Name="NewLife.Serialization.WriteMemberEventArgs" Collapsed="true">
-    <Position X="18" Y="5.75" Width="2" />
+    <Position X="6" Y="3.5" Width="2" />
     <TypeIdentifier>
-      <HashCode>AAAAAAAAAAAAABAAAAAAAAAAAAAIAIAAAAAgAAAAAAA=</HashCode>
+      <HashCode>AAAgAAAAAAAAABAAAAAAIAQAAAAAAAAAAQEgAAAABAA=</HashCode>
       <FileName>Serialization\Event\WriteMemberEventArgs.cs</FileName>
     </TypeIdentifier>
   </Class>
-  <Class Name="NewLife.Serialization.ReadDictionaryEventArgs" Collapsed="true">
-    <Position X="1.5" Y="5.75" Width="2.25" />
-    <TypeIdentifier>
-      <HashCode>AAAAAAAAAAAAABAAAAAAAAAAAAAUAAQAAAAgAAAAEAA=</HashCode>
-      <FileName>Serialization\Event\ReadDictionaryEventArgs.cs</FileName>
-    </TypeIdentifier>
-  </Class>
-  <Class Name="NewLife.Serialization.ReadItemEventArgs" Collapsed="true">
-    <Position X="4.5" Y="5.75" Width="1.75" />
-    <TypeIdentifier>
-      <HashCode>AAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAQAgAAAABAA=</HashCode>
-      <FileName>Serialization\Event\ReadItemEventArgs.cs</FileName>
-    </TypeIdentifier>
-  </Class>
   <Class Name="NewLife.Serialization.ReadMemberEventArgs" Collapsed="true">
-    <Position X="7" Y="5.75" Width="2" />
+    <Position X="0.5" Y="3.5" Width="2" />
     <TypeIdentifier>
-      <HashCode>AAAAAAAAAAAAABAAAAAAAAAAAAAIAIAAAAAgAAAAAAA=</HashCode>
+      <HashCode>AAAgAAAAAAAAABAAAAAAAAAAAAAIAIAAAQEgAAAABAA=</HashCode>
       <FileName>Serialization\Event\ReadMemberEventArgs.cs</FileName>
     </TypeIdentifier>
   </Class>

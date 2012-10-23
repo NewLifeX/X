@@ -190,7 +190,8 @@ namespace NewLife.Messaging
                 #endregion
 
                 // 读取了响应类型和消息类型后，动态创建消息对象
-                kind = (MessageKind)(reader.ReadByte() & 0x7F);
+                var rd = reader as IReader2;
+                kind = (MessageKind)(rd.ReadByte() & 0x7F);
             }
             else
             {

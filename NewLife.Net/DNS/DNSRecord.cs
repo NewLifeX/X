@@ -61,7 +61,7 @@ namespace NewLife.Net.DNS
         {
             if (e.Member.Name == "_Length" && (Int16)e.Value > 0)
             {
-                var reader = sender as IReader;
+                var reader = sender as IReader2;
                 // 记住数据流位置，读取字符串的时候需要用到
                 reader.Items["Position"] = reader.Stream.Position;
                 var data = reader.ReadBytes((Int16)e.Value);

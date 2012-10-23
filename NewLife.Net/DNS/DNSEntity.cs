@@ -234,7 +234,7 @@ namespace NewLife.Net.DNS
         {
             if (e.Type == typeof(DNSRecord))
             {
-                var reader = sender as IReader;
+                var reader = sender as IReader2;
                 var p = reader.Stream.Position;
                 String name = GetNameAccessor(reader).Read(reader.Stream, 0);
                 DNSQueryType qt = (DNSQueryType)reader.ReadValue(typeof(DNSQueryType));
@@ -279,7 +279,7 @@ namespace NewLife.Net.DNS
         #region 特殊处理字符串
         void reader_OnMemberReading(object sender, ReadMemberEventArgs e)
         {
-            var reader = sender as IReader;
+            var reader = sender as IReader2;
             // TXT记录的Text字段不采用DNS字符串
             if (e.Type == typeof(String) && e.Member.Name != "_Text")
             {

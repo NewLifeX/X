@@ -26,7 +26,7 @@ namespace NewLife.Serialization
     /// 反序列化对象时只能调用<see cref="ReadObject(Type)" />方法，其它所有方法（包括所有Read重载）仅用于内部读取或者自定义序列化时使用。
     /// </remarks>
     /// <typeparam name="TSettings">设置类</typeparam>
-    public abstract class ReaderBase<TSettings> : ReaderWriterBase<TSettings>, IReader where TSettings : ReaderWriterSetting, new()
+    public abstract class ReaderBase<TSettings> : ReaderWriterBase<TSettings>, IReader2 where TSettings : ReaderWriterSetting, new()
     {
         #region 基元类型
         #region 字节

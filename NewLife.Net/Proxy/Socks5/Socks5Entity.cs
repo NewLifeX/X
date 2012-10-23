@@ -138,21 +138,22 @@ namespace NewLife.Net.Proxy
 
         Boolean IAccessor.ReadComplete(IReader reader, Boolean success)
         {
+            var rd = reader as IReader2;
             switch (AddressType)
             {
                 case Socks5AddressType.IPv4:
-                    Address = new IPAddress(reader.ReadBytes(4)).ToString();
+                    Address = new IPAddress(rd.ReadBytes(4)).ToString();
                     break;
                 case Socks5AddressType.DomainName:
-                    Address = reader.ReadString();
+                    Address = rd.ReadString();
                     break;
                 case Socks5AddressType.IPv6:
-                    Address = new IPAddress(reader.ReadBytes(16)).ToString();
+                    Address = new IPAddress(rd.ReadBytes(16)).ToString();
                     break;
                 default:
                     break;
             }
-            Port = reader.ReadUInt16();
+            Port = rd.ReadUInt16();
             return success;
         }
 
