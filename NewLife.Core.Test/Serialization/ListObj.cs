@@ -38,5 +38,23 @@ namespace NewLife.Core.Test.Serialization
                 item.Write(writer, set);
             }
         }
+
+        public override bool CompareTo(Obj obj)
+        {
+            //return base.CompareTo(obj);
+            var arr = obj as ListObj;
+            if (arr == null) return false;
+
+            if ((Objs == null || Objs.Count == 0) && (arr.Objs == null || arr.Objs.Count == 0)) return true;
+
+            if (Objs.Count != arr.Objs.Count) return false;
+
+            for (int i = 0; i < Objs.Count; i++)
+            {
+                if (!Objs[i].CompareTo(arr.Objs[i])) return false;
+            }
+
+            return true;
+        }
     }
 }

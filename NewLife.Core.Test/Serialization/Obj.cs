@@ -5,6 +5,8 @@ using System.Text;
 using System.IO;
 using System.Xml.Serialization;
 using NewLife.Serialization;
+using System.Reflection;
+using NewLife.Reflection;
 
 namespace NewLife.Core.Test.Serialization
 {
@@ -93,6 +95,56 @@ namespace NewLife.Core.Test.Serialization
             }
 
             return count;
+        }
+        #endregion
+
+        #region 比较
+        //public virtual String FindNotEqual(Obj obj)
+        //{
+        //    if (obj == null || this.GetType() != obj.GetType()) return "";
+
+        //    foreach (var item in this.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
+        //    {
+        //        var msg = FindNotEqual(obj, item);
+        //        if (msg != null) return String.Format("{0}.{1}", item.Name, msg);
+
+        //        var fix = FieldInfoX.Create(item);
+        //        if (fix.GetValue(this) != fix.GetValue(obj)) return item.Name;
+        //    }
+        //    return null;
+        //}
+
+        //protected virtual String FindNotEqual(Obj obj, FieldInfo fi)
+        //{
+        //    return null;
+        //}
+
+        public virtual Boolean CompareTo(Obj obj) { return Compare(this, obj); }
+
+        public static Boolean Compare(Object obj1, Object obj2)
+        {
+            if (obj1 == null || obj2 == null || obj1.GetType() != obj2.GetType()) return false;
+
+            var fis = obj1.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            foreach (var item in fis)
+            {
+                var fix = FieldInfoX.Create(item);
+                var b1 = fix.GetValue(obj1);
+                var b2 = fix.GetValue(obj2);
+
+                // 如果都是Obj，这样处理
+                if (b1 is Obj && b2 is Obj) return (b1 as Obj).CompareTo(b2 as Obj);
+
+                if (Type.GetTypeCode(item.FieldType) == TypeCode.Object)
+                {
+                    if (!Compare(b1, b2)) return false;
+                }
+                else
+                {
+                    if (!Object.Equals(b1, b2)) return false;
+                }
+            }
+            return true;
         }
         #endregion
     }

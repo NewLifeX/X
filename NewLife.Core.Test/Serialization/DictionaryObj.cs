@@ -43,5 +43,30 @@ namespace NewLife.Core.Test.Serialization
                 item.Value.Write(writer, set);
             }
         }
+
+        public override bool CompareTo(Obj obj)
+        {
+            //return base.CompareTo(obj);
+            var arr = obj as DictionaryObj;
+            if (arr == null) return false;
+
+            if ((Objs == null || Objs.Count == 0) && (arr.Objs == null || arr.Objs.Count == 0)) return true;
+
+            if (Objs.Count != arr.Objs.Count) return false;
+
+            foreach (var item in Objs)
+            {
+                SimpleObj sb;
+                // 不存在？
+                if (!arr.Objs.TryGetValue(item.Key, out sb)) return false;
+
+                // 很小的可能相等，两者可能都是null
+                if (sb == item.Value) continue;
+
+                if (!sb.CompareTo(item.Value)) return false;
+            }
+
+            return true;
+        }
     }
 }

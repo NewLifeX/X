@@ -63,16 +63,18 @@ namespace NewLife.Core.Test.Serialization
 
         void TestWriter(Obj obj, Boolean encodeInt)
         {
+            // 二进制序列化写入
             var writer = new BinaryWriterX();
             writer.Settings.UseObjRef = false;
             writer.Settings.EncodeInt = encodeInt;
             writer.WriteObject(obj);
 
-            //Assert.AreNotEqual(writer.Stream.Length, 0);
-
             var bts1 = writer.Stream.ReadBytes();
+
+            // 对象本应有的数据流
             var bts2 = obj.GetStream(writer.Settings).ReadBytes();
-            Assert.AreEqual(bts1.CompareTo(bts2), 0);
+
+            Assert.AreEqual(bts1.CompareTo(bts2), 0, "二进制写入器得到的数据与标准不符！");
         }
 
         [TestMethod]
@@ -105,6 +107,55 @@ namespace NewLife.Core.Test.Serialization
             var obj = new DictionaryObj();
             TestWriter(obj, false);
             TestWriter(obj, true);
+        }
+
+        void TestReader(Obj obj, Boolean encodeInt)
+        {
+            var reader = new BinaryReaderX();
+            reader.Settings.UseObjRef = false;
+            reader.Settings.EncodeInt = encodeInt;
+
+            // 获取对象的数据流，作为二进制读取器的数据源
+            reader.Stream = obj.GetStream(reader.Settings);
+            // 读取一个跟原始对象类型一致的对象
+            var obj2 = reader.ReadObject(obj.GetType());
+
+            Assert.IsNotNull(obj2, "二进制读取器无法读取标准数据！");
+
+            var b = obj.CompareTo(obj2 as Obj);
+            Assert.IsTrue(b, "序列化后对象不一致！");
+        }
+
+        [TestMethod]
+        public void TestReader()
+        {
+            var obj = SimpleObj.Create();
+            TestReader(obj, false);
+            TestReader(obj, true);
+        }
+
+        [TestMethod]
+        public void TestReadArray()
+        {
+            var obj = new ArrayObj();
+            TestReader(obj, false);
+            TestReader(obj, true);
+        }
+
+        [TestMethod]
+        public void TestReadList()
+        {
+            var obj = new ListObj();
+            TestReader(obj, false);
+            TestReader(obj, true);
+        }
+
+        [TestMethod]
+        public void TestReadDictionary()
+        {
+            var obj = new DictionaryObj();
+            TestReader(obj, false);
+            TestReader(obj, true);
         }
     }
 }
