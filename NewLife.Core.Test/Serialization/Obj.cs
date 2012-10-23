@@ -124,11 +124,14 @@ namespace NewLife.Core.Test.Serialization
         public static Boolean Compare(Object obj1, Object obj2)
         {
             if (obj1 == null || obj2 == null || obj1.GetType() != obj2.GetType()) return false;
-            if (Type.GetTypeCode(obj1.GetType()) != TypeCode.Object) return Object.Equals(obj1, obj2);
+            // 如果对象相等，直接返回
+            if (Object.Equals(obj1, obj2)) return true;
 
             var fis = obj1.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
             foreach (var item in fis)
             {
+                if (item.GetCustomAttribute<NonSerializedAttribute>(true) != null) continue;
+
                 var fix = FieldInfoX.Create(item);
                 var b1 = fix.GetValue(obj1);
                 var b2 = fix.GetValue(obj2);

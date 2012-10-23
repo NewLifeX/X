@@ -5,6 +5,7 @@ using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NewLife.Messaging;
 using NewLife.Core.Test.Serialization;
+using NewLife.Exceptions;
 
 namespace NewLife.Core.Test.Messaging
 {
@@ -73,6 +74,45 @@ namespace NewLife.Core.Test.Messaging
             var msg2 = Message.Read<EntityMessage>(sm);
 
             Assert.IsTrue(Obj.Compare(msg.Value, msg2.Value), "实体消息序列化前后的值不一致！");
+        }
+
+        [TestMethod]
+        public void ExceptionTest()
+        {
+            var msg = new ExceptionMessage();
+            msg.Value = new XException("用户异常！");
+
+            var sm = msg.GetStream();
+
+            var msg2 = Message.Read<ExceptionMessage>(sm);
+
+            Assert.IsTrue(Obj.Compare(msg.Value, msg2.Value), "异常消息序列化前后的值不一致！");
+        }
+
+        [TestMethod]
+        public void CompressionTest()
+        {
+            var msg = new CompressionMessage();
+            msg.Message = new EntityMessage { Value = SimpleObj.Create() };
+
+            var sm = msg.GetStream();
+
+            var msg2 = Message.Read<CompressionMessage>(sm);
+
+            Assert.IsTrue(Obj.Compare(msg, msg2), "消息序列化前后的值不一致！");
+        }
+
+        [TestMethod]
+        public void MethodTest()
+        {
+            var msg = new MethodMessage();
+            msg.Method = this.GetType().GetMethod("MethodTest");
+
+            var sm = msg.GetStream();
+
+            var msg2 = Message.Read<MethodMessage>(sm);
+
+            Assert.IsTrue(Obj.Compare(msg, msg2), "消息序列化前后的值不一致！");
         }
     }
 }
