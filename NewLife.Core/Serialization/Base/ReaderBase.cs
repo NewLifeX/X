@@ -547,8 +547,8 @@ namespace NewLife.Serialization
         protected virtual IList ReadItems(Type type, Type elementType, Int32 count, ReadObjectCallback callback)
         {
             //ArrayList list = new ArrayList();
-            Type listType = typeof(List<>).MakeGenericType(elementType);
-            IList list = TypeX.CreateInstance(listType) as IList;
+            var listType = typeof(List<>).MakeGenericType(elementType);
+            var list = TypeX.CreateInstance(listType) as IList;
 
             // 元素个数小于0，可能是因为不支持元素个数，直接设为最大值
             if (count < 0) count = Int32.MaxValue;
@@ -560,6 +560,8 @@ namespace NewLife.Serialization
                 if (!ReadItem(elementType, ref obj, i, callback))
                 {
                     Depth--;
+                    // 如果不为空，还是加上吧，因为可能读取了一半
+                    if (obj != null) list.Add(obj);
                     break;
                 }
                 Depth--;
