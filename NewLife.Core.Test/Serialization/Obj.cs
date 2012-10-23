@@ -123,9 +123,9 @@ namespace NewLife.Core.Test.Serialization
 
         public static Boolean Compare(Object obj1, Object obj2)
         {
-            if (obj1 == null || obj2 == null || obj1.GetType() != obj2.GetType()) return false;
             // 如果对象相等，直接返回
             if (Object.Equals(obj1, obj2)) return true;
+            if (obj1 == null || obj2 == null || obj1.GetType() != obj2.GetType()) return false;
 
             var fis = obj1.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
             foreach (var item in fis)
