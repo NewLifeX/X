@@ -34,9 +34,11 @@ using System.Runtime.InteropServices;
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("3.8.*")]
-[assembly: AssemblyFileVersion("3.8.2012.0803")]
+[assembly: AssemblyFileVersion("3.8.2012.1023")]
 
 /*
+ * v3.8.2012.1023   增加Xml配置文件基类XmlConfig
+ * 
  * v3.8.2012.0803   增加路径扩展助手PathHelper
  * 
  * v3.8.2012.0802   跟踪日志增加不换行的写日志方法Write
