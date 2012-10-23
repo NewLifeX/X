@@ -28,6 +28,15 @@ namespace NewLife.Serialization
         /// <param name="callback">处理成员的方法</param>
         /// <returns>是否读取成功</returns>
         Boolean ReadObject(Type type, ref Object value, ReadObjectCallback callback);
+
+        /// <summary>读取对象成员</summary>
+        /// <param name="type">要读取的对象类型</param>
+        /// <param name="value">要读取的对象</param>
+        /// <param name="member">成员</param>
+        /// <param name="index">成员索引</param>
+        /// <param name="callback">处理成员的方法</param>
+        /// <returns>是否读取成功</returns>
+        Boolean ReadMember(Type type, ref Object value, IObjectMemberInfo member, Int32 index, ReadObjectCallback callback);
         #endregion
 
         #region 事件

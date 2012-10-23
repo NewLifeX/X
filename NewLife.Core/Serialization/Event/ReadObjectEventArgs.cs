@@ -22,7 +22,7 @@ namespace NewLife.Serialization
             get { return _Type; }
             set { _Type = value; }
         }
-    
+
         #region 构造
         /// <summary>实例化</summary>
         /// <param name="value">对象</param>
@@ -35,5 +35,5 @@ namespace NewLife.Serialization
             Type = type;
         }
         #endregion
-}
+    }
 }

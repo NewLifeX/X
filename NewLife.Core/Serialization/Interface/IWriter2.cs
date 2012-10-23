@@ -133,41 +133,41 @@ namespace NewLife.Serialization
         Boolean WriteValue(Object value);
         #endregion
 
-        #region 字典
-        /// <summary>写入字典类型数据</summary>
-        /// <param name="value">字典数据</param>
-        /// <param name="type">要写入的对象类型</param>
-        /// <param name="callback">处理成员的方法</param>
-        /// <returns>是否写入成功</returns>
-        Boolean WriteDictionary(IDictionary value, Type type, WriteObjectCallback callback);
-        #endregion
+        //#region 字典
+        ///// <summary>写入字典类型数据</summary>
+        ///// <param name="value">字典数据</param>
+        ///// <param name="type">要写入的对象类型</param>
+        ///// <param name="callback">处理成员的方法</param>
+        ///// <returns>是否写入成功</returns>
+        //Boolean WriteDictionary(IDictionary value, Type type, WriteObjectCallback callback);
+        //#endregion
 
-        #region 枚举
-        /// <summary>写入枚举类型数据</summary>
-        /// <param name="value">枚举数据</param>
-        /// <param name="type">要写入的对象类型</param>
-        /// <param name="callback">处理成员的方法</param>
-        /// <returns>是否写入成功</returns>
-        Boolean WriteEnumerable(IEnumerable value, Type type, WriteObjectCallback callback);
-        #endregion
+        //#region 枚举
+        ///// <summary>写入枚举类型数据</summary>
+        ///// <param name="value">枚举数据</param>
+        ///// <param name="type">要写入的对象类型</param>
+        ///// <param name="callback">处理成员的方法</param>
+        ///// <returns>是否写入成功</returns>
+        //Boolean WriteEnumerable(IEnumerable value, Type type, WriteObjectCallback callback);
+        //#endregion
 
-        #region 序列化接口
-        /// <summary>写入实现了可序列化接口的对象</summary>
-        /// <param name="value">要写入的对象</param>
-        /// <param name="type">要写入的对象类型</param>
-        /// <param name="callback">处理成员的方法</param>
-        /// <returns>是否写入成功</returns>
-        Boolean WriteSerializable(Object value, Type type, WriteObjectCallback callback);
-        #endregion
-
-        #region 未知对象
-        ///// <summary>写入未知对象（其它所有方法都无法识别的对象），采用BinaryFormatter或者XmlSerialization</summary>
+        //#region 序列化接口
+        ///// <summary>写入实现了可序列化接口的对象</summary>
         ///// <param name="value">要写入的对象</param>
         ///// <param name="type">要写入的对象类型</param>
         ///// <param name="callback">处理成员的方法</param>
         ///// <returns>是否写入成功</returns>
-        //Boolean WriteUnKnown(Object value, Type type, WriteObjectCallback callback);
-        #endregion
+        //Boolean WriteSerializable(Object value, Type type, WriteObjectCallback callback);
+        //#endregion
+
+        //#region 未知对象
+        /////// <summary>写入未知对象（其它所有方法都无法识别的对象），采用BinaryFormatter或者XmlSerialization</summary>
+        /////// <param name="value">要写入的对象</param>
+        /////// <param name="type">要写入的对象类型</param>
+        /////// <param name="callback">处理成员的方法</param>
+        /////// <returns>是否写入成功</returns>
+        ////Boolean WriteUnKnown(Object value, Type type, WriteObjectCallback callback);
+        //#endregion
 
         #region 方法
 

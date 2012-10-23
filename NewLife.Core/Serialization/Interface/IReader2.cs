@@ -8,8 +8,6 @@ namespace NewLife.Serialization
     /// <summary>读取器接口</summary>
     /// <remarks>
     /// 序列化框架的核心思想：基本类型直接读取，自定义类型反射得到成员，逐层递归读取！详见<see cref="IReaderWriter"/>
-    /// 
-    /// 序列化框架的处理顺序为：<see cref="IAccessor" />接口 => OnObjectReading事件 => 扩展类型 => <see cref="ReadValue(Type,ref Object)" />基础类型 => <see cref="ReadDictionary" />字典 => <see cref="ReadEnumerable" />枚举 => <see cref="ReadSerializable" />序列化接口 => <see cref="ReadCustomObject" />自定义对象 => <see cref="ReadUnKnown" />未知类型 => OnObjectReaded事件
     /// </remarks>
     public interface IReader2 : IReader
     {
@@ -137,59 +135,59 @@ namespace NewLife.Serialization
         Boolean ReadObjRef(Type type, ref Object value, out Int32 index);
         #endregion
 
-        #region 自定义对象
-        /// <summary>尝试读取自定义对象</summary>
-        /// <param name="type">要读取的对象类型</param>
-        /// <param name="value">要读取的对象</param>
-        /// <param name="callback">处理成员的方法</param>
-        /// <returns>是否读取成功</returns>
-        Boolean ReadCustomObject(Type type, ref Object value, ReadObjectCallback callback);
+        //#region 自定义对象
+        ///// <summary>尝试读取自定义对象</summary>
+        ///// <param name="type">要读取的对象类型</param>
+        ///// <param name="value">要读取的对象</param>
+        ///// <param name="callback">处理成员的方法</param>
+        ///// <returns>是否读取成功</returns>
+        //Boolean ReadCustomObject(Type type, ref Object value, ReadObjectCallback callback);
 
-        /// <summary>读取对象成员</summary>
-        /// <param name="type">要读取的对象类型</param>
-        /// <param name="value">要读取的对象</param>
-        /// <param name="member">成员</param>
-        /// <param name="index">成员索引</param>
-        /// <param name="callback">处理成员的方法</param>
-        /// <returns>是否读取成功</returns>
-        Boolean ReadMember(Type type, ref Object value, IObjectMemberInfo member, Int32 index, ReadObjectCallback callback);
-        #endregion
+        ///// <summary>读取对象成员</summary>
+        ///// <param name="type">要读取的对象类型</param>
+        ///// <param name="value">要读取的对象</param>
+        ///// <param name="member">成员</param>
+        ///// <param name="index">成员索引</param>
+        ///// <param name="callback">处理成员的方法</param>
+        ///// <returns>是否读取成功</returns>
+        //Boolean ReadMember(Type type, ref Object value, IObjectMemberInfo member, Int32 index, ReadObjectCallback callback);
+        //#endregion
 
-        #region 字典
-        /// <summary>尝试读取字典类型对象</summary>
-        /// <param name="type">类型</param>
-        /// <param name="value">对象</param>
-        /// <param name="callback">处理成员的方法</param>
-        /// <returns>是否读取成功</returns>
-        Boolean ReadDictionary(Type type, ref Object value, ReadObjectCallback callback);
-        #endregion
+        //#region 字典
+        ///// <summary>尝试读取字典类型对象</summary>
+        ///// <param name="type">类型</param>
+        ///// <param name="value">对象</param>
+        ///// <param name="callback">处理成员的方法</param>
+        ///// <returns>是否读取成功</returns>
+        //Boolean ReadDictionary(Type type, ref Object value, ReadObjectCallback callback);
+        //#endregion
 
-        #region 枚举
-        /// <summary>尝试读取枚举类型对象</summary>
-        /// <param name="type">类型</param>
-        /// <param name="value">对象</param>
-        /// <param name="callback">处理成员的方法</param>
-        /// <returns>是否读取成功</returns>
-        Boolean ReadEnumerable(Type type, ref Object value, ReadObjectCallback callback);
-        #endregion
+        //#region 枚举
+        ///// <summary>尝试读取枚举类型对象</summary>
+        ///// <param name="type">类型</param>
+        ///// <param name="value">对象</param>
+        ///// <param name="callback">处理成员的方法</param>
+        ///// <returns>是否读取成功</returns>
+        //Boolean ReadEnumerable(Type type, ref Object value, ReadObjectCallback callback);
+        //#endregion
 
-        #region 序列化接口
-        /// <summary>读取实现了可序列化接口的对象</summary>
-        /// <param name="type">要读取的对象类型</param>
-        /// <param name="value">要读取的对象</param>
-        /// <param name="callback">处理成员的方法</param>
-        /// <returns>是否读取成功</returns>
-        Boolean ReadSerializable(Type type, ref Object value, ReadObjectCallback callback);
-        #endregion
+        //#region 序列化接口
+        ///// <summary>读取实现了可序列化接口的对象</summary>
+        ///// <param name="type">要读取的对象类型</param>
+        ///// <param name="value">要读取的对象</param>
+        ///// <param name="callback">处理成员的方法</param>
+        ///// <returns>是否读取成功</returns>
+        //Boolean ReadSerializable(Type type, ref Object value, ReadObjectCallback callback);
+        //#endregion
 
-        #region 未知对象
-        /// <summary>读取未知对象（其它所有方法都无法识别的对象），采用BinaryFormatter或者XmlSerialization</summary>
-        /// <param name="type">要读取的对象类型</param>
-        /// <param name="value">要读取的对象</param>
-        /// <param name="callback">处理成员的方法</param>
-        /// <returns>是否读取成功</returns>
-        Boolean ReadUnKnown(Type type, ref Object value, ReadObjectCallback callback);
-        #endregion
+        //#region 未知对象
+        ///// <summary>读取未知对象（其它所有方法都无法识别的对象），采用BinaryFormatter或者XmlSerialization</summary>
+        ///// <param name="type">要读取的对象类型</param>
+        ///// <param name="value">要读取的对象</param>
+        ///// <param name="callback">处理成员的方法</param>
+        ///// <returns>是否读取成功</returns>
+        //Boolean ReadUnKnown(Type type, ref Object value, ReadObjectCallback callback);
+        //#endregion
 
         #region 方法
         /// <summary>读取大小</summary>
