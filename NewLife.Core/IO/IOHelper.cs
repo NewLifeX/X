@@ -430,7 +430,6 @@ namespace System
         {
             if (stream == null) return null;
 
-
             #region 未处理流指针位置，注释
             // 此处代码为大石头优化内存流的处理
             // 由于复制内容后，未改变流指针位置，导致应用中出现错误，
