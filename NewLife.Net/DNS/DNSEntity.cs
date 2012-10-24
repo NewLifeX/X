@@ -96,7 +96,7 @@ namespace NewLife.Net.DNS
                 var ms = new MemoryStream();
                 WriteRaw(ms);
 
-                Byte[] data = BitConverter.GetBytes((Int16)ms.Length);
+                var data = BitConverter.GetBytes((Int16)ms.Length);
                 Array.Reverse(data);
                 stream.Write(data, 0, data.Length);
                 ms.WriteTo(stream);

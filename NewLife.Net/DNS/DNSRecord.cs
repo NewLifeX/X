@@ -55,7 +55,7 @@ namespace NewLife.Net.DNS
             AddFilter(reader);
 
             // 在_Length读取完成后，读取资源数据，然后切换数据流
-            reader.OnMemberReaded += new EventHandler<ReadMemberEventArgs>(reader_OnMemberReaded);
+            reader.OnMemberReaded += reader_OnMemberReaded;
 
             return false;
         }
@@ -78,10 +78,10 @@ namespace NewLife.Net.DNS
              */
             if (e.Member.Name == LENGTH && (Int16)e.Value > 0)
             {
-                var reader = sender as IReader2;
+                var reader = sender as IReader;
                 // 记住数据流位置，读取字符串的时候需要用到
                 reader.Items[POSITION] = reader.Stream.Position;
-                var data = reader.ReadBytes((Int16)e.Value);
+                var data = reader.Stream.ReadBytes((Int16)e.Value);
                 // 切换数据流，使用新数据流完成余下字段的序列化
                 reader.Backup();
                 reader.Stream = new MemoryStream(data);
@@ -98,7 +98,7 @@ namespace NewLife.Net.DNS
                 reader.Restore();
                 if (reader.Items.Contains(POSITION)) reader.Items.Remove(POSITION);
             }
-            reader.OnMemberReaded -= new EventHandler<ReadMemberEventArgs>(reader_OnMemberReaded);
+            reader.OnMemberReaded -= reader_OnMemberReaded;
 
             return success;
         }
@@ -109,7 +109,7 @@ namespace NewLife.Net.DNS
             AddFilter(writer);
 
             // 写_Length之前，切换数据流
-            writer.OnMemberWriting += new EventHandler<WriteMemberEventArgs>(writer_OnMemberWriting);
+            writer.OnMemberWriting += writer_OnMemberWriting;
 
             return false;
         }
@@ -125,7 +125,6 @@ namespace NewLife.Net.DNS
                 // 切换数据流，使用新数据流完成余下字段的序列化
                 writer.Backup();
                 writer.Stream = new MemoryStream();
-
 
                 e.Success = true;
             }
@@ -152,7 +151,7 @@ namespace NewLife.Net.DNS
                 wr.Write(buffer, 0, buffer.Length);
             }
 
-            writer.OnMemberWriting -= new EventHandler<WriteMemberEventArgs>(writer_OnMemberWriting);
+            writer.OnMemberWriting -= writer_OnMemberWriting;
 
             RemoveFilter(writer);
 
@@ -165,10 +164,6 @@ namespace NewLife.Net.DNS
             var ims = rw.Settings.IgnoreMembers;
             if (rw.CurrentMember != null && rw.CurrentMember.Name == "_Questions")
             {
-                //if (!ims.Contains("_TTL")) ims.Add("_TTL");
-                //if (!ims.Contains("_Length")) ims.Add("_Length");
-                //if (!ims.Contains("_Data")) ims.Add("_Data");
-
                 // 只保留Name/Type/Class
                 foreach (var item in rw.GetMembers(null, this))
                 {
@@ -182,14 +177,10 @@ namespace NewLife.Net.DNS
             var ims = rw.Settings.IgnoreMembers;
             if (ims.Count > 0 && rw.CurrentMember != null && rw.CurrentMember.Name == "_Questions")
             {
-                //if (ims.Contains("_TTL")) ims.Remove("_TTL");
-                //if (ims.Contains("_Length")) ims.Remove("_Length");
-                //if (ims.Contains("_Data")) ims.Remove("_Data");
-
                 // 只保留Name/Type/Class
-                foreach (var item in ObjectInfo.GetMembers(null, this, rw.Settings.UseField, rw.Settings.IsBaseFirst))
+                foreach (var item in rw.GetMembers(null, this))
                 {
-                    if (!fix.Contains(item.Name) && ims.Contains(item.Name)) ims.Remove(item.Name);
+                    if (!String.IsNullOrEmpty(item.Name) && !fix.Contains(item.Name) && ims.Contains(item.Name)) ims.Remove(item.Name);
                 }
             }
         }
