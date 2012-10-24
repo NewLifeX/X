@@ -136,7 +136,10 @@ namespace NewLife.CommonEntity
 
             //if (!Page.IsPostBack) CheckAddAndDeletePermission();
             // 感谢 @波波（136879642），因为页面上可能关闭ViewState，所以这里每次都要检查
-            CheckAddAndDeletePermission();
+
+            //chenqi 当页面不再验证权限是，此方法不被执行 
+            if (ValidatePermission)
+                CheckAddAndDeletePermission();
         }
 
         void OnLoadComplete(object sender, EventArgs e)
