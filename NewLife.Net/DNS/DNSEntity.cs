@@ -109,7 +109,7 @@ namespace NewLife.Net.DNS
         /// <param name="stream"></param>
         public void WriteRaw(Stream stream)
         {
-            BinaryWriterX writer = new BinaryWriterX();
+            var writer = new BinaryWriterX();
             writer.Settings.IsLittleEndian = false;
             writer.Settings.UseObjRef = false;
             writer.Settings.Encoding = Encoding.Default;
@@ -158,7 +158,7 @@ namespace NewLife.Net.DNS
             {
                 //stream.Seek(2, SeekOrigin.Current);
                 // 必须全部先读出来，否则内部的字符串映射位移不正确
-                Byte[] data = new Byte[2];
+                var data = new Byte[2];
                 stream.Read(data, 0, data.Length);
                 // 网络序变为主机序
                 Array.Reverse(data);
@@ -178,7 +178,7 @@ namespace NewLife.Net.DNS
         /// <returns></returns>
         public static DNSEntity ReadRaw(Stream stream)
         {
-            BinaryReaderX reader = new BinaryReaderX();
+            var reader = new BinaryReaderX();
             reader.Settings.IsLittleEndian = false;
             reader.Settings.UseObjRef = false;
             reader.Settings.Encoding = Encoding.Default;
@@ -225,19 +225,20 @@ namespace NewLife.Net.DNS
         /// <returns>是否读取成功，若返回成功读取器将不再读取该对象</returns>
         public virtual bool Read(IReader reader)
         {
-            reader.OnMemberReading += new EventHandler<ReadMemberEventArgs>(reader_OnMemberReading);
-            reader.OnObjectReading += new EventHandler<ReadObjectEventArgs>(reader_OnObjectReading);
+            reader.OnMemberReading += reader_OnMemberReading;
+            reader.OnObjectReading += reader_OnObjectReading;
             return false;
         }
 
         void reader_OnObjectReading(object sender, ReadObjectEventArgs e)
         {
+            // 如果是DNSRecord，这里需要处理一下，变为真正的记录类型
             if (e.Type == typeof(DNSRecord))
             {
                 var reader = sender as IReader2;
                 var p = reader.Stream.Position;
-                String name = GetNameAccessor(reader).Read(reader.Stream, 0);
-                DNSQueryType qt = (DNSQueryType)reader.ReadValue(typeof(DNSQueryType));
+                var name = GetNameAccessor(reader).Read(reader.Stream, 0);
+                var qt = (DNSQueryType)reader.ReadValue(typeof(DNSQueryType));
                 // 退回去，让序列化自己读
                 reader.Stream.Position = p;
                 //Type type = null;
@@ -265,7 +266,7 @@ namespace NewLife.Net.DNS
         /// <returns>是否写入成功，若返回成功写入器将不再读写入对象</returns>
         public virtual bool Write(IWriter writer)
         {
-            writer.OnMemberWriting += new EventHandler<WriteMemberEventArgs>(writer_OnMemberWriting);
+            writer.OnMemberWriting += writer_OnMemberWriting;
             return false;
         }
 
@@ -283,7 +284,7 @@ namespace NewLife.Net.DNS
             // TXT记录的Text字段不采用DNS字符串
             if (e.Type == typeof(String) && e.Member.Name != "_Text")
             {
-                Object ps = reader.Items["Position"];
+                var ps = reader.Items["Position"];
                 Int64 p = ps is Int64 ? (Int64)ps : 0;
                 e.Member[e.Value] = GetNameAccessor(reader).Read(reader.Stream, p);
                 //reader.WriteLog("ReadMember", "_Name", "String", e.Member[e.Value]);
@@ -303,7 +304,7 @@ namespace NewLife.Net.DNS
             if (e.Type == typeof(String) && e.Name != "_Text")
             {
                 //writer.WriteLog("WriteMember", "_Name", "String", e.Member[e.Value]);
-                Object ps = writer.Items["Position"];
+                var ps = writer.Items["Position"];
                 Int64 p = ps is Int64 ? (Int64)ps : 0;
                 p += writer.Stream.Position;
                 GetNameAccessor(writer).Write(writer.Stream, (String)e.Value, p);
@@ -354,7 +355,7 @@ namespace NewLife.Net.DNS
             }
             else
             {
-                StringBuilder sb = new StringBuilder();
+                var sb = new StringBuilder();
 
                 if (_Questions != null && _Questions.Length > 0)
                     sb.AppendFormat("[{0}]", _Questions[0]);
