@@ -144,7 +144,7 @@ namespace NewLife.Serialization
             }
 
             // 先用写入字节长度
-            Byte[] buffer = Settings.Encoding.GetBytes(chars, index, count);
+            var buffer = Settings.Encoding.GetBytes(chars, index, count);
             Write(buffer);
         }
 
