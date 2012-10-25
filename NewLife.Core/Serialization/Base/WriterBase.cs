@@ -773,7 +773,7 @@ namespace NewLife.Serialization
 
         /// <summary>写对象引用计数</summary>
         /// <param name="index"></param>
-        protected virtual void OnWriteObjRefIndex(Int32 index) { Write(index); }
+        protected virtual void OnWriteObjRefIndex(Int32 index) { WriteSize(index); }
         #endregion
 
         #region 自定义对象
