@@ -106,13 +106,13 @@ namespace NewLife.Serialization
         /// <param name="value">要读取的对象</param>
         /// <returns></returns>
         Boolean ReadValue(Type type, ref Object value);
-        #endregion
 
-        #region 扩展类型
         /// <summary>读取Guid</summary>
         /// <returns></returns>
         Guid ReadGuid();
+        #endregion
 
+        #region 扩展类型
         /// <summary>读取IPAddress</summary>
         /// <returns></returns>
         IPAddress ReadIPAddress();
