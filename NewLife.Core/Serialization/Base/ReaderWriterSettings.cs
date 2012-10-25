@@ -26,7 +26,7 @@ namespace NewLife.Serialization
         }
 
         private Boolean _UseObjRef = true;
-        /// <summary>是否使用对象引用</summary>
+        /// <summary>是否使用对象引用。对于二进制读写，如果不使用对象引用，则不允许出现null对象</summary>
         public virtual Boolean UseObjRef
         {
             get { return _UseObjRef; }

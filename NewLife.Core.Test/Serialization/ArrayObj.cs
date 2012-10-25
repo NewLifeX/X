@@ -33,13 +33,21 @@ namespace NewLife.Core.Test.Serialization
                 writer.WriteInt((Int32)0, encodeSize);
                 return;
             }
+            var idx = 2;
+            if (set.UseObjRef) writer.WriteInt(idx++, encodeSize);
 
             var n = Objs.Length;
             writer.WriteInt(n, encodeSize);
 
             foreach (var item in Objs)
             {
-                item.Write(writer, set);
+                if (item != null)
+                {
+                    if (set.UseObjRef) writer.WriteInt(idx++, encodeSize);
+                    item.Write(writer, set);
+                }
+                else
+                    writer.WriteInt((Int32)0, encodeSize);
             }
         }
 

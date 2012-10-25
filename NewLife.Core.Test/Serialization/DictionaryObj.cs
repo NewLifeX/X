@@ -35,6 +35,8 @@ namespace NewLife.Core.Test.Serialization
                 writer.WriteInt((Int32)0, encodeSize);
                 return;
             }
+            var idx = 2;
+            if (set.UseObjRef) writer.WriteInt(idx++, encodeSize);
 
             var n = Objs.Count;
             writer.WriteInt(n, encodeSize);
@@ -43,7 +45,14 @@ namespace NewLife.Core.Test.Serialization
             {
                 writer.WriteInt(item.Key, set.EncodeInt);
 
-                item.Value.Write(writer, set);
+                //item.Value.Write(writer, set);
+                if (item.Value != null)
+                {
+                    if (set.UseObjRef) writer.WriteInt(idx++, encodeSize);
+                    item.Value.Write(writer, set);
+                }
+                else
+                    writer.WriteInt((Int32)0, encodeSize);
             }
         }
 

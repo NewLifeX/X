@@ -92,10 +92,14 @@ namespace NewLife.Core.Test.Serialization
             base.Write(writer, set);
 
             var encodeSize = set.EncodeInt || ((Int32)set.SizeFormat % 2 == 0);
+            var idx = 2;
+
             if (Bts == null)
                 writer.WriteInt((Int32)0, encodeSize);
             else
             {
+                // 写入对象引用
+                if (set.UseObjRef) writer.WriteInt(idx++, encodeSize);
                 writer.WriteInt(Bts.Length, encodeSize);
                 writer.Write(Bts);
             }
@@ -105,16 +109,19 @@ namespace NewLife.Core.Test.Serialization
             else
             {
                 var buf = set.Encoding.GetBytes(Cs);
+                if (set.UseObjRef) writer.WriteInt(idx++, encodeSize);
                 writer.WriteInt(buf.Length, encodeSize);
                 writer.Write(buf);
             }
 
+            if (set.UseObjRef) writer.WriteInt(idx++, encodeSize);
             writer.Write(G.ToByteArray());
 
             if (Address == null)
                 writer.WriteInt((Int32)0, encodeSize);
             else
             {
+                if (set.UseObjRef) writer.WriteInt(idx++, encodeSize);
                 var buf = Address.GetAddressBytes();
                 writer.WriteInt(buf.Length, encodeSize);
                 writer.Write(buf);
@@ -124,6 +131,7 @@ namespace NewLife.Core.Test.Serialization
                 writer.WriteInt((Int32)0, encodeSize);
             else
             {
+                if (set.UseObjRef) writer.WriteInt(idx++, encodeSize);
                 var buf = EndPoint.Address.GetAddressBytes();
                 writer.WriteInt(buf.Length, encodeSize);
                 writer.Write(buf);
@@ -136,7 +144,7 @@ namespace NewLife.Core.Test.Serialization
                 writer.WriteInt((Int32)0, encodeSize);
             else
             {
-                //writer.Write(T.FullName);
+                if (set.UseObjRef) writer.WriteInt(idx++, encodeSize);
                 if (set.SplitComplexType) writer.Write((Byte)BinarySettings.TypeKinds.Normal);
                 if (set.UseTypeFullName)
                     writer.Write(T.AssemblyQualifiedName);

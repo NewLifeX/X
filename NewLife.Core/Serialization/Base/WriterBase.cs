@@ -273,11 +273,7 @@ namespace NewLife.Serialization
         /// <returns>是否写入成功</returns>
         public virtual Boolean WriteDictionary(IDictionary value, Type type, WriteObjectCallback callback)
         {
-            if (value == null)
-            {
-                WriteSize(0);
-                return true;
-            }
+            if (value == null) return true;
             // type = CheckAndWriteType("WriteDictionaryType", value, type);
 
             // 计算元素类型
@@ -668,6 +664,16 @@ namespace NewLife.Serialization
                 // 写入对象引用
                 if (WriteObjRef(value)) return true;
 
+                //// 引用对象为空，写入0
+                //if (value == null)
+                //{
+                //    WriteLog("WriteNull");
+
+                //    // 顶级不需要
+                //    if (Depth > 1) WriteSize(0);
+                //    return true;
+                //}
+
                 // 扩展类型
                 if (WriteExtend(value, type)) return true;
 
@@ -678,6 +684,16 @@ namespace NewLife.Serialization
             {
                 // 写入对象引用
                 if (WriteObjRef(value)) return true;
+
+                //// 引用对象为空，写入0
+                //if (value == null)
+                //{
+                //    WriteLog("WriteNull");
+
+                //    // 顶级不需要
+                //    if (Depth > 1) WriteSize(0);
+                //    return true;
+                //}
 
                 // 写对象类型时增加缩进，避免写顶级对象类型的对象引用时无法写入（Depth=1的对象是不写对象引用的）
                 Depth++;
@@ -736,7 +752,13 @@ namespace NewLife.Serialization
         /// <returns>是否写入成功</returns>
         public Boolean WriteObjRef(Object value)
         {
-            if (!Settings.UseObjRef) return false;
+            if (!Settings.UseObjRef)
+            {
+                // 不使用对象引用时，所有对象不能为空
+                //OnWriteObjRefIndex(value == null ? 0 : 1);
+                if (value == null) throw new Exception("不使用对象引用（Settings.UseObjRef=false）时，所有对象不能为空！");
+                return false;
+            }
 
             if (value == null)
             {
@@ -748,7 +770,7 @@ namespace NewLife.Serialization
             }
 
             // 在对象引用集合中找该对象
-            Int32 index = objRefs.IndexOf(value);
+            var index = objRefs.IndexOf(value);
 
             // 如果没找到，添加，返回false，通知上层继续处理
             if (index < 0)

@@ -58,17 +58,19 @@ namespace NewLife.Core.Test.Serialization
         //
         #endregion
 
-        void TestWriter(Obj obj)
+        void TestWriter(Obj obj, Boolean hasNull = true)
         {
             var set = new BinarySettings();
+            set.UseObjRef = true;
             for (int i = 0; i < 36; i++)
             {
-                set.UseObjRef = (i & 0x01) == 1;
-                set.UseTypeFullName = (i >> 1 & 0x01) == 1;
-                set.Encoding = (i >> 2 & 0x01) == 1 ? Encoding.Default : Encoding.UTF8;
+                // 如果对象成员有空值存在，就必须使用对象引用
+                if (hasNull) set.UseObjRef = (i & 0x01) == 0;
+                set.UseTypeFullName = (i >> 1 & 0x01) == 0;
+                set.Encoding = (i >> 2 & 0x01) == 0 ? Encoding.Default : Encoding.UTF8;
                 set.EncodeInt = (i >> 3 & 0x01) == 1;
                 set.SizeFormat = (i >> 4 & 0x01) == 1 ? TypeCode.Int32 : TypeCode.UInt32;
-                set.SplitComplexType = (i >> 5 & 0x01) == 1;
+                set.SplitComplexType = (i >> 5 & 0x01) == 0;
 
                 TestWriter(obj, set);
             }
@@ -101,7 +103,7 @@ namespace NewLife.Core.Test.Serialization
         public void TestWriter()
         {
             var obj = SimpleObj.Create();
-            TestWriter(obj);
+            TestWriter(obj, false);
         }
 
         [TestMethod]
@@ -154,17 +156,19 @@ namespace NewLife.Core.Test.Serialization
             }
         }
 
-        void TestReader(Obj obj)
+        void TestReader(Obj obj, Boolean hasNull = true)
         {
             var set = new BinarySettings();
+            set.UseObjRef = true;
             for (int i = 0; i < 36; i++)
             {
-                set.UseObjRef = (i & 0x01) == 1;
-                set.UseTypeFullName = (i >> 1 & 0x01) == 1;
-                set.Encoding = (i >> 2 & 0x01) == 1 ? Encoding.Default : Encoding.UTF8;
+                // 如果对象成员有空值存在，就必须使用对象引用
+                if (hasNull) set.UseObjRef = (i & 0x01) == 0;
+                set.UseTypeFullName = (i >> 1 & 0x01) == 0;
+                set.Encoding = (i >> 2 & 0x01) == 0 ? Encoding.Default : Encoding.UTF8;
                 set.EncodeInt = (i >> 3 & 0x01) == 1;
                 set.SizeFormat = (i >> 4 & 0x01) == 1 ? TypeCode.Int32 : TypeCode.UInt32;
-                set.SplitComplexType = (i >> 5 & 0x01) == 1;
+                set.SplitComplexType = (i >> 5 & 0x01) == 0;
 
                 TestReader(obj, set);
             }
@@ -197,7 +201,7 @@ namespace NewLife.Core.Test.Serialization
         public void TestReader()
         {
             var obj = SimpleObj.Create();
-            TestReader(obj);
+            TestReader(obj, false);
         }
 
         [TestMethod]
