@@ -108,7 +108,7 @@ namespace NewLife.Serialization
         #region 扩展类型
         /// <summary>读取Guid</summary>
         /// <returns></returns>
-        protected override Guid OnReadGuid() { return new Guid(ReadString()); }
+        public override Guid ReadGuid() { return new Guid(ReadString()); }
 
         /// <summary>读取IPAddress</summary>
         /// <returns></returns>

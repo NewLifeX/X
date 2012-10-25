@@ -262,8 +262,19 @@ namespace NewLife.Serialization
                 default:
                     break;
             }
+
+            if (type == typeof(Guid))
+            {
+                value = ReadGuid();
+                return true;
+            }
+
             return false;
         }
+
+        /// <summary>读取Guid</summary>
+        /// <returns></returns>
+        public virtual Guid ReadGuid() { return new Guid(ReadBytes(16)); }
         #endregion
 
         #region 字典
@@ -818,11 +829,11 @@ namespace NewLife.Serialization
                 return true;
             }
 
-            if (type == typeof(Guid))
-            {
-                value = OnReadGuid();
-                return true;
-            }
+            //if (type == typeof(Guid))
+            //{
+            //    value = OnReadGuid();
+            //    return true;
+            //}
             if (type == typeof(IPAddress))
             {
                 value = OnReadIPAddress();
@@ -841,14 +852,6 @@ namespace NewLife.Serialization
 
             return false;
         }
-
-        /// <summary>读取Guid</summary>
-        /// <returns></returns>
-        public virtual Guid ReadGuid() { return ReadObjRef<Guid>(OnReadGuid); }
-
-        /// <summary>读取Guid</summary>
-        /// <returns></returns>
-        protected virtual Guid OnReadGuid() { return new Guid(ReadBytes(16)); }
 
         /// <summary>读取IPAddress</summary>
         /// <returns></returns>
@@ -1310,7 +1313,7 @@ namespace NewLife.Serialization
 
         /// <summary>读取对象引用计数</summary>
         /// <returns></returns>
-        protected virtual Int32 OnReadObjRefIndex() { return ReadInt32(); }
+        protected virtual Int32 OnReadObjRefIndex() { return ReadSize(); }
 
         /// <summary>添加对象引用</summary>
         /// <param name="index">引用计数</param>

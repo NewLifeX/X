@@ -394,11 +394,11 @@ namespace NewLife.Serialization
         #region 扩展类型
         /// <summary>读取Guid</summary>
         /// <returns></returns>
-        protected override Guid OnReadGuid()
+        public override Guid ReadGuid()
         {
             try
             {
-                return base.OnReadGuid();
+                return base.ReadGuid();
             }
             catch (Exception ex)
             {

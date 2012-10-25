@@ -105,10 +105,6 @@ namespace NewLife.Serialization
         #endregion
 
         #region 扩展类型
-        /// <summary>写入Guid</summary>
-        /// <param name="value"></param>
-        void Write(Guid value);
-
         /// <summary>写入IPAddress</summary>
         /// <param name="value"></param>
         void Write(IPAddress value);
@@ -131,6 +127,10 @@ namespace NewLife.Serialization
         /// <param name="value"></param>
         /// <returns></returns>
         Boolean WriteValue(Object value);
+
+        /// <summary>写入Guid</summary>
+        /// <param name="value"></param>
+        void Write(Guid value);
         #endregion
 
         //#region 字典

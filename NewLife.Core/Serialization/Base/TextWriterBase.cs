@@ -121,11 +121,13 @@ namespace NewLife.Serialization
         #endregion
         #endregion
 
-        #region 扩展类型
+        #region 基础名值
         /// <summary>写入Guid</summary>
         /// <param name="value"></param>
-        protected override void OnWrite(Guid value) { Write(value.ToString()); }
+        public override void Write(Guid value) { Write(value.ToString()); }
+        #endregion
 
+        #region 扩展类型
         /// <summary>写入IPAddress</summary>
         /// <param name="value"></param>
         protected override void OnWrite(IPAddress value) { Write(value.ToString()); }

@@ -256,8 +256,18 @@ namespace NewLife.Serialization
                     break;
             }
 
+            if (type == typeof(Guid))
+            {
+                Write((Guid)value);
+                return true;
+            }
+
             return false;
         }
+
+        /// <summary>写入Guid</summary>
+        /// <param name="value"></param>
+        public virtual void Write(Guid value) { Write(value.ToByteArray(), -1); }
         #endregion
 
         #region 字典
@@ -449,11 +459,11 @@ namespace NewLife.Serialization
             }
 
             //! 所有扩展类型的写入，分为Write和OnWrite两部分，Write供外部独立调用，单独提供对象引用，而OnWrite不写对象引用
-            if (type == typeof(Guid))
-            {
-                OnWrite((Guid)value);
-                return true;
-            }
+            //if (type == typeof(Guid))
+            //{
+            //    OnWrite((Guid)value);
+            //    return true;
+            //}
             if (type == typeof(IPAddress))
             {
                 OnWrite((IPAddress)value);
@@ -472,14 +482,6 @@ namespace NewLife.Serialization
 
             return false;
         }
-
-        /// <summary>写入Guid</summary>
-        /// <param name="value"></param>
-        public void Write(Guid value) { if (!WriteObjRef(value))  OnWrite(value); }
-
-        /// <summary>写入Guid</summary>
-        /// <param name="value"></param>
-        protected virtual void OnWrite(Guid value) { Write(((Guid)value).ToByteArray(), -1); }
 
         /// <summary>写入IPAddress</summary>
         /// <param name="value"></param>

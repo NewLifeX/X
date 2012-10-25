@@ -114,7 +114,7 @@ namespace NewLife.Core.Test.Serialization
                 writer.Write(buf);
             }
 
-            if (set.UseObjRef) writer.WriteInt(idx++, encodeSize);
+            //if (set.UseObjRef) writer.WriteInt(idx++, encodeSize);
             writer.Write(G.ToByteArray());
 
             if (Address == null)
