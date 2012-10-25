@@ -133,9 +133,7 @@ namespace NewLife.Core.Test.Serialization
             if (Str == null) Str = "";
             //writer.Write(Str);
             var encodeSize = set.EncodeInt || (Int32)set.SizeFormat % 2 == 0;
-            var buf = set.Encoding.GetBytes(Str);
-            writer.WriteInt(buf.Length, encodeSize);
-            writer.Write(buf, 0, buf.Length);
+            writer.WriteString(Str, set.Encoding, encodeSize);
         }
         #endregion
     }

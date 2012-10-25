@@ -147,9 +147,13 @@ namespace NewLife.Core.Test.Serialization
                 if (set.UseObjRef) writer.WriteInt(idx++, encodeSize);
                 if (set.SplitComplexType) writer.Write((Byte)BinarySettings.TypeKinds.Normal);
                 if (set.UseTypeFullName)
-                    writer.Write(T.AssemblyQualifiedName);
+                    writer.WriteString(T.AssemblyQualifiedName, set.Encoding, encodeSize);
                 else
-                    writer.Write(T.FullName);
+                    writer.WriteString(T.FullName, set.Encoding, encodeSize);
+                //if (set.UseTypeFullName)
+                //    writer.Write(T.AssemblyQualifiedName);
+                //else
+                //    writer.Write(T.FullName);
             }
         }
         #endregion

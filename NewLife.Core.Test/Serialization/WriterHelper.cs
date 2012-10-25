@@ -8,7 +8,19 @@ namespace NewLife.Core.Test.Serialization
 {
     static class WriterHelper
     {
-        public static BinaryWriter WriteInt(this BinaryWriter writer, Int16 n, Boolean encodeInt = false)
+        #region 字符串
+        public static BinaryWriter WriteString(this BinaryWriter writer, String str, Encoding encoding, Boolean encodeSize)
+        {
+            var buf = encoding.GetBytes(str);
+            writer.WriteInt(buf.Length, encodeSize);
+            writer.Write(buf, 0, buf.Length);
+
+            return writer;
+        }
+        #endregion
+
+        #region 编码整数
+        public static BinaryWriter WriteInt(this BinaryWriter writer, Int16 n, Boolean encodeInt)
         {
             if (!encodeInt)
                 writer.Write(n);
@@ -17,7 +29,7 @@ namespace NewLife.Core.Test.Serialization
 
             return writer;
         }
-        public static BinaryWriter WriteInt(this BinaryWriter writer, UInt16 n, Boolean encodeInt = false)
+        public static BinaryWriter WriteInt(this BinaryWriter writer, UInt16 n, Boolean encodeInt)
         {
             if (!encodeInt)
                 writer.Write(n);
@@ -26,7 +38,7 @@ namespace NewLife.Core.Test.Serialization
 
             return writer;
         }
-        public static BinaryWriter WriteInt(this BinaryWriter writer, Int32 n, Boolean encodeInt = false)
+        public static BinaryWriter WriteInt(this BinaryWriter writer, Int32 n, Boolean encodeInt)
         {
             if (!encodeInt)
                 writer.Write(n);
@@ -35,7 +47,7 @@ namespace NewLife.Core.Test.Serialization
 
             return writer;
         }
-        public static BinaryWriter WriteInt(this BinaryWriter writer, UInt32 n, Boolean encodeInt = false)
+        public static BinaryWriter WriteInt(this BinaryWriter writer, UInt32 n, Boolean encodeInt)
         {
             if (!encodeInt)
                 writer.Write(n);
@@ -44,7 +56,7 @@ namespace NewLife.Core.Test.Serialization
 
             return writer;
         }
-        public static BinaryWriter WriteInt(this BinaryWriter writer, Int64 n, Boolean encodeInt = false)
+        public static BinaryWriter WriteInt(this BinaryWriter writer, Int64 n, Boolean encodeInt)
         {
             if (!encodeInt)
                 writer.Write(n);
@@ -53,7 +65,7 @@ namespace NewLife.Core.Test.Serialization
 
             return writer;
         }
-        public static BinaryWriter WriteInt(this BinaryWriter writer, UInt64 n, Boolean encodeInt = false)
+        public static BinaryWriter WriteInt(this BinaryWriter writer, UInt64 n, Boolean encodeInt)
         {
             if (!encodeInt)
                 writer.Write(n);
@@ -62,6 +74,7 @@ namespace NewLife.Core.Test.Serialization
 
             return writer;
         }
+        #endregion
 
         #region 7位压缩编码整数
         static Byte[] GetEncoded(Int16 value) { return GetEncoded((UInt16)value); }

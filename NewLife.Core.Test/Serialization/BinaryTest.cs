@@ -65,7 +65,7 @@ namespace NewLife.Core.Test.Serialization
             for (int i = 0; i < 36; i++)
             {
                 // 如果对象成员有空值存在，就必须使用对象引用
-                if (hasNull) set.UseObjRef = (i & 0x01) == 0;
+                if (!hasNull) set.UseObjRef = (i & 0x01) == 0;
                 set.UseTypeFullName = (i >> 1 & 0x01) == 0;
                 set.Encoding = (i >> 2 & 0x01) == 0 ? Encoding.Default : Encoding.UTF8;
                 set.EncodeInt = (i >> 3 & 0x01) == 1;
@@ -163,7 +163,7 @@ namespace NewLife.Core.Test.Serialization
             for (int i = 0; i < 36; i++)
             {
                 // 如果对象成员有空值存在，就必须使用对象引用
-                if (hasNull) set.UseObjRef = (i & 0x01) == 0;
+                if (!hasNull) set.UseObjRef = (i & 0x01) == 0;
                 set.UseTypeFullName = (i >> 1 & 0x01) == 0;
                 set.Encoding = (i >> 2 & 0x01) == 0 ? Encoding.Default : Encoding.UTF8;
                 set.EncodeInt = (i >> 3 & 0x01) == 1;
