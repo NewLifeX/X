@@ -63,18 +63,26 @@ namespace NewLife.Core.Test.Serialization
 
         void TestWriter(Obj obj, Boolean encodeInt)
         {
-            // 二进制序列化写入
-            var writer = new BinaryWriterX();
-            writer.Settings.UseObjRef = false;
-            writer.Settings.EncodeInt = encodeInt;
-            writer.WriteObject(obj);
+            try
+            {
+                // 二进制序列化写入
+                var writer = new BinaryWriterX();
+                writer.Settings.UseObjRef = false;
+                writer.Settings.EncodeInt = encodeInt;
+                writer.WriteObject(obj);
 
-            var bts1 = writer.Stream.ReadBytes();
+                var bts1 = writer.Stream.ReadBytes();
 
-            // 对象本应有的数据流
-            var bts2 = obj.GetStream(writer.Settings).ReadBytes();
+                // 对象本应有的数据流
+                var bts2 = obj.GetStream(writer.Settings).ReadBytes();
 
-            Assert.AreEqual(bts1.CompareTo(bts2), 0, "二进制写入器得到的数据与标准不符！");
+                var n = bts1.CompareTo(bts2);
+                Assert.AreEqual(0, n, "二进制写入器得到的数据与标准不符！");
+            }
+            catch (Exception ex)
+            {
+                Assert.Fail(ex.Message + " " + ex.TargetSite);
+            }
         }
 
         [TestMethod]
@@ -112,9 +120,19 @@ namespace NewLife.Core.Test.Serialization
         [TestMethod]
         public void TestExtend()
         {
-            var obj = new ExtendObj();
-            TestWriter(obj, false);
-            TestWriter(obj, true);
+            try
+            {
+                var obj = ExtendObj.Create();
+                for (int i = 0; i < 100; i++)
+                {
+                    TestWriter(obj, false);
+                    TestWriter(obj, true);
+                }
+            }
+            catch (Exception ex)
+            {
+                Assert.Fail(ex.Message + " " + ex.TargetSite);
+            }
         }
 
         void TestReader(Obj obj, Boolean encodeInt)

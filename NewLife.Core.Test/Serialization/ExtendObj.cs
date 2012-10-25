@@ -1,12 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Net;
 using System.IO;
+using System.Linq;
+using System.Net;
 using NewLife.Serialization;
-using NewLife.Reflection;
-using System.Reflection;
 
 namespace NewLife.Core.Test.Serialization
 {
@@ -75,7 +71,7 @@ namespace NewLife.Core.Test.Serialization
 
             if (r.Next(10) > 0)
             {
-                var buf = new Byte[r.Next(4)];
+                var buf = new Byte[r.Next(2) == 0 ? 4 : 16];
                 r.NextBytes(buf);
                 Address = new IPAddress(buf);
                 EndPoint = new IPEndPoint(Address, r.Next(65536));
@@ -84,7 +80,10 @@ namespace NewLife.Core.Test.Serialization
             if (r.Next(10) > 0)
             {
                 var ts = typeof(IReaderWriter).Assembly.GetTypes();
-                T = ts[r.Next(ts.Length)];
+                do
+                {
+                    T = ts[r.Next(ts.Length)];
+                } while (T.IsArray || T.IsNested || T.IsGenericType && !T.IsGenericTypeDefinition);
             }
         }
 
@@ -92,7 +91,7 @@ namespace NewLife.Core.Test.Serialization
         {
             base.Write(writer, set);
 
-            var encodeInt = set.EncodeInt;
+            var encodeInt = set.EncodeInt || ((Int32)set.SizeFormat % 2 == 0);
             if (Bts == null)
             {
                 if (!encodeInt)
@@ -160,7 +159,9 @@ namespace NewLife.Core.Test.Serialization
                 else
                     writer.Write(WriteEncoded(buf.Length));
                 writer.Write(buf);
-                if (!encodeInt)
+
+                // 纯编码整数，与大小无关
+                if (!set.EncodeInt)
                     writer.Write(EndPoint.Port);
                 else
                     writer.Write(WriteEncoded(EndPoint.Port));
@@ -175,7 +176,12 @@ namespace NewLife.Core.Test.Serialization
             }
             else
             {
-                writer.Write(T.FullName);
+                //writer.Write(T.FullName);
+                if (set.SplitComplexType) writer.Write((Byte)0);
+                if (set.UseTypeFullName)
+                    writer.Write(T.AssemblyQualifiedName);
+                else
+                    writer.Write(T.FullName);
             }
         }
         #endregion
