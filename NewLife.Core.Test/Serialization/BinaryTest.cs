@@ -118,7 +118,7 @@ namespace NewLife.Core.Test.Serialization
         }
 
         [TestMethod]
-        public void TestExtend()
+        public void TestWriteExtend()
         {
             try
             {
@@ -137,19 +137,26 @@ namespace NewLife.Core.Test.Serialization
 
         void TestReader(Obj obj, Boolean encodeInt)
         {
-            var reader = new BinaryReaderX();
-            reader.Settings.UseObjRef = false;
-            reader.Settings.EncodeInt = encodeInt;
+            try
+            {
+                var reader = new BinaryReaderX();
+                reader.Settings.UseObjRef = false;
+                reader.Settings.EncodeInt = encodeInt;
 
-            // 获取对象的数据流，作为二进制读取器的数据源
-            reader.Stream = obj.GetStream(reader.Settings);
-            // 读取一个跟原始对象类型一致的对象
-            var obj2 = reader.ReadObject(obj.GetType());
+                // 获取对象的数据流，作为二进制读取器的数据源
+                reader.Stream = obj.GetStream(reader.Settings);
+                // 读取一个跟原始对象类型一致的对象
+                var obj2 = reader.ReadObject(obj.GetType());
 
-            Assert.IsNotNull(obj2, "二进制读取器无法读取标准数据！");
+                Assert.IsNotNull(obj2, "二进制读取器无法读取标准数据！");
 
-            var b = obj.CompareTo(obj2 as Obj);
-            Assert.IsTrue(b, "序列化后对象不一致！");
+                var b = obj.CompareTo(obj2 as Obj);
+                Assert.IsTrue(b, "序列化后对象不一致！");
+            }
+            catch (Exception ex)
+            {
+                Assert.Fail(ex.Message + " " + ex.TargetSite);
+            }
         }
 
         [TestMethod]
@@ -182,6 +189,24 @@ namespace NewLife.Core.Test.Serialization
             var obj = new DictionaryObj();
             TestReader(obj, false);
             TestReader(obj, true);
+        }
+
+        [TestMethod]
+        public void TestReadExtend()
+        {
+            try
+            {
+                var obj = ExtendObj.Create();
+                for (int i = 0; i < 100; i++)
+                {
+                    TestReader(obj, false);
+                    TestReader(obj, true);
+                }
+            }
+            catch (Exception ex)
+            {
+                Assert.Fail(ex.Message + " " + ex.TargetSite);
+            }
         }
     }
 }

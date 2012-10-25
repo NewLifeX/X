@@ -125,6 +125,12 @@ namespace NewLife.Core.Test.Serialization
         {
             // 如果对象相等，直接返回
             if (Object.Equals(obj1, obj2)) return true;
+
+            // 数组类相等
+            if (obj1 == null && obj2 != null && obj2.GetType().IsArray && (obj2 as Array).Length == 0 ||
+                obj2 == null && obj1 != null && obj1.GetType().IsArray && (obj1 as Array).Length == 0)
+                return true;
+
             if (obj1 == null || obj2 == null || obj1.GetType() != obj2.GetType()) return false;
 
             var fis = obj1.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
