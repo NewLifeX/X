@@ -15,11 +15,14 @@ namespace NewLife.Core.Test.Serialization
 
         public DictionaryObj()
         {
-            var n = Rnd.Next(100);
-            Objs = new Dictionary<Int32, SimpleObj>();
-            for (int i = 0; i < n; i++)
+            var n = Rnd.Next(10) - 1;
+            if (n >= 0)
             {
-                Objs.Add(i, SimpleObj.Create());
+                Objs = new Dictionary<Int32, SimpleObj>();
+                for (int i = 0; i < n; i++)
+                {
+                    Objs.Add(i, SimpleObj.Create());
+                }
             }
         }
 

@@ -39,7 +39,7 @@ namespace NewLife.Serialization
         public enum TypeKinds
         {
             /// <summary>普通类型</summary>
-            Normal,
+            Normal = 1,
 
             /// <summary>数组类型</summary>
             Array,

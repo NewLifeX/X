@@ -15,11 +15,14 @@ namespace NewLife.Core.Test.Serialization
 
         public ListObj()
         {
-            var n = Rnd.Next(100);
-            Objs = new List<SimpleObj>();
-            for (int i = 0; i < n; i++)
+            var n = Rnd.Next(10) - 1;
+            if (n >= 0)
             {
-                Objs.Add(SimpleObj.Create());
+                Objs = new List<SimpleObj>();
+                for (int i = 0; i < n; i++)
+                {
+                    Objs.Add(SimpleObj.Create());
+                }
             }
         }
 

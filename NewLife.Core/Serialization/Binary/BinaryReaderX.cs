@@ -213,7 +213,11 @@ namespace NewLife.Serialization
             if (Settings.SplitComplexType)
             {
                 Type type = null;
-                var kind = (BinarySettings.TypeKinds)ReadByte();
+                var b = ReadByte();
+                // type=value是写入0表示没有，但是读取就悲剧了，0代表普通类型，现在改为1表示普通类型
+                if (b == 0) return null;
+
+                var kind = (BinarySettings.TypeKinds)b;
 
                 WriteLog("ReadType", kind);
 
