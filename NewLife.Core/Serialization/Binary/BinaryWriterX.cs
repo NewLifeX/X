@@ -95,14 +95,14 @@ namespace NewLife.Serialization
 
         /// <summary>判断字节顺序</summary>
         /// <param name="buffer"></param>
-        protected override void WriteIntBytes(byte[] buffer)
+        void WriteIntBytes(byte[] buffer)
         {
             if (buffer == null || buffer.Length < 1) return;
 
             // 如果不是小端字节顺序，则倒序
             if (!Settings.IsLittleEndian) Array.Reverse(buffer);
 
-            base.WriteIntBytes(buffer);
+            Write(buffer, 0, buffer.Length);
         }
         #endregion
 
@@ -114,7 +114,7 @@ namespace NewLife.Serialization
             if (Settings.EncodeInt)
                 WriteEncoded(value);
             else
-                base.Write(value);
+                WriteIntBytes(BitConverter.GetBytes(value));
         }
 
         /// <summary>将 4 字节有符号整数写入当前流，并将流的位置提升 4 个字节。</summary>
@@ -124,7 +124,7 @@ namespace NewLife.Serialization
             if (Settings.EncodeInt)
                 WriteEncoded(value);
             else
-                base.Write(value);
+                WriteIntBytes(BitConverter.GetBytes(value));
         }
 
         /// <summary>将 8 字节有符号整数写入当前流，并将流的位置提升 8 个字节。</summary>
@@ -134,7 +134,7 @@ namespace NewLife.Serialization
             if (Settings.EncodeInt)
                 WriteEncoded(value);
             else
-                base.Write(value);
+                WriteIntBytes(BitConverter.GetBytes(value));
         }
         #endregion
 

@@ -17,7 +17,7 @@ namespace NewLife.Serialization
         #region 字节
         /// <summary>将一个无符号字节写入</summary>
         /// <param name="value">要写入的无符号字节。</param>
-        public override void Write(Byte value) { WriteLiteral(string.Format("{0}", value)); }
+        public override void Write(Byte value) { WriteLiteral(String.Format("{0}", value)); }
         //public override void Write(Byte value) { Write(new Byte[] { value }, 0, 1); }
 
         /// <summary>将字节数组以[0xff,0xff,0xff]的格式写入</summary>

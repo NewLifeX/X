@@ -76,21 +76,17 @@ namespace NewLife.Serialization
         #endregion
 
         #region 有符号整数
-        /// <summary>写入整数的字节数组，某些写入器（如二进制写入器）可能需要改变字节顺序</summary>
-        /// <param name="buffer"></param>
-        protected virtual void WriteIntBytes(Byte[] buffer) { Write(buffer, -1); }
-
         /// <summary>将 2 字节有符号整数写入当前流，并将流的位置提升 2 个字节。</summary>
         /// <param name="value">要写入的 2 字节有符号整数。</param>
-        public virtual void Write(short value) { WriteIntBytes(BitConverter.GetBytes(value)); }
+        public abstract void Write(short value);
 
         /// <summary>将 4 字节有符号整数写入当前流，并将流的位置提升 4 个字节。</summary>
         /// <param name="value">要写入的 4 字节有符号整数。</param>
-        public virtual void Write(int value) { WriteIntBytes(BitConverter.GetBytes(value)); }
+        public abstract void Write(int value);
 
         /// <summary>将 8 字节有符号整数写入当前流，并将流的位置提升 8 个字节。</summary>
         /// <param name="value">要写入的 8 字节有符号整数。</param>
-        public virtual void Write(long value) { WriteIntBytes(BitConverter.GetBytes(value)); }
+        public abstract void Write(long value);
         #endregion
 
         #region 无符号整数
@@ -182,10 +178,7 @@ namespace NewLife.Serialization
         #region 基础名值
         /// <summary>写入成员名称</summary>
         /// <param name="name"></param>
-        public virtual void WriteName(String name)
-        {
-
-        }
+        public virtual void WriteName(String name) { }
 
         /// <summary>写入值类型</summary>
         /// <param name="value"></param>
@@ -204,8 +197,7 @@ namespace NewLife.Serialization
                 type = value.GetType();
             }
 
-            TypeCode code = Type.GetTypeCode(type);
-            switch (code)
+            switch (Type.GetTypeCode(type))
             {
                 case TypeCode.Boolean:
                     Write((Boolean)value);
@@ -428,8 +420,8 @@ namespace NewLife.Serialization
             WriteLog("WriteUnKnown", type.Name);
 
             // 调用.Net的二进制序列化来解决剩下的事情
-            BinaryFormatter bf = new BinaryFormatter();
-            MemoryStream ms = new MemoryStream();
+            var bf = new BinaryFormatter();
+            var ms = new MemoryStream();
             bf.Serialize(ms, value);
             ms.Position = 0;
             Write(ms.ToArray());
@@ -443,7 +435,7 @@ namespace NewLife.Serialization
         /// <param name="value"></param>
         /// <param name="type"></param>
         /// <returns></returns>
-        protected virtual Boolean WriteX(Object value, Type type)
+        protected virtual Boolean WriteExtend(Object value, Type type)
         {
             if (type == typeof(Byte[]))
             {
@@ -483,7 +475,7 @@ namespace NewLife.Serialization
 
         /// <summary>写入Guid</summary>
         /// <param name="value"></param>
-        public virtual void Write(Guid value) { if (!WriteObjRef(value))  OnWrite(value); }
+        public void Write(Guid value) { if (!WriteObjRef(value))  OnWrite(value); }
 
         /// <summary>写入Guid</summary>
         /// <param name="value"></param>
@@ -491,7 +483,7 @@ namespace NewLife.Serialization
 
         /// <summary>写入IPAddress</summary>
         /// <param name="value"></param>
-        public virtual void Write(IPAddress value) { if (!WriteObjRef(value)) OnWrite(value); }
+        public void Write(IPAddress value) { if (!WriteObjRef(value)) OnWrite(value); }
 
         /// <summary>写入IPAddress</summary>
         /// <param name="value"></param>
@@ -499,7 +491,7 @@ namespace NewLife.Serialization
 
         /// <summary>写入IPEndPoint</summary>
         /// <param name="value"></param>
-        public virtual void Write(IPEndPoint value) { if (!WriteObjRef(value)) OnWrite(value); }
+        public void Write(IPEndPoint value) { if (!WriteObjRef(value)) OnWrite(value); }
 
         /// <summary>写入IPEndPoint</summary>
         /// <param name="value"></param>
@@ -539,10 +531,11 @@ namespace NewLife.Serialization
                 Write(value.FullName);
         }
 
-        /// <summary>
+        /// <summary>检查对象类型与指定写入类型是否一致</summary>
+        /// <remarks>
         /// 检查对象类型与指定写入类型是否一致，若不一致，则先写入类型，以保证读取的时候能够以正确的类型读取。同时返回对象实际类型。
         /// 若想不写对象类型，可以提前设定精确类型。
-        /// </summary>
+        /// </remarks>
         /// <param name="action"></param>
         /// <param name="value"></param>
         /// <param name="type"></param>
@@ -651,7 +644,7 @@ namespace NewLife.Serialization
                 if (WriteObjRef(value)) return true;
 
                 // 扩展类型
-                if (WriteX(value, type)) return true;
+                if (WriteExtend(value, type)) return true;
 
                 // 写入引用对象
                 if (WriteRefObject(value, type, callback)) return true;
@@ -670,7 +663,7 @@ namespace NewLife.Serialization
                 if (WriteValue(value, type)) return true;
 
                 // 扩展类型
-                if (WriteX(value, type)) return true;
+                if (WriteExtend(value, type)) return true;
 
                 // 写入引用对象
                 if (WriteRefObject(value, type, callback)) return true;

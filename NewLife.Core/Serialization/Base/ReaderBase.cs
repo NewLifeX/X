@@ -805,7 +805,7 @@ namespace NewLife.Serialization
         /// <param name="type">要读取的对象类型</param>
         /// <param name="value">要读取的对象</param>
         /// <returns></returns>
-        public Boolean ReadX(Type type, ref Object value)
+        public Boolean ReadExtend(Type type, ref Object value)
         {
             if (type == typeof(Byte[]))
             {
@@ -1133,7 +1133,7 @@ namespace NewLife.Serialization
                 objRefIndex = index;
 
                 // 特殊类型
-                if (ReadX(type, ref value))
+                if (ReadExtend(type, ref value))
                 {
                     if (value != null) AddObjRef(index, value);
                     return true;
@@ -1167,7 +1167,7 @@ namespace NewLife.Serialization
                 }
 
                 // 特殊类型
-                if (ReadX(type, ref value))
+                if (ReadExtend(type, ref value))
                 {
                     if (value != null) AddObjRef(index, value);
                     return true;
