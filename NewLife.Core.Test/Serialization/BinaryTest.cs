@@ -154,13 +154,28 @@ namespace NewLife.Core.Test.Serialization
             }
         }
 
-        void TestReader(Obj obj, Boolean encodeInt)
+        void TestReader(Obj obj)
+        {
+            var set = new BinarySettings();
+            for (int i = 0; i < 36; i++)
+            {
+                set.UseObjRef = (i & 0x01) == 1;
+                set.UseTypeFullName = (i >> 1 & 0x01) == 1;
+                set.Encoding = (i >> 2 & 0x01) == 1 ? Encoding.Default : Encoding.UTF8;
+                set.EncodeInt = (i >> 3 & 0x01) == 1;
+                set.SizeFormat = (i >> 4 & 0x01) == 1 ? TypeCode.Int32 : TypeCode.UInt32;
+                set.SplitComplexType = (i >> 5 & 0x01) == 1;
+
+                TestReader(obj, set);
+            }
+        }
+
+        void TestReader(Obj obj, BinarySettings set)
         {
             try
             {
                 var reader = new BinaryReaderX();
-                reader.Settings.UseObjRef = false;
-                reader.Settings.EncodeInt = encodeInt;
+                reader.Settings = set;
 
                 // 获取对象的数据流，作为二进制读取器的数据源
                 reader.Stream = obj.GetStream(reader.Settings);
@@ -182,44 +197,37 @@ namespace NewLife.Core.Test.Serialization
         public void TestReader()
         {
             var obj = SimpleObj.Create();
-            TestReader(obj, false);
-            TestReader(obj, true);
+            TestReader(obj);
         }
 
         [TestMethod]
         public void TestReadArray()
         {
             var obj = new ArrayObj();
-            TestReader(obj, false);
-            TestReader(obj, true);
+            TestReader(obj);
 
             obj.Objs = null;
-            TestReader(obj, false);
-            TestReader(obj, true);
+            TestReader(obj);
         }
 
         [TestMethod]
         public void TestReadList()
         {
             var obj = new ListObj();
-            TestReader(obj, false);
-            TestReader(obj, true);
+            TestReader(obj);
 
             obj.Objs = null;
-            TestReader(obj, false);
-            TestReader(obj, true);
+            TestReader(obj);
         }
 
         [TestMethod]
         public void TestReadDictionary()
         {
             var obj = new DictionaryObj();
-            TestReader(obj, false);
-            TestReader(obj, true);
+            TestReader(obj);
 
             obj.Objs = null;
-            TestReader(obj, false);
-            TestReader(obj, true);
+            TestReader(obj);
         }
 
         [TestMethod]
@@ -228,14 +236,12 @@ namespace NewLife.Core.Test.Serialization
             try
             {
                 var obj = new ExtendObj();
-                TestReader(obj, false);
-                TestReader(obj, true);
+                TestReader(obj);
 
                 obj = ExtendObj.Create();
                 for (int i = 0; i < 100; i++)
                 {
-                    TestReader(obj, false);
-                    TestReader(obj, true);
+                    TestReader(obj);
                 }
             }
             catch (Exception ex)
