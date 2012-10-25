@@ -122,7 +122,10 @@ namespace NewLife.Core.Test.Serialization
         {
             try
             {
-                var obj = ExtendObj.Create();
+                var obj = new ExtendObj();
+                TestWriter(obj, false);
+                TestWriter(obj, true);
+                obj = ExtendObj.Create();
                 for (int i = 0; i < 100; i++)
                 {
                     TestWriter(obj, false);
@@ -196,7 +199,10 @@ namespace NewLife.Core.Test.Serialization
         {
             try
             {
-                var obj = ExtendObj.Create();
+                var obj = new ExtendObj();
+                TestReader(obj, false);
+                TestReader(obj, true);
+                obj = ExtendObj.Create();
                 for (int i = 0; i < 100; i++)
                 {
                     TestReader(obj, false);

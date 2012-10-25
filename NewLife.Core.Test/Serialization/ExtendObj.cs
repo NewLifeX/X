@@ -177,7 +177,7 @@ namespace NewLife.Core.Test.Serialization
             else
             {
                 //writer.Write(T.FullName);
-                if (set.SplitComplexType) writer.Write((Byte)0);
+                if (set.SplitComplexType) writer.Write((Byte)BinarySettings.TypeKinds.Normal);
                 if (set.UseTypeFullName)
                     writer.Write(T.AssemblyQualifiedName);
                 else
