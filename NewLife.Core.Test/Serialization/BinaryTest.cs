@@ -1,7 +1,7 @@
 ﻿using System;
+using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NewLife.Serialization;
-using System.Text;
 
 namespace NewLife.Core.Test.Serialization
 {
