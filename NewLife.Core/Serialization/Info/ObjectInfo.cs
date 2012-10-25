@@ -18,14 +18,14 @@ namespace NewLife.Serialization
     {
         #region 属性
         /// <summary>默认上下文</summary>
-        public static StreamingContext DefaultStreamingContext = new StreamingContext();
+        internal static StreamingContext DefaultStreamingContext = new StreamingContext();
         #endregion
 
         #region 创建成员信息
         /// <summary>创建反射成员信息</summary>
         /// <param name="member"></param>
         /// <returns></returns>
-        public static IObjectMemberInfo CreateObjectMemberInfo(MemberInfo member)
+        static IObjectMemberInfo CreateObjectMemberInfo(MemberInfo member)
         {
             return new ReflectMemberInfo(member);
         }
@@ -35,7 +35,7 @@ namespace NewLife.Serialization
         /// <param name="type"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        public static IObjectMemberInfo CreateObjectMemberInfo(String name, Type type, Object value)
+        static IObjectMemberInfo CreateObjectMemberInfo(String name, Type type, Object value)
         {
             return new SimpleMemberInfo(name, type, value);
         }
@@ -43,7 +43,7 @@ namespace NewLife.Serialization
 
         #region 获取成员信息
         /// <summary>
-        /// 获取指定对象的成员信息。优先考虑ISerializable接口。
+        /// 获取指定对象的可序列化成员信息。优先考虑ISerializable接口。
         /// 对于Write，该方法没有任何问题；对于Read，如果是ISerializable接口，并且value是空，则可能无法取得成员信息。
         /// </summary>
         /// <param name="type">类型</param>
@@ -62,7 +62,14 @@ namespace NewLife.Serialization
                 {
                     return GetMembers(value as ISerializable, type);
                 }
-                catch { }
+#if !DEBUG
+                //catch { }
+#else
+                catch (Exception ex)
+                {
+                    NewLife.Log.XTrace.WriteException(ex);
+                }
+#endif
             }
 
             return GetMembers(type, isField, isBaseFirst);

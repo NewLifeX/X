@@ -11,11 +11,7 @@ namespace NewLife.Serialization
         #region 属性
         private MemberInfo _Member;
         /// <summary>成员</summary>
-        public MemberInfo Member
-        {
-            get { return _Member; }
-            private set { _Member = value; }
-        }
+        public MemberInfo Member { get { return _Member; } private set { _Member = value; } }
 
         private MemberInfoX _Mix;
         /// <summary>快速反射</summary>
@@ -32,8 +28,9 @@ namespace NewLife.Serialization
         #endregion
 
         #region IObjectMemberInfo 成员
+        private String _Name;
         /// <summary>名称</summary>
-        public string Name { get { return GetName(); } }
+        public String Name { get { return _Name ?? (_Name = GetName()); } }
 
         /// <summary>类型</summary>
         public Type Type { get { return Mix.Type; } }
@@ -43,27 +40,27 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public object this[object target] { get { return Mix.GetValue(target); } set { Mix.SetValue(target, value); } }
 
-        /// <summary>是否可读</summary>
-        public bool CanRead
-        {
-            get
-            {
-                if (Member.MemberType == MemberTypes.Field) return true;
-                if (Member.MemberType == MemberTypes.Property) return (Member as PropertyInfo).CanRead;
-                return false;
-            }
-        }
+        ///// <summary>是否可读</summary>
+        //public bool CanRead
+        //{
+        //    get
+        //    {
+        //        if (Member.MemberType == MemberTypes.Field) return true;
+        //        if (Member.MemberType == MemberTypes.Property) return (Member as PropertyInfo).CanRead;
+        //        return false;
+        //    }
+        //}
 
-        /// <summary>是否可写</summary>
-        public bool CanWrite
-        {
-            get
-            {
-                if (Member.MemberType == MemberTypes.Field) return true;
-                if (Member.MemberType == MemberTypes.Property) return (Member as PropertyInfo).CanWrite;
-                return false;
-            }
-        }
+        ///// <summary>是否可写</summary>
+        //public bool CanWrite
+        //{
+        //    get
+        //    {
+        //        if (Member.MemberType == MemberTypes.Field) return true;
+        //        if (Member.MemberType == MemberTypes.Property) return (Member as PropertyInfo).CanWrite;
+        //        return false;
+        //    }
+        //}
         #endregion
 
         #region 方法
@@ -86,7 +83,7 @@ namespace NewLife.Serialization
             TAttribute att = AttributeX.GetCustomAttribute<TAttribute>(member, true);
             if (att == null) return null;
 
-            PropertyInfoX pix = PropertyInfoX.Create(typeof(TAttribute), name);
+            var pix = PropertyInfoX.Create(typeof(TAttribute), name);
             if (pix == null) return null;
 
             return (String)pix.GetValue(att);

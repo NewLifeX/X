@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace NewLife.Serialization
 {
@@ -10,19 +8,11 @@ namespace NewLife.Serialization
         #region 属性
         private String _Name;
         /// <summary>名称</summary>
-        public String Name
-        {
-            get { return _Name; }
-            private set { _Name = value; }
-        }
+        public String Name { get { return _Name; } private set { _Name = value; } }
 
         private Type _Type;
         /// <summary>类型</summary>
-        public Type Type
-        {
-            get { return _Type; }
-            private set { _Type = value; }
-        }
+        public Type Type { get { return _Type; } private set { _Type = value; } }
 
         private Object _Value;
 
@@ -31,11 +21,11 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public object this[object target] { get { return _Value; } set { _Value = value; } }
 
-        /// <summary>是否可读</summary>
-        public bool CanRead { get { return true; } }
+        ///// <summary>是否可读</summary>
+        //public bool CanRead { get { return true; } }
 
-        /// <summary>是否可写</summary>
-        public bool CanWrite { get { return true; } }
+        ///// <summary>是否可写</summary>
+        //public bool CanWrite { get { return true; } }
         #endregion
 
         #region 构造
@@ -54,7 +44,13 @@ namespace NewLife.Serialization
         #region 已重载
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override string ToString() { return Name; }
+        public override string ToString()
+        {
+            if (Type.GetTypeCode(Type) != TypeCode.Object)
+                return String.Format("{0} {1} {2}", Name, Type.Name, _Value);
+            else
+                return String.Format("{0} {1}", Name, Type.Name);
+        }
         #endregion
     }
 }

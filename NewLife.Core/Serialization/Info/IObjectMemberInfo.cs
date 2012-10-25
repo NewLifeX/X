@@ -16,10 +16,10 @@ namespace NewLife.Serialization
         /// <returns></returns>
         Object this[Object target] { get; set; }
 
-        /// <summary>是否可读</summary>
-        Boolean CanRead { get; }
+        ///// <summary>是否可读</summary>
+        //Boolean CanRead { get; }
 
-        /// <summary>是否可写</summary>
-        Boolean CanWrite { get; }
+        ///// <summary>是否可写</summary>
+        //Boolean CanWrite { get; }
     }
 }

@@ -198,17 +198,17 @@ namespace NewLife.Serialization
         #endregion
 
         #region 对象默认值
-        /// <summary>判断一个对象的某个成员是否默认值</summary>
-        /// <param name="value"></param>
-        /// <param name="member"></param>
-        /// <returns></returns>
-        internal static Boolean IsDefault(Object value, IObjectMemberInfo member)
-        {
-            if (value == null) return false;
+        ///// <summary>判断一个对象的某个成员是否默认值</summary>
+        ///// <param name="value"></param>
+        ///// <param name="member"></param>
+        ///// <returns></returns>
+        //internal static Boolean IsDefault(Object value, IObjectMemberInfo member)
+        //{
+        //    if (value == null) return false;
 
-            Object def = ObjectInfo.GetDefaultObject(value.GetType());
-            return Object.Equals(member[value], member[def]);
-        }
+        //    Object def = ObjectInfo.GetDefaultObject(value.GetType());
+        //    return Object.Equals(member[value], member[def]);
+        //}
         #endregion
 
         #region 方法
