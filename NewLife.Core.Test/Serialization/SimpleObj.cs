@@ -97,7 +97,7 @@ namespace NewLife.Core.Test.Serialization
             Dec = (Decimal)(Rnd.NextDouble() * Rnd.Next(Int32.MinValue, Int32.MaxValue));
             Dt = DateTime.Now.AddSeconds(D);
 
-            if (Rnd.Next(2) > 0) Str = "Design By NewLife \r\nhttp://www.NewLifeX.com";
+            if (Rnd.Next(2) > 0) Str = "Design By NewLife \r\n新生命开发团队\r\nhttp://www.NewLifeX.com";
         }
 
         public override void Write(BinaryWriter writer, BinarySettings set)
@@ -119,12 +119,12 @@ namespace NewLife.Core.Test.Serialization
             }
             else
             {
-                writer.Write(WriteEncoded(I16));
-                writer.Write(WriteEncoded(U16));
-                writer.Write(WriteEncoded(I32));
-                writer.Write(WriteEncoded(U32));
-                writer.Write(WriteEncoded(I64));
-                writer.Write(WriteEncoded(U64));
+                writer.Write(GetEncoded(I16));
+                writer.Write(GetEncoded(U16));
+                writer.Write(GetEncoded(I32));
+                writer.Write(GetEncoded(U32));
+                writer.Write(GetEncoded(I64));
+                writer.Write(GetEncoded(U64));
             }
 
             writer.Write(S);
@@ -139,12 +139,19 @@ namespace NewLife.Core.Test.Serialization
                 var ns = Decimal.GetBits(Dec);
                 for (int i = 0; i < ns.Length; i++)
                 {
-                    writer.Write(WriteEncoded(ns[i]));
+                    writer.Write(GetEncoded(ns[i]));
                 }
-                writer.Write(WriteEncoded(Dt.Ticks));
+                writer.Write(GetEncoded(Dt.Ticks));
             }
             if (Str == null) Str = "";
-            writer.Write(Str);
+            //writer.Write(Str);
+            var encodeSize = set.EncodeInt || (Int32)set.SizeFormat % 2 == 0;
+            var buf = set.Encoding.GetBytes(Str);
+            if (!encodeSize)
+                writer.Write(buf.Length);
+            else
+                writer.Write(GetEncoded(buf.Length));
+            writer.Write(buf, 0, buf.Length);
         }
         #endregion
     }

@@ -104,7 +104,7 @@ namespace NewLife.Core.Test.Serialization
                 if (!encodeInt)
                     writer.Write(Bts.Length);
                 else
-                    writer.Write(WriteEncoded(Bts.Length));
+                    writer.Write(GetEncoded(Bts.Length));
                 writer.Write(Bts);
             }
 
@@ -121,7 +121,7 @@ namespace NewLife.Core.Test.Serialization
                 if (!encodeInt)
                     writer.Write(buf.Length);
                 else
-                    writer.Write(WriteEncoded(buf.Length));
+                    writer.Write(GetEncoded(buf.Length));
                 writer.Write(buf);
             }
 
@@ -140,7 +140,7 @@ namespace NewLife.Core.Test.Serialization
                 if (!encodeInt)
                     writer.Write(buf.Length);
                 else
-                    writer.Write(WriteEncoded(buf.Length));
+                    writer.Write(GetEncoded(buf.Length));
                 writer.Write(buf);
             }
 
@@ -157,14 +157,14 @@ namespace NewLife.Core.Test.Serialization
                 if (!encodeInt)
                     writer.Write(buf.Length);
                 else
-                    writer.Write(WriteEncoded(buf.Length));
+                    writer.Write(GetEncoded(buf.Length));
                 writer.Write(buf);
 
                 // 纯编码整数，与大小无关
                 if (!set.EncodeInt)
                     writer.Write(EndPoint.Port);
                 else
-                    writer.Write(WriteEncoded(EndPoint.Port));
+                    writer.Write(GetEncoded(EndPoint.Port));
             }
 
             if (T == null)

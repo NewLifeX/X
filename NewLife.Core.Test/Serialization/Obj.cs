@@ -50,11 +50,11 @@ namespace NewLife.Core.Test.Serialization
         ///// <summary>是否编码整数</summary>
         //public Boolean EncodeInt { get { return _EncodeInt; } set { _EncodeInt = value; } }
 
-        public static Byte[] WriteEncoded(Int16 value) { return WriteEncoded((UInt16)value); }
-        public static Byte[] WriteEncoded(UInt16 value) { return WriteEncoded((UInt64)value); }
-        public static Byte[] WriteEncoded(Int32 value) { return WriteEncoded((UInt32)value); }
-        public static Byte[] WriteEncoded(UInt32 value) { return WriteEncoded((UInt64)value); }
-        public static Byte[] WriteEncoded(Int64 value) { return WriteEncoded((UInt64)value); }
+        public static Byte[] GetEncoded(Int16 value) { return GetEncoded((UInt16)value); }
+        public static Byte[] GetEncoded(UInt16 value) { return GetEncoded((UInt64)value); }
+        public static Byte[] GetEncoded(Int32 value) { return GetEncoded((UInt32)value); }
+        public static Byte[] GetEncoded(UInt32 value) { return GetEncoded((UInt64)value); }
+        public static Byte[] GetEncoded(Int64 value) { return GetEncoded((UInt64)value); }
 
         /// <summary>
         /// 以7位压缩格式写入64位整数，小于7位用1个字节，小于14位用2个字节。
@@ -62,7 +62,7 @@ namespace NewLife.Core.Test.Serialization
         /// </summary>
         /// <param name="value"></param>
         /// <returns>实际写入字节数</returns>
-        public static Byte[] WriteEncoded(UInt64 value)
+        public static Byte[] GetEncoded(UInt64 value)
         {
             List<Byte> list = new List<Byte>();
 

@@ -19,7 +19,9 @@ namespace NewLife.Core.Test.Serialization
             Objs = new SimpleObj[n];
             for (int i = 0; i < n; i++)
             {
-                Objs[i] = SimpleObj.Create();
+                // 部分留空
+                if (Rnd.Next(2) > 0)
+                    Objs[i] = SimpleObj.Create();
             }
         }
 
@@ -39,7 +41,7 @@ namespace NewLife.Core.Test.Serialization
             if (!encodeSize)
                 writer.Write(n);
             else
-                writer.Write(WriteEncoded(n));
+                writer.Write(GetEncoded(n));
 
             foreach (var item in Objs)
             {

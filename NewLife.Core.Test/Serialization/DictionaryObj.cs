@@ -19,7 +19,11 @@ namespace NewLife.Core.Test.Serialization
             Objs = new Dictionary<Int32, SimpleObj>();
             for (int i = 0; i < n; i++)
             {
-                Objs.Add(i, SimpleObj.Create());
+                // 部分留空
+                if (Rnd.Next(2) > 0)
+                    Objs.Add(i, SimpleObj.Create());
+                else
+                    Objs.Add(i, null);
             }
         }
 
@@ -39,14 +43,14 @@ namespace NewLife.Core.Test.Serialization
             if (!encodeSize)
                 writer.Write(n);
             else
-                writer.Write(WriteEncoded(n));
+                writer.Write(GetEncoded(n));
 
             foreach (var item in Objs)
             {
                 if (!set.EncodeInt)
                     writer.Write(item.Key);
                 else
-                    writer.Write(WriteEncoded(item.Key));
+                    writer.Write(GetEncoded(item.Key));
 
                 item.Value.Write(writer, set);
             }

@@ -1,6 +1,7 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NewLife.Serialization;
+using System.Text;
 
 namespace NewLife.Core.Test.Serialization
 {
@@ -57,14 +58,29 @@ namespace NewLife.Core.Test.Serialization
         //
         #endregion
 
-        void TestWriter(Obj obj, Boolean encodeInt)
+        void TestWriter(Obj obj)
+        {
+            var set = new BinarySettings();
+            for (int i = 0; i < 36; i++)
+            {
+                set.UseObjRef = (i & 0x01) == 1;
+                set.UseTypeFullName = (i >> 1 & 0x01) == 1;
+                set.Encoding = (i >> 2 & 0x01) == 1 ? Encoding.Default : Encoding.UTF8;
+                set.EncodeInt = (i >> 3 & 0x01) == 1;
+                set.SizeFormat = (i >> 4 & 0x01) == 1 ? TypeCode.Int32 : TypeCode.UInt32;
+                set.SplitComplexType = (i >> 5 & 0x01) == 1;
+
+                TestWriter(obj, set);
+            }
+        }
+
+        void TestWriter(Obj obj, BinarySettings set)
         {
             try
             {
                 // 二进制序列化写入
                 var writer = new BinaryWriterX();
-                writer.Settings.UseObjRef = false;
-                writer.Settings.EncodeInt = encodeInt;
+                writer.Settings = set;
                 writer.WriteObject(obj);
 
                 var bts1 = writer.Stream.ReadBytes();
@@ -85,44 +101,37 @@ namespace NewLife.Core.Test.Serialization
         public void TestWriter()
         {
             var obj = SimpleObj.Create();
-            TestWriter(obj, false);
-            TestWriter(obj, true);
+            TestWriter(obj);
         }
 
         [TestMethod]
         public void TestWriteArray()
         {
             var obj = new ArrayObj();
-            TestWriter(obj, false);
-            TestWriter(obj, true);
+            TestWriter(obj);
 
             obj.Objs = null;
-            TestWriter(obj, false);
-            TestWriter(obj, true);
+            TestWriter(obj);
         }
 
         [TestMethod]
         public void TestWriteList()
         {
             var obj = new ListObj();
-            TestWriter(obj, false);
-            TestWriter(obj, true);
+            TestWriter(obj);
 
             obj.Objs = null;
-            TestWriter(obj, false);
-            TestWriter(obj, true);
+            TestWriter(obj);
         }
 
         [TestMethod]
         public void TestWriteDictionary()
         {
             var obj = new DictionaryObj();
-            TestWriter(obj, false);
-            TestWriter(obj, true);
+            TestWriter(obj);
 
             obj.Objs = null;
-            TestWriter(obj, false);
-            TestWriter(obj, true);
+            TestWriter(obj);
         }
 
         [TestMethod]
@@ -131,14 +140,12 @@ namespace NewLife.Core.Test.Serialization
             try
             {
                 var obj = new ExtendObj();
-                TestWriter(obj, false);
-                TestWriter(obj, true);
+                TestWriter(obj);
 
                 obj = ExtendObj.Create();
                 for (int i = 0; i < 100; i++)
                 {
-                    TestWriter(obj, false);
-                    TestWriter(obj, true);
+                    TestWriter(obj);
                 }
             }
             catch (Exception ex)
