@@ -73,7 +73,13 @@ namespace NewLife.Core.Test.Serialization
                 if (!arr.Objs.TryGetValue(item.Key, out sb)) return false;
 
                 // 很小的可能相等，两者可能都是null
-                if (sb == item.Value) continue;
+                if (sb == null)
+                {
+                    if (item.Value == null)
+                        continue;
+                    else
+                        return false;
+                }
 
                 if (!sb.CompareTo(item.Value)) return false;
             }

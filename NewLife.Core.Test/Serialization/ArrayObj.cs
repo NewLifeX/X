@@ -63,6 +63,13 @@ namespace NewLife.Core.Test.Serialization
 
             for (int i = 0; i < Objs.Length; i++)
             {
+                if (Objs[i] == null)
+                {
+                    if (arr.Objs[i] == null)
+                        continue;
+                    else
+                        return false;
+                }
                 if (!Objs[i].CompareTo(arr.Objs[i])) return false;
             }
 
