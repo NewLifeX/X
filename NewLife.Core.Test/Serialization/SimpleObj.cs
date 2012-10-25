@@ -108,49 +108,33 @@ namespace NewLife.Core.Test.Serialization
             writer.Write(Bt);
 
             var encodeInt = set.EncodeInt;
-            if (!encodeInt)
-            {
-                writer.Write(I16);
-                writer.Write(U16);
-                writer.Write(I32);
-                writer.Write(U32);
-                writer.Write(I64);
-                writer.Write(U64);
-            }
-            else
-            {
-                writer.Write(GetEncoded(I16));
-                writer.Write(GetEncoded(U16));
-                writer.Write(GetEncoded(I32));
-                writer.Write(GetEncoded(U32));
-                writer.Write(GetEncoded(I64));
-                writer.Write(GetEncoded(U64));
-            }
+            writer.WriteInt(I16, encodeInt)
+                .WriteInt(U16, encodeInt)
+                .WriteInt(I32, encodeInt)
+                .WriteInt(U32, encodeInt)
+                .WriteInt(I64, encodeInt)
+                .WriteInt(U64, encodeInt);
 
             writer.Write(S);
             writer.Write(D);
             if (!encodeInt)
             {
                 writer.Write(Dec);
-                writer.Write(Dt.Ticks);
             }
             else
             {
                 var ns = Decimal.GetBits(Dec);
                 for (int i = 0; i < ns.Length; i++)
                 {
-                    writer.Write(GetEncoded(ns[i]));
+                    writer.WriteInt(ns[i], encodeInt);
                 }
-                writer.Write(GetEncoded(Dt.Ticks));
             }
+            writer.WriteInt(Dt.Ticks, encodeInt);
             if (Str == null) Str = "";
             //writer.Write(Str);
             var encodeSize = set.EncodeInt || (Int32)set.SizeFormat % 2 == 0;
             var buf = set.Encoding.GetBytes(Str);
-            if (!encodeSize)
-                writer.Write(buf.Length);
-            else
-                writer.Write(GetEncoded(buf.Length));
+            writer.WriteInt(buf.Length, encodeSize);
             writer.Write(buf, 0, buf.Length);
         }
         #endregion

@@ -61,6 +61,7 @@
     <Compile Include="Serialization\ListObj.cs" />
     <Compile Include="Serialization\Obj.cs" />
     <Compile Include="Serialization\SimpleObj.cs" />
+    <Compile Include="Serialization\WriterHelper.cs" />
     <Compile Include="Xml\UserConfig.cs" />
     <Compile Include="Xml\XmlConfigTest.cs" />
   </ItemGroup>

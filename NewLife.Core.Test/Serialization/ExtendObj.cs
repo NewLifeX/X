@@ -91,89 +91,49 @@ namespace NewLife.Core.Test.Serialization
         {
             base.Write(writer, set);
 
-            var encodeInt = set.EncodeInt || ((Int32)set.SizeFormat % 2 == 0);
+            var encodeSize = set.EncodeInt || ((Int32)set.SizeFormat % 2 == 0);
             if (Bts == null)
-            {
-                if (!encodeInt)
-                    writer.Write((Int32)0);
-                else
-                    writer.Write((Byte)0);
-            }
+                writer.WriteInt((Int32)0, encodeSize);
             else
             {
-                if (!encodeInt)
-                    writer.Write(Bts.Length);
-                else
-                    writer.Write(GetEncoded(Bts.Length));
+                writer.WriteInt(Bts.Length, encodeSize);
                 writer.Write(Bts);
             }
 
             if (Cs == null)
-            {
-                if (!encodeInt)
-                    writer.Write((Int32)0);
-                else
-                    writer.Write((Byte)0);
-            }
+                writer.WriteInt((Int32)0, encodeSize);
             else
             {
                 var buf = set.Encoding.GetBytes(Cs);
-                if (!encodeInt)
-                    writer.Write(buf.Length);
-                else
-                    writer.Write(GetEncoded(buf.Length));
+                writer.WriteInt(buf.Length, encodeSize);
                 writer.Write(buf);
             }
 
             writer.Write(G.ToByteArray());
 
             if (Address == null)
-            {
-                if (!encodeInt)
-                    writer.Write((Int32)0);
-                else
-                    writer.Write((Byte)0);
-            }
+                writer.WriteInt((Int32)0, encodeSize);
             else
             {
                 var buf = Address.GetAddressBytes();
-                if (!encodeInt)
-                    writer.Write(buf.Length);
-                else
-                    writer.Write(GetEncoded(buf.Length));
+                writer.WriteInt(buf.Length, encodeSize);
                 writer.Write(buf);
             }
 
             if (EndPoint == null)
-            {
-                if (!encodeInt)
-                    writer.Write((Int32)0);
-                else
-                    writer.Write((Byte)0);
-            }
+                writer.WriteInt((Int32)0, encodeSize);
             else
             {
                 var buf = EndPoint.Address.GetAddressBytes();
-                if (!encodeInt)
-                    writer.Write(buf.Length);
-                else
-                    writer.Write(GetEncoded(buf.Length));
+                writer.WriteInt(buf.Length, encodeSize);
                 writer.Write(buf);
 
                 // 纯编码整数，与大小无关
-                if (!set.EncodeInt)
-                    writer.Write(EndPoint.Port);
-                else
-                    writer.Write(GetEncoded(EndPoint.Port));
+                writer.WriteInt(EndPoint.Port, set.EncodeInt);
             }
 
             if (T == null)
-            {
-                if (!encodeInt)
-                    writer.Write((Int32)0);
-                else
-                    writer.Write((Byte)0);
-            }
+                writer.WriteInt((Int32)0, encodeSize);
             else
             {
                 //writer.Write(T.FullName);

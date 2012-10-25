@@ -30,18 +30,12 @@ namespace NewLife.Core.Test.Serialization
             var encodeSize = set.EncodeInt || (Int32)set.SizeFormat % 2 == 0;
             if (Objs == null)
             {
-                if (!encodeSize)
-                    writer.Write((Int32)0);
-                else
-                    writer.Write((Byte)0);
+                writer.WriteInt((Int32)0, encodeSize);
                 return;
             }
 
             var n = Objs.Length;
-            if (!encodeSize)
-                writer.Write(n);
-            else
-                writer.Write(GetEncoded(n));
+            writer.WriteInt(n, encodeSize);
 
             foreach (var item in Objs)
             {
