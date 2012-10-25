@@ -48,7 +48,7 @@ namespace NewLife.Core.Test.Serialization
             base.OnInit();
 
             var r = Rnd;
-            if (r.Next(10) == 0) return;
+            //if (r.Next(10) == 0) return;
 
             // 减去1，可能出现-1，这样子就做到可能有0字节数组，也可能为null
             var n = r.Next(256) - 1;

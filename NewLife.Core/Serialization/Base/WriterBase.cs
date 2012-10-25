@@ -273,7 +273,11 @@ namespace NewLife.Serialization
         /// <returns>是否写入成功</returns>
         public virtual Boolean WriteDictionary(IDictionary value, Type type, WriteObjectCallback callback)
         {
-            if (value == null) return true;
+            if (value == null)
+            {
+                WriteSize(0);
+                return true;
+            }
             // type = CheckAndWriteType("WriteDictionaryType", value, type);
 
             // 计算元素类型

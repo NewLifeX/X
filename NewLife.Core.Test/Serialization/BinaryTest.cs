@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Text;
-using System.Collections.Generic;
-using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NewLife.Serialization;
-using System.IO;
 
 namespace NewLife.Core.Test.Serialization
 {
@@ -99,6 +95,10 @@ namespace NewLife.Core.Test.Serialization
             var obj = new ArrayObj();
             TestWriter(obj, false);
             TestWriter(obj, true);
+
+            obj.Objs = null;
+            TestWriter(obj, false);
+            TestWriter(obj, true);
         }
 
         [TestMethod]
@@ -107,12 +107,20 @@ namespace NewLife.Core.Test.Serialization
             var obj = new ListObj();
             TestWriter(obj, false);
             TestWriter(obj, true);
+
+            obj.Objs = null;
+            TestWriter(obj, false);
+            TestWriter(obj, true);
         }
 
         [TestMethod]
         public void TestWriteDictionary()
         {
             var obj = new DictionaryObj();
+            TestWriter(obj, false);
+            TestWriter(obj, true);
+
+            obj.Objs = null;
             TestWriter(obj, false);
             TestWriter(obj, true);
         }
@@ -125,6 +133,7 @@ namespace NewLife.Core.Test.Serialization
                 var obj = new ExtendObj();
                 TestWriter(obj, false);
                 TestWriter(obj, true);
+
                 obj = ExtendObj.Create();
                 for (int i = 0; i < 100; i++)
                 {
@@ -176,6 +185,10 @@ namespace NewLife.Core.Test.Serialization
             var obj = new ArrayObj();
             TestReader(obj, false);
             TestReader(obj, true);
+
+            obj.Objs = null;
+            TestReader(obj, false);
+            TestReader(obj, true);
         }
 
         [TestMethod]
@@ -184,12 +197,20 @@ namespace NewLife.Core.Test.Serialization
             var obj = new ListObj();
             TestReader(obj, false);
             TestReader(obj, true);
+
+            obj.Objs = null;
+            TestReader(obj, false);
+            TestReader(obj, true);
         }
 
         [TestMethod]
         public void TestReadDictionary()
         {
             var obj = new DictionaryObj();
+            TestReader(obj, false);
+            TestReader(obj, true);
+
+            obj.Objs = null;
             TestReader(obj, false);
             TestReader(obj, true);
         }
@@ -202,6 +223,7 @@ namespace NewLife.Core.Test.Serialization
                 var obj = new ExtendObj();
                 TestReader(obj, false);
                 TestReader(obj, true);
+
                 obj = ExtendObj.Create();
                 for (int i = 0; i < 100; i++)
                 {

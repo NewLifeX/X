@@ -15,23 +15,28 @@ namespace NewLife.Core.Test.Serialization
 
         public ArrayObj()
         {
-            var n = Rnd.Next(10) - 1;
-            if (n >= 0)
+            var n = Rnd.Next(10);
+            Objs = new SimpleObj[n];
+            for (int i = 0; i < n; i++)
             {
-                Objs = new SimpleObj[n];
-                for (int i = 0; i < n; i++)
-                {
-                    Objs[i] = SimpleObj.Create();
-                }
+                Objs[i] = SimpleObj.Create();
             }
         }
 
         public override void Write(BinaryWriter writer, BinarySettings set)
         {
-            if (Objs == null) return;
+            var encodeSize = set.EncodeInt || (Int32)set.SizeFormat % 2 == 0;
+            if (Objs == null)
+            {
+                if (!encodeSize)
+                    writer.Write((Int32)0);
+                else
+                    writer.Write((Byte)0);
+                return;
+            }
 
             var n = Objs.Length;
-            if (!set.EncodeInt && set.SizeFormat != TypeCode.UInt16 && set.SizeFormat != TypeCode.UInt32 && set.SizeFormat != TypeCode.UInt64)
+            if (!encodeSize)
                 writer.Write(n);
             else
                 writer.Write(WriteEncoded(n));
