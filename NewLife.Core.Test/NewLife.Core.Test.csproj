@@ -57,6 +57,7 @@
     <Compile Include="Serialization\ArrayObj.cs" />
     <Compile Include="Serialization\BinaryTest.cs" />
     <Compile Include="Serialization\DictionaryObj.cs" />
+    <Compile Include="Serialization\ExtendObj.cs" />
     <Compile Include="Serialization\ListObj.cs" />
     <Compile Include="Serialization\Obj.cs" />
     <Compile Include="Serialization\SimpleObj.cs" />

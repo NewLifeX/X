@@ -82,20 +82,6 @@ namespace NewLife.Core.Test.Serialization
 
         protected virtual void OnInit()
         {
-            //B = true;
-            //C = 'X';
-            //SB = SByte.MaxValue;
-            //Bt = 123;
-            //I16 = 16;
-            //U16 = 99;
-            //I32 = 32;
-            //U32 = 999;
-            //I64 = 64;
-            //U64 = 99999;
-            //S = 123.456F;
-            //D = 456.890123456;
-            //Dec = 99.123456789M;
-            //Dt = DateTime.Now;
             B = Rnd.Next(2) > 0;
             C = (Char)('A' + Rnd.Next(26));
             SB = (SByte)Rnd.Next(SByte.MinValue, SByte.MaxValue);
@@ -110,7 +96,8 @@ namespace NewLife.Core.Test.Serialization
             D = (Rnd.NextDouble() * Rnd.Next(Int32.MinValue, Int32.MaxValue));
             Dec = (Decimal)(Rnd.NextDouble() * Rnd.Next(Int32.MinValue, Int32.MaxValue));
             Dt = DateTime.Now.AddSeconds(D);
-            Str = "Design By NewLife \r\nhttp://www.NewLifeX.com";
+
+            if (Rnd.Next(2) > 0) Str = "Design By NewLife \r\nhttp://www.NewLifeX.com";
         }
 
         public override void Write(BinaryWriter writer, BinarySettings set)
@@ -156,6 +143,7 @@ namespace NewLife.Core.Test.Serialization
                 }
                 writer.Write(WriteEncoded(Dt.Ticks));
             }
+            if (Str == null) Str = "";
             writer.Write(Str);
         }
         #endregion

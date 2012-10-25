@@ -109,6 +109,14 @@ namespace NewLife.Core.Test.Serialization
             TestWriter(obj, true);
         }
 
+        [TestMethod]
+        public void TestExtend()
+        {
+            var obj = new ExtendObj();
+            TestWriter(obj, false);
+            TestWriter(obj, true);
+        }
+
         void TestReader(Obj obj, Boolean encodeInt)
         {
             var reader = new BinaryReaderX();
