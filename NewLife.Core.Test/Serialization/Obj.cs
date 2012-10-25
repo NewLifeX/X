@@ -149,6 +149,10 @@ namespace NewLife.Core.Test.Serialization
                 {
                     if (!Compare(b1, b2)) return false;
                 }
+                else if (Type.GetTypeCode(item.FieldType) == TypeCode.String)
+                {
+                    if (b1 + "" != b2 + "") return false;
+                }
                 else
                 {
                     if (!Object.Equals(b1, b2)) return false;
