@@ -111,7 +111,7 @@ namespace NewLife.Xml
         {
             if (Reader.MoveToAttribute("Type"))
             {
-                Type t = base.OnReadType();
+                var t = base.OnReadType();
                 if (Reader.NodeType == XmlNodeType.Attribute) Reader.MoveToElement();
                 return t;
             }

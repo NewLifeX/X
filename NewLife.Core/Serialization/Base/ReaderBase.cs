@@ -890,7 +890,7 @@ namespace NewLife.Serialization
         {
             Depth++;
             // 分离出去，便于重载，而又能有效利用对象引用
-            Type type = ReadObjRef<Type>(OnReadType);
+            var type = ReadObjRef<Type>(OnReadType);
 
             if (type != null) WriteLog("ReadType", type.FullName);
 
@@ -902,10 +902,10 @@ namespace NewLife.Serialization
         /// <returns></returns>
         protected virtual Type OnReadType()
         {
-            String typeName = ReadString();
+            var typeName = ReadString();
             if (String.IsNullOrEmpty(typeName)) return null;
 
-            Type type = TypeX.GetType(typeName, true);
+            var type = TypeX.GetType(typeName, true);
             if (type != null) return type;
 
             throw new XException("无法找到名为{0}的类型！", typeName);

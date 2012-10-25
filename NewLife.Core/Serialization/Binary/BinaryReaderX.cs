@@ -213,7 +213,7 @@ namespace NewLife.Serialization
             if (Settings.SplitComplexType)
             {
                 Type type = null;
-                BinarySettings.TypeKinds kind = (BinarySettings.TypeKinds)ReadByte();
+                var kind = (BinarySettings.TypeKinds)ReadByte();
 
                 WriteLog("ReadType", kind);
 
@@ -223,7 +223,7 @@ namespace NewLife.Serialization
                         return base.OnReadType();
 
                     case BinarySettings.TypeKinds.Array:
-                        Int32 rank = ReadInt32();
+                        var rank = ReadInt32();
                         return ReadType().MakeArrayType(rank);
 
                     case BinarySettings.TypeKinds.Nested:
@@ -234,7 +234,7 @@ namespace NewLife.Serialization
 
                     case BinarySettings.TypeKinds.Generic:
                         type = ReadType();
-                        Type[] ts = type.GetGenericArguments();
+                        var ts = type.GetGenericArguments();
                         for (int i = 0; i < ts.Length; i++)
                         {
                             ts[i] = ReadType();

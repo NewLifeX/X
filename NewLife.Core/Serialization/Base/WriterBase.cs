@@ -507,6 +507,7 @@ namespace NewLife.Serialization
         /// <param name="value"></param>
         protected virtual void OnWrite(IPEndPoint value)
         {
+            // 有可能value不为空而value.Address为空，导致读取失败，但这种可能性太低了，可以不考虑
             if (value == null)
             {
                 WriteSize(0);
@@ -527,8 +528,13 @@ namespace NewLife.Serialization
         /// <param name="value"></param>
         protected virtual void OnWrite(Type value)
         {
+            if (value == null)
+            {
+                WriteSize(0);
+                return;
+            }
             Depth++;
-            WriteLog("WriteType", value.FullName);
+            WriteLog("WriteType", value == null ? "" : value.FullName);
 
             // 分离出去，便于重载，而又能有效利用对象引用
             OnWriteType(value);
