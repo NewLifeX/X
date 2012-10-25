@@ -487,7 +487,17 @@ namespace NewLife.Serialization
 
         /// <summary>写入IPAddress</summary>
         /// <param name="value"></param>
-        protected virtual void OnWrite(IPAddress value) { Write((value as IPAddress).GetAddressBytes()); }
+        protected virtual void OnWrite(IPAddress value)
+        {
+            // 考虑到IPv4和IPv6，地址的字节数不是固定的，所以必须先写大小
+            // 然后如果为空，写大小0刚好合适
+            if (value == null)
+            {
+                WriteSize(0);
+                return;
+            }
+            Write((value as IPAddress).GetAddressBytes());
+        }
 
         /// <summary>写入IPEndPoint</summary>
         /// <param name="value"></param>
@@ -497,6 +507,11 @@ namespace NewLife.Serialization
         /// <param name="value"></param>
         protected virtual void OnWrite(IPEndPoint value)
         {
+            if (value == null)
+            {
+                WriteSize(0);
+                return;
+            }
             //! 直接调用OnWrite，不写对象引用，将来可能得考虑写对象引用
             OnWrite(value.Address);
             //// 端口实际只占2字节

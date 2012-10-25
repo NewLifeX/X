@@ -856,7 +856,15 @@ namespace NewLife.Serialization
 
         /// <summary>读取IPAddress</summary>
         /// <returns></returns>
-        protected virtual IPAddress OnReadIPAddress() { return new IPAddress(ReadBytes(-1)); }
+        protected virtual IPAddress OnReadIPAddress()
+        {
+            // 考虑到IPv4和IPv6，地址的字节数不是固定的，所以必须先写大小
+            // 然后如果为空，写大小0刚好合适
+            var buf = ReadBytes(-1);
+            if (buf == null || buf.Length < 1) return null;
+
+            return new IPAddress(buf);
+        }
 
         /// <summary>读取IPEndPoint</summary>
         /// <returns></returns>
@@ -866,9 +874,12 @@ namespace NewLife.Serialization
         /// <returns></returns>
         protected virtual IPEndPoint OnReadIPEndPoint()
         {
-            IPEndPoint ep = new IPEndPoint(IPAddress.Any, 0);
+            var addr = OnReadIPAddress();
+            if (addr == null) return null;
+
+            var ep = new IPEndPoint(IPAddress.Any, 0);
             //! 直接调用OnWrite，不写对象引用，将来可能得考虑写对象引用
-            ep.Address = OnReadIPAddress();
+            ep.Address = addr;
             ep.Port = ReadInt32();
             return ep;
         }
