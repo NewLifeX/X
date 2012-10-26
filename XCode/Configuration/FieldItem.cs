@@ -343,35 +343,17 @@ namespace XCode.Configuration
         }
 
         /// <summary>IsNull操作，不为空，一般用于字符串，但不匹配0长度字符串</summary>
-        /// 2012.10.25 修正SQLite数据库不支持IsNull的问题。 BY HUIYUE
         /// <returns></returns>
         public WhereExpression IsNull()
         {
-            DAL dal = DAL.Create(Table.ConnName);
-            if (dal.DbType == DatabaseType.SQLite)
-            {
-                return new WhereExpression(String.Format("Not IfNull({0},0)", Factory.FormatName(ColumnName)));
-            }
-            else
-            {
-                return new WhereExpression(String.Format("{0} Is Null", Factory.FormatName(ColumnName)));
-            }
+            return new WhereExpression(String.Format("{0} Is Null", Factory.FormatName(ColumnName)));
         }
 
         /// <summary>NotIn操作</summary>
-        /// 2012.10.25 修正SQLite数据库不支持IsNull的问题。 BY HUIYUE
         /// <returns></returns>
         public WhereExpression NotIsNull()
         {
-            DAL dal = DAL.Create(Table.ConnName);
-            if (dal.DbType == DatabaseType.SQLite)
-            {
-                return new WhereExpression(String.Format("IfNull({0},0)", Factory.FormatName(ColumnName)));
-            }
-            else
-            {
-                return new WhereExpression(String.Format("Not {0} Is Null", Factory.FormatName(ColumnName)));
-            }
+            return new WhereExpression(String.Format("Not {0} Is Null", Factory.FormatName(ColumnName)));
         }
 
         /// <summary>IsNullOrEmpty操作，用于空或者0长度字符串</summary>
