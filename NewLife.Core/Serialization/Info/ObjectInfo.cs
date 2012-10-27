@@ -63,7 +63,7 @@ namespace NewLife.Serialization
                     return GetMembers(value as ISerializable, type);
                 }
 #if !DEBUG
-                //catch { }
+                catch { }
 #else
                 catch (Exception ex)
                 {
