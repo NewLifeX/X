@@ -10,7 +10,7 @@ namespace NewLife.Messaging
     {
         /// <summary>消息类型</summary>
         [XmlIgnore]
-        public override MessageKind Kind { get { return MessageKind.Data; } }
+        public override MessageKind Kind { get { return MessageKind.String; } }
 
         //private Int32 _Length;
         ///// <summary>长度</summary>
