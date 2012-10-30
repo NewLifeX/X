@@ -18,19 +18,15 @@ namespace NewLife.Messaging
     /// 同时，指定一套序列化和反序列化机制，实现消息实体与传输形式（二进制数据、XML、Json）的互相转换，目前仅支持二进制。
     /// 
     /// 消息实体仿照Windows消息来设计，拥有一部分系统内置消息，同时允许用户自定义消息。
-    /// 
-    /// 消息模型同时具有扩展功能，关键在于第一个字节。
-    /// 普通消息第一个字节表示消息类型，但如果该自己最高位为1，表示使用消息头扩展<see cref="MessageHeader"/>。
-    /// 消息头扩展允许指定通道<see cref="MessageHeader.Channel"/>、会话<see cref="MessageHeader.SessionID"/>和消息长度<see cref="MessageHeader.Length"/>（不含扩展头）等。
     /// </remarks>
     public abstract class Message
     {
         #region 属性
-        [NonSerialized]
-        private MessageHeader _Header;
-        /// <summary>消息头。</summary>
-        [XmlIgnore]
-        public MessageHeader Header { get { return _Header ?? (_Header = new MessageHeader()); } set { _Header = value; } }
+        //[NonSerialized]
+        //private MessageHeader _Header;
+        ///// <summary>消息头。</summary>
+        //[XmlIgnore]
+        //public MessageHeader Header { get { return _Header ?? (_Header = new MessageHeader()); } set { _Header = value; } }
 
         /// <summary>消息类型</summary>
         /// <remarks>第一个字节的第一位决定是否存在消息头。</remarks>
@@ -71,16 +67,11 @@ namespace NewLife.Messaging
         #endregion
 
         #region 序列化/反序列化
-        ///// <summary>序列化当前消息到流中</summary>
-        ///// <param name="stream"></param>
-        //public void Write(Stream stream) { Write(stream, SerializationKinds.Binary); }
-
         /// <summary>序列化当前消息到流中</summary>
         /// <param name="stream"></param>
         /// <param name="rwkind"></param>
         public void Write(Stream stream, RWKinds rwkind = RWKinds.Binary)
         {
-            //var writer = new BinaryWriterX(stream);
             var writer = RWService.CreateWriter(rwkind);
             writer.Stream = stream;
             Set(writer.Settings);
@@ -95,8 +86,8 @@ namespace NewLife.Messaging
             // 二进制增加头部
             if (rwkind == RWKinds.Binary)
             {
-                // 判断并写入消息头
-                if (_Header != null && _Header.UseHeader) Header.Write(writer.Stream);
+                //// 判断并写入消息头
+                //if (_Header != null && _Header.UseHeader) Header.Write(writer.Stream);
 
                 // 基类写入编号，保证编号在最前面
                 var wr = writer as IWriter2;
@@ -124,11 +115,6 @@ namespace NewLife.Messaging
             return ms;
         }
 
-        ///// <summary>从流中读取消息</summary>
-        ///// <param name="stream">数据流</param>
-        ///// <returns></returns>
-        //public static Message Read(Stream stream) { return Read(stream, false); }
-
         /// <summary>从流中读取消息</summary>
         /// <param name="stream">数据流</param>
         /// <param name="rwkind"></param>
@@ -138,7 +124,6 @@ namespace NewLife.Messaging
         {
             if (stream == null || stream.Length - stream.Position < 1) return null;
 
-            //var reader = new BinaryReaderX(stream);
             var reader = RWService.CreateReader(rwkind);
             reader.Stream = stream;
             Set(reader.Settings);
@@ -151,47 +136,47 @@ namespace NewLife.Messaging
 
             var start = stream.Position;
             // 消息类型，不同序列化方法的识别方式不同
-            MessageKind kind = (MessageKind)0;
+            var kind = (MessageKind)0;
             Type type = null;
-            MessageHeader header = null;
+            //MessageHeader header = null;
 
             if (rwkind == RWKinds.Binary)
             {
                 // 检查第一个字节
-                //var ch = reader.Reader.PeekChar();
                 var ch = stream.ReadByte();
                 if (ch < 0) return null;
-                stream.Seek(-1, SeekOrigin.Current);
+                //stream.Seek(-1, SeekOrigin.Current);
 
-                var first = (Byte)ch;
+                //var first = (Byte)ch;
 
                 #region 消息头部扩展
-                // 第一个字节的最高位决定是否扩展
-                if (MessageHeader.IsValid(first))
-                {
-                    try
-                    {
-                        header = new MessageHeader();
-                        header.Read(reader.Stream);
-                    }
-                    catch
-                    {
-                        stream.Position = start;
-                        return null;
-                    }
+                //// 第一个字节的最高位决定是否扩展
+                //if (MessageHeader.IsValid(first))
+                //{
+                //    try
+                //    {
+                //        header = new MessageHeader();
+                //        header.Read(reader.Stream);
+                //    }
+                //    catch
+                //    {
+                //        stream.Position = start;
+                //        return null;
+                //    }
 
-                    // 如果使用了消息头，判断一下数据流长度是否满足
-                    if (header.HasFlag(MessageHeader.Flags.Length) && header.Length > stream.Length - stream.Position)
-                    {
-                        stream.Position = start;
-                        return null;
-                    }
-                }
+                //    // 如果使用了消息头，判断一下数据流长度是否满足
+                //    if (header.HasFlag(MessageHeader.Flags.Length) && header.Length > stream.Length - stream.Position)
+                //    {
+                //        stream.Position = start;
+                //        return null;
+                //    }
+                //}
                 #endregion
 
                 // 读取了响应类型和消息类型后，动态创建消息对象
-                var rd = reader as IReader2;
-                kind = (MessageKind)(rd.ReadByte() & 0x7F);
+                //var rd = reader as IReader2;
+                //kind = (MessageKind)(rd.ReadByte() & 0x7F);
+                kind = (MessageKind)ch;
             }
             else
             {
@@ -207,38 +192,16 @@ namespace NewLife.Messaging
                 // 多读了一个，退回去
                 stream.Seek(-1, SeekOrigin.Current);
                 kind = (MessageKind)Convert.ToByte(sb.ToString());
-
-                //var s = stream.IndexOf(new Byte[] { (Byte)'<' });
-                //if (s >= 0)
-                //{
-                //    var e = stream.IndexOf(new Byte[] { (Byte)'>' }, s + 1);
-                //    if (e >= 0)
-                //    {
-                //        stream.Position = s;
-                //        var msgName = Encoding.UTF8.GetString(stream.ReadBytes(e - s - 1));
-                //        if (!String.IsNullOrEmpty(msgName) && !msgName.Contains(" ")) type = TypeX.GetType(msgName);
-                //    }
-                //}
-                //var settings = new XmlReaderSettings();
-                //settings.IgnoreWhitespace = true;
-                //settings.IgnoreComments = true;
-                //var xr = XmlReader.Create(stream, settings);
-                //while (xr.NodeType != XmlNodeType.Element) { if (!xr.Read())break; }
-
-                //stream.Position = start;
             }
 
             #region 识别消息类型
             if (type == null) type = ObjectContainer.Current.ResolveType<Message>(kind);
             if (type == null)
             {
-                if (ignoreException)
-                {
-                    stream.Position = start;
-                    return null;
-                }
-                else
-                    throw new XException("无法识别的消息类型（Kind={0}）！", kind);
+                if (!ignoreException) throw new XException("无法识别的消息类型（Kind={0}）！", kind);
+
+                stream.Position = start;
+                return null;
             }
             #endregion
 
@@ -274,11 +237,11 @@ namespace NewLife.Messaging
                         File.WriteAllBytes(bin, stream.ReadBytes());
                         em = String.Format("已Dump数据流到{0}。{1}", bin, em);
                     }
-                    var ex2 = new XException("无法从数据流中读取{0}（Kind={1}）消息！{2}", type.Name, kind, em);
+                    var ex2 = new XException(ex, "无法从数据流中读取{0}（Kind={1}）消息！{2}", type.Name, kind, em);
                     throw ex2;
                 }
             }
-            msg.Header = header;
+            //msg.Header = header;
             return msg;
             #endregion
         }
@@ -318,7 +281,7 @@ namespace NewLife.Messaging
         /// <returns></returns>
         public static MessageKind PeekKind(Stream stream)
         {
-            Int32 n = stream.ReadByte();
+            var n = stream.ReadByte();
             stream.Seek(-1, SeekOrigin.Current);
             return (MessageKind)(n & 0x7F);
         }
@@ -332,64 +295,64 @@ namespace NewLife.Messaging
             return ObjectContainer.Current.ResolveType<Message>(kind);
         }
 
-        /// <summary>通过首字节和扩展头的Length判断数据流是否消息。</summary>
-        /// <remarks>
-        /// 首字节作为Kind，然后查找是否有消息注册该Kind。
-        /// 对于大小写，一般要求使用扩展头的Length。
-        /// </remarks>
-        /// <param name="stream"></param>
-        /// <returns></returns>
-        public static Boolean IsMessage(Stream stream)
-        {
-            //return PeekType(stream) != null;
-            var p = stream.Position;
-            try
-            {
-                // 第一个字节很重要
-                var n = stream.ReadByte();
-                if (n < 0) return false;
-                var first = (Byte)n;
+        ///// <summary>通过首字节和扩展头的Length判断数据流是否消息。</summary>
+        ///// <remarks>
+        ///// 首字节作为Kind，然后查找是否有消息注册该Kind。
+        ///// 对于大小写，一般要求使用扩展头的Length。
+        ///// </remarks>
+        ///// <param name="stream"></param>
+        ///// <returns></returns>
+        //public static Boolean IsMessage(Stream stream)
+        //{
+        //    //return PeekType(stream) != null;
+        //    var p = stream.Position;
+        //    try
+        //    {
+        //        // 第一个字节很重要
+        //        var n = stream.ReadByte();
+        //        if (n < 0) return false;
+        //        var first = (Byte)n;
 
-                // 如果没用消息头
-                if (!MessageHeader.IsValid(first))
-                {
-                    // 查一下该消息类型是否以注册，如果未注册，直接返回false
-                    var type = ObjectContainer.Current.ResolveType<Message>((MessageKind)(first & 0x7F));
-                    if (type == null) return false;
-                }
+        //        // 如果没用消息头
+        //        if (!MessageHeader.IsValid(first))
+        //        {
+        //            // 查一下该消息类型是否以注册，如果未注册，直接返回false
+        //            var type = ObjectContainer.Current.ResolveType<Message>((MessageKind)(first & 0x7F));
+        //            if (type == null) return false;
+        //        }
 
-                try
-                {
-                    stream.Position = p;
-                    var header = new MessageHeader();
-                    header.Read(stream);
+        //        try
+        //        {
+        //            stream.Position = p;
+        //            var header = new MessageHeader();
+        //            header.Read(stream);
 
-                    // 如果使用了消息头，判断一下数据流长度是否满足
-                    if (header.HasFlag(MessageHeader.Flags.Length) && header.Length > stream.Length - stream.Position) return false;
-                }
-                catch
-                {
-                    // 如果连消息头都读取不了，显然不对
-                    return false;
-                }
+        //            // 如果使用了消息头，判断一下数据流长度是否满足
+        //            if (header.HasFlag(MessageHeader.Flags.Length) && header.Length > stream.Length - stream.Position) return false;
+        //        }
+        //        catch
+        //        {
+        //            // 如果连消息头都读取不了，显然不对
+        //            return false;
+        //        }
 
-                // 重新判断一下至粗恶类型
-                {
-                    n = stream.ReadByte();
-                    if (n < 0) return false;
-                    first = (Byte)n;
-                    // 查一下该消息类型是否以注册，如果未注册，直接返回false
-                    var type = ObjectContainer.Current.ResolveType<Message>((MessageKind)(first & 0x7F));
-                    if (type == null) return false;
-                }
+        //        // 重新判断一下注册类型
+        //        {
+        //            n = stream.ReadByte();
+        //            if (n < 0) return false;
+        //            first = (Byte)n;
+        //            // 查一下该消息类型是否已注册，如果未注册，直接返回false
+        //            var type = ObjectContainer.Current.ResolveType<Message>((MessageKind)(first & 0x7F));
+        //            if (type == null) return false;
+        //        }
 
-                return true;
-            }
-            finally
-            {
-                stream.Position = p;
-            }
-        }
+        //        return true;
+        //    }
+        //    finally
+        //    {
+        //        stream.Position = p;
+        //    }
+        //}
 
         /// <summary>从源消息克隆设置和可序列化成员数据</summary>
         /// <param name="msg"></param>
@@ -398,6 +361,8 @@ namespace NewLife.Messaging
         {
             if (msg != null)
             {
+                if (msg.GetType() != this.GetType()) throw new XException("不能从{0}复制消息到{1}！", msg.GetType().Name, this.GetType().Name);
+
                 // 遍历可序列化成员
                 foreach (var item in ObjectInfo.GetMembers(this.GetType()))
                 {

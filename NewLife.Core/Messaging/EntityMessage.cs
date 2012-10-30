@@ -17,52 +17,76 @@ namespace NewLife.Messaging
         public override MessageKind Kind { get { return MessageKind.Entity; } }
 
         private Type _Type;
+
         /// <summary>实体类型。可以是接口或抽象类型（要求对象容器能识别）</summary>
         public Type Type { get { if (_Type == null && _Value != null)_Type = _Value.GetType(); return _Type; } set { _Type = value; } }
 
         private Object _Value;
+
         /// <summary>对象值</summary>
         public Object Value { get { return _Value; } set { _Value = value; if (value != null) Type = value.GetType(); } }
 
         #region IAccessor 成员
+
         Boolean IAccessor.Read(IReader reader)
         {
-            reader.OnMemberReading += new EventHandler<ReadMemberEventArgs>(reader_OnMemberReading);
-            return false;
+            //reader.OnMemberReading += new EventHandler<ReadMemberEventArgs>(reader_OnMemberReading);
+            //return false;
+
+            reader.Depth++;
+
+            Object v = null;
+            if (!reader.ReadObject(typeof(Type), ref v, null)) return false;
+            Type = v as Type;
+            if (Type != null)
+            {
+                v = null;
+                if (!reader.ReadObject(Type, ref v, null)) return false;
+                Value = v;
+            }
+            reader.Depth--;
+            return true;
         }
 
-        void reader_OnMemberReading(object sender, ReadMemberEventArgs e)
-        {
-            var reader = sender as IReader;
-            if (reader.CurrentObject == this && e.Member.Name == "_Value")
-            {
-                e.Type = Type;
-                reader.OnMemberReading -= new EventHandler<ReadMemberEventArgs>(reader_OnMemberReading);
-            }
-        }
+        //void reader_OnMemberReading(object sender, ReadMemberEventArgs e)
+        //{
+        //    var reader = sender as IReader;
+        //    if (reader.CurrentObject == this && e.Member.Name == "_Value")
+        //    {
+        //        e.Type = Type;
+        //        reader.OnMemberReading -= new EventHandler<ReadMemberEventArgs>(reader_OnMemberReading);
+        //    }
+        //}
 
         Boolean IAccessor.ReadComplete(IReader reader, Boolean success) { return success; }
 
         Boolean IAccessor.Write(IWriter writer)
         {
-            writer.OnMemberWriting += new EventHandler<WriteMemberEventArgs>(writer_OnMemberWriting);
-            return false;
+            //writer.OnMemberWriting += new EventHandler<WriteMemberEventArgs>(writer_OnMemberWriting);
+            //return false;
+            writer.Depth++;
+            writer.WriteObject(Type);
+            if (Type != null) writer.WriteObject(Value);
+            writer.Depth--;
+            return true;
         }
 
-        void writer_OnMemberWriting(object sender, WriteMemberEventArgs e)
-        {
-            var writer = sender as IWriter;
-            if (writer.CurrentObject == this && e.Name == "_Value")
-            {
-                e.Type = Type; 
-                writer.OnMemberWriting -= new EventHandler<WriteMemberEventArgs>(writer_OnMemberWriting);
-            }
-        }
+        //void writer_OnMemberWriting(object sender, WriteMemberEventArgs e)
+        //{
+        //    var writer = sender as IWriter;
+        //    if (writer.CurrentObject == this && e.Name == "_Value")
+        //    {
+        //        e.Type = Type;
+        //        writer.OnMemberWriting -= new EventHandler<WriteMemberEventArgs>(writer_OnMemberWriting);
+        //    }
+        //}
 
         Boolean IAccessor.WriteComplete(IWriter writer, Boolean success) { return success; }
+
         #endregion
 
         #region 辅助
+
         /// <summary>已重载。</summary>
         /// <returns></returns>
         public override string ToString()
@@ -78,6 +102,7 @@ namespace NewLife.Messaging
             else
                 return String.Format("{0} {1}", base.ToString(), Value);
         }
+
         #endregion
     }
 }

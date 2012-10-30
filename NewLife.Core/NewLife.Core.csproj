@@ -95,13 +95,14 @@
     <Compile Include="IO\PathHelper.cs" />
     <Compile Include="IO\StreamReaderX.cs" />
     <Compile Include="IO\StreamWriterX.cs" />
+    <Compile Include="Messaging\ChannelMessage.cs" />
     <Compile Include="Messaging\CompressionMessage.cs" />
     <Compile Include="Messaging\DataMessage.cs" />
     <Compile Include="Messaging\EntitiesMessage.cs" />
     <Compile Include="Messaging\HttpClientMessageProvider.cs" />
     <Compile Include="Messaging\HttpServerMessageProvider.cs" />
     <Compile Include="Messaging\IMessageProvider.cs" />
-    <Compile Include="Messaging\MessageHeader.cs" />
+    <None Include="Messaging\MessageHeader.cs" />
     <Compile Include="Messaging\MessageKind.cs" />
     <Compile Include="Messaging\EntityMessage.cs" />
     <Compile Include="Messaging\MethodMessage.cs" />

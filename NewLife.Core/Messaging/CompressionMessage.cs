@@ -6,13 +6,6 @@ using NewLife.Serialization;
 
 namespace NewLife.Messaging
 {
-    ///// <summary>消息压缩算法</summary>
-    //public enum CompressionMethod : byte
-    //{
-    //    /// <summary>压缩算法</summary>
-    //    Deflate
-    //}
-
     /// <summary>经过压缩的消息</summary>
     public class CompressionMessage : Message, IAccessor
     {
@@ -20,21 +13,18 @@ namespace NewLife.Messaging
         [XmlIgnore]
         public override MessageKind Kind { get { return MessageKind.Compression; } }
 
-        //private CompressionMethod _Method;
-        ///// <summary>压缩算法</summary>
-        //public CompressionMethod Method { get { return _Method; } set { _Method = value; } }
-
         [NonSerialized]
         private Message _Message;
         /// <summary>内部消息对象</summary>
         public Message Message { get { return _Message; } set { _Message = value; } }
 
         #region IAccessor 成员
-        Boolean IAccessor.Read(IReader reader) { return false; }
-
-        Boolean IAccessor.ReadComplete(IReader reader, Boolean success)
+        Boolean IAccessor.Read(IReader reader)
         {
+            if (reader.Stream.Position == reader.Stream.Length) return true;
+
             var ms = new MemoryStream();
+
             // 读取消息。对剩下的数据流，进行解压缩后，读取成为另一个消息
             using (var stream = new DeflateStream(reader.Stream, CompressionMode.Decompress, true))
             {
@@ -44,24 +34,30 @@ namespace NewLife.Messaging
             }
             Message = Read(ms);
 
-            return success;
+            return true;
         }
 
-        Boolean IAccessor.Write(IWriter writer) { return false; }
+        Boolean IAccessor.ReadComplete(IReader reader, Boolean success) { return success; }
 
-        Boolean IAccessor.WriteComplete(IWriter writer, Boolean success)
+        Boolean IAccessor.Write(IWriter writer)
         {
+            if (Message == null) return true;
+
             // 写入消息。把消息写入压缩流，压缩后写入到输出流
             using (var stream = new DeflateStream(writer.Stream, CompressionMode.Compress, true))
             {
                 Message.Write(stream);
             }
 
-            return success;
+            return true;
         }
+
+        Boolean IAccessor.WriteComplete(IWriter writer, Boolean success) { return success; }
+
         #endregion
 
         #region 辅助
+
         /// <summary>已重载。</summary>
         /// <returns></returns>
         public override string ToString()
@@ -72,6 +68,7 @@ namespace NewLife.Messaging
             else
                 return base.ToString();
         }
+
         #endregion
     }
 }

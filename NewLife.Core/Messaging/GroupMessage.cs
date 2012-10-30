@@ -82,82 +82,82 @@ namespace NewLife.Messaging
         #endregion
 
         #region 拆分
-        /// <summary>拆分数据流为多个消息</summary>
-        /// <param name="stream"></param>
-        /// <param name="size"></param>
-        /// <param name="header"></param>
-        public void Split(Stream stream, Int32 size, MessageHeader header = null)
-        {
-            // 组包消息全部采用消息头长度，这里估算，方便内部预留大小，如果包大小刚好在边界上，可能会浪费一个字节空间，不过这个可能性很小
-            if (header == null) header = new MessageHeader();
-            header.Length = size;
+        ///// <summary>拆分数据流为多个消息</summary>
+        ///// <param name="stream"></param>
+        ///// <param name="size"></param>
+        ///// <param name="header"></param>
+        //public void Split(Stream stream, Int32 size, MessageHeader header = null)
+        //{
+        //    // 组包消息全部采用消息头长度，这里估算，方便内部预留大小，如果包大小刚好在边界上，可能会浪费一个字节空间，不过这个可能性很小
+        //    if (header == null) header = new MessageHeader();
+        //    header.Length = size;
 
-            // 消息头大小
-            var headerLength = 0;
-            if (header != null) headerLength = header.ToArray().Length;
+        //    // 消息头大小
+        //    var headerLength = 0;
+        //    if (header != null) headerLength = header.ToArray().Length;
 
-            // 先估算数据包个数
-            var count = (Int32)Math.Ceiling((Double)(stream.Length - stream.Position) / (size - (1 + 4 * 3 + 1) - headerLength));
+        //    // 先估算数据包个数
+        //    var count = (Int32)Math.Ceiling((Double)(stream.Length - stream.Position) / (size - (1 + 4 * 3 + 1) - headerLength));
 
-            // 估计组消息头部长度，最大化构造包。
-            // Kind + 消息头
-            var len = 1 + headerLength;
-            // Identity
-            len += GetBytesCount(Identity);
-            // Count
-            len += 1;
+        //    // 估计组消息头部长度，最大化构造包。
+        //    // Kind + 消息头
+        //    var len = 1 + headerLength;
+        //    // Identity
+        //    len += GetBytesCount(Identity);
+        //    // Count
+        //    len += 1;
 
-            // 加上数据包大小。因为压缩整数的存在，这里不是绝对准确，但是大多数时候不会有问题
-            len += GetBytesCount(size);
-            // !!!不要忘了数据部分的对象引用
-            len += 1;
+        //    // 加上数据包大小。因为压缩整数的存在，这里不是绝对准确，但是大多数时候不会有问题
+        //    len += GetBytesCount(size);
+        //    // !!!不要忘了数据部分的对象引用
+        //    len += 1;
 
-            // 计算数据部分大小
-            var index = Items.Count;
-            while (stream.Position < stream.Length)
-            {
-                var msg = new GroupMessage();
-                msg.Header = header.Clone();
-                msg.Identity = Identity;
-                msg.Index = ++index;
-                //msg.Count = count;
+        //    // 计算数据部分大小
+        //    var index = Items.Count;
+        //    while (stream.Position < stream.Length)
+        //    {
+        //        var msg = new GroupMessage();
+        //        msg.Header = header.Clone();
+        //        msg.Identity = Identity;
+        //        msg.Index = ++index;
+        //        //msg.Count = count;
 
-                // 加上索引长度，计算真正的头部长度
-                var trueLen = len + GetBytesCount(msg.Index);
-                // 第一个元素采用精确Count
-                if (msg.Index == 1) trueLen += GetBytesCount(count) - 1;
+        //        // 加上索引长度，计算真正的头部长度
+        //        var trueLen = len + GetBytesCount(msg.Index);
+        //        // 第一个元素采用精确Count
+        //        if (msg.Index == 1) trueLen += GetBytesCount(count) - 1;
 
-                var len2 = stream.Length - stream.Position;
-                if (len2 > size - trueLen) len2 = size - trueLen;
-                //var buffer = new Byte[len2];
-                //stream.Read(buffer, 0, buffer.Length);
-                //msg.Data = buffer;
-                msg.Data = stream.ReadBytes(len2);
+        //        var len2 = stream.Length - stream.Position;
+        //        if (len2 > size - trueLen) len2 = size - trueLen;
+        //        //var buffer = new Byte[len2];
+        //        //stream.Read(buffer, 0, buffer.Length);
+        //        //msg.Data = buffer;
+        //        msg.Data = stream.ReadBytes(len2);
 
-                // 减去Header以外的全部长度
-                msg.Header.Length = (Int32)(trueLen + len2) - headerLength;
+        //        // 减去Header以外的全部长度
+        //        msg.Header.Length = (Int32)(trueLen + len2) - headerLength;
 
-                // 最后一个修正长度，因为数据量可能很少，前面的GetBytesCount(size)可能不对。
-                if (len2 < size - trueLen) msg.Header.Length += GetBytesCount(len2) - GetBytesCount(size);
+        //        // 最后一个修正长度，因为数据量可能很少，前面的GetBytesCount(size)可能不对。
+        //        if (len2 < size - trueLen) msg.Header.Length += GetBytesCount(len2) - GetBytesCount(size);
 
-                lock (Items)
-                {
-                    Items.Add(msg);
-                }
-            }
+        //        lock (Items)
+        //        {
+        //            Items.Add(msg);
+        //        }
+        //    }
 
-            //if (Items.Count > 0) Items[0].Count = Items.Count;
-            // 第一个组消息的Count是准确的，总数Count小于128的全部使用实际总数Count，其它都是用0
-            count = Items.Count;
-            var isLittle = count < 128;
-            foreach (var item in Items)
-            {
-                item.Count = isLittle ? count : 0;
-            }
-            if (count > 0) Items[0].Count = count;
+        //    //if (Items.Count > 0) Items[0].Count = Items.Count;
+        //    // 第一个组消息的Count是准确的，总数Count小于128的全部使用实际总数Count，其它都是用0
+        //    count = Items.Count;
+        //    var isLittle = count < 128;
+        //    foreach (var item in Items)
+        //    {
+        //        item.Count = isLittle ? count : 0;
+        //    }
+        //    if (count > 0) Items[0].Count = count;
 
-            Total = count;
-        }
+        //    Total = count;
+        //}
         #endregion
 
         #region 重组

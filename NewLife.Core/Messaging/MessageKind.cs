@@ -35,6 +35,9 @@ namespace NewLife.Messaging
         /// <summary>组消息</summary>
         Group,
 
+        /// <summary>通道消息</summary>
+        Channel,
+
         /// <summary>用户自定义消息在此基础上增加</summary>
         UserDefine = 0x10
     }

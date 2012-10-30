@@ -149,7 +149,7 @@ namespace NewLife.Messaging
             else
             {
                 var mg = new MessageGroup();
-                mg.Split(ms, MaxMessageSize, message.Header);
+                //mg.Split(ms, MaxMessageSize, message.Header);
                 var count = 0;
                 foreach (var item in mg)
                 {
@@ -373,7 +373,7 @@ namespace NewLife.Messaging
             /// <param name="message"></param>
             public void Send(Message message)
             {
-                message.Header.Channel = Channel;
+                //message.Header.Channel = Channel;
                 Provider.Send(message);
             }
 
@@ -384,7 +384,7 @@ namespace NewLife.Messaging
             /// <returns></returns>
             public virtual Message SendAndReceive(Message message, Int32 millisecondsTimeout = 0)
             {
-                message.Header.Channel = Channel;
+                //message.Header.Channel = Channel;
                 return Provider.SendAndReceive(message);
             }
 
@@ -394,8 +394,8 @@ namespace NewLife.Messaging
             {
                 if (message == null) return;
 
-                // 检查消息范围
-                if (!message.Header.UseHeader || message.Header.Channel != Channel) return;
+                //// 检查消息范围
+                //if (!message.Header.UseHeader || message.Header.Channel != Channel) return;
 
                 // 为Receive准备的事件，只用一次
                 EventHandler<MessageEventArgs> handler;

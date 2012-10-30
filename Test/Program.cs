@@ -42,7 +42,7 @@ namespace Test
                 try
                 {
 #endif
-                Test8();
+                    Test8();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -158,7 +158,7 @@ namespace Test
             client.Uri = new Uri("http://localhost:8/Web/MessageHandler.ashx");
 
             var rm = MethodMessage.Create("Admin.Login", "admin", "admin");
-            rm.Header.Channel = 88;
+            //rm.Header.Channel = 88;
 
             //Message.Debug = true;
             //var ms = rm.GetStream();
@@ -341,6 +341,20 @@ namespace Test
 
         static void Test8()
         {
+            var kind = RWKinds.Xml;
+            //CodeTimer.TimeLine("", 10000, n =>
+            //{
+            var msg = new EntityMessage { Value = Guid.NewGuid() };
+            var msg2 = new ChannelMessage { Channel = 1237, Message = msg };
+            Console.WriteLine(msg);
+            Console.WriteLine(msg2);
+
+            var ms = msg2.GetStream(kind);
+
+            var msg3 = Message.Read(ms, kind);
+            Console.WriteLine(msg3);
+            Console.WriteLine((msg3 as ChannelMessage).Message);
+            //});
             var entity = new Administrator();
             entity.ID = 123;
             entity.Name = "Test";

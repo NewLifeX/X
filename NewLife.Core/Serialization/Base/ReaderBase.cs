@@ -1284,7 +1284,7 @@ namespace NewLife.Serialization
 
             if (index == 0)
             {
-                WriteLog("ReadObjRef", "null", type.Name);
+                WriteLog("ReadObjRef", "null", type == null ? "" : type.Name);
 
                 value = null;
                 return true;
