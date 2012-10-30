@@ -3,6 +3,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NewLife.Core.Test.Serialization;
 using NewLife.Exceptions;
 using NewLife.Messaging;
+using NewLife.Serialization;
 
 namespace NewLife.Core.Test.Messaging
 {
@@ -60,6 +61,34 @@ namespace NewLife.Core.Test.Messaging
         //
         #endregion
 
+        void MsgTest<T>(T msg) where T : Message
+        {
+            //foreach (RWKinds kind in Enum.GetValues(typeof(RWKinds)))
+            //{
+            //    MsgTest<T>(msg, kind);
+            //}
+
+            MsgTest<T>(msg, RWKinds.Binary);
+            //MsgTest<T>(msg, RWKinds.Xml);
+            //MsgTest<T>(msg, RWKinds.Json);
+        }
+
+        void MsgTest<T>(T msg, RWKinds kind) where T : Message
+        {
+            try
+            {
+                var ms = msg.GetStream(kind);
+                var msg2 = Message.Read(ms, kind);
+
+                Assert.IsTrue(Obj.Compare(msg, msg2), "消息序列化前后的值不一致！");
+                Assert.AreEqual(ms.Length, ms.Position, "数据没有读完！");
+            }
+            catch (Exception ex)
+            {
+                Assert.Fail(kind + " " + ex.Message + " " + ex.TargetSite);
+            }
+        }
+
         [TestMethod]
         public void NullTest()
         {
@@ -85,30 +114,16 @@ namespace NewLife.Core.Test.Messaging
 
             var msg = new DataMessage();
             msg.Data = buf;
-
-            var sm = msg.GetStream();
-
-            var msg2 = Message.Read<DataMessage>(sm);
-
-            Assert.IsTrue(Obj.Compare(msg, msg2), "实体消息序列化前后的值不一致！");
+            MsgTest<DataMessage>(msg);
 
             // 不带数据
             msg = new DataMessage();
-
-            sm = msg.GetStream();
-
-            msg2 = Message.Read<DataMessage>(sm);
-
-            Assert.IsTrue(Obj.Compare(msg, msg2), "实体消息序列化前后的值不一致！");
+            MsgTest<DataMessage>(msg);
 
             // 0长度
             msg = new DataMessage();
             msg.Data = new Byte[0];
-            sm = msg.GetStream();
-
-            msg2 = Message.Read<DataMessage>(sm);
-
-            Assert.IsTrue(Obj.Compare(msg, msg2), "实体消息序列化前后的值不一致！");
+            MsgTest<DataMessage>(msg);
         }
 
         [TestMethod]
@@ -116,30 +131,22 @@ namespace NewLife.Core.Test.Messaging
         {
             var msg = new StringMessage();
             msg.Value = "NewLife";
-            var sm = msg.GetStream();
-            var msg2 = Message.Read<StringMessage>(sm);
-            Assert.IsTrue(Obj.Compare(msg, msg2), "实体消息序列化前后的值不一致！");
+            MsgTest<StringMessage>(msg);
 
             // 中文
             msg = new StringMessage();
             msg.Value = "新生命开发团队";
-            sm = msg.GetStream();
-            msg2 = Message.Read<StringMessage>(sm);
-            Assert.IsTrue(Obj.Compare(msg, msg2), "实体消息序列化前后的值不一致！");
+            MsgTest<StringMessage>(msg);
 
             // 0长度
             msg = new StringMessage();
             msg.Value = "";
-            sm = msg.GetStream();
-            msg2 = Message.Read<StringMessage>(sm);
-            Assert.IsTrue(Obj.Compare(msg, msg2), "实体消息序列化前后的值不一致！");
+            MsgTest<StringMessage>(msg);
 
             // 空
             msg = new StringMessage();
             msg.Value = null;
-            sm = msg.GetStream();
-            msg2 = Message.Read<StringMessage>(sm);
-            Assert.IsTrue(Obj.Compare(msg, msg2), "实体消息序列化前后的值不一致！");
+            MsgTest<StringMessage>(msg);
         }
 
         [TestMethod]
@@ -149,22 +156,12 @@ namespace NewLife.Core.Test.Messaging
 
             //msg.Value = Guid.NewGuid();
             msg.Value = SimpleObj.Create();
-
-            var sm = msg.GetStream();
-
-            var msg2 = Message.Read<EntityMessage>(sm);
-
-            Assert.IsTrue(Obj.Compare(msg.Value, msg2.Value), "实体消息序列化前后的值不一致！");
+            MsgTest<EntityMessage>(msg);
 
             // 为空
             msg = new EntityMessage();
             msg.Value = null;
-
-            sm = msg.GetStream();
-            msg2 = Message.Read<EntityMessage>(sm);
-
-            Assert.IsTrue(Obj.Compare(msg.Value, msg2.Value), "实体消息序列化前后的值不一致！");
-            Assert.AreEqual(sm.Length, sm.Position, "数据没有读完！");
+            MsgTest<EntityMessage>(msg);
         }
 
         [TestMethod]
@@ -172,22 +169,12 @@ namespace NewLife.Core.Test.Messaging
         {
             var msg = new ExceptionMessage();
             msg.Value = new XException("用户异常！");
-
-            var sm = msg.GetStream();
-
-            var msg2 = Message.Read<ExceptionMessage>(sm);
-
-            Assert.IsTrue(Obj.Compare(msg.Value, msg2.Value), "异常消息序列化前后的值不一致！");
+            MsgTest<ExceptionMessage>(msg);
 
             // 为空
             msg = new ExceptionMessage();
             msg.Value = null;
-
-            sm = msg.GetStream();
-            msg2 = Message.Read<ExceptionMessage>(sm);
-
-            Assert.IsTrue(Obj.Compare(msg.Value, msg2.Value), "异常消息序列化前后的值不一致！");
-            Assert.AreEqual(sm.Length, sm.Position, "数据没有读完！");
+            MsgTest<ExceptionMessage>(msg);
         }
 
         [TestMethod]
@@ -195,22 +182,12 @@ namespace NewLife.Core.Test.Messaging
         {
             var msg = new CompressionMessage();
             msg.Message = new EntityMessage { Value = SimpleObj.Create() };
-
-            var sm = msg.GetStream();
-
-            var msg2 = Message.Read<CompressionMessage>(sm);
-
-            Assert.IsTrue(Obj.Compare(msg, msg2), "消息序列化前后的值不一致！");
+            MsgTest<CompressionMessage>(msg);
 
             // 为空
             msg = new CompressionMessage();
             msg.Message = null;
-
-            sm = msg.GetStream();
-            msg2 = Message.Read<CompressionMessage>(sm);
-
-            Assert.IsTrue(Obj.Compare(msg, msg2), "消息序列化前后的值不一致！");
-            Assert.AreEqual(sm.Length, sm.Position, "数据没有读完！");
+            MsgTest<CompressionMessage>(msg);
         }
 
         [TestMethod]
@@ -218,22 +195,12 @@ namespace NewLife.Core.Test.Messaging
         {
             var msg = new MethodMessage();
             msg.Method = this.GetType().GetMethod("MethodTest");
-
-            var sm = msg.GetStream();
-
-            var msg2 = Message.Read<MethodMessage>(sm);
-
-            Assert.IsTrue(Obj.Compare(msg, msg2), "消息序列化前后的值不一致！");
+            MsgTest<MethodMessage>(msg);
 
             // 为空
             msg = new MethodMessage();
             msg.Method = null;
-
-            sm = msg.GetStream();
-            msg2 = Message.Read<MethodMessage>(sm);
-
-            Assert.IsTrue(Obj.Compare(msg, msg2), "消息序列化前后的值不一致！");
-            Assert.AreEqual(sm.Length, sm.Position, "数据没有读完！");
+            MsgTest<MethodMessage>(msg);
         }
 
         [TestMethod]
@@ -242,23 +209,13 @@ namespace NewLife.Core.Test.Messaging
             var msg = new ChannelMessage();
             msg.Message = new EntityMessage { Value = SimpleObj.Create() };
             msg.Channel = 123;
-
-            var sm = msg.GetStream();
-
-            var msg2 = Message.Read<ChannelMessage>(sm);
-
-            Assert.IsTrue(Obj.Compare(msg, msg2), "消息序列化前后的值不一致！");
+            MsgTest<ChannelMessage>(msg);
 
             // 为空
             msg = new ChannelMessage();
             msg.Message = null;
             msg.Channel = 88;
-
-            sm = msg.GetStream();
-            msg2 = Message.Read<ChannelMessage>(sm);
-
-            Assert.IsTrue(Obj.Compare(msg, msg2), "消息序列化前后的值不一致！");
-            Assert.AreEqual(sm.Length, sm.Position, "数据没有读完！");
+            MsgTest<ChannelMessage>(msg);
         }
     }
 }

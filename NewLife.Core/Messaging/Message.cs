@@ -260,13 +260,12 @@ namespace NewLife.Messaging
             //setting.IsBaseFirst = true;
             //setting.EncodeInt = true;
             setting.UseTypeFullName = false;
+            setting.UseObjRef = true;
 
             if (setting is BinarySettings)
             {
                 var bset = setting as BinarySettings;
                 bset.EncodeInt = true;
-
-                setting.UseObjRef = true;
             }
             else
             {

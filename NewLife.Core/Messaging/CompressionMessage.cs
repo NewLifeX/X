@@ -32,7 +32,7 @@ namespace NewLife.Messaging
                 // 必须全部复制到内存流，然后再读取，否则可能因为加密流不能读取位置和长度而导致消息读取失败
                 stream.CopyTo(ms);
             }
-            Message = Read(ms);
+            Message = Read(ms, reader.GetKind());
 
             return true;
         }
@@ -46,7 +46,7 @@ namespace NewLife.Messaging
             // 写入消息。把消息写入压缩流，压缩后写入到输出流
             using (var stream = new DeflateStream(writer.Stream, CompressionMode.Compress, true))
             {
-                Message.Write(stream);
+                Message.Write(stream, writer.GetKind());
             }
 
             return true;

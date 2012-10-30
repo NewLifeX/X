@@ -19,6 +19,7 @@ namespace NewLife.Messaging
         /// <summary>会话编号</summary>
         public Int32 SessionID { get { return _SessionID; } set { _SessionID = value; } }
 
+        [NonSerialized]
         private Message _Message;
         /// <summary>内部消息对象</summary>
         public Message Message { get { return _Message; } set { _Message = value; } }
