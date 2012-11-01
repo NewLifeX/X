@@ -132,6 +132,7 @@ public partial class Pages_RoleMenu : MyEntityList
         }
 
         gv.DataBind();
+        this.Page_Load();
     }
 
     protected void CheckBoxList1_SelectedIndexChanged(object sender, EventArgs e)
@@ -189,6 +190,7 @@ public partial class Pages_RoleMenu : MyEntityList
         }
 
         gv.DataBind();
+        this.Page_Load();
     }
 
     void CheckAndAddParent(Int32 roleid, IMenu menu)
