@@ -202,6 +202,14 @@ public partial class Pages_RoleMenu : MyEntityList
                 rm = Factory.Create(false) as IRoleMenu;
                 rm.RoleID = roleid;
                 rm.MenuID = menu.ID;
+                //董斌辉,2012-11-01修改
+                //这里由于是Save，如果没有Id,会直接Insert(),从而报错，所有先查找是否存在改RoleID,MenuID
+                var obj = RoleMenu.Find(new string[] { RoleMenu._.RoleID, RoleMenu._.MenuID }, 
+                    new object[] { rm.RoleID, rm.MenuID });
+                if (obj != null)
+                {
+                    rm.ID = obj.ID;
+                }
                 rm.PermissionFlag = PermissionFlags.All;
                 rm.Save();
             }
