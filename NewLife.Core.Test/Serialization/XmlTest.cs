@@ -98,12 +98,13 @@ namespace NewLife.Core.Test.Serialization
 
                 //var xml = set.Encoding.GetString(bts1);
 
-                writer.Stream.Position = 0;
-                var serial = new XmlSerializer(obj.GetType());
-                var ms = new MemoryStream();
-                serial.Serialize(ms, obj);
+                var ms = writer.Stream;
+                ms.Position = 0;
+                var xml = set.Encoding.GetString(ms.ReadBytes());
+                var xml2 = obj.ToXml(set.Encoding, "", "");
+                ms.Position = 0;
 
-                var obj2 = serial.Deserialize(writer.Stream);
+                var obj2 = ms.ToXmlEntity(obj.GetType(), set.Encoding);
 
                 Assert.IsNotNull(obj2, "Xml无法反序列化！");
 

@@ -30,12 +30,12 @@ namespace NewLife.Xml
         {
             // 去掉默认命名空间xmlns:xsd和xmlns:xsi
             //return ToXml("", "");
-            return this.ToXml("", "");
+            return this.ToXml(null, "", "");
         }
 
         /// <summary>输出内部XML</summary>
         /// <returns></returns>
-        public virtual String ToInnerXml() { return this.ToXml("", "", true); }
+        public virtual String ToInnerXml() { return this.ToXml(null, "", "", true); }
 
         /// <summary>保存到文件中</summary>
         /// <param name="filename">若为空，则默认为类名加xml后缀</param>

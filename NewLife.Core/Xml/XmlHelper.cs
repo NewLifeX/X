@@ -16,21 +16,25 @@ namespace NewLife.Xml
         public static String ToXml(this Object obj)
         {
             // 去掉默认命名空间xmlns:xsd和xmlns:xsi
-            return obj.ToXml("", "");
+            return obj.ToXml(null, "", "");
         }
 
         /// <summary>序列化为Xml字符串</summary>
         /// <param name="obj">要序列化为Xml的对象</param>
+        /// <param name="encoding">编码</param>
         /// <param name="prefix">前缀</param>
         /// <param name="ns">命名空间，设为0长度字符串可去掉默认命名空间xmlns:xsd和xmlns:xsi</param>
         /// <param name="includeDeclaration">是否包含Xml声明</param>
         /// <returns>Xml字符串</returns>
-        public static String ToXml(this Object obj, String prefix = null, String ns = null, Boolean includeDeclaration = false)
+        public static String ToXml(this Object obj, Encoding encoding = null, String prefix = null, String ns = null, Boolean includeDeclaration = false)
         {
+            if (obj == null) throw new ArgumentNullException("obj");
+            if (encoding == null) encoding = Encoding.UTF8;
+
             using (var stream = new MemoryStream())
             {
-                ToXml(obj, stream, Encoding.UTF8, prefix, ns, includeDeclaration);
-                return Encoding.UTF8.GetString(stream.ToArray());
+                ToXml(obj, stream, encoding, prefix, ns, includeDeclaration);
+                return encoding.GetString(stream.ToArray());
             }
         }
 
@@ -117,16 +121,26 @@ namespace NewLife.Xml
         /// <returns>Xml实体对象</returns>
         public static TEntity ToXmlEntity<TEntity>(this Stream stream, Encoding encoding = null) where TEntity : class
         {
+            return stream.ToXmlEntity(typeof(TEntity), encoding) as TEntity;
+        }
+
+        /// <summary>数据流转为Xml实体对象</summary>
+        /// <param name="stream">数据流</param>
+        /// <param name="type">实体类型</param>
+        /// <param name="encoding">编码</param>
+        /// <returns>Xml实体对象</returns>
+        public static Object ToXmlEntity(this Stream stream, Type type, Encoding encoding = null)
+        {
             if (stream == null) throw new ArgumentNullException("stream");
+            if (type == null) throw new ArgumentNullException("type");
             if (encoding == null) encoding = Encoding.UTF8;
 
-            var type = typeof(TEntity);
             if (!type.IsPublic) throw new XException("类型{0}不是public，不能进行Xml序列化！", type.FullName);
 
             var serial = new XmlSerializer(type);
             using (var reader = new StreamReader(stream, encoding))
             {
-                return serial.Deserialize(reader) as TEntity;
+                return serial.Deserialize(reader);
             }
         }
 

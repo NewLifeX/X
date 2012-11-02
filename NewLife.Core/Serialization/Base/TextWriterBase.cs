@@ -50,15 +50,32 @@ namespace NewLife.Serialization
         #region 有符号整数
         /// <summary>将 2 字节有符号整数写入当前流，并将流的位置提升 2 个字节。</summary>
         /// <param name="value">要写入的 2 字节有符号整数。</param>
-        public override void Write(short value) { Write((Int32)value); }
+        public override void Write(Int16 value) { Write((Int32)value); }
 
         /// <summary>将 4 字节有符号整数写入当前流，并将流的位置提升 4 个字节。</summary>
         /// <param name="value">要写入的 4 字节有符号整数。</param>
-        public override void Write(int value) { Write((Int64)value); }
+        public override void Write(Int32 value) { Write((Int64)value); }
 
         /// <summary>将 8 字节有符号整数写入当前流，并将流的位置提升 8 个字节。</summary>
         /// <param name="value">要写入的 8 字节有符号整数。</param>
-        public override void Write(long value) { WriteLiteral(value.ToString()); }
+        public override void Write(Int64 value) { WriteLiteral(value.ToString()); }
+        #endregion
+
+        #region 无符号整数
+        /// <summary>将 2 字节无符号整数写入当前流，并将流的位置提升 2 个字节。</summary>
+        /// <param name="value">要写入的 2 字节无符号整数。</param>
+        //[CLSCompliant(false)]
+        public override void Write(UInt16 value) { Write((UInt32)value); }
+
+        /// <summary>将 4 字节无符号整数写入当前流，并将流的位置提升 4 个字节。</summary>
+        /// <param name="value">要写入的 4 字节无符号整数。</param>
+        //[CLSCompliant(false)]
+        public override void Write(UInt32 value) { Write((UInt64)value); }
+
+        /// <summary>将 8 字节无符号整数写入当前流，并将流的位置提升 8 个字节。</summary>
+        /// <param name="value">要写入的 8 字节无符号整数。</param>
+        //[CLSCompliant(false)]
+        public override void Write(UInt64 value) { WriteLiteral(value.ToString()); }
         #endregion
 
         #region 浮点数
