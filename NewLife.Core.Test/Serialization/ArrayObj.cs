@@ -7,7 +7,7 @@ using NewLife.Serialization;
 
 namespace NewLife.Core.Test.Serialization
 {
-    class ArrayObj : Obj
+    public class ArrayObj : Obj
     {
         private SimpleObj[] _Objs;
         /// <summary>属性说明</summary>

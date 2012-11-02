@@ -47,17 +47,10 @@ namespace NewLife.Xml
             /// <summary>配置文件路径</summary>
             public static String ConfigFile { get { return _ConfigFile; } set { _ConfigFile = value.GetFullPath(); } }
 
-            //private static Boolean _AutoReload;
-            ///// <summary>当文件改变时是否重新加载</summary>
-            //public static Boolean AutoReload { get { return _AutoReload; } set { _AutoReload = value; } }
-
             private static Int32 _ReloadTime;
-            /// <summary>重新加载时间。单位：秒</summary>
+            /// <summary>重新加载时间。单位：毫秒</summary>
             public static Int32 ReloadTime { get { return _ReloadTime; } set { _ReloadTime = value; } }
         }
-
-        //private static String configFile;
-        //private static TimerX timer;
 
         static XmlConfig()
         {
@@ -71,7 +64,6 @@ namespace NewLife.Xml
             else
             {
                 _.ConfigFile = att.FileName;
-                //_.AutoReload = att.AutoReload;
                 _.ReloadTime = att.ReloadTime;
             }
 
@@ -94,7 +86,7 @@ namespace NewLife.Xml
                 {
                     var fi = new FileInfo(_.ConfigFile);
                     fi.Refresh();
-                    expire = now.AddSeconds(_.ReloadTime);
+                    expire = now.AddMilliseconds(_.ReloadTime);
 
                     if (lastWrite < fi.LastWriteTime)
                     {
@@ -114,15 +106,7 @@ namespace NewLife.Xml
 
             try
             {
-                TConfig config;
-                var serial = new XmlSerializer(typeof(TConfig));
-                using (var stream = new FileStream(filename, FileMode.Open, FileAccess.Read))
-                {
-                    using (var reader = new StreamReader(stream, Encoding.UTF8))
-                    {
-                        config = serial.Deserialize(reader) as TConfig;
-                    }
-                }
+                var config = filename.ToXmlFileEntity<TConfig>();
                 if (config == null) return null;
 
                 config.OnLoaded();
@@ -141,18 +125,7 @@ namespace NewLife.Xml
         /// <summary>保存到配置文件中去</summary>
         public virtual void Save()
         {
-            var filename = _.ConfigFile;
-            if (File.Exists(filename)) File.Delete(filename);
-            var dir = Path.GetDirectoryName(filename);
-            if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
-            var serial = new XmlSerializer(typeof(TConfig));
-            using (var stream = new FileStream(filename, FileMode.OpenOrCreate, FileAccess.Write))
-            {
-                using (var writer = new StreamWriter(stream, Encoding.UTF8))
-                {
-                    serial.Serialize((TextWriter)writer, this);
-                }
-            }
+            this.ToXmlFile(_.ConfigFile, Encoding.UTF8, null, null, true);
         }
     }
 }

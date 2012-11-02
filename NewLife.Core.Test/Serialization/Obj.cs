@@ -1,16 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.IO;
-using System.Xml.Serialization;
-using NewLife.Serialization;
 using System.Reflection;
+using System.Xml.Serialization;
 using NewLife.Reflection;
+using NewLife.Serialization;
 
 namespace NewLife.Core.Test.Serialization
 {
-    abstract class Obj
+    public abstract class Obj
     {
         #region 随机数
         [NonSerialized]

@@ -7,7 +7,7 @@ using NewLife.Serialization;
 
 namespace NewLife.Core.Test.Serialization
 {
-    class DictionaryObj : Obj
+    public class DictionaryObj : Obj
     {
         private Dictionary<Int32, SimpleObj> _Objs;
         /// <summary>属性说明</summary>

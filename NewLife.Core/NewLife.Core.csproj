@@ -266,6 +266,7 @@
     <Compile Include="Xml\XmlConfig.cs" />
     <Compile Include="Xml\XmlConfigFileAttribute.cs" />
     <Compile Include="Xml\XmlEntity.cs" />
+    <Compile Include="Xml\XmlHelper.cs" />
     <Compile Include="Xml\XmlReaderX.cs" />
     <Compile Include="Xml\XmlReaderWriterSettings.cs" />
     <Compile Include="Xml\XmlWriterX.cs" />

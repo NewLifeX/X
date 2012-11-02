@@ -7,7 +7,7 @@ using NewLife.Serialization;
 
 namespace NewLife.Core.Test.Serialization
 {
-    class ListObj : Obj
+    public class ListObj : Obj
     {
         private List<SimpleObj> _Objs;
         /// <summary>属性说明</summary>

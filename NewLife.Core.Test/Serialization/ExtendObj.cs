@@ -6,7 +6,7 @@ using NewLife.Serialization;
 
 namespace NewLife.Core.Test.Serialization
 {
-    class ExtendObj : SimpleObj
+    public class ExtendObj : SimpleObj
     {
         #region 属性
         private Byte[] _Bts;

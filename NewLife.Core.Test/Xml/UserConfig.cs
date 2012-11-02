@@ -6,7 +6,7 @@ using NewLife.Xml;
 
 namespace NewLife.Core.Test.Xml
 {
-    [XmlConfigFile("config/user.config", 3)]
+    [XmlConfigFile("config/user.config", 1000)]
     public class UserConfig : XmlConfig<UserConfig>
     {
         private String _Name;

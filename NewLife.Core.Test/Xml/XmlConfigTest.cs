@@ -93,7 +93,7 @@ namespace NewLife.Core.Test.Xml
 
             Assert.AreEqual(config.Name, "NewLife");
 
-            Thread.Sleep(3500);
+            Thread.Sleep(1100);
 
             config = UserConfig.Current;
             Assert.AreEqual(config.Name, "xyz");

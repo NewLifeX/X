@@ -7,7 +7,7 @@ using NewLife.Serialization;
 
 namespace NewLife.Core.Test.Serialization
 {
-    class SimpleObj : Obj
+    public class SimpleObj : Obj
     {
         #region 属性
         private Boolean _B;
