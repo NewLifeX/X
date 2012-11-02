@@ -132,7 +132,6 @@ public partial class Pages_RoleMenu : MyEntityList
         }
 
         gv.DataBind();
-        this.Page_Load();
     }
 
     protected void CheckBoxList1_SelectedIndexChanged(object sender, EventArgs e)
@@ -190,7 +189,6 @@ public partial class Pages_RoleMenu : MyEntityList
         }
 
         gv.DataBind();
-        this.Page_Load();
     }
 
     void CheckAndAddParent(Int32 roleid, IMenu menu)
@@ -204,26 +202,21 @@ public partial class Pages_RoleMenu : MyEntityList
                 rm = Factory.Create(false) as IRoleMenu;
                 rm.RoleID = roleid;
                 rm.MenuID = menu.ID;
-                //董斌辉,2012-11-01修改
-                //这里由于是Save，如果没有Id,会直接Insert(),从而报错，所有先查找是否存在改RoleID,MenuID
-                var obj = RoleMenu.Find(new string[] { RoleMenu._.RoleID, RoleMenu._.MenuID }, 
-                    new object[] { rm.RoleID, rm.MenuID });
-                if (obj != null)
-                {
-                    rm.ID = obj.ID;
-                }
                 rm.PermissionFlag = PermissionFlags.All;
                 rm.Save();
             }
         }
     }
 
+    EntityList<IEntity> _rms;
     IRoleMenu FindByRoleAndMenu(Int32 roleID, Int32 menuID)
     {
-        //MethodInfoX mix = MethodInfoX.Create(EntityType, "FindByRoleAndMenu");
-        //if (mix == null) return null;
-        //return mix.Invoke(null, roleID, menuID) as IRoleMenu;
-        return Factory.Cache.Entities.Find(delegate(IEntity e)
+        if (_rms == null)
+        {
+            Factory.Cache.Clear();
+            _rms = Factory.Cache.Entities;
+        }
+        return _rms.Find(delegate(IEntity e)
         {
             IRoleMenu rm = e as IRoleMenu;
             return rm.RoleID == roleID && rm.MenuID == menuID;
