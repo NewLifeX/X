@@ -41,6 +41,9 @@ namespace XCode.Cache
         ///// <param name="name">字段</param>
         ///// <param name="isDesc">是否降序</param>
         //void Sort(String name, Boolean isDesc);
+
+        /// <summary>清除缓存</summary>
+        void Clear(String reason = null);
     }
 
     /// <summary>单对象缓存接口</summary>
