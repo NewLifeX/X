@@ -145,32 +145,37 @@ namespace XCode.DataAccessLayer
             {
                 if (DatabaseName == value) return;
 
-                if (Opened)
-                {
-                    //如果已打开，则调用链接来切换
-                    Conn.ChangeDatabase(value);
-                }
-                else
-                {
-                    //DAL.WriteDebugLog("{0}=>{1}", Conn.Database, value);
-                    ////XTrace.DebugStack(3);
+                //if (Opened)
+                //{
+                //    //如果已打开，则调用链接来切换
+                //    Conn.ChangeDatabase(value);
+                //}
+                //else
+                //{
+                //DAL.WriteDebugLog("{0}=>{1}", Conn.Database, value);
+                ////XTrace.DebugStack(3);
 
-                    //如果没有打开，则改变链接字符串
-                    var builder = new DbConnectionStringBuilder();
-                    builder.ConnectionString = ConnectionString;
-                    if (builder.ContainsKey("Database"))
-                    {
-                        builder["Database"] = value;
-                        ConnectionString = builder.ToString();
-                        Conn.ConnectionString = ConnectionString;
-                    }
-                    else if (builder.ContainsKey("Initial Catalog"))
-                    {
-                        builder["Initial Catalog"] = value;
-                        ConnectionString = builder.ToString();
-                        Conn.ConnectionString = ConnectionString;
-                    }
+                // 因为MSSQL多次出现因连接字符串错误而导致的报错，连接字符串变错设置变空了，这里统一关闭连接，采用保守做法修改字符串
+                var b = Opened;
+                if (b) Close();
+
+                //如果没有打开，则改变链接字符串
+                var builder = new DbConnectionStringBuilder();
+                builder.ConnectionString = ConnectionString;
+                if (builder.ContainsKey("Database"))
+                {
+                    builder["Database"] = value;
+                    ConnectionString = builder.ToString();
+                    Conn.ConnectionString = ConnectionString;
                 }
+                else if (builder.ContainsKey("Initial Catalog"))
+                {
+                    builder["Initial Catalog"] = value;
+                    ConnectionString = builder.ToString();
+                    Conn.ConnectionString = ConnectionString;
+                }
+                if (b) Open();
+                //}
             }
         }
 
