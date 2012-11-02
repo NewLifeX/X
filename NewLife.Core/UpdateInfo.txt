@@ -1,4 +1,6 @@
-﻿v3.8.2012.1023   增加Xml配置文件基类XmlConfig
+﻿v3.8.2012.1102   增加Xml助手类XmlHelper，支持Xml序列化，全部扩展方法
+
+v3.8.2012.1023   增加Xml配置文件基类XmlConfig
 
 v3.8.2012.0803   增加路径扩展助手PathHelper
 
