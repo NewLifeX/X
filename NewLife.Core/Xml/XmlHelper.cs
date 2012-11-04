@@ -62,7 +62,7 @@ namespace NewLife.Xml
                 setting.Encoding = encoding;
             setting.Indent = true;
             // 去掉开头 <?xml version="1.0" encoding="utf-8"?>
-            setting.OmitXmlDeclaration = includeDeclaration;
+            setting.OmitXmlDeclaration = !includeDeclaration;
             using (var writer = XmlWriter.Create(stream, setting))
             {
                 if (ns == null)
