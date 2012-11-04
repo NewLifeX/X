@@ -45,7 +45,7 @@ namespace NewLife.Xml
         {
             private static String _ConfigFile;
             /// <summary>配置文件路径</summary>
-            public static String ConfigFile { get { return _ConfigFile; } set { _ConfigFile = value.GetFullPath(); } }
+            public static String ConfigFile { get { return _ConfigFile; } set { _ConfigFile = value; } }
 
             private static Int32 _ReloadTime;
             /// <summary>重新加载时间。单位：毫秒</summary>
