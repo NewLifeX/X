@@ -95,8 +95,11 @@ namespace NewLife.Core.Test.Serialization
                 var xml2 = obj.ToXml(set.Encoding, "", "", true);
                 ms.Position = 0;
 
-                var obj2 = ms.ToXmlEntity(obj.GetType(), set.Encoding);
-                //var obj2 = xml.ToXmlEntity(obj.GetType());
+                // 序列化为特性后不好比较
+                if (set.MemberAsAttribute) return;
+
+                //var obj2 = ms.ToXmlEntity(obj.GetType(), set.Encoding);
+                var obj2 = xml.ToXmlEntity(obj.GetType());
 
                 Assert.IsNotNull(obj2, "Xml无法反序列化！");
 
