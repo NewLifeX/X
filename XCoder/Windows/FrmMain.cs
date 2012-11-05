@@ -283,7 +283,7 @@ namespace XCoder
                         if (!ContainConnStr(localstr)) DAL.AddConnStr("SQLite_" + Path.GetFileNameWithoutExtension(item), localstr, null, "SQLite");
                         return true;
                     }
-                    else if (bts[4] == 'S' && bts[5] == 't')
+                    else if (bts.Length > 5 && bts[4] == 'S' && bts[5] == 't')
                     {
                         fs.Seek(4, SeekOrigin.Begin);
                         bts = reader.ReadBytes(access.Length);
