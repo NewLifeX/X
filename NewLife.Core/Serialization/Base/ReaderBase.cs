@@ -205,7 +205,7 @@ namespace NewLife.Serialization
                 type = value.GetType();
             }
 
-            TypeCode code = Type.GetTypeCode(type);
+            var code = Type.GetTypeCode(type);
             switch (code)
             {
                 case TypeCode.Boolean:

@@ -89,18 +89,54 @@ namespace NewLife.Xml
         /// <returns></returns>
         public override string ReadString()
         {
-            Boolean isElement = Reader.NodeType == XmlNodeType.Element;
+            var isElement = Reader.NodeType == XmlNodeType.Element;
             if (isElement)
             {
                 if (SkipEmpty()) return null;
                 Reader.ReadStartElement();
             }
 
-            String str = Reader.ReadContentAsString();
+            var str = Reader.ReadContentAsString();
             if (isElement && Reader.NodeType == XmlNodeType.EndElement) Reader.ReadEndElement();
 
             WriteLog(1, "ReadString", str);
             return str;
+        }
+
+        /// <summary>读取一个时间日期</summary>
+        /// <returns></returns>
+        public override DateTime ReadDateTime() { return XmlConvert.ToDateTime(ReadString(), Settings.DateTimeMode); }
+
+        /// <summary>尝试读取值类型数据，返回是否读取成功</summary>
+        /// <param name="type">要读取的对象类型</param>
+        /// <param name="value">要读取的对象</param>
+        /// <returns></returns>
+        public override bool ReadValue(Type type, ref object value)
+        {
+            if (type == null)
+            {
+                if (value == null) return false;
+                type = value.GetType();
+            }
+
+            var code = Type.GetTypeCode(type);
+            // XmlConvert特殊处理时间，输出Char时按字符输出，不同于Xml序列化的数字，所以忽略
+            if (code != TypeCode.Char && code != TypeCode.String && code != TypeCode.DateTime)
+            {
+                // XmlConvert也支持这三种值类型
+                if (code != TypeCode.Object || type.IsValueType && (type == typeof(DateTimeOffset) || type == typeof(TimeSpan) || type == typeof(Guid)))
+                {
+                    var mix = MethodInfoX.Create(typeof(XmlConvert), "To" + type.Name, new Type[] { typeof(String) });
+                    if (mix != null)
+                    {
+                        var str = ReadString();
+                        value = (String)mix.Invoke(null, str);
+                        return true;
+                    }
+                }
+            }
+
+            return base.ReadValue(type, ref value);
         }
         #endregion
 

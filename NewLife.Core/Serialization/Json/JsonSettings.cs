@@ -12,13 +12,13 @@ namespace NewLife.Serialization
         /// <summary>缩进</summary>
         public Boolean Indent { get { return _Indent; } set { _Indent = value; } }
 
-        private JsonDateTimeWriteFormat _JsonDateTimeFormat;
-        /// <summary>指定日期时间输出成什么格式,具体格式说明见JsonDateTimeWriteFormat,默认是ISO8601格式</summary>
-        public JsonDateTimeWriteFormat JsonDateTimeFormat { get { return _JsonDateTimeFormat; } set { _JsonDateTimeFormat = value; } }
-
-        private DateTimeKind _JsonDateTimeKind;
+        private DateTimeKind _DateTimeMode = DateTimeKind.Utc;
         /// <summary>指定日期时间输出成什么时间,本地还是UTC时间,默认是UTC时间</summary>
-        public DateTimeKind JsonDateTimeKind { get { return _JsonDateTimeKind; } set { _JsonDateTimeKind = value; } }
+        public DateTimeKind DateTimeMode { get { return _DateTimeMode; } set { _DateTimeMode = value; } }
+
+        private JsonDateTimeFormats _JsonDateTimeFormat;
+        /// <summary>指定日期时间输出成什么格式,具体格式说明见<see cref="JsonDateTimeFormats"/>,默认是ISO8601格式</summary>
+        public JsonDateTimeFormats JsonDateTimeFormat { get { return _JsonDateTimeFormat; } set { _JsonDateTimeFormat = value; } }
 
         private bool _UseStringUnicodeEncode;
         /// <summary>
@@ -52,7 +52,7 @@ namespace NewLife.Serialization
         /// </summary>
         public int DepthLimit { get { return _DepthLimit; } set { _DepthLimit = value; } }
 
-        private bool _UseCharsWriteToString;
+        private bool _UseCharsWriteToString = true;
         /// <summary>是否将char[]输出为string,这会减少数据长度,仅会影响JsonWriter,默认true</summary>
         public bool UseCharsWriteToString { get { return _UseCharsWriteToString; } set { _UseCharsWriteToString = value; } }
         #endregion
@@ -63,9 +63,7 @@ namespace NewLife.Serialization
         {
             // 指定时间的格式
             DateTimeFormat = DateTimeFormats.Milliseconds;
-            JsonDateTimeKind = DateTimeKind.Utc;
             UseObjRef = false; // 如果实现ObjectRef则需要将这个设置为true
-            UseCharsWriteToString = true;
         }
         #endregion
 
@@ -76,7 +74,7 @@ namespace NewLife.Serialization
     }
 
     /// <summary>json序列化时用于指定日期时间输出成什么格式</summary>
-    public enum JsonDateTimeWriteFormat
+    public enum JsonDateTimeFormats
     {
         /// <summary>
         /// ISO 8601格式 类似"2011-05-05T05:12:19.123Z"格式的UTC时间
@@ -86,12 +84,14 @@ namespace NewLife.Serialization
         /// 这也是默认格式
         /// </summary>
         ISO8601 = 0,
+
         /// <summary>
         /// dotnet3.5中System.Web.Script.Serialization.JavaScriptSerializer输出的格式
         /// 
         /// 类似"\/Date(1304572339844)\/"格式的从 UTC 1970.1.1 午夜开始已经经过的毫秒数
         /// </summary>
         DotnetDateTick,
+
         /// <summary>数字,具体值依赖于DateTimeFormat的配置</summary>
         Tick
     }

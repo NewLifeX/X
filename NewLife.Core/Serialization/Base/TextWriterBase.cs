@@ -131,15 +131,14 @@ namespace NewLife.Serialization
         /// <summary>将单字节 Boolean 值写入</summary>
         /// <param name="value">要写入的 Boolean 值</param>
         public override void Write(Boolean value) { WriteLiteral(value ? "true" : "false"); }
-        //public override void Write(Boolean value) { Write(value.ToString()); }
 
         /// <summary>将一个十进制值写入当前流，并将流位置提升十六个字节。</summary>
         /// <param name="value">要写入的十进制值。</param>
         public override void Write(decimal value) { WriteLiteral(value.ToString()); }
 
-        /// <summary>将一个时间日期写入</summary>
-        /// <param name="value"></param>
-        public override void Write(DateTime value) { WriteLiteral(value.ToString("yyyy-MM-dd HH:mm:ss")); }
+        ///// <summary>将一个时间日期写入</summary>
+        ///// <param name="value"></param>
+        //public override void Write(DateTime value) { WriteLiteral(value.ToString("yyyy-MM-dd HH:mm:ss")); }
         #endregion
         #endregion
 
@@ -166,6 +165,12 @@ namespace NewLife.Serialization
         /// <returns>是否写入成功</returns>
         protected override bool WriteValue(object value, Type type)
         {
+            if (type == null)
+            {
+                if (value == null) return false;
+                type = value.GetType();
+            }
+
             if (value != null && Settings.UseEnumName)
             {
                 if (type != null && type.IsEnum)
@@ -174,6 +179,7 @@ namespace NewLife.Serialization
                     return true;
                 }
             }
+
             return base.WriteValue(value, type);
         }
         #endregion

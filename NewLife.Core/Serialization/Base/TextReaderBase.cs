@@ -99,9 +99,9 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public override decimal ReadDecimal() { return Decimal.Parse(ReadString()); }
 
-        /// <summary>读取一个时间日期</summary>
-        /// <returns></returns>
-        public override DateTime ReadDateTime() { return DateTime.Parse(ReadString()); }
+        ///// <summary>读取一个时间日期</summary>
+        ///// <returns></returns>
+        //public override DateTime ReadDateTime() { return DateTime.Parse(ReadString()); }
         #endregion
         #endregion
 
@@ -142,12 +142,19 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public override bool ReadValue(Type type, ref object value)
         {
+            if (type == null)
+            {
+                if (value == null) return false;
+                type = value.GetType();
+            }
+
             if (type != null && type.IsEnum && Settings.UseEnumName)
             {
-                String str = ReadString();
+                var str = ReadString();
                 value = Enum.Parse(type, str, true);
                 return true;
             }
+
             return base.ReadValue(type, ref value);
         }
         #endregion

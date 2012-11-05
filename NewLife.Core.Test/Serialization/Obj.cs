@@ -96,26 +96,6 @@ namespace NewLife.Core.Test.Serialization
         #endregion
 
         #region 比较
-        //public virtual String FindNotEqual(Obj obj)
-        //{
-        //    if (obj == null || this.GetType() != obj.GetType()) return "";
-
-        //    foreach (var item in this.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
-        //    {
-        //        var msg = FindNotEqual(obj, item);
-        //        if (msg != null) return String.Format("{0}.{1}", item.Name, msg);
-
-        //        var fix = FieldInfoX.Create(item);
-        //        if (fix.GetValue(this) != fix.GetValue(obj)) return item.Name;
-        //    }
-        //    return null;
-        //}
-
-        //protected virtual String FindNotEqual(Obj obj, FieldInfo fi)
-        //{
-        //    return null;
-        //}
-
         public virtual Boolean CompareTo(Obj obj) { return Compare(this, obj); }
 
         public static Boolean Compare(Object obj1, Object obj2)

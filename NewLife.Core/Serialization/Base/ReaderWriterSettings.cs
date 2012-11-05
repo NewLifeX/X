@@ -11,35 +11,19 @@ namespace NewLife.Serialization
         #region 属性
         private Encoding _Encoding;
         /// <summary>字符串编码</summary>
-        public virtual Encoding Encoding
-        {
-            get { return _Encoding ?? (_Encoding = Encoding.UTF8); }
-            set { _Encoding = value; }
-        }
+        public virtual Encoding Encoding { get { return _Encoding ?? (_Encoding = Encoding.UTF8); } set { _Encoding = value; } }
 
         private Boolean _UseTypeFullName = true;
         /// <summary>是否使用类型全名。类型全名能比程序集唯一名更节省空间</summary>
-        public Boolean UseTypeFullName
-        {
-            get { return _UseTypeFullName; }
-            set { _UseTypeFullName = value; }
-        }
+        public Boolean UseTypeFullName { get { return _UseTypeFullName; } set { _UseTypeFullName = value; } }
 
         private Boolean _UseObjRef = true;
         /// <summary>是否使用对象引用。对于二进制读写，如果不使用对象引用，则不允许出现null对象</summary>
-        public virtual Boolean UseObjRef
-        {
-            get { return _UseObjRef; }
-            set { _UseObjRef = value; }
-        }
+        public virtual Boolean UseObjRef { get { return _UseObjRef; } set { _UseObjRef = value; } }
 
         private Boolean _AutoFlush;
         /// <summary>自动刷新输出</summary>
-        public Boolean AutoFlush
-        {
-            get { return _AutoFlush; }
-            set { _AutoFlush = value; }
-        }
+        public Boolean AutoFlush { get { return _AutoFlush; } set { _AutoFlush = value; } }
 
         private Boolean _UseField;
         /// <summary>是否使用字段作为处理成员。</summary>
@@ -57,20 +41,13 @@ namespace NewLife.Serialization
         #region 时间日期
         private DateTimeFormats _DateTimeFormat;
         /// <summary>时间日期格式</summary>
-        public virtual DateTimeFormats DateTimeFormat
-        {
-            get { return _DateTimeFormat; }
-            set { _DateTimeFormat = value; }
-        }
+        public virtual DateTimeFormats DateTimeFormat { get { return _DateTimeFormat; } set { _DateTimeFormat = value; } }
 
         /// <summary>编码时间日期的起始时间，固定1970-01-01</summary>
         static readonly DateTime _BaseDateTime = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
         /// <summary>编码时间日期的起始时间</summary>
-        public virtual DateTime BaseDateTime
-        {
-            get { return _BaseDateTime; }
-        }
+        public virtual DateTime BaseDateTime { get { return _BaseDateTime; } }
 
         /// <summary>转换时间为64位整数，默认返回毫秒数,具体返回值取决于DateTimeFormat成员的值</summary>
         /// <param name="value">时间</param>

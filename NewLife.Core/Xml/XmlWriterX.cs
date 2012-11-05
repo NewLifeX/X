@@ -64,18 +64,45 @@ namespace NewLife.Xml
 
             AutoFlush();
         }
-
-        ///// <summary>
-        ///// 写入字符串
-        ///// </summary>
-        ///// <param name="value">要写入的值。</param>
-        //public override void Write(string value)
-        //{
-        //    Writer.WriteString(value);
-
-        //    AutoFlush();
-        //}
         #endregion
+
+        #region 时间
+        /// <summary>将一个时间日期写入</summary>
+        /// <param name="value"></param>
+        public override void Write(DateTime value) { Write(XmlConvert.ToString(value, Settings.DateTimeMode)); }
+        #endregion
+
+        /// <summary>写入值类型，只能识别基础类型，对于不能识别的类型，方法返回false</summary>
+        /// <param name="value">要写入的对象</param>
+        /// <param name="type">要写入的对象类型</param>
+        /// <returns>是否写入成功</returns>
+        protected override bool WriteValue(object value, Type type)
+        {
+            if (type == null)
+            {
+                if (value == null) return false;
+                type = value.GetType();
+            }
+
+            var code = Type.GetTypeCode(type);
+            // XmlConvert特殊处理时间，输出Char时按字符输出，不同于Xml序列化的数字，所以忽略
+            if (code != TypeCode.Char && code != TypeCode.String && code != TypeCode.DateTime)
+            {
+                // XmlConvert也支持这三种值类型
+                if (code != TypeCode.Object || type.IsValueType && (type == typeof(DateTimeOffset) || type == typeof(TimeSpan) || type == typeof(Guid)))
+                {
+                    var mix = MethodInfoX.Create(typeof(XmlConvert), "ToString", new Type[] { type });
+                    if (mix != null)
+                    {
+                        var str = (String)mix.Invoke(null, value);
+                        Write(str);
+                        return true;
+                    }
+                }
+            }
+
+            return base.WriteValue(value, type);
+        }
         #endregion
 
         #region 扩展类型

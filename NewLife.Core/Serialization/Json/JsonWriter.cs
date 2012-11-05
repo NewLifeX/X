@@ -66,9 +66,9 @@ namespace NewLife.Serialization
             Depth++;
             WriteLog("WriteValue", "DateTime", value);
 
-            if (Settings.JsonDateTimeKind != DateTimeKind.Unspecified && value.Kind != Settings.JsonDateTimeKind)
+            if (Settings.DateTimeMode != DateTimeKind.Unspecified && value.Kind != Settings.DateTimeMode)
             {
-                if (Settings.JsonDateTimeKind == DateTimeKind.Local)
+                if (Settings.DateTimeMode == DateTimeKind.Local)
                     value = value.ToLocalTime();
                 else
                     value = value.ToUniversalTime();
@@ -76,13 +76,13 @@ namespace NewLife.Serialization
 
             switch (Settings.JsonDateTimeFormat)
             {
-                case JsonDateTimeWriteFormat.ISO8601:
+                case JsonDateTimeFormats.ISO8601:
                     Write(value.ToString("yyyy-MM-ddTHH:mm:ss.fffZ", CultureInfo.InvariantCulture));
                     break;
-                case JsonDateTimeWriteFormat.DotnetDateTick:
+                case JsonDateTimeFormats.DotnetDateTick:
                     Write(string.Format("\\/Date({0})\\/", (long)(value - Settings.BaseDateTime).TotalMilliseconds));
                     break;
-                case JsonDateTimeWriteFormat.Tick:
+                case JsonDateTimeFormats.Tick:
                     Write(Settings.ConvertDateTimeToInt64(value));
                     break;
             }
