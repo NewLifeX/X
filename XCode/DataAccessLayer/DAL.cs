@@ -56,15 +56,32 @@ namespace XCode.DataAccessLayer
         /// <summary>创建一个数据访问层对象。</summary>
         /// <param name="connName">配置名，或链接字符串</param>
         /// <returns>对应于指定链接的全局唯一的数据访问层对象</returns>
+        /// 2012.11.05 修正在WINFORM程序中，动态调整连接字后，无法生效的问题。BY HUIYUE
         public static DAL Create(String connName)
         {
             if (String.IsNullOrEmpty(connName)) throw new ArgumentNullException("connName");
 
             DAL dal = null;
-            if (_dals.TryGetValue(connName, out dal)) return dal;
+            if (_dals.TryGetValue(connName, out dal))
+            {
+                if (dal.ConnStr.Equals(ConnStrs[connName].ConnectionString))
+                {
+                    return dal;
+                }
+            }
             lock (_dals)
             {
-                if (_dals.TryGetValue(connName, out dal)) return dal;
+                if (_dals.TryGetValue(connName, out dal))
+                {
+                    if (dal.ConnStr.Equals(ConnStrs[connName].ConnectionString))
+                    {
+                        return dal;
+                    }
+                    else
+                    {
+                        _dals.Remove(connName);
+                    }
+                }
 
                 ////检查数据库最大连接数授权。
                 //if (License.DbConnectCount != _dals.Count + 1)
