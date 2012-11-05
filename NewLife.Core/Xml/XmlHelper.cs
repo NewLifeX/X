@@ -102,15 +102,24 @@ namespace NewLife.Xml
         /// <returns>Xml实体对象</returns>
         public static TEntity ToXmlEntity<TEntity>(this String xml) where TEntity : class
         {
-            if (xml.IsNullOrWhiteSpace()) throw new ArgumentNullException("xml");
+            return xml.ToXmlEntity(typeof(TEntity)) as TEntity;
+        }
 
-            var type = typeof(TEntity);
+        /// <summary>字符串转为Xml实体对象</summary>
+        /// <param name="xml">Xml字符串</param>
+        /// <param name="type">实体类型</param>
+        /// <returns>Xml实体对象</returns>
+        public static Object ToXmlEntity(this String xml, Type type)
+        {
+            if (xml.IsNullOrWhiteSpace()) throw new ArgumentNullException("xml");
+            if (type == null) throw new ArgumentNullException("type");
+
             if (!type.IsPublic) throw new XException("类型{0}不是public，不能进行Xml序列化！", type.FullName);
 
             var serial = new XmlSerializer(type);
             using (var reader = new StringReader(xml))
             {
-                return serial.Deserialize(reader) as TEntity;
+                return serial.Deserialize(reader);
             }
         }
 
