@@ -3,22 +3,14 @@ using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NewLife.Serialization;
 using NewLife.Xml;
-using System.Xml.Serialization;
-using System.Xml;
-using System.IO;
 
 namespace NewLife.Core.Test.Serialization
 {
-    /// <summary>Xml测试</summary>
+    /// <summary>Json测试</summary>
     [TestClass]
-    public class XmlTest
+    public class JsonTest
     {
-        public XmlTest()
-        {
-            //
-            //TODO: 在此处添加构造函数逻辑
-            //
-        }
+        public JsonTest() { }
 
         private TestContext testContextInstance;
 
@@ -26,17 +18,7 @@ namespace NewLife.Core.Test.Serialization
         ///获取或设置测试上下文，该上下文提供
         ///有关当前测试运行及其功能的信息。
         ///</summary>
-        public TestContext TestContext
-        {
-            get
-            {
-                return testContextInstance;
-            }
-            set
-            {
-                testContextInstance = value;
-            }
-        }
+        public TestContext TestContext { get { return testContextInstance; } set { testContextInstance = value; } }
 
         #region 附加测试特性
         //
@@ -62,7 +44,7 @@ namespace NewLife.Core.Test.Serialization
 
         void TestWriter(Obj obj, Boolean hasNull = true)
         {
-            var set = new XmlReaderWriterSettings();
+            var set = new JsonSettings();
             set.UseObjRef = true;
             for (int i = 0; i < 36; i++)
             {
@@ -70,20 +52,19 @@ namespace NewLife.Core.Test.Serialization
                 if (!hasNull) set.UseObjRef = (i & 0x01) == 0;
                 set.UseTypeFullName = (i >> 1 & 0x01) == 0;
                 set.Encoding = (i >> 2 & 0x01) == 0 ? Encoding.Default : Encoding.UTF8;
-                set.MemberAsAttribute = (i >> 3 & 0x01) == 1;
+                set.AllowMultiline = (i >> 3 & 0x01) == 1;
                 set.SizeFormat = (i >> 4 & 0x01) == 1 ? TypeCode.Int32 : TypeCode.UInt32;
-                set.IgnoreDefault = (i >> 5 & 0x01) == 1;
+                set.UseCharsWriteToString = (i >> 5 & 0x01) == 1;
 
                 TestWriter(obj, set);
             }
         }
 
-        void TestWriter(Obj obj, XmlReaderWriterSettings set)
+        void TestWriter(Obj obj, JsonSettings set)
         {
             try
             {
-                // 二进制序列化写入
-                var writer = new XmlWriterX();
+                var writer = new JsonWriter();
                 writer.Settings = set;
                 writer.WriteObject(obj);
 
@@ -119,14 +100,14 @@ namespace NewLife.Core.Test.Serialization
         }
 
         [TestMethod]
-        public void XmlTestWriter()
+        public void JsonTestWriter()
         {
             var obj = SimpleObj.Create();
             TestWriter(obj, false);
         }
 
         [TestMethod]
-        public void XmlTestWriteArray()
+        public void JsonTestWriteArray()
         {
             var obj = new ArrayObj();
             TestWriter(obj);
@@ -136,7 +117,7 @@ namespace NewLife.Core.Test.Serialization
         }
 
         [TestMethod]
-        public void XmlTestWriteList()
+        public void JsonTestWriteList()
         {
             var obj = new ListObj();
             TestWriter(obj);
@@ -146,7 +127,7 @@ namespace NewLife.Core.Test.Serialization
         }
 
         [TestMethod]
-        public void XmlTestWriteDictionary()
+        public void JsonTestWriteDictionary()
         {
             var obj = new DictionaryObj();
             TestWriter(obj);
@@ -156,7 +137,7 @@ namespace NewLife.Core.Test.Serialization
         }
 
         [TestMethod]
-        public void XmlTestWriteExtend()
+        public void JsonTestWriteExtend()
         {
             try
             {
@@ -177,7 +158,7 @@ namespace NewLife.Core.Test.Serialization
 
         void TestReader(Obj obj, Boolean hasNull = true)
         {
-            var set = new XmlReaderWriterSettings();
+            var set = new JsonSettings();
             set.UseObjRef = true;
             for (int i = 0; i < 36; i++)
             {
@@ -185,19 +166,19 @@ namespace NewLife.Core.Test.Serialization
                 if (!hasNull) set.UseObjRef = (i & 0x01) == 0;
                 set.UseTypeFullName = (i >> 1 & 0x01) == 0;
                 set.Encoding = (i >> 2 & 0x01) == 0 ? Encoding.Default : Encoding.UTF8;
-                set.MemberAsAttribute = (i >> 3 & 0x01) == 1;
+                set.AllowMultiline = (i >> 3 & 0x01) == 1;
                 set.SizeFormat = (i >> 4 & 0x01) == 1 ? TypeCode.Int32 : TypeCode.UInt32;
-                set.IgnoreDefault = (i >> 5 & 0x01) == 1;
+                set.UseCharsWriteToString = (i >> 5 & 0x01) == 1;
 
                 //TestReader(obj, set);
             }
         }
 
-        void TestReader(Obj obj, XmlReaderWriterSettings set)
+        void TestReader(Obj obj, JsonSettings set)
         {
             try
             {
-                var reader = new XmlReaderX();
+                var reader = new JsonReader();
                 reader.Settings = set;
 
                 // 获取对象的数据流，作为二进制读取器的数据源
@@ -205,7 +186,7 @@ namespace NewLife.Core.Test.Serialization
                 // 读取一个跟原始对象类型一致的对象
                 var obj2 = reader.ReadObject(obj.GetType());
 
-                Assert.IsNotNull(obj2, "二进制读取器无法读取标准数据！");
+                Assert.IsNotNull(obj2, "Json读取器无法读取标准数据！");
 
                 var b = obj.CompareTo(obj2 as Obj);
                 Assert.IsTrue(b, "序列化后对象不一致！");
@@ -217,14 +198,14 @@ namespace NewLife.Core.Test.Serialization
         }
 
         [TestMethod]
-        public void XmlTestReader()
+        public void JsonTestReader()
         {
             var obj = SimpleObj.Create();
             TestReader(obj, false);
         }
 
         [TestMethod]
-        public void XmlTestReadArray()
+        public void JsonTestReadArray()
         {
             var obj = new ArrayObj();
             TestReader(obj);
@@ -234,7 +215,7 @@ namespace NewLife.Core.Test.Serialization
         }
 
         [TestMethod]
-        public void XmlTestReadList()
+        public void JsonTestReadList()
         {
             var obj = new ListObj();
             TestReader(obj);
@@ -244,7 +225,7 @@ namespace NewLife.Core.Test.Serialization
         }
 
         [TestMethod]
-        public void XmlTestReadDictionary()
+        public void JsonTestReadDictionary()
         {
             var obj = new DictionaryObj();
             TestReader(obj);
@@ -254,7 +235,7 @@ namespace NewLife.Core.Test.Serialization
         }
 
         [TestMethod]
-        public void XmlTestReadExtend()
+        public void JsonTestReadExtend()
         {
             try
             {

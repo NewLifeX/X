@@ -10,27 +10,15 @@ namespace NewLife.Serialization
         #region 属性
         private Boolean _Indent;
         /// <summary>缩进</summary>
-        public Boolean Indent
-        {
-            get { return _Indent; }
-            set { _Indent = value; }
-        }
+        public Boolean Indent { get { return _Indent; } set { _Indent = value; } }
 
         private JsonDateTimeWriteFormat _JsonDateTimeFormat;
         /// <summary>指定日期时间输出成什么格式,具体格式说明见JsonDateTimeWriteFormat,默认是ISO8601格式</summary>
-        public JsonDateTimeWriteFormat JsonDateTimeFormat
-        {
-            get { return _JsonDateTimeFormat; }
-            set { _JsonDateTimeFormat = value; }
-        }
+        public JsonDateTimeWriteFormat JsonDateTimeFormat { get { return _JsonDateTimeFormat; } set { _JsonDateTimeFormat = value; } }
 
         private DateTimeKind _JsonDateTimeKind;
         /// <summary>指定日期时间输出成什么时间,本地还是UTC时间,默认是UTC时间</summary>
-        public DateTimeKind JsonDateTimeKind
-        {
-            get { return _JsonDateTimeKind; }
-            set { _JsonDateTimeKind = value; }
-        }
+        public DateTimeKind JsonDateTimeKind { get { return _JsonDateTimeKind; } set { _JsonDateTimeKind = value; } }
 
         private bool _UseStringUnicodeEncode;
         /// <summary>
@@ -38,19 +26,12 @@ namespace NewLife.Serialization
         /// 
         /// 可以避免乱码问题,但是会增加数据长度
         /// </summary>
-        public bool UseStringUnicodeEncode
-        {
-            get { return _UseStringUnicodeEncode; }
-            set { _UseStringUnicodeEncode = value; }
-        }
+        public bool UseStringUnicodeEncode { get { return _UseStringUnicodeEncode; } set { _UseStringUnicodeEncode = value; } }
 
         private bool _AllowMultiline;
         /// <summary>是否允许输出多行结果,这会便于阅读结果,当为false时可以用作jsonp回调(还需要做字符串转义)</summary>
-        public bool AllowMultiline
-        {
-            get { return _AllowMultiline; }
-            set { _AllowMultiline = value; }
-        }
+        public bool AllowMultiline { get { return _AllowMultiline; } set { _AllowMultiline = value; } }
+
         private DuplicatedObjectWriteMode _DuplicatedObjectWriteMode;
         /// <summary>重复对象的处理方式,仅用于JsonWriter,默认是深度限制,使用DepthLimit执行的深度</summary>
         public DuplicatedObjectWriteMode DuplicatedObjectWriteMode
@@ -69,18 +50,11 @@ namespace NewLife.Serialization
         /// 
         /// 关于1000的取值,测试调用堆栈极限程序中大概12273次调用时抛出StackOverflowException异常,而每处理一个ReadObject大概需要9个调用
         /// </summary>
-        public int DepthLimit
-        {
-            get { return _DepthLimit; }
-            set { _DepthLimit = value; }
-        }
+        public int DepthLimit { get { return _DepthLimit; } set { _DepthLimit = value; } }
+
         private bool _UseCharsWriteToString;
         /// <summary>是否将char[]输出为string,这会减少数据长度,仅会影响JsonWriter,默认true</summary>
-        public bool UseCharsWriteToString
-        {
-            get { return _UseCharsWriteToString; }
-            set { _UseCharsWriteToString = value; }
-        }
+        public bool UseCharsWriteToString { get { return _UseCharsWriteToString; } set { _UseCharsWriteToString = value; } }
         #endregion
 
         #region 构造
@@ -95,12 +69,12 @@ namespace NewLife.Serialization
         }
         #endregion
 
-
         object ICloneable.Clone()
         {
             return MemberwiseClone();
         }
     }
+
     /// <summary>json序列化时用于指定日期时间输出成什么格式</summary>
     public enum JsonDateTimeWriteFormat
     {
@@ -121,11 +95,13 @@ namespace NewLife.Serialization
         /// <summary>数字,具体值依赖于DateTimeFormat的配置</summary>
         Tick
     }
+
     /// <summary>重复对象的处理方式</summary>
     public enum DuplicatedObjectWriteMode
     {
         /// <summary>限制处理复合对象的深度</summary>
         DepthLimit,
+
         /// <summary>对象引用方式,暂未实现</summary>
         [Obsolete("暂未实现")]
         ObjectRef
