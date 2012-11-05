@@ -126,12 +126,20 @@ namespace NewLife.Log
             AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
         }
 
-        static Int32 hasInited = 0;
+        static object LogObject = new object();
+
+        /// <summary>
+        /// 2012.11.05 修正初次调用的时候，由于同步BUG，导致Log为空的问题。
+        /// </summary>
         static void InitLog()
         {
-            if (hasInited > 0 || Interlocked.CompareExchange(ref hasInited, 1, 0) > 0) return;
+            if (Log != null) return;
 
-            Log = TextFileLog.Create(Config.GetConfig<String>("NewLife.LogPath"));
+            lock (LogObject)
+            {
+                if (Log != null) return;
+                Log = TextFileLog.Create(Config.GetConfig<String>("NewLife.LogPath"));
+            }
 
             var asmx = AssemblyX.Create(Assembly.GetExecutingAssembly());
             WriteLine("{0} v{1} Build {2:yyyy-MM-dd HH:mm:ss}", asmx.Name, asmx.FileVersion, asmx.Compile);
