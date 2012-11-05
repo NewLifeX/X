@@ -16,7 +16,7 @@ namespace NewLife.Core.Test.Serialization
         public ArrayObj()
         {
             var n = Rnd.Next(10);
-            Objs = new SimpleObj[n];
+            Objs = new SimpleObj[n + 1];
             SimpleObj obj = null;
             for (int i = 0; i < n; i++)
             {
@@ -29,6 +29,8 @@ namespace NewLife.Core.Test.Serialization
                 else
                     Objs[i] = null;
             }
+            // 确保有一个引用
+            Objs[n] = obj;
         }
 
         public override void Write(BinaryWriter writer, BinarySettings set)

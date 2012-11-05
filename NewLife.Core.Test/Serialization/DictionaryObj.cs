@@ -17,14 +17,20 @@ namespace NewLife.Core.Test.Serialization
         {
             var n = Rnd.Next(10);
             Objs = new Dictionary<Int32, SimpleObj>();
+            SimpleObj obj = null;
             for (int i = 0; i < n; i++)
             {
-                // 部分留空
-                if (Rnd.Next(2) > 0)
-                    Objs.Add(i, SimpleObj.Create());
+                // 部分留空，部分是上一次
+                var m = Rnd.Next(3);
+                if (m == 0)
+                    Objs.Add(i, obj = SimpleObj.Create());
+                else if (m == 1)
+                    Objs.Add(i, obj);
                 else
                     Objs.Add(i, null);
             }
+            // 确保有一个引用
+            Objs.Add(n, obj);
         }
 
         public override void Write(BinaryWriter writer, BinarySettings set)
@@ -41,18 +47,46 @@ namespace NewLife.Core.Test.Serialization
             var n = Objs.Count;
             writer.WriteInt(n, encodeSize);
 
-            foreach (var item in Objs)
+            var bs = new List<SimpleObj>();
+            foreach (var kv in Objs)
             {
-                writer.WriteInt(item.Key, set.EncodeInt);
+                writer.WriteInt(kv.Key, set.EncodeInt);
 
-                //item.Value.Write(writer, set);
-                if (item.Value != null)
+                ////item.Value.Write(writer, set);
+                //if (item.Value != null)
+                //{
+                //    if (set.UseObjRef) writer.WriteInt(idx++, encodeSize);
+                //    item.Value.Write(writer, set);
+                //}
+                //else
+                //    writer.WriteInt((Int32)0, encodeSize);
+
+                var item = kv.Value;
+                if (item == null)
                 {
-                    if (set.UseObjRef) writer.WriteInt(idx++, encodeSize);
-                    item.Value.Write(writer, set);
+                    writer.WriteInt((Int32)0, encodeSize);
+                    continue;
+                }
+
+                if (!set.UseObjRef)
+                {
+                    item.Write(writer, set);
+                    continue;
+                }
+
+                var p = bs.IndexOf(item);
+                if (p < 0)
+                {
+                    bs.Add(item);
+                    p = bs.Count - 1;
+
+                    writer.WriteInt(idx + p, encodeSize);
+                    item.Write(writer, set);
                 }
                 else
-                    writer.WriteInt((Int32)0, encodeSize);
+                {
+                    writer.WriteInt(idx + p, encodeSize);
+                }
             }
         }
 
