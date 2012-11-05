@@ -1,4 +1,5 @@
 ﻿using System;
+using NewLife.Xml;
 using System.Collections.Generic;
 using System.IO;
 using System.Web;
@@ -141,28 +142,29 @@ namespace XControl
         /// <returns></returns>
         public XmlDocument Serialize(String xsl)
         {
-            XmlDocument xml = new XmlDocument();
+            var doc = new XmlDocument();
 
             try
             {
-                MemoryStream stream = new MemoryStream();
-                XmlSerializer xs = new XmlSerializer(this.GetType());
-                xs.Serialize(stream, this);
+                var ms = new MemoryStream();
+                //var xs = new XmlSerializer(this.GetType());
+                //xs.Serialize(ms, this);
+                this.ToXml(ms, null, null, null, true);
 
-                stream.Position = 0;
+                ms.Position = 0;
 
-                xml.Load(stream);
+                doc.Load(ms);
             }
             catch { }
 
             if (!String.IsNullOrEmpty(xsl))
             {
                 //插入xsl文件引用
-                XmlProcessingInstruction xmlXsl = xml.CreateProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\"" + xsl + "\"");
-                xml.InsertAfter(xmlXsl, xml.ChildNodes[0]);
+                var xmlXsl = doc.CreateProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\"" + xsl + "\"");
+                doc.InsertAfter(xmlXsl, doc.ChildNodes[0]);
             }
 
-            return xml;
+            return doc;
         }
 
         /// <summary>

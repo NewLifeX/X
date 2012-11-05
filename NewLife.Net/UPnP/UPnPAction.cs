@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Xml.Serialization;
-using System.IO;
 using System.Xml;
+using System.Xml.Serialization;
 using NewLife.Reflection;
+using NewLife.Xml;
 
 namespace NewLife.Net.UPnP
 {
@@ -118,24 +116,26 @@ namespace NewLife.Net.UPnP
         /// <returns></returns>
         public virtual String ToSoap(String xmlns)
         {
-            String xml = ToXml(xmlns);
+            var xml = ToXml(xmlns);
 
-            Envelope env = new Envelope();
+            var env = new Envelope();
             env.Body = new Envelope.EnvelopeBody();
             env.Body.Xml = xml;
 
-            XmlSerializerNamespaces xsn = new XmlSerializerNamespaces();
-            xsn.Add("s", "http://schemas.xmlsoap.org/soap/envelope/");
+            //var xsn = new XmlSerializerNamespaces();
+            //xsn.Add("s", "http://schemas.xmlsoap.org/soap/envelope/");
 
-            XmlSerializer serial = new XmlSerializer(typeof(Envelope));
-            MemoryStream ms = new MemoryStream();
+            //var serial = new XmlSerializer(typeof(Envelope));
+            //var ms = new MemoryStream();
 
-            using (XmlWriter writer = XmlWriter.Create(ms))
-            {
-                serial.Serialize(writer, env, xsn);
-            }
+            //using (var writer = XmlWriter.Create(ms))
+            //{
+            //    serial.Serialize(writer, env, xsn);
+            //}
 
-            xml = Encoding.UTF8.GetString(ms.ToArray());
+            //xml = Encoding.UTF8.GetString(ms.ToArray());
+
+            xml = env.ToXml(null, "s", "http://schemas.xmlsoap.org/soap/envelope/", true);
             return xml;
         }
     }

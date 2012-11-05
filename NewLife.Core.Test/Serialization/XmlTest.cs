@@ -88,15 +88,6 @@ namespace NewLife.Core.Test.Serialization
                 writer.WriteObject(obj);
 
                 writer.Flush();
-                //var bts1 = writer.Stream.ReadBytes();
-
-                // 对象本应有的数据流
-                //var bts2 = obj.GetStream(writer.Settings).ReadBytes();
-
-                //var n = bts1.CompareTo(bts2);
-                //Assert.AreEqual(0, n, "二进制写入器得到的数据与标准不符！");
-
-                //var xml = set.Encoding.GetString(bts1);
 
                 var ms = writer.Stream;
                 ms.Position = 0;
@@ -104,8 +95,8 @@ namespace NewLife.Core.Test.Serialization
                 var xml2 = obj.ToXml(set.Encoding, "", "", true);
                 ms.Position = 0;
 
-                //var obj2 = ms.ToXmlEntity(obj.GetType(), set.Encoding);
-                var obj2 = xml.ToXmlEntity(obj.GetType());
+                var obj2 = ms.ToXmlEntity(obj.GetType(), set.Encoding);
+                //var obj2 = xml.ToXmlEntity(obj.GetType());
 
                 Assert.IsNotNull(obj2, "Xml无法反序列化！");
 

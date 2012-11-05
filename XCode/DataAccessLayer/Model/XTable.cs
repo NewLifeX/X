@@ -6,6 +6,7 @@ using System.IO;
 using System.Xml;
 using System.Xml.Serialization;
 using XCode.DataAccessLayer.Model;
+using NewLife.Xml;
 
 namespace XCode.DataAccessLayer
 {
@@ -204,12 +205,13 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public String Export()
         {
-            var serializer = new XmlSerializer(this.GetType());
-            using (var sw = new StringWriter())
-            {
-                serializer.Serialize(sw, this);
-                return sw.ToString();
-            }
+            //var serializer = new XmlSerializer(this.GetType());
+            //using (var sw = new StringWriter())
+            //{
+            //    serializer.Serialize(sw, this);
+            //    return sw.ToString();
+            //}
+            return this.ToXml();
         }
 
         /// <summary>导入</summary>
@@ -219,11 +221,12 @@ namespace XCode.DataAccessLayer
         {
             if (String.IsNullOrEmpty(xml)) return null;
 
-            var serializer = new XmlSerializer(typeof(XTable));
-            using (var sr = new StringReader(xml))
-            {
-                return serializer.Deserialize(sr) as XTable;
-            }
+            //var serializer = new XmlSerializer(typeof(XTable));
+            //using (var sr = new StringReader(xml))
+            //{
+            //    return serializer.Deserialize(sr) as XTable;
+            //}
+            return xml.ToXmlEntity<XTable>();
         }
         #endregion
 

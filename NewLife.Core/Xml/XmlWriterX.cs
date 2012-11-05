@@ -22,8 +22,8 @@ namespace NewLife.Xml
             {
                 if (_Writer == null)
                 {
-                    XmlWriterSettings settings = new XmlWriterSettings();
-                    settings.Encoding = Settings.Encoding;
+                    var settings = new XmlWriterSettings();
+                    settings.Encoding = Settings.Encoding.TrimPreamble();
                     settings.Indent = true;
                     _Writer = XmlWriter.Create(Stream, settings);
                 }
@@ -34,7 +34,7 @@ namespace NewLife.Xml
                 _Writer = value;
                 if (Settings.Encoding != _Writer.Settings.Encoding) Settings.Encoding = _Writer.Settings.Encoding;
 
-                XmlTextWriter xw = _Writer as XmlTextWriter;
+                var xw = _Writer as XmlTextWriter;
                 if (xw != null && Stream != xw.BaseStream) Stream = xw.BaseStream;
             }
         }
@@ -308,12 +308,12 @@ namespace NewLife.Xml
             try
             {
                 WriteLog("WriteUnKnown", type.Name);
-                XmlSerializer serial = new XmlSerializer(type);
-                MemoryStream ms = new MemoryStream();
-                serial.Serialize(ms, value);
+                //XmlSerializer serial = new XmlSerializer(type);
+                //MemoryStream ms = new MemoryStream();
+                //serial.Serialize(ms, value);
 
-                String xml = Encoding.UTF8.GetString(ms.ToArray());
-                Write(xml);
+                //String xml = Encoding.UTF8.GetString(ms.ToArray());
+                Write(value.ToXml(Settings.Encoding, "", "", false));
 
                 return true;
             }

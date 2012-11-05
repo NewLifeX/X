@@ -712,34 +712,11 @@ namespace XCode
         /// <param name="writer"></param>
         public virtual void Export(TextWriter writer)
         {
-            //XmlAttributeOverrides ovs = new XmlAttributeOverrides();
-            //foreach (FieldItem item in (this[0] as IEntityOperate).Fields)
-            //{
-            //    XmlAttributes atts = new XmlAttributes();
-            //    atts.XmlAttribute = new XmlAttributeAttribute();
-            //    ovs.Add(item.Property.DeclaringType, item.Name, atts);
-            //}
-            //XmlSerializer serial = new XmlSerializer(this.GetType(), ovs);
-
             IList list = this;
             if (typeof(T).IsInterface) list = (this as IListSource).GetList();
 
-            XmlSerializer serial = CreateXmlSerializer(list.GetType());
+            var serial = CreateXmlSerializer(list.GetType());
             serial.Serialize(writer, list);
-
-            //XmlDocument doc = new XmlDocument();
-            //doc.WriteTo(new XmlTextWriter(writer));
-
-            //XmlTextWriter xmlwriter = new XmlTextWriter(writer);
-            //xmlwriter.WriteStartDocument();
-            //xmlwriter.WriteStartElement(typeof(T).Name);
-            //foreach (T item in this)
-            //{
-            //    item.ToXml(xmlwriter);
-            //    break;
-            //}
-            //xmlwriter.WriteEndElement();
-            //xmlwriter.WriteEndDocument();
         }
 
         /// <summary>导入</summary>
@@ -747,29 +724,20 @@ namespace XCode
         /// <returns></returns>
         public virtual void Import(TextReader reader)
         {
-            //XmlAttributeOverrides ovs = new XmlAttributeOverrides();
-            //foreach (FieldItem item in (this[0] as IEntityOperate).Fields)
-            //{
-            //    XmlAttributes atts = new XmlAttributes();
-            //    atts.XmlAttribute = new XmlAttributeAttribute();
-            //    ovs.Add(item.Property.DeclaringType, item.Name, atts);
-            //}
-            //XmlSerializer serial = new XmlSerializer(this.GetType(), ovs);
-
-            XmlSerializer serial = CreateXmlSerializer(this.GetType());
-            EntityList<T> list = serial.Deserialize(reader) as EntityList<T>;
+            var serial = CreateXmlSerializer(this.GetType());
+            var list = serial.Deserialize(reader) as EntityList<T>;
 
             AddRange(list);
         }
 
         private XmlSerializer CreateXmlSerializer(Type type)
         {
-            XmlAttributeOverrides ovs = new XmlAttributeOverrides();
-            IEntityOperate factory = Factory;
-            IEntity entity = factory.Create();
-            foreach (FieldItem item in factory.Fields)
+            var ovs = new XmlAttributeOverrides();
+            var factory = Factory;
+            var entity = factory.Create();
+            foreach (var item in factory.Fields)
             {
-                XmlAttributes atts = new XmlAttributes();
+                var atts = new XmlAttributes();
                 atts.XmlAttribute = new XmlAttributeAttribute();
                 atts.XmlDefaultValue = entity[item.Name];
                 ovs.Add(item.DeclaringType, item.Name, atts);
@@ -781,12 +749,12 @@ namespace XCode
         /// <returns></returns>
         public virtual String ToXml()
         {
-            using (MemoryStream stream = new MemoryStream())
+            using (var stream = new MemoryStream())
             {
-                StreamWriter writer = new StreamWriter(stream, Encoding.UTF8);
+                var writer = new StreamWriter(stream, Encoding.UTF8);
                 Export(writer);
-                Byte[] bts = stream.ToArray();
-                String xml = Encoding.UTF8.GetString(bts);
+                var bts = stream.ToArray();
+                var xml = Encoding.UTF8.GetString(bts);
                 writer.Close();
                 if (!String.IsNullOrEmpty(xml)) xml = xml.Trim();
                 return xml;
@@ -799,7 +767,7 @@ namespace XCode
         {
             if (String.IsNullOrEmpty(xml)) return;
             xml = xml.Trim();
-            using (StringReader reader = new StringReader(xml))
+            using (var reader = new StringReader(xml))
             {
                 Import(reader);
             }

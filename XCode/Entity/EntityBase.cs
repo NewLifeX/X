@@ -106,13 +106,13 @@ namespace XCode
         [Obsolete("该成员在后续版本中将不再被支持！请使用实体访问器IEntityAccessor替代！")]
         public virtual String ToXml()
         {
-            XmlSerializer serial = CreateXmlSerializer();
-            using (MemoryStream stream = new MemoryStream())
+            var serial = CreateXmlSerializer();
+            using (var stream = new MemoryStream())
             {
-                StreamWriter writer = new StreamWriter(stream, Encoding.UTF8);
+                var writer = new StreamWriter(stream, Encoding.UTF8);
                 serial.Serialize(writer, this);
-                Byte[] bts = stream.ToArray();
-                String xml = Encoding.UTF8.GetString(bts);
+                var bts = stream.ToArray();
+                var xml = Encoding.UTF8.GetString(bts);
                 writer.Close();
                 if (!String.IsNullOrEmpty(xml)) xml = xml.Trim();
                 return xml;

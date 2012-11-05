@@ -2,9 +2,8 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Xml.Serialization;
-using System.Text.RegularExpressions;
-using System.IO;
 using NewLife.Net.Tcp;
+using NewLife.Xml;
 
 namespace NewLife.Net.UPnP
 {
@@ -279,12 +278,13 @@ namespace NewLife.Net.UPnP
                 response = response.Substring(p).Trim();
                 if (String.IsNullOrEmpty(response)) response = client.ReceiveString();
 
-                Envelope env = null;
-                XmlSerializer serial = new XmlSerializer(typeof(Envelope));
-                using (var reader = new StringReader(response))
-                {
-                    env = serial.Deserialize(reader) as Envelope;
-                }
+                //Envelope env = null;
+                //XmlSerializer serial = new XmlSerializer(typeof(Envelope));
+                //using (var reader = new StringReader(response))
+                //{
+                //    env = serial.Deserialize(reader) as Envelope;
+                //}
+                var env = response.ToXmlEntity<Envelope>();
                 if (env == null || env.Body == null) return null;
 
                 if (!String.IsNullOrEmpty(env.Body.Fault)) throw env.Body.ThrowException();

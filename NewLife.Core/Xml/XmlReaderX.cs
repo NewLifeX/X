@@ -392,13 +392,14 @@ namespace NewLife.Xml
             try
             {
                 WriteLog("XmlSerializer", type.Name);
-                XmlSerializer serializer = new XmlSerializer(type);
-                String str = Reader.ReadString();
-                if (!String.IsNullOrEmpty(str))
-                {
-                    MemoryStream ms = new MemoryStream(Encoding.UTF8.GetBytes(str));
-                    value = serializer.Deserialize(ms);
-                }
+                //XmlSerializer serializer = new XmlSerializer(type);
+                //String str = Reader.ReadString();
+                //if (!String.IsNullOrEmpty(str))
+                //{
+                //    MemoryStream ms = new MemoryStream(Encoding.UTF8.GetBytes(str));
+                //    value = serializer.Deserialize(ms);
+                //}
+                value = Reader.ReadString().ToXmlEntity(type);
                 return true;
             }
             catch

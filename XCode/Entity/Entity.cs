@@ -1215,11 +1215,11 @@ namespace XCode
         protected override XmlSerializer CreateXmlSerializer()
         {
             // 给每一个数据属性加上Xml默认值特性，让Xml序列化时避开数据与默认值相同的数据属性，减少Xml大小
-            XmlAttributeOverrides ovs = new XmlAttributeOverrides();
-            TEntity entity = new TEntity();
-            foreach (FieldItem item in Meta.Fields)
+            var ovs = new XmlAttributeOverrides();
+            var entity = new TEntity();
+            foreach (var item in Meta.Fields)
             {
-                XmlAttributes atts = new XmlAttributes();
+                var atts = new XmlAttributes();
                 atts.XmlAttribute = new XmlAttributeAttribute();
                 atts.XmlDefaultValue = entity[item.Name];
                 ovs.Add(item.DeclaringType, item.Name, atts);
@@ -1239,8 +1239,8 @@ namespace XCode
             try
             {
                 //IEntityOperate factory = EntityFactory.CreateOperate(typeof(TEntity));
-                XmlSerializer serial = ((TEntity)Meta.Factory.Default).CreateXmlSerializer();
-                using (StringReader reader = new StringReader(xml))
+                var serial = ((TEntity)Meta.Factory.Default).CreateXmlSerializer();
+                using (var reader = new StringReader(xml))
                 {
                     return serial.Deserialize(reader) as TEntity;
                 }

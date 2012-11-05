@@ -1,4 +1,5 @@
 ﻿using System;
+using NewLife.Xml;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
@@ -174,20 +175,21 @@ namespace NewLife.Net.UPnP
         void AddGateway(String address, String content, Boolean isCache)
         {
             //反序列化
-            XmlSerializer serial = new XmlSerializer(typeof(InternetGatewayDevice));
-            InternetGatewayDevice device = null;
-            using (StringReader reader = new StringReader(content.Trim()))
+            var device = content.Trim().ToXmlEntity<InternetGatewayDevice>();
+            //XmlSerializer serial = new XmlSerializer(typeof(InternetGatewayDevice));
+            //InternetGatewayDevice device = null;
+            //using (StringReader reader = new StringReader(content.Trim()))
+            //{
+            //    device = serial.Deserialize(reader) as InternetGatewayDevice;
+            if (device == null) return;
+
+            if (String.IsNullOrEmpty(device.URLBase)) device.URLBase = String.Format("http://{0}:1900", address);
+
+            lock (Gateways)
             {
-                device = serial.Deserialize(reader) as InternetGatewayDevice;
-                if (device == null) return;
-
-                if (String.IsNullOrEmpty(device.URLBase)) device.URLBase = String.Format("http://{0}:1900", address);
-
-                lock (Gateways)
-                {
-                    Gateways[address] = device;
-                }
+                Gateways[address] = device;
             }
+            //}
 
             if (OnNewDevice != null) OnNewDevice(this, new EventArgs<InternetGatewayDevice, bool>(device, isCache));
         }

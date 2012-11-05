@@ -56,10 +56,7 @@ namespace NewLife.Xml
 
             var serial = new XmlSerializer(type);
             var setting = new XmlWriterSettings();
-            if (encoding == Encoding.UTF8)
-                setting.Encoding = new UTF8Encoding(false);
-            else
-                setting.Encoding = encoding;
+            setting.Encoding = encoding.TrimPreamble();
             setting.Indent = true;
             // 去掉开头 <?xml version="1.0" encoding="utf-8"?>
             setting.OmitXmlDeclaration = !includeDeclaration;
@@ -86,7 +83,7 @@ namespace NewLife.Xml
         /// <returns>Xml字符串</returns>
         public static void ToXmlFile(this Object obj, String file, Encoding encoding = null, String prefix = null, String ns = null, Boolean includeDeclaration = false)
         {
-            if (File.Exists(file)) File.Delete(file);
+            //if (File.Exists(file)) File.Delete(file);
             var dir = Path.GetDirectoryName(file);
             if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
 
@@ -174,5 +171,25 @@ namespace NewLife.Xml
                 return stream.ToXmlEntity<TEntity>(encoding);
             }
         }
+
+        /// <summary>删除字节序，硬编码支持utf-8、utf-32、Unicode三种</summary>
+        /// <param name="encoding">原始编码</param>
+        /// <returns>删除字节序后的编码</returns>
+        internal static Encoding TrimPreamble(this Encoding encoding)
+        {
+            if (encoding == null) return encoding;
+
+            var bts = encoding.GetPreamble();
+            if (bts == null || bts.Length < 1) return encoding;
+
+            if (encoding is UTF8Encoding) return utf8Encoding ?? (utf8Encoding = new UTF8Encoding(false));
+            if (encoding is UTF32Encoding) return utf32Encoding ?? (utf32Encoding = new UTF32Encoding(false, false));
+            if (encoding is UnicodeEncoding) return unicodeEncoding ?? (unicodeEncoding = new UnicodeEncoding(false, false));
+
+            return encoding;
+        }
+        private static Encoding utf8Encoding;
+        private static Encoding utf32Encoding;
+        private static Encoding unicodeEncoding;
     }
 }

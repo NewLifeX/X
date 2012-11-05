@@ -23,11 +23,7 @@ namespace XCoder
 
         private String _Prefix;
         /// <summary>前缀</summary>
-        public String Prefix
-        {
-            get { return _Prefix; }
-            set { _Prefix = value; }
-        }
+        public String Prefix { get { return _Prefix; } set { _Prefix = value; } }
 
         private String _NameSpace;
         /// <summary>命名空间</summary>
@@ -39,11 +35,7 @@ namespace XCoder
 
         private String _TemplateName;
         /// <summary>模板名</summary>
-        public String TemplateName
-        {
-            get { return _TemplateName; }
-            set { _TemplateName = value; }
-        }
+        public String TemplateName { get { return _TemplateName; } set { _TemplateName = value; } }
 
         private String _OutputPath;
         /// <summary>输出目录</summary>
@@ -75,11 +67,7 @@ namespace XCoder
 
         private Boolean _RenderGenEntity;
         /// <summary>生成泛型实体类</summary>
-        public Boolean RenderGenEntity
-        {
-            get { return _RenderGenEntity; }
-            set { _RenderGenEntity = value; }
-        }
+        public Boolean RenderGenEntity { get { return _RenderGenEntity; } set { _RenderGenEntity = value; } }
 
         private Boolean _AutoCutPrefix;
         /// <summary>自动去除前缀</summary>
@@ -154,11 +142,7 @@ namespace XCoder
         #region 全局
         private static XConfig _Current;
         /// <summary>实例</summary>
-        public static XConfig Current
-        {
-            get { return _Current ?? (_Current = Load()); }
-            set { _Current = value; }
-        }
+        public static XConfig Current { get { return _Current ?? (_Current = Load()); } set { _Current = value; } }
         #endregion
 
         #region 加载/保存
@@ -166,9 +150,8 @@ namespace XCoder
         {
             if (!File.Exists(DefaultFile)) return Create();
 
-            //XmlSerializer xml = new XmlSerializer(typeof(XConfig));
-            NewLife.Xml.XmlReaderX xml = new NewLife.Xml.XmlReaderX();
-            using (XmlReader xr = XmlReader.Create(DefaultFile))
+            var xml = new NewLife.Xml.XmlReaderX();
+            using (var xr = XmlReader.Create(DefaultFile))
             {
                 try
                 {
@@ -187,9 +170,9 @@ namespace XCoder
 
         static XConfig Create()
         {
-            XConfig config = new XConfig();
+            var config = new XConfig();
 
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
             sb.AppendLine("/*");
             sb.AppendLine(" * XCoder v<#=Version#>");
             sb.AppendLine(" * 作者：<#=Environment.UserName + \"/\" + Environment.MachineName#>");
@@ -208,10 +191,9 @@ namespace XCoder
 
             if (File.Exists(DefaultFile)) File.Delete(DefaultFile);
 
-            //XmlSerializer xml = new XmlSerializer(typeof(XConfig));
-            NewLife.Xml.XmlWriterX xml = new NewLife.Xml.XmlWriterX();
+            var xml = new NewLife.Xml.XmlWriterX();
 
-            using (XmlWriter writer = XmlWriter.Create(DefaultFile))
+            using (var writer = XmlWriter.Create(DefaultFile))
             {
                 xml.Writer = writer;
                 xml.WriteObject(this, typeof(XConfig), null);
