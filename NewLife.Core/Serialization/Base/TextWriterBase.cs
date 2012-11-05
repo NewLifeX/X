@@ -45,6 +45,11 @@ namespace NewLife.Serialization
 
             AutoFlush();
         }
+
+        /// <summary>将一个有符号字节写入当前流，并将流的位置提升 1 个字节。</summary>
+        /// <param name="value">要写入的有符号字节。</param>
+        //[CLSCompliant(false)]
+        public override void Write(sbyte value) { WriteLiteral(String.Format("{0}", value)); }
         #endregion
 
         #region 有符号整数

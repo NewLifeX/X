@@ -101,7 +101,7 @@ namespace NewLife.Core.Test.Serialization
                 var ms = writer.Stream;
                 ms.Position = 0;
                 var xml = set.Encoding.GetString(ms.ReadBytes());
-                var xml2 = obj.ToXml(set.Encoding, "", "");
+                var xml2 = obj.ToXml(set.Encoding, "", "", true);
                 ms.Position = 0;
 
                 //var obj2 = ms.ToXmlEntity(obj.GetType(), set.Encoding);
