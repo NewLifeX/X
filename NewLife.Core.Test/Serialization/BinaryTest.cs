@@ -98,14 +98,14 @@ namespace NewLife.Core.Test.Serialization
         }
 
         [TestMethod]
-        public void TestWriter()
+        public void BinaryTestWriter()
         {
             var obj = SimpleObj.Create();
             TestWriter(obj, false);
         }
 
         [TestMethod]
-        public void TestWriteArray()
+        public void BinaryTestWriteArray()
         {
             var obj = new ArrayObj();
             TestWriter(obj);
@@ -115,7 +115,7 @@ namespace NewLife.Core.Test.Serialization
         }
 
         [TestMethod]
-        public void TestWriteList()
+        public void BinaryTestWriteList()
         {
             var obj = new ListObj();
             TestWriter(obj);
@@ -125,7 +125,7 @@ namespace NewLife.Core.Test.Serialization
         }
 
         [TestMethod]
-        public void TestWriteDictionary()
+        public void BinaryTestWriteDictionary()
         {
             var obj = new DictionaryObj();
             TestWriter(obj);
@@ -135,7 +135,7 @@ namespace NewLife.Core.Test.Serialization
         }
 
         [TestMethod]
-        public void TestWriteExtend()
+        public void BinaryTestWriteExtend()
         {
             try
             {
@@ -196,14 +196,14 @@ namespace NewLife.Core.Test.Serialization
         }
 
         [TestMethod]
-        public void TestReader()
+        public void BinaryTestReader()
         {
             var obj = SimpleObj.Create();
             TestReader(obj, false);
         }
 
         [TestMethod]
-        public void TestReadArray()
+        public void BinaryTestReadArray()
         {
             var obj = new ArrayObj();
             TestReader(obj);
@@ -213,7 +213,7 @@ namespace NewLife.Core.Test.Serialization
         }
 
         [TestMethod]
-        public void TestReadList()
+        public void BinaryTestReadList()
         {
             var obj = new ListObj();
             TestReader(obj);
@@ -223,7 +223,7 @@ namespace NewLife.Core.Test.Serialization
         }
 
         [TestMethod]
-        public void TestReadDictionary()
+        public void BinaryTestReadDictionary()
         {
             var obj = new DictionaryObj();
             TestReader(obj);
@@ -233,7 +233,7 @@ namespace NewLife.Core.Test.Serialization
         }
 
         [TestMethod]
-        public void TestReadExtend()
+        public void BinaryTestReadExtend()
         {
             try
             {
