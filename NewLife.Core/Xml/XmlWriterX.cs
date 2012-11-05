@@ -160,7 +160,11 @@ namespace NewLife.Xml
 
             AutoFlush();
 
-            Boolean rs = base.WriteItem(value, type, index, callback);
+            var rs = true;
+            if (value != null)
+                rs = base.WriteItem(value, type, index, callback);
+            else
+                Writer.WriteAttributeString("p3", "nil", "http://www.w3.org/2001/XMLSchema-instance", "true");
 
             AutoFlush();
 

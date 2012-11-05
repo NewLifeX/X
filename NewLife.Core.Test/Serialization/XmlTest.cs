@@ -103,8 +103,11 @@ namespace NewLife.Core.Test.Serialization
 
                 Assert.IsNotNull(obj2, "Xml无法反序列化！");
 
-                var b = obj.CompareTo(obj2 as Obj);
-                Assert.IsTrue(b, "序列化后对象不一致！");
+                if (!set.UseObjRef)
+                {
+                    var b = obj.CompareTo(obj2 as Obj);
+                    Assert.IsTrue(b, "序列化后对象不一致！");
+                }
             }
             catch (Exception ex)
             {
