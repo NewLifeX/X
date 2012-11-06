@@ -2,6 +2,8 @@
 using System.Xml;
 using System.Xml.Schema;
 using System.Xml.Serialization;
+using NewLife.Reflection;
+using System;
 
 namespace NewLife.Xml
 {
@@ -26,7 +28,7 @@ namespace NewLife.Xml
 
         //protected SerializableDictionary(SerializationInfo info, StreamingContext context) : base(info, context) { }
 
-        #region IXmlSerializable Members
+        #region IXmlSerializable 成员
 
         XmlSchema IXmlSerializable.GetSchema() { return null; }
 
@@ -34,20 +36,20 @@ namespace NewLife.Xml
         /// <param name="reader">Xml读取器</param>
         public void ReadXml(XmlReader reader)
         {
-            var ks = new XmlSerializer(typeof(TKey));
-            var vs = new XmlSerializer(typeof(TValue));
             if (reader.IsEmptyElement || !reader.Read()) return;
 
+            var kfunc = CreateReader<TKey>();
+            var vfunc = CreateReader<TValue>();
             while (reader.NodeType != XmlNodeType.EndElement)
             {
                 reader.ReadStartElement("Item");
 
                 reader.ReadStartElement("Key");
-                var key = (TKey)ks.Deserialize(reader);
+                var key = kfunc(reader);
                 reader.ReadEndElement();
 
                 reader.ReadStartElement("Value");
-                var value = (TValue)vs.Deserialize(reader);
+                var value = vfunc(reader);
                 reader.ReadEndElement();
 
                 reader.ReadEndElement();
@@ -60,24 +62,44 @@ namespace NewLife.Xml
 
         /// <summary>写入Xml</summary>
         /// <param name="writer">Xml写入器</param>
-        public void WriteXml(System.Xml.XmlWriter writer)
+        public void WriteXml(XmlWriter writer)
         {
-            var ks = new XmlSerializer(typeof(TKey));
-            var vs = new XmlSerializer(typeof(TValue));
+            var kfunc = CreateWriter<TKey>();
+            var vfunc = CreateWriter<TValue>();
             foreach (var kv in this)
             {
                 writer.WriteStartElement("Item");
 
                 writer.WriteStartElement("Key");
-                ks.Serialize(writer, kv.Key);
+                kfunc(writer, kv.Key);
                 writer.WriteEndElement();
 
                 writer.WriteStartElement("Value");
-                vs.Serialize(writer, kv.Value);
+                vfunc(writer, kv.Value);
                 writer.WriteEndElement();
 
                 writer.WriteEndElement();
             }
+        }
+
+        static Func<XmlReader, T> CreateReader<T>()
+        {
+            var type = typeof(T);
+            if (type.CanXmlConvert()) return r => XmlHelper.XmlConvertFromString<T>(r.ReadString());
+
+            // 因为一个委托将会被调用多次，因此把序列化对象声明在委托外面，让其生成匿名类，便于重用
+            var xs = new XmlSerializer(type);
+            return r => (T)xs.Deserialize(r);
+        }
+
+        static Action<XmlWriter, T> CreateWriter<T>()
+        {
+            var type = typeof(T);
+            if (type.CanXmlConvert()) return (w, v) => w.WriteString(XmlHelper.XmlConvertToString(v));
+
+            // 因为一个委托将会被调用多次，因此把序列化对象声明在委托外面，让其生成匿名类，便于重用
+            var xs = new XmlSerializer(type);
+            return (w, v) => xs.Serialize(w, v);
         }
         #endregion
     }

@@ -4,6 +4,7 @@ using System.Text;
 using System.Xml;
 using System.Xml.Serialization;
 using NewLife.Exceptions;
+using NewLife.Reflection;
 
 namespace NewLife.Xml
 {
@@ -191,5 +192,43 @@ namespace NewLife.Xml
         private static Encoding utf8Encoding;
         private static Encoding utf32Encoding;
         private static Encoding unicodeEncoding;
+
+        internal static Boolean CanXmlConvert(this Type type)
+        {
+            var code = Type.GetTypeCode(type);
+            if (code != TypeCode.Object) return true;
+
+            if (!type.IsValueType) return false;
+
+            if (type == typeof(Guid) || type == typeof(DateTimeOffset) || type == typeof(TimeSpan)) return true;
+
+            return false;
+        }
+
+        internal static String XmlConvertToString(Object value)
+        {
+            if (value == null) return null;
+
+            var type = value.GetType();
+            if (Type.GetTypeCode(type) == TypeCode.String) return value.ToString();
+
+            var mix = MethodInfoX.Create(typeof(XmlConvert), "ToString", new Type[] { type });
+            if (mix == null) throw new XException("类型{0}不支持转为Xml字符串，请先用CanXmlConvert方法判断！", type);
+
+            return (String)mix.Invoke(null, value);
+        }
+
+        internal static T XmlConvertFromString<T>(String xml)
+        {
+            if (xml == null) return default(T);
+
+            var type = typeof(T);
+            if (xml == String.Empty && type == typeof(String)) return (T)(Object)xml;
+
+            var mix = MethodInfoX.Create(typeof(XmlConvert), "To" + type.Name, new Type[] { typeof(String) });
+            if (mix == null) throw new XException("类型{0}不支持从Xml字符串转换，请先用CanXmlConvert方法判断！", type);
+
+            return (T)mix.Invoke(null, xml);
+        }
     }
 }

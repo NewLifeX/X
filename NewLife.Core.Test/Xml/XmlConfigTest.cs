@@ -3,6 +3,8 @@ using NewLife.Xml;
 using System.Xml;
 using System.IO;
 using System.Threading;
+using System.Collections.Generic;
+using System;
 
 namespace NewLife.Core.Test.Xml
 {
@@ -71,6 +73,11 @@ namespace NewLife.Core.Test.Xml
         {
             var config = UserConfig.Current;
             config.Name = "NewLife";
+            config.Dic = new SerializableDictionary<string, int>();
+            config.Dic.Add("asdf", 123);
+            config.Dic2 = new SerializableDictionary<string, UserConfig>();
+            config.Dic2.Add("7788", new UserConfig { Name = "里面的", Password = "密码", Num = 778899 });
+            config.Dic2.Add("null", null);
             config.Save();
 
             UserConfig.Current = null;

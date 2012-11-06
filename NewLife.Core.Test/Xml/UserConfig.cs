@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using NewLife.Xml;
+using System.Xml.Serialization;
 
 namespace NewLife.Core.Test.Xml
 {
@@ -20,5 +21,13 @@ namespace NewLife.Core.Test.Xml
         private Int32 _Num;
         /// <summary>属性说明</summary>
         public Int32 Num { get { return _Num; } set { _Num = value; } }
+
+        private SerializableDictionary<String, Int32> _Dic;
+        /// <summary>属性说明</summary>
+        public SerializableDictionary<String, Int32> Dic { get { return _Dic; } set { _Dic = value; } }
+
+        private SerializableDictionary<String, UserConfig> _Dic2;
+        /// <summary>属性说明</summary>
+        public SerializableDictionary<String, UserConfig> Dic2 { get { return _Dic2; } set { _Dic2 = value; } }
     }
 }
