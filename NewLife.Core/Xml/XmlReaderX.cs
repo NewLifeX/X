@@ -121,7 +121,7 @@ namespace NewLife.Xml
 
             var code = Type.GetTypeCode(type);
             // XmlConvert特殊处理时间，输出Char时按字符输出，不同于Xml序列化的数字，所以忽略
-            if (code != TypeCode.Char && code != TypeCode.String && code != TypeCode.DateTime && code != TypeCode.Boolean)
+            if (code != TypeCode.Char && code != TypeCode.String && code != TypeCode.DateTime)
             {
                 // XmlConvert也支持这三种值类型
                 if (code != TypeCode.Object || type.IsValueType && (type == typeof(DateTimeOffset) || type == typeof(TimeSpan) || type == typeof(Guid)))
@@ -130,7 +130,7 @@ namespace NewLife.Xml
                     if (mix != null)
                     {
                         var str = ReadString();
-                        value = (String)mix.Invoke(null, str);
+                        value = mix.Invoke(null, str);
                         return true;
                     }
                 }
