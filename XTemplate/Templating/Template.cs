@@ -969,29 +969,27 @@ namespace XTemplate.Templating
             return null;
         }
 
-        /// <summary>
-        /// 对程序集解析失败的处理函数
-        /// </summary>
+        /// <summary>对程序集解析失败的处理函数</summary>
         /// <param name="sender"></param>
         /// <param name="args"></param>
         /// <returns></returns>
         private static Assembly currentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
         {
-            Assembly[] asms = AppDomain.CurrentDomain.GetAssemblies();
+            var name = args.Name;
+            if (name.IsNullOrWhiteSpace()) return null;
+            var p = name.IndexOf(',');
+            if (p > 0) name = name.Substring(0, p);
+
+            var asms = AppDomain.CurrentDomain.GetAssemblies();
             if (asms == null || asms.Length < 1) return null;
-            foreach (Assembly item in asms)
+
+            foreach (var item in asms)
             {
                 try
                 {
-                    if (item.FullName == args.Name)
-                    {
-                        return Assembly.Load(args.Name.Split(',')[0]);
-                    }
+                    if (item.FullName == args.Name) return Assembly.Load(name);
                 }
-                catch
-                {
-                    ;
-                }
+                catch { }
             }
 
             return null;
@@ -1006,30 +1004,30 @@ namespace XTemplate.Templating
             if (!String.IsNullOrEmpty(name))
             {
                 // 先根据文件名找
-                foreach (TemplateItem item in Templates)
+                foreach (var item in Templates)
                 {
                     if (item.Name != name) continue;
 
-                    String str = FindBlockCodeInItem(name, lineNumber, item);
+                    var str = FindBlockCodeInItem(name, lineNumber, item);
                     if (!String.IsNullOrEmpty(str)) return str;
                 }
                 // 然后，模版里面可能包含有模版
-                foreach (TemplateItem item in Templates)
+                foreach (var item in Templates)
                 {
                     if (item.Name == name) continue;
 
-                    String str = FindBlockCodeInItem(name, lineNumber, item);
+                    var str = FindBlockCodeInItem(name, lineNumber, item);
                     if (!String.IsNullOrEmpty(str)) return str;
                 }
             }
 
             // 第一个符合行号的模版内容，在找不到对应文件的模版时使用
-            foreach (TemplateItem item in Templates)
+            foreach (var item in Templates)
             {
                 // 找到第一个符合行号的模版内容
                 if (item.Blocks[item.Blocks.Count - 1].StartLine > lineNumber)
                 {
-                    String str = FindBlockCodeInItem(null, lineNumber, item);
+                    var str = FindBlockCodeInItem(null, lineNumber, item);
                     if (!String.IsNullOrEmpty(str)) return str;
                 }
             }
@@ -1038,29 +1036,29 @@ namespace XTemplate.Templating
 
         static String FindBlockCodeInItem(String name, Int32 lineNumber, TemplateItem item)
         {
-            Boolean nocmpName = String.IsNullOrEmpty(name);
-            for (int i = 0; i < item.Blocks.Count; i++)
+            var nocmpName = String.IsNullOrEmpty(name);
+            for (var i = 0; i < item.Blocks.Count; i++)
             {
-                Int32 line = item.Blocks[i].StartLine;
+                var line = item.Blocks[i].StartLine;
                 if (line >= lineNumber && (nocmpName || item.Blocks[i].Name == name))
                 {
                     // 错误所在段
-                    Int32 n = i;
+                    var n = i;
                     if (line > lineNumber)
                     {
                         n--;
                         line = item.Blocks[n].StartLine;
                     }
 
-                    String code = item.Blocks[n].Text;
-                    String[] codeLines = code.Split(new String[] { Environment.NewLine }, StringSplitOptions.None);
+                    var code = item.Blocks[n].Text;
+                    var codeLines = code.Split(new String[] { Environment.NewLine }, StringSplitOptions.None);
 
-                    StringBuilder sb = new StringBuilder();
+                    var sb = new StringBuilder();
                     // 错误行在第一行，需要上一段的最后一行
                     if (n > 0 && line == lineNumber)
                     {
-                        String code2 = item.Blocks[n - 1].Text;
-                        String[] codeLines2 = code2.Split(new String[] { Environment.NewLine }, StringSplitOptions.None);
+                        var code2 = item.Blocks[n - 1].Text;
+                        var codeLines2 = code2.Split(new String[] { Environment.NewLine }, StringSplitOptions.None);
                         sb.AppendLine((lineNumber - 1) + ":" + codeLines2[codeLines2.Length - 1]);
                     }
                     // 错误行代码段
@@ -1075,8 +1073,8 @@ namespace XTemplate.Templating
                     // 错误行在最后一行以后的，需要下一段的第一行
                     if (n < item.Blocks.Count - 1 && line + codeLines.Length <= lineNumber)
                     {
-                        String code2 = item.Blocks[n + 1].Text;
-                        String[] codeLines2 = code2.Split(new String[] { Environment.NewLine }, StringSplitOptions.None);
+                        var code2 = item.Blocks[n + 1].Text;
+                        var codeLines2 = code2.Split(new String[] { Environment.NewLine }, StringSplitOptions.None);
                         sb.AppendLine((lineNumber + 1) + ":" + codeLines2[0]);
                     }
                     return sb.ToString();
@@ -1098,12 +1096,12 @@ namespace XTemplate.Templating
 
             if (String.IsNullOrEmpty(className))
             {
-                Type[] ts = Assembly.GetTypes();
+                var ts = Assembly.GetTypes();
                 if (ts != null && ts.Length > 0)
                 {
                     // 检查是否只有一个模版类
-                    Int32 n = 0;
-                    foreach (Type type in ts)
+                    var n = 0;
+                    foreach (var type in ts)
                     {
                         if (!typeof(TemplateBase).IsAssignableFrom(type)) continue;
 
@@ -1129,7 +1127,7 @@ namespace XTemplate.Templating
 
             if (!className.Contains(".")) className = NameSpace + "." + className;
             // 可能存在大小写不匹配等问题，这里需要修正
-            TemplateBase temp = Assembly.CreateInstance(className, true) as TemplateBase;
+            var temp = Assembly.CreateInstance(className, true) as TemplateBase;
             if (temp == null) throw new Exception(String.Format("没有找到模版类[{0}]！", className));
 
             temp.Template = this;
@@ -1147,7 +1145,7 @@ namespace XTemplate.Templating
             // 2012.11.06 尝试共享已加载的程序集
             AppDomain.CurrentDomain.AssemblyResolve += new ResolveEventHandler(currentDomain_AssemblyResolve);
 
-            TemplateBase temp = CreateInstance(className);
+            var temp = CreateInstance(className);
             temp.Data = data;
             temp.Initialize();
 
