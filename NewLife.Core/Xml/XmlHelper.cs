@@ -227,7 +227,7 @@ namespace NewLife.Xml
             if (xml == null) return null;
 
             var code = Type.GetTypeCode(type);
-            if (code == TypeCode.String && xml == String.Empty) return xml;
+            if (code == TypeCode.String) return xml;
             if (code == TypeCode.DateTime) return XmlConvert.ToDateTime(xml, XmlDateTimeSerializationMode.RoundtripKind);
 
             var mix = MethodInfoX.Create(typeof(XmlConvert), "To" + type.Name, new Type[] { typeof(String) });

@@ -83,7 +83,7 @@ namespace NewLife.Core.Test.Xml
             UserConfig.Current = null;
 
             config = UserConfig.Current;
-            Assert.AreEqual(config.Name, "NewLife");
+            Assert.AreEqual("NewLife", config.Name);
         }
 
         [TestMethod()]
