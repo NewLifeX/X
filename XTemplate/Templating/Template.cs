@@ -969,6 +969,34 @@ namespace XTemplate.Templating
             return null;
         }
 
+        /// <summary>
+        /// 对程序集解析失败的处理函数
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="args"></param>
+        /// <returns></returns>
+        private static Assembly currentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
+        {
+            Assembly[] asms = AppDomain.CurrentDomain.GetAssemblies();
+            if (asms == null || asms.Length < 1) return null;
+            foreach (Assembly item in asms)
+            {
+                try
+                {
+                    if (item.FullName == args.Name)
+                    {
+                        return Assembly.Load(args.Name.Split(',')[0]);
+                    }
+                }
+                catch
+                {
+                    ;
+                }
+            }
+
+            return null;
+        }
+
         /// <summary>找到指定文件指定位置上下三行的代码</summary>
         /// <param name="name"></param>
         /// <param name="lineNumber"></param>
@@ -1116,16 +1144,22 @@ namespace XTemplate.Templating
         /// <returns></returns>
         public String Render(String className, IDictionary<String, Object> data)
         {
+            // 2012.11.06 尝试共享已加载的程序集
+            AppDomain.CurrentDomain.AssemblyResolve += new ResolveEventHandler(currentDomain_AssemblyResolve);
+
             TemplateBase temp = CreateInstance(className);
             temp.Data = data;
             temp.Initialize();
 
             try
             {
-                return temp.Render();
+                string res = temp.Render();
+                AppDomain.CurrentDomain.AssemblyResolve -= new ResolveEventHandler(currentDomain_AssemblyResolve);
+                return res;
             }
             catch (Exception ex)
             {
+                AppDomain.CurrentDomain.AssemblyResolve -= new ResolveEventHandler(currentDomain_AssemblyResolve);
                 throw new TemplateExecutionException("模版执行错误！", ex);
             }
         }
