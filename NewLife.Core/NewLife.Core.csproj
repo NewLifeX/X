@@ -263,6 +263,7 @@
     <Compile Include="Web\WebDownload.cs" />
     <Compile Include="Web\WebHelper.cs" />
     <Compile Include="Xml\ExtendData.cs" />
+    <Compile Include="Xml\SerializableDictionary.cs" />
     <Compile Include="Xml\XmlConfig.cs" />
     <Compile Include="Xml\XmlConfigFileAttribute.cs" />
     <Compile Include="Xml\XmlEntity.cs" />
