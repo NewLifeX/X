@@ -210,7 +210,9 @@ namespace NewLife.Xml
             if (value == null) return null;
 
             var type = value.GetType();
-            if (Type.GetTypeCode(type) == TypeCode.String) return value.ToString();
+            var code = Type.GetTypeCode(type);
+            if (code == TypeCode.String) return value.ToString();
+            if (code == TypeCode.DateTime) return XmlConvert.ToString((DateTime)value, XmlDateTimeSerializationMode.RoundtripKind);
 
             var mix = MethodInfoX.Create(typeof(XmlConvert), "ToString", new Type[] { type });
             if (mix == null) throw new XException("类型{0}不支持转为Xml字符串，请先用CanXmlConvert方法判断！", type);
@@ -218,17 +220,20 @@ namespace NewLife.Xml
             return (String)mix.Invoke(null, value);
         }
 
-        internal static T XmlConvertFromString<T>(String xml)
-        {
-            if (xml == null) return default(T);
+        internal static T XmlConvertFromString<T>(String xml) { return (T)XmlConvertFromString(typeof(T), xml); }
 
-            var type = typeof(T);
-            if (xml == String.Empty && type == typeof(String)) return (T)(Object)xml;
+        internal static Object XmlConvertFromString(Type type, String xml)
+        {
+            if (xml == null) return null;
+
+            var code = Type.GetTypeCode(type);
+            if (code == TypeCode.String && xml == String.Empty) return xml;
+            if (code == TypeCode.DateTime) return XmlConvert.ToDateTime(xml, XmlDateTimeSerializationMode.RoundtripKind);
 
             var mix = MethodInfoX.Create(typeof(XmlConvert), "To" + type.Name, new Type[] { typeof(String) });
             if (mix == null) throw new XException("类型{0}不支持从Xml字符串转换，请先用CanXmlConvert方法判断！", type);
 
-            return (T)mix.Invoke(null, xml);
+            return mix.Invoke(null, xml);
         }
     }
 }

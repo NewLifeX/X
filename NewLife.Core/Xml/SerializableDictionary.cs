@@ -99,7 +99,9 @@ namespace NewLife.Xml
 
             // 因为一个委托将会被调用多次，因此把序列化对象声明在委托外面，让其生成匿名类，便于重用
             var xs = new XmlSerializer(type);
-            return (w, v) => xs.Serialize(w, v);
+            var xsns = new XmlSerializerNamespaces();
+            xsns.Add("", "");
+            return (w, v) => xs.Serialize(w, v, xsns);
         }
         #endregion
     }

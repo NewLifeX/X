@@ -89,15 +89,11 @@ namespace NewLife.Xml
             if (code != TypeCode.Char && code != TypeCode.String && code != TypeCode.DateTime)
             {
                 // XmlConvert也支持这三种值类型
-                if (code != TypeCode.Object || type.IsValueType && (type == typeof(DateTimeOffset) || type == typeof(TimeSpan) || type == typeof(Guid)))
+                if (type.CanXmlConvert())
                 {
-                    var mix = MethodInfoX.Create(typeof(XmlConvert), "ToString", new Type[] { type });
-                    if (mix != null)
-                    {
-                        var str = (String)mix.Invoke(null, value);
-                        Write(str);
-                        return true;
-                    }
+                    var str = XmlHelper.XmlConvertToString(value);
+                    Write(str);
+                    return true;
                 }
             }
 
