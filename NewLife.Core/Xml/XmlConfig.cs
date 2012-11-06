@@ -125,7 +125,7 @@ namespace NewLife.Xml
         /// <summary>保存到配置文件中去</summary>
         public virtual void Save()
         {
-            this.ToXmlFile(_.ConfigFile, Encoding.UTF8, null, null, true);
+            this.ToXmlFile(_.ConfigFile, Encoding.UTF8, "", "", true);
         }
     }
 }
