@@ -4,19 +4,20 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using NewLife.Serialization;
+using NewLife.Xml;
 
 namespace NewLife.Core.Test.Serialization
 {
     public class DictionaryObj : Obj
     {
-        private Dictionary<Int32, SimpleObj> _Objs;
+        private SerializableDictionary<Int32, SimpleObj> _Objs;
         /// <summary>属性说明</summary>
-        public Dictionary<Int32, SimpleObj> Objs { get { return _Objs; } set { _Objs = value; } }
+        public SerializableDictionary<Int32, SimpleObj> Objs { get { return _Objs; } set { _Objs = value; } }
 
         public DictionaryObj()
         {
             var n = Rnd.Next(10);
-            Objs = new Dictionary<Int32, SimpleObj>();
+            Objs = new SerializableDictionary<Int32, SimpleObj>();
             SimpleObj obj = null;
             for (int i = 0; i < n; i++)
             {

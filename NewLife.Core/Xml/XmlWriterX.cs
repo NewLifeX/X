@@ -387,6 +387,30 @@ namespace NewLife.Xml
         }
         #endregion
 
+        #region 获取成员
+        /// <summary>获取需要序列化的成员（属性或字段）。在序列化为属性时，需要排列成员，先拍属性，否则会有问题</summary>
+        /// <param name="type">指定类型</param>
+        /// <param name="value">对象</param>
+        /// <returns>需要序列化的成员</returns>
+        protected override IObjectMemberInfo[] OnGetMembers(Type type, object value)
+        {
+            var mis = base.OnGetMembers(type, value);
+            if (!Settings.MemberAsAttribute) return mis;
+
+            var list = new List<IObjectMemberInfo>();
+            var list2 = new List<IObjectMemberInfo>();
+            foreach (var item in mis)
+            {
+                if (IsAttributeType(item.Type))
+                    list.Add(item);
+                else
+                    list2.Add(item);
+            }
+            list.AddRange(list2);
+            return list.ToArray();
+        }
+        #endregion
+
         #region 辅助方法
         static String GetName(Type type)
         {
@@ -405,9 +429,9 @@ namespace NewLife.Xml
         /// <returns></returns>
         internal static Boolean IsAttributeType(Type type)
         {
-            if (typeof(Type).IsAssignableFrom(type)) return true;
+            //if (typeof(Type).IsAssignableFrom(type)) return true;
 
-            TypeCode code = Type.GetTypeCode(type);
+            var code = Type.GetTypeCode(type);
             return code != TypeCode.Object;
         }
         #endregion
