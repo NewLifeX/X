@@ -156,6 +156,16 @@ namespace NewLife.Core.Test.Serialization
             }
         }
 
+        [TestMethod]
+        public void JsonTestWriteAbstract()
+        {
+            var obj = new AbstractObj();
+            TestWriter(obj);
+
+            obj.Value = SimpleObj.Create();
+            TestWriter(obj);
+        }
+
         void TestReader(Obj obj, Boolean hasNull = true)
         {
             var set = new JsonSettings();
@@ -252,6 +262,16 @@ namespace NewLife.Core.Test.Serialization
             {
                 Assert.Fail(ex.Message + " " + ex.TargetSite);
             }
+        }
+
+        [TestMethod]
+        public void JsonTestReadAbstract()
+        {
+            var obj = new AbstractObj();
+            TestReader(obj);
+
+            obj.Value = SimpleObj.Create();
+            TestReader(obj);
         }
     }
 }

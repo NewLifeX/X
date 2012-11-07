@@ -64,6 +64,7 @@
     <Compile Include="Serialization\WriterHelper.cs" />
     <Compile Include="Serialization\XmlTest.cs" />
     <Compile Include="Serialization\JsonTest.cs" />
+    <Compile Include="Serialization\AbstractObj.cs" />
     <Compile Include="Xml\UserConfig.cs" />
     <Compile Include="Xml\XmlConfigTest.cs" />
   </ItemGroup>

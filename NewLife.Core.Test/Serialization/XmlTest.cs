@@ -175,6 +175,16 @@ namespace NewLife.Core.Test.Serialization
             }
         }
 
+        [TestMethod]
+        public void XmlTestWriteAbstract()
+        {
+            var obj = new AbstractObj();
+            TestWriter(obj);
+
+            obj.Value = SimpleObj.Create();
+            TestWriter(obj);
+        }
+
         void TestReader(Obj obj, Boolean hasNull = true)
         {
             var set = new XmlReaderWriterSettings();
@@ -271,6 +281,16 @@ namespace NewLife.Core.Test.Serialization
             {
                 Assert.Fail(ex.Message + " " + ex.TargetSite);
             }
+        }
+
+        [TestMethod]
+        public void XmlTestReadAbstract()
+        {
+            var obj = new AbstractObj();
+            TestReader(obj);
+
+            obj.Value = SimpleObj.Create();
+            TestReader(obj);
         }
     }
 }
