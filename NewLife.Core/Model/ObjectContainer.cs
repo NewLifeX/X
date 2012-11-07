@@ -502,7 +502,26 @@ namespace NewLife.Model
         /// <param name="id">标识</param>
         /// <param name="extend">扩展。若为ture，name为null而找不到时，采用第一个注册项；name不为null而找不到时，采用null注册项</param>
         /// <returns></returns>
+#if !DEBUG
         public virtual TInterface ResolveInstance<TInterface>(Object id = null, Boolean extend = false) { return (TInterface)Resolve(typeof(TInterface), true, id, extend); }
+#else
+        public virtual TInterface ResolveInstance<TInterface>(Object id = null, Boolean extend = false)
+        {
+            var obj = Resolve(typeof(TInterface), true, id, extend);
+            try
+            {
+                return (TInterface)obj;
+            }
+            catch (InvalidCastException ex)
+            {
+                var t = obj.GetType();
+                XTrace.WriteLine("ObjectType：{0} {1}", t.AssemblyQualifiedName, t.Assembly.Location);
+                t = typeof(TInterface);
+                XTrace.WriteLine("InterfaceType：{0} {1}", t.AssemblyQualifiedName, t.Assembly.Location);
+                throw ex;
+            }
+        }
+#endif
 
         /// <summary>解析类型所有已注册的实例</summary>
         /// <param name="from">接口类型</param>
