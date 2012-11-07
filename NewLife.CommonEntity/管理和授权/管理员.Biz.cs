@@ -94,14 +94,15 @@ namespace NewLife.CommonEntity
             var menu = Menu<TMenuEntity>.FindForPerssion(name);
             if (menu != null) return menu;
 
-            // 找不到的时候，修改当前页面
-            if (menu == null)
-            {
-                if (entity != null)
-                {
-                    if (entity.ResetName(name)) menu = entity;
-                }
-            }
+            //取消菜单名称检查
+            //// 找不到的时候，修改当前页面
+            //if (menu == null)
+            //{
+            //    if (entity != null)
+            //    {
+            //        if (entity.ResetName(name)) menu = entity;
+            //    }
+            //}
 
             return menu;
         }

@@ -88,6 +88,7 @@ namespace NewLife.CommonEntity
 
             return base.Delete();
         }
+
         #endregion
 
         #region 扩展属性
@@ -111,7 +112,8 @@ namespace NewLife.CommonEntity
                     {
                         // 根据页面标题，修正菜单名
                         Page page = HttpContext.Current.Handler as Page;
-                        if (page != null && !String.IsNullOrEmpty(page.Title)) entity.ResetName(page.Title);
+                        //取消名称修正
+                        //if (page != null && !String.IsNullOrEmpty(page.Title)) entity.ResetName(page.Title);
                     }
                     HttpContext.Current.Items[key] = entity;
                 }
@@ -261,7 +263,8 @@ namespace NewLife.CommonEntity
                 if (current == null) current = Current;
                 if (current != null)
                 {
-                    if (current.ResetName(name)) entity = current;
+                    //取消名称检查
+                    //if (current.ResetName(name)) entity = current;
                 }
             }
             return entity;
@@ -340,6 +343,7 @@ namespace NewLife.CommonEntity
         /// <summary>检查并重新设置名称和权限项</summary>
         /// <param name="name"></param>
         /// <returns></returns>
+        [Obsolete("暂停使用该方法,防止出现权限名称被自动修改，导致权限混乱")]
         public Boolean ResetName(String name)
         {
             if (name.Contains(@".") || name.Contains(@"/") || name.Contains(@"\")) return false;
