@@ -24,7 +24,7 @@ namespace NewLife.Log
     {
         #region 写日志
         /// <summary>文本文件日志</summary>
-        public static TextFileLog Log;
+        private static TextFileLog Log;
 
         private static Boolean _UseFileLog = true;
         /// <summary>使用文件日志</summary>
