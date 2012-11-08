@@ -38,11 +38,7 @@ namespace NewLife.Log
         public static void Write(String msg)
         {
             InitLog();
-            if (OnWriteLog != null)
-            {
-                var e = new WriteLogEventArgs(msg, null, false);
-                OnWriteLog(null, e);
-            }
+            if (OnWriteLog != null) OnWriteLog(null, WriteLogEventArgs.Current.Set(msg, null, false));
 
             if (UseFileLog) Log.Write(msg);
         }
@@ -53,12 +49,7 @@ namespace NewLife.Log
         public static void Write(String format, params Object[] args)
         {
             InitLog();
-            if (OnWriteLog != null)
-            {
-                var msg = String.Format(format, args);
-                var e = new WriteLogEventArgs(msg, null, false);
-                OnWriteLog(null, e);
-            }
+            if (OnWriteLog != null) OnWriteLog(null, WriteLogEventArgs.Current.Set(String.Format(format, args), null, false));
 
             if (UseFileLog) Log.Write(format, args);
         }
@@ -68,11 +59,7 @@ namespace NewLife.Log
         public static void WriteLine(String msg)
         {
             InitLog();
-            if (OnWriteLog != null)
-            {
-                var e = new WriteLogEventArgs(msg, null, true);
-                OnWriteLog(null, e);
-            }
+            if (OnWriteLog != null) OnWriteLog(null, WriteLogEventArgs.Current.Set(msg, null, true));
 
             if (UseFileLog) Log.WriteLine(msg);
         }
@@ -83,12 +70,7 @@ namespace NewLife.Log
         public static void WriteLine(String format, params Object[] args)
         {
             InitLog();
-            if (OnWriteLog != null)
-            {
-                var msg = String.Format(format, args);
-                var e = new WriteLogEventArgs(msg, null, true);
-                OnWriteLog(null, e);
-            }
+            if (OnWriteLog != null) OnWriteLog(null, WriteLogEventArgs.Current.Set(String.Format(format, args), null, true));
 
             if (UseFileLog) Log.WriteLine(format, args);
         }
@@ -98,11 +80,8 @@ namespace NewLife.Log
         public static void WriteException(Exception ex)
         {
             InitLog();
-            if (OnWriteLog != null)
-            {
-                var e = new WriteLogEventArgs(null, ex, true);
-                OnWriteLog(null, e);
-            }
+            if (OnWriteLog != null) OnWriteLog(null, WriteLogEventArgs.Current.Set(null, ex, true));
+
             if (UseFileLog) Log.WriteException(ex);
         }
 
@@ -111,12 +90,12 @@ namespace NewLife.Log
         public static void WriteExceptionWhenDebug(Exception ex) { if (Debug) WriteException(ex); }
 
         //private static event EventHandler<WriteLogEventArgs> _OnWriteLog;
-        /// <summary>写日志事件。绑定该事件后，XTrace将不再把日志写到日志文件中去。</summary>
         //public static event EventHandler<WriteLogEventArgs> OnWriteLog
         //{
         //    add { _OnWriteLog += value; UseFileLog = false; }
         //    remove { _OnWriteLog -= value; }
         //}
+        /// <summary>写日志事件。</summary>
         public static event EventHandler<WriteLogEventArgs> OnWriteLog;
         #endregion
 
@@ -126,7 +105,7 @@ namespace NewLife.Log
             AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
         }
 
-        static object LogObject = new object();
+        static object _lock = new object();
 
         /// <summary>
         /// 2012.11.05 修正初次调用的时候，由于同步BUG，导致Log为空的问题。
@@ -135,7 +114,7 @@ namespace NewLife.Log
         {
             if (Log != null) return;
 
-            lock (LogObject)
+            lock (_lock)
             {
                 if (Log != null) return;
                 Log = TextFileLog.Create(Config.GetConfig<String>("NewLife.LogPath"));
@@ -199,6 +178,7 @@ namespace NewLife.Log
         static ConsoleColor[] colors = new ConsoleColor[] { ConsoleColor.White, ConsoleColor.Yellow, ConsoleColor.Magenta, ConsoleColor.Red, ConsoleColor.Cyan, ConsoleColor.Green, ConsoleColor.Blue };
         private static void XTrace_OnWriteLog2(object sender, WriteLogEventArgs e)
         {
+            // 好像因为dic.TryGetValue也会引发线程冲突，真是悲剧！
             lock (dic)
             {
                 ConsoleColor cc;
@@ -243,16 +223,18 @@ namespace NewLife.Log
 
         static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
-            WriteLine("" + e.ExceptionObject);
+            var show = _ShowErrorMessage && Application.MessageLoop;
+            var msg = "" + e.ExceptionObject;
+            WriteLine(msg);
             if (e.IsTerminating)
             {
                 WriteLine("异常退出！");
                 //XTrace.WriteMiniDump(null);
-                if (_ShowErrorMessage && Application.MessageLoop) MessageBox.Show("" + e.ExceptionObject, "异常退出", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                if (show) MessageBox.Show(msg, "异常退出", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             else
             {
-                if (_ShowErrorMessage && Application.MessageLoop) MessageBox.Show("" + e.ExceptionObject, "出错", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                if (show) MessageBox.Show(msg, "出错", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -290,6 +272,7 @@ namespace NewLife.Log
             {
                 if (_TempPath != null) return _TempPath;
 
+                // 这里是TempPath而不是_TempPath，因为需要格式化处理一下
                 TempPath = Config.GetConfig<String>("NewLife.TempPath", "XTemp");
                 return _TempPath;
             }

@@ -70,7 +70,37 @@ namespace NewLife.Log
         }
         #endregion
 
+        #region 线程专有实例
+        [ThreadStatic]
+        private static WriteLogEventArgs _Current;
+        /// <summary>线程专有实例。线程静态，每个线程只用一个，避免GC浪费</summary>
+        internal static WriteLogEventArgs Current { get { return _Current ?? (_Current = new WriteLogEventArgs()); } }
+        #endregion
+
         #region 方法
+        /// <summary>初始化为新日志</summary>
+        /// <param name="message">日志</param>
+        /// <param name="exception">异常</param>
+        /// <param name="isNewLine">是否换行</param>
+        /// <returns>返回自身，链式写法</returns>
+        internal WriteLogEventArgs Set(String message, Exception exception, Boolean isNewLine)
+        {
+            Message = message;
+            Exception = exception;
+            IsNewLine = isNewLine;
+
+            Init();
+
+            return this;
+        }
+
+        /// <summary>清空日志特别是异常对象，避免因线程静态而导致内存泄漏</summary>
+        internal void Clear()
+        {
+            Message = null;
+            Exception = null;
+        }
+
         void Init()
         {
             Time = DateTime.Now;

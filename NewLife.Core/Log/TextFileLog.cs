@@ -6,7 +6,6 @@ using System.Text;
 using System.Threading;
 using NewLife.Collections;
 using NewLife.Exceptions;
-using NewLife.Reflection;
 
 namespace NewLife.Log
 {
@@ -209,6 +208,9 @@ namespace NewLife.Log
                     if (AutoCloseWriterTimer == null) AutoCloseWriterTimer = new Timer(new TimerCallback(CloseWriter), null, Timeout.Infinite, Timeout.Infinite);
                     // 改变定时器为5秒后触发一次。如果5秒内有多次写日志操作，估计定时器不会触发，直到空闲五秒为止
                     AutoCloseWriterTimer.Change(5000, Timeout.Infinite);
+
+                    // 清空日志对象
+                    e.Clear();
                 }
                 catch { }
             }
@@ -220,9 +222,7 @@ namespace NewLife.Log
         /// <param name="msg">信息</param>
         public void Write(String msg)
         {
-            var e = new WriteLogEventArgs(msg, null, false);
-
-            PerformWriteLog(e);
+            PerformWriteLog(WriteLogEventArgs.Current.Set(msg, null, false));
         }
 
         /// <summary>写日志</summary>
@@ -238,9 +238,7 @@ namespace NewLife.Log
         public void WriteLine(String msg)
         {
             // 小对象，采用对象池的成本太高了
-            var e = new WriteLogEventArgs(msg, null, true);
-
-            PerformWriteLog(e);
+            PerformWriteLog(WriteLogEventArgs.Current.Set(msg, null, true));
         }
 
         /// <summary>写日志</summary>
@@ -261,7 +259,7 @@ namespace NewLife.Log
                     if (args[i] != null && args[i].GetType() == typeof(DateTime))
                     {
                         // 根据时间值的精确度选择不同的格式化输出
-                        DateTime dt = (DateTime)args[i];
+                        var dt = (DateTime)args[i];
                         if (dt.Millisecond > 0)
                             args[i] = dt.ToString("yyyy-MM-dd HH:mm:ss.fff");
                         else if (dt.Hour > 0 || dt.Minute > 0 || dt.Second > 0)
@@ -278,9 +276,7 @@ namespace NewLife.Log
         /// <param name="ex">异常信息</param>
         public void WriteException(Exception ex)
         {
-            var e = new WriteLogEventArgs(null, ex, true);
-
-            PerformWriteLog(e);
+            PerformWriteLog(WriteLogEventArgs.Current.Set(null, ex, false));
         }
         #endregion
     }
