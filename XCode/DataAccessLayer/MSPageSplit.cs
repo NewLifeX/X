@@ -26,13 +26,17 @@ namespace XCode.DataAccessLayer
             // 2012.11.08 注释掉首页使用SELECT TOP的方式，此方式在对有重复数据出现的字段排序时，
             // 与Row_Number()的规则不一致，导致出现第一、二页排序出现重复记录。
             // 具体可百度一下【结合TOP N和Row_Number()分页因Order by排序规则不同引起的bug】
-            //if (startRowIndex <= 0)
-            //{
-            //    if (maximumRows < 1)
-            //        return builder;
-            //    else
-            //        return builder.Clone().Top(maximumRows);
-            //}
+            if (startRowIndex <= 0)
+            {
+                if (maximumRows < 1)
+                {
+                    return builder;
+                }
+                else if(builder.KeyIsOrderBy)
+                {
+                    return builder.Clone().Top(maximumRows);
+                }
+            }
 
             if (builder.Keys == null || builder.Keys.Length < 1) throw new XCodeException("分页算法要求指定排序列！" + builder.ToString());
 
