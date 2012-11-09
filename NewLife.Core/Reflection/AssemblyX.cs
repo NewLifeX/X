@@ -497,6 +497,9 @@ namespace NewLife.Reflection
                 {
                     //Assembly asm = Assembly.ReflectionOnlyLoad(File.ReadAllBytes(item));
                     var asm = Assembly.ReflectionOnlyLoadFrom(item);
+                    // 尽管目录不一样，但这两个可能是相同的程序集
+                    // 这里导致加载了不同目录的同一个程序集，然后导致对象容器频繁报错
+                    if (loadeds.Any(e => e.Asm.FullName.EqualIgnoreCase(asm.FullName)) || loadeds2.Any(e => e.Asm.FullName.EqualIgnoreCase(asm.FullName))) continue;
 
                     asmx = Create(asm);
                 }
