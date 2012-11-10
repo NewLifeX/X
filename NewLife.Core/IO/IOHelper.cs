@@ -294,11 +294,11 @@ namespace System
         //    DecompressFile(inStream, targetPath, null, false);
         //}
 
-        /// <summary>解压缩。如果单文件，就解压到targetPath下的des文件；如果多文件，就解压到targetPath的des子目录下，此时des可以为空。</summary>
-        /// <param name="inStream"></param>
-        /// <param name="targetPath"></param>
-        /// <param name="des">多文件时，指代子目录，为空表示当前目录；单文件时表示目标文件</param>
-        /// <param name="isSub">是否解压到子目录中，仅对多文件有效</param>
+        ///// <summary>解压缩。如果单文件，就解压到targetPath下的des文件；如果多文件，就解压到targetPath的des子目录下，此时des可以为空。</summary>
+        ///// <param name="inStream"></param>
+        ///// <param name="targetPath"></param>
+        ///// <param name="des">多文件时，指代子目录，为空表示当前目录；单文件时表示目标文件</param>
+        ///// <param name="isSub">是否解压到子目录中，仅对多文件有效</param>
         //public static void DecompressFile(Stream inStream, String targetPath, String des, Boolean isSub)
         //{
         //    if (String.IsNullOrEmpty(targetPath) && !String.IsNullOrEmpty(des)) targetPath = Path.GetDirectoryName(des);
