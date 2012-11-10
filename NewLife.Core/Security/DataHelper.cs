@@ -29,11 +29,11 @@ namespace NewLife.Security
         {
             if (String.IsNullOrEmpty(filename)) throw new ArgumentNullException("filename");
 
-            MD5CryptoServiceProvider md5 = new MD5CryptoServiceProvider();
+            var md5 = new MD5CryptoServiceProvider();
             //Byte[] buffer = md5.ComputeHash(File.ReadAllBytes(filename));
-            using (FileStream stream = new FileStream(filename, FileMode.Open, FileAccess.Read))
+            using (var stream = new FileStream(filename, FileMode.Open, FileAccess.Read))
             {
-                Byte[] buffer = md5.ComputeHash(stream);
+                var buffer = md5.ComputeHash(stream);
                 return BitConverter.ToString(buffer).Replace("-", "");
             }
         }
@@ -83,7 +83,7 @@ namespace NewLife.Security
         {
             if (String.IsNullOrEmpty(filename)) throw new ArgumentNullException("filename");
 
-            using (FileStream stream = new FileStream(filename, FileMode.Open, FileAccess.Read))
+            using (var stream = new FileStream(filename, FileMode.Open, FileAccess.Read))
             {
                 return CRC16(stream);
             }
@@ -227,7 +227,7 @@ namespace NewLife.Security
         {
             if (String.IsNullOrEmpty(filename)) throw new ArgumentNullException("filename");
 
-            using (FileStream stream = new FileStream(filename, FileMode.Open, FileAccess.Read))
+            using (var stream = new FileStream(filename, FileMode.Open, FileAccess.Read))
             {
                 return CRC32(stream);
             }

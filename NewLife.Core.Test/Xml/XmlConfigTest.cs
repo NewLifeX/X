@@ -8,8 +8,6 @@ using System;
 
 namespace NewLife.Core.Test.Xml
 {
-
-
     /// <summary>
     ///这是 XmlConfigTest 的测试类，旨在
     ///包含所有 XmlConfigTest 单元测试
@@ -17,25 +15,13 @@ namespace NewLife.Core.Test.Xml
     [TestClass()]
     public class XmlConfigTest
     {
-
-
         private TestContext testContextInstance;
 
         /// <summary>
         ///获取或设置测试上下文，上下文提供
         ///有关当前测试运行及其功能的信息。
         ///</summary>
-        public TestContext TestContext
-        {
-            get
-            {
-                return testContextInstance;
-            }
-            set
-            {
-                testContextInstance = value;
-            }
-        }
+        public TestContext TestContext { get { return testContextInstance; } set { testContextInstance = value; } }
 
         #region 附加测试特性
         // 
@@ -66,8 +52,7 @@ namespace NewLife.Core.Test.Xml
         //}
         //
         #endregion
-
-
+        
         [TestMethod()]
         public void CurrentTest()
         {
@@ -79,11 +64,21 @@ namespace NewLife.Core.Test.Xml
             config.Dic2.Add("7788", new UserConfig { Name = "里面的", Password = "密码", Num = 778899 });
             config.Dic2.Add("null", null);
             config.Save();
+            var xml = File.ReadAllText(UserConfig._.ConfigFile);
+            Assert.IsNotNull(xml);
 
             UserConfig.Current = null;
 
             config = UserConfig.Current;
             Assert.AreEqual("NewLife", config.Name);
+
+            config = new UserConfig();
+            config.Name = "X";
+            config.Save();
+
+            var xml1 = File.ReadAllText(UserConfig._.ConfigFile);
+            var xml2 = config.ToXml(null, "", "", true);
+            Assert.AreEqual(xml1, xml2, "序列化有问题！");
         }
 
         [TestMethod()]

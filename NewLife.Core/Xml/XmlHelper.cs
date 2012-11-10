@@ -91,6 +91,8 @@ namespace NewLife.Xml
             using (var stream = new FileStream(file, FileMode.OpenOrCreate, FileAccess.Write))
             {
                 obj.ToXml(stream, encoding, prefix, ns, includeDeclaration);
+                // 必须通过设置文件流长度来实现截断，否则后面可能会多一截旧数据
+                stream.SetLength(stream.Position);
             }
         }
 
