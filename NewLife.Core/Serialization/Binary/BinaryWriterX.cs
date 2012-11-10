@@ -316,6 +316,22 @@ namespace NewLife.Serialization
 
             return base.WriteRefObject(value, type, callback);
         }
+
+        /// <summary>写入对象引用。</summary>
+        /// <param name="value">对象</param>
+        /// <returns>是否写入成功</returns>
+        public override bool WriteObjRef(object value)
+        {
+            if (!Settings.UseObjRef)
+            {
+                // 不使用对象引用时，所有对象不能为空
+                //OnWriteObjRefIndex(value == null ? 0 : 1);
+                if (value == null) throw new Exception("不使用对象引用（Settings.UseObjRef=false）时，所有对象不能为空！");
+                return false;
+            }
+
+            return base.WriteObjRef(value);
+        }
         #endregion
 
         #region 自定义对象
