@@ -27,27 +27,27 @@ namespace XCode.DataAccessLayer
         [XmlAttribute]
         [DisplayName("名称")]
         [Description("名称")]
-        public String Name { get { return _Name; } set { _Name = value; _Alias = null; } }
-
-        private String _Alias;
-        /// <summary>别名</summary>
-        [XmlAttribute]
-        [DisplayName("别名")]
-        [Description("别名")]
-        public String Alias
+        public String Name
         {
             get
             {
-                if (!String.IsNullOrEmpty(_Alias)) return _Alias;
+                if (!String.IsNullOrEmpty(_Name)) return _Name;
 
                 //!! 先赋值，非常重要。后面GetAlias时会用到其它列的别名，然后可能形成死循环。先赋值之后，下一次来到这里时将直接返回。
-                _Alias = Name;
-                _Alias = ModelResolver.Current.GetAlias(this);
+                _Name = ColumnName;
+                _Name = ModelResolver.Current.GetAlias(this);
 
-                return _Alias;
+                return _Name;
             }
-            set { _Alias = value; }
+            set { _Name = value; }
         }
+
+        private String _ColumnName;
+        /// <summary>列名</summary>
+        [XmlAttribute]
+        [DisplayName("列名")]
+        [Description("列名")]
+        public String ColumnName { get { return _ColumnName; } set { _ColumnName = value; _Name = null; } }
 
         private Type _DataType;
         /// <summary>数据类型</summary>
@@ -160,7 +160,7 @@ namespace XCode.DataAccessLayer
 
         /// <summary>显示名。如果有Description则使用Description，否则使用Name</summary>
         [XmlIgnore]
-        public String DisplayName { get { return ModelResolver.Current.GetDisplayName(Alias ?? Name, Description); } }
+        public String DisplayName { get { return ModelResolver.Current.GetDisplayName(Name ?? ColumnName, Description); } }
         #endregion
 
         #region 构造
@@ -193,9 +193,9 @@ namespace XCode.DataAccessLayer
         public override string ToString()
         {
             if (!String.IsNullOrEmpty(Description))
-                return String.Format("ID={0} Name={1} FieldType={2} RawType={3} Description={4}", ID, Name, FieldType, RawType, Description);
+                return String.Format("ID={0} Name={1} FieldType={2} RawType={3} Description={4}", ID, ColumnName, FieldType, RawType, Description);
             else
-                return String.Format("ID={0} Name={1} FieldType={2} RawType={3}", ID, Name, FieldType, RawType);
+                return String.Format("ID={0} Name={1} FieldType={2} RawType={3}", ID, ColumnName, FieldType, RawType);
         }
         #endregion
 

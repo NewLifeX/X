@@ -186,8 +186,8 @@ namespace XCode.Configuration
             IDataColumn xf = field;
             if (xf == null) return;
 
-            xf.Name = ColumnName;
-            xf.Alias = Name;
+            xf.ColumnName = ColumnName;
+            xf.Name = Name;
             xf.DataType = _Property.PropertyType;
             xf.Description = Description;
 

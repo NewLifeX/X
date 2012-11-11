@@ -51,7 +51,7 @@ namespace XCoder
         /// <returns></returns>
         public IDataTable FindTable(String tableName)
         {
-            return Tables.Find(t => t.Name.EqualIgnoreCase(tableName) || t.Alias.EqualIgnoreCase(tableName));
+            return Tables.Find(t => t.TableName.EqualIgnoreCase(tableName) || t.Name.EqualIgnoreCase(tableName));
         }
 
         /// <summary>判断是否存在指定列</summary>
@@ -59,7 +59,7 @@ namespace XCoder
         /// <returns></returns>
         public Boolean HasColumn(String name)
         {
-            return Table.Columns.Any(dc => dc.Alias.EqualIgnoreCase(name));
+            return Table.Columns.Any(dc => dc.Name.EqualIgnoreCase(name));
         }
         #endregion
     }

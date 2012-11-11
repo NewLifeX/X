@@ -355,7 +355,7 @@ namespace XCoder
                     cbTableList.DataSource = source;
                 else
                 {
-                    tables.Sort((t1, t2) => t1.Name.CompareTo(t2.Name));
+                    tables.Sort((t1, t2) => t1.TableName.CompareTo(t2.TableName));
                     cbTableList.DataSource = tables;
                 }
                 //cbTableList.DisplayMember = "Name";
@@ -423,7 +423,7 @@ namespace XCoder
             List<String> param = new List<string>();
             foreach (IDataTable item in tables)
             {
-                param.Add(item.Name);
+                param.Add(item.TableName);
             }
 
             bt_GenAll.Enabled = false;

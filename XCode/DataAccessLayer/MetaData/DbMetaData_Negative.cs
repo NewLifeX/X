@@ -130,12 +130,12 @@ namespace XCode.DataAccessLayer
         {
             // 数据库表进入字典
             var dic = new Dictionary<String, IDataTable>(StringComparer.OrdinalIgnoreCase);
-            var dbtables = OnGetTables(new HashSet<String>(tables.Select(t => t.Name), StringComparer.OrdinalIgnoreCase));
+            var dbtables = OnGetTables(new HashSet<String>(tables.Select(t => t.TableName), StringComparer.OrdinalIgnoreCase));
             if (dbtables != null && dbtables.Count > 0)
             {
                 foreach (var item in dbtables)
                 {
-                    dic.Add(item.Name, item);
+                    dic.Add(item.TableName, item);
                 }
             }
 
@@ -145,7 +145,7 @@ namespace XCode.DataAccessLayer
                 {
                     // 判断指定表是否存在于数据库中，以决定是创建表还是修改表
                     IDataTable dbtable = null;
-                    if (dic.TryGetValue(item.Name, out dbtable))
+                    if (dic.TryGetValue(item.TableName, out dbtable))
                         CheckTable(item, dbtable, setting);
                     else
                         CheckTable(item, null, setting);
@@ -164,7 +164,7 @@ namespace XCode.DataAccessLayer
             if (dbtable == null)
             {
                 #region 创建表
-                WriteLog("创建表：{0}({1})", entitytable.Name, entitytable.Description);
+                WriteLog("创建表：{0}({1})", entitytable.TableName, entitytable.Description);
 
                 var sb = new StringBuilder();
                 // 建表，如果不是onlySql，执行时DAL会输出SQL日志
@@ -172,7 +172,7 @@ namespace XCode.DataAccessLayer
 
                 // 仅获取语句
                 //if (onlySql) WriteLog("XCode.Negative.Enable没有设置为True，请手工创建表：" + entitytable.Name + Environment.NewLine + sb.ToString());
-                if (setting.CheckOnly) WriteLog("只检查不对数据库进行操作,请手工创建表：" + entitytable.Name + Environment.NewLine + sb.ToString());
+                if (setting.CheckOnly) WriteLog("只检查不对数据库进行操作,请手工创建表：" + entitytable.TableName + Environment.NewLine + sb.ToString());
                 #endregion
             }
             else
@@ -205,7 +205,7 @@ namespace XCode.DataAccessLayer
             {
                 foreach (var item in entitytable.Columns)
                 {
-                    entitydic.Add(item.Name.ToLower(), item);
+                    entitydic.Add(item.ColumnName.ToLower(), item);
                 }
             }
             var dbdic = new Dictionary<String, IDataColumn>(StringComparer.OrdinalIgnoreCase);
@@ -213,7 +213,7 @@ namespace XCode.DataAccessLayer
             {
                 foreach (var item in dbtable.Columns)
                 {
-                    dbdic.Add(item.Name.ToLower(), item);
+                    dbdic.Add(item.ColumnName.ToLower(), item);
                 }
             }
             #endregion
@@ -221,7 +221,7 @@ namespace XCode.DataAccessLayer
             #region 新增列
             foreach (IDataColumn item in entitytable.Columns)
             {
-                if (!dbdic.ContainsKey(item.Name.ToLower()))
+                if (!dbdic.ContainsKey(item.ColumnName.ToLower()))
                 {
                     //AddColumn(sb, item, onlySql);
                     PerformSchema(sb, onlySql, DDLSchema.AddColumn, item);
@@ -240,7 +240,7 @@ namespace XCode.DataAccessLayer
             for (int i = dbtable.Columns.Count - 1; i >= 0; i--)
             {
                 var item = dbtable.Columns[i];
-                if (!entitydic.ContainsKey(item.Name.ToLower()))
+                if (!entitydic.ContainsKey(item.ColumnName.ToLower()))
                 {
                     if (!String.IsNullOrEmpty(item.Description)) PerformSchema(sb, onlySql, DDLSchema.DropColumnDescription, item);
                     PerformSchema(sbDelete, setting.NoDelete, DDLSchema.DropColumn, item);
@@ -268,7 +268,7 @@ namespace XCode.DataAccessLayer
             foreach (var item in entitytable.Columns)
             {
                 IDataColumn dbf = null;
-                if (!dbdic.TryGetValue(item.Name, out dbf)) continue;
+                if (!dbdic.TryGetValue(item.ColumnName, out dbf)) continue;
 
                 if (IsColumnChanged(item, dbf, entityDb)) PerformSchema(sb, onlySql, DDLSchema.AlterColumn, item, dbf);
                 if (IsColumnDefaultChanged(item, dbf, entityDb)) ChangeColmnDefault(sb, onlySql, item, dbf, entityDb);
@@ -488,7 +488,7 @@ namespace XCode.DataAccessLayer
         protected virtual String ReBuildTable(IDataTable entitytable, IDataTable dbtable)
         {
             // 通过重建表的方式修改字段
-            String tableName = dbtable.Name;
+            String tableName = dbtable.TableName;
             String tempTableName = "Temp_" + tableName + "_" + new Random((Int32)DateTime.Now.Ticks).Next(1000, 10000);
             tableName = FormatName(tableName);
             tempTableName = FormatName(tempTableName);
@@ -508,8 +508,8 @@ namespace XCode.DataAccessLayer
                 var sbValue = new StringBuilder();
                 foreach (var item in entitytable.Columns)
                 {
-                    String name = item.Name;
-                    var field = dbtable.GetColumn(item.Name);
+                    String name = item.ColumnName;
+                    var field = dbtable.GetColumn(item.ColumnName);
                     if (field == null)
                     {
                         // 如果新增了不允许空的列，则处理一下默认值
@@ -624,7 +624,7 @@ namespace XCode.DataAccessLayer
                     //case DDLSchema.TableExist:
                     //    break;
                     case DDLSchema.AddTableDescription:
-                        WriteLog("{0}({1},{2})", schema, dt.Name, dt.Description);
+                        WriteLog("{0}({1},{2})", schema, dt.TableName, dt.Description);
                         break;
                     case DDLSchema.DropTableDescription:
                         WriteLog("{0}({1})", schema, dt);
@@ -635,19 +635,19 @@ namespace XCode.DataAccessLayer
                     //case DDLSchema.AlterColumn:
                     //    break;
                     case DDLSchema.DropColumn:
-                        WriteLog("{0}({1})", schema, dc.Name);
+                        WriteLog("{0}({1})", schema, dc.ColumnName);
                         break;
                     case DDLSchema.AddColumnDescription:
-                        WriteLog("{0}({1},{2})", schema, dc.Name, dc.Description);
+                        WriteLog("{0}({1},{2})", schema, dc.ColumnName, dc.Description);
                         break;
                     case DDLSchema.DropColumnDescription:
-                        WriteLog("{0}({1})", schema, dc.Name);
+                        WriteLog("{0}({1})", schema, dc.ColumnName);
                         break;
                     case DDLSchema.AddDefault:
-                        WriteLog("{0}({1},{2})", schema, dc.Name, dc.Default);
+                        WriteLog("{0}({1},{2})", schema, dc.ColumnName, dc.Default);
                         break;
                     case DDLSchema.DropDefault:
-                        WriteLog("{0}({1})", schema, dc.Name);
+                        WriteLog("{0}({1})", schema, dc.ColumnName);
                         break;
                     //case DDLSchema.CreateIndex:
                     //    break;
@@ -783,7 +783,7 @@ namespace XCode.DataAccessLayer
                     {
                         String name;
                         if (values[0] is IDataTable)
-                            name = (values[0] as IDataTable).Name;
+                            name = (values[0] as IDataTable).TableName;
                         else
                             name = values[0].ToString();
 
@@ -827,7 +827,7 @@ namespace XCode.DataAccessLayer
             var sb = new StringBuilder();
 
             //字段名
-            sb.AppendFormat("{0} ", FormatName(field.Name));
+            sb.AppendFormat("{0} ", FormatName(field.ColumnName));
 
             String typeName = null;
             // 如果还是原来的数据库类型，则直接使用
@@ -931,7 +931,7 @@ namespace XCode.DataAccessLayer
 
             StringBuilder sb = new StringBuilder();
 
-            sb.AppendFormat("Create Table {0}(", FormatName(table.Name));
+            sb.AppendFormat("Create Table {0}(", FormatName(table.TableName));
             for (Int32 i = 0; i < Fields.Count; i++)
             {
                 sb.AppendLine();
@@ -945,11 +945,11 @@ namespace XCode.DataAccessLayer
             return sb.ToString();
         }
 
-        String DropTableSQL(IDataTable table) { return DropTableSQL(table.Name); }
+        String DropTableSQL(IDataTable table) { return DropTableSQL(table.TableName); }
 
         public virtual String DropTableSQL(String tableName) { return String.Format("Drop Table {0}", FormatName(tableName)); }
 
-        String TableExistSQL(IDataTable table) { return TableExistSQL(table.Name); }
+        String TableExistSQL(IDataTable table) { return TableExistSQL(table.TableName); }
 
         public virtual String TableExistSQL(String tableName) { throw new NotSupportedException("该功能未实现！"); }
 
@@ -957,11 +957,11 @@ namespace XCode.DataAccessLayer
 
         public virtual String DropTableDescriptionSQL(IDataTable table) { return null; }
 
-        public virtual String AddColumnSQL(IDataColumn field) { return String.Format("Alter Table {0} Add {1}", FormatName(field.Table.Name), FieldClause(field, true)); }
+        public virtual String AddColumnSQL(IDataColumn field) { return String.Format("Alter Table {0} Add {1}", FormatName(field.Table.TableName), FieldClause(field, true)); }
 
-        public virtual String AlterColumnSQL(IDataColumn field, IDataColumn oldfield) { return String.Format("Alter Table {0} Alter Column {1}", FormatName(field.Table.Name), FieldClause(field, false)); }
+        public virtual String AlterColumnSQL(IDataColumn field, IDataColumn oldfield) { return String.Format("Alter Table {0} Alter Column {1}", FormatName(field.Table.TableName), FieldClause(field, false)); }
 
-        public virtual String DropColumnSQL(IDataColumn field) { return String.Format("Alter Table {0} Drop Column {1}", FormatName(field.Table.Name), field.Name); }
+        public virtual String DropColumnSQL(IDataColumn field) { return String.Format("Alter Table {0} Drop Column {1}", FormatName(field.Table.TableName), field.ColumnName); }
 
         public virtual String AddColumnDescriptionSQL(IDataColumn field) { return null; }
 
@@ -980,7 +980,7 @@ namespace XCode.DataAccessLayer
                 sb.Append("Create Index ");
 
             sb.Append(FormatName(index.Name));
-            sb.AppendFormat(" On {0} (", FormatName(index.Table.Name));
+            sb.AppendFormat(" On {0} (", FormatName(index.Table.TableName));
             for (int i = 0; i < index.Columns.Length; i++)
             {
                 if (i > 0) sb.Append(", ");
@@ -995,7 +995,7 @@ namespace XCode.DataAccessLayer
 
         public virtual String DropIndexSQL(IDataIndex index)
         {
-            return String.Format("Drop Index {0} On {1}", FormatName(index.Name), FormatName(index.Table.Name));
+            return String.Format("Drop Index {0} On {1}", FormatName(index.Name), FormatName(index.Table.TableName));
         }
         #endregion
 

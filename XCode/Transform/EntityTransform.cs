@@ -35,7 +35,7 @@ namespace XCode.Transform
                     {
                         foreach (var item in DAL.Create(SrcConn).Tables)
                         {
-                            if (!String.IsNullOrEmpty(item.Name)) list.Add(item.Name);
+                            if (!String.IsNullOrEmpty(item.TableName)) list.Add(item.TableName);
                         }
                     }
                     _TableNames = list;
@@ -88,7 +88,7 @@ namespace XCode.Transform
 
             // 取所有需要迁移的表，过滤得出最后需要迁移的表
             var tns = _TableNames;
-            if (tns != null && tns.Count > 0) tables.RemoveAll(t => !tns.Contains(t.Name) && !tns.Contains(t.Alias));
+            if (tns != null && tns.Count > 0) tables.RemoveAll(t => !tns.Contains(t.TableName) && !tns.Contains(t.Name));
 
             var total = 0;
             foreach (var item in tables)
@@ -100,10 +100,10 @@ namespace XCode.Transform
                     if (e.Arg == null) continue;
                 }
 
-                if (!PartialTableNames.Contains(item.Name) && !PartialTableNames.Contains(item.Alias))
-                    total += TransformTable(dal.CreateOperate(item.Name));
+                if (!PartialTableNames.Contains(item.TableName) && !PartialTableNames.Contains(item.Name))
+                    total += TransformTable(dal.CreateOperate(item.TableName));
                 else
-                    total += TransformTable(dal.CreateOperate(item.Name), PartialCount, PartialDesc);
+                    total += TransformTable(dal.CreateOperate(item.TableName), PartialCount, PartialDesc);
             }
 
             return total;

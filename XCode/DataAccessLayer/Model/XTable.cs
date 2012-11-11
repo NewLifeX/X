@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.IO;
 using System.Xml;
+using System.Xml.Schema;
 using System.Xml.Serialization;
-using XCode.DataAccessLayer.Model;
 using NewLife.Xml;
+using XCode.DataAccessLayer.Model;
 
 namespace XCode.DataAccessLayer
 {
@@ -27,18 +27,18 @@ namespace XCode.DataAccessLayer
         public Int32 ID { get { return _ID; } set { _ID = value; } }
 
         private String _Name;
+        /// <summary>名称</summary>
+        [XmlAttribute]
+        [DisplayName("名称")]
+        [Description("名称")]
+        public String Name { get { return !String.IsNullOrEmpty(_Name) ? _Name : (_Name = ModelResolver.Current.GetAlias(TableName)); } set { _Name = value; } }
+
+        private String _TableName;
         /// <summary>表名</summary>
         [XmlAttribute]
         [DisplayName("表名")]
         [Description("表名")]
-        public String Name { get { return _Name; } set { _Name = value; _Alias = null; } }
-
-        private String _Alias;
-        /// <summary>别名</summary>
-        [XmlAttribute]
-        [DisplayName("别名")]
-        [Description("别名")]
-        public String Alias { get { return !String.IsNullOrEmpty(_Alias) ? _Alias : (_Alias = ModelResolver.Current.GetAlias(Name)); } set { _Alias = value; } }
+        public String TableName { get { return _TableName; } set { _TableName = value; _Name = null; } }
 
         private String _Description;
         /// <summary>表说明</summary>
@@ -120,7 +120,7 @@ namespace XCode.DataAccessLayer
 
         /// <summary>显示名。如果有Description则使用Description，否则使用Name</summary>
         [XmlIgnore]
-        public String DisplayName { get { return ModelResolver.Current.GetDisplayName(Alias ?? Name, Description); } }
+        public String DisplayName { get { return ModelResolver.Current.GetDisplayName(Name ?? TableName, Description); } }
         #endregion
 
         #region 构造
@@ -129,7 +129,7 @@ namespace XCode.DataAccessLayer
 
         /// <summary>初始化</summary>
         /// <param name="name"></param>
-        public XTable(String name) { Name = name; }
+        public XTable(String name) { TableName = name; }
         #endregion
 
         #region 方法
@@ -205,12 +205,6 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public String Export()
         {
-            //var serializer = new XmlSerializer(this.GetType());
-            //using (var sw = new StringWriter())
-            //{
-            //    serializer.Serialize(sw, this);
-            //    return sw.ToString();
-            //}
             return this.ToXml();
         }
 
@@ -221,11 +215,6 @@ namespace XCode.DataAccessLayer
         {
             if (String.IsNullOrEmpty(xml)) return null;
 
-            //var serializer = new XmlSerializer(typeof(XTable));
-            //using (var sr = new StringReader(xml))
-            //{
-            //    return serializer.Deserialize(sr) as XTable;
-            //}
             return xml.ToXmlEntity<XTable>();
         }
         #endregion
@@ -263,7 +252,7 @@ namespace XCode.DataAccessLayer
         #region IXmlSerializable 成员
         /// <summary>获取架构</summary>
         /// <returns></returns>
-        System.Xml.Schema.XmlSchema IXmlSerializable.GetSchema() { return null; }
+        XmlSchema IXmlSerializable.GetSchema() { return null; }
 
         /// <summary>读取</summary>
         /// <param name="reader"></param>

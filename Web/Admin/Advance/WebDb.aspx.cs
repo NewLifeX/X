@@ -60,8 +60,8 @@ public partial class Admin_System_WebDb : MyEntityList
             {
                 foreach (IDataTable item in tables)
                 {
-                    String des = String.IsNullOrEmpty(item.Description) ? item.Name : String.Format("{1}({0})", item.Name, item.Description);
-                    ddlTable.Items.Add(new ListItem(des, item.Name));
+                    String des = String.IsNullOrEmpty(item.Description) ? item.TableName : String.Format("{1}({0})", item.TableName, item.Description);
+                    ddlTable.Items.Add(new ListItem(des, item.TableName));
                 }
 
                 ddlTable.Items.Insert(0, "--请选择--");
@@ -91,13 +91,13 @@ public partial class Admin_System_WebDb : MyEntityList
         DAL dal = GetDAL();
         if (dal == null) return;
 
-        IDataTable table = dal.Tables.Find(delegate(IDataTable item) { return item.Name == ddlTable.SelectedValue; });
+        IDataTable table = dal.Tables.Find(delegate(IDataTable item) { return item.TableName == ddlTable.SelectedValue; });
         if (table == null) return;
 
         gvTable.DataSource = table.Columns;
         gvTable.DataBind();
 
-        txtSql.Text = String.Format("Select * From {0}", dal.Db.FormatName(table.Name));
+        txtSql.Text = String.Format("Select * From {0}", dal.Db.FormatName(table.TableName));
     }
 
     protected void ddlSchema_SelectedIndexChanged(object sender, EventArgs e)
@@ -298,7 +298,7 @@ public partial class Admin_System_WebDb : MyEntityList
                 String fsql = String.Format("Select * From {0}", dal.Db.FormatName(tableName));
                 if (!sql.ToLower().StartsWith(fsql.ToLower())) return;
 
-                IDataTable table = dal.Tables.Find(delegate(IDataTable item) { return item.Name == ddlTable.SelectedValue; });
+                IDataTable table = dal.Tables.Find(delegate(IDataTable item) { return item.TableName == ddlTable.SelectedValue; });
                 if (table == null) return;
 
                 // 更新表头
@@ -312,7 +312,7 @@ public partial class Admin_System_WebDb : MyEntityList
                     IDataColumn field = null;
                     foreach (IDataColumn elm in table.Columns)
                     {
-                        if (elm.Name == name)
+                        if (elm.ColumnName == name)
                         {
                             field = elm;
                             break;

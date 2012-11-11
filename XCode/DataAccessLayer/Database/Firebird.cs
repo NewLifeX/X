@@ -161,7 +161,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public override string FormatIdentity(IDataColumn field, Object value)
         {
-            return String.Format("GEN_ID(GEN_{0}, 1)", field.Table.Name);
+            return String.Format("GEN_ID(GEN_{0}, 1)", field.Table.TableName);
         }
 
         ///// <summary>系统数据库名</summary>
@@ -284,7 +284,7 @@ namespace XCode.DataAccessLayer
             String sql = base.CreateTableSQL(table);
             if (String.IsNullOrEmpty(sql)) return sql;
 
-            String sqlSeq = String.Format("Create GENERATOR GEN_{0}", table.Name);
+            String sqlSeq = String.Format("Create GENERATOR GEN_{0}", table.TableName);
             return sql + "; " + Environment.NewLine + sqlSeq;
         }
 

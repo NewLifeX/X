@@ -13,8 +13,8 @@ namespace XCode.DataAccessLayer
         /// <summary>名称</summary>
         String Name { get; set; }
 
-        /// <summary>别名。实际上用作类名。</summary>
-        String Alias { get; set; }
+        /// <summary>表名</summary>
+        String TableName { get; set; }
 
         /// <summary>所有者</summary>
         String Owner { get; set; }

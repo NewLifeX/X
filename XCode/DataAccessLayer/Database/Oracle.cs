@@ -349,7 +349,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public override string FormatIdentity(IDataColumn field, Object value)
         {
-            return String.Format("SEQ_{0}.nextval", field.Table.Name);
+            return String.Format("SEQ_{0}.nextval", field.Table.TableName);
         }
 
         internal protected override String ParamPrefix { get { return ":"; } }
@@ -608,9 +608,9 @@ namespace XCode.DataAccessLayer
             {
                 DataTable dt = null;
                 if (IsUseOwner)
-                    dt = GetSchema(_.PrimaryKeys, new String[] { Owner, table.Name, null });
+                    dt = GetSchema(_.PrimaryKeys, new String[] { Owner, table.TableName, null });
                 else
-                    dt = GetSchema(_.PrimaryKeys, new String[] { null, table.Name, null });
+                    dt = GetSchema(_.PrimaryKeys, new String[] { null, table.TableName, null });
 
                 if (dt != null && dt.Rows.Count > 0)
                 {
@@ -624,7 +624,7 @@ namespace XCode.DataAccessLayer
                             di.PrimaryKey = true;
                             foreach (IDataColumn dc in table.Columns)
                             {
-                                dc.PrimaryKey = di.Columns.Contains(dc.Name);
+                                dc.PrimaryKey = di.Columns.Contains(dc.ColumnName);
                             }
                         }
                     }
@@ -634,7 +634,7 @@ namespace XCode.DataAccessLayer
             // 表注释 USER_TAB_COMMENTS
             //String sql = String.Format("Select COMMENTS From USER_TAB_COMMENTS Where TABLE_NAME='{0}'", table.Name);
             //String comment = (String)Database.CreateSession().ExecuteScalar(sql);
-            String comment = GetTableComment(table.Name);
+            String comment = GetTableComment(table.TableName);
             if (!String.IsNullOrEmpty(comment)) table.Description = comment;
 
             if (table == null || table.Columns == null || table.Columns.Count < 1) return;
@@ -646,7 +646,7 @@ namespace XCode.DataAccessLayer
                 // 不管是否主键
                 if (!Helper.IsIntType(field.DataType)) continue;
 
-                String name = String.Format("SEQ_{0}_{1}", table.Name, field.Name);
+                String name = String.Format("SEQ_{0}_{1}", table.TableName, field.ColumnName);
                 if (CheckSeqExists(name))
                 {
                     field.Identity = true;
@@ -657,7 +657,7 @@ namespace XCode.DataAccessLayer
             if (!exists)
             {
                 // 检查该表是否有序列，如有，让主键成为自增
-                String name = String.Format("SEQ_{0}", table.Name);
+                String name = String.Format("SEQ_{0}", table.TableName);
                 if (CheckSeqExists(name))
                 {
                     foreach (IDataColumn field in table.Columns)
@@ -677,7 +677,7 @@ namespace XCode.DataAccessLayer
                 {
                     if (Helper.IsIntType(field.DataType))
                     {
-                        if (field.PrimaryKey && field.Name.ToLower().Contains("id")) field.Identity = true;
+                        if (field.PrimaryKey && field.ColumnName.ToLower().Contains("id")) field.Identity = true;
                     }
                 }
             }
@@ -753,7 +753,7 @@ namespace XCode.DataAccessLayer
             {
                 foreach (IDataColumn field in list)
                 {
-                    field.Description = GetColumnComment(table.Name, field.Name);
+                    field.Description = GetColumnComment(table.TableName, field.ColumnName);
                 }
             }
 
@@ -977,7 +977,7 @@ namespace XCode.DataAccessLayer
 
             StringBuilder sb = new StringBuilder();
 
-            sb.AppendFormat("Create Table {0}(", FormatName(table.Name));
+            sb.AppendFormat("Create Table {0}(", FormatName(table.TableName));
             for (Int32 i = 0; i < Fields.Count; i++)
             {
                 sb.AppendLine();
@@ -991,11 +991,11 @@ namespace XCode.DataAccessLayer
             {
                 sb.AppendLine(",");
                 sb.Append("\t");
-                sb.AppendFormat("constraint pk_{0} primary key (", table.Name);
+                sb.AppendFormat("constraint pk_{0} primary key (", table.TableName);
                 for (int i = 0; i < table.PrimaryKeys.Length; i++)
                 {
                     if (i > 0) sb.Append(",");
-                    sb.Append(FormatName(table.PrimaryKeys[i].Name));
+                    sb.Append(FormatName(table.PrimaryKeys[i].ColumnName));
                 }
                 sb.Append(")");
             }
@@ -1007,7 +1007,7 @@ namespace XCode.DataAccessLayer
             if (String.IsNullOrEmpty(sql)) return sql;
 
             // 感谢@晴天（412684802）和@老徐（gregorius 279504479），这里的最小和开始必须是0，插入的时候有++i的效果，才会得到从1开始的编号
-            String sqlSeq = String.Format("Create Sequence SEQ_{0} Minvalue 0 Maxvalue 9999999999 Start With 0 Increment By 1 Cache 20", table.Name);
+            String sqlSeq = String.Format("Create Sequence SEQ_{0} Minvalue 0 Maxvalue 9999999999 Start With 0 Increment By 1 Cache 20", table.TableName);
             //return sql + "; " + Environment.NewLine + sqlSeq;
             // 去掉分号后的空格，Oracle不支持同时执行多个语句
             return sql + ";" + Environment.NewLine + sqlSeq;
@@ -1025,53 +1025,53 @@ namespace XCode.DataAccessLayer
         public override String AddColumnSQL(IDataColumn field)
         {
             if (String.IsNullOrEmpty(Owner))
-                return String.Format("Alter Table {0} Add {1}", FormatName(field.Table.Name), FieldClause(field, true));
+                return String.Format("Alter Table {0} Add {1}", FormatName(field.Table.TableName), FieldClause(field, true));
             else
-                return String.Format("Alter Table {2}.{0} Add {1}", FormatName(field.Table.Name), FieldClause(field, true), Owner);
+                return String.Format("Alter Table {2}.{0} Add {1}", FormatName(field.Table.TableName), FieldClause(field, true), Owner);
         }
 
         public override String AlterColumnSQL(IDataColumn field, IDataColumn oldfield)
         {
             if (String.IsNullOrEmpty(Owner))
-                return String.Format("Alter Table {0} Modify {1}", FormatName(field.Table.Name), FieldClause(field, false));
+                return String.Format("Alter Table {0} Modify {1}", FormatName(field.Table.TableName), FieldClause(field, false));
             else
-                return String.Format("Alter Table {2}.{0} Modify {1}", FormatName(field.Table.Name), FieldClause(field, false), Owner);
+                return String.Format("Alter Table {2}.{0} Modify {1}", FormatName(field.Table.TableName), FieldClause(field, false), Owner);
         }
 
         public override String DropColumnSQL(IDataColumn field)
         {
             if (String.IsNullOrEmpty(Owner))
-                return String.Format("Alter Table {0} Drop Column {1}", FormatName(field.Table.Name), field.Name);
+                return String.Format("Alter Table {0} Drop Column {1}", FormatName(field.Table.TableName), field.ColumnName);
             else
-                return String.Format("Alter Table {2}.{0} Drop Column {1}", FormatName(field.Table.Name), field.Name, Owner);
+                return String.Format("Alter Table {2}.{0} Drop Column {1}", FormatName(field.Table.TableName), field.ColumnName, Owner);
         }
 
         public override string AddTableDescriptionSQL(IDataTable table)
         {
             //return String.Format("Update USER_TAB_COMMENTS Set COMMENTS='{0}' Where TABLE_NAME='{1}'", table.Description, table.Name);
 
-            return String.Format("Comment On Table {0} is '{1}'", FormatName(table.Name), table.Description);
+            return String.Format("Comment On Table {0} is '{1}'", FormatName(table.TableName), table.Description);
         }
 
         public override string DropTableDescriptionSQL(IDataTable table)
         {
             //return String.Format("Update USER_TAB_COMMENTS Set COMMENTS='' Where TABLE_NAME='{0}'", table.Name);
 
-            return String.Format("Comment On Table {0} is ''", FormatName(table.Name));
+            return String.Format("Comment On Table {0} is ''", FormatName(table.TableName));
         }
 
         public override string AddColumnDescriptionSQL(IDataColumn field)
         {
             //return String.Format("Update USER_COL_COMMENTS Set COMMENTS='{0}' Where TABLE_NAME='{1}' AND COLUMN_NAME='{2}'", field.Description, field.Table.Name, field.Name);
 
-            return String.Format("Comment On Column {0}.{1} is '{2}'", FormatName(field.Table.Name), FormatName(field.Name), field.Description);
+            return String.Format("Comment On Column {0}.{1} is '{2}'", FormatName(field.Table.TableName), FormatName(field.ColumnName), field.Description);
         }
 
         public override string DropColumnDescriptionSQL(IDataColumn field)
         {
             //return String.Format("Update USER_COL_COMMENTS Set COMMENTS='' Where TABLE_NAME='{0}' AND COLUMN_NAME='{1}'", field.Table.Name, field.Name);
 
-            return String.Format("Comment On Column {0}.{1} is ''", FormatName(field.Table.Name), FormatName(field.Name));
+            return String.Format("Comment On Column {0}.{1} is ''", FormatName(field.Table.TableName), FormatName(field.ColumnName));
         }
         #endregion
     }

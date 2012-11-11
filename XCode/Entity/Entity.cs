@@ -366,10 +366,10 @@ namespace XCode
 
                     // 记录字段是否有更新
                     Boolean changed = false;
-                    if (!isNew) changed = columns.Any(c => Dirtys[c.Alias]);
+                    if (!isNew) changed = columns.Any(c => Dirtys[c.Name]);
 
                     // 存在检查
-                    if (isNew || changed) CheckExist(columns.Select(c => c.Alias).Distinct().ToArray());
+                    if (isNew || changed) CheckExist(columns.Select(c => c.Name).Distinct().ToArray());
                 }
             }
         }
@@ -1328,7 +1328,7 @@ namespace XCode
                     foreach (IDataColumn dc in columns)
                     {
                         if (sb.Length > 0) sb.Append(",");
-                        if (Meta.FieldNames.Contains(dc.Alias)) sb.Append(this[dc.Alias]);
+                        if (Meta.FieldNames.Contains(dc.Name)) sb.Append(this[dc.Name]);
                     }
                     if (columns.Length > 1)
                         return String.Format("[{0}]", sb.ToString());

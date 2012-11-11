@@ -90,7 +90,7 @@ namespace XCode.DataAccessLayer
             if (Columns == null || Columns.Length < 1) return null;
 
             String indexName = "IX";
-            if (Table != null) indexName += "_" + Table.Name;
+            if (Table != null) indexName += "_" + Table.TableName;
             for (int i = 0; i < Columns.Length; i++)
             {
                 indexName += "_" + Columns[i];

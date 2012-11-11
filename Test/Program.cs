@@ -268,7 +268,7 @@ namespace Test
             etf.PartialTableNames.Add("PublicInformation");
             etf.PartialTableNames.Add("SystemUserLog");
             etf.PartialCount = 25;
-            etf.OnTransformTable += (s, e) => { if (e.Arg.Name == "")e.Arg = null; };
+            etf.OnTransformTable += (s, e) => { if (e.Arg.TableName == "")e.Arg = null; };
             var rs = etf.Transform();
             Console.WriteLine("共转移：{0}", rs);
         }
@@ -341,32 +341,32 @@ namespace Test
 
         static void Test8()
         {
-            var kind = RWKinds.Xml;
-            //CodeTimer.TimeLine("", 10000, n =>
-            //{
-            var msg = new EntityMessage { Value = Guid.NewGuid() };
-            var msg2 = new ChannelMessage { Channel = 1237, Message = msg };
-            Console.WriteLine(msg);
-            Console.WriteLine(msg2);
+            //var kind = RWKinds.Xml;
+            ////CodeTimer.TimeLine("", 10000, n =>
+            ////{
+            //var msg = new EntityMessage { Value = Guid.NewGuid() };
+            //var msg2 = new ChannelMessage { Channel = 1237, Message = msg };
+            //Console.WriteLine(msg);
+            //Console.WriteLine(msg2);
 
-            var ms = msg2.GetStream(kind);
+            //var ms = msg2.GetStream(kind);
 
-            var msg3 = Message.Read(ms, kind);
-            Console.WriteLine(msg3);
-            Console.WriteLine((msg3 as ChannelMessage).Message);
-            //});
-            var entity = new Administrator();
-            entity.ID = 123;
-            entity.Name = "Test";
-            entity.RoleID = 888;
-            entity.Password = "Pass";
+            //var msg3 = Message.Read(ms, kind);
+            //Console.WriteLine(msg3);
+            //Console.WriteLine((msg3 as ChannelMessage).Message);
+            ////});
+            //var entity = new Administrator();
+            //entity.ID = 123;
+            //entity.Name = "Test";
+            //entity.RoleID = 888;
+            //entity.Password = "Pass";
 
-            var writer = new BinaryWriterX();
-            var wr = writer as IWriter;
-            wr.WriteObject(entity);
+            //var writer = new BinaryWriterX();
+            //var wr = writer as IWriter;
+            //wr.WriteObject(entity);
 
-            var bts = wr.Stream.ReadBytes();
-            File.WriteAllBytes("admin.bin", bts);
+            //var bts = wr.Stream.ReadBytes();
+            //File.WriteAllBytes("admin.bin", bts);
         }
 
         static void Test9()
@@ -377,12 +377,12 @@ namespace Test
 
             // 添加两个字段
             var fi = table.CreateColumn();
-            fi.Name = "LastUpdate";
+            fi.ColumnName = "LastUpdate";
             fi.DataType = typeof(DateTime);
             table.Columns.Add(fi);
 
             fi = table.CreateColumn();
-            fi.Name = "LastSync";
+            fi.ColumnName = "LastSync";
             fi.DataType = typeof(DateTime);
             table.Columns.Add(fi);
 
@@ -391,7 +391,7 @@ namespace Test
             dal.SetTables(table);
 
             var sl = new SyncSlave();
-            sl.Factory = dal.CreateOperate(table.Name);
+            sl.Factory = dal.CreateOperate(table.TableName);
 
             var mt = new SyncMaster();
             mt.Facotry = Administrator.Meta.Factory;

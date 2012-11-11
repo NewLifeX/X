@@ -195,7 +195,7 @@ namespace XCode
 
                 // 判断表名是否已存在
                 Type type = null;
-                if (dic.TryGetValue(table.Name, out type))
+                if (dic.TryGetValue(table.TableName, out type))
                 {
                     // 两个实体类，只能要一个
 
@@ -205,21 +205,21 @@ namespace XCode
                     // 前面那个是，排除
                     else if (IsCommonEntity(type))
                     {
-                        dic[table.Name] = item;
+                        dic[table.TableName] = item;
                         // 删除原始实体类
-                        tables.RemoveAll((tb) => tb.Name == table.Name);
+                        tables.RemoveAll((tb) => tb.TableName == table.TableName);
                     }
                     // 两个都不是，报错吧！
                     else
                     {
-                        String msg = String.Format("设计错误！发现表{0}同时被两个实体类（{1}和{2}）使用！", table.Name, type.FullName, item.FullName);
+                        String msg = String.Format("设计错误！发现表{0}同时被两个实体类（{1}和{2}）使用！", table.TableName, type.FullName, item.FullName);
                         XTrace.WriteLine(msg);
                         throw new XCodeException(msg);
                     }
                 }
                 else
                 {
-                    dic.Add(table.Name, item);
+                    dic.Add(table.TableName, item);
                 }
 
                 tables.Add(table);

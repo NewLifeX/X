@@ -104,7 +104,7 @@ namespace XCoder
                 {
                     //obj = (obj as IDataTable).Columns;
                     DbCommand cmd = Db.CreateSession().CreateCommand();
-                    cmd.CommandText = "select * from " + (obj as IDataTable).Name;
+                    cmd.CommandText = "select * from " + (obj as IDataTable).TableName;
                     DataTable dt = null;
                     try
                     {

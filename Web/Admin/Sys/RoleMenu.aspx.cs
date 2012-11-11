@@ -213,7 +213,7 @@ public partial class Pages_RoleMenu : MyEntityList
     {
         if (_rms == null)
         {
-            Factory.Cache.Clear();
+            Factory.Cache.Clear(null);
             _rms = Factory.Cache.Entities;
         }
         return _rms.Find(delegate(IEntity e)

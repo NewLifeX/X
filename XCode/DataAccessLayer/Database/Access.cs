@@ -265,12 +265,12 @@ namespace XCode.DataAccessLayer
             Dictionary<String, IDataColumn> dic = new Dictionary<String, IDataColumn>(StringComparer.OrdinalIgnoreCase);
             foreach (IDataColumn xf in list)
             {
-                dic.Add(xf.Name, xf);
+                dic.Add(xf.ColumnName, xf);
             }
 
             try
             {
-                using (ADOTabe table = GetTable(xt.Name))
+                using (ADOTabe table = GetTable(xt.TableName))
                 {
                     if (table.Supported && table.Columns != null)
                     {
@@ -521,7 +521,7 @@ namespace XCode.DataAccessLayer
             String[] names = new String[table.PrimaryKeys.Length];
             for (int i = 0; i < table.PrimaryKeys.Length; i++)
             {
-                names[i] = table.PrimaryKeys[i].Name;
+                names[i] = table.PrimaryKeys[i].ColumnName;
             }
             IDataIndex di = ModelHelper.GetIndex(table, names);
             if (di == null)
@@ -553,7 +553,7 @@ namespace XCode.DataAccessLayer
         {
             try
             {
-                using (ADOTabe tb = GetTable(table.Name))
+                using (ADOTabe tb = GetTable(table.TableName))
                 {
                     tb.Description = value;
                     return true;
@@ -571,13 +571,13 @@ namespace XCode.DataAccessLayer
         {
             try
             {
-                using (ADOTabe table = GetTable(field.Table.Name))
+                using (ADOTabe table = GetTable(field.Table.TableName))
                 {
                     if (table.Supported && table.Columns != null)
                     {
                         foreach (ADOColumn item in table.Columns)
                         {
-                            if (item.Name == field.Name)
+                            if (item.Name == field.ColumnName)
                             {
                                 item.Description = value;
                                 return true;
@@ -606,13 +606,13 @@ namespace XCode.DataAccessLayer
 
             try
             {
-                using (ADOTabe table = GetTable(field.Table.Name))
+                using (ADOTabe table = GetTable(field.Table.TableName))
                 {
                     if (table.Supported && table.Columns != null)
                     {
                         foreach (ADOColumn item in table.Columns)
                         {
-                            if (item.Name == field.Name)
+                            if (item.Name == field.ColumnName)
                             {
                                 item.Default = value;
                                 return true;

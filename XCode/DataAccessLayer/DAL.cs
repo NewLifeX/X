@@ -371,7 +371,7 @@ namespace XCode.DataAccessLayer
                     // 全都标为已初始化的
                     foreach (var item in list)
                     {
-                        if (!HasCheckTables.Contains(item.Name)) HasCheckTables.Add(item.Name);
+                        if (!HasCheckTables.Contains(item.TableName)) HasCheckTables.Add(item.TableName);
                     }
 
                     // 过滤掉被排除的表名
@@ -379,7 +379,7 @@ namespace XCode.DataAccessLayer
                     {
                         for (int i = list.Count - 1; i >= 0; i--)
                         {
-                            if (NegativeExclude.Contains(list[i].Name)) list.RemoveAt(i);
+                            if (NegativeExclude.Contains(list[i].TableName)) list.RemoveAt(i);
                         }
                     }
                     // 过滤掉视图

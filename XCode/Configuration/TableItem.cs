@@ -266,8 +266,8 @@ namespace XCode.Configuration
             var bt = Table;
             var table = DAL.CreateTable();
             _DataTable = table;
-            table.Name = bt.Name;
-            table.Alias = EntityType.Name;
+            table.TableName = bt.Name;
+            table.Name = EntityType.Name;
             table.DbType = bt.DbType;
             table.IsView = bt.IsView;
             table.Description = Description;

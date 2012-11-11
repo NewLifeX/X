@@ -114,7 +114,7 @@ namespace XCoder
 
             Tables.Add(table);
             table.ID = Tables.Count;
-            table.Name = "NewTable" + table.ID;
+            table.TableName = "NewTable" + table.ID;
             table.Description = "新建表" + table.ID;
 
             SetTables(Tables, Tables.Count - 1);
@@ -128,7 +128,7 @@ namespace XCoder
             IDataColumn dc = table.CreateColumn();
             table.Columns.Add(dc);
             dc.ID = table.Columns.Count;
-            dc.Name = "Column" + dc.ID;
+            dc.ColumnName = "Column" + dc.ID;
             dc.Description = "字段" + dc.ID;
 
             gv.DataSource = null;
@@ -185,11 +185,11 @@ namespace XCoder
                 IMetaData md = dal.Db.CreateMetaData();
                 var sql = CreateTable(md, table);
 
-                FrmText.Create(table.Name + "表建表语句", sql).Show();
+                FrmText.Create(table.TableName + "表建表语句", sql).Show();
             }
             catch (Exception ex)
             {
-                FrmText.Create(table.Name + "表建表语句", "生成建表语句错误！" + Environment.NewLine + ex.ToString()).Show();
+                FrmText.Create(table.TableName + "表建表语句", "生成建表语句错误！" + Environment.NewLine + ex.ToString()).Show();
             }
         }
 

@@ -416,7 +416,7 @@ namespace XCode.DataAccessLayer
             StringBuilder sb = new StringBuilder();
             List<String> pks = new List<String>();
 
-            sb.AppendFormat("Create Table If Not Exists {0}(", FormatName(table.Name));
+            sb.AppendFormat("Create Table If Not Exists {0}(", FormatName(table.TableName));
             for (Int32 i = 0; i < Fields.Count; i++)
             {
                 sb.AppendLine();
@@ -424,7 +424,7 @@ namespace XCode.DataAccessLayer
                 sb.Append(FieldClause(Fields[i], true));
                 if (i < Fields.Count - 1) sb.Append(",");
 
-                if (Fields[i].PrimaryKey) pks.Add(FormatName(Fields[i].Name));
+                if (Fields[i].PrimaryKey) pks.Add(FormatName(Fields[i].ColumnName));
             }
             // 如果有自增，则自增必须作为主键
             foreach (IDataColumn item in table.Columns)
@@ -432,7 +432,7 @@ namespace XCode.DataAccessLayer
                 if (item.Identity && !item.PrimaryKey)
                 {
                     pks.Clear();
-                    pks.Add(FormatName(item.Name));
+                    pks.Add(FormatName(item.ColumnName));
                     break;
                 }
             }
@@ -451,12 +451,12 @@ namespace XCode.DataAccessLayer
         {
             if (String.IsNullOrEmpty(table.Description)) return null;
 
-            return String.Format("Alter Table {0} Comment '{1}'", FormatName(table.Name), table.Description);
+            return String.Format("Alter Table {0} Comment '{1}'", FormatName(table.TableName), table.Description);
         }
 
         public override string AlterColumnSQL(IDataColumn field, IDataColumn oldfield)
         {
-            return String.Format("Alter Table {0} Modify Column {1}", FormatName(field.Table.Name), FieldClause(field, false));
+            return String.Format("Alter Table {0} Modify Column {1}", FormatName(field.Table.TableName), FieldClause(field, false));
         }
 
         public override string AddColumnDescriptionSQL(IDataColumn field)

@@ -93,7 +93,7 @@ namespace XCode
                     // 克隆一份，防止修改
                     table = table.Clone() as IDataTable;
 
-                    if (table.Name != tableName)
+                    if (table.TableName != tableName)
                     {
                         // 修改一下索引名，否则，可能因为同一个表里面不同的索引冲突
                         if (table.Indexes != null)
@@ -111,7 +111,7 @@ namespace XCode
                                 di.Name = sb.ToString();
                             }
                         }
-                        table.Name = tableName;
+                        table.TableName = tableName;
                     }
 
                     //var set = new NegativeSetting();

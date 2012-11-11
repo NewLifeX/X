@@ -111,7 +111,7 @@ namespace XCoder
             var tables = Tables;
             if (tables == null || tables.Count < 1) return null;
 
-            var table = tables.Find(e => e.Name.EqualIgnoreCase(tableName));
+            var table = tables.Find(e => e.TableName.EqualIgnoreCase(tableName));
             if (tableName == null) return null;
 
             var data = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
@@ -192,7 +192,7 @@ namespace XCoder
 
                 // 计算输出文件名
                 String fileName = Path.GetFileName(item.Name);
-                var fname = Config.UseCNFileName ? table.DisplayName : table.Alias;
+                var fname = Config.UseCNFileName ? table.DisplayName : table.Name;
                 fname = fname.Replace("/", "_").Replace("\\", "_");
                 fileName = fileName.Replace("类名", fname).Replace("中文名", fname).Replace("连接名", Config.EntityConnName);
 
@@ -231,22 +231,22 @@ namespace XCoder
             #region 修正数据
             foreach (var table in list)
             {
-                table.Alias = mr.GetAlias(table.Name);
+                table.Name = mr.GetAlias(table.TableName);
 
                 if (String.IsNullOrEmpty(table.Description))
-                    noCNDic.Add(table, table.Alias);
+                    noCNDic.Add(table, table.Name);
                 else
-                    AddExistTranslate(existTrans, !string.IsNullOrEmpty(table.Alias) ? table.Alias : table.Name, table.Description);
+                    AddExistTranslate(existTrans, !string.IsNullOrEmpty(table.Name) ? table.Name : table.TableName, table.Description);
 
                 // 字段
                 foreach (var dc in table.Columns)
                 {
-                    dc.Alias = mr.GetAlias(dc);
+                    dc.Name = mr.GetAlias(dc);
 
                     if (String.IsNullOrEmpty(dc.Description))
-                        noCNDic.Add(dc, dc.Alias);
+                        noCNDic.Add(dc, dc.Name);
                     else
-                        AddExistTranslate(existTrans, !string.IsNullOrEmpty(dc.Alias) ? dc.Alias : dc.Name, dc.Description);
+                        AddExistTranslate(existTrans, !string.IsNullOrEmpty(dc.Name) ? dc.Name : dc.ColumnName, dc.Description);
                 }
 
                 //table.Fix();

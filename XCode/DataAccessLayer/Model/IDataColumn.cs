@@ -12,8 +12,8 @@ namespace XCode.DataAccessLayer
         /// <summary>名称</summary>
         String Name { get; set; }
 
-        /// <summary>别名</summary>
-        String Alias { get; set; }
+        /// <summary>列名</summary>
+        String ColumnName { get; set; }
 
         /// <summary>数据类型</summary>
         Type DataType { get; set; }

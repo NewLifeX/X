@@ -290,10 +290,10 @@ namespace XCode.DataAccessLayer
             foreach (var item in table.PrimaryKeys)
             {
                 if (sb.Length > 0) sb.Append(",");
-                sb.Append(FormatName(item.Name));
+                sb.Append(FormatName(item.ColumnName));
             }
             sql += ";" + Environment.NewLine;
-            sql += String.Format("Alter Table {0} Add Constraint PK_{1} Primary Key ({2})", FormatName(table.Name), table.Name, sb.ToString());
+            sql += String.Format("Alter Table {0} Add Constraint PK_{1} Primary Key ({2})", FormatName(table.TableName), table.TableName, sb.ToString());
             return sql;
         }
 

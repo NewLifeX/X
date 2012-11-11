@@ -370,7 +370,7 @@ namespace XCode.DataAccessLayer
             // 修正备注
             foreach (IDataTable item in list)
             {
-                DataRow[] drs = DescriptionTable == null ? null : DescriptionTable.Select("n='" + item.Name + "'");
+                DataRow[] drs = DescriptionTable == null ? null : DescriptionTable.Select("n='" + item.TableName + "'");
                 item.Description = drs == null || drs.Length < 1 ? "" : drs[0][1].ToString();
             }
 
@@ -384,7 +384,7 @@ namespace XCode.DataAccessLayer
         {
             base.FixField(field, dr);
 
-            var rows = AllFields == null ? null : AllFields.Select("表名='" + field.Table.Name + "' And 字段名='" + field.Name + "'", null);
+            var rows = AllFields == null ? null : AllFields.Select("表名='" + field.Table.TableName + "' And 字段名='" + field.ColumnName + "'", null);
             if (rows != null && rows.Length > 0)
             {
                 var dr2 = rows[0];
@@ -458,10 +458,10 @@ namespace XCode.DataAccessLayer
             foreach (IDataColumn item in table.PrimaryKeys)
             {
                 if (sb.Length > 0) sb.Append(",");
-                sb.Append(FormatName(item.Name));
+                sb.Append(FormatName(item.ColumnName));
             }
             sql += "; " + Environment.NewLine;
-            sql += String.Format("Alter Table {0} Add Constraint PK_{1} Primary Key Clustered({2})", FormatName(table.Name), table.Name, sb.ToString());
+            sql += String.Format("Alter Table {0} Add Constraint PK_{1} Primary Key Clustered({2})", FormatName(table.TableName), table.TableName, sb.ToString());
             return sql;
         }
 
@@ -721,23 +721,23 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public Boolean TableExist(IDataTable table)
         {
-            DataTable dt = GetSchema(_.Tables, new String[] { null, null, table.Name, null });
+            DataTable dt = GetSchema(_.Tables, new String[] { null, null, table.TableName, null });
             return dt != null && dt.Rows != null && dt.Rows.Count > 0;
         }
 
         public override string AddTableDescriptionSQL(IDataTable table)
         {
-            return String.Format("EXEC dbo.sp_addextendedproperty @name=N'MS_Description', @value=N'{1}' , @level0type=N'{2}',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'{0}'", table.Name, table.Description, level0type);
+            return String.Format("EXEC dbo.sp_addextendedproperty @name=N'MS_Description', @value=N'{1}' , @level0type=N'{2}',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'{0}'", table.TableName, table.Description, level0type);
         }
 
         public override string DropTableDescriptionSQL(IDataTable table)
         {
-            return String.Format("EXEC dbo.sp_dropextendedproperty @name=N'MS_Description', @level0type=N'{1}',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'{0}'", table.Name, level0type);
+            return String.Format("EXEC dbo.sp_dropextendedproperty @name=N'MS_Description', @level0type=N'{1}',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'{0}'", table.TableName, level0type);
         }
 
         public override string AddColumnSQL(IDataColumn field)
         {
-            return String.Format("Alter Table {0} Add {1}", FormatName(field.Table.Name), FieldClause(field, true));
+            return String.Format("Alter Table {0} Add {1}", FormatName(field.Table.TableName), FieldClause(field, true));
         }
 
         public override string AlterColumnSQL(IDataColumn field, IDataColumn oldfield)
@@ -748,7 +748,7 @@ namespace XCode.DataAccessLayer
                 return DropColumnSQL(oldfield) + ";" + Environment.NewLine + AddColumnSQL(field);
             }
 
-            String sql = String.Format("Alter Table {0} Alter Column {1}", FormatName(field.Table.Name), FieldClause(field, false));
+            String sql = String.Format("Alter Table {0} Alter Column {1}", FormatName(field.Table.TableName), FieldClause(field, false));
             String pk = DeletePrimaryKeySQL(field);
             if (field.PrimaryKey)
             {
@@ -757,7 +757,7 @@ namespace XCode.DataAccessLayer
                 if (!oldfield.PrimaryKey)
                 {
                     // 增加主键约束
-                    pk = String.Format("Alter Table {0} ADD CONSTRAINT PK_{0} PRIMARY KEY {2}({1}) ON [PRIMARY]", FormatName(field.Table.Name), FormatName(field.Name), field.Identity ? "CLUSTERED" : "");
+                    pk = String.Format("Alter Table {0} ADD CONSTRAINT PK_{0} PRIMARY KEY {2}({1}) ON [PRIMARY]", FormatName(field.Table.TableName), FormatName(field.ColumnName), field.Identity ? "CLUSTERED" : "");
                     sql += ";" + Environment.NewLine + pk;
                 }
             }
@@ -789,13 +789,13 @@ namespace XCode.DataAccessLayer
 
         public override string AddColumnDescriptionSQL(IDataColumn field)
         {
-            String sql = String.Format("EXEC dbo.sp_addextendedproperty @name=N'MS_Description', @value=N'{1}' , @level0type=N'{3}',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'{0}', @level2type=N'COLUMN',@level2name=N'{2}'", field.Table.Name, field.Description, field.Name, level0type);
+            String sql = String.Format("EXEC dbo.sp_addextendedproperty @name=N'MS_Description', @value=N'{1}' , @level0type=N'{3}',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'{0}', @level2type=N'COLUMN',@level2name=N'{2}'", field.Table.TableName, field.Description, field.ColumnName, level0type);
             return sql;
         }
 
         public override string DropColumnDescriptionSQL(IDataColumn field)
         {
-            return String.Format("EXEC dbo.sp_dropextendedproperty @name=N'MS_Description', @level0type=N'{2}',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'{0}', @level2type=N'COLUMN',@level2name=N'{1}'", field.Table.Name, field.Name, level0type);
+            return String.Format("EXEC dbo.sp_dropextendedproperty @name=N'MS_Description', @level0type=N'{2}',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'{0}', @level2type=N'COLUMN',@level2name=N'{1}'", field.Table.TableName, field.ColumnName, level0type);
         }
 
         public override string AddDefaultSQL(IDataColumn field)
@@ -809,19 +809,19 @@ namespace XCode.DataAccessLayer
             if (CheckAndGetDefault(field, ref dv))
             {
                 if (String.IsNullOrEmpty(dv)) return sql;
-                sql += String.Format("Alter Table {0} Add CONSTRAINT DF_{0}_{1} DEFAULT {2} FOR {1}", field.Table.Name, field.Name, dv);
+                sql += String.Format("Alter Table {0} Add CONSTRAINT DF_{0}_{1} DEFAULT {2} FOR {1}", field.Table.TableName, field.ColumnName, dv);
                 return sql;
             }
 
             if (tc == TypeCode.String)
-                sql += String.Format("Alter Table {0} Add CONSTRAINT DF_{0}_{1} DEFAULT N'{2}' FOR {1}", field.Table.Name, field.Name, field.Default);
+                sql += String.Format("Alter Table {0} Add CONSTRAINT DF_{0}_{1} DEFAULT N'{2}' FOR {1}", field.Table.TableName, field.ColumnName, field.Default);
             //else if (tc == TypeCode.DateTime)
             //{
             //    String dv = CheckAndGetDefault(field, field.Default);
             //    sql += String.Format("Alter Table {0} Add CONSTRAINT DF_{0}_{1} DEFAULT {2} FOR {1}", field.Table.Name, field.Name, dv);
             //}
             else
-                sql += String.Format("Alter Table {0} Add CONSTRAINT DF_{0}_{1} DEFAULT {2} FOR {1}", field.Table.Name, field.Name, field.Default);
+                sql += String.Format("Alter Table {0} Add CONSTRAINT DF_{0}_{1} DEFAULT {2} FOR {1}", field.Table.TableName, field.ColumnName, field.Default);
             return sql;
         }
 
@@ -831,9 +831,9 @@ namespace XCode.DataAccessLayer
 
             String sql = null;
             if (IsSQL2005)
-                sql = String.Format("select b.name from sys.tables a inner join sys.default_constraints b on a.object_id=b.parent_object_id inner join sys.columns c on a.object_id=c.object_id and b.parent_column_id=c.column_id where a.name='{0}' and c.name='{1}'", field.Table.Name, field.Name);
+                sql = String.Format("select b.name from sys.tables a inner join sys.default_constraints b on a.object_id=b.parent_object_id inner join sys.columns c on a.object_id=c.object_id and b.parent_column_id=c.column_id where a.name='{0}' and c.name='{1}'", field.Table.TableName, field.ColumnName);
             else
-                sql = String.Format("select b.name from syscolumns a inner join sysobjects b on a.cdefault=b.id inner join sysobjects c on a.id=c.id where a.name='{1}' and c.name='{0}' and b.xtype='D'", field.Table.Name, field.Name);
+                sql = String.Format("select b.name from syscolumns a inner join sysobjects b on a.cdefault=b.id inner join sysobjects c on a.id=c.id where a.name='{1}' and c.name='{0}' and b.xtype='D'", field.Table.TableName, field.ColumnName);
 
             DataSet ds = Database.CreateSession().Query(sql);
             if (ds == null || ds.Tables == null || ds.Tables[0].Rows.Count < 1) return null;
@@ -843,7 +843,7 @@ namespace XCode.DataAccessLayer
             {
                 String name = dr[0].ToString();
                 if (sb.Length > 0) sb.AppendLine(";");
-                sb.AppendFormat("Alter Table {0} Drop CONSTRAINT {1}", FormatName(field.Table.Name), name);
+                sb.AppendFormat("Alter Table {0} Drop CONSTRAINT {1}", FormatName(field.Table.TableName), name);
             }
             return sb.ToString();
         }
@@ -857,7 +857,7 @@ namespace XCode.DataAccessLayer
             IDataIndex di = null;
             foreach (IDataIndex item in field.Table.Indexes)
             {
-                if (Array.IndexOf(item.Columns, field.Name) >= 0)
+                if (Array.IndexOf(item.Columns, field.ColumnName) >= 0)
                 {
                     di = item;
                     break;
@@ -865,7 +865,7 @@ namespace XCode.DataAccessLayer
             }
             if (di == null) return String.Empty;
 
-            return String.Format("Alter Table {0} Drop CONSTRAINT {1}", FormatName(field.Table.Name), di.Name);
+            return String.Format("Alter Table {0} Drop CONSTRAINT {1}", FormatName(field.Table.TableName), di.Name);
         }
 
         public override String DropDatabaseSQL(String dbname)

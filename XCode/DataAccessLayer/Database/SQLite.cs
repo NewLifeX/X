@@ -242,7 +242,7 @@ namespace XCode.DataAccessLayer
             // 特殊处理内存数据库
             if ((Database as SQLite).IsMemoryDatabase)
             {
-                return memoryTables.Where(t => names.Contains(t.Name)).ToList();
+                return memoryTables.Where(t => names.Contains(t.TableName)).ToList();
             }
 
             var dt = GetSchema(_.Tables, null);
@@ -349,13 +349,13 @@ namespace XCode.DataAccessLayer
 
             //sb.Append(FormatName(index.Name));
             // SQLite中不同表的索引名也不能相同
-            sb.Append(FormatName(index.Table.Name));
+            sb.Append(FormatName(index.Table.TableName));
             foreach (var item in index.Columns)
             {
                 sb.AppendFormat("_{0}", item);
             }
 
-            sb.AppendFormat(" On {0} (", FormatName(index.Table.Name));
+            sb.AppendFormat(" On {0} (", FormatName(index.Table.TableName));
             for (int i = 0; i < index.Columns.Length; i++)
             {
                 if (i > 0) sb.Append(", ");
@@ -410,7 +410,7 @@ namespace XCode.DataAccessLayer
                 // 看看有没有数据库里面有而实体库里没有的
                 foreach (var item in dbtable.Columns)
                 {
-                    var dc = entitytable.GetColumn(item.Name);
+                    var dc = entitytable.GetColumn(item.ColumnName);
                     if (dc == null)
                     {
                         flag = false;
@@ -495,7 +495,7 @@ namespace XCode.DataAccessLayer
         {
             if (dbtable == null && (Database as SQLite).IsMemoryDatabase)
             {
-                if (memoryTables.Any(t => t.Name.EqualIgnoreCase(entitytable.Name))) return;
+                if (memoryTables.Any(t => t.TableName.EqualIgnoreCase(entitytable.TableName))) return;
 
                 memoryTables.Add(entitytable);
             }

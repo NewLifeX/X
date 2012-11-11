@@ -108,7 +108,7 @@ namespace XCode.Code
 
             // 绑定表
             Class.CustomAttributes.Add(new CodeAttributeDeclaration(new CodeTypeReference(typeof(BindTableAttribute)),
-                new CodeAttributeArgument(new CodePrimitiveExpression(Table.Name)),
+                new CodeAttributeArgument(new CodePrimitiveExpression(Table.TableName)),
                 new CodeAttributeArgument("Description", new CodePrimitiveExpression(Table.Description)),
                 new CodeAttributeArgument("ConnName", new CodePrimitiveExpression(Assembly.ConnName)),
                 new CodeAttributeArgument("DbType", new CodeFieldReferenceExpression(new CodeTypeReferenceExpression(typeof(DatabaseType)), Table.DbType.ToString())),
@@ -149,7 +149,7 @@ namespace XCode.Code
             f.Attributes = MemberAttributes.Private;
             //f.Name = "_" + field.Name;
             //f.Name = "_" + FieldNames[field.Name];
-            f.Name = "_" + field.Alias;
+            f.Name = "_" + field.Name;
             f.Type = new CodeTypeReference(field.DataType);
             Class.Members.Add(f);
             return f;
@@ -160,7 +160,7 @@ namespace XCode.Code
         public CodeMemberProperty AddProperty(IDataColumn field)
         {
             //String name = FieldNames[field.Name];
-            String name = field.Alias;
+            String name = field.Name;
 
             var p = new CodeMemberProperty();
             p.Attributes = MemberAttributes.Public | MemberAttributes.Final;
@@ -182,7 +182,7 @@ namespace XCode.Code
                ));
             p.CustomAttributes.Add(new CodeAttributeDeclaration(new CodeTypeReference(typeof(BindColumnAttribute)),
                 new CodeAttributeArgument(new CodePrimitiveExpression(field.ID)),
-                new CodeAttributeArgument(new CodePrimitiveExpression(field.Name)),
+                new CodeAttributeArgument(new CodePrimitiveExpression(field.ColumnName)),
                 new CodeAttributeArgument(new CodePrimitiveExpression(field.Description)),
                 new CodeAttributeArgument(new CodePrimitiveExpression(field.Default == null ? null : field.Default)),
                 new CodeAttributeArgument(new CodePrimitiveExpression(field.RawType)),
@@ -227,7 +227,7 @@ namespace XCode.Code
             foreach (var item in Table.Columns)
             {
                 //String name = FieldNames[item.Name];
-                String name = item.Alias;
+                String name = item.Name;
 
                 // 取值
                 var cond = new CodeConditionStatement();

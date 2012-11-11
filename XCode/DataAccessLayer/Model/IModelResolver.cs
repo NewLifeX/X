@@ -102,7 +102,7 @@ namespace XCode.DataAccessLayer.Model
         /// <returns></returns>
         public virtual String GetAlias(IDataColumn dc)
         {
-            var name = dc.Name;
+            var name = dc.ColumnName;
             // 对于自增字段，如果强制使用ID，并且字段名以ID结尾，则直接取用ID
             if (dc.Identity && UseID && name.EndsWith("ID", StringComparison.OrdinalIgnoreCase)) return "ID";
 
@@ -115,22 +115,22 @@ namespace XCode.DataAccessLayer.Model
                 //else if (name.StartsWith(dt.Alias, StringComparison.OrdinalIgnoreCase))
                 //    name = name.Substring(dt.Alias.Length);
                 var pfs = new HashSet<String>(StringComparer.OrdinalIgnoreCase);
-                if (!dt.Name.IsNullOrWhiteSpace()) pfs.Add(dt.Name);
+                if (!dt.TableName.IsNullOrWhiteSpace()) pfs.Add(dt.TableName);
                 // 如果包括下划线，再分割
-                if (dt.Name.Contains("_"))
+                if (dt.TableName.Contains("_"))
                 {
-                    foreach (var item in dt.Name.Split("_"))
+                    foreach (var item in dt.TableName.Split("_"))
                     {
                         if (item != null && item.Length >= 2 && !pfs.Contains(item)) pfs.Add(item);
                     }
                 }
-                if (!dt.Alias.IsNullOrWhiteSpace() && !pfs.Contains(dt.Alias))
+                if (!dt.Name.IsNullOrWhiteSpace() && !pfs.Contains(dt.Name))
                 {
-                    pfs.Add(dt.Alias);
+                    pfs.Add(dt.Name);
                     // 如果包括下划线，再分割
-                    if (dt.Alias.Contains("_"))
+                    if (dt.Name.Contains("_"))
                     {
-                        foreach (var item in dt.Alias.Split("_"))
+                        foreach (var item in dt.Name.Split("_"))
                         {
                             if (item != null && item.Length >= 2 && !pfs.Contains(item)) pfs.Add(item);
                         }
@@ -154,10 +154,10 @@ namespace XCode.DataAccessLayer.Model
                 for (int i = 0; i < cs.Count; i++)
                 {
                     var item = cs[i];
-                    if (item != dc && item.Name != dc.Name)
+                    if (item != dc && item.ColumnName != dc.ColumnName)
                     {
                         // 对于小于当前的采用别名，对于大于当前的，采用字段名，保证同名有优先级
-                        if (lastname.EqualIgnoreCase(item.ID < dc.ID ? item.Alias : item.Name))
+                        if (lastname.EqualIgnoreCase(item.ID < dc.ID ? item.Name : item.ColumnName))
                         {
                             lastname = name + ++index;
                             // 从头开始
@@ -357,20 +357,20 @@ namespace XCode.DataAccessLayer.Model
             {
                 if (dc.PrimaryKey || dc.Identity) continue;
 
-                if (GuessRelation(table, rtable, rtable.Name, dc, dc.Name)) continue;
-                if (!dc.Name.EqualIgnoreCase(dc.Alias))
+                if (GuessRelation(table, rtable, rtable.TableName, dc, dc.ColumnName)) continue;
+                if (!dc.ColumnName.EqualIgnoreCase(dc.Name))
                 {
-                    if (GuessRelation(table, rtable, rtable.Name, dc, dc.Alias)) continue;
+                    if (GuessRelation(table, rtable, rtable.TableName, dc, dc.Name)) continue;
                 }
 
                 //if (String.Equals(rtable.Alias, rtable.Name, StringComparison.OrdinalIgnoreCase)) continue;
-                if (rtable.Name.EqualIgnoreCase(rtable.Alias)) continue;
+                if (rtable.TableName.EqualIgnoreCase(rtable.Name)) continue;
 
                 // 如果表2的别名和名称不同，还要继续
-                if (GuessRelation(table, rtable, rtable.Alias, dc, dc.Name)) continue;
-                if (!dc.Name.EqualIgnoreCase(dc.Alias))
+                if (GuessRelation(table, rtable, rtable.Name, dc, dc.ColumnName)) continue;
+                if (!dc.ColumnName.EqualIgnoreCase(dc.Name))
                 {
-                    if (GuessRelation(table, rtable, rtable.Alias, dc, dc.Alias)) continue;
+                    if (GuessRelation(table, rtable, rtable.Name, dc, dc.Name)) continue;
                 }
             }
 
@@ -386,18 +386,18 @@ namespace XCode.DataAccessLayer.Model
         /// <returns></returns>
         public virtual Boolean GuessRelation(IDataTable table, IDataTable rtable, String rname, IDataColumn column, String name)
         {
-            if (name.Length <= rtable.Name.Length || !name.StartsWith(rtable.Name, StringComparison.OrdinalIgnoreCase)) return false;
+            if (name.Length <= rtable.TableName.Length || !name.StartsWith(rtable.TableName, StringComparison.OrdinalIgnoreCase)) return false;
 
-            var key = name.Substring(rtable.Name.Length);
+            var key = name.Substring(rtable.TableName.Length);
             var dc = rtable.GetColumn(key);
             // 猜测两表关联关系时，两个字段的类型也必须一致
             if (dc == null || dc.DataType != column.DataType) return false;
 
             // 建立关系
             var dr = table.CreateRelation();
-            dr.Column = column.Name;
-            dr.RelationTable = rtable.Name;
-            dr.RelationColumn = dc.Name;
+            dr.Column = column.ColumnName;
+            dr.RelationTable = rtable.TableName;
+            dr.RelationColumn = dc.ColumnName;
             // 表关系这里一般是多对一，比如管理员的RoleID=>Role+Role.ID，对于索引来说，不是唯一的
             dr.Unique = false;
             // 当然，如果这个字段column有唯一索引，那么，这里也是唯一的。这就是典型的一对一
@@ -405,7 +405,7 @@ namespace XCode.DataAccessLayer.Model
                 dr.Unique = true;
             else
             {
-                var di = table.GetIndex(column.Name);
+                var di = table.GetIndex(column.ColumnName);
                 if (di != null && di.Unique) dr.Unique = true;
             }
 
@@ -417,18 +417,18 @@ namespace XCode.DataAccessLayer.Model
             //{
             //    if (item.Column == dc.Name && item.RelationTable == table.Name && item.RelationColumn == column.Name) return dr;
             //}
-            if (rtable.GetRelation(dc.Name, table.Name, column.Name) != null) return true;
+            if (rtable.GetRelation(dc.ColumnName, table.TableName, column.ColumnName) != null) return true;
 
             dr = rtable.CreateRelation();
-            dr.Column = dc.Name;
-            dr.RelationTable = table.Name;
-            dr.RelationColumn = column.Name;
+            dr.Column = dc.ColumnName;
+            dr.RelationTable = table.TableName;
+            dr.RelationColumn = column.ColumnName;
             // 那么这里就是唯一的啦
             dr.Unique = true;
             // 当然，如果字段dc不是主键，也没有唯一索引，那么关系就不是唯一的。这就是典型的多对多
             if (!dc.PrimaryKey && !dc.Identity)
             {
-                var di = rtable.GetIndex(dc.Name);
+                var di = rtable.GetIndex(dc.ColumnName);
                 // 没有索引，或者索引不是唯一的
                 if (di == null || !di.Unique) dr.Unique = false;
             }
@@ -598,11 +598,11 @@ namespace XCode.DataAccessLayer.Model
             {
                 if (dc.Identity && !dc.PrimaryKey)
                 {
-                    var di = table.GetIndex(dc.Name);
+                    var di = table.GetIndex(dc.ColumnName);
                     if (di == null)
                     {
                         di = table.CreateIndex();
-                        di.Columns = new String[] { dc.Name };
+                        di.Columns = new String[] { dc.ColumnName };
                         di.Computed = true;
                     }
                     // 不管是不是原来有的索引，都要唯一

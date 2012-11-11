@@ -119,7 +119,7 @@ namespace XCode.DataAccessLayer
                 {
                     #region 基本属性
                     IDataTable table = DAL.CreateTable();
-                    table.Name = GetDataRowValue<String>(dr, _.TalbeName);
+                    table.TableName = GetDataRowValue<String>(dr, _.TalbeName);
 
                     // 顺序、编号
                     Int32 id = 0;
@@ -211,7 +211,7 @@ namespace XCode.DataAccessLayer
             if (dt == null) return null;
 
             DataRow[] drs = null;
-            String where = String.Format("{0}='{1}'", _.TalbeName, table.Name);
+            String where = String.Format("{0}='{1}'", _.TalbeName, table.TableName);
             if (dt.Columns.Contains(_.OrdinalPosition))
                 drs = dt.Select(where, _.OrdinalPosition);
             else if (dt.Columns.Contains(_.ID))
@@ -250,7 +250,7 @@ namespace XCode.DataAccessLayer
                 if (startIndex > 0) field.ID += startIndex;
 
                 // 名称
-                field.Name = GetDataRowValue<String>(dr, _.ColumnName);
+                field.ColumnName = GetDataRowValue<String>(dr, _.ColumnName);
 
                 // 标识、主键
                 Boolean b;
@@ -323,7 +323,7 @@ namespace XCode.DataAccessLayer
                 FixField(field, dr);
 
                 // 检查是否已正确识别类型
-                if (field.DataType == null) WriteLog("无法识别{0}.{1}的类型{2}！", table.Name, field.Name, field.RawType);
+                if (field.DataType == null) WriteLog("无法识别{0}.{1}的类型{2}！", table.TableName, field.ColumnName, field.RawType);
 
                 field.Fix();
                 list.Add(field);
@@ -393,7 +393,7 @@ namespace XCode.DataAccessLayer
         {
             if (_indexes == null) return null;
 
-            DataRow[] drs = _indexes.Select(String.Format("{0}='{1}'", _.TalbeName, table.Name));
+            DataRow[] drs = _indexes.Select(String.Format("{0}='{1}'", _.TalbeName, table.TableName));
             if (drs == null || drs.Length < 1) return null;
 
             List<IDataIndex> list = new List<IDataIndex>();
@@ -417,7 +417,7 @@ namespace XCode.DataAccessLayer
                     else if (_indexColumns.Columns.Contains(_.ColumnPosition))
                         orderby = _.ColumnPosition;
 
-                    DataRow[] dics = _indexColumns.Select(String.Format("{0}='{1}' And {2}='{3}'", _.TalbeName, table.Name, _.IndexName, di.Name), orderby);
+                    DataRow[] dics = _indexColumns.Select(String.Format("{0}='{1}' And {2}='{3}'", _.TalbeName, table.TableName, _.IndexName, di.Name), orderby);
                     if (dics != null && dics.Length > 0)
                     {
                         List<String> ns = new List<string>();

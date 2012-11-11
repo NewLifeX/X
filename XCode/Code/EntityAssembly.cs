@@ -117,11 +117,11 @@ namespace XCode.Code
             foreach (var item in tables)
             {
                 sb.Append("|");
-                sb.Append(item.Name);
+                sb.Append(item.TableName);
                 foreach (var dc in item.Columns)
                 {
                     sb.Append(",");
-                    sb.Append(dc.Name);
+                    sb.Append(dc.ColumnName);
                 }
             }
             var key = DataHelper.Hash(sb.ToString());
@@ -166,7 +166,7 @@ namespace XCode.Code
         /// <returns></returns>
         public EntityClass Create(IDataTable table)
         {
-            if (String.IsNullOrEmpty(table.Alias)) throw new ArgumentNullException("Alias", "数据表中将用作实体类名的别名Alias不能为空！");
+            if (String.IsNullOrEmpty(table.Name)) throw new ArgumentNullException("Alias", "数据表中将用作实体类名的别名Alias不能为空！");
 
             // 复制一份，以免修改原来的结构
             var tb = table.Clone() as IDataTable;
@@ -177,7 +177,7 @@ namespace XCode.Code
         {
             var entity = new EntityClass();
             entity.Assembly = this;
-            entity.ClassName = table.Alias;
+            entity.ClassName = table.Name;
             entity.Table = table;
             //entity.FieldNames = fieldNames;
             entity.Create();
@@ -196,7 +196,7 @@ namespace XCode.Code
         {
             foreach (var item in Tables)
             {
-                if (item.Name == name) return Create(item);
+                if (item.TableName == name) return Create(item);
             }
             return null;
         }
@@ -214,25 +214,25 @@ namespace XCode.Code
                 var tb = item.Clone() as IDataTable;
 
                 #region 避免类名重名
-                if (!list.Contains(tb.Alias))
-                    list.Add(tb.Alias);
+                if (!list.Contains(tb.Name))
+                    list.Add(tb.Name);
                 else
                 {
-                    if (!list.Contains(tb.Name))
+                    if (!list.Contains(tb.TableName))
                     {
-                        tb.Alias = tb.Name;
-                        list.Add(tb.Alias);
+                        tb.Name = tb.TableName;
+                        list.Add(tb.Name);
                     }
                     else
                     {
-                        var name = tb.Alias;
+                        var name = tb.Name;
                         for (int i = 2; i < Int32.MaxValue; i++)
                         {
-                            name = tb.Alias + i;
+                            name = tb.Name + i;
                             if (!list.Contains(name))
                             {
-                                tb.Alias = name;
-                                list.Add(tb.Alias);
+                                tb.Name = name;
+                                list.Add(tb.Name);
                                 break;
                             }
                         }
@@ -240,7 +240,7 @@ namespace XCode.Code
                 }
                 #endregion
 
-                dic.Add(tb.Name, tb.Alias);
+                dic.Add(tb.TableName, tb.Name);
                 var entity = Create2(tb);
 
                 //entity.Create();

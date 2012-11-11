@@ -51,7 +51,7 @@ namespace XCode.DataAccessLayer
         {
             if (String.IsNullOrEmpty(name)) return false;
 
-            return table.Name.EqualIgnoreCase(name) || table.Alias.EqualIgnoreCase(name);
+            return table.TableName.EqualIgnoreCase(name) || table.Name.EqualIgnoreCase(name);
         }
 
         /// <summary>判断字段是否等于指定名字</summary>
@@ -62,7 +62,7 @@ namespace XCode.DataAccessLayer
         {
             if (String.IsNullOrEmpty(name)) return false;
 
-            return column.Name.EqualIgnoreCase(name) || column.Alias.EqualIgnoreCase(name);
+            return column.ColumnName.EqualIgnoreCase(name) || column.Name.EqualIgnoreCase(name);
         }
 
         /// <summary>根据字段名找索引</summary>
@@ -82,7 +82,7 @@ namespace XCode.DataAccessLayer
             // 用别名再试一次
             var columns = table.GetColumns(columnNames);
             if (columns == null || columns.Length < 1) return null;
-            columnNames = columns.Select(e => e.Alias).ToArray();
+            columnNames = columns.Select(e => e.Name).ToArray();
             di = table.Indexes.FirstOrDefault(
                 e => e.Columns != null &&
                     e.Columns.Length == columnNames.Length &&
@@ -234,35 +234,6 @@ namespace XCode.DataAccessLayer
             if (reader.HasAttributes)
             {
                 reader.MoveToFirstAttribute();
-                //do
-                //{
-                //    switch (reader.Name)
-                //    {
-                //        case "ID":
-                //            table.ID = reader.ReadContentAsInt();
-                //            break;
-                //        case "Name":
-                //            table.Name = reader.ReadContentAsString();
-                //            break;
-                //        case "Alias":
-                //            table.Alias = reader.ReadContentAsString();
-                //            break;
-                //        case "Owner":
-                //            table.Owner = reader.ReadContentAsString();
-                //            break;
-                //        case "DbType":
-                //            table.DbType = (DatabaseType)Enum.Parse(typeof(DatabaseType), reader.ReadContentAsString());
-                //            break;
-                //        case "IsView":
-                //            table.IsView = Boolean.Parse(reader.ReadContentAsString());
-                //            break;
-                //        case "Description":
-                //            table.Description = reader.ReadContentAsString();
-                //            break;
-                //        default:
-                //            break;
-                //    }
-                //} while (reader.MoveToNextAttribute());
                 ReadXml(reader, table);
             }
 
@@ -320,14 +291,6 @@ namespace XCode.DataAccessLayer
         /// <param name="writer"></param>
         public static IDataTable WriteXml(this IDataTable table, XmlWriter writer)
         {
-            // 写属性
-            //writer.WriteAttributeString("ID", table.ID.ToString());
-            //writer.WriteAttributeString("Name", table.Name);
-            //writer.WriteAttributeString("Alias", table.Alias);
-            //if (!String.IsNullOrEmpty(table.Owner)) writer.WriteAttributeString("Owner", table.Owner);
-            //writer.WriteAttributeString("DbType", table.DbType.ToString());
-            //writer.WriteAttributeString("IsView", table.IsView.ToString());
-            //if (!String.IsNullOrEmpty(table.Description)) writer.WriteAttributeString("Description", table.Description);
             WriteXml(writer, table);
 
             // 写字段
@@ -373,7 +336,8 @@ namespace XCode.DataAccessLayer
         /// <param name="value"></param>
         public static void ReadXml(XmlReader reader, Object value)
         {
-            foreach (var item in GetProperties(value.GetType()))
+            var pis = GetProperties(value.GetType());
+            foreach (var item in pis)
             {
                 if (!item.Property.CanRead) continue;
                 if (AttributeX.GetCustomAttribute<XmlIgnoreAttribute>(item.Member, false) != null) continue;
@@ -388,6 +352,18 @@ namespace XCode.DataAccessLayer
                 }
                 else
                     item.SetValue(value, TypeX.ChangeType(v, item.Type));
+            }
+            // 兼容旧版本
+            var v2 = reader.GetAttribute("Alias");
+            if (!String.IsNullOrEmpty(v2))
+            {
+                var pi1 = pis.FirstOrDefault(e => e.Name == "Name");
+                var pi2 = pis.FirstOrDefault(e => e.Name == "TableName" || e.Name == "ColumnName");
+                if (pi1 != null && pi2 != null)
+                {
+                    pi2.SetValue(value, pi1.GetValue(value));
+                    pi1.SetValue(value, v2);
+                }
             }
             //reader.Skip();
         }
@@ -425,7 +401,7 @@ namespace XCode.DataAccessLayer
                     // 如果别名与名称相同，则跳过
                     if (item.Name == "Name")
                         name = (String)obj;
-                    else if (item.Name == "Alias")
+                    else if (item.Name == "Alias" || item.Name == "TableName" || item.Name == "ColumnName")
                         if (name == (String)obj) continue;
                 }
                 else if (code == TypeCode.Object)
@@ -479,8 +455,8 @@ namespace XCode.DataAccessLayer
         public static IDataTable CopyFrom(this IDataTable src, IDataTable des)
         {
             src.ID = des.ID;
+            src.TableName = des.TableName;
             src.Name = des.Name;
-            src.Alias = des.Alias;
             src.Owner = des.Owner;
             src.DbType = des.DbType;
             src.IsView = des.IsView;
@@ -520,8 +496,8 @@ namespace XCode.DataAccessLayer
         public static IDataColumn CopyFrom(this IDataColumn src, IDataColumn des)
         {
             src.ID = des.ID;
+            src.ColumnName = des.ColumnName;
             src.Name = des.Name;
-            src.Alias = des.Alias;
             src.DataType = des.DataType;
             src.RawType = des.RawType;
             src.Identity = des.Identity;
