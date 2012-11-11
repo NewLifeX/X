@@ -71,6 +71,9 @@ namespace XCode.DataAccessLayer
             if (!builder.ContainsKey("Synchronous")) builder["Synchronous"] = "Off";
             // Journal Mode的内存设置太激进了，容易出事，关闭
             //if (!builder.ContainsKey("Journal Mode")) builder["Journal Mode"] = "Memory";
+            // 数据库中一种高效的日志算法，对于非内存数据库而言，磁盘I/O操作是数据库效率的一大瓶颈。
+            // 在相同的数据量下，采用WAL日志的数据库系统在事务提交时，磁盘写操作只有传统的回滚日志的一半左右，大大提高了数据库磁盘I/O操作的效率，从而提高了数据库的性能。
+            if (!builder.ContainsKey("Journal Mode")) builder["Journal Mode"] = "WAL";
         }
         #endregion
 
