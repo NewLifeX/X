@@ -787,38 +787,35 @@ namespace XCode.DataAccessLayer
                         else
                             name = values[0].ToString();
 
-                        DataTable dt = GetSchema(_.Tables, new String[] { null, null, name, "TABLE" });
+                        var dt = GetSchema(_.Tables, new String[] { null, null, name, "TABLE" });
                         if (dt == null || dt.Rows == null || dt.Rows.Count < 1) return false;
+                        return true;
+                    }
+                case DDLSchema.BackupDatabase:
+                    {
+                        Backup((String)values[0], (String)values[1]);
                         return true;
                     }
                 default:
                     break;
             }
 
-            String sql = GetSchemaSQL(schema, values);
+            var sql = GetSchemaSQL(schema, values);
             if (String.IsNullOrEmpty(sql)) return null;
 
-            IDbSession session = Database.CreateSession();
+            var session = Database.CreateSession();
 
-            if (schema == DDLSchema.TableExist || schema == DDLSchema.DatabaseExist)
+            if (schema == DDLSchema.TableExist || schema == DDLSchema.DatabaseExist) return session.QueryCount(sql) > 0;
+
+            // 分隔符是分号加换行，如果不想被拆开执行（比如有事务），可以在分号和换行之间加一个空格
+            var ss = sql.Split(";" + Environment.NewLine);
+            if (ss == null || ss.Length < 1) return session.Execute(sql);
+
+            foreach (var item in ss)
             {
-                return session.QueryCount(sql) > 0;
+                session.Execute(item);
             }
-            else
-            {
-                // 分隔符是分号加换行，如果不想被拆开执行（比如有事务），可以在分号和换行之间加一个空格
-                String[] ss = sql.Split(new String[] { ";" + Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
-                if (ss == null || ss.Length < 1)
-                    return session.Execute(sql);
-                else
-                {
-                    foreach (String item in ss)
-                    {
-                        session.Execute(item);
-                    }
-                    return 0;
-                }
-            }
+            return 0;
         }
 
         /// <summary>字段片段</summary>
@@ -827,7 +824,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public virtual String FieldClause(IDataColumn field, Boolean onlyDefine)
         {
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
 
             //字段名
             sb.AppendFormat("{0} ", FormatName(field.Name));
@@ -1000,6 +997,10 @@ namespace XCode.DataAccessLayer
         {
             return String.Format("Drop Index {0} On {1}", FormatName(index.Name), FormatName(index.Table.Name));
         }
+        #endregion
+
+        #region 操作
+        protected virtual void Backup(String dbname, String file) { throw new NotImplementedException(); }
         #endregion
     }
 }
