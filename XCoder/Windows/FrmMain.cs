@@ -427,6 +427,8 @@ namespace XCoder
 
             sw.Stop();
             lb_Status.Text = "生成 " + tables.Count + " 个类完成！耗时：" + sw.Elapsed.ToString();
+
+            MessageBox.Show("生成" + tables.Count + " 个类成功！", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
         #endregion
 
@@ -440,6 +442,8 @@ namespace XCoder
             txt_ConnName.Text = Config.EntityConnName;
             txtBaseClass.Text = Config.BaseClass;
             cbRenderGenEntity.Checked = Config.RenderGenEntity;
+
+            cbNeedFix.Checked = Config.NeedFix;
             txtPrefix.Text = Config.Prefix;
             cbCutPrefix.Checked = Config.AutoCutPrefix;
             cbCutTableName.Checked = Config.AutoCutTableName;
@@ -460,6 +464,8 @@ namespace XCoder
             Config.EntityConnName = txt_ConnName.Text;
             Config.BaseClass = txtBaseClass.Text;
             Config.RenderGenEntity = cbRenderGenEntity.Checked;
+
+            Config.NeedFix = cbNeedFix.Checked;
             Config.Prefix = txtPrefix.Text;
             Config.AutoCutPrefix = cbCutPrefix.Checked;
             Config.AutoCutTableName = cbCutTableName.Checked;

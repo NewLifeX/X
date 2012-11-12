@@ -34,25 +34,29 @@
             this.bt_GenTable = new System.Windows.Forms.Button();
             this.cbTableList = new System.Windows.Forms.ComboBox();
             this.label5 = new System.Windows.Forms.Label();
+            this.label3 = new System.Windows.Forms.Label();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.lb_Status = new System.Windows.Forms.ToolStripStatusLabel();
             this.gbConfig = new System.Windows.Forms.GroupBox();
+            this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.label2 = new System.Windows.Forms.Label();
+            this.txtPrefix = new System.Windows.Forms.TextBox();
+            this.cbCutPrefix = new System.Windows.Forms.CheckBox();
+            this.cbFixWord = new System.Windows.Forms.CheckBox();
             this.cbCutTableName = new System.Windows.Forms.CheckBox();
             this.cbUseID = new System.Windows.Forms.CheckBox();
+            this.cbNeedFix = new System.Windows.Forms.CheckBox();
+            this.webBrowser1 = new System.Windows.Forms.WebBrowser();
+            this.lbEditHeader = new System.Windows.Forms.LinkLabel();
             this.frmItems = new System.Windows.Forms.Button();
             this.cbRenderGenEntity = new System.Windows.Forms.CheckBox();
             this.btnRelease = new System.Windows.Forms.Button();
-            this.label3 = new System.Windows.Forms.Label();
             this.txtBaseClass = new System.Windows.Forms.TextBox();
             this.label10 = new System.Windows.Forms.Label();
             this.btnOpenOutputDir = new System.Windows.Forms.Button();
             this.checkBox5 = new System.Windows.Forms.CheckBox();
             this.checkBox4 = new System.Windows.Forms.CheckBox();
             this.checkBox3 = new System.Windows.Forms.CheckBox();
-            this.cbFixWord = new System.Windows.Forms.CheckBox();
-            this.cbCutPrefix = new System.Windows.Forms.CheckBox();
-            this.txtPrefix = new System.Windows.Forms.TextBox();
-            this.label2 = new System.Windows.Forms.Label();
             this.txt_ConnName = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
             this.txt_NameSpace = new System.Windows.Forms.TextBox();
@@ -81,27 +85,23 @@
             this.组件手册ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.表名字段名命名规范ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem2 = new System.Windows.Forms.ToolStripSeparator();
-            this.博客ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.qQ群1600800ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.qQ群1600800ToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
+            this.博客ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.检查更新ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.关于ToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
-            this.qQ群1600800ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.lbEditHeader = new System.Windows.Forms.LinkLabel();
-            this.webBrowser1 = new System.Windows.Forms.WebBrowser();
-            this.checkBox1 = new System.Windows.Forms.CheckBox();
-            this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.gbConnect.SuspendLayout();
             this.gbTable.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.gbConfig.SuspendLayout();
-            this.menuStrip1.SuspendLayout();
             this.groupBox1.SuspendLayout();
+            this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
             // bt_Connection
             // 
             this.bt_Connection.ForeColor = System.Drawing.Color.DeepPink;
-            this.bt_Connection.Location = new System.Drawing.Point(218, 42);
+            this.bt_Connection.Location = new System.Drawing.Point(295, 38);
             this.bt_Connection.Name = "bt_Connection";
             this.bt_Connection.Size = new System.Drawing.Size(52, 23);
             this.bt_Connection.TabIndex = 6;
@@ -117,7 +117,7 @@
             this.gbConnect.ForeColor = System.Drawing.Color.DeepPink;
             this.gbConnect.Location = new System.Drawing.Point(3, 30);
             this.gbConnect.Name = "gbConnect";
-            this.gbConnect.Size = new System.Drawing.Size(205, 38);
+            this.gbConnect.Size = new System.Drawing.Size(286, 38);
             this.gbConnect.TabIndex = 7;
             this.gbConnect.TabStop = false;
             // 
@@ -128,7 +128,7 @@
             this.cbConn.FormattingEnabled = true;
             this.cbConn.Location = new System.Drawing.Point(58, 11);
             this.cbConn.Name = "cbConn";
-            this.cbConn.Size = new System.Drawing.Size(141, 24);
+            this.cbConn.Size = new System.Drawing.Size(220, 24);
             this.cbConn.TabIndex = 13;
             this.cbConn.SelectionChangeCommitted += new System.EventHandler(this.cbConn_SelectionChangeCommitted);
             // 
@@ -183,7 +183,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.cbTableList.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cbTableList.Font = new System.Drawing.Font("宋体", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.cbTableList.ForeColor = System.Drawing.Color.Coral;
+            this.cbTableList.ForeColor = System.Drawing.Color.Red;
             this.cbTableList.Location = new System.Drawing.Point(58, 18);
             this.cbTableList.Name = "cbTableList";
             this.cbTableList.Size = new System.Drawing.Size(291, 24);
@@ -198,6 +198,17 @@
             this.label5.Size = new System.Drawing.Size(53, 12);
             this.label5.TabIndex = 16;
             this.label5.Text = "数据表：";
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.ForeColor = System.Drawing.Color.Purple;
+            this.label3.Location = new System.Drawing.Point(517, 24);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(143, 12);
+            this.label3.TabIndex = 29;
+            this.label3.Text = ".Net技术交流群：1600800";
+            this.label3.Click += new System.EventHandler(this.label3_Click);
             // 
             // statusStrip1
             // 
@@ -223,7 +234,7 @@
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.gbConfig.Controls.Add(this.groupBox1);
-            this.gbConfig.Controls.Add(this.checkBox1);
+            this.gbConfig.Controls.Add(this.cbNeedFix);
             this.gbConfig.Controls.Add(this.webBrowser1);
             this.gbConfig.Controls.Add(this.lbEditHeader);
             this.gbConfig.Controls.Add(this.frmItems);
@@ -249,6 +260,58 @@
             this.gbConfig.TabIndex = 26;
             this.gbConfig.TabStop = false;
             // 
+            // groupBox1
+            // 
+            this.groupBox1.Controls.Add(this.label2);
+            this.groupBox1.Controls.Add(this.txtPrefix);
+            this.groupBox1.Controls.Add(this.cbCutPrefix);
+            this.groupBox1.Controls.Add(this.cbFixWord);
+            this.groupBox1.Controls.Add(this.cbCutTableName);
+            this.groupBox1.Controls.Add(this.cbUseID);
+            this.groupBox1.ForeColor = System.Drawing.Color.Blue;
+            this.groupBox1.Location = new System.Drawing.Point(11, 190);
+            this.groupBox1.Name = "groupBox1";
+            this.groupBox1.Size = new System.Drawing.Size(315, 88);
+            this.groupBox1.TabIndex = 56;
+            this.groupBox1.TabStop = false;
+            this.groupBox1.Text = "格式化";
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(6, 17);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(65, 12);
+            this.label2.TabIndex = 35;
+            this.label2.Text = "删除前缀：";
+            // 
+            // txtPrefix
+            // 
+            this.txtPrefix.Location = new System.Drawing.Point(66, 13);
+            this.txtPrefix.Name = "txtPrefix";
+            this.txtPrefix.Size = new System.Drawing.Size(243, 21);
+            this.txtPrefix.TabIndex = 36;
+            // 
+            // cbCutPrefix
+            // 
+            this.cbCutPrefix.AutoSize = true;
+            this.cbCutPrefix.Location = new System.Drawing.Point(6, 45);
+            this.cbCutPrefix.Name = "cbCutPrefix";
+            this.cbCutPrefix.Size = new System.Drawing.Size(138, 16);
+            this.cbCutPrefix.TabIndex = 37;
+            this.cbCutPrefix.Text = "去除前缀（以_为准）";
+            this.cbCutPrefix.UseVisualStyleBackColor = true;
+            // 
+            // cbFixWord
+            // 
+            this.cbFixWord.AutoSize = true;
+            this.cbFixWord.Location = new System.Drawing.Point(146, 45);
+            this.cbFixWord.Name = "cbFixWord";
+            this.cbFixWord.Size = new System.Drawing.Size(108, 16);
+            this.cbFixWord.TabIndex = 38;
+            this.cbFixWord.Text = "更正名称大小写";
+            this.cbFixWord.UseVisualStyleBackColor = true;
+            // 
             // cbCutTableName
             // 
             this.cbCutTableName.AutoSize = true;
@@ -268,6 +331,43 @@
             this.cbUseID.TabIndex = 51;
             this.cbUseID.Text = "强制使用ID";
             this.cbUseID.UseVisualStyleBackColor = true;
+            // 
+            // cbNeedFix
+            // 
+            this.cbNeedFix.AutoSize = true;
+            this.cbNeedFix.Checked = true;
+            this.cbNeedFix.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.cbNeedFix.ForeColor = System.Drawing.Color.Blue;
+            this.cbNeedFix.Location = new System.Drawing.Point(14, 168);
+            this.cbNeedFix.Name = "cbNeedFix";
+            this.cbNeedFix.Size = new System.Drawing.Size(336, 16);
+            this.cbNeedFix.TabIndex = 55;
+            this.cbNeedFix.Text = "格式化（通过下面的设置对数据库或导入的模型进行处理）";
+            this.cbNeedFix.UseVisualStyleBackColor = true;
+            // 
+            // webBrowser1
+            // 
+            this.webBrowser1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.webBrowser1.Location = new System.Drawing.Point(388, 49);
+            this.webBrowser1.MinimumSize = new System.Drawing.Size(20, 20);
+            this.webBrowser1.Name = "webBrowser1";
+            this.webBrowser1.Size = new System.Drawing.Size(336, 243);
+            this.webBrowser1.TabIndex = 54;
+            this.webBrowser1.Url = new System.Uri("http://www.newlifex.com/archiver/showforum-2.aspx", System.UriKind.Absolute);
+            // 
+            // lbEditHeader
+            // 
+            this.lbEditHeader.AutoSize = true;
+            this.lbEditHeader.ForeColor = System.Drawing.Color.Brown;
+            this.lbEditHeader.Location = new System.Drawing.Point(517, 28);
+            this.lbEditHeader.Name = "lbEditHeader";
+            this.lbEditHeader.Size = new System.Drawing.Size(29, 12);
+            this.lbEditHeader.TabIndex = 53;
+            this.lbEditHeader.TabStop = true;
+            this.lbEditHeader.Text = "编辑";
+            this.lbEditHeader.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.lbEditHeader_LinkClicked);
             // 
             // frmItems
             // 
@@ -303,17 +403,6 @@
             this.toolTip1.SetToolTip(this.btnRelease, "释放内置的模版到Template目录，作为参考供建立模版使用。");
             this.btnRelease.UseVisualStyleBackColor = true;
             this.btnRelease.Click += new System.EventHandler(this.btnRelease_Click);
-            // 
-            // label3
-            // 
-            this.label3.AutoSize = true;
-            this.label3.ForeColor = System.Drawing.Color.Purple;
-            this.label3.Location = new System.Drawing.Point(517, 24);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(143, 12);
-            this.label3.TabIndex = 29;
-            this.label3.Text = ".Net技术交流群：1600800";
-            this.label3.Click += new System.EventHandler(this.label3_Click);
             // 
             // txtBaseClass
             // 
@@ -379,43 +468,6 @@
             this.checkBox3.TabIndex = 39;
             this.checkBox3.Text = "中文文件名";
             this.checkBox3.UseVisualStyleBackColor = true;
-            // 
-            // cbFixWord
-            // 
-            this.cbFixWord.AutoSize = true;
-            this.cbFixWord.Location = new System.Drawing.Point(146, 45);
-            this.cbFixWord.Name = "cbFixWord";
-            this.cbFixWord.Size = new System.Drawing.Size(108, 16);
-            this.cbFixWord.TabIndex = 38;
-            this.cbFixWord.Text = "更正名称大小写";
-            this.cbFixWord.UseVisualStyleBackColor = true;
-            // 
-            // cbCutPrefix
-            // 
-            this.cbCutPrefix.AutoSize = true;
-            this.cbCutPrefix.Location = new System.Drawing.Point(6, 45);
-            this.cbCutPrefix.Name = "cbCutPrefix";
-            this.cbCutPrefix.Size = new System.Drawing.Size(138, 16);
-            this.cbCutPrefix.TabIndex = 37;
-            this.cbCutPrefix.Text = "去除前缀（以_为准）";
-            this.cbCutPrefix.UseVisualStyleBackColor = true;
-            // 
-            // txtPrefix
-            // 
-            this.txtPrefix.Location = new System.Drawing.Point(66, 13);
-            this.txtPrefix.Name = "txtPrefix";
-            this.txtPrefix.Size = new System.Drawing.Size(243, 21);
-            this.txtPrefix.TabIndex = 36;
-            this.txtPrefix.Text = "X_;N_;tbl";
-            // 
-            // label2
-            // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(6, 17);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(65, 12);
-            this.label2.TabIndex = 35;
-            this.label2.Text = "删除前缀：";
             // 
             // txt_ConnName
             // 
@@ -492,14 +544,14 @@
             this.cb_Template.FormattingEnabled = true;
             this.cb_Template.Location = new System.Drawing.Point(58, 19);
             this.cb_Template.Name = "cb_Template";
-            this.cb_Template.Size = new System.Drawing.Size(142, 24);
+            this.cb_Template.Size = new System.Drawing.Size(221, 24);
             this.cb_Template.TabIndex = 26;
             this.toolTip1.SetToolTip(this.cb_Template, "*开头的是内置系统模版。");
             // 
             // btnImport
             // 
             this.btnImport.ForeColor = System.Drawing.Color.DeepPink;
-            this.btnImport.Location = new System.Drawing.Point(280, 42);
+            this.btnImport.Location = new System.Drawing.Point(357, 38);
             this.btnImport.Name = "btnImport";
             this.btnImport.Size = new System.Drawing.Size(80, 23);
             this.btnImport.TabIndex = 30;
@@ -520,7 +572,7 @@
             // 
             this.label9.AutoSize = true;
             this.label9.ForeColor = System.Drawing.Color.RoyalBlue;
-            this.label9.Location = new System.Drawing.Point(388, 39);
+            this.label9.Location = new System.Drawing.Point(473, 35);
             this.label9.Name = "label9";
             this.label9.Size = new System.Drawing.Size(65, 12);
             this.label9.TabIndex = 32;
@@ -530,7 +582,7 @@
             // 
             this.label11.AutoSize = true;
             this.label11.ForeColor = System.Drawing.Color.RoyalBlue;
-            this.label11.Location = new System.Drawing.Point(446, 60);
+            this.label11.Location = new System.Drawing.Point(531, 56);
             this.label11.Name = "label11";
             this.label11.Size = new System.Drawing.Size(167, 12);
             this.label11.TabIndex = 33;
@@ -540,7 +592,7 @@
             // 
             this.label12.AutoSize = true;
             this.label12.ForeColor = System.Drawing.Color.RoyalBlue;
-            this.label12.Location = new System.Drawing.Point(446, 39);
+            this.label12.Location = new System.Drawing.Point(531, 35);
             this.label12.Name = "label12";
             this.label12.Size = new System.Drawing.Size(179, 12);
             this.label12.TabIndex = 34;
@@ -656,18 +708,25 @@
             this.toolStripMenuItem2.Name = "toolStripMenuItem2";
             this.toolStripMenuItem2.Size = new System.Drawing.Size(209, 6);
             // 
-            // 博客ToolStripMenuItem
+            // qQ群1600800ToolStripMenuItem
             // 
-            this.博客ToolStripMenuItem.Name = "博客ToolStripMenuItem";
-            this.博客ToolStripMenuItem.Size = new System.Drawing.Size(212, 22);
-            this.博客ToolStripMenuItem.Text = "博客nnhy.cnblogs.com";
-            this.博客ToolStripMenuItem.Click += new System.EventHandler(this.博客ToolStripMenuItem_Click);
+            this.qQ群1600800ToolStripMenuItem.Name = "qQ群1600800ToolStripMenuItem";
+            this.qQ群1600800ToolStripMenuItem.Size = new System.Drawing.Size(212, 22);
+            this.qQ群1600800ToolStripMenuItem.Text = "论坛www.NewLifeX.com";
+            this.qQ群1600800ToolStripMenuItem.Click += new System.EventHandler(this.qQ群1600800ToolStripMenuItem_Click);
             // 
             // qQ群1600800ToolStripMenuItem1
             // 
             this.qQ群1600800ToolStripMenuItem1.Name = "qQ群1600800ToolStripMenuItem1";
             this.qQ群1600800ToolStripMenuItem1.Size = new System.Drawing.Size(212, 22);
             this.qQ群1600800ToolStripMenuItem1.Text = "QQ群1600800";
+            // 
+            // 博客ToolStripMenuItem
+            // 
+            this.博客ToolStripMenuItem.Name = "博客ToolStripMenuItem";
+            this.博客ToolStripMenuItem.Size = new System.Drawing.Size(212, 22);
+            this.博客ToolStripMenuItem.Text = "博客nnhy.cnblogs.com";
+            this.博客ToolStripMenuItem.Click += new System.EventHandler(this.博客ToolStripMenuItem_Click);
             // 
             // 检查更新ToolStripMenuItem
             // 
@@ -682,66 +741,6 @@
             this.关于ToolStripMenuItem1.Size = new System.Drawing.Size(212, 22);
             this.关于ToolStripMenuItem1.Text = "关于(&A)";
             this.关于ToolStripMenuItem1.Click += new System.EventHandler(this.关于ToolStripMenuItem1_Click);
-            // 
-            // qQ群1600800ToolStripMenuItem
-            // 
-            this.qQ群1600800ToolStripMenuItem.Name = "qQ群1600800ToolStripMenuItem";
-            this.qQ群1600800ToolStripMenuItem.Size = new System.Drawing.Size(212, 22);
-            this.qQ群1600800ToolStripMenuItem.Text = "论坛www.NewLifeX.com";
-            this.qQ群1600800ToolStripMenuItem.Click += new System.EventHandler(this.qQ群1600800ToolStripMenuItem_Click);
-            // 
-            // lbEditHeader
-            // 
-            this.lbEditHeader.AutoSize = true;
-            this.lbEditHeader.ForeColor = System.Drawing.Color.Brown;
-            this.lbEditHeader.Location = new System.Drawing.Point(517, 28);
-            this.lbEditHeader.Name = "lbEditHeader";
-            this.lbEditHeader.Size = new System.Drawing.Size(29, 12);
-            this.lbEditHeader.TabIndex = 53;
-            this.lbEditHeader.TabStop = true;
-            this.lbEditHeader.Text = "编辑";
-            this.lbEditHeader.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.lbEditHeader_LinkClicked);
-            // 
-            // webBrowser1
-            // 
-            this.webBrowser1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.webBrowser1.Location = new System.Drawing.Point(388, 49);
-            this.webBrowser1.MinimumSize = new System.Drawing.Size(20, 20);
-            this.webBrowser1.Name = "webBrowser1";
-            this.webBrowser1.Size = new System.Drawing.Size(336, 243);
-            this.webBrowser1.TabIndex = 54;
-            this.webBrowser1.Url = new System.Uri("http://www.newlifex.com/archiver/showforum-2.aspx", System.UriKind.Absolute);
-            // 
-            // checkBox1
-            // 
-            this.checkBox1.AutoSize = true;
-            this.checkBox1.Checked = true;
-            this.checkBox1.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.checkBox1.ForeColor = System.Drawing.Color.Blue;
-            this.checkBox1.Location = new System.Drawing.Point(14, 168);
-            this.checkBox1.Name = "checkBox1";
-            this.checkBox1.Size = new System.Drawing.Size(336, 16);
-            this.checkBox1.TabIndex = 55;
-            this.checkBox1.Text = "格式化（通过下面的设置对数据库或导入的模型进行处理）";
-            this.checkBox1.UseVisualStyleBackColor = true;
-            // 
-            // groupBox1
-            // 
-            this.groupBox1.Controls.Add(this.label2);
-            this.groupBox1.Controls.Add(this.txtPrefix);
-            this.groupBox1.Controls.Add(this.cbCutPrefix);
-            this.groupBox1.Controls.Add(this.cbFixWord);
-            this.groupBox1.Controls.Add(this.cbCutTableName);
-            this.groupBox1.Controls.Add(this.cbUseID);
-            this.groupBox1.ForeColor = System.Drawing.Color.Blue;
-            this.groupBox1.Location = new System.Drawing.Point(11, 190);
-            this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(315, 88);
-            this.groupBox1.TabIndex = 56;
-            this.groupBox1.TabStop = false;
-            this.groupBox1.Text = "格式化";
             // 
             // FrmMain
             // 
@@ -774,10 +773,10 @@
             this.statusStrip1.PerformLayout();
             this.gbConfig.ResumeLayout(false);
             this.gbConfig.PerformLayout();
-            this.menuStrip1.ResumeLayout(false);
-            this.menuStrip1.PerformLayout();
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
+            this.menuStrip1.ResumeLayout(false);
+            this.menuStrip1.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -848,7 +847,7 @@
         private System.Windows.Forms.ToolStripMenuItem qQ群1600800ToolStripMenuItem1;
         private System.Windows.Forms.LinkLabel lbEditHeader;
         private System.Windows.Forms.WebBrowser webBrowser1;
-        private System.Windows.Forms.CheckBox checkBox1;
+        private System.Windows.Forms.CheckBox cbNeedFix;
         private System.Windows.Forms.GroupBox groupBox1;
 	}
 }

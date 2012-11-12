@@ -69,6 +69,10 @@ namespace XCoder
         /// <summary>生成泛型实体类</summary>
         public Boolean RenderGenEntity { get { return _RenderGenEntity; } set { _RenderGenEntity = value; } }
 
+        private Boolean _NeedFix = true;
+        /// <summary>是否需要修正。默认true，将根据配置删除前缀、自动化大小写和完善注释等</summary>
+        public Boolean NeedFix { get { return _NeedFix; } set { _NeedFix = value; } }
+
         private Boolean _AutoCutPrefix;
         /// <summary>自动去除前缀</summary>
         public Boolean AutoCutPrefix

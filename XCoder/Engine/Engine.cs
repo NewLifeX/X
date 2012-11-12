@@ -65,10 +65,6 @@ namespace XCoder
         /// <summary>配置</summary>
         public XConfig Config { get { return _Config; } set { _Config = value; } }
 
-        private Boolean _NeedFix = true;
-        /// <summary>是否需要修正。默认true，将根据配置删除前缀、自动化大小写和完善注释等</summary>
-        public Boolean NeedFix { get { return _NeedFix; } set { _NeedFix = value; } }
-
         private String _LastTableKey;
         private List<IDataTable> _LastTables;
         private List<IDataTable> _Tables;
@@ -77,7 +73,7 @@ namespace XCoder
         {
             get
             {
-                if (!NeedFix) return _Tables;
+                if (!Config.NeedFix) return _Tables;
 
                 // 不同的前缀、大小写选项，得到的表集合是不一样的。这里用字典来缓存
                 var key = String.Format("{0}_{1}_{2}_{3}_{4}", Config.AutoCutPrefix, Config.AutoCutTableName, Config.AutoFixWord, Config.Prefix, Config.UseID);
