@@ -12,7 +12,7 @@ if(Table.Relations!=null && Table.Relations.Count>0)
 
         IDataColumn field = Table.GetColumn(dr.Column);
 
-		String className = rtable.Alias;
+		String className = rtable.Name;
         String keyName=className;
 		if(tbs.Contains(keyName)) continue;
 		tbs.Add(keyName);
@@ -23,7 +23,7 @@ if(Table.Relations!=null && Table.Relations.Count>0)
 		{
 			foreach(IDataRelation dr2 in rtable.Relations)
 			{
-				if(dr2.Column==dr.RelationColumn && dr2.RelationTable==Table.Name && dr2.RelationColumn==dr.Column)
+				if(dr2.Column==dr.RelationColumn && dr2.RelationTable==Table.TableName && dr2.RelationColumn==dr.Column)
 				{
 					if(dr2.Unique) b=false;
 				}
@@ -43,11 +43,11 @@ if(Table.Relations!=null && Table.Relations.Count>0)
             {
                 <#
                 if(field.DataType == typeof(String)){
-                #>if (_<#=keyName#> == null && !String.IsNullOrEmpty(<#=field.Alias#>) && !Dirtys.ContainsKey("<#=keyName#>"))<#
-                }else{#>if (_<#=keyName#> == null && <#=field.Alias#> > 0 && !Dirtys.ContainsKey("<#=keyName#>"))<#
+                #>if (_<#=keyName#> == null && !String.IsNullOrEmpty(<#=field.Name#>) && !Dirtys.ContainsKey("<#=keyName#>"))<#
+                }else{#>if (_<#=keyName#> == null && <#=field.Name#> > 0 && !Dirtys.ContainsKey("<#=keyName#>"))<#
                 }#>
                 {
-                    _<#=keyName#> = <#=className#>.FindBy<#=rcolumn.Alias#>(<#=field.Alias#>);
+                    _<#=keyName#> = <#=className#>.FindBy<#=rcolumn.Name#>(<#=field.Name#>);
                     Dirtys["<#=keyName#>"] = true;
                 }
                 return _<#=keyName#>;
@@ -78,11 +78,11 @@ if(Table.Relations!=null && Table.Relations.Count>0)
 			{
 				<#
                 if(field.DataType == typeof(String)){
-                #>if (_<#=keyName#> == null && !String.IsNullOrEmpty(<#=field.Alias#>) && !Dirtys.ContainsKey("<#=keyName#>"))<#
-                }else{#>if (_<#=keyName#> == null && <#=field.Alias#> > 0 && !Dirtys.ContainsKey("<#=keyName#>"))<#
+                #>if (_<#=keyName#> == null && !String.IsNullOrEmpty(<#=field.Name#>) && !Dirtys.ContainsKey("<#=keyName#>"))<#
+                }else{#>if (_<#=keyName#> == null && <#=field.Name#> > 0 && !Dirtys.ContainsKey("<#=keyName#>"))<#
                 }#>
                 {
-					_<#=keyName#> = <#=className#>.FindAllBy<#=rcolumn.Alias#>(<#=field.Alias#>);
+					_<#=keyName#> = <#=className#>.FindAllBy<#=rcolumn.Name#>(<#=field.Name#>);
 					Dirtys["<#=keyName#>"] = true;
 				}
 				return _<#=keyName#>;

@@ -1,4 +1,4 @@
-<%@ Page Title="<#=Table.DisplayName#>管理" Language="C#" MasterPageFile="~/Admin/ManagerPage.master" AutoEventWireup="true" CodeFile="<#=Table.Alias#>Form.aspx.cs" Inherits="<#=Config.EntityConnName+"_"+Table.Alias#>Form"%>
+<%@ Page Title="<#=Table.DisplayName#>管理" Language="C#" MasterPageFile="~/Admin/ManagerPage.master" AutoEventWireup="true" CodeFile="<#=Table.Name#>Form.aspx.cs" Inherits="<#=Config.EntityConnName+"_"+Table.Name#>Form"%>
 
 <asp:Content ID="Content1" runat="server" ContentPlaceHolderID="C">
     <table border="0" class="m_table" cellspacing="1" cellpadding="0" align="Center">
@@ -7,7 +7,7 @@
         </tr>
         <# 
         foreach(IDataColumn Field in Table.Columns) { 
-            String pname = Field.Alias;
+            String pname = Field.Name;
             if(Field.PrimaryKey) continue;
             String frmName = "frm" + pname;
             TypeCode code = Type.GetTypeCode(Field.DataType);

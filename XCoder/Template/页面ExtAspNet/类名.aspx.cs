@@ -5,14 +5,14 @@ using System.Web.UI;
 using System.Web.UI.WebControls;
 using <#=Config.NameSpace#>;
 
-public partial class <#=Config.EntityConnName+"_"+Table.Alias#> : MyEntityList<<#=Table.Alias#>>
+public partial class <#=Config.EntityConnName+"_"+Table.Name#> : MyEntityList<<#=Table.Name#>>
 {
     protected void Page_Load(object sender, EventArgs e)
     {
         if (!IsPostBack)
         {
             btnDelete.OnClientClick = gv.GetNoSelectionAlertReference("至少选择一项！");
-            btnNew.OnClientClick = win.GetShowReference("<#=Table.Alias#>Form.aspx", "新增 - <#=Table.DisplayName#>");
+            btnNew.OnClientClick = win.GetShowReference("<#=Table.Name#>Form.aspx", "新增 - <#=Table.DisplayName#>");
         }
     }
 

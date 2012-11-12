@@ -1,4 +1,4 @@
-<%@ Page Language="C#" AutoEventWireup="true" CodeFile="<#=Table.Alias#>.aspx.cs" Inherits="<#=Config.EntityConnName+"_"+Table.Alias#>" Title="<#=Table.DisplayName#>管理" %>
+<%@ Page Language="C#" AutoEventWireup="true" CodeFile="<#=Table.Name#>.aspx.cs" Inherits="<#=Config.EntityConnName+"_"+Table.Name#>" Title="<#=Table.DisplayName#>管理" %>
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -31,10 +31,10 @@ Int32 pki=0;
 foreach(IDataColumn Field in Table.Columns){
     if(Field.PrimaryKey) {
         if(sbpk.Length>0)sbpk.Append(",");
-        sbpk.Append(Field.Alias);
+        sbpk.Append(Field.Name);
 
         if(sbpk2.Length>0)sbpk2.Append("&");
-        sbpk2.Append(Field.Alias+"={"+pki+++"}");
+        sbpk2.Append(Field.Name+"={"+pki+++"}");
     } 
 }
     #>
@@ -65,17 +65,17 @@ foreach(IDataColumn Field in Table.Columns){
 // 列表页不宜显示过多列
 Int32 fieldMaxCount=10;
 foreach(IDataColumn Field in Table.Columns){
-    String pname = Field.Alias;
+    String pname = Field.Name;
     if(fieldMaxCount--<=0) break;
 
     // 查找关系，如果对方有名为Name的字符串字段，则加一个扩展属性
-    IDataRelation dr=ModelHelper.GetRelation(Table, Field.Name);
+    IDataRelation dr=ModelHelper.GetRelation(Table, Field.ColumnName);
     if(dr!=null&&!dr.Unique){
         IDataTable rtable=FindTable(dr.RelationTable);
         if(rtable!=null){
             IDataColumn rname=rtable.GetColumn("Name");
             if(rname!=null&&rname.DataType==typeof(String)){#>
-                    <ext:BoundField DataField="<#=rtable.Alias+"Name"#>" HeaderText="<#=Field.DisplayName#>" SortField="<#=pname#>" /><#
+                    <ext:BoundField DataField="<#=rtable.Name+"Name"#>" HeaderText="<#=Field.DisplayName#>" SortField="<#=pname#>" /><#
                 continue;
             }
         }
@@ -98,7 +98,7 @@ foreach(IDataColumn Field in Table.Columns){
        Field.Length>0 && Field.Length<300){#>
                     <ext:BoundField DataField="<#=pname#>" HeaderText="<#=Field.DisplayName#>" SortField="<#=pname#>" /><#
 }}#>
-                    <ext:WindowField WindowID="win" HeaderText="编辑" Icon="TableEdit" ToolTip="编辑" DataIFrameUrlFields="<#=sbpk#>" DataIFrameUrlFormatString="<#=Table.Alias#>Form.aspx?<#=sbpk2#>" Width="40px" />
+                    <ext:WindowField WindowID="win" HeaderText="编辑" Icon="TableEdit" ToolTip="编辑" DataIFrameUrlFields="<#=sbpk#>" DataIFrameUrlFormatString="<#=Table.Name#>Form.aspx?<#=sbpk2#>" Width="40px" />
                     <ext:LinkButtonField CommandName="Delete" HeaderText="删除" Text="删除" ConfirmText="删除将不可恢复，是否删除？"
                         ConfirmTitle="确认删除" Width="40px" />
                 </Columns>

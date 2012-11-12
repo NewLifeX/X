@@ -8,18 +8,18 @@ namespace <#=Config.NameSpace#>
     [Serializable]
     [DataObject]
     [Description("<#=Table.Description#>")]
-    public partial class <#=Table.Alias#>
+    public partial class <#=Table.Name#>
     {
         #region 属性<#
         foreach(IDataColumn Field in Table.Columns)
         {
 #>
-        private <#=Field.DataType.Name#> _<#=Field.Alias#>;
+        private <#=Field.DataType.Name#> _<#=Field.Name#>;
         /// <summary><#=Field.Description#></summary>
         [DisplayName("<#=Field.DisplayName#>")]
         [Description("<#=Field.Description#>")]
         [DataObjectField(<#=Field.PrimaryKey.ToString().ToLower()#>, <#=Field.Identity.ToString().ToLower()#>, <#=Field.Nullable.ToString().ToLower()#>, <#=Field.Length#>)]
-        public <#=Field.DataType.Name#> <#=Field.Alias#> { get { return _<#=Field.Alias#>; } set { _<#=Field.Alias#> = value; } }
+        public <#=Field.DataType.Name#> <#=Field.Name#> { get { return _<#=Field.Name#>; } set { _<#=Field.Name#> = value; } }
 <#
         }
 #>		#endregion
@@ -41,7 +41,7 @@ namespace <#=Config.NameSpace#>
         foreach(IDataColumn Field in Table.Columns)
         {
 #>
-                    case "<#=Field.Alias#>" : return _<#=Field.Alias#>;<#
+                    case "<#=Field.Name#>" : return _<#=Field.Name#>;<#
         }
 #>
                     default: return null;
@@ -56,10 +56,10 @@ namespace <#=Config.NameSpace#>
     {
         if(conv.GetMethod("To"+Field.DataType.Name, new Type[]{typeof(Object)})!=null){
 #>
-                    case "<#=Field.Alias#>" : _<#=Field.Alias#> = Convert.To<#=Field.DataType.Name#>(value); break;<#
+                    case "<#=Field.Name#>" : _<#=Field.Name#> = Convert.To<#=Field.DataType.Name#>(value); break;<#
         }else{
 #>
-                    case "<#=Field.Alias#>" : _<#=Field.Alias#> = (<#=Field.DataType.Name#>)value; break;<#
+                    case "<#=Field.Name#>" : _<#=Field.Name#> = (<#=Field.DataType.Name#>)value; break;<#
         }
     }
 #>

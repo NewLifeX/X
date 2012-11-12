@@ -1,4 +1,4 @@
-<%@ Page Title="<#=Table.DisplayName#>管理" Language="C#" MasterPageFile="~/Admin/ManagerPage.master" AutoEventWireup="true" CodeFile="<#=Table.Alias#>.aspx.cs" Inherits="<#=Config.EntityConnName+"_"+Table.Alias#>" %>
+<%@ Page Title="<#=Table.DisplayName#>管理" Language="C#" MasterPageFile="~/Admin/ManagerPage.master" AutoEventWireup="true" CodeFile="<#=Table.Name#>.aspx.cs" Inherits="<#=Config.EntityConnName+"_"+Table.Name#>" %>
 
 <asp:Content ID="Content1" runat="server" ContentPlaceHolderID="C">
     <#
@@ -18,7 +18,7 @@ foreach(IDataColumn Field in Table.Columns){
         boxHeight += LineHeight;
 }
 #><div class="toolbar">
-        <XCL:LinkBox ID="lbAdd" runat="server" BoxHeight="<#=boxHeight#>px" BoxWidth="440px" Url="<#=Table.Alias#>Form.aspx"
+        <XCL:LinkBox ID="lbAdd" runat="server" BoxHeight="<#=boxHeight#>px" BoxWidth="440px" Url="<#=Table.Name#>Form.aspx"
             IconLeft="~/Admin/images/icons/new.gif" EnableViewState="false"><b>添加<#=Table.DisplayName#></b></XCL:LinkBox>
         关键字：<asp:TextBox ID="txtKey" runat="server"></asp:TextBox>
         <asp:Button ID="btnSearch" runat="server" Text="查询" />
@@ -29,10 +29,10 @@ Int32 pki=0;
 foreach(IDataColumn Field in Table.Columns){
     if(Field.PrimaryKey) {
         if(sbpk.Length>0)sbpk.Append(",");
-        sbpk.Append(Field.Alias);
+        sbpk.Append(Field.Name);
 
         if(sbpk2.Length>0)sbpk2.Append("&");
-        sbpk2.Append(Field.Alias+"={"+pki+++"}");
+        sbpk2.Append(Field.Name+"={"+pki+++"}");
     } 
 }
     #>
@@ -46,10 +46,10 @@ foreach(IDataColumn Field in Table.Columns){
                 <ItemStyle HorizontalAlign="Center" />
             </asp:TemplateField>--%><#
 foreach(IDataColumn Field in Table.Columns){
-    String pname = Field.Alias;
+    String pname = Field.Name;
 
     // 查找关系，如果对方有名为Name的字符串字段，则加一个扩展属性
-    IDataRelation dr=XCode.DataAccessLayer.ModelHelper.GetRelation(Table, Field.Name);
+    IDataRelation dr=XCode.DataAccessLayer.ModelHelper.GetRelation(Table, Field.ColumnName);
     if(dr!=null&&!dr.Unique){
         IDataTable rtable=FindTable(dr.RelationTable);
         if(rtable!=null){
@@ -58,7 +58,7 @@ foreach(IDataColumn Field in Table.Columns){
             <%--<asp:BoundField DataField="<#=pname#>" HeaderText="<#=Field.DisplayName#>" SortExpression="<#=pname#>" <# if(Field.PrimaryKey){#>InsertVisible="False" ReadOnly="True" <#}#>>
                 <ItemStyle HorizontalAlign="Center" VerticalAlign="Middle" CssClass="key" />
             </asp:BoundField>--%>
-            <asp:BoundField DataField="<#=rtable.Alias+"Name"#>" HeaderText="<#=Field.DisplayName#>" SortExpression="<#=pname#>" /><#
+            <asp:BoundField DataField="<#=rtable.Name+"Name"#>" HeaderText="<#=Field.DisplayName#>" SortExpression="<#=pname#>" /><#
                 continue;
             }
         }
@@ -95,7 +95,7 @@ foreach(IDataColumn Field in Table.Columns){
        Field.Length>0 && Field.Length<300){#>
             <asp:BoundField DataField="<#=pname#>" HeaderText="<#=Field.DisplayName#>" SortExpression="<#=pname#>" <# if(Field.PrimaryKey){#>InsertVisible="False" ReadOnly="True" <#}#>/><#
 }}#>
-            <XCL:LinkBoxField HeaderText="编辑" DataNavigateUrlFields="<#=sbpk#>" DataNavigateUrlFormatString="<#=Table.Alias#>Form.aspx?<#=sbpk2#>" Height="<#=boxHeight#>px" Text="编辑" Width="440px" Title="编辑<#=Table.DisplayName#>">
+            <XCL:LinkBoxField HeaderText="编辑" DataNavigateUrlFields="<#=sbpk#>" DataNavigateUrlFormatString="<#=Table.Name#>Form.aspx?<#=sbpk2#>" Height="<#=boxHeight#>px" Text="编辑" Width="440px" Title="编辑<#=Table.DisplayName#>">
                 <ItemStyle HorizontalAlign="Center" VerticalAlign="Middle" />
                 <HeaderStyle HorizontalAlign="Center" VerticalAlign="Middle" Width="30px" />
             </XCL:LinkBoxField>

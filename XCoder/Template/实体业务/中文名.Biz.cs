@@ -11,14 +11,14 @@ namespace <#=Config.NameSpace#>
 {<#if(Config.RenderGenEntity){#>
     /// <summary><#=Table.Description#></summary>
     [ModelCheckMode(ModelCheckModes.CheckTableWhenFirstUse)]
-    public class <#=Table.Alias#> : <#=Table.Alias#><<#=Table.Alias#>> { }
+    public class <#=Table.Name#> : <#=Table.Name#><<#=Table.Name#>> { }
     <#
 }#>
     /// <summary><#=Table.Description#></summary><#
 if(!Config.RenderGenEntity){#>
-    public partial class <#=Table.Alias#> : <#=Config.BaseClass#><<#=Table.Alias#>><#
+    public partial class <#=Table.Name#> : <#=Config.BaseClass#><<#=Table.Name#>><#
 }else{#>
-    public partial class <#=Table.Alias#><TEntity> : <#=Config.BaseClass#><TEntity> where TEntity : <#=Table.Alias#><TEntity>, new()<#
+    public partial class <#=Table.Name#><TEntity> : <#=Config.BaseClass#><TEntity> where TEntity : <#=Table.Name#><TEntity>, new()<#
 }#>
     {
         #region 对象操作<#@include Name="对象操作.xt"#>        #endregion
@@ -39,7 +39,7 @@ if(!Config.RenderGenEntity){#>
         ///// <param name="maximumRows">最大返回行数，0表示所有行</param>
         ///// <returns>实体集</returns>
         //[DataObjectMethod(DataObjectMethodType.Select, true)]
-        //public static EntityList<<#=Config.RenderGenEntity?"TEntity":Table.Alias#>> Search(String key, String orderClause, Int32 startRowIndex, Int32 maximumRows)
+        //public static EntityList<<#=Config.RenderGenEntity?"TEntity":Table.Name#>> Search(String key, String orderClause, Int32 startRowIndex, Int32 maximumRows)
         //{
         //    return FindAll(SearchWhere(key), orderClause, null, startRowIndex, maximumRows);
         //}

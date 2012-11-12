@@ -16,8 +16,8 @@
 <#
 foreach(IDataTable table in Tables){
 #>
-<#=table.Alias#>：
-<strong><#=table.DisplayName#> （<#=table.Name#>）</strong> <BR>
+<#=table.Name#>：
+<strong><#=table.DisplayName#> （<#=table.TableName#>）</strong> <BR>
 <table border="0" cellspacing="0" class="dbtable">
   <tr align="center" valign="middle" class="caption">
     <td width="150">中文名</td>
@@ -35,8 +35,8 @@ foreach(IDataTable table in Tables){
   #>
   <tr class="dbbody">
     <td><#=Field.Description#></td>
-    <td><#=Field.Alias#></td>
     <td><#=Field.Name#></td>
+    <td><#=Field.ColumnName#></td>
     <td><#=Field.DataType.Name#></td>
     <td><#=Field.Length#></td>
     <td align="center"><#=Field.PrimaryKey?"是":"&nbsp;"#></td>

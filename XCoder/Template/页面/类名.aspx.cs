@@ -5,7 +5,7 @@ using System.Web.UI;
 using System.Web.UI.WebControls;
 using <#=Config.NameSpace#>;
 
-public partial class <#=Config.EntityConnName+"_"+Table.Alias#> : MyEntityList<<#=Table.Alias#>>
+public partial class <#=Config.EntityConnName+"_"+Table.Name#> : MyEntityList<<#=Table.Name#>>
 {
     protected void Page_Load(object sender, EventArgs e)
     {

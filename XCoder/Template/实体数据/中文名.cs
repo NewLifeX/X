@@ -17,11 +17,11 @@ foreach(IDataIndex di in Table.Indexes){if(di.Columns==null||di.Columns.Length<1
 }
 foreach(IDataRelation dr in Table.Relations){#>
     [BindRelation("<#=dr.Column#>", <#=dr.Unique.ToString().ToLower()#>, "<#=dr.RelationTable#>", "<#=dr.RelationColumn#>")]<#}#>
-    [BindTable("<#=Table.Name#>", Description = "<#=Table.Description#>", ConnName = "<#=Config.EntityConnName#>", DbType = DatabaseType.<#=Table.DbType#><#if(Table.IsView){#>, IsView = true<#}#>)]<#
+    [BindTable("<#=Table.TableName#>", Description = "<#=Table.Description#>", ConnName = "<#=Config.EntityConnName#>", DbType = DatabaseType.<#=Table.DbType#><#if(Table.IsView){#>, IsView = true<#}#>)]<#
 if(!Config.RenderGenEntity){#>
-    public partial class <#=Table.Alias#> : I<#=Table.Alias#><#
+    public partial class <#=Table.Name#> : I<#=Table.Name#><#
 }else{#>
-    public partial class <#=Table.Alias#><TEntity> : I<#=Table.Alias#><#
+    public partial class <#=Table.Name#><TEntity> : I<#=Table.Name#><#
 }#>
     {
         #region 属性<#
@@ -30,16 +30,16 @@ if(!Config.RenderGenEntity){#>
             String des=Field.Description;
             if(!String.IsNullOrEmpty(des)) des=des.Replace("\r\n"," ");
 #>
-        private <#=Field.DataType.Name#> _<#=Field.Alias#>;
+        private <#=Field.DataType.Name#> _<#=Field.Name#>;
         /// <summary><#=des#></summary>
         [DisplayName("<#=Field.DisplayName#>")]
         [Description("<#=des#>")]
         [DataObjectField(<#=Field.PrimaryKey.ToString().ToLower()#>, <#=Field.Identity.ToString().ToLower()#>, <#=Field.Nullable.ToString().ToLower()#>, <#=Field.Length#>)]
-        [BindColumn(<#=Field.ID#>, "<#=Field.Name#>", "<#=des#>", <#=Field.Default==null?"null":"\""+Field.Default+"\""#>, "<#=Field.RawType#>", <#=Field.Precision#>, <#=Field.Scale#>, <#=Field.IsUnicode.ToString().ToLower()#>)]
-        public virtual <#=Field.DataType.Name#> <#=Field.Alias#>
+        [BindColumn(<#=Field.ID#>, "<#=Field.ColumnName#>", "<#=des#>", <#=Field.Default==null?"null":"\""+Field.Default+"\""#>, "<#=Field.RawType#>", <#=Field.Precision#>, <#=Field.Scale#>, <#=Field.IsUnicode.ToString().ToLower()#>)]
+        public virtual <#=Field.DataType.Name#> <#=Field.Name#>
         {
-            get { return _<#=Field.Alias#>; }
-            set { if (OnPropertyChanging(__.<#=Field.Alias#>, value)) { _<#=Field.Alias#> = value; OnPropertyChanged(__.<#=Field.Alias#>); } }
+            get { return _<#=Field.Name#>; }
+            set { if (OnPropertyChanging(__.<#=Field.Name#>, value)) { _<#=Field.Name#> = value; OnPropertyChanged(__.<#=Field.Name#>); } }
         }
 <#
         }
@@ -62,7 +62,7 @@ if(!Config.RenderGenEntity){#>
     foreach(IDataColumn Field in Table.Columns)
     {
 #>
-                    case __.<#=Field.Alias#> : return _<#=Field.Alias#>;<#
+                    case __.<#=Field.Name#> : return _<#=Field.Name#>;<#
     }
 #>
                     default: return base[name];
@@ -77,10 +77,10 @@ if(!Config.RenderGenEntity){#>
     { 
         if(conv.GetMethod("To"+Field.DataType.Name, new Type[]{typeof(Object)})!=null){
 #>
-                    case __.<#=Field.Alias#> : _<#=Field.Alias#> = Convert.To<#=Field.DataType.Name#>(value); break;<#
+                    case __.<#=Field.Name#> : _<#=Field.Name#> = Convert.To<#=Field.DataType.Name#>(value); break;<#
         }else{
 #>
-                    case __.<#=Field.Alias#> : _<#=Field.Alias#> = (<#=Field.DataType.Name#>)value; break;<#
+                    case __.<#=Field.Name#> : _<#=Field.Name#> = (<#=Field.DataType.Name#>)value; break;<#
         }
     }
 #>
@@ -100,7 +100,7 @@ if(!Config.RenderGenEntity){#>
             if(!String.IsNullOrEmpty(des)) des=des.Replace("\r\n"," ");
 #>
             ///<summary><#=des#></summary>
-            public static readonly Field <#=Field.Alias#> = FindByName(__.<#=Field.Alias#>);
+            public static readonly Field <#=Field.Name#> = FindByName(__.<#=Field.Name#>);
 <#
       }
 #>
@@ -116,7 +116,7 @@ if(!Config.RenderGenEntity){#>
             if(!String.IsNullOrEmpty(des)) des=des.Replace("\r\n"," ");
 #>
             ///<summary><#=des#></summary>
-            public const String <#=Field.Alias#> = "<#=Field.Alias#>";
+            public const String <#=Field.Name#> = "<#=Field.Name#>";
 <#
       }
 #>
@@ -125,7 +125,7 @@ if(!Config.RenderGenEntity){#>
     }
 
     /// <summary><#=Table.Description#>接口</summary>
-    public partial interface I<#=Table.Alias#>
+    public partial interface I<#=Table.Name#>
     {
         #region 属性<#
         foreach(IDataColumn Field in Table.Columns)
@@ -134,7 +134,7 @@ if(!Config.RenderGenEntity){#>
             if(!String.IsNullOrEmpty(des)) des=des.Replace("\r\n"," ");
 #>
         /// <summary><#=des#></summary>
-        <#=Field.DataType.Name#> <#=Field.Alias#> { get; set; }
+        <#=Field.DataType.Name#> <#=Field.Name#> { get; set; }
 <#
         }
 #>        #endregion

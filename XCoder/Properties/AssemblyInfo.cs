@@ -30,9 +30,11 @@ using System.Runtime.InteropServices;
 //      修订号
 //
 [assembly: AssemblyVersion("4.8.*")]
-[assembly: AssemblyFileVersion("4.8.2012.0731")]
+[assembly: AssemblyFileVersion("4.8.2012.1112")]
 
 /*
+ * v4.8.2012.1112   数据模型升级，需要更新所有模版
+ * 
  * v4.8.2012.0731   升级前备份配置文件，升级后恢复
  * 
  * v4.8.2012.0526   支持自动探测SqlCe数据库

@@ -7,7 +7,7 @@ using NewLife.Log;
 using NewLife.Web;
 using <#=Config.NameSpace#>;
 
-public partial class <#=Config.EntityConnName+"_"+Table.Alias#>Form : MyEntityForm<<#=Table.Alias#>>
+public partial class <#=Config.EntityConnName+"_"+Table.Name#>Form : MyEntityForm<<#=Table.Name#>>
 {
     protected void Page_Load(object sender, EventArgs e)
     {

@@ -353,16 +353,22 @@ namespace XCode.DataAccessLayer
                 else
                     item.SetValue(value, TypeX.ChangeType(v, item.Type));
             }
-            // 兼容旧版本
-            var v2 = reader.GetAttribute("Alias");
-            if (!String.IsNullOrEmpty(v2))
+            var pi1 = pis.FirstOrDefault(e => e.Name == "Name");
+            var pi2 = pis.FirstOrDefault(e => e.Name == "TableName" || e.Name == "ColumnName");
+            if (pi1 != null && pi2 != null)
             {
-                var pi1 = pis.FirstOrDefault(e => e.Name == "Name");
-                var pi2 = pis.FirstOrDefault(e => e.Name == "TableName" || e.Name == "ColumnName");
-                if (pi1 != null && pi2 != null)
+                // 兼容旧版本
+                var v2 = reader.GetAttribute("Alias");
+                if (!String.IsNullOrEmpty(v2))
                 {
                     pi2.SetValue(value, pi1.GetValue(value));
                     pi1.SetValue(value, v2);
+                }
+                // 写入的时候省略了TableName/ColumnName
+                v2 = (String)pi2.GetValue(value);
+                if (String.IsNullOrEmpty(v2))
+                {
+                    pi2.SetValue(value, pi1.GetValue(value));
                 }
             }
             //reader.Skip();

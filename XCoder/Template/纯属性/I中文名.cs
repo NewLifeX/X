@@ -5,14 +5,14 @@ using System.ComponentModel;
 namespace <#=Config.NameSpace#>
 {
 	/// <summary><#=Table.Description#>接口</summary>
-	public interface I<#=Table.Alias#>
+	public interface I<#=Table.Name#>
 	{
 		#region 属性<#
 		foreach(IDataColumn Field in Table.Columns)
 		{
 #>
 		/// <summary><#=Field.Description#></summary>
-		<#=Field.DataType.Name#> <#=Field.Alias#> { get; set; }
+		<#=Field.DataType.Name#> <#=Field.Name#> { get; set; }
 <#
 		}
 #>		#endregion
