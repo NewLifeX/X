@@ -11,13 +11,13 @@ namespace <#=Config.NameSpace#>
     /// <summary><#=Table.Description#></summary>
     [Serializable]
     [DataObject]
-    [Description("<#=Table.Description#>")]<#
+    [Description("<#=(""+Table.Description).Replace("\\", "\\\\")#>")]<#
 foreach(IDataIndex di in Table.Indexes){if(di.Columns==null||di.Columns.Length<1)continue;#>
     [BindIndex("<#=di.Name#>", <#=di.Unique.ToString().ToLower()#>, "<#=String.Join(",", di.Columns)#>")]<#
 }
 foreach(IDataRelation dr in Table.Relations){#>
     [BindRelation("<#=dr.Column#>", <#=dr.Unique.ToString().ToLower()#>, "<#=dr.RelationTable#>", "<#=dr.RelationColumn#>")]<#}#>
-    [BindTable("<#=Table.TableName#>", Description = "<#=Table.Description#>", ConnName = "<#=Config.EntityConnName#>", DbType = DatabaseType.<#=Table.DbType#><#if(Table.IsView){#>, IsView = true<#}#>)]<#
+    [BindTable("<#=Table.TableName#>", Description = "<#=(""+Table.Description).Replace("\\", "\\\\")#>", ConnName = "<#=Config.EntityConnName#>", DbType = DatabaseType.<#=Table.DbType#><#if(Table.IsView){#>, IsView = true<#}#>)]<#
 if(!Config.RenderGenEntity){#>
     public partial class <#=Table.Name#> : I<#=Table.Name#><#
 }else{#>
@@ -28,14 +28,14 @@ if(!Config.RenderGenEntity){#>
         foreach(IDataColumn Field in Table.Columns)
         {
             String des=Field.Description;
-            if(!String.IsNullOrEmpty(des)) des=des.Replace("\r\n"," ");
+            if(!String.IsNullOrEmpty(des)) des=des.Replace("\r\n"," ").Replace("\\", "\\\\");
 #>
         private <#=Field.DataType.Name#> _<#=Field.Name#>;
         /// <summary><#=des#></summary>
         [DisplayName("<#=Field.DisplayName#>")]
         [Description("<#=des#>")]
         [DataObjectField(<#=Field.PrimaryKey.ToString().ToLower()#>, <#=Field.Identity.ToString().ToLower()#>, <#=Field.Nullable.ToString().ToLower()#>, <#=Field.Length#>)]
-        [BindColumn(<#=Field.ID#>, "<#=Field.ColumnName#>", "<#=des#>", <#=Field.Default==null?"null":"\""+Field.Default+"\""#>, "<#=Field.RawType#>", <#=Field.Precision#>, <#=Field.Scale#>, <#=Field.IsUnicode.ToString().ToLower()#>)]
+        [BindColumn(<#=Field.ID#>, "<#=Field.ColumnName#>", "<#=des#>", <#=Field.Default==null?"null":"\""+Field.Default.Replace("\\", "\\\\")+"\""#>, "<#=Field.RawType#>", <#=Field.Precision#>, <#=Field.Scale#>, <#=Field.IsUnicode.ToString().ToLower()#>)]
         public virtual <#=Field.DataType.Name#> <#=Field.Name#>
         {
             get { return _<#=Field.Name#>; }

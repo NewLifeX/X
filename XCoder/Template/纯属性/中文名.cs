@@ -7,7 +7,7 @@ namespace <#=Config.NameSpace#>
     /// <summary><#=Table.Description#></summary>
     [Serializable]
     [DataObject]
-    [Description("<#=Table.Description#>")]
+    [Description("<#=(""+Table.Description).Replace("\\", "\\\\")#>")]
     public partial class <#=Table.Name#>
     {
         #region 属性<#
@@ -17,7 +17,7 @@ namespace <#=Config.NameSpace#>
         private <#=Field.DataType.Name#> _<#=Field.Name#>;
         /// <summary><#=Field.Description#></summary>
         [DisplayName("<#=Field.DisplayName#>")]
-        [Description("<#=Field.Description#>")]
+        [Description("<#=(""+Field.Description).Replace("\\", "\\\\")#>")]
         [DataObjectField(<#=Field.PrimaryKey.ToString().ToLower()#>, <#=Field.Identity.ToString().ToLower()#>, <#=Field.Nullable.ToString().ToLower()#>, <#=Field.Length#>)]
         public <#=Field.DataType.Name#> <#=Field.Name#> { get { return _<#=Field.Name#>; } set { _<#=Field.Name#> = value; } }
 <#
