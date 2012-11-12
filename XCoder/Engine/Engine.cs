@@ -111,8 +111,8 @@ namespace XCoder
             var tables = Tables;
             if (tables == null || tables.Count < 1) return null;
 
-            var table = tables.Find(e => e.TableName.EqualIgnoreCase(tableName));
-            if (tableName == null) return null;
+            var table = tables.Find(e => e.Name.EqualIgnoreCase(tableName) || e.TableName.EqualIgnoreCase(tableName));
+            if (table == null) return null;
 
             var data = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
             data["Config"] = Config;

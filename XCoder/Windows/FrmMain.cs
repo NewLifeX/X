@@ -350,16 +350,16 @@ namespace XCoder
             else
             {
                 // ±Ì√˚≈≈–Ú
-                List<IDataTable> tables = source as List<IDataTable>;
+                var tables = source as List<IDataTable>;
                 if (tables == null)
                     cbTableList.DataSource = source;
                 else
                 {
-                    tables.Sort((t1, t2) => t1.TableName.CompareTo(t2.TableName));
+                    tables.Sort((t1, t2) => t1.Name.CompareTo(t2.Name));
                     cbTableList.DataSource = tables;
                 }
-                //cbTableList.DisplayMember = "Name";
-                cbTableList.ValueMember = "Name";
+                ////cbTableList.DisplayMember = "Name";
+                //cbTableList.ValueMember = "Name";
             }
             cbTableList.Update();
         }
@@ -384,13 +384,16 @@ namespace XCoder
 
             if (cb_Template.SelectedValue == null || cbTableList.SelectedValue == null) return;
 
+            var table = cbTableList.SelectedValue as IDataTable;
+            if (table == null) return;
+
             sw.Reset();
             sw.Start();
 
             try
             {
                 //Engine.FixTable();
-                String[] ss = Engine.Render((String)cbTableList.SelectedValue);
+                var ss = Engine.Render(table.Name);
                 //richTextBox1.Text = ss[0];
             }
             catch (TemplateException ex)
@@ -412,7 +415,7 @@ namespace XCoder
 
             if (cb_Template.SelectedValue == null || cbTableList.Items.Count < 1) return;
 
-            IList<IDataTable> tables = Engine.Tables;
+            var tables = Engine.Tables;
             if (tables == null || tables.Count < 1) return;
 
             pg_Process.Minimum = 0;
@@ -420,10 +423,10 @@ namespace XCoder
             pg_Process.Step = 1;
             pg_Process.Value = pg_Process.Minimum;
 
-            List<String> param = new List<string>();
-            foreach (IDataTable item in tables)
+            var param = new List<string>();
+            foreach (var item in tables)
             {
-                param.Add(item.TableName);
+                param.Add(item.Name);
             }
 
             bt_GenAll.Enabled = false;
@@ -441,10 +444,10 @@ namespace XCoder
 
         private void bw_DoWork(object sender, DoWorkEventArgs e)
         {
-            List<String> param = e.Argument as List<String>;
+            var param = e.Argument as List<String>;
             int i = 1;
             //Engine.FixTable();
-            foreach (String tableName in param)
+            foreach (var tableName in param)
             {
                 try
                 {

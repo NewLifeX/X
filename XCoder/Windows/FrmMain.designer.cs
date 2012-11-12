@@ -174,7 +174,6 @@
             // cbTableList
             // 
             this.cbTableList.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cbTableList.FormattingEnabled = true;
             this.cbTableList.Location = new System.Drawing.Point(58, 20);
             this.cbTableList.Name = "cbTableList";
             this.cbTableList.Size = new System.Drawing.Size(173, 20);
