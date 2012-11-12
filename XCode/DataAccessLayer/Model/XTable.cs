@@ -31,14 +31,14 @@ namespace XCode.DataAccessLayer
         [XmlAttribute]
         [DisplayName("名称")]
         [Description("名称")]
-        public String Name { get { return !String.IsNullOrEmpty(_Name) ? _Name : (_Name = ModelResolver.Current.GetAlias(TableName)); } set { _Name = value; } }
+        public String Name { get { return !String.IsNullOrEmpty(_Name) ? _Name : (_Name = ModelResolver.Current.GetName(TableName)); } set { _Name = value; } }
 
         private String _TableName;
         /// <summary>表名</summary>
         [XmlAttribute]
         [DisplayName("表名")]
         [Description("表名")]
-        public String TableName { get { return _TableName; } set { _TableName = value; _Name = null; } }
+        public String TableName { get { return _TableName; } set { _TableName = value; } }
 
         private String _Description;
         /// <summary>表说明</summary>

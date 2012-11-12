@@ -21,12 +21,12 @@ namespace XCode.DataAccessLayer.Model
         /// <summary>获取别名。过滤特殊符号，过滤_之类的前缀。另外，避免一个表中的字段别名重名</summary>
         /// <param name="dc"></param>
         /// <returns></returns>
-        String GetAlias(IDataColumn dc);
+        String GetName(IDataColumn dc);
 
         /// <summary>获取别名。过滤特殊符号，过滤_之类的前缀。</summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        String GetAlias(String name);
+        String GetName(String name);
 
         /// <summary>去除前缀。默认去除第一个_前面部分，去除tbl和table前缀</summary>
         /// <param name="name"></param>
@@ -100,7 +100,7 @@ namespace XCode.DataAccessLayer.Model
         /// <summary>获取别名。过滤特殊符号，过滤_之类的前缀。另外，避免一个表中的字段别名重名</summary>
         /// <param name="dc"></param>
         /// <returns></returns>
-        public virtual String GetAlias(IDataColumn dc)
+        public virtual String GetName(IDataColumn dc)
         {
             var name = dc.ColumnName;
             // 对于自增字段，如果强制使用ID，并且字段名以ID结尾，则直接取用ID
@@ -145,7 +145,7 @@ namespace XCode.DataAccessLayer.Model
             }
             #endregion
 
-            name = GetAlias(name);
+            name = GetName(name);
             if (dt != null)
             {
                 var lastname = name;
@@ -173,7 +173,7 @@ namespace XCode.DataAccessLayer.Model
         /// <summary>获取别名。过滤特殊符号，过滤_之类的前缀。</summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        public virtual String GetAlias(String name)
+        public virtual String GetName(String name)
         {
             if (String.IsNullOrEmpty(name)) return name;
 

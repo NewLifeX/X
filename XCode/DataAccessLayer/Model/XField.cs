@@ -35,7 +35,7 @@ namespace XCode.DataAccessLayer
 
                 //!! 先赋值，非常重要。后面GetAlias时会用到其它列的别名，然后可能形成死循环。先赋值之后，下一次来到这里时将直接返回。
                 _Name = ColumnName;
-                _Name = ModelResolver.Current.GetAlias(this);
+                _Name = ModelResolver.Current.GetName(this);
 
                 return _Name;
             }
@@ -47,7 +47,7 @@ namespace XCode.DataAccessLayer
         [XmlAttribute]
         [DisplayName("列名")]
         [Description("列名")]
-        public String ColumnName { get { return _ColumnName; } set { _ColumnName = value; _Name = null; } }
+        public String ColumnName { get { return _ColumnName; } set { _ColumnName = value; } }
 
         private Type _DataType;
         /// <summary>数据类型</summary>

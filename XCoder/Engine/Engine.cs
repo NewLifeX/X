@@ -231,7 +231,7 @@ namespace XCoder
             #region ÐÞÕýÊý¾Ý
             foreach (var table in list)
             {
-                table.Name = mr.GetAlias(table.TableName);
+                table.Name = mr.GetName(table.TableName);
 
                 if (String.IsNullOrEmpty(table.Description))
                     noCNDic.Add(table, table.Name);
@@ -241,7 +241,7 @@ namespace XCoder
                 // ×Ö¶Î
                 foreach (var dc in table.Columns)
                 {
-                    dc.Name = mr.GetAlias(dc);
+                    dc.Name = mr.GetName(dc);
 
                     if (String.IsNullOrEmpty(dc.Description))
                         noCNDic.Add(dc, dc.Name);
