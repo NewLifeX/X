@@ -518,7 +518,18 @@ namespace System
             if (stream == null) return null;
             if (encoding == null) encoding = Encoding.UTF8;
 
-            return encoding.GetString(stream.ReadBytes());
+            var buf = stream.ReadBytes();
+            if (buf == null || buf.Length < 1) return null;
+
+            // 可能数据流前面有编码字节序列，需要先去掉
+            var idx = 0;
+            var preamble = encoding.GetPreamble();
+            if (preamble != null && preamble.Length > 0)
+            {
+                if (buf.StartsWith(preamble)) idx = preamble.Length;
+            }
+
+            return encoding.GetString(buf, idx, buf.Length - idx);
         }
         #endregion
 
@@ -572,7 +583,7 @@ namespace System
             return -1;
         }
 
-        /// <summary>在字节数组中查找另一个字节数组的位置</summary>
+        /// <summary>在字节数组中查找另一个字节数组的位置，不存在则返回-1</summary>
         /// <param name="source">字节数组</param>
         /// <param name="buffer">另一个字节数组</param>
         /// <param name="offset">偏移</param>
@@ -580,7 +591,7 @@ namespace System
         /// <returns></returns>
         public static Int64 IndexOf(this Byte[] source, Byte[] buffer, Int64 offset = 0, Int64 length = 0) { return IndexOf(source, 0, 0, buffer, offset, length); }
 
-        /// <summary>在字节数组中查找另一个字节数组的位置</summary>
+        /// <summary>在字节数组中查找另一个字节数组的位置，不存在则返回-1</summary>
         /// <param name="source">字节数组</param>
         /// <param name="start">源数组起始位置</param>
         /// <param name="count">查找长度</param>
