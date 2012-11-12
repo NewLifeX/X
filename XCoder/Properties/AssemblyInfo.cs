@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // 有关程序集的常规信息通过下列属性集
 // 控制。更改这些属性值可修改
 // 与程序集关联的信息。
-[assembly: AssemblyTitle("代码生成器")]
+[assembly: AssemblyTitle("数据模型工具")]
 [assembly: AssemblyDescription("基于编译型模版引擎的代码生成器")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("新生命开发团队")]
-[assembly: AssemblyProduct("代码生成器")]
+[assembly: AssemblyProduct("数据模型工具")]
 [assembly: AssemblyCopyright("\x00a92002-2011 新生命开发团队")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]

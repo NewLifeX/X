@@ -77,6 +77,7 @@
             this.Controls.Add(this.propertyGrid1);
             this.Controls.Add(this.dataGridView1);
             this.Name = "FrmItems";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "扩展属性编辑";
             this.Load += new System.EventHandler(this.FrmItems_Load);
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).EndInit();
