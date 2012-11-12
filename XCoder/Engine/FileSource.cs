@@ -16,6 +16,13 @@ namespace XCoder
             return new Icon(Assembly.GetExecutingAssembly().GetManifestResourceStream(typeof(FileSource), "leaf.ico"));
         }
 
+        public static String GetText(String name)
+        {
+            if (Path.GetExtension(name).IsNullOrWhiteSpace()) name += ".txt";
+            var ms = Assembly.GetExecutingAssembly().GetManifestResourceStream(typeof(FileSource), name);
+            return ms.ToStr();
+        }
+
         public static void ReleaseAllTemplateFiles()
         {
             String path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, Engine.TemplatePath);

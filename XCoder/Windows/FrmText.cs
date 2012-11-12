@@ -15,12 +15,15 @@ namespace XCoder
 
         public static FrmText Create(String title, String content)
         {
-            FrmText frm = new FrmText();
+            var frm = new FrmText();
             if (!String.IsNullOrEmpty(title)) frm.Text = title;
-            frm.richTextBox1.Text = content;
+            frm.Content = content;
 
             return frm;
         }
         #endregion
+
+        /// <summary>内容</summary>
+        public String Content { get { return richTextBox1.Text; } set { richTextBox1.Text = ("" + value).Replace("\t", "    "); } }
     }
 }

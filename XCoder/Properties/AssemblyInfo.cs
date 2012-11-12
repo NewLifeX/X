@@ -29,11 +29,14 @@ using System.Runtime.InteropServices;
 //      内部版本号
 //      修订号
 //
-[assembly: AssemblyVersion("4.8.*")]
-[assembly: AssemblyFileVersion("4.8.2012.1112")]
+[assembly: AssemblyVersion("4.9.*")]
+[assembly: AssemblyFileVersion("4.9.2012.1112")]
 
 /*
- * v4.8.2012.1112   数据模型升级，需要更新所有模版
+ * v4.9.2012.1112   数据模型升级，需要更新所有模版
+ *                  模版引擎生成太快，不再需要后台生成
+ *                  改变模版头编辑的位置
+ *                  增加论坛帖子引用
  * 
  * v4.8.2012.0731   升级前备份配置文件，升级后恢复
  * 

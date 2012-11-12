@@ -31,7 +31,7 @@ namespace XCoder
 
         private Engine _Engine;
         /// <summary>生成器</summary>
-        public Engine Engine
+        Engine Engine
         {
             get { return _Engine ?? (_Engine = new Engine(Config)); }
             set { _Engine = value; }
@@ -103,7 +103,6 @@ namespace XCoder
                     return;
                 }
 
-                SetTables(Engine.Tables);
                 SetTables(null);
                 SetTables(Engine.Tables);
 
@@ -392,9 +391,9 @@ namespace XCoder
 
             try
             {
-                //Engine.FixTable();
                 var ss = Engine.Render(table.Name);
-                //richTextBox1.Text = ss[0];
+
+                MessageBox.Show("生成" + table + "成功！", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (TemplateException ex)
             {
@@ -406,7 +405,7 @@ namespace XCoder
             }
 
             sw.Stop();
-            lb_Status.Text = "生成 " + cbTableList.Text + " 完成！耗时：" + sw.Elapsed.ToString();
+            lb_Status.Text = "生成 " + cbTableList.Text + " 完成！耗时：" + sw.Elapsed;
         }
 
         private void bt_GenAll_Click(object sender, EventArgs e)
@@ -418,76 +417,16 @@ namespace XCoder
             var tables = Engine.Tables;
             if (tables == null || tables.Count < 1) return;
 
-            pg_Process.Minimum = 0;
-            pg_Process.Maximum = tables.Count;
-            pg_Process.Step = 1;
-            pg_Process.Value = pg_Process.Minimum;
+            sw.Reset();
+            sw.Start();
 
-            var param = new List<string>();
-            foreach (var item in tables)
+            foreach (var tb in tables)
             {
-                param.Add(item.Name);
+                Engine.Render(tb.Name);
             }
-
-            bt_GenAll.Enabled = false;
-
-            if (!bw.IsBusy)
-            {
-                sw.Reset();
-                sw.Start();
-
-                bw.RunWorkerAsync(param);
-            }
-            else
-                bw.CancelAsync();
-        }
-
-        private void bw_DoWork(object sender, DoWorkEventArgs e)
-        {
-            var param = e.Argument as List<String>;
-            int i = 1;
-            //Engine.FixTable();
-            foreach (var tableName in param)
-            {
-                try
-                {
-                    Engine.Render(tableName);
-                }
-                catch (TemplateException ex)
-                {
-                    bw.ReportProgress(i++, "出错：" + ex.Message);
-                    break;
-                }
-                catch (Exception ex)
-                {
-                    bw.ReportProgress(i++, "出错：" + ex.ToString());
-                    break;
-                }
-
-                bw.ReportProgress(i++, "已生成：" + tableName);
-                if (bw.CancellationPending) break;
-            }
-        }
-
-        private void bw_ProgressChanged(object sender, ProgressChangedEventArgs e)
-        {
-            pg_Process.Value = e.ProgressPercentage;
-            proc_percent.Text = (int)(100 * pg_Process.Value / pg_Process.Maximum) + "%";
-            lb_Status.Text = e.UserState.ToString();
-
-            if (lb_Status.Text.StartsWith("出错")) MessageBox.Show(lb_Status.Text, this.Text, MessageBoxButtons.OK, MessageBoxIcon.Error);
-        }
-
-        private void bw_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
-        {
-            pg_Process.Value = pg_Process.Maximum;
-            proc_percent.Text = (int)(100 * pg_Process.Value / pg_Process.Maximum) + "%";
-            //Engine = null;
 
             sw.Stop();
-            lb_Status.Text = "生成 " + cbTableList.Items.Count + " 个类完成！耗时：" + sw.Elapsed.ToString();
-
-            bt_GenAll.Enabled = true;
+            lb_Status.Text = "生成 " + tables.Count + " 个类完成！耗时：" + sw.Elapsed.ToString();
         }
         #endregion
 
@@ -508,7 +447,7 @@ namespace XCoder
             checkBox3.Checked = Config.UseCNFileName;
             cbUseID.Checked = Config.UseID;
             checkBox5.Checked = Config.UseHeadTemplate;
-            richTextBox2.Text = Config.HeadTemplate;
+            //richTextBox2.Text = Config.HeadTemplate;
             checkBox4.Checked = Config.Debug;
         }
 
@@ -528,7 +467,7 @@ namespace XCoder
             Config.UseCNFileName = checkBox3.Checked;
             Config.UseID = cbUseID.Checked;
             Config.UseHeadTemplate = checkBox5.Checked;
-            Config.HeadTemplate = richTextBox2.Text;
+            //Config.HeadTemplate = richTextBox2.Text;
             Config.Debug = checkBox4.Checked;
 
             Config.Save();
@@ -538,7 +477,7 @@ namespace XCoder
         #region 附加信息
         private void linkLabel1_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            Control control = sender as Control;
+            var control = sender as Control;
             if (control == null) return;
 
             String url = String.Empty;
@@ -608,6 +547,14 @@ namespace XCoder
                 MessageBox.Show(ex.ToString());
             }
         }
+
+        private void lbEditHeader_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            var frm = FrmText.Create("C#文件头模版", Config.HeadTemplate);
+            frm.ShowDialog();
+            Config.HeadTemplate = frm.Content;
+            frm.Dispose();
+        }
         #endregion
 
         #region 菜单
@@ -626,7 +573,7 @@ namespace XCoder
 
         private void 表名字段名命名规范ToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            FrmCriterion.Create().Show();
+            FrmText.Create("表名字段名命名规范", FileSource.GetText("数据库命名规范")).Show();
         }
 
         private void 检查更新ToolStripMenuItem_Click(object sender, EventArgs e)
@@ -649,16 +596,24 @@ namespace XCoder
 
         private void 关于ToolStripMenuItem1_Click(object sender, EventArgs e)
         {
-            var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(this.GetType(), "UpdateInfo.txt");
-            var text = Encoding.UTF8.GetString(stream.ReadBytes());
-            FrmText.Create("升级历史", text).Show();
+            FrmText.Create("升级历史", FileSource.GetText("UpdateInfo")).Show();
+        }
+
+        private void 博客ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Process.Start("http://nnhy.cnblogs.com");
+        }
+
+        private void qQ群1600800ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Process.Start("http://www.NewLifeX.com/?r=XCoder_v" + AssemblyX.Create(Assembly.GetExecutingAssembly()).Version);
         }
         #endregion
 
         #region 模型管理
         private void 模型管理MToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            List<IDataTable> tables = Engine.Tables;
+            var tables = Engine.Tables;
             if (tables == null || tables.Count < 1) return;
 
             FrmModel.Create(tables).Show();
@@ -666,7 +621,7 @@ namespace XCoder
 
         private void 导出模型EToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            List<IDataTable> tables = Engine.Tables;
+            var tables = Engine.Tables;
             if (tables == null || tables.Count < 1)
             {
                 MessageBox.Show(this.Text, "数据库架构为空！", MessageBoxButtons.OK, MessageBoxIcon.Warning);
@@ -675,7 +630,7 @@ namespace XCoder
 
             if (!String.IsNullOrEmpty(Config.ConnName))
             {
-                String file = Config.ConnName + ".xml";
+                var file = Config.ConnName + ".xml";
                 String dir = null;
                 if (!String.IsNullOrEmpty(saveFileDialog1.FileName))
                     dir = Path.GetDirectoryName(saveFileDialog1.FileName);
@@ -720,7 +675,7 @@ namespace XCoder
             if (openFileDialog1.ShowDialog() != DialogResult.OK || String.IsNullOrEmpty(openFileDialog1.FileName)) return;
             try
             {
-                List<IDataTable> list = DAL.Import(File.ReadAllText(openFileDialog1.FileName));
+                var list = DAL.Import(File.ReadAllText(openFileDialog1.FileName));
 
                 Engine = null;
                 Engine.Tables = list;
@@ -740,11 +695,6 @@ namespace XCoder
             }
         }
         #endregion
-
-        private void 博客ToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            Process.Start("http://nnhy.cnblogs.com");
-        }
 
         private void oracle客户端运行时检查ToolStripMenuItem1_Click(object sender, EventArgs e)
         {

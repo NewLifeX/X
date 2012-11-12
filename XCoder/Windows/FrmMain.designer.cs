@@ -25,7 +25,6 @@
 		private void InitializeComponent()
 		{
             this.components = new System.ComponentModel.Container();
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FrmMain));
             this.bt_Connection = new System.Windows.Forms.Button();
             this.gbConnect = new System.Windows.Forms.GroupBox();
             this.cbConn = new System.Windows.Forms.ComboBox();
@@ -37,9 +36,6 @@
             this.label5 = new System.Windows.Forms.Label();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.lb_Status = new System.Windows.Forms.ToolStripStatusLabel();
-            this.pg_Process = new System.Windows.Forms.ToolStripProgressBar();
-            this.proc_percent = new System.Windows.Forms.ToolStripStatusLabel();
-            this.bw = new System.ComponentModel.BackgroundWorker();
             this.gbConfig = new System.Windows.Forms.GroupBox();
             this.cbCutTableName = new System.Windows.Forms.CheckBox();
             this.cbUseID = new System.Windows.Forms.CheckBox();
@@ -51,7 +47,6 @@
             this.label10 = new System.Windows.Forms.Label();
             this.btnOpenOutputDir = new System.Windows.Forms.Button();
             this.checkBox5 = new System.Windows.Forms.CheckBox();
-            this.richTextBox2 = new System.Windows.Forms.RichTextBox();
             this.checkBox4 = new System.Windows.Forms.CheckBox();
             this.checkBox3 = new System.Windows.Forms.CheckBox();
             this.cbFixWord = new System.Windows.Forms.CheckBox();
@@ -91,15 +86,21 @@
             this.检查更新ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.关于ToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.qQ群1600800ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.lbEditHeader = new System.Windows.Forms.LinkLabel();
+            this.webBrowser1 = new System.Windows.Forms.WebBrowser();
+            this.checkBox1 = new System.Windows.Forms.CheckBox();
+            this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.gbConnect.SuspendLayout();
             this.gbTable.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.gbConfig.SuspendLayout();
             this.menuStrip1.SuspendLayout();
+            this.groupBox1.SuspendLayout();
             this.SuspendLayout();
             // 
             // bt_Connection
             // 
+            this.bt_Connection.ForeColor = System.Drawing.Color.DeepPink;
             this.bt_Connection.Location = new System.Drawing.Point(218, 42);
             this.bt_Connection.Name = "bt_Connection";
             this.bt_Connection.Size = new System.Drawing.Size(52, 23);
@@ -113,6 +114,7 @@
             // 
             this.gbConnect.Controls.Add(this.cbConn);
             this.gbConnect.Controls.Add(this.label4);
+            this.gbConnect.ForeColor = System.Drawing.Color.DeepPink;
             this.gbConnect.Location = new System.Drawing.Point(3, 30);
             this.gbConnect.Name = "gbConnect";
             this.gbConnect.Size = new System.Drawing.Size(205, 38);
@@ -122,10 +124,11 @@
             // cbConn
             // 
             this.cbConn.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cbConn.Font = new System.Drawing.Font("宋体", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
             this.cbConn.FormattingEnabled = true;
-            this.cbConn.Location = new System.Drawing.Point(58, 13);
+            this.cbConn.Location = new System.Drawing.Point(58, 11);
             this.cbConn.Name = "cbConn";
-            this.cbConn.Size = new System.Drawing.Size(141, 20);
+            this.cbConn.Size = new System.Drawing.Size(141, 24);
             this.cbConn.TabIndex = 13;
             this.cbConn.SelectionChangeCommitted += new System.EventHandler(this.cbConn_SelectionChangeCommitted);
             // 
@@ -144,6 +147,7 @@
             this.gbTable.Controls.Add(this.bt_GenTable);
             this.gbTable.Controls.Add(this.cbTableList);
             this.gbTable.Controls.Add(this.label5);
+            this.gbTable.Controls.Add(this.label3);
             this.gbTable.Enabled = false;
             this.gbTable.Location = new System.Drawing.Point(2, 71);
             this.gbTable.Name = "gbTable";
@@ -153,7 +157,8 @@
             // 
             // bt_GenAll
             // 
-            this.bt_GenAll.Location = new System.Drawing.Point(330, 19);
+            this.bt_GenAll.ForeColor = System.Drawing.Color.Coral;
+            this.bt_GenAll.Location = new System.Drawing.Point(436, 19);
             this.bt_GenAll.Name = "bt_GenAll";
             this.bt_GenAll.Size = new System.Drawing.Size(75, 23);
             this.bt_GenAll.TabIndex = 21;
@@ -163,7 +168,8 @@
             // 
             // bt_GenTable
             // 
-            this.bt_GenTable.Location = new System.Drawing.Point(249, 19);
+            this.bt_GenTable.ForeColor = System.Drawing.Color.Coral;
+            this.bt_GenTable.Location = new System.Drawing.Point(355, 19);
             this.bt_GenTable.Name = "bt_GenTable";
             this.bt_GenTable.Size = new System.Drawing.Size(75, 23);
             this.bt_GenTable.TabIndex = 19;
@@ -173,15 +179,20 @@
             // 
             // cbTableList
             // 
+            this.cbTableList.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.cbTableList.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cbTableList.Location = new System.Drawing.Point(58, 20);
+            this.cbTableList.Font = new System.Drawing.Font("宋体", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.cbTableList.ForeColor = System.Drawing.Color.Coral;
+            this.cbTableList.Location = new System.Drawing.Point(58, 18);
             this.cbTableList.Name = "cbTableList";
-            this.cbTableList.Size = new System.Drawing.Size(173, 20);
+            this.cbTableList.Size = new System.Drawing.Size(291, 24);
             this.cbTableList.TabIndex = 17;
             // 
             // label5
             // 
             this.label5.AutoSize = true;
+            this.label5.ForeColor = System.Drawing.Color.Coral;
             this.label5.Location = new System.Drawing.Point(11, 24);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(53, 12);
@@ -191,10 +202,8 @@
             // statusStrip1
             // 
             this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.lb_Status,
-            this.pg_Process,
-            this.proc_percent});
-            this.statusStrip1.Location = new System.Drawing.Point(0, 346);
+            this.lb_Status});
+            this.statusStrip1.Location = new System.Drawing.Point(0, 422);
             this.statusStrip1.Name = "statusStrip1";
             this.statusStrip1.Size = new System.Drawing.Size(730, 22);
             this.statusStrip1.TabIndex = 23;
@@ -203,50 +212,29 @@
             // lb_Status
             // 
             this.lb_Status.Name = "lb_Status";
-            this.lb_Status.Size = new System.Drawing.Size(287, 17);
+            this.lb_Status.Size = new System.Drawing.Size(715, 17);
             this.lb_Status.Spring = true;
             this.lb_Status.Text = "状态";
             this.lb_Status.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
-            // pg_Process
-            // 
-            this.pg_Process.Name = "pg_Process";
-            this.pg_Process.Size = new System.Drawing.Size(400, 16);
-            // 
-            // proc_percent
-            // 
-            this.proc_percent.ForeColor = System.Drawing.Color.Red;
-            this.proc_percent.Name = "proc_percent";
-            this.proc_percent.Size = new System.Drawing.Size(26, 17);
-            this.proc_percent.Text = "0%";
-            // 
-            // bw
-            // 
-            this.bw.WorkerReportsProgress = true;
-            this.bw.WorkerSupportsCancellation = true;
-            this.bw.DoWork += new System.ComponentModel.DoWorkEventHandler(this.bw_DoWork);
-            this.bw.ProgressChanged += new System.ComponentModel.ProgressChangedEventHandler(this.bw_ProgressChanged);
-            this.bw.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.bw_RunWorkerCompleted);
-            // 
             // gbConfig
             // 
-            this.gbConfig.Controls.Add(this.cbCutTableName);
-            this.gbConfig.Controls.Add(this.cbUseID);
+            this.gbConfig.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.gbConfig.Controls.Add(this.groupBox1);
+            this.gbConfig.Controls.Add(this.checkBox1);
+            this.gbConfig.Controls.Add(this.webBrowser1);
+            this.gbConfig.Controls.Add(this.lbEditHeader);
             this.gbConfig.Controls.Add(this.frmItems);
             this.gbConfig.Controls.Add(this.cbRenderGenEntity);
             this.gbConfig.Controls.Add(this.btnRelease);
-            this.gbConfig.Controls.Add(this.label3);
             this.gbConfig.Controls.Add(this.txtBaseClass);
             this.gbConfig.Controls.Add(this.label10);
             this.gbConfig.Controls.Add(this.btnOpenOutputDir);
             this.gbConfig.Controls.Add(this.checkBox5);
-            this.gbConfig.Controls.Add(this.richTextBox2);
             this.gbConfig.Controls.Add(this.checkBox4);
             this.gbConfig.Controls.Add(this.checkBox3);
-            this.gbConfig.Controls.Add(this.cbFixWord);
-            this.gbConfig.Controls.Add(this.cbCutPrefix);
-            this.gbConfig.Controls.Add(this.txtPrefix);
-            this.gbConfig.Controls.Add(this.label2);
             this.gbConfig.Controls.Add(this.txt_ConnName);
             this.gbConfig.Controls.Add(this.label1);
             this.gbConfig.Controls.Add(this.txt_NameSpace);
@@ -257,14 +245,14 @@
             this.gbConfig.Controls.Add(this.cb_Template);
             this.gbConfig.Location = new System.Drawing.Point(2, 126);
             this.gbConfig.Name = "gbConfig";
-            this.gbConfig.Size = new System.Drawing.Size(725, 215);
+            this.gbConfig.Size = new System.Drawing.Size(725, 293);
             this.gbConfig.TabIndex = 26;
             this.gbConfig.TabStop = false;
             // 
             // cbCutTableName
             // 
             this.cbCutTableName.AutoSize = true;
-            this.cbCutTableName.Location = new System.Drawing.Point(11, 187);
+            this.cbCutTableName.Location = new System.Drawing.Point(6, 67);
             this.cbCutTableName.Name = "cbCutTableName";
             this.cbCutTableName.Size = new System.Drawing.Size(132, 16);
             this.cbCutTableName.TabIndex = 52;
@@ -274,7 +262,7 @@
             // cbUseID
             // 
             this.cbUseID.AutoSize = true;
-            this.cbUseID.Location = new System.Drawing.Point(261, 165);
+            this.cbUseID.Location = new System.Drawing.Point(146, 67);
             this.cbUseID.Name = "cbUseID";
             this.cbUseID.Size = new System.Drawing.Size(84, 16);
             this.cbUseID.TabIndex = 51;
@@ -283,11 +271,12 @@
             // 
             // frmItems
             // 
-            this.frmItems.Location = new System.Drawing.Point(282, 131);
+            this.frmItems.ForeColor = System.Drawing.Color.BlueViolet;
+            this.frmItems.Location = new System.Drawing.Point(14, 132);
             this.frmItems.Name = "frmItems";
-            this.frmItems.Size = new System.Drawing.Size(99, 23);
+            this.frmItems.Size = new System.Drawing.Size(235, 23);
             this.frmItems.TabIndex = 50;
-            this.frmItems.Text = "扩展属性编辑";
+            this.frmItems.Text = "扩展属性编辑（Config.Items[\"name\"]）";
             this.toolTip1.SetToolTip(this.frmItems, "模版中通过Config.Items[name]使用。");
             this.frmItems.UseVisualStyleBackColor = true;
             this.frmItems.Click += new System.EventHandler(this.frmItems_Click);
@@ -295,6 +284,7 @@
             // cbRenderGenEntity
             // 
             this.cbRenderGenEntity.AutoSize = true;
+            this.cbRenderGenEntity.ForeColor = System.Drawing.Color.BlueViolet;
             this.cbRenderGenEntity.Location = new System.Drawing.Point(178, 79);
             this.cbRenderGenEntity.Name = "cbRenderGenEntity";
             this.cbRenderGenEntity.Size = new System.Drawing.Size(108, 16);
@@ -304,6 +294,7 @@
             // 
             // btnRelease
             // 
+            this.btnRelease.ForeColor = System.Drawing.Color.Brown;
             this.btnRelease.Location = new System.Drawing.Point(285, 20);
             this.btnRelease.Name = "btnRelease";
             this.btnRelease.Size = new System.Drawing.Size(88, 23);
@@ -316,7 +307,8 @@
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(176, 197);
+            this.label3.ForeColor = System.Drawing.Color.Purple;
+            this.label3.Location = new System.Drawing.Point(517, 24);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(143, 12);
             this.label3.TabIndex = 29;
@@ -325,6 +317,7 @@
             // 
             // txtBaseClass
             // 
+            this.txtBaseClass.ForeColor = System.Drawing.Color.BlueViolet;
             this.txtBaseClass.Location = new System.Drawing.Point(71, 77);
             this.txtBaseClass.Name = "txtBaseClass";
             this.txtBaseClass.Size = new System.Drawing.Size(97, 21);
@@ -334,6 +327,7 @@
             // label10
             // 
             this.label10.AutoSize = true;
+            this.label10.ForeColor = System.Drawing.Color.BlueViolet;
             this.label10.Location = new System.Drawing.Point(11, 81);
             this.label10.Name = "label10";
             this.label10.Size = new System.Drawing.Size(65, 12);
@@ -342,6 +336,7 @@
             // 
             // btnOpenOutputDir
             // 
+            this.btnOpenOutputDir.ForeColor = System.Drawing.Color.BlueViolet;
             this.btnOpenOutputDir.Location = new System.Drawing.Point(283, 104);
             this.btnOpenOutputDir.Name = "btnOpenOutputDir";
             this.btnOpenOutputDir.Size = new System.Drawing.Size(75, 23);
@@ -353,6 +348,7 @@
             // checkBox5
             // 
             this.checkBox5.AutoSize = true;
+            this.checkBox5.ForeColor = System.Drawing.Color.Brown;
             this.checkBox5.Location = new System.Drawing.Point(393, 26);
             this.checkBox5.Name = "checkBox5";
             this.checkBox5.Size = new System.Drawing.Size(126, 16);
@@ -361,18 +357,11 @@
             this.toolTip1.SetToolTip(this.checkBox5, "出现在每一个cs文件头部");
             this.checkBox5.UseVisualStyleBackColor = true;
             // 
-            // richTextBox2
-            // 
-            this.richTextBox2.Location = new System.Drawing.Point(387, 49);
-            this.richTextBox2.Name = "richTextBox2";
-            this.richTextBox2.Size = new System.Drawing.Size(338, 160);
-            this.richTextBox2.TabIndex = 40;
-            this.richTextBox2.Text = resources.GetString("richTextBox2.Text");
-            // 
             // checkBox4
             // 
             this.checkBox4.AutoSize = true;
-            this.checkBox4.Location = new System.Drawing.Point(565, 24);
+            this.checkBox4.ForeColor = System.Drawing.Color.Brown;
+            this.checkBox4.Location = new System.Drawing.Point(551, 26);
             this.checkBox4.Name = "checkBox4";
             this.checkBox4.Size = new System.Drawing.Size(72, 16);
             this.checkBox4.TabIndex = 27;
@@ -383,6 +372,7 @@
             // checkBox3
             // 
             this.checkBox3.AutoSize = true;
+            this.checkBox3.ForeColor = System.Drawing.Color.BlueViolet;
             this.checkBox3.Location = new System.Drawing.Point(178, 107);
             this.checkBox3.Name = "checkBox3";
             this.checkBox3.Size = new System.Drawing.Size(84, 16);
@@ -393,7 +383,7 @@
             // cbFixWord
             // 
             this.cbFixWord.AutoSize = true;
-            this.cbFixWord.Location = new System.Drawing.Point(151, 165);
+            this.cbFixWord.Location = new System.Drawing.Point(146, 45);
             this.cbFixWord.Name = "cbFixWord";
             this.cbFixWord.Size = new System.Drawing.Size(108, 16);
             this.cbFixWord.TabIndex = 38;
@@ -403,7 +393,7 @@
             // cbCutPrefix
             // 
             this.cbCutPrefix.AutoSize = true;
-            this.cbCutPrefix.Location = new System.Drawing.Point(11, 165);
+            this.cbCutPrefix.Location = new System.Drawing.Point(6, 45);
             this.cbCutPrefix.Name = "cbCutPrefix";
             this.cbCutPrefix.Size = new System.Drawing.Size(138, 16);
             this.cbCutPrefix.TabIndex = 37;
@@ -412,16 +402,16 @@
             // 
             // txtPrefix
             // 
-            this.txtPrefix.Location = new System.Drawing.Point(71, 133);
+            this.txtPrefix.Location = new System.Drawing.Point(66, 13);
             this.txtPrefix.Name = "txtPrefix";
-            this.txtPrefix.Size = new System.Drawing.Size(184, 21);
+            this.txtPrefix.Size = new System.Drawing.Size(243, 21);
             this.txtPrefix.TabIndex = 36;
             this.txtPrefix.Text = "X_;N_;tbl";
             // 
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(11, 137);
+            this.label2.Location = new System.Drawing.Point(6, 17);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(65, 12);
             this.label2.TabIndex = 35;
@@ -429,6 +419,7 @@
             // 
             // txt_ConnName
             // 
+            this.txt_ConnName.ForeColor = System.Drawing.Color.BlueViolet;
             this.txt_ConnName.Location = new System.Drawing.Point(276, 49);
             this.txt_ConnName.Name = "txt_ConnName";
             this.txt_ConnName.Size = new System.Drawing.Size(97, 21);
@@ -438,6 +429,7 @@
             // label1
             // 
             this.label1.AutoSize = true;
+            this.label1.ForeColor = System.Drawing.Color.BlueViolet;
             this.label1.Location = new System.Drawing.Point(216, 53);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(53, 12);
@@ -446,6 +438,7 @@
             // 
             // txt_NameSpace
             // 
+            this.txt_NameSpace.ForeColor = System.Drawing.Color.BlueViolet;
             this.txt_NameSpace.Location = new System.Drawing.Point(71, 49);
             this.txt_NameSpace.Name = "txt_NameSpace";
             this.txt_NameSpace.Size = new System.Drawing.Size(134, 21);
@@ -455,6 +448,7 @@
             // label8
             // 
             this.label8.AutoSize = true;
+            this.label8.ForeColor = System.Drawing.Color.BlueViolet;
             this.label8.Location = new System.Drawing.Point(11, 53);
             this.label8.Name = "label8";
             this.label8.Size = new System.Drawing.Size(65, 12);
@@ -463,6 +457,7 @@
             // 
             // txt_OutPath
             // 
+            this.txt_OutPath.ForeColor = System.Drawing.Color.BlueViolet;
             this.txt_OutPath.Location = new System.Drawing.Point(71, 105);
             this.txt_OutPath.Name = "txt_OutPath";
             this.txt_OutPath.Size = new System.Drawing.Size(97, 21);
@@ -472,6 +467,7 @@
             // label7
             // 
             this.label7.AutoSize = true;
+            this.label7.ForeColor = System.Drawing.Color.BlueViolet;
             this.label7.Location = new System.Drawing.Point(11, 109);
             this.label7.Name = "label7";
             this.label7.Size = new System.Drawing.Size(65, 12);
@@ -481,6 +477,7 @@
             // label6
             // 
             this.label6.AutoSize = true;
+            this.label6.ForeColor = System.Drawing.Color.Brown;
             this.label6.Location = new System.Drawing.Point(11, 25);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(41, 12);
@@ -490,15 +487,18 @@
             // cb_Template
             // 
             this.cb_Template.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cb_Template.Font = new System.Drawing.Font("宋体", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.cb_Template.ForeColor = System.Drawing.Color.Brown;
             this.cb_Template.FormattingEnabled = true;
-            this.cb_Template.Location = new System.Drawing.Point(58, 21);
+            this.cb_Template.Location = new System.Drawing.Point(58, 19);
             this.cb_Template.Name = "cb_Template";
-            this.cb_Template.Size = new System.Drawing.Size(142, 20);
+            this.cb_Template.Size = new System.Drawing.Size(142, 24);
             this.cb_Template.TabIndex = 26;
             this.toolTip1.SetToolTip(this.cb_Template, "*开头的是内置系统模版。");
             // 
             // btnImport
             // 
+            this.btnImport.ForeColor = System.Drawing.Color.DeepPink;
             this.btnImport.Location = new System.Drawing.Point(280, 42);
             this.btnImport.Name = "btnImport";
             this.btnImport.Size = new System.Drawing.Size(80, 23);
@@ -519,6 +519,7 @@
             // label9
             // 
             this.label9.AutoSize = true;
+            this.label9.ForeColor = System.Drawing.Color.RoyalBlue;
             this.label9.Location = new System.Drawing.Point(388, 39);
             this.label9.Name = "label9";
             this.label9.Size = new System.Drawing.Size(65, 12);
@@ -528,6 +529,7 @@
             // label11
             // 
             this.label11.AutoSize = true;
+            this.label11.ForeColor = System.Drawing.Color.RoyalBlue;
             this.label11.Location = new System.Drawing.Point(446, 60);
             this.label11.Name = "label11";
             this.label11.Size = new System.Drawing.Size(167, 12);
@@ -537,6 +539,7 @@
             // label12
             // 
             this.label12.AutoSize = true;
+            this.label12.ForeColor = System.Drawing.Color.RoyalBlue;
             this.label12.Location = new System.Drawing.Point(446, 39);
             this.label12.Name = "label12";
             this.label12.Size = new System.Drawing.Size(179, 12);
@@ -625,11 +628,11 @@
             this.组件手册ToolStripMenuItem,
             this.表名字段名命名规范ToolStripMenuItem,
             this.toolStripMenuItem2,
-            this.博客ToolStripMenuItem,
+            this.qQ群1600800ToolStripMenuItem,
             this.qQ群1600800ToolStripMenuItem1,
+            this.博客ToolStripMenuItem,
             this.检查更新ToolStripMenuItem,
-            this.关于ToolStripMenuItem1,
-            this.qQ群1600800ToolStripMenuItem});
+            this.关于ToolStripMenuItem1});
             this.关于ToolStripMenuItem.Name = "关于ToolStripMenuItem";
             this.关于ToolStripMenuItem.Size = new System.Drawing.Size(61, 21);
             this.关于ToolStripMenuItem.Text = "帮助(&H)";
@@ -637,60 +640,114 @@
             // 组件手册ToolStripMenuItem
             // 
             this.组件手册ToolStripMenuItem.Name = "组件手册ToolStripMenuItem";
-            this.组件手册ToolStripMenuItem.Size = new System.Drawing.Size(202, 22);
+            this.组件手册ToolStripMenuItem.Size = new System.Drawing.Size(212, 22);
             this.组件手册ToolStripMenuItem.Text = "组件手册(&X)";
             this.组件手册ToolStripMenuItem.Click += new System.EventHandler(this.组件手册ToolStripMenuItem_Click);
             // 
             // 表名字段名命名规范ToolStripMenuItem
             // 
             this.表名字段名命名规范ToolStripMenuItem.Name = "表名字段名命名规范ToolStripMenuItem";
-            this.表名字段名命名规范ToolStripMenuItem.Size = new System.Drawing.Size(202, 22);
+            this.表名字段名命名规范ToolStripMenuItem.Size = new System.Drawing.Size(212, 22);
             this.表名字段名命名规范ToolStripMenuItem.Text = "表名字段名命名规范(&N)";
             this.表名字段名命名规范ToolStripMenuItem.Click += new System.EventHandler(this.表名字段名命名规范ToolStripMenuItem_Click);
             // 
             // toolStripMenuItem2
             // 
             this.toolStripMenuItem2.Name = "toolStripMenuItem2";
-            this.toolStripMenuItem2.Size = new System.Drawing.Size(199, 6);
+            this.toolStripMenuItem2.Size = new System.Drawing.Size(209, 6);
             // 
             // 博客ToolStripMenuItem
             // 
             this.博客ToolStripMenuItem.Name = "博客ToolStripMenuItem";
-            this.博客ToolStripMenuItem.Size = new System.Drawing.Size(202, 22);
-            this.博客ToolStripMenuItem.Text = "博客";
+            this.博客ToolStripMenuItem.Size = new System.Drawing.Size(212, 22);
+            this.博客ToolStripMenuItem.Text = "博客nnhy.cnblogs.com";
             this.博客ToolStripMenuItem.Click += new System.EventHandler(this.博客ToolStripMenuItem_Click);
             // 
             // qQ群1600800ToolStripMenuItem1
             // 
             this.qQ群1600800ToolStripMenuItem1.Name = "qQ群1600800ToolStripMenuItem1";
-            this.qQ群1600800ToolStripMenuItem1.Size = new System.Drawing.Size(202, 22);
+            this.qQ群1600800ToolStripMenuItem1.Size = new System.Drawing.Size(212, 22);
             this.qQ群1600800ToolStripMenuItem1.Text = "QQ群1600800";
             // 
             // 检查更新ToolStripMenuItem
             // 
             this.检查更新ToolStripMenuItem.Name = "检查更新ToolStripMenuItem";
-            this.检查更新ToolStripMenuItem.Size = new System.Drawing.Size(202, 22);
+            this.检查更新ToolStripMenuItem.Size = new System.Drawing.Size(212, 22);
             this.检查更新ToolStripMenuItem.Text = "检查更新(&U)";
             this.检查更新ToolStripMenuItem.Click += new System.EventHandler(this.检查更新ToolStripMenuItem_Click);
             // 
             // 关于ToolStripMenuItem1
             // 
             this.关于ToolStripMenuItem1.Name = "关于ToolStripMenuItem1";
-            this.关于ToolStripMenuItem1.Size = new System.Drawing.Size(202, 22);
+            this.关于ToolStripMenuItem1.Size = new System.Drawing.Size(212, 22);
             this.关于ToolStripMenuItem1.Text = "关于(&A)";
             this.关于ToolStripMenuItem1.Click += new System.EventHandler(this.关于ToolStripMenuItem1_Click);
             // 
             // qQ群1600800ToolStripMenuItem
             // 
             this.qQ群1600800ToolStripMenuItem.Name = "qQ群1600800ToolStripMenuItem";
-            this.qQ群1600800ToolStripMenuItem.Size = new System.Drawing.Size(202, 22);
-            this.qQ群1600800ToolStripMenuItem.Text = "QQ群1600800";
+            this.qQ群1600800ToolStripMenuItem.Size = new System.Drawing.Size(212, 22);
+            this.qQ群1600800ToolStripMenuItem.Text = "论坛www.NewLifeX.com";
+            this.qQ群1600800ToolStripMenuItem.Click += new System.EventHandler(this.qQ群1600800ToolStripMenuItem_Click);
+            // 
+            // lbEditHeader
+            // 
+            this.lbEditHeader.AutoSize = true;
+            this.lbEditHeader.ForeColor = System.Drawing.Color.Brown;
+            this.lbEditHeader.Location = new System.Drawing.Point(517, 28);
+            this.lbEditHeader.Name = "lbEditHeader";
+            this.lbEditHeader.Size = new System.Drawing.Size(29, 12);
+            this.lbEditHeader.TabIndex = 53;
+            this.lbEditHeader.TabStop = true;
+            this.lbEditHeader.Text = "编辑";
+            this.lbEditHeader.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.lbEditHeader_LinkClicked);
+            // 
+            // webBrowser1
+            // 
+            this.webBrowser1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.webBrowser1.Location = new System.Drawing.Point(388, 49);
+            this.webBrowser1.MinimumSize = new System.Drawing.Size(20, 20);
+            this.webBrowser1.Name = "webBrowser1";
+            this.webBrowser1.Size = new System.Drawing.Size(336, 243);
+            this.webBrowser1.TabIndex = 54;
+            this.webBrowser1.Url = new System.Uri("http://www.newlifex.com/archiver/showforum-2.aspx", System.UriKind.Absolute);
+            // 
+            // checkBox1
+            // 
+            this.checkBox1.AutoSize = true;
+            this.checkBox1.Checked = true;
+            this.checkBox1.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.checkBox1.ForeColor = System.Drawing.Color.Blue;
+            this.checkBox1.Location = new System.Drawing.Point(14, 168);
+            this.checkBox1.Name = "checkBox1";
+            this.checkBox1.Size = new System.Drawing.Size(336, 16);
+            this.checkBox1.TabIndex = 55;
+            this.checkBox1.Text = "格式化（通过下面的设置对数据库或导入的模型进行处理）";
+            this.checkBox1.UseVisualStyleBackColor = true;
+            // 
+            // groupBox1
+            // 
+            this.groupBox1.Controls.Add(this.label2);
+            this.groupBox1.Controls.Add(this.txtPrefix);
+            this.groupBox1.Controls.Add(this.cbCutPrefix);
+            this.groupBox1.Controls.Add(this.cbFixWord);
+            this.groupBox1.Controls.Add(this.cbCutTableName);
+            this.groupBox1.Controls.Add(this.cbUseID);
+            this.groupBox1.ForeColor = System.Drawing.Color.Blue;
+            this.groupBox1.Location = new System.Drawing.Point(11, 190);
+            this.groupBox1.Name = "groupBox1";
+            this.groupBox1.Size = new System.Drawing.Size(315, 88);
+            this.groupBox1.TabIndex = 56;
+            this.groupBox1.TabStop = false;
+            this.groupBox1.Text = "格式化";
             // 
             // FrmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(730, 368);
+            this.ClientSize = new System.Drawing.Size(730, 444);
             this.Controls.Add(this.label12);
             this.Controls.Add(this.label11);
             this.Controls.Add(this.label9);
@@ -702,7 +759,6 @@
             this.Controls.Add(this.gbConnect);
             this.Controls.Add(this.bt_Connection);
             this.MainMenuStrip = this.menuStrip1;
-            this.MaximizeBox = false;
             this.Name = "FrmMain";
             this.RightToLeftLayout = true;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
@@ -720,6 +776,8 @@
             this.gbConfig.PerformLayout();
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
+            this.groupBox1.ResumeLayout(false);
+            this.groupBox1.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -736,10 +794,7 @@
         private System.Windows.Forms.Label label4;
 		private System.Windows.Forms.Button bt_GenAll;
 		private System.Windows.Forms.StatusStrip statusStrip1;
-		private System.Windows.Forms.ToolStripStatusLabel lb_Status;
-		private System.Windows.Forms.ToolStripProgressBar pg_Process;
-		private System.ComponentModel.BackgroundWorker bw;
-        private System.Windows.Forms.ToolStripStatusLabel proc_percent;
+        private System.Windows.Forms.ToolStripStatusLabel lb_Status;
         private System.Windows.Forms.GroupBox gbConfig;
         private System.Windows.Forms.TextBox txt_ConnName;
         private System.Windows.Forms.Label label1;
@@ -756,7 +811,6 @@
         private System.Windows.Forms.CheckBox cbFixWord;
         private System.Windows.Forms.CheckBox checkBox3;
         private System.Windows.Forms.ToolTip toolTip1;
-        private System.Windows.Forms.RichTextBox richTextBox2;
         private System.Windows.Forms.CheckBox checkBox4;
         private System.Windows.Forms.CheckBox checkBox5;
         private System.Windows.Forms.Label label3;
@@ -792,6 +846,10 @@
         private System.Windows.Forms.ToolStripMenuItem 博客ToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem oracle客户端运行时检查ToolStripMenuItem1;
         private System.Windows.Forms.ToolStripMenuItem qQ群1600800ToolStripMenuItem1;
+        private System.Windows.Forms.LinkLabel lbEditHeader;
+        private System.Windows.Forms.WebBrowser webBrowser1;
+        private System.Windows.Forms.CheckBox checkBox1;
+        private System.Windows.Forms.GroupBox groupBox1;
 	}
 }
 

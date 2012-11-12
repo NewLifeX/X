@@ -6,32 +6,26 @@ using NewLife.Reflection;
 using NewLife.Threading;
 using XCode.DataAccessLayer;
 using XTemplate.Templating;
+using XCode.DataAccessLayer.Model;
+using NewLife.Model;
+
 #if NET4
 using System.Linq;
 #else
 using NewLife.Linq;
 #endif
-using XCode.DataAccessLayer.Model;
-using NewLife.Model;
 
 namespace XCoder
 {
     /// <summary>代码生成器类</summary>
-    public class Engine
+    class Engine
     {
         #region 属性
         public const String TemplatePath = "Template";
 
         private static Dictionary<String, String> _Templates;
         /// <summary>模版</summary>
-        public static Dictionary<String, String> Templates
-        {
-            get
-            {
-                if (_Templates == null) _Templates = FileSource.GetTemplates();
-                return _Templates;
-            }
-        }
+        public static Dictionary<String, String> Templates { get { return _Templates ?? (_Templates = FileSource.GetTemplates()); } }
 
         private static List<String> _FileTemplates;
         /// <summary>文件模版</summary>
@@ -71,6 +65,10 @@ namespace XCoder
         /// <summary>配置</summary>
         public XConfig Config { get { return _Config; } set { _Config = value; } }
 
+        private Boolean _NeedFix = true;
+        /// <summary>是否需要修正。默认true，将根据配置删除前缀、自动化大小写和完善注释等</summary>
+        public Boolean NeedFix { get { return _NeedFix; } set { _NeedFix = value; } }
+
         private String _LastTableKey;
         private List<IDataTable> _LastTables;
         private List<IDataTable> _Tables;
@@ -79,8 +77,10 @@ namespace XCoder
         {
             get
             {
+                if (!NeedFix) return _Tables;
+
                 // 不同的前缀、大小写选项，得到的表集合是不一样的。这里用字典来缓存
-                String key = String.Format("{0}_{1}_{2}_{3}_{4}", Config.AutoCutPrefix, Config.AutoCutTableName, Config.AutoFixWord, Config.Prefix, Config.UseID);
+                var key = String.Format("{0}_{1}_{2}_{3}_{4}", Config.AutoCutPrefix, Config.AutoCutTableName, Config.AutoFixWord, Config.Prefix, Config.UseID);
                 //return _cache.GetItem(key, k => FixTable(_Tables));
                 if (_LastTableKey != key)
                 {
@@ -89,17 +89,12 @@ namespace XCoder
                 }
                 return _LastTables;
             }
-            //set { _Tables = FixTable(value); }
             set { _Tables = value; }
         }
 
         private static ITranslate _Translate;
         /// <summary>翻译接口</summary>
-        static ITranslate Translate
-        {
-            get { return _Translate ?? (_Translate = new NnhyServiceTranslate()); }
-            //set { _Translate = value; }
-        }
+        static ITranslate Translate { get { return _Translate ?? (_Translate = new NnhyServiceTranslate()); } }
         #endregion
 
         #region 生成
@@ -119,6 +114,7 @@ namespace XCoder
             data["Tables"] = tables;
             data["Table"] = table;
 
+            #region 模版预处理
             // 声明模版引擎
             //Template tt = new Template();
             Template.Debug = Config.Debug;
@@ -137,10 +133,10 @@ namespace XCoder
                 foreach (var item in Templates)
                 {
                     var key = item.Key;
-                    String name = key.Substring(0, key.IndexOf("."));
+                    var name = key.Substring(0, key.IndexOf("."));
                     if (name != tempName) continue;
 
-                    String content = item.Value;
+                    var content = item.Value;
 
                     // 添加文件头
                     if (Config.UseHeadTemplate && !String.IsNullOrEmpty(Config.HeadTemplate) && key.EndsWith(".cs", StringComparison.OrdinalIgnoreCase))
@@ -152,18 +148,18 @@ namespace XCoder
             else
             {
                 // 文件模版
-                String dir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, TemplatePath);
+                var dir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, TemplatePath);
                 dir = Path.Combine(dir, tempName);
-                String[] ss = Directory.GetFiles(dir, "*.*", SearchOption.TopDirectoryOnly);
+                var ss = Directory.GetFiles(dir, "*.*", SearchOption.TopDirectoryOnly);
                 if (ss != null && ss.Length > 0)
                 {
-                    foreach (String item in ss)
+                    foreach (var item in ss)
                     {
                         if (item.EndsWith("scc", StringComparison.OrdinalIgnoreCase)) continue;
 
-                        String content = File.ReadAllText(item);
+                        var content = File.ReadAllText(item);
 
-                        String name = item.Substring(dir.Length);
+                        var name = item.Substring(dir.Length);
                         if (name.StartsWith(@"\")) name = name.Substring(1);
 
                         // 添加文件头
@@ -176,35 +172,38 @@ namespace XCoder
             }
             if (templates.Count < 1) throw new Exception("没有可用模版！");
 
-            Template tt = Template.Create(templates);
+            var tt = Template.Create(templates);
             if (tempName.StartsWith("*")) tempName = tempName.Substring(1);
             tt.AssemblyName = tempName;
+            #endregion
 
+            #region 编译生成
             // 编译模版。这里至少要处理，只有经过了处理，才知道模版项是不是被包含的
             tt.Compile();
 
-            List<String> rs = new List<string>();
+            var rs = new List<String>();
             foreach (var item in tt.Templates)
             {
                 if (item.Included) continue;
 
-                String content = tt.Render(item.Name, data);
+                var content = tt.Render(item.Name, data);
 
                 // 计算输出文件名
-                String fileName = Path.GetFileName(item.Name);
+                var fileName = Path.GetFileName(item.Name);
                 var fname = Config.UseCNFileName ? table.DisplayName : table.Name;
                 fname = fname.Replace("/", "_").Replace("\\", "_");
                 fileName = fileName.Replace("类名", fname).Replace("中文名", fname).Replace("连接名", Config.EntityConnName);
 
                 fileName = Path.Combine(Config.OutputPath, fileName);
 
-                String dir = Path.GetDirectoryName(fileName);
+                var dir = Path.GetDirectoryName(fileName);
                 if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
                 File.WriteAllText(fileName, content, Encoding.UTF8);
 
                 rs.Add(content);
             }
             return rs.ToArray();
+            #endregion
         }
 
         /// <summary>
@@ -277,16 +276,15 @@ namespace XCoder
         {
             var dic = state as Dictionary<Object, String>;
 
-            //ITranslate trs = new BingTranslate();
-            string[] words = new string[dic.Values.Count];
+            var words = new string[dic.Values.Count];
             dic.Values.CopyTo(words, 0);
-            String[] rs = Translate.Translate(words);
+            var rs = Translate.Translate(words);
             if (rs == null || rs.Length < 1) return;
 
             var ts = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             for (int i = 0; i < words.Length && i < rs.Length; i++)
             {
-                String key = words[i].Replace(" ", null);
+                var key = words[i].Replace(" ", null);
                 if (!ts.ContainsKey(key) && !String.IsNullOrEmpty(rs[i]) && words[i] != rs[i] && key != rs[i].Replace(" ", null)) ts.Add(key, rs[i].Replace(" ", null));
             }
 
@@ -303,7 +301,7 @@ namespace XCoder
 
         void SubmitTranslateNew(object state)
         {
-            string[] existTrans = state as string[];
+            var existTrans = state as string[];
             if (existTrans != null && existTrans.Length > 0)
             {
                 //var serv = new NnhyServiceTranslate();
@@ -321,16 +319,12 @@ namespace XCoder
             {
                 if (_ExistSubmitTrans == null)
                 {
-                    string f = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "XCoder");
+                    var f = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "XCoder");
                     f = Path.Combine(f, "SubmitedTranslations.dat");
                     if (File.Exists(f))
-                    {
                         _ExistSubmitTrans = File.ReadAllLines(f);
-                    }
                     else
-                    {
                         _ExistSubmitTrans = new string[] { };
-                    }
                 }
                 return _ExistSubmitTrans;
             }
@@ -338,7 +332,7 @@ namespace XCoder
             {
                 if (value != null && value.Length > 0)
                 {
-                    string f = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "XCoder");
+                    var f = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "XCoder");
                     if (!Directory.Exists(f)) Directory.CreateDirectory(f);
                     f = Path.Combine(f, "SubmitedTranslations.dat");
                     File.WriteAllLines(f, value);
@@ -353,24 +347,17 @@ namespace XCoder
             if (tranText != null) tranText = tranText.Trim();
             if (string.IsNullOrEmpty(text)) return;
             if (string.IsNullOrEmpty(tranText)) return;
-            if (text.Equals(tranText, StringComparison.OrdinalIgnoreCase)) return;
+            if (text.EqualIgnoreCase(tranText)) return;
 
-            for (int i = 0; i < trans.Count; i += 2)
+            for (int i = 0; i < trans.Count - 1; i += 2)
             {
-                if (trans[i].Equals(text, StringComparison.OrdinalIgnoreCase) &&
-                    trans[i + 1].Equals(tranText, StringComparison.OrdinalIgnoreCase))
-                {
-                    return;
-                }
+                if (trans[i].EqualIgnoreCase(text) && trans[i + 1].EqualIgnoreCase(tranText)) return;
             }
 
-            for (int i = 0; i < ExistSubmitTrans.Length; i += 2)
+            var ests = ExistSubmitTrans;
+            for (int i = 0; i < ests.Length - 1; i += 2)
             {
-                if (ExistSubmitTrans[i].Equals(text, StringComparison.OrdinalIgnoreCase) &&
-                    ExistSubmitTrans[i + 1].Equals(tranText, StringComparison.OrdinalIgnoreCase))
-                {
-                    return;
-                }
+                if (ests[i].EqualIgnoreCase(text) && ests[i + 1].EqualIgnoreCase(tranText)) return;
             }
 
             trans.Add(text);
