@@ -558,7 +558,7 @@ namespace XCoder
         {
             var frm = FrmText.Create("C#文件头模版", Config.HeadTemplate);
             frm.ShowDialog();
-            Config.HeadTemplate = frm.Content;
+            Config.HeadTemplate = frm.Content.Replace("\r\n", "\n").Replace("\r", "\n").Replace("\n", "\r\n");
             frm.Dispose();
         }
         #endregion

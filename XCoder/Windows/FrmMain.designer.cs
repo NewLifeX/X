@@ -271,15 +271,15 @@
             this.groupBox1.ForeColor = System.Drawing.Color.Blue;
             this.groupBox1.Location = new System.Drawing.Point(11, 190);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(315, 88);
+            this.groupBox1.Size = new System.Drawing.Size(315, 97);
             this.groupBox1.TabIndex = 56;
             this.groupBox1.TabStop = false;
-            this.groupBox1.Text = "格式化";
+            this.groupBox1.Text = "格式化（设置对数据库或导入的模型进行处理）";
             // 
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(6, 17);
+            this.label2.Location = new System.Drawing.Point(6, 25);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(65, 12);
             this.label2.TabIndex = 35;
@@ -287,7 +287,7 @@
             // 
             // txtPrefix
             // 
-            this.txtPrefix.Location = new System.Drawing.Point(66, 13);
+            this.txtPrefix.Location = new System.Drawing.Point(66, 21);
             this.txtPrefix.Name = "txtPrefix";
             this.txtPrefix.Size = new System.Drawing.Size(243, 21);
             this.txtPrefix.TabIndex = 36;
@@ -295,7 +295,7 @@
             // cbCutPrefix
             // 
             this.cbCutPrefix.AutoSize = true;
-            this.cbCutPrefix.Location = new System.Drawing.Point(6, 45);
+            this.cbCutPrefix.Location = new System.Drawing.Point(6, 53);
             this.cbCutPrefix.Name = "cbCutPrefix";
             this.cbCutPrefix.Size = new System.Drawing.Size(138, 16);
             this.cbCutPrefix.TabIndex = 37;
@@ -305,7 +305,7 @@
             // cbFixWord
             // 
             this.cbFixWord.AutoSize = true;
-            this.cbFixWord.Location = new System.Drawing.Point(146, 45);
+            this.cbFixWord.Location = new System.Drawing.Point(146, 53);
             this.cbFixWord.Name = "cbFixWord";
             this.cbFixWord.Size = new System.Drawing.Size(108, 16);
             this.cbFixWord.TabIndex = 38;
@@ -315,7 +315,7 @@
             // cbCutTableName
             // 
             this.cbCutTableName.AutoSize = true;
-            this.cbCutTableName.Location = new System.Drawing.Point(6, 67);
+            this.cbCutTableName.Location = new System.Drawing.Point(6, 75);
             this.cbCutTableName.Name = "cbCutTableName";
             this.cbCutTableName.Size = new System.Drawing.Size(132, 16);
             this.cbCutTableName.TabIndex = 52;
@@ -325,7 +325,7 @@
             // cbUseID
             // 
             this.cbUseID.AutoSize = true;
-            this.cbUseID.Location = new System.Drawing.Point(146, 67);
+            this.cbUseID.Location = new System.Drawing.Point(146, 75);
             this.cbUseID.Name = "cbUseID";
             this.cbUseID.Size = new System.Drawing.Size(84, 16);
             this.cbUseID.TabIndex = 51;
@@ -340,9 +340,9 @@
             this.cbNeedFix.ForeColor = System.Drawing.Color.Blue;
             this.cbNeedFix.Location = new System.Drawing.Point(14, 168);
             this.cbNeedFix.Name = "cbNeedFix";
-            this.cbNeedFix.Size = new System.Drawing.Size(336, 16);
+            this.cbNeedFix.Size = new System.Drawing.Size(180, 16);
             this.cbNeedFix.TabIndex = 55;
-            this.cbNeedFix.Text = "格式化（通过下面的设置对数据库或导入的模型进行处理）";
+            this.cbNeedFix.Text = "格式化（在导入模型前设置）";
             this.cbNeedFix.UseVisualStyleBackColor = true;
             // 
             // webBrowser1
