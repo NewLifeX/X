@@ -13,9 +13,9 @@ namespace XCode.Common
     /// <summary>助手类</summary>
     static class Helper
     {
-        public static Boolean IsIntType(Type type)
+        public static Boolean IsIntType(this Type type)
         {
-            TypeCode code = Type.GetTypeCode(type);
+            var code = Type.GetTypeCode(type);
             switch (code)
             {
                 case TypeCode.Int16:
@@ -39,7 +39,7 @@ namespace XCode.Common
         {
             if (key == null) return true;
 
-            Type type = key.GetType();
+            var type = key.GetType();
 
             //由于key的实际类型是由类型推倒而来，所以必须根据实际传入的参数类型分别进行装箱操作
             //如果不根据类型分别进行会导致类型转换失败抛出异常
@@ -92,40 +92,21 @@ namespace XCode.Common
             return false;
         }
 
-        /// <summary>获取调用者</summary>
+        /// <summary>判断两个对象是否相当，特别处理整型</summary>
+        /// <param name="left"></param>
+        /// <param name="right"></param>
         /// <returns></returns>
-        public static String GetCaller(Int32 maxNum = 10)
+        public static Boolean EqualTo(this Object left, Object right)
         {
-            return XTrace.GetCaller(2, maxNum, "<-");
-            //var st = new StackTrace(2, true);
-            //var sb = new StringBuilder();
-            //int count = Math.Min(maxNum, st.FrameCount);
-            //Type last = null;
-            //var asm = Assembly.GetEntryAssembly();
-            //var entry = asm == null ? null : asm.EntryPoint;
-            //for (int i = 0; i < count; i++)
-            //{
-            //    var sf = st.GetFrame(i);
-            //    var method = sf.GetMethod();
+            // 空判断
+            if (left == null) return right == null;
+            if (right == null) return false;
 
-            //    var name = method.ToString();
-            //    // 去掉前面的返回类型
-            //    if (name.Contains(" ")) name = name.Substring(name.IndexOf(" ") + 1);
+            // 如果已经相等，不用做别的处理了
+            if (Object.Equals(left, right)) return true;
 
-            //    var type = method.DeclaringType ?? method.ReflectedType;
-            //    if (type != null && type != last)
-            //        sb.AppendFormat("{0}.{1}", TypeX.Create(type).Name, name);
-            //    else
-            //        sb.AppendFormat("{0}", name);
-
-            //    if (i < count - 1) sb.Append("<-");
-
-            //    last = type;
-
-            //    // 如果到达了入口点，可以结束了
-            //    if (method == entry) break;
-            //}
-            //return sb.ToString();
+            // 特殊处理整型
+            return left.GetType().IsIntType() && right.GetType().IsIntType() && (Int64)left == (Int64)right;
         }
     }
 }

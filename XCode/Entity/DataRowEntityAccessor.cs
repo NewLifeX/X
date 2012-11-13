@@ -274,12 +274,12 @@ namespace XCode
         {
             if (dr == null) return;
 
-            foreach (FieldItem item in ps)
+            foreach (var item in ps)
             {
                 SetValue(entity, item.Name, item.Type, dr[item]);
             }
 
-            foreach (String item in exts)
+            foreach (var item in exts)
             {
                 SetValue(entity, item, null, dr[item]);
             }
@@ -288,7 +288,7 @@ namespace XCode
         private void SetValue(IEntity entity, String name, Type type, Object value)
         {
             // 注意：name并不一定是实体类的成员
-            Object oldValue = entity[name];
+            var oldValue = entity[name];
 
             if (type == null)
             {
@@ -314,7 +314,7 @@ namespace XCode
                 // 处理字符串转为布尔型
                 if (value != null && value.GetType() == typeof(String))
                 {
-                    String vs = value.ToString();
+                    var vs = value.ToString();
                     if (String.IsNullOrEmpty(vs))
                         value = false;
                     else
@@ -350,19 +350,6 @@ namespace XCode
             else
                 entity.Dirtys.Remove(name);
         }
-
-        //DictionaryCache<String, Type> nameTypes = new DictionaryCache<string, Type>();
-        //Type GetFieldTypeByName(String name)
-        //{
-        //    return nameTypes.GetItem(name, delegate(String key)
-        //    {
-        //        foreach (FieldItem item in Factory.AllFields)
-        //        {
-        //            if (item.ColumnName == key) return item.Type;
-        //        }
-        //        return null;
-        //    });
-        //}
         #endregion
     }
 }

@@ -570,8 +570,11 @@ namespace XCode
             var op = EntityFactory.CreateOperate(this.GetType());
             foreach (var item in op.Table.PrimaryKeys)
             {
-                Object v1 = this[item.Name];
-                Object v2 = entity[item.Name];
+                var v1 = this[item.Name];
+                var v2 = entity[item.Name];
+                // 特殊处理整数类型，避免出现相同值不同整型而导致结果不同
+                if (item.Type.IsIntType() && (Int64)v1 != (Int64)v2) return false;
+
                 if (item.Type == typeof(String)) { v1 += ""; v2 += ""; }
 
                 if (!Object.Equals(v1, v2)) return false;

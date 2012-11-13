@@ -644,7 +644,7 @@ namespace XCode.DataAccessLayer
             foreach (IDataColumn field in table.Columns)
             {
                 // 不管是否主键
-                if (!Helper.IsIntType(field.DataType)) continue;
+                if (!field.DataType.IsIntType()) continue;
 
                 String name = String.Format("SEQ_{0}_{1}", table.TableName, field.ColumnName);
                 if (CheckSeqExists(name))
@@ -662,7 +662,7 @@ namespace XCode.DataAccessLayer
                 {
                     foreach (IDataColumn field in table.Columns)
                     {
-                        if (!field.PrimaryKey || !Helper.IsIntType(field.DataType)) continue;
+                        if (!field.PrimaryKey || !field.DataType.IsIntType()) continue;
 
                         field.Identity = true;
                         exists = true;
@@ -675,7 +675,7 @@ namespace XCode.DataAccessLayer
                 // 处理自增，整型、主键、名为ID认为是自增
                 foreach (IDataColumn field in table.Columns)
                 {
-                    if (Helper.IsIntType(field.DataType))
+                    if (field.DataType.IsIntType())
                     {
                         if (field.PrimaryKey && field.ColumnName.ToLower().Contains("id")) field.Identity = true;
                     }

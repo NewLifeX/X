@@ -11,6 +11,12 @@ using NewLife.Reflection;
 using XCode.Common;
 using XCode.Configuration;
 
+#if NET4
+using System.Linq;
+#else
+using NewLife.Linq;
+#endif
+
 namespace XCode
 {
     /// <summary>实体集合，提供批量查询和批量操作实体等操作。若需要使用Linq，需要先用<see cref="ToList"/>方法。</summary>
@@ -109,7 +115,6 @@ namespace XCode
         /// <returns></returns>
         public EntityList<T> FindAll(String name, Object value)
         {
-            //if (Count < 1) return null;
             if (Count < 1) return this;
 
             FieldItem field = Factory.Table.FindByName(name);
@@ -119,13 +124,26 @@ namespace XCode
                 if (Helper.IsNullKey(value)) return null;
             }
 
-            EntityList<T> list = new EntityList<T>();
-            foreach (T item in this)
+            var list = new EntityList<T>();
+
+            // 特殊处理整数类型，避免出现相同值不同整型而导致结果不同
+            if (value != null && value.GetType().IsIntType())
             {
-                if (item == null) continue;
-                if (Object.Equals(item[name], value)) list.Add(item);
+                var v6 = (Int64)value;
+                foreach (var item in this)
+                {
+                    if (item == null) continue;
+                    if ((Int64)item[name] == v6) list.Add(item);
+                }
             }
-            //if (list == null || list.Count < 1) return null;
+            else
+            {
+                foreach (var item in this)
+                {
+                    if (item == null) continue;
+                    if (Object.Equals(item[name], value)) list.Add(item);
+                }
+            }
             return list;
         }
 
@@ -145,15 +163,27 @@ namespace XCode
                 if (Helper.IsNullKey(values[0])) return null;
             }
 
-            EntityList<T> list = new EntityList<T>();
-            foreach (T item in this)
+            // 特殊处理整数类型，避免出现相同值不同整型而导致结果不同
+            var ts = new Boolean[values.Length];
+            var vs = new Int64[values.Length];
+            for (int i = 0; i < values.Length; i++)
+            {
+                if (values[i] == null) continue;
+
+                ts[i] = values[i].GetType().IsIntType();
+                if (ts[i]) vs[i] = (Int64)values[i];
+            }
+
+            var list = new EntityList<T>();
+            foreach (var item in this)
             {
                 if (item == null) continue;
 
-                Boolean b = true;
+                var b = true;
                 for (int i = 0; i < names.Length; i++)
                 {
-                    if (!Object.Equals(item[names[i]], values[i]))
+                    var iv = item[names[i]];
+                    if (!Object.Equals(iv, values[i]) && !(ts[i] && (Int64)iv == vs[i]))
                     {
                         b = false;
                         break;
@@ -161,7 +191,6 @@ namespace XCode
                 }
                 if (b) list.Add(item);
             }
-            //if (list == null || list.Count < 1) return null;
             return list;
         }
 
@@ -170,16 +199,14 @@ namespace XCode
         /// <returns></returns>
         public new EntityList<T> FindAll(Predicate<T> match)
         {
-            //if (Count < 1) return null;
             if (Count < 1) return this;
 
-            EntityList<T> list = new EntityList<T>();
-            foreach (T item in this)
+            var list = new EntityList<T>();
+            foreach (var item in this)
             {
                 if (item == null) continue;
                 if (match(item)) list.Add(item);
             }
-            //if (list == null || list.Count < 1) return null;
             return list;
         }
 
@@ -191,12 +218,26 @@ namespace XCode
         {
             if (Count < 1) return default(T);
 
-            foreach (T item in this)
+            // 特殊处理整数类型，避免出现相同值不同整型而导致结果不同
+            if (value != null && value.GetType().IsIntType())
             {
-                if (item == null) continue;
-                if (Object.Equals(item[name], value)) return item;
+                var v6 = (Int64)value;
+                foreach (var item in this)
+                {
+                    if (item == null) continue;
+                    if ((Int64)item[name] == v6) return item;
+                }
+                return default(T);
             }
-            return default(T);
+            else
+            {
+                foreach (var item in this)
+                {
+                    if (item == null) continue;
+                    if (Object.Equals(item[name], value)) return item;
+                }
+                return default(T);
+            }
         }
 
         /// <summary>根据指定项查找字符串。忽略大小写</summary>
@@ -205,16 +246,14 @@ namespace XCode
         /// <returns></returns>
         public EntityList<T> FindAllIgnoreCase(String name, String value)
         {
-            //if (Count < 1) return null;
             if (Count < 1) return this;
 
-            EntityList<T> list = new EntityList<T>();
+            var list = new EntityList<T>();
             foreach (T item in this)
             {
                 if (item == null) continue;
                 if (String.Equals((String)item[name], value, StringComparison.OrdinalIgnoreCase)) list.Add(item);
             }
-            //if (list == null || list.Count < 1) return null;
             return list;
         }
 
@@ -272,14 +311,15 @@ namespace XCode
         /// <returns></returns>
         public Boolean Exists(String name, Object value)
         {
-            if (Count < 1) return false;
+            return Find(name, value) != null;
+            //if (Count < 1) return false;
 
-            foreach (T item in this)
-            {
-                if (item == null) continue;
-                if (Object.Equals(item[name], value)) return true;
-            }
-            return false;
+            //foreach (T item in this)
+            //{
+            //    if (item == null) continue;
+            //    if (Object.Equals(item[name], value)) return true;
+            //}
+            //return false;
         }
         #endregion
 

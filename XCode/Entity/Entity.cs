@@ -292,8 +292,7 @@ namespace XCode
                 //var entity = Meta.Cache.Entities.Find(fi.Name, this[fi.Name]);
                 //if (entity != null) Meta.Cache.Entities.Remove(entity);
 
-                if (fi != null)
-                    Meta.Cache.Entities.RemoveAll(e => Object.Equals(e[fi.Name], this[fi.Name]));
+                if (fi != null) Meta.Cache.Entities.RemoveAll(e => Object.Equals(e[fi.Name], this[fi.Name]));
             }
 
             return rs;
@@ -546,7 +545,7 @@ namespace XCode
             // 唯一键为自增且参数小于等于0时，返回新实例
             if (Helper.IsNullKey(key))
             {
-                if (Helper.IsIntType(type) && !field.IsIdentity && DAL.Debug) DAL.WriteLog("{0}的{1}字段是整型主键，你是否忘记了设置自增？", Meta.TableName, field.ColumnName);
+                if (type.IsIntType() && !field.IsIdentity && DAL.Debug) DAL.WriteLog("{0}的{1}字段是整型主键，你是否忘记了设置自增？", Meta.TableName, field.ColumnName);
 
                 return Meta.Factory.Create(true) as TEntity;
             }
@@ -1125,7 +1124,7 @@ namespace XCode
                 if (String.IsNullOrEmpty(builder.OrderBy) && String.IsNullOrEmpty(builder.GroupBy))
                 {
                     // 数字降序，其它升序
-                    var b = Helper.IsIntType(fi.Type) && fi.IsIdentity;
+                    var b = fi.Type.IsIntType() && fi.IsIdentity;
                     builder.IsDesc = b;
                     // 修正没有设置builder.IsInt导致分页没有选择最佳的MaxMin的BUG，感谢 @RICH(20371423)
                     builder.IsInt = b;
