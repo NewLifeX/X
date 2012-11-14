@@ -20,6 +20,13 @@ namespace XCode
     { }
 
     /// <summary>实体树基类，具有树形结构的实体继承该类即可得到各种树操作功能</summary>
+    /// <remarks>
+    /// 实体树很神奇，子类可以通过<see cref="KeyName"/>、<see cref="ParentKeyName"/>、<see cref="SortingKeyName"/>、<see cref="NameKeyName"/>等设置型属性，
+    /// 指定关联键、关联父键、排序键、名称键，其中前两个是必须的，它们是构造一棵树的根基！
+    /// 
+    /// 整个表会形成一颗实体树，同时也是一个实体列表，子级紧靠父级，同级排序，<see cref="Root"/>就是这棵树的根。
+    /// 所以，Root.Childs可以得到顶级节点集合，Root.AllChilds得到整棵树。
+    /// </remarks>
     /// <typeparam name="TKey">主键类型</typeparam>
     /// <typeparam name="TEntity">实体类型</typeparam>
     public abstract class EntityTree<TKey, TEntity> : Entity<TEntity>, IEntityTree where TEntity : EntityTree<TKey, TEntity>, new()
