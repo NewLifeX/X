@@ -35,7 +35,7 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
 [assembly: AssemblyVersion("8.9.*")]
-[assembly: AssemblyFileVersion("8.9.2012.1113")]
+[assembly: AssemblyFileVersion("8.9.2012.1114")]
 
 /*
  * XCode的重大改进
@@ -52,6 +52,8 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v8.9.2012.1114   实体树EntityTree增加BigSort开关，用于指定排序时是否较大数字排前面
+ * 
  * v8.9.2012.1113   特殊处理实体列表查找中的整数类型，避免出现相同值不同整型而导致结果不同
  * 
  * v8.9.2012.1111   数据模型调整，Name=>TableName/ColumnName，Alias=>Name

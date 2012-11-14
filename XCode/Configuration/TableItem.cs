@@ -185,8 +185,8 @@ namespace XCode.Configuration
             {
                 if (_FieldNames != null) return _FieldNames;
 
-                List<String> list = new List<String>();
-                foreach (FieldItem item in Fields)
+                var list = new List<String>();
+                foreach (var item in Fields)
                 {
                     if (!list.Contains(item.Name)) list.Add(item.Name);
                 }
@@ -195,27 +195,6 @@ namespace XCode.Configuration
                 return _FieldNames;
             }
         }
-
-        //private Dictionary<String, FieldItem> _FieldItems;
-        ///// <summary>数据字段字典，字段名不区分大小写</summary>
-        //public Dictionary<String, FieldItem> FieldItems
-        //{
-        //    get
-        //    {
-        //        if (_FieldItems == null)
-        //        {
-        //            Dictionary<String, FieldItem> dic = new Dictionary<String, FieldItem>(StringComparer.OrdinalIgnoreCase);
-        //            foreach (FieldItem item in Fields)
-        //            {
-        //                if (!dic.ContainsKey(item.Name)) dic.Add(item.Name, item);
-        //                if (!dic.ContainsKey(item.ColumnName)) dic.Add(item.ColumnName, item);
-        //            }
-        //            _FieldItems = dic;
-        //        }
-
-        //        return _FieldItems;
-        //    }
-        //}
 
         private IDataTable _DataTable;
         /// <summary>数据表架构</summary>
@@ -433,12 +412,12 @@ namespace XCode.Configuration
         {
             if (String.IsNullOrEmpty(name)) throw new ArgumentNullException("name");
 
-            foreach (FieldItem item in Fields)
+            foreach (var item in Fields)
             {
                 if (String.Equals(item.Name, name, StringComparison.OrdinalIgnoreCase)) return item as Field;
             }
 
-            foreach (FieldItem item in Fields)
+            foreach (var item in Fields)
             {
                 if (String.Equals(item.ColumnName, name, StringComparison.OrdinalIgnoreCase)) return item as Field;
             }
