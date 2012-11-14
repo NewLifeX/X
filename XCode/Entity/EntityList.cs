@@ -129,11 +129,11 @@ namespace XCode
             // 特殊处理整数类型，避免出现相同值不同整型而导致结果不同
             if (value != null && value.GetType().IsIntType())
             {
-                var v6 = (Int64)value;
+                var v6 = Convert.ToInt64(value);
                 foreach (var item in this)
                 {
                     if (item == null) continue;
-                    if ((Int64)item[name] == v6) list.Add(item);
+                    if (Convert.ToInt64(item[name]) == v6) list.Add(item);
                 }
             }
             else
@@ -171,7 +171,7 @@ namespace XCode
                 if (values[i] == null) continue;
 
                 ts[i] = values[i].GetType().IsIntType();
-                if (ts[i]) vs[i] = (Int64)values[i];
+                if (ts[i]) vs[i] = Convert.ToInt64(values[i]);
             }
 
             var list = new EntityList<T>();
@@ -183,7 +183,7 @@ namespace XCode
                 for (int i = 0; i < names.Length; i++)
                 {
                     var iv = item[names[i]];
-                    if (!Object.Equals(iv, values[i]) && !(ts[i] && (Int64)iv == vs[i]))
+                    if (!Object.Equals(iv, values[i]) && !(ts[i] && Convert.ToInt64(iv) == vs[i]))
                     {
                         b = false;
                         break;
@@ -221,11 +221,11 @@ namespace XCode
             // 特殊处理整数类型，避免出现相同值不同整型而导致结果不同
             if (value != null && value.GetType().IsIntType())
             {
-                var v6 = (Int64)value;
+                var v6 = Convert.ToInt64(value);
                 foreach (var item in this)
                 {
                     if (item == null) continue;
-                    if ((Int64)item[name] == v6) return item;
+                    if (Convert.ToInt64(item[name]) == v6) return item;
                 }
                 return default(T);
             }

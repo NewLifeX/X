@@ -106,7 +106,7 @@ namespace XCode.Common
             if (Object.Equals(left, right)) return true;
 
             // 特殊处理整型
-            return left.GetType().IsIntType() && right.GetType().IsIntType() && (Int64)left == (Int64)right;
+            return left.GetType().IsIntType() && right.GetType().IsIntType() && Convert.ToInt64(left) == Convert.ToInt64(right);
         }
     }
 }

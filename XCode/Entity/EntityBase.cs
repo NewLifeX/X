@@ -573,7 +573,7 @@ namespace XCode
                 var v1 = this[item.Name];
                 var v2 = entity[item.Name];
                 // 特殊处理整数类型，避免出现相同值不同整型而导致结果不同
-                if (item.Type.IsIntType() && (Int64)v1 != (Int64)v2) return false;
+                if (item.Type.IsIntType() && Convert.ToInt64(v1) != Convert.ToInt64(v2)) return false;
 
                 if (item.Type == typeof(String)) { v1 += ""; v2 += ""; }
 
