@@ -336,7 +336,7 @@ namespace XCode.DataAccessLayer
         {
             QueryTimes++;
             WriteSQL(cmd);
-            using (DbDataAdapter da = Factory.CreateDataAdapter())
+            using (var da = Factory.CreateDataAdapter())
             {
                 try
                 {
@@ -344,7 +344,7 @@ namespace XCode.DataAccessLayer
                     cmd.Connection = Conn;
                     if (Trans != null) cmd.Transaction = Trans;
                     da.SelectCommand = cmd;
-                    DataSet ds = new DataSet();
+                    var ds = new DataSet();
                     da.Fill(ds);
                     return ds;
                 }
@@ -355,6 +355,7 @@ namespace XCode.DataAccessLayer
                 finally
                 {
                     AutoClose();
+                    cmd.Parameters.Clear();
                 }
             }
         }
@@ -446,7 +447,11 @@ namespace XCode.DataAccessLayer
             {
                 throw OnException(ex, cmd.CommandText);
             }
-            finally { AutoClose(); }
+            finally
+            {
+                AutoClose();
+                cmd.Parameters.Clear();
+            }
         }
 
         /// <summary>执行插入语句并返回新增行的自动编号</summary>
@@ -489,6 +494,7 @@ namespace XCode.DataAccessLayer
             finally
             {
                 AutoClose();
+                cmd.Parameters.Clear();
             }
         }
 
