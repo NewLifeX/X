@@ -1,6 +1,7 @@
 ﻿<#
 if(Table.Relations!=null && Table.Relations.Count>0)
 {
+	List<String> tbs=new List<String>();
 	foreach(IDataRelation dr in Table.Relations)
     {
 		IDataTable rtable = FindTable(dr.RelationTable);
@@ -13,6 +14,8 @@ if(Table.Relations!=null && Table.Relations.Count>0)
 
 		String className = rtable.Name;
         String keyName=className;
+		if(tbs.Contains(keyName)) continue;
+		tbs.Add(keyName);
 
 		Boolean b=dr.Unique;
 		// 如果是唯一的，应该判断对方的唯一性，如果对方也是唯一，那么就构成一对一
@@ -54,7 +57,7 @@ if(Table.Relations!=null && Table.Relations.Count>0)
 <#
 			// 如果对方有名为Name的字符串字段，则加一个扩展属性
 			IDataColumn rname=rtable.GetColumn("Name");
-			if(rname!=null&&rname.DataType==typeof(String)){
+			if(rname!=null&&rname.DataType==typeof(String)&&Table.GetColumn(keyName+"Name")==null){
 #>
         /// <summary>该<#=Table.DisplayName#>所对应的<#=rtable.DisplayName#><#=rname.DisplayName#></summary>
         [XmlIgnore]

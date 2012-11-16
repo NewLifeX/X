@@ -1,4 +1,5 @@
 ﻿using System;
+using NewLife.Linq;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
@@ -45,13 +46,13 @@ namespace XCoder
         /// <summary>释放模版文件</summary>
         public static Dictionary<String, String> GetTemplates()
         {
-            String[] ss = Assembly.GetExecutingAssembly().GetManifestResourceNames();
+            var ss = Assembly.GetExecutingAssembly().GetManifestResourceNames();
             if (ss == null || ss.Length <= 0) return null;
 
-            Dictionary<String, String> dic = new Dictionary<string, string>();
+            var dic = new Dictionary<String, String>();
 
             //找到资源名
-            foreach (String item in ss)
+            foreach (var item in ss)
             {
                 if (item.StartsWith("XCoder.App."))
                 {
@@ -59,17 +60,17 @@ namespace XCoder
                 }
                 else if (item.StartsWith("XCoder.Template."))
                 {
-                    Stream stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(item);
-                    String tempName = item.Substring("XCoder.Template.".Length);
-                    Byte[] buffer = new Byte[stream.Length];
-                    Int32 count = stream.Read(buffer, 0, buffer.Length);
+                    var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(item);
+                    var tempName = item.Substring("XCoder.Template.".Length);
+                    var buffer = new Byte[stream.Length];
+                    var count = stream.Read(buffer, 0, buffer.Length);
 
-                    String content = Encoding.UTF8.GetString(buffer, 0, count);
+                    var content = Encoding.UTF8.GetString(buffer, 0, count);
                     dic.Add(tempName, content);
                 }
             }
 
-            return dic;
+            return dic.OrderBy(e => e.Key).ToDictionary(e => e.Key, e => e.Value);
         }
 
         /// <summary>读取资源，并写入到文件</summary>

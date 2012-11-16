@@ -50,7 +50,7 @@ namespace XCoder
                             }
                         }
                     }
-                    _FileTemplates = list;
+                    _FileTemplates = list.OrderBy(e => e).ToList();
                 }
                 return _FileTemplates;
             }
