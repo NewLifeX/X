@@ -134,7 +134,7 @@ namespace NewLife.CommonEntity
         static Administrator()
         {
             // 用于引发基类的静态构造函数
-            TEntity entity = new TEntity();
+            var entity = new TEntity();
 
             AdditionalFields.Add(_.Logins);
         }
@@ -149,7 +149,7 @@ namespace NewLife.CommonEntity
 
             if (XTrace.Debug) XTrace.WriteLine("开始初始化{0}管理员数据……", typeof(TEntity).Name);
 
-            TEntity user = new TEntity();
+            var user = new TEntity();
             user.Name = "admin";
             user.Password = DataHelper.Hash("admin");
             user.DisplayName = "管理员";
@@ -241,11 +241,7 @@ namespace NewLife.CommonEntity
         }
 
         /// <summary>当前登录用户，不带自动登录</summary>
-        public static TEntity CurrentNoAutoLogin
-        {
-            get { return HttpState.Get(null, null); }
-            //set { HttpState.Current = value; }
-        }
+        public static TEntity CurrentNoAutoLogin { get { return HttpState.Get(null, null); } }
 
         /// <summary>当前登录用户。通过实体资格提供者，保证取得正确的管理员</summary>
         [Obsolete("该成员在后续版本中讲不再被支持！")]
@@ -259,41 +255,19 @@ namespace NewLife.CommonEntity
         }
 
         /// <summary>友好名字</summary>
-        public virtual String FriendName
-        {
-            get
-            {
-                return String.IsNullOrEmpty(DisplayName) ? Name : DisplayName;
-            }
-        }
+        public virtual String FriendName { get { return String.IsNullOrEmpty(DisplayName) ? Name : DisplayName; } }
         #endregion
 
         #region 扩展查询
-        ///// <summary>根据主键查询一个管理员实体对象用于表单编辑</summary>
-        ///// <param name="__ID">编号</param>
-        ///// <returns></returns>
-        //[DataObjectMethod(DataObjectMethodType.Select, false)]
-        //public static TEntity FindByKeyForEdit(Int32 __ID)
-        //{
-        //    TEntity entity = FindByKey(__ID);
-        //    if (entity == null)
-        //    {
-        //        entity = new TEntity();
-        //        entity.IsEnable = true;
-        //    }
-        //    return entity;
-        //}
-
         /// <summary>根据编号查找</summary>
-        /// <param name="__ID"></param>
+        /// <param name="id"></param>
         /// <returns></returns>
-        public static TEntity FindByID(Int32 __ID)
+        public static TEntity FindByID(Int32 id)
         {
-            //return Find(_.ID, __ID);
-            // 实体缓存
-            return Meta.Cache.Entities.Find(_.ID, __ID);
-            // 单对象缓存
-            //return Meta.SingleCache[__ID];
+            if (Meta.Count >= 1000)
+                return Find(_.ID, id);
+            else // 实体缓存
+                return Meta.Cache.Entities.Find(_.ID, id);
         }
 
         /// <summary>根据名称查找</summary>
@@ -301,9 +275,12 @@ namespace NewLife.CommonEntity
         /// <returns></returns>
         public static TEntity FindByName(String name)
         {
-            if (String.IsNullOrEmpty(name) || Meta.Cache.Entities == null || Meta.Cache.Entities.Count < 1) return null;
+            if (String.IsNullOrEmpty(name)) return null;
 
-            return Meta.Cache.Entities.Find(_.Name, name);
+            if (Meta.Count >= 1000)
+                return Find(_.Name, name);
+            else // 实体缓存
+                return Meta.Cache.Entities.Find(_.Name, name);
         }
 
         /// <summary>根据SSOUserID查找</summary>
@@ -311,7 +288,10 @@ namespace NewLife.CommonEntity
         /// <returns></returns>
         public static TEntity FindBySSOUserID(Int32 id)
         {
-            return Meta.Cache.Entities.Find(_.SSOUserID, id);
+            if (Meta.Count >= 1000)
+                return Find(_.SSOUserID, id);
+            else // 实体缓存
+                return Meta.Cache.Entities.Find(_.SSOUserID, id);
         }
 
         /// <summary>根据SSOUserID查找所有帐户</summary>
@@ -319,7 +299,10 @@ namespace NewLife.CommonEntity
         /// <returns></returns>
         public static EntityList<TEntity> FindAllBySSOUserID(Int32 id)
         {
-            return Meta.Cache.Entities.FindAll(_.SSOUserID, id);
+            if (Meta.Count >= 1000)
+                return FindAll(_.SSOUserID, id);
+            else // 实体缓存
+                return Meta.Cache.Entities.FindAll(_.SSOUserID, id);
         }
 
         /// <summary>查询满足条件的记录集，分页、排序</summary>
@@ -356,7 +339,7 @@ namespace NewLife.CommonEntity
             var exp = new WhereExpression();
 
             // SearchWhereByKeys系列方法用于构建针对字符串字段的模糊搜索
-            if (!String.IsNullOrEmpty(key)) SearchWhereByKeys(exp.Builder, key);
+            if (!String.IsNullOrEmpty(key)) exp &= SearchWhereByKey(key);
 
             if (roleId > 0) exp &= _.RoleID == roleId;
 
@@ -396,7 +379,7 @@ namespace NewLife.CommonEntity
             //if (String.IsNullOrEmpty(username)) return null;
             if (String.IsNullOrEmpty(username)) throw new Exception("该帐号不存在！");
             //过滤帐号中的空格，防止出现无操作无法登录的情况
-            String account = username.Trim();
+            var account = username.Trim();
             var user = FindByName(account);
             //if (user == null) return null;
             if (user == null) throw new Exception("该帐号错误！");
@@ -408,7 +391,7 @@ namespace NewLife.CommonEntity
             {
                 if (hashTimes > 0)
                 {
-                    String p = password;
+                    var p = password;
                     if (!String.IsNullOrEmpty(p))
                     {
                         for (int i = 0; i < hashTimes; i++)
@@ -420,7 +403,7 @@ namespace NewLife.CommonEntity
                 }
                 else
                 {
-                    String p = user.Password;
+                    var p = user.Password;
                     for (int i = 0; i > hashTimes; i--)
                     {
                         p = DataHelper.Hash(p);

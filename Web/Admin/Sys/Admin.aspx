@@ -5,9 +5,8 @@
     <div class="toolbar">
         <asp:Label Text="关键字" runat="server" />
         &nbsp;<asp:TextBox runat="server" ID="txtKey" />
-        角色：<XCL:DropDownList ID="ddlRole" runat="server" DataSourceID="odsRole"
-            AppendDataBoundItems="true" DataTextField="Name" DataValueField="ID" 
-            AutoPostBack="True">
+        角色：<XCL:DropDownList ID="ddlRole" runat="server" DataSourceID="odsRole" AppendDataBoundItems="true"
+            DataTextField="Name" DataValueField="ID" AutoPostBack="True">
             <asp:ListItem Value="0">请选择</asp:ListItem>
         </XCL:DropDownList>
         &nbsp;<asp:Button ID="Button1" runat="server" Text="查询" />
@@ -26,7 +25,8 @@
     </div>
     <asp:GridView ID="gv" runat="server" AutoGenerateColumns="False" DataKeyNames="ID"
         DataSourceID="ods" CssClass="m_table" CellPadding="0" GridLines="None" EnableModelValidation="True"
-        EnableViewState="False">
+        EnableViewState="False" AllowPaging="True" AllowSorting="True" 
+        PageSize="20">
         <Columns>
             <asp:TemplateField>
                 <ItemTemplate>
@@ -41,7 +41,7 @@
                 <ItemStyle CssClass="key" HorizontalAlign="Center" />
             </asp:BoundField>
             <XCL:LinkBoxField HeaderText="用户名" DataNavigateUrlFields="ID" DataNavigateUrlFormatString="AdminForm.aspx?ID={0}"
-                Height="400px" DataTextField="Name" Width="370px" Title="编辑管理员">
+                Height="400px" DataTextField="Name" Width="370px" Title="编辑管理员" SortExpression="Name">
                 <ItemStyle HorizontalAlign="Center" />
             </XCL:LinkBoxField>
             <XCL:LinkBoxField HeaderText="友好名称" DataNavigateUrlFields="ID" DataNavigateUrlFormatString="AdminForm.aspx?ID={0}"
@@ -76,10 +76,12 @@
             没有数据!
         </EmptyDataTemplate>
     </asp:GridView>
-    <asp:ObjectDataSource ID="ods" runat="server" SelectMethod="Search" DeleteMethod="Delete">
+    <asp:ObjectDataSource ID="ods" runat="server" SelectMethod="Search" DeleteMethod="Delete"
+        EnablePaging="True" SelectCountMethod="SearchCount" 
+        SortParameterName="orderClause">
         <SelectParameters>
             <asp:ControlParameter ControlID="txtKey" Name="key" Type="String" PropertyName="Text" />
-            <asp:ControlParameter ControlID="ddlRole" Name="roleID" Type="Int32" PropertyName="SelectedValue" />
+            <asp:ControlParameter ControlID="ddlRole" Name="roleId" Type="Int32" PropertyName="SelectedValue" />
             <asp:Parameter Name="orderClause" Type="String" DefaultValue="ID Desc" />
             <asp:Parameter DefaultValue="0" Name="startRowIndex" Type="Int32" />
             <asp:Parameter DefaultValue="0" Name="maximumRows" Type="Int32" />

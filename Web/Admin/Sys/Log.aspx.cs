@@ -1,18 +1,26 @@
 ﻿using System;
 using NewLife.CommonEntity;
+using XCode;
 
 public partial class Pages_Log : MyEntityList
 {
     protected void Page_Load(object sender, EventArgs e)
     {
         Type type = CommonManageProvider.Provider.LogType;
-        ObjectDataSource1.TypeName = type.FullName;
-        ObjectDataSource1.DataObjectTypeName = type.FullName;
-        ObjectDataSource3.TypeName = type.FullName;
-        ObjectDataSource3.DataObjectTypeName = type.FullName;
+        ods.TypeName = type.FullName;
+        ods.DataObjectTypeName = type.FullName;
+        odsCategory.TypeName = type.FullName;
+        odsCategory.DataObjectTypeName = type.FullName;
 
-        type = CommonManageProvider.Provider.AdminstratorType;
-        ObjectDataSource2.TypeName = type.FullName;
-        ObjectDataSource2.DataObjectTypeName = type.FullName;
+        if (!IsPostBack)
+        {
+            IEntityOperate eop = EntityFactory.CreateOperate(CommonManageProvider.Provider.AdminstratorType);
+            if (eop != null)
+            {
+                // 管理员选项最多只要50个
+                ddlAdmin.DataSource = eop.FindAll(null, null, null, 0, 50);
+                ddlAdmin.DataBind();
+            }
+        }
     }
 }

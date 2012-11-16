@@ -3,12 +3,12 @@
 
 <asp:Content ID="Content1" ContentPlaceHolderID="C" runat="server">
     <div class="toolbar">
-        类别：<asp:DropDownList ID="DropDownList1" runat="server" AppendDataBoundItems="True"
-            DataSourceID="ObjectDataSource3" DataTextField="Category" DataValueField="Category">
+        类别：<asp:DropDownList ID="ddlCategory" runat="server" AppendDataBoundItems="True"
+            DataSourceID="odsCategory" DataTextField="Category" DataValueField="Category">
             <asp:ListItem>全部</asp:ListItem>
         </asp:DropDownList>
-        &nbsp;管理员：<asp:DropDownList ID="DropDownList2" runat="server" AppendDataBoundItems="True"
-            DataSourceID="ObjectDataSource2" DataTextField="FriendName" DataValueField="ID">
+        &nbsp;管理员：<asp:DropDownList ID="ddlAdmin" runat="server" AppendDataBoundItems="True"
+            DataTextField="FriendName" DataValueField="ID">
             <asp:ListItem Value="0">全部</asp:ListItem>
         </asp:DropDownList>
         &nbsp;关键字：<asp:TextBox ID="key" runat="server" CssClass="textfield" Width="70px"></asp:TextBox>
@@ -20,7 +20,7 @@
         &nbsp;<asp:Button ID="Button1" runat="server" Text="查询" />
     </div>
     <asp:GridView ID="GridView1" runat="server" AutoGenerateColumns="False" DataKeyNames="ID"
-        DataSourceID="ObjectDataSource1" AllowPaging="True" AllowSorting="True" CssClass="m_table"
+        DataSourceID="ods" AllowPaging="True" AllowSorting="True" CssClass="m_table"
         CellPadding="0" CellSpacing="1" GridLines="None" PageSize="20" EnableModelValidation="True">
         <Columns>
             <asp:BoundField DataField="ID" HeaderText="序号" InsertVisible="False" ReadOnly="True"
@@ -47,14 +47,14 @@
             没有符合条件的数据！
         </EmptyDataTemplate>
     </asp:GridView>
-    <asp:ObjectDataSource ID="ObjectDataSource1" runat="server" EnablePaging="True" OldValuesParameterFormatString="original_{0}"
+    <asp:ObjectDataSource ID="ods" runat="server" EnablePaging="True" OldValuesParameterFormatString="original_{0}"
         SelectCountMethod="SearchCount" SelectMethod="Search" SortParameterName="orderClause"
         TypeName="">
         <SelectParameters>
             <asp:ControlParameter ControlID="key" Name="key" PropertyName="Text" Type="String" />
-            <asp:ControlParameter ControlID="DropDownList2" Name="adminid" PropertyName="SelectedValue"
+            <asp:ControlParameter ControlID="ddlAdmin" Name="adminid" PropertyName="SelectedValue"
                 Type="Int32" />
-            <asp:ControlParameter ControlID="DropDownList1" Name="category" PropertyName="SelectedValue"
+            <asp:ControlParameter ControlID="ddlCategory" Name="category" PropertyName="SelectedValue"
                 Type="String" />
             <asp:ControlParameter ControlID="StartDate" Name="start" PropertyName="Text" Type="DateTime" />
             <asp:ControlParameter ControlID="EndDate" Name="end" PropertyName="Text" Type="DateTime" />
@@ -63,9 +63,7 @@
             <asp:Parameter Name="maximumRows" Type="Int32" DefaultValue="200000" />
         </SelectParameters>
     </asp:ObjectDataSource>
-    <asp:ObjectDataSource ID="ObjectDataSource2" runat="server" OldValuesParameterFormatString="original_{0}"
-        SelectMethod="FindAll" TypeName="" DataObjectTypeName=""></asp:ObjectDataSource>
-    <asp:ObjectDataSource ID="ObjectDataSource3" runat="server" OldValuesParameterFormatString="original_{0}"
+    <asp:ObjectDataSource ID="odsCategory" runat="server" OldValuesParameterFormatString="original_{0}"
         SelectMethod="FindAllCategory" TypeName=""></asp:ObjectDataSource>
     <XCL:GridViewExtender ID="gvExt" runat="server">
     </XCL:GridViewExtender>
