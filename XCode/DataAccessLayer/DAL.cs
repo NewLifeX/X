@@ -271,8 +271,10 @@ namespace XCode.DataAccessLayer
 
         #region 正向工程
         private List<IDataTable> _Tables;
-        /// <summary>取得所有表和视图的构架信息，为了提高性能，得到的只是准实时信息，可能会有1秒到3秒的延迟</summary>
-        /// <remarks>如果不存在缓存，则获取后返回；否则使用线程池线程获取，而主线程返回缓存</remarks>
+        /// <summary>取得所有表和视图的构架信息（异步缓存延迟1秒）。设为null可清除缓存</summary>
+        /// <remarks>
+        /// 如果不存在缓存，则获取后返回；否则使用线程池线程获取，而主线程返回缓存。
+        /// </remarks>
         /// <returns></returns>
         public List<IDataTable> Tables
         {
@@ -285,6 +287,11 @@ namespace XCode.DataAccessLayer
                     ThreadPool.QueueUserWorkItem(delegate(Object state) { _Tables = GetTables(); });
 
                 return _Tables;
+            }
+            set
+            {
+                //设为null可清除缓存
+                _Tables = null;
             }
         }
 
