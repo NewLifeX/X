@@ -313,7 +313,7 @@ namespace XCode
 
                     // 输出调用者，方便调试
 #if DEBUG
-                    if (DAL.Debug) DAL.WriteLog("检查实体{0}的数据表架构，模式：{1}，调用栈：{2}", ThisType.FullName, Table.ModelCheckMode, Helper.GetCaller());
+                    if (DAL.Debug) DAL.WriteLog("检查实体{0}的数据表架构，模式：{1}，调用栈：{2}", ThisType.FullName, Table.ModelCheckMode, XTrace.GetCaller());
 #else
                     // CheckTableWhenFirstUse的实体类，在这里检查，有点意思，记下来
                     if (DAL.Debug && Table.ModelCheckMode == ModelCheckModes.CheckTableWhenFirstUse)
@@ -394,7 +394,7 @@ namespace XCode
                     if (millisecondsTimeout != 0 && e != null)
                     {
 #if DEBUG
-                        if (DAL.Debug) DAL.WriteLog("开始等待初始化{0}数据{1}ms，调用栈：{2}", ThisType.FullName, millisecondsTimeout, Helper.GetCaller());
+                        if (DAL.Debug) DAL.WriteLog("开始等待初始化{0}数据{1}ms，调用栈：{2}", ThisType.FullName, millisecondsTimeout, XTrace.GetCaller());
 #else
                         if (DAL.Debug) DAL.WriteLog("开始等待初始化{0}数据{1}ms", ThisType.FullName, millisecondsTimeout);
 #endif
@@ -406,7 +406,7 @@ namespace XCode
                         finally
                         {
 #if DEBUG
-                            if (DAL.Debug) DAL.WriteLog("结束等待初始化{0}数据，调用栈：{1}", ThisType.FullName, Helper.GetCaller());
+                            if (DAL.Debug) DAL.WriteLog("结束等待初始化{0}数据，调用栈：{1}", ThisType.FullName, XTrace.GetCaller());
 #else
                             if (DAL.Debug) DAL.WriteLog("结束等待初始化{0}数据", ThisType.FullName);
 #endif
@@ -427,7 +427,7 @@ namespace XCode
 
                 // 输出调用者，方便调试
 #if DEBUG
-                if (DAL.Debug) DAL.WriteLog("初始化{0}数据，调用栈：{1}", ThisType.FullName, Helper.GetCaller());
+                if (DAL.Debug) DAL.WriteLog("初始化{0}数据，调用栈：{1}", ThisType.FullName, XTrace.GetCaller());
 #else
                 if (DAL.Debug) DAL.WriteLog("初始化{0}数据", ThisType.FullName);
 #endif
