@@ -84,6 +84,12 @@
       <SubType>ASPXCodeBehind</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="Template\实体业务\中文名.Biz.cs" />
+    <Compile Include="Windows\FrmFix.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Windows\FrmFix.Designer.cs">
+      <DependentUpon>FrmFix.cs</DependentUpon>
+    </Compile>
     <Compile Include="Windows\FrmItems.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -130,6 +136,9 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
+    <EmbeddedResource Include="Windows\FrmFix.resx">
+      <DependentUpon>FrmFix.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Windows\FrmItems.resx">
       <DependentUpon>FrmItems.cs</DependentUpon>
     </EmbeddedResource>

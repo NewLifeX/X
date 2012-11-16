@@ -443,13 +443,7 @@ namespace XCoder
             txtBaseClass.Text = Config.BaseClass;
             cbRenderGenEntity.Checked = Config.RenderGenEntity;
 
-            cbNeedFix.Checked = Config.NeedFix;
-            txtPrefix.Text = Config.Prefix;
-            cbCutPrefix.Checked = Config.AutoCutPrefix;
-            cbCutTableName.Checked = Config.AutoCutTableName;
-            cbFixWord.Checked = Config.AutoFixWord;
             checkBox3.Checked = Config.UseCNFileName;
-            cbUseID.Checked = Config.UseID;
             checkBox5.Checked = Config.UseHeadTemplate;
             //richTextBox2.Text = Config.HeadTemplate;
             checkBox4.Checked = Config.Debug;
@@ -465,13 +459,7 @@ namespace XCoder
             Config.BaseClass = txtBaseClass.Text;
             Config.RenderGenEntity = cbRenderGenEntity.Checked;
 
-            Config.NeedFix = cbNeedFix.Checked;
-            Config.Prefix = txtPrefix.Text;
-            Config.AutoCutPrefix = cbCutPrefix.Checked;
-            Config.AutoCutTableName = cbCutTableName.Checked;
-            Config.AutoFixWord = cbFixWord.Checked;
             Config.UseCNFileName = checkBox3.Checked;
-            Config.UseID = cbUseID.Checked;
             Config.UseHeadTemplate = checkBox5.Checked;
             //Config.HeadTemplate = richTextBox2.Text;
             Config.Debug = checkBox4.Checked;
@@ -614,6 +602,31 @@ namespace XCoder
         {
             Process.Start("http://www.NewLifeX.com/?r=XCoder_v" + AssemblyX.Create(Assembly.GetExecutingAssembly()).Version);
         }
+
+        private void oracle客户端运行时检查ToolStripMenuItem1_Click(object sender, EventArgs e)
+        {
+            ThreadPoolX.QueueUserWorkItem(CheckOracle);
+        }
+        void CheckOracle()
+        {
+            if (!DAL.ConnStrs.ContainsKey("Oracle")) return;
+
+            try
+            {
+                var list = DAL.Create("Oracle").Tables;
+
+                MessageBox.Show("Oracle客户端运行时检查通过！");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Oracle客户端运行时检查失败！也可能是用户名密码错误！" + ex.ToString());
+            }
+        }
+
+        private void 自动格式化设置ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            FrmFix.Create(Config).ShowDialog();
+        }
         #endregion
 
         #region 模型管理
@@ -678,6 +691,13 @@ namespace XCoder
 
         private void btnImport_Click(object sender, EventArgs e)
         {
+            var btn = sender as Button;
+            if (btn != null && btn.Text == "导出模型")
+            {
+                导出模型EToolStripMenuItem_Click(null, EventArgs.Empty);
+                return;
+            }
+
             if (openFileDialog1.ShowDialog() != DialogResult.OK || String.IsNullOrEmpty(openFileDialog1.FileName)) return;
             try
             {
@@ -702,24 +722,9 @@ namespace XCoder
         }
         #endregion
 
-        private void oracle客户端运行时检查ToolStripMenuItem1_Click(object sender, EventArgs e)
+        private void webBrowser1_DocumentCompleted(object sender, WebBrowserDocumentCompletedEventArgs e)
         {
-            ThreadPoolX.QueueUserWorkItem(CheckOracle);
-        }
-        void CheckOracle()
-        {
-            if (!DAL.ConnStrs.ContainsKey("Oracle")) return;
-
-            try
-            {
-                var list = DAL.Create("Oracle").Tables;
-
-                MessageBox.Show("Oracle客户端运行时检查通过！");
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Oracle客户端运行时检查失败！也可能是用户名密码错误！" + ex.ToString());
-            }
+            webBrowser1.Document.Window.ScrollTo(0, 90);
         }
     }
 }
