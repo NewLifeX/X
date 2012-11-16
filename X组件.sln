@@ -45,7 +45,7 @@ Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "Web", "Web\", "{AAC0A525-4C
 		Release.AspNetCompiler.ForceOverwrite = "true"
 		Release.AspNetCompiler.FixedNames = "false"
 		Release.AspNetCompiler.Debug = "False"
-		VWDPort = "36554"
+		VWDPort = "38548"
 		VWDDynamicPort = "true"
 	EndProjectSection
 EndProject
@@ -61,6 +61,9 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NewLife.Net.Test", "NewLife.Net.Test\NewLife.Net.Test.csproj", "{6D5EA117-7DC7-4390-935A-97C36F0BB29C}"
 EndProject
 Global
+	GlobalSection(TestCaseManagementSettings) = postSolution
+		CategoryFile = X组件.vsmdi
+	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Net4Debug|Any CPU = Net4Debug|Any CPU
@@ -187,8 +190,5 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(TestCaseManagementSettings) = postSolution
-		CategoryFile = X组件.vsmdi
 	EndGlobalSection
 EndGlobal

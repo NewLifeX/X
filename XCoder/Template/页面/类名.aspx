@@ -36,7 +36,7 @@ foreach(IDataColumn Field in Table.Columns){
     } 
 }
     #>
-    <asp:GridView ID="gv" runat="server" AutoGenerateColumns="False" DataKeyNames="<#=sbpk#>" DataSourceID="ods" AllowPaging="True" AllowSorting="True" CssClass="m_table" PageSize="20" CellPadding="0" GridLines="None" EnableModelValidation="True" EnableViewState="false">
+    <asp:GridView ID="gv" runat="server" AutoGenerateColumns="False" DataKeyNames="<#=sbpk#>" DataSourceID="ods" AllowPaging="True" AllowSorting="True" CssClass="m_table" PageSize="20" CellPadding="0" GridLines="None" EnableModelValidation="True">
         <Columns>
             <%--<asp:TemplateField>
                 <ItemTemplate>

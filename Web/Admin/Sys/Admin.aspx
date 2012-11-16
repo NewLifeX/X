@@ -24,9 +24,9 @@
             OnClientClick='return confirm("确定批量修改密码吗？")' OnClick="btnChangePass_Click" />
     </div>
     <asp:GridView ID="gv" runat="server" AutoGenerateColumns="False" DataKeyNames="ID"
-        DataSourceID="ods" CssClass="m_table" CellPadding="0" GridLines="None" EnableModelValidation="True"
-        EnableViewState="False" AllowPaging="True" AllowSorting="True" 
-        PageSize="20">
+        DataSourceID="ods" CssClass="m_table" CellPadding="0" GridLines="None" 
+        EnableModelValidation="True" AllowPaging="True" AllowSorting="True" 
+        PageSize="10">
         <Columns>
             <asp:TemplateField>
                 <ItemTemplate>
@@ -87,14 +87,7 @@
             <asp:Parameter DefaultValue="0" Name="maximumRows" Type="Int32" />
         </SelectParameters>
     </asp:ObjectDataSource>
-    <asp:ObjectDataSource ID="odsRole" runat="server" SelectMethod="FindAllByName">
-        <SelectParameters>
-            <asp:Parameter Name="name" Type="String" />
-            <asp:Parameter Name="value" Type="Object" />
-            <asp:Parameter Name="orderClause" Type="String" />
-            <asp:Parameter Name="startRowIndex" Type="Int32" />
-            <asp:Parameter Name="maximumRows" Type="Int32" />
-        </SelectParameters>
+    <asp:ObjectDataSource ID="odsRole" runat="server" SelectMethod="FindAllWithCache">
     </asp:ObjectDataSource>
     <XCL:GridViewExtender ID="gvExt" runat="server">
     </XCL:GridViewExtender>
