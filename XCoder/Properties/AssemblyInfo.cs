@@ -29,8 +29,8 @@ using System.Runtime.InteropServices;
 //      内部版本号
 //      修订号
 //
-[assembly: AssemblyVersion("4.9.*")]
-[assembly: AssemblyFileVersion("4.9.2012.1112")]
+[assembly: AssemblyVersion("5.0.*")]
+[assembly: AssemblyFileVersion("5.0.2012.1116")]
 
 /*
  * v4.9.2012.1112   数据模型升级，需要更新所有模版

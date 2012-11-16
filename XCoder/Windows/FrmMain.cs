@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Configuration;
 using System.Data;
 using System.Data.Common;
@@ -14,11 +13,11 @@ using NewLife.Reflection;
 using NewLife.Threading;
 using XCode.DataAccessLayer;
 using XTemplate.Templating;
+
 #if NET4
 using System.Linq;
 #else
 using NewLife.Linq;
-
 #endif
 
 namespace XCoder
@@ -93,25 +92,16 @@ namespace XCoder
             if (bt_Connection.Text == "连接")
             {
                 Engine = null;
-                try
-                {
-                    Engine.Tables = DAL.Create(Config.ConnName).Tables;
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show(ex.ToString(), this.Text);
-                    return;
-                }
-
-                SetTables(null);
-                SetTables(Engine.Tables);
+                LoadTables();
 
                 gbConnect.Enabled = false;
                 gbTable.Enabled = true;
                 模型ToolStripMenuItem.Visible = true;
                 架构管理SToolStripMenuItem.Visible = true;
-                btnImport.Enabled = false;
+                //btnImport.Enabled = false;
+                btnImport.Text = "导出模型";
                 bt_Connection.Text = "断开";
+                btnRefreshTable.Enabled = true;
             }
             else
             {
@@ -122,8 +112,17 @@ namespace XCoder
                 模型ToolStripMenuItem.Visible = false;
                 架构管理SToolStripMenuItem.Visible = false;
                 btnImport.Enabled = true;
+                btnImport.Text = "导入模型";
                 bt_Connection.Text = "连接";
+                btnRefreshTable.Enabled = false;
                 Engine = null;
+
+                // 断开的时候再取一次，确保下次能及时得到新的
+                try
+                {
+                    var list = DAL.Create(Config.ConnName).Tables;
+                }
+                catch { }
             }
         }
 
@@ -341,6 +340,25 @@ namespace XCoder
             if (cbConn.SelectedIndex < 0 && cbConn.Items != null && cbConn.Items.Count > 0) cbConn.SelectedIndex = 0;
         }
 
+        void LoadTables()
+        {
+            try
+            {
+                var list = DAL.Create(Config.ConnName).Tables;
+                if (!cbIncludeView.Checked) list = list.Where(t => !t.IsView).ToList();
+                if (Config.NeedFix) list = Engine.FixTable(list);
+                Engine.Tables = list;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString(), this.Text);
+                return;
+            }
+
+            SetTables(null);
+            SetTables(Engine.Tables);
+        }
+
         void SetTables(Object source)
         {
             cbTableList.DataSource = source;
@@ -372,6 +390,11 @@ namespace XCoder
 
             // 异步加载
             ThreadPoolX.QueueUserWorkItem(delegate(Object state) { IList<IDataTable> tables = DAL.Create((String)state).Tables; }, name, null);
+        }
+
+        private void btnRefreshTable_Click(object sender, EventArgs e)
+        {
+            LoadTables();
         }
         #endregion
 
@@ -492,8 +515,8 @@ namespace XCoder
         #region 打开输出目录
         private void btnOpenOutputDir_Click(object sender, EventArgs e)
         {
-            String dir = txt_OutPath.Text;
-            dir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, dir);
+            var dir = txt_OutPath.Text.GetFullPath();
+            if (!Directory.Exists(dir)) dir = AppDomain.CurrentDomain.BaseDirectory;
 
             Process.Start("explorer.exe", "\"" + dir + "\"");
             //Process.Start("explorer.exe", "/root,\"" + dir + "\"");
@@ -702,6 +725,8 @@ namespace XCoder
             try
             {
                 var list = DAL.Import(File.ReadAllText(openFileDialog1.FileName));
+                if (!cbIncludeView.Checked) list = list.Where(t => !t.IsView).ToList();
+                if (Config.NeedFix) list = Engine.FixTable(list);
 
                 Engine = null;
                 Engine.Tables = list;

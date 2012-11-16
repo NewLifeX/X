@@ -17,8 +17,8 @@ using NewLife.Linq;
 
 namespace XCoder
 {
-    /// <summary>代码生成器类</summary>
-    class Engine
+    /// <summary>代码生成引擎</summary>
+    public class Engine
     {
         #region 属性
         public const String TemplatePath = "Template";
@@ -65,25 +65,26 @@ namespace XCoder
         /// <summary>配置</summary>
         public XConfig Config { get { return _Config; } set { _Config = value; } }
 
-        private String _LastTableKey;
-        private List<IDataTable> _LastTables;
+        //private String _LastTableKey;
+        //private List<IDataTable> _LastTables;
         private List<IDataTable> _Tables;
         /// <summary>所有表</summary>
         public List<IDataTable> Tables
         {
             get
             {
-                if (!Config.NeedFix) return _Tables;
+                //if (!Config.NeedFix) return _Tables;
 
-                // 不同的前缀、大小写选项，得到的表集合是不一样的。这里用字典来缓存
-                var key = String.Format("{0}_{1}_{2}_{3}_{4}", Config.AutoCutPrefix, Config.AutoCutTableName, Config.AutoFixWord, Config.Prefix, Config.UseID);
-                //return _cache.GetItem(key, k => FixTable(_Tables));
-                if (_LastTableKey != key)
-                {
-                    _LastTables = FixTable(_Tables);
-                    _LastTableKey = key;
-                }
-                return _LastTables;
+                //// 不同的前缀、大小写选项，得到的表集合是不一样的。这里用字典来缓存
+                //var key = String.Format("{0}_{1}_{2}_{3}_{4}", Config.AutoCutPrefix, Config.AutoCutTableName, Config.AutoFixWord, Config.Prefix, Config.UseID);
+                ////return _cache.GetItem(key, k => FixTable(_Tables));
+                //if (_LastTableKey != key)
+                //{
+                //    _LastTables = FixTable(_Tables);
+                //    _LastTableKey = key;
+                //}
+                //return _LastTables;
+                return _Tables;
             }
             set { _Tables = value; }
         }
@@ -201,12 +202,11 @@ namespace XCoder
             return rs.ToArray();
             #endregion
         }
+        #endregion
 
-        /// <summary>
-        /// 预先修正表名等各种东西，简化模版编写。
-        /// 因为与设置相关，所以，每次更改设置后，都应该调用一次该方法。
-        /// </summary>
-        List<IDataTable> FixTable(List<IDataTable> tables)
+        #region 修正表
+        /// <summary>预先修正表名等各种东西，简化模版编写。</summary>
+        public List<IDataTable> FixTable(List<IDataTable> tables)
         {
             if (tables == null || tables.Count < 1) return tables;
 

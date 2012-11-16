@@ -47,6 +47,7 @@
             this.groupBox1.Controls.Add(this.cbFixWord);
             this.groupBox1.Controls.Add(this.cbCutTableName);
             this.groupBox1.Controls.Add(this.cbUseID);
+            this.groupBox1.Font = new System.Drawing.Font("微软雅黑", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
             this.groupBox1.ForeColor = System.Drawing.Color.Blue;
             this.groupBox1.Location = new System.Drawing.Point(9, 34);
             this.groupBox1.Name = "groupBox1";
@@ -60,7 +61,7 @@
             this.label2.AutoSize = true;
             this.label2.Location = new System.Drawing.Point(6, 25);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(65, 12);
+            this.label2.Size = new System.Drawing.Size(68, 17);
             this.label2.TabIndex = 35;
             this.label2.Text = "删除前缀：";
             // 
@@ -68,7 +69,7 @@
             // 
             this.txtPrefix.Location = new System.Drawing.Point(66, 21);
             this.txtPrefix.Name = "txtPrefix";
-            this.txtPrefix.Size = new System.Drawing.Size(243, 21);
+            this.txtPrefix.Size = new System.Drawing.Size(243, 23);
             this.txtPrefix.TabIndex = 36;
             // 
             // cbCutPrefix
@@ -76,7 +77,7 @@
             this.cbCutPrefix.AutoSize = true;
             this.cbCutPrefix.Location = new System.Drawing.Point(6, 53);
             this.cbCutPrefix.Name = "cbCutPrefix";
-            this.cbCutPrefix.Size = new System.Drawing.Size(138, 16);
+            this.cbCutPrefix.Size = new System.Drawing.Size(140, 21);
             this.cbCutPrefix.TabIndex = 37;
             this.cbCutPrefix.Text = "去除前缀（以_为准）";
             this.cbCutPrefix.UseVisualStyleBackColor = true;
@@ -86,7 +87,7 @@
             this.cbFixWord.AutoSize = true;
             this.cbFixWord.Location = new System.Drawing.Point(146, 53);
             this.cbFixWord.Name = "cbFixWord";
-            this.cbFixWord.Size = new System.Drawing.Size(108, 16);
+            this.cbFixWord.Size = new System.Drawing.Size(111, 21);
             this.cbFixWord.TabIndex = 38;
             this.cbFixWord.Text = "更正名称大小写";
             this.cbFixWord.UseVisualStyleBackColor = true;
@@ -96,7 +97,7 @@
             this.cbCutTableName.AutoSize = true;
             this.cbCutTableName.Location = new System.Drawing.Point(6, 75);
             this.cbCutTableName.Name = "cbCutTableName";
-            this.cbCutTableName.Size = new System.Drawing.Size(132, 16);
+            this.cbCutTableName.Size = new System.Drawing.Size(135, 21);
             this.cbCutTableName.TabIndex = 52;
             this.cbCutTableName.Text = "去除字段前面的表名";
             this.cbCutTableName.UseVisualStyleBackColor = true;
@@ -106,7 +107,7 @@
             this.cbUseID.AutoSize = true;
             this.cbUseID.Location = new System.Drawing.Point(146, 75);
             this.cbUseID.Name = "cbUseID";
-            this.cbUseID.Size = new System.Drawing.Size(84, 16);
+            this.cbUseID.Size = new System.Drawing.Size(89, 21);
             this.cbUseID.TabIndex = 51;
             this.cbUseID.Text = "强制使用ID";
             this.cbUseID.UseVisualStyleBackColor = true;
@@ -116,10 +117,11 @@
             this.cbNeedFix.AutoSize = true;
             this.cbNeedFix.Checked = true;
             this.cbNeedFix.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.cbNeedFix.Font = new System.Drawing.Font("微软雅黑", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
             this.cbNeedFix.ForeColor = System.Drawing.Color.Blue;
             this.cbNeedFix.Location = new System.Drawing.Point(12, 12);
             this.cbNeedFix.Name = "cbNeedFix";
-            this.cbNeedFix.Size = new System.Drawing.Size(204, 16);
+            this.cbNeedFix.Size = new System.Drawing.Size(207, 21);
             this.cbNeedFix.TabIndex = 57;
             this.cbNeedFix.Text = "自动格式化（在导入模型前设置）";
             this.cbNeedFix.UseVisualStyleBackColor = true;
