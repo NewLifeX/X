@@ -722,9 +722,12 @@ namespace XCoder
         }
         #endregion
 
+        #region 网页
         private void webBrowser1_DocumentCompleted(object sender, WebBrowserDocumentCompletedEventArgs e)
         {
+            // 网页加载完成后，自动向下滚动一段距离，越过头部
             webBrowser1.Document.Window.ScrollTo(0, 90);
         }
+        #endregion
     }
 }
