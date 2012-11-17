@@ -46,10 +46,10 @@ namespace NewLife.Xml
         {
             if (!Contain(key)) return default(T);
 
-            String value = this[key];
+            var value = this[key];
             if (String.IsNullOrEmpty(value)) return default(T);
 
-            Type t = typeof(T);
+            var t = typeof(T);
 
             if (t.IsValueType || Type.GetTypeCode(t) == TypeCode.String || t == typeof(Object))
             {
@@ -57,11 +57,11 @@ namespace NewLife.Xml
             }
             else if (t.IsArray || value is IEnumerable)
             {
-                ExtendData data = FromXml(value);
+                var data = FromXml(value);
                 if (data == null) throw new XException("ExtendData无法分析数据" + value);
 
-                List<String> list = new List<String>();
-                for (Int32 i = 1; i < Int32.MaxValue; i++)
+                var list = new List<String>();
+                for (var i = 1; i < Int32.MaxValue; i++)
                 {
                     if (!data.Contain("Item" + i.ToString())) break;
 
@@ -85,7 +85,7 @@ namespace NewLife.Xml
                 return;
             }
 
-            Type t = value.GetType();
+            var t = value.GetType();
 
             if (t.IsValueType || Type.GetTypeCode(t) == TypeCode.String || t == typeof(Object))
             {
@@ -94,11 +94,11 @@ namespace NewLife.Xml
             }
             else if (value is IEnumerable)
             {
-                ExtendData data = new ExtendData();
+                var data = new ExtendData();
                 data.Root = key;
                 IEnumerable list = value as IEnumerable;
                 Int32 i = 1;
-                foreach (Object item in list)
+                foreach (var item in list)
                 {
                     data["Item" + i++.ToString()] = item.ToString();
                 }
@@ -133,7 +133,7 @@ namespace NewLife.Xml
         {
             if (String.IsNullOrEmpty(xml)) return null;
 
-            XmlDocument doc = new XmlDocument();
+            var doc = new XmlDocument();
 
             try
             {
@@ -146,8 +146,8 @@ namespace NewLife.Xml
                 throw;
             }
 
-            ExtendData extend = new ExtendData();
-            XmlElement root = doc.DocumentElement;
+            var extend = new ExtendData();
+            var root = doc.DocumentElement;
             extend.Root = root.Name;
 
             if (root.ChildNodes != null && root.ChildNodes.Count > 0)
@@ -173,21 +173,21 @@ namespace NewLife.Xml
         /// <returns></returns>
         public String ToXml()
         {
-            XmlDocument doc = new XmlDocument();
-            String rootName = Root;
+            var doc = new XmlDocument();
+            var rootName = Root;
             if (String.IsNullOrEmpty(rootName)) rootName = "Extend";
-            XmlElement root = doc.CreateElement(rootName);
+            var root = doc.CreateElement(rootName);
             doc.AppendChild(root);
 
             if (Data != null && Data.Count > 0)
             {
-                foreach (String item in Data.Keys)
+                foreach (var item in Data)
                 {
-                    XmlElement elm = doc.CreateElement(item);
-                    if (XmlKeys != null && XmlKeys.Contains(item))
-                        elm.InnerXml = Data[item];
+                    var elm = doc.CreateElement(item.Key);
+                    if (XmlKeys != null && XmlKeys.Contains(item.Key))
+                        elm.InnerXml = item.Value;
                     else
-                        elm.InnerText = Data[item];
+                        elm.InnerText = item.Value;
                     root.AppendChild(elm);
                 }
             }
