@@ -95,7 +95,7 @@
             // 
             this.bt_Connection.Font = new System.Drawing.Font("微软雅黑", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
             this.bt_Connection.ForeColor = System.Drawing.Color.DeepPink;
-            this.bt_Connection.Location = new System.Drawing.Point(295, 38);
+            this.bt_Connection.Location = new System.Drawing.Point(295, 41);
             this.bt_Connection.Name = "bt_Connection";
             this.bt_Connection.Size = new System.Drawing.Size(52, 23);
             this.bt_Connection.TabIndex = 6;
@@ -300,7 +300,7 @@
             this.frmItems.ForeColor = System.Drawing.Color.BlueViolet;
             this.frmItems.Location = new System.Drawing.Point(16, 162);
             this.frmItems.Name = "frmItems";
-            this.frmItems.Size = new System.Drawing.Size(235, 23);
+            this.frmItems.Size = new System.Drawing.Size(251, 23);
             this.frmItems.TabIndex = 50;
             this.frmItems.Text = "扩展属性编辑（Config.Items[\"name\"]）";
             this.toolTip1.SetToolTip(this.frmItems, "模版中通过Config.Items[name]使用。");
@@ -478,7 +478,7 @@
             // 
             this.btnImport.Font = new System.Drawing.Font("微软雅黑", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
             this.btnImport.ForeColor = System.Drawing.Color.DeepPink;
-            this.btnImport.Location = new System.Drawing.Point(357, 38);
+            this.btnImport.Location = new System.Drawing.Point(357, 41);
             this.btnImport.Name = "btnImport";
             this.btnImport.Size = new System.Drawing.Size(80, 23);
             this.btnImport.TabIndex = 30;
