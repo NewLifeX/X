@@ -38,7 +38,7 @@ namespace XCoder
                 dir = Path.Combine(path, dir);
                 file = Path.Combine(dir, file);
 
-                if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
+                if (!String.IsNullOrEmpty(dir) && !Directory.Exists(dir)) Directory.CreateDirectory(dir);
                 File.WriteAllText(file, dic[item]);
             }
         }

@@ -414,7 +414,7 @@ namespace XCoder
 
             try
             {
-                var ss = Engine.Render(table.Name);
+                var ss = Engine.Render(table);
 
                 MessageBox.Show("生成" + table + "成功！", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
@@ -445,7 +445,7 @@ namespace XCoder
 
             foreach (var tb in tables)
             {
-                Engine.Render(tb.Name);
+                Engine.Render(tb);
             }
 
             sw.Stop();

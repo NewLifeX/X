@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Xml;
+using NewLife.Xml;
 
 namespace XCoder
 {
-    public class XConfig
+    [XmlConfigFile("Setting.config")]
+    public class XConfig : XmlConfig<XConfig>
     {
         #region 属性
         private String _ConnName;
@@ -44,6 +46,10 @@ namespace XCoder
             get { return String.IsNullOrEmpty(_OutputPath) ? EntityConnName : _OutputPath; }
             set { _OutputPath = value; }
         }
+
+        private Boolean _Override = true;
+        /// <summary>是否覆盖目标文件</summary>
+        public Boolean Override { get { return _Override; } set { _Override = value; } }
 
         private String _EntityConnName;
         /// <summary>实体链接名</summary>
@@ -133,48 +139,43 @@ namespace XCoder
             set { _LastUpdate = value; }
         }
 
-        private Dictionary<String, String> _Items;
+        private SerializableDictionary<String, String> _Items;
         /// <summary> 字典属性</summary>
-        public Dictionary<String, String> Items
-        {
-            get { return _Items; }
-            set { _Items = value; }
-        }
-
+        public SerializableDictionary<String, String> Items { get { return _Items ?? (_Items = new SerializableDictionary<string, string>()); } set { _Items = value; } }
         #endregion
 
         #region 全局
-        private static XConfig _Current;
-        /// <summary>实例</summary>
-        public static XConfig Current { get { return _Current ?? (_Current = Load()); } set { _Current = value; } }
+        //private static XConfig _Current;
+        ///// <summary>实例</summary>
+        //public static XConfig Current { get { return _Current ?? (_Current = Load()); } set { _Current = value; } }
         #endregion
 
         #region 加载/保存
-        public static XConfig Load()
-        {
-            if (!File.Exists(DefaultFile)) return Create();
+        //public static XConfig Load()
+        //{
+        //    if (!File.Exists(DefaultFile)) return Create();
 
-            var xml = new NewLife.Xml.XmlReaderX();
-            using (var xr = XmlReader.Create(DefaultFile))
-            {
-                try
-                {
-                    Object obj = null;
-                    xml.Reader = xr;
-                    if (xml.ReadObject(typeof(XConfig), ref obj, null) && obj != null)
-                    {
-                        return obj as XConfig;
-                    }
-                    return Create();
-                    //return xml.Deserialize(stream) as XConfig;
-                }
-                catch { return Create(); }
-            }
-        }
+        //    var xml = new NewLife.Xml.XmlReaderX();
+        //    using (var xr = XmlReader.Create(DefaultFile))
+        //    {
+        //        try
+        //        {
+        //            Object obj = null;
+        //            xml.Reader = xr;
+        //            if (xml.ReadObject(typeof(XConfig), ref obj, null) && obj != null)
+        //            {
+        //                return obj as XConfig;
+        //            }
+        //            return Create();
+        //            //return xml.Deserialize(stream) as XConfig;
+        //        }
+        //        catch { return Create(); }
+        //    }
+        //}
 
-        static XConfig Create()
+        public XConfig()
         {
-            var config = new XConfig();
+            //var config = new XConfig();
 
             var sb = new StringBuilder();
             sb.AppendLine("/*");
@@ -183,28 +184,25 @@ namespace XCoder
             sb.AppendLine(" * 时间：<#=DateTime.Now.ToString(\"yyyy-MM-dd HH:mm:ss\")#>");
             sb.AppendLine(" * 版权：版权所有 (C) 新生命开发团队 <#=DateTime.Now.ToString(\"yyyy\")#>");
             sb.AppendLine("*/");
-            config.HeadTemplate = sb.ToString();
-
-
-            return config;
+            HeadTemplate = sb.ToString();
         }
 
-        public void Save()
-        {
-            if (!String.IsNullOrEmpty(HeadTemplate)) HeadTemplate = HeadTemplate.Replace("\n", Environment.NewLine);
+        //public void Save()
+        //{
+        //    if (!String.IsNullOrEmpty(HeadTemplate)) HeadTemplate = HeadTemplate.Replace("\n", Environment.NewLine);
 
-            if (File.Exists(DefaultFile)) File.Delete(DefaultFile);
+        //    if (File.Exists(DefaultFile)) File.Delete(DefaultFile);
 
-            var xml = new NewLife.Xml.XmlWriterX();
+        //    var xml = new NewLife.Xml.XmlWriterX();
 
-            using (var writer = XmlWriter.Create(DefaultFile))
-            {
-                xml.Writer = writer;
-                xml.WriteObject(this, typeof(XConfig), null);
-            }
-        }
+        //    using (var writer = XmlWriter.Create(DefaultFile))
+        //    {
+        //        xml.Writer = writer;
+        //        xml.WriteObject(this, typeof(XConfig), null);
+        //    }
+        //}
 
-        static String DefaultFile = "XCoder.xml";
+        //static String DefaultFile = "XCoder.xml";
         #endregion
     }
 }

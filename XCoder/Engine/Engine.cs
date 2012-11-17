@@ -106,9 +106,14 @@ namespace XCoder
             var table = tables.Find(e => e.Name.EqualIgnoreCase(tableName) || e.TableName.EqualIgnoreCase(tableName));
             if (table == null) return null;
 
+            return Render(table);
+        }
+
+        public String[] Render(IDataTable table)
+        {
             var data = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
             data["Config"] = Config;
-            data["Tables"] = tables;
+            data["Tables"] = Tables;
             data["Table"] = table;
 
             #region 模版预处理
@@ -183,8 +188,6 @@ namespace XCoder
             {
                 if (item.Included) continue;
 
-                var content = tt.Render(item.Name, data);
-
                 // 计算输出文件名
                 var fileName = Path.GetFileName(item.Name);
                 var fname = Config.UseCNFileName ? table.DisplayName : table.Name;
@@ -193,8 +196,13 @@ namespace XCoder
 
                 fileName = Path.Combine(Config.OutputPath, fileName);
 
+                // 如果不覆盖，并且目标文件已存在，则跳过
+                if (!Config.Override && File.Exists(fileName)) continue;
+
+                var content = tt.Render(item.Name, data);
+
                 var dir = Path.GetDirectoryName(fileName);
-                if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
+                if (!String.IsNullOrEmpty(dir) && !Directory.Exists(dir)) Directory.CreateDirectory(dir);
                 File.WriteAllText(fileName, content, Encoding.UTF8);
 
                 rs.Add(content);
@@ -329,7 +337,7 @@ namespace XCoder
                 if (value != null && value.Length > 0)
                 {
                     var f = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "XCoder");
-                    if (!Directory.Exists(f)) Directory.CreateDirectory(f);
+                    if (!String.IsNullOrEmpty(f) && !Directory.Exists(f)) Directory.CreateDirectory(f);
                     f = Path.Combine(f, "SubmitedTranslations.dat");
                     File.WriteAllLines(f, value);
                     _ExistSubmitTrans = value;

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
+using NewLife.Xml;
 
 namespace XCoder
 {
@@ -103,17 +104,14 @@ namespace XCoder
 
         void AddItems()
         {
-            DataGridViewRowCollection rows = this.dataGridView1.Rows;
-            DataGridViewColumnCollection column = this.dataGridView1.Columns;
-
-            Dictionary<string, string> dic = new Dictionary<string, string>();
+            var rows = this.dataGridView1.Rows;
+            var column = this.dataGridView1.Columns;
 
             for (int i = 0; i < rows.Count-1; i++)
             {
-                dic.Add(rows[i].Cells[0].Value.ToString(), rows[i].Cells[1].Value.ToString());
+                XConfig.Items.Add(rows[i].Cells[0].Value.ToString(), rows[i].Cells[1].Value.ToString());
             }
 
-            XConfig.Items = dic;
             XConfig.Save();
 
         }
