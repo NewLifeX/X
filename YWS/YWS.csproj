@@ -74,6 +74,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="YWS.xml" />
+    <Content Include="YWS数据字典.htm" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NewLife.CommonEntity\NewLife.CommonEntity.csproj">

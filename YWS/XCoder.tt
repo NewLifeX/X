@@ -20,6 +20,16 @@
 	var xpath = GetXPath(mypath);
 	
 	var exe = xpath + "XCoder.exe";
+	
+	// 如果数据模型文件不存在，则先导出一份
+	if(!File.Exists(mdl))
+	{
+		var connstr = String.Format("Data Source=.;Initial Catalog={0};user id=sa;password=Pass@word", "bbx");
+		var provider = "MSSQL";
+		var ps = String.Format("-MakeModel -model \"{0}\" -ConnStr \"{1}\" -Provider {2}", mdl, connstr, provider);
+		Process.Start(exe, ps).WaitForExit(10000);
+	}
+	
 	var cfg = mypath + "set.config";
 	var arg = String.Format("-Render -model \"{0}\" -config \"{1}\"", mdl, cfg);
 	WriteLine("路径：" + exe);
