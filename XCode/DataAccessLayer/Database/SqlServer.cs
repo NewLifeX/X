@@ -677,10 +677,10 @@ namespace XCode.DataAccessLayer
             logfile = Path.ChangeExtension(file, ".ldf");
             logfile = new FileInfo(logfile).FullName;
 
-            String dir = Path.GetDirectoryName(file);
-            if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
+            var dir = Path.GetDirectoryName(file);
+            if (!String.IsNullOrEmpty(dir) && !Directory.Exists(dir)) Directory.CreateDirectory(dir);
 
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
 
             sb.AppendFormat("CREATE DATABASE {0} ON  PRIMARY", FormatName(dbname));
             sb.AppendLine();

@@ -86,7 +86,7 @@ namespace NewLife.Xml
         {
             //if (File.Exists(file)) File.Delete(file);
             var dir = Path.GetDirectoryName(file);
-            if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
+            if (!String.IsNullOrEmpty(dir) && !Directory.Exists(dir)) Directory.CreateDirectory(dir);
 
             using (var stream = new FileStream(file, FileMode.OpenOrCreate, FileAccess.Write))
             {

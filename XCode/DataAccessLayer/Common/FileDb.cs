@@ -128,7 +128,7 @@ namespace XCode.DataAccessLayer
 
             // 提前创建目录
             String dir = Path.GetDirectoryName(FileName);
-            if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
+            if (!String.IsNullOrEmpty(dir) && !Directory.Exists(dir)) Directory.CreateDirectory(dir);
 
             if (!File.Exists(FileName))
             {

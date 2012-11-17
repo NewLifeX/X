@@ -848,8 +848,8 @@ namespace XTemplate.Templating
 
         private static Assembly CompileInternal(String outputAssembly, IEnumerable<String> references, CodeDomProvider provider, CompilerErrorCollection Errors, Template tmp)
         {
-            CompilerParameters options = new CompilerParameters();
-            foreach (String str in references)
+            var options = new CompilerParameters();
+            foreach (var str in references)
             {
                 options.ReferencedAssemblies.Add(str);
             }
@@ -859,13 +859,13 @@ namespace XTemplate.Templating
             if (Debug)
             {
                 #region 调试状态，把生成的类文件和最终dll输出到XTemp目录下
-                String tempPath = XTrace.TempPath;
+                var tempPath = XTrace.TempPath;
                 if (!String.IsNullOrEmpty(outputAssembly)) tempPath = Path.Combine(tempPath, Path.GetFileNameWithoutExtension(outputAssembly));
 
-                if (!Directory.Exists(tempPath)) Directory.CreateDirectory(tempPath);
+                if (!String.IsNullOrEmpty(tempPath) && !Directory.Exists(tempPath)) Directory.CreateDirectory(tempPath);
                 options.TempFiles = new TempFileCollection(tempPath, false);
 
-                List<String> files = new List<String>();
+                var files = new List<String>();
                 foreach (var item in tmp.Templates)
                 {
                     if (item.Included) continue;

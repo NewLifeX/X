@@ -67,7 +67,7 @@ namespace NewLife.Log
         private void InitLog()
         {
             String path = LogPath;
-            if (!Directory.Exists(path)) Directory.CreateDirectory(path);
+            if (!String.IsNullOrEmpty(path) && !Directory.Exists(path)) Directory.CreateDirectory(path);
 
             //if (path.Substring(path.Length - 2) != @"\") path += @"\";
             var logfile = Path.Combine(path, DateTime.Now.ToString("yyyy_MM_dd") + ".log");

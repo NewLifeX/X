@@ -219,10 +219,11 @@ namespace NewLife.Net.UPnP
 
         static String GetCacheFile(String address)
         {
-            String fileName = Path.Combine(Path.Combine(XTrace.TempPath, "UPnP"), String.Format(@"{0}{1}.xml", cacheKey, address));
+            var fileName = Path.Combine(Path.Combine(XTrace.TempPath, "UPnP"), String.Format(@"{0}{1}.xml", cacheKey, address));
             fileName = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, fileName);
 
-            if (!Directory.Exists(Path.GetDirectoryName(fileName))) Directory.CreateDirectory(Path.GetDirectoryName(fileName));
+            var dir = Path.GetDirectoryName(fileName);
+            if (!String.IsNullOrEmpty(dir) && !Directory.Exists(dir)) Directory.CreateDirectory(dir);
 
             return fileName;
         }

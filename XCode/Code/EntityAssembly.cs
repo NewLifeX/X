@@ -312,7 +312,7 @@ namespace XCode.Code
 
                     var tempPath = XTrace.TempPath;
                     //if (!String.IsNullOrEmpty(tempPath)) tempPath = Path.Combine(tempPath, Name);
-                    if (!Directory.Exists(tempPath)) Directory.CreateDirectory(tempPath);
+                    if (!String.IsNullOrEmpty(tempPath) && !Directory.Exists(tempPath)) Directory.CreateDirectory(tempPath);
                     options.OutputAssembly = Path.Combine(tempPath, String.Format("XCode.{0}.dll", Name));
                     options.TempFiles = new TempFileCollection(tempPath, false);
                 }

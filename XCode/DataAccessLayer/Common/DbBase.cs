@@ -299,7 +299,7 @@ namespace XCode.DataAccessLayer
                         // 同步下载，3秒超时
                         client.Timeout = 10000;
                         //var data = client.DownloadData(url);
-                        if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
+                        if (!String.IsNullOrEmpty(dir) && !Directory.Exists(dir)) Directory.CreateDirectory(dir);
                         client.DownloadFile(url, zipfile);
                         client.Dispose();
                     }
