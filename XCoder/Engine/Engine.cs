@@ -94,6 +94,13 @@ namespace XCoder
         static ITranslate Translate { get { return _Translate ?? (_Translate = new NnhyServiceTranslate()); } }
         #endregion
 
+        #region 构造
+        static Engine()
+        {
+            Template.BaseClassName = typeof(XCoderBase).FullName;
+        }
+        #endregion
+
         #region 生成
         /// <summary>生成代码，参数由Config传入</summary>
         /// <param name="tableName"></param>
@@ -228,7 +235,7 @@ namespace XCoder
             mr.AutoCutPrefix = Config.AutoCutPrefix;
             mr.AutoCutTableName = Config.AutoCutTableName;
             mr.AutoFixWord = Config.AutoFixWord;
-            mr.FilterPrefixs = Config.Prefix.Split(',', ';');
+            mr.FilterPrefixs = ("" + Config.Prefix).Split(',', ';');
             mr.UseID = Config.UseID;
 
             #region 修正数据

@@ -186,6 +186,8 @@ namespace NewLife.Xml
                     var elm = doc.CreateElement(item.Key);
                     if (XmlKeys != null && XmlKeys.Contains(item.Key))
                         elm.InnerXml = item.Value;
+                    else if (item.Value != null && item.Value.GetTypeCode() == TypeCode.Boolean)
+                        elm.InnerText = item.Value.ToString().ToLower();
                     else
                         elm.InnerText = item.Value;
                     root.AppendChild(elm);

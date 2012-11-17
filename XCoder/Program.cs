@@ -1,9 +1,12 @@
 ﻿using System;
+using NewLife.Xml;
 using System.IO;
 using System.Windows.Forms;
 using NewLife;
 using NewLife.Log;
 using NewLife.Threading;
+using System.Collections.Generic;
+using XCode.DataAccessLayer;
 
 namespace XCoder
 {
@@ -13,19 +16,56 @@ namespace XCoder
         [STAThread]
         static void Main()
         {
+            #region 参数启动
+            var args = Environment.GetCommandLineArgs();
+            if (args != null && args.Length > 1)
+            {
+                var dic = new Dictionary<String, String>(StringComparer.OrdinalIgnoreCase);
+                if (args.Length > 2)
+                {
+                    for (int i = 2; i < args.Length - 1; i++)
+                    {
+                        switch (args[i].ToLower())
+                        {
+                            case "-config":
+                                dic.Add(args[i].Substring(1), args[++i].Trim('\"'));
+                                break;
+                            case "-model":
+                                dic.Add(args[i].Substring(1), args[++i].Trim('\"'));
+                                break;
+                            case "-connstr":
+                                dic.Add(args[i].Substring(1), args[++i].Trim('\"'));
+                                break;
+                            case "-provider":
+                                dic.Add(args[i].Substring(1), args[++i].Trim('\"'));
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                }
+                switch (args[1].ToLower())
+                {
+                    case "-render":
+                        Render(dic["Model"], dic["Config"]);
+                        return;
+                    case "-makemodel":
+                        MakeModel(dic["Model"], dic["ConnStr"], dic["Provider"]);
+                        return;
+                    case "-update":
+                        Update(false);
+                        return;
+                    default:
+                        break;
+                }
+            }
+            #endregion
+
             try
             {
                 XTrace.UseWinForm();
 
-                if (XConfig.Current.LastUpdate.Date < DateTime.Now.Date)
-                {
-                    XConfig.Current.LastUpdate = DateTime.Now;
-
-                    var au = new AutoUpdate();
-                    au.UpdateAsync();
-                }
-                var ProcessHelper = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "NewLife.ProcessHelper.exe");
-                if (File.Exists(ProcessHelper)) File.Delete(ProcessHelper);
+                Update();
 
                 new TimerX(s => Runtime.ReleaseMemory(), null, 5000, 10000);
             }
@@ -37,6 +77,56 @@ namespace XCoder
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new FrmMain());
+        }
+
+        static void Update(Boolean isAsync = true)
+        {
+            if (!isAsync) XTrace.WriteLine("自动更新！");
+            if (XConfig.Current.LastUpdate.Date < DateTime.Now.Date)
+            {
+                XConfig.Current.LastUpdate = DateTime.Now;
+
+                var au = new AutoUpdate();
+                if (isAsync)
+                    au.UpdateAsync();
+                else
+                    au.Update();
+            }
+            var ProcessHelper = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "NewLife.ProcessHelper.exe");
+            if (File.Exists(ProcessHelper)) File.Delete(ProcessHelper);
+        }
+
+        static void Render(String mdl, String cfg)
+        {
+            XTrace.WriteLine("生成代码：模型{0} 配置{1}", mdl, cfg);
+
+            var config = cfg.ToXmlFileEntity<XConfig>();
+            XTrace.WriteLine("模版：{0}", config.TemplateName);
+            XTrace.WriteLine("输出：{0}", config.OutputPath);
+
+            var tables = DAL.Import(File.ReadAllText(mdl));
+
+            var engine = new Engine(config);
+            engine.Tables = tables;
+            foreach (var item in tables)
+            {
+                XTrace.WriteLine("生产：{0}", item);
+                engine.Render(item);
+            }
+        }
+
+        static void MakeModel(String mdl, String connstr, String provider)
+        {
+            XTrace.WriteLine("导出模型：ConnStr={0} Provider={1} Model={2}", connstr, provider, mdl);
+
+            var key = "XCoder_Temp";
+            DAL.AddConnStr(key, connstr, null, provider);
+            var list = DAL.Create(key).Tables;
+            var xml = DAL.Export(list);
+
+            var dir = Path.GetDirectoryName(mdl);
+            if (!String.IsNullOrEmpty(dir) && !Directory.Exists(dir)) Directory.CreateDirectory(dir);
+            File.WriteAllText(mdl, xml);
         }
     }
 }

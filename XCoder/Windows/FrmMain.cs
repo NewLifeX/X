@@ -51,7 +51,6 @@ namespace XCoder
         {
             var asm = AssemblyX.Create(Assembly.GetExecutingAssembly());
             Text = String.Format("新生命数据模型工具 v{0} {1:HH:mm:ss}编译", asm.CompileVersion, asm.Compile);
-            Template.BaseClassName = typeof(XCoderBase).FullName;
         }
 
         private void FrmMain_Load(object sender, EventArgs e)
