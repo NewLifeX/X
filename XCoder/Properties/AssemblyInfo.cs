@@ -30,9 +30,11 @@ using System.Runtime.InteropServices;
 //      修订号
 //
 [assembly: AssemblyVersion("5.0.*")]
-[assembly: AssemblyFileVersion("5.0.2012.1116")]
+[assembly: AssemblyFileVersion("5.0.2012.1117")]
 
 /*
+ * v5.0.2012.1117   增加T4引导模版，用于在实体类项目中通过命令行调用XCoder生成代码
+ * 
  * v4.9.2012.1112   数据模型升级，需要更新所有模版
  *                  模版引擎生成太快，不再需要后台生成
  *                  改变模版头编辑的位置

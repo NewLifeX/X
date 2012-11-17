@@ -94,6 +94,17 @@ namespace XCoder
             }
             var ProcessHelper = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "NewLife.ProcessHelper.exe");
             if (File.Exists(ProcessHelper)) File.Delete(ProcessHelper);
+
+            if (isAsync)
+            {
+                // 释放T4模版
+                var b = File.Exists("XCoder.tt");
+                var txt = FileSource.GetText("XCoder.tt");
+                txt = txt.Replace("{XCoderPath}", AppDomain.CurrentDomain.BaseDirectory);
+                File.WriteAllText("XCoder.tt", txt);
+
+                if (!b) MessageBox.Show("新版本增加XCoder.tt，拷贝到类库项目里面。\r\nVS中修改文件内参数，右键执行自定义工具！", "提示");
+            }
         }
 
         static void Render(String mdl, String cfg)

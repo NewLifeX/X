@@ -30,6 +30,8 @@
             this.cbConn = new System.Windows.Forms.ComboBox();
             this.label4 = new System.Windows.Forms.Label();
             this.gbTable = new System.Windows.Forms.GroupBox();
+            this.cbIncludeView = new System.Windows.Forms.CheckBox();
+            this.btnRefreshTable = new System.Windows.Forms.Button();
             this.btnRenderAll = new System.Windows.Forms.Button();
             this.btnRenderTable = new System.Windows.Forms.Button();
             this.cbTableList = new System.Windows.Forms.ComboBox();
@@ -64,6 +66,7 @@
             this.label12 = new System.Windows.Forms.Label();
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.文件ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.自动格式化设置ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.oracle客户端运行时检查ToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.退出XToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.模型ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -81,9 +84,6 @@
             this.检查更新ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.关于ToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.label9 = new System.Windows.Forms.Label();
-            this.自动格式化设置ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.btnRefreshTable = new System.Windows.Forms.Button();
-            this.cbIncludeView = new System.Windows.Forms.CheckBox();
             this.gbConnect.SuspendLayout();
             this.gbTable.SuspendLayout();
             this.statusStrip1.SuspendLayout();
@@ -153,6 +153,29 @@
             this.gbTable.Size = new System.Drawing.Size(725, 49);
             this.gbTable.TabIndex = 14;
             this.gbTable.TabStop = false;
+            // 
+            // cbIncludeView
+            // 
+            this.cbIncludeView.AutoSize = true;
+            this.cbIncludeView.Checked = true;
+            this.cbIncludeView.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.cbIncludeView.Location = new System.Drawing.Point(610, 22);
+            this.cbIncludeView.Name = "cbIncludeView";
+            this.cbIncludeView.Size = new System.Drawing.Size(75, 21);
+            this.cbIncludeView.TabIndex = 23;
+            this.cbIncludeView.Text = "包括视图";
+            this.cbIncludeView.UseVisualStyleBackColor = true;
+            // 
+            // btnRefreshTable
+            // 
+            this.btnRefreshTable.ForeColor = System.Drawing.Color.ForestGreen;
+            this.btnRefreshTable.Location = new System.Drawing.Point(517, 19);
+            this.btnRefreshTable.Name = "btnRefreshTable";
+            this.btnRefreshTable.Size = new System.Drawing.Size(80, 23);
+            this.btnRefreshTable.TabIndex = 22;
+            this.btnRefreshTable.Text = "刷新数据表";
+            this.btnRefreshTable.UseVisualStyleBackColor = true;
+            this.btnRefreshTable.Click += new System.EventHandler(this.btnRefreshTable_Click);
             // 
             // btnRenderAll
             // 
@@ -517,6 +540,13 @@
             this.文件ToolStripMenuItem.Size = new System.Drawing.Size(61, 21);
             this.文件ToolStripMenuItem.Text = "文件(&F)";
             // 
+            // 自动格式化设置ToolStripMenuItem
+            // 
+            this.自动格式化设置ToolStripMenuItem.Name = "自动格式化设置ToolStripMenuItem";
+            this.自动格式化设置ToolStripMenuItem.Size = new System.Drawing.Size(211, 22);
+            this.自动格式化设置ToolStripMenuItem.Text = "自动格式化设置";
+            this.自动格式化设置ToolStripMenuItem.Click += new System.EventHandler(this.自动格式化设置ToolStripMenuItem_Click);
+            // 
             // oracle客户端运行时检查ToolStripMenuItem1
             // 
             this.oracle客户端运行时检查ToolStripMenuItem1.Name = "oracle客户端运行时检查ToolStripMenuItem1";
@@ -652,36 +682,6 @@
             this.label9.Size = new System.Drawing.Size(68, 17);
             this.label9.TabIndex = 32;
             this.label9.Text = "两种用法：";
-            // 
-            // 自动格式化设置ToolStripMenuItem
-            // 
-            this.自动格式化设置ToolStripMenuItem.Name = "自动格式化设置ToolStripMenuItem";
-            this.自动格式化设置ToolStripMenuItem.Size = new System.Drawing.Size(211, 22);
-            this.自动格式化设置ToolStripMenuItem.Text = "自动格式化设置";
-            this.自动格式化设置ToolStripMenuItem.Click += new System.EventHandler(this.自动格式化设置ToolStripMenuItem_Click);
-            // 
-            // btnRefreshTable
-            // 
-            this.btnRefreshTable.ForeColor = System.Drawing.Color.ForestGreen;
-            this.btnRefreshTable.Location = new System.Drawing.Point(517, 19);
-            this.btnRefreshTable.Name = "btnRefreshTable";
-            this.btnRefreshTable.Size = new System.Drawing.Size(75, 23);
-            this.btnRefreshTable.TabIndex = 22;
-            this.btnRefreshTable.Text = "刷新数据表";
-            this.btnRefreshTable.UseVisualStyleBackColor = true;
-            this.btnRefreshTable.Click += new System.EventHandler(this.btnRefreshTable_Click);
-            // 
-            // cbIncludeView
-            // 
-            this.cbIncludeView.AutoSize = true;
-            this.cbIncludeView.Checked = true;
-            this.cbIncludeView.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.cbIncludeView.Location = new System.Drawing.Point(610, 22);
-            this.cbIncludeView.Name = "cbIncludeView";
-            this.cbIncludeView.Size = new System.Drawing.Size(75, 21);
-            this.cbIncludeView.TabIndex = 23;
-            this.cbIncludeView.Text = "包括视图";
-            this.cbIncludeView.UseVisualStyleBackColor = true;
             // 
             // FrmMain
             // 

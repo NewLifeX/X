@@ -198,6 +198,9 @@
     <EmbeddedResource Include="Template\实体业务\对象操作.xt" />
     <EmbeddedResource Include="Template\实体业务\扩展查询.xt" />
     <EmbeddedResource Include="Template\实体业务\扩展属性.xt" />
+    <EmbeddedResource Include="XCoder.tt">
+      <LastGenOutput>XCoder.log</LastGenOutput>
+    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NewLife.Core\NewLife.Core.csproj">
