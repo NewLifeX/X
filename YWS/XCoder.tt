@@ -38,21 +38,25 @@
 
 	dic["TemplateName"] = "[内置]数据字典";		// 模版名
 	Save(cfg, dic);
+	WriteLine("生成：" + dic["TemplateName"]);
 	Process.Start(exe, arg);
 
 	dic["TemplateName"] = "[内置]实体数据";		// 模版名
 	Save(cfg, dic);
-	//Process.Start(exe, arg);
+	WriteLine("生成：" + dic["TemplateName"]);
+	Process.Start(exe, arg);
 
 	dic["Override"] = false;		// 是否覆盖目标文件
 	dic["TemplateName"] = "[内置]实体业务";		// 模版名
 	Save(cfg, dic);
-	//Process.Start(exe, arg);
+	WriteLine("生成：" + dic["TemplateName"]);
+	Process.Start(exe, arg);
 
 	dic["UseCNFileName"] = false;	// 中文文件名
 	dic["TemplateName"] = "[内置]页面";			// 模版名
 	Save(cfg, dic);
-	//Process.Start(exe, arg);
+	WriteLine("生成：" + dic["TemplateName"]);
+	Process.Start(exe, arg);
 #>
 <#+
 	String GetXPath(String mypath)
