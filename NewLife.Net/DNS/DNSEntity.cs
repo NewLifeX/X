@@ -115,11 +115,11 @@ namespace NewLife.Net.DNS
             writer.Settings.Encoding = Encoding.Default;
             writer.Stream = stream;
 #if DEBUG
-            //if (NetHelper.Debug)
-            //{
-            //    writer.Debug = true;
-            //    writer.EnableTraceStream();
-            //}
+            if (NetHelper.Debug)
+            {
+                writer.Debug = true;
+                writer.EnableTraceStream();
+            }
 #endif
             writer.WriteObject(this);
         }
@@ -184,11 +184,11 @@ namespace NewLife.Net.DNS
             reader.Settings.Encoding = Encoding.Default;
             reader.Stream = stream;
 #if DEBUG
-            //if (NetHelper.Debug)
-            //{
-            //    reader.Debug = true;
-            //    reader.EnableTraceStream();
-            //}
+            if (NetHelper.Debug)
+            {
+                reader.Debug = true;
+                reader.EnableTraceStream();
+            }
 #endif
             return reader.ReadObject<DNSEntity>();
         }

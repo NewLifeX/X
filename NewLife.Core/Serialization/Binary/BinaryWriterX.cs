@@ -320,8 +320,12 @@ namespace NewLife.Serialization
             {
                 // 不使用对象引用时，所有对象不能为空
                 //OnWriteObjRefIndex(value == null ? 0 : 1);
-                if (value == null) throw new Exception("不使用对象引用（Settings.UseObjRef=false）时，所有对象不能为空！");
-                return false;
+                if (value == null)
+                {
+                    // 如果用了FieldSize，为空也没关系
+                    if (!HasFieldSize()) throw new Exception("不使用对象引用（Settings.UseObjRef=false）时，所有对象不能为空！");
+                }
+                //return true;
             }
 
             return base.WriteObjRef(value);
@@ -427,17 +431,7 @@ namespace NewLife.Serialization
         /// <param name="size"></param>
         protected override void OnWriteSize(Int32 size)
         {
-            var member = CurrentMember as ReflectMemberInfo;
-            if (member != null)
-            {
-                // 获取FieldSizeAttribute特性
-                var att = AttributeX.GetCustomAttribute<FieldSizeAttribute>(member.Member, true);
-                if (att != null)
-                {
-                    // 如果指定了固定大小或者引用字段，直接返回
-                    if (att.Size > 0 || !String.IsNullOrEmpty(att.ReferenceName)) return;
-                }
-            }
+            if (HasFieldSize()) return;
 
             switch (Settings.SizeFormat)
             {
@@ -457,6 +451,23 @@ namespace NewLife.Serialization
                     WriteEncoded(size);
                     break;
             }
+        }
+
+        Boolean HasFieldSize()
+        {
+            var member = CurrentMember as ReflectMemberInfo;
+            if (member != null)
+            {
+                // 获取FieldSizeAttribute特性
+                var att = AttributeX.GetCustomAttribute<FieldSizeAttribute>(member.Member, true);
+                if (att != null)
+                {
+                    // 如果指定了固定大小或者引用字段，直接返回
+                    if (att.Size > 0 || !String.IsNullOrEmpty(att.ReferenceName)) return true;
+                }
+            }
+
+            return false;
         }
 
         /// <summary>刷新缓存中的数据</summary>

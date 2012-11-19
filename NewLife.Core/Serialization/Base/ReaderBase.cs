@@ -1143,7 +1143,7 @@ namespace NewLife.Serialization
                 if (ReadValue(type, ref value)) return true;
 
                 // 读取对象引用
-                Int32 index = 0;
+                var index = 0;
                 if (ReadObjRef(type, ref value, out index)) return true;
 
                 objRefIndex = index;
@@ -1167,7 +1167,7 @@ namespace NewLife.Serialization
             else
             {
                 // 读取对象引用
-                Int32 index = 0;
+                var index = 0;
                 if (ReadObjRef(type, ref value, out index)) return true;
 
                 // 写对象类型时增加缩进，避免写顶级对象类型的对象引用时无法写入（Depth=1的对象是不写对象引用的）
@@ -1269,7 +1269,7 @@ namespace NewLife.Serialization
         /// <param name="value">对象</param>
         /// <param name="index">引用计数</param>
         /// <returns>是否读取成功</returns>
-        public Boolean ReadObjRef(Type type, ref Object value, out Int32 index)
+        public virtual Boolean ReadObjRef(Type type, ref Object value, out Int32 index)
         {
             index = 0;
             if (!Settings.UseObjRef) return false;
@@ -1340,12 +1340,12 @@ namespace NewLife.Serialization
         /// <returns>是否读取成功</returns>
         public virtual Boolean ReadCustomObject(Type type, ref Object value, ReadObjectCallback callback)
         {
-            Object old = CurrentObject;
+            var old = CurrentObject;
             CurrentObject = value;
 
             try
             {
-                IObjectMemberInfo[] mis = GetMembers(type, value);
+                var mis = GetMembers(type, value);
                 if (callback == null) callback = ReadMember;
 
                 // 如果为空，实例化并赋值。
@@ -1365,7 +1365,7 @@ namespace NewLife.Serialization
                 {
                     Depth++;
 
-                    IObjectMemberInfo member = GetMemberBeforeRead(type, value, mis, i);
+                    var member = GetMemberBeforeRead(type, value, mis, i);
                     // 没有可读成员
                     if (member == null) continue;
 

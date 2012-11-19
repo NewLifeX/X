@@ -262,6 +262,23 @@ namespace NewLife.Serialization
 
             return base.ReadRefObject(type, ref value, callback);
         }
+
+        /// <summary>读取对象引用。</summary>
+        /// <param name="type">类型</param>
+        /// <param name="value">对象</param>
+        /// <param name="index">引用计数</param>
+        /// <returns>是否读取成功</returns>
+        public override bool ReadObjRef(Type type, ref object value, out int index)
+        {
+            if (!Settings.UseObjRef)
+            {
+                index = 0;
+                // 不采用对象引用，FieldSize又是0，说明对象不存在
+                if (GetSize() == 0) return true;
+            }
+
+            return base.ReadObjRef(type, ref value, out index);
+        }
         #endregion
 
         #region 自定义对象
@@ -298,21 +315,8 @@ namespace NewLife.Serialization
         /// <returns></returns>
         protected override Int32 OnReadSize()
         {
-            var member = CurrentMember as ReflectMemberInfo;
-            if (member != null)
-            {
-                // 获取FieldSizeAttribute特性
-                var att = AttributeX.GetCustomAttribute<FieldSizeAttribute>(member.Member, true);
-                if (att != null)
-                {
-                    // 如果指定了固定大小，直接返回
-                    if (att.Size > 0 && String.IsNullOrEmpty(att.ReferenceName)) return att.Size;
-
-                    // 如果指定了引用字段，则找引用字段所表示的长度d
-                    Int32 size = att.GetReferenceSize(CurrentObject, member.Member);
-                    if (size >= 0) return size;
-                }
-            }
+            var size = GetSize();
+            if (size > 0) return size;
 
             switch (Settings.SizeFormat)
             {
@@ -328,6 +332,27 @@ namespace NewLife.Serialization
                 case TypeCode.UInt64:
                     return ReadEncodedInt32();
             }
+        }
+
+        Int32 GetSize()
+        {
+            var member = CurrentMember as ReflectMemberInfo;
+            if (member != null)
+            {
+                // 获取FieldSizeAttribute特性
+                var att = AttributeX.GetCustomAttribute<FieldSizeAttribute>(member.Member, true);
+                if (att != null)
+                {
+                    // 如果指定了固定大小，直接返回
+                    if (att.Size > 0 && String.IsNullOrEmpty(att.ReferenceName)) return att.Size;
+
+                    // 如果指定了引用字段，则找引用字段所表示的长度
+                    var size = att.GetReferenceSize(CurrentObject, member.Member);
+                    if (size >= 0) return size;
+                }
+            }
+
+            return -1;
         }
 
         /// <summary>探测下一个可用的字节是否预期字节，并且不提升字节的位置。</summary>

@@ -754,6 +754,8 @@ namespace NewLife.Serialization
         /// <returns>是否写入成功</returns>
         public virtual Boolean WriteObjRef(Object value)
         {
+            if (!Settings.UseObjRef) return false;
+
             if (value == null)
             {
                 WriteLog("WriteObjRef", "null");

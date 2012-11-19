@@ -23,6 +23,8 @@ namespace NewLife.Net.Test.DNS
         [TestMethod]
         public void DNSEntityReadWrite()
         {
+            //try
+            //{
             var entity = new DNSEntity();
             entity.Name = "www.newlifex.com";
             entity.Type = DNSQueryType.A;
@@ -34,6 +36,11 @@ namespace NewLife.Net.Test.DNS
             Assert.IsNotNull(entity2, "无法读取DNSEntity！");
 
             Assert.AreEqual(entity.Name, entity2.Name, "DNSEntity读取失败！");
+            //}
+            //catch (Exception ex)
+            //{
+            //    Assert.Fail(ex.Message);
+            //}
         }
     }
 }
