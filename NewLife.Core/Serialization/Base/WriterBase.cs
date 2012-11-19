@@ -826,7 +826,24 @@ namespace NewLife.Serialization
                     else
                         WriteLog("WriteMember", mi.Name, mi.Type.Name, v);
 
-                    if (!WriteMember(mi.Name, v, mi.Type, i, callback)) return false;
+                    var oldMember = CurrentMember;
+                    CurrentMember = mi;
+#if !DEBUG
+                    try
+#endif
+                    {
+
+                        if (!WriteMember(mi.Name, v, mi.Type, i, callback)) return false;
+
+                        CurrentMember = oldMember;
+                    }
+#if !DEBUG
+                    catch (Exception ex)
+                    {
+                        throw new XSerializationException(mi.Name, ex);
+                    }
+#endif
+
                     Depth--;
                 }
 
@@ -846,59 +863,39 @@ namespace NewLife.Serialization
         {
             if (callback == null) callback = WriteMember;
 
-            IObjectMemberInfo old = CurrentMember;
-            //CurrentMember = member;
-
-#if !DEBUG
-            try
-#endif
+            // 写入成员前
+            WriteMemberEventArgs e = null;
+            if (OnMemberWriting != null)
             {
-                // 写入成员前
-                WriteMemberEventArgs e = null;
-                if (OnMemberWriting != null)
-                {
-                    e = new WriteMemberEventArgs(name, value, type, index, callback);
+                e = new WriteMemberEventArgs(name, value, type, index, callback);
 
-                    OnMemberWriting(this, e);
+                OnMemberWriting(this, e);
 
-                    // 事件处理器可能已经成功写入对象
-                    if (e.Success)
-                    {
-                        CurrentMember = old;
-                        return true;
-                    }
+                // 事件处理器可能已经成功写入对象
+                if (e.Success) return true;
 
-                    // 事件里面有可能改变了参数
-                    value = e.Value;
-                    type = e.Type;
-                    index = e.Index;
-                    callback = e.Callback;
-                }
-
-                var rs = OnWriteMember(name, value, type, index, callback);
-
-                // 写入成员后
-                if (OnMemberWrited != null)
-                {
-                    e = new WriteMemberEventArgs(name, value, type, index, callback);
-                    e.Success = rs;
-
-                    OnMemberWrited(this, e);
-
-                    // 事件处理器可以影响结果
-                    rs = e.Success;
-                }
-
-                CurrentMember = old;
-
-                return rs;
+                // 事件里面有可能改变了参数
+                value = e.Value;
+                type = e.Type;
+                index = e.Index;
+                callback = e.Callback;
             }
-#if !DEBUG
-            catch (Exception ex)
+
+            var rs = OnWriteMember(name, value, type, index, callback);
+
+            // 写入成员后
+            if (OnMemberWrited != null)
             {
-                throw new XSerializationException(name, ex);
+                e = new WriteMemberEventArgs(name, value, type, index, callback);
+                e.Success = rs;
+
+                OnMemberWrited(this, e);
+
+                // 事件处理器可以影响结果
+                rs = e.Success;
             }
-#endif
+
+            return rs;
         }
 
         /// <summary>写入对象成员</summary>

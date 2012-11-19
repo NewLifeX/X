@@ -55,13 +55,7 @@ namespace NewLife.Serialization
 
         #region 构造
         /// <summary>实例化一个二进制读取器</summary>
-        public BinaryReaderX()
-        {
-            // 默认的大小格式为32位压缩编码整数
-            Settings.SizeFormat = TypeCode.UInt32;
-            // 默认使用字段作为序列化成员
-            Settings.UseField = true;
-        }
+        public BinaryReaderX() { }
 
         /// <summary>实例化一个二进制读取器</summary>
         /// <param name="stream"></param>

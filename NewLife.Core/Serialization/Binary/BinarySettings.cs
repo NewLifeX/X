@@ -30,6 +30,17 @@ namespace NewLife.Serialization
         public Boolean IgnoreName { get { return _IgnoreName; } set { _IgnoreName = value; } }
         #endregion
 
+        #region 构造
+        /// <summary>实例化二进制序列化设置</summary>
+        public BinarySettings()
+        {
+            // 默认的大小格式为32位压缩编码整数
+            SizeFormat = TypeCode.UInt32;
+            // 默认使用字段作为序列化成员
+            UseField = true;
+        }
+        #endregion
+
         #region 类型
         private Boolean _SplitComplexType = true;
         /// <summary>是否拆分复杂类型。将拆分数组、内嵌和泛型</summary>

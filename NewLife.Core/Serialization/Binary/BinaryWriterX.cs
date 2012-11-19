@@ -53,13 +53,7 @@ namespace NewLife.Serialization
 
         #region 构造
         /// <summary>实例化一个二进制写入器</summary>
-        public BinaryWriterX()
-        {
-            // 默认的大小格式为32位压缩编码整数
-            Settings.SizeFormat = TypeCode.UInt32;
-            // 默认使用字段作为序列化成员
-            Settings.UseField = true;
-        }
+        public BinaryWriterX() { }
 
         /// <summary>实例化一个二进制写入器</summary>
         /// <param name="stream"></param>

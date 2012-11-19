@@ -164,6 +164,13 @@ namespace NewLife.Core.Test.Serialization
             TestWriter(obj);
         }
 
+        [TestMethod]
+        public void BinaryTestWriteFixedSize()
+        {
+            var obj = new FixedSizeObj();
+            TestWriter(obj);
+        }
+
         void TestReader(Obj obj, Boolean hasNull = true)
         {
             var set = new BinarySettings();
@@ -269,6 +276,13 @@ namespace NewLife.Core.Test.Serialization
             TestReader(obj);
 
             obj.Value = SimpleObj.Create();
+            TestReader(obj);
+        }
+
+        [TestMethod]
+        public void BinaryTestReadFixedSize()
+        {
+            var obj = new FixedSizeObj();
             TestReader(obj);
         }
     }
