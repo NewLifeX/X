@@ -10,12 +10,7 @@ namespace NewLife.Net.Test.DNS
     [TestClass]
     public class EntityTest
     {
-        public EntityTest()
-        {
-            //
-            //TODO: 在此处添加构造函数逻辑
-            //
-        }
+        public EntityTest() { }
 
         private TestContext testContextInstance;
 
@@ -23,17 +18,7 @@ namespace NewLife.Net.Test.DNS
         ///获取或设置测试上下文，该上下文提供
         ///有关当前测试运行及其功能的信息。
         ///</summary>
-        public TestContext TestContext
-        {
-            get
-            {
-                return testContextInstance;
-            }
-            set
-            {
-                testContextInstance = value;
-            }
-        }
+        public TestContext TestContext { get { return testContextInstance; } set { testContextInstance = value; } }
 
         [TestMethod]
         public void DNSEntityReadWrite()

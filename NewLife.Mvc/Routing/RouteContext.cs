@@ -5,6 +5,7 @@ using NewLife.Reflection;
 
 #if DEBUG
 using System.Diagnostics;
+using System.ComponentModel;
 #endif
 
 namespace NewLife.Mvc
@@ -69,6 +70,7 @@ namespace NewLife.Mvc
         }
 
         /// <summary>当前路由最近的一个路由配置</summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         [Obsolete("不再使用Config类型的上下文,不需要使用这个方法了")]
         public RouteFrag Config
         {
@@ -312,6 +314,7 @@ namespace NewLife.Mvc
         /// <param name="path"></param>
         /// <param name="r"></param>
         /// <param name="related"></param>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         [Obsolete("不再使用Config类型的上下文,不需要使用这个方法了")]
         internal void EnterConfigManager(string match, string path, Rule r, RouteConfigManager related)
         {
@@ -330,6 +333,7 @@ namespace NewLife.Mvc
         /// <param name="path"></param>
         /// <param name="r"></param>
         /// <param name="related"></param>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         [Obsolete("不再使用Config类型的上下文,不需要使用这个方法了")]
         internal void ExitConfigManager(string match, string path, Rule r, RouteConfigManager related)
         {
@@ -642,6 +646,7 @@ namespace NewLife.Mvc
         /// <summary>模块,Related是IRouteConfigModule类型</summary>
         Module,
         /// <summary>路由配置,Related是RouteConfigManager类型</summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         [Obsolete("不再使用Config类型的上下文,不需要使用这个方法了")]
         Config
     }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 using NewLife.Reflection;
@@ -15,6 +16,7 @@ namespace NewLife.CommonEntity.Web
     /// <typeparam name="TAdminEntity">管理员类</typeparam>
     /// <typeparam name="TMenuEntity">菜单类</typeparam>
     [Obsolete("不再需要指定管理员类和菜单类，请改用EntityForm<TKey, TEntity>类替代！")]
+    [EditorBrowsable(EditorBrowsableState.Never)]
     public class EntityForm<TKey, TEntity, TAdminEntity, TMenuEntity> : EntityForm<TKey, TEntity>
         where TEntity : Entity<TEntity>, new()
         where TAdminEntity : Administrator<TAdminEntity>, new()

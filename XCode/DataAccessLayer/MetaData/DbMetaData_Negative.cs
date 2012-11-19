@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Text;
 using NewLife.Collections;
 #if NET4
 using System.Linq;
 #else
 using NewLife.Linq;
+using System.ComponentModel;
 #endif
 
 namespace XCode.DataAccessLayer
@@ -66,6 +66,7 @@ namespace XCode.DataAccessLayer
         #region 反向工程
         /// <summary>设置表模型，检查数据表是否匹配表模型，反向工程</summary>
         /// <param name="tables"></param>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         [Obsolete("请改用多参数版本！")]
         public void SetTables(params IDataTable[] tables)
         {

@@ -227,6 +227,7 @@ namespace XCode
         /// <param name="fieldName">字段名</param>
         /// <param name="newValue">新属性值</param>
         /// <returns>是否允许改变</returns>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         [Obsolete("改为使用OnPropertyChanging")]
         protected virtual Boolean OnPropertyChange(String fieldName, Object newValue)
         {

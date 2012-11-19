@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Threading;
 using NewLife.Collections;
 using NewLife.Reflection;
@@ -517,6 +518,7 @@ namespace NewLife.Mvc
         /// <summary>实现IList接口</summary>
         /// <param name="index"></param>
         /// <param name="item"></param>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         [Obsolete("请使用Route方法系列或Load方法", true)]
         public void Insert(int index, Rule item)
         {
@@ -550,6 +552,7 @@ namespace NewLife.Mvc
 
         /// <summary>实现IList接口</summary>
         /// <param name="item"></param>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         [Obsolete("请使用Route方法系列或Load方法", true)]
         public void Add(Rule item)
         {

@@ -13,6 +13,7 @@ namespace XCode.Configuration
         #region 属性
         private PropertyInfo _Property;
         /// <summary>属性元数据</summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         [Obsolete("该成员在后续版本中将不再被支持！")]
         public PropertyInfo Property
         {
@@ -22,6 +23,7 @@ namespace XCode.Configuration
 
         private BindColumnAttribute _Column;
         /// <summary>绑定列特性</summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         [Obsolete("该成员在后续版本中将不再被支持！")]
         public BindColumnAttribute Column
         {
@@ -31,6 +33,7 @@ namespace XCode.Configuration
 
         private DataObjectFieldAttribute _DataObjectField;
         /// <summary>数据字段特性</summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         [Obsolete("该成员在后续版本中将不再被支持！")]
         public DataObjectFieldAttribute DataObjectField
         {

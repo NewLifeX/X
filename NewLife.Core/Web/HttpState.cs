@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Web;
 using System.Web.Caching;
 
@@ -97,6 +98,7 @@ namespace NewLife.Web
         /// <summary>获取Http状态</summary>
         /// <param name="conv">把Cookie转为实体的转换器</param>
         /// <returns></returns>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         [Obsolete("该方法在将来版本中将不再支持，请使用T Get(Converter<HttpCookie, T> conv, Converter<HttpState<T>, T> load)")]
         public T Get(Converter<HttpCookie, T> conv)
         {
@@ -181,6 +183,7 @@ namespace NewLife.Web
         /// <summary>设置Http状态</summary>
         /// <param name="entity"></param>
         /// <param name="conv">把实体转换为Cookie的转换器</param>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         [Obsolete("该方法在将来版本中将不再支持，请使用void Set(T entity, Converter<T, HttpCookie> conv, Converter<T, Boolean> save)")]
         public void Set(T entity, Converter<T, HttpCookie> conv)
         {

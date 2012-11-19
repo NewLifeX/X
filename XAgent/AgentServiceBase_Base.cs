@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -275,6 +276,7 @@ namespace XAgent
 
         /// <summary>写日志</summary>
         /// <param name="msg"></param>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         [Obsolete("请改用WriteLine")]
         public static void WriteLog(String msg)
         {

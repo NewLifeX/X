@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Data;
 using System.Data.Common;
 using System.Threading;
@@ -63,6 +64,7 @@ namespace XCode.DataAccessLayer
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <param name="keyColumn">唯一键。用于not in分页</param>
         /// <returns>分页SQL</returns>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         [Obsolete("请优先考虑使用SelectBuilder参数做分页！")]
         public String PageSplit(String sql, Int32 startRowIndex, Int32 maximumRows, String keyColumn)
         {
@@ -142,6 +144,7 @@ namespace XCode.DataAccessLayer
         /// <param name="sql">SQL语句</param>
         /// <param name="tableNames">所依赖的表的表名</param>
         /// <returns></returns>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         [Obsolete("请优先考虑使用SelectBuilder参数做查询！")]
         public Int32 SelectCount(String sql, params String[] tableNames)
         {

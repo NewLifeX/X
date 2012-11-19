@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Threading;
 using System.Web.UI;
 using NewLife.Reflection;
@@ -33,6 +34,7 @@ namespace NewLife.CommonEntity
         /// <param name="entityType"></param>
         /// <returns></returns>
         [Obsolete("该成员在后续版本中讲不再被支持！")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         IManagePage CreatePage(Control container, Type entityType);
 
         /// <summary>创建实体表单控制器</summary>
@@ -40,6 +42,7 @@ namespace NewLife.CommonEntity
         /// <param name="entityType"></param>
         /// <returns></returns>
         [Obsolete("该成员在后续版本中讲不再被支持！")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         IEntityForm CreateForm(Control container, Type entityType);
         #endregion
 
@@ -151,6 +154,7 @@ namespace NewLife.CommonEntity
         /// <param name="container"></param>
         /// <param name="entityType"></param>
         /// <returns></returns>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         [Obsolete("该成员在后续版本中讲不再被支持！")]
         public virtual IManagePage CreatePage(Control container, Type entityType)
         {
@@ -164,6 +168,7 @@ namespace NewLife.CommonEntity
         /// <param name="container"></param>
         /// <param name="entityType"></param>
         /// <returns></returns>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         [Obsolete("该成员在后续版本中讲不再被支持！")]
         public virtual IEntityForm CreateForm(Control container, Type entityType)
         {

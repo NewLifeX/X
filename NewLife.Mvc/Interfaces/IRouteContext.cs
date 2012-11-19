@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using NewLife.Reflection;
 
 namespace NewLife.Mvc
@@ -34,6 +35,7 @@ namespace NewLife.Mvc
         RouteFrag Module { get; }
 
         /// <summary>当前路由最近的一个路由配置</summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         [Obsolete("不再使用Config类型的上下文,不需要使用这个方法了")]
         RouteFrag Config { get; }
 

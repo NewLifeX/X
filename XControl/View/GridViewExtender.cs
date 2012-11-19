@@ -366,6 +366,7 @@ e.ClickElement('a',function(i){{
         /// <summary>将指定的字符串作为javascript中使用的字符串内容返回,没有js字符串声明两边的双引号</summary>
         /// <param name="i"></param>
         /// <returns></returns>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         [Obsolete("使用XControl.Helper.JsStringEscape")]
         public static string JSStringEscape(string i)
         {
@@ -377,6 +378,7 @@ e.ClickElement('a',function(i){{
         /// <summary>将指定的javascript代码做简单压缩,去除换行和缩进</summary>
         /// <param name="i"></param>
         /// <returns></returns>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         [Obsolete("使用XControl.Helper.JsMinSimple")]
         public static string SimpleMinJs(string i)
         {
@@ -386,6 +388,7 @@ e.ClickElement('a',function(i){{
         /// <summary>将指定字符串作为html标签属性中可使用的字符串返回</summary>
         /// <param name="i"></param>
         /// <returns></returns>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         [Obsolete("使用XControl.Helper.HTMLPropertyEscape")]
         public static string HTMLPropertyEscape(string i)
         {

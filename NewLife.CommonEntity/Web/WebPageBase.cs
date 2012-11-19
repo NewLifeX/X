@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -15,6 +16,7 @@ namespace NewLife.CommonEntity.Web
     /// <summary>指定具体管理员类和菜单类的页面基类</summary>
     /// <typeparam name="TAdminEntity"></typeparam>
     /// <typeparam name="TMenuEntity"></typeparam>
+    [EditorBrowsable(EditorBrowsableState.Never)]
     [Obsolete("不再需要指定管理员类和菜单类，请改用WebPageBase类替代！")]
     public class WebPageBase<TAdminEntity, TMenuEntity> : WebPageBase<TAdminEntity>
         where TAdminEntity : Administrator<TAdminEntity>, new()
@@ -24,6 +26,7 @@ namespace NewLife.CommonEntity.Web
 
     /// <summary>指定具体管理员类的页面基类</summary>
     /// <typeparam name="TAdminEntity"></typeparam>
+    [EditorBrowsable(EditorBrowsableState.Never)]
     [Obsolete("不再需要指定管理员类和菜单类，请改用WebPageBase类替代！")]
     public class WebPageBase<TAdminEntity> : WebPageBase
         where TAdminEntity : Administrator<TAdminEntity>, new()
@@ -74,6 +77,7 @@ namespace NewLife.CommonEntity.Web
         #region 权限控制
         private Boolean _ValidatePermission = true;
         /// <summary>是否检查权限</summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         [Obsolete("后续版本将不再支持该属性，请重写CheckPermission来判断是否验证授权！")]
         public virtual Boolean ValidatePermission
         {
@@ -217,6 +221,7 @@ namespace NewLife.CommonEntity.Web
 
         /// <summary>是否输出执行时间</summary>
         [Obsolete("后续版本将不再支持该属性，请重写CheckPermission来判断是否验证授权！")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         protected virtual Boolean IsWriteRunTime
         {
             get
@@ -227,6 +232,7 @@ namespace NewLife.CommonEntity.Web
         }
 
         /// <summary>执行时间字符串</summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         [Obsolete("后续版本将不再支持该属性，请重写CheckPermission来判断是否验证授权！")]
         protected virtual String RunTimeString { get { return "查询{0}次，执行{1}次，耗时{2}毫秒！"; } }
 

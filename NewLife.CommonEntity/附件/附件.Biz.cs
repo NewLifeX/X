@@ -164,6 +164,7 @@ namespace NewLife.CommonEntity
         }
 
         /// <summary>获取Config中Handler设置</summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         [Obsolete("这个是不是拼写错误？使用HandlerUrl？")]
         public String HenderUrl { get { return HandlerUrl; } }
 

@@ -714,6 +714,7 @@ namespace XCode
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>实体数组</returns>
         [Obsolete("请改用FindAllByName！这个FindAll跟5参数那个太容易搞混了，害人不浅！")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         [DataObjectMethod(DataObjectMethodType.Select, false)]
         public static EntityList<TEntity> FindAll(String name, Object value, Int32 startRowIndex, Int32 maximumRows) { return FindAllByName(name, value, null, startRowIndex, maximumRows); }
 
@@ -751,6 +752,7 @@ namespace XCode
         /// </summary>
         /// <param name="sql">查询语句</param>
         /// <returns>实体数组</returns>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public static EntityList<TEntity> FindAll(String sql) { return LoadData(Meta.Query(sql)); }
         #endregion
 
@@ -945,6 +947,7 @@ namespace XCode
         /// <param name="maximumRows">最大返回行数，0表示所有行。这里无意义，仅仅为了保持与FindAll相同的方法签名</param>
         /// <returns>总行数</returns>
         [Obsolete("请改用FindCountByName！这个FindCount跟5参数那个太容易搞混了，害人不浅！")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public static Int32 FindCount(String name, Object value, Int32 startRowIndex, Int32 maximumRows) { return FindCountByName(name, value, null, startRowIndex, maximumRows); }
 
         /// <summary>根据属性以及对应的值，返回总记录数</summary>
@@ -1028,6 +1031,7 @@ namespace XCode
         /// <param name="methodType"></param>
         /// <returns>SQL字符串</returns>
         [Obsolete("该成员在后续版本中将不再被支持！请使用XCodeService.Resolve<IEntityPersistence>().GetSql()！")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public static String SQL(Entity<TEntity> obj, DataObjectMethodType methodType) { return persistence.GetSql(obj, methodType); }
 
         /// <summary>
@@ -1099,6 +1103,7 @@ namespace XCode
         /// <param name="obj">实体对象</param>
         /// <returns>条件</returns>
         [Obsolete("该成员在后续版本中将不再被支持！请使用XCodeService.Resolve<IEntityPersistence>().GetPrimaryCondition()！")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         protected static String DefaultCondition(Entity<TEntity> obj) { return persistence.GetPrimaryCondition(obj); }
 
         static SelectBuilder CreateBuilder(String whereClause, String orderClause, String selects, Int32 startRowIndex, Int32 maximumRows, Boolean needOrderByID = true)
@@ -1211,6 +1216,7 @@ namespace XCode
         /// <summary>建立Xml序列化器</summary>
         /// <returns></returns>
         //[Obsolete("该成员在后续版本中将不再被支持！")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         protected override XmlSerializer CreateXmlSerializer()
         {
             // 给每一个数据属性加上Xml默认值特性，让Xml序列化时避开数据与默认值相同的数据属性，减少Xml大小

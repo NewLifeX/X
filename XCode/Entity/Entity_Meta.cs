@@ -18,6 +18,7 @@ using XCode.DataAccessLayer;
 
 #if DEBUG
 using XCode.Common;
+using System.ComponentModel;
 #endif
 
 namespace XCode
@@ -190,6 +191,7 @@ namespace XCode
             /// <summary>查询记录数</summary>
             /// <param name="sql">SQL语句</param>
             /// <returns>记录数</returns>
+            [EditorBrowsable(EditorBrowsableState.Never)]
             [Obsolete("请优先考虑使用SelectBuilder参数做查询！")]
             public static Int32 QueryCount(String sql)
             {
@@ -522,6 +524,7 @@ namespace XCode
             /// <summary>格式化关键字</summary>
             /// <param name="name"></param>
             /// <returns></returns>
+            [EditorBrowsable(EditorBrowsableState.Never)]
             [Obsolete("改为使用FormatName")]
             public static String FormatKeyWord(String name)
             {

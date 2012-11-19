@@ -244,6 +244,7 @@ namespace NewLife.CommonEntity
         public static TEntity CurrentNoAutoLogin { get { return HttpState.Get(null, null); } }
 
         /// <summary>当前登录用户。通过实体资格提供者，保证取得正确的管理员</summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         [Obsolete("该成员在后续版本中讲不再被支持！")]
         public static IAdministrator CurrentAdministrator
         {

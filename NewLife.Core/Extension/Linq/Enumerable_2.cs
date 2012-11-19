@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
+using System.ComponentModel;
 using NewLife.Reflection;
 
 namespace NewLife.Linq
@@ -17,6 +17,7 @@ namespace NewLife.Linq
         ///   <paramref name="source" /> 中的元素的类型。</typeparam>
         /// <exception cref="T:System.ArgumentNullException">
         ///   <paramref name="source" /> 或 <paramref name="predicate" /> 为 null。</exception>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         [Obsolete("因为.Net4.0不支持，有点鸡肋，将来不支持！")]
         public static IEnumerable<TSource> ForEach<TSource>(this IEnumerable<TSource> source, Action<TSource> predicate)
         {
@@ -37,6 +38,7 @@ namespace NewLife.Linq
         ///   <paramref name="source" /> 中的元素的类型。</typeparam>
         /// <exception cref="T:System.ArgumentNullException">
         ///   <paramref name="source" /> 或 <paramref name="predicate" /> 为 null。</exception>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         [Obsolete("因为.Net4.0不支持，有点鸡肋，将来不支持！")]
         public static IEnumerable<TSource> ForEach<TSource>(this IEnumerable<TSource> source, Action<TSource, int> predicate)
         {
