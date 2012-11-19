@@ -948,13 +948,17 @@ namespace NewLife.Serialization
         public Object ReadObject(Type type)
         {
             Object value = null;
+
+#if !DEBUG
             try
+#endif
             {
                 //return ReadObject(type, ref value, null) ? value : null;
                 // 尽管读取对象出错，但是可能已经读取部分，还是需要准确返回
                 ReadObject(type, ref value, null);
                 return value;
             }
+#if !DEBUG
             catch (XSerializationException)
             {
                 throw;
@@ -966,6 +970,7 @@ namespace NewLife.Serialization
                 se.Value = value;
                 throw se;
             }
+#endif
         }
 
         /// <summary>主要入口方法。从数据流中读取指定类型的对象</summary>
@@ -991,8 +996,6 @@ namespace NewLife.Serialization
             if (type == null && value != null) type = value.GetType();
             if (callback == null) callback = ReadMember;
 
-            var old = CurrentObject;
-
             // 检查IAcessor接口
             IAccessor accessor = null;
             if (typeof(IAccessor).IsAssignableFrom(type))
@@ -1000,16 +1003,13 @@ namespace NewLife.Serialization
                 // 如果为空，实例化并赋值。
                 if (value == null)
                 {
-                    CurrentObject = value = TypeX.CreateInstance(type);
+                    //CurrentObject = value = TypeX.CreateInstance(type);
+                    value = TypeX.CreateInstance(type);
 
                     if (value != null) AddObjRef(objRefIndex, value);
                 }
                 accessor = value as IAccessor;
-                if (accessor != null && accessor.Read(this))
-                {
-                    CurrentObject = old;
-                    return true;
-                }
+                if (accessor != null && accessor.Read(this)) return true;
             }
 
             var rs = ReadObjectWithEvent(type, ref value, callback);
@@ -1017,7 +1017,6 @@ namespace NewLife.Serialization
             // 检查IAcessor接口
             if (accessor != null) rs = accessor.ReadComplete(this, rs);
 
-            CurrentObject = old;
             return rs;
         }
 

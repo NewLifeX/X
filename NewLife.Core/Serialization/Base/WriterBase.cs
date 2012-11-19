@@ -589,7 +589,8 @@ namespace NewLife.Serialization
         /// <returns>是否写入成功</returns>
         public Boolean WriteObject(Object value) { return WriteObject(value, null, WriteMember); }
 
-        /// <summary>主要入口方法。把目标对象指定成员写入数据流，处理基础类型、特殊类型、基础类型数组、特殊类型数组，通过委托方法处理成员</summary>
+        /// <summary>主要入口方法。</summary>
+        /// <remarks>把目标对象指定成员写入数据流，处理基础类型、特殊类型、基础类型数组、特殊类型数组，通过委托方法处理成员</remarks>
         /// <param name="value">要写入的对象</param>
         /// <param name="type">要写入的对象类型</param>
         /// <param name="callback">处理成员的方法</param>
@@ -742,7 +743,14 @@ namespace NewLife.Serialization
             if (WriteSerializable(value, type, callback)) return true;
 
             // 复杂类型，处理对象成员
-            if (WriteCustomObject(value, type, callback)) return true;
+            var old = CurrentObject;
+            CurrentObject = value;
+            if (WriteCustomObject(value, type, callback))
+            {
+                CurrentObject = old;
+                return true;
+            }
+            CurrentObject = old;
 
             return WriteUnKnown(value, type, callback);
         }
@@ -805,40 +813,39 @@ namespace NewLife.Serialization
             if (value == null) return true;
             if (callback == null) callback = WriteMember;
 
-            var old = CurrentObject;
-            CurrentObject = value;
+            var mis = GetMembers(type, value);
+            if (mis == null || mis.Length < 1) return true;
 
-            try
+            // 调试输出成员列表
+            if (Debug) ShowMembers("WriteCustomObject", mis);
+
+            for (int i = 0; i < mis.Length; i++)
             {
-                var mis = GetMembers(type, value);
-                if (mis == null || mis.Length < 1) return true;
+                var member = mis[i];
+                var v = member[value];
 
-                // 调试输出成员列表
-                if (Debug) ShowMembers("WriteCustomObject", mis);
+                Depth++;
+                // 基础类型输出日志时，同时输出值，更直观
+                if (Type.GetTypeCode(mis[i].Type) == TypeCode.Object)
+                    WriteLog("WriteMember", member.Name, member.Type.Name);
+                else
+                    WriteLog("WriteMember", member.Name, member.Type.Name, v);
 
-                for (int i = 0; i < mis.Length; i++)
-                {
-                    var mi = mis[i];
-                    var v = mi[value];
-
-                    Depth++;
-                    // 基础类型输出日志时，同时输出值，更直观
-                    if (Type.GetTypeCode(mis[i].Type) == TypeCode.Object)
-                        WriteLog("WriteMember", mi.Name, mi.Type.Name);
-                    else
-                        WriteLog("WriteMember", mi.Name, mi.Type.Name, v);
-
-                    var oldMember = CurrentMember;
-                    CurrentMember = mi;
+                var old = CurrentMember;
+                CurrentMember = member;
 #if !DEBUG
                     try
 #endif
+                {
+
+                    if (!WriteMember(member.Name, v, member.Type, i, callback))
                     {
-
-                        if (!WriteMember(mi.Name, v, mi.Type, i, callback)) return false;
-
-                        CurrentMember = oldMember;
+                        CurrentMember = old;
+                        return false;
                     }
+
+                    CurrentMember = old;
+                }
 #if !DEBUG
                     catch (Exception ex)
                     {
@@ -846,12 +853,10 @@ namespace NewLife.Serialization
                     }
 #endif
 
-                    Depth--;
-                }
-
-                return true;
+                Depth--;
             }
-            finally { CurrentObject = old; }
+
+            return true;
         }
 
         /// <summary>写入对象成员</summary>
