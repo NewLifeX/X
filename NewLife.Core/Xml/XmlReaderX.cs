@@ -22,10 +22,12 @@ namespace NewLife.Xml
             {
                 if (_Reader == null)
                 {
-                    var settings = new XmlReaderSettings();
-                    settings.IgnoreWhitespace = true;
-                    settings.IgnoreComments = true;
-                    _Reader = XmlReader.Create(Stream, settings);
+                    //var settings = new XmlReaderSettings();
+                    //settings.IgnoreWhitespace = true;
+                    //settings.IgnoreComments = true;
+                    //_Reader = XmlReader.Create(Stream, settings);
+                    // 使用XmlReader.Create会导致读取字符串时\r\n变成\n
+                    _Reader = new XmlTextReader(Stream);
                 }
                 return _Reader;
             }
@@ -87,7 +89,7 @@ namespace NewLife.Xml
         #region 基础元数据
         /// <summary>从当前流中读取一个字符串。字符串有长度前缀，一次 7 位地被编码为整数。</summary>
         /// <returns></returns>
-        public override string ReadString()
+        public override String ReadString()
         {
             var isElement = Reader.NodeType == XmlNodeType.Element;
             if (isElement)
@@ -102,6 +104,10 @@ namespace NewLife.Xml
             WriteLog(1, "ReadString", str);
             return str;
         }
+
+        /// <summary>从当前流中读取下一个字符，并根据所使用的 Encoding 和从流中读取的特定字符，提升流的当前位置。</summary>
+        /// <returns></returns>
+        public override Char ReadChar() { return (Char)Byte.Parse(ReadString()); }
 
         /// <summary>读取一个时间日期</summary>
         /// <returns></returns>

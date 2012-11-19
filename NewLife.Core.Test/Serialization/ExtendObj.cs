@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Xml.Serialization;
 using NewLife.Serialization;
 
 namespace NewLife.Core.Test.Serialization
@@ -23,14 +24,17 @@ namespace NewLife.Core.Test.Serialization
 
         private IPAddress _Address;
         /// <summary>属性说明</summary>
+        [XmlIgnore]
         public IPAddress Address { get { return _Address; } set { _Address = value; } }
 
         private IPEndPoint _EndPoint;
         /// <summary>属性说明</summary>
+        [XmlIgnore]
         public IPEndPoint EndPoint { get { return _EndPoint; } set { _EndPoint = value; } }
 
         private Type _T;
         /// <summary>属性说明</summary>
+        [XmlIgnore]
         public Type T { get { return _T; } set { _T = value; } }
         #endregion
 

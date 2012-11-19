@@ -99,7 +99,11 @@ namespace NewLife.Core.Test.Serialization
                 // 序列化为特性后不好比较
                 if (set.MemberAsAttribute) return;
                 // Address不好序列化
-                if (obj.GetType().Name.StartsWith("Extend")) return;
+                //if (obj.GetType().Name.StartsWith("Extend")) return;
+                // Xml太短，可能是成员为空，不好序列化
+                var doc = new XmlDocument();
+                doc.LoadXml(xml);
+                if (doc.DocumentElement.InnerXml.Length < 15) return;
 
                 //var obj2 = ms.ToXmlEntity(obj.GetType(), set.Encoding);
                 var obj2 = xml.ToXmlEntity(obj.GetType());
@@ -199,7 +203,7 @@ namespace NewLife.Core.Test.Serialization
                 set.SizeFormat = (i >> 4 & 0x01) == 1 ? TypeCode.Int32 : TypeCode.UInt32;
                 set.IgnoreDefault = (i >> 5 & 0x01) == 1;
 
-                //TestReader(obj, set);
+                TestReader(obj, set);
             }
         }
 
@@ -210,8 +214,11 @@ namespace NewLife.Core.Test.Serialization
                 var reader = new XmlReaderX();
                 reader.Settings = set;
 
-                // 获取对象的数据流，作为二进制读取器的数据源
-                //reader.Stream = obj.GetStream(reader.Settings);
+                var xml = obj.ToXml(set.Encoding, null, null, true);
+                xml = xml.Trim();
+                // 获取对象的数据流，作为读取器的数据源
+                obj.ToXml(reader.Stream, set.Encoding, null, null, true);
+                reader.Stream.Position = 0;
                 // 读取一个跟原始对象类型一致的对象
                 var obj2 = reader.ReadObject(obj.GetType());
 

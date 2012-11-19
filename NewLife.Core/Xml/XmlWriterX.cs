@@ -104,7 +104,13 @@ namespace NewLife.Xml
         #region 扩展类型
         /// <summary>写对象类型</summary>
         /// <param name="type"></param>
-        protected override void WriteObjectType(Type type) { if (Settings.WriteType) Writer.WriteAttributeString("Type", type.FullName); }
+        protected override void WriteObjectType(Type type)
+        {
+            if (Settings.WriteType)
+            {
+                Writer.WriteAttributeString("type", "http://www.w3.org/2001/XMLSchema-instance", type.Name);
+            }
+        }
         #endregion
 
         #region 字典

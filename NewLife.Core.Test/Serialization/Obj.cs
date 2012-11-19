@@ -7,6 +7,12 @@ using NewLife.Serialization;
 
 namespace NewLife.Core.Test.Serialization
 {
+    [XmlInclude(typeof(SimpleObj))]
+    [XmlInclude(typeof(ArrayObj))]
+    [XmlInclude(typeof(ListObj))]
+    [XmlInclude(typeof(DictionaryObj))]
+    [XmlInclude(typeof(ExtendObj))]
+    [XmlInclude(typeof(AbstractObj))]
     public abstract class Obj
     {
         #region 随机数
