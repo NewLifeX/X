@@ -27,7 +27,9 @@ namespace NewLife.Xml
                     //settings.IgnoreComments = true;
                     //_Reader = XmlReader.Create(Stream, settings);
                     // 使用XmlReader.Create会导致读取字符串时\r\n变成\n
-                    _Reader = new XmlTextReader(Stream);
+                    var xr = new XmlTextReader(Stream);
+                    xr.WhitespaceHandling = WhitespaceHandling.Significant;
+                    _Reader = xr;
                 }
                 return _Reader;
             }
