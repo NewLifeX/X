@@ -217,17 +217,6 @@ namespace NewLife.Core.Test.Serialization
                 var xml = obj.ToXml(set.Encoding, null, null, true);
                 xml = xml.Trim();
 
-                //var ms = new MemoryStream();
-                //obj.ToXml(ms, set.Encoding, null, null, true);
-                //ms.Position = 0;
-                //var data = ms.ToArray();
-                //var chars = new Char[data.Length + 1];
-                //var m = 0;
-                //var n = 0;
-                //var f = false;
-
-                //set.Encoding.GetDecoder().Convert(data, 0, data.Length, chars, 0, chars.Length, false, out m, out n, out f);
-
                 // 序列化为特性后不好比较
                 if (set.MemberAsAttribute) return;
                 // Address不好序列化
@@ -238,8 +227,17 @@ namespace NewLife.Core.Test.Serialization
                 if (doc.DocumentElement.InnerXml.Length < 15) return;
 
                 // 获取对象的数据流，作为读取器的数据源
-                obj.ToXml(reader.Stream, set.Encoding, null, null, true);
+                //obj.ToXml(reader.Stream, set.Encoding, null, null, true);
+                //reader.Stream.Position = 0;
+                var writer = new XmlWriterX();
+                writer.Settings = set;
+                writer.WriteObject(obj);
+                reader.Stream = writer.Stream;
                 reader.Stream.Position = 0;
+
+                // 没有数据的就不要比较啦，上面读一次是为了判断会不会有某些错误
+                if (reader.Stream.Length == 0) return;
+
                 // 读取一个跟原始对象类型一致的对象
                 var obj2 = reader.ReadObject(obj.GetType());
 

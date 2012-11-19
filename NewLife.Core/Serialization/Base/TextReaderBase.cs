@@ -40,7 +40,7 @@ namespace NewLife.Serialization
         {
             if (String.IsNullOrEmpty(data)) return null;
 
-            Byte[] bts = new Byte[data.Length / 2];
+            var bts = new Byte[data.Length / 2];
             for (int i = 0; i < data.Length / 2; i++)
             {
                 bts[i] = (Byte)Convert.ToInt32(data.Substring(2 * i, 2), 16);
@@ -79,13 +79,13 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public override char[] ReadChars(int count)
         {
-            String str = ReadString();
+            var str = ReadString();
             if (str == null) return null;
 
             return str.ToCharArray();
         }
 
-        /// <summary>从当前流中读取一个字符串。字符串有长度前缀，一次 7 位地被编码为整数。</summary>
+        /// <summary>从当前流中读取一个字符串。</summary>
         /// <returns></returns>
         public override string ReadString() { throw new NotImplementedException(); }
         #endregion

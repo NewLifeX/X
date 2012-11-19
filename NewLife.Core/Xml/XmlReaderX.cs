@@ -100,11 +100,38 @@ namespace NewLife.Xml
                 Reader.ReadStartElement();
             }
 
-            var str = Reader.ReadContentAsString();
+            String str;
+            // 字符串可能以字符数组的形式存在
+            if (Reader.NodeType == XmlNodeType.Element && Reader.Name.EqualIgnoreCase("char"))
+            {
+                var sb = new StringBuilder();
+                while (Reader.NodeType == XmlNodeType.Element && Reader.Name.EqualIgnoreCase("char"))
+                {
+                    Reader.ReadStartElement();
+                    var s = Reader.ReadContentAsString();
+                    sb.Append((Char)Int32.Parse(s));
+                    Reader.ReadEndElement();
+                }
+                str = sb.ToString();
+            }
+            else
+                str = Reader.ReadContentAsString();
+
             if (isElement && Reader.NodeType == XmlNodeType.EndElement) Reader.ReadEndElement();
 
             WriteLog(1, "ReadString", str);
             return str;
+        }
+
+        /// <summary>从当前流中读取 count 个字符，以字符数组的形式返回数据，并根据所使用的 Encoding 和从流中读取的特定字符，提升当前位置。</summary>
+        /// <param name="count">要读取的字符数。</param>
+        /// <returns></returns>
+        public override char[] ReadChars(int count)
+        {
+            var str = ReadString();
+            if (str == null) return null;
+
+            return str.ToCharArray();
         }
 
         /// <summary>从当前流中读取下一个字符，并根据所使用的 Encoding 和从流中读取的特定字符，提升流的当前位置。</summary>
