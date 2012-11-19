@@ -13,7 +13,15 @@ namespace NewLife.Core.Test.Serialization
         /// <summary>属性说明</summary>
         public List<SimpleObj> Objs { get { return _Objs; } set { _Objs = value; } }
 
-        public ListObj()
+        public static ListObj Create()
+        {
+            var obj = new ListObj();
+            obj.OnInit();
+
+            return obj;
+        }
+
+        void OnInit()
         {
             var n = Rnd.Next(10);
             Objs = new List<SimpleObj>();

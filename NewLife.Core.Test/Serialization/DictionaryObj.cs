@@ -14,7 +14,15 @@ namespace NewLife.Core.Test.Serialization
         /// <summary>属性说明</summary>
         public SerializableDictionary<Int32, SimpleObj> Objs { get { return _Objs; } set { _Objs = value; } }
 
-        public DictionaryObj()
+        public static DictionaryObj Create()
+        {
+            var obj = new DictionaryObj();
+            obj.OnInit();
+
+            return obj;
+        }
+
+        void OnInit()
         {
             var n = Rnd.Next(10);
             Objs = new SerializableDictionary<Int32, SimpleObj>();

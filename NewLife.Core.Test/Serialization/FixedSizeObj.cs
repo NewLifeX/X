@@ -11,7 +11,15 @@ namespace NewLife.Core.Test.Serialization
         /// <summary>属性说明</summary>
         public Byte[] Data { get { return _Data; } set { _Data = value; } }
 
-        public FixedSizeObj()
+        public static FixedSizeObj Create()
+        {
+            var obj = new FixedSizeObj();
+            obj.OnInit();
+
+            return obj;
+        }
+
+        void OnInit()
         {
             _Data = new Byte[8];
             Rnd.NextBytes(_Data);
@@ -19,7 +27,7 @@ namespace NewLife.Core.Test.Serialization
 
         public override void Write(BinaryWriter writer, BinarySettings set)
         {
-            writer.Write(Data, 0, Data.Length);
+            if (Data != null) writer.Write(Data, 0, Data.Length);
         }
 
         public override bool CompareTo(Obj obj)

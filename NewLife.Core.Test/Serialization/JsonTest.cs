@@ -56,7 +56,7 @@ namespace NewLife.Core.Test.Serialization
                 set.SizeFormat = (i >> 4 & 0x01) == 1 ? TypeCode.Int32 : TypeCode.UInt32;
                 set.UseCharsWriteToString = (i >> 5 & 0x01) == 1;
 
-                TestWriter(obj, set);
+                //TestWriter(obj, set);
             }
         }
 
@@ -109,7 +109,7 @@ namespace NewLife.Core.Test.Serialization
         [TestMethod]
         public void JsonTestWriteArray()
         {
-            var obj = new ArrayObj();
+            var obj = ArrayObj.Create();
             TestWriter(obj);
 
             obj.Objs = null;
@@ -217,7 +217,7 @@ namespace NewLife.Core.Test.Serialization
         [TestMethod]
         public void JsonTestReadArray()
         {
-            var obj = new ArrayObj();
+            var obj = ArrayObj.Create();
             TestReader(obj);
 
             obj.Objs = null;

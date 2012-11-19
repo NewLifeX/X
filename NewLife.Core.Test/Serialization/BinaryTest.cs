@@ -107,7 +107,7 @@ namespace NewLife.Core.Test.Serialization
         [TestMethod]
         public void BinaryTestWriteArray()
         {
-            var obj = new ArrayObj();
+            var obj = ArrayObj.Create();
             TestWriter(obj);
 
             obj.Objs = null;
@@ -169,6 +169,9 @@ namespace NewLife.Core.Test.Serialization
         {
             var obj = new FixedSizeObj();
             TestWriter(obj);
+
+            obj = FixedSizeObj.Create();
+            TestWriter(obj);
         }
 
         void TestReader(Obj obj, Boolean hasNull = true)
@@ -201,6 +204,9 @@ namespace NewLife.Core.Test.Serialization
                 // 读取一个跟原始对象类型一致的对象
                 var obj2 = reader.ReadObject(obj.GetType());
 
+                // 没有数据的就不要比较啦，上面读一次是为了判断会不会有某些错误
+                if (reader.Stream.Length == 0) return;
+
                 Assert.IsNotNull(obj2, "二进制读取器无法读取标准数据！");
 
                 var b = obj.CompareTo(obj2 as Obj);
@@ -222,7 +228,7 @@ namespace NewLife.Core.Test.Serialization
         [TestMethod]
         public void BinaryTestReadArray()
         {
-            var obj = new ArrayObj();
+            var obj = ArrayObj.Create();
             TestReader(obj);
 
             obj.Objs = null;
@@ -283,6 +289,9 @@ namespace NewLife.Core.Test.Serialization
         public void BinaryTestReadFixedSize()
         {
             var obj = new FixedSizeObj();
+            TestReader(obj);
+
+            obj = FixedSizeObj.Create();
             TestReader(obj);
         }
     }
