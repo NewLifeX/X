@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
-using System.Reflection;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using NewLife.Exceptions;
@@ -284,10 +283,7 @@ namespace NewLife.Serialization
         /// <param name="type">类型</param>
         /// <param name="value">对象</param>
         /// <returns>是否读取成功</returns>
-        public virtual Boolean ReadDictionary(Type type, ref Object value)
-        {
-            return ReadDictionary(type, ref value, ReadMember);
-        }
+        public virtual Boolean ReadDictionary(Type type, ref Object value) { return ReadDictionary(type, ref value, ReadMember); }
 
         /// <summary>尝试读取字典类型对象</summary>
         /// <param name="type">类型</param>
@@ -296,13 +292,6 @@ namespace NewLife.Serialization
         /// <returns>是否读取成功</returns>
         public virtual Boolean ReadDictionary(Type type, ref Object value, ReadObjectCallback callback)
         {
-            //if (type == null)
-            //{
-            //    if (value == null) throw new ArgumentNullException("type");
-            //    type = value.GetType();
-            //}
-            //type = CheckAndReadType("ReadDictionaryType", type, value);
-
             if (!typeof(IDictionary).IsAssignableFrom(type)) return false;
 
             // 计算元素类型
@@ -314,7 +303,7 @@ namespace NewLife.Serialization
             GetDictionaryEntryType(type, ref keyType, ref valueType);
 
             // 提前创建对象，因为对象引用可能用到
-            Int32 index = objRefIndex;
+            var index = objRefIndex;
             if (index > 0 && Settings.UseObjRef && value == null)
             {
                 value = TypeX.CreateInstance(type);
@@ -322,7 +311,7 @@ namespace NewLife.Serialization
             }
 
             // 读取键值对集合
-            IEnumerable<DictionaryEntry> list = ReadDictionary(keyType, valueType, ReadSize(), callback);
+            var list = ReadDictionary(keyType, valueType, ReadSize(), callback);
             if (list == null)
             {
                 value = null;
@@ -335,8 +324,8 @@ namespace NewLife.Serialization
 
             if (value == null) value = TypeX.CreateInstance(type);
 
-            IDictionary dic = value as IDictionary;
-            foreach (DictionaryEntry item in list)
+            var dic = value as IDictionary;
+            foreach (var item in list)
             {
                 dic.Add(item.Key, item.Value);
             }
@@ -352,7 +341,7 @@ namespace NewLife.Serialization
         /// <returns>字典项集合</returns>
         protected virtual IEnumerable<DictionaryEntry> ReadDictionary(Type keyType, Type valueType, Int32 count, ReadObjectCallback callback)
         {
-            List<DictionaryEntry> list = new List<DictionaryEntry>();
+            var list = new List<DictionaryEntry>();
 
             // 元素个数小于0，可能是因为不支持元素个数，直接设为最大值
             if (count < 0) count = Int32.MaxValue;
@@ -385,24 +374,7 @@ namespace NewLife.Serialization
             Object key = null;
             Object val = null;
 
-            // 如果无法取得字典项类型，则每个键值都单独写入类型
-            //if (keyType == null)
-            //{
-            //    WriteLog("ReadKeyType");
-            //    keyType = ReadType();
-            //    WriteLog("ReadKeyType", keyType.Name);
-            //}
-            // keyType = CheckAndReadType("ReadKeyType", keyType, value.Key);
-
             if (!ReadObject(keyType, ref key)) return false;
-
-            //if (valueType == null)
-            //{
-            //    WriteLog("ReadValueType");
-            //    valueType = ReadType();
-            //    WriteLog("ReadValueType", valueType.Name);
-            //}
-            //  valueType = CheckAndReadType("ReadValueType", valueType, value.Value);
 
             if (!ReadObject(valueType, ref val)) return false;
 
@@ -422,7 +394,7 @@ namespace NewLife.Serialization
             // 两个泛型参数的泛型
             if (type.IsGenericType)
             {
-                Type[] ts = type.GetGenericArguments();
+                var ts = type.GetGenericArguments();
                 if (ts != null && ts.Length == 2)
                 {
                     keyType = ts[0];
@@ -441,10 +413,7 @@ namespace NewLife.Serialization
         /// <param name="type">要读取的对象类型</param>
         /// <param name="value">要读取的对象</param>
         /// <returns>是否读取成功</returns>
-        public virtual Boolean ReadEnumerable(Type type, ref Object value)
-        {
-            return ReadEnumerable(type, ref value, ReadMember);
-        }
+        public virtual Boolean ReadEnumerable(Type type, ref Object value) { return ReadEnumerable(type, ref value, ReadMember); }
 
         /// <summary>尝试读取枚举</summary>
         /// <remarks>重点和难点在于如果得知枚举元素类型，这里假设所有元素类型一致，否则实在无法处理</remarks>
@@ -454,20 +423,16 @@ namespace NewLife.Serialization
         /// <returns>是否读取成功</returns>
         public virtual Boolean ReadEnumerable(Type type, ref Object value, ReadObjectCallback callback)
         {
-            //if (type == null)
-            //{
-            //    if (value == null) return false;
-            //    type = value.GetType();
-            //}
+            // lengths放在前面读取，主要是xml序列化时，lengths是写在父节点内的属性
             String lengths = null;
-            if (type.IsArray && type.GetArrayRank() > 1) lengths = ReadLengths();//lengths放在前面读取，主要是xml序列化时，lengths是写在父节点内的属性
+            if (type.IsArray && type.GetArrayRank() > 1) lengths = ReadLengths();
 
             type = CheckAndReadType("ReadEnumerableType", type, value);
 
             if (!typeof(IEnumerable).IsAssignableFrom(type)) return false;
 
             // 计算元素类型，如果无法计算，这里不能处理，否则能写不能读（因为不知道元素类型）
-            Type elementType = TypeX.GetElementType(type);
+            var elementType = TypeX.GetElementType(type);
 
             // 找不到元素类型
             if (elementType == null) throw new SerializationException("无法找到" + type.FullName + "的元素类型！");
@@ -477,17 +442,17 @@ namespace NewLife.Serialization
             if (type.IsArray && type.GetArrayRank() > 1)
             {
                 if (String.IsNullOrEmpty(lengths)) return false;
-                String[] strs = lengths.Split(',');
-                Int32[] param = new Int32[strs.Length];
+                var strs = lengths.Split(',');
+                var param = new Int32[strs.Length];
                 for (int i = 0; i < strs.Length; i++)
                 {
                     param[i] = Convert.ToInt32(strs[i]);
                 }
 
-                Array array = Array.CreateInstance(type.GetElementType(), param);
+                var array = Array.CreateInstance(type.GetElementType(), param);
 
-                Array sub = value as Array;
-                foreach (Object item in sub)
+                var sub = value as Array;
+                foreach (var item in sub)
                 {
                     ArrEnum(array, ix => array.SetValue(item, ix), item);
                 }
@@ -508,10 +473,10 @@ namespace NewLife.Serialization
         {
             if (!typeof(IEnumerable).IsAssignableFrom(type)) return false;
 
-            Int32 count = ReadSize();
+            var count = ReadSize();
 
             // 提前创建对象，因为对象引用可能用到
-            Int32 index = objRefIndex;
+            var index = objRefIndex;
             if (index > 0 && Settings.UseObjRef && value == null)
             {
                 if (type.IsArray && type.HasElementType && type.GetElementType() == elementType)
@@ -519,7 +484,7 @@ namespace NewLife.Serialization
                     // 如果是数组，在不知道元素个数时，不处理
                     if (count > 0)
                     {
-                        Array arr = TypeX.CreateInstance(type, count) as Array;
+                        var arr = TypeX.CreateInstance(type, count) as Array;
                         value = arr;
                         if (value != null) AddObjRef(index, value);
                     }
@@ -531,7 +496,7 @@ namespace NewLife.Serialization
                 }
             }
 
-            IList list = ReadItems(type, elementType, count, callback);
+            var list = ReadItems(type, elementType, count, callback);
             if (list == null)
             {
                 value = null;
@@ -592,15 +557,6 @@ namespace NewLife.Serialization
         /// <returns></returns>
         protected virtual Boolean ReadItem(Type type, ref Object value, Int32 index, ReadObjectCallback callback)
         {
-            // 如果无法取得元素类型，则每个元素都单独写入类型
-            //if (type == null || type == typeof(object))
-            //{
-            //    WriteLog("ReadItemType");
-            //    type = ReadType();
-            //    WriteLog("ReadItemType", type.Name);
-            //}
-            // type = CheckAndReadType("ReadItemType", type, value);
-
             return ReadObject(type, ref value, callback);
         }
 
@@ -626,7 +582,7 @@ namespace NewLife.Serialization
             {
                 if (type.IsArray)
                 {
-                    Array arr = value as Array;
+                    var arr = value as Array;
                     if (arr != null)
                     {
                         //if (XTrace.Debug && arr.Length != items.Count) throw new XSerializationException(null, "数组元素个数不匹配！");
@@ -641,7 +597,7 @@ namespace NewLife.Serialization
 
                 if (typeof(IList).IsAssignableFrom(type))
                 {
-                    IList list = value as IList;
+                    var list = value as IList;
                     if (list != null)
                     {
                         foreach (Object item in items)
@@ -651,23 +607,13 @@ namespace NewLife.Serialization
                         return true;
                     }
                 }
-
-                //method = MethodInfoX.Create(type, "Add", new Type[] { elementType });
-                //if (method != null)
-                //{
-                //    foreach (Object item in items)
-                //    {
-                //        method.Invoke(value, item);
-                //    }
-                //    return true;
-                //}
             }
             #endregion
 
             #region 数组
             if (type.IsArray && type.HasElementType && type.GetElementType() == elementType)
             {
-                Array arr = TypeX.CreateInstance(type, items.Count) as Array;
+                var arr = TypeX.CreateInstance(type, items.Count) as Array;
                 items.CopyTo(arr, 0);
                 value = arr;
                 return true;
@@ -675,7 +621,7 @@ namespace NewLife.Serialization
             #endregion
 
             #region 检查类型是否有指定类型的构造函数，如果有，直接创建类型，并把数组作为构造函数传入
-            ConstructorInfoX ci = ConstructorInfoX.Create(type, new Type[] { typeof(IEnumerable) });
+            var ci = ConstructorInfoX.Create(type, new Type[] { typeof(IEnumerable) });
             if (ci != null)
             {
                 value = ci.CreateInstance(items);
@@ -684,16 +630,16 @@ namespace NewLife.Serialization
             #endregion
 
             #region 检查是否实现IEnumerable<>接口，如果不是，转为该接口，后面的构造函数需要用
-            Type enumType = typeof(IEnumerable<>).MakeGenericType(elementType);
+            var enumType = typeof(IEnumerable<>).MakeGenericType(elementType);
             // 如果数据不是IEnumerable<>类型，则需要转换
             if (!enumType.IsAssignableFrom(items.GetType()))
             {
                 // 用List<>来转换
-                Type listType = typeof(List<>).MakeGenericType(elementType);
-                IList list = TypeX.CreateInstance(listType) as IList;
+                var listType = typeof(List<>).MakeGenericType(elementType);
+                var list = TypeX.CreateInstance(listType) as IList;
                 if (list != null)
                 {
-                    foreach (Object item in items)
+                    foreach (var item in items)
                     {
                         list.Add(item);
                     }
@@ -723,7 +669,7 @@ namespace NewLife.Serialization
             if (method != null)
             {
                 if (value == null) value = TypeX.CreateInstance(type);
-                foreach (Object item in items)
+                foreach (var item in items)
                 {
                     method.Invoke(value, item);
                 }
@@ -756,7 +702,7 @@ namespace NewLife.Serialization
 
             WriteLog("ReadSerializable", type.Name);
 
-            IObjectMemberInfo[] mis = GetMembers(type, value);
+            var mis = GetMembers(type, value);
             if (mis == null || mis.Length < 1) return true;
 
             // 调试输出成员列表
@@ -766,7 +712,7 @@ namespace NewLife.Serialization
             {
                 Depth++;
 
-                IObjectMemberInfo member = GetMemberBeforeRead(type, value, mis, i);
+                var member = GetMemberBeforeRead(type, value, mis, i);
                 // 没有可读成员
                 if (member == null) continue;
 
@@ -779,8 +725,8 @@ namespace NewLife.Serialization
             // 如果为空，实例化并赋值。
             if (value == null)
             {
-                SerializationInfo info = new SerializationInfo(type, new FormatterConverter());
-                foreach (IObjectMemberInfo item in mis)
+                var info = new SerializationInfo(type, new FormatterConverter());
+                foreach (var item in mis)
                 {
                     info.AddValue(item.Name, item[value], item.Type);
                 }
@@ -805,8 +751,8 @@ namespace NewLife.Serialization
             WriteLog("ReadBinaryFormatter", type.Name);
 
             // 调用.Net的二进制序列化来解决剩下的事情
-            BinaryFormatter bf = new BinaryFormatter();
-            MemoryStream ms = new MemoryStream(ReadBytes(-1));
+            var bf = new BinaryFormatter();
+            var ms = new MemoryStream(ReadBytes(-1));
             value = bf.Deserialize(ms);
 
             return true;
@@ -916,17 +862,17 @@ namespace NewLife.Serialization
             throw new XException("无法找到名为{0}的类型！", typeName);
         }
 
-        /// <summary>检查对象类型与指定写入类型是否一致，若不一致，则先写入类型，以保证读取的时候能够以正确的类型读取。同时返回对象实际类型。</summary>
+        /// <summary>检查对象类型与指定写入类型是否一致，若不一致，则先写入类型，以保证读取的时候能够以正确的类型读取。</summary>
         /// <param name="action"></param>
         /// <param name="type"></param>
         /// <param name="value"></param>
-        /// <returns></returns>
+        /// <returns>返回对象实际类型。</returns>
         protected Type CheckAndReadType(String action, Type type, Object value)
         {
             if (!IsExactType(type))
             {
                 WriteLog(action);
-                Type t = ReadObjectType();
+                var t = ReadObjectType();
                 //TODO 可以在Xml和Json测试猜测类型，写入后，删除Type部分，再尝试读取
                 if (t == null && type != null) t = GuessType(type);
                 type = t;
@@ -960,11 +906,11 @@ namespace NewLife.Serialization
                     else
                     {
                         // 处理泛型
-                        Type gt = type.GetGenericTypeDefinition();
+                        var gt = type.GetGenericTypeDefinition();
                         if (gt != null)
                         {
                             // 处理泛型参数
-                            Type[] gs = type.GetGenericArguments();
+                            var gs = type.GetGenericArguments();
 
                             // IDictionary<,>
                             if (type == typeof(IDictionary<,>)) return typeof(Dictionary<,>).MakeGenericType(gs);
@@ -987,16 +933,6 @@ namespace NewLife.Serialization
         {
             if (IsExactType(type)) return type;
 
-            // 找到所有实现了该接口的类型，并返回第一个精确类型
-            //Type[] ts = TypeResolver.ResolveAll(type);
-            //if (ts != null && ts.Length > 0)
-            //{
-            //    foreach (Type item in ts)
-            //    {
-            //        if (IsExactType(item)) return item;
-            //    }
-            //}
-            //return null;
             return AssemblyX.FindAllPlugins(type).FirstOrDefault(t => IsExactType(t));
         }
 
@@ -1019,12 +955,9 @@ namespace NewLife.Serialization
                 ReadObject(type, ref value, null);
                 return value;
             }
-            catch (XSerializationException ex)
+            catch (XSerializationException)
             {
-                // 如果本身就是序列化异常，砍断内部的异常链，太长没有意义
-                var se = new XSerializationException(ex.Member, "读取对象的" + (ex.Member == null ? "" : ex.Member) + "出错，可能已读取部分，请查看Value属性！" + ex.Message);
-                se.Value = value;
-                throw se;
+                throw;
             }
             catch (Exception ex)
             {
@@ -1058,32 +991,34 @@ namespace NewLife.Serialization
             if (type == null && value != null) type = value.GetType();
             if (callback == null) callback = ReadMember;
 
-            Object old = CurrentObject;
-            try
+            var old = CurrentObject;
+
+            // 检查IAcessor接口
+            IAccessor accessor = null;
+            if (typeof(IAccessor).IsAssignableFrom(type))
             {
-                // 检查IAcessor接口
-                IAccessor accessor = null;
-                if (typeof(IAccessor).IsAssignableFrom(type))
+                // 如果为空，实例化并赋值。
+                if (value == null)
                 {
-                    // 如果为空，实例化并赋值。
-                    if (value == null)
-                    {
-                        CurrentObject = value = TypeX.CreateInstance(type);
+                    CurrentObject = value = TypeX.CreateInstance(type);
 
-                        if (value != null) AddObjRef(objRefIndex, value);
-                    }
-                    accessor = value as IAccessor;
-                    if (accessor != null && accessor.Read(this)) return true;
+                    if (value != null) AddObjRef(objRefIndex, value);
                 }
-
-                Boolean rs = ReadObjectWithEvent(type, ref value, callback);
-
-                // 检查IAcessor接口
-                if (accessor != null) rs = accessor.ReadComplete(this, rs);
-
-                return rs;
+                accessor = value as IAccessor;
+                if (accessor != null && accessor.Read(this))
+                {
+                    CurrentObject = old;
+                    return true;
+                }
             }
-            finally { CurrentObject = old; }
+
+            var rs = ReadObjectWithEvent(type, ref value, callback);
+
+            // 检查IAcessor接口
+            if (accessor != null) rs = accessor.ReadComplete(this, rs);
+
+            CurrentObject = old;
+            return rs;
         }
 
         Boolean ReadObjectWithEvent(Type type, ref Object value, ReadObjectCallback callback)
@@ -1105,7 +1040,7 @@ namespace NewLife.Serialization
                 if (e.Success) return true;
             }
 
-            Boolean rs = OnReadObject(type, ref value, callback);
+            var rs = OnReadObject(type, ref value, callback);
 
             // 事件
             if (OnObjectReaded != null)
@@ -1199,8 +1134,6 @@ namespace NewLife.Serialization
 
                 return false;
             }
-
-            //return true;
         }
 
         /// <summary>尝试读取引用对象</summary>
@@ -1230,13 +1163,21 @@ namespace NewLife.Serialization
             if (ReadSerializable(type, ref value, callback)) return true;
 
             // 复杂类型，处理对象成员
-            if (ReadCustomObject(type, ref value, callback)) return true;
+            var old = CurrentObject;
+            CurrentObject = value;
+            if (ReadCustomObject(type, ref value, callback))
+            {
+                CurrentObject = old;
+                return true;
+            }
+            CurrentObject = old;
 
             // 检查数据流是否结束
             if (EndOfStream) return false;
 
             return ReadUnKnown(type, ref value, callback);
         }
+        #endregion
 
         #region 对象引用
         /// <summary>读取引用对象的包装，能自动从引用对象集合里面读取，如果不存在，则调用委托读取对象，并加入引用对象集合</summary>
@@ -1330,7 +1271,6 @@ namespace NewLife.Serialization
             objRefs[index - 1] = value;
         }
         #endregion
-        #endregion
 
         #region 自定义对象
         /// <summary>尝试读取自定义对象</summary>
@@ -1340,54 +1280,57 @@ namespace NewLife.Serialization
         /// <returns>是否读取成功</returns>
         public virtual Boolean ReadCustomObject(Type type, ref Object value, ReadObjectCallback callback)
         {
-            var old = CurrentObject;
-            CurrentObject = value;
+            var mis = GetMembers(type, value);
+            if (callback == null) callback = ReadMember;
 
-            try
+            // 如果为空，实例化并赋值。
+            if (value == null)
             {
-                var mis = GetMembers(type, value);
-                if (callback == null) callback = ReadMember;
+                CurrentObject = value = TypeX.CreateInstance(type);
 
-                // 如果为空，实例化并赋值。
-                if (value == null)
-                {
-                    CurrentObject = value = TypeX.CreateInstance(type);
-
-                    if (value != null) AddObjRef(objRefIndex, value);
-                }
-
-                if (mis == null || mis.Length < 1) return true;
-
-                // 调试输出成员列表
-                if (Debug) ShowMembers("ReadCustomObject", mis);
-
-                for (int i = 0; i < mis.Length; i++)
-                {
-                    Depth++;
-
-                    var member = GetMemberBeforeRead(type, value, mis, i);
-                    // 没有可读成员
-                    if (member == null) continue;
-
-                    // 基础类型输出日志时，同时输出值，更直观
-                    if (Type.GetTypeCode(mis[i].Type) == TypeCode.Object)
-                        WriteLog("ReadMember", member.Name, member.Type.Name);
-
-                    if (!ReadMember(member.Type, ref value, member, i, callback)) return false;
-
-                    // 基础类型输出日志时，同时输出值，更直观
-                    if (Type.GetTypeCode(mis[i].Type) != TypeCode.Object)
-                        WriteLog("ReadMember", member.Name, member.Type.Name, mis[i][value]);
-
-                    Depth--;
-                }
-
-                return true;
+                if (value != null) AddObjRef(objRefIndex, value);
             }
-            finally { CurrentObject = old; }
+
+            if (mis == null || mis.Length < 1) return true;
+
+            // 调试输出成员列表
+            if (Debug) ShowMembers("ReadCustomObject", mis);
+
+            for (int i = 0; i < mis.Length; i++)
+            {
+                Depth++;
+
+                var member = GetMemberBeforeRead(type, value, mis, i);
+                // 没有可读成员
+                if (member == null) continue;
+
+                // 基础类型输出日志时，同时输出值，更直观
+                if (Type.GetTypeCode(mis[i].Type) == TypeCode.Object)
+                    WriteLog("ReadMember", member.Name, member.Type.Name);
+
+                var old = CurrentMember;
+                CurrentMember = member;
+
+                if (!ReadMember(member.Type, ref value, member, i, callback))
+                {
+                    CurrentMember = old;
+                    return false;
+                }
+
+                CurrentMember = old;
+
+                // 基础类型输出日志时，同时输出值，更直观
+                if (Type.GetTypeCode(mis[i].Type) != TypeCode.Object)
+                    WriteLog("ReadMember", member.Name, member.Type.Name, mis[i][value]);
+
+                Depth--;
+            }
+
+            return true;
         }
 
-        /// <summary>读取成员之前获取要读取的成员，默认是index处的成员，实现者可以重载，改变当前要读取的成员，如果当前成员不在数组里面，则实现者自己跳到下一个可读成员。</summary>
+        /// <summary>读取成员之前获取要读取的成员，默认是index处的成员。</summary>
+        /// <remarks>实现者可以重载，改变当前要读取的成员，如果当前成员不在数组里面，则实现者自己跳到下一个可读成员</remarks>
         /// <param name="type">要读取的对象类型</param>
         /// <param name="value">要读取的对象</param>
         /// <param name="members">可匹配成员数组</param>
@@ -1401,7 +1344,7 @@ namespace NewLife.Serialization
         /// <returns></returns>
         protected IObjectMemberInfo GetMemberByName(IObjectMemberInfo[] members, String name)
         {
-            foreach (IObjectMemberInfo item in members)
+            foreach (var item in members)
             {
                 if (item.Name == name) return item;
             }
@@ -1420,67 +1363,46 @@ namespace NewLife.Serialization
         {
             if (callback == null) callback = ReadMember;
 
-            IObjectMemberInfo old = CurrentMember;
-            CurrentMember = member;
-
-#if !DEBUG
-            try
-#endif
+            // 读取成员前
+            ReadMemberEventArgs e = null;
+            if (OnMemberReading != null)
             {
-                // 读取成员前
-                ReadMemberEventArgs e = null;
-                if (OnMemberReading != null)
-                {
-                    e = new ReadMemberEventArgs(value, type, member, index, callback);
+                e = new ReadMemberEventArgs(value, type, member, index, callback);
 
-                    OnMemberReading(this, e);
+                OnMemberReading(this, e);
 
-                    // 事件里面有可能改变了参数
-                    value = e.Value;
-                    type = e.Type;
-                    member = e.Member;
-                    index = e.Index;
-                    callback = e.Callback;
+                // 事件里面有可能改变了参数
+                value = e.Value;
+                type = e.Type;
+                member = e.Member;
+                index = e.Index;
+                callback = e.Callback;
 
-                    // 事件处理器可能已经成功读取对象
-                    if (e.Success)
-                    {
-                        CurrentMember = old;
-                        return true;
-                    }
-                }
-
-                Object obj = null;
-                Boolean rs = OnReadMember(type, ref obj, member, index, callback);
-
-                // 读取成员后
-                if (OnMemberReaded != null)
-                {
-                    if (e == null) e = new ReadMemberEventArgs(value, type, member, index, callback);
-                    e.Value = obj;
-                    e.Success = rs;
-
-                    OnMemberReaded(this, e);
-
-                    // 事件处理器可以影响结果
-                    obj = e.Value;
-                    rs = e.Success;
-                }
-
-                // 设置成员的值
-                member[value] = obj;
-
-                CurrentMember = old;
-
-                return rs;
+                // 事件处理器可能已经成功读取对象
+                if (e.Success) return true;
             }
-#if !DEBUG
-            catch (XException) { throw; }
-            catch (Exception ex)
+
+            Object obj = null;
+            var rs = OnReadMember(type, ref obj, member, index, callback);
+
+            // 读取成员后
+            if (OnMemberReaded != null)
             {
-                throw new XSerializationException(member.Name, ex);
+                if (e == null) e = new ReadMemberEventArgs(value, type, member, index, callback);
+                e.Value = obj;
+                e.Success = rs;
+
+                OnMemberReaded(this, e);
+
+                // 事件处理器可以影响结果
+                obj = e.Value;
+                rs = e.Success;
             }
-#endif
+
+            // 设置成员的值
+            member[value] = obj;
+
+            return rs;
         }
 
         /// <summary>读取对象成员</summary>
@@ -1490,18 +1412,7 @@ namespace NewLife.Serialization
         /// <param name="index">成员索引</param>
         /// <param name="callback">处理成员的方法</param>
         /// <returns>是否读取成功</returns>
-        protected virtual Boolean OnReadMember(Type type, ref Object value, IObjectMemberInfo member, Int32 index, ReadObjectCallback callback)
-        {
-            //type = CheckAndReadType("ReadMemberType", type, value);
-
-            //if (type == typeof(Object))
-            //{
-            //    WriteLog("ReadMemberType");
-            //    type = ReadType();
-            //    WriteLog("ReadMemberType", type.Name);
-            //}
-            return callback(this, type, ref value, callback);
-        }
+        protected virtual Boolean OnReadMember(Type type, ref Object value, IObjectMemberInfo member, Int32 index, ReadObjectCallback callback) { return callback(this, type, ref value, callback); }
 
         static Boolean ReadMember(IReader reader, Type type, ref Object value, ReadObjectCallback callback) { return reader.ReadObject(type, ref value, callback); }
         #endregion
@@ -1527,7 +1438,7 @@ namespace NewLife.Serialization
         {
             if (!UseSize) return -1;
 
-            Int32 size = OnReadSize();
+            var size = OnReadSize();
 
             WriteLog("ReadSize", size);
 
@@ -1556,7 +1467,7 @@ namespace NewLife.Serialization
         /// <returns></returns>
         protected virtual String ReadLengths()
         {
-            String lengths = ReadString();
+            var lengths = ReadString();
             WriteLog("ReadLengths", lengths);
             return lengths;
         }
@@ -1569,8 +1480,8 @@ namespace NewLife.Serialization
         /// <param name="value"></param>
         protected void ArrEnum(Array arr, Action<Int32[]> func, Object value)
         {
-            Int32[] ix = new Int32[arr.Rank];
-            Int32 rank = 0;
+            var ix = new Int32[arr.Rank];
+            var rank = 0;
 
             for (int i = 0; i < arr.Length; i++)
             {
