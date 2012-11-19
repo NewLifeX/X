@@ -20,5 +20,12 @@ namespace NewLife.Xml
         /// <summary>指定日期时间输出成什么时间,本地还是UTC时间,默认是UTC时间</summary>
         public XmlDateTimeSerializationMode DateTimeMode { get { return _DateTimeMode; } set { _DateTimeMode = value; } }
         #endregion
+
+        /// <summary>实例化Xml序列化设置</summary>
+        public XmlReaderWriterSettings()
+        {
+            // 默认用Base64
+            UseBase64 = true;
+        }
     }
 }
