@@ -316,7 +316,7 @@ namespace NewLife.Serialization
         protected override Int32 OnReadSize()
         {
             var size = GetSize();
-            if (size > 0) return size;
+            if (size >= 0) return size;
 
             switch (Settings.SizeFormat)
             {

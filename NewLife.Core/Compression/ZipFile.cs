@@ -99,15 +99,19 @@ namespace NewLife.Compression
             Encoding = encoding;
 
             var fs = File.OpenRead(fileName);
+#if !DEBUG
             try
+#endif
             {
                 Read(fs);
             }
+#if !DEBUG
             catch (Exception ex)
             {
                 fs.Dispose();
                 throw new ZipException("不是有效的Zip格式！", ex);
             }
+#endif
 
             if (fs.Length < 10 * 1024 * 1024) fs.Dispose();
         }
