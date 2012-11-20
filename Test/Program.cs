@@ -26,6 +26,7 @@ using XCode;
 using NewLife.Common;
 using XCode.Sync;
 using NewLife.Model;
+using NewLife.Compression;
 
 namespace Test
 {
@@ -42,7 +43,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test8();
+                Test8();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -341,32 +342,18 @@ namespace Test
 
         static void Test8()
         {
-            //var kind = RWKinds.Xml;
-            ////CodeTimer.TimeLine("", 10000, n =>
-            ////{
-            //var msg = new EntityMessage { Value = Guid.NewGuid() };
-            //var msg2 = new ChannelMessage { Channel = 1237, Message = msg };
-            //Console.WriteLine(msg);
-            //Console.WriteLine(msg2);
-
-            //var ms = msg2.GetStream(kind);
-
-            //var msg3 = Message.Read(ms, kind);
-            //Console.WriteLine(msg3);
-            //Console.WriteLine((msg3 as ChannelMessage).Message);
-            ////});
-            //var entity = new Administrator();
-            //entity.ID = 123;
-            //entity.Name = "Test";
-            //entity.RoleID = 888;
-            //entity.Password = "Pass";
-
-            //var writer = new BinaryWriterX();
-            //var wr = writer as IWriter;
-            //wr.WriteObject(entity);
-
-            //var bts = wr.Stream.ReadBytes();
-            //File.WriteAllBytes("admin.bin", bts);
+            //ZipFile.Extract("Test.zip", null);
+            using (var zip = new ZipFile("Test.zip"))
+            {
+                Console.WriteLine(zip.Comment);
+                foreach (var item in zip.Entries)
+                {
+                    Console.WriteLine("{0} {1} {2}", item.Key, item.Value.UncompressedSize, item.Value.Comment);
+                }
+                zip.Comment = DateTime.Now.ToString();
+                zip.AddFile("test.pdb");
+                zip.Write("test2.zip");
+            }
         }
 
         static void Test9()
