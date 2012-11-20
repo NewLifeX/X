@@ -849,7 +849,7 @@ namespace NewLife.Serialization
 #if !DEBUG
                     catch (Exception ex)
                     {
-                        throw new XSerializationException(mi.Name, ex);
+                        throw new XSerializationException(member.Name, ex);
                     }
 #endif
 
