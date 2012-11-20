@@ -68,6 +68,7 @@
     <Compile Include="Serialization\AbstractObj.cs" />
     <Compile Include="Xml\UserConfig.cs" />
     <Compile Include="Xml\XmlConfigTest.cs" />
+    <Compile Include="Compression\ZipFileTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NewLife.Core\NewLife.Core.csproj">
