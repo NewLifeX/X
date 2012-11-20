@@ -78,17 +78,19 @@ namespace XCoder
         /// <param name="fileName"></param>
         public static void ReleaseFile(String name, String fileName)
         {
+            fileName = fileName.GetFullPath();
             if (String.IsNullOrEmpty(fileName) || File.Exists(fileName)) return;
 
             try
             {
-                Stream stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(name);
+                var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(name);
                 if (stream == null) return;
 
-                Byte[] buffer = new Byte[stream.Length];
-                Int32 count = stream.Read(buffer, 0, buffer.Length);
+                var buffer = new Byte[stream.Length];
+                var count = stream.Read(buffer, 0, buffer.Length);
 
-                String p = Path.GetDirectoryName(fileName);
+                fileName = fileName.GetFullPath();
+                var p = Path.GetDirectoryName(fileName);
                 if (!String.IsNullOrEmpty(p) && !Directory.Exists(p)) Directory.CreateDirectory(p);
 
                 File.WriteAllBytes(fileName, buffer);

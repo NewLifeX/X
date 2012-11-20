@@ -38,8 +38,9 @@ namespace NewLife.IO
 
             if (File.Exists(dest) && !overWrite) return;
 
-            var path = Path.GetDirectoryName(dest);
-            if (!path.IsNullOrWhiteSpace() && !Directory.Exists(path)) Directory.CreateDirectory(path);
+            //var path = Path.GetDirectoryName(dest);
+            //if (!path.IsNullOrWhiteSpace() && !Directory.Exists(path)) Directory.CreateDirectory(path);
+            dest.EnsureDirectory();
             try
             {
                 if (File.Exists(dest)) File.Delete(dest);
@@ -94,7 +95,7 @@ namespace NewLife.IO
             // 开始处理
             foreach (String item in ns)
             {
-                Stream stream = asm.GetManifestResourceStream(item);
+                var stream = asm.GetManifestResourceStream(item);
 
                 // 计算filename
                 String filename = null;
@@ -107,7 +108,7 @@ namespace NewLife.IO
                     if (!String.IsNullOrEmpty(prefix)) filename = filename.Substring(prefix.Length);
                     if (filename[0] == '.') filename = filename.Substring(1);
 
-                    String ext = Path.GetExtension(item);
+                    var ext = Path.GetExtension(item);
                     filename = filename.Substring(0, filename.Length - ext.Length);
                     filename = filename.Replace(".", @"\") + ext;
                     filename = Path.Combine(dest, filename);
@@ -115,13 +116,14 @@ namespace NewLife.IO
 
                 if (File.Exists(filename) && !overWrite) return;
 
-                String path = Path.GetDirectoryName(filename);
-                if (!path.IsNullOrWhiteSpace() && !Directory.Exists(path)) Directory.CreateDirectory(path);
+                //var path = Path.GetDirectoryName(filename);
+                //if (!path.IsNullOrWhiteSpace() && !Directory.Exists(path)) Directory.CreateDirectory(path);
+                filename.EnsureDirectory();
                 try
                 {
                     if (File.Exists(filename)) File.Delete(filename);
 
-                    using (FileStream fs = File.Create(filename))
+                    using (var fs = File.Create(filename))
                     {
                         IOHelper.CopyTo(stream, fs);
                     }
@@ -139,9 +141,9 @@ namespace NewLife.IO
         {
             if (String.IsNullOrEmpty(filename)) return null;
 
-            String name = String.Empty;
+            var name = String.Empty;
             if (asm == null) asm = Assembly.GetCallingAssembly();
-            String[] ss = asm.GetManifestResourceNames();
+            var ss = asm.GetManifestResourceNames();
             if (ss != null && ss.Length > 0)
             {
                 //找到资源名

@@ -19,6 +19,19 @@ namespace System.IO
 
             return Path.GetFullPath(path);
         }
+
+        /// <summary>确保目录存在，若不存在则创建</summary>
+        /// <param name="path">文件路径或目录路径</param>
+        /// <returns></returns>
+        public static String EnsureDirectory(this String path)
+        {
+            if (String.IsNullOrEmpty(path)) return path;
+
+            var dir = Path.GetDirectoryName(path);
+            if (!String.IsNullOrEmpty(dir) && !Directory.Exists(dir)) Directory.CreateDirectory(dir);
+
+            return path;
+        }
         #endregion
     }
 }
