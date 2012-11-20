@@ -25,26 +25,26 @@ namespace NewLife.IO
             if (String.IsNullOrEmpty(filename)) return;
 
             if (asm == null) asm = Assembly.GetCallingAssembly();
-            Stream stream = GetFileResource(asm, filename);
+            var stream = GetFileResource(asm, filename);
             if (stream == null) throw new ArgumentException("filename", String.Format("在程序集{0}中无法找到名为{1}的资源！", asm.GetName().Name, filename));
 
             if (String.IsNullOrEmpty(dest)) dest = filename;
 
             if (!Path.IsPathRooted(dest))
             {
-                String str = Runtime.IsWeb ? HttpRuntime.BinDirectory : AppDomain.CurrentDomain.BaseDirectory;
+                var str = Runtime.IsWeb ? HttpRuntime.BinDirectory : AppDomain.CurrentDomain.BaseDirectory;
                 dest = Path.Combine(str, dest);
             }
 
             if (File.Exists(dest) && !overWrite) return;
 
-            String path = Path.GetDirectoryName(dest);
+            var path = Path.GetDirectoryName(dest);
             if (!path.IsNullOrWhiteSpace() && !Directory.Exists(path)) Directory.CreateDirectory(path);
             try
             {
                 if (File.Exists(dest)) File.Delete(dest);
 
-                using (FileStream fs = File.Create(dest))
+                using (var fs = File.Create(dest))
                 {
                     IOHelper.CopyTo(stream, fs);
                 }

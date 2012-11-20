@@ -34,9 +34,12 @@ using System.Runtime.InteropServices;
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("3.8.*")]
-[assembly: AssemblyFileVersion("3.8.2012.1102")]
+[assembly: AssemblyFileVersion("3.8.2012.1120")]
 
 /*
+ * v3.8.2012.1120   运行时Runtime增加支持OSName获取系统名称
+ *                  日志文件头增加当前目录、CLR版本和系统名称等信息
+ * 
  * v3.8.2012.1102   增加Xml助手类XmlHelper，支持Xml序列化，全部扩展方法
  * 
  * v3.8.2012.1023   增加Xml配置文件基类XmlConfig

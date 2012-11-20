@@ -130,7 +130,7 @@ namespace NewLife.Log
             {
                 try
                 {
-                    name = process.MachineName;
+                    name = process.ProcessName;
                 }
                 catch { }
             }
@@ -139,9 +139,47 @@ namespace NewLife.Log
             // 因为指定了编码，比如UTF8，开头就会写入3个字节，所以这里不能拿长度跟0比较
             if (writer.BaseStream.Length > 10) writer.WriteLine();
             writer.WriteLine("#Software: {0}", name);
-            writer.WriteLine("#ProcessID: {0}", process.Id);
+            writer.WriteLine("#ProcessID: {0}{1}", process.Id, Runtime.Is64BitProcess ? " x64" : "");
             writer.WriteLine("#AppDomain: {0}", AppDomain.CurrentDomain.FriendlyName);
-            writer.WriteLine("#BaseDirectory: {0}", AppDomain.CurrentDomain.BaseDirectory);
+
+            var fileName = String.Empty;
+            try
+            {
+                fileName = process.StartInfo.FileName;
+                if (fileName.IsNullOrWhiteSpace()) fileName = process.MainModule.FileName;
+
+                if (!String.IsNullOrEmpty(fileName)) writer.WriteLine("#FileName: {0}", fileName);
+            }
+            catch { }
+
+            // 应用域目录
+            var baseDir = AppDomain.CurrentDomain.BaseDirectory;
+            writer.WriteLine("#BaseDirectory: {0}", baseDir);
+
+            // 当前目录。如果由别的进程启动，默认的当前目录就是父级进程的当前目录
+            var curDir = Environment.CurrentDirectory;
+            if (!curDir.EqualIgnoreCase(baseDir) && !(curDir + "\\").EqualIgnoreCase(baseDir))
+                writer.WriteLine("#CurrentDirectory: {0}", curDir);
+
+            // 命令行不为空，也不是文件名时，才输出
+            // 当使用cmd启动程序时，这里就是用户输入的整个命令行，所以可能包含空格和各种符号
+            var line = Environment.CommandLine;
+            if (!String.IsNullOrEmpty(line))
+            {
+                line = line.Trim().TrimStart('\"');
+                if (!String.IsNullOrEmpty(fileName) && line.StartsWith(fileName, StringComparison.OrdinalIgnoreCase))
+                    line = line.Substring(fileName.Length).TrimStart().TrimStart('\"').TrimStart();
+                if (!String.IsNullOrEmpty(line))
+                {
+                    writer.WriteLine("#CommandLine: {0}", line);
+                }
+            }
+
+            writer.WriteLine("#ApplicationType: {0}", Runtime.IsConsole ? "Console" : (Runtime.IsWeb ? "Web" : "WinForm"));
+            writer.WriteLine("#CLR: {0}", Environment.Version);
+
+            writer.WriteLine("#OS: {0}", Runtime.OSName);
+
             writer.WriteLine("#Date: {0:yyyy-MM-dd}", DateTime.Now);
             writer.WriteLine("#Fields: Time ThreadID IsPoolThread ThreadName Message");
         }
