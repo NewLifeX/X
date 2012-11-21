@@ -38,6 +38,7 @@ using System.Runtime.InteropServices;
 
 /*
  * v3.8.2012.1121   路径扩展助手增加路径绑定CombinePath
+ *                  压缩类ZipFile增加读取延迟机制，在构造对象后并不会马上读取压缩包，以便于在读取前设置各种参数
  * 
  * v3.8.2012.1120   运行时Runtime增加支持OSName获取系统名称
  *                  日志文件头增加当前目录、CLR版本和系统名称等信息

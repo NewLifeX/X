@@ -69,67 +69,73 @@ namespace NewLife.Compression
 
         private String _Comment;
         /// <summary>注释</summary>
-        public String Comment { get { return _Comment; } set { _Comment = value; } }
+        public String Comment { get { EnsureRead(); return _Comment; } set { _Comment = value; } }
 
-        private Encoding _Encoding ;
+        private Encoding _Encoding;
         /// <summary>字符串编码</summary>
         public Encoding Encoding { get { return _Encoding ?? Encoding.Default; } set { _Encoding = value; } }
 
         private Boolean _UseDirectory;
         /// <summary>是否使用目录。不使用目录可以减少一点点文件大小，网络上的压缩包也这么做，但是Rar压缩的使用了目录</summary>
         public Boolean UseDirectory { get { return _UseDirectory; } set { _UseDirectory = value; } }
+
+        private Int64 _EmbedFileDataMaxSize = 10 * 1024 * 1024;
+        /// <summary>内嵌文件数据最大大小。小于该大小的文件将加载到内存中，否则保持文件流连接，直到读写文件。默认10M</summary>
+        public Int64 EmbedFileDataMaxSize { get { return _EmbedFileDataMaxSize; } set { _EmbedFileDataMaxSize = value; } }
         #endregion
 
         #region 构造
         /// <summary>实例化一个Zip文件对象</summary>
         public ZipFile() { }
 
-        /// <summary>实例化一个Zip文件对象</summary>
+        /// <summary>实例化一个Zip文件对象。延迟到第一次使用<see cref="Entries"/>时读取</summary>
         /// <param name="fileName"></param>
         public ZipFile(String fileName) : this(fileName, null) { }
 
-        /// <summary>实例化一个Zip文件对象</summary>
+        /// <summary>实例化一个Zip文件对象。延迟到第一次使用<see cref="Entries"/>时读取</summary>
         /// <param name="fileName"></param>
         /// <param name="encoding"></param>
         public ZipFile(String fileName, Encoding encoding)
-            //: this(File.OpenRead(fileName), encoding)
+        //: this(File.OpenRead(fileName), encoding)
         {
             //if (!String.IsNullOrEmpty(fileName)) DefaultExtractPath = Path.GetDirectoryName(fileName);
             Name = fileName;
             Encoding = encoding;
+            _file = fileName;
 
-            var fs = File.OpenRead(fileName);
-#if !DEBUG
-            try
-#endif
-            {
-                Read(fs);
-            }
-#if !DEBUG
-            catch (Exception ex)
-            {
-                fs.Dispose();
-                throw new ZipException("不是有效的Zip格式！", ex);
-            }
-#endif
+            //            var fs = File.OpenRead(fileName);
+            //#if !DEBUG
+            //                        try
+            //#endif
+            //            {
+            //                Read(fs);
+            //            }
+            //#if !DEBUG
+            //                        catch (Exception ex)
+            //                        {
+            //                            fs.Dispose();
+            //                            throw new ZipException("不是有效的Zip格式！", ex);
+            //                        }
+            //#endif
 
-            if (fs.Length < 10 * 1024 * 1024) fs.Dispose();
+            //            if (fs.Length < 10 * 1024 * 1024) fs.Dispose();
         }
 
-        /// <summary>实例化一个Zip文件对象</summary>
+        /// <summary>实例化一个Zip文件对象。延迟到第一次使用<see cref="Entries"/>时读取</summary>
         /// <param name="stream"></param>
         /// <param name="encoding"></param>
         public ZipFile(Stream stream, Encoding encoding)
         {
             Encoding = encoding;
-            try
-            {
-                Read(stream);
-            }
-            catch (Exception ex)
-            {
-                throw new ZipException("不是有效的Zip格式！", ex);
-            }
+            _stream = stream;
+            //try
+            //{
+            //    Read(stream);
+            //}
+            //catch (Exception ex)
+            //{
+            //    throw new ZipException("不是有效的Zip格式！", ex);
+            //}
         }
 
         /// <summary>释放资源</summary>
@@ -157,6 +163,48 @@ namespace NewLife.Compression
         #endregion
 
         #region 读取
+        String _file;
+        Stream _stream;
+
+        /// <summary>使用文件和数据流时，延迟到第一次使用<see cref="Entries"/>时读取</summary>
+        void EnsureRead()
+        {
+            if (!_file.IsNullOrWhiteSpace())
+            {
+                var f = _file;
+                _file = null;
+                var fs = File.OpenRead(f);
+#if !DEBUG
+            try
+#endif
+                {
+                    Read(fs);
+                }
+#if !DEBUG
+            catch (Exception ex)
+            {
+                fs.Dispose();
+                throw new ZipException("不是有效的Zip格式！", ex);
+            }
+#endif
+
+                if (fs.Length < EmbedFileDataMaxSize) fs.Dispose();
+            }
+            else if (_stream != null)
+            {
+                var fs = _stream;
+                _stream = null;
+                try
+                {
+                    Read(fs);
+                }
+                catch (Exception ex)
+                {
+                    throw new ZipException("不是有效的Zip格式！", ex);
+                }
+            }
+        }
+
         /// <summary>从数据流中读取Zip格式数据</summary>
         /// <param name="stream">数据流</param>
         /// <param name="embedFileData">
@@ -166,14 +214,31 @@ namespace NewLife.Compression
         public void Read(Stream stream, Boolean? embedFileData = null)
         {
             // 如果外部未指定是否内嵌文件数据，则根据数据流是否小于10M来决定是否内嵌
-            Boolean embedfile = embedFileData ?? stream.Length < 10 * 1024 * 1024;
+            var embedfile = embedFileData ?? stream.Length < EmbedFileDataMaxSize;
 
             ZipEntry e;
             bool firstEntry = true;
             while ((e = ZipEntry.ReadEntry(this, stream, firstEntry, embedfile)) != null)
             {
-                String name = e.FileName;
-                Int32 n = 2;
+                var name = e.FileName;
+                // 特殊处理目录结构
+                if (UseDirectory)
+                {
+                    var p = name.LastIndexOf(DirSeparator);
+                    if (p > 0)
+                    {
+                        // 必须包含分隔符，因为这样才能被识别为目录
+                        var dir = name.Substring(0, p + 1);
+                        if (this[dir] == null)
+                        {
+                            var de = new ZipEntry();
+                            de.FileName = dir;
+                            Entries.Add(dir, de);
+                        }
+                    }
+                }
+
+                var n = 2;
                 while (this[name] != null) { name = e.FileName + "" + n++; }
                 Entries.Add(name, e);
                 firstEntry = false;
@@ -344,8 +409,8 @@ namespace NewLife.Compression
             return entry;
         }
 
-        /// <summary>添加目录。
-        /// 必须指定目录<paramref name="dirName"/>，如果不指定实体名<paramref name="entryName"/>，则加到顶级目录。</summary>
+        /// <summary>添加目录。</summary>
+        /// <remarks>必须指定目录<paramref name="dirName"/>，如果不指定实体名<paramref name="entryName"/>，则加到顶级目录。</remarks>
         /// <param name="dirName">目录</param>
         /// <param name="entryName">实体名</param>
         /// <param name="stored">是否仅存储，不压缩</param>
@@ -356,10 +421,9 @@ namespace NewLife.Compression
 
             if (!String.IsNullOrEmpty(entryName))
             {
+                if (!entryName.EndsWith(DirSeparator)) entryName += DirSeparator;
                 var entry = ZipEntry.Create(null, entryName, true);
                 Entries.Add(entry.FileName, entry);
-
-                if (!entryName.EndsWith(DirSeparator)) entryName += DirSeparator;
             }
 
             // 所有文件
@@ -427,7 +491,13 @@ namespace NewLife.Compression
             get
             {
                 // 不区分大小写
-                if (_Entries == null) _Entries = new Dictionary<string, ZipEntry>(StringComparer.OrdinalIgnoreCase);
+                if (_Entries == null)
+                {
+                    _Entries = new Dictionary<String, ZipEntry>(StringComparer.OrdinalIgnoreCase);
+
+                    // 第一次访问文件实体集合时，才去读取文件
+                    EnsureRead();
+                }
                 return _Entries;
             }
         }
@@ -470,10 +540,10 @@ namespace NewLife.Compression
             reader.Settings.UseObjRef = false;
             reader.Settings.SizeFormat = TypeCode.Int16;
             reader.Settings.Encoding = Encoding;
-//#if DEBUG
-//            reader.Debug = true;
-//            reader.EnableTraceStream();
-//#endif
+            //#if DEBUG
+            //            reader.Debug = true;
+            //            reader.EnableTraceStream();
+            //#endif
             return reader;
         }
 
@@ -484,10 +554,10 @@ namespace NewLife.Compression
             writer.Settings.UseObjRef = false;
             writer.Settings.SizeFormat = TypeCode.Int16;
             writer.Settings.Encoding = Encoding;
-//#if DEBUG
-//            writer.Debug = true;
-//            writer.EnableTraceStream();
-//#endif
+            //#if DEBUG
+            //            writer.Debug = true;
+            //            writer.EnableTraceStream();
+            //#endif
             return writer;
         }
 
