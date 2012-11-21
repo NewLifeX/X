@@ -860,10 +860,10 @@ namespace XTemplate.Templating
             {
                 #region 调试状态，把生成的类文件和最终dll输出到XTemp目录下
                 var tempPath = XTrace.TempPath;
-                if (!String.IsNullOrEmpty(outputAssembly)) tempPath = Path.Combine(tempPath, Path.GetFileNameWithoutExtension(outputAssembly));
+                //if (!String.IsNullOrEmpty(outputAssembly)) tempPath = Path.Combine(tempPath, Path.GetFileNameWithoutExtension(outputAssembly));
+                if (!String.IsNullOrEmpty(outputAssembly) && !outputAssembly.Equals(".dll")) tempPath = Path.Combine(tempPath, Path.GetFileNameWithoutExtension(outputAssembly));
 
                 if (!String.IsNullOrEmpty(tempPath) && !Directory.Exists(tempPath)) Directory.CreateDirectory(tempPath);
-                options.TempFiles = new TempFileCollection(tempPath, false);
 
                 var files = new List<String>();
                 foreach (var item in tmp.Templates)
@@ -884,10 +884,13 @@ namespace XTemplate.Templating
                     files.Add(name);
                 }
                 #endregion
-
-                if (!String.IsNullOrEmpty(outputAssembly)) options.OutputAssembly = Path.Combine(tempPath, outputAssembly);
-                options.GenerateInMemory = true;
-                options.IncludeDebugInformation = true;
+                if (!String.IsNullOrEmpty(outputAssembly) && !outputAssembly.Equals(".dll"))
+                {
+                    options.TempFiles = new TempFileCollection(tempPath, false);
+                    options.OutputAssembly = Path.Combine(tempPath, outputAssembly);
+                    options.GenerateInMemory = true;
+                    options.IncludeDebugInformation = true;
+                }
 
                 results = provider.CompileAssemblyFromFile(options, files.ToArray());
             }
