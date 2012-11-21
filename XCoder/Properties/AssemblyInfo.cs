@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("新生命开发团队")]
 [assembly: AssemblyProduct("数据模型工具")]
-[assembly: AssemblyCopyright("\x00a92002-2011 新生命开发团队")]
+[assembly: AssemblyCopyright("\x00a92002-2012 新生命开发团队")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

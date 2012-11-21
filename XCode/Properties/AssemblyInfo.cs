@@ -11,7 +11,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("新生命开发团队")]
 [assembly: AssemblyProduct("XCode")]
-[assembly: AssemblyCopyright("\x00a92002-2011 新生命开发团队")]
+[assembly: AssemblyCopyright("\x00a92002-2012 新生命开发团队")]
 [assembly: AssemblyTrademark("四叶草")]
 [assembly: AssemblyCulture("")]
 
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 // 则将该类型上的 ComVisible 属性设置为 true。
 [assembly: ComVisible(false)]
 //[assembly: CLSCompliant(true)]
-[assembly: Dependency("NewLife.Core,", LoadHint.Always)]
+[assembly: Dependency("NewLife.Core", LoadHint.Always)]
 
 // 如果此项目向 COM 公开，则下列 GUID 用于类型库的 ID
 [assembly: Guid("fd577d2c-f8aa-4cc8-a697-d7990c264af3")]
