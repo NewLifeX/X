@@ -5,11 +5,10 @@ using System.Text;
 using System.IO;
 using System.Collections.Generic;
 using System.Collections;
+using NewLife.Linq;
 
 namespace NewLife.Core.Test
 {
-
-
     /// <summary>
     ///这是 ZipFileTest 的测试类，旨在
     ///包含所有 ZipFileTest 单元测试
@@ -17,25 +16,13 @@ namespace NewLife.Core.Test
     [TestClass()]
     public class ZipFileTest
     {
-
-
         private TestContext testContextInstance;
 
         /// <summary>
         ///获取或设置测试上下文，上下文提供
         ///有关当前测试运行及其功能的信息。
         ///</summary>
-        public TestContext TestContext
-        {
-            get
-            {
-                return testContextInstance;
-            }
-            set
-            {
-                testContextInstance = value;
-            }
-        }
+        public TestContext TestContext { get { return testContextInstance; } set { testContextInstance = value; } }
 
         #region 附加测试特性
         // 
@@ -67,56 +54,26 @@ namespace NewLife.Core.Test
         //
         #endregion
 
-
-        /// <summary>
-        ///ZipFile 构造函数 的测试
-        ///</summary>
+        /// <summary>ZipFile 的测试</summary>
         [TestMethod()]
-        public void ZipFileConstructorTest()
+        public void ZipTest()
         {
-            var fileName = "test.zip";
-            var target = new ZipFile();
-            target.Comment = "新生命开发团队";
-            target.AddFile("NewLife.Core.pdb");
-            target.AddFile("NewLife.Core.Test.pdb");
-            target.Write(fileName);
-            target.Dispose();
+            var fileName = "test.zip".GetFullPath();
+            if (File.Exists(fileName)) File.Delete(fileName);
 
-            target = new ZipFile(fileName);
-            
-        }
+            var zip = new ZipFile();
+            zip.Comment = "新生命开发团队";
+            zip.AddFile("NewLife.Core.pdb".GetFullPath());
+            zip.AddFile("NewLife.Core.Test.pdb".GetFullPath());
+            zip.Write(fileName);
+            zip.Dispose();
 
-        /// <summary>
-        ///ZipFile 构造函数 的测试
-        ///</summary>
-        [TestMethod()]
-        public void ZipFileConstructorTest1()
-        {
-            Stream stream = null; // TODO: 初始化为适当的值
-            Encoding encoding = null; // TODO: 初始化为适当的值
-            ZipFile target = new ZipFile(stream, encoding);
-            Assert.Inconclusive("TODO: 实现用来验证目标的代码");
-        }
-
-        /// <summary>
-        ///ZipFile 构造函数 的测试
-        ///</summary>
-        [TestMethod()]
-        public void ZipFileConstructorTest2()
-        {
-            ZipFile target = new ZipFile();
-            Assert.Inconclusive("TODO: 实现用来验证目标的代码");
-        }
-
-        /// <summary>
-        ///ZipFile 构造函数 的测试
-        ///</summary>
-        [TestMethod()]
-        public void ZipFileConstructorTest3()
-        {
-            string fileName = string.Empty; // TODO: 初始化为适当的值
-            ZipFile target = new ZipFile(fileName);
-            Assert.Inconclusive("TODO: 实现用来验证目标的代码");
+            zip = new ZipFile(fileName);
+            Assert.AreEqual("新生命开发团队", zip.Comment, "注释不一样");
+            Assert.AreEqual(2, zip.Count, "文件个数不一样");
+            Assert.AreEqual("NewLife.Core.pdb", zip[0].FileName);
+            Assert.AreEqual("NewLife.Core.Test.pdb", zip[1].FileName);
+            zip.Dispose();
         }
 
         /// <summary>
@@ -125,310 +82,47 @@ namespace NewLife.Core.Test
         [TestMethod()]
         public void AddDirectoryTest()
         {
-            ZipFile target = new ZipFile(); // TODO: 初始化为适当的值
-            string dirName = string.Empty; // TODO: 初始化为适当的值
-            string entryName = string.Empty; // TODO: 初始化为适当的值
-            Nullable<bool> stored = new Nullable<bool>(); // TODO: 初始化为适当的值
-            target.AddDirectory(dirName, entryName, stored);
-            Assert.Inconclusive("无法验证不返回值的方法。");
+            DirectoryTest(false);
         }
 
-        /// <summary>
-        ///AddFile 的测试
-        ///</summary>
-        [TestMethod()]
-        public void AddFileTest()
+        void DirectoryTest(Boolean useDir = false)
         {
-            ZipFile target = new ZipFile(); // TODO: 初始化为适当的值
-            string fileName = string.Empty; // TODO: 初始化为适当的值
-            string entryName = string.Empty; // TODO: 初始化为适当的值
-            Nullable<bool> stored = new Nullable<bool>(); // TODO: 初始化为适当的值
-            ZipEntry expected = null; // TODO: 初始化为适当的值
-            ZipEntry actual;
-            actual = target.AddFile(fileName, entryName, stored);
-            Assert.AreEqual(expected, actual);
-            Assert.Inconclusive("验证此测试方法的正确性。");
-        }
+            var fileName = "test.zip".GetFullPath();
+            if (File.Exists(fileName)) File.Delete(fileName);
 
-        /// <summary>
-        ///CompressDirectory 的测试
-        ///</summary>
-        [TestMethod()]
-        public void CompressDirectoryTest()
-        {
-            string dirName = string.Empty; // TODO: 初始化为适当的值
-            string outputName = string.Empty; // TODO: 初始化为适当的值
-            ZipFile.CompressDirectory(dirName, outputName);
-            Assert.Inconclusive("无法验证不返回值的方法。");
-        }
+            var dir = "Log".GetFullPath();
+            var f2 = dir.CombinePath("SubDir").CombinePath("test.txt").EnsureDirectory();
+            if (!File.Exists(f2)) File.WriteAllText(f2, DateTime.Now.ToString());
 
-        /// <summary>
-        ///CompressFile 的测试
-        ///</summary>
-        [TestMethod()]
-        public void CompressFileTest()
-        {
-            string fileName = string.Empty; // TODO: 初始化为适当的值
-            string outputName = string.Empty; // TODO: 初始化为适当的值
-            ZipFile.CompressFile(fileName, outputName);
-            Assert.Inconclusive("无法验证不返回值的方法。");
-        }
+            var zip = new ZipFile();
+            zip.Comment = "新生命开发团队";
+            zip.AddFile("NewLife.Core.pdb".GetFullPath());
+            zip.AddFile("NewLife.Core.Test.pdb".GetFullPath());
+            zip.AddDirectory(dir);
+            zip.AddDirectory(dir, "Log");
+            zip.Write(fileName);
 
-        /// <summary>
-        ///CreateReader 的测试
-        ///</summary>
-        [TestMethod()]
-        [DeploymentItem("NewLife.Core.dll")]
-        public void CreateReaderTest()
-        {
-            // 为“Microsoft.VisualStudio.TestTools.TypesAndSymbols.Assembly”创建专用访问器失败
-            Assert.Inconclusive("为“Microsoft.VisualStudio.TestTools.TypesAndSymbols.Assembly”创建专用访问器失败");
-        }
+            // 文件个数
+            var count = zip.Entries.Values.Count(e => !e.IsDirectory);
+            zip.UseDirectory = useDir;
+            if (useDir)
+            {
+                count = zip.Count;
+            }
+            else
+            {
+                Assert.AreEqual(zip.Count - 3, count, "目录个数不正确");
+            }
 
-        /// <summary>
-        ///CreateWriter 的测试
-        ///</summary>
-        [TestMethod()]
-        [DeploymentItem("NewLife.Core.dll")]
-        public void CreateWriterTest()
-        {
-            // 为“Microsoft.VisualStudio.TestTools.TypesAndSymbols.Assembly”创建专用访问器失败
-            Assert.Inconclusive("为“Microsoft.VisualStudio.TestTools.TypesAndSymbols.Assembly”创建专用访问器失败");
-        }
+            zip.Dispose();
 
-        /// <summary>
-        ///DosDateTimeToFileTime 的测试
-        ///</summary>
-        [TestMethod()]
-        [DeploymentItem("NewLife.Core.dll")]
-        public void DosDateTimeToFileTimeTest()
-        {
-            // 为“Microsoft.VisualStudio.TestTools.TypesAndSymbols.Assembly”创建专用访问器失败
-            Assert.Inconclusive("为“Microsoft.VisualStudio.TestTools.TypesAndSymbols.Assembly”创建专用访问器失败");
-        }
-
-        /// <summary>
-        ///Extract 的测试
-        ///</summary>
-        [TestMethod()]
-        public void ExtractTest()
-        {
-            ZipFile target = new ZipFile(); // TODO: 初始化为适当的值
-            string outputPath = string.Empty; // TODO: 初始化为适当的值
-            bool overrideExisting = false; // TODO: 初始化为适当的值
-            target.Extract(outputPath, overrideExisting);
-            Assert.Inconclusive("无法验证不返回值的方法。");
-        }
-
-        /// <summary>
-        ///Extract 的测试
-        ///</summary>
-        [TestMethod()]
-        public void ExtractTest1()
-        {
-            string fileName = string.Empty; // TODO: 初始化为适当的值
-            string outputPath = string.Empty; // TODO: 初始化为适当的值
-            bool overrideExisting = false; // TODO: 初始化为适当的值
-            ZipFile.Extract(fileName, outputPath, overrideExisting);
-            Assert.Inconclusive("无法验证不返回值的方法。");
-        }
-
-        /// <summary>
-        ///FileTimeToDosDateTime 的测试
-        ///</summary>
-        [TestMethod()]
-        [DeploymentItem("NewLife.Core.dll")]
-        public void FileTimeToDosDateTimeTest()
-        {
-            // 为“Microsoft.VisualStudio.TestTools.TypesAndSymbols.Assembly”创建专用访问器失败
-            Assert.Inconclusive("为“Microsoft.VisualStudio.TestTools.TypesAndSymbols.Assembly”创建专用访问器失败");
-        }
-
-        /// <summary>
-        ///OnDispose 的测试
-        ///</summary>
-        [TestMethod()]
-        [DeploymentItem("NewLife.Core.dll")]
-        public void OnDisposeTest()
-        {
-            // 为“Microsoft.VisualStudio.TestTools.TypesAndSymbols.Assembly”创建专用访问器失败
-            Assert.Inconclusive("为“Microsoft.VisualStudio.TestTools.TypesAndSymbols.Assembly”创建专用访问器失败");
-        }
-
-        /// <summary>
-        ///Read 的测试
-        ///</summary>
-        [TestMethod()]
-        public void ReadTest()
-        {
-            ZipFile target = new ZipFile(); // TODO: 初始化为适当的值
-            Stream stream = null; // TODO: 初始化为适当的值
-            Nullable<bool> embedFileData = new Nullable<bool>(); // TODO: 初始化为适当的值
-            target.Read(stream, embedFileData);
-            Assert.Inconclusive("无法验证不返回值的方法。");
-        }
-
-        /// <summary>
-        ///System.Collections.Generic.IEnumerable<NewLife.Compression.ZipEntry>.GetEnumerator 的测试
-        ///</summary>
-        [TestMethod()]
-        [DeploymentItem("NewLife.Core.dll")]
-        public void GetEnumeratorTest()
-        {
-            IEnumerable<ZipEntry> target = new ZipFile(); // TODO: 初始化为适当的值
-            IEnumerator<ZipEntry> expected = null; // TODO: 初始化为适当的值
-            IEnumerator<ZipEntry> actual;
-            actual = target.GetEnumerator();
-            Assert.AreEqual(expected, actual);
-            Assert.Inconclusive("验证此测试方法的正确性。");
-        }
-
-        /// <summary>
-        ///System.Collections.IEnumerable.GetEnumerator 的测试
-        ///</summary>
-        [TestMethod()]
-        [DeploymentItem("NewLife.Core.dll")]
-        public void GetEnumeratorTest1()
-        {
-            IEnumerable target = new ZipFile(); // TODO: 初始化为适当的值
-            IEnumerator expected = null; // TODO: 初始化为适当的值
-            IEnumerator actual;
-            actual = target.GetEnumerator();
-            Assert.AreEqual(expected, actual);
-            Assert.Inconclusive("验证此测试方法的正确性。");
-        }
-
-        /// <summary>
-        ///ToString 的测试
-        ///</summary>
-        [TestMethod()]
-        public void ToStringTest()
-        {
-            ZipFile target = new ZipFile(); // TODO: 初始化为适当的值
-            string expected = string.Empty; // TODO: 初始化为适当的值
-            string actual;
-            actual = target.ToString();
-            Assert.AreEqual(expected, actual);
-            Assert.Inconclusive("验证此测试方法的正确性。");
-        }
-
-        /// <summary>
-        ///Write 的测试
-        ///</summary>
-        [TestMethod()]
-        public void WriteTest()
-        {
-            ZipFile target = new ZipFile(); // TODO: 初始化为适当的值
-            Stream stream = null; // TODO: 初始化为适当的值
-            target.Write(stream);
-            Assert.Inconclusive("无法验证不返回值的方法。");
-        }
-
-        /// <summary>
-        ///Write 的测试
-        ///</summary>
-        [TestMethod()]
-        public void WriteTest1()
-        {
-            ZipFile target = new ZipFile(); // TODO: 初始化为适当的值
-            string fileName = string.Empty; // TODO: 初始化为适当的值
-            target.Write(fileName);
-            Assert.Inconclusive("无法验证不返回值的方法。");
-        }
-
-        /// <summary>
-        ///Comment 的测试
-        ///</summary>
-        [TestMethod()]
-        public void CommentTest()
-        {
-            ZipFile target = new ZipFile(); // TODO: 初始化为适当的值
-            string expected = string.Empty; // TODO: 初始化为适当的值
-            string actual;
-            target.Comment = expected;
-            actual = target.Comment;
-            Assert.AreEqual(expected, actual);
-            Assert.Inconclusive("验证此测试方法的正确性。");
-        }
-
-        /// <summary>
-        ///Count 的测试
-        ///</summary>
-        [TestMethod()]
-        public void CountTest()
-        {
-            ZipFile target = new ZipFile(); // TODO: 初始化为适当的值
-            int actual;
-            actual = target.Count;
-            Assert.Inconclusive("验证此测试方法的正确性。");
-        }
-
-        /// <summary>
-        ///Encoding 的测试
-        ///</summary>
-        [TestMethod()]
-        public void EncodingTest()
-        {
-            ZipFile target = new ZipFile(); // TODO: 初始化为适当的值
-            Encoding expected = null; // TODO: 初始化为适当的值
-            Encoding actual;
-            target.Encoding = expected;
-            actual = target.Encoding;
-            Assert.AreEqual(expected, actual);
-            Assert.Inconclusive("验证此测试方法的正确性。");
-        }
-
-        /// <summary>
-        ///Entries 的测试
-        ///</summary>
-        [TestMethod()]
-        public void EntriesTest()
-        {
-            ZipFile target = new ZipFile(); // TODO: 初始化为适当的值
-            Dictionary<string, ZipEntry> actual;
-            actual = target.Entries;
-            Assert.Inconclusive("验证此测试方法的正确性。");
-        }
-
-        /// <summary>
-        ///Item 的测试
-        ///</summary>
-        [TestMethod()]
-        public void ItemTest()
-        {
-            ZipFile target = new ZipFile(); // TODO: 初始化为适当的值
-            int index = 0; // TODO: 初始化为适当的值
-            ZipEntry actual;
-            actual = target[index];
-            Assert.Inconclusive("验证此测试方法的正确性。");
-        }
-
-        /// <summary>
-        ///Item 的测试
-        ///</summary>
-        [TestMethod()]
-        public void ItemTest1()
-        {
-            ZipFile target = new ZipFile(); // TODO: 初始化为适当的值
-            string fileName = string.Empty; // TODO: 初始化为适当的值
-            ZipEntry actual;
-            actual = target[fileName];
-            Assert.Inconclusive("验证此测试方法的正确性。");
-        }
-
-        /// <summary>
-        ///Name 的测试
-        ///</summary>
-        [TestMethod()]
-        public void NameTest()
-        {
-            ZipFile target = new ZipFile(); // TODO: 初始化为适当的值
-            string expected = string.Empty; // TODO: 初始化为适当的值
-            string actual;
-            target.Name = expected;
-            actual = target.Name;
-            Assert.AreEqual(expected, actual);
-            Assert.Inconclusive("验证此测试方法的正确性。");
+            zip = new ZipFile(fileName);
+            zip.UseDirectory = useDir;
+            Assert.AreEqual("新生命开发团队", zip.Comment, "注释不一样");
+            Assert.AreEqual(count, zip.Count, "文件个数不一样");
+            Assert.AreEqual("NewLife.Core.pdb", zip[0].FileName);
+            Assert.AreEqual("NewLife.Core.Test.pdb", zip[1].FileName);
+            zip.Dispose();
         }
 
         /// <summary>
@@ -437,13 +131,7 @@ namespace NewLife.Core.Test
         [TestMethod()]
         public void UseDirectoryTest()
         {
-            ZipFile target = new ZipFile(); // TODO: 初始化为适当的值
-            bool expected = false; // TODO: 初始化为适当的值
-            bool actual;
-            target.UseDirectory = expected;
-            actual = target.UseDirectory;
-            Assert.AreEqual(expected, actual);
-            Assert.Inconclusive("验证此测试方法的正确性。");
+            DirectoryTest(true);
         }
     }
 }
