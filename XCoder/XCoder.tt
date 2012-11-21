@@ -29,7 +29,7 @@
 		var ps = String.Format("-MakeModel -model \"{0}\" -ConnStr \"{1}\" -Provider {2}", mdl, connstr, provider);
 		Process.Start(exe, ps).WaitForExit(10000);
 
-		if(!File.Exists(mdl)) thow new Exception("无法导出数据模型，请检查连接字符串！");
+		if(!File.Exists(mdl)) throw new Exception("无法导出数据模型，请检查连接字符串！");
 	}
 	
 	var cfg = mypath + "set.config";
