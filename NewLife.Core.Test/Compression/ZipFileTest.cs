@@ -1,11 +1,8 @@
-﻿using NewLife.Compression;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
-using System.Text;
+﻿using System;
 using System.IO;
-using System.Collections.Generic;
-using System.Collections;
-using NewLife.Linq;
+using System.Linq;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NewLife.Compression;
 
 namespace NewLife.Core.Test
 {

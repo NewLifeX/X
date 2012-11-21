@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using NewLife.Collections;
 using NewLife.Reflection;
 
 #if DEBUG
 using System.Diagnostics;
-using System.ComponentModel;
 #endif
 
 namespace NewLife.Mvc

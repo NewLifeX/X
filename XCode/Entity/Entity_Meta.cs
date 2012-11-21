@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Data;
 using System.Data.Common;
 using System.Diagnostics;
@@ -18,7 +19,6 @@ using XCode.DataAccessLayer;
 
 #if DEBUG
 using XCode.Common;
-using System.ComponentModel;
 #endif
 
 namespace XCode

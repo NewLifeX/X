@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Data.OleDb;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Text.RegularExpressions;
@@ -12,7 +13,6 @@ using NewLife.Compression;
 using NewLife.Configuration;
 using NewLife.Reflection;
 using NewLife.Web;
-using System.Diagnostics;
 
 namespace XCode.DataAccessLayer
 {
@@ -53,21 +53,23 @@ namespace XCode.DataAccessLayer
         /// <summary>释放所有会话</summary>
         internal void ReleaseSession()
         {
-            if (_sessions != null)
+            var ss = _sessions;
+            if (ss != null)
             {
+                _sessions = null;
+
                 // 销毁本数据库的所有数据库会话
-                lock (_sessions)
+                lock (ss)
                 {
-                    foreach (var session in _sessions.Values)
+                    foreach (var item in ss)
                     {
                         try
                         {
-                            session.Dispose();
+                            if (item.Value != null) item.Value.Dispose();
                         }
                         catch { }
                     }
-                    _sessions.Clear();
-                    _sessions = null;
+                    ss.Clear();
                 }
             }
         }
