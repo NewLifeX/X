@@ -21,7 +21,7 @@ namespace System.IO
         }
 
         /// <summary>确保目录存在，若不存在则创建</summary>
-        /// <param name="path">文件路径或目录路径</param>
+        /// <param name="path">文件路径或目录路径（斜杠结尾）</param>
         /// <returns></returns>
         public static String EnsureDirectory(this String path)
         {
@@ -31,6 +31,15 @@ namespace System.IO
             if (!String.IsNullOrEmpty(dir) && !Directory.Exists(dir)) Directory.CreateDirectory(dir);
 
             return path;
+        }
+
+        /// <summary>合并路径</summary>
+        /// <param name="path"></param>
+        /// <param name="path2"></param>
+        /// <returns></returns>
+        public static String CombinePath(this String path, String path2)
+        {
+            return Path.Combine(path, path2);
         }
         #endregion
     }

@@ -34,9 +34,11 @@ using System.Runtime.InteropServices;
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("3.8.*")]
-[assembly: AssemblyFileVersion("3.8.2012.1120")]
+[assembly: AssemblyFileVersion("3.8.2012.1121")]
 
 /*
+ * v3.8.2012.1121   路径扩展助手增加路径绑定CombinePath
+ * 
  * v3.8.2012.1120   运行时Runtime增加支持OSName获取系统名称
  *                  日志文件头增加当前目录、CLR版本和系统名称等信息
  * 
