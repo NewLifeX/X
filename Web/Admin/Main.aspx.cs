@@ -4,6 +4,7 @@ using System.Web;
 using System.Web.UI.WebControls;
 using NewLife.CommonEntity;
 using NewLife.Reflection;
+using System.Diagnostics;
 
 public partial class Pages_Main : System.Web.UI.Page
 {
@@ -71,5 +72,25 @@ public partial class Pages_Main : System.Web.UI.Page
 
         gv.DataSource = list;
         gv.DataBind();
+    }
+
+    protected String GetWebServerName()
+    {
+        String name = Request.ServerVariables["Server_SoftWare"];
+        if (String.IsNullOrEmpty(name)) name = Process.GetCurrentProcess().ProcessName;
+
+        // 检测集成管道，低版本.Net不支持
+        try
+        {
+            if (UsingIntegratedPipeline()) name += " [集成管道]";
+        }
+        catch { }
+
+        return name;
+    }
+
+    Boolean UsingIntegratedPipeline()
+    {
+        return HttpRuntime.UsingIntegratedPipeline;
     }
 }

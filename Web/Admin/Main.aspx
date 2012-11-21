@@ -3,6 +3,7 @@
 <%@ Import Namespace="System.Diagnostics" %>
 <%@ Import Namespace="System.Collections.Generic" %>
 <%@ Import Namespace="System.Reflection" %>
+<%@ Import Namespace="NewLife" %>
 <%@ Import Namespace="NewLife.Reflection" %>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -100,56 +101,24 @@
             <td class="name">
                 域名地址：
             </td>
-            <td class="value" colspan="3">
+            <td class="value">
                 <%= Request.ServerVariables["SERVER_NAME"]%>，
                 <%= Request.ServerVariables["LOCAl_ADDR"] + ":" + Request.ServerVariables["Server_Port"]%>
             </td>
-        </tr>
-        <tr>
             <td class="name">
-                计算机名：
+                计算机用户：
             </td>
             <td class="value">
-                <%= Environment.MachineName%>
-            </td>
-            <td class="name">
-                用户名：
-            </td>
-            <td class="value">
-                <%= Environment.UserName%>
+                <%= Environment.UserName%>/<%= Environment.MachineName%>
             </td>
         </tr>
         <tr>
             <td class="name">
                 应用程序域：
             </td>
-            <td class="value" colspan="3">
+            <td class="value">
                 <%= AppDomain.CurrentDomain.FriendlyName %>
                 <a href="?Act=Assembly" target="_blank" title="点击打开进程程序集列表">程序集列表</a>
-            </td>
-        </tr>
-        <tr>
-            <td class="name">
-                操作系统：
-            </td>
-            <td class="value">
-                <%= Environment.OSVersion%>
-            </td>
-            <td class="name">
-                Web服务器：
-            </td>
-            <td class="value">
-                <%= Request.ServerVariables["Server_SoftWare"]%><%if (HttpRuntime.UsingIntegratedPipeline)
-                                                                  { %>
-                集成管道<%} %>
-            </td>
-        </tr>
-        <tr>
-            <td class="name">
-                系统版本：
-            </td>
-            <td class="value">
-                <%= Environment.Version%>
             </td>
             <td class="name">
                 .Net 版本：
@@ -160,84 +129,64 @@
         </tr>
         <tr>
             <td class="name">
-                当前时间：
-            </td>
-            <td class="value" title="这里使用了服务器默认的时间格式！">
-                <%= DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")%>
-            </td>
-            <td class="name">
-                开机时间：
+                操作系统：
             </td>
             <td class="value">
-                <%= new TimeSpan(Environment.TickCount)%>
+                <%= Runtime.OSName %>
+            </td>
+            <td class="name">
+                Web服务器：
+            </td>
+            <td class="value">
+                <%= GetWebServerName()%>
             </td>
         </tr>
         <tr>
             <td class="name">
-                CPU 总数：
+                处理器：
             </td>
-            <td class="value" colspan="3">
+            <td class="value">
                 <%= Environment.ProcessorCount%>
                 核心，
                 <%= Environment.GetEnvironmentVariable("PROCESSOR_IDENTIFIER")%>
             </td>
-        </tr>
-        <tr>
             <td class="name">
-                虚拟内存：
+                时间：
             </td>
-            <td class="value">
-                <%= ((Double)Environment.WorkingSet / 1048576).ToString("n2") + "M"%>
-            </td>
-            <td class="name">
-                当前占用：
-            </td>
-            <td class="value">
-                <%= ((Double)GC.GetTotalMemory(false) / 1048576).ToString("n2") + "M"%>
+            <td class="value" title="这里使用了服务器默认的时间格式！后面是开机时间。">
+                <%= DateTime.Now%>，<%= new TimeSpan(Environment.TickCount)%>
             </td>
         </tr>
         <tr>
             <% Process process = Process.GetCurrentProcess(); %>
             <td class="name">
-                ASP.Net 内存：
+                内存：
             </td>
             <td class="value">
-                <%= ((Double)process.WorkingSet64 / 1048576).ToString("N2") + "M"%>
+                工作集:<%= (process.WorkingSet64 / 1024).ToString("n0") + "KB"%>
+                提交:<%= (process.PrivateMemorySize64 / 1024).ToString("n0") + "KB"%>
+                GC:<%= (GC.GetTotalMemory(false) / 1024).ToString("n0") + "KB"%>
                 <a href="?Act=ProcessModules" target="_blank" title="点击打开进程模块列表">模块列表</a>
             </td>
             <td class="name">
-                ASP.Net CPU：
+                进程时间：
             </td>
             <td class="value">
-                <%= ((TimeSpan)process.TotalProcessorTime).TotalSeconds.ToString("N2")%>秒 启动于<%= process.StartTime%>
+                <%= process.TotalProcessorTime.TotalSeconds.ToString("N2")%>秒 启动于<%= process.StartTime.ToString("yyyy-MM-dd HH:mm:ss")%>
             </td>
         </tr>
         <tr>
             <td class="name">
-                Session数：
+                Session：
             </td>
             <td class="value">
-                <%= Session.Contents.Count%>，<%= Session.Timeout%>分钟
+                <%= Session.Contents.Count%>个，<%= Session.Timeout%>分钟，SessionID：<%= Session.Contents.SessionID%>
             </td>
             <td class="name">
-                SessionID：
+                Cache：
             </td>
             <td class="value">
-                <%= Session.Contents.SessionID%>
-            </td>
-        </tr>
-        <tr>
-            <td class="name">
-                Cache数：
-            </td>
-            <td class="value">
-                <%= Cache.Count%>
-            </td>
-            <td class="name">
-                可用：
-            </td>
-            <td class="value">
-                <%= ((Double)Cache.EffectivePrivateBytesLimit / 1048576).ToString("n2")%>M，<%= Cache.EffectivePercentagePhysicalMemoryLimit%>%
+                <%= Cache.Count%>个，可用：<%= (Cache.EffectivePrivateBytesLimit / 1024).ToString("n0")%>KB，<%= Cache.EffectivePercentagePhysicalMemoryLimit%>%
             </td>
         </tr>
     </table>
