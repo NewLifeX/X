@@ -1,11 +1,11 @@
 ﻿using System;
-using NewLife.Xml;
+using System.Collections.Generic;
 using System.IO;
 using System.Windows.Forms;
 using NewLife;
 using NewLife.Log;
 using NewLife.Threading;
-using System.Collections.Generic;
+using NewLife.Xml;
 using XCode.DataAccessLayer;
 
 namespace XCoder
@@ -124,6 +124,20 @@ namespace XCoder
                 XTrace.WriteLine("生产：{0}", item);
                 engine.Render(item);
             }
+
+            // 重新整理模型
+            Int32 i = 0;
+            foreach (var item in tables)
+            {
+                item.ID = ++i;
+
+                Int32 j = 0;
+                foreach (var dc in item.Columns)
+                {
+                    dc.ID = ++j;
+                }
+            }
+            File.WriteAllText(mdl, DAL.Export(tables));
         }
 
         static void MakeModel(String mdl, String connstr, String provider)
