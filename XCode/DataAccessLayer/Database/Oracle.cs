@@ -52,16 +52,6 @@ namespace XCode.DataAccessLayer
                                 {
                                     var asm = _dbProviderFactory.GetType().Assembly;
                                     if (DAL.Debug) DAL.WriteLog("Oracle使用文件驱动{0} 版本v{1}", asm.Location, asm.GetName().Version);
-
-                                    //try
-                                    //{
-                                    //    var code = CheckVersionCompatibility(asm.GetName().Version.ToString());
-                                    //    DAL.WriteDebugLog("Oracle检查版本兼容失败结果：{0}", code);
-                                    //}
-                                    //catch (Exception ex)
-                                    //{
-                                    //    DAL.WriteDebugLog("Oracle检查版本兼容失败！{0}", ex.Message);
-                                    //}
                                 }
                             }
                             catch (FileNotFoundException) { }
@@ -141,62 +131,8 @@ namespace XCode.DataAccessLayer
             {
                 if (_DllPath != null) return _DllPath;
 
-                var ocifile = Path.Combine(Config.GetConfig<String>("XCode.Oracle.DllPath", @"C:\Oracle"), "oci.dll");
-                if (!File.Exists(ocifile)) ocifile = "oci.dll".GetFullPath();
-                if (!File.Exists(ocifile) && Runtime.IsWeb) ocifile = Path.Combine(HttpRuntime.BinDirectory, "oci.dll");
-                if (!File.Exists(ocifile)) ocifile = @"OracleClient\oci.dll".GetFullPath();
-                if (!File.Exists(ocifile)) ocifile = @"..\OracleClient\oci.dll".GetFullPath();
+                var ocifile = SearchOCI();
 
-                // 全盘搜索
-                if (!File.Exists(ocifile))
-                {
-                    try
-                    {
-                        foreach (var item in DriveInfo.GetDrives())
-                        {
-                            // 仅搜索硬盘和移动存储
-                            if (item.DriveType != DriveType.Fixed && item.DriveType != DriveType.Removable || !item.IsReady) continue;
-
-                            ocifile = Path.Combine(item.RootDirectory.FullName, @"OracleClient\oci.dll");
-                            if (File.Exists(ocifile)) break;
-                        }
-                    }
-                    catch { }
-                    //ocifile = @"C:\OracleClient\oci.dll";
-                }
-
-                // 环境变量搜索
-                if (!File.Exists(ocifile))
-                {
-                    try
-                    {
-                        var vpath = Environment.GetEnvironmentVariable("Path");
-                        if (!vpath.IsNullOrWhiteSpace())
-                        {
-                            foreach (var item in vpath.Split(";"))
-                            {
-                                ocifile = item.CombinePath("oci.dll");
-                                if (File.Exists(ocifile)) break;
-                            }
-                        }
-                    }
-                    catch { }
-                }
-
-                // 注册表搜索
-                if (!File.Exists(ocifile))
-                {
-                    try
-                    {
-                        var reg = Registry.LocalMachine.OpenSubKey(@"Software\Oracle");
-                        if (reg != null)
-                        {
-                            var vpath = SearchRegistry(reg);
-                            ocifile = vpath.CombinePath("oci.dll");
-                        }
-                    }
-                    catch { }
-                }
                 if (File.Exists(ocifile))
                     _DllPath = Path.GetDirectoryName(ocifile);
                 else
@@ -258,12 +194,17 @@ namespace XCode.DataAccessLayer
             //set { _OracleHome = value; }
         }
 
+        /// <summary>设置的dll路径</summary>
+        private static String _settingDllPath = Config.GetConfig<String>("XCode.Oracle.DllPath");
+
         protected override void OnSetConnectionString(XDbConnectionStringBuilder builder)
         {
             String str = null;
             // 获取OCI目录
             if (builder.TryGetAndRemove("DllPath", out str) && !String.IsNullOrEmpty(str))
             {
+                // 连接字符串里面指定的OCI优先于配置
+                if (_settingDllPath.IsNullOrWhiteSpace() || Directory.Exists(str)) _settingDllPath = str;
                 SetDllPath(str);
                 //else if (!String.IsNullOrEmpty(str = DllPath))
                 //    SetDllPath(str);
@@ -452,7 +393,7 @@ namespace XCode.DataAccessLayer
             var dir = DllPath = str;
 
             // 设置路径
-            String ocifile = Path.Combine(dir, "oci.dll");
+            var ocifile = Path.Combine(dir, "oci.dll");
             if (File.Exists(ocifile))
             {
                 if (DAL.Debug) DAL.WriteLog("设置OCI目录：{0}", dir);
@@ -465,7 +406,7 @@ namespace XCode.DataAccessLayer
                 catch { }
             }
 
-            if (String.IsNullOrEmpty(Environment.GetEnvironmentVariable("ORACLE_HOME")))
+            if (Environment.GetEnvironmentVariable("ORACLE_HOME").IsNullOrWhiteSpace() && !OracleHome.IsNullOrWhiteSpace())
             {
                 if (DAL.Debug) DAL.WriteLog("设置环境变量：{0}={1}", "ORACLE_HOME", OracleHome);
 
@@ -487,18 +428,21 @@ namespace XCode.DataAccessLayer
 
             DAL.WriteLog(@"已搜索当前目录、上级目录、各个盘根目录，没有找到OracleClient\OCI.dll，可能是配置不当，准备从网络下载！");
 
-            // 尝试使用C盘目录，然后才使用上级目录
-            var target = Path.Combine(Path.GetPathRoot(Environment.SystemDirectory), @"OracleClient");
+            // 尝试使用设置，然后才使用上级目录
+            var target = "";
             try
             {
-                if (!String.IsNullOrEmpty(target) && !Directory.Exists(target)) Directory.CreateDirectory(target);
+                if (!_settingDllPath.IsNullOrWhiteSpace())
+                    target = _settingDllPath.GetFullPath().EnsureDirectory();
+                else
+                    target = @"..\OracleClient".GetFullPath().EnsureDirectory();
             }
             catch
             {
                 try
                 {
-                    target = @"..\OracleClient".GetFullPath();
-                    if (!String.IsNullOrEmpty(target) && !Directory.Exists(target)) Directory.CreateDirectory(target);
+                    target = @"..\OracleClient".GetFullPath().EnsureDirectory();
+                    //target = Path.Combine(Path.GetPathRoot(Environment.SystemDirectory), @"OracleClient").EnsureDirectory();
                 }
                 catch
                 {
@@ -512,8 +456,8 @@ namespace XCode.DataAccessLayer
             file = Path.Combine(target, file);
             if (File.Exists(file))
             {
-                LoadLibrary(file);
-                SetDllDirectory(target);
+                //LoadLibrary(file);
+                //SetDllDirectory(target);
                 SetDllPath(target);
             }
 
@@ -521,6 +465,75 @@ namespace XCode.DataAccessLayer
 
         //[DllImport("OraOps11w.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
         //static extern int CheckVersionCompatibility(string version);
+
+        static String SearchOCI()
+        {
+            var ocifile = "oci.dll";
+            if (!_settingDllPath.IsNullOrWhiteSpace()) ocifile = _settingDllPath.CombinePath("oci.dll");
+            if (File.Exists(ocifile)) return ocifile;
+
+            ocifile = "oci.dll".GetFullPath();
+            if (File.Exists(ocifile)) return ocifile;
+
+            if (Runtime.IsWeb && !HttpRuntime.BinDirectory.IsNullOrWhiteSpace())
+            {
+                ocifile = Path.Combine(HttpRuntime.BinDirectory, "oci.dll");
+                if (File.Exists(ocifile)) return ocifile;
+            }
+
+            ocifile = @"OracleClient\oci.dll".GetFullPath();
+            if (File.Exists(ocifile)) return ocifile;
+
+            ocifile = @"..\OracleClient\oci.dll".GetFullPath();
+            if (File.Exists(ocifile)) return ocifile;
+
+            // 全盘搜索
+            try
+            {
+                foreach (var item in DriveInfo.GetDrives())
+                {
+                    // 仅搜索硬盘和移动存储
+                    if (item.DriveType != DriveType.Fixed && item.DriveType != DriveType.Removable || !item.IsReady) continue;
+
+                    ocifile = Path.Combine(item.RootDirectory.FullName, @"Oracle\oci.dll");
+                    if (File.Exists(ocifile)) return ocifile;
+
+                    ocifile = Path.Combine(item.RootDirectory.FullName, @"OracleClient\oci.dll");
+                    if (File.Exists(ocifile)) return ocifile;
+                }
+            }
+            catch { }
+
+            // 环境变量搜索
+            try
+            {
+                var vpath = Environment.GetEnvironmentVariable("Path");
+                if (!vpath.IsNullOrWhiteSpace())
+                {
+                    foreach (var item in vpath.Split(";"))
+                    {
+                        ocifile = item.CombinePath("oci.dll");
+                        if (File.Exists(ocifile)) return ocifile;
+                    }
+                }
+            }
+            catch { }
+
+            // 注册表搜索
+            try
+            {
+                var reg = Registry.LocalMachine.OpenSubKey(@"Software\Oracle");
+                if (reg != null)
+                {
+                    var vpath = SearchRegistry(reg);
+                    ocifile = vpath.CombinePath("oci.dll");
+                    if (File.Exists(ocifile)) return ocifile;
+                }
+            }
+            catch { }
+
+            return ocifile;
+        }
 
         static String SearchRegistry(RegistryKey reg)
         {
