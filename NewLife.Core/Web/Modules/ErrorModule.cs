@@ -7,6 +7,7 @@ using System.Web;
 using NewLife.Collections;
 using NewLife.Log;
 using NewLife.Reflection;
+using NewLife.Model;
 
 namespace NewLife.Web
 {
@@ -75,13 +76,15 @@ namespace NewLife.Web
             var id = Thread.CurrentPrincipal;
             if (id != null && id.Identity != null) sb.AppendFormat("用户：{0}({1})\r\n", id.Identity.Name, id.Identity.AuthenticationType);
 
-            if (Providers.Length > 0)
-            {
-                foreach (var item in Providers)
-                {
-                    item.AddInfo(ex, sb);
-                }
-            }
+            //if (Providers.Length > 0)
+            //{
+            //    foreach (var item in Providers)
+            //    {
+            //        item.AddInfo(ex, sb);
+            //    }
+            //}
+            var eip = ObjectContainer.Current.Resolve<IErrorInfoProvider>();
+            if (eip != null) eip.AddInfo(ex, sb);
 
             XTrace.WriteLine(sb.ToString());
 
@@ -101,25 +104,25 @@ namespace NewLife.Web
             }
         }
 
-        private static IErrorInfoProvider[] _Providers;
-        /// <summary>提供者集合</summary>
-        static IErrorInfoProvider[] Providers
-        {
-            get
-            {
-                if (_Providers == null)
-                {
-                    var list = new List<IErrorInfoProvider>();
-                    foreach (var item in AssemblyX.FindAllPlugins(typeof(IErrorInfoProvider), true))
-                    {
-                        list.Add(TypeX.CreateInstance(item) as IErrorInfoProvider);
-                    }
+        //private static IErrorInfoProvider[] _Providers;
+        ///// <summary>提供者集合</summary>
+        //static IErrorInfoProvider[] Providers
+        //{
+        //    get
+        //    {
+        //        if (_Providers == null)
+        //        {
+        //            var list = new List<IErrorInfoProvider>();
+        //            foreach (var item in AssemblyX.FindAllPlugins(typeof(IErrorInfoProvider), true))
+        //            {
+        //                list.Add(TypeX.CreateInstance(item) as IErrorInfoProvider);
+        //            }
 
-                    _Providers = list.ToArray();
-                }
-                return _Providers;
-            }
-        }
+        //            _Providers = list.ToArray();
+        //        }
+        //        return _Providers;
+        //    }
+        //}
         #endregion
     }
 

@@ -1,5 +1,6 @@
 ﻿using NewLife.CommonEntity.Web;
 using NewLife.Model;
+using NewLife.Web;
 
 namespace NewLife.CommonEntity
 {
@@ -11,6 +12,7 @@ namespace NewLife.CommonEntity
                 //.Register<IManageProvider, ManageProvider>()
                 //.Register<ICommonManageProvider, CommonManageProvider>()
                 .AutoRegister(typeof(IManageProvider), typeof(CommonManageProvider), typeof(ManageProvider))
+                .AutoRegister(typeof(IErrorInfoProvider), typeof(CommonManageProvider))
                 .AutoRegister<IEntityForm, EntityForm2>()
                 .AutoRegister<IManagePage, ManagePage>();
         }
