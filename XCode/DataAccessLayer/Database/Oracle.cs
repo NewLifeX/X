@@ -11,6 +11,8 @@ using NewLife;
 using NewLife.Configuration;
 using NewLife.Threading;
 using XCode.Common;
+using Microsoft.Win32;
+
 #if NET4
 using System.Linq;
 #else
@@ -137,35 +139,69 @@ namespace XCode.DataAccessLayer
         {
             get
             {
-                if (_DllPath == null)
-                {
-                    String ocifile = Path.Combine(Config.GetConfig<String>("XCode.Oracle.DllPath", @"C:\Oracle"), "oci.dll");
-                    if (!File.Exists(ocifile)) ocifile = "oci.dll".GetFullPath();
-                    if (!File.Exists(ocifile) && Runtime.IsWeb) ocifile = Path.Combine(HttpRuntime.BinDirectory, "oci.dll");
-                    if (!File.Exists(ocifile)) ocifile = @"OracleClient\oci.dll".GetFullPath();
-                    if (!File.Exists(ocifile)) ocifile = @"..\OracleClient\oci.dll".GetFullPath();
-                    if (!File.Exists(ocifile))
-                    {
-                        // È«ÅÌËÑË÷
-                        try
-                        {
-                            foreach (var item in DriveInfo.GetDrives())
-                            {
-                                // ½öËÑË÷Ó²ÅÌºÍÒÆ¶¯´æ´¢
-                                if (item.DriveType != DriveType.Fixed && item.DriveType != DriveType.Removable || !item.IsReady) continue;
+                if (_DllPath != null) return _DllPath;
 
-                                ocifile = Path.Combine(item.RootDirectory.FullName, @"OracleClient\oci.dll");
+                var ocifile = Path.Combine(Config.GetConfig<String>("XCode.Oracle.DllPath", @"C:\Oracle"), "oci.dll");
+                if (!File.Exists(ocifile)) ocifile = "oci.dll".GetFullPath();
+                if (!File.Exists(ocifile) && Runtime.IsWeb) ocifile = Path.Combine(HttpRuntime.BinDirectory, "oci.dll");
+                if (!File.Exists(ocifile)) ocifile = @"OracleClient\oci.dll".GetFullPath();
+                if (!File.Exists(ocifile)) ocifile = @"..\OracleClient\oci.dll".GetFullPath();
+
+                // È«ÅÌËÑË÷
+                if (!File.Exists(ocifile))
+                {
+                    try
+                    {
+                        foreach (var item in DriveInfo.GetDrives())
+                        {
+                            // ½öËÑË÷Ó²ÅÌºÍÒÆ¶¯´æ´¢
+                            if (item.DriveType != DriveType.Fixed && item.DriveType != DriveType.Removable || !item.IsReady) continue;
+
+                            ocifile = Path.Combine(item.RootDirectory.FullName, @"OracleClient\oci.dll");
+                            if (File.Exists(ocifile)) break;
+                        }
+                    }
+                    catch { }
+                    //ocifile = @"C:\OracleClient\oci.dll";
+                }
+
+                // »·¾³±äÁ¿ËÑË÷
+                if (!File.Exists(ocifile))
+                {
+                    try
+                    {
+                        var vpath = Environment.GetEnvironmentVariable("Path");
+                        if (!vpath.IsNullOrWhiteSpace())
+                        {
+                            foreach (var item in vpath.Split(";"))
+                            {
+                                ocifile = item.CombinePath("oci.dll");
                                 if (File.Exists(ocifile)) break;
                             }
                         }
-                        catch { }
-                        //ocifile = @"C:\OracleClient\oci.dll";
                     }
-                    if (File.Exists(ocifile))
-                        _DllPath = Path.GetDirectoryName(ocifile);
-                    else
-                        _DllPath = "";
+                    catch { }
                 }
+
+                // ×¢²á±íËÑË÷
+                if (!File.Exists(ocifile))
+                {
+                    try
+                    {
+                        var reg = Registry.LocalMachine.OpenSubKey(@"Software\Oracle");
+                        if (reg != null)
+                        {
+                            var vpath = SearchRegistry(reg);
+                            ocifile = vpath.CombinePath("oci.dll");
+                        }
+                    }
+                    catch { }
+                }
+                if (File.Exists(ocifile))
+                    _DllPath = Path.GetDirectoryName(ocifile);
+                else
+                    _DllPath = "";
+
                 return _DllPath;
             }
             set
@@ -174,10 +210,10 @@ namespace XCode.DataAccessLayer
 
                 if (!String.IsNullOrEmpty(value))
                 {
-                    String ocifile = Path.Combine(value, "oci.dll");
+                    var ocifile = Path.Combine(value, "oci.dll");
                     if (!File.Exists(ocifile))
                     {
-                        String dir = Path.Combine(value, "bin");
+                        var dir = Path.Combine(value, "bin");
                         ocifile = Path.Combine(dir, "oci.dll");
                         if (File.Exists(ocifile))
                         {
@@ -210,7 +246,7 @@ namespace XCode.DataAccessLayer
                         if (!Directory.Exists(Path.Combine(dir, "network")))
                         {
                             // ·ñÔòÕÒÉÏÒ»¼¶
-                            DirectoryInfo di = new DirectoryInfo(dir);
+                            var di = new DirectoryInfo(dir);
                             di = di.Parent;
 
                             if (Directory.Exists(Path.Combine(di.FullName, "network"))) _OracleHome = di.FullName;
@@ -485,6 +521,27 @@ namespace XCode.DataAccessLayer
 
         //[DllImport("OraOps11w.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
         //static extern int CheckVersionCompatibility(string version);
+
+        static String SearchRegistry(RegistryKey reg)
+        {
+            if (reg == null) return null;
+
+            var obj = reg.GetValue("ORACLE_HOME");
+            if (obj != null) _OracleHome = obj + "";
+
+            obj = reg.GetValue("DllPath");
+            if (obj != null) return obj + "";
+
+            if (reg.SubKeyCount <= 0) return null;
+
+            foreach (var item in reg.GetSubKeyNames())
+            {
+                var v = SearchRegistry(reg.OpenSubKey(item));
+                if (v != null) return v;
+            }
+
+            return null;
+        }
         #endregion
     }
 
