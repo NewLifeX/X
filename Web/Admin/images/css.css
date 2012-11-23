@@ -12,7 +12,7 @@ td
 }
 .m_table, .m_table_border
 {
-    /*width: 100%;*/
+    width: 100%;
     background-color: #FFFFFF;
 }
 
@@ -38,7 +38,7 @@ td
     text-align: center;
     font-size: 12px;
     line-height: 27px;
-    background: url(../images/nbg.gif) right;
+    background: url(nbg.gif) right;
     color: #445055;
 }
 .m_table th a, .m_table_border th a
@@ -60,14 +60,14 @@ td
 .tabtable .tabtitle
 {
     width: 120px;
-    background-image: url(../images/tab.gif);
+    background-image: url(tab.gif);
     height: 28px;
     cursor: pointer;
 }
 .tabtable .titlemouseover
 {
     width: 120px;
-    background-image: url(../images/tab2.gif);
+    background-image: url(tab2.gif);
     height: 28px;
     cursor: pointer;
     color: White;
@@ -76,21 +76,21 @@ td
 
 .key
 {
-    background: url(../images/nbg.gif) right;
+    background: url(nbg.gif) right;
     text-align:center;
 }
 
 .toolbar
 {
-    background-image: url(../images/toolbar.gif);
+    background-image: url(toolbar.gif);
     line-height: 25px;
-    height: 25px;
+    height: 28px;
     padding: 3px;
 }
 .toolbar a
 {
     -moz-user-select: none;
-    background: url(../images/btnout_bg_left.gif) no-repeat scroll left center transparent;
+    background: url(btnout_bg_left.gif) no-repeat scroll left center transparent;
     float: left;
     height: 25px;
     margin: 0 5px 0 0;
@@ -100,7 +100,7 @@ td
 
 .toolbar a b
 {
-    background: url(../images/btnout_bg_right.gif) no-repeat scroll right center transparent;
+    background: url(btnout_bg_right.gif) no-repeat scroll right center transparent;
     color: #666666;
     cursor: pointer;
     display: inline-block;
@@ -113,12 +113,12 @@ td
 
 .toolbar a:hover
 {
-    background: url(../images/btnover_bg_left.gif) no-repeat scroll left center transparent;
+    background: url(btnover_bg_left.gif) no-repeat scroll left center transparent;
 }
 
 .toolbar a:hover b
 {
-    background: url(../images/btnover_bg_right.gif) no-repeat scroll right center transparent;
+    background: url(btnover_bg_right.gif) no-repeat scroll right center transparent;
     color: #333333;
 }
 
@@ -127,4 +127,65 @@ td
     float: left;
     margin: 2px 0 4px 4px;
     border: 0px;
+}
+input[type="submit"], .manager-page #ctl00_C_btnSearch, .manager-page #ctl00_C_Button1 {
+    background: url("button_s.jpg") no-repeat scroll 0 0 transparent;
+    border: medium none;
+    height: 30px;
+    line-height: 34px;
+    margin: 0;
+    padding: 0;
+    width: 66px;
+}
+.toolbar input[type=text]
+{
+    border: 1px solid;
+    border-color: #bebebe #e1e1e1 #e1e1e1 #bebebe;
+    padding: 3px;
+    background: url(input_bg.jpg) repeat-x 0px 0px;
+    margin-right: 7px;
+}
+.m_table input[type=text]
+{
+    border: 1px solid;
+    border-color: #bebebe #e1e1e1 #e1e1e1 #bebebe;
+    padding: 3px;
+    background: url(input_bg.jpg) repeat-x 0px 0px;
+    margin-right: 7px;
+}
+.tag
+{
+    background-image: url(tab1.gif);
+    height: 29px;
+    padding-left: 50px;
+}
+.tag li
+{
+    float: left;
+    background-image: url(tab2.gif);
+    height: 26px;
+    line-height: 25px;
+    border: 1px solid #989898;
+    border-bottom: none;
+    margin-right: 6px;
+    display: inline;
+    margin-top: 2px;
+    padding: 0px 8px;
+    color: #606060;
+    cursor: pointer;
+}
+
+.tag li a
+{
+    color: #6087bb;
+    cursor: pointer;
+    text-decoration: none;
+    display: block;
+    line-height: 25px;
+}
+
+.tag li.current
+{
+    background-image: url(tab3.gif);
+    font-weight: bold;
 }
