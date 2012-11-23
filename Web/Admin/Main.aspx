@@ -9,74 +9,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head id="Head1" runat="server">
     <title></title>
-    <style type="text/css">
-        body
-        {
-            margin-left: 0px;
-            margin-top: 0px;
-            margin-right: 0px;
-            margin-bottom: 0px;
-            font-size: 12px;
-        }
-        
-        .tb
-        {
-            width: 100%;
-            border-top: solid 1px #c6c6c6;
-        }
-        
-        .tb td
-        {
-            font-size: 12px;
-            line-height: 25px;
-            padding: 0px 3px;
-            border-bottom: solid 1px #dddddd;
-        }
-        
-        .tb td.rightBorder
-        {
-            border-right: solid 1px #dddddd;
-        }
-        
-        .tb td a
-        {
-            color: #0066aa;
-            text-decoration: none;
-        }
-        .tb th
-        {
-            text-align: center;
-            font-size: 12px;
-            line-height: 27px;
-            background-image: url(images/nbg.gif);
-            color: #445055;
-        }
-        .tb th a
-        {
-            color: #445055;
-            text-decoration: none;
-        }
-        .tb .btr td
-        {
-            background-color: #f9f9f9;
-        }
-        #info .name
-        {
-            text-align: right;
-            width: 120px;
-        }
-        #info .value
-        {
-            text-align: left;
-            color: Red;
-        }
-    </style>
+    <link href="images/css.css" rel="stylesheet" type="text/css" />
 </head>
 <body>
     <form id="form1" runat="server">
     <%if (Request.QueryString == null || Request.QueryString.Count <= 0)
       {  %>
-    <table id="info" border="0" class="tb formtable" cellspacing="1" cellpadding="0"
+    <table id="info" border="0" class="m_table_border formtable" cellspacing="1" cellpadding="0"
         align="Center">
         <tr>
             <th colspan="4">
@@ -193,7 +132,7 @@
     <br />
     <br />
     <asp:GridView ID="gv" runat="server" AllowSorting="True" AutoGenerateColumns="False"
-        OnSorting="gv_Sorting" CssClass="tb" BorderWidth="0px" CellPadding="0" 
+        OnSorting="gv_Sorting" CssClass="m_table_border" BorderWidth="0px" CellPadding="0" 
         BorderStyle="None" GridLines="None">
         <Columns>
             <asp:BoundField DataField="Name" HeaderText="名称" SortExpression="Name" />
@@ -218,7 +157,7 @@
               list.Add(item);
           }
     %>
-    <table id="Table2" border="0" class="tb first" cellspacing="0" cellpadding="0" align="Center">
+    <table id="Table2" border="0" class="m_table_border first" cellspacing="0" cellpadding="0" align="Center">
         <tr>
             <th colspan="7">
                 进程模块(<%=process.ProcessName %>, PID=<%=process.Id %>)
