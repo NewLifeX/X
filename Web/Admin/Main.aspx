@@ -129,8 +129,6 @@
             </td>
         </tr>
     </table>
-    <br />
-    <br />
     <asp:GridView ID="gv" runat="server" AllowSorting="True" AutoGenerateColumns="False"
         OnSorting="gv_Sorting" CssClass="m_table_border" BorderWidth="0px" CellPadding="0" 
         BorderStyle="None" GridLines="None">
