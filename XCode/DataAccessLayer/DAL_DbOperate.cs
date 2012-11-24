@@ -93,7 +93,17 @@ namespace XCode.DataAccessLayer
             var cacheKey = String.Format("{0}_{1}_{2}_{3}_", builder, startRowIndex, maximumRows, ConnName);
 
             // 一个项目可能同时采用多种数据库，分页缓存不能采用静态
-            if (_PageSplitCache2 == null) _PageSplitCache2 = new DictionaryCache<String, SelectBuilder>(StringComparer.OrdinalIgnoreCase);
+            if (_PageSplitCache2 == null)
+            {
+                _PageSplitCache2 = new DictionaryCache<String, SelectBuilder>(StringComparer.OrdinalIgnoreCase);
+
+                // Access、SqlCe和SqlServer2000在处理DoubleTop时，最后一页可能导致数据不对，故不能长时间缓存其分页语句
+                var dt = DbType;
+                if (dt == DatabaseType.Access || dt == DatabaseType.SqlCe || dt == DatabaseType.SqlServer && Db.ServerVersion.StartsWith("08"))
+                {
+                    _PageSplitCache2.Expriod = 60;
+                }
+            }
             return _PageSplitCache2.GetItem<SelectBuilder, Int32, Int32>(cacheKey, builder, startRowIndex, maximumRows, (k, b, s, m) =>
             {
                 return Db.PageSplit(b, s, m);
