@@ -32,7 +32,7 @@ namespace XCode.DataAccessLayer
                 {
                     return builder;
                 }
-                else if(builder.KeyIsOrderBy)
+                else if (builder.KeyIsOrderBy)
                 {
                     return builder.Clone().Top(maximumRows);
                 }
@@ -76,7 +76,7 @@ namespace XCode.DataAccessLayer
             // Select Top 10 * From Table Where ID Not In(Select Top 20 ID From Table)
 
             // 构建Select Top 20 ID From Table
-            SelectBuilder builder1 = builder.Clone().Top(startRowIndex, builder.Key);
+            var builder1 = builder.Clone().Top(startRowIndex, builder.Key);
 
             SelectBuilder builder2 = null;
             if (maximumRows < 1)
@@ -84,7 +84,7 @@ namespace XCode.DataAccessLayer
             else
                 builder2 = builder.Clone().Top(maximumRows);
 
-            builder2.AppendWhereAnd("{0} Not In({1})", builder.Key, builder1.ToString());
+            builder2.AppendWhereAnd("{0} Not In({1})", builder.Key, builder1);
 
             return builder2;
         }
@@ -104,6 +104,8 @@ namespace XCode.DataAccessLayer
             {
                 // 查询总记录数，计算是否最后一页
                 var count = queryCountCallback(builder);
+                // 数据不足
+                if (count <= startRowIndex) return null;
                 // 刚好相等的就不必处理了
                 if (startRowIndex + maximumRows > count) maximumRows = count - startRowIndex;
             }
@@ -116,12 +118,12 @@ namespace XCode.DataAccessLayer
             // Select * From (Select Top 10 * From (Select Top 20+10 * From Table Order By ID Desc) Order By ID Asc) Order By ID Desc
 
             // 找到排序，优先采用排序字句来做双Top排序
-            String orderby = builder.OrderBy ?? builder.KeyOrder;
+            var orderby = builder.OrderBy ?? builder.KeyOrder;
             Boolean[] isdescs = null;
-            String[] keys = SelectBuilder.Split(orderby, out isdescs);
+            var keys = SelectBuilder.Split(orderby, out isdescs);
 
             // 把排序反过来
-            Boolean[] isdescs2 = new Boolean[keys.Length];
+            var isdescs2 = new Boolean[keys.Length];
             for (int i = 0; i < keys.Length; i++)
             {
                 if (isdescs != null && isdescs.Length > i)
@@ -129,18 +131,18 @@ namespace XCode.DataAccessLayer
                 else
                     isdescs2[i] = true;
             }
-            String reversekeyorder = SelectBuilder.Join(keys, isdescs2);
+            var reversekeyorder = SelectBuilder.Join(keys, isdescs2);
 
             // 构建Select Top 20 * From Table Order By ID Asc
-            SelectBuilder builder1 = builder.Clone().AppendColumn(keys).Top(startRowIndex + maximumRows);
+            var builder1 = builder.Clone().AppendColumn(keys).Top(startRowIndex + maximumRows);
             // 必须加一个排序，否则会被优化掉而导致出错
             if (String.IsNullOrEmpty(builder1.OrderBy)) builder1.OrderBy = builder1.KeyOrder;
 
-            SelectBuilder builder2 = builder1.AsChild("XCode_T0").Top(maximumRows);
+            var builder2 = builder1.AsChild("XCode_T0").Top(maximumRows);
             // 要反向排序
             builder2.OrderBy = reversekeyorder;
 
-            SelectBuilder builder3 = builder2.AsChild("XCode_T1");
+            var builder3 = builder2.AsChild("XCode_T1");
             // 结果列保持原样
             builder3.Column = builder.Column;
             // 让结果正向排序
@@ -161,8 +163,8 @@ namespace XCode.DataAccessLayer
             // 分页标准 Select (20,10,ID Desc)
             // Select Top 10 * From Table Where ID>(Select max(ID) From (Select Top 20 ID From Table Order By ID) Order By ID Desc) Order By ID Desc
 
-            SelectBuilder builder1 = builder.Clone().Top(startRowIndex, builder.Key);
-            SelectBuilder builder2 = builder1.AsChild("XCode_T0");
+            var builder1 = builder.Clone().Top(startRowIndex, builder.Key);
+            var builder2 = builder1.AsChild("XCode_T0");
             builder2.Column = String.Format("{0}({1})", builder.IsDesc ? "Min" : "Max", builder.Key);
 
             SelectBuilder builder3 = null;
@@ -172,7 +174,7 @@ namespace XCode.DataAccessLayer
                 builder3 = builder.Clone().Top(maximumRows);
 
             // 如果本来有Where字句，加上And，当然，要区分情况按是否有必要加圆括号
-            builder3.AppendWhereAnd("{0}{1}({2})", builder.Key, builder.IsDesc ? "<" : ">", builder2.ToString());
+            builder3.AppendWhereAnd("{0}{1}({2})", builder.Key, builder.IsDesc ? "<" : ">", builder2);
 
             return builder3;
         }
@@ -190,10 +192,10 @@ namespace XCode.DataAccessLayer
             //    sql = String.Format("Select * From (Select *, row_number() over({3}) as rowNumber From {1}) XCode_Temp_b Where rowNumber Between {0} And {2}", startRowIndex + 1, sql, startRowIndex + maximumRows, orderBy);
 
             // 如果包含分组，则必须作为子查询
-            SelectBuilder builder1 = builder.CloneWithGroupBy("XCode_T0");
+            var builder1 = builder.CloneWithGroupBy("XCode_T0");
             builder1.Column = String.Format("{0}, row_number() over(Order By {1}) as rowNumber", builder.ColumnOrDefault, builder.OrderBy ?? builder.KeyOrder);
 
-            SelectBuilder builder2 = builder1.AsChild("XCode_T1");
+            var builder2 = builder1.AsChild("XCode_T1");
             // 结果列保持原样
             builder2.Column = builder.Column;
             // row_number()直接影响了排序，这里不再需要

@@ -1,8 +1,8 @@
 ﻿
 新生命开发团队
 QQ群：1600800
+论坛：http://www.NewLifeX.com
 博客：http://nnhy.cnblogs.com
-论坛：http://www.53wb.com
 
 X组件是.Net之上的常用功能集合，前身是ASP组件通用类Gen，始于2002年，最后版本是v3.0，可百度找到http://www.baidu.com/baidu?wd=%CD%A8%D3%C3%C0%E0+Gen。
 
@@ -76,6 +76,10 @@ SQLite、XCode多库多表、海量数据采集
 
 @Goon（12600112）
 测试并完善SqlCe的正向反向工程
+
+@漫遊者  hogenwang@vip.qq.com(466364748)
+发现DoubleTop最后一页分页问题
+发现部分虚拟主机（美橙互联）无法使用SQLite但可以使用Access的问题
 
 
 此外，还有许许多多贡献者未能一一列出！

@@ -125,6 +125,7 @@ namespace XCode.DataAccessLayer
         public DataSet Select(SelectBuilder builder, Int32 startRowIndex, Int32 maximumRows, params String[] tableNames)
         {
             builder = PageSplit(builder, startRowIndex, maximumRows);
+            if (builder == null) return null;
             return Select(builder.ToString(), tableNames);
         }
 

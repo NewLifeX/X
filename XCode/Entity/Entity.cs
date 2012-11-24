@@ -72,13 +72,20 @@ namespace XCode
         /// <summary>加载记录集。无数据时返回空集合而不是null。</summary>
         /// <param name="ds">记录集</param>
         /// <returns>实体数组</returns>
-        public static EntityList<TEntity> LoadData(DataSet ds) { return LoadData(ds.Tables[0]); }
+        public static EntityList<TEntity> LoadData(DataSet ds)
+        {
+            if (ds == null || ds.Tables.Count < 1) return new EntityList<TEntity>();
+
+            return LoadData(ds.Tables[0]);
+        }
 
         /// <summary>加载数据表。无数据时返回空集合而不是null。</summary>
         /// <param name="dt">数据表</param>
         /// <returns>实体数组</returns>
         public static EntityList<TEntity> LoadData(DataTable dt)
         {
+            if (dt == null) return new EntityList<TEntity>();
+
             var list = dreAccessor.LoadData(dt);
             // 设置默认累加字段
             var fs = AdditionalFields;
@@ -481,11 +488,11 @@ namespace XCode
         /// <returns></returns>
         static TEntity FindUnique(String whereClause)
         {
-            SelectBuilder builder = new SelectBuilder();
+            var builder = new SelectBuilder();
             builder.Table = Meta.FormatName(Meta.TableName);
             // 谨记：某些项目中可能在where中使用了GroupBy，在分页时可能报错
             builder.Where = whereClause;
-            IList<TEntity> list = LoadData(Meta.Query(builder, 0, 0));
+            var list = LoadData(Meta.Query(builder, 0, 0));
             if (list == null || list.Count < 1) return null;
 
             if (list.Count > 1 && DAL.Debug)
@@ -660,13 +667,13 @@ namespace XCode
                     if (!String.IsNullOrEmpty(order))
                     {
                         // 最大可用行数改为实际最大可用行数
-                        Int32 max = (Int32)Math.Min(maximumRows, count - startRowIndex);
+                        var max = (Int32)Math.Min(maximumRows, count - startRowIndex);
                         //if (max <= 0) return null;
                         if (max <= 0) return new EntityList<TEntity>();
-                        Int32 start = (Int32)(count - (startRowIndex + maximumRows));
+                        var start = (Int32)(count - (startRowIndex + maximumRows));
 
                         var builder2 = CreateBuilder(whereClause, order, selects, start, max);
-                        EntityList<TEntity> list = LoadData(Meta.Query(builder2, start, max));
+                        var list = LoadData(Meta.Query(builder2, start, max));
                         if (list == null || list.Count < 1) return list;
                         // 因为这样取得的数据是倒过来的，所以这里需要再倒一次
                         list.Reverse();
