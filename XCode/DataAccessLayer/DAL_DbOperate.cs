@@ -53,7 +53,7 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 使用缓存后的数据操作方法
-        private static DictionaryCache<String, String> _PageSplitCache = new DictionaryCache<String, String>(StringComparer.OrdinalIgnoreCase);
+        private DictionaryCache<String, String> _PageSplitCache;
         /// <summary>根据条件把普通查询SQL格式化为分页SQL。</summary>
         /// <remarks>
         /// 因为需要继承重写的原因，在数据类中并不方便缓存分页SQL。
@@ -68,15 +68,17 @@ namespace XCode.DataAccessLayer
         [Obsolete("请优先考虑使用SelectBuilder参数做分页！")]
         public String PageSplit(String sql, Int32 startRowIndex, Int32 maximumRows, String keyColumn)
         {
-            String cacheKey = String.Format("{0}_{1}_{2}_{3}_{4}", sql, startRowIndex, maximumRows, ConnName, keyColumn);
+            var cacheKey = String.Format("{0}_{1}_{2}_{3}_{4}", sql, startRowIndex, maximumRows, ConnName, keyColumn);
 
+            // 一个项目可能同时采用多种数据库，分页缓存不能采用静态
+            if (_PageSplitCache == null) _PageSplitCache = new DictionaryCache<String, String>(StringComparer.OrdinalIgnoreCase);
             return _PageSplitCache.GetItem<String, Int32, Int32, String>(cacheKey, sql, startRowIndex, maximumRows, keyColumn, (k, b, s, m, kc) =>
             {
                 return Db.PageSplit(b, s, m, kc);
             });
         }
 
-        private static DictionaryCache<String, SelectBuilder> _PageSplitCache2 = new DictionaryCache<String, SelectBuilder>(StringComparer.OrdinalIgnoreCase);
+        private DictionaryCache<String, SelectBuilder> _PageSplitCache2;
         /// <summary>根据条件把普通查询SQL格式化为分页SQL。</summary>
         /// <remarks>
         /// 因为需要继承重写的原因，在数据类中并不方便缓存分页SQL。
@@ -88,8 +90,10 @@ namespace XCode.DataAccessLayer
         /// <returns>分页SQL</returns>
         public SelectBuilder PageSplit(SelectBuilder builder, Int32 startRowIndex, Int32 maximumRows)
         {
-            String cacheKey = String.Format("{0}_{1}_{2}_{3}_", builder, startRowIndex, maximumRows, ConnName);
+            var cacheKey = String.Format("{0}_{1}_{2}_{3}_", builder, startRowIndex, maximumRows, ConnName);
 
+            // 一个项目可能同时采用多种数据库，分页缓存不能采用静态
+            if (_PageSplitCache2 == null) _PageSplitCache2 = new DictionaryCache<String, SelectBuilder>(StringComparer.OrdinalIgnoreCase);
             return _PageSplitCache2.GetItem<SelectBuilder, Int32, Int32>(cacheKey, builder, startRowIndex, maximumRows, (k, b, s, m) =>
             {
                 return Db.PageSplit(b, s, m);
