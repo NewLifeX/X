@@ -209,13 +209,13 @@ namespace NewLife.Reflection
 
         #region 静态属性
         ///// <summary>当前执行代码程序集</summary>
-        //public static AssemblyX Executing { get { return AssemblyX.Create(Assembly.GetExecutingAssembly()); } }
+        //public static AssemblyX Executing { get { return Create(Assembly.GetExecutingAssembly()); } }
 
         /// <summary>入口程序集</summary>
-        public static AssemblyX Entry { get { return AssemblyX.Create(Assembly.GetEntryAssembly()); } }
+        public static AssemblyX Entry { get { return Create(Assembly.GetEntryAssembly()); } }
 
         ///// <summary>调用者</summary>
-        //public static AssemblyX Calling { get { return AssemblyX.Create(Assembly.GetCallingAssembly()); } }
+        //public static AssemblyX Calling { get { return Create(Assembly.GetCallingAssembly()); } }
         #endregion
 
         #region 获取特性
@@ -369,7 +369,7 @@ namespace NewLife.Reflection
             }
             if (isLoadAssembly)
             {
-                foreach (var item in AssemblyX.ReflectionOnlyGetAssemblies())
+                foreach (var item in ReflectionOnlyGetAssemblies())
                 {
                     // 如果excludeGlobalTypes为true，则指检查来自非GAC引用的程序集
                     if (excludeGlobalTypes && item.Asm.GlobalAssemblyCache) continue;
@@ -382,7 +382,7 @@ namespace NewLife.Reflection
                     {
                         // 真实加载
                         var asm2 = Assembly.LoadFile(item.Asm.Location);
-                        ts = AssemblyX.Create(asm2).FindPlugins(baseType);
+                        ts = Create(asm2).FindPlugins(baseType);
 
                         if (ts != null && ts.Count > 0)
                         {
@@ -454,10 +454,17 @@ namespace NewLife.Reflection
             var path = AppDomain.CurrentDomain.BaseDirectory;
             if (HttpRuntime.AppDomainId != null) path = HttpRuntime.BinDirectory;
 
+            var loadeds = GetAssemblies().ToList();
+
             // 先返回已加载的只加载程序集
             var loadeds2 = AppDomain.CurrentDomain.ReflectionOnlyGetAssemblies().Select(e => Create(e)).ToList();
             foreach (var item in loadeds2)
             {
+                if (loadeds.Any(e => e.Location.EqualIgnoreCase(item.Location))) continue;
+                // 尽管目录不一样，但这两个可能是相同的程序集
+                // 这里导致加载了不同目录的同一个程序集，然后导致对象容器频繁报错
+                if (loadeds.Any(e => e.Asm.FullName.EqualIgnoreCase(item.Asm.FullName))) continue;
+
                 yield return item;
             }
 
@@ -483,7 +490,7 @@ namespace NewLife.Reflection
             var ss = Directory.GetFiles(path, "*.*", SearchOption.TopDirectoryOnly);
             if (ss == null || ss.Length < 1) yield break;
 
-            var loadeds = AssemblyX.GetAssemblies().ToList();
+            var loadeds = GetAssemblies().ToList();
 
             foreach (var item in ss)
             {

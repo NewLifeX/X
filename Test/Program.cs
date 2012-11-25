@@ -342,17 +342,15 @@ namespace Test
 
         static void Test8()
         {
-            //ZipFile.Extract("Test.zip", null);
-            using (var zip = new ZipFile("Test.zip"))
+            var p = "Log".GetFullPath();
+            //File.Copy("XCode.dll", p.CombinePath("XCode.dll"), true);
+            //AssemblyX.AssemblyPaths.Add(p);
+            var f = p.CombinePath("XCode.dll");
+            Assembly.Load(File.ReadAllBytes(f));
+
+            foreach (var item in AssemblyX.FindAllPlugins(typeof(IEntityPersistence), true))
             {
-                Console.WriteLine(zip.Comment);
-                foreach (var item in zip.Entries)
-                {
-                    Console.WriteLine("{0} {1} {2}", item.Key, item.Value.UncompressedSize, item.Value.Comment);
-                }
-                zip.Comment = DateTime.Now.ToString();
-                zip.AddFile("test.pdb");
-                zip.Write("test2.zip");
+                Console.WriteLine(item);
             }
         }
 

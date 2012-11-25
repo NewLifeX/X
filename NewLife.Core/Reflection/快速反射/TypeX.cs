@@ -298,13 +298,18 @@ namespace NewLife.Reflection
 
         #region 方法
         /// <summary>是否指定类型的插件</summary>
-        /// <param name="type"></param>
+        /// <param name="type">指定类型</param>
         /// <returns></returns>
         public Boolean IsPlugin(Type type)
         {
             //if (type == null) throw new ArgumentNullException("type");
             // 如果基类为空，则表示是插件
             if (type == null) return true;
+
+            // 是否严格匹配。严格匹配仅比较对象引用，否则比较名称
+            // 对于只反射类型来说，不需要严格，因为它们不会是同一个引用，一般用于判断是插件意见才加载
+            // 对于普通类型，很有可能一个程序集被加载多次，必须严格匹配所引用的就是那个接口类型，否则类型无法转换
+            var strict = !Type.Assembly.ReflectionOnly;
 
             //为空、不是类、抽象类、泛型类 都不是实体类
             //if (!BaseType.IsClass || BaseType.IsAbstract || BaseType.IsGenericType) return false;
@@ -313,22 +318,13 @@ namespace NewLife.Reflection
 
             if (type.IsInterface)
             {
-                ////if (!Interfaces.Contains(type)) return false;
-                //if (Interfaces == null || Interfaces.Count < 1) return false;
-
-                //Boolean b = false;
-                //foreach (Type item in Interfaces)
-                //{
-                //    if (item == type) { b = true; break; }
-
-                //    if (item.FullName == type.FullName && item.AssemblyQualifiedName == type.AssemblyQualifiedName) { b = true; break; }
-                //}
-                //if (!b) return false;
-
-                Type[] ts = Type.GetInterfaces();
+                var ts = Type.GetInterfaces();
                 if (ts == null || ts.Length < 1) return false;
 
-                return ts.Any(e => e == type || e.FullName == type.FullName && e.AssemblyQualifiedName == type.AssemblyQualifiedName);
+                if (strict)
+                    return Array.IndexOf(ts, type) >= 0;
+                else
+                    return ts.Any(e => e == type || e.FullName == type.FullName && e.AssemblyQualifiedName == type.AssemblyQualifiedName);
             }
             else
             {
@@ -337,7 +333,14 @@ namespace NewLife.Reflection
                 var e = Type;
                 while (e != null && e != typeof(Object))
                 {
-                    if (e.FullName == type.FullName && e.AssemblyQualifiedName == type.AssemblyQualifiedName) return true;
+                    if (strict)
+                    {
+                        if (e == type) return true;
+                    }
+                    else
+                    {
+                        if (e.FullName == type.FullName && e.AssemblyQualifiedName == type.AssemblyQualifiedName) return true;
+                    }
                     e = e.BaseType;
                 }
 
