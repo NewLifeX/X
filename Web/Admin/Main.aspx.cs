@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Web;
 using System.Web.UI.WebControls;
 using NewLife.CommonEntity;
 using NewLife.Reflection;
-using System.Diagnostics;
 
 public partial class Pages_Main : System.Web.UI.Page
 {
@@ -38,16 +38,10 @@ public partial class Pages_Main : System.Web.UI.Page
             file = file.Replace("/", "\\");
             if (!file.StartsWith(bin)) continue;
 
-            //if (assem.Company == "新生命开发团队" || assem.Company == "NewLife")
-            {
-                //ShowVer(ver);
-                list.Add(asmx);
-            }
+            list.Add(asmx);
         }
 
         return list;
-
-        //return AssemblyX.GetAssemblies().Where(e => e.Company == "新生命开发团队" || e.Company == "NewLife").ToList();
     }
 
     protected void gv_Sorting(object sender, GridViewSortEventArgs e)

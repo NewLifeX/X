@@ -43,6 +43,7 @@
             <td class="value">
                 <%= Request.ServerVariables["SERVER_NAME"]%>，
                 <%= Request.ServerVariables["LOCAl_ADDR"] + ":" + Request.ServerVariables["Server_Port"]%>
+                &nbsp;<=[<%= Request.ServerVariables["REMOTE_HOST"]%>]
             </td>
             <td class="name">
                 计算机用户：
