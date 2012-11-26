@@ -60,7 +60,11 @@ namespace XCode.DataAccessLayer
             {
                 if (_Conn == null)
                 {
-                    _Conn = Factory.CreateConnection();
+                    try
+                    {
+                        _Conn = Factory.CreateConnection();
+                    }
+                    catch (ObjectDisposedException) { this.Dispose(); return null; }
                     //_Conn.ConnectionString = Database.ConnectionString;
                     _Conn.ConnectionString = ConnectionString;
                 }
