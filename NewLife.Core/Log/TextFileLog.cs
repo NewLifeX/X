@@ -178,7 +178,7 @@ namespace NewLife.Log
             writer.WriteLine("#ApplicationType: {0}", Runtime.IsConsole ? "Console" : (Runtime.IsWeb ? "Web" : "WinForm"));
             writer.WriteLine("#CLR: {0}", Environment.Version);
 
-            writer.WriteLine("#OS: {0}", Runtime.OSName);
+            writer.WriteLine("#OS: {0}, {1}/{2}", Runtime.OSName, Environment.UserName, Environment.MachineName);
 
             writer.WriteLine("#Date: {0:yyyy-MM-dd}", DateTime.Now);
             writer.WriteLine("#Fields: Time ThreadID IsPoolThread ThreadName Message");
