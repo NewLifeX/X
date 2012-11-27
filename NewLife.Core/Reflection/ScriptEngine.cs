@@ -1,11 +1,11 @@
 ﻿using System;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Reflection.Emit;
 using System.Text;
 using NewLife.Collections;
 using NewLife.Exceptions;
-using System.Reflection;
 
 namespace NewLife.Reflection
 {
@@ -273,9 +273,14 @@ namespace NewLife.Reflection
                 options.GenerateInMemory = true;
             }
 
+            var hs = new HashSet<String>(StringComparer.OrdinalIgnoreCase);
             foreach (var item in AppDomain.CurrentDomain.GetAssemblies())
             {
                 if (item is AssemblyBuilder) continue;
+
+                // 三趾树獭  303409914 发现重复加载同一个DLL，表现为Web站点Bin目录有一个，系统缓存有一个
+                if (hs.Contains(item.FullName)) continue;
+                hs.Add(item.FullName);
 
                 String name = null;
                 try
