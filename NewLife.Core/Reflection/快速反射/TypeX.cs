@@ -779,7 +779,16 @@ namespace NewLife.Reflection
             if (value != null)
             {
                 if (value is IConvertible)
+                {
+                    // 上海石头 发现这里导致Json序列化问题
+                    // http://www.newlifex.com/showtopic-282.aspx
+                    if (conversionType.IsGenericType && conversionType.GetGenericTypeDefinition().Equals(typeof(Nullable<>)))
+                    {
+                        var nullableConverter = new NullableConverter(conversionType);
+                        conversionType = nullableConverter.UnderlyingType;
+                    } 
                     value = Convert.ChangeType(value, conversionType);
+                }
                 //else if (conversionType.IsInterface)
                 //    value = DuckTyping.Implement(value, conversionType);
             }
