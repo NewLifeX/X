@@ -58,6 +58,7 @@ namespace XCode
         /// </summary>
         /// <param name="forEdit">是否为了编辑而创建，如果是，可以再次做一些相关的初始化工作</param>
         /// <returns></returns>
+        [EditorBrowsable(EditorBrowsableState.Advanced)]
         protected virtual TEntity CreateInstance(Boolean forEdit = false)
         {
             //return new TEntity();
@@ -977,6 +978,7 @@ namespace XCode
         /// <summary>把一个实体对象持久化到数据库</summary>
         /// <param name="obj">实体对象</param>
         /// <returns>返回受影响的行数</returns>
+        [EditorBrowsable(EditorBrowsableState.Advanced)]
         [DataObjectMethod(DataObjectMethodType.Insert, true)]
         public static Int32 Insert(TEntity obj) { return obj.Insert(); }
 
@@ -989,6 +991,7 @@ namespace XCode
         /// <summary>把一个实体对象更新到数据库</summary>
         /// <param name="obj">实体对象</param>
         /// <returns>返回受影响的行数</returns>
+        [EditorBrowsable(EditorBrowsableState.Advanced)]
         [DataObjectMethod(DataObjectMethodType.Update, true)]
         public static Int32 Update(TEntity obj) { return obj.Update(); }
 
@@ -1012,6 +1015,7 @@ namespace XCode
         /// </summary>
         /// <param name="obj">实体对象</param>
         /// <returns>返回受影响的行数，可用于判断被删除了多少行，从而知道操作是否成功</returns>
+        [EditorBrowsable(EditorBrowsableState.Advanced)]
         [DataObjectMethod(DataObjectMethodType.Delete, true)]
         public static Int32 Delete(TEntity obj) { return obj.Delete(); }
 
@@ -1029,6 +1033,7 @@ namespace XCode
         /// <summary>把一个实体对象更新到数据库</summary>
         /// <param name="obj">实体对象</param>
         /// <returns>返回受影响的行数</returns>
+        [EditorBrowsable(EditorBrowsableState.Advanced)]
         public static Int32 Save(TEntity obj) { return obj.Save(); }
         #endregion
 
@@ -1049,6 +1054,7 @@ namespace XCode
         /// <param name="values">值列表</param>
         /// <param name="action">联合方式</param>
         /// <returns>条件子串</returns>
+        [EditorBrowsable(EditorBrowsableState.Advanced)]
         public static String MakeCondition(String[] names, Object[] values, String action)
         {
             //if (names == null || names.Length <= 0) throw new ArgumentNullException("names", "属性列表和值列表不能为空");
@@ -1076,6 +1082,7 @@ namespace XCode
         /// <param name="value">值</param>
         /// <param name="action">大于小于等符号</param>
         /// <returns></returns>
+        [EditorBrowsable(EditorBrowsableState.Advanced)]
         public static String MakeCondition(String name, Object value, String action)
         {
             FieldItem field = Meta.Table.FindByName(name);
@@ -1089,6 +1096,7 @@ namespace XCode
         /// <param name="value">值</param>
         /// <param name="action">大于小于等符号</param>
         /// <returns></returns>
+        [EditorBrowsable(EditorBrowsableState.Advanced)]
         public static String MakeCondition(FieldItem field, Object value, String action)
         {
             if (!String.IsNullOrEmpty(action) && action.Contains("{0}"))
@@ -1416,6 +1424,7 @@ namespace XCode
         /// <param name="key">键</param>
         /// <param name="func">回调</param>
         /// <returns></returns>
+        [EditorBrowsable(EditorBrowsableState.Advanced)]
         protected TResult GetExtend<TResult>(String key, Func<String, Object> func) { return GetExtend<TEntity, TResult>(key, func); }
 
         /// <summary>获取依赖于当前实体类的扩展属性</summary>
@@ -1424,6 +1433,7 @@ namespace XCode
         /// <param name="func">回调</param>
         /// <param name="cacheDefault">是否缓存默认值，可选参数，默认缓存</param>
         /// <returns></returns>
+        [EditorBrowsable(EditorBrowsableState.Advanced)]
         protected TResult GetExtend<TResult>(String key, Func<String, Object> func, Boolean cacheDefault) { return GetExtend<TEntity, TResult>(key, func, cacheDefault); }
 
         /// <summary>设置依赖于当前实体类的扩展属性</summary>
