@@ -4,5 +4,7 @@ X组件原则：以有限的条件，提供无限的支持！
 2，我们不是要重复造轮子，而是要在.Net 2.0这个有限的条件下使用更好的轮子（虽然只能使用一部分）
 
 新生命开发团队
+网站：http://www.NewLifeX.com
 博客：http://nnhy.cnblogs.com
+淘宝：http://nnhy.taobao.com
 QQ群：1600800

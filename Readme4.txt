@@ -4,5 +4,7 @@ X组件原则：以有限的条件，提供无限的支持！
 2，我们的主要线路仍然是.Net2.0
 
 新生命开发团队
+网站：http://www.NewLifeX.com
 博客：http://nnhy.cnblogs.com
+淘宝：http://nnhy.taobao.com
 QQ群：1600800
