@@ -46,11 +46,12 @@ namespace XCode.DataAccessLayer
         {
             get
             {
-                DbConnectionStringBuilder builder = Factory.CreateConnectionStringBuilder();
+                var builder = Factory.CreateConnectionStringBuilder();
                 if (builder != null)
                 {
                     builder["Server"] = "127.0.0.1";
-                    builder["Database"] = SystemDatabaseName;
+                    // Oracle连接字符串不支持Database关键字
+                    if (DbType != DatabaseType.Oracle) builder["Database"] = SystemDatabaseName;
                     return builder.ToString();
                 }
 
