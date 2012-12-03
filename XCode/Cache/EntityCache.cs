@@ -28,39 +28,7 @@ namespace XCode.Cache
                     {
                         isnull = !AllowNull && _Entities == null;
                         if (isnull || DateTime.Now > ExpiredTime)
-                        {
-                            // 异步更新时，如果为空，表明首次，同步获取数据
-                            if (Asynchronous && !isnull)
-                            {
-                                // 这里直接计算有效期，避免每次判断缓存有效期时进行的时间相加而带来的性能损耗
-                                // 设置时间放在获取缓存之前，让其它线程不要空等
-                                ExpiredTime = DateTime.Now.AddSeconds(Expriod);
-                                Times++;
-
-                                if (Debug)
-                                {
-                                    String reason = ExpiredTime <= DateTime.MinValue ? "第一次" : (isnull ? "无缓存数据" : Expriod + "秒过期");
-                                    DAL.WriteLog("异步更新实体缓存（第{2}次）：{0} 原因：{1}", typeof(TEntity).FullName, reason, Times);
-                                }
-
-                                ThreadPool.QueueUserWorkItem(FillWaper, isnull);
-                            }
-                            else
-                            {
-                                Times++;
-                                if (Debug)
-                                {
-                                    String reason = ExpiredTime <= DateTime.MinValue ? "第一次" : (isnull ? "无缓存数据" : Expriod + "秒过期");
-                                    DAL.WriteLog("更新实体缓存（第{2}次）：{0} 原因：{1} {3}", typeof(TEntity).FullName, reason, Times, XTrace.GetCaller(2, 2));
-                                }
-
-                                FillWaper(isnull);
-
-                                // 这里直接计算有效期，避免每次判断缓存有效期时进行的时间相加而带来的性能损耗
-                                // 设置时间放在获取缓存之后，避免缓存尚未拿到，其它线程拿到空数据
-                                ExpiredTime = DateTime.Now.AddSeconds(Expriod);
-                            }
-                        }
+                            UpdateCache(isnull);
                         else
                             Interlocked.Increment(ref Shoot2);
                     }
@@ -71,6 +39,78 @@ namespace XCode.Cache
                 Using = true;
 
                 return _Entities ?? EntityList<TEntity>.Empty;
+            }
+        }
+
+        private DateTime _ExpiredTime;
+        /// <summary>缓存过期时间</summary>
+        public DateTime ExpiredTime { get { return _ExpiredTime; } set { _ExpiredTime = value; } }
+
+        /// <summary>缓存更新次数</summary>
+        private Int64 Times;
+
+        private Int32 _Expriod = 60;
+        /// <summary>过期时间。单位是秒，默认60秒</summary>
+        public Int32 Expriod { get { return _Expriod; } set { _Expriod = value; } }
+
+        private FillListDelegate<TEntity> _FillListMethod;
+        /// <summary>填充数据的方法</summary>
+        public FillListDelegate<TEntity> FillListMethod
+        {
+            get
+            {
+                if (_FillListMethod == null) _FillListMethod = Entity<TEntity>.FindAll;
+                return _FillListMethod;
+            }
+            set { _FillListMethod = value; }
+        }
+
+        private Boolean _Asynchronous;
+        /// <summary>异步更新</summary>
+        public Boolean Asynchronous { get { return _Asynchronous; } set { _Asynchronous = value; } }
+
+        private Boolean _AllowNull = true;
+        /// <summary>允许缓存空对象</summary>
+        public Boolean AllowNull { get { return _AllowNull; } set { _AllowNull = value; } }
+
+        private Boolean _Using;
+        /// <summary>是否在使用缓存</summary>
+        internal Boolean Using { get { return _Using; } private set { _Using = value; } }
+        #endregion
+
+        #region 缓存操作
+        void UpdateCache(Boolean isnull)
+        {
+            // 异步更新时，如果为空，表明首次，同步获取数据
+            if (Asynchronous && !isnull)
+            {
+                // 这里直接计算有效期，避免每次判断缓存有效期时进行的时间相加而带来的性能损耗
+                // 设置时间放在获取缓存之前，让其它线程不要空等
+                ExpiredTime = DateTime.Now.AddSeconds(Expriod);
+                Times++;
+
+                if (Debug)
+                {
+                    var reason = ExpiredTime <= DateTime.MinValue ? "第一次" : (isnull ? "无缓存数据" : Expriod + "秒过期");
+                    DAL.WriteLog("异步更新实体缓存（第{2}次）：{0} 原因：{1}", typeof(TEntity).FullName, reason, Times);
+                }
+
+                ThreadPool.QueueUserWorkItem(FillWaper, isnull);
+            }
+            else
+            {
+                Times++;
+                if (Debug)
+                {
+                    var reason = ExpiredTime <= DateTime.MinValue ? "第一次" : (isnull ? "无缓存数据" : Expriod + "秒过期");
+                    DAL.WriteLog("更新实体缓存（第{2}次）：{0} 原因：{1} {3}", typeof(TEntity).FullName, reason, Times, XTrace.GetCaller(2, 2));
+                }
+
+                FillWaper(isnull);
+
+                // 这里直接计算有效期，避免每次判断缓存有效期时进行的时间相加而带来的性能损耗
+                // 设置时间放在获取缓存之后，避免缓存尚未拿到，其它线程拿到空数据
+                ExpiredTime = DateTime.Now.AddSeconds(Expriod);
             }
         }
 
@@ -91,65 +131,18 @@ namespace XCode.Cache
             }
         }
 
-        private DateTime _ExpiredTime;
-        /// <summary>缓存过期时间</summary>
-        public DateTime ExpiredTime
-        {
-            get { return _ExpiredTime; }
-            set { _ExpiredTime = value; }
-        }
-
-        /// <summary>缓存更新次数</summary>
-        private Int64 Times;
-
-        private Int32 _Expriod = 60;
-        /// <summary>过期时间。单位是秒，默认60秒</summary>
-        public Int32 Expriod
-        {
-            get { return _Expriod; }
-            set { _Expriod = value; }
-        }
-
-        private FillListDelegate<TEntity> _FillListMethod;
-        /// <summary>填充数据的方法</summary>
-        public FillListDelegate<TEntity> FillListMethod
-        {
-            get
-            {
-                if (_FillListMethod == null) _FillListMethod = Entity<TEntity>.FindAll;
-                return _FillListMethod;
-            }
-            set { _FillListMethod = value; }
-        }
-
-        private Boolean _Asynchronous;
-        /// <summary>异步更新</summary>
-        public Boolean Asynchronous
-        {
-            get { return _Asynchronous; }
-            set { _Asynchronous = value; }
-        }
-
-        private Boolean _AllowNull = true;
-        /// <summary>允许缓存空对象</summary>
-        public Boolean AllowNull
-        {
-            get { return _AllowNull; }
-            set { _AllowNull = value; }
-        }
-
         /// <summary>清除缓存</summary>
         public void Clear(String reason = null)
         {
-            if (_Entities != null && _Entities.Count > 0 && Debug) DAL.WriteLog("清空实体缓存：{0} 原因：{1}", typeof(TEntity).FullName, reason);
+            lock (this)
+            {
+                if (_Entities != null && _Entities.Count > 0 && Debug) DAL.WriteLog("清空实体缓存：{0} 原因：{1}", typeof(TEntity).FullName, reason);
 
-            ExpiredTime = DateTime.Now;
-            _Entities = null;
+                // 修改为最小，确保过期
+                ExpiredTime = DateTime.MinValue;
+                _Entities = null;
+            }
         }
-
-        private Boolean _Using;
-        /// <summary>是否在使用缓存</summary>
-        internal Boolean Using { get { return _Using; } private set { _Using = value; } }
         #endregion
 
         #region 统计
@@ -170,7 +163,7 @@ namespace XCode.Cache
         {
             if (Total > 0)
             {
-                StringBuilder sb = new StringBuilder();
+                var sb = new StringBuilder();
                 sb.AppendFormat("实体缓存<{0}>", typeof(TEntity).Name);
                 sb.AppendFormat("总次数{0}", Total);
                 if (Shoot1 > 0) sb.AppendFormat("，一级命中{0}（{1:P02}）", Shoot1, (Double)Shoot1 / Total);
