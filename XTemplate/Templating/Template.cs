@@ -817,7 +817,7 @@ namespace XTemplate.Templating
             //String key = outputAssembly;
             //if (String.IsNullOrEmpty(key)) key = Hash(String.Join(Environment.NewLine, sources));
 
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
             foreach (var item in tmp.Templates)
             {
                 if (sb.Length > 0) sb.AppendLine();
@@ -830,7 +830,7 @@ namespace XTemplate.Templating
             lock (asmCache)
             {
                 if (asmCache.TryGetValue(key, out assembly)) return assembly;
-                foreach (String str in references)
+                foreach (var str in references)
                 {
                     try
                     {

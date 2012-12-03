@@ -432,7 +432,7 @@ namespace XCode.Cache
         {
             if (next < DateTime.Now)
             {
-                Boolean isfirst = next == DateTime.MinValue;
+                var isfirst = next == DateTime.MinValue;
                 next = DAL.Debug ? DateTime.Now.AddMinutes(10) : DateTime.Now.AddHours(24);
 
                 if (!isfirst) show();

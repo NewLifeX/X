@@ -220,7 +220,7 @@ namespace XCode.DataAccessLayer
         protected static DbProviderFactory GetProviderFactory(String assemblyFile, String className)
         {
             //反射实现获取数据库工厂
-            String file = assemblyFile;
+            var file = assemblyFile;
 
             if (!Runtime.IsWeb)
                 file = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, file);
@@ -235,10 +235,13 @@ namespace XCode.DataAccessLayer
                 if (!File.Exists(file)) throw new FileNotFoundException("缺少文件" + file + "！", file);
             }
 
-            Assembly asm = Assembly.LoadFile(file);
-            if (asm == null) return null;
+            //var asm = Assembly.LoadFile(file);
+            //if (asm == null) return null;
 
-            Type type = asm.GetType(className);
+            //var type = asm.GetType(className);
+            //if (type == null) return null;
+
+            var type = TypeX.GetType(className, true);
             if (type == null) return null;
 
             var field = FieldInfoX.Create(type, "Instance");

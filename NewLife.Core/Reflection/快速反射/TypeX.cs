@@ -14,6 +14,7 @@ using NewLife.Exceptions;
 using System.Linq;
 #else
 using NewLife.Linq;
+using NewLife.Log;
 #endif
 
 namespace NewLife.Reflection
@@ -376,29 +377,29 @@ namespace NewLife.Reflection
             if (String.IsNullOrEmpty(typeName)) throw new ArgumentNullException("typeName");
 
             // 基本获取
-            Type type = Type.GetType(typeName);
+            var type = Type.GetType(typeName);
             if (type != null) return type;
 
             #region 处理泛型
-            Int32 start = typeName.IndexOf("<");
+            var start = typeName.IndexOf("<");
             if (start > 0)
             {
-                Int32 end = typeName.LastIndexOf(">");
+                var end = typeName.LastIndexOf(">");
                 // <>也不行
                 if (end > start + 1)
                 {
                     // GT<P1,P2,P3,P4>
-                    String gname = typeName.Substring(0, start);
-                    String pname = typeName.Substring(start + 1, end - start - 1);
+                    var gname = typeName.Substring(0, start);
+                    var pname = typeName.Substring(start + 1, end - start - 1);
                     //pname = "P1,P2<aa,bb>,P3,P4";
-                    List<String> pnames = new List<String>();
+                    var pnames = new List<String>();
 
                     // 只能用栈来分析泛型参数了
-                    Int32 count = 0;
-                    Int32 last = 0;
-                    for (Int32 i = 0; i < pname.Length; i++)
+                    var count = 0;
+                    var last = 0;
+                    for (var i = 0; i < pname.Length; i++)
                     {
-                        Char item = pname[i];
+                        var item = pname[i];
 
                         if (item == '<')
                             count++;
@@ -415,16 +416,16 @@ namespace NewLife.Reflection
                     gname += "`" + pnames.Count;
 
                     // 先找外部的，如果外部都找不到，那就没意义了
-                    Type gt = GetType(gname, isLoadAssembly);
+                    var gt = GetType(gname, isLoadAssembly);
                     if (gt == null) return null;
 
-                    List<Type> ts = new List<Type>(pnames.Count);
-                    foreach (String item in pnames)
+                    var ts = new List<Type>(pnames.Count);
+                    foreach (var item in pnames)
                     {
                         // 如果任何一个参数为空，说明这只是一个泛型定义而已
                         if (String.IsNullOrEmpty(item)) return gt;
 
-                        Type t = GetType(item, isLoadAssembly);
+                        var t = GetType(item, isLoadAssembly);
                         if (t == null) return null;
 
                         ts.Add(t);
@@ -439,21 +440,21 @@ namespace NewLife.Reflection
             start = typeName.LastIndexOf("[");
             if (start > 0)
             {
-                Int32 end = typeName.LastIndexOf("]");
+                var end = typeName.LastIndexOf("]");
                 if (end > start)
                 {
                     // Int32[][]  String[,,]
-                    String gname = typeName.Substring(0, start);
-                    String pname = typeName.Substring(start + 1, end - start - 1);
+                    var gname = typeName.Substring(0, start);
+                    var pname = typeName.Substring(start + 1, end - start - 1);
 
                     // 先找外部的，如果外部都找不到，那就没意义了
-                    Type gt = GetType(gname, isLoadAssembly);
+                    var gt = GetType(gname, isLoadAssembly);
                     if (gt == null) return null;
 
                     if (String.IsNullOrEmpty(pname)) return gt.MakeArrayType();
 
                     //pname = ",,,";
-                    String[] pnames = pname.Split(new Char[] { ',' });
+                    var pnames = pname.Split(',');
                     if (pnames == null || pnames.Length < 1) return gt.MakeArrayType();
 
                     return gt.MakeArrayType(pnames.Length);
@@ -464,7 +465,7 @@ namespace NewLife.Reflection
             // 处理内嵌类型
 
             // 尝试本程序集
-            Assembly[] asms = new[] { 
+            var asms = new[] { 
                 Assembly.GetExecutingAssembly(),
                 Assembly.GetCallingAssembly(), 
                 Assembly.GetEntryAssembly() };
@@ -497,6 +498,7 @@ namespace NewLife.Reflection
                     if (type != null)
                     {
                         // 真实加载
+                        if (XTrace.Debug) XTrace.WriteLine("TypeX.GetType(\"{0}\")导致加载{1}", typeName, asm.Asm.Location);
                         var asm2 = Assembly.LoadFile(asm.Asm.Location);
                         var type2 = AssemblyX.Create(asm2).GetType(typeName);
                         if (type2 != null) type = type2;
@@ -786,7 +788,7 @@ namespace NewLife.Reflection
                     {
                         var nullableConverter = new NullableConverter(conversionType);
                         conversionType = nullableConverter.UnderlyingType;
-                    } 
+                    }
                     value = Convert.ChangeType(value, conversionType);
                 }
                 //else if (conversionType.IsInterface)

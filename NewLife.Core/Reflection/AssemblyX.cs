@@ -186,7 +186,7 @@ namespace NewLife.Reflection
         {
             get
             {
-                foreach (Type item in Types)
+                foreach (var item in Types)
                 {
                     yield return TypeX.Create(item);
                 }
@@ -381,6 +381,7 @@ namespace NewLife.Reflection
                     if (ts != null && ts.Count > 0)
                     {
                         // 真实加载
+                        if (XTrace.Debug) XTrace.WriteLine("AssemblyX.FindAllPlugins(\"{0}\")导致加载{1}", baseType.FullName, item.Asm.Location);
                         var asm2 = Assembly.LoadFile(item.Asm.Location);
                         ts = Create(asm2).FindPlugins(baseType);
 
