@@ -498,8 +498,15 @@ namespace NewLife.Reflection
                     if (type != null)
                     {
                         // 真实加载
-                        if (XTrace.Debug) XTrace.WriteLine("TypeX.GetType(\"{0}\")导致加载{1}", typeName, asm.Asm.Location);
-                        var asm2 = Assembly.LoadFile(asm.Asm.Location);
+                        //var file = asm.Asm.CodeBase;
+                        //if (String.IsNullOrEmpty(file))
+                        //    file = asm.Asm.Location;
+                        //else if (file.StartsWith("file:///"))
+                        //    file = file.Substring("file:///".Length);
+                        // ASP.Net中不会锁定原始DLL文件
+                        var file = asm.Asm.Location;
+                        if (XTrace.Debug) XTrace.WriteLine("TypeX.GetType(\"{0}\")导致加载{1}", typeName, file);
+                        var asm2 = Assembly.LoadFile(file);
                         var type2 = AssemblyX.Create(asm2).GetType(typeName);
                         if (type2 != null) type = type2;
 
