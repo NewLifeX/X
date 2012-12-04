@@ -8,7 +8,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head id="Head1" runat="server">
-    <title></title>
+    <title>系统信息</title>
     <link href="images/css.css" rel="stylesheet" type="text/css" />
 </head>
 <body>
@@ -27,7 +27,7 @@
                 应用系统：
             </td>
             <td class="value">
-                <%= HttpRuntime.AppDomainAppVirtualPath%>
+                <%= HttpRuntime.AppDomainAppVirtualPath%>&nbsp;<a href="?Act=Restart" onclick="return confirm('仅重启ASP.Net应用程序域，而不是操作系统！\n确认重启？')">重启应用系统</a>
             </td>
             <td class="name">
                 目录：

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Web;
 using System.Web.UI.WebControls;
 using NewLife.CommonEntity;
@@ -14,6 +15,13 @@ public partial class Pages_Main : System.Web.UI.Page
         {
             Response.Write("无权访问！");
             Response.End();
+            return;
+        }
+
+        if (Request["Act"] == "Restart")
+        {
+            HttpRuntime.UnloadAppDomain();
+            Response.Redirect(Path.GetFileName(Request.Path));
             return;
         }
 
