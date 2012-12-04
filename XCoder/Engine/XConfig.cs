@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
+using System.ComponentModel;
 using System.Text;
-using System.Xml;
 using NewLife.Xml;
 
 namespace XCoder
@@ -13,6 +11,7 @@ namespace XCoder
         #region 属性
         private String _ConnName;
         /// <summary>链接名</summary>
+        [DisplayName("链接名")]
         public String ConnName
         {
             get
@@ -25,10 +24,12 @@ namespace XCoder
 
         private String _Prefix;
         /// <summary>前缀</summary>
+        [DisplayName("前缀")]
         public String Prefix { get { return _Prefix; } set { _Prefix = value; } }
 
         private String _NameSpace;
         /// <summary>命名空间</summary>
+        [DisplayName("命名空间")]
         public String NameSpace
         {
             get { return String.IsNullOrEmpty(_NameSpace) ? EntityConnName : _NameSpace; }
@@ -37,10 +38,12 @@ namespace XCoder
 
         private String _TemplateName;
         /// <summary>模板名</summary>
+        [DisplayName("模板名")]
         public String TemplateName { get { return _TemplateName; } set { _TemplateName = value; } }
 
         private String _OutputPath;
         /// <summary>输出目录</summary>
+        [DisplayName("输出目录")]
         public String OutputPath
         {
             get { return String.IsNullOrEmpty(_OutputPath) ? EntityConnName : _OutputPath; }
@@ -49,10 +52,12 @@ namespace XCoder
 
         private Boolean _Override = true;
         /// <summary>是否覆盖目标文件</summary>
+        [DisplayName("是否覆盖目标文件")]
         public Boolean Override { get { return _Override; } set { _Override = value; } }
 
         private String _EntityConnName;
         /// <summary>实体链接名</summary>
+        [DisplayName("实体链接名")]
         public String EntityConnName
         {
             get { return String.IsNullOrEmpty(_EntityConnName) ? ConnName : _EntityConnName; }
@@ -61,6 +66,7 @@ namespace XCoder
 
         private String _BaseClass;
         /// <summary>实体基类</summary>
+        [DisplayName("实体基类")]
         public String BaseClass
         {
             get
@@ -73,14 +79,17 @@ namespace XCoder
 
         private Boolean _RenderGenEntity;
         /// <summary>生成泛型实体类</summary>
+        [DisplayName("生成泛型实体类")]
         public Boolean RenderGenEntity { get { return _RenderGenEntity; } set { _RenderGenEntity = value; } }
 
         private Boolean _NeedFix = true;
         /// <summary>是否需要修正。默认true，将根据配置删除前缀、自动化大小写和完善注释等</summary>
+        [DisplayName("是否需要修正。默认true，将根据配置删除前缀、自动化大小写和完善注释等")]
         public Boolean NeedFix { get { return _NeedFix; } set { _NeedFix = value; } }
 
         private Boolean _AutoCutPrefix;
         /// <summary>自动去除前缀</summary>
+        [DisplayName("自动去除前缀")]
         public Boolean AutoCutPrefix
         {
             get { return _AutoCutPrefix; }
@@ -89,10 +98,12 @@ namespace XCoder
 
         private Boolean _CutTableName;
         /// <summary>是否自动去除字段前面的表名</summary>
+        [DisplayName("是否自动去除字段前面的表名")]
         public Boolean AutoCutTableName { get { return _CutTableName; } set { _CutTableName = value; } }
 
         private Boolean _AutoFixWord;
         /// <summary>自动纠正大小写</summary>
+        [DisplayName("自动纠正大小写")]
         public Boolean AutoFixWord
         {
             get { return _AutoFixWord; }
@@ -101,14 +112,17 @@ namespace XCoder
 
         private Boolean _UseCNFileName;
         /// <summary>使用中文文件名</summary>
+        [DisplayName("使用中文文件名")]
         public Boolean UseCNFileName { get { return _UseCNFileName; } set { _UseCNFileName = value; } }
 
         private Boolean _UseID;
         /// <summary>强制使用ID</summary>
+        [DisplayName("强制使用ID")]
         public Boolean UseID { get { return _UseID; } set { _UseID = value; } }
 
         private Boolean _UseHeadTemplate;
         /// <summary>使用头部模版</summary>
+        [DisplayName("使用头部模版")]
         public Boolean UseHeadTemplate
         {
             get { return _UseHeadTemplate; }
@@ -117,6 +131,7 @@ namespace XCoder
 
         private String _HeadTemplate;
         /// <summary>头部模版</summary>
+        [DisplayName("头部模版")]
         public String HeadTemplate
         {
             get { return _HeadTemplate; }
@@ -125,6 +140,7 @@ namespace XCoder
 
         private Boolean _Debug;
         /// <summary>调试</summary>
+        [DisplayName("调试")]
         public Boolean Debug
         {
             get { return _Debug; }
@@ -133,6 +149,7 @@ namespace XCoder
 
         private DateTime _LastUpdate;
         /// <summary>最后更新时间</summary>
+        [DisplayName("最后更新时间")]
         public DateTime LastUpdate
         {
             get { return _LastUpdate; }
@@ -141,6 +158,7 @@ namespace XCoder
 
         private SerializableDictionary<String, String> _Items;
         /// <summary> 字典属性</summary>
+        [DisplayName("数据字典")]
         public SerializableDictionary<String, String> Items { get { return _Items ?? (_Items = new SerializableDictionary<string, string>()); } set { _Items = value; } }
         #endregion
 

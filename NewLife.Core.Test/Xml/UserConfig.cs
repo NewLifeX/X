@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using NewLife.Xml;
 using System.Xml.Serialization;
+using System.ComponentModel;
 
 namespace NewLife.Core.Test.Xml
 {
@@ -11,11 +12,13 @@ namespace NewLife.Core.Test.Xml
     public class UserConfig : XmlConfig<UserConfig>
     {
         private String _Name;
-        /// <summary>属性说明</summary>
+        /// <summary>名称</summary>
+        [DisplayName("名称")]
         public String Name { get { return _Name; } set { _Name = value; } }
 
         private String _Password;
-        /// <summary>属性说明</summary>
+        /// <summary>密码。不能为空</summary>
+        [Description("密码。不能为空")]
         public String Password { get { return _Password; } set { _Password = value; } }
 
         private Int32 _Num;
@@ -24,10 +27,12 @@ namespace NewLife.Core.Test.Xml
 
         private SerializableDictionary<String, Int32> _Dic;
         /// <summary>属性说明</summary>
+        [Description("简单字典")]
         public SerializableDictionary<String, Int32> Dic { get { return _Dic; } set { _Dic = value; } }
 
         private SerializableDictionary<String, UserConfig> _Dic2;
         /// <summary>属性说明</summary>
+        [Description("复杂字典")]
         public SerializableDictionary<String, UserConfig> Dic2 { get { return _Dic2; } set { _Dic2 = value; } }
     }
 }

@@ -5,12 +5,15 @@ using System.Xml;
 using System.Xml.Serialization;
 using NewLife.Exceptions;
 using NewLife.Reflection;
+using System.ComponentModel;
+using System.Collections.Generic;
 
 namespace NewLife.Xml
 {
     /// <summary>Xml辅助类</summary>
     public static class XmlHelper
     {
+        #region 实体转Xml
         /// <summary>序列化为Xml</summary>
         /// <param name="obj">要序列化为Xml的对象</param>
         /// <returns>Xml字符串</returns>
@@ -26,15 +29,19 @@ namespace NewLife.Xml
         /// <param name="prefix">前缀</param>
         /// <param name="ns">命名空间，设为0长度字符串可去掉默认命名空间xmlns:xsd和xmlns:xsi</param>
         /// <param name="includeDeclaration">是否包含Xml声明</param>
+        /// <param name="attachCommit">是否附加注释，附加成员的Description和DisplayName注释</param>
         /// <returns>Xml字符串</returns>
-        public static String ToXml(this Object obj, Encoding encoding = null, String prefix = null, String ns = null, Boolean includeDeclaration = false)
+        public static String ToXml(this Object obj, Encoding encoding = null, String prefix = null, String ns = null, Boolean includeDeclaration = false, Boolean attachCommit = false)
         {
             if (obj == null) throw new ArgumentNullException("obj");
-            if (encoding == null) encoding = Encoding.UTF8;
+            if (encoding == null)
+                encoding = utf8Encoding;
+            else
+                encoding = encoding.TrimPreamble();
 
             using (var stream = new MemoryStream())
             {
-                ToXml(obj, stream, encoding, prefix, ns, includeDeclaration);
+                ToXml(obj, stream, encoding, prefix, ns, includeDeclaration, attachCommit);
                 return encoding.GetString(stream.ToArray());
             }
         }
@@ -46,21 +53,25 @@ namespace NewLife.Xml
         /// <param name="prefix">前缀</param>
         /// <param name="ns">命名空间，设为0长度字符串可去掉默认命名空间xmlns:xsd和xmlns:xsi</param>
         /// <param name="includeDeclaration">是否包含Xml声明 &lt;?xml version="1.0" encoding="utf-8"?&gt;</param>
+        /// <param name="attachCommit">是否附加注释，附加成员的Description和DisplayName注释</param>
         /// <returns>Xml字符串</returns>
-        public static void ToXml(this Object obj, Stream stream, Encoding encoding = null, String prefix = null, String ns = null, Boolean includeDeclaration = false)
+        public static void ToXml(this Object obj, Stream stream, Encoding encoding = null, String prefix = null, String ns = null, Boolean includeDeclaration = false, Boolean attachCommit = false)
         {
             if (obj == null) throw new ArgumentNullException("obj");
-            if (encoding == null) encoding = Encoding.UTF8;
+            if (encoding == null) encoding = utf8Encoding;
 
             var type = obj.GetType();
             if (!type.IsPublic) throw new XException("类型{0}不是public，不能进行Xml序列化！", type.FullName);
 
             var serial = new XmlSerializer(type);
             var setting = new XmlWriterSettings();
-            setting.Encoding = encoding.TrimPreamble();
+            //setting.Encoding = encoding.TrimPreamble();
+            setting.Encoding = encoding;
             setting.Indent = true;
             // 去掉开头 <?xml version="1.0" encoding="utf-8"?>
             setting.OmitXmlDeclaration = !includeDeclaration;
+
+            var p = stream.Position;
             using (var writer = XmlWriter.Create(stream, setting))
             {
                 if (ns == null)
@@ -72,6 +83,21 @@ namespace NewLife.Xml
                     serial.Serialize(writer, obj, xsns);
                 }
             }
+            if (attachCommit)
+            {
+                if (stream is FileStream) stream.SetLength(stream.Position);
+                stream.Position = p;
+                var doc = new XmlDocument();
+                doc.Load(stream);
+                doc.DocumentElement.AttachCommit(type);
+
+                stream.Position = p;
+                //doc.Save(stream);
+                using (var writer = XmlWriter.Create(stream, setting))
+                {
+                    doc.Save(writer);
+                }
+            }
         }
 
         /// <summary>序列化为Xml文件</summary>
@@ -81,21 +107,24 @@ namespace NewLife.Xml
         /// <param name="prefix">前缀</param>
         /// <param name="ns">命名空间，设为0长度字符串可去掉默认命名空间xmlns:xsd和xmlns:xsi</param>
         /// <param name="includeDeclaration">是否包含Xml声明 &lt;?xml version="1.0" encoding="utf-8"?&gt;</param>
+        /// <param name="attachCommit">是否附加注释，附加成员的Description和DisplayName注释</param>
         /// <returns>Xml字符串</returns>
-        public static void ToXmlFile(this Object obj, String file, Encoding encoding = null, String prefix = null, String ns = null, Boolean includeDeclaration = false)
+        public static void ToXmlFile(this Object obj, String file, Encoding encoding = null, String prefix = null, String ns = null, Boolean includeDeclaration = false, Boolean attachCommit = true)
         {
             //if (File.Exists(file)) File.Delete(file);
             var dir = Path.GetDirectoryName(file);
             if (!String.IsNullOrEmpty(dir) && !Directory.Exists(dir)) Directory.CreateDirectory(dir);
 
-            using (var stream = new FileStream(file, FileMode.OpenOrCreate, FileAccess.Write))
+            using (var stream = new FileStream(file, FileMode.OpenOrCreate, FileAccess.ReadWrite))
             {
-                obj.ToXml(stream, encoding, prefix, ns, includeDeclaration);
+                obj.ToXml(stream, encoding, prefix, ns, includeDeclaration, attachCommit);
                 // 必须通过设置文件流长度来实现截断，否则后面可能会多一截旧数据
                 stream.SetLength(stream.Position);
             }
         }
+        #endregion
 
+        #region Xml转实体
         /// <summary>字符串转为Xml实体对象</summary>
         /// <typeparam name="TEntity">实体类型</typeparam>
         /// <param name="xml">Xml字符串</param>
@@ -174,7 +203,9 @@ namespace NewLife.Xml
                 return stream.ToXmlEntity<TEntity>(encoding);
             }
         }
+        #endregion
 
+        #region Xml类型转换
         /// <summary>删除字节序，硬编码支持utf-8、utf-32、Unicode三种</summary>
         /// <param name="encoding">原始编码</param>
         /// <returns>删除字节序后的编码</returns>
@@ -191,7 +222,7 @@ namespace NewLife.Xml
 
             return encoding;
         }
-        private static Encoding utf8Encoding;
+        private static Encoding utf8Encoding = new UTF8Encoding(false);
         private static Encoding utf32Encoding;
         private static Encoding unicodeEncoding;
 
@@ -237,5 +268,85 @@ namespace NewLife.Xml
 
             return mix.Invoke(null, xml);
         }
+        #endregion
+
+        #region Xml注释
+        /// <summary>是否拥有注释</summary>
+        private static Dictionary<Type, Boolean> typeHasCommit = new Dictionary<Type, Boolean>();
+
+        /// <summary>附加注释</summary>
+        /// <param name="node"></param>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        public static XmlNode AttachCommit(this XmlNode node, Type type)
+        {
+            if (node == null || type == null) return node;
+            if (node.ChildNodes == null || node.ChildNodes.Count < 1) return node;
+
+            // 如果没有注释
+            var rs = false;
+            if (typeHasCommit.TryGetValue(type, out rs) && !rs) return node;
+
+            rs = node.AttachCommitInternal(type);
+            if (!typeHasCommit.ContainsKey(type))
+            {
+                lock (typeHasCommit)
+                {
+                    if (!typeHasCommit.ContainsKey(type))
+                    {
+                        typeHasCommit.Add(type, rs);
+                    }
+                }
+            }
+
+            return node;
+        }
+
+        static Boolean AttachCommitInternal(this XmlNode node, Type type)
+        {
+            var rs = false;
+            for (int i = 0; i < node.ChildNodes.Count; i++)
+            {
+                var curNode = node.ChildNodes[i];
+                // 如果当前是注释，跳过两个，下一个也不处理了
+                if (curNode.NodeType == XmlNodeType.Comment)
+                {
+                    i++;
+                    continue;
+                }
+                // 如果前一个是注释，跳过
+                if (i > 0 && node.ChildNodes[i - 1].NodeType == XmlNodeType.Comment) continue;
+
+                // 找到对应的属性
+                var name = curNode.Name;
+                var pix = PropertyInfoX.Create(type, name);
+                if (pix == null) continue;
+
+                // 查找特性
+                var commit = String.Empty;
+                var att = pix.Property.GetCustomAttribute<DescriptionAttribute>(true);
+                if (att != null)
+                    commit = att.Description;
+                else
+                {
+                    var att2 = pix.Property.GetCustomAttribute<DisplayNameAttribute>(true);
+                    if (att2 != null) commit = att2.DisplayName;
+                }
+                if (!commit.IsNullOrWhiteSpace())
+                {
+                    rs = true;
+
+                    var cm = curNode.OwnerDocument.CreateComment(commit);
+                    node.InsertBefore(cm, curNode);
+                    i++;
+                }
+
+                // 递归。因为必须依赖于Xml树，所以不用担心死循环
+                if (Type.GetTypeCode(pix.Type) == TypeCode.Object) rs |= curNode.AttachCommitInternal(pix.Type);
+            }
+
+            return rs;
+        }
+        #endregion
     }
 }

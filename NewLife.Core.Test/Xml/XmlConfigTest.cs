@@ -1,10 +1,7 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NewLife.Xml;
-using System.Xml;
-using System.IO;
+﻿using System.IO;
 using System.Threading;
-using System.Collections.Generic;
-using System;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NewLife.Xml;
 
 namespace NewLife.Core.Test.Xml
 {
@@ -52,7 +49,7 @@ namespace NewLife.Core.Test.Xml
         //}
         //
         #endregion
-        
+
         [TestMethod()]
         public void CurrentTest()
         {
@@ -77,7 +74,7 @@ namespace NewLife.Core.Test.Xml
             config.Save();
 
             var xml1 = File.ReadAllText(UserConfig._.ConfigFile);
-            var xml2 = config.ToXml(null, "", "", true);
+            var xml2 = config.ToXml(null, "", "", true, true);
             Assert.AreEqual(xml1, xml2, "序列化有问题！");
         }
 

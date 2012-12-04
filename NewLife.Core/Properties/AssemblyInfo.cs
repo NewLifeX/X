@@ -34,9 +34,12 @@ using System.Runtime.InteropServices;
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("3.8.*")]
-[assembly: AssemblyFileVersion("3.8.2012.1121")]
+[assembly: AssemblyFileVersion("3.8.2012.1204")]
 
 /*
+ * v3.8.2012.1204   XmlHelper增加注入注释的扩展AttachCommit
+ *                  XmlConfig默认写入Description和DisplayName作为注释
+ * 
  * v3.8.2012.1121   路径扩展助手增加路径绑定CombinePath
  *                  压缩类ZipFile增加读取延迟机制，在构造对象后并不会马上读取压缩包，以便于在读取前设置各种参数
  * 
