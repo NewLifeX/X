@@ -8,11 +8,21 @@ using NewLife.Threading;
 namespace NewLife.Xml
 {
     /// <summary>Xml配置文件基类</summary>
+    /// <remarks>
+    /// 标准用法：TConfig.Current
+    /// 
+    /// 配置实体类通过<see cref="XmlConfigFileAttribute"/>特性指定配置文件路径以及自动更新时间。
+    /// Current将加载配置文件，如果文件不存在或者加载失败，将实例化一个对象返回。
+    /// 
+    /// 考虑到自动刷新，不提供LoadFile和SaveFile等方法，可通过扩展方法ToXmlFileEntity和ToXmlFile实现。
+    /// 
+    /// 用户也可以通过配置实体类的静态构造函数修改基类的<see cref="_.ConfigFile"/>和<see cref="_.ReloadTime"/>来动态配置加载信息。
+    /// </remarks>
     /// <typeparam name="TConfig"></typeparam>
     public class XmlConfig<TConfig> where TConfig : XmlConfig<TConfig>, new()
     {
         private static TConfig _Current;
-        /// <summary>当前实例。通过置空可以使其重新加载</summary>
+        /// <summary>当前实例。通过置空可以使其重新加载。</summary>
         public static TConfig Current
         {
             get
@@ -23,8 +33,10 @@ namespace NewLife.Xml
                 {
                     // 现存有对象，尝试再次加载，可能因为未修改而返回null，这样只需要返回现存对象即可
                     if (!IsUpdated) return config;
+
                     var cfg = Load();
                     if (cfg == null) return config;
+
                     _Current = cfg;
                     return cfg;
                 }
