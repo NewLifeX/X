@@ -62,13 +62,14 @@ namespace XCode.Configuration
             {
                 if (String.IsNullOrEmpty(_TableName))
                 {
-                    BindTableAttribute table = Table;
-                    String str = table != null ? table.Name : EntityType.Name;
+                    var table = Table;
+                    var str = table != null ? table.Name : EntityType.Name;
+                    var conn = ConnName;
 
-                    if (DAL.ConnStrs.ContainsKey(ConnName))
+                    if (conn != null && DAL.ConnStrs.ContainsKey(conn))
                     {
                         // 特殊处理Oracle数据库，在表名前加上方案名（用户名）
-                        DAL dal = DAL.Create(ConnName);
+                        var dal = DAL.Create(conn);
                         if (dal != null && !str.Contains("."))
                         {
                             if (dal.DbType == DatabaseType.Oracle)
@@ -77,7 +78,7 @@ namespace XCode.Configuration
                                 //String UserID = (dal.Db as Oracle).UserID;
                                 //if (!String.IsNullOrEmpty(UserID)) str = UserID + "." + str;
 
-                                DbConnectionStringBuilder ocsb = dal.Db.Factory.CreateConnectionStringBuilder();
+                                var ocsb = dal.Db.Factory.CreateConnectionStringBuilder();
                                 ocsb.ConnectionString = dal.ConnStr;
                                 if (ocsb.ContainsKey("User ID")) str = (String)ocsb["User ID"] + "." + str;
                             }
