@@ -64,7 +64,7 @@ namespace XCode.DataAccessLayer
                     {
                         _Conn = Factory.CreateConnection();
                     }
-                    catch (ObjectDisposedException) { this.Dispose(); return null; }
+                    catch (ObjectDisposedException) { this.Dispose(); throw; }
                     //_Conn.ConnectionString = Database.ConnectionString;
                     _Conn.ConnectionString = ConnectionString;
                 }
@@ -228,6 +228,8 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public Int32 BeginTransaction()
         {
+            if (Disposed) throw new ObjectDisposedException(this.GetType().Name);
+
             TransactionCount++;
             if (TransactionCount > 1) return TransactionCount;
 
