@@ -68,6 +68,7 @@ namespace NewLife.Collections
         /// <returns></returns>
         public bool Contains(T item)
         {
+            if (item == null) return false;
             return _dic.ContainsKey(item);
         }
 
