@@ -10,11 +10,12 @@ using System.Runtime.Serialization;
 using System.Text;
 using NewLife.Collections;
 using NewLife.Exceptions;
+using NewLife.Log;
+
 #if NET4
 using System.Linq;
 #else
 using NewLife.Linq;
-using NewLife.Log;
 #endif
 
 namespace NewLife.Reflection
@@ -105,10 +106,7 @@ namespace NewLife.Reflection
         {
             if (type == null) throw new ArgumentNullException("type");
 
-            return cache.GetItem(type, delegate(Type key)
-            {
-                return new TypeX(key);
-            });
+            return cache.GetItem(type, key => new TypeX(key));
         }
         #endregion
 
@@ -267,8 +265,6 @@ namespace NewLife.Reflection
         #endregion
 
         #region 扩展属性
-        private List<String> hasLoad = new List<String>();
-
         /// <summary>是否系统类型</summary>
         /// <returns></returns>
         public Boolean IsSystemType
@@ -277,23 +273,6 @@ namespace NewLife.Reflection
             {
                 return Type.Assembly.FullName.EndsWith("PublicKeyToken=b77a5c561934e089");
             }
-        }
-
-        private String _Description;
-        /// <summary>说明</summary>
-        public String Description
-        {
-            get
-            {
-                if (String.IsNullOrEmpty(_Description) && !hasLoad.Contains("Description"))
-                {
-                    hasLoad.Add("Description");
-
-                    _Description = GetCustomAttributeValue<DescriptionAttribute, String>();
-                }
-                return _Description;
-            }
-            //set { _Description = value; }
         }
         #endregion
 
@@ -987,9 +966,15 @@ namespace NewLife.Reflection
         //    return Type.IsAssignableFrom(c);
         //}
 
+        /// <summary>基础类型代码</summary>
+        public TypeCode Code { get { return Type.GetTypeCode(Type); } }
+
         /// <summary>获取一个值，该值指示当前的 <see cref="T:System.Type" /> 是否表示枚举。</summary>
         /// <returns>如果当前 <see cref="T:System.Type" /> 表示枚举，则为 true；否则为 false。</returns>
         public Boolean IsEnum { get { return IsSubclassOf(_.Enum); } }
+
+        /// <summary>是否整型。从Int16到UInt64共六种</summary>
+        public Boolean IsInt { get { var code = Code; return code >= TypeCode.Int16 && code <= TypeCode.UInt64; } }
 
         private Boolean initIsValueType;
         private Boolean _IsValueType;
