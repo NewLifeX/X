@@ -142,7 +142,7 @@ input[type="submit"], .manager-page #ctl00_C_btnSearch, .manager-page #ctl00_C_B
     border: 1px solid;
     border-color: #bebebe #e1e1e1 #e1e1e1 #bebebe;
     padding: 3px;
-    background: url(input_bg.jpg) repeat-x 0px 0px;
+    /*background: url(input_bg.jpg) repeat-x 0px 0px;*/
     margin-right: 7px;
 }
 .m_table input[type=text]
@@ -150,7 +150,7 @@ input[type="submit"], .manager-page #ctl00_C_btnSearch, .manager-page #ctl00_C_B
     border: 1px solid;
     border-color: #bebebe #e1e1e1 #e1e1e1 #bebebe;
     padding: 3px;
-    background: url(input_bg.jpg) repeat-x 0px 0px;
+    /*background: url(input_bg.jpg) repeat-x 0px 0px;*/
     margin-right: 7px;
 }
 .tag

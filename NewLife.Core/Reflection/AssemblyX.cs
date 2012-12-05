@@ -522,6 +522,7 @@ namespace NewLife.Reflection
         public static List<AssemblyX> GetMyAssemblies()
         {
             var list = new List<AssemblyX>();
+            var hs = new List<String>();
             var cur = AppDomain.CurrentDomain.BaseDirectory.ToLower();
             foreach (var asmx in GetAssemblies())
             {
@@ -533,7 +534,27 @@ namespace NewLife.Reflection
                 file = file.Replace("/", "\\");
                 if (!file.StartsWith(cur)) continue;
 
-                list.Add(asmx);
+                if (!hs.Contains(file))
+                {
+                    hs.Add(file);
+                    list.Add(asmx);
+                }
+            }
+            foreach (var asmx in ReflectionOnlyGetAssemblies())
+            {
+                if (String.IsNullOrEmpty(asmx.FileVersion)) continue;
+                var file = asmx.Asm.CodeBase;
+                if (String.IsNullOrEmpty(file)) continue;
+                file = file.ToLower();
+                if (file.StartsWith("file:///")) file = file.Substring("file:///".Length);
+                file = file.Replace("/", "\\");
+                if (!file.StartsWith(cur)) continue;
+
+                if (!hs.Contains(file))
+                {
+                    hs.Add(file);
+                    list.Add(asmx);
+                }
             }
             return list;
         }
