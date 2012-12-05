@@ -94,38 +94,9 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public static PropertyInfoX Create(PropertyInfo property)
         {
-            ////PropertyInfoX obj = new PropertyInfoX(property);
-            ////FastGetValueHandler h1 = obj.GetValue;
-            ////FastSetValueHandler h2 = obj.SetValue;
-
-            //Type t1 = typeof(FastSetValueHandler);
-            //Type t2 = typeof(FastSetValueHandler);
-            //TypeX tt1 = TypeX.Create(t1);
-            //TypeX tt2 = TypeX.Create(t2);
-
-
-
             if (property == null) return null;
 
-            return cache.GetItem(property, delegate(PropertyInfo key)
-            {
-                return new PropertyInfoX(key);
-            });
-            //if (cache.ContainsKey(property)) return cache[property];
-            //lock (cache)
-            //{
-            //    if (cache.ContainsKey(property)) return cache[property];
-
-            //    PropertyInfoX entity = new PropertyInfoX(property);
-
-            //    //entity.Property = property;
-            //    entity.gethandler = GetValueInvoker(property);
-            //    entity.sethandler = SetValueInvoker(property);
-
-            //    cache.Add(property, entity);
-
-            //    return entity;
-            //}
+            return cache.GetItem(property, key => new PropertyInfoX(key));
         }
 
         /// <summary>创建</summary>
@@ -134,13 +105,13 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public new static PropertyInfoX Create(Type type, String name)
         {
-            PropertyInfo property = type.GetProperty(name);
+            var property = type.GetProperty(name);
             if (property == null) property = type.GetProperty(name, DefaultBinding);
             if (property == null) property = type.GetProperty(name, DefaultBinding | BindingFlags.IgnoreCase);
             if (property == null)
             {
-                PropertyInfo[] ps = type.GetProperties();
-                foreach (PropertyInfo item in ps)
+                var ps = type.GetProperties();
+                foreach (var item in ps)
                 {
                     if (String.Equals(item.Name, name, StringComparison.OrdinalIgnoreCase))
                     {

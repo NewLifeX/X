@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel;
 using System.Reflection;
 
 namespace NewLife.Reflection
@@ -9,17 +11,10 @@ namespace NewLife.Reflection
         #region 属性
         private MemberInfo _Member;
         /// <summary>成员</summary>
-        public MemberInfo Member
-        {
-            get { return _Member; }
-            set { _Member = value; }
-        }
+        public MemberInfo Member { get { return _Member; } set { _Member = value; } }
 
         /// <summary>名称</summary>
-        public virtual String Name
-        {
-            get { return Member.Name; }
-        }
+        public virtual String Name { get { return Member.Name; } }
 
         /// <summary>默认查找标志</summary>
         public const BindingFlags DefaultBinding = BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
@@ -79,6 +74,41 @@ namespace NewLife.Reflection
                 return _DocName;
             }
             //set { _DocName = value; }
+        }
+
+        private List<String> hasLoad = new List<String>();
+
+        private String _DisplayName;
+        /// <summary>显示名</summary>
+        public String DisplayName
+        {
+            get
+            {
+                if (String.IsNullOrEmpty(_DisplayName) && !hasLoad.Contains("DisplayName"))
+                {
+                    hasLoad.Add("DisplayName");
+
+                    _DisplayName = GetCustomAttributeValue<DisplayNameAttribute, String>();
+                    if (_DisplayName.IsNullOrWhiteSpace()) _DisplayName = Name;
+                }
+                return _DisplayName;
+            }
+        }
+
+        private String _Description;
+        /// <summary>说明</summary>
+        public String Description
+        {
+            get
+            {
+                if (String.IsNullOrEmpty(_Description) && !hasLoad.Contains("Description"))
+                {
+                    hasLoad.Add("Description");
+
+                    _Description = GetCustomAttributeValue<DescriptionAttribute, String>();
+                }
+                return _Description;
+            }
         }
         #endregion
 
@@ -231,15 +261,24 @@ namespace NewLife.Reflection
         {
             if (method == null) throw new ArgumentNullException("method");
 
-            ParameterInfo[] ps = method.GetParameters();
+            var ps = method.GetParameters();
             if (ps == null || ps.Length < 1) return false;
 
-            foreach (ParameterInfo item in ps)
+            foreach (var item in ps)
             {
                 if (item.ParameterType.IsByRef) return true;
             }
 
             return false;
+        }
+
+        /// <summary>获取自定义属性的值。可用于ReflectionOnly加载的程序集</summary>
+        /// <typeparam name="TAttribute"></typeparam>
+        /// <typeparam name="TResult"></typeparam>
+        /// <returns></returns>
+        public TResult GetCustomAttributeValue<TAttribute, TResult>()
+        {
+            return Member.GetCustomAttributeValue<TAttribute, TResult>(true);
         }
         #endregion
     }

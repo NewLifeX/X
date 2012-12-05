@@ -1,7 +1,6 @@
-﻿using System.Collections.Generic;
-using System.Reflection;
-using NewLife.Reflection;
+﻿using System.Reflection;
 using NewLife.Collections;
+using NewLife.Reflection;
 
 namespace System
 {
@@ -16,7 +15,7 @@ namespace System
         /// <param name="member"></param>
         /// <param name="inherit"></param>
         /// <returns></returns>
-        public static TAttribute[] GetCustomAttributes<TAttribute>(this MemberInfo member, Boolean inherit)
+        public static TAttribute[] GetCustomAttributes<TAttribute>(this MemberInfo member, Boolean inherit = true)
         {
             if (member == null) return new TAttribute[0];
 
@@ -41,7 +40,7 @@ namespace System
         /// <param name="member"></param>
         /// <param name="inherit"></param>
         /// <returns></returns>
-        public static TAttribute GetCustomAttribute<TAttribute>(this MemberInfo member, Boolean inherit)
+        public static TAttribute GetCustomAttribute<TAttribute>(this MemberInfo member, Boolean inherit = true)
         {
             var atts = member.GetCustomAttributes<TAttribute>(inherit);
             if (atts == null || atts.Length < 1) return default(TAttribute);
@@ -108,7 +107,7 @@ namespace System
         /// <param name="target"></param>
         /// <param name="inherit">是否递归</param>
         /// <returns></returns>
-        public static TResult GetCustomAttributeValue<TAttribute, TResult>(this Type target, Boolean inherit)
+        public static TResult GetCustomAttributeValue<TAttribute, TResult>(this MemberInfo target, Boolean inherit = true)
         {
             if (target == null) return default(TResult);
 
@@ -124,9 +123,9 @@ namespace System
                     if (args != null && args.Count > 0) return (TResult)args[0].Value;
                 }
             }
-            if (inherit)
+            if (inherit && target is Type)
             {
-                target = target.BaseType;
+                target = (target as Type).BaseType;
                 if (target != null && target != typeof(Object))
                     return GetCustomAttributeValue<TAttribute, TResult>(target, inherit);
             }

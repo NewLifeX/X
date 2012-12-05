@@ -505,57 +505,9 @@ namespace NewLife.Reflection
 
             return null;
         }
-
-        //static DictionaryCache<String, Type> typeCache2 = new DictionaryCache<String, Type>();
-        ///// <summary>
-        ///// 从指定程序集查找指定名称的类型，如果查找不到，则进行忽略大小写的查找
-        ///// </summary>
-        ///// <param name="asm"></param>
-        ///// <param name="typeName"></param>
-        ///// <returns></returns>
-        //public static Type GetType(Assembly asm, String typeName)
-        //{
-        //    if (asm == null) throw new ArgumentNullException("asm");
-        //    if (String.IsNullOrEmpty(typeName)) throw new ArgumentNullException("typeName");
-
-        //    return typeCache2.GetItem<Assembly>(typeName, asm, GetTypeInternal);
-        //}
-
-        //private static Type GetTypeInternal(String typeName, Assembly asm)
-        //{
-        //    Type type = asm.GetType(typeName);
-        //    if (type == null) type = asm.GetType(typeName, false, true);
-        //    if (type == null)
-        //    {
-        //        Type[] ts = asm.GetTypes();
-        //        foreach (Type item in ts)
-        //        {
-        //            if (item.Name == typeName)
-        //            {
-        //                type = item;
-        //                break;
-        //            }
-        //        }
-        //        if (type == null)
-        //        {
-        //            foreach (Type item in ts)
-        //            {
-        //                if (String.Equals(item.Name, typeName, StringComparison.OrdinalIgnoreCase))
-        //                {
-        //                    type = item;
-        //                    break;
-        //                }
-        //            }
-        //        }
-        //    }
-
-        //    return type;
-        //}
         #endregion
 
         #region 获取方法
-        //private DictionaryCache<String, MethodInfo> _mdCache = new DictionaryCache<String, MethodInfo>();
-
         /// <summary>获取方法。</summary>
         /// <remarks>用于具有多个签名的同名方法的场合，不确定是否存在性能问题，不建议普通场合使用</remarks>
         /// <param name="type"></param>
@@ -611,11 +563,7 @@ namespace NewLife.Reflection
         /// <param name="name"></param>
         /// <param name="paramTypes"></param>
         /// <returns></returns>
-        public MethodInfo GetMethod(String name, Type[] paramTypes) { return GetMethod(Type, name, paramTypes); }
-
-        //private MethodInfo[] _Methods;
-        ///// <summary>方法集合</summary>
-        //private MethodInfo[] Methods { get { return _Methods ?? (_Methods = BaseType.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance) ?? new MethodInfo[0]); } }
+        public MethodInfoX GetMethod(String name, Type[] paramTypes) { return GetMethod(Type, name, paramTypes); }
 
         private static Binder _Binder;
         /// <summary>专用绑定器</summary>
@@ -689,6 +637,26 @@ namespace NewLife.Reflection
         }
         #endregion
 
+        #region 获取属性或字段
+        private PropertyInfoX[] _Properties;
+        /// <summary>属性集合</summary>
+        public PropertyInfoX[] Properties
+        {
+            get
+            {
+                if (_Properties == null)
+                {
+                    var pis = Type.GetProperties();
+                    if (pis == null || pis.Length < 1)
+                        _Properties = new PropertyInfoX[0];
+                    else
+                        _Properties = pis.Select(e => PropertyInfoX.Create(e)).ToArray();
+                }
+                return _Properties;
+            }
+        }
+        #endregion
+
         #region 辅助方法
         /// <summary>已重载。</summary>
         /// <returns></returns>
@@ -710,15 +678,6 @@ namespace NewLife.Reflection
             if (type1 == type2) return true;
 
             return type1.FullName == type2.FullName && type1.AssemblyQualifiedName == type2.AssemblyQualifiedName;
-        }
-
-        /// <summary>获取自定义属性的值。可用于ReflectionOnly加载的程序集</summary>
-        /// <typeparam name="TAttribute"></typeparam>
-        /// <typeparam name="TResult"></typeparam>
-        /// <returns></returns>
-        public TResult GetCustomAttributeValue<TAttribute, TResult>()
-        {
-            return Type.GetCustomAttributeValue<TAttribute, TResult>(true);
         }
 
         /// <summary>类型转换</summary>
