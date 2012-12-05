@@ -13,6 +13,8 @@ public partial class Admin_Default : System.Web.UI.Page
     /// <summary>默认内容页</summary>
     public String DefaultMain { get { return _DefaultMain; } set { _DefaultMain = value; } }
 
+    protected IAdministrator Current { get { return CommonManageProvider.Provider.Current as IAdministrator; } }
+
     /// <summary>系统配置。如果重载，修改这里即可。</summary>
     public static SysConfig Config { get { return SysConfig.Current; } }
 

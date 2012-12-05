@@ -48,7 +48,8 @@
                 </div>
                 <div class="toolbar" style="height: 23px;">
                     <div style="float: left; padding-left: 10px;">
-                        用户：<%=ManageProvider.Provider.Current.ToString()%>
+                        欢迎！<a href="Sys/AdminInfo.aspx?ID=<%=Current.ID%>" target="main" style="float: none; background:none;">
+                            <%=Current.Name%>[<%= Current.RoleName%>] </a>&nbsp; 当前IP：<%= NewLife.Web.WebHelper.UserHost %>
                         <span style="color: Blue; cursor: pointer;" onclick="location='Default.aspx?act=logout'"
                             title="注销当前登录用户，回到登录界面！">注销</span>
                     </div>
