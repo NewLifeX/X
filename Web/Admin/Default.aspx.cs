@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using NewLife.Common;
 using NewLife.CommonEntity;
-using NewLife.Reflection;
-using XCode;
 
-public partial class Center_Default : System.Web.UI.Page
+public partial class Admin_Default : System.Web.UI.Page
 {
     private String _DefaultLeft = "Frame/Left.aspx";
     /// <summary>默认左菜单</summary>
@@ -14,10 +13,11 @@ public partial class Center_Default : System.Web.UI.Page
     /// <summary>默认内容页</summary>
     public String DefaultMain { get { return _DefaultMain; } set { _DefaultMain = value; } }
 
+    /// <summary>系统配置。如果重载，修改这里即可。</summary>
+    public static SysConfig Config { get { return SysConfig.Current; } }
+
     protected override void OnPreLoad(EventArgs e)
     {
-        //PageBase.CheckStarting();
-
         base.OnPreLoad(e);
 
         IManageUser user = ManageProvider.Provider.Current;
@@ -63,7 +63,8 @@ public partial class Center_Default : System.Web.UI.Page
             }
         }
 
-        //IMenu root = CommonManageProvider.Provider.MenuRoot;
+        #region 自动修正菜单
+        // 自动修正菜单中英文
         if (root != null)
         {
             root.CheckMenuName("Admin", "管理平台")
@@ -71,19 +72,42 @@ public partial class Center_Default : System.Web.UI.Page
                 .CheckMenuName(@"Admin\Advance", "高级设置")
                 .CheckMenuName(@"Admin\Help", "帮助手册");
 
+            // 自动挂载Main.aspx
             IMenu menu = root.FindByPath("Admin");
             if (menu != null && menu.Url == "../Admin/Default.aspx")
             {
                 menu.Url = "../Admin/Main.aspx";
                 menu.Save();
             }
+            if (menu != null)
+            {
+                #region 自动排序
+                IMenu menu2 = menu.FindByPath("Sys");
+                if (menu2 != null)
+                {
+                    menu2.Sort = 3;
+                    menu2.Save();
+                }
+                menu2 = menu.FindByPath("Advance");
+                if (menu2 != null)
+                {
+                    menu2.Sort = 2;
+                    menu2.Save();
+                }
+                menu2 = menu.FindByPath("Help");
+                if (menu2 != null)
+                {
+                    menu2.Sort = 1;
+                    menu2.Save();
+                }
+                #endregion
+            }
         }
+        #endregion
     }
 
     protected void Page_Load(object sender, EventArgs e)
     {
-        this.Title = SysSetting.DisplayName;
-
-        if (!IsPostBack) { }
+        this.Title = Config.DisplayName;
     }
 }

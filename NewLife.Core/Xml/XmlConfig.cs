@@ -4,6 +4,7 @@ using System.Text;
 using System.Xml.Serialization;
 using NewLife.Log;
 using NewLife.Threading;
+using NewLife.Exceptions;
 
 namespace NewLife.Xml
 {
@@ -44,7 +45,21 @@ namespace NewLife.Xml
                 {
                     // 现在没有对象，尝试加载，若返回null则实例化一个新的
                     config = Load();
-                    if (config == null) config = new TConfig();
+                    if (config == null)
+                    {
+                        config = new TConfig();
+
+                        // 创建或覆盖
+                        if (XTrace.Debug) XTrace.WriteLine("{0}的配置文件{1}不存在或加载出错，准备用默认配置覆盖！", typeof(TConfig).Name, _.ConfigFile);
+                        try
+                        {
+                            config.Save();
+                        }
+                        catch (Exception ex)
+                        {
+                            XTrace.WriteException(ex);
+                        }
+                    }
                     _Current = config;
                     return config;
                 }
@@ -114,7 +129,9 @@ namespace NewLife.Xml
         static TConfig Load()
         {
             var filename = _.ConfigFile;
-            if (filename.IsNullOrWhiteSpace() && !File.Exists(filename)) return null;
+            if (filename.IsNullOrWhiteSpace()) return null;
+            filename = filename.GetFullPath();
+            if (!File.Exists(filename)) return null;
 
             try
             {
@@ -137,7 +154,11 @@ namespace NewLife.Xml
         /// <summary>保存到配置文件中去</summary>
         public virtual void Save()
         {
-            this.ToXmlFile(_.ConfigFile, null, "", "", true, true);
+            var filename = _.ConfigFile;
+            if (filename.IsNullOrWhiteSpace()) throw new XException("未指定{0}的配置文件路径！", typeof(TConfig).Name);
+            filename = filename.GetFullPath();
+
+            this.ToXmlFile(filename, null, "", "", true, true);
         }
     }
 }

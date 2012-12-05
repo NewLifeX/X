@@ -1,4 +1,4 @@
-﻿<%@ Page Language="C#" AutoEventWireup="true" CodeFile="Default.aspx.cs" Inherits="Center_Default" %>
+﻿<%@ Page Language="C#" AutoEventWireup="true" CodeFile="Default.aspx.cs" Inherits="Admin_Default" %>
 
 <%@ Import Namespace="NewLife.CommonEntity" %>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -44,7 +44,7 @@
             <td style="height: 70px; overflow: hidden" colspan="3" id="top" valign="bottom">
                 <div style="padding-left: 30px; font-size: 20px; line-height: 35px; font-weight: bold;
                     color: #019401">
-                    <%=SysSetting.DisplayName%> v<%=SysSetting.Version %><font style="font-size:12px; color:Blue;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;——<%=SysSetting.Company%></font>
+                    <%=Config.DisplayName%> v<%=Config.Version%><font style="font-size:12px; color:Blue;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;——<%=Config.Company%></font>
                 </div>
                 <div class="toolbar" style="height: 23px;">
                     <div style="float: left; padding-left: 10px;">

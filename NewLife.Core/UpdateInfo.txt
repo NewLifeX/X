@@ -1,4 +1,6 @@
-﻿v3.8.2012.1204   XmlHelper增加注入注释的扩展AttachCommit
+﻿v3.8.2012.1205   新增系统配置类SysConfig
+
+v3.8.2012.1204   XmlHelper增加注入注释的扩展AttachCommit
                  XmlConfig默认写入Description和DisplayName作为注释
 
 v3.8.2012.1121   路径扩展助手增加路径绑定CombinePath

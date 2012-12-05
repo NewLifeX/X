@@ -322,16 +322,26 @@ namespace NewLife.Xml
                 var pix = PropertyInfoX.Create(type, name);
                 if (pix == null) continue;
 
-                // 查找特性
+                #region 从特性中获取注释
                 var commit = String.Empty;
-                var att = pix.Property.GetCustomAttribute<DescriptionAttribute>(true);
-                if (att != null)
-                    commit = att.Description;
-                else
+                var des = pix.Property.GetCustomAttribute<DescriptionAttribute>(true);
+                var dis = pix.Property.GetCustomAttribute<DisplayNameAttribute>(true);
+                if (des != null && dis == null)
+                    commit = des.Description;
+                else if (des == null && dis != null)
+                    commit = dis.DisplayName;
+                else if (des != null && dis != null)
                 {
-                    var att2 = pix.Property.GetCustomAttribute<DisplayNameAttribute>(true);
-                    if (att2 != null) commit = att2.DisplayName;
+                    // DisplayName。Description
+                    if (des.Description == null && !dis.DisplayName.IsNullOrWhiteSpace() || !des.Description.Contains(dis.DisplayName))
+                    {
+                        commit = dis.DisplayName;
+                        if (!commit.EndsWith(".") || commit.EndsWith("。")) commit += "。";
+                    }
+                    if (!des.Description.IsNullOrWhiteSpace()) commit += des.Description;
                 }
+                #endregion
+
                 if (!commit.IsNullOrWhiteSpace())
                 {
                     rs = true;

@@ -9,6 +9,7 @@ namespace NewLife.CommonEntity
     /// <remarks>
     /// 由<see cref="Setting"/>支撑，也可自己扩展<see cref="Setting"/>，然后修改这里的<see cref="Sys"/>。
     /// </remarks>
+    [Obsolete("后续版本不再支持！请改用NewLife.SysConfig类。")]
     public static class SysSetting
     {
         #region 属性

@@ -244,7 +244,9 @@ public partial class Admin_System_WebDb : MyEntityList
         if (dal == null) return;
 
         // 总行数
-        Int32 count = dal.SelectCount(sql, "");
+        SelectBuilder sb = new SelectBuilder();
+        sb.Parse(sql);
+        Int32 count = dal.SelectCount(sb, "");
         DataPager1.TotalRowCount = count;
         lbResult.Text = String.Format("总记录数：{0}", count);
 
@@ -264,9 +266,10 @@ public partial class Admin_System_WebDb : MyEntityList
         String key = txtKey.Text;
         if (String.IsNullOrEmpty(key)) key = "ID";
 
-        sql = dal.PageSplit(sql, index * gvResult.PageSize, gvResult.PageSize, key);
+        sb.Key = key;
+        sql = dal.PageSplit(sb, index * gvResult.PageSize, gvResult.PageSize);
 
-        DataSet ds = dal.Select(sql, "");
+        DataSet ds = dal.Select(sb, "");
         gvResult.DataSource = ds;
         gvResult.DataBind();
     }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using NewLife.Common;
 using NewLife.CommonEntity;
 using NewLife.CommonEntity.Exceptions;
 using NewLife.Log;
@@ -9,21 +10,23 @@ using NewLife.Web;
 using XCode;
 using XControl;
 
-public partial class Login : System.Web.UI.Page
+public partial class Admin_Login : System.Web.UI.Page
 {
-    static Login()
+    static Admin_Login()
     {
         // 引发反向工程
-        ThreadPoolX.QueueUserWorkItem(delegate() { EntityFactory.CreateOperate(ManageProvider.Provider.ManageUserType).FindCount(); });
+        ThreadPoolX.QueueUserWorkItem(delegate() { EntityFactory.CreateOperate(Provider.ManageUserType).FindCount(); });
     }
+
+    public static IManageProvider Provider { get { return ManageProvider.Provider; } }
 
     protected void Page_Load(object sender, EventArgs e)
     {
-        this.Title = SysSetting.DisplayName;
+        this.Title = SysConfig.Current.DisplayName;
 
         if (!IsPostBack)
         {
-            IManageUser user = ManageProvider.Provider.Current;
+            IManageUser user = Provider.Current;
             if (user != null)
             {
                 if (String.Equals("logout", Request["action"], StringComparison.OrdinalIgnoreCase))
@@ -37,7 +40,7 @@ public partial class Login : System.Web.UI.Page
             else
             {
                 // 单一用户自动填写密码
-                IEntityOperate eop = EntityFactory.CreateOperate(ManageProvider.Provider.ManageUserType);
+                IEntityOperate eop = EntityFactory.CreateOperate(Provider.ManageUserType);
                 if (eop.Count == 1)
                 {
                     user = eop.FindAll(null, null, null, 0, 1)[0] as IManageUser;
@@ -78,8 +81,8 @@ public partial class Login : System.Web.UI.Page
                 throw new EntityException("效验码错误，请输入正确的效验码！");
             }
 
-            ManageProvider.Provider.Login(UserName.Text, Password.Text);
-            if (ManageProvider.Provider.Current != null)
+            Provider.Login(UserName.Text, Password.Text);
+            if (Provider.Current != null)
                 Response.Redirect("Default.aspx");
             else
             {

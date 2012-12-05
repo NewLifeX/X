@@ -87,6 +87,7 @@
     <Compile Include="Collections\WeakRefDictionary.cs" />
     <Compile Include="Common\PinYin.cs" />
     <Compile Include="Common\Runtime.cs" />
+    <Compile Include="Common\SysConfig.cs" />
     <Compile Include="Compression\ZipException.cs" />
     <Compile Include="Compression\ZipConstants.cs" />
     <Compile Include="Compression\ZipEntry.cs" />

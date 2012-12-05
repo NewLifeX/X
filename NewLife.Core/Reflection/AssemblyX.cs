@@ -516,6 +516,27 @@ namespace NewLife.Reflection
                 if (asmx != null) yield return asmx;
             }
         }
+
+        /// <summary>获取当前应用程序的所有程序集，不包括系统程序集，仅限本目录</summary>
+        /// <returns></returns>
+        public static List<AssemblyX> GetMyAssemblies()
+        {
+            var list = new List<AssemblyX>();
+            var cur = AppDomain.CurrentDomain.BaseDirectory.ToLower();
+            foreach (var asmx in GetAssemblies())
+            {
+                if (String.IsNullOrEmpty(asmx.FileVersion)) continue;
+                var file = asmx.Asm.CodeBase;
+                if (String.IsNullOrEmpty(file)) continue;
+                file = file.ToLower();
+                if (file.StartsWith("file:///")) file = file.Substring("file:///".Length);
+                file = file.Replace("/", "\\");
+                if (!file.StartsWith(cur)) continue;
+
+                list.Add(asmx);
+            }
+            return list;
+        }
         #endregion
 
         #region 重载

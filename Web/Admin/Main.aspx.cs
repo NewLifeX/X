@@ -27,34 +27,14 @@ public partial class Pages_Main : System.Web.UI.Page
 
         if (!IsPostBack)
         {
-            gv.DataSource = GetSource();
+            gv.DataSource = AssemblyX.GetMyAssemblies();
             gv.DataBind();
         }
     }
 
-    List<AssemblyX> GetSource()
-    {
-        String bin = HttpRuntime.BinDirectory.ToLower();
-        List<AssemblyX> list = new List<AssemblyX>();
-        foreach (AssemblyX asmx in AssemblyX.GetAssemblies())
-        {
-            if (String.IsNullOrEmpty(asmx.FileVersion)) continue;
-            String file = asmx.Asm.CodeBase;
-            if (String.IsNullOrEmpty(file)) continue;
-            file = file.ToLower();
-            if (file.StartsWith("file:///")) file = file.Substring("file:///".Length);
-            file = file.Replace("/", "\\");
-            if (!file.StartsWith(bin)) continue;
-
-            list.Add(asmx);
-        }
-
-        return list;
-    }
-
     protected void gv_Sorting(object sender, GridViewSortEventArgs e)
     {
-        List<AssemblyX> list = GetSource();
+        List<AssemblyX> list = AssemblyX.GetMyAssemblies();
         list.Sort(delegate(AssemblyX item1, AssemblyX item2)
         {
             Int32 d = e.SortDirection == SortDirection.Ascending ? 1 : -1;
