@@ -1,8 +1,8 @@
 ﻿using System;
+using System.ComponentModel;
 using NewLife.Linq;
 using NewLife.Reflection;
 using NewLife.Xml;
-using System.ComponentModel;
 
 namespace NewLife.Common
 {
