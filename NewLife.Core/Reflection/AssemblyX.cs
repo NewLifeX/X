@@ -2,15 +2,16 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Web;
 using NewLife.Collections;
+using NewLife.Log;
+
 #if NET4
 using System.Linq;
 #else
 using NewLife.Linq;
 #endif
-using System.Runtime.InteropServices;
-using NewLife.Log;
 
 namespace NewLife.Reflection
 {
