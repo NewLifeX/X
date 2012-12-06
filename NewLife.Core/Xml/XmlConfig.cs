@@ -77,23 +77,25 @@ namespace NewLife.Xml
             private static Int32 _ReloadTime;
             /// <summary>重新加载时间。单位：毫秒</summary>
             public static Int32 ReloadTime { get { return _ReloadTime; } set { _ReloadTime = value; } }
+
+            static _()
+            {             // 获取XmlConfigFileAttribute特性，那里会指定配置文件名称
+                var att = typeof(TConfig).GetCustomAttribute<XmlConfigFileAttribute>(true);
+                if (att == null || att.FileName.IsNullOrWhiteSpace())
+                {
+                    // 这里不能着急，派生类可能通过静态构造函数指定配置文件路径
+                    //throw new XException("编码错误！请为配置类{0}设置{1}特性，指定配置文件！", typeof(TConfig), typeof(XmlConfigFileAttribute).Name);
+                }
+                else
+                {
+                    _.ConfigFile = att.FileName;
+                    _.ReloadTime = att.ReloadTime;
+                }
+            }
         }
 
         static XmlConfig()
         {
-            // 获取XmlConfigFileAttribute特性，那里会指定配置文件名称
-            var att = typeof(TConfig).GetCustomAttribute<XmlConfigFileAttribute>(true);
-            if (att == null || att.FileName.IsNullOrWhiteSpace())
-            {
-                // 这里不能着急，派生类可能通过静态构造函数指定配置文件路径
-                //throw new XException("编码错误！请为配置类{0}设置{1}特性，指定配置文件！", typeof(TConfig), typeof(XmlConfigFileAttribute).Name);
-            }
-            else
-            {
-                _.ConfigFile = att.FileName;
-                _.ReloadTime = att.ReloadTime;
-            }
-
             // 实例化一次，用于触发派生类中可能的静态构造函数
             var config = new TConfig();
         }
