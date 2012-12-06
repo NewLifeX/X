@@ -1,12 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Text;
 using System.Xml;
 using System.Xml.Serialization;
 using NewLife.Exceptions;
 using NewLife.Reflection;
-using System.ComponentModel;
-using System.Collections.Generic;
 
 namespace NewLife.Xml
 {

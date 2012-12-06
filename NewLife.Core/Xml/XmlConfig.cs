@@ -140,13 +140,24 @@ namespace NewLife.Xml
 
             try
             {
-                var config = filename.ToXmlFileEntity<TConfig>();
+                //var config = filename.ToXmlFileEntity<TConfig>();
+
+                /*
+                 * 初步现象：在不带sp的.Net 2.0中，两种扩展方法加泛型的写法都会导致一个诡异异常
+                 * System.BadImageFormatException: 试图加载格式不正确的程序
+                 * 
+                 * 经过多次尝试，不用扩展方法也不行，但是不用泛型可以！
+                 */
+
+                TConfig config = null;
+                using (var stream = new FileStream(filename, FileMode.Open, FileAccess.Read))
+                {
+                    //config = stream.ToXmlEntity<TConfig>();
+                    config = stream.ToXmlEntity(typeof(TConfig)) as TConfig;
+                }
                 if (config == null) return null;
 
                 config.OnLoaded();
-
-                //// 第一次加载，建立定时重载定时器
-                //if (timer == null && _.ReloadTime > 0) timer = new TimerX(s => Current = null, null, _.ReloadTime * 1000, _.ReloadTime * 1000);
 
                 return config;
             }
