@@ -22,12 +22,12 @@ namespace XCode.Cache
 
                 // 两种情况更新缓存：1，缓存过期；2，不允许空但是集合又是空
                 Boolean isnull = !AllowNull && _Entities == null;
-                if (isnull || DateTime.Now > ExpiredTime)
+                if (isnull || DateTime.Now >= ExpiredTime)
                 {
                     lock (this)
                     {
                         isnull = !AllowNull && _Entities == null;
-                        if (isnull || DateTime.Now > ExpiredTime)
+                        if (isnull || DateTime.Now >= ExpiredTime)
                             UpdateCache(isnull);
                         else
                             Interlocked.Increment(ref Shoot2);
@@ -120,8 +120,11 @@ namespace XCode.Cache
             {
                 InvokeFill(delegate { _Entities = FillListMethod(); });
 
+                // HUIYUE 2012.12.08
+                // 注释掉这句，这句会导致在 _Entities.Count = 0 的情况下多次调用EntityList<TEntity>.Empty
+                // 使得 EntityList<TEntity>.Empty 被赋值，然后就杯具了
                 // 清空
-                if (_Entities != null && _Entities.Count < 1) _Entities = null;
+                //if (_Entities != null && _Entities.Count < 1) _Entities = null;
 
                 if (Debug) DAL.WriteLog("完成更新缓存（第{1}次）：{0}", typeof(TEntity).FullName, Times);
             }
