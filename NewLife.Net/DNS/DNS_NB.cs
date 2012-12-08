@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Net;
-using NewLife.Serialization;
 
 namespace NewLife.Net.DNS
 {

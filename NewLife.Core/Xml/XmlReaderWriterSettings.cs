@@ -1,6 +1,6 @@
 ﻿using System;
-using NewLife.Serialization;
 using System.Xml;
+using NewLife.Serialization;
 
 namespace NewLife.Xml
 {

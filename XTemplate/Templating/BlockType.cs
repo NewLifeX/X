@@ -1,5 +1,4 @@
-﻿using System;
-
+﻿
 namespace XTemplate.Templating
 {
     /// <summary>代码块类型</summary>

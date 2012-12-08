@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using NewLife.Exceptions;
 using NewLife.Xml;
-using NewLife.Exceptions;
 
 namespace NewLife.Serialization
 {

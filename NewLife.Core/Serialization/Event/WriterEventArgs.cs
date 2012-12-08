@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
+﻿
 namespace NewLife.Serialization
 {
     /// <summary>写入器时间参数</summary>

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using NewLife.Exceptions;
-using NewLife.IO;
 
 namespace NewLife.Net.DNS
 {

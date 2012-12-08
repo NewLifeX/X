@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if !NET4
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime;
@@ -306,3 +307,4 @@ namespace NewLife.Linq
         }
     }
 }
+#endif

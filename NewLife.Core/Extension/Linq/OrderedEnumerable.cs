@@ -1,6 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿#if !NET4
+using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Runtime;
 using NewLife.Reflection;
 
@@ -76,3 +77,4 @@ namespace NewLife.Linq
         }
     }
 }
+#endif

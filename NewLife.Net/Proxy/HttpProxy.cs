@@ -8,7 +8,10 @@ using NewLife.Collections;
 using NewLife.Net.Http;
 using NewLife.Net.Sockets;
 using NewLife.Serialization;
+
+#if NET4
 using System.Collections.Generic;
+#endif
 
 namespace NewLife.Net.Proxy
 {

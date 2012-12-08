@@ -3,9 +3,7 @@ using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using NewLife.Log;
 using NewLife.Collections;
-using System.Reflection;
 
 namespace NewLife.Net.Sockets
 {

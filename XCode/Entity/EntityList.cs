@@ -14,7 +14,7 @@ using XCode.Configuration;
 #if NET4
 using System.Linq;
 #else
-using NewLife.Linq;
+
 #endif
 
 namespace XCode

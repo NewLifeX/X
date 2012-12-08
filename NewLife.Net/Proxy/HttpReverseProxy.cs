@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using NewLife.IO;
 using NewLife.Net.Http;
 using NewLife.Net.Sockets;
 

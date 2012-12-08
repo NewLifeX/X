@@ -6,7 +6,6 @@ using System.Threading;
 using System.Web;
 using NewLife.Collections;
 using NewLife.Log;
-using NewLife.Reflection;
 using NewLife.Model;
 
 namespace NewLife.Web

@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography.X509Certificates;
-using SecureString = System.Security.SecureString;
 using RuntimeHelpers = System.Runtime.CompilerServices.RuntimeHelpers;
+using SecureString = System.Security.SecureString;
 
 namespace NewLife.Security
 {

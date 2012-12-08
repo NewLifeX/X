@@ -1,11 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.ComponentModel.Design;
+﻿using System.ComponentModel.Design;
 using System.Windows.Forms;
-using System.Web.UI.Design;
-using System.Web.UI.Design.WebControls;
-using System.ComponentModel;
 
 namespace XControl
 {

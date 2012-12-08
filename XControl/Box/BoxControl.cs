@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Web.UI;
 using System.ComponentModel;
 using System.Drawing;
+using System.Web.UI;
 
 namespace XControl
 {

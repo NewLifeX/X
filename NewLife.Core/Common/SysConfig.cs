@@ -1,8 +1,13 @@
 ﻿using System;
 using System.ComponentModel;
-using NewLife.Linq;
 using NewLife.Reflection;
 using NewLife.Xml;
+
+#if NET4
+using System.Linq;
+#else
+using NewLife.Linq;
+#endif
 
 namespace NewLife.Common
 {

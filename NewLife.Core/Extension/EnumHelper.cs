@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 using System.ComponentModel;
 using System.Reflection;
-using NewLife.Reflection;
-using NewLife.Linq;
 
 namespace System
 {

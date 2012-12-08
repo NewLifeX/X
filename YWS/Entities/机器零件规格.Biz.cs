@@ -8,9 +8,8 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Text;
-using XCode;
-using XCode.Configuration;
 using System.Xml.Serialization;
+using XCode;
 
 namespace NewLife.YWS.Entities
 {

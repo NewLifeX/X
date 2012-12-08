@@ -1,14 +1,8 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
-
-using System.Web;
+using System.ComponentModel;
+using System.Drawing;
 using System.Web.UI;
 using System.Web.UI.WebControls;
-
-using System.ComponentModel;
-using System.IO;
-using System.Drawing;
 
 // 特别要注意，这里得加上默认命名空间和目录名，因为vs2005编译的时候会给js文件加上这些东东的
 [assembly: WebResource("XControl.TextBox.DateBox.SelectDate.js", "application/x-javascript")]

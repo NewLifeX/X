@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using NewLife.Serialization;
 
 namespace NewLife.Net.DNS
 {

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-//using XCoder.com.microsofttranslator.api;
-using NewLife.Collections;
+﻿//using XCoder.com.microsofttranslator.api;
 
 namespace XCoder
 {

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Text;
-using System.Threading;
 using NewLife.Net.Sockets;
 
 namespace NewLife.Net.Application

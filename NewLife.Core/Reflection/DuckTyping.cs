@@ -1,9 +1,6 @@
 using System;
-using System.IO;
-using System.Reflection;
 using System.Collections.Generic;
-using System.Collections;
-using System.Text;
+using System.IO;
 using NewLife.Collections;
 
 namespace NewLife.Reflection

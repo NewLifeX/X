@@ -1,6 +1,8 @@
-﻿using System;
+﻿#if !NET4
+using System;
 using System.Collections.Generic;
 using System.Runtime;
+
 namespace NewLife.Linq
 {
     internal class Set<TElement>
@@ -119,3 +121,4 @@ namespace NewLife.Linq
         }
     }
 }
+#endif

@@ -1,7 +1,7 @@
+using System;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Text;
-using System;
 
 namespace NewLife.Reflection
 {

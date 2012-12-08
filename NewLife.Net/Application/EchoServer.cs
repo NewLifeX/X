@@ -1,5 +1,4 @@
-﻿using System.Threading;
-using NewLife.Net.Sockets;
+﻿using NewLife.Net.Sockets;
 
 namespace NewLife.Net.Application
 {

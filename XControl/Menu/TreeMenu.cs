@@ -1,5 +1,4 @@
 ﻿using System;
-using NewLife.Xml;
 using System.Collections.Generic;
 using System.IO;
 using System.Web;
@@ -8,6 +7,7 @@ using System.Xml;
 using System.Xml.Serialization;
 using System.Xml.Xsl;
 using NewLife.Reflection;
+using NewLife.Xml;
 
 [assembly: WebResource("XControl.Menu.RS.tree.js", "text/javascript", PerformSubstitution = true)]
 [assembly: WebResource("XControl.Menu.RS.XSL.xsl", "text/xml", PerformSubstitution = true)]

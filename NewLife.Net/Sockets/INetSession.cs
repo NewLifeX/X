@@ -2,7 +2,6 @@
 using System.IO;
 using System.Net;
 using System.Text;
-using NewLife.Messaging;
 using NewLife.Net.Common;
 
 namespace NewLife.Net.Sockets

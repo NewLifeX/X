@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
+﻿
 namespace NewLife.Net.ModBus
 {
     /// <summary>请求接口</summary>

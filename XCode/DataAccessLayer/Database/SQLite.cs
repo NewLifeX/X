@@ -5,7 +5,7 @@ using System.Data.Common;
 using System.Text;
 using System.Threading;
 using NewLife.Reflection;
-using NewLife.Collections;
+
 
 #if NET4
 using System.Linq;

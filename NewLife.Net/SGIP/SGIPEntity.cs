@@ -1,7 +1,7 @@
 ﻿using System;
+using System.ComponentModel;
 using System.IO;
 using NewLife.Serialization;
-using System.ComponentModel;
 
 namespace NewLife.Net.SGIP
 {

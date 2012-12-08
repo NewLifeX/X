@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
+﻿
 namespace NewLife.Net.Pop3
 {
     /// <summary>Pop3客户端</summary>

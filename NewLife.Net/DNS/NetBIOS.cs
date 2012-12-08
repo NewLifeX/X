@@ -2,7 +2,6 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using NewLife.IO;
 
 namespace NewLife.Net.DNS
 {

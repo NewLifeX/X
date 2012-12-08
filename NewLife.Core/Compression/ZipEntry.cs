@@ -4,7 +4,6 @@ using System.IO;
 using System.IO.Compression;
 using NewLife.Collections;
 using NewLife.Exceptions;
-using NewLife.IO;
 using NewLife.Reflection;
 using NewLife.Security;
 using NewLife.Serialization;

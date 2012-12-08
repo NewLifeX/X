@@ -1,16 +1,17 @@
 ﻿using System;
-#if NET4
-using System.Linq;
-#endif
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Data.Common;
 using System.Xml.Serialization;
 using NewLife.Collections;
 using NewLife.Configuration;
-using NewLife.Linq;
 using XCode.DataAccessLayer;
+
+#if NET4
+using System.Linq;
+#else
+using NewLife.Linq;
+#endif
 
 namespace XCode.Configuration
 {

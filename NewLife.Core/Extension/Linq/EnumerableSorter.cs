@@ -1,7 +1,9 @@
-﻿using System;
+﻿#if !NET4
+using System;
 using System.Collections.Generic;
 using System.Runtime;
 using NewLife.Reflection;
+
 namespace NewLife.Linq
 {
     internal abstract class EnumerableSorter<TElement>
@@ -128,3 +130,4 @@ namespace NewLife.Linq
         }
     }
 }
+#endif

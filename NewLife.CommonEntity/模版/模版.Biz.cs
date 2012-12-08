@@ -11,9 +11,9 @@ using System.IO;
 using System.Reflection;
 using System.Text;
 using System.Xml.Serialization;
+using NewLife.Exceptions;
 using XCode;
 using XCode.DataAccessLayer;
-using NewLife.Exceptions;
 
 namespace NewLife.CommonEntity
 {

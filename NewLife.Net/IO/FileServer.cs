@@ -2,7 +2,6 @@
 using System.IO;
 using NewLife.Net.Sockets;
 using NewLife.Net.Tcp;
-using NewLife.Net.Udp;
 
 namespace NewLife.Net.IO
 {

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
+﻿
 namespace XCode.Accessors
 {
     /// <summary>实体访问器种类</summary>

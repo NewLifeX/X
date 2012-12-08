@@ -1,9 +1,6 @@
 ﻿using System;
 using System.IO;
-using System.Net;
-using System.Net.Sockets;
 using System.Text;
-using NewLife.Exceptions;
 using NewLife.Net.Common;
 using NewLife.Net.Sockets;
 

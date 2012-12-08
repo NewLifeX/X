@@ -1,9 +1,9 @@
 ﻿using System;
 using System.ComponentModel.Design;
 using System.Web.UI.Design;
+using System.Web.UI.Design.WebControls;
 using System.Web.UI.WebControls;
 using System.Windows.Forms;
-using System.Web.UI.Design.WebControls;
 
 namespace XControl
 {

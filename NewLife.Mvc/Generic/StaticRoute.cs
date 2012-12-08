@@ -1,6 +1,11 @@
 ﻿using System;
 using System.Web;
+
+#if NET4
+using System.Collections.Generic;
+#else
 using NewLife.Reflection;
+#endif
 
 namespace NewLife.Mvc
 {

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
+﻿
 namespace XCode.DataAccessLayer
 {
     /// <summary>数据定义模式</summary>

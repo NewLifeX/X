@@ -1,7 +1,7 @@
-﻿using System;
+﻿#if !NET4
+using System;
 namespace System.Runtime
 {
-#if !NET4
     /// <summary>指示此特性应用于的 .NET Framework 类库方法不可能受服务版本的影响，因此它可以在本机映像生成器 (NGen) 格式的映像间内联。</summary>
     [AttributeUsage(AttributeTargets.Constructor | AttributeTargets.Method, AllowMultiple = false, Inherited = false)]
     sealed class TargetedPatchingOptOutAttribute : Attribute
@@ -27,5 +27,5 @@ namespace System.Runtime
         {
         }
     }
-#endif
 }
+#endif

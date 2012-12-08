@@ -1,11 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Web;
 using System.Globalization;
 using System.IO;
-using NewLife.Reflection;
 using System.Reflection;
+using System.Text;
+using System.Web;
+using NewLife.Reflection;
 
 namespace NewLife.Net.Http
 {

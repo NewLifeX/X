@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading;
 using NewLife.Exceptions;
-using System.Text;
 
 namespace NewLife.Log
 {

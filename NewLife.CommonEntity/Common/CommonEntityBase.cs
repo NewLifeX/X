@@ -1,6 +1,4 @@
 ﻿using System;
-using NewLife.Configuration;
-using NewLife.Web;
 using XCode;
 
 namespace NewLife.CommonEntity

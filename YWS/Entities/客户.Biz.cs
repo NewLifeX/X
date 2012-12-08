@@ -5,12 +5,10 @@
  * 版权：版权所有 (C) 新生命开发团队 2011
 */
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Text;
 using System.Xml.Serialization;
 using XCode;
-using XCode.Configuration;
 
 namespace NewLife.YWS.Entities
 {

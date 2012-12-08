@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using NewLife.Xml;
-using System.Xml.Serialization;
 using System.ComponentModel;
+using NewLife.Xml;
 
 namespace NewLife.Core.Test.Xml
 {

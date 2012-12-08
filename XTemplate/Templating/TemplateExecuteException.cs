@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using NewLife.Exceptions;
 using System.Runtime.Serialization;
+using NewLife.Exceptions;
 
 namespace XTemplate.Templating
 {

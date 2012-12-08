@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
+﻿
 namespace NewLife.Serialization
 {
     /// <summary>序列化种类</summary>

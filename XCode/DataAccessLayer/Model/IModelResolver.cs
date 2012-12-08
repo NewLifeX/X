@@ -1,16 +1,17 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Text;
 using Microsoft.CSharp;
-#if NET4
-using System.Linq;
-#else
-using NewLife.Linq;
-#endif
 using XCode.Model;
 using NewLife.Reflection;
 using NewLife.Configuration;
 using NewLife.Collections;
+
+#if NET4
+using System.Collections.Generic;
+using System.Linq;
+#else
+using NewLife.Linq;
+#endif
 
 namespace XCode.DataAccessLayer.Model
 {

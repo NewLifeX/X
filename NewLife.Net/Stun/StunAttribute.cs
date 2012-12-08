@@ -1,8 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Net;
 using System.Text;
 using NewLife.Serialization;
-using System.Net;
 
 namespace NewLife.Net.Stun
 {

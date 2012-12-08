@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if !NET4
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using NewLife.Reflection;
@@ -21,3 +22,4 @@ namespace NewLife.Linq
         IOrderedEnumerable<TElement> CreateOrderedEnumerable<TKey>(Func<TElement, TKey> keySelector, IComparer<TKey> comparer, bool descending);
     }
 }
+#endif

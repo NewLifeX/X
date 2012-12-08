@@ -1,6 +1,6 @@
 ﻿using System;
-using NewLife.Serialization;
 using System.Net;
+using NewLife.Serialization;
 
 namespace NewLife.Net.Proxy
 {

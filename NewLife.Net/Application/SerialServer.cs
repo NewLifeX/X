@@ -2,7 +2,6 @@
 using System.IO;
 using System.IO.Ports;
 using System.Threading;
-using NewLife.IO;
 using NewLife.Net.Sockets;
 using NewLife.Security;
 

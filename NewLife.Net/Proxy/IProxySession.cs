@@ -1,9 +1,7 @@
 ﻿using System.IO;
-using System.Net;
-using System.Net.Sockets;
 using System.Text;
-using NewLife.Net.Sockets;
 using NewLife.Net.Common;
+using NewLife.Net.Sockets;
 
 namespace NewLife.Net.Proxy
 {

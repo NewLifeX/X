@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using NewLife.Exceptions;
-using NewLife.IO;
 using NewLife.Log;
 using NewLife.Reflection;
 

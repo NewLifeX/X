@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Text;
-using NewLife.Web;
-using XCode;
 using NewLife.CommonEntity;
+using XCode;
 
 namespace NewLife.YWS.Entities
 {

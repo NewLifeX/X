@@ -5,7 +5,6 @@ using System.Data.Common;
 using System.IO;
 using System.Text.RegularExpressions;
 using NewLife.Reflection;
-using XCode.Exceptions;
 
 namespace XCode.DataAccessLayer
 {

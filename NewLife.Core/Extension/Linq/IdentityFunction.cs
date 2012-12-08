@@ -1,6 +1,8 @@
-﻿using System;
+﻿#if !NET4
+using System;
 using System.Runtime;
 using NewLife.Reflection;
+
 namespace NewLife.Linq
 {
     internal class IdentityFunction<TElement>
@@ -13,8 +15,7 @@ namespace NewLife.Linq
             }
         }
         [TargetedPatchingOptOut("Performance critical to inline this type of method across NGen image boundaries")]
-        public IdentityFunction()
-        {
-        }
+        public IdentityFunction() { }
     }
 }
+#endif

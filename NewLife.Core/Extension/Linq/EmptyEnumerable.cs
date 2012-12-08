@@ -1,6 +1,7 @@
-﻿using System;
+﻿#if !NET4
 using System.Collections.Generic;
 using System.Runtime;
+
 namespace NewLife.Linq
 {
     internal class EmptyEnumerable<TElement>
@@ -19,3 +20,4 @@ namespace NewLife.Linq
         public EmptyEnumerable() { }
     }
 }
+#endif

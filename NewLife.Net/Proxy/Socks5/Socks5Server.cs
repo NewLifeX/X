@@ -1,6 +1,4 @@
-﻿using System.IO;
-using NewLife.Net.Sockets;
-
+﻿
 namespace NewLife.Net.Proxy
 {
     /// <summary>Socks5代理</summary>

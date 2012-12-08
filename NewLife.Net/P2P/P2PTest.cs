@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Net;
-using NewLife.Net.Udp;
 using System.Net.Sockets;
 
 namespace NewLife.Net.P2P

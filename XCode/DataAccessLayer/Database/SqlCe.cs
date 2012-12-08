@@ -7,9 +7,9 @@ using System.Data.SqlTypes;
 using System.IO;
 using System.Reflection;
 using System.Text;
-using NewLife.Log;
-using NewLife.IO;
 using NewLife;
+using NewLife.IO;
+using NewLife.Log;
 using NewLife.Reflection;
 
 namespace XCode.DataAccessLayer

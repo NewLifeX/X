@@ -5,11 +5,10 @@
  * 版权：版权所有 (C) 新生命开发团队 2010
 */
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using XCode;
-using XCode.DataAccessLayer;
 using XCode.Configuration;
+using XCode.DataAccessLayer;
 
 namespace NewLife.CommonEntity
 {

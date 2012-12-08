@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
+﻿
 namespace NewLife.Net.ModBus
 {
     /// <summary>Modbus支持的功能码</summary>

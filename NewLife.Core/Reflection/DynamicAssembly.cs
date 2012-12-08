@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Reflection.Emit;
 using System.Reflection;
-using NewLife.Collections;
+
 #if NET4
 using System.Linq;
 #else

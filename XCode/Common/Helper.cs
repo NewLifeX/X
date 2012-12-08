@@ -1,12 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Reflection;
-using System.Text;
-using NewLife.Linq;
-using NewLife.Reflection;
-using XCode.Configuration;
-using NewLife.Log;
 
 namespace XCode.Common
 {

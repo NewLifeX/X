@@ -1,10 +1,7 @@
 ﻿using System;
 using System.IO;
-using System.Text;
-using System.Xml.Serialization;
-using NewLife.Log;
-using NewLife.Threading;
 using NewLife.Exceptions;
+using NewLife.Log;
 
 namespace NewLife.Xml
 {

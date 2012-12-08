@@ -1,7 +1,7 @@
 ﻿using System;
 using NewLife.Model;
-using XCode.Model;
 using NewLife.Reflection;
+using XCode.Model;
 
 namespace XCode.Accessors
 {

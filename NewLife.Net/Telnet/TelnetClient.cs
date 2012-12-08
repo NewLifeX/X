@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
+﻿
 namespace NewLife.Net.Telnet
 {
     /// <summary>Telnet客户端</summary>

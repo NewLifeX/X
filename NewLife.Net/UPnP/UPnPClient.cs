@@ -1,16 +1,14 @@
 ﻿using System;
-using NewLife.Xml;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Text;
 using System.Threading;
-using System.Xml.Serialization;
 using NewLife.Configuration;
 using NewLife.Log;
 using NewLife.Net.Sockets;
 using NewLife.Net.Udp;
-using System.Net.Sockets;
+using NewLife.Xml;
 
 namespace NewLife.Net.UPnP
 {

@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using NewLife.Xml;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Ports;
@@ -17,16 +17,16 @@ using XCode.DataAccessLayer;
 using XCode.Transform;
 using System.Reflection;
 using NewLife.CommonEntity;
+using NewLife.Common;
+using XCode.Sync;
+using NewLife.Model;
+
+
 #if NET4
 using System.Linq;
 #else
 using NewLife.Linq;
 #endif
-using XCode;
-using NewLife.Common;
-using XCode.Sync;
-using NewLife.Model;
-using NewLife.Compression;
 
 namespace Test
 {
@@ -43,7 +43,7 @@ namespace Test
                 try
                 {
 #endif
-                Test8();
+                    Test8();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -342,16 +342,47 @@ namespace Test
 
         static void Test8()
         {
-            var p = "Log".GetFullPath();
-            //File.Copy("XCode.dll", p.CombinePath("XCode.dll"), true);
-            //AssemblyX.AssemblyPaths.Add(p);
-            var f = p.CombinePath("XCode.dll");
-            Assembly.Load(File.ReadAllBytes(f));
+            Console.WriteLine("Starting");
 
-            foreach (var item in AssemblyX.FindAllPlugins(typeof(IEntityPersistence), true))
+            //var config = new SysConfig();
+            //var config = SysConfig.Current;
+            var config = SysConfig._.ConfigFile.GetFullPath().ToXmlFileEntity<SysConfig>();
+            Console.WriteLine(config.InstallTime);
+
+            config.InstallTime = DateTime.Now;
+            config.Save();
+
+            Console.WriteLine(config.InstallTime);
+
+            //config = SysConfig.Current;
+            //config = Load();
+            //config = SysConfig.Load();
+            //Console.WriteLine(config.InstallTime);
+
+            config = SysConfig.Current;
+            Console.WriteLine(config.InstallTime);
+        }
+
+        static SysConfig Load()
+        {
+            var filename = SysConfig._.ConfigFile;
+            if (filename.IsNullOrWhiteSpace()) return null;
+            filename = filename.GetFullPath();
+            if (!File.Exists(filename)) return null;
+
+            try
             {
-                Console.WriteLine(item);
+                var config = filename.ToXmlFileEntity<SysConfig>();
+                if (config == null) return null;
+
+                //config.OnLoaded();
+
+                //// 第一次加载，建立定时重载定时器
+                //if (timer == null && _.ReloadTime > 0) timer = new TimerX(s => Current = null, null, _.ReloadTime * 1000, _.ReloadTime * 1000);
+
+                return config;
             }
+            catch (Exception ex) { XTrace.WriteException(ex); return null; }
         }
 
         static void Test9()

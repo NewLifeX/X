@@ -1,10 +1,12 @@
 ﻿using System;
-#if NET4
-using System.Linq;
-#endif
-using NewLife.Linq;
 using NewLife.Reflection;
 using XCode.Configuration;
+
+#if NET4
+using System.Linq;
+#else
+using NewLife.Linq;
+#endif
 
 namespace XCode.Sync
 {

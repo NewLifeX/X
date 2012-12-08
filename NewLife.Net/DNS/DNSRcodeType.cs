@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
+﻿
 namespace NewLife.Net.DNS
 {
     /// <summary>These are the return codes (RCODE) the server can send back. (RFC 1035 4.1.1)</summary>

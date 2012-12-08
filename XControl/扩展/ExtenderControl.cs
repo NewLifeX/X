@@ -1,12 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Web.UI;
 using System.ComponentModel;
-using NewLife.Web;
-using NewLife.Configuration;
 using System.Drawing;
+using System.Web.UI;
 using System.Web.UI.WebControls;
+using NewLife.Configuration;
+using NewLife.Web;
 
 namespace XControl
 {

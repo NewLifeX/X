@@ -1,11 +1,8 @@
 ﻿using System;
 using System.Text;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NewLife.Serialization;
-using NewLife.Xml;
-using System.Xml.Serialization;
 using System.Xml;
-using System.IO;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NewLife.Xml;
 
 namespace NewLife.Core.Test.Serialization
 {

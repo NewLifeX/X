@@ -1,8 +1,8 @@
 ﻿using System;
+using System.Text;
 using System.Web;
 using NewLife.Reflection;
 using NewLife.Web;
-using System.Text;
 
 namespace NewLife.CommonEntity
 {

@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Configuration;
 using System.Threading;
 using NewLife.Log;
-using NewLife.Configuration;
 
 namespace NewLife.Threading
 {

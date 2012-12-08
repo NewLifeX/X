@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.ComponentModel;
 using System.ComponentModel.Design;
 using System.IO;
@@ -7,9 +6,6 @@ using System.Web.UI;
 using System.Web.UI.Design;
 using System.Web.UI.Design.WebControls;
 using System.Web.UI.WebControls;
-using System.Windows.Forms;
-using AttributeCollection = System.ComponentModel.AttributeCollection;
-using Control = System.Web.UI.Control;
 
 namespace XControl
 {

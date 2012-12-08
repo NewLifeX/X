@@ -1,7 +1,4 @@
-﻿using XAgent;
-using System.Diagnostics;
-using System;
-
+﻿
 namespace XAgent
 {
     /// <summary>代理服务例子。自定义服务程序可参照该类实现。</summary>

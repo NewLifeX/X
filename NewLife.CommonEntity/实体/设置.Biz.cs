@@ -8,7 +8,6 @@ using System;
 using System.ComponentModel;
 using System.Xml.Serialization;
 using NewLife.Exceptions;
-using NewLife.Log;
 using XCode;
 
 #if NET4

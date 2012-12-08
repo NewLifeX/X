@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Xml.Serialization;
-using System.Xml.Schema;
 using System.Xml;
+using System.Xml.Schema;
+using System.Xml.Serialization;
 using NewLife.Exceptions;
 
 namespace NewLife.Net.UPnP

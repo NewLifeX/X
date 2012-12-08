@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using System.Text;
-using NewLife;
 using NewLife.Serialization;
 using XCode.Configuration;
 

@@ -4,11 +4,10 @@ using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
-using NewLife.Linq;
 using NewLife.Net.Common;
 using NewLife.Net.Sockets;
-using NewLife.Threading;
 using NewLife.Net.Tcp;
+using NewLife.Threading;
 
 namespace NewLife.Net.Application
 {

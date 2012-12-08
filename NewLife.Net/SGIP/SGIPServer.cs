@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Net.Sockets;
 using NewLife.Net.Sockets;
-using System.Net.Sockets;
 
 namespace NewLife.Net.SGIP
 {

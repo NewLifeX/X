@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
+﻿
 namespace XTemplate.Templating
 {
     /// <summary>模版引擎状态</summary>
