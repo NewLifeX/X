@@ -7,8 +7,17 @@ namespace NewLife.Core.Test
     [TestClass]
     public class SimpleJsonUtilTest
     {
+        public SimpleJsonUtilTest() { }
+
+        private TestContext testContextInstance;
+        /// <summary>
+        ///获取或设置测试上下文，该上下文提供
+        ///有关当前测试运行及其功能的信息。
+        ///</summary>
+        public TestContext TestContext { get { return testContextInstance; } set { testContextInstance = value; } }
+
         [TestMethod]
-        private void ReadTest()
+        public void ReadTest()
         {
             var _ = new SimpleJsonUtil();
 
@@ -54,7 +63,7 @@ namespace NewLife.Core.Test
         }
 
         [TestMethod]
-        private void WriteTest()
+        public void WriteTest()
         {
             var _ = new SimpleJsonUtil();
 

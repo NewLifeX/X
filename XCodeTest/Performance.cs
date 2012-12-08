@@ -80,7 +80,8 @@ namespace XCodeTest
             dal.Db.CreateMetaData().SetSchema(DDLSchema.DropTable, "Role");
             dal.Db.CreateMetaData().SetSchema(DDLSchema.DropTable, "Menu");
             dal.Db.CreateMetaData().SetSchema(DDLSchema.DropTable, "RoleMenu");
-            DatabaseSchema.Check(dal.Db);
+            //DatabaseSchema.Check(dal.Db);
+            dal.CheckTables();
 
             Console.WriteLine();
             Console.WriteLine("插入测试（{0}管理员、{1}角色）{2}：", count, count / AdminNumPerRole, p.UserTrans ? "使用事务" : "");
@@ -222,7 +223,8 @@ namespace XCodeTest
                     dal.Db.CreateMetaData().SetSchema(DDLSchema.DropTable, "Role");
                     dal.Db.CreateMetaData().SetSchema(DDLSchema.DropTable, "Menu");
                     dal.Db.CreateMetaData().SetSchema(DDLSchema.DropTable, "RoleMenu");
-                    DatabaseSchema.Check(dal.Db);
+                    //DatabaseSchema.Check(dal.Db);
+                    dal.CheckTables();
                 }
 
                 base.Time();
