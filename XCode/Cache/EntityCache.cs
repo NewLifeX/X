@@ -38,7 +38,7 @@ namespace XCode.Cache
 
                 Using = true;
 
-                return _Entities ?? EntityList<TEntity>.Empty;
+                return _Entities ?? new EntityList<TEntity>();
             }
         }
 
