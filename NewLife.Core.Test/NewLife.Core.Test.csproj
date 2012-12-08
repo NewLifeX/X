@@ -67,6 +67,7 @@
     <Compile Include="Serialization\XmlTest.cs" />
     <Compile Include="Serialization\JsonTest.cs" />
     <Compile Include="Serialization\AbstractObj.cs" />
+    <Compile Include="Serialization\SimpleJsonUtilTest.cs" />
     <Compile Include="Xml\UserConfig.cs" />
     <Compile Include="Xml\XmlConfigTest.cs" />
     <Compile Include="Compression\ZipFileTest.cs" />

@@ -170,7 +170,6 @@
     <Compile Include="Serialization\Interface\IWriter2.cs" />
     <Compile Include="Serialization\Json\JsonAtomStringReader.cs" />
     <Compile Include="Serialization\Json\SimpleJsonUtil.cs" />
-    <Compile Include="Serialization\Json\SimpleJsonUtilTest.cs" />
     <Compile Include="Serialization\NameValue\NameValueReader.cs" />
     <Compile Include="Serialization\Interface\IAccessor.cs" />
     <Compile Include="Serialization\Info\IObjectMemberInfo.cs" />
