@@ -54,6 +54,7 @@
   <ItemGroup>
     <Compile Include="Messaging\MessageTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Reflection\FastTest.cs" />
     <Compile Include="Serialization\ArrayObj.cs" />
     <Compile Include="Serialization\BinaryTest.cs" />
     <Compile Include="Serialization\DictionaryObj.cs" />

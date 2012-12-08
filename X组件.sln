@@ -1,6 +1,6 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XControl", "XControl\XControl.csproj", "{A82E3AA8-6181-460D-A6EE-CC453B83D340}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XCoder", "XCoder\XCoder.csproj", "{3EB3A5F1-F785-4672-A21D-A3117FC12129}"
@@ -45,7 +45,7 @@ Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "Web", "Web\", "{AAC0A525-4C
 		Release.AspNetCompiler.ForceOverwrite = "true"
 		Release.AspNetCompiler.FixedNames = "false"
 		Release.AspNetCompiler.Debug = "False"
-		VWDPort = "8505"
+		VWDPort = "29795"
 		VWDDynamicPort = "true"
 	EndProjectSection
 EndProject

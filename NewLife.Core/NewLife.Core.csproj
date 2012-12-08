@@ -203,7 +203,6 @@
     <Compile Include="Reflection\AttributeX.cs" />
     <Compile Include="Reflection\快速反射\ConstructorInfoX.cs" />
     <Compile Include="Reflection\EmitHelper.cs" />
-    <Compile Include="Reflection\FastTest.cs" />
     <Compile Include="Reflection\DynamicAssembly.cs" />
     <Compile Include="Remoting\EntityMessage.cs" />
     <Compile Include="Remoting\MethodMessage.cs" />
