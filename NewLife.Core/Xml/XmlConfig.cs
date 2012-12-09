@@ -97,7 +97,24 @@ namespace NewLife.Xml
         static XmlConfig()
         {
             // 实例化一次，用于触发派生类中可能的静态构造函数
-            var config = new TConfig();
+            //var config = new TConfig();
+            var config = Current;
+
+            var filename = _.ConfigFile.GetFullPath();
+            if (!filename.IsNullOrWhiteSpace() && File.Exists(filename))
+            {
+                // 如果默认加载后的配置与保存的配置不一致，说明可能配置实体类已变更，需要强制覆盖
+                try
+                {
+                    var xml1 = File.ReadAllText(filename);
+                    var xml2 = config.ToXml(null, "", "", true, true);
+                    if (xml1 != xml2) config.Save();
+                }
+                catch (Exception ex)
+                {
+                    XTrace.WriteException(ex);
+                }
+            }
         }
 
         #region 检查是否已更新
