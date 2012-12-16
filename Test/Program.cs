@@ -26,6 +26,7 @@ using NewLife.Model;
 using System.Linq;
 #else
 using NewLife.Linq;
+using XCode;
 #endif
 
 namespace Test
@@ -340,29 +341,6 @@ namespace Test
         }
         delegate Object DM(Double k);
 
-        static void Test8()
-        {
-            Console.WriteLine("Starting");
-
-            //var config = new SysConfig();
-            //var config = SysConfig.Current;
-            var config = SysConfig._.ConfigFile.GetFullPath().ToXmlFileEntity<SysConfig>();
-            Console.WriteLine(config.InstallTime);
-
-            config.InstallTime = DateTime.Now;
-            config.Save();
-
-            Console.WriteLine(config.InstallTime);
-
-            //config = SysConfig.Current;
-            //config = Load();
-            //config = SysConfig.Load();
-            //Console.WriteLine(config.InstallTime);
-
-            config = SysConfig.Current;
-            Console.WriteLine(config.InstallTime);
-        }
-
         static SysConfig Load()
         {
             var filename = SysConfig._.ConfigFile;
@@ -419,5 +397,33 @@ namespace Test
 
             sm.Start();
         }
+
+        static void Test8()
+        {
+            XCode.Code.EntityAssembly.Debug = true;
+
+            // 确保表存在
+            Console.WriteLine(Log.Meta.Count);
+
+            var dal = DAL.Create("Common");
+            var ea = dal.Assembly;
+
+            ea.OnClassCreating += (s, e) =>
+            {
+                if (e.Class.Name == "Log") e.Class.BaseType = "Test.TestEntity<Log>";
+            };
+
+            var eop = dal.CreateOperate("Log");
+            var type = eop.Default.GetType();
+            Console.WriteLine(type);
+            type = type.BaseType;
+            Console.WriteLine(type);
+            type = type.BaseType;
+            Console.WriteLine(type);
+        }
+    }
+
+    public class TestEntity<TEntity> : Entity<TEntity> where TEntity : TestEntity<TEntity>, new()
+    {
     }
 }

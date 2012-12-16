@@ -15,69 +15,68 @@ namespace XCode.Code
     public class EntityClass
     {
         #region 属性
-        private String _ClassName;
+        private String _Name;
         /// <summary>类名</summary>
-        public String ClassName
-        {
-            get { return _ClassName; }
-            set { _ClassName = value; }
-        }
+        public String Name { get { return _Name; } set { _Name = value; } }
 
-        //private Dictionary<String, String> _FieldNames;
-        ///// <summary>属性名</summary>
-        //public Dictionary<String, String> FieldNames
-        //{
-        //    get { return _FieldNames; }
-        //    set { _FieldNames = value; }
-        //}
+        private String _ConnName;
+        /// <summary>连接名</summary>
+        public String ConnName { get { return _ConnName; } set { _ConnName = value; } }
 
         private IDataTable _Table;
         /// <summary>表</summary>
-        public IDataTable Table
+        public IDataTable Table { get { return _Table; } set { _Table = value; } }
+
+        private String _BaseType;
+        /// <summary>基类</summary>
+        public String BaseType
         {
-            get { return _Table; }
-            set { _Table = value; }
+            get
+            {
+                if (_BaseType == null && !String.IsNullOrEmpty(Name)) _BaseType = String.Format("Entity<{0}>", Name);
+
+                return _BaseType;
+            }
+            set { _BaseType = value; }
         }
 
-        private EntityAssembly _Assembly;
-        /// <summary>实体程序集</summary>
-        public EntityAssembly Assembly
-        {
-            get { return _Assembly; }
-            set { _Assembly = value; }
-        }
+        //private EntityAssembly _Assembly;
+        ///// <summary>实体程序集</summary>
+        //public EntityAssembly Assembly { get { return _Assembly; } set { _Assembly = value; } }
         #endregion
 
         #region 生成属性
         private CodeTypeDeclaration _Class;
         /// <summary>实体类</summary>
-        public CodeTypeDeclaration Class
-        {
-            get { return _Class; }
-            set { _Class = value; }
-        }
+        public CodeTypeDeclaration Class { get { return _Class; } set { _Class = value; } }
         #endregion
 
         #region 方法
         /// <summary>创建实体类</summary>
         public void Create()
         {
-            Class = new CodeTypeDeclaration(ClassName);
+            Class = new CodeTypeDeclaration(Name);
             Class.IsClass = true;
             Class.IsPartial = true;
             Class.TypeAttributes = TypeAttributes.Public;
             //Class.Comments.Add(new CodeCommentStatement(Table.Description, true));
-            Class.Comments.Add(AddSummary(Table.Description));
+            //Class.Comments.Add(AddSummary(Table.Description));
+            Class.AddSummary(Table.Description);
 
             // 特性
-            Class.CustomAttributes.Add(new CodeAttributeDeclaration(new CodeTypeReference(typeof(SerializableAttribute))));
-            Class.CustomAttributes.Add(new CodeAttributeDeclaration(new CodeTypeReference(typeof(DataObjectAttribute))));
-            if (!Table.Description.IsNullOrWhiteSpace())
-            {
-                Class.CustomAttributes.Add(new CodeAttributeDeclaration(new CodeTypeReference(typeof(DescriptionAttribute)), new CodeAttributeArgument(new CodePrimitiveExpression(Table.Description))));
-                Class.CustomAttributes.Add(new CodeAttributeDeclaration(new CodeTypeReference(typeof(DisplayNameAttribute)), new CodeAttributeArgument(new CodePrimitiveExpression(Table.Description))));
-            }
-            Class.CustomAttributes.Add(new CodeAttributeDeclaration(new CodeTypeReference(typeof(CompilerGeneratedAttribute))));
+            //Class.CustomAttributes.Add(new CodeAttributeDeclaration(new CodeTypeReference(typeof(SerializableAttribute))));
+            //Class.CustomAttributes.Add(new CodeAttributeDeclaration(new CodeTypeReference(typeof(DataObjectAttribute))));
+            Class.AddAttribute<SerializableAttribute>();
+            Class.AddAttribute<DataObjectAttribute>();
+            //if (!Table.Description.IsNullOrWhiteSpace())
+            //{
+            //    Class.CustomAttributes.Add(new CodeAttributeDeclaration(new CodeTypeReference(typeof(DescriptionAttribute)), new CodeAttributeArgument(new CodePrimitiveExpression(Table.Description))));
+            //    Class.CustomAttributes.Add(new CodeAttributeDeclaration(new CodeTypeReference(typeof(DisplayNameAttribute)), new CodeAttributeArgument(new CodePrimitiveExpression(Table.Description))));
+            //}
+            if (!Table.Description.IsNullOrWhiteSpace()) Class.AddAttribute<DescriptionAttribute>(Table.Description);
+            if (!Table.DisplayName.IsNullOrWhiteSpace()) Class.AddAttribute<DisplayNameAttribute>(Table.DisplayName);
+            //Class.CustomAttributes.Add(new CodeAttributeDeclaration(new CodeTypeReference(typeof(CompilerGeneratedAttribute))));
+            Class.AddAttribute<CompilerGeneratedAttribute>();
 
             // 索引和关系
             if (Table.Indexes != null && Table.Indexes.Count > 0)
@@ -86,42 +85,45 @@ namespace XCode.Code
                 {
                     if (item.Columns == null || item.Columns.Length < 1) continue;
 
-                    Class.CustomAttributes.Add(new CodeAttributeDeclaration(new CodeTypeReference(typeof(BindIndexAttribute)),
-                        new CodeAttributeArgument(new CodePrimitiveExpression(item.Name)),
-                        new CodeAttributeArgument(new CodePrimitiveExpression(item.Unique)),
-                        new CodeAttributeArgument(new CodePrimitiveExpression(String.Join(",", item.Columns)))
-                        ));
+                    //Class.CustomAttributes.Add(new CodeAttributeDeclaration(new CodeTypeReference(typeof(BindIndexAttribute)),
+                    //    new CodeAttributeArgument(new CodePrimitiveExpression(item.Name)),
+                    //    new CodeAttributeArgument(new CodePrimitiveExpression(item.Unique)),
+                    //    new CodeAttributeArgument(new CodePrimitiveExpression(String.Join(",", item.Columns)))
+                    //    ));
+                    Class.AddAttribute<BindIndexAttribute>(item.Name, item.Unique, String.Join(",", item.Columns));
                 }
             }
             if (Table.Relations != null && Table.Relations.Count > 0)
             {
-                foreach (IDataRelation item in Table.Relations)
+                foreach (var item in Table.Relations)
                 {
-                    Class.CustomAttributes.Add(new CodeAttributeDeclaration(new CodeTypeReference(typeof(BindRelationAttribute)),
-                        new CodeAttributeArgument(new CodePrimitiveExpression(item.Column)),
-                        new CodeAttributeArgument(new CodePrimitiveExpression(item.Unique)),
-                        new CodeAttributeArgument(new CodePrimitiveExpression(item.RelationTable)),
-                        new CodeAttributeArgument(new CodePrimitiveExpression(item.RelationColumn))
-                      ));
+                    //Class.CustomAttributes.Add(new CodeAttributeDeclaration(new CodeTypeReference(typeof(BindRelationAttribute)),
+                    //    new CodeAttributeArgument(new CodePrimitiveExpression(item.Column)),
+                    //    new CodeAttributeArgument(new CodePrimitiveExpression(item.Unique)),
+                    //    new CodeAttributeArgument(new CodePrimitiveExpression(item.RelationTable)),
+                    //    new CodeAttributeArgument(new CodePrimitiveExpression(item.RelationColumn))
+                    //  ));
+                    Class.AddAttribute<BindRelationAttribute>(item.Column, item.Unique, item.RelationTable, item.RelationColumn);
                 }
             }
 
             // 绑定表
-            Class.CustomAttributes.Add(new CodeAttributeDeclaration(new CodeTypeReference(typeof(BindTableAttribute)),
-                new CodeAttributeArgument(new CodePrimitiveExpression(Table.TableName)),
-                new CodeAttributeArgument("Description", new CodePrimitiveExpression(Table.Description)),
-                new CodeAttributeArgument("ConnName", new CodePrimitiveExpression(Assembly.ConnName)),
-                new CodeAttributeArgument("DbType", new CodeFieldReferenceExpression(new CodeTypeReferenceExpression(typeof(DatabaseType)), Table.DbType.ToString())),
-                new CodeAttributeArgument("IsView", new CodePrimitiveExpression(Table.IsView))
-                ));
+            //Class.CustomAttributes.Add(new CodeAttributeDeclaration(new CodeTypeReference(typeof(BindTableAttribute)),
+            //    new CodeAttributeArgument(new CodePrimitiveExpression(Table.TableName)),
+            //    new CodeAttributeArgument("Description", new CodePrimitiveExpression(Table.Description)),
+            //    new CodeAttributeArgument("ConnName", new CodePrimitiveExpression(Assembly.ConnName)),
+            //    new CodeAttributeArgument("DbType", new CodeFieldReferenceExpression(new CodeTypeReferenceExpression(typeof(DatabaseType)), Table.DbType.ToString())),
+            //    new CodeAttributeArgument("IsView", new CodePrimitiveExpression(Table.IsView))
+            //    ));
+            Class.AddAttribute<BindTableAttribute>(Table.TableName, Table.Description, ConnName, Table.DbType, Table.IsView);
 
             // 基类
-            Type type = typeof(Entity<>);
+            //Type type = typeof(Entity<>);
             //type=type.MakeGenericType(typeof())
             //Class.BaseTypes.Add(type);
-            Class.BaseTypes.Add(String.Format("Entity<{0}>", ClassName));
+            Class.BaseTypes.Add(BaseType);
 
-            Assembly.NameSpace.Types.Add(Class);
+            //Assembly.NameSpace.Types.Add(Class);
         }
 
         /// <summary>添加属性集合</summary>
@@ -129,7 +131,7 @@ namespace XCode.Code
         {
             if (Table.Columns == null || Table.Columns.Count < 1) return;
 
-            Int32 n = Class.Members.Count;
+            var n = Class.Members.Count;
             foreach (var item in Table.Columns)
             {
                 if (item.DataType == null) throw new XCodeException("[{0}]的[{1}]字段类型DataType不能为空！", Table.DisplayName, item.DisplayName);
@@ -160,50 +162,63 @@ namespace XCode.Code
         public CodeMemberProperty AddProperty(IDataColumn field)
         {
             //String name = FieldNames[field.Name];
-            String name = field.Name;
+            var name = field.Name;
 
             var p = new CodeMemberProperty();
             p.Attributes = MemberAttributes.Public | MemberAttributes.Final;
             p.Name = name;
             p.Type = new CodeTypeReference(field.DataType);
-            p.Comments.Add(AddSummary(field.Description));
+            //p.Comments.Add(AddSummary(field.Description));
+            p.AddSummary(field.Description);
 
             // 特性
-            if (!field.Description.IsNullOrWhiteSpace())
-            {
-                p.CustomAttributes.Add(new CodeAttributeDeclaration(new CodeTypeReference(typeof(DescriptionAttribute)), new CodeAttributeArgument(new CodePrimitiveExpression(field.Description))));
-                p.CustomAttributes.Add(new CodeAttributeDeclaration(new CodeTypeReference(typeof(DisplayNameAttribute)), new CodeAttributeArgument(new CodePrimitiveExpression(field.Description))));
-            }
-            p.CustomAttributes.Add(new CodeAttributeDeclaration(new CodeTypeReference(typeof(DataObjectFieldAttribute)),
-                new CodeAttributeArgument(new CodePrimitiveExpression(field.PrimaryKey)),
-                new CodeAttributeArgument(new CodePrimitiveExpression(field.Identity)),
-                new CodeAttributeArgument(new CodePrimitiveExpression(field.Nullable)),
-                new CodeAttributeArgument(new CodePrimitiveExpression(field.Length))
-               ));
-            p.CustomAttributes.Add(new CodeAttributeDeclaration(new CodeTypeReference(typeof(BindColumnAttribute)),
-                new CodeAttributeArgument(new CodePrimitiveExpression(field.ID)),
-                new CodeAttributeArgument(new CodePrimitiveExpression(field.ColumnName)),
-                new CodeAttributeArgument(new CodePrimitiveExpression(field.Description)),
-                new CodeAttributeArgument(new CodePrimitiveExpression(field.Default == null ? null : field.Default)),
-                new CodeAttributeArgument(new CodePrimitiveExpression(field.RawType)),
-                new CodeAttributeArgument(new CodePrimitiveExpression(field.Precision)),
-                new CodeAttributeArgument(new CodePrimitiveExpression(field.Scale)),
-                new CodeAttributeArgument(new CodePrimitiveExpression(field.IsUnicode))
-                ));
+            //if (!field.Description.IsNullOrWhiteSpace())
+            //{
+            //    p.CustomAttributes.Add(new CodeAttributeDeclaration(new CodeTypeReference(typeof(DescriptionAttribute)), new CodeAttributeArgument(new CodePrimitiveExpression(field.Description))));
+            //    p.CustomAttributes.Add(new CodeAttributeDeclaration(new CodeTypeReference(typeof(DisplayNameAttribute)), new CodeAttributeArgument(new CodePrimitiveExpression(field.Description))));
+            //}
+            if (!field.Description.IsNullOrWhiteSpace()) p.AddAttribute<DescriptionAttribute>(field.Description);
+            if (!field.DisplayName.IsNullOrWhiteSpace()) p.AddAttribute<DisplayNameAttribute>(field.DisplayName);
+
+            //p.CustomAttributes.Add(new CodeAttributeDeclaration(new CodeTypeReference(typeof(DataObjectFieldAttribute)),
+            //    new CodeAttributeArgument(new CodePrimitiveExpression(field.PrimaryKey)),
+            //    new CodeAttributeArgument(new CodePrimitiveExpression(field.Identity)),
+            //    new CodeAttributeArgument(new CodePrimitiveExpression(field.Nullable)),
+            //    new CodeAttributeArgument(new CodePrimitiveExpression(field.Length))
+            //   ));
+            //p.CustomAttributes.Add(new CodeAttributeDeclaration(new CodeTypeReference(typeof(BindColumnAttribute)),
+            //    new CodeAttributeArgument(new CodePrimitiveExpression(field.ID)),
+            //    new CodeAttributeArgument(new CodePrimitiveExpression(field.ColumnName)),
+            //    new CodeAttributeArgument(new CodePrimitiveExpression(field.Description)),
+            //    new CodeAttributeArgument(new CodePrimitiveExpression(field.Default == null ? null : field.Default)),
+            //    new CodeAttributeArgument(new CodePrimitiveExpression(field.RawType)),
+            //    new CodeAttributeArgument(new CodePrimitiveExpression(field.Precision)),
+            //    new CodeAttributeArgument(new CodePrimitiveExpression(field.Scale)),
+            //    new CodeAttributeArgument(new CodePrimitiveExpression(field.IsUnicode))
+            //    ));
+            p.AddAttribute<DataObjectFieldAttribute>(field.PrimaryKey, field.Identity, field.Nullable, field.Length);
+            p.AddAttribute<BindColumnAttribute>(field.ID, field.ColumnName, field.Description, field.Default == null ? null : field.Default, field.RawType, field.Precision, field.Scale, field.IsUnicode);
 
             p.HasGet = true;
             p.HasSet = true;
 
-            p.GetStatements.Add(new CodeMethodReturnStatement(new CodeFieldReferenceExpression(null, "_" + p.Name)));
+            var f = ("_" + p.Name).ToExp();
+            //p.GetStatements.Add(new CodeMethodReturnStatement(new CodeFieldReferenceExpression(null, "_" + p.Name)));
+            p.GetStatements.Add(f.Return());
 
-            var changing = new CodeMethodInvokeExpression(null, "OnPropertyChanging", new CodePrimitiveExpression(p.Name), new CodeVariableReferenceExpression("value"));
-            var changed = new CodeMethodInvokeExpression(null, "OnPropertyChanged", new CodePrimitiveExpression(p.Name));
+            //var changing = new CodeMethodInvokeExpression(null, "OnPropertyChanging", new CodePrimitiveExpression(p.Name), new CodeVariableReferenceExpression("value"));
+            //var changed = new CodeMethodInvokeExpression(null, "OnPropertyChanged", new CodePrimitiveExpression(p.Name));
 
-            var cas = new CodeAssignStatement();
-            cas.Left = new CodeFieldReferenceExpression(null, "_" + p.Name);
-            cas.Right = new CodeVariableReferenceExpression("value");
+            var changing = "OnPropertyChanging".Invoke(p.Name, "$value");
+            var changed = "OnPropertyChanged".Invoke(p.Name);
 
-            p.SetStatements.Add(new CodeConditionStatement(changing, cas, new CodeExpressionStatement(changed)));
+            //var cas = new CodeAssignStatement();
+            //cas.Left = new CodeFieldReferenceExpression(null, "_" + p.Name);
+            //cas.Right = new CodeVariableReferenceExpression("value");
+            //var cas = f.Assign("$value".ToExp());
+
+            //p.SetStatements.Add(new CodeConditionStatement(changing, cas, changed.ToStat()));
+            p.SetStatements.Add(changing.IfTrue(f.Assign("$value"), changed.ToStat()));
 
             Class.Members.Add(p);
             return p;
@@ -217,9 +232,12 @@ namespace XCode.Code
             p.Name = "Item";
             p.Type = new CodeTypeReference(typeof(Object));
             p.Parameters.Add(new CodeParameterDeclarationExpression(typeof(String), "name"));
-            p.Comments.Add(AddSummary("获取/设置 字段值。"));
-            p.Comments.Add(AddParamComment("name", "属性名"));
-            p.Comments.Add(AddComment("return", "属性值"));
+            //p.Comments.Add(AddSummary("获取/设置 字段值。"));
+            //p.Comments.Add(AddParamComment("name", "属性名"));
+            //p.Comments.Add(AddComment("return", "属性值"));
+            p.AddSummary("获取/设置 字段值。");
+            p.AddParamComment("name", "属性名");
+            p.AddReturnComment("属性值");
 
             p.HasGet = true;
             p.HasSet = true;
@@ -227,52 +245,62 @@ namespace XCode.Code
             foreach (var item in Table.Columns)
             {
                 //String name = FieldNames[item.Name];
-                String name = item.Name;
+                var name = item.Name;
 
                 // 取值
-                var cond = new CodeConditionStatement();
-                p.GetStatements.Add(cond);
-                cond.Condition = new CodeBinaryOperatorExpression(new CodeVariableReferenceExpression("name"), CodeBinaryOperatorType.ValueEquality, new CodePrimitiveExpression(name));
-                cond.TrueStatements.Add(new CodeMethodReturnStatement(new CodeFieldReferenceExpression(null, "_" + name)));
+                //var cond = new CodeConditionStatement();
+                //p.GetStatements.Add(cond);
+                //cond.Condition = new CodeBinaryOperatorExpression(new CodeVariableReferenceExpression("name"), CodeBinaryOperatorType.ValueEquality, new CodePrimitiveExpression(name));
+                //cond.TrueStatements.Add(new CodeMethodReturnStatement(new CodeFieldReferenceExpression(null, "_" + name)));
+                var cond = "$name".Equal(name);
+                p.GetStatements.Add(cond.IfTrue(("_" + name).Return()));
 
                 // 设置值
-                cond = new CodeConditionStatement();
-                p.SetStatements.Add(cond);
-                cond.Condition = new CodeBinaryOperatorExpression(new CodeVariableReferenceExpression("name"), CodeBinaryOperatorType.ValueEquality, new CodePrimitiveExpression(name));
+                //cond = new CodeConditionStatement();
+                //p.SetStatements.Add(cond);
+                //cond.Condition = new CodeBinaryOperatorExpression(new CodeVariableReferenceExpression("name"), CodeBinaryOperatorType.ValueEquality, new CodePrimitiveExpression(name));
 
-                Type type = typeof(Convert);
+                var type = typeof(Convert);
                 var mi = type.GetMethod("To" + item.DataType.Name, new Type[] { typeof(Object) });
                 CodeExpression ce = null;
                 if (mi != null)
                 {
-                    var mie = new CodeMethodInvokeExpression();
-                    mie.Method = new CodeMethodReferenceExpression(new CodeTypeReferenceExpression(typeof(Convert)), "To" + item.DataType.Name);
-                    mie.Parameters.Add(new CodeArgumentReferenceExpression("value"));
-                    // _Name = Convert.ToString(value);
-                    ce = mie;
+                    //var mie = new CodeMethodInvokeExpression();
+                    //mie.Method = new CodeMethodReferenceExpression(new CodeTypeReferenceExpression(typeof(Convert)), "To" + item.DataType.Name);
+                    //mie.Parameters.Add(new CodeArgumentReferenceExpression("value"));
+                    //// _Name = Convert.ToString(value);
+                    //ce = mie;
+
+                    ce = typeof(Convert).ToExp().Invoke("To" + item.DataType.Name, "@value");
                 }
                 else
                 {
-                    var cce = new CodeCastExpression();
-                    cce.TargetType = new CodeTypeReference(item.DataType);
-                    cce.Expression = new CodeArgumentReferenceExpression("value");
-                    ce = cce;
-                }
-                cond.TrueStatements.Add(new CodeAssignStatement(new CodeFieldReferenceExpression(null, "_" + name), ce));
+                    //var cce = new CodeCastExpression();
+                    //cce.TargetType = new CodeTypeReference(item.DataType);
+                    //cce.Expression = new CodeArgumentReferenceExpression("value");
+                    //ce = cce;
 
-                // return;
-                cond.TrueStatements.Add(new CodeMethodReturnStatement());
+                    ce = "@value".Cast(item.DataType);
+                }
+                //cond.TrueStatements.Add(new CodeAssignStatement(new CodeFieldReferenceExpression(null, "_" + name), ce));
+
+                //// return;
+                //cond.TrueStatements.Add(new CodeMethodReturnStatement());
+
+                p.SetStatements.Add(cond.IfTrue(("_" + name).Assign(ce), new CodeMethodReturnStatement()));
             }
             // 取值
-            var cmrs = new CodeMethodReturnStatement();
-            cmrs.Expression = new CodeIndexerExpression(new CodeBaseReferenceExpression(), new CodeVariableReferenceExpression("name"));
-            p.GetStatements.Add(cmrs);
+            //var cmrs = new CodeMethodReturnStatement();
+            //cmrs.Expression = new CodeIndexerExpression(new CodeBaseReferenceExpression(), new CodeVariableReferenceExpression("name"));
+            //p.GetStatements.Add(cmrs);
+            p.GetStatements.Add("$base[$name]".Return());
 
             // 设置值
-            CodeAssignStatement cas = new CodeAssignStatement();
-            cas.Left = new CodeIndexerExpression(new CodeBaseReferenceExpression(), new CodeVariableReferenceExpression("name"));
-            cas.Right = new CodeVariableReferenceExpression("value");
-            p.SetStatements.Add(cas);
+            //var cas = new CodeAssignStatement();
+            //cas.Left = new CodeIndexerExpression(new CodeBaseReferenceExpression(), new CodeVariableReferenceExpression("name"));
+            //cas.Right = new CodeVariableReferenceExpression("value");
+            //p.SetStatements.Add(cas);
+            p.SetStatements.Add("$base[$name]".Assign("$value"));
 
             p.StartDirectives.Add(new CodeRegionDirective(CodeRegionMode.Start, "获取/设置 字段值"));
             p.EndDirectives.Add(new CodeRegionDirective(CodeRegionMode.End, null));
@@ -299,42 +327,36 @@ namespace XCode.Code
         }
         #endregion
 
-        #region 缩进
-        //static String GetSpace(Int32 n)
-        //{
-        //    return new String(' ', n);
-        //}
-
-        //static String GetTabSpace(Int32 n)
-        //{
-        //    return GetSpace(n * 4);
-        //}
-        #endregion
-
         #region 生成代码
         /// <summary>生成C#代码</summary>
         /// <returns></returns>
         public String GenerateCSharpCode()
         {
-            CodeDomProvider provider = CodeDomProvider.CreateProvider("CSharp");
-            CodeGeneratorOptions options = new CodeGeneratorOptions();
+            var provider = CodeDomProvider.CreateProvider("CSharp");
+            var options = new CodeGeneratorOptions();
             options.BracingStyle = "C";
             options.VerbatimOrder = true;
-            using (StringWriter writer = new StringWriter())
+            using (var writer = new StringWriter())
             {
                 provider.GenerateCodeFromType(Class, writer, options);
                 //return writer.ToString();
 
-                String str = writer.ToString();
+                var str = writer.ToString();
 
                 // 去掉头部
                 //str = str.Substring(str.IndexOf("using"));
-                Type dt = typeof(DateTime);
+                var dt = typeof(DateTime);
                 str = str.Replace(dt.ToString(), dt.Name);
 
                 return str;
             }
         }
+        #endregion
+
+        #region 辅助函数
+        /// <summary>已重载。</summary>
+        /// <returns></returns>
+        public override string ToString() { return Name; }
         #endregion
     }
 }

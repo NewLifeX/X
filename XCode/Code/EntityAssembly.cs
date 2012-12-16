@@ -13,10 +13,12 @@ using NewLife.Security;
 using XCode.DataAccessLayer;
 using XCode.Exceptions;
 using NewLife.Reflection;
+
 #if NET4
 using System.Linq;
 #else
 using NewLife.Linq;
+using System.ComponentModel;
 #endif
 
 namespace XCode.Code
@@ -131,9 +133,9 @@ namespace XCode.Code
                 var asm = new EntityAssembly();
                 asm.Name = n;
                 asm.Tables = ts;
-                asm.CreateAll();
+                //asm.CreateAll();
 
-                asm.Compile();
+                //asm.Compile();
                 return asm;
             });
         }
@@ -152,9 +154,9 @@ namespace XCode.Code
             asm.Name = name;
             asm.ConnName = connName;
             asm.Tables = tables;
-            asm.CreateAll();
+            //asm.CreateAll();
 
-            asm.Compile();
+            //asm.Compile();
 
             return asm;
         }
@@ -176,16 +178,41 @@ namespace XCode.Code
         EntityClass Create2(IDataTable table)
         {
             var entity = new EntityClass();
-            entity.Assembly = this;
-            entity.ClassName = table.Name;
+            //entity.Assembly = this;
+            entity.Name = table.Name;
             entity.Table = table;
-            //entity.FieldNames = fieldNames;
+            entity.ConnName = ConnName;
+
+            if (OnClassCreating != null)
+            {
+                var e = new EntityClassEventArgs { Class = entity };
+                OnClassCreating(this, e);
+                if (e.Cancel) return null;
+
+                entity = e.Class;
+            }
+
             entity.Create();
             entity.AddProperties();
             entity.AddIndexs();
             //entity.AddNames();
 
-            Classes.Add(entity);
+            if (OnClassCreated != null)
+            {
+                var e = new EntityClassEventArgs { Class = entity };
+                OnClassCreated(this, e);
+                if (e.Cancel) return null;
+
+                entity = e.Class;
+            }
+
+            if (entity != null)
+            {
+                NameSpace.Types.Add(entity.Class);
+
+                Classes.Add(entity);
+            }
+
             return entity;
         }
 
@@ -240,8 +267,8 @@ namespace XCode.Code
                 }
                 #endregion
 
-                dic.Add(tb.TableName, tb.Name);
                 var entity = Create2(tb);
+                if (entity != null) dic.Add(tb.TableName, tb.Name);
 
                 //entity.Create();
                 //entity.AddProperties();
@@ -249,6 +276,18 @@ namespace XCode.Code
                 //entity.AddNames();
             }
             _TypeMaps = dic;
+
+            Unit.AddAttribute<AssemblyVersionAttribute>(String.Format("{0:yyyy}.{0:MMdd}.*", DateTime.Now));
+
+            Unit.AddAttribute<AssemblyTitleAttribute>("XCode动态程序集" + Name);
+            Unit.AddAttribute<AssemblyDescriptionAttribute>("XCode动态生成的实体类程序集");
+
+            var asmx = AssemblyX.Create(Assembly.GetExecutingAssembly());
+            Unit.AddAttribute<AssemblyFileVersionAttribute>(asmx.FileVersion);
+            Unit.AddAttribute<AssemblyCompanyAttribute>(asmx.Company);
+            Unit.AddAttribute<AssemblyProductAttribute>(asmx.Asm.GetCustomAttributeValue<AssemblyProductAttribute, String>());
+            Unit.AddAttribute<AssemblyCopyrightAttribute>(asmx.Asm.GetCustomAttributeValue<AssemblyCopyrightAttribute, String>());
+            Unit.AddAttribute<AssemblyTrademarkAttribute>(asmx.Asm.GetCustomAttributeValue<AssemblyTrademarkAttribute, String>());
         }
 
         /// <summary>获取类型</summary>
@@ -257,6 +296,9 @@ namespace XCode.Code
         public Type GetType(String name)
         {
             if (String.IsNullOrEmpty(name)) throw new ArgumentNullException("name");
+
+            // 第一次使用时编译
+            if (Assembly == null) Compile();
             if (Assembly == null) throw new Exception("未编译！");
 
             var asmx = AssemblyX.Create(Assembly);
@@ -274,20 +316,22 @@ namespace XCode.Code
         /// <returns></returns>
         public String GenerateCSharpCode()
         {
-            CodeDomProvider provider = CodeDomProvider.CreateProvider("CSharp");
-            CodeGeneratorOptions options = new CodeGeneratorOptions();
+            if (NameSpace.Types.Count < 1) CreateAll();
+
+            var provider = CodeDomProvider.CreateProvider("CSharp");
+            var options = new CodeGeneratorOptions();
             options.BracingStyle = "C";
             options.VerbatimOrder = true;
-            using (StringWriter writer = new StringWriter())
+            using (var writer = new StringWriter())
             {
                 provider.GenerateCodeFromCompileUnit(Unit, writer, options);
                 //return writer.ToString();
 
-                String str = writer.ToString();
+                var str = writer.ToString();
 
                 // 去掉头部
                 //str = str.Substring(str.IndexOf("using"));
-                Type dt = typeof(DateTime);
+                var dt = typeof(DateTime);
                 str = str.Replace(dt.ToString(), dt.Name);
 
                 return str;
@@ -301,6 +345,8 @@ namespace XCode.Code
         /// <returns></returns>
         public CompilerResults Compile(CompilerParameters options)
         {
+            if (NameSpace.Types.Count < 1) CreateAll();
+
             if (options == null)
             {
                 options = new CompilerParameters();
@@ -319,7 +365,7 @@ namespace XCode.Code
             }
 
             var refs = new String[] { "System.dll", "XCode.dll", "NewLife.Core.dll" };
-            foreach (Assembly item in AppDomain.CurrentDomain.GetAssemblies())
+            foreach (var item in AppDomain.CurrentDomain.GetAssemblies())
             {
                 if (item is AssemblyBuilder) continue;
 
@@ -331,11 +377,15 @@ namespace XCode.Code
                 catch { }
                 if (String.IsNullOrEmpty(name)) continue;
 
-                var fileName = Path.GetFileName(name);
-                if (!refs.Contains(fileName, StringComparer.OrdinalIgnoreCase)) continue;
+                //var fileName = Path.GetFileName(name);
+                //if (!refs.Contains(fileName, StringComparer.OrdinalIgnoreCase)) continue;
 
                 if (!options.ReferencedAssemblies.Contains(name)) options.ReferencedAssemblies.Add(name);
             }
+
+            //// 引用入口程序集
+            //var entry = Assembly.GetEntryAssembly();
+            //options.ReferencedAssemblies.Add(entry.Location);
 
             var provider = CodeDomProvider.CreateProvider("CSharp");
 
@@ -406,7 +456,7 @@ namespace XCode.Code
         /// <returns></returns>
         public Assembly Compile()
         {
-            CompilerResults rs = Compile(null);
+            var rs = Compile(null);
             if (rs.Errors == null || !rs.Errors.HasErrors) return _Assembly = rs.CompiledAssembly;
 
             //throw new XCodeException(rs.Errors[0].ErrorText);
@@ -415,6 +465,14 @@ namespace XCode.Code
             var msg = String.Format("{0} {1} {2}({3},{4})", err.ErrorNumber, err.ErrorText, err.FileName, err.Line, err.Column);
             throw new XCodeException(msg);
         }
+        #endregion
+
+        #region 事件
+        /// <summary>创建实体类开始前触发，用户可以在此修改实体类的创建行为</summary>
+        public event EventHandler<EntityClassEventArgs> OnClassCreating;
+
+        /// <summary>创建实体类完成后触发，用户可以在此修改实体类的创建行为</summary>
+        public event EventHandler<EntityClassEventArgs> OnClassCreated;
         #endregion
 
         #region 调试
@@ -439,5 +497,13 @@ namespace XCode.Code
         /// <returns></returns>
         public override string ToString() { return Name; }
         #endregion
+    }
+
+    /// <summary>实体类事件参数</summary>
+    public class EntityClassEventArgs : CancelEventArgs
+    {
+        private EntityClass _Class;
+        /// <summary>实体类</summary>
+        public EntityClass Class { get { return _Class; } set { _Class = value; } }
     }
 }

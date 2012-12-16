@@ -107,6 +107,7 @@
     <Compile Include="Attributes\BindIndexAttribute.cs" />
     <Compile Include="Attributes\BindTableAttribute.cs" />
     <Compile Include="Attributes\BindRelationAttribute.cs" />
+    <Compile Include="Code\CodeDomHelper.cs" />
     <Compile Include="Sync\ISyncMaster.cs" />
     <Compile Include="Sync\ISyncSlave.cs" />
     <Compile Include="Sync\SyncManager.cs" />
