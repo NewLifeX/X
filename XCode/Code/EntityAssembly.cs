@@ -2,6 +2,7 @@
 using System.CodeDom;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Reflection;
 using System.Reflection.Emit;
@@ -9,21 +10,40 @@ using System.Text;
 using NewLife.Collections;
 using NewLife.Configuration;
 using NewLife.Log;
+using NewLife.Reflection;
 using NewLife.Security;
 using XCode.DataAccessLayer;
 using XCode.Exceptions;
-using NewLife.Reflection;
 
 #if NET4
 using System.Linq;
 #else
 using NewLife.Linq;
-using System.ComponentModel;
 #endif
 
 namespace XCode.Code
 {
     /// <summary>实体程序集</summary>
+    /// <example>
+    /// 外部修改实体类生成行为的例子：
+    /// <code>
+    /// var dal = DAL.Create("Common");
+    /// var ea = dal.Assembly;
+    /// 
+    /// ea.OnClassCreating += (s, e) =&gt;
+    /// {
+    ///     if (e.Class.Name == "Log") e.Class.BaseType = "Test.TestEntity&lt;Log&gt;";
+    /// };
+    /// 
+    /// var eop = dal.CreateOperate("Log");
+    /// var type = eop.Default.GetType();
+    /// Console.WriteLine(type);
+    /// type = type.BaseType;
+    /// Console.WriteLine(type);
+    /// type = type.BaseType;
+    /// Console.WriteLine(type);
+    /// </code>
+    /// </example>
     public class EntityAssembly
     {
         #region 属性
