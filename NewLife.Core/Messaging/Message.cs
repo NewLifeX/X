@@ -181,7 +181,7 @@ namespace NewLife.Messaging
             else
             {
                 // 前面的数字表示消息种类
-                var sb = new StringBuilder();
+                var sb = new StringBuilder(32);
                 Char c;
                 while (true)
                 {

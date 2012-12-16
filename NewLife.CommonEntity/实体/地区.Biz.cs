@@ -34,9 +34,9 @@ namespace NewLife.CommonEntity
             {
                 if (String.IsNullOrEmpty(_FriendName))
                 {
-                    EntityList<TEntity> list = GetFullPath(true);
-                    StringBuilder sb = new StringBuilder();
-                    foreach (TEntity item in list)
+                    var list = GetFullPath(true);
+                    var sb = new StringBuilder(list.Count * 5);
+                    foreach (var item in list)
                     {
                         if (item.Name == "市辖区") continue;
                         if (item.Name == "县") continue;
@@ -310,7 +310,7 @@ namespace NewLife.CommonEntity
         {
             if (OldArea.Count > 0)
             {
-                StringBuilder sb = new StringBuilder();
+                var sb = new StringBuilder(OldArea.Count * 10);
                 foreach (var item in OldArea)
                 {
                     if (sb.Length > 0) sb.Append(";");

@@ -118,7 +118,7 @@ namespace NewLife.IO
 
         string Serialize(object obj, SerializationFormat serializationFormat)
         {
-            StringBuilder output = new StringBuilder();
+            var output = new StringBuilder();
             Serialize(obj, output, serializationFormat);
             return output.ToString();
         }
@@ -1253,7 +1253,7 @@ namespace NewLife.IO
             private string DeserializePrimitiveToken()
             {
                 char? nullable2;
-                StringBuilder builder = new StringBuilder();
+                var builder = new StringBuilder();
                 char? nullable = null;
             Label_0066:
                 nullable2 = nullable = _s.MoveNext();
@@ -1277,7 +1277,7 @@ namespace NewLife.IO
 
             private string DeserializeString()
             {
-                StringBuilder sb = new StringBuilder();
+                var sb = new StringBuilder();
                 bool flag = false;
                 char? c = _s.MoveNext();
                 char ch = CheckQuoteChar(c);

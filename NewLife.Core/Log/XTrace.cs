@@ -429,8 +429,8 @@ namespace NewLife.Log
             var asm = Assembly.GetEntryAssembly();
             var entry = asm == null ? null : asm.EntryPoint;
 
-            var sb = new StringBuilder();
             int count = st.FrameCount;
+            var sb = new StringBuilder(count * 20);
             if (maxNum > 0 && maxNum < count) count = maxNum;
             for (int i = 0; i < count; i++)
             {

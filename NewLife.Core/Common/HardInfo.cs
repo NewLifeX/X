@@ -106,9 +106,9 @@ namespace NewLife.Common
                 {
                     if (_Macs != null) return _Macs;
                     //return GetInfo("Win32_NetworkAdapterConfiguration", "MacAddress");
-                    ManagementClass cimobject = new ManagementClass("Win32_NetworkAdapterConfiguration");
-                    ManagementObjectCollection moc = cimobject.GetInstances();
-                    List<String> bbs = new List<String>();
+                    var cimobject = new ManagementClass("Win32_NetworkAdapterConfiguration");
+                    var moc = cimobject.GetInstances();
+                    var bbs = new List<String>();
                     foreach (ManagementObject mo in moc)
                     {
                         if (mo != null &&
@@ -124,8 +124,8 @@ namespace NewLife.Common
                         }
                     }
                     bbs.Sort();
-                    StringBuilder sb = new StringBuilder();
-                    foreach (String s in bbs)
+                    var sb = new StringBuilder(bbs.Count * 15);
+                    foreach (var s in bbs)
                     {
                         if (sb.Length > 0) sb.Append(",");
                         sb.Append(s);
@@ -143,9 +143,9 @@ namespace NewLife.Common
                 {
                     if (_IPs != null) return _IPs;
                     //return null;
-                    ManagementClass cimobject = new ManagementClass("Win32_NetworkAdapterConfiguration");
-                    ManagementObjectCollection moc = cimobject.GetInstances();
-                    List<String> bbs = new List<String>();
+                    var cimobject = new ManagementClass("Win32_NetworkAdapterConfiguration");
+                    var moc = cimobject.GetInstances();
+                    var bbs = new List<String>();
                     foreach (ManagementObject mo in moc)
                     {
                         if (mo != null &&
@@ -165,8 +165,8 @@ namespace NewLife.Common
                         }
                     }
                     bbs.Sort();
-                    StringBuilder sb = new StringBuilder();
-                    foreach (String s in bbs)
+                    var sb = new StringBuilder(bbs.Count * 15);
+                    foreach (var s in bbs)
                     {
                         if (sb.Length > 0) sb.Append(",");
                         sb.Append(s);
@@ -178,10 +178,10 @@ namespace NewLife.Common
 
             public static String GetInfo(String path, String property)
             {
-                String wql = String.Format("Select {0} From {1}", property, path);
-                ManagementObjectSearcher cimobject = new ManagementObjectSearcher(wql);
-                ManagementObjectCollection moc = cimobject.Get();
-                List<String> bbs = new List<String>();
+                var wql = String.Format("Select {0} From {1}", property, path);
+                var cimobject = new ManagementObjectSearcher(wql);
+                var moc = cimobject.Get();
+                var bbs = new List<String>();
                 try
                 {
                     foreach (ManagementObject mo in moc)
@@ -201,8 +201,8 @@ namespace NewLife.Common
                     }
                 }
                 bbs.Sort();
-                StringBuilder sb = new StringBuilder();
-                foreach (String s in bbs)
+                var sb = new StringBuilder(bbs.Count * 15);
+                foreach (var s in bbs)
                 {
                     if (sb.Length > 0) sb.Append(",");
                     sb.Append(s);

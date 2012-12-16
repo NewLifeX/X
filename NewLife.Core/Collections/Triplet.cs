@@ -45,15 +45,17 @@ namespace NewLife.Collections
         /// <returns></returns>
         public override string ToString()
         {
-            StringBuilder builder = new StringBuilder();
-            builder.Append('[');
-            if (First != null) builder.Append(First.ToString());
-            builder.Append(", ");
-            if (Second != null) builder.Append(Second.ToString());
-            builder.Append(", ");
-            if (Third != null) builder.Append(Third.ToString());
-            builder.Append(']');
-            return builder.ToString();
+            //var builder = new StringBuilder();
+            //builder.Append('[');
+            //if (First != null) builder.Append(First.ToString());
+            //builder.Append(", ");
+            //if (Second != null) builder.Append(Second.ToString());
+            //builder.Append(", ");
+            //if (Third != null) builder.Append(Third.ToString());
+            //builder.Append(']');
+            //return builder.ToString();
+
+            return String.Format("[{0}, {1}, {2}]", First, Second, Third);
         }
     }
 
@@ -74,10 +76,7 @@ namespace NewLife.Collections
         public TThird Third;
 
         /// <summary>初始化</summary>
-        public Triplet()
-        {
-        }
-
+        public Triplet() { }
         /// <summary>初始化</summary>
         /// <param name="x"></param>
         /// <param name="y"></param>
@@ -102,15 +101,17 @@ namespace NewLife.Collections
         /// <returns></returns>
         public override string ToString()
         {
-            StringBuilder builder = new StringBuilder();
-            builder.Append('[');
-            if (First != null) builder.Append(First.ToString());
-            builder.Append(", ");
-            if (Second != null) builder.Append(Second.ToString());
-            builder.Append(", ");
-            if (Third != null) builder.Append(Third.ToString());
-            builder.Append(']');
-            return builder.ToString();
+            //var builder = new StringBuilder();
+            //builder.Append('[');
+            //if (First != null) builder.Append(First.ToString());
+            //builder.Append(", ");
+            //if (Second != null) builder.Append(Second.ToString());
+            //builder.Append(", ");
+            //if (Third != null) builder.Append(Third.ToString());
+            //builder.Append(']');
+            //return builder.ToString();
+
+            return String.Format("[{0}, {1}, {2}]", First, Second, Third);
         }
     }
 }

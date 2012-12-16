@@ -46,7 +46,7 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public override string ToString()
         {
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder(32);
 
             sb.AppendFormat("L_{0:0000}: {1}", _Offset, _Code);
             if (_Operand == null) return sb.ToString();
@@ -54,7 +54,7 @@ namespace NewLife.Reflection
             switch (_Code.OperandType)
             {
                 case OperandType.InlineField:
-                    FieldInfo fOperand = ((FieldInfo)_Operand);
+                    var fOperand = ((FieldInfo)_Operand);
                     sb.Append(" " + FixType(fOperand.FieldType) + " " + FixType(fOperand.ReflectedType) + "::" + fOperand.Name + "");
                     break;
                 case OperandType.InlineMethod:
@@ -69,7 +69,7 @@ namespace NewLife.Reflection
                     {
                         try
                         {
-                            ConstructorInfo mOperand = (ConstructorInfo)_Operand;
+                            var mOperand = (ConstructorInfo)_Operand;
                             sb.Append(" ");
                             if (!mOperand.IsStatic) sb.Append("instance ");
                             sb.Append("void " + FixType(mOperand.ReflectedType) + "::" + mOperand.Name + "()");

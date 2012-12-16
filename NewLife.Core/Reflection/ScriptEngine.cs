@@ -210,7 +210,7 @@ namespace NewLife.Reflection
                     if (!code.Contains("return ")) code = "return " + code;
                     if (!code.EndsWith(";")) code += ";";
 
-                    var sb = new StringBuilder();
+                    var sb = new StringBuilder(64 + code.Length);
                     sb.Append("public static Object Execute(");
                     // 参数
                     Boolean isfirst = false;

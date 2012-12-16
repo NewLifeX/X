@@ -30,7 +30,7 @@ namespace NewLife.IO
             else
             {
                 //context.Response.Write("不支持的HTTP数据传输方法！");
-                StringBuilder sb = new StringBuilder();
+                var sb = new StringBuilder(200);
                 sb.Append("请使用POST方式提交二进制数据到：");
                 sb.AppendFormat("<font color='red'>{0}</font>", context.Request.Url);
                 sb.Append("<br />");
