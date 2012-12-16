@@ -409,15 +409,15 @@ namespace XCode.DataAccessLayer
 
         public override String CreateTableSQL(IDataTable table)
         {
-            List<IDataColumn> Fields = new List<IDataColumn>(table.Columns);
+            var Fields = new List<IDataColumn>(table.Columns);
             //Fields.Sort(delegate(IDataColumn item1, IDataColumn item2) { return item1.ID.CompareTo(item2.ID); });
             Fields.OrderBy(dc => dc.ID);
 
-            StringBuilder sb = new StringBuilder();
-            List<String> pks = new List<String>();
+            var sb = new StringBuilder(32 + Fields.Count * 20);
+            var pks = new List<String>();
 
             sb.AppendFormat("Create Table If Not Exists {0}(", FormatName(table.TableName));
-            for (Int32 i = 0; i < Fields.Count; i++)
+            for (var i = 0; i < Fields.Count; i++)
             {
                 sb.AppendLine();
                 sb.Append("\t");
@@ -427,7 +427,7 @@ namespace XCode.DataAccessLayer
                 if (Fields[i].PrimaryKey) pks.Add(FormatName(Fields[i].ColumnName));
             }
             // 如果有自增，则自增必须作为主键
-            foreach (IDataColumn item in table.Columns)
+            foreach (var item in table.Columns)
             {
                 if (item.Identity && !item.PrimaryKey)
                 {

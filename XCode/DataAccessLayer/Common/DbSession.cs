@@ -664,7 +664,7 @@ namespace XCode.DataAccessLayer
 
             if (ps != null && ps.Length > 0)
             {
-                StringBuilder sb = new StringBuilder();
+                var sb = new StringBuilder(64);
                 sb.Append(sql);
                 sb.Append("[");
                 for (int i = 0; i < ps.Length; i++)
@@ -683,7 +683,7 @@ namespace XCode.DataAccessLayer
                     else if (v is String)
                     {
                         sv = v as String;
-                        if (sv.Length > 8) sv = String.Format("[{0}]{1}...", sv.Length, sv.Substring(0, 8));
+                        if (sv.Length > 32) sv = String.Format("[{0}]{1}...", sv.Length, sv.Substring(0, 8));
                     }
                     else
                         sv = "" + v;

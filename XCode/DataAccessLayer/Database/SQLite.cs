@@ -341,7 +341,7 @@ namespace XCode.DataAccessLayer
 
         public override String CreateIndexSQL(IDataIndex index)
         {
-            var sb = new StringBuilder();
+            var sb = new StringBuilder(32 + index.Columns.Length * 20);
             if (index.Unique)
                 sb.Append("Create Unique Index ");
             else
@@ -363,6 +363,12 @@ namespace XCode.DataAccessLayer
                 //else
                 //    sb.AppendFormat("{0} {1}", FormatKeyWord(index.Columns[i].Name), isAscs[i].Value ? "Asc" : "Desc");
             }
+            //foreach (var item in index.Columns)
+            //{
+            //    sb.Append(FormatName(item));
+            //    sb.Append(", ");
+            //}
+            //sb.Remove(sb.Length - 2, 2);
             sb.Append(")");
 
             return sb.ToString();

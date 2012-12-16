@@ -286,15 +286,30 @@ namespace XCode.DataAccessLayer
             if (String.IsNullOrEmpty(sql) || table.PrimaryKeys == null || table.PrimaryKeys.Length < 2) return sql;
 
             // 处理多主键
-            var sb = new StringBuilder();
-            foreach (var item in table.PrimaryKeys)
+            var sb = new StringBuilder(sql.Length + 32 + table.PrimaryKeys.Length * 16);
+            sb.Append(sql);
+            sb.Append(";\r\n");
+            sb.AppendFormat("Alter Table {0} Add Constraint PK_{1} Primary Key (", FormatName(table.TableName), table.TableName);
+
+            //foreach (var item in table.PrimaryKeys)
+            //{
+            //    sb.Append(FormatName(item.ColumnName));
+            //    sb.Append(",");
+            //}
+            //sb.Remove(sb.Length - 1, 1);
+
+            // sb.Remove涉及内存复制
+            for (int i = 0; i < table.PrimaryKeys.Length; i++)
             {
-                if (sb.Length > 0) sb.Append(",");
-                sb.Append(FormatName(item.ColumnName));
+                if (i > 0) sb.Append(", ");
+                sb.Append(FormatName(table.PrimaryKeys[i].ColumnName));
             }
-            sql += ";" + Environment.NewLine;
-            sql += String.Format("Alter Table {0} Add Constraint PK_{1} Primary Key ({2})", FormatName(table.TableName), table.TableName, sb.ToString());
-            return sql;
+
+            sb.Append(")");
+
+            //sql += ";" + Environment.NewLine;
+            //sql += String.Format("Alter Table {0} Add Constraint PK_{1} Primary Key ({2})", FormatName(table.TableName), table.TableName, sb);
+            return sb.ToString();
         }
 
         protected override string GetFieldConstraints(IDataColumn field, Boolean onlyDefine)

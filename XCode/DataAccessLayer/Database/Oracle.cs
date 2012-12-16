@@ -1042,13 +1042,13 @@ namespace XCode.DataAccessLayer
 
         public override string CreateTableSQL(IDataTable table)
         {
-            List<IDataColumn> Fields = new List<IDataColumn>(table.Columns);
+            var Fields = new List<IDataColumn>(table.Columns);
             Fields.OrderBy(dc => dc.ID);
 
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder(32 + Fields.Count * 20);
 
             sb.AppendFormat("Create Table {0}(", FormatName(table.TableName));
-            for (Int32 i = 0; i < Fields.Count; i++)
+            for (var i = 0; i < Fields.Count; i++)
             {
                 sb.AppendLine();
                 sb.Append("\t");
