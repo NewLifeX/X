@@ -70,7 +70,7 @@ namespace XCode
         /// <summary>设置所有实体中指定项的值</summary>
         /// <param name="name"></param>
         /// <param name="value"></param>
-        void SetItem(String name, Object value);
+        IEntityList SetItem(String name, Object value);
 
         /// <summary>获取所有实体中指定项的值</summary>
         /// <typeparam name="TResult">指定项的类型</typeparam>
@@ -121,7 +121,7 @@ namespace XCode
 
         /// <summary>导入Xml文本</summary>
         /// <param name="xml"></param>
-        void FromXml(String xml);
+        IEntityList FromXml(String xml);
 
         /// <summary>导出Json</summary>
         /// <returns></returns>

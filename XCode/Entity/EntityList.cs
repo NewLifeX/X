@@ -20,6 +20,13 @@ using System.Linq;
 namespace XCode
 {
     /// <summary>实体集合，提供批量查询和批量操作实体等操作。若需要使用Linq，需要先用<see cref="ToList"/>方法。</summary>
+    /// <remarks>
+    /// 在.Net 2.0时代，没有Linq可用时，该类的对象查询等方法发挥了很大的作用。
+    /// 但是弱类型比较的写法，不太方便，并且有时会带来非常难以查找的错误。
+    /// 比如Object.Equal比较Int16和Int32两个数字，是不相等的，也就是说，如果有个Int32字段，传入Int16的数字是无法找到任何匹配项的。
+    /// 
+    /// 后来在.Net 2.0上实现了Linq，该类的对象查询方法将会逐步淡出，建议优先考虑Linq。
+    /// </remarks>
     [Serializable]
     public partial class EntityList<T> : List<T>, IEntityList, IList, IList<IEntity>, IListSource, IEnumerable where T : IEntity
     {
@@ -63,10 +70,9 @@ namespace XCode
         /// <returns></returns>
         public static EntityList<T> operator +(EntityList<T> entities1, EntityList<T> entities2)
         {
-            //if ((entities1 == null || entities1.Count < 1) && (entities2 == null || entities2.Count < 1)) return null;
             if ((entities1 == null || entities1.Count < 1) && (entities2 == null || entities2.Count < 1)) return entities1;
 
-            EntityList<T> list = new EntityList<T>();
+            var list = new EntityList<T>();
             if (entities1 != null && entities1.Count > 0) list.AddRange(entities1);
             if (entities2 != null && entities2.Count > 0) list.AddRange(entities2);
 
@@ -79,16 +85,13 @@ namespace XCode
         /// <returns></returns>
         public static EntityList<T> operator -(EntityList<T> entities1, EntityList<T> entities2)
         {
-            //if (entities1 == null || entities1.Count < 1) return null;
             if (entities1 == null || entities1.Count < 1) return entities1;
 
-            EntityList<T> list = new EntityList<T>();
-            foreach (T item in entities1)
+            var list = new EntityList<T>();
+            foreach (var item in entities1)
             {
                 if (entities2 != null && !entities2.Contains(item)) list.Add(item);
             }
-
-            //if (list == null || list.Count < 1) return null;
 
             return list;
         }
@@ -97,14 +100,16 @@ namespace XCode
         #region 集合操作
         /// <summary>从集合中移除另一个集合指定的元素</summary>
         /// <param name="collection"></param>
-        public void RemoveRange(IEnumerable<T> collection)
+        public EntityList<T> RemoveRange(IEnumerable<T> collection)
         {
-            if (collection == null) return;
+            if (collection == null) return this;
 
             foreach (T item in collection)
             {
                 if (Contains(item)) Remove(item);
             }
+
+            return this;
         }
         #endregion
 
@@ -117,10 +122,11 @@ namespace XCode
         {
             if (Count < 1) return this;
 
+            // 先排除掉没有必要的查找，唯一键空值查找没有意义
             FieldItem field = Factory.Table.FindByName(name);
             if (field != null && (field.IsIdentity || field.PrimaryKey))
             {
-                // 唯一键为自增且参数小于等于0时，返回空
+                // 唯一键为空时，比如自增且参数小于等于0时，返回空
                 if (Helper.IsNullKey(value)) return null;
             }
 
@@ -129,6 +135,7 @@ namespace XCode
             // 特殊处理整数类型，避免出现相同值不同整型而导致结果不同
             if (value != null && value.GetType().IsIntType())
             {
+                // 整型统一转为Int64后再比较，因为即使数值相等，类型不同的对象也是不等的
                 var v6 = Convert.ToInt64(value);
                 foreach (var item in this)
                 {
@@ -148,12 +155,11 @@ namespace XCode
         }
 
         /// <summary>根据指定项查找</summary>
-        /// <param name="names">属性名</param>
-        /// <param name="values">属性值</param>
+        /// <param name="names">属性名集合</param>
+        /// <param name="values">属性值集合</param>
         /// <returns></returns>
         public EntityList<T> FindAll(String[] names, Object[] values)
         {
-            //if (Count < 1) return null;
             if (Count < 1) return this;
 
             FieldItem field = Factory.Table.FindByName(names[0]);
@@ -170,6 +176,7 @@ namespace XCode
             {
                 if (values[i] == null) continue;
 
+                // 整型统一转为Int64后再比较，因为即使数值相等，类型不同的对象也是不等的
                 ts[i] = values[i].GetType().IsIntType();
                 if (ts[i]) vs[i] = Convert.ToInt64(values[i]);
             }
@@ -221,6 +228,7 @@ namespace XCode
             // 特殊处理整数类型，避免出现相同值不同整型而导致结果不同
             if (value != null && value.GetType().IsIntType())
             {
+                // 整型统一转为Int64后再比较，因为即使数值相等，类型不同的对象也是不等的
                 var v6 = Convert.ToInt64(value);
                 foreach (var item in this)
                 {
@@ -249,7 +257,7 @@ namespace XCode
             if (Count < 1) return this;
 
             var list = new EntityList<T>();
-            foreach (T item in this)
+            foreach (var item in this)
             {
                 if (item == null) continue;
                 if (String.Equals((String)item[name], value, StringComparison.OrdinalIgnoreCase)) list.Add(item);
@@ -265,13 +273,31 @@ namespace XCode
         {
             if (Count < 1) return default(T);
 
-            foreach (T item in this)
+            foreach (var item in this)
             {
                 if (item == null) continue;
                 if (String.Equals((String)item[name], value, StringComparison.OrdinalIgnoreCase)) return item;
             }
             return default(T);
         }
+
+        /// <summary>集合是否包含指定项</summary>
+        /// <param name="name"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public Boolean Exists(String name, Object value)
+        {
+            return Find(name, value) != null;
+            //if (Count < 1) return false;
+
+            //foreach (T item in this)
+            //{
+            //    if (item == null) continue;
+            //    if (Object.Equals(item[name], value)) return true;
+            //}
+            //return false;
+        }
+        #endregion
 
         #region IEntityList接口
         /// <summary>根据指定项查找</summary>
@@ -303,24 +329,13 @@ namespace XCode
         /// <param name="value">属性值</param>
         /// <returns></returns>
         IEntity IEntityList.FindIgnoreCase(String name, String value) { return FindIgnoreCase(name, value); }
-        #endregion
 
-        /// <summary>集合是否包含指定项</summary>
-        /// <param name="name"></param>
+        /// <summary>设置所有实体中指定项的值</summary>
+        /// <param name="name">指定项的名称</param>
         /// <param name="value"></param>
-        /// <returns></returns>
-        public Boolean Exists(String name, Object value)
-        {
-            return Find(name, value) != null;
-            //if (Count < 1) return false;
+        IEntityList IEntityList.SetItem(String name, Object value) { return SetItem(name, value); }
 
-            //foreach (T item in this)
-            //{
-            //    if (item == null) continue;
-            //    if (Object.Equals(item[name], value)) return true;
-            //}
-            //return false;
-        }
+        IEntityList IEntityList.FromXml(String xml) { return FromXml(xml); }
         #endregion
 
         #region 对象操作
@@ -331,11 +346,11 @@ namespace XCode
         {
             if (Count < 1) return 0;
 
-            Int32 count = 0;
+            var count = 0;
 
             if (useTransition)
             {
-                IEntityOperate dal = Factory;
+                var dal = Factory;
                 dal.BeginTransaction();
                 try
                 {
@@ -365,10 +380,7 @@ namespace XCode
 
         /// <summary>把整个集合插入到数据库</summary>
         /// <returns></returns>
-        public Int32 Insert()
-        {
-            return Insert(true);
-        }
+        public Int32 Insert() { return Insert(true); }
 
         /// <summary>把整个集合更新到数据库</summary>
         /// <param name="useTransition">是否使用事务保护</param>
@@ -377,11 +389,11 @@ namespace XCode
         {
             if (Count < 1) return 0;
 
-            Int32 count = 0;
+            var count = 0;
 
             if (useTransition)
             {
-                IEntityOperate dal = Factory;
+                var dal = Factory;
                 dal.BeginTransaction();
                 try
                 {
@@ -411,10 +423,7 @@ namespace XCode
 
         /// <summary>把整个集合更新到数据库</summary>
         /// <returns></returns>
-        public Int32 Update()
-        {
-            return Update(true);
-        }
+        public Int32 Update() { return Update(true); }
 
         /// <summary>把整个保存更新到数据库</summary>
         /// <param name="useTransition">是否使用事务保护</param>
@@ -423,11 +432,11 @@ namespace XCode
         {
             if (Count < 1) return 0;
 
-            Int32 count = 0;
+            var count = 0;
 
             if (useTransition)
             {
-                IEntityOperate dal = Factory;
+                var dal = Factory;
                 dal.BeginTransaction();
                 try
                 {
@@ -457,10 +466,7 @@ namespace XCode
 
         /// <summary>把整个集合保存到数据库</summary>
         /// <returns></returns>
-        public Int32 Save()
-        {
-            return Save(true);
-        }
+        public Int32 Save() { return Save(true); }
 
         /// <summary>把整个集合从数据库中删除</summary>
         /// <param name="useTransition">是否使用事务保护</param>
@@ -469,11 +475,11 @@ namespace XCode
         {
             if (Count < 1) return 0;
 
-            Int32 count = 0;
+            var count = 0;
 
             if (useTransition)
             {
-                IEntityOperate dal = Factory;
+                var dal = Factory;
                 dal.BeginTransaction();
                 try
                 {
@@ -503,53 +509,53 @@ namespace XCode
 
         /// <summary>把整个集合从数据库中删除</summary>
         /// <returns></returns>
-        public Int32 Delete()
-        {
-            return Delete(true);
-        }
+        public Int32 Delete() { return Delete(true); }
 
         /// <summary>设置所有实体中指定项的值</summary>
-        /// <param name="name"></param>
+        /// <param name="name">指定项的名称</param>
         /// <param name="value"></param>
-        public void SetItem(String name, Object value)
+        public EntityList<T> SetItem(String name, Object value)
         {
-            if (Count < 1) return;
+            if (Count < 1) return this;
 
-            foreach (T item in this)
+            foreach (var item in this)
             {
                 if (item == null) continue;
                 if (!Object.Equals(item[name], value)) item.SetItem(name, value);
             }
+
+            return this;
         }
 
-        /// <summary>获取所有实体中指定项的值</summary>
+        /// <summary>获取所有实体中指定项的值，不允许重复项</summary>
         /// <typeparam name="TResult">指定项的类型</typeparam>
-        /// <param name="name"></param>
+        /// <param name="name">指定项的名称</param>
         /// <returns></returns>
-        public List<TResult> GetItem<TResult>(String name)
+        public List<TResult> GetItem<TResult>(String name) { return GetItem<TResult>(name, false); }
+
+        /// <summary>获取所有实体中指定项的值</summary>
+        /// <remarks>
+        /// 有时候只是为了获取某个属性值的集合，可以允许重复项，而有时候是获取唯一主键，作为in操作的参数，不该允许重复项。
+        /// </remarks>
+        /// <typeparam name="TResult">指定项的类型</typeparam>
+        /// <param name="name">指定项的名称</param>
+        /// <param name="allowRepeated">是否允许重复项</param>
+        /// <returns></returns>
+        public List<TResult> GetItem<TResult>(String name, Boolean allowRepeated)
         {
             if (String.IsNullOrEmpty(name)) throw new ArgumentNullException("name");
 
-            //if (Count < 1) return null;
-            List<TResult> list = new List<TResult>();
+            var list = new List<TResult>();
             if (Count < 1) return list;
 
-            Type type = typeof(TResult);
-            foreach (T item in this)
+            var type = typeof(TResult);
+            foreach (var item in this)
             {
                 if (item == null) continue;
 
-                //Object obj = item[name];
-                //if (obj is TResult)
-                //    list.Add((TResult)item[name]);
-                //else
-                //    list.Add((TResult)TypeX.ChangeType(obj, type));
-
-                //list.Add(TypeX.ChangeType<TResult>(item[name]));
-
                 // 避免集合插入了重复项
-                TResult obj = TypeX.ChangeType<TResult>(item[name]);
-                if (!list.Contains(obj)) list.Add(obj);
+                var obj = TypeX.ChangeType<TResult>(item[name]);
+                if (!allowRepeated && !list.Contains(obj)) list.Add(obj);
             }
             return list;
         }
@@ -564,7 +570,7 @@ namespace XCode
 
             if (Count < 1) return null;
 
-            List<String> list = GetItem<String>(name);
+            var list = GetItem<String>(name);
             if (list == null || list.Count < 1) return null;
 
             return String.Join(separator, list.ToArray());
@@ -577,8 +583,8 @@ namespace XCode
         {
             if (Count < 1) return null;
 
-            StringBuilder sb = new StringBuilder();
-            foreach (T item in this)
+            var sb = new StringBuilder(Count * 10);
+            foreach (var item in this)
             {
                 if (sb.Length > 0) sb.Append(separator);
                 sb.Append("" + item);
@@ -595,13 +601,13 @@ namespace XCode
         {
             if (Count < 1) return this;
 
-            Type type = GetItemType(name);
+            var type = GetItemType(name);
             if (!typeof(IComparable).IsAssignableFrom(type)) throw new NotSupportedException("不支持比较！");
 
-            Int32 n = 1;
+            var n = 1;
             if (isDesc) n = -1;
 
-            Sort(delegate(T item1, T item2)
+            Sort((item1, item2) =>
             {
                 // Object.Equals可以有效的处理两个元素都为空的问题
                 if (Object.Equals(item1[name], item2[name])) return 0;
@@ -620,14 +626,14 @@ namespace XCode
 
             for (int i = 0; i < names.Length; i++)
             {
-                String name = names[i];
-                Boolean isDesc = isDescs[i];
+                var name = names[i];
+                var isDesc = isDescs[i];
 
-                Type type = GetItemType(name);
+                var type = GetItemType(name);
                 if (!typeof(IComparable).IsAssignableFrom(type)) throw new NotSupportedException("不支持比较！");
             }
 
-            Sort(delegate(T item1, T item2)
+            Sort((item1, item2) =>
             {
                 // 逐层对比
                 for (int i = 0; i < names.Length; i++)
@@ -803,14 +809,16 @@ namespace XCode
 
         /// <summary>导入Xml文本</summary>
         /// <param name="xml"></param>
-        public virtual void FromXml(String xml)
+        public virtual EntityList<T> FromXml(String xml)
         {
-            if (String.IsNullOrEmpty(xml)) return;
+            if (String.IsNullOrEmpty(xml)) return this;
             xml = xml.Trim();
             using (var reader = new StringReader(xml))
             {
                 Import(reader);
             }
+
+            return this;
         }
 
         /// <summary>导出Json</summary>
