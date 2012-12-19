@@ -132,10 +132,10 @@ namespace NewLife.CommonEntity
             if (!Dirtys[_.UserID] && !Dirtys[_.UserName])
             {
                 // 获取当前登录用户
-                IManageUser user = ManageProvider.Provider.Current;
+                var user = ManageProvider.Provider.Current;
                 if (user != null)
                 {
-                    if (user.ID is Int32) UserID = (Int32)user.ID;
+                    UserID = user.ID;
                     UserName = user.ToString();
                 }
             }

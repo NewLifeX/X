@@ -585,7 +585,7 @@ namespace NewLife.CommonEntity
 
         #region IManageUser 成员
         /// <summary>编号</summary>
-        object IManageUser.ID { get { return ID; } }
+        object IManageUser.Uid { get { return ID; } }
 
         /// <summary>账号</summary>
         string IManageUser.Account { get { return Name; } set { Name = value; } }

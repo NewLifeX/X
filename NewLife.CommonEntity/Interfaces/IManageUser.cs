@@ -6,8 +6,11 @@ namespace NewLife.CommonEntity
     /// <summary>用户接口</summary>
     public interface IManageUser
     {
-        /// <summary>编号</summary>
-        Object ID { get; }
+        /// <summary>唯一编号</summary>
+        Object Uid { get; }
+
+        /// <summary>数字编号。如果唯一编号不是数字，请抛出异常</summary>
+        Int32 ID { get; }
 
         /// <summary>账号</summary>
         String Account { get; set; }
