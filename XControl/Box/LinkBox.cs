@@ -217,9 +217,11 @@ namespace XControl
 
         private void UpdateOnClientClick()
         {
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
             sb.AppendFormat("ID:'win{0}'", new Random((Int32)DateTime.Now.Ticks).Next(1, 1000));
-            sb.AppendFormat(", Title:'{0}'", Title);
+            var title = Title;
+            if (String.IsNullOrEmpty(title)) title = Text;
+            sb.AppendFormat(", Title:'{0}'", title);
 
             String url = Url;
             if (!String.IsNullOrEmpty(url) && !url.StartsWith("http://", StringComparison.OrdinalIgnoreCase))
