@@ -218,7 +218,8 @@ namespace XControl
         private void UpdateOnClientClick()
         {
             var sb = new StringBuilder();
-            sb.AppendFormat("ID:'win{0}'", new Random((Int32)DateTime.Now.Ticks).Next(1, 1000));
+            //sb.AppendFormat("ID:'win{0}'", new Random((Int32)DateTime.Now.Ticks).Next(1, 1000));
+            sb.AppendFormat("ID:'win{0}'", this.ClientID);
             var title = Title;
             if (String.IsNullOrEmpty(title)) title = Text;
             sb.AppendFormat(", Title:'{0}'", title);

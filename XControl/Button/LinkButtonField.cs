@@ -52,12 +52,25 @@ namespace XControl
             base.InitializeCell(cell, cellType, rowState, rowIndex);
             if (cell.Controls.Count < 1) return;
 
-            HyperLink link = cell.Controls[cell.Controls.Count - 1] as HyperLink;
+            var link = cell.Controls[cell.Controls.Count - 1] as HyperLink;
             if (link == null) return;
+            link.DataBinding += new EventHandler(link_DataBinding);
             link.PreRender += new EventHandler(link_PreRender);
 
             InitializeControl(link);
         }
+
+        void link_DataBinding(object sender, EventArgs e)
+        {
+            var link = sender as HyperLink;
+            if (link == null) return;
+
+            OnDataBindField(link);
+        }
+
+        /// <summary>HyperLink数据绑定时触发</summary>
+        /// <param name="link"></param>
+        protected virtual void OnDataBindField(HyperLink link) { }
 
         /// <summary>初始化链接控件</summary>
         /// <param name="link"></param>
@@ -68,7 +81,7 @@ namespace XControl
 
         void link_PreRender(object sender, EventArgs e)
         {
-            HyperLink link = sender as HyperLink;
+            var link = sender as HyperLink;
             if (link == null) return;
 
             OnPreRender(link);

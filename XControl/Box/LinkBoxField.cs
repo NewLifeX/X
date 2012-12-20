@@ -6,6 +6,9 @@ using System.Web.UI;
 using System.Web.UI.WebControls;
 using NewLife.Configuration;
 using NewLife.Log;
+using System.Web;
+using NewLife.Reflection;
+using System.Collections.Generic;
 
 // 特别要注意，这里得加上默认命名空间和目录名，因为vs2005编译的时候会给文件加上这些东东的
 [assembly: WebResource("XControl.Box.Box.js", "text/javascript", PerformSubstitution = true)]
@@ -73,6 +76,34 @@ namespace XControl
             set
             {
                 ViewState["Title"] = value;
+            }
+        }
+
+        /// <summary>数据标题字段</summary>
+        [DefaultValue(""), Themeable(false), Category(" "), Description("数据标题字段")]
+        public String DataTitleField
+        {
+            get
+            {
+                return (String)ViewState["DataTitleField"];
+            }
+            set
+            {
+                ViewState["DataTitleField"] = value;
+            }
+        }
+
+        /// <summary>数据标题格式化字符串</summary>
+        [DefaultValue(""), Themeable(false), Category(" "), Description("数据标题格式化字符串")]
+        public String DataTitleFormatString
+        {
+            get
+            {
+                return (String)ViewState["DataTitleFormatString"];
+            }
+            set
+            {
+                ViewState["DataTitleFormatString"] = value;
             }
         }
 
@@ -268,16 +299,18 @@ namespace XControl
             base.CopyProperties(newField);
         }
 
-        private void UpdateOnClientClick()
+        private void UpdateOnClientClick(HyperLink link)
         {
             String url = Url;
             url = Control.ResolveUrl(url); // ResolveUrl会自行处理绝对路径的问题
 
             string jsFuncName = "LinkBoxFieldShow" + GetHashCode();
 
+            #region 在页面注册脚本函数
             if (!Control.Page.ClientScript.IsClientScriptBlockRegistered(GetType(), jsFuncName))
             {
-                StringBuilder showJs = new StringBuilder(), moreJs = new StringBuilder();
+                var showJs = new StringBuilder();
+                var moreJs = new StringBuilder();
                 if (Width != Unit.Empty) showJs.AppendFormat("Width:{0},", (Int32)Width.Value);
                 if (Height != Unit.Empty) showJs.AppendFormat("Height:{0},", (Int32)Height.Value);
                 if (ClickedRowBackColor != Color.Empty)
@@ -343,23 +376,65 @@ AfterClose:function(){{GridViewExtender.HighlightRow(ele,'{0}',false);}},
 
                 LinkBox.RegisterReloadFormJs(Control.Page.ClientScript, Control.Page.IsPostBack);
             }
+            #endregion
 
+            var title = link.ToolTip;
+            if (String.IsNullOrEmpty(title)) title = Title;
             OnClientClick = Helper.HTMLPropertyEscape(@"return {0}(this,event,'{1}','{2}',{3},'{4}','{5}',{6});",
                 jsFuncName,
-                Helper.JsStringEscape(Title), Helper.JsStringEscape(url),
+                Helper.JsStringEscape(title), Helper.JsStringEscape(url),
                 ShowMessageRow.ToString().ToLower(),
                 Helper.JsStringEscape(MessageTitle), Helper.JsStringEscape(Message),
                 ShowButtonRow.ToString().ToLower()
             );
         }
 
-        /// <summary>已重载。</summary>
-        /// <param name="link"></param>
-        protected override void InitializeControl(HyperLink link)
-        {
-            UpdateOnClientClick();
+        ///// <summary>已重载。</summary>
+        ///// <param name="link"></param>
+        //protected override void InitializeControl(HyperLink link)
+        //{
+        //    UpdateOnClientClick();
 
-            base.InitializeControl(link);
+        //    base.InitializeControl(link);
+        //}
+
+        /// <summary>HyperLink数据绑定时触发</summary>
+        /// <param name="link"></param>
+        protected override void OnDataBindField(HyperLink link)
+        {
+            // 只处理数据绑定
+            if (String.IsNullOrEmpty(DataTitleFormatString)) return;
+
+            // 获取绑定数据对象
+            var namingContainer = link.NamingContainer;
+            if (namingContainer == null) throw new HttpException(SR.GetString("DataControlField_NoContainer"));
+
+            var dataItem = DataBinder.GetDataItem(namingContainer);
+            if (dataItem == null)
+            {
+                if (!base.DesignMode) throw new HttpException(SR.GetString("DataItem_Not_Found"));
+
+                //control.Text = SR.GetString("Sample_Databound_Text");
+
+                return;
+            }
+
+            var vs = new List<Object>();
+            // 计算绑定列的值
+            if (!String.IsNullOrEmpty(DataTitleField))
+            {
+                var fs = DataTitleField.Split(",");
+                foreach (var item in fs)
+                {
+                    var pi = PropertyInfoX.Create(dataItem.GetType(), item);
+                    if (pi == null && !base.DesignMode) throw new HttpException(SR.GetString("Field_Not_Found", new object[] { item }));
+
+                    vs.Add(pi.GetValue(dataItem));
+                }
+            }
+
+            // GridView的所有行先触发绑定事件，然后再触发PreRender事件，而本对象只有一份，所以不能用Title来存储格式化了的标题
+            link.ToolTip = String.Format(DataTitleFormatString, vs.ToArray());
         }
 
         /// <summary>已重载。</summary>
@@ -367,7 +442,7 @@ AfterClose:function(){{GridViewExtender.HighlightRow(ele,'{0}',false);}},
         protected override void OnPreRender(HyperLink link)
         {
             Url = link.NavigateUrl;
-            UpdateOnClientClick();
+            UpdateOnClientClick(link);
 
             base.OnPreRender(link);
 
