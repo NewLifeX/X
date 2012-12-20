@@ -6,6 +6,7 @@ using System.Web.UI.WebControls;
 using System.Xml.Serialization;
 using NewLife.Exceptions;
 using NewLife.Reflection;
+
 #if NET4
 using System.Linq;
 #else
@@ -93,6 +94,9 @@ namespace XCode
 
         /// <summary>是否大排序，较大排序值在前面</summary>
         protected virtual Boolean BigSort { get { return true; } }
+
+        /// <summary>允许的最大深度。默认0，不限制</summary>
+        protected virtual Int32 MaxDepth { get { return 0; } }
         #endregion
 
         #region 扩展属性
@@ -187,6 +191,22 @@ namespace XCode
                 if (String.IsNullOrEmpty(key)) return String.Empty;
 
                 return (String)this[key];
+            }
+        }
+
+        /// <summary>父级节点名</summary>
+        [XmlIgnore]
+        public virtual String ParentNodeName
+        {
+            get
+            {
+                var key = NameKeyName;
+                if (String.IsNullOrEmpty(key)) return String.Empty;
+
+                var parent = Parent;
+                if (parent == null) return String.Empty;
+
+                return (String)parent[key];
             }
         }
 
@@ -769,7 +789,21 @@ namespace XCode
             // 无主检查
             //if (!pisnull && !Meta.Cache.Entities.Exists(KeyName, pkey)) throw new Exception("无效上级[" + pkey + "]！");
             // 先检查实体缓存，可以命中绝大部分，因为绝大多数时候父级都存在
-            if (!pisnull && !Meta.Cache.Entities.Exists(KeyName, pkey) && FindCount(KeyName, pkey) <= 0) throw new XException("无效上级[" + pkey + "]！");
+            if (!pisnull)
+            {
+                //if (!Meta.Cache.Entities.Exists(KeyName, pkey) && FindCount(KeyName, pkey) <= 0) throw new XException("无效上级[" + pkey + "]！");
+
+                var parent = Meta.Cache.Entities.Find(KeyName, pkey);
+                if (parent == null) parent = Find(KeyName, pkey);
+                if (parent == null) throw new XException("无效上级[" + pkey + "]！");
+
+                // 检查最大深度
+                var maxdepth = MaxDepth;
+                if (maxdepth > 0)
+                {
+                    if (parent.Deepth >= maxdepth) throw new XException("已达到最大深度" + maxdepth + "层！");
+                }
+            }
 
             // 死循环检查
             if (isnull)

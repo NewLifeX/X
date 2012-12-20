@@ -35,7 +35,7 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
 [assembly: AssemblyVersion("8.9.*")]
-[assembly: AssemblyFileVersion("8.9.2012.1216")]
+[assembly: AssemblyFileVersion("8.9.2012.1220")]
 
 /*
  * XCode的重大改进
@@ -52,6 +52,9 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v8.9.2012.1220   实体树基类EntityTree增加父级节点名ParentNodeName
+ *                  实体树基类EntityTree支持最大深度MaxDepth限制
+ * 
  * v8.9.2012.1216   整理EntityAssembly代码，增加若干事件，允许控制动态实体类的基类等信息
  * 
  * v8.9.2012.1122   Oracle驱动增加对环境变量和注册表的检测
