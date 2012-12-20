@@ -148,6 +148,7 @@
     <Compile Include="Model\ServiceProvider.cs" />
     <Compile Include="Model\TypeResolutionService.cs" />
     <Compile Include="Reflection\ApiHook.cs" />
+    <None Include="Reflection\AsmX86.cs" />
     <Compile Include="Reflection\CodeDomDuckTypeGenerator.cs" />
     <Compile Include="Reflection\DuckTyping.cs" />
     <None Include="Reflection\快速反射\FastMethod.cs" />
