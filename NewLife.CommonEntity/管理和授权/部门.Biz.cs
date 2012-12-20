@@ -12,7 +12,7 @@ namespace NewLife.CommonEntity
     public class Department : Department<Department> { }
 
     /// <summary>部门架构</summary>
-    public partial class Department<TEntity> : EntityTree<TEntity>, IDepartmentStructure where TEntity : Department<TEntity>, new()
+    public partial class Department<TEntity> : EntityTree<TEntity>, IDepartment where TEntity : Department<TEntity>, new()
     {
         #region 对象操作﻿
         static Department()
@@ -184,7 +184,7 @@ namespace NewLife.CommonEntity
         /// <param name="separator">分隔符</param>
         /// <param name="func">回调</param>
         /// <returns></returns>
-        String IDepartmentStructure.GetFullPath(Boolean includeSelf, String separator, Func<IDepartmentStructure, String> func)
+        String IDepartment.GetFullPath(Boolean includeSelf, String separator, Func<IDepartment, String> func)
         {
             Func<TEntity, String> d = null;
             if (func != null) d = item => func(item);
@@ -196,9 +196,9 @@ namespace NewLife.CommonEntity
         /// <param name="oldName"></param>
         /// <param name="newName"></param>
         /// <returns></returns>
-        IDepartmentStructure IDepartmentStructure.CheckDepartmentName(String oldName, String newName)
+        IDepartment IDepartment.CheckDepartmentName(String oldName, String newName)
         {
-            IDepartmentStructure department = FindByPath(oldName, _.Name, _.Code);
+            IDepartment department = FindByPath(oldName, _.Name, _.Code);
 
             if (department != null && department.Name != newName)
             {
@@ -210,39 +210,39 @@ namespace NewLife.CommonEntity
         }
 
         /// <summary>父级部门</summary>
-        IDepartmentStructure IDepartmentStructure.Parent { get { return Parent; } }
+        IDepartment IDepartment.Parent { get { return Parent; } }
 
         /// <summary>下属一级部门</summary>
-        IList<IDepartmentStructure> IDepartmentStructure.Chlids { get { return Childs.OfType<IDepartmentStructure>().ToList(); } }
+        IList<IDepartment> IDepartment.Chlids { get { return Childs.OfType<IDepartment>().ToList(); } }
 
         /// <summary>下属所有部门</summary>
-        IList<IDepartmentStructure> IDepartmentStructure.AllChilds { get { return AllChilds.OfType<IDepartmentStructure>().ToList(); } }
+        IList<IDepartment> IDepartment.AllChilds { get { return AllChilds.OfType<IDepartment>().ToList(); } }
         #endregion
     }
 
-    public partial interface IDepartmentStructure
+    public partial interface IDepartment
     {
         /// <summary>取得全路径的实体，由上向下排序</summary>
         /// <param name="includeSelf">是否包含自己</param>
         /// <param name="separator">分隔符</param>
         /// <param name="func">回调</param>
         /// <returns></returns>
-        String GetFullPath(Boolean includeSelf, String separator, Func<IDepartmentStructure, String> func);
+        String GetFullPath(Boolean includeSelf, String separator, Func<IDepartment, String> func);
 
         /// <summary>检查部门名称，修改为新的部门名称、返回自身，支持链式写法</summary>
         /// <param name="oldName"></param>
         /// <param name="NewName"></param>
         /// <returns></returns>
-        IDepartmentStructure CheckDepartmentName(String oldName, String NewName);
+        IDepartment CheckDepartmentName(String oldName, String NewName);
 
         /// <summary>父级部门</summary>
-        IDepartmentStructure Parent { get; }
+        IDepartment Parent { get; }
 
         /// <summary>下属一级部门</summary>
-        IList<IDepartmentStructure> Chlids { get; }
+        IList<IDepartment> Chlids { get; }
 
         /// <summary>下属所有部门</summary>
-        IList<IDepartmentStructure> AllChilds { get; }
+        IList<IDepartment> AllChilds { get; }
 
         /// <summary>几级部门</summary>
         Int32 Deepth { get; }

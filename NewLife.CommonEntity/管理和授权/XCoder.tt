@@ -10,7 +10,7 @@
 <#
 	// 尽管T4模版可以直接调用XCoder内部类库进行代码生成，但是那会导致XCoder文件被锁定，所以采用启动进程来生成的方式！
 
-	var name = "School";
+	var name = "Common";
 	
 	// 取得模版所在目录
 	var mypath = Path.GetDirectoryName(Host.TemplateFile) + "\\";
@@ -24,7 +24,7 @@
 	// 如果数据模型文件不存在，则先导出一份
 	if(!File.Exists(mdl))
 	{
-		var connstr = String.Format("Data Source=192.168.1.20;Initial Catalog=SchoolSystem;user id=sa;password=Pass@word", name);
+		var connstr = String.Format("Data Source=.;Initial Catalog={0};Integrated Security=SSPI", name);
 		var provider = "MSSQL";
 		var ps = String.Format("-MakeModel -model \"{0}\" -ConnStr \"{1}\" -Provider {2}", mdl, connstr, provider);
 		Process.Start(exe, ps).WaitForExit(10000);
@@ -38,11 +38,11 @@
 	WriteLine("参数：" + arg);
 
 	var dic = new Dictionary<String, Object>();
-	dic["NameSpace"] = "NewLife." + name + ".Entitys";// 命名空间
+	dic["NameSpace"] = "NewLife." + name + "Entity";// 命名空间
 	dic["EntityConnName"] = name;	// 连接名
 	
 	dic["BaseClass"] = "Entity";	// 实体基类
-	dic["RenderGenEntity"] = false;	// 生成泛型实体类
+	dic["RenderGenEntity"] = true;	// 生成泛型实体类
 	dic["Override"] = true;			// 是否覆盖目标文件
 	dic["UseCNFileName"] = true;	// 中文文件名
 	dic["UseHeadTemplate"] = true;	// 使用.cs文件头模版
@@ -56,7 +56,7 @@
 	Process.Start(exe, arg).WaitForExit(3000);
 
 	dic["Override"] = false;					// 是否覆盖目标文件
-	dic["OutputPath"] = mypath + "\\Entitys";	// 输出目录
+	dic["OutputPath"] = mypath;	// 输出目录
 	dic["TemplateName"] = "[内置]实体业务";		// 模版名
 	Save(cfg, dic);
 	WriteLine("生成：" + dic["TemplateName"]);
@@ -70,12 +70,12 @@
 	Process.Start(exe, arg).WaitForExit(3000);
 
 	dic["Override"] = false;					// 是否覆盖目标文件
-	dic["OutputPath"] = mypath + "..\\Web\\" + name;	// 输出目录
+	dic["OutputPath"] = mypath + "..\\..\\Web\\Admin\\Sys";	// 输出目录
 	dic["UseCNFileName"] = false;				// 中文文件名
 	dic["TemplateName"] = "[内置]页面";			// 模版名
-	//Save(cfg, dic);
-	//WriteLine("生成：" + dic["TemplateName"]);
-	//Process.Start(exe, arg).WaitForExit(3000);
+	Save(cfg, dic);
+	WriteLine("生成：" + dic["TemplateName"]);
+	Process.Start(exe, arg).WaitForExit(3000);
 	
 	WriteLine("已完成！" + DateTime.Now);
 #>

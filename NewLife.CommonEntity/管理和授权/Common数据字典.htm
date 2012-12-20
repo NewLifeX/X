@@ -1,0 +1,644 @@
+﻿﻿<style type="text/css">
+<!--
+.caption td {
+    border:1px solid #666666;
+    font-weight:bold;
+    background-color: #CCCCCC;
+}
+.dbtable {
+    border:1px solid #666666;
+}
+.dbbody td {
+    border:1px solid #666666;
+}
+-->
+</style>
+
+Administrator：
+<strong>管理员 （Administrator）</strong> <BR>
+<table border="0" cellspacing="0" class="dbtable">
+  <tr align="center" valign="middle" class="caption">
+    <td width="150">中文名</td>
+    <td width="150">英文名</td>
+    <td width="150">字段名</td>
+    <td width="75">数据类型</td>
+    <td width="75">大小</td>
+    <td width="75">是否主键</td>
+    <td width="75">是否唯一</td>
+    <td width="75">是否必填</td>
+    <td width="75">默认值</td>
+  </tr>
+  <tr class="dbbody">
+    <td>编号</td>
+    <td>ID</td>
+    <td>ID</td>
+    <td>Int32</td>
+    <td>10</td>
+    <td align="center">是</td>
+    <td align="center">是</td>
+    <td align="center">是</td>
+    <td width="75"></td>
+  </tr>
+  <tr class="dbbody">
+    <td>名称</td>
+    <td>Name</td>
+    <td>Name</td>
+    <td>String</td>
+    <td>50</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">&nbsp;</td>
+    <td width="75"></td>
+  </tr>
+  <tr class="dbbody">
+    <td>密码</td>
+    <td>Password</td>
+    <td>Password</td>
+    <td>String</td>
+    <td>50</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">&nbsp;</td>
+    <td width="75"></td>
+  </tr>
+  <tr class="dbbody">
+    <td>显示名</td>
+    <td>DisplayName</td>
+    <td>DisplayName</td>
+    <td>String</td>
+    <td>50</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">&nbsp;</td>
+    <td width="75"></td>
+  </tr>
+  <tr class="dbbody">
+    <td>角色</td>
+    <td>RoleID</td>
+    <td>RoleID</td>
+    <td>Int32</td>
+    <td>10</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">&nbsp;</td>
+    <td width="75"></td>
+  </tr>
+  <tr class="dbbody">
+    <td>登录次数</td>
+    <td>Logins</td>
+    <td>Logins</td>
+    <td>Int32</td>
+    <td>10</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">&nbsp;</td>
+    <td width="75"></td>
+  </tr>
+  <tr class="dbbody">
+    <td>最后登录</td>
+    <td>LastLogin</td>
+    <td>LastLogin</td>
+    <td>DateTime</td>
+    <td>3</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">&nbsp;</td>
+    <td width="75"></td>
+  </tr>
+  <tr class="dbbody">
+    <td>最后登陆IP</td>
+    <td>LastLoginIP</td>
+    <td>LastLoginIP</td>
+    <td>String</td>
+    <td>50</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">&nbsp;</td>
+    <td width="75"></td>
+  </tr>
+  <tr class="dbbody">
+    <td>登录用户编号</td>
+    <td>SSOUserID</td>
+    <td>SSOUserID</td>
+    <td>Int32</td>
+    <td>10</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">&nbsp;</td>
+    <td width="75"></td>
+  </tr>
+  <tr class="dbbody">
+    <td>是否使用</td>
+    <td>IsEnable</td>
+    <td>IsEnable</td>
+    <td>Boolean</td>
+    <td>1</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">&nbsp;</td>
+    <td width="75"></td>
+  </tr>
+</table>
+
+Role：
+<strong>角色 （Role）</strong> <BR>
+<table border="0" cellspacing="0" class="dbtable">
+  <tr align="center" valign="middle" class="caption">
+    <td width="150">中文名</td>
+    <td width="150">英文名</td>
+    <td width="150">字段名</td>
+    <td width="75">数据类型</td>
+    <td width="75">大小</td>
+    <td width="75">是否主键</td>
+    <td width="75">是否唯一</td>
+    <td width="75">是否必填</td>
+    <td width="75">默认值</td>
+  </tr>
+  <tr class="dbbody">
+    <td>编号</td>
+    <td>ID</td>
+    <td>ID</td>
+    <td>Int32</td>
+    <td>10</td>
+    <td align="center">是</td>
+    <td align="center">是</td>
+    <td align="center">是</td>
+    <td width="75"></td>
+  </tr>
+  <tr class="dbbody">
+    <td>角色名称</td>
+    <td>Name</td>
+    <td>Name</td>
+    <td>String</td>
+    <td>50</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">&nbsp;</td>
+    <td width="75"></td>
+  </tr>
+</table>
+
+Menu：
+<strong>菜单 （Menu）</strong> <BR>
+<table border="0" cellspacing="0" class="dbtable">
+  <tr align="center" valign="middle" class="caption">
+    <td width="150">中文名</td>
+    <td width="150">英文名</td>
+    <td width="150">字段名</td>
+    <td width="75">数据类型</td>
+    <td width="75">大小</td>
+    <td width="75">是否主键</td>
+    <td width="75">是否唯一</td>
+    <td width="75">是否必填</td>
+    <td width="75">默认值</td>
+  </tr>
+  <tr class="dbbody">
+    <td>编号</td>
+    <td>ID</td>
+    <td>ID</td>
+    <td>Int32</td>
+    <td>10</td>
+    <td align="center">是</td>
+    <td align="center">是</td>
+    <td align="center">是</td>
+    <td width="75"></td>
+  </tr>
+  <tr class="dbbody">
+    <td>名称</td>
+    <td>Name</td>
+    <td>Name</td>
+    <td>String</td>
+    <td>50</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">&nbsp;</td>
+    <td width="75"></td>
+  </tr>
+  <tr class="dbbody">
+    <td>父编号</td>
+    <td>ParentID</td>
+    <td>ParentID</td>
+    <td>Int32</td>
+    <td>10</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">&nbsp;</td>
+    <td width="75"></td>
+  </tr>
+  <tr class="dbbody">
+    <td>链接</td>
+    <td>Url</td>
+    <td>Url</td>
+    <td>String</td>
+    <td>200</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">&nbsp;</td>
+    <td width="75"></td>
+  </tr>
+  <tr class="dbbody">
+    <td>序号</td>
+    <td>Sort</td>
+    <td>Sort</td>
+    <td>Int32</td>
+    <td>10</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">&nbsp;</td>
+    <td width="75"></td>
+  </tr>
+  <tr class="dbbody">
+    <td>备注</td>
+    <td>Remark</td>
+    <td>Remark</td>
+    <td>String</td>
+    <td>500</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">&nbsp;</td>
+    <td width="75"></td>
+  </tr>
+  <tr class="dbbody">
+    <td>权限</td>
+    <td>Permission</td>
+    <td>Permission</td>
+    <td>String</td>
+    <td>50</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">&nbsp;</td>
+    <td width="75"></td>
+  </tr>
+  <tr class="dbbody">
+    <td>是否显示</td>
+    <td>IsShow</td>
+    <td>IsShow</td>
+    <td>Boolean</td>
+    <td>1</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">&nbsp;</td>
+    <td width="75"></td>
+  </tr>
+</table>
+
+RoleMenu：
+<strong>角色和菜单 （RoleMenu）</strong> <BR>
+<table border="0" cellspacing="0" class="dbtable">
+  <tr align="center" valign="middle" class="caption">
+    <td width="150">中文名</td>
+    <td width="150">英文名</td>
+    <td width="150">字段名</td>
+    <td width="75">数据类型</td>
+    <td width="75">大小</td>
+    <td width="75">是否主键</td>
+    <td width="75">是否唯一</td>
+    <td width="75">是否必填</td>
+    <td width="75">默认值</td>
+  </tr>
+  <tr class="dbbody">
+    <td>编号</td>
+    <td>ID</td>
+    <td>ID</td>
+    <td>Int32</td>
+    <td>10</td>
+    <td align="center">是</td>
+    <td align="center">是</td>
+    <td align="center">是</td>
+    <td width="75"></td>
+  </tr>
+  <tr class="dbbody">
+    <td>角色编号</td>
+    <td>RoleID</td>
+    <td>RoleID</td>
+    <td>Int32</td>
+    <td>10</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">&nbsp;</td>
+    <td width="75"></td>
+  </tr>
+  <tr class="dbbody">
+    <td>菜单编号</td>
+    <td>MenuID</td>
+    <td>MenuID</td>
+    <td>Int32</td>
+    <td>10</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">&nbsp;</td>
+    <td width="75"></td>
+  </tr>
+  <tr class="dbbody">
+    <td>权限</td>
+    <td>Permission</td>
+    <td>Permission</td>
+    <td>Int32</td>
+    <td>10</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">&nbsp;</td>
+    <td width="75"></td>
+  </tr>
+</table>
+
+Log：
+<strong>日志 （Log）</strong> <BR>
+<table border="0" cellspacing="0" class="dbtable">
+  <tr align="center" valign="middle" class="caption">
+    <td width="150">中文名</td>
+    <td width="150">英文名</td>
+    <td width="150">字段名</td>
+    <td width="75">数据类型</td>
+    <td width="75">大小</td>
+    <td width="75">是否主键</td>
+    <td width="75">是否唯一</td>
+    <td width="75">是否必填</td>
+    <td width="75">默认值</td>
+  </tr>
+  <tr class="dbbody">
+    <td>编号</td>
+    <td>ID</td>
+    <td>ID</td>
+    <td>Int32</td>
+    <td>10</td>
+    <td align="center">是</td>
+    <td align="center">是</td>
+    <td align="center">是</td>
+    <td width="75"></td>
+  </tr>
+  <tr class="dbbody">
+    <td>类别</td>
+    <td>Category</td>
+    <td>Category</td>
+    <td>String</td>
+    <td>50</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">是</td>
+    <td width="75"></td>
+  </tr>
+  <tr class="dbbody">
+    <td>操作</td>
+    <td>Action</td>
+    <td>Action</td>
+    <td>String</td>
+    <td>50</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">是</td>
+    <td width="75"></td>
+  </tr>
+  <tr class="dbbody">
+    <td>用户编号</td>
+    <td>UserID</td>
+    <td>UserID</td>
+    <td>Int32</td>
+    <td>10</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">是</td>
+    <td width="75">0</td>
+  </tr>
+  <tr class="dbbody">
+    <td>用户名</td>
+    <td>UserName</td>
+    <td>UserName</td>
+    <td>String</td>
+    <td>50</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">&nbsp;</td>
+    <td width="75"></td>
+  </tr>
+  <tr class="dbbody">
+    <td>IP地址</td>
+    <td>IP</td>
+    <td>IP</td>
+    <td>String</td>
+    <td>50</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">&nbsp;</td>
+    <td width="75"></td>
+  </tr>
+  <tr class="dbbody">
+    <td>时间</td>
+    <td>OccurTime</td>
+    <td>OccurTime</td>
+    <td>DateTime</td>
+    <td>3</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">是</td>
+    <td width="75">getdate()</td>
+  </tr>
+  <tr class="dbbody">
+    <td>详细信息</td>
+    <td>Remark</td>
+    <td>Remark</td>
+    <td>String</td>
+    <td>500</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">&nbsp;</td>
+    <td width="75"></td>
+  </tr>
+</table>
+
+User：
+<strong>用户 （User）</strong> <BR>
+<table border="0" cellspacing="0" class="dbtable">
+  <tr align="center" valign="middle" class="caption">
+    <td width="150">中文名</td>
+    <td width="150">英文名</td>
+    <td width="150">字段名</td>
+    <td width="75">数据类型</td>
+    <td width="75">大小</td>
+    <td width="75">是否主键</td>
+    <td width="75">是否唯一</td>
+    <td width="75">是否必填</td>
+    <td width="75">默认值</td>
+  </tr>
+  <tr class="dbbody">
+    <td>编号</td>
+    <td>ID</td>
+    <td>ID</td>
+    <td>Int32</td>
+    <td>10</td>
+    <td align="center">是</td>
+    <td align="center">是</td>
+    <td align="center">是</td>
+    <td width="75"></td>
+  </tr>
+  <tr class="dbbody">
+    <td>账号</td>
+    <td>Account</td>
+    <td>Account</td>
+    <td>String</td>
+    <td>50</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">&nbsp;</td>
+    <td width="75"></td>
+  </tr>
+  <tr class="dbbody">
+    <td>密码</td>
+    <td>Password</td>
+    <td>Password</td>
+    <td>String</td>
+    <td>50</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">&nbsp;</td>
+    <td width="75"></td>
+  </tr>
+  <tr class="dbbody">
+    <td>是否管理员</td>
+    <td>IsAdmin</td>
+    <td>IsAdmin</td>
+    <td>Boolean</td>
+    <td>1</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">&nbsp;</td>
+    <td width="75"></td>
+  </tr>
+  <tr class="dbbody">
+    <td>是否启用</td>
+    <td>IsEnable</td>
+    <td>IsEnable</td>
+    <td>Boolean</td>
+    <td>1</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">&nbsp;</td>
+    <td width="75"></td>
+  </tr>
+</table>
+
+Department：
+<strong>部门 （Department）</strong> <BR>
+<table border="0" cellspacing="0" class="dbtable">
+  <tr align="center" valign="middle" class="caption">
+    <td width="150">中文名</td>
+    <td width="150">英文名</td>
+    <td width="150">字段名</td>
+    <td width="75">数据类型</td>
+    <td width="75">大小</td>
+    <td width="75">是否主键</td>
+    <td width="75">是否唯一</td>
+    <td width="75">是否必填</td>
+    <td width="75">默认值</td>
+  </tr>
+  <tr class="dbbody">
+    <td>编号</td>
+    <td>ID</td>
+    <td>ID</td>
+    <td>Int32</td>
+    <td>10</td>
+    <td align="center">是</td>
+    <td align="center">是</td>
+    <td align="center">是</td>
+    <td width="75"></td>
+  </tr>
+  <tr class="dbbody">
+    <td>名称</td>
+    <td>Name</td>
+    <td>Name</td>
+    <td>String</td>
+    <td>50</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">&nbsp;</td>
+    <td width="75"></td>
+  </tr>
+  <tr class="dbbody">
+    <td>代码</td>
+    <td>Code</td>
+    <td>Code</td>
+    <td>String</td>
+    <td>50</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">&nbsp;</td>
+    <td width="75"></td>
+  </tr>
+  <tr class="dbbody">
+    <td>父编号</td>
+    <td>ParentID</td>
+    <td>ParentID</td>
+    <td>Int32</td>
+    <td>10</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">&nbsp;</td>
+    <td width="75"></td>
+  </tr>
+  <tr class="dbbody">
+    <td>排序</td>
+    <td>Sort</td>
+    <td>Sort</td>
+    <td>Int32</td>
+    <td>10</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">&nbsp;</td>
+    <td width="75"></td>
+  </tr>
+  <tr class="dbbody">
+    <td>管理者编号</td>
+    <td>ManagerID</td>
+    <td>ManagerID</td>
+    <td>Int32</td>
+    <td>10</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">&nbsp;</td>
+    <td width="75"></td>
+  </tr>
+  <tr class="dbbody">
+    <td>管理者</td>
+    <td>Manager</td>
+    <td>Manager</td>
+    <td>String</td>
+    <td>50</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">&nbsp;</td>
+    <td width="75"></td>
+  </tr>
+  <tr class="dbbody">
+    <td>等级</td>
+    <td>Level</td>
+    <td>Level</td>
+    <td>Int32</td>
+    <td>10</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">&nbsp;</td>
+    <td width="75"></td>
+  </tr>
+  <tr class="dbbody">
+    <td>等级名称</td>
+    <td>LevelName</td>
+    <td>LevelName</td>
+    <td>String</td>
+    <td>50</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">&nbsp;</td>
+    <td width="75"></td>
+  </tr>
+  <tr class="dbbody">
+    <td>配置文件</td>
+    <td>Profile</td>
+    <td>Profile</td>
+    <td>String</td>
+    <td>500</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">&nbsp;</td>
+    <td width="75"></td>
+  </tr>
+</table>

@@ -1,11 +1,7 @@
-﻿/*
- * XCoder v4.8.4562.20871
- * 作者：nnhy/NEWLIFE
- * 时间：2012-07-27 15:39:04
- * 版权：版权所有 (C) 新生命开发团队 2012
-*/
-﻿using System;
+﻿﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
+using System.Xml.Serialization;
 using XCode;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
@@ -16,8 +12,7 @@ namespace NewLife.CommonEntity
     [Serializable]
     [DataObject]
     [Description("用户")]
-    [BindIndex("IX_User", true, "Account")]
-    [BindIndex("PK__User__3214EC277F60ED59", true, "ID")]
+    [BindIndex("IX_User_Account", true, "Account")]
     [BindTable("User", Description = "用户", ConnName = "Common", DbType = DatabaseType.SqlServer)]
     public partial class User<TEntity> : IUser
     {
@@ -31,7 +26,7 @@ namespace NewLife.CommonEntity
         public virtual Int32 ID
         {
             get { return _ID; }
-            set { if (OnPropertyChanging("ID", value)) { _ID = value; OnPropertyChanged("ID"); } }
+            set { if (OnPropertyChanging(__.ID, value)) { _ID = value; OnPropertyChanged(__.ID); } }
         }
 
         private String _Account;
@@ -43,7 +38,7 @@ namespace NewLife.CommonEntity
         public virtual String Account
         {
             get { return _Account; }
-            set { if (OnPropertyChanging("Account", value)) { _Account = value; OnPropertyChanged("Account"); } }
+            set { if (OnPropertyChanging(__.Account, value)) { _Account = value; OnPropertyChanged(__.Account); } }
         }
 
         private String _Password;
@@ -55,7 +50,7 @@ namespace NewLife.CommonEntity
         public virtual String Password
         {
             get { return _Password; }
-            set { if (OnPropertyChanging("Password", value)) { _Password = value; OnPropertyChanged("Password"); } }
+            set { if (OnPropertyChanging(__.Password, value)) { _Password = value; OnPropertyChanged(__.Password); } }
         }
 
         private Boolean _IsAdmin;
@@ -67,7 +62,7 @@ namespace NewLife.CommonEntity
         public virtual Boolean IsAdmin
         {
             get { return _IsAdmin; }
-            set { if (OnPropertyChanging("IsAdmin", value)) { _IsAdmin = value; OnPropertyChanged("IsAdmin"); } }
+            set { if (OnPropertyChanging(__.IsAdmin, value)) { _IsAdmin = value; OnPropertyChanged(__.IsAdmin); } }
         }
 
         private Boolean _IsEnable;
@@ -79,7 +74,7 @@ namespace NewLife.CommonEntity
         public virtual Boolean IsEnable
         {
             get { return _IsEnable; }
-            set { if (OnPropertyChanging("IsEnable", value)) { _IsEnable = value; OnPropertyChanged("IsEnable"); } }
+            set { if (OnPropertyChanging(__.IsEnable, value)) { _IsEnable = value; OnPropertyChanged(__.IsEnable); } }
         }
         #endregion
 
@@ -97,11 +92,11 @@ namespace NewLife.CommonEntity
             {
                 switch (name)
                 {
-                    case "ID" : return _ID;
-                    case "Account" : return _Account;
-                    case "Password" : return _Password;
-                    case "IsAdmin" : return _IsAdmin;
-                    case "IsEnable" : return _IsEnable;
+                    case __.ID : return _ID;
+                    case __.Account : return _Account;
+                    case __.Password : return _Password;
+                    case __.IsAdmin : return _IsAdmin;
+                    case __.IsEnable : return _IsEnable;
                     default: return base[name];
                 }
             }
@@ -109,11 +104,11 @@ namespace NewLife.CommonEntity
             {
                 switch (name)
                 {
-                    case "ID" : _ID = Convert.ToInt32(value); break;
-                    case "Account" : _Account = Convert.ToString(value); break;
-                    case "Password" : _Password = Convert.ToString(value); break;
-                    case "IsAdmin" : _IsAdmin = Convert.ToBoolean(value); break;
-                    case "IsEnable" : _IsEnable = Convert.ToBoolean(value); break;
+                    case __.ID : _ID = Convert.ToInt32(value); break;
+                    case __.Account : _Account = Convert.ToString(value); break;
+                    case __.Password : _Password = Convert.ToString(value); break;
+                    case __.IsAdmin : _IsAdmin = Convert.ToBoolean(value); break;
+                    case __.IsEnable : _IsEnable = Convert.ToBoolean(value); break;
                     default: base[name] = value; break;
                 }
             }
@@ -125,21 +120,41 @@ namespace NewLife.CommonEntity
         public class _
         {
             ///<summary>编号</summary>
-            public static readonly Field ID = FindByName("ID");
+            public static readonly Field ID = FindByName(__.ID);
 
             ///<summary>账号</summary>
-            public static readonly Field Account = FindByName("Account");
+            public static readonly Field Account = FindByName(__.Account);
 
             ///<summary>密码</summary>
-            public static readonly Field Password = FindByName("Password");
+            public static readonly Field Password = FindByName(__.Password);
 
             ///<summary>是否管理员</summary>
-            public static readonly Field IsAdmin = FindByName("IsAdmin");
+            public static readonly Field IsAdmin = FindByName(__.IsAdmin);
 
             ///<summary>是否启用</summary>
-            public static readonly Field IsEnable = FindByName("IsEnable");
+            public static readonly Field IsEnable = FindByName(__.IsEnable);
 
             static Field FindByName(String name) { return Meta.Table.FindByName(name); }
+        }
+
+        /// <summary>取得用户字段名称的快捷方式</summary>
+        class __
+        {
+            ///<summary>编号</summary>
+            public const String ID = "ID";
+
+            ///<summary>账号</summary>
+            public const String Account = "Account";
+
+            ///<summary>密码</summary>
+            public const String Password = "Password";
+
+            ///<summary>是否管理员</summary>
+            public const String IsAdmin = "IsAdmin";
+
+            ///<summary>是否启用</summary>
+            public const String IsEnable = "IsEnable";
+
         }
         #endregion
     }
