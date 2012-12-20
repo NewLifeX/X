@@ -15,7 +15,7 @@
     </div>
     <asp:GridView ID="gv" runat="server" AutoGenerateColumns="False" DataKeyNames="ID"
         CssClass="m_table" CellPadding="0" GridLines="None" PageSize="15" EnableModelValidation="True"
-        DataSourceID="ods" OnRowCommand="GridView1_RowCommand" EnableViewState="False">
+        DataSourceID="ods" OnRowCommand="gv_RowCommand" EnableViewState="False">
         <Columns>
             <asp:BoundField DataField="ID" HeaderText="编号" InsertVisible="False" ReadOnly="True"
                 SortExpression="ID">
