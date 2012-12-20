@@ -15,8 +15,8 @@ namespace NewLife.CommonEntity
     [BindIndex("IX_Code", false, "Code")]
     [BindIndex("IX_Name", false, "Name")]
     [BindIndex("PK_DepartmentStructure", true, "ID")]
-    [BindTable("DepartmentStructure", Description = "部门架构", ConnName = "massql20_XCodeTest", DbType = DatabaseType.SqlServer)]
-    public partial class DepartmentStructure<TEntity> : IDepartmentStructure
+    [BindTable("Department", Description = "部门架构", ConnName = "massql20_XCodeTest", DbType = DatabaseType.SqlServer)]
+    public partial class Department<TEntity> : IDepartmentStructure
     {
         #region 属性
         private Int32 _ID;

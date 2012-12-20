@@ -1,25 +1,21 @@
 ﻿﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Text;
-using System.Xml.Serialization;
-using NewLife.Log;
-using XCode;
-using XCode.Configuration;
-using NewLife.Reflection;
 using NewLife.Linq;
+using NewLife.Reflection;
+using XCode;
 
 namespace NewLife.CommonEntity
 {
     /// <summary>部门架构</summary>
     [ModelCheckMode(ModelCheckModes.CheckTableWhenFirstUse)]
-    public class DepartmentStructure : DepartmentStructure<DepartmentStructure> { }
+    public class Department : Department<Department> { }
 
     /// <summary>部门架构</summary>
-    public partial class DepartmentStructure<TEntity> : EntityTree<TEntity>, IDepartmentStructure where TEntity : DepartmentStructure<TEntity>, new()
+    public partial class Department<TEntity> : EntityTree<TEntity>, IDepartmentStructure where TEntity : Department<TEntity>, new()
     {
         #region 对象操作﻿
-        static DepartmentStructure()
+        static Department()
         {
             // 用于引发基类的静态构造函数，所有层次的泛型实体类都应该有一个
             TEntity entity = new TEntity();
@@ -70,7 +66,7 @@ namespace NewLife.CommonEntity
         //    // 需要注意的是，如果该方法调用了其它实体类的首次数据库操作，目标实体类的数据初始化将会在同一个线程完成
         //    if (XTrace.Debug) XTrace.WriteLine("开始初始化{0}部门架构数据……", typeof(TEntity).Name);
 
-        //    var entity = new DepartmentStructure();
+        //    var entity = new Department();
         //    entity.Name = "admin";
         //    entity.Password = DataHelper.Hash("admin");
         //    entity.DisplayName = "管理员";

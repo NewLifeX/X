@@ -60,6 +60,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="管理和授权\XCoder.log">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>XCoder.tt</DependentUpon>
+    </None>
+    <None Include="管理和授权\XCoder.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>XCoder.log</LastGenOutput>
+    </None>
     <None Include="附件\AttachmentEntityAccessor.cs" />
     <Compile Include="Common\CommonService.cs" />
     <Compile Include="Common\CommonEntityBase.cs" />
@@ -73,6 +82,8 @@
     <Compile Include="实体\SysSetting.cs" />
     <Compile Include="帮助\手册.Biz.cs" />
     <Compile Include="帮助\手册.cs" />
+    <Compile Include="管理和授权\部门.Biz.cs" />
+    <Compile Include="管理和授权\部门.cs" />
     <Compile Include="附件\AttachmentHttpHandler.cs" />
     <Compile Include="附件\DownloadFile.cs" />
     <Compile Include="Web\EntityForm.cs">
@@ -187,11 +198,12 @@
   <ItemGroup>
     <Content Include="mssql_Common.xml" />
     <EmbeddedResource Include="实体\AreaCode.txt">
-<!--       <DependentUpon>地区.cs</DependentUpon> -->
+      <!--       <DependentUpon>地区.cs</DependentUpon> -->
     </EmbeddedResource>
     <Content Include="模版\模版.xml">
       <SubType>Designer</SubType>
     </Content>
+    <Content Include="管理和授权\Common.xml" />
     <Content Include="说明.txt" />
   </ItemGroup>
   <ItemGroup>
@@ -206,6 +218,9 @@
       <Project>{B49ABA5A-C5DA-45F4-87F1-B435EC51D710}</Project>
       <Name>XCode</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
