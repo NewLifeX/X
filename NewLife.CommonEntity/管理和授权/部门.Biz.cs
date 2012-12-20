@@ -39,7 +39,28 @@ namespace NewLife.CommonEntity
             // 建议先调用基类方法，基类方法会对唯一索引的数据进行验证
             base.Valid(isNew);
 
-            if (!Dirtys[_.Level]) Level = Deepth;
+            // 自动更正等级
+            if (Level <= 0 || !Dirtys[_.Level]) Level = Deepth;
+            if (Level <= 0)
+            {
+                var parent = FindByID(ParentID);
+                Level = parent == null ? 1 : parent.Level + 1;
+            }
+
+            if (Level > 0)
+            {
+                //// 根据等级查找以往的等级名称
+                //var entity = Find(_.Level == Level & _.LevelName.NotIsNullOrEmpty());
+                //if (entity != null)
+                //{
+                //    if (String.IsNullOrEmpty(LevelName) || !Dirtys[_.LevelName])
+                //        LevelName = entity.LevelName;
+                //    else if (!String.IsNullOrEmpty(entity.LevelName) && LevelName != entity.LevelName)
+                //        throw new ArgumentOutOfRangeException(_.LevelName, "等级名[" + LevelName + "]不同于以前[" + entity.Name + "]曾经使用的[" + entity.LevelName + "]，其中一个有错！");
+                //}
+
+                LevelName = OnGetLevelName(Level);
+            }
         }
 
         /// <summary>首次连接数据库时初始化数据，仅用于实体类重载，用户不应该调用该方法</summary>
@@ -66,6 +87,9 @@ namespace NewLife.CommonEntity
         #region 扩展属性﻿
         /// <summary>上级部门名称</summary>
         public String ParentName { get { return Parent == null ? null : Parent.Name; } }
+
+        /// <summary>下一级等级名称</summary>
+        public String NextLevelName { get { return OnGetLevelName(Level + 1); } }
         #endregion
 
         #region 扩展查询﻿
@@ -163,6 +187,17 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region 业务
+        /// <summary>获取等级名称。默认0表示部门，其它为空</summary>
+        /// <param name="level"></param>
+        /// <returns></returns>
+        protected virtual String OnGetLevelName(Int32 level) { return level <= 0 ? "部门" : null; }
+
+        /// <summary>获取等级名称。默认0表示部门，其它为空</summary>
+        /// <param name="level"></param>
+        /// <returns></returns>
+        public static String GetLevelName(Int32 level) { return (Meta.Factory.Default as IDepartment).GetLevelName(level); }
+
+        String IDepartment.GetLevelName(Int32 level) { return OnGetLevelName(level); }
         #endregion
 
         #region 接口实现
@@ -243,5 +278,10 @@ namespace NewLife.CommonEntity
         /// <summary>保存</summary>
         /// <returns></returns>
         Int32 Save();
+
+        /// <summary>获取等级名称。默认0表示部门，其它为空</summary>
+        /// <param name="level"></param>
+        /// <returns></returns>
+        String GetLevelName(Int32 level);
     }
 }

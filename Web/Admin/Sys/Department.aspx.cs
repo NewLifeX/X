@@ -1,7 +1,4 @@
 ﻿﻿using System;
-using System.Collections.Generic;
-using System.Web;
-using System.Web.UI;
 using System.Web.UI.WebControls;
 using NewLife.CommonEntity;
 
@@ -9,9 +6,15 @@ public partial class Common_Department : MyEntityList<Department>
 {
     protected void Page_Load(object sender, EventArgs e)
     {
+        if (!IsPostBack)
+        {
+            String name = Department.GetLevelName(1);
+            if (String.IsNullOrEmpty(name)) name = "部门";
+            lbAdd.Title = lbAdd.Text = "新" + name;
+        }
     }
 
-    protected void gv_RowCommand(object sender, System.Web.UI.WebControls.GridViewCommandEventArgs e)
+    protected void gv_RowCommand(object sender, GridViewCommandEventArgs e)
     {
         if (e.CommandName == "Up")
         {

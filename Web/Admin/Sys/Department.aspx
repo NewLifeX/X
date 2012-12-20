@@ -3,7 +3,7 @@
 
 <asp:Content ID="Content1" runat="server" ContentPlaceHolderID="C">
     <div class="toolbar">
-        <XCL:LinkBox ID="lbAdd" runat="server" BoxHeight="355px" BoxWidth="440px" Url="DepartmentForm.aspx"
+        <XCL:LinkBox ID="lbAdd" runat="server" BoxHeight="409px" BoxWidth="440px" Url="DepartmentForm.aspx"
             IconLeft="~/Admin/images/icons/new.gif" EnableViewState="false"><b>添加部门</b></XCL:LinkBox>
         关键字：<asp:TextBox ID="txtKey" runat="server"></asp:TextBox>
         <asp:Button ID="btnSearch" runat="server" Text="查询" />
@@ -20,11 +20,17 @@
             </asp:BoundField>
             <asp:BoundField DataField="TreeNodeName" HeaderText="名称" SortExpression="Name" />
             <asp:BoundField DataField="Code" HeaderText="代码" SortExpression="Code" />
-            <asp:BoundField DataField="ParentName" HeaderText="上级部门" SortExpression="ParentID" />
-            <asp:BoundField DataField="Sort" HeaderText="排序" SortExpression="Sort" DataFormatString="{0:n0}">
+            <asp:BoundField DataField="ParentName" HeaderText="上级" SortExpression="ParentID" />
+            <asp:BoundField DataField="Level" HeaderText="等级" SortExpression="Level" DataFormatString="{0:n0}">
                 <ItemStyle HorizontalAlign="Right" Font-Bold="True" />
             </asp:BoundField>
+            <asp:BoundField DataField="LevelName" HeaderText="等级名称" SortExpression="LevelName">
+                <ItemStyle HorizontalAlign="Center" Font-Bold="True" />
+            </asp:BoundField>
             <asp:BoundField DataField="Manager" HeaderText="管理者" SortExpression="Manager" />
+            <asp:BoundField DataField="Sort" HeaderText="排序" SortExpression="Sort" DataFormatString="{0:n0}">
+                <ItemStyle HorizontalAlign="Center" Font-Bold="True" />
+            </asp:BoundField>
             <asp:TemplateField HeaderText="升" ShowHeader="False">
                 <ItemTemplate>
                     <asp:LinkButton ID="LinkButton2" runat="server" CausesValidation="False" CommandArgument='<%# Eval("ID") %>'
@@ -39,12 +45,13 @@
                 </ItemTemplate>
                 <ItemStyle Font-Size="12pt" ForeColor="Green" />
             </asp:TemplateField>
-            <XCL:LinkBoxField HeaderText="添加子部门" DataNavigateUrlFields="ID" DataNavigateUrlFormatString="DepartmentForm.aspx?ParentID={0}"
-                Height="400px" Text="添加子部门" Width="370px" Title="添加子部门">
+            <XCL:LinkBoxField HeaderText="添加下级" DataNavigateUrlFields="ID" DataNavigateUrlFormatString="DepartmentForm.aspx?ParentID={0}"
+                Height="409px" Width="440px" DataTitleField="NextLevelName" DataTitleFormatString="添加{0}"
+                DataTextField="NextLevelName" DataTextFormatString="添加{0}" Text="添加下级部门">
                 <ItemStyle HorizontalAlign="Center" />
             </XCL:LinkBoxField>
             <XCL:LinkBoxField HeaderText="编辑" DataNavigateUrlFields="ID" DataNavigateUrlFormatString="DepartmentForm.aspx?ID={0}"
-                Height="355px" Text="编辑" Width="440px" Title="编辑部门">
+                Height="409px" Text="编辑" Width="440px" DataTitleField="LevelName" DataTitleFormatString="编辑{0}">
                 <ItemStyle HorizontalAlign="Center" VerticalAlign="Middle" />
                 <HeaderStyle HorizontalAlign="Center" VerticalAlign="Middle" Width="30px" />
             </XCL:LinkBoxField>

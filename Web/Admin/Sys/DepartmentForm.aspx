@@ -5,7 +5,7 @@
     <table border="0" class="m_table" cellspacing="1" cellpadding="0" align="Center">
         <tr>
             <th colspan="2">
-                部门
+                <asp:Label ID="lbTitle" runat="server" />
             </th>
         </tr>
         <tr>
@@ -63,6 +63,22 @@
                 <asp:TextBox ID="frmManager" runat="server" Width="150px"></asp:TextBox>
             </td>
         </tr>
+        <%--<tr>
+            <td align="right">
+                等级：
+            </td>
+            <td>
+                <XCL:NumberBox ID="frmLevel" runat="server" Width="80px"></XCL:NumberBox>
+            </td>
+        </tr>
+        <tr>
+            <td align="right">
+                等级名称：
+            </td>
+            <td>
+                <asp:TextBox ID="frmLevelName" runat="server" Width="150px"></asp:TextBox>
+            </td>
+        </tr>--%>
         <tr>
             <td align="right">
                 配置文件：
