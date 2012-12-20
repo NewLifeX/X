@@ -89,7 +89,7 @@ namespace NewLife.CommonEntity
         public String ParentName { get { return Parent == null ? null : Parent.Name; } }
 
         /// <summary>下一级等级名称</summary>
-        public String NextLevelName { get { return OnGetLevelName(Level + 1); } }
+        public String NextLevelName { get { return MaxDeepth > 0 && Deepth >= MaxDeepth ? null : OnGetLevelName(Level + 1); } }
         #endregion
 
         #region 扩展查询﻿
@@ -187,12 +187,12 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region 业务
-        /// <summary>获取等级名称。默认0表示部门，其它为空</summary>
+        /// <summary>获取等级名称。默认部门</summary>
         /// <param name="level"></param>
         /// <returns></returns>
-        protected virtual String OnGetLevelName(Int32 level) { return level <= 0 ? "部门" : null; }
+        protected virtual String OnGetLevelName(Int32 level) { return "部门"; }
 
-        /// <summary>获取等级名称。默认0表示部门，其它为空</summary>
+        /// <summary>获取等级名称。默认部门</summary>
         /// <param name="level"></param>
         /// <returns></returns>
         public static String GetLevelName(Int32 level) { return (Meta.Factory.Default as IDepartment).GetLevelName(level); }

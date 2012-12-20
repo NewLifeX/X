@@ -47,7 +47,7 @@
             </asp:TemplateField>
             <XCL:LinkBoxField HeaderText="添加下级" DataNavigateUrlFields="ID" DataNavigateUrlFormatString="DepartmentForm.aspx?ParentID={0}"
                 Height="409px" Width="440px" DataTitleField="NextLevelName" DataTitleFormatString="添加{0}"
-                DataTextField="NextLevelName" DataTextFormatString="添加{0}" Text="添加下级部门">
+                DataTextField="NextLevelName" DataTextFormatString="添加{0}">
                 <ItemStyle HorizontalAlign="Center" />
             </XCL:LinkBoxField>
             <XCL:LinkBoxField HeaderText="编辑" DataNavigateUrlFields="ID" DataNavigateUrlFormatString="DepartmentForm.aspx?ID={0}"

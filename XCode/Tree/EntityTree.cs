@@ -96,7 +96,7 @@ namespace XCode
         protected virtual Boolean BigSort { get { return true; } }
 
         /// <summary>允许的最大深度。默认0，不限制</summary>
-        protected virtual Int32 MaxDepth { get { return 0; } }
+        protected virtual Int32 MaxDeepth { get { return 0; } }
         #endregion
 
         #region 扩展属性
@@ -798,10 +798,10 @@ namespace XCode
                 if (parent == null) throw new XException("无效上级[" + pkey + "]！");
 
                 // 检查最大深度
-                var maxdepth = MaxDepth;
-                if (maxdepth > 0)
+                var maxdeepth = MaxDeepth;
+                if (maxdeepth > 0)
                 {
-                    if (parent.Deepth >= maxdepth) throw new XException("已达到最大深度" + maxdepth + "层！");
+                    if (parent.Deepth >= maxdeepth) throw new XException("已达到最大深度" + maxdeepth + "层！");
                 }
             }
 
