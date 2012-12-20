@@ -4,6 +4,7 @@ using System.ComponentModel;
 using NewLife.Linq;
 using NewLife.Reflection;
 using XCode;
+using NewLife.Log;
 
 namespace NewLife.CommonEntity
 {
@@ -21,64 +22,44 @@ namespace NewLife.CommonEntity
             TEntity entity = new TEntity();
         }
 
-        ///// <summary>已重载。基类先调用Valid(true)验证数据，然后在事务保护内调用OnInsert</summary>
-        ///// <returns></returns>
-        //public override Int32 Insert()
-        //{
-        //    return base.Insert();
-        //}
+        /// <summary>验证数据，通过抛出异常的方式提示验证失败。</summary>
+        /// <param name="isNew"></param>
+        public override void Valid(Boolean isNew)
+        {
+            // 这里验证参数范围，建议抛出参数异常，指定参数名，前端用户界面可以捕获参数异常并聚焦到对应的参数输入框
+            if (String.IsNullOrEmpty(Name)) throw new ArgumentNullException(_.Name, _.Name.DisplayName + "无效！");
+            if (!isNew && ID < 1) throw new ArgumentOutOfRangeException(_.ID, _.ID.DisplayName + "必须大于0！");
 
-        ///// <summary>已重载。在事务保护范围内处理业务，位于Valid之后</summary>
-        ///// <returns></returns>
-        //protected override Int32 OnInsert()
-        //{
-        //    return base.OnInsert();
-        //}
+            // 建议先调用基类方法，基类方法会对唯一索引的数据进行验证
+            base.Valid(isNew);
 
-        ///// <summary>验证数据，通过抛出异常的方式提示验证失败。</summary>
-        ///// <param name="isNew"></param>
-        //public override void Valid(Boolean isNew)
-        //{
-        //    // 这里验证参数范围，建议抛出参数异常，指定参数名，前端用户界面可以捕获参数异常并聚焦到对应的参数输入框
-        //    if (String.IsNullOrEmpty(Name)) throw new ArgumentNullException(_.Name, _.Name.DisplayName + "无效！");
-        //    if (!isNew && ID < 1) throw new ArgumentOutOfRangeException(_.ID, _.ID.DisplayName + "必须大于0！");
+            if (!Dirtys[_.Level]) Level = Deepth;
+        }
 
-        //    // 建议先调用基类方法，基类方法会对唯一索引的数据进行验证
-        //    base.Valid(isNew);
+        /// <summary>首次连接数据库时初始化数据，仅用于实体类重载，用户不应该调用该方法</summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        protected override void InitData()
+        {
+            base.InitData();
 
-        //    // 在新插入数据或者修改了指定字段时进行唯一性验证，CheckExist内部抛出参数异常
-        //    if (isNew || Dirtys[_.Name]) CheckExist(_.Name);
-        //    if (isNew || Dirtys[_.Name] || Dirtys[_.DbType]) CheckExist(_.Name, _.DbType);
-        //    if ((isNew || Dirtys[_.Name]) && Exist(_.Name)) throw new ArgumentException(_.Name, "值为" + Name + "的" + _.Name.DisplayName + "已存在！");
-        //}
+            // InitData一般用于当数据表没有数据时添加一些默认数据，该实体类的任何第一次数据库操作都会触发该方法，默认异步调用
+            // Meta.Count是快速取得表记录数
+            if (Meta.Count > 0) return;
 
+            // 需要注意的是，如果该方法调用了其它实体类的首次数据库操作，目标实体类的数据初始化将会在同一个线程完成
+            if (XTrace.Debug) XTrace.WriteLine("开始初始化{0}[{1}]数据……", typeof(TEntity).Name, Meta.Table.DataTable.DisplayName);
 
-        ///// <summary>首次连接数据库时初始化数据，仅用于实体类重载，用户不应该调用该方法</summary>
-        //[EditorBrowsable(EditorBrowsableState.Never)]
-        //protected override void InitData()
-        //{
-        //    base.InitData();
+            var entity = new Department();
+            entity.Name = "默认部门";
+            entity.Insert();
 
-        //    // InitData一般用于当数据表没有数据时添加一些默认数据，该实体类的任何第一次数据库操作都会触发该方法，默认异步调用
-        //    // Meta.Count是快速取得表记录数
-        //    if (Meta.Count > 0) return;
-
-        //    // 需要注意的是，如果该方法调用了其它实体类的首次数据库操作，目标实体类的数据初始化将会在同一个线程完成
-        //    if (XTrace.Debug) XTrace.WriteLine("开始初始化{0}部门架构数据……", typeof(TEntity).Name);
-
-        //    var entity = new Department();
-        //    entity.Name = "admin";
-        //    entity.Password = DataHelper.Hash("admin");
-        //    entity.DisplayName = "管理员";
-        //    entity.RoleID = 1;
-        //    entity.IsEnable = true;
-        //    entity.Insert();
-
-        //    if (XTrace.Debug) XTrace.WriteLine("完成初始化{0}部门架构数据！", typeof(TEntity).Name);
-        //}
+            if (XTrace.Debug) XTrace.WriteLine("完成初始化{0}[{1}]数据！", typeof(TEntity).Name, Meta.Table.DataTable.DisplayName);
+        }
         #endregion
 
         #region 扩展属性﻿
+        /// <summary>上级部门名称</summary>
+        public String ParentName { get { return Parent == null ? null : Parent.Name; } }
         #endregion
 
         #region 扩展查询﻿
@@ -213,7 +194,7 @@ namespace NewLife.CommonEntity
         IDepartment IDepartment.Parent { get { return Parent; } }
 
         /// <summary>下属一级部门</summary>
-        IList<IDepartment> IDepartment.Chlids { get { return Childs.OfType<IDepartment>().ToList(); } }
+        IList<IDepartment> IDepartment.Childs { get { return Childs.OfType<IDepartment>().ToList(); } }
 
         /// <summary>下属所有部门</summary>
         IList<IDepartment> IDepartment.AllChilds { get { return AllChilds.OfType<IDepartment>().ToList(); } }
@@ -239,7 +220,7 @@ namespace NewLife.CommonEntity
         IDepartment Parent { get; }
 
         /// <summary>下属一级部门</summary>
-        IList<IDepartment> Chlids { get; }
+        IList<IDepartment> Childs { get; }
 
         /// <summary>下属所有部门</summary>
         IList<IDepartment> AllChilds { get; }
@@ -247,10 +228,10 @@ namespace NewLife.CommonEntity
         /// <summary>几级部门</summary>
         Int32 Deepth { get; }
 
-        /// <summary></summary>
+        /// <summary>排序上升</summary>
         void Up();
 
-        /// <summary></summary>
+        /// <summary>排序下降</summary>
         void Down();
 
         /// <summary>保存</summary>

@@ -15,7 +15,7 @@ namespace NewLife.CommonEntity
     [BindIndex("IX_Department_Name", false, "Name")]
     [BindIndex("IX_Department_Code", false, "Code")]
     [BindIndex("IX_Department_ParentID_Name", true, "ParentID,Name")]
-    [BindIndex("IX_Department_ParentID_Code", true, "ParentID,Code")]
+    [BindIndex("IX_Department_ParentID_Code", false, "ParentID,Code")]
     [BindTable("Department", Description = "部门", ConnName = "Common", DbType = DatabaseType.SqlServer)]
     public partial class Department<TEntity> : IDepartment
     {

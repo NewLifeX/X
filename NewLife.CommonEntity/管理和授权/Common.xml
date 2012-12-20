@@ -47,7 +47,7 @@
     </Columns>
     <Indexes>
       <Index Name="IX_Menu_Name" Columns="Name" />
-      <Index Name="IX_Menu_ParentID_Name" Unique="True" Columns="ParentID,Name" />
+      <Index Name="IX_Menu_ParentID_Name" Columns="ParentID,Name" />
     </Indexes>
     <Relations>
       <Relation Column="ID" RelationTable="RoleMenu" RelationColumn="MenuID" Unique="True" />
@@ -114,7 +114,7 @@
       <Index Name="IX_Department_Name" Columns="Name" />
       <Index Name="IX_Department_Code" Columns="Code" />
       <Index Name="IX_Department_ParentID_Name" Unique="True" Columns="ParentID,Name" />
-      <Index Name="IX_Department_ParentID_Code" Unique="True" Columns="ParentID,Code" />
+      <Index Name="IX_Department_ParentID_Code" Columns="ParentID,Code" />
     </Indexes>
   </Table>
 </Tables>
