@@ -73,9 +73,9 @@
 	dic["OutputPath"] = mypath + "..\\..\\Web\\Admin\\Sys";	// 输出目录
 	dic["UseCNFileName"] = false;				// 中文文件名
 	dic["TemplateName"] = "[内置]页面";			// 模版名
-	Save(cfg, dic);
-	WriteLine("生成：" + dic["TemplateName"]);
-	Process.Start(exe, arg).WaitForExit(3000);
+	//Save(cfg, dic);
+	//WriteLine("生成：" + dic["TemplateName"]);
+	//Process.Start(exe, arg).WaitForExit(3000);
 	
 	WriteLine("已完成！" + DateTime.Now);
 #>
