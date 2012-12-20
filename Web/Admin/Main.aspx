@@ -126,7 +126,7 @@
                 Cache：
             </td>
             <td class="value">
-                <%= Cache.Count%>个，可用：<%= (Cache.EffectivePrivateBytesLimit / 1024).ToString("n0")%>KB，<%= Cache.EffectivePercentagePhysicalMemoryLimit%>%
+                <%= Cache.Count%>个，可用：<%= (Cache.EffectivePrivateBytesLimit / 1024).ToString("n0")%>KB
             </td>
         </tr>
     </table>
