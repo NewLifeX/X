@@ -11,12 +11,12 @@ using NewLife.Configuration;
 using NewLife.Log;
 using NewLife.Reflection;
 using XCode;
-using NewLife.Collections;
 
 #if NET4
 using System.Linq;
 #else
 using NewLife.Linq;
+using NewLife.Collections;
 #endif
 
 namespace NewLife.CommonEntity

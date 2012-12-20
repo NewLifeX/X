@@ -1,12 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Web;
-using System.Web.UI;
-using System.Web.UI.WebControls;
-using XCode.Accessors;
-using NewLife.CommonEntity;
-using NewLife.YWS.Entities;
 using System.Diagnostics;
+using NewLife.CommonEntity;
+using XCode.Accessors;
 
 public partial class WebFormEntityAccessorTest : System.Web.UI.Page
 {
@@ -16,7 +11,7 @@ public partial class WebFormEntityAccessorTest : System.Web.UI.Page
         {
             IEntityAccessor accessor = EntityAccessorFactory.Create(EntityAccessorTypes.WebForm);
 
-            Admin admin = Admin.FindAll()[0];
+            Administrator admin = Administrator.FindAll()[0];
 
             accessor
                 .SetConfig(EntityAccessorOptions.AllFields, true)
@@ -25,7 +20,7 @@ public partial class WebFormEntityAccessorTest : System.Web.UI.Page
                 .Write(admin, null);
 
 
-            Admin admin2 = new Admin();
+            Administrator admin2 = new Administrator();
             accessor.Read(admin2, null);
 
 
@@ -44,7 +39,7 @@ public partial class WebFormEntityAccessorTest : System.Web.UI.Page
     protected void fieldID_Click(object sender, EventArgs e)
     {
         IEntityAccessor accessor = EntityAccessorFactory.Create(EntityAccessorTypes.WebForm);
-        Admin admin2 = new Admin();
+        Administrator admin2 = new Administrator();
         accessor
             .SetConfig(EntityAccessorOptions.AllFields, true)
             .SetConfig(EntityAccessorOptions.ItemPrefix, "field")
