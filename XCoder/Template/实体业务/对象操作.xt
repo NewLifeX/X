@@ -93,7 +93,7 @@
         //    if (Meta.Count > 0) return;
 
         //    // 需要注意的是，如果该方法调用了其它实体类的首次数据库操作，目标实体类的数据初始化将会在同一个线程完成
-        //    if (XTrace.Debug) XTrace.WriteLine("开始初始化{0}<#=Table.DisplayName#>数据……", typeof(<#=Config.RenderGenEntity?"TEntity":Table.Name#>).Name);
+        //    if (XTrace.Debug) XTrace.WriteLine("开始初始化{0}[{1}]数据……", typeof(<#=Config.RenderGenEntity?"TEntity":Table.Name#>).Name, Meta.Table.DataTable.DisplayName);
 
         //    var entity = new <#=Table.Name#>();<#
 		foreach (IDataColumn dc in Table.Columns)
@@ -119,7 +119,7 @@
 		}#>
         //    entity.Insert();
 
-        //    if (XTrace.Debug) XTrace.WriteLine("完成初始化{0}<#=Table.DisplayName#>数据！", typeof(<#=Config.RenderGenEntity?"TEntity":Table.Name#>).Name);
+        //    if (XTrace.Debug) XTrace.WriteLine("完成初始化{0}[{1}]数据！", typeof(<#=Config.RenderGenEntity?"TEntity":Table.Name#>).Name, Meta.Table.DataTable.DisplayName);
         //}
 <#
 if(Table.Relations!=null && Table.Relations.Count>0)
