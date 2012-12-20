@@ -115,7 +115,8 @@ namespace XCoder
             XTrace.WriteLine("模版：{0}", config.TemplateName);
             XTrace.WriteLine("输出：{0}", config.OutputPath);
 
-            var tables = DAL.Import(File.ReadAllText(mdl));
+            var xml = File.ReadAllText(mdl);
+            var tables = DAL.Import(xml);
 
             var engine = new Engine(config);
             engine.Tables = tables;
@@ -137,7 +138,10 @@ namespace XCoder
                     dc.ID = ++j;
                 }
             }
-            File.WriteAllText(mdl, DAL.Export(tables));
+
+            // 如果有改变，才重新写入模型文件
+            var xml2 = DAL.Export(tables);
+            if (xml2 != xml) File.WriteAllText(mdl, xml2);
         }
 
         static void MakeModel(String mdl, String connstr, String provider)
