@@ -2,6 +2,8 @@
 using NewLife.Common;
 using XControl;
 using NewLife.Reflection;
+using NewLife.Web;
+using NewLife.Log;
 
 public partial class Admin_SysConfig : System.Web.UI.Page
 {
@@ -16,12 +18,23 @@ public partial class Admin_SysConfig : System.Web.UI.Page
 
     protected void btnSave_Click(object sender, EventArgs e)
     {
-        foreach (PropertyInfoX pi in TypeX.Create(Config.GetType()).Properties)
+        try
         {
-            object v = Request["frm" + pi.Name];
-            if (pi.Type == typeof(Boolean)) v = "" + v == "on" ? "true" : "false";
-            pi.SetValue(Config, v);
+            foreach (PropertyInfoX pi in TypeX.Create(Config.GetType()).Properties)
+            {
+                object v = Request["frm" + pi.Name];
+                if (pi.Type == typeof(Boolean)) v = "" + v == "on" ? "true" : "false";
+                pi.SetValue(Config, v);
+            }
+            Config.Save();
+
+            WebHelper.Alert("保存成功！");
         }
-        Config.Save();
+        catch (Exception ex)
+        {
+            // 因为这里很少可能失败，所以如果有错误，要记录下来
+            XTrace.WriteException(ex);
+            WebHelper.Alert("失败！" + ex.Message);
+        }
     }
 }
