@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Xml.Serialization;
 using NewLife.Common;
-using XControl;
+using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.Web;
-using NewLife.Log;
+using XControl;
 
 public partial class Admin_SysConfig : System.Web.UI.Page
 {
@@ -20,7 +22,7 @@ public partial class Admin_SysConfig : System.Web.UI.Page
     {
         try
         {
-            foreach (PropertyInfoX pi in TypeX.Create(Config.GetType()).Properties)
+            foreach (PropertyInfoX pi in GetProperties())
             {
                 object v = Request["frm" + pi.Name];
                 if (pi.Type == typeof(Boolean)) v = "" + v == "on" ? "true" : "false";
@@ -36,5 +38,16 @@ public partial class Admin_SysConfig : System.Web.UI.Page
             XTrace.WriteException(ex);
             WebHelper.Alert("失败！" + ex.Message);
         }
+    }
+
+    protected PropertyInfoX[] GetProperties()
+    {
+        PropertyInfoX[] pis = TypeX.Create(Config.GetType()).Properties;
+        List<PropertyInfoX> list = new List<PropertyInfoX>();
+        foreach (PropertyInfoX item in pis)
+        {
+            if (AttributeX.GetCustomAttribute<XmlIgnoreAttribute>(item.Property, true) == null) list.Add(item);
+        }
+        return list.ToArray();
     }
 }

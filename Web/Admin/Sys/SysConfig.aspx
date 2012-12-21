@@ -4,7 +4,7 @@
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
-<head runat="server">
+<head id="Head1" runat="server">
     <title></title>
     <link href="../images/css.css" rel="stylesheet" type="text/css" />
 </head>
@@ -16,7 +16,8 @@
             <th colspan="3">系统配置</th>
         </tr>
         <% 
-        foreach(PropertyInfoX pi in TypeX.Create(Config.GetType()).Properties) { 
+            foreach (PropertyInfoX pi in GetProperties())
+            { 
             String pname = pi.Name;
             String frmName = "frm" + pname;
             TypeCode code = Type.GetTypeCode(pi.Type);
