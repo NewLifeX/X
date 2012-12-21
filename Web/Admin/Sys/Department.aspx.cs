@@ -39,14 +39,16 @@ public partial class Common_Department : MyEntityList<Department>
     public Boolean IsFirst(Object dataItem)
     {
         IDepartment entity = dataItem as IDepartment;
-        if (entity == null || entity.Parent == null) return true;
-        return entity.ID == entity.Parent.Childs[0].ID;
+        if (entity == null) return true;
+        IDepartment parent = entity.Parent ?? Department.Root;
+        return entity.ID == parent.Childs[0].ID;
     }
 
     public Boolean IsLast(Object dataItem)
     {
         IDepartment entity = dataItem as IDepartment;
-        if (entity == null || entity.Parent == null) return false;
-        return entity.ID == entity.Parent.Childs[entity.Parent.Childs.Count - 1].ID;
+        if (entity == null) return true;
+        IDepartment parent = entity.Parent ?? Department.Root;
+        return entity.ID == parent.Childs[parent.Childs.Count - 1].ID;
     }
 }

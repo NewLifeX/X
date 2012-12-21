@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Text;
+using System.Web.UI.WebControls;
 using NewLife.CommonEntity;
 using NewLife.Log;
 using NewLife.Reflection;
@@ -7,19 +8,12 @@ using NewLife.Web;
 
 public partial class Pages_Menu : MyEntityList
 {
-    /// <summary>实体类型</summary>
-    public override Type EntityType { get { return CommonManageProvider.Provider.MenuType; } set { base.EntityType = value; } }
+    ICommonManageProvider Provider { get { return CommonManageProvider.Provider; } }
 
-    protected void Page_Load(object sender, EventArgs e)
-    {
-        //if (!IsPostBack)
-        //{
-        //    // 添加按钮需要添加权限
-        //    lbAdd.Visible = Acquire(PermissionFlags.Insert);
-        //    // 最后一列是删除列，需要删除权限
-        //    gv.Columns[gv.Columns.Count - 1].Visible = Acquire(PermissionFlags.Delete);
-        //}
-    }
+    /// <summary>实体类型</summary>
+    public override Type EntityType { get { return Provider.MenuType; } set { base.EntityType = value; } }
+
+    protected void Page_Load(object sender, EventArgs e) { }
 
     protected void Button1_Click(object sender, EventArgs e)
     {
@@ -37,7 +31,7 @@ public partial class Pages_Menu : MyEntityList
 
     protected void Button2_Click(object sender, EventArgs e)
     {
-        String xml = MethodInfoX.Create(EntityType, "Export").Invoke(null, CommonManageProvider.Provider.MenuRoot.Childs) as String;
+        String xml = MethodInfoX.Create(EntityType, "Export").Invoke(null, Provider.MenuRoot.Childs) as String;
 
         Response.Clear();
         Response.Buffer = true;
@@ -71,11 +65,11 @@ public partial class Pages_Menu : MyEntityList
 
     }
 
-    protected void gv_RowCommand(object sender, System.Web.UI.WebControls.GridViewCommandEventArgs e)
+    protected void gv_RowCommand(object sender, GridViewCommandEventArgs e)
     {
         if (e.CommandName == "Up")
         {
-            IMenu entity = CommonManageProvider.Provider.FindByMenuID(Convert.ToInt32(e.CommandArgument));
+            IMenu entity = Provider.FindByMenuID(Convert.ToInt32(e.CommandArgument));
             if (entity != null)
             {
                 entity.Up();
@@ -84,7 +78,7 @@ public partial class Pages_Menu : MyEntityList
         }
         else if (e.CommandName == "Down")
         {
-            IMenu entity = CommonManageProvider.Provider.FindByMenuID(Convert.ToInt32(e.CommandArgument));
+            IMenu entity = Provider.FindByMenuID(Convert.ToInt32(e.CommandArgument));
             if (entity != null)
             {
                 entity.Down();
@@ -96,14 +90,16 @@ public partial class Pages_Menu : MyEntityList
     public Boolean IsFirst(Object dataItem)
     {
         IMenu menu = dataItem as IMenu;
-        if (menu == null || menu.Parent == null) return true;
-        return menu.ID == menu.Parent.Childs[0].ID;
+        if (menu == null) return true;
+        IMenu parent = menu.Parent ?? Provider.MenuRoot;
+        return menu.ID == parent.Childs[0].ID;
     }
 
     public Boolean IsLast(Object dataItem)
     {
         IMenu menu = dataItem as IMenu;
-        if (menu == null || menu.Parent == null) return false;
-        return menu.ID == menu.Parent.Childs[menu.Parent.Childs.Count - 1].ID;
+        if (menu == null) return true;
+        IMenu parent = menu.Parent ?? Provider.MenuRoot;
+        return menu.ID == parent.Childs[parent.Childs.Count - 1].ID;
     }
 }
