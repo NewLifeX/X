@@ -150,6 +150,8 @@ namespace XCode.DataAccessLayer
             var writer = XmlWriter.Create(ms, settings);
             writer.WriteStartDocument();
             writer.WriteStartElement("Tables");
+            // 写入版本
+            writer.WriteAttributeString("Version", Assembly.GetExecutingAssembly().GetName().Version.ToString());
             if (atts != null && atts.Count > 0)
             {
                 foreach (var item in atts)
@@ -389,6 +391,12 @@ namespace XCode.DataAccessLayer
                     pi2.SetValue(value, pi1.GetValue(value));
                 }
             }
+            // 自增字段非空
+            if (value is IDataColumn)
+            {
+                var dc = value as IDataColumn;
+                if (dc.Identity) dc.Nullable = false;
+            }
             //reader.Skip();
         }
 
@@ -516,7 +524,9 @@ namespace XCode.DataAccessLayer
                     dc.Length = 5;
                     dc.NumOfByte = 2;
                     dc.Precision = 5;
-                    dc.Nullable = true;
+
+                    // 自增字段非空
+                    dc.Nullable = oridc == null || !oridc.Identity;
                     break;
                 case TypeCode.Int32:
                 case TypeCode.UInt32:
@@ -524,7 +534,9 @@ namespace XCode.DataAccessLayer
                     dc.Length = 10;
                     dc.NumOfByte = 4;
                     dc.Precision = 10;
-                    dc.Nullable = true;
+
+                    // 自增字段非空
+                    dc.Nullable = oridc == null || !oridc.Identity;
                     break;
                 case TypeCode.Int64:
                 case TypeCode.UInt64:
@@ -532,7 +544,9 @@ namespace XCode.DataAccessLayer
                     dc.Length = 19;
                     dc.NumOfByte = 8;
                     dc.Precision = 20;
-                    dc.Nullable = true;
+
+                    // 自增字段非空
+                    dc.Nullable = oridc == null || !oridc.Identity;
                     break;
                 case TypeCode.Single:
                     dc.RawType = "real";
