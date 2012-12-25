@@ -203,7 +203,9 @@
     <Content Include="模版\模版.xml">
       <SubType>Designer</SubType>
     </Content>
-    <Content Include="管理和授权\Common.xml" />
+    <Content Include="管理和授权\Common.xml">
+      <SubType>Designer</SubType>
+    </Content>
     <Content Include="管理和授权\Common数据字典.htm" />
     <Content Include="说明.txt" />
   </ItemGroup>

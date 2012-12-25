@@ -42,6 +42,18 @@ namespace NewLife.CommonEntity
             get { return _Name; }
             set { if (OnPropertyChanging(__.Name, value)) { _Name = value; OnPropertyChanged(__.Name); } }
         }
+
+        private Boolean _IsSystem;
+        /// <summary>是否系统角色。系统角色用于业务系统开发使用，禁止删除</summary>
+        [DisplayName("是否系统角色")]
+        [Description("是否系统角色。系统角色用于业务系统开发使用，禁止删除")]
+        [DataObjectField(false, false, true, 1)]
+        [BindColumn(3, "IsSystem", "是否系统角色。系统角色用于业务系统开发使用，禁止删除", null, "bit", 0, 0, false)]
+        public virtual Boolean IsSystem
+        {
+            get { return _IsSystem; }
+            set { if (OnPropertyChanging(__.IsSystem, value)) { _IsSystem = value; OnPropertyChanged(__.IsSystem); } }
+        }
         #endregion
 
         #region 获取/设置 字段值
@@ -60,6 +72,7 @@ namespace NewLife.CommonEntity
                 {
                     case __.ID : return _ID;
                     case __.Name : return _Name;
+                    case __.IsSystem : return _IsSystem;
                     default: return base[name];
                 }
             }
@@ -69,6 +82,7 @@ namespace NewLife.CommonEntity
                 {
                     case __.ID : _ID = Convert.ToInt32(value); break;
                     case __.Name : _Name = Convert.ToString(value); break;
+                    case __.IsSystem : _IsSystem = Convert.ToBoolean(value); break;
                     default: base[name] = value; break;
                 }
             }
@@ -85,6 +99,9 @@ namespace NewLife.CommonEntity
             ///<summary>角色名称</summary>
             public static readonly Field Name = FindByName(__.Name);
 
+            ///<summary>是否系统角色。系统角色用于业务系统开发使用，禁止删除</summary>
+            public static readonly Field IsSystem = FindByName(__.IsSystem);
+
             static Field FindByName(String name) { return Meta.Table.FindByName(name); }
         }
 
@@ -96,6 +113,9 @@ namespace NewLife.CommonEntity
 
             ///<summary>角色名称</summary>
             public const String Name = "Name";
+
+            ///<summary>是否系统角色。系统角色用于业务系统开发使用，禁止删除</summary>
+            public const String IsSystem = "IsSystem";
 
         }
         #endregion
@@ -110,6 +130,9 @@ namespace NewLife.CommonEntity
 
         /// <summary>角色名称</summary>
         String Name { get; set; }
+
+        /// <summary>是否系统角色。系统角色用于业务系统开发使用，禁止删除</summary>
+        Boolean IsSystem { get; set; }
         #endregion
 
         #region 获取/设置 字段值

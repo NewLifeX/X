@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Tables>
-  <Table ID="1" Name="Administrator" Description="管理员" DbType="SqlServer">
+<Tables Version="8.9.4742.25406">
+  <Table Name="Administrator" Description="管理员" DbType="SqlServer">
     <Columns>
-      <Column ID="1" Name="ID" DataType="Int32" RawType="int" Identity="True" PrimaryKey="True" Length="10" NumOfByte="4" Precision="10" Description="编号" />
-      <Column ID="2" Name="Name" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="名称" />
-      <Column ID="3" Name="Password" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="密码" />
-      <Column ID="4" Name="DisplayName" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="显示名" />
-      <Column ID="5" Name="RoleID" DataType="Int32" RawType="int" Length="10" NumOfByte="4" Precision="10" Nullable="True" Description="角色" />
-      <Column ID="6" Name="Logins" DataType="Int32" RawType="int" Length="10" NumOfByte="4" Precision="10" Nullable="True" Description="登录次数" />
-      <Column ID="7" Name="LastLogin" DataType="DateTime" RawType="datetime" Length="3" NumOfByte="8" Precision="3" Nullable="True" Description="最后登录" />
-      <Column ID="8" Name="LastLoginIP" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="最后登陆IP" />
-      <Column ID="9" Name="SSOUserID" DataType="Int32" RawType="int" Length="10" NumOfByte="4" Precision="10" Nullable="True" Description="登录用户编号" />
-      <Column ID="10" Name="IsEnable" DataType="Boolean" RawType="bit" Length="1" NumOfByte="1" Nullable="True" Description="是否使用" />
+      <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
+      <Column Name="Name" DataType="String" Description="名称" />
+      <Column Name="Password" DataType="String" Description="密码" />
+      <Column Name="DisplayName" DataType="String" Description="显示名" />
+      <Column Name="RoleID" DataType="Int32" Description="角色" />
+      <Column Name="Logins" DataType="Int32" Description="登录次数" />
+      <Column Name="LastLogin" DataType="DateTime" Description="最后登录" />
+      <Column Name="LastLoginIP" DataType="String" Description="最后登陆IP" />
+      <Column Name="SSOUserID" DataType="Int32" Description="登录用户编号" />
+      <Column Name="IsEnable" DataType="Boolean" Description="是否使用" />
     </Columns>
     <Indexes>
       <Index Name="IX_Administrator_Name" Unique="True" Columns="Name" />
@@ -21,11 +21,11 @@
       <Relation Column="RoleID" RelationTable="Role" RelationColumn="ID" />
     </Relations>
   </Table>
-  <Table ID="2" Name="Role" Description="角色" DbType="SqlServer">
+  <Table Name="Role" Description="角色" DbType="SqlServer">
     <Columns>
-      <Column ID="1" Name="ID" DataType="Int32" RawType="int" Identity="True" PrimaryKey="True" Length="10" NumOfByte="4" Precision="10" Description="编号" />
-      <Column ID="2" Name="Name" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="角色名称" />
-      <Column ID="3" Name="IsSystem" DataType="Boolean" RawType="bit" Length="1" NumOfByte="1" Nullable="True" DisplayName="是否系统角色" Description="系统角色用于业务系统开发使用，禁止删除" />
+      <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
+      <Column Name="Name" DataType="String" Description="角色名称" />
+      <Column Name="IsSystem" DataType="Boolean" Description="是否系统角色。系统角色用于业务系统开发使用，禁止删除" />
     </Columns>
     <Indexes>
       <Index Name="IX_Role_Name" Unique="True" Columns="Name" />
@@ -35,16 +35,16 @@
       <Relation Column="ID" RelationTable="Administrator" RelationColumn="RoleID" Unique="True" />
     </Relations>
   </Table>
-  <Table ID="3" Name="Menu" Description="菜单" DbType="SqlServer">
+  <Table Name="Menu" Description="菜单" DbType="SqlServer">
     <Columns>
-      <Column ID="1" Name="ID" DataType="Int32" RawType="int" Identity="True" PrimaryKey="True" Length="10" NumOfByte="4" Precision="10" Description="编号" />
-      <Column ID="2" Name="Name" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="名称" />
-      <Column ID="3" Name="ParentID" DataType="Int32" RawType="int" Length="10" NumOfByte="4" Precision="10" Nullable="True" Description="父编号" />
-      <Column ID="4" Name="Url" DataType="String" RawType="nvarchar(200)" Length="200" NumOfByte="400" Nullable="True" IsUnicode="True" Description="链接" />
-      <Column ID="5" Name="Sort" DataType="Int32" RawType="int" Length="10" NumOfByte="4" Precision="10" Nullable="True" Description="序号" />
-      <Column ID="6" Name="Remark" DataType="String" RawType="nvarchar(500)" Length="500" NumOfByte="1000" Nullable="True" IsUnicode="True" Description="备注" />
-      <Column ID="7" Name="Permission" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="权限" />
-      <Column ID="8" Name="IsShow" DataType="Boolean" RawType="bit" Length="1" NumOfByte="1" Nullable="True" Description="是否显示" />
+      <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
+      <Column Name="Name" DataType="String" Description="名称" />
+      <Column Name="ParentID" DataType="Int32" Description="父编号" />
+      <Column Name="Url" DataType="String" Length="200" Description="链接" />
+      <Column Name="Sort" DataType="Int32" Description="序号" />
+      <Column Name="Remark" DataType="String" Length="500" Description="备注" />
+      <Column Name="Permission" DataType="String" Description="权限" />
+      <Column Name="IsShow" DataType="Boolean" Description="是否显示" />
     </Columns>
     <Indexes>
       <Index Name="IX_Menu_Name" Columns="Name" />
@@ -54,12 +54,12 @@
       <Relation Column="ID" RelationTable="RoleMenu" RelationColumn="MenuID" Unique="True" />
     </Relations>
   </Table>
-  <Table ID="4" Name="RoleMenu" Description="角色和菜单" DbType="SqlServer">
+  <Table Name="RoleMenu" Description="角色和菜单" DbType="SqlServer">
     <Columns>
-      <Column ID="1" Name="ID" DataType="Int32" RawType="int" Identity="True" PrimaryKey="True" Length="10" NumOfByte="4" Precision="10" Description="编号" />
-      <Column ID="2" Name="RoleID" DataType="Int32" RawType="int" Length="10" NumOfByte="4" Precision="10" Nullable="True" Description="角色编号" />
-      <Column ID="3" Name="MenuID" DataType="Int32" RawType="int" Length="10" NumOfByte="4" Precision="10" Nullable="True" Description="菜单编号" />
-      <Column ID="4" Name="Permission" DataType="Int32" RawType="int" Length="10" NumOfByte="4" Precision="10" Nullable="True" Description="权限" />
+      <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
+      <Column Name="RoleID" DataType="Int32" Description="角色编号" />
+      <Column Name="MenuID" DataType="Int32" Description="菜单编号" />
+      <Column Name="Permission" DataType="Int32" Description="权限" />
     </Columns>
     <Indexes>
       <Index Name="IX_RoleMenu_MenuID" Columns="MenuID" />
@@ -71,45 +71,45 @@
       <Relation Column="RoleID" RelationTable="Role" RelationColumn="ID" />
     </Relations>
   </Table>
-  <Table ID="5" Name="Log" Description="日志" DbType="SqlServer">
+  <Table Name="Log" Description="日志" DbType="SqlServer">
     <Columns>
-      <Column ID="1" Name="ID" DataType="Int32" RawType="int" Identity="True" PrimaryKey="True" Length="10" NumOfByte="4" Precision="10" Description="编号" />
-      <Column ID="2" Name="Category" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" IsUnicode="True" Description="类别" />
-      <Column ID="3" Name="Action" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" IsUnicode="True" Description="操作" />
-      <Column ID="4" Name="UserID" DataType="Int32" RawType="int" Length="10" NumOfByte="4" Precision="10" Default="0" Description="用户编号" />
-      <Column ID="5" Name="UserName" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="用户名" />
-      <Column ID="6" Name="IP" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="IP地址" />
-      <Column ID="7" Name="OccurTime" DataType="DateTime" RawType="datetime" Length="3" NumOfByte="8" Precision="3" Default="getdate()" Description="时间" />
-      <Column ID="8" Name="Remark" DataType="String" RawType="nvarchar(500)" Length="500" NumOfByte="1000" Nullable="True" IsUnicode="True" Description="详细信息" />
+      <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
+      <Column Name="Category" DataType="String" Nullable="False" Description="类别" />
+      <Column Name="Action" DataType="String" Nullable="False" Description="操作" />
+      <Column Name="UserID" DataType="Int32" Nullable="False" Default="0" Description="用户编号" />
+      <Column Name="UserName" DataType="String" Description="用户名" />
+      <Column Name="IP" DataType="String" Description="IP地址" />
+      <Column Name="OccurTime" DataType="DateTime" Nullable="False" Default="getdate()" Description="时间" />
+      <Column Name="Remark" DataType="String" Length="500" Description="详细信息" />
     </Columns>
     <Indexes>
       <Index Name="IX_Log_Category" Columns="Category" />
     </Indexes>
   </Table>
-  <Table ID="6" Name="User" Description="用户" DbType="SqlServer">
+  <Table Name="User" Description="用户" DbType="SqlServer">
     <Columns>
-      <Column ID="1" Name="ID" DataType="Int32" RawType="int" Identity="True" PrimaryKey="True" Length="10" Precision="10" Description="编号" />
-      <Column ID="2" Name="Account" DataType="String" RawType="nvarchar(50)" Length="50" Nullable="True" IsUnicode="True" Description="账号" />
-      <Column ID="3" Name="Password" DataType="String" RawType="nvarchar(50)" Length="50" Nullable="True" IsUnicode="True" Description="密码" />
-      <Column ID="4" Name="IsAdmin" DataType="Boolean" RawType="bit" Length="1" Nullable="True" Description="是否管理员" />
-      <Column ID="5" Name="IsEnable" DataType="Boolean" RawType="bit" Length="1" Nullable="True" Description="是否启用" />
+      <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
+      <Column Name="Account" DataType="String" Description="账号" />
+      <Column Name="Password" DataType="String" Description="密码" />
+      <Column Name="IsAdmin" DataType="Boolean" Description="是否管理员" />
+      <Column Name="IsEnable" DataType="Boolean" Description="是否启用" />
     </Columns>
     <Indexes>
       <Index Name="IX_User_Account" Unique="True" Columns="Account" />
     </Indexes>
   </Table>
-  <Table ID="7" Name="Department" Description="部门" DbType="SqlServer">
+  <Table Name="Department" Description="部门" DbType="SqlServer">
     <Columns>
-      <Column ID="1" Name="ID" DataType="Int32" RawType="int" Identity="True" PrimaryKey="True" Length="10" Precision="10" Description="编号" />
-      <Column ID="2" Name="Name" DataType="String" RawType="nvarchar(50)" Length="50" Nullable="True" IsUnicode="True" Description="名称" />
-      <Column ID="3" Name="Code" DataType="String" RawType="nvarchar(50)" Length="50" Nullable="True" IsUnicode="True" Description="代码" />
-      <Column ID="4" Name="ParentID" DataType="Int32" RawType="int" Length="10" Precision="10" Nullable="True" Description="父编号" />
-      <Column ID="5" Name="Sort" DataType="Int32" RawType="int" Length="10" Precision="10" Nullable="True" Description="排序" />
-      <Column ID="6" Name="ManagerID" DataType="Int32" RawType="int" Length="10" Precision="10" Nullable="True" Description="管理者编号" />
-      <Column ID="7" Name="Manager" DataType="String" RawType="nvarchar(50)" Length="50" Nullable="True" IsUnicode="True" Description="管理者" />
-      <Column ID="8" Name="Level" DataType="Int32" RawType="int" Length="10" Precision="10" Nullable="True" Description="等级" />
-      <Column ID="9" Name="LevelName" DataType="String" RawType="nvarchar(50)" Length="50" Nullable="True" IsUnicode="True" Description="等级名称" />
-      <Column ID="10" Name="Profile" DataType="String" RawType="nvarchar(500)" Length="500" Nullable="True" IsUnicode="True" Description="配置文件" />
+      <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
+      <Column Name="Name" DataType="String" Description="名称" />
+      <Column Name="Code" DataType="String" Description="代码" />
+      <Column Name="ParentID" DataType="Int32" Description="父编号" />
+      <Column Name="Sort" DataType="Int32" Description="排序" />
+      <Column Name="ManagerID" DataType="Int32" Description="管理者编号" />
+      <Column Name="Manager" DataType="String" Description="管理者" />
+      <Column Name="Level" DataType="Int32" Description="等级" />
+      <Column Name="LevelName" DataType="String" Description="等级名称" />
+      <Column Name="Profile" DataType="String" Length="500" Description="配置文件" />
     </Columns>
     <Indexes>
       <Index Name="IX_Department_Name" Columns="Name" />
