@@ -35,7 +35,7 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
 [assembly: AssemblyVersion("8.9.*")]
-[assembly: AssemblyFileVersion("8.9.2012.1220")]
+[assembly: AssemblyFileVersion("8.9.2012.1225")]
 
 /*
  * XCode的重大改进
@@ -52,6 +52,8 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v8.9.2012.1225   模型导入导出进行默认值精简，主要使用名称类型和长度
+ * 
  * v8.9.2012.1220   实体树基类EntityTree增加父级节点名ParentNodeName
  *                  实体树基类EntityTree支持最大深度MaxDepth限制
  * 

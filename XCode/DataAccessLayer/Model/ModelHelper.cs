@@ -199,11 +199,13 @@ namespace XCode.DataAccessLayer
             //}
 
             var list = new List<IDataTable>();
+            var id = 1;
             while (reader.IsStartElement())
             {
                 if (reader.Name.EqualIgnoreCase("Table"))
                 {
                     var table = createTable();
+                    table.ID = id++;
                     list.Add(table);
 
                     //reader.ReadStartElement();
@@ -247,9 +249,20 @@ namespace XCode.DataAccessLayer
                 {
                     case "Columns":
                         reader.ReadStartElement();
+                        var id = 1;
                         while (reader.IsStartElement())
                         {
                             var dc = table.CreateColumn();
+                            dc.ID = id++;
+                            var v = reader.GetAttribute("DataType");
+                            if (v != null)
+                            {
+                                dc.DataType = TypeX.GetType(v);
+                                v = reader.GetAttribute("Length");
+                                var len = 0;
+                                if (v != null && Int32.TryParse(v, out len)) dc.Length = len;
+                                dc = Fix(dc, dc);
+                            }
                             (dc as IXmlSerializable).ReadXml(reader);
                             table.Columns.Add(dc);
                         }
@@ -348,6 +361,11 @@ namespace XCode.DataAccessLayer
                 if (item.Type == typeof(String[]))
                 {
                     var ss = v.Split(new String[] { "," }, StringSplitOptions.RemoveEmptyEntries);
+                    // 去除前后空格，因为手工修改xml的时候，可能在逗号后加上空格
+                    for (int i = 0; i < ss.Length; i++)
+                    {
+                        ss[i] = ss[i].Trim();
+                    }
                     item.SetValue(value, ss);
                 }
                 else
@@ -364,7 +382,7 @@ namespace XCode.DataAccessLayer
                     pi2.SetValue(value, pi1.GetValue(value));
                     pi1.SetValue(value, v2);
                 }
-                // 写入的时候省略了TableName/ColumnName
+                // 写入的时候省略了相同的TableName/ColumnName
                 v2 = (String)pi2.GetValue(value);
                 if (String.IsNullOrEmpty(v2))
                 {
@@ -381,7 +399,17 @@ namespace XCode.DataAccessLayer
         public static void WriteXml(XmlWriter writer, Object value, Boolean writeDefaultValueMember = false)
         {
             var type = value.GetType();
-            Object def = GetDefault(type);
+            var def = GetDefault(type);
+            if (value is IDataColumn)
+            {
+                //var dc2 = def as IDataColumn;
+                var value2 = value as IDataColumn;
+                // 需要重新创建，因为GetDefault带有缓存
+                var dc2 = TypeX.CreateInstance(type) as IDataColumn;
+                dc2.DataType = value2.DataType;
+                dc2.Length = value2.Length;
+                def = Fix(dc2, value2);
+            }
 
             String name = null;
 
@@ -390,6 +418,8 @@ namespace XCode.DataAccessLayer
             {
                 if (!item.Property.CanWrite) continue;
                 if (AttributeX.GetCustomAttribute<XmlIgnoreAttribute>(item.Member, false) != null) continue;
+                // 忽略ID
+                if (item.Name == "ID") continue;
 
                 var code = Type.GetTypeCode(item.Type);
 
@@ -444,6 +474,133 @@ namespace XCode.DataAccessLayer
         static Object GetDefault(Type type)
         {
             return cache.GetItem(type, item => TypeX.CreateInstance(item));
+        }
+
+        /// <summary>根据类型修正字段的一些默认值。仅考虑MSSQL</summary>
+        /// <param name="dc"></param>
+        /// <param name="oridc"></param>
+        /// <returns></returns>
+        static IDataColumn Fix(this IDataColumn dc, IDataColumn oridc)
+        {
+            if (dc == null || dc.DataType == null) return dc;
+
+            var isnew = oridc == null || oridc == dc;
+
+            var code = Type.GetTypeCode(dc.DataType);
+            switch (code)
+            {
+                case TypeCode.Boolean:
+                    dc.RawType = "bit";
+                    dc.Length = 1;
+                    dc.NumOfByte = 1;
+                    dc.Nullable = true;
+                    break;
+                case TypeCode.Byte:
+                case TypeCode.Char:
+                case TypeCode.SByte:
+                    dc.RawType = "tinyint";
+                    dc.Length = 1;
+                    dc.NumOfByte = 1;
+                    dc.Nullable = true;
+                    break;
+                case TypeCode.DateTime:
+                    dc.RawType = "datetime";
+                    dc.Length = 3;
+                    dc.NumOfByte = 8;
+                    dc.Precision = 3;
+                    dc.Nullable = true;
+                    break;
+                case TypeCode.Int16:
+                case TypeCode.UInt16:
+                    dc.RawType = "smallint";
+                    dc.Length = 5;
+                    dc.NumOfByte = 2;
+                    dc.Precision = 5;
+                    dc.Nullable = true;
+                    break;
+                case TypeCode.Int32:
+                case TypeCode.UInt32:
+                    dc.RawType = "int";
+                    dc.Length = 10;
+                    dc.NumOfByte = 4;
+                    dc.Precision = 10;
+                    dc.Nullable = true;
+                    break;
+                case TypeCode.Int64:
+                case TypeCode.UInt64:
+                    dc.RawType = "bigint";
+                    dc.Length = 19;
+                    dc.NumOfByte = 8;
+                    dc.Precision = 20;
+                    dc.Nullable = true;
+                    break;
+                case TypeCode.Single:
+                    dc.RawType = "real";
+                    dc.Length = 7;
+                    //dc.NumOfByte = 8;
+                    //dc.Precision = 20;
+                    dc.Nullable = true;
+                    break;
+                case TypeCode.Double:
+                    dc.RawType = "double";
+                    dc.Length = 53;
+                    //dc.NumOfByte = 8;
+                    //dc.Precision = 20;
+                    dc.Nullable = true;
+                    break;
+                case TypeCode.Decimal:
+                    dc.RawType = "money";
+                    dc.Length = 19;
+                    //dc.NumOfByte = 8;
+                    //dc.Precision = 20;
+                    dc.Nullable = true;
+                    break;
+                case TypeCode.String:
+                    if (dc.Length >= 0 && dc.Length < 4000 || !isnew && oridc.RawType != "ntext")
+                    {
+                        var len = dc.Length;
+                        if (len == 0) len = 50;
+                        dc.RawType = String.Format("nvarchar({0})", len);
+                        dc.NumOfByte = len * 2;
+
+                        // 新建默认长度50，写入忽略50的长度，其它长度不能忽略
+                        if (len == 50)
+                            dc.Length = 50;
+                        else
+                            dc.Length = 0;
+                    }
+                    else
+                    {
+                        // 新建默认长度-1，写入忽略所有长度
+                        if (isnew)
+                        {
+                            dc.RawType = "ntext";
+                            dc.Length = -1;
+                            dc.NumOfByte = 16;
+                        }
+                        else
+                        {
+                            //dc.NumOfByte = 16;
+                            // 写入长度-1
+                            dc.Length = 0;
+                            oridc.Length = -1;
+
+                            // 不写RawType
+                            dc.RawType = oridc.RawType;
+                            // 不写NumOfByte
+                            dc.NumOfByte = oridc.NumOfByte;
+                        }
+                    }
+                    dc.Nullable = true;
+                    dc.IsUnicode = true;
+                    break;
+                default:
+                    break;
+            }
+
+            dc.DataType = null;
+
+            return dc;
         }
 
         static DictionaryCache<Type, PropertyInfoX[]> cache2 = new DictionaryCache<Type, PropertyInfoX[]>();
