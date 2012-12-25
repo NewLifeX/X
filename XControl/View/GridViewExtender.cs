@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
+using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Web;
@@ -10,6 +11,7 @@ using System.Web.UI;
 using System.Web.UI.WebControls;
 using NewLife.Reflection;
 using NewLife.Web;
+
 #if NET4
 using System.Linq;
 #else
@@ -249,14 +251,18 @@ namespace XControl
             base.OnInit(e);
 
             if (!Enabled) return;
-            GridView gv = TargetControl;
+            var gv = TargetControl;
             if (gv == null) return;
 
             // 挂接ObjectDataSource的事件
             if (!String.IsNullOrEmpty(gv.DataSourceID))
             {
-                ObjectDataSource ds = FindControl(gv.DataSourceID) as ObjectDataSource;
-                if (ds != null) FixObjectDataSourceOrder(ds);
+                var ds = FindControl(gv.DataSourceID) as ObjectDataSource;
+                if (ds != null)
+                {
+                    FixObjectDataSourceOrder(ds);
+                    FixObjectDataSourceEvent(ds);
+                }
             }
 
             // 挂接分页模版
@@ -731,6 +737,27 @@ e.ClickElement('a',function(i){{
                 TotalCount = (Int32)data;
             else
                 DataSource = data;
+        }
+        #endregion
+
+        #region ObjectDataSource删除更新等事件
+        void FixObjectDataSourceEvent(ObjectDataSource ds)
+        {
+            if (!String.IsNullOrEmpty(ds.InsertMethod)) ds.Inserted += OnODSEvent;
+            if (!String.IsNullOrEmpty(ds.UpdateMethod)) ds.Updated += OnODSEvent;
+            if (!String.IsNullOrEmpty(ds.DeleteMethod)) ds.Deleted += OnODSEvent;
+        }
+
+        void OnODSEvent(object sender, ObjectDataSourceStatusEventArgs e)
+        {
+            if (e.Exception != null && !e.ExceptionHandled)
+            {
+                var ex = e.Exception;
+                while (ex.InnerException != null && ex is TargetInvocationException) ex = ex.InnerException;
+
+                WebHelper.Alert("出错！" + ex.Message);
+                e.ExceptionHandled = true;
+            }
         }
         #endregion
     }
