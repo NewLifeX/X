@@ -2,13 +2,14 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Xml.Serialization;
+using NewLife.Exceptions;
 using NewLife.Log;
 using XCode;
+
 #if NET4
 using System.Linq;
 #else
 using NewLife.Linq;
-using NewLife.Exceptions;
 #endif
 
 namespace NewLife.CommonEntity
@@ -232,7 +233,7 @@ namespace NewLife.CommonEntity
             if (XTrace.Debug) XTrace.WriteLine("完成初始化{0}角色数据！", typeof(TEntity).Name);
         }
 
-        /// <summary>验证数据，通过抛出异常的方式提示验证失败。建议重写者调用基类的实现，因为将来可能根据数据字段的特性进行数据验证。</summary>
+        /// <summary>验证数据，通过抛出异常的方式提示验证失败。</summary>
         /// <param name="isNew">是否新数据</param>
         public override void Valid(bool isNew)
         {
@@ -267,7 +268,7 @@ namespace NewLife.CommonEntity
 
             if (entity.IsSystem)
             {
-                var msg = String.Format("系统角色{0}禁止删除！", name);
+                var msg = String.Format("系统角色[{0}]禁止删除！", name);
                 WriteLog("删除", msg);
 
                 throw new XException(msg);
