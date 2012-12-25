@@ -8,6 +8,7 @@ using XCode;
 using System.Linq;
 #else
 using NewLife.Linq;
+using NewLife.Exceptions;
 #endif
 
 namespace NewLife.CommonEntity
@@ -223,8 +224,9 @@ namespace NewLife.CommonEntity
 
             if (XTrace.Debug) XTrace.WriteLine("开始初始化{0}角色数据……", typeof(TEntity).Name);
 
-            TEntity entity = new TEntity();
+            var entity = new TEntity();
             entity.Name = "管理员";
+            entity.IsSystem = true;
             entity.Save();
 
             if (XTrace.Debug) XTrace.WriteLine("完成初始化{0}角色数据！", typeof(TEntity).Name);
@@ -255,12 +257,22 @@ namespace NewLife.CommonEntity
         /// <returns></returns>
         public override int Delete()
         {
-            String name = Name;
+            var entity = this;
+            var name = entity.Name;
             if (String.IsNullOrEmpty(name))
             {
-                var entity = FindByID(ID);
+                entity = FindByID(ID);
                 if (entity != null) name = entity.Name;
             }
+
+            if (entity.IsSystem)
+            {
+                var msg = String.Format("系统角色{0}禁止删除！", name);
+                WriteLog("删除", msg);
+
+                throw new XException(msg);
+            }
+
             WriteLog("删除", name);
 
             return base.Delete();

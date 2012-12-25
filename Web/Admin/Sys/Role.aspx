@@ -28,6 +28,14 @@
                 <ItemStyle HorizontalAlign="Center" VerticalAlign="Middle" CssClass="key" />
             </asp:BoundField>
             <asp:BoundField DataField="Name" HeaderText="名称" SortExpression="Name" />
+            <asp:TemplateField HeaderText="系统角色" SortExpression="IsSystem">
+                <ItemTemplate>
+                    <asp:CheckBox ID="checkbox1" runat="server" Enabled="false" Checked='<%# Bind("IsSystem")%>' />
+                </ItemTemplate>
+                <EditItemTemplate>
+                    <asp:CheckBox ID="checkbox2" runat="server" Checked='<%# Bind("IsSystem")%>' />
+                </EditItemTemplate>
+            </asp:TemplateField>
             <asp:CommandField HeaderText="编辑" ShowEditButton="True">
                 <ItemStyle HorizontalAlign="Center" VerticalAlign="Middle" Width="60px" />
             </asp:CommandField>

@@ -400,30 +400,21 @@ namespace Test
 
         static void Test8()
         {
-            XCode.Code.EntityAssembly.Debug = true;
+            var file = @"..\Src\NewLife.CommonEntity\管理和授权\Common.xml";
+            //file = @"C:\Work\School\Src\NewLife.School\School.xml";
 
-            // 确保表存在
-            Console.WriteLine(Log.Meta.Count);
+            var xml = File.ReadAllText(file);
+            var tbs = DAL.Import(xml);
 
-            var dal = DAL.Create("Common");
-            var ea = dal.Assembly;
+            var tb = tbs[0];
 
-            ea.OnClassCreating += (s, e) =>
-            {
-                if (e.Class.Name == "Log") e.Class.BaseType = "Test.TestEntity<Log>";
-            };
+            var xml2 = DAL.Export(new IDataTable[] { tb });
+            Console.WriteLine(xml2);
 
-            var eop = dal.CreateOperate("Log");
-            var type = eop.Default.GetType();
-            Console.WriteLine(type);
-            type = type.BaseType;
-            Console.WriteLine(type);
-            type = type.BaseType;
-            Console.WriteLine(type);
+            xml2 = DAL.Export(tbs);
+            File.WriteAllText(file, xml2);
+
+            Console.WriteLine(xml == xml2);
         }
-    }
-
-    public class TestEntity<TEntity> : Entity<TEntity> where TEntity : TestEntity<TEntity>, new()
-    {
     }
 }
