@@ -25,6 +25,7 @@
     <Columns>
       <Column ID="1" Name="ID" DataType="Int32" RawType="int" Identity="True" PrimaryKey="True" Length="10" NumOfByte="4" Precision="10" Description="编号" />
       <Column ID="2" Name="Name" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="角色名称" />
+      <Column ID="3" Name="IsSystem" DataType="Boolean" RawType="bit" Length="1" NumOfByte="1" Nullable="True" DisplayName="是否系统角色" Description="系统角色用于业务系统开发使用，禁止删除" />
     </Columns>
     <Indexes>
       <Index Name="IX_Role_Name" Unique="True" Columns="Name" />
