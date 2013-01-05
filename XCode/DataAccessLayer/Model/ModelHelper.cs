@@ -263,7 +263,10 @@ namespace XCode.DataAccessLayer
                                 v = reader.GetAttribute("Length");
                                 var len = 0;
                                 if (v != null && Int32.TryParse(v, out len)) dc.Length = len;
-                                dc = Fix(dc, dc);
+
+                                // 含有ID表示是旧的，不需要特殊处理，否则一些默认值会不对
+                                v = reader.GetAttribute("ID");
+                                if (v == null) dc = Fix(dc, dc);
                             }
                             (dc as IXmlSerializable).ReadXml(reader);
                             table.Columns.Add(dc);
