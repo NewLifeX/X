@@ -84,6 +84,33 @@ namespace NewLife.Reflection
             "";
         #endregion
 
+        #region 自定义添加命名空间属性和方法
+        private List<string> CusNameSpaceList = new List<string>();
+        public void AddNameSpace(string nameSpace)
+        {
+            if (!string.IsNullOrEmpty(nameSpace) && !CusNameSpaceList.Contains(nameSpace))
+                CusNameSpaceList.Add(nameSpace);
+        }
+        private string _cusNameSpaceStr = null;
+        protected string GetCusNameSpaceStr()
+        {
+            if (CusNameSpaceList.Count == 0)
+                return string.Empty;
+            if (_cusNameSpaceStr != null)
+                return _cusNameSpaceStr;
+            _cusNameSpaceStr = string.Empty;
+            CusNameSpaceList.ForEach(names =>
+            {
+                if (names[names.Length - 1] != ';')
+                    names += ";";
+                if (!names.StartsWith("using"))
+                    names = "using " + names;
+                _cusNameSpaceStr += names + "\r\n";
+            });
+            return _cusNameSpaceStr;
+        }
+        #endregion
+
         #region 创建
         /// <summary>构造函数私有，禁止外部越过Create方法直接创建实例</summary>
         /// <param name="code">代码片段</param>
@@ -240,8 +267,12 @@ namespace NewLife.Reflection
                     code = String.Format("namespace {0}{{\r\n{1}\r\n}}", this.GetType().Namespace, code);
                 }
 
-                // 加上默认引用
-                code = Refs + Environment.NewLine + code;
+                // 判断是否有自定义的命名空间
+                if (CusNameSpaceList.Count == 0)
+                    // 加上默认引用
+                    code = Refs + Environment.NewLine + code;
+                else
+                    code = Refs + GetCusNameSpaceStr() + Environment.NewLine + code;
 
                 FinalCode = code;
 
