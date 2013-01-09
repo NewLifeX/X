@@ -130,7 +130,7 @@ namespace NewLife.Xml
                 var now = DateTime.Now;
                 if (_.ReloadTime > 0 && expire < now)
                 {
-                    var fi = new FileInfo(_.ConfigFile);
+                    var fi = new FileInfo(_.ConfigFile.GetFullPath());
                     fi.Refresh();
                     expire = now.AddMilliseconds(_.ReloadTime);
 
@@ -147,9 +147,8 @@ namespace NewLife.Xml
 
         static TConfig Load()
         {
-            var filename = _.ConfigFile;
+            var filename = _.ConfigFile.GetFullPath();
             if (filename.IsNullOrWhiteSpace()) return null;
-            filename = filename.GetFullPath();
             if (!File.Exists(filename)) return null;
 
             try

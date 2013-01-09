@@ -61,7 +61,7 @@ namespace NewLife.Core.Test.Xml
             config.Dic2.Add("7788", new UserConfig { Name = "里面的", Password = "密码", Num = 778899 });
             config.Dic2.Add("null", null);
             config.Save();
-            var xml = File.ReadAllText(UserConfig._.ConfigFile);
+            var xml = File.ReadAllText(UserConfig._.ConfigFile.GetFullPath());
             Assert.IsNotNull(xml);
 
             UserConfig.Current = null;
@@ -73,7 +73,7 @@ namespace NewLife.Core.Test.Xml
             config.Name = "X";
             config.Save();
 
-            var xml1 = File.ReadAllText(UserConfig._.ConfigFile);
+            var xml1 = File.ReadAllText(UserConfig._.ConfigFile.GetFullPath());
             var xml2 = config.ToXml(null, "", "", true, true);
             Assert.AreEqual(xml1, xml2, "序列化有问题！");
         }
@@ -85,17 +85,17 @@ namespace NewLife.Core.Test.Xml
             config.Name = "NewLife";
             config.Save();
 
-            var file = UserConfig._.ConfigFile;
+            var file = UserConfig._.ConfigFile.GetFullPath();
             var xml = File.ReadAllText(file);
             xml = xml.Replace("NewLife", "xyz");
             File.WriteAllText(file, xml);
 
-            Assert.AreEqual(config.Name, "NewLife");
+            Assert.AreEqual("NewLife", config.Name);
 
             Thread.Sleep(1100);
 
             config = UserConfig.Current;
-            Assert.AreEqual(config.Name, "xyz");
+            Assert.AreEqual("xyz", config.Name);
         }
     }
 }
