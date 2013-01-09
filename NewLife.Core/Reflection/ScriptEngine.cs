@@ -85,29 +85,47 @@ namespace NewLife.Reflection
         #endregion
 
         #region 自定义添加命名空间属性和方法
-        private List<string> CusNameSpaceList = new List<string>();
+        private HashSet<String> CusNameSpaceList = new HashSet<String>();
+        /// <summary>添加命名空间</summary>
+        /// <param name="nameSpace"></param>
         public void AddNameSpace(string nameSpace)
         {
-            if (!string.IsNullOrEmpty(nameSpace) && !CusNameSpaceList.Contains(nameSpace))
+            // 对于字符串来说，哈希集合的Contains更快
+            if (!String.IsNullOrEmpty(nameSpace) && !CusNameSpaceList.Contains(nameSpace))
                 CusNameSpaceList.Add(nameSpace);
         }
-        private string _cusNameSpaceStr = null;
-        protected string GetCusNameSpaceStr()
+
+        //private string _cusNameSpaceStr = null;
+        /// <summary>获取自定义命名空间</summary>
+        /// <returns></returns>
+        protected String GetCusNameSpaceStr()
         {
-            if (CusNameSpaceList.Count == 0)
-                return string.Empty;
-            if (_cusNameSpaceStr != null)
-                return _cusNameSpaceStr;
-            _cusNameSpaceStr = string.Empty;
-            CusNameSpaceList.ForEach(names =>
+            if (CusNameSpaceList.Count == 0) return String.Empty;
+            //if (_cusNameSpaceStr != null) return _cusNameSpaceStr;
+
+            //_cusNameSpaceStr = string.Empty;
+            //CusNameSpaceList.ForEach(names =>
+            //{
+            //    if (names[names.Length - 1] != ';')
+            //        names += ";";
+            //    if (!names.StartsWith("using"))
+            //        names = "using " + names;
+            //    _cusNameSpaceStr += names + "\r\n";
+            //});
+            //return _cusNameSpaceStr;
+
+            // 字符串相加有一定损耗
+            var sb = new StringBuilder(20 * CusNameSpaceList.Count);
+            foreach (var item in CusNameSpaceList)
             {
-                if (names[names.Length - 1] != ';')
-                    names += ";";
-                if (!names.StartsWith("using"))
-                    names = "using " + names;
-                _cusNameSpaceStr += names + "\r\n";
-            });
-            return _cusNameSpaceStr;
+                if (!item.StartsWith("using")) sb.Append("using ");
+                sb.Append(item);
+                if (item[item.Length - 1] != ';') sb.Append(";");
+
+                sb.AppendLine();
+            }
+
+            return sb.ToString();
         }
         #endregion
 
@@ -286,8 +304,7 @@ namespace NewLife.Reflection
                 else
                 {
                     var err = rs.Errors[0];
-                    var msg = String.Format("{0} {1} {2}({3},{4})", err.ErrorNumber, err.ErrorText, err.FileName, err.Line, err.Column);
-                    throw new XException(msg);
+                    throw new XException("{0} {1} {2}({3},{4})", err.ErrorNumber, err.ErrorText, err.FileName, err.Line, err.Column);
                 }
             }
         }
