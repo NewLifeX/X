@@ -4,6 +4,7 @@ using NewLife.Core.Test.Serialization;
 using NewLife.Exceptions;
 using NewLife.Messaging;
 using NewLife.Serialization;
+using System.Collections.Generic;
 
 namespace NewLife.Core.Test.Messaging
 {
@@ -116,14 +117,23 @@ namespace NewLife.Core.Test.Messaging
             msg.Data = buf;
             MsgTest<DataMessage>(msg);
 
+            // 长度1024占2字节
+            var n = 1;
+            if (buf.Length > 127) n++;
+            Assert.AreEqual(1 + n + buf.Length, msg.GetStream().Length, "Data消息序列化失败！");
+
             // 不带数据
             msg = new DataMessage();
             MsgTest<DataMessage>(msg);
+
+            Assert.AreEqual(1 + 1, msg.GetStream().Length, "Data消息序列化失败！");
 
             // 0长度
             msg = new DataMessage();
             msg.Data = new Byte[0];
             MsgTest<DataMessage>(msg);
+
+            Assert.AreEqual(1 + 1, msg.GetStream().Length, "Data消息序列化失败！");
         }
 
         [TestMethod]
@@ -133,20 +143,29 @@ namespace NewLife.Core.Test.Messaging
             msg.Value = "NewLife";
             MsgTest<StringMessage>(msg);
 
+            // 长度占1字节
+            Assert.AreEqual(1 + 1 + msg.Value.Length, msg.GetStream().Length, "String消息序列化失败！");
+
             // 中文
             msg = new StringMessage();
             msg.Value = "新生命开发团队";
             MsgTest<StringMessage>(msg);
+
+            Assert.AreEqual(1 + 1 + msg.Value.Length * 3, msg.GetStream().Length, "String消息序列化失败！");
 
             // 0长度
             msg = new StringMessage();
             msg.Value = "";
             MsgTest<StringMessage>(msg);
 
+            Assert.AreEqual(1 + 1, msg.GetStream().Length, "String消息序列化失败！");
+
             // 空
             msg = new StringMessage();
             msg.Value = null;
             MsgTest<StringMessage>(msg);
+
+            Assert.AreEqual(1 + 1, msg.GetStream().Length, "String消息序列化失败！");
         }
 
         [TestMethod]
@@ -162,6 +181,39 @@ namespace NewLife.Core.Test.Messaging
             msg = new EntityMessage();
             msg.Value = null;
             MsgTest<EntityMessage>(msg);
+
+            // 1个字节的对象引用
+            Assert.AreEqual(1 + 1, msg.GetStream().Length, "Entity消息序列化失败！");
+        }
+
+        [TestMethod]
+        public void ReadWriteEntitiesTest()
+        {
+            var msg = new EntitiesMessage();
+
+            var rnd = new Random((Int32)DateTime.Now.Ticks);
+            var count = rnd.Next(1, 10);
+            var list = new List<SimpleObj>();
+            SimpleObj obj = null;
+            for (int i = 0; i < count; i++)
+            {
+                // 随机对象引用
+                if (rnd.Next(1, 10) > 3) obj = SimpleObj.Create();
+                list.Add(obj);
+            }
+            msg.Values = list;
+            MsgTest<EntitiesMessage>(msg);
+
+            msg = Message.Read<EntitiesMessage>(msg.GetStream());
+            Assert.AreEqual(count, msg.Values == null ? 0 : msg.Values.Count, "EntitiesMessage序列化后实体个数不想等");
+
+            // 为空
+            msg = new EntitiesMessage();
+            msg.Values = null;
+            MsgTest<EntitiesMessage>(msg);
+
+            // 1个字节的对象引用
+            Assert.AreEqual(1 + 1, msg.GetStream().Length, "Entities消息序列化失败！");
         }
 
         [TestMethod]
@@ -175,6 +227,8 @@ namespace NewLife.Core.Test.Messaging
             msg = new ExceptionMessage();
             msg.Value = null;
             MsgTest<ExceptionMessage>(msg);
+
+            Assert.AreEqual(1 + 1, msg.GetStream().Length, "Data消息序列化失败！");
         }
 
         [TestMethod]
@@ -188,34 +242,66 @@ namespace NewLife.Core.Test.Messaging
             msg = new CompressionMessage();
             msg.Message = null;
             MsgTest<CompressionMessage>(msg);
+
+            // 一个字节为对象引用
+            Assert.AreEqual(1 + 1, msg.GetStream().Length, "Compression消息序列化失败！");
         }
 
         [TestMethod]
         public void MethodTest()
         {
             var msg = new MethodMessage();
-            msg.Method = this.GetType().GetMethod("MethodTest");
+            msg.Method = this.GetType().GetMethod("MethodTest2");
+            //msg.Parameters = new Object[] { 123, 46 };
             MsgTest<MethodMessage>(msg);
+
+            // 两个字符串之前都有一个长度，后面那个1是参数长度
+            Assert.AreEqual(1 +
+                1 + msg.Method.Name.Length +
+                1 + msg.Method.DeclaringType.FullName.Length +
+                1, msg.GetStream().Length, "Method消息序列化失败！");
 
             // 为空
             msg = new MethodMessage();
             msg.Method = null;
             MsgTest<MethodMessage>(msg);
+
+            Assert.AreEqual(1 + 1 + 1 + 1, msg.GetStream().Length, "Method消息序列化失败！");
         }
+
+        public void MethodTest2(Int32 p1, String p2) { }
 
         [TestMethod]
         public void ChannelTest()
         {
+            var rnd = new Random((Int32)DateTime.Now.Ticks);
+
             var msg = new ChannelMessage();
             msg.Message = new EntityMessage { Value = SimpleObj.Create() };
-            msg.Channel = 123;
+            msg.Channel = (Byte)rnd.Next(0, 256);
+            msg.SessionID = rnd.Next();
             MsgTest<ChannelMessage>(msg);
+
+            var n = 1;
+            if (msg.SessionID > 0x7F) n++;
+            if (msg.SessionID > 0x7FF) n++;
+            if (msg.SessionID > 0x7FFF) n++;
+            // 1个字节对象引用
+            Assert.AreEqual(1 + 1 + n + 1 + msg.Message.GetStream().Length, msg.GetStream().Length, "Channel消息序列化失败！");
 
             // 为空
             msg = new ChannelMessage();
             msg.Message = null;
-            msg.Channel = 88;
+            msg.Channel = (Byte)rnd.Next(0, 256);
+            msg.SessionID = rnd.Next();
             MsgTest<ChannelMessage>(msg);
+
+            n = 1;
+            if (msg.SessionID > 0x7F) n++;
+            if (msg.SessionID > 0x7FF) n++;
+            if (msg.SessionID > 0x7FFF) n++;
+            // 1个字节对象引用
+            Assert.AreEqual(1 + 1 + n + 1, msg.GetStream().Length, "Channel消息序列化失败！");
         }
     }
 }

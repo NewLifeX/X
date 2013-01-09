@@ -211,7 +211,7 @@ namespace NewLife.Messaging
             return String.Format("{0} {1}/{2}", Identity, ts.Count, count);
         }
 
-        static Int32 GetBytesCount(Int64 n) { return BinaryWriterX.GetEncodedIntSize(n); }
+        //static Int32 GetBytesCount(Int64 n) { return BinaryWriterX.GetEncodedIntSize(n); }
         #endregion
 
         #region IEnumerable<GroupMessage> 成员

@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Xml.Serialization;
+using NewLife.Serialization;
+using System.IO;
 
 namespace NewLife.Messaging
 {
@@ -21,6 +23,26 @@ namespace NewLife.Messaging
         private Byte[] _Data;
         /// <summary>数据</summary>
         public Byte[] Data { get { return _Data; } set { _Data = value; } }
+
+        /// <summary>已重载。</summary>
+        /// <param name="stream">数据流</param>
+        /// <param name="rwkind">序列化类型</param>
+        protected override void OnWrite(Stream stream, RWKinds rwkind)
+        {
+            // 因为不写对象引用，所以不能为null
+            if (Data == null) Data = new Byte[0];
+
+            base.OnWrite(stream, rwkind);
+        }
+
+        /// <summary>读写前设置。不使用对象引用</summary>
+        /// <param name="setting"></param>
+        protected override void OnReadWriteSet(ReaderWriterSetting setting)
+        {
+            base.OnReadWriteSet(setting);
+
+            setting.UseObjRef = false;
+        }
 
         #region 辅助
         /// <summary>已重载。</summary>
