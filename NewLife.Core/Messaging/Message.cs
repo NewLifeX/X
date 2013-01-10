@@ -90,7 +90,7 @@ namespace NewLife.Messaging
         {
             var writer = RWService.CreateWriter(rwkind);
             writer.Stream = stream;
-            OnReadWriteSet(writer.Settings);
+            OnReadWriteSet(writer);
             writer.Settings.Encoding = new UTF8Encoding(false);
 
             if (Debug)
@@ -211,7 +211,7 @@ namespace NewLife.Messaging
         {
             var reader = RWService.CreateReader(rwkind);
             reader.Stream = stream;
-            OnReadWriteSet(reader.Settings);
+            OnReadWriteSet(reader);
 
             if (Debug)
             {
@@ -234,9 +234,10 @@ namespace NewLife.Messaging
         }
 
         /// <summary>读写前设置。每个消息可根据自己需要进行调整</summary>
-        /// <param name="setting"></param>
-        protected virtual void OnReadWriteSet(ReaderWriterSetting setting)
+        /// <param name="rw"></param>
+        protected virtual void OnReadWriteSet(IReaderWriter rw)
         {
+            var setting = rw.Settings;
             //setting.IsBaseFirst = true;
             //setting.EncodeInt = true;
             setting.UseTypeFullName = false;

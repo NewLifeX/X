@@ -36,12 +36,12 @@ namespace NewLife.Messaging
         }
 
         /// <summary>读写前设置。不使用对象引用</summary>
-        /// <param name="setting"></param>
-        protected override void OnReadWriteSet(ReaderWriterSetting setting)
+        /// <param name="rw"></param>
+        protected override void OnReadWriteSet(IReaderWriter rw)
         {
-            base.OnReadWriteSet(setting);
+            base.OnReadWriteSet(rw);
 
-            setting.UseObjRef = false;
+            rw.Settings.UseObjRef = false;
         }
 
         #region 辅助
