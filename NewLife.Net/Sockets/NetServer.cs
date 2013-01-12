@@ -243,6 +243,17 @@ namespace NewLife.Net.Sockets
             {
                 item.Start();
 
+                // 如果是随机端口，反写回来，并且修改其它服务器的端口
+                if (Port == 0)
+                {
+                    Port = item.Port;
+
+                    foreach (var elm in Servers)
+                    {
+                        if (elm != item && elm.Port == 0) elm.Port = Port;
+                    }
+                }
+
                 WriteLog("{0} 开始监听 {1}", Name, item);
             }
         }
