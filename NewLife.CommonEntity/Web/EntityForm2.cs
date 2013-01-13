@@ -372,8 +372,12 @@ namespace NewLife.CommonEntity.Web
                 }
 
                 //利用js控制按钮点击状态
-                RegButtonOnClientClick(btn);
-                RegButtonOnClientClick(btncopy);
+                //2013-1-14 @宁波-小董，注释下面2句：
+                //原因：这里在XCode默认网站后台没有问题，但在其他网站后台，如果利用js对表单进行验证，就会出现错误，
+                //验证不通过，这里也会执行js代码，“正在提交”，然后页面就死掉了
+                //不知道要怎么修改才能使得页面验证不通过时，这个就不执行。
+                //RegButtonOnClientClick(btn);
+                //RegButtonOnClientClick(btncopy);
 
                 SetForm();
             }
