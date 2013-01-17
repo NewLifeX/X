@@ -256,7 +256,7 @@ namespace NewLife.Reflection
                     if (!code.EndsWith(";")) code += ";";
 
                     var sb = new StringBuilder(64 + code.Length);
-                    sb.Append("public static Object Execute(");
+                    sb.Append("public static Object Main(");
                     // 参数
                     Boolean isfirst = false;
                     foreach (var item in Parameters)
@@ -274,6 +274,12 @@ namespace NewLife.Reflection
                     sb.AppendLine("}");
 
                     code = sb.ToString();
+                }
+                //else if (!code.Contains("static void Main("))
+                // 这里也许用正则判断会更好一些
+                else if (!code.Contains(" Main("))
+                {
+                    code = String.Format("static void Main() {{\r\n\t{0}\r\n}}", code);
                 }
 
                 // 没有命名空间，包含一个
@@ -299,7 +305,7 @@ namespace NewLife.Reflection
                 {
                     var type = rs.CompiledAssembly.GetTypes()[0];
                     //Method = MethodInfoX.Create(type, "Execute");
-                    Method = type.GetMethod("Execute");
+                    Method = type.GetMethod("Main", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
                 }
                 else
                 {
