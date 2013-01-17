@@ -260,21 +260,8 @@ namespace NewLife.Reflection
 
             // 预处理代码
             var code = Code;
-
+            // 把命名空间提取出来
             code = ParseNameSpace(code);
-
-            //// 最后一个using后的一个分号，认为是using的结束
-            //var head = "";
-            //var p = code.LastIndexOf("using ");
-            //if (p >= 0)
-            //{
-            //    p = code.IndexOf(";", p);
-            //    if (p >= 0)
-            //    {
-            //        head = code.Substring(0, p + 1);
-            //        code = code.Substring(p + 1).Trim();
-            //    }
-            //}
 
             // 表达式需要构造一个语句
             if (IsExpression)
@@ -322,8 +309,6 @@ namespace NewLife.Reflection
                 code = String.Format("namespace {0}{{\r\n{1}\r\n}}", this.GetType().Namespace, code);
             }
 
-            //if (!String.IsNullOrEmpty(head)) code = head + "\r\n\r\n" + code;
-
             // 命名空间
             if (NameSpaces.Count > 0)
             {
@@ -334,6 +319,8 @@ namespace NewLife.Reflection
                 }
                 sb.AppendLine();
                 sb.Append(code);
+
+                code = sb.ToString();
             }
 
             FinalCode = code;
