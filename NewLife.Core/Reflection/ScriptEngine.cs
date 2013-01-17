@@ -256,13 +256,16 @@ namespace NewLife.Reflection
             var code = Code;
 
             // 最后一个using后的一个分号，认为是using的结束
-            var p = code.LastIndexOf("using ");
-            p = code.IndexOf(";", p);
             var head = "";
+            var p = code.LastIndexOf("using ");
             if (p >= 0)
             {
-                head = code.Substring(0, p + 1);
-                code = code.Substring(p + 1).Trim();
+                p = code.IndexOf(";", p);
+                if (p >= 0)
+                {
+                    head = code.Substring(0, p + 1);
+                    code = code.Substring(p + 1).Trim();
+                }
             }
 
             // 表达式需要构造一个语句
