@@ -254,6 +254,17 @@ namespace NewLife.Reflection
 
             // 预处理代码
             var code = Code;
+
+            // 最后一个using后的一个分号，认为是using的结束
+            var p = code.LastIndexOf("using ");
+            p = code.IndexOf(";", p);
+            var head = "";
+            if (p >= 0)
+            {
+                head = code.Substring(0, p + 1);
+                code = code.Substring(p + 1).Trim();
+            }
+
             // 表达式需要构造一个语句
             if (IsExpression)
             {
@@ -292,10 +303,15 @@ namespace NewLife.Reflection
             if (!code.Contains("namespace "))
             {
                 // 没有类名，包含一个
-                if (!code.Contains("class ")) code = String.Format("public class {0}{{\r\n{1}\r\n}}", this.GetType().Name, code);
+                if (!code.Contains("class "))
+                {
+                    code = String.Format("public class {0}{{\r\n{1}\r\n}}", this.GetType().Name, code);
+                }
 
                 code = String.Format("namespace {0}{{\r\n{1}\r\n}}", this.GetType().Namespace, code);
             }
+
+            if (!String.IsNullOrEmpty(head)) code = head + "\r\n\r\n" + code;
 
             // 判断是否有自定义的命名空间
             if (NameSpaces == null || NameSpaces.Count == 0)
