@@ -74,17 +74,23 @@ namespace NewLife.Reflection
         /// <summary>快速反射</summary>
         public MethodInfoX Mix { get { if (_Mix == null && Method != null)_Mix = MethodInfoX.Create(Method); return _Mix; } }
 
-        static readonly String Refs =
-            "using System;\r\n" +
-            "using System.Collections;\r\n" +
-            "using System.Diagnostics;\r\n" +
-            "using System.Reflection;\r\n" +
-            "using System.Text;\r\n" +
-            "using System.IO;\r\n" +
-            "" +
-            "";
+        //static readonly String Refs =
+        //    "using System;\r\n" +
+        //    "using System.Collections;\r\n" +
+        //    "using System.Diagnostics;\r\n" +
+        //    "using System.Reflection;\r\n" +
+        //    "using System.Text;\r\n" +
+        //    "using System.IO;\r\n" +
+        //    "" +
+        //    "";
 
-        private StringCollection _NameSpaces = new StringCollection();
+        private StringCollection _NameSpaces = new StringCollection{
+            "System",
+            "System.Collections",
+            "System.Diagnostics",
+            "System.Reflection",
+            "System.Text",
+            "System.IO"};
         /// <summary>命名空间集合</summary>
         public StringCollection NameSpaces { get { return _NameSpaces; } set { _NameSpaces = value; } }
 
@@ -255,18 +261,20 @@ namespace NewLife.Reflection
             // 预处理代码
             var code = Code;
 
-            // 最后一个using后的一个分号，认为是using的结束
-            var head = "";
-            var p = code.LastIndexOf("using ");
-            if (p >= 0)
-            {
-                p = code.IndexOf(";", p);
-                if (p >= 0)
-                {
-                    head = code.Substring(0, p + 1);
-                    code = code.Substring(p + 1).Trim();
-                }
-            }
+            code = ParseNameSpace(code);
+
+            //// 最后一个using后的一个分号，认为是using的结束
+            //var head = "";
+            //var p = code.LastIndexOf("using ");
+            //if (p >= 0)
+            //{
+            //    p = code.IndexOf(";", p);
+            //    if (p >= 0)
+            //    {
+            //        head = code.Substring(0, p + 1);
+            //        code = code.Substring(p + 1).Trim();
+            //    }
+            //}
 
             // 表达式需要构造一个语句
             if (IsExpression)
@@ -314,19 +322,17 @@ namespace NewLife.Reflection
                 code = String.Format("namespace {0}{{\r\n{1}\r\n}}", this.GetType().Namespace, code);
             }
 
-            if (!String.IsNullOrEmpty(head)) code = head + "\r\n\r\n" + code;
+            //if (!String.IsNullOrEmpty(head)) code = head + "\r\n\r\n" + code;
 
-            // 判断是否有自定义的命名空间
-            if (NameSpaces == null || NameSpaces.Count == 0)
-                // 加上默认引用
-                code = Refs + Environment.NewLine + code;
-            else
+            // 命名空间
+            if (NameSpaces.Count > 0)
             {
                 var sb = new StringBuilder(code.Length + NameSpaces.Count * 20);
                 foreach (var item in NameSpaces)
                 {
                     sb.AppendFormat("using {0};\r\n", item);
                 }
+                sb.AppendLine();
                 sb.Append(code);
             }
 
@@ -431,6 +437,37 @@ namespace NewLife.Reflection
             //Method.Invoke(null, parameters);
 
             return Mix.Invoke(null, parameters);
+        }
+        #endregion
+
+        #region 辅助
+        /// <summary>分析命名空间</summary>
+        /// <param name="code"></param>
+        /// <returns></returns>
+        String ParseNameSpace(String code)
+        {
+            var sb = new StringBuilder();
+
+            var ss = code.Split(new String[] { Environment.NewLine }, StringSplitOptions.None);
+            foreach (var item in ss)
+            {
+                // 提取命名空间
+                if (!String.IsNullOrEmpty(item))
+                {
+                    var line = item.Trim();
+                    if (line.StartsWith("using ") && line.EndsWith(";"))
+                    {
+                        var len = "using ".Length;
+                        line = line.Substring(len, line.Length - len - 1);
+                        if (!NameSpaces.Contains(line)) NameSpaces.Add(line);
+                        continue;
+                    }
+                }
+
+                sb.AppendLine(item);
+            }
+
+            return sb.ToString();
         }
         #endregion
 
