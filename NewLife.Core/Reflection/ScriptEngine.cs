@@ -8,6 +8,7 @@ using NewLife.Collections;
 using NewLife.Exceptions;
 using NewLife.Log;
 using System.IO;
+using System.Collections.Specialized;
 
 namespace NewLife.Reflection
 {
@@ -84,51 +85,59 @@ namespace NewLife.Reflection
             "using System.IO;\r\n" +
             "" +
             "";
+
+        private StringCollection _NameSpaces = new StringCollection();
+        /// <summary>命名空间集合</summary>
+        public StringCollection NameSpaces { get { return _NameSpaces; } set { _NameSpaces = value; } }
+
+        private StringCollection _ReferencedAssemblies = new StringCollection();
+        /// <summary>引用程序集集合</summary>
+        public StringCollection ReferencedAssemblies { get { return _ReferencedAssemblies; } set { _ReferencedAssemblies = value; } }
         #endregion
 
         #region 自定义添加命名空间属性和方法
-        private HashSet<String> CusNameSpaceList = new HashSet<String>();
-        /// <summary>添加命名空间</summary>
-        /// <param name="nameSpace"></param>
-        public void AddNameSpace(string nameSpace)
-        {
-            // 对于字符串来说，哈希集合的Contains更快
-            if (!String.IsNullOrEmpty(nameSpace) && !CusNameSpaceList.Contains(nameSpace))
-                CusNameSpaceList.Add(nameSpace);
-        }
+        //private HashSet<String> CusNameSpaceList = new HashSet<String>();
+        ///// <summary>添加命名空间</summary>
+        ///// <param name="nameSpace"></param>
+        //public void AddNameSpace(string nameSpace)
+        //{
+        //    // 对于字符串来说，哈希集合的Contains更快
+        //    if (!String.IsNullOrEmpty(nameSpace) && !CusNameSpaceList.Contains(nameSpace))
+        //        CusNameSpaceList.Add(nameSpace);
+        //}
 
-        //private string _cusNameSpaceStr = null;
-        /// <summary>获取自定义命名空间</summary>
-        /// <returns></returns>
-        protected String GetCusNameSpaceStr()
-        {
-            if (CusNameSpaceList.Count == 0) return String.Empty;
-            //if (_cusNameSpaceStr != null) return _cusNameSpaceStr;
+        ////private string _cusNameSpaceStr = null;
+        ///// <summary>获取自定义命名空间</summary>
+        ///// <returns></returns>
+        //protected String GetCusNameSpaceStr()
+        //{
+        //    if (CusNameSpaceList.Count == 0) return String.Empty;
+        //    //if (_cusNameSpaceStr != null) return _cusNameSpaceStr;
 
-            //_cusNameSpaceStr = string.Empty;
-            //CusNameSpaceList.ForEach(names =>
-            //{
-            //    if (names[names.Length - 1] != ';')
-            //        names += ";";
-            //    if (!names.StartsWith("using"))
-            //        names = "using " + names;
-            //    _cusNameSpaceStr += names + "\r\n";
-            //});
-            //return _cusNameSpaceStr;
+        //    //_cusNameSpaceStr = string.Empty;
+        //    //CusNameSpaceList.ForEach(names =>
+        //    //{
+        //    //    if (names[names.Length - 1] != ';')
+        //    //        names += ";";
+        //    //    if (!names.StartsWith("using"))
+        //    //        names = "using " + names;
+        //    //    _cusNameSpaceStr += names + "\r\n";
+        //    //});
+        //    //return _cusNameSpaceStr;
 
-            // 字符串相加有一定损耗
-            var sb = new StringBuilder(20 * CusNameSpaceList.Count);
-            foreach (var item in CusNameSpaceList)
-            {
-                if (!item.StartsWith("using")) sb.Append("using ");
-                sb.Append(item);
-                if (item[item.Length - 1] != ';') sb.Append(";");
+        //    // 字符串相加有一定损耗
+        //    var sb = new StringBuilder(20 * CusNameSpaceList.Count);
+        //    foreach (var item in CusNameSpaceList)
+        //    {
+        //        if (!item.StartsWith("using")) sb.Append("using ");
+        //        sb.Append(item);
+        //        if (item[item.Length - 1] != ';') sb.Append(";");
 
-                sb.AppendLine();
-            }
+        //        sb.AppendLine();
+        //    }
 
-            return sb.ToString();
-        }
+        //    return sb.ToString();
+        //}
         #endregion
 
         #region 创建
@@ -291,11 +300,18 @@ namespace NewLife.Reflection
             }
 
             // 判断是否有自定义的命名空间
-            if (CusNameSpaceList.Count == 0)
+            if (NameSpaces == null || NameSpaces.Count == 0)
                 // 加上默认引用
                 code = Refs + Environment.NewLine + code;
             else
-                code = Refs + GetCusNameSpaceStr() + Environment.NewLine + code;
+            {
+                var sb = new StringBuilder(code.Length + NameSpaces.Count * 20);
+                foreach (var item in NameSpaces)
+                {
+                    sb.AppendFormat("using {0};\r\n", item);
+                }
+                sb.Append(code);
+            }
 
             FinalCode = code;
         }
@@ -352,6 +368,16 @@ namespace NewLife.Reflection
                     name = item.Location;
                 }
                 catch { }
+                if (String.IsNullOrEmpty(name)) continue;
+
+                if (!options.ReferencedAssemblies.Contains(name)) options.ReferencedAssemblies.Add(name);
+            }
+            foreach (var item in ReferencedAssemblies)
+            {
+                if (hs.Contains(item)) continue;
+                hs.Add(item);
+
+                var name = item;
                 if (String.IsNullOrEmpty(name)) continue;
 
                 if (!options.ReferencedAssemblies.Contains(name)) options.ReferencedAssemblies.Add(name);
