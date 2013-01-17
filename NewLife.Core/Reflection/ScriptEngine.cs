@@ -1,14 +1,12 @@
 ﻿using System;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Text;
 using NewLife.Collections;
 using NewLife.Exceptions;
-using NewLife.Log;
-using System.IO;
-using System.Collections.Specialized;
 
 namespace NewLife.Reflection
 {
@@ -99,14 +97,14 @@ namespace NewLife.Reflection
         //private HashSet<String> CusNameSpaceList = new HashSet<String>();
         ///// <summary>添加命名空间</summary>
         ///// <param name="nameSpace"></param>
-        //public void AddNameSpace(string nameSpace)
+        //public void AddNameSpace(String nameSpace)
         //{
         //    // 对于字符串来说，哈希集合的Contains更快
         //    if (!String.IsNullOrEmpty(nameSpace) && !CusNameSpaceList.Contains(nameSpace))
         //        CusNameSpaceList.Add(nameSpace);
         //}
 
-        ////private string _cusNameSpaceStr = null;
+        ////private String _cusNameSpaceStr = null;
         ///// <summary>获取自定义命名空间</summary>
         ///// <returns></returns>
         //protected String GetCusNameSpaceStr()
@@ -114,7 +112,7 @@ namespace NewLife.Reflection
         //    if (CusNameSpaceList.Count == 0) return String.Empty;
         //    //if (_cusNameSpaceStr != null) return _cusNameSpaceStr;
 
-        //    //_cusNameSpaceStr = string.Empty;
+        //    //_cusNameSpaceStr = String.Empty;
         //    //CusNameSpaceList.ForEach(names =>
         //    //{
         //    //    if (names[names.Length - 1] != ';')
@@ -384,8 +382,20 @@ namespace NewLife.Reflection
             }
 
             var provider = CodeDomProvider.CreateProvider("CSharp");
+            //var provider = CreateProvider();
 
             return provider.CompileAssemblyFromSource(options, classCode);
+
+            //var tf = XTrace.TempPath.CombinePath(Path.GetRandomFileName() + ".cs");
+            //File.WriteAllText(tf, classCode);
+            //try
+            //{
+            //    return CompileAssemblyFromSource(options, tf);
+            //}
+            //finally
+            //{
+            //    File.Delete(tf);
+            //}
         }
         #endregion
 
@@ -403,6 +413,163 @@ namespace NewLife.Reflection
 
             return Mix.Invoke(null, parameters);
         }
+        #endregion
+
+        #region 辅助方法
+        ///// <summary>不知道是否有线程冲突</summary>
+        ////[ThreadStatic]
+        //private static CodeDomProvider _provider;
+        ///// <summary>建立代码编译提供者。尝试采用最新版本的编译器</summary>
+        ///// <returns></returns>
+        //public static CodeDomProvider CreateProvider()
+        //{
+        //    if (_provider != null) return _provider;
+
+        //    try
+        //    {
+        //        var reg = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\MSBuild\ToolsVersions");
+        //        var names = reg.GetSubKeyNames();
+        //        for (int i = 0; i < names.Length; i++)
+        //        //for (int i = names.Length - 1; i >= 0; i--)
+        //        {
+        //            var ver = names[i];
+        //            reg = reg.OpenSubKey(ver);
+
+        //            return _provider = new CSharpCodeProvider(new Dictionary<String, String>() { { "CompilerVersion", "v" + ver } });
+        //        }
+
+        //        return _provider = CodeDomProvider.CreateProvider("CSharp");
+        //    }
+        //    catch
+        //    {
+        //        return _provider = CodeDomProvider.CreateProvider("CSharp");
+        //    }
+        //}
+
+        //static String GetBuildToolsPath()
+        //{
+        //    try
+        //    {
+        //        var reg = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\MSBuild\ToolsVersions");
+        //        var names = reg.GetSubKeyNames();
+        //        for (int i = 0; i < names.Length; i++)
+        //        //for (int i = names.Length - 1; i >= 0; i--)
+        //        {
+        //            var ver = names[i];
+        //            reg = reg.OpenSubKey(ver);
+
+        //            var path = reg.GetValue("MSBuildToolsPath") as String;
+        //            if (!String.IsNullOrEmpty(path) && Directory.Exists(path)) return path;
+        //        }
+
+        //        return RuntimeEnvironment.GetRuntimeDirectory();
+        //    }
+        //    catch
+        //    {
+        //        return RuntimeEnvironment.GetRuntimeDirectory();
+        //    }
+        //}
+
+        //private static CompilerResults CompileAssemblyFromSource(CompilerParameters options, String fileName)
+        //{
+        //    if (options == null) throw new ArgumentNullException("options");
+
+        //    int nativeReturnValue = 0;
+        //    var results = new CompilerResults(options.TempFiles);
+
+        //    if (options.OutputAssembly == null || options.OutputAssembly.Length == 0)
+        //    {
+        //        var ext = options.GenerateExecutable ? "exe" : "dll";
+        //        options.OutputAssembly = results.TempFiles.AddExtension(ext, !options.GenerateInMemory);
+        //        new FileStream(options.OutputAssembly, FileMode.Create, FileAccess.ReadWrite).Close();
+        //    }
+        //    results.TempFiles.AddExtension("pdb");
+
+        //    var cmdArgs = CmdArgsFromParameters(options) + " \"" + fileName + "\"";
+        //    nativeReturnValue = Compile(options, cmdArgs);
+        //    results.NativeCompilerReturnValue = nativeReturnValue;
+
+        //    if (!results.Errors.HasErrors && options.GenerateInMemory)
+        //    {
+        //        var buffer = File.ReadAllBytes(options.OutputAssembly);
+        //        results.CompiledAssembly = Assembly.Load(buffer, null, options.Evidence);
+        //        return results;
+        //    }
+        //    results.PathToAssembly = options.OutputAssembly;
+        //    return results;
+        //}
+
+        //static Int32 Compile(CompilerParameters options, String arguments)
+        //{
+        //    String errorName = null;
+        //    var outputFile = options.TempFiles.AddExtension("out");
+
+        //    var path = Path.Combine(GetBuildToolsPath(), "csc.exe");
+
+        //    //var pis = options.GetType().GetProperty("SafeUserToken", BindingFlags.NonPublic | BindingFlags.Instance);
+        //    //var ip = (IntPtr)pis.GetValue(options, null);
+
+        //    return Executor.ExecWaitWithCapture(IntPtr.Zero, "\"" + path + "\" " + arguments, Environment.CurrentDirectory, options.TempFiles, ref outputFile, ref errorName);
+        //}
+
+        //private static String CmdArgsFromParameters(CompilerParameters options)
+        //{
+        //    var sb = new StringBuilder(128);
+        //    if (options.GenerateExecutable)
+        //    {
+        //        sb.Append("/t:exe ");
+        //        if (options.MainClass != null && options.MainClass.Length > 0)
+        //        {
+        //            sb.Append("/main:");
+        //            sb.Append(options.MainClass);
+        //            sb.Append(" ");
+        //        }
+        //    }
+        //    else
+        //        sb.Append("/t:library ");
+        //    sb.Append("/utf8output ");
+        //    foreach (string str in options.ReferencedAssemblies)
+        //    {
+        //        sb.Append("/R:");
+        //        sb.Append("\"");
+        //        sb.Append(str);
+        //        sb.Append("\"");
+        //        sb.Append(" ");
+        //    }
+        //    sb.Append("/out:");
+        //    sb.Append("\"");
+        //    sb.Append(options.OutputAssembly);
+        //    sb.Append("\"");
+        //    sb.Append(" ");
+        //    if (options.IncludeDebugInformation)
+        //    {
+        //        sb.Append("/D:DEBUG ");
+        //        sb.Append("/debug+ ");
+        //        sb.Append("/optimize- ");
+        //    }
+        //    else
+        //    {
+        //        sb.Append("/debug- ");
+        //        sb.Append("/optimize+ ");
+        //    }
+        //    if (options.Win32Resource != null) sb.Append("/win32res:\"" + options.Win32Resource + "\" ");
+        //    foreach (string str2 in options.EmbeddedResources)
+        //    {
+        //        sb.Append("/res:\"");
+        //        sb.Append(str2);
+        //        sb.Append("\" ");
+        //    }
+        //    foreach (string str3 in options.LinkedResources)
+        //    {
+        //        sb.Append("/linkres:\"");
+        //        sb.Append(str3);
+        //        sb.Append("\" ");
+        //    }
+        //    if (options.TreatWarningsAsErrors) sb.Append("/warnaserror ");
+        //    if (options.WarningLevel >= 0) sb.Append("/w:" + options.WarningLevel + " ");
+        //    if (options.CompilerOptions != null) sb.Append(options.CompilerOptions + " ");
+        //    return sb.ToString();
+        //}
         #endregion
     }
 }
