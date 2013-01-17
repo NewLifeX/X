@@ -6,6 +6,8 @@ using System.Reflection.Emit;
 using System.Text;
 using NewLife.Collections;
 using NewLife.Exceptions;
+using NewLife.Log;
+using System.IO;
 
 namespace NewLife.Reflection
 {
@@ -173,7 +175,7 @@ namespace NewLife.Reflection
             if (names != null)
             {
                 var dic = se.Parameters;
-                for (int i = 0; i < names.Length; i++)
+                for (var i = 0; i < names.Length; i++)
                 {
                     dic.Add(names[i], parameterTypes[i]);
                 }
@@ -238,6 +240,66 @@ namespace NewLife.Reflection
         #endregion
 
         #region 动态编译
+        /// <summary>生成代码。根据<see cref="Code"/>完善得到最终代码<see cref="FinalCode"/></summary>
+        public void GenerateCode()
+        {
+            if (String.IsNullOrEmpty(Code)) throw new ArgumentNullException("Code");
+
+            // 预处理代码
+            var code = Code;
+            // 表达式需要构造一个语句
+            if (IsExpression)
+            {
+                // 如果代码不含有reutrn关键字，则在最前面加上，因为可能是简单表达式
+                if (!code.Contains("return ")) code = "return " + code;
+                if (!code.EndsWith(";")) code += ";";
+
+                var sb = new StringBuilder(64 + code.Length);
+                sb.Append("public static Object Main(");
+                // 参数
+                var isfirst = false;
+                foreach (var item in Parameters)
+                {
+                    if (isfirst)
+                        sb.Append(", ");
+                    else
+                        isfirst = true;
+
+                    sb.AppendFormat("{0} {1}", item.Value.FullName, item.Key);
+                }
+                sb.AppendLine(")");
+                sb.AppendLine("{");
+                sb.AppendLine(code);
+                sb.AppendLine("}");
+
+                code = sb.ToString();
+            }
+            //else if (!code.Contains("static void Main("))
+            // 这里也许用正则判断会更好一些
+            else if (!code.Contains(" Main("))
+            {
+                code = String.Format("static void Main() {{\r\n\t{0}\r\n}}", code);
+            }
+
+            // 没有命名空间，包含一个
+            if (!code.Contains("namespace "))
+            {
+                // 没有类名，包含一个
+                if (!code.Contains("class ")) code = String.Format("public class {0}{{\r\n{1}\r\n}}", this.GetType().Name, code);
+
+                code = String.Format("namespace {0}{{\r\n{1}\r\n}}", this.GetType().Namespace, code);
+            }
+
+            // 判断是否有自定义的命名空间
+            if (CusNameSpaceList.Count == 0)
+                // 加上默认引用
+                code = Refs + Environment.NewLine + code;
+            else
+                code = Refs + GetCusNameSpaceStr() + Environment.NewLine + code;
+
+            FinalCode = code;
+        }
+
         /// <summary>编译</summary>
         public void Compile()
         {
@@ -246,61 +308,9 @@ namespace NewLife.Reflection
             {
                 if (Method != null) return;
 
-                // 预处理代码
-                var code = Code;
-                // 表达式需要构造一个语句
-                if (IsExpression)
-                {
-                    // 如果代码不含有reutrn关键字，则在最前面加上，因为可能是简单表达式
-                    if (!code.Contains("return ")) code = "return " + code;
-                    if (!code.EndsWith(";")) code += ";";
+                if (FinalCode == null) GenerateCode();
 
-                    var sb = new StringBuilder(64 + code.Length);
-                    sb.Append("public static Object Main(");
-                    // 参数
-                    Boolean isfirst = false;
-                    foreach (var item in Parameters)
-                    {
-                        if (isfirst)
-                            sb.Append(", ");
-                        else
-                            isfirst = true;
-
-                        sb.AppendFormat("{0} {1}", item.Value.FullName, item.Key);
-                    }
-                    sb.AppendLine(")");
-                    sb.AppendLine("{");
-                    sb.AppendLine(code);
-                    sb.AppendLine("}");
-
-                    code = sb.ToString();
-                }
-                //else if (!code.Contains("static void Main("))
-                // 这里也许用正则判断会更好一些
-                else if (!code.Contains(" Main("))
-                {
-                    code = String.Format("static void Main() {{\r\n\t{0}\r\n}}", code);
-                }
-
-                // 没有命名空间，包含一个
-                if (!code.Contains("namespace "))
-                {
-                    // 没有类名，包含一个
-                    if (!code.Contains("class ")) code = String.Format("public class {0}{{\r\n{1}\r\n}}", this.GetType().Name, code);
-
-                    code = String.Format("namespace {0}{{\r\n{1}\r\n}}", this.GetType().Namespace, code);
-                }
-
-                // 判断是否有自定义的命名空间
-                if (CusNameSpaceList.Count == 0)
-                    // 加上默认引用
-                    code = Refs + Environment.NewLine + code;
-                else
-                    code = Refs + GetCusNameSpaceStr() + Environment.NewLine + code;
-
-                FinalCode = code;
-
-                var rs = Compile(code, null);
+                var rs = Compile(FinalCode, null);
                 if (rs.Errors == null || !rs.Errors.HasErrors)
                 {
                     var type = rs.CompiledAssembly.GetTypes()[0];
@@ -319,7 +329,7 @@ namespace NewLife.Reflection
         /// <param name="classCode"></param>
         /// <param name="options"></param>
         /// <returns></returns>
-        static CompilerResults Compile(String classCode, CompilerParameters options)
+        CompilerResults Compile(String classCode, CompilerParameters options)
         {
             if (options == null)
             {
