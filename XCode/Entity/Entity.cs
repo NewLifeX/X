@@ -436,7 +436,18 @@ namespace XCode
             else
             {
                 // 如果是空主键，则采用直接判断记录数的方式，以加快速度
-                if (Helper.IsNullKey(this[field.Name])) return Meta.Cache.Entities.FindAll(names, values).Count > 0;
+                //如果使用缓存查询的情况下会出现如果索引列标记唯一，由于默认情况下数据的查询是不区分大小写的（SQLite,SQLServer）,但是缓存查询是区分大小写的，所以无法捕获到异常信息，被数据库直接抛出异常
+                //if (Helper.IsNullKey(this[field.Name])) return Meta.Cache.Entities.FindAll(names, values).Count > 0;
+                switch (Meta.Table.DataTable.DbType)
+                {
+                    case DatabaseType.SqlServer:
+                    case DatabaseType.SQLite:
+                        if (Helper.IsNullKey(this[field.Name])) return FindAll(names, values).Count > 0;
+                        break;
+                    default:
+                        if (Helper.IsNullKey(this[field.Name])) return Meta.Cache.Entities.FindAll(names, values).Count > 0;
+                        break;
+                }
 
                 var list = Meta.Cache.Entities.FindAll(names, values);
                 if (list == null || list.Count < 1) return false;
