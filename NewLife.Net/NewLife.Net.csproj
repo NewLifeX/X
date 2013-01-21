@@ -240,6 +240,7 @@
     <None Include="架构设计\网络模型.cd" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="ModBus\Modbus说明.txt" />
     <Content Include="说明.txt" />
     <EmbeddedResource Include="UpdateInfo.txt" />
     <Content Include="架构设计\NewLife_SocketClient.jpg" />
