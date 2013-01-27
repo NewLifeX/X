@@ -64,7 +64,7 @@ namespace NewLife.Reflection
 
         private String _FinalCode;
         /// <summary>最终代码</summary>
-        public String FinalCode { get { return _FinalCode; } private set { _FinalCode = value; } }
+        public String FinalCode { get { if (_FinalCode == null && !String.IsNullOrEmpty(Code)) GenerateCode(); return _FinalCode; } private set { _FinalCode = value; } }
 
         private MethodInfo _Method;
         /// <summary>根据代码编译出来可供直接调用的方法</summary>
