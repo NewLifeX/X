@@ -355,7 +355,7 @@ namespace NewLife.Reflection
         /// <param name="classCode"></param>
         /// <param name="options"></param>
         /// <returns></returns>
-        CompilerResults Compile(String classCode, CompilerParameters options)
+        public CompilerResults Compile(String classCode, CompilerParameters options)
         {
             if (options == null)
             {
