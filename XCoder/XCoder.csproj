@@ -55,16 +55,45 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.EnterpriseServices" />
+    <Reference Include="System.Messaging" />
     <Reference Include="System.Web" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.XML" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="NewModelForm\AddField.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="NewModelForm\AddField.Designer.cs">
+      <DependentUpon>AddField.cs</DependentUpon>
+    </Compile>
+    <Compile Include="NewModelForm\AddTable.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="NewModelForm\AddTable.Designer.cs">
+      <DependentUpon>AddTable.cs</DependentUpon>
+    </Compile>
     <Compile Include="Network\AutoUpdate.cs" />
     <Compile Include="Network\BingTranslate.cs" />
     <Compile Include="Engine\FileSource.cs" />
     <Compile Include="Engine\XConfig.cs" />
     <Compile Include="Engine\XCoderBase.cs" />
+    <Compile Include="NewModelForm\NewModel.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="NewModelForm\NewModel.Designer.cs">
+      <DependentUpon>NewModel.cs</DependentUpon>
+    </Compile>
+    <Compile Include="NewModelForm\WinFormHelper.cs" />
+    <EmbeddedResource Include="NewModelForm\AddField.resx">
+      <DependentUpon>AddField.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="NewModelForm\AddTable.resx">
+      <DependentUpon>AddTable.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="NewModelForm\NewModel.resx">
+      <DependentUpon>NewModel.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Template\页面ExtAspNet\类名.aspx.cs">
       <DependentUpon>类名.aspx</DependentUpon>
     </EmbeddedResource>
@@ -81,6 +110,12 @@
       <SubType>ASPXCodeBehind</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="Template\实体业务\中文名.Biz.cs" />
+    <Compile Include="NewModelForm\BaseForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="NewModelForm\BaseForm.designer.cs">
+      <DependentUpon>BaseForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="Windows\FrmFix.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -133,6 +168,9 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
+    <EmbeddedResource Include="NewModelForm\BaseForm.resx">
+      <DependentUpon>BaseForm.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Windows\FrmFix.resx">
       <DependentUpon>FrmFix.cs</DependentUpon>
     </EmbeddedResource>
@@ -228,6 +266,7 @@
   <ItemGroup>
     <Content Include="路线图.txt" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

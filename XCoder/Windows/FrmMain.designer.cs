@@ -83,6 +83,7 @@
             this.博客ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.检查更新ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.关于ToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
+            this.添加模型ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.label9 = new System.Windows.Forms.Label();
             this.gbConnect.SuspendLayout();
             this.gbTable.SuspendLayout();
@@ -522,6 +523,7 @@
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.文件ToolStripMenuItem,
             this.模型ToolStripMenuItem,
+            this.添加模型ToolStripMenuItem,
             this.关于ToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
@@ -672,6 +674,14 @@
             this.关于ToolStripMenuItem1.Text = "关于(&A)";
             this.关于ToolStripMenuItem1.Click += new System.EventHandler(this.关于ToolStripMenuItem1_Click);
             // 
+            // 添加模型ToolStripMenuItem
+            // 
+            this.添加模型ToolStripMenuItem.Font = new System.Drawing.Font("微软雅黑", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.添加模型ToolStripMenuItem.Name = "添加模型ToolStripMenuItem";
+            this.添加模型ToolStripMenuItem.Size = new System.Drawing.Size(68, 21);
+            this.添加模型ToolStripMenuItem.Text = "添加模型";
+            this.添加模型ToolStripMenuItem.Click += new System.EventHandler(this.添加模型ToolStripMenuItem_Click);
+            // 
             // label9
             // 
             this.label9.AutoSize = true;
@@ -782,6 +792,7 @@
         private System.Windows.Forms.Label label9;
         private System.Windows.Forms.Button btnRefreshTable;
         private System.Windows.Forms.CheckBox cbIncludeView;
+        private System.Windows.Forms.ToolStripMenuItem 添加模型ToolStripMenuItem;
 	}
 }
 

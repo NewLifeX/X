@@ -753,5 +753,12 @@ namespace XCoder
             webBrowser1.Document.Window.ScrollTo(0, 90);
         }
         #endregion
+
+        #region 添加模型-@宁波-小董 2013
+        private void 添加模型ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            NewModel.CreateForm().Show();
+        }
+        #endregion
     }
 }
