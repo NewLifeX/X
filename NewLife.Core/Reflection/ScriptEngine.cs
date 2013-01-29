@@ -7,6 +7,7 @@ using System.Reflection.Emit;
 using System.Text;
 using NewLife.Collections;
 using NewLife.Exceptions;
+using System.IO;
 
 namespace NewLife.Reflection
 {
@@ -364,6 +365,21 @@ namespace NewLife.Reflection
             }
 
             var hs = new HashSet<String>(StringComparer.OrdinalIgnoreCase);
+            // 同名程序集只引入一个
+            var fs = new HashSet<String>(StringComparer.OrdinalIgnoreCase);
+            // 优先考虑外部引入的程序集
+            foreach (var item in ReferencedAssemblies)
+            {
+                if (String.IsNullOrEmpty(item)) continue;
+                if (hs.Contains(item)) continue;
+                var name = Path.GetFileName(item);
+                if (fs.Contains(name)) continue;
+
+                hs.Add(item);
+                fs.Add(name);
+
+                if (!options.ReferencedAssemblies.Contains(item)) options.ReferencedAssemblies.Add(item);
+            }
             foreach (var item in AppDomain.CurrentDomain.GetAssemblies())
             {
                 if (item is AssemblyBuilder) continue;
@@ -380,15 +396,9 @@ namespace NewLife.Reflection
                 catch { }
                 if (String.IsNullOrEmpty(name)) continue;
 
-                if (!options.ReferencedAssemblies.Contains(name)) options.ReferencedAssemblies.Add(name);
-            }
-            foreach (var item in ReferencedAssemblies)
-            {
-                if (hs.Contains(item)) continue;
-                hs.Add(item);
-
-                var name = item;
-                if (String.IsNullOrEmpty(name)) continue;
+                var fname = Path.GetFileName(name);
+                if (fs.Contains(fname)) continue;
+                fs.Add(fname);
 
                 if (!options.ReferencedAssemblies.Contains(name)) options.ReferencedAssemblies.Add(name);
             }
