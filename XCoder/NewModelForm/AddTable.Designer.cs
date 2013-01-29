@@ -35,6 +35,7 @@
             this.toolAddIndex = new System.Windows.Forms.ToolStripButton();
             this.toolAddRelation = new System.Windows.Forms.ToolStripButton();
             this.toolStrip1 = new System.Windows.Forms.ToolStrip();
+            this.toolDelete = new System.Windows.Forms.ToolStripButton();
             this.toolSave = new System.Windows.Forms.ToolStripButton();
             this.toolStripButton1 = new System.Windows.Forms.ToolStripButton();
             this.gbTable = new System.Windows.Forms.GroupBox();
@@ -44,7 +45,6 @@
             this.label3 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
-            this.toolDelete = new System.Windows.Forms.ToolStripButton();
             ((System.ComponentModel.ISupportInitialize)(this.dgvColumns)).BeginInit();
             this.toolStrip1.SuspendLayout();
             this.gbTable.SuspendLayout();
@@ -118,6 +118,16 @@
             this.toolStrip1.TabIndex = 1;
             this.toolStrip1.Text = "toolStrip1";
             // 
+            // toolDelete
+            // 
+            this.toolDelete.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.toolDelete.Image = ((System.Drawing.Image)(resources.GetObject("toolDelete.Image")));
+            this.toolDelete.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.toolDelete.Name = "toolDelete";
+            this.toolDelete.Size = new System.Drawing.Size(76, 22);
+            this.toolDelete.Text = "删除字段";
+            this.toolDelete.Click += new System.EventHandler(this.toolDelete_Click);
+            // 
             // toolSave
             // 
             this.toolSave.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
@@ -168,7 +178,7 @@
             this.txtTableRemark.Location = new System.Drawing.Point(441, 21);
             this.txtTableRemark.Multiline = true;
             this.txtTableRemark.Name = "txtTableRemark";
-            this.txtTableRemark.Size = new System.Drawing.Size(389, 23);
+            this.txtTableRemark.Size = new System.Drawing.Size(487, 23);
             this.txtTableRemark.TabIndex = 4;
             // 
             // txtTableName
@@ -204,16 +214,6 @@
             this.label1.Size = new System.Drawing.Size(40, 16);
             this.label1.TabIndex = 0;
             this.label1.Text = "表名";
-            // 
-            // toolDelete
-            // 
-            this.toolDelete.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
-            this.toolDelete.Image = ((System.Drawing.Image)(resources.GetObject("toolDelete.Image")));
-            this.toolDelete.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.toolDelete.Name = "toolDelete";
-            this.toolDelete.Size = new System.Drawing.Size(76, 22);
-            this.toolDelete.Text = "删除字段";
-            this.toolDelete.Click += new System.EventHandler(this.toolDelete_Click);
             // 
             // AddTable
             // 

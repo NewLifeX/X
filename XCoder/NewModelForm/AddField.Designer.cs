@@ -28,8 +28,9 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(AddField));
             this.gbInfo = new System.Windows.Forms.GroupBox();
+            this.btnCancle = new System.Windows.Forms.Button();
+            this.btnSave = new System.Windows.Forms.Button();
             this.txtDataType = new System.Windows.Forms.TextBox();
             this.txtDescription = new System.Windows.Forms.TextBox();
             this.txtPrecision = new System.Windows.Forms.TextBox();
@@ -50,15 +51,13 @@
             this.label6 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
-            this.toolStrip1 = new System.Windows.Forms.ToolStrip();
-            this.toolSave = new System.Windows.Forms.ToolStripButton();
-            this.toolClose = new System.Windows.Forms.ToolStripButton();
             this.gbInfo.SuspendLayout();
-            this.toolStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
             // gbInfo
             // 
+            this.gbInfo.Controls.Add(this.btnCancle);
+            this.gbInfo.Controls.Add(this.btnSave);
             this.gbInfo.Controls.Add(this.txtDataType);
             this.gbInfo.Controls.Add(this.txtDescription);
             this.gbInfo.Controls.Add(this.txtPrecision);
@@ -79,17 +78,37 @@
             this.gbInfo.Controls.Add(this.label6);
             this.gbInfo.Controls.Add(this.label3);
             this.gbInfo.Controls.Add(this.label1);
-            this.gbInfo.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.gbInfo.Dock = System.Windows.Forms.DockStyle.Fill;
             this.gbInfo.Font = new System.Drawing.Font("微软雅黑", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.gbInfo.Location = new System.Drawing.Point(0, 43);
+            this.gbInfo.Location = new System.Drawing.Point(0, 0);
             this.gbInfo.Name = "gbInfo";
-            this.gbInfo.Size = new System.Drawing.Size(491, 228);
+            this.gbInfo.Size = new System.Drawing.Size(468, 267);
             this.gbInfo.TabIndex = 0;
             this.gbInfo.TabStop = false;
-            this.gbInfo.Text = "编辑字段信息";
+            // 
+            // btnCancle
+            // 
+            this.btnCancle.Location = new System.Drawing.Point(368, 228);
+            this.btnCancle.Name = "btnCancle";
+            this.btnCancle.Size = new System.Drawing.Size(88, 29);
+            this.btnCancle.TabIndex = 28;
+            this.btnCancle.Text = "取消";
+            this.btnCancle.UseVisualStyleBackColor = true;
+            this.btnCancle.Click += new System.EventHandler(this.btnCancle_Click);
+            // 
+            // btnSave
+            // 
+            this.btnSave.Location = new System.Drawing.Point(277, 228);
+            this.btnSave.Name = "btnSave";
+            this.btnSave.Size = new System.Drawing.Size(85, 29);
+            this.btnSave.TabIndex = 27;
+            this.btnSave.Text = "保存";
+            this.btnSave.UseVisualStyleBackColor = true;
+            this.btnSave.Click += new System.EventHandler(this.btnSave_Click);
             // 
             // txtDataType
             // 
+            this.txtDataType.Enabled = false;
             this.txtDataType.Location = new System.Drawing.Point(101, 116);
             this.txtDataType.Name = "txtDataType";
             this.txtDataType.Size = new System.Drawing.Size(155, 29);
@@ -99,7 +118,7 @@
             // 
             this.txtDescription.Location = new System.Drawing.Point(326, 153);
             this.txtDescription.Name = "txtDescription";
-            this.txtDescription.Size = new System.Drawing.Size(155, 29);
+            this.txtDescription.Size = new System.Drawing.Size(130, 29);
             this.txtDescription.TabIndex = 25;
             // 
             // txtPrecision
@@ -107,7 +126,7 @@
             this.txtPrecision.Enabled = false;
             this.txtPrecision.Location = new System.Drawing.Point(326, 114);
             this.txtPrecision.Name = "txtPrecision";
-            this.txtPrecision.Size = new System.Drawing.Size(155, 29);
+            this.txtPrecision.Size = new System.Drawing.Size(130, 29);
             this.txtPrecision.TabIndex = 23;
             // 
             // label2
@@ -122,7 +141,7 @@
             // ckbNullable
             // 
             this.ckbNullable.AutoSize = true;
-            this.ckbNullable.Location = new System.Drawing.Point(241, 197);
+            this.ckbNullable.Location = new System.Drawing.Point(253, 197);
             this.ckbNullable.Name = "ckbNullable";
             this.ckbNullable.Size = new System.Drawing.Size(109, 25);
             this.ckbNullable.TabIndex = 21;
@@ -134,7 +153,7 @@
             this.txtNumOfByte.Enabled = false;
             this.txtNumOfByte.Location = new System.Drawing.Point(326, 75);
             this.txtNumOfByte.Name = "txtNumOfByte";
-            this.txtNumOfByte.Size = new System.Drawing.Size(155, 29);
+            this.txtNumOfByte.Size = new System.Drawing.Size(130, 29);
             this.txtNumOfByte.TabIndex = 20;
             // 
             // txtLength
@@ -142,8 +161,10 @@
             this.txtLength.Enabled = false;
             this.txtLength.Location = new System.Drawing.Point(326, 36);
             this.txtLength.Name = "txtLength";
-            this.txtLength.Size = new System.Drawing.Size(155, 29);
+            this.txtLength.Size = new System.Drawing.Size(130, 29);
             this.txtLength.TabIndex = 19;
+            this.txtLength.TextChanged += new System.EventHandler(this.txtLength_TextChanged);
+            this.txtLength.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.txtLength_KeyPress);
             // 
             // txtDefault
             // 
@@ -156,7 +177,7 @@
             // ckbPrimarykey
             // 
             this.ckbPrimarykey.AutoSize = true;
-            this.ckbPrimarykey.Location = new System.Drawing.Point(132, 197);
+            this.ckbPrimarykey.Location = new System.Drawing.Point(143, 197);
             this.ckbPrimarykey.Name = "ckbPrimarykey";
             this.ckbPrimarykey.Size = new System.Drawing.Size(93, 25);
             this.ckbPrimarykey.TabIndex = 17;
@@ -166,7 +187,7 @@
             // ckbIdentity
             // 
             this.ckbIdentity.AutoSize = true;
-            this.ckbIdentity.Location = new System.Drawing.Point(17, 197);
+            this.ckbIdentity.Location = new System.Drawing.Point(28, 197);
             this.ckbIdentity.Name = "ckbIdentity";
             this.ckbIdentity.Size = new System.Drawing.Size(109, 25);
             this.ckbIdentity.TabIndex = 16;
@@ -175,6 +196,7 @@
             // 
             // combRawType
             // 
+            this.combRawType.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.combRawType.FormattingEnabled = true;
             this.combRawType.Location = new System.Drawing.Point(101, 78);
             this.combRawType.Name = "combRawType";
@@ -260,61 +282,22 @@
             this.label1.TabIndex = 0;
             this.label1.Text = "字段名称";
             // 
-            // toolStrip1
-            // 
-            this.toolStrip1.Font = new System.Drawing.Font("宋体", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.toolStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.toolSave,
-            this.toolClose});
-            this.toolStrip1.Location = new System.Drawing.Point(0, 0);
-            this.toolStrip1.Name = "toolStrip1";
-            this.toolStrip1.Size = new System.Drawing.Size(491, 26);
-            this.toolStrip1.TabIndex = 4;
-            this.toolStrip1.Text = "toolStrip1";
-            // 
-            // toolSave
-            // 
-            this.toolSave.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
-            this.toolSave.Image = ((System.Drawing.Image)(resources.GetObject("toolSave.Image")));
-            this.toolSave.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.toolSave.Name = "toolSave";
-            this.toolSave.Size = new System.Drawing.Size(53, 23);
-            this.toolSave.Text = "保存";
-            this.toolSave.Click += new System.EventHandler(this.toolSave_Click);
-            // 
-            // toolClose
-            // 
-            this.toolClose.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
-            this.toolClose.Image = ((System.Drawing.Image)(resources.GetObject("toolClose.Image")));
-            this.toolClose.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.toolClose.Name = "toolClose";
-            this.toolClose.Size = new System.Drawing.Size(53, 23);
-            this.toolClose.Text = "关闭";
-            this.toolClose.Click += new System.EventHandler(this.toolClose_Click);
-            // 
             // AddField
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.Controls.Add(this.toolStrip1);
             this.Controls.Add(this.gbInfo);
             this.Name = "AddField";
-            this.Size = new System.Drawing.Size(491, 271);
+            this.Size = new System.Drawing.Size(468, 267);
             this.gbInfo.ResumeLayout(false);
             this.gbInfo.PerformLayout();
-            this.toolStrip1.ResumeLayout(false);
-            this.toolStrip1.PerformLayout();
             this.ResumeLayout(false);
-            this.PerformLayout();
 
         }
 
         #endregion
 
         private System.Windows.Forms.GroupBox gbInfo;
-        private System.Windows.Forms.ToolStrip toolStrip1;
-        private System.Windows.Forms.ToolStripButton toolSave;
-        private System.Windows.Forms.ToolStripButton toolClose;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Label label3;
@@ -335,5 +318,7 @@
         private System.Windows.Forms.TextBox txtDescription;
         private System.Windows.Forms.TextBox txtPrecision;
         private System.Windows.Forms.TextBox txtDataType;
+        private System.Windows.Forms.Button btnSave;
+        private System.Windows.Forms.Button btnCancle;
     }
 }

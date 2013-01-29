@@ -25,7 +25,30 @@ namespace XCoder
         }
         #endregion
 
-
+        #region 设置控件只能输入数字
+        /// <summary>
+        /// 设置控件只能输入数字
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        public static void SetControlOnlyValue(object sender, KeyPressEventArgs e)
+        {
+            e.Handled = !(Char.IsNumber(e.KeyChar) || e.KeyChar == (char)8 || e.KeyChar == '.' || e.KeyChar == '-');
+            if (!e.Handled)
+                (sender as TextBox).Tag = (sender as TextBox).Text;//记录最后一次正确输入
+        }
+        /// <summary>
+        /// 只能输入正数
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        public static void SetControlOnlyZS(object sender, KeyPressEventArgs e)
+        {
+            e.Handled = !(Char.IsNumber(e.KeyChar) || e.KeyChar == (char)8 || e.KeyChar == '.');
+            if (!e.Handled)
+                (sender as TextBox).Tag = (sender as TextBox).Text;//记录最后一次正确输入
+        }
+        #endregion
     }
 
     /// <summary>用于Combox显示绑定的对象</summary>
@@ -94,7 +117,7 @@ namespace XCoder
             TypeList.Add(new PrimitiveType() { Name = "bool", Length = 1, NumOfByte = 1, DataType = "System.Boolean", Precision = 1 });
             TypeList.Add(new PrimitiveType() { Name = "int", Length = 10, NumOfByte = 10, DataType = "System.Int32", Precision = 10 });
             TypeList.Add(new PrimitiveType() { Name = "double", Length = 22, NumOfByte = 22, DataType = "System.Double", Precision = 22 });
-            TypeList.Add(new PrimitiveType() { Name = "nvarchar(20)", Length = 20, NumOfByte = 20, DataType = "System.String", Precision = 20 });
+            TypeList.Add(new PrimitiveType() { Name = "nvarchar", Length = 20, NumOfByte = 20, DataType = "System.String", Precision = 20 });
             TypeList.Add(new PrimitiveType() { Name = "ntext", Length = 65535, NumOfByte = 65535, DataType = "System.String", Precision = 65535 });
             TypeList.Add(new PrimitiveType() { Name = "datetime", Length = 20, NumOfByte = 20, DataType = "System.DateTime", Precision = 20 });
         }

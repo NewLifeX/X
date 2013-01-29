@@ -54,7 +54,7 @@ namespace XCoder
                 dgvColumns.DataSource = null;
                 dgvColumns.DataSource = list;
             }
-
+            else  dgvColumns.DataSource = null;
         }
 
         public static BaseForm CreateForm(IDataTable table)
@@ -66,14 +66,17 @@ namespace XCoder
 
         private void toolAddColumns_Click(object sender, EventArgs e)
         {
-            IDataColumn dc = CurrentTable.CreateColumn ();
-            CurrentTable.Columns.Add(dc);
-            dc.ID = CurrentTable.Columns.Count;
+            IDataColumn dc = CurrentTable.CreateColumn();
+            //CurrentTable.Columns.Add(dc);
+            dc.ID = CurrentTable.Columns.Count + 1;
             dc.ColumnName = "Column" + dc.ID;
             dc.Description = "字段" + dc.ID;
-
-            AddField.CreateForm(dc, true).ShowDialog ();
-            BandingDGV();
+            DialogResult dr = AddField.CreateForm(dc, true).ShowDialog();
+            if (dr != DialogResult.Cancel) 
+            {
+                CurrentTable.Columns.Add(dc);
+                BandingDGV();
+            }
         }
 
         private void toolEidtColumn_Click(object sender, EventArgs e)
