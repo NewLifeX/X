@@ -1,198 +1,106 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 
 namespace MyExtensions
 {
-    /// <summary>
-    /// 汉字拼音转换类
-    /// </summary>
+    /// <summary>汉字拼音转换类</summary>
     public class PinYinConverter
     {
         #region 数组信息
-
         private static int[] pyValue = new int[] 
-
         {
             -20319, -20317, -20304, -20295, -20292, -20283, -20265, -20257, -20242, 
-
             -20230, -20051, -20036, -20032, -20026, -20002, -19990, -19986, -19982,
-
             -19976, -19805, -19784, -19775, -19774, -19763, -19756, -19751, -19746, 
-
             -19741, -19739, -19728, -19725, -19715, -19540, -19531, -19525, -19515, 
-
             -19500, -19484, -19479, -19467, -19289, -19288, -19281, -19275, -19270, 
-
             -19263, -19261, -19249, -19243, -19242, -19238, -19235, -19227, -19224, 
-
             -19218, -19212, -19038, -19023, -19018, -19006, -19003, -18996, -18977,
-
             -18961, -18952, -18783, -18774, -18773, -18763, -18756, -18741, -18735, 
-
             -18731, -18722, -18710, -18697, -18696, -18526, -18518, -18501, -18490,
-
             -18478, -18463, -18448, -18447, -18446, -18239, -18237, -18231, -18220,
-
             -18211, -18201, -18184, -18183, -18181, -18012, -17997, -17988, -17970, 
-
             -17964, -17961, -17950, -17947, -17931, -17928, -17922, -17759, -17752, 
-
             -17733, -17730, -17721, -17703, -17701, -17697, -17692, -17683, -17676,
-
             -17496, -17487, -17482, -17468, -17454, -17433, -17427, -17417, -17202, 
-
             -17185, -16983, -16970, -16942, -16915, -16733, -16708, -16706, -16689, 
-
             -16664, -16657, -16647, -16474, -16470, -16465, -16459, -16452, -16448, 
-
             -16433, -16429, -16427, -16423, -16419, -16412, -16407, -16403, -16401, 
-
             -16393, -16220, -16216, -16212, -16205, -16202, -16187, -16180, -16171,
-
             -16169, -16158, -16155, -15959, -15958, -15944, -15933, -15920, -15915, 
-
             -15903, -15889, -15878, -15707, -15701, -15681, -15667, -15661, -15659, 
-
             -15652, -15640, -15631, -15625, -15454, -15448, -15436, -15435, -15419,
-
             -15416, -15408, -15394, -15385, -15377, -15375, -15369, -15363, -15362, 
-
             -15183, -15180, -15165, -15158, -15153, -15150, -15149, -15144, -15143, 
-
             -15141, -15140, -15139, -15128, -15121, -15119, -15117, -15110, -15109, 
-
             -14941, -14937, -14933, -14930, -14929, -14928, -14926, -14922, -14921,
-
             -14914, -14908, -14902, -14894, -14889, -14882, -14873, -14871, -14857, 
-
             -14678, -14674, -14670, -14668, -14663, -14654, -14645, -14630, -14594,
-
             -14429, -14407, -14399, -14384, -14379, -14368, -14355, -14353, -14345,
-
             -14170, -14159, -14151, -14149, -14145, -14140, -14137, -14135, -14125, 
-
             -14123, -14122, -14112, -14109, -14099, -14097, -14094, -14092, -14090, 
-
             -14087, -14083, -13917, -13914, -13910, -13907, -13906, -13905, -13896, 
-
             -13894, -13878, -13870, -13859, -13847, -13831, -13658, -13611, -13601,
-
             -13406, -13404, -13400, -13398, -13395, -13391, -13387, -13383, -13367, 
-
             -13359, -13356, -13343, -13340, -13329, -13326, -13318, -13147, -13138, 
-
             -13120, -13107, -13096, -13095, -13091, -13076, -13068, -13063, -13060, 
-
             -12888, -12875, -12871, -12860, -12858, -12852, -12849, -12838, -12831,
-
             -12829, -12812, -12802, -12607, -12597, -12594, -12585, -12556, -12359,
-
             -12346, -12320, -12300, -12120, -12099, -12089, -12074, -12067, -12058,
-
             -12039, -11867, -11861, -11847, -11831, -11798, -11781, -11604, -11589, 
-
             -11536, -11358, -11340, -11339, -11324, -11303, -11097, -11077, -11067,
-
             -11055, -11052, -11045, -11041, -11038, -11024, -11020, -11019, -11018,
-
             -11014, -10838, -10832, -10815, -10800, -10790, -10780, -10764, -10587,
-
             -10544, -10533, -10519, -10331, -10329, -10328, -10322, -10315, -10309, 
-
             -10307, -10296, -10281, -10274, -10270, -10262, -10260, -10256, -10254 
-
         };
 
         private static string[] pyName = new string[]
-
-         { 
+        { 
              "A", "Ai", "An", "Ang", "Ao", "Ba", "Bai", "Ban", "Bang", "Bao", "Bei", 
-
              "Ben", "Beng", "Bi", "Bian", "Biao", "Bie", "Bin", "Bing", "Bo", "Bu",
-
              "Ba", "Cai", "Can", "Cang", "Cao", "Ce", "Ceng", "Cha", "Chai", "Chan",
-
              "Chang", "Chao", "Che", "Chen", "Cheng", "Chi", "Chong", "Chou", "Chu",
-
              "Chuai", "Chuan", "Chuang", "Chui", "Chun", "Chuo", "Ci", "Cong", "Cou",
-
              "Cu", "Cuan", "Cui", "Cun", "Cuo", "Da", "Dai", "Dan", "Dang", "Dao", "De", 
-
              "Deng", "Di", "Dian", "Diao", "Die", "Ding", "Diu", "Dong", "Dou", "Du", 
-
              "Duan", "Dui", "Dun", "Duo", "E", "En", "Er", "Fa", "Fan", "Fang", "Fei", 
-
              "Fen", "Feng", "Fo", "Fou", "Fu", "Ga", "Gai", "Gan", "Gang", "Gao", "Ge", 
-
              "Gei", "Gen", "Geng", "Gong", "Gou", "Gu", "Gua", "Guai", "Guan", "Guang", 
-
              "Gui", "Gun", "Guo", "Ha", "Hai", "Han", "Hang", "Hao", "He", "Hei", "Hen", 
-
              "Heng", "Hong", "Hou", "Hu", "Hua", "Huai", "Huan", "Huang", "Hui", "Hun",
-
              "Huo", "Ji", "Jia", "Jian", "Jiang", "Jiao", "Jie", "Jin", "Jing", "Jiong", 
-
              "Jiu", "Ju", "Juan", "Jue", "Jun", "Ka", "Kai", "Kan", "Kang", "Kao", "Ke",
-
              "Ken", "Keng", "Kong", "Kou", "Ku", "Kua", "Kuai", "Kuan", "Kuang", "Kui", 
-
              "Kun", "Kuo", "La", "Lai", "Lan", "Lang", "Lao", "Le", "Lei", "Leng", "Li",
-
              "Lia", "Lian", "Liang", "Liao", "Lie", "Lin", "Ling", "Liu", "Long", "Lou", 
-
              "Lu", "Lv", "Luan", "Lue", "Lun", "Luo", "Ma", "Mai", "Man", "Mang", "Mao",
-
              "Me", "Mei", "Men", "Meng", "Mi", "Mian", "Miao", "Mie", "Min", "Ming", "Miu",
-
              "Mo", "Mou", "Mu", "Na", "Nai", "Nan", "Nang", "Nao", "Ne", "Nei", "Nen", 
-
              "Neng", "Ni", "Nian", "Niang", "Niao", "Nie", "Nin", "Ning", "Niu", "Nong", 
-
              "Nu", "Nv", "Nuan", "Nue", "Nuo", "O", "Ou", "Pa", "Pai", "Pan", "Pang",
-
              "Pao", "Pei", "Pen", "Peng", "Pi", "Pian", "Piao", "Pie", "Pin", "Ping", 
-
              "Po", "Pu", "Qi", "Qia", "Qian", "Qiang", "Qiao", "Qie", "Qin", "Qing",
-
              "Qiong", "Qiu", "Qu", "Quan", "Que", "Qun", "Ran", "Rang", "Rao", "Re",
-
              "Ren", "Reng", "Ri", "Rong", "Rou", "Ru", "Ruan", "Rui", "Run", "Ruo", 
-
              "Sa", "Sai", "San", "Sang", "Sao", "Se", "Sen", "Seng", "Sha", "Shai", 
-
              "Shan", "Shang", "Shao", "She", "Shen", "Sheng", "Shi", "Shou", "Shu", 
-
              "Shua", "Shuai", "Shuan", "Shuang", "Shui", "Shun", "Shuo", "Si", "Song", 
-
              "Sou", "Su", "Suan", "Sui", "Sun", "Suo", "Ta", "Tai", "Tan", "Tang", 
-
              "Tao", "Te", "Teng", "Ti", "Tian", "Tiao", "Tie", "Ting", "Tong", "Tou",
-
              "Tu", "Tuan", "Tui", "Tun", "Tuo", "Wa", "Wai", "Wan", "Wang", "Wei",
-
              "Wen", "Weng", "Wo", "Wu", "Xi", "Xia", "Xian", "Xiang", "Xiao", "Xie",
-
              "Xin", "Xing", "Xiong", "Xiu", "Xu", "Xuan", "Xue", "Xun", "Ya", "Yan",
-
              "Yang", "Yao", "Ye", "Yi", "Yin", "Ying", "Yo", "Yong", "You", "Yu", 
-
              "Yuan", "Yue", "Yun", "Za", "Zai", "Zan", "Zang", "Zao", "Ze", "Zei",
-
              "Zen", "Zeng", "Zha", "Zhai", "Zhan", "Zhang", "Zhao", "Zhe", "Zhen", 
-
              "Zheng", "Zhi", "Zhong", "Zhou", "Zhu", "Zhua", "Zhuai", "Zhuan", 
-
              "Zhuang", "Zhui", "Zhun", "Zhuo", "Zi", "Zong", "Zou", "Zu", "Zuan",
-
              "Zui", "Zun", "Zuo" 
          };
 
         #region 二级汉字
-        /// <summary>
-        /// 二级汉字数组
-        /// </summary>
+        /// <summary>二级汉字数组</summary>
         private static string[] otherChinese = new string[]
         {
             "亍","丌","兀","丐","廿","卅","丕","亘","丞","鬲","孬","噩","丨","禺","丿"
@@ -393,200 +301,200 @@ namespace MyExtensions
         /// 二级汉字对应拼音数组
         /// </summary>
         private static string[] otherPinYin = new string[]
-           {
-               "chu","ji","wu","gai","nian","sa","pi","gen","cheng","ge","nao","e","shu","yu","pie"
-                ,"bi","tuo","yao","yao","zhi","di","xin","yin","kui","yu","gao","tao","dian","ji","nai","nie"
-                ,"ji","qi","mi","bei","se","gu","ze","she","cuo","yan","jue","si","ye","yan","fang","po"
-                ,"gui","kui","bian","ze","gua","you","ce","yi","wen","jing","ku","gui","kai","la","ji","yan"
-                ,"wan","kuai","piao","jue","qiao","huo","yi","tong","wang","dan","ding","zhang","le","sa","yi","mu"
-                ,"ren","yu","pi","ya","wa","wu","chang","cang","kang","zhu","ning","ka","you","yi","gou"
-                ,"tong","tuo","ni","ga","ji","er","you","kua","kan","zhu","yi","tiao","chai","jiao","nong"
-                ,"mou","chou","yan","li","qiu","li","yu","ping","yong","si","feng","qian","ruo","pai","zhuo","shu"
-                ,"luo","wo","bi","ti","guan","kong","ju","fen","yan","xie","ji","wei","zong","lou","tang","bin"
-                ,"nuo","chi","xi","jing","jian","jiao","jiu","tong","xuan","dan","tong","tun","she","qian","zu","yue"
-                ,"cuan","di","xi","xun","hong","guo","chan","kui","bao","pu","hong","fu","fu","su","si","wen"
-                ,"yan","bo","gun","mao","xie","luan","pou","bing","ying","luo","lei","liang","hu","lie","xian"
-                ,"song","ping","zhong","ming","yan","jie","hong","shan","ou","ju","ne","gu","he","di","zhao"
-                ,"qu","dai","kuang","lei","gua","jie","hui","shen","gou","quan","zheng","hun","xu","qiao","gao","kuang"
-                ,"ei","zou","zhuo","wei","yu","shen","chan","sui","chen","jian","xue","ye","e","yu","xuan","an"
-                ,"di","zi","pian","mo","dang","su","shi","mi","zhe","jian","zen","qiao","jue","yan","zhan","chen"
-                ,"dan","jin","zuo","wu","qian","jing","ban","yan","zuo","bei","jing","gai","zhi","nie","zou","chui"
-                ,"pi","wei","huang","wei","xi","han","qiong","kuang","mang","wu","fang","bing","pi","bei","ye"
-                ,"di","tai","jia","zhi","zhu","kuai","qie","xun","yun","li","ying","gao","xi","fu","pi"
-                ,"tan","yan","juan","yan","yin","zhang","po","shan","zou","ling","feng","chu","huan","mai","qu","shao"
-                ,"he","ge","meng","xu","xie","sou","xie","jue","jian","qian","dang","chang","si","bian","ben","qiu"
-                ,"ben","e","fa","shu","ji","yong","he","wei","wu","ge","zhen","kuang","pi","yi","li","qi"
-                ,"ban","gan","long","dian","lu","che","di","tuo","ni","mu","ao","ya","die","dong","kai","shan"
-                ,"shang","nao","gai","yin","cheng","shi","guo","xun","lie","yuan","zhi","an","yi","pi","nian"
-                ,"peng","tu","sao","dai","ku","die","yin","leng","hou","ge","yuan","man","yong","liang","chi"
-                ,"xin","pi","yi","cao","jiao","nai","du","qian","ji","wan","xiong","qi","xiang","fu","yuan","yun"
-                ,"fei","ji","li","e","ju","pi","zhi","rui","xian","chang","cong","qin","wu","qian","qi","shan"
-                ,"bian","zhu","kou","yi","mo","gan","pie","long","ba","mu","ju","ran","qing","chi","fu","ling"
-                ,"niao","yin","mao","ying","qiong","min","tiao","qian","yi","rao","bi","zi","ju","tong","hui","zhu"
-                ,"ting","qiao","fu","ren","xing","quan","hui","xun","ming","qi","jiao","chong","jiang","luo","ying"
-                ,"qian","gen","jin","mai","sun","hong","zhou","kan","bi","shi","wo","you","e","mei","you"
-                ,"li","tu","xian","fu","sui","you","di","shen","guan","lang","ying","chun","jing","qi","xi","song"
-                ,"jin","nai","qi","ba","shu","chang","tie","yu","huan","bi","fu","tu","dan","cui","yan","zu"
-                ,"dang","jian","wan","ying","gu","han","qia","feng","shen","xiang","wei","chan","kai","qi","kui","xi"
-                ,"e","bao","pa","ting","lou","pai","xuan","jia","zhen","shi","ru","mo","en","bei","weng","hao"
-                ,"ji","li","bang","jian","shuo","lang","ying","yu","su","meng","dou","xi","lian","cu","lin"
-                ,"qu","kou","xu","liao","hui","xun","jue","rui","zui","ji","meng","fan","qi","hong","xie"
-                ,"hong","wei","yi","weng","sou","bi","hao","tai","ru","xun","xian","gao","li","huo","qu","heng"
-                ,"fan","nie","mi","gong","yi","kuang","lian","da","yi","xi","zang","pao","you","liao","ga","gan"
-                ,"ti","men","tuan","chen","fu","pin","niu","jie","jiao","za","yi","lv","jun","tian","ye","ai"
-                ,"na","ji","guo","bai","ju","pou","lie","qian","guan","die","zha","ya","qin","yu","an","xuan"
-                ,"bing","kui","yuan","shu","en","chuai","jian","shuo","zhan","nuo","sang","luo","ying","zhi","han"
-                ,"zhe","xie","lu","zun","cuan","gan","huan","pi","xing","zhuo","huo","zuan","nang","yi","te"
-                ,"dai","shi","bu","chi","ji","kou","dao","le","zha","a","yao","fu","mu","yi","tai","li"
-                ,"e","bi","bei","guo","qin","yin","za","ka","ga","gua","ling","dong","ning","duo","nao","you"
-                ,"si","kuang","ji","shen","hui","da","lie","yi","xiao","bi","ci","guang","yue","xiu","yi","pai"
-                ,"kuai","duo","ji","mie","mi","zha","nong","gen","mou","mai","chi","lao","geng","en","zha","suo"
-                ,"zao","xi","zuo","ji","feng","ze","nuo","miao","lin","zhuan","zhou","tao","hu","cui","sha"
-                ,"yo","dan","bo","ding","lang","li","shua","chuo","die","da","nan","li","kui","jie","yong"
-                ,"kui","jiu","sou","yin","chi","jie","lou","ku","wo","hui","qin","ao","su","du","ke","nie"
-                ,"he","chen","suo","ge","a","en","hao","dia","ai","ai","suo","hei","tong","chi","pei","lei"
-                ,"cao","piao","qi","ying","beng","sou","di","mi","peng","jue","liao","pu","chuai","jiao","o","qin"
-                ,"lu","ceng","deng","hao","jin","jue","yi","sai","pi","ru","cha","huo","nang","wei","jian","nan"
-                ,"lun","hu","ling","you","yu","qing","yu","huan","wei","zhi","pei","tang","dao","ze","guo"
-                ,"wei","wo","man","zhang","fu","fan","ji","qi","qian","qi","qu","ya","xian","ao","cen"
-                ,"lan","ba","hu","ke","dong","jia","xiu","dai","gou","mao","min","yi","dong","qiao","xun","zheng"
-                ,"lao","lai","song","yan","gu","xiao","guo","kong","jue","rong","yao","wai","zai","wei","yu","cuo"
-                ,"lou","zi","mei","sheng","song","ji","zhang","lin","deng","bin","yi","dian","chi","pang","cu","xun"
-                ,"yang","hou","lai","xi","chang","huang","yao","zheng","jiao","qu","san","fan","qiu","an","guang","ma"
-                ,"niu","yun","xia","pao","fei","rong","kuai","shou","sun","bi","juan","li","yu","xian","yin"
-                ,"suan","yi","guo","luo","ni","she","cu","mi","hu","cha","wei","wei","mei","nao","zhang"
-                ,"jing","jue","liao","xie","xun","huan","chuan","huo","sun","yin","dong","shi","tang","tun","xi","ren"
-                ,"yu","chi","yi","xiang","bo","yu","hun","zha","sou","mo","xiu","jin","san","zhuan","nang","pi"
-                ,"wu","gui","pao","xiu","xiang","tuo","an","yu","bi","geng","ao","jin","chan","xie","lin","ying"
-                ,"shu","dao","cun","chan","wu","zhi","ou","chong","wu","kai","chang","chuang","song","bian","niu","hu"
-                ,"chu","peng","da","yang","zuo","ni","fu","chao","yi","yi","tong","yan","ce","kai","xun"
-                ,"ke","yun","bei","song","qian","kui","kun","yi","ti","quan","qie","xing","fei","chang","wang"
-                ,"chou","hu","cui","yun","kui","e","leng","zhui","qiao","bi","su","qie","yong","jing","qiao","chong"
-                ,"chu","lin","meng","tian","hui","shuan","yan","wei","hong","min","kang","ta","lv","kun","jiu","lang"
-                ,"yu","chang","xi","wen","hun","e","qu","que","he","tian","que","kan","jiang","pan","qiang","san"
-                ,"qi","si","cha","feng","yuan","mu","mian","dun","mi","gu","bian","wen","hang","wei","le","gan"
-                ,"shu","long","lu","yang","si","duo","ling","mao","luo","xuan","pan","duo","hong","min","jing"
-                ,"huan","wei","lie","jia","zhen","yin","hui","zhu","ji","xu","hui","tao","xun","jiang","liu"
-                ,"hu","xun","ru","su","wu","lai","wei","zhuo","juan","cen","bang","xi","mei","huan","zhu","qi"
-                ,"xi","song","du","zhuo","pei","mian","gan","fei","cong","shen","guan","lu","shuan","xie","yan","mian"
-                ,"qiu","sou","huang","xu","pen","jian","xuan","wo","mei","yan","qin","ke","she","mang","ying","pu"
-                ,"li","ru","ta","hun","bi","xiu","fu","tang","pang","ming","huang","ying","xiao","lan","cao","hu"
-                ,"luo","huan","lian","zhu","yi","lu","xuan","gan","shu","si","shan","shao","tong","chan","lai"
-                ,"sui","li","dan","chan","lian","ru","pu","bi","hao","zhuo","han","xie","ying","yue","fen"
-                ,"hao","ba","bao","gui","dang","mi","you","chen","ning","jian","qian","wu","liao","qian","huan","jian"
-                ,"jian","zou","ya","wu","jiong","ze","yi","er","jia","jing","dai","hou","pang","bu","li","qiu"
-                ,"xiao","ti","qun","kui","wei","huan","lu","chuan","huang","qiu","xia","ao","gou","ta","liu","xian"
-                ,"lin","ju","xie","miao","sui","la","ji","hui","tuan","zhi","kao","zhi","ji","e","chan","xi"
-                ,"ju","chan","jing","nu","mi","fu","bi","yu","che","shuo","fei","yan","wu","yu","bi"
-                ,"jin","zi","gui","niu","yu","si","da","zhou","shan","qie","ya","rao","shu","luan","jiao"
-                ,"pin","cha","li","ping","wa","xian","suo","di","wei","e","jing","biao","jie","chang","bi","chan"
-                ,"nu","ao","yuan","ting","wu","gou","mo","pi","ai","pin","chi","li","yan","qiang","piao","chang"
-                ,"lei","zhang","xi","shan","bi","niao","mo","shuang","ga","ga","fu","nu","zi","jie","jue","bao"
-                ,"zang","si","fu","zou","yi","nu","dai","xiao","hua","pian","li","qi","ke","zhui","can","zhi"
-                ,"wu","ao","liu","shan","biao","cong","chan","ji","xiang","jiao","yu","zhou","ge","wan","kuang"
-                ,"yun","pi","shu","gan","xie","fu","zhou","fu","chu","dai","ku","hang","jiang","geng","xiao"
-                ,"ti","ling","qi","fei","shang","gun","duo","shou","liu","quan","wan","zi","ke","xiang","ti","miao"
-                ,"hui","si","bian","gou","zhui","min","jin","zhen","ru","gao","li","yi","jian","bin","piao","man"
-                ,"lei","miao","sao","xie","liao","zeng","jiang","qian","qiao","huan","zuan","yao","ji","chuan","zai","yong"
-                ,"ding","ji","wei","bin","min","jue","ke","long","dian","dai","po","min","jia","er","gong","xu"
-                ,"ya","heng","yao","luo","xi","hui","lian","qi","ying","qi","hu","kun","yan","cong","wan"
-                ,"chen","ju","mao","yu","yuan","xia","nao","ai","tang","jin","huang","ying","cui","cong","xuan"
-                ,"zhang","pu","can","qu","lu","bi","zan","wen","wei","yun","tao","wu","shao","qi","cha","ma"
-                ,"li","pi","miao","yao","rui","jian","chu","cheng","cong","xiao","fang","pa","zhu","nai","zhi","zhe"
-                ,"long","jiu","ping","lu","xia","xiao","you","zhi","tuo","zhi","ling","gou","di","li","tuo","cheng"
-                ,"kao","lao","ya","rao","zhi","zhen","guang","qi","ting","gua","jiu","hua","heng","gui","jie","luan"
-                ,"juan","an","xu","fan","gu","fu","jue","zi","suo","ling","chu","fen","du","qian","zhao"
-                ,"luo","chui","liang","guo","jian","di","ju","cou","zhen","nan","zha","lian","lan","ji","pin"
-                ,"ju","qiu","duan","chui","chen","lv","cha","ju","xuan","mei","ying","zhen","fei","ta","sun","xie"
-                ,"gao","cui","gao","shuo","bin","rong","zhu","xie","jin","qiang","qi","chu","tang","zhu","hu","gan"
-                ,"yue","qing","tuo","jue","qiao","qin","lu","zun","xi","ju","yuan","lei","yan","lin","bo","cha"
-                ,"you","ao","mo","cu","shang","tian","yun","lian","piao","dan","ji","bin","yi","ren","e","gu"
-                ,"ke","lu","zhi","yi","zhen","hu","li","yao","shi","zhi","quan","lu","zhe","nian","wang"
-                ,"chuo","zi","cou","lu","lin","wei","jian","qiang","jia","ji","ji","kan","deng","gai","jian"
-                ,"zang","ou","ling","bu","beng","zeng","pi","po","ga","la","gan","hao","tan","gao","ze","xin"
-                ,"yun","gui","he","zan","mao","yu","chang","ni","qi","sheng","ye","chao","yan","hui","bu","han"
-                ,"gui","xuan","kui","ai","ming","tun","xun","yao","xi","nang","ben","shi","kuang","yi","zhi","zi"
-                ,"gai","jin","zhen","lai","qiu","ji","dan","fu","chan","ji","xi","di","yu","gou","jin","qu"
-                ,"jian","jiang","pin","mao","gu","wu","gu","ji","ju","jian","pian","kao","qie","suo","bai"
-                ,"ge","bo","mao","mu","cui","jian","san","shu","chang","lu","pu","qu","pie","dao","xian"
-                ,"chuan","dong","ya","yin","ke","yun","fan","chi","jiao","du","die","you","yuan","guo","yue","wo"
-                ,"rong","huang","jing","ruan","tai","gong","zhun","na","yao","qian","long","dong","ka","lu","jia","shen"
-                ,"zhou","zuo","gua","zhen","qu","zhi","jing","guang","dong","yan","kuai","sa","hai","pian","zhen","mi"
-                ,"tun","luo","cuo","pao","wan","niao","jing","yan","fei","yu","zong","ding","jian","cou","nan","mian"
-                ,"wa","e","shu","cheng","ying","ge","lv","bin","teng","zhi","chuai","gu","meng","sao","shan"
-                ,"lian","lin","yu","xi","qi","sha","xin","xi","biao","sa","ju","sou","biao","biao","shu"
-                ,"gou","gu","hu","fei","ji","lan","yu","pei","mao","zhan","jing","ni","liu","yi","yang","wei"
-                ,"dun","qiang","shi","hu","zhu","xuan","tai","ye","yang","wu","han","men","chao","yan","hu","yu"
-                ,"wei","duan","bao","xuan","bian","tui","liu","man","shang","yun","yi","yu","fan","sui","xian","jue"
-                ,"cuan","huo","tao","xu","xi","li","hu","jiong","hu","fei","shi","si","xian","zhi","qu","hu"
-                ,"fu","zuo","mi","zhi","ci","zhen","tiao","qi","chan","xi","zhuo","xi","rang","te","tan"
-                ,"dui","jia","hui","nv","nin","yang","zi","que","qian","min","te","qi","dui","mao","men"
-                ,"gang","yu","yu","ta","xue","miao","ji","gan","dang","hua","che","dun","ya","zhuo","bian","feng"
-                ,"fa","ai","li","long","zha","tong","di","la","tuo","fu","xing","mang","xia","qiao","zhai","dong"
-                ,"nao","ge","wo","qi","dui","bei","ding","chen","zhou","jie","di","xuan","bian","zhe","gun","sang"
-                ,"qing","qu","dun","deng","jiang","ca","meng","bo","kan","zhi","fu","fu","xu","mian","kou","dun"
-                ,"miao","dan","sheng","yuan","yi","sui","zi","chi","mou","lai","jian","di","suo","ya","ni"
-                ,"sui","pi","rui","sou","kui","mao","ke","ming","piao","cheng","kan","lin","gu","ding","bi"
-                ,"quan","tian","fan","zhen","she","wan","tuan","fu","gang","gu","li","yan","pi","lan","li","ji"
-                ,"zeng","he","guan","juan","jin","ga","yi","po","zhao","liao","tu","chuan","shan","men","chai","nv"
-                ,"bu","tai","ju","ban","qian","fang","kang","dou","huo","ba","yu","zheng","gu","ke","po","bu"
-                ,"bo","yue","mu","tan","dian","shuo","shi","xuan","ta","bi","ni","pi","duo","kao","lao","er"
-                ,"you","cheng","jia","nao","ye","cheng","diao","yin","kai","zhu","ding","diu","hua","quan","ha"
-                ,"sha","diao","zheng","se","chong","tang","an","ru","lao","lai","te","keng","zeng","li","gao"
-                ,"e","cuo","lve","liu","kai","jian","lang","qin","ju","a","qiang","nuo","ben","de","ke","kun"
-                ,"gu","huo","pei","juan","tan","zi","qie","kai","si","e","cha","sou","huan","ai","lou","qiang"
-                ,"fei","mei","mo","ge","juan","na","liu","yi","jia","bin","biao","tang","man","luo","yong","chuo"
-                ,"xuan","di","tan","jue","pu","lu","dui","lan","pu","cuan","qiang","deng","huo","zhuo","yi","cha"
-                ,"biao","zhong","shen","cuo","zhi","bi","zi","mo","shu","lv","ji","fu","lang","ke","ren"
-                ,"zhen","ji","se","nian","fu","rang","gui","jiao","hao","xi","po","die","hu","yong","jiu"
-                ,"yuan","bao","zhen","gu","dong","lu","qu","chi","si","er","zhi","gua","xiu","luan","bo","li"
-                ,"hu","yu","xian","ti","wu","miao","an","bei","chun","hu","e","ci","mei","wu","yao","jian"
-                ,"ying","zhe","liu","liao","jiao","jiu","yu","hu","lu","guan","bing","ding","jie","li","shan","li"
-                ,"you","gan","ke","da","zha","pao","zhu","xuan","jia","ya","yi","zhi","lao","wu","cuo","xian"
-                ,"sha","zhu","fei","gu","wei","yu","yu","dan","la","yi","hou","chai","lou","jia","sao"
-                ,"chi","mo","ban","ji","huang","biao","luo","ying","zhai","long","yin","chou","ban","lai","yi"
-                ,"dian","pi","dian","qu","yi","song","xi","qiong","zhun","bian","yao","tiao","dou","ke","yu","xun"
-                ,"ju","yu","yi","cha","na","ren","jin","mei","pan","dang","jia","ge","ken","lian","cheng","lian"
-                ,"jian","biao","chu","ti","bi","ju","duo","da","bei","bao","lv","bian","lan","chi","zhe","qiang"
-                ,"ru","pan","ya","xu","jun","cun","jin","lei","zi","chao","si","huo","lao","tang","ou","lou"
-                ,"jiang","nou","mo","die","ding","dan","ling","ning","guo","kui","ao","qin","han","qi","hang"
-                ,"jie","he","ying","ke","han","e","zhuan","nie","man","sang","hao","ru","pin","hu","qian"
-                ,"qiu","ji","chai","hui","ge","meng","fu","pi","rui","xian","hao","jie","gong","dou","yin","chi"
-                ,"han","gu","ke","li","you","ran","zha","qiu","ling","cheng","you","qiong","jia","nao","zhi","si"
-                ,"qu","ting","kuo","qi","jiao","yang","mou","shen","zhe","shao","wu","li","chu","fu","qiang","qing"
-                ,"qi","xi","yu","fei","guo","guo","yi","pi","tiao","quan","wan","lang","meng","chun","rong","nan"
-                ,"fu","kui","ke","fu","sou","yu","you","lou","you","bian","mou","qin","ao","man","mang"
-                ,"ma","yuan","xi","chi","tang","pang","shi","huang","cao","piao","tang","xi","xiang","zhong","zhang"
-                ,"shuai","mao","peng","hui","pan","shan","huo","meng","chan","lian","mie","li","du","qu","fou","ying"
-                ,"qing","xia","shi","zhu","yu","ji","du","ji","jian","zhao","zi","hu","qiong","po","da","sheng"
-                ,"ze","gou","li","si","tiao","jia","bian","chi","kou","bi","xian","yan","quan","zheng","jun","shi"
-                ,"gang","pa","shao","xiao","qing","ze","qie","zhu","ruo","qian","tuo","bi","dan","kong","wan","xiao"
-                ,"zhen","kui","huang","hou","gou","fei","li","bi","chi","su","mie","dou","lu","duan","gui"
-                ,"dian","zan","deng","bo","lai","zhou","yu","yu","chong","xi","nie","nv","chuan","shan","yi"
-                ,"bi","zhong","ban","fang","ge","lu","zhu","ze","xi","shao","wei","meng","shou","cao","chong","meng"
-                ,"qin","niao","jia","qiu","sha","bi","di","qiang","suo","jie","tang","xi","xian","mi","ba","li"
-                ,"tiao","xi","zi","can","lin","zong","san","hou","zan","ci","xu","rou","qiu","jiang","gen","ji"
-                ,"yi","ling","xi","zhu","fei","jian","pian","he","yi","jiao","zhi","qi","qi","yao","dao","fu"
-                ,"qu","jiu","ju","lie","zi","zan","nan","zhe","jiang","chi","ding","gan","zhou","yi","gu"
-                ,"zuo","tuo","xian","ming","zhi","yan","shai","cheng","tu","lei","kun","pei","hu","ti","xu"
-                ,"hai","tang","lao","bu","jiao","xi","ju","li","xun","shi","cuo","dun","qiong","xue","cu","bie"
-                ,"bo","ta","jian","fu","qiang","zhi","fu","shan","li","tuo","jia","bo","tai","kui","qiao","bi"
-                ,"xian","xian","ji","jiao","liang","ji","chuo","huai","chi","zhi","dian","bo","zhi","jian","die","chuai"
-                ,"zhong","ju","duo","cuo","pian","rou","nie","pan","qi","chu","jue","pu","fan","cu","zhu","lin"
-                ,"chan","lie","zuan","xie","zhi","diao","mo","xiu","mo","pi","hu","jue","shang","gu","zi"
-                ,"gong","su","zhi","zi","qing","liang","yu","li","wen","ting","ji","pei","fei","sha","yin"
-                ,"ai","xian","mai","chen","ju","bao","tiao","zi","yin","yu","chuo","wo","mian","yuan","tuo","zhui"
-                ,"sun","jun","ju","luo","qu","chou","qiong","luan","wu","zan","mou","ao","liu","bei","xin","you"
-                ,"fang","ba","ping","nian","lu","su","fu","hou","tai","gui","jie","wei","er","ji","jiao","xiang"
-                ,"xun","geng","li","lian","jian","shi","tiao","gun","sha","huan","ji","qing","ling","zou","fei","kun"
-                ,"chang","gu","ni","nian","diao","shi","zi","fen","die","e","qiu","fu","huang","bian","sao"
-                ,"ao","qi","ta","guan","yao","le","biao","xue","man","min","yong","gui","shan","zun","li"
-                ,"da","yang","da","qiao","man","jian","ju","rou","gou","bei","jie","tou","ku","gu","di","hou"
-                ,"ge","ke","bi","lou","qia","kuan","bin","du","mei","ba","yan","liang","xiao","wang","chi","xiang"
-                ,"yan","tie","tao","yong","biao","kun","mao","ran","tiao","ji","zi","xiu","quan","jiu","bin","huan"
-                ,"lie","me","hui","mi","ji","jun","zhu","mi","qi","ao","she","lin","dai","chu","you","xia"
-                ,"yi","qu","du","li","qing","can","an","fen","you","wu","yan","xi","qiu","han","zha"
-           };
+        {
+            "chu","ji","wu","gai","nian","sa","pi","gen","cheng","ge","nao","e","shu","yu","pie"
+            ,"bi","tuo","yao","yao","zhi","di","xin","yin","kui","yu","gao","tao","dian","ji","nai","nie"
+            ,"ji","qi","mi","bei","se","gu","ze","she","cuo","yan","jue","si","ye","yan","fang","po"
+            ,"gui","kui","bian","ze","gua","you","ce","yi","wen","jing","ku","gui","kai","la","ji","yan"
+            ,"wan","kuai","piao","jue","qiao","huo","yi","tong","wang","dan","ding","zhang","le","sa","yi","mu"
+            ,"ren","yu","pi","ya","wa","wu","chang","cang","kang","zhu","ning","ka","you","yi","gou"
+            ,"tong","tuo","ni","ga","ji","er","you","kua","kan","zhu","yi","tiao","chai","jiao","nong"
+            ,"mou","chou","yan","li","qiu","li","yu","ping","yong","si","feng","qian","ruo","pai","zhuo","shu"
+            ,"luo","wo","bi","ti","guan","kong","ju","fen","yan","xie","ji","wei","zong","lou","tang","bin"
+            ,"nuo","chi","xi","jing","jian","jiao","jiu","tong","xuan","dan","tong","tun","she","qian","zu","yue"
+            ,"cuan","di","xi","xun","hong","guo","chan","kui","bao","pu","hong","fu","fu","su","si","wen"
+            ,"yan","bo","gun","mao","xie","luan","pou","bing","ying","luo","lei","liang","hu","lie","xian"
+            ,"song","ping","zhong","ming","yan","jie","hong","shan","ou","ju","ne","gu","he","di","zhao"
+            ,"qu","dai","kuang","lei","gua","jie","hui","shen","gou","quan","zheng","hun","xu","qiao","gao","kuang"
+            ,"ei","zou","zhuo","wei","yu","shen","chan","sui","chen","jian","xue","ye","e","yu","xuan","an"
+            ,"di","zi","pian","mo","dang","su","shi","mi","zhe","jian","zen","qiao","jue","yan","zhan","chen"
+            ,"dan","jin","zuo","wu","qian","jing","ban","yan","zuo","bei","jing","gai","zhi","nie","zou","chui"
+            ,"pi","wei","huang","wei","xi","han","qiong","kuang","mang","wu","fang","bing","pi","bei","ye"
+            ,"di","tai","jia","zhi","zhu","kuai","qie","xun","yun","li","ying","gao","xi","fu","pi"
+            ,"tan","yan","juan","yan","yin","zhang","po","shan","zou","ling","feng","chu","huan","mai","qu","shao"
+            ,"he","ge","meng","xu","xie","sou","xie","jue","jian","qian","dang","chang","si","bian","ben","qiu"
+            ,"ben","e","fa","shu","ji","yong","he","wei","wu","ge","zhen","kuang","pi","yi","li","qi"
+            ,"ban","gan","long","dian","lu","che","di","tuo","ni","mu","ao","ya","die","dong","kai","shan"
+            ,"shang","nao","gai","yin","cheng","shi","guo","xun","lie","yuan","zhi","an","yi","pi","nian"
+            ,"peng","tu","sao","dai","ku","die","yin","leng","hou","ge","yuan","man","yong","liang","chi"
+            ,"xin","pi","yi","cao","jiao","nai","du","qian","ji","wan","xiong","qi","xiang","fu","yuan","yun"
+            ,"fei","ji","li","e","ju","pi","zhi","rui","xian","chang","cong","qin","wu","qian","qi","shan"
+            ,"bian","zhu","kou","yi","mo","gan","pie","long","ba","mu","ju","ran","qing","chi","fu","ling"
+            ,"niao","yin","mao","ying","qiong","min","tiao","qian","yi","rao","bi","zi","ju","tong","hui","zhu"
+            ,"ting","qiao","fu","ren","xing","quan","hui","xun","ming","qi","jiao","chong","jiang","luo","ying"
+            ,"qian","gen","jin","mai","sun","hong","zhou","kan","bi","shi","wo","you","e","mei","you"
+            ,"li","tu","xian","fu","sui","you","di","shen","guan","lang","ying","chun","jing","qi","xi","song"
+            ,"jin","nai","qi","ba","shu","chang","tie","yu","huan","bi","fu","tu","dan","cui","yan","zu"
+            ,"dang","jian","wan","ying","gu","han","qia","feng","shen","xiang","wei","chan","kai","qi","kui","xi"
+            ,"e","bao","pa","ting","lou","pai","xuan","jia","zhen","shi","ru","mo","en","bei","weng","hao"
+            ,"ji","li","bang","jian","shuo","lang","ying","yu","su","meng","dou","xi","lian","cu","lin"
+            ,"qu","kou","xu","liao","hui","xun","jue","rui","zui","ji","meng","fan","qi","hong","xie"
+            ,"hong","wei","yi","weng","sou","bi","hao","tai","ru","xun","xian","gao","li","huo","qu","heng"
+            ,"fan","nie","mi","gong","yi","kuang","lian","da","yi","xi","zang","pao","you","liao","ga","gan"
+            ,"ti","men","tuan","chen","fu","pin","niu","jie","jiao","za","yi","lv","jun","tian","ye","ai"
+            ,"na","ji","guo","bai","ju","pou","lie","qian","guan","die","zha","ya","qin","yu","an","xuan"
+            ,"bing","kui","yuan","shu","en","chuai","jian","shuo","zhan","nuo","sang","luo","ying","zhi","han"
+            ,"zhe","xie","lu","zun","cuan","gan","huan","pi","xing","zhuo","huo","zuan","nang","yi","te"
+            ,"dai","shi","bu","chi","ji","kou","dao","le","zha","a","yao","fu","mu","yi","tai","li"
+            ,"e","bi","bei","guo","qin","yin","za","ka","ga","gua","ling","dong","ning","duo","nao","you"
+            ,"si","kuang","ji","shen","hui","da","lie","yi","xiao","bi","ci","guang","yue","xiu","yi","pai"
+            ,"kuai","duo","ji","mie","mi","zha","nong","gen","mou","mai","chi","lao","geng","en","zha","suo"
+            ,"zao","xi","zuo","ji","feng","ze","nuo","miao","lin","zhuan","zhou","tao","hu","cui","sha"
+            ,"yo","dan","bo","ding","lang","li","shua","chuo","die","da","nan","li","kui","jie","yong"
+            ,"kui","jiu","sou","yin","chi","jie","lou","ku","wo","hui","qin","ao","su","du","ke","nie"
+            ,"he","chen","suo","ge","a","en","hao","dia","ai","ai","suo","hei","tong","chi","pei","lei"
+            ,"cao","piao","qi","ying","beng","sou","di","mi","peng","jue","liao","pu","chuai","jiao","o","qin"
+            ,"lu","ceng","deng","hao","jin","jue","yi","sai","pi","ru","cha","huo","nang","wei","jian","nan"
+            ,"lun","hu","ling","you","yu","qing","yu","huan","wei","zhi","pei","tang","dao","ze","guo"
+            ,"wei","wo","man","zhang","fu","fan","ji","qi","qian","qi","qu","ya","xian","ao","cen"
+            ,"lan","ba","hu","ke","dong","jia","xiu","dai","gou","mao","min","yi","dong","qiao","xun","zheng"
+            ,"lao","lai","song","yan","gu","xiao","guo","kong","jue","rong","yao","wai","zai","wei","yu","cuo"
+            ,"lou","zi","mei","sheng","song","ji","zhang","lin","deng","bin","yi","dian","chi","pang","cu","xun"
+            ,"yang","hou","lai","xi","chang","huang","yao","zheng","jiao","qu","san","fan","qiu","an","guang","ma"
+            ,"niu","yun","xia","pao","fei","rong","kuai","shou","sun","bi","juan","li","yu","xian","yin"
+            ,"suan","yi","guo","luo","ni","she","cu","mi","hu","cha","wei","wei","mei","nao","zhang"
+            ,"jing","jue","liao","xie","xun","huan","chuan","huo","sun","yin","dong","shi","tang","tun","xi","ren"
+            ,"yu","chi","yi","xiang","bo","yu","hun","zha","sou","mo","xiu","jin","san","zhuan","nang","pi"
+            ,"wu","gui","pao","xiu","xiang","tuo","an","yu","bi","geng","ao","jin","chan","xie","lin","ying"
+            ,"shu","dao","cun","chan","wu","zhi","ou","chong","wu","kai","chang","chuang","song","bian","niu","hu"
+            ,"chu","peng","da","yang","zuo","ni","fu","chao","yi","yi","tong","yan","ce","kai","xun"
+            ,"ke","yun","bei","song","qian","kui","kun","yi","ti","quan","qie","xing","fei","chang","wang"
+            ,"chou","hu","cui","yun","kui","e","leng","zhui","qiao","bi","su","qie","yong","jing","qiao","chong"
+            ,"chu","lin","meng","tian","hui","shuan","yan","wei","hong","min","kang","ta","lv","kun","jiu","lang"
+            ,"yu","chang","xi","wen","hun","e","qu","que","he","tian","que","kan","jiang","pan","qiang","san"
+            ,"qi","si","cha","feng","yuan","mu","mian","dun","mi","gu","bian","wen","hang","wei","le","gan"
+            ,"shu","long","lu","yang","si","duo","ling","mao","luo","xuan","pan","duo","hong","min","jing"
+            ,"huan","wei","lie","jia","zhen","yin","hui","zhu","ji","xu","hui","tao","xun","jiang","liu"
+            ,"hu","xun","ru","su","wu","lai","wei","zhuo","juan","cen","bang","xi","mei","huan","zhu","qi"
+            ,"xi","song","du","zhuo","pei","mian","gan","fei","cong","shen","guan","lu","shuan","xie","yan","mian"
+            ,"qiu","sou","huang","xu","pen","jian","xuan","wo","mei","yan","qin","ke","she","mang","ying","pu"
+            ,"li","ru","ta","hun","bi","xiu","fu","tang","pang","ming","huang","ying","xiao","lan","cao","hu"
+            ,"luo","huan","lian","zhu","yi","lu","xuan","gan","shu","si","shan","shao","tong","chan","lai"
+            ,"sui","li","dan","chan","lian","ru","pu","bi","hao","zhuo","han","xie","ying","yue","fen"
+            ,"hao","ba","bao","gui","dang","mi","you","chen","ning","jian","qian","wu","liao","qian","huan","jian"
+            ,"jian","zou","ya","wu","jiong","ze","yi","er","jia","jing","dai","hou","pang","bu","li","qiu"
+            ,"xiao","ti","qun","kui","wei","huan","lu","chuan","huang","qiu","xia","ao","gou","ta","liu","xian"
+            ,"lin","ju","xie","miao","sui","la","ji","hui","tuan","zhi","kao","zhi","ji","e","chan","xi"
+            ,"ju","chan","jing","nu","mi","fu","bi","yu","che","shuo","fei","yan","wu","yu","bi"
+            ,"jin","zi","gui","niu","yu","si","da","zhou","shan","qie","ya","rao","shu","luan","jiao"
+            ,"pin","cha","li","ping","wa","xian","suo","di","wei","e","jing","biao","jie","chang","bi","chan"
+            ,"nu","ao","yuan","ting","wu","gou","mo","pi","ai","pin","chi","li","yan","qiang","piao","chang"
+            ,"lei","zhang","xi","shan","bi","niao","mo","shuang","ga","ga","fu","nu","zi","jie","jue","bao"
+            ,"zang","si","fu","zou","yi","nu","dai","xiao","hua","pian","li","qi","ke","zhui","can","zhi"
+            ,"wu","ao","liu","shan","biao","cong","chan","ji","xiang","jiao","yu","zhou","ge","wan","kuang"
+            ,"yun","pi","shu","gan","xie","fu","zhou","fu","chu","dai","ku","hang","jiang","geng","xiao"
+            ,"ti","ling","qi","fei","shang","gun","duo","shou","liu","quan","wan","zi","ke","xiang","ti","miao"
+            ,"hui","si","bian","gou","zhui","min","jin","zhen","ru","gao","li","yi","jian","bin","piao","man"
+            ,"lei","miao","sao","xie","liao","zeng","jiang","qian","qiao","huan","zuan","yao","ji","chuan","zai","yong"
+            ,"ding","ji","wei","bin","min","jue","ke","long","dian","dai","po","min","jia","er","gong","xu"
+            ,"ya","heng","yao","luo","xi","hui","lian","qi","ying","qi","hu","kun","yan","cong","wan"
+            ,"chen","ju","mao","yu","yuan","xia","nao","ai","tang","jin","huang","ying","cui","cong","xuan"
+            ,"zhang","pu","can","qu","lu","bi","zan","wen","wei","yun","tao","wu","shao","qi","cha","ma"
+            ,"li","pi","miao","yao","rui","jian","chu","cheng","cong","xiao","fang","pa","zhu","nai","zhi","zhe"
+            ,"long","jiu","ping","lu","xia","xiao","you","zhi","tuo","zhi","ling","gou","di","li","tuo","cheng"
+            ,"kao","lao","ya","rao","zhi","zhen","guang","qi","ting","gua","jiu","hua","heng","gui","jie","luan"
+            ,"juan","an","xu","fan","gu","fu","jue","zi","suo","ling","chu","fen","du","qian","zhao"
+            ,"luo","chui","liang","guo","jian","di","ju","cou","zhen","nan","zha","lian","lan","ji","pin"
+            ,"ju","qiu","duan","chui","chen","lv","cha","ju","xuan","mei","ying","zhen","fei","ta","sun","xie"
+            ,"gao","cui","gao","shuo","bin","rong","zhu","xie","jin","qiang","qi","chu","tang","zhu","hu","gan"
+            ,"yue","qing","tuo","jue","qiao","qin","lu","zun","xi","ju","yuan","lei","yan","lin","bo","cha"
+            ,"you","ao","mo","cu","shang","tian","yun","lian","piao","dan","ji","bin","yi","ren","e","gu"
+            ,"ke","lu","zhi","yi","zhen","hu","li","yao","shi","zhi","quan","lu","zhe","nian","wang"
+            ,"chuo","zi","cou","lu","lin","wei","jian","qiang","jia","ji","ji","kan","deng","gai","jian"
+            ,"zang","ou","ling","bu","beng","zeng","pi","po","ga","la","gan","hao","tan","gao","ze","xin"
+            ,"yun","gui","he","zan","mao","yu","chang","ni","qi","sheng","ye","chao","yan","hui","bu","han"
+            ,"gui","xuan","kui","ai","ming","tun","xun","yao","xi","nang","ben","shi","kuang","yi","zhi","zi"
+            ,"gai","jin","zhen","lai","qiu","ji","dan","fu","chan","ji","xi","di","yu","gou","jin","qu"
+            ,"jian","jiang","pin","mao","gu","wu","gu","ji","ju","jian","pian","kao","qie","suo","bai"
+            ,"ge","bo","mao","mu","cui","jian","san","shu","chang","lu","pu","qu","pie","dao","xian"
+            ,"chuan","dong","ya","yin","ke","yun","fan","chi","jiao","du","die","you","yuan","guo","yue","wo"
+            ,"rong","huang","jing","ruan","tai","gong","zhun","na","yao","qian","long","dong","ka","lu","jia","shen"
+            ,"zhou","zuo","gua","zhen","qu","zhi","jing","guang","dong","yan","kuai","sa","hai","pian","zhen","mi"
+            ,"tun","luo","cuo","pao","wan","niao","jing","yan","fei","yu","zong","ding","jian","cou","nan","mian"
+            ,"wa","e","shu","cheng","ying","ge","lv","bin","teng","zhi","chuai","gu","meng","sao","shan"
+            ,"lian","lin","yu","xi","qi","sha","xin","xi","biao","sa","ju","sou","biao","biao","shu"
+            ,"gou","gu","hu","fei","ji","lan","yu","pei","mao","zhan","jing","ni","liu","yi","yang","wei"
+            ,"dun","qiang","shi","hu","zhu","xuan","tai","ye","yang","wu","han","men","chao","yan","hu","yu"
+            ,"wei","duan","bao","xuan","bian","tui","liu","man","shang","yun","yi","yu","fan","sui","xian","jue"
+            ,"cuan","huo","tao","xu","xi","li","hu","jiong","hu","fei","shi","si","xian","zhi","qu","hu"
+            ,"fu","zuo","mi","zhi","ci","zhen","tiao","qi","chan","xi","zhuo","xi","rang","te","tan"
+            ,"dui","jia","hui","nv","nin","yang","zi","que","qian","min","te","qi","dui","mao","men"
+            ,"gang","yu","yu","ta","xue","miao","ji","gan","dang","hua","che","dun","ya","zhuo","bian","feng"
+            ,"fa","ai","li","long","zha","tong","di","la","tuo","fu","xing","mang","xia","qiao","zhai","dong"
+            ,"nao","ge","wo","qi","dui","bei","ding","chen","zhou","jie","di","xuan","bian","zhe","gun","sang"
+            ,"qing","qu","dun","deng","jiang","ca","meng","bo","kan","zhi","fu","fu","xu","mian","kou","dun"
+            ,"miao","dan","sheng","yuan","yi","sui","zi","chi","mou","lai","jian","di","suo","ya","ni"
+            ,"sui","pi","rui","sou","kui","mao","ke","ming","piao","cheng","kan","lin","gu","ding","bi"
+            ,"quan","tian","fan","zhen","she","wan","tuan","fu","gang","gu","li","yan","pi","lan","li","ji"
+            ,"zeng","he","guan","juan","jin","ga","yi","po","zhao","liao","tu","chuan","shan","men","chai","nv"
+            ,"bu","tai","ju","ban","qian","fang","kang","dou","huo","ba","yu","zheng","gu","ke","po","bu"
+            ,"bo","yue","mu","tan","dian","shuo","shi","xuan","ta","bi","ni","pi","duo","kao","lao","er"
+            ,"you","cheng","jia","nao","ye","cheng","diao","yin","kai","zhu","ding","diu","hua","quan","ha"
+            ,"sha","diao","zheng","se","chong","tang","an","ru","lao","lai","te","keng","zeng","li","gao"
+            ,"e","cuo","lve","liu","kai","jian","lang","qin","ju","a","qiang","nuo","ben","de","ke","kun"
+            ,"gu","huo","pei","juan","tan","zi","qie","kai","si","e","cha","sou","huan","ai","lou","qiang"
+            ,"fei","mei","mo","ge","juan","na","liu","yi","jia","bin","biao","tang","man","luo","yong","chuo"
+            ,"xuan","di","tan","jue","pu","lu","dui","lan","pu","cuan","qiang","deng","huo","zhuo","yi","cha"
+            ,"biao","zhong","shen","cuo","zhi","bi","zi","mo","shu","lv","ji","fu","lang","ke","ren"
+            ,"zhen","ji","se","nian","fu","rang","gui","jiao","hao","xi","po","die","hu","yong","jiu"
+            ,"yuan","bao","zhen","gu","dong","lu","qu","chi","si","er","zhi","gua","xiu","luan","bo","li"
+            ,"hu","yu","xian","ti","wu","miao","an","bei","chun","hu","e","ci","mei","wu","yao","jian"
+            ,"ying","zhe","liu","liao","jiao","jiu","yu","hu","lu","guan","bing","ding","jie","li","shan","li"
+            ,"you","gan","ke","da","zha","pao","zhu","xuan","jia","ya","yi","zhi","lao","wu","cuo","xian"
+            ,"sha","zhu","fei","gu","wei","yu","yu","dan","la","yi","hou","chai","lou","jia","sao"
+            ,"chi","mo","ban","ji","huang","biao","luo","ying","zhai","long","yin","chou","ban","lai","yi"
+            ,"dian","pi","dian","qu","yi","song","xi","qiong","zhun","bian","yao","tiao","dou","ke","yu","xun"
+            ,"ju","yu","yi","cha","na","ren","jin","mei","pan","dang","jia","ge","ken","lian","cheng","lian"
+            ,"jian","biao","chu","ti","bi","ju","duo","da","bei","bao","lv","bian","lan","chi","zhe","qiang"
+            ,"ru","pan","ya","xu","jun","cun","jin","lei","zi","chao","si","huo","lao","tang","ou","lou"
+            ,"jiang","nou","mo","die","ding","dan","ling","ning","guo","kui","ao","qin","han","qi","hang"
+            ,"jie","he","ying","ke","han","e","zhuan","nie","man","sang","hao","ru","pin","hu","qian"
+            ,"qiu","ji","chai","hui","ge","meng","fu","pi","rui","xian","hao","jie","gong","dou","yin","chi"
+            ,"han","gu","ke","li","you","ran","zha","qiu","ling","cheng","you","qiong","jia","nao","zhi","si"
+            ,"qu","ting","kuo","qi","jiao","yang","mou","shen","zhe","shao","wu","li","chu","fu","qiang","qing"
+            ,"qi","xi","yu","fei","guo","guo","yi","pi","tiao","quan","wan","lang","meng","chun","rong","nan"
+            ,"fu","kui","ke","fu","sou","yu","you","lou","you","bian","mou","qin","ao","man","mang"
+            ,"ma","yuan","xi","chi","tang","pang","shi","huang","cao","piao","tang","xi","xiang","zhong","zhang"
+            ,"shuai","mao","peng","hui","pan","shan","huo","meng","chan","lian","mie","li","du","qu","fou","ying"
+            ,"qing","xia","shi","zhu","yu","ji","du","ji","jian","zhao","zi","hu","qiong","po","da","sheng"
+            ,"ze","gou","li","si","tiao","jia","bian","chi","kou","bi","xian","yan","quan","zheng","jun","shi"
+            ,"gang","pa","shao","xiao","qing","ze","qie","zhu","ruo","qian","tuo","bi","dan","kong","wan","xiao"
+            ,"zhen","kui","huang","hou","gou","fei","li","bi","chi","su","mie","dou","lu","duan","gui"
+            ,"dian","zan","deng","bo","lai","zhou","yu","yu","chong","xi","nie","nv","chuan","shan","yi"
+            ,"bi","zhong","ban","fang","ge","lu","zhu","ze","xi","shao","wei","meng","shou","cao","chong","meng"
+            ,"qin","niao","jia","qiu","sha","bi","di","qiang","suo","jie","tang","xi","xian","mi","ba","li"
+            ,"tiao","xi","zi","can","lin","zong","san","hou","zan","ci","xu","rou","qiu","jiang","gen","ji"
+            ,"yi","ling","xi","zhu","fei","jian","pian","he","yi","jiao","zhi","qi","qi","yao","dao","fu"
+            ,"qu","jiu","ju","lie","zi","zan","nan","zhe","jiang","chi","ding","gan","zhou","yi","gu"
+            ,"zuo","tuo","xian","ming","zhi","yan","shai","cheng","tu","lei","kun","pei","hu","ti","xu"
+            ,"hai","tang","lao","bu","jiao","xi","ju","li","xun","shi","cuo","dun","qiong","xue","cu","bie"
+            ,"bo","ta","jian","fu","qiang","zhi","fu","shan","li","tuo","jia","bo","tai","kui","qiao","bi"
+            ,"xian","xian","ji","jiao","liang","ji","chuo","huai","chi","zhi","dian","bo","zhi","jian","die","chuai"
+            ,"zhong","ju","duo","cuo","pian","rou","nie","pan","qi","chu","jue","pu","fan","cu","zhu","lin"
+            ,"chan","lie","zuan","xie","zhi","diao","mo","xiu","mo","pi","hu","jue","shang","gu","zi"
+            ,"gong","su","zhi","zi","qing","liang","yu","li","wen","ting","ji","pei","fei","sha","yin"
+            ,"ai","xian","mai","chen","ju","bao","tiao","zi","yin","yu","chuo","wo","mian","yuan","tuo","zhui"
+            ,"sun","jun","ju","luo","qu","chou","qiong","luan","wu","zan","mou","ao","liu","bei","xin","you"
+            ,"fang","ba","ping","nian","lu","su","fu","hou","tai","gui","jie","wei","er","ji","jiao","xiang"
+            ,"xun","geng","li","lian","jian","shi","tiao","gun","sha","huan","ji","qing","ling","zou","fei","kun"
+            ,"chang","gu","ni","nian","diao","shi","zi","fen","die","e","qiu","fu","huang","bian","sao"
+            ,"ao","qi","ta","guan","yao","le","biao","xue","man","min","yong","gui","shan","zun","li"
+            ,"da","yang","da","qiao","man","jian","ju","rou","gou","bei","jie","tou","ku","gu","di","hou"
+            ,"ge","ke","bi","lou","qia","kuan","bin","du","mei","ba","yan","liang","xiao","wang","chi","xiang"
+            ,"yan","tie","tao","yong","biao","kun","mao","ran","tiao","ji","zi","xiu","quan","jiu","bin","huan"
+            ,"lie","me","hui","mi","ji","jun","zhu","mi","qi","ao","she","lin","dai","chu","you","xia"
+            ,"yi","qu","du","li","qing","can","an","fen","you","wu","yan","xi","qiu","han","zha"
+        };
         #endregion 二级汉字
         #region 变量定义
         // GB2312-80 标准规范中第一个汉字的机内码.即"啊"的机内码
@@ -601,9 +509,7 @@ namespace MyExtensions
         #endregion
         #endregion
 
-        /// <summary>
-        /// 取拼音第一个字段
-        /// </summary>        
+        /// <summary>取拼音第一个字段</summary>        
         /// <param name="ch"></param>        
         /// <returns></returns>        
          public static String GetFirst(Char ch)   
@@ -614,9 +520,7 @@ namespace MyExtensions
              return rs;   
          }
 
-        /// <summary>
-        /// 取拼音第一个字段
-        /// </summary>
+        /// <summary>取拼音第一个字段</summary>
         /// <param name="str"></param>
         /// <returns></returns>
          public static String GetFirst(String str)
@@ -634,9 +538,7 @@ namespace MyExtensions
              return sb.ToString();
          }
         
-        /// <summary>
-         /// 获取单字拼音
-        /// </summary>
+        /// <summary>获取单字拼音</summary>
         /// <param name="ch"></param>
         /// <returns></returns>
          public static String Get(Char ch)
@@ -705,9 +607,7 @@ namespace MyExtensions
              return String.Empty; 
          }
 
-        /// <summary>
-         /// 把汉字转换成拼音(全拼)
-        /// </summary>
+        /// <summary>把汉字转换成拼音(全拼)</summary>
          /// <param name="str">汉字字符串</param>
          /// <returns>转换后的拼音(全拼)字符串</returns>
          public static String Get(String str)

@@ -623,7 +623,7 @@ namespace XCode.DataAccessLayer
             if (String.IsNullOrEmpty(name)) return name;
 
             //if (CreateMetaData().ReservedWords.Contains(name)) return FormatKeyWord(name);
-            DbMetaData md = CreateMetaData() as DbMetaData;
+            var md = CreateMetaData() as DbMetaData;
             if (md != null && md.ReservedWords.Contains(name)) return FormatKeyWord(name);
 
             return name;

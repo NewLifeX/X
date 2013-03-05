@@ -363,6 +363,17 @@ namespace XCode.DataAccessLayer
 
             return keyWord.Substring(0, pos + 1) + "\"" + tn + "\"";
         }
+
+        /// <summary>是否忽略大小写，如果不忽略则在表名字段名外面加上双引号</summary>
+        static Boolean _IgnoreCase = Config.GetConfig<Boolean>("XCode.Oracle.IgnoreCase", true);
+
+        public override string FormatName(string name)
+        {
+            if (_IgnoreCase)
+                return base.FormatName(name);
+            else
+                return FormatKeyWord(name);
+        }
         #endregion
 
         #region 辅助
