@@ -458,7 +458,7 @@ namespace NewLife.Compression
         public static void CompressFile(String fileName, String outputName = null)
         {
             if (String.IsNullOrEmpty(fileName)) throw new ArgumentNullException("fileName");
-            if (String.IsNullOrEmpty(outputName)) outputName = Path.ChangeExtension(Path.GetFileName(fileName), ".zip");
+            if (String.IsNullOrEmpty(outputName)) outputName = Path.ChangeExtension(fileName, ".zip");
 
             using (ZipFile zf = new ZipFile())
             {
