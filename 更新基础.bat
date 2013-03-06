@@ -10,9 +10,9 @@ title 更新基础文件
 
 :: 导出来源地址
 :: 为了提高速度，可以采用本地地址
-if not exist E:\X (
+if not exist C:\X (
 	set svn=https://svn.nnhy.org/svn/X/trunk
-) else (set svn=E:\X)
+) else (set svn=C:\X)
 set url=%svn%/trunk
 
 :: 1，部署基本环境
