@@ -35,7 +35,7 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
 [assembly: AssemblyVersion("8.9.*")]
-[assembly: AssemblyFileVersion("8.9.2012.1225")]
+[assembly: AssemblyFileVersion("8.9.2013.0307")]
 
 /*
  * XCode的重大改进
@@ -52,6 +52,8 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v8.9.2013.0307   为Oracle驱动增加配置项XCode.Oracle.IgnoreCase，是否忽略大小写，如果不忽略则在表名字段名外面加上双引号，默认true
+ * 
  * v8.9.2012.1225   模型导入导出进行默认值精简，主要使用名称类型和长度
  * 
  * v8.9.2012.1220   实体树基类EntityTree增加父级节点名ParentNodeName

@@ -10,6 +10,8 @@ v2.0 数据架构功能，实体和数据结构双向映射
 v1.2 使用泛型基类
 v1.0 创建XCode
 
+v8.9.2013.0307   为Oracle驱动增加配置项XCode.Oracle.IgnoreCase，是否忽略大小写，如果不忽略则在表名字段名外面加上双引号，默认true
+
 v8.9.2012.1225   模型导入导出进行默认值精简，主要使用名称类型和长度
 
 v8.9.2012.1220   实体树基类EntityTree增加父级节点名ParentNodeName
@@ -40,8 +42,8 @@ v8.8.2012.0718   增加实体事务区域EntityTransaction
 
 v8.8.2012.0715   修正反向工程中因为跨数据库处理默认值而导致字符串默认值出错的BUG
                  修正MSSQL中采用CONVERT([datetime],'1753-1-1',(0))作为时间最小值而无法实现跨数据库处理的BUG
-				 如果索引全部就是主键，无需创建索引
-				 SQLite中不同表的索引名也不能相同
+                 如果索引全部就是主键，无需创建索引
+                 SQLite中不同表的索引名也不能相同
 
 v8.8.2012.0625   增加字段累加功能，支持点击数累加和货币累加等，如Update xxx Set Price=Price+100
                  累加字段用法：实体类静态构造函数中通过AdditionalFields指定需要累加的字段，其它操作不变
@@ -51,10 +53,10 @@ v8.7.2012.0620   修正Entity<>.CopyFrom中复制扩展属性时，设置脏数�
                  XCode对于默认排序的规则：自增主键降序，其它情况默认
 
 v8.7.2012.0614   IEntity接口增加CloneEntity和CopyFrom方法，增强对实体克隆的支持
-				 在事务保护中，为了避免性能损耗，不会实时更新实体缓存，直到提交或回滚事务，插入或删除实体时直接操作实体缓存
-				 DbSession.GetSchema缓存10秒，既提升了正向反向工程的性能，又避免了修改表结构后无法及时得到更新
-				 Entity.Exist选择采用实体缓存进行验证，提高性能
-				 修正EntityList.ToDataTable绑定DataGridView时无法更新数据的BUG，因为脏数据
+                 在事务保护中，为了避免性能损耗，不会实时更新实体缓存，直到提交或回滚事务，插入或删除实体时直接操作实体缓存
+                 DbSession.GetSchema缓存10秒，既提升了正向反向工程的性能，又避免了修改表结构后无法及时得到更新
+                 Entity.Exist选择采用实体缓存进行验证，提高性能
+                 修正EntityList.ToDataTable绑定DataGridView时无法更新数据的BUG，因为脏数据
 
 v8.7.2012.0607   修正TableItem中连接名映射ConnMaps可能因为多线程冲突而导致小几率失败的问题
                  插入数据时，如果没有自增字段，则无视允许插入自增字段的设置
@@ -103,7 +105,7 @@ v8.4.2012.0309   IDatabase接口增加表示Guid获取函数的属性NewGuid
                  插入数据时，针对没有赋值的Guid字段或设置了Guid默认值的字符串字段，默认设置一个Guid，由EntityPersistence实现
 
 v8.4.2012.0224   修正DbSession.InsertAndGetIdentity永远返回0的错误，该错误于20110224产生，影响Oracle和Firebird，感谢 @老徐（279504479）
-				 针对性优化元数据架构，优化正向工程、反向工程的性能，获取单表模型信息时，仅获取该表架构信息，对Oracle反向工程性能提升较大
+                 针对性优化元数据架构，优化正向工程、反向工程的性能，获取单表模型信息时，仅获取该表架构信息，对Oracle反向工程性能提升较大
 
 v8.4.2012.0221   增加排序表达式OrderExpression，字段FieldItem增加排序的Asc和Desc
 
@@ -124,12 +126,12 @@ v8.3.2011.1222   修正SQLite会对内存数据库调用创建数据库的BUG
 
 v8.3.2011.1208   EntityList增加排序方法Up/Down，支持调整某个实体对象在列表中的排序
                  IEntity增加EqualTo，用于判断两个实体对象在主键上是否相等
-				 IEntity增加SetNullKey，用于把实体对象的主键数据设置为空
-				 IDatabase增加StringConcat方法，表示数据库中连接两个字符串
-				 修正反向工程中ReBuildTable的BUG，SQLite中字符串连接使用||而不是+
+                 IEntity增加SetNullKey，用于把实体对象的主键数据设置为空
+                 IDatabase增加StringConcat方法，表示数据库中连接两个字符串
+                 修正反向工程中ReBuildTable的BUG，SQLite中字符串连接使用||而不是+
 
 v8.3.2011.1207   修正MSPageSplit.DoubleTop分页最后一页可能有错误的问题，每次计算分页都查询总记录数判断处理
-				 修正反向工程中SQLite无法删除字段的BUG
+                 修正反向工程中SQLite无法删除字段的BUG
 
 v8.3.2011.1204   实体访问器接口增加OnError事件，允许外部控制异常，默认向外抛出。
                  Entity<>.Delete删除实体时，如果实体有且仅有主键有脏数据，则先查询一次再调用OnDelete删除，避免扩展删除失败
@@ -142,7 +144,7 @@ v8.3.2011.1124   Entity增加SaveWithoutValid方法，不需要验证的保存�
 
 v8.3.2011.1123   修正反向工程检查实体类表架构时，有些实体类所在程序集尚未加载，导致未能检查的问题，改为首次使用时检查
                  针对缓存、数据初始化、检查表架构，添加各种调试日志，方便检查调试程序
-				 修正ModelHelper.GetIndex的错误，该错误导致了反向工程频繁的删除并创建索引
+                 修正ModelHelper.GetIndex的错误，该错误导致了反向工程频繁的删除并创建索引
 
 v8.3.2011.1122   复审一级缓存、实体缓存、单对象缓存代码，增加关键点写日志功能，方便调试可能因缓存而引起的各种问题
 
@@ -155,7 +157,7 @@ v8.3.2011.1118   修正SelectBuilder.SelectCount方法中的BUG，当条件字�
                  WhereExpression增加左右小括号支持，And运算自动检测左右字句并加上小括号（保守做法，只要有Or就加）
 
 v8.3.2011.1115   IDataTable和IDataColumn增加只读属性DisplayName，优先返回Description，然后才是Name
-				 修正MSPageSplit中关于RowNumber和DoubleTop分页的错误
+                 修正MSPageSplit中关于RowNumber和DoubleTop分页的错误
 
 v8.3.2011.1114   修改Entity<>.Meta.CheckModel，加上锁，让多个线程同时访问同一个实体表的操作，全部卡在检查模型之后，避免未创建实体表而报错
 
@@ -173,8 +175,8 @@ v8.2.2011.1103   重构MS分页算法，分为MaxMin分页（数字主键优先�
 v8.2.2011.1101   SqlServer增加连接字符串设置DataPath，用于指定反向工程创建数据库时所使用的数据目录
                  Oracle增加连接字符串设置DllPath，用于指定OCI目录，同时基于该目录自动计算ORACLE_HOME目录
                  Oracle增加设置项XCode.Oracle.IsUseOwner，指定正向工程时是否使用Owner约束所查询的表
-				 支持连接字符串编码加密，避免明文，明文=>UTF8字节=>Base64，可调用DAL.EncodeConnStr实现
-				 如果需要高级加密，则不要在配置文件中设置连接字符串，而改为编码通过DAL.AddConnStr添加
+                 支持连接字符串编码加密，避免明文，明文=>UTF8字节=>Base64，可调用DAL.EncodeConnStr实现
+                 如果需要高级加密，则不要在配置文件中设置连接字符串，而改为编码通过DAL.AddConnStr添加
                  **使用对象容器后，实际项目稳定运行半个月，版本可升级到8.2
 
 v8.1.2011.1020   实体缓存EntityCache及接口增加一个使用委托进行查询的FindAll
@@ -245,7 +247,7 @@ v7.9.2011.0529   实体类添删改拆分两部分，OnInsert/OnUpdate/Delete作
                  增加数据存在判断Exist，开发者可根据需要调用，建议用于业务主键的存在性判断。CheckExist可以在判断后抛出异常。
 
 v7.9.2011.0526   重构XCode实体层元数据部分，使用公开的TableItem替代保护的XCodeConfig，配合FieldItem形成完成的实体元数据结构
-				 使用专用类实现IEntityOperator接口，避免原来臃肿的结构
+                 使用专用类实现IEntityOperator接口，避免原来臃肿的结构
 
 v7.8.2011.0512   更新SelectBuilder，更新QueryCount相关代码，保证生成最精简的QueryCount查询语句，对于MySql而言，避开子查询，有巨大的性能优势
 
