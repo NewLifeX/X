@@ -10,7 +10,9 @@ v2.0 数据架构功能，实体和数据结构双向映射
 v1.2 使用泛型基类
 v1.0 创建XCode
 
-v8.9.2013.0307   为Oracle驱动增加配置项XCode.Oracle.IgnoreCase，是否忽略大小写，如果不忽略则在表名字段名外面加上双引号，默认true
+v8.9.2013.0307   为IDataTable/IDataColumn增加扩展属性字典Properties，支持表和字段使用扩展属性
+
+v8.9.2013.0306   为Oracle驱动增加配置项XCode.Oracle.IgnoreCase，是否忽略大小写，如果不忽略则在表名字段名外面加上双引号，默认true
 
 v8.9.2012.1225   模型导入导出进行默认值精简，主要使用名称类型和长度
 

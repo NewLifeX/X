@@ -121,9 +121,12 @@ namespace XCode.DataAccessLayer
         [XmlIgnore]
         public String DisplayName { get { return ModelResolver.Current.GetDisplayName(Name ?? TableName, Description); } }
 
-        private Dictionary<String, String> _Properties;
+        private IDictionary<String, String> _Properties;
         /// <summary>扩展属性</summary>
-        public IDictionary<String, String> Properties { get { return _Properties ?? (_Properties = new Dictionary<String, String>(StringComparer.OrdinalIgnoreCase)); } }
+        [Category("扩展")]
+        [DisplayName("扩展属性")]
+        [Description("扩展属性")]
+        public IDictionary<String, String> Properties { get { return _Properties ?? (_Properties = new NullableDictionary<String, String>(StringComparer.OrdinalIgnoreCase)); } }
         #endregion
 
         #region 构造

@@ -355,10 +355,14 @@ namespace XCode.DataAccessLayer
         public static void ReadXml(XmlReader reader, Object value)
         {
             var pis = GetProperties(value.GetType());
+            var names = new HashSet<String>(StringComparer.OrdinalIgnoreCase);
             foreach (var item in pis)
             {
                 if (!item.Property.CanRead) continue;
                 if (AttributeX.GetCustomAttribute<XmlIgnoreAttribute>(item.Member, false) != null) continue;
+
+                // 已处理的特性
+                names.Add(item.Name);
 
                 var v = reader.GetAttribute(item.Name);
                 if (String.IsNullOrEmpty(v)) continue;
@@ -401,6 +405,23 @@ namespace XCode.DataAccessLayer
                 if (dc.Identity) dc.Nullable = false;
             }
             //reader.Skip();
+
+            // 剩余特性作为扩展属性
+            if (reader.MoveToFirstAttribute())
+            {
+                if (value is IDataTable || value is IDataColumn)
+                {
+                    var dic = (value is IDataTable) ? (value as IDataTable).Properties : (value as IDataColumn).Properties;
+                    do
+                    {
+                        if (!names.Contains(reader.Name))
+                        {
+                            //dic.Add(reader.Name, reader.Value);
+                            dic[reader.Name] = reader.Value;
+                        }
+                    } while (reader.MoveToNextAttribute());
+                }
+            }
         }
 
         /// <summary>写入</summary>
@@ -478,6 +499,31 @@ namespace XCode.DataAccessLayer
                     //if (item.Type == typeof(Type)) obj = (obj as Type).Name;
                 }
                 writer.WriteAttributeString(item.Name, obj == null ? null : obj.ToString());
+            }
+
+            if (value is IDataTable)
+            {
+                var table = value as IDataTable;
+                // 写入扩展属性作为特性
+                if (table.Properties.Count > 0)
+                {
+                    foreach (var item in table.Properties)
+                    {
+                        writer.WriteAttributeString(item.Key, item.Value);
+                    }
+                }
+            }
+            else if (value is IDataColumn)
+            {
+                var column = value as IDataColumn;
+                // 写入扩展属性作为特性
+                if (column.Properties.Count > 0)
+                {
+                    foreach (var item in column.Properties)
+                    {
+                        writer.WriteAttributeString(item.Key, item.Value);
+                    }
+                }
             }
         }
 
