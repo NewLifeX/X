@@ -3,7 +3,6 @@ using NewLife.Model;
 using NewLife.Reflection;
 using XCode.Accessors;
 using XCode.DataAccessLayer;
-using XCode.DataAccessLayer.Model;
 
 namespace XCode.Model
 {

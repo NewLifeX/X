@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Text;
 using Microsoft.CSharp;
 using XCode.Model;
-using NewLife.Reflection;
 using NewLife.Configuration;
 using NewLife.Collections;
 
@@ -13,7 +11,7 @@ using System.Linq;
 using NewLife.Linq;
 #endif
 
-namespace XCode.DataAccessLayer.Model
+namespace XCode.DataAccessLayer
 {
     /// <summary>模型解析器接口。解决名称大小写、去前缀、关键字等多个问题</summary>
     public interface IModelResolver

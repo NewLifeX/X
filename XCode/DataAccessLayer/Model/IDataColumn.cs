@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace XCode.DataAccessLayer
 {
@@ -61,6 +62,9 @@ namespace XCode.DataAccessLayer
 
         /// <summary>显示名。如果有Description则使用Description，否则使用Name</summary>
         String DisplayName { get; }
+
+        /// <summary>扩展属性</summary>
+        IDictionary<String, String> Properties { get; }
         #endregion
 
         #region 方法

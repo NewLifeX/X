@@ -1,9 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Xml;
 using System.Xml.Serialization;
 using NewLife.Reflection;
-using XCode.DataAccessLayer.Model;
 
 namespace XCode.DataAccessLayer
 {
@@ -161,6 +161,10 @@ namespace XCode.DataAccessLayer
         /// <summary>显示名。如果有Description则使用Description，否则使用Name</summary>
         [XmlIgnore]
         public String DisplayName { get { return ModelResolver.Current.GetDisplayName(Name ?? ColumnName, Description); } }
+
+        private Dictionary<String, String> _Properties;
+        /// <summary>扩展属性</summary>
+        public IDictionary<String, String> Properties { get { return _Properties ?? (_Properties = new Dictionary<String, String>(StringComparer.OrdinalIgnoreCase)); } }
         #endregion
 
         #region 构造
