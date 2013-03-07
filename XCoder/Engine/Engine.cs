@@ -2,16 +2,17 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using NewLife.Model;
 using NewLife.Reflection;
 using NewLife.Threading;
 using XCode.DataAccessLayer;
 using XTemplate.Templating;
-using NewLife.Model;
 
 #if NET4
 using System.Linq;
 #else
 using NewLife.Linq;
+using System.Text.RegularExpressions;
 #endif
 
 namespace XCoder
@@ -185,6 +186,23 @@ namespace XCoder
             tt.AssemblyName = tempName;
             #endregion
 
+            #region 输出目录预处理
+            var outpath = Config.OutputPath;
+            // 使用正则替换处理
+            var reg = new Regex(@"\$\((\w+)\)", RegexOptions.Compiled);
+            outpath = reg.Replace(outpath, math =>
+            {
+                var key = math.Groups[1].Value;
+                if (String.IsNullOrEmpty(key)) return null;
+
+                var pix = PropertyInfoX.Create(typeof(IDataTable), key);
+                if (pix != null)
+                    return (String)pix.GetValue(table);
+                else
+                    return table.Properties[key];
+            });
+            #endregion
+
             #region 编译生成
             // 编译模版。这里至少要处理，只有经过了处理，才知道模版项是不是被包含的
             tt.Compile();
@@ -200,7 +218,7 @@ namespace XCoder
                 fname = fname.Replace("/", "_").Replace("\\", "_");
                 fileName = fileName.Replace("类名", fname).Replace("中文名", fname).Replace("连接名", Config.EntityConnName);
 
-                fileName = Path.Combine(Config.OutputPath, fileName);
+                fileName = Path.Combine(outpath, fileName);
 
                 // 如果不覆盖，并且目标文件已存在，则跳过
                 if (!Config.Override && File.Exists(fileName)) continue;

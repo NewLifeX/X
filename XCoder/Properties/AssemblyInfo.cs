@@ -28,10 +28,12 @@ using System.Runtime.InteropServices;
 //      内部版本号
 //      修订号
 //
-[assembly: AssemblyVersion("5.0.*")]
-[assembly: AssemblyFileVersion("5.0.2012.1117")]
+[assembly: AssemblyVersion("5.1.*")]
+[assembly: AssemblyFileVersion("5.1.2013.0307")]
 
 /*
+ * v5.1.2013.0307   增强数据模型，生成代码时可使用$(属性名)作为输出路径的一部分，支持IDataTable的属性和扩展属性（主要）
+ * 
  * v5.0.2012.1117   增加T4引导模版，用于在实体类项目中通过命令行调用XCoder生成代码
  * 
  * v4.9.2012.1112   数据模型升级，需要更新所有模版
