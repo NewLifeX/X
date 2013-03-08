@@ -24,7 +24,10 @@ namespace System.IO
         {
             if (String.IsNullOrEmpty(path)) return path;
 
-            var dir = Path.GetDirectoryName(path);
+            if (File.Exists(path) || Directory.Exists(path)) return path;
+
+            var dir = path;
+            if (dir[dir.Length - 1] != Path.PathSeparator) dir = Path.GetDirectoryName(path);
             if (!String.IsNullOrEmpty(dir) && !Directory.Exists(dir)) Directory.CreateDirectory(dir);
 
             return path;

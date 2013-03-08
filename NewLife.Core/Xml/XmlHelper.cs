@@ -112,10 +112,10 @@ namespace NewLife.Xml
         /// <returns>Xml字符串</returns>
         public static void ToXmlFile(this Object obj, String file, Encoding encoding = null, String prefix = null, String ns = null, Boolean includeDeclaration = false, Boolean attachCommit = true)
         {
-            //if (File.Exists(file)) File.Delete(file);
+            if (File.Exists(file)) File.Delete(file);
             //var dir = Path.GetDirectoryName(file);
             //if (!String.IsNullOrEmpty(dir) && !Directory.Exists(dir)) Directory.CreateDirectory(dir);
-            var dir = Path.GetDirectoryName(file).EnsureDirectory();
+            file.EnsureDirectory();
 
             // 如果是字符串字典，直接写入文件，其它设置无效
             if (obj is IDictionary<String, String>)
