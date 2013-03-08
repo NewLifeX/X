@@ -35,6 +35,7 @@ namespace XControl
             set
             {
                 if (BtnControl != null) BtnControl.Text = value;
+                if (HiddenControlText != null) HiddenControlText.Value = value;
             }
         }
 
@@ -220,6 +221,17 @@ namespace XControl
             }
         }
 
+        private HiddenField _HiddenControlText;
+        /// <summary>隐藏域</summary>
+        public HiddenField HiddenControlText
+        {
+            get
+            {
+                if (_HiddenControlText == null) EnsureChildControls();
+                return _HiddenControlText;
+            }
+        }
+
         /// <summary>创建一个隐藏子控件</summary>
         protected override void CreateChildControls()
         {
@@ -246,8 +258,9 @@ namespace XControl
                 //_BtnControl.Height = Unit.Pixel(25);
                 //_BtnControl.Width = Unit.Pixel(128);
                 //_BtnControl.Style.Add(HtmlTextWriterStyle.MarginTop, "5px");
-                _BtnControl.ID = "ChooseText";
+                _BtnControl.ID = "ChooseTextShow";
                 _BtnControl.ToolTip = ToolTip;
+                _BtnControl.Text = Text;
                 Controls.Add(_BtnControl);
             }
 
@@ -258,6 +271,18 @@ namespace XControl
                 _HiddenControl.Value = Value;
                 _HiddenControl.ValueChanged += new EventHandler(OnValueChanged);
                 Controls.Add(_HiddenControl);
+            }
+
+            if (_HiddenControlText == null)
+            {
+                _HiddenControlText = new HiddenField();
+                _HiddenControlText.ID = "ChooseText";
+                _HiddenControlText.Value = Text;
+                _HiddenControlText.ValueChanged += delegate(Object sender, EventArgs e)
+                {
+                    _BtnControl.Text = _HiddenControlText.Value;
+                };
+                Controls.Add(_HiddenControlText);
             }
         }
         #endregion
@@ -291,7 +316,7 @@ namespace XControl
                 catch { }
             }
 
-            BtnControl.Attributes.Add("val", HiddenControl.ClientID);
+            BtnControl.Attributes.Add("val", HiddenControl.ClientID + "," + HiddenControlText.ClientID);
 
             String postbackJs = Page.ClientScript.GetPostBackEventReference(this, "");
             postbackJs = postbackJs.Replace("'", @"\'");

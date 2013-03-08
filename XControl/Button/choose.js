@@ -52,7 +52,12 @@
         /// <param name="url">选择窗口的url,url中可以使用{value}和{text},分别代表当前选择的值和显示名称</param>
         /// <param name="options">object类型,窗口选项,可忽略</param>
         try {
-            var valEle = document.getElementById(self.getAttribute('val'));
+            var valElearr = self.getAttribute('val').split(",");
+
+            //var valEle = document.getElementById(self.getAttribute('val'));
+            var valEle = document.getElementById(valElearr[0]);
+            var valEleText = document.getElementById(valElearr[1]);
+
             var opts = {
                 Element: self,
                 Url: url,
@@ -91,7 +96,7 @@
 
             opts.UrlProcessed = randomUrl(opts.UrlProcessed);
 
-            var result = showModalDialog(opts.UrlProcessed, {opener:window}, showModalDialogParams(opts.ModalDialogOptions));
+            var result = showModalDialog(opts.UrlProcessed, { opener: window }, showModalDialogParams(opts.ModalDialogOptions));
 
             var resultArray;
             if (result != undefined) {
@@ -101,6 +106,7 @@
                 try {
                     opts.Element.value = resultArray[1];
                     valEle.value = resultArray[0];
+                    valEleText.value = resultArray[1];
                 } catch (e) { }
             };
             defaultProcess();
