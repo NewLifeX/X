@@ -105,6 +105,9 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public new static PropertyInfoX Create(Type type, String name)
         {
+            // name不判断0长度字符串，因为0长度字符串可以做标识符
+            if (type == null || name == null) return null;
+
             var property = type.GetProperty(name);
             if (property == null) property = type.GetProperty(name, DefaultBinding);
             if (property == null) property = type.GetProperty(name, DefaultBinding | BindingFlags.IgnoreCase);
@@ -120,7 +123,7 @@ namespace NewLife.Reflection
                     }
                 }
             }
-            if (property == null && type.BaseType != typeof(Object)) return Create(type.BaseType, name);
+            if (property == null && type.BaseType != null && type.BaseType != typeof(Object)) return Create(type.BaseType, name);
             if (property == null) return null;
 
             return Create(property);
