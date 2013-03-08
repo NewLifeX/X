@@ -1,4 +1,6 @@
-﻿v3.8.2012.1205   新增系统配置类SysConfig
+﻿v3.8.2013.0308   XmlHelper增加Xml到字符串字典的互相转换
+
+v3.8.2012.1205   新增系统配置类SysConfig
 
 v3.8.2012.1204   XmlHelper增加注入注释的扩展AttachCommit
                  XmlConfig默认写入Description和DisplayName作为注释
@@ -29,7 +31,7 @@ v3.8.2012.0514   对象容器增加ResolveInstance，用于指定获取实例，
 v3.8.2012.0505   提供一种方法，允许在日志输出被重定向后仍然向文件输出日志
 
 v3.8.2012.0423   消息提供者内部支持消息的分片和组装
-				 DictionaryCache增加清理过期缓存项功能，在缓存项过期后，如果再超过清理过期时间则被扫描任务清理
+                 DictionaryCache增加清理过期缓存项功能，在缓存项过期后，如果再超过清理过期时间则被扫描任务清理
 
 v3.8.2012.0410   增加ApiHook，用于挂钩托管函数
 
@@ -59,7 +61,7 @@ v3.5.2011.1230   修正DictionaryCache中GetItem方法cacheDefault参数的严�
 v3.5.2011.1220   序列化框架，FieldSizeAttribute支持样式的多层次引用字段
                  CurrentObject、CurrentMember移到接口中公开
                  读取对象时，如果目标实现了IAccessor接口而对象为空，则提前实例化对象
-				 DisposeBase增加OnDisposed事件，在基类OnDispose之后触发
+                 DisposeBase增加OnDisposed事件，在基类OnDispose之后触发
 
 v3.5.2011.1218   增加压缩命名空间Compression，支持Zip格式
                  调整序列化框架（特别是二进制序列化）的多项功能，更方便使用
@@ -88,7 +90,7 @@ v3.1.2011.1013   增加运行时类Runtime，支持识别是否控制台、是�
                  Runtime支持获取方法的JIT Native地址，支持同签名方法替换
                  增加方法体读取器MethodBodyReader，支持获取方法体的IL代码
                  增加模块构造函数的支持，默认调用Cctor类的Init和Finish方法
-				 Runtime增加设置进程程序集大小，支持释放物理内存
+                 Runtime增加设置进程程序集大小，支持释放物理内存
 
 v3.0.2011.0922   增加扩展方法特性，支持在vs2008和vs2010上编写.Net2.0时使用扩展方法
                  增加Enumerable，利用扩展方法扩展IEnumerable

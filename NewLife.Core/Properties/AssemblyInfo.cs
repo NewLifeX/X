@@ -34,9 +34,11 @@ using System.Runtime.InteropServices;
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("3.8.*")]
-[assembly: AssemblyFileVersion("3.8.2012.1205")]
+[assembly: AssemblyFileVersion("3.8.2013.0308")]
 
 /*
+ * v3.8.2013.0308   XmlHelper增加Xml到字符串字典的互相转换
+ * 
  * v3.8.2012.1205   新增系统配置类SysConfig
  * 
  * v3.8.2012.1204   XmlHelper增加注入注释的扩展AttachCommit

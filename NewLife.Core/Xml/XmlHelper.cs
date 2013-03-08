@@ -7,6 +7,7 @@ using System.Xml;
 using System.Xml.Serialization;
 using NewLife.Exceptions;
 using NewLife.Reflection;
+using NewLife.Log;
 
 namespace NewLife.Xml
 {
@@ -112,8 +113,17 @@ namespace NewLife.Xml
         public static void ToXmlFile(this Object obj, String file, Encoding encoding = null, String prefix = null, String ns = null, Boolean includeDeclaration = false, Boolean attachCommit = true)
         {
             //if (File.Exists(file)) File.Delete(file);
-            var dir = Path.GetDirectoryName(file);
-            if (!String.IsNullOrEmpty(dir) && !Directory.Exists(dir)) Directory.CreateDirectory(dir);
+            //var dir = Path.GetDirectoryName(file);
+            //if (!String.IsNullOrEmpty(dir) && !Directory.Exists(dir)) Directory.CreateDirectory(dir);
+            var dir = Path.GetDirectoryName(file).EnsureDirectory();
+
+            // 如果是字符串字典，直接写入文件，其它设置无效
+            if (obj is IDictionary<String, String>)
+            {
+                var xml = (obj as IDictionary<String, String>).ToXml(prefix);
+                File.WriteAllText(file, xml, encoding ?? Encoding.UTF8);
+                return;
+            }
 
             using (var stream = new FileStream(file, FileMode.OpenOrCreate, FileAccess.ReadWrite))
             {
@@ -356,6 +366,65 @@ namespace NewLife.Xml
             }
 
             return rs;
+        }
+        #endregion
+
+        #region Xml转字典
+        /// <summary>简单Xml转为字符串字典</summary>
+        /// <param name="xml"></param>
+        /// <returns></returns>
+        public static Dictionary<String, String> ToXmlDictionary(this String xml)
+        {
+            if (String.IsNullOrEmpty(xml)) return null;
+
+            var doc = new XmlDocument();
+            doc.LoadXml(xml);
+            var root = doc.DocumentElement;
+
+            var dic = new Dictionary<String, String>();
+
+            if (root.ChildNodes != null && root.ChildNodes.Count > 0)
+            {
+                foreach (XmlNode item in root.ChildNodes)
+                {
+                    if (item.ChildNodes != null && (item.ChildNodes.Count > 1 ||
+                        item.ChildNodes.Count == 1 && !(item.FirstChild is XmlText) && !(item.FirstChild is XmlCDataSection)))
+                    {
+                        dic[item.Name] = item.InnerXml;
+                    }
+                    else
+                    {
+                        dic[item.Name] = item.InnerText;
+                    }
+                }
+            }
+
+            return dic;
+        }
+
+        /// <summary>字符串字典转为Xml</summary>
+        /// <param name="dic"></param>
+        /// <param name="rootName"></param>
+        /// <returns></returns>
+        public static String ToXml(this IDictionary<String, String> dic, String rootName = null)
+        {
+            if (String.IsNullOrEmpty(rootName)) rootName = "xml";
+
+            var doc = new XmlDocument();
+            var root = doc.CreateElement(rootName);
+            doc.AppendChild(root);
+
+            if (dic != null && dic.Count > 0)
+            {
+                foreach (var item in dic)
+                {
+                    var elm = doc.CreateElement(item.Key);
+                    elm.InnerText = item.Value;
+                    root.AppendChild(elm);
+                }
+            }
+
+            return doc.OuterXml;
         }
         #endregion
     }
