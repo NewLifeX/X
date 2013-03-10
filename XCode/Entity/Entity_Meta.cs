@@ -47,7 +47,11 @@ namespace XCode
                     //修改链接名，挂载当前表
                     if (!String.IsNullOrEmpty(value) && !String.Equals(_ConnName, value, StringComparison.OrdinalIgnoreCase))
                     {
-                        CheckTable(value, TableName);
+                        try
+                        {
+                            CheckTable(value, TableName);
+                        }
+                        catch { }
 
                         // 清空记录数缓存
                         ClearCountCache();
@@ -69,7 +73,11 @@ namespace XCode
                     //修改表名
                     if (!String.IsNullOrEmpty(value) && !String.Equals(_TableName, value, StringComparison.OrdinalIgnoreCase))
                     {
-                        CheckTable(ConnName, value);
+                        try
+                        {
+                            CheckTable(ConnName, value);
+                        }
+                        catch { }
 
                         // 清空记录数缓存
                         ClearCountCache();
