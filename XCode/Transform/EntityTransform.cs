@@ -147,9 +147,12 @@ namespace XCode.Transform
                 // 允许插入自增
                 var oldII = eop.AllowInsertIdentity;
                 if (AllowInsertIdentity) eop.AllowInsertIdentity = true;
+
+#if !DEBUG
                 // 关闭SQL日志
                 var oldShowSql = DAL.ShowSQL;
                 DAL.ShowSQL = false;
+#endif
 
                 var total = 0;
                 var index = 0;
@@ -180,7 +183,9 @@ namespace XCode.Transform
 
                     total += rs;
                 }
+#if !DEBUG
                 DAL.ShowSQL = oldShowSql;
+#endif
                 // 关闭插入自增
                 if (AllowInsertIdentity) eop.AllowInsertIdentity = oldII;
 
