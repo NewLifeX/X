@@ -10,9 +10,17 @@ title 更新基础文件
 
 :: 导出来源地址
 :: 为了提高速度，可以采用本地地址
-if not exist C:\X (
-	set svn=https://svn.nnhy.org/svn/X/trunk
-) else (set svn=C:\X)
+set svn=https://svn.newlifex.com/svn/X/trunk
+if exist C:\X (
+	:: 先更新一次源
+	svn info %svn%/DLL
+	svn update C:\X\DLL
+
+	svn info %svn%/Src/Web
+	svn update C:\X\Src\Web
+
+	set svn=C:\X
+)
 set url=%svn%/trunk
 
 :: 1，部署基本环境
@@ -56,5 +64,8 @@ if exist %name% (
 ) else (
 	svn export --force %url% %name%
 )
+
+set name=更新基础.bat
+svn export --force %svn%/Src/%name% %name%
 
 pause
