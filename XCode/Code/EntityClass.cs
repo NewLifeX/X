@@ -74,7 +74,7 @@ namespace XCode.Code
             //    Class.CustomAttributes.Add(new CodeAttributeDeclaration(new CodeTypeReference(typeof(DisplayNameAttribute)), new CodeAttributeArgument(new CodePrimitiveExpression(Table.Description))));
             //}
             if (!Table.Description.IsNullOrWhiteSpace()) Class.AddAttribute<DescriptionAttribute>(Table.Description);
-            if (!Table.DisplayName.IsNullOrWhiteSpace()) Class.AddAttribute<DisplayNameAttribute>(Table.DisplayName);
+            if (!Table.DisplayName.IsNullOrWhiteSpace() && Table.DisplayName != Table.Name) Class.AddAttribute<DisplayNameAttribute>(Table.DisplayName);
             //Class.CustomAttributes.Add(new CodeAttributeDeclaration(new CodeTypeReference(typeof(CompilerGeneratedAttribute))));
             Class.AddAttribute<CompilerGeneratedAttribute>();
 
@@ -178,7 +178,7 @@ namespace XCode.Code
             //    p.CustomAttributes.Add(new CodeAttributeDeclaration(new CodeTypeReference(typeof(DisplayNameAttribute)), new CodeAttributeArgument(new CodePrimitiveExpression(field.Description))));
             //}
             if (!field.Description.IsNullOrWhiteSpace()) p.AddAttribute<DescriptionAttribute>(field.Description);
-            if (!field.DisplayName.IsNullOrWhiteSpace()) p.AddAttribute<DisplayNameAttribute>(field.DisplayName);
+            if (!field.DisplayName.IsNullOrWhiteSpace() && field.DisplayName != field.Name) p.AddAttribute<DisplayNameAttribute>(field.DisplayName);
 
             //p.CustomAttributes.Add(new CodeAttributeDeclaration(new CodeTypeReference(typeof(DataObjectFieldAttribute)),
             //    new CodeAttributeArgument(new CodePrimitiveExpression(field.PrimaryKey)),
