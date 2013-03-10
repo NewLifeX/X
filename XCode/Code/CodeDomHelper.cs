@@ -23,7 +23,7 @@ namespace XCode.Code
             var str = p.ToString();
             if (str == "") return new CodePrimitiveExpression(p);
 
-            if (str[0] == '_') return new CodeFieldReferenceExpression(null, str.Substring(1));
+            if (str[0] == '_') return new CodeFieldReferenceExpression(null, str);
 
             if (str[0] == '@') return new CodeArgumentReferenceExpression(str.Substring(1));
 
