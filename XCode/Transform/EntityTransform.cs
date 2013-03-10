@@ -118,6 +118,7 @@ namespace XCode.Transform
         public Int32 TransformTable(IEntityOperate eop, Int32 count = 0, Boolean? isDesc = null, Func<Int32, Int32, IEntityList> getData = null)
         {
             var name = eop.TableName;
+            eop.ConnName = SrcConn;
             if (count <= 0) count = eop.Count;
             if (getData == null)
             {

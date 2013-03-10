@@ -313,6 +313,10 @@ namespace XCode
                         return;
                     }
 
+                    var key = String.Format("{0}#{1}", ConnName, TableName);
+                    if (hasCheckedTables.Contains(key)) return;
+                    hasCheckedTables.Add(key);
+
                     // 输出调用者，方便调试
 #if DEBUG
                     if (DAL.Debug) DAL.WriteLog("检查实体{0}的数据表架构，模式：{1}，调用栈：{2}", ThisType.FullName, Table.ModelCheckMode, XTrace.GetCaller());
@@ -328,14 +332,19 @@ namespace XCode
                     // 或者前面初始化的时候没有涉及的，也在这个时候检查
                     if (!DBO.HasCheckTables.Contains(TableName))
                     {
-                        DBO.HasCheckTables.Add(TableName);
+                        if (!ck)
+                        {
+                            DBO.HasCheckTables.Add(TableName);
 
 #if DEBUG
-                        if (!ck && DAL.Debug) DAL.WriteLog("集中初始化表架构时没赶上，现在补上！");
+                            if (!ck && DAL.Debug) DAL.WriteLog("集中初始化表架构时没赶上，现在补上！");
 #endif
 
-                        ck = true;
+                            ck = true;
+                        }
                     }
+                    else
+                        ck = false;
                     if (ck)
                     {
                         Func check = delegate
