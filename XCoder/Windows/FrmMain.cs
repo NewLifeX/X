@@ -362,6 +362,7 @@ namespace XCoder
         {
             if (source == null)
             {
+                cbTableList.DataSource = source;
                 cbTableList.Items.Clear();
                 return;
             }
