@@ -181,7 +181,7 @@ namespace XCode.DataAccessLayer
         /// <returns>新增行的自动编号</returns>
         public override Int64 InsertAndGetIdentity(string sql, CommandType type = CommandType.Text, params DbParameter[] ps)
         {
-            Boolean b = IsAutoClose;
+            var b = IsAutoClose;
             // 禁用自动关闭，保证两次在同一会话
             IsAutoClose = false;
 
@@ -193,7 +193,7 @@ namespace XCode.DataAccessLayer
                 Commit();
                 return rs;
             }
-            catch { Rollback(); throw; }
+            catch { Rollback(true); throw; }
             finally
             {
                 IsAutoClose = b;

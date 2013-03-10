@@ -191,7 +191,7 @@ namespace XCode.Transform
             }
             catch (Exception ex)
             {
-                XTrace.WriteLine("{0} 错误 {1}", name, ex.Message);
+                XTrace.WriteLine("{0} 错误 {1}", name, ex.ToString());
                 // 在目标链接上启用事务保护
                 eop.ConnName = DesConn;
                 eop.Rollback();

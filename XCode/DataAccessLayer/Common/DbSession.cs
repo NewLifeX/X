@@ -225,11 +225,12 @@ namespace XCode.DataAccessLayer
         private Int32 TransactionCount = 0;
 
         /// <summary>开始事务</summary>
-        /// <returns></returns>
+        /// <returns>剩下的事务计数</returns>
         public Int32 BeginTransaction()
         {
             if (Disposed) throw new ObjectDisposedException(this.GetType().Name);
 
+            if (TransactionCount < 0) TransactionCount = 0;
             TransactionCount++;
             if (TransactionCount > 1) return TransactionCount;
 
@@ -247,6 +248,7 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>提交事务</summary>
+        /// <returns>剩下的事务计数</returns>
         public Int32 Commit()
         {
             TransactionCount--;
@@ -268,22 +270,25 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>回滚事务</summary>
-        public Int32 Rollback()
+        /// <param name="ignoreException">是否忽略异常</param>
+        /// <returns>剩下的事务计数</returns>
+        public Int32 Rollback(Boolean ignoreException = true)
         {
             // 这里要小心，在多层事务中，如果内层回滚，而最外层提交，则内层的回滚会变成提交
             TransactionCount--;
             if (TransactionCount > 0) return TransactionCount;
 
-            if (Trans == null) throw new XDbSessionException(this, "当前并未开始事务，请用BeginTransaction方法开始新事务！");
+            var tr = Trans;
+            if (tr == null) throw new XDbSessionException(this, "当前并未开始事务，请用BeginTransaction方法开始新事务！");
+            Trans = null;
             try
             {
-                Trans.Rollback();
-                Trans = null;
+                tr.Rollback();
                 if (IsAutoClose) Close();
             }
             catch (DbException ex)
             {
-                throw OnException(ex);
+                if (!ignoreException) throw OnException(ex);
             }
 
             return TransactionCount;

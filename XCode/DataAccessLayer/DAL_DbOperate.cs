@@ -300,6 +300,7 @@ namespace XCode.DataAccessLayer
 
         #region 事务
         /// <summary>开始事务</summary>
+        /// <returns>剩下的事务计数</returns>
         public Int32 BeginTransaction()
         {
             CheckBeforeUseDatabase();
@@ -307,10 +308,13 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>提交事务</summary>
+        /// <returns>剩下的事务计数</returns>
         public Int32 Commit() { return Session.Commit(); }
 
         /// <summary>回滚事务</summary>
-        public Int32 Rollback() { return Session.Rollback(); }
+        /// <param name="ignoreException">是否忽略异常，默认忽略</param>
+        /// <returns>剩下的事务计数</returns>
+        public Int32 Rollback(Boolean ignoreException = true) { return Session.Rollback(ignoreException); }
         #endregion
     }
 }

@@ -11,6 +11,7 @@ v1.2 使用泛型基类
 v1.0 创建XCode
 
 v8.9.2013.0310   修正动态代码中字段引用不正确的BUG
+                 IDbSession.Rollback增加是否忽略异常的参数，默认忽略
 
 v8.9.2013.0307   为IDataTable/IDataColumn增加扩展属性字典Properties，支持表和字段使用扩展属性
 

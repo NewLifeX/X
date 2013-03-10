@@ -456,7 +456,7 @@ namespace XCode
             private static Int32 executeCount = 0;
 
             /// <summary>开始事务</summary>
-            /// <returns></returns>
+            /// <returns>剩下的事务计数</returns>
             public static Int32 BeginTrans()
             {
                 // 可能存在多层事务，这里不能把这个清零
@@ -465,7 +465,7 @@ namespace XCode
             }
 
             /// <summary>提交事务</summary>
-            /// <returns></returns>
+            /// <returns>剩下的事务计数</returns>
             public static Int32 Commit()
             {
                 TransCount = DBO.Commit();
@@ -482,10 +482,11 @@ namespace XCode
             }
 
             /// <summary>回滚事务</summary>
-            /// <returns></returns>
-            public static Int32 Rollback()
+            /// <param name="ignoreException">是否忽略异常，默认忽略</param>
+            /// <returns>剩下的事务计数</returns>
+            public static Int32 Rollback(Boolean ignoreException = true)
             {
-                TransCount = DBO.Rollback();
+                TransCount = DBO.Rollback(ignoreException);
                 // 回滚的时候貌似不需要更新缓存
                 //if (TransCount <= 0 && executeCount > 0) DataChange();
                 if (TransCount <= 0 && executeCount > 0)

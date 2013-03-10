@@ -51,16 +51,17 @@ namespace XCode.DataAccessLayer
 
         #region 事务
         /// <summary>开始事务</summary>
-        /// <returns></returns>
+        /// <returns>剩下的事务计数</returns>
         Int32 BeginTransaction();
 
         /// <summary>提交事务</summary>
-        /// <returns></returns>
+        /// <returns>剩下的事务计数</returns>
         Int32 Commit();
 
         /// <summary>回滚事务</summary>
-        /// <returns></returns>
-        Int32 Rollback();
+        /// <param name="ignoreException">是否忽略异常</param>
+        /// <returns>剩下的事务计数</returns>
+        Int32 Rollback(Boolean ignoreException = true);
         #endregion
 
         #region 基本方法 查询/执行
