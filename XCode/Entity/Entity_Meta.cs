@@ -88,51 +88,6 @@ namespace XCode
                 }
             }
 
-            private static ICollection<String> hasCheckedTables = new HashSet<String>(StringComparer.OrdinalIgnoreCase);
-            private static void CheckTable(String connName, String tableName)
-            {
-                var key = String.Format("{0}#{1}", connName, tableName);
-                if (hasCheckedTables.Contains(key)) return;
-                lock (hasCheckedTables)
-                {
-                    if (hasCheckedTables.Contains(key)) return;
-
-                    // 检查新表名对应的数据表
-                    var table = TableItem.Create(ThisType).DataTable;
-                    // 克隆一份，防止修改
-                    table = table.Clone() as IDataTable;
-
-                    if (table.TableName != tableName)
-                    {
-                        // 修改一下索引名，否则，可能因为同一个表里面不同的索引冲突
-                        if (table.Indexes != null)
-                        {
-                            foreach (var di in table.Indexes)
-                            {
-                                var sb = new StringBuilder();
-                                sb.AppendFormat("IX_{0}", tableName);
-                                foreach (var item in di.Columns)
-                                {
-                                    sb.Append("_");
-                                    sb.Append(item);
-                                }
-
-                                di.Name = sb.ToString();
-                            }
-                        }
-                        table.TableName = tableName;
-                    }
-
-                    //var set = new NegativeSetting();
-                    //set.CheckOnly = DAL.NegativeCheckOnly;
-                    //set.NoDelete = DAL.NegativeNoDelete;
-                    //DAL.Create(connName).Db.CreateMetaData().SetTables(set, table);
-                    DAL.Create(connName).SetTables(table);
-
-                    hasCheckedTables.Add(key);
-                }
-            }
-
             /// <summary>所有数据属性</summary>
             public static FieldItem[] AllFields { get { return Table.AllFields; } }
 
@@ -306,94 +261,6 @@ namespace XCode
                 remove { }
             }
 
-            static Int32[] hasCheckModel = new Int32[] { 0 };
-            private static void CheckModel()
-            {
-                //if (Interlocked.CompareExchange(ref hasCheckModel, 1, 0) != 0) return;
-                if (hasCheckModel[0] > 0) return;
-                lock (hasCheckModel)
-                {
-                    if (hasCheckModel[0] > 0) return;
-
-                    if (!DAL.NegativeEnable || DAL.NegativeExclude.Contains(ConnName) || DAL.NegativeExclude.Contains(TableName) || IsGenerated)
-                    {
-                        hasCheckModel[0] = 1;
-                        return;
-                    }
-
-                    var key = String.Format("{0}#{1}", ConnName, TableName);
-                    if (hasCheckedTables.Contains(key)) return;
-                    hasCheckedTables.Add(key);
-
-                    // 输出调用者，方便调试
-#if DEBUG
-                    if (DAL.Debug) DAL.WriteLog("检查实体{0}的数据表架构，模式：{1}，调用栈：{2}", ThisType.FullName, Table.ModelCheckMode, XTrace.GetCaller());
-#else
-                    // CheckTableWhenFirstUse的实体类，在这里检查，有点意思，记下来
-                    if (DAL.Debug && Table.ModelCheckMode == ModelCheckModes.CheckTableWhenFirstUse)
-                        DAL.WriteLog("检查实体{0}的数据表架构，模式：{1}", ThisType.FullName, Table.ModelCheckMode);
-#endif
-
-                    // 第一次使用才检查的，此时检查
-                    Boolean ck = false;
-                    if (Table.ModelCheckMode == ModelCheckModes.CheckTableWhenFirstUse) ck = true;
-                    // 或者前面初始化的时候没有涉及的，也在这个时候检查
-                    if (!DBO.HasCheckTables.Contains(TableName))
-                    {
-                        if (!ck)
-                        {
-                            DBO.HasCheckTables.Add(TableName);
-
-#if DEBUG
-                            if (!ck && DAL.Debug) DAL.WriteLog("集中初始化表架构时没赶上，现在补上！");
-#endif
-
-                            ck = true;
-                        }
-                    }
-                    else
-                        ck = false;
-                    if (ck)
-                    {
-                        Func check = delegate
-                        {
-#if DEBUG
-                            DAL.WriteLog("开始{2}检查表[{0}/{1}]的数据表架构……", Table.DataTable.Name, DbType, DAL.NegativeCheckOnly ? "异步" : "同步");
-#endif
-
-                            var sw = new Stopwatch();
-                            sw.Start();
-
-                            try
-                            {
-                                //var set = new NegativeSetting();
-                                //set.CheckOnly = DAL.NegativeCheckOnly;
-                                //set.NoDelete = DAL.NegativeNoDelete;
-                                //DBO.Db.CreateMetaData().SetTables(set, Table.DataTable);
-                                DBO.SetTables(Table.DataTable);
-                            }
-                            finally
-                            {
-                                sw.Stop();
-
-#if DEBUG
-                                DAL.WriteLog("检查表[{0}/{1}]的数据表架构耗时{2}", Table.DataTable.Name, DbType, sw.Elapsed);
-#endif
-                            }
-                        };
-
-                        // 打开了开关，并且设置为true时，使用同步方式检查
-                        // 设置为false时，使用异步方式检查，因为上级的意思是不大关心数据库架构
-                        if (!DAL.NegativeCheckOnly)
-                            check();
-                        else
-                            ThreadPoolX.QueueUserWorkItem(check);
-                    }
-
-                    hasCheckModel[0] = 1;
-                }
-            }
-
             private static Boolean IsGenerated { get { return ThisType.GetCustomAttribute<CompilerGeneratedAttribute>(true) != null; } }
 
             /// <summary>记录已进行数据初始化的表</summary>
@@ -463,6 +330,147 @@ namespace XCode
                 finally { e.Set(); }
 
                 return true;
+            }
+            #endregion
+
+            #region 架构检查
+            private static ICollection<String> hasCheckedTables = new HashSet<String>(StringComparer.OrdinalIgnoreCase);
+            private static void CheckTable(String connName, String tableName)
+            {
+                var key = String.Format("{0}#{1}", connName, tableName);
+                if (hasCheckedTables.Contains(key)) return;
+                lock (hasCheckedTables)
+                {
+                    if (hasCheckedTables.Contains(key)) return;
+
+                    // 检查新表名对应的数据表
+                    var table = TableItem.Create(ThisType).DataTable;
+                    // 克隆一份，防止修改
+                    table = table.Clone() as IDataTable;
+
+                    if (table.TableName != tableName)
+                    {
+                        // 修改一下索引名，否则，可能因为同一个表里面不同的索引冲突
+                        if (table.Indexes != null)
+                        {
+                            foreach (var di in table.Indexes)
+                            {
+                                var sb = new StringBuilder();
+                                sb.AppendFormat("IX_{0}", tableName);
+                                foreach (var item in di.Columns)
+                                {
+                                    sb.Append("_");
+                                    sb.Append(item);
+                                }
+
+                                di.Name = sb.ToString();
+                            }
+                        }
+                        table.TableName = tableName;
+                    }
+
+                    //var set = new NegativeSetting();
+                    //set.CheckOnly = DAL.NegativeCheckOnly;
+                    //set.NoDelete = DAL.NegativeNoDelete;
+                    //DAL.Create(connName).Db.CreateMetaData().SetTables(set, table);
+                    if (!DBO.HasCheckTables.Contains(TableName)) DBO.HasCheckTables.Add(TableName);
+                    DAL.Create(connName).SetTables(table);
+
+                    hasCheckedTables.Add(key);
+                }
+            }
+
+            static Int32[] hasCheckModel = new Int32[] { 0 };
+            private static void CheckModel()
+            {
+                //if (Interlocked.CompareExchange(ref hasCheckModel, 1, 0) != 0) return;
+                if (hasCheckModel[0] > 0) return;
+                lock (hasCheckModel)
+                {
+                    if (hasCheckModel[0] > 0) return;
+
+                    if (!DAL.NegativeEnable || DAL.NegativeExclude.Contains(ConnName) || DAL.NegativeExclude.Contains(TableName) || IsGenerated)
+                    {
+                        hasCheckModel[0] = 1;
+                        return;
+                    }
+
+                    var key = String.Format("{0}#{1}", ConnName, TableName);
+                    if (hasCheckedTables.Contains(key))
+                    {
+                        hasCheckModel[0] = 1;
+                        return;
+                    }
+                    hasCheckedTables.Add(key);
+
+                    // 输出调用者，方便调试
+#if DEBUG
+                    if (DAL.Debug) DAL.WriteLog("检查实体{0}的数据表架构，模式：{1}，调用栈：{2}", ThisType.FullName, Table.ModelCheckMode, XTrace.GetCaller());
+#else
+                    // CheckTableWhenFirstUse的实体类，在这里检查，有点意思，记下来
+                    if (DAL.Debug && Table.ModelCheckMode == ModelCheckModes.CheckTableWhenFirstUse)
+                        DAL.WriteLog("检查实体{0}的数据表架构，模式：{1}", ThisType.FullName, Table.ModelCheckMode);
+#endif
+
+                    // 第一次使用才检查的，此时检查
+                    Boolean ck = false;
+                    if (Table.ModelCheckMode == ModelCheckModes.CheckTableWhenFirstUse) ck = true;
+                    // 或者前面初始化的时候没有涉及的，也在这个时候检查
+                    if (!DBO.HasCheckTables.Contains(TableName))
+                    {
+                        if (!ck)
+                        {
+                            DBO.HasCheckTables.Add(TableName);
+
+#if DEBUG
+                            if (!ck && DAL.Debug) DAL.WriteLog("集中初始化表架构时没赶上，现在补上！");
+#endif
+
+                            ck = true;
+                        }
+                    }
+                    else
+                        ck = false;
+
+                    if (ck)
+                    {
+                        Func check = delegate
+                        {
+#if DEBUG
+                            DAL.WriteLog("开始{2}检查表[{0}/{1}]的数据表架构……", Table.DataTable.Name, DbType, DAL.NegativeCheckOnly ? "异步" : "同步");
+#endif
+
+                            var sw = new Stopwatch();
+                            sw.Start();
+
+                            try
+                            {
+                                //var set = new NegativeSetting();
+                                //set.CheckOnly = DAL.NegativeCheckOnly;
+                                //set.NoDelete = DAL.NegativeNoDelete;
+                                //DBO.Db.CreateMetaData().SetTables(set, Table.DataTable);
+                                DBO.SetTables(Table.DataTable);
+                            }
+                            finally
+                            {
+                                sw.Stop();
+
+#if DEBUG
+                                DAL.WriteLog("检查表[{0}/{1}]的数据表架构耗时{2}", Table.DataTable.Name, DbType, sw.Elapsed);
+#endif
+                            }
+                        };
+
+                        // 打开了开关，并且设置为true时，使用同步方式检查
+                        // 设置为false时，使用异步方式检查，因为上级的意思是不大关心数据库架构
+                        if (!DAL.NegativeCheckOnly)
+                            check();
+                        else
+                            ThreadPoolX.QueueUserWorkItem(check);
+                    }
+
+                    hasCheckModel[0] = 1;
+                }
             }
             #endregion
 
