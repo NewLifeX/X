@@ -257,7 +257,7 @@ namespace XCode.DataAccessLayer
             if (Trans == null) throw new XDbSessionException(this, "当前并未开始事务，请用BeginTransaction方法开始新事务！");
             try
             {
-                Trans.Commit();
+                if (Trans.Connection != null) Trans.Commit();
                 Trans = null;
                 if (IsAutoClose) Close();
             }
@@ -283,7 +283,7 @@ namespace XCode.DataAccessLayer
             Trans = null;
             try
             {
-                tr.Rollback();
+                if (tr.Connection != null) tr.Rollback();
                 if (IsAutoClose) Close();
             }
             catch (DbException ex)
