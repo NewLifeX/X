@@ -22,11 +22,11 @@ public partial class Admin_SelectAdmin : MyEntityList
         }
 
         Type type = CommonManageProvider.Provider.AdminstratorType;
-        ObjectDataSource1.TypeName = type.FullName;
-        ObjectDataSource1.DataObjectTypeName = type.FullName;
+        ods.TypeName = type.FullName;
+        ods.DataObjectTypeName = type.FullName;
 
         type = CommonManageProvider.Provider.RoleType;
-        ObjectDataSource2.TypeName = type.FullName;
-        ObjectDataSource2.DataObjectTypeName = type.FullName;
+        odsRole.TypeName = type.FullName;
+        odsRole.DataObjectTypeName = type.FullName;
     }
 }

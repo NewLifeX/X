@@ -12,7 +12,7 @@
     <div>
         <div class="toolbar" style="text-align: center;">
             关键字:<asp:TextBox ID="txtKey" runat="server"></asp:TextBox>&nbsp; 角色：<XCL:DropDownList
-                ID="DropdownList1" runat="server" DataSourceID="ObjectDataSource2" AppendDataBoundItems="true"
+                ID="ddlRole" runat="server" DataSourceID="odsRole" AppendDataBoundItems="true"
                 DataTextField="Name" DataValueField="ID">
                 <asp:ListItem Value="0">请选择</asp:ListItem>
             </XCL:DropDownList>
@@ -20,8 +20,8 @@
             &nbsp; 选择了：<asp:Label ID="lblmsg" runat="server" ForeColor="Red">未选择
             </asp:Label>（提示：双击选中）
         </div>
-        <asp:GridView ID="GridView1" runat="server" AutoGenerateColumns="False" DataKeyNames="ID"
-            DataSourceID="ObjectDataSource1" AllowPaging="True" AllowSorting="True" CssClass="m_table"
+        <asp:GridView ID="gv" runat="server" AutoGenerateColumns="False" DataKeyNames="ID"
+            DataSourceID="ods" AllowPaging="True" AllowSorting="True" CssClass="m_table"
             PageSize="20" EnableModelValidation="True" GridLines="None">
             <Columns>
                 <asp:BoundField DataField="ID" HeaderText="编号" SortExpression="ID" InsertVisible="False"
@@ -37,21 +37,21 @@
                 没有符合条件的数据！
             </EmptyDataTemplate>
         </asp:GridView>
-        <asp:ObjectDataSource ID="ObjectDataSource1" runat="server" DataObjectTypeName=""
-            DeleteMethod="Delete" EnablePaging="True" OldValuesParameterFormatString="original_{0}"
+        <asp:ObjectDataSource ID="ods" runat="server" DataObjectTypeName=""
+            EnablePaging="True" OldValuesParameterFormatString="original_{0}"
             SelectCountMethod="SearchCount" SelectMethod="Search" SortParameterName="orderClause"
             TypeName="">
             <SelectParameters>
                 <asp:ControlParameter ControlID="txtKey" Name="key" PropertyName="Text" Type="String" />
-                <asp:ControlParameter ControlID="DropdownList1" Name="roleId" Type="Int32" PropertyName="Text" />
+                <asp:ControlParameter ControlID="ddlRole" Name="roleId" Type="Int32" PropertyName="Text" />
+                <asp:Parameter Name="isEnable" Type="Boolean" DefaultValue="true" />
                 <asp:Parameter Name="orderClause" Type="String" />
                 <asp:Parameter Name="startRowIndex" Type="Int32" />
                 <asp:Parameter Name="maximumRows" Type="Int32" />
             </SelectParameters>
         </asp:ObjectDataSource>
-        <asp:ObjectDataSource ID="ObjectDataSource2" runat="server" OldValuesParameterFormatString="original_{0}"
-            SelectMethod="FindAllByName" TypeName="" DataObjectTypeName="" DeleteMethod="Delete"
-            InsertMethod="Insert" UpdateMethod="Update">
+        <asp:ObjectDataSource ID="odsRole" runat="server" OldValuesParameterFormatString="original_{0}"
+            SelectMethod="FindAllByName" TypeName="" DataObjectTypeName="">
             <SelectParameters>
                 <asp:Parameter Name="name" Type="String" />
                 <asp:Parameter Name="value" Type="Object" />

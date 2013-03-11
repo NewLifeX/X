@@ -27,6 +27,7 @@ using System.Linq;
 #else
 using NewLife.Linq;
 using XCode;
+using NewLife.Compression;
 #endif
 
 namespace Test
@@ -44,7 +45,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test8();
+                    Test10();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -400,21 +401,77 @@ namespace Test
 
         static void Test8()
         {
-            var file = @"..\Src\NewLife.CommonEntity\管理和授权\Common.xml";
-            //file = @"C:\Work\School\Src\NewLife.School\School.xml";
+            var xml = @"<?xml version=""1.0"" encoding=""utf-8""?>
+<xml>
+  <ToUserName><![CDATA[gh_a96a4a619366]]></ToUserName>
+  <FromUserName><![CDATA[olPjZjsXuQPJoV0HlruZkNzKc91E]]></FromUserName>
+  <CreateTime>1358061152</CreateTime>
+  <MsgType><![CDATA[location]]></MsgType>
+  <Location_X>31.285774</Location_X>
+  <Location_Y>120.597610</Location_Y>
+  <Scale>19</Scale>
+  <Label><![CDATA[中国江苏省苏州市沧浪区桐泾南路251号-309号]]></Label>
+  <MsgId>5832828233808572154</MsgId>
+</xml>";
 
-            var xml = File.ReadAllText(file);
-            var tbs = DAL.Import(xml);
+            //var msg = Msg.Load(xml);
+            //var msg = xml.ToXmlEntity<Msg>();
+            //Console.WriteLine(msg.Label);
 
-            var tb = tbs[0];
+            var reader = new XmlReaderX(xml);
+            var msg = reader.ReadObject<Msg>();
+            Console.WriteLine(msg.Label);
 
-            var xml2 = DAL.Export(new IDataTable[] { tb });
-            Console.WriteLine(xml2);
+            var dic = xml.ToXmlDictionary();
+            Console.WriteLine(dic);
 
-            xml2 = DAL.Export(tbs);
-            File.WriteAllText(file, xml2);
-
-            Console.WriteLine(xml == xml2);
+            xml = dic.ToXml();
+            Console.WriteLine(xml);
         }
+
+        static void Test10()
+        {
+            var eop = DAL.Create("Common").CreateOperate("Log");
+            Console.WriteLine(eop);
+        }
+    }
+
+    public class Msg //: XmlEntity<Msg>
+    {
+        private String _ToUserName;
+        /// <summary>属性说明</summary>
+        public String ToUserName { get { return _ToUserName; } set { _ToUserName = value; } }
+
+        private String _FromUserName;
+        /// <summary>属性说明</summary>
+        public String FromUserName { get { return _FromUserName; } set { _FromUserName = value; } }
+
+        private Int32 _CreateTime;
+        /// <summary>属性说明</summary>
+        public Int32 CreateTime { get { return _CreateTime; } set { _CreateTime = value; } }
+
+        private String _MsgType;
+        /// <summary>属性说明</summary>
+        public String MsgType { get { return _MsgType; } set { _MsgType = value; } }
+
+        private Double _Location_X;
+        /// <summary>属性说明</summary>
+        public Double Location_X { get { return _Location_X; } set { _Location_X = value; } }
+
+        private Double _Location_Y;
+        /// <summary>属性说明</summary>
+        public Double Location_Y { get { return _Location_Y; } set { _Location_Y = value; } }
+
+        private Int32 _Scale;
+        /// <summary>属性说明</summary>
+        public Int32 Scale { get { return _Scale; } set { _Scale = value; } }
+
+        private String _Label;
+        /// <summary>属性说明</summary>
+        public String Label { get { return _Label; } set { _Label = value; } }
+
+        private Int64 _MsgId;
+        /// <summary>属性说明</summary>
+        public Int64 MsgId { get { return _MsgId; } set { _MsgId = value; } }
     }
 }

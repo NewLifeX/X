@@ -3,13 +3,18 @@
 
 <asp:Content ID="C" ContentPlaceHolderID="C" runat="server">
     <div class="toolbar">
-        <asp:Label Text="关键字" runat="server" />
-        &nbsp;<asp:TextBox runat="server" ID="txtKey" />
         角色：<XCL:DropDownList ID="ddlRole" runat="server" DataSourceID="odsRole" AppendDataBoundItems="true"
             DataTextField="Name" DataValueField="ID" AutoPostBack="True">
             <asp:ListItem Value="0">请选择</asp:ListItem>
         </XCL:DropDownList>
-        &nbsp;<asp:Button ID="Button1" runat="server" Text="查询" />
+        状态：<asp:DropDownList ID="frmIsEnable" runat="server" AutoPostBack="True">
+            <asp:ListItem Value="">全部</asp:ListItem>
+            <asp:ListItem Value="true">启用</asp:ListItem>
+            <asp:ListItem Value="false">禁用</asp:ListItem>
+        </asp:DropDownList>
+        关键字：
+        <asp:TextBox runat="server" ID="txtKey" />
+        <asp:Button ID="Button1" runat="server" Text="查询" />
         <XCL:LinkBox ID="lbAdd" runat="server" BoxHeight="370px" BoxWidth="440px" Url="AdminForm.aspx"
             IconLeft="~/Admin/images/icons/new.gif"><b>添加管理员</b></XCL:LinkBox>
         &nbsp;<asp:Button ID="btnDelete" runat="server" Text="批量删除" OnClientClick='return confirm("确定批量删除吗？")'
@@ -82,6 +87,7 @@
         <SelectParameters>
             <asp:ControlParameter ControlID="txtKey" Name="key" Type="String" PropertyName="Text" />
             <asp:ControlParameter ControlID="ddlRole" Name="roleId" Type="Int32" PropertyName="SelectedValue" />
+            <asp:ControlParameter ControlID="frmIsEnable" Name="isEnable" Type="Boolean" PropertyName="SelectedValue" />
             <asp:Parameter Name="orderClause" Type="String" DefaultValue="ID Desc" />
             <asp:Parameter DefaultValue="0" Name="startRowIndex" Type="Int32" />
             <asp:Parameter DefaultValue="0" Name="maximumRows" Type="Int32" />
