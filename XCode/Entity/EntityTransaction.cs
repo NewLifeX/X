@@ -35,7 +35,7 @@ namespace XCode
         protected override void Rollback()
         {
             // 回滚时忽略异常
-            Entity<TEntity>.Meta.Rollback(true);
+            Entity<TEntity>.Meta.Rollback();
 
             hasFinish = true;
         }

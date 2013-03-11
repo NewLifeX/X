@@ -506,12 +506,11 @@ namespace XCode
                 return TransCount;
             }
 
-            /// <summary>回滚事务</summary>
-            /// <param name="ignoreException">是否忽略异常，默认忽略</param>
+            /// <summary>回滚事务，忽略异常</summary>
             /// <returns>剩下的事务计数</returns>
-            public static Int32 Rollback(Boolean ignoreException = true)
+            public static Int32 Rollback()
             {
-                TransCount = DBO.Rollback(ignoreException);
+                TransCount = DBO.Rollback();
                 // 回滚的时候貌似不需要更新缓存
                 //if (TransCount <= 0 && executeCount > 0) DataChange();
                 if (TransCount <= 0 && executeCount > 0)

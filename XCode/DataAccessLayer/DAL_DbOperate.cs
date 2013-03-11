@@ -311,10 +311,9 @@ namespace XCode.DataAccessLayer
         /// <returns>剩下的事务计数</returns>
         public Int32 Commit() { return Session.Commit(); }
 
-        /// <summary>回滚事务</summary>
-        /// <param name="ignoreException">是否忽略异常，默认忽略</param>
+        /// <summary>回滚事务，忽略异常</summary>
         /// <returns>剩下的事务计数</returns>
-        public Int32 Rollback(Boolean ignoreException = true) { return Session.Rollback(ignoreException); }
+        public Int32 Rollback() { return Session.Rollback(); }
         #endregion
     }
 }
