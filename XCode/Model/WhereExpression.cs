@@ -46,7 +46,7 @@ namespace XCode
                 if (Builder.Length > 0 && Builder.ToString().IndexOf("Or", StringComparison.OrdinalIgnoreCase) >= 0)
                 {
                     // 有可能本身就有括号了
-                    if (Builder[0] != '(' && Builder[Builder.Length - 1] != ')')
+                    if (!(Builder[0] == '(' && Builder[Builder.Length - 1] == ')'))
                     {
                         Builder.Insert(0, "(");
                         Builder.Append(")");
@@ -106,7 +106,7 @@ namespace XCode
         {
             if (Builder == null || Builder.Length <= 0) return null;
 
-            String str = Builder.ToString();
+            var str = Builder.ToString();
             if (str.Length <= 5 && str.Replace(" ", null) == "1=1") return null;
             return str;
         }
