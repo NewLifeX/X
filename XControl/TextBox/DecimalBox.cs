@@ -90,15 +90,17 @@ namespace XControl
             get
             {
                 Object addsymbol = ViewState["IsAddSymbol"];
-                addsymbol = addsymbol == null ? true : addsymbol;
+                //if (addsymbol == null) addsymbol = true;
                 Boolean b;
-                return Boolean.TryParse(addsymbol.ToString(), out b) ? b : true;
+                return Boolean.TryParse(addsymbol + "", out b) ? b : true;
             }
             set
             {
                 ViewState["IsAddSymbol"] = value;
             }
         }
+
+        const String _CurrencySymbol = "CurrencySymbol";
 
         /// <summary>获取或设置用作货币符号的字符串</summary>
         [Description("获取或设置用作货币符号的字符串")]
@@ -107,22 +109,23 @@ namespace XControl
         {
             get
             {
-                String symbol = (String)ViewState["CurrencySymbol"];
-                if (IsAddSymbol && String.IsNullOrEmpty(symbol)) symbol = "￥";
-                else
-                    symbol = String.Empty;
+                if (!IsAddSymbol) return String.Empty;
+
+                var symbol = (String)ViewState[_CurrencySymbol];
+                if (String.IsNullOrEmpty(symbol)) symbol = "￥";
+
                 return symbol;
             }
             set
             {
                 if (IsAddSymbol)
                 {
-                    if (String.IsNullOrEmpty(value)) ViewState["CurrencySymbol"] = "￥";
+                    if (String.IsNullOrEmpty(value)) ViewState[_CurrencySymbol] = "￥";
 
-                    ViewState["CurrencySymbol"] = value;
+                    ViewState[_CurrencySymbol] = value;
                 }
                 else
-                    ViewState["CuurencySymbol"] = String.Empty;
+                    ViewState[_CurrencySymbol] = String.Empty;
             }
         }
 
