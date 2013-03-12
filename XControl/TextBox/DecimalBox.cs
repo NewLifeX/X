@@ -201,8 +201,8 @@ namespace XControl
         {
             get
             {
-                Int32[] intArray = new Int32[] { };
-                NumberFormatInfo nf = new NumberFormatInfo();
+                var intArray = new Int32[] { };
+                var nf = new NumberFormatInfo();
 
                 if (!String.IsNullOrEmpty(CurrencyGroupSizes))
                 {
@@ -226,7 +226,7 @@ namespace XControl
                     nf.CurrencyGroupSizes = intArray;
                 }
                 if (CurrencyDecimalDigits == null) CurrencyDecimalDigits = 2;
-                nf.CurrencyDecimalDigits = (Int32)CurrencyDecimalDigits;
+                nf.CurrencyDecimalDigits = CurrencyDecimalDigits.Value;
                 if (!String.IsNullOrEmpty(CurrencyGroupSeparator)) nf.CurrencyGroupSeparator = CurrencyGroupSeparator;
                 nf.CurrencySymbol = CurrencySymbol;
 
@@ -239,9 +239,10 @@ namespace XControl
                 {
                     //去除空字符干扰
                     value = value.Trim();
-                    if (value.Contains(CurrencySymbol))
+                    var cs = CurrencySymbol;
+                    if (!String.IsNullOrEmpty(cs) && value.Contains(cs))
                         //去除当前CurrencySymbol设置的符号
-                        value = value.Replace(CurrencySymbol, "");
+                        value = value.Replace(cs, "");
 
                     if (Decimal.TryParse(value, out d))
                         Value = d;
