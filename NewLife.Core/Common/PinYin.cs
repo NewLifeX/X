@@ -4,7 +4,7 @@ using System.Text;
 namespace MyExtensions
 {
     /// <summary>汉字拼音转换类</summary>
-    public class PinYinConverter
+    public class PinYin
     {
         #region 数组信息
         private static int[] pyValue = new int[] 
