@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Text;
 
-namespace MyExtensions
+namespace NewLife.Common
 {
     /// <summary>汉字拼音转换类</summary>
     public class PinYin
