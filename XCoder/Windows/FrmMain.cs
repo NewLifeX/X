@@ -366,12 +366,14 @@ namespace XCoder
                 cbTableList.Items.Clear();
                 return;
             }
-            if ((source as List<IDataTable>)[0].DbType == DatabaseType.SqlServer) // 增加对SqlServer 2000的特殊处理  ahuang
+            var list = source as List<IDataTable>;
+            if (list[0].DbType == DatabaseType.SqlServer) // 增加对SqlServer 2000的特殊处理  ahuang
             {
-                (source as List<IDataTable>).Remove((source as List<IDataTable>).Find(delegate(IDataTable p) { return p.Name == "dtproperties"; }));
-                (source as List<IDataTable>).Remove((source as List<IDataTable>).Find(delegate(IDataTable p) { return p.Name == "sysconstraints"; }));
-                (source as List<IDataTable>).Remove((source as List<IDataTable>).Find(delegate(IDataTable p) { return p.Name == "syssegments"; }));
-                (source as List<IDataTable>).RemoveAll(delegate(IDataTable p) { return p.Description.Contains("[0E232FF0-B466-"); });
+                //list.Remove(list.Find(delegate(IDataTable p) { return p.Name == "dtproperties"; }));
+                //list.Remove(list.Find(delegate(IDataTable p) { return p.Name == "sysconstraints"; }));
+                //list.Remove(list.Find(delegate(IDataTable p) { return p.Name == "syssegments"; }));
+                //list.RemoveAll(delegate(IDataTable p) { return p.Description.Contains("[0E232FF0-B466-"); });
+                list.RemoveAll(dt => dt.Name == "dtproperties" || dt.Name == "sysconstraints" || dt.Name == "syssegments" || dt.Description.Contains("[0E232FF0-B466-"));
             }
             cbTableList.DataSource = source;
             if (source == null)
