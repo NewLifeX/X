@@ -10,7 +10,6 @@ using NewLife.Reflection;
 using System.Linq;
 #else
 using NewLife.Linq;
-using NewLife.Log;
 #endif
 
 namespace XCode.DataAccessLayer
@@ -350,12 +349,18 @@ namespace XCode.DataAccessLayer
             else
                 sb.Append("Create Index ");
 
-            //sb.Append(FormatName(index.Name));
-            // SQLite中不同表的索引名也不能相同
-            sb.Append(FormatName(index.Table.TableName));
-            foreach (var item in index.Columns)
+            // SQLite索引优先采用自带索引名
+            if (!String.IsNullOrEmpty(index.Name) && index.Name.Contains(index.Table.TableName))
+                sb.Append(FormatName(index.Name));
+            else
             {
-                sb.AppendFormat("_{0}", item);
+                // SQLite中不同表的索引名也不能相同
+                sb.Append("IX_");
+                sb.Append(FormatName(index.Table.TableName));
+                foreach (var item in index.Columns)
+                {
+                    sb.AppendFormat("_{0}", item);
+                }
             }
 
             sb.AppendFormat(" On {0} (", FormatName(index.Table.TableName));
