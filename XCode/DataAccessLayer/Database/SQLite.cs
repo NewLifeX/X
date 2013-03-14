@@ -414,8 +414,13 @@ namespace XCode.DataAccessLayer
             var sql = base.CheckColumnsChange(entitytable, dbtable, set);
             if (String.IsNullOrEmpty(sql)) return sql;
 
+            var sql2 = sql;
+
             sql = ReBuildTable(entitytable, dbtable);
             if (String.IsNullOrEmpty(sql) || setting.CheckOnly) return sql;
+
+            // 输出日志，说明重建表的理由
+            WriteLog("SQLite需要重建表，因无法执行：{0}", sql2);
 
             Boolean flag = true;
             // 如果设定不允许删
