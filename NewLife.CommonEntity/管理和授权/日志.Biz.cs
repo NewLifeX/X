@@ -31,7 +31,12 @@ namespace NewLife.CommonEntity
             }
 
             // 自动设置IP地址
-            if (!Dirtys[_.IP]) IP = WebHelper.UserHost;
+            if (!Dirtys[_.IP])
+            {
+                //IP = WebHelper.UserHost;
+                var ip = WebHelper.UserHost;
+                if (!String.IsNullOrEmpty(ip)) IP = ip;
+            }
             // 自动设置当前时间
             if (!Dirtys[_.OccurTime]) OccurTime = DateTime.Now;
 

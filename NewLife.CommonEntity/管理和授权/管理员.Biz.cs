@@ -361,6 +361,7 @@ namespace NewLife.CommonEntity
         /// <summary>构造搜索条件</summary>
         /// <param name="key">关键字</param>
         /// <param name="roleId">角色ID</param>
+        /// <param name="isEnable">是否启用</param>
         /// <returns></returns>
         private static String SearchWhere(String key, Int32 roleId, Boolean? isEnable = null)
         {
@@ -459,7 +460,8 @@ namespace NewLife.CommonEntity
         {
             Logins++;
             LastLogin = DateTime.Now;
-            LastLoginIP = WebHelper.UserHost;
+            var ip = WebHelper.UserHost;
+            if (!String.IsNullOrEmpty(ip)) LastLoginIP = ip;
             return Update();
         }
 
