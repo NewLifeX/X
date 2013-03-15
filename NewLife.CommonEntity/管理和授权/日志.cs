@@ -33,7 +33,7 @@ namespace NewLife.CommonEntity
         /// <summary>类别</summary>
         [DisplayName("类别")]
         [Description("类别")]
-        [DataObjectField(false, false, false, 50)]
+        [DataObjectField(false, false, true, 50)]
         [BindColumn(2, "Category", "类别", null, "nvarchar(50)", 0, 0, true)]
         public virtual String Category
         {
@@ -45,7 +45,7 @@ namespace NewLife.CommonEntity
         /// <summary>操作</summary>
         [DisplayName("操作")]
         [Description("操作")]
-        [DataObjectField(false, false, false, 50)]
+        [DataObjectField(false, false, true, 50)]
         [BindColumn(3, "Action", "操作", null, "nvarchar(50)", 0, 0, true)]
         public virtual String Action
         {
@@ -57,8 +57,8 @@ namespace NewLife.CommonEntity
         /// <summary>用户编号</summary>
         [DisplayName("用户编号")]
         [Description("用户编号")]
-        [DataObjectField(false, false, false, 10)]
-        [BindColumn(4, "UserID", "用户编号", "0", "int", 10, 0, false)]
+        [DataObjectField(false, false, true, 10)]
+        [BindColumn(4, "UserID", "用户编号", null, "int", 10, 0, false)]
         public virtual Int32 UserID
         {
             get { return _UserID; }
@@ -93,8 +93,8 @@ namespace NewLife.CommonEntity
         /// <summary>时间</summary>
         [DisplayName("时间")]
         [Description("时间")]
-        [DataObjectField(false, false, false, 3)]
-        [BindColumn(7, "OccurTime", "时间", "getdate()", "datetime", 3, 0, false)]
+        [DataObjectField(false, false, true, 3)]
+        [BindColumn(7, "OccurTime", "时间", null, "datetime", 3, 0, false)]
         public virtual DateTime OccurTime
         {
             get { return _OccurTime; }

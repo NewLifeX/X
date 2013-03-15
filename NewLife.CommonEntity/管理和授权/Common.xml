@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Tables Version="8.9.4742.25406">
+<Tables Version="8.9.4817.25221">
   <Table Name="Administrator" Description="管理员" DbType="SqlServer">
     <Columns>
       <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
@@ -74,12 +74,12 @@
   <Table Name="Log" Description="日志" DbType="SqlServer">
     <Columns>
       <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
-      <Column Name="Category" DataType="String" Nullable="False" Description="类别" />
-      <Column Name="Action" DataType="String" Nullable="False" Description="操作" />
-      <Column Name="UserID" DataType="Int32" Nullable="False" Default="0" Description="用户编号" />
+      <Column Name="Category" DataType="String" Description="类别" />
+      <Column Name="Action" DataType="String" Description="操作" />
+      <Column Name="UserID" DataType="Int32" Description="用户编号" />
       <Column Name="UserName" DataType="String" Description="用户名" />
       <Column Name="IP" DataType="String" Description="IP地址" />
-      <Column Name="OccurTime" DataType="DateTime" Nullable="False" Default="getdate()" Description="时间" />
+      <Column Name="OccurTime" DataType="DateTime" Description="时间" />
       <Column Name="Remark" DataType="String" Length="500" Description="详细信息" />
     </Columns>
     <Indexes>
