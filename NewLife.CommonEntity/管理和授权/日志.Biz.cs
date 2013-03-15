@@ -38,7 +38,7 @@ namespace NewLife.CommonEntity
                 if (!String.IsNullOrEmpty(ip)) IP = ip;
             }
             // 自动设置当前时间
-            if (!Dirtys[_.OccurTime]) OccurTime = DateTime.Now;
+            if (!Dirtys[_.OccurTime] && HasDirty) OccurTime = DateTime.Now;
 
             // 处理过长的备注
             if (!String.IsNullOrEmpty(Remark) && Remark.Length > 500)
