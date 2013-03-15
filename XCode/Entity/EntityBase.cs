@@ -208,14 +208,15 @@ namespace XCode
         /// <returns></returns>
         protected virtual Int32 SetDirty(Boolean isDirty)
         {
-            if (_Dirtys == null || Dirtys.Count < 1) return 0;
+            var ds = _Dirtys;
+            if (ds == null || ds.Count < 1) return 0;
 
             Int32 count = 0;
-            foreach (String item in Dirtys.Keys)
+            foreach (String item in ds.Keys)
             {
-                if (Dirtys[item] != isDirty)
+                if (ds[item] != isDirty)
                 {
-                    Dirtys[item] = isDirty;
+                    ds[item] = isDirty;
                     count++;
                 }
             }

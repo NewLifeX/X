@@ -1383,29 +1383,49 @@ namespace XCode
         /// <returns></returns>
         protected override Int32 SetDirty(Boolean isDirty)
         {
-            Int32 count = 0;
-            foreach (String item in Meta.FieldNames)
+            var ds = Dirtys;
+            if (ds == null || ds.Count < 1) return 0;
+
+            var count = 0;
+            foreach (var item in Meta.FieldNames)
             {
-                Boolean b = false;
+                var b = false;
                 if (isDirty)
                 {
-                    if (!Dirtys.TryGetValue(item, out b) || !b)
+                    if (!ds.TryGetValue(item, out b) || !b)
                     {
-                        Dirtys[item] = true;
+                        ds[item] = true;
                         count++;
                     }
                 }
                 else
                 {
-                    if (Dirtys == null || Dirtys.Count < 1) break;
-                    if (Dirtys.TryGetValue(item, out b) && b)
+                    if (ds == null || ds.Count < 1) break;
+                    if (ds.TryGetValue(item, out b) && b)
                     {
-                        Dirtys[item] = false;
+                        ds[item] = false;
                         count++;
                     }
                 }
             }
             return count;
+        }
+
+        /// <summary>是否有脏数据。决定是否可以Update</summary>
+        protected Boolean HasDirty
+        {
+            get
+            {
+                var ds = Dirtys;
+                if (ds == null || ds.Count < 1) return false;
+
+                foreach (var item in Meta.FieldNames)
+                {
+                    if (ds[item]) return true;
+                }
+
+                return false;
+            }
         }
 
         /// <summary>如果字段带有默认值，则需要设置脏数据，因为显然用户想设置该字段，而不是采用数据库的默认值</summary>
