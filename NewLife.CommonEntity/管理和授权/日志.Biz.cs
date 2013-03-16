@@ -196,6 +196,13 @@ namespace NewLife.CommonEntity
                 log.Save();
             }
         }
+
+        /// <summary>已重载。</summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            return String.Format("{0} {1} {2} {3:yyyy-MM-dd HH:mm:ss} {4}", Category, Action, UserName, OccurTime, Remark);
+        }
         #endregion
     }
 
