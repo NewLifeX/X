@@ -213,7 +213,14 @@ namespace NewLife.Web
             Response.Buffer = true;
             Response.Charset = encoding.WebName;
             Response.ContentEncoding = encoding;
-            Response.AppendHeader("Content-Disposition", "attachment;filename=" + HttpUtility.UrlEncode(filename, encoding));
+            /*
+             * 按照RFC2231的定义， 多语言编码的Content-Disposition应该这么定义：
+             * Content-Disposition: attachment; filename*="utf8''%E4%B8%AD%E6%96%87%20%E6%96%87%E4%BB%B6%E5%90%8D.txt"
+             * filename后面的等号之前要加 *
+             * filename的值用单引号分成三段，分别是字符集(utf8)、语言(空)和urlencode过的文件名。
+             * 最好加上双引号，否则文件名中空格后面的部分在Firefox中显示不出来
+             */
+            Response.AppendHeader("Content-Disposition", String.Format("attachment;filename*=\"{0}''{1}", encoding.WebName, HttpUtility.UrlEncode(filename, encoding)));
             Response.ContentType = "application/ms-excel";
 
             StringWriter sw = new StringWriter();
