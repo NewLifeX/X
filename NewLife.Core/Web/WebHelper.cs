@@ -191,7 +191,8 @@ namespace NewLife.Web
         /// <param name="encoding"></param>
         public static void ExportExcel(GridView gv, String filename, Int32 max, Encoding encoding)
         {
-            HttpResponse Response = HttpContext.Current.Response;
+            var Request = HttpContext.Current.Request;
+            var Response = HttpContext.Current.Response;
 
             //去掉所有列的排序
             foreach (DataControlField item in gv.Columns)
@@ -215,25 +216,36 @@ namespace NewLife.Web
             Response.ContentEncoding = encoding;
             /*
              * 按照RFC2231的定义， 多语言编码的Content-Disposition应该这么定义：
-             * Content-Disposition: attachment; filename*="utf8''%E4%B8%AD%E6%96%87%20%E6%96%87%E4%BB%B6%E5%90%8D.txt"
+             * Content-Disposition: attachment; filename*="utf8''%e6%94%b6%e6%ac%be%e7%ae%a1%e7%90%86.xls"
              * filename后面的等号之前要加 *
              * filename的值用单引号分成三段，分别是字符集(utf8)、语言(空)和urlencode过的文件名。
              * 最好加上双引号，否则文件名中空格后面的部分在Firefox中显示不出来
              */
-            Response.AppendHeader("Content-Disposition", String.Format("attachment;filename*=\"{0}''{1}", encoding.WebName, HttpUtility.UrlEncode(filename, encoding)));
+            var cd = String.Format("attachment;filename=\"{0}\"", filename);
+            if (Request.UserAgent.Contains("MSIE"))
+                cd = String.Format("attachment;filename=\"{0}\"", HttpUtility.UrlEncode(filename, encoding));
+            else if (Request.UserAgent.Contains("Firefox"))
+                cd = String.Format("attachment;filename*=\"{0}''{1}\"", encoding.WebName, HttpUtility.UrlEncode(filename, encoding));
+
+            Response.AppendHeader("Content-Disposition", cd);
             Response.ContentType = "application/ms-excel";
 
-            StringWriter sw = new StringWriter();
-            HtmlTextWriter htw = new HtmlTextWriter(sw);
+            var sw = new StringWriter();
+            var htw = new HtmlTextWriter(sw);
             page.RenderControl(htw);
 
-            String html = sw.ToString();
+            var html = sw.ToString();
             //if (html.StartsWith("<div>")) html = html.SubString("<div>".Length);
             //if (html.EndsWith("</div>")) html = html.SubString(0, html.Length - "</div>".Length);
 
             html = String.Format("<meta http-equiv=\"content-type\" content=\"application/ms-excel; charset={0}\"/>", encoding.WebName) + Environment.NewLine + html;
 
             Response.Output.Write(html);
+
+            //var wd = new WebDownload(html, encoding);
+            //wd.Mode = WebDownload.DispositionMode.Attachment;
+            //wd.Render();
+
             Response.Flush();
             Response.End();
         }

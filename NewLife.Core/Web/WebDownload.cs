@@ -27,7 +27,7 @@ namespace NewLife.Web
         public DispositionMode Mode { get { return _Mode; } set { _Mode = value; } }
 
         private Int64 _Speed;
-        /// <summary>速度，0表示不限制</summary>
+        /// <summary>速度，每响应一个包后睡眠的毫秒数，0表示不限制</summary>
         public Int64 Speed { get { return _Speed; } set { _Speed = value; } }
         #endregion
 
@@ -47,7 +47,29 @@ namespace NewLife.Web
         /// <returns></returns>
         public static DispositionMode ParseMode(String mode)
         {
-            return (WebDownload.DispositionMode)Enum.Parse(typeof(WebDownload.DispositionMode), mode);
+            return (DispositionMode)Enum.Parse(typeof(DispositionMode), mode);
+        }
+        #endregion
+
+        #region 构造
+        /// <summary>构造函数</summary>
+        public WebDownload() { }
+
+        /// <summary>构造函数</summary>
+        /// <param name="stream"></param>
+        public WebDownload(Stream stream) { Stream = stream; }
+
+        /// <summary>构造函数</summary>
+        /// <param name="html"></param>
+        /// <param name="encoding"></param>
+        public WebDownload(String html, Encoding encoding)
+        {
+            var ms = new MemoryStream();
+            var writer = new StreamWriter(ms, encoding);
+            writer.Write(html);
+            ms.Position = 0;
+
+            Stream = ms;
         }
         #endregion
 
@@ -92,7 +114,7 @@ namespace NewLife.Web
 
             //stream.Seek(startBytes, SeekOrigin.Begin);
             int maxCount = (int)Math.Floor((fileLength - startBytes) / (double)pack) + 1;
-            Byte[] buffer = new Byte[pack];
+            var buffer = new Byte[pack];
             for (int i = 0; i < maxCount; i++)
             {
                 if (!Response.IsClientConnected) break;
@@ -102,7 +124,7 @@ namespace NewLife.Web
                     Response.BinaryWrite(buffer);
                 else
                 {
-                    Byte[] data = new Byte[count];
+                    var data = new Byte[count];
                     Buffer.BlockCopy(buffer, 0, data, 0, count);
                     Response.BinaryWrite(data);
                 }
