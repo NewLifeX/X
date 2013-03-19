@@ -179,11 +179,11 @@ namespace XCode
         #region 操作
         private static IEntityPersistence persistence { get { return XCodeService.Container.ResolveInstance<IEntityPersistence>(); } }
 
-        /// <summary>插入数据，通过调用OnInsert实现，另外增加了数据验证和事务保护支持，将来可能实现事件支持。</summary>
+        /// <summary>插入数据，<see cref="Valid"/>后，在事务中调用<see cref="OnInsert"/>。</summary>
         /// <returns></returns>
         public override Int32 Insert() { return DoAction(OnInsert, true); }
 
-        /// <summary>把该对象持久化到数据库。该方法提供原生的数据操作，不建议重载，建议重载Insert代替。</summary>
+        /// <summary>把该对象持久化到数据库，添加/更新实体缓存。</summary>
         /// <returns></returns>
         protected virtual Int32 OnInsert()
         {
@@ -206,11 +206,11 @@ namespace XCode
             return rs;
         }
 
-        /// <summary>更新数据，通过调用OnUpdate实现，另外增加了数据验证和事务保护支持，将来可能实现事件支持。</summary>
+        /// <summary>更新数据，<see cref="Valid"/>后，在事务中调用<see cref="OnUpdate"/>。</summary>
         /// <returns></returns>
         public override Int32 Update() { return DoAction(OnUpdate, false); }
 
-        /// <summary>更新数据库</summary>
+        /// <summary>更新数据库，同时更新实体缓存</summary>
         /// <returns></returns>
         protected virtual Int32 OnUpdate()
         {
@@ -233,7 +233,7 @@ namespace XCode
             return rs;
         }
 
-        /// <summary>删除数据，通过调用OnDelete实现，另外增加了数据验证和事务保护支持，将来可能实现事件支持。</summary>
+        /// <summary>删除数据，通过在事务中调用OnDelete实现。</summary>
         /// <remarks>
         /// 删除时，如果有且仅有主键有脏数据，则可能是ObjectDataSource之类的删除操作。
         /// 该情况下，实体类没有完整的信息（仅有主键信息），将会导致无法通过扩展属性删除附属数据。
@@ -252,7 +252,7 @@ namespace XCode
                 if (names.SequenceEqual(names2))
                 {
                     // 再次查询
-                    TEntity entity = Find(persistence.GetPrimaryCondition(this));
+                    var entity = Find(persistence.GetPrimaryCondition(this));
                     // 如果目标数据不存在，就没必要删除了
                     if (entity == null) return 0;
 
@@ -287,7 +287,7 @@ namespace XCode
             return DoAction(OnDelete, null);
         }
 
-        /// <summary>从数据库中删除该对象</summary>
+        /// <summary>从数据库中删除该对象，同时从实体缓存中删除</summary>
         /// <returns></returns>
         protected virtual Int32 OnDelete()
         {
@@ -327,7 +327,7 @@ namespace XCode
         public override Int32 Save()
         {
             //优先使用自增字段判断
-            FieldItem fi = Meta.Table.Identity;
+            var fi = Meta.Table.Identity;
             if (fi != null) return Convert.ToInt64(this[fi.Name]) > 0 ? Update() : Insert();
 
             fi = Meta.Unique;
@@ -350,22 +350,23 @@ namespace XCode
         [NonSerialized]
         Boolean enableValid = true;
 
-        /// <summary>验证数据，通过抛出异常的方式提示验证失败。建议重写者调用基类的实现，因为将来可能根据数据字段的特性进行数据验证。</summary>
+        /// <summary>验证数据，通过抛出异常的方式提示验证失败。</summary>
+        /// <remarks>建议重写者调用基类的实现，因为基类根据数据字段的唯一索引进行数据验证。</remarks>
         /// <param name="isNew">是否新数据</param>
         public virtual void Valid(Boolean isNew)
         {
             // 根据索引，判断唯一性
-            IDataTable table = Meta.Table.DataTable;
+            var table = Meta.Table.DataTable;
             if (table.Indexes != null && table.Indexes.Count > 0)
             {
                 // 遍历所有索引
-                foreach (IDataIndex item in table.Indexes)
+                foreach (var item in table.Indexes)
                 {
                     // 只处理唯一索引
                     if (!item.Unique) continue;
 
                     // 需要转为别名，也就是字段名
-                    IDataColumn[] columns = table.GetColumns(item.Columns);
+                    var columns = table.GetColumns(item.Columns);
                     if (columns == null || columns.Length < 1) continue;
 
                     // 不处理自增
