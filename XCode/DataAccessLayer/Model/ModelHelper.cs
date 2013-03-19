@@ -71,10 +71,10 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public static IDataIndex GetIndex(this IDataTable table, params String[] columnNames)
         {
-            if (table == null || table.Indexes == null || table.Indexes.Count < 1) return null;
+            if (table == null || table.Indexes == null || table.Indexes.Count < 1 || columnNames == null || columnNames.Length < 1) return null;
 
             var di = table.Indexes.FirstOrDefault(
-                e => e.Columns != null &&
+                e => e != null && e.Columns != null &&
                     e.Columns.Length == columnNames.Length &&
                     !e.Columns.Except(columnNames, StringComparer.OrdinalIgnoreCase).Any());
             if (di != null) return di;
