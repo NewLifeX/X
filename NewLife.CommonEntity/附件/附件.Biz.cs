@@ -39,7 +39,7 @@ namespace NewLife.CommonEntity
                 if (_Stat == null && StatID > 0 && !Dirtys.ContainsKey("Stat"))
                 {
                     _Stat = Statistics<TStatistics>.FindByID(StatID);
-                    Dirtys.Add("Stat", true);
+                    Dirtys["Stat"] = true;
                 }
                 return _Stat;
             }
@@ -78,7 +78,6 @@ namespace NewLife.CommonEntity
     /// 对于文件的存放，可以考虑同一个文件只存放一份，方法就是通过名称、大小、散列三个同时比较
     /// </remarks>
     [BindIndex("IX_Attachment_Category", false, "Category")]
-    [BindIndex("PK_Attachment_ID", true, "ID")]
     public partial class Attachment<TEntity> : Entity<TEntity> where TEntity : Attachment<TEntity>, new()
     {
         #region 对象操作
