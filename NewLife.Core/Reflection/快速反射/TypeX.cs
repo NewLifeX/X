@@ -163,8 +163,8 @@ namespace NewLife.Reflection
                 return Handler.Invoke(parameters);
             }
 
-            // 无参数，直接构造
-            if (parameters == null || parameters.Length < 1) return Handler.Invoke(new Object[0]);
+            //// 无参数，直接构造
+            //if (parameters == null || parameters.Length < 1) return Handler.Invoke(new Object[0]);
 
             // 准备参数类型数组，以匹配构造函数
             //var paramTypes = Type.EmptyTypes;
