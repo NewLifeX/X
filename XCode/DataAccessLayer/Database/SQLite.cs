@@ -415,7 +415,11 @@ namespace XCode.DataAccessLayer
             if (String.IsNullOrEmpty(sql)) return sql;
 
             // 只有修改字段、删除字段需要重建表
-            if (!sql.Contains("Alter Column") && !sql.Contains("Drop Column")) return sql;
+            if (!sql.Contains("Alter Column") && !sql.Contains("Drop Column"))
+            {
+                if (!setting.CheckOnly) Database.CreateSession().Execute(sql);
+                return sql;
+            }
 
             var sql2 = sql;
 
