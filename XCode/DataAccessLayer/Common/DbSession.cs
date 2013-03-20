@@ -8,6 +8,7 @@ using NewLife;
 using NewLife.Collections;
 using NewLife.Log;
 using XCode.Exceptions;
+using System.Diagnostics;
 
 namespace XCode.DataAccessLayer
 {
@@ -604,12 +605,12 @@ namespace XCode.DataAccessLayer
                 {
                     if (String.IsNullOrEmpty(collectionName))
                     {
-                        WriteSQL("GetSchema");
+                        WriteSQL("[" + Database.ConnName + "]GetSchema");
                         dt = conn.GetSchema();
                     }
                     else
                     {
-                        WriteSQL("GetSchema(\"" + collectionName + "\")");
+                        WriteSQL("[" + Database.ConnName + "]GetSchema(\"" + collectionName + "\")");
                         dt = conn.GetSchema(collectionName);
                     }
                 }
@@ -624,7 +625,7 @@ namespace XCode.DataAccessLayer
                         else
                             sb.AppendFormat("\"{0}\"", item);
                     }
-                    WriteSQL("GetSchema(\"" + collectionName + "\"" + sb + ")");
+                    WriteSQL("[" + Database.ConnName + "]GetSchema(\"" + collectionName + "\"" + sb + ")");
                     dt = conn.GetSchema(collectionName, restrictionValues);
                 }
 
@@ -735,6 +736,42 @@ namespace XCode.DataAccessLayer
         /// <param name="format"></param>
         /// <param name="args"></param>
         public static void WriteLog(String format, params Object[] args) { DAL.WriteLog(format, args); }
+        #endregion
+
+        #region SQL时间跟踪
+        private Stopwatch _swSql;
+        private static HashSet<String> _trace_sqls = new HashSet<String>(StringComparer.OrdinalIgnoreCase);
+
+        protected void BeginTrace()
+        {
+            if (DAL.TraceSQLTime <= 0) return;
+
+            if (_swSql == null) _swSql = new Stopwatch();
+
+            if (_swSql.IsRunning) _swSql.Stop();
+
+            _swSql.Reset();
+            _swSql.Start();
+        }
+
+        protected void EndTrace(String sql)
+        {
+            if (_swSql == null) return;
+
+            _swSql.Stop();
+
+            if (_swSql.ElapsedMilliseconds < DAL.TraceSQLTime) return;
+
+            if (_trace_sqls.Contains(sql)) return;
+            lock (_trace_sqls)
+            {
+                if (_trace_sqls.Contains(sql)) return;
+
+                _trace_sqls.Add(sql);
+            }
+
+            XTrace.WriteLine("SQL耗时较长，建议优化 {0:n}毫秒 {1}", _swSql.ElapsedMilliseconds, sql);
+        }
         #endregion
     }
 }
