@@ -431,8 +431,10 @@ namespace Test
 
         static void Test10()
         {
-            var eop = DAL.Create("Common").CreateOperate("Log");
-            Console.WriteLine(eop);
+            var eop = DAL.Create("Common0").CreateOperate("Attachment");
+            var entity = eop.Create();
+            entity.SetItem("FileContent", Guid.NewGuid().ToByteArray());
+            entity.Save();
         }
     }
 
