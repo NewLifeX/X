@@ -7,17 +7,20 @@ using XCode.Configuration;
 using XCode.DataAccessLayer;
 
 namespace <#=Config.NameSpace#>
-{
-    /// <summary><#=Table.Description#></summary>
+{<#
+    String tdes=Table.Description;
+    if(!String.IsNullOrEmpty(tdes)) tdes=tdes.Replace("\r\n"," ").Replace("\\", "\\\\").Replace("'", "").Replace("\"", "");
+    #>
+    /// <summary><#=tdes#></summary>
     [Serializable]
     [DataObject]
-    [Description("<#=(""+Table.Description).Replace("\\", "\\\\")#>")]<#
+    [Description("<#=tdes#>")]<#
 foreach(IDataIndex di in Table.Indexes){if(di.Columns==null||di.Columns.Length<1)continue;#>
     [BindIndex("<#=di.Name#>", <#=di.Unique.ToString().ToLower()#>, "<#=String.Join(",", di.Columns)#>")]<#
 }
 foreach(IDataRelation dr in Table.Relations){#>
     [BindRelation("<#=dr.Column#>", <#=dr.Unique.ToString().ToLower()#>, "<#=dr.RelationTable#>", "<#=dr.RelationColumn#>")]<#}#>
-    [BindTable("<#=Table.TableName#>", Description = "<#=(""+Table.Description).Replace("\\", "\\\\")#>", ConnName = "<#=Config.EntityConnName#>", DbType = DatabaseType.<#=Table.DbType#><#if(Table.IsView){#>, IsView = true<#}#>)]<#
+    [BindTable("<#=Table.TableName#>", Description = "<#=tdes#>", ConnName = "<#=Config.EntityConnName#>", DbType = DatabaseType.<#=Table.DbType#><#if(Table.IsView){#>, IsView = true<#}#>)]<#
 if(!Config.RenderGenEntity){#>
     public partial class <#=Table.Name#> : I<#=Table.Name#><#
 }else{#>
@@ -93,8 +96,8 @@ if(!Config.RenderGenEntity){#>
         #endregion
 
         #region 字段名
-        /// <summary>取得<#=Table.Description#>字段信息的快捷方式</summary>
-        public class _
+        /// <summary>取得<#=tdes#>字段信息的快捷方式</summary>
+        public partial class _
         {<#
        foreach(IDataColumn Field in Table.Columns)
       {
@@ -109,8 +112,8 @@ if(!Config.RenderGenEntity){#>
             static Field FindByName(String name) { return Meta.Table.FindByName(name); }
         }
 
-        /// <summary>取得<#=Table.Description#>字段名称的快捷方式</summary>
-        class __
+        /// <summary>取得<#=tdes#>字段名称的快捷方式</summary>
+        partial class __
         {<#
        foreach(IDataColumn Field in Table.Columns)
       {
@@ -126,7 +129,7 @@ if(!Config.RenderGenEntity){#>
         #endregion
     }
 
-    /// <summary><#=Table.Description#>接口</summary>
+    /// <summary><#=tdes#>接口</summary>
     public partial interface I<#=Table.Name#>
     {
         #region 属性<#

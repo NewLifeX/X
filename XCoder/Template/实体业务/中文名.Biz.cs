@@ -10,13 +10,16 @@ using XCode;
 using XCode.Configuration;
 
 namespace <#=Config.NameSpace#>
-{<#if(Config.RenderGenEntity){#>
-    /// <summary><#=Table.Description#></summary>
+{<#
+    String tdes=Table.Description;
+    if(!String.IsNullOrEmpty(tdes)) tdes=tdes.Replace("\r\n"," ").Replace("\\", "\\\\").Replace("'", "").Replace("\"", "");
+    if(Config.RenderGenEntity){#>
+    /// <summary><#=tdes#></summary>
     [ModelCheckMode(ModelCheckModes.CheckTableWhenFirstUse)]
     public class <#=Table.Name#> : <#=Table.Name#><<#=Table.Name#>> { }
     <#
 }#>
-    /// <summary><#=Table.Description#></summary><#
+    /// <summary><#=tdes#></summary><#
 if(!Config.RenderGenEntity){#>
     public partial class <#=Table.Name#> : <#=Config.BaseClass#><<#=Table.Name#>><#
 }else{#>

@@ -18,7 +18,7 @@
             base.Valid(isNew);
 
             // 在新插入数据或者修改了指定字段时进行唯一性验证，CheckExist内部抛出参数异常
-            //if (isNew || Dirtys[_.Name]) CheckExist(_.Name);
+            //if (isNew || Dirtys[__.Name]) CheckExist(__.Name);
             <#
             foreach (IDataColumn dc in Table.Columns)
             {
@@ -32,7 +32,7 @@
                     || name.StartsWith("Insert", StringComparison.OrdinalIgnoreCase))
                     {
                     #>
-            if (isNew && !Dirtys[_.<#=name#>]) <#=name#> = DateTime.Now;<#
+            if (isNew && !Dirtys[__.<#=name#>]) <#=name#> = DateTime.Now;<#
                     }
                     else if (name.StartsWith("Update", StringComparison.OrdinalIgnoreCase)
                     || name.StartsWith("Change", StringComparison.OrdinalIgnoreCase)
@@ -41,7 +41,7 @@
                     || name.StartsWith("Save", StringComparison.OrdinalIgnoreCase))
                     {
                     #>
-            if (!Dirtys[_.<#=name#>]) <#=name#> = DateTime.Now;<#
+            if (!Dirtys[__.<#=name#>]) <#=name#> = DateTime.Now;<#
                     }
                 }
                 // 处理IP
@@ -50,14 +50,14 @@
                     || name.EndsWith("IP", StringComparison.OrdinalIgnoreCase)&&name.Length>2&&name[name.Length-3]>='a'&&name[name.Length-3]<='z'))
                 {
                     #>
-            if (!Dirtys[_.<#=name#>]) <#=name#> = WebHelper.UserHost;<#
+            if (!Dirtys[__.<#=name#>]) <#=name#> = WebHelper.UserHost;<#
                 }
                 // 处理货币
                 else if (dc.DataType==typeof(Decimal))
                 {
                     #>
             // 货币保留6位小数
-            if (Dirtys[_.<#=name#>]) <#=name#> = Math.Round(<#=name#>, 6);<#
+            if (Dirtys[__.<#=name#>]) <#=name#> = Math.Round(<#=name#>, 6);<#
                 }
                 else if (dc.DataType==typeof(Int32) 
                     && (name.Equals("UserID", StringComparison.OrdinalIgnoreCase) 
@@ -65,7 +65,7 @@
                 {
                     #>
             // 处理当前已登录用户信息
-            if (!Dirtys[_.<#=name#>] && ManageProvider.Provider.Current != null) <#=name#> = (Int32)ManageProvider.Provider.Current.ID;<#
+            if (!Dirtys[__.<#=name#>] && ManageProvider.Provider.Current != null) <#=name#> = (Int32)ManageProvider.Provider.Current.ID;<#
                 }
                 else if (dc.DataType==typeof(String) 
                     && (name.Equals("User", StringComparison.OrdinalIgnoreCase) 
@@ -76,7 +76,7 @@
                 {
                     #>
             // 处理当前已登录用户信息
-            if (!Dirtys[_.<#=name#>] && ManageProvider.Provider.Current != null) <#=name#> = ManageProvider.Provider.Current.Account;<#
+            if (!Dirtys[__.<#=name#>] && ManageProvider.Provider.Current != null) <#=name#> = ManageProvider.Provider.Current.Account;<#
                 }
             }
             #>
