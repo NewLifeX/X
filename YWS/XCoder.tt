@@ -36,7 +36,7 @@
 	WriteLine("参数：" + arg);
 
 	var dic = new Dictionary<String, Object>();
-	dic["NameSpace"] = "NewLife." + name;// 命名空间
+	dic["NameSpace"] = "NewLife." + name + ".Entities";// 命名空间
 	dic["EntityConnName"] = name;	// 连接名
 	
 	dic["BaseClass"] = "Entity";	// 实体基类

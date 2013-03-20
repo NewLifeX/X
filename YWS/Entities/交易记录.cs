@@ -1,16 +1,11 @@
-﻿/*
- * XCoder v4.3.2011.0920
- * 作者：nnhy/NEWLIFE
- * 时间：2011-09-28 13:08:56
- * 版权：版权所有 (C) 新生命开发团队 2011
-*/
-﻿using System;
+﻿﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
+using System.Xml.Serialization;
 using XCode;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
 
-#pragma warning disable 3021
 namespace NewLife.YWS.Entities
 {
     /// <summary>交易记录</summary>
@@ -24,7 +19,6 @@ namespace NewLife.YWS.Entities
     [BindRelation("MachineID", true, "Machine", "ID")]
     [BindTable("Record", Description = "交易记录", ConnName = "YWS", DbType = DatabaseType.SqlServer)]
     public partial class Record : IRecord
-    
     {
         #region 属性
         private Int32 _ID;
@@ -33,10 +27,10 @@ namespace NewLife.YWS.Entities
         [Description("编号")]
         [DataObjectField(true, true, false, 10)]
         [BindColumn(1, "ID", "编号", null, "int", 10, 0, false)]
-        public Int32 ID
+        public virtual Int32 ID
         {
             get { return _ID; }
-            set { if (OnPropertyChanging("ID", value)) { _ID = value; OnPropertyChanged("ID"); } }
+            set { if (OnPropertyChanging(__.ID, value)) { _ID = value; OnPropertyChanged(__.ID); } }
         }
 
         private String _Name;
@@ -45,10 +39,10 @@ namespace NewLife.YWS.Entities
         [Description("名称")]
         [DataObjectField(false, false, true, 50)]
         [BindColumn(2, "Name", "名称", null, "nvarchar(50)", 0, 0, true)]
-        public String Name
+        public virtual String Name
         {
             get { return _Name; }
-            set { if (OnPropertyChanging("Name", value)) { _Name = value; OnPropertyChanged("Name"); } }
+            set { if (OnPropertyChanging(__.Name, value)) { _Name = value; OnPropertyChanged(__.Name); } }
         }
 
         private Int32 _CustomerID;
@@ -57,10 +51,10 @@ namespace NewLife.YWS.Entities
         [Description("客户ID")]
         [DataObjectField(false, false, true, 10)]
         [BindColumn(3, "CustomerID", "客户ID", null, "int", 10, 0, false)]
-        public Int32 CustomerID
+        public virtual Int32 CustomerID
         {
             get { return _CustomerID; }
-            set { if (OnPropertyChanging("CustomerID", value)) { _CustomerID = value; OnPropertyChanged("CustomerID"); } }
+            set { if (OnPropertyChanging(__.CustomerID, value)) { _CustomerID = value; OnPropertyChanged(__.CustomerID); } }
         }
 
         private Int32 _MachineID;
@@ -69,10 +63,10 @@ namespace NewLife.YWS.Entities
         [Description("机器ID")]
         [DataObjectField(false, false, true, 10)]
         [BindColumn(4, "MachineID", "机器ID", null, "int", 10, 0, false)]
-        public Int32 MachineID
+        public virtual Int32 MachineID
         {
             get { return _MachineID; }
-            set { if (OnPropertyChanging("MachineID", value)) { _MachineID = value; OnPropertyChanged("MachineID"); } }
+            set { if (OnPropertyChanging(__.MachineID, value)) { _MachineID = value; OnPropertyChanged(__.MachineID); } }
         }
 
         private String _Transactor;
@@ -81,10 +75,10 @@ namespace NewLife.YWS.Entities
         [Description("经手人")]
         [DataObjectField(false, false, true, 50)]
         [BindColumn(5, "Transactor", "经手人", null, "nvarchar(50)", 0, 0, true)]
-        public String Transactor
+        public virtual String Transactor
         {
             get { return _Transactor; }
-            set { if (OnPropertyChanging("Transactor", value)) { _Transactor = value; OnPropertyChanged("Transactor"); } }
+            set { if (OnPropertyChanging(__.Transactor, value)) { _Transactor = value; OnPropertyChanged(__.Transactor); } }
         }
 
         private DateTime _LeaveTime;
@@ -93,10 +87,10 @@ namespace NewLife.YWS.Entities
         [Description("出厂日期")]
         [DataObjectField(false, false, true, 3)]
         [BindColumn(6, "LeaveTime", "出厂日期", null, "datetime", 3, 0, false)]
-        public DateTime LeaveTime
+        public virtual DateTime LeaveTime
         {
             get { return _LeaveTime; }
-            set { if (OnPropertyChanging("LeaveTime", value)) { _LeaveTime = value; OnPropertyChanged("LeaveTime"); } }
+            set { if (OnPropertyChanging(__.LeaveTime, value)) { _LeaveTime = value; OnPropertyChanged(__.LeaveTime); } }
         }
 
         private String _OutlineSize;
@@ -105,10 +99,10 @@ namespace NewLife.YWS.Entities
         [Description("机器外形尺寸")]
         [DataObjectField(false, false, true, 10)]
         [BindColumn(7, "OutlineSize", "机器外形尺寸", null, "nvarchar(10)", 0, 0, true)]
-        public String OutlineSize
+        public virtual String OutlineSize
         {
             get { return _OutlineSize; }
-            set { if (OnPropertyChanging("OutlineSize", value)) { _OutlineSize = value; OnPropertyChanged("OutlineSize"); } }
+            set { if (OnPropertyChanging(__.OutlineSize, value)) { _OutlineSize = value; OnPropertyChanged(__.OutlineSize); } }
         }
 
         private String _Attachment;
@@ -117,10 +111,10 @@ namespace NewLife.YWS.Entities
         [Description("附送配件")]
         [DataObjectField(false, false, true, 50)]
         [BindColumn(8, "Attachment", "附送配件", null, "nvarchar(50)", 0, 0, true)]
-        public String Attachment
+        public virtual String Attachment
         {
             get { return _Attachment; }
-            set { if (OnPropertyChanging("Attachment", value)) { _Attachment = value; OnPropertyChanged("Attachment"); } }
+            set { if (OnPropertyChanging(__.Attachment, value)) { _Attachment = value; OnPropertyChanged(__.Attachment); } }
         }
 
         private String _Type;
@@ -129,10 +123,10 @@ namespace NewLife.YWS.Entities
         [Description("点胶阀门类型")]
         [DataObjectField(false, false, true, 50)]
         [BindColumn(9, "Type", "点胶阀门类型", null, "nvarchar(50)", 0, 0, true)]
-        public String Type
+        public virtual String Type
         {
             get { return _Type; }
-            set { if (OnPropertyChanging("Type", value)) { _Type = value; OnPropertyChanged("Type"); } }
+            set { if (OnPropertyChanging(__.Type, value)) { _Type = value; OnPropertyChanged(__.Type); } }
         }
 
         private String _Model;
@@ -141,10 +135,10 @@ namespace NewLife.YWS.Entities
         [Description("混合管型号")]
         [DataObjectField(false, false, true, 50)]
         [BindColumn(10, "Model", "混合管型号", null, "nvarchar(50)", 0, 0, true)]
-        public String Model
+        public virtual String Model
         {
             get { return _Model; }
-            set { if (OnPropertyChanging("Model", value)) { _Model = value; OnPropertyChanged("Model"); } }
+            set { if (OnPropertyChanging(__.Model, value)) { _Model = value; OnPropertyChanged(__.Model); } }
         }
 
         private String _VacuumpumpSpec;
@@ -153,10 +147,10 @@ namespace NewLife.YWS.Entities
         [Description("真空泵规格")]
         [DataObjectField(false, false, true, 50)]
         [BindColumn(11, "VacuumpumpSpec", "真空泵规格", null, "nvarchar(50)", 0, 0, true)]
-        public String VacuumpumpSpec
+        public virtual String VacuumpumpSpec
         {
             get { return _VacuumpumpSpec; }
-            set { if (OnPropertyChanging("VacuumpumpSpec", value)) { _VacuumpumpSpec = value; OnPropertyChanged("VacuumpumpSpec"); } }
+            set { if (OnPropertyChanging(__.VacuumpumpSpec, value)) { _VacuumpumpSpec = value; OnPropertyChanged(__.VacuumpumpSpec); } }
         }
 
         private String _Kind;
@@ -165,10 +159,10 @@ namespace NewLife.YWS.Entities
         [Description("数据显示屏种类")]
         [DataObjectField(false, false, true, 50)]
         [BindColumn(12, "Kind", "数据显示屏种类", null, "nvarchar(50)", 0, 0, true)]
-        public String Kind
+        public virtual String Kind
         {
             get { return _Kind; }
-            set { if (OnPropertyChanging("Kind", value)) { _Kind = value; OnPropertyChanged("Kind"); } }
+            set { if (OnPropertyChanging(__.Kind, value)) { _Kind = value; OnPropertyChanged(__.Kind); } }
         }
 
         private String _Groupings;
@@ -177,10 +171,10 @@ namespace NewLife.YWS.Entities
         [Description("计量泵组别")]
         [DataObjectField(false, false, true, 50)]
         [BindColumn(13, "Groupings", "计量泵组别", null, "nvarchar(50)", 0, 0, true)]
-        public String Groupings
+        public virtual String Groupings
         {
             get { return _Groupings; }
-            set { if (OnPropertyChanging("Groupings", value)) { _Groupings = value; OnPropertyChanged("Groupings"); } }
+            set { if (OnPropertyChanging(__.Groupings, value)) { _Groupings = value; OnPropertyChanged(__.Groupings); } }
         }
 
         private Double _Size;
@@ -189,10 +183,10 @@ namespace NewLife.YWS.Entities
         [Description("计量泵尺寸")]
         [DataObjectField(false, false, true, 53)]
         [BindColumn(14, "Size", "计量泵尺寸", null, "float", 53, 0, false)]
-        public Double Size
+        public virtual Double Size
         {
             get { return _Size; }
-            set { if (OnPropertyChanging("Size", value)) { _Size = value; OnPropertyChanged("Size"); } }
+            set { if (OnPropertyChanging(__.Size, value)) { _Size = value; OnPropertyChanged(__.Size); } }
         }
 
         private String _MeteringpumpSpec;
@@ -201,10 +195,10 @@ namespace NewLife.YWS.Entities
         [Description("计量泵密封件规格")]
         [DataObjectField(false, false, true, 50)]
         [BindColumn(15, "MeteringpumpSpec", "计量泵密封件规格", null, "nvarchar(50)", 0, 0, true)]
-        public String MeteringpumpSpec
+        public virtual String MeteringpumpSpec
         {
             get { return _MeteringpumpSpec; }
-            set { if (OnPropertyChanging("MeteringpumpSpec", value)) { _MeteringpumpSpec = value; OnPropertyChanged("MeteringpumpSpec"); } }
+            set { if (OnPropertyChanging(__.MeteringpumpSpec, value)) { _MeteringpumpSpec = value; OnPropertyChanged(__.MeteringpumpSpec); } }
         }
 
         private Double _PresSize;
@@ -213,10 +207,10 @@ namespace NewLife.YWS.Entities
         [Description("压力桶大小")]
         [DataObjectField(false, false, true, 53)]
         [BindColumn(16, "PresSize", "压力桶大小", null, "float", 53, 0, false)]
-        public Double PresSize
+        public virtual Double PresSize
         {
             get { return _PresSize; }
-            set { if (OnPropertyChanging("PresSize", value)) { _PresSize = value; OnPropertyChanged("PresSize"); } }
+            set { if (OnPropertyChanging(__.PresSize, value)) { _PresSize = value; OnPropertyChanged(__.PresSize); } }
         }
 
         private String _SupplypipeSpec;
@@ -225,10 +219,10 @@ namespace NewLife.YWS.Entities
         [Description("进料管规格")]
         [DataObjectField(false, false, true, 50)]
         [BindColumn(17, "SupplypipeSpec", "进料管规格", null, "nvarchar(50)", 0, 0, true)]
-        public String SupplypipeSpec
+        public virtual String SupplypipeSpec
         {
             get { return _SupplypipeSpec; }
-            set { if (OnPropertyChanging("SupplypipeSpec", value)) { _SupplypipeSpec = value; OnPropertyChanged("SupplypipeSpec"); } }
+            set { if (OnPropertyChanging(__.SupplypipeSpec, value)) { _SupplypipeSpec = value; OnPropertyChanged(__.SupplypipeSpec); } }
         }
 
         private String _DischargeSpec;
@@ -237,10 +231,10 @@ namespace NewLife.YWS.Entities
         [Description("出料管规格")]
         [DataObjectField(false, false, true, 50)]
         [BindColumn(18, "DischargeSpec", "出料管规格", null, "nvarchar(50)", 0, 0, true)]
-        public String DischargeSpec
+        public virtual String DischargeSpec
         {
             get { return _DischargeSpec; }
-            set { if (OnPropertyChanging("DischargeSpec", value)) { _DischargeSpec = value; OnPropertyChanged("DischargeSpec"); } }
+            set { if (OnPropertyChanging(__.DischargeSpec, value)) { _DischargeSpec = value; OnPropertyChanged(__.DischargeSpec); } }
         }
 
         private String _GroupingsB;
@@ -249,10 +243,10 @@ namespace NewLife.YWS.Entities
         [Description("B料计量泵组别")]
         [DataObjectField(false, false, true, 50)]
         [BindColumn(19, "GroupingsB", "B料计量泵组别", null, "nvarchar(50)", 0, 0, true)]
-        public String GroupingsB
+        public virtual String GroupingsB
         {
             get { return _GroupingsB; }
-            set { if (OnPropertyChanging("GroupingsB", value)) { _GroupingsB = value; OnPropertyChanged("GroupingsB"); } }
+            set { if (OnPropertyChanging(__.GroupingsB, value)) { _GroupingsB = value; OnPropertyChanged(__.GroupingsB); } }
         }
 
         private Double _SizeB;
@@ -261,10 +255,10 @@ namespace NewLife.YWS.Entities
         [Description("B料计量泵尺寸")]
         [DataObjectField(false, false, true, 53)]
         [BindColumn(20, "SizeB", "B料计量泵尺寸", null, "float", 53, 0, false)]
-        public Double SizeB
+        public virtual Double SizeB
         {
             get { return _SizeB; }
-            set { if (OnPropertyChanging("SizeB", value)) { _SizeB = value; OnPropertyChanged("SizeB"); } }
+            set { if (OnPropertyChanging(__.SizeB, value)) { _SizeB = value; OnPropertyChanged(__.SizeB); } }
         }
 
         private String _MeteringpumpSpecB;
@@ -273,10 +267,10 @@ namespace NewLife.YWS.Entities
         [Description("B料计量泵密封件规格")]
         [DataObjectField(false, false, true, 50)]
         [BindColumn(21, "MeteringpumpSpecB", "B料计量泵密封件规格", null, "nvarchar(50)", 0, 0, true)]
-        public String MeteringpumpSpecB
+        public virtual String MeteringpumpSpecB
         {
             get { return _MeteringpumpSpecB; }
-            set { if (OnPropertyChanging("MeteringpumpSpecB", value)) { _MeteringpumpSpecB = value; OnPropertyChanged("MeteringpumpSpecB"); } }
+            set { if (OnPropertyChanging(__.MeteringpumpSpecB, value)) { _MeteringpumpSpecB = value; OnPropertyChanged(__.MeteringpumpSpecB); } }
         }
 
         private Double _PresSizeB;
@@ -285,10 +279,10 @@ namespace NewLife.YWS.Entities
         [Description("B料压力桶大小")]
         [DataObjectField(false, false, true, 53)]
         [BindColumn(22, "PresSizeB", "B料压力桶大小", null, "float", 53, 0, false)]
-        public Double PresSizeB
+        public virtual Double PresSizeB
         {
             get { return _PresSizeB; }
-            set { if (OnPropertyChanging("PresSizeB", value)) { _PresSizeB = value; OnPropertyChanged("PresSizeB"); } }
+            set { if (OnPropertyChanging(__.PresSizeB, value)) { _PresSizeB = value; OnPropertyChanged(__.PresSizeB); } }
         }
 
         private String _SupplypipeSpecB;
@@ -297,10 +291,10 @@ namespace NewLife.YWS.Entities
         [Description("B料进料管规格")]
         [DataObjectField(false, false, true, 50)]
         [BindColumn(23, "SupplypipeSpecB", "B料进料管规格", null, "nvarchar(50)", 0, 0, true)]
-        public String SupplypipeSpecB
+        public virtual String SupplypipeSpecB
         {
             get { return _SupplypipeSpecB; }
-            set { if (OnPropertyChanging("SupplypipeSpecB", value)) { _SupplypipeSpecB = value; OnPropertyChanged("SupplypipeSpecB"); } }
+            set { if (OnPropertyChanging(__.SupplypipeSpecB, value)) { _SupplypipeSpecB = value; OnPropertyChanged(__.SupplypipeSpecB); } }
         }
 
         private String _DischargeSpecB;
@@ -309,22 +303,22 @@ namespace NewLife.YWS.Entities
         [Description("B料出料管规格")]
         [DataObjectField(false, false, true, 50)]
         [BindColumn(24, "DischargeSpecB", "B料出料管规格", null, "nvarchar(50)", 0, 0, true)]
-        public String DischargeSpecB
+        public virtual String DischargeSpecB
         {
             get { return _DischargeSpecB; }
-            set { if (OnPropertyChanging("DischargeSpecB", value)) { _DischargeSpecB = value; OnPropertyChanged("DischargeSpecB"); } }
+            set { if (OnPropertyChanging(__.DischargeSpecB, value)) { _DischargeSpecB = value; OnPropertyChanged(__.DischargeSpecB); } }
         }
 
         private String _Pic;
-        /// <summary></summary>
-        [DisplayName("")]
-        [Description("")]
+        /// <summary>Pic</summary>
+        [DisplayName("Pic")]
+        [Description("Pic")]
         [DataObjectField(false, false, true, 100)]
-        [BindColumn(25, "Pic", "", null, "nvarchar(100)", 0, 0, true)]
-        public String Pic
+        [BindColumn(25, "Pic", "Pic", null, "nvarchar(100)", 0, 0, true)]
+        public virtual String Pic
         {
             get { return _Pic; }
-            set { if (OnPropertyChanging("Pic", value)) { _Pic = value; OnPropertyChanged("Pic"); } }
+            set { if (OnPropertyChanging(__.Pic, value)) { _Pic = value; OnPropertyChanged(__.Pic); } }
         }
 
         private DateTime _AddTime;
@@ -333,10 +327,10 @@ namespace NewLife.YWS.Entities
         [Description("添加时间")]
         [DataObjectField(false, false, true, 3)]
         [BindColumn(26, "AddTime", "添加时间", null, "datetime", 3, 0, false)]
-        public DateTime AddTime
+        public virtual DateTime AddTime
         {
             get { return _AddTime; }
-            set { if (OnPropertyChanging("AddTime", value)) { _AddTime = value; OnPropertyChanged("AddTime"); } }
+            set { if (OnPropertyChanging(__.AddTime, value)) { _AddTime = value; OnPropertyChanged(__.AddTime); } }
         }
 
         private String _Remark;
@@ -345,12 +339,12 @@ namespace NewLife.YWS.Entities
         [Description("备注")]
         [DataObjectField(false, false, true, 100)]
         [BindColumn(27, "Remark", "备注", null, "nvarchar(100)", 0, 0, true)]
-        public String Remark
+        public virtual String Remark
         {
             get { return _Remark; }
-            set { if (OnPropertyChanging("Remark", value)) { _Remark = value; OnPropertyChanged("Remark"); } }
+            set { if (OnPropertyChanging(__.Remark, value)) { _Remark = value; OnPropertyChanged(__.Remark); } }
         }
-		#endregion
+        #endregion
 
         #region 获取/设置 字段值
         /// <summary>
@@ -366,33 +360,33 @@ namespace NewLife.YWS.Entities
             {
                 switch (name)
                 {
-                    case "ID" : return _ID;
-                    case "Name" : return _Name;
-                    case "CustomerID" : return _CustomerID;
-                    case "MachineID" : return _MachineID;
-                    case "Transactor" : return _Transactor;
-                    case "LeaveTime" : return _LeaveTime;
-                    case "OutlineSize" : return _OutlineSize;
-                    case "Attachment" : return _Attachment;
-                    case "Type" : return _Type;
-                    case "Model" : return _Model;
-                    case "VacuumpumpSpec" : return _VacuumpumpSpec;
-                    case "Kind" : return _Kind;
-                    case "Groupings" : return _Groupings;
-                    case "Size" : return _Size;
-                    case "MeteringpumpSpec" : return _MeteringpumpSpec;
-                    case "PresSize" : return _PresSize;
-                    case "SupplypipeSpec" : return _SupplypipeSpec;
-                    case "DischargeSpec" : return _DischargeSpec;
-                    case "GroupingsB" : return _GroupingsB;
-                    case "SizeB" : return _SizeB;
-                    case "MeteringpumpSpecB" : return _MeteringpumpSpecB;
-                    case "PresSizeB" : return _PresSizeB;
-                    case "SupplypipeSpecB" : return _SupplypipeSpecB;
-                    case "DischargeSpecB" : return _DischargeSpecB;
-                    case "Pic" : return _Pic;
-                    case "AddTime" : return _AddTime;
-                    case "Remark" : return _Remark;
+                    case __.ID : return _ID;
+                    case __.Name : return _Name;
+                    case __.CustomerID : return _CustomerID;
+                    case __.MachineID : return _MachineID;
+                    case __.Transactor : return _Transactor;
+                    case __.LeaveTime : return _LeaveTime;
+                    case __.OutlineSize : return _OutlineSize;
+                    case __.Attachment : return _Attachment;
+                    case __.Type : return _Type;
+                    case __.Model : return _Model;
+                    case __.VacuumpumpSpec : return _VacuumpumpSpec;
+                    case __.Kind : return _Kind;
+                    case __.Groupings : return _Groupings;
+                    case __.Size : return _Size;
+                    case __.MeteringpumpSpec : return _MeteringpumpSpec;
+                    case __.PresSize : return _PresSize;
+                    case __.SupplypipeSpec : return _SupplypipeSpec;
+                    case __.DischargeSpec : return _DischargeSpec;
+                    case __.GroupingsB : return _GroupingsB;
+                    case __.SizeB : return _SizeB;
+                    case __.MeteringpumpSpecB : return _MeteringpumpSpecB;
+                    case __.PresSizeB : return _PresSizeB;
+                    case __.SupplypipeSpecB : return _SupplypipeSpecB;
+                    case __.DischargeSpecB : return _DischargeSpecB;
+                    case __.Pic : return _Pic;
+                    case __.AddTime : return _AddTime;
+                    case __.Remark : return _Remark;
                     default: return base[name];
                 }
             }
@@ -400,33 +394,33 @@ namespace NewLife.YWS.Entities
             {
                 switch (name)
                 {
-                    case "ID" : _ID = Convert.ToInt32(value); break;
-                    case "Name" : _Name = Convert.ToString(value); break;
-                    case "CustomerID" : _CustomerID = Convert.ToInt32(value); break;
-                    case "MachineID" : _MachineID = Convert.ToInt32(value); break;
-                    case "Transactor" : _Transactor = Convert.ToString(value); break;
-                    case "LeaveTime" : _LeaveTime = Convert.ToDateTime(value); break;
-                    case "OutlineSize" : _OutlineSize = Convert.ToString(value); break;
-                    case "Attachment" : _Attachment = Convert.ToString(value); break;
-                    case "Type" : _Type = Convert.ToString(value); break;
-                    case "Model" : _Model = Convert.ToString(value); break;
-                    case "VacuumpumpSpec" : _VacuumpumpSpec = Convert.ToString(value); break;
-                    case "Kind" : _Kind = Convert.ToString(value); break;
-                    case "Groupings" : _Groupings = Convert.ToString(value); break;
-                    case "Size" : _Size = Convert.ToDouble(value); break;
-                    case "MeteringpumpSpec" : _MeteringpumpSpec = Convert.ToString(value); break;
-                    case "PresSize" : _PresSize = Convert.ToDouble(value); break;
-                    case "SupplypipeSpec" : _SupplypipeSpec = Convert.ToString(value); break;
-                    case "DischargeSpec" : _DischargeSpec = Convert.ToString(value); break;
-                    case "GroupingsB" : _GroupingsB = Convert.ToString(value); break;
-                    case "SizeB" : _SizeB = Convert.ToDouble(value); break;
-                    case "MeteringpumpSpecB" : _MeteringpumpSpecB = Convert.ToString(value); break;
-                    case "PresSizeB" : _PresSizeB = Convert.ToDouble(value); break;
-                    case "SupplypipeSpecB" : _SupplypipeSpecB = Convert.ToString(value); break;
-                    case "DischargeSpecB" : _DischargeSpecB = Convert.ToString(value); break;
-                    case "Pic" : _Pic = Convert.ToString(value); break;
-                    case "AddTime" : _AddTime = Convert.ToDateTime(value); break;
-                    case "Remark" : _Remark = Convert.ToString(value); break;
+                    case __.ID : _ID = Convert.ToInt32(value); break;
+                    case __.Name : _Name = Convert.ToString(value); break;
+                    case __.CustomerID : _CustomerID = Convert.ToInt32(value); break;
+                    case __.MachineID : _MachineID = Convert.ToInt32(value); break;
+                    case __.Transactor : _Transactor = Convert.ToString(value); break;
+                    case __.LeaveTime : _LeaveTime = Convert.ToDateTime(value); break;
+                    case __.OutlineSize : _OutlineSize = Convert.ToString(value); break;
+                    case __.Attachment : _Attachment = Convert.ToString(value); break;
+                    case __.Type : _Type = Convert.ToString(value); break;
+                    case __.Model : _Model = Convert.ToString(value); break;
+                    case __.VacuumpumpSpec : _VacuumpumpSpec = Convert.ToString(value); break;
+                    case __.Kind : _Kind = Convert.ToString(value); break;
+                    case __.Groupings : _Groupings = Convert.ToString(value); break;
+                    case __.Size : _Size = Convert.ToDouble(value); break;
+                    case __.MeteringpumpSpec : _MeteringpumpSpec = Convert.ToString(value); break;
+                    case __.PresSize : _PresSize = Convert.ToDouble(value); break;
+                    case __.SupplypipeSpec : _SupplypipeSpec = Convert.ToString(value); break;
+                    case __.DischargeSpec : _DischargeSpec = Convert.ToString(value); break;
+                    case __.GroupingsB : _GroupingsB = Convert.ToString(value); break;
+                    case __.SizeB : _SizeB = Convert.ToDouble(value); break;
+                    case __.MeteringpumpSpecB : _MeteringpumpSpecB = Convert.ToString(value); break;
+                    case __.PresSizeB : _PresSizeB = Convert.ToDouble(value); break;
+                    case __.SupplypipeSpecB : _SupplypipeSpecB = Convert.ToString(value); break;
+                    case __.DischargeSpecB : _DischargeSpecB = Convert.ToString(value); break;
+                    case __.Pic : _Pic = Convert.ToString(value); break;
+                    case __.AddTime : _AddTime = Convert.ToDateTime(value); break;
+                    case __.Remark : _Remark = Convert.ToString(value); break;
                     default: base[name] = value; break;
                 }
             }
@@ -438,85 +432,173 @@ namespace NewLife.YWS.Entities
         public class _
         {
             ///<summary>编号</summary>
-            public static readonly Field ID = Meta.Table.FindByName("ID");
+            public static readonly Field ID = FindByName(__.ID);
 
             ///<summary>名称</summary>
-            public static readonly Field Name = Meta.Table.FindByName("Name");
+            public static readonly Field Name = FindByName(__.Name);
 
             ///<summary>客户ID</summary>
-            public static readonly Field CustomerID = Meta.Table.FindByName("CustomerID");
+            public static readonly Field CustomerID = FindByName(__.CustomerID);
 
             ///<summary>机器ID</summary>
-            public static readonly Field MachineID = Meta.Table.FindByName("MachineID");
+            public static readonly Field MachineID = FindByName(__.MachineID);
 
             ///<summary>经手人</summary>
-            public static readonly Field Transactor = Meta.Table.FindByName("Transactor");
+            public static readonly Field Transactor = FindByName(__.Transactor);
 
             ///<summary>出厂日期</summary>
-            public static readonly Field LeaveTime = Meta.Table.FindByName("LeaveTime");
+            public static readonly Field LeaveTime = FindByName(__.LeaveTime);
 
             ///<summary>机器外形尺寸</summary>
-            public static readonly Field OutlineSize = Meta.Table.FindByName("OutlineSize");
+            public static readonly Field OutlineSize = FindByName(__.OutlineSize);
 
             ///<summary>附送配件</summary>
-            public static readonly Field Attachment = Meta.Table.FindByName("Attachment");
+            public static readonly Field Attachment = FindByName(__.Attachment);
 
             ///<summary>点胶阀门类型</summary>
-            public static readonly Field Type = Meta.Table.FindByName("Type");
+            public static readonly Field Type = FindByName(__.Type);
 
             ///<summary>混合管型号</summary>
-            public static readonly Field Model = Meta.Table.FindByName("Model");
+            public static readonly Field Model = FindByName(__.Model);
 
             ///<summary>真空泵规格</summary>
-            public static readonly Field VacuumpumpSpec = Meta.Table.FindByName("VacuumpumpSpec");
+            public static readonly Field VacuumpumpSpec = FindByName(__.VacuumpumpSpec);
 
             ///<summary>数据显示屏种类</summary>
-            public static readonly Field Kind = Meta.Table.FindByName("Kind");
+            public static readonly Field Kind = FindByName(__.Kind);
 
             ///<summary>计量泵组别</summary>
-            public static readonly Field Groupings = Meta.Table.FindByName("Groupings");
+            public static readonly Field Groupings = FindByName(__.Groupings);
 
             ///<summary>计量泵尺寸</summary>
-            public static readonly Field Size = Meta.Table.FindByName("Size");
+            public static readonly Field Size = FindByName(__.Size);
 
             ///<summary>计量泵密封件规格</summary>
-            public static readonly Field MeteringpumpSpec = Meta.Table.FindByName("MeteringpumpSpec");
+            public static readonly Field MeteringpumpSpec = FindByName(__.MeteringpumpSpec);
 
             ///<summary>压力桶大小</summary>
-            public static readonly Field PresSize = Meta.Table.FindByName("PresSize");
+            public static readonly Field PresSize = FindByName(__.PresSize);
 
             ///<summary>进料管规格</summary>
-            public static readonly Field SupplypipeSpec = Meta.Table.FindByName("SupplypipeSpec");
+            public static readonly Field SupplypipeSpec = FindByName(__.SupplypipeSpec);
 
             ///<summary>出料管规格</summary>
-            public static readonly Field DischargeSpec = Meta.Table.FindByName("DischargeSpec");
+            public static readonly Field DischargeSpec = FindByName(__.DischargeSpec);
 
             ///<summary>B料计量泵组别</summary>
-            public static readonly Field GroupingsB = Meta.Table.FindByName("GroupingsB");
+            public static readonly Field GroupingsB = FindByName(__.GroupingsB);
 
             ///<summary>B料计量泵尺寸</summary>
-            public static readonly Field SizeB = Meta.Table.FindByName("SizeB");
+            public static readonly Field SizeB = FindByName(__.SizeB);
 
             ///<summary>B料计量泵密封件规格</summary>
-            public static readonly Field MeteringpumpSpecB = Meta.Table.FindByName("MeteringpumpSpecB");
+            public static readonly Field MeteringpumpSpecB = FindByName(__.MeteringpumpSpecB);
 
             ///<summary>B料压力桶大小</summary>
-            public static readonly Field PresSizeB = Meta.Table.FindByName("PresSizeB");
+            public static readonly Field PresSizeB = FindByName(__.PresSizeB);
 
             ///<summary>B料进料管规格</summary>
-            public static readonly Field SupplypipeSpecB = Meta.Table.FindByName("SupplypipeSpecB");
+            public static readonly Field SupplypipeSpecB = FindByName(__.SupplypipeSpecB);
 
             ///<summary>B料出料管规格</summary>
-            public static readonly Field DischargeSpecB = Meta.Table.FindByName("DischargeSpecB");
+            public static readonly Field DischargeSpecB = FindByName(__.DischargeSpecB);
 
-            ///<summary></summary>
-            public static readonly Field Pic = Meta.Table.FindByName("Pic");
+            ///<summary>Pic</summary>
+            public static readonly Field Pic = FindByName(__.Pic);
 
             ///<summary>添加时间</summary>
-            public static readonly Field AddTime = Meta.Table.FindByName("AddTime");
+            public static readonly Field AddTime = FindByName(__.AddTime);
 
             ///<summary>备注</summary>
-            public static readonly Field Remark = Meta.Table.FindByName("Remark");
+            public static readonly Field Remark = FindByName(__.Remark);
+
+            static Field FindByName(String name) { return Meta.Table.FindByName(name); }
+        }
+
+        /// <summary>取得交易记录字段名称的快捷方式</summary>
+        class __
+        {
+            ///<summary>编号</summary>
+            public const String ID = "ID";
+
+            ///<summary>名称</summary>
+            public const String Name = "Name";
+
+            ///<summary>客户ID</summary>
+            public const String CustomerID = "CustomerID";
+
+            ///<summary>机器ID</summary>
+            public const String MachineID = "MachineID";
+
+            ///<summary>经手人</summary>
+            public const String Transactor = "Transactor";
+
+            ///<summary>出厂日期</summary>
+            public const String LeaveTime = "LeaveTime";
+
+            ///<summary>机器外形尺寸</summary>
+            public const String OutlineSize = "OutlineSize";
+
+            ///<summary>附送配件</summary>
+            public const String Attachment = "Attachment";
+
+            ///<summary>点胶阀门类型</summary>
+            public const String Type = "Type";
+
+            ///<summary>混合管型号</summary>
+            public const String Model = "Model";
+
+            ///<summary>真空泵规格</summary>
+            public const String VacuumpumpSpec = "VacuumpumpSpec";
+
+            ///<summary>数据显示屏种类</summary>
+            public const String Kind = "Kind";
+
+            ///<summary>计量泵组别</summary>
+            public const String Groupings = "Groupings";
+
+            ///<summary>计量泵尺寸</summary>
+            public const String Size = "Size";
+
+            ///<summary>计量泵密封件规格</summary>
+            public const String MeteringpumpSpec = "MeteringpumpSpec";
+
+            ///<summary>压力桶大小</summary>
+            public const String PresSize = "PresSize";
+
+            ///<summary>进料管规格</summary>
+            public const String SupplypipeSpec = "SupplypipeSpec";
+
+            ///<summary>出料管规格</summary>
+            public const String DischargeSpec = "DischargeSpec";
+
+            ///<summary>B料计量泵组别</summary>
+            public const String GroupingsB = "GroupingsB";
+
+            ///<summary>B料计量泵尺寸</summary>
+            public const String SizeB = "SizeB";
+
+            ///<summary>B料计量泵密封件规格</summary>
+            public const String MeteringpumpSpecB = "MeteringpumpSpecB";
+
+            ///<summary>B料压力桶大小</summary>
+            public const String PresSizeB = "PresSizeB";
+
+            ///<summary>B料进料管规格</summary>
+            public const String SupplypipeSpecB = "SupplypipeSpecB";
+
+            ///<summary>B料出料管规格</summary>
+            public const String DischargeSpecB = "DischargeSpecB";
+
+            ///<summary>Pic</summary>
+            public const String Pic = "Pic";
+
+            ///<summary>添加时间</summary>
+            public const String AddTime = "AddTime";
+
+            ///<summary>备注</summary>
+            public const String Remark = "Remark";
+
         }
         #endregion
     }
@@ -597,7 +679,7 @@ namespace NewLife.YWS.Entities
         /// <summary>B料出料管规格</summary>
         String DischargeSpecB { get; set; }
 
-        /// <summary></summary>
+        /// <summary>Pic</summary>
         String Pic { get; set; }
 
         /// <summary>添加时间</summary>
@@ -615,4 +697,3 @@ namespace NewLife.YWS.Entities
         #endregion
     }
 }
-#pragma warning restore 3021
