@@ -305,41 +305,7 @@ namespace XCode.DataAccessLayer
         public virtual DataSet Query(String sql, CommandType type = CommandType.Text, params DbParameter[] ps)
         {
             return Query(CreateCommand(sql, type, ps));
-
-            //QueryTimes++;
-            //WriteSQL(sql, ps);
-            //try
-            //{
-            //    DbCommand cmd = CreateCommand(sql, type, ps);
-            //    using (DbDataAdapter da = Factory.CreateDataAdapter())
-            //    {
-            //        da.SelectCommand = cmd;
-            //        DataSet ds = new DataSet();
-            //        da.Fill(ds);
-            //        return ds;
-            //    }
-            //}
-            //catch (DbException ex)
-            //{
-            //    throw OnException(ex, sql);
-            //}
-            //finally
-            //{
-            //    AutoClose();
-            //}
         }
-
-        ///// <summary>
-        ///// 执行SQL查询，返回记录集
-        ///// </summary>
-        ///// <param name="builder">查询生成器</param>
-        ///// <param name="startRowIndex">开始行，0表示第一行</param>
-        ///// <param name="maximumRows">最大返回行数，0表示所有行</param>
-        ///// <returns>记录集</returns>
-        //public virtual DataSet Query(SelectBuilder builder, Int32 startRowIndex, Int32 maximumRows)
-        //{
-        //    return Query(Database.PageSplit(builder, startRowIndex, maximumRows).ToString(), CommandType.Text, builder.Parameters.ToArray());
-        //}
 
         /// <summary>执行DbCommand，返回记录集</summary>
         /// <param name="cmd">DbCommand</param>
@@ -356,7 +322,9 @@ namespace XCode.DataAccessLayer
                     cmd.Connection = Conn;
                     if (Trans != null) cmd.Transaction = Trans;
                     da.SelectCommand = cmd;
+
                     var ds = new DataSet();
+                    BeginTrace();
                     da.Fill(ds);
                     return ds;
                 }
@@ -366,6 +334,8 @@ namespace XCode.DataAccessLayer
                 }
                 finally
                 {
+                    EndTrace(cmd.CommandText);
+
                     AutoClose();
                     cmd.Parameters.Clear();
                 }
@@ -382,10 +352,10 @@ namespace XCode.DataAccessLayer
         {
             if (sql.Contains(" "))
             {
-                String orderBy = DbBase.CheckOrderClause(ref sql);
+                var orderBy = DbBase.CheckOrderClause(ref sql);
                 //sql = String.Format("Select Count(*) From {0}", CheckSimpleSQL(sql));
                 //Match m = reg_QueryCount.Match(sql);
-                MatchCollection ms = reg_QueryCount.Matches(sql);
+                var ms = reg_QueryCount.Matches(sql);
                 if (ms != null && ms.Count > 0)
                 {
                     sql = String.Format("Select Count(*) From {0}", ms[0].Groups[1].Value);
@@ -423,22 +393,6 @@ namespace XCode.DataAccessLayer
         public virtual Int32 Execute(String sql, CommandType type = CommandType.Text, params DbParameter[] ps)
         {
             return Execute(CreateCommand(sql, type, ps));
-
-            //ExecuteTimes++;
-            //WriteSQL(sql, ps);
-            //try
-            //{
-            //    DbCommand cmd = CreateCommand();
-            //    cmd.CommandType = type;
-            //    cmd.CommandText = sql;
-            //    if (ps != null && ps.Length > 0) cmd.Parameters.AddRange(ps);
-            //    return cmd.ExecuteNonQuery();
-            //}
-            //catch (DbException ex)
-            //{
-            //    throw OnException(ex, sql);
-            //}
-            //finally { AutoClose(); }
         }
 
         /// <summary>执行DbCommand，返回受影响的行数</summary>
@@ -453,6 +407,8 @@ namespace XCode.DataAccessLayer
                 if (!Opened) Open();
                 cmd.Connection = Conn;
                 if (Trans != null) cmd.Transaction = Trans;
+
+                BeginTrace();
                 return cmd.ExecuteNonQuery();
             }
             catch (DbException ex)
@@ -461,6 +417,8 @@ namespace XCode.DataAccessLayer
             }
             finally
             {
+                EndTrace(cmd.CommandText);
+
                 AutoClose();
                 cmd.Parameters.Clear();
             }
@@ -494,6 +452,7 @@ namespace XCode.DataAccessLayer
             WriteSQL(cmd);
             try
             {
+                BeginTrace();
                 Object rs = cmd.ExecuteScalar();
                 if (rs == null || rs == DBNull.Value) return default(T);
                 if (rs is T) return (T)rs;
@@ -505,6 +464,8 @@ namespace XCode.DataAccessLayer
             }
             finally
             {
+                EndTrace(cmd.CommandText);
+
                 AutoClose();
                 cmd.Parameters.Clear();
             }
