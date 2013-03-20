@@ -154,7 +154,17 @@ namespace NewLife.Reflection
             if (Type.ContainsGenericParameters || Type.IsGenericTypeDefinition)
                 throw new XException(Type.FullName + "类是泛型定义类，缺少泛型参数！");
 
-            if (Type.IsValueType || Type.IsArray) return Handler.Invoke(parameters);
+            if (Type.IsValueType) return Handler.Invoke(parameters);
+
+            // 数组的动态构造参数是元素个数，如果未指定，应该默认0
+            if (Type.IsArray)
+            {
+                if (parameters == null || parameters.Length < 1) parameters = new Object[] { 0 };
+                return Handler.Invoke(parameters);
+            }
+
+            // 无参数，直接构造
+            if (parameters == null || parameters.Length < 1) return Handler.Invoke(new Object[0]);
 
             // 准备参数类型数组，以匹配构造函数
             //var paramTypes = Type.EmptyTypes;
