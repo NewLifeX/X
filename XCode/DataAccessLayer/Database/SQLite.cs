@@ -414,6 +414,9 @@ namespace XCode.DataAccessLayer
             var sql = base.CheckColumnsChange(entitytable, dbtable, set);
             if (String.IsNullOrEmpty(sql)) return sql;
 
+            // 只有修改字段、删除字段需要重建表
+            if (!sql.Contains("Alter Column") && !sql.Contains("Drop Column")) return sql;
+
             var sql2 = sql;
 
             sql = ReBuildTable(entitytable, dbtable);
