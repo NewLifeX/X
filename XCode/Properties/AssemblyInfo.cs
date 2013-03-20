@@ -35,7 +35,7 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
 [assembly: AssemblyVersion("8.9.*")]
-[assembly: AssemblyFileVersion("8.9.2013.0310")]
+[assembly: AssemblyFileVersion("8.9.2013.0320")]
 
 /*
  * XCode的重大改进
@@ -52,6 +52,8 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v8.9.2013.0320   增加TraceSQLTime，跟踪SQL执行时间，大于该阀值将输出日志，默认0毫秒不跟踪。
+ * 
  * v8.9.2013.0310   修正动态代码中字段引用不正确的BUG
  *                  IDbSession.Rollback增加是否忽略异常的参数，默认忽略
  * 

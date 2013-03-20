@@ -435,6 +435,9 @@ namespace Test
             var entity = eop.Create();
             entity.SetItem("FileContent", Guid.NewGuid().ToByteArray());
             entity.Save();
+
+            var aa = new Log();
+            Console.WriteLine(aa);
         }
     }
 

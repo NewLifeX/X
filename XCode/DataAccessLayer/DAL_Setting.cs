@@ -187,6 +187,21 @@ namespace XCode.DataAccessLayer
                 return _NegativeExclude;
             }
         }
+
+        private static Int32? _TraceSQLTime;
+        /// <summary>跟踪SQL执行时间，大于该阀值将输出日志，默认0毫秒不跟踪。</summary>
+        public static Int32 TraceSQLTime
+        {
+            get
+            {
+                if (_TraceSQLTime != null) return _TraceSQLTime.Value;
+
+                _TraceSQLTime = Config.GetConfig<Int32>("XCode.TraceSQLTime", 0);
+
+                return _TraceSQLTime.Value;
+            }
+            set { _TraceSQLTime = value; }
+        }
         #endregion
     }
 }
