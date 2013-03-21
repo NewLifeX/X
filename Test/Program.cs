@@ -28,6 +28,8 @@ using System.Linq;
 using NewLife.Linq;
 using XCode;
 using NewLife.Compression;
+using NewLife.IO;
+using System.Text;
 #endif
 
 namespace Test
@@ -399,84 +401,145 @@ namespace Test
             sm.Start();
         }
 
-        static void Test8()
-        {
-            var xml = @"<?xml version=""1.0"" encoding=""utf-8""?>
-<xml>
-  <ToUserName><![CDATA[gh_a96a4a619366]]></ToUserName>
-  <FromUserName><![CDATA[olPjZjsXuQPJoV0HlruZkNzKc91E]]></FromUserName>
-  <CreateTime>1358061152</CreateTime>
-  <MsgType><![CDATA[location]]></MsgType>
-  <Location_X>31.285774</Location_X>
-  <Location_Y>120.597610</Location_Y>
-  <Scale>19</Scale>
-  <Label><![CDATA[中国江苏省苏州市沧浪区桐泾南路251号-309号]]></Label>
-  <MsgId>5832828233808572154</MsgId>
-</xml>";
-
-            //var msg = Msg.Load(xml);
-            //var msg = xml.ToXmlEntity<Msg>();
-            //Console.WriteLine(msg.Label);
-
-            var reader = new XmlReaderX(xml);
-            var msg = reader.ReadObject<Msg>();
-            Console.WriteLine(msg.Label);
-
-            var dic = xml.ToXmlDictionary();
-            Console.WriteLine(dic);
-
-            xml = dic.ToXml();
-            Console.WriteLine(xml);
-        }
-
         static void Test10()
         {
-            var eop = DAL.Create("Common0").CreateOperate("Attachment");
-            var entity = eop.Create();
-            entity.SetItem("FileContent", Guid.NewGuid().ToByteArray());
-            entity.Save();
-
-            var aa = new Log();
-            Console.WriteLine(aa);
+            var txt = File.ReadAllText("f.txt", Encoding.Default);
+            var rs = new Json().Deserialize<QQRes>(txt);
+            Console.WriteLine(rs);
         }
     }
 
-    public class Msg //: XmlEntity<Msg>
+    public class QQRes
     {
-        private String _ToUserName;
+        private Int32 _retcode;
         /// <summary>属性说明</summary>
-        public String ToUserName { get { return _ToUserName; } set { _ToUserName = value; } }
+        public Int32 retcode { get { return _retcode; } set { _retcode = value; } }
 
-        private String _FromUserName;
+        private QQResult _result;
         /// <summary>属性说明</summary>
-        public String FromUserName { get { return _FromUserName; } set { _FromUserName = value; } }
+        public QQResult result { get { return _result; } set { _result = value; } }
 
-        private Int32 _CreateTime;
-        /// <summary>属性说明</summary>
-        public Int32 CreateTime { get { return _CreateTime; } set { _CreateTime = value; } }
+        public class QQResult
+        {
+            private QQFriend[] _friends;
+            /// <summary>属性说明</summary>
+            public QQFriend[] friends { get { return _friends; } set { _friends = value; } }
 
-        private String _MsgType;
-        /// <summary>属性说明</summary>
-        public String MsgType { get { return _MsgType; } set { _MsgType = value; } }
+            private QQMarkName[] _marknames;
+            /// <summary>属性说明</summary>
+            public QQMarkName[] marknames { get { return _marknames; } set { _marknames = value; } }
 
-        private Double _Location_X;
-        /// <summary>属性说明</summary>
-        public Double Location_X { get { return _Location_X; } set { _Location_X = value; } }
+            private QQCategory[] _categories;
+            /// <summary>属性说明</summary>
+            public QQCategory[] categories { get { return _categories; } set { _categories = value; } }
 
-        private Double _Location_Y;
-        /// <summary>属性说明</summary>
-        public Double Location_Y { get { return _Location_Y; } set { _Location_Y = value; } }
+            private VipInfo[] _vipinfo;
+            /// <summary>属性说明</summary>
+            public VipInfo[] vipinfo { get { return _vipinfo; } set { _vipinfo = value; } }
 
-        private Int32 _Scale;
-        /// <summary>属性说明</summary>
-        public Int32 Scale { get { return _Scale; } set { _Scale = value; } }
+            private QQInfo[] _info;
+            /// <summary>属性说明</summary>
+            public QQInfo[] info { get { return _info; } set { _info = value; } }
+        }
 
-        private String _Label;
-        /// <summary>属性说明</summary>
-        public String Label { get { return _Label; } set { _Label = value; } }
+        public class QQFriend
+        {
+            private Int32 _flag;
+            /// <summary>属性说明</summary>
+            public Int32 flag { get { return _flag; } set { _flag = value; } }
 
-        private Int64 _MsgId;
-        /// <summary>属性说明</summary>
-        public Int64 MsgId { get { return _MsgId; } set { _MsgId = value; } }
+            private Int64 _uin;
+            /// <summary>属性说明</summary>
+            public Int64 uin { get { return _uin; } set { _uin = value; } }
+
+            private Int32 _categories;
+            /// <summary>属性说明</summary>
+            public Int32 categories { get { return _categories; } set { _categories = value; } }
+
+            public override string ToString()
+            {
+                return uin + "";
+            }
+        }
+
+        public class QQMarkName
+        {
+            private Int64 _uin;
+            /// <summary>属性说明</summary>
+            public Int64 uin { get { return _uin; } set { _uin = value; } }
+
+            private String _markname;
+            /// <summary>属性说明</summary>
+            public String markname { get { return _markname; } set { _markname = value; } }
+
+            public override string ToString()
+            {
+                return String.Format("({0}){1}", uin, markname);
+            }
+        }
+
+        public class QQCategory
+        {
+            private Int32 _index;
+            /// <summary>属性说明</summary>
+            public Int32 index { get { return _index; } set { _index = value; } }
+
+            private Int32 _sort;
+            /// <summary>属性说明</summary>
+            public Int32 sort { get { return _sort; } set { _sort = value; } }
+
+            private String _name;
+            /// <summary>属性说明</summary>
+            public String name { get { return _name; } set { _name = value; } }
+
+            public override string ToString()
+            {
+                return name;
+            }
+        }
+
+        public class VipInfo
+        {
+            private Int32 _vip_level;
+            /// <summary>属性说明</summary>
+            public Int32 vip_level { get { return _vip_level; } set { _vip_level = value; } }
+
+            private Int64 _u;
+            /// <summary>属性说明</summary>
+            public Int64 u { get { return _u; } set { _u = value; } }
+
+            private Int32 _is_vip;
+            /// <summary>属性说明</summary>
+            public Int32 is_vip { get { return _is_vip; } set { _is_vip = value; } }
+
+            public override string ToString()
+            {
+                return u + "";
+            }
+        }
+
+        public class QQInfo
+        {
+            private Int32 _face;
+            /// <summary>属性说明</summary>
+            public Int32 face { get { return _face; } set { _face = value; } }
+
+            private Int32 _flag;
+            /// <summary>属性说明</summary>
+            public Int32 flag { get { return _flag; } set { _flag = value; } }
+
+            private String _nick;
+            /// <summary>属性说明</summary>
+            public String nick { get { return _nick; } set { _nick = value; } }
+
+            private Int64 _uin;
+            /// <summary>属性说明</summary>
+            public Int64 uin { get { return _uin; } set { _uin = value; } }
+
+            public override string ToString()
+            {
+                return String.Format("({0}){1}", uin, nick);
+            }
+        }
     }
 }
