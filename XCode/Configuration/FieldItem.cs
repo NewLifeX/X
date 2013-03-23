@@ -286,28 +286,30 @@ namespace XCode.Configuration
         /// <summary>In操作</summary>
         /// <param name="value">枚举数据，会转化为字符串</param>
         /// <returns></returns>
-        public WhereExpression In(IEnumerable value)
+        public WhereExpression In(IEnumerable value) { return _In(value, true); }
+
+        WhereExpression _In(IEnumerable value, Boolean flag)
         {
             if (value == null) return new WhereExpression();
 
-            IEntityOperate op = Factory;
-            String name = op.FormatName(ColumnName);
+            var op = Factory;
+            var name = op.FormatName(ColumnName);
 
-            List<Object> vs = new List<Object>();
-            List<String> list = new List<String>();
-            foreach (Object item in value)
+            var vs = new List<Object>();
+            var list = new List<String>();
+            foreach (var item in value)
             {
                 // 避免重复项
                 if (vs.Contains(item)) continue;
                 vs.Add(item);
 
                 // 格式化数值
-                String str = op.FormatValue(this, item);
+                var str = op.FormatValue(this, item);
                 list.Add(str);
             }
             if (list.Count <= 0) return new WhereExpression();
 
-            return new WhereExpression(String.Format("{0} In({1})", name, String.Join(",", list.ToArray())));
+            return new WhereExpression(String.Format("{0}{2} In({1})", name, String.Join(",", list.ToArray()), flag ? "" : " Not"));
         }
 
         /// <summary>NotIn操作</summary>
@@ -321,29 +323,7 @@ namespace XCode.Configuration
         /// <summary>NotIn操作</summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        public WhereExpression NotIn(IEnumerable value)
-        {
-            if (value == null) return new WhereExpression();
-
-            IEntityOperate op = Factory;
-            String name = op.FormatName(ColumnName);
-
-            List<Object> vs = new List<Object>();
-            List<String> list = new List<String>();
-            foreach (Object item in value)
-            {
-                // 避免重复项
-                if (vs.Contains(item)) continue;
-                vs.Add(item);
-
-                // 格式化数值
-                String str = op.FormatValue(this, item);
-                list.Add(str);
-            }
-            if (list.Count <= 0) return new WhereExpression();
-
-            return new WhereExpression(String.Format("{0} Not In({1})", name, String.Join(",", list.ToArray())));
-        }
+        public WhereExpression NotIn(IEnumerable value) { return _In(value, false); }
 
         /// <summary>IsNull操作，不为空，一般用于字符串，但不匹配0长度字符串</summary>
         /// <returns></returns>
@@ -361,17 +341,11 @@ namespace XCode.Configuration
 
         /// <summary>IsNullOrEmpty操作，用于空或者0长度字符串</summary>
         /// <returns></returns>
-        public WhereExpression IsNullOrEmpty()
-        {
-            return IsNull().Or(Equal(""));
-        }
+        public WhereExpression IsNullOrEmpty() { return IsNull().Or(Equal("")); }
 
         /// <summary>NotIsNullOrEmpty操作</summary>
         /// <returns></returns>
-        public WhereExpression NotIsNullOrEmpty()
-        {
-            return NotIsNull().And(NotEqual(""));
-        }
+        public WhereExpression NotIsNullOrEmpty() { return NotIsNull().And(NotEqual("")); }
 
         /// <summary>大于</summary>
         /// <param name="field"></param>

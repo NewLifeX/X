@@ -134,9 +134,13 @@ namespace XCode
             // 如果是布尔型，表明是下一段的条件语句
             if (value is Boolean)
             {
-                exp.skipNext = !(Boolean)value;
+                if (exp != null) exp.skipNext = !(Boolean)value;
                 return exp;
             }
+
+            // 如果exp为空
+            if (exp == null) return new WhereExpression(value + "");
+
             // 如果上一个要求这里跳过，则跳过
             if (exp.skipNext)
             {
@@ -159,9 +163,13 @@ namespace XCode
             // 如果是布尔型，表明是下一段的条件语句
             if (value is Boolean)
             {
-                exp.skipNext = !(Boolean)value;
+                if (exp != null) exp.skipNext = !(Boolean)value;
                 return exp;
             }
+
+            // 如果exp为空
+            if (exp == null) return new WhereExpression(value + "");
+
             // 如果上一个要求这里跳过，则跳过
             if (exp.skipNext)
             {

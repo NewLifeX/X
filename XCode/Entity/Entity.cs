@@ -821,13 +821,17 @@ namespace XCode
         /// <summary>构建关键字查询条件</summary>
         /// <param name="sb"></param>
         /// <param name="keys"></param>
+        [Obsolete("=>SearchWhereByKeys(String keys)")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public static void SearchWhereByKeys(StringBuilder sb, String keys) { SearchWhereByKeys(sb, keys, null); }
 
         /// <summary>构建关键字查询条件</summary>
         /// <param name="sb"></param>
         /// <param name="keys"></param>
         /// <param name="func"></param>
-        public static void SearchWhereByKeys(StringBuilder sb, String keys, Func<String, String> func)
+        [Obsolete("=>SearchWhereByKeys(String keys)")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public static void SearchWhereByKeys(StringBuilder sb, String keys, Func<String, WhereExpression> func)
         {
             if (String.IsNullOrEmpty(keys)) return;
 
@@ -841,19 +845,20 @@ namespace XCode
                 sb.Append(str);
         }
 
-        /// <summary>构建关键字查询条件</summary>
-        /// <param name="keys"></param>
+        /// <summary>根据空格分割的关键字集合构建查询条件</summary>
+        /// <param name="keys">空格分割的关键字集合</param>
         /// <param name="func"></param>
         /// <returns></returns>
-        public static String SearchWhereByKeys(String keys, Func<String, String> func)
+        public static WhereExpression SearchWhereByKeys(String keys, Func<String, WhereExpression> func = null)
         {
-            if (String.IsNullOrEmpty(keys)) return null;
+            var exp = new WhereExpression();
+            if (String.IsNullOrEmpty(keys)) return exp;
 
             if (func == null) func = SearchWhereByKey;
 
-            String[] ks = keys.Split(new Char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            var ks = keys.Split(new Char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
 
-            StringBuilder sb = new StringBuilder();
+            var sb = exp.Builder;
             for (int i = 0; i < ks.Length; i++)
             {
                 if (sb.Length > 0) sb.Append(" And ");
@@ -868,16 +873,20 @@ namespace XCode
                     sb.Append(str);
             }
 
-            return sb.Length <= 0 ? null : sb.ToString();
+            //return sb.Length <= 0 ? null : sb.ToString();
+            return exp;
         }
 
         /// <summary>构建关键字查询条件</summary>
         /// <param name="key"></param>
         /// <returns></returns>
-        public static String SearchWhereByKey(String key)
+        public static WhereExpression SearchWhereByKey(String key)
         {
-            StringBuilder sb = new StringBuilder();
-            foreach (FieldItem item in Meta.Fields)
+            var exp = new WhereExpression();
+            if (String.IsNullOrEmpty(key)) return exp;
+
+            var sb = exp.Builder;
+            foreach (var item in Meta.Fields)
             {
                 if (item.Type != typeof(String)) continue;
 
@@ -885,7 +894,8 @@ namespace XCode
                 sb.AppendFormat("{0} like '%{1}%'", Meta.FormatName(item.Name), key);
             }
 
-            return sb.Length <= 0 ? null : sb.ToString();
+            //return sb.Length <= 0 ? null : sb.ToString();
+            return exp;
         }
         #endregion
 
@@ -1190,12 +1200,12 @@ namespace XCode
                 //匹配字段
                 if (Meta.FieldNames.Contains(name))
                 {
-                    FieldInfoX field = FieldInfoX.Create(this.GetType(), "_" + name);
+                    var field = FieldInfoX.Create(this.GetType(), "_" + name);
                     if (field != null) return field.GetValue(this);
                 }
 
                 //尝试匹配属性
-                PropertyInfoX property = PropertyInfoX.Create(this.GetType(), name);
+                var property = PropertyInfoX.Create(this.GetType(), name);
                 if (property != null && property.GetMethod != null) return property.GetValue(this);
 
                 Object obj = null;
@@ -1210,7 +1220,7 @@ namespace XCode
                 //匹配字段
                 if (Meta.FieldNames.Contains(name))
                 {
-                    FieldInfoX field = FieldInfoX.Create(this.GetType(), "_" + name);
+                    var field = FieldInfoX.Create(this.GetType(), "_" + name);
                     if (field != null)
                     {
                         field.SetValue(this, value);
@@ -1219,15 +1229,12 @@ namespace XCode
                 }
 
                 //尝试匹配属性
-                PropertyInfoX property = PropertyInfoX.Create(this.GetType(), name);
+                var property = PropertyInfoX.Create(this.GetType(), name);
                 if (property != null && property.SetMethod != null)
                 {
                     property.SetValue(this, value);
                     return;
                 }
-
-                //foreach (FieldItem fi in Meta.AllFields)
-                //    if (fi.Name == name) { fi.Property.SetValue(this, value, null); return; }
 
                 if (Extends.ContainsKey(name))
                     Extends[name] = value;
@@ -1333,16 +1340,16 @@ namespace XCode
         public override string ToString()
         {
             // 优先采用业务主键，也就是唯一索引
-            IDataTable table = Meta.Table.DataTable;
+            var table = Meta.Table.DataTable;
             if (table.Indexes != null && table.Indexes.Count > 0)
             {
                 IDataIndex di = null;
-                foreach (IDataIndex item in table.Indexes)
+                foreach (var item in table.Indexes)
                 {
                     if (!item.Unique) continue;
                     if (item.Columns == null || item.Columns.Length < 1) continue;
 
-                    IDataColumn[] columns = table.GetColumns(item.Columns);
+                    var columns = table.GetColumns(item.Columns);
                     if (columns == null || columns.Length < 1) continue;
 
                     di = item;
@@ -1353,11 +1360,11 @@ namespace XCode
 
                 if (di != null)
                 {
-                    IDataColumn[] columns = table.GetColumns(di.Columns);
+                    var columns = table.GetColumns(di.Columns);
 
                     // [v1,v2,...vn]
-                    StringBuilder sb = new StringBuilder();
-                    foreach (IDataColumn dc in columns)
+                    var sb = new StringBuilder();
+                    foreach (var dc in columns)
                     {
                         if (sb.Length > 0) sb.Append(",");
                         if (Meta.FieldNames.Contains(dc.Name)) sb.Append(this[dc.Name]);
