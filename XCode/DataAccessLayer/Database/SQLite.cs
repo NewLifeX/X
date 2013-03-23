@@ -267,6 +267,13 @@ namespace XCode.DataAccessLayer
             {
                 field.DataType = typeof(Int32);
             }
+
+            if (field.DataType == null)
+            {
+                if (field.RawType.EqualIgnoreCase("varchar2") ||
+                    field.RawType.EqualIgnoreCase("nvarchar2"))
+                    field.DataType = typeof(String);
+            }
         }
 
         protected override string GetFieldType(IDataColumn field)
