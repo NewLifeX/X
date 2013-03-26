@@ -69,7 +69,7 @@ namespace NewLife.CommonEntity
 
             if (ID == 0)
                 WriteLog("添加", Name);
-            else
+            else if (HasDirty)
                 WriteLog("修改", Name);
 
             return base.Save();
