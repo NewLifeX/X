@@ -129,9 +129,9 @@ namespace NewLife.IO
             if (serializationFormat == SerializationFormat.JSON) CheckMaxLength(output.Length);
         }
 
-        private static void SerializeBoolean(bool o, StringBuilder sb)
+        private static void SerializeBoolean(bool obj, StringBuilder sb)
         {
-            if (o)
+            if (obj)
             {
                 sb.Append("true");
             }
@@ -141,48 +141,49 @@ namespace NewLife.IO
             }
         }
 
-        private void SerializeCustomObject(object o, StringBuilder sb, int depth, Hashtable objectsInUse, SerializationFormat serializationFormat)
+        private void SerializeCustomObject(object obj, StringBuilder sb, int depth, Hashtable objectsInUse, SerializationFormat serializationFormat)
         {
             bool flag = true;
-            Type type = o.GetType();
+            Type type = obj.GetType();
             sb.Append('{');
 
-            string str = type.FullName;
-            if (str != null)
-            {
-                SerializeString(ServerTypeFieldName, sb);
-                sb.Append(':');
-                SerializeValue(str, sb, depth, objectsInUse, serializationFormat);
-                flag = false;
-            }
+            // 不要输出__type
+            //string str = type.FullName;
+            //if (str != null)
+            //{
+            //    SerializeString(ServerTypeFieldName, sb);
+            //    sb.Append(':');
+            //    SerializeValue(str, sb, depth, objectsInUse, serializationFormat);
+            //    flag = false;
+            //}
 
-            foreach (FieldInfo info in type.GetFields(BindingFlags.Public | BindingFlags.Instance))
+            foreach (var fi in type.GetFields(BindingFlags.Public | BindingFlags.Instance))
             {
-                if (info.IsDefined(typeof(NonSerializedAttribute), true)) continue;
+                if (fi.IsDefined(typeof(NonSerializedAttribute), true)) continue;
 
                 if (!flag)
                 {
                     sb.Append(',');
                 }
-                SerializeString(info.Name, sb);
+                SerializeString(fi.Name, sb);
                 sb.Append(':');
-                SerializeValue(FieldInfoX.Create(info).GetValue(o), sb, depth, objectsInUse, serializationFormat);
+                SerializeValue(FieldInfoX.Create(fi).GetValue(obj), sb, depth, objectsInUse, serializationFormat);
                 flag = false;
             }
-            foreach (PropertyInfo info2 in type.GetProperties(BindingFlags.GetProperty | BindingFlags.Public | BindingFlags.Instance))
+            foreach (var pi in type.GetProperties(BindingFlags.GetProperty | BindingFlags.Public | BindingFlags.Instance))
             {
-                if (info2.IsDefined(typeof(XmlIgnoreAttribute), true)) continue;
+                if (pi.IsDefined(typeof(XmlIgnoreAttribute), true)) continue;
 
-                MethodInfo getMethod = info2.GetGetMethod();
+                var getMethod = pi.GetGetMethod();
                 if ((getMethod != null) && (getMethod.GetParameters().Length <= 0))
                 {
                     if (!flag)
                     {
                         sb.Append(',');
                     }
-                    SerializeString(info2.Name, sb);
+                    SerializeString(pi.Name, sb);
                     sb.Append(':');
-                    SerializeValue(info2.GetValue(o, null), sb, depth, objectsInUse, serializationFormat);
+                    SerializeValue(PropertyInfoX.Create(pi).GetValue(obj), sb, depth, objectsInUse, serializationFormat);
                     flag = false;
                 }
             }
@@ -205,23 +206,23 @@ namespace NewLife.IO
             }
         }
 
-        private void SerializeDictionary(IDictionary o, StringBuilder sb, int depth, Hashtable objectsInUse, SerializationFormat serializationFormat)
+        private void SerializeDictionary(IDictionary dic, StringBuilder sb, int depth, Hashtable objectsInUse, SerializationFormat serializationFormat)
         {
             sb.Append('{');
             bool flag = true;
             bool flag2 = false;
-            if (o.Contains(ServerTypeFieldName))
+            if (dic.Contains(ServerTypeFieldName))
             {
                 flag = false;
                 flag2 = true;
-                SerializeDictionaryKeyValue(ServerTypeFieldName, o[ServerTypeFieldName], sb, depth, objectsInUse, serializationFormat);
+                SerializeDictionaryKeyValue(ServerTypeFieldName, dic[ServerTypeFieldName], sb, depth, objectsInUse, serializationFormat);
             }
-            foreach (DictionaryEntry entry in o)
+            foreach (DictionaryEntry entry in dic)
             {
                 string key = entry.Key as string;
                 if (key == null)
                 {
-                    throw new ArgumentException(string.Format("不支持字典类型{0}！", o.GetType().FullName));
+                    throw new ArgumentException(string.Format("不支持字典类型{0}！", dic.GetType().FullName));
                 }
                 if (flag2 && string.Equals(key, ServerTypeFieldName, StringComparison.OrdinalIgnoreCase))
                 {
@@ -632,7 +633,7 @@ namespace NewLife.IO
                 Type t = type;
                 string id = null;
                 object o = dictionary;
-                if (dictionary.TryGetValue("__type", out obj2))
+                if (dictionary.TryGetValue(ServerTypeFieldName, out obj2))
                 {
                     if (!ConvertObjectToTypeMain(obj2, typeof(string), serializer, throwOnError, out obj2))
                     {
@@ -652,7 +653,7 @@ namespace NewLife.IO
                             convertedObject = null;
                             return false;
                         }
-                        dictionary.Remove("__type");
+                        dictionary.Remove(ServerTypeFieldName);
                     }
                 }
                 if ((id != null) || IsClientInstantiatableType(t, serializer))
@@ -1130,7 +1131,7 @@ namespace NewLife.IO
                 if (IsNextElementObject(nextNonEmptyChar))
                 {
                     IDictionary<string, object> o = DeserializeDictionary(depth);
-                    if (o.ContainsKey("__type"))
+                    if (o.ContainsKey(ServerTypeFieldName))
                     {
                         return ObjectConverter.ConvertObjectToType(o, null, _serializer);
                     }
