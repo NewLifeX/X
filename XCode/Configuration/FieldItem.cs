@@ -246,7 +246,7 @@ namespace XCode.Configuration
         }
         #endregion
 
-        #region 重载运算符
+        #region 基本运算
         /// <summary>等于</summary>
         /// <param name="value"></param>
         /// <returns></returns>
@@ -338,7 +338,9 @@ namespace XCode.Configuration
         {
             return new WhereExpression(String.Format("Not {0} Is Null", Factory.FormatName(ColumnName)));
         }
+        #endregion
 
+        #region 复杂运算
         /// <summary>IsNullOrEmpty操作，用于空或者0长度字符串</summary>
         /// <returns></returns>
         public WhereExpression IsNullOrEmpty() { return IsNull().Or(Equal("")); }
@@ -347,6 +349,70 @@ namespace XCode.Configuration
         /// <returns></returns>
         public WhereExpression NotIsNullOrEmpty() { return NotIsNull().And(NotEqual("")); }
 
+        /// <summary>是否True或者False和Null</summary>
+        /// <param name="flag"></param>
+        /// <returns></returns>
+        public WhereExpression IsTrue(Boolean? flag)
+        {
+            if (flag == null) return null;
+
+            var f = flag.Value;
+            if (f) return Equal(f);
+
+            if (this.Type == typeof(Boolean) && !IsNullable) return Equal(f);
+
+            return NotEqual(!f).Or(IsNull());
+        }
+
+        /// <summary>是否False或者True和Null</summary>
+        /// <param name="flag"></param>
+        /// <returns></returns>
+        public WhereExpression IsFalse(Boolean? flag)
+        {
+            if (flag == null) return null;
+
+            var f = flag.Value;
+            if (!f) return Equal(f);
+
+            if (this.Type == typeof(Boolean) && !IsNullable) return Equal(f);
+
+            return NotEqual(!f).Or(IsNull());
+        }
+
+        /// <summary>时间专用区间函数</summary>
+        /// <param name="start"></param>
+        /// <param name="end"></param>
+        /// <returns></returns>
+        public WhereExpression Between(DateTime start, DateTime end)
+        {
+            if (start <= DateTime.MinValue)
+            {
+                if (end <= DateTime.MinValue) return null;
+
+                // 如果只有日期，则加一天，表示包含这一天
+                if (end == end.Date) end = end.AddDays(1);
+
+                return this < end;
+            }
+            else
+            {
+                var exp = this >= start;
+                if (end <= DateTime.MinValue) return exp;
+
+                // 如果只有日期，则加一天，表示包含这一天
+                if (end == end.Date) end = end.AddDays(1);
+
+                return exp & this < end;
+            }
+        }
+
+        //public WhereExpression EqualWhenLargeThan(Object value)
+        //{
+
+        //}
+        #endregion
+
+        #region 重载运算符
         /// <summary>大于</summary>
         /// <param name="field"></param>
         /// <param name="value"></param>

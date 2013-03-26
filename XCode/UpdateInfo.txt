@@ -10,6 +10,8 @@ v2.0 数据架构功能，实体和数据结构双向映射
 v1.2 使用泛型基类
 v1.0 创建XCode
 
+v8.9.2013.0326   FieldItem增加IsTrue和IsFalse，实现True/False/Null的分组构造条件
+
 v8.9.2013.0321   SearchWhereByKey和SearchWhereByKeys直接返回WhereExpression
 
 v8.9.2013.0320   增加TraceSQLTime，跟踪SQL执行时间，大于该阀值将输出日志，默认0毫秒不跟踪。

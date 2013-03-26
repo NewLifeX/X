@@ -189,9 +189,6 @@
     <EmbeddedResource Include="Windows\FrmText.resx">
       <DependentUpon>FrmText.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Template\实体业务_简单\对象操作.xt" />
-    <EmbeddedResource Include="Template\实体业务_简单\扩展查询.xt" />
-    <EmbeddedResource Include="Template\实体业务_简单\扩展属性.xt" />
     <EmbeddedResource Include="Template\页面\类名.aspx.cs">
       <DependentUpon>类名.aspx</DependentUpon>
     </EmbeddedResource>
@@ -207,7 +204,6 @@
     <EmbeddedResource Include="Template\页面基类\MyEntityUserControl.cs">
       <SubType>ASPXCodeBehind</SubType>
     </EmbeddedResource>
-    <EmbeddedResource Include="Template\实体业务_简单\中文名.Biz.cs" />
     <EmbeddedResource Include="Template\实体数据\中文名.cs" />
     <EmbeddedResource Include="Template\纯属性\I中文名.cs" />
     <EmbeddedResource Include="Template\纯属性\中文名.cs" />

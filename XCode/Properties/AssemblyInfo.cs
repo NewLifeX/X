@@ -35,7 +35,7 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
 [assembly: AssemblyVersion("8.9.*")]
-[assembly: AssemblyFileVersion("8.9.2013.0321")]
+[assembly: AssemblyFileVersion("8.9.2013.0326")]
 
 /*
  * XCode的重大改进
@@ -52,6 +52,8 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v8.9.2013.0326   FieldItem增加IsTrue和IsFalse，实现True/False/Null的分组构造条件
+ * 
  * v8.9.2013.0321   SearchWhereByKey和SearchWhereByKeys直接返回WhereExpression
  * 
  * v8.9.2013.0320   增加TraceSQLTime，跟踪SQL执行时间，大于该阀值将输出日志，默认0毫秒不跟踪。
