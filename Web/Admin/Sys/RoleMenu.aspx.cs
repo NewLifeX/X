@@ -7,7 +7,7 @@ using XCode;
 
 /*
  * 该页面极为复杂，如无特殊需求，不建议修改。
- * 如果不想要八个自定义权限，可以设置IsFullPermission为true
+ * 如果想要八个自定义权限，可以设置IsFullPermission为true
  */
 
 public partial class Pages_RoleMenu : MyEntityList
@@ -38,7 +38,7 @@ public partial class Pages_RoleMenu : MyEntityList
     public Int32 RoleID { get { return String.IsNullOrEmpty(ddlRole.SelectedValue) ? 0 : Convert.ToInt32(ddlRole.SelectedValue); } }
 
     /// <summary>是否使用完整权限。完整权限包括8个自定义权限</summary>
-    protected Boolean IsFullPermission { get { return true; } }
+    protected Boolean IsFullPermission { get { return false; } }
 
     protected void ddlRole_SelectedIndexChanged(object sender, EventArgs e) { gv.DataBind(); }
 
@@ -131,6 +131,8 @@ public partial class Pages_RoleMenu : MyEntityList
             }
         }
 
+        // 清空缓存，否则一会绑定的时候会绑定旧数据
+        _rms = null;
         gv.DataBind();
     }
 
@@ -188,6 +190,8 @@ public partial class Pages_RoleMenu : MyEntityList
             CheckAndAddParent(RoleID, menu);
         }
 
+        // 清空缓存，否则一会绑定的时候会绑定旧数据
+        _rms = null;
         gv.DataBind();
     }
 
