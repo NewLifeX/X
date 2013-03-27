@@ -28,7 +28,7 @@
                     if(pname.Equals("email", StringComparison.OrdinalIgnoreCase) || pname.Equals("mail", StringComparison.OrdinalIgnoreCase)){
                 %><input name="<%=frmName%>" type="text" value="<%=pi.GetValue(Config) %>" id="<%=frmName%>" onblur="return ValidMail();" style="border-color:Black;border-width:0px;border-style:Solid;font-size:10pt;width:120px;border-bottom-width:1px;" /><%
                     }else{
-                %><input name="<%=frmName%>" type="text" value="<%=pi.GetValue(Config) %>" id="<%=frmName%>" style="width:150px;" /><%
+                %><input name="<%=frmName%>" type="text" value="<%=pi.GetValue(Config) %>" id="<%=frmName%>" style="width:250px;" /><%
                     }
                 }else if(code == TypeCode.Int32){
                 %><input name="<%=frmName%>" type="text" value="<%=pi.GetValue(Config) %>" id="<%=frmName%>" style="width:150px;" /><%

@@ -24,12 +24,22 @@ public partial class Pages_RoleMenu : MyEntityList
         ods.DataObjectTypeName = ods.TypeName = CommonManageProvider.Provider.MenuType.FullName;
         odsRole.DataObjectTypeName = odsRole.TypeName = CommonManageProvider.Provider.RoleType.FullName;
 
-        Int32 roleID = WebHelper.RequestInt("RoleID");
-        if (roleID > 0)
+        //if (!IsPostBack)
         {
-            ddlRole.DataBind();
+            Int32 roleID = WebHelper.RequestInt("RoleID");
+            if (roleID > 0)
+            {
+                ddlRole.DataBind();
 
-            ddlRole.SelectedValue = roleID.ToString();
+                ddlRole.SelectedValue = roleID.ToString();
+            }
+
+            IMenu root = CommonManageProvider.Provider.MenuRoot;
+            if (root != null)
+            {
+                ddlCategory.DataSource = root.Childs;
+                ddlCategory.DataBind();
+            }
         }
     }
 

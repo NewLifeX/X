@@ -3,15 +3,17 @@
 
 <asp:Content ID="Content1" ContentPlaceHolderID="C" runat="server">
     <div class="toolbar">
-        &nbsp;角色：<asp:DropDownList ID="ddlRole" runat="server" DataSourceID="odsRole"
-            DataTextField="Name" DataValueField="ID" OnSelectedIndexChanged="ddlRole_SelectedIndexChanged"
-            AutoPostBack="True">
+        &nbsp;角色：<asp:DropDownList ID="ddlRole" runat="server" DataSourceID="odsRole" DataTextField="Name"
+            DataValueField="ID" OnSelectedIndexChanged="ddlRole_SelectedIndexChanged" AutoPostBack="True">
+        </asp:DropDownList>
+        &nbsp;大类：<asp:DropDownList ID="ddlCategory" runat="server" DataTextField="Name" DataValueField="ID"
+            AutoPostBack="True" AppendDataBoundItems="True">
+            <asp:ListItem Value="0">全部</asp:ListItem>
         </asp:DropDownList>
     </div>
     <asp:GridView ID="gv" runat="server" AutoGenerateColumns="False" DataKeyNames="ID"
         CssClass="m_table" CellPadding="0" GridLines="None" PageSize="15" EnableModelValidation="True"
-        DataSourceID="ods" OnRowDataBound="gv_RowDataBound" 
-        EnableViewState="False">
+        DataSourceID="ods" OnRowDataBound="gv_RowDataBound" EnableViewState="False">
         <Columns>
             <asp:BoundField DataField="ID" HeaderText="编号" InsertVisible="False" ReadOnly="True"
                 SortExpression="ID">
@@ -44,10 +46,11 @@
             没有符合条件的数据！
         </EmptyDataTemplate>
     </asp:GridView>
-    <asp:ObjectDataSource ID="ods" runat="server" 
-        SelectMethod="FindAllChildsNoParent">
+    <asp:ObjectDataSource ID="ods" runat="server" SelectMethod="FindAllChildsNoParent">
         <SelectParameters>
-            <asp:Parameter DefaultValue="0" Name="parentKey" Type="Object" />
+            <%--<asp:Parameter DefaultValue="0" Name="parentKey" Type="Object" />--%>
+            <asp:ControlParameter ControlID="ddlCategory" Name="parentKey" PropertyName="SelectedValue"
+                Type="Int32" />
         </SelectParameters>
     </asp:ObjectDataSource>
     <asp:ObjectDataSource ID="odsRole" runat="server" SelectMethod="FindAllByName">
