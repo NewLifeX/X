@@ -47,6 +47,8 @@ namespace XCode.DataAccessLayer
         }
 
         const String Server_Key = "Server";
+        const String CharSet = "CharSet";
+        const String AllowZeroDatetime = "Allow Zero Datetime";
         protected override void OnSetConnectionString(XDbConnectionStringBuilder builder)
         {
             base.OnSetConnectionString(builder);
@@ -56,6 +58,8 @@ namespace XCode.DataAccessLayer
                 //builder[Server_Key] = "127.0.0.1";
                 builder[Server_Key] = IPAddress.Loopback.ToString();
             }
+            if (!builder.ContainsKey(CharSet)) builder[CharSet] = "utf8";
+            if (!builder.ContainsKey(AllowZeroDatetime)) builder[AllowZeroDatetime] = "True";
         }
         #endregion
 
