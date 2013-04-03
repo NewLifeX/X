@@ -47,7 +47,7 @@
 	dic["UseCNFileName"] = true;	// 中文文件名
 	dic["UseHeadTemplate"] = true;	// 使用.cs文件头模版
 	// 文件头模版
-	dic["HeadTemplate"] = "/*\r\n * XCoder v&lt;#=Version#&gt;\r\n * 作者：&lt;#=Environment.UserName + \"/\" + Environment.MachineName#&gt;\r\n * 时间：&lt;#=DateTime.Now.ToString(\"yyyy-MM-dd HH:mm:ss\")#&gt;\r\n * 版权：版权所有 (C) 新生命开发团队 &lt;#=DateTime.Now.ToString(\"yyyy\")#&gt;\r\n*/";
+	dic["HeadTemplate"] = "/*\r\n * XCoder v\<#=Version\#>\r\n * 作者：\<#=Environment.UserName + \"/\" + Environment.MachineName\#>\r\n * 时间：\<#=DateTime.Now.ToString(\"yyyy-MM-dd HH:mm:ss\")\#>\r\n * 版权：版权所有 (C) 新生命开发团队 2002~\<#=DateTime.Now.ToString(\"yyyy\")\#>\r\n*/\r\n";
 
 	dic["OutputPath"] = mypath;					// 输出目录
 	dic["TemplateName"] = "[内置]数据字典";		// 模版名

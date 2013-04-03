@@ -200,7 +200,7 @@ namespace XCoder
             sb.AppendLine(" * XCoder v<#=Version#>");
             sb.AppendLine(" * 作者：<#=Environment.UserName + \"/\" + Environment.MachineName#>");
             sb.AppendLine(" * 时间：<#=DateTime.Now.ToString(\"yyyy-MM-dd HH:mm:ss\")#>");
-            sb.AppendLine(" * 版权：版权所有 (C) 新生命开发团队 <#=DateTime.Now.ToString(\"yyyy\")#>");
+            sb.AppendLine(" * 版权：版权所有 (C) 新生命开发团队 2002~<#=DateTime.Now.ToString(\"yyyy\")#>");
             sb.AppendLine("*/");
             HeadTemplate = sb.ToString();
         }
