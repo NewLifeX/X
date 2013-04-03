@@ -375,10 +375,11 @@ namespace XCoder
                 //list.RemoveAll(delegate(IDataTable p) { return p.Description.Contains("[0E232FF0-B466-"); });
                 list.RemoveAll(dt => dt.Name == "dtproperties" || dt.Name == "sysconstraints" || dt.Name == "syssegments" || dt.Description.Contains("[0E232FF0-B466-"));
             }
-            cbTableList.DataSource = source;
-            if (source == null)
-                cbTableList.Items.Clear();
-            else
+
+            // 设置前最好清空，否则多次设置数据源会用第一次绑定控件，然后实际数据是最后一次
+            //cbTableList.DataSource = source;
+            cbTableList.Items.Clear();
+            if (source != null)
             {
                 // 表名排序
                 var tables = source as List<IDataTable>;
