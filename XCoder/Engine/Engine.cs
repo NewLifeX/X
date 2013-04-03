@@ -215,7 +215,9 @@ namespace XCoder
                 // 计算输出文件名
                 var fileName = Path.GetFileName(item.Name);
                 var fname = Config.UseCNFileName ? table.DisplayName : table.Name;
-                fname = fname.Replace("/", "_").Replace("\\", "_");
+                fname = fname.Replace("/", "_").Replace("\\", "_").Replace("?", null);
+                // 如果中文名无效，采用英文名
+                if (String.IsNullOrEmpty(Path.GetFileNameWithoutExtension(fname)) || fname[0] == '.') fname = table.Name;
                 fileName = fileName.Replace("类名", fname).Replace("中文名", fname).Replace("连接名", Config.EntityConnName);
 
                 fileName = Path.Combine(outpath, fileName);
