@@ -12,7 +12,7 @@ using NewLife.Collections;
 using NewLife.Exceptions;
 using NewLife.Log;
 
-#if NET4
+#if NET4 
 using System.Linq;
 #else
 using NewLife.Linq;
