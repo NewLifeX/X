@@ -424,17 +424,26 @@ namespace NewLife.Reflection
                 }
             }
             #endregion
-
-            #region 处理数组
-            start = typeName.LastIndexOf("[");
+             
+            #region 处理数组   有可能是   aa [[ dddd ]]  ,也有可能是  aa[dddd]
+            //因Json.cs 序列化Dictionary或泛型数组 导致报错，追踪至此作了调整，只是优化了算法，应该不会产生后果  (上海石头 2013.4.8)
+            bool blnFlag = false;
+            start = typeName.LastIndexOf("[[");
+            if (start > 0) blnFlag = true;
+            if (start < 0) start = typeName.LastIndexOf("[");
             if (start > 0)
             {
-                var end = typeName.LastIndexOf("]");
+                Int32 end = typeName.LastIndexOf("]]");
+                if (end < 0) end = typeName.LastIndexOf("]");
                 if (end > start)
                 {
                     // Int32[][]  String[,,]
                     var gname = typeName.Substring(0, start);
-                    var pname = typeName.Substring(start + 1, end - start - 1);
+                    var pname = "";
+                    if (blnFlag == false)
+                        pname = typeName.Substring(start + 1, end - start - 1);
+                    else
+                        pname = typeName.Substring(start + 2, end - start - 2);
 
                     // 先找外部的，如果外部都找不到，那就没意义了
                     var gt = GetType(gname, isLoadAssembly);
@@ -443,10 +452,16 @@ namespace NewLife.Reflection
                     if (String.IsNullOrEmpty(pname)) return gt.MakeArrayType();
 
                     //pname = ",,,";
-                    var pnames = pname.Split(',');
+                    var pnames = pname.Split(new Char[] { ',' });
                     if (pnames == null || pnames.Length < 1) return gt.MakeArrayType();
 
-                    return gt.MakeArrayType(pnames.Length);
+                    if (gt.IsGenericType == true)   //如果是泛型对象
+                    {
+                        Type[] tmpType = { Type.GetType(pnames[0]) };
+                        return gt.MakeGenericType(tmpType);
+                    }
+                    else
+                        return gt.MakeArrayType(pnames.Length);
                 }
             }
             #endregion
