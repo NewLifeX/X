@@ -242,7 +242,7 @@ namespace XCode
         /// <returns></returns>
         public override Int32 Delete()
         {
-            if (Dirtys.Count > 0)
+            if (HasDirty)
             {
                 // 是否有且仅有主键有脏数据
                 var names = Meta.Table.PrimaryKeys.Select(f => f.Name).OrderBy(k => k).ToArray();
@@ -269,18 +269,18 @@ namespace XCode
                     }
 
                     //return entity.OnDelete();
-                    //return DoAction(entity.OnDelete, null);
+                    return entity.DoAction(OnDelete, null);
 
-                    Meta.BeginTrans();
-                    try
-                    {
-                        Int32 rs = entity.OnDelete();
+                    //Meta.BeginTrans();
+                    //try
+                    //{
+                    //    Int32 rs = entity.OnDelete();
 
-                        Meta.Commit();
+                    //    Meta.Commit();
 
-                        return rs;
-                    }
-                    catch { Meta.Rollback(); throw; }
+                    //    return rs;
+                    //}
+                    //catch { Meta.Rollback(); throw; }
                 }
             }
 
