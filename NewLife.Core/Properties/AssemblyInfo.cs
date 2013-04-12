@@ -33,10 +33,12 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“内部版本号”和“修订号”的默认值，
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("3.8.*")]
-[assembly: AssemblyFileVersion("3.8.2013.0308")]
+[assembly: AssemblyVersion("3.9.*")]
+[assembly: AssemblyFileVersion("3.9.2013.0412")]
 
 /*
+ * v3.9.2013.0412   增加JavaScript脚本。提供Js的基本操作，同时也支持继承扩展
+ * 
  * v3.8.2013.0308   XmlHelper增加Xml到字符串字典的互相转换
  * 
  * v3.8.2012.1205   新增系统配置类SysConfig

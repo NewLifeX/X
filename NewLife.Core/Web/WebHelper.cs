@@ -12,14 +12,16 @@ namespace NewLife.Web
     /// <summary>网页工具类</summary>
     public static class WebHelper
     {
-        static Page Page { get { return HttpContext.Current.Handler as Page; } }
+        //static Page Page { get { return HttpContext.Current.Handler as Page; } }
 
         #region 辅助
         /// <summary>输出脚本</summary>
         /// <param name="script"></param>
         public static void WriteScript(String script)
         {
-            HttpContext.Current.Response.Write(String.Format("<script type=\"text/javascript\">\n{0}\n</script>", script));
+            //HttpContext.Current.Response.Write(String.Format("<script type=\"text/javascript\">\n{0}\n</script>", script));
+
+            Js.WriteScript(script, true);
         }
 
         /// <summary>按字节截取</summary>
@@ -71,25 +73,29 @@ namespace NewLife.Web
         /// <param name="msg"></param>
         public static void Alert(String msg)
         {
-            Page.ClientScript.RegisterStartupScript(Page.GetType(), "alert", "alert('" + JsEncode(msg) + "');", true);
+            //Page.ClientScript.RegisterStartupScript(Page.GetType(), "alert", "alert('" + JsEncode(msg) + "');", true);
+
+            Js.Alert(msg);
         }
 
         /// <summary>弹出页面提示并停止输出后退一步！</summary>
         /// <param name="msg"></param>
         public static void AlertAndEnd(String msg)
         {
-            WriteScript("alert('" + JsEncode(msg) + "');history.go(-1);");
-            HttpContext.Current.Response.End();
+            //WriteScript("alert('" + JsEncode(msg) + "');history.go(-1);");
+            //HttpContext.Current.Response.End();
+
+            Js.Alert(msg).End();
         }
 
         /// <summary>弹出页面提示，并刷新该页面</summary>
         /// <param name="msg"></param>
         public static void AlertAndRefresh(String msg)
         {
-            //Page.ClientScript.RegisterStartupScript(Page.GetType(), "alert", "alert('" + msg + "');location.href = location.href;", true);
+            //WriteScript("alert('" + JsEncode(msg) + "');location.href = location.href;");
+            //HttpContext.Current.Response.End();
 
-            WriteScript("alert('" + JsEncode(msg) + "');location.href = location.href;");
-            HttpContext.Current.Response.End();
+            Js.Alert(msg).Refresh().End();
         }
 
         /// <summary>弹出页面提示并重定向到另外的页面</summary>
@@ -97,26 +103,28 @@ namespace NewLife.Web
         /// <param name="url"></param>
         public static void AlertAndRedirect(String msg, String url)
         {
-            if (!url.Contains("?"))
-                url += "?";
-            else
-                url += "&";
+            //if (!url.Contains("?"))
+            //    url += "?";
+            //else
+            //    url += "&";
 
-            url += "rnd=";
-            url += DateTime.Now.Ticks.ToString();
+            //url += "rnd=";
+            //url += DateTime.Now.Ticks.ToString();
 
-            //Page.ClientScript.RegisterStartupScript(Page.GetType(), "alert", "alert('" + msg + "');location.href = '" + url + "';", true);
+            ////Page.ClientScript.RegisterStartupScript(Page.GetType(), "alert", "alert('" + msg + "');location.href = '" + url + "';", true);
 
-            WriteScript("alert('" + JsEncode(msg) + "');location.href = '" + url + "';");
-            HttpContext.Current.Response.End();
+            //WriteScript("alert('" + JsEncode(msg) + "');location.href = '" + url + "';");
+            //HttpContext.Current.Response.End();
+            Js.Alert(msg).Redirect(url).End();
         }
 
         /// <summary>弹出页面提示并关闭当前页面</summary>
         /// <param name="msg"></param>
         public static void AlertAndClose(String msg)
         {
-            WriteScript("alert('" + JsEncode(msg) + "');window.close();");
-            HttpContext.Current.Response.End();
+            //WriteScript("alert('" + JsEncode(msg) + "');window.close();");
+            //HttpContext.Current.Response.End();
+            Js.Alert(msg).Close().End();
         }
         #endregion
 
