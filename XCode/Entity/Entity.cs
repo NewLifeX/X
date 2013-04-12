@@ -308,11 +308,11 @@ namespace XCode
 
         Int32 DoAction(Func<Int32> func, Boolean? isnew)
         {
-            if (isnew != null && enableValid) Valid(isnew.Value);
-
             Meta.BeginTrans();
             try
             {
+                if (isnew != null && enableValid) Valid(isnew.Value);
+
                 Int32 rs = func();
 
                 Meta.Commit();
