@@ -63,6 +63,10 @@ namespace NewLife.Collections
         /// <summary>异步更新</summary>
         public Boolean Asynchronous { get { return _Asynchronous; } set { _Asynchronous = value; } }
 
+        private Boolean _AutoDispose;
+        /// <summary>移除过期缓存项时，自动调用其Dispose</summary>
+        public Boolean AutoDispose { get { return _AutoDispose; } set { _AutoDispose = value; } }
+
         private Dictionary<TKey, CacheItem> Items;
         #endregion
 
@@ -379,7 +383,19 @@ namespace NewLife.Collections
                 foreach (var item in dic.ToArray())
                 {
                     var t = item.Value.ExpiredTime;
-                    if (t < exp) dic.Remove(item.Key);
+                    if (t < exp)
+                    {
+                        // 自动释放对象
+                        if (AutoDispose && item.Value.Value != null && item.Value.Value is IDisposable)
+                        {
+                            try
+                            {
+                                (item.Value.Value as IDisposable).Dispose();
+                            }
+                            catch { }
+                        }
+                        dic.Remove(item.Key);
+                    }
                 }
             }
         }
