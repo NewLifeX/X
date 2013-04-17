@@ -406,6 +406,134 @@ namespace XCode.Configuration
             }
         }
 
+        /// <summary>当天范围</summary>
+        /// <returns></returns>
+        protected WhereExpression Today()
+        {
+            var fromDateStart = DateTime.Parse(String.Format("{0:yyyy-MM-dd 00:00:00}", DateTime.Now));
+            var fromDateEnd = DateTime.Parse(String.Format("{0:yyyy-MM-dd 00:00:00}", DateTime.Now));
+            return Between(fromDateStart, fromDateEnd);
+        }
+
+        /// <summary>本周范围</summary>
+        /// <returns></returns>
+        protected WhereExpression ThisWeek()
+        {
+            var fromDateStart = DateTime.Parse(String.Format("{0:yyyy-MM-dd} 00:00:00", DateTime.Now.AddDays(Convert.ToDouble((0 - Convert.ToInt16(DateTime.Now.DayOfWeek))))));
+            var fromDateEnd = DateTime.Parse(String.Format("{0:yyyy-MM-dd} 00:00:00", DateTime.Now.AddDays(Convert.ToDouble((6 - Convert.ToInt16(DateTime.Now.DayOfWeek))))));
+            return Between(fromDateStart, fromDateEnd);
+        }
+
+        /// <summary>本月范围</summary>
+        /// <returns></returns>
+        protected WhereExpression ThisMonth()
+        {
+            var fromDateStart = DateTime.Parse(String.Format("{0:yyyy-MM}-01 00:00:00", DateTime.Now));
+            var fromDateEnd = DateTime.Parse(String.Format("{0:yyyy-MM}-01 00:00:00", DateTime.Now.AddMonths(1))).AddDays(-1);
+            return Between(fromDateStart, fromDateEnd);
+        }
+
+        /// <summary>本季度范围</summary>
+        /// <returns></returns>
+        protected WhereExpression ThisQuarter()
+        {
+            var fromDateStart = DateTime.Parse(String.Format("{0:yyyy-MM}-01 00:00:00", DateTime.Now.AddMonths(0 - ((DateTime.Now.Month - 1) % 3))));
+            var fromDateEnd = DateTime.Parse(String.Format("{0:yyyy-MM-dd} 00:00:00", DateTime.Parse(DateTime.Now.AddMonths(3 - ((DateTime.Now.Month - 1) % 3)).ToString("yyyy-MM-01")))).AddDays(-1);
+            return Between(fromDateStart, fromDateEnd);
+        }
+
+        /// <summary>昨天范围</summary>
+        /// <returns></returns>
+        protected WhereExpression Yesterday()
+        {
+            var fromDateStart = DateTime.Parse(String.Format("{0:yyyy-MM-dd 00:00:00}", DateTime.Now.AddDays(-1)));
+            var fromDateEnd = DateTime.Parse(String.Format("{0:yyyy-MM-dd 00:00:00}", DateTime.Now.AddDays(-1)));
+            return Between(fromDateStart, fromDateEnd);
+        }
+
+        /// <summary>上周范围</summary>
+        /// <returns></returns>
+        protected WhereExpression LastWeek()
+        {
+            var fromDateStart = DateTime.Parse(String.Format("{0:yyyy-MM-dd} 00:00:00", DateTime.Now.AddDays(Convert.ToDouble((0 - Convert.ToInt16(DateTime.Now.DayOfWeek))) - 7)));
+            var fromDateEnd = DateTime.Parse(String.Format("{0:yyyy-MM-dd} 00:00:00", DateTime.Now.AddDays(Convert.ToDouble((6 - Convert.ToInt16(DateTime.Now.DayOfWeek))) - 7)));
+            return Between(fromDateStart, fromDateEnd);
+        }
+
+        /// <summary>上月范围</summary>
+        /// <returns></returns>
+        protected WhereExpression LastMonth()
+        {
+            var fromDateStart = DateTime.Parse(String.Format("{0:yyyy-MM}-01 00:00:00", DateTime.Now.AddMonths(-1)));
+            var fromDateEnd = DateTime.Parse(String.Format("{0:yyyy-MM}-01 00:00:00", DateTime.Now)).AddDays(-1);
+            return Between(fromDateStart, fromDateEnd);
+        }
+
+        /// <summary>上季度范围</summary>
+        /// <returns></returns>
+        protected WhereExpression LastQuarter()
+        {
+            var fromDateStart = DateTime.Parse(String.Format("{0:yyyy-MM}-01 00:00:00", DateTime.Now.AddMonths(-3 - ((DateTime.Now.Month - 1) % 3))));
+            var fromDateEnd = DateTime.Parse(String.Format("{0:yyyy-MM-dd} 00:00:00", DateTime.Parse(DateTime.Now.AddMonths(0 - ((DateTime.Now.Month - 1) % 3)).ToString("yyyy-MM-01")))).AddDays(-1);
+            return Between(fromDateStart, fromDateEnd);
+        }
+
+        /// <summary>过去天数范围</summary>
+        /// <param name="days"></param>
+        /// <returns></returns>
+        protected WhereExpression Makes(Int32 days)
+        {
+            var fromDateStart = DateTime.Parse(String.Format("{0:yyyy-MM-dd} 00:00:00", DateTime.Now.AddDays(-days)));
+            var fromDateEnd = DateTime.Parse(String.Format("{0:yyyy-MM-dd} 00:00:00", DateTime.Now.AddDays(-1)));
+            return Between(fromDateStart, fromDateEnd);
+        }
+
+        /// <summary>明天范围</summary>
+        /// <returns></returns>
+        protected WhereExpression Tomorrow()
+        {
+            var fromDateStart = DateTime.Parse(String.Format("{0:yyyy-MM-dd 00:00:00}", DateTime.Now.AddDays(1)));
+            var fromDateEnd = DateTime.Parse(String.Format("{0:yyyy-MM-dd 00:00:00}", DateTime.Now.AddDays(1)));
+            return Between(fromDateStart, fromDateEnd);
+        }
+
+        /// <summary>下周范围</summary>
+        /// <returns></returns>
+        protected WhereExpression NextWeek()
+        {
+            var fromDateStart = DateTime.Parse(String.Format("{0:yyyy-MM-dd} 00:00:00", DateTime.Now.AddDays(Convert.ToDouble((0 - Convert.ToInt16(DateTime.Now.DayOfWeek))) + 7)));
+            var fromDateEnd = DateTime.Parse(String.Format("{0:yyyy-MM-dd} 00:00:00", DateTime.Now.AddDays(Convert.ToDouble((6 - Convert.ToInt16(DateTime.Now.DayOfWeek))) + 7)));
+            return Between(fromDateStart, fromDateEnd);
+        }
+
+        /// <summary>下月范围</summary>
+        /// <returns></returns>
+        protected WhereExpression NextMonth()
+        {
+            var fromDateStart = DateTime.Parse(String.Format("{0:yyyy-MM}-01 00:00:00", DateTime.Now.AddMonths(1)));
+            var fromDateEnd = DateTime.Parse(String.Format("{0:yyyy-MM}-01 00:00:00", DateTime.Now.AddMonths(2))).AddDays(-1);
+            return Between(fromDateStart, fromDateEnd);
+        }
+
+        /// <summary>下季度范围</summary>
+        /// <returns></returns>
+        protected WhereExpression NextQuarter()
+        {
+            var fromDateStart = DateTime.Parse(String.Format("{0:yyyy-MM}-01 00:00:00", DateTime.Now.AddMonths(3 - ((DateTime.Now.Month - 1) % 3))));
+            var fromDateEnd = DateTime.Parse(String.Format("{0:yyyy-MM-dd} 00:00:00", DateTime.Parse(DateTime.Now.AddMonths(6 - ((DateTime.Now.Month - 1) % 3)).ToString("yyyy-MM-01")))).AddDays(-1);
+            return Between(fromDateStart, fromDateEnd);
+        }
+
+        /// <summary>未来天数范围</summary>
+        /// <param name="days"></param>
+        /// <returns></returns>
+        protected WhereExpression NextDays(Int32 days)
+        {
+            var fromDateStart = DateTime.Parse(String.Format("{0:yyyy-MM-dd} 00:00:00", DateTime.Now.AddDays(1)));
+            var fromDateEnd = DateTime.Parse(String.Format("{0:yyyy-MM-dd} 00:00:00", DateTime.Now.AddDays(days)));
+            return Between(fromDateStart, fromDateEnd);
+        }
+
         //public WhereExpression EqualWhenLargeThan(Object value)
         //{
 
