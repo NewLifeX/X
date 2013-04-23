@@ -1,0 +1,91 @@
+/**
+ * Unicorn Admin Template
+ * Diablo9983 -> diablo9983@gmail.com
+**/
+html, body {
+    width: 100%;
+    height: 100%;
+    overflow:hidden;
+}
+body {
+	background-color: #444444;
+	background-image: -webkit-gradient(linear, 0 0%, 0 100%, from(#555555), to(#111111));
+	background-image: -webkit-linear-gradient(top, #555555 0%, #111111 100%);
+    background-image: -moz-linear-gradient(top, #555555 0%, #111111 100%);
+    background-image: -ms-linear-gradient(top, #555555 0%, #111111 100%);
+    background-image: -o-linear-gradient(top, #555555 0%, #111111 100%);
+    background-image: linear-gradient(top, #555555 0%, #111111 100%);
+    padding: 0;
+    margin: 0;
+}
+
+#logo, #loginbox {
+    width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+    position: relative;
+}
+#logo {
+    padding: 20px 0 20px 5px;
+}
+#logo img {
+    width: 215px;
+    margin: 0 auto;
+    display: block;
+}
+#loginbox {
+    height: 196px;
+	background: #ffffff;
+    box-shadow: 0 0 4px #000000;
+    border-radius: 7px;
+    overflow: hidden !important;
+    text-align: center;
+    position: relative;   
+}
+
+#loginbox form{
+	width:100%;
+	height:100%;
+	position:absolute;
+	top:0;
+	left:0;
+}
+#loginbox p {
+    margin-top: 20px;
+    padding: 0 20px;
+}
+
+#loginbox .form-actions {
+	padding: 14px 20px 15px;
+}
+#loginbox .form-actions .pull-left {
+	margin-top: 2px;
+}
+
+#loginbox form#loginform {
+	z-index: 200;
+}
+
+#loginbox form#recoverform {
+	z-index: 100;
+	opacity: 0;
+    display:none;
+}
+
+#loginbox form#recoverform .form-actions {
+    margin-top: 27px;
+}
+
+#loginbox form#recoverform .control-group {
+	margin: 23px 0;
+}
+
+.form-vertical, .form-actions {
+    margin-bottom: 0;
+}
+
+@media (max-width: 480px){
+    #logo, #loginbox {
+        width: 80%; 
+    }    
+}

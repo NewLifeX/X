@@ -1,0 +1,103 @@
+/* the norm */
+#gritter-notice-wrapper {
+	position:fixed;
+	top:50px;
+	right:10px;
+	width:301px;
+	z-index:989;
+}
+#gritter-notice-wrapper.top-left {
+    left: 20px;
+    right: auto;
+}
+#gritter-notice-wrapper.bottom-right {
+    top: auto;
+    left: auto;
+    bottom: 20px;
+    right: 20px;
+}
+#gritter-notice-wrapper.bottom-left {
+    top: auto;
+    right: auto;
+    bottom: 20px;
+    left: 20px;
+}
+.gritter-item-wrapper {
+	position:relative;
+	margin:0 0 10px 0;
+}
+
+.gritter-top, .gritter-bottom {
+	height: 0;
+}
+
+.gritter-item {
+	display:block;
+	background: #545454; /* Old browsers */
+	background: -moz-linear-gradient(top,  #545454 0%, #232323 100%); /* FF3.6+ */
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#545454), color-stop(100%,#232323)); /* Chrome,Safari4+ */
+	background: -webkit-linear-gradient(top,  #545454 0%,#232323 100%); /* Chrome10+,Safari5.1+ */
+	background: -o-linear-gradient(top,  #545454 0%,#232323 100%); /* Opera 11.10+ */
+	background: -ms-linear-gradient(top,  #545454 0%,#232323 100%); /* IE10+ */
+	background: linear-gradient(to bottom,  #545454 0%,#232323 100%); /* W3C */
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#545454', endColorstr='#232323',GradientType=0 ); /* IE6-9 */
+	border-radius: 6px;
+	color:#eee;
+	padding:7px 10px 10px;
+	font-size: 11px;
+	font-family:verdana;
+	border: 1px solid #000000;
+	box-shadow: 0 1px 4px #000000,0 1px 0 rgba(255,255,255,0.3) inset;
+}
+.hover .gritter-item {
+	border: 1px solid #ffffff;
+}
+.gritter-item p {
+	padding:0;
+	margin:0;
+	word-wrap:break-word;
+	font-size: 10px;
+	line-height: 14px;
+}
+.gritter-close {
+	display:none;
+	position:absolute;
+	top:-5px;
+	right:-5px;
+	background:url(../img/gritter.png) no-repeat left top;
+	cursor:pointer;
+	width:30px;
+	height:30px;
+}
+.gritter-title {
+	font-size:12px;
+	font-weight:bold;
+	padding:0 0 7px 0;
+	display:block;
+	text-shadow:0px -1px 0 #000; /* Not supported by IE :( */
+}
+.gritter-image {
+	width:32px;
+	height:32px;
+	float:left;
+	margin: 5px;
+}
+.gritter-with-image,
+.gritter-without-image {
+	padding:0;
+}
+.gritter-with-image {
+	width:220px;
+	float:right;
+}
+/* for the light (white) version of the gritter notice */
+.gritter-light .gritter-item,
+.gritter-light .gritter-bottom,
+.gritter-light .gritter-top,
+.gritter-light .gritter-close {
+    background-image: url(../img/gritter-light.png);
+    color: #222;
+}
+.gritter-light .gritter-title {
+    text-shadow: none;
+}

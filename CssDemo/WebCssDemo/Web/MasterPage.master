@@ -1,0 +1,50 @@
+﻿<%@ Master Language="C#" AutoEventWireup="true" CodeFile="MasterPage.master.cs" Inherits="MasterPage" %>
+
+<!DOCTYPE html>
+<html lang="en">
+<head runat="server">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="<%= ResolveUrl("~/UI/css/bootstrap.min.css")%>" type="text/css" />
+    <link rel="stylesheet" href="<%= ResolveUrl("~/UI/css/bootstrap-responsive.min.css")%>" type="text/css" />
+    <link rel="stylesheet" href="<%= ResolveUrl("~/UI/css/unicorn.main.css")%>" type="text/css" />
+    <link rel="stylesheet" href="<%= ResolveUrl("~/UI/css/unicorn.grey.css")%>" class="skin-color" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <script src="<%= ResolveUrl("~/UI/js/jquery.min.js")%>" type="text/javascript"></script>
+    <script src="<%= ResolveUrl("~/UI/js/excanvas.min.js")%>" type="text/javascript"></script>
+    <script src="<%= ResolveUrl("~/UI/js/bootstrap.min.js")%>" type="text/javascript"></script>
+    <asp:ContentPlaceHolder ID="H" runat="server">
+    </asp:ContentPlaceHolder>
+    <style type="text/css">
+    .container-fluid
+    {
+        background-color:White;
+        }
+    </style>
+</head>
+<body>
+    <form id="Masterform" runat="server">
+    <asp:PlaceHolder ID="ToolBar" runat="server">
+    <div id="content-header">
+        <h1>
+            <%= Title %></h1>
+       <%-- <div class="btn-group">
+            <a class="btn btn-large tip-bottom" title="Manage Files"><i class="icon-file"></i>
+            </a><a class="btn btn-large tip-bottom" title="Manage Users"><i class="icon-user"></i>
+            </a><a class="btn btn-large tip-bottom" title="Manage Comments"><i class="icon-comment">
+            </i><span class="label label-important">5</span></a> <a class="btn btn-large tip-bottom"
+                title="Manage Orders"><i class="icon-shopping-cart"></i></a>
+        </div>--%>
+    </div>
+    <div id="breadcrumb">
+        <a href="#" title="Go to Home" class="tip-bottom"><i class="icon-home"></i>Home</a>
+        <a href="#" class="current">
+            <%= Navigation%></a>
+    </div>
+    </asp:PlaceHolder>
+    <div class="container-fluid">
+        <asp:ContentPlaceHolder ID="C" runat="server">
+        </asp:ContentPlaceHolder>
+    </div>
+    </form>
+</body>
+</html>

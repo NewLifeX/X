@@ -1,0 +1,751 @@
+﻿#Software: WebDev.WebServer20
+#ProcessID: 6536
+#AppDomain: c89a2766-1-130108916466607314
+#FileName: C:\Program Files\Common Files\Microsoft Shared\DevServer\10.0\WebDev.WebServer20.exe
+#BaseDirectory: F:\Code\test\WebCssDemo\Web\
+#CurrentDirectory: C:\Program Files\Common Files\Microsoft Shared\DevServer\10.0
+#CommandLine: /port:6996 /path:"F:\Code\test\WebCssDemo\Web" /vpath:"/Web"
+#ApplicationType: Web
+#CLR: 2.0.50727.5466
+#OS: Windows 7 Service Pack 1, XYF/XYF-PC
+#Date: 2013-04-20
+#Fields: Time ThreadID IsPoolThread ThreadName Message
+08:34:11.317 10 Y - NewLife.Core v3.8.2013.0308 Build 2013-03-11 21:17:26
+08:34:11.337 10 Y - NewLife.XCode v8.9.2013.0310 Build 2013-03-11 21:17:28
+08:34:11.337 10 Y - XCode.Negative.NoDelete设置为True，不会删除数据表多余字段
+08:34:11.347 10 Y - 检查实体NewLife.CommonEntity.Administrator的数据表架构，模式：CheckTableWhenFirstUse
+08:34:11.461 10 Y - TypeX.GetType("System.Data.SQLite.SQLiteFactory")导致加载C:\Windows\Microsoft.NET\Framework\v2.0.50727\Temporary ASP.NET Files\web\2e609652\c9381f1b\assembly\dl3\4c474192\00606d6f_21ddcc01\System.Data.SQLite.dll
+08:34:11.849 10 Y - GetSchema("MetaDataCollections")
+08:34:11.869 10 Y - GetSchema("Tables")
+08:34:11.889 10 Y - GetSchema("Columns")
+08:34:11.969 10 Y - GetSchema("Indexes")
+08:34:11.969 10 Y - GetSchema("IndexColumns")
+08:34:11.979 10 Y - GetSchema("DataTypes")
+08:34:12.029 10 Y - GetSchema("ReservedWords")
+08:34:12.029 10 Y - Select Count(*) From Administrator
+08:34:12.039 10 Y - 初始化NewLife.CommonEntity.Administrator数据
+08:34:12.039 10 Y - 开始检查连接[Common/SQLite]的数据库架构……
+08:34:12.099 10 Y - [Common]的所有实体类（17个）：Department,Sequence,GuidCategory,Administrator,Menu,Role,RoleMenu,Log,Area,User,Simple,SimpleTree,Setting,Statistics,UserProfile,Attachment,Category
+08:34:12.099 10 Y - [Common]需要检查架构的实体类（0个）：
+08:34:12.099 10 Y - 检查连接[Common/SQLite]的数据库架构耗时00:00:00.0551553
+08:34:12.099 10 Y - 一级缓存：关闭缓存
+08:34:12.109 10 Y - Select Count(*) From Administrator
+08:34:18.682 9 W - Select * From Administrator Order By ID Desc
+08:34:18.762 9 W - Update Administrator Set Logins=Logins+1, LastLogin='2013-04-20 08:34:18' Where ID=1
+08:34:18.842 9 W - 检查实体NewLife.CommonEntity.Log的数据表架构，模式：CheckTableWhenFirstUse
+08:34:18.842 9 W - GetSchema("Tables")
+08:34:18.842 9 W - GetSchema("Columns")
+08:34:18.892 9 W - GetSchema("Indexes")
+08:34:18.902 9 W - GetSchema("IndexColumns")
+08:34:18.902 9 W - 初始化NewLife.CommonEntity.Log数据
+08:34:18.902 9 W - Insert Into Log(Category, Action, UserID, UserName, IP, OccurTime, Remark) Values('管理员', '登录', 0, null, '127.0.0.1', '2013-04-20 08:34:18', 'admin');Select last_insert_rowid() newid
+08:34:19.192 10 W - 检查实体NewLife.CommonEntity.Menu的数据表架构，模式：CheckTableWhenFirstUse
+08:34:19.192 10 W - 初始化NewLife.CommonEntity.Menu数据
+08:34:19.192 10 W - Select Count(*) From Menu
+08:34:19.192 10 W - Select * From Menu Order By ID Desc
+08:34:22.692 9 W - 检查实体NewLife.CommonEntity.Role的数据表架构，模式：CheckTableWhenFirstUse
+08:34:22.692 9 W - 初始化NewLife.CommonEntity.Role数据
+08:34:22.702 9 W - Select Count(*) From Role
+08:34:22.702 9 W - 检查实体NewLife.CommonEntity.RoleMenu的数据表架构，模式：CheckTableWhenFirstUse
+08:34:22.702 9 W - Select Count(*) From RoleMenu
+08:34:22.702 9 W - 初始化NewLife.CommonEntity.RoleMenu数据
+08:34:22.702 9 W - 如果某一个菜单对应的RoleMenu（角色菜单对应关系）为空或者只有一个，则授权第一个角色访问所有菜单！
+08:34:22.712 9 W - Select * From RoleMenu Order By ID Desc
+08:34:22.742 9 W - Select * From RoleMenu Where RoleID Not In(Select ID From Role) Or MenuID Not In(Select ID From Menu) Order By ID Desc
+08:34:22.742 9 W - Select * From Role Order By ID Desc
+08:34:23.572 9 W - Select * From Menu Order By ID Desc limit 20
+08:34:23.572 9 W - Select Count(*) From Menu
+08:34:25.312 9 W - Select * From Menu Where ID=6
+08:34:30.042 9 W - Select * From Menu Order By ID Desc limit 20
+08:34:30.042 9 W - Select Count(*) From Menu
+08:34:48.487 9 W - Select * From Menu Where ID=6
+08:34:57.315 9 W - Select * From Menu Order By ID Desc limit 20
+08:34:57.315 9 W - Select Count(*) From Menu
+08:41:20.448 11 Y - Select Count(*) From Administrator
+08:41:20.468 11 Y - Select Count(*) From Administrator
+08:48:09.468 12 W - 实体缓存<Menu>总次数27，一级命中26（96.30%）
+08:48:09.468 12 W - Select * From Menu Order By ID Desc
+08:48:11.458 12 W - Select * From Menu Order By ID Desc limit 20
+08:48:11.458 12 W - Select Count(*) From Menu
+08:48:14.358 12 W - Select * From Menu Where ID=6
+08:50:56.222 12 W - Select * From Menu Order By ID Desc limit 20
+08:50:56.222 12 W - Select Count(*) From Menu
+09:35:28.308 7 Y - Select Count(*) From Administrator
+09:35:28.310 9 W - 实体缓存<Administrator>总次数2，一级命中1（50.00%）
+09:35:28.310 9 W - Select * From Administrator Order By ID Desc
+09:35:28.312 9 W - Update Administrator Set Logins=Logins+1, LastLogin='2013-04-20 09:35:28' Where ID=1
+09:35:28.314 9 W - Insert Into Log(Category, Action, UserID, UserName, IP, OccurTime, Remark) Values('管理员', '自动登录', 0, null, '127.0.0.1', '2013-04-20 09:35:28', 'admin');Select last_insert_rowid() newid
+09:35:45.992 9 W - 实体缓存<Menu>总次数34，一级命中32（94.12%）
+09:35:45.993 9 W - Select * From Menu Order By ID Desc
+09:35:45.994 9 W - 实体缓存<Role>总次数3，一级命中2（66.67%）
+09:35:45.994 9 W - Select * From Role Order By ID Desc
+09:35:45.995 9 W - 实体缓存<RoleMenu>总次数15，一级命中14（93.33%）
+09:35:45.995 9 W - Select * From RoleMenu Order By ID Desc
+09:37:29.884 9 W - Select * From Menu Order By ID Desc limit 20
+09:37:30.224 9 W - Select Count(*) From Menu
+09:37:30.684 12 W - Select * From Menu Order By ID Desc
+09:37:30.684 12 W - Select * From Menu Where ID=6
+09:37:30.939 15 W - Select * From Menu Where ID=6
+09:37:41.268 9 Y - Select Count(*) From Administrator
+09:37:41.268 9 Y - Select Count(*) From Administrator
+09:37:51.601 19 W - Select * From Administrator Order By ID Desc
+09:37:51.601 19 W - Update Administrator Set Logins=Logins+1, LastLogin='2013-04-20 09:37:51' Where ID=1
+09:37:51.601 19 W - Insert Into Log(Category, Action, UserID, UserName, IP, OccurTime, Remark) Values('管理员', '登录', 0, null, '127.0.0.1', '2013-04-20 09:37:51', 'admin');Select last_insert_rowid() newid
+09:37:56.311 9 W - Select * From Role Order By ID Desc
+09:37:56.311 9 W - Select * From RoleMenu Order By ID Desc
+09:37:59.351 9 W - Select * From Menu Order By ID Desc limit 20
+09:37:59.351 9 W - Select Count(*) From Menu
+09:38:03.813 21 W - Select * From Menu Where ID=6
+09:38:38.190 21 W - Select * From Menu Order By ID Desc limit 20
+09:38:38.190 21 W - Select Count(*) From Menu
+09:38:48.262 12 W - Select * From Menu Order By ID Desc
+09:38:48.262 12 W - Select * From Menu Where ID=6
+09:39:33.876 19 W - Select * From Menu Order By ID Desc limit 20
+09:39:33.876 19 W - Select Count(*) From Menu
+09:39:36.276 19 W - Select * From Menu Where ID=6
+09:39:53.684 17 W - Select * From Menu Order By ID Desc limit 20
+09:39:53.684 17 W - Select Count(*) From Menu
+09:40:10.395 17 Y - Select Count(*) From Administrator
+09:40:10.395 17 Y - Select Count(*) From Administrator
+09:40:13.837 19 W - Select * From Menu Order By ID Desc
+09:40:15.867 19 W - Select * From Menu Order By ID Desc limit 20
+09:40:15.867 19 W - Select Count(*) From Menu
+09:40:19.397 17 W - Select * From Menu Where ID=6
+09:40:42.770 19 W - Select * From Menu Order By ID Desc limit 20
+09:40:42.770 19 W - Select Count(*) From Menu
+
+#Software: WebDev.WebServer20
+#ProcessID: 8652
+#AppDomain: c89a2766-1-130108978973931056
+#FileName: C:\Program Files\Common Files\Microsoft Shared\DevServer\10.0\WebDev.WebServer20.exe
+#BaseDirectory: F:\Code\test\WebCssDemo\Web\
+#CurrentDirectory: C:\Program Files\Common Files\Microsoft Shared\DevServer\10.0
+#CommandLine: /port:6996 /path:"F:\Code\test\WebCssDemo\Web" /vpath:"/Web"
+#ApplicationType: Web
+#CLR: 2.0.50727.5466
+#OS: Windows 7 Service Pack 1, XYF/XYF-PC
+#Date: 2013-04-20
+#Fields: Time ThreadID IsPoolThread ThreadName Message
+10:18:20.227 11 Y - NewLife.Core v3.8.2013.0308 Build 2013-03-11 21:17:26
+10:18:20.267 11 Y - NewLife.XCode v8.9.2013.0310 Build 2013-03-11 21:17:28
+10:18:20.267 11 Y - XCode.Negative.NoDelete设置为True，不会删除数据表多余字段
+10:18:20.267 11 Y - 检查实体NewLife.CommonEntity.Administrator的数据表架构，模式：CheckTableWhenFirstUse
+10:18:20.607 11 Y - GetSchema("MetaDataCollections")
+10:18:20.617 11 Y - GetSchema("Tables")
+10:18:20.637 11 Y - GetSchema("Columns")
+10:18:20.697 11 Y - GetSchema("Indexes")
+10:18:20.697 11 Y - GetSchema("IndexColumns")
+10:18:20.707 11 Y - GetSchema("DataTypes")
+10:18:20.747 11 Y - GetSchema("ReservedWords")
+10:18:20.747 11 Y - Select Count(*) From Administrator
+10:18:20.757 11 Y - 初始化NewLife.CommonEntity.Administrator数据
+10:18:20.757 11 Y - 开始检查连接[Common/SQLite]的数据库架构……
+10:18:20.797 11 Y - [Common]的所有实体类（17个）：Department,Sequence,GuidCategory,Administrator,Menu,Role,RoleMenu,Log,Area,User,Simple,SimpleTree,Setting,Statistics,UserProfile,Attachment,Category
+10:18:20.797 11 Y - [Common]需要检查架构的实体类（0个）：
+10:18:20.797 11 Y - 检查连接[Common/SQLite]的数据库架构耗时00:00:00.0399306
+10:18:20.807 11 Y - 一级缓存：关闭缓存
+10:18:20.807 11 Y - Select Count(*) From Administrator
+10:18:23.577 11 W - Select * From Administrator Order By ID Desc
+10:18:23.647 11 W - Update Administrator Set Logins=Logins+1, LastLogin='2013-04-20 10:18:23' Where ID=1
+10:18:23.687 11 W - 检查实体NewLife.CommonEntity.Log的数据表架构，模式：CheckTableWhenFirstUse
+10:18:23.687 11 W - 初始化NewLife.CommonEntity.Log数据
+10:18:23.697 11 W - Insert Into Log(Category, Action, UserID, UserName, IP, OccurTime, Remark) Values('管理员', '登录', 0, null, '127.0.0.1', '2013-04-20 10:18:23', 'admin');Select last_insert_rowid() newid
+10:18:24.087 10 W - 检查实体NewLife.CommonEntity.Menu的数据表架构，模式：CheckTableWhenFirstUse
+10:18:24.087 10 W - GetSchema("Tables")
+10:18:24.117 10 W - GetSchema("Columns")
+10:18:24.147 10 W - GetSchema("Indexes")
+10:18:24.147 10 W - GetSchema("IndexColumns")
+10:18:24.147 10 W - 初始化NewLife.CommonEntity.Menu数据
+10:18:24.147 10 W - Select Count(*) From Menu
+10:18:24.157 10 W - Select * From Menu Order By ID Desc
+10:18:26.467 11 W - 检查实体NewLife.CommonEntity.Role的数据表架构，模式：CheckTableWhenFirstUse
+10:18:26.467 11 W - 初始化NewLife.CommonEntity.Role数据
+10:18:26.477 11 W - Select Count(*) From Role
+10:18:26.477 11 W - 检查实体NewLife.CommonEntity.RoleMenu的数据表架构，模式：CheckTableWhenFirstUse
+10:18:26.477 11 W - Select Count(*) From RoleMenu
+10:18:26.477 11 W - 初始化NewLife.CommonEntity.RoleMenu数据
+10:18:26.477 11 W - 如果某一个菜单对应的RoleMenu（角色菜单对应关系）为空或者只有一个，则授权第一个角色访问所有菜单！
+10:18:26.487 11 W - Select * From RoleMenu Order By ID Desc
+10:18:26.507 11 W - Select * From RoleMenu Where RoleID Not In(Select ID From Role) Or MenuID Not In(Select ID From Menu) Order By ID Desc
+10:18:26.507 11 W - Select * From Role Order By ID Desc
+10:18:31.247 11 W - Select * From Menu Order By ID Desc limit 20
+10:18:31.247 11 W - Select Count(*) From Menu
+10:18:31.627 10 W - Select * From Menu Order By ID Desc limit 20
+10:18:31.627 10 W - Select Count(*) From Menu
+10:18:33.367 9 W - Select * From Menu Where ID=6
+10:18:37.087 10 W - Select * From Menu Order By ID Desc limit 20
+10:18:37.097 10 W - Select Count(*) From Menu
+10:18:49.868 11 W - Select * From Menu Where ID=6
+10:18:57.801 5 W - Select * From Menu Order By ID Desc limit 20
+10:18:57.831 5 W - Select Count(*) From Menu
+10:19:00.121 13 W - Select * From Menu Where ID=6
+10:19:05.230 11 W - Select * From Menu Order By ID Desc limit 20
+10:19:05.240 11 W - Select Count(*) From Menu
+10:19:34.536 11 Y - Select Count(*) From Administrator
+10:19:34.536 11 Y - Select Count(*) From Administrator
+10:19:38.406 13 W - Select * From Menu Order By ID Desc
+10:19:41.459 13 W - Select * From Menu Order By ID Desc limit 20
+10:19:41.459 13 W - Select Count(*) From Menu
+10:19:43.632 5 W - Select * From Menu Where ID=6
+10:20:13.816 13 W - Select * From Menu Order By ID Desc limit 20
+10:20:13.816 13 W - Select Count(*) From Menu
+10:20:16.936 11 W - Select * From Menu Where ID=6
+10:20:22.870 13 W - Select * From Menu Where ID=6
+10:20:26.003 13 W - Select * From Menu Where ID=6
+10:20:33.735 13 W - Select * From Menu Order By ID Desc limit 20
+10:20:33.735 13 W - Select Count(*) From Menu
+10:20:36.375 11 W - Select * From Menu Where ID=6
+10:21:17.327 13 W - Select * From Menu Order By ID Desc
+10:21:17.337 13 W - Select * From Menu Where (Name like '%角色%' Or Url like '%角色%' Or Remark like '%角色%' Or Permission like '%角色%') Order By ID Desc limit 20
+10:21:17.337 13 W - Select Count(*) From Menu Where (Name like '%角色%' Or Url like '%角色%' Or Remark like '%角色%' Or Permission like '%角色%')
+10:21:19.747 13 W - Select * From Menu Where ID=6
+10:21:22.307 13 W - Select * From Menu Where (Name like '%角色%' Or Url like '%角色%' Or Remark like '%角色%' Or Permission like '%角色%') Order By ID Desc limit 20
+10:21:22.307 13 W - Select Count(*) From Menu Where (Name like '%角色%' Or Url like '%角色%' Or Remark like '%角色%' Or Permission like '%角色%')
+10:21:26.689 5 W - Select * From Menu Order By ID Desc limit 20
+10:21:26.689 5 W - Select Count(*) From Menu
+10:23:02.298 11 W - Select * From Menu Order By ID Desc
+10:23:02.298 11 W - Select * From Menu Where ID=6
+10:23:05.270 11 W - Select * From Menu Where ID=6
+10:26:01.265 13 W - Select * From Menu Order By ID Desc
+10:26:01.275 13 W - Select * From Menu Where ID=6
+10:26:49.383 5 W - Select * From Menu Order By ID Desc limit 20
+10:26:49.383 5 W - Select Count(*) From Menu
+10:26:52.543 5 W - Select * From Menu Where ID=6
+10:29:20.410 13 W - 实体缓存<Menu>总次数70，一级命中65（92.86%）
+10:29:20.410 13 W - Select * From Menu Order By ID Desc
+10:29:20.420 13 W - Select * From Menu Order By ID Desc limit 20
+10:29:20.420 13 W - Select Count(*) From Menu
+10:29:22.350 11 W - Select * From Menu Where ID=6
+10:41:49.732 13 W - 实体缓存<Menu>总次数76，一级命中70（92.11%）
+10:41:49.732 13 W - Select * From Menu Order By ID Desc
+10:41:49.742 13 W - Select * From Menu Order By ID Desc limit 20
+10:41:49.742 13 W - Select Count(*) From Menu
+10:41:53.412 13 W - Select * From Menu Where ID=6
+10:42:00.424 5 W - Select * From Menu Order By ID Desc limit 20
+10:42:00.424 5 W - Select Count(*) From Menu
+10:42:02.244 5 W - Select * From Menu Where ID=6
+10:42:07.017 5 W - Select * From Menu Order By ID Desc limit 20
+10:42:07.017 5 W - Select Count(*) From Menu
+10:42:09.597 13 W - Select * From Menu Order By ID Desc limit 20
+10:42:09.597 13 W - Select Count(*) From Menu
+10:42:11.397 5 W - Select * From Menu Where ID=6
+
+#Software: WebDev.WebServer20
+#ProcessID: 10540
+#AppDomain: c89a2766-1-130108993510436344
+#FileName: C:\Program Files\Common Files\Microsoft Shared\DevServer\10.0\WebDev.WebServer20.exe
+#BaseDirectory: F:\Code\test\WebCssDemo\Web\
+#CurrentDirectory: C:\Program Files\Common Files\Microsoft Shared\DevServer\10.0
+#CommandLine: /port:6996 /path:"F:\Code\test\WebCssDemo\Web" /vpath:"/Web"
+#ApplicationType: Web
+#CLR: 2.0.50727.5466
+#OS: Windows 7 Service Pack 1, XYF/XYF-PC
+#Date: 2013-04-20
+#Fields: Time ThreadID IsPoolThread ThreadName Message
+10:42:31.703 9 Y - NewLife.Core v3.8.2013.0308 Build 2013-03-11 21:17:26
+10:42:31.723 9 Y - NewLife.XCode v8.9.2013.0310 Build 2013-03-11 21:17:28
+10:42:31.723 9 Y - XCode.Negative.NoDelete设置为True，不会删除数据表多余字段
+10:42:31.723 9 Y - 检查实体NewLife.CommonEntity.Administrator的数据表架构，模式：CheckTableWhenFirstUse
+10:42:31.773 9 Y - TypeX.GetType("System.Data.SQLite.SQLiteFactory")导致加载C:\Windows\Microsoft.NET\Framework\v2.0.50727\Temporary ASP.NET Files\web\2e609652\c9381f1b\assembly\dl3\4c474192\00606d6f_21ddcc01\System.Data.SQLite.dll
+10:42:32.113 9 Y - GetSchema("MetaDataCollections")
+10:42:32.133 9 Y - GetSchema("Tables")
+10:42:32.153 9 Y - GetSchema("Columns")
+10:42:32.223 9 Y - GetSchema("Indexes")
+10:42:32.223 9 Y - GetSchema("IndexColumns")
+10:42:32.233 9 Y - GetSchema("DataTypes")
+10:42:32.283 9 Y - GetSchema("ReservedWords")
+10:42:32.283 9 Y - Select Count(*) From Administrator
+10:42:32.293 9 Y - 初始化NewLife.CommonEntity.Administrator数据
+10:42:32.303 9 Y - 开始检查连接[Common/SQLite]的数据库架构……
+10:42:32.363 9 Y - [Common]的所有实体类（17个）：Department,Sequence,GuidCategory,Administrator,Menu,Role,RoleMenu,Log,Area,User,Simple,SimpleTree,Setting,Statistics,UserProfile,Attachment,Category
+10:42:32.363 9 Y - [Common]需要检查架构的实体类（0个）：
+10:42:32.363 9 Y - 检查连接[Common/SQLite]的数据库架构耗时00:00:00.0615055
+10:42:32.363 9 Y - 一级缓存：关闭缓存
+10:42:32.373 9 Y - Select Count(*) From Administrator
+10:42:35.463 9 W - Select * From Administrator Order By ID Desc
+10:42:35.563 9 W - Update Administrator Set Logins=Logins+1, LastLogin='2013-04-20 10:42:35' Where ID=1
+10:42:35.623 9 W - 检查实体NewLife.CommonEntity.Log的数据表架构，模式：CheckTableWhenFirstUse
+10:42:35.623 9 W - 初始化NewLife.CommonEntity.Log数据
+10:42:35.623 9 W - Insert Into Log(Category, Action, UserID, UserName, IP, OccurTime, Remark) Values('管理员', '登录', 0, null, '127.0.0.1', '2013-04-20 10:42:35', 'admin');Select last_insert_rowid() newid
+10:42:35.733 4 W - 检查实体NewLife.CommonEntity.Menu的数据表架构，模式：CheckTableWhenFirstUse
+10:42:35.733 4 W - GetSchema("Tables")
+10:42:35.733 4 W - GetSchema("Columns")
+10:42:35.763 4 W - GetSchema("Indexes")
+10:42:35.763 4 W - GetSchema("IndexColumns")
+10:42:35.763 4 W - 初始化NewLife.CommonEntity.Menu数据
+10:42:35.773 4 W - Select Count(*) From Menu
+10:42:35.773 4 W - Select * From Menu Order By ID Desc
+10:42:38.323 8 W - 检查实体NewLife.CommonEntity.Role的数据表架构，模式：CheckTableWhenFirstUse
+10:42:38.323 8 W - GetSchema("Tables")
+10:42:38.323 8 W - GetSchema("Columns")
+10:42:38.353 8 W - GetSchema("Indexes")
+10:42:38.353 8 W - GetSchema("IndexColumns")
+10:42:38.353 8 W - 初始化NewLife.CommonEntity.Role数据
+10:42:38.363 8 W - Select Count(*) From Role
+10:42:38.363 8 W - 检查实体NewLife.CommonEntity.RoleMenu的数据表架构，模式：CheckTableWhenFirstUse
+10:42:38.373 8 W - Select Count(*) From RoleMenu
+10:42:38.373 8 W - 初始化NewLife.CommonEntity.RoleMenu数据
+10:42:38.373 8 W - 如果某一个菜单对应的RoleMenu（角色菜单对应关系）为空或者只有一个，则授权第一个角色访问所有菜单！
+10:42:38.383 8 W - Select * From RoleMenu Order By ID Desc
+10:42:38.393 8 W - Select * From RoleMenu Where RoleID Not In(Select ID From Role) Or MenuID Not In(Select ID From Menu) Order By ID Desc
+10:42:38.393 8 W - Select * From Role Order By ID Desc
+10:42:38.673 8 W - Select * From Menu Order By ID Desc limit 20
+10:42:38.673 8 W - Select Count(*) From Menu
+10:42:40.453 4 W - Select * From Menu Where ID=6
+10:42:46.306 8 W - Select * From Menu Order By ID Desc limit 20
+10:42:46.306 8 W - Select Count(*) From Menu
+10:43:10.982 4 W - Select * From Menu Order By ID Desc limit 20
+10:43:10.992 4 W - Select Count(*) From Menu
+10:43:14.805 4 W - Select * From Menu Order By ID Desc limit 20
+10:43:14.805 4 W - Select Count(*) From Menu
+10:43:21.115 9 W - Select * From Menu Where ID=6
+10:43:27.237 4 W - Select * From Menu Order By ID Desc limit 20
+10:43:27.237 4 W - Select Count(*) From Menu
+10:43:29.337 9 W - Select * From Menu Order By ID Desc limit 20
+10:43:29.337 9 W - Select Count(*) From Menu
+10:43:30.827 8 W - Select * From Menu Where ID=6
+10:44:15.825 8 W - Select * From Menu Order By ID Desc
+10:44:15.835 8 W - Select * From Menu Order By ID Desc limit 20
+10:44:15.835 8 W - Select Count(*) From Menu
+10:45:25.044 8 W - Select * From Menu Order By ID Desc
+10:45:25.044 8 W - Select * From Menu Order By ID Desc limit 20
+10:45:25.044 8 W - Select Count(*) From Menu
+10:45:32.264 8 W - Select * From Menu Order By ID Desc limit 20
+10:45:32.264 8 W - Select Count(*) From Menu
+10:45:36.857 8 W - Select * From Menu Order By ID Desc limit 20
+10:45:36.857 8 W - Select Count(*) From Menu
+10:45:41.117 9 W - Select * From Menu Where ID=6
+10:47:14.539 8 W - Select * From Menu Order By ID Desc
+10:47:14.539 8 W - Select * From Menu Order By ID Desc limit 20
+10:47:14.539 8 W - Select Count(*) From Menu
+10:47:23.121 9 W - Select * From Menu Where ID=6
+10:48:33.074 8 W - Select * From Menu Order By ID Desc
+10:48:33.074 8 W - Select * From Menu Order By ID Desc limit 20
+10:48:33.074 8 W - Select Count(*) From Menu
+10:48:36.121 4 W - Select * From Menu Where ID=6
+10:49:45.206 9 W - Select * From Menu Order By ID Desc
+10:49:45.222 9 W - Select * From Menu Order By ID Desc limit 20
+10:49:45.222 9 W - Select Count(*) From Menu
+10:49:46.813 8 W - Select * From Menu Where ID=6
+10:49:51.555 9 W - Select * From Menu Where ID=6
+10:49:51.587 9 W - Insert Into Log(Category, Action, UserID, UserName, IP, OccurTime, Remark) Values('菜单', '修改', 1, '管理员', '127.0.0.1', '2013-04-20 10:49:51', '角色和菜单管理');Select last_insert_rowid() newid
+10:49:51.602 9 W - Update Menu Set Permission='角色和菜单管理' Where ID=6
+10:49:56.641 8 W - Select * From Menu Order By ID Desc
+10:49:57.203 9 W - Select * From Menu Order By ID Desc limit 20
+10:49:57.203 9 W - Select Count(*) From Menu
+10:49:57.203 9 W - Select Count(*) From Menu
+10:50:01.664 8 W - Select * From Menu Where ID=6
+10:50:05.814 9 W - Select * From Menu Where ID=6
+10:50:05.814 9 W - Insert Into Log(Category, Action, UserID, UserName, IP, OccurTime, Remark) Values('菜单', '修改', 1, '管理员', '127.0.0.1', '2013-04-20 10:50:05', '角色和菜单管理');Select last_insert_rowid() newid
+10:50:10.525 8 W - Select * From Menu Order By ID Desc limit 20
+10:50:10.525 8 W - Select Count(*) From Menu
+10:50:50.101 8 W - Select * From Menu Where ID=6
+10:52:20.027 9 W - Select * From Menu Order By ID Desc
+10:52:20.027 9 W - Select * From Menu Order By ID Desc limit 20
+10:52:20.043 9 W - Select Count(*) From Menu
+10:52:21.494 9 W - Select * From Menu Where ID=6
+10:52:36.142 8 W - 实体缓存<Menu>总次数99，一级命中91（91.92%）
+10:52:36.158 8 W - Select * From Menu Order By ID Desc limit 20
+10:52:36.158 8 W - Select Count(*) From Menu
+10:52:37.765 9 W - Select * From Menu Where ID=6
+10:53:09.838 8 W - Select * From Menu Order By ID Desc limit 20
+10:53:09.838 8 W - Select Count(*) From Menu
+10:53:11.195 8 W - Select * From Menu Where ID=6
+10:58:45.404 4 W - Select * From Menu Order By ID Desc
+10:58:45.404 4 W - Select * From Menu Order By ID Desc limit 20
+10:58:45.404 4 W - Select Count(*) From Menu
+10:58:47.198 8 W - Select * From Menu Where ID=6
+10:58:48.477 4 W - Select * From Menu Where ID=6
+10:58:48.477 4 W - Insert Into Log(Category, Action, UserID, UserName, IP, OccurTime, Remark) Values('菜单', '添加', 1, '管理员', '127.0.0.1', '2013-04-20 10:58:48', '角色和菜单管理');Select last_insert_rowid() newid
+10:58:48.477 4 W - Insert Into Menu(Name, ParentID, Url, Sort, Remark, Permission, IsShow) Values('角色和菜单管理', 3, '../../Admin/Sys/RoleMenu.aspx', 0, 'RoleMenu', '角色和菜单管理', 1);Select last_insert_rowid() newid
+10:58:51.706 9 W - Select * From Menu Order By ID Desc
+10:58:51.706 9 W - Select * From Menu Order By ID Desc limit 20
+10:58:51.706 9 W - Select Count(*) From Menu
+10:58:51.706 9 W - Select Count(*) From Menu
+10:58:52.985 4 W - Select * From Menu Where ID=7
+10:58:54.920 4 W - Select * From Menu Where ID=7
+10:58:54.935 4 W - Insert Into Log(Category, Action, UserID, UserName, IP, OccurTime, Remark) Values('菜单', '修改', 1, '管理员', '127.0.0.1', '2013-04-20 10:58:54', '角色和菜单管理');Select last_insert_rowid() newid
+10:58:56.807 9 W - Select * From Menu Order By ID Desc limit 20
+10:58:56.807 9 W - Select Count(*) From Menu
+10:59:01.753 9 W - Insert Into Log(Category, Action, UserID, UserName, IP, OccurTime, Remark) Values('菜单', '删除', 1, '管理员', '127.0.0.1', '2013-04-20 10:59:01', '角色和菜单管理');Select last_insert_rowid() newid
+10:59:01.831 9 W - Select * From Menu Where ID=7 Order By ID Desc limit 1
+10:59:01.831 9 W - Delete From Menu Where ID=7
+10:59:01.831 9 W - Select * From Menu Order By ID Desc limit 20
+10:59:01.831 9 W - Select Count(*) From Menu
+10:59:01.831 9 W - Select Count(*) From Menu
+10:59:04.888 4 W - Select * From Menu Order By ID Desc
+10:59:04.888 4 W - Select * From Menu Where ID=6
+10:59:29.116 9 W - Select * From Menu Where ID=6
+10:59:29.132 9 W - Insert Into Log(Category, Action, UserID, UserName, IP, OccurTime, Remark) Values('菜单', '修改', 1, '管理员', '127.0.0.1', '2013-04-20 10:59:29', '角色和菜单管理');Select last_insert_rowid() newid
+10:59:34.888 4 W - Select * From Menu Order By ID Desc limit 20
+10:59:34.888 4 W - Select Count(*) From Menu
+11:05:04.051 4 W - 实体缓存<Menu>总次数154，一级命中143（92.86%）
+11:05:04.067 4 W - Select * From Menu Order By ID Desc
+11:05:04.067 4 W - Select * From Menu Order By ID Desc limit 20
+11:05:04.067 4 W - Select Count(*) From Menu
+11:05:35.545 8 W - Select * From Menu Where ID=6
+11:10:00.478 4 W - Select * From Menu Order By ID Desc
+11:10:00.478 4 W - Select * From Menu Order By ID Desc limit 20
+11:10:00.478 4 W - Select Count(*) From Menu
+11:10:08.840 9 W - Select * From Menu Where ID=6
+11:10:18.964 4 W - Select * From Menu Order By ID Desc limit 20
+11:10:18.964 4 W - Select Count(*) From Menu
+
+#Software: WebDev.WebServer20
+#ProcessID: 10540
+#AppDomain: c89a2766-2-130109010792108892
+#FileName: C:\Program Files\Common Files\Microsoft Shared\DevServer\10.0\WebDev.WebServer20.exe
+#BaseDirectory: F:\Code\test\WebCssDemo\Web\
+#CurrentDirectory: C:\Program Files\Common Files\Microsoft Shared\DevServer\10.0
+#CommandLine: /port:6996 /path:"F:\Code\test\WebCssDemo\Web" /vpath:"/Web"
+#ApplicationType: Web
+#CLR: 2.0.50727.5466
+#OS: Windows 7 Service Pack 1, XYF/XYF-PC
+#Date: 2013-04-20
+#Fields: Time ThreadID IsPoolThread ThreadName Message
+11:11:20.786 4 W - NewLife.Core v3.8.2013.0308 Build 2013-03-11 21:17:26
+11:11:20.802 4 W - NewLife.XCode v8.9.2013.0310 Build 2013-03-11 21:17:28
+11:11:20.802 4 W - XCode.Negative.NoDelete设置为True，不会删除数据表多余字段
+11:11:20.802 4 W - 检查实体NewLife.CommonEntity.Administrator的数据表架构，模式：CheckTableWhenFirstUse
+11:11:20.895 4 W - GetSchema("MetaDataCollections")
+11:11:20.911 4 W - GetSchema("Tables")
+11:11:20.926 4 W - GetSchema("Columns")
+11:11:20.989 4 W - GetSchema("Indexes")
+11:11:20.989 4 W - GetSchema("IndexColumns")
+11:11:20.989 4 W - GetSchema("DataTypes")
+11:11:21.051 8 W - GetSchema("ReservedWords")
+11:11:21.051 4 W - GetSchema("ReservedWords")
+11:11:21.051 4 W - Select Count(*) From Administrator
+11:11:21.051 8 W - Select Count(*) From Administrator
+11:11:21.067 8 W - 初始化NewLife.CommonEntity.Administrator数据
+11:11:21.082 4 W - 一级缓存：关闭缓存
+11:11:21.129 4 W - 开始检查连接[Common/SQLite]的数据库架构……
+11:11:21.176 4 W - [Common]的所有实体类（17个）：Department,Sequence,GuidCategory,Administrator,Menu,Role,RoleMenu,Log,Area,User,Simple,SimpleTree,Setting,Statistics,UserProfile,Attachment,Category
+11:11:21.176 4 W - [Common]需要检查架构的实体类（0个）：
+11:11:21.176 4 W - 检查连接[Common/SQLite]的数据库架构耗时00:00:00.0534681
+11:11:21.192 4 W - Select * From Administrator Order By ID Desc
+11:11:21.270 4 W - Update Administrator Set Logins=Logins+1, LastLogin='2013-04-20 11:11:21' Where ID=1
+11:11:21.332 4 W - 检查实体NewLife.CommonEntity.Log的数据表架构，模式：CheckTableWhenFirstUse
+11:11:21.332 4 W - 初始化NewLife.CommonEntity.Log数据
+11:11:21.332 4 W - Insert Into Log(Category, Action, UserID, UserName, IP, OccurTime, Remark) Values('管理员', '自动登录', 0, null, '127.0.0.1', '2013-04-20 11:11:21', 'admin');Select last_insert_rowid() newid
+11:11:21.348 8 W - Select * From Administrator Order By ID Desc
+11:11:21.348 4 W - 检查实体NewLife.CommonEntity.Menu的数据表架构，模式：CheckTableWhenFirstUse
+11:11:21.348 4 W - 初始化NewLife.CommonEntity.Menu数据
+11:11:21.348 8 W - Insert Into Log(Category, Action, UserID, UserName, IP, OccurTime, Remark) Values('管理员', '自动登录', 0, null, '127.0.0.1', '2013-04-20 11:11:21', 'admin');Select last_insert_rowid() newid
+11:11:21.348 4 W - Select Count(*) From Menu
+11:11:21.363 4 W - Select * From Menu Order By ID Desc
+11:11:21.379 8 W - 检查实体NewLife.CommonEntity.Role的数据表架构，模式：CheckTableWhenFirstUse
+11:11:21.379 8 W - GetSchema("Tables")
+11:11:21.379 8 W - GetSchema("Columns")
+11:11:21.488 8 W - GetSchema("Indexes")
+11:11:21.488 8 W - GetSchema("IndexColumns")
+11:11:21.488 8 W - 初始化NewLife.CommonEntity.Role数据
+11:11:21.504 8 W - Select Count(*) From Role
+11:11:21.504 8 W - 检查实体NewLife.CommonEntity.RoleMenu的数据表架构，模式：CheckTableWhenFirstUse
+11:11:21.504 8 W - Select Count(*) From RoleMenu
+11:11:21.504 8 W - 初始化NewLife.CommonEntity.RoleMenu数据
+11:11:21.504 8 W - 如果某一个菜单对应的RoleMenu（角色菜单对应关系）为空或者只有一个，则授权第一个角色访问所有菜单！
+11:11:21.550 8 W - Select * From RoleMenu Order By ID Desc
+11:11:21.566 8 W - Select * From RoleMenu Where RoleID Not In(Select ID From Role) Or MenuID Not In(Select ID From Menu) Order By ID Desc
+11:11:21.566 8 W - Select * From Role Order By ID Desc
+11:11:21.613 8 W - Select * From Menu Where ID=6
+11:11:21.660 4 W - Select * From Menu Order By ID Desc limit 20
+11:11:21.675 4 W - Select Count(*) From Menu
+11:11:24.748 9 W - Select * From Menu Where ID=6
+11:11:29.631 4 W - Select * From Menu Order By ID Desc limit 20
+11:11:29.631 4 W - Select Count(*) From Menu
+11:11:31.222 4 W - Select * From Menu Where ID=6
+11:11:33.032 9 W - Select * From Menu Order By ID Desc limit 20
+11:11:33.032 9 W - Select Count(*) From Menu
+11:11:35.169 4 W - Select * From Menu Where ID=6
+11:11:39.412 4 W - Select * From Menu Order By ID Desc limit 20
+11:11:39.412 4 W - Select Count(*) From Menu
+11:11:41.830 8 W - Select * From Menu Where ID=6
+11:11:46.152 8 W - Select * From Menu Order By ID Desc limit 20
+11:11:46.152 8 W - Select Count(*) From Menu
+11:11:55.200 8 W - Select * From Menu Order By ID Desc limit 20
+11:11:55.200 8 W - Select Count(*) From Menu
+11:11:56.619 8 W - Select * From Menu Where ID=6
+11:11:59.958 4 W - Select * From Menu Where ID=6
+11:11:59.973 4 W - Insert Into Log(Category, Action, UserID, UserName, IP, OccurTime, Remark) Values('菜单', '修改', 1, '管理员', '127.0.0.1', '2013-04-20 11:11:59', '角色和菜单管理');Select last_insert_rowid() newid
+11:11:59.973 4 W - Update Menu Set Permission='角色和菜单管理1' Where ID=6
+11:12:08.584 9 W - Select * From Menu Order By ID Desc
+11:12:08.600 9 W - Select * From Menu Order By ID Desc limit 20
+11:12:08.600 9 W - Select Count(*) From Menu
+11:12:08.600 9 W - Select Count(*) From Menu
+11:25:42.054 8 W - 实体缓存<Menu>总次数53，一级命中50（94.34%），二级命中1（1.89%）
+11:25:42.054 8 W - Select * From Menu Order By ID Desc
+11:25:42.069 8 W - Select * From Menu Order By ID Desc limit 20
+11:25:42.069 8 W - Select Count(*) From Menu
+11:25:43.583 4 W - Select * From Menu Where ID=6
+11:25:45.283 8 W - Select * From Menu Where ID=6
+11:25:45.299 8 W - Insert Into Log(Category, Action, UserID, UserName, IP, OccurTime, Remark) Values('菜单', '修改', 1, '管理员', '127.0.0.1', '2013-04-20 11:25:45', '角色和菜单管理');Select last_insert_rowid() newid
+11:25:45.299 8 W - System.Threading.ThreadAbortException: 正在中止线程。
+   在 System.Threading.Thread.AbortInternal()
+   在 System.Threading.Thread.Abort(Object stateInfo)
+   在 System.Web.HttpResponse.End()
+   在 System.Web.HttpResponse.Redirect(String url, Boolean endResponse)
+   在 System.Web.HttpResponse.Redirect(String url)
+   在 MenuForm.EntityForm_OnSaveSuccess(Object sender, EntityFormEventArgs e) 位置 f:\Code\test\WebCssDemo\Web\Admin\Sys\MenuForm.aspx.cs:行号 31
+   在 NewLife.CommonEntity.Web.EntityForm2.SaveFormSuccess() 位置 C:\X\Src\NewLife.CommonEntity\Web\EntityForm2.cs:行号 578
+   在 NewLife.CommonEntity.Web.EntityForm2.SaveFormWithTrans() 位置 C:\X\Src\NewLife.CommonEntity\Web\EntityForm2.cs:行号 550Select * From Menu Order By ID Desc limit 20
+11:25:45.345 4 W - Select Count(*) From Menu
+11:25:48.684 4 W - Select * From Menu Order By ID Desc limit 20
+11:25:48.684 4 W - Select Count(*) From Menu
+11:25:50.025 8 W - Select * From Menu Order By ID Desc limit 20
+11:25:50.025 8 W - Select Count(*) From Menu
+11:25:51.554 8 W - Select * From Menu Where ID=6
+11:25:55.220 8 W - Select * From Menu Where ID=6
+11:25:55.220 8 W - Insert Into Log(Category, Action, UserID, UserName, IP, OccurTime, Remark) Values('菜单', '修改', 1, '管理员', '127.0.0.1', '2013-04-20 11:25:55', '角色和菜单管理');Select last_insert_rowid() newid
+11:25:55.220 8 W - System.Threading.ThreadAbortException: 正在中止线程。
+   在 System.Threading.Thread.AbortInternal()
+   在 System.Threading.Thread.Abort(Object stateInfo)
+   在 System.Web.HttpResponse.End()
+   在 System.Web.HttpResponse.Redirect(String url, Boolean endResponse)
+   在 System.Web.HttpResponse.Redirect(String url)
+   在 MenuForm.EntityForm_OnSaveSuccess(Object sender, EntityFormEventArgs e) 位置 f:\Code\test\WebCssDemo\Web\Admin\Sys\MenuForm.aspx.cs:行号 31
+   在 NewLife.CommonEntity.Web.EntityForm2.SaveFormSuccess() 位置 C:\X\Src\NewLife.CommonEntity\Web\EntityForm2.cs:行号 578
+   在 NewLife.CommonEntity.Web.EntityForm2.SaveFormWithTrans() 位置 C:\X\Src\NewLife.CommonEntity\Web\EntityForm2.cs:行号 550Select * From Menu Order By ID Desc limit 20
+11:25:55.267 8 W - Select Count(*) From Menu
+11:25:59.682 8 W - Select * From Menu Where ID=6
+11:26:03.098 9 W - Select * From Menu Where ID=6
+11:26:03.098 9 W - Insert Into Log(Category, Action, UserID, UserName, IP, OccurTime, Remark) Values('菜单', '修改', 1, '管理员', '127.0.0.1', '2013-04-20 11:26:03', '角色和菜单管理');Select last_insert_rowid() newid
+11:26:03.098 9 W - Update Menu Set Permission='角色和菜单管理' Where ID=6
+11:26:03.098 9 W - System.Threading.ThreadAbortException: 正在中止线程。
+   在 System.Threading.Thread.AbortInternal()
+   在 System.Threading.Thread.Abort(Object stateInfo)
+   在 System.Web.HttpResponse.End()
+   在 System.Web.HttpResponse.Redirect(String url, Boolean endResponse)
+   在 System.Web.HttpResponse.Redirect(String url)
+   在 MenuForm.EntityForm_OnSaveSuccess(Object sender, EntityFormEventArgs e) 位置 f:\Code\test\WebCssDemo\Web\Admin\Sys\MenuForm.aspx.cs:行号 31
+   在 NewLife.CommonEntity.Web.EntityForm2.SaveFormSuccess() 位置 C:\X\Src\NewLife.CommonEntity\Web\EntityForm2.cs:行号 578
+   在 NewLife.CommonEntity.Web.EntityForm2.SaveFormWithTrans() 位置 C:\X\Src\NewLife.CommonEntity\Web\EntityForm2.cs:行号 550Select * From Menu Order By ID Desc
+11:26:03.114 9 W - Select * From Menu Order By ID Desc limit 20
+11:26:03.129 9 W - Select Count(*) From Menu
+11:26:03.129 9 W - Select Count(*) From Menu
+
+#Software: WebDev.WebServer20
+#ProcessID: 10540
+#AppDomain: c89a2766-3-130109048654318230
+#FileName: C:\Program Files\Common Files\Microsoft Shared\DevServer\10.0\WebDev.WebServer20.exe
+#BaseDirectory: F:\Code\test\WebCssDemo\Web\
+#CurrentDirectory: C:\Program Files\Common Files\Microsoft Shared\DevServer\10.0
+#CommandLine: /port:6996 /path:"F:\Code\test\WebCssDemo\Web" /vpath:"/Web"
+#ApplicationType: Web
+#CLR: 2.0.50727.5466
+#OS: Windows 7 Service Pack 1, XYF/XYF-PC
+#Date: 2013-04-20
+#Fields: Time ThreadID IsPoolThread ThreadName Message
+12:14:27.912 10 W - NewLife.Core v3.8.2013.0308 Build 2013-03-11 21:17:26
+12:14:27.927 10 W - NewLife.XCode v8.9.2013.0310 Build 2013-03-11 21:17:28
+12:14:27.927 10 W - XCode.Negative.NoDelete设置为True，不会删除数据表多余字段
+12:14:27.927 10 W - 检查实体NewLife.CommonEntity.Administrator的数据表架构，模式：CheckTableWhenFirstUse
+12:14:28.037 10 W - GetSchema("MetaDataCollections")
+12:14:28.052 10 W - GetSchema("Tables")
+12:14:28.083 10 W - GetSchema("Columns")
+12:14:28.146 10 W - GetSchema("Indexes")
+12:14:28.161 10 W - GetSchema("IndexColumns")
+12:14:28.161 10 W - GetSchema("DataTypes")
+12:14:28.224 10 W - GetSchema("ReservedWords")
+12:14:28.224 10 W - Select Count(*) From Administrator
+12:14:28.239 10 W - 初始化NewLife.CommonEntity.Administrator数据
+12:14:28.239 10 W - 一级缓存：关闭缓存
+12:14:28.302 10 W - 开始检查连接[Common/SQLite]的数据库架构……
+12:14:28.364 10 W - [Common]的所有实体类（17个）：Department,Sequence,GuidCategory,Administrator,Menu,Role,RoleMenu,Log,Area,User,Simple,SimpleTree,Setting,Statistics,UserProfile,Attachment,Category
+12:14:28.364 10 W - [Common]需要检查架构的实体类（0个）：
+12:14:28.364 10 W - 检查连接[Common/SQLite]的数据库架构耗时00:00:00.0577916
+12:14:28.364 10 W - Select * From Administrator Order By ID Desc
+12:14:28.458 10 W - Update Administrator Set Logins=Logins+1, LastLogin='2013-04-20 12:14:28' Where ID=1
+12:14:28.520 10 W - 检查实体NewLife.CommonEntity.Log的数据表架构，模式：CheckTableWhenFirstUse
+12:14:28.520 10 W - 初始化NewLife.CommonEntity.Log数据
+12:14:28.520 10 W - Insert Into Log(Category, Action, UserID, UserName, IP, OccurTime, Remark) Values('管理员', '自动登录', 0, null, '127.0.0.1', '2013-04-20 12:14:28', 'admin');Select last_insert_rowid() newid
+12:14:28.567 10 W - 检查实体NewLife.CommonEntity.Menu的数据表架构，模式：CheckTableWhenFirstUse
+12:14:28.567 10 W - 初始化NewLife.CommonEntity.Menu数据
+12:14:28.567 10 W - Select Count(*) From Menu
+12:14:28.567 10 W - Select * From Menu Order By ID Desc
+12:14:29.363 4 W - 检查实体NewLife.CommonEntity.Role的数据表架构，模式：CheckTableWhenFirstUse
+12:14:29.363 4 W - GetSchema("Tables")
+12:14:29.363 4 W - GetSchema("Columns")
+12:14:29.409 4 W - GetSchema("Indexes")
+12:14:29.409 4 W - GetSchema("IndexColumns")
+12:14:29.409 4 W - 初始化NewLife.CommonEntity.Role数据
+12:14:29.425 4 W - Select Count(*) From Role
+12:14:29.425 4 W - 检查实体NewLife.CommonEntity.RoleMenu的数据表架构，模式：CheckTableWhenFirstUse
+12:14:29.425 4 W - Select Count(*) From RoleMenu
+12:14:29.425 4 W - 初始化NewLife.CommonEntity.RoleMenu数据
+12:14:29.425 4 W - 如果某一个菜单对应的RoleMenu（角色菜单对应关系）为空或者只有一个，则授权第一个角色访问所有菜单！
+12:14:29.441 4 W - Select * From RoleMenu Order By ID Desc
+12:14:29.441 4 W - Select * From RoleMenu Where RoleID Not In(Select ID From Role) Or MenuID Not In(Select ID From Menu) Order By ID Desc
+12:14:29.456 4 W - Select * From Role Order By ID Desc
+12:14:29.550 4 W - Select * From Menu Order By ID Desc limit 20
+12:14:29.550 4 W - Select Count(*) From Menu
+12:14:31.375 8 W - Select * From Menu Where ID=6
+12:14:32.498 4 W - Select * From Menu Where ID=6
+12:14:32.514 4 W - Insert Into Log(Category, Action, UserID, UserName, IP, OccurTime, Remark) Values('菜单', '修改', 1, '管理员', '127.0.0.1', '2013-04-20 12:14:32', '角色和菜单管理');Select last_insert_rowid() newid
+12:29:29.961 10 W - 实体缓存<Menu>总次数28，一级命中27（96.43%）
+12:29:29.961 10 W - Select * From Menu Order By ID Desc
+12:29:29.961 10 W - Select * From Menu Order By ID Desc limit 20
+12:29:29.961 10 W - Select Count(*) From Menu
+12:29:31.802 4 W - Select * From Menu Where ID=6
+12:29:33.175 8 W - Select * From Menu Where ID=6
+12:29:33.191 8 W - Insert Into Log(Category, Action, UserID, UserName, IP, OccurTime, Remark) Values('菜单', '修改', 1, '管理员', '127.0.0.1', '2013-04-20 12:29:33', '角色和菜单管理');Select last_insert_rowid() newid
+12:29:38.947 10 W - Select * From Menu Order By ID Desc limit 20
+12:29:38.947 10 W - Select Count(*) From Menu
+12:30:06.013 8 W - Select * From Role Order By ID Desc limit 20
+12:30:06.029 8 W - Select Count(*) From Role
+12:30:07.261 4 W - Select * From Menu Order By ID Desc limit 20
+12:30:07.261 4 W - Select Count(*) From Menu
+12:39:42.513 4 W - 实体缓存<Menu>总次数43，一级命中41（95.35%）
+12:39:42.529 4 W - Select * From Menu Order By ID Desc
+12:39:42.529 4 W - Select * From Menu Where ID=6
+12:39:45.181 10 W - Select * From Menu Order By ID Desc limit 20
+12:39:45.196 10 W - Select Count(*) From Menu
+12:39:46.866 8 W - Select * From Menu Where ID=6
+13:12:43.734 4 W - 实体缓存<Menu>总次数51，一级命中48（94.12%）
+13:12:43.736 4 W - Select * From Menu Order By ID Desc
+13:12:43.743 4 W - Select * From Menu Order By ID Desc limit 20
+13:12:43.743 4 W - Select Count(*) From Menu
+13:12:45.695 10 W - Select * From Menu Where ID=6
+13:12:47.461 8 W - Select * From Menu Where ID=6
+13:12:47.474 8 W - Insert Into Log(Category, Action, UserID, UserName, IP, OccurTime, Remark) Values('菜单', '修改', 1, '管理员', '127.0.0.1', '2013-04-20 13:12:47', '角色和菜单管理');Select last_insert_rowid() newid
+13:13:03.457 4 W - Select * From Menu Where ID=6
+13:14:43.493 4 W - Select * From Menu Order By ID Desc
+13:14:43.501 4 W - Select * From Menu Order By ID Desc limit 20
+13:14:43.502 4 W - Select Count(*) From Menu
+13:15:06.967 10 W - Select * From Menu Order By ID Desc limit 20
+13:15:06.968 10 W - Select Count(*) From Menu
+13:16:32.626 4 W - Select * From Menu Order By ID Desc
+13:16:32.640 4 W - Select * From Menu Order By ID Desc limit 20
+13:16:32.641 4 W - Select Count(*) From Menu
+13:18:11.786 4 W - Select * From Menu Order By ID Desc
+13:18:11.789 4 W - Select * From Menu Order By ID Desc limit 20
+13:18:11.790 4 W - Select Count(*) From Menu
+13:18:14.297 10 W - Select * From Menu Where ID=6
+13:18:17.697 4 W - Select * From Menu Where ID=6
+13:18:17.701 4 W - Insert Into Log(Category, Action, UserID, UserName, IP, OccurTime, Remark) Values('菜单', '修改', 1, '管理员', '127.0.0.1', '2013-04-20 13:18:17', '角色和菜单管理');Select last_insert_rowid() newid
+
+#Software: WebDev.WebServer20
+#ProcessID: 10540
+#AppDomain: c89a2766-4-130109087178360099
+#FileName: C:\Program Files\Common Files\Microsoft Shared\DevServer\10.0\WebDev.WebServer20.exe
+#BaseDirectory: F:\Code\test\WebCssDemo\Web\
+#CurrentDirectory: C:\Program Files\Common Files\Microsoft Shared\DevServer\10.0
+#CommandLine: /port:6996 /path:"F:\Code\test\WebCssDemo\Web" /vpath:"/Web"
+#ApplicationType: Web
+#CLR: 2.0.50727.5466
+#OS: Windows 7 Service Pack 1, XYF/XYF-PC
+#Date: 2013-04-20
+#Fields: Time ThreadID IsPoolThread ThreadName Message
+13:18:39.715 8 W - NewLife.Core v3.8.2013.0308 Build 2013-03-11 21:17:26
+13:18:39.731 8 W - NewLife.XCode v8.9.2013.0310 Build 2013-03-11 21:17:28
+13:18:39.732 8 W - XCode.Negative.NoDelete设置为True，不会删除数据表多余字段
+13:18:39.733 8 W - 检查实体NewLife.CommonEntity.Administrator的数据表架构，模式：CheckTableWhenFirstUse
+13:18:39.840 8 W - GetSchema("MetaDataCollections")
+13:18:39.855 8 W - GetSchema("Tables")
+13:18:39.879 8 W - GetSchema("Columns")
+13:18:39.942 8 W - GetSchema("Indexes")
+13:18:39.944 8 W - GetSchema("IndexColumns")
+13:18:39.954 8 W - GetSchema("DataTypes")
+13:18:40.016 8 W - GetSchema("ReservedWords")
+13:18:40.021 8 W - Select Count(*) From Administrator
+13:18:40.025 8 W - 初始化NewLife.CommonEntity.Administrator数据
+13:18:40.046 8 W - 一级缓存：关闭缓存
+13:18:40.096 8 W - 开始检查连接[Common/SQLite]的数据库架构……
+13:18:40.150 8 W - [Common]的所有实体类（17个）：Department,Sequence,GuidCategory,Administrator,Menu,Role,RoleMenu,Log,Area,User,Simple,SimpleTree,Setting,Statistics,UserProfile,Attachment,Category
+13:18:40.150 8 W - [Common]需要检查架构的实体类（0个）：
+13:18:40.150 8 W - 检查连接[Common/SQLite]的数据库架构耗时00:00:00.0542753
+13:18:40.152 8 W - Select * From Administrator Order By ID Desc
+13:18:40.251 8 W - Update Administrator Set Logins=Logins+1, LastLogin='2013-04-20 13:18:40' Where ID=1
+13:18:40.314 8 W - 检查实体NewLife.CommonEntity.Log的数据表架构，模式：CheckTableWhenFirstUse
+13:18:40.316 8 W - 初始化NewLife.CommonEntity.Log数据
+13:18:40.317 8 W - Insert Into Log(Category, Action, UserID, UserName, IP, OccurTime, Remark) Values('管理员', '自动登录', 0, null, '127.0.0.1', '2013-04-20 13:18:40', 'admin');Select last_insert_rowid() newid
+13:18:40.343 8 W - 检查实体NewLife.CommonEntity.Menu的数据表架构，模式：CheckTableWhenFirstUse
+13:18:40.345 8 W - 初始化NewLife.CommonEntity.Menu数据
+13:18:40.347 8 W - Select Count(*) From Menu
+13:18:40.348 8 W - Select * From Menu Order By ID Desc
+13:18:40.382 8 W - 检查实体NewLife.CommonEntity.Role的数据表架构，模式：CheckTableWhenFirstUse
+13:18:40.383 8 W - 初始化NewLife.CommonEntity.Role数据
+13:18:40.392 8 W - Select Count(*) From Role
+13:18:40.394 8 W - 检查实体NewLife.CommonEntity.RoleMenu的数据表架构，模式：CheckTableWhenFirstUse
+13:18:40.395 8 W - Select Count(*) From RoleMenu
+13:18:40.395 8 W - 初始化NewLife.CommonEntity.RoleMenu数据
+13:18:40.396 8 W - 如果某一个菜单对应的RoleMenu（角色菜单对应关系）为空或者只有一个，则授权第一个角色访问所有菜单！
+13:18:40.439 8 W - Select * From RoleMenu Order By ID Desc
+13:18:40.457 8 W - Select * From RoleMenu Where RoleID Not In(Select ID From Role) Or MenuID Not In(Select ID From Menu) Order By ID Desc
+13:18:40.457 8 W - Select * From Role Order By ID Desc
+13:18:40.555 8 W - Select * From Menu Order By ID Desc limit 20
+13:18:40.561 8 W - Select Count(*) From Menu
+13:18:42.282 10 W - Select * From Menu Where ID=6
+13:18:43.669 4 W - Select * From Menu Where ID=6
+13:18:43.695 4 W - Insert Into Log(Category, Action, UserID, UserName, IP, OccurTime, Remark) Values('菜单', '修改', 1, '管理员', '127.0.0.1', '2013-04-20 13:18:43', '角色和菜单管理');Select last_insert_rowid() newid
+13:19:37.716 10 W - Select * From Menu Where ID=6
+13:27:38.758 8 W - Select * From Menu Order By ID Desc
+13:27:38.763 8 W - Select * From Menu Order By ID Desc limit 20
+13:27:38.764 8 W - Select Count(*) From Menu
+13:27:40.279 8 W - Select * From Menu Where ID=6
+13:27:43.665 10 W - Select * From Menu Where ID=6
+13:27:47.397 4 W - Select * From Menu Where ID=6
+13:28:45.723 10 W - 实体缓存<Menu>总次数40，一级命中38（95.00%）
+13:28:45.725 10 W - Select * From Menu Order By ID Desc
+13:28:45.731 10 W - Select * From Menu Order By ID Desc limit 20
+13:28:45.731 10 W - Select Count(*) From Menu
+13:28:46.981 10 W - Select * From Menu Where ID=6
+13:28:52.153 4 W - Select * From Menu Where ID=6
+13:28:52.167 4 W - Insert Into Log(Category, Action, UserID, UserName, IP, OccurTime, Remark) Values('菜单', '修改', 1, '管理员', '127.0.0.1', '2013-04-20 13:28:52', '角色和菜单管理');Select last_insert_rowid() newid
+13:28:52.167 4 W - Update Menu Set Permission='角色和菜单管理1' Where ID=6
+17:27:41.988 8 W - Select Count(*) From Administrator
+17:27:41.989 8 W - 实体缓存<Administrator>总次数2，一级命中1（50.00%）
+17:27:41.989 8 W - Select * From Administrator Order By ID Desc
+17:27:41.990 8 W - Update Administrator Set Logins=Logins+1, LastLogin='2013-04-20 17:27:41' Where ID=1
+17:27:41.990 8 W - Insert Into Log(Category, Action, UserID, UserName, IP, OccurTime, Remark) Values('管理员', '自动登录', 0, null, '127.0.0.1', '2013-04-20 17:27:41', 'admin');Select last_insert_rowid() newid
+17:27:41.991 8 W - 实体缓存<Menu>总次数51，一级命中48（94.12%）
+17:27:41.991 8 W - Select * From Menu Order By ID Desc
+17:27:41.991 8 W - 实体缓存<Role>总次数3，一级命中2（66.67%）
+17:27:41.992 8 W - Select * From Role Order By ID Desc
+17:27:41.992 8 W - 实体缓存<RoleMenu>总次数15，一级命中14（93.33%）
+17:27:41.992 8 W - Select * From RoleMenu Order By ID Desc
+17:27:41.998 8 W - Select * From Menu Order By ID Desc limit 20
+17:27:41.999 8 W - Select Count(*) From Menu
+17:27:41.999 8 W - Select Count(*) From Menu
+17:27:43.816 8 W - Select * From Menu Where ID=6
+17:37:55.391 4 W - 实体缓存<Menu>总次数63，一级命中59（93.65%）
+17:37:55.393 4 W - Select * From Menu Order By ID Desc
+17:37:55.394 4 W - Select * From Menu Where ID=6
+17:37:55.398 4 W - Insert Into Log(Category, Action, UserID, UserName, IP, OccurTime, Remark) Values('菜单', '修改', 1, '管理员', '127.0.0.1', '2013-04-20 17:37:55', '角色和菜单管理');Select last_insert_rowid() newid
+17:38:03.462 4 W - Select * From Menu Where ID=6
+17:38:06.038 8 W - Select * From Menu Where ID=6
+17:38:06.051 8 W - Insert Into Log(Category, Action, UserID, UserName, IP, OccurTime, Remark) Values('菜单', '修改', 1, '管理员', '127.0.0.1', '2013-04-20 17:38:06', '角色和菜单管理');Select last_insert_rowid() newid
+17:38:06.052 8 W - Update Menu Set Permission='角色和菜单管理2' Where ID=6
+17:38:56.609 8 W - Select * From Menu Order By ID Desc
+17:38:56.615 8 W - Select * From Menu Order By ID Desc limit 20
+17:38:56.615 8 W - Select Count(*) From Menu
+17:38:56.616 8 W - Select Count(*) From Menu
+17:38:58.220 8 W - Select * From Menu Where ID=6
+17:39:00.468 8 W - Select * From Menu Where ID=6
+17:39:00.479 8 W - Insert Into Log(Category, Action, UserID, UserName, IP, OccurTime, Remark) Values('菜单', '修改', 1, '管理员', '127.0.0.1', '2013-04-20 17:39:00', '角色和菜单管理');Select last_insert_rowid() newid
+17:39:00.480 8 W - System.Threading.ThreadAbortException: 正在中止线程。
+   在 System.Threading.Thread.AbortInternal()
+   在 System.Threading.Thread.Abort(Object stateInfo)
+   在 System.Web.HttpResponse.End()
+   在 System.Web.HttpResponse.Redirect(String url, Boolean endResponse)
+   在 System.Web.HttpResponse.Redirect(String url)
+   在 MenuForm.EntityForm_OnSaveSuccess(Object sender, EntityFormEventArgs e) 位置 f:\Code\test\WebCssDemo\Web\Admin\Sys\MenuForm.aspx.cs:行号 20
+   在 NewLife.CommonEntity.Web.EntityForm2.SaveFormSuccess() 位置 C:\X\Src\NewLife.CommonEntity\Web\EntityForm2.cs:行号 578
+   在 NewLife.CommonEntity.Web.EntityForm2.SaveFormWithTrans() 位置 C:\X\Src\NewLife.CommonEntity\Web\EntityForm2.cs:行号 550Select * From Menu Order By ID Desc limit 20
+17:39:00.572 8 W - Select Count(*) From Menu
+17:39:03.550 8 W - Select * From Menu Where ID=6
+17:39:07.610 4 W - Select * From Menu Where ID=6
+17:39:07.619 4 W - Insert Into Log(Category, Action, UserID, UserName, IP, OccurTime, Remark) Values('菜单', '修改', 1, '管理员', '127.0.0.1', '2013-04-20 17:39:07', '角色和菜单管理');Select last_insert_rowid() newid
+17:39:07.619 4 W - Update Menu Set Permission='角色和菜单管理' Where ID=6
+17:39:07.620 4 W - System.Threading.ThreadAbortException: 正在中止线程。
+   在 System.Threading.Thread.AbortInternal()
+   在 System.Threading.Thread.Abort(Object stateInfo)
+   在 System.Web.HttpResponse.End()
+   在 System.Web.HttpResponse.Redirect(String url, Boolean endResponse)
+   在 System.Web.HttpResponse.Redirect(String url)
+   在 MenuForm.EntityForm_OnSaveSuccess(Object sender, EntityFormEventArgs e) 位置 f:\Code\test\WebCssDemo\Web\Admin\Sys\MenuForm.aspx.cs:行号 20
+   在 NewLife.CommonEntity.Web.EntityForm2.SaveFormSuccess() 位置 C:\X\Src\NewLife.CommonEntity\Web\EntityForm2.cs:行号 578
+   在 NewLife.CommonEntity.Web.EntityForm2.SaveFormWithTrans() 位置 C:\X\Src\NewLife.CommonEntity\Web\EntityForm2.cs:行号 550Select * From Menu Order By ID Desc
+17:39:07.658 4 W - Select * From Menu Order By ID Desc limit 20
+17:39:07.659 4 W - Select Count(*) From Menu
+17:39:07.659 4 W - Select Count(*) From Menu
