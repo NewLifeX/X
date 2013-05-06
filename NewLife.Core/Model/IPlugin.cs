@@ -87,7 +87,14 @@ namespace NewLife.Model
                 {
                     foreach (var item in ps)
                     {
-                        if (item is IDisposable) (item as IDisposable).Dispose();
+                        if (item is IDisposable)
+                        {
+                            try
+                            {
+                                (item as IDisposable).Dispose();
+                            }
+                            catch { }
+                        }
                     }
                 }
             }
@@ -123,7 +130,7 @@ namespace NewLife.Model
                 {
                     // 如果有插件特性，并且所有特性都不支持当前宿主，则跳过
                     var atts = item.GetCustomAttributes<PluginAttribute>(true);
-                    
+
                     if (atts != null && atts.Any(a => a.Identity != Identity)) continue;
 
                     list.Add(item);
