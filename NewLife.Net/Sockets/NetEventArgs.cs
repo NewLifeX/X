@@ -13,6 +13,7 @@ namespace NewLife.Net.Sockets
         #region 属性
         static Int32 _gid;
 
+        // ID变大后，可能达到最大值，然后变为-1，再变为0，所以不用担心
         private Int32 _ID = ++_gid;
         /// <summary>编号</summary>
         public Int32 ID { get { return _ID; } set { _ID = value; } }

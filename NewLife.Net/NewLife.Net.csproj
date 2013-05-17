@@ -235,7 +235,9 @@
     <Compile Include="UPnP\UPnPClient.cs" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="App.config" />
+    <EmbeddedResource Include="App.config">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
     <None Include="TDP\TDP.pdf" />
     <None Include="架构设计\网络模型.cd" />
   </ItemGroup>

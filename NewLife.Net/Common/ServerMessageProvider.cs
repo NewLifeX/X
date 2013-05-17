@@ -46,42 +46,36 @@ namespace NewLife.Net.Common
         {
             var session = e.Session;
             Session = new WeakReference<ISocketSession>(session);
-            var s = e.GetStream();
+            var stream = e.GetStream();
             // 如果上次还留有数据，复制进去
             if (session.Stream != null && session.Stream.Position < session.Stream.Length)
             {
-                //var p = session.Stream.Position;
-                //NetHelper.WriteLog("合并开头位置 {0}", session.Stream.ReadByte());
-                //session.Stream.Position = p;
-
-                //var ms = new MemoryStream();
-                //session.Stream.CopyTo(ms);
                 // 这个流是上一次的完整数据，位置在最后，直接合并即可
                 var ms = session.Stream;
                 var p = ms.Position;
                 ms.Position = ms.Length;
-                s.CopyTo(ms);
+                stream.CopyTo(ms);
                 ms.Position = p;
-                s = ms;
-
-                //p = s.Position;
-                //NetHelper.WriteLog("合并开头位置 {0}", s.ReadByte());
-                //s.Position = p;
+                stream = ms;
             }
+
+            OnReceive(session, stream);
+        }
+
+        /// <summary>收到数据流</summary>
+        /// <param name="session"></param>
+        /// <param name="stream"></param>
+        protected virtual void OnReceive(ISocketSession session, Stream stream)
+        {
             try
             {
-                Process(s, session, session.RemoteUri);
+                Process(stream, session, session.RemoteUri);
 
                 // 如果还有剩下，写入数据流，供下次使用
-                if (s.Position < s.Length)
+                if (stream.Position < stream.Length)
                 {
-                    //NetHelper.WriteLog("剩下一点，留下次：{0},{1}=>{2}", s.Position, s.Length, s.Length - s.Position);
-                    //var p = s.Position;
-                    //NetHelper.WriteLog("保留开头位置 {0}", s.ReadByte());
-                    //s.Position = p;
-
                     var ms = new MemoryStream();
-                    s.CopyTo(ms);
+                    stream.CopyTo(ms);
                     ms.Position = 0;
                     session.Stream = ms;
                 }
@@ -95,7 +89,8 @@ namespace NewLife.Net.Common
                 // 去掉内部异常，以免过大
                 if (ex.InnerException != null) FieldInfoX.SetValue(ex, "_innerException", null);
                 var msg = new ExceptionMessage() { Value = ex };
-                session.Send(msg.GetStream());
+                //session.Send(msg.GetStream());
+                OnSend(msg.GetStream());
 
                 // 出错后清空数据流，避免连锁反应
                 session.Stream = null;
