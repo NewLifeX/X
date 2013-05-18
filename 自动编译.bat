@@ -15,7 +15,7 @@ title 自动编译
 :: 2，更新DLL
 :: 保存当前目录，并切换目录
 pushd ..
-set svn=https://svn.nnhy.org/svn/X/trunk
+set svn=https://svn.newlifex.com/svn/X/trunk
 :: do else 等关键字前后都应该预留空格
 for %%i in (Src DLL DLL4 XCoder) do (
 	if not exist %%i (
@@ -30,7 +30,7 @@ popd
 
 :: 3，编译所有组件
 ::"D:\MS\Microsoft Visual Studio 10.0\Common7\IDE\devenv.exe" X组件.sln /Build Release
-set vs="D:\MS\Microsoft Visual Studio 10.0\Common7\IDE\devenv.com"
+set vs="D:\MS\Microsoft Visual Studio 11.0\Common7\IDE\devenv.com"
 for %%i in (NewLife.Core XCode NewLife.CommonEntity NewLife.Mvc NewLife.Net XAgent XControl XTemplate) do (
 	%vs% X组件.sln /Build Release /Project %%i
 	%vs% X组件.sln /Build Net4Release /Project %%i
