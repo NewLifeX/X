@@ -325,7 +325,8 @@ namespace NewLife.Messaging
             //if (!_wait.WaitOne(millisecondsTimeout, true)) return null;
 
             _wait.WaitOne(millisecondsTimeout, false);
-            _wait.Close();
+            // 这里不能Close，否则上面Set的时候会抛出句柄被关闭的异常
+            //_wait.Close();
 
             return msg;
         }
