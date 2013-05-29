@@ -9,6 +9,7 @@ using NewLife.Log;
 using NewLife.Model;
 using NewLife.Reflection;
 using NewLife.Serialization;
+using System.Collections.Generic;
 
 namespace NewLife.Messaging
 {
@@ -292,6 +293,10 @@ namespace NewLife.Messaging
             }
             return this;
         }
+
+        /// <summary>返回所有已注册消息</summary>
+        /// <returns></returns>
+        public static IEnumerable<Message> ResolveAll() { return ObjectContainer.Current.ResolveAll<Message>(); }
         #endregion
 
         #region 设置
