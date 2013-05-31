@@ -57,7 +57,7 @@ namespace XCode
                 if (exp.IndexOf("Or", StringComparison.OrdinalIgnoreCase) >= 0)
                 {
                     // 有可能本身就有括号了
-                    if (exp[0] != '(' && exp[exp.Length - 1] != ')') exp = "(" + exp + ")";
+                    if (!(exp[0] == '(' && exp[exp.Length - 1] == ')')) { exp = "(" + exp + ")"; }
                 }
 
                 Append("And", exp);
