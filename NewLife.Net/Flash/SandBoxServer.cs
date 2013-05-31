@@ -7,9 +7,6 @@ namespace NewLife.Net
     public class SandBoxServer : NetServer
     {
         #region 属性
-        //private Dictionary<Int32, FTPSession> _Sessions;
-        ///// <summary>会话集合</summary>
-        //public IDictionary<Int32, FTPSession> Sessions { get { return _Sessions ?? (_Sessions = new Dictionary<int, FTPSession>()); } }
         #endregion
 
         /// <summary>实例化一个安全沙箱服务器</summary>
