@@ -220,7 +220,7 @@ namespace NewLife.Net.Tcp
             //if (e.RemoteEndPoint == null) e.RemoteEndPoint = session.RemoteEndPoint;
             session.SetRemote(e);
             // 对于服务器中的会话来说，收到空数据表示断开连接
-            session.DisconnectWhenEmptyData = true;
+            // session.DisconnectWhenEmptyData = true;
 
             return session;
         }

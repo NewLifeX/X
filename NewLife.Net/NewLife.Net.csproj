@@ -90,6 +90,7 @@
     <Compile Include="DNS\NetBIOS.cs" />
     <Compile Include="DNS\DNS_NB.cs" />
     <Compile Include="Fetion\WapFetion.cs" />
+    <Compile Include="Flash\SandBoxServer.cs" />
     <Compile Include="FTP\FTPClient.cs" />
     <Compile Include="FTP\FTPItem.cs" />
     <Compile Include="FTP\FTPServer.cs" />
