@@ -27,9 +27,10 @@ namespace NewLife.Net
             string sss = e.GetString();
             if (sss == "<policy-file-request/>\0")
             {
-                base.OnReceived(sender, e);
+                
                 session.Send(System.Text.Encoding.UTF8.GetBytes(_Policy.ToCharArray()));
             }
+            base.OnReceived(sender, e);
             session.Dispose();
         }
     }
