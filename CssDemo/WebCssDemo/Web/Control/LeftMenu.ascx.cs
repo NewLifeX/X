@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Web;
-using System.Web.UI;
-using System.Web.UI.WebControls;
-using NewLife.CommonEntity;
+﻿using NewLife.CommonEntity;
 using NewLife.Web;
+using System;
+using System.Collections.Generic;
 using System.Text;
 
 public partial class Control_LeftMenu : System.Web.UI.UserControl
@@ -87,56 +84,12 @@ public partial class Control_LeftMenu : System.Web.UI.UserControl
         /// <summary>获取当前菜单</summary>
         public static List<LeftMenu> GetMenu
         {
-            #region 1
-
-            //get
-            //{
-            //    List<LeftMenu> leftmenu = new List<LeftMenu>();
-
-            //    //设置默认菜单
-            //    leftmenu.Add(ConvertToMenu(null, "首页", "Main.aspx", "icon-home"));
-
-            //    //获取请求ID查询当前页面请求的根菜单
-            //    Int32 MenuID = WebHelper.RequestInt("ID");
-            //    //获取当前管理员用户
-            //    ICommonManageProvider cmp = CommonManageProvider.Provider;
-
-            //    List<IMenu> menus = new List<IMenu>();
-            //    IMenu m = cmp.FindByMenuID(MenuID);
-
-            //    //如无条件限制就以根菜单为主
-            //    if (m == null)
-            //        menus = cmp.MenuRoot.Childs as List<IMenu>;
-            //    else
-            //        menus = m.Childs as List<IMenu>;
-
-            //    if (menus.Count > 0)
-            //    {
-            //        foreach (IMenu item in menus)
-            //        {
-            //            LeftMenu lm = ConvertToMenu(item, null, null, "icon-th-list");
-
-            //            if (item.Childs.Count > 0)
-            //            {
-            //                foreach (IMenu child in item.Childs)
-            //                {
-            //                    //添加子菜单
-            //                    lm.SubMenus.Add(ConvertToMenu(child, null, null, ""));
-            //                }
-            //            }
-            //            leftmenu.Add(lm);
-            //        }
-            //    }
-            //    return leftmenu;
-            //}
-            #endregion
-
             get
             {
                 List<LeftMenu> leftmenu = new List<LeftMenu>();
 
                 //设置默认菜单
-                leftmenu.Add(ConvertToMenu(null, "首页", "../Main.aspx", "icon-home"));
+                leftmenu.Add(ConvertToMenu(null, "首页", "Main.aspx", "icon-home"));
 
                 Int32 MenuID = WebHelper.RequestInt("ID");
 

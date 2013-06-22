@@ -39,54 +39,51 @@
 </head>
 <body style="margin: 0px; padding: 0px; overflow: hidden" onresize="modefHeight();">
     <form id="form1" runat="server" style="margin: 0;">
-    <table id="main_table" width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #dfe8f6;">
-        <tr>
-            <td style="height: 70px; overflow: hidden" colspan="3" id="top" valign="bottom">
-                <div style="padding-left: 30px; font-size: 20px; line-height: 35px; font-weight: bold;
-                    color: #019401">
-                    <%=Config.DisplayName%> v<%=Config.Version%><font style="font-size:12px; color:Blue;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;——<%=Config.Company%></font>
-                </div>
-                <div class="toolbar" style="height: 23px;">
-                    <div style="float: left; padding-left: 10px;">
-                        欢迎！<a href="Sys/AdminInfo.aspx?ID=<%=Current.ID%>" target="main" style="float: none; background:none;">
-                            <%=Current.FriendName%>[<%= Current.RoleName%>] </a>&nbsp; 来自：<%= NewLife.Web.WebHelper.UserHost %>
-                        <span style="color: Blue; cursor: pointer;" onclick="location='Default.aspx?act=logout'"
-                            title="注销当前登录用户，回到登录界面！">注销</span>
+        <table id="main_table" width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #dfe8f6;">
+            <tr>
+                <td style="height: 70px; overflow: hidden" colspan="3" id="top" valign="bottom">
+                    <div style="padding-left: 30px; font-size: 20px; line-height: 35px; font-weight: bold; color: #019401">
+                        <%=Config.DisplayName%> v<%=Config.Version%><font style="font-size: 12px; color: Blue;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;——<%=Config.Company%></font>
                     </div>
-                    <div style="float: right;">
-                        <asp:Repeater runat="server" ID="menuItem">
-                            <ItemTemplate>
-                                <a href="Frame/Left.aspx?ID=<%# Eval("ID") %>" target="left" onclick="document.getElementById('main').src='<%# Eval("Url") %>';">
-                                    <b>
-                                        <%# Eval("Name") %></b></a>
-                            </ItemTemplate>
-                        </asp:Repeater>
-                        <a href="Sys/AdminInfo.aspx?ID=<%=CommonManageProvider.Provider.Current.ID%>"
-                            target="main" title="修改当前用户密码等信息！"><b>用户信息</b></a>
+                    <div class="toolbar" style="height: 23px;">
+                        <div style="float: left; padding-left: 10px;">
+                            欢迎！<a href="Sys/AdminInfo.aspx?ID=<%=Current.ID%>" target="main" style="float: none; background: none;">
+                                <%=Current.FriendName%>[<%= Current.RoleName%>] </a>&nbsp; 来自：<%= NewLife.Web.WebHelper.UserHost %>
+                            <span style="color: Blue; cursor: pointer;" onclick="location='Default.aspx?act=logout'"
+                                title="注销当前登录用户，回到登录界面！">注销</span>
+                        </div>
+                        <div style="float: right;">
+                            <asp:Repeater runat="server" ID="menuItem">
+                                <ItemTemplate>
+                                    <a href="Frame/Left.aspx?ID=<%# Eval("ID") %>" target="left" onclick="document.getElementById('main').src='<%# Eval("Url") %>';">
+                                        <b>
+                                            <%# Eval("Name") %></b></a>
+                                </ItemTemplate>
+                            </asp:Repeater>
+                            <a href="Sys/AdminInfo.aspx?ID=<%=CommonManageProvider.Provider.Current.ID%>"
+                                target="main" title="修改当前用户密码等信息！"><b>用户信息</b></a>
+                        </div>
                     </div>
-                </div>
-            </td>
-        </tr>
-        <tr>
-            <td width="147px" style="border: solid 1px #99bbe8; overflow: hidden;" id="td_left">
-                <iframe height="100%" name="left" id="leftiframe" width="100%" frameborder="0" src="<%=DefaultLeft %>"
-                    scrolling="no"></iframe>
-            </td>
-            <td style="border-top: solid 1px #99bbe8; width: 8px; overflow: hidden; cursor: pointer;"
-                onclick="showleft(this)" title="显示或隐藏导航栏">
-                &nbsp;
-            </td>
-            <td style="border: solid 1px #99bbe8" id="td_right">
-                <iframe height="100%" width="100%" border="0" frameborder="0" id="main" name="main"
-                    src="<%=DefaultMain %>"></iframe>
-            </td>
-        </tr>
-        <tr>
-            <td style="background-color: #dfe8f6; height: 11px; overflow: hidden;" colspan="3"
-                id="footer">
-            </td>
-        </tr>
-    </table>
+                </td>
+            </tr>
+            <tr>
+                <td width="147px" style="border: solid 1px #99bbe8; overflow: hidden;" id="td_left">
+                    <iframe height="100%" name="left" id="leftiframe" width="100%" frameborder="0" src="<%=DefaultLeft %>"
+                        scrolling="no"></iframe>
+                </td>
+                <td style="border-top: solid 1px #99bbe8; width: 8px; overflow: hidden; cursor: pointer;"
+                    onclick="showleft(this)" title="显示或隐藏导航栏">&nbsp;
+                </td>
+                <td style="border: solid 1px #99bbe8" id="td_right">
+                    <iframe height="100%" width="100%" border="0" frameborder="0" id="main" name="main"
+                        src="<%=DefaultMain %>"></iframe>
+                </td>
+            </tr>
+            <tr>
+                <td style="background-color: #dfe8f6; height: 11px; overflow: hidden;" colspan="3"
+                    id="footer"></td>
+            </tr>
+        </table>
     </form>
 </body>
 </html>

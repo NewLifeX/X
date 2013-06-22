@@ -75,8 +75,7 @@
                         <asp:TemplateField HeaderText="编辑">
                             <ItemTemplate>
                                 <Custom:OpenForm BtText="编辑" runat="server" ID="OpenForm1" DialogWidth="700px" DialogHeight="450px"
-                                    Url='<%# "MenuForm.aspx?ID="+ Eval("ID")%>' Title="Menu" IsButtonStyle="false">
-                                </Custom:OpenForm>
+                                    Url='<%# "MenuForm.aspx?ID="+ Eval("ID")%>' Title="Menu" IsButtonStyle="false"></Custom:OpenForm>
                             </ItemTemplate>
                             <HeaderStyle CssClass="widget-title" Font-Size="Small" Width="30px" />
                         </asp:TemplateField>
