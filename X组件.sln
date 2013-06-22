@@ -61,6 +61,7 @@ EndProject
 Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "WebBootstrap", "WebBootstrap\", "{F4EA7043-C362-4088-A706-66865026DD2C}"
 	ProjectSection(WebsiteProperties) = preProject
 		TargetFrameworkMoniker = ".NETFramework,Version%3Dv2.0"
+		ProjectReferences = "{5813c22e-eeb3-4dee-a45c-bb218041193a}|NewLife.Core.dll;{b49aba5a-c5da-45f4-87f1-b435ec51d710}|XCode.dll;{a82e3aa8-6181-460d-a6ee-cc453b83d340}|XControl.dll;{50d7fae5-2304-4395-a6fa-7d35279d9d84}|NewLife.CommonEntity.dll;"
 		Debug.AspNetCompiler.VirtualPath = "/WebBootstrap"
 		Debug.AspNetCompiler.PhysicalPath = "WebBootstrap\"
 		Debug.AspNetCompiler.TargetPath = "PrecompiledWeb\WebBootstrap\"

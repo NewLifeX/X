@@ -17,7 +17,7 @@ namespace XCoder
     class AutoUpdate
     {
         #region 属性
-        private String _VerSrc = "http://j.nnhy.org/?ID=1&f=XCoderVer.xml";
+        private String _VerSrc = "http://j.NewLifeX.com/?ID=1&f=XCoderVer.xml";
         /// <summary>版本地址</summary>
         public String VerSrc { get { return _VerSrc; } set { _VerSrc = value; } }
 

@@ -23,7 +23,7 @@ namespace NewLife.Net.DNS
         #region 属性
         private String _DomainName;
         /// <summary>域名</summary>
-        public String DomainName { get { return _DomainName ?? "dns.nnhy.org"; } set { _DomainName = value; } }
+        public String DomainName { get { return _DomainName ?? "dns.NewLifeX.com"; } set { _DomainName = value; } }
 
         private List<NetUri> _Parents;
         /// <summary>上级DNS地址</summary>

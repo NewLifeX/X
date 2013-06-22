@@ -336,7 +336,7 @@ namespace XCode.DataAccessLayer
         {
             get
             {
-                if (_ServiceAddress == null) _ServiceAddress = Config.GetConfig<String>("XCode.ServiceAddress", "http://j.nnhy.org/?id=3&f={0}");
+                if (_ServiceAddress == null) _ServiceAddress = Config.GetConfig<String>("XCode.ServiceAddress", "http://j.NewLifeX.com/?id=3&f={0}");
 
                 return _ServiceAddress;
             }

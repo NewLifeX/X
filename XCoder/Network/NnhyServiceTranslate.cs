@@ -10,10 +10,10 @@ using TextTrans = NewLife.ServiceLib.TranslateResult.TextTrans;
 
 namespace XCoder
 {
-    /// <summary>使用s.nnhy.org的翻译服务翻译指定词汇</summary>
+    /// <summary>使用s.NewLifeX.com的翻译服务翻译指定词汇</summary>
     class NnhyServiceTranslate : ITranslate
     {
-        static string UrlPrefix = "http://s.nnhy.org";
+        static string UrlPrefix = "http://s.NewLifeX.com";
 
         public string Translate(string word)
         {
