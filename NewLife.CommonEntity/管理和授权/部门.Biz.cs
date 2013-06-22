@@ -168,10 +168,7 @@ namespace NewLife.CommonEntity
         private static String SearchWhere(String key)
         {
             // WhereExpression重载&和|运算符，作为And和Or的替代
-            var exp = new WhereExpression();
-
-            // SearchWhereByKeys系列方法用于构建针对字符串字段的模糊搜索
-            if (!String.IsNullOrEmpty(key)) SearchWhereByKeys(exp.Builder, key);
+            var exp = SearchWhereByKeys(key);
 
             // 以下仅为演示，2、3行是同一个意思的不同写法，Field（继承自FieldItem）重载了==、!=、>、<、>=、<=等运算符（第4行）
             //exp &= _.Name == "testName"
