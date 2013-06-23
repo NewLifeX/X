@@ -31,7 +31,9 @@ namespace NewLife.Messaging
             Channel = r.ReadByte();
             SessionID = r.ReadInt32();
             if (reader.Stream.Position != reader.Stream.Length)
-                Message = Message.Read(reader.Stream, reader.GetKind());
+            {
+                if (Message.PeekKind(reader.Stream) != 0) Message = Message.Read(reader.Stream, reader.GetKind());
+            }
 
             return true;
         }
