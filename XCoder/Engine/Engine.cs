@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Text.RegularExpressions;
 using NewLife.Model;
 using NewLife.Reflection;
 using NewLife.Threading;
@@ -12,7 +13,6 @@ using XTemplate.Templating;
 using System.Linq;
 #else
 using NewLife.Linq;
-using System.Text.RegularExpressions;
 #endif
 
 namespace XCoder

@@ -43,8 +43,8 @@ namespace NewLife.Collections
 
         private void CleanAbandonedItems()
         {
-            List<TKey> list = new List<TKey>();
-            foreach (KeyValuePair<TKey, WeakReference> item in inner)
+            var list = new List<TKey>();
+            foreach (var item in inner)
             {
                 if (item.Value.Target == null) list.Add(item.Key);
             }
@@ -63,9 +63,9 @@ namespace NewLife.Collections
 
         public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
         {
-            foreach (KeyValuePair<TKey, WeakReference> item in inner)
+            foreach (var item in inner)
             {
-                Object obj = item.Value.Target;
+                var obj = item.Value.Target;
                 if (obj != null) yield return new KeyValuePair<TKey, TValue>(item.Key, DecodeNullObject<TValue>(obj));
             }
         }

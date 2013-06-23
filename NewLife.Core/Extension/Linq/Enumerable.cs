@@ -12,7 +12,7 @@ namespace NewLife.Linq
     /// <summary>提供一组用于查询实现 <see cref="T:System.Collections.Generic.IEnumerable`1" /> 的对象的 static（在 Visual Basic 中为 Shared）方法。</summary>
     public static partial class Enumerable
     {
-#region 内部类
+        #region 内部类
         private abstract class Iterator<TSource> : IEnumerable<TSource>, IEnumerable, IEnumerator<TSource>, IDisposable, IEnumerator
         {
             private int threadId;
@@ -397,7 +397,7 @@ namespace NewLife.Linq
         }
         #endregion
 
-#region 集合查找
+        #region 集合查找
         /// <summary>基于谓词筛选值序列。</summary>
         /// <returns>一个 <see cref="T:System.Collections.Generic.IEnumerable`1" />，包含输入序列中满足条件的元素。</returns>
         /// <param name="source">要筛选的 <see cref="T:System.Collections.Generic.IEnumerable`1" />。</param>
@@ -915,7 +915,7 @@ namespace NewLife.Linq
         }
         #endregion
 
-#region 分组排序
+        #region 分组排序
         /// <summary>基于匹配键对两个序列的元素进行关联。使用默认的相等比较器对键进行比较。</summary>
         /// <returns>一个具有 <paramref name="TResult" /> 类型元素的 <see cref="T:System.Collections.Generic.IEnumerable`1" />，这些元素是通过对两个序列执行内部联接得来的。</returns>
         /// <param name="outer">要联接的第一个序列。</param>
@@ -1720,7 +1720,7 @@ namespace NewLife.Linq
         }
         #endregion
 
-#region 集合转换
+        #region 集合转换
         /// <summary>返回类型为 <see cref="T:System.Collections.Generic.IEnumerable`1" /> 的输入。</summary>
         /// <returns>类型为 <see cref="T:System.Collections.Generic.IEnumerable`1" /> 的输入序列。</returns>
         /// <param name="source">类型为 <see cref="T:System.Collections.Generic.IEnumerable`1" /> 的序列。</param>
@@ -1916,7 +1916,7 @@ namespace NewLife.Linq
         }
         #endregion
 
-#region 集合元素转换
+        #region 集合元素转换
         /// <summary>返回指定序列的元素；如果序列为空，则返回单一实例集合中的类型参数的默认值。</summary>
         /// <returns>如果 <paramref name="source" /> 为空，则为包含 <paramref name="TSource" /> 类型的默认值的 <see cref="T:System.Collections.Generic.IEnumerable`1" /> 对象；否则为 <paramref name="source" />。</returns>
         /// <param name="source">序列为空时返回默认值的序列。</param>
@@ -2018,7 +2018,7 @@ namespace NewLife.Linq
         }
         #endregion
 
-#region 元素定位
+        #region 元素定位
         /// <summary>返回序列中的第一个元素。</summary>
         /// <returns>返回指定序列中的第一个元素。</returns>
         /// <param name="source">要返回其第一个元素的 <see cref="T:System.Collections.Generic.IEnumerable`1" />。</param>
@@ -2557,7 +2557,7 @@ namespace NewLife.Linq
         }
         #endregion
 
-#region 产生集合
+        #region 产生集合
         /// <summary>生成指定范围内的整数的序列。</summary>
         /// <returns>C# 中的 IEnumerable&lt;Int32&gt; 或 Visual Basic 中包含某个范围内的顺序整数的 IEnumerable(Of Int32)。</returns>
         /// <param name="start">序列中第一个整数的值。</param>
@@ -2613,7 +2613,7 @@ namespace NewLife.Linq
         }
         #endregion
 
-#region 集合统计
+        #region 集合统计
         /// <summary>确定序列是否包含任何元素。</summary>
         /// <returns>如果源序列包含任何元素，则为 true；否则为 false。</returns>
         /// <param name="source">要检查是否为空的 <see cref="T:System.Collections.Generic.IEnumerable`1" />。</param>
@@ -2865,7 +2865,7 @@ namespace NewLife.Linq
         }
         #endregion
 
-#region 累加、求和、最大、最小、平均
+        #region 累加、求和、最大、最小、平均
         /// <summary>对序列应用累加器函数。</summary>
         /// <returns>累加器的最终值。</returns>
         /// <param name="source">要聚合的 <see cref="T:System.Collections.Generic.IEnumerable`1" />。</param>

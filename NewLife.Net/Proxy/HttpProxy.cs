@@ -4,13 +4,14 @@ using System.Net;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using Microsoft.Win32;
-using NewLife.Collections;
 using NewLife.Net.Http;
 using NewLife.Net.Sockets;
 using NewLife.Serialization;
 
 #if NET4
 using System.Collections.Generic;
+#else
+using NewLife.Collections;
 #endif
 
 namespace NewLife.Net.Proxy

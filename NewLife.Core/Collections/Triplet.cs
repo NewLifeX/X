@@ -17,9 +17,7 @@ namespace NewLife.Collections
         public object Third;
 
         /// <summary>初始化</summary>
-        public Triplet()
-        {
-        }
+        public Triplet() { }
 
         /// <summary>初始化</summary>
         /// <param name="x"></param>

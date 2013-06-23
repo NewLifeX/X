@@ -22,7 +22,7 @@ namespace Test2
                 try
                 {
 #endif
-                    Test1();
+                Test4();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -298,6 +298,13 @@ namespace Test2
 
             var rs = msg.Process<Diagnostics>(null, pname);
             return rs != null && rs.SubFunction == msg.SubFunction && rs.Data == msg.Data;
+        }
+
+        static void Test4()
+        {
+            var proxy = new NATProxy("www.baidu.com", 80);
+            proxy.Port = 8080;
+            proxy.Start();
         }
     }
 }

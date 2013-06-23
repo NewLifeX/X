@@ -14,7 +14,7 @@ namespace NewLife.Net.Tcp
         /// <summary>已重载。</summary>
         public override ProtocolType ProtocolType { get { return ProtocolType.Tcp; } }
 
-        private Boolean _DisconnectWhenEmptyData = true;
+        private Boolean _DisconnectWhenEmptyData = false;
         /// <summary>收到空数据时抛出异常并断开连接。</summary>
         public Boolean DisconnectWhenEmptyData { get { return _DisconnectWhenEmptyData; } set { _DisconnectWhenEmptyData = value; } }
 

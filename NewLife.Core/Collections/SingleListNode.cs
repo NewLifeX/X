@@ -43,7 +43,7 @@ namespace NewLife.Collections
         /// <returns></returns>
         public Boolean Contain(T item)
         {
-            for (SingleListNode<T> node = this; node != null; node = node.Next)
+            for (var node = this; node != null; node = node.Next)
             {
                 if (Object.Equals(node.Item, item)) return true;
             }
@@ -59,7 +59,7 @@ namespace NewLife.Collections
             if (Object.Equals(Item, item)) return true;
 
             // 下一项
-            for (SingleListNode<T> node = this; node.Next != null; node = node.Next)
+            for (var node = this; node.Next != null; node = node.Next)
             {
                 if (Object.Equals(node.Next.Item, item))
                 {

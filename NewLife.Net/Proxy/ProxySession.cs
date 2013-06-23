@@ -88,7 +88,7 @@ namespace NewLife.Net.Proxy
         /// <param name="e"></param>
         protected override void OnReceive(ReceivedEventArgs e)
         {
-            WriteDebugLog("[{0}] {1} => {2}", ID, ClientEndPoint, e.Stream.Length);
+            WriteDebugLog("Proxy[{0}].OnReceive {1} => {2}", ID, ClientEndPoint, e.Stream.Length);
 
             if (e.Stream != null)
             {
@@ -107,6 +107,8 @@ namespace NewLife.Net.Proxy
             ISocketSession session = null;
             try
             {
+                WriteDebugLog("Proxy[{0}].StartRemote {1}", ID, RemoteUri);
+
                 session = CreateRemote(e);
                 //if (client.ProtocolType == ProtocolType.Tcp && !client.Client.Connected) client.Connect(RemoteEndPoint);
                 session.OnDisposed += (s, e2) =>
@@ -180,7 +182,7 @@ namespace NewLife.Net.Proxy
         /// <param name="e"></param>
         protected virtual void OnReceiveRemote(ReceivedEventArgs e)
         {
-            //WriteDebugLog("[{0}] {1} <= {2}", ID, RemoteUri.EndPoint, e.Stream.Length);
+            WriteDebugLog("Proxy[{0}].OnReceiveRemote {1} <= {2}", ID, RemoteUri.EndPoint, e.Stream.Length);
 
             if (e.Stream != null)
             {

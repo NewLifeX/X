@@ -115,7 +115,7 @@ namespace NewLife.Collections
             // 把超标的全部清了
             while (stack.Count > Max)
             {
-                IDisposable obj = stack.Pop() as IDisposable;
+                var obj = stack.Pop() as IDisposable;
                 if (obj != null) obj.Dispose();
 
                 Interlocked.Increment(ref _FreeCount);
