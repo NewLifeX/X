@@ -20,31 +20,32 @@
     </div>
     <div id="loginbox">
         <form id="loginform" class="form-vertical" runat="server">
-        <p>
-            请输入您的帐号及密码</p>
-        <div class="control-group">
-            <div class="controls">
-                <div class="input-prepend">
-                    <span class="add-on"><i class="icon-user"></i></span>
-                    <asp:TextBox ID="AcccountName" runat="server" placeholder="帐号"></asp:TextBox>
+            <p>
+                请输入您的帐号及密码
+            </p>
+            <div class="control-group">
+                <div class="controls">
+                    <div class="input-prepend">
+                        <span class="add-on"><i class="icon-user"></i></span>
+                        <asp:TextBox ID="AcccountName" runat="server" placeholder="帐号"></asp:TextBox>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="control-group">
-            <div class="controls">
-                <div class="input-prepend">
-                    <span class="add-on"><i class="icon-lock"></i></span>
-                    <asp:TextBox ID="Password" runat="server" placeholder="密码" TextMode="Password"></asp:TextBox>
+            <div class="control-group">
+                <div class="controls">
+                    <div class="input-prepend">
+                        <span class="add-on"><i class="icon-lock"></i></span>
+                        <asp:TextBox ID="Password" runat="server" placeholder="密码" TextMode="Password"></asp:TextBox>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="form-actions">
-            <span class="pull-left"><a href="#" class="flip-link">忘记密码?</a></span> <span class="pull-center">
-                <asp:Label ID="errorMessage" runat="server" ForeColor="Red"></asp:Label></span>
-            <span class="pull-right">
-                <asp:Button CssClass="btn btn-inverse" runat="server" Text="登录" ID="LoginBt" OnClientClick="return LoginCheckComplete();"
-                    OnClick="LoginBt_Click" /></span>
-        </div>
+            <div class="form-actions">
+                <span class="pull-left"><a href="#" class="flip-link">忘记密码?</a></span> <span class="pull-center">
+                    <asp:Label ID="errorMessage" runat="server" ForeColor="Red"></asp:Label></span>
+                <span class="pull-right">
+                    <asp:Button CssClass="btn btn-inverse" runat="server" Text="登录" ID="LoginBt" OnClientClick="return LoginCheckComplete();"
+                        OnClick="LoginBt_Click" /></span>
+            </div>
         </form>
     </div>
 </body>

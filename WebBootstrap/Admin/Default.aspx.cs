@@ -12,7 +12,7 @@ public partial class Admin_Default : System.Web.UI.Page
         base.OnPreLoad(e);
 
         IManageUser user = ManageProvider.Provider.Current;
-        if (user == null) Response.Redirect("../Login.aspx");
+        if (user == null) Response.Redirect("Login.aspx");
 
         ICommonManageProvider provider = CommonManageProvider.Provider;
         IMenu root = null;
