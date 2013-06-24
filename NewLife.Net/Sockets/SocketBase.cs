@@ -320,7 +320,7 @@ namespace NewLife.Net.Sockets
             var socket = Socket;
             if (socket == null) return;
 
-            // Accepti得到的socket不需要绑定
+            // Accept得到的socket不需要绑定
             if (!socket.IsBound) Bind();
 
             // 如果没有传入网络事件参数，从对象池借用
@@ -453,16 +453,9 @@ namespace NewLife.Net.Sockets
         protected virtual void Process(NetEventArgs e, Func start, Action<NetEventArgs> process)
         {
             if (UseThreadPool)
-            {
-                ThreadPool.QueueUserWorkItem(s =>
-                {
-                    OnProcess(e, start, process);
-                });
-            }
+                ThreadPool.QueueUserWorkItem(s => OnProcess(e, start, process));
             else
-            {
                 OnProcess(e, start, process);
-            }
         }
 
         void OnProcess(NetEventArgs e, Func start, Action<NetEventArgs> process)
