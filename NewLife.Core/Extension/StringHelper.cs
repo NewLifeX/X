@@ -92,6 +92,44 @@ namespace System
             return str.Substring(0, length);
         }
 
+        /// <summary>截取左边若干长度字符串（二进制计算长度）</summary>
+        /// <param name="str"></param>
+        /// <param name="length"></param>
+        /// <param name="strict">严格模式时，遇到截断位置位于一个字符中间时，忽略该字符，否则包括该字符</param>
+        /// <returns></returns>
+        public static String LeftBinary(this String str, Int32 length, Boolean strict = true)
+        {
+            if (String.IsNullOrEmpty(str) || length <= 0) return str;
+
+            // 纠正长度
+            if (str.Length <= length) return str;
+
+            var encoding = Encoding.Default;
+
+            var buf = encoding.GetBytes(str);
+            if (buf.Length < length) return str;
+
+            // 计算截取字符长度。避免把一个字符劈开
+            var clen = 0;
+            while (true)
+            {
+                try
+                {
+                    clen = encoding.GetCharCount(buf, 0, length);
+                    break;
+                }
+                catch (DecoderFallbackException)
+                {
+                    // 发生了回退，减少len再试
+                    length--;
+                }
+            }
+            // 可能过长，修正
+            if (strict) while (encoding.GetByteCount(str.ToCharArray(), 0, clen) > length) clen--;
+
+            return str.Substring(0, clen);
+        }
+
         /// <summary>截取右边若干长度字符串</summary>
         /// <param name="str"></param>
         /// <param name="length"></param>
@@ -104,6 +142,43 @@ namespace System
             if (str.Length <= length) return str;
 
             return str.Substring(str.Length - length, length);
+        }
+
+        /// <summary>截取右边若干长度字符串（二进制计算长度）</summary>
+        /// <param name="str"></param>
+        /// <param name="length"></param>
+        /// <returns></returns>
+        public static String RightBinary(this String str, Int32 length, Boolean strict = true)
+        {
+            if (String.IsNullOrEmpty(str) || length <= 0) return str;
+
+            // 纠正长度
+            if (str.Length <= length) return str;
+
+            var encoding = Encoding.Default;
+
+            var buf = encoding.GetBytes(str);
+            if (buf.Length < length) return str;
+
+            // 计算截取字符长度。避免把一个字符劈开
+            var clen = 0;
+            while (true)
+            {
+                try
+                {
+                    clen = encoding.GetCharCount(buf, buf.Length - length, length);
+                    break;
+                }
+                catch (DecoderFallbackException)
+                {
+                    // 发生了回退，减少len再试
+                    length--;
+                }
+            }
+            // 可能过长，修正
+            if (strict) while (encoding.GetByteCount(str.ToCharArray(), buf.Length - clen, clen) > length) clen--;
+
+            return str.Substring(str.Length - clen, clen);
         }
 
         /// <summary>确保字符串以指定的另一字符串开始，不区分大小写</summary>
@@ -155,8 +230,9 @@ namespace System
         /// <param name="str"></param>
         /// <param name="maxLength"></param>
         /// <param name="pad"></param>
+        /// <param name="strict">严格模式时，遇到截断位置位于一个字符中间时，忽略该字符，否则包括该字符</param>
         /// <returns></returns>
-        public static String CutBinary(this String str, Int32 maxLength, String pad)
+        public static String CutBinary(this String str, Int32 maxLength, String pad, Boolean strict = true)
         {
             if (String.IsNullOrEmpty(str) || maxLength <= 0 || str.Length < maxLength) return str;
 
@@ -176,7 +252,7 @@ namespace System
             {
                 try
                 {
-                    clen = encoding.GetCharCount(null, 0, len);
+                    clen = encoding.GetCharCount(buf, 0, len);
                     break;
                 }
                 catch (DecoderFallbackException)
@@ -185,6 +261,8 @@ namespace System
                     len--;
                 }
             }
+            // 可能过长，修正
+            if (strict) while (encoding.GetByteCount(str.ToCharArray(), 0, clen) > len) clen--;
 
             return str.Substring(0, clen) + pad;
         }

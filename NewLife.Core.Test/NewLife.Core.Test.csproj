@@ -52,6 +52,7 @@
     </CodeAnalysisDependentAssemblyPaths>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Extension\StringHelperTest.cs" />
     <Compile Include="Messaging\MessageTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Reflection\FastTest.cs" />

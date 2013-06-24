@@ -1,11 +1,16 @@
 ﻿using System;
-using NewLife.Xml;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Ports;
+using System.Reflection;
+using System.Text;
 using System.Threading;
+using NewLife.Common;
+using NewLife.CommonEntity;
+using NewLife.IO;
 using NewLife.Log;
 using NewLife.Messaging;
+using NewLife.Model;
 using NewLife.Net;
 using NewLife.Net.Common;
 using NewLife.Net.Proxy;
@@ -13,23 +18,15 @@ using NewLife.Net.Sockets;
 using NewLife.Reflection;
 using NewLife.Serialization;
 using NewLife.Threading;
+using NewLife.Xml;
 using XCode.DataAccessLayer;
-using XCode.Transform;
-using System.Reflection;
-using NewLife.CommonEntity;
-using NewLife.Common;
 using XCode.Sync;
-using NewLife.Model;
-
+using XCode.Transform;
 
 #if NET4
 using System.Linq;
 #else
 using NewLife.Linq;
-using XCode;
-using NewLife.Compression;
-using NewLife.IO;
-using System.Text;
 #endif
 
 namespace Test
@@ -47,7 +44,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test10();
+                Test10();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -403,143 +400,11 @@ namespace Test
 
         static void Test10()
         {
-            var txt = File.ReadAllText("f.txt", Encoding.Default);
-            var rs = new Json().Deserialize<QQRes>(txt);
-            Console.WriteLine(rs);
-        }
-    }
-
-    public class QQRes
-    {
-        private Int32 _retcode;
-        /// <summary>属性说明</summary>
-        public Int32 retcode { get { return _retcode; } set { _retcode = value; } }
-
-        private QQResult _result;
-        /// <summary>属性说明</summary>
-        public QQResult result { get { return _result; } set { _result = value; } }
-
-        public class QQResult
-        {
-            private QQFriend[] _friends;
-            /// <summary>属性说明</summary>
-            public QQFriend[] friends { get { return _friends; } set { _friends = value; } }
-
-            private QQMarkName[] _marknames;
-            /// <summary>属性说明</summary>
-            public QQMarkName[] marknames { get { return _marknames; } set { _marknames = value; } }
-
-            private QQCategory[] _categories;
-            /// <summary>属性说明</summary>
-            public QQCategory[] categories { get { return _categories; } set { _categories = value; } }
-
-            private VipInfo[] _vipinfo;
-            /// <summary>属性说明</summary>
-            public VipInfo[] vipinfo { get { return _vipinfo; } set { _vipinfo = value; } }
-
-            private QQInfo[] _info;
-            /// <summary>属性说明</summary>
-            public QQInfo[] info { get { return _info; } set { _info = value; } }
-        }
-
-        public class QQFriend
-        {
-            private Int32 _flag;
-            /// <summary>属性说明</summary>
-            public Int32 flag { get { return _flag; } set { _flag = value; } }
-
-            private Int64 _uin;
-            /// <summary>属性说明</summary>
-            public Int64 uin { get { return _uin; } set { _uin = value; } }
-
-            private Int32 _categories;
-            /// <summary>属性说明</summary>
-            public Int32 categories { get { return _categories; } set { _categories = value; } }
-
-            public override string ToString()
-            {
-                return uin + "";
-            }
-        }
-
-        public class QQMarkName
-        {
-            private Int64 _uin;
-            /// <summary>属性说明</summary>
-            public Int64 uin { get { return _uin; } set { _uin = value; } }
-
-            private String _markname;
-            /// <summary>属性说明</summary>
-            public String markname { get { return _markname; } set { _markname = value; } }
-
-            public override string ToString()
-            {
-                return String.Format("({0}){1}", uin, markname);
-            }
-        }
-
-        public class QQCategory
-        {
-            private Int32 _index;
-            /// <summary>属性说明</summary>
-            public Int32 index { get { return _index; } set { _index = value; } }
-
-            private Int32 _sort;
-            /// <summary>属性说明</summary>
-            public Int32 sort { get { return _sort; } set { _sort = value; } }
-
-            private String _name;
-            /// <summary>属性说明</summary>
-            public String name { get { return _name; } set { _name = value; } }
-
-            public override string ToString()
-            {
-                return name;
-            }
-        }
-
-        public class VipInfo
-        {
-            private Int32 _vip_level;
-            /// <summary>属性说明</summary>
-            public Int32 vip_level { get { return _vip_level; } set { _vip_level = value; } }
-
-            private Int64 _u;
-            /// <summary>属性说明</summary>
-            public Int64 u { get { return _u; } set { _u = value; } }
-
-            private Int32 _is_vip;
-            /// <summary>属性说明</summary>
-            public Int32 is_vip { get { return _is_vip; } set { _is_vip = value; } }
-
-            public override string ToString()
-            {
-                return u + "";
-            }
-        }
-
-        public class QQInfo
-        {
-            private Int32 _face;
-            /// <summary>属性说明</summary>
-            public Int32 face { get { return _face; } set { _face = value; } }
-
-            private Int32 _flag;
-            /// <summary>属性说明</summary>
-            public Int32 flag { get { return _flag; } set { _flag = value; } }
-
-            private String _nick;
-            /// <summary>属性说明</summary>
-            public String nick { get { return _nick; } set { _nick = value; } }
-
-            private Int64 _uin;
-            /// <summary>属性说明</summary>
-            public Int64 uin { get { return _uin; } set { _uin = value; } }
-
-            public override string ToString()
-            {
-                return String.Format("({0}){1}", uin, nick);
-            }
+            var str = "nnhy就是大石头";
+            var s2 = str.Cut(5, null);
+            Console.WriteLine(s2);
+            var s3 = str.CutBinary(5, null);
+            Console.WriteLine(s3);
         }
     }
 }
