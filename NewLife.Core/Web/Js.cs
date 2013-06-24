@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Web;
 using System.Web.UI;
+using NewLife.Log;
 using NewLife.Model;
 
 namespace NewLife.Web
@@ -18,19 +19,12 @@ namespace NewLife.Web
 
         static Js()
         {
-            // 查找实现了IJs接口的外部实现
-            //foreach (var item in AssemblyX.FindAllPlugins(typeof(IJs), true, true))
-            //{
-            //    if (item != typeof(Js))
-            //    {
-            //        _js = TypeX.CreateInstance(item) as IJs;
-            //        if (_js != null) break;
-            //    }
-            //}
-
             Current = ObjectContainer.Current.AutoRegister<IJs, Js>().Resolve<IJs>();
 
-            if (Current != null) Current = new Js();
+            if (Current == null)
+                Current = new Js();
+            else if (XTrace.Debug && Current.GetType() != typeof(Js))
+                XTrace.WriteLine("Js提供者：{0}", Current.GetType());
         }
 
         /// <summary>Js脚本编码</summary>

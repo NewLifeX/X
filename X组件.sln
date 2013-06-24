@@ -61,7 +61,7 @@ EndProject
 Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "WebBootstrap", "WebBootstrap\", "{F4EA7043-C362-4088-A706-66865026DD2C}"
 	ProjectSection(WebsiteProperties) = preProject
 		TargetFrameworkMoniker = ".NETFramework,Version%3Dv2.0"
-		ProjectReferences = "{5813c22e-eeb3-4dee-a45c-bb218041193a}|NewLife.Core.dll;{b49aba5a-c5da-45f4-87f1-b435ec51d710}|XCode.dll;{a82e3aa8-6181-460d-a6ee-cc453b83d340}|XControl.dll;{50d7fae5-2304-4395-a6fa-7d35279d9d84}|NewLife.CommonEntity.dll;"
+		ProjectReferences = "{5813c22e-eeb3-4dee-a45c-bb218041193a}|NewLife.Core.dll;{b49aba5a-c5da-45f4-87f1-b435ec51d710}|XCode.dll;{a82e3aa8-6181-460d-a6ee-cc453b83d340}|XControl.dll;{50d7fae5-2304-4395-a6fa-7d35279d9d84}|NewLife.CommonEntity.dll;{95272f1d-5ed9-423d-ab5f-decbd89b032f}|NewLife.Bootstrap.dll;"
 		Debug.AspNetCompiler.VirtualPath = "/WebBootstrap"
 		Debug.AspNetCompiler.PhysicalPath = "WebBootstrap\"
 		Debug.AspNetCompiler.TargetPath = "PrecompiledWeb\WebBootstrap\"
@@ -78,6 +78,8 @@ Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "WebBootstrap", "WebBootstra
 		Release.AspNetCompiler.Debug = "False"
 		VWDPort = "34996"
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NewLife.Bootstrap", "NewLife.Bootstrap\NewLife.Bootstrap.csproj", "{95272F1D-5ED9-423D-AB5F-DECBD89B032F}"
 EndProject
 Global
 	GlobalSection(TestCaseManagementSettings) = postSolution
@@ -200,6 +202,14 @@ Global
 		{F4EA7043-C362-4088-A706-66865026DD2C}.Net4Release|Any CPU.Build.0 = Debug|Any CPU
 		{F4EA7043-C362-4088-A706-66865026DD2C}.Release|Any CPU.ActiveCfg = Debug|Any CPU
 		{F4EA7043-C362-4088-A706-66865026DD2C}.Release|Any CPU.Build.0 = Debug|Any CPU
+		{95272F1D-5ED9-423D-AB5F-DECBD89B032F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{95272F1D-5ED9-423D-AB5F-DECBD89B032F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{95272F1D-5ED9-423D-AB5F-DECBD89B032F}.Net4Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{95272F1D-5ED9-423D-AB5F-DECBD89B032F}.Net4Debug|Any CPU.Build.0 = Debug|Any CPU
+		{95272F1D-5ED9-423D-AB5F-DECBD89B032F}.Net4Release|Any CPU.ActiveCfg = Release|Any CPU
+		{95272F1D-5ED9-423D-AB5F-DECBD89B032F}.Net4Release|Any CPU.Build.0 = Release|Any CPU
+		{95272F1D-5ED9-423D-AB5F-DECBD89B032F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{95272F1D-5ED9-423D-AB5F-DECBD89B032F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
