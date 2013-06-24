@@ -43,7 +43,7 @@ public class EntityForm<TKey, TEntity> : NewLife.CommonEntity.Web.EntityForm<TKe
     {
         //ClientScript.RegisterStartupScript(this.GetType(), "Close", "parent.Dialog.CloseSelfDialog(frameElement);", true);
         String js = null;
-        if (!String.IsNullOrEmpty(msg)) js += "alert('" + WebHelper.JsEncode(msg) + "');";
+        if (!String.IsNullOrEmpty(msg)) js += "alert('" + Js.Encode(msg) + "');";
         js += "parent.Dialog.CloseSelfDialog(frameElement);";
         WebHelper.WriteScript(js);
         //Response.End();
@@ -53,7 +53,7 @@ public class EntityForm<TKey, TEntity> : NewLife.CommonEntity.Web.EntityForm<TKe
     {
         //ClientScript.RegisterStartupScript(this.GetType(), "CloseAndRefresh", "parent.Dialog.CloseAndRefresh(frameElement);", true);
         String js = null;
-        if (!String.IsNullOrEmpty(msg)) js += "alert('" + WebHelper.JsEncode(msg) + "');";
+        if (!String.IsNullOrEmpty(msg)) js += "alert('" + Js.Encode(msg) + "');";
         js += "parent.Dialog.CloseAndRefresh(frameElement);";
         WebHelper.WriteScript(js);
         Response.End();

@@ -3,6 +3,7 @@
 using System.Linq;
 #else
 using NewLife.Linq;
+using System.Text;
 #endif
 
 namespace System
@@ -131,6 +132,61 @@ namespace System
             if (str.EndsWith(end, StringComparison.OrdinalIgnoreCase)) return str;
 
             return str + end;
+        }
+
+        /// <summary>根据最大长度截取字符串，并允许以指定空白填充末尾</summary>
+        /// <param name="str"></param>
+        /// <param name="maxLength"></param>
+        /// <param name="pad"></param>
+        /// <returns></returns>
+        public static String Cut(this String str, Int32 maxLength, String pad)
+        {
+            if (String.IsNullOrEmpty(str) || maxLength <= 0 || str.Length < maxLength) return str;
+
+            // 计算截取长度
+            var len = maxLength;
+            if (!String.IsNullOrEmpty(pad)) len -= pad.Length;
+            if (len <= 0) return pad;
+
+            return str.Substring(0, len) + pad;
+        }
+
+        /// <summary>根据最大长度截取字符串（二进制计算长度），并允许以指定空白填充末尾</summary>
+        /// <param name="str"></param>
+        /// <param name="maxLength"></param>
+        /// <param name="pad"></param>
+        /// <returns></returns>
+        public static String CutBinary(this String str, Int32 maxLength, String pad)
+        {
+            if (String.IsNullOrEmpty(str) || maxLength <= 0 || str.Length < maxLength) return str;
+
+            var encoding = Encoding.Default;
+
+            var buf = encoding.GetBytes(str);
+            if (buf.Length < maxLength) return str;
+
+            // 计算截取字节长度
+            var len = maxLength;
+            if (!String.IsNullOrEmpty(pad)) len -= encoding.GetByteCount(pad);
+            if (len <= 0) return pad;
+
+            // 计算截取字符长度。避免把一个字符劈开
+            var clen = 0;
+            while (true)
+            {
+                try
+                {
+                    clen = encoding.GetCharCount(null, 0, len);
+                    break;
+                }
+                catch (DecoderFallbackException)
+                {
+                    // 发生了回退，减少len再试
+                    len--;
+                }
+            }
+
+            return str.Substring(0, clen) + pad;
         }
         #endregion
 
