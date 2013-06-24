@@ -72,7 +72,7 @@ namespace NewLife.Net.Udp
         /// <param name="port"></param>
         public void Broadcast(String message, Int32 port)
         {
-            Byte[] buffer = Encoding.UTF8.GetBytes(message);
+            var buffer = Encoding.UTF8.GetBytes(message);
             Broadcast(buffer, 0, buffer.Length, port);
         }
         #endregion

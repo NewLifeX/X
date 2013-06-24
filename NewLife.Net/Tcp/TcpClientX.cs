@@ -41,7 +41,7 @@ namespace NewLife.Net.Tcp
 
         internal void SetRemote(NetEventArgs e)
         {
-            IPEndPoint ep = e.RemoteEndPoint as IPEndPoint;
+            var ep = e.RemoteEndPoint as IPEndPoint;
             if ((ep == null || ep.Address.IsAny() && ep.Port == 0) && RemoteEndPoint != null) e.RemoteEndPoint = RemoteEndPoint;
         }
 
@@ -79,18 +79,18 @@ namespace NewLife.Net.Tcp
         /// <returns>返回自身，用于链式写法</returns>
         public virtual ISocketSession Send(Stream stream)
         {
-            Int64 total = 0;
+            //Int64 total = 0;
 
             //var size = stream.CanSeek ? stream.Length - stream.Position : BufferSize;
             var size = 1460;
-            Byte[] buffer = new Byte[size];
+            var buffer = new Byte[size];
             while (true)
             {
-                Int32 n = stream.Read(buffer, 0, buffer.Length);
+                var n = stream.Read(buffer, 0, buffer.Length);
                 if (n <= 0) break;
 
                 Send(buffer, 0, n);
-                total += n;
+                //total += n;
 
                 if (n < buffer.Length) break;
             }

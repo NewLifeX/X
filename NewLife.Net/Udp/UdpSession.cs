@@ -115,9 +115,6 @@ namespace NewLife.Net.Udp
         /// <returns></returns>
         public override string ToString()
         {
-            //var socket = base.Socket;
-            //if (socket != null && socket.Connected && socket.RemoteEndPoint != null) return base.ToString() + " => " + socket.RemoteEndPoint;
-
             var remote = RemoteEndPoint;
             if (remote != null)
                 return String.Format("{0}://{1}=>{2}", ProtocolType, LocalEndPoint, remote);

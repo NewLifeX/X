@@ -192,15 +192,13 @@ namespace NewLife.Net.Sockets
         /// <returns></returns>
         public Byte[] Receive()
         {
-            Byte[] buffer = new Byte[BufferSize];
+            var buffer = new Byte[BufferSize];
             if (!Client.IsBound) Bind();
 
-            Int32 size = Client.Receive(buffer);
+            var size = Client.Receive(buffer);
             if (size <= 0) return null;
 
-            Byte[] data = new Byte[size];
-            Buffer.BlockCopy(buffer, 0, data, 0, size);
-            return data;
+            return buffer.ReadBytes(0, size);
         }
 
         /// <summary>接收字符串</summary>
@@ -208,7 +206,7 @@ namespace NewLife.Net.Sockets
         /// <returns></returns>
         public String ReceiveString(Encoding encoding = null)
         {
-            Byte[] buffer = Receive();
+            var buffer = Receive();
             if (buffer == null || buffer.Length < 1) return null;
 
             if (encoding == null) encoding = Encoding.UTF8;
@@ -228,9 +226,6 @@ namespace NewLife.Net.Sockets
         /// <returns></returns>
         public override string ToString()
         {
-            //var socket = base.Socket;
-            //if (socket != null && socket.Connected && socket.RemoteEndPoint != null) return base.ToString() + " => " + socket.RemoteEndPoint;
-
             var remote = RemoteEndPoint;
             if (remote != null) return base.ToString() + "=>" + remote;
 
