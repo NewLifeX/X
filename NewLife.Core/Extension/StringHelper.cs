@@ -147,6 +147,7 @@ namespace System
         /// <summary>截取右边若干长度字符串（二进制计算长度）</summary>
         /// <param name="str"></param>
         /// <param name="length"></param>
+        /// <param name="strict">严格模式时，遇到截断位置位于一个字符中间时，忽略该字符，否则包括该字符</param>
         /// <returns></returns>
         public static String RightBinary(this String str, Int32 length, Boolean strict = true)
         {
