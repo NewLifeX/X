@@ -12,8 +12,6 @@ namespace NewLife.Web
     public class Js : IJs
     {
         #region 通用静态
-        //private static IJs Current;
-
         private static IJs _Current;
         /// <summary>当前实现</summary>
         public static IJs Current { get { return _Current; } set { _Current = value; } }
@@ -68,7 +66,7 @@ namespace NewLife.Web
         {
             if (String.IsNullOrEmpty(format)) return Current;
 
-            return Current;
+            return Current.Alert(format, args);
         }
         #endregion
 
@@ -102,7 +100,7 @@ namespace NewLife.Web
             if (String.IsNullOrEmpty(format)) return this;
 
             var msg = String.Format(format, args);
-            msg = Encode(msg);
+            //msg = Encode(msg);
 
             OnAlert(msg);
 
@@ -138,8 +136,7 @@ namespace NewLife.Web
             url += "rnd=";
             url += DateTime.Now.Ticks.ToString();
 
-            WriteScript("location.href = '" + url + "';");
-            return End();
+            return WriteScript("location.href = '" + url + "';");
         }
 
         /// <summary>关闭当前页面</summary>
