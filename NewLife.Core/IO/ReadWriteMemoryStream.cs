@@ -97,7 +97,7 @@ namespace NewLife.IO
         public override int Read(byte[] buffer, int offset, int count)
         {
             Int32 rs = 0;
-            Stopwatch sw = new Stopwatch();
+            var sw = new Stopwatch();
             sw.Start();
             while (rs <= 0) rs = ReadEx(buffer, offset, count, sw);
             return rs;
@@ -121,29 +121,10 @@ namespace NewLife.IO
         public override int ReadByte()
         {
             Int32 rs = -1;
-            Stopwatch sw = new Stopwatch();
+            var sw = new Stopwatch();
             sw.Start();
             while (rs <= -1) rs = ReadByteEx(sw);
             return rs;
-
-            //// 如果没有数据
-            //if (PositionForWrite <= Position)
-            //{
-            //    Stopwatch sw = new Stopwatch();
-            //    while (PositionForWrite <= Position)
-            //    {
-            //        sw.Start();
-            //        if (!dataArrived.WaitOne(ReadTimeout - (Int32)sw.ElapsedMilliseconds)) throw new TimeoutException();
-            //        sw.Stop();
-
-            //        if (sw.ElapsedMilliseconds >= ReadTimeout) throw new TimeoutException();
-            //    }
-            //}
-
-            //lock (rwLock)
-            //{
-            //    return base.ReadByte();
-            //}
         }
 
         Int32 ReadByteEx(Stopwatch sw)

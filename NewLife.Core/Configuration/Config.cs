@@ -43,12 +43,12 @@ namespace NewLife.Configuration
         /// <returns></returns>
         public static List<HttpHandlerAction> GethttpHandlers()
         {
-            List<HttpHandlerAction> value = new List<HttpHandlerAction>();
+            var value = new List<HttpHandlerAction>();
 
-            HttpHandlersSection httphanset = httpHandlers as HttpHandlersSection;
+            var httphanset = httpHandlers as HttpHandlersSection;
             if (httphanset == null) return value;
 
-            ConfigurationElementCollection cec = (ConfigurationElementCollection)httphanset.Handlers;
+            var cec = (ConfigurationElementCollection)httphanset.Handlers;
 
             for (Int32 i = 0; i < cec.Count; i++)
             {
@@ -65,7 +65,7 @@ namespace NewLife.Configuration
         {
             try
             {
-                NameValueCollection nvs = AppSettings;
+                var nvs = AppSettings;
                 if (nvs == null || nvs.Count < 1) return false;
 
                 return Array.IndexOf(nvs.AllKeys, name) >= 0;
@@ -95,7 +95,7 @@ namespace NewLife.Configuration
             value = default(T);
             try
             {
-                NameValueCollection nvs = AppSettings;
+                var nvs = AppSettings;
                 if (nvs == null || nvs.Count < 1) return false;
 
                 for (int i = 0; i < names.Length; i++)
@@ -116,7 +116,7 @@ namespace NewLife.Configuration
         {
             try
             {
-                NameValueCollection nvs = AppSettings;
+                var nvs = AppSettings;
                 if (nvs == null || nvs.Count < 1) return default(T);
 
                 return GetConfig<T>(name, default(T));
@@ -164,13 +164,13 @@ namespace NewLife.Configuration
             value = null;
             try
             {
-                NameValueCollection nvs = AppSettings;
+                var nvs = AppSettings;
                 if (nvs == null || nvs.Count < 1) return false;
 
                 String str = nvs[name];
                 if (String.IsNullOrEmpty(str)) return false;
 
-                TypeCode code = Type.GetTypeCode(type);
+                var code = Type.GetTypeCode(type);
 
                 if (code == TypeCode.String)
                     value = str;
@@ -224,7 +224,7 @@ namespace NewLife.Configuration
         {
             try
             {
-                NameValueCollection nvs = AppSettings;
+                var nvs = AppSettings;
                 if (nvs == null || nvs.Count < 1) return new T[0];
 
                 return GetConfigSplit<T>(name, split, new T[0]);
@@ -242,7 +242,7 @@ namespace NewLife.Configuration
         {
             try
             {
-                NameValueCollection nvs = AppSettings;
+                var nvs = AppSettings;
                 if (nvs == null || nvs.Count < 1) return defaultValue;
 
                 String str = GetConfig<String>(name);
@@ -284,11 +284,11 @@ namespace NewLife.Configuration
         /// <param name="value"></param>
         public static void SetConfig(String name, String value)
         {
-            NameValueCollection nvs = AppSettings;
+            var nvs = AppSettings;
             if (nvs == null || nvs.Count < 1) return;
 
             //nvs[name] = value;
-			UpdateConfig(name,value);            
+            UpdateConfig(name, value);
         }
 
         /// <summary>
@@ -307,7 +307,7 @@ namespace NewLife.Configuration
         /// <param name="value"></param>
         public static void UpdateConfig(String name, String value)
         {
-            System.Configuration.Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+            var config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
             if (AppSettingsKeyExists(name, config))
             {
                 config.AppSettings.Settings[name].Value = value;

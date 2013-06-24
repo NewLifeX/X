@@ -49,10 +49,10 @@ namespace System
         /// <returns></returns>
         public static String GetDescription(this Enum value)
         {
-            Type type = value.GetType();
-            FieldInfo item = type.GetField(value.ToString(), BindingFlags.Public | BindingFlags.Static);
+            var type = value.GetType();
+            var item = type.GetField(value.ToString(), BindingFlags.Public | BindingFlags.Static);
 
-            DescriptionAttribute att = AttributeX.GetCustomAttribute<DescriptionAttribute>(item, false);
+            var att = AttributeX.GetCustomAttribute<DescriptionAttribute>(item, false);
             if (att != null && !String.IsNullOrEmpty(att.Description)) return att.Description;
 
             return null;
@@ -63,23 +63,7 @@ namespace System
         /// <returns></returns>
         public static Dictionary<TEnum, String> GetDescriptions<TEnum>()
         {
-            Dictionary<TEnum, String> dic = new Dictionary<TEnum, string>();
-
-            //TypeX type = typeof(TEnum);
-            //foreach (FieldInfo item in type.BaseType.GetFields(BindingFlags.Public | BindingFlags.Static))
-            //{
-            //    if (!item.IsStatic) continue;
-
-            //    // 这里的快速访问方法会报错
-            //    //FieldInfoX fix = FieldInfoX.Create(item);
-            //    //PermissionFlags value = (PermissionFlags)fix.GetValue(null);
-            //    TEnum value = (TEnum)item.GetValue(null);
-
-            //    String des = item.Name;
-            //    DescriptionAttribute att = AttributeX.GetCustomAttribute<DescriptionAttribute>(item, false);
-            //    if (att != null && !String.IsNullOrEmpty(att.Description)) des = att.Description;
-            //    dic.Add(value, des);
-            //}
+            var dic = new Dictionary<TEnum, String>();
 
             foreach (var item in GetDescriptions(typeof(TEnum)))
             {
@@ -95,7 +79,7 @@ namespace System
         public static Dictionary<Int32, String> GetDescriptions(Type enumType)
         {
             var dic = new Dictionary<Int32, String>();
-            foreach (FieldInfo item in enumType.GetFields(BindingFlags.Public | BindingFlags.Static))
+            foreach (var item in enumType.GetFields(BindingFlags.Public | BindingFlags.Static))
             {
                 if (!item.IsStatic) continue;
 
@@ -106,10 +90,10 @@ namespace System
 
                 String des = item.Name;
 
-                DisplayNameAttribute dna = AttributeX.GetCustomAttribute<DisplayNameAttribute>(item, false);
+                var dna = AttributeX.GetCustomAttribute<DisplayNameAttribute>(item, false);
                 if (dna != null && !String.IsNullOrEmpty(dna.DisplayName)) des = dna.DisplayName;
 
-                DescriptionAttribute att = AttributeX.GetCustomAttribute<DescriptionAttribute>(item, false);
+                var att = AttributeX.GetCustomAttribute<DescriptionAttribute>(item, false);
                 if (att != null && !String.IsNullOrEmpty(att.Description)) des = att.Description;
                 dic.Add(value, des);
             }

@@ -33,13 +33,20 @@ namespace System.IO
             return path;
         }
 
-        /// <summary>合并路径</summary>
+        /// <summary>合并多段路径</summary>
         /// <param name="path"></param>
-        /// <param name="path2"></param>
+        /// <param name="ps"></param>
         /// <returns></returns>
-        public static String CombinePath(this String path, String path2)
+        public static String CombinePath(this String path, params String[] ps)
         {
-            return Path.Combine(path, path2);
+            if (path == null || ps == null || ps.Length < 1) return path;
+
+            //return Path.Combine(path, path2);
+            foreach (var item in ps)
+            {
+                path = Path.Combine(path, item);
+            }
+            return path;
         }
         #endregion
     }

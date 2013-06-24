@@ -29,7 +29,7 @@ namespace System
             {
                 for (int i = 0; i < value.Length; i++)
                 {
-                    if (!char.IsWhiteSpace(value[i])) return false;
+                    if (!Char.IsWhiteSpace(value[i])) return false;
                 }
             }
             return true;
@@ -62,7 +62,7 @@ namespace System
             String[] ss = str.Split(separators, StringSplitOptions.RemoveEmptyEntries);
             if (ss == null || ss.Length < 1) return null;
 
-            foreach (String item in ss)
+            foreach (var item in ss)
             {
                 Int32 p = item.IndexOf(nameValueSeparator);
                 // 在前后都不行
@@ -84,13 +84,13 @@ namespace System
         /// <param name="key">关键字</param>
         /// <param name="words">词组</param>
         /// <returns></returns>
-        public static string[] LevenshteinSearch(string key, string[] words)
+        public static String[] LevenshteinSearch(String key, String[] words)
         {
-            if (IsNullOrWhiteSpace(key)) return new string[0];
+            if (IsNullOrWhiteSpace(key)) return new String[0];
 
-            string[] keys = key.Split(new char[] { ' ', '　' }, StringSplitOptions.RemoveEmptyEntries);
+            String[] keys = key.Split(new char[] { ' ', '　' }, StringSplitOptions.RemoveEmptyEntries);
 
-            foreach (string item in keys)
+            foreach (String item in keys)
             {
                 int maxDist = (item.Length - 1) / 2;
 
@@ -120,7 +120,7 @@ namespace System
         /// <param name="str1"></param>
         /// <param name="str2"></param>
         /// <returns></returns>
-        public static int LevenshteinDistance(string str1, string str2)
+        public static int LevenshteinDistance(String str1, String str2)
         {
             int n = str1.Length;
             int m = str2.Length;
@@ -153,11 +153,11 @@ namespace System
         /// <param name="key"></param>
         /// <param name="words"></param>
         /// <returns></returns>
-        public static string[] LCSSearch(string key, string[] words)
+        public static String[] LCSSearch(String key, String[] words)
         {
-            if (IsNullOrWhiteSpace(key) || words == null || words.Length == 0) return new string[0];
+            if (IsNullOrWhiteSpace(key) || words == null || words.Length == 0) return new String[0];
 
-            string[] keys = key
+            String[] keys = key
                                 .Split(new char[] { ' ', '\u3000' }, StringSplitOptions.RemoveEmptyEntries)
                                 .OrderBy(s => s.Length)
                                 .ToArray();
@@ -183,14 +183,14 @@ namespace System
         /// <param name="word"></param>
         /// <param name="keys">多个关键字。长度必须大于0，必须按照字符串长度升序排列。</param>
         /// <returns></returns>
-        public static int LCSDistance(string word, string[] keys)
+        public static int LCSDistance(String word, String[] keys)
         {
             int sLength = word.Length;
             int result = sLength;
             bool[] flags = new bool[sLength];
             int[,] C = new int[sLength + 1, keys[keys.Length - 1].Length + 1];
             //int[,] C = new int[sLength + 1, words.Select(s => s.Length).Max() + 1];
-            foreach (string key in keys)
+            foreach (String key in keys)
             {
                 int wLength = key.Length;
                 int first = 0, last = 0;

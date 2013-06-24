@@ -96,7 +96,7 @@ namespace NewLife.Common
             SysAssembly = AssemblyX.Entry;
             if (SysAssembly == null)
                 SysAssembly = AssemblyX.GetMyAssemblies()
-                    .Where(e => e.Title == null || !(e.Title.Contains("新生命") && (e.Title.Contains("库") || e.Title.Contains("框架"))))
+                    .Where(e => e.Title == null || !(e.Title.Contains("新生命") && (e.Title.Contains("库") || e.Title.Contains("框架") || e.Title.Contains("SQLite"))))
                     .OrderByDescending(e => e.Compile).FirstOrDefault();
         }
         #endregion
