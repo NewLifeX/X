@@ -134,9 +134,11 @@ namespace NewLife.Net.Common
         /// <returns></returns>
         public NetUri CopyFrom(NetUri uri)
         {
-            this.Protocol = uri == null ? null : uri.Protocol;
-            this.Host = uri == null ? null : uri.Host;
-            this.Port = uri == null ? 0 : uri.Port;
+            if (uri == null) return this;
+
+            this.Protocol = uri.Protocol;
+            this.Host = uri.Host;
+            this.Port = uri.Port;
 
             return this;
         }

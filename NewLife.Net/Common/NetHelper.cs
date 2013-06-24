@@ -12,6 +12,7 @@ using NewLife.Net;
 using System.Linq;
 #else
 using NewLife.Linq;
+using NewLife.Reflection;
 #endif
 
 namespace System
@@ -33,13 +34,6 @@ namespace System
                 return _Debug.Value;
             }
             set { _Debug = value; }
-        }
-
-        /// <summary>输出日志</summary>
-        /// <param name="msg"></param>
-        public static void WriteLog(String msg)
-        {
-            XTrace.WriteLine(msg);
         }
 
         /// <summary>输出日志</summary>
@@ -68,7 +62,7 @@ namespace System
             socket.IOControl(IOControlCode.KeepAliveValues, inOptionValues, null);
         }
 
-        private static DictionaryCache<String, IPAddress> _dnsCache = new DictionaryCache<string, IPAddress>(StringComparer.OrdinalIgnoreCase) { Expriod = 600, Asynchronous = true };
+        private static DictionaryCache<String, IPAddress> _dnsCache = new DictionaryCache<String, IPAddress>(StringComparer.OrdinalIgnoreCase) { Expriod = 600, Asynchronous = true };
         /// <summary>分析地址</summary>
         /// <param name="hostname"></param>
         /// <returns></returns>
@@ -83,7 +77,7 @@ namespace System
                     IPAddress addr = null;
                     if (IPAddress.TryParse(key, out addr)) return addr;
 
-                    IPAddress[] hostAddresses = Dns.GetHostAddresses(key);
+                    var hostAddresses = Dns.GetHostAddresses(key);
                     if (hostAddresses == null || hostAddresses.Length < 1) return null;
 
                     return hostAddresses.FirstOrDefault(d => d.AddressFamily == AddressFamily.InterNetwork || d.AddressFamily == AddressFamily.InterNetworkV6);
@@ -326,6 +320,56 @@ namespace System
             UdpClient client = new UdpClient();
             client.EnableBroadcast = true;
             client.Send(bts, bts.Length, new IPEndPoint(IPAddress.Broadcast, 7));
+        }
+        #endregion
+
+        #region 关闭连接
+        /// <summary>关闭连接</summary>
+        /// <param name="socket"></param>
+        /// <param name="reuseAddress"></param>
+        internal static void Close(Socket socket, Boolean reuseAddress = false)
+        {
+            if (socket == null || mSafeHandle == null) return;
+
+            var hand = mSafeHandle.GetValue(socket) as SafeHandle;
+            if (hand == null || hand.IsClosed) return;
+
+            // 先用Shutdown禁用Socket（发送未完成发送的数据），再用Close关闭，这是一种比较优雅的关闭Socket的方法
+            if (socket.Connected)
+            {
+                try
+                {
+                    socket.Disconnect(reuseAddress);
+                    socket.Shutdown(SocketShutdown.Both);
+                }
+                catch (SocketException ex2)
+                {
+                    if (ex2.SocketErrorCode != SocketError.NotConnected) WriteLog(ex2.ToString());
+                }
+                catch (ObjectDisposedException) { }
+                catch (Exception ex3)
+                {
+                    if (Debug) WriteLog(ex3.ToString());
+                }
+            }
+
+            socket.Close();
+        }
+
+        private static MemberInfoX[] _mSafeHandle;
+        /// <summary>SafeHandle字段</summary>
+        private static MemberInfoX mSafeHandle
+        {
+            get
+            {
+                if (_mSafeHandle != null && _mSafeHandle.Length > 0) return _mSafeHandle[0];
+
+                MemberInfoX pix = FieldInfoX.Create(typeof(Socket), "m_Handle");
+                if (pix == null) pix = PropertyInfoX.Create(typeof(Socket), "SafeHandle");
+                _mSafeHandle = new MemberInfoX[] { pix };
+
+                return pix;
+            }
         }
         #endregion
     }

@@ -16,7 +16,7 @@ namespace NewLife.Net.Sockets
     /// <summary>Socket基类</summary>
     /// <remarks>
     /// 主要是对Socket封装一层，把所有异步操作结果转移到事件中<see cref="Completed"/>去。
-    /// 参数池维护这所有事件参数，借出<see cref="Pop"/>时挂接<see cref="Completed"/>事件，
+    /// 参数池维护着所有事件参数，借出<see cref="Pop"/>时挂接<see cref="Completed"/>事件，
     /// 归还<see cref="Push"/>时，取消<see cref="Completed"/>事件。
     /// 
     /// 网络模型处理流程
@@ -72,6 +72,27 @@ namespace NewLife.Net.Sockets
         /// <summary>基础Socket对象</summary>
         Socket ISocket.Socket { get { return Socket; } set { Socket = value; } }
 
+        #region 本地
+        private NetUri _LocalUri;
+        /// <summary>本地地址</summary>
+        public NetUri LocalUri
+        {
+            get
+            {
+                if (_LocalUri != null) return _LocalUri;
+
+                var uri = new NetUri();
+                var socket = Socket;
+                try
+                {
+                    if (socket != null) uri.EndPoint = socket.LocalEndPoint as IPEndPoint;
+                }
+                catch (ObjectDisposedException) { }
+
+                return _LocalUri = uri;
+            }
+        }
+
         /// <summary>协议类型</summary>
         public virtual ProtocolType ProtocolType { get { return LocalUri.ProtocolType; } }
 
@@ -94,30 +115,9 @@ namespace NewLife.Net.Sockets
 
         /// <summary>本地终结点</summary>
         public IPEndPoint LocalEndPoint { get { return LocalUri.EndPoint; } }
+        #endregion
 
-        /// <summary>远程终结点</summary>
-        public IPEndPoint RemoteEndPoint { get { return RemoteUri.EndPoint; } }
-
-        private NetUri _LocalUri;
-        /// <summary>本地地址</summary>
-        public NetUri LocalUri
-        {
-            get
-            {
-                if (_LocalUri != null) return _LocalUri;
-
-                var uri = new NetUri();
-                var socket = Socket;
-                try
-                {
-                    if (socket != null) uri.EndPoint = socket.LocalEndPoint as IPEndPoint;
-                }
-                catch (ObjectDisposedException) { }
-
-                return _LocalUri = uri;
-            }
-        }
-
+        #region 远程
         private NetUri _RemoteUri;
         /// <summary>远程地址</summary>
         public NetUri RemoteUri
@@ -142,6 +142,10 @@ namespace NewLife.Net.Sockets
                 return _RemoteUri = uri;
             }
         }
+
+        /// <summary>远程终结点</summary>
+        public IPEndPoint RemoteEndPoint { get { return RemoteUri.EndPoint; } }
+        #endregion
 
         //private Int32 _BufferSize = 10240;
         //! 注意：大于85K会进入LOH（大对象堆）
@@ -236,69 +240,17 @@ namespace NewLife.Net.Sockets
             base.OnDispose(disposing);
 
             var socket = Socket;
-            if (socket == null) return;
-
-            var hand = SafeHandle;
-            if (hand != null && !hand.IsClosed)
+            if (socket != null)
             {
-                // 先用Shutdown禁用Socket（发送未完成发送的数据），再用Close关闭，这是一种比较优雅的关闭Socket的方法
-                if (socket.Connected)
-                {
-                    try
-                    {
-                        socket.Disconnect(ReuseAddress);
-                        socket.Shutdown(SocketShutdown.Both);
-                    }
-                    catch (SocketException ex2)
-                    {
-                        if (ex2.SocketErrorCode != SocketError.NotConnected) WriteLog(ex2.ToString());
-                    }
-                    catch (ObjectDisposedException) { }
-                    catch (Exception ex3)
-                    {
-                        if (NetHelper.Debug) WriteLog(ex3.ToString());
-                    }
-                }
-
-                socket.Close();
+                NetHelper.Close(socket, ReuseAddress);
+                Socket = null;
             }
-            Socket = null;
 
             if (_Statistics != null)
             {
-                IDisposable dp = _Statistics as IDisposable;
+                var dp = _Statistics as IDisposable;
                 if (dp != null) dp.Dispose();
                 _Statistics = null;
-            }
-        }
-
-        private static MemberInfoX[] _mSafeHandle;
-        /// <summary>SafeHandle字段</summary>
-        private static MemberInfoX mSafeHandle
-        {
-            get
-            {
-                if (_mSafeHandle != null && _mSafeHandle.Length > 0) return _mSafeHandle[0];
-
-                MemberInfoX pix = FieldInfoX.Create(typeof(Socket), "m_Handle");
-                if (pix == null) pix = PropertyInfoX.Create(typeof(Socket), "SafeHandle");
-                _mSafeHandle = new MemberInfoX[] { pix };
-
-                return pix;
-            }
-        }
-
-        /// <summary>安全句柄</summary>
-        private SafeHandle SafeHandle
-        {
-            get
-            {
-                if (Socket == null) return null;
-
-                var pix = mSafeHandle;
-                if (pix != null) return pix.GetValue(Socket) as SafeHandle;
-
-                return null;
             }
         }
         #endregion
@@ -649,10 +601,11 @@ namespace NewLife.Net.Sockets
         /// <returns></returns>
         public override string ToString()
         {
-            //if (RemoteEndPoint == null)
-            return String.Format("{0}://{1}", ProtocolType, LocalEndPoint);
-            //else
-            //    return String.Format("{0}://{1}=>{2}", ProtocolType, LocalEndPoint, RemoteEndPoint);
+            ////if (RemoteEndPoint == null)
+            //return String.Format("{0}://{1}", ProtocolType, LocalEndPoint);
+            ////else
+            ////    return String.Format("{0}://{1}=>{2}", ProtocolType, LocalEndPoint, RemoteEndPoint);
+            return LocalUri.ToString();
         }
         #endregion
 
