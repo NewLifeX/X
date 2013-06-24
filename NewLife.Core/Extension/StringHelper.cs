@@ -76,6 +76,64 @@ namespace System
         }
         #endregion
 
+        #region 截取扩展
+        /// <summary>截取左边若干长度字符串</summary>
+        /// <param name="str"></param>
+        /// <param name="length"></param>
+        /// <returns></returns>
+        public static String Left(this String str, Int32 length)
+        {
+            if (String.IsNullOrEmpty(str) || length <= 0) return str;
+
+            // 纠正长度
+            if (str.Length <= length) return str;
+
+            return str.Substring(0, length);
+        }
+
+        /// <summary>截取右边若干长度字符串</summary>
+        /// <param name="str"></param>
+        /// <param name="length"></param>
+        /// <returns></returns>
+        public static String Right(this String str, Int32 length)
+        {
+            if (String.IsNullOrEmpty(str) || length <= 0) return str;
+
+            // 纠正长度
+            if (str.Length <= length) return str;
+
+            return str.Substring(str.Length - length, length);
+        }
+
+        /// <summary>确保字符串以指定的另一字符串开始，不区分大小写</summary>
+        /// <param name="str"></param>
+        /// <param name="start"></param>
+        /// <returns></returns>
+        public static String EnsureStart(this String str, String start)
+        {
+            if (String.IsNullOrEmpty(start)) return str;
+            if (String.IsNullOrEmpty(str)) return start;
+
+            if (str.StartsWith(start, StringComparison.OrdinalIgnoreCase)) return str;
+
+            return start + str;
+        }
+
+        /// <summary>确保字符串以指定的另一字符串结束，不区分大小写</summary>
+        /// <param name="str"></param>
+        /// <param name="end"></param>
+        /// <returns></returns>
+        public static String EnsureEnd(this String str, String end)
+        {
+            if (String.IsNullOrEmpty(end)) return str;
+            if (String.IsNullOrEmpty(str)) return end;
+
+            if (str.EndsWith(end, StringComparison.OrdinalIgnoreCase)) return str;
+
+            return str + end;
+        }
+        #endregion
+
         #region LD编辑距离算法
         /// <summary>编辑距离搜索，从词组中找到最接近关键字的若干匹配项</summary>
         /// <remarks>

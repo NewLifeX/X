@@ -12,69 +12,20 @@ namespace NewLife.Web
     /// <summary>网页工具类</summary>
     public static class WebHelper
     {
-        //static Page Page { get { return HttpContext.Current.Handler as Page; } }
-
         #region 辅助
         /// <summary>输出脚本</summary>
         /// <param name="script"></param>
         public static void WriteScript(String script)
         {
-            //HttpContext.Current.Response.Write(String.Format("<script type=\"text/javascript\">\n{0}\n</script>", script));
-
             Js.WriteScript(script, true);
-        }
-
-        /// <summary>按字节截取</summary>
-        /// <param name="Str">字符串</param>
-        /// <param name="StartIndex">开始位置</param>
-        /// <param name="Len">长度</param>
-        /// <returns></returns>
-        public static String GetSubString(String Str, Int32 StartIndex, Int32 Len)
-        {
-            int j = 0;
-            Int32 RLength = 0;
-            Int32 SIndex = 0;
-            char[] arr = Str.ToCharArray();
-            for (int i = 0; i < arr.Length; i++)
-            {
-                j += (arr[i] > 0 && arr[i] < 255) ? 1 : 2;
-                if (j <= StartIndex)
-                    SIndex++;
-                else
-                {
-                    if (j > Len + StartIndex) break;
-                    RLength++;
-                }
-
-            }
-
-            return RLength >= Str.Length ? Str : Str.Substring(StartIndex, RLength);
         }
         #endregion
 
         #region 弹出信息
-        /// <summary>Js脚本编码</summary>
-        /// <param name="str"></param>
-        /// <returns></returns>
-        public static String JsEncode(String str)
-        {
-            if (String.IsNullOrEmpty(str)) return null;
-
-            str = str.Replace(@"\", @"\\");
-            str = str.Replace("'", @"\'");
-            str = str.Replace(Environment.NewLine, @"\n");
-            str = str.Replace("\r", @"\n");
-            str = str.Replace("\n", @"\n");
-
-            return str;
-        }
-
         /// <summary>弹出页面提示</summary>
         /// <param name="msg"></param>
         public static void Alert(String msg)
         {
-            //Page.ClientScript.RegisterStartupScript(Page.GetType(), "alert", "alert('" + JsEncode(msg) + "');", true);
-
             Js.Alert(msg);
         }
 
@@ -82,9 +33,6 @@ namespace NewLife.Web
         /// <param name="msg"></param>
         public static void AlertAndEnd(String msg)
         {
-            //WriteScript("alert('" + JsEncode(msg) + "');history.go(-1);");
-            //HttpContext.Current.Response.End();
-
             Js.Alert(msg).End();
         }
 
@@ -92,9 +40,6 @@ namespace NewLife.Web
         /// <param name="msg"></param>
         public static void AlertAndRefresh(String msg)
         {
-            //WriteScript("alert('" + JsEncode(msg) + "');location.href = location.href;");
-            //HttpContext.Current.Response.End();
-
             Js.Alert(msg).Refresh().End();
         }
 
@@ -103,18 +48,6 @@ namespace NewLife.Web
         /// <param name="url"></param>
         public static void AlertAndRedirect(String msg, String url)
         {
-            //if (!url.Contains("?"))
-            //    url += "?";
-            //else
-            //    url += "&";
-
-            //url += "rnd=";
-            //url += DateTime.Now.Ticks.ToString();
-
-            ////Page.ClientScript.RegisterStartupScript(Page.GetType(), "alert", "alert('" + msg + "');location.href = '" + url + "';", true);
-
-            //WriteScript("alert('" + JsEncode(msg) + "');location.href = '" + url + "';");
-            //HttpContext.Current.Response.End();
             Js.Alert(msg).Redirect(url).End();
         }
 
@@ -122,8 +55,6 @@ namespace NewLife.Web
         /// <param name="msg"></param>
         public static void AlertAndClose(String msg)
         {
-            //WriteScript("alert('" + JsEncode(msg) + "');window.close();");
-            //HttpContext.Current.Response.End();
             Js.Alert(msg).Close().End();
         }
         #endregion
