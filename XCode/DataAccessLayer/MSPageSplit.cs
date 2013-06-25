@@ -85,6 +85,13 @@ namespace XCode.DataAccessLayer
                 builder2 = builder.Clone().Top(maximumRows);
 
             builder2.AppendWhereAnd("{0} Not In({1})", builder.Key, builder1);
+            // 结果列处理
+            builder2.Column = builder.Column;
+            // 如果结果列包含有“.”，即有形如tab1.id、tab2.name之类的列时设为获取子查询的全部列
+            if (builder2.Column.Contains("."))
+            {
+                builder2.Column = "*";
+            }
 
             return builder2;
         }
@@ -143,8 +150,13 @@ namespace XCode.DataAccessLayer
             builder2.OrderBy = reversekeyorder;
 
             var builder3 = builder2.AsChild("XCode_T1");
-            // 结果列保持原样
+            // 结果列处理
             builder3.Column = builder.Column;
+            // 如果结果列包含有“.”，即有形如tab1.id、tab2.name之类的列时设为获取子查询的全部列
+            if (builder3.Column.Contains("."))
+            {
+                builder3.Column = "*";
+            }
             // 让结果正向排序
             builder3.OrderBy = orderby;
 
@@ -196,8 +208,13 @@ namespace XCode.DataAccessLayer
             builder1.Column = String.Format("{0}, row_number() over(Order By {1}) as rowNumber", builder.ColumnOrDefault, builder.OrderBy ?? builder.KeyOrder);
 
             var builder2 = builder1.AsChild("XCode_T1");
-            // 结果列保持原样
+            // 结果列处理
             builder2.Column = builder.Column;
+            // 如果结果列包含有“.”，即有形如tab1.id、tab2.name之类的列时设为获取子查询的全部列
+            if (builder2.Column.Contains("."))
+            {
+                builder2.Column = "*";
+            }
             // row_number()直接影响了排序，这里不再需要
             builder2.OrderBy = null;
             if (maximumRows < 1)
