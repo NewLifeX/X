@@ -30,6 +30,11 @@ namespace XCode.DataAccessLayer
 
                     return _ServerVersion;
                 }
+                catch (Exception ex) //ahuang 2013。06。25 当数据库连接字符串有误取不到ServerVersion
+                {
+                    session.AutoClose();
+                    return String.Empty;
+                }
                 finally
                 {
                     session.AutoClose();

@@ -570,12 +570,18 @@ namespace XCode.DataAccessLayer
                     if (String.IsNullOrEmpty(collectionName))
                     {
                         WriteSQL("[" + Database.ConnName + "]GetSchema");
-                        dt = conn.GetSchema();
+                        if (conn.State != ConnectionState.Closed) //ahuang 2013。06。25 当数据库连接字符串有误
+                            dt = conn.GetSchema();
+                        else
+                            dt = null;
                     }
                     else
                     {
                         WriteSQL("[" + Database.ConnName + "]GetSchema(\"" + collectionName + "\")");
-                        dt = conn.GetSchema(collectionName);
+                        if (conn.State != ConnectionState.Closed)
+                            dt = conn.GetSchema(collectionName);
+                        else
+                            dt = null;
                     }
                 }
                 else
@@ -590,7 +596,10 @@ namespace XCode.DataAccessLayer
                             sb.AppendFormat("\"{0}\"", item);
                     }
                     WriteSQL("[" + Database.ConnName + "]GetSchema(\"" + collectionName + "\"" + sb + ")");
-                    dt = conn.GetSchema(collectionName, restrictionValues);
+                    if (conn.State != ConnectionState.Closed)
+                        dt = conn.GetSchema(collectionName, restrictionValues);
+                    else
+                        dt = null;
                 }
 
                 return dt;
