@@ -301,7 +301,7 @@ namespace NewLife.Core.Test.Messaging
             if (msg.SessionID > 0x7FF) n++;
             if (msg.SessionID > 0x7FFF) n++;
             // 1个字节对象引用
-            Assert.AreEqual(1 + 1 + n + 1, msg.GetStream().Length, "Channel消息序列化失败！");
+            Assert.AreEqual(1 + 1 + n + 1, msg.GetStream().Length, "Channel消息序列化失败！SessionID=" + msg.SessionID);
         }
     }
 }

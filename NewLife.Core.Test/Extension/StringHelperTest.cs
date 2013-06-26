@@ -53,7 +53,7 @@ namespace NewLife.Core.Test.Extension
         }
 
         [TestMethod]
-        public void TestLeft()
+        public void TestRight()
         {
             var str = "nnhy就是大石头nnhy";
 
@@ -63,7 +63,7 @@ namespace NewLife.Core.Test.Extension
         }
 
         [TestMethod]
-        public void TestLeft()
+        public void TestCut()
         {
             var str = "nnhy就是大石头";
 

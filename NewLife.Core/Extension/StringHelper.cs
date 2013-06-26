@@ -177,7 +177,7 @@ namespace System
                 }
             }
             // 可能过长，修正
-            if (strict) while (encoding.GetByteCount(str.ToCharArray(), buf.Length - clen, clen) > length) clen--;
+            if (strict) while (encoding.GetByteCount(str.ToCharArray(), str.Length - clen, clen) > length) clen--;
 
             return str.Substring(str.Length - clen, clen);
         }
