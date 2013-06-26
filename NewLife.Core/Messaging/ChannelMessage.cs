@@ -46,9 +46,12 @@ namespace NewLife.Messaging
             writer.WriteMember("Channel", Channel, Channel.GetType(), 0, null);
             writer.WriteMember("SessionID", SessionID, SessionID.GetType(), 1, null);
             if (Message != null)
+            {
+                writer.WriteMember("Ref", (Byte)2, typeof(Byte), 0, null);
                 Message.Write(writer.Stream, writer.GetKind());
+            }
             else
-                writer.WriteMember("Null", 0, typeof(Byte), 0, null);
+                writer.WriteMember("Null", (Byte)0, typeof(Byte), 0, null);
             writer.Depth--;
 
             return true;
