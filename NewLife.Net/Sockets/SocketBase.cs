@@ -82,10 +82,15 @@ namespace NewLife.Net.Sockets
                 if (_LocalUri != null) return _LocalUri;
 
                 var uri = new NetUri();
+                uri.ProtocolType = ProtocolType;
                 var socket = Socket;
                 try
                 {
-                    if (socket != null) uri.EndPoint = socket.LocalEndPoint as IPEndPoint;
+                    if (socket != null)
+                    {
+                        uri.EndPoint = socket.LocalEndPoint as IPEndPoint;
+                        uri.ProtocolType = socket.ProtocolType;
+                    }
                 }
                 catch (ObjectDisposedException) { }
 
@@ -94,7 +99,7 @@ namespace NewLife.Net.Sockets
         }
 
         /// <summary>协议类型</summary>
-        public virtual ProtocolType ProtocolType { get { return LocalUri.ProtocolType; } }
+        public virtual ProtocolType ProtocolType { get { return _LocalUri == null ? 0 : _LocalUri.ProtocolType; } }
 
         /// <summary>监听本地地址</summary>
         public IPAddress Address { get { return LocalUri.Address; } set { LocalUri.Address = value; } }
