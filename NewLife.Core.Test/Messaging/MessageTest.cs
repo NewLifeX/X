@@ -305,6 +305,21 @@ namespace NewLife.Core.Test.Messaging
             if (msg.SessionID > 0x7FFFF) n++;
             // 1个字节对象引用
             Assert.AreEqual(1 + 1 + n + 1, msg.GetStream().Length, "Channel空消息序列化失败！SessionID=" + msg.SessionID);
+
+            // 为空
+            msg = new ChannelMessage();
+            msg.Message = null;
+            msg.Channel = (Byte)rnd.Next(0, 256);
+            msg.SessionID = Int32.MaxValue;
+            MsgTest<ChannelMessage>(msg);
+
+            n = 1;
+            if (msg.SessionID > 0x7F) n++;
+            if (msg.SessionID > 0x7FF) n++;
+            if (msg.SessionID > 0x7FFF) n++;
+            if (msg.SessionID > 0x7FFFF) n++;
+            // 1个字节对象引用
+            Assert.AreEqual(1 + 1 + n + 1, msg.GetStream().Length, "Channel空消息序列化失败！SessionID=" + msg.SessionID);
         }
     }
 }
