@@ -94,9 +94,9 @@ namespace NewLife.Net.Common
 
         /// <summary>分析</summary>
         /// <param name="uri"></param>
-        public void Parse(String uri)
+        public NetUri Parse(String uri)
         {
-            if (uri.IsNullOrWhiteSpace()) return;
+            if (uri.IsNullOrWhiteSpace()) return this;
 
             // 分析协议
             var p = uri.IndexOf(Sep);
@@ -120,6 +120,8 @@ namespace NewLife.Net.Common
             }
 
             Host = uri;
+
+            return this;
         }
 
         /// <summary>克隆</summary>

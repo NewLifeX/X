@@ -380,30 +380,26 @@ namespace NewLife.Net.Sockets
         /// <returns></returns>
         protected static ISocketServer[] CreateServer(IPAddress address, Int32 port, ProtocolType protocol, AddressFamily family)
         {
-            if (protocol == ProtocolType.Tcp)
-                return CreateServer<TcpServer>(address, port, family);
-            else if (protocol == ProtocolType.Udp)
-                return CreateServer<UdpServer>(address, port, family);
-            else
-            {
-                var list = new List<ISocketServer>();
+            if (protocol == ProtocolType.Tcp) return CreateServer<TcpServer>(address, port, family);
+            if (protocol == ProtocolType.Udp) return CreateServer<UdpServer>(address, port, family);
 
-                // 其它未知协议，同时用Tcp和Udp
-                list.AddRange(CreateServer<TcpServer>(address, port, family));
-                list.AddRange(CreateServer<UdpServer>(address, port, family));
+            var list = new List<ISocketServer>();
 
-                return list.ToArray();
-            }
+            // 其它未知协议，同时用Tcp和Udp
+            list.AddRange(CreateServer<TcpServer>(address, port, family));
+            list.AddRange(CreateServer<UdpServer>(address, port, family));
+
+            return list.ToArray();
         }
 
-        static ISocketServer[] CreateServer<T>(IPAddress address, Int32 port, AddressFamily family) where T : ISocketServer, new()
+        static ISocketServer[] CreateServer<TServer>(IPAddress address, Int32 port, AddressFamily family) where TServer : ISocketServer, new()
         {
             var list = new List<ISocketServer>();
             switch (family)
             {
                 case AddressFamily.InterNetwork:
                 case AddressFamily.InterNetworkV6:
-                    T svr = new T();
+                    var svr = new TServer();
                     svr.Address = address.GetRightAny(family);
                     svr.Port = port;
                     svr.AddressFamily = family;
@@ -412,16 +408,17 @@ namespace NewLife.Net.Sockets
                     //svr.NoDelay = svr.ProtocolType == ProtocolType.Udp;
                     svr.UseThreadPool = true;
 
+                    // 协议端口不能是已经被占用
                     if (!NetHelper.IsUsed(svr.ProtocolType, svr.Address, svr.Port)) list.Add(svr);
                     break;
                 default:
                     // 其它情况表示同时支持IPv4和IPv6
 #if !NET4
-                    if (Socket.SupportsIPv4) list.AddRange(CreateServer<T>(address, port, AddressFamily.InterNetwork));
+                    if (Socket.SupportsIPv4) list.AddRange(CreateServer<TServer>(address, port, AddressFamily.InterNetwork));
 #else
-                    if (Socket.OSSupportsIPv4) list.AddRange(CreateServer<T>(address, port, AddressFamily.InterNetwork));
+                    if (Socket.OSSupportsIPv4) list.AddRange(CreateServer<TServer>(address, port, AddressFamily.InterNetwork));
 #endif
-                    if (Socket.OSSupportsIPv6) list.AddRange(CreateServer<T>(address, port, AddressFamily.InterNetworkV6));
+                    if (Socket.OSSupportsIPv6) list.AddRange(CreateServer<TServer>(address, port, AddressFamily.InterNetworkV6));
                     break;
             }
 
@@ -435,11 +432,11 @@ namespace NewLife.Net.Sockets
         public override string ToString()
         {
             var servers = Servers;
-            if (servers == null || servers.Count < 1) return base.ToString();
+            if (servers == null || servers.Count < 1) return Name;
 
-            if (servers.Count == 1) return servers[0].ToString();
+            if (servers.Count == 1) return Name + " " + servers[0].ToString();
 
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
             foreach (var item in servers)
             {
                 if (sb.Length > 0) sb.Append(" ");

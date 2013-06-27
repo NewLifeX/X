@@ -226,7 +226,14 @@ namespace NewLife.Net.Sockets
         }
 
         /// <summary>实例化</summary>
-        public SocketBase() { SetShowEventLog(); }
+        public SocketBase()
+        {
+            // 子类可能重载协议类型
+            LocalUri.ProtocolType = ProtocolType;
+            //RemoteUri.ProtocolType = ProtocolType;
+
+            SetShowEventLog();
+        }
         #endregion
 
         #region 释放资源
