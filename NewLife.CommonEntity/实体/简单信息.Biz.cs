@@ -15,7 +15,7 @@ namespace NewLife.CommonEntity
     public class Simple : Simple<Simple> { }
 
     /// <summary>简单信息</summary>
-    public partial class Simple<TEntity> : EntityTree<TEntity> where TEntity : Simple<TEntity>, new()
+    public partial class Simple<TEntity> : Entity<TEntity> where TEntity : Simple<TEntity>, new()
     {
         #region 扩展属性﻿
         #endregion
