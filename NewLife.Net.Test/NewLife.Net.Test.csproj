@@ -48,6 +48,7 @@
     <Compile Include="Common\NetUriTest.cs" />
     <Compile Include="DNS\EntityTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Sockets\NetServerTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NewLife.Core\NewLife.Core.csproj">
