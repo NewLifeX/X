@@ -22,8 +22,9 @@ namespace NewLife.Net.Test.Sockets
             // 默认创建四个
             var server = new NetServer();
             server.Port = port;
+            server.Start();
 
-            Assert.AreEqual(4, server.Servers);
+            Assert.AreEqual(4, server.Servers.Count);
 
             var ts = server.Servers[0];
             Assert.AreEqual(AddressFamily.InterNetwork, ts.AddressFamily);
@@ -45,23 +46,35 @@ namespace NewLife.Net.Test.Sockets
             Assert.AreEqual(ProtocolType.Udp, ts.ProtocolType);
             Assert.AreEqual(port, ts.Port);
 
+            server.Stop();
+
             // 指定地址家族
             server = new NetServer();
             server.AddressFamily = AddressFamily.InterNetworkV6;
             server.Port = port;
+            server.Start();
 
-            Assert.AreEqual(2, server.Servers);
+            Assert.AreEqual(2, server.Servers.Count);
             Assert.AreEqual(AddressFamily.InterNetworkV6, server.Servers[0].AddressFamily);
             Assert.AreEqual(AddressFamily.InterNetworkV6, server.Servers[1].AddressFamily);
+            Assert.AreEqual(ProtocolType.Tcp, server.Servers[0].ProtocolType);
+            Assert.AreEqual(ProtocolType.Udp, server.Servers[1].ProtocolType);
+
+            server.Stop();
 
             // 指定协议类型
             server = new NetServer();
             server.ProtocolType = pt;
             server.Port = port;
+            server.Start();
 
-            Assert.AreEqual(2, server.Servers);
-            Assert.AreEqual(pt, server.Servers[0].AddressFamily);
-            Assert.AreEqual(pt, server.Servers[0].AddressFamily);
+            Assert.AreEqual(2, server.Servers.Count);
+            Assert.AreEqual(AddressFamily.InterNetwork, server.Servers[0].AddressFamily);
+            Assert.AreEqual(AddressFamily.InterNetworkV6, server.Servers[1].AddressFamily);
+            Assert.AreEqual(pt, server.Servers[0].ProtocolType);
+            Assert.AreEqual(pt, server.Servers[1].ProtocolType);
+
+            server.Stop();
         }
     }
 }

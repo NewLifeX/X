@@ -229,6 +229,13 @@ namespace NewLife.Net.Sockets
 
             OnStart();
 
+            if (Server == null)
+            {
+                WriteLog("{0} 没有可用Socket服务器！", Name);
+
+                return;
+            }
+
             ProtocolType = Server.ProtocolType;
 
             WriteLog("{0} 准备就绪！", Name);
