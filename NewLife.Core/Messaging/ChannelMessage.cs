@@ -30,9 +30,11 @@ namespace NewLife.Messaging
             var r = reader as IReader2;
             Channel = r.ReadByte();
             SessionID = r.ReadInt32();
-            if (reader.Stream.Position != reader.Stream.Length)
+            //if (reader.Stream.Position != reader.Stream.Length)
             {
-                if (Message.PeekKind(reader.Stream) != 0) Message = Message.Read(reader.Stream, reader.GetKind());
+                // 读取对象引用
+                var rf = reader.Stream.ReadByte();
+                if (rf != 0) Message = Message.Read(reader.Stream, reader.GetKind());
             }
 
             return true;
