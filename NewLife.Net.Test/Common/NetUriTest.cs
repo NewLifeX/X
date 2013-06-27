@@ -15,7 +15,7 @@ namespace NewLife.Net.Test.Common
             var rnd = new Random((Int32)DateTime.Now.Ticks);
 
             var port = rnd.Next(1, 65536);
-            var uri = new NetUri("tcp://127.0.0.1" + port);
+            var uri = new NetUri("tcp://127.0.0.1:" + port);
 
             Assert.AreEqual(ProtocolType.Tcp, uri.ProtocolType);
             Assert.AreEqual(IPAddress.Loopback, uri.Address);
@@ -28,7 +28,7 @@ namespace NewLife.Net.Test.Common
             var rnd = new Random((Int32)DateTime.Now.Ticks);
 
             var port = rnd.Next(1, 65536);
-            var uri = new NetUri().Parse("udp://::1" + port);
+            var uri = new NetUri().Parse("udp://::1:" + port);
 
             Assert.AreEqual(ProtocolType.Udp, uri.ProtocolType);
             Assert.AreEqual(IPAddress.IPv6Loopback, uri.Address);
@@ -41,10 +41,10 @@ namespace NewLife.Net.Test.Common
             var rnd = new Random((Int32)DateTime.Now.Ticks);
 
             var port = rnd.Next(1, 65536);
-            var uri = new NetUri().Parse("udp://::1" + port);
+            var uri = new NetUri().Parse("udp://::1:" + port);
             uri.Address = IPAddress.IPv6Any;
 
-            Assert.AreEqual("Udp://::1",uri.ToString());
+            Assert.AreEqual("Udp://:::" + port, uri.ToString());
         }
     }
 }

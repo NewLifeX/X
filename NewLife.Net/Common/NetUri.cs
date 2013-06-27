@@ -35,6 +35,8 @@ namespace NewLife.Net.Common
                     try
                     {
                         _ProtocolType = (ProtocolType)Enum.Parse(typeof(ProtocolType), value, true);
+                        // 规范化名字
+                        _Protocol = _ProtocolType.ToString();
                     }
                     catch { _ProtocolType = ProtocolType.Unknown; }
                 }
