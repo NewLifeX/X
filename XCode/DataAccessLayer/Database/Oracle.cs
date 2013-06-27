@@ -836,6 +836,13 @@ namespace XCode.DataAccessLayer
                 {
                     field.Description = GetColumnComment(table.TableName, field.ColumnName);
                 }
+
+                #region  2013.6.27 上海石头 添加，发现在 Oracle11 中，反向工程无法扫描到默认值
+                foreach (IDataColumn field in list)
+                {
+                    field.Default = GetColumnDefault(table.TableName, field.ColumnName);
+                }
+                #endregion 
             }
 
             return list;
@@ -877,7 +884,37 @@ namespace XCode.DataAccessLayer
             if (drs != null && drs.Length > 0) return Convert.ToString(drs[0]["COMMENTS"]);
             return null;
         }
+        DataTable dtColumnDefault;
+        /// <summary>
+        /// 获取默认值信息
+        /// </summary>
+        /// <param name="tableName"></param>
+        /// <param name="columnName"></param>
+        /// <returns></returns>
+        String GetColumnDefault(String tableName, String columnName)
+        {
+            if (dtColumnDefault == null)
+            {
+                DataSet ds = Database.CreateSession().Query("SELECT * FROM USER_TAB_COLS");
+                if (ds != null && ds.Tables != null && ds.Tables.Count > 0)
+                    dtColumnDefault = ds.Tables[0];
+                else
+                    dtColumnDefault = new DataTable();
+            }
+            if (dtColumnDefault.Rows == null || dtColumnDefault.Rows.Count < 1) return null;
 
+            String where = String.Format("{0}='{1}' AND {2}='{3}'", _.TalbeName, tableName, _.ColumnName, columnName);
+            DataRow[] drs = dtColumnDefault.Select(where);
+            string result = null;
+            if (drs == null || drs.Length == 0) return null;
+
+            result = Convert.ToString(drs[0]["DATA_DEFAULT"]);  //如果默认值中最后一个字符是  \n ,则排除掉
+            if (result.EndsWith("\n") == true && result.Length > "\n".Length)
+                result = result.Substring(0, result.Length - "\n".Length);
+            else
+                result = null;
+            return result;
+        }
         protected override void FixField(IDataColumn field, DataRow drColumn, DataRow drDataType)
         {
             base.FixField(field, drColumn, drDataType);
