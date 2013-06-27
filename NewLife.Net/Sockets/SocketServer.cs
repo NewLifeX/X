@@ -79,15 +79,6 @@ namespace NewLife.Net.Sockets
         protected virtual void OnStop() { Close(); }
         #endregion
 
-        #region 方法
-        ///// <summary>绑定本地终结点</summary>
-        //public override void Bind()
-        //{
-        //    // 调用Server，引发Socket的建立
-        //    if (Server != null) base.Bind();
-        //}
-        #endregion
-
         #region 事件
         /// <summary>已重载。服务器不会因为普通错误而关闭Socket停止服务</summary>
         /// <param name="e"></param>

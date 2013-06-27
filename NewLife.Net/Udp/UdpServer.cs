@@ -20,10 +20,6 @@ namespace NewLife.Net.Udp
         #region 属性
         /// <summary>已重载。</summary>
         public override ProtocolType ProtocolType { get { return ProtocolType.Udp; } }
-
-        //private Int32 _ID;
-        ///// <summary>编号</summary>
-        //Int32 ISocketSession.ID { get { return _ID; } set { _ID = value; } }
         #endregion
 
         #region 构造
@@ -83,9 +79,6 @@ namespace NewLife.Net.Udp
                 return server.ReceiveFromAsync(e);
             });
         }
-
-        ///// <summary>断开客户端连接。Tcp断开，UdpClient不处理</summary>
-        //void ISocketSession.Disconnect() { }
         #endregion
 
         #region 事件
@@ -96,13 +89,6 @@ namespace NewLife.Net.Udp
         /// <param name="e"></param>
         protected virtual void OnReceive(NetEventArgs e)
         {
-            //// Socket错误由各个处理器来处理
-            //if (e.SocketError == SocketError.OperationAborted)
-            //{
-            //    OnError(e, null);
-            //    return;
-            //}
-
             // 没有接收事件时，马上开始处理重建委托
             if (Received == null)
             {
@@ -170,15 +156,17 @@ namespace NewLife.Net.Udp
         /// <returns></returns>
         public Byte[] Receive()
         {
-            Byte[] buffer = new Byte[BufferSize];
-            if (!Server.IsBound) Bind();
+            //Byte[] buffer = new Byte[BufferSize];
+            //if (!Server.IsBound) Bind();
 
-            Int32 size = Server.Receive(buffer);
-            if (size <= 0) return null;
+            //Int32 size = Server.Receive(buffer);
+            //if (size <= 0) return null;
 
-            Byte[] data = new Byte[size];
-            Buffer.BlockCopy(buffer, 0, data, 0, size);
-            return data;
+            //Byte[] data = new Byte[size];
+            //Buffer.BlockCopy(buffer, 0, data, 0, size);
+            //return data;
+
+            throw new NotSupportedException();
         }
 
         /// <summary>接收字符串</summary>
@@ -186,11 +174,13 @@ namespace NewLife.Net.Udp
         /// <returns></returns>
         public String ReceiveString(Encoding encoding = null)
         {
-            Byte[] buffer = Receive();
-            if (buffer == null || buffer.Length < 1) return null;
+            //Byte[] buffer = Receive();
+            //if (buffer == null || buffer.Length < 1) return null;
 
-            if (encoding == null) encoding = Encoding.UTF8;
-            return encoding.GetString(buffer);
+            //if (encoding == null) encoding = Encoding.UTF8;
+            //return encoding.GetString(buffer);
+
+            throw new NotSupportedException();
         }
         #endregion
 
