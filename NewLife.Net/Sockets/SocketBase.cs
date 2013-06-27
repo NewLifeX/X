@@ -254,7 +254,9 @@ namespace NewLife.Net.Sockets
             var socket = Socket;
             if (socket != null)
             {
-                NetHelper.Close(socket, ReuseAddress);
+                //NetHelper.Close(socket, ReuseAddress);
+                // 此时Socket可能已经销毁，不能进行Socket操作
+                NetHelper.Close(socket, _ReuseAddress);
                 Socket = null;
             }
 
