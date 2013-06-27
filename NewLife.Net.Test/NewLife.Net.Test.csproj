@@ -49,6 +49,7 @@
     <Compile Include="DNS\EntityTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Sockets\NetServerTest.cs" />
+    <Compile Include="Tcp\TcpServerTest.cs" />
     <Compile Include="Udp\UdpServerTest.cs" />
   </ItemGroup>
   <ItemGroup>
