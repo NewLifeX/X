@@ -88,7 +88,7 @@ namespace XCode.DataAccessLayer
             // 结果列处理
             builder2.Column = builder.Column;
             // 如果结果列包含有“.”，即有形如tab1.id、tab2.name之类的列时设为获取子查询的全部列
-            if (builder2.Column.Contains("."))
+            if ((!string.IsNullOrEmpty(builder2.Column)) && builder2.Column.Contains("."))
             {
                 builder2.Column = "*";
             }
@@ -153,7 +153,7 @@ namespace XCode.DataAccessLayer
             // 结果列处理
             builder3.Column = builder.Column;
             // 如果结果列包含有“.”，即有形如tab1.id、tab2.name之类的列时设为获取子查询的全部列
-            if (builder3.Column.Contains("."))
+            if ((!string.IsNullOrEmpty(builder3.Column)) && builder3.Column.Contains("."))
             {
                 builder3.Column = "*";
             }
@@ -211,10 +211,11 @@ namespace XCode.DataAccessLayer
             // 结果列处理
             builder2.Column = builder.Column;
             // 如果结果列包含有“.”，即有形如tab1.id、tab2.name之类的列时设为获取子查询的全部列
-            if (builder2.Column.Contains("."))
+            if ((!string.IsNullOrEmpty(builder2.Column)) && builder2.Column.Contains("."))
             {
                 builder2.Column = "*";
             }
+
             // row_number()直接影响了排序，这里不再需要
             builder2.OrderBy = null;
             if (maximumRows < 1)
