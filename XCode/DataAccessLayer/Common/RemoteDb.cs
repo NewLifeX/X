@@ -20,8 +20,8 @@ namespace XCode.DataAccessLayer
                 if (_ServerVersion != null) return _ServerVersion;
                 _ServerVersion = String.Empty;
 
-                IDbSession session = CreateSession();
-                String dbname = session.DatabaseName;
+                var session = CreateSession();
+                var dbname = session.DatabaseName;
                 if (dbname != SystemDatabaseName) session.DatabaseName = SystemDatabaseName;
                 if (!session.Opened) session.Open();
                 try
@@ -30,9 +30,8 @@ namespace XCode.DataAccessLayer
 
                     return _ServerVersion;
                 }
-                catch (Exception ex) //ahuang 2013。06。25 当数据库连接字符串有误取不到ServerVersion
+                catch //ahuang 2013。06。25 当数据库连接字符串有误取不到ServerVersion
                 {
-                    session.AutoClose();
                     return String.Empty;
                 }
                 finally
