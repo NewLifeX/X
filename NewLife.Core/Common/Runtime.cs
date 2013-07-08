@@ -125,7 +125,7 @@ namespace NewLife
 
         /// <summary>确定当前进程是否为 64 位进程。</summary>
         /// <returns>如果进程为 64 位进程，则为 true；否则为 false。</returns>
-        public static bool Is64BitProcess { get { return IntPtr.Size == 8; } }
+        public static Boolean Is64BitProcess { get { return IntPtr.Size == 8; } }
         #endregion
 
         #region 操作系统

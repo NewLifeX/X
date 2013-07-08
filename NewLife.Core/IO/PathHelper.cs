@@ -24,6 +24,7 @@ namespace System.IO
         {
             if (String.IsNullOrEmpty(path)) return path;
 
+            path = path.GetFullPath();
             if (File.Exists(path) || Directory.Exists(path)) return path;
 
             var dir = path;

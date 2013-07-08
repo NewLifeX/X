@@ -195,7 +195,7 @@ namespace NewLife.Messaging
                     //bin = Path.GetFullPath(bin);
                     //var dir = Path.GetDirectoryName(bin);
                     //if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
-                    bin = XTrace.LogPath.CombinePath(bin).GetFullPath().EnsureDirectory();
+                    bin = XTrace.LogPath.CombinePath(bin).EnsureDirectory();
                     File.WriteAllBytes(bin, stream.ReadBytes());
                     em = String.Format("已Dump数据流到{0}。{1}", bin, em);
                 }
