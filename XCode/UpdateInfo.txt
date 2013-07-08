@@ -10,6 +10,10 @@ v2.0 数据架构功能，实体和数据结构双向映射
 v1.2 使用泛型基类
 v1.0 创建XCode
 
+v8.9.2013.0708   修改数据库驱动下载逻辑，增加Fx40支持
+
+v8.9.2013.0622   默认服务地址修改为NewLifeX.com
+
 v8.9.2013.0326   FieldItem增加IsTrue和IsFalse，实现True/False/Null的分组构造条件
 
 v8.9.2013.0321   SearchWhereByKey和SearchWhereByKeys直接返回WhereExpression

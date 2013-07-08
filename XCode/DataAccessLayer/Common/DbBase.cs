@@ -79,6 +79,7 @@ namespace XCode.DataAccessLayer
         protected static class _
         {
             public static readonly String DataSource = "Data Source";
+            public static readonly String Owner = "Owner";
         }
         #endregion
 
@@ -104,7 +105,7 @@ namespace XCode.DataAccessLayer
             }
             set
             {
-                XDbConnectionStringBuilder builder = new XDbConnectionStringBuilder();
+                var builder = new XDbConnectionStringBuilder();
                 builder.ConnectionString = value;
 
                 OnSetConnectionString(builder);
@@ -117,13 +118,12 @@ namespace XCode.DataAccessLayer
 
         protected virtual String DefaultConnectionString { get { return String.Empty; } }
 
-        const String KEY_OWNER = "Owner";
         /// <summary>设置连接字符串时允许从中取值或修改，基类用于读取拥有者Owner，子类重写时应调用基类</summary>
         /// <param name="builder"></param>
         protected virtual void OnSetConnectionString(XDbConnectionStringBuilder builder)
         {
             String value;
-            if (builder.TryGetAndRemove(KEY_OWNER, out value) && !String.IsNullOrEmpty(value)) Owner = value;
+            if (builder.TryGetAndRemove(_.Owner, out value) && !String.IsNullOrEmpty(value)) Owner = value;
         }
 
         private String _Owner;
@@ -139,7 +139,7 @@ namespace XCode.DataAccessLayer
                 if (_ServerVersion != null) return _ServerVersion;
                 _ServerVersion = String.Empty;
 
-                IDbSession session = CreateSession();
+                var session = CreateSession();
                 if (!session.Opened) session.Open();
                 try
                 {
@@ -156,11 +156,6 @@ namespace XCode.DataAccessLayer
         /// <summary>保证数据库在每一个线程都有唯一的一个实例</summary>
         private Dictionary<Int32, IDbSession> _sessions;
 
-        ///// <summary>
-        ///// 保存当前数据库的所有会话
-        ///// </summary>
-        //private List<IDbSession> _MySessions;
-
         /// <summary>创建数据库会话，数据库在每一个线程都有唯一的一个实例</summary>
         /// <returns></returns>
         public IDbSession CreateSession()
@@ -175,16 +170,11 @@ namespace XCode.DataAccessLayer
             {
                 if (_sessions.TryGetValue(tid, out session) && !session.Disposed) return session;
 
-                //if (_MySessions == null) _MySessions = new List<IDbSession>();
-                //if (session != null && _MySessions.Contains(session)) _MySessions.Remove(session);
-
                 session = OnCreateSession();
                 session.ConnectionString = ConnectionString;
                 if (session is DbSession) (session as DbSession).Database = this;
 
                 _sessions[tid] = session;
-
-                //_MySessions.Add(session);
 
                 return session;
             }
@@ -213,6 +203,13 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         protected abstract IMetaData OnCreateMetaData();
 
+        /// <summary>是否支持该提供者所描述的数据库</summary>
+        /// <param name="providerName">提供者</param>
+        /// <returns></returns>
+        public virtual Boolean Support(String providerName) { return !String.IsNullOrEmpty(providerName) && providerName.ToLower().Contains(this.DbType.ToString().ToLower()); }
+        #endregion
+
+        #region 下载驱动
         /// <summary>获取提供者工厂</summary>
         /// <param name="assemblyFile"></param>
         /// <param name="className"></param>
@@ -234,12 +231,6 @@ namespace XCode.DataAccessLayer
                 // 如果还没有，就写异常
                 if (!File.Exists(file)) throw new FileNotFoundException("缺少文件" + file + "！", file);
             }
-
-            //var asm = Assembly.LoadFile(file);
-            //if (asm == null) return null;
-
-            //var type = asm.GetType(className);
-            //if (type == null) return null;
 
             var type = TypeX.GetType(className, true);
             if (type == null) return null;
@@ -263,7 +254,9 @@ namespace XCode.DataAccessLayer
             if (File.Exists(file) && new FileInfo(file).Length > 0) return;
 
             // 目标目录
-            String dir = !String.IsNullOrEmpty(targetPath) ? targetPath : Path.GetDirectoryName(file);
+            var dir = targetPath;
+            if (String.IsNullOrEmpty(targetPath)) dir = Path.GetDirectoryName(file);
+            dir = dir.GetFullPath();
 
             // 从网上下载文件
             var zipfile = Path.GetFileNameWithoutExtension(file);
@@ -279,6 +272,10 @@ namespace XCode.DataAccessLayer
 
                 if (machine != ImageFileMachine.I386) zipfile += "64";
                 #endregion
+
+#if NET4
+                zipfile += "Fx40";
+#endif
 
                 zipfile += ".zip";
                 var url = String.Format(ServiceAddress, zipfile);
@@ -303,27 +300,28 @@ namespace XCode.DataAccessLayer
                         var client = new WebClientX(true, true);
                         // 同步下载，3秒超时
                         client.Timeout = 10000;
-                        //var data = client.DownloadData(url);
-                        if (!String.IsNullOrEmpty(dir) && !Directory.Exists(dir)) Directory.CreateDirectory(dir);
+                        //if (!String.IsNullOrEmpty(dir) && !Directory.Exists(dir)) Directory.CreateDirectory(dir);
+                        zipfile.EnsureDirectory();
                         client.DownloadFile(url, zipfile);
                         client.Dispose();
                     }
 
-                    if (CacheZip) File.Copy(zipfile, xfile, true);
+                    if (CacheZip)
+                    {
+                        DAL.WriteLog("准备缓存{0}到{1}！", zipfile, xfile);
+                        File.Copy(zipfile, xfile, true);
+                    }
                 }
                 sw.Stop();
                 var size = new FileInfo(zipfile).Length;
                 DAL.WriteLog("下载{0}完成（{3:n0}字节），耗时{2}，准备解压到{1}！", zipfile, dir, sw.Elapsed, size);
-                //var ms = new MemoryStream(data);
-                //if (file.EndsWith("64")) file = file.Substring(0, file.Length - 2);
-                //IOHelper.DecompressFile(ms, dir, file, false);
                 ZipFile.Extract(zipfile, dir, true);
                 DAL.WriteLog("解压完成！");
             }
             catch (ZipException ex)
             {
-                if (File.Exists(zipfile)) File.Delete(zipfile);
                 DAL.WriteLog("解压失败，删除压缩文件！{0}", ex.ToString());
+                if (File.Exists(zipfile)) File.Delete(zipfile);
             }
             catch (Exception ex)
             {
@@ -352,11 +350,6 @@ namespace XCode.DataAccessLayer
                 return _CacheZip.Value;
             }
         }
-
-        /// <summary>是否支持该提供者所描述的数据库</summary>
-        /// <param name="providerName">提供者</param>
-        /// <returns></returns>
-        public virtual Boolean Support(String providerName) { return !String.IsNullOrEmpty(providerName) && providerName.ToLower().Contains(this.DbType.ToString().ToLower()); }
         #endregion
 
         #region 分页

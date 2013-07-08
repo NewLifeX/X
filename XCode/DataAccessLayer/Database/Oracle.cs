@@ -444,15 +444,15 @@ namespace XCode.DataAccessLayer
             try
             {
                 if (!_settingDllPath.IsNullOrWhiteSpace())
-                    target = _settingDllPath.GetFullPath().EnsureDirectory();
+                    target = _settingDllPath.EnsureDirectory();
                 else
-                    target = @"..\OracleClient".GetFullPath().EnsureDirectory();
+                    target = @"..\OracleClient".EnsureDirectory();
             }
             catch
             {
                 try
                 {
-                    target = @"..\OracleClient".GetFullPath().EnsureDirectory();
+                    target = @"..\OracleClient".EnsureDirectory();
                     //target = Path.Combine(Path.GetPathRoot(Environment.SystemDirectory), @"OracleClient").EnsureDirectory();
                 }
                 catch
