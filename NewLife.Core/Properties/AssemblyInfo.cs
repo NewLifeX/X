@@ -34,9 +34,11 @@ using System.Runtime.InteropServices;
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("3.9.*")]
-[assembly: AssemblyFileVersion("3.9.2013.0624")]
+[assembly: AssemblyFileVersion("3.9.2013.0712")]
 
 /*
+ * v3.9.2013.0712   使用WinForm控件输出日志
+ * 
  * v3.9.2013.0624   增加Left/Right/Cut三组字符串截取扩展，包括二进制截取
  * 
  * v3.9.2013.0412   增加JavaScript脚本。提供Js的基本操作，同时也支持继承扩展

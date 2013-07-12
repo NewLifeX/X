@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading;
 using System.Windows.Forms;
 using NewLife.Configuration;
+using NewLife.Exceptions;
 using NewLife.Reflection;
 
 namespace NewLife.Log
@@ -242,6 +243,58 @@ namespace NewLife.Log
         {
             WriteException(e.Exception);
             if (_ShowErrorMessage && Application.MessageLoop) MessageBox.Show("" + e.Exception, "出错", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+        #endregion
+
+        #region 使用WinForm控件输出日志
+        /// <summary>在WinForm控件上输出日志，主要考虑非UI线程操作</summary>
+        /// <remarks>不是常用功能，为了避免干扰常用功能，保持UseWinForm开头</remarks>
+        /// <param name="control">要绑定日志输出的WinForm控件</param>
+        /// <param name="handler">默认采用e.ToString()输出日志，除非外部自定义handler</param>
+        public static void UseWinFormControl(Control control, EventHandler<WriteLogEventArgs> handler = null)
+        {
+            if (handler != null)
+                OnWriteLog += (s, e) => handler(control, e);
+            else
+                OnWriteLog += (s, e) => UseWinFormWriteLog(control, e.ToString());
+        }
+
+        /// <summary>在WinForm控件上输出日志，主要考虑非UI线程操作</summary>
+        /// <remarks>不是常用功能，为了避免干扰常用功能，保持UseWinForm开头</remarks>
+        /// <param name="control">要绑定日志输出的WinForm控件</param>
+        /// <param name="msg">日志</param>
+        public static void UseWinFormWriteLog(Control control, String msg)
+        {
+            if (control == null) return;
+
+            if (control is TextBoxBase)
+            {
+                var txt = control as TextBoxBase;
+                var func = new Action<String>(m =>
+                {
+                    try
+                    {
+                        // 如果不是第一行，加上空行
+                        if (txt.TextLength > 0) txt.AppendText(Environment.NewLine);
+                        // 输出日志
+                        if (m != null) txt.AppendText(m);
+
+                        // 取得最后一行首字符索引
+                        var p = txt.GetFirstCharIndexFromLine(txt.Lines.Length - 1);
+                        if (p >= 0)
+                        {
+                            // 滚动到最后一行第一个字符
+                            txt.Select(p, 0);
+                            txt.ScrollToCaret();
+                        }
+                    }
+                    catch { }
+                });
+
+                txt.Invoke(func, msg);
+            }
+            else
+                throw new XException("不支持的控件类型{0}！", control.GetType());
         }
         #endregion
 
