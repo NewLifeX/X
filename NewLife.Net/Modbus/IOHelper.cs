@@ -39,8 +39,6 @@ namespace NewLife.Net.Modbus
         /// <returns></returns>
         public static Byte[] WriteUInt16(this Byte[] data, Int32 offset, Int32 n)
         {
-            //data[offset] = (Byte)(n >> 8);
-            //data[offset + 1] = (Byte)(n & 0xFF);
             // STM32单片机是小端
             //data[offset] = (Byte)(n & 0xFF);
             //data[offset + 1] = (Byte)(n >> 8);
@@ -69,53 +67,6 @@ namespace NewLife.Net.Modbus
 #endif
             return data;
         }
-
-        //public static Byte[] ToByte(this Boolean[] flags)
-        //{
-        //    if (flags == null || flags.Length < 1) return null;
-
-        //    // 计算要几个字节来保存
-        //    var n = flags.Length >> 3;
-        //    if ((flags.Length & 0x07) != 0) n++;
-        //    var buf = new Byte[1 + n];
-        //    // 字节数
-        //    buf[0] = (Byte)n;
-
-        //    // 元素存放于m字节n位
-        //    var m = n = 0;
-        //    for (int i = 0; i < flags.Length; i++)
-        //    {
-        //        if (flags[i]) buf[1 + m] &= (Byte)(1 << n);
-        //        if (++n >= 8)
-        //        {
-        //            m++;
-        //            n = 0;
-        //        }
-        //    }
-
-        //    return buf;
-        //}
-
-        //public static Boolean[] ToBoolean(this Byte[] data, Int32 offset = 0, Int32 count = -1)
-        //{
-        //    if (data == null || data.Length < 1) return null;
-        //    if (count <= 0) count = data.Length - offset;
-
-        //    var flags = new Boolean[count * 8];
-
-        //    Int32 m = 0, n = 0;
-        //    for (var i = 0; i < flags.Length; i++)
-        //    {
-        //        if ((data[offset + m] & (1 << n)) == 1) flags[i] = true;
-        //        if (++n >= 8)
-        //        {
-        //            m++;
-        //            n = 0;
-        //        }
-        //    }
-
-        //    return flags;
-        //}
 
         #region CRC
         static readonly UInt16[] crc_ta = new UInt16[16] { 0x0000, 0xCC01, 0xD801, 0x1400, 0xF001, 0x3C00, 0x2800, 0xE401, 0xA001, 0x6C00, 0x7800, 0xB401, 0x5000, 0x9C01, 0x8801, 0x4400, };

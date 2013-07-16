@@ -36,15 +36,5 @@ namespace NewLife.Net.Modbus
 
         /// <summary>报告从机标识。可使主机判断编址从机的类型及该从机运行指示灯的状态</summary>
         ReportIdentity = 17,
-      
-        //ReadInReg = 65,
-        //ReadOutReg,
-        //WriteOutReg,
-        //WritePWM,
-        //ClearPWM,
-        //UCMD_WRITE_E2,
-        //UCMD_READ_E2,
-        //UCMD_READ_UID = 100,
-        //WRITE_ADDR
     }
 }

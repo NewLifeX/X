@@ -110,10 +110,8 @@
     <Compile Include="Modbus\DataStore.cs" />
     <Compile Include="Modbus\Errors.cs" />
     <Compile Include="Modbus\IDataStore.cs" />
-    <Compile Include="Modbus\Interface.cs" />
     <Compile Include="Modbus\IOHelper.cs" />
     <Compile Include="Modbus\ITransport.cs" />
-    <Compile Include="Modbus\MBEntity.cs" />
     <Compile Include="Modbus\MBFunction.cs" />
     <Compile Include="Modbus\ModbusEntity.cs" />
     <Compile Include="Modbus\ModbusException.cs" />

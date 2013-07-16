@@ -92,7 +92,7 @@ namespace NewLife.Net.Modbus
         /// <param name="i"></param>
         /// <param name="value"></param>
         public void Write(Int32 i, UInt16 value) { Regs[i] = value; }
-  
+
         /// <summary>初始化</summary>
         public WordStore() : this(0) { }
 
@@ -103,5 +103,5 @@ namespace NewLife.Net.Modbus
             if (n <= 0) n = 16;
             Regs = new UInt16[n];
         }
-  }
+    }
 }
