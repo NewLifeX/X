@@ -107,12 +107,20 @@
     <Compile Include="Http\WebRequest.cs" />
     <Compile Include="Http\WebServer.cs" />
     <Compile Include="Http\WebSession.cs" />
-    <Compile Include="ModBus\Diagnostics.cs" />
-    <Compile Include="ModBus\Interface.cs" />
-    <Compile Include="ModBus\MBEntity.cs" />
-    <Compile Include="ModBus\MBFunction.cs" />
-    <Compile Include="ModBus\ReadRegister.cs" />
-    <Compile Include="ModBus\WriteRegister.cs" />
+    <Compile Include="Modbus\DataStore.cs" />
+    <Compile Include="Modbus\Errors.cs" />
+    <Compile Include="Modbus\IDataStore.cs" />
+    <Compile Include="Modbus\Interface.cs" />
+    <Compile Include="Modbus\IOHelper.cs" />
+    <Compile Include="Modbus\ITransport.cs" />
+    <Compile Include="Modbus\MBEntity.cs" />
+    <Compile Include="Modbus\MBFunction.cs" />
+    <Compile Include="Modbus\ModbusEntity.cs" />
+    <Compile Include="Modbus\ModbusException.cs" />
+    <Compile Include="Modbus\ModbusMaster.cs" />
+    <Compile Include="Modbus\ModbusSlave.cs" />
+    <Compile Include="Modbus\SerialTransport.cs" />
+    <Compile Include="Modbus\UdpTransport.cs" />
     <Compile Include="NetService.cs" />
     <Compile Include="DNS\DNSClient.cs" />
     <Compile Include="DNS\DNSEntity.cs" />
@@ -242,7 +250,7 @@
     <None Include="架构设计\网络模型.cd" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="ModBus\Modbus说明.txt" />
+    <Content Include="Modbus\Modbus说明.txt" />
     <Content Include="说明.txt" />
     <EmbeddedResource Include="UpdateInfo.txt" />
     <Content Include="架构设计\NewLife_SocketClient.jpg" />

@@ -22,7 +22,7 @@ namespace Test2
                 try
                 {
 #endif
-                Test4();
+                Test5();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -305,6 +305,11 @@ namespace Test2
             var proxy = new NATProxy("www.baidu.com", 80);
             proxy.Port = 8080;
             proxy.Start();
+        }
+
+        static void Test5()
+        {
+            AppTest.Start();
         }
     }
 }

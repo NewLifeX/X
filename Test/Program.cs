@@ -400,11 +400,7 @@ namespace Test
 
         static void Test10()
         {
-            var str = "nnhy就是大石头";
-            var s2 = str.Cut(5, null);
-            Console.WriteLine(s2);
-            var s3 = str.CutBinary(5, null);
-            Console.WriteLine(s3);
+            Console.WriteLine("nnhy\\1".EnsureDirectory());
         }
     }
 }
