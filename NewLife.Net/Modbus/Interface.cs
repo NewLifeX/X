@@ -1,5 +1,5 @@
 ﻿
-namespace NewLife.Net.ModBus
+namespace NewLife.Net.Modbus
 {
     /// <summary>请求接口</summary>
     public interface IModBusRequest

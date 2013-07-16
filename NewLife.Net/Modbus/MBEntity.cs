@@ -18,7 +18,7 @@ using System.Linq;
 using NewLife.Linq;
 #endif
 
-namespace NewLife.Net.ModBus
+namespace NewLife.Net.Modbus
 {
     /// <summary>ModBus实体</summary>
     public class MBEntity
