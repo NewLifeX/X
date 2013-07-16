@@ -47,6 +47,7 @@
   <ItemGroup>
     <Compile Include="Common\NetUriTest.cs" />
     <Compile Include="DNS\EntityTest.cs" />
+    <Compile Include="Modbus\ModbusTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Sockets\NetServerTest.cs" />
     <Compile Include="Tcp\TcpServerTest.cs" />
