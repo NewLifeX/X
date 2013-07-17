@@ -19,6 +19,17 @@ using System;
 namespace NewLife.Net.Modbus
 {
     /// <summary>Modbus主站</summary>
+    /// <example>
+    /// <code>
+    /// var master = new ModbusMaster();
+    /// master.Transport = new UdpTransport("127.0.0.1", 502);
+    /// 
+    /// Assert.IsTrue(master.Diagnostics(), "诊断错误");
+    /// 
+    /// var ids = master.ReportIdentity();
+    /// Assert.IsNotNull(ids, "标识不能为空");
+    /// </code>
+    /// </example>
     public class ModbusMaster : IDisposable
     {
         #region 属性

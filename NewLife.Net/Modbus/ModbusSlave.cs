@@ -19,6 +19,13 @@ using System;
 namespace NewLife.Net.Modbus
 {
     /// <summary>Modbus从站</summary>
+    /// <example>
+    /// <code>
+    /// var slave = new ModbusSlave();
+    /// slave.Transport = new UdpTransport(502);
+    /// slave.Listen();
+    /// </code>
+    /// </example>
     public class ModbusSlave : IDisposable
     {
         #region 属性
