@@ -592,7 +592,7 @@ namespace NewLife.Common
              // 如果是在二级汉字中
              else
              {
-                 int pos = Array.IndexOf(otherChinese, ch);
+                 int pos = Array.IndexOf(otherChinese, ch.ToString());
                  if (pos != decimal.MinusOne)
                  {
                      return otherPinYin[pos];
