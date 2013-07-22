@@ -274,8 +274,8 @@ namespace NewLife.Log
                 {
                     try
                     {
-                        // 如果不是第一行，加上空行
-                        if (txt.TextLength > 0) txt.AppendText(Environment.NewLine);
+                        //// 如果不是第一行，加上空行
+                        //if (txt.TextLength > 0) txt.AppendText(Environment.NewLine);
                         // 输出日志
                         if (m != null) txt.AppendText(m);
 
