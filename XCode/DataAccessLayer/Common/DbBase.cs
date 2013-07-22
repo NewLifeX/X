@@ -273,9 +273,12 @@ namespace XCode.DataAccessLayer
                 if (machine != ImageFileMachine.I386) zipfile += "64";
                 #endregion
 
-#if NET4
-                zipfile += "Fx40";
-#endif
+                //#if NET4
+                //                zipfile += "Fx40";
+                //#endif
+                var ver = Environment.Version;
+                //if (ver.Major > 2) zipfile += "Fx" + ver.Major + ver.Minor;
+                if (ver.Major >= 4) zipfile += "Fx" + ver.Major + ver.Minor;
 
                 zipfile += ".zip";
                 var url = String.Format(ServiceAddress, zipfile);
