@@ -37,6 +37,10 @@ namespace NewLife.Net.Modbus
         /// <summary>传输接口</summary>
         public ITransport Transport { get { return _Transport; } set { _Transport = value; } }
 
+        private Byte _Host = 1;
+        /// <summary>主机地址。用于485编码</summary>
+        public Byte Host { get { return _Host; } set { _Host = value; } }
+
         private Boolean _EnableDebug;
         /// <summary>启用调试</summary>
         public Boolean EnableDebug { get { return _EnableDebug; } set { _EnableDebug = value; } }
@@ -68,6 +72,8 @@ namespace NewLife.Net.Modbus
 
         ModbusEntity Process(ModbusEntity entity)
         {
+            entity.Host = Host;
+
             // 发送
             var buf = entity.ToArray();
 

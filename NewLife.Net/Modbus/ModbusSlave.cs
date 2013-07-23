@@ -78,11 +78,16 @@ namespace NewLife.Net.Modbus
             if (_DataStore == null) _DataStore = new DataStore();
             if (Host == 0) Host = 1;
 
+            var name = "";
             if (Transport != null)
             {
+                name = Transport.ToString();
+
                 Transport.Received += (t, d) => Process(d);
                 Transport.Listen();
             }
+
+            WriteLine(this.GetType().Name + "在" + name + "上监听Host=" + Host);
 
             return this;
         }
