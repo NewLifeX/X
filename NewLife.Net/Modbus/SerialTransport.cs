@@ -52,13 +52,13 @@ namespace NewLife.Net.Modbus
 
         #region 方法
         /// <summary>确保创建</summary>
-        public void EnsureCreate()
+        public virtual void EnsureCreate()
         {
             if (Serial == null) Serial = new SerialPort(PortName, BaudRate, Parity, DataBits, StopBits);
         }
 
         /// <summary>打开</summary>
-        public void Open()
+        public virtual void Open()
         {
             EnsureCreate();
 
@@ -66,7 +66,7 @@ namespace NewLife.Net.Modbus
         }
 
         /// <summary>关闭</summary>
-        public void Close()
+        public virtual void Close()
         {
             if (Serial != null && Serial.IsOpen) Serial.Close();
         }
@@ -75,7 +75,7 @@ namespace NewLife.Net.Modbus
         /// <param name="buffer"></param>
         /// <param name="offset"></param>
         /// <param name="count"></param>
-        public void Write(Byte[] buffer, Int32 offset = 0, Int32 count = -1)
+        public virtual void Write(Byte[] buffer, Int32 offset = 0, Int32 count = -1)
         {
             Open();
 
@@ -97,7 +97,7 @@ namespace NewLife.Net.Modbus
         /// <param name="offset"></param>
         /// <param name="count"></param>
         /// <returns></returns>
-        public Int32 Read(Byte[] buffer, Int32 offset = 0, Int32 count = -1)
+        public virtual Int32 Read(Byte[] buffer, Int32 offset = 0, Int32 count = -1)
         {
             Open();
 
@@ -161,7 +161,7 @@ namespace NewLife.Net.Modbus
 
         #region 异步接收
         /// <summary>开始监听</summary>
-        public void Listen()
+        public virtual void Listen()
         {
             Open();
 
@@ -180,7 +180,7 @@ namespace NewLife.Net.Modbus
                 {
                     count = sp.BytesToRead;
                     // 暂停一会，可能还有数据
-                    Thread.Sleep(1);
+                    Thread.Sleep(10);
                 }
                 if (sp.BytesToRead >= ModbusEntity.NO_DATA_LENGTH)
                 {
@@ -188,19 +188,20 @@ namespace NewLife.Net.Modbus
                     count = sp.Read(buf, 0, buf.Length);
                     if (count != buf.Length) buf = buf.ReadBytes(count);
 
-                    if (Received != null)
-                    {
-                        buf = Received(this, buf);
-
-                        // 数据发回去
-                        if (buf != null) sp.Write(buf, 0, buf.Length);
-                    }
+                    OnReceive(buf);
                 }
             }
             catch (Exception ex)
             {
                 WriteLog("Error " + ex.Message);
             }
+        }
+
+        /// <summary>收到数据时触发</summary>
+        /// <param name="buf"></param>
+        protected virtual void OnReceive(Byte[] buf)
+        {
+            if (Received != null) buf = Received(this, buf);
         }
 
         /// <summary>数据到达事件，事件里调用<see cref="Read"/>读取数据</summary>
