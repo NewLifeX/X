@@ -201,7 +201,13 @@ namespace NewLife.Net.Modbus
         /// <param name="buf"></param>
         protected virtual void OnReceive(Byte[] buf)
         {
-            if (Received != null) buf = Received(this, buf);
+            if (Received != null)
+            {
+                buf = Received(this, buf);
+
+                // 数据发回去
+                if (buf != null) Serial.Write(buf, 0, buf.Length);
+            }
         }
 
         /// <summary>数据到达事件，事件里调用<see cref="Read"/>读取数据</summary>
@@ -217,6 +223,13 @@ namespace NewLife.Net.Modbus
 #if !MF
             NewLife.Log.XTrace.WriteLine(formart, args);
 #endif
+        }
+
+        /// <summary>已重载</summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            return PortName + "(SerialPort)";
         }
         #endregion
     }
