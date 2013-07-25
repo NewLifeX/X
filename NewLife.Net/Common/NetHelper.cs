@@ -8,11 +8,12 @@ using NewLife.Collections;
 using NewLife.Configuration;
 using NewLife.Log;
 using NewLife.Net;
+using NewLife.Reflection;
+
 #if NET4
 using System.Linq;
 #else
 using NewLife.Linq;
-using NewLife.Reflection;
 #endif
 
 namespace System
