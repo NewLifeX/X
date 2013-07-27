@@ -34,9 +34,11 @@ using System.Runtime.InteropServices;
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("3.9.*")]
-[assembly: AssemblyFileVersion("3.9.2013.0712")]
+[assembly: AssemblyFileVersion("3.9.2013.0727")]
 
 /*
+ * v3.9.2013.0727   WinForm控件输出日志允许指定最大长度，超长清空
+ * 
  * v3.9.2013.0712   使用WinForm控件输出日志
  * 
  * v3.9.2013.0624   增加Left/Right/Cut三组字符串截取扩展，包括二进制截取

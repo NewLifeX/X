@@ -251,19 +251,21 @@ namespace NewLife.Log
         /// <remarks>不是常用功能，为了避免干扰常用功能，保持UseWinForm开头</remarks>
         /// <param name="control">要绑定日志输出的WinForm控件</param>
         /// <param name="handler">默认采用e.ToString()输出日志，除非外部自定义handler</param>
-        public static void UseWinFormControl(Control control, EventHandler<WriteLogEventArgs> handler = null)
+        /// <param name="maxlength">最大长度</param>
+        public static void UseWinFormControl(Control control, EventHandler<WriteLogEventArgs> handler = null, Int32 maxlength = 10000)
         {
             if (handler != null)
                 OnWriteLog += (s, e) => handler(control, e);
             else
-                OnWriteLog += (s, e) => UseWinFormWriteLog(control, e.ToString());
+                OnWriteLog += (s, e) => UseWinFormWriteLog(control, e.ToString() + Environment.NewLine, maxlength);
         }
 
         /// <summary>在WinForm控件上输出日志，主要考虑非UI线程操作</summary>
         /// <remarks>不是常用功能，为了避免干扰常用功能，保持UseWinForm开头</remarks>
         /// <param name="control">要绑定日志输出的WinForm控件</param>
         /// <param name="msg">日志</param>
-        public static void UseWinFormWriteLog(Control control, String msg)
+        /// <param name="maxlength">最大长度</param>
+        public static void UseWinFormWriteLog(Control control, String msg, Int32 maxlength = 10000)
         {
             if (control == null) return;
 
@@ -274,6 +276,8 @@ namespace NewLife.Log
                 {
                     try
                     {
+                        if (txt.MaxLength >= maxlength) txt.Clear();
+
                         //// 如果不是第一行，加上空行
                         //if (txt.TextLength > 0) txt.AppendText(Environment.NewLine);
                         // 输出日志
