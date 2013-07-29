@@ -87,6 +87,11 @@ namespace NewLife.Net.Modbus
 #endif
 
             Transport.Write(buf);
+			
+			// lscy 2013-7-29 
+			// 发送后，休眠一段时间，避免设备数据未全部写到串口缓冲区中
+			// 一般情况下，100ms 已足够
+			Thread.Sleep(100);
 
             // 读取
             var count = Transport.Read(buf_receive);
