@@ -408,7 +408,7 @@ namespace XCode.Configuration
 
         /// <summary>当天范围</summary>
         /// <returns></returns>
-        protected WhereExpression Today()
+        public WhereExpression Today()
         {
             var fromDateStart = DateTime.Parse(String.Format("{0:yyyy-MM-dd 00:00:00}", DateTime.Now));
             var fromDateEnd = DateTime.Parse(String.Format("{0:yyyy-MM-dd 00:00:00}", DateTime.Now));
@@ -417,7 +417,7 @@ namespace XCode.Configuration
 
         /// <summary>本周范围</summary>
         /// <returns></returns>
-        protected WhereExpression ThisWeek()
+        public WhereExpression ThisWeek()
         {
             var fromDateStart = DateTime.Parse(String.Format("{0:yyyy-MM-dd} 00:00:00", DateTime.Now.AddDays(Convert.ToDouble((0 - Convert.ToInt16(DateTime.Now.DayOfWeek))))));
             var fromDateEnd = DateTime.Parse(String.Format("{0:yyyy-MM-dd} 00:00:00", DateTime.Now.AddDays(Convert.ToDouble((6 - Convert.ToInt16(DateTime.Now.DayOfWeek))))));
@@ -426,7 +426,7 @@ namespace XCode.Configuration
 
         /// <summary>本月范围</summary>
         /// <returns></returns>
-        protected WhereExpression ThisMonth()
+        public WhereExpression ThisMonth()
         {
             var fromDateStart = DateTime.Parse(String.Format("{0:yyyy-MM}-01 00:00:00", DateTime.Now));
             var fromDateEnd = DateTime.Parse(String.Format("{0:yyyy-MM}-01 00:00:00", DateTime.Now.AddMonths(1))).AddDays(-1);
@@ -435,7 +435,7 @@ namespace XCode.Configuration
 
         /// <summary>本季度范围</summary>
         /// <returns></returns>
-        protected WhereExpression ThisQuarter()
+        public WhereExpression ThisQuarter()
         {
             var fromDateStart = DateTime.Parse(String.Format("{0:yyyy-MM}-01 00:00:00", DateTime.Now.AddMonths(0 - ((DateTime.Now.Month - 1) % 3))));
             var fromDateEnd = DateTime.Parse(String.Format("{0:yyyy-MM-dd} 00:00:00", DateTime.Parse(DateTime.Now.AddMonths(3 - ((DateTime.Now.Month - 1) % 3)).ToString("yyyy-MM-01")))).AddDays(-1);
@@ -444,7 +444,7 @@ namespace XCode.Configuration
 
         /// <summary>昨天范围</summary>
         /// <returns></returns>
-        protected WhereExpression Yesterday()
+        public WhereExpression Yesterday()
         {
             var fromDateStart = DateTime.Parse(String.Format("{0:yyyy-MM-dd 00:00:00}", DateTime.Now.AddDays(-1)));
             var fromDateEnd = DateTime.Parse(String.Format("{0:yyyy-MM-dd 00:00:00}", DateTime.Now.AddDays(-1)));
@@ -453,7 +453,7 @@ namespace XCode.Configuration
 
         /// <summary>上周范围</summary>
         /// <returns></returns>
-        protected WhereExpression LastWeek()
+        public WhereExpression LastWeek()
         {
             var fromDateStart = DateTime.Parse(String.Format("{0:yyyy-MM-dd} 00:00:00", DateTime.Now.AddDays(Convert.ToDouble((0 - Convert.ToInt16(DateTime.Now.DayOfWeek))) - 7)));
             var fromDateEnd = DateTime.Parse(String.Format("{0:yyyy-MM-dd} 00:00:00", DateTime.Now.AddDays(Convert.ToDouble((6 - Convert.ToInt16(DateTime.Now.DayOfWeek))) - 7)));
@@ -462,7 +462,7 @@ namespace XCode.Configuration
 
         /// <summary>上月范围</summary>
         /// <returns></returns>
-        protected WhereExpression LastMonth()
+        public WhereExpression LastMonth()
         {
             var fromDateStart = DateTime.Parse(String.Format("{0:yyyy-MM}-01 00:00:00", DateTime.Now.AddMonths(-1)));
             var fromDateEnd = DateTime.Parse(String.Format("{0:yyyy-MM}-01 00:00:00", DateTime.Now)).AddDays(-1);
@@ -471,7 +471,7 @@ namespace XCode.Configuration
 
         /// <summary>上季度范围</summary>
         /// <returns></returns>
-        protected WhereExpression LastQuarter()
+        public WhereExpression LastQuarter()
         {
             var fromDateStart = DateTime.Parse(String.Format("{0:yyyy-MM}-01 00:00:00", DateTime.Now.AddMonths(-3 - ((DateTime.Now.Month - 1) % 3))));
             var fromDateEnd = DateTime.Parse(String.Format("{0:yyyy-MM-dd} 00:00:00", DateTime.Parse(DateTime.Now.AddMonths(0 - ((DateTime.Now.Month - 1) % 3)).ToString("yyyy-MM-01")))).AddDays(-1);
@@ -481,7 +481,7 @@ namespace XCode.Configuration
         /// <summary>过去天数范围</summary>
         /// <param name="days"></param>
         /// <returns></returns>
-        protected WhereExpression Makes(Int32 days)
+        public WhereExpression LastDays(Int32 days)
         {
             var fromDateStart = DateTime.Parse(String.Format("{0:yyyy-MM-dd} 00:00:00", DateTime.Now.AddDays(-days)));
             var fromDateEnd = DateTime.Parse(String.Format("{0:yyyy-MM-dd} 00:00:00", DateTime.Now.AddDays(-1)));
@@ -490,7 +490,7 @@ namespace XCode.Configuration
 
         /// <summary>明天范围</summary>
         /// <returns></returns>
-        protected WhereExpression Tomorrow()
+        public WhereExpression Tomorrow()
         {
             var fromDateStart = DateTime.Parse(String.Format("{0:yyyy-MM-dd 00:00:00}", DateTime.Now.AddDays(1)));
             var fromDateEnd = DateTime.Parse(String.Format("{0:yyyy-MM-dd 00:00:00}", DateTime.Now.AddDays(1)));
@@ -499,7 +499,7 @@ namespace XCode.Configuration
 
         /// <summary>下周范围</summary>
         /// <returns></returns>
-        protected WhereExpression NextWeek()
+        public WhereExpression NextWeek()
         {
             var fromDateStart = DateTime.Parse(String.Format("{0:yyyy-MM-dd} 00:00:00", DateTime.Now.AddDays(Convert.ToDouble((0 - Convert.ToInt16(DateTime.Now.DayOfWeek))) + 7)));
             var fromDateEnd = DateTime.Parse(String.Format("{0:yyyy-MM-dd} 00:00:00", DateTime.Now.AddDays(Convert.ToDouble((6 - Convert.ToInt16(DateTime.Now.DayOfWeek))) + 7)));
@@ -508,7 +508,7 @@ namespace XCode.Configuration
 
         /// <summary>下月范围</summary>
         /// <returns></returns>
-        protected WhereExpression NextMonth()
+        public WhereExpression NextMonth()
         {
             var fromDateStart = DateTime.Parse(String.Format("{0:yyyy-MM}-01 00:00:00", DateTime.Now.AddMonths(1)));
             var fromDateEnd = DateTime.Parse(String.Format("{0:yyyy-MM}-01 00:00:00", DateTime.Now.AddMonths(2))).AddDays(-1);
@@ -517,7 +517,7 @@ namespace XCode.Configuration
 
         /// <summary>下季度范围</summary>
         /// <returns></returns>
-        protected WhereExpression NextQuarter()
+        public WhereExpression NextQuarter()
         {
             var fromDateStart = DateTime.Parse(String.Format("{0:yyyy-MM}-01 00:00:00", DateTime.Now.AddMonths(3 - ((DateTime.Now.Month - 1) % 3))));
             var fromDateEnd = DateTime.Parse(String.Format("{0:yyyy-MM-dd} 00:00:00", DateTime.Parse(DateTime.Now.AddMonths(6 - ((DateTime.Now.Month - 1) % 3)).ToString("yyyy-MM-01")))).AddDays(-1);
@@ -527,7 +527,7 @@ namespace XCode.Configuration
         /// <summary>未来天数范围</summary>
         /// <param name="days"></param>
         /// <returns></returns>
-        protected WhereExpression NextDays(Int32 days)
+        public WhereExpression NextDays(Int32 days)
         {
             var fromDateStart = DateTime.Parse(String.Format("{0:yyyy-MM-dd} 00:00:00", DateTime.Now.AddDays(1)));
             var fromDateEnd = DateTime.Parse(String.Format("{0:yyyy-MM-dd} 00:00:00", DateTime.Now.AddDays(days)));
