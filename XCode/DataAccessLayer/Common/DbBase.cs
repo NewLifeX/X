@@ -5,6 +5,7 @@ using System.Data.OleDb;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Web;
@@ -24,6 +25,17 @@ namespace XCode.DataAccessLayer
     abstract class DbBase : DisposeBase, IDatabase
     {
         #region 构造函数
+        static DbBase()
+        {
+            var root = Runtime.IsWeb ? HttpRuntime.BinDirectory : AppDomain.CurrentDomain.BaseDirectory;
+
+            // 根据进程版本，设定x86或者x64为DLL目录
+            var dir = root.CombinePath(!Runtime.Is64BitProcess ? "x86" : "x64");
+            //if (Directory.Exists(dir)) SetDllDirectory(dir);
+            // 不要判断是否存在，因为可能目录还不存在，一会下载驱动后将创建目录
+            SetDllDirectory(dir);
+        }
+
         /// <summary>销毁资源时，回滚未提交事务，并关闭数据库连接</summary>
         /// <param name="disposing"></param>
         protected override void OnDispose(bool disposing)
@@ -263,21 +275,9 @@ namespace XCode.DataAccessLayer
 
             try
             {
-                #region 检测64位平台
-                var module = typeof(Object).Module;
+                if (Runtime.Is64BitProcess) zipfile += "64";
 
-                PortableExecutableKinds kind;
-                ImageFileMachine machine;
-                module.GetPEKind(out kind, out machine);
-
-                if (machine != ImageFileMachine.I386) zipfile += "64";
-                #endregion
-
-                //#if NET4
-                //                zipfile += "Fx40";
-                //#endif
                 var ver = Environment.Version;
-                //if (ver.Major > 2) zipfile += "Fx" + ver.Major + ver.Minor;
                 if (ver.Major >= 4) zipfile += "Fx" + ver.Major + ver.Minor;
 
                 zipfile += ".zip";
@@ -353,6 +353,9 @@ namespace XCode.DataAccessLayer
                 return _CacheZip.Value;
             }
         }
+
+        [DllImport("kernel32.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+        static extern int SetDllDirectory(String pathName);
         #endregion
 
         #region 分页
