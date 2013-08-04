@@ -122,7 +122,7 @@ namespace XCoder
             engine.Tables = tables;
             foreach (var item in tables)
             {
-                XTrace.WriteLine("生产：{0}", item);
+                XTrace.WriteLine("生成：{0}", item);
                 engine.Render(item);
             }
 

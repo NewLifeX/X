@@ -452,6 +452,12 @@ namespace XCode.DataAccessLayer
                 if (AttributeX.GetCustomAttribute<XmlIgnoreAttribute>(item.Member, false) != null) continue;
                 // 忽略ID
                 if (item.Name == "ID") continue;
+                // IDataIndex跳过默认Name
+                if (value is IDataIndex && item.Name.EqualIgnoreCase("Name"))
+                {
+                    var di = value as IDataIndex;
+                    if (di.Name.EqualIgnoreCase(ModelResolver.Current.GetName(di))) continue;
+                }
 
                 var code = Type.GetTypeCode(item.Type);
 

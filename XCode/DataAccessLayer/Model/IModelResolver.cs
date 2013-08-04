@@ -1,14 +1,15 @@
 ﻿using System;
 using Microsoft.CSharp;
-using XCode.Model;
-using NewLife.Configuration;
 using NewLife.Collections;
+using NewLife.Configuration;
+using XCode.Model;
 
 #if NET4
 using System.Collections.Generic;
 using System.Linq;
 #else
 using NewLife.Linq;
+using System.Text;
 #endif
 
 namespace XCode.DataAccessLayer
@@ -26,6 +27,11 @@ namespace XCode.DataAccessLayer
         /// <param name="name"></param>
         /// <returns></returns>
         String GetName(String name);
+
+        /// <summary>根据字段名等信息计算索引的名称</summary>
+        /// <param name="di"></param>
+        /// <returns></returns>
+        String GetName(IDataIndex di);
 
         /// <summary>去除前缀。默认去除第一个_前面部分，去除tbl和table前缀</summary>
         /// <param name="name"></param>
@@ -194,6 +200,34 @@ namespace XCode.DataAccessLayer
             if (AutoFixWord) name = FixWord(name);
             if (name[0] == '_') name = name.Substring(1);
             return name;
+        }
+
+        /// <summary>根据字段名等信息计算索引的名称</summary>
+        /// <param name="di"></param>
+        /// <returns></returns>
+        public virtual String GetName(IDataIndex di)
+        {
+            if (di.Columns == null || di.Columns.Length < 1) return null;
+
+            var sb = new StringBuilder();
+            if (di.PrimaryKey)
+                sb.Append("PK");
+            else if (di.Unique)
+                sb.Append("IU");
+            else
+                sb.Append("IX");
+
+            if (di.Table != null)
+            {
+                sb.Append("_");
+                sb.Append(di.Table.TableName);
+            }
+            for (int i = 0; i < di.Columns.Length; i++)
+            {
+                sb.Append("_");
+                sb.Append(di.Columns[i]);
+            }
+            return sb.ToString();
         }
 
         /// <summary>去除前缀。默认去除第一个_前面部分，去除tbl和table前缀</summary>
