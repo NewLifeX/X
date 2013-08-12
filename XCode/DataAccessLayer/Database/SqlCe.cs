@@ -550,7 +550,10 @@ namespace XCode.DataAccessLayer
         {
             base.OnDispose(disposing);
 
-            if (Engine != null && Engine is IDisposable) (Engine as IDisposable).Dispose();
+            //if (Engine != null && Engine is IDisposable) (Engine as IDisposable).Dispose();
+            // 减少一步类型转换
+            var disp = Engine as IDisposable;
+            if (disp != null) { disp.Dispose(); }
         }
 
         public void CreateDatabase()

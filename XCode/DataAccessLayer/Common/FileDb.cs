@@ -57,7 +57,13 @@ namespace XCode.DataAccessLayer
         /// <summary>文件</summary>
         public String FileName
         {
-            get { return Database is FileDbBase ? (Database as FileDbBase).FileName : null; }
+            get
+            {
+                //return Database is FileDbBase ? (Database as FileDbBase).FileName : null;
+                // 减少一步类型转换
+                var filedb = Database as FileDbBase;
+                return filedb != null ? filedb.FileName : null;
+            }
         }
         #endregion
 

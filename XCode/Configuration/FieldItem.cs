@@ -237,8 +237,12 @@ namespace XCode.Configuration
             else
             {
                 // 右值本身就是FieldItem，属于对本表字段进行操作
-                if (value is FieldItem)
-                    sql = String.Format("{0}{1}{2}", name, action, op.FormatName((value as FieldItem).ColumnName));
+                //if (value is FieldItem)
+                //    sql = String.Format("{0}{1}{2}", name, action, op.FormatName((value as FieldItem).ColumnName));
+                // 减少一步类型转换
+                var fi = value as FieldItem;
+                if (fi != null)
+                    sql = String.Format("{0}{1}{2}", name, action, op.FormatName(fi.ColumnName));
                 else
                     sql = String.Format("{0}{1}{2}", name, action, op.FormatValue(this, value));
             }

@@ -67,7 +67,16 @@ namespace XCode.DataAccessLayer
     {
         #region 属性
         /// <summary>系统数据库名</summary>
-        public String SystemDatabaseName { get { return Database is RemoteDb ? (Database as RemoteDb).SystemDatabaseName : null; } }
+        public String SystemDatabaseName
+        {
+            get
+            {
+                //return Database is RemoteDb ? (Database as RemoteDb).SystemDatabaseName : null;
+                // 减少一步类型转换
+                var remotedb = Database as RemoteDb;
+                return remotedb != null ? remotedb.SystemDatabaseName : null;
+            }
+        }
         #endregion
 
         #region 架构
@@ -103,7 +112,16 @@ namespace XCode.DataAccessLayer
     {
         #region 属性
         /// <summary>系统数据库名</summary>
-        public String SystemDatabaseName { get { return Database is RemoteDb ? (Database as RemoteDb).SystemDatabaseName : null; } }
+        public String SystemDatabaseName
+        {
+            get
+            {
+                //return Database is RemoteDb ? (Database as RemoteDb).SystemDatabaseName : null;
+                // 减少一步类型转换
+                var remotedb = Database as RemoteDb;
+                return remotedb != null ? remotedb.SystemDatabaseName : null;
+            }
+        }
         #endregion
 
         #region 架构定义

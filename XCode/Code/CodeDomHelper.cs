@@ -17,8 +17,13 @@ namespace XCode.Code
         {
             if (p == null) return new CodePrimitiveExpression(p);
 
-            if (p is CodeExpression) return p as CodeExpression;
-            if (p is Type) return new CodeTypeReferenceExpression(p as Type);
+            //if (p is CodeExpression) return p as CodeExpression;
+            //if (p is Type) return new CodeTypeReferenceExpression(p as Type);
+            // 减少一步类型转换
+            var codeExp = p as CodeExpression;
+            if (codeExp != null) { return codeExp; }
+            var type = p as Type;
+            if (type != null) { return new CodeTypeReferenceExpression(type); }
 
             var str = p.ToString();
             if (str == "") return new CodePrimitiveExpression(p);

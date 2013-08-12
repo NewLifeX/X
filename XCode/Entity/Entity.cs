@@ -104,7 +104,10 @@ namespace XCode
             {
                 entity._IsFromDatabase = true;
             }
-            if (list is EntityList<TEntity>) return list as EntityList<TEntity>;
+            //if (list is EntityList<TEntity>) return list as EntityList<TEntity>;
+            // 减少一步类型转换
+            var elist = list as EntityList<TEntity>;
+            if (elist != null) { return elist; }
 
             return new EntityList<TEntity>(list);
         }
@@ -143,7 +146,10 @@ namespace XCode
             {
                 entity._IsFromDatabase = true;
             }
-            if (list is EntityList<TEntity>) return list as EntityList<TEntity>;
+            //if (list is EntityList<TEntity>) return list as EntityList<TEntity>;
+            // 减少一步类型转换
+            var elist = list as EntityList<TEntity>;
+            if (elist != null) { return elist; }
 
             return new EntityList<TEntity>(list);
         }

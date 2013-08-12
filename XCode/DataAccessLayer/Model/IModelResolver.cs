@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 using Microsoft.CSharp;
 using NewLife.Collections;
 using NewLife.Configuration;
@@ -9,7 +10,6 @@ using System.Collections.Generic;
 using System.Linq;
 #else
 using NewLife.Linq;
-using System.Text;
 #endif
 
 namespace XCode.DataAccessLayer

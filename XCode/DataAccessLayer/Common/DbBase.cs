@@ -184,7 +184,10 @@ namespace XCode.DataAccessLayer
 
                 session = OnCreateSession();
                 session.ConnectionString = ConnectionString;
-                if (session is DbSession) (session as DbSession).Database = this;
+                //if (session is DbSession) (session as DbSession).Database = this;
+                // 减少一步类型转换
+                var dbSession = session as DbSession;
+                if (dbSession != null) { dbSession.Database = this; }
 
                 _sessions[tid] = session;
 
@@ -206,7 +209,10 @@ namespace XCode.DataAccessLayer
             if (_metadata != null && !_metadata.Disposed) return _metadata;
 
             _metadata = OnCreateMetaData();
-            if (_metadata is DbMetaData) (_metadata as DbMetaData).Database = this;
+            //if (_metadata is DbMetaData) (_metadata as DbMetaData).Database = this;
+            // 减少一步类型转换
+            var meta = _metadata as DbMetaData;
+            if (meta != null) { meta.Database = this; }
 
             return _metadata;
         }
