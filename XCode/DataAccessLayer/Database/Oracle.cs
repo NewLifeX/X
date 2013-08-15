@@ -262,27 +262,43 @@ namespace XCode.DataAccessLayer
             // 从第一行开始
             if (startRowIndex <= 0)
             {
-                if (maximumRows <= 0)
-                {
-                    ;
-                }
-                else
-                {
-                    sql = String.Format("Select * From ({1}) XCode_Temp_a Where rownum<={0}", maximumRows, sql);
-                }
+                if (maximumRows > 0) sql = String.Format("Select * From ({1}) XCode_Temp_a Where rownum<={0}", maximumRows, sql);
             }
             else
             {
                 if (maximumRows <= 0)
-                {
                     sql = String.Format("Select * From ({1}) XCode_Temp_a Where rownum>={0}", startRowIndex, sql);
-                }
                 else
-                {
                     sql = String.Format("Select * From (Select XCode_Temp_a.*, rownum as rowNumber From ({1}) XCode_Temp_a Where rownum<={2}) XCode_Temp_b Where rowNumber>={0}", startRowIndex, sql, startRowIndex + maximumRows - 1);
-                }
             }
             return sql;
+        }
+
+        /// <summary>构造分页SQL</summary>
+        /// <remarks>
+        /// 两个构造分页SQL的方法，区别就在于查询生成器能够构造出来更好的分页语句，尽可能的避免子查询。
+        /// MS体系的分页精髓就在于唯一键，当唯一键带有Asc/Desc/Unkown等排序结尾时，就采用最大最小值分页，否则使用较次的TopNotIn分页。
+        /// TopNotIn分页和MaxMin分页的弊端就在于无法完美的支持GroupBy查询分页，只能查到第一页，往后分页就不行了，因为没有主键。
+        /// </remarks>
+        /// <param name="builder">查询生成器</param>
+        /// <param name="startRowIndex">开始行，0表示第一行</param>
+        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
+        /// <returns>分页SQL</returns>
+        public override SelectBuilder PageSplit(SelectBuilder builder, Int32 startRowIndex, Int32 maximumRows)
+        {
+            // 从第一行开始，不需要分页
+            if (startRowIndex <= 0)
+            {
+                if (maximumRows > 0) builder = builder.AsChild("XCode_Temp_a").AppendWhereAnd("rownum<={0}", maximumRows);
+                return builder;
+            }
+            if (maximumRows < 1) return builder.AsChild("XCode_Temp_a").AppendWhereAnd("rownum>={0}", startRowIndex);
+
+            builder = builder.AsChild("XCode_Temp_a").AppendWhereAnd("rownum<={0}", startRowIndex + maximumRows - 1);
+            builder.Column = "XCode_Temp_a.*, rownum as rowNumber";
+            builder = builder.AsChild("XCode_Temp_b").AppendWhereAnd("rowNumber>={0}", startRowIndex);
+
+            return builder;
         }
         #endregion
 
@@ -842,7 +858,7 @@ namespace XCode.DataAccessLayer
                 {
                     field.Default = GetColumnDefault(table.TableName, field.ColumnName);
                 }
-                #endregion 
+                #endregion
             }
 
             return list;

@@ -344,16 +344,16 @@ $";
         /// <returns></returns>
         public SelectBuilder AsChild(String alias = null)
         {
-            SelectBuilder t = this;
+            var t = this;
             // 如果包含排序，则必须有Top，否则去掉
-            Boolean hasOrderWithoutTop = !String.IsNullOrEmpty(t.OrderBy) && !ColumnOrDefault.StartsWith("top ", StringComparison.OrdinalIgnoreCase);
+            var hasOrderWithoutTop = !String.IsNullOrEmpty(t.OrderBy) && !ColumnOrDefault.StartsWith("top ", StringComparison.OrdinalIgnoreCase);
             if (hasOrderWithoutTop)
             {
                 t = this.Clone();
                 t.OrderBy = null;
             }
 
-            SelectBuilder builder = new SelectBuilder();
+            var builder = new SelectBuilder();
             if (String.IsNullOrEmpty(alias))
                 builder.Table = String.Format("({0})", t.ToString());
             else
