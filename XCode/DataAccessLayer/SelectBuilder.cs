@@ -214,6 +214,8 @@ $";
         // 可以单独识别SQLite等数据库分页的Limit字句，但那样加大了复杂性
         // (?:\s+(?<Limit>(?>Limit|Rows)\s+(\d+\s*(?>,|To|Offset)\s*)?\d+))?
 
+        // 如果字符串内容里面含有圆括号，这个正则将无法正常工作，字符串边界的单引号也不好用平衡组，可以考虑在匹配前先用正则替换掉字符串
+
         static Regex regexSelect = new Regex(SelectRegex, RegexOptions.Compiled);
 
         /// <summary>分析一条SQL</summary>
