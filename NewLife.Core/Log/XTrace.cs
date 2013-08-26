@@ -269,36 +269,33 @@ namespace NewLife.Log
         {
             if (control == null) return;
 
-            if (control is TextBoxBase)
+            var txt = control as TextBoxBase;
+            if (txt == null) throw new XException("不支持的控件类型{0}！", control.GetType());
+
+            var func = new Action<String>(m =>
             {
-                var txt = control as TextBoxBase;
-                var func = new Action<String>(m =>
+                try
                 {
-                    try
+                    if (txt.MaxLength >= maxlength) txt.Clear();
+
+                    //// 如果不是第一行，加上空行
+                    //if (txt.TextLength > 0) txt.AppendText(Environment.NewLine);
+                    // 输出日志
+                    if (m != null) txt.AppendText(m);
+
+                    // 取得最后一行首字符索引
+                    var p = txt.GetFirstCharIndexFromLine(txt.Lines.Length - 1);
+                    if (p >= 0)
                     {
-                        if (txt.MaxLength >= maxlength) txt.Clear();
-
-                        //// 如果不是第一行，加上空行
-                        //if (txt.TextLength > 0) txt.AppendText(Environment.NewLine);
-                        // 输出日志
-                        if (m != null) txt.AppendText(m);
-
-                        // 取得最后一行首字符索引
-                        var p = txt.GetFirstCharIndexFromLine(txt.Lines.Length - 1);
-                        if (p >= 0)
-                        {
-                            // 滚动到最后一行第一个字符
-                            txt.Select(p, 0);
-                            txt.ScrollToCaret();
-                        }
+                        // 滚动到最后一行第一个字符
+                        txt.Select(p, 0);
+                        txt.ScrollToCaret();
                     }
-                    catch { }
-                });
+                }
+                catch { }
+            });
 
-                txt.Invoke(func, msg);
-            }
-            else
-                throw new XException("不支持的控件类型{0}！", control.GetType());
+            txt.Invoke(func, msg);
         }
         #endregion
 
