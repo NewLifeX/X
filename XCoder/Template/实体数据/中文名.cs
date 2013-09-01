@@ -8,10 +8,14 @@ using XCode.DataAccessLayer;
 
 namespace <#=Config.NameSpace#>
 {<#
+    String tdis=Table.DisplayName;
+    if(!String.IsNullOrEmpty(tdis)) tdis=tdis.Replace("\r\n"," ").Replace("\\", "\\\\").Replace("'", "").Replace("\"", "");
     String tdes=Table.Description;
     if(!String.IsNullOrEmpty(tdes)) tdes=tdes.Replace("\r\n"," ").Replace("\\", "\\\\").Replace("'", "").Replace("\"", "");
+    if(String.IsNullOrEmpty(tdis)) tdis=tdes;
     #>
-    /// <summary><#=tdes#></summary>
+    /// <summary><#=tdis#></summary><# if(tdis!=tdes){#>
+    /// <remarks><#=tdis#></remarks><#}#>
     [Serializable]
     [DataObject]
     [Description("<#=tdes#>")]<#
@@ -96,7 +100,7 @@ if(!Config.RenderGenEntity){#>
         #endregion
 
         #region 字段名
-        /// <summary>取得<#=tdes#>字段信息的快捷方式</summary>
+        /// <summary>取得<#=tdis#>字段信息的快捷方式</summary>
         public partial class _
         {<#
        foreach(IDataColumn Field in Table.Columns)
@@ -112,7 +116,7 @@ if(!Config.RenderGenEntity){#>
             static Field FindByName(String name) { return Meta.Table.FindByName(name); }
         }
 
-        /// <summary>取得<#=tdes#>字段名称的快捷方式</summary>
+        /// <summary>取得<#=tdis#>字段名称的快捷方式</summary>
         partial class __
         {<#
        foreach(IDataColumn Field in Table.Columns)
@@ -129,7 +133,8 @@ if(!Config.RenderGenEntity){#>
         #endregion
     }
 
-    /// <summary><#=tdes#>接口</summary>
+    /// <summary><#=tdis#>接口</summary><# if(tdis!=tdes){#>
+    /// <remarks><#=tdis#></remarks><#}#>
     public partial interface I<#=Table.Name#>
     {
         #region 属性<#
