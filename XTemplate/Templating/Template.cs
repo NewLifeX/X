@@ -250,7 +250,7 @@ namespace XTemplate.Templating
         public static String ProcessFile(String templateFile, IDictionary<String, Object> data)
         {
             // 尽量以模版内容为key，防止模版内容改变后没有生效
-            String template = File.ReadAllText(templateFile);
+            var template = File.ReadAllText(templateFile);
 
             return ProcessTemplate(templateFile, template, data);
         }
@@ -281,7 +281,7 @@ namespace XTemplate.Templating
         {
             if (String.IsNullOrEmpty(template)) throw new ArgumentNullException("template");
 
-            Template tt = Create(name, template);
+            var tt = Create(name, template);
 
             return tt.Render(tt.Templates[0].ClassName, data);
         }
@@ -319,7 +319,7 @@ namespace XTemplate.Templating
             // 未指定模版名称时，使用模版的散列作为模版名称
             if (String.IsNullOrEmpty(name)) name = Hash(content);
 
-            TemplateItem item = FindTemplateItem(name);
+            var item = FindTemplateItem(name);
             if (item == null)
             {
                 item = new TemplateItem();
@@ -356,13 +356,13 @@ namespace XTemplate.Templating
         {
             if (Templates == null || Templates.Count < 1) return null;
 
-            foreach (TemplateItem item in Templates)
+            foreach (var item in Templates)
             {
                 if (item.Name.EqualIgnoreCase(name)) return item;
             }
 
             // 再根据类名找
-            foreach (TemplateItem item in Templates)
+            foreach (var item in Templates)
             {
                 if (item.ClassName.EqualIgnoreCase(name)) return item;
             }
@@ -396,14 +396,14 @@ namespace XTemplate.Templating
         private void ProcessDirectives(TemplateItem item)
         {
             // 使用包含堆栈处理包含，检测循环包含
-            Stack<String> includeStack = new Stack<String>();
+            var includeStack = new Stack<String>();
             includeStack.Push(item.Name);
 
-            String[] directives = new String[] { "template", "assembly", "import", "include", "var" };
+            var directives = new String[] { "template", "assembly", "import", "include", "var" };
 
             for (Int32 i = 0; i < item.Blocks.Count; i++)
             {
-                Block block = item.Blocks[i];
+                var block = item.Blocks[i];
                 if (block.Type != BlockType.Directive) continue;
 
                 // 弹出当前块的模版名
@@ -411,21 +411,21 @@ namespace XTemplate.Templating
                 {
                     includeStack.Pop();
                 }
-                Directive directive = TemplateParser.ParseDirectiveBlock(block);
+                var directive = TemplateParser.ParseDirectiveBlock(block);
                 if (directive == null || Array.IndexOf(directives, directive.Name.ToLower()) < 0)
                     throw new TemplateException(block, String.Format("无法识别的指令：{0}！", block.Text));
 
                 // 包含指令时，返回多个代码块
                 //List<Block> list = ProcessDirective(directive, item);
-                TemplateItem ti = ProcessDirective(directive, item);
+                var ti = ProcessDirective(directive, item);
                 if (ti == null) continue;
                 //List<Block> list = TemplateParser.Parse(ti.Name, ti.Content);
                 // 拆分成块
                 if (ti.Blocks == null || ti.Blocks.Count < 1) ti.Blocks = TemplateParser.Parse(ti.Name, ti.Content);
                 if (ti.Blocks == null || ti.Blocks.Count < 1) continue;
 
-                List<Block> list = ti.Blocks;
-                String name = ti.Name;
+                var list = ti.Blocks;
+                var name = ti.Name;
                 if (includeStack.Contains(name)) throw new TemplateException(block, String.Format("循环包含名为[{0}]的模版！", name));
 
                 includeStack.Push(name);
@@ -445,7 +445,7 @@ namespace XTemplate.Templating
                 if (!File.Exists(name)) name = Path.Combine(Path.GetDirectoryName(item.Name), name);
 
                 String content = null;
-                TemplateItem ti = FindTemplateItem(name);
+                var ti = FindTemplateItem(name);
                 if (ti != null)
                 {
                     ti.Included = true;
@@ -541,79 +541,78 @@ namespace XTemplate.Templating
         #endregion
 
         #region 生成代码
-        private static String ConstructGeneratorCode(TemplateItem item, Boolean lineNumbers, String namespaceName, CodeDomProvider provider)
+        private static String ConstructGeneratorCode(TemplateItem ti, Boolean lineNumbers, String namespaceName, CodeDomProvider provider)
         {
             // 准备类名和命名空间
-            CodeNamespace codeNamespace = new CodeNamespace(namespaceName);
+            var codeNamespace = new CodeNamespace(namespaceName);
 
             // 加入引用的命名空间
-            foreach (String str in item.Imports)
+            foreach (var str in ti.Imports)
             {
                 if (!String.IsNullOrEmpty(str)) codeNamespace.Imports.Add(new CodeNamespaceImport(str));
             }
-            CodeTypeDeclaration typeDec = new CodeTypeDeclaration(item.ClassName);
+            var typeDec = new CodeTypeDeclaration(ti.ClassName);
             typeDec.IsClass = true;
             codeNamespace.Types.Add(typeDec);
 
             // 基类
-            if (!String.IsNullOrEmpty(item.BaseClassName))
-                typeDec.BaseTypes.Add(new CodeTypeReference(item.BaseClassName));
+            if (!String.IsNullOrEmpty(ti.BaseClassName))
+                typeDec.BaseTypes.Add(new CodeTypeReference(ti.BaseClassName));
             else if (!String.IsNullOrEmpty(BaseClassName))
                 typeDec.BaseTypes.Add(new CodeTypeReference(BaseClassName));
             else
                 typeDec.BaseTypes.Add(new CodeTypeReference(typeof(TemplateBase)));
 
-            if (!String.IsNullOrEmpty(item.Name)) typeDec.LinePragma = new CodeLinePragma(item.Name, 1);
+            if (!String.IsNullOrEmpty(ti.Name)) typeDec.LinePragma = new CodeLinePragma(ti.Name, 1);
 
             // Render方法
-            CreateRenderMethod(item.Blocks, lineNumbers, typeDec);
+            CreateRenderMethod(ti.Blocks, lineNumbers, typeDec);
 
             // 代码生成选项
-            CodeGeneratorOptions options = new CodeGeneratorOptions();
+            var options = new CodeGeneratorOptions();
             options.VerbatimOrder = true;
             options.BlankLinesBetweenMembers = false;
             options.BracingStyle = "C";
 
             // 其它类成员代码块
-            Boolean firstMemberFound = false;
-            foreach (Block block in item.Blocks)
+            var firstMemberFound = false;
+            foreach (var block in ti.Blocks)
             {
                 firstMemberFound = GenerateMemberForBlock(block, typeDec, lineNumbers, provider, options, firstMemberFound);
             }
 
             // 模版变量
-            if (item.Vars != null && item.Vars.Count > 0)
+            if (ti.Vars != null && ti.Vars.Count > 0)
             {
                 // 构建静态构造函数，初始化静态属性Vars
-                CreateCctorMethod(typeDec, item.Vars);
+                CreateCctorMethod(typeDec, ti.Vars);
 
                 //public Int32 VarName
                 //{
                 //    get { return (Int32)GetData("VarName"); }
                 //    set { Data["VarName"] = value; }
                 //}
-                foreach (String v in item.Vars.Keys)
+                foreach (var v in ti.Vars)
                 {
-                    TypeX vtype = TypeX.Create(item.Vars[v]);
-                    String codeName = vtype.FullName;
+                    var vtype = TypeX.Create(v.Value);
+                    var codeName = vtype.FullName;
 
-                    StringBuilder sb = new StringBuilder();
+                    var sb = new StringBuilder();
                     sb.AppendLine();
-                    sb.AppendFormat("public {0} {1}", codeName, v);
+                    sb.AppendFormat("public {0} {1}", codeName, v.Key);
                     sb.AppendLine("{");
-                    sb.AppendFormat("    get {{ return GetData<{0}>(\"{1}\"); }}", codeName, v);
+                    sb.AppendFormat("    get {{ return GetData<{0}>(\"{1}\"); }}", codeName, v.Key);
                     sb.AppendLine();
-                    sb.AppendFormat("    set {{ Data[\"{0}\"] = value; }}", v);
+                    sb.AppendFormat("    set {{ Data[\"{0}\"] = value; }}", v.Key);
                     sb.AppendLine();
                     sb.AppendLine("}");
 
-                    CodeSnippetTypeMember member = new CodeSnippetTypeMember(sb.ToString());
-                    typeDec.Members.Add(member);
+                    typeDec.Members.Add(new CodeSnippetTypeMember(sb.ToString()));
                 }
             }
 
             // 输出
-            using (StringWriter writer = new StringWriter())
+            using (var writer = new StringWriter())
             {
                 provider.GenerateCodeFromNamespace(codeNamespace, new IndentedTextWriter(writer), options);
                 return writer.ToString();
@@ -626,16 +625,16 @@ namespace XTemplate.Templating
         /// <param name="typeDec"></param>
         private static void CreateRenderMethod(List<Block> blocks, Boolean lineNumbers, CodeTypeDeclaration typeDec)
         {
-            CodeMemberMethod method = new CodeMemberMethod();
+            var method = new CodeMemberMethod();
             typeDec.Members.Add(method);
             method.Name = "Render";
             method.Attributes = MemberAttributes.Override | MemberAttributes.Public;
             method.ReturnType = new CodeTypeReference(typeof(String));
 
             // 生成代码
-            CodeStatementCollection statementsMain = method.Statements;
-            Boolean firstMemberFound = false;
-            foreach (Block block in blocks)
+            var statementsMain = method.Statements;
+            var firstMemberFound = false;
+            foreach (var block in blocks)
             {
                 if (block.Type == BlockType.Directive) continue;
                 if (block.Type == BlockType.Member)
@@ -650,7 +649,7 @@ namespace XTemplate.Templating
                 if (block.Type == BlockType.Statement)
                 {
                     // 代码语句，直接拼接
-                    CodeSnippetStatement statement = new CodeSnippetStatement(block.Text);
+                    var statement = new CodeSnippetStatement(block.Text);
                     if (lineNumbers)
                         AddStatementWithLinePragma(block, statementsMain, statement);
                     else
@@ -661,9 +660,9 @@ namespace XTemplate.Templating
                     // 模版文本，直接Write
                     if (!String.IsNullOrEmpty(block.Text))
                     {
-                        CodeMethodInvokeExpression exp = new CodeMethodInvokeExpression(new CodeThisReferenceExpression(), "Write", new CodeExpression[] { new CodePrimitiveExpression(block.Text) });
+                        var exp = new CodeMethodInvokeExpression(new CodeThisReferenceExpression(), "Write", new CodeExpression[] { new CodePrimitiveExpression(block.Text) });
                         //statementsMain.Add(exp);
-                        CodeExpressionStatement statement = new CodeExpressionStatement(exp);
+                        var statement = new CodeExpressionStatement(exp);
                         if (lineNumbers)
                             AddStatementWithLinePragma(block, statementsMain, statement);
                         else
@@ -673,8 +672,8 @@ namespace XTemplate.Templating
                 else
                 {
                     // 表达式，直接Write
-                    CodeMethodInvokeExpression exp = new CodeMethodInvokeExpression(new CodeThisReferenceExpression(), "Write", new CodeExpression[] { new CodeArgumentReferenceExpression(block.Text.Trim()) });
-                    CodeExpressionStatement statement = new CodeExpressionStatement(exp);
+                    var exp = new CodeMethodInvokeExpression(new CodeThisReferenceExpression(), "Write", new CodeExpression[] { new CodeArgumentReferenceExpression(block.Text.Trim()) });
+                    var statement = new CodeExpressionStatement(exp);
                     if (lineNumbers)
                         AddStatementWithLinePragma(block, statementsMain, statement);
                     else
@@ -688,23 +687,23 @@ namespace XTemplate.Templating
         private static void CreateCctorMethod(CodeTypeDeclaration typeDec, IDictionary<String, Type> vars)
         {
             //CodeTypeConstructor method = new CodeTypeConstructor();
-            CodeConstructor method = new CodeConstructor();
+            var method = new CodeConstructor();
             typeDec.Members.Add(method);
             method.Attributes = MemberAttributes.Public;
 
             // 生成代码
-            CodeStatementCollection statementsMain = method.Statements;
+            var statementsMain = method.Statements;
             // vars.Add(item, vars[item]);
-            foreach (String item in vars.Keys)
+            foreach (var item in vars)
             {
-                CodeMethodReferenceExpression methodRef = new CodeMethodReferenceExpression(new CodePropertyReferenceExpression(null, "Vars"), "Add");
-                statementsMain.Add(new CodeMethodInvokeExpression(methodRef, new CodePrimitiveExpression(item), new CodeTypeOfExpression(vars[item])));
+                var methodRef = new CodeMethodReferenceExpression(new CodePropertyReferenceExpression(null, "Vars"), "Add");
+                statementsMain.Add(new CodeMethodInvokeExpression(methodRef, new CodePrimitiveExpression(item.Key), new CodeTypeOfExpression(item.Value)));
             }
         }
 
         private static void AddStatementWithLinePragma(Block block, CodeStatementCollection statements, CodeStatement statement)
         {
-            Int32 lineNumber = (block.StartLine > 0) ? block.StartLine : 1;
+            var lineNumber = (block.StartLine > 0) ? block.StartLine : 1;
 
             if (String.IsNullOrEmpty(block.Name))
                 statements.Add(new CodeSnippetStatement("#line " + lineNumber));
@@ -744,9 +743,9 @@ namespace XTemplate.Templating
                 }
                 else if (block.Type == BlockType.Text)
                 {
-                    CodeMethodInvokeExpression expression = new CodeMethodInvokeExpression(new CodeThisReferenceExpression(), "Write", new CodeExpression[] { new CodePrimitiveExpression(block.Text) });
-                    CodeExpressionStatement statement = new CodeExpressionStatement(expression);
-                    using (StringWriter writer = new StringWriter())
+                    var expression = new CodeMethodInvokeExpression(new CodeThisReferenceExpression(), "Write", new CodeExpression[] { new CodePrimitiveExpression(block.Text) });
+                    var statement = new CodeExpressionStatement(expression);
+                    using (var writer = new StringWriter())
                     {
                         provider.GenerateCodeFromStatement(statement, writer, options);
                         member = new CodeSnippetTypeMember(writer.ToString());
@@ -754,9 +753,9 @@ namespace XTemplate.Templating
                 }
                 else if (block.Type == BlockType.Expression)
                 {
-                    CodeMethodInvokeExpression expression = new CodeMethodInvokeExpression(new CodeThisReferenceExpression(), "Write", new CodeExpression[] { new CodeArgumentReferenceExpression(block.Text.Trim()) });
-                    CodeExpressionStatement statement = new CodeExpressionStatement(expression);
-                    using (StringWriter writer = new StringWriter())
+                    var expression = new CodeMethodInvokeExpression(new CodeThisReferenceExpression(), "Write", new CodeExpression[] { new CodeArgumentReferenceExpression(block.Text.Trim()) });
+                    var statement = new CodeExpressionStatement(expression);
+                    using (var writer = new StringWriter())
                     {
                         provider.GenerateCodeFromStatement(statement, writer, options);
                         member = new CodeSnippetTypeMember(writer.ToString());
@@ -771,8 +770,8 @@ namespace XTemplate.Templating
             {
                 if (lineNumbers)
                 {
-                    Boolean flag = String.IsNullOrEmpty(block.Name);
-                    Int32 lineNumber = (block.StartLine > 0) ? block.StartLine : 1;
+                    var flag = String.IsNullOrEmpty(block.Name);
+                    var lineNumber = (block.StartLine > 0) ? block.StartLine : 1;
                     if (flag)
                         generatorType.Members.Add(new CodeSnippetTypeMember("#line " + lineNumber));
                     else
@@ -798,9 +797,9 @@ namespace XTemplate.Templating
 
             if (References != null) AssemblyReferences.AddRange(References);
 
-            String name = AssemblyName;
+            var name = AssemblyName;
             if (String.IsNullOrEmpty(Path.GetExtension(name))) name += ".dll";
-            Assembly asm = Compile(name, AssemblyReferences, Provider, Errors, this);
+            var asm = Compile(name, AssemblyReferences, Provider, Errors, this);
             if (asm != null) Assembly = asm;
 
             // 释放提供者
@@ -858,16 +857,22 @@ namespace XTemplate.Templating
             CompilerResults results = null;
             if (Debug)
             {
+                var sb = new StringBuilder();
+
                 #region 调试状态，把生成的类文件和最终dll输出到XTemp目录下
                 var tempPath = XTrace.TempPath;
                 //if (!String.IsNullOrEmpty(outputAssembly)) tempPath = Path.Combine(tempPath, Path.GetFileNameWithoutExtension(outputAssembly));
-                if (!String.IsNullOrEmpty(outputAssembly) && !outputAssembly.Equals(".dll")) tempPath = Path.Combine(tempPath, Path.GetFileNameWithoutExtension(outputAssembly));
+                if (!String.IsNullOrEmpty(outputAssembly) && !outputAssembly.EqualIgnoreCase(".dll")) tempPath = Path.Combine(tempPath, Path.GetFileNameWithoutExtension(outputAssembly));
 
-                if (!String.IsNullOrEmpty(tempPath) && !Directory.Exists(tempPath)) Directory.CreateDirectory(tempPath);
+                //if (!String.IsNullOrEmpty(tempPath) && !Directory.Exists(tempPath)) Directory.CreateDirectory(tempPath);
 
-                var files = new List<String>();
+                var srcpath = tempPath.CombinePath("src").EnsureDirectory(false);
+
+                //var files = new List<String>();
                 foreach (var item in tmp.Templates)
                 {
+                    // 输出模版内容，为了调试使用
+                    File.WriteAllText(tempPath.CombinePath(item.Name), item.Content);
                     if (item.Included) continue;
 
                     String name = item.Name.EndsWith(".cs", StringComparison.OrdinalIgnoreCase) ? item.Name : item.ClassName;
@@ -878,13 +883,17 @@ namespace XTemplate.Templating
                     else if (!name.EndsWith(".cs", StringComparison.OrdinalIgnoreCase))
                         name += ".cs";
 
-                    name = Path.Combine(tempPath, name);
-                    File.WriteAllText(name, item.Source, Encoding.UTF8);
+                    //name = Path.Combine(tempPath, name);
+                    name = srcpath.CombinePath(name);
+                    File.WriteAllText(name, item.Source);
 
-                    files.Add(name);
+                    sb.AppendLine(item.Source);
+
+                    //files.Add(name);
                 }
                 #endregion
-                if (!String.IsNullOrEmpty(outputAssembly) && !outputAssembly.Equals(".dll"))
+
+                if (!String.IsNullOrEmpty(outputAssembly) && !outputAssembly.EqualIgnoreCase(".dll"))
                 {
                     options.TempFiles = new TempFileCollection(tempPath, false);
                     options.OutputAssembly = Path.Combine(tempPath, outputAssembly);
@@ -892,19 +901,15 @@ namespace XTemplate.Templating
                     options.IncludeDebugInformation = true;
                 }
 
-                results = provider.CompileAssemblyFromFile(options, files.ToArray());
+                //results = provider.CompileAssemblyFromFile(options, files.ToArray());
+                // 必须从内存字符串编译，否则pdb会定向到最终源代码文件
+                results = provider.CompileAssemblyFromSource(options, new String[] { sb.ToString() });
             }
             else
             {
-                List<String> sources = new List<String>();
-                foreach (var item in tmp.Templates)
-                {
-                    sources.Add(item.Source);
-                }
-
                 options.GenerateInMemory = true;
 
-                results = provider.CompileAssemblyFromSource(options, sources.ToArray());
+                results = provider.CompileAssemblyFromSource(options, tmp.Templates.Select(e => e.Source).ToArray());
             }
 
             #region 编译错误处理
@@ -946,7 +951,7 @@ namespace XTemplate.Templating
                 }
                 if (sb.Length > 0)
                 {
-                    TemplateException ex = new TemplateException(sb.ToString());
+                    var ex = new TemplateException(sb.ToString());
                     ex.Error = err;
                     throw ex;
                 }
@@ -969,32 +974,6 @@ namespace XTemplate.Templating
                 }
                 catch { }
             }
-            return null;
-        }
-
-        /// <summary>对程序集解析失败的处理函数</summary>
-        /// <param name="sender"></param>
-        /// <param name="args"></param>
-        /// <returns></returns>
-        private static Assembly currentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
-        {
-            var name = args.Name;
-            if (name.IsNullOrWhiteSpace()) return null;
-            var p = name.IndexOf(',');
-            if (p > 0) name = name.Substring(0, p);
-
-            var asms = AppDomain.CurrentDomain.GetAssemblies();
-            if (asms == null || asms.Length < 1) return null;
-
-            foreach (var item in asms)
-            {
-                try
-                {
-                    if (item.FullName == args.Name) return Assembly.Load(name);
-                }
-                catch { }
-            }
-
             return null;
         }
 
@@ -1154,15 +1133,42 @@ namespace XTemplate.Templating
 
             try
             {
-                string res = temp.Render();
-                AppDomain.CurrentDomain.AssemblyResolve -= new ResolveEventHandler(currentDomain_AssemblyResolve);
-                return res;
+                return temp.Render();
             }
             catch (Exception ex)
             {
-                AppDomain.CurrentDomain.AssemblyResolve -= new ResolveEventHandler(currentDomain_AssemblyResolve);
                 throw new TemplateExecutionException("模版执行错误！", ex);
             }
+            finally
+            {
+                AppDomain.CurrentDomain.AssemblyResolve -= new ResolveEventHandler(currentDomain_AssemblyResolve);
+            }
+        }
+
+        /// <summary>对程序集解析失败的处理函数</summary>
+        /// <param name="sender"></param>
+        /// <param name="args"></param>
+        /// <returns></returns>
+        private static Assembly currentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
+        {
+            var name = args.Name;
+            if (name.IsNullOrWhiteSpace()) return null;
+            var p = name.IndexOf(',');
+            if (p > 0) name = name.Substring(0, p);
+
+            var asms = AppDomain.CurrentDomain.GetAssemblies();
+            if (asms == null || asms.Length < 1) return null;
+
+            foreach (var item in asms)
+            {
+                try
+                {
+                    if (item.FullName == args.Name) return Assembly.Load(name);
+                }
+                catch { }
+            }
+
+            return null;
         }
         #endregion
     }

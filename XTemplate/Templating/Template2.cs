@@ -97,15 +97,15 @@ namespace XTemplate.Templating
                 if (_References != null) return _References;
 
                 // 程序集路径
-                List<String> list = new List<String>();
+                var list = new List<String>();
                 // 程序集名称，小写，用于重复判断
-                List<String> names = new List<String>();
+                var names = new List<String>();
 
                 // 加入配置的程序集
-                String[] ss = Config.GetConfigSplit<String>("XTemplate.References", null);
+                var ss = Config.GetConfigSplit<String>("XTemplate.References", null);
                 if (ss != null && ss.Length > 0)
                 {
-                    foreach (String item in ss)
+                    foreach (var item in ss)
                     {
                         list.Add(item);
 
@@ -114,9 +114,9 @@ namespace XTemplate.Templating
                 }
 
                 // 当前应用程序域所有程序集，虽然加上了很多引用，但是编译时会自动忽略没有实际引用的程序集！
-                Assembly[] asms = AppDomain.CurrentDomain.GetAssemblies();
+                var asms = AppDomain.CurrentDomain.GetAssemblies();
                 if (asms == null || asms.Length < 1) return null;
-                foreach (Assembly item in asms)
+                foreach (var item in asms)
                 {
                     try
                     {
@@ -144,15 +144,15 @@ namespace XTemplate.Templating
                 if (_Imports != null) return _Imports;
 
                 // 命名空间
-                List<String> list = new List<String>();
+                var list = new List<String>();
                 // 尽快赋值，避免重入
                 _Imports = list;
 
                 // 加入配置的命名空间
-                String[] ss = Config.GetConfigSplit<String>("XTemplate.Imports", null);
+                var ss = Config.GetConfigSplit<String>("XTemplate.Imports", null);
                 if (ss != null && ss.Length > 0) list.AddRange(ss);
 
-                String[] names = new String[] { "System", "System.Collections", "System.Collections.Generic", "System.Text" };
+                var names = new String[] { "System", "System.Collections", "System.Collections.Generic", "System.Text" };
                 if (names != null && names.Length > 0)
                 {
                     foreach (String item in names)
@@ -162,7 +162,7 @@ namespace XTemplate.Templating
                 }
 
                 // 特别支持
-                Dictionary<String, String[]> supports = new Dictionary<String, String[]>();
+                var supports = new Dictionary<String, String[]>();
                 //supports.Add("XCode", new String[] { "XCode", "XCode.DataAccessLayer" });
                 supports.Add("XCommon", new String[] { "XCommon" });
                 supports.Add("XControl", new String[] { "XControl" });
@@ -170,17 +170,17 @@ namespace XTemplate.Templating
                 supports.Add("System.Web", new String[] { "System.Web" });
                 supports.Add("System.Xml", new String[] { "System.Xml" });
 
-                Assembly[] asms = AppDomain.CurrentDomain.GetAssemblies();
-                foreach (String item in supports.Keys)
+                var asms = AppDomain.CurrentDomain.GetAssemblies();
+                foreach (var item in supports)
                 {
-                    foreach (Assembly asm in asms)
+                    foreach (var asm in asms)
                     {
-                        if (!asm.FullName.StartsWith(item + ",")) continue;
+                        if (!asm.FullName.StartsWith(item.Key + ",")) continue;
 
-                        names = supports[item];
+                        names = item.Value;
                         if (names != null && names.Length > 0)
                         {
-                            foreach (String name in names)
+                            foreach (var name in names)
                             {
                                 if (!list.Contains(name)) list.Add(name);
                             }
@@ -189,7 +189,7 @@ namespace XTemplate.Templating
                 }
 
                 // 特别支持，导入它们的所有命名空间
-                ICollection<String> maps = new HashSet<String>();
+                var maps = new HashSet<String>();
                 maps.Add("XCode");
                 maps.Add("NewLife.Core");
                 maps.Add("NewLife.CommonEntity");

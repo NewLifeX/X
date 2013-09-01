@@ -32,10 +32,12 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“内部版本号”和“修订号”的默认值，
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.8.*")]
-[assembly: AssemblyFileVersion("1.8.2012.0113")]
+[assembly: AssemblyVersion("1.9.*")]
+[assembly: AssemblyFileVersion("1.9.2013.0901")]
 
 /*
+ * v1.9.2013.0901   增加模版运行时调试功能，原有编译时调试
+ * 
  * v1.8.2012.0113   修正类名处理的BUG
  * 
  * v1.8.2011.1124   调整模版的编译，不再输出临时文件，改为输出模版生成的代码
