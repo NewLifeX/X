@@ -11,15 +11,20 @@ using XCode.Configuration;
 
 namespace <#=Config.NameSpace#>
 {<#
+    String tdis=Table.DisplayName;
+    if(!String.IsNullOrEmpty(tdis)) tdis=tdis.Replace("\r\n"," ").Replace("\\", "\\\\").Replace("'", "").Replace("\"", "");
     String tdes=Table.Description;
     if(!String.IsNullOrEmpty(tdes)) tdes=tdes.Replace("\r\n"," ").Replace("\\", "\\\\").Replace("'", "").Replace("\"", "");
+    if(String.IsNullOrEmpty(tdis)) tdis=tdes;
     if(Config.RenderGenEntity){#>
-    /// <summary><#=tdes#></summary>
+    /// <summary><#=tdis#></summary><# if(tdis!=tdes){#>
+    /// <remarks><#=tdes#></remarks><#}#>
     [ModelCheckMode(ModelCheckModes.CheckTableWhenFirstUse)]
     public class <#=Table.Name#> : <#=Table.Name#><<#=Table.Name#>> { }
     <#
 }#>
-    /// <summary><#=tdes#></summary><#
+    /// <summary><#=tdis#></summary><# if(tdis!=tdes){#>
+    /// <remarks><#=tdes#></remarks><#}#><#
 if(!Config.RenderGenEntity){#>
     public partial class <#=Table.Name#> : <#=Config.BaseClass#><<#=Table.Name#>><#
 }else{#>

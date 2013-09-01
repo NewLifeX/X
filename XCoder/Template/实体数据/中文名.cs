@@ -15,7 +15,7 @@ namespace <#=Config.NameSpace#>
     if(String.IsNullOrEmpty(tdis)) tdis=tdes;
     #>
     /// <summary><#=tdis#></summary><# if(tdis!=tdes){#>
-    /// <remarks><#=tdis#></remarks><#}#>
+    /// <remarks><#=tdes#></remarks><#}#>
     [Serializable]
     [DataObject]
     [Description("<#=tdes#>")]<#
@@ -134,7 +134,7 @@ if(!Config.RenderGenEntity){#>
     }
 
     /// <summary><#=tdis#>接口</summary><# if(tdis!=tdes){#>
-    /// <remarks><#=tdis#></remarks><#}#>
+    /// <remarks><#=tdes#></remarks><#}#>
     public partial interface I<#=Table.Name#>
     {
         #region 属性<#

@@ -96,27 +96,27 @@
         //    if (XTrace.Debug) XTrace.WriteLine("开始初始化{0}[{1}]数据……", typeof(<#=Config.RenderGenEntity?"TEntity":Table.Name#>).Name, Meta.Table.DataTable.DisplayName);
 
         //    var entity = new <#=Table.Name#>();<#
-		foreach (IDataColumn dc in Table.Columns)
-		{
-			if(dc.Identity)continue;
+        foreach (IDataColumn dc in Table.Columns)
+        {
+            if(dc.Identity)continue;
 
-			if(dc.DataType==typeof(Int32)){#>
+            if(dc.DataType==typeof(Int32)){#>
         //    entity.<#=dc.Name#> = 0;<#}
-			else if(dc.DataType==typeof(String)){#>
+            else if(dc.DataType==typeof(String)){#>
         //    entity.<#=dc.Name#> = "abc";<#}
-			else if(dc.DataType==typeof(DateTime)){#>
+            else if(dc.DataType==typeof(DateTime)){#>
         //    entity.<#=dc.Name#> = DateTime.Now;<#}
-			else if(dc.DataType==typeof(Double)){#>
+            else if(dc.DataType==typeof(Double)){#>
         //    entity.<#=dc.Name#> = 0;<#}
-			else if(dc.DataType==typeof(Boolean)){#>
+            else if(dc.DataType==typeof(Boolean)){#>
         //    entity.<#=dc.Name#> = true;<#}
-			else if(dc.DataType==typeof(Decimal)){#>
+            else if(dc.DataType==typeof(Decimal)){#>
         //    entity.<#=dc.Name#> = 0;<#}
-			else if(dc.DataType==typeof(Guid)){#>
+            else if(dc.DataType==typeof(Guid)){#>
         //    entity.<#=dc.Name#> = Guid.NewGuid();<#}
-			else{#>
+            else{#>
         //    entity.<#=dc.Name#> = <#=TypeX.CreateInstance(dc.DataType)#>;<#}
-		}#>
+        }#>
         //    entity.Insert();
 
         //    if (XTrace.Debug) XTrace.WriteLine("完成初始化{0}[{1}]数据！", typeof(<#=Config.RenderGenEntity?"TEntity":Table.Name#>).Name, Meta.Table.DataTable.DisplayName);
@@ -124,54 +124,54 @@
 <#
 if(Table.Relations!=null && Table.Relations.Count>0)
 {
-	// 是否有一对多和一对一的扩展属性，如果有，删除
-	Boolean hasMutil=false;
-	foreach(IDataRelation dr in Table.Relations)
-	{
-		if(!dr.Unique) continue;
+    // 是否有一对多和一对一的扩展属性，如果有，删除
+    Boolean hasMutil=false;
+    foreach(IDataRelation dr in Table.Relations)
+    {
+        if(!dr.Unique) continue;
 
-		IDataTable rtable = FindTable(dr.RelationTable);
-		if (rtable == null) continue;
+        IDataTable rtable = FindTable(dr.RelationTable);
+        if (rtable == null) continue;
 
-		hasMutil=true;
-		break;
-	}
-	if(hasMutil)
-	{
+        hasMutil=true;
+        break;
+    }
+    if(hasMutil)
+    {
 #>
         /// <summary>已重载。删除关联数据</summary>
         /// <returns></returns>
         protected override int OnDelete()
         {<#	
-	foreach(IDataRelation dr in Table.Relations)
-	{
-		if(!dr.Unique) continue;
+    foreach(IDataRelation dr in Table.Relations)
+    {
+        if(!dr.Unique) continue;
 
-		IDataTable rtable = FindTable(dr.RelationTable);
-		if (rtable == null) continue;
+        IDataTable rtable = FindTable(dr.RelationTable);
+        if (rtable == null) continue;
 
-		Boolean b=dr.Unique;
-		// 如果是唯一的，应该判断对方的唯一性，如果对方也是唯一，那么就构成一对一
-		if(b&&rtable.Relations!=null)
-		{
-			foreach(IDataRelation dr2 in rtable.Relations)
-			{
-				if(dr2.Column==dr.RelationColumn && dr2.RelationTable==Table.TableName && dr2.RelationColumn==dr.Column)
-				{
-					if(dr2.Unique) b=false;
-				}
-			}
-		}
-		String proName=rtable.Name;
-		if(b) proName+="s";
-		#>
-			if (<#=proName#> != null) <#=proName#>.Delete();<#
-	}
+        Boolean b=dr.Unique;
+        // 如果是唯一的，应该判断对方的唯一性，如果对方也是唯一，那么就构成一对一
+        if(b&&rtable.Relations!=null)
+        {
+            foreach(IDataRelation dr2 in rtable.Relations)
+            {
+                if(dr2.Column==dr.RelationColumn && dr2.RelationTable==Table.TableName && dr2.RelationColumn==dr.Column)
+                {
+                    if(dr2.Unique) b=false;
+                }
+            }
+        }
+        String proName=rtable.Name;
+        if(b) proName+="s";
+        #>
+            if (<#=proName#> != null) <#=proName#>.Delete();<#
+    }
 #>
 
             return base.OnDelete();
         }<#
-	}
+    }
 }#>
 
         ///// <summary>已重载。基类先调用Valid(true)验证数据，然后在事务保护内调用OnInsert</summary>
