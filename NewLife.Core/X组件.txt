@@ -81,5 +81,8 @@ SQLite、XCode多库多表、海量数据采集
 发现DoubleTop最后一页分页问题
 发现部分虚拟主机（美橙互联）无法使用SQLite但可以使用Access的问题
 
+@北京-冰<soar360@live.com>
+测试X组件在Ubuntu+Mono下可用，测试了DataHelper和XCode反向工程
+
 
 此外，还有许许多多贡献者未能一一列出！
