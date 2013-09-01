@@ -249,6 +249,7 @@ namespace XCode.DataAccessLayer
             if (reader.NodeType == XmlNodeType.Element && reader.Name.EqualIgnoreCase("Table")) return table;
 
             while (reader.NodeType != XmlNodeType.EndElement)
+            //while (reader.NodeType == XmlNodeType.Element)
             {
                 switch (reader.Name)
                 {
@@ -297,10 +298,13 @@ namespace XCode.DataAccessLayer
                         reader.ReadEndElement();
                         break;
                     default:
+                        // 这里必须处理，否则加载特殊Xml文件时将会导致死循环
+                        reader.Read();
                         break;
                 }
             }
 
+            //if (reader.NodeType != XmlNodeType.Element && reader.NodeType != XmlNodeType.EndElement) reader.Read();
             //reader.ReadEndElement();
             if (reader.NodeType == XmlNodeType.EndElement) reader.ReadEndElement();
 
@@ -695,6 +699,7 @@ namespace XCode.DataAccessLayer
             src.Owner = des.Owner;
             src.DbType = des.DbType;
             src.IsView = des.IsView;
+            src.DisplayName = des.DisplayName;
             src.Description = des.Description;
 
             return src;
@@ -744,6 +749,7 @@ namespace XCode.DataAccessLayer
             src.Nullable = des.Nullable;
             src.IsUnicode = des.IsUnicode;
             src.Default = des.Default;
+            src.DisplayName = des.DisplayName;
             src.Description = des.Description;
 
             return src.Fix();
