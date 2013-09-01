@@ -7,6 +7,7 @@ if(Table.Indexes!=null&&Table.Indexes.Count>0){
         if(di.Columns==null||di.Columns.Length<1)continue;
 
         IDataColumn[] columns=Table.GetColumns(di.Columns);
+        if(columns==null||columns.Length<1)continue;
 
         String returnType=myClassName;
         String action="Find";

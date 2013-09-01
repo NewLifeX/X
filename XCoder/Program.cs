@@ -16,6 +16,8 @@ namespace XCoder
         [STAThread]
         static void Main()
         {
+            XTrace.UseWinForm();
+
             #region 参数启动
             var args = Environment.GetCommandLineArgs();
             if (args != null && args.Length > 1)
@@ -63,8 +65,6 @@ namespace XCoder
 
             try
             {
-                XTrace.UseWinForm();
-
                 Update();
 
                 new TimerX(s => Runtime.ReleaseMemory(), null, 5000, 10000);
