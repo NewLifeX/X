@@ -19,16 +19,21 @@ namespace System.IO
         }
 
         /// <summary>确保目录存在，若不存在则创建</summary>
+        /// <remarks>
+        /// 斜杠结尾的路径一定是目录，无视第二参数；
+        /// 默认是文件，这样子只需要确保上一层目录存在即可，否则如果把文件当成了目录，目录的创建会导致文件无法创建。
+        /// </remarks>
         /// <param name="path">文件路径或目录路径，斜杠结尾的路径一定是目录，无视第二参数</param>
         /// <param name="isfile">该路径是否是否文件路径。文件路径需要取目录部分</param>
         /// <returns></returns>
-        public static String EnsureDirectory(this String path, Boolean isfile = false)
+        public static String EnsureDirectory(this String path, Boolean isfile = true)
         {
             if (String.IsNullOrEmpty(path)) return path;
 
-            var dir = path.GetFullPath();
-            if (File.Exists(dir) || Directory.Exists(dir)) return dir;
+            path = path.GetFullPath();
+            if (File.Exists(path) || Directory.Exists(path)) return path;
 
+            var dir = path;
             // 斜杠结尾的路径一定是目录，无视第二参数
             if (dir[dir.Length - 1] == Path.PathSeparator)
                 dir = Path.GetDirectoryName(path);

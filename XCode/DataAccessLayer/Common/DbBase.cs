@@ -310,7 +310,7 @@ namespace XCode.DataAccessLayer
                         // 同步下载，3秒超时
                         client.Timeout = 10000;
                         //if (!String.IsNullOrEmpty(dir) && !Directory.Exists(dir)) Directory.CreateDirectory(dir);
-                        zipfile.EnsureDirectory();
+                        zipfile.EnsureDirectory(true);
                         client.DownloadFile(url, zipfile);
                         client.Dispose();
                     }

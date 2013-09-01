@@ -40,7 +40,7 @@ namespace NewLife.IO
 
             //var path = Path.GetDirectoryName(dest);
             //if (!path.IsNullOrWhiteSpace() && !Directory.Exists(path)) Directory.CreateDirectory(path);
-            dest.EnsureDirectory();
+            dest.EnsureDirectory(true);
             try
             {
                 if (File.Exists(dest)) File.Delete(dest);
@@ -118,7 +118,7 @@ namespace NewLife.IO
 
                 //var path = Path.GetDirectoryName(filename);
                 //if (!path.IsNullOrWhiteSpace() && !Directory.Exists(path)) Directory.CreateDirectory(path);
-                filename.EnsureDirectory();
+                filename.EnsureDirectory(true);
                 try
                 {
                     if (File.Exists(filename)) File.Delete(filename);
