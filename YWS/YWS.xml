@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Tables Version="8.9.4817.25221">
+<Tables Version="8.9.4992.27925">
   <Table Name="Feedliquor" Description="液料规格" DbType="SqlServer" Alias="Feedliquor">
     <Columns>
       <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
@@ -51,8 +51,8 @@
       <Column Name="Remark" DataType="String" Length="100" Description="备注" />
     </Columns>
     <Indexes>
-      <Index Name="PK__Feedliqu__3214EC2703317E3D" Unique="True" PrimaryKey="True" Columns="ID" />
-      <Index Name="IX_Feedliquor_CustomerID" Columns="CustomerID" />
+      <Index Name="PK__Feedliqu__3214EC2703317E3D" Columns="ID" Unique="True" PrimaryKey="True" />
+      <Index Columns="CustomerID" />
     </Indexes>
     <Relations>
       <Relation Column="CustomerID" RelationTable="Customer" RelationColumn="ID" />
@@ -77,10 +77,10 @@
       <Column Name="CustomerTypeID" DataType="Int32" Description="类别" />
     </Columns>
     <Indexes>
-      <Index Name="IX_Customer" Unique="True" Columns="No" />
-      <Index Name="IX_Customer_1" Unique="True" Columns="Name" />
-      <Index Name="PK__Customer__3214EC270AD2A005" Unique="True" PrimaryKey="True" Columns="ID" />
-      <Index Name="IX_Customer_CustomerTypeID" Columns="CustomerTypeID" />
+      <Index Name="IX_Customer" Columns="No" Unique="True" />
+      <Index Name="IX_Customer_1" Columns="Name" Unique="True" />
+      <Index Name="PK__Customer__3214EC270AD2A005" Columns="ID" Unique="True" PrimaryKey="True" />
+      <Index Columns="CustomerTypeID" />
     </Indexes>
     <Relations>
       <Relation Column="ID" RelationTable="Feedliquor" RelationColumn="CustomerID" Unique="True" />
@@ -103,10 +103,10 @@
       <Column Name="AddTime" DataType="DateTime" Description="添加时间" />
     </Columns>
     <Indexes>
-      <Index Name="IX_Maintenance" Unique="True" Columns="CustomerID,MachineID" />
-      <Index Name="PK__Maintena__3214EC270EA330E9" Unique="True" PrimaryKey="True" Columns="ID" />
-      <Index Name="IX_Maintenance_CustomerID" Columns="CustomerID" />
-      <Index Name="IX_Maintenance_MachineID" Columns="MachineID" />
+      <Index Name="IX_Maintenance" Columns="CustomerID,MachineID" Unique="True" />
+      <Index Name="PK__Maintena__3214EC270EA330E9" Columns="ID" Unique="True" PrimaryKey="True" />
+      <Index Columns="CustomerID" />
+      <Index Columns="MachineID" />
     </Indexes>
     <Relations>
       <Relation Column="CustomerID" RelationTable="Customer" RelationColumn="ID" />
@@ -122,10 +122,10 @@
       <Column Name="Operator2" DataType="String" Description="添加人" Alias="Operator2" />
     </Columns>
     <Indexes>
-      <Index Name="IX_CustomerType" Unique="True" Columns="Name,ParentID" />
+      <Index Name="IX_CustomerType" Columns="Name,ParentID" Unique="True" />
       <Index Name="IX_CustomerType_1" Columns="Name" />
       <Index Name="IX_CustomerType_2" Columns="ParentID" />
-      <Index Name="PK__Customer__3214EC27164452B1" Unique="True" PrimaryKey="True" Columns="ID" />
+      <Index Name="PK__Customer__3214EC27164452B1" Columns="ID" Unique="True" PrimaryKey="True" />
     </Indexes>
     <Relations>
       <Relation Column="ID" RelationTable="Customer" RelationColumn="CustomerTypeID" Unique="True" />
@@ -162,9 +162,9 @@
       <Column Name="Remark" DataType="String" Length="100" Description="备注" />
     </Columns>
     <Indexes>
-      <Index Name="PK__Machine__3214EC271273C1CD" Unique="True" PrimaryKey="True" Columns="ID" />
-      <Index Name="IX_Machine_FeedliquorID" Columns="FeedliquorID" />
-      <Index Name="IX_Machine_CustomerID" Columns="CustomerID" />
+      <Index Name="PK__Machine__3214EC271273C1CD" Columns="ID" Unique="True" PrimaryKey="True" />
+      <Index Columns="FeedliquorID" />
+      <Index Columns="CustomerID" />
     </Indexes>
     <Relations>
       <Relation Column="ID" RelationTable="Maintenance" RelationColumn="MachineID" Unique="True" />
@@ -204,9 +204,9 @@
       <Column Name="Remark" DataType="String" Length="100" Description="备注" />
     </Columns>
     <Indexes>
-      <Index Name="IX_Record_1" Unique="True" Columns="MachineID" />
+      <Index Name="IX_Record_1" Columns="MachineID" Unique="True" />
       <Index Name="IX_Record_2" Columns="CustomerID" />
-      <Index Name="PK__Record__3214EC2707020F21" Unique="True" PrimaryKey="True" Columns="ID" />
+      <Index Name="PK__Record__3214EC2707020F21" Columns="ID" Unique="True" PrimaryKey="True" />
     </Indexes>
     <Relations>
       <Relation Column="CustomerID" RelationTable="Customer" RelationColumn="ID" />
@@ -231,9 +231,9 @@
       <Column Name="IsEnable" DataType="Boolean" Description="是否使用" />
     </Columns>
     <Indexes>
-      <Index Name="IX_Administrator_Name" Unique="True" Columns="Name" />
+      <Index Name="IX_Administrator_Name" Columns="Name" Unique="True" />
       <Index Name="IX_Administrator_RoleID" Columns="RoleID" />
-      <Index Name="PK__Admin__3214EC277F60ED59" Unique="True" PrimaryKey="True" Columns="ID" />
+      <Index Name="PK__Admin__3214EC277F60ED59" Columns="ID" Unique="True" PrimaryKey="True" />
     </Indexes>
   </Table>
 </Tables>

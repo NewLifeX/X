@@ -10,6 +10,8 @@ v2.0 数据架构功能，实体和数据结构双向映射
 v1.2 使用泛型基类
 v1.0 创建XCode
 
+v8.9.2013.0901   IDataTable和IDataColumn的DisplayName独立，支持数据表和数据字段中显示名和描述的分离
+
 v8.9.2013.0815   SelectBuilder.Parse有缺陷，不能分析带有圆括号的SQL语句，因此给DbBase.PageSplit带来风险，各数据库全部重载该方法以规避该风险
 
 v8.9.2013.0804   模型保存IDataIndex时，不用保存默认的Name

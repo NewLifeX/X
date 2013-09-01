@@ -52,6 +52,9 @@ namespace XCode.DataAccessLayer
         /// <summary>默认值</summary>
         String Default { get; set; }
 
+        /// <summary>显示名。如果有Description则使用Description，否则使用Name</summary>
+        String DisplayName { get; set; }
+
         /// <summary>说明</summary>
         String Description { get; set; }
         #endregion
@@ -59,9 +62,6 @@ namespace XCode.DataAccessLayer
         #region 扩展属性
         /// <summary>说明数据表</summary>
         IDataTable Table { get; }
-
-        /// <summary>显示名。如果有Description则使用Description，否则使用Name</summary>
-        String DisplayName { get; }
 
         /// <summary>扩展属性</summary>
         IDictionary<String, String> Properties { get; }

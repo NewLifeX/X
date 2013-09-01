@@ -39,20 +39,41 @@ namespace XCode.DataAccessLayer
         [Description("表名")]
         public String TableName { get { return _TableName; } set { _TableName = value; } }
 
-        private String _Description;
-        /// <summary>表说明</summary>
+        private String _DisplayName;
+        /// <summary>显示名</summary>
         [XmlAttribute]
-        [DisplayName("表说明")]
-        [Description("表说明")]
+        [DisplayName("显示名")]
+        [Description("显示名")]
+        public String DisplayName
+        {
+            get
+            {
+                if (String.IsNullOrEmpty(_DisplayName)) _DisplayName = ModelResolver.Current.GetDisplayName(_Name, _Description);
+                return _DisplayName;
+            }
+            set
+            {
+                if (!String.IsNullOrEmpty(value)) value = value.Replace("\r\n", "。").Replace("\r", " ").Replace("\n", " ");
+                _DisplayName = value;
+
+                if (String.IsNullOrEmpty(_Description))
+                    _Description = _DisplayName;
+                else if (!_Description.StartsWith(_DisplayName))
+                    _Description = _DisplayName + "。" + _Description;
+            }
+        }
+
+        private String _Description;
+        /// <summary>描述</summary>
+        [XmlAttribute]
+        [DisplayName("描述")]
+        [Description("描述")]
         public String Description
         {
             get { return _Description; }
             set
             {
-                if (!String.IsNullOrEmpty(value))
-                    value = value.Replace("\r\n", "。")
-                        .Replace("\r", " ")
-                        .Replace("\n", " ");
+                if (!String.IsNullOrEmpty(value)) value = value.Replace("\r\n", "。").Replace("\r", " ").Replace("\n", " ");
                 _Description = value;
             }
         }
@@ -117,9 +138,9 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        /// <summary>显示名。如果有Description则使用Description，否则使用Name</summary>
-        [XmlIgnore]
-        public String DisplayName { get { return ModelResolver.Current.GetDisplayName(Name ?? TableName, Description); } }
+        ///// <summary>显示名。如果有Description则使用Description，否则使用Name</summary>
+        //[XmlIgnore]
+        //public String DisplayName { get { return ModelResolver.Current.GetDisplayName(Name ?? TableName, Description); } }
 
         private IDictionary<String, String> _Properties;
         /// <summary>扩展属性</summary>
@@ -199,10 +220,10 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public override string ToString()
         {
-            if (!String.IsNullOrEmpty(Description))
-                return String.Format("{0}({1})", Name, Description);
-            else
+            if (String.IsNullOrEmpty(DisplayName))
                 return Name;
+            else
+                return String.Format("{0}({1})", Name, DisplayName);
         }
         #endregion
 

@@ -35,7 +35,7 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
 [assembly: AssemblyVersion("8.9.*")]
-[assembly: AssemblyFileVersion("8.9.2013.0815")]
+[assembly: AssemblyFileVersion("8.9.2013.0901")]
 
 /*
  * XCode的重大改进
@@ -52,6 +52,8 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v8.9.2013.0901   IDataTable和IDataColumn的DisplayName独立，支持数据表和数据字段中显示名和描述的分离
+ * 
  * v8.9.2013.0815   SelectBuilder.Parse有缺陷，不能分析带有圆括号的SQL语句，因此给DbBase.PageSplit带来风险，各数据库全部重载该方法以规避该风险
  * 
  * v8.9.2013.0804   模型保存IDataIndex时，不用保存默认的Name

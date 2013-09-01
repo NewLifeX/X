@@ -28,6 +28,9 @@ namespace XCode.DataAccessLayer
         /// <summary>是否视图</summary>
         Boolean IsView { get; set; }
 
+        /// <summary>显示名。如果有Description则使用Description，否则使用Name</summary>
+        String DisplayName { get; set; }
+
         /// <summary>说明</summary>
         String Description { get; set; }
         #endregion
@@ -44,9 +47,6 @@ namespace XCode.DataAccessLayer
 
         /// <summary>主键集合。可以是空集合，但不能为null。</summary>
         IDataColumn[] PrimaryKeys { get; }
-
-        /// <summary>显示名。如果有Description则使用Description，否则使用Name</summary>
-        String DisplayName { get; }
 
         /// <summary>扩展属性</summary>
         IDictionary<String, String> Properties { get; }

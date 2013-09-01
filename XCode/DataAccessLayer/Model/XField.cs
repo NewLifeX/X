@@ -132,20 +132,41 @@ namespace XCode.DataAccessLayer
         [Description("默认值")]
         public String Default { get { return _Default; } set { _Default = value; } }
 
-        private String _Description;
-        /// <summary>说明</summary>
+        private String _DisplayName;
+        /// <summary>显示名</summary>
         [XmlAttribute]
-        [DisplayName("说明")]
-        [Description("说明")]
+        [DisplayName("显示名")]
+        [Description("显示名")]
+        public String DisplayName
+        {
+            get
+            {
+                if (String.IsNullOrEmpty(_DisplayName)) _DisplayName = ModelResolver.Current.GetDisplayName(_Name, _Description);
+                return _DisplayName;
+            }
+            set
+            {
+                if (!String.IsNullOrEmpty(value)) value = value.Replace("\r\n", "。").Replace("\r", " ").Replace("\n", " ");
+                _DisplayName = value;
+
+                if (String.IsNullOrEmpty(_Description))
+                    _Description = _DisplayName;
+                else if (!_Description.StartsWith(_DisplayName))
+                    _Description = _DisplayName + "。" + _Description;
+            }
+        }
+
+        private String _Description;
+        /// <summary>描述</summary>
+        [XmlAttribute]
+        [DisplayName("描述")]
+        [Description("描述")]
         public String Description
         {
             get { return _Description; }
             set
             {
-                if (!String.IsNullOrEmpty(value))
-                    value = value.Replace("\r\n", "。")
-                        .Replace("\r", " ")
-                        .Replace("\n", " ");
+                if (!String.IsNullOrEmpty(value)) value = value.Replace("\r\n", "。").Replace("\r", " ").Replace("\n", " ");
                 _Description = value;
             }
         }
@@ -158,9 +179,9 @@ namespace XCode.DataAccessLayer
         [XmlIgnore]
         public IDataTable Table { get { return _Table; } set { _Table = value; } }
 
-        /// <summary>显示名。如果有Description则使用Description，否则使用Name</summary>
-        [XmlIgnore]
-        public String DisplayName { get { return ModelResolver.Current.GetDisplayName(Name ?? ColumnName, Description); } }
+        ///// <summary>显示名。如果有Description则使用Description，否则使用Name</summary>
+        //[XmlIgnore]
+        //public String DisplayName { get { return ModelResolver.Current.GetDisplayName(Name ?? ColumnName, Description); } }
 
         private IDictionary<String, String> _Properties;
         /// <summary>扩展属性</summary>
@@ -199,8 +220,8 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public override string ToString()
         {
-            if (!String.IsNullOrEmpty(Description))
-                return String.Format("ID={0} Name={1} FieldType={2} RawType={3} Description={4}", ID, ColumnName, FieldType, RawType, Description);
+            if (!String.IsNullOrEmpty(DisplayName) && DisplayName != Name)
+                return String.Format("ID={0} Name={1} FieldType={2} RawType={3} DisplayName={4}", ID, ColumnName, FieldType, RawType, DisplayName);
             else
                 return String.Format("ID={0} Name={1} FieldType={2} RawType={3}", ID, ColumnName, FieldType, RawType);
         }
