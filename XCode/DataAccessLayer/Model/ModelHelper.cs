@@ -245,6 +245,9 @@ namespace XCode.DataAccessLayer
 
             // 读字段
             reader.MoveToElement();
+            // 有些数据表模型没有字段
+            if (reader.NodeType == XmlNodeType.Element && reader.Name.EqualIgnoreCase("Table")) return table;
+
             while (reader.NodeType != XmlNodeType.EndElement)
             {
                 switch (reader.Name)
