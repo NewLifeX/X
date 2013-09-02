@@ -66,20 +66,21 @@ namespace System
         public static Int32 CopyTo(this Stream src, Stream des, Int32 bufferSize = 0, Int32 max = 0)
         {
             if (bufferSize <= 0) bufferSize = 1024;
+            var buffer = new Byte[bufferSize];
 
             Int32 total = 0;
             while (true)
             {
+                var count = bufferSize;
                 if (max > 0)
                 {
                     if (total >= max) break;
 
                     // 最后一次读取大小不同
-                    if (bufferSize > max - total) bufferSize = max - total;
+                    if (count > max - total) count = max - total;
                 }
 
-                Byte[] buffer = new Byte[bufferSize];
-                Int32 count = src.Read(buffer, 0, buffer.Length);
+                count = src.Read(buffer, 0, count);
                 if (count <= 0) break;
                 total += count;
 
@@ -97,7 +98,7 @@ namespace System
         public static Byte[] ReadBytes(this Byte[] src, Int32 offset, Int32 count)
         {
             // 即使是全部，也要复制一份，而不只是返回原数组，因为可能就是为了复制数组
-            if (count <= 0) count = src.Length;
+            if (count <= 0) count = src.Length - offset;
 
             var bts = new Byte[count];
             Buffer.BlockCopy(src, offset, bts, 0, bts.Length);
