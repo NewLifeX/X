@@ -124,9 +124,8 @@ namespace System
             //  if (stream is MemoryStream && (length == 0 || length == stream.Length)) return (stream as MemoryStream).ToArray(); 
             #endregion
 
-            #region 陈奇 更改
-            // 针对MemoryStream进行优化
-            if (stream is MemoryStream && (length == 0 || length == stream.Length))
+            #region 针对MemoryStream进行优化
+            if (stream is MemoryStream && stream.Position == 0 && length == stream.Length)
             {
                 stream.Position += stream.Length;
                 return (stream as MemoryStream).ToArray();
