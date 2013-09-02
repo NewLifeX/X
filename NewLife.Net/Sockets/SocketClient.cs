@@ -201,17 +201,17 @@ namespace NewLife.Net.Sockets
             return buffer.ReadBytes(0, size);
         }
 
-        /// <summary>接收字符串</summary>
-        /// <param name="encoding"></param>
-        /// <returns></returns>
-        public String ReceiveString(Encoding encoding = null)
-        {
-            var buffer = Receive();
-            if (buffer == null || buffer.Length < 1) return null;
+        ///// <summary>接收字符串</summary>
+        ///// <param name="encoding"></param>
+        ///// <returns></returns>
+        //public String ReceiveString(Encoding encoding = null)
+        //{
+        //    var buffer = Receive();
+        //    if (buffer == null || buffer.Length < 1) return null;
 
-            if (encoding == null) encoding = Encoding.UTF8;
-            return encoding.GetString(buffer);
-        }
+        //    if (encoding == null) encoding = Encoding.UTF8;
+        //    return encoding.GetString(buffer);
+        //}
         #endregion
 
         #region 创建会话

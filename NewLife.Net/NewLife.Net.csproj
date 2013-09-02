@@ -72,7 +72,9 @@
     <Compile Include="Application\DiscardServer.cs" />
     <Compile Include="Application\EchoServer.cs" />
     <Compile Include="Application\SerialServer.cs" />
+    <Compile Include="Common\BufferPool.cs" />
     <Compile Include="Common\ClientMessageProvider.cs" />
+    <Compile Include="Model\ISendReceive.cs" />
     <Compile Include="Common\IStatistics.cs" />
     <Compile Include="Common\NetException.cs" />
     <Compile Include="Common\NetUri.cs" />
@@ -119,6 +121,8 @@
     <Compile Include="Modbus\ModbusSlave.cs" />
     <Compile Include="Modbus\SerialTransport.cs" />
     <Compile Include="Modbus\UdpTransport.cs" />
+    <Compile Include="Model\Tcp.cs" />
+    <Compile Include="Model\Udp.cs" />
     <Compile Include="NetService.cs" />
     <Compile Include="DNS\DNSClient.cs" />
     <Compile Include="DNS\DNSEntity.cs" />

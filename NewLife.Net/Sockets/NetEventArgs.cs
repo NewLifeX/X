@@ -197,9 +197,6 @@ namespace NewLife.Net.Sockets
 
             e.Times++;
             e.Used = true;
-#if DEBUG
-            e.LastUse = GetCalling(4);
-#endif
 
             return e;
         }
@@ -228,20 +225,8 @@ namespace NewLife.Net.Sockets
             //e._Completed = null;
             e.DettachEvent();
 
-#if DEBUG
-            e.LastUse = GetCalling(3);
-            e.LastThread = 0;
-#endif
             // 清空缓冲区，避免事件池里面的对象占用内存
             e.SetBuffer(0);
-            //try
-            //{
-            //    e.SetBuffer(0);
-            //}
-            //catch
-            //{
-            //    throw;
-            //}
 
             e.Used = false;
 
@@ -260,9 +245,6 @@ namespace NewLife.Net.Sockets
             return encoding.GetString(Buffer, Offset, BytesTransferred);
         }
 
-        ///// <summary>Socket数据流。每个网络事件参数带有一个，防止多次声明流对象</summary>
-        //private SocketStream socketStream;
-
         /// <summary>从接收缓冲区获取一个流，该流可用于读取已接收数据，写入数据时向远端发送数据。该流应该在持有事件参数期内使用，否则可能产生冲突。</summary>
         /// <returns></returns>
         public Stream GetStream()
@@ -271,17 +253,6 @@ namespace NewLife.Net.Sockets
 
             Stream ms = new MemoryStream(Buffer, Offset, BytesTransferred);
             return new SocketStream(AcceptSocket, ms, RemoteEndPoint);
-
-            //if (socketStream == null)
-            //{
-            //    socketStream = new SocketStream(AcceptSocket, ms, RemoteEndPoint);
-            //}
-            //else
-            //{
-            //    socketStream.Reset(AcceptSocket, ms, RemoteEndPoint);
-            //}
-
-            //return socketStream;
         }
 
         /// <summary>将接收缓冲区中的数据写入流</summary>
@@ -307,33 +278,6 @@ namespace NewLife.Net.Sockets
             else
                 return String.Format("[{0}]{1} BytesTransferred={2}", ID, LastOperation, BytesTransferred);
         }
-        #endregion
-
-        #region 调试
-#if DEBUG
-        private String _LastUse;
-        /// <summary>最后使用者</summary>
-        public String LastUse { get { return _LastUse; } set { _LastUse = value; } }
-
-        static String GetCalling(Int32 skips)
-        {
-            var method = new System.Diagnostics.StackTrace(skips, true).GetFrame(0).GetMethod();
-            return String.Format("{0}.{1}", method.DeclaringType.Name, method.Name);
-        }
-
-        private Int32 _LastThread;
-        /// <summary>最后线程</summary>
-        public Int32 LastThread { get { return _LastThread; } set { _LastThread = value; } }
-
-        /// <summary>操作状态</summary>
-        public Int32 Operating { get { return NewLife.Reflection.FieldInfoX.GetValue<Int32>(this, "m_Operating"); } }
-#endif
-        #endregion
-
-        #region ISafeStackItem 成员
-        //private Int32 _Slot = -1;
-        ///// <summary>用于安全栈的位置</summary>
-        //Int32 ISafeStackItem.Slot { get { return _Slot; } set { _Slot = value; } }
         #endregion
     }
 }

@@ -43,10 +43,10 @@ namespace NewLife.Net.Sockets
         /// <returns></returns>
         byte[] Receive();
 
-        /// <summary>接收字符串</summary>
-        /// <param name="encoding"></param>
-        /// <returns></returns>
-        string ReceiveString(Encoding encoding = null);
+        ///// <summary>接收字符串</summary>
+        ///// <param name="encoding"></param>
+        ///// <returns></returns>
+        //string ReceiveString(Encoding encoding = null);
 
         ///// <summary>发送数据</summary>
         ///// <param name="buffer">缓冲区</param>
