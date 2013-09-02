@@ -7,7 +7,7 @@ namespace NewLife.Net.Sockets
 {
     /// <summary>基础Socket接口</summary>
     /// <remarks>
-    /// 主要是对Socket封装一层，把所有异步操作结果转移到事件中<see cref="Completed"/>去。
+    /// 主要是对Socket封装一层，把所有异步操作结果转移到事件中去。
     /// </remarks>
     public interface ISocket : ISocketAddress, IDisposable2
     {
@@ -24,11 +24,11 @@ namespace NewLife.Net.Sockets
         /// <summary>地址族</summary>
         AddressFamily AddressFamily { get; set; }
 
-        /// <summary>是否使用线程池处理事件。建议仅在事件处理非常耗时时使用线程池来处理。</summary>
-        bool UseThreadPool { get; set; }
+        ///// <summary>是否使用线程池处理事件。建议仅在事件处理非常耗时时使用线程池来处理。</summary>
+        //bool UseThreadPool { get; set; }
 
-        /// <summary>禁用接收延迟，收到数据后马上建立异步读取再处理本次数据</summary>
-        bool NoDelay { get; set; }
+        ///// <summary>禁用接收延迟，收到数据后马上建立异步读取再处理本次数据</summary>
+        //bool NoDelay { get; set; }
 
         ///// <summary>允许将套接字绑定到已在使用中的地址。</summary>
         //bool ReuseAddress { get; set; }
@@ -55,11 +55,8 @@ namespace NewLife.Net.Sockets
         #endregion
 
         #region 事件
-        /// <summary>完成事件，将在工作线程中被调用，不要占用太多时间。</summary>
-        event EventHandler<NetEventArgs> Completed;
-
         /// <summary>错误发生/断开连接时</summary>
-        event EventHandler<NetEventArgs> Error;
+        event EventHandler<ExceptionEventArgs> Error;
         #endregion
     }
 }

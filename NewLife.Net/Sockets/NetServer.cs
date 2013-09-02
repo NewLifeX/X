@@ -10,6 +10,7 @@ using NewLife.Net.Udp;
 using System.Linq;
 #else
 using NewLife.Linq;
+using NewLife.Net.Common;
 #endif
 
 namespace NewLife.Net.Sockets
@@ -99,6 +100,10 @@ namespace NewLife.Net.Sockets
         private Boolean _ShowAbortAsError;
         /// <summary>显示取消操作作为错误</summary>
         public Boolean ShowAbortAsError { get { return _ShowAbortAsError; } set { _ShowAbortAsError = value; } }
+
+        private Boolean _UseSession;
+        /// <summary>使用会话</summary>
+        public Boolean UseSession { get { return _UseSession; } set { _UseSession = value; } }
         #endregion
 
         #region 构造
@@ -182,7 +187,7 @@ namespace NewLife.Net.Sockets
                 throw new Exception("不支持的协议类型" + server.ProtocolType + "！");
             }
 
-            server.Error += new EventHandler<NetEventArgs>(OnError);
+            //server.Error += new EventHandler<NetEventArgs>(OnError);
 
             Servers.Add(server);
             return true;
@@ -305,13 +310,13 @@ namespace NewLife.Net.Sockets
             ns.ClientEndPoint = e.RemoteIPEndPoint;
 
             session.OnDisposed += (s, e2) => ns.Dispose();
-            AddSession(ns);
+            if (UseSession) AddSession(ns);
 
             var tc = session as TcpClientX;
             if (tc != null)
             {
                 tc.Received += OnReceived;
-                tc.Error += new EventHandler<NetEventArgs>(OnError);
+                //tc.Error += new EventHandler<ExceptionEventArgs>(OnError);
             }
 
             // 开始会话处理
@@ -410,10 +415,6 @@ namespace NewLife.Net.Sockets
                     svr.Address = address.GetRightAny(family);
                     svr.Port = port;
                     svr.AddressFamily = family;
-
-                    // 允许同时处理多个数据包
-                    //svr.NoDelay = svr.ProtocolType == ProtocolType.Udp;
-                    svr.UseThreadPool = true;
 
                     // 协议端口不能是已经被占用
                     if (!NetHelper.IsUsed(svr.ProtocolType, svr.Address, svr.Port)) list.Add(svr);

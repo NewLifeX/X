@@ -32,11 +32,10 @@ namespace NewLife.Net.Application
             {
                 var server = Activator.CreateInstance(item) as NetServer;
                 server.Start();
-                //server.Servers.ForEach(s => s.UseThreadPool = false);
-                foreach (var s in server.Servers)
-                {
-                    s.UseThreadPool = false;
-                }
+                //foreach (var s in server.Servers)
+                //{
+                //    s.UseThreadPool = false;
+                //}
                 list.Add(server);
             }
         }
@@ -76,8 +75,7 @@ namespace NewLife.Net.Application
 
             String msg = String.Format("{0}Test_{1}_{2}!", name, uri.ProtocolType, isAsync ? "异步" : "同步");
             var session = NetService.CreateSession(uri);
-            session.Host.Error += new EventHandler<NetEventArgs>(OnError);
-            //session.Host.Socket.ReceiveTimeout = 3000;
+            //session.Host.Error += new EventHandler<NetEventArgs>(OnError);
             if (isAsync && isReceiveData)
             {
                 _are.Reset();

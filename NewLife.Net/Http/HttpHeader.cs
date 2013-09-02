@@ -87,6 +87,8 @@ namespace NewLife.Net.Http
         /// <returns></returns>
         public static HttpHeader Read(Stream stream, HttpHeaderReadMode mode = HttpHeaderReadMode.RequestOrResponse)
         {
+            if (stream == null) return null;
+
             // 因为数据流可能不是Http流，这里需要更高效的Http探测方法，以提高效率。
 
             HttpHeader entity = null;

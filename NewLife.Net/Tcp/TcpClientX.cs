@@ -14,9 +14,9 @@ namespace NewLife.Net.Tcp
         /// <summary>已重载。</summary>
         public override ProtocolType ProtocolType { get { return ProtocolType.Tcp; } }
 
-        private Boolean _DisconnectWhenEmptyData = false;
-        /// <summary>收到空数据时抛出异常并断开连接。</summary>
-        public Boolean DisconnectWhenEmptyData { get { return _DisconnectWhenEmptyData; } set { _DisconnectWhenEmptyData = value; } }
+        //private Boolean _DisconnectWhenEmptyData = false;
+        ///// <summary>收到空数据时抛出异常并断开连接。</summary>
+        //public Boolean DisconnectWhenEmptyData { get { return _DisconnectWhenEmptyData; } set { _DisconnectWhenEmptyData = value; } }
 
         private Int32 _ID;
         /// <summary>编号</summary>
@@ -52,8 +52,6 @@ namespace NewLife.Net.Tcp
             if (e.Session == null) e.Session = CreateSession();
 
             base.ProcessReceive(e);
-
-            //if (_Received != null) _Received(this, new ReceivedEventArgs(e.GetStream()));
         }
         #endregion
 
@@ -140,8 +138,14 @@ namespace NewLife.Net.Tcp
         public override void ReceiveAsync()
         {
             _UseReceiveAsync = true;
-            base.ReceiveAsync();
-            //Received += new EventHandler<NetEventArgs>(TcpClientX_Received);
+
+            StartAsync(e =>
+            {
+                var client = Client;
+                if (client == null || Disposed) { e.Cancel = true; return false; }
+
+                return client.ReceiveAsync(e);
+            });
         }
 
         void TcpClientX_Received(object sender, NetEventArgs e)
@@ -164,7 +168,8 @@ namespace NewLife.Net.Tcp
         {
             if (_Received != null) SetEvent();
 
-            if (e.BytesTransferred > 0 || !DisconnectWhenEmptyData)
+            //if (e.BytesTransferred > 0 || !DisconnectWhenEmptyData)
+            if (e.BytesTransferred > 0)
                 base.OnReceive(e);
             else
                 OnError(e, null);

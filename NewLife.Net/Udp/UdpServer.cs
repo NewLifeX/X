@@ -12,8 +12,6 @@ namespace NewLife.Net.Udp
     /// 接收到的数据全部转接到<see cref="Received"/>事件中。
     /// 
     /// 服务器完全处于异步工作状态，任何操作都不可能被阻塞。
-    /// 
-    /// <see cref="ISocket.NoDelay"/>的设置会影响异步操作数，不启用时，只有一个异步操作。
     /// </remarks>
     public class UdpServer : SocketServer, IUdp
     {
@@ -46,22 +44,10 @@ namespace NewLife.Net.Udp
         protected override void OnStart()
         {
             Server.EnableBroadcast = true;
-            //Server.ExclusiveAddressUse = true;
 
             base.OnStart();
 
-            // 设定委托
-            // 指定10名工人待命，等待处理新连接
-            // 一方面避免因没有及时安排工人而造成堵塞，另一方面避免工人中途死亡或逃跑而导致无人迎宾
-
-            Int32 count = NoDelay ? 10 * Environment.ProcessorCount : 1;
-            for (int i = 0; i < count; i++)
-            // 这里不能开多个，否则可能会造成不同事件的RemoteEndPoint错乱
-            // 这里http://stackoverflow.com/questions/5802998/is-this-receivefromasync-bug
-            // 暂时未找到根本原因，先这样用着
-            {
-                ReceiveAsync();
-            }
+            ReceiveAsync();
         }
 
         /// <summary>开始异步接收数据</summary>
@@ -92,7 +78,6 @@ namespace NewLife.Net.Udp
             // 没有接收事件时，马上开始处理重建委托
             if (Received == null)
             {
-                Push(e);
                 ReceiveAsync();
                 return;
             }

@@ -7,7 +7,7 @@ namespace NewLife.Net.Sockets
 {
     /// <summary>Socket客户端</summary>
     /// <remarks>
-    /// 处理的过程中，即使使用异步，也允许事件订阅者阻塞<see cref="ISocket.NoDelay"/>下一次接收的开始<see cref="ReceiveAsync"/>，
+    /// 处理的过程中，即使使用异步，也允许事件订阅者阻塞下一次接收的开始<see cref="ReceiveAsync"/>，
     /// 因为事件订阅者可能需要处理完手头的数据才开始下一次接收。
     /// </remarks>
     public abstract class SocketClient : SocketBase, ISocketClient
@@ -22,7 +22,7 @@ namespace NewLife.Net.Sockets
         public SocketClient()
         {
             // 客户端可能需要阻塞，默认打开延迟
-            NoDelay = false;
+            //NoDelay = false;
         }
         #endregion
 
@@ -58,17 +58,7 @@ namespace NewLife.Net.Sockets
 
         #region 异步开始
         /// <summary>开始异步接收数据</summary>
-        public virtual void ReceiveAsync()
-        {
-            // 这里居然在委托的CtorClosed方法里面报this为空对错误
-            StartAsync(e =>
-            {
-                var client = Client;
-                if (client == null || Disposed) { e.Cancel = true; return false; }
-
-                return client.ReceiveAsync(e);
-            });
-        }
+        public abstract void ReceiveAsync();
         #endregion
 
         #region 事件
@@ -95,7 +85,6 @@ namespace NewLife.Net.Sockets
             // 没有接收事件时，马上开始处理重建委托
             if (Received == null)
             {
-                Push(e);
                 ReceiveAsync();
                 return;
             }

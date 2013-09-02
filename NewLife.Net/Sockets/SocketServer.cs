@@ -21,9 +21,6 @@ namespace NewLife.Net.Sockets
         {
             Address = address;
             Port = port;
-
-            // 服务器为了保证高效处理，关闭延迟
-            NoDelay = true;
         }
 
         /// <summary>构造一个Socket服务器对象</summary>

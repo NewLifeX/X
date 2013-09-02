@@ -74,7 +74,7 @@
     <Compile Include="Application\SerialServer.cs" />
     <Compile Include="Common\BufferPool.cs" />
     <Compile Include="Common\ClientMessageProvider.cs" />
-    <Compile Include="Model\ISendReceive.cs" />
+    <Compile Include="Common\ExceptionEventArgs.cs" />
     <Compile Include="Common\IStatistics.cs" />
     <Compile Include="Common\NetException.cs" />
     <Compile Include="Common\NetUri.cs" />
@@ -91,7 +91,9 @@
     <Compile Include="DNS\DNS_TXT.cs" />
     <Compile Include="DNS\NetBIOS.cs" />
     <Compile Include="DNS\DNS_NB.cs" />
-    <Compile Include="Fetion\WapFetion.cs" />
+    <Compile Include="Fetion\WapFetion.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Flash\SandBoxServer.cs" />
     <Compile Include="FTP\FTPClient.cs" />
     <Compile Include="FTP\FTPItem.cs" />
@@ -121,8 +123,9 @@
     <Compile Include="Modbus\ModbusSlave.cs" />
     <Compile Include="Modbus\SerialTransport.cs" />
     <Compile Include="Modbus\UdpTransport.cs" />
-    <Compile Include="Model\Tcp.cs" />
-    <Compile Include="Model\Udp.cs" />
+    <Compile Include="Model\DataEventArgs.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="NetService.cs" />
     <Compile Include="DNS\DNSClient.cs" />
     <Compile Include="DNS\DNSEntity.cs" />
@@ -148,9 +151,15 @@
     <Compile Include="P2P\HoleServer.cs" />
     <Compile Include="P2P\P2PClient.cs" />
     <Compile Include="P2P\P2PTest.cs" />
-    <Compile Include="Pop3\Pop3Client.cs" />
-    <Compile Include="Pop3\Pop3Server.cs" />
-    <Compile Include="Pop3\Pop3Session.cs" />
+    <Compile Include="Pop3\Pop3Client.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Pop3\Pop3Server.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Pop3\Pop3Session.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Proxy\HttpProxy.cs" />
     <Compile Include="Proxy\HttpReverseProxy.cs" />
     <Compile Include="Proxy\IProxy.cs" />
@@ -159,16 +168,27 @@
     <Compile Include="Proxy\ProxySession.cs" />
     <Compile Include="Proxy\ProxyBase.cs" />
     <Compile Include="Proxy\NATProxy.cs" />
-    <None Include="SNTP\SNTPClient.cs" />
     <Compile Include="Proxy\Socks5\Socks5Entity.cs" />
     <Compile Include="Proxy\Socks5\Socks5Client.cs" />
     <Compile Include="Proxy\Socks5\Socks5Server.cs" />
-    <Compile Include="Sdp\SdpAttribute.cs" />
-    <Compile Include="Sdp\SdpConnection.cs" />
-    <Compile Include="Sdp\SdpMediaDescription.cs" />
-    <Compile Include="Sdp\SdpMessage.cs" />
-    <Compile Include="Sdp\SdpOrigin.cs" />
-    <Compile Include="Sdp\SdpTime.cs" />
+    <Compile Include="Sdp\SdpAttribute.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Sdp\SdpConnection.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Sdp\SdpMediaDescription.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Sdp\SdpMessage.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Sdp\SdpOrigin.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Sdp\SdpTime.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="SGIP\SGIPBind.cs" />
     <Compile Include="SGIP\SGIPClient.cs" />
     <Compile Include="SGIP\SGIPDeliver.cs" />
@@ -177,28 +197,72 @@
     <Compile Include="SGIP\SGIPServer.cs" />
     <Compile Include="SGIP\SGIPSubmit.cs" />
     <Compile Include="SGIP\SGIPUnbind.cs" />
-    <Compile Include="Sip\Message\SipACValue.cs" />
-    <Compile Include="Sip\Message\SipNameAddress.cs" />
-    <Compile Include="Sip\Message\SipValue.cs" />
-    <Compile Include="Sip\Message\SipValueWithParams.cs" />
-    <Compile Include="Sip\Message\SipAddressParam.cs" />
-    <Compile Include="Sip\Message\Sip.cs" />
-    <Compile Include="Sip\Message\SipAlertParam.cs" />
-    <Compile Include="Sip\Message\SipContactParam.cs" />
-    <Compile Include="Sip\Message\SipContentDisposition.cs" />
-    <Compile Include="Sip\Message\SipEncoding.cs" />
-    <Compile Include="Sip\Message\SipErrorUri.cs" />
-    <Compile Include="Sip\Message\SipEvent.cs" />
-    <Compile Include="Sip\Message\SipFrom.cs" />
-    <Compile Include="Sip\Message\SipHiEntry.cs" />
-    <Compile Include="Sip\Message\SipIdentityInfo.cs" />
-    <Compile Include="Sip\Message\SipInfo.cs" />
-    <Compile Include="Sip\Message\SipJoin.cs" />
-    <Compile Include="Smtp\SmtpClient.cs" />
-    <Compile Include="Smtp\SmtpServer.cs" />
-    <Compile Include="Smtp\SmtpSession.cs" />
-    <Compile Include="Smtp\RelayServer.cs" />
-    <Compile Include="Smtp\RelaySession.cs" />
+    <Compile Include="Sip\Message\Sip.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Sip\Message\SipACValue.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Sip\Message\SipAddressParam.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Sip\Message\SipAlertParam.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Sip\Message\SipContactParam.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Sip\Message\SipContentDisposition.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Sip\Message\SipEncoding.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Sip\Message\SipErrorUri.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Sip\Message\SipEvent.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Sip\Message\SipFrom.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Sip\Message\SipHiEntry.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Sip\Message\SipIdentityInfo.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Sip\Message\SipInfo.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Sip\Message\SipJoin.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Sip\Message\SipNameAddress.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Sip\Message\SipValue.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Sip\Message\SipValueWithParams.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Smtp\RelayServer.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Smtp\RelaySession.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Smtp\SmtpClient.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Smtp\SmtpServer.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Smtp\SmtpSession.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Sockets\ReceivedEventArgs.cs" />
     <Compile Include="Sockets\INetSession.cs" />
     <Compile Include="Sockets\ISocket.cs" />
@@ -248,6 +312,7 @@
     <EmbeddedResource Include="App.config">
       <SubType>Designer</SubType>
     </EmbeddedResource>
+    <None Include="SNTP\SNTPClient.cs" />
     <None Include="TDP\TDP.pdf" />
     <None Include="架构设计\网络模型.cd" />
   </ItemGroup>

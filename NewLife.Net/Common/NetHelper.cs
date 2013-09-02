@@ -300,13 +300,13 @@ namespace System
         static void Wake(String mac)
         {
             mac = mac.Replace("-", null);
-            Byte[] buffer = new Byte[mac.Length / 2];
+            var buffer = new Byte[mac.Length / 2];
             for (int i = 0; i < buffer.Length; i++)
             {
                 buffer[i] = Byte.Parse(mac.Substring(i * 2, 2), NumberStyles.HexNumber);
             }
 
-            Byte[] bts = new Byte[6 + 16 * buffer.Length];
+            var bts = new Byte[6 + 16 * buffer.Length];
             for (int i = 0; i < 6; i++)
             {
                 bts[i] = 0xFF;
@@ -318,7 +318,7 @@ namespace System
                 bts[i] = buffer[k];
             }
 
-            UdpClient client = new UdpClient();
+            var client = new UdpClient();
             client.EnableBroadcast = true;
             client.Send(bts, bts.Length, new IPEndPoint(IPAddress.Broadcast, 7));
         }

@@ -21,8 +21,6 @@ namespace NewLife.Net.Tcp
     /// 服务器完全处于异步工作状态，任何操作都不可能被阻塞。
     /// 
     /// 注意：服务器接受连接请求后，不会开始处理数据，而是由<see cref="Accepted"/>事件订阅者决定何时开始处理数据<see cref="TcpClientX.Start"/>。
-    /// 
-    /// <see cref="ISocket.NoDelay"/>的设置会影响异步操作数，不启用时，只有一个异步操作。
     /// </remarks>
     public class TcpServer : SocketServer
     {
@@ -54,6 +52,10 @@ namespace NewLife.Net.Tcp
                 return n;
             }
         }
+
+        private Boolean _UseSession;
+        /// <summary>使用会话</summary>
+        public Boolean UseSession { get { return _UseSession; } set { _UseSession = value; } }
         #endregion
 
         #region 构造
@@ -87,14 +89,7 @@ namespace NewLife.Net.Tcp
             Server.Listen(Int32.MaxValue);
             //Server.Listen(200);
 
-            // 设定委托
-            // 指定10名工人待命，等待处理新连接
-            // 一方面避免因没有及时安排工人而造成堵塞，另一方面避免工人中途死亡或逃跑而导致无人迎接客人
-            // 该安排在一定程度上分担了Listen队列的压力，工人越多，就能及时把任务接过来，尽管处理不了那么快
-            // 需要注意的是，该设计会导致销毁时触发多次（每个工人一次）Error事件
-
-            Int32 count = NoDelay ? 10 * Environment.ProcessorCount : 1;
-            for (int i = 0; i < count; i++) AcceptAsync();
+            AcceptAsync();
         }
 
         void AcceptAsync()
@@ -106,7 +101,7 @@ namespace NewLife.Net.Tcp
 
                 e.AcceptSocket = null;
                 return server.AcceptAsync(e);
-            }, false);
+            });
         }
 
         /// <summary>确定是否有挂起的连接请求。</summary>
@@ -123,17 +118,9 @@ namespace NewLife.Net.Tcp
         /// <param name="e"></param>
         protected virtual void OnAccept(NetEventArgs e)
         {
-            //// Socket错误由各个处理器来处理
-            //if (e.SocketError == SocketError.OperationAborted)
-            //{
-            //    OnError(e, null);
-            //    return;
-            //}
-
             // 没有接收事件时，马上开始处理重建委托
             if (Accepted == null)
             {
-                Push(e);
                 AcceptAsync();
                 return;
             }
@@ -166,7 +153,7 @@ namespace NewLife.Net.Tcp
             }
 
             // 不需要指定Key，内部会计算
-            Sessions.Add(0, session);
+            if (UseSession) Sessions.Add(0, session);
 
             // 设置接收事件，统计异步接收的数据包，不包括同步接收
             session.Received += (s, e2) => Statistics.Increment();

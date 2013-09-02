@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using NewLife.Net.Common;
 using NewLife.Net.Sockets;
 using NewLife.Net.Tcp;
 
@@ -68,7 +69,7 @@ namespace NewLife.Net.IO
 
                 FileFormat format = FileFormat.Load(stream);
             };
-            session.Error += new EventHandler<NetEventArgs>(OnError);
+            //session.Error += new EventHandler<ExceptionEventArgs>(OnError);
         }
         #endregion
     }
