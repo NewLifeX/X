@@ -9,6 +9,7 @@ using NewLife.Exceptions;
 using NewLife.Reflection;
 using NewLife.Log;
 using System.Reflection;
+using System.Collections;
 
 namespace NewLife.Xml
 {
@@ -315,6 +316,8 @@ namespace NewLife.Xml
 
         static Boolean AttachCommitInternal(this XmlNode node, Type type)
         {
+            if (node.ChildNodes == null || node.ChildNodes.Count < 1) return false;
+
             var rs = false;
 
             // 当前节点加注释
@@ -323,33 +326,48 @@ namespace NewLife.Xml
                 if (SetComment(node, type)) rs = true;
             }
 
+            #region 特殊处理数组和列表
+            Type elmType = null;
+            if (type.HasElementType)
+                elmType = type.GetElementType();
+            else if (typeof(IEnumerable).IsAssignableFrom(type) && type.IsGenericType && type.GetGenericArguments().Length == 1)
+                elmType = type.GetGenericArguments()[0];
+
+            if (elmType != null && elmType.Name.EqualIgnoreCase(node.ChildNodes[0].Name))
+            {
+                for (int i = 0; i < node.ChildNodes.Count; i++)
+                {
+                    rs |= node.ChildNodes[i].AttachCommitInternal(elmType);
+                }
+                return rs;
+            }
+            #endregion
+
             for (int i = 0; i < node.ChildNodes.Count; i++)
             {
                 var curNode = node.ChildNodes[i];
+
                 // 如果当前是注释，跳过两个，下一个也不处理了
-                if (curNode.IsComment())
-                {
-                    i++;
-                    continue;
-                }
-                // 如果前一个是注释，跳过
-                if (i > 0 && node.ChildNodes[i - 1].IsComment()) continue;
+                if (curNode.IsComment()) { i++; continue; }
 
                 // 找到对应的属性
                 var name = curNode.Name;
                 var pix = PropertyInfoX.Create(type, name);
-                if (pix == null) continue;
 
-                if (SetComment(curNode, pix.Property)) { rs = true; i++; }
+                // 如果前一个是注释，跳过
+                if (i <= 0 || !node.ChildNodes[i - 1].IsComment())
+                {
+                    if (pix != null && SetComment(curNode, pix.Property)) { rs = true; i++; }
+                }
 
                 // 递归。因为必须依赖于Xml树，所以不用担心死循环
-                if (Type.GetTypeCode(pix.Type) == TypeCode.Object) rs |= curNode.AttachCommitInternal(pix.Type);
+                if (pix != null && Type.GetTypeCode(pix.Type) == TypeCode.Object) rs |= curNode.AttachCommitInternal(pix.Type);
             }
 
             return rs;
         }
 
-        private static Boolean SetComment(XmlNode node, MemberInfo member)
+        private static Boolean SetComment(this XmlNode node, MemberInfo member)
         {
             if (node.IsComment() || node.PreviousSibling.IsComment()) return false;
 

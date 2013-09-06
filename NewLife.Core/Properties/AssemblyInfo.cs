@@ -37,7 +37,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyFileVersion("3.9.2013.0906")]
 
 /*
- * v3.9.2013.0906   根据实体类模型给Xml树增加注释时，同时支持给实体类顶级加注释
+ * v3.9.2013.0906   XmlHelper根据实体类模型给Xml树增加注释时，同时支持给实体类顶级加注释，支持数组和列表属性
  * 
  * v3.9.2013.0901   明确PathHelper.EnsureDirectory的用法，基础类库的用法应该有明确的用途，而不是通过某些小伎俩去让人猜测
  * 
