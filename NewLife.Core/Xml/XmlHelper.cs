@@ -8,6 +8,7 @@ using System.Xml.Serialization;
 using NewLife.Exceptions;
 using NewLife.Reflection;
 using NewLife.Log;
+using System.Reflection;
 
 namespace NewLife.Xml
 {
@@ -315,51 +316,31 @@ namespace NewLife.Xml
         static Boolean AttachCommitInternal(this XmlNode node, Type type)
         {
             var rs = false;
+
+            // 当前节点加注释
+            if (!node.PreviousSibling.IsComment())
+            {
+                if (SetComment(node, type)) rs = true;
+            }
+
             for (int i = 0; i < node.ChildNodes.Count; i++)
             {
                 var curNode = node.ChildNodes[i];
                 // 如果当前是注释，跳过两个，下一个也不处理了
-                if (curNode.NodeType == XmlNodeType.Comment)
+                if (curNode.IsComment())
                 {
                     i++;
                     continue;
                 }
                 // 如果前一个是注释，跳过
-                if (i > 0 && node.ChildNodes[i - 1].NodeType == XmlNodeType.Comment) continue;
+                if (i > 0 && node.ChildNodes[i - 1].IsComment()) continue;
 
                 // 找到对应的属性
                 var name = curNode.Name;
                 var pix = PropertyInfoX.Create(type, name);
                 if (pix == null) continue;
 
-                #region 从特性中获取注释
-                var commit = String.Empty;
-                var des = pix.Property.GetCustomAttribute<DescriptionAttribute>(true);
-                var dis = pix.Property.GetCustomAttribute<DisplayNameAttribute>(true);
-                if (des != null && dis == null)
-                    commit = des.Description;
-                else if (des == null && dis != null)
-                    commit = dis.DisplayName;
-                else if (des != null && dis != null)
-                {
-                    // DisplayName。Description
-                    if (des.Description == null && !dis.DisplayName.IsNullOrWhiteSpace() || !des.Description.Contains(dis.DisplayName))
-                    {
-                        commit = dis.DisplayName;
-                        if (!commit.EndsWith(".") || commit.EndsWith("。")) commit += "。";
-                    }
-                    if (!des.Description.IsNullOrWhiteSpace()) commit += des.Description;
-                }
-                #endregion
-
-                if (!commit.IsNullOrWhiteSpace())
-                {
-                    rs = true;
-
-                    var cm = curNode.OwnerDocument.CreateComment(commit);
-                    node.InsertBefore(cm, curNode);
-                    i++;
-                }
+                if (SetComment(curNode, pix.Property)) { rs = true; i++; }
 
                 // 递归。因为必须依赖于Xml树，所以不用担心死循环
                 if (Type.GetTypeCode(pix.Type) == TypeCode.Object) rs |= curNode.AttachCommitInternal(pix.Type);
@@ -367,6 +348,40 @@ namespace NewLife.Xml
 
             return rs;
         }
+
+        private static Boolean SetComment(XmlNode node, MemberInfo member)
+        {
+            if (node.IsComment() || node.PreviousSibling.IsComment()) return false;
+
+            #region 从特性中获取注释
+            var commit = String.Empty;
+            var des = member.GetCustomAttribute<DescriptionAttribute>(true);
+            var dis = member.GetCustomAttribute<DisplayNameAttribute>(true);
+            if (des != null && dis == null)
+                commit = des.Description;
+            else if (des == null && dis != null)
+                commit = dis.DisplayName;
+            else if (des != null && dis != null)
+            {
+                // DisplayName。Description
+                if (des.Description == null && !dis.DisplayName.IsNullOrWhiteSpace() || !des.Description.Contains(dis.DisplayName))
+                {
+                    commit = dis.DisplayName;
+                    if (!commit.EndsWith(".") || commit.EndsWith("。")) commit += "。";
+                }
+                if (!des.Description.IsNullOrWhiteSpace()) commit += des.Description;
+            }
+            #endregion
+
+            if (commit.IsNullOrWhiteSpace()) return false;
+
+            var cm = node.OwnerDocument.CreateComment(commit);
+            node.ParentNode.InsertBefore(cm, node);
+
+            return true;
+        }
+
+        private static Boolean IsComment(this XmlNode node) { return node != null && node.NodeType == XmlNodeType.Comment; }
         #endregion
 
         #region Xml转字典
