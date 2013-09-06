@@ -29,9 +29,11 @@ using System.Runtime.InteropServices;
 //      修订号
 //
 [assembly: AssemblyVersion("5.1.*")]
-[assembly: AssemblyFileVersion("5.1.2013.0307")]
+[assembly: AssemblyFileVersion("5.1.2013.0906")]
 
 /*
+ * v5.1.2013.0906   更新扩展查询模版，默认的FindByxx/FindAllByxx函数里面，缓存查找采用__.xx名称，而不要用_.xx，后面默认得到字段名，不适合内存查找
+ * 
  * v5.1.2013.0307   增强数据模型，生成代码时可使用$(属性名)作为输出路径的一部分，支持IDataTable的属性和扩展属性（主要）
  * 
  * v5.0.2012.1117   增加T4引导模版，用于在实体类项目中通过命令行调用XCoder生成代码
