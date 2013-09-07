@@ -76,6 +76,19 @@ namespace System
 
             return dic;
         }
+
+        /// <summary>追加字符串，除了开头</summary>
+        /// <param name="sb"></param>
+        /// <param name="str"></param>
+        /// <returns></returns>
+        public static StringBuilder AppendExceptStart(this StringBuilder sb, String str)
+        {
+            if (sb == null || String.IsNullOrEmpty(str)) return sb;
+
+            if (sb.Length > 0) sb.Append(str);
+
+            return sb;
+        }
         #endregion
 
         #region 截取扩展
@@ -218,7 +231,7 @@ namespace System
         /// <param name="maxLength"></param>
         /// <param name="pad"></param>
         /// <returns></returns>
-        public static String Cut(this String str, Int32 maxLength, String pad)
+        public static String Cut(this String str, Int32 maxLength, String pad = null)
         {
             if (String.IsNullOrEmpty(str) || maxLength <= 0 || str.Length < maxLength) return str;
 
@@ -236,7 +249,7 @@ namespace System
         /// <param name="pad"></param>
         /// <param name="strict">严格模式时，遇到截断位置位于一个字符中间时，忽略该字符，否则包括该字符</param>
         /// <returns></returns>
-        public static String CutBinary(this String str, Int32 maxLength, String pad, Boolean strict = true)
+        public static String CutBinary(this String str, Int32 maxLength, String pad = null, Boolean strict = true)
         {
             if (String.IsNullOrEmpty(str) || maxLength <= 0 || str.Length < maxLength) return str;
 
