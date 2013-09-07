@@ -371,10 +371,10 @@ namespace XCode
                     sbValues.Append(idv);
                 else
                 {
-                    if (!UseParam(fi))
-                        sbValues.Append(op.FormatValue(fi, value));
-                    else
+                    if (UseParam(fi, entity))
                         dps.Add(CreateParameter(sbValues, op, fi, value));
+                    else
+                        sbValues.Append(op.FormatValue(fi, value));
                 }
             }
 
@@ -417,7 +417,7 @@ namespace XCode
                 sb.Append(name);
                 sb.Append("=");
 
-                if (UseParam(fi))
+                if (UseParam(fi, entity))
                     dps.Add(CreateParameter(sb, op, fi, value));
                 else
                 {
@@ -433,9 +433,25 @@ namespace XCode
             return String.Format("Update {0} Set {1} Where {2}", op.FormatedTableName, sb, def);
         }
 
-        static Boolean UseParam(FieldItem fi)
+        static Boolean UseParam(FieldItem fi, Object value)
         {
-            return (fi.Length <= 0 || fi.Length >= 4000) && (fi.Type == typeof(Byte[]) || fi.Type == typeof(String));
+            //return (fi.Length <= 0 || fi.Length >= 4000) && (fi.Type == typeof(Byte[]) || fi.Type == typeof(String));
+
+            if (fi.Length > 0 && fi.Length < 4000) return false;
+
+            // 虽然是大字段，但数据量不大时不用参数
+            if (fi.Type == typeof(String))
+            {
+                var str = value as String;
+                return str != null && str.Length > 4000;
+            }
+            else if (fi.Type == typeof(Byte[]))
+            {
+                var str = value as Byte[];
+                return str != null && str.Length > 4000;
+            }
+
+            return false;
         }
 
         static Object FormatParamValue(FieldItem fi, Object value, IEntityOperate eop)
