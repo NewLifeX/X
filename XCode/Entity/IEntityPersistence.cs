@@ -341,17 +341,7 @@ namespace XCode
             {
                 var value = entity[fi.Name];
                 // 标识列不需要插入，别的类型都需要
-                String idv = null;
-                if (fi.IsIdentity)
-                {
-                    if (op.AllowInsertIdentity)
-                        idv = "" + entity[fi.Name];
-                    else
-                        idv = DAL.Create(op.ConnName).Db.FormatIdentity(fi.Field, value);
-                    //if (String.IsNullOrEmpty(idv)) continue;
-                    // 允许返回String.Empty作为插入空
-                    if (idv == null) continue;
-                }
+                if (CheckIdentity(fi, value, op, sbNames, sbValues)) continue;
 
                 // 有默认值，并且没有设置值时，不参与插入操作
                 // 20120509增加，同时还得判断是否相同数据库或者数据库默认值，比如MSSQL数据库默认值不是GetDate，那么其它数据库是不可能使用的
@@ -367,21 +357,39 @@ namespace XCode
                 //else
                 //sbValues.Append(SqlDataFormat(obj[fi.Name], fi)); // 数据
 
-                if (fi.IsIdentity)
-                    sbValues.Append(idv);
+                if (UseParam(fi, entity))
+                    dps.Add(CreateParameter(sbValues, op, fi, value));
                 else
-                {
-                    if (UseParam(fi, entity))
-                        dps.Add(CreateParameter(sbValues, op, fi, value));
-                    else
-                        sbValues.Append(op.FormatValue(fi, value));
-                }
+                    sbValues.Append(op.FormatValue(fi, value));
             }
 
             if (sbNames.Length <= 0) return null;
 
             if (dps.Count > 0) parameters = dps.ToArray();
             return String.Format("Insert Into {0}({1}) Values({2})", op.FormatedTableName, sbNames, sbValues);
+        }
+
+        static Boolean CheckIdentity(FieldItem fi, Object value, IEntityOperate op, StringBuilder sbNames, StringBuilder sbValues)
+        {
+            if (!fi.IsIdentity) return false;
+
+            // 有些时候需要向自增字段插入数据，这里特殊处理
+            String idv = null;
+            if (op.AllowInsertIdentity)
+                idv = "" + value;
+            else
+                idv = DAL.Create(op.ConnName).Db.FormatIdentity(fi.Field, value);
+            //if (String.IsNullOrEmpty(idv)) continue;
+            // 允许返回String.Empty作为插入空
+            if (idv == null) return true;
+
+            sbNames.AppendExceptStart(", ");
+            sbNames.Append(op.FormatName(fi.ColumnName));
+            sbValues.AppendExceptStart(", ");
+
+            sbValues.Append(idv);
+
+            return true;
         }
 
         static String UpdateSQL(IEntity entity, ref DbParameter[] parameters)
