@@ -35,6 +35,9 @@ namespace XCode
         /// <summary>表名</summary>
         String TableName { get; set; }
 
+        /// <summary>已格式化的表名，带有中括号等</summary>
+        String FormatedTableName { get; }
+
         /// <summary>实体缓存</summary>
         IEntityCache Cache { get; }
 

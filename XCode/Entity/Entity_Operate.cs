@@ -42,6 +42,9 @@ namespace XCode
             /// <summary>表名</summary>
             public String TableName { get { return Meta.TableName; } set { Meta.TableName = value; } }
 
+            /// <summary>已格式化的表名，带有中括号等</summary>
+            public String FormatedTableName { get { return Meta.FormatName(Meta.TableName); } }
+
             /// <summary>实体缓存</summary>
             public IEntityCache Cache { get { return Meta.Cache; } }
 
