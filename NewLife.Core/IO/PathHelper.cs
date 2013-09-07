@@ -1,4 +1,5 @@
 ﻿
+using System.Web;
 namespace System.IO
 {
     /// <summary>路径操作帮助</summary>
@@ -13,7 +14,13 @@ namespace System.IO
         {
             if (String.IsNullOrEmpty(path)) return path;
 
-            if (!Path.IsPathRooted(path)) path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, path);
+            if (!Path.IsPathRooted(path))
+            {
+                path = path.TrimStart('~');
+                path = path.Replace("/", "\\").TrimStart('\\');
+
+                path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, path);
+            }
 
             return Path.GetFullPath(path);
         }
