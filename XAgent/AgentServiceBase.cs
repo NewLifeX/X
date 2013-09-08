@@ -10,6 +10,11 @@ using NewLife.Log;
 using NewLife.Model;
 using NewLife.Reflection;
 using NewLife.Threading;
+#if NET4
+using System.Linq;
+#else
+using NewLife.Linq;
+#endif
 
 namespace XAgent
 {
@@ -464,6 +469,9 @@ namespace XAgent
         /// <summary>开始循环工作</summary>
         public virtual void StartWork()
         {
+            //依赖服务检测
+            PreStartWork();
+
             WriteLine("服务启动");
 
             try
@@ -889,6 +897,83 @@ namespace XAgent
                 }
             }
         }
+        #endregion
+
+        #region 服务依赖
+        /// <summary>
+        /// 启动服务准备工作
+        /// </summary>
+        public void PreStartWork()
+        {
+            ServiceController[] Services = ServiceController.GetServices();
+
+            //首先检查是否有依赖服务
+            #region 首先检查是否有依赖服务
+            // 1.服务本身的依赖
+            ServiceController[] servicesDependedOn = null;
+            ServiceController scApp = Services.First(s => s.ServiceName == ServiceName);
+            if (scApp != null)
+            {
+                servicesDependedOn = scApp.ServicesDependedOn;
+
+                foreach (var service in servicesDependedOn)
+                {
+                    try
+                    {
+                        service.Start();
+                    }
+                    catch (Exception)
+                    {
+                        //依赖服务启动未成功
+                        throw new Exception("依赖服务未启动成功");
+                    }
+                }
+            }
+            // 2.配置文件的依赖
+            String[] scConfig = NewLife.Configuration.Config.GetConfigSplit<String>("ServicesDependedOn", ",", null);
+            foreach (var item in scConfig)
+            {
+                ServiceController sc = Services.First(s => s.ServiceName == item);
+                if (sc != null) sc.Start();
+                else
+                {
+                    throw new Exception(String.Format("依赖服务{0}不存在", item));
+                }
+            }
+            #endregion
+
+            //其次检查基础服务XAgent是否安装和启动
+            #region 其次检查基础服务是否安装和启动
+            var xagentService = Services.First(s => s.ServiceName == "XAgent");
+            if (xagentService == null)
+            {
+                //安装服务
+                ServiceControl.Install(true);
+
+                Services = ServiceController.GetServices();
+                xagentService = Services.First(s => s.ServiceName == "XAgent");
+                if (xagentService == null) { throw new Exception("XAgent服务无法安装"); }
+            }
+            if (xagentService.Status != ServiceControllerStatus.Running)
+            {
+                //启动服务
+                ServiceControl.ControlService(true);
+
+                if (xagentService.Status != ServiceControllerStatus.Running) { throw new Exception("XAgent服务无法启动"); }
+            }
+            #endregion
+
+            ////启动自己的业务逻辑
+            //StartOwnWork();
+        }
+
+        ///// <summary>
+        ///// 业务逻辑部分
+        ///// </summary>
+        //public virtual void StartOwnWork()
+        //{
+
+        //}
         #endregion
     }
 }
