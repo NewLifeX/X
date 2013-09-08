@@ -109,6 +109,7 @@
     <Compile Include="Attributes\BindRelationAttribute.cs" />
     <Compile Include="Code\CodeDomHelper.cs" />
     <Compile Include="DataAccessLayer\Model\NullableDictionary.cs" />
+    <Compile Include="Entity\IEntityEntry.cs" />
     <Compile Include="Sync\ISyncMaster.cs" />
     <Compile Include="Sync\ISyncSlave.cs" />
     <Compile Include="Sync\SyncManager.cs" />

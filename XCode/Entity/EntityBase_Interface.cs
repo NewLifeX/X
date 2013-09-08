@@ -1,15 +1,12 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using XCode.Configuration;
 
 namespace XCode
 {
-    public partial class EntityBase : ICustomTypeDescriptor, IEditableObject
-    //#if !NET20SP0
-    //        ,INotifyPropertyChanging, INotifyPropertyChanged
-    //#endif
-    //, IDataErrorInfo
+    public partial class EntityBase : ICustomTypeDescriptor, IEditableObject, IEnumerable<IEntityEntry>
     {
         #region INotifyPropertyChanged接口
         /// <summary>如果实体来自数据库，在给数据属性赋相同值时，不改变脏数据，其它情况均改变脏数据</summary>
@@ -45,30 +42,6 @@ namespace XCode
             //            if (_PropertyChanged != null) _PropertyChanged(this, new PropertyChangedEventArgs(fieldName));
             //#endif
         }
-
-        //#if !NET20SP0
-        //        [field: NonSerialized]
-        //        event PropertyChangingEventHandler _PropertyChanging;
-        //        /// <summary>
-        //        /// 属性将更改
-        //        /// </summary>
-        //        event PropertyChangingEventHandler INotifyPropertyChanging.PropertyChanging
-        //        {
-        //            add { _PropertyChanging += value; }
-        //            remove { _PropertyChanging -= value; }
-        //        }
-
-        //        [field: NonSerialized]
-        //        event PropertyChangedEventHandler _PropertyChanged;
-        //        /// <summary>
-        //        /// 属性已更改
-        //        /// </summary>
-        //        event PropertyChangedEventHandler INotifyPropertyChanged.PropertyChanged
-        //        {
-        //            add { _PropertyChanged += value; }
-        //            remove { _PropertyChanged -= value; }
-        //        }
-        //#endif
         #endregion
 
         #region ICustomTypeDescriptor 成员
@@ -236,16 +209,17 @@ namespace XCode
         }
         #endregion
 
-        #region IDataErrorInfo 成员
-        //string IDataErrorInfo.Error
-        //{
-        //    get { throw new NotImplementedException(); }
-        //}
+        #region IEnumerable成员
+        IEnumerator<IEntityEntry> IEnumerable<IEntityEntry>.GetEnumerator()
+        {
+            var op = EntityFactory.CreateOperate(this.GetType());
+            foreach (var item in op.AllFields)
+            {
+                yield return new EntityEntry { Field = item, Entity = this };
+            }
+        }
 
-        //string IDataErrorInfo.this[string columnName]
-        //{
-        //    get { throw new NotImplementedException(); }
-        //}
+        IEnumerator IEnumerable.GetEnumerator() { return (this as IEnumerable<IEntityEntry>).GetEnumerator(); }
         #endregion
     }
 }
