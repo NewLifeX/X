@@ -328,8 +328,10 @@ namespace XCode
 
             /*
             * 插入数据原则：
-            * 1，没有脏数据的字段一律不参与
-            * 
+            * 1，有脏数据的字段一定要参与
+            * 2，没有脏数据，允许空的字段不参与
+            * 3，没有脏数据，不允许空，有默认值的不参与
+            * 4，没有脏数据，不允许空，没有默认值的参与，需要智能识别并添加相应字段的默认数据
             */
 
             var sbNames = new StringBuilder();
@@ -343,9 +345,32 @@ namespace XCode
                 // 标识列不需要插入，别的类型都需要
                 if (CheckIdentity(fi, value, op, sbNames, sbValues)) continue;
 
-                // 有默认值，并且没有设置值时，不参与插入操作
-                // 20120509增加，同时还得判断是否相同数据库或者数据库默认值，比如MSSQL数据库默认值不是GetDate，那么其它数据库是不可能使用的
-                if (!String.IsNullOrEmpty(fi.DefaultValue) && !entity.Dirtys[fi.Name] && CanUseDefault(fi, op)) continue;
+                // 1，有脏数据的字段一定要参与
+                if (!entity.Dirtys[fi.Name])
+                {
+                    // 2，没有脏数据，允许空的字段不参与
+                    if (fi.IsNullable) continue;
+                    // 3，没有脏数据，不允许空，有默认值的不参与
+                    if (fi.DefaultValue != null) continue;
+
+                    // 4，没有脏数据，不允许空，没有默认值的参与，需要智能识别并添加相应字段的默认数据
+                    //switch (Type.GetTypeCode(fi.Type))
+                    //{
+                    //    case TypeCode.DateTime:
+                    //        value = DateTime.MinValue;
+                    //        break;
+                    //    case TypeCode.String:
+                    //        value = "";
+                    //        break;
+                    //    default:
+                    //        break;
+                    //}
+                    value = FormatParamValue(fi, null, op);
+                }
+
+                //// 有默认值，并且没有设置值时，不参与插入操作
+                //// 20120509增加，同时还得判断是否相同数据库或者数据库默认值，比如MSSQL数据库默认值不是GetDate，那么其它数据库是不可能使用的
+                //if (!String.IsNullOrEmpty(fi.DefaultValue) && !entity.Dirtys[fi.Name] && CanUseDefault(fi, op)) continue;
 
                 sbNames.AppendExceptStart(", ");
                 sbNames.Append(op.FormatName(fi.ColumnName));
@@ -526,25 +551,25 @@ namespace XCode
             return true;
         }
 
-        static Boolean CanUseDefault(FieldItem fi, IEntityOperate eop)
-        {
-            var dbType = fi.Table.Table.DbType;
-            var dal = DAL.Create(eop.ConnName);
-            if (dbType == dal.DbType) return true;
+        //static Boolean CanUseDefault(FieldItem fi, IEntityOperate eop)
+        //{
+        //    var dbType = fi.Table.Table.DbType;
+        //    var dal = DAL.Create(eop.ConnName);
+        //    if (dbType == dal.DbType) return true;
 
-            // 原始数据库类型
-            var db = DbFactory.Create(dbType);
-            if (db == null) return false;
+        //    // 原始数据库类型
+        //    var db = DbFactory.Create(dbType);
+        //    if (db == null) return false;
 
-            var tc = Type.GetTypeCode(fi.Type);
-            // 特殊处理时间
-            if (tc == TypeCode.DateTime)
-            {
-                if (String.Equals(db.DateTimeNow, fi.DefaultValue, StringComparison.OrdinalIgnoreCase)) return true;
-            }
+        //    var tc = Type.GetTypeCode(fi.Type);
+        //    // 特殊处理时间
+        //    if (tc == TypeCode.DateTime)
+        //    {
+        //        if (String.Equals(db.DateTimeNow, fi.DefaultValue, StringComparison.OrdinalIgnoreCase)) return true;
+        //    }
 
-            return false;
-        }
+        //    return false;
+        //}
 
         /// <summary>获取主键条件</summary>
         /// <param name="entity"></param>
