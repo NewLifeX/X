@@ -29,11 +29,9 @@ namespace NewLife.Net.Modbus
     public class ModbusSlave : IDisposable
     {
         #region 属性
-        /// <summary>主机ID在保持寄存器中的编号</summary>
-        public UInt16 HostAddress = 0;
-
+        private Byte _Host;
         /// <summary>主站ID</summary>
-        public Byte Host { get { return (Byte)DataStore.HoldingRegisters.Read(HostAddress); } set { DataStore.HoldingRegisters.Write(HostAddress, value); } }
+        public Byte Host { get { return _Host; } set { _Host = value; } }
 
         private IDataStore _DataStore;
         /// <summary>数据存储</summary>

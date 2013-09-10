@@ -60,7 +60,12 @@ namespace NewLife.Net.Modbus
         /// <summary>写入状态</summary>
         /// <param name="i"></param>
         /// <param name="flag"></param>
-        public void Write(Int32 i, Boolean flag) { Coils[i] = flag; }
+        public void Write(Int32 i, Boolean flag)
+        {
+            Coils[i] = flag;
+
+            if (OnWrite != null) OnWrite(i, flag);
+        }
 
         /// <summary>初始化</summary>
         public BitStore() : this(0) { }
@@ -72,6 +77,9 @@ namespace NewLife.Net.Modbus
             if (n <= 0) n = 16;
             Coils = new Boolean[n];
         }
+
+        /// <summary>写入线圈</summary>
+        public event WriteCoilHandler OnWrite;
     }
 
     /// <summary>默认字存储</summary>
@@ -91,7 +99,12 @@ namespace NewLife.Net.Modbus
         /// <summary>写入</summary>
         /// <param name="i"></param>
         /// <param name="value"></param>
-        public void Write(Int32 i, UInt16 value) { Regs[i] = value; }
+        public void Write(Int32 i, UInt16 value)
+        {
+            Regs[i] = value;
+
+            if (OnWrite != null) OnWrite(i, value);
+        }
 
         /// <summary>初始化</summary>
         public WordStore() : this(0) { }
@@ -103,5 +116,8 @@ namespace NewLife.Net.Modbus
             if (n <= 0) n = 16;
             Regs = new UInt16[n];
         }
+
+        /// <summary>写入寄存器</summary>
+        public event WriteRegisterHandler OnWrite;
     }
 }

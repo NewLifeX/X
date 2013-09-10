@@ -18,6 +18,16 @@ namespace NewLife.Net.Modbus
         IWordStore HoldingRegisters { get; }
     }
 
+    /// <summary>写入线圈</summary>
+    /// <param name="i"></param>
+    /// <param name="value"></param>
+    public delegate void WriteCoilHandler(Int32 i, Boolean value);
+
+    /// <summary>写入寄存器</summary>
+    /// <param name="i"></param>
+    /// <param name="value"></param>
+    public delegate void WriteRegisterHandler(Int32 i, Int32 value);
+
     /// <summary>位存储接口</summary>
     public interface IBitStore
     {
@@ -34,6 +44,9 @@ namespace NewLife.Net.Modbus
         /// <param name="i"></param>
         /// <param name="flag"></param>
         void Write(Int32 i, Boolean flag);
+
+        /// <summary>写入线圈</summary>
+        event WriteCoilHandler OnWrite;
     }
 
     /// <summary>字存储接口</summary>
@@ -52,5 +65,8 @@ namespace NewLife.Net.Modbus
         /// <param name="i"></param>
         /// <param name="value"></param>
         void Write(Int32 i, UInt16 value);
+
+        /// <summary>写入寄存器</summary>
+        event WriteRegisterHandler OnWrite;
     }
 }
