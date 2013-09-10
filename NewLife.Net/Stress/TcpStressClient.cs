@@ -2,17 +2,12 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
-using NewLife;
 
 namespace NewLife.Net.Stress
 {
     class TcpStressClient : DisposeBase
     {
         #region 属性
-        private TcpStressConfig _Config;
-        /// <summary>配置</summary>
-        public TcpStressConfig Config { get { return _Config; } set { _Config = value; } }
-
         private IPEndPoint _EndPoint;
         /// <summary>远程地址</summary>
         public IPEndPoint EndPoint { get { return _EndPoint; } set { _EndPoint = value; } }
@@ -20,6 +15,14 @@ namespace NewLife.Net.Stress
         private Byte[] _Buffer;
         /// <summary>数据缓冲区</summary>
         public Byte[] Buffer { get { return _Buffer; } set { _Buffer = value; } }
+
+        private Int32 _Interval;
+        /// <summary>发送间隔</summary>
+        public Int32 Interval { get { return _Interval; } set { _Interval = value; } }
+
+        private Int32 _Times = 100;
+        /// <summary>发送次数</summary>
+        public Int32 Times { get { return _Times; } set { _Times = value; } }
 
         Socket socket;
         Timer sendTimer;
@@ -51,7 +54,7 @@ namespace NewLife.Net.Stress
             socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             //e.UserToken = socket;
 
-            if (socket.ConnectAsync(e)) OnConnected(this, e);
+            if (!socket.ConnectAsync(e)) OnConnected(this, e);
         }
 
         private void OnConnected(object sender, SocketAsyncEventArgs e)
@@ -60,7 +63,7 @@ namespace NewLife.Net.Stress
 
             if (e.SocketError != SocketError.Success)
             {
-                Disconnect();
+                Close();
                 return;
             }
 
@@ -68,35 +71,34 @@ namespace NewLife.Net.Stress
 
             e.Dispose();
 
-            ReceiveAsyc();
-
-            if (Config.WaitForSend > 0)
-                sendTimer = new Timer(SendData, null, Config.WaitForSend, Config.SendInterval);
+            if (Received != null) ReceiveAsyc();
         }
         #endregion
 
         #region 发送
-        Random _rnd = new Random((Int32)DateTime.Now.Ticks);
+        /// <summary>开始发送</summary>
+        public void StartSend()
+        {
+            sendTimer = new Timer(SendData, null, Interval, Interval);
+        }
+
         private void SendData(Object state)
         {
+            if (_Times-- <= 0)
+            {
+                if (sendTimer != null) sendTimer.Dispose();
+                return;
+            }
+
             try
             {
                 lock (this)
                 {
                     if (socket.Connected)
                     {
-                        var offset = 0;
-                        var count = 0;
+                        socket.Send(_Buffer, 0, _Buffer.Length, SocketFlags.None);
 
-                        if (!String.IsNullOrEmpty(Config.Data))
-                        {
-                            offset = _rnd.Next(Config.MinDataLength, _Buffer.Length - 1);
-                            count = _rnd.Next(1, _Buffer.Length - offset);
-                        }
-
-                        socket.Send(_Buffer, offset, count, SocketFlags.None);
-
-                        if (Sent != null) Sent(this, new EventArgs<Int32>(count));
+                        if (Sent != null) Sent(this, new EventArgs<Int32>(_Buffer.Length));
                     }
                 }
             }
@@ -115,7 +117,8 @@ namespace NewLife.Net.Stress
             //e.UserToken = socket;
             var buf = new Byte[4096];
             e.SetBuffer(buf, 0, buf.Length);
-            socket.ReceiveAsync(e);
+
+            if (!socket.ReceiveAsync(e)) OnReceived(this, e);
         }
 
         void OnReceived(object sender, SocketAsyncEventArgs e)
@@ -128,7 +131,7 @@ namespace NewLife.Net.Stress
 
             if (Received != null) Received(this, new EventArgs<int>(e.BytesTransferred));
 
-            socket.ReceiveAsync(e);
+            if (!socket.ReceiveAsync(e)) OnReceived(this, e);
         }
         #endregion
 
@@ -138,17 +141,22 @@ namespace NewLife.Net.Stress
             lock (this)
             {
                 if (sendTimer != null) sendTimer.Dispose();
-                try
-                {
-                    if (socket != null && socket.Connected)
-                    {
-                        socket.Shutdown(SocketShutdown.Both);
-                        socket.Close();
-                    }
-                }
-                catch { }
+                Close();
                 OnDisconnected();
             }
+        }
+
+        void Close()
+        {
+            try
+            {
+                if (socket != null && socket.Connected)
+                {
+                    socket.Shutdown(SocketShutdown.Both);
+                    socket.Close();
+                }
+            }
+            catch { }
         }
 
         private void OnDisconnected()

@@ -4,6 +4,7 @@ using System.Text;
 using System.Threading;
 using NewLife.Log;
 using System.Diagnostics;
+using NewLife.Security;
 
 namespace NewLife.Net.Stress
 {
@@ -89,8 +90,10 @@ namespace NewLife.Net.Stress
 
         static void ShowStatus(Object state)
         {
-            Console.Title = String.Format("连接:{1:n0} 消息:{2:n0} 速度:{3:n0}kB/s 总消息:{4:n0} 流量:{5:n0}kB 时间:{0:mm:ss}",
-                sw.Elapsed,
+            var ts = sw.Elapsed;
+            var t = String.Format("{0:00}:{1:00}:{2:00}", ts.Hours, ts.Minutes, ts.Seconds);
+            Console.Title = String.Format("连接:{1:n0} 消息:{2:n0} 速度:{3:n0}kB/s 总消息:{4:n0} 流量:{5:n0}kB 时间:{0}",
+                t,
                 stress.Connections,
                 stress.MessagesPerSecond,
                 stress.BytesPerSecond / 1024,
@@ -111,18 +114,12 @@ namespace NewLife.Net.Stress
             _rnd = new Random((Int32)DateTime.Now.Ticks);
 
             // 初始化数据
-            if (cfg.WaitForSend >= 0)
+            if (!String.IsNullOrEmpty(cfg.Data))
             {
-                if (!String.IsNullOrEmpty(cfg.Data)) _buffer = Encoding.UTF8.GetBytes(cfg.Data);
-                if (_buffer == null || _buffer.Length < 1)
-                {
-                    if (cfg.MinDataLength < 1) cfg.MinDataLength = 1;
-                    if (cfg.MaxDataLength <= 0) cfg.MaxDataLength = 1500;
-
-                    // 按最大大小分配数据，实际发送的数据在最小长度到最大长度之间
-                    _buffer = new Byte[cfg.MaxDataLength];
-                    _rnd.NextBytes(_buffer);
-                }
+                if (cfg.Data.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
+                    _buffer = DataHelper.FromHex(cfg.Data.Substring(2).Trim());
+                else
+                    _buffer = Encoding.UTF8.GetBytes(cfg.Data);
             }
         }
 
@@ -132,12 +129,14 @@ namespace NewLife.Net.Stress
             var cfg = _Config;
             var interval = cfg.Interval;
 
+            Console.WriteLine("开始建立连接……");
             for (int i = 0; i < cs.Length; i++)
             {
                 try
                 {
                     var client = cs[i] = new TcpStressClient();
-                    client.Config = cfg;
+                    client.Interval = cfg.SendInterval;
+                    client.Times = cfg.Times;
                     client.EndPoint = _address;
                     client.Buffer = _buffer;
 
@@ -154,6 +153,16 @@ namespace NewLife.Net.Stress
 
             // 定时器用于计算每秒统计数
             timer = new Timer(OnTimer, null, 1000, 1000);
+
+            // 开始发送
+            if (_buffer != null && _buffer.Length > 0)
+            {
+                Console.WriteLine("开始发送数据……");
+                for (int i = 0; i < cs.Length; i++)
+                {
+                    cs[i].StartSend();
+                }
+            }
         }
 
         void OnTimer(Object state)
@@ -165,6 +174,7 @@ namespace NewLife.Net.Stress
         /// <summary>停止</summary>
         public void Stop()
         {
+            Console.WriteLine("正在关闭连接……");
             for (int i = 0; i < cs.Length; i++)
             {
                 if (cs[i] != null)

@@ -23,32 +23,17 @@ namespace NewLife.Net.Stress
         [Description("连接数")]
         public Int32 Connections { get { return _Connections; } set { _Connections = value; } }
 
-        private Int32 _Interval = 2;
+        private Int32 _Interval = 0;
         /// <summary>连接间隔，单位毫秒</summary>
         [Description("连接间隔，单位毫秒")]
         public Int32 Interval { get { return _Interval; } set { _Interval = value; } }
 
-        private Int32 _WaitForSend = 10000;
-        /// <summary>连接后等待发送数据的时间，单位毫秒，-1不发送数据</summary>
-        [Description("等待发送数据的时间，单位毫秒，-1不发送")]
-        public Int32 WaitForSend { get { return _WaitForSend; } set { _WaitForSend = value; } }
-
         private String _Data = "我是大石头！";
-        /// <summary>要发送的数据，如果不指定，则根据最小数据长度和最大数据长度生成随机数据。</summary>
-        [Description("要发送的数据，不指定则生成随机数据")]
+        /// <summary>发送的数据，十六进制数据使用0x开头</summary>
+        [Description("发送的数据")]
         public String Data { get { return _Data; } set { _Data = value; } }
 
-        private Int32 _MinDataLength = 1;
-        /// <summary>随机数据最小数据长度</summary>
-        [Description("随机数据最小数据长度")]
-        public Int32 MinDataLength { get { return _MinDataLength; } set { _MinDataLength = value; } }
-
-        private Int32 _MaxDataLength = 1500;
-        /// <summary>随机数据最大数据长度</summary>
-        [Description("随机数据最大数据长度")]
-        public Int32 MaxDataLength { get { return _MaxDataLength; } set { _MaxDataLength = value; } }
-
-        private Int32 _SendInterval = 1000;
+        private Int32 _SendInterval = 100;
         /// <summary>发送数据间隔，单位毫秒</summary>
         [Description("发送数据间隔，单位毫秒")]
         public Int32 SendInterval { get { return _SendInterval; } set { _SendInterval = value; } }
@@ -79,8 +64,14 @@ namespace NewLife.Net.Stress
 
                 Console.ForegroundColor = ConsoleColor.Red;
                 var v = item.GetValue(cfg, null) + "";
-                if (item.Name.Contains("Wait") || item.Name.Contains("Interval") || des != null && des.Description.IndexOf("毫秒") >= 0) v += "ms";
-                Console.Write("{0,8}", v);
+                if (des != null && des.Description.IndexOf("毫秒") >= 0)
+                {
+                    Console.Write("{0,6}", v);
+                    Console.ForegroundColor = ConsoleColor.Cyan;
+                    Console.Write("ms");
+                }
+                else
+                    Console.Write("{0,8}", v);
 
                 Console.ForegroundColor = ConsoleColor.DarkGray;
                 if (des != null) Console.Write("\t" + des.Description);
