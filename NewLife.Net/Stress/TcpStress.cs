@@ -1,9 +1,9 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Net;
 using System.Text;
 using System.Threading;
 using NewLife.Log;
-using System.Diagnostics;
 using NewLife.Security;
 
 namespace NewLife.Net.Stress
@@ -39,7 +39,6 @@ namespace NewLife.Net.Stress
         TcpStressClient[] cs;
         IPEndPoint _address;
         Byte[] _buffer;
-        Random _rnd;
 
         Timer timer;
         #endregion
@@ -111,7 +110,6 @@ namespace NewLife.Net.Stress
 
             cs = new TcpStressClient[cfg.Connections];
             _address = new IPEndPoint(Dns.GetHostAddresses(cfg.Address)[0], cfg.Port);
-            _rnd = new Random((Int32)DateTime.Now.Ticks);
 
             // 初始化数据
             if (!String.IsNullOrEmpty(cfg.Data))
@@ -129,7 +127,7 @@ namespace NewLife.Net.Stress
             var cfg = _Config;
             var interval = cfg.Interval;
 
-            Console.WriteLine("开始建立连接……");
+            XTrace.WriteLine("开始建立连接……");
             for (int i = 0; i < cs.Length; i++)
             {
                 try
@@ -157,7 +155,7 @@ namespace NewLife.Net.Stress
             // 开始发送
             if (_buffer != null && _buffer.Length > 0)
             {
-                Console.WriteLine("开始发送数据……");
+                XTrace.WriteLine("开始发送数据……");
                 for (int i = 0; i < cs.Length; i++)
                 {
                     cs[i].StartSend();
@@ -174,17 +172,21 @@ namespace NewLife.Net.Stress
         /// <summary>停止</summary>
         public void Stop()
         {
-            Console.WriteLine("正在关闭连接……");
-            for (int i = 0; i < cs.Length; i++)
+            if (cs != null)
             {
-                if (cs[i] != null)
+                XTrace.WriteLine("正在关闭连接……");
+                for (int i = 0; i < cs.Length; i++)
                 {
-                    try
+                    if (cs[i] != null)
                     {
-                        cs[i].Dispose();
+                        try
+                        {
+                            cs[i].Dispose();
+                        }
+                        catch { }
                     }
-                    catch { }
                 }
+                cs = null;
             }
 
             if (timer != null)
