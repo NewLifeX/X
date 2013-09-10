@@ -118,6 +118,15 @@ namespace NewLife.Net.Stress
                     _buffer = DataHelper.FromHex(cfg.Data.Substring(2).Trim());
                 else
                     _buffer = Encoding.UTF8.GetBytes(cfg.Data);
+
+                if (cfg.UseLength)
+                {
+                    var bts = BitConverter.GetBytes(_buffer.Length);
+                    var buf = new Byte[bts.Length + _buffer.Length];
+                    Buffer.BlockCopy(bts, 0, buf, 0, bts.Length);
+                    Buffer.BlockCopy(_buffer, 0, buf, bts.Length, _buffer.Length);
+                    _buffer = buf;
+                }
             }
         }
 
