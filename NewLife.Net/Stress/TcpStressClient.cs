@@ -67,7 +67,11 @@ namespace NewLife.Net.Stress
                 return;
             }
 
-            if (Connected != null) Connected(this, e);
+            if (Connected != null)
+            {
+                Connected(this, e);
+                Connected = null;
+            }
 
             e.Dispose();
 
@@ -161,7 +165,11 @@ namespace NewLife.Net.Stress
 
         private void OnDisconnected()
         {
-            if (Disconnected != null) Disconnected(this, EventArgs.Empty);
+            if (Disconnected != null)
+            {
+                Disconnected(this, EventArgs.Empty);
+                Disconnected = null;
+            }
         }
         #endregion
     }

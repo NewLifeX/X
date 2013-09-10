@@ -33,7 +33,7 @@ namespace NewLife.Net.Stress
         [Description("发送的数据")]
         public String Data { get { return _Data; } set { _Data = value; } }
 
-        private Int32 _SendInterval = 100;
+        private Int32 _SendInterval = 10;
         /// <summary>发送数据间隔，单位毫秒</summary>
         [Description("发送数据间隔，单位毫秒")]
         public Int32 SendInterval { get { return _SendInterval; } set { _SendInterval = value; } }
