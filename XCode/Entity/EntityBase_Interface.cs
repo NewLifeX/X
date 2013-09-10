@@ -6,7 +6,7 @@ using XCode.Configuration;
 
 namespace XCode
 {
-    public partial class EntityBase : ICustomTypeDescriptor, IEditableObject, IEnumerable<IEntityEntry>
+    public partial class EntityBase : ICustomTypeDescriptor, IEditableObject/*, IEnumerable<IEntityEntry>*/
     {
         #region INotifyPropertyChanged接口
         /// <summary>如果实体来自数据库，在给数据属性赋相同值时，不改变脏数据，其它情况均改变脏数据</summary>
@@ -210,16 +210,16 @@ namespace XCode
         #endregion
 
         #region IEnumerable成员
-        IEnumerator<IEntityEntry> IEnumerable<IEntityEntry>.GetEnumerator()
-        {
-            var op = EntityFactory.CreateOperate(this.GetType());
-            foreach (var item in op.AllFields)
-            {
-                yield return new EntityEntry { Field = item, Entity = this };
-            }
-        }
+        //IEnumerator<IEntityEntry> IEnumerable<IEntityEntry>.GetEnumerator()
+        //{
+        //    var op = EntityFactory.CreateOperate(this.GetType());
+        //    foreach (var item in op.AllFields)
+        //    {
+        //        yield return new EntityEntry { Field = item, Entity = this };
+        //    }
+        //}
 
-        IEnumerator IEnumerable.GetEnumerator() { return (this as IEnumerable<IEntityEntry>).GetEnumerator(); }
+        //IEnumerator IEnumerable.GetEnumerator() { return (this as IEnumerable<IEntityEntry>).GetEnumerator(); }
         #endregion
     }
 }
