@@ -1,5 +1,6 @@
 ﻿using System;
 using NewLife.Collections;
+using NewLife.Log;
 using NewLife.Model;
 using NewLife.Reflection;
 using XCode.Model;
@@ -37,11 +38,19 @@ namespace XCode.DataAccessLayer
 
         private static IObjectContainer Reg<T>(this IObjectContainer container, Object id = null)
         {
-            IDatabase db = TypeX.CreateInstance(typeof(T)) as IDatabase;
-            if (id == null) id = db.DbType;
+            try
+            {
+                IDatabase db = TypeX.CreateInstance(typeof(T)) as IDatabase;
+                if (id == null) id = db.DbType;
 
-            // 把这个实例注册进去，作为默认实现
-            return container.Register(typeof(IDatabase), null, db, id);
+                // 把这个实例注册进去，作为默认实现
+                return container.Register(typeof(IDatabase), null, db, id);
+            }
+            catch (Exception ex)
+            {
+                XTrace.WriteException(ex);
+                throw;
+            }
         }
         #endregion
 
