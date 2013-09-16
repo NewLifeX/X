@@ -66,13 +66,17 @@ namespace XCode.DataAccessLayer
         {
             if (!String.IsNullOrEmpty(provider))
             {
+                var n = 0;
                 foreach (var item in XCodeService.Container.ResolveAllMaps(typeof(IDatabase)))
                 {
+                    n++;
                     if ("" + item.Identity == "") continue;
 
                     var db = item.Instance as IDatabase;
                     if (db != null && db.Support(provider)) return item.ImplementType;
                 }
+
+                if (DAL.Debug) DAL.WriteLog("无法从{0}个默认数据库提供者中识别到{1}！", n, provider);
 
                 var type = TypeX.GetType(provider, true);
                 if (type != null) XCodeService.Register<IDatabase>(type, provider);

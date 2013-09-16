@@ -140,10 +140,10 @@ namespace XCode.DataAccessLayer
             if (String.IsNullOrEmpty(connName)) throw new ArgumentNullException("connName");
 
             if (type == null) type = DbFactory.GetProviderType(connStr, provider);
-            if (type == null) throw new XCodeException("无法识别的提供者" + provider + "！");
+            if (type == null) throw new XCodeException("无法识别{0}的提供者{1}！", connName, provider);
 
             // 允许后来者覆盖前面设置过了的
-            ConnectionStringSettings set = new ConnectionStringSettings(connName, connStr, provider);
+            var set = new ConnectionStringSettings(connName, connStr, provider);
             ConnStrs[connName] = set;
             _connTypes[connName] = type;
         }
@@ -205,15 +205,14 @@ namespace XCode.DataAccessLayer
                 if (_Db != null) return _Db;
 
                 Type type = ProviderType;
-                if (type != null)
-                {
-                    //_Db = TypeX.CreateInstance(type) as IDatabase;
-                    // 使用鸭子类型，避免因接口版本差异而导致无法使用
-                    _Db = TypeX.ChangeType<IDatabase>(TypeX.CreateInstance(type));
-                    // 不为空才设置连接字符串，因为可能有内部包装
-                    if (!String.IsNullOrEmpty(ConnName)) _Db.ConnName = ConnName;
-                    if (!String.IsNullOrEmpty(ConnStr)) _Db.ConnectionString = DecodeConnStr(ConnStr);
-                }
+                if (type == null) throw new XCodeException("无法识别{0}的数据提供者！", ConnName);
+
+                _Db = TypeX.CreateInstance(type) as IDatabase;
+                //// 使用鸭子类型，避免因接口版本差异而导致无法使用
+                //_Db = TypeX.ChangeType<IDatabase>(TypeX.CreateInstance(type));
+                // 不为空才设置连接字符串，因为可能有内部包装
+                if (!String.IsNullOrEmpty(ConnName)) _Db.ConnName = ConnName;
+                if (!String.IsNullOrEmpty(ConnStr)) _Db.ConnectionString = DecodeConnStr(ConnStr);
 
                 return _Db;
             }
