@@ -229,7 +229,11 @@ namespace NewLife.Net.Modbus
         /// <returns></returns>
         public override string ToString()
         {
-            return PortName + "(SerialPort)";
+            //return PortName + "(SerialPort)";
+            if (!String.IsNullOrEmpty(PortName))
+                return PortName;
+            else
+                return "(SerialPort)";
         }
         #endregion
     }

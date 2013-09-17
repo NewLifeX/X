@@ -21,7 +21,7 @@ namespace Test2
                 try
                 {
 #endif
-                Test3();
+                    Test4();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -171,6 +171,33 @@ namespace Test2
         static void Coils_OnWrite(int i, bool value)
         {
             Console.WriteLine("WriteCoil({0}, {1})", i, value);
+        }
+
+        static void Test4()
+        {
+            using (var master = new ModbusMaster())
+            {
+                master.Host = 1;
+                master.Transport = new SerialTransport { PortName = "COM17" };
+
+                Console.WriteLine("Diagnostics:{0}", master.Diagnostics());
+                Console.WriteLine("ID:{0}", master.ReportIdentity().ToHex());
+
+                var i = 1;
+                var rs = master.ReadCoil(i);
+                Console.WriteLine("Coil {0}={1}", i, rs);
+                master.WriteSingleCoil(i, !rs);
+                rs = master.ReadCoil(i);
+                Console.WriteLine("Coil {0}={1}", i, rs);
+
+                i = 13;
+                var ns = master.ReadHoldingRegister(i);
+                Console.WriteLine("Reg {0}={1}", i, ns);
+                ns++;
+                master.WriteSingleRegister(i, ns);
+                ns = master.ReadHoldingRegister(i);
+                Console.WriteLine("Reg {0}={1}", i, ns);
+            }
         }
     }
 }

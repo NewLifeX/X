@@ -73,6 +73,8 @@ namespace NewLife.Net.Modbus
 
         ModbusEntity Process(ModbusEntity entity)
         {
+            if (Transport == null) throw new ArgumentNullException("Transport");
+
             entity.Host = Host;
 
             // 发送
@@ -88,7 +90,7 @@ namespace NewLife.Net.Modbus
 #endif
 
             Transport.Write(buf);
-            
+
             // lscy 2013-7-29 
             // 发送后，休眠一段时间，避免设备数据未全部写到串口缓冲区中
             // 一般情况下，100ms 已足够
@@ -116,6 +118,18 @@ namespace NewLife.Net.Modbus
         #endregion
 
         #region 线圈
+        /// <summary>读取线圈状态</summary>
+        /// <remarks>
+        /// 请求：0x01|2字节起始地址|2字节线圈数量(1~2000)
+        /// 响应：0x01|1字节字节计数|n字节线圈状态（n=输出数量/8，如果余数不为0，n=n+1）
+        /// </remarks>
+        /// <param name="addr"></param>
+        /// <returns></returns>
+        public Boolean ReadCoil(Int32 addr)
+        {
+            return ReadInputs(MBFunction.ReadCoils, addr, 1)[0];
+        }
+
         /// <summary>读取线圈状态</summary>
         /// <remarks>
         /// 请求：0x01|2字节起始地址|2字节线圈数量(1~2000)
@@ -153,6 +167,9 @@ namespace NewLife.Net.Modbus
 
             var rs = Process(cmd);
             if (rs == null) return null; ;
+
+            // 特殊处理单个读取，提高效率
+            if (count == 1) return new Boolean[] { rs.Data[1] == 1 };
 
             var flags = new Boolean[count];
 
@@ -239,6 +256,18 @@ namespace NewLife.Net.Modbus
         #endregion
 
         #region 寄存器
+        /// <summary>读取保持寄存器</summary>
+        /// <remarks>
+        /// 请求：0x03|2字节起始地址|2字节寄存器数量（1~2000）
+        /// 响应：0x03|1字节字节数|n*2字节寄存器值
+        /// </remarks>
+        /// <param name="addr"></param>
+        /// <returns></returns>
+        public UInt16 ReadHoldingRegister(Int32 addr)
+        {
+            return ReadRegisters(MBFunction.ReadHoldingRegisters, addr, 1)[0];
+        }
+
         /// <summary>读取保持寄存器</summary>
         /// <remarks>
         /// 请求：0x03|2字节起始地址|2字节寄存器数量（1~2000）
