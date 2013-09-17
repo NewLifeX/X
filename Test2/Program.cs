@@ -1,9 +1,8 @@
 ﻿using System;
-using System.IO.Ports;
 using System.Threading;
 using NewLife.Log;
 using NewLife.Net.Application;
-using NewLife.Net.ModBus;
+using NewLife.Net.Modbus;
 using NewLife.Net.Proxy;
 using NewLife.Net.Sockets;
 using NewLife.Net.Udp;
@@ -22,7 +21,7 @@ namespace Test2
                 try
                 {
 #endif
-                Test5();
+                    Test3();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -48,9 +47,7 @@ namespace Test2
             Console.WriteLine("HoleServer数据到来：{0} {1}", e.RemoteIPEndPoint, e.GetString());
         }
 
-        static NetServer server;
         static SerialServer server2;
-        static NATProxy proxy;
         static void Test2()
         {
             //var dns = new DNSServer();
@@ -140,176 +137,30 @@ namespace Test2
             //session.Send(e.Buffer, e.Offset, e.BytesTransferred, e.RemoteEndPoint);
         }
 
-        static String pname;
         static void Test3()
         {
-            //NewLife.Net.Application.AppTest.StartClient();
+            var ts = new SerialTransport();
+            ts.PortName = "COM17";
 
-            //Console.ReadKey(true);
-            //using (var sp = new SerialPort("COM1"))
-            //{
-            //    sp.Open();
-            //    var dt = new Byte[] { 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA };
-            //    for (int i = 0; i < 10000; i++)
-            //    {
-            //        //var dt = i % 2 == 0 ? new Byte[] { 0 } : new Byte[] { 1 };
-            //        //Console.WriteLine(dt[0]);
-            //        //sp.Write(dt, 0, dt.Length);
-            //        //Console.WriteLine(i);
-            //        sp.Write(dt, 0, dt.Length);
-            //        //Thread.Sleep(100);
-            //    }
-            //}
+            var ds = new DataStore();
+            ds.Coils.OnWrite += Coils_OnWrite;
+            ds.HoldingRegisters.OnWrite += HoldingRegisters_OnWrite;
 
-            Console.WriteLine("任意键开始测试：");
-            Console.ReadKey(true);
-
-            Console.Write("发现串口：");
-            foreach (var item in SerialPort.GetPortNames())
-            {
-                if (pname == null) pname = item;
-                Console.Write(" " + item);
-            }
-            Console.WriteLine();
-
-            Byte host = 1;
-
-            // 01 08 00 00 12 AB AD 14
-            var isonline = ReadTest(host);
-            Console.WriteLine("连接状态：{0}", isonline);
-            if (!isonline) return;
-
-            //Console.WriteLine("内部伺服使能");
-            //Write(host, 0x0103, 1);
-
-            //Console.WriteLine("开始读取寄存器状态：");
-            //for (int i = 0; i < 4; i += 2)
-            //{
-            //    for (int j = i * 10; j < 5 + i * 10; j++)
-            //    {
-            //        Console.Write("P{0}{1:00}=", (Char)('A' + i), j);
-            //        Int16 r = 0;
-            //        try
-            //        {
-            //            r = Read(host, (UInt16)((i + 1) * 0x100 + j));
-            //        }
-            //        catch { }
-            //        Console.WriteLine(r);
-            //    }
-            //}
-            ShowStatus(host);
-
-            //Console.WriteLine("任意键停机...");
-            //Console.ReadKey(true);
-
-            Console.WriteLine("停机");
-            Write(host, 0x0103, 0);
-
-            Write(host, 0x1000, 4);
-            Write(host, 0x1000, 0);
-            Console.WriteLine("任意键开始点动测试...");
-            Console.ReadKey(true);
-
-            Console.WriteLine("10次点动开始");
-            Write(host, 0x1000, 1);
-            for (int i = 0; i < 10; i++)
-            {
-                Write(host, 0x1000, 2);
-                Thread.Sleep(1000);
-                ShowStatus(host);
-                Write(host, 0x1000, 4);
-                Thread.Sleep(2000);
-                ShowStatus(host);
-            }
-
-            //Thread.Sleep(3000);
-            Console.WriteLine("任意键结束点动测试");
-            Console.ReadKey(true);
-
-            Console.WriteLine("点动结束");
-            Write(host, 0x1000, 0);
-
-            ShowStatus(host);
+            var slave = new ModbusSlave();
+            //slave.EnableDebug = true;
+            slave.Transport = ts;
+            slave.DataStore = ds;
+            slave.Listen();
         }
 
-        static void ShowStatus(Byte host)
+        static void HoldingRegisters_OnWrite(int i, int value)
         {
-            Console.WriteLine("伺服状态：");
-            Int16 rs = 0;
-            try
-            {
-                rs = Read(host, 0x1001);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("错误！" + ex.ToString());
-            }
-            switch (rs)
-            {
-                case 1:
-                    Console.WriteLine("正转运行中");
-                    break;
-                case 2:
-                    Console.WriteLine("反转运行中");
-                    break;
-                case 3:
-                    Console.WriteLine("伺服驱动器待机中");
-                    break;
-                case 4:
-                    Console.WriteLine("故障中");
-                    break;
-                default:
-                    Console.WriteLine("未知！" + rs);
-                    break;
-            }
+            Console.WriteLine("WriteReg ({0}, {1})", i, value);
         }
 
-        static void Write(Byte host, UInt16 addr, UInt16 data)
+        static void Coils_OnWrite(int i, bool value)
         {
-            var msg = new WriteRegister();
-            msg.Address = host;
-            msg.Function = MBFunction.WriteSingleRegister;
-            msg.DataAddress = addr;
-            msg.Data = data;
-
-            var rs = MBEntity.Process(msg, null, pname);
-        }
-
-        static Int16 Read(Byte host, UInt16 addr, UInt16 len = 1)
-        {
-            var msg = new ReadRegister();
-            msg.Address = host;
-            msg.Function = MBFunction.ReadHoldingRegisters;
-            msg.DataAddress = addr;
-            msg.DataLength = len;
-
-            var rs = msg.Process<ReadRegisterResponse>(null, pname);
-            if (rs != null) return (Int16)rs.WordData;
-
-            return -1;
-        }
-
-        static Boolean ReadTest(Byte host)
-        {
-            var msg = new Diagnostics();
-            msg.Address = host;
-            msg.SubFunction = 0;
-            msg.Data = 0x12AB;
-
-            var rs = msg.Process<Diagnostics>(null, pname);
-            return rs != null && rs.SubFunction == msg.SubFunction && rs.Data == msg.Data;
-        }
-
-        static void Test4()
-        {
-            var proxy = new NATProxy("www.baidu.com", 80);
-            proxy.Port = 8080;
-            proxy.Start();
-        }
-
-        static void Test5()
-        {
-            AppTest.Start();
+            Console.WriteLine("WriteCoil({0}, {1})", i, value);
         }
     }
 }
