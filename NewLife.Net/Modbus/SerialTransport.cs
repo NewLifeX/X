@@ -180,11 +180,11 @@ namespace NewLife.Net.Modbus
             //serial.ErrorReceived += new SerialErrorReceivedEventHandler(port_ErrorReceived);
         }
 
-#if MF
-        Byte[] buf_receive = new Byte[256];
-#else
-        Byte[] buf_receive = new Byte[1024];
-#endif
+        //#if MF
+        //        Byte[] buf_receive = new Byte[256];
+        //#else
+        //        Byte[] buf_receive = new Byte[1024];
+        //#endif
 
         void DataReceived(object sender, SerialDataReceivedEventArgs e)
         {
@@ -195,12 +195,12 @@ namespace NewLife.Net.Modbus
                 WaitMore();
                 if (sp.BytesToRead > 0)
                 {
-                    //var buf = new byte[sp.BytesToRead];
-                    if (buf_receive.Length < sp.BytesToRead) buf_receive = new Byte[sp.BytesToRead];
-                    var buf = buf_receive;
+                    var buf = new byte[sp.BytesToRead];
+                    //if (buf_receive.Length < sp.BytesToRead) buf_receive = new Byte[sp.BytesToRead];
+                    //var buf = buf_receive;
 
                     var count = sp.Read(buf, 0, buf.Length);
-                    if (count != buf.Length) buf = buf.ReadBytes(count);
+                    if (count != buf.Length) buf = buf.ReadBytes(0, count);
 
                     OnReceive(buf);
                 }
