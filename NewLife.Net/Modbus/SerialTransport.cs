@@ -145,7 +145,7 @@ namespace NewLife.Net.Modbus
             // 等待1秒，直到有数据为止
             var timeout = sp.ReadTimeout;
 #if MF
-                if (timeout <= 0) timeout = 500;
+            if (timeout <= 0) timeout = 500;
 #else
             if (timeout <= 0) timeout = 200;
 #endif
@@ -244,7 +244,8 @@ namespace NewLife.Net.Modbus
         public override string ToString()
         {
             //return PortName + "(SerialPort)";
-            if (!String.IsNullOrEmpty(PortName))
+            // MF中没有String.IsNullOrEmpty
+            if (PortName != null && PortName != String.Empty)
                 return PortName;
             else
                 return "(SerialPort)";
