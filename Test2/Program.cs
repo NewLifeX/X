@@ -21,7 +21,7 @@ namespace Test2
                 try
                 {
 #endif
-                    Test3();
+                Test3();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -139,18 +139,28 @@ namespace Test2
 
         static void Test3()
         {
-            var ts = new SerialTransport();
-            ts.PortName = "COM17";
+            var slave = new ModbusSlave();
+            slave.Transport = new SerialTransport { PortName = "COM17" };
 
-            var ds = new DataStore();
+            var ds = slave.DataStore;
             ds.Coils.OnWrite += Coils_OnWrite;
             ds.HoldingRegisters.OnWrite += HoldingRegisters_OnWrite;
 
-            var slave = new ModbusSlave();
             //slave.EnableDebug = true;
-            slave.Transport = ts;
-            slave.DataStore = ds;
             slave.Listen();
+
+            var flag = false;
+            for (UInt16 i = 0; i < 10000; i++)
+            {
+                ds.Coils[0] = flag;
+                flag = !flag;
+                ds.Coils[1] = flag;
+
+                ds.HoldingRegisters[0] = i;
+                ds.HoldingRegisters[3] = (UInt16)(i % 2);
+
+                Thread.Sleep(300);
+            }
         }
 
         static void HoldingRegisters_OnWrite(int i, int value)

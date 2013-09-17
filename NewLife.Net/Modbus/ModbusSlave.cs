@@ -35,7 +35,7 @@ namespace NewLife.Net.Modbus
 
         private IDataStore _DataStore;
         /// <summary>数据存储</summary>
-        public IDataStore DataStore { get { return _DataStore; } set { _DataStore = value; } }
+        public IDataStore DataStore { get { return _DataStore ?? (_DataStore = new DataStore()); } set { _DataStore = value; } }
 
         private ITransport _Transport;
         /// <summary>传输口</summary>
@@ -73,7 +73,6 @@ namespace NewLife.Net.Modbus
             if (inited) return this;
             inited = true;
 
-            if (_DataStore == null) _DataStore = new DataStore();
             if (Host == 0) Host = 1;
 
             if (Transport == null) throw new ArgumentNullException("Transport");

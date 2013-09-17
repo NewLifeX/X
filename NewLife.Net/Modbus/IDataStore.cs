@@ -35,6 +35,11 @@ namespace NewLife.Net.Modbus
         /// <returns></returns>
         Int32 Count { get; }
 
+        /// <summary>索引器，不影响<see cref="OnWrite"/>事件</summary>
+        /// <param name="i"></param>
+        /// <returns></returns>
+        Boolean this[Int32 i] { get; set; }
+
         /// <summary>读取状态</summary>
         /// <param name="i"></param>
         /// <returns></returns>
@@ -55,6 +60,11 @@ namespace NewLife.Net.Modbus
         /// <summary>寄存器数</summary>
         /// <returns></returns>
         Int32 Count { get; }
+
+        /// <summary>索引器，不影响<see cref="OnWrite"/>事件</summary>
+        /// <param name="i"></param>
+        /// <returns></returns>
+        UInt16 this[Int32 i] { get; set; }
 
         /// <summary>读取</summary>
         /// <param name="i"></param>

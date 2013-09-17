@@ -52,6 +52,11 @@ namespace NewLife.Net.Modbus
         /// <returns></returns>
         public Int32 Count { get { return Coils.Length; } }
 
+        /// <summary>索引器，不影响<see cref="OnWrite"/>事件</summary>
+        /// <param name="i"></param>
+        /// <returns></returns>
+        public Boolean this[Int32 i] { get { return Coils[i]; } set { Coils[i] = value; } }
+
         /// <summary>读取状态</summary>
         /// <param name="i"></param>
         /// <returns></returns>
@@ -90,6 +95,11 @@ namespace NewLife.Net.Modbus
         /// <summary>数量</summary>
         /// <returns></returns>
         public Int32 Count { get { return Regs.Length; } }
+
+        /// <summary>索引器，不影响<see cref="OnWrite"/>事件</summary>
+        /// <param name="i"></param>
+        /// <returns></returns>
+        public UInt16 this[Int32 i] { get { return Regs[i]; } set { Regs[i] = value; } }
 
         /// <summary>读取</summary>
         /// <param name="i"></param>

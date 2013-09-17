@@ -32,9 +32,11 @@ using System.Runtime.InteropServices;
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("2.3.*")]
-[assembly: AssemblyFileVersion("2.3.2013.0716")]
+[assembly: AssemblyFileVersion("2.3.2013.0917")]
 
 /*
+ * v2.3.2013.0917   Modbus数据存储增加不触发写入事件的索引器操作
+ * 
  * v2.3.2013.0716   升级Modbus协议，不再使用二进制序列化，保持和MF兼容
  * 
  * v2.2.2012.0420   采用NetUri精简代理会话
