@@ -290,7 +290,7 @@ namespace NewLife.Net.Modbus
                 store.Write(addr, entity.Data.ReadUInt16(i) != 0);
 
                 // 读出来
-                entity.Data.WriteUInt16(addr, (UInt16)(store.Read(addr) ? 0xFF00 : 0));
+                entity.Data.WriteUInt16(i, (UInt16)(store.Read(addr) ? 0xFF00 : 0));
             }
 
             //// 读出来
