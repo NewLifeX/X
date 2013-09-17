@@ -73,7 +73,7 @@ set zipexe="C:\Program Files\WinRAR\WinRAR.exe"
 set zip=%zipexe% a -m5 -s -z..\Src\Readme.txt -ibck
 ::set zip="D:\Pro\7-zip\7z.exe" a -tzip -mx9 -mfb258
 set zipfile=%date:~0,4%%date:~5,2%%date:~8,2%%time:~0,2%%time:~3,2%%time:~6,2%.rar
-set dest=E:\快盘\新生命共享\X
+set dest=E:\XX\X
 
 :: 发布Src源码
 rd XCoder\bin /s/q
