@@ -31,6 +31,10 @@ namespace NewLife.Net.Modbus
         private StopBits _StopBits = StopBits.One;
         /// <summary>停止位。默认One</summary>
         public StopBits StopBits { get { return _StopBits; } set { _StopBits = value; } }
+
+        private Int32 _ExpectedFrame = 1;
+        /// <summary>读取的期望帧长度，小于该长度为未满一帧，读取不做返回</summary>
+        public Int32 ExpectedFrame { get { return _ExpectedFrame; } set { _ExpectedFrame = value; } }
         #endregion
 
         #region 构造
@@ -109,31 +113,7 @@ namespace NewLife.Net.Modbus
             var sp = Serial;
             lock (sp)
             {
-                // 等待1秒，直到有数据为止
-                var timeout = sp.ReadTimeout;
-#if MF
-                if (timeout <= 0) timeout = 500;
-#else
-                if (timeout <= 0) timeout = 100;
-#endif
-                var end = DateTime.Now.AddMilliseconds(timeout);
-#if MF
-                while (sp.BytesToRead <= 0 && sp.IsOpen && end > DateTime.Now) Thread.Sleep(1);
-#else
-                while (sp.BytesToRead <= 0 && sp.IsOpen && end > DateTime.Now) Thread.SpinWait(1);
-#endif
-
-#if MF
-                // 注释下面这个代码后，性能提升15%
-                var n = 0;
-                // 暂停一会，可能还有数据
-                while (sp.BytesToRead > n)
-                {
-                    n = sp.BytesToRead;
-                    // 暂停一会，可能还有数据
-                    Thread.Sleep(10);
-                }
-#endif
+                WaitMore();
 
                 try
                 {
@@ -152,10 +132,41 @@ namespace NewLife.Net.Modbus
             }
 
 #if !MF
-            WriteLog("Read:{0}", BitConverter.ToString(buffer, bufstart, offset - bufstart));
+            WriteLog("Read:{0} Expected/True={1}/{2}", BitConverter.ToString(buffer, bufstart, offset - bufstart), ExpectedFrame, offset - bufstart);
 #endif
 
             return offset - bufstart;
+        }
+
+        void WaitMore()
+        {
+            var sp = Serial;
+
+            // 等待1秒，直到有数据为止
+            var timeout = sp.ReadTimeout;
+#if MF
+                if (timeout <= 0) timeout = 500;
+#else
+            if (timeout <= 0) timeout = 200;
+#endif
+            var end = DateTime.Now.AddMilliseconds(timeout);
+#if MF
+            while (sp.BytesToRead < ExpectedFrame && sp.IsOpen && end > DateTime.Now) Thread.Sleep(1);
+#else
+            while (sp.BytesToRead < ExpectedFrame && sp.IsOpen && end > DateTime.Now) Thread.SpinWait(1);
+#endif
+
+#if MF
+            // 注释下面这个代码后，性能提升15%
+            var n = 0;
+            // 暂停一会，可能还有数据
+            while (sp.BytesToRead > n)
+            {
+                n = sp.BytesToRead;
+                // 暂停一会，可能还有数据
+                Thread.Sleep(10);
+            }
+#endif
         }
         #endregion
 
@@ -169,23 +180,26 @@ namespace NewLife.Net.Modbus
             //serial.ErrorReceived += new SerialErrorReceivedEventHandler(port_ErrorReceived);
         }
 
+#if MF
+        Byte[] buf_receive = new Byte[256];
+#else
+        Byte[] buf_receive = new Byte[1024];
+#endif
+
         void DataReceived(object sender, SerialDataReceivedEventArgs e)
         {
             // 发送者必须保持一定间隔，每个报文不能太大，否则会因为粘包拆包而出错
             try
             {
                 var sp = sender as SerialPort;
-                var count = 0;
-                while (sp.BytesToRead > count)
+                WaitMore();
+                if (sp.BytesToRead > 0)
                 {
-                    count = sp.BytesToRead;
-                    // 暂停一会，可能还有数据
-                    Thread.Sleep(10);
-                }
-                if (sp.BytesToRead >= ModbusEntity.NO_DATA_LENGTH)
-                {
-                    var buf = new byte[sp.BytesToRead];
-                    count = sp.Read(buf, 0, buf.Length);
+                    //var buf = new byte[sp.BytesToRead];
+                    if (buf_receive.Length < sp.BytesToRead) buf_receive = new Byte[sp.BytesToRead];
+                    var buf = buf_receive;
+
+                    var count = sp.Read(buf, 0, buf.Length);
                     if (count != buf.Length) buf = buf.ReadBytes(count);
 
                     OnReceive(buf);

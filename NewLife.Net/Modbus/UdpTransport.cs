@@ -23,6 +23,10 @@ namespace NewLife.Net.Modbus
         private UdpClient _Client;
         /// <summary>客户端</summary>
         public UdpClient Client { get { return _Client; } set { _Client = value; } }
+
+        private Int32 _ExpectedFrame;
+        /// <summary>读取的期望帧长度，小于该长度为未满一帧，读取不做返回</summary>
+        public Int32 ExpectedFrame { get { return _ExpectedFrame; } set { _ExpectedFrame = value; } }
         #endregion
 
         #region 构造

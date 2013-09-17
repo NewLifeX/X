@@ -45,6 +45,10 @@ namespace NewLife.Net.Modbus
         private Boolean _EnableDebug;
         /// <summary>启用调试</summary>
         public Boolean EnableDebug { get { return _EnableDebug; } set { _EnableDebug = value; } }
+
+        private Int32 _Delay;
+        /// <summary>发送数据后接收数据前的延迟时间，默认0毫秒</summary>
+        public Int32 Delay { get { return _Delay; } set { _Delay = value; } }
         #endregion
 
         #region 构造
@@ -71,7 +75,11 @@ namespace NewLife.Net.Modbus
         Byte[] buf_receive = new Byte[1024];
 #endif
 
-        ModbusEntity Process(ModbusEntity entity)
+        /// <summary>处理指令</summary>
+        /// <param name="entity">指令实体</param>
+        /// <param name="expect">预期返回数据长度</param>
+        /// <returns></returns>
+        ModbusEntity Process(ModbusEntity entity, Int32 expect)
         {
             if (Transport == null) throw new ArgumentNullException("Transport");
 
@@ -89,12 +97,14 @@ namespace NewLife.Net.Modbus
             WriteLine(str);
 #endif
 
+            // 预期返回指令长度，传入参数expect没有考虑头部和校验位
+            Transport.ExpectedFrame = expect + ModbusEntity.NO_DATA_LENGTH;
             Transport.Write(buf);
 
             // lscy 2013-7-29 
             // 发送后，休眠一段时间，避免设备数据未全部写到串口缓冲区中
             // 一般情况下，100ms 已足够
-            Thread.Sleep(100);
+            if (Delay > 0) Thread.Sleep(Delay);
 
             // 读取
             var count = Transport.Read(buf_receive);
@@ -112,7 +122,7 @@ namespace NewLife.Net.Modbus
 
             var rs = new ModbusEntity().Parse(buf_receive, 0, count);
             if (rs == null) return null;
-            if (rs.IsException) throw new ModbusException((Errors)rs.Data[0]);
+            if (rs.IsException) throw new ModbusException(rs.Data != null && rs.Data.Length > 0 ? (Errors)rs.Data[0] : (Errors)0);
             return rs;
         }
         #endregion
@@ -165,8 +175,10 @@ namespace NewLife.Net.Modbus
             buf.WriteUInt16(2, count);
             cmd.Data = buf;
 
-            var rs = Process(cmd);
-            if (rs == null) return null; ;
+            var rLen = 1 + count / 8;
+            if (count % 8 != 0) rLen++;
+            var rs = Process(cmd, rLen);
+            if (rs == null || rs.Data == null || rs.Data.Length < 1) return null;
 
             // 特殊处理单个读取，提高效率
             if (count == 1) return new Boolean[] { rs.Data[1] == 1 };
@@ -205,7 +217,7 @@ namespace NewLife.Net.Modbus
             if (flag) buf.WriteUInt16(2, 0xFF00);
             cmd.Data = buf;
 
-            var rs = Process(cmd);
+            var rs = Process(cmd, 2 + 2);
             if (rs == null) return false; ;
 
             return (rs.Data.ReadUInt16(2) != 0) == flag;
@@ -248,7 +260,7 @@ namespace NewLife.Net.Modbus
 
             cmd.Data = buf;
 
-            var rs = Process(cmd);
+            var rs = Process(cmd, 2 + 2);
             if (rs == null) return false;
 
             return rs.Data.ReadUInt16(0) == addr && rs.Data.ReadUInt16(2) == flags.Length;
@@ -303,7 +315,7 @@ namespace NewLife.Net.Modbus
             buf.WriteUInt16(2, count);
             cmd.Data = buf;
 
-            var rs = Process(cmd);
+            var rs = Process(cmd, 1 + count * 2);
             if (rs == null) return null;
 
             count = rs.Data[0];
@@ -335,7 +347,7 @@ namespace NewLife.Net.Modbus
             buf.WriteUInt16(2, val);
             cmd.Data = buf;
 
-            var rs = Process(cmd);
+            var rs = Process(cmd, 2 + 2);
             if (rs == null) return false; ;
 
             return rs.Data.ReadUInt16(0) == addr && rs.Data.ReadUInt16(2) == val;
@@ -367,7 +379,7 @@ namespace NewLife.Net.Modbus
 
             cmd.Data = buf;
 
-            var rs = Process(cmd);
+            var rs = Process(cmd, 2 + 2);
             if (rs == null) return false;
 
             return rs.Data.ReadUInt16(0) == addr && rs.Data.ReadUInt16(2) == vals.Length;
@@ -391,7 +403,7 @@ namespace NewLife.Net.Modbus
             buf.WriteUInt16(0, 0);
             cmd.Data = buf;
 
-            var rs = Process(cmd);
+            var rs = Process(cmd, 2);
             return rs != null;
         }
 
@@ -402,7 +414,7 @@ namespace NewLife.Net.Modbus
             var cmd = new ModbusEntity();
             cmd.Function = MBFunction.ReportIdentity;
 
-            var rs = Process(cmd);
+            var rs = Process(cmd, 1 + 8);
             if (rs == null) return null;
 
             var count = (Int32)rs.Data[0];

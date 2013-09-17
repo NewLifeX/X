@@ -12,5 +12,12 @@ namespace NewLife.Net.Modbus
         /// <summary>初始化</summary>
         /// <param name="error"></param>
         public ModbusException(Errors error) { Error = error; }
+
+        /// <summary>已重载。</summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            return "Modbus Error " + Error;
+        }
     }
 }

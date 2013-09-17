@@ -5,6 +5,9 @@ namespace NewLife.Net.Modbus
     /// <summary>传输接口</summary>
     public interface ITransport : IDisposable
     {
+        /// <summary>读取的期望帧长度，小于该长度为未满一帧，读取不做返回</summary>
+        Int32 ExpectedFrame { get; set; }
+
         /// <summary>打开</summary>
         void Open();
 
