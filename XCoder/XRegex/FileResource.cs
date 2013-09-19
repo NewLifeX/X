@@ -5,7 +5,7 @@ using System.Reflection;
 using System.Threading;
 using System.Windows.Forms;
 
-namespace NewLife.XRegex
+namespace XCoder.XRegex
 {
     /// <summary>
     /// 文件资源
@@ -92,9 +92,9 @@ namespace NewLife.XRegex
             }
         }
 
-        public static Icon GetIcon()
-        {
-            return new Icon(Assembly.GetExecutingAssembly().GetManifestResourceStream(typeof(FileResource), "leaf.ico"));
-        }
+        //public static Icon GetIcon()
+        //{
+        //    return new Icon(Assembly.GetExecutingAssembly().GetManifestResourceStream(typeof(FileResource), "leaf.ico"));
+        //}
     }
 }

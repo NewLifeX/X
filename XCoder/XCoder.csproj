@@ -313,19 +313,19 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="XICO\leaf.png" />
-    <Content Include="XRegex\Pattern\Html\无嵌套标记.txt" />
-    <Content Include="XRegex\Pattern\SQL查询\嵌套查询.txt" />
-    <Content Include="XRegex\Pattern\SQL查询\简单.txt" />
-    <Content Include="XRegex\Pattern\平衡组\完整示例.txt" />
-    <Content Include="XRegex\Pattern\平衡组\完整示例固化分组.txt" />
-    <Content Include="XRegex\Pattern\平衡组\标准.txt" />
-    <Content Include="XRegex\Pattern\平衡组\标准固化分组.txt" />
-    <Content Include="XRegex\Pattern\网页\最外层嵌套.txt" />
-    <Content Include="XRegex\Sample\SQL查询\MSSQL表结构.txt" />
-    <Content Include="XRegex\Sample\SQL查询\普通嵌套查询.txt" />
-    <Content Include="XRegex\Sample\SQL查询\普通查询.txt" />
-    <Content Include="XRegex\Sample\平衡组\算术表达式.txt" />
-    <Content Include="XRegex\Sample\网页\最外层嵌套.txt" />
+    <EmbeddedResource Include="XRegex\Pattern\Html\无嵌套标记.txt" />
+    <EmbeddedResource Include="XRegex\Pattern\SQL查询\嵌套查询.txt" />
+    <EmbeddedResource Include="XRegex\Pattern\SQL查询\简单.txt" />
+    <EmbeddedResource Include="XRegex\Pattern\平衡组\完整示例.txt" />
+    <EmbeddedResource Include="XRegex\Pattern\平衡组\完整示例固化分组.txt" />
+    <EmbeddedResource Include="XRegex\Pattern\平衡组\标准.txt" />
+    <EmbeddedResource Include="XRegex\Pattern\平衡组\标准固化分组.txt" />
+    <EmbeddedResource Include="XRegex\Pattern\网页\最外层嵌套.txt" />
+    <EmbeddedResource Include="XRegex\Sample\SQL查询\MSSQL表结构.txt" />
+    <EmbeddedResource Include="XRegex\Sample\SQL查询\普通嵌套查询.txt" />
+    <EmbeddedResource Include="XRegex\Sample\SQL查询\普通查询.txt" />
+    <EmbeddedResource Include="XRegex\Sample\平衡组\算术表达式.txt" />
+    <EmbeddedResource Include="XRegex\Sample\网页\最外层嵌套.txt" />
     <Content Include="路线图.txt" />
   </ItemGroup>
   <ItemGroup />

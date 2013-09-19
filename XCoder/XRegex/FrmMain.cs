@@ -7,6 +7,8 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows.Forms;
+using XCoder;
+using XCoder.XRegex;
 
 namespace NewLife.XRegex
 {
@@ -17,7 +19,7 @@ namespace NewLife.XRegex
         {
             InitializeComponent();
 
-            this.Icon = FileResource.GetIcon();
+            this.Icon = FileSource.GetIcon();
 
             FileResource.CheckTemplate();
         }
