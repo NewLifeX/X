@@ -76,7 +76,7 @@ namespace XCoder
 
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new FrmMain());
+            Application.Run(new FrmMDI());
         }
 
         static void Update(Boolean isAsync = true)

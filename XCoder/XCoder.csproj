@@ -55,12 +55,25 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.EnterpriseServices" />
+    <Reference Include="System.Management" />
     <Reference Include="System.Messaging" />
     <Reference Include="System.Web" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.XML" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="FrmFrame.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FrmFrame.Designer.cs">
+      <DependentUpon>FrmFrame.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FrmMDI.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FrmMDI.Designer.cs">
+      <DependentUpon>FrmMDI.cs</DependentUpon>
+    </Compile>
     <Compile Include="NewModelForm\AddField.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -85,6 +98,36 @@
       <DependentUpon>NewModel.cs</DependentUpon>
     </Compile>
     <Compile Include="NewModelForm\WinFormHelper.cs" />
+    <Compile Include="XCom\Com.cs" />
+    <Compile Include="XCom\Config.cs" />
+    <Compile Include="XCom\DataReceivedEventArgs.cs" />
+    <Compile Include="XCom\FrmMain.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="XCom\FrmMain.designer.cs">
+      <DependentUpon>FrmMain.cs</DependentUpon>
+    </Compile>
+    <Compile Include="XCom\IOHelper.cs" />
+    <Compile Include="XICO\FrmMain.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="XICO\FrmMain.designer.cs">
+      <DependentUpon>FrmMain.cs</DependentUpon>
+    </Compile>
+    <Compile Include="XICO\IconFile.cs" />
+    <Compile Include="XRegex\FileResource.cs" />
+    <Compile Include="XRegex\FrmMain.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="XRegex\FrmMain.designer.cs">
+      <DependentUpon>FrmMain.cs</DependentUpon>
+    </Compile>
+    <EmbeddedResource Include="FrmFrame.resx">
+      <DependentUpon>FrmFrame.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FrmMDI.resx">
+      <DependentUpon>FrmMDI.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="NewModelForm\AddField.resx">
       <DependentUpon>AddField.cs</DependentUpon>
     </EmbeddedResource>
@@ -257,9 +300,32 @@
     <EmbeddedResource Include="Template\页面ExtAspNet\类名Form.aspx" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="XCom\FrmMain.resx">
+      <DependentUpon>FrmMain.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="XICO\FrmMain.resx">
+      <DependentUpon>FrmMain.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="XRegex\FrmMain.resx">
+      <DependentUpon>FrmMain.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="数据库命名规范.txt" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="XICO\leaf.png" />
+    <Content Include="XRegex\Pattern\Html\无嵌套标记.txt" />
+    <Content Include="XRegex\Pattern\SQL查询\嵌套查询.txt" />
+    <Content Include="XRegex\Pattern\SQL查询\简单.txt" />
+    <Content Include="XRegex\Pattern\平衡组\完整示例.txt" />
+    <Content Include="XRegex\Pattern\平衡组\完整示例固化分组.txt" />
+    <Content Include="XRegex\Pattern\平衡组\标准.txt" />
+    <Content Include="XRegex\Pattern\平衡组\标准固化分组.txt" />
+    <Content Include="XRegex\Pattern\网页\最外层嵌套.txt" />
+    <Content Include="XRegex\Sample\SQL查询\MSSQL表结构.txt" />
+    <Content Include="XRegex\Sample\SQL查询\普通嵌套查询.txt" />
+    <Content Include="XRegex\Sample\SQL查询\普通查询.txt" />
+    <Content Include="XRegex\Sample\平衡组\算术表达式.txt" />
+    <Content Include="XRegex\Sample\网页\最外层嵌套.txt" />
     <Content Include="路线图.txt" />
   </ItemGroup>
   <ItemGroup />
