@@ -62,6 +62,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Tags\TagTemplate.cs" />
     <Compile Include="Templating\Directive.cs" />
     <Compile Include="Templating\Template2.cs">
       <DependentUpon>Template.cs</DependentUpon>
