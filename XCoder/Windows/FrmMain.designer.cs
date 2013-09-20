@@ -74,6 +74,7 @@
             this.导出模型EToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.架构管理SToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.sQL查询器QToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.添加模型ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.关于ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.组件手册ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.表名字段名命名规范ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -83,7 +84,6 @@
             this.博客ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.检查更新ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.关于ToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
-            this.添加模型ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.label9 = new System.Windows.Forms.Label();
             this.gbConnect.SuspendLayout();
             this.gbTable.SuspendLayout();
@@ -202,8 +202,8 @@
             // 
             // cbTableList
             // 
-            this.cbTableList.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.cbTableList.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.cbTableList.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cbTableList.Font = new System.Drawing.Font("微软雅黑", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
             this.cbTableList.ForeColor = System.Drawing.Color.ForestGreen;
@@ -242,9 +242,9 @@
             // 
             // gbConfig
             // 
-            this.gbConfig.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-                        | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.gbConfig.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.gbConfig.Controls.Add(this.webBrowser1);
             this.gbConfig.Controls.Add(this.lbEditHeader);
             this.gbConfig.Controls.Add(this.frmItems);
@@ -273,9 +273,9 @@
             // 
             // webBrowser1
             // 
-            this.webBrowser1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-                        | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.webBrowser1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.webBrowser1.Location = new System.Drawing.Point(389, 19);
             this.webBrowser1.MinimumSize = new System.Drawing.Size(20, 20);
             this.webBrowser1.Name = "webBrowser1";
@@ -605,6 +605,14 @@
             this.sQL查询器QToolStripMenuItem.Text = "SQL查询器(&Q)";
             this.sQL查询器QToolStripMenuItem.Click += new System.EventHandler(this.sQL查询器QToolStripMenuItem_Click);
             // 
+            // 添加模型ToolStripMenuItem
+            // 
+            this.添加模型ToolStripMenuItem.Font = new System.Drawing.Font("微软雅黑", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.添加模型ToolStripMenuItem.Name = "添加模型ToolStripMenuItem";
+            this.添加模型ToolStripMenuItem.Size = new System.Drawing.Size(68, 21);
+            this.添加模型ToolStripMenuItem.Text = "添加模型";
+            this.添加模型ToolStripMenuItem.Click += new System.EventHandler(this.添加模型ToolStripMenuItem_Click);
+            // 
             // 关于ToolStripMenuItem
             // 
             this.关于ToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -674,14 +682,6 @@
             this.关于ToolStripMenuItem1.Text = "关于(&A)";
             this.关于ToolStripMenuItem1.Click += new System.EventHandler(this.关于ToolStripMenuItem1_Click);
             // 
-            // 添加模型ToolStripMenuItem
-            // 
-            this.添加模型ToolStripMenuItem.Font = new System.Drawing.Font("微软雅黑", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.添加模型ToolStripMenuItem.Name = "添加模型ToolStripMenuItem";
-            this.添加模型ToolStripMenuItem.Size = new System.Drawing.Size(68, 21);
-            this.添加模型ToolStripMenuItem.Text = "添加模型";
-            this.添加模型ToolStripMenuItem.Click += new System.EventHandler(this.添加模型ToolStripMenuItem_Click);
-            // 
             // label9
             // 
             this.label9.AutoSize = true;
@@ -712,7 +712,7 @@
             this.Name = "FrmMain";
             this.RightToLeftLayout = true;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "新生命数据模型工具";
+            this.Text = "数据模型工具";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.FrmMain_FormClosing);
             this.Load += new System.EventHandler(this.FrmMain_Load);
             this.Shown += new System.EventHandler(this.FrmMain_Shown);

@@ -567,7 +567,7 @@
             this.Controls.Add(this.statusStrip1);
             this.Name = "FrmMain";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "新生命正则表达式工具";
+            this.Text = "正则表达式";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.FrmMain_FormClosing);
             this.Shown += new System.EventHandler(this.FrmMain_Shown);
             this.groupBox1.ResumeLayout(false);
