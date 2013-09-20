@@ -5,7 +5,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 
-namespace Test
+namespace XICO
 {
     /// <summary>ICON文件</summary>
     /// <remarks>http://blogs.msdn.com/b/oldnewthing/archive/2010/10/18/10077133.aspx</remarks>
@@ -154,6 +154,17 @@ namespace Test
                 }
                 ico.Save(desfile);
             }
+        }
+
+        public static void Convert(Image bmp, Stream des, params Int16[] sizes)
+        {
+            var ico = new IconFile();
+            //ico.Add(bmp, size);
+            foreach (var item in sizes)
+            {
+                ico.Add(bmp, item);
+            }
+            ico.Save(des);
         }
         #endregion
 
