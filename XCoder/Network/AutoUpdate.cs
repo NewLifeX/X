@@ -143,7 +143,7 @@ namespace XCoder
                 //修改部分
                 string assemFullName = Assembly.GetExecutingAssembly().FullName;
                 string assemNamespace = assemFullName.Substring(0, assemFullName.IndexOf(',')); //命名空间名称
-                FileSource.ReleaseFile(assemNamespace + ".NewLife.ProcessHelper.exe", ProcessHelper);
+                Source.ReleaseFile(assemNamespace + ".NewLife.ProcessHelper.exe", ProcessHelper);
                 #endregion
 
                 ProcessStartInfo si = new ProcessStartInfo();

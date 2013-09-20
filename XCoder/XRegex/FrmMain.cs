@@ -19,7 +19,7 @@ namespace NewLife.XRegex
         {
             InitializeComponent();
 
-            this.Icon = FileSource.GetIcon();
+            this.Icon = IcoHelper.GetIcon("正则");
 
             FileResource.CheckTemplate();
         }

@@ -25,7 +25,7 @@ namespace XCoder
 
         private static Dictionary<String, String> _Templates;
         /// <summary>模版</summary>
-        public static Dictionary<String, String> Templates { get { return _Templates ?? (_Templates = FileSource.GetTemplates()); } }
+        public static Dictionary<String, String> Templates { get { return _Templates ?? (_Templates = Source.GetTemplates()); } }
 
         private static List<String> _FileTemplates;
         /// <summary>文件模版</summary>

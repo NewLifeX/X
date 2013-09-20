@@ -12,7 +12,7 @@ namespace XCoder
         {
             InitializeComponent();
 
-            this.Icon = FileSource.GetIcon();
+            this.Icon = Source.GetIcon();
         }
 
         private void FrmMDI_Shown(object sender, EventArgs e)

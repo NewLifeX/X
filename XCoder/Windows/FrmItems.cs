@@ -31,7 +31,7 @@ namespace XCoder
         {
             InitializeComponent();
 
-            this.Icon = FileSource.GetIcon();
+            this.Icon = Source.GetIcon();
         }
 
         /// <summary>初始化界面</summary>

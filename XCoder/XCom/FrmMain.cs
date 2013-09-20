@@ -1,13 +1,11 @@
 ﻿using System;
-using System.Drawing;
 using System.IO.Ports;
-using System.Reflection;
 using System.Text;
 using System.Windows.Forms;
-using NewLife.IO;
 using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.Security;
+using XCoder;
 
 namespace XCom
 {
@@ -21,6 +19,8 @@ namespace XCom
 
             var asmx = AssemblyX.Entry;
             this.Text = asmx.Title;
+
+            this.Icon = IcoHelper.GetIcon("通讯");
         }
 
         private void FrmMain_Load(object sender, EventArgs e)
@@ -29,9 +29,6 @@ namespace XCom
 
             gbReceive.Tag = gbReceive.Text;
             gbSend.Tag = gbSend.Text;
-
-            var ms = FileSource.GetFileResource(Assembly.GetExecutingAssembly(), "leaf.ico");
-            this.Icon = new Icon(ms);
         }
 
         void LoadInfo()

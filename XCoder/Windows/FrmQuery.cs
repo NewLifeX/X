@@ -21,7 +21,7 @@ namespace XCoder
         {
             InitializeComponent();
 
-            this.Icon = FileSource.GetIcon();
+            this.Icon = Source.GetIcon();
         }
 
         public static FrmQuery Create(DAL db)

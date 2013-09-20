@@ -42,7 +42,7 @@ namespace XCoder
         {
             InitializeComponent();
 
-            this.Icon = FileSource.GetIcon();
+            this.Icon = IcoHelper.GetIcon("模型");
 
             AutoLoadTables(Config.ConnName);
         }
@@ -572,7 +572,7 @@ namespace XCoder
         {
             try
             {
-                FileSource.ReleaseAllTemplateFiles();
+                Source.ReleaseAllTemplateFiles();
             }
             catch (Exception ex)
             {
@@ -605,7 +605,7 @@ namespace XCoder
 
         private void 表名字段名命名规范ToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            FrmText.Create("表名字段名命名规范", FileSource.GetText("数据库命名规范")).Show();
+            FrmText.Create("表名字段名命名规范", Source.GetText("数据库命名规范")).Show();
         }
 
         private void 检查更新ToolStripMenuItem_Click(object sender, EventArgs e)
@@ -628,7 +628,7 @@ namespace XCoder
 
         private void 关于ToolStripMenuItem1_Click(object sender, EventArgs e)
         {
-            FrmText.Create("升级历史", FileSource.GetText("UpdateInfo")).Show();
+            FrmText.Create("升级历史", Source.GetText("UpdateInfo")).Show();
         }
 
         private void 博客ToolStripMenuItem_Click(object sender, EventArgs e)

@@ -62,6 +62,7 @@
     <Reference Include="System.XML" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Engine\IcoHelper.cs" />
     <Compile Include="FrmFrame.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -326,9 +327,6 @@
     <EmbeddedResource Include="XRegex\Sample\SQL查询\普通查询.txt" />
     <EmbeddedResource Include="XRegex\Sample\平衡组\算术表达式.txt" />
     <EmbeddedResource Include="XRegex\Sample\网页\最外层嵌套.txt" />
-    <EmbeddedResource Include="XCom\leaf.ico" />
-    <EmbeddedResource Include="XICO\leaf.ico" />
-    <EmbeddedResource Include="XRegex\leaf.ico" />
     <Content Include="路线图.txt" />
   </ItemGroup>
   <ItemGroup />

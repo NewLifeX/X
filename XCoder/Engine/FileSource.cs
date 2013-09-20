@@ -15,17 +15,17 @@ using NewLife.Linq;
 namespace XCoder
 {
     /// <summary>文件资源</summary>
-    public static class FileSource
+    public static class Source
     {
         public static Icon GetIcon()
         {
-            return new Icon(Assembly.GetExecutingAssembly().GetManifestResourceStream(typeof(FileSource), "leaf.ico"));
+            return new Icon(Assembly.GetExecutingAssembly().GetManifestResourceStream(typeof(Source), "leaf.ico"));
         }
 
         public static String GetText(String name)
         {
             if (Path.GetExtension(name).IsNullOrWhiteSpace()) name += ".txt";
-            var ms = Assembly.GetExecutingAssembly().GetManifestResourceStream(typeof(FileSource), name);
+            var ms = Assembly.GetExecutingAssembly().GetManifestResourceStream(typeof(Source), name);
             return ms.ToStr();
         }
 
