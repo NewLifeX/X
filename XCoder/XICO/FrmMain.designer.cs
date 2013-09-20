@@ -53,7 +53,7 @@
             this.chk64 = new System.Windows.Forms.CheckBox();
             this.chk128 = new System.Windows.Forms.CheckBox();
             this.chk256 = new System.Windows.Forms.CheckBox();
-            this.saveFileDialog1 = new System.Windows.Forms.SaveFileDialog();
+            this.sfd = new System.Windows.Forms.SaveFileDialog();
             ((System.ComponentModel.ISupportInitialize)(this.picSrc)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.picDes)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numX)).BeginInit();
@@ -359,9 +359,9 @@
             this.chk256.Text = "256*256";
             this.chk256.UseVisualStyleBackColor = true;
             // 
-            // saveFileDialog1
+            // sfd
             // 
-            this.saveFileDialog1.Filter = "PNG文件(*.png)|*.png|所有文件(*.*)|*.*";
+            this.sfd.Filter = "PNG图片(*.png)|*.png|ICO图标(*.ico)|*.ico|所有文件(*.*)|*.*";
             // 
             // FrmMain
             // 
@@ -416,7 +416,7 @@
         private System.Windows.Forms.CheckBox chk64;
         private System.Windows.Forms.CheckBox chk32;
         private System.Windows.Forms.CheckBox chk16;
-        private System.Windows.Forms.SaveFileDialog saveFileDialog1;
+        private System.Windows.Forms.SaveFileDialog sfd;
     }
 }
 

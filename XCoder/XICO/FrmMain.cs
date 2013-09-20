@@ -1,9 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
 using System.Windows.Forms;
 using NewLife.IO;
-using System.Collections.Generic;
-using System.IO;
 
 namespace XICO
 {
@@ -20,6 +20,8 @@ namespace XICO
 
         private void FrmMain_Shown(object sender, EventArgs e)
         {
+            sfd.InitialDirectory = AppDomain.CurrentDomain.BaseDirectory;
+
             var ms = FileSource.GetFileResource(null, "XCoder.XICO.leaf.png");
             if (ms != null) picSrc.Image = new Bitmap(ms);
 
@@ -72,12 +74,19 @@ namespace XICO
             MakeWater();
         }
 
-        void MakeWater(Boolean save = false)
+        void MakeWater()
+        {
+            var bmp = MakeWater(true);
+            picDes.Image = bmp;
+            picDes.Refresh();
+        }
+
+        Image MakeWater(Boolean fitSize)
         {
             var brush = new SolidBrush(lbFont.ForeColor);
 
             var bmp = picSrc.Image;
-            if (!save && bmp.Width > picDes.Width)
+            if (fitSize && bmp.Width > picDes.Width)
                 bmp = new Bitmap(bmp, picDes.Width, picDes.Height);
             else
                 bmp = new Bitmap(bmp);
@@ -91,23 +100,19 @@ namespace XICO
                 g.Dispose();
             }
 
-            if (!save)
-            {
-                picDes.Image = bmp;
-                picDes.Refresh();
-            }
-            else
-            {
-                if (saveFileDialog1.ShowDialog() == DialogResult.OK)
-                {
-                    bmp.Save(saveFileDialog1.FileName, picSrc.Image.RawFormat);
-                }
-            }
+            return bmp;
         }
 
         private void btnSave_Click(object sender, EventArgs e)
         {
-            MakeWater(true);
+            var bmp = MakeWater(true);
+
+            //sfd.DefaultExt = "png";
+            sfd.Filter = "PNG图片(*.png)|*.png";
+            if (sfd.ShowDialog() == DialogResult.OK)
+            {
+                bmp.Save(sfd.FileName, picSrc.Image.RawFormat);
+            }
         }
         #endregion
 
@@ -127,12 +132,16 @@ namespace XICO
                 return;
             }
 
-            var ms = new MemoryStream();
-            IconFile.Convert(picSrc.Image, ms, list.ToArray());
+            var bmp = MakeWater(true);
 
-            if (saveFileDialog1.ShowDialog() == DialogResult.OK)
+            var ms = new MemoryStream();
+            IconFile.Convert(bmp, ms, list.ToArray());
+
+            //sfd.DefaultExt = "ico";
+            sfd.Filter = "ICO图标(*.ico)|*.ico";
+            if (sfd.ShowDialog() == DialogResult.OK)
             {
-                File.WriteAllBytes(saveFileDialog1.FileName, ms.ToArray());
+                File.WriteAllBytes(sfd.FileName, ms.ToArray());
             }
         }
         #endregion
@@ -145,7 +154,7 @@ namespace XICO
             {
                 try
                 {
-                    saveFileDialog1.FileName = fs[0];
+                    sfd.FileName = fs[0];
                     picSrc.Load(fs[0]);
                 }
                 catch { }
