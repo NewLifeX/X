@@ -36,7 +36,6 @@
             this.colorDialog1 = new System.Windows.Forms.ColorDialog();
             this.txt = new System.Windows.Forms.TextBox();
             this.lbFont = new System.Windows.Forms.Label();
-            this.btnWater = new System.Windows.Forms.Button();
             this.btnMakeICO = new System.Windows.Forms.Button();
             this.label3 = new System.Windows.Forms.Label();
             this.label4 = new System.Windows.Forms.Label();
@@ -54,6 +53,7 @@
             this.chk128 = new System.Windows.Forms.CheckBox();
             this.chk256 = new System.Windows.Forms.CheckBox();
             this.sfd = new System.Windows.Forms.SaveFileDialog();
+            this.chk48 = new System.Windows.Forms.CheckBox();
             ((System.ComponentModel.ISupportInitialize)(this.picSrc)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.picDes)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numX)).BeginInit();
@@ -67,7 +67,7 @@
             this.picSrc.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.picSrc.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(224)))), ((int)(((byte)(192)))));
             this.picSrc.Cursor = System.Windows.Forms.Cursors.Default;
-            this.picSrc.Location = new System.Drawing.Point(12, 206);
+            this.picSrc.Location = new System.Drawing.Point(12, 148);
             this.picSrc.Name = "picSrc";
             this.picSrc.Size = new System.Drawing.Size(256, 256);
             this.picSrc.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
@@ -80,7 +80,7 @@
             // 
             this.picDes.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.picDes.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(192)))), ((int)(((byte)(255)))));
-            this.picDes.Location = new System.Drawing.Point(274, 206);
+            this.picDes.Location = new System.Drawing.Point(274, 148);
             this.picDes.Name = "picDes";
             this.picDes.Size = new System.Drawing.Size(256, 256);
             this.picDes.TabIndex = 1;
@@ -126,23 +126,13 @@
             this.lbFont.Text = "点击更改字体";
             this.lbFont.Click += new System.EventHandler(this.label3_Click);
             // 
-            // btnWater
-            // 
-            this.btnWater.Location = new System.Drawing.Point(210, 21);
-            this.btnWater.Name = "btnWater";
-            this.btnWater.Size = new System.Drawing.Size(94, 47);
-            this.btnWater.TabIndex = 7;
-            this.btnWater.Text = "加水印";
-            this.btnWater.UseVisualStyleBackColor = true;
-            this.btnWater.Click += new System.EventHandler(this.btnWater_Click);
-            // 
             // btnMakeICO
             // 
             this.btnMakeICO.Font = new System.Drawing.Font("微软雅黑", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
             this.btnMakeICO.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(128)))), ((int)(((byte)(0)))));
-            this.btnMakeICO.Location = new System.Drawing.Point(437, 16);
+            this.btnMakeICO.Location = new System.Drawing.Point(154, 74);
             this.btnMakeICO.Name = "btnMakeICO";
-            this.btnMakeICO.Size = new System.Drawing.Size(73, 47);
+            this.btnMakeICO.Size = new System.Drawing.Size(73, 36);
             this.btnMakeICO.TabIndex = 8;
             this.btnMakeICO.Text = "存图标";
             this.btnMakeICO.UseVisualStyleBackColor = true;
@@ -246,11 +236,13 @@
             // 
             // btnSave
             // 
-            this.btnSave.Location = new System.Drawing.Point(310, 20);
+            this.btnSave.Font = new System.Drawing.Font("微软雅黑", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.btnSave.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(128)))), ((int)(((byte)(0)))));
+            this.btnSave.Location = new System.Drawing.Point(179, 77);
             this.btnSave.Name = "btnSave";
-            this.btnSave.Size = new System.Drawing.Size(94, 47);
+            this.btnSave.Size = new System.Drawing.Size(94, 35);
             this.btnSave.TabIndex = 16;
-            this.btnSave.Text = "保存结果";
+            this.btnSave.Text = "保存图片";
             this.btnSave.UseVisualStyleBackColor = true;
             this.btnSave.Click += new System.EventHandler(this.btnSave_Click);
             // 
@@ -264,29 +256,29 @@
             this.groupBox1.Controls.Add(this.label6);
             this.groupBox1.Controls.Add(this.lbFont);
             this.groupBox1.Controls.Add(this.numY);
-            this.groupBox1.Controls.Add(this.btnWater);
             this.groupBox1.Controls.Add(this.numX);
             this.groupBox1.Controls.Add(this.label3);
             this.groupBox1.Controls.Add(this.label5);
             this.groupBox1.Controls.Add(this.label4);
-            this.groupBox1.Location = new System.Drawing.Point(12, 4);
+            this.groupBox1.Location = new System.Drawing.Point(12, 12);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(516, 123);
+            this.groupBox1.Size = new System.Drawing.Size(279, 123);
             this.groupBox1.TabIndex = 17;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "水印";
             // 
             // groupBox2
             // 
+            this.groupBox2.Controls.Add(this.chk48);
             this.groupBox2.Controls.Add(this.chk256);
             this.groupBox2.Controls.Add(this.chk128);
             this.groupBox2.Controls.Add(this.chk64);
             this.groupBox2.Controls.Add(this.chk32);
             this.groupBox2.Controls.Add(this.chk16);
             this.groupBox2.Controls.Add(this.btnMakeICO);
-            this.groupBox2.Location = new System.Drawing.Point(12, 131);
+            this.groupBox2.Location = new System.Drawing.Point(295, 12);
             this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Size = new System.Drawing.Size(516, 69);
+            this.groupBox2.Size = new System.Drawing.Size(233, 120);
             this.groupBox2.TabIndex = 18;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "图标";
@@ -294,11 +286,9 @@
             // chk16
             // 
             this.chk16.AutoSize = true;
-            this.chk16.Checked = true;
-            this.chk16.CheckState = System.Windows.Forms.CheckState.Checked;
             this.chk16.Font = new System.Drawing.Font("微软雅黑", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
             this.chk16.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(0)))), ((int)(((byte)(192)))));
-            this.chk16.Location = new System.Drawing.Point(6, 31);
+            this.chk16.Location = new System.Drawing.Point(6, 12);
             this.chk16.Name = "chk16";
             this.chk16.Size = new System.Drawing.Size(77, 26);
             this.chk16.TabIndex = 9;
@@ -312,7 +302,7 @@
             this.chk32.CheckState = System.Windows.Forms.CheckState.Checked;
             this.chk32.Font = new System.Drawing.Font("微软雅黑", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
             this.chk32.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(0)))), ((int)(((byte)(192)))));
-            this.chk32.Location = new System.Drawing.Point(83, 31);
+            this.chk32.Location = new System.Drawing.Point(79, 12);
             this.chk32.Name = "chk32";
             this.chk32.Size = new System.Drawing.Size(77, 26);
             this.chk32.TabIndex = 10;
@@ -322,11 +312,9 @@
             // chk64
             // 
             this.chk64.AutoSize = true;
-            this.chk64.Checked = true;
-            this.chk64.CheckState = System.Windows.Forms.CheckState.Checked;
             this.chk64.Font = new System.Drawing.Font("微软雅黑", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
             this.chk64.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(0)))), ((int)(((byte)(192)))));
-            this.chk64.Location = new System.Drawing.Point(160, 31);
+            this.chk64.Location = new System.Drawing.Point(6, 46);
             this.chk64.Name = "chk64";
             this.chk64.Size = new System.Drawing.Size(77, 26);
             this.chk64.TabIndex = 11;
@@ -338,7 +326,7 @@
             this.chk128.AutoSize = true;
             this.chk128.Font = new System.Drawing.Font("微软雅黑", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
             this.chk128.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(0)))), ((int)(((byte)(192)))));
-            this.chk128.Location = new System.Drawing.Point(237, 31);
+            this.chk128.Location = new System.Drawing.Point(89, 46);
             this.chk128.Name = "chk128";
             this.chk128.Size = new System.Drawing.Size(97, 26);
             this.chk128.TabIndex = 12;
@@ -352,7 +340,7 @@
             this.chk256.CheckState = System.Windows.Forms.CheckState.Checked;
             this.chk256.Font = new System.Drawing.Font("微软雅黑", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
             this.chk256.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(0)))), ((int)(((byte)(192)))));
-            this.chk256.Location = new System.Drawing.Point(334, 31);
+            this.chk256.Location = new System.Drawing.Point(6, 80);
             this.chk256.Name = "chk256";
             this.chk256.Size = new System.Drawing.Size(97, 26);
             this.chk256.TabIndex = 13;
@@ -363,12 +351,24 @@
             // 
             this.sfd.Filter = "PNG图片(*.png)|*.png|ICO图标(*.ico)|*.ico|所有文件(*.*)|*.*";
             // 
+            // chk48
+            // 
+            this.chk48.AutoSize = true;
+            this.chk48.Font = new System.Drawing.Font("微软雅黑", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.chk48.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(0)))), ((int)(((byte)(192)))));
+            this.chk48.Location = new System.Drawing.Point(153, 12);
+            this.chk48.Name = "chk48";
+            this.chk48.Size = new System.Drawing.Size(77, 26);
+            this.chk48.TabIndex = 14;
+            this.chk48.Text = "48*48";
+            this.chk48.UseVisualStyleBackColor = true;
+            // 
             // FrmMain
             // 
             this.AllowDrop = true;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(540, 472);
+            this.ClientSize = new System.Drawing.Size(540, 414);
             this.Controls.Add(this.groupBox2);
             this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.picDes);
@@ -399,7 +399,6 @@
         private System.Windows.Forms.ColorDialog colorDialog1;
         private System.Windows.Forms.TextBox txt;
         private System.Windows.Forms.Label lbFont;
-        private System.Windows.Forms.Button btnWater;
         private System.Windows.Forms.Button btnMakeICO;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Label label4;
@@ -417,6 +416,7 @@
         private System.Windows.Forms.CheckBox chk32;
         private System.Windows.Forms.CheckBox chk16;
         private System.Windows.Forms.SaveFileDialog sfd;
+        private System.Windows.Forms.CheckBox chk48;
     }
 }
 
