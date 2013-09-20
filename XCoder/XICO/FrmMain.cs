@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Drawing;
 using System.Windows.Forms;
+using NewLife.IO;
 
 namespace XICO
 {
@@ -76,6 +77,12 @@ namespace XICO
                 e.Effect = DragDropEffects.Link;
             else
                 e.Effect = DragDropEffects.None;
+        }
+
+        private void FrmMain_Shown(object sender, EventArgs e)
+        {
+            var ms = FileSource.GetFileResource(null, "XCoder.XICO.leaf.png");
+            if (ms != null) picSrc.Image = new Bitmap(ms);
         }
     }
 }

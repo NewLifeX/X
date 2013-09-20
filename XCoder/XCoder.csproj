@@ -17,7 +17,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>..\..\代码生成\</OutputPath>
+    <OutputPath>..\..\XCoder\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -26,7 +26,7 @@
     <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>..\..\代码生成\</OutputPath>
+    <OutputPath>..\..\XCoder\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -36,14 +36,14 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Net4Debug|AnyCPU'">
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <DebugSymbols>true</DebugSymbols>
-    <OutputPath>..\..\代码生成\</OutputPath>
+    <OutputPath>..\..\XCoder\</OutputPath>
     <DefineConstants>TRACE;DEBUG;NET4</DefineConstants>
     <DebugType>full</DebugType>
     <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Net4Release|AnyCPU'">
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-    <OutputPath>..\..\代码生成\</OutputPath>
+    <OutputPath>..\..\XCoder\</OutputPath>
     <DefineConstants>TRACE;NET4</DefineConstants>
     <Optimize>true</Optimize>
     <DebugType>pdbonly</DebugType>
@@ -312,7 +312,7 @@
     <EmbeddedResource Include="数据库命名规范.txt" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="XICO\leaf.png" />
+    <EmbeddedResource Include="XICO\leaf.png" />
     <EmbeddedResource Include="XRegex\Pattern\Html\无嵌套标记.txt" />
     <EmbeddedResource Include="XRegex\Pattern\SQL查询\嵌套查询.txt" />
     <EmbeddedResource Include="XRegex\Pattern\SQL查询\简单.txt" />

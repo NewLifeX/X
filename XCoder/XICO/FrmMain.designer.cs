@@ -167,6 +167,7 @@
             this.Name = "FrmMain";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "ICO图标水印工具";
+            this.Shown += new System.EventHandler(this.FrmMain_Shown);
             ((System.ComponentModel.ISupportInitialize)(this.picSrc)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.picDes)).EndInit();
             this.ResumeLayout(false);
