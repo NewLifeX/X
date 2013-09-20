@@ -1,19 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Text;
+using System.Reflection;
 using System.Windows.Forms;
 using NewLife.Reflection;
-using System.Reflection;
 
 namespace XCoder
 {
     public partial class FrmMDI : Form
     {
-        private int childFormNumber = 0;
-
+        #region 窗口初始化
         public FrmMDI()
         {
             InitializeComponent();
@@ -21,21 +15,45 @@ namespace XCoder
             this.Icon = FileSource.GetIcon();
         }
 
-        private void ShowNewForm(object sender, EventArgs e)
+        private void FrmMDI_Shown(object sender, EventArgs e)
         {
-            var childForm = new FrmMain();
-            childForm.MdiParent = this;
-            //childForm.Text = "窗口 " + childFormNumber++;
-            childForm.Show();
+            var asm = AssemblyX.Create(Assembly.GetExecutingAssembly());
+            Text = String.Format("新生命超级码神工具 v{0} {1:HH:mm:ss}编译", asm.CompileVersion, asm.Compile);
         }
+        #endregion
 
+        #region 应用窗口
         void CreateForm<TForm>() where TForm : Form, new()
         {
-            var childForm = new TForm();
-            childForm.MdiParent = this;
-            //childForm.Text = "窗口 " + childFormNumber++;
-            childForm.Show();
+            var frm = new TForm();
+            frm.MdiParent = this;
+            frm.WindowState = FormWindowState.Maximized;
+            frm.Show();
         }
+
+        private void 数据建模工具ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            CreateForm<FrmMain>();
+        }
+
+        private void 正则表达式工具ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            CreateForm<NewLife.XRegex.FrmMain>();
+        }
+
+        private void 通讯调试工具ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            CreateForm<XCom.FrmMain>();
+        }
+
+        private void 图标水印处理工具ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            CreateForm<XICO.FrmMain>();
+        }
+        #endregion
+
+        #region 菜单控制
+        private void ShowNewForm(object sender, EventArgs e) { }
 
         private void OpenFile(object sender, EventArgs e)
         {
@@ -59,22 +77,13 @@ namespace XCoder
             }
         }
 
-        private void ExitToolsStripMenuItem_Click(object sender, EventArgs e)
-        {
-            this.Close();
-        }
+        private void ExitToolsStripMenuItem_Click(object sender, EventArgs e) { this.Close(); }
 
-        private void CutToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-        }
+        private void CutToolStripMenuItem_Click(object sender, EventArgs e) { }
 
-        private void CopyToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-        }
+        private void CopyToolStripMenuItem_Click(object sender, EventArgs e) { }
 
-        private void PasteToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-        }
+        private void PasteToolStripMenuItem_Click(object sender, EventArgs e) { }
 
         private void ToolBarToolStripMenuItem_Click(object sender, EventArgs e)
         {
@@ -86,25 +95,13 @@ namespace XCoder
             statusStrip.Visible = statusBarToolStripMenuItem.Checked;
         }
 
-        private void CascadeToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            LayoutMdi(MdiLayout.Cascade);
-        }
+        private void CascadeToolStripMenuItem_Click(object sender, EventArgs e) { LayoutMdi(MdiLayout.Cascade); }
 
-        private void TileVerticalToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            LayoutMdi(MdiLayout.TileVertical);
-        }
+        private void TileVerticalToolStripMenuItem_Click(object sender, EventArgs e) { LayoutMdi(MdiLayout.TileVertical); }
 
-        private void TileHorizontalToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            LayoutMdi(MdiLayout.TileHorizontal);
-        }
+        private void TileHorizontalToolStripMenuItem_Click(object sender, EventArgs e) { LayoutMdi(MdiLayout.TileHorizontal); }
 
-        private void ArrangeIconsToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            LayoutMdi(MdiLayout.ArrangeIcons);
-        }
+        private void ArrangeIconsToolStripMenuItem_Click(object sender, EventArgs e) { LayoutMdi(MdiLayout.ArrangeIcons); }
 
         private void CloseAllToolStripMenuItem_Click(object sender, EventArgs e)
         {
@@ -113,31 +110,6 @@ namespace XCoder
                 childForm.Close();
             }
         }
-
-        private void FrmMDI_Shown(object sender, EventArgs e)
-        {
-            var asm = AssemblyX.Create(Assembly.GetExecutingAssembly());
-            Text = String.Format("新生命超级码神工具 v{0} {1:HH:mm:ss}编译", asm.CompileVersion, asm.Compile);
-        }
-
-        private void 数据建模工具ToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            CreateForm<FrmMain>();
-        }
-
-        private void 正则表达式工具ToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            CreateForm<NewLife.XRegex.FrmMain>();
-        }
-
-        private void 通讯调试工具ToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            CreateForm<XCom.FrmMain>();
-        }
-
-        private void 图标水印处理工具ToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            CreateForm<XICO.FrmMain>();
-        }
+        #endregion
     }
 }

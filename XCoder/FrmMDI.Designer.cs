@@ -56,6 +56,10 @@
             this.toolBarToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.statusBarToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolsMenu = new System.Windows.Forms.ToolStripMenuItem();
+            this.数据建模工具ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.正则表达式工具ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.通讯调试工具ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.图标水印处理工具ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.windowsMenu = new System.Windows.Forms.ToolStripMenuItem();
             this.newWindowToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.cascadeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -81,10 +85,6 @@
             this.statusStrip = new System.Windows.Forms.StatusStrip();
             this.toolStripStatusLabel = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolTip = new System.Windows.Forms.ToolTip(this.components);
-            this.数据建模工具ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.正则表达式工具ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.通讯调试工具ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.图标水印处理工具ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip.SuspendLayout();
             this.toolStrip.SuspendLayout();
             this.statusStrip.SuspendLayout();
@@ -102,7 +102,7 @@
             this.menuStrip.Location = new System.Drawing.Point(0, 0);
             this.menuStrip.MdiWindowListItem = this.windowsMenu;
             this.menuStrip.Name = "menuStrip";
-            this.menuStrip.Size = new System.Drawing.Size(632, 25);
+            this.menuStrip.Size = new System.Drawing.Size(784, 25);
             this.menuStrip.TabIndex = 0;
             this.menuStrip.Text = "MenuStrip";
             // 
@@ -297,21 +297,17 @@
             // 
             // toolBarToolStripMenuItem
             // 
-            this.toolBarToolStripMenuItem.Checked = true;
             this.toolBarToolStripMenuItem.CheckOnClick = true;
-            this.toolBarToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
             this.toolBarToolStripMenuItem.Name = "toolBarToolStripMenuItem";
-            this.toolBarToolStripMenuItem.Size = new System.Drawing.Size(127, 22);
+            this.toolBarToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.toolBarToolStripMenuItem.Text = "工具栏(&T)";
             this.toolBarToolStripMenuItem.Click += new System.EventHandler(this.ToolBarToolStripMenuItem_Click);
             // 
             // statusBarToolStripMenuItem
             // 
-            this.statusBarToolStripMenuItem.Checked = true;
             this.statusBarToolStripMenuItem.CheckOnClick = true;
-            this.statusBarToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
             this.statusBarToolStripMenuItem.Name = "statusBarToolStripMenuItem";
-            this.statusBarToolStripMenuItem.Size = new System.Drawing.Size(127, 22);
+            this.statusBarToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.statusBarToolStripMenuItem.Text = "状态栏(&S)";
             this.statusBarToolStripMenuItem.Click += new System.EventHandler(this.StatusBarToolStripMenuItem_Click);
             // 
@@ -325,6 +321,34 @@
             this.toolsMenu.Name = "toolsMenu";
             this.toolsMenu.Size = new System.Drawing.Size(59, 21);
             this.toolsMenu.Text = "工具(&T)";
+            // 
+            // 数据建模工具ToolStripMenuItem
+            // 
+            this.数据建模工具ToolStripMenuItem.Name = "数据建模工具ToolStripMenuItem";
+            this.数据建模工具ToolStripMenuItem.Size = new System.Drawing.Size(172, 22);
+            this.数据建模工具ToolStripMenuItem.Text = "数据建模工具";
+            this.数据建模工具ToolStripMenuItem.Click += new System.EventHandler(this.数据建模工具ToolStripMenuItem_Click);
+            // 
+            // 正则表达式工具ToolStripMenuItem
+            // 
+            this.正则表达式工具ToolStripMenuItem.Name = "正则表达式工具ToolStripMenuItem";
+            this.正则表达式工具ToolStripMenuItem.Size = new System.Drawing.Size(172, 22);
+            this.正则表达式工具ToolStripMenuItem.Text = "正则表达式工具";
+            this.正则表达式工具ToolStripMenuItem.Click += new System.EventHandler(this.正则表达式工具ToolStripMenuItem_Click);
+            // 
+            // 通讯调试工具ToolStripMenuItem
+            // 
+            this.通讯调试工具ToolStripMenuItem.Name = "通讯调试工具ToolStripMenuItem";
+            this.通讯调试工具ToolStripMenuItem.Size = new System.Drawing.Size(172, 22);
+            this.通讯调试工具ToolStripMenuItem.Text = "通讯调试工具";
+            this.通讯调试工具ToolStripMenuItem.Click += new System.EventHandler(this.通讯调试工具ToolStripMenuItem_Click);
+            // 
+            // 图标水印处理工具ToolStripMenuItem
+            // 
+            this.图标水印处理工具ToolStripMenuItem.Name = "图标水印处理工具ToolStripMenuItem";
+            this.图标水印处理工具ToolStripMenuItem.Size = new System.Drawing.Size(172, 22);
+            this.图标水印处理工具ToolStripMenuItem.Text = "图标水印处理工具";
+            this.图标水印处理工具ToolStripMenuItem.Click += new System.EventHandler(this.图标水印处理工具ToolStripMenuItem_Click);
             // 
             // windowsMenu
             // 
@@ -443,6 +467,7 @@
             this.toolStrip.Size = new System.Drawing.Size(632, 25);
             this.toolStrip.TabIndex = 1;
             this.toolStrip.Text = "ToolStrip";
+            this.toolStrip.Visible = false;
             // 
             // newToolStripButton
             // 
@@ -519,6 +544,7 @@
             this.statusStrip.Size = new System.Drawing.Size(632, 22);
             this.statusStrip.TabIndex = 2;
             this.statusStrip.Text = "StatusStrip";
+            this.statusStrip.Visible = false;
             // 
             // toolStripStatusLabel
             // 
@@ -526,39 +552,11 @@
             this.toolStripStatusLabel.Size = new System.Drawing.Size(32, 17);
             this.toolStripStatusLabel.Text = "状态";
             // 
-            // 数据建模工具ToolStripMenuItem
-            // 
-            this.数据建模工具ToolStripMenuItem.Name = "数据建模工具ToolStripMenuItem";
-            this.数据建模工具ToolStripMenuItem.Size = new System.Drawing.Size(172, 22);
-            this.数据建模工具ToolStripMenuItem.Text = "数据建模工具";
-            this.数据建模工具ToolStripMenuItem.Click += new System.EventHandler(this.数据建模工具ToolStripMenuItem_Click);
-            // 
-            // 正则表达式工具ToolStripMenuItem
-            // 
-            this.正则表达式工具ToolStripMenuItem.Name = "正则表达式工具ToolStripMenuItem";
-            this.正则表达式工具ToolStripMenuItem.Size = new System.Drawing.Size(172, 22);
-            this.正则表达式工具ToolStripMenuItem.Text = "正则表达式工具";
-            this.正则表达式工具ToolStripMenuItem.Click += new System.EventHandler(this.正则表达式工具ToolStripMenuItem_Click);
-            // 
-            // 通讯调试工具ToolStripMenuItem
-            // 
-            this.通讯调试工具ToolStripMenuItem.Name = "通讯调试工具ToolStripMenuItem";
-            this.通讯调试工具ToolStripMenuItem.Size = new System.Drawing.Size(172, 22);
-            this.通讯调试工具ToolStripMenuItem.Text = "通讯调试工具";
-            this.通讯调试工具ToolStripMenuItem.Click += new System.EventHandler(this.通讯调试工具ToolStripMenuItem_Click);
-            // 
-            // 图标水印处理工具ToolStripMenuItem
-            // 
-            this.图标水印处理工具ToolStripMenuItem.Name = "图标水印处理工具ToolStripMenuItem";
-            this.图标水印处理工具ToolStripMenuItem.Size = new System.Drawing.Size(172, 22);
-            this.图标水印处理工具ToolStripMenuItem.Text = "图标水印处理工具";
-            this.图标水印处理工具ToolStripMenuItem.Click += new System.EventHandler(this.图标水印处理工具ToolStripMenuItem_Click);
-            // 
             // FrmMDI
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(632, 418);
+            this.ClientSize = new System.Drawing.Size(784, 562);
             this.Controls.Add(this.statusStrip);
             this.Controls.Add(this.toolStrip);
             this.Controls.Add(this.menuStrip);

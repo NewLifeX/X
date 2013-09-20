@@ -49,8 +49,8 @@ namespace XCoder
 
         private void FrmMain_Shown(object sender, EventArgs e)
         {
-            var asm = AssemblyX.Create(Assembly.GetExecutingAssembly());
-            Text = String.Format("新生命数据模型工具 v{0} {1:HH:mm:ss}编译", asm.CompileVersion, asm.Compile);
+            //var asm = AssemblyX.Create(Assembly.GetExecutingAssembly());
+            //Text = String.Format("新生命数据模型工具 v{0} {1:HH:mm:ss}编译", asm.CompileVersion, asm.Compile);
         }
 
         private void FrmMain_Load(object sender, EventArgs e)

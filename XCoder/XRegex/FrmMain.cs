@@ -26,7 +26,7 @@ namespace NewLife.XRegex
 
         private void FrmMain_Shown(object sender, EventArgs e)
         {
-            Text += " V" + FileVersion;
+            //Text += " V" + FileVersion;
 
             GetOption();
         }
