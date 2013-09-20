@@ -676,6 +676,23 @@ namespace XCode.DataAccessLayer
             if (IsUseOwner)
             {
                 dt = GetSchema(_.Tables, new String[] { Owner, tableName });
+                dt.Columns.Add("TABLE_TYPE", Type.GetType("System.String"));
+                foreach (DataRow dr in dt.Rows)
+                {
+                    dr["TABLE_TYPE"] = "Table";
+                }
+                DataTable dtView = GetSchema(_.Views, new String[] { Owner, tableName });
+                if (dtView != null && dtView.Rows.Count != 0)
+                {
+                    foreach (DataRow dr in dtView.Rows)
+                    {
+                        DataRow drNew = dt.NewRow();
+                        drNew["OWNER"] = dr["OWNER"];
+                        drNew["TABLE_NAME"] = dr["VIEW_NAME"];
+                        drNew["TABLE_TYPE"] = "View";
+                        dt.Rows.Add(drNew);
+                    }
+                }
 
                 if (_columns == null) _columns = GetSchema(_.Columns, new String[] { Owner, tableName, null });
                 if (_indexes == null) _indexes = GetSchema(_.Indexes, new String[] { Owner, null, Owner, tableName });
@@ -695,7 +712,6 @@ namespace XCode.DataAccessLayer
 
             return GetTables(rows);
         }
-
         protected override void FixTable(IDataTable table, DataRow dr)
         {
             base.FixTable(table, dr);

@@ -32,6 +32,7 @@ namespace XCode.DataAccessLayer
         protected static class _
         {
             public static readonly String Tables = "Tables";
+            public static readonly String Views = "Views";
             public static readonly String Indexes = "Indexes";
             public static readonly String IndexColumns = "IndexColumns";
             public static readonly String Databases = "Databases";
