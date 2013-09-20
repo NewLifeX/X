@@ -12,7 +12,7 @@ namespace XTemplate.Tags
 
         public String Process(String str)
         {
-
+            return str;
         }
     }
 }
