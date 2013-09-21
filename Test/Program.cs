@@ -31,6 +31,7 @@ using Microsoft.International.Converters.PinYinConverter;
 using System.Web.Hosting;
 using NewLife;
 using NewLife.Security;
+using System.Security.Cryptography;
 #endif
 
 namespace Test
@@ -419,6 +420,39 @@ namespace Test
 
             str = Encoding.UTF8.GetString(jm);
             Console.WriteLine(str);
+
+            var sig = RSAHelper.Sign(buf, keys[0]);
+            Console.WriteLine("签名：{0}", sig.ToHex());
+            var rs = RSAHelper.Verify(buf, keys[1], sig);
+            Console.WriteLine("验证：{0}", rs ? "没有被修改过" : "被修改过");
+
+            buf[0] = 1;
+            rs = RSAHelper.Verify(buf, keys[1], sig);
+            Console.WriteLine("验证：{0}", rs ? "没有被修改过" : "被修改过");
+
+            var ds = DSAHelper.GenerateKey();
+
+            sig = DSAHelper.Sign(buf, ds[0]);
+            Console.WriteLine("签名：{0}", sig.ToHex());
+            rs = DSAHelper.Verify(buf, ds[1], sig);
+            Console.WriteLine("验证：{0}", rs ? "没有被修改过" : "被修改过");
+
+            buf[0] = 2;
+            rs = DSAHelper.Verify(buf, ds[1], sig);
+            Console.WriteLine("验证：{0}", rs ? "没有被修改过" : "被修改过");
+
+            //CodeTimer.ShowHeader("RSA加解密测试");
+            //var ct = new CodeTimer();
+            //ct.ShowProgress = true;
+            //ct.Times = 1000;
+            //ct.Action = n =>
+            //{
+            //    var mw2 = RSAHelper.EncryptWithDES(buf, keys[1]);
+            //    var jm2 = RSAHelper.DecryptWithDES(mw2, keys[0]);
+            //};
+            //ct.TimeOne();
+            //ct.Time();
+            //Console.WriteLine("平均每次时间：{0:n0}毫秒", ct.Elapsed.TotalMilliseconds / ct.Times);
         }
     }
 }

@@ -74,14 +74,9 @@ namespace NewLife.Security
             sa.GenerateKey();
 
             // 对称加密
+            buf = sa.Encrypt(buf);
+
             var ms = new MemoryStream();
-            var cs = new CryptoStream(ms, sa.CreateEncryptor(), CryptoStreamMode.Write);
-            cs.Write(buf, 0, buf.Length);
-            cs.FlushFinalBlock();
-
-            buf = ms.ToArray();
-
-            ms = new MemoryStream();
             ms.WriteWithLength(sa.Key)
                 .WriteWithLength(sa.IV);
             var keys = ms.ToArray();
@@ -121,24 +116,51 @@ namespace NewLife.Security
             sa.IV = ms.ReadWithLength();
 
             // 对称解密
-            var stream = new CryptoStream(new MemoryStream(buf), sa.CreateDecryptor(), CryptoStreamMode.Read);
+            return sa.Descrypt(buf);
+        }
+        #endregion
 
-            ms = new MemoryStream();
-            while (true)
-            {
-                Byte[] buffer = new Byte[1024];
-                Int32 count = stream.Read(buffer, 0, buffer.Length);
-                if (count <= 0) break;
+        #region 数字签名
+        /// <summary>签名</summary>
+        /// <param name="buf"></param>
+        /// <param name="priKey"></param>
+        /// <returns></returns>
+        public static Byte[] Sign(Byte[] buf, String priKey)
+        {
+            var rsa = new RSACryptoServiceProvider();
+            rsa.FromXmlString(priKey);
 
-                ms.Write(buffer, 0, count);
-                if (count < buffer.Length) break;
-            }
+            return rsa.SignData(buf, MD5.Create());
+        }
 
-            return ms.ToArray();
+        /// <summary>验证</summary>
+        /// <param name="buf"></param>
+        /// <param name="pukKey"></param>
+        /// <param name="rgbSignature"></param>
+        /// <returns></returns>
+        public static Boolean Verify(Byte[] buf, String pukKey, Byte[] rgbSignature)
+        {
+            var rsa = new RSACryptoServiceProvider();
+            rsa.FromXmlString(pukKey);
+
+            return rsa.VerifyData(buf, MD5.Create(), rgbSignature);
         }
         #endregion
 
         #region 辅助
+        private static RNGCryptoServiceProvider _rng;
+        /// <summary>使用随机数设置</summary>
+        /// <param name="buf"></param>
+        /// <returns></returns>
+        public static Byte[] SetRandom(this Byte[] buf)
+        {
+            if (_rng == null) _rng = new RNGCryptoServiceProvider();
+
+            _rng.GetBytes(buf);
+
+            return buf;
+        }
+
         static Stream WriteWithLength(this Stream stream, Byte[] buf)
         {
             var bts = BitConverter.GetBytes(buf.Length);

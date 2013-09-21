@@ -1,12 +1,45 @@
 ﻿using System;
 using System.IO;
 using System.Security.Cryptography;
+using System.Text;
 
 namespace NewLife.Security
 {
     /// <summary>安全算法</summary>
     public static class SecurityHelper
     {
+        #region 哈希
+        private static MD5 _md5;
+        /// <summary>MD5散列</summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        public static Byte[] MD5(this Byte[] data)
+        {
+            if (_md5 == null) _md5 = new MD5CryptoServiceProvider();
+
+            return _md5.ComputeHash(data);
+        }
+
+        /// <summary>MD5散列</summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        public static String MD5(this String data)
+        {
+            var buf = MD5(Encoding.Default.GetBytes(data));
+            return buf.ToHex();
+        }
+
+        /// <summary>MD5散列</summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        public static String MD5_16(this String data)
+        {
+            var buf = MD5(Encoding.Default.GetBytes(data));
+            return buf.ToHex(0, 16);
+        }
+        #endregion
+
+        #region 同步加密扩展
         /// <summary>对称加密算法扩展</summary>
         /// <param name="sa"></param>
         /// <param name="instream"></param>
@@ -89,5 +122,6 @@ namespace NewLife.Security
                 return ms2.ToArray();
             }
         }
+        #endregion
     }
 }
