@@ -27,6 +27,10 @@ using XCode.Transform;
 using System.Linq;
 #else
 using NewLife.Linq;
+using Microsoft.International.Converters.PinYinConverter;
+using System.Web.Hosting;
+using NewLife;
+using NewLife.Security;
 #endif
 
 namespace Test
@@ -44,7 +48,7 @@ namespace Test
                 try
                 {
 #endif
-                Test10();
+                    Test10();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -400,7 +404,21 @@ namespace Test
 
         static void Test10()
         {
-            Console.WriteLine("nnhy\\1".EnsureDirectory());
+            var str = "我是超级大石头！";
+            Console.WriteLine(str);
+            var buf = Encoding.UTF8.GetBytes(str);
+            Console.WriteLine("明文：{0}", BitConverter.ToString(buf));
+
+            var keys = RSAHelper.GenerateKey();
+
+            var mw = RSAHelper.EncryptWithDES(buf, keys[1]);
+            Console.WriteLine("密文：{0}", BitConverter.ToString(mw));
+
+            var jm = RSAHelper.DecryptWithDES(mw, keys[0]);
+            Console.WriteLine("明文：{0}", BitConverter.ToString(jm));
+
+            str = Encoding.UTF8.GetString(jm);
+            Console.WriteLine(str);
         }
     }
 }
