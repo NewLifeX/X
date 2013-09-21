@@ -276,7 +276,7 @@ namespace NewLife.Log
             {
                 try
                 {
-                    if (txt.MaxLength >= maxlength) txt.Clear();
+                    if (txt.TextLength >= maxlength) txt.Clear();
 
                     //// 如果不是第一行，加上空行
                     //if (txt.TextLength > 0) txt.AppendText(Environment.NewLine);
