@@ -169,8 +169,12 @@ namespace System
 
             // 针对MemoryStream进行优化。内存流的Read实现是一个个字节复制，而ToArray是调用内部内存复制方法
             var ms = stream as MemoryStream;
-            if (ms != null && ms.Position == 0 && length == ms.Length)
+            if (ms != null && ms.Position == 0 && (length == 0 || length == ms.Length))
             {
+                // 如果长度一致
+                var buf = ms.GetBuffer();
+                if (buf.Length == ms.Length) return buf;
+
                 ms.Position += length;
                 return ms.ToArray();
             }
