@@ -22,41 +22,41 @@ namespace NewLife.Configuration
         /// <summary>连接字符串设置</summary>
         public static ConnectionStringSettingsCollection ConnectionStrings { get { return ConfigurationManager.ConnectionStrings; } }
 
-        private static Object _httpHandlers;
-        /// <summary>获取httphandlers</summary>
-        public static Object httpHandlers
-        {
-            get
-            {
-                if (_httpHandlers == null && !hasLoad.Contains("httpHandlers"))
-                {
-                    _httpHandlers = ConfigurationManager.GetSection("system.web/httpHandlers");
-                    hasLoad.Add("httpHandlers");
-                }
-                return _httpHandlers;
-            }
-        }
+        //private static Object _httpHandlers;
+        ///// <summary>获取httphandlers</summary>
+        //public static Object httpHandlers
+        //{
+        //    get
+        //    {
+        //        if (_httpHandlers == null && !hasLoad.Contains("httpHandlers"))
+        //        {
+        //            _httpHandlers = ConfigurationManager.GetSection("system.web/httpHandlers");
+        //            hasLoad.Add("httpHandlers");
+        //        }
+        //        return _httpHandlers;
+        //    }
+        //}
         #endregion
 
         #region 获取
-        /// <summary>获取httpHandlers</summary>
-        /// <returns></returns>
-        public static List<HttpHandlerAction> GethttpHandlers()
-        {
-            var value = new List<HttpHandlerAction>();
+        ///// <summary>获取httpHandlers</summary>
+        ///// <returns></returns>
+        //public static List<HttpHandlerAction> GethttpHandlers()
+        //{
+        //    var value = new List<HttpHandlerAction>();
 
-            var httphanset = httpHandlers as HttpHandlersSection;
-            if (httphanset == null) return value;
+        //    var httphanset = httpHandlers as HttpHandlersSection;
+        //    if (httphanset == null) return value;
 
-            var cec = (ConfigurationElementCollection)httphanset.Handlers;
+        //    var cec = (ConfigurationElementCollection)httphanset.Handlers;
 
-            for (Int32 i = 0; i < cec.Count; i++)
-            {
-                value.Add(httphanset.Handlers[i]);
-            }
+        //    for (Int32 i = 0; i < cec.Count; i++)
+        //    {
+        //        value.Add(httphanset.Handlers[i]);
+        //    }
 
-            return value;
-        }
+        //    return value;
+        //}
 
         /// <summary>是否包含指定项的设置</summary>
         /// <param name="name"></param>
@@ -291,9 +291,7 @@ namespace NewLife.Configuration
             UpdateConfig(name, value);
         }
 
-        /// <summary>
-        /// 判断appSettings中是否有此项
-        /// </summary>
+        /// <summary>判断appSettings中是否有此项</summary>
         private static bool AppSettingsKeyExists(string strKey, System.Configuration.Configuration config)
         {
             foreach (string str in config.AppSettings.Settings.AllKeys)
@@ -302,13 +300,14 @@ namespace NewLife.Configuration
             }
             return false;
         }
+
         /// <summary>设置配置文件参数</summary>
         /// <param name="name"></param>
         /// <param name="value"></param>
         public static void UpdateConfig(String name, String value)
         {
             var config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
-            if (AppSettingsKeyExists(name, config))
+            if (config != null && AppSettingsKeyExists(name, config))
             {
                 config.AppSettings.Settings[name].Value = value;
                 config.Save(ConfigurationSaveMode.Modified);

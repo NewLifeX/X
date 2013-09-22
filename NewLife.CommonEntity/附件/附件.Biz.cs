@@ -15,6 +15,8 @@ using System.Xml.Serialization;
 using NewLife.CommonEntity.Web;
 using NewLife.Configuration;
 using XCode;
+using NewLife.Reflection;
+using NewLife.Linq;
 
 namespace NewLife.CommonEntity
 {
@@ -135,40 +137,43 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region 扩展属性
-        /// <summary>是否进行过查询</summary>
-        private static Boolean IsFindhttpHandler = false;
-        private static HttpHandlerAction _httpHandler;
-        /// <summary>Att httpHandler</summary>
-        public static HttpHandlerAction httpHandler
-        {
-            get
-            {
-                if (!IsFindhttpHandler)
-                {
-                    // 2011-11-25 大石头 我猜，IsFindhttpHandler应该是用来判断是否已经查找过了的吧
-                    IsFindhttpHandler = true;
+        ///// <summary>是否进行过查询</summary>
+        //private static Boolean IsFindhttpHandler = false;
+        //private static HttpHandlerAction _httpHandler;
+        ///// <summary>Att httpHandler</summary>
+        //public static HttpHandlerAction httpHandler
+        //{
+        //    get
+        //    {
+        //        if (!IsFindhttpHandler)
+        //        {
+        //            // 2011-11-25 大石头 我猜，IsFindhttpHandler应该是用来判断是否已经查找过了的吧
+        //            IsFindhttpHandler = true;
 
-                    foreach (HttpHandlerAction item in Config.GethttpHandlers())
-                    {
-                        if (!String.IsNullOrEmpty(item.Type) && item.Type.IndexOf(typeof(AttachmentHttpHandler).FullName) > -1)
-                        {
-                            _httpHandler = item;
+        //            //foreach (HttpHandlerAction item in Config.GethttpHandlers())
+        //            //{
+        //            //    if (!String.IsNullOrEmpty(item.Type) && item.Type.IndexOf(typeof(AttachmentHttpHandler).FullName) > -1)
+        //            //    {
+        //            //        _httpHandler = item;
 
-                            break;
-                        }
-                    }
-                }
-                return _httpHandler;
-            }
-        }
+        //            //        break;
+        //            //    }
+        //            //}
 
-        /// <summary>获取Config中Handler设置</summary>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        [Obsolete("这个是不是拼写错误？使用HandlerUrl？")]
-        public String HenderUrl { get { return HandlerUrl; } }
+        //            var type = AssemblyX.FindAllPlugins(typeof(AttachmentHttpHandler), true).FirstOrDefault();
+        //            if (type != null) _httpHandler = TypeX.CreateInstance(type);
+        //        }
+        //        return _httpHandler;
+        //    }
+        //}
 
-        /// <summary>获取Config中Handler设置的用于访问当前附件的Url</summary>
-        public String HandlerUrl { get { return httpHandler == null ? null : String.Format("{0}?ID={1}", httpHandler.Path, ID); } }
+        /////// <summary>获取Config中Handler设置</summary>
+        ////[EditorBrowsable(EditorBrowsableState.Never)]
+        ////[Obsolete("这个是不是拼写错误？使用HandlerUrl？")]
+        ////public String HenderUrl { get { return HandlerUrl; } }
+
+        ///// <summary>获取Config中Handler设置的用于访问当前附件的Url</summary>
+        //public String HandlerUrl { get { return httpHandler == null ? null : String.Format("{0}?ID={1}", httpHandler.Path, ID); } }
 
         /// <summary>完全文件路径</summary>
         public String FullFilePath
