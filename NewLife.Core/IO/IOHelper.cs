@@ -10,9 +10,12 @@ namespace System
         #region 压缩/解压缩 数据
         /// <summary>压缩数据流</summary>
         /// <param name="inStream">输入流</param>
-        /// <param name="outStream">输出流</param>
-        public static void Compress(this Stream inStream, Stream outStream)
+        /// <param name="outStream">输出流。如果不指定，则内部实例化一个内存流</param>
+        /// <remarks>返回输出流，注意此时指针位于末端</remarks>
+        public static Stream Compress(this Stream inStream, Stream outStream = null)
         {
+            if (outStream == null) outStream = new MemoryStream();
+
             // 第三个参数为true，保持数据流打开，内部不应该干涉外部，不要关闭外部的数据流
             using (var stream = new DeflateStream(outStream, CompressionMode.Compress, true))
             {
@@ -20,19 +23,26 @@ namespace System
                 stream.Flush();
                 stream.Close();
             }
+
+            return outStream;
         }
 
         /// <summary>解压缩数据流</summary>
         /// <param name="inStream">输入流</param>
-        /// <param name="outStream">输出流</param>
-        public static void Decompress(this Stream inStream, Stream outStream)
+        /// <param name="outStream">输出流。如果不指定，则内部实例化一个内存流</param>
+        /// <remarks>返回输出流，注意此时指针位于末端</remarks>
+        public static Stream Decompress(this Stream inStream, Stream outStream = null)
         {
+            if (outStream == null) outStream = new MemoryStream();
+
             // 第三个参数为true，保持数据流打开，内部不应该干涉外部，不要关闭外部的数据流
             using (var stream = new DeflateStream(inStream, CompressionMode.Decompress, true))
             {
                 stream.CopyTo(outStream);
                 stream.Close();
             }
+
+            return outStream;
         }
 
         /// <summary>压缩字节数组</summary>
@@ -53,6 +63,43 @@ namespace System
             var ms = new MemoryStream();
             Decompress(new MemoryStream(data), ms);
             return ms.ToArray();
+        }
+
+        /// <summary>压缩数据流</summary>
+        /// <param name="inStream">输入流</param>
+        /// <param name="outStream">输出流。如果不指定，则内部实例化一个内存流</param>
+        /// <remarks>返回输出流，注意此时指针位于末端</remarks>
+        public static Stream CompressGZip(this Stream inStream, Stream outStream = null)
+        {
+            if (outStream == null) outStream = new MemoryStream();
+
+            // 第三个参数为true，保持数据流打开，内部不应该干涉外部，不要关闭外部的数据流
+            using (var stream = new GZipStream(outStream, CompressionMode.Compress, true))
+            {
+                inStream.CopyTo(stream);
+                stream.Flush();
+                stream.Close();
+            }
+
+            return outStream;
+        }
+
+        /// <summary>解压缩数据流</summary>
+        /// <param name="inStream">输入流</param>
+        /// <param name="outStream">输出流。如果不指定，则内部实例化一个内存流</param>
+        /// <remarks>返回输出流，注意此时指针位于末端</remarks>
+        public static Stream DecompressGZip(this Stream inStream, Stream outStream = null)
+        {
+            if (outStream == null) outStream = new MemoryStream();
+
+            // 第三个参数为true，保持数据流打开，内部不应该干涉外部，不要关闭外部的数据流
+            using (var stream = new GZipStream(inStream, CompressionMode.Decompress, true))
+            {
+                stream.CopyTo(outStream);
+                stream.Close();
+            }
+
+            return outStream;
         }
         #endregion
 
