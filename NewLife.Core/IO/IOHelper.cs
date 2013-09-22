@@ -109,29 +109,21 @@ namespace System
         #region 数据流转换
         /// <summary>流转为字节数组</summary>
         /// <param name="stream">数据流</param>
-        /// <param name="length">长度</param>
+        /// <param name="length">长度。如果不支持定位，则必须指定length，一次性读完数据，因为无法得知数据流结尾位置</param>
         /// <returns></returns>
         public static Byte[] ReadBytes(this Stream stream, Int64 length = 0)
         {
             if (stream == null) return null;
 
-            #region 未处理流指针位置，注释
-            // 此处代码为大石头优化内存流的处理
-            // 由于复制内容后，未改变流指针位置，导致应用中出现错误，
-            // 现改正
-
-            // 针对MemoryStream进行优化
-            //  if (stream is MemoryStream && (length == 0 || length == stream.Length)) return (stream as MemoryStream).ToArray(); 
-            #endregion
-
-            #region 针对MemoryStream进行优化
-            if (stream is MemoryStream && stream.Position == 0 && length == stream.Length)
+            // 针对MemoryStream进行优化。内存流的Read实现是一个个字节复制，而ToArray是调用内部内存复制方法
+            var ms = stream as MemoryStream;
+            if (ms != null && ms.Position == 0 && length == ms.Length)
             {
-                stream.Position += stream.Length;
-                return (stream as MemoryStream).ToArray();
+                ms.Position += length;
+                return ms.ToArray();
             }
-            #endregion
 
+            // 如果不支持定位，则必须指定length，一次性读完数据，因为无法得知数据流结尾位置
             if (!stream.CanSeek)
             {
                 var bytes = new Byte[length];
@@ -187,6 +179,7 @@ namespace System
             var bts = stream.ReadTo(Environment.NewLine, encoding);
             //if (bts == null || bts.Length < 1) return null;
             if (bts == null) return null;
+
             stream.Seek(encoding.GetByteCount(Environment.NewLine), SeekOrigin.Current);
             if (bts.Length == 0) return String.Empty;
 
