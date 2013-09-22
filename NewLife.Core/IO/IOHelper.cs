@@ -108,8 +108,13 @@ namespace System
 
         #region 数据流转换
         /// <summary>流转为字节数组</summary>
+        /// <remarks>
+        /// 针对MemoryStream进行优化。内存流的Read实现是一个个字节复制，而ToArray是调用内部内存复制方法
+        /// 如果要读完数据，又不支持定位，则采用内存流搬运
+        /// 如果指定长度超过数据流长度，就让其报错，因为那是调用者所期望的值
+        /// </remarks>
         /// <param name="stream">数据流</param>
-        /// <param name="length">长度。如果不支持定位，则必须指定length，一次性读完数据，因为无法得知数据流结尾位置</param>
+        /// <param name="length">长度</param>
         /// <returns></returns>
         public static Byte[] ReadBytes(this Stream stream, Int64 length = 0)
         {
@@ -123,16 +128,37 @@ namespace System
                 return ms.ToArray();
             }
 
-            // 如果不支持定位，则必须指定length，一次性读完数据，因为无法得知数据流结尾位置
-            if (!stream.CanSeek)
+            if (length > 0)
             {
                 var bytes = new Byte[length];
                 stream.Read(bytes, 0, bytes.Length);
                 return bytes;
             }
+            // 如果要读完数据，又不支持定位，则采用内存流搬运
+            else if (!stream.CanSeek)
+            {
+                //var bytes = new Byte[length];
+                //stream.Read(bytes, 0, bytes.Length);
+                //return bytes;
+
+                ms = new MemoryStream();
+                while (true)
+                {
+                    Byte[] buffer = new Byte[1024];
+                    Int32 count = stream.Read(buffer, 0, buffer.Length);
+                    if (count <= 0) break;
+
+                    ms.Write(buffer, 0, count);
+                    if (count < buffer.Length) break;
+                }
+
+                return ms.ToArray();
+            }
             else
             {
-                if (length == 0 || stream.Position + length > stream.Length) length = (Int32)(stream.Length - stream.Position);
+                //if (length <= 0 || stream.CanSeek && stream.Position + length > stream.Length) length = (Int32)(stream.Length - stream.Position);
+                // 如果指定长度超过数据流长度，就让其报错，因为那是调用者所期望的值
+                length = (Int32)(stream.Length - stream.Position);
 
                 var bytes = new Byte[length];
                 stream.Read(bytes, 0, bytes.Length);
