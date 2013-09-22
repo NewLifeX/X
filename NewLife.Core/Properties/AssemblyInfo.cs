@@ -34,9 +34,11 @@ using System.Runtime.InteropServices;
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("3.9.*")]
-[assembly: AssemblyFileVersion("3.9.2013.0907")]
+[assembly: AssemblyFileVersion("3.9.2013.0922")]
 
 /*
+ * v3.9.2013.0922   增加RSA/DSA/DES等加解密方法以及数字签名扩展
+ * 
  * v3.9.2013.0907   StringHelper增加AppendExceptStart扩展，追加字符串，除了开头
  * 
  * v3.9.2013.0906   XmlHelper根据实体类模型给Xml树增加注释时，同时支持给实体类顶级加注释，支持数组和列表属性

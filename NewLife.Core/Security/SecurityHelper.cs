@@ -1,9 +1,9 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Security.Cryptography;
 using System.Text;
+using NewLife.Security;
 
-namespace NewLife.Security
+namespace System
 {
     /// <summary>安全算法</summary>
     public static class SecurityHelper
@@ -22,21 +22,37 @@ namespace NewLife.Security
 
         /// <summary>MD5散列</summary>
         /// <param name="data"></param>
+        /// <param name="encoding">字符串编码，默认Default</param>
         /// <returns></returns>
-        public static String MD5(this String data)
+        public static String MD5(this String data, Encoding encoding = null)
         {
-            var buf = MD5(Encoding.Default.GetBytes(data));
+            if (encoding == null) encoding = Encoding.Default;
+
+            var buf = MD5(encoding.GetBytes(data));
             return buf.ToHex();
         }
 
         /// <summary>MD5散列</summary>
         /// <param name="data"></param>
+        /// <param name="encoding">字符串编码，默认Default</param>
         /// <returns></returns>
-        public static String MD5_16(this String data)
+        public static String MD5_16(this String data, Encoding encoding = null)
         {
-            var buf = MD5(Encoding.Default.GetBytes(data));
+            if (encoding == null) encoding = Encoding.Default;
+
+            var buf = MD5(encoding.GetBytes(data));
             return buf.ToHex(0, 16);
         }
+
+        /// <summary>Crc散列</summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        public static UInt32 Crc(this Byte[] data) { return new Crc32().Update(data).Value; }
+
+        /// <summary>Crc16散列</summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        public static UInt16 Crc16(this Byte[] data) { return new Crc16().Update(data).Value; }
         #endregion
 
         #region 同步加密扩展
@@ -83,15 +99,16 @@ namespace NewLife.Security
         {
             using (var stream = new CryptoStream(instream, sa.CreateDecryptor(), CryptoStreamMode.Read))
             {
-                while (true)
-                {
-                    Byte[] buffer = new Byte[1024];
-                    Int32 count = stream.Read(buffer, 0, buffer.Length);
-                    if (count <= 0) break;
+                stream.CopyTo(outstream);
+                //while (true)
+                //{
+                //    Byte[] buffer = new Byte[1024];
+                //    Int32 count = stream.Read(buffer, 0, buffer.Length);
+                //    if (count <= 0) break;
 
-                    outstream.Write(buffer, 0, count);
-                    if (count < buffer.Length) break;
-                }
+                //    outstream.Write(buffer, 0, count);
+                //    if (count < buffer.Length) break;
+                //}
             }
 
             return sa;
@@ -105,21 +122,21 @@ namespace NewLife.Security
         {
             if (data == null || data.Length < 1) throw new ArgumentNullException("data");
 
-            var ms = new MemoryStream(data);
-            using (var stream = new CryptoStream(ms, sa.CreateDecryptor(), CryptoStreamMode.Read))
+            using (var stream = new CryptoStream(new MemoryStream(data), sa.CreateDecryptor(), CryptoStreamMode.Read))
             {
-                var ms2 = new MemoryStream();
-                while (true)
-                {
-                    Byte[] buffer = new Byte[1024];
-                    Int32 count = stream.Read(buffer, 0, buffer.Length);
-                    if (count <= 0) break;
+                return stream.ReadBytes();
+                //var ms2 = new MemoryStream();
+                //while (true)
+                //{
+                //    Byte[] buffer = new Byte[1024];
+                //    Int32 count = stream.Read(buffer, 0, buffer.Length);
+                //    if (count <= 0) break;
 
-                    ms2.Write(buffer, 0, count);
-                    if (count < buffer.Length) break;
-                }
+                //    ms2.Write(buffer, 0, count);
+                //    if (count < buffer.Length) break;
+                //}
 
-                return ms2.ToArray();
+                //return ms2.ToArray();
             }
         }
         #endregion

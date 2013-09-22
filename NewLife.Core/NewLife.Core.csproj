@@ -161,7 +161,6 @@
     <Compile Include="Reflection\ScriptEngine.cs" />
     <Compile Include="Security\Certificate.cs" />
     <Compile Include="Security\Crc16.cs" />
-    <Compile Include="Security\DESHelper.cs" />
     <Compile Include="Security\DSAHelper.cs" />
     <Compile Include="Security\RSAHelper.cs" />
     <Compile Include="Security\SecurityHelper.cs" />
