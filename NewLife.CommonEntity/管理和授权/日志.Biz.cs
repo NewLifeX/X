@@ -98,7 +98,7 @@ namespace NewLife.CommonEntity
         public static String SearchWhere(String key, Int32 adminid, String category, DateTime start, DateTime end)
         {
             var exp = new WhereExpression();
-            if (!String.IsNullOrEmpty(key)) exp &= _.Remark.Contains(key);
+            if (!String.IsNullOrEmpty(key)) exp &= (_.Action == key | _.Remark.Contains(key));
             if (!String.IsNullOrEmpty(category) && category != "全部") exp &= _.Category == category;
             if (adminid > 0) exp &= _.UserID == adminid;
             if (start > DateTime.MinValue) exp &= _.OccurTime >= start;
