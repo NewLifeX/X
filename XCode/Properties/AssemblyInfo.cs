@@ -35,7 +35,7 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
 [assembly: AssemblyVersion("8.9.*")]
-[assembly: AssemblyFileVersion("8.9.2013.0909")]
+[assembly: AssemblyFileVersion("8.9.2013.1005")]
 
 /*
  * XCode的重大改进
@@ -52,6 +52,8 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v8.9.2013.1005   增加字段扩展FieldExtension，把字段的时间扩展操作分离出来并优化
+ * 
  * v8.9.2013.0909   IEntity增加IEntityEntry的枚举接口，支持遍历实体的字段和值
  * 
  * v8.9.2013.0901   IDataTable和IDataColumn的DisplayName独立，支持数据表和数据字段中显示名和描述的分离
