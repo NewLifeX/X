@@ -356,7 +356,7 @@ namespace System
         public static Int64 IndexOf(this Byte[] source, Int64 start, Int64 count, Byte[] buffer, Int64 offset = 0, Int64 length = 0)
         {
             if (start < 0) start = 0;
-            if (count <= 0 || count > source.Length - start) count = source.Length - start;
+            if (count <= 0 || count > source.Length - start) count = source.Length;
             if (length <= 0 || length > buffer.Length - offset) length = buffer.Length - offset;
 
             // 已匹配字节数
