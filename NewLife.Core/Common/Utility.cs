@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using NewLife.Model;
+using System.Globalization;
 
 namespace NewLife
 {
@@ -69,6 +70,7 @@ namespace NewLife
             if (value is String)
             {
                 var str = value as String;
+                str = str.Trim();
                 if (String.IsNullOrEmpty(str)) return defaultValue;
 
                 var n = defaultValue;
@@ -101,10 +103,14 @@ namespace NewLife
             if (value is String)
             {
                 var str = value as String;
+                str = str.Trim();
                 if (String.IsNullOrEmpty(str)) return defaultValue;
 
                 var b = defaultValue;
                 if (Boolean.TryParse(str, out b)) return b;
+
+                if (String.Equals(str, Boolean.TrueString, StringComparison.OrdinalIgnoreCase)) return true;
+                if (String.Equals(str, Boolean.FalseString, StringComparison.OrdinalIgnoreCase)) return false;
 
                 // 特殊处理用数字0和1表示布尔型
                 var n = 0;
@@ -132,9 +138,13 @@ namespace NewLife
             if (value is String)
             {
                 var str = value as String;
+                str = str.Trim();
                 if (String.IsNullOrEmpty(str)) return defaultValue;
 
                 var n = defaultValue;
+                if (DateTime.TryParse(str, out n)) return n;
+                if (str.Contains("-") && DateTime.TryParseExact(str, "yyyy-M-d", null, DateTimeStyles.None, out n)) return n;
+                if (str.Contains("/") && DateTime.TryParseExact(str, "yyyy/M/d", null, DateTimeStyles.None, out n)) return n;
                 if (DateTime.TryParse(str, out n)) return n;
                 return defaultValue;
             }
