@@ -34,9 +34,11 @@ using System.Runtime.InteropServices;
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("3.9.*")]
-[assembly: AssemblyFileVersion("3.9.2013.1005")]
+[assembly: AssemblyFileVersion("3.9.2013.1007")]
 
 /*
+ * v3.9.2013.1007   增加字节数组分割函数Split
+ * 
  * v3.9.2013.1005   增加工具类Utility，采用对象容器架构，允许外部重载工具类的各种实现
  * 
  * v3.9.2013.0922   增加RSA/DSA/DES等加解密方法以及数字签名扩展

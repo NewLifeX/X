@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using System.IO.Compression;
 using System.Text;
+using System.Collections.Generic;
 
 namespace System
 {
@@ -415,6 +416,31 @@ namespace System
             if (count != length) return count > length ? 1 : -1;
 
             return 0;
+        }
+
+        /// <summary>字节数组分割</summary>
+        /// <param name="buf"></param>
+        /// <param name="sps"></param>
+        /// <returns></returns>
+        public static IEnumerable<Byte[]> Split(this Byte[] buf, Byte[] sps)
+        {
+            var p = 0;
+            var idx = 0;
+            while (true)
+            {
+                p = (Int32)buf.IndexOf(idx, 0, sps);
+                if (p < 0) break;
+
+                yield return buf.ReadBytes(idx, p);
+
+                idx += p + sps.Length;
+
+            }
+            if (idx < buf.Length)
+            {
+                p = buf.Length - idx;
+                yield return buf.ReadBytes(idx, p);
+            }
         }
 
         /// <summary>一个数据流是否以另一个数组开头。如果成功，指针移到目标之后，否则保持指针位置不变。</summary>
