@@ -361,7 +361,7 @@ namespace System
 
             // 已匹配字节数
             Int64 win = 0;
-            for (Int64 i = start; i + length <= count; i++)
+            for (Int64 i = start; i + length - win <= count; i++)
             {
                 if (source[i] == buffer[offset + win])
                 {
