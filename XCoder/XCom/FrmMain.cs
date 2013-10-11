@@ -33,8 +33,6 @@ namespace XCom
 
         void LoadInfo()
         {
-            //cbName.DataSource = SerialPort.GetPortNames();
-            //cbName.DataSource = IOHelper.GetPortNames();
             ShowPorts();
             cbStopBit.DataSource = Enum.GetValues(typeof(StopBits));
             cbParity.DataSource = Enum.GetValues(typeof(Parity));
@@ -42,13 +40,10 @@ namespace XCom
             cbStopBit.SelectedItem = StopBits.One;
 
             cbBaundrate.DataSource = new Int32[] { 1200, 2400, 4800, 9600, 14400, 19200, 38400, 56000, 57600, 115200, 194000 };
-            //cbBaundrate.SelectedItem = 115200;
 
             cbDataBit.DataSource = new Int32[] { 5, 6, 7, 8 };
-            //cbDataBit.SelectedItem = 8;
 
             cbEncoding.DataSource = new String[] { Encoding.Default.WebName, Encoding.ASCII.WebName, Encoding.UTF8.WebName };
-            //cbEncoding.SelectedItem = Encoding.Default.WebName;
 
             var cfg = Config.Current;
             cbName.SelectedItem = cfg.PortName;
@@ -98,7 +93,9 @@ namespace XCom
             if (_ports != str)
             {
                 _ports = str;
+                var old = cbName.SelectedItem + "";
                 cbName.DataSource = ps;
+                if (!String.IsNullOrEmpty(old) && Array.IndexOf(ps, old) >= 0) cbName.SelectedItem = old;
             }
         }
 
@@ -130,18 +127,12 @@ namespace XCom
                 sp.RtsEnable = chkRTS.Checked;
 
                 _Com = new Com { Serial = sp };
-
-                // 计算编码
-                //if (!String.IsNullOrEmpty(cfg.Encoding) && !cfg.Encoding.EqualIgnoreCase("Default")) _Com.Encoding = Encoding.GetEncoding(cfg.Encoding);
                 _Com.Encoding = cfg.Encoding;
-
                 _Com.Received += _Com_Received;
                 _Com.Listen();
 
                 gbSet.Enabled = false;
                 gbSet2.Enabled = false;
-                //gbSet3.Enabled = true;
-                //timer1.Enabled = true;
                 btn.Text = "关闭串口";
             }
             else
@@ -154,8 +145,6 @@ namespace XCom
 
                 gbSet.Enabled = true;
                 gbSet2.Enabled = true;
-                //gbSet3.Enabled = false;
-                //timer1.Enabled = false;
                 btn.Text = "打开串口";
 
                 ShowPorts();

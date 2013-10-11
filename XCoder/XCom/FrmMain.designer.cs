@@ -448,6 +448,7 @@
             this.btnMutilSend.TabIndex = 2;
             this.btnMutilSend.Text = "多项发送";
             this.btnMutilSend.UseVisualStyleBackColor = true;
+            this.btnMutilSend.Visible = false;
             // 
             // btnSend
             // 

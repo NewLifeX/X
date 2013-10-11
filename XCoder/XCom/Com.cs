@@ -38,6 +38,7 @@ namespace XCom
                 {
                     _Serial.Close();
                     _Serial.Dispose();
+                    _Serial = null;
                 }
                 catch { }
             }
