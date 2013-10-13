@@ -85,6 +85,7 @@
             this.检查更新ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.关于ToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.label9 = new System.Windows.Forms.Label();
+            this.在线帮助文档ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.gbConnect.SuspendLayout();
             this.gbTable.SuspendLayout();
             this.statusStrip1.SuspendLayout();
@@ -618,6 +619,7 @@
             this.关于ToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.组件手册ToolStripMenuItem,
             this.表名字段名命名规范ToolStripMenuItem,
+            this.在线帮助文档ToolStripMenuItem,
             this.toolStripMenuItem2,
             this.qQ群1600800ToolStripMenuItem,
             this.qQ群1600800ToolStripMenuItem1,
@@ -692,6 +694,13 @@
             this.label9.Size = new System.Drawing.Size(68, 17);
             this.label9.TabIndex = 32;
             this.label9.Text = "两种用法：";
+            // 
+            // 在线帮助文档ToolStripMenuItem
+            // 
+            this.在线帮助文档ToolStripMenuItem.Name = "在线帮助文档ToolStripMenuItem";
+            this.在线帮助文档ToolStripMenuItem.Size = new System.Drawing.Size(220, 22);
+            this.在线帮助文档ToolStripMenuItem.Text = "在线帮助文档";
+            this.在线帮助文档ToolStripMenuItem.Click += new System.EventHandler(this.在线帮助文档ToolStripMenuItem_Click);
             // 
             // FrmMain
             // 
@@ -793,6 +802,7 @@
         private System.Windows.Forms.Button btnRefreshTable;
         private System.Windows.Forms.CheckBox cbIncludeView;
         private System.Windows.Forms.ToolStripMenuItem 添加模型ToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem 在线帮助文档ToolStripMenuItem;
 	}
 }
 

@@ -608,6 +608,11 @@ namespace XCoder
             FrmText.Create("表名字段名命名规范", Source.GetText("数据库命名规范")).Show();
         }
 
+        private void 在线帮助文档ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Process.Start("http://www.NewLifeX.com/showtopic-260.aspx?r=XCoder_v" + AssemblyX.Create(Assembly.GetExecutingAssembly()).Version);
+        }
+
         private void 检查更新ToolStripMenuItem_Click(object sender, EventArgs e)
         {
             XConfig.Current.LastUpdate = DateTime.Now;
