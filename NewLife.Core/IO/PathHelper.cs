@@ -5,6 +5,12 @@ namespace System.IO
     /// <summary>路径操作帮助</summary>
     public static class PathHelper
     {
+        #region 属性
+        private static String _BaseDirectory = AppDomain.CurrentDomain.BaseDirectory;
+        /// <summary>基础目录。GetFullPath依赖于此，默认为当前应用程序域基础目录</summary>
+        public static String BaseDirectory { get { return _BaseDirectory; } set { _BaseDirectory = value; } }
+        #endregion
+
         #region 路径操作辅助
         /// <summary>获取文件或目录的全路径，过滤相对目录</summary>
         /// <remarks>不确保目录后面一定有分隔符，是否有分隔符由原始路径末尾决定</remarks>
@@ -19,7 +25,7 @@ namespace System.IO
                 path = path.TrimStart('~');
                 path = path.Replace("/", "\\").TrimStart('\\');
 
-                path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, path);
+                path = Path.Combine(BaseDirectory, path);
             }
 
             return Path.GetFullPath(path);
