@@ -64,7 +64,7 @@ namespace NewLife.CommonEntity
         [DisplayName("序号")]
         [Description("序号")]
         [DataObjectField(false, false, true, 50)]
-        [BindColumn(4, "Sort", "序号", null, "nvarchar(50)", 0, 0, true)]
+        [BindColumn(4, "Sort", "序号", null, "int", 10, 0, true)]
         public virtual String Sort
         {
             get { return _Sort; }
