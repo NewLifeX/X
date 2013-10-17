@@ -360,7 +360,7 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        [DllImport("kernel32.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+        [DllImport("kernel32.dll")]
         static extern int SetDllDirectory(String pathName);
         #endregion
 
