@@ -100,7 +100,7 @@ namespace NewLife.Reflection
 #if !NET4
         public String Location { get { try { return Asm == null || Asm is _AssemblyBuilder ? null : Asm.Location; } catch { return null; } } }
 #else
-        public String Location { get { try { return Asm == null || Asm is _AssemblyBuilder || !Asm.IsDynamic ? null : Asm.Location; } catch { return null; } } }
+        public String Location { get { try { return Asm == null || Asm is _AssemblyBuilder || Asm.IsDynamic ? null : Asm.Location; } catch { return null; } } }
 #endif
         #endregion
 
