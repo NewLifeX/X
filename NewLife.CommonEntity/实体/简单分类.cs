@@ -59,13 +59,13 @@ namespace NewLife.CommonEntity
             set { if (OnPropertyChanging("ParentID", value)) { _ParentID = value; OnPropertyChanged("ParentID"); } }
         }
 
-        private String _Sort;
+        private Int32 _Sort;
         /// <summary>序号</summary>
         [DisplayName("序号")]
         [Description("序号")]
         [DataObjectField(false, false, true, 50)]
         [BindColumn(4, "Sort", "序号", null, "int", 10, 0, true)]
-        public virtual String Sort
+        public virtual Int32 Sort
         {
             get { return _Sort; }
             set { if (OnPropertyChanging("Sort", value)) { _Sort = value; OnPropertyChanged("Sort"); } }
@@ -100,7 +100,7 @@ namespace NewLife.CommonEntity
                     case "ID" : _ID = Convert.ToInt32(value); break;
                     case "Name" : _Name = Convert.ToString(value); break;
                     case "ParentID" : _ParentID = Convert.ToInt32(value); break;
-                    case "Sort" : _Sort = Convert.ToString(value); break;
+                    case "Sort": _Sort = Convert.ToInt32(value); break;
                     default: base[name] = value; break;
                 }
             }
@@ -142,7 +142,7 @@ namespace NewLife.CommonEntity
         Int32 ParentID { get; set; }
 
         /// <summary>序号</summary>
-        String Sort { get; set; }
+        Int32 Sort { get; set; }
         #endregion
 
         #region 获取/设置 字段值
