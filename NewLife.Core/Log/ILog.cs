@@ -35,5 +35,8 @@ namespace NewLife.Log
         /// <param name="format">格式化字符串</param>
         /// <param name="args">格式化参数</param>
         void Fatal(String format, params Object[] args);
+
+        /// <summary>日志等级，只输出大于等于该级别的日志</summary>
+        LogLevel Level { get; set; }
     }
 }
