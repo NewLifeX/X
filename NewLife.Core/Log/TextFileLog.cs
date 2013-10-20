@@ -10,7 +10,7 @@ using NewLife.Exceptions;
 namespace NewLife.Log
 {
     /// <summary>文本文件日志类。提供向文本文件写日志的能力</summary>
-    public class TextFileLog
+    public class TextFileLog : Logger
     {
         #region 构造
         private TextFileLog(String path) { FilePath = path; }
@@ -181,7 +181,7 @@ namespace NewLife.Log
             writer.WriteLine("#OS: {0}, {1}/{2}", Runtime.OSName, Environment.UserName, Environment.MachineName);
 
             writer.WriteLine("#Date: {0:yyyy-MM-dd}", DateTime.Now);
-            writer.WriteLine("#Fields: Time ThreadID IsPoolThread ThreadName Message");
+            writer.WriteLine("#Fields: Time ThreadID IsPoolThread ThreadName Level Message");
         }
 
         /// <summary>停止日志</summary>
@@ -256,6 +256,19 @@ namespace NewLife.Log
         #endregion
 
         #region 写日志
+        /// <summary>写日志</summary>
+        /// <param name="level"></param>
+        /// <param name="format"></param>
+        /// <param name="args"></param>
+        protected override void OnWrite(LogLevel level, String format, params Object[] args)
+        {
+            // 特殊处理异常对象
+            if (args != null && args.Length == 1 && args[0] is Exception && (String.IsNullOrEmpty(format) || format == "{0}"))
+                PerformWriteLog(WriteLogEventArgs.Current.Set(level, null, args[0] as Exception, true));
+            else
+                PerformWriteLog(WriteLogEventArgs.Current.Set(level, Format(format, args), null, true));
+        }
+
         /// <summary>输出日志</summary>
         /// <param name="msg">信息</param>
         public void Write(String msg)
@@ -280,9 +293,10 @@ namespace NewLife.Log
         }
 
         /// <summary>写日志</summary>
+        /// <param name="level"></param>
         /// <param name="format"></param>
         /// <param name="args"></param>
-        public void WriteLine(String format, params Object[] args)
+        public void WriteLine(LogLevel level, String format, params Object[] args)
         {
             WriteLine(Format(format, args));
         }

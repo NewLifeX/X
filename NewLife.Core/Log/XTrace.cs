@@ -25,14 +25,18 @@ namespace NewLife.Log
     {
         #region 写日志
         /// <summary>文本文件日志</summary>
-        private static TextFileLog Log;
+        private static ILog _Log;
+        /// <summary>日志提供者</summary>
+        public static ILog Log { get { return _Log; } set { _Log = value; } }
+
+        private static TextFileLog FileLog { get { InitLog(); return _Log as TextFileLog; } }
 
         private static Boolean _UseFileLog = true;
         /// <summary>使用文件日志</summary>
         public static Boolean UseFileLog { get { return _UseFileLog; } set { _UseFileLog = value; } }
 
         /// <summary>日志路径</summary>
-        public static String LogPath { get { InitLog(); return Log.LogPath; } }
+        public static String LogPath { get { return FileLog.LogPath; } }
 
         /// <summary>输出日志</summary>
         /// <param name="msg">信息</param>
@@ -41,7 +45,7 @@ namespace NewLife.Log
             InitLog();
             if (OnWriteLog != null) OnWriteLog(null, WriteLogEventArgs.Current.Set(msg, null, false));
 
-            if (UseFileLog) Log.Write(msg);
+            if (UseFileLog) FileLog.Write(msg);
         }
 
         /// <summary>写日志</summary>
@@ -52,7 +56,7 @@ namespace NewLife.Log
             InitLog();
             if (OnWriteLog != null) OnWriteLog(null, WriteLogEventArgs.Current.Set(String.Format(format, args), null, false));
 
-            if (UseFileLog) Log.Write(format, args);
+            if (UseFileLog) FileLog.Write(format, args);
         }
 
         /// <summary>输出日志</summary>
@@ -62,7 +66,7 @@ namespace NewLife.Log
             InitLog();
             if (OnWriteLog != null) OnWriteLog(null, WriteLogEventArgs.Current.Set(msg, null, true));
 
-            if (UseFileLog) Log.WriteLine(msg);
+            if (UseFileLog) Log.Info(msg);
         }
 
         /// <summary>写日志</summary>
@@ -73,7 +77,7 @@ namespace NewLife.Log
             InitLog();
             if (OnWriteLog != null) OnWriteLog(null, WriteLogEventArgs.Current.Set(String.Format(format, args), null, true));
 
-            if (UseFileLog) Log.WriteLine(format, args);
+            if (UseFileLog) Log.Info(format, args);
         }
 
         /// <summary>输出异常日志</summary>
@@ -83,7 +87,7 @@ namespace NewLife.Log
             InitLog();
             if (OnWriteLog != null) OnWriteLog(null, WriteLogEventArgs.Current.Set(null, ex, true));
 
-            if (UseFileLog) Log.WriteException(ex);
+            if (UseFileLog) Log.Error("{0}", ex);
         }
 
         /// <summary>输出异常日志</summary>
@@ -113,12 +117,12 @@ namespace NewLife.Log
         /// </summary>
         static void InitLog()
         {
-            if (Log != null) return;
+            if (_Log != null) return;
 
             lock (_lock)
             {
-                if (Log != null) return;
-                Log = TextFileLog.Create(Config.GetConfig<String>("NewLife.LogPath"));
+                if (_Log != null) return;
+                _Log = TextFileLog.Create(Config.GetConfig<String>("NewLife.LogPath"));
             }
 
             var asmx = AssemblyX.Create(Assembly.GetExecutingAssembly());
@@ -252,7 +256,7 @@ namespace NewLife.Log
         /// <param name="control">要绑定日志输出的WinForm控件</param>
         /// <param name="handler">默认采用e.ToString()输出日志，除非外部自定义handler</param>
         /// <param name="maxLines">最大行数</param>
-        public static void UseWinFormControl(Control control, EventHandler<WriteLogEventArgs> handler = null, Int32 maxLines = 1000)
+        public static void UseWinFormControl(this Control control, EventHandler<WriteLogEventArgs> handler = null, Int32 maxLines = 1000)
         {
             if (handler != null)
                 OnWriteLog += (s, e) => handler(control, e);
@@ -265,7 +269,7 @@ namespace NewLife.Log
         /// <param name="control">要绑定日志输出的WinForm控件</param>
         /// <param name="msg">日志</param>
         /// <param name="maxLines">最大行数</param>
-        public static void UseWinFormWriteLog(Control control, String msg, Int32 maxLines = 1000)
+        public static void UseWinFormWriteLog(this Control control, String msg, Int32 maxLines = 1000)
         {
             if (control == null) return;
 
@@ -361,14 +365,7 @@ namespace NewLife.Log
         static class MiniDump
         {
             [DllImport("DbgHelp.dll")]
-            private static extern Boolean MiniDumpWriteDump(
-            IntPtr hProcess,
-            Int32 processId,
-            IntPtr fileHandle,
-            MiniDumpType dumpType,
-           ref MinidumpExceptionInfo excepInfo,
-            IntPtr userInfo,
-            IntPtr extInfo);
+            private static extern Boolean MiniDumpWriteDump(IntPtr hProcess, Int32 processId, IntPtr fileHandle, MiniDumpType dumpType, ref MinidumpExceptionInfo excepInfo, IntPtr userInfo, IntPtr extInfo);
 
             /// <summary>MINIDUMP_EXCEPTION_INFORMATION</summary>
             struct MinidumpExceptionInfo
@@ -384,27 +381,21 @@ namespace NewLife.Log
             public static Boolean TryDump(String dmpPath, MiniDumpType dmpType)
             {
                 //使用文件流来创健 .dmp文件
-                using (FileStream stream = new FileStream(dmpPath, FileMode.Create))
+                using (var stream = new FileStream(dmpPath, FileMode.Create))
                 {
                     //取得进程信息
-                    Process process = Process.GetCurrentProcess();
+                    var process = Process.GetCurrentProcess();
 
                     // MINIDUMP_EXCEPTION_INFORMATION 信息的初始化
-                    MinidumpExceptionInfo mei = new MinidumpExceptionInfo();
+                    var mei = new MinidumpExceptionInfo();
 
                     mei.ThreadId = (UInt32)GetCurrentThreadId();
                     mei.ExceptionPointers = Marshal.GetExceptionPointers();
                     mei.ClientPointers = 1;
 
                     //这里调用的Win32 API
-                    Boolean res = MiniDumpWriteDump(
-                    process.Handle,
-                    process.Id,
-                    stream.SafeFileHandle.DangerousGetHandle(),
-                    dmpType,
-                   ref mei,
-                    IntPtr.Zero,
-                    IntPtr.Zero);
+                    var fileHandle = stream.SafeFileHandle.DangerousGetHandle();
+                    var res = MiniDumpWriteDump(process.Handle, process.Id, fileHandle, dmpType, ref mei, IntPtr.Zero, IntPtr.Zero);
 
                     //清空 stream
                     stream.Flush();
@@ -444,7 +435,7 @@ namespace NewLife.Log
         public static void DebugStack()
         {
             var msg = GetCaller(2, 0, Environment.NewLine);
-            WriteLine("调用堆栈：" + Environment.NewLine, msg);
+            WriteLine("调用堆栈：" + Environment.NewLine + msg);
         }
 
         /// <summary>堆栈调试。</summary>
@@ -452,7 +443,7 @@ namespace NewLife.Log
         public static void DebugStack(int maxNum)
         {
             var msg = GetCaller(2, maxNum, Environment.NewLine);
-            WriteLine("调用堆栈：" + Environment.NewLine, msg);
+            WriteLine("调用堆栈：" + Environment.NewLine + msg);
         }
 
         /// <summary>堆栈调试</summary>
@@ -463,7 +454,7 @@ namespace NewLife.Log
             // 至少跳过当前这个
             if (start < 1) start = 1;
             var msg = GetCaller(start + 1, maxNum, Environment.NewLine);
-            WriteLine("调用堆栈：" + Environment.NewLine, msg);
+            WriteLine("调用堆栈：" + Environment.NewLine + msg);
         }
 
         /// <summary>获取调用栈</summary>

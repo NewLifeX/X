@@ -8,6 +8,10 @@ namespace NewLife.Log
     public class WriteLogEventArgs : EventArgs
     {
         #region 属性
+        private LogLevel _Level;
+        /// <summary>日志等级</summary>
+        public LogLevel Level { get { return _Level; } set { _Level = value; } }
+
         private String _Message;
         /// <summary>日志信息</summary>
         public String Message { get { return _Message; } set { _Message = value; } }
@@ -79,6 +83,24 @@ namespace NewLife.Log
 
         #region 方法
         /// <summary>初始化为新日志</summary>
+        /// <param name="level">日志等级</param>
+        /// <param name="message">日志</param>
+        /// <param name="exception">异常</param>
+        /// <param name="isNewLine">是否换行</param>
+        /// <returns>返回自身，链式写法</returns>
+        internal WriteLogEventArgs Set(LogLevel level, String message, Exception exception, Boolean isNewLine)
+        {
+            Level = level;
+            Message = message;
+            Exception = exception;
+            IsNewLine = isNewLine;
+
+            Init();
+
+            return this;
+        }
+
+        /// <summary>初始化为新日志</summary>
         /// <param name="message">日志</param>
         /// <param name="exception">异常</param>
         /// <param name="isNewLine">是否换行</param>
@@ -116,31 +138,8 @@ namespace NewLife.Log
         public override string ToString()
         {
             if (Exception != null) Message += Exception.ToString();
-            return String.Format("{0:HH:mm:ss.fff} {1} {2} {3} {4}", Time, ThreadID, IsPoolThread ? (IsWeb ? 'W' : 'Y') : 'N', String.IsNullOrEmpty(ThreadName) ? "-" : ThreadName, Message);
+            return String.Format("{0:HH:mm:ss.fff} {1} {2} {3} {4,5} {5}", Time, ThreadID, IsPoolThread ? (IsWeb ? 'W' : 'Y') : 'N', String.IsNullOrEmpty(ThreadName) ? "-" : ThreadName, Level, Message);
         }
-        #endregion
-
-        #region 对象池
-        //private static WriteLogEventArgsPool pool = new WriteLogEventArgsPool() { Max = 100, Stock = new LockStack<WriteLogEventArgs>() };
-
-        //internal static WriteLogEventArgs Create(String message, Exception exception)
-        //{
-        //    var e = pool.Pop();
-        //    e.Message = message;
-        //    e.Exception = exception;
-        //    e.Init();
-        //    return e;
-        //}
-
-        ///// <summary>归还</summary>
-        ///// <param name="e"></param>
-        //internal static void Push(WriteLogEventArgs e)
-        //{
-        //    if (e != null) pool.Push(e);
-        //}
-
-        ///// <summary>日志事件参数池。避免大量写日志时的零碎对象造成GC压力。</summary>
-        //class WriteLogEventArgsPool : ObjectPool<WriteLogEventArgs> { }
         #endregion
     }
 }

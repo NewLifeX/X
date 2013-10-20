@@ -33,10 +33,12 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“内部版本号”和“修订号”的默认值，
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("3.9.*")]
-[assembly: AssemblyFileVersion("3.9.2013.1007")]
+[assembly: AssemblyVersion("4.0.*")]
+[assembly: AssemblyFileVersion("4.0.2013.1020")]
 
 /*
+ * v4.0.2013.1020   增加日志接口和日志等级，支持外部实现
+ * 
  * v3.9.2013.1007   增加字节数组分割函数Split
  * 
  * v3.9.2013.1005   增加工具类Utility，采用对象容器架构，允许外部重载工具类的各种实现
