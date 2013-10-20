@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading;
 using NewLife.Collections;
 using NewLife.Exceptions;
+using NewLife.Configuration;
 
 namespace NewLife.Log
 {
@@ -21,7 +22,7 @@ namespace NewLife.Log
         /// <returns></returns>
         public static TextFileLog Create(String path)
         {
-            if (String.IsNullOrEmpty(path)) path = "Log";
+            if (String.IsNullOrEmpty(path)) path = Config.GetConfig<String>("NewLife.LogPath", "Log");
 
             String key = path.ToLower();
             return cache.GetItem<String>(key, path, (k, p) => new TextFileLog(p));

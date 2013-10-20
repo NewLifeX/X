@@ -26,17 +26,17 @@ namespace NewLife.Log
         #region 写日志
         /// <summary>文本文件日志</summary>
         private static ILog _Log;
-        /// <summary>日志提供者</summary>
-        public static ILog Log { get { return _Log; } set { _Log = value; } }
+        /// <summary>日志提供者，默认使用文本文件日志</summary>
+        public static ILog Log { get { InitLog(); return _Log; } set { _Log = value; } }
 
-        private static TextFileLog FileLog { get { InitLog(); return _Log as TextFileLog; } }
+        //private static TextFileLog FileLog { get { InitLog(); return _Log as TextFileLog; } }
 
-        private static Boolean _UseFileLog = true;
-        /// <summary>使用文件日志</summary>
-        public static Boolean UseFileLog { get { return _UseFileLog; } set { _UseFileLog = value; } }
+        //private static Boolean _UseFileLog = true;
+        ///// <summary>使用文件日志</summary>
+        //public static Boolean UseFileLog { get { return _UseFileLog; } set { _UseFileLog = value; } }
 
-        /// <summary>日志路径</summary>
-        public static String LogPath { get { return FileLog.LogPath; } }
+        ///// <summary>日志路径</summary>
+        //public static String LogPath { get { return FileLog.LogPath; } }
 
         /// <summary>输出日志</summary>
         /// <param name="msg">信息</param>
@@ -45,7 +45,7 @@ namespace NewLife.Log
             InitLog();
             if (OnWriteLog != null) OnWriteLog(null, WriteLogEventArgs.Current.Set(msg, null, false));
 
-            if (UseFileLog) FileLog.Write(msg);
+            Log.Info(msg);
         }
 
         /// <summary>写日志</summary>
@@ -56,7 +56,7 @@ namespace NewLife.Log
             InitLog();
             if (OnWriteLog != null) OnWriteLog(null, WriteLogEventArgs.Current.Set(String.Format(format, args), null, false));
 
-            if (UseFileLog) FileLog.Write(format, args);
+            Log.Info(format, args);
         }
 
         /// <summary>输出日志</summary>
@@ -66,7 +66,7 @@ namespace NewLife.Log
             InitLog();
             if (OnWriteLog != null) OnWriteLog(null, WriteLogEventArgs.Current.Set(msg, null, true));
 
-            if (UseFileLog) Log.Info(msg);
+            Log.Info(msg);
         }
 
         /// <summary>写日志</summary>
@@ -77,7 +77,7 @@ namespace NewLife.Log
             InitLog();
             if (OnWriteLog != null) OnWriteLog(null, WriteLogEventArgs.Current.Set(String.Format(format, args), null, true));
 
-            if (UseFileLog) Log.Info(format, args);
+            Log.Info(format, args);
         }
 
         /// <summary>输出异常日志</summary>
@@ -87,20 +87,15 @@ namespace NewLife.Log
             InitLog();
             if (OnWriteLog != null) OnWriteLog(null, WriteLogEventArgs.Current.Set(null, ex, true));
 
-            if (UseFileLog) Log.Error("{0}", ex);
+            Log.Error("{0}", ex);
         }
 
         /// <summary>输出异常日志</summary>
         /// <param name="ex">异常信息</param>
         public static void WriteExceptionWhenDebug(Exception ex) { if (Debug) WriteException(ex); }
 
-        //private static event EventHandler<WriteLogEventArgs> _OnWriteLog;
-        //public static event EventHandler<WriteLogEventArgs> OnWriteLog
-        //{
-        //    add { _OnWriteLog += value; UseFileLog = false; }
-        //    remove { _OnWriteLog -= value; }
-        //}
         /// <summary>写日志事件。</summary>
+        [Obsolete("请直接使用CompositeLog实现赋值给Log属性")]
         public static event EventHandler<WriteLogEventArgs> OnWriteLog;
         #endregion
 
@@ -122,7 +117,7 @@ namespace NewLife.Log
             lock (_lock)
             {
                 if (_Log != null) return;
-                _Log = TextFileLog.Create(Config.GetConfig<String>("NewLife.LogPath"));
+                _Log = TextFileLog.Create(null);
             }
 
             var asmx = AssemblyX.Create(Assembly.GetExecutingAssembly());
@@ -131,79 +126,30 @@ namespace NewLife.Log
         #endregion
 
         #region 使用控制台输出
-        private static Int32 init = 0;
+        //private static Int32 init = 0;
         /// <summary>使用控制台输出日志，只能调用一次</summary>
         /// <param name="useColor"></param>
         public static void UseConsole(Boolean useColor = true)
         {
-            if (init > 0 || Interlocked.CompareExchange(ref init, 1, 0) != 0) return;
+            //if (init > 0 || Interlocked.CompareExchange(ref init, 1, 0) != 0) return;
             if (!Runtime.IsConsole) return;
 
-            if (useColor)
-                OnWriteLog += XTrace_OnWriteLog2;
-            else
-                OnWriteLog += XTrace_OnWriteLog;
-        }
-
-        private static void XTrace_OnWriteLog(object sender, WriteLogEventArgs e)
-        {
-            //Console.WriteLine(e.ToString());
-            ConsoleWriteLog(e);
-        }
-
-        private static Boolean LastIsNewLine = true;
-        private static void ConsoleWriteLog(WriteLogEventArgs e)
-        {
-            if (LastIsNewLine)
+            ConsoleLog clog = null;
+            if (Log is CompositeLog)
             {
-                // 如果上一次是换行，则这次需要输出行头信息
-                if (e.IsNewLine)
-                    Console.WriteLine(e.ToString());
-                else
+                foreach (var item in (Log as CompositeLog).Logs)
                 {
-                    Console.Write(e.ToString());
-                    LastIsNewLine = false;
-                }
-            }
-            else
-            {
-                // 如果上一次不是换行，则这次不需要行头信息
-                var msg = e.Message + e.Exception;
-                if (e.IsNewLine)
-                {
-                    Console.WriteLine(msg);
-                    LastIsNewLine = true;
-                }
-                else
-                    Console.Write(msg);
-            }
-        }
-
-        static Dictionary<Int32, ConsoleColor> dic = new Dictionary<Int32, ConsoleColor>();
-        static ConsoleColor[] colors = new ConsoleColor[] { ConsoleColor.White, ConsoleColor.Yellow, ConsoleColor.Magenta, ConsoleColor.Red, ConsoleColor.Cyan, ConsoleColor.Green, ConsoleColor.Blue };
-        private static void XTrace_OnWriteLog2(object sender, WriteLogEventArgs e)
-        {
-            // 好像因为dic.TryGetValue也会引发线程冲突，真是悲剧！
-            lock (dic)
-            {
-                ConsoleColor cc;
-                var key = e.ThreadID;
-                if (!dic.TryGetValue(key, out cc))
-                {
-                    //lock (dic)
+                    if (item is ConsoleLog)
                     {
-                        //if (!dic.TryGetValue(key, out cc))
-                        {
-                            cc = colors[dic.Count % 7];
-                            dic[key] = cc;
-                        }
+                        clog = item as ConsoleLog;
+                        break;
                     }
                 }
-                var old = Console.ForegroundColor;
-                Console.ForegroundColor = cc;
-                ConsoleWriteLog(e);
-                Console.ForegroundColor = old;
             }
+            if (clog == null)
+                clog = new ConsoleLog { UseColor = useColor };
+            else
+                clog.UseColor = useColor;
         }
         #endregion
 
@@ -258,10 +204,10 @@ namespace NewLife.Log
         /// <param name="maxLines">最大行数</param>
         public static void UseWinFormControl(this Control control, EventHandler<WriteLogEventArgs> handler = null, Int32 maxLines = 1000)
         {
-            if (handler != null)
-                OnWriteLog += (s, e) => handler(control, e);
-            else
-                OnWriteLog += (s, e) => UseWinFormWriteLog(control, e.ToString() + Environment.NewLine, maxLines);
+            //if (handler != null)
+            //    OnWriteLog += (s, e) => handler(control, e);
+            //else
+            //    OnWriteLog += (s, e) => UseWinFormWriteLog(control, e.ToString() + Environment.NewLine, maxLines);
         }
 
         /// <summary>在WinForm控件上输出日志，主要考虑非UI线程操作</summary>
@@ -320,6 +266,18 @@ namespace NewLife.Log
                 catch { return false; }
             }
             set { _Debug = value; }
+        }
+
+        private static String _LogPath;
+        /// <summary>文本日志目录</summary>
+        public static String LogPath
+        {
+            get
+            {
+                if (_LogPath == null) _LogPath = Config.GetConfig<String>("NewLife.LogPath", "Log");
+                return _LogPath;
+            }
+            set { _LogPath = value; }
         }
 
         private static String _TempPath;
