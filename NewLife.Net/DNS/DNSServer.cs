@@ -320,7 +320,7 @@ namespace NewLife.Net.DNS
         [Conditional("DEBUG")]
         void WriteDNSLog(String format, params Object[] args)
         {
-            log.WriteLine(format, args);
+            log.WriteLine(LogLevel.Debug, format, args);
         }
         #endregion
     }

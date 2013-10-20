@@ -97,9 +97,12 @@
     <Compile Include="IO\PathHelper.cs" />
     <Compile Include="IO\StreamReaderX.cs" />
     <Compile Include="IO\StreamWriterX.cs" />
+    <Compile Include="Log\CompositeLog.cs" />
+    <Compile Include="Log\ConsoleLog.cs" />
     <Compile Include="Log\ILog.cs" />
     <Compile Include="Log\Logger.cs" />
     <Compile Include="Log\LogLevel.cs" />
+    <Compile Include="Log\TextControlLog.cs" />
     <Compile Include="Messaging\ChannelMessage.cs" />
     <Compile Include="Messaging\CompressionMessage.cs" />
     <Compile Include="Messaging\DataMessage.cs" />

@@ -49,7 +49,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test10();
+                    Test11();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -453,6 +453,18 @@ namespace Test
             //ct.TimeOne();
             //ct.Time();
             //Console.WriteLine("平均每次时间：{0:n0}毫秒", ct.Elapsed.TotalMilliseconds / ct.Times);
+        }
+
+        static void Test11()
+        {
+            XTrace.WriteLine("xxx");
+
+            var log = XTrace.Log;
+            log.Debug("111");
+            log.Info("222");
+            log.Warn("333");
+            log.Error("444");
+            log.Fatal("555");
         }
     }
 }
