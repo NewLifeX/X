@@ -64,9 +64,9 @@ namespace NewLife.Log
         #endregion
 
         #region 属性
-        private static LogLevel? _Level;
-        /// <summary>是否调试。如果代码指定了值，则只会使用代码指定的值，否则每次都读取配置。</summary>
-        public static LogLevel Level
+        private LogLevel? _Level;
+        /// <summary>日志等级，只输出大于等于该级别的日志</summary>
+        public LogLevel Level
         {
             get
             {
