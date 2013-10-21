@@ -10,6 +10,7 @@ namespace XCode.Configuration
         #region 时间复杂运算
         #region 天
         /// <summary>当天范围</summary>
+        /// <param name="field">字段</param>
         /// <returns></returns>
         public static WhereExpression Today(this FieldItem field)
         {
@@ -22,6 +23,7 @@ namespace XCode.Configuration
         }
 
         /// <summary>昨天范围</summary>
+        /// <param name="field">字段</param>
         /// <returns></returns>
         public static WhereExpression Yesterday(this FieldItem field)
         {
@@ -34,6 +36,7 @@ namespace XCode.Configuration
         }
 
         /// <summary>明天范围</summary>
+        /// <param name="field">字段</param>
         /// <returns></returns>
         public static WhereExpression Tomorrow(this FieldItem field)
         {
@@ -46,6 +49,7 @@ namespace XCode.Configuration
         }
 
         /// <summary>过去天数范围</summary>
+        /// <param name="field">字段</param>
         /// <param name="days"></param>
         /// <returns></returns>
         public static WhereExpression LastDays(this FieldItem field, Int32 days)
@@ -59,6 +63,7 @@ namespace XCode.Configuration
         }
 
         /// <summary>未来天数范围</summary>
+        /// <param name="field">字段</param>
         /// <param name="days"></param>
         /// <returns></returns>
         public static WhereExpression NextDays(this FieldItem field, Int32 days)
@@ -74,6 +79,7 @@ namespace XCode.Configuration
 
         #region 周
         /// <summary>本周范围</summary>
+        /// <param name="field">字段</param>
         /// <returns></returns>
         public static WhereExpression ThisWeek(this FieldItem field)
         {
@@ -87,6 +93,7 @@ namespace XCode.Configuration
         }
 
         /// <summary>上周范围</summary>
+        /// <param name="field">字段</param>
         /// <returns></returns>
         public static WhereExpression LastWeek(this FieldItem field)
         {
@@ -100,6 +107,7 @@ namespace XCode.Configuration
         }
 
         /// <summary>下周范围</summary>
+        /// <param name="field">字段</param>
         /// <returns></returns>
         public static WhereExpression NextWeek(this FieldItem field)
         {
@@ -115,6 +123,7 @@ namespace XCode.Configuration
 
         #region 月
         /// <summary>本月范围</summary>
+        /// <param name="field">字段</param>
         /// <returns></returns>
         public static WhereExpression ThisMonth(this FieldItem field)
         {
@@ -128,6 +137,7 @@ namespace XCode.Configuration
         }
 
         /// <summary>上月范围</summary>
+        /// <param name="field">字段</param>
         /// <returns></returns>
         public static WhereExpression LastMonth(this FieldItem field)
         {
@@ -141,6 +151,7 @@ namespace XCode.Configuration
         }
 
         /// <summary>下月范围</summary>
+        /// <param name="field">字段</param>
         /// <returns></returns>
         public static WhereExpression NextMonth(this FieldItem field)
         {
@@ -156,6 +167,7 @@ namespace XCode.Configuration
 
         #region 季度
         /// <summary>本季度范围</summary>
+        /// <param name="field">字段</param>
         /// <returns></returns>
         public static WhereExpression ThisQuarter(this FieldItem field)
         {
@@ -169,6 +181,7 @@ namespace XCode.Configuration
         }
 
         /// <summary>上季度范围</summary>
+        /// <param name="field">字段</param>
         /// <returns></returns>
         public static WhereExpression LastQuarter(this FieldItem field)
         {
@@ -182,6 +195,7 @@ namespace XCode.Configuration
         }
 
         /// <summary>下季度范围</summary>
+        /// <param name="field">字段</param>
         /// <returns></returns>
         public static WhereExpression NextQuarter(this FieldItem field)
         {

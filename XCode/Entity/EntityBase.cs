@@ -311,8 +311,15 @@ namespace XCode
             List<String> list = null;
             if (!Depends.TryGetValue(type, out list))
             {
-                list = new List<String>();
-                Depends.Add(type, list);
+                lock (Depends)
+                {
+                    if (!Depends.TryGetValue(type, out list))
+                    {
+
+                        list = new List<String>();
+                        Depends.Add(type, list);
+                    }
+                }
             }
 
             // 这里使用了成员方法GetExtend<TDependEntity>而不是匿名函数，为了避免生成包装类，且每次调用前实例化包装类带来较大开销
@@ -383,8 +390,14 @@ namespace XCode
             List<String> list = null;
             if (!Depends.TryGetValue(type, out list))
             {
-                list = new List<String>();
-                Depends.Add(type, list);
+                lock (Depends)
+                {
+                    if (!Depends.TryGetValue(type, out list))
+                    {
+                        list = new List<String>();
+                        Depends.Add(type, list);
+                    }
+                }
             }
 
             lock (Extends)
