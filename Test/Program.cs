@@ -32,6 +32,7 @@ using System.Web.Hosting;
 using NewLife;
 using NewLife.Security;
 using System.Security.Cryptography;
+using System.Text.RegularExpressions;
 #endif
 
 namespace Test
@@ -49,7 +50,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test11();
+                    Test12();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -465,6 +466,43 @@ namespace Test
             log.Warn("333");
             log.Error("444");
             log.Fatal("555");
+        }
+
+        static void Test12()
+        {
+            var str = "[b]www.NewLifeX.com[/b]";
+            var pat = "\\[b(?:\\s*)\\]";
+            var dst = "<b>";
+
+            TestRegex("短字符串没有预热", 1000 * 10000, false, pat, str, dst);
+            TestRegex("短字符串带有预热", 1000 * 10000, true, pat, str, dst);
+
+            str = @"[color=Blue][b]1，开发板是必须的[/b][/color]。当然，如果我们的嵌入式社区足够强大，你也可以不需要开发板，只安装开发环境，然后在软件模拟器上测试程序，测试后直接生产。因为刚开始的时候学MF，我买的是红牛开发板二代，现在最新的是红牛三代。  前面有说到，MF默认不支持STM32，得自己Port，我当然不会了，只好从网上买现成的（包括已经Port好的MF）（458元）[url=http://item.taobao.com/item.htm?id=7117999726]http://item.taobao.com/item.htm?id=7117999726[/url]。  更先进的有红牛三代（786元）[url=http://item.taobao.com/item.htm?id=10919470266]http://item.taobao.com/item.htm?id=10919470266[/url]。  上面两个其实是开发板加MF STM32授权的价格，如果不用MF，可以在这里买到同样的开发板（上面店家就是从这里买的）  红牛二代（279元）[url=http://item.taobao.com/item.htm?id=2558683476]http://item.taobao.com/item.htm?id=2558683476[/url]  红牛三代（539元）[url=http://item.taobao.com/item.htm?id=9940198732]http://item.taobao.com/item.htm?id=9940198732[/url]  购买的时候，最好问问能不能加几块钱或者十多快钱让店家帮忙把排针焊好，我的忘了说，后悔死了。  如果想省钱的，考虑别买显示屏，那样估计便宜很多。我们是程序员，在电脑上看调试输出更棒，哈哈。    [color=Blue][b]2，开发板外设[/b][/color]。这些是可有可无的啦，建议根据自己情况选购。  我在上面那位老大那里买的东西（[url=http://netmf.taobao.com/]http://netmf.taobao.com/[/url]）  1）智能小车98元  2）直流电机驱动器48元  3）超声波模块49元  4）蓝牙模块48元  5）激光模块16元  6）LED数码管9元  7）电池盒2元  8）杜邦线10份5元  9）面包板20元    [color=Blue][b]3，万用表。[/b][/color]有时候呢，程序测试正常，但是控制的设备不正常，比如小灯不亮、电机不转、对方收不到信号等，这个时候，可以用万用表测试一下。  优利德万用表（38.89元）[url=http://detail.tmall.com/item.htm?id=9865787128&amp;prt=1332986794851]http://detail.tmall.com/item.htm?id=9865787128&amp;prt=1332986794851[/url]    [color=Blue][b]4，USB转串口。[/b][/color]笔记本上没有串口，虽然红牛板可以用USB线写入程序，但是刷固件的时候还是得用串口，最好买一个。win7可以从微软官网自动下驱动。  Z-TEK力特 USB2.0转串口头（牌子货42元）[url=http://item.taobao.com/item.htm?id=118787362]http://item.taobao.com/item.htm?id=118787362[/url]    [color=Blue][b]5，USB逻辑分析仪。[/b][/color]大学模电经常用示波器，那种高档货我们买不起，可以用这种USB逻辑分析仪，通过分析仪收集信号，然后通过USB先输入电脑，然后软件显示。对于我们程序员来说，这个方案最划算。大部分通许不需要看波形的就别买了。  逻辑分析仪 USB Saleae 24M 8CH（48元）[url=http://item.taobao.com/item.htm?id=8430104015]http://item.taobao.com/item.htm?id=8430104015[/url]  另外我买了10个夹子    [color=Blue][b]6，USB转UART串口模块。[/b][/color]我实在是懒，想直接通过电脑串口输出TTL电平（比如往串口写0x55，就会输出01010101），于是买了这个。它也有USB转串口的功能，但是它的输出口并不是RS232那种9针，是不能直接接串口线的。  USB转UART串口模块（38元）[url=http://item.taobao.com/item.htm?id=12562651145]http://item.taobao.com/item.htm?id=12562651145[/url]    [color=Blue][b]7，仿真器JLink。[/b][/color]一定意义上来讲，做嵌入式开发，不能没有仿真器。据说这个最好有，我还没用，不大懂。  JLINK V8仿真器（74元）[url=http://item.taobao.com/item.htm?id=14330639543]http://item.taobao.com/item.htm?id=14330639543[/url]    [color=Blue][b]8，STM32最小板。[/b][/color]我们只是软件工程师，不是硬件工程师，再去学怎么画板子，实在痛苦。不过我们可以购买核心板（最小板），然后加上需要的外部设备，来达到目的。开发板实际上等于核心板加上一大堆的各种外设，核心板一般只有MCU、晶振、看门狗，有些有外扩SRAM（内存）和NAND Flash（等同于硬盘）。注意：我买的这个最小板是STM32F101，在主频和内存上都比红牛二开发板的STM32F103要低，所以便宜。  STM32最小板STM32F101（38元）[url=http://item.taobao.com/item.htm?id=12473293081]http://item.taobao.com/item.htm?id=12473293081[/url]    [color=Blue][b]9，VisualStudio 2010。[/b][/color]身为软件工程师，别告诉我你没有这个。如果采用MF，那么就只需要用这个就足够啦，哈哈！    [color=Blue][b]10，Keil v4.5。[/b][/color]这是正牌的嵌入式开发工具，用C语言写代码。不多说，下载地址：  mdk450.part1.rar [url=http://www.kuaipan.cn/file/id_2378544298616973.html]http://www.kuaipan.cn/file/id_2378544298616973.html[/url]  mdk450.part2.rar [url=http://www.kuaipan.cn/file/id_2378544298616974.html]http://www.kuaipan.cn/file/id_2378544298616974.html[/url]  MDK4.12注册机 [url=http://www.kuaipan.cn/file/id_2378544298617545.html]http://www.kuaipan.cn/file/id_2378544298617545.html[/url]    最后，最低成本的方案就是什么都不买，其次就是买一块STM32F103最小板，最豪华的当然是啥都可以买啦。";
+            pat = "\\[url=(([^\\[\"']+?))(?:\\s*)\\]([\\s\\S]+?)\\[/url(?:\\s*)\\]";
+            dst = "<a href=\"$1\" target=\"_blank\">$3</a>";
+
+            TestRegex("长字符串没有预热", 10 * 10000, false, pat, str, dst);
+            TestRegex("长字符串带有预热", 10 * 10000, true, pat, str, dst);
+
+        }
+
+        static void TestRegex(String title, Int32 times, Boolean needTimeOne, String pat, String str, String dst)
+        {
+            var rs = "";
+
+            GC.Collect(0, GCCollectionMode.Forced);
+            Console.WriteLine();
+            Console.WriteLine(title);
+            CodeTimer.ShowHeader();
+            var opt = RegexOptions.IgnoreCase;
+            var reg = new Regex(pat, opt);
+            CodeTimer.TimeLine("实例不编译", times, n => rs = reg.Replace(str, dst), true);
+            CodeTimer.TimeLine("静态不编译", times, n => rs = Regex.Replace(str, pat, dst, opt), true);
+
+            opt = RegexOptions.IgnoreCase | RegexOptions.Compiled;
+            reg = new Regex(pat, opt);
+            CodeTimer.TimeLine("实例有编译", times, n => rs = reg.Replace(str, dst), true);
+            CodeTimer.TimeLine("静态有编译", times, n => rs = Regex.Replace(str, pat, dst, opt), true);
         }
     }
 }
