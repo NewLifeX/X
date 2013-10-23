@@ -34,9 +34,11 @@ using System.Runtime.InteropServices;
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("4.0.*")]
-[assembly: AssemblyFileVersion("4.0.2013.1020")]
+[assembly: AssemblyFileVersion("4.0.2013.1024")]
 
 /*
+ * v4.0.2013.1024   增加反射接口IReflect，统一快速反射
+ * 
  * v4.0.2013.1020   增加日志接口和日志等级，支持外部实现
  * 
  * v3.9.2013.1007   增加字节数组分割函数Split

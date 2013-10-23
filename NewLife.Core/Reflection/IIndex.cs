@@ -62,6 +62,7 @@ namespace NewLife.Reflection
 
         /// <summary>获取目标对象指定属性字段的值</summary>
         /// <typeparam name="T"></typeparam>
+        /// <param name="target">目标对象</param>
         /// <param name="name"></param>
         /// <returns></returns>
         public static T GetValue<T>(IIndex target, String name)
@@ -71,10 +72,11 @@ namespace NewLife.Reflection
 
         /// <summary>尝试获取目标对象指定属性字段的值，返回是否成功</summary>
         /// <typeparam name="T"></typeparam>
+        /// <param name="target">目标对象</param>
         /// <param name="name"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        public Boolean TryGetValue<T>(IIndex target, String name, out T value)
+        public static Boolean TryGetValue<T>(IIndex target, String name, out T value)
         {
             value = default(T);
             Object obj = null;
