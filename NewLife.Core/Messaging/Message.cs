@@ -50,7 +50,7 @@ namespace NewLife.Messaging
             // 搜索已加载程序集里面的消息类型
             foreach (var item in AssemblyX.FindAllPlugins(typeof(Message), true))
             {
-                var msg = TypeX.CreateInstance(item) as Message;
+                var msg = item.CreateInstance() as Message;
                 if (msg != null)
                 {
                     if (item.Assembly != asm && msg.Kind < MessageKind.UserDefine) throw new XException("不允许{0}采用小于{1}的保留编码{2}！", item.FullName, MessageKind.UserDefine, msg.Kind);
@@ -167,7 +167,7 @@ namespace NewLife.Messaging
             #endregion
 
             #region 读取消息
-            var msg = TypeX.CreateInstance(type, null) as Message;
+            var msg = type.CreateInstance(null) as Message;
             if (stream.Position == stream.Length) return msg;
 
             try

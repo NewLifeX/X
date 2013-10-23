@@ -322,7 +322,7 @@ namespace NewLife.Mvc
             module = null;
             if (type != null && typeof(IRouteConfigModule).IsAssignableFrom(type))
             {
-                module = LoadModuleCache.GetItem(type, t => (IRouteConfigModule)TypeX.CreateInstance(t));
+                module = LoadModuleCache.GetItem(type, t => (IRouteConfigModule)t.CreateInstance());
                 Load(module);
             }
             return this;

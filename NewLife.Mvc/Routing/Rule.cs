@@ -143,7 +143,7 @@ namespace NewLife.Mvc
             string match, path = ctx.Path;
             if (TryMatch(path, out match))
             {
-                IController c = TypeX.CreateInstance(Type) as IController;
+                var c = Type.CreateInstance() as IController;
                 if (c != null)
                 {
                     ctx.EnterController(match, path, this, c);
@@ -218,7 +218,7 @@ namespace NewLife.Mvc
                             }
                             else
                             {
-                                _Factory[0] = TypeX.CreateInstance(Type) as IControllerFactory;
+                                _Factory[0] = Type.CreateInstance() as IControllerFactory;
                             }
                         }
                     }
@@ -309,7 +309,7 @@ namespace NewLife.Mvc
                     {
                         if (Type != null && _Module[0] == null)
                         {
-                            _Module[0] = (IRouteConfigModule)TypeX.CreateInstance(Type);
+                            _Module[0] = (IRouteConfigModule)Type.CreateInstance();
                         }
                     }
                 }

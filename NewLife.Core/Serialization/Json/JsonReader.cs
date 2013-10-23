@@ -535,7 +535,7 @@ namespace NewLife.Serialization
             {
                 if (value == null)
                 {
-                    value = TypeX.CreateInstance(type);
+                    value = type.CreateInstance();
                 }
             }
             else
@@ -1167,7 +1167,7 @@ namespace NewLife.Serialization
             {
                 if (value == null)
                 {
-                    value = TypeX.CreateInstance(type);
+                    value = type.CreateInstance();
                 }
             }
             else
@@ -1175,7 +1175,7 @@ namespace NewLife.Serialization
                 ret = base.ReadCustomObject(type, ref value, callback);
                 if (ret && value == null) //已进入{开始读取对象成员 并完成,但是读取到的是null,当前的type没有任何成员,为确保再次序列化保持一致,需要给value创建实例
                 {
-                    value = TypeX.CreateInstance(type);
+                    value = type.CreateInstance();
                 }
             }
             int n = ComplexObjectDepth - d;

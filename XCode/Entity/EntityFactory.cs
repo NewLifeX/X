@@ -80,12 +80,12 @@ namespace XCode
                 if (optype == null || !typeof(IEntityOperate).IsAssignableFrom(optype))
                     throw new XCodeException("无法创建{0}的实体操作接口！", key);
 
-                IEntityOperate op = TypeX.CreateInstance(optype) as IEntityOperate;
+                var op = optype.CreateInstance() as IEntityOperate;
                 if (op == null) throw new XCodeException("无法创建{0}的实体操作接口！", key);
 
                 // 如果源实体类型实现了IEntity接口，则以它的对象为操作者的默认值
                 // 因为可能存在非泛型继承，比如Admin=>Administrator=>Administrator<Administrator>
-                if (typeof(IEntity).IsAssignableFrom(key)) op.Default = TypeX.CreateInstance(key) as IEntity;
+                if (typeof(IEntity).IsAssignableFrom(key)) op.Default = key.CreateInstance() as IEntity;
 
                 return op;
             });
@@ -327,7 +327,7 @@ namespace XCode
             {
                 if (_hasInited.Contains(type)) return;
 
-                TypeX.CreateInstance(type);
+                type.CreateInstance();
                 _hasInited.Add(type);
             }
         }

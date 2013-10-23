@@ -202,7 +202,7 @@ namespace NewLife.Net.DNS
             {
                 if (item == typeof(DNSRecord)) continue;
 
-                var dr = TypeX.CreateInstance(item) as DNSRecord;
+                var dr = item.CreateInstance() as DNSRecord;
                 if (dr != null) entitytypes.Add(dr.Type, item);
             }
         }
@@ -215,7 +215,7 @@ namespace NewLife.Net.DNS
             Type type = null;
             if (!entitytypes.TryGetValue(qt, out type) || type == null) return null;
 
-            return TypeX.CreateInstance(type) as DNSRecord;
+            return type.CreateInstance() as DNSRecord;
         }
         #endregion
 

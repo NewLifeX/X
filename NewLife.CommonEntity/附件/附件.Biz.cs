@@ -161,7 +161,7 @@ namespace NewLife.CommonEntity
         //            //}
 
         //            var type = AssemblyX.FindAllPlugins(typeof(AttachmentHttpHandler), true).FirstOrDefault();
-        //            if (type != null) _httpHandler = TypeX.CreateInstance(type);
+        //            if (type != null) _httpHandler = type.CreateInstance();
         //        }
         //        return _httpHandler;
         //    }

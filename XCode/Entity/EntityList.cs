@@ -1006,7 +1006,7 @@ namespace XCode
             type = typeof(EntityListView<>).MakeGenericType(type);
 
             // 初始化集合，实际上是创建了一个真正的实体类型
-            IList list = TypeX.CreateInstance(type) as IList;
+            IList list = type.CreateInstance() as IList;
             for (int i = 0; i < Count; i++)
             {
                 list.Add(this[i]);

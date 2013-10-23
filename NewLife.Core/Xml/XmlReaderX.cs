@@ -258,7 +258,7 @@ namespace NewLife.Xml
 
             if (length > 1)
             {
-                Array array = TypeX.CreateInstance(type, length) as Array;
+                Array array = type.CreateInstance(length) as Array;
                 t = type.GetElementType();
                 for (int j = 0; j < length - 1; j++)
                 {
@@ -492,7 +492,7 @@ namespace NewLife.Xml
             if (!typeof(IXmlSerializable).IsAssignableFrom(type))
                 return base.ReadSerializable(type, ref value, callback);
 
-            if (value == null) value = TypeX.CreateInstance(type);
+            if (value == null) value = type.CreateInstance();
             ((IXmlSerializable)value).ReadXml(Reader);
             return true;
         }

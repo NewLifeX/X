@@ -32,7 +32,7 @@ namespace NewLife.Reflection
             for (int i = 0; i < objects.Length; i++)
             {
                 //ducks[i] = (TInterface)Activator.CreateInstance(duckTypes[i], objects[i]);
-                ducks[i] = (TInterface)TypeX.CreateInstance(duckTypes[i], objects[i]);
+                ducks[i] = (TInterface)duckTypes[i].CreateInstance(objects[i]);
             }
 
             return ducks;
@@ -74,7 +74,7 @@ namespace NewLife.Reflection
             Type duckType = GetDuckType(interfaceType, obj.GetType());
 
             //return Activator.CreateInstance(duckType, obj);
-            return TypeX.CreateInstance(duckType, obj);
+            return duckType.CreateInstance(obj);
         }
 
         /// <summary>准备鸭子类型</summary>

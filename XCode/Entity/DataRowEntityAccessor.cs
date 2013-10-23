@@ -107,7 +107,7 @@ namespace XCode
 
             // 准备好实体列表
             //EntityList<TEntity> list = new EntityList<TEntity>(dt.Rows.Count);
-            IEntityList list = TypeX.CreateInstance(typeof(EntityList<>).MakeGenericType(EntityType), dt.Rows.Count) as IEntityList;
+            var list = typeof(EntityList<>).MakeGenericType(EntityType).CreateInstance(dt.Rows.Count) as IEntityList;
             if (dt == null || dt.Rows.Count < 1) return list;
 
             List<FieldItem> ps = new List<FieldItem>();
@@ -167,7 +167,7 @@ namespace XCode
             //if (!dr.Read()) return null;
 
             // 准备好实体列表
-            IEntityList list = TypeX.CreateInstance(typeof(EntityList<>).MakeGenericType(EntityType)) as IEntityList;
+            IEntityList list = typeof(EntityList<>).MakeGenericType(EntityType).CreateInstance() as IEntityList;
 
             if (dr == null) return list;
 

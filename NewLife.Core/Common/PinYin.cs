@@ -638,7 +638,7 @@ namespace NewLife.Common
                 _pix = PropertyInfoX.Create(_type, "Pinyins");
             }
 
-            var obj = TypeX.CreateInstance(_type, chr);
+            var obj = _type.CreateInstance(chr);
             return _pix.GetValue(obj) as String[];
         }
     }

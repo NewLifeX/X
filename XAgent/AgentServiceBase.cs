@@ -401,7 +401,7 @@ namespace XAgent
                         var type = TypeX.GetType(item.Value, true);
                         if (type != null)
                         {
-                            var service = TypeX.CreateInstance(type) as IServer;
+                            var service = type.CreateInstance() as IServer;
                             if (service != null) AttachServers[item.Key] = service;
                         }
                     }

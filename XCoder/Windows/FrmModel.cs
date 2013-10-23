@@ -109,7 +109,7 @@ namespace XCoder
             Type type = Tables[0].GetType();
             if (type == null) return;
 
-            IDataTable table = TypeX.CreateInstance(type) as IDataTable;
+            IDataTable table = type.CreateInstance() as IDataTable;
             if (table == null) return;
 
             Tables.Add(table);

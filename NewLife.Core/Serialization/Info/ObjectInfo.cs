@@ -226,7 +226,7 @@ namespace NewLife.Serialization
                 // 如果类型没有无参数构造函数，则可能异常
                 try
                 {
-                    return TypeX.CreateInstance(t);
+                    return t.CreateInstance();
                 }
                 catch { return FormatterServices.GetSafeUninitializedObject(t); }
             });

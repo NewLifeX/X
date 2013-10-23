@@ -115,7 +115,7 @@ namespace NewLife.Model
             {
                 if (item != null)
                 {
-                    list.Add(TypeX.CreateInstance(item) as IPlugin);
+                    list.Add(item.CreateInstance() as IPlugin);
                 }
             }
             _Plugins = list;

@@ -245,7 +245,7 @@ namespace XCoder
             if (tables == null || tables.Count < 1) return tables;
 
             var type = tables[0].GetType();
-            var list = tables.Select(dt => (TypeX.CreateInstance(type) as IDataTable).CopyAllFrom(dt)).ToList();
+            var list = tables.Select(dt => (type.CreateInstance() as IDataTable).CopyAllFrom(dt)).ToList();
 
             var noCNDic = new Dictionary<object, string>();
             var existTrans = new List<string>();

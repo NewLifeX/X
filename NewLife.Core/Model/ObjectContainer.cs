@@ -150,7 +150,7 @@ namespace NewLife.Model
 
                     try
                     {
-                        if (ImplementType != null) _Instance = TypeX.CreateInstance(ImplementType);
+                        if (ImplementType != null) _Instance = ImplementType.CreateInstance();
                     }
                     catch { }
                     hasCheck = true;
@@ -325,7 +325,7 @@ namespace NewLife.Model
                     // 自动注册的优先级是1，高于默认的0
                     //Register(from, item, null, null, 1);
                     // 实例化一次，让这个类有机会执行类型构造函数，可以获取旧的类型实现
-                    var obj = TypeX.CreateInstance(item);
+                    var obj = item.CreateInstance();
                     // 如果指定了获取ID的委托，并且取得的ID与传入ID不一致，则不承认
                     if (getidCallback != null && id != getidCallback(obj)) continue;
 
@@ -395,7 +395,7 @@ namespace NewLife.Model
             // 4，如果有带参数构造函数，则从容器内获取各个参数的实例，最后创建对象返回
             var cis = map.ImplementType.GetConstructors();
             if (cis.Length <= 0)
-                obj = TypeX.CreateInstance(map.ImplementType);
+                obj = map.ImplementType.CreateInstance();
             else
             {
                 // 找到无参数构造函数
@@ -418,7 +418,7 @@ namespace NewLife.Model
                             // 处理值类型
                             if (pi.ParameterType.IsValueType)
                             {
-                                pv = TypeX.CreateInstance(pi.ParameterType);
+                                pv = pi.ParameterType.CreateInstance();
                                 ps.Add(pv);
                                 continue;
                             }

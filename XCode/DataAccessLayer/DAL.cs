@@ -207,9 +207,9 @@ namespace XCode.DataAccessLayer
                 Type type = ProviderType;
                 if (type == null) throw new XCodeException("无法识别{0}的数据提供者！", ConnName);
 
-                _Db = TypeX.CreateInstance(type) as IDatabase;
+                _Db = type.CreateInstance() as IDatabase;
                 //// 使用鸭子类型，避免因接口版本差异而导致无法使用
-                //_Db = TypeX.ChangeType<IDatabase>(TypeX.CreateInstance(type));
+                //_Db = TypeX.ChangeType<IDatabase>(type.CreateInstance());
                 // 不为空才设置连接字符串，因为可能有内部包装
                 if (!String.IsNullOrEmpty(ConnName)) _Db.ConnName = ConnName;
                 if (!String.IsNullOrEmpty(ConnStr)) _Db.ConnectionString = DecodeConnStr(ConnStr);

@@ -309,7 +309,7 @@ namespace NewLife.Net.Stun
             // 处理属性
             if (Atts != null && Atts.Count > 0)
             {
-                var wr = TypeX.CreateInstance(writer.GetType()) as IWriter;
+                var wr = writer.GetType().CreateInstance() as IWriter;
                 wr.Settings = writer.Settings;
                 //wr.WriteObject(Atts);
                 foreach (var item in Atts)

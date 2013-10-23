@@ -306,7 +306,7 @@ namespace NewLife.Serialization
             var index = objRefIndex;
             if (index > 0 && Settings.UseObjRef && value == null)
             {
-                value = TypeX.CreateInstance(type);
+                value = type.CreateInstance();
                 if (value != null) AddObjRef(index, value);
             }
 
@@ -322,7 +322,7 @@ namespace NewLife.Serialization
                 return true;
             }
 
-            if (value == null) value = TypeX.CreateInstance(type);
+            if (value == null) value = type.CreateInstance();
 
             var dic = value as IDictionary;
             foreach (var item in list)
@@ -484,14 +484,14 @@ namespace NewLife.Serialization
                     // 如果是数组，在不知道元素个数时，不处理
                     if (count > 0)
                     {
-                        var arr = TypeX.CreateInstance(type, count) as Array;
+                        var arr = type.CreateInstance(count) as Array;
                         value = arr;
                         if (value != null) AddObjRef(index, value);
                     }
                 }
                 else
                 {
-                    value = TypeX.CreateInstance(type);
+                    value = type.CreateInstance();
                     if (value != null) AddObjRef(index, value);
                 }
             }
@@ -526,7 +526,7 @@ namespace NewLife.Serialization
         {
             //ArrayList list = new ArrayList();
             var listType = typeof(List<>).MakeGenericType(elementType);
-            var list = TypeX.CreateInstance(listType) as IList;
+            var list = listType.CreateInstance() as IList;
 
             // 元素个数小于0，可能是因为不支持元素个数，直接设为最大值
             if (count < 0) count = Int32.MaxValue;
@@ -613,7 +613,7 @@ namespace NewLife.Serialization
             #region 数组
             if (type.IsArray && type.HasElementType && type.GetElementType() == elementType)
             {
-                var arr = TypeX.CreateInstance(type, items.Count) as Array;
+                var arr = type.CreateInstance(items.Count) as Array;
                 items.CopyTo(arr, 0);
                 value = arr;
                 return true;
@@ -636,7 +636,7 @@ namespace NewLife.Serialization
             {
                 // 用List<>来转换
                 var listType = typeof(List<>).MakeGenericType(elementType);
-                var list = TypeX.CreateInstance(listType) as IList;
+                var list = listType.CreateInstance() as IList;
                 if (list != null)
                 {
                     foreach (var item in items)
@@ -668,7 +668,7 @@ namespace NewLife.Serialization
             if (method == null) method = MethodInfoX.Create(type, "Add", new Type[] { elementType });
             if (method != null)
             {
-                if (value == null) value = TypeX.CreateInstance(type);
+                if (value == null) value = type.CreateInstance();
                 foreach (var item in items)
                 {
                     method.Invoke(value, item);
@@ -731,7 +731,7 @@ namespace NewLife.Serialization
                     info.AddValue(item.Name, item[value], item.Type);
                 }
 
-                value = TypeX.CreateInstance(type, info, ObjectInfo.DefaultStreamingContext);
+                value = type.CreateInstance(info, ObjectInfo.DefaultStreamingContext);
 
                 if (value != null) AddObjRef(objRefIndex, value);
             }
@@ -1003,8 +1003,8 @@ namespace NewLife.Serialization
                 // 如果为空，实例化并赋值。
                 if (value == null)
                 {
-                    //CurrentObject = value = TypeX.CreateInstance(type);
-                    value = TypeX.CreateInstance(type);
+                    //CurrentObject = value = type.CreateInstance();
+                    value = type.CreateInstance();
 
                     if (value != null) AddObjRef(objRefIndex, value);
                 }
@@ -1285,7 +1285,7 @@ namespace NewLife.Serialization
             // 如果为空，实例化并赋值。
             if (value == null)
             {
-                CurrentObject = value = TypeX.CreateInstance(type);
+                CurrentObject = value = type.CreateInstance();
 
                 if (value != null) AddObjRef(objRefIndex, value);
             }

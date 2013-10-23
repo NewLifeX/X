@@ -536,7 +536,7 @@ namespace XCode.DataAccessLayer
 
             try
             {
-                var e = TypeX.CreateInstance(EngineType, connstr);
+                var e = EngineType.CreateInstance(connstr);
                 if (e == null) return null;
 
                 var sce = new SqlCeEngine();

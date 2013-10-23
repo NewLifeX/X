@@ -74,7 +74,7 @@ namespace XAgent
                         try
                         {
                             // 这里实例化一次，按理应该可以除非AgentServiceBase<TService>的类型构造函数了，如果还是没有赋值，则这里赋值
-                            var obj = TypeX.CreateInstance(item);
+                            var obj = item.CreateInstance();
                             if ((last == null || last is AgentService) && obj != null && obj is AgentServiceBase)
                             {
                                 last = obj as AgentServiceBase;

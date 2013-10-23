@@ -65,7 +65,7 @@ namespace XCode
             // new TEntity会被编译为Activator.CreateInstance<TEntity>()，还不如Activator.CreateInstance()呢
             // Activator.CreateInstance()有缓存功能，而泛型的那个没有
             //return Activator.CreateInstance(Meta.ThisType) as TEntity;
-            return TypeX.CreateInstance(Meta.ThisType) as TEntity;
+            return Meta.ThisType.CreateInstance() as TEntity;
         }
         #endregion
 

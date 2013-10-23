@@ -101,7 +101,7 @@ namespace NewLife.Collections
         {
             if (OnCreate != null) return OnCreate();
 
-            return (T)TypeX.CreateInstance(typeof(T));
+            return (T)(typeof(T).CreateInstance());
         }
         #endregion
 

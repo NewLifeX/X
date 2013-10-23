@@ -444,7 +444,7 @@ namespace XCode.DataAccessLayer
                 //var dc2 = def as IDataColumn;
                 var value2 = value as IDataColumn;
                 // 需要重新创建，因为GetDefault带有缓存
-                var dc2 = TypeX.CreateInstance(type) as IDataColumn;
+                var dc2 = type.CreateInstance() as IDataColumn;
                 dc2.DataType = value2.DataType;
                 dc2.Length = value2.Length;
                 def = Fix(dc2, value2);
@@ -558,7 +558,7 @@ namespace XCode.DataAccessLayer
         static DictionaryCache<Type, Object> cache = new DictionaryCache<Type, object>();
         static Object GetDefault(Type type)
         {
-            return cache.GetItem(type, item => TypeX.CreateInstance(item));
+            return cache.GetItem(type, item => item.CreateInstance());
         }
 
         /// <summary>根据类型修正字段的一些默认值。仅考虑MSSQL</summary>

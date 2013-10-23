@@ -40,7 +40,7 @@ namespace XCode.DataAccessLayer
         {
             try
             {
-                IDatabase db = TypeX.CreateInstance(typeof(T)) as IDatabase;
+                var db = typeof(T).CreateInstance() as IDatabase;
                 if (id == null) id = db.DbType;
 
                 // 把这个实例注册进去，作为默认实现
@@ -62,7 +62,7 @@ namespace XCode.DataAccessLayer
         internal static IDatabase GetDefault(Type dbType)
         {
             if (dbType == null) return null;
-            return defaultDbs2.GetItem(dbType, dt => (IDatabase)TypeX.CreateInstance(dt));
+            return defaultDbs2.GetItem(dbType, dt => (IDatabase)dt.CreateInstance());
         }
         #endregion
 

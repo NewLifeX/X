@@ -108,7 +108,7 @@
 //                        Type type = TypeX.GetType(name);
 //                        if (type != null && typeof(IServiceProvider).IsAssignableFrom(type))
 //                        {
-//                            _Current = TypeX.CreateInstance(type) as IServiceProvider;
+//                            _Current = type.CreateInstance() as IServiceProvider;
 
 //                            if (type != typeof(ServiceProvider)) _Current = new ServiceProvider(_Current);
 //                        }
