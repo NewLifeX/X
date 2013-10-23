@@ -130,7 +130,7 @@ namespace NewLife.Log
         #region 使用控制台输出
         //private static Int32 init = 0;
         /// <summary>使用控制台输出日志，只能调用一次</summary>
-        /// <param name="useColor">是否使用颜色</param>
+        /// <param name="useColor">是否使用颜色，默认使用</param>
         /// <param name="useFileLog">是否同时使用文件日志，默认使用</param>
         public static void UseConsole(Boolean useColor = true, Boolean useFileLog = true)
         {
@@ -191,7 +191,8 @@ namespace NewLife.Log
             WriteLine(msg);
             if (e.IsTerminating)
             {
-                WriteLine("异常退出！");
+                //WriteLine("异常退出！");
+                Log.Fatal("异常退出！");
                 //XTrace.WriteMiniDump(null);
                 if (show) MessageBox.Show(msg, "异常退出", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
@@ -212,14 +213,38 @@ namespace NewLife.Log
         /// <summary>在WinForm控件上输出日志，主要考虑非UI线程操作</summary>
         /// <remarks>不是常用功能，为了避免干扰常用功能，保持UseWinForm开头</remarks>
         /// <param name="control">要绑定日志输出的WinForm控件</param>
-        /// <param name="handler">默认采用e.ToString()输出日志，除非外部自定义handler</param>
+        /// <param name="useFileLog">是否同时使用文件日志，默认使用</param>
         /// <param name="maxLines">最大行数</param>
-        public static void UseWinFormControl(this Control control, EventHandler<WriteLogEventArgs> handler = null, Int32 maxLines = 1000)
+        public static void UseWinFormControl(this Control control, Boolean useFileLog = true, Int32 maxLines = 1000)
         {
             //if (handler != null)
             //    OnWriteLog += (s, e) => handler(control, e);
             //else
             //    OnWriteLog += (s, e) => UseWinFormWriteLog(control, e.ToString() + Environment.NewLine, maxLines);
+            var clg = _Log as TextControlLog;
+            var ftl = _Log as TextFileLog;
+            var cmp = _Log as CompositeLog;
+            if (cmp != null)
+            {
+                ftl = cmp.Get<TextFileLog>();
+                clg = cmp.Get<TextControlLog>();
+            }
+
+            // 控制控制台日志
+            if (clg == null) clg = new TextControlLog();
+            clg.Control = control;
+            clg.MaxLines = maxLines;
+
+            if (!useFileLog)
+            {
+                Log = clg;
+                if (ftl != null) ftl.Dispose();
+            }
+            else
+            {
+                if (ftl == null) ftl = TextFileLog.Create(null);
+                Log = new CompositeLog(clg, ftl);
+            }
         }
 
         /// <summary>在WinForm控件上输出日志，主要考虑非UI线程操作</summary>
@@ -227,37 +252,12 @@ namespace NewLife.Log
         /// <param name="control">要绑定日志输出的WinForm控件</param>
         /// <param name="msg">日志</param>
         /// <param name="maxLines">最大行数</param>
+        [Obsolete("=>TextControlLog.WriteLog")]
         public static void UseWinFormWriteLog(this Control control, String msg, Int32 maxLines = 1000)
         {
             if (control == null) return;
 
-            var txt = control as TextBoxBase;
-            if (txt == null) throw new XException("不支持的控件类型{0}！", control.GetType());
-
-            var func = new Action<String>(m =>
-            {
-                try
-                {
-                    if (txt.Lines.Length >= maxLines) txt.Clear();
-
-                    //// 如果不是第一行，加上空行
-                    //if (txt.TextLength > 0) txt.AppendText(Environment.NewLine);
-                    // 输出日志
-                    if (m != null) txt.AppendText(m);
-
-                    // 取得最后一行首字符索引
-                    var p = txt.GetFirstCharIndexFromLine(txt.Lines.Length - 1);
-                    if (p >= 0)
-                    {
-                        // 滚动到最后一行第一个字符
-                        txt.Select(p, 0);
-                        txt.ScrollToCaret();
-                    }
-                }
-                catch { }
-            });
-
-            txt.Invoke(func, msg);
+            TextControlLog.WriteLog(control, msg, maxLines);
         }
         #endregion
 

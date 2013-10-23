@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Windows.Forms;
 using NewLife.Exceptions;
 
@@ -13,12 +11,24 @@ namespace NewLife.Log
         /// <summary>文本控件</summary>
         public Control Control { get { return _Control; } set { _Control = value; } }
 
+        private Int32 _MaxLines = 1000;
+        /// <summary>最大行数，超过该行数讲清空文本控件。默认1000行</summary>
+        public Int32 MaxLines { get { return _MaxLines; } set { _MaxLines = value; } }
+
+        //private Boolean _Timestamp;
+        ///// <summary>是否输出时间戳</summary>
+        //public Boolean Timestamp { get { return _Timestamp; } set { _Timestamp = value; } }
+
         /// <summary>写日志</summary>
         /// <param name="level"></param>
         /// <param name="format"></param>
         /// <param name="args"></param>
         protected override void OnWrite(LogLevel level, String format, params Object[] args)
         {
+            //var e = WriteLogEventArgs.Current.Set(level, Format(format, args), null, true);
+            //WriteLog(Control, e.ToString(), MaxLines);
+
+            WriteLog(Control, Format(format, args) + Environment.NewLine, MaxLines);
         }
 
         /// <summary>在WinForm控件上输出日志，主要考虑非UI线程操作</summary>
@@ -26,7 +36,7 @@ namespace NewLife.Log
         /// <param name="control">要绑定日志输出的WinForm控件</param>
         /// <param name="msg">日志</param>
         /// <param name="maxLines">最大行数</param>
-        public static void UseWinFormWriteLog(Control control, String msg, Int32 maxLines = 1000)
+        public static void WriteLog(Control control, String msg, Int32 maxLines = 1000)
         {
             if (control == null) return;
 

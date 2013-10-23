@@ -61,6 +61,41 @@ namespace NewLife.Log
         //public abstract void WriteLine(LogLevel level, String format, params Object[] args);
         #endregion
 
+        #region 辅助方法
+        /// <summary>格式化参数，特殊处理异常和时间</summary>
+        /// <param name="format"></param>
+        /// <param name="args"></param>
+        /// <returns></returns>
+        protected virtual String Format(String format, Object[] args)
+        {
+            //处理时间的格式化
+            if (args != null && args.Length > 0)
+            {
+                // 特殊处理异常
+                if (args.Length == 1 && args[0] is Exception && (String.IsNullOrEmpty(format) || format == "{0}"))
+                {
+                    return "" + args[0];
+                }
+
+                for (var i = 0; i < args.Length; i++)
+                {
+                    if (args[i] != null && args[i].GetType() == typeof(DateTime))
+                    {
+                        // 根据时间值的精确度选择不同的格式化输出
+                        var dt = (DateTime)args[i];
+                        if (dt.Millisecond > 0)
+                            args[i] = dt.ToString("yyyy-MM-dd HH:mm:ss.fff");
+                        else if (dt.Hour > 0 || dt.Minute > 0 || dt.Second > 0)
+                            args[i] = dt.ToString("yyyy-MM-dd HH:mm:ss");
+                        else
+                            args[i] = dt.ToString("yyyy-MM-dd");
+                    }
+                }
+            }
+            return String.Format(format, args);
+        }
+        #endregion
+
         #region 属性
         private LogLevel? _Level;
         /// <summary>日志等级，只输出大于等于该级别的日志</summary>

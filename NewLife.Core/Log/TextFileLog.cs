@@ -312,29 +312,6 @@ namespace NewLife.Log
             WriteLine(Format(format, args));
         }
 
-        String Format(String format, Object[] args)
-        {
-            //处理时间的格式化
-            if (args != null && args.Length > 0)
-            {
-                for (int i = 0; i < args.Length; i++)
-                {
-                    if (args[i] != null && args[i].GetType() == typeof(DateTime))
-                    {
-                        // 根据时间值的精确度选择不同的格式化输出
-                        var dt = (DateTime)args[i];
-                        if (dt.Millisecond > 0)
-                            args[i] = dt.ToString("yyyy-MM-dd HH:mm:ss.fff");
-                        else if (dt.Hour > 0 || dt.Minute > 0 || dt.Second > 0)
-                            args[i] = dt.ToString("yyyy-MM-dd HH:mm:ss");
-                        else
-                            args[i] = dt.ToString("yyyy-MM-dd");
-                    }
-                }
-            }
-            return String.Format(format, args);
-        }
-
         /// <summary>输出异常日志</summary>
         /// <param name="ex">异常信息</param>
         public void WriteException(Exception ex)

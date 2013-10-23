@@ -16,7 +16,7 @@ namespace NewLife.Log
         /// <param name="args"></param>
         protected override void OnWrite(LogLevel level, String format, params Object[] args)
         {
-            var e = WriteLogEventArgs.Current.Set(level, String.Format(format, args), null, true);
+            var e = WriteLogEventArgs.Current.Set(level, Format(format, args), null, true);
 
             if (!UseColor)
             {
@@ -74,7 +74,7 @@ namespace NewLife.Log
         }
 
         static Dictionary<Int32, ConsoleColor> dic = new Dictionary<Int32, ConsoleColor>();
-        static ConsoleColor[] colors = new ConsoleColor[] { ConsoleColor.White, ConsoleColor.Yellow, ConsoleColor.Magenta, ConsoleColor.Red, ConsoleColor.Cyan, ConsoleColor.Green, ConsoleColor.Blue };
+        static ConsoleColor[] colors = new ConsoleColor[] { ConsoleColor.White, ConsoleColor.Magenta, ConsoleColor.Cyan, ConsoleColor.Green, ConsoleColor.Blue };
         private ConsoleColor GetColor(Int32 threadid)
         {
             // 好像因为dic.TryGetValue也会引发线程冲突，真是悲剧！
