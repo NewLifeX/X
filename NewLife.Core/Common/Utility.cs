@@ -12,46 +12,48 @@ namespace NewLife
     /// </remarks>
     public static class Utility
     {
-        static Utility()
-        {
-            _covnert = ObjectContainer.Current.AutoRegister<DefaultConvert, DefaultConvert>().Resolve<DefaultConvert>();
-        }
+        //static Utility()
+        //{
+        //    _Convert = ObjectContainer.Current.AutoRegister<DefaultConvert, DefaultConvert>().Resolve<DefaultConvert>();
+        //}
 
         #region 类型转换
-        static DefaultConvert _covnert;
+        private static DefaultConvert _Convert = new DefaultConvert();
+        /// <summary>类型转换提供者</summary>
+        public static DefaultConvert Convert { get { return _Convert; } set { _Convert = value; } }
 
         /// <summary>转为整数</summary>
         /// <param name="value">待转换对象</param>
         /// <returns></returns>
-        public static Int32 ToInt32(this Object value) { return _covnert.ToInt32(value, 0); }
+        public static Int32 ToInt32(this Object value) { return _Convert.ToInt32(value, 0); }
 
         /// <summary>转为整数</summary>
         /// <param name="value">待转换对象</param>
         /// <param name="defaultValue">默认值。待转换对象无效时使用</param>
         /// <returns></returns>
-        public static Int32 ToInt32(this Object value, Int32 defaultValue) { return _covnert.ToInt32(value, defaultValue); }
+        public static Int32 ToInt32(this Object value, Int32 defaultValue) { return _Convert.ToInt32(value, defaultValue); }
 
         /// <summary>转为布尔型</summary>
         /// <param name="value">待转换对象</param>
         /// <returns></returns>
-        public static Boolean ToBoolean(this Object value) { return _covnert.ToBoolean(value, false); }
+        public static Boolean ToBoolean(this Object value) { return _Convert.ToBoolean(value, false); }
 
         /// <summary>转为布尔型</summary>
         /// <param name="value">待转换对象</param>
         /// <param name="defaultValue">默认值。待转换对象无效时使用</param>
         /// <returns></returns>
-        public static Boolean ToBoolean(this Object value, Boolean defaultValue) { return _covnert.ToBoolean(value, defaultValue); }
+        public static Boolean ToBoolean(this Object value, Boolean defaultValue) { return _Convert.ToBoolean(value, defaultValue); }
 
         /// <summary>转为时间日期</summary>
         /// <param name="value">待转换对象</param>
         /// <returns></returns>
-        public static DateTime ToDateTime(this Object value) { return _covnert.ToDateTime(value, DateTime.MinValue); }
+        public static DateTime ToDateTime(this Object value) { return _Convert.ToDateTime(value, DateTime.MinValue); }
 
         /// <summary>转为时间日期</summary>
         /// <param name="value">待转换对象</param>
         /// <param name="defaultValue">默认值。待转换对象无效时使用</param>
         /// <returns></returns>
-        public static DateTime ToDateTime(this Object value, DateTime defaultValue) { return _covnert.ToDateTime(value, defaultValue); }
+        public static DateTime ToDateTime(this Object value, DateTime defaultValue) { return _Convert.ToDateTime(value, defaultValue); }
         #endregion
     }
 
