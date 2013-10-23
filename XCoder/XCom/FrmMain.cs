@@ -161,7 +161,8 @@ namespace XCom
             else
                 line = _Com.Encoding.GetString(e.Data);
 
-            XTrace.UseWinFormWriteLog(txtReceive, line, 100000);
+            //XTrace.UseWinFormWriteLog(txtReceive, line, 100000);
+            TextControlLog.WriteLog(txtReceive, line);
         }
 
         Int32 lastReceive = 0;
