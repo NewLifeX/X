@@ -72,7 +72,10 @@ namespace NewLife.Log
 
                 try
                 {
-                    return Config.GetConfig<LogLevel>("NewLife.LogLevel", LogLevel.Info);
+                    var def = LogLevel.Info;
+                    if (Config.GetConfig<Boolean>("NewLife.Debug")) def = LogLevel.Debug;
+
+                    return Config.GetConfig<LogLevel>("NewLife.LogLevel", def);
                 }
                 catch { return LogLevel.Info; }
             }

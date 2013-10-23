@@ -310,52 +310,67 @@ namespace NewLife.Serialization
             }
             else
             {
+                var sb = new StringBuilder();
                 // 缩进
-                SetDebugIndent();
+                //SetDebugIndent();
+                sb.Append(new String(' ', _Indent * 4));
 
                 // 动作
-                XTrace.Write(action);
+                //XTrace.Write(action);
 
                 if (args != null && args.Length > 0)
                 {
                     for (int i = 0; i < args.Length; i++)
                     {
-                        XTrace.Write(" ");
-                        XTrace.Write("" + args[i]);
+                        //XTrace.Write(" ");
+                        //XTrace.Write("" + args[i]);
+                        sb.AppendFormat(" {0}", args[i]);
                     }
                 }
 
-                XTrace.WriteLine("");
+                //XTrace.WriteLine("");
+                XTrace.Log.Debug(sb.ToString());
             }
         }
 
-        /// <summary>设置调试缩进</summary>
-        /// <param name="indent">缩进</param>
-        public void SetDebugIndent(Int32 indent)
-        {
-            if (!Debug) return;
+        ///// <summary>设置调试缩进</summary>
+        ///// <param name="indent">缩进</param>
+        //public void SetDebugIndent(Int32 indent)
+        //{
+        //    if (!Debug) return;
 
-            if (IsConsole)
-            {
-                try
-                {
-                    Console.CursorLeft = indent * 4;
-                }
-                catch { }
-            }
-            else
-            {
-                var msg = new String(' ', indent * 4);
-                XTrace.Write(msg);
-            }
-        }
+        //    if (IsConsole)
+        //    {
+        //        try
+        //        {
+        //            Console.CursorLeft = indent * 4;
+        //        }
+        //        catch { }
+        //    }
+        //    else
+        //    {
+        //        var msg = new String(' ', indent * 4);
+        //        XTrace.Write(msg);
+        //    }
+        //}
 
+        private Int32 _Indent = 0;
         /// <summary>设置调试缩进</summary>
         public void SetDebugIndent()
         {
             if (!Debug) return;
 
-            SetDebugIndent(Depth - 1);
+            //SetDebugIndent(Depth - 1);
+            _Indent = Depth - 1;
+
+            if (IsConsole)
+            {
+                try
+                {
+                    Console.CursorLeft = _Indent * 4;
+                }
+                catch { }
+            }
         }
         #endregion
     }

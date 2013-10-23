@@ -11,7 +11,7 @@ using NewLife.Configuration;
 namespace NewLife.Log
 {
     /// <summary>文本文件日志类。提供向文本文件写日志的能力</summary>
-    public class TextFileLog : Logger
+    public class TextFileLog : Logger, IDisposable
     {
         #region 构造
         private TextFileLog(String path) { FilePath = path; }
@@ -26,6 +26,16 @@ namespace NewLife.Log
 
             String key = path.ToLower();
             return cache.GetItem<String>(key, path, (k, p) => new TextFileLog(p));
+        }
+
+        /// <summary>销毁</summary>
+        public void Dispose()
+        {
+            if (LogWriter != null)
+            {
+                LogWriter.Dispose();
+                LogWriter = null;
+            }
         }
         #endregion
 
@@ -330,6 +340,15 @@ namespace NewLife.Log
         public void WriteException(Exception ex)
         {
             PerformWriteLog(WriteLogEventArgs.Current.Set(null, ex, false));
+        }
+        #endregion
+
+        #region 辅助
+        /// <summary>已重载。</summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            return String.Format("{0} FilePath={1}", this.GetType().Name, FilePath);
         }
         #endregion
     }

@@ -17,8 +17,7 @@ namespace NewLife.Log
     /// <remarks>
     /// 该静态类包括写日志、写调用栈和Dump进程内存等调试功能。
     /// 
-    /// 默认写日志到文本文件，可通过挂接<see cref="OnWriteLog"/>事件来增加日志输出方式。
-    /// 改变日志输出方式后，可通过<see cref="UseFileLog"/>不再向文本文件输出日志。
+    /// 默认写日志到文本文件，可通过修改<see cref="Log"/>属性来增加日志输出方式。
     /// 对于控制台工程，可以直接通过<see cref="UseConsole"/>方法，把日志输出重定向为控制台输出，并且可以为不同线程使用不同颜色。
     /// </remarks>
     public static class XTrace
@@ -38,26 +37,28 @@ namespace NewLife.Log
         ///// <summary>日志路径</summary>
         //public static String LogPath { get { return FileLog.LogPath; } }
 
-        /// <summary>输出日志</summary>
-        /// <param name="msg">信息</param>
-        public static void Write(String msg)
-        {
-            InitLog();
-            if (OnWriteLog != null) OnWriteLog(null, WriteLogEventArgs.Current.Set(msg, null, false));
+        ///// <summary>输出日志</summary>
+        ///// <param name="msg">信息</param>
+        //[Obsolete("不再支持！")]
+        //public static void Write(String msg)
+        //{
+        //    InitLog();
+        //    if (OnWriteLog != null) OnWriteLog(null, WriteLogEventArgs.Current.Set(msg, null, false));
 
-            Log.Info(msg);
-        }
+        //    Log.Info(msg);
+        //}
 
-        /// <summary>写日志</summary>
-        /// <param name="format"></param>
-        /// <param name="args"></param>
-        public static void Write(String format, params Object[] args)
-        {
-            InitLog();
-            if (OnWriteLog != null) OnWriteLog(null, WriteLogEventArgs.Current.Set(String.Format(format, args), null, false));
+        ///// <summary>写日志</summary>
+        ///// <param name="format"></param>
+        ///// <param name="args"></param>
+        //[Obsolete("不再支持！")]
+        //public static void Write(String format, params Object[] args)
+        //{
+        //    InitLog();
+        //    if (OnWriteLog != null) OnWriteLog(null, WriteLogEventArgs.Current.Set(String.Format(format, args), null, false));
 
-            Log.Info(format, args);
-        }
+        //    Log.Info(format, args);
+        //}
 
         /// <summary>输出日志</summary>
         /// <param name="msg">信息</param>
@@ -82,6 +83,7 @@ namespace NewLife.Log
 
         /// <summary>输出异常日志</summary>
         /// <param name="ex">异常信息</param>
+        //[Obsolete("不再支持！")]
         public static void WriteException(Exception ex)
         {
             InitLog();
@@ -90,9 +92,9 @@ namespace NewLife.Log
             Log.Error("{0}", ex);
         }
 
-        /// <summary>输出异常日志</summary>
-        /// <param name="ex">异常信息</param>
-        public static void WriteExceptionWhenDebug(Exception ex) { if (Debug) WriteException(ex); }
+        ///// <summary>输出异常日志</summary>
+        ///// <param name="ex">异常信息</param>
+        //public static void WriteExceptionWhenDebug(Exception ex) { if (Debug) WriteException(ex); }
 
         /// <summary>写日志事件。</summary>
         [Obsolete("请直接使用CompositeLog实现赋值给Log属性")]
@@ -128,28 +130,38 @@ namespace NewLife.Log
         #region 使用控制台输出
         //private static Int32 init = 0;
         /// <summary>使用控制台输出日志，只能调用一次</summary>
-        /// <param name="useColor"></param>
-        public static void UseConsole(Boolean useColor = true)
+        /// <param name="useColor">是否使用颜色</param>
+        /// <param name="useFileLog">是否同时使用文件日志，默认使用</param>
+        public static void UseConsole(Boolean useColor = true, Boolean useFileLog = true)
         {
             //if (init > 0 || Interlocked.CompareExchange(ref init, 1, 0) != 0) return;
             if (!Runtime.IsConsole) return;
 
-            ConsoleLog clog = null;
-            if (Log is CompositeLog)
+            var clg = _Log as ConsoleLog;
+            var ftl = _Log as TextFileLog;
+            var cmp = _Log as CompositeLog;
+            if (cmp != null)
             {
-                foreach (var item in (Log as CompositeLog).Logs)
-                {
-                    if (item is ConsoleLog)
-                    {
-                        clog = item as ConsoleLog;
-                        break;
-                    }
-                }
+                ftl = cmp.Get<TextFileLog>();
+                clg = cmp.Get<ConsoleLog>();
             }
-            if (clog == null)
-                clog = new ConsoleLog { UseColor = useColor };
+
+            // 控制控制台日志
+            if (clg == null)
+                clg = new ConsoleLog { UseColor = useColor };
             else
-                clog.UseColor = useColor;
+                clg.UseColor = useColor;
+
+            if (!useFileLog)
+            {
+                Log = clg;
+                if (ftl != null) ftl.Dispose();
+            }
+            else
+            {
+                if (ftl == null) ftl = TextFileLog.Create(null);
+                Log = new CompositeLog(clg, ftl);
+            }
         }
         #endregion
 

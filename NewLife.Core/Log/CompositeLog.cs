@@ -11,6 +11,23 @@ namespace NewLife.Log
         /// <summary>日志提供者集合</summary>
         public List<ILog> Logs { get { return _Logs; } set { _Logs = value; } }
 
+        /// <summary>实例化</summary>
+        public CompositeLog() { }
+
+        /// <summary>实例化</summary>
+        /// <param name="log"></param>
+        public CompositeLog(ILog log) { Logs.Add(log); Level = log.Level; }
+
+        /// <summary>实例化</summary>
+        /// <param name="log1"></param>
+        /// <param name="log2"></param>
+        public CompositeLog(ILog log1, ILog log2)
+        {
+            Add(log1).Add(log2);
+            Level = log1.Level;
+            if (Level > log2.Level) Level = log2.Level;
+        }
+
         /// <summary>添加一个日志提供者</summary>
         /// <param name="log"></param>
         /// <returns></returns>
@@ -31,19 +48,43 @@ namespace NewLife.Log
             }
         }
 
-        public ILog Get<TLog>() where TLog : ILog
-        {
-            return Get(typeof(TLog));
-        }
-
-        public ILog Get(Type type)
+        /// <summary>从复合日志提供者中提取指定类型的日志提供者</summary>
+        /// <typeparam name="TLog"></typeparam>
+        /// <returns></returns>
+        public TLog Get<TLog>() where TLog : class
         {
             foreach (var item in Logs)
             {
-                if (item != null && type.IsAssignableFrom(item.GetType())) return item;
+                if (item != null && item is TLog) return item as TLog;
             }
 
             return null;
+        }
+
+        //public ILog Get(Type type)
+        //{
+        //    foreach (var item in Logs)
+        //    {
+        //        if (item != null && type.IsAssignableFrom(item.GetType())) return item;
+        //    }
+
+        //    return null;
+        //}
+
+        /// <summary>已重载。</summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            var sb = new StringBuilder();
+            sb.Append(this.GetType().Name);
+
+            foreach (var item in Logs)
+            {
+                sb.Append(" ");
+                sb.Append(item + "");
+            }
+
+            return sb.ToString();
         }
     }
 }

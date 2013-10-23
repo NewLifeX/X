@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace NewLife.Log
 {
@@ -17,11 +16,37 @@ namespace NewLife.Log
         /// <param name="args"></param>
         protected override void OnWrite(LogLevel level, String format, params Object[] args)
         {
+            var e = WriteLogEventArgs.Current.Set(level, String.Format(format, args), null, true);
+
+            if (!UseColor)
+            {
+                ConsoleWriteLog(e);
+                return;
+            }
+
+            var cc = Console.ForegroundColor;
+            switch (level)
+            {
+                case LogLevel.Warn:
+                    cc = ConsoleColor.Yellow;
+                    break;
+                case LogLevel.Error:
+                case LogLevel.Fatal:
+                    cc = ConsoleColor.Red;
+                    break;
+                default:
+                    cc = GetColor(e.ThreadID);
+                    break;
+            }
+
+            var old = Console.ForegroundColor;
+            Console.ForegroundColor = cc;
+            ConsoleWriteLog(e);
+            Console.ForegroundColor = old;
         }
 
-
-        private static Boolean LastIsNewLine = true;
-        private static void ConsoleWriteLog(WriteLogEventArgs e)
+        private Boolean LastIsNewLine = true;
+        private void ConsoleWriteLog(WriteLogEventArgs e)
         {
             if (LastIsNewLine)
             {
@@ -50,13 +75,13 @@ namespace NewLife.Log
 
         static Dictionary<Int32, ConsoleColor> dic = new Dictionary<Int32, ConsoleColor>();
         static ConsoleColor[] colors = new ConsoleColor[] { ConsoleColor.White, ConsoleColor.Yellow, ConsoleColor.Magenta, ConsoleColor.Red, ConsoleColor.Cyan, ConsoleColor.Green, ConsoleColor.Blue };
-        private static void XTrace_OnWriteLog2(object sender, WriteLogEventArgs e)
+        private ConsoleColor GetColor(Int32 threadid)
         {
             // 好像因为dic.TryGetValue也会引发线程冲突，真是悲剧！
             lock (dic)
             {
                 ConsoleColor cc;
-                var key = e.ThreadID;
+                var key = threadid;
                 if (!dic.TryGetValue(key, out cc))
                 {
                     //lock (dic)
@@ -68,11 +93,16 @@ namespace NewLife.Log
                         }
                     }
                 }
-                var old = Console.ForegroundColor;
-                Console.ForegroundColor = cc;
-                ConsoleWriteLog(e);
-                Console.ForegroundColor = old;
+
+                return cc;
             }
+        }
+
+        /// <summary>已重载。</summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            return String.Format("{0} UseColor={1}", this.GetType().Name, UseColor);
         }
     }
 }

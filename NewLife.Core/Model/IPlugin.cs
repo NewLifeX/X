@@ -55,6 +55,10 @@ namespace NewLife.Model
         private List<IPlugin> _Plugins;
         /// <summary>插件集合</summary>
         public List<IPlugin> Plugins { get { return _Plugins ?? (_Plugins = new List<IPlugin>()); } }
+
+        private ILog _Log = XTrace.Log;
+        /// <summary>日志提供者</summary>
+        public ILog Log { get { return _Log; } set { _Log = value; } }
         #endregion
 
         #region 构造
@@ -153,7 +157,8 @@ namespace NewLife.Model
                 }
                 catch (Exception ex)
                 {
-                    XTrace.WriteExceptionWhenDebug(ex);
+                    //XTrace.WriteExceptionWhenDebug(ex);
+                    Log.Debug(null, ex);
 
                     ps.RemoveAt(i);
                 }
