@@ -259,10 +259,10 @@ namespace NewLife.Xml
             if (code == TypeCode.String) return value.ToString();
             if (code == TypeCode.DateTime) return XmlConvert.ToString((DateTime)value, XmlDateTimeSerializationMode.RoundtripKind);
 
-            var mix = MethodInfoX.Create(typeof(XmlConvert), "ToString", new Type[] { type });
-            if (mix == null) throw new XException("类型{0}不支持转为Xml字符串，请先用CanXmlConvert方法判断！", type);
+            var method = Reflect.GetMethod(typeof(XmlConvert), "ToString", type);
+            if (method == null) throw new XException("类型{0}不支持转为Xml字符串，请先用CanXmlConvert方法判断！", type);
 
-            return (String)mix.Invoke(null, value);
+            return (String)"".Invoke(method, value);
         }
 
         internal static T XmlConvertFromString<T>(String xml) { return (T)XmlConvertFromString(typeof(T), xml); }
@@ -275,10 +275,10 @@ namespace NewLife.Xml
             if (code == TypeCode.String) return xml;
             if (code == TypeCode.DateTime) return XmlConvert.ToDateTime(xml, XmlDateTimeSerializationMode.RoundtripKind);
 
-            var mix = MethodInfoX.Create(typeof(XmlConvert), "To" + type.Name, new Type[] { typeof(String) });
-            if (mix == null) throw new XException("类型{0}不支持从Xml字符串转换，请先用CanXmlConvert方法判断！", type);
+            var method = Reflect.GetMethod(typeof(XmlConvert), "To" + type.Name, typeof(String));
+            if (method == null) throw new XException("类型{0}不支持从Xml字符串转换，请先用CanXmlConvert方法判断！", type);
 
-            return mix.Invoke(null, xml);
+            return "".Invoke(method, xml);
         }
         #endregion
 

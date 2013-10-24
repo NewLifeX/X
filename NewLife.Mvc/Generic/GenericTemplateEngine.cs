@@ -38,10 +38,12 @@ namespace NewLife.Mvc
         {
             if (EngineType == null) throw new XException("没有找到模版引擎{0}！", Name);
 
-            MethodInfoX method = MethodInfoX.Create(EngineType, "ProcessFile");
-            String html = (String)method.Invoke(null, templateName, data);
+            //var method = Reflect.GetMethod(EngineType, "ProcessFile");
+            //String html = (String)Reflect.Invoke(method, templateName, data);
 
-            return html;
+            //return html;
+
+            return (String)EngineType.Invoke("ProcessFile", templateName, data);
         }
 
         ///// <summary>生成页面</summary>

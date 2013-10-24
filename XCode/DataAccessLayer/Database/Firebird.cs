@@ -277,11 +277,11 @@ namespace XCode.DataAccessLayer
 
             DAL.WriteDebugLog("创建数据库：{0}", FileName);
 
-            DbConnection conn = Database.Factory.CreateConnection();
-            MethodInfoX method = MethodInfoX.Create(conn.GetType(), "CreateDatabase", new Type[] { typeof(String) });
+            var conn = Database.Factory.CreateConnection();
+            var method = Reflect.GetMethod(conn.GetType(), "CreateDatabase", typeof(String));
             if (method == null) return;
 
-            method.Invoke(null, Database.ConnectionString);
+            Reflect.Invoke(method, Database.ConnectionString);
         }
 
         public override string CreateDatabaseSQL(string dbname, string file)

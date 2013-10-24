@@ -1,10 +1,10 @@
 ﻿using System;
+using System.Text;
 using System.Web.UI.WebControls;
 using NewLife.CommonEntity;
 using NewLife.Log;
-using NewLife.Web;
 using NewLife.Reflection;
-using System.Text;
+using NewLife.Web;
 
 public partial class Common_Menu : MyEntityList<NewLife.CommonEntity.Menu>
 {
@@ -16,7 +16,7 @@ public partial class Common_Menu : MyEntityList<NewLife.CommonEntity.Menu>
     {
         try
         {
-            Int32 n = (Int32)MethodInfoX.Create(EntityType, "ScanAndAdd").Invoke(null);
+            Int32 n = (Int32)Reflect.Invoke(EntityType, "ScanAndAdd", null);
 
             WebHelper.Alert("扫描完成，共添加菜单" + n + "个！");
         }
@@ -28,7 +28,7 @@ public partial class Common_Menu : MyEntityList<NewLife.CommonEntity.Menu>
 
     protected void Button2_Click(object sender, EventArgs e)
     {
-        String xml = MethodInfoX.Create(EntityType, "Export").Invoke(null, Provider.MenuRoot.Childs) as String;
+        String xml = Reflect.Invoke(EntityType, "Export", null, Provider.MenuRoot.Childs) as String;
 
         Response.Clear();
         Response.Buffer = true;
@@ -49,7 +49,7 @@ public partial class Common_Menu : MyEntityList<NewLife.CommonEntity.Menu>
 
         try
         {
-            MethodInfoX.Create(EntityType, "Import").Invoke(null, xml);
+            Reflect.Invoke(EntityType, "Import", null, xml);
 
             gv.DataBind();
         }
