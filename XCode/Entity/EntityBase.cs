@@ -3,18 +3,13 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Xml.Serialization;
 using NewLife.Collections;
 using NewLife.IO;
 using NewLife.Reflection;
 using XCode.Common;
-
-#if NET4
-using System.Linq;
-#else
-using NewLife.Linq;
-#endif
 
 namespace XCode
 {

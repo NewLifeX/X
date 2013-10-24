@@ -2,12 +2,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
-#if NET4
 using System.Linq;
-#else
-using NewLife.Linq;
-#endif
+using System.Text;
 using BinaryReaderX = NewLife.Serialization.BinaryReaderX;
 using BinaryWriterX = NewLife.Serialization.BinaryWriterX;
 

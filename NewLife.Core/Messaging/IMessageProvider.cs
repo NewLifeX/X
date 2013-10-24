@@ -2,13 +2,9 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using NewLife.Log;
-#if NET4
-using System.Linq;
-#else
-using NewLife.Linq;
-#endif
 using NewLife.Serialization;
 
 namespace NewLife.Messaging

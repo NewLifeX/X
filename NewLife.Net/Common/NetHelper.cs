@@ -1,21 +1,16 @@
 ﻿using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using NewLife.Collections;
 using NewLife.Configuration;
 using NewLife.Log;
 using NewLife.Net;
 using NewLife.Reflection;
-
-#if NET4
-using System.Linq;
-#else
-using NewLife.Linq;
-using System.Reflection;
-#endif
 
 namespace System
 {

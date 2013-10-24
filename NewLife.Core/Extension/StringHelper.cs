@@ -1,11 +1,6 @@
 ﻿using System.Collections.Generic;
-using System.Text;
-
-#if NET4
 using System.Linq;
-#else
-using NewLife.Linq;
-#endif
+using System.Text;
 
 namespace System
 {

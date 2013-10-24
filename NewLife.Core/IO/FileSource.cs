@@ -1,14 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Web;
 using NewLife.Reflection;
-#if NET4
-using System.Linq;
-#else
-using NewLife.Linq;
-#endif
 
 namespace NewLife.IO
 {

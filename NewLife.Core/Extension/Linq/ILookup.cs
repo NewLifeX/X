@@ -3,7 +3,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
-namespace NewLife.Linq
+namespace System.Linq
 {
     /// <summary>定义索引器、大小属性以及将键映射到 <see cref="T:System.Collections.Generic.IEnumerable`1" /> 值序列的数据结构的布尔搜索方法。</summary>
     /// <typeparam name="TKey">

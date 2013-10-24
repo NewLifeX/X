@@ -1,13 +1,9 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using NewLife.Reflection;
 using NewLife.Threading;
-#if NET4
-using System.Linq;
-#else
-using NewLife.Linq;
-#endif
 
 namespace NewLife.Collections
 {

@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Runtime;
 using NewLife.Reflection;
 
-namespace NewLife.Linq
+namespace System.Linq
 {
     internal class GroupedEnumerable<TSource, TKey, TElement> : IEnumerable<IGrouping<TKey, TElement>>, IEnumerable
     {

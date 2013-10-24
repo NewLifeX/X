@@ -1,13 +1,8 @@
 ﻿using System;
+using System.Linq;
 using NewLife.Reflection;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
-
-#if NET4
-using System.Linq;
-#else
-using NewLife.Linq;
-#endif
 
 namespace XCode.Sync
 {

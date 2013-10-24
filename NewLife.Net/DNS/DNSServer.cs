@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -9,11 +10,6 @@ using NewLife.Collections;
 using NewLife.Log;
 using NewLife.Net.Common;
 using NewLife.Net.Sockets;
-#if NET4
-using System.Linq;
-#else
-using NewLife.Linq;
-#endif
 
 namespace NewLife.Net.DNS
 {

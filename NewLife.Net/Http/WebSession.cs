@@ -1,19 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
-using NewLife.Net.Sockets;
-using System.Net.Sockets;
-using System.IO;
-using System.Web;
 using System.Globalization;
-using NewLife.Reflection;
-using System.Reflection;
-
-#if NET4
+using System.IO;
 using System.Linq;
-#else
-using NewLife.Linq;
-#endif
+using System.Net.Sockets;
+using System.Reflection;
+using System.Text;
+using System.Web;
+using NewLife.Net.Sockets;
+using NewLife.Reflection;
 
 namespace NewLife.Net.Http
 {

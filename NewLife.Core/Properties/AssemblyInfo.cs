@@ -38,6 +38,7 @@ using System.Runtime.InteropServices;
 
 /*
  * v4.0.2013.1024   增加反射接口IReflect，统一快速反射
+ *                  修改扩展方法命名空间NewLife.Linq=>System.Ling，以及HashSet的命名空间，保持FX2/FX4的兼容
  * 
  * v4.0.2013.1020   增加日志接口和日志等级，支持外部实现
  * 

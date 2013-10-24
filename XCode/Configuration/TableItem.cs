@@ -2,16 +2,11 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Linq;
 using System.Xml.Serialization;
 using NewLife.Collections;
 using NewLife.Configuration;
 using XCode.DataAccessLayer;
-
-#if NET4
-using System.Linq;
-#else
-using NewLife.Linq;
-#endif
 
 namespace XCode.Configuration
 {

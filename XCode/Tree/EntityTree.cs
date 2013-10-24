@@ -1,17 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Text;
 using System.Web.UI.WebControls;
 using System.Xml.Serialization;
 using NewLife.Exceptions;
 using NewLife.Reflection;
-
-#if NET4
-using System.Linq;
-#else
-using NewLife.Linq;
-#endif
 
 namespace XCode
 {

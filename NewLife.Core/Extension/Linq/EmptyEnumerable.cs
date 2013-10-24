@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Runtime;
 
-namespace NewLife.Linq
+namespace System.Linq
 {
     internal class EmptyEnumerable<TElement>
     {

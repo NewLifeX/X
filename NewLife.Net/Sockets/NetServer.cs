@@ -1,17 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using NewLife.Model;
 using NewLife.Net.Tcp;
 using NewLife.Net.Udp;
-#if NET4
-using System.Linq;
-#else
-using NewLife.Linq;
-using NewLife.Net.Common;
-#endif
 
 namespace NewLife.Net.Sockets
 {

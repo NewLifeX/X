@@ -9,14 +9,10 @@ using System;
 using System.ComponentModel;
 using System.IO;
 using System.Web;
-using System.Web.Configuration;
 using System.Web.UI.WebControls;
 using System.Xml.Serialization;
-using NewLife.CommonEntity.Web;
 using NewLife.Configuration;
 using XCode;
-using NewLife.Reflection;
-using NewLife.Linq;
 
 namespace NewLife.CommonEntity
 {

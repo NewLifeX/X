@@ -2,12 +2,8 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
-using System.Text;
-#if NET4
 using System.Linq;
-#else
-using NewLife.Linq;
-#endif
+using System.Text;
 
 namespace XCode.DataAccessLayer
 {

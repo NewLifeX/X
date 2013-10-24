@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
+using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Runtime.Serialization;
@@ -11,12 +12,6 @@ using System.Text;
 using NewLife.Collections;
 using NewLife.Exceptions;
 using NewLife.Log;
-
-#if NET4 
-using System.Linq;
-#else
-using NewLife.Linq;
-#endif
 
 namespace NewLife.Reflection
 {

@@ -2,12 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.CodeDom;
-
-#if NET4
 using System.Linq;
-#else
-using NewLife.Linq;
-#endif
 
 namespace XCode.Code
 {

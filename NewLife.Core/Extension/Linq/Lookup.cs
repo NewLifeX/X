@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Runtime;
 using NewLife.Reflection;
 
-namespace NewLife.Linq
+namespace System.Linq
 {
     /// <summary>表示映射到一个或多个值的各个键的集合。</summary>
     /// <typeparam name="TKey">

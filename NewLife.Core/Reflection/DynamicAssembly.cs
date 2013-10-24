@@ -1,12 +1,7 @@
 ﻿using System;
-using System.Reflection.Emit;
-using System.Reflection;
-
-#if NET4
 using System.Linq;
-#else
-using NewLife.Linq;
-#endif
+using System.Reflection;
+using System.Reflection.Emit;
 
 namespace NewLife.Reflection
 {

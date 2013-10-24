@@ -7,7 +7,7 @@ using System.Threading;
 using NewLife.Reflection;
 
 #pragma warning disable 1734
-namespace NewLife.Linq
+namespace System.Linq
 {
     /// <summary>提供一组用于查询实现 <see cref="T:System.Collections.Generic.IEnumerable`1" /> 的对象的 static（在 Visual Basic 中为 Shared）方法。</summary>
     public static partial class Enumerable

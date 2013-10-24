@@ -1,14 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using NewLife.Net.Common;
 using NewLife.Net.Sockets;
-#if NET4
-using System.Linq;
-#else
-using NewLife.Linq;
-#endif
 
 namespace NewLife.Net.Tcp
 {

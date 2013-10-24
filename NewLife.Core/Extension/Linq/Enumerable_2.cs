@@ -3,7 +3,7 @@
 //using System.ComponentModel;
 //using NewLife.Reflection;
 
-//namespace NewLife.Linq
+//namespace System.Linq
 //{
 //#if NET4
 //    /// <summary>提供一组用于查询实现 <see cref="T:System.Collections.Generic.IEnumerable`1" /> 的对象的 static（在 Visual Basic 中为 Shared）方法。</summary>

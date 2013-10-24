@@ -1,17 +1,15 @@
 using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+using System.Diagnostics;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using NewLife;
 using NewLife.Collections;
-#if NET4 // add by 老树   在.NET 4.0下编译时，HashSet<T>无法找到命名空间
-using System.Collections.Generic;
-#endif
 using NewLife.Log;
 using XCode.Exceptions;
-using System.Diagnostics;
 
 namespace XCode.DataAccessLayer
 {

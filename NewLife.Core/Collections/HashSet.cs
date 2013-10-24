@@ -1,8 +1,6 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using NewLife.Exceptions;
+﻿using NewLife.Exceptions;
 
-namespace NewLife.Collections
+namespace System.Collections.Generic
 {
 #if !NET4
     /// <summary>哈希集合。内部采用泛型字典实现，如若在.Net 4.0环境，可直接使用.Net 4.0的HashSet。</summary>

@@ -1,16 +1,10 @@
 ﻿﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using NewLife.Log;
 using NewLife.Reflection;
 using XCode;
-
-#if NET4
-using System.Linq;
-#else
-using NewLife.Linq;
-using NewLife.Collections;
-#endif
 
 namespace NewLife.CommonEntity
 {

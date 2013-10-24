@@ -4,7 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using NewLife.Reflection;
 
-namespace NewLife.Linq
+namespace System.Linq
 {
     /// <summary>表示已排序序列。</summary>
     /// <typeparam name="TElement">序列中的元素的类型。</typeparam>

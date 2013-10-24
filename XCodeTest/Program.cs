@@ -1,9 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using NewLife.Log;
-using System.Collections.Specialized;
 using System.Collections;
+using System.Collections.Generic;
+using System.Collections.Specialized;
+using NewLife.Log;
 
 namespace XCodeTest
 {

@@ -3,7 +3,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
-namespace NewLife.Linq
+namespace System.Linq
 {
     /// <summary>表示具有公共键的对象的集合。</summary>
     /// <typeparam name="TKey">

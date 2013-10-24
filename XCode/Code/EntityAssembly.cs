@@ -15,12 +15,6 @@ using NewLife.Security;
 using XCode.DataAccessLayer;
 using XCode.Exceptions;
 
-#if NET4
-using System.Linq;
-#else
-using NewLife.Linq;
-#endif
-
 namespace XCode.Code
 {
     /// <summary>实体程序集</summary>

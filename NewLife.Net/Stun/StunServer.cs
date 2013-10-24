@@ -1,16 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
 using NewLife.Net.Sockets;
-using NewLife.Reflection;
 using NewLife.Net.Udp;
-#if NET4
-using System.Linq;
-#else
-using NewLife.Linq;
-#endif
+using NewLife.Reflection;
 
 namespace NewLife.Net.Stun
 {

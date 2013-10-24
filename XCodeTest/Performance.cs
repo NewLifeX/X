@@ -1,12 +1,11 @@
 ﻿using System;
-using System.Diagnostics;
-using NewLife.Reflection;
-using XCode.DataAccessLayer;
-using NewLife.CommonEntity;
-using XCode;
-using System.Data.Common;
 using System.Data;
+using System.Data.Common;
+using NewLife.CommonEntity;
 using NewLife.Log;
+using NewLife.Reflection;
+using XCode;
+using XCode.DataAccessLayer;
 
 namespace XCodeTest
 {

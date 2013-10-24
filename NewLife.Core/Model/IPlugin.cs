@@ -1,13 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using NewLife.Log;
 using NewLife.Reflection;
-
-#if NET4
-using System.Linq;
-#else
-using NewLife.Linq;
-#endif
 
 namespace NewLife.Model
 {

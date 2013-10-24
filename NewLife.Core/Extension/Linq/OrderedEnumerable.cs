@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Runtime;
 using NewLife.Reflection;
 
-namespace NewLife.Linq
+namespace System.Linq
 {
     internal abstract class OrderedEnumerable<TElement> : IOrderedEnumerable<TElement>, IEnumerable<TElement>, IEnumerable
     {
