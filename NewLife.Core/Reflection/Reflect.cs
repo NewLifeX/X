@@ -8,7 +8,8 @@ namespace NewLife.Reflection
     /// <summary>反射工具类</summary>
     public static class Reflect
     {
-        private static IReflect _Current = new DefaultReflect();
+        //private static IReflect _Current = new DefaultReflect();
+        private static IReflect _Current = new EmitReflect();
         /// <summary>当前反射提供者</summary>
         public static IReflect Current { get { return _Current; } set { _Current = value; } }
 
