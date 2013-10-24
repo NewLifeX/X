@@ -150,8 +150,8 @@ namespace NewLife.Reflection
         }
 
         /// <summary>通过指定类型和成员名称，创建快速访问成员。按照属性、字段、构造、方法、事件的顺序</summary>
-        /// <param name="type"></param>
-        /// <param name="name"></param>
+        /// <param name="type">类型</param>
+        /// <param name="name">名称</param>
         /// <returns></returns>
         public static MemberInfoX Create(Type type, String name)
         {

@@ -31,7 +31,7 @@ namespace NewLife.CommonEntity
 
         /// <summary>获取设置</summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <returns></returns>
         public static T Get<T>(String name)
         {
@@ -40,7 +40,7 @@ namespace NewLife.CommonEntity
 
         /// <summary>设置设定项</summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <param name="val"></param>
         public static void Set<T>(String name, T val)
         {

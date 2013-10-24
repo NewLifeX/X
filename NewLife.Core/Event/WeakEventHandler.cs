@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using NewLife.Reflection;
+using System.Reflection;
 
 namespace NewLife
 {
@@ -21,7 +22,7 @@ namespace NewLife
         WeakReference Target;
 
         /// <summary>委托方法</summary>
-        MethodInfoX Method;
+        MethodBase Method;
 
         /// <summary>经过包装的新的委托</summary>
         EventHandler<TEventArgs> Handler;
@@ -65,13 +66,12 @@ namespace NewLife
             Object target = null;
             if (Target == null)
             {
-                if (Method.Method.IsStatic) Method.Invoke(null, new Object[] { sender, e });
+                if (Method.IsStatic) target.Invoke(Method, new Object[] { sender, e });
             }
             else
             {
                 target = Target.Target;
-                if (target != null)
-                    Method.Invoke(target, new Object[] { sender, e });
+                if (target != null) target.Invoke(Method, new Object[] { sender, e });
             }
 
             // 调用方已被回收，或者该事件只使用一次，则取消注册
@@ -122,13 +122,13 @@ namespace NewLife
                 oldHandler = handler;
                 if (oldHandler == null) return;
 
-                Delegate[] ds = oldHandler.GetInvocationList();
+                var ds = oldHandler.GetInvocationList();
                 if (ds == null || ds.Length < 1) return;
 
                 for (int i = 0; i < ds.Length; i++)
                 {
-                    WeakEventHandler<TEventArgs> wh = ds[i].Target as WeakEventHandler<TEventArgs>;
-                    if (wh == null || wh.Method.Method != value.Method) continue;
+                    var wh = ds[i].Target as WeakEventHandler<TEventArgs>;
+                    if (wh == null || wh.Method != value.Method) continue;
 
                     // 判断对象
                     if (wh.Target == null)

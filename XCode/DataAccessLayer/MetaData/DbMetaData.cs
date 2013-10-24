@@ -110,7 +110,7 @@ namespace XCode.DataAccessLayer
         /// <summary>尝试从指定数据行中读取指定名称列的数据</summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="dr"></param>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <param name="value"></param>
         /// <returns></returns>
         protected static Boolean TryGetDataRowValue<T>(DataRow dr, String name, out T value)
@@ -156,7 +156,7 @@ namespace XCode.DataAccessLayer
         /// <summary>获取指定数据行指定字段的值，不存在时返回空</summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="dr"></param>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <returns></returns>
         protected static T GetDataRowValue<T>(DataRow dr, String name)
         {
@@ -166,7 +166,7 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>格式化关键字</summary>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <returns></returns>
         protected String FormatName(String name)
         {

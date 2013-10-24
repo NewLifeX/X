@@ -799,7 +799,7 @@ namespace XCode.DataAccessLayer
         /// <summary>序列</summary>
         DataTable dtSequences;
         /// <summary>检查序列是否存在</summary>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <returns></returns>
         Boolean CheckSeqExists(String name)
         {

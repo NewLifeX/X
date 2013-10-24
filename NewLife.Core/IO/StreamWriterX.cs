@@ -12,10 +12,10 @@ namespace NewLife.IO
     public class StreamWriterX : StreamWriter
     {
         #region 属性
-        private static FieldInfoX _Closable = FieldInfoX.Create(typeof(StreamWriter), "closable");
+        //private static FieldInfoX _Closable = FieldInfoX.Create(typeof(StreamWriter), "closable");
 
         /// <summary>是否在最后关闭流</summary>
-        public Boolean Closable { get { return (Boolean)_Closable.GetValue(this); } set { _Closable.SetValue(this, value); } }
+        public Boolean Closable { get { return (Boolean)this.GetValue("closable"); } set { this.SetValue("closable", value); } }
         #endregion
 
         #region 构造

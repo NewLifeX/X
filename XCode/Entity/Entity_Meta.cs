@@ -532,14 +532,14 @@ namespace XCode
             public static DbParameter CreateParameter() { return DBO.Db.Factory.CreateParameter(); }
 
             /// <summary>格式化参数名</summary>
-            /// <param name="name"></param>
+            /// <param name="name">名称</param>
             /// <returns></returns>
             public static String FormatParameterName(String name) { return DBO.Db.FormatParameterName(name); }
             #endregion
 
             #region 辅助方法
             /// <summary>格式化关键字</summary>
-            /// <param name="name"></param>
+            /// <param name="name">名称</param>
             /// <returns></returns>
             public static String FormatName(String name)
             {
@@ -547,7 +547,7 @@ namespace XCode
             }
 
             /// <summary>格式化关键字</summary>
-            /// <param name="name"></param>
+            /// <param name="name">名称</param>
             /// <returns></returns>
             [EditorBrowsable(EditorBrowsableState.Never)]
             [Obsolete("改为使用FormatName")]
@@ -565,7 +565,7 @@ namespace XCode
             }
 
             /// <summary>格式化数据为SQL数据</summary>
-            /// <param name="name"></param>
+            /// <param name="name">名称</param>
             /// <param name="value"></param>
             /// <returns></returns>
             public static String FormatValue(String name, Object value)

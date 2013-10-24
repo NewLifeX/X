@@ -49,7 +49,7 @@ namespace NewLife.Net.Common
                 if (NetHelper.Debug) NetHelper.WriteLog(ex.ToString());
 
                 // 去掉内部异常，以免过大
-                if (ex.InnerException != null) FieldInfoX.SetValue(ex, "_innerException", null);
+                if (ex.InnerException != null) ex.SetValue("_innerException", null);
                 var msg = new ExceptionMessage() { Value = ex };
                 session.Send(msg.GetStream());
 

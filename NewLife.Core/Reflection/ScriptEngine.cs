@@ -71,9 +71,9 @@ namespace NewLife.Reflection
         /// <summary>根据代码编译出来可供直接调用的方法</summary>
         public MethodInfo Method { get { return _Method; } private set { _Method = value; } }
 
-        private MethodInfoX _Mix;
-        /// <summary>快速反射</summary>
-        public MethodInfoX Mix { get { if (_Mix == null && Method != null)_Mix = MethodInfoX.Create(Method); return _Mix; } }
+        //private MethodInfoX _Mix;
+        ///// <summary>快速反射</summary>
+        //public MethodInfoX Mix { get { if (_Mix == null && Method != null)_Mix = MethodInfoX.Create(Method); return _Mix; } }
 
         //static readonly String Refs =
         //    "using System;\r\n" +
@@ -433,7 +433,8 @@ namespace NewLife.Reflection
             // 这里反射调用方法，为了提高性能，我们采用快速反射
             //Method.Invoke(null, parameters);
 
-            return Mix.Invoke(null, parameters);
+            //return Mix.Invoke(null, parameters);
+            return "".Invoke(Method, parameters);
         }
         #endregion
 

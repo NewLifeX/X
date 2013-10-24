@@ -105,8 +105,8 @@ namespace NewLife.Reflection
         }
 
         /// <summary>创建</summary>
-        /// <param name="type"></param>
-        /// <param name="name"></param>
+        /// <param name="type">类型</param>
+        /// <param name="name">名称</param>
         /// <returns></returns>
         public new static MethodInfoX Create(Type type, String name)
         {
@@ -121,8 +121,8 @@ namespace NewLife.Reflection
         }
 
         /// <summary>创建</summary>
-        /// <param name="type"></param>
-        /// <param name="name"></param>
+        /// <param name="type">类型</param>
+        /// <param name="name">名称</param>
         /// <param name="paramTypes">参数类型</param>
         /// <returns></returns>
         public static MethodInfoX Create(Type type, String name, Type[] paramTypes)
@@ -248,7 +248,7 @@ namespace NewLife.Reflection
         /// <summary>快速调用方法成员</summary>
         /// <typeparam name="TResult"></typeparam>
         /// <param name="target"></param>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <param name="parameters"></param>
         /// <returns></returns>
         public static TResult Invoke<TResult>(Object target, String name, params Object[] parameters)
@@ -265,7 +265,7 @@ namespace NewLife.Reflection
         /// <summary>快速调用静态方法</summary>
         /// <typeparam name="TTarget">目标类型</typeparam>
         /// <typeparam name="TResult">返回类型</typeparam>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <param name="parameters"></param>
         /// <returns></returns>
         public static TResult Invoke<TTarget, TResult>(String name, params Object[] parameters)
@@ -281,7 +281,7 @@ namespace NewLife.Reflection
         /// <summary>通过传入参数字典快速调用方法</summary>
         /// <typeparam name="TResult"></typeparam>
         /// <param name="target"></param>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <param name="parameters"></param>
         /// <returns></returns>
         public static TResult InvokeByDictionaryParameter<TResult>(Object target, String name, IDictionary parameters)
@@ -298,7 +298,7 @@ namespace NewLife.Reflection
         /// <summary>通过传入参数字典快速调用静态方法</summary>
         /// <typeparam name="TTarget"></typeparam>
         /// <typeparam name="TResult"></typeparam>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <param name="parameters"></param>
         /// <returns></returns>
         public static TResult InvokeByDictionaryParameter<TTarget, TResult>(String name, IDictionary parameters)

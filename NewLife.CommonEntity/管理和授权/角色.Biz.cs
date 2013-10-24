@@ -292,7 +292,7 @@ namespace NewLife.CommonEntity
         }
 
         /// <summary>根据名称查找角色</summary>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <returns></returns>
         public static TEntity FindByName(String name)
         {

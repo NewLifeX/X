@@ -226,7 +226,7 @@ namespace XCode.Configuration
 
         static DictionaryCache<Type, TableItem> cache = new DictionaryCache<Type, TableItem>();
         /// <summary>创建</summary>
-        /// <param name="type"></param>
+        /// <param name="type">类型</param>
         /// <returns></returns>
         public static TableItem Create(Type type)
         {
@@ -337,7 +337,7 @@ namespace XCode.Configuration
         }
 
         /// <summary>获取属性，保证基类属性在前</summary>
-        /// <param name="type"></param>
+        /// <param name="type">类型</param>
         /// <returns></returns>
         IEnumerable<Field> GetFields(Type type)
         {
@@ -408,7 +408,7 @@ namespace XCode.Configuration
 
         #region 方法
         /// <summary>根据名称查找</summary>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <returns></returns>
         public Field FindByName(String name)
         {

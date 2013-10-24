@@ -109,7 +109,7 @@ namespace XCode.DataAccessLayer
         String FormatIdentity(IDataColumn field, Object value);
 
         /// <summary>格式化参数名</summary>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <returns></returns>
         String FormatParameterName(String name);
 

@@ -102,7 +102,7 @@ namespace NewLife.Xml
 
         #region 扩展类型
         /// <summary>写对象类型</summary>
-        /// <param name="type"></param>
+        /// <param name="type">类型</param>
         protected override void WriteObjectType(Type type)
         {
             if (Settings.WriteType)
@@ -430,7 +430,7 @@ namespace NewLife.Xml
         }
 
         /// <summary>是否可以作为属性写入Xml的类型</summary>
-        /// <param name="type"></param>
+        /// <param name="type">类型</param>
         /// <returns></returns>
         internal static Boolean IsAttributeType(Type type)
         {

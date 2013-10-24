@@ -31,8 +31,8 @@ namespace NewLife.Serialization
         }
 
         /// <summary>创建简单成员信息</summary>
-        /// <param name="name"></param>
-        /// <param name="type"></param>
+        /// <param name="name">名称</param>
+        /// <param name="type">类型</param>
         /// <param name="value"></param>
         /// <returns></returns>
         static IObjectMemberInfo CreateObjectMemberInfo(String name, Type type, Object value)
@@ -87,7 +87,7 @@ namespace NewLife.Serialization
 
         static DictionaryCache<Type, MemberInfo[]> cache1 = new DictionaryCache<Type, MemberInfo[]>();
         /// <summary>取得所有字段</summary>
-        /// <param name="type"></param>
+        /// <param name="type">类型</param>
         /// <param name="isBaseFirst"></param>
         /// <returns></returns>
         static MemberInfo[] FindFields(Type type, Boolean isBaseFirst)
@@ -128,7 +128,7 @@ namespace NewLife.Serialization
         }
 
         /// <summary>取得所有属性</summary>
-        /// <param name="type"></param>
+        /// <param name="type">类型</param>
         /// <param name="isBaseFirst"></param>
         /// <returns></returns>
         static MemberInfo[] FindProperties(Type type, Boolean isBaseFirst)
@@ -213,7 +213,7 @@ namespace NewLife.Serialization
         #region 默认对象
         static DictionaryCache<Type, Object> defCache = new DictionaryCache<Type, object>();
         /// <summary>获取某个类型的默认对象</summary>
-        /// <param name="type"></param>
+        /// <param name="type">类型</param>
         /// <returns></returns>
         public static Object GetDefaultObject(Type type)
         {

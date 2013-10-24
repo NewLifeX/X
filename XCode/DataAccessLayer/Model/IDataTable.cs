@@ -66,7 +66,7 @@ namespace XCode.DataAccessLayer
         IDataIndex CreateIndex();
 
         /// <summary>根据字段名获取字段</summary>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <returns></returns>
         IDataColumn GetColumn(String name);
 

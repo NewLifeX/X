@@ -89,7 +89,7 @@ namespace XCode
 
             #region 查找单个实体
             /// <summary>根据属性以及对应的值，查找单个实体</summary>
-            /// <param name="name"></param>
+            /// <param name="name">名称</param>
             /// <param name="value"></param>
             /// <returns></returns>
             public IEntity Find(String name, Object value) { return Entity<TEntity>.Find(name, value); }
@@ -328,7 +328,7 @@ namespace XCode
 
             #region 辅助方法
             /// <summary>格式化关键字</summary>
-            /// <param name="name"></param>
+            /// <param name="name">名称</param>
             /// <returns></returns>
             public String FormatName(String name) { return Meta.FormatName(name); }
 

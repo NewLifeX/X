@@ -112,7 +112,7 @@ namespace NewLife.Web
         {
             if (HttpContext.Current == null) return null;
 
-            IHttpHandler handler = HttpContext.Current.Handler;
+            var handler = HttpContext.Current.Handler;
             if (handler == null) return null;
 
             FieldInfoX fix = null;
@@ -122,8 +122,8 @@ namespace NewLife.Web
             }
             else
             {
-                Type t = typeof(T);
-                FieldInfo fi = handler.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).FirstOrDefault(item => item.FieldType == t);
+                var t = typeof(T);
+                var fi = handler.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).FirstOrDefault(item => item.FieldType == t);
                 if (fi != null) fix = FieldInfoX.Create(fi);
             }
 
@@ -170,7 +170,8 @@ namespace NewLife.Web
             var pix = PropertyInfoX.Create(control.GetType(), "Events");
             if (pix == null) return null;
 
-            EventHandlerList list = pix.GetValue(control) as EventHandlerList;
+            //var list = pix.GetValue(control) as EventHandlerList;
+            var list = control.GetValue("Events") as EventHandlerList;
             if (list == null) return null;
 
             var fix = FieldInfoX.Create(control.GetType(), eventName);

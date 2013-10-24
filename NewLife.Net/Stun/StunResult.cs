@@ -14,7 +14,7 @@ namespace NewLife.Net.Stun
         public IPEndPoint Public { get { return _Public; } set { _Public = value; } }
 
         /// <summary>实例化Stun结果</summary>
-        /// <param name="type"></param>
+        /// <param name="type">类型</param>
         /// <param name="ep"></param>
         public StunResult(StunNetType type, IPEndPoint ep) { Type = type; Public = ep; }
 

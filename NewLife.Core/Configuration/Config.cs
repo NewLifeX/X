@@ -59,7 +59,7 @@ namespace NewLife.Configuration
         //}
 
         /// <summary>是否包含指定项的设置</summary>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <returns></returns>
         public static Boolean Contain(String name)
         {
@@ -110,7 +110,7 @@ namespace NewLife.Configuration
 
         /// <summary>取得指定名称的设置项，并转为指定类型</summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <returns></returns>
         public static T GetConfig<T>(String name)
         {
@@ -126,7 +126,7 @@ namespace NewLife.Configuration
 
         /// <summary>取得指定名称的设置项，并转为指定类型。如果设置不存在，则返回默认值</summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <param name="defaultValue"></param>
         /// <returns></returns>
         public static T GetConfig<T>(String name, T defaultValue)
@@ -138,7 +138,7 @@ namespace NewLife.Configuration
 
         /// <summary>尝试获取指定名称的设置项</summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <param name="value"></param>
         /// <returns></returns>
         public static Boolean TryGetConfig<T>(String name, out T value)
@@ -155,8 +155,8 @@ namespace NewLife.Configuration
         }
 
         /// <summary>尝试获取指定名称的设置项</summary>
-        /// <param name="name"></param>
-        /// <param name="type"></param>
+        /// <param name="name">名称</param>
+        /// <param name="type">类型</param>
         /// <param name="value"></param>
         /// <returns></returns>
         public static Boolean TryGetConfig(String name, Type type, out Object value)
@@ -217,7 +217,7 @@ namespace NewLife.Configuration
 
         /// <summary>取得指定名称的设置项，并分割为指定类型数组</summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <param name="split"></param>
         /// <returns></returns>
         public static T[] GetConfigSplit<T>(String name, String split)
@@ -234,7 +234,7 @@ namespace NewLife.Configuration
 
         /// <summary>取得指定名称的设置项，并分割为指定类型数组</summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <param name="split"></param>
         /// <param name="defaultValue"></param>
         /// <returns></returns>
@@ -270,7 +270,7 @@ namespace NewLife.Configuration
         #region 设置参数 老树添加
         /// <summary>设置配置文件参数</summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <param name="defaultValue"></param>
         public static void SetConfig<T>(String name, T defaultValue)
         {
@@ -280,7 +280,7 @@ namespace NewLife.Configuration
         }
 
         /// <summary>设置配置文件参数</summary>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <param name="value"></param>
         public static void SetConfig(String name, String value)
         {
@@ -302,7 +302,7 @@ namespace NewLife.Configuration
         }
 
         /// <summary>设置配置文件参数</summary>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <param name="value"></param>
         public static void UpdateConfig(String name, String value)
         {

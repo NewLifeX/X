@@ -56,7 +56,7 @@ namespace XCoder
         }
 
         /// <summary>判断是否存在指定列</summary>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <returns></returns>
         public Boolean HasColumn(String name)
         {

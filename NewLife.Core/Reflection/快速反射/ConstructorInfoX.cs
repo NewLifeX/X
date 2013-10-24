@@ -76,7 +76,7 @@ namespace NewLife.Reflection
         }
 
         /// <summary>创建</summary>
-        /// <param name="type"></param>
+        /// <param name="type">类型</param>
         /// <param name="types"></param>
         /// <returns></returns>
         public static ConstructorInfoX Create(Type type, Type[] types)
@@ -110,7 +110,7 @@ namespace NewLife.Reflection
         }
 
         /// <summary>创建</summary>
-        /// <param name="type"></param>
+        /// <param name="type">类型</param>
         /// <returns></returns>
         public static ConstructorInfoX Create(Type type)
         {

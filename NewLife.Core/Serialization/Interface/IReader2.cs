@@ -95,7 +95,7 @@ namespace NewLife.Serialization
 
         #region 值类型
         /// <summary>读取值类型数据</summary>
-        /// <param name="type"></param>
+        /// <param name="type">类型</param>
         /// <returns></returns>
         Object ReadValue(Type type);
 

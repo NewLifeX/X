@@ -34,7 +34,7 @@ namespace XCoder.XRegex
         /// <summary>
         /// 释放模版文件
         /// </summary>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         public static void ReleaseTemplateFiles(String name)
         {
             String path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, name);
@@ -69,7 +69,7 @@ namespace XCoder.XRegex
         /// <summary>
         /// 读取资源，并写入到文件
         /// </summary>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <param name="fileName"></param>
         static void ReleaseFile(String name, String fileName)
         {

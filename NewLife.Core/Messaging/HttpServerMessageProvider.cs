@@ -77,7 +77,7 @@ namespace NewLife.Messaging
             catch (Exception ex)
             {
                 // 去掉内部异常，以免过大
-                if (ex.InnerException != null) FieldInfoX.SetValue(ex, "_innerException", null);
+                if (ex.InnerException != null) ex.SetValue("_innerException", null);
                 var msg = new ExceptionMessage() { Value = ex };
                 var data = msg.GetStream().ReadBytes();
                 context.Response.BinaryWrite(data);

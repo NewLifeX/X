@@ -283,7 +283,7 @@ namespace NewLife.Xml
         }
 
         /// <summary>读取枚举项</summary>
-        /// <param name="type"></param>
+        /// <param name="type">类型</param>
         /// <param name="value"></param>
         /// <param name="index">元素序号</param>
         /// <param name="callback">处理元素的方法</param>

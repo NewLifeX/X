@@ -99,7 +99,7 @@ namespace NewLife.Reflection
         }
 
         /// <summary>取得类型的友好名</summary>
-        /// <param name="type"></param>
+        /// <param name="type">类型</param>
         /// <returns></returns>
         static string FixType(Type type)
         {

@@ -288,7 +288,7 @@ namespace NewLife.Xml
 
         /// <summary>附加注释</summary>
         /// <param name="node"></param>
-        /// <param name="type"></param>
+        /// <param name="type">类型</param>
         /// <returns></returns>
         public static XmlNode AttachCommit(this XmlNode node, Type type)
         {

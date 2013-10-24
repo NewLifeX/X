@@ -30,8 +30,8 @@ namespace NewLife.Serialization
 
         #region 构造
         /// <summary>实例化</summary>
-        /// <param name="name"></param>
-        /// <param name="type"></param>
+        /// <param name="name">名称</param>
+        /// <param name="type">类型</param>
         /// <param name="value"></param>
         public SimpleMemberInfo(String name, Type type, Object value)
         {

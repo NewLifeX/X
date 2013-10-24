@@ -98,7 +98,7 @@ namespace NewLife.Serialization
         public virtual void Reset() { Depth = 1; }
 
         /// <summary>是否精确类型</summary>
-        /// <param name="type"></param>
+        /// <param name="type">类型</param>
         /// <returns></returns>
         protected static Boolean IsExactType(Type type)
         {

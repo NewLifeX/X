@@ -41,7 +41,7 @@ namespace NewLife.Model
         public static IObjectContainer Register<T>(Type impl, Object id = null) { return Container.Register(typeof(T), impl, id); }
 
         /// <summary>解析类型指定名称的实例</summary>
-        /// <param name="type"></param>
+        /// <param name="type">类型</param>
         /// <param name="id">标识</param>
         /// <param name="extend"></param>
         /// <returns></returns>
@@ -55,7 +55,7 @@ namespace NewLife.Model
         public static TInterface Resolve<TInterface>(Object id = null, Boolean extend = false) { return Container.Resolve<TInterface>(id, extend); }
 
         /// <summary>解析类型指定名称的实例</summary>
-        /// <param name="type"></param>
+        /// <param name="type">类型</param>
         /// <param name="id">标识</param>
         /// <param name="extend"></param>
         /// <returns></returns>

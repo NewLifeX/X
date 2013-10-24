@@ -288,7 +288,7 @@ namespace NewLife.CommonEntity
 
         #region 业务
         /// <summary>若不存在则创建指定名称的子级</summary>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <returns></returns>
         public virtual ISetting Create(String name)
         {
@@ -355,7 +355,7 @@ namespace NewLife.CommonEntity
 
         /// <summary>确保设置项存在</summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <param name="defval"></param>
         /// <param name="displayName"></param>
         /// <returns></returns>
@@ -391,7 +391,7 @@ namespace NewLife.CommonEntity
     partial interface ISetting
     {
         /// <summary>若不存在则创建指定名称的子级</summary>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <returns></returns>
         ISetting Create(String name);
 
@@ -414,7 +414,7 @@ namespace NewLife.CommonEntity
 
         /// <summary>确保设置项存在</summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <param name="defval"></param>
         /// <param name="displayName"></param>
         /// <returns></returns>

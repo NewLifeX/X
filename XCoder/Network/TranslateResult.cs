@@ -76,7 +76,7 @@ namespace NewLife.ServiceLib
             /// <summary>构造方法</summary>
             public Trans() { }
             /// <summary>设置翻译来源</summary>
-            /// <param name="type"></param>
+            /// <param name="type">类型</param>
             /// <param name="args"></param>
             /// <returns></returns>
             public Trans SetSourceType(string type, string extstr)
@@ -155,7 +155,7 @@ namespace NewLife.ServiceLib
                 return false;
             }
             /// <summary>返回指定字符串是否是某个已知的来源类型</summary>
-            /// <param name="type"></param>
+            /// <param name="type">类型</param>
             /// <returns></returns>
             public static bool IsKnowType(string s)
             {
@@ -164,7 +164,7 @@ namespace NewLife.ServiceLib
             }
             /// <summary>返回指定字符串是否是指定的来源类型</summary>
             /// <param name="s"></param>
-            /// <param name="type"></param>
+            /// <param name="type">类型</param>
             /// <returns></returns>
             public static bool Is(string s, string type)
             {
@@ -179,7 +179,7 @@ namespace NewLife.ServiceLib
                 return t != null && t.Equals(type, StringComparison.OrdinalIgnoreCase);
             }
             /// <summary>返回指定的来源类型,包含指定的扩展信息</summary>
-            /// <param name="type"></param>
+            /// <param name="type">类型</param>
             /// <param name="s"></param>
             /// <returns></returns>
             public static string Get(string type, string s)

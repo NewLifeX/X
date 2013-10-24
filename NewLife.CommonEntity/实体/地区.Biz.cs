@@ -117,7 +117,7 @@ namespace NewLife.CommonEntity
         }
 
         /// <summary>按名称查找。实体缓存</summary>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <returns></returns>
         //[Obsolete("请改为使用指定地区下的FindAllByName或Root.FindAllByName！")]
         public static TEntity FindByName(String name)
@@ -427,7 +427,7 @@ namespace NewLife.CommonEntity
         #region 业务
         /// <summary>查找地区。查找编码是否存在，若不存在，则按照名称匹配</summary>
         /// <param name="code"></param>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <returns></returns>
         public static TEntity FindByCodeAndName(Int32 code, String name)
         {
@@ -472,7 +472,7 @@ namespace NewLife.CommonEntity
 
         /// <summary>检查并附件到现有地区，如果没有找到匹配地区，则附加到最近的顶级地区，不会新增地区</summary>
         /// <param name="code"></param>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <param name="fullname"></param>
         /// <returns></returns>
         public static TEntity CheckAndAppend(Int32 code, String name, String fullname = null)

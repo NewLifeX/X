@@ -448,7 +448,7 @@ namespace XCode.Accessors
         }
 
         /// <summary>在页面查找指定ID的控件</summary>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <returns></returns>
         public Control FindControlInContainer(String name)
         {
@@ -457,7 +457,7 @@ namespace XCode.Accessors
 
         /// <summary>按名称查询</summary>
         /// <param name="control"></param>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <returns></returns>
         public Control FindControlByName(Control control, String name)
         {

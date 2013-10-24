@@ -125,7 +125,7 @@ namespace XCode.Code
         #region 构造
         private static DictionaryCache<String, EntityAssembly> cache = new DictionaryCache<String, EntityAssembly>();
         /// <summary>为数据模型创建实体程序集，带缓存，依赖于表和字段名称，不依赖名称以外的信息。</summary>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <param name="tables"></param>
         /// <returns></returns>
         public static EntityAssembly CreateWithCache(String name, List<IDataTable> tables)
@@ -237,7 +237,7 @@ namespace XCode.Code
         }
 
         /// <summary>根据名称创建</summary>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <returns></returns>
         public EntityClass Create(String name)
         {
@@ -311,7 +311,7 @@ namespace XCode.Code
         }
 
         /// <summary>获取类型</summary>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <returns></returns>
         public Type GetType(String name)
         {

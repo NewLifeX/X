@@ -133,7 +133,7 @@ namespace NewLife.Mvc
 
         /// <summary>指定路径路由到指定类型,类型需要是IController,IControllerFactory,IRouteConfigMoudule其中之一</summary>
         /// <param name="path"></param>
-        /// <param name="type"></param>
+        /// <param name="type">类型</param>
         /// <returns></returns>
         public RouteConfigManager Route(string path, Type type)
         {
@@ -300,7 +300,7 @@ namespace NewLife.Mvc
         }
 
         /// <summary>加载指定模块类型的路由配置,不同于RouteToModule(string path),这个相当于IRouteConfigModule.Config(this)</summary>
-        /// <param name="type"></param>
+        /// <param name="type">类型</param>
         /// <returns></returns>
         public RouteConfigManager Load(Type type)
         {
@@ -314,7 +314,7 @@ namespace NewLife.Mvc
         ///
         /// 其中module是创建的type类型的实例,全局单例的
         /// </summary>
-        /// <param name="type"></param>
+        /// <param name="type">类型</param>
         /// <param name="module">type参数的具体实例,如果未创建会为null</param>
         /// <returns></returns>
         public RouteConfigManager Load(Type type, out IRouteConfigModule module)
@@ -394,7 +394,7 @@ namespace NewLife.Mvc
 
         /// <summary>最终添加路由配置的方法,上面的公共方法都会调用到这里</summary>
         /// <param name="path"></param>
-        /// <param name="type"></param>
+        /// <param name="type">类型</param>
         /// <param name="ruleType">路由规则类型,未知类型使用null或者typeof(object)</param>
         /// <param name="onCreatedRule">创建路由规则后的回调,参数中包含刚创建的路由规则</param>
         /// <returns></returns>

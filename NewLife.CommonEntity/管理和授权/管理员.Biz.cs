@@ -82,7 +82,7 @@ namespace NewLife.CommonEntity
         internal protected override IRole RoleInternal { get { return Role; } set { Role = (TRoleEntity)value; } }
 
         /// <summary>根据权限名（权限路径）找到权限菜单实体</summary>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <returns></returns>
         public override IMenu FindPermissionMenu(string name)
         {
@@ -108,7 +108,7 @@ namespace NewLife.CommonEntity
         }
 
         /// <summary>创建当前管理员的日志实体</summary>
-        /// <param name="type"></param>
+        /// <param name="type">类型</param>
         /// <param name="action"></param>
         /// <returns></returns>
         public override ILog CreateLog(Type type, string action)
@@ -272,7 +272,7 @@ namespace NewLife.CommonEntity
         }
 
         /// <summary>根据名称查找</summary>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <returns></returns>
         public static TEntity FindByName(String name)
         {
@@ -474,12 +474,12 @@ namespace NewLife.CommonEntity
         }
 
         /// <summary>根据权限名（权限路径）找到权限菜单实体</summary>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <returns></returns>
         public abstract IMenu FindPermissionMenu(String name);
 
         /// <summary>拥有指定菜单的权限</summary>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <returns></returns>
         public virtual Boolean HasMenu(String name)
         {
@@ -493,7 +493,7 @@ namespace NewLife.CommonEntity
         }
 
         /// <summary>申请指定菜单指定操作的权限</summary>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <param name="flag"></param>
         /// <returns></returns>
         public virtual Boolean Acquire(String name, PermissionFlags flag)
@@ -505,7 +505,7 @@ namespace NewLife.CommonEntity
         }
 
         /// <summary>申请指定菜单指定操作的权限</summary>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <returns></returns>
         public virtual Boolean Acquire(String name)
         {
@@ -528,7 +528,7 @@ namespace NewLife.CommonEntity
         }
 
         /// <summary>创建当前管理员的日志实体</summary>
-        /// <param name="type"></param>
+        /// <param name="type">类型</param>
         /// <param name="action"></param>
         /// <returns></returns>
         public abstract ILog CreateLog(Type type, String action);
@@ -663,7 +663,7 @@ namespace NewLife.CommonEntity
         String RoleName { get; set; }
 
         /// <summary>根据权限名（权限路径）找到权限菜单实体</summary>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <returns></returns>
         IMenu FindPermissionMenu(String name);
 
@@ -674,18 +674,18 @@ namespace NewLife.CommonEntity
         Boolean Acquire(Int32 menuID, PermissionFlags flag);
 
         /// <summary>申请指定菜单指定操作的权限</summary>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <param name="flag"></param>
         /// <returns></returns>
         Boolean Acquire(String name, PermissionFlags flag);
 
         /// <summary>申请指定菜单指定操作的权限</summary>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <returns></returns>
         Boolean Acquire(String name);
 
         /// <summary>创建指定类型指定动作的日志实体</summary>
-        /// <param name="type"></param>
+        /// <param name="type">类型</param>
         /// <param name="action"></param>
         /// <returns></returns>
         ILog CreateLog(Type type, String action);

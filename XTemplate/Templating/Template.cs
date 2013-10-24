@@ -307,7 +307,7 @@ namespace XTemplate.Templating
         /// 添加模版项，实际上是添加到Templates集合中。
         /// 未指定模版名称时，使用模版的散列作为模版名称
         /// </summary>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <param name="content"></param>
         public void AddTemplateItem(String name, String content)
         {
@@ -350,7 +350,7 @@ namespace XTemplate.Templating
         }
 
         /// <summary>查找指定名称的模版</summary>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <returns></returns>
         private TemplateItem FindTemplateItem(String name)
         {
@@ -515,7 +515,7 @@ namespace XTemplate.Templating
 
         /// <summary>导入某类型，导入程序集引用及命名空间引用，主要处理泛型</summary>
         /// <param name="item"></param>
-        /// <param name="type"></param>
+        /// <param name="type">类型</param>
         void ImportType(TemplateItem item, Type type)
         {
             String name = null;
@@ -978,7 +978,7 @@ namespace XTemplate.Templating
         }
 
         /// <summary>找到指定文件指定位置上下三行的代码</summary>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <param name="lineNumber"></param>
         /// <returns></returns>
         String FindBlockCode(String name, Int32 lineNumber)

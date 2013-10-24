@@ -24,7 +24,7 @@ namespace XCode.DataAccessLayer
         String GetName(IDataColumn dc);
 
         /// <summary>获取别名。过滤特殊符号，过滤_之类的前缀。</summary>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <returns></returns>
         String GetName(String name);
 
@@ -34,22 +34,22 @@ namespace XCode.DataAccessLayer
         String GetName(IDataIndex di);
 
         /// <summary>去除前缀。默认去除第一个_前面部分，去除tbl和table前缀</summary>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <returns></returns>
         String CutPrefix(String name);
 
         /// <summary>自动处理大小写</summary>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <returns></returns>
         String FixWord(String name);
 
         ///// <summary>是否关键字</summary>
-        ///// <param name="name"></param>
+        ///// <param name="name">名称</param>
         ///// <returns></returns>
         //Boolean IsKeyWord(String name);
 
         /// <summary>获取显示名，如果描述不存在，则使用名称，否则使用描述前面部分，句号（中英文皆可）、换行分隔</summary>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <param name="description"></param>
         /// <returns></returns>
         String GetDisplayName(String name, String description);
@@ -67,7 +67,7 @@ namespace XCode.DataAccessLayer
         /// <param name="rtable"></param>
         /// <param name="rname"></param>
         /// <param name="column"></param>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <returns></returns>
         Boolean GuessRelation(IDataTable table, IDataTable rtable, String rname, IDataColumn column, String name);
 
@@ -176,7 +176,7 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>获取别名。过滤特殊符号，过滤_之类的前缀。</summary>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <returns></returns>
         public virtual String GetName(String name)
         {
@@ -231,7 +231,7 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>去除前缀。默认去除第一个_前面部分，去除tbl和table前缀</summary>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <returns></returns>
         public virtual String CutPrefix(String name)
         {
@@ -268,7 +268,7 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>自动处理大小写</summary>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <returns></returns>
         public virtual String FixWord(String name)
         {
@@ -336,7 +336,7 @@ namespace XCode.DataAccessLayer
         private static CSharpCodeProvider _CG = new CSharpCodeProvider();
 
         /// <summary>是否关键字</summary>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <returns></returns>
         static Boolean IsKeyWord(String name)
         {
@@ -352,7 +352,7 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>获取显示名，如果描述不存在，则使用名称，否则使用描述前面部分，句号（中英文皆可）、换行分隔</summary>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <param name="description"></param>
         /// <returns></returns>
         public virtual String GetDisplayName(String name, String description)
@@ -415,7 +415,7 @@ namespace XCode.DataAccessLayer
         /// <param name="rtable"></param>
         /// <param name="rname"></param>
         /// <param name="column"></param>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <returns></returns>
         public virtual Boolean GuessRelation(IDataTable table, IDataTable rtable, String rname, IDataColumn column, String name)
         {

@@ -10,7 +10,7 @@ namespace XTemplate.Templating
         public Block() { }
 
         /// <summary>实例化一个代码块对象</summary>
-        /// <param name="type"></param>
+        /// <param name="type">类型</param>
         /// <param name="text"></param>
         public Block(BlockType type, String text)
         {

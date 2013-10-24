@@ -100,7 +100,7 @@ namespace NewLife.Reflection
 
         private static DictionaryCache<Type, TypeX> cache = new DictionaryCache<Type, TypeX>();
         /// <summary>创建类型辅助对象</summary>
-        /// <param name="type"></param>
+        /// <param name="type">类型</param>
         /// <returns></returns>
         public static TypeX Create(Type type)
         {
@@ -246,7 +246,7 @@ namespace NewLife.Reflection
         }
 
         /// <summary>快速反射创建指定类型的实例</summary>
-        /// <param name="type"></param>
+        /// <param name="type">类型</param>
         /// <param name="parameters"></param>
         /// <returns></returns>
         public static Object CreateInstance(Type type, params Object[] parameters)
@@ -535,8 +535,8 @@ namespace NewLife.Reflection
         #region 获取方法
         /// <summary>获取方法。</summary>
         /// <remarks>用于具有多个签名的同名方法的场合，不确定是否存在性能问题，不建议普通场合使用</remarks>
-        /// <param name="type"></param>
-        /// <param name="name"></param>
+        /// <param name="type">类型</param>
+        /// <param name="name">名称</param>
         /// <param name="paramTypes"></param>
         /// <returns></returns>
         public static MethodInfo GetMethod(Type type, String name, Type[] paramTypes)
@@ -585,7 +585,7 @@ namespace NewLife.Reflection
 
         /// <summary>获取方法。</summary>
         /// <remarks>用于具有多个签名的同名方法的场合，不确定是否存在性能问题，不建议普通场合使用</remarks>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <param name="paramTypes"></param>
         /// <returns></returns>
         public MethodInfoX GetMethod(String name, Type[] paramTypes) { return GetMethod(Type, name, paramTypes); }
@@ -786,7 +786,7 @@ namespace NewLife.Reflection
         }
 
         /// <summary>判断某个类型是否可空类型</summary>
-        /// <param name="type"></param>
+        /// <param name="type">类型</param>
         /// <returns></returns>
         public static Boolean IsNullable(Type type)
         {
@@ -836,7 +836,7 @@ namespace NewLife.Reflection
 
         private static DictionaryCache<Type, Type> _elmCache = new DictionaryCache<Type, Type>();
         /// <summary>获取一个类型的元素类型</summary>
-        /// <param name="type"></param>
+        /// <param name="type">类型</param>
         /// <returns></returns>
         public static Type GetElementType(Type type)
         {

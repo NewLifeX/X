@@ -63,7 +63,7 @@ namespace NewLife.CommonEntity.Web
 
         /// <summary>指定控件容器和实体类型，实例化一个实体表单</summary>
         /// <param name="container"></param>
-        /// <param name="type"></param>
+        /// <param name="type">类型</param>
         public EntityForm2(Control container, Type type)
         {
             (this as IEntityForm).Init(container, type);

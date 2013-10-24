@@ -99,7 +99,7 @@ namespace NewLife.IO
         }
 
         /// <summary>查询注册，返回指定通道的处理器数组。</summary>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <returns></returns>
         public static IStreamHandler[] QueryRegister(String name)
         {
@@ -184,7 +184,7 @@ namespace NewLife.IO
 
         #region 处理数据流
         /// <summary>处理数据流。Http、Tcp、Udp等所有数据流都将到达这里，多种传输方式汇聚于此，由数据流总线统一处理！</summary>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <param name="stream"></param>
         public static void Process(String name, Stream stream)
         {

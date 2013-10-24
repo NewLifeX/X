@@ -148,7 +148,7 @@ namespace NewLife.Reflection
 
         /// <summary>间接加载到计算堆栈</summary>
         /// <param name="IL">指令</param>
-        /// <param name="type"></param>
+        /// <param name="type">类型</param>
         /// <returns></returns>
         public static ILGenerator Ldind(this ILGenerator IL, Type type)
         {
@@ -210,7 +210,7 @@ namespace NewLife.Reflection
 
         /// <summary>间接加载到计算堆栈</summary>
         /// <param name="IL">指令</param>
-        /// <param name="type"></param>
+        /// <param name="type">类型</param>
         /// <returns></returns>
         public static ILGenerator Stind(this ILGenerator IL, Type type)
         {
@@ -290,7 +290,7 @@ namespace NewLife.Reflection
 
         /// <summary>把一个类型转为指定类型，值类型装箱，引用类型直接Cast</summary>
         /// <param name="IL">指令</param>
-        /// <param name="type"></param>
+        /// <param name="type">类型</param>
         /// <returns></returns>
         public static ILGenerator CastFromObject(this ILGenerator IL, Type type)
         {
@@ -309,7 +309,7 @@ namespace NewLife.Reflection
 
         /// <summary>装箱</summary>
         /// <param name="IL">指令</param>
-        /// <param name="type"></param>
+        /// <param name="type">类型</param>
         /// <returns></returns>
         public static ILGenerator BoxIfValueType(this ILGenerator IL, Type type)
         {
@@ -361,7 +361,7 @@ namespace NewLife.Reflection
         #region 创建对象
         /// <summary>创建值类型，对象位于栈上</summary>
         /// <param name="IL">指令</param>
-        /// <param name="type"></param>
+        /// <param name="type">类型</param>
         /// <returns></returns>
         public static ILGenerator NewValueType(this ILGenerator IL, Type type)
         {
@@ -380,7 +380,7 @@ namespace NewLife.Reflection
 
         /// <summary>创建数组，参数必须是Object[]</summary>
         /// <param name="IL">指令</param>
-        /// <param name="type"></param>
+        /// <param name="type">类型</param>
         /// <returns></returns>
         public static ILGenerator NewArray(this ILGenerator IL, Type type)
         {

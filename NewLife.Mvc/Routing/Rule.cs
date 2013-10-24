@@ -71,7 +71,7 @@ namespace NewLife.Mvc
 
         /// <summary>创建指定路径到指定类型的路由,路由类型由ruleType指定,如果未指定则会自动检测</summary>
         /// <param name="path"></param>
-        /// <param name="type"></param>
+        /// <param name="type">类型</param>
         /// <param name="ruleType"></param>
         /// <returns></returns>
         internal static Rule Create(string path, Type type, Type ruleType)

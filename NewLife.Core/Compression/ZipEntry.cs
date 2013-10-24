@@ -477,8 +477,9 @@ namespace NewLife.Compression
             Type type = this.GetType();
             foreach (var item in dirMembers)
             {
-                var fix = FieldInfoX.Create(type, item);
-                fix.SetValue(this, fix.GetValue(entry));
+                //var fix = FieldInfoX.Create(type, item);
+                //fix.SetValue(this, fix.GetValue(entry));
+                this.SetValue(item, entry.GetValue(item));
             }
         }
 

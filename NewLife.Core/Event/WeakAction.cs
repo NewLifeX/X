@@ -18,7 +18,7 @@ namespace NewLife
         WeakReference Target;
 
         /// <summary>委托方法</summary>
-        MethodInfoX Method;
+        MethodBase Method;
 
         /// <summary>经过包装的新的委托</summary>
         Action<TArgs> Handler;
@@ -37,7 +37,7 @@ namespace NewLife
             get
             {
                 var target = Target;
-                if (target == null && Method.Method.IsStatic) return true;
+                if (target == null && Method.IsStatic) return true;
 
                 return target != null && target.IsAlive;
             }
@@ -94,13 +94,14 @@ namespace NewLife
             Object target = null;
             if (Target == null)
             {
-                if (Method.Method.IsStatic) Method.Invoke(null, new Object[] { e });
+                //if (Method.IsStatic) Method.Invoke(null, new Object[] { e });
+                if (Method.IsStatic) target.Invoke(Method, e);
             }
             else
             {
                 target = Target.Target;
-                if (target != null)
-                    Method.Invoke(target, new Object[] { e });
+                //if (target != null) Method.Invoke(target, new Object[] { e });
+                if (target != null) target.Invoke(Method, e);
             }
 
             // 调用方已被回收，或者该事件只使用一次，则取消注册

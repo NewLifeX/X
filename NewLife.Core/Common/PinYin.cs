@@ -626,20 +626,22 @@ namespace NewLife.Common
 
         static Boolean _inited = false;
         static Type _type;
-        static PropertyInfoX _pix;
+        //static PropertyInfoX _pix;
         static String[] GetPinYinByMS(Char chr)
         {
-            if (_pix == null)
+            if (_type == null)
             {
                 if (_inited) return null;
 
                 _inited = true;
                 _type = TypeX.GetType("ChineseChar", true);
-                _pix = PropertyInfoX.Create(_type, "Pinyins");
+                //_pix = PropertyInfoX.Create(_type, "Pinyins");
             }
 
-            var obj = _type.CreateInstance(chr);
-            return _pix.GetValue(obj) as String[];
+            //var obj = _type.CreateInstance(chr);
+            //return _pix.GetValue(obj) as String[];
+
+            return _type.CreateInstance(chr).GetValue("Pinyins") as String[];
         }
     }
 }

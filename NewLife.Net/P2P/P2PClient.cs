@@ -222,7 +222,7 @@ namespace NewLife.Net.P2P
 
         #region 业务
         /// <summary>开始处理</summary>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         public void Start(String name)
         {
             if (String.IsNullOrEmpty(name)) throw new ArgumentNullException("name");

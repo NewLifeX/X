@@ -155,7 +155,7 @@ namespace XCode.DataAccessLayer
         public XTable() { }
 
         /// <summary>初始化</summary>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         public XTable(String name) { TableName = name; }
         #endregion
 
@@ -188,7 +188,7 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>根据字段名获取字段</summary>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <returns></returns>
         public virtual IDataColumn GetColumn(String name)
         {

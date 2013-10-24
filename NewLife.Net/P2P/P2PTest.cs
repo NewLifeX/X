@@ -18,7 +18,7 @@ namespace NewLife.Net.P2P
         }
 
         /// <summary>开始客户端</summary>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <param name="server"></param>
         /// <param name="serverport"></param>
         /// <param name="isTcp"></param>

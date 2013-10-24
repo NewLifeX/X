@@ -15,7 +15,7 @@ namespace XControl
         }
 
         /// <summary>指定目标控件类型</summary>
-        /// <param name="type"></param>
+        /// <param name="type">类型</param>
         public TargetControlTypeAttribute(Type type)
         {
             Type = type;

@@ -200,7 +200,7 @@ namespace NewLife.CommonEntity
         }
 
         /// <summary>根据名字查找</summary>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <returns></returns>
         public static TEntity FindByName(String name) { return Meta.Cache.Entities.Find(_.Name, name); }
 
@@ -210,7 +210,7 @@ namespace NewLife.CommonEntity
         public static TEntity FindByUrl(String url) { return Meta.Cache.Entities.FindIgnoreCase(_.Url, url); }
 
         /// <summary>根据名字查找，支持路径查找</summary>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <returns></returns>
         public static TEntity FindForName(String name)
         {
@@ -222,12 +222,12 @@ namespace NewLife.CommonEntity
         }
 
         /// <summary>根据权限名查找</summary>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <returns></returns>
         public static TEntity FindByPerssion(String name) { return Meta.Cache.Entities.Find(_.Permission, name); }
 
         /// <summary>为了权限而查找，支持路径查找</summary>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <returns></returns>
         public static TEntity FindForPerssion(String name)
         {
@@ -277,7 +277,7 @@ namespace NewLife.CommonEntity
         ///// </summary>
         ///// <param name="list"></param>
         ///// <param name="path"></param>
-        ///// <param name="name"></param>
+        ///// <param name="name">名称</param>
         ///// <returns></returns>
         //public static TEntity FindByPath(EntityList<TEntity> list, String path, String name)
         //{
@@ -343,7 +343,7 @@ namespace NewLife.CommonEntity
 
         #region 扩展操作
         /// <summary>检查并重新设置名称和权限项</summary>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <returns></returns>
         [EditorBrowsable(EditorBrowsableState.Never)]
         [Obsolete("暂停使用该方法,防止出现权限名称被自动修改，导致权限混乱")]
@@ -434,7 +434,7 @@ namespace NewLife.CommonEntity
         }
 
         /// <summary>添加子菜单</summary>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <param name="url"></param>
         /// <param name="sort"></param>
         /// <param name="reamark"></param>

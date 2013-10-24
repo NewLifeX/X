@@ -12,14 +12,14 @@ namespace NewLife.IO
     public class StreamReaderX : StreamReader
     {
         #region 属性
-        private static FieldInfoX _Closable = FieldInfoX.Create(typeof(StreamReader), "_closable");
-        private static FieldInfoX _CharPosition = FieldInfoX.Create(typeof(StreamReader), "charPos");
+        //private static FieldInfoX _Closable = FieldInfoX.Create(typeof(StreamReader), "_closable");
+        //private static FieldInfoX _CharPosition = FieldInfoX.Create(typeof(StreamReader), "charPos");
 
         /// <summary>是否在最后关闭流</summary>
-        public Boolean Closable { get { return (Boolean)_Closable.GetValue(this); } set { _Closable.SetValue(this, value); } }
+        public Boolean Closable { get { return (Boolean)this.GetValue("_closable"); } set { this.SetValue("_closable", value); } }
 
         /// <summary>字符位置。因为涉及字符编码，所以跟流位置可能不同。对于ASCII编码没有问题。</summary>
-        public Int32 CharPosition { get { return (Int32)_CharPosition.GetValue(this); } set { _CharPosition.SetValue(this, value); } }
+        public Int32 CharPosition { get { return (Int32)this.GetValue("charPos"); } set { this.SetValue("charPos", value); } }
         #endregion
 
         #region 构造

@@ -145,7 +145,7 @@ namespace NewLife.CommonEntity.Web
         }
 
         /// <summary>申请指定操作的权限</summary>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <param name="flag"></param>
         /// <returns></returns>
         public virtual Boolean Acquire(String name, PermissionFlags flag)
@@ -163,7 +163,7 @@ namespace NewLife.CommonEntity.Web
         }
 
         /// <summary>申请指定操作的权限</summary>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <returns></returns>
         public virtual Boolean Acquire(String name)
         {

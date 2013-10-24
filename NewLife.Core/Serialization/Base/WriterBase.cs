@@ -177,7 +177,7 @@ namespace NewLife.Serialization
 
         #region 基础名值
         /// <summary>写入成员名称</summary>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         public virtual void WriteName(String name) { }
 
         /// <summary>写入值类型</summary>
@@ -443,7 +443,7 @@ namespace NewLife.Serialization
         #region 扩展处理类型
         /// <summary>扩展写入，反射查找合适的写入方法</summary>
         /// <param name="value"></param>
-        /// <param name="type"></param>
+        /// <param name="type">类型</param>
         /// <returns></returns>
         protected virtual Boolean WriteExtend(Object value, Type type)
         {
@@ -561,7 +561,7 @@ namespace NewLife.Serialization
         /// </remarks>
         /// <param name="action"></param>
         /// <param name="value"></param>
-        /// <param name="type"></param>
+        /// <param name="type">类型</param>
         /// <returns></returns>
         protected Type CheckAndWriteType(String action, Object value, Type type)
         {
@@ -579,7 +579,7 @@ namespace NewLife.Serialization
         }
 
         /// <summary>写对象类型</summary>
-        /// <param name="type"></param>
+        /// <param name="type">类型</param>
         protected virtual void WriteObjectType(Type type) { Write(type); }
         #endregion
 

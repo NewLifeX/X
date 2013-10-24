@@ -32,12 +32,13 @@ namespace NewLife.Web
                     {
                         // 尝试获取端口
                         //TypeX tx = TypeX.Create(typeof(HttpContext));
-                        PropertyInfoX pi = PropertyInfoX.Create(typeof(HttpContext), "WorkerRequest");
-                        if (pi != null)
+                        //var pi = PropertyInfoX.Create(typeof(HttpContext), "WorkerRequest");
+                        //if (pi != null)
                         {
                             try
                             {
-                                HttpWorkerRequest wr = pi.GetValue(Context) as HttpWorkerRequest;
+                                //HttpWorkerRequest wr = pi.GetValue(Context) as HttpWorkerRequest;
+                                var wr = Context.GetValue("WorkerRequest") as HttpWorkerRequest;
                                 if (wr != null)
                                 {
                                     port = wr.GetRemotePort();

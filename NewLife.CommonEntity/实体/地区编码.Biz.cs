@@ -41,7 +41,7 @@ namespace NewLife.CommonEntity
         }
 
         /// <summary>根据Name查找</summary>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
         public static EntityList<TEntity> FindAllByName(String name)

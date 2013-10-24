@@ -451,7 +451,7 @@ namespace NewLife.Serialization
         }
 
         /// <summary>从当前流位置读取一个枚举类型</summary>
-        /// <param name="type"></param>
+        /// <param name="type">类型</param>
         /// <param name="value"></param>
         /// <param name="callback"></param>
         /// <returns></returns>
@@ -478,7 +478,7 @@ namespace NewLife.Serialization
         }
 
         /// <summary>从当前流位置读取枚举项目</summary>
-        /// <param name="type"></param>
+        /// <param name="type">类型</param>
         /// <param name="value"></param>
         /// <param name="index"></param>
         /// <param name="callback"></param>
@@ -515,7 +515,7 @@ namespace NewLife.Serialization
 
         #region 序列化接口
         /// <summary>读取实现了序列化接口的类型</summary>
-        /// <param name="type"></param>
+        /// <param name="type">类型</param>
         /// <param name="value"></param>
         /// <param name="callback"></param>
         /// <returns></returns>
@@ -557,7 +557,7 @@ namespace NewLife.Serialization
 
         #region 字典
         /// <summary>从当前流位置读取一个字典类型</summary>
-        /// <param name="type"></param>
+        /// <param name="type">类型</param>
         /// <param name="value"></param>
         /// <param name="callback"></param>
         /// <returns></returns>
@@ -1014,7 +1014,7 @@ namespace NewLife.Serialization
         /// <summary>尝试读取成员时期望的原子元素类型</summary>
         static AtomElementType[] MEMBERNAME_EXPECTED_TYPES = { AtomElementType.COMMA, AtomElementType.STRING, AtomElementType.BRACE_CLOSE };
         /// <summary>从当前流位置读取一个对象</summary>
-        /// <param name="type"></param>
+        /// <param name="type">类型</param>
         /// <param name="value"></param>
         /// <param name="callback"></param>
         /// <returns></returns>
@@ -1107,7 +1107,7 @@ namespace NewLife.Serialization
         }
 
         /// <summary>从当前流位置读取一个自定义对象,即{}包括的数据</summary>
-        /// <param name="type"></param>
+        /// <param name="type">类型</param>
         /// <param name="value"></param>
         /// <param name="callback"></param>
         /// <returns></returns>
@@ -1198,7 +1198,7 @@ namespace NewLife.Serialization
         }
 
         /// <summary>读取当前成员名称</summary>
-        /// <param name="type"></param>
+        /// <param name="type">类型</param>
         /// <param name="value"></param>
         /// <param name="members"></param>
         /// <param name="index"></param>
@@ -1233,7 +1233,7 @@ namespace NewLife.Serialization
         }
 
         /// <summary>从当前流位置读取成员值</summary>
-        /// <param name="type"></param>
+        /// <param name="type">类型</param>
         /// <param name="value"></param>
         /// <param name="member"></param>
         /// <param name="index"></param>

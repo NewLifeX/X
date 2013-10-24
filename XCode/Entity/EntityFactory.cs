@@ -25,7 +25,7 @@ namespace XCode
         public static IEntity Create(String typeName) { return Create(GetType(typeName)); }
 
         /// <summary>创建指定类型的实例</summary>
-        /// <param name="type"></param>
+        /// <param name="type">类型</param>
         /// <returns></returns>
         public static IEntity Create(Type type)
         {
@@ -55,7 +55,7 @@ namespace XCode
         private static DictionaryCache<Type, IEntityOperate> op_cache = new DictionaryCache<Type, IEntityOperate>();
         /// <summary>创建实体操作接口</summary>
         /// <remarks>因为只用来做实体操作，所以只需要一个实例即可</remarks>
-        /// <param name="type"></param>
+        /// <param name="type">类型</param>
         /// <returns></returns>
         public static IEntityOperate CreateOperate(Type type)
         {
@@ -123,7 +123,7 @@ namespace XCode
         }
 
         /// <summary>使用指定的实体对象创建实体操作接口，主要用于Entity内部调用，避免反射带来的损耗</summary>
-        /// <param name="type"></param>
+        /// <param name="type">类型</param>
         /// <param name="entity"></param>
         /// <returns></returns>
         internal static IEntityOperate Register(Type type, IEntityOperate entity)
@@ -235,7 +235,7 @@ namespace XCode
         }
 
         /// <summary>是否普通实体类</summary>
-        /// <param name="type"></param>
+        /// <param name="type">类型</param>
         /// <returns></returns>
         private static Boolean IsCommonEntity(Type type)
         {
@@ -316,7 +316,7 @@ namespace XCode
         #region 确保实体类已初始化
         static List<Type> _hasInited = new List<Type>();
         /// <summary>确保实体类已经执行完静态构造函数，因为那里实在是太容易导致死锁了</summary>
-        /// <param name="type"></param>
+        /// <param name="type">类型</param>
         internal static void EnsureInit(Type type)
         {
             if (_hasInited.Contains(type)) return;

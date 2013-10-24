@@ -215,7 +215,7 @@ namespace XTemplate.Templating
         }
 
         /// <summary>获取数据，主要处理数据字典中不存在的元素</summary>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <returns></returns>
         protected Object GetData(String name)
         {
@@ -225,7 +225,7 @@ namespace XTemplate.Templating
 
         /// <summary>获取数据，主要处理类型转换</summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <returns></returns>
         protected T GetData<T>(String name)
         {

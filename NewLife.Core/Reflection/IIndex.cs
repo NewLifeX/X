@@ -8,7 +8,7 @@ namespace NewLife.Reflection
     public interface IIndex
     {
         /// <summary>获取/设置 指定名称的属性或字段的值</summary>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <returns></returns>
         Object this[String name] { get; set; }
     }
@@ -19,7 +19,7 @@ namespace NewLife.Reflection
     {
         /// <summary>获取目标对象指定属性字段的值</summary>
         /// <param name="target">目标对象</param>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <returns></returns>
         public static Object GetValue(IIndex target, String name)
         {
@@ -31,7 +31,7 @@ namespace NewLife.Reflection
 
         /// <summary>尝试获取目标对象指定属性字段的值，返回是否成功</summary>
         /// <param name="target">目标对象</param>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <param name="value"></param>
         /// <returns></returns>
         public static Boolean TryGetValue(IIndex target, String name, out Object value)
@@ -42,18 +42,20 @@ namespace NewLife.Reflection
             value = null;
 
             //尝试匹配属性
-            var property = PropertyInfoX.Create(target.GetType(), name);
+            //var property = PropertyInfoX.Create(target.GetType(), name);
+            var property = target.GetType().GetProperty(name);
             if (property != null)
             {
-                value = property.GetValue(target);
+                //value = property.GetValue(target);
+                value = target.GetValue(property);
                 return true;
             }
 
             //尝试匹配字段
-            var field = FieldInfoX.Create(target.GetType(), name);
+            var field = target.GetType().GetField(name);
             if (field != null)
             {
-                value = field.GetValue(target);
+                value = target.GetValue(field);
                 return true;
             }
 
@@ -63,7 +65,7 @@ namespace NewLife.Reflection
         /// <summary>获取目标对象指定属性字段的值</summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="target">目标对象</param>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <returns></returns>
         public static T GetValue<T>(IIndex target, String name)
         {
@@ -73,7 +75,7 @@ namespace NewLife.Reflection
         /// <summary>尝试获取目标对象指定属性字段的值，返回是否成功</summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="target">目标对象</param>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <param name="value"></param>
         /// <returns></returns>
         public static Boolean TryGetValue<T>(IIndex target, String name, out T value)
@@ -89,7 +91,7 @@ namespace NewLife.Reflection
 
         /// <summary>设置目标对象指定属性字段的值</summary>
         /// <param name="target">目标对象</param>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <param name="value"></param>
         public static void SetValue(IIndex target, String name, Object value)
         {
@@ -100,7 +102,7 @@ namespace NewLife.Reflection
 
         /// <summary>尝试设置目标对象指定属性字段的值，返回是否成功</summary>
         /// <param name="target">目标对象</param>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <param name="value"></param>
         /// <returns></returns>
         public static Boolean TrySetValue(IIndex target, String name, Object value)

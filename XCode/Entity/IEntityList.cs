@@ -40,7 +40,7 @@ namespace XCode
         IEntity FindIgnoreCase(String name, String value);
 
         /// <summary>集合是否包含指定项</summary>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <param name="value"></param>
         /// <returns></returns>
         Boolean Exists(String name, Object value);
@@ -68,18 +68,18 @@ namespace XCode
         Int32 Delete(Boolean useTransition);
 
         /// <summary>设置所有实体中指定项的值</summary>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <param name="value"></param>
         IEntityList SetItem(String name, Object value);
 
         /// <summary>获取所有实体中指定项的值</summary>
         /// <typeparam name="TResult">指定项的类型</typeparam>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <returns></returns>
         List<TResult> GetItem<TResult>(String name);
 
         /// <summary>串联指定成员，方便由实体集合构造用于查询的子字符串</summary>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <param name="separator"></param>
         /// <returns></returns>
         String Join(String name, String separator);

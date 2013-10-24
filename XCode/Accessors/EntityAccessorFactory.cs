@@ -28,7 +28,7 @@ namespace XCode.Accessors
         }
 
         /// <summary>创建指定类型的实体访问器</summary>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <returns></returns>
         public static IEntityAccessor Create(String name)
         {

@@ -89,7 +89,7 @@ namespace XCode
 
         /// <summary>构造函数</summary>
         /// <param name="order"></param>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <param name="description"></param>
         /// <param name="defaultValue"></param>
         public BindColumnAttribute(Int32 order, String name, String description, String defaultValue)
@@ -102,7 +102,7 @@ namespace XCode
 
         /// <summary>构造函数</summary>
         /// <param name="order"></param>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <param name="description"></param>
         /// <param name="defaultValue"></param>
         /// <param name="rawType"></param>

@@ -119,7 +119,7 @@ namespace NewLife.Serialization
 
         #region 基础名值
         /// <summary>写入成员名称</summary>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         void WriteName(String name);
 
         /// <summary>写入值类型</summary>

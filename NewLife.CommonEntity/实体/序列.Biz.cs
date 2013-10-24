@@ -164,7 +164,7 @@ namespace NewLife.CommonEntity
         #region 业务
         private static Object objLock = new Object();
         /// <summary>获取</summary>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <returns></returns>
         public static Int32 Acquire(String name)
         {
@@ -230,7 +230,7 @@ namespace NewLife.CommonEntity
         //}
 
         /// <summary>设置序列类型，序列不存在时自动增加</summary>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <param name="kind"></param>
         public static void SetKind(String name, SequenceKinds kind)
         {

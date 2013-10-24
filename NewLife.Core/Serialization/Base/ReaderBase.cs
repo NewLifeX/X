@@ -12,6 +12,7 @@ using NewLife.Reflection;
 using System.Linq;
 #else
 using NewLife.Linq;
+using System.Reflection;
 #endif
 
 namespace NewLife.Serialization
@@ -184,7 +185,7 @@ namespace NewLife.Serialization
 
         #region 值类型
         /// <summary>读取值类型数据</summary>
-        /// <param name="type"></param>
+        /// <param name="type">类型</param>
         /// <returns></returns>
         public Object ReadValue(Type type)
         {
@@ -517,7 +518,7 @@ namespace NewLife.Serialization
         }
 
         /// <summary>读取元素集合</summary>
-        /// <param name="type"></param>
+        /// <param name="type">类型</param>
         /// <param name="elementType"></param>
         /// <param name="count">元素个数</param>
         /// <param name="callback">处理元素的方法</param>
@@ -550,7 +551,7 @@ namespace NewLife.Serialization
         }
 
         /// <summary>读取项</summary>
-        /// <param name="type"></param>
+        /// <param name="type">类型</param>
         /// <param name="value"></param>
         /// <param name="index">元素序号</param>
         /// <param name="callback">处理元素的方法</param>
@@ -561,7 +562,7 @@ namespace NewLife.Serialization
         }
 
         /// <summary>处理结果集</summary>
-        /// <param name="type"></param>
+        /// <param name="type">类型</param>
         /// <param name="elementType"></param>
         /// <param name="value"></param>
         /// <param name="items"></param>
@@ -575,7 +576,7 @@ namespace NewLife.Serialization
             }
 
             // 添加方法
-            MethodInfoX method = null;
+            MethodBase method = null;
 
             #region 如果源对象不为空，则尽量使用源对象
             if (value != null)
@@ -665,22 +666,27 @@ namespace NewLife.Serialization
             #endregion
 
             #region 是否具有Add方法
-            if (method == null) method = MethodInfoX.Create(type, "Add", new Type[] { elementType });
+            //if (method == null) method = MethodInfoX.Create(type, "Add", new Type[] { elementType });
+            if (method == null) method = Reflect.GetMethod(type, "Add");
             if (method != null)
             {
                 if (value == null) value = type.CreateInstance();
                 foreach (var item in items)
                 {
-                    method.Invoke(value, item);
+                    //method.Invoke(value, item);
+                    value.Invoke(method, item);
                 }
                 return true;
             }
 
-            method = MethodInfoX.Create(type, "AddRange", new Type[] { typeof(ICollection) });
-            if (method == null) method = MethodInfoX.Create(type, "AddRange", new Type[] { typeof(IList) });
+            //method = MethodInfoX.Create(type, "AddRange", new Type[] { typeof(ICollection) });
+            //if (method == null) method = MethodInfoX.Create(type, "AddRange", new Type[] { typeof(IList) });
+            method = Reflect.GetMethod(type, "AddRange", typeof(ICollection));
+            if (method == null) method = Reflect.GetMethod(type, "AddRange", typeof(IList));
             if (method != null)
             {
-                method.Invoke(value, items);
+                //method.Invoke(value, items);
+                value.Invoke(method, items);
 
                 return true;
             }
@@ -864,7 +870,7 @@ namespace NewLife.Serialization
 
         /// <summary>检查对象类型与指定写入类型是否一致，若不一致，则先写入类型，以保证读取的时候能够以正确的类型读取。</summary>
         /// <param name="action"></param>
-        /// <param name="type"></param>
+        /// <param name="type">类型</param>
         /// <param name="value"></param>
         /// <returns>返回对象实际类型。</returns>
         protected Type CheckAndReadType(String action, Type type, Object value)
@@ -883,7 +889,7 @@ namespace NewLife.Serialization
         }
 
         /// <summary>猜测类型。对于无法读取到对象类型的类型，并且是接口之类的，可以猜测</summary>
-        /// <param name="type"></param>
+        /// <param name="type">类型</param>
         /// <returns></returns>
         static Type GuessType(Type type)
         {

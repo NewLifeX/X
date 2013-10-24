@@ -192,7 +192,7 @@ namespace NewLife.Web
 
         #region 请求相关
         /// <summary>获取整型参数</summary>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <returns></returns>
         public static Int32 RequestInt(String name)
         {
@@ -206,7 +206,7 @@ namespace NewLife.Web
         }
 
         /// <summary>接收布尔值</summary>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <returns></returns>
         public static bool RequestBool(String name)
         {
@@ -214,7 +214,7 @@ namespace NewLife.Web
         }
 
         /// <summary>接收时间</summary>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <returns></returns>
         public static DateTime RequestDateTime(String name)
         {
@@ -222,7 +222,7 @@ namespace NewLife.Web
         }
 
         /// <summary>接收Double</summary>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <returns></returns>
         public static Double RequestDouble(String name)
         {

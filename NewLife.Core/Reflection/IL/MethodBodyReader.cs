@@ -250,7 +250,8 @@ namespace NewLife.Reflection
             {
                 if (fi.FieldType == typeof(OpCode))
                 {
-                    OpCode code = (OpCode)FieldInfoX.Create(fi).GetValue(null);
+                    //OpCode code = (OpCode)FieldInfoX.Create(fi).GetValue(null);
+                    var code = (OpCode)"".GetValue(fi);
                     ushort index = (ushort)code.Value;
                     if (index < 0x100)
                     {

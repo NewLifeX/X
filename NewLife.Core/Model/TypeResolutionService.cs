@@ -74,7 +74,7 @@
 //        /// <summary>
 //        /// 获取请求的程序集
 //        /// </summary>
-//        /// <param name="name"></param>
+//        /// <param name="name">名称</param>
 //        /// <param name="throwOnError"></param>
 //        /// <returns></returns>
 //        public virtual Assembly GetAssembly(AssemblyName name, bool throwOnError)
@@ -115,7 +115,7 @@
 //        /// <summary>
 //        /// 获取请求的程序集
 //        /// </summary>
-//        /// <param name="name"></param>
+//        /// <param name="name">名称</param>
 //        /// <returns></returns>
 //        public Assembly GetAssembly(AssemblyName name)
 //        {
@@ -125,7 +125,7 @@
 //        /// <summary>
 //        /// 获取从中加载程序集的文件的路径
 //        /// </summary>
-//        /// <param name="name"></param>
+//        /// <param name="name">名称</param>
 //        /// <returns></returns>
 //        public virtual string GetPathOfAssembly(AssemblyName name)
 //        {
@@ -175,7 +175,7 @@
 //        /// <summary>
 //        /// 用指定的名称加载类型
 //        /// </summary>
-//        /// <param name="name"></param>
+//        /// <param name="name">名称</param>
 //        /// <param name="throwOnError"></param>
 //        /// <param name="ignoreCase"></param>
 //        /// <returns></returns>
@@ -211,7 +211,7 @@
 //        /// <summary>
 //        /// 用指定的名称加载类型
 //        /// </summary>
-//        /// <param name="name"></param>
+//        /// <param name="name">名称</param>
 //        /// <param name="throwOnError"></param>
 //        /// <returns></returns>
 //        public Type GetType(string name, bool throwOnError)
@@ -222,7 +222,7 @@
 //        /// <summary>
 //        /// 用指定的名称加载类型
 //        /// </summary>
-//        /// <param name="name"></param>
+//        /// <param name="name">名称</param>
 //        /// <returns></returns>
 //        public Type GetType(string name)
 //        {
@@ -232,7 +232,7 @@
 //        /// <summary>
 //        /// 将引用添加到指定程序集中
 //        /// </summary>
-//        /// <param name="name"></param>
+//        /// <param name="name">名称</param>
 //        public virtual void ReferenceAssembly(AssemblyName name)
 //        {
 //            // 从上一个服务中找

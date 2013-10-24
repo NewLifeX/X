@@ -117,8 +117,9 @@ namespace NewLife.Reflection
             {
                 //byte* ptr = (byte*)GetDynamicMethodRuntimeHandle(method).ToPointer();
 
-                FieldInfo fieldInfo = typeof(DynamicMethod).GetField("m_method", BindingFlags.NonPublic | BindingFlags.Instance);
-                byte* ptr = (byte*)((RuntimeMethodHandle)FieldInfoX.Create(fieldInfo).GetValue(method)).Value.ToPointer();
+                //FieldInfo fieldInfo = typeof(DynamicMethod).GetField("m_method", BindingFlags.NonPublic | BindingFlags.Instance);
+                //byte* ptr = (byte*)((RuntimeMethodHandle)FieldInfoX.Create(fieldInfo).GetValue(method)).Value.ToPointer();
+                var ptr = (byte*)((RuntimeMethodHandle)method.GetValue("m_method")).Value.ToPointer();
 
                 if (isAboveNet2Sp2)
                 {

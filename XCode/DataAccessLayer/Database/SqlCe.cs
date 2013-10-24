@@ -558,12 +558,14 @@ namespace XCode.DataAccessLayer
 
         public void CreateDatabase()
         {
-            MethodInfoX.Invoke<Object>(Engine, "CreateDatabase");
+            //MethodInfoX.Invoke<Object>(Engine, "CreateDatabase");
+            Engine.Invoke("CreateDatabase");
         }
 
         public void Shrink()
         {
-            MethodInfoX.Invoke<Object>(Engine, "Shrink");
+            //MethodInfoX.Invoke<Object>(Engine, "Shrink");
+            Engine.Invoke("Shrink");
         }
     }
 }

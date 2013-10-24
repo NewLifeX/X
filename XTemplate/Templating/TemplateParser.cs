@@ -49,7 +49,7 @@ namespace XTemplate.Templating
         #region 分析模版
         private static Regex unescapedTagFindingRegex = new Regex(@"(^|[^\\])(\\\\)*(<\#|\#>)", RegexOptions.Singleline | RegexOptions.Compiled | RegexOptions.ExplicitCapture);
         /// <summary>把模版分割成块</summary>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <param name="content"></param>
         /// <returns></returns>
         public static List<Block> Parse(String name, String content)

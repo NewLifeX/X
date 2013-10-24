@@ -23,7 +23,7 @@ namespace XCode.DataAccessLayer
         #region 模型扩展方法
         /// <summary>根据字段名获取字段</summary>
         /// <param name="table"></param>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <returns></returns>
         public static IDataColumn GetColumn(this IDataTable table, String name)
         {
@@ -45,7 +45,7 @@ namespace XCode.DataAccessLayer
 
         /// <summary>判断表是否等于指定名字</summary>
         /// <param name="table"></param>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <returns></returns>
         public static Boolean Is(this IDataTable table, String name)
         {
@@ -56,7 +56,7 @@ namespace XCode.DataAccessLayer
 
         /// <summary>判断字段是否等于指定名字</summary>
         /// <param name="column"></param>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <returns></returns>
         public static Boolean Is(this IDataColumn column, String name)
         {

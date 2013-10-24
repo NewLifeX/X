@@ -297,7 +297,7 @@ namespace NewLife.Serialization
         #region 字典
         /// <summary>将字典类型数据写入到当前流位置</summary>
         /// <param name="value"></param>
-        /// <param name="type"></param>
+        /// <param name="type">类型</param>
         /// <param name="callback"></param>
         /// <returns></returns>
         public override bool WriteDictionary(IDictionary value, Type type, WriteObjectCallback callback)
@@ -366,7 +366,7 @@ namespace NewLife.Serialization
         int WriteMemberCount = 0;
 
         /// <summary>JsonWriter的对象类型由writeValueType写入,作为第一个成员,所以不需要</summary>
-        /// <param name="type"></param>
+        /// <param name="type">类型</param>
         protected override void WriteObjectType(Type type) { }
 
         /// <summary>写入对象。具体读写器可以重载该方法以修改写入对象前后的行为。</summary>

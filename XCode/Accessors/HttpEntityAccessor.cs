@@ -143,7 +143,7 @@ namespace XCode.Accessors
         }
 
         /// <summary>采用该方法而不再用Request[name]，主要是后者还处理服务器变量ServerVar，这是不需要的，还有可能得到错误的数据</summary>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <returns></returns>
         String GetRequest(String name)
         {

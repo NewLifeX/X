@@ -286,7 +286,7 @@ namespace XAgent
 
         #region 辅助
         /// <summary>取得服务</summary>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <returns></returns>
         public static ServiceController GetService(String name)
         {

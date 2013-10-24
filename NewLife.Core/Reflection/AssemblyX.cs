@@ -303,7 +303,7 @@ namespace NewLife.Reflection
 
         private Dictionary<Type, List<Type>> _plugins = new Dictionary<Type, List<Type>>();
         /// <summary>查找插件，带缓存</summary>
-        /// <param name="type"></param>
+        /// <param name="type">类型</param>
         /// <returns></returns>
         public List<Type> FindPlugins(Type type)
         {
@@ -329,7 +329,7 @@ namespace NewLife.Reflection
         }
 
         /// <summary>查找所有非系统程序集中的所有插件</summary>
-        /// <param name="type"></param>
+        /// <param name="type">类型</param>
         /// <returns></returns>
         public static IEnumerable<Type> FindAllPlugins(Type type) { return FindAllPlugins(type, false); }
 

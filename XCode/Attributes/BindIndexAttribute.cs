@@ -36,7 +36,7 @@ namespace XCode
 
         #region 构造
         /// <summary>指定一个索引</summary>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <param name="unique"></param>
         /// <param name="columns"></param>
         public BindIndexAttribute(String name, Boolean unique, String columns)

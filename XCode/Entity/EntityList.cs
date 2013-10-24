@@ -282,7 +282,7 @@ namespace XCode
         }
 
         /// <summary>集合是否包含指定项</summary>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <param name="value"></param>
         /// <returns></returns>
         public Boolean Exists(String name, Object value)
@@ -561,7 +561,7 @@ namespace XCode
         }
 
         /// <summary>串联指定成员，方便由实体集合构造用于查询的子字符串</summary>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <param name="separator"></param>
         /// <returns></returns>
         public String Join(String name, String separator)

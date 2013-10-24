@@ -88,7 +88,7 @@ namespace NewLife.Mvc
         ///
         /// 一般在控制器工厂中使用,用于运行时路由,相对应的是IRouteConfigModule配置路由
         /// </summary>
-        /// <param name="type"></param>
+        /// <param name="type">类型</param>
         /// <returns></returns>
         IController RouteTo(Type type);
         /// <summary>
@@ -97,7 +97,7 @@ namespace NewLife.Mvc
         /// 一般在控制器工厂中使用,用于运行时路由,对应的静态路由是通过实现IRouteConfigModule接口配置路由
         /// </summary>
         /// <param name="match"></param>
-        /// <param name="type"></param>
+        /// <param name="type">类型</param>
         /// <returns></returns>
         IController RouteTo(string match, Type type);
 

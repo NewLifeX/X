@@ -152,7 +152,7 @@ namespace NewLife.CommonEntity
         }
 
         /// <summary>创建日志</summary>
-        /// <param name="type"></param>
+        /// <param name="type">类型</param>
         /// <param name="action"></param>
         /// <returns></returns>
         public static TEntity Create(Type type, String action)
@@ -165,7 +165,7 @@ namespace NewLife.CommonEntity
 
         static DictionaryCache<Type, String> desCache = new DictionaryCache<Type, string>();
         /// <summary>获取实体类的描述名</summary>
-        /// <param name="type"></param>
+        /// <param name="type">类型</param>
         /// <returns></returns>
         static String GetDescription(Type type)
         {

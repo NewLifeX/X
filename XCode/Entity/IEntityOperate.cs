@@ -64,7 +64,7 @@ namespace XCode
 
         #region 查找单个实体
         /// <summary>根据属性以及对应的值，查找单个实体</summary>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <param name="value"></param>
         /// <returns></returns>
         IEntity Find(String name, Object value);
@@ -267,14 +267,14 @@ namespace XCode
         DbParameter CreateParameter();
 
         /// <summary>格式化参数名</summary>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <returns></returns>
         String FormatParameterName(String name);
         #endregion
 
         #region 辅助方法
         /// <summary>格式化关键字</summary>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <returns></returns>
         String FormatName(String name);
 

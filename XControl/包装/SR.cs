@@ -34,7 +34,7 @@ namespace XControl
         #endregion
 
         /// <summary>取得System.Web资源中的字符串</summary>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <param name="args"></param>
         /// <returns></returns>
         public static string GetString(string name, params object[] args)
@@ -50,7 +50,7 @@ namespace XControl
 
         static Dictionary<String, String> cache = new Dictionary<string, string>();
         /// <summary>取得System.Web资源中的字符串</summary>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
         /// <returns></returns>
         public static string GetString(string name)
         {
