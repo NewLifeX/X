@@ -247,7 +247,7 @@ namespace NewLife.Reflection
 
         /// <summary>快速调用方法成员</summary>
         /// <typeparam name="TResult"></typeparam>
-        /// <param name="target"></param>
+        /// <param name="target">目标对象</param>
         /// <param name="name">名称</param>
         /// <param name="parameters">参数数组</param>
         /// <returns></returns>
@@ -280,7 +280,7 @@ namespace NewLife.Reflection
 
         /// <summary>通过传入参数字典快速调用方法</summary>
         /// <typeparam name="TResult"></typeparam>
-        /// <param name="target"></param>
+        /// <param name="target">目标对象</param>
         /// <param name="name">名称</param>
         /// <param name="parameters">参数数组</param>
         /// <returns></returns>

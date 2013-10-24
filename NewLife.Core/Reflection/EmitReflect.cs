@@ -49,8 +49,8 @@ namespace NewLife.Reflection
         }
 
         /// <summary></summary>
-        /// <param name="target"></param>
-        /// <param name="property"></param>
+        /// <param name="target">目标对象</param>
+        /// <param name="property">属性</param>
         /// <returns></returns>
         public override Object GetValue(Object target, PropertyInfo property)
         {
@@ -58,8 +58,8 @@ namespace NewLife.Reflection
         }
 
         /// <summary></summary>
-        /// <param name="target"></param>
-        /// <param name="field"></param>
+        /// <param name="target">目标对象</param>
+        /// <param name="field">字段</param>
         /// <returns></returns>
         public override Object GetValue(Object target, FieldInfo field)
         {
@@ -67,18 +67,18 @@ namespace NewLife.Reflection
         }
 
         /// <summary></summary>
-        /// <param name="target"></param>
-        /// <param name="property"></param>
-        /// <param name="value"></param>
+        /// <param name="target">目标对象</param>
+        /// <param name="property">属性</param>
+        /// <param name="value">数值</param>
         public override void SetValue(Object target, PropertyInfo property, Object value)
         {
             PropertyInfoX.Create(property).SetValue(target, value);
         }
 
         /// <summary></summary>
-        /// <param name="target"></param>
-        /// <param name="field"></param>
-        /// <param name="value"></param>
+        /// <param name="target">目标对象</param>
+        /// <param name="field">字段</param>
+        /// <param name="value">数值</param>
         public override void SetValue(Object target, FieldInfo field, Object value)
         {
             FieldInfoX.Create(field).SetValue(target, value);

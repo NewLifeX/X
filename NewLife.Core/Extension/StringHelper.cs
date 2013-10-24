@@ -14,7 +14,7 @@ namespace System
     {
         #region 字符串扩展
         /// <summary>忽略大小写的字符串比较</summary>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         /// <param name="str"></param>
         /// <returns></returns>
         public static Boolean EqualIgnoreCase(this String value, String str)
@@ -23,7 +23,7 @@ namespace System
         }
 
         /// <summary>是否空或者空白字符串</summary>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         /// <returns></returns>
         public static Boolean IsNullOrWhiteSpace(this String value)
         {
@@ -38,7 +38,7 @@ namespace System
         }
 
         /// <summary>拆分字符串</summary>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         /// <param name="separators"></param>
         /// <returns></returns>
         public static String[] Split(this String value, params String[] separators)

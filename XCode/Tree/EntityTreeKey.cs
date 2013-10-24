@@ -32,7 +32,7 @@ namespace XCode
 
         /// <summary>指定实体类的模型字段排序模式</summary>
         /// <param name="key"></param>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         public EntityTreeKeyAttribute(EntityTreeKeys key, String value)
         {
             Key = key;

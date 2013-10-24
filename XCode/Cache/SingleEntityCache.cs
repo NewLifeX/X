@@ -315,7 +315,7 @@ namespace XCode.Cache
 
         /// <summary>向单对象缓存添加项</summary>
         /// <param name="key"></param>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         /// <returns></returns>
         public Boolean Add(TKey key, TEntity value)
         {

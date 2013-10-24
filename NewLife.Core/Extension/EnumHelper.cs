@@ -24,7 +24,7 @@ namespace System
         /// <typeparam name="T"></typeparam>
         /// <param name="source"></param>
         /// <param name="flag"></param>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         /// <returns></returns>
         public static T Set<T>(this Enum source, T flag, Boolean value)
         {
@@ -45,7 +45,7 @@ namespace System
         }
 
         /// <summary>获取枚举字段的注释</summary>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         /// <returns></returns>
         public static String GetDescription(this Enum value)
         {

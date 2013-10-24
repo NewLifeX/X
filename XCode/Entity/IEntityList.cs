@@ -41,7 +41,7 @@ namespace XCode
 
         /// <summary>集合是否包含指定项</summary>
         /// <param name="name">名称</param>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         /// <returns></returns>
         Boolean Exists(String name, Object value);
         #endregion
@@ -69,7 +69,7 @@ namespace XCode
 
         /// <summary>设置所有实体中指定项的值</summary>
         /// <param name="name">名称</param>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         IEntityList SetItem(String name, Object value);
 
         /// <summary>获取所有实体中指定项的值</summary>

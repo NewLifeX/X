@@ -111,7 +111,7 @@ namespace XCode.DataAccessLayer
         /// <typeparam name="T"></typeparam>
         /// <param name="dr"></param>
         /// <param name="name">名称</param>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         /// <returns></returns>
         protected static Boolean TryGetDataRowValue<T>(DataRow dr, String name, out T value)
         {

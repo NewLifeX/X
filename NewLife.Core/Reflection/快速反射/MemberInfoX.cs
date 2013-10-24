@@ -193,7 +193,7 @@ namespace NewLife.Reflection
 
         /// <summary>赋值</summary>
         /// <param name="obj"></param>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         public virtual void SetValue(Object obj, Object value) { throw new NotImplementedException(); }
 
         /// <summary>静态 取值</summary>
@@ -201,7 +201,7 @@ namespace NewLife.Reflection
         public Object GetValue() { return GetValue(null); }
 
         /// <summary>静态 赋值</summary>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         public void SetValue(Object value) { SetValue(null, value); }
 
         /// <summary>属性/字段 索引器</summary>

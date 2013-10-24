@@ -231,7 +231,7 @@ namespace NewLife.CommonEntity.Web
         }
 
         /// <summary>查找字段对应的控件</summary>
-        /// <param name="field"></param>
+        /// <param name="field">字段</param>
         /// <returns></returns>
         protected virtual Control FindControlByField(FieldItem field)
         {
@@ -273,7 +273,7 @@ namespace NewLife.CommonEntity.Web
         }
 
         /// <summary>把实体成员的值设置到控件上</summary>
-        /// <param name="field"></param>
+        /// <param name="field">字段</param>
         /// <param name="control"></param>
         /// <param name="canSave"></param>
         protected virtual void SetFormItem(FieldItem field, Control control, Boolean canSave)
@@ -337,7 +337,7 @@ namespace NewLife.CommonEntity.Web
         }
 
         /// <summary>文本框</summary>
-        /// <param name="field"></param>
+        /// <param name="field">字段</param>
         /// <param name="control"></param>
         /// <param name="canSave"></param>
         protected virtual void SetFormItemTextBox(FieldItem field, TextBox control, Boolean canSave)
@@ -360,7 +360,7 @@ namespace NewLife.CommonEntity.Web
         }
 
         /// <summary>标签</summary>
-        /// <param name="field"></param>
+        /// <param name="field">字段</param>
         /// <param name="control"></param>
         /// <param name="canSave"></param>
         protected virtual void SetFormItemLabel(FieldItem field, Label control, Boolean canSave)
@@ -382,7 +382,7 @@ namespace NewLife.CommonEntity.Web
         }
 
         /// <summary>复选框</summary>
-        /// <param name="field"></param>
+        /// <param name="field">字段</param>
         /// <param name="control"></param>
         /// <param name="canSave"></param>
         protected virtual void SetFormItemCheckBox(FieldItem field, CheckBox control, Boolean canSave)
@@ -397,7 +397,7 @@ namespace NewLife.CommonEntity.Web
         }
 
         /// <summary>列表框</summary>
-        /// <param name="field"></param>
+        /// <param name="field">字段</param>
         /// <param name="control"></param>
         /// <param name="canSave"></param>
         protected virtual void SetFormItemListControl(FieldItem field, ListControl control, Boolean canSave)
@@ -419,7 +419,7 @@ namespace NewLife.CommonEntity.Web
         }
 
         /// <summary>单选框</summary>
-        /// <param name="field"></param>
+        /// <param name="field">字段</param>
         /// <param name="control"></param>
         /// <param name="canSave"></param>
         protected virtual void SetFormItemRadioButton(FieldItem field, RadioButton control, Boolean canSave)
@@ -459,7 +459,7 @@ namespace NewLife.CommonEntity.Web
         }
 
         /// <summary>设置控件的不允许空</summary>
-        /// <param name="field"></param>
+        /// <param name="field">字段</param>
         /// <param name="control"></param>
         /// <param name="canSave"></param>
         protected virtual void SetNotAllowNull(FieldItem field, Control control, Boolean canSave)
@@ -503,7 +503,7 @@ namespace NewLife.CommonEntity.Web
         }
 
         /// <summary>把控件的值设置到实体属性上</summary>
-        /// <param name="field"></param>
+        /// <param name="field">字段</param>
         /// <param name="control"></param>
         protected virtual void GetFormItem(FieldItem field, Control control)
         {
@@ -547,7 +547,7 @@ namespace NewLife.CommonEntity.Web
         }
 
         /// <summary>文本框</summary>
-        /// <param name="field"></param>
+        /// <param name="field">字段</param>
         /// <param name="control"></param>
         protected virtual void GetFormItemTextBox(FieldItem field, TextBox control)
         {
@@ -560,7 +560,7 @@ namespace NewLife.CommonEntity.Web
         }
 
         /// <summary>标签，不做任何操作</summary>
-        /// <param name="field"></param>
+        /// <param name="field">字段</param>
         /// <param name="control"></param>
         protected virtual void GetFormItemLabel(FieldItem field, Label control)
         {
@@ -568,7 +568,7 @@ namespace NewLife.CommonEntity.Web
         }
 
         /// <summary>复选框</summary>
-        /// <param name="field"></param>
+        /// <param name="field">字段</param>
         /// <param name="control"></param>
         protected virtual void GetFormItemCheckBox(FieldItem field, CheckBox control)
         {
@@ -585,7 +585,7 @@ namespace NewLife.CommonEntity.Web
         }
 
         /// <summary>列表框</summary>
-        /// <param name="field"></param>
+        /// <param name="field">字段</param>
         /// <param name="control"></param>
         protected virtual void GetFormItemListControl(FieldItem field, ListControl control)
         {
@@ -596,7 +596,7 @@ namespace NewLife.CommonEntity.Web
         }
 
         /// <summary>单选框</summary>
-        /// <param name="field"></param>
+        /// <param name="field">字段</param>
         /// <param name="control"></param>
         protected virtual void GetFormItemRadioButton(FieldItem field, RadioButton control)
         {
@@ -657,7 +657,7 @@ namespace NewLife.CommonEntity.Web
         }
 
         /// <summary>验证表单项</summary>
-        /// <param name="field"></param>
+        /// <param name="field">字段</param>
         /// <param name="control"></param>
         /// <returns></returns>
         protected virtual Boolean ValidFormItem(FieldItem field, Control control)

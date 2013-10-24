@@ -16,7 +16,7 @@ namespace NewLife.CommonEntity
     {
         /// <summary>已重载。</summary>
         /// <param name="entity"></param>
-        /// <param name="field"></param>
+        /// <param name="field">字段</param>
         /// <param name="control"></param>
         protected override void GetFormItem(IEntity entity, FieldItem field, Control control)
         {
@@ -32,7 +32,7 @@ namespace NewLife.CommonEntity
 
         /// <summary>从上传控件中取数据</summary>
         /// <param name="entity"></param>
-        /// <param name="field"></param>
+        /// <param name="field">字段</param>
         /// <param name="control"></param>
         protected virtual void GetFormItemFileUpload(IEntity entity, FieldItem field, FileUpload control)
         {

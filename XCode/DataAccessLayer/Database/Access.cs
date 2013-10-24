@@ -159,8 +159,8 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>格式化数据为SQL数据</summary>
-        /// <param name="field"></param>
-        /// <param name="value"></param>
+        /// <param name="field">字段</param>
+        /// <param name="value">数值</param>
         /// <returns></returns>
         public override string FormatValue(IDataColumn field, object value)
         {
@@ -392,7 +392,7 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>取得字段默认值</summary>
-        /// <param name="field"></param>
+        /// <param name="field">字段</param>
         /// <param name="onlyDefine">仅仅定义</param>
         /// <returns></returns>
         protected override string GetFieldDefault(IDataColumn field, bool onlyDefine)

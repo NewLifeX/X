@@ -150,7 +150,7 @@ namespace XCode.Configuration
         #region 构造
         /// <summary>构造函数</summary>
         /// <param name="table"></param>
-        /// <param name="property"></param>
+        /// <param name="property">属性</param>
         public FieldItem(TableItem table, PropertyInfo property)
         {
             if (property == null) throw new ArgumentNullException("property");
@@ -179,7 +179,7 @@ namespace XCode.Configuration
         }
 
         /// <summary>填充到XField中去</summary>
-        /// <param name="field"></param>
+        /// <param name="field">字段</param>
         public void Fill(IDataColumn field)
         {
             _Field = field;
@@ -220,7 +220,7 @@ namespace XCode.Configuration
 
         /// <summary>建立表达式</summary>
         /// <param name="action"></param>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         /// <returns></returns>
         public WhereExpression CreateExpression(String action, Object value)
         {
@@ -252,12 +252,12 @@ namespace XCode.Configuration
 
         #region 基本运算
         /// <summary>等于</summary>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         /// <returns></returns>
         public WhereExpression Equal(object value) { return MakeCondition(this, value, "="); }
 
         /// <summary>不等于</summary>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         /// <returns></returns>
         public WhereExpression NotEqual(object value) { return MakeCondition(this, value, "<>"); }
 
@@ -265,17 +265,17 @@ namespace XCode.Configuration
         //public static String operator !=(FieldItem field, Object value) { return MakeCondition(field, value, "<>"); }
 
         /// <summary>以某个字符串开始,{0}%操作</summary>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         /// <returns></returns>
         public WhereExpression StartsWith(Object value) { return CreateExpression("{0}%", value); }
 
         /// <summary>以某个字符串结束，%{0}操作</summary>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         /// <returns></returns>
         public WhereExpression EndsWith(Object value) { return CreateExpression("%{0}", value); }
 
         /// <summary>包含某个字符串，%{0}%操作</summary>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         /// <returns></returns>
         public WhereExpression Contains(Object value) { return CreateExpression("%{0}%", value); }
 
@@ -317,7 +317,7 @@ namespace XCode.Configuration
         }
 
         /// <summary>NotIn操作</summary>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         /// <returns></returns>
         public WhereExpression NotIn(String value)
         {
@@ -325,7 +325,7 @@ namespace XCode.Configuration
         }
 
         /// <summary>NotIn操作</summary>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         /// <returns></returns>
         public WhereExpression NotIn(IEnumerable value) { return _In(value, false); }
 
@@ -418,26 +418,26 @@ namespace XCode.Configuration
 
         #region 重载运算符
         /// <summary>大于</summary>
-        /// <param name="field"></param>
-        /// <param name="value"></param>
+        /// <param name="field">字段</param>
+        /// <param name="value">数值</param>
         /// <returns></returns>
         public static WhereExpression operator >(FieldItem field, Object value) { return MakeCondition(field, value, ">"); }
 
         /// <summary>小于</summary>
-        /// <param name="field"></param>
-        /// <param name="value"></param>
+        /// <param name="field">字段</param>
+        /// <param name="value">数值</param>
         /// <returns></returns>
         public static WhereExpression operator <(FieldItem field, Object value) { return MakeCondition(field, value, "<"); }
 
         /// <summary>大于等于</summary>
-        /// <param name="field"></param>
-        /// <param name="value"></param>
+        /// <param name="field">字段</param>
+        /// <param name="value">数值</param>
         /// <returns></returns>
         public static WhereExpression operator >=(FieldItem field, Object value) { return MakeCondition(field, value, ">="); }
 
         /// <summary>小于等于</summary>
-        /// <param name="field"></param>
-        /// <param name="value"></param>
+        /// <param name="field">字段</param>
+        /// <param name="value">数值</param>
         /// <returns></returns>
         public static WhereExpression operator <=(FieldItem field, Object value) { return MakeCondition(field, value, "<="); }
 
@@ -478,19 +478,19 @@ namespace XCode.Configuration
         #region 构造
         /// <summary>构造函数</summary>
         /// <param name="table"></param>
-        /// <param name="property"></param>
+        /// <param name="property">属性</param>
         public Field(TableItem table, PropertyInfo property) : base(table, property) { }
         #endregion
 
         /// <summary>等于</summary>
-        /// <param name="field"></param>
-        /// <param name="value"></param>
+        /// <param name="field">字段</param>
+        /// <param name="value">数值</param>
         /// <returns></returns>
         public static WhereExpression operator ==(Field field, Object value) { return field.Equal(value); }
 
         /// <summary>不等于</summary>
-        /// <param name="field"></param>
-        /// <param name="value"></param>
+        /// <param name="field">字段</param>
+        /// <param name="value">数值</param>
         /// <returns></returns>
         public static WhereExpression operator !=(Field field, Object value) { return field.NotEqual(value); }
 

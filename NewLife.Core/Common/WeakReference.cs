@@ -10,11 +10,11 @@ namespace NewLife
         public WeakReference() : base(null) { }
 
         /// <summary>实例化</summary>
-        /// <param name="target"></param>
+        /// <param name="target">目标对象</param>
         public WeakReference(T target) : base(target) { }
 
         /// <summary>实例化</summary>
-        /// <param name="target"></param>
+        /// <param name="target">目标对象</param>
         /// <param name="trackResurrection"></param>
         public WeakReference(T target, bool trackResurrection) : base(target, trackResurrection) { }
 
@@ -26,7 +26,7 @@ namespace NewLife
         }
 
         /// <summary>尝试获取目标值</summary>
-        /// <param name="target"></param>
+        /// <param name="target">目标对象</param>
         /// <returns></returns>
         public Boolean TryGetTarget(out T target)
         {
@@ -44,7 +44,7 @@ namespace NewLife
         }
 
         /// <summary>类型转换</summary>
-        /// <param name="target"></param>
+        /// <param name="target">目标对象</param>
         /// <returns></returns>
         public static implicit operator WeakReference<T>(T target)
         {

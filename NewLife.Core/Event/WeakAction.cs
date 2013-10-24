@@ -46,12 +46,12 @@ namespace NewLife
 
         #region 构造
         /// <summary>实例化</summary>
-        /// <param name="target"></param>
+        /// <param name="target">目标对象</param>
         /// <param name="method"></param>
         public WeakAction(Object target, MethodInfo method) : this(target, method, null, false) { }
 
         /// <summary>实例化</summary>
-        /// <param name="target"></param>
+        /// <param name="target">目标对象</param>
         /// <param name="method"></param>
         /// <param name="unHandler"></param>
         /// <param name="once"></param>

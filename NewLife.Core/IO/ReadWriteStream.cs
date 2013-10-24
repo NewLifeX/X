@@ -65,7 +65,7 @@ namespace NewLife.IO
         public override long Seek(long offset, SeekOrigin origin) { return InputStream.Seek(offset, origin); }
 
         /// <summary>设置输出流的长度</summary>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         public override void SetLength(long value) { OutputStream.SetLength(value); }
 
         /// <summary>把数据写入到输出流中</summary>

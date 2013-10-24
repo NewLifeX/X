@@ -382,7 +382,7 @@ namespace XCode
         /// <summary>设置扩展属性</summary>
         /// <typeparam name="TDependEntity"></typeparam>
         /// <param name="key"></param>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         protected virtual void SetExtend<TDependEntity>(String key, Object value) where TDependEntity : Entity<TDependEntity>, new()
         {
             // 针对每个类型，仅注册一个事件

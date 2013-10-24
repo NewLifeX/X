@@ -5,7 +5,7 @@ namespace System
     public static class BitHelper
     {
         /// <summary>设置数据位</summary>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         /// <param name="position"></param>
         /// <param name="flag"></param>
         /// <returns></returns>
@@ -15,7 +15,7 @@ namespace System
         }
 
         /// <summary>设置数据位</summary>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         /// <param name="position"></param>
         /// <param name="length"></param>
         /// <param name="bits"></param>
@@ -33,7 +33,7 @@ namespace System
         }
 
         /// <summary>设置数据位</summary>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         /// <param name="position"></param>
         /// <param name="flag"></param>
         /// <returns></returns>
@@ -50,7 +50,7 @@ namespace System
         }
 
         /// <summary>获取数据位</summary>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         /// <param name="position"></param>
         /// <returns></returns>
         public static Boolean GetBit(this UInt16 value, Int32 position)
@@ -59,7 +59,7 @@ namespace System
         }
 
         /// <summary>获取数据位</summary>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         /// <param name="position"></param>
         /// <param name="length"></param>
         /// <returns></returns>
@@ -73,7 +73,7 @@ namespace System
         }
 
         /// <summary>获取数据位</summary>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         /// <param name="position"></param>
         /// <returns></returns>
         public static Boolean GetBit(this Byte value, Int32 position)

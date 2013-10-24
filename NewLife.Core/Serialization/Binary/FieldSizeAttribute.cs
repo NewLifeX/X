@@ -37,9 +37,9 @@ namespace NewLife.Serialization
 
         #region 方法
         /// <summary>找到所引用的参考字段</summary>
-        /// <param name="target"></param>
+        /// <param name="target">目标对象</param>
         /// <param name="member"></param>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         /// <returns></returns>
         MemberInfoX FindReference(Object target, MemberInfo member, out Object value)
         {
@@ -77,7 +77,7 @@ namespace NewLife.Serialization
         }
 
         /// <summary>设置目标对象的引用大小值</summary>
-        /// <param name="target"></param>
+        /// <param name="target">目标对象</param>
         /// <param name="member"></param>
         /// <param name="encoding"></param>
         internal void SetReferenceSize(Object target, MemberInfo member, Encoding encoding)
@@ -115,7 +115,7 @@ namespace NewLife.Serialization
         }
 
         /// <summary>获取目标对象的引用大小值</summary>
-        /// <param name="target"></param>
+        /// <param name="target">目标对象</param>
         /// <param name="member"></param>
         /// <returns></returns>
         internal Int32 GetReferenceSize(Object target, MemberInfo member)

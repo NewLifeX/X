@@ -408,7 +408,7 @@ namespace XControl
 
         /// <summary>获取字段值</summary>
         /// <param name="component"></param>
-        /// <param name="field"></param>
+        /// <param name="field">字段</param>
         /// <returns></returns>
         private String GetDataFileValue(object component, String field)
         {

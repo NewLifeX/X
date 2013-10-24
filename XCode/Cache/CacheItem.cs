@@ -50,12 +50,12 @@ namespace XCode.Cache
 
         /// <summary>构造函数</summary>
         /// <param name="tableNames"></param>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         public CacheItem(String[] tableNames, T value) : this(tableNames, value, 0) { }
 
         /// <summary>构造函数</summary>
         /// <param name="tableNames"></param>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         /// <param name="time">缓存时间，单位秒</param>
         public CacheItem(String[] tableNames, T value, Int32 time) : base(tableNames, time) { _Value = value; }
     }

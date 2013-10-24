@@ -55,7 +55,7 @@ namespace NewLife.Collections
 
         #region 方法
         /// <summary>添加</summary>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         public virtual void Add(T value)
         {
             this.Insert(this.Count, value);
@@ -71,7 +71,7 @@ namespace NewLife.Collections
         }
 
         /// <summary>是否包含指定元素</summary>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         /// <returns></returns>
         public virtual bool Contains(T value)
         {
@@ -119,7 +119,7 @@ namespace NewLife.Collections
 
         /// <summary>将一个项插入指定索引处的列表。</summary>
         /// <param name="index"></param>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         public virtual void Insert(int index, T value)
         {
             InnerList.Insert(index, value);
@@ -135,7 +135,7 @@ namespace NewLife.Collections
         }
 
         /// <summary>从列表中移除指定对象</summary>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         /// <returns></returns>
         public virtual bool Remove(T value)
         {

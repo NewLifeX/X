@@ -76,7 +76,7 @@ namespace NewLife.Xml
 
         /// <summary>设置类型</summary>
         /// <param name="key"></param>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         public void SetItem(String key, Object value)
         {
             if (value == null)

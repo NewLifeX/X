@@ -329,7 +329,7 @@ namespace NewLife.Serialization.Json
         }
 
         /// <summary>返回一个js 布尔型值</summary>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         /// <returns></returns>
         public SimpleJson Boolean(bool value)
         {
@@ -337,7 +337,7 @@ namespace NewLife.Serialization.Json
         }
 
         /// <summary>返回一个js 整型数字</summary>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         /// <returns></returns>
         public SimpleJson Number(int value)
         {
@@ -345,7 +345,7 @@ namespace NewLife.Serialization.Json
         }
 
         /// <summary>返回一个js 长整型数字,其在js中的表现和整型完全一样</summary>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         /// <returns></returns>
         public SimpleJson Number(long value)
         {
@@ -353,7 +353,7 @@ namespace NewLife.Serialization.Json
         }
 
         /// <summary>返回一个js 浮点数</summary>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         /// <returns></returns>
         public SimpleJson Number(float value)
         {
@@ -361,7 +361,7 @@ namespace NewLife.Serialization.Json
         }
 
         /// <summary>返回一个js 双精度浮点数,其在js中的表现和浮点数完全一样</summary>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         /// <returns></returns>
         public SimpleJson Number(double value)
         {
@@ -369,7 +369,7 @@ namespace NewLife.Serialization.Json
         }
 
         /// <summary>返回一个js 字符串值</summary>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         /// <returns></returns>
         public SimpleJson String(string value)
         {
@@ -424,7 +424,7 @@ namespace NewLife.Serialization.Json
         #region 产生Json字符串
 
         /// <summary>将指定Json值写入到指定的文本写入流</summary>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         /// <param name="writer"></param>
         public void To(SimpleJson value, TextWriter writer)
         {
@@ -435,7 +435,7 @@ namespace NewLife.Serialization.Json
         /// <remarks>
         /// 如果value是一个Unknown/Undefined类型的值,则返回空白字符串,但是如果value下的对象或数组的中有Unknown/Undefined类型的值,则会尽可能修正为null或忽略(在数组结尾的Unknown/Undefined类型值会忽略)以符合Json标准
         /// </remarks>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         /// <returns></returns>
         public string To(SimpleJson value)
         {
@@ -456,7 +456,7 @@ namespace NewLife.Serialization.Json
         }
 
         /// <summary>返回指定Json值的Json字符串,私有方法</summary>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         /// <returns></returns>
         private string _To(SimpleJson value)
         {
@@ -503,7 +503,7 @@ namespace NewLife.Serialization.Json
         }
 
         /// <summary>返回指定Json对象的Json字符串</summary>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         /// <returns></returns>
         private string ToObject(SimpleJson value)
         {
@@ -520,7 +520,7 @@ namespace NewLife.Serialization.Json
         }
 
         /// <summary>返回指定Json数组的Json字符串</summary>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         /// <returns></returns>
         private string ToArray(SimpleJson value)
         {
@@ -574,7 +574,7 @@ namespace NewLife.Serialization.Json
         ///   Func&lt;char, string&gt;(用于按字符处理,其中一个返回非null即表示当前字符转换成功)
         ///   Func&lt;string, string&gt;(用于在最后处理整个字符串,会按照顺序全部调用)
         /// </remarks>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         /// <param name="args">处理方式</param>
         /// <returns></returns>
         public static string StringProcess(string value, params object[] args)

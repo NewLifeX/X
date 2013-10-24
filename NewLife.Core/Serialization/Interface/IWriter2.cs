@@ -98,22 +98,22 @@ namespace NewLife.Serialization
         void Write(decimal value);
 
         /// <summary>将一个时间日期写入</summary>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         void Write(DateTime value);
         #endregion
         #endregion
 
         #region 扩展类型
         /// <summary>写入IPAddress</summary>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         void Write(IPAddress value);
 
         /// <summary>写入IPEndPoint</summary>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         void Write(IPEndPoint value);
 
         /// <summary>写入Type</summary>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         void Write(Type value);
         #endregion
 
@@ -123,12 +123,12 @@ namespace NewLife.Serialization
         void WriteName(String name);
 
         /// <summary>写入值类型</summary>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         /// <returns></returns>
         Boolean WriteValue(Object value);
 
         /// <summary>写入Guid</summary>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         void Write(Guid value);
         #endregion
 

@@ -125,7 +125,7 @@ namespace XCode
 
         /// <summary>重载运算符实现And操作，同时通过布尔型支持AndIf</summary>
         /// <param name="exp"></param>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         /// <returns></returns>
         public static WhereExpression operator &(WhereExpression exp, Object value)
         {
@@ -154,7 +154,7 @@ namespace XCode
 
         /// <summary>重载运算符实现Or操作，同时通过布尔型支持OrIf</summary>
         /// <param name="exp"></param>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         /// <returns></returns>
         public static WhereExpression operator |(WhereExpression exp, Object value)
         {

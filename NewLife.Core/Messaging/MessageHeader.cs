@@ -101,7 +101,7 @@ namespace NewLife.Messaging
 
         /// <summary>设置标识位</summary>
         /// <param name="flag"></param>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         /// <returns></returns>
         public MessageHeader SetFlag(Flags flag, Boolean value)
         {

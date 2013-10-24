@@ -6,6 +6,7 @@ using NewLife.Exceptions;
 namespace NewLife.Reflection
 {
     /// <summary>反射接口</summary>
+    /// <remarks>该接口仅用于扩展，不建议外部使用</remarks>
     [EditorBrowsable(EditorBrowsableState.Advanced)]
     public interface IReflect
     {
@@ -58,45 +59,47 @@ namespace NewLife.Reflection
         /// <returns></returns>
         Object Invoke(Object target, MethodBase method, params Object[] parameters);
 
-        ///// <summary></summary>
-        ///// <param name="target"></param>
+        ///// <summary>获取目标对象指定名称的属性/字段值</summary>
+        ///// <param name="target">目标对象</param>
         ///// <param name="name">名称</param>
         ///// <returns></returns>
         //Object GetValue(Object target, String name);
 
-        /// <summary></summary>
-        /// <param name="target"></param>
-        /// <param name="property"></param>
+        /// <summary>获取目标对象的属性值</summary>
+        /// <param name="target">目标对象</param>
+        /// <param name="property">属性</param>
         /// <returns></returns>
         Object GetValue(Object target, PropertyInfo property);
 
-        /// <summary></summary>
-        /// <param name="target"></param>
-        /// <param name="field"></param>
+        /// <summary>获取目标对象的字段值</summary>
+        /// <param name="target">目标对象</param>
+        /// <param name="field">字段</param>
         /// <returns></returns>
         Object GetValue(Object target, FieldInfo field);
 
-        ///// <summary></summary>
-        ///// <param name="target"></param>
+        ///// <summary>设置目标对象指定名称的属性/字段值</summary>
+        ///// <param name="target">目标对象</param>
         ///// <param name="name">名称</param>
-        ///// <param name="value"></param>
+        ///// <param name="value">数值</param>
         //void SetValue(Object target, String name, Object value);
 
-        /// <summary></summary>
-        /// <param name="target"></param>
-        /// <param name="property"></param>
-        /// <param name="value"></param>
+        /// <summary>设置目标对象的属性值</summary>
+        /// <param name="target">目标对象</param>
+        /// <param name="property">属性</param>
+        /// <param name="value">数值</param>
         void SetValue(Object target, PropertyInfo property, Object value);
 
-        /// <summary></summary>
-        /// <param name="target"></param>
-        /// <param name="field"></param>
-        /// <param name="value"></param>
+        /// <summary>设置目标对象的字段值</summary>
+        /// <param name="target">目标对象</param>
+        /// <param name="field">字段</param>
+        /// <param name="value">数值</param>
         void SetValue(Object target, FieldInfo field, Object value);
         #endregion
     }
 
     /// <summary>默认反射实现</summary>
+    /// <remarks>该接口仅用于扩展，不建议外部使用</remarks>
+    [EditorBrowsable(EditorBrowsableState.Advanced)]
     public class DefaultReflect : IReflect
     {
         #region 反射获取
@@ -176,8 +179,8 @@ namespace NewLife.Reflection
             return method.Invoke(target, parameters);
         }
 
-        /// <summary></summary>
-        /// <param name="target"></param>
+        /// <summary>获取目标对象指定名称的属性/字段值</summary>
+        /// <param name="target">目标对象</param>
         /// <param name="name">名称</param>
         /// <returns></returns>
         public virtual Object GetValue(Object target, String name)
@@ -195,28 +198,28 @@ namespace NewLife.Reflection
             throw new XException("类{0}中找不到名为{1}的属性或字段！", type, name);
         }
 
-        /// <summary></summary>
-        /// <param name="target"></param>
-        /// <param name="property"></param>
+        /// <summary>获取目标对象的属性值</summary>
+        /// <param name="target">目标对象</param>
+        /// <param name="property">属性</param>
         /// <returns></returns>
         public virtual Object GetValue(Object target, PropertyInfo property)
         {
             return property.GetValue(target, null);
         }
 
-        /// <summary></summary>
-        /// <param name="target"></param>
-        /// <param name="field"></param>
+        /// <summary>获取目标对象的字段值</summary>
+        /// <param name="target">目标对象</param>
+        /// <param name="field">字段</param>
         /// <returns></returns>
         public virtual Object GetValue(Object target, FieldInfo field)
         {
             return field.GetValue(target);
         }
 
-        /// <summary></summary>
-        /// <param name="target"></param>
+        /// <summary>设置目标对象指定名称的属性/字段值</summary>
+        /// <param name="target">目标对象</param>
         /// <param name="name">名称</param>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         public virtual void SetValue(Object target, String name, Object value)
         {
             if (name == null) throw new ArgumentNullException("name");
@@ -232,19 +235,19 @@ namespace NewLife.Reflection
             throw new XException("类{0}中找不到名为{1}的属性或字段！", type, name);
         }
 
-        /// <summary></summary>
-        /// <param name="target"></param>
-        /// <param name="property"></param>
-        /// <param name="value"></param>
+        /// <summary>设置目标对象的属性值</summary>
+        /// <param name="target">目标对象</param>
+        /// <param name="property">属性</param>
+        /// <param name="value">数值</param>
         public virtual void SetValue(Object target, PropertyInfo property, Object value)
         {
             property.SetValue(target, value, null);
         }
 
-        /// <summary></summary>
-        /// <param name="target"></param>
-        /// <param name="field"></param>
-        /// <param name="value"></param>
+        /// <summary>设置目标对象的字段值</summary>
+        /// <param name="target">目标对象</param>
+        /// <param name="field">字段</param>
+        /// <param name="value">数值</param>
         public virtual void SetValue(Object target, FieldInfo field, Object value)
         {
             field.SetValue(target, value);
@@ -253,7 +256,7 @@ namespace NewLife.Reflection
 
         #region 辅助方法
         /// <summary>获取类型，如果target是Type类型，则表示要反射的是静态成员</summary>
-        /// <param name="target"></param>
+        /// <param name="target">目标对象</param>
         /// <returns></returns>
         protected virtual Type GetType(ref Object target)
         {

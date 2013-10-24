@@ -358,7 +358,7 @@ namespace XCode.DataAccessLayer
 
         /// <summary>读取</summary>
         /// <param name="reader"></param>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         public static void ReadXml(XmlReader reader, Object value)
         {
             var pis = GetProperties(value.GetType());
@@ -433,7 +433,7 @@ namespace XCode.DataAccessLayer
 
         /// <summary>写入</summary>
         /// <param name="writer"></param>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         /// <param name="writeDefaultValueMember">是否写数值为默认值的成员。为了节省空间，默认不写。</param>
         public static void WriteXml(XmlWriter writer, Object value, Boolean writeDefaultValueMember = false)
         {

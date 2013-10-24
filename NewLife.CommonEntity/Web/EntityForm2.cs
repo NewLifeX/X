@@ -484,7 +484,7 @@ namespace NewLife.CommonEntity.Web
         }
 
         /// <summary>验证表单项</summary>
-        /// <param name="field"></param>
+        /// <param name="field">字段</param>
         /// <param name="control"></param>
         /// <returns></returns>
         protected virtual Boolean ValidFormItem(FieldItem field, Control control)
@@ -653,7 +653,7 @@ namespace NewLife.CommonEntity.Web
         }
 
         /// <summary>查找字段对应的控件</summary>
-        /// <param name="field"></param>
+        /// <param name="field">字段</param>
         /// <returns></returns>
         protected virtual Control FindControlByField(FieldItem field)
         {

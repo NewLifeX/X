@@ -20,7 +20,7 @@ namespace XCode
 
         /// <summary>已重载。新增元素时，触发事件改变</summary>
         /// <param name="index"></param>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         public override void Insert(int index, T value)
         {
             base.Insert(index, value);

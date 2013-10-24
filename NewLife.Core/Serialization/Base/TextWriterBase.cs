@@ -109,7 +109,7 @@ namespace NewLife.Serialization
         public override void Write(String value) { WriteLiteral(value); }
 
         /// <summary>输出字符串字面值,不做编码处理</summary>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         protected void WriteLiteral(String value)
         {
             Depth++;
@@ -119,7 +119,7 @@ namespace NewLife.Serialization
         }
 
         /// <summary>输出字符串字面值,不做编码处理</summary>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         protected virtual void OnWriteLiteral(String value) { throw new NotImplementedException(); }
 
         /// <summary>输出空</summary>
@@ -136,24 +136,24 @@ namespace NewLife.Serialization
         public override void Write(decimal value) { WriteLiteral(value.ToString()); }
 
         ///// <summary>将一个时间日期写入</summary>
-        ///// <param name="value"></param>
+        ///// <param name="value">数值</param>
         //public override void Write(DateTime value) { WriteLiteral(value.ToString("yyyy-MM-dd HH:mm:ss")); }
         #endregion
         #endregion
 
         #region 基础名值
         /// <summary>写入Guid</summary>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         public override void Write(Guid value) { Write(value.ToString()); }
         #endregion
 
         #region 扩展类型
         /// <summary>写入IPAddress</summary>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         protected override void OnWrite(IPAddress value) { Write(value.ToString()); }
 
         /// <summary>写入IPEndPoint</summary>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         protected override void OnWrite(IPEndPoint value) { Write(value.ToString()); }
         #endregion
 

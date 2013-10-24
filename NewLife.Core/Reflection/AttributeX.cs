@@ -104,7 +104,7 @@ namespace System
         /// <summary>获取自定义属性的值。可用于ReflectionOnly加载的程序集</summary>
         /// <typeparam name="TAttribute"></typeparam>
         /// <typeparam name="TResult"></typeparam>
-        /// <param name="target"></param>
+        /// <param name="target">目标对象</param>
         /// <param name="inherit">是否递归</param>
         /// <returns></returns>
         public static TResult GetCustomAttributeValue<TAttribute, TResult>(this MemberInfo target, Boolean inherit = true)

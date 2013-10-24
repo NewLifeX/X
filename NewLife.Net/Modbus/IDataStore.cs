@@ -20,12 +20,12 @@ namespace NewLife.Net.Modbus
 
     /// <summary>写入线圈</summary>
     /// <param name="i"></param>
-    /// <param name="value"></param>
+    /// <param name="value">数值</param>
     public delegate void WriteCoilHandler(Int32 i, Boolean value);
 
     /// <summary>写入寄存器</summary>
     /// <param name="i"></param>
-    /// <param name="value"></param>
+    /// <param name="value">数值</param>
     public delegate void WriteRegisterHandler(Int32 i, Int32 value);
 
     /// <summary>位存储接口</summary>
@@ -73,7 +73,7 @@ namespace NewLife.Net.Modbus
 
         /// <summary>写入</summary>
         /// <param name="i"></param>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         void Write(Int32 i, UInt16 value);
 
         /// <summary>写入寄存器</summary>

@@ -144,7 +144,7 @@ namespace XCode.Code
         }
 
         /// <summary>添加私有字段</summary>
-        /// <param name="field"></param>
+        /// <param name="field">字段</param>
         public CodeMemberField AddField(IDataColumn field)
         {
             var f = new CodeMemberField();
@@ -158,7 +158,7 @@ namespace XCode.Code
         }
 
         /// <summary>添加单个属性</summary>
-        /// <param name="field"></param>
+        /// <param name="field">字段</param>
         public CodeMemberProperty AddProperty(IDataColumn field)
         {
             //String name = FieldNames[field.Name];

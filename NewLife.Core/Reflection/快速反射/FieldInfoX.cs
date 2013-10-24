@@ -49,7 +49,7 @@ namespace NewLife.Reflection
 
         private static DictionaryCache<FieldInfo, FieldInfoX> cache = new DictionaryCache<FieldInfo, FieldInfoX>();
         /// <summary>创建</summary>
-        /// <param name="field"></param>
+        /// <param name="field">字段</param>
         /// <returns></returns>
         public static FieldInfoX Create(FieldInfo field)
         {
@@ -192,7 +192,7 @@ namespace NewLife.Reflection
 
         /// <summary>赋值</summary>
         /// <param name="obj"></param>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         [DebuggerStepThrough]
         public override void SetValue(Object obj, Object value)
         {
@@ -236,7 +236,7 @@ namespace NewLife.Reflection
 
         /// <summary>静态快速取值。若字段不存在，会抛出异常。不确定字段是否存在时，建议使用Create方法</summary>
         /// <typeparam name="TResult"></typeparam>
-        /// <param name="target"></param>
+        /// <param name="target">目标对象</param>
         /// <param name="name">名称</param>
         /// <returns></returns>
         public static TResult GetValue<TResult>(Object target, String name) { return (TResult)GetValue(target.GetType(), target, name); }
@@ -249,15 +249,15 @@ namespace NewLife.Reflection
         public static TResult GetValue<TTarget, TResult>(String name) { return (TResult)GetValue(typeof(TTarget), null, name); }
 
         /// <summary>静态快速赋值。若字段不存在，会抛出异常。不确定字段是否存在时，建议使用Create方法</summary>
-        /// <param name="target"></param>
+        /// <param name="target">目标对象</param>
         /// <param name="name">名称</param>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         public static void SetValue(Object target, String name, Object value) { SetValue(target.GetType(), target, name, value); }
 
         /// <summary>快速设置静态字段。若字段不存在，会抛出异常。不确定字段是否存在时，建议使用Create方法</summary>
         /// <typeparam name="TTarget"></typeparam>
         /// <param name="name">名称</param>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         public static void SetValue<TTarget>(String name, Object value) { SetValue(typeof(TTarget), null, name, value); }
 
         delegate Object FastGetValueHandler(Object obj);

@@ -62,7 +62,7 @@ namespace NewLife.Serialization
 
         #region 字节
         /// <summary>写入字节</summary>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         public override void Write(byte value)
         {
             SetDebugIndent();
@@ -137,7 +137,7 @@ namespace NewLife.Serialization
         /// 以7位压缩格式写入32位整数，小于7位用1个字节，小于14位用2个字节。
         /// 由每次写入的一个字节的第一位标记后面的字节是否还是当前数据，所以每个字节实际可利用存储空间只有后7位。
         /// </summary>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         /// <returns>实际写入字节数</returns>
         public Int32 WriteEncoded(Int16 value)
         {
@@ -163,7 +163,7 @@ namespace NewLife.Serialization
         /// 以7位压缩格式写入32位整数，小于7位用1个字节，小于14位用2个字节。
         /// 由每次写入的一个字节的第一位标记后面的字节是否还是当前数据，所以每个字节实际可利用存储空间只有后7位。
         /// </summary>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         /// <returns>实际写入字节数</returns>
         public Int32 WriteEncoded(Int32 value)
         {
@@ -189,7 +189,7 @@ namespace NewLife.Serialization
         /// 以7位压缩格式写入64位整数，小于7位用1个字节，小于14位用2个字节。
         /// 由每次写入的一个字节的第一位标记后面的字节是否还是当前数据，所以每个字节实际可利用存储空间只有后7位。
         /// </summary>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         /// <returns>实际写入字节数</returns>
         public Int32 WriteEncoded(Int64 value)
         {
@@ -212,7 +212,7 @@ namespace NewLife.Serialization
         }
 
         /// <summary>获取整数编码后所占字节数</summary>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         /// <returns></returns>
         public static Int32 GetEncodedIntSize(Int64 value)
         {
@@ -231,7 +231,7 @@ namespace NewLife.Serialization
 
         #region 扩展处理类型
         /// <summary>写入Type</summary>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         protected override void OnWriteType(Type value)
         {
             if (Settings.SplitComplexType)

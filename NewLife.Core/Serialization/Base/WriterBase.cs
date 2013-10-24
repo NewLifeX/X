@@ -170,7 +170,7 @@ namespace NewLife.Serialization
         }
 
         /// <summary>将一个时间日期写入</summary>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         public virtual void Write(DateTime value) { Write(Settings.ConvertDateTimeToInt64(value)); }
         #endregion
         #endregion
@@ -181,7 +181,7 @@ namespace NewLife.Serialization
         public virtual void WriteName(String name) { }
 
         /// <summary>写入值类型</summary>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         /// <returns></returns>
         public Boolean WriteValue(Object value) { return WriteValue(value, null); }
 
@@ -266,7 +266,7 @@ namespace NewLife.Serialization
         }
 
         /// <summary>写入Guid</summary>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         public virtual void Write(Guid value) { Write(value.ToByteArray(), -1); }
         #endregion
 
@@ -442,7 +442,7 @@ namespace NewLife.Serialization
 
         #region 扩展处理类型
         /// <summary>扩展写入，反射查找合适的写入方法</summary>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         /// <param name="type">类型</param>
         /// <returns></returns>
         protected virtual Boolean WriteExtend(Object value, Type type)
@@ -484,11 +484,11 @@ namespace NewLife.Serialization
         }
 
         /// <summary>写入IPAddress</summary>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         public void Write(IPAddress value) { if (!WriteObjRef(value)) OnWrite(value); }
 
         /// <summary>写入IPAddress</summary>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         protected virtual void OnWrite(IPAddress value)
         {
             // 考虑到IPv4和IPv6，地址的字节数不是固定的，所以必须先写大小
@@ -502,11 +502,11 @@ namespace NewLife.Serialization
         }
 
         /// <summary>写入IPEndPoint</summary>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         public void Write(IPEndPoint value) { if (!WriteObjRef(value)) OnWrite(value); }
 
         /// <summary>写入IPEndPoint</summary>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         protected virtual void OnWrite(IPEndPoint value)
         {
             // 有可能value不为空而value.Address为空，导致读取失败，但这种可能性太低了，可以不考虑
@@ -523,11 +523,11 @@ namespace NewLife.Serialization
         }
 
         /// <summary>写入Type</summary>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         public void Write(Type value) { if (!WriteObjRef(value))  OnWrite(value); }
 
         /// <summary>写入Type</summary>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         protected virtual void OnWrite(Type value)
         {
             if (value == null)
@@ -544,7 +544,7 @@ namespace NewLife.Serialization
         }
 
         /// <summary>写入Type</summary>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         protected virtual void OnWriteType(Type value)
         {
             // 尽管使用AssemblyQualifiedName更精确，但是它的长度实在太大了
@@ -560,7 +560,7 @@ namespace NewLife.Serialization
         /// 若想不写对象类型，可以提前设定精确类型。
         /// </remarks>
         /// <param name="action"></param>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         /// <param name="type">类型</param>
         /// <returns></returns>
         protected Type CheckAndWriteType(String action, Object value, Type type)

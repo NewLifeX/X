@@ -81,8 +81,8 @@ namespace NewLife.Reflection
             return _Current.Invoke(target, method, parameters);
         }
 
-        /// <summary></summary>
-        /// <param name="target"></param>
+        /// <summary>获取目标对象指定名称的属性/字段值</summary>
+        /// <param name="target">目标对象</param>
         /// <param name="name">名称</param>
         /// <returns></returns>
         public static Object GetValue(this Object target, String name)
@@ -99,28 +99,28 @@ namespace NewLife.Reflection
             throw new ArgumentException("类[" + type.FullName + "]中不存在[" + name + "]属性或字段。");
         }
 
-        /// <summary></summary>
-        /// <param name="target"></param>
-        /// <param name="property"></param>
+        /// <summary>获取目标对象的属性值</summary>
+        /// <param name="target">目标对象</param>
+        /// <param name="property">属性</param>
         /// <returns></returns>
         public static Object GetValue(this Object target, PropertyInfo property)
         {
             return _Current.GetValue(target, property);
         }
 
-        /// <summary></summary>
-        /// <param name="target"></param>
-        /// <param name="field"></param>
+        /// <summary>获取目标对象的字段值</summary>
+        /// <param name="target">目标对象</param>
+        /// <param name="field">字段</param>
         /// <returns></returns>
         public static Object GetValue(this Object target, FieldInfo field)
         {
             return _Current.GetValue(target, field);
         }
 
-        /// <summary></summary>
-        /// <param name="target"></param>
+        /// <summary>设置目标对象指定名称的属性/字段值</summary>
+        /// <param name="target">目标对象</param>
         /// <param name="name">名称</param>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         public static void SetValue(this Object target, String name, Object value)
         {
             //_Current.SetValue(target, name, value);
@@ -135,19 +135,19 @@ namespace NewLife.Reflection
             throw new ArgumentException("类[" + type.FullName + "]中不存在[" + name + "]属性或字段。");
         }
 
-        /// <summary></summary>
-        /// <param name="target"></param>
-        /// <param name="property"></param>
-        /// <param name="value"></param>
+        /// <summary>设置目标对象的属性值</summary>
+        /// <param name="target">目标对象</param>
+        /// <param name="property">属性</param>
+        /// <param name="value">数值</param>
         public static void SetValue(this Object target, PropertyInfo property, Object value)
         {
             _Current.SetValue(target, property, value);
         }
 
-        /// <summary></summary>
-        /// <param name="target"></param>
-        /// <param name="field"></param>
-        /// <param name="value"></param>
+        /// <summary>设置目标对象的字段值</summary>
+        /// <param name="target">目标对象</param>
+        /// <param name="field">字段</param>
+        /// <param name="value">数值</param>
         public static void SetValue(this Object target, FieldInfo field, Object value)
         {
             _Current.SetValue(target, field, value);
@@ -156,7 +156,7 @@ namespace NewLife.Reflection
 
         #region 辅助方法
         /// <summary>获取类型，如果target是Type类型，则表示要反射的是静态成员</summary>
-        /// <param name="target"></param>
+        /// <param name="target">目标对象</param>
         /// <returns></returns>
         static Type GetType(ref Object target)
         {

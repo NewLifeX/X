@@ -175,7 +175,7 @@ namespace NewLife.IO
         }
 
         /// <summary>已重载。</summary>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         public override void WriteByte(byte value)
         {
             lock (rwLock)

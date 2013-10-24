@@ -60,7 +60,7 @@ namespace NewLife.Serialization
 
         #region 时间
         /// <summary>将一个时间日期写入</summary>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         public override void Write(DateTime value)
         {
             Depth++;
@@ -143,7 +143,7 @@ namespace NewLife.Serialization
         }
 
         /// <summary>将指定字符串编码成json中表示的字符串,将编码Unicode字符为\uXXXX</summary>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         /// <returns></returns>
         public static string JavascriptStringEncode(string value) { return JavascriptStringEncode(value, true); }
 
@@ -296,7 +296,7 @@ namespace NewLife.Serialization
 
         #region 字典
         /// <summary>将字典类型数据写入到当前流位置</summary>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         /// <param name="type">类型</param>
         /// <param name="callback"></param>
         /// <returns></returns>
@@ -330,7 +330,7 @@ namespace NewLife.Serialization
         }
 
         /// <summary>写入字典键和值</summary>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         /// <param name="keyType"></param>
         /// <param name="valueType"></param>
         /// <param name="index"></param>

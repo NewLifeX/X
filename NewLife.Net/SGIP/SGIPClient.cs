@@ -106,7 +106,7 @@ namespace NewLife.Net.SGIP
 
         #region 发信息
         /// <summary>发信息</summary>
-        /// <param name="target"></param>
+        /// <param name="target">目标对象</param>
         /// <param name="content"></param>
         public void SendMessage(String target, String content)
         {
@@ -146,7 +146,7 @@ namespace NewLife.Net.SGIP
         }
 
         /// <summary>传递信息</summary>
-        /// <param name="target"></param>
+        /// <param name="target">目标对象</param>
         /// <param name="content"></param>
         /// <returns></returns>
         public void DeliverMessage(String target, String content)

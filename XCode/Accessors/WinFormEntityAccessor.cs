@@ -105,7 +105,7 @@ namespace XCode.Accessors
         /// 是否应考滤值转换，如列表，单选，多选其显示文字或写value不同
         /// </summary>
         /// <param name="entity"></param>
-        /// <param name="field"></param>
+        /// <param name="field">字段</param>
         /// <param name="control"></param>
         private void GetFormItem(IEntity entity, FieldItem field, Control control)
         {
@@ -143,8 +143,8 @@ namespace XCode.Accessors
 
         /// <summary>设置实体类值</summary>
         /// <param name="entity"></param>
-        /// <param name="field"></param>
-        /// <param name="value"></param>
+        /// <param name="field">字段</param>
+        /// <param name="value">数值</param>
         void SetEntityItem(IEntity entity, FieldItem field, Object value)
         {
             // 先转为目标类型
@@ -156,7 +156,7 @@ namespace XCode.Accessors
 
         /// <summary>获取TextBoxBase填充实体类</summary>
         /// <param name="entity"></param>
-        /// <param name="field"></param>
+        /// <param name="field">字段</param>
         /// <param name="control"></param>
         private void GetTextBoxBase(IEntity entity, FieldItem field, TextBoxBase control)
         {
@@ -169,7 +169,7 @@ namespace XCode.Accessors
         /// 支持RadioButton,CheckBox
         /// </summary>
         /// <param name="entity"></param>
-        /// <param name="field"></param>
+        /// <param name="field">字段</param>
         /// <param name="control"></param>
         private void GetButtonBase(IEntity entity, FieldItem field, ButtonBase control)
         {
@@ -189,7 +189,7 @@ namespace XCode.Accessors
 
         /// <summary>获取DateTimePicker填充实体类</summary>
         /// <param name="entity"></param>
-        /// <param name="field"></param>
+        /// <param name="field">字段</param>
         /// <param name="control"></param>
         private void GetDateTimePicker(IEntity entity, FieldItem field, DateTimePicker control)
         {
@@ -199,7 +199,7 @@ namespace XCode.Accessors
 
         /// <summary>获取NumericUpDown填充实体类</summary>
         /// <param name="entity"></param>
-        /// <param name="field"></param>
+        /// <param name="field">字段</param>
         /// <param name="control"></param>
         private void GetNumericUpDown(IEntity entity, FieldItem field, NumericUpDown control)
         {
@@ -209,7 +209,7 @@ namespace XCode.Accessors
 
         /// <summary>获取ListControl填充实体类</summary>
         /// <param name="entity"></param>
-        /// <param name="field"></param>
+        /// <param name="field">字段</param>
         /// <param name="control"></param>
         private void GetListControl(IEntity entity, FieldItem field, ListControl control)
         {
@@ -221,7 +221,7 @@ namespace XCode.Accessors
 
         /// <summary>获取Label填充实体类</summary>
         /// <param name="entity"></param>
-        /// <param name="field"></param>
+        /// <param name="field">字段</param>
         /// <param name="control"></param>
         private void GetLabel(IEntity entity, FieldItem field, Label control)
         {
@@ -252,7 +252,7 @@ namespace XCode.Accessors
 
         /// <summary>把实体成员的值设置到控件上</summary>
         /// <param name="entity"></param>
-        /// <param name="field"></param>
+        /// <param name="field">字段</param>
         /// <param name="control"></param>
         /// <param name="canSave"></param>
         protected virtual void SetFormItem(IEntity entity, FieldItem field, Control control, Boolean canSave)
@@ -307,7 +307,7 @@ namespace XCode.Accessors
 
         /// <summary>将实体信息添充至TextBoxBase</summary>
         /// <param name="entity"></param>
-        /// <param name="field"></param>
+        /// <param name="field">字段</param>
         /// <param name="control"></param>
         private void SetTextBoxBase(IEntity entity, FieldItem field, TextBoxBase control)
         {
@@ -326,7 +326,7 @@ namespace XCode.Accessors
 
         /// <summary>将实体信息添充至ButtonBase</summary>
         /// <param name="entity"></param>
-        /// <param name="field"></param>
+        /// <param name="field">字段</param>
         /// <param name="control"></param>
         private void SetButtonBase(IEntity entity, FieldItem field, ButtonBase control)
         {
@@ -360,7 +360,7 @@ namespace XCode.Accessors
 
         /// <summary>将实体信息添充至DateTimePicker</summary>
         /// <param name="entity"></param>
-        /// <param name="field"></param>
+        /// <param name="field">字段</param>
         /// <param name="control"></param>
         private void SetDateTimePicker(IEntity entity, FieldItem field, DateTimePicker control)
         {
@@ -377,7 +377,7 @@ namespace XCode.Accessors
 
         /// <summary>将实体信息添充至NumericUpDown</summary>
         /// <param name="entity"></param>
-        /// <param name="field"></param>
+        /// <param name="field">字段</param>
         /// <param name="control"></param>
         private void SetNumericUpDown(IEntity entity, FieldItem field, NumericUpDown control)
         {
@@ -392,7 +392,7 @@ namespace XCode.Accessors
 
         /// <summary>将实体信息添充至ListControl</summary>
         /// <param name="entity"></param>
-        /// <param name="field"></param>
+        /// <param name="field">字段</param>
         /// <param name="control"></param>
         private void SetListControl(IEntity entity, FieldItem field, ListControl control)
         {
@@ -421,7 +421,7 @@ namespace XCode.Accessors
 
         /// <summary>将实体信息添充至Label</summary>
         /// <param name="entity"></param>
-        /// <param name="field"></param>
+        /// <param name="field">字段</param>
         /// <param name="control"></param>
         private void SetLabel(IEntity entity, FieldItem field, Label control)
         {
@@ -436,7 +436,7 @@ namespace XCode.Accessors
 
         #region 辅助
         /// <summary>查找字段对应的控件</summary>
-        /// <param name="field"></param>
+        /// <param name="field">字段</param>
         /// <returns></returns>
         protected virtual Control FindControlByField(FieldItem field)
         {

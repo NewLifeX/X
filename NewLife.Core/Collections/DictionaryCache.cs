@@ -404,7 +404,7 @@ namespace NewLife.Collections
         #region IDictionary<TKey,TValue> 成员
         /// <summary></summary>
         /// <param name="key"></param>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         public void Add(TKey key, TValue value) { Items.Add(key, new CacheItem(value, Expriod)); }
 
         /// <summary></summary>
@@ -422,7 +422,7 @@ namespace NewLife.Collections
 
         /// <summary></summary>
         /// <param name="key"></param>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         /// <returns></returns>
         public bool TryGetValue(TKey key, out TValue value)
         {

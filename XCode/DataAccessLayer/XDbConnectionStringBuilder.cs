@@ -25,7 +25,7 @@ namespace XCode.DataAccessLayer
         #region 方法
         /// <summary>已重载。</summary>
         /// <param name="key"></param>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         public override void Add(string key, string value)
         {
             base.Add(key, value);
@@ -111,7 +111,7 @@ namespace XCode.DataAccessLayer
         #region 方法
         /// <summary>尝试获取值</summary>
         /// <param name="key"></param>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         /// <returns></returns>
         public Boolean TryGetValue(String key, out String value)
         {
@@ -126,7 +126,7 @@ namespace XCode.DataAccessLayer
 
         /// <summary>获取并删除连接字符串中的项</summary>
         /// <param name="key"></param>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         /// <returns></returns>
         public Boolean TryGetAndRemove(String key, out String value)
         {

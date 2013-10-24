@@ -438,7 +438,7 @@ namespace NewLife.Serialization
         #region 枚举类型
         /// <summary></summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         /// <returns></returns>
         public bool ReadEnumerable<T>(ref T[] value)
         {
@@ -452,7 +452,7 @@ namespace NewLife.Serialization
 
         /// <summary>从当前流位置读取一个枚举类型</summary>
         /// <param name="type">类型</param>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         /// <param name="callback"></param>
         /// <returns></returns>
         public override bool ReadEnumerable(Type type, ref object value, ReadObjectCallback callback)
@@ -479,7 +479,7 @@ namespace NewLife.Serialization
 
         /// <summary>从当前流位置读取枚举项目</summary>
         /// <param name="type">类型</param>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         /// <param name="index"></param>
         /// <param name="callback"></param>
         /// <returns></returns>
@@ -516,7 +516,7 @@ namespace NewLife.Serialization
         #region 序列化接口
         /// <summary>读取实现了序列化接口的类型</summary>
         /// <param name="type">类型</param>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         /// <param name="callback"></param>
         /// <returns></returns>
         public override bool ReadSerializable(Type type, ref object value, ReadObjectCallback callback)
@@ -558,7 +558,7 @@ namespace NewLife.Serialization
         #region 字典
         /// <summary>从当前流位置读取一个字典类型</summary>
         /// <param name="type">类型</param>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         /// <param name="callback"></param>
         /// <returns></returns>
         public override bool ReadDictionary(Type type, ref object value, ReadObjectCallback callback)
@@ -587,7 +587,7 @@ namespace NewLife.Serialization
         /// <summary>从当前流位置读取一个字典项</summary>
         /// <param name="keyType"></param>
         /// <param name="valueType"></param>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         /// <param name="index"></param>
         /// <param name="callback"></param>
         /// <returns></returns>
@@ -1015,7 +1015,7 @@ namespace NewLife.Serialization
         static AtomElementType[] MEMBERNAME_EXPECTED_TYPES = { AtomElementType.COMMA, AtomElementType.STRING, AtomElementType.BRACE_CLOSE };
         /// <summary>从当前流位置读取一个对象</summary>
         /// <param name="type">类型</param>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         /// <param name="callback"></param>
         /// <returns></returns>
         protected override bool OnReadObject(Type type, ref object value, ReadObjectCallback callback)
@@ -1108,7 +1108,7 @@ namespace NewLife.Serialization
 
         /// <summary>从当前流位置读取一个自定义对象,即{}包括的数据</summary>
         /// <param name="type">类型</param>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         /// <param name="callback"></param>
         /// <returns></returns>
         public override bool ReadCustomObject(Type type, ref object value, ReadObjectCallback callback)
@@ -1199,7 +1199,7 @@ namespace NewLife.Serialization
 
         /// <summary>读取当前成员名称</summary>
         /// <param name="type">类型</param>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         /// <param name="members"></param>
         /// <param name="index"></param>
         /// <returns></returns>
@@ -1234,7 +1234,7 @@ namespace NewLife.Serialization
 
         /// <summary>从当前流位置读取成员值</summary>
         /// <param name="type">类型</param>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         /// <param name="member"></param>
         /// <param name="index"></param>
         /// <param name="callback"></param>

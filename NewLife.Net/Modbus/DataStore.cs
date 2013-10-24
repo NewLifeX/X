@@ -108,7 +108,7 @@ namespace NewLife.Net.Modbus
 
         /// <summary>写入</summary>
         /// <param name="i"></param>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         public void Write(Int32 i, UInt16 value)
         {
             Regs[i] = value;

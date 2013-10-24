@@ -484,7 +484,7 @@ namespace XControl
         ///// <typeparam name="TValue"></typeparam>
         ///// <param name="setcoll"></param>
         ///// <param name="key"></param>
-        ///// <param name="value"></param>
+        ///// <param name="value">数值</param>
         //public delegate void SetItemByKey<T, TValue>(T setcoll, object key, TValue value);
 
         ///// <summary>复制集合的过滤器,返回是否不过滤掉,即返回true保留,返回false不保留</summary>
@@ -494,7 +494,7 @@ namespace XControl
         ///// <param name="source"></param>
         ///// <param name="dest"></param>
         ///// <param name="key"></param>
-        ///// <param name="value"></param>
+        ///// <param name="value">数值</param>
         ///// <returns></returns>
         //public delegate bool CopyFilter<TSource, TDest, TValue>(TSource source, TDest dest, object key, TValue value);
 
@@ -550,7 +550,7 @@ namespace XControl
         ///// <summary>AttributeCollection的set方法</summary>
         ///// <param name="coll"></param>
         ///// <param name="key"></param>
-        ///// <param name="value"></param>
+        ///// <param name="value">数值</param>
         //public static void SetAttributeCollectionItem(AttributeCollection coll, object key, string value)
         //{
         //    coll[key.ToString()] = value;
@@ -560,7 +560,7 @@ namespace XControl
         ///// <param name="s"></param>
         ///// <param name="d"></param>
         ///// <param name="key"></param>
-        ///// <param name="value"></param>
+        ///// <param name="value">数值</param>
         ///// <returns></returns>
         //public static bool FilterStyleAttribute(AttributeCollection s, AttributeCollection d, object key, string value)
         //{
@@ -594,7 +594,7 @@ namespace XControl
         ///// <summary>CssStyleCollection的Set方法</summary>
         ///// <param name="coll"></param>
         ///// <param name="key"></param>
-        ///// <param name="value"></param>
+        ///// <param name="value">数值</param>
         //public static void SetCssStyleCollectionItem(CssStyleCollection coll, object key, string value)
         //{
         //    if (key is HtmlTextWriterStyle)

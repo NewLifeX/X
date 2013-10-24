@@ -552,7 +552,7 @@ namespace NewLife.Serialization
 
         /// <summary>读取项</summary>
         /// <param name="type">类型</param>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         /// <param name="index">元素序号</param>
         /// <param name="callback">处理元素的方法</param>
         /// <returns></returns>
@@ -564,7 +564,7 @@ namespace NewLife.Serialization
         /// <summary>处理结果集</summary>
         /// <param name="type">类型</param>
         /// <param name="elementType"></param>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         /// <param name="items"></param>
         /// <returns></returns>
         protected Boolean ProcessItems(Type type, Type elementType, ref Object value, IList items)
@@ -871,7 +871,7 @@ namespace NewLife.Serialization
         /// <summary>检查对象类型与指定写入类型是否一致，若不一致，则先写入类型，以保证读取的时候能够以正确的类型读取。</summary>
         /// <param name="action"></param>
         /// <param name="type">类型</param>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         /// <returns>返回对象实际类型。</returns>
         protected Type CheckAndReadType(String action, Type type, Object value)
         {
@@ -1482,7 +1482,7 @@ namespace NewLife.Serialization
         /// <summary>给多维数组赋值</summary>
         /// <param name="arr"></param>
         /// <param name="func"></param>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         protected void ArrEnum(Array arr, Action<Int32[]> func, Object value)
         {
             var ix = new Int32[arr.Rank];

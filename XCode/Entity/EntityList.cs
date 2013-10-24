@@ -283,7 +283,7 @@ namespace XCode
 
         /// <summary>集合是否包含指定项</summary>
         /// <param name="name">名称</param>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         /// <returns></returns>
         public Boolean Exists(String name, Object value)
         {
@@ -332,7 +332,7 @@ namespace XCode
 
         /// <summary>设置所有实体中指定项的值</summary>
         /// <param name="name">指定项的名称</param>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         IEntityList IEntityList.SetItem(String name, Object value) { return SetItem(name, value); }
 
         IEntityList IEntityList.FromXml(String xml) { return FromXml(xml); }
@@ -513,7 +513,7 @@ namespace XCode
 
         /// <summary>设置所有实体中指定项的值</summary>
         /// <param name="name">指定项的名称</param>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         public EntityList<T> SetItem(String name, Object value)
         {
             if (Count < 1) return this;

@@ -32,7 +32,7 @@ namespace NewLife.Serialization
         /// <summary>实例化</summary>
         /// <param name="name">名称</param>
         /// <param name="type">类型</param>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         public SimpleMemberInfo(String name, Type type, Object value)
         {
             Name = name;

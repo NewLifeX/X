@@ -67,7 +67,7 @@ namespace NewLife.Xml
 
         #region 时间
         /// <summary>将一个时间日期写入</summary>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         public override void Write(DateTime value) { Write(XmlConvert.ToString(value, Settings.DateTimeMode)); }
         #endregion
 

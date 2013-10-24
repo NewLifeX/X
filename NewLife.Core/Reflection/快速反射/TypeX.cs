@@ -706,7 +706,7 @@ namespace NewLife.Reflection
         }
 
         /// <summary>类型转换</summary>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         /// <param name="conversionType"></param>
         /// <returns></returns>
         public static Object ChangeType(object value, Type conversionType)
@@ -776,7 +776,7 @@ namespace NewLife.Reflection
 
         /// <summary>类型转换</summary>
         /// <typeparam name="TResult"></typeparam>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         /// <returns></returns>
         public static TResult ChangeType<TResult>(Object value)
         {

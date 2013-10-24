@@ -133,7 +133,7 @@ namespace XControl
         /// <summary>设置属性值</summary>
         /// <typeparam name="V"></typeparam>
         /// <param name="propertyName"></param>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         protected void SetPropertyValue<V>(string propertyName, V value)
         {
             ViewState[propertyName] = value;

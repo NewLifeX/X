@@ -57,7 +57,7 @@ namespace NewLife.Log
         }
 
         /// <summary>写入一个字节</summary>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         public override void WriteByte(byte value)
         {
             RaiseAction("WriteByte", value);
@@ -169,7 +169,7 @@ namespace NewLife.Log
         }
 
         /// <summary>设置长度</summary>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         public override void SetLength(long value)
         {
             RaiseAction("SetLength", value);

@@ -21,7 +21,7 @@ namespace NewLife.Net.Sdp
 
         #region 方法
         /// <summary>分析</summary>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         /// <returns></returns>
         public static SdpConnection Parse(String value)
         {

@@ -110,7 +110,7 @@ namespace NewLife
 
         /// <summary>移除</summary>
         /// <param name="handler"></param>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         public static void Remove(ref EventHandler<TEventArgs> handler, EventHandler<TEventArgs> value)
         {
             //handler -= value;

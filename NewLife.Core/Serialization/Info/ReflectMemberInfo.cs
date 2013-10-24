@@ -36,7 +36,7 @@ namespace NewLife.Serialization
         public Type Type { get { return Mix.Type; } }
 
         /// <summary>对目标对象取值赋值</summary>
-        /// <param name="target"></param>
+        /// <param name="target">目标对象</param>
         /// <returns></returns>
         public object this[object target] { get { return Mix.GetValue(target); } set { Mix.SetValue(target, value); } }
 

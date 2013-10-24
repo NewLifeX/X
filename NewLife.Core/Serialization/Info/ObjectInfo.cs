@@ -33,7 +33,7 @@ namespace NewLife.Serialization
         /// <summary>创建简单成员信息</summary>
         /// <param name="name">名称</param>
         /// <param name="type">类型</param>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         /// <returns></returns>
         static IObjectMemberInfo CreateObjectMemberInfo(String name, Type type, Object value)
         {

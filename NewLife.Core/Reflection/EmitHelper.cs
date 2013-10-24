@@ -11,7 +11,7 @@ namespace NewLife.Reflection
         #region 方法
         /// <summary>基于Ldc_I4指令的整数推送，自动选择最合适的指令</summary>
         /// <param name="IL">指令</param>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         /// <returns></returns>
         public static ILGenerator Ldc_I4(this ILGenerator IL, Int32 value)
         {
@@ -59,7 +59,7 @@ namespace NewLife.Reflection
 
         /// <summary>基于Ldarg指令的参数加载，自动选择最合适的指令</summary>
         /// <param name="IL">指令</param>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         /// <returns></returns>
         public static ILGenerator Ldarg(this ILGenerator IL, Int32 value)
         {
@@ -85,7 +85,7 @@ namespace NewLife.Reflection
 
         /// <summary>基于Stloc指令的弹栈，自动选择最合适的指令</summary>
         /// <param name="IL">指令</param>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         /// <returns></returns>
         public static ILGenerator Stloc(this ILGenerator IL, Int32 value)
         {
@@ -111,7 +111,7 @@ namespace NewLife.Reflection
 
         /// <summary>基于Ldloc指令的压栈，自动选择最合适的指令</summary>
         /// <param name="IL">指令</param>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         /// <returns></returns>
         public static ILGenerator Ldloc(this ILGenerator IL, Int32 value)
         {
@@ -137,7 +137,7 @@ namespace NewLife.Reflection
 
         /// <summary>查找对象中其引用当前位于计算堆栈的字段的值。</summary>
         /// <param name="IL">指令</param>
-        /// <param name="field"></param>
+        /// <param name="field">字段</param>
         /// <returns></returns>
         public static ILGenerator Ldfld(this ILGenerator IL, FieldInfo field)
         {

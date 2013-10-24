@@ -821,7 +821,7 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>字段片段</summary>
-        /// <param name="field"></param>
+        /// <param name="field">字段</param>
         /// <param name="onlyDefine">仅仅定义。定义操作才允许设置自增和使用默认值</param>
         /// <returns></returns>
         public virtual String FieldClause(IDataColumn field, Boolean onlyDefine)
@@ -851,7 +851,7 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>取得字段约束</summary>
-        /// <param name="field"></param>
+        /// <param name="field">字段</param>
         /// <param name="onlyDefine">仅仅定义</param>
         /// <returns></returns>
         protected virtual String GetFieldConstraints(IDataColumn field, Boolean onlyDefine)
@@ -872,7 +872,7 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>取得字段默认值</summary>
-        /// <param name="field"></param>
+        /// <param name="field">字段</param>
         /// <param name="onlyDefine">仅仅定义</param>
         /// <returns></returns>
         protected virtual String GetFieldDefault(IDataColumn field, Boolean onlyDefine)

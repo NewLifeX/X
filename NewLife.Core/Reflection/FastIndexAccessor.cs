@@ -30,7 +30,7 @@ namespace NewLife.Reflection
         /// <summary>尝试获取目标对象指定属性字段的值，返回是否成功</summary>
         /// <param name="target">目标对象</param>
         /// <param name="name">名称</param>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         /// <returns></returns>
         public static Boolean TryGetValue(Object target, String name, out Object value)
         {
@@ -70,7 +70,7 @@ namespace NewLife.Reflection
         /// <summary>尝试获取目标对象指定属性字段的值，返回是否成功</summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="name">名称</param>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         /// <returns></returns>
         public Boolean TryGetValue<T>(String name, out T value)
         {
@@ -86,7 +86,7 @@ namespace NewLife.Reflection
         /// <summary>设置目标对象指定属性字段的值</summary>
         /// <param name="target">目标对象</param>
         /// <param name="name">名称</param>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         public static void SetValue(Object target, String name, Object value)
         {
             if (TrySetValue(target, name, value)) return;
@@ -97,7 +97,7 @@ namespace NewLife.Reflection
         /// <summary>尝试设置目标对象指定属性字段的值，返回是否成功</summary>
         /// <param name="target">目标对象</param>
         /// <param name="name">名称</param>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         /// <returns></returns>
         public static Boolean TrySetValue(Object target, String name, Object value)
         {

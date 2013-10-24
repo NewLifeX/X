@@ -65,7 +65,7 @@ namespace XCode
         #region 查找单个实体
         /// <summary>根据属性以及对应的值，查找单个实体</summary>
         /// <param name="name">名称</param>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         /// <returns></returns>
         IEntity Find(String name, Object value);
 
@@ -288,8 +288,8 @@ namespace XCode
         String FormatValue(String name, Object value);
 
         /// <summary>格式化数据为SQL数据</summary>
-        /// <param name="field"></param>
-        /// <param name="value"></param>
+        /// <param name="field">字段</param>
+        /// <param name="value">数值</param>
         /// <returns></returns>
         String FormatValue(FieldItem field, Object value);
 

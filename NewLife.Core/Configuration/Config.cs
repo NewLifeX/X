@@ -87,7 +87,7 @@ namespace NewLife.Configuration
 
         /// <summary>依次尝试获取一批设置项，直到找到第一个为止</summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         /// <param name="names"></param>
         /// <returns></returns>
         public static Boolean TryGetMutilConfig<T>(out T value, params String[] names)
@@ -139,7 +139,7 @@ namespace NewLife.Configuration
         /// <summary>尝试获取指定名称的设置项</summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="name">名称</param>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         /// <returns></returns>
         public static Boolean TryGetConfig<T>(String name, out T value)
         {
@@ -157,7 +157,7 @@ namespace NewLife.Configuration
         /// <summary>尝试获取指定名称的设置项</summary>
         /// <param name="name">名称</param>
         /// <param name="type">类型</param>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         /// <returns></returns>
         public static Boolean TryGetConfig(String name, Type type, out Object value)
         {
@@ -281,7 +281,7 @@ namespace NewLife.Configuration
 
         /// <summary>设置配置文件参数</summary>
         /// <param name="name">名称</param>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         public static void SetConfig(String name, String value)
         {
             var nvs = AppSettings;
@@ -303,7 +303,7 @@ namespace NewLife.Configuration
 
         /// <summary>设置配置文件参数</summary>
         /// <param name="name">名称</param>
-        /// <param name="value"></param>
+        /// <param name="value">数值</param>
         public static void UpdateConfig(String name, String value)
         {
             var config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);

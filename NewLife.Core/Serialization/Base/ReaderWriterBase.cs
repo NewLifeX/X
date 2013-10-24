@@ -199,7 +199,7 @@ namespace NewLife.Serialization
 
         #region 对象默认值
         ///// <summary>判断一个对象的某个成员是否默认值</summary>
-        ///// <param name="value"></param>
+        ///// <param name="value">数值</param>
         ///// <param name="member"></param>
         ///// <returns></returns>
         //internal static Boolean IsDefault(Object value, IObjectMemberInfo member)

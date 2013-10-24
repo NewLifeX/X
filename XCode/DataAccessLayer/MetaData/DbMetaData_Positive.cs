@@ -334,7 +334,7 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>修正指定字段</summary>
-        /// <param name="field"></param>
+        /// <param name="field">字段</param>
         /// <param name="dr"></param>
         protected virtual void FixField(IDataColumn field, DataRow dr)
         {
@@ -508,7 +508,7 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>查找指定字段指定类型的数据类型</summary>
-        /// <param name="field"></param>
+        /// <param name="field">字段</param>
         /// <param name="typeName"></param>
         /// <param name="isLong"></param>
         /// <returns></returns>
@@ -604,7 +604,7 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>取字段类型</summary>
-        /// <param name="field"></param>
+        /// <param name="field">字段</param>
         /// <returns></returns>
         protected virtual String GetFieldType(IDataColumn field)
         {
@@ -653,7 +653,7 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>取得格式化的类型参数</summary>
-        /// <param name="field"></param>
+        /// <param name="field">字段</param>
         /// <param name="dr"></param>
         /// <returns></returns>
         protected virtual String GetFormatParam(IDataColumn field, DataRow dr)
@@ -679,7 +679,7 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>获取格式化参数项</summary>
-        /// <param name="field"></param>
+        /// <param name="field">字段</param>
         /// <param name="dr"></param>
         /// <param name="item"></param>
         /// <returns></returns>
