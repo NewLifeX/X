@@ -1,10 +1,9 @@
 ﻿using System;
-using NewLife.Reflection;
-using System.Collections.Generic;
 using System.Web;
 using System.Web.UI;
-using System.Web.UI.WebControls;
 using NewLife.CommonEntity;
+using NewLife.Reflection;
+using NewLife.Web;
 
 public partial class MasterPage : System.Web.UI.MasterPage
 {
@@ -22,19 +21,25 @@ public partial class MasterPage : System.Web.UI.MasterPage
 
     protected void Page_Load(object sender, EventArgs e)
     {
-        FieldInfoX fix = FieldInfoX.Create(Page.GetType(), "Manager");
+        //FieldInfoX fix = FieldInfoX.Create(Page.GetType(), "Manager");
 
-        if (fix != null)
+        //if (fix != null)
+        //{
+        //    IManagePage manager = fix.GetValue(Page) as IManagePage;
+        //    if (manager != null)
+        //    {
+        //        Title = manager.CurrentMenu.Name;
+        //        Navigation = manager.Navigation;
+        //    }
+        //}
+        IManagePage manager = Reflect.GetValue(Page, "Manager", false) as IManagePage;
+        if (manager != null)
         {
-            IManagePage manager = fix.GetValue(Page) as IManagePage;
-            if (manager != null)
-            {
-                Title = manager.CurrentMenu.Name;
-                Navigation = manager.Navigation;
-            }
+            Title = manager.CurrentMenu.Name;
+            Navigation = manager.Navigation;
         }
 
-        bool IsShowToolBar = NewLife.Web.WebHelper.RequestBool("SetToolBar");
+        bool IsShowToolBar = WebHelper.RequestBool("SetToolBar");
 
         if (!String.IsNullOrEmpty(Request["SetToolBar"]) && !IsShowToolBar) SetToolBar(this, IsShowToolBar);
     }

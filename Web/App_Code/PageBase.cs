@@ -161,14 +161,17 @@ public abstract class PageBase : WebPageBase
     /// <summary>在关键字输入框按下回车时，调用查询</summary>
     protected virtual void WriteEntterKeyPress()
     {
-        FieldInfoX fix = FieldInfoX.Create(this.GetType(), "txtKey");
-        if (fix == null) return;
-        TextBox box = fix.GetValue(this) as TextBox;
+        //FieldInfoX fix = FieldInfoX.Create(this.GetType(), "txtKey");
+        //if (fix == null) return;
+        //TextBox box = fix.GetValue(this) as TextBox;
+        //if (box == null) return;
+        TextBox box = Reflect.GetValue(this, "txtKey", false) as TextBox;
         if (box == null) return;
 
-        fix = FieldInfoX.Create(this.GetType(), "btnSearch");
-        if (fix == null) return;
-        Button btn = fix.GetValue(this) as Button;
+        //fix = FieldInfoX.Create(this.GetType(), "btnSearch");
+        //if (fix == null) return;
+        //Button btn = fix.GetValue(this) as Button;
+        Button btn = Reflect.GetValue(this, "btnSearch", false) as Button;
         if (btn == null) return;
 
         String js = "if((event.which || event.keyCode)==13){document.getElementById('" + btn.ClientID + "').click(); return false;} return true;";
@@ -194,8 +197,11 @@ public abstract class PageBase : WebPageBase
     public override Control FindControl(string id)
     {
         // 首先采用快速反射找字段，这样子可以避免破坏控件树结构
-        FieldInfoX fix = FieldInfoX.Create(this.GetType(), id);
-        if (fix != null) return fix.GetValue(this) as Control;
+        //FieldInfoX fix = FieldInfoX.Create(this.GetType(), id);
+        //if (fix != null) return fix.GetValue(this) as Control;
+
+        Object value = null;
+        if (Reflect.TryGetValue(this, id, out value)) return value as Control;
 
         return base.FindControl(id);
     }

@@ -115,21 +115,19 @@ namespace NewLife.Web
             var handler = HttpContext.Current.Handler;
             if (handler == null) return null;
 
-            FieldInfoX fix = null;
+            FieldInfo fi = null;
             if (!String.IsNullOrEmpty(id))
             {
-                fix = FieldInfoX.Create(handler.GetType(), id);
+                fi = Reflect.GetField(handler.GetType(), id);
             }
             else
             {
-                var t = typeof(T);
-                var fi = handler.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).FirstOrDefault(item => item.FieldType == t);
-                if (fi != null) fix = FieldInfoX.Create(fi);
+                fi = handler.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).FirstOrDefault(item => item.FieldType == typeof(T));
             }
 
-            if (fix == null) return null;
+            if (fi == null) return null;
 
-            return fix.GetValue(handler) as T;
+            return handler.GetValue(fi) as T;
         }
 
         /// <summary>根据字段查找指定ID的控件，采用反射字段的方法，避免遍历Controls引起子控件构造</summary>
@@ -141,21 +139,19 @@ namespace NewLife.Web
         {
             if (control == null) return null;
 
-            FieldInfoX fix = null;
+            FieldInfo fi = null;
             if (!String.IsNullOrEmpty(id))
             {
-                fix = FieldInfoX.Create(control.GetType(), id);
+                fi = Reflect.GetField(control.GetType(), id);
             }
             else
             {
-                Type t = typeof(T);
-                FieldInfo fi = control.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).FirstOrDefault(item => item.FieldType == t);
-                if (fi != null) fix = FieldInfoX.Create(fi);
+                fi = control.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).FirstOrDefault(item => item.FieldType == typeof(T));
             }
 
-            if (fix == null) return null;
+            if (fi == null) return null;
 
-            return fix.GetValue(control) as T;
+            return control.GetValue(fi) as T;
         }
 
         /// <summary>查找控件的事件</summary>

@@ -498,11 +498,11 @@ namespace XCode.Accessors
             if (form == null) throw new Exception("ToolTip 父窗口查询失败！");
 
             FieldInfo toolTipField = null;
-            FieldInfo[] fields = form.GetType().GetFields(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance);
+            var fields = form.GetType().GetFields(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance);
             if (fields != null && fields.Length > 0)
             {
                 Type toolTip = typeof(System.Windows.Forms.ToolTip);
-                foreach (FieldInfo item in fields)
+                foreach (var item in fields)
                 {
                     if (item.FieldType == toolTip)
                     {
@@ -513,7 +513,7 @@ namespace XCode.Accessors
             }
 
             if (toolTipField != null)
-                r = FieldInfoX.Create(toolTipField).GetValue(form) as ToolTip;
+                r = Reflect.GetValue(form, toolTipField) as ToolTip;
             return null;
 
         }

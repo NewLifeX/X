@@ -110,12 +110,12 @@ namespace NewLife.ServiceLib
                 {
                     if (_KnowTypes == null)
                     {
-                        List<string> types = new List<string>();
-                        foreach (FieldInfo f in typeof(SourceTypes).GetFields())
+                        var types = new List<string>();
+                        foreach (var fi in typeof(SourceTypes).GetFields())
                         {
-                            if (f.IsPublic && f.IsStatic && f.IsLiteral && f.FieldType == typeof(string))
+                            if (fi.IsPublic && fi.IsStatic && fi.IsLiteral && fi.FieldType == typeof(string))
                             {
-                                types.Add((string)FieldInfoX.Create(f).GetValue(null));
+                                types.Add((string)Reflect.GetValue(null, fi));
                             }
                         }
                         _KnowTypes = types.ToArray();

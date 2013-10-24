@@ -707,16 +707,16 @@ e.ClickElement('a',function(i){{
             // 查询总记录数的就不要插手了
             if (e.ExecutingSelectCount) return;
 
-            var fix = FieldInfoX.Create(sender.GetType(), "_owner");
-            if (fix == null) return;
+            //var fix = FieldInfoX.Create(sender.GetType(), "_owner");
+            //if (fix == null) return;
 
-            ObjectDataSource ods = fix.GetValue(sender) as ObjectDataSource;
+            var ods = sender.GetValue("_owner") as ObjectDataSource;
             if (ods == null) return;
 
             // 如果有排序参数，并且排序参数有默认值，并且传过来的为空，则处理
             if (!String.IsNullOrEmpty(ods.SortParameterName))
             {
-                Parameter p = ods.SelectParameters[ods.SortParameterName];
+                var p = ods.SelectParameters[ods.SortParameterName];
                 if (p != null && !String.IsNullOrEmpty(p.DefaultValue))
                 {
                     // Selecting事件之后，ObjectDataSource会用e.Arguments.SortExpression覆盖e.InputParameters[ods.SortParameterName]

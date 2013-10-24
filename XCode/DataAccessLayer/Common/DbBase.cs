@@ -250,13 +250,13 @@ namespace XCode.DataAccessLayer
                 if (!File.Exists(file)) throw new FileNotFoundException("缺少文件" + file + "！", file);
             }
 
-            var type = TypeX.GetType(className, true);
+            var type = Reflect.GetType(className, true);
             if (type == null) return null;
 
-            var field = FieldInfoX.Create(type, "Instance");
+            var field = Reflect.GetField(type, "Instance");
             if (field == null) return Activator.CreateInstance(type) as DbProviderFactory;
 
-            return field.GetValue(null) as DbProviderFactory;
+            return Reflect.GetValue(null, field) as DbProviderFactory;
         }
 
         protected static void CheckAndDownload(String file, String targetPath = null)

@@ -604,7 +604,7 @@ namespace NewLife.IO
                         }
                     }
                 }
-                FieldInfo field = type.GetField(memberName, BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
+                var field = type.GetField(memberName, BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
                 if (field != null)
                 {
                     if (!ConvertObjectToTypeMain(propertyValue, field.FieldType, serializer, throwOnError, out propertyValue))
@@ -613,7 +613,8 @@ namespace NewLife.IO
                     }
                     try
                     {
-                        FieldInfoX.Create(field).SetValue(o, propertyValue);
+                        //FieldInfoX.Create(field).SetValue(o, propertyValue);
+                        o.SetValue(field, propertyValue);
                         return true;
                     }
                     catch
