@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
+using NewLife.Exceptions;
 
 namespace NewLife.Reflection
 {
@@ -56,6 +57,22 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public static Object Invoke(this Object target, String name, params Object[] parameters)
         {
+            Object value = null;
+            if (TryInvoke(target, name, out value, parameters)) return value;
+
+            var type = GetType(ref target);
+            throw new XException("类{0}中找不到名为{1}的方法！", type, name);
+        }
+
+        /// <summary>反射调用指定对象的方法</summary>
+        /// <param name="target">要调用其方法的对象，如果要调用静态方法，则target是类型</param>
+        /// <param name="name">方法名</param>
+        /// <param name="value">数值</param>
+        /// <param name="parameters">方法参数</param>
+        /// <remarks>反射调用是否成功</remarks>
+        public static Boolean TryInvoke(this Object target, String name, out Object value, params Object[] parameters)
+        {
+            value = null;
             var type = GetType(ref target);
 
             // 参数类型数组
@@ -68,7 +85,10 @@ namespace NewLife.Reflection
             }
 
             var method = GetMethod(type, name, list.ToArray());
-            return Invoke(target, method, parameters);
+            if (method == null) return false;
+
+            value = Invoke(target, method, parameters);
+            return true;
         }
 
         /// <summary>反射调用指定对象的方法</summary>
@@ -84,19 +104,44 @@ namespace NewLife.Reflection
         /// <summary>获取目标对象指定名称的属性/字段值</summary>
         /// <param name="target">目标对象</param>
         /// <param name="name">名称</param>
+        /// <param name="throwOnError">出错时是否抛出异常</param>
         /// <returns></returns>
-        public static Object GetValue(this Object target, String name)
+        public static Object GetValue(this Object target, String name, Boolean throwOnError = true)
         {
-            //return _Current.GetValue(target, name);
+            Object value = null;
+            if (TryGetValue(target, name, out value)) return value;
+
+            if (!throwOnError) return null;
+
+            var type = GetType(ref target);
+            throw new ArgumentException("类[" + type.FullName + "]中不存在[" + name + "]属性或字段。");
+        }
+
+        /// <summary>获取目标对象指定名称的属性/字段值</summary>
+        /// <param name="target">目标对象</param>
+        /// <param name="name">名称</param>
+        /// <param name="value">数值</param>
+        /// <returns>是否成功获取数值</returns>
+        public static Boolean TryGetValue(this Object target, String name, out Object value)
+        {
+            value = null;
 
             var type = GetType(ref target);
             var pi = GetProperty(type, name);
-            if (pi != null) return target.GetValue(pi);
+            if (pi != null)
+            {
+                value = target.GetValue(pi);
+                return true;
+            }
 
             var fi = GetField(type, name);
-            if (fi != null) return target.GetValue(fi);
+            if (fi != null)
+            {
+                value = target.GetValue(fi);
+                return true;
+            }
 
-            throw new ArgumentException("类[" + type.FullName + "]中不存在[" + name + "]属性或字段。");
+            return false;
         }
 
         /// <summary>获取目标对象的属性值</summary>
@@ -121,18 +166,20 @@ namespace NewLife.Reflection
         /// <param name="target">目标对象</param>
         /// <param name="name">名称</param>
         /// <param name="value">数值</param>
-        public static void SetValue(this Object target, String name, Object value)
+        /// <remarks>反射调用是否成功</remarks>
+        public static Boolean SetValue(this Object target, String name, Object value)
         {
             //_Current.SetValue(target, name, value);
 
             var type = GetType(ref target);
             var pi = GetProperty(type, name);
-            if (pi != null) { target.SetValue(pi, value); return; }
+            if (pi != null) { target.SetValue(pi, value); return true; }
 
             var fi = GetField(type, name);
-            if (fi != null) { target.SetValue(fi, value); return; }
+            if (fi != null) { target.SetValue(fi, value); return true; }
 
-            throw new ArgumentException("类[" + type.FullName + "]中不存在[" + name + "]属性或字段。");
+            //throw new ArgumentException("类[" + type.FullName + "]中不存在[" + name + "]属性或字段。");
+            return false;
         }
 
         /// <summary>设置目标对象的属性值</summary>

@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Reflection;
 using System.Xml.Serialization;
 using NewLife.Common;
 using NewLife.Log;
@@ -22,11 +24,12 @@ public partial class Admin_SysConfig : System.Web.UI.Page
     {
         try
         {
-            foreach (PropertyInfoX pi in GetProperties())
+            foreach (PropertyInfo pi in GetProperties())
             {
                 object v = Request["frm" + pi.Name];
-                if (pi.Type == typeof(Boolean)) v = "" + v == "on" ? "true" : "false";
-                pi.SetValue(Config, v);
+                if (pi.PropertyType == typeof(Boolean)) v = "" + v == "on" ? "true" : "false";
+                //pi.SetValue(Config, v);
+                Reflect.SetValue(Config, pi, v);
             }
             Config.Save();
 
@@ -40,14 +43,24 @@ public partial class Admin_SysConfig : System.Web.UI.Page
         }
     }
 
-    protected PropertyInfoX[] GetProperties()
+    protected PropertyInfo[] GetProperties()
     {
-        PropertyInfoX[] pis = TypeX.Create(Config.GetType()).Properties;
-        List<PropertyInfoX> list = new List<PropertyInfoX>();
-        foreach (PropertyInfoX item in pis)
+        PropertyInfo[] pis = Config.GetType().GetProperties();
+        List<PropertyInfo> list = new List<PropertyInfo>();
+        foreach (PropertyInfo item in pis)
         {
-            if (AttributeX.GetCustomAttribute<XmlIgnoreAttribute>(item.Property, true) == null) list.Add(item);
+            if (AttributeX.GetCustomAttribute<XmlIgnoreAttribute>(item, true) == null) list.Add(item);
         }
         return list.ToArray();
+    }
+
+    protected String GetDisplayName(PropertyInfo pi)
+    {
+        return AttributeX.GetCustomAttributeValue<DisplayNameAttribute, String>(pi);
+    }
+
+    protected String GetDescription(PropertyInfo pi)
+    {
+        return AttributeX.GetCustomAttributeValue<DescriptionAttribute, String>(pi);
     }
 }

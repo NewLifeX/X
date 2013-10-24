@@ -186,7 +186,7 @@ namespace NewLife.CommonEntity
         {
             get
             {
-                if (_MenuRoot == null) _MenuRoot = PropertyInfoX.Create(MenuType, "Root").GetValue() as IMenu;
+                if (_MenuRoot == null) _MenuRoot = MenuType.GetValue("Root") as IMenu;
                 return _MenuRoot;
             }
         }

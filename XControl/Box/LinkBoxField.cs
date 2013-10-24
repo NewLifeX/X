@@ -426,10 +426,10 @@ AfterClose:function(){{GridViewExtender.HighlightRow(ele,'{0}',false);}},
                 var fs = DataTitleField.Split(",");
                 foreach (var item in fs)
                 {
-                    var pi = PropertyInfoX.Create(dataItem.GetType(), item);
+                    var pi = Reflect.GetProperty(dataItem.GetType(), item);
                     if (pi == null && !base.DesignMode) throw new HttpException(SR.GetString("Field_Not_Found", new object[] { item }));
 
-                    vs.Add(pi.GetValue(dataItem));
+                    vs.Add(dataItem.GetValue(pi));
                 }
             }
 

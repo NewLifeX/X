@@ -16,13 +16,13 @@
             <th colspan="3">系统配置</th>
         </tr>
         <% 
-            foreach (PropertyInfoX pi in GetProperties())
+            foreach (System.Reflection.PropertyInfo pi in GetProperties())
             { 
             String pname = pi.Name;
             String frmName = "frm" + pname;
-            TypeCode code = Type.GetTypeCode(pi.Type);
+            TypeCode code = Type.GetTypeCode(pi.PropertyType);
         %><tr>
-            <td align="right"><%=pi.DisplayName%>：</td>
+            <td align="right"><%=GetDisplayName(pi)%>：</td>
             <td style="width:200px;"><%
                 if(code == TypeCode.String){
                     if(pname.Equals("email", StringComparison.OrdinalIgnoreCase) || pname.Equals("mail", StringComparison.OrdinalIgnoreCase)){
@@ -41,7 +41,7 @@
                 }else if(code == TypeCode.Boolean){
                 %><input id="<%=frmName%>" type="checkbox" name="<%=frmName%>"<%if((bool)pi.GetValue(Config)){ %> checked="checked"<%} %> /><label for="<%=frmName%>"><%=pi.DisplayName%></label><%}
             %></td>
-            <td><%=pi.Description%></td>
+            <td><%=GetDescription(pi)%></td>
         </tr>
 <%}%>    </table>
         <table border="0" align="Center" width="100%">

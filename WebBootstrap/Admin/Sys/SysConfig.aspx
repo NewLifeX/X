@@ -14,14 +14,14 @@
                 <table class="table table-bordered table-striped">
                     <tbody>
                         <% 
-                            foreach (PropertyInfoX pi in GetProperties())
+                            foreach (System.Reflection.PropertyInfo pi in GetProperties())
                             {
                                 String pname = pi.Name;
                                 String frmName = "frm" + pname;
-                                TypeCode code = Type.GetTypeCode(pi.Type);
+                                TypeCode code = Type.GetTypeCode(pi.PropertyType);
                         %><tr>
                             <td align="right">
-                                <%=pi.DisplayName%>：
+                                <%=GetDisplayName(pi)%>：
                             </td>
                             <td style="width: 200px;">
                                 <%
@@ -67,7 +67,7 @@
                                                             %>
                             </td>
                             <td>
-                                <%=pi.Description%>
+                                <%=GetDescription(pi)%>
                             </td>
                         </tr>
                         <%}%>

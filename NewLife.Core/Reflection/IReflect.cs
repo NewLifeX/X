@@ -151,23 +151,23 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public virtual Object CreateInstance(Type type, params Object[] parameters) { return Activator.CreateInstance(type, parameters); }
 
-        /// <summary>反射调用指定对象的方法</summary>
-        /// <param name="target">要调用其方法的对象，如果要调用静态方法，则target是类型</param>
-        /// <param name="name">方法名</param>
-        /// <param name="parameters">方法参数</param>
-        /// <returns></returns>
-        public virtual Object Invoke(Object target, String name, params Object[] parameters)
-        {
-            if (name == null) throw new ArgumentNullException("name");
+        ///// <summary>反射调用指定对象的方法</summary>
+        ///// <param name="target">要调用其方法的对象，如果要调用静态方法，则target是类型</param>
+        ///// <param name="name">方法名</param>
+        ///// <param name="parameters">方法参数</param>
+        ///// <returns></returns>
+        //public virtual Object Invoke(Object target, String name, params Object[] parameters)
+        //{
+        //    if (name == null) throw new ArgumentNullException("name");
 
-            var type = GetType(ref target);
+        //    var type = GetType(ref target);
 
-            var method = type.GetMethod(name);
-            if (method == null) throw new XException("类{0}中找不到名为{1}的方法！", type, name);
+        //    var method = type.GetMethod(name);
+        //    if (method == null) throw new XException("类{0}中找不到名为{1}的方法！", type, name);
 
-            //return method.Invoke(target, parameters);
-            return Invoke(target, method, parameters);
-        }
+        //    //return method.Invoke(target, parameters);
+        //    return Invoke(target, method, parameters);
+        //}
 
         /// <summary>反射调用指定对象的方法</summary>
         /// <param name="target">要调用其方法的对象，如果要调用静态方法，则target是类型</param>
@@ -179,24 +179,24 @@ namespace NewLife.Reflection
             return method.Invoke(target, parameters);
         }
 
-        /// <summary>获取目标对象指定名称的属性/字段值</summary>
-        /// <param name="target">目标对象</param>
-        /// <param name="name">名称</param>
-        /// <returns></returns>
-        public virtual Object GetValue(Object target, String name)
-        {
-            if (name == null) throw new ArgumentNullException("name");
+        ///// <summary>获取目标对象指定名称的属性/字段值</summary>
+        ///// <param name="target">目标对象</param>
+        ///// <param name="name">名称</param>
+        ///// <returns></returns>
+        //public virtual Object GetValue(Object target, String name)
+        //{
+        //    if (name == null) throw new ArgumentNullException("name");
 
-            var type = GetType(ref target);
+        //    var type = GetType(ref target);
 
-            var pi = type.GetProperty(name);
-            if (pi != null) return GetValue(target, pi);
+        //    var pi = type.GetProperty(name);
+        //    if (pi != null) return GetValue(target, pi);
 
-            var fi = type.GetField(name);
-            if (fi != null) return GetValue(target, fi);
+        //    var fi = type.GetField(name);
+        //    if (fi != null) return GetValue(target, fi);
 
-            throw new XException("类{0}中找不到名为{1}的属性或字段！", type, name);
-        }
+        //    throw new XException("类{0}中找不到名为{1}的属性或字段！", type, name);
+        //}
 
         /// <summary>获取目标对象的属性值</summary>
         /// <param name="target">目标对象</param>
@@ -216,24 +216,25 @@ namespace NewLife.Reflection
             return field.GetValue(target);
         }
 
-        /// <summary>设置目标对象指定名称的属性/字段值</summary>
-        /// <param name="target">目标对象</param>
-        /// <param name="name">名称</param>
-        /// <param name="value">数值</param>
-        public virtual void SetValue(Object target, String name, Object value)
-        {
-            if (name == null) throw new ArgumentNullException("name");
+        ///// <summary>设置目标对象指定名称的属性/字段值</summary>
+        ///// <param name="target">目标对象</param>
+        ///// <param name="name">名称</param>
+        ///// <param name="value">数值</param>
+        //public virtual Boolean SetValue(Object target, String name, Object value)
+        //{
+        //    if (name == null) throw new ArgumentNullException("name");
 
-            var type = GetType(ref target);
+        //    var type = GetType(ref target);
 
-            var pi = type.GetProperty(name);
-            if (pi != null) { SetValue(target, pi, value); return; }
+        //    var pi = type.GetProperty(name);
+        //    if (pi != null) { SetValue(target, pi, value); return true; }
 
-            var fi = type.GetField(name);
-            if (fi != null) { SetValue(target, fi, value); return; }
+        //    var fi = type.GetField(name);
+        //    if (fi != null) { SetValue(target, fi, value); return true; }
 
-            throw new XException("类{0}中找不到名为{1}的属性或字段！", type, name);
-        }
+        //    //throw new XException("类{0}中找不到名为{1}的属性或字段！", type, name);
+        //    return false;
+        //}
 
         /// <summary>设置目标对象的属性值</summary>
         /// <param name="target">目标对象</param>

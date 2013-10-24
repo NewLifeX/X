@@ -15,24 +15,25 @@ namespace NewLife.Net.UPnP
         /// <returns></returns>
         public static TEntity FromXml(String xml)
         {
-            XmlDocument doc = new XmlDocument();
+            var doc = new XmlDocument();
             doc.LoadXml(xml);
 
             TEntity entity = new TEntity();
 
             //TypeX tx = TypeX.Create(typeof(TEntity));
-            foreach (PropertyInfoX item in typeof(TEntity).GetProperties())
+            foreach (var item in typeof(TEntity).GetProperties())
             {
-                if (AttributeX.GetCustomAttribute<XmlIgnoreAttribute>(item.Member, true) != null) continue;
+                if (AttributeX.GetCustomAttribute<XmlIgnoreAttribute>(item, true) != null) continue;
 
-                String elmName = item.Property.Name;
-                XmlElementAttribute att = AttributeX.GetCustomAttribute<XmlElementAttribute>(item.Member, true);
+                var elmName = item.Name;
+                var att = AttributeX.GetCustomAttribute<XmlElementAttribute>(item, true);
                 if (att != null && !String.IsNullOrEmpty(att.ElementName)) elmName = att.ElementName;
 
-                XmlNode node = doc.SelectSingleNode("//" + elmName);
+                var node = doc.SelectSingleNode("//" + elmName);
                 if (node == null) continue;
 
-                item.SetValue(entity, Convert.ChangeType(node.InnerText, item.Property.PropertyType));
+                //item.SetValue(entity, Convert.ChangeType(node.InnerText, item.PropertyType));
+                entity.SetValue(item, Convert.ChangeType(node.InnerText, item.PropertyType));
             }
             return entity;
 
@@ -61,24 +62,24 @@ namespace NewLife.Net.UPnP
         /// <returns></returns>
         public virtual String ToXml(String xmlns)
         {
-            XmlDocument doc = new XmlDocument();
-            XmlElement root = doc.CreateElement("u", Name, xmlns);
+            var doc = new XmlDocument();
+            var root = doc.CreateElement("u", Name, xmlns);
             doc.AppendChild(root);
 
             //TypeX tx = TypeX.Create(this.GetType());
-            foreach (PropertyInfoX item in this.GetType().GetProperties())
+            foreach (var item in this.GetType().GetProperties())
             {
-                if (AttributeX.GetCustomAttribute<XmlIgnoreAttribute>(item.Member, true) != null) continue;
+                if (AttributeX.GetCustomAttribute<XmlIgnoreAttribute>(item, true) != null) continue;
 
-                String elmName = item.Property.Name;
-                XmlElementAttribute att = AttributeX.GetCustomAttribute<XmlElementAttribute>(item.Member, true);
+                var elmName = item.Name;
+                var att = AttributeX.GetCustomAttribute<XmlElementAttribute>(item, true);
                 if (att != null && !String.IsNullOrEmpty(att.ElementName)) elmName = att.ElementName;
 
-                XmlElement elm = doc.CreateElement(elmName);
-                Object v = item.GetValue(this);
-                String str = v == null ? "" : v.ToString();
+                var elm = doc.CreateElement(elmName);
+                var v = this.GetValue(item);
+                var str = v == null ? "" : v.ToString();
 
-                XmlText text = doc.CreateTextNode(str);
+                var text = doc.CreateTextNode(str);
                 elm.AppendChild(text);
 
                 root.AppendChild(elm);

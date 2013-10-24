@@ -195,9 +195,9 @@ namespace XCoder
                 var key = math.Groups[1].Value;
                 if (String.IsNullOrEmpty(key)) return null;
 
-                var pix = PropertyInfoX.Create(typeof(IDataTable), key);
+                var pix = Reflect.GetProperty(typeof(IDataTable), key);
                 if (pix != null)
-                    return (String)pix.GetValue(table);
+                    return (String)table.GetValue(pix);
                 else
                     return table.Properties[key];
             });

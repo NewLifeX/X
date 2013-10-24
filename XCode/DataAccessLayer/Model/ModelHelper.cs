@@ -363,18 +363,18 @@ namespace XCode.DataAccessLayer
         {
             var pis = GetProperties(value.GetType());
             var names = new HashSet<String>(StringComparer.OrdinalIgnoreCase);
-            foreach (var item in pis)
+            foreach (var pi in pis)
             {
-                if (!item.Property.CanRead) continue;
-                if (AttributeX.GetCustomAttribute<XmlIgnoreAttribute>(item.Member, false) != null) continue;
+                if (!pi.CanRead) continue;
+                if (AttributeX.GetCustomAttribute<XmlIgnoreAttribute>(pi, false) != null) continue;
 
                 // 已处理的特性
-                names.Add(item.Name);
+                names.Add(pi.Name);
 
-                var v = reader.GetAttribute(item.Name);
+                var v = reader.GetAttribute(pi.Name);
                 if (String.IsNullOrEmpty(v)) continue;
 
-                if (item.Type == typeof(String[]))
+                if (pi.PropertyType == typeof(String[]))
                 {
                     var ss = v.Split(new String[] { "," }, StringSplitOptions.RemoveEmptyEntries);
                     // 去除前后空格，因为手工修改xml的时候，可能在逗号后加上空格
@@ -382,10 +382,10 @@ namespace XCode.DataAccessLayer
                     {
                         ss[i] = ss[i].Trim();
                     }
-                    item.SetValue(value, ss);
+                    value.SetValue(pi, ss);
                 }
                 else
-                    item.SetValue(value, TypeX.ChangeType(v, item.Type));
+                    value.SetValue(pi, TypeX.ChangeType(v, pi.PropertyType));
             }
             var pi1 = pis.FirstOrDefault(e => e.Name == "Name");
             var pi2 = pis.FirstOrDefault(e => e.Name == "TableName" || e.Name == "ColumnName");
@@ -395,14 +395,18 @@ namespace XCode.DataAccessLayer
                 var v2 = reader.GetAttribute("Alias");
                 if (!String.IsNullOrEmpty(v2))
                 {
-                    pi2.SetValue(value, pi1.GetValue(value));
-                    pi1.SetValue(value, v2);
+                    //pi2.SetValue(value, pi1.GetValue(value));
+                    //pi1.SetValue(value, v2);
+                    value.SetValue(pi2, value.GetValue(pi1));
+                    value.SetValue(pi1, v2);
                 }
                 // 写入的时候省略了相同的TableName/ColumnName
-                v2 = (String)pi2.GetValue(value);
+                //v2 = (String)pi2.GetValue(value);
+                v2 = (String)value.GetValue(pi2);
                 if (String.IsNullOrEmpty(v2))
                 {
-                    pi2.SetValue(value, pi1.GetValue(value));
+                    //pi2.SetValue(value, pi1.GetValue(value));
+                    value.SetValue(pi2, value.GetValue(pi1));
                 }
             }
             // 自增字段非空
@@ -453,26 +457,26 @@ namespace XCode.DataAccessLayer
             String name = null;
 
             // 基本类型，输出为特性
-            foreach (var item in GetProperties(type))
+            foreach (var pi in GetProperties(type))
             {
-                if (!item.Property.CanWrite) continue;
-                if (AttributeX.GetCustomAttribute<XmlIgnoreAttribute>(item.Member, false) != null) continue;
+                if (!pi.CanWrite) continue;
+                if (AttributeX.GetCustomAttribute<XmlIgnoreAttribute>(pi, false) != null) continue;
                 // 忽略ID
-                if (item.Name == "ID") continue;
+                if (pi.Name == "ID") continue;
                 // IDataIndex跳过默认Name
-                if (value is IDataIndex && item.Name.EqualIgnoreCase("Name"))
+                if (value is IDataIndex && pi.Name.EqualIgnoreCase("Name"))
                 {
                     var di = value as IDataIndex;
                     if (di.Name.EqualIgnoreCase(ModelResolver.Current.GetName(di))) continue;
                 }
 
-                var code = Type.GetTypeCode(item.Type);
+                var code = Type.GetTypeCode(pi.PropertyType);
 
-                var obj = item.GetValue(value);
+                var obj = value.GetValue(pi);
                 // 默认值不参与序列化，节省空间
                 if (!writeDefaultValueMember)
                 {
-                    var dobj = item.GetValue(def);
+                    var dobj = def.GetValue(pi);
                     if (Object.Equals(obj, dobj)) continue;
                     if (code == TypeCode.String && "" + obj == "" + dobj) continue;
                 }
@@ -480,13 +484,13 @@ namespace XCode.DataAccessLayer
                 if (code == TypeCode.String)
                 {
                     // 如果别名与名称相同，则跳过
-                    if (item.Name == "Name")
+                    if (pi.Name == "Name")
                         name = (String)obj;
-                    else if (item.Name == "Alias" || item.Name == "TableName" || item.Name == "ColumnName")
+                    else if (pi.Name == "Alias" || pi.Name == "TableName" || pi.Name == "ColumnName")
                         if (name == (String)obj) continue;
 
                     // 如果DisplayName与Name或者Description相同，则跳过
-                    if (item.Name == "DisplayName")
+                    if (pi.Name == "DisplayName")
                     {
                         var dis = (String)obj;
                         if (dis == name) continue;
@@ -502,7 +506,7 @@ namespace XCode.DataAccessLayer
                 }
                 else if (code == TypeCode.Object)
                 {
-                    if (item.Type.IsArray || typeof(IEnumerable).IsAssignableFrom(item.Type) || obj is IEnumerable)
+                    if (pi.PropertyType.IsArray || typeof(IEnumerable).IsAssignableFrom(pi.PropertyType) || obj is IEnumerable)
                     {
                         var sb = new StringBuilder();
                         var arr = obj as IEnumerable;
@@ -513,20 +517,20 @@ namespace XCode.DataAccessLayer
                         }
                         obj = sb.ToString();
                     }
-                    else if (item.Type == typeof(Type))
+                    else if (pi.PropertyType == typeof(Type))
                     {
                         obj = (obj as Type).Name;
                     }
                     else
                     {
                         // 其它的不支持，跳过
-                        if (XTrace.Debug) XTrace.WriteLine("不支持的类型[{0} {1}]！", item.Type.Name, item.Name);
+                        if (XTrace.Debug) XTrace.WriteLine("不支持的类型[{0} {1}]！", pi.PropertyType.Name, pi.Name);
 
                         continue;
                     }
                     //if (item.Type == typeof(Type)) obj = (obj as Type).Name;
                 }
-                writer.WriteAttributeString(item.Name, obj == null ? null : obj.ToString());
+                writer.WriteAttributeString(pi.Name, obj == null ? null : obj.ToString());
             }
 
             if (value is IDataTable)
@@ -694,10 +698,10 @@ namespace XCode.DataAccessLayer
             return dc;
         }
 
-        static DictionaryCache<Type, PropertyInfoX[]> cache2 = new DictionaryCache<Type, PropertyInfoX[]>();
-        static PropertyInfoX[] GetProperties(Type type)
+        static DictionaryCache<Type, PropertyInfo[]> cache2 = new DictionaryCache<Type, PropertyInfo[]>();
+        static PropertyInfo[] GetProperties(Type type)
         {
-            return cache2.GetItem(type, item => item.GetProperties(BindingFlags.Instance | BindingFlags.Public).Where(p => !p.Name.EqualIgnoreCase("Item")).Select(p => PropertyInfoX.Create(p)).ToArray());
+            return cache2.GetItem(type, item => item.GetProperties(BindingFlags.Instance | BindingFlags.Public).Where(p => !p.Name.EqualIgnoreCase("Item")).ToArray());
         }
         #endregion
 

@@ -1206,13 +1206,13 @@ namespace XCode
                 //∆•≈‰◊÷∂Œ
                 if (Meta.FieldNames.Contains(name))
                 {
-                    var field = FieldInfoX.Create(this.GetType(), "_" + name);
-                    if (field != null) return field.GetValue(this);
+                    var field = Reflect.GetField(this.GetType(), "_" + name);
+                    if (field != null) return this.GetValue(field);
                 }
 
                 //≥¢ ‘∆•≈‰ Ù–‘
-                var property = PropertyInfoX.Create(this.GetType(), name);
-                if (property != null && property.GetMethod != null) return property.GetValue(this);
+                var property = Reflect.GetProperty(this.GetType(), name);
+                if (property != null && property.CanRead) return this.GetValue(property);
 
                 Object obj = null;
                 if (Extends.TryGetValue(name, out obj)) return obj;
@@ -1226,19 +1226,19 @@ namespace XCode
                 //∆•≈‰◊÷∂Œ
                 if (Meta.FieldNames.Contains(name))
                 {
-                    var field = FieldInfoX.Create(this.GetType(), "_" + name);
+                    var field = Reflect.GetField(this.GetType(), "_" + name);
                     if (field != null)
                     {
-                        field.SetValue(this, value);
+                        this.SetValue(field, value);
                         return;
                     }
                 }
 
                 //≥¢ ‘∆•≈‰ Ù–‘
-                var property = PropertyInfoX.Create(this.GetType(), name);
-                if (property != null && property.SetMethod != null)
+                var property = Reflect.GetProperty(this.GetType(), name);
+                if (property != null && property.CanWrite)
                 {
-                    property.SetValue(this, value);
+                    this.SetValue(property, value);
                     return;
                 }
 

@@ -14,6 +14,7 @@ using NewLife.Reflection;
 using System.Linq;
 #else
 using NewLife.Linq;
+using System.Reflection;
 #endif
 
 namespace System
@@ -332,7 +333,8 @@ namespace System
         {
             if (socket == null || mSafeHandle == null) return;
 
-            var hand = mSafeHandle.GetValue(socket) as SafeHandle;
+            var value = mSafeHandle is PropertyInfo ? socket.GetValue(mSafeHandle as PropertyInfo) : socket.GetValue(mSafeHandle as FieldInfo);
+            var hand = value as SafeHandle;
             if (hand == null || hand.IsClosed) return;
 
             // 先用Shutdown禁用Socket（发送未完成发送的数据），再用Close关闭，这是一种比较优雅的关闭Socket的方法
@@ -357,19 +359,19 @@ namespace System
             socket.Close();
         }
 
-        private static MemberInfoX[] _mSafeHandle;
+        private static MemberInfo[] _mSafeHandle;
         /// <summary>SafeHandle字段</summary>
-        private static MemberInfoX mSafeHandle
+        private static MemberInfo mSafeHandle
         {
             get
             {
                 if (_mSafeHandle != null && _mSafeHandle.Length > 0) return _mSafeHandle[0];
 
-                MemberInfoX pix = FieldInfoX.Create(typeof(Socket), "m_Handle");
-                if (pix == null) pix = PropertyInfoX.Create(typeof(Socket), "SafeHandle");
-                _mSafeHandle = new MemberInfoX[] { pix };
+                MemberInfo pi = Reflect.GetField(typeof(Socket), "m_Handle");
+                if (pi == null) pi = Reflect.GetProperty(typeof(Socket), "SafeHandle");
+                _mSafeHandle = new MemberInfo[] { pi };
 
-                return pix;
+                return pi;
             }
         }
         #endregion

@@ -37,25 +37,27 @@ namespace NewLife.Reflection
             if (target == null) throw new ArgumentNullException("target");
             if (String.IsNullOrEmpty(name)) throw new ArgumentNullException("name");
 
-            value = null;
+            return target.TryGetValue(name, out value);
 
-            //尝试匹配属性
-            PropertyInfoX property = PropertyInfoX.Create(target.GetType(), name);
-            if (property != null)
-            {
-                value = property.GetValue(target);
-                return true;
-            }
+            //value = null;
 
-            //尝试匹配字段
-            FieldInfoX field = FieldInfoX.Create(target.GetType(), name);
-            if (field != null)
-            {
-                value = field.GetValue(target);
-                return true;
-            }
+            ////尝试匹配属性
+            //PropertyInfoX property = PropertyInfoX.Create(target.GetType(), name);
+            //if (property != null)
+            //{
+            //    value = property.GetValue(target);
+            //    return true;
+            //}
 
-            return false;
+            ////尝试匹配字段
+            //FieldInfoX field = FieldInfoX.Create(target.GetType(), name);
+            //if (field != null)
+            //{
+            //    value = field.GetValue(target);
+            //    return true;
+            //}
+
+            //return false;
         }
 
         /// <summary>获取目标对象指定属性字段的值</summary>
@@ -101,23 +103,25 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public static Boolean TrySetValue(Object target, String name, Object value)
         {
-            //尝试匹配属性
-            PropertyInfoX property = PropertyInfoX.Create(target.GetType(), name);
-            if (property != null)
-            {
-                property.SetValue(target, value);
-                return true;
-            }
+            return target.SetValue(name, value);
 
-            //尝试匹配字段
-            FieldInfoX field = FieldInfoX.Create(target.GetType(), name);
-            if (field != null)
-            {
-                field.SetValue(target, value);
-                return true;
-            }
+            ////尝试匹配属性
+            //PropertyInfoX property = PropertyInfoX.Create(target.GetType(), name);
+            //if (property != null)
+            //{
+            //    property.SetValue(target, value);
+            //    return true;
+            //}
 
-            return false;
+            ////尝试匹配字段
+            //FieldInfoX field = FieldInfoX.Create(target.GetType(), name);
+            //if (field != null)
+            //{
+            //    field.SetValue(target, value);
+            //    return true;
+            //}
+
+            //return false;
         }
     }
 }

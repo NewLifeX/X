@@ -422,7 +422,8 @@ namespace XAgent
                             if (Config.TryGetConfig(name, pi.PropertyType, out value))
                             {
                                 WriteLine("配置：{0} = {1}", name, value);
-                                PropertyInfoX.Create(pi).SetValue(item.Value, value);
+                                //PropertyInfoX.Create(pi).SetValue(item.Value, value);
+                                item.Value.SetValue(pi, value);
                             }
                         }
                     }

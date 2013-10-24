@@ -352,16 +352,16 @@ namespace NewLife.Xml
 
                 // 找到对应的属性
                 var name = curNode.Name;
-                var pix = PropertyInfoX.Create(type, name);
+                var pi = Reflect.GetProperty(type, name);
 
                 // 如果前一个是注释，跳过
                 if (i <= 0 || !node.ChildNodes[i - 1].IsComment())
                 {
-                    if (pix != null && SetComment(curNode, pix.Property)) { rs = true; i++; }
+                    if (pi != null && SetComment(curNode, pi)) { rs = true; i++; }
                 }
 
                 // 递归。因为必须依赖于Xml树，所以不用担心死循环
-                if (pix != null && Type.GetTypeCode(pix.Type) == TypeCode.Object) rs |= curNode.AttachCommitInternal(pix.Type);
+                if (pi != null && Type.GetTypeCode(pi.PropertyType) == TypeCode.Object) rs |= curNode.AttachCommitInternal(pi.PropertyType);
             }
 
             return rs;

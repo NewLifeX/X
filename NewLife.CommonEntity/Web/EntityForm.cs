@@ -7,6 +7,7 @@ using NewLife.Reflection;
 using NewLife.Web;
 using XCode;
 using XCode.Configuration;
+using System.Reflection;
 
 namespace NewLife.CommonEntity.Web
 {
@@ -751,15 +752,15 @@ namespace NewLife.CommonEntity.Web
         #region 辅助
         static Boolean GetControlValue(Control control, out Object value)
         {
-            TypeX tx = control.GetType();
-            String name = tx.GetCustomAttributeValue<ControlValuePropertyAttribute, String>();
-            PropertyInfoX pix = null;
-            if (!String.IsNullOrEmpty(name)) pix = PropertyInfoX.Create(tx.Type, name);
-            if (pix == null) pix = PropertyInfoX.Create(tx.Type, "Value");
-            if (pix == null) pix = PropertyInfoX.Create(tx.Type, "Text");
-            if (pix != null)
+            var type = control.GetType();
+            var name = type.GetCustomAttributeValue<ControlValuePropertyAttribute, String>();
+            PropertyInfo pi = null;
+            if (!String.IsNullOrEmpty(name)) pi = Reflect.GetProperty(type, name);
+            if (pi == null) pi = Reflect.GetProperty(type, "Value");
+            if (pi == null) pi = Reflect.GetProperty(type, "Text");
+            if (pi != null)
             {
-                value = pix.GetValue(control);
+                value = control.GetValue(pi);
                 return true;
             }
 
@@ -769,15 +770,15 @@ namespace NewLife.CommonEntity.Web
 
         static Boolean SetControlValue(Control control, Object value)
         {
-            TypeX tx = control.GetType();
-            String name = tx.GetCustomAttributeValue<ControlValuePropertyAttribute, String>();
-            PropertyInfoX pix = null;
-            if (!String.IsNullOrEmpty(name)) pix = PropertyInfoX.Create(tx.Type, name);
-            if (pix == null) pix = PropertyInfoX.Create(tx.Type, "Value");
-            if (pix == null) pix = PropertyInfoX.Create(tx.Type, "Text");
-            if (pix != null)
+            var type = control.GetType();
+            var name = type.GetCustomAttributeValue<ControlValuePropertyAttribute, String>();
+            PropertyInfo pi = null;
+            if (!String.IsNullOrEmpty(name)) pi = Reflect.GetProperty(type, name);
+            if (pi == null) pi = Reflect.GetProperty(type, "Value");
+            if (pi == null) pi = Reflect.GetProperty(type, "Text");
+            if (pi != null)
             {
-                pix.SetValue(control, value);
+                control.SetValue(pi, value);
                 return true;
             }
 

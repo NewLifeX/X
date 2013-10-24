@@ -83,10 +83,14 @@ namespace NewLife.Serialization
             TAttribute att = AttributeX.GetCustomAttribute<TAttribute>(member, true);
             if (att == null) return null;
 
-            var pix = PropertyInfoX.Create(typeof(TAttribute), name);
-            if (pix == null) return null;
+            //var pix = PropertyInfoX.Create(typeof(TAttribute), name);
+            //if (pix == null) return null;
 
-            return (String)pix.GetValue(att);
+            //return (String)pix.GetValue(att);
+
+            Object value = null;
+            if (typeof(TAttribute).TryGetValue(name, out value)) return (String)value;
+            return null;
         }
         #endregion
 

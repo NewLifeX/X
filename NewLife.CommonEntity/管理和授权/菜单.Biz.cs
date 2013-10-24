@@ -132,11 +132,12 @@ namespace NewLife.CommonEntity
             {
                 //return TypeResolver.GetPropertyValue(typeof(IMenu), "Current") as IMenu;
 
-                ICommonManageProvider provider = CommonManageProvider.Provider;
+                var provider = CommonManageProvider.Provider;
                 if (provider == null) return null;
 
-                Type type = provider.MenuType;
-                return PropertyInfoX.Create(type, "Current").GetValue() as IMenu;
+                //var type = provider.MenuType;
+                //return PropertyInfoX.Create(type, "Current").GetValue() as IMenu;
+                return provider.MenuType.GetValue("Current") as IMenu;
             }
         }
 
@@ -145,12 +146,12 @@ namespace NewLife.CommonEntity
             if (HttpContext.Current == null || HttpContext.Current.Request == null) return null;
 
             // 计算当前文件路径
-            String p = HttpContext.Current.Request.PhysicalPath;
-            DirectoryInfo di = new DirectoryInfo(Path.GetDirectoryName(p));
-            String fileName = Path.GetFileName(p);
+            var p = HttpContext.Current.Request.PhysicalPath;
+            var di = new DirectoryInfo(Path.GetDirectoryName(p));
+            var fileName = Path.GetFileName(p);
 
             // 查找所有以该文件名结尾的菜单
-            EntityList<TEntity> list = Meta.Cache.Entities;
+            var list = Meta.Cache.Entities;
             list = list.FindAll(delegate(TEntity item)
             {
                 return !String.IsNullOrEmpty(item.Url) && item.Url.Trim().EndsWith(fileName, StringComparison.OrdinalIgnoreCase);

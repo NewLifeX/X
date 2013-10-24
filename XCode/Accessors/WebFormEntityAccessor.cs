@@ -6,6 +6,7 @@ using NewLife.Reflection;
 using NewLife.Web;
 using XCode.Common;
 using XCode.Configuration;
+using System.Reflection;
 
 namespace XCode.Accessors
 {
@@ -280,11 +281,12 @@ namespace XCode.Accessors
             }
             else
             {
-                var pix = PropertyInfoX.Create(control.GetType(), "ToolTip");
-                if (pix != null && String.IsNullOrEmpty((String)pix.GetValue(control)))
-                {
-                    pix.SetValue(control, toolTip);
-                }
+                //var pix = PropertyInfoX.Create(control.GetType(), "ToolTip");
+                //if (pix != null && String.IsNullOrEmpty((String)pix.GetValue(control)))
+                //{
+                //    pix.SetValue(control, toolTip);
+                //}
+                control.SetValue("ToolTip", toolTip);
             }
         }
 
@@ -523,15 +525,16 @@ namespace XCode.Accessors
         #region 辅助
         private static Boolean GetControlValue(Control control, out Object value)
         {
-            TypeX tx = control.GetType();
-            String name = tx.GetCustomAttributeValue<ControlValuePropertyAttribute, String>();
-            PropertyInfoX pix = null;
-            if (!String.IsNullOrEmpty(name)) pix = PropertyInfoX.Create(tx.Type, name);
-            if (pix == null) pix = PropertyInfoX.Create(tx.Type, "Value");
-            if (pix == null) pix = PropertyInfoX.Create(tx.Type, "Text");
-            if (pix != null)
+            var type = control.GetType();
+            var name = type.GetCustomAttributeValue<ControlValuePropertyAttribute, String>();
+            PropertyInfo pi = null;
+            if (!String.IsNullOrEmpty(name)) pi = Reflect.GetProperty(type, name);
+            if (pi == null) pi = Reflect.GetProperty(type, "Value");
+            if (pi == null) pi = Reflect.GetProperty(type, "Text");
+            if (pi != null)
             {
-                value = pix.GetValue(control);
+                //value = pi.GetValue(control);
+                value = control.GetValue(pi);
                 return true;
             }
 
@@ -541,16 +544,17 @@ namespace XCode.Accessors
 
         private static Boolean SetControlValue(Control control, Object value)
         {
-            TypeX tx = control.GetType();
-            String name = tx.GetCustomAttributeValue<ControlValuePropertyAttribute, String>();
-            PropertyInfoX pix = null;
-            if (!String.IsNullOrEmpty(name)) pix = PropertyInfoX.Create(tx.Type, name);
-            if (pix == null) pix = PropertyInfoX.Create(tx.Type, "Value");
-            if (pix == null) pix = PropertyInfoX.Create(tx.Type, "Text");
-            if (pix != null)
+            var type = control.GetType();
+            var name = type.GetCustomAttributeValue<ControlValuePropertyAttribute, String>();
+            PropertyInfo pi = null;
+            if (!String.IsNullOrEmpty(name)) pi = Reflect.GetProperty(type, name);
+            if (pi == null) pi = Reflect.GetProperty(type, "Value");
+            if (pi == null) pi = Reflect.GetProperty(type, "Text");
+            if (pi != null)
             {
-                if (value == null && pix.Type.IsValueType) return false;
-                pix.SetValue(control, value);
+                if (value == null && pi.PropertyType.IsValueType) return false;
+                //pi.SetValue(control, value);
+                control.SetValue(pi, value);
                 return true;
             }
 

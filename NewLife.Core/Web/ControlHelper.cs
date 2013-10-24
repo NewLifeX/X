@@ -167,18 +167,22 @@ namespace NewLife.Web
             if (control == null) return null;
             if (String.IsNullOrEmpty(eventName)) return null;
 
-            var pix = PropertyInfoX.Create(control.GetType(), "Events");
-            if (pix == null) return null;
+            //var pix = PropertyInfoX.Create(control.GetType(), "Events");
+            //if (pix == null) return null;
 
             //var list = pix.GetValue(control) as EventHandlerList;
-            var list = control.GetValue("Events") as EventHandlerList;
+
+            var pi = Reflect.GetProperty(control.GetType(), "Events");
+            if (pi == null) return null;
+
+            var list = control.GetValue(pi) as EventHandlerList;
             if (list == null) return null;
 
-            var fix = FieldInfoX.Create(control.GetType(), eventName);
-            if (fix == null && !eventName.StartsWith("Event", StringComparison.Ordinal)) fix = FieldInfoX.Create(control.GetType(), "Event" + eventName);
-            if (fix == null) return null;
+            var fi = Reflect.GetField(control.GetType(), eventName);
+            if (fi == null && !eventName.StartsWith("Event", StringComparison.OrdinalIgnoreCase)) fi = Reflect.GetField(control.GetType(), "Event" + eventName);
+            if (fi == null) return null;
 
-            return list[fix.GetValue(control)];
+            return list[fi.GetValue(control)];
         }
     }
 }
