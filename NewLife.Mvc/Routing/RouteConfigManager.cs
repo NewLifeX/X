@@ -128,7 +128,7 @@ namespace NewLife.Mvc
         /// <returns></returns>
         public RouteConfigManager Route(string path, string type)
         {
-            return Route(path, TypeX.GetType(type));
+            return Route(path, Reflect.GetType(type));
         }
 
         /// <summary>指定路径路由到指定类型,类型需要是IController,IControllerFactory,IRouteConfigMoudule其中之一</summary>

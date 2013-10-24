@@ -862,7 +862,7 @@ namespace NewLife.Serialization
             var typeName = ReadString();
             if (String.IsNullOrEmpty(typeName)) return null;
 
-            var type = TypeX.GetType(typeName, true);
+            var type = Reflect.GetType(typeName, true);
             if (type != null) return type;
 
             throw new XException("无法找到名为{0}的类型！", typeName);

@@ -30,7 +30,7 @@ namespace NewLife.Messaging
         {
             get
             {
-                if (_Type == null && !String.IsNullOrEmpty(_TypeName)) _Type = TypeX.GetType(_TypeName);
+                if (_Type == null && !String.IsNullOrEmpty(_TypeName)) _Type = Reflect.GetType(_TypeName);
                 return _Type;
             }
             set

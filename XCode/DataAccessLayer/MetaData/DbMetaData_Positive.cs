@@ -359,7 +359,7 @@ namespace XCode.DataAccessLayer
             // 修正数据类型 +++重点+++
             if (TryGetDataRowValue<String>(drDataType, "DataType", out typeName))
             {
-                field.DataType = TypeX.GetType(typeName);
+                field.DataType = Reflect.GetType(typeName);
             }
 
             // 修正长度为最大长度

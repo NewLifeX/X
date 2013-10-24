@@ -308,7 +308,7 @@ namespace XCode.DataAccessLayer
                     String typeName = GetDataRowValue<String>(drs[0], "TypeName");
                     field.RawType = typeName;
 
-                    if (TryGetDataRowValue<String>(drs[0], "DataType", out typeName)) field.DataType = TypeX.GetType(typeName);
+                    if (TryGetDataRowValue<String>(drs[0], "DataType", out typeName)) field.DataType = Reflect.GetType(typeName);
 
                     // 修正备注类型
                     if (field.DataType == typeof(String) && drs.Length > 1)

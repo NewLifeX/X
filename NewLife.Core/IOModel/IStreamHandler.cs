@@ -150,7 +150,7 @@ namespace NewLife.IO
                 }
                 foreach (String item in ss)
                 {
-                    Type type = TypeX.GetType(item, true);
+                    Type type = Reflect.GetType(item, true);
                     list.Add(type);
                 }
             }
@@ -162,7 +162,7 @@ namespace NewLife.IO
         {
             try
             {
-                Dictionary<String, List<Type>> ts = GetHandler();
+                var ts = GetHandler();
                 if (ts == null || ts.Count < 1) return;
 
                 foreach (String item in ts.Keys)

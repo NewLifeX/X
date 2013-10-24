@@ -259,7 +259,7 @@ namespace XCode
 
         private static Type GetTypeInternal(String typeName)
         {
-            var type = TypeX.GetType(typeName, true);
+            var type = Reflect.GetType(typeName, true);
             if (type != null) return type;
 
             var entities = LoadEntities();

@@ -118,7 +118,7 @@ namespace NewLife.Model
                 {
                     if (_ImplementType == null && !TypeName.IsNullOrWhiteSpace())
                     {
-                        _ImplementType = TypeX.GetType(TypeName, true);
+                        _ImplementType = Reflect.GetType(TypeName, true);
                         if (_ImplementType == null) throw new XException("无法找到类型{0}！", TypeName);
                     }
                     return _ImplementType;
@@ -630,7 +630,7 @@ namespace NewLife.Model
                 var name = item.Key;
                 if (name.IsNullOrWhiteSpace()) continue;
 
-                var type = TypeX.GetType(name, true);
+                var type = Reflect.GetType(name, true);
                 if (type == null)
                 {
                     XTrace.WriteLine("未找到对象容器配置{0}中的类型{1}！", item.Key, name);
