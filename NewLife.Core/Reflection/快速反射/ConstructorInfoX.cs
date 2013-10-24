@@ -142,7 +142,7 @@ namespace NewLife.Reflection
 
         #region 调用
         /// <summary>创建实例</summary>
-        /// <param name="parameters"></param>
+        /// <param name="parameters">参数数组</param>
         /// <returns></returns>
         [DebuggerStepThrough]
         public override Object CreateInstance(params Object[] parameters)

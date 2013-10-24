@@ -182,7 +182,7 @@ namespace NewLife.Reflection
         #region 调用
         /// <summary>执行方法</summary>
         /// <param name="obj"></param>
-        /// <param name="parameters"></param>
+        /// <param name="parameters">参数数组</param>
         /// <returns></returns>
         public virtual Object Invoke(Object obj, params Object[] parameters) { throw new NotImplementedException(); }
 
@@ -221,7 +221,7 @@ namespace NewLife.Reflection
         }
 
         /// <summary>创建实例</summary>
-        /// <param name="parameters"></param>
+        /// <param name="parameters">参数数组</param>
         /// <returns></returns>
         public virtual Object CreateInstance(params Object[] parameters) { throw new NotImplementedException(); }
         #endregion

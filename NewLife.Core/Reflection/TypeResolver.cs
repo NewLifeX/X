@@ -162,7 +162,7 @@
 //        /// </summary>
 //        /// <param name="baseType"></param>
 //        /// <param name="methodName"></param>
-//        /// <param name="parameters"></param>
+//        /// <param name="parameters">参数数组</param>
 //        /// <returns></returns>
 //        public static Object Invoke(Type baseType, String methodName, params Object[] parameters)
 //        {

@@ -227,7 +227,7 @@ namespace NewLife.Reflection
 
         /// <summary>执行表达式，返回结果。参数名默认为p0/p1/p2/pn</summary>
         /// <param name="code"></param>
-        /// <param name="parameters"></param>
+        /// <param name="parameters">参数数组</param>
         /// <returns></returns>
         public static Object Execute(String code, Object[] parameters)
         {

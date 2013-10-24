@@ -192,7 +192,7 @@ namespace NewLife.Reflection
 
         /// <summary>快速调用委托</summary>
         /// <param name="obj"></param>
-        /// <param name="parameters"></param>
+        /// <param name="parameters">参数数组</param>
         /// <returns></returns>
         delegate Object FastInvokeHandler(Object obj, Object[] parameters);
         #endregion
@@ -200,7 +200,7 @@ namespace NewLife.Reflection
         #region 调用
         /// <summary>参数调用</summary>
         /// <param name="obj"></param>
-        /// <param name="parameters"></param>
+        /// <param name="parameters">参数数组</param>
         /// <returns></returns>
         [DebuggerStepThrough]
         public override Object Invoke(Object obj, params  Object[] parameters)
@@ -222,7 +222,7 @@ namespace NewLife.Reflection
 
         /// <summary>通过字典参数调用</summary>
         /// <param name="obj"></param>
-        /// <param name="parameters"></param>
+        /// <param name="parameters">参数数组</param>
         /// <returns></returns>
         public Object InvokeByDictionaryParameter(Object obj, IDictionary parameters)
         {
@@ -249,7 +249,7 @@ namespace NewLife.Reflection
         /// <typeparam name="TResult"></typeparam>
         /// <param name="target"></param>
         /// <param name="name">名称</param>
-        /// <param name="parameters"></param>
+        /// <param name="parameters">参数数组</param>
         /// <returns></returns>
         public static TResult Invoke<TResult>(Object target, String name, params Object[] parameters)
         {
@@ -266,7 +266,7 @@ namespace NewLife.Reflection
         /// <typeparam name="TTarget">目标类型</typeparam>
         /// <typeparam name="TResult">返回类型</typeparam>
         /// <param name="name">名称</param>
-        /// <param name="parameters"></param>
+        /// <param name="parameters">参数数组</param>
         /// <returns></returns>
         public static TResult Invoke<TTarget, TResult>(String name, params Object[] parameters)
         {
@@ -282,7 +282,7 @@ namespace NewLife.Reflection
         /// <typeparam name="TResult"></typeparam>
         /// <param name="target"></param>
         /// <param name="name">名称</param>
-        /// <param name="parameters"></param>
+        /// <param name="parameters">参数数组</param>
         /// <returns></returns>
         public static TResult InvokeByDictionaryParameter<TResult>(Object target, String name, IDictionary parameters)
         {
@@ -299,7 +299,7 @@ namespace NewLife.Reflection
         /// <typeparam name="TTarget"></typeparam>
         /// <typeparam name="TResult"></typeparam>
         /// <param name="name">名称</param>
-        /// <param name="parameters"></param>
+        /// <param name="parameters">参数数组</param>
         /// <returns></returns>
         public static TResult InvokeByDictionaryParameter<TTarget, TResult>(String name, IDictionary parameters)
         {

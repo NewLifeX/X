@@ -290,7 +290,7 @@ namespace XCode
         /// <summary>把SQL模版格式化为SQL语句</summary>
         /// <param name="entity">实体对象</param>
         /// <param name="methodType"></param>
-        /// <param name="parameters"></param>
+        /// <param name="parameters">参数数组</param>
         /// <returns>SQL字符串</returns>
         String SQL(IEntity entity, DataObjectMethodType methodType, ref DbParameter[] parameters)
         {

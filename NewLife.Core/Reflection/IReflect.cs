@@ -20,7 +20,7 @@ namespace NewLife.Reflection
         /// <remarks>用于具有多个签名的同名方法的场合，不确定是否存在性能问题，不建议普通场合使用</remarks>
         /// <param name="type">类型</param>
         /// <param name="name">名称</param>
-        /// <param name="paramTypes"></param>
+        /// <param name="paramTypes">参数类型数组</param>
         /// <returns></returns>
         MethodInfo GetMethod(Type type, String name, params Type[] paramTypes);
 
@@ -40,7 +40,7 @@ namespace NewLife.Reflection
         #region 反射调用
         /// <summary>反射创建指定类型的实例</summary>
         /// <param name="type">类型</param>
-        /// <param name="parameters"></param>
+        /// <param name="parameters">参数数组</param>
         /// <returns></returns>
         Object CreateInstance(Type type, params Object[] parameters);
 
@@ -115,7 +115,7 @@ namespace NewLife.Reflection
         /// <remarks>用于具有多个签名的同名方法的场合，不确定是否存在性能问题，不建议普通场合使用</remarks>
         /// <param name="type">类型</param>
         /// <param name="name">名称</param>
-        /// <param name="paramTypes"></param>
+        /// <param name="paramTypes">参数类型数组</param>
         /// <returns></returns>
         public virtual MethodInfo GetMethod(Type type, String name, params Type[] paramTypes)
         {
@@ -144,7 +144,7 @@ namespace NewLife.Reflection
         #region 反射调用
         /// <summary>反射创建指定类型的实例</summary>
         /// <param name="type">类型</param>
-        /// <param name="parameters"></param>
+        /// <param name="parameters">参数数组</param>
         /// <returns></returns>
         public virtual Object CreateInstance(Type type, params Object[] parameters) { return Activator.CreateInstance(type, parameters); }
 

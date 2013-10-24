@@ -146,7 +146,7 @@ namespace NewLife.Reflection
 
         #region 调用
         /// <summary>创建实例</summary>
-        /// <param name="parameters"></param>
+        /// <param name="parameters">参数数组</param>
         /// <returns></returns>
         [DebuggerStepThrough]
         public override Object CreateInstance(params Object[] parameters)
@@ -247,7 +247,7 @@ namespace NewLife.Reflection
 
         /// <summary>快速反射创建指定类型的实例</summary>
         /// <param name="type">类型</param>
-        /// <param name="parameters"></param>
+        /// <param name="parameters">参数数组</param>
         /// <returns></returns>
         public static Object CreateInstance(Type type, params Object[] parameters)
         {
@@ -258,7 +258,7 @@ namespace NewLife.Reflection
 
         /// <summary>快速反射创建指定类型的实例</summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="parameters"></param>
+        /// <param name="parameters">参数数组</param>
         /// <returns></returns>
         public static Object CreateInstance<T>(params Object[] parameters)
         {

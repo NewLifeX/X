@@ -16,13 +16,13 @@ namespace NewLife.Reflection
         /// <param name="typeName">类型名</param>
         /// <param name="isLoadAssembly">是否从未加载程序集中获取类型。使用仅反射的方法检查目标类型，如果存在，则进行常规加载</param>
         /// <returns></returns>
-        public static Type GetType(String typeName, Boolean isLoadAssembly = false) { return _Current.GetType(typeName, isLoadAssembly); }
+        public static Type GetType(String typeName, Boolean isLoadAssembly = true) { return _Current.GetType(typeName, isLoadAssembly); }
 
         /// <summary>获取方法</summary>
         /// <remarks>用于具有多个签名的同名方法的场合，不确定是否存在性能问题，不建议普通场合使用</remarks>
         /// <param name="type">类型</param>
         /// <param name="name">名称</param>
-        /// <param name="paramTypes"></param>
+        /// <param name="paramTypes">参数类型数组</param>
         /// <returns></returns>
         public static MethodInfo GetMethod(Type type, String name, params Type[] paramTypes) { return _Current.GetMethod(type, name, paramTypes); }
 
@@ -42,7 +42,7 @@ namespace NewLife.Reflection
         #region 反射调用
         /// <summary>反射创建指定类型的实例</summary>
         /// <param name="type">类型</param>
-        /// <param name="parameters"></param>
+        /// <param name="parameters">参数数组</param>
         /// <returns></returns>
         public static Object CreateInstance(this Type type, params Object[] parameters)
         {
