@@ -224,7 +224,7 @@ namespace XCode.Configuration
         /// <returns></returns>
         public WhereExpression CreateExpression(String action, Object value)
         {
-            IEntityOperate op = Factory;
+            var op = Factory;
             String sql = null;
             String name = op.FormatName(ColumnName);
             if (!String.IsNullOrEmpty(action) && action.Contains("{0}"))
@@ -261,33 +261,54 @@ namespace XCode.Configuration
         /// <returns></returns>
         public WhereExpression NotEqual(object value) { return MakeCondition(this, value, "<>"); }
 
-        //public static String operator ==(FieldItem field, Object value) { return MakeCondition(field, value, "=="); }
-        //public static String operator !=(FieldItem field, Object value) { return MakeCondition(field, value, "<>"); }
-
         /// <summary>以某个字符串开始,{0}%操作</summary>
+        /// <remarks>空参数不参与表达式操作，不生成该部分SQL拼接</remarks>
         /// <param name="value">数值</param>
         /// <returns></returns>
-        public WhereExpression StartsWith(Object value) { return CreateExpression("{0}%", value); }
+        public WhereExpression StartsWith(Object value)
+        {
+            if (value == null || value + "" == "") return new WhereExpression();
+
+            return CreateExpression("{0}%", value);
+        }
 
         /// <summary>以某个字符串结束，%{0}操作</summary>
+        /// <remarks>空参数不参与表达式操作，不生成该部分SQL拼接</remarks>
         /// <param name="value">数值</param>
         /// <returns></returns>
-        public WhereExpression EndsWith(Object value) { return CreateExpression("%{0}", value); }
+        public WhereExpression EndsWith(Object value)
+        {
+            if (value == null || value + "" == "") return new WhereExpression();
+
+            return CreateExpression("%{0}", value);
+        }
 
         /// <summary>包含某个字符串，%{0}%操作</summary>
+        /// <remarks>空参数不参与表达式操作，不生成该部分SQL拼接</remarks>
         /// <param name="value">数值</param>
         /// <returns></returns>
-        public WhereExpression Contains(Object value) { return CreateExpression("%{0}%", value); }
+        public WhereExpression Contains(Object value)
+        {
+            if (value == null || value + "" == "") return new WhereExpression();
+
+            return CreateExpression("%{0}%", value);
+        }
 
         /// <summary>In操作</summary>
+        /// <remarks>空参数不参与表达式操作，不生成该部分SQL拼接</remarks>
         /// <param name="value">逗号分割的数据</param>
         /// <returns></returns>
         public WhereExpression In(String value)
         {
+            //if (value == null) return new WhereExpression();
+            if (String.IsNullOrEmpty(value)) return new WhereExpression();
+            //if (String.IsNullOrEmpty(value)) throw new ArgumentNullException("value");
+
             return new WhereExpression(String.Format("{0} In({1})", Factory.FormatName(ColumnName), value));
         }
 
         /// <summary>In操作</summary>
+        /// <remarks>空参数不参与表达式操作，不生成该部分SQL拼接</remarks>
         /// <param name="value">枚举数据，会转化为字符串</param>
         /// <returns></returns>
         public WhereExpression In(IEnumerable value) { return _In(value, true); }
@@ -295,6 +316,7 @@ namespace XCode.Configuration
         WhereExpression _In(IEnumerable value, Boolean flag)
         {
             if (value == null) return new WhereExpression();
+            //if (value == null) throw new ArgumentNullException("value");
 
             var op = Factory;
             var name = op.FormatName(ColumnName);
@@ -312,19 +334,26 @@ namespace XCode.Configuration
                 list.Add(str);
             }
             if (list.Count <= 0) return new WhereExpression();
+            //if (list.Count <= 0) throw new ArgumentNullException("value");
 
             return new WhereExpression(String.Format("{0}{2} In({1})", name, String.Join(",", list.ToArray()), flag ? "" : " Not"));
         }
 
         /// <summary>NotIn操作</summary>
+        /// <remarks>空参数不参与表达式操作，不生成该部分SQL拼接</remarks>
         /// <param name="value">数值</param>
         /// <returns></returns>
         public WhereExpression NotIn(String value)
         {
+            //if (value == null) return new WhereExpression();
+            if (String.IsNullOrEmpty(value)) return new WhereExpression();
+            //if (String.IsNullOrEmpty(value)) throw new ArgumentNullException("value");
+
             return new WhereExpression(String.Format("{0} Not In({1})", Factory.FormatName(ColumnName), value));
         }
 
         /// <summary>NotIn操作</summary>
+        /// <remarks>空参数不参与表达式操作，不生成该部分SQL拼接</remarks>
         /// <param name="value">数值</param>
         /// <returns></returns>
         public WhereExpression NotIn(IEnumerable value) { return _In(value, false); }
