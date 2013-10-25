@@ -148,6 +148,9 @@ namespace XCode
                 return exp;
             }
 
+            // 检查空对象
+            if (value is WhereExpression && (value as WhereExpression).Builder.Length <= 0) return exp;
+
             exp.And(value.ToString());
             return exp;
         }
@@ -176,6 +179,9 @@ namespace XCode
                 exp.skipNext = false;
                 return exp;
             }
+
+            // 检查空对象
+            if (value is WhereExpression && (value as WhereExpression).Builder.Length <= 0) return exp;
 
             exp.Or(value.ToString());
             return exp;
