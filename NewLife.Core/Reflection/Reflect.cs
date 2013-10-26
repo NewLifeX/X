@@ -192,6 +192,20 @@ namespace NewLife.Reflection
             return _Current.GetValue(target, field);
         }
 
+        /// <summary>获取目标对象的成员值</summary>
+        /// <param name="target">目标对象</param>
+        /// <param name="member">成员</param>
+        /// <returns></returns>
+        public static Object GetValue(this Object target, MemberInfo member)
+        {
+            if (member is PropertyInfo)
+                return target.GetValue(member as PropertyInfo);
+            else if (member is FieldInfo)
+                return target.GetValue(member as FieldInfo);
+            else
+                throw new ArgumentOutOfRangeException("member");
+        }
+
         /// <summary>设置目标对象指定名称的属性/字段值</summary>
         /// <param name="target">目标对象</param>
         /// <param name="name">名称</param>
@@ -228,6 +242,20 @@ namespace NewLife.Reflection
         public static void SetValue(this Object target, FieldInfo field, Object value)
         {
             _Current.SetValue(target, field, value);
+        }
+
+        /// <summary>设置目标对象的成员值</summary>
+        /// <param name="target">目标对象</param>
+        /// <param name="member">成员</param>
+        /// <param name="value">数值</param>
+        public static void SetValue(this Object target, MemberInfo member, Object value)
+        {
+            if (member is PropertyInfo)
+                _Current.SetValue(target, member as PropertyInfo, value);
+            else if (member is FieldInfo)
+                _Current.SetValue(target, member as FieldInfo, value);
+            else
+                throw new ArgumentOutOfRangeException("member");
         }
         #endregion
 

@@ -38,10 +38,10 @@ namespace NewLife.Serialization
         #region 方法
         /// <summary>找到所引用的参考字段</summary>
         /// <param name="target">目标对象</param>
-        /// <param name="member"></param>
+        /// <param name="member">目标对象的成员</param>
         /// <param name="value">数值</param>
         /// <returns></returns>
-        MemberInfoX FindReference(Object target, MemberInfo member, out Object value)
+        MemberInfo FindReference(Object target, MemberInfo member, out Object value)
         {
             value = null;
 
@@ -49,20 +49,35 @@ namespace NewLife.Serialization
             if (String.IsNullOrEmpty(ReferenceName)) return null;
 
             // 考虑ReferenceName可能是圆点分隔的多重结构
-            MemberInfoX mx = null;
+            //MemberInfoX mx = null;
+            MemberInfo mi = null;
             Type type = member.DeclaringType;
             value = target;
             var ss = ReferenceName.Split(".");
             for (int i = 0; i < ss.Length; i++)
             {
-                mx = MemberInfoX.Create(type, ss[i]);
-                if (mx == null) return null;
+                //mx = MemberInfoX.Create(type, ss[i]);
+                //if (mx == null) return null;
+
+                var pi = type.GetPropertyEx(ss[i]);
+                var fi = type.GetFieldEx(ss[i]);
+                mi = (MemberInfo)pi ?? fi;
 
                 // 最后一个不需要计算
                 if (i < ss.Length - 1)
                 {
-                    type = mx.Type;
-                    value = mx.GetValue(value);
+                    //type = mx.Type;
+                    //value = mx.GetValue(value);
+                    if (pi != null)
+                    {
+                        type = pi.PropertyType;
+                        value = value.GetValue(pi);
+                    }
+                    else
+                    {
+                        type = fi.FieldType;
+                        value = value.GetValue(fi);
+                    }
                 }
             }
 
@@ -70,8 +85,10 @@ namespace NewLife.Serialization
             //if (mx == null) return null;
 
             // 目标字段必须是整型
-            TypeCode tc = Type.GetTypeCode(mx.Type);
-            if (tc >= TypeCode.SByte && tc <= TypeCode.UInt64) return mx;
+            //TypeCode tc = Type.GetTypeCode(mx.Type);
+            //if (tc >= TypeCode.SByte && tc <= TypeCode.UInt64) return mx;
+            var tc = Type.GetTypeCode(type);
+            if (tc >= TypeCode.SByte && tc <= TypeCode.UInt64) return mi;
 
             return null;
         }
@@ -83,11 +100,12 @@ namespace NewLife.Serialization
         internal void SetReferenceSize(Object target, MemberInfo member, Encoding encoding)
         {
             Object v = null;
-            var mx = FindReference(target, member, out v);
-            if (mx == null) return;
+            var mi = FindReference(target, member, out v);
+            if (mi == null) return;
 
             // 获取当前成员（加了特性）的值
-            var value = MemberInfoX.Create(member).GetValue(target);
+            //var value = MemberInfoX.Create(member).GetValue(target);
+            var value = target.GetValue(member);
             if (value == null) return;
 
             // 尝试计算大小
@@ -111,7 +129,12 @@ namespace NewLife.Serialization
             }
 
             // 给参考字段赋值
-            mx.SetValue(v, size - Size);
+            //mi.SetValue(v, size - Size);
+            //if (mi is PropertyInfo)
+            //    v.SetValue(mi as PropertyInfo, size - Size);
+            //else if (mi is FieldInfo)
+            //    v.SetValue(mi as FieldInfo, size - Size);
+            v.SetValue(mi, size - size);
         }
 
         /// <summary>获取目标对象的引用大小值</summary>
@@ -121,10 +144,17 @@ namespace NewLife.Serialization
         internal Int32 GetReferenceSize(Object target, MemberInfo member)
         {
             Object v = null;
-            var mx = FindReference(target, member, out v);
-            if (mx == null) return -1;
+            var mi = FindReference(target, member, out v);
+            if (mi == null) return -1;
 
-            return Convert.ToInt32(mx.GetValue(v)) + Size;
+            //return Convert.ToInt32(mx.GetValue(v)) + Size;
+            //if (mi is PropertyInfo)
+            //    return Convert.ToInt32(v.GetValue(mi as PropertyInfo)) + Size;
+            //else if (mi is FieldInfo)
+            //    return Convert.ToInt32(v.GetValue(mi as FieldInfo)) + Size;
+            //else
+            //    return -1;
+            return Convert.ToInt32(v.GetValue(mi)) + Size;
         }
         #endregion
     }

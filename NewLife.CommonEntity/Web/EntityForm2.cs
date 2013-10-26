@@ -1,4 +1,5 @@
 ﻿using System;
+using NewLife.Reflection;
 using System.ComponentModel;
 using System.Web;
 using System.Web.UI;
@@ -691,7 +692,8 @@ namespace NewLife.CommonEntity.Web
         {
             if (control == null) return;
 
-            NewLife.Reflection.MemberInfoX.Create(control.GetType(), fieldName).SetValue(control, text);
+            //NewLife.Reflection.MemberInfoX.Create(control.GetType(), fieldName).SetValue(control, text);
+            control.SetValue(fieldName, text);
         }
 
         #endregion

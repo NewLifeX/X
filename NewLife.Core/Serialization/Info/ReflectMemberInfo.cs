@@ -9,13 +9,14 @@ namespace NewLife.Serialization
     class ReflectMemberInfo : IObjectMemberInfo
     {
         #region 属性
-        private MemberInfo _Member;
+        private FieldInfo _Field;
+        private PropertyInfo _Property;
         /// <summary>成员</summary>
-        public MemberInfo Member { get { return _Member; } private set { _Member = value; } }
+        public MemberInfo Member { get { return (MemberInfo)_Field ?? _Property; } private set { _Field = value as FieldInfo; _Property = value as PropertyInfo; } }
 
-        private MemberInfoX _Mix;
-        /// <summary>快速反射</summary>
-        private MemberInfoX Mix { get { return _Mix ?? (_Mix = Member); } }
+        //private MemberInfoX _Mix;
+        ///// <summary>快速反射</summary>
+        //private MemberInfoX Mix { get { return _Mix ?? (_Mix = Member); } }
         #endregion
 
         #region 构造
@@ -33,12 +34,35 @@ namespace NewLife.Serialization
         public String Name { get { return _Name ?? (_Name = GetName()); } }
 
         /// <summary>类型</summary>
-        public Type Type { get { return Mix.Type; } }
+        public Type Type
+        {
+            get
+            {
+                if (_Field != null) return _Field.FieldType;
+                if (_Property != null) return _Property.PropertyType;
+                return null;
+            }
+        }
 
         /// <summary>对目标对象取值赋值</summary>
         /// <param name="target">目标对象</param>
         /// <returns></returns>
-        public object this[object target] { get { return Mix.GetValue(target); } set { Mix.SetValue(target, value); } }
+        public object this[object target]
+        {
+            get
+            {
+                //return Mix.GetValue(target);
+                if (_Field != null) return target.GetValue(_Field);
+                if (_Property != null) return target.GetValue(_Property);
+                return null;
+            }
+            set
+            {
+                //Mix.SetValue(target, value);
+                if (_Field != null) target.SetValue(_Field, value);
+                else if (_Property != null) target.SetValue(_Property, value);
+            }
+        }
 
         ///// <summary>是否可读</summary>
         //public bool CanRead
@@ -72,7 +96,7 @@ namespace NewLife.Serialization
             if (String.IsNullOrEmpty(name)) name = GetCustomAttributeValue<XmlArrayAttribute>(Member, "ElementName");
             if (String.IsNullOrEmpty(name)) name = GetCustomAttributeValue<XmlElementAttribute>(Member, "ElementName");
             if (String.IsNullOrEmpty(name)) name = GetCustomAttributeValue<XmlAnyElementAttribute>(Member, "Name");
-            if (String.IsNullOrEmpty(name)) name = GetCustomAttributeValue<XmlRootAttribute>(Mix.Type, "ElementName");
+            if (String.IsNullOrEmpty(name)) name = GetCustomAttributeValue<XmlRootAttribute>(Type, "ElementName");
 
             if (String.IsNullOrEmpty(name)) name = Member.Name;
             return name;
