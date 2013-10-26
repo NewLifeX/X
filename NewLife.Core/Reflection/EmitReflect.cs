@@ -45,7 +45,10 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public override Object Invoke(Object target, MethodBase method, params Object[] parameters)
         {
-            return MethodInfoX.Create(method).Invoke(target, parameters);
+            if (method is MethodInfo)
+                return MethodInfoX.Create(method).Invoke(target, parameters);
+            else
+                return base.Invoke(target, method, parameters);
         }
 
         /// <summary></summary>
