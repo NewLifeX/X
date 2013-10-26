@@ -124,15 +124,15 @@ namespace NewLife.IO
         /// <returns></returns>
         static Dictionary<String, List<Type>> GetHandler()
         {
-            NameValueCollection nvs = Config.AppSettings;
+            var nvs = Config.AppSettings;
             if (nvs == null || nvs.Count < 1) return null;
 
-            Dictionary<String, List<Type>> dic = new Dictionary<String, List<Type>>();
+            var dic = new Dictionary<String, List<Type>>();
             // 遍历设置项
             foreach (String appName in nvs)
             {
                 // 必须以指定名称开始
-                if (!appName.StartsWith(handlerKey, StringComparison.OrdinalIgnoreCase)) continue;
+                if (!appName.StartsWithIgnoreCase(handlerKey)) continue;
 
                 // 总线通道名称
                 String name = appName.Substring(handlerKey.Length);

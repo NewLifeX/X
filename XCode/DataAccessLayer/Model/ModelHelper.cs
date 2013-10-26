@@ -47,7 +47,8 @@ namespace XCode.DataAccessLayer
         {
             if (String.IsNullOrEmpty(name)) return false;
 
-            return table.TableName.EqualIgnoreCase(name) || table.Name.EqualIgnoreCase(name);
+            //return table.TableName.EqualIC(name) || table.Name.EqualIC(name);
+            return name.EqualIgnoreCase(table.TableName, table.Name);
         }
 
         /// <summary>判断字段是否等于指定名字</summary>
@@ -58,7 +59,8 @@ namespace XCode.DataAccessLayer
         {
             if (String.IsNullOrEmpty(name)) return false;
 
-            return column.ColumnName.EqualIgnoreCase(name) || column.Name.EqualIgnoreCase(name);
+            //return column.ColumnName.EqualIC(name) || column.Name.EqualIC(name);
+            return name.EqualIgnoreCase(column.ColumnName, column.Name);
         }
 
         /// <summary>根据字段名找索引</summary>

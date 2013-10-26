@@ -78,7 +78,7 @@ namespace NewLife.IO
             if (prefix.IsNullOrWhiteSpace())
                 ns = names.AsEnumerable();
             else
-                ns = names.Where(e => e.StartsWith(prefix, StringComparison.OrdinalIgnoreCase));
+                ns = names.Where(e => e.StartsWithIgnoreCase(prefix));
 
             if (String.IsNullOrEmpty(dest)) dest = AppDomain.CurrentDomain.BaseDirectory;
 

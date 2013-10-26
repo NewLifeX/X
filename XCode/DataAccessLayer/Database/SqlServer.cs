@@ -408,7 +408,7 @@ namespace XCode.DataAccessLayer
                 if (field.DataType == typeof(DateTime))
                 {
                     var def = field.Default;
-                    if (def.StartsWith("CONVERT(", StringComparison.OrdinalIgnoreCase))
+                    if (def.StartsWithIgnoreCase("CONVERT("))
                     {
                         var ss = def.Split(",");
                         if (ss.Length >= 3)

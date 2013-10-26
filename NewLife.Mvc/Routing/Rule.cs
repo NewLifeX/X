@@ -163,7 +163,7 @@ namespace NewLife.Mvc
             match = null;
             if (IsCompleteMatch)
             {
-                ret = Path.Length - 1 == path.Length && Path.StartsWith(path, StringComparison.OrdinalIgnoreCase); // 因为IsCompleteMatch时Path末尾包含一个$符号
+                ret = Path.Length - 1 == path.Length && Path.StartsWithIgnoreCase(path); // 因为IsCompleteMatch时Path末尾包含一个$符号
                 if (ret)
                 {
                     match = path;
@@ -171,7 +171,7 @@ namespace NewLife.Mvc
             }
             else
             {
-                ret = path.StartsWith(Path, StringComparison.OrdinalIgnoreCase);
+                ret = path.StartsWithIgnoreCase(Path);
                 if (ret)
                 {
                     match = path.Substring(0, Path.Length);

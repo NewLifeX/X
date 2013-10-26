@@ -146,7 +146,7 @@ namespace NewLife.ServiceLib
             {
                 if (!string.IsNullOrEmpty(s))
                 {
-                    knowType = Array.Find<string>(KnowTypes, str => s.StartsWith(str, StringComparison.OrdinalIgnoreCase));
+                    knowType = Array.Find<string>(KnowTypes, str => s.StartsWithIgnoreCase(str));
                     param = knowType != null ? s.Substring(knowType.Length) : null;
                     if (param != null) param = param.Trim();
                     return knowType != null;
@@ -173,10 +173,10 @@ namespace NewLife.ServiceLib
                 string t, p;
                 if (TryGetKnowType(s, out t, out p))
                 {
-                    return t.Equals(type, StringComparison.OrdinalIgnoreCase);
+                    return t.EqualIgnoreCase(type);
                 }
                 TryGetUnknowType(s, out t, out p);
-                return t != null && t.Equals(type, StringComparison.OrdinalIgnoreCase);
+                return t != null && t.EqualIgnoreCase(type);
             }
             /// <summary>返回指定的来源类型,包含指定的扩展信息</summary>
             /// <param name="type">类型</param>

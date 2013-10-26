@@ -345,7 +345,7 @@ namespace XCode.Accessors
                 if (String.IsNullOrEmpty(valueString))
                     isChecked = false;
                 else
-                    isChecked = valueString == "1" || valueString.EqualIgnoreCase("true") ? true : false;
+                    isChecked = valueString.EqualIgnoreCase("true", "1") ? true : false;
             }
 
             if (control is RadioButton)

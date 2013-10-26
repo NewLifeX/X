@@ -225,8 +225,7 @@ namespace XControl
             sb.AppendFormat(", Title:'{0}'", title);
 
             String url = Url;
-            if (!String.IsNullOrEmpty(url) && !url.StartsWith("http://", StringComparison.OrdinalIgnoreCase))
-                url = ResolveUrl(url);
+            if (!String.IsNullOrEmpty(url) && !url.StartsWithIgnoreCase("http://")) url = ResolveUrl(url);
             sb.AppendFormat(", URL:'{0}'", url);
             if (BoxWidth != Unit.Empty) sb.AppendFormat(", Width:{0}", (Int32)BoxWidth.Value);
             if (BoxHeight != Unit.Empty) sb.AppendFormat(", Height:{0}", (Int32)BoxHeight.Value);

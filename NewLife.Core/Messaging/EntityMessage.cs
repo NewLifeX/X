@@ -101,7 +101,8 @@ namespace NewLife.Messaging
             else if (type == typeof(String))
             {
                 var str = "" + Value;
-                return String.Format("{0} {1}", base.ToString(), str.Length < 50 ? str : str.Substring(0, 47) + "...");
+                //return String.Format("{0} {1}", base.ToString(), str.Length < 50 ? str : str.Substring(0, 47) + "...");
+                return String.Format("{0} {1}", base.ToString(), str.Cut(50, "..."));
             }
             else
                 return String.Format("{0} {1}", base.ToString(), Value);

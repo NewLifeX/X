@@ -252,7 +252,8 @@ namespace NewLife.CommonEntity
 
             foreach (var item in suffixs)
             {
-                if (name.EndsWith(item)) return name = name.Substring(0, name.Length - item.Length);
+                //if (name.EndsWith(item)) return name = name.Substring(0, name.Length - item.Length);
+                name = name.TrimEnd(item);
             }
 
             return name;

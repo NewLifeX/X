@@ -207,8 +207,7 @@ namespace XCoder
             else if (IsDevelop(dir))
                 return;
 
-            if (!url.StartsWith("http", StringComparison.OrdinalIgnoreCase))
-                url = VerSrc.Replace(verfile, url);
+            if (!url.StartsWithIgnoreCase("http")) url = VerSrc.Replace(verfile, url);
 
             XTrace.WriteLine("准备从{0}下载相关文件到{1}！", url, file);
 

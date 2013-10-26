@@ -280,16 +280,14 @@ namespace XCode.DataAccessLayer
             base.FixField(field, dr);
 
             // 如果数据库里面是integer或者autoincrement，识别类型是Int64，又是自增，则改为Int32，保持与大多数数据库的兼容
-            if (field.Identity && field.DataType == typeof(Int64) && (field.RawType.EqualIgnoreCase("integer") || field.RawType.EqualIgnoreCase("autoincrement")))
+            if (field.Identity && field.DataType == typeof(Int64) && field.RawType.EqualIgnoreCase("integer", "autoincrement"))
             {
                 field.DataType = typeof(Int32);
             }
 
             if (field.DataType == null)
             {
-                if (field.RawType.EqualIgnoreCase("varchar2") ||
-                    field.RawType.EqualIgnoreCase("nvarchar2"))
-                    field.DataType = typeof(String);
+                if (field.RawType.EqualIgnoreCase("varchar2", "nvarchar2")) field.DataType = typeof(String);
             }
         }
 

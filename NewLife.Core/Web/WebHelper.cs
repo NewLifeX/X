@@ -248,16 +248,18 @@ namespace NewLife.Web
             bool r = false;
             if (String.IsNullOrEmpty(val)) return r;
 
-            String trimVal = val.Trim();
+            val = val.Trim();
 
-            if ("True".Equals(trimVal, StringComparison.OrdinalIgnoreCase) || "1".Equals(trimVal))
-            {
-                return true;
-            }
-            else if ("False".Equals(trimVal, StringComparison.OrdinalIgnoreCase) || "0".Equals(trimVal))
-            {
-                return false;
-            }
+            //if (val.EqualIC("True") || "1".Equals(val))
+            //{
+            //    return true;
+            //}
+            //else if (val.EqualIC("False") || "0".Equals(val))
+            //{
+            //    return false;
+            //}
+            if (val.EqualIgnoreCase("True", "1")) return true;
+            if (val.EqualIgnoreCase("False", "0")) return true;
 
             return r;
         }

@@ -21,10 +21,11 @@ namespace NewLife.Serialization
                 if (String.IsNullOrEmpty(_Name))
                 {
                     _Name = this.GetType().Name;
-                    if (_Name.EndsWith("Reader", StringComparison.OrdinalIgnoreCase))
-                        _Name = _Name.Substring(0, _Name.Length - "Reader".Length);
-                    if (_Name.EndsWith("Writer", StringComparison.OrdinalIgnoreCase))
-                        _Name = _Name.Substring(0, _Name.Length - "Writer".Length);
+                    //if (_Name.EndsWith("Reader", StringComparison.OrdinalIgnoreCase))
+                    //    _Name = _Name.Substring(0, _Name.Length - "Reader".Length);
+                    //if (_Name.EndsWith("Writer", StringComparison.OrdinalIgnoreCase))
+                    //    _Name = _Name.Substring(0, _Name.Length - "Writer".Length);
+                    _Name = _Name.TrimEnd("Reader", "Writer");
                 }
                 return _Name;
             }

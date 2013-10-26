@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.ComponentModel;
 
 namespace System
 {
@@ -8,31 +9,74 @@ namespace System
     public static class StringHelper
     {
         #region 字符串扩展
-        /// <summary>忽略大小写的字符串相等比较</summary>
+        ///// <summary>忽略大小写的字符串相等比较</summary>
+        ///// <param name="value">数值</param>
+        ///// <param name="str">待比较字符串</param>
+        ///// <returns></returns>
+        //[Obsolete("=>EqualIC")]
+        ////[EditorBrowsable(EditorBrowsableState.Never)]
+        //public static Boolean EqualIgnoreCase(this String value, String str)
+        //{
+        //    return String.Equals(value, str, StringComparison.OrdinalIgnoreCase);
+        //}
+
+        ///// <summary>忽略大小写的字符串开始比较，判断是否以任意一个待比较字符串开始</summary>
+        ///// <param name="value">数值</param>
+        ///// <param name="str">待比较字符串</param>
+        ///// <returns></returns>
+        //[Obsolete("=>StartsWithIC")]
+        //public static Boolean StartsWithIgnoreCase(this String value, String str)
+        //{
+        //    return value.StartsWith(str, StringComparison.OrdinalIgnoreCase);
+        //}
+
+        ///// <summary>忽略大小写的字符串结束比较，判断是否以任意一个待比较字符串结束</summary>
+        ///// <param name="value">数值</param>
+        ///// <param name="str">待比较字符串</param>
+        ///// <returns></returns>
+        //[Obsolete("=>EndsWithIC")]
+        //public static Boolean EndsWithIgnoreCase(this String value, String str)
+        //{
+        //    return value.EndsWith(str, StringComparison.OrdinalIgnoreCase);
+        //}
+
+        /// <summary>忽略大小写的字符串相等比较，判断是否以任意一个待比较字符串相等</summary>
         /// <param name="value">数值</param>
-        /// <param name="str"></param>
+        /// <param name="strs">待比较字符串数组</param>
         /// <returns></returns>
-        public static Boolean EqualIgnoreCase(this String value, String str)
+        public static Boolean EqualIgnoreCase(this String value, params String[] strs)
         {
-            return String.Equals(value, str, StringComparison.OrdinalIgnoreCase);
+            foreach (var item in strs)
+            {
+                if (String.Equals(value, item, StringComparison.OrdinalIgnoreCase)) return true;
+            }
+            return false;
         }
 
-        /// <summary>忽略大小写的字符串开始比较</summary>
+        /// <summary>忽略大小写的字符串开始比较，判断是否以任意一个待比较字符串开始</summary>
         /// <param name="value">数值</param>
-        /// <param name="str"></param>
+        /// <param name="strs">待比较字符串数组</param>
         /// <returns></returns>
-        public static Boolean StartsWithIC(this String value, String str)
+        public static Boolean StartsWithIgnoreCase(this String value, params String[] strs)
         {
-            return value.StartsWith(str, StringComparison.OrdinalIgnoreCase);
+            foreach (var item in strs)
+            {
+                if (value.StartsWith(item, StringComparison.OrdinalIgnoreCase)) return true;
+            }
+            return false;
         }
 
-        /// <summary>忽略大小写的字符串结束比较</summary>
+        /// <summary>忽略大小写的字符串结束比较，判断是否以任意一个待比较字符串结束</summary>
         /// <param name="value">数值</param>
-        /// <param name="str"></param>
+        /// <param name="strs">待比较字符串数组</param>
         /// <returns></returns>
-        public static Boolean EndsWithIC(this String value, String str)
+        public static Boolean EndsWithIgnoreCase(this String value, params String[] strs)
         {
-            return value.EndsWith(str, StringComparison.OrdinalIgnoreCase);
+            foreach (var item in strs)
+            {
+                if (value.EndsWith(item, StringComparison.OrdinalIgnoreCase)) return true;
+            }
+            return false;
         }
 
         /// <summary>是否空或者空白字符串</summary>
@@ -105,111 +149,111 @@ namespace System
         #endregion
 
         #region 截取扩展
-        /// <summary>截取左边若干长度字符串</summary>
-        /// <param name="str"></param>
-        /// <param name="length"></param>
-        /// <returns></returns>
-        public static String Left(this String str, Int32 length)
-        {
-            if (String.IsNullOrEmpty(str) || length <= 0) return str;
+        ///// <summary>截取左边若干长度字符串</summary>
+        ///// <param name="str"></param>
+        ///// <param name="length"></param>
+        ///// <returns></returns>
+        //public static String Left(this String str, Int32 length)
+        //{
+        //    if (String.IsNullOrEmpty(str) || length <= 0) return str;
 
-            // 纠正长度
-            if (str.Length <= length) return str;
+        //    // 纠正长度
+        //    if (str.Length <= length) return str;
 
-            return str.Substring(0, length);
-        }
+        //    return str.Substring(0, length);
+        //}
 
-        /// <summary>截取左边若干长度字符串（二进制计算长度）</summary>
-        /// <param name="str"></param>
-        /// <param name="length"></param>
-        /// <param name="strict">严格模式时，遇到截断位置位于一个字符中间时，忽略该字符，否则包括该字符</param>
-        /// <returns></returns>
-        public static String LeftBinary(this String str, Int32 length, Boolean strict = true)
-        {
-            if (String.IsNullOrEmpty(str) || length <= 0) return str;
+        ///// <summary>截取左边若干长度字符串（二进制计算长度）</summary>
+        ///// <param name="str"></param>
+        ///// <param name="length"></param>
+        ///// <param name="strict">严格模式时，遇到截断位置位于一个字符中间时，忽略该字符，否则包括该字符</param>
+        ///// <returns></returns>
+        //public static String LeftBinary(this String str, Int32 length, Boolean strict = true)
+        //{
+        //    if (String.IsNullOrEmpty(str) || length <= 0) return str;
 
-            // 纠正长度
-            if (str.Length <= length) return str;
+        //    // 纠正长度
+        //    if (str.Length <= length) return str;
 
-            var encoding = Encoding.Default;
+        //    var encoding = Encoding.Default;
 
-            var buf = encoding.GetBytes(str);
-            if (buf.Length < length) return str;
+        //    var buf = encoding.GetBytes(str);
+        //    if (buf.Length < length) return str;
 
-            // 计算截取字符长度。避免把一个字符劈开
-            var clen = 0;
-            while (true)
-            {
-                try
-                {
-                    clen = encoding.GetCharCount(buf, 0, length);
-                    break;
-                }
-                catch (DecoderFallbackException)
-                {
-                    // 发生了回退，减少len再试
-                    length--;
-                }
-            }
-            // 可能过长，修正
-            if (strict) while (encoding.GetByteCount(str.ToCharArray(), 0, clen) > length) clen--;
+        //    // 计算截取字符长度。避免把一个字符劈开
+        //    var clen = 0;
+        //    while (true)
+        //    {
+        //        try
+        //        {
+        //            clen = encoding.GetCharCount(buf, 0, length);
+        //            break;
+        //        }
+        //        catch (DecoderFallbackException)
+        //        {
+        //            // 发生了回退，减少len再试
+        //            length--;
+        //        }
+        //    }
+        //    // 可能过长，修正
+        //    if (strict) while (encoding.GetByteCount(str.ToCharArray(), 0, clen) > length) clen--;
 
-            return str.Substring(0, clen);
-        }
+        //    return str.Substring(0, clen);
+        //}
 
-        /// <summary>截取右边若干长度字符串</summary>
-        /// <param name="str"></param>
-        /// <param name="length"></param>
-        /// <returns></returns>
-        public static String Right(this String str, Int32 length)
-        {
-            if (String.IsNullOrEmpty(str) || length <= 0) return str;
+        ///// <summary>截取右边若干长度字符串</summary>
+        ///// <param name="str"></param>
+        ///// <param name="length"></param>
+        ///// <returns></returns>
+        //public static String Right(this String str, Int32 length)
+        //{
+        //    if (String.IsNullOrEmpty(str) || length <= 0) return str;
 
-            // 纠正长度
-            if (str.Length <= length) return str;
+        //    // 纠正长度
+        //    if (str.Length <= length) return str;
 
-            return str.Substring(str.Length - length, length);
-        }
+        //    return str.Substring(str.Length - length, length);
+        //}
 
-        /// <summary>截取右边若干长度字符串（二进制计算长度）</summary>
-        /// <param name="str"></param>
-        /// <param name="length"></param>
-        /// <param name="strict">严格模式时，遇到截断位置位于一个字符中间时，忽略该字符，否则包括该字符</param>
-        /// <returns></returns>
-        public static String RightBinary(this String str, Int32 length, Boolean strict = true)
-        {
-            if (String.IsNullOrEmpty(str) || length <= 0) return str;
+        ///// <summary>截取右边若干长度字符串（二进制计算长度）</summary>
+        ///// <param name="str"></param>
+        ///// <param name="length"></param>
+        ///// <param name="strict">严格模式时，遇到截断位置位于一个字符中间时，忽略该字符，否则包括该字符</param>
+        ///// <returns></returns>
+        //public static String RightBinary(this String str, Int32 length, Boolean strict = true)
+        //{
+        //    if (String.IsNullOrEmpty(str) || length <= 0) return str;
 
-            // 纠正长度
-            if (str.Length <= length) return str;
+        //    // 纠正长度
+        //    if (str.Length <= length) return str;
 
-            var encoding = Encoding.Default;
+        //    var encoding = Encoding.Default;
 
-            var buf = encoding.GetBytes(str);
-            if (buf.Length < length) return str;
+        //    var buf = encoding.GetBytes(str);
+        //    if (buf.Length < length) return str;
 
-            // 计算截取字符长度。避免把一个字符劈开
-            var clen = 0;
-            while (true)
-            {
-                try
-                {
-                    clen = encoding.GetCharCount(buf, buf.Length - length, length);
-                    break;
-                }
-                catch (DecoderFallbackException)
-                {
-                    // 发生了回退，减少len再试
-                    length--;
-                }
-            }
-            //// 可能过长，修正
-            //if (strict) while (encoding.GetByteCount(str.ToCharArray(), str.Length - clen, clen) > length) clen--;
-            // 可能过短，修正
-            if (!strict) while (encoding.GetByteCount(str.ToCharArray(), str.Length - clen, clen) < length) clen++;
+        //    // 计算截取字符长度。避免把一个字符劈开
+        //    var clen = 0;
+        //    while (true)
+        //    {
+        //        try
+        //        {
+        //            clen = encoding.GetCharCount(buf, buf.Length - length, length);
+        //            break;
+        //        }
+        //        catch (DecoderFallbackException)
+        //        {
+        //            // 发生了回退，减少len再试
+        //            length--;
+        //        }
+        //    }
+        //    //// 可能过长，修正
+        //    //if (strict) while (encoding.GetByteCount(str.ToCharArray(), str.Length - clen, clen) > length) clen--;
+        //    // 可能过短，修正
+        //    if (!strict) while (encoding.GetByteCount(str.ToCharArray(), str.Length - clen, clen) < length) clen++;
 
-            return str.Substring(str.Length - clen, clen);
-        }
+        //    return str.Substring(str.Length - clen, clen);
+        //}
 
         /// <summary>确保字符串以指定的另一字符串开始，不区分大小写</summary>
         /// <param name="str"></param>
@@ -237,6 +281,60 @@ namespace System
             if (str.EndsWith(end, StringComparison.OrdinalIgnoreCase)) return str;
 
             return str + end;
+        }
+
+        /// <summary>从当前字符串开头移除另一字符串，不区分大小写</summary>
+        /// <param name="str">当前字符串</param>
+        /// <param name="starts">另一字符串</param>
+        /// <returns></returns>
+        public static String TrimStart(this String str, params String[] starts)
+        {
+            if (String.IsNullOrEmpty(str)) return str;
+            if (starts == null || starts.Length < 1 || String.IsNullOrEmpty(starts[0])) return str;
+
+            //if (!str.StartsWith(start, StringComparison.OrdinalIgnoreCase)) return str;
+
+            //return str.Substring(start.Length);
+
+            for (int i = 0; i < starts.Length; i++)
+            {
+                if (!str.StartsWith(starts[i], StringComparison.OrdinalIgnoreCase))
+                {
+                    str = str.Substring(starts[i].Length);
+                    if (String.IsNullOrEmpty(str)) break;
+
+                    // 从头开始
+                    i = -1;
+                }
+            }
+            return str;
+        }
+
+        /// <summary>从当前字符串结尾移除另一字符串，不区分大小写</summary>
+        /// <param name="str">当前字符串</param>
+        /// <param name="ends">另一字符串</param>
+        /// <returns></returns>
+        public static String TrimEnd(this String str, params String[] ends)
+        {
+            if (String.IsNullOrEmpty(str)) return str;
+            if (ends == null || ends.Length < 1 || String.IsNullOrEmpty(ends[0])) return str;
+
+            //if (!str.EndsWith(end, StringComparison.OrdinalIgnoreCase)) return str;
+
+            //return str.Substring(0, str.Length - end.Length);
+
+            for (int i = 0; i < ends.Length; i++)
+            {
+                if (!str.EndsWith(ends[i], StringComparison.OrdinalIgnoreCase))
+                {
+                    str = str.Substring(0, str.Length - ends[i].Length);
+                    if (String.IsNullOrEmpty(str)) break;
+
+                    // 从头开始
+                    i = -1;
+                }
+            }
+            return str;
         }
 
         /// <summary>根据最大长度截取字符串，并允许以指定空白填充末尾</summary>

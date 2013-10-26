@@ -103,7 +103,7 @@ namespace XCode.DataAccessLayer
         {
             var name = dc.ColumnName;
             // 对于自增字段，如果强制使用ID，并且字段名以ID结尾，则直接取用ID
-            if (dc.Identity && UseID && name.EndsWith("ID", StringComparison.OrdinalIgnoreCase)) return "ID";
+            if (dc.Identity && UseID && name.EndsWithIgnoreCase("ID")) return "ID";
 
             #region 先去掉表前缀
             var dt = dc.Table;
@@ -138,9 +138,11 @@ namespace XCode.DataAccessLayer
 
                 foreach (var item in pfs)
                 {
-                    if (name.StartsWith(item, StringComparison.OrdinalIgnoreCase) && name.Length != item.Length) name = name.Substring(item.Length);
+                    //if (name.StartsWithIgnoreCase(item) && name.Length != item.Length) name = name.Substring(item.Length);
+                    if (name.Length != item.Length) name = name.TrimStart(item);
                 }
-                if (name[0] == '_') name = name.Substring(1);
+                //if (name[0] == '_') name = name.Substring(1);
+                name = name.TrimStart('_');
             }
             #endregion
 
@@ -234,12 +236,12 @@ namespace XCode.DataAccessLayer
             var old = name;
             foreach (var s in FilterPrefixs)
             {
-                if (name.StartsWith(s, StringComparison.OrdinalIgnoreCase) && name.Length != s.Length)
+                if (name.StartsWithIgnoreCase(s) && name.Length != s.Length)
                 {
                     var str = name.Substring(s.Length);
                     if (!IsKeyWord(str)) name = str;
                 }
-                else if (name.EndsWith(s, StringComparison.OrdinalIgnoreCase) && name.Length != s.Length)
+                else if (name.EndsWithIgnoreCase(s) && name.Length != s.Length)
                 {
                     var str = name.Substring(0, name.Length - s.Length);
                     if (!IsKeyWord(str)) name = str;
@@ -268,7 +270,7 @@ namespace XCode.DataAccessLayer
         {
             if (String.IsNullOrEmpty(name)) return null;
 
-            if (UseID && name.Equals("ID", StringComparison.OrdinalIgnoreCase)) return "ID";
+            if (UseID && name.EqualIgnoreCase("ID")) return "ID";
 
             if (name.Length <= 2) return name;
 
@@ -413,7 +415,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public virtual Boolean GuessRelation(IDataTable table, IDataTable rtable, String rname, IDataColumn column, String name)
         {
-            if (name.Length <= rtable.TableName.Length || !name.StartsWith(rtable.TableName, StringComparison.OrdinalIgnoreCase)) return false;
+            if (name.Length <= rtable.TableName.Length || !name.StartsWithIgnoreCase(rtable.TableName)) return false;
 
             var key = name.Substring(rtable.TableName.Length);
             var dc = rtable.GetColumn(key);

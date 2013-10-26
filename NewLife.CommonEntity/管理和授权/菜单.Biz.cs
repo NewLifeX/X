@@ -148,28 +148,22 @@ namespace NewLife.CommonEntity
             var list = Meta.Cache.Entities;
             list = list.FindAll(delegate(TEntity item)
             {
-                return !String.IsNullOrEmpty(item.Url) && item.Url.Trim().EndsWith(fileName, StringComparison.OrdinalIgnoreCase);
+                return !String.IsNullOrEmpty(item.Url) && item.Url.Trim().EndsWithIgnoreCase(fileName);
             });
-            if ((list == null || list.Count < 1) && Path.GetFileNameWithoutExtension(p).EndsWith("Form", StringComparison.OrdinalIgnoreCase))
+            if ((list == null || list.Count < 1) && Path.GetFileNameWithoutExtension(p).EndsWithIgnoreCase("Form"))
             {
                 fileName = Path.GetFileNameWithoutExtension(p);
                 fileName = fileName.Substring(0, fileName.Length - "Form".Length);
                 fileName += Path.GetExtension(p);
 
                 // 有可能是表单
-                list = Meta.Cache.Entities.FindAll(delegate(TEntity item)
-                {
-                    return !String.IsNullOrEmpty(item.Url) && item.Url.Trim().EndsWith(fileName, StringComparison.OrdinalIgnoreCase);
-                });
+                list = Meta.Cache.Entities.FindAll(item => !String.IsNullOrEmpty(item.Url) && item.Url.Trim().EndsWithIgnoreCase(fileName));
             }
             if (list == null || list.Count < 1) return null;
             if (list.Count == 1) return list[0];
 
             // 查找所有以该文件名结尾的菜单
-            var list2 = list.FindAll(delegate(TEntity item)
-            {
-                return !String.IsNullOrEmpty(item.Url) && item.Url.Trim().EndsWith(@"/" + fileName, StringComparison.OrdinalIgnoreCase);
-            });
+            var list2 = list.FindAll(e => !String.IsNullOrEmpty(e.Url) && e.Url.Trim().EndsWithIgnoreCase(@"/" + fileName));
             if (list2 == null || list2.Count < 1) return list[0];
             if (list2.Count == 1) return list2[0];
 
@@ -574,10 +568,8 @@ namespace NewLife.CommonEntity
             String dirName = new DirectoryInfo(p).Name;
 
 
-            if (dirName.Equals("Frame", StringComparison.OrdinalIgnoreCase)) return num;
-            if (dirName.Equals("Asc", StringComparison.OrdinalIgnoreCase)) return num;
-            if (dirName.Equals("images", StringComparison.OrdinalIgnoreCase)) return num;
-            if (dirName.StartsWith("img", StringComparison.OrdinalIgnoreCase)) return num;
+            if (dirName.EqualIgnoreCase("Frame", "Asc", "images")) return num;
+            if (dirName.StartsWithIgnoreCase("img")) return num;
 
             //本目录aspx页面
             String[] fs = Directory.GetFiles(p, "*.aspx", SearchOption.TopDirectoryOnly);
@@ -627,9 +619,9 @@ namespace NewLife.CommonEntity
                     if (fileFilter != null && fileFilter.Contains(file)) continue;
 
                     // 过滤掉表单页面
-                    if (Path.GetFileNameWithoutExtension(elm).EndsWith("Form", StringComparison.OrdinalIgnoreCase)) continue;
+                    if (Path.GetFileNameWithoutExtension(elm).EndsWithIgnoreCase("Form")) continue;
                     // 过滤掉选择页面
-                    if (Path.GetFileNameWithoutExtension(elm).StartsWith("Select", StringComparison.OrdinalIgnoreCase)) continue;
+                    if (Path.GetFileNameWithoutExtension(elm).StartsWithIgnoreCase("Select")) continue;
                     //if (elm.EndsWith("Default.aspx", StringComparison.OrdinalIgnoreCase)) continue;
 
                     files.Add(elm);

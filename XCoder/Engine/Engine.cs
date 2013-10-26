@@ -105,7 +105,8 @@ namespace XCoder
             var tables = Tables;
             if (tables == null || tables.Count < 1) return null;
 
-            var table = tables.Find(e => e.Name.EqualIgnoreCase(tableName) || e.TableName.EqualIgnoreCase(tableName));
+            //var table = tables.Find(e => e.Name.EqualIC(tableName) || e.TableName.EqualIC(tableName));
+            var table = tables.Find(e => tableName.EqualIgnoreCase(e.Name, e.TableName));
             if (table == null) return null;
 
             return Render(table);
@@ -143,7 +144,7 @@ namespace XCoder
                     var content = item.Value;
 
                     // 添加文件头
-                    if (Config.UseHeadTemplate && !String.IsNullOrEmpty(Config.HeadTemplate) && key.EndsWith(".cs", StringComparison.OrdinalIgnoreCase))
+                    if (Config.UseHeadTemplate && !String.IsNullOrEmpty(Config.HeadTemplate) && key.EndsWithIgnoreCase(".cs"))
                         content = Config.HeadTemplate + content;
 
                     templates.Add(key.Substring(name.Length + 1), content);
@@ -159,7 +160,7 @@ namespace XCoder
                 {
                     foreach (var item in ss)
                     {
-                        if (item.EndsWith("scc", StringComparison.OrdinalIgnoreCase)) continue;
+                        if (item.EndsWithIgnoreCase("scc")) continue;
 
                         var content = File.ReadAllText(item);
 
@@ -167,7 +168,7 @@ namespace XCoder
                         if (name.StartsWith(@"\")) name = name.Substring(1);
 
                         // 添加文件头
-                        if (Config.UseHeadTemplate && !String.IsNullOrEmpty(Config.HeadTemplate) && name.EndsWith(".cs", StringComparison.OrdinalIgnoreCase))
+                        if (Config.UseHeadTemplate && !String.IsNullOrEmpty(Config.HeadTemplate) && name.EndsWithIgnoreCase(".cs"))
                             content = Config.HeadTemplate + content;
 
                         templates.Add(name, content);

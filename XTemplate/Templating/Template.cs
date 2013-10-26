@@ -871,12 +871,12 @@ namespace XTemplate.Templating
                     File.WriteAllText(tempPath.CombinePath(item.Name), item.Content);
                     if (item.Included) continue;
 
-                    String name = item.Name.EndsWith(".cs", StringComparison.OrdinalIgnoreCase) ? item.Name : item.ClassName;
+                    String name = item.Name.EndsWithIgnoreCase(".cs") ? item.Name : item.ClassName;
                     // 猜测后缀
                     Int32 p = name.LastIndexOf("_");
                     if (p > 0 && name.Length - p <= 5)
                         name = name.Substring(0, p) + "." + name.Substring(p + 1, name.Length - p - 1);
-                    else if (!name.EndsWith(".cs", StringComparison.OrdinalIgnoreCase))
+                    else if (!name.EndsWithIgnoreCase(".cs"))
                         name += ".cs";
 
                     //name = Path.Combine(tempPath, name);

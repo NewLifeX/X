@@ -62,9 +62,10 @@ namespace NewLife.Net.IO
             }
             else
             {
-                if (fileName.StartsWith(root, StringComparison.OrdinalIgnoreCase)) fileName = fileName.Substring(root.Length);
-                if (fileName.StartsWith("/")) fileName = fileName.Substring(1);
-                if (fileName.StartsWith("\\")) fileName = fileName.Substring(1);
+                //if (fileName.StartsWithIgnoreCase(root)) fileName = fileName.Substring(root.Length);
+                //if (fileName.StartsWith("/")) fileName = fileName.Substring(1);
+                //if (fileName.StartsWith("\\")) fileName = fileName.Substring(1);
+                fileName = fileName.TrimStart(root).TrimStart("/", "\\");
             }
 
             Name = fileName;

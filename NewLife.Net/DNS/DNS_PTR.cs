@@ -20,7 +20,8 @@ namespace NewLife.Net.DNS
                 var name = Name;
                 if (String.IsNullOrEmpty(name)) return null;
 
-                if (name.EndsWith(_suffix, StringComparison.OrdinalIgnoreCase)) name = name.Substring(0, name.Length - _suffix.Length);
+                //if (name.EndsWithIgnoreCase(_suffix)) name = name.Substring(0, name.Length - _suffix.Length);
+                name = name.TrimEnd(_suffix);
 
                 // 倒序
                 var ss = name.Split(".");

@@ -108,7 +108,7 @@ namespace XControl
         public static string HTMLPropertyEscape(WebControl ctl, string attname, string fmt, params object[] args)
         {
             string s = null;
-            if (attname.StartsWith("on", StringComparison.OrdinalIgnoreCase))
+            if (attname.StartsWithIgnoreCase("on"))
             {
                 s = JsMinSimple(s);
             }

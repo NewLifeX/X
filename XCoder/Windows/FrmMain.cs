@@ -149,12 +149,13 @@ namespace XCoder
             foreach (String item in ss)
             {
                 String ext = Path.GetExtension(item);
-                if (ext.EqualIgnoreCase(".exe")) continue;
-                if (ext.EqualIgnoreCase(".dll")) continue;
-                if (ext.EqualIgnoreCase(".zip")) continue;
-                if (ext.EqualIgnoreCase(".rar")) continue;
-                if (ext.EqualIgnoreCase(".txt")) continue;
-                if (ext.EqualIgnoreCase(".config")) continue;
+                //if (ext.EqualIC(".exe")) continue;
+                //if (ext.EqualIC(".dll")) continue;
+                //if (ext.EqualIC(".zip")) continue;
+                //if (ext.EqualIC(".rar")) continue;
+                //if (ext.EqualIC(".txt")) continue;
+                //if (ext.EqualIC(".config")) continue;
+                if (ext.EqualIgnoreCase(".exe", ".dll", ".zip", ".rar", ".txt", ".config")) continue;
 
                 try
                 {

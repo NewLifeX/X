@@ -604,7 +604,7 @@ namespace NewLife.Net.Http
             else
                 physicalPath = Host.PhysicalPath + path;
             physicalPath = physicalPath.Replace('/', '\\');
-            if (physicalPath.EndsWith(@"\", StringComparison.Ordinal) && !physicalPath.EndsWith(@":\", StringComparison.Ordinal)) physicalPath = physicalPath.Substring(0, physicalPath.Length - 1);
+            if (physicalPath.EndsWith(@"\") && !physicalPath.EndsWith(@":\")) physicalPath = physicalPath.Substring(0, physicalPath.Length - 1);
             return physicalPath;
         }
 
@@ -615,7 +615,7 @@ namespace NewLife.Net.Http
                 string path = _pathTranslated;
                 if (_pathInfo.Length > 0) path = MapPath(_path);
                 if (!Directory.Exists(path)) return false;
-                if (!_path.EndsWith("/", StringComparison.Ordinal))
+                if (!_path.EndsWith("/"))
                 {
                     string str2 = _path + "/";
                     //string extraHeaders = "Location: " + UrlEncodeRedirect(str2) + "\r\n";

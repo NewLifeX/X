@@ -341,7 +341,7 @@ $";
         {
             var t = this;
             // 如果包含排序，则必须有Top，否则去掉
-            var hasOrderWithoutTop = !String.IsNullOrEmpty(t.OrderBy) && !ColumnOrDefault.StartsWith("top ", StringComparison.OrdinalIgnoreCase);
+            var hasOrderWithoutTop = !String.IsNullOrEmpty(t.OrderBy) && !ColumnOrDefault.StartsWithIgnoreCase("top ");
             if (hasOrderWithoutTop)
             {
                 t = this.Clone();

@@ -166,7 +166,7 @@ namespace NewLife.Web
             if (list == null) return null;
 
             var fi = type.GetFieldEx(eventName);
-            if (fi == null && !eventName.StartsWith("Event", StringComparison.OrdinalIgnoreCase)) fi = type.GetFieldEx("Event" + eventName);
+            if (fi == null && !eventName.StartsWithIgnoreCase("Event")) fi = type.GetFieldEx("Event" + eventName);
             if (fi == null) return null;
 
             return list[fi.GetValue(control)];

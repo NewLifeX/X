@@ -134,13 +134,13 @@ namespace NewLife.Net.Http
             if (ss == null || ss.Length < 3 || ss[0].IsNullOrWhiteSpace() || ss[0].Length > 10) { stream.Position = p; return null; }
 
             var entity = new HttpHeader();
-            if (ss[0].StartsWith("HTTP/", StringComparison.OrdinalIgnoreCase))
+            if (ss[0].StartsWithIgnoreCase("HTTP/"))
             {
                 entity.Version = ss[0];
                 entity.StatusCode = Int32.Parse(ss[1]);
                 entity.StatusDescription = ss[2];
             }
-            else if (ss[2].StartsWith("HTTP/", StringComparison.OrdinalIgnoreCase))
+            else if (ss[2].StartsWithIgnoreCase("HTTP/"))
             {
                 entity.Method = ss[0];
                 entity.Url = new Uri(ss[1], UriKind.RelativeOrAbsolute);

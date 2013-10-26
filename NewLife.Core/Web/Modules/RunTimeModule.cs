@@ -77,7 +77,7 @@ namespace NewLife.Web
         {
             if (!IsWriteRunTime) return;
 
-            if (!Request.PhysicalPath.EndsWith(".aspx", StringComparison.OrdinalIgnoreCase)) return;
+            if (!Request.PhysicalPath.EndsWithIgnoreCase(".aspx")) return;
 
             //判断是否为Ajax 异步请求，以排除“Sys.WebForms.PageRequestManagerParserErrorException: 未能分析从服务器收到的消息 ”异常
             if (Request.Headers["X-MicrosoftAjax"] != null || Request.Headers["x-requested-with"] != null) return;

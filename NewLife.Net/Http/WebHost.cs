@@ -41,7 +41,7 @@ namespace NewLife.Net.Http
             _requireAuthentication = requireAuthentication;
             _disableDirectoryListing = disableDirectoryListing;
             _lowerCasedVirtualPath = CultureInfo.InvariantCulture.TextInfo.ToLower(_virtualPath);
-            _lowerCasedVirtualPathWithTrailingSlash = virtualPath.EndsWith("/", StringComparison.Ordinal) ? virtualPath : (virtualPath + "/");
+            _lowerCasedVirtualPathWithTrailingSlash = virtualPath.EndsWith("/") ? virtualPath : (virtualPath + "/");
             _lowerCasedVirtualPathWithTrailingSlash = CultureInfo.InvariantCulture.TextInfo.ToLower(_lowerCasedVirtualPathWithTrailingSlash);
             _physicalPath = physicalPath;
             _physicalClientScriptPath = HttpRuntime.AspClientScriptPhysicalPath + @"\";

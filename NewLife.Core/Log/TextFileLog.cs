@@ -60,7 +60,8 @@ namespace NewLife.Log
                 if (!Path.IsPathRooted(dir)) dir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, dir);
 
                 //保证\结尾
-                if (!String.IsNullOrEmpty(dir) && dir.Substring(dir.Length - 1, 1) != @"\") dir += @"\";
+                //if (!String.IsNullOrEmpty(dir) && dir.Substring(dir.Length - 1, 1) != @"\") dir += @"\";
+                dir = dir.EnsureEnd(@"\");
 
                 _LogPath = new DirectoryInfo(dir).FullName;
                 return _LogPath;
@@ -169,7 +170,8 @@ namespace NewLife.Log
 
             // 当前目录。如果由别的进程启动，默认的当前目录就是父级进程的当前目录
             var curDir = Environment.CurrentDirectory;
-            if (!curDir.EqualIgnoreCase(baseDir) && !(curDir + "\\").EqualIgnoreCase(baseDir))
+            //if (!curDir.EqualIC(baseDir) && !(curDir + "\\").EqualIC(baseDir))
+            if (!baseDir.EqualIgnoreCase(curDir, curDir + "\\"))
                 writer.WriteLine("#CurrentDirectory: {0}", curDir);
 
             // 命令行不为空，也不是文件名时，才输出
@@ -178,7 +180,7 @@ namespace NewLife.Log
             if (!String.IsNullOrEmpty(line))
             {
                 line = line.Trim().TrimStart('\"');
-                if (!String.IsNullOrEmpty(fileName) && line.StartsWith(fileName, StringComparison.OrdinalIgnoreCase))
+                if (!String.IsNullOrEmpty(fileName) && line.StartsWithIgnoreCase(fileName))
                     line = line.Substring(fileName.Length).TrimStart().TrimStart('\"').TrimStart();
                 if (!String.IsNullOrEmpty(line))
                 {

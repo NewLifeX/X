@@ -78,8 +78,7 @@ namespace NewLife.Mvc
                     {
                         url = VirtualPathUtility.ToAbsolute(LocationTo);
                     }
-                    else if (LocationTo.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
-                        LocationTo.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+                    else if (LocationTo.StartsWithIgnoreCase("http://", "https://"))
                     {
                         url = LocationTo;
                     }

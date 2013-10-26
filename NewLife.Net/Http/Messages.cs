@@ -33,7 +33,7 @@ namespace NewLife.Net.Http
             builder.AppendFormat("    </head>\r\n    <body bgcolor=\"white\">\r\n\r\n    <h2> <i>{0}</i> </h2></span>\r\n\r\n            <hr width=100% size=1 color=silver>\r\n\r\n<PRE>\r\n", str);
             if (parentPath != null)
             {
-                if (!parentPath.EndsWith("/", StringComparison.Ordinal)) parentPath = parentPath + "/";
+                if (!parentPath.EndsWith("/")) parentPath = parentPath + "/";
                 builder.Append(String.Format(CultureInfo.InvariantCulture, "<A href=\"{0}\">[父目录]</A>\r\n\r\n", new object[] { parentPath }));
             }
             if (elements != null)

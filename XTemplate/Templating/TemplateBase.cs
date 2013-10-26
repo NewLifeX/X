@@ -92,7 +92,7 @@ namespace XTemplate.Templating
                 Output.Append(_CurrentIndent);
                 endsWithNewline = false;
             }
-            if (str.EndsWith(Environment.NewLine, StringComparison.CurrentCulture)) endsWithNewline = true;
+            if (str.EndsWithIgnoreCase(Environment.NewLine)) endsWithNewline = true;
             if (_CurrentIndent.Length == 0)
             {
                 Output.Append(str);

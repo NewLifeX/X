@@ -47,7 +47,8 @@ namespace XCoder
         /// <returns></returns>
         public IDataTable FindTable(String tableName)
         {
-            return Tables.Find(t => t.TableName.EqualIgnoreCase(tableName) || t.Name.EqualIgnoreCase(tableName));
+            //return Tables.Find(t => t.TableName.EqualIC(tableName) || t.Name.EqualIC(tableName));
+            return Tables.Find(t => tableName.EqualIgnoreCase(t.TableName, t.Name));
         }
 
         /// <summary>判断是否存在指定列</summary>

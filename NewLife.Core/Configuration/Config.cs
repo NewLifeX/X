@@ -179,9 +179,9 @@ namespace NewLife.Configuration
                 else if (code == TypeCode.Boolean)
                 {
                     Boolean b = false;
-                    if (str == "1" || str.EqualIgnoreCase(Boolean.TrueString))
+                    if (str.EqualIgnoreCase("1", Boolean.TrueString))
                         value = true;
-                    else if (str == "0" || str.EqualIgnoreCase(Boolean.FalseString))
+                    else if (str.EqualIgnoreCase("0", Boolean.FalseString))
                         value = false;
                     else if (Boolean.TryParse(str.ToLower(), out b))
                         value = b;
@@ -207,7 +207,7 @@ namespace NewLife.Configuration
                 var nv = new Dictionary<String, String>(StringComparer.OrdinalIgnoreCase);
                 foreach (String item in nvs)
                 {
-                    if (item.Length > prefix.Length && item.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)) nv.Add(item.Substring(prefix.Length), nvs[item]);
+                    if (item.Length > prefix.Length && item.StartsWithIgnoreCase(prefix)) nv.Add(item.Substring(prefix.Length), nvs[item]);
                 }
                 //return list.Count > 0 ? list.ToArray() : null;
                 return nv.Count > 0 ? nv : null;
