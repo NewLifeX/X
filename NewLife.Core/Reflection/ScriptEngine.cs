@@ -214,7 +214,8 @@ namespace NewLife.Reflection
 
             var names = new String[parameters.Count];
             parameters.Keys.CopyTo(names, 0);
-            var types = TypeX.GetTypeArray(ps);
+            //var types = TypeX.GetTypeArray(ps);
+            var types = ps.GetTypeArray();
 
             var dic = se.Parameters;
             for (int i = 0; i < names.Length; i++)
@@ -241,7 +242,8 @@ namespace NewLife.Reflection
             {
                 names[i] = "p" + i;
             }
-            var types = TypeX.GetTypeArray(parameters);
+            //var types = TypeX.GetTypeArray(parameters);
+            var types = parameters.GetTypeArray();
 
             var dic = se.Parameters;
             for (int i = 0; i < names.Length; i++)

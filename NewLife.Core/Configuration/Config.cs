@@ -187,7 +187,7 @@ namespace NewLife.Configuration
                         value = b;
                 }
                 else
-                    value = TypeX.ChangeType(str, type);
+                    value = str.ChangeType(type);
 
                 return true;
             }
@@ -258,7 +258,8 @@ namespace NewLife.Configuration
                     str = ss[i].Trim();
                     if (String.IsNullOrEmpty(str)) continue;
 
-                    arr[i] = TypeX.ChangeType<T>(str);
+                    //arr[i] = TypeX.ChangeType<T>(str);
+                    arr[i] = str.ChangeType<T>();
                 }
 
                 return arr;

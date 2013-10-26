@@ -67,7 +67,8 @@ namespace NewLife.Messaging
                 {
                     // 静态、公共、非公共
                     //_Method = Type.GetMethod(Name, BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
-                    _Method = TypeX.GetMethod(Type, Name, TypeX.GetTypeArray(Parameters));
+                    //_Method = TypeX.GetMethod(Type, Name, TypeX.GetTypeArray(Parameters));
+                    _Method = Type.GetMethodEx(Name, Parameters.GetTypeArray());
                 }
                 return _Method;
             }

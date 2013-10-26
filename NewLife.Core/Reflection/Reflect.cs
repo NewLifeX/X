@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using NewLife.Collections;
 using NewLife.Exceptions;
+using System.ComponentModel;
 
 namespace NewLife.Reflection
 {
@@ -285,6 +286,104 @@ namespace NewLife.Reflection
                 return null;
             });
         }
+
+        /// <summary>类型转换</summary>
+        /// <param name="value">数值</param>
+        /// <param name="conversionType"></param>
+        /// <returns></returns>
+        public static Object ChangeType(this Object value, Type conversionType)
+        {
+            Type vtype = null;
+            if (value != null) vtype = value.GetType();
+            //if (vtype == conversionType || conversionType.IsAssignableFrom(vtype)) return value;
+            if (vtype == conversionType) return value;
+
+            //var cx = Create(conversionType);
+
+            // 处理可空类型
+            if (!conversionType.IsValueType && IsNullable(conversionType))
+            {
+                if (value == null) return null;
+
+                conversionType = Nullable.GetUnderlyingType(conversionType);
+            }
+
+            if (conversionType.IsEnum)
+            {
+                if (vtype == typeof(String))
+                    return Enum.Parse(conversionType, (String)value, true);
+                else
+                    return Enum.ToObject(conversionType, value);
+            }
+
+            // 字符串转为货币类型，处理一下
+            if (vtype == typeof(String))
+            {
+                if (Type.GetTypeCode(conversionType) == TypeCode.Decimal)
+                {
+                    String str = (String)value;
+                    value = str.TrimStart(new Char[] { '$', '￥' });
+                }
+                else if (typeof(Type).IsAssignableFrom(conversionType))
+                {
+                    return GetType((String)value, true);
+                }
+            }
+
+            if (value != null)
+            {
+                if (value is IConvertible)
+                {
+                    // 上海石头 发现这里导致Json序列化问题
+                    // http://www.newlifex.com/showtopic-282.aspx
+                    if (conversionType.IsGenericType && conversionType.GetGenericTypeDefinition().Equals(typeof(Nullable<>)))
+                    {
+                        var nullableConverter = new NullableConverter(conversionType);
+                        conversionType = nullableConverter.UnderlyingType;
+                    }
+                    value = Convert.ChangeType(value, conversionType);
+                }
+                //else if (conversionType.IsInterface)
+                //    value = DuckTyping.Implement(value, conversionType);
+            }
+            else
+            {
+                // 如果原始值是null，要转为值类型，则new一个空白的返回
+                if (conversionType.IsValueType) value = CreateInstance(conversionType);
+            }
+
+            if (conversionType.IsAssignableFrom(vtype)) return value;
+            return value;
+        }
+
+        /// <summary>类型转换</summary>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="value">数值</param>
+        /// <returns></returns>
+        public static TResult ChangeType<TResult>(this Object value)
+        {
+            if (value is TResult) return (TResult)value;
+
+            return (TResult)ChangeType(value, typeof(TResult));
+        }
+
+        /// <summary>从参数数组中获取类型数组</summary>
+        /// <param name="args"></param>
+        /// <returns></returns>
+        internal static Type[] GetTypeArray(this Object[] args)
+        {
+            if (args == null) return Type.EmptyTypes;
+
+            var typeArray = new Type[args.Length];
+            for (int i = 0; i < typeArray.Length; i++)
+            {
+                if (args[i] == null)
+                    typeArray[i] = typeof(Object);
+                else
+                    typeArray[i] = args[i].GetType();
+            }
+            return typeArray;
+        }
         #endregion
 
         #region 辅助方法
@@ -302,6 +401,19 @@ namespace NewLife.Reflection
                 target = null;
 
             return type;
+        }
+
+        /// <summary>判断某个类型是否可空类型</summary>
+        /// <param name="type">类型</param>
+        /// <returns></returns>
+        static Boolean IsNullable(Type type)
+        {
+            //if (type.IsValueType) return false;
+
+            if (type.IsGenericType && !type.IsGenericTypeDefinition &&
+                Object.ReferenceEquals(type.GetGenericTypeDefinition(), typeof(Nullable<>))) return true;
+
+            return false;
         }
         #endregion
     }

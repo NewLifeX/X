@@ -232,7 +232,7 @@ namespace XTemplate.Templating
             Object obj = GetData(name);
             if (obj == null) return default(T);
 
-            return (T)TypeX.ChangeType(obj, typeof(T));
+            return obj.ChangeType<T>();
         }
         #endregion
 

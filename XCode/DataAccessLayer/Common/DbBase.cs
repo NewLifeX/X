@@ -694,7 +694,7 @@ namespace XCode.DataAccessLayer
                 if (value == null) return isNullable ? "null" : "";
 
                 // 转为目标类型，比如枚举转为数字
-                value = TypeX.ChangeType(value, type);
+                value = value.ChangeType(type);
                 if (value == null) return isNullable ? "null" : "";
 
                 return value.ToString();

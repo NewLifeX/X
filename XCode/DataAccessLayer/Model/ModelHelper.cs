@@ -383,7 +383,7 @@ namespace XCode.DataAccessLayer
                     value.SetValue(pi, ss);
                 }
                 else
-                    value.SetValue(pi, TypeX.ChangeType(v, pi.PropertyType));
+                    value.SetValue(pi, v.ChangeType(pi.PropertyType));
             }
             var pi1 = pis.FirstOrDefault(e => e.Name == "Name");
             var pi2 = pis.FirstOrDefault(e => e.Name == "TableName" || e.Name == "ColumnName");

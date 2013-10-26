@@ -554,7 +554,8 @@ namespace XCode
                 if (item == null) continue;
 
                 // 避免集合插入了重复项
-                var obj = TypeX.ChangeType<TResult>(item[name]);
+                //var obj = TypeX.ChangeType<TResult>(item[name]);
+                var obj = item[name].ChangeType<TResult>();
                 if (!allowRepeated && !list.Contains(obj)) list.Add(obj);
             }
             return list;
