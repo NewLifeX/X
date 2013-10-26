@@ -512,8 +512,7 @@ namespace XCode.Accessors
                 }
             }
 
-            if (toolTipField != null)
-                r = Reflect.GetValue(form, toolTipField) as ToolTip;
+            if (toolTipField != null) r = form.GetValue(toolTipField) as ToolTip;
             return null;
 
         }

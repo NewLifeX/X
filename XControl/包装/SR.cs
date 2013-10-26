@@ -42,7 +42,7 @@ namespace XControl
             //var method = SRType.GetMethod("GetString", new Type[] { typeof(String), typeof(Object[]) });
             //var method = Reflect.GetMethodEx(SRType, "GetString", typeof(String), typeof(Object[]));
             var method = SRType.GetMethodEx("GetString", typeof(String), typeof(Object[]));
-            var obj = Reflect.Invoke(method, name, args);
+            var obj = Reflect.Invoke(null, method, name, args);
             if (obj == null)
                 return null;
             else
@@ -63,7 +63,7 @@ namespace XControl
                 //MethodInfo method = SRType.GetMethod("GetString", new Type[] { typeof(String) });
                 //var method = Reflect.GetMethodEx(SRType, "GetString", typeof(String));
                 var method = SRType.GetMethodEx("GetString", typeof(String));
-                var obj = Reflect.Invoke(method, name);
+                var obj = Reflect.Invoke(null, method, name);
                 var rs = String.Empty;
                 if (obj != null) rs = obj.ToString();
 

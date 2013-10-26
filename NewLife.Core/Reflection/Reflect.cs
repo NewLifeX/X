@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Reflection;
 using NewLife.Collections;
 using NewLife.Exceptions;
-using System.ComponentModel;
 
 namespace NewLife.Reflection
 {

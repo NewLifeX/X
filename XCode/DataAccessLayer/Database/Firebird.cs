@@ -282,7 +282,7 @@ namespace XCode.DataAccessLayer
             var method = conn.GetType().GetMethodEx("CreateDatabase", typeof(String));
             if (method == null) return;
 
-            Reflect.Invoke(method, Database.ConnectionString);
+            Reflect.Invoke(null, method, Database.ConnectionString);
         }
 
         public override string CreateDatabaseSQL(string dbname, string file)
