@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
+using NewLife.Collections;
 using NewLife.Exceptions;
 
 namespace NewLife.Reflection
@@ -8,17 +10,24 @@ namespace NewLife.Reflection
     /// <summary>反射工具类</summary>
     public static class Reflect
     {
+        #region 属性
         //private static IReflect _Current = new DefaultReflect();
         private static IReflect _Current = new EmitReflect();
         /// <summary>当前反射提供者</summary>
         public static IReflect Current { get { return _Current; } set { _Current = value; } }
+        #endregion
 
         #region 反射获取
         /// <summary>根据名称获取类型</summary>
         /// <param name="typeName">类型名</param>
         /// <param name="isLoadAssembly">是否从未加载程序集中获取类型。使用仅反射的方法检查目标类型，如果存在，则进行常规加载</param>
         /// <returns></returns>
-        public static Type GetType(String typeName, Boolean isLoadAssembly = true) { return _Current.GetType(typeName, isLoadAssembly); }
+        public static Type GetType(String typeName, Boolean isLoadAssembly = true)
+        {
+            if (String.IsNullOrEmpty(typeName)) return null;
+
+            return _Current.GetType(typeName, isLoadAssembly);
+        }
 
         /// <summary>获取方法</summary>
         /// <remarks>用于具有多个签名的同名方法的场合，不确定是否存在性能问题，不建议普通场合使用</remarks>
@@ -26,19 +35,34 @@ namespace NewLife.Reflection
         /// <param name="name">名称</param>
         /// <param name="paramTypes">参数类型数组</param>
         /// <returns></returns>
-        public static MethodInfo GetMethod(Type type, String name, params Type[] paramTypes) { return _Current.GetMethod(type, name, paramTypes); }
+        public static MethodInfo GetMethodEx(this Type type, String name, params Type[] paramTypes)
+        {
+            if (String.IsNullOrEmpty(name)) return null;
+
+            return _Current.GetMethod(type, name, paramTypes);
+        }
 
         /// <summary>获取属性</summary>
         /// <param name="type">类型</param>
         /// <param name="name">名称</param>
         /// <returns></returns>
-        public static PropertyInfo GetProperty(Type type, String name) { return _Current.GetProperty(type, name); }
+        public static PropertyInfo GetPropertyEx(this Type type, String name)
+        {
+            if (String.IsNullOrEmpty(name)) return null;
+
+            return _Current.GetProperty(type, name);
+        }
 
         /// <summary>获取字段</summary>
         /// <param name="type">类型</param>
         /// <param name="name">名称</param>
         /// <returns></returns>
-        public static FieldInfo GetField(Type type, String name) { return _Current.GetField(type, name); }
+        public static FieldInfo GetFieldEx(this Type type, String name)
+        {
+            if (String.IsNullOrEmpty(name)) return null;
+
+            return _Current.GetField(type, name);
+        }
         #endregion
 
         #region 反射调用
@@ -74,6 +98,9 @@ namespace NewLife.Reflection
         public static Boolean TryInvoke(this Object target, String name, out Object value, params Object[] parameters)
         {
             value = null;
+
+            if (String.IsNullOrEmpty(name)) return false;
+
             var type = GetType(ref target);
 
             // 参数类型数组
@@ -85,7 +112,7 @@ namespace NewLife.Reflection
                 list.Add(t);
             }
 
-            var method = GetMethod(type, name, list.ToArray());
+            var method = GetMethodEx(type, name, list.ToArray());
             if (method == null) return false;
 
             value = Invoke(target, method, parameters);
@@ -127,15 +154,17 @@ namespace NewLife.Reflection
         {
             value = null;
 
+            if (String.IsNullOrEmpty(name)) return false;
+
             var type = GetType(ref target);
-            var pi = GetProperty(type, name);
+            var pi = GetPropertyEx(type, name);
             if (pi != null)
             {
                 value = target.GetValue(pi);
                 return true;
             }
 
-            var fi = GetField(type, name);
+            var fi = GetFieldEx(type, name);
             if (fi != null)
             {
                 value = target.GetValue(fi);
@@ -170,13 +199,13 @@ namespace NewLife.Reflection
         /// <remarks>反射调用是否成功</remarks>
         public static Boolean SetValue(this Object target, String name, Object value)
         {
-            //_Current.SetValue(target, name, value);
+            if (String.IsNullOrEmpty(name)) return false;
 
             var type = GetType(ref target);
-            var pi = GetProperty(type, name);
+            var pi = GetPropertyEx(type, name);
             if (pi != null) { target.SetValue(pi, value); return true; }
 
-            var fi = GetField(type, name);
+            var fi = GetFieldEx(type, name);
             if (fi != null) { target.SetValue(fi, value); return true; }
 
             //throw new ArgumentException("类[" + type.FullName + "]中不存在[" + name + "]属性或字段。");
@@ -199,6 +228,34 @@ namespace NewLife.Reflection
         public static void SetValue(this Object target, FieldInfo field, Object value)
         {
             _Current.SetValue(target, field, value);
+        }
+        #endregion
+
+        #region 类型辅助
+        private static DictionaryCache<Type, Type> _elmCache = new DictionaryCache<Type, Type>();
+        /// <summary>获取一个类型的元素类型</summary>
+        /// <param name="type">类型</param>
+        /// <returns></returns>
+        public static Type GetElementTypeEx(this Type type)
+        {
+            return _elmCache.GetItem(type, t =>
+            {
+                if (t.HasElementType) return t.GetElementType();
+
+                if (typeof(IEnumerable).IsAssignableFrom(t))
+                {
+                    // 如果实现了IEnumerable<>接口，那么取泛型参数
+                    foreach (var item in t.GetInterfaces())
+                    {
+                        if (item.IsGenericType && item.GetGenericTypeDefinition() == typeof(IEnumerable<>)) return item.GetGenericArguments()[0];
+                    }
+                    // 通过索引器猜测元素类型
+                    var pi = t.GetProperty("Item", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+                    if (pi != null) return pi.PropertyType;
+                }
+
+                return null;
+            });
         }
         #endregion
 

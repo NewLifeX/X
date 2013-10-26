@@ -40,7 +40,8 @@ namespace XControl
         public static string GetString(string name, params object[] args)
         {
             //var method = SRType.GetMethod("GetString", new Type[] { typeof(String), typeof(Object[]) });
-            var method = Reflect.GetMethod(SRType, "GetString", typeof(String), typeof(Object[]));
+            //var method = Reflect.GetMethodEx(SRType, "GetString", typeof(String), typeof(Object[]));
+            var method = SRType.GetMethodEx("GetString", typeof(String), typeof(Object[]));
             var obj = Reflect.Invoke(method, name, args);
             if (obj == null)
                 return null;
@@ -60,7 +61,8 @@ namespace XControl
                 if (cache.ContainsKey(name)) return cache[name];
 
                 //MethodInfo method = SRType.GetMethod("GetString", new Type[] { typeof(String) });
-                var method = Reflect.GetMethod(SRType, "GetString", typeof(String));
+                //var method = Reflect.GetMethodEx(SRType, "GetString", typeof(String));
+                var method = SRType.GetMethodEx("GetString", typeof(String));
                 var obj = Reflect.Invoke(method, name);
                 var rs = String.Empty;
                 if (obj != null) rs = obj.ToString();

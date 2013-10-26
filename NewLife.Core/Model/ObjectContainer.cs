@@ -402,7 +402,8 @@ namespace NewLife.Model
                 var ci = map.ImplementType.GetConstructor(Type.EmptyTypes);
                 if (ci != null)
                 {
-                    obj = ConstructorInfoX.Create(ci).CreateInstance(null);
+                    //obj = ConstructorInfoX.Create(ci).CreateInstance(null);
+                    obj = Reflect.Invoke(null, ci);
                 }
                 else
                 {
@@ -450,7 +451,8 @@ namespace NewLife.Model
                         // 取得完整参数，可以构造了
                         if (ps != null)
                         {
-                            obj = ConstructorInfoX.Create(item).CreateInstance(ps.ToArray());
+                            //obj = ConstructorInfoX.Create(item).CreateInstance(ps.ToArray());
+                            obj = Reflect.Invoke(null, item, ps.ToArray());
                             break;
                         }
                     }

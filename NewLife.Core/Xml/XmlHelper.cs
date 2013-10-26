@@ -259,7 +259,8 @@ namespace NewLife.Xml
             if (code == TypeCode.String) return value.ToString();
             if (code == TypeCode.DateTime) return XmlConvert.ToString((DateTime)value, XmlDateTimeSerializationMode.RoundtripKind);
 
-            var method = Reflect.GetMethod(typeof(XmlConvert), "ToString", type);
+            //var method = Reflect.GetMethodEx(typeof(XmlConvert), "ToString", type);
+            var method = typeof(XmlConvert).GetMethodEx("ToString", type);
             if (method == null) throw new XException("类型{0}不支持转为Xml字符串，请先用CanXmlConvert方法判断！", type);
 
             return (String)"".Invoke(method, value);
@@ -275,7 +276,8 @@ namespace NewLife.Xml
             if (code == TypeCode.String) return xml;
             if (code == TypeCode.DateTime) return XmlConvert.ToDateTime(xml, XmlDateTimeSerializationMode.RoundtripKind);
 
-            var method = Reflect.GetMethod(typeof(XmlConvert), "To" + type.Name, typeof(String));
+            //var method = Reflect.GetMethodEx(typeof(XmlConvert), "To" + type.Name, typeof(String));
+            var method = typeof(XmlConvert).GetMethodEx("To" + type.Name, typeof(String));
             if (method == null) throw new XException("类型{0}不支持从Xml字符串转换，请先用CanXmlConvert方法判断！", type);
 
             return "".Invoke(method, xml);
@@ -352,7 +354,7 @@ namespace NewLife.Xml
 
                 // 找到对应的属性
                 var name = curNode.Name;
-                var pi = Reflect.GetProperty(type, name);
+                var pi = type.GetPropertyEx(name);
 
                 // 如果前一个是注释，跳过
                 if (i <= 0 || !node.ChildNodes[i - 1].IsComment())

@@ -1201,12 +1201,12 @@ namespace XCode
                 //∆•≈‰◊÷∂Œ
                 if (Meta.FieldNames.Contains(name))
                 {
-                    var field = Reflect.GetField(this.GetType(), "_" + name);
+                    var field = this.GetType().GetFieldEx("_" + name);
                     if (field != null) return this.GetValue(field);
                 }
 
                 //≥¢ ‘∆•≈‰ Ù–‘
-                var property = Reflect.GetProperty(this.GetType(), name);
+                var property = this.GetType().GetPropertyEx(name);
                 if (property != null && property.CanRead) return this.GetValue(property);
 
                 Object obj = null;
@@ -1221,7 +1221,7 @@ namespace XCode
                 //∆•≈‰◊÷∂Œ
                 if (Meta.FieldNames.Contains(name))
                 {
-                    var field = Reflect.GetField(this.GetType(), "_" + name);
+                    var field = this.GetType().GetFieldEx("_" + name);
                     if (field != null)
                     {
                         this.SetValue(field, value);
@@ -1230,7 +1230,7 @@ namespace XCode
                 }
 
                 //≥¢ ‘∆•≈‰ Ù–‘
-                var property = Reflect.GetProperty(this.GetType(), name);
+                var property = this.GetType().GetPropertyEx(name);
                 if (property != null && property.CanWrite)
                 {
                     this.SetValue(property, value);

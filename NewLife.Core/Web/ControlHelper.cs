@@ -22,7 +22,7 @@ namespace NewLife.Web
             if (control == null) return null;
 
             // 准备队列，进行广度搜索
-            Queue<Control> queue = new Queue<Control>();
+            var queue = new Queue<Control>();
             queue.Enqueue(control);
 
             while (queue.Count > 0)
@@ -61,11 +61,11 @@ namespace NewLife.Web
             if (control == null) return null;
 
             // 准备队列，进行广度搜索
-            Queue<Control> queue = new Queue<Control>();
+            var queue = new Queue<Control>();
             queue.Enqueue(control);
 
             // 已经分析过的
-            List<Control> parsed = new List<Control>();
+            var parsed = new List<Control>();
             parsed.Add(control);
 
             while (queue.Count > 0)
@@ -76,7 +76,7 @@ namespace NewLife.Web
                 if (control is T)
                 {
                     // 没有指定控件ID，或者控件ID匹配
-                    if (String.IsNullOrEmpty(id) || String.Equals(control.ID, id, StringComparison.OrdinalIgnoreCase))
+                    if (String.IsNullOrEmpty(id) || control.ID.EqualIgnoreCase(id))
                         return control as T;
                 }
 
@@ -112,14 +112,11 @@ namespace NewLife.Web
             if (handler == null) return null;
 
             FieldInfo fi = null;
+            var type = handler.GetType();
             if (!String.IsNullOrEmpty(id))
-            {
-                fi = Reflect.GetField(handler.GetType(), id);
-            }
+                fi = type.GetFieldEx(id);
             else
-            {
-                fi = handler.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).FirstOrDefault(item => item.FieldType == typeof(T));
-            }
+                fi = type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).FirstOrDefault(item => item.FieldType == typeof(T));
 
             if (fi == null) return null;
 
@@ -136,14 +133,11 @@ namespace NewLife.Web
             if (control == null) return null;
 
             FieldInfo fi = null;
+            var type = control.GetType();
             if (!String.IsNullOrEmpty(id))
-            {
-                fi = Reflect.GetField(control.GetType(), id);
-            }
+                fi = type.GetFieldEx(id);
             else
-            {
-                fi = control.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).FirstOrDefault(item => item.FieldType == typeof(T));
-            }
+                fi = type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).FirstOrDefault(item => item.FieldType == typeof(T));
 
             if (fi == null) return null;
 
@@ -164,14 +158,15 @@ namespace NewLife.Web
 
             //var list = pix.GetValue(control) as EventHandlerList;
 
-            var pi = Reflect.GetProperty(control.GetType(), "Events");
+            var type = control.GetType();
+            var pi = type.GetPropertyEx("Events");
             if (pi == null) return null;
 
             var list = control.GetValue(pi) as EventHandlerList;
             if (list == null) return null;
 
-            var fi = Reflect.GetField(control.GetType(), eventName);
-            if (fi == null && !eventName.StartsWith("Event", StringComparison.OrdinalIgnoreCase)) fi = Reflect.GetField(control.GetType(), "Event" + eventName);
+            var fi = type.GetFieldEx(eventName);
+            if (fi == null && !eventName.StartsWith("Event", StringComparison.OrdinalIgnoreCase)) fi = type.GetFieldEx("Event" + eventName);
             if (fi == null) return null;
 
             return list[fi.GetValue(control)];

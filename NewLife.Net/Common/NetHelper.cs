@@ -362,8 +362,8 @@ namespace System
             {
                 if (_mSafeHandle != null && _mSafeHandle.Length > 0) return _mSafeHandle[0];
 
-                MemberInfo pi = Reflect.GetField(typeof(Socket), "m_Handle");
-                if (pi == null) pi = Reflect.GetProperty(typeof(Socket), "SafeHandle");
+                MemberInfo pi = typeof(Socket).GetFieldEx("m_Handle");
+                if (pi == null) pi = typeof(Socket).GetPropertyEx("SafeHandle");
                 _mSafeHandle = new MemberInfo[] { pi };
 
                 return pi;

@@ -278,7 +278,8 @@ namespace XCode.DataAccessLayer
             DAL.WriteDebugLog("创建数据库：{0}", FileName);
 
             var conn = Database.Factory.CreateConnection();
-            var method = Reflect.GetMethod(conn.GetType(), "CreateDatabase", typeof(String));
+            //var method = Reflect.GetMethodEx(conn.GetType(), "CreateDatabase", typeof(String));
+            var method = conn.GetType().GetMethodEx("CreateDatabase", typeof(String));
             if (method == null) return;
 
             Reflect.Invoke(method, Database.ConnectionString);

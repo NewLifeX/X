@@ -661,10 +661,10 @@ namespace XCode
         {
             if (String.IsNullOrEmpty(name) || EntityType == null) return null;
 
-            var pi = Reflect.GetProperty(EntityType, name);
+            var pi = EntityType.GetPropertyEx(name);
             if (pi != null) return pi.PropertyType;
 
-            var fi = Reflect.GetField(EntityType, name);
+            var fi = EntityType.GetFieldEx(name);
             if (fi != null) return fi.FieldType;
 
             return null;

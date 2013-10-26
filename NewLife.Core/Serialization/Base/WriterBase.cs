@@ -375,7 +375,7 @@ namespace NewLife.Serialization
             if (type != null && !typeof(IEnumerable).IsAssignableFrom(type)) throw new InvalidOperationException("目标类型不是枚举类型！");
 
             // 计算元素类型，如果无法计算，这里不能处理，否则能写不能读（因为不知道元素类型）
-            var elementType = TypeX.GetElementType(type);
+            var elementType = type.GetElementTypeEx();
 
             //if (elementType == null) return false;
 

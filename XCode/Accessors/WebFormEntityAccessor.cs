@@ -528,9 +528,9 @@ namespace XCode.Accessors
             var type = control.GetType();
             var name = type.GetCustomAttributeValue<ControlValuePropertyAttribute, String>();
             PropertyInfo pi = null;
-            if (!String.IsNullOrEmpty(name)) pi = Reflect.GetProperty(type, name);
-            if (pi == null) pi = Reflect.GetProperty(type, "Value");
-            if (pi == null) pi = Reflect.GetProperty(type, "Text");
+            if (!String.IsNullOrEmpty(name)) pi = type.GetPropertyEx(name);
+            if (pi == null) pi = type.GetPropertyEx("Value");
+            if (pi == null) pi = type.GetPropertyEx("Text");
             if (pi != null)
             {
                 //value = pi.GetValue(control);
@@ -547,9 +547,9 @@ namespace XCode.Accessors
             var type = control.GetType();
             var name = type.GetCustomAttributeValue<ControlValuePropertyAttribute, String>();
             PropertyInfo pi = null;
-            if (!String.IsNullOrEmpty(name)) pi = Reflect.GetProperty(type, name);
-            if (pi == null) pi = Reflect.GetProperty(type, "Value");
-            if (pi == null) pi = Reflect.GetProperty(type, "Text");
+            if (!String.IsNullOrEmpty(name)) pi = type.GetPropertyEx(name);
+            if (pi == null) pi = type.GetPropertyEx("Value");
+            if (pi == null) pi = type.GetPropertyEx("Text");
             if (pi != null)
             {
                 if (value == null && pi.PropertyType.IsValueType) return false;

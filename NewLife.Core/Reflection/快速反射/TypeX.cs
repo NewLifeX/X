@@ -825,35 +825,35 @@ namespace NewLife.Reflection
             return typeArray;
         }
 
-        /// <summary>获取元素类型</summary>
-        /// <returns></returns>
-        public Type GetElementType() { return GetElementType(Type); }
+        ///// <summary>获取元素类型</summary>
+        ///// <returns></returns>
+        //public Type GetElementType() { return GetElementType(Type); }
 
-        private static DictionaryCache<Type, Type> _elmCache = new DictionaryCache<Type, Type>();
-        /// <summary>获取一个类型的元素类型</summary>
-        /// <param name="type">类型</param>
-        /// <returns></returns>
-        public static Type GetElementType(Type type)
-        {
-            return _elmCache.GetItem(type, t =>
-            {
-                if (t.HasElementType) return t.GetElementType();
+        //private static DictionaryCache<Type, Type> _elmCache = new DictionaryCache<Type, Type>();
+        ///// <summary>获取一个类型的元素类型</summary>
+        ///// <param name="type">类型</param>
+        ///// <returns></returns>
+        //public static Type GetElementType(Type type)
+        //{
+        //    return _elmCache.GetItem(type, t =>
+        //    {
+        //        if (t.HasElementType) return t.GetElementType();
 
-                if (typeof(IEnumerable).IsAssignableFrom(type))
-                {
-                    // 如果实现了IEnumerable<>接口，那么取泛型参数
-                    foreach (var item in t.GetInterfaces())
-                    {
-                        if (item.IsGenericType && item.GetGenericTypeDefinition() == typeof(IEnumerable<>)) return item.GetGenericArguments()[0];
-                    }
-                    // 通过索引器猜测元素类型
-                    var pi = type.GetProperty("Item", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-                    if (pi != null) return pi.PropertyType;
-                }
+        //        if (typeof(IEnumerable).IsAssignableFrom(type))
+        //        {
+        //            // 如果实现了IEnumerable<>接口，那么取泛型参数
+        //            foreach (var item in t.GetInterfaces())
+        //            {
+        //                if (item.IsGenericType && item.GetGenericTypeDefinition() == typeof(IEnumerable<>)) return item.GetGenericArguments()[0];
+        //            }
+        //            // 通过索引器猜测元素类型
+        //            var pi = type.GetProperty("Item", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+        //            if (pi != null) return pi.PropertyType;
+        //        }
 
-                return null;
-            });
-        }
+        //        return null;
+        //    });
+        //}
         #endregion
 
         #region 类型转换

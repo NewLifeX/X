@@ -429,7 +429,7 @@ namespace NewLife.Serialization
             if (!typeof(IEnumerable).IsAssignableFrom(type)) return false;
 
             // 计算元素类型，如果无法计算，这里不能处理，否则能写不能读（因为不知道元素类型）
-            var elementType = TypeX.GetElementType(type);
+            var elementType = type.GetElementTypeEx();
 
             // 找不到元素类型
             if (elementType == null) throw new SerializationException("无法找到" + type.FullName + "的元素类型！");
@@ -618,10 +618,12 @@ namespace NewLife.Serialization
             #endregion
 
             #region 检查类型是否有指定类型的构造函数，如果有，直接创建类型，并把数组作为构造函数传入
-            var ci = ConstructorInfoX.Create(type, new Type[] { typeof(IEnumerable) });
+            //var ci = ConstructorInfoX.Create(type, new Type[] { typeof(IEnumerable) });
+            var ci = type.GetConstructor(new Type[] { typeof(IEnumerable) });
             if (ci != null)
             {
-                value = ci.CreateInstance(items);
+                //value = ci.CreateInstance(items);
+                value = Reflect.Invoke(null, ci, items);
                 return true;
             }
             #endregion
@@ -653,17 +655,20 @@ namespace NewLife.Serialization
             #endregion
 
             #region 泛型枚举接口IEnumerable<>的构造函数
-            ci = ConstructorInfoX.Create(type, new Type[] { enumType });
+            //ci = ConstructorInfoX.Create(type, new Type[] { enumType });
+            ci = type.GetConstructor(new Type[] { enumType });
             if (ci != null)
             {
-                value = ci.CreateInstance(items);
+                //value = ci.CreateInstance(items);
+                value = Reflect.Invoke(null, ci, items);
                 return true;
             }
             #endregion
 
             #region 是否具有Add方法
             //if (method == null) method = MethodInfoX.Create(type, "Add", new Type[] { elementType });
-            if (method == null) method = Reflect.GetMethod(type, "Add");
+            //if (method == null) method = Reflect.GetMethod(type, "Add");
+            if (method == null) method = type.GetMethodEx("Add");
             if (method != null)
             {
                 if (value == null) value = type.CreateInstance();
@@ -677,8 +682,10 @@ namespace NewLife.Serialization
 
             //method = MethodInfoX.Create(type, "AddRange", new Type[] { typeof(ICollection) });
             //if (method == null) method = MethodInfoX.Create(type, "AddRange", new Type[] { typeof(IList) });
-            method = Reflect.GetMethod(type, "AddRange", typeof(ICollection));
-            if (method == null) method = Reflect.GetMethod(type, "AddRange", typeof(IList));
+            //method = Reflect.GetMethodEx(type, "AddRange", typeof(ICollection));
+            //if (method == null) method = Reflect.GetMethodEx(type, "AddRange", typeof(IList));
+            method = type.GetMethodEx("AddRange", typeof(ICollection));
+            if (method == null) method = type.GetMethodEx("AddRange", typeof(IList));
             if (method != null)
             {
                 //method.Invoke(value, items);

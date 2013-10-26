@@ -43,7 +43,7 @@ Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "Web", "Web\", "{AAC0A525-4C
 		Release.AspNetCompiler.ForceOverwrite = "true"
 		Release.AspNetCompiler.FixedNames = "false"
 		Release.AspNetCompiler.Debug = "False"
-		VWDPort = "29795"
+		VWDPort = "17686"
 		VWDDynamicPort = "true"
 	EndProjectSection
 EndProject
@@ -76,7 +76,7 @@ Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "WebBootstrap", "WebBootstra
 		Release.AspNetCompiler.ForceOverwrite = "true"
 		Release.AspNetCompiler.FixedNames = "false"
 		Release.AspNetCompiler.Debug = "False"
-		VWDPort = "34996"
+		VWDPort = "17689"
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NewLife.Bootstrap", "NewLife.Bootstrap\NewLife.Bootstrap.csproj", "{95272F1D-5ED9-423D-AB5F-DECBD89B032F}"

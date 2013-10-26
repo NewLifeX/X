@@ -253,7 +253,7 @@ namespace XCode.DataAccessLayer
             var type = Reflect.GetType(className, true);
             if (type == null) return null;
 
-            var field = Reflect.GetField(type, "Instance");
+            var field = type.GetFieldEx("Instance");
             if (field == null) return Activator.CreateInstance(type) as DbProviderFactory;
 
             return Reflect.GetValue(null, field) as DbProviderFactory;
