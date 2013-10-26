@@ -337,7 +337,7 @@ namespace XCode.DataAccessLayer
             if (String.IsNullOrEmpty(name)) return false;
 
             // 特殊处理item
-            if (String.Equals(name, "item", StringComparison.OrdinalIgnoreCase)) return true;
+            if (name.EqualIgnoreCase("item")) return true;
 
             // 只要有大写字母，就不是关键字
             if (name.Any(c => c >= 'A' && c <= 'Z')) return false;

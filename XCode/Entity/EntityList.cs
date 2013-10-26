@@ -260,7 +260,7 @@ namespace XCode
             foreach (var item in this)
             {
                 if (item == null) continue;
-                if (String.Equals((String)item[name], value, StringComparison.OrdinalIgnoreCase)) list.Add(item);
+                if (((String)item[name]).EqualIgnoreCase(value)) list.Add(item);
             }
             return list;
         }
@@ -276,7 +276,7 @@ namespace XCode
             foreach (var item in this)
             {
                 if (item == null) continue;
-                if (String.Equals((String)item[name], value, StringComparison.OrdinalIgnoreCase)) return item;
+                if (((String)item[name]).EqualIgnoreCase(value)) return item;
             }
             return default(T);
         }

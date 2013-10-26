@@ -45,7 +45,7 @@ namespace XCode
                 set
                 {
                     //修改链接名，挂载当前表
-                    if (!String.IsNullOrEmpty(value) && !String.Equals(_ConnName, value, StringComparison.OrdinalIgnoreCase))
+                    if (!String.IsNullOrEmpty(value) && !_ConnName.EqualIgnoreCase(value))
                     {
                         try
                         {
@@ -71,7 +71,7 @@ namespace XCode
                 set
                 {
                     //修改表名
-                    if (!String.IsNullOrEmpty(value) && !String.Equals(_TableName, value, StringComparison.OrdinalIgnoreCase))
+                    if (!String.IsNullOrEmpty(value) && !_TableName.EqualIgnoreCase(value))
                     {
                         try
                         {

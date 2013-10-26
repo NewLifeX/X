@@ -403,7 +403,7 @@ namespace XTemplate.Templating
                 if (block.Type != BlockType.Directive) continue;
 
                 // 弹出当前块的模版名
-                while (includeStack.Count > 0 && !String.Equals(includeStack.Peek(), block.Name, StringComparison.OrdinalIgnoreCase))
+                while (includeStack.Count > 0 && !includeStack.Peek().EqualIgnoreCase(block.Name))
                 {
                     includeStack.Pop();
                 }
@@ -434,7 +434,7 @@ namespace XTemplate.Templating
         private TemplateItem ProcessDirective(Directive directive, TemplateItem item)
         {
             #region 包含include
-            if (String.Equals(directive.Name, "include", StringComparison.OrdinalIgnoreCase))
+            if (directive.Name.EqualIgnoreCase("include"))
             {
                 String name = directive.GetParameter("name");
                 // 可能采用了相对路径
@@ -468,16 +468,16 @@ namespace XTemplate.Templating
             }
             #endregion
 
-            if (String.Equals(directive.Name, "assembly", StringComparison.OrdinalIgnoreCase))
+            if (directive.Name.EqualIgnoreCase("assembly"))
             {
                 String name = directive.GetParameter("name");
                 if (!AssemblyReferences.Contains(name)) AssemblyReferences.Add(name);
             }
-            else if (String.Equals(directive.Name, "import", StringComparison.OrdinalIgnoreCase))
+            else if (directive.Name.EqualIgnoreCase("import"))
             {
                 item.Imports.Add(directive.GetParameter("namespace"));
             }
-            else if (String.Equals(directive.Name, "template", StringComparison.OrdinalIgnoreCase))
+            else if (directive.Name.EqualIgnoreCase("template"))
             {
                 if (!item.Processed)
                 {
@@ -492,7 +492,7 @@ namespace XTemplate.Templating
                 else
                     throw new TemplateException(directive.Block, "多个模版指令！");
             }
-            else if (String.Equals(directive.Name, "var", StringComparison.OrdinalIgnoreCase))
+            else if (directive.Name.EqualIgnoreCase("var"))
             {
                 String name = directive.GetParameter("name");
                 String type = directive.GetParameter("type");

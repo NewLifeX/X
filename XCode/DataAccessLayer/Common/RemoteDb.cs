@@ -144,7 +144,7 @@ namespace XCode.DataAccessLayer
                     dbname = session.DatabaseName;
 
                     //如果指定了数据库名，并且不是master，则切换到master
-                    if (!String.IsNullOrEmpty(dbname) && !String.Equals(dbname, sysdbname, StringComparison.OrdinalIgnoreCase))
+                    if (!String.IsNullOrEmpty(dbname) && !dbname.EqualIgnoreCase(sysdbname))
                     {
                         session.DatabaseName = sysdbname;
                         try

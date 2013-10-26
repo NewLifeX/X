@@ -40,13 +40,13 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>是否内存数据库</summary>
-        public Boolean IsMemoryDatabase { get { return String.Equals(FileName, MemoryDatabase, StringComparison.OrdinalIgnoreCase); } }
+        public Boolean IsMemoryDatabase { get { return FileName.EqualIgnoreCase(MemoryDatabase); } }
 
         static readonly String MemoryDatabase = ":memory:";
 
         protected override string OnResolveFile(string file)
         {
-            if (String.IsNullOrEmpty(file) || String.Equals(file, MemoryDatabase, StringComparison.OrdinalIgnoreCase)) return MemoryDatabase;
+            if (String.IsNullOrEmpty(file) || file.EqualIgnoreCase(MemoryDatabase)) return MemoryDatabase;
 
             return base.OnResolveFile(file);
         }

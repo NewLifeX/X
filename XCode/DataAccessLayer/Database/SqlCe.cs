@@ -208,8 +208,7 @@ namespace XCode.DataAccessLayer
         public override DataTable GetSchema(string collectionName, string[] restrictionValues)
         {
             //sqlce3.5 不支持GetSchema
-            if (SqlCe.SqlCeProviderVersion < SQLCEVersion.SQLCE40 &&
-                String.Equals(collectionName, DbMetaDataCollectionNames.MetaDataCollections, StringComparison.OrdinalIgnoreCase))
+            if (SqlCe.SqlCeProviderVersion < SQLCEVersion.SQLCE40 && collectionName.EqualIgnoreCase(DbMetaDataCollectionNames.MetaDataCollections))
                 return null;
             else
                 return base.GetSchema(collectionName, restrictionValues);

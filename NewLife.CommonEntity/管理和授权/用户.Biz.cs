@@ -318,7 +318,7 @@ namespace NewLife.CommonEntity
                             p = DataHelper.Hash(p);
                         }
                     }
-                    if (!String.Equals(user.Password, p, StringComparison.OrdinalIgnoreCase)) throw new EntityException("密码不正确！");
+                    if (!user.Password.EqualIgnoreCase(p)) throw new EntityException("密码不正确！");
                 }
                 else
                 {
@@ -327,7 +327,7 @@ namespace NewLife.CommonEntity
                     {
                         p = DataHelper.Hash(p);
                     }
-                    if (!String.Equals(p, password, StringComparison.OrdinalIgnoreCase)) throw new EntityException("密码不正确！");
+                    if (!p.EqualIgnoreCase(password)) throw new EntityException("密码不正确！");
                 }
             }
 

@@ -149,12 +149,12 @@ namespace XCoder
             foreach (String item in ss)
             {
                 String ext = Path.GetExtension(item);
-                if (String.Equals(ext, ".exe", StringComparison.OrdinalIgnoreCase)) continue;
-                if (String.Equals(ext, ".dll", StringComparison.OrdinalIgnoreCase)) continue;
-                if (String.Equals(ext, ".zip", StringComparison.OrdinalIgnoreCase)) continue;
-                if (String.Equals(ext, ".rar", StringComparison.OrdinalIgnoreCase)) continue;
-                if (String.Equals(ext, ".txt", StringComparison.OrdinalIgnoreCase)) continue;
-                if (String.Equals(ext, ".config", StringComparison.OrdinalIgnoreCase)) continue;
+                if (ext.EqualIgnoreCase(".exe")) continue;
+                if (ext.EqualIgnoreCase(".dll")) continue;
+                if (ext.EqualIgnoreCase(".zip")) continue;
+                if (ext.EqualIgnoreCase(".rar")) continue;
+                if (ext.EqualIgnoreCase(".txt")) continue;
+                if (ext.EqualIgnoreCase(".config")) continue;
 
                 try
                 {
@@ -312,7 +312,7 @@ namespace XCoder
         {
             foreach (var item in DAL.ConnStrs)
             {
-                if (String.Equals(connstr, item.Value.ConnectionString, StringComparison.OrdinalIgnoreCase)) return true;
+                if (connstr.EqualIgnoreCase(item.Value.ConnectionString)) return true;
             }
             return false;
         }

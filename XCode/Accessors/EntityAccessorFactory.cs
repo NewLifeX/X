@@ -48,7 +48,7 @@ namespace XCode.Accessors
         {
             //if (String.IsNullOrEmpty(str)) return false;
 
-            return String.Equals(str, option.ToString(), StringComparison.OrdinalIgnoreCase);
+            return str.EqualIgnoreCase(option.ToString());
         }
     }
 }

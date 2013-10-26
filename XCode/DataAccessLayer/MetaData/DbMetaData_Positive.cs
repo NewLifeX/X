@@ -136,7 +136,7 @@ namespace XCode.DataAccessLayer
                     table.Owner = GetDataRowValue<String>(dr, "OWNER");
 
                     // 是否视图
-                    table.IsView = String.Equals("View", GetDataRowValue<String>(dr, "TABLE_TYPE"), StringComparison.OrdinalIgnoreCase);
+                    table.IsView = "View".EqualIgnoreCase(GetDataRowValue<String>(dr, "TABLE_TYPE"));
 
                     table.DbType = Database.DbType;
                     #endregion
@@ -308,11 +308,11 @@ namespace XCode.DataAccessLayer
                     field.Nullable = b;
                 else if (TryGetDataRowValue<String>(dr, "IS_NULLABLE", out  str))
                 {
-                    if (!String.IsNullOrEmpty(str)) field.Nullable = String.Equals("YES", str, StringComparison.OrdinalIgnoreCase);
+                    if (!String.IsNullOrEmpty(str)) field.Nullable = "YES".EqualIgnoreCase(str);
                 }
                 else if (TryGetDataRowValue<String>(dr, "NULLABLE", out  str))
                 {
-                    if (!String.IsNullOrEmpty(str)) field.Nullable = String.Equals("Y", str, StringComparison.OrdinalIgnoreCase);
+                    if (!String.IsNullOrEmpty(str)) field.Nullable = "Y".EqualIgnoreCase(str);
                 }
 
                 // 默认值
@@ -523,7 +523,7 @@ namespace XCode.DataAccessLayer
             if (drs != null && drs.Length > 0) return drs;
 
             // 把Guid映射到varchar(32)去
-            if (typeName == typeof(Guid).FullName || String.Equals(typeName, "Guid", StringComparison.OrdinalIgnoreCase))
+            if (typeName == typeof(Guid).FullName || typeName.EqualIgnoreCase("Guid"))
             {
                 typeName = "varchar(32)";
                 try

@@ -98,7 +98,7 @@ namespace XCode.DataAccessLayer
         public DataTable GetSchema(string collectionName, string[] restrictionValues)
         {
             // 如果不是MetaDataCollections，并且MetaDataCollections中没有该集合，则返回空
-            if (!String.Equals(collectionName, DbMetaDataCollectionNames.MetaDataCollections, StringComparison.OrdinalIgnoreCase))
+            if (!collectionName.EqualIgnoreCase(DbMetaDataCollectionNames.MetaDataCollections))
             {
                 if (!MetaDataCollections.Contains(collectionName)) return null;
             }
@@ -129,12 +129,12 @@ namespace XCode.DataAccessLayer
                     return true;
                 }
 
-                if (String.Equals("YES", obj.ToString(), StringComparison.OrdinalIgnoreCase))
+                if ("YES".EqualIgnoreCase(obj.ToString()))
                 {
                     value = (T)(Object)true;
                     return true;
                 }
-                if (String.Equals("NO", obj.ToString(), StringComparison.OrdinalIgnoreCase))
+                if ("NO".EqualIgnoreCase(obj.ToString()))
                 {
                     value = (T)(Object)false;
                     return true;

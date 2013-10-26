@@ -77,7 +77,7 @@ namespace NewLife.Mvc
         {
             string f = ResolveTempletePath(RouteContext.Current.RoutePath);
             string e = Path.GetExtension(f).TrimStart('.');
-            if (Array.Exists<string>(AcceptSuffixs, a => string.Equals(a, e, StringComparison.OrdinalIgnoreCase)))
+            if (Array.Exists<String>(AcceptSuffixs, a => a.EqualIgnoreCase(e)))
             {
                 return File.Exists(f);
             }

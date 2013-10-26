@@ -131,7 +131,7 @@ namespace NewLife.Net.UPnP
 
             foreach (var item in device.serviceList)
             {
-                if (String.Equals(item.serviceType, serviceType, StringComparison.OrdinalIgnoreCase)) return item;
+                if (item.serviceType.EqualIgnoreCase(serviceType)) return item;
             }
 
             if (device.deviceList == null || device.deviceList.Count < 1) return null;

@@ -224,7 +224,7 @@ namespace NewLife.IO
                 {
                     throw new ArgumentException(string.Format("不支持字典类型{0}！", dic.GetType().FullName));
                 }
-                if (flag2 && string.Equals(key, ServerTypeFieldName, StringComparison.OrdinalIgnoreCase))
+                if (flag2 && key.EqualIgnoreCase(ServerTypeFieldName))
                 {
                     flag2 = false;
                 }
@@ -1345,7 +1345,7 @@ namespace NewLife.IO
                 if (a != null)
                 {
                     _s.MovePrev(8);
-                    return string.Equals(a, "\"\\/Date(", StringComparison.OrdinalIgnoreCase);
+                    return a.EqualIgnoreCase("\"\\/Date(");
                 }
                 return false;
             }

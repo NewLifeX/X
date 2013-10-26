@@ -415,7 +415,7 @@ namespace XCode.DataAccessLayer
             Boolean isChanged = false;
 
             //比较默认值
-            isChanged = !String.Equals(entityColumn.Default + "", dbColumn.Default + "", StringComparison.OrdinalIgnoreCase);
+            isChanged = !(entityColumn.Default + "").EqualIgnoreCase(dbColumn.Default + "");
 
             if (isChanged && !String.IsNullOrEmpty(entityColumn.Default) && !String.IsNullOrEmpty(dbColumn.Default))
             {

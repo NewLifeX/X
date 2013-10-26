@@ -53,7 +53,7 @@ namespace XTemplate.Templating
 
             foreach (String item in Parameters.Keys)
             {
-                if (String.Equals(item, name, StringComparison.OrdinalIgnoreCase))
+                if (item.EqualIgnoreCase(name))
                 {
                     value = Parameters[item];
                     return true;

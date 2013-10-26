@@ -8,13 +8,31 @@ namespace System
     public static class StringHelper
     {
         #region 字符串扩展
-        /// <summary>忽略大小写的字符串比较</summary>
+        /// <summary>忽略大小写的字符串相等比较</summary>
         /// <param name="value">数值</param>
         /// <param name="str"></param>
         /// <returns></returns>
         public static Boolean EqualIgnoreCase(this String value, String str)
         {
             return String.Equals(value, str, StringComparison.OrdinalIgnoreCase);
+        }
+
+        /// <summary>忽略大小写的字符串开始比较</summary>
+        /// <param name="value">数值</param>
+        /// <param name="str"></param>
+        /// <returns></returns>
+        public static Boolean StartsWithIC(this String value, String str)
+        {
+            return value.StartsWith(str, StringComparison.OrdinalIgnoreCase);
+        }
+
+        /// <summary>忽略大小写的字符串结束比较</summary>
+        /// <param name="value">数值</param>
+        /// <param name="str"></param>
+        /// <returns></returns>
+        public static Boolean EndsWithIC(this String value, String str)
+        {
+            return value.EndsWith(str, StringComparison.OrdinalIgnoreCase);
         }
 
         /// <summary>是否空或者空白字符串</summary>
@@ -72,11 +90,11 @@ namespace System
             return dic;
         }
 
-        /// <summary>追加字符串，除了开头</summary>
+        /// <summary>追加分隔符字符串，除了开头</summary>
         /// <param name="sb"></param>
         /// <param name="str"></param>
         /// <returns></returns>
-        public static StringBuilder AppendExceptStart(this StringBuilder sb, String str)
+        public static StringBuilder AppendSeparate(this StringBuilder sb, String str)
         {
             if (sb == null || String.IsNullOrEmpty(str)) return sb;
 

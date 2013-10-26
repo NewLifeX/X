@@ -116,7 +116,7 @@ namespace NewLife.Reflection
                 var ps = type.GetProperties();
                 foreach (var item in ps)
                 {
-                    if (String.Equals(item.Name, name, StringComparison.OrdinalIgnoreCase))
+                    if (item.Name.EqualIgnoreCase(name))
                     {
                         property = item;
                         break;

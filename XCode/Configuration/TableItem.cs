@@ -310,9 +310,9 @@ namespace XCode.Configuration
                     Boolean exists = false;
                     foreach (var elm in table.Relations)
                     {
-                        if (!String.Equals(elm.Column, dr.Column, StringComparison.OrdinalIgnoreCase)) continue;
-                        if (!String.Equals(elm.RelationTable, dr.RelationTable, StringComparison.OrdinalIgnoreCase)) continue;
-                        if (!String.Equals(elm.RelationColumn, dr.RelationColumn, StringComparison.OrdinalIgnoreCase)) continue;
+                        if (!elm.Column.EqualIgnoreCase(dr.Column)) continue;
+                        if (!elm.RelationTable.EqualIgnoreCase(dr.RelationTable)) continue;
+                        if (!elm.RelationColumn.EqualIgnoreCase(dr.RelationColumn)) continue;
 
                         exists = true;
                         break;
@@ -411,12 +411,12 @@ namespace XCode.Configuration
 
             foreach (var item in Fields)
             {
-                if (String.Equals(item.Name, name, StringComparison.OrdinalIgnoreCase)) return item as Field;
+                if (item.Name.EqualIgnoreCase(name)) return item as Field;
             }
 
             foreach (var item in Fields)
             {
-                if (String.Equals(item.ColumnName, name, StringComparison.OrdinalIgnoreCase)) return item as Field;
+                if (item.ColumnName.EqualIgnoreCase(name)) return item as Field;
             }
 
             return null;

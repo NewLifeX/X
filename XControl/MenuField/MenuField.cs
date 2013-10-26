@@ -313,7 +313,7 @@ namespace XControl
                 //条件模版创建
                 foreach (MenuTemplateItem item in MenuTemplate)
                 {
-                    if (String.Equals(item.ConditionFieldValue, ConditionFieldValue, StringComparison.CurrentCultureIgnoreCase))
+                    if (item.ConditionFieldValue.EqualIgnoreCase(ConditionFieldValue))
                     {
                         currentMenu = item;
                         break;
