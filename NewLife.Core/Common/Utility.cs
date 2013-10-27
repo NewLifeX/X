@@ -69,9 +69,7 @@ namespace NewLife
             if (value is String)
             {
                 var str = value as String;
-                str = str.Trim();
-                // 特别处理全角空格
-                str = str.Replace("　", null);
+                str = ToDBC(str).Trim();
                 if (String.IsNullOrEmpty(str)) return defaultValue;
 
                 var n = defaultValue;
@@ -104,9 +102,7 @@ namespace NewLife
             if (value is String)
             {
                 var str = value as String;
-                str = str.Trim();
-                // 特别处理全角空格
-                str = str.Replace("　", null);
+                str = ToDBC(str).Trim();
                 if (String.IsNullOrEmpty(str)) return defaultValue;
 
                 var b = defaultValue;
@@ -141,9 +137,7 @@ namespace NewLife
             if (value is String)
             {
                 var str = value as String;
-                // 特别处理全角空格
-                str = str.Replace("　", " ");
-                str = str.Trim();
+                str = ToDBC(str).Trim();
                 if (String.IsNullOrEmpty(str)) return defaultValue;
 
                 var n = defaultValue;
@@ -159,6 +153,24 @@ namespace NewLife
                 return Convert.ToDateTime(value);
             }
             catch { return defaultValue; }
+        }
+
+        /// <summary>全角为半角</summary>
+        /// <remarks>全角半角的关系是相差0xFEE0</remarks>
+        /// <param name="str"></param>
+        /// <returns></returns>
+        String ToDBC(String str)
+        {
+            var ch = str.ToCharArray();
+            for (int i = 0; i < ch.Length; i++)
+            {
+                // 全角空格
+                if (ch[i] == 0x3000)
+                    ch[i] = (char)0x20;
+                else if (ch[i] > 0xFF00 && ch[i] < 0xFF5F)
+                    ch[i] = (char)(ch[i] - 0xFEE0);
+            }
+            return new string(ch);
         }
     }
 }
