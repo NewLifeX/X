@@ -60,24 +60,27 @@ namespace NewLife.Serialization
                 //if (mx == null) return null;
 
                 var pi = type.GetPropertyEx(ss[i]);
-                var fi = type.GetFieldEx(ss[i]);
-                mi = (MemberInfo)pi ?? fi;
+                if (pi != null)
+                {
+                    mi = pi;
+                    type = pi.PropertyType;
+                }
+                else
+                {
+                    var fi = type.GetFieldEx(ss[i]);
+                    if (fi != null)
+                    {
+                        mi = fi;
+                        type = fi.FieldType;
+                    }
+                }
 
                 // 最后一个不需要计算
                 if (i < ss.Length - 1)
                 {
                     //type = mx.Type;
                     //value = mx.GetValue(value);
-                    if (pi != null)
-                    {
-                        type = pi.PropertyType;
-                        value = value.GetValue(pi);
-                    }
-                    else
-                    {
-                        type = fi.FieldType;
-                        value = value.GetValue(fi);
-                    }
+                    if (mi != null) value = value.GetValue(member);
                 }
             }
 
