@@ -19,27 +19,27 @@ namespace NewLife
         /// <summary>类型转换提供者</summary>
         public static DefaultConvert Convert { get { return _Convert; } set { _Convert = value; } }
 
-        /// <summary>转为整数</summary>
-        /// <param name="value">待转换对象</param>
-        /// <returns></returns>
-        public static Int32 ToInt32(this Object value) { return _Convert.ToInt32(value, 0); }
+        ///// <summary>转为整数</summary>
+        ///// <param name="value">待转换对象</param>
+        ///// <returns></returns>
+        //public static Int32 ToInt32(this Object value) { return _Convert.ToInt32(value, 0); }
 
         /// <summary>转为整数</summary>
         /// <param name="value">待转换对象</param>
         /// <param name="defaultValue">默认值。待转换对象无效时使用</param>
         /// <returns></returns>
-        public static Int32 ToInt32(this Object value, Int32 defaultValue) { return _Convert.ToInt32(value, defaultValue); }
+        public static Int32 ToInt32(this Object value, Int32 defaultValue = 0) { return _Convert.ToInt32(value, defaultValue); }
 
-        /// <summary>转为布尔型</summary>
-        /// <param name="value">待转换对象</param>
-        /// <returns></returns>
-        public static Boolean ToBoolean(this Object value) { return _Convert.ToBoolean(value, false); }
+        ///// <summary>转为布尔型</summary>
+        ///// <param name="value">待转换对象</param>
+        ///// <returns></returns>
+        //public static Boolean ToBoolean(this Object value) { return _Convert.ToBoolean(value, false); }
 
         /// <summary>转为布尔型</summary>
         /// <param name="value">待转换对象</param>
         /// <param name="defaultValue">默认值。待转换对象无效时使用</param>
         /// <returns></returns>
-        public static Boolean ToBoolean(this Object value, Boolean defaultValue) { return _Convert.ToBoolean(value, defaultValue); }
+        public static Boolean ToBoolean(this Object value, Boolean defaultValue = false) { return _Convert.ToBoolean(value, defaultValue); }
 
         /// <summary>转为时间日期</summary>
         /// <param name="value">待转换对象</param>
