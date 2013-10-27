@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Reflection;
 using NewLife.Collections;
 using NewLife.Exceptions;
+using System.Text;
 
 namespace NewLife.Reflection
 {
@@ -383,6 +384,35 @@ namespace NewLife.Reflection
                     typeArray[i] = args[i].GetType();
             }
             return typeArray;
+        }
+
+        /// <summary>获取类型的友好名称</summary>
+        /// <param name="type">指定类型</param>
+        /// <param name="isfull">是否全名，包含命名空间</param>
+        /// <returns></returns>
+        public static String GetName(this Type type, Boolean isfull = false)
+        {
+            if (type.IsNested) return type.DeclaringType.GetName(isfull) + "." + type.Name;
+
+            if (!type.IsGenericType) return isfull ? type.FullName : type.Name;
+
+            var sb = new StringBuilder();
+            var typeDef = type.GetGenericTypeDefinition();
+            var name = isfull ? typeDef.FullName : typeDef.Name;
+            var p = name.IndexOf("`");
+            if (p >= 0)
+                sb.Append(name.Substring(0, p));
+            else
+                sb.Append(name);
+            sb.Append("<");
+            var ts = type.GetGenericArguments();
+            for (int i = 0; i < ts.Length; i++)
+            {
+                if (i > 0) sb.Append(",");
+                if (!ts[i].IsGenericParameter) sb.Append(ts[i].GetName(isfull));
+            }
+            sb.Append(">");
+            return sb.ToString();
         }
         #endregion
 

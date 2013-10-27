@@ -421,7 +421,7 @@ namespace NewLife.Xml
         {
             if (type.HasElementType) return "ArrayOf" + GetName(type.GetElementType());
 
-            String name = TypeX.Create(type).Name;
+            var name = type.GetName();
             name = name.Replace("<", "_");
             //name = name.Replace(">", "_");
             name = name.Replace(",", "_");

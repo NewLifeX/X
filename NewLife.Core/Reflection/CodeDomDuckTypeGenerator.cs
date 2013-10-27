@@ -17,13 +17,13 @@ namespace NewLife.Reflection
 
             String namespaceName = this.GetType().Namespace + "." + interfaceType.Name;
 
-            CodeCompileUnit codeCU = new CodeCompileUnit();
-            CodeNamespace codeNsp = new CodeNamespace(namespaceName);
+            var codeCU = new CodeCompileUnit();
+            var codeNsp = new CodeNamespace(namespaceName);
             codeCU.Namespaces.Add(codeNsp);
 
             //CodeTypeReference codeTRInterface = new CodeTypeReference(interfaceType);
-            CodeTypeReference codeTRInterface = new CodeTypeReference(TypeX.Create(interfaceType).FullName);
-            ReferenceList references = new ReferenceList();
+            var codeTRInterface = new CodeTypeReference(interfaceType.GetName(true));
+            var references = new ReferenceList();
 
             // 遍历处理每一个需要代理的类
             for (int i = 0; i < duckedTypes.Length; i++)
@@ -31,10 +31,10 @@ namespace NewLife.Reflection
                 Type objectType = duckedTypes[i];
 
                 //CodeTypeReference codeTRObject = new CodeTypeReference(objectType);
-                CodeTypeReference codeTRObject = new CodeTypeReference(TypeX.Create(objectType).FullName);
+                var codeTRObject = new CodeTypeReference(objectType.GetName(true));
                 references.AddReference(objectType);
 
-                CodeTypeDeclaration codeType = new CodeTypeDeclaration(TYPE_PREFIX + i);
+                var codeType = new CodeTypeDeclaration(TYPE_PREFIX + i);
                 codeNsp.Types.Add(codeType);
 
                 codeType.TypeAttributes = TypeAttributes.Public;
@@ -103,7 +103,7 @@ namespace NewLife.Reflection
 
         void CreateMember(Type interfaceType, Type duckType, CodeTypeDeclaration codeType, ReferenceList references, CodeFieldReferenceExpression codeFldRef)
         {
-            CodeTypeReference codeTRInterface = new CodeTypeReference(TypeX.Create(interfaceType).FullName);
+            var codeTRInterface = new CodeTypeReference(interfaceType.GetName(true));
 
             //// 找到duckType里面是否有公共的_obj;
             //FieldInfo fiObj = duckType.GetField("_obj", BindingFlags.Public | BindingFlags.Instance);

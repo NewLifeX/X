@@ -590,8 +590,8 @@ namespace XTemplate.Templating
                 //}
                 foreach (var v in ti.Vars)
                 {
-                    var vtype = TypeX.Create(v.Value);
-                    var codeName = vtype.FullName;
+                    //var vtype = TypeX.Create(v.Value);
+                    var codeName = v.Value.GetName(true);
 
                     var sb = new StringBuilder();
                     sb.AppendLine();

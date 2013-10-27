@@ -181,17 +181,17 @@ namespace NewLife.Reflection
         }
 
         //private IEnumerable<TypeX> _TypeXs;
-        /// <summary>类型集合，当前程序集的所有类型</summary>
-        public IEnumerable<TypeX> TypeXs
-        {
-            get
-            {
-                foreach (var item in Types)
-                {
-                    yield return TypeX.Create(item);
-                }
-            }
-        }
+        ///// <summary>类型集合，当前程序集的所有类型</summary>
+        //public IEnumerable<TypeX> TypeXs
+        //{
+        //    get
+        //    {
+        //        foreach (var item in Types)
+        //        {
+        //            yield return TypeX.Create(item);
+        //        }
+        //    }
+        //}
 
         /// <summary>是否系统程序集</summary>
         public Boolean IsSystemAssembly
@@ -280,7 +280,7 @@ namespace NewLife.Reflection
                 }
 
                 // 遍历所有类型，包括内嵌类型
-                foreach (var item in TypeXs)
+                foreach (var item in Types)
                 {
                     if (item.Name == typeName) return item;
                 }
