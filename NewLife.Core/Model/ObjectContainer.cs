@@ -403,7 +403,8 @@ namespace NewLife.Model
                 if (ci != null)
                 {
                     //obj = ConstructorInfoX.Create(ci).CreateInstance(null);
-                    obj = Reflect.Invoke(null, ci);
+                    //obj = Reflect.Invoke(null, ci);
+                    obj = map.ImplementType.CreateInstance();
                 }
                 else
                 {
