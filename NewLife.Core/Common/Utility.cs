@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using NewLife.Model;
 using System.Globalization;
 
 namespace NewLife
@@ -73,6 +70,8 @@ namespace NewLife
             {
                 var str = value as String;
                 str = str.Trim();
+                // 特别处理全角空格
+                str = str.Replace("　", null);
                 if (String.IsNullOrEmpty(str)) return defaultValue;
 
                 var n = defaultValue;
@@ -106,6 +105,8 @@ namespace NewLife
             {
                 var str = value as String;
                 str = str.Trim();
+                // 特别处理全角空格
+                str = str.Replace("　", null);
                 if (String.IsNullOrEmpty(str)) return defaultValue;
 
                 var b = defaultValue;
@@ -140,6 +141,8 @@ namespace NewLife
             if (value is String)
             {
                 var str = value as String;
+                // 特别处理全角空格
+                str = str.Replace("　", " ");
                 str = str.Trim();
                 if (String.IsNullOrEmpty(str)) return defaultValue;
 
