@@ -298,7 +298,7 @@ namespace System
 
             for (int i = 0; i < starts.Length; i++)
             {
-                if (!str.StartsWith(starts[i], StringComparison.OrdinalIgnoreCase))
+                if (str.StartsWith(starts[i], StringComparison.OrdinalIgnoreCase))
                 {
                     str = str.Substring(starts[i].Length);
                     if (String.IsNullOrEmpty(str)) break;
@@ -325,7 +325,7 @@ namespace System
 
             for (int i = 0; i < ends.Length; i++)
             {
-                if (!str.EndsWith(ends[i], StringComparison.OrdinalIgnoreCase))
+                if (str.EndsWith(ends[i], StringComparison.OrdinalIgnoreCase))
                 {
                     str = str.Substring(0, str.Length - ends[i].Length);
                     if (String.IsNullOrEmpty(str)) break;

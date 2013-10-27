@@ -131,7 +131,15 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public virtual PropertyInfo GetProperty(Type type, String name)
         {
-            return type.GetProperty(name, bf);
+            // 父类属性的获取需要递归
+            while (type != typeof(Object))
+            {
+                var pi = type.GetProperty(name, bf);
+                if (pi != null) return pi;
+
+                type = type.BaseType;
+            }
+            return null;
         }
 
         /// <summary>获取字段</summary>
@@ -140,7 +148,15 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public virtual FieldInfo GetField(Type type, String name)
         {
-            return type.GetField(name, bf);
+            // 父类字段的获取需要递归
+            while (type != typeof(Object))
+            {
+                var fi = type.GetField(name, bf);
+                if (fi != null) return fi;
+
+                type = type.BaseType;
+            }
+            return null;
         }
         #endregion
 

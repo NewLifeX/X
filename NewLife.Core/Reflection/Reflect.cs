@@ -3,9 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Reflection;
+using System.Text;
 using NewLife.Collections;
 using NewLife.Exceptions;
-using System.Text;
 
 namespace NewLife.Reflection
 {
