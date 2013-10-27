@@ -56,11 +56,11 @@ public partial class Admin_SysConfig : System.Web.UI.Page
 
     protected String GetDisplayName(PropertyInfo pi)
     {
-        return AttributeX.GetCustomAttributeValue<DisplayNameAttribute, String>(pi);
+        return AttributeX.GetCustomAttributeValue<DisplayNameAttribute, String>(pi, true);
     }
 
     protected String GetDescription(PropertyInfo pi)
     {
-        return AttributeX.GetCustomAttributeValue<DescriptionAttribute, String>(pi);
+        return AttributeX.GetCustomAttributeValue<DescriptionAttribute, String>(pi, true);
     }
 }

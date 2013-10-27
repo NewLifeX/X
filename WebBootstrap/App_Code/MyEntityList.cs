@@ -11,6 +11,7 @@ using XControl;
 using System.Collections.Generic;
 #else
 using NewLife.Collections;
+using System.Collections.Generic;
 #endif
 
 /// <summary>实体列表页面基类</summary>

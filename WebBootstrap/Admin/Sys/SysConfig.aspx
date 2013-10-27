@@ -29,41 +29,41 @@
                                     {
                                         if (pname.Equals("email", StringComparison.OrdinalIgnoreCase) || pname.Equals("mail", StringComparison.OrdinalIgnoreCase))
                                         {
-                                %><input name="<%=frmName%>" type="text" value="<%=pi.GetValue(Config) %>" id="<%=frmName%>"
+                                %><input name="<%=frmName%>" type="text" value="<%=pi.GetValue(Config, null) %>" id="<%=frmName%>"
                                     onblur="return ValidMail();" style="border-color: Black; border-width: 0px; border-style: Solid;
                                     font-size: 10pt; width: 120px; border-bottom-width: 1px;" /><%
 }
                                         else
                                         {
-                                    %><input name="<%=frmName%>" type="text" value="<%=pi.GetValue(Config) %>" id="<%=frmName%>"
+                                    %><input name="<%=frmName%>" type="text" value="<%=pi.GetValue(Config, null) %>" id="<%=frmName%>"
                                         style="width: 250px;" /><%
                                                                     }
                                     }
                                     else if (code == TypeCode.Int32)
                                     {
-                                        %><input name="<%=frmName%>" type="text" value="<%=pi.GetValue(Config) %>" id="<%=frmName%>"
+                                        %><input name="<%=frmName%>" type="text" value="<%=pi.GetValue(Config, null) %>" id="<%=frmName%>"
                                             style="width: 150px;" /><%
                                                                         }
                                     else if (code == TypeCode.Double)
                                     {
-                                            %><input name="<%=frmName%>" type="text" value="<%=pi.GetValue(Config) %>" id="<%=frmName%>"
+                                            %><input name="<%=frmName%>" type="text" value="<%=pi.GetValue(Config, null) %>" id="<%=frmName%>"
                                                 style="width: 150px;" /><%
                                                                             }
                                     else if (code == TypeCode.DateTime)
                                     {
-                                                %><input name="<%=frmName%>" type="text" value="<%=((DateTime)pi.GetValue(Config)).ToString("yyyy-MM-dd") %>"
+                                                %><input name="<%=frmName%>" type="text" value="<%=((DateTime)pi.GetValue(Config, null)).ToString("yyyy-MM-dd") %>"
                                                     id="<%=frmName%>" class="Wdate" onfocus="WdatePicker({autoPickDate:true,skin:'default',lang:'auto',readOnly:true})"
                                                     style="width: 86px;" /><%
                                                                                }
                                     else if (code == TypeCode.Decimal)
                                     {
-                                                    %><input name="<%=frmName%>" type="text" value="<%=pi.GetValue(Config) %>" id="<%=frmName%>"
+                                                    %><input name="<%=frmName%>" type="text" value="<%=pi.GetValue(Config, null) %>" id="<%=frmName%>"
                                                         style="width: 150px;" /><%
                                                                                     }
                                     else if (code == TypeCode.Boolean)
                                     {
-                                                        %><input id="<%=frmName%>" type="checkbox" name="<%=frmName%>" <%if((bool)pi.GetValue(Config)){ %>
-                                                            checked="checked" <%} %> /><label for="<%=frmName%>"><%=pi.DisplayName%></label><%}
+                                                        %><input id="<%=frmName%>" type="checkbox" name="<%=frmName%>" <%if((bool)pi.GetValue(Config, null)){ %>
+                                                            checked="checked" <%} %> /><label for="<%=frmName%>"><%=GetDisplayName(pi)%></label><%}
                                                             %>
                             </td>
                             <td>
