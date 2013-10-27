@@ -83,7 +83,6 @@
     <Compile Include="Collections\SafeStack.cs" />
     <Compile Include="Collections\SingleListNode.cs" />
     <Compile Include="Collections\InterlockedStack.cs" />
-    <Compile Include="Collections\Triplet.cs" />
     <Compile Include="Collections\WeakRefDictionary.cs" />
     <Compile Include="Common\PinYin.cs" />
     <Compile Include="Common\Runtime.cs" />
@@ -158,7 +157,6 @@
     <None Include="Reflection\AsmX86.cs" />
     <Compile Include="Reflection\CodeDomDuckTypeGenerator.cs" />
     <Compile Include="Reflection\DuckTyping.cs" />
-    <None Include="Reflection\快速反射\FastMethod.cs" />
     <Compile Include="Reflection\EmitReflect.cs" />
     <Compile Include="Reflection\IL\ILInstruction.cs" />
     <Compile Include="Reflection\IL\MethodBodyReader.cs" />
