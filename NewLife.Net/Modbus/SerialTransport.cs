@@ -34,7 +34,7 @@ namespace NewLife.Net.Modbus
 
         private Int32 _ExpectedFrame = 1;
         /// <summary>读取的期望帧长度，小于该长度为未满一帧，读取不做返回</summary>
-        public Int32 ExpectedFrame { get { return _ExpectedFrame; } set { _ExpectedFrame = value; } }
+        public Int32 FrameSize { get { return _ExpectedFrame; } set { _ExpectedFrame = value; } }
         #endregion
 
         #region 构造
@@ -79,7 +79,7 @@ namespace NewLife.Net.Modbus
         /// <param name="buffer">缓冲区</param>
         /// <param name="offset">偏移</param>
         /// <param name="count">数量</param>
-        public virtual void Write(Byte[] buffer, Int32 offset = 0, Int32 count = -1)
+        public virtual void Send(Byte[] buffer, Int32 offset = 0, Int32 count = -1)
         {
             Open();
 
@@ -101,7 +101,7 @@ namespace NewLife.Net.Modbus
         /// <param name="offset">偏移</param>
         /// <param name="count">数量</param>
         /// <returns></returns>
-        public virtual Int32 Read(Byte[] buffer, Int32 offset = 0, Int32 count = -1)
+        public virtual Int32 Receive(Byte[] buffer, Int32 offset = 0, Int32 count = -1)
         {
             Open();
 
@@ -132,7 +132,7 @@ namespace NewLife.Net.Modbus
             }
 
 #if !MF
-            WriteLog("Read:{0} Expected/True={1}/{2}", BitConverter.ToString(buffer, bufstart, offset - bufstart), ExpectedFrame, offset - bufstart);
+            WriteLog("Read:{0} Expected/True={1}/{2}", BitConverter.ToString(buffer, bufstart, offset - bufstart), FrameSize, offset - bufstart);
 #endif
 
             return offset - bufstart;
@@ -153,7 +153,7 @@ namespace NewLife.Net.Modbus
 #if MF
             while (sp.BytesToRead < ExpectedFrame && sp.IsOpen && end > DateTime.Now) Thread.Sleep(1);
 #else
-            while (sp.BytesToRead < ExpectedFrame && sp.IsOpen && end > DateTime.Now) Thread.SpinWait(1);
+            while (sp.BytesToRead < FrameSize && sp.IsOpen && end > DateTime.Now) Thread.SpinWait(1);
 #endif
 
 #if MF
@@ -172,7 +172,7 @@ namespace NewLife.Net.Modbus
 
         #region 异步接收
         /// <summary>开始监听</summary>
-        public virtual void Listen()
+        public virtual void ReceiveAsync()
         {
             Open();
 
@@ -224,7 +224,7 @@ namespace NewLife.Net.Modbus
             }
         }
 
-        /// <summary>数据到达事件，事件里调用<see cref="Read"/>读取数据</summary>
+        /// <summary>数据到达事件，事件里调用<see cref="Receive"/>读取数据</summary>
         public event TransportEventHandler Received;
         #endregion
 

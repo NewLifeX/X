@@ -93,7 +93,6 @@
     <Compile Include="Compression\ZipEntry.cs" />
     <Compile Include="Compression\ZipFile.cs" />
     <Compile Include="Extension\BitHelper.cs" />
-    <Compile Include="IO\IStream.cs" />
     <Compile Include="IO\PathHelper.cs" />
     <Compile Include="IO\StreamReaderX.cs" />
     <Compile Include="IO\StreamWriterX.cs" />
@@ -118,6 +117,8 @@
     <Compile Include="Messaging\GroupMessage.cs" />
     <Compile Include="Model\IPlugin.cs" />
     <Compile Include="Model\ModelExtension.cs" />
+    <Compile Include="Net\ITransport.cs" />
+    <Compile Include="Net\NetUri.cs" />
     <Compile Include="Reflection\Action.cs" />
     <Compile Include="Extension\EnumHelper.cs" />
     <Compile Include="Extension\Linq\Buffer.cs" />

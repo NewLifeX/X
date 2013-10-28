@@ -77,7 +77,6 @@
     <Compile Include="Common\ExceptionEventArgs.cs" />
     <Compile Include="Common\IStatistics.cs" />
     <Compile Include="Common\NetException.cs" />
-    <Compile Include="Common\NetUri.cs" />
     <Compile Include="Common\SessionMessageProvider.cs" />
     <Compile Include="Common\Statistics.cs" />
     <Compile Include="Common\ServerMessageProvider.cs" />
@@ -115,14 +114,17 @@
     <Compile Include="Modbus\Errors.cs" />
     <Compile Include="Modbus\IDataStore.cs" />
     <Compile Include="Modbus\IOHelper.cs" />
-    <Compile Include="Modbus\ITransport.cs" />
     <Compile Include="Modbus\MBFunction.cs" />
     <Compile Include="Modbus\ModbusEntity.cs" />
     <Compile Include="Modbus\ModbusException.cs" />
     <Compile Include="Modbus\ModbusMaster.cs" />
     <Compile Include="Modbus\ModbusSlave.cs" />
-    <Compile Include="Modbus\SerialTransport.cs" />
-    <Compile Include="Modbus\UdpTransport.cs" />
+    <Compile Include="Modbus\SerialTransport.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Modbus\UdpTransport.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Model\DataEventArgs.cs">
       <SubType>Code</SubType>
     </Compile>

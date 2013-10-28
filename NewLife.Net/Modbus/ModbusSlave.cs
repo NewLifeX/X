@@ -80,7 +80,7 @@ namespace NewLife.Net.Modbus
             var name = Transport.ToString();
 
             Transport.Received += (t, d) => Process(d);
-            Transport.Listen();
+            Transport.ReceiveAsync();
 
             WriteLine(this.GetType().Name + "在" + name + "上监听Host=" + Host);
 

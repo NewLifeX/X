@@ -26,7 +26,7 @@ namespace NewLife.Net.Modbus
 
         private Int32 _ExpectedFrame;
         /// <summary>读取的期望帧长度，小于该长度为未满一帧，读取不做返回</summary>
-        public Int32 ExpectedFrame { get { return _ExpectedFrame; } set { _ExpectedFrame = value; } }
+        public Int32 FrameSize { get { return _ExpectedFrame; } set { _ExpectedFrame = value; } }
         #endregion
 
         #region 构造
@@ -83,7 +83,7 @@ namespace NewLife.Net.Modbus
         /// <param name="buffer">缓冲区</param>
         /// <param name="offset">偏移</param>
         /// <param name="count">数量</param>
-        public void Write(Byte[] buffer, Int32 offset = 0, Int32 count = -1)
+        public void Send(Byte[] buffer, Int32 offset = 0, Int32 count = -1)
         {
             Open();
 
@@ -108,7 +108,7 @@ namespace NewLife.Net.Modbus
         /// <param name="offset">偏移</param>
         /// <param name="count">数量</param>
         /// <returns></returns>
-        public Int32 Read(Byte[] buffer, Int32 offset = 0, Int32 count = -1)
+        public Int32 Receive(Byte[] buffer, Int32 offset = 0, Int32 count = -1)
         {
             Open();
 
@@ -143,7 +143,7 @@ namespace NewLife.Net.Modbus
 
         #region 异步接收
         /// <summary>开始监听</summary>
-        public void Listen()
+        public void ReceiveAsync()
         {
             if (Client == null)
             {
@@ -175,7 +175,7 @@ namespace NewLife.Net.Modbus
             }
         }
 
-        /// <summary>数据到达事件，事件里调用<see cref="Read"/>读取数据</summary>
+        /// <summary>数据到达事件，事件里调用<see cref="Receive"/>读取数据</summary>
         public event TransportEventHandler Received;
         #endregion
 
