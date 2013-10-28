@@ -56,7 +56,7 @@ namespace NewLife.Serialization
 
         #region 有符号整数
         /// <summary>读取整数的字节数组，某些写入器（如二进制写入器）可能需要改变字节顺序</summary>
-        /// <param name="count"></param>
+        /// <param name="count">数量</param>
         /// <returns></returns>
         protected virtual Byte[] ReadIntBytes(Int32 count) { return ReadBytes(count); }
 

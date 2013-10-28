@@ -91,7 +91,7 @@ namespace NewLife.Serialization
         }
 
         /// <summary>读取字节数组</summary>
-        /// <param name="count"></param>
+        /// <param name="count">数量</param>
         /// <returns></returns>
         public override byte[] ReadBytes(int count)
         {
@@ -362,7 +362,7 @@ namespace NewLife.Serialization
         }
 
         /// <summary>从当前流位置读取字符数组</summary>
-        /// <param name="count"></param>
+        /// <param name="count">数量</param>
         /// <returns></returns>
         public override char[] ReadChars(int count)
         {

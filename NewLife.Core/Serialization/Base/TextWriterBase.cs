@@ -20,7 +20,7 @@ namespace NewLife.Serialization
         //public override void Write(Byte value) { Write(new Byte[] { value }, 0, 1); }
 
         /// <summary>将字节数组以[0xff,0xff,0xff]的格式写入</summary>
-        /// <param name="buffer"></param>
+        /// <param name="buffer">缓冲区</param>
         public override void Write(byte[] buffer)
         {
             if (buffer == null)

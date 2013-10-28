@@ -56,8 +56,8 @@ namespace NewLife.Net.Modbus
         #region 读写
         /// <summary>分析字节数组</summary>
         /// <param name="data"></param>
-        /// <param name="offset"></param>
-        /// <param name="count"></param>
+        /// <param name="offset">偏移</param>
+        /// <param name="count">数量</param>
         /// <returns></returns>
         public ModbusEntity Parse(Byte[] data, Int32 offset = 0, Int32 count = -1)
         {

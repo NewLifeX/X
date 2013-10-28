@@ -146,7 +146,7 @@ namespace NewLife.Net.Modbus
         /// 响应：0x01|1字节字节计数|n字节线圈状态（n=输出数量/8，如果余数不为0，n=n+1）
         /// </remarks>
         /// <param name="addr"></param>
-        /// <param name="count"></param>
+        /// <param name="count">数量</param>
         /// <returns></returns>
         public Boolean[] ReadCoils(Int32 addr, UInt16 count)
         {
@@ -159,7 +159,7 @@ namespace NewLife.Net.Modbus
         /// 响应：0x02|1字节字节计数|n字节输入状态（n=输入数量/8，如果余数不为0，n=n+1）
         /// </remarks>
         /// <param name="addr"></param>
-        /// <param name="count"></param>
+        /// <param name="count">数量</param>
         /// <returns></returns>
         public Boolean[] ReadInputs(Int32 addr, UInt16 count)
         {
@@ -286,7 +286,7 @@ namespace NewLife.Net.Modbus
         /// 响应：0x03|1字节字节数|n*2字节寄存器值
         /// </remarks>
         /// <param name="addr"></param>
-        /// <param name="count"></param>
+        /// <param name="count">数量</param>
         /// <returns></returns>
         public UInt16[] ReadHoldingRegisters(Int32 addr, UInt16 count)
         {
@@ -299,7 +299,7 @@ namespace NewLife.Net.Modbus
         /// 响应：0x04|1字节字节数|n*2字节输入寄存器
         /// </remarks>
         /// <param name="addr"></param>
-        /// <param name="count"></param>
+        /// <param name="count">数量</param>
         /// <returns></returns>
         public UInt16[] ReadInputRegisters(Int32 addr, UInt16 count)
         {

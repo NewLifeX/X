@@ -20,9 +20,9 @@ namespace NewLife.Net.Model
         public Int32 Count { get { return _Count; } set { _Count = value; } }
 
         /// <summary>实例化</summary>
-        /// <param name="buffer"></param>
-        /// <param name="offset"></param>
-        /// <param name="count"></param>
+        /// <param name="buffer">缓冲区</param>
+        /// <param name="offset">偏移</param>
+        /// <param name="count">数量</param>
         public DataEventArgs(Byte[] buffer, Int32 offset, Int32 count)
         {
             Buffer = buffer;

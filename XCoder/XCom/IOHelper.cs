@@ -12,8 +12,8 @@ namespace XCom
         /// <param name="data"></param>
         /// <param name="srcOffset"></param>
         /// <param name="buf"></param>
-        /// <param name="offset"></param>
-        /// <param name="count"></param>
+        /// <param name="offset">偏移</param>
+        /// <param name="count">数量</param>
         /// <returns></returns>
         public static Byte[] Write(this Byte[] data, Int32 srcOffset, Byte[] buf, Int32 offset = 0, Int32 count = -1)
         {

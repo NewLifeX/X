@@ -91,7 +91,7 @@ namespace NewLife.Serialization
         }
 
         /// <summary>判断字节顺序</summary>
-        /// <param name="count"></param>
+        /// <param name="count">数量</param>
         /// <returns></returns>
         protected override byte[] ReadIntBytes(int count)
         {

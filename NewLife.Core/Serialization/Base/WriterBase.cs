@@ -63,8 +63,8 @@ namespace NewLife.Serialization
         }
 
         /// <summary>写入字节数组，自动计算长度</summary>
-        /// <param name="buffer"></param>
-        /// <param name="count"></param>
+        /// <param name="buffer">缓冲区</param>
+        /// <param name="count">数量</param>
         private void Write(Byte[] buffer, Int32 count)
         {
             if (buffer == null) return;

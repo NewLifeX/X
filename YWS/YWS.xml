@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Tables Version="8.9.4992.27925">
+<Tables Version="8.9.5049.31289">
   <Table Name="Feedliquor" Description="液料规格" DbType="SqlServer" Alias="Feedliquor">
     <Columns>
       <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
@@ -12,7 +12,7 @@
       <Column Name="WeightRatio" DataType="Double" RawType="float" NumOfByte="8" Precision="53" Description="重量比" />
       <Column Name="VolumeRatio" DataType="Double" RawType="float" NumOfByte="8" Precision="53" Description="体积比" />
       <Column Name="Viscosity" DataType="String" Description="黏稠度" />
-      <Column Name="MixViscosity" DataType="String" Description="A/B混合后黏稠度" />
+      <Column Name="MixViscosity" DataType="String" DisplayName="A_B混合后黏稠度" Description="A/B混合后黏稠度" />
       <Column Name="SpecificGravity" DataType="String" Description="比重" />
       <Column Name="Temperature" DataType="String" Description="工作温度" />
       <Column Name="WViscosity" DataType="String" Description="工作温度下的黏稠度" />
@@ -24,7 +24,7 @@
       <Column Name="IsSensitivity" DataType="Boolean" Description="材料是否潮湿敏感" />
       <Column Name="IsAgitation" DataType="Boolean" Description="是否需要搅拌" />
       <Column Name="IsExcept" DataType="Boolean" Description="是否需要真空初除泡" />
-      <Column Name="WorkingHours" DataType="Int32" Description="材料混合后可工作时间(单位:分钟)" />
+      <Column Name="WorkingHours" DataType="Int32" DisplayName="材料混合后可工作时间单位:分钟" Description="材料混合后可工作时间(单位:分钟)" />
       <Column Name="IsSolventName" DataType="Boolean" Description="有无溶剂名称" />
       <Column Name="Hardening" DataType="String" Description="材料混合后完全硬化时间" />
       <Column Name="CementGroupB" DataType="String" Description="B组胶水组别" />
@@ -32,7 +32,7 @@
       <Column Name="WeightRatioB" DataType="Double" RawType="float" NumOfByte="8" Precision="53" Description="B组重量比" />
       <Column Name="VolumeRatioB" DataType="Double" RawType="float" NumOfByte="8" Precision="53" Description="B组体积比" />
       <Column Name="ViscosityB" DataType="String" Description="B组黏稠度" />
-      <Column Name="MixViscosityB" DataType="String" Description="B组A/B混合后黏稠度" />
+      <Column Name="MixViscosityB" DataType="String" DisplayName="B组A_B混合后黏稠度" Description="B组A/B混合后黏稠度" />
       <Column Name="SpecificGravityB" DataType="String" Description="B组比重" />
       <Column Name="TemperatureB" DataType="String" Description="B组工作温度" />
       <Column Name="WViscosityB" DataType="String" Description="B组工作温度下的黏稠度" />
@@ -44,7 +44,7 @@
       <Column Name="IsSensitivityB" DataType="Boolean" Description="B组材料是否潮湿敏感" />
       <Column Name="IsAgitationB" DataType="Boolean" Description="B组是否需要搅拌" />
       <Column Name="IsExceptB" DataType="Boolean" Description="B组是否需要真空初除泡" />
-      <Column Name="WorkingHoursB" DataType="Int32" Description="B组材料混合后可工作时间(单位:分钟)" />
+      <Column Name="WorkingHoursB" DataType="Int32" DisplayName="B组材料混合后可工作时间单位:分钟" Description="B组材料混合后可工作时间(单位:分钟)" />
       <Column Name="IsSolventNameB" DataType="Boolean" Description="B组有无溶剂名称" />
       <Column Name="HardeningB" DataType="String" Description="B组材料混合后完全硬化时间" />
       <Column Name="AddTime" DataType="DateTime" Description="发布时间" />

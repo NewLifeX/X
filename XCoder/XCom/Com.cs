@@ -56,9 +56,9 @@ namespace XCom
         public void Write(String str) { Write(Encoding.GetBytes(str)); }
 
         /// <summary>写入数据</summary>
-        /// <param name="buffer"></param>
-        /// <param name="offset"></param>
-        /// <param name="count"></param>
+        /// <param name="buffer">缓冲区</param>
+        /// <param name="offset">偏移</param>
+        /// <param name="count">数量</param>
         public void Write(Byte[] buffer, Int32 offset = 0, Int32 count = -1)
         {
             Open();
@@ -86,9 +86,9 @@ namespace XCom
         }
 
         /// <summary>从串口中读取指定长度的数据，一般是一帧</summary>
-        /// <param name="buffer"></param>
-        /// <param name="offset"></param>
-        /// <param name="count"></param>
+        /// <param name="buffer">缓冲区</param>
+        /// <param name="offset">偏移</param>
+        /// <param name="count">数量</param>
         /// <returns></returns>
         public Int32 Read(Byte[] buffer, Int32 offset = 0, Int32 count = -1)
         {

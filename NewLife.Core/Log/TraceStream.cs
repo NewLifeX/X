@@ -46,9 +46,9 @@ namespace NewLife.Log
 
         #region 基本读写方法
         /// <summary>写入</summary>
-        /// <param name="buffer"></param>
-        /// <param name="offset"></param>
-        /// <param name="count"></param>
+        /// <param name="buffer">缓冲区</param>
+        /// <param name="offset">偏移</param>
+        /// <param name="count">数量</param>
         public override void Write(byte[] buffer, int offset, int count)
         {
             RaiseAction("Write", buffer, offset, count);
@@ -66,9 +66,9 @@ namespace NewLife.Log
         }
 
         /// <summary>读取</summary>
-        /// <param name="buffer"></param>
-        /// <param name="offset"></param>
-        /// <param name="count"></param>
+        /// <param name="buffer">缓冲区</param>
+        /// <param name="offset">偏移</param>
+        /// <param name="count">数量</param>
         /// <returns></returns>
         public override int Read(byte[] buffer, int offset, int count)
         {
@@ -93,9 +93,9 @@ namespace NewLife.Log
 
         #region 异步读写方法
         /// <summary>异步开始读</summary>
-        /// <param name="buffer"></param>
-        /// <param name="offset"></param>
-        /// <param name="count"></param>
+        /// <param name="buffer">缓冲区</param>
+        /// <param name="offset">偏移</param>
+        /// <param name="count">数量</param>
         /// <param name="callback"></param>
         /// <param name="state"></param>
         /// <returns></returns>
@@ -107,9 +107,9 @@ namespace NewLife.Log
         }
 
         /// <summary>异步开始写</summary>
-        /// <param name="buffer"></param>
-        /// <param name="offset"></param>
-        /// <param name="count"></param>
+        /// <param name="buffer">缓冲区</param>
+        /// <param name="offset">偏移</param>
+        /// <param name="count">数量</param>
         /// <param name="callback"></param>
         /// <param name="state"></param>
         /// <returns></returns>
@@ -142,7 +142,7 @@ namespace NewLife.Log
 
         #region 其它方法
         /// <summary>设置流位置</summary>
-        /// <param name="offset"></param>
+        /// <param name="offset">偏移</param>
         /// <param name="origin"></param>
         /// <returns></returns>
         public override long Seek(long offset, SeekOrigin origin)

@@ -55,8 +55,8 @@ namespace NewLife.Net.Udp
         }
 
         /// <summary>广播数据包</summary>
-        /// <param name="buffer"></param>
-        /// <param name="offset"></param>
+        /// <param name="buffer">缓冲区</param>
+        /// <param name="offset">偏移</param>
         /// <param name="size"></param>
         /// <param name="port"></param>
         public void Broadcast(Byte[] buffer, Int32 offset, Int32 size, Int32 port)

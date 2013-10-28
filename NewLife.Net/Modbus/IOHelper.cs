@@ -7,8 +7,8 @@ namespace NewLife.Net.Modbus
     {
         /// <summary>从字节数组中读取一段数据</summary>
         /// <param name="data"></param>
-        /// <param name="offset"></param>
-        /// <param name="count"></param>
+        /// <param name="offset">偏移</param>
+        /// <param name="count">数量</param>
         /// <returns></returns>
         public static Byte[] ReadBytes(this Byte[] data, Int32 offset = 0, Int32 count = -1)
         {
@@ -25,7 +25,7 @@ namespace NewLife.Net.Modbus
 
         /// <summary>从字节数据指定位置读取一个无符号16位整数</summary>
         /// <param name="data"></param>
-        /// <param name="offset"></param>
+        /// <param name="offset">偏移</param>
         /// <returns></returns>
         public static UInt16 ReadUInt16(this Byte[] data, Int32 offset = 0)
         {
@@ -34,7 +34,7 @@ namespace NewLife.Net.Modbus
 
         /// <summary>向字节数组的指定位置写入一个无符号16位整数</summary>
         /// <param name="data"></param>
-        /// <param name="offset"></param>
+        /// <param name="offset">偏移</param>
         /// <param name="n"></param>
         /// <returns></returns>
         public static Byte[] WriteUInt16(this Byte[] data, Int32 offset, Int32 n)
@@ -53,8 +53,8 @@ namespace NewLife.Net.Modbus
         /// <param name="data"></param>
         /// <param name="srcOffset"></param>
         /// <param name="buf"></param>
-        /// <param name="offset"></param>
-        /// <param name="count"></param>
+        /// <param name="offset">偏移</param>
+        /// <param name="count">数量</param>
         /// <returns></returns>
         public static Byte[] Write(this Byte[] data, Int32 srcOffset, Byte[] buf, Int32 offset = 0, Int32 count = -1)
         {
@@ -73,8 +73,8 @@ namespace NewLife.Net.Modbus
 
         /// <summary>Crc校验</summary>
         /// <param name="data"></param>
-        /// <param name="offset"></param>
-        /// <param name="count"></param>
+        /// <param name="offset">偏移</param>
+        /// <param name="count">数量</param>
         /// <returns></returns>
         public static UInt16 Crc(this Byte[] data, Int32 offset, int count = 0)
         {

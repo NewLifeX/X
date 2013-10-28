@@ -61,7 +61,7 @@ namespace NewLife.Net.Udp
 
         /// <summary>向指定目的地发送信息</summary>
         /// <param name="udp"></param>
-        /// <param name="buffer"></param>
+        /// <param name="buffer">缓冲区</param>
         /// <param name="remoteEP"></param>
         /// <returns>返回自身，用于链式写法</returns>
         public static IUdp Send(this IUdp udp, Byte[] buffer, EndPoint remoteEP = null) { udp.Send(buffer, 0, buffer.Length, remoteEP); return udp; }

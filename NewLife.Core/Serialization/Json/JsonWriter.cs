@@ -122,7 +122,7 @@ namespace NewLife.Serialization
         /// <summary>将 Unicode 字符写入当前流，并根据所使用的 Encoding 和向流中写入的特定字符，提升流的当前位置。</summary>
         /// <param name="chars"></param>
         /// <param name="index"></param>
-        /// <param name="count"></param>
+        /// <param name="count">数量</param>
         public override void Write(char[] chars, int index, int count)
         {
             if (Settings.UseCharsWriteToString)
@@ -283,7 +283,7 @@ namespace NewLife.Serialization
         /// <typeparam name="T"></typeparam>
         /// <param name="array"></param>
         /// <param name="index"></param>
-        /// <param name="count"></param>
+        /// <param name="count">数量</param>
         /// <returns></returns>
         public static T[] Slice<T>(T[] array, int index, int count)
         {

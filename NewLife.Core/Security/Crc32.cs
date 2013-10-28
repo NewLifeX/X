@@ -147,7 +147,7 @@ namespace NewLife.Security
 
         /// <summary>添加数据流进行校验</summary>
         /// <param name="stream"></param>
-        /// <param name="count"></param>
+        /// <param name="count">数量</param>
         public Crc32 Update(Stream stream, Int64 count = 0)
         {
             if (stream == null) throw new ArgumentNullException("stream");

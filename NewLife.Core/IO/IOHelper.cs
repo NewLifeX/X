@@ -385,16 +385,16 @@ namespace System
 
         /// <summary>比较两个字节数组大小。相等返回0，不等则返回不等的位置，如果位置为0，则返回1。</summary>
         /// <param name="source"></param>
-        /// <param name="buffer"></param>
+        /// <param name="buffer">缓冲区</param>
         /// <returns></returns>
         public static Int32 CompareTo(this Byte[] source, Byte[] buffer) { return CompareTo(source, 0, 0, buffer, 0, 0); }
 
         /// <summary>比较两个字节数组大小。相等返回0，不等则返回不等的位置，如果位置为0，则返回1。</summary>
         /// <param name="source"></param>
         /// <param name="start"></param>
-        /// <param name="count"></param>
-        /// <param name="buffer"></param>
-        /// <param name="offset"></param>
+        /// <param name="count">数量</param>
+        /// <param name="buffer">缓冲区</param>
+        /// <param name="offset">偏移</param>
         /// <param name="length"></param>
         /// <returns></returns>
         public static Int32 CompareTo(this Byte[] source, Int64 start, Int64 count, Byte[] buffer, Int64 offset = 0, Int64 length = 0)
@@ -445,7 +445,7 @@ namespace System
 
         /// <summary>一个数据流是否以另一个数组开头。如果成功，指针移到目标之后，否则保持指针位置不变。</summary>
         /// <param name="source"></param>
-        /// <param name="buffer"></param>
+        /// <param name="buffer">缓冲区</param>
         /// <returns></returns>
         public static Boolean StartsWith(this Stream source, Byte[] buffer)
         {
@@ -463,7 +463,7 @@ namespace System
 
         /// <summary>一个数据流是否以另一个数组结尾。如果成功，指针移到目标之后，否则保持指针位置不变。</summary>
         /// <param name="source"></param>
-        /// <param name="buffer"></param>
+        /// <param name="buffer">缓冲区</param>
         /// <returns></returns>
         public static Boolean EndsWith(this Stream source, Byte[] buffer)
         {
@@ -479,7 +479,7 @@ namespace System
 
         /// <summary>一个数组是否以另一个数组开头</summary>
         /// <param name="source"></param>
-        /// <param name="buffer"></param>
+        /// <param name="buffer">缓冲区</param>
         /// <returns></returns>
         public static Boolean StartsWith(this Byte[] source, Byte[] buffer)
         {
@@ -494,7 +494,7 @@ namespace System
 
         /// <summary>一个数组是否以另一个数组结尾</summary>
         /// <param name="source"></param>
-        /// <param name="buffer"></param>
+        /// <param name="buffer">缓冲区</param>
         /// <returns></returns>
         public static Boolean EndsWith(this Byte[] source, Byte[] buffer)
         {

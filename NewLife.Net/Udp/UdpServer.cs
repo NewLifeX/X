@@ -119,8 +119,8 @@ namespace NewLife.Net.Udp
 
         #region 发送
         /// <summary>向指定目的地发送信息</summary>
-        /// <param name="buffer"></param>
-        /// <param name="offset"></param>
+        /// <param name="buffer">缓冲区</param>
+        /// <param name="offset">偏移</param>
         /// <param name="size"></param>
         /// <param name="remoteEP"></param>
         public void Send(Byte[] buffer, Int32 offset = 0, Int32 size = 0, EndPoint remoteEP = null)

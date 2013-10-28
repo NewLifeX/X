@@ -88,7 +88,7 @@ namespace NewLife.Serialization
         }
 
         /// <summary>判断字节顺序</summary>
-        /// <param name="buffer"></param>
+        /// <param name="buffer">缓冲区</param>
         void WriteIntBytes(byte[] buffer)
         {
             if (buffer == null || buffer.Length < 1) return;

@@ -47,9 +47,9 @@ namespace NewLife.IO
         public override long Position { get { return InputStream.Position; } set { InputStream.Position = value; } }
 
         /// <summary>从输入流中读取数据</summary>
-        /// <param name="buffer"></param>
-        /// <param name="offset"></param>
-        /// <param name="count"></param>
+        /// <param name="buffer">缓冲区</param>
+        /// <param name="offset">偏移</param>
+        /// <param name="count">数量</param>
         /// <returns></returns>
         public override int Read(byte[] buffer, int offset, int count)
         {
@@ -59,7 +59,7 @@ namespace NewLife.IO
         }
 
         /// <summary>在输入流中搜索</summary>
-        /// <param name="offset"></param>
+        /// <param name="offset">偏移</param>
         /// <param name="origin"></param>
         /// <returns></returns>
         public override long Seek(long offset, SeekOrigin origin) { return InputStream.Seek(offset, origin); }
@@ -69,9 +69,9 @@ namespace NewLife.IO
         public override void SetLength(long value) { OutputStream.SetLength(value); }
 
         /// <summary>把数据写入到输出流中</summary>
-        /// <param name="buffer"></param>
-        /// <param name="offset"></param>
-        /// <param name="count"></param>
+        /// <param name="buffer">缓冲区</param>
+        /// <param name="offset">偏移</param>
+        /// <param name="count">数量</param>
         public override void Write(byte[] buffer, int offset, int count)
         {
             CheckArgument(buffer, offset, count);
@@ -82,9 +82,9 @@ namespace NewLife.IO
 
         #region 异步
         /// <summary>开始异步读操作</summary>
-        /// <param name="buffer"></param>
-        /// <param name="offset"></param>
-        /// <param name="count"></param>
+        /// <param name="buffer">缓冲区</param>
+        /// <param name="offset">偏移</param>
+        /// <param name="count">数量</param>
         /// <param name="callback"></param>
         /// <param name="state"></param>
         /// <returns></returns>
@@ -101,9 +101,9 @@ namespace NewLife.IO
         public override int EndRead(IAsyncResult asyncResult) { return InputStream.EndRead(asyncResult); }
 
         /// <summary>开始异步写操作</summary>
-        /// <param name="buffer"></param>
-        /// <param name="offset"></param>
-        /// <param name="count"></param>
+        /// <param name="buffer">缓冲区</param>
+        /// <param name="offset">偏移</param>
+        /// <param name="count">数量</param>
         /// <param name="callback"></param>
         /// <param name="state"></param>
         /// <returns></returns>
@@ -134,9 +134,9 @@ namespace NewLife.IO
 
         #region 辅助函数
         /// <summary>检查参数</summary>
-        /// <param name="buffer"></param>
-        /// <param name="offset"></param>
-        /// <param name="count"></param>
+        /// <param name="buffer">缓冲区</param>
+        /// <param name="offset">偏移</param>
+        /// <param name="count">数量</param>
         protected static void CheckArgument(byte[] buffer, int offset, int count)
         {
             if (buffer == null || buffer.Length < 0) throw new ArgumentNullException("buffer");

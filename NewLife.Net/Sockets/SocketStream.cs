@@ -52,9 +52,9 @@ namespace NewLife.Net.Sockets
 
         #region 重载
         /// <summary>读取数据，如果初始化时指定了输入流，则从输入流读取数据，否则从Socket中读取数据</summary>
-        /// <param name="buffer"></param>
-        /// <param name="offset"></param>
-        /// <param name="count"></param>
+        /// <param name="buffer">缓冲区</param>
+        /// <param name="offset">偏移</param>
+        /// <param name="count">数量</param>
         /// <returns></returns>
         public override int Read(byte[] buffer, int offset, int count)
         {
@@ -65,9 +65,9 @@ namespace NewLife.Net.Sockets
         }
 
         /// <summary>写入数据，经Socket向网络发送</summary>
-        /// <param name="buffer"></param>
-        /// <param name="offset"></param>
-        /// <param name="count"></param>
+        /// <param name="buffer">缓冲区</param>
+        /// <param name="offset">偏移</param>
+        /// <param name="count">数量</param>
         public override void Write(byte[] buffer, int offset, int count)
         {
             // 兼容IPV6

@@ -247,8 +247,8 @@ namespace NewLife.Security
         #region 编码
         /// <summary>把字节数组编码为十六进制字符串</summary>
         /// <param name="data"></param>
-        /// <param name="offset"></param>
-        /// <param name="count"></param>
+        /// <param name="offset">偏移</param>
+        /// <param name="count">数量</param>
         /// <returns></returns>
         public static String ToHex(this Byte[] data, Int32 offset = 0, Int32 count = 0)
         {

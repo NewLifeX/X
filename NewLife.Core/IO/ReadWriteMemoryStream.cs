@@ -42,7 +42,7 @@ namespace NewLife.IO
 
         #region 方法
         /// <summary>已重载。</summary>
-        /// <param name="offset"></param>
+        /// <param name="offset">偏移</param>
         /// <param name="loc"></param>
         /// <returns></returns>
         public long SeekForWrite(long offset, SeekOrigin loc)
@@ -90,9 +90,9 @@ namespace NewLife.IO
         #region 重载
         private Object rwLock = new Object();
         /// <summary>已重载。</summary>
-        /// <param name="buffer"></param>
-        /// <param name="offset"></param>
-        /// <param name="count"></param>
+        /// <param name="buffer">缓冲区</param>
+        /// <param name="offset">偏移</param>
+        /// <param name="count">数量</param>
         /// <returns></returns>
         public override int Read(byte[] buffer, int offset, int count)
         {
@@ -154,9 +154,9 @@ namespace NewLife.IO
         }
 
         /// <summary>已重载。</summary>
-        /// <param name="buffer"></param>
-        /// <param name="offset"></param>
-        /// <param name="count"></param>
+        /// <param name="buffer">缓冲区</param>
+        /// <param name="offset">偏移</param>
+        /// <param name="count">数量</param>
         public override void Write(byte[] buffer, int offset, int count)
         {
             lock (rwLock)
