@@ -3,6 +3,7 @@
 namespace NewLife.Net
 {
     /// <summary>传输接口</summary>
+    /// <remarks>实现者确保数据以包的形式传输，屏蔽数据的粘包和拆包</remarks>
     public interface ITransport : IDisposable
     {
         /// <summary>读取的期望帧长度，小于该长度为未满一帧，读取不做返回</summary>
