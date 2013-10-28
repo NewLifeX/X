@@ -42,31 +42,31 @@ namespace NewLife.Core.Test.Extension
         //
         #endregion
 
-        [TestMethod]
-        public void TestLeft()
-        {
-            var str = "nnhy就是大石头";
+        //[TestMethod]
+        //public void TestLeft()
+        //{
+        //    var str = "nnhy就是大石头";
 
-            Assert.AreEqual(str.Left(5), "nnhy就", "Left出错");
-            Assert.AreEqual(str.Left(7), "nnhy就是大", "Left出错");
-            Assert.AreEqual(str.LeftBinary(5), "nnhy", "LeftBinary出错");
-            Assert.AreEqual(str.LeftBinary(5, false), "nnhy就", "LeftBinary出错（strict=false）");
-            Assert.AreEqual(str.LeftBinary(7), "nnhy就", "LeftBinary出错（strict=false）");
-            Assert.AreEqual(str.LeftBinary(7, false), "nnhy就是", "LeftBinary出错（strict=false）");
-        }
+        //    Assert.AreEqual(str.Left(5), "nnhy就", "Left出错");
+        //    Assert.AreEqual(str.Left(7), "nnhy就是大", "Left出错");
+        //    Assert.AreEqual(str.LeftBinary(5), "nnhy", "LeftBinary出错");
+        //    Assert.AreEqual(str.LeftBinary(5, false), "nnhy就", "LeftBinary出错（strict=false）");
+        //    Assert.AreEqual(str.LeftBinary(7), "nnhy就", "LeftBinary出错（strict=false）");
+        //    Assert.AreEqual(str.LeftBinary(7, false), "nnhy就是", "LeftBinary出错（strict=false）");
+        //}
 
-        [TestMethod]
-        public void TestRight()
-        {
-            var str = "nnhy就是大石头nnhy";
+        //[TestMethod]
+        //public void TestRight()
+        //{
+        //    var str = "nnhy就是大石头nnhy";
 
-            Assert.AreEqual(str.Right(5), "头nnhy", "Right出错");
-            Assert.AreEqual(str.Right(7), "大石头nnhy", "Right出错");
-            Assert.AreEqual(str.RightBinary(5), "nnhy", "RightBinary出错");
-            Assert.AreEqual(str.RightBinary(5, false), "头nnhy", "RightBinary出错（strict=false）");
-            Assert.AreEqual(str.RightBinary(7), "头nnhy", "RightBinary出错");
-            Assert.AreEqual(str.RightBinary(7, false), "石头nnhy", "RightBinary出错（strict=false）");
-        }
+        //    Assert.AreEqual(str.Right(5), "头nnhy", "Right出错");
+        //    Assert.AreEqual(str.Right(7), "大石头nnhy", "Right出错");
+        //    Assert.AreEqual(str.RightBinary(5), "nnhy", "RightBinary出错");
+        //    Assert.AreEqual(str.RightBinary(5, false), "头nnhy", "RightBinary出错（strict=false）");
+        //    Assert.AreEqual(str.RightBinary(7), "头nnhy", "RightBinary出错");
+        //    Assert.AreEqual(str.RightBinary(7, false), "石头nnhy", "RightBinary出错（strict=false）");
+        //}
 
         [TestMethod]
         public void TestCut()

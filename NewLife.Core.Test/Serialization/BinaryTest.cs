@@ -82,6 +82,7 @@ namespace NewLife.Core.Test.Serialization
                 var writer = new BinaryWriterX();
                 writer.Settings = set;
                 writer.WriteObject(obj);
+                writer.Stream.Position = 0;
 
                 var bts1 = writer.Stream.ReadBytes();
 

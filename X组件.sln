@@ -81,6 +81,8 @@ Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "WebBootstrap", "WebBootstra
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NewLife.Bootstrap", "NewLife.Bootstrap\NewLife.Bootstrap.csproj", "{95272F1D-5ED9-423D-AB5F-DECBD89B032F}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "UnitTest", "UnitTest", "{C05117DE-0085-44F9-AE89-0973AD32ABCC}"
+EndProject
 Global
 	GlobalSection(TestCaseManagementSettings) = postSolution
 		CategoryFile = X组件.vsmdi
@@ -213,5 +215,10 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{ADC0BECC-C59A-4A82-BFCE-02EBD2966204} = {C05117DE-0085-44F9-AE89-0973AD32ABCC}
+		{6D5EA117-7DC7-4390-935A-97C36F0BB29C} = {C05117DE-0085-44F9-AE89-0973AD32ABCC}
+		{6AB57657-0627-40AC-ACC2-FF697E45FAF1} = {C05117DE-0085-44F9-AE89-0973AD32ABCC}
 	EndGlobalSection
 EndGlobal
