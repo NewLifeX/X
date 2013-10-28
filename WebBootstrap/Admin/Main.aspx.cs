@@ -37,7 +37,7 @@ public partial class Admin_Main : System.Web.UI.Page
     {
         String bin = HttpRuntime.BinDirectory.ToLower();
         List<AssemblyX> list = new List<AssemblyX>();
-        foreach (AssemblyX asmx in AssemblyX.GetAssemblies())
+        foreach (AssemblyX asmx in AssemblyX.GetAssemblies(null))
         {
             if (String.IsNullOrEmpty(asmx.FileVersion)) continue;
             String file = asmx.Asm.CodeBase;

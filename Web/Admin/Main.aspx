@@ -248,7 +248,7 @@
                 路径
             </th>
         </tr>
-        <% foreach (AssemblyX item in AssemblyX.GetAssemblies())
+        <% foreach (AssemblyX item in AssemblyX.GetAssemblies(null))
            {
         %><tr>
             <td>

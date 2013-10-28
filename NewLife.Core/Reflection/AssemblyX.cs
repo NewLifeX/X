@@ -323,17 +323,17 @@ namespace NewLife.Reflection
             }
         }
 
-        /// <summary>查找所有非系统程序集中的所有插件</summary>
-        /// <param name="type">类型</param>
-        /// <returns></returns>
-        public static IEnumerable<Type> FindAllPlugins(Type type) { return FindAllPlugins(type, false); }
+        ///// <summary>查找所有非系统程序集中的所有插件</summary>
+        ///// <param name="type">类型</param>
+        ///// <returns></returns>
+        //public static IEnumerable<Type> FindAllPlugins(Type type) { return FindAllPlugins(type, false); }
 
-        /// <summary>查找所有非系统程序集中的所有插件</summary>
-        /// <remarks>继承类所在的程序集会引用baseType所在的程序集，利用这一点可以做一定程度的性能优化。</remarks>
-        /// <param name="baseType"></param>
-        /// <param name="isLoadAssembly">是否从未加载程序集中获取类型。使用仅反射的方法检查目标类型，如果存在，则进行常规加载</param>
-        /// <returns></returns>
-        public static IEnumerable<Type> FindAllPlugins(Type baseType, Boolean isLoadAssembly) { return FindAllPlugins(baseType, isLoadAssembly, true); }
+        ///// <summary>查找所有非系统程序集中的所有插件</summary>
+        ///// <remarks>继承类所在的程序集会引用baseType所在的程序集，利用这一点可以做一定程度的性能优化。</remarks>
+        ///// <param name="baseType"></param>
+        ///// <param name="isLoadAssembly">是否从未加载程序集中获取类型。使用仅反射的方法检查目标类型，如果存在，则进行常规加载</param>
+        ///// <returns></returns>
+        //public static IEnumerable<Type> FindAllPlugins(Type baseType, Boolean isLoadAssembly) { return FindAllPlugins(baseType, isLoadAssembly, true); }
 
         /// <summary>查找所有非系统程序集中的所有插件</summary>
         /// <remarks>继承类所在的程序集会引用baseType所在的程序集，利用这一点可以做一定程度的性能优化。</remarks>
@@ -341,7 +341,7 @@ namespace NewLife.Reflection
         /// <param name="isLoadAssembly">是否从未加载程序集中获取类型。使用仅反射的方法检查目标类型，如果存在，则进行常规加载</param>
         /// <param name="excludeGlobalTypes">指示是否应检查来自所有引用程序集的类型。如果为 false，则检查来自所有引用程序集的类型。 否则，只检查来自非全局程序集缓存 (GAC) 引用的程序集的类型。</param>
         /// <returns></returns>
-        internal static IEnumerable<Type> FindAllPlugins(Type baseType, Boolean isLoadAssembly, Boolean excludeGlobalTypes)
+        public static IEnumerable<Type> FindAllPlugins(Type baseType, Boolean isLoadAssembly = false, Boolean excludeGlobalTypes = true)
         {
             var baseAssemblyName = baseType.Assembly.GetName().Name;
 
@@ -424,7 +424,7 @@ namespace NewLife.Reflection
         /// <summary>获取指定程序域所有程序集</summary>
         /// <param name="domain"></param>
         /// <returns></returns>
-        public static IEnumerable<AssemblyX> GetAssemblies(AppDomain domain)
+        public static IEnumerable<AssemblyX> GetAssemblies(AppDomain domain = null)
         {
             if (domain == null) domain = AppDomain.CurrentDomain;
 
@@ -440,9 +440,9 @@ namespace NewLife.Reflection
             //}
         }
 
-        /// <summary>获取当前程序域所有程序集</summary>
-        /// <returns></returns>
-        public static IEnumerable<AssemblyX> GetAssemblies() { return GetAssemblies(AppDomain.CurrentDomain); }
+        ///// <summary>获取当前程序域所有程序集</summary>
+        ///// <returns></returns>
+        //public static IEnumerable<AssemblyX> GetAssemblies() { return GetAssemblies(AppDomain.CurrentDomain); }
 
         private static ICollection<String> _AssemblyPaths;
         /// <summary>程序集目录集合</summary>
@@ -532,8 +532,9 @@ namespace NewLife.Reflection
                 if (String.IsNullOrEmpty(asmx.FileVersion)) continue;
                 var file = asmx.Asm.CodeBase;
                 if (String.IsNullOrEmpty(file)) continue;
-                file = file.ToLower();
-                if (file.StartsWith("file:///")) file = file.Substring("file:///".Length);
+                //file = file.ToLower();
+                //if (file.StartsWith("file:///")) file = file.Substring("file:///".Length);
+                file = file.TrimStart("file:///");
                 file = file.Replace("/", "\\");
                 if (!file.StartsWith(cur)) continue;
 
@@ -548,8 +549,9 @@ namespace NewLife.Reflection
                 if (String.IsNullOrEmpty(asmx.FileVersion)) continue;
                 var file = asmx.Asm.CodeBase;
                 if (String.IsNullOrEmpty(file)) continue;
-                file = file.ToLower();
-                if (file.StartsWith("file:///")) file = file.Substring("file:///".Length);
+                //file = file.ToLower();
+                //if (file.StartsWith("file:///")) file = file.Substring("file:///".Length);
+                file = file.TrimStart("file:///");
                 file = file.Replace("/", "\\");
                 if (!file.StartsWith(cur)) continue;
 
