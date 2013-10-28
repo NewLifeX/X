@@ -213,10 +213,14 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        [DllImport("kernel32.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+        /*
+         * 对 PInvoke 函数“SetDllDirectory”的调用导致堆栈不对称
+         * http://www.newlifex.com/showtopic-985.aspx
+         */
+        [DllImport("kernel32.dll")]
         static extern IntPtr LoadLibrary(string fileName);
 
-        [DllImport("kernel32.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+        [DllImport("kernel32.dll")]
         static extern int SetDllDirectory(string pathName);
         #endregion
 
