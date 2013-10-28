@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Tables Version="8.9.4817.25221">
+<Tables Version="8.9.5049.31322">
   <Table Name="Administrator" Description="管理员" DbType="SqlServer">
     <Columns>
       <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
@@ -14,8 +14,8 @@
       <Column Name="IsEnable" DataType="Boolean" Description="是否使用" />
     </Columns>
     <Indexes>
-      <Index Name="IX_Administrator_Name" Unique="True" Columns="Name" />
-      <Index Name="IX_Administrator_RoleID" Columns="RoleID" />
+      <Index Name="IX_Administrator_Name" Columns="Name" Unique="True" />
+      <Index Columns="RoleID" />
     </Indexes>
     <Relations>
       <Relation Column="RoleID" RelationTable="Role" RelationColumn="ID" />
@@ -28,7 +28,7 @@
       <Column Name="IsSystem" DataType="Boolean" Description="是否系统角色。系统角色用于业务系统开发使用，禁止删除" />
     </Columns>
     <Indexes>
-      <Index Name="IX_Role_Name" Unique="True" Columns="Name" />
+      <Index Name="IX_Role_Name" Columns="Name" Unique="True" />
     </Indexes>
     <Relations>
       <Relation Column="ID" RelationTable="RoleMenu" RelationColumn="RoleID" Unique="True" />
@@ -47,8 +47,8 @@
       <Column Name="IsShow" DataType="Boolean" Description="是否显示" />
     </Columns>
     <Indexes>
-      <Index Name="IX_Menu_Name" Columns="Name" />
-      <Index Name="IX_Menu_ParentID_Name" Columns="ParentID,Name" />
+      <Index Columns="Name" />
+      <Index Columns="ParentID,Name" />
     </Indexes>
     <Relations>
       <Relation Column="ID" RelationTable="RoleMenu" RelationColumn="MenuID" Unique="True" />
@@ -62,9 +62,9 @@
       <Column Name="Permission" DataType="Int32" Description="权限" />
     </Columns>
     <Indexes>
-      <Index Name="IX_RoleMenu_MenuID" Columns="MenuID" />
-      <Index Name="IX_RoleMenu_RoleID" Columns="RoleID" />
-      <Index Name="IX_RoleMenu_MenuID_RoleID" Unique="True" Columns="MenuID,RoleID" />
+      <Index Columns="MenuID" />
+      <Index Columns="RoleID" />
+      <Index Name="IX_RoleMenu_MenuID_RoleID" Columns="MenuID,RoleID" Unique="True" />
     </Indexes>
     <Relations>
       <Relation Column="MenuID" RelationTable="Menu" RelationColumn="ID" />
@@ -83,7 +83,7 @@
       <Column Name="Remark" DataType="String" Length="500" Description="详细信息" />
     </Columns>
     <Indexes>
-      <Index Name="IX_Log_Category" Columns="Category" />
+      <Index Columns="Category" />
     </Indexes>
   </Table>
   <Table Name="User" Description="用户" DbType="SqlServer">
@@ -95,7 +95,7 @@
       <Column Name="IsEnable" DataType="Boolean" Description="是否启用" />
     </Columns>
     <Indexes>
-      <Index Name="IX_User_Account" Unique="True" Columns="Account" />
+      <Index Name="IX_User_Account" Columns="Account" Unique="True" />
     </Indexes>
   </Table>
   <Table Name="Department" Description="部门" DbType="SqlServer">
@@ -112,10 +112,10 @@
       <Column Name="Profile" DataType="String" Length="500" Description="配置文件" />
     </Columns>
     <Indexes>
-      <Index Name="IX_Department_Name" Columns="Name" />
-      <Index Name="IX_Department_Code" Columns="Code" />
-      <Index Name="IX_Department_ParentID_Name" Unique="True" Columns="ParentID,Name" />
-      <Index Name="IX_Department_ParentID_Code" Columns="ParentID,Code" />
+      <Index Columns="Name" />
+      <Index Columns="Code" />
+      <Index Name="IX_Department_ParentID_Name" Columns="ParentID,Name" Unique="True" />
+      <Index Columns="ParentID,Code" />
     </Indexes>
   </Table>
 </Tables>

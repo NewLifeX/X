@@ -19,6 +19,7 @@ namespace NewLife.CommonEntity
     public partial class Role<TEntity> : IRole
     {
         #region 属性
+
         private Int32 _ID;
         /// <summary>编号</summary>
         [DisplayName("编号")]
@@ -91,7 +92,7 @@ namespace NewLife.CommonEntity
 
         #region 字段名
         /// <summary>取得角色字段信息的快捷方式</summary>
-        public class _
+        public partial class _
         {
             ///<summary>编号</summary>
             public static readonly Field ID = FindByName(__.ID);
@@ -106,7 +107,7 @@ namespace NewLife.CommonEntity
         }
 
         /// <summary>取得角色字段名称的快捷方式</summary>
-        class __
+        partial class __
         {
             ///<summary>编号</summary>
             public const String ID = "ID";
