@@ -79,6 +79,11 @@ namespace System
             return false;
         }
 
+        /// <summary>指示指定的字符串是 null 还是 String.Empty 字符串</summary>
+        /// <param name="value">指定的字符串</param>
+        /// <returns></returns>
+        public static Boolean IsNullOrEmpty(this String value) { return value == null || value.Length <= 0; }
+
         /// <summary>是否空或者空白字符串</summary>
         /// <param name="value">数值</param>
         /// <returns></returns>

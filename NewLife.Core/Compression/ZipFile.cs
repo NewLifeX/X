@@ -89,32 +89,13 @@ namespace NewLife.Compression
         public ZipFile(String fileName) : this(fileName, null) { }
 
         /// <summary>实例化一个Zip文件对象。延迟到第一次使用<see cref="Entries"/>时读取</summary>
-        /// <param name="fileName"></param>
-        /// <param name="encoding"></param>
+        /// <param name="fileName">文件名</param>
+        /// <param name="encoding">字符串编码</param>
         public ZipFile(String fileName, Encoding encoding)
-        //: this(File.OpenRead(fileName), encoding)
         {
-            //if (!String.IsNullOrEmpty(fileName)) DefaultExtractPath = Path.GetDirectoryName(fileName);
             Name = fileName;
             Encoding = encoding;
             _file = fileName;
-
-            //            var fs = File.OpenRead(fileName);
-            //#if !DEBUG
-            //                        try
-            //#endif
-            //            {
-            //                Read(fs);
-            //            }
-            //#if !DEBUG
-            //                        catch (Exception ex)
-            //                        {
-            //                            fs.Dispose();
-            //                            throw new ZipException("不是有效的Zip格式！", ex);
-            //                        }
-            //#endif
-
-            //            if (fs.Length < 10 * 1024 * 1024) fs.Dispose();
         }
 
         /// <summary>实例化一个Zip文件对象。延迟到第一次使用<see cref="Entries"/>时读取</summary>
@@ -124,14 +105,6 @@ namespace NewLife.Compression
         {
             Encoding = encoding;
             _stream = stream;
-            //try
-            //{
-            //    Read(stream);
-            //}
-            //catch (Exception ex)
-            //{
-            //    throw new ZipException("不是有效的Zip格式！", ex);
-            //}
         }
 
         /// <summary>释放资源</summary>
@@ -140,7 +113,6 @@ namespace NewLife.Compression
         {
             base.OnDispose(disposing);
 
-            //if (_readStream != null) _readStream.Dispose();
             if (Entries.Count > 0)
             {
                 // 是否所有实体，因为里面可能含有数据流
