@@ -137,6 +137,7 @@ namespace NewLife.Compression
         /// <summary>使用文件和数据流时，延迟到第一次使用<see cref="Entries"/>时读取</summary>
         void EnsureRead()
         {
+            // 这里必须把_file=null这行注释，否则进不去，不知道为什么
             if (!_file.IsNullOrWhiteSpace())
             {
                 var f = _file;
