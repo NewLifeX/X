@@ -455,14 +455,14 @@ namespace Test
                 _file = null;
                 Console.WriteLine(f);
             }
-            
+
             var fileName = "test.zip".GetFullPath();
             if (File.Exists(fileName)) File.Delete(fileName);
 
             var zip = new ZipFile();
             zip.Comment = "新生命开发团队";
             zip.AddFile("NewLife.Core.pdb".GetFullPath());
-            zip.AddFile("NewLife.Core.Test.pdb".GetFullPath());
+            zip.AddFile("NewLife.Core.xml".GetFullPath());
             zip.Write(fileName);
             zip.Dispose();
 
@@ -470,8 +470,10 @@ namespace Test
             Debug.Assert("新生命开发团队" == zip.Comment, "注释不一样");
             Debug.Assert(2 == zip.Count, "文件个数不一样");
             Debug.Assert("NewLife.Core.pdb" == zip[0].FileName);
-            Debug.Assert("NewLife.Core.Test.pdb" == zip[1].FileName);
+            Debug.Assert("NewLife.Core.xml" == zip[1].FileName);
             zip.Dispose();
+
+            Console.WriteLine("测试通过！");
         }
     }
 }
