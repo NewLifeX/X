@@ -104,7 +104,7 @@ namespace NewLife.Serialization
 
         static String GetCustomAttributeValue<TAttribute>(MemberInfo member, String name)
         {
-            TAttribute att = AttributeX.GetCustomAttribute<TAttribute>(member, true);
+            var att = AttributeX.GetCustomAttribute<TAttribute>(member, true);
             if (att == null) return null;
 
             //var pix = PropertyInfoX.Create(typeof(TAttribute), name);
@@ -113,7 +113,7 @@ namespace NewLife.Serialization
             //return (String)pix.GetValue(att);
 
             Object value = null;
-            if (typeof(TAttribute).TryGetValue(name, out value)) return (String)value;
+            if (att.TryGetValue(name, out value)) return (String)value;
             return null;
         }
         #endregion
