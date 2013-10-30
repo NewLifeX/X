@@ -137,7 +137,7 @@ namespace NewLife.Serialization
             //    v.SetValue(mi as PropertyInfo, size - Size);
             //else if (mi is FieldInfo)
             //    v.SetValue(mi as FieldInfo, size - Size);
-            v.SetValue(mi, size - size);
+            v.SetValue(mi, size - Size);
         }
 
         /// <summary>获取目标对象的引用大小值</summary>
