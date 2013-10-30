@@ -113,10 +113,11 @@ namespace NewLife.Compression
         {
             base.OnDispose(disposing);
 
-            if (Entries.Count > 0)
+            var entries = _Entries;
+            if (entries != null && entries.Count > 0)
             {
                 // 是否所有实体，因为里面可能含有数据流
-                foreach (var item in Entries.Values)
+                foreach (var item in entries.Values)
                 {
                     try
                     {
@@ -125,7 +126,8 @@ namespace NewLife.Compression
                     catch { }
                 }
 
-                Entries.Clear();
+                entries.Clear();
+                _Entries = null;
             }
         }
         #endregion
