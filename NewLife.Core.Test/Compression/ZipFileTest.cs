@@ -55,22 +55,29 @@ namespace NewLife.Core.Test
         [TestMethod()]
         public void ZipTest()
         {
-            var fileName = "test.zip".GetFullPath();
-            if (File.Exists(fileName)) File.Delete(fileName);
+            try
+            {
+                var fileName = "test.zip".GetFullPath();
+                if (File.Exists(fileName)) File.Delete(fileName);
 
-            var zip = new ZipFile();
-            zip.Comment = "新生命开发团队";
-            zip.AddFile("NewLife.Core.pdb".GetFullPath());
-            zip.AddFile("NewLife.Core.Test.pdb".GetFullPath());
-            zip.Write(fileName);
-            zip.Dispose();
+                var zip = new ZipFile();
+                zip.Comment = "新生命开发团队";
+                zip.AddFile("NewLife.Core.pdb".GetFullPath());
+                zip.AddFile("NewLife.Core.Test.pdb".GetFullPath());
+                zip.Write(fileName);
+                zip.Dispose();
 
-            zip = new ZipFile(fileName);
-            Assert.AreEqual("新生命开发团队", zip.Comment, "注释不一样");
-            Assert.AreEqual(2, zip.Count, "文件个数不一样");
-            Assert.AreEqual("NewLife.Core.pdb", zip[0].FileName);
-            Assert.AreEqual("NewLife.Core.Test.pdb", zip[1].FileName);
-            zip.Dispose();
+                zip = new ZipFile(fileName);
+                Assert.AreEqual("新生命开发团队", zip.Comment, "注释不一样");
+                Assert.AreEqual(2, zip.Count, "文件个数不一样");
+                Assert.AreEqual("NewLife.Core.pdb", zip[0].FileName);
+                Assert.AreEqual("NewLife.Core.Test.pdb", zip[1].FileName);
+                zip.Dispose();
+            }
+            catch (Exception ex)
+            {
+                Assert.Fail(ex.ToString());
+            }
         }
 
         /// <summary>
@@ -84,42 +91,49 @@ namespace NewLife.Core.Test
 
         void DirectoryTest(Boolean useDir = false)
         {
-            var fileName = "test.zip".GetFullPath();
-            if (File.Exists(fileName)) File.Delete(fileName);
-
-            var dir = "Log".GetFullPath();
-            var f2 = dir.CombinePath("SubDir").CombinePath("test.txt").EnsureDirectory();
-            if (!File.Exists(f2)) File.WriteAllText(f2, DateTime.Now.ToString());
-
-            var zip = new ZipFile();
-            zip.Comment = "新生命开发团队";
-            zip.AddFile("NewLife.Core.pdb".GetFullPath());
-            zip.AddFile("NewLife.Core.Test.pdb".GetFullPath());
-            zip.AddDirectory(dir);
-            zip.AddDirectory(dir, "Log");
-            zip.Write(fileName);
-
-            // 文件个数
-            var count = zip.Entries.Values.Count(e => !e.IsDirectory);
-            zip.UseDirectory = useDir;
-            if (useDir)
+            try
             {
-                count = zip.Count;
+                var fileName = "test.zip".GetFullPath();
+                if (File.Exists(fileName)) File.Delete(fileName);
+
+                var dir = "Log2".GetFullPath();
+                var f2 = dir.CombinePath("SubDir").CombinePath("test.txt").EnsureDirectory();
+                if (!File.Exists(f2)) File.WriteAllText(f2, DateTime.Now.ToString());
+
+                var zip = new ZipFile();
+                zip.Comment = "新生命开发团队";
+                zip.AddFile("NewLife.Core.pdb".GetFullPath());
+                zip.AddFile("NewLife.Core.xml".GetFullPath());
+                zip.AddDirectory(dir);
+                zip.AddDirectory(dir, "Log");
+                zip.Write(fileName);
+
+                // 文件个数
+                var count = zip.Entries.Values.Count(e => !e.IsDirectory);
+                zip.UseDirectory = useDir;
+                if (useDir)
+                {
+                    count = zip.Count;
+                }
+                else
+                {
+                    Assert.AreEqual(zip.Count - 3, count, "目录个数不正确");
+                }
+
+                zip.Dispose();
+
+                zip = new ZipFile(fileName);
+                zip.UseDirectory = useDir;
+                Assert.AreEqual("新生命开发团队", zip.Comment, "注释不一样");
+                Assert.AreEqual(count, zip.Count, "文件个数不一样");
+                Assert.AreEqual("NewLife.Core.pdb", zip[0].FileName);
+                Assert.AreEqual("NewLife.Core.xml", zip[1].FileName);
+                zip.Dispose();
             }
-            else
+            catch (Exception ex)
             {
-                Assert.AreEqual(zip.Count - 3, count, "目录个数不正确");
+                Assert.Fail(ex.ToString());
             }
-
-            zip.Dispose();
-
-            zip = new ZipFile(fileName);
-            zip.UseDirectory = useDir;
-            Assert.AreEqual("新生命开发团队", zip.Comment, "注释不一样");
-            Assert.AreEqual(count, zip.Count, "文件个数不一样");
-            Assert.AreEqual("NewLife.Core.pdb", zip[0].FileName);
-            Assert.AreEqual("NewLife.Core.Test.pdb", zip[1].FileName);
-            zip.Dispose();
         }
 
         /// <summary>

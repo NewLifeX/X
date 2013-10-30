@@ -195,16 +195,20 @@ namespace NewLife.Compression
                 // 特殊处理目录结构
                 if (UseDirectory)
                 {
-                    var p = name.LastIndexOf(DirSeparator);
-                    if (p > 0)
+                    var dir = name;
+                    // 递归多级目录
+                    while (!String.IsNullOrEmpty(dir))
                     {
-                        // 必须包含分隔符，因为这样才能被识别为目录
-                        var dir = name.Substring(0, p + 1);
+                        var p = dir.LastIndexOf(DirSeparator);
+                        if (p <= 0) break;
+
+                        dir = dir.Substring(0, p);
                         if (this[dir] == null)
                         {
                             var de = new ZipEntry();
-                            de.FileName = dir;
-                            Entries.Add(dir, de);
+                            // 必须包含分隔符，因为这样才能被识别为目录
+                            de.FileName = dir + DirSeparator;
+                            Entries.Add(de.FileName, de);
                         }
                     }
                 }
@@ -511,10 +515,10 @@ namespace NewLife.Compression
             reader.Settings.UseObjRef = false;
             reader.Settings.SizeFormat = TypeCode.Int16;
             reader.Settings.Encoding = Encoding;
-            //#if DEBUG
-            //            reader.Debug = true;
-            //            reader.EnableTraceStream();
-            //#endif
+#if DEBUG
+            reader.Debug = true;
+            reader.EnableTraceStream();
+#endif
             return reader;
         }
 
@@ -525,10 +529,10 @@ namespace NewLife.Compression
             writer.Settings.UseObjRef = false;
             writer.Settings.SizeFormat = TypeCode.Int16;
             writer.Settings.Encoding = Encoding;
-            //#if DEBUG
-            //            writer.Debug = true;
-            //            writer.EnableTraceStream();
-            //#endif
+#if DEBUG
+            writer.Debug = true;
+            writer.EnableTraceStream();
+#endif
             return writer;
         }
 
