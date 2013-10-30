@@ -194,7 +194,7 @@ namespace NewLife.Log
             writer.WriteLine("#OS: {0}, {1}/{2}", Runtime.OSName, Environment.UserName, Environment.MachineName);
 
             writer.WriteLine("#Date: {0:yyyy-MM-dd}", DateTime.Now);
-            writer.WriteLine("#Fields: Time ThreadID IsPoolThread ThreadName Level Message");
+            writer.WriteLine("#Fields: Time ThreadID IsPoolThread ThreadName Message");
         }
 
         /// <summary>停止日志</summary>
