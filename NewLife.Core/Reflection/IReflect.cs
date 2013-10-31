@@ -95,6 +95,25 @@ namespace NewLife.Reflection
         /// <param name="value">数值</param>
         void SetValue(Object target, FieldInfo field, Object value);
         #endregion
+
+        #region 类型辅助
+        /// <summary>获取一个类型的元素类型</summary>
+        /// <param name="type">类型</param>
+        /// <returns></returns>
+        Type GetElementType(Type type);
+
+        /// <summary>类型转换</summary>
+        /// <param name="value">数值</param>
+        /// <param name="conversionType"></param>
+        /// <returns></returns>
+        Object ChangeType(Object value, Type conversionType);
+
+        /// <summary>获取类型的友好名称</summary>
+        /// <param name="type">指定类型</param>
+        /// <param name="isfull">是否全名，包含命名空间</param>
+        /// <returns></returns>
+        String GetName(Type type, Boolean isfull);
+        #endregion
     }
 
     /// <summary>默认反射实现</summary>
@@ -167,24 +186,6 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public virtual Object CreateInstance(Type type, params Object[] parameters) { return Activator.CreateInstance(type, parameters); }
 
-        ///// <summary>反射调用指定对象的方法</summary>
-        ///// <param name="target">要调用其方法的对象，如果要调用静态方法，则target是类型</param>
-        ///// <param name="name">方法名</param>
-        ///// <param name="parameters">方法参数</param>
-        ///// <returns></returns>
-        //public virtual Object Invoke(Object target, String name, params Object[] parameters)
-        //{
-        //    if (name == null) throw new ArgumentNullException("name");
-
-        //    var type = GetType(ref target);
-
-        //    var method = type.GetMethod(name);
-        //    if (method == null) throw new XException("类{0}中找不到名为{1}的方法！", type, name);
-
-        //    //return method.Invoke(target, parameters);
-        //    return Invoke(target, method, parameters);
-        //}
-
         /// <summary>反射调用指定对象的方法</summary>
         /// <param name="target">要调用其方法的对象，如果要调用静态方法，则target是类型</param>
         /// <param name="method">方法</param>
@@ -194,25 +195,6 @@ namespace NewLife.Reflection
         {
             return method.Invoke(target, parameters);
         }
-
-        ///// <summary>获取目标对象指定名称的属性/字段值</summary>
-        ///// <param name="target">目标对象</param>
-        ///// <param name="name">名称</param>
-        ///// <returns></returns>
-        //public virtual Object GetValue(Object target, String name)
-        //{
-        //    if (name == null) throw new ArgumentNullException("name");
-
-        //    var type = GetType(ref target);
-
-        //    var pi = type.GetProperty(name);
-        //    if (pi != null) return GetValue(target, pi);
-
-        //    var fi = type.GetField(name);
-        //    if (fi != null) return GetValue(target, fi);
-
-        //    throw new XException("类{0}中找不到名为{1}的属性或字段！", type, name);
-        //}
 
         /// <summary>获取目标对象的属性值</summary>
         /// <param name="target">目标对象</param>
@@ -232,26 +214,6 @@ namespace NewLife.Reflection
             return field.GetValue(target);
         }
 
-        ///// <summary>设置目标对象指定名称的属性/字段值</summary>
-        ///// <param name="target">目标对象</param>
-        ///// <param name="name">名称</param>
-        ///// <param name="value">数值</param>
-        //public virtual Boolean SetValue(Object target, String name, Object value)
-        //{
-        //    if (name == null) throw new ArgumentNullException("name");
-
-        //    var type = GetType(ref target);
-
-        //    var pi = type.GetProperty(name);
-        //    if (pi != null) { SetValue(target, pi, value); return true; }
-
-        //    var fi = type.GetField(name);
-        //    if (fi != null) { SetValue(target, fi, value); return true; }
-
-        //    //throw new XException("类{0}中找不到名为{1}的属性或字段！", type, name);
-        //    return false;
-        //}
-
         /// <summary>设置目标对象的属性值</summary>
         /// <param name="target">目标对象</param>
         /// <param name="property">属性</param>
@@ -269,6 +231,25 @@ namespace NewLife.Reflection
         {
             field.SetValue(target, value);
         }
+        #endregion
+
+        #region 类型辅助
+        /// <summary>获取一个类型的元素类型</summary>
+        /// <param name="type">类型</param>
+        /// <returns></returns>
+        public virtual Type GetElementType(Type type) { return type.GetElementType(); }
+
+        /// <summary>类型转换</summary>
+        /// <param name="value">数值</param>
+        /// <param name="conversionType"></param>
+        /// <returns></returns>
+        public virtual Object ChangeType(Object value, Type conversionType) { return Convert.ChangeType(value, conversionType); }
+
+        /// <summary>获取类型的友好名称</summary>
+        /// <param name="type">指定类型</param>
+        /// <param name="isfull">是否全名，包含命名空间</param>
+        /// <returns></returns>
+        public virtual String GetName(Type type, Boolean isfull) { return isfull ? type.FullName : type.Name; }
         #endregion
 
         #region 辅助方法

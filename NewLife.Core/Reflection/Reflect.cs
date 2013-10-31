@@ -14,9 +14,9 @@ namespace NewLife.Reflection
     {
         #region 属性
         //private static IReflect _Current = new DefaultReflect();
-        private static IReflect _Current = new EmitReflect();
+        private static IReflect _Provider = new EmitReflect();
         /// <summary>当前反射提供者</summary>
-        public static IReflect Current { get { return _Current; } set { _Current = value; } }
+        public static IReflect Provider { get { return _Provider; } set { _Provider = value; } }
         #endregion
 
         #region 反射获取
@@ -28,7 +28,7 @@ namespace NewLife.Reflection
         {
             if (String.IsNullOrEmpty(typeName)) return null;
 
-            return _Current.GetType(typeName, isLoadAssembly);
+            return _Provider.GetType(typeName, isLoadAssembly);
         }
 
         /// <summary>获取方法</summary>
@@ -41,7 +41,7 @@ namespace NewLife.Reflection
         {
             if (String.IsNullOrEmpty(name)) return null;
 
-            return _Current.GetMethod(type, name, paramTypes);
+            return _Provider.GetMethod(type, name, paramTypes);
         }
 
         /// <summary>获取属性</summary>
@@ -52,7 +52,7 @@ namespace NewLife.Reflection
         {
             if (String.IsNullOrEmpty(name)) return null;
 
-            return _Current.GetProperty(type, name);
+            return _Provider.GetProperty(type, name);
         }
 
         /// <summary>获取字段</summary>
@@ -63,7 +63,7 @@ namespace NewLife.Reflection
         {
             if (String.IsNullOrEmpty(name)) return null;
 
-            return _Current.GetField(type, name);
+            return _Provider.GetField(type, name);
         }
         #endregion
 
@@ -74,7 +74,9 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public static Object CreateInstance(this Type type, params Object[] parameters)
         {
-            return _Current.CreateInstance(type, parameters);
+            if (type == null) throw new ArgumentNullException("type");
+
+            return _Provider.CreateInstance(type, parameters);
         }
 
         /// <summary>反射调用指定对象的方法</summary>
@@ -84,6 +86,9 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public static Object Invoke(this Object target, String name, params Object[] parameters)
         {
+            if (target == null) throw new ArgumentNullException("target");
+            if (String.IsNullOrEmpty(name)) throw new ArgumentNullException("name");
+
             Object value = null;
             if (TryInvoke(target, name, out value, parameters)) return value;
 
@@ -128,7 +133,10 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public static Object Invoke(this Object target, MethodBase method, params Object[] parameters)
         {
-            return _Current.Invoke(target, method, parameters);
+            if (target == null) throw new ArgumentNullException("target");
+            if (method == null) throw new ArgumentNullException("method");
+
+            return _Provider.Invoke(target, method, parameters);
         }
 
         /// <summary>获取目标对象指定名称的属性/字段值</summary>
@@ -138,6 +146,9 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public static Object GetValue(this Object target, String name, Boolean throwOnError = true)
         {
+            if (target == null) throw new ArgumentNullException("target");
+            if (String.IsNullOrEmpty(name)) throw new ArgumentNullException("name");
+
             Object value = null;
             if (TryGetValue(target, name, out value)) return value;
 
@@ -182,7 +193,7 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public static Object GetValue(this Object target, PropertyInfo property)
         {
-            return _Current.GetValue(target, property);
+            return _Provider.GetValue(target, property);
         }
 
         /// <summary>获取目标对象的字段值</summary>
@@ -191,7 +202,7 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public static Object GetValue(this Object target, FieldInfo field)
         {
-            return _Current.GetValue(target, field);
+            return _Provider.GetValue(target, field);
         }
 
         /// <summary>获取目标对象的成员值</summary>
@@ -208,7 +219,7 @@ namespace NewLife.Reflection
                 throw new ArgumentOutOfRangeException("member");
         }
 
-        /// <summary>设置目标对象指定名称的属性/字段值</summary>
+        /// <summary>设置目标对象指定名称的属性/字段值，若不存在返回false</summary>
         /// <param name="target">目标对象</param>
         /// <param name="name">名称</param>
         /// <param name="value">数值</param>
@@ -234,7 +245,7 @@ namespace NewLife.Reflection
         /// <param name="value">数值</param>
         public static void SetValue(this Object target, PropertyInfo property, Object value)
         {
-            _Current.SetValue(target, property, value);
+            _Provider.SetValue(target, property, value);
         }
 
         /// <summary>设置目标对象的字段值</summary>
@@ -243,7 +254,7 @@ namespace NewLife.Reflection
         /// <param name="value">数值</param>
         public static void SetValue(this Object target, FieldInfo field, Object value)
         {
-            _Current.SetValue(target, field, value);
+            _Provider.SetValue(target, field, value);
         }
 
         /// <summary>设置目标对象的成员值</summary>
@@ -253,109 +264,25 @@ namespace NewLife.Reflection
         public static void SetValue(this Object target, MemberInfo member, Object value)
         {
             if (member is PropertyInfo)
-                _Current.SetValue(target, member as PropertyInfo, value);
+                _Provider.SetValue(target, member as PropertyInfo, value);
             else if (member is FieldInfo)
-                _Current.SetValue(target, member as FieldInfo, value);
+                _Provider.SetValue(target, member as FieldInfo, value);
             else
                 throw new ArgumentOutOfRangeException("member");
         }
         #endregion
 
         #region 类型辅助
-        private static DictionaryCache<Type, Type> _elmCache = new DictionaryCache<Type, Type>();
         /// <summary>获取一个类型的元素类型</summary>
         /// <param name="type">类型</param>
         /// <returns></returns>
-        public static Type GetElementTypeEx(this Type type)
-        {
-            return _elmCache.GetItem(type, t =>
-            {
-                if (t.HasElementType) return t.GetElementType();
-
-                if (typeof(IEnumerable).IsAssignableFrom(t))
-                {
-                    // 如果实现了IEnumerable<>接口，那么取泛型参数
-                    foreach (var item in t.GetInterfaces())
-                    {
-                        if (item.IsGenericType && item.GetGenericTypeDefinition() == typeof(IEnumerable<>)) return item.GetGenericArguments()[0];
-                    }
-                    // 通过索引器猜测元素类型
-                    var pi = t.GetProperty("Item", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-                    if (pi != null) return pi.PropertyType;
-                }
-
-                return null;
-            });
-        }
+        public static Type GetElementTypeEx(this Type type) { return _Provider.GetElementType(type); }
 
         /// <summary>类型转换</summary>
         /// <param name="value">数值</param>
         /// <param name="conversionType"></param>
         /// <returns></returns>
-        public static Object ChangeType(this Object value, Type conversionType)
-        {
-            Type vtype = null;
-            if (value != null) vtype = value.GetType();
-            //if (vtype == conversionType || conversionType.IsAssignableFrom(vtype)) return value;
-            if (vtype == conversionType) return value;
-
-            //var cx = Create(conversionType);
-
-            // 处理可空类型
-            if (!conversionType.IsValueType && IsNullable(conversionType))
-            {
-                if (value == null) return null;
-
-                conversionType = Nullable.GetUnderlyingType(conversionType);
-            }
-
-            if (conversionType.IsEnum)
-            {
-                if (vtype == typeof(String))
-                    return Enum.Parse(conversionType, (String)value, true);
-                else
-                    return Enum.ToObject(conversionType, value);
-            }
-
-            // 字符串转为货币类型，处理一下
-            if (vtype == typeof(String))
-            {
-                if (Type.GetTypeCode(conversionType) == TypeCode.Decimal)
-                {
-                    String str = (String)value;
-                    value = str.TrimStart(new Char[] { '$', '￥' });
-                }
-                else if (typeof(Type).IsAssignableFrom(conversionType))
-                {
-                    return GetType((String)value, true);
-                }
-            }
-
-            if (value != null)
-            {
-                if (value is IConvertible)
-                {
-                    // 上海石头 发现这里导致Json序列化问题
-                    // http://www.newlifex.com/showtopic-282.aspx
-                    if (conversionType.IsGenericType && conversionType.GetGenericTypeDefinition().Equals(typeof(Nullable<>)))
-                    {
-                        var nullableConverter = new NullableConverter(conversionType);
-                        conversionType = nullableConverter.UnderlyingType;
-                    }
-                    value = Convert.ChangeType(value, conversionType);
-                }
-                //else if (conversionType.IsInterface)
-                //    value = DuckTyping.Implement(value, conversionType);
-            }
-            else
-            {
-                // 如果原始值是null，要转为值类型，则new一个空白的返回
-                if (conversionType.IsValueType) value = CreateInstance(conversionType);
-            }
-
-            if (conversionType.IsAssignableFrom(vtype)) return value;
-            return value;
-        }
+        public static Object ChangeType(this Object value, Type conversionType) { return _Provider.ChangeType(value, conversionType); }
 
         /// <summary>类型转换</summary>
         /// <typeparam name="TResult"></typeparam>
@@ -367,6 +294,12 @@ namespace NewLife.Reflection
 
             return (TResult)ChangeType(value, typeof(TResult));
         }
+
+        /// <summary>获取类型的友好名称</summary>
+        /// <param name="type">指定类型</param>
+        /// <param name="isfull">是否全名，包含命名空间</param>
+        /// <returns></returns>
+        public static String GetName(this Type type, Boolean isfull = false) { return _Provider.GetName(type, isfull); }
 
         /// <summary>从参数数组中获取类型数组</summary>
         /// <param name="args"></param>
@@ -384,35 +317,6 @@ namespace NewLife.Reflection
                     typeArray[i] = args[i].GetType();
             }
             return typeArray;
-        }
-
-        /// <summary>获取类型的友好名称</summary>
-        /// <param name="type">指定类型</param>
-        /// <param name="isfull">是否全名，包含命名空间</param>
-        /// <returns></returns>
-        public static String GetName(this Type type, Boolean isfull = false)
-        {
-            if (type.IsNested) return type.DeclaringType.GetName(isfull) + "." + type.Name;
-
-            if (!type.IsGenericType) return isfull ? type.FullName : type.Name;
-
-            var sb = new StringBuilder();
-            var typeDef = type.GetGenericTypeDefinition();
-            var name = isfull ? typeDef.FullName : typeDef.Name;
-            var p = name.IndexOf("`");
-            if (p >= 0)
-                sb.Append(name.Substring(0, p));
-            else
-                sb.Append(name);
-            sb.Append("<");
-            var ts = type.GetGenericArguments();
-            for (int i = 0; i < ts.Length; i++)
-            {
-                if (i > 0) sb.Append(",");
-                if (!ts[i].IsGenericParameter) sb.Append(ts[i].GetName(isfull));
-            }
-            sb.Append(">");
-            return sb.ToString();
         }
         #endregion
 

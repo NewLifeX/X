@@ -47,46 +47,39 @@ namespace NewLife.Reflection
         #region 名称
         private String _Name;
         /// <summary>类型名称。主要处理泛型</summary>
-        public override String Name { get { return _Name ?? (_Name = GetName(false)); } }
+        public override String Name { get { return _Name ?? (_Name = GetName(_Type, false)); } }
 
         private String _FullName;
         /// <summary>完整类型名称。包含命名空间，但是不包含程序集信息</summary>
-        public String FullName { get { return _FullName ?? (_FullName = GetName(true)); } }
+        public String FullName { get { return _FullName ?? (_FullName = GetName(_Type, true)); } }
 
-        String GetName(Boolean isfull)
+        /// <summary>获取类型的友好名称</summary>
+        /// <param name="type">指定类型</param>
+        /// <param name="isfull">是否全名，包含命名空间</param>
+        /// <returns></returns>
+        public static String GetName(Type type, Boolean isfull = false)
         {
-            Type type = Type;
-            if (type.IsNested)
-            {
-                var tx = TypeX.Create(type.DeclaringType);
-                return (isfull ? tx.FullName : tx.Name) + "." + type.Name;
-            }
-            else if (type.IsGenericType)
-            {
-                var sb = new StringBuilder();
-                var typeDef = type.GetGenericTypeDefinition();
-                var name = isfull ? typeDef.FullName : typeDef.Name;
-                var p = name.IndexOf("`");
-                if (p >= 0)
-                    sb.Append(name.Substring(0, p));
-                else
-                    sb.Append(name);
-                sb.Append("<");
-                var ts = type.GetGenericArguments();
-                for (int i = 0; i < ts.Length; i++)
-                {
-                    if (i > 0) sb.Append(",");
-                    if (!ts[i].IsGenericParameter)
-                    {
-                        var tx = TypeX.Create(ts[i]);
-                        sb.Append(isfull ? tx.FullName : tx.Name);
-                    }
-                }
-                sb.Append(">");
-                return sb.ToString();
-            }
+            if (type.IsNested) return GetName(type.DeclaringType, isfull) + "." + type.Name;
+
+            if (!type.IsGenericType) return isfull ? type.FullName : type.Name;
+
+            var sb = new StringBuilder();
+            var typeDef = type.GetGenericTypeDefinition();
+            var name = isfull ? typeDef.FullName : typeDef.Name;
+            var p = name.IndexOf("`");
+            if (p >= 0)
+                sb.Append(name.Substring(0, p));
             else
-                return isfull ? type.FullName : type.Name;
+                sb.Append(name);
+            sb.Append("<");
+            var ts = type.GetGenericArguments();
+            for (int i = 0; i < ts.Length; i++)
+            {
+                if (i > 0) sb.Append(",");
+                if (!ts[i].IsGenericParameter) sb.Append(GetName(ts[i], isfull));
+            }
+            sb.Append(">");
+            return sb.ToString();
         }
         #endregion
 
@@ -419,7 +412,7 @@ namespace NewLife.Reflection
                 }
             }
             #endregion
-             
+
             #region 处理数组   有可能是   aa [[ dddd ]]  ,也有可能是  aa[dddd]
             //因Json.cs 序列化Dictionary或泛型数组 导致报错，追踪至此作了调整，只是优化了算法，应该不会产生后果  (上海石头 2013.4.8)
             bool blnFlag = false;
@@ -829,31 +822,31 @@ namespace NewLife.Reflection
         ///// <returns></returns>
         //public Type GetElementType() { return GetElementType(Type); }
 
-        //private static DictionaryCache<Type, Type> _elmCache = new DictionaryCache<Type, Type>();
-        ///// <summary>获取一个类型的元素类型</summary>
-        ///// <param name="type">类型</param>
-        ///// <returns></returns>
-        //public static Type GetElementType(Type type)
-        //{
-        //    return _elmCache.GetItem(type, t =>
-        //    {
-        //        if (t.HasElementType) return t.GetElementType();
+        private static DictionaryCache<Type, Type> _elmCache = new DictionaryCache<Type, Type>();
+        /// <summary>获取一个类型的元素类型</summary>
+        /// <param name="type">类型</param>
+        /// <returns></returns>
+        public static Type GetElementType(Type type)
+        {
+            return _elmCache.GetItem(type, t =>
+            {
+                if (t.HasElementType) return t.GetElementType();
 
-        //        if (typeof(IEnumerable).IsAssignableFrom(type))
-        //        {
-        //            // 如果实现了IEnumerable<>接口，那么取泛型参数
-        //            foreach (var item in t.GetInterfaces())
-        //            {
-        //                if (item.IsGenericType && item.GetGenericTypeDefinition() == typeof(IEnumerable<>)) return item.GetGenericArguments()[0];
-        //            }
-        //            // 通过索引器猜测元素类型
-        //            var pi = type.GetProperty("Item", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-        //            if (pi != null) return pi.PropertyType;
-        //        }
+                if (typeof(IEnumerable).IsAssignableFrom(type))
+                {
+                    // 如果实现了IEnumerable<>接口，那么取泛型参数
+                    foreach (var item in t.GetInterfaces())
+                    {
+                        if (item.IsGenericType && item.GetGenericTypeDefinition() == typeof(IEnumerable<>)) return item.GetGenericArguments()[0];
+                    }
+                    // 通过索引器猜测元素类型
+                    var pi = type.GetProperty("Item", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+                    if (pi != null) return pi.PropertyType;
+                }
 
-        //        return null;
-        //    });
-        //}
+                return null;
+            });
+        }
         #endregion
 
         #region 类型转换

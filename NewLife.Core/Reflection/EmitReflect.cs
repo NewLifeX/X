@@ -87,5 +87,24 @@ namespace NewLife.Reflection
             FieldInfoX.Create(field).SetValue(target, value);
         }
         #endregion
+
+        #region 类型辅助
+        /// <summary>获取一个类型的元素类型</summary>
+        /// <param name="type">类型</param>
+        /// <returns></returns>
+        public override Type GetElementType(Type type) { return TypeX.GetElementType(type); }
+
+        /// <summary>类型转换</summary>
+        /// <param name="value">数值</param>
+        /// <param name="conversionType"></param>
+        /// <returns></returns>
+        public override Object ChangeType(Object value, Type conversionType) { return TypeX.ChangeType(value, conversionType); }
+
+        /// <summary>获取类型的友好名称</summary>
+        /// <param name="type">指定类型</param>
+        /// <param name="isfull">是否全名，包含命名空间</param>
+        /// <returns></returns>
+        public override String GetName(Type type, Boolean isfull) { return TypeX.GetName(type, isfull); }
+        #endregion
     }
 }
