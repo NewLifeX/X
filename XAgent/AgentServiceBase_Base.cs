@@ -69,7 +69,7 @@ namespace XAgent
                 if (_Instance == null)
                 {
                     AgentServiceBase last = null;
-                    foreach (var item in AssemblyX.FindAllPlugins(typeof(AgentServiceBase), true))
+                    foreach (var item in typeof(AgentServiceBase).GetAllSubclasses(true))
                     {
                         try
                         {

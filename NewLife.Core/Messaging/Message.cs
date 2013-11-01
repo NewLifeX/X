@@ -48,7 +48,7 @@ namespace NewLife.Messaging
             var container = ObjectContainer.Current;
             var asm = Assembly.GetExecutingAssembly();
             // 搜索已加载程序集里面的消息类型
-            foreach (var item in AssemblyX.FindAllPlugins(typeof(Message), true))
+            foreach (var item in typeof(Message).GetAllSubclasses(true))
             {
                 var msg = item.CreateInstance() as Message;
                 if (msg != null)

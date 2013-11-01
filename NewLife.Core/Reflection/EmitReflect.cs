@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Reflection;
 
 namespace NewLife.Reflection
@@ -105,6 +106,26 @@ namespace NewLife.Reflection
         /// <param name="isfull">是否全名，包含命名空间</param>
         /// <returns></returns>
         public override String GetName(Type type, Boolean isfull) { return TypeX.GetName(type, isfull); }
+        #endregion
+
+        #region 插件
+        /// <summary>在指定程序集中查找指定基类的子类</summary>
+        /// <param name="asm">指定程序集</param>
+        /// <param name="baseType">基类或接口，为空时返回所有类型</param>
+        /// <returns></returns>
+        public override IEnumerable<Type> GetSubclasses(Assembly asm, Type baseType)
+        {
+            return AssemblyX.Create(asm).FindPlugins(baseType);
+        }
+
+        /// <summary>在所有程序集中查找指定基类或接口的子类实现</summary>
+        /// <param name="baseType">基类或接口</param>
+        /// <param name="isLoadAssembly">是否加载为加载程序集</param>
+        /// <returns></returns>
+        public override IEnumerable<Type> GetAllSubclasses(Type baseType, Boolean isLoadAssembly)
+        {
+            return AssemblyX.FindAllPlugins(baseType, isLoadAssembly);
+        }
         #endregion
     }
 }

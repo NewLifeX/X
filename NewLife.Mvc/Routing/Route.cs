@@ -83,7 +83,7 @@ namespace NewLife.Mvc
                             cfg.AcquireWriterLock<bool>(() =>
                             {
                                 // 找到所有实现IRouteConfig接口的类
-                                foreach (Type item in AssemblyX.FindAllPlugins(typeof(IRouteConfig)))
+                                foreach (Type item in typeof(IRouteConfig).GetAllSubclasses())
                                 {
                                     cfg.Load(item);
                                 }

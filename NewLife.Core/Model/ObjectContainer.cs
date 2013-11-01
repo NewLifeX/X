@@ -118,7 +118,7 @@ namespace NewLife.Model
                 {
                     if (_ImplementType == null && !TypeName.IsNullOrWhiteSpace())
                     {
-                        _ImplementType = Reflect.GetType(TypeName, true);
+                        _ImplementType = Reflect.GetTypeEx(TypeName, true);
                         if (_ImplementType == null) throw new XException("无法找到类型{0}！", TypeName);
                     }
                     return _ImplementType;
@@ -318,7 +318,7 @@ namespace NewLife.Model
             }
 
             // 遍历所有程序集，自动加载
-            foreach (var item in AssemblyX.FindAllPlugins(from, true))
+            foreach (var item in from.GetAllSubclasses(true))
             {
                 if (Array.IndexOf(excludeTypes, item) < 0)
                 {
@@ -633,7 +633,7 @@ namespace NewLife.Model
                 var name = item.Key;
                 if (name.IsNullOrWhiteSpace()) continue;
 
-                var type = Reflect.GetType(name, true);
+                var type = Reflect.GetTypeEx(name, true);
                 if (type == null)
                 {
                     XTrace.WriteLine("未找到对象容器配置{0}中的类型{1}！", item.Key, name);

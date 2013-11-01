@@ -250,7 +250,7 @@ namespace XCode.DataAccessLayer
                 if (!File.Exists(file)) throw new FileNotFoundException("缺少文件" + file + "！", file);
             }
 
-            var type = Reflect.GetType(className, true);
+            var type = Reflect.GetTypeEx(className, true);
             if (type == null) return null;
 
             var field = type.GetFieldEx("Instance");

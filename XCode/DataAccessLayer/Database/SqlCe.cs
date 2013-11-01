@@ -520,7 +520,7 @@ namespace XCode.DataAccessLayer
 
     class SqlCeEngine : DisposeBase
     {
-        private static Type _EngineType = Reflect.GetType("System.Data.SqlServerCe.SqlCeEngine", true);
+        private static Type _EngineType = Reflect.GetTypeEx("System.Data.SqlServerCe.SqlCeEngine", true);
         /// <summary></summary>
         public static Type EngineType { get { return _EngineType; } set { _EngineType = value; } }
 

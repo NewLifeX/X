@@ -150,7 +150,7 @@ namespace NewLife.IO
                 }
                 foreach (String item in ss)
                 {
-                    Type type = Reflect.GetType(item, true);
+                    Type type = Reflect.GetTypeEx(item, true);
                     list.Add(type);
                 }
             }

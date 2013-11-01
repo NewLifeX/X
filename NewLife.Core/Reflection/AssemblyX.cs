@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -298,26 +299,27 @@ namespace NewLife.Reflection
 
         private Dictionary<Type, List<Type>> _plugins = new Dictionary<Type, List<Type>>();
         /// <summary>查找插件，带缓存</summary>
-        /// <param name="type">类型</param>
+        /// <param name="baseType">类型</param>
         /// <returns></returns>
-        public List<Type> FindPlugins(Type type)
+        [EditorBrowsable(EditorBrowsableState.Advanced)]
+        public List<Type> FindPlugins(Type baseType)
         {
             // 如果type是null，则返回所有类型
 
             List<Type> list = null;
-            if (_plugins.TryGetValue(type, out list)) return list;
+            if (_plugins.TryGetValue(baseType, out list)) return list;
             lock (_plugins)
             {
-                if (_plugins.TryGetValue(type, out list)) return list;
+                if (_plugins.TryGetValue(baseType, out list)) return list;
 
                 list = new List<Type>();
                 foreach (var item in Types)
                 {
-                    if (TypeX.Create(item).IsPlugin(type)) list.Add(item);
+                    if (TypeX.Create(item).IsPlugin(baseType)) list.Add(item);
                 }
                 if (list.Count <= 0) list = null;
 
-                _plugins.Add(type, list);
+                _plugins.Add(baseType, list);
 
                 return list;
             }
@@ -341,6 +343,7 @@ namespace NewLife.Reflection
         /// <param name="isLoadAssembly">是否从未加载程序集中获取类型。使用仅反射的方法检查目标类型，如果存在，则进行常规加载</param>
         /// <param name="excludeGlobalTypes">指示是否应检查来自所有引用程序集的类型。如果为 false，则检查来自所有引用程序集的类型。 否则，只检查来自非全局程序集缓存 (GAC) 引用的程序集的类型。</param>
         /// <returns></returns>
+        [EditorBrowsable(EditorBrowsableState.Advanced)]
         public static IEnumerable<Type> FindAllPlugins(Type baseType, Boolean isLoadAssembly = false, Boolean excludeGlobalTypes = true)
         {
             var baseAssemblyName = baseType.Assembly.GetName().Name;

@@ -865,7 +865,7 @@ namespace NewLife.Serialization
             var typeName = ReadString();
             if (String.IsNullOrEmpty(typeName)) return null;
 
-            var type = Reflect.GetType(typeName, true);
+            var type = Reflect.GetTypeEx(typeName, true);
             if (type != null) return type;
 
             throw new XException("无法找到名为{0}的类型！", typeName);
@@ -942,7 +942,7 @@ namespace NewLife.Serialization
         {
             if (IsExactType(type)) return type;
 
-            return AssemblyX.FindAllPlugins(type).FirstOrDefault(t => IsExactType(t));
+            return type.GetAllSubclasses().FirstOrDefault(t => IsExactType(t));
         }
 
         /// <summary>读对象类型</summary>

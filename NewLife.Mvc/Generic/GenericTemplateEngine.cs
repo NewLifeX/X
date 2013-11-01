@@ -24,7 +24,7 @@ namespace NewLife.Mvc
         {
             get
             {
-                if (_EngineType == null) _EngineType = Reflect.GetType("XTemplate.Templating.Template", true);
+                if (_EngineType == null) _EngineType = Reflect.GetTypeEx("XTemplate.Templating.Template", true);
                 return _EngineType;
             }
             set { _EngineType = value; }

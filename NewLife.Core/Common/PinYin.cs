@@ -634,7 +634,7 @@ namespace NewLife.Common
                 if (_inited) return null;
 
                 _inited = true;
-                _type = Reflect.GetType("ChineseChar", true);
+                _type = Reflect.GetTypeEx("ChineseChar", true);
                 //_pix = PropertyInfoX.Create(_type, "Pinyins");
             }
 

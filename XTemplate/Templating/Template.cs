@@ -499,7 +499,7 @@ namespace XTemplate.Templating
 
                 if (item.Vars.ContainsKey(name)) throw new TemplateException(directive.Block, "模版变量" + name + "已存在！");
 
-                Type ptype = Reflect.GetType(type, true);
+                Type ptype = Reflect.GetTypeEx(type, true);
                 if (ptype == null) throw new TemplateException(directive.Block, "无法找到模版变量类型" + type + "！");
 
                 // 因为TypeX.GetType的强大，模版可能没有引用程序集和命名空间，甚至type位于未装载的程序集中它也会自动装载，所以这里需要加上

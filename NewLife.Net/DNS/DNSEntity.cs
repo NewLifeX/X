@@ -198,7 +198,7 @@ namespace NewLife.Net.DNS
         static Dictionary<DNSQueryType, Type> entitytypes = new Dictionary<DNSQueryType, Type>();
         static DNSEntity()
         {
-            foreach (var item in AssemblyX.FindAllPlugins(typeof(DNSRecord)))
+            foreach (var item in typeof(DNSRecord).GetAllSubclasses())
             {
                 if (item == typeof(DNSRecord)) continue;
 

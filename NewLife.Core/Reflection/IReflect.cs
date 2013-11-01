@@ -1,7 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Reflection;
-using NewLife.Exceptions;
 
 namespace NewLife.Reflection
 {
@@ -113,6 +113,26 @@ namespace NewLife.Reflection
         /// <param name="isfull">是否全名，包含命名空间</param>
         /// <returns></returns>
         String GetName(Type type, Boolean isfull);
+        #endregion
+
+        #region 插件
+        ///// <summary>是否插件</summary>
+        ///// <param name="type">目标类型</param>
+        ///// <param name="baseType">基类或接口</param>
+        ///// <returns></returns>
+        //Boolean IsSubclassOf(Type type, Type baseType);
+
+        /// <summary>在指定程序集中查找指定基类或接口的所有子类实现</summary>
+        /// <param name="asm">指定程序集</param>
+        /// <param name="baseType">基类或接口，为空时返回所有类型</param>
+        /// <returns></returns>
+        IEnumerable<Type> GetSubclasses(Assembly asm, Type baseType);
+
+        /// <summary>在所有程序集中查找指定基类或接口的子类实现</summary>
+        /// <param name="baseType">基类或接口</param>
+        /// <param name="isLoadAssembly">是否加载为加载程序集</param>
+        /// <returns></returns>
+        IEnumerable<Type> GetAllSubclasses(Type baseType, Boolean isLoadAssembly);
         #endregion
     }
 
@@ -250,6 +270,59 @@ namespace NewLife.Reflection
         /// <param name="isfull">是否全名，包含命名空间</param>
         /// <returns></returns>
         public virtual String GetName(Type type, Boolean isfull) { return isfull ? type.FullName : type.Name; }
+        #endregion
+
+        #region 插件
+        ///// <summary>是否插件</summary>
+        ///// <param name="type">目标类型</param>
+        ///// <param name="baseType">基类或接口</param>
+        ///// <returns></returns>
+        //public virtual Boolean IsSubclassOf(Type type, Type baseType)
+        //{
+        //    if (type.IsInterface || type.IsAbstract || type.IsGenericType) return false;
+
+        //    if (baseType.IsInterface)
+        //    {
+        //        var ts = type.GetInterfaces();
+        //        if (ts == null || ts.Length < 1) return false;
+
+        //        return Array.IndexOf(ts, baseType) >= 0;
+        //    }
+
+        //    //return baseType.IsAssignableFrom(type);
+        //    return type.IsSubclassOf(baseType);
+        //}
+
+        /// <summary>在指定程序集中查找指定基类的子类</summary>
+        /// <param name="asm">指定程序集</param>
+        /// <param name="baseType">基类或接口，为空时返回所有类型</param>
+        /// <returns></returns>
+        public virtual IEnumerable<Type> GetSubclasses(Assembly asm, Type baseType)
+        {
+            if (asm == null) throw new ArgumentNullException("asm");
+
+            foreach (var item in asm.GetTypes())
+            {
+                if (baseType == null || baseType.IsAssignableFrom(item))
+                    yield return item;
+            }
+        }
+
+        /// <summary>在所有程序集中查找指定基类或接口的子类实现</summary>
+        /// <param name="baseType">基类或接口</param>
+        /// <param name="isLoadAssembly">是否加载为加载程序集</param>
+        /// <returns></returns>
+        public virtual IEnumerable<Type> GetAllSubclasses(Type baseType, Boolean isLoadAssembly)
+        {
+            // 不支持isLoadAssembly
+            foreach (var asm in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                foreach (var type in GetSubclasses(asm, baseType))
+                {
+                    yield return type;
+                }
+            }
+        }
         #endregion
 
         #region 辅助方法

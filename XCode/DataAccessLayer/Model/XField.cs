@@ -60,7 +60,7 @@ namespace XCode.DataAccessLayer
         [XmlIgnore]
         [DisplayName("字段类型")]
         [Description("字段类型")]
-        public String FieldType { get { return DataType == null ? null : DataType.Name; } set { _DataType = Reflect.GetType(value); } }
+        public String FieldType { get { return DataType == null ? null : DataType.Name; } set { _DataType = Reflect.GetTypeEx(value); } }
 
         private String _RawType;
         /// <summary>原始数据类型</summary>

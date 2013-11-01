@@ -57,6 +57,7 @@ namespace NewLife.Reflection
         /// <param name="type">指定类型</param>
         /// <param name="isfull">是否全名，包含命名空间</param>
         /// <returns></returns>
+        [EditorBrowsable(EditorBrowsableState.Advanced)]
         public static String GetName(Type type, Boolean isfull = false)
         {
             if (type.IsNested) return GetName(type.DeclaringType, isfull) + "." + type.Name;
@@ -276,13 +277,13 @@ namespace NewLife.Reflection
 
         #region 方法
         /// <summary>是否指定类型的插件</summary>
-        /// <param name="type">指定类型</param>
+        /// <param name="baseType">指定类型</param>
         /// <returns></returns>
-        public Boolean IsPlugin(Type type)
+        public Boolean IsPlugin(Type baseType)
         {
             //if (type == null) throw new ArgumentNullException("type");
             // 如果基类为空，则表示是插件
-            if (type == null) return true;
+            if (baseType == null) return true;
 
             // 是否严格匹配。严格匹配仅比较对象引用，否则比较名称
             // 对于只反射类型来说，不需要严格，因为它们不会是同一个引用，一般用于判断是插件意见才加载
@@ -294,30 +295,30 @@ namespace NewLife.Reflection
             // 允许值类型，仅排除接口
             if (Type.IsInterface || Type.IsAbstract || Type.IsGenericType) return false;
 
-            if (type.IsInterface)
+            if (baseType.IsInterface)
             {
                 var ts = Type.GetInterfaces();
                 if (ts == null || ts.Length < 1) return false;
 
                 if (strict)
-                    return Array.IndexOf(ts, type) >= 0;
+                    return Array.IndexOf(ts, baseType) >= 0;
                 else
-                    return ts.Any(e => e == type || e.FullName == type.FullName && e.AssemblyQualifiedName == type.AssemblyQualifiedName);
+                    return ts.Any(e => e == baseType || e.FullName == baseType.FullName && e.AssemblyQualifiedName == baseType.AssemblyQualifiedName);
             }
             else
             {
-                if (type.IsAssignableFrom(Type)) return true;
+                if (baseType.IsAssignableFrom(Type)) return true;
 
                 var e = Type;
                 while (e != null && e != typeof(Object))
                 {
                     if (strict)
                     {
-                        if (e == type) return true;
+                        if (e == baseType) return true;
                     }
                     else
                     {
-                        if (e.FullName == type.FullName && e.AssemblyQualifiedName == type.AssemblyQualifiedName) return true;
+                        if (e.FullName == baseType.FullName && e.AssemblyQualifiedName == baseType.AssemblyQualifiedName) return true;
                     }
                     e = e.BaseType;
                 }

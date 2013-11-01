@@ -261,7 +261,7 @@ namespace XCode.DataAccessLayer
                             var v = reader.GetAttribute("DataType");
                             if (v != null)
                             {
-                                dc.DataType = Reflect.GetType(v);
+                                dc.DataType = Reflect.GetTypeEx(v);
                                 v = reader.GetAttribute("Length");
                                 var len = 0;
                                 if (v != null && Int32.TryParse(v, out len)) dc.Length = len;

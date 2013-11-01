@@ -148,7 +148,7 @@ namespace XCode
         /// <returns></returns>
         public static List<Type> LoadEntities()
         {
-            return AssemblyX.FindAllPlugins(typeof(IEntity)).ToList();
+            return typeof(IEntity).GetAllSubclasses().ToList();
         }
 
         /// <summary>获取指定连接名下的所有实体类</summary>
@@ -156,7 +156,7 @@ namespace XCode
         /// <returns></returns>
         public static IEnumerable<Type> LoadEntities(String connName)
         {
-            return AssemblyX.FindAllPlugins(typeof(IEntity)).Where(t => TableItem.Create(t).ConnName == connName);
+            return typeof(IEntity).GetAllSubclasses().Where(t => TableItem.Create(t).ConnName == connName);
         }
 
         /// <summary>获取指定连接名下的所有实体类</summary>
@@ -165,7 +165,7 @@ namespace XCode
         /// <returns></returns>
         public static IEnumerable<Type> LoadEntities(String connName, Boolean isLoadAssembly)
         {
-            return AssemblyX.FindAllPlugins(typeof(IEntity), isLoadAssembly).Where(t => TableItem.Create(t).ConnName == connName);
+            return typeof(IEntity).GetAllSubclasses(isLoadAssembly).Where(t => TableItem.Create(t).ConnName == connName);
         }
 
         /// <summary>获取指定连接名下的所有实体数据表</summary>
@@ -255,7 +255,7 @@ namespace XCode
 
         private static Type GetTypeInternal(String typeName)
         {
-            var type = Reflect.GetType(typeName, true);
+            var type = Reflect.GetTypeEx(typeName, true);
             if (type != null) return type;
 
             var entities = LoadEntities();

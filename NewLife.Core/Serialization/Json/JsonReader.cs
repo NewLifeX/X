@@ -1133,7 +1133,7 @@ namespace NewLife.Serialization
                         AssertReadNextAtomElement("期望是 __type 的值,具体的类型全名", out str, AtomElementType.STRING);
                         try
                         {
-                            type = Reflect.GetType(str, true);
+                            type = Reflect.GetTypeEx(str, true);
                             hasType = true;
                         }
                         catch { }

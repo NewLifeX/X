@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Reflection;
-using System.Text;
-using NewLife.Collections;
 using NewLife.Exceptions;
 
 namespace NewLife.Reflection
@@ -24,7 +20,7 @@ namespace NewLife.Reflection
         /// <param name="typeName">类型名</param>
         /// <param name="isLoadAssembly">是否从未加载程序集中获取类型。使用仅反射的方法检查目标类型，如果存在，则进行常规加载</param>
         /// <returns></returns>
-        public static Type GetType(String typeName, Boolean isLoadAssembly = true)
+        public static Type GetTypeEx(this String typeName, Boolean isLoadAssembly = true)
         {
             if (String.IsNullOrEmpty(typeName)) return null;
 
@@ -317,6 +313,32 @@ namespace NewLife.Reflection
                     typeArray[i] = args[i].GetType();
             }
             return typeArray;
+        }
+        #endregion
+
+        #region 插件
+        ///// <summary>是否插件</summary>
+        ///// <param name="type">目标类型</param>
+        ///// <param name="baseType">基类或接口</param>
+        ///// <returns></returns>
+        //public static Boolean IsSubclassOfEx(this Type type, Type baseType) { return _Provider.IsSubclassOf(type, baseType); }
+
+        /// <summary>在指定程序集中查找指定基类的子类</summary>
+        /// <param name="asm">指定程序集</param>
+        /// <param name="baseType">基类或接口</param>
+        /// <returns></returns>
+        public static IEnumerable<Type> GetSubclasses(this Assembly asm, Type baseType)
+        {
+            return _Provider.GetSubclasses(asm, baseType);
+        }
+
+        /// <summary>在所有程序集中查找指定基类或接口的子类实现</summary>
+        /// <param name="baseType">基类或接口</param>
+        /// <param name="isLoadAssembly">是否加载为加载程序集</param>
+        /// <returns></returns>
+        public static IEnumerable<Type> GetAllSubclasses(this Type baseType, Boolean isLoadAssembly = false)
+        {
+            return _Provider.GetAllSubclasses(baseType, isLoadAssembly);
         }
         #endregion
 
