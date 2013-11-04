@@ -576,39 +576,39 @@ namespace XCode.DataAccessLayer
         /// <summary>获取Guid的函数</summary>
         public virtual String NewGuid { get { return "newid()"; } }
 
-        ///// <summary>
-        ///// 保留字字符串，其实可以在首次使用时动态从Schema中加载
-        ///// </summary>
-        //protected virtual String ReservedWordsStr { get { return null; } }
+        /// <summary>
+        /// 保留字字符串，其实可以在首次使用时动态从Schema中加载
+        /// </summary>
+        protected virtual String ReservedWordsStr { get { return null; } }
 
-        //private Dictionary<String, Boolean> _ReservedWords = null;
-        ///// <summary>
-        ///// 保留字
-        ///// </summary>
-        //private Dictionary<String, Boolean> ReservedWords
-        //{
-        //    get
-        //    {
-        //        if (_ReservedWords == null)
-        //        {
-        //            _ReservedWords = new Dictionary<String, Boolean>(StringComparer.OrdinalIgnoreCase);
-        //            String[] ss = (ReservedWordsStr + "").Split(',');
-        //            foreach (String item in ss)
-        //            {
-        //                String key = item.Trim();
-        //                if (!_ReservedWords.ContainsKey(key)) _ReservedWords.Add(key, true);
-        //            }
-        //        }
-        //        return _ReservedWords;
-        //    }
-        //}
+        private Dictionary<String, Boolean> _ReservedWords = null;
+        /// <summary>
+        /// 保留字
+        /// </summary>
+        private Dictionary<String, Boolean> ReservedWords
+        {
+            get
+            {
+                if (_ReservedWords == null)
+                {
+                    _ReservedWords = new Dictionary<String, Boolean>(StringComparer.OrdinalIgnoreCase);
+                    String[] ss = (ReservedWordsStr + "").Split(',');
+                    foreach (String item in ss)
+                    {
+                        String key = item.Trim();
+                        if (!_ReservedWords.ContainsKey(key)) _ReservedWords.Add(key, true);
+                    }
+                }
+                return _ReservedWords;
+            }
+        }
 
-        ///// <summary>
-        ///// 是否保留字
-        ///// </summary>
-        ///// <param name="word"></param>
-        ///// <returns></returns>
-        //private Boolean IsReservedWord(String word) { return String.IsNullOrEmpty(word) ? false : ReservedWords.ContainsKey(word); }
+        /// <summary>
+        /// 是否保留字
+        /// </summary>
+        /// <param name="word"></param>
+        /// <returns></returns>
+        private Boolean IsReservedWord(String word) { return String.IsNullOrEmpty(word) ? false : ReservedWords.ContainsKey(word); }
 
         /// <summary>格式化时间为SQL字符串</summary>
         /// <param name="dateTime">时间值</param>
@@ -630,6 +630,8 @@ namespace XCode.DataAccessLayer
             //if (CreateMetaData().ReservedWords.Contains(name)) return FormatKeyWord(name);
             var md = CreateMetaData() as DbMetaData;
             if (md != null && md.ReservedWords.Contains(name)) return FormatKeyWord(name);
+
+            if (IsReservedWord(name)) return FormatKeyWord(name);
 
             return name;
         }
