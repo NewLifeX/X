@@ -78,6 +78,7 @@
             this.关于ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.组件手册ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.表名字段名命名规范ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.在线帮助文档ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem2 = new System.Windows.Forms.ToolStripSeparator();
             this.qQ群1600800ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.qQ群1600800ToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
@@ -85,7 +86,6 @@
             this.检查更新ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.关于ToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.label9 = new System.Windows.Forms.Label();
-            this.在线帮助文档ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.gbConnect.SuspendLayout();
             this.gbTable.SuspendLayout();
             this.statusStrip1.SuspendLayout();
@@ -280,10 +280,12 @@
             this.webBrowser1.Location = new System.Drawing.Point(389, 19);
             this.webBrowser1.MinimumSize = new System.Drawing.Size(20, 20);
             this.webBrowser1.Name = "webBrowser1";
+            this.webBrowser1.ScriptErrorsSuppressed = true;
             this.webBrowser1.Size = new System.Drawing.Size(336, 168);
             this.webBrowser1.TabIndex = 54;
-            this.webBrowser1.Url = new System.Uri("http://www.newlifex.com/archiver/showforum-2.aspx", System.UriKind.Absolute);
+            this.webBrowser1.Url = new System.Uri("http://www.newlifex.com/archiver/showforum-2.aspx?r=XCoder", System.UriKind.Absolute);
             this.webBrowser1.DocumentCompleted += new System.Windows.Forms.WebBrowserDocumentCompletedEventHandler(this.webBrowser1_DocumentCompleted);
+            this.webBrowser1.Navigating += new System.Windows.Forms.WebBrowserNavigatingEventHandler(this.webBrowser1_Navigating);
             // 
             // lbEditHeader
             // 
@@ -645,6 +647,13 @@
             this.表名字段名命名规范ToolStripMenuItem.Text = "表名字段名命名规范(&N)";
             this.表名字段名命名规范ToolStripMenuItem.Click += new System.EventHandler(this.表名字段名命名规范ToolStripMenuItem_Click);
             // 
+            // 在线帮助文档ToolStripMenuItem
+            // 
+            this.在线帮助文档ToolStripMenuItem.Name = "在线帮助文档ToolStripMenuItem";
+            this.在线帮助文档ToolStripMenuItem.Size = new System.Drawing.Size(220, 22);
+            this.在线帮助文档ToolStripMenuItem.Text = "在线帮助文档";
+            this.在线帮助文档ToolStripMenuItem.Click += new System.EventHandler(this.在线帮助文档ToolStripMenuItem_Click);
+            // 
             // toolStripMenuItem2
             // 
             this.toolStripMenuItem2.Name = "toolStripMenuItem2";
@@ -694,13 +703,6 @@
             this.label9.Size = new System.Drawing.Size(68, 17);
             this.label9.TabIndex = 32;
             this.label9.Text = "两种用法：";
-            // 
-            // 在线帮助文档ToolStripMenuItem
-            // 
-            this.在线帮助文档ToolStripMenuItem.Name = "在线帮助文档ToolStripMenuItem";
-            this.在线帮助文档ToolStripMenuItem.Size = new System.Drawing.Size(220, 22);
-            this.在线帮助文档ToolStripMenuItem.Text = "在线帮助文档";
-            this.在线帮助文档ToolStripMenuItem.Click += new System.EventHandler(this.在线帮助文档ToolStripMenuItem_Click);
             // 
             // FrmMain
             // 

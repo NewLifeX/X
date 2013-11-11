@@ -769,6 +769,25 @@ namespace XCoder
             // 网页加载完成后，自动向下滚动一段距离，越过头部
             webBrowser1.Document.Window.ScrollTo(0, 90);
         }
+
+        private void webBrowser1_Navigating(object sender, WebBrowserNavigatingEventArgs e)
+        {
+            if (e.Url != null)
+            {
+                var url = e.Url.ToString();
+                if (!url.IsNullOrWhiteSpace())
+                {
+                    // 精简版替换为完整版
+                    url = url.Replace("/archiver/", "/");
+                    if (url.Contains("?"))
+                        url += "&r=XCoder";
+                    else
+                        url += "?r=XCoder";
+                    Process.Start(url);
+                    e.Cancel = true;
+                }
+            }
+        }
         #endregion
 
         #region 添加模型-@宁波-小董 2013
