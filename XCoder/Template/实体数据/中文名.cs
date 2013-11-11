@@ -30,9 +30,8 @@ if(!Config.RenderGenEntity){#>
 }else{#>
     public partial class <#=Table.Name#><TEntity> : I<#=Table.Name#><#
 }#>
-    {
-        #region 属性
-<#
+    {<#if(Table.Columns.Count>0){#>
+        #region 属性<#
         foreach(IDataColumn Field in Table.Columns)
         {
             String des=Field.Description;
@@ -54,7 +53,7 @@ if(!Config.RenderGenEntity){#>
 <#
         }
 #>        #endregion
-<#if(Table.Columns.Count>0){#>
+
         #region 获取/设置 字段值
         /// <summary>
         /// 获取/设置 字段值。
