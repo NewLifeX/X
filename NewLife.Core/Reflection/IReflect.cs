@@ -170,8 +170,8 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public virtual PropertyInfo GetProperty(Type type, String name)
         {
-            // 父类属性的获取需要递归
-            while (type != typeof(Object))
+            // 父类属性的获取需要递归，有些类型的父类为空，比如接口
+            while (type != null && type != typeof(Object))
             {
                 var pi = type.GetProperty(name, bf);
                 if (pi != null) return pi;
@@ -187,8 +187,8 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public virtual FieldInfo GetField(Type type, String name)
         {
-            // 父类字段的获取需要递归
-            while (type != typeof(Object))
+            // 父类字段的获取需要递归，有些类型的父类为空，比如接口
+            while (type != null && type != typeof(Object))
             {
                 var fi = type.GetField(name, bf);
                 if (fi != null) return fi;
