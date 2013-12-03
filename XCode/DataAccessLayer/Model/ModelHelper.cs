@@ -481,17 +481,17 @@ namespace XCode.DataAccessLayer
 
                 if (code == TypeCode.String)
                 {
-                    // 如果别名与名称相同，则跳过
+                    // 如果别名与名称相同，则跳过，不区分大小写
                     if (pi.Name == "Name")
                         name = (String)obj;
                     else if (pi.Name == "Alias" || pi.Name == "TableName" || pi.Name == "ColumnName")
-                        if (name == (String)obj) continue;
+                        if (name.EqualIgnoreCase((String)obj)) continue;
 
                     // 如果DisplayName与Name或者Description相同，则跳过
                     if (pi.Name == "DisplayName")
                     {
                         var dis = (String)obj;
-                        if (dis == name) continue;
+                        if (dis.EqualIgnoreCase(name)) continue;
 
                         var des = "";
                         if (value is IDataTable)
