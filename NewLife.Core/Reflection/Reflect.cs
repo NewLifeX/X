@@ -129,8 +129,9 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public static Object Invoke(this Object target, MethodBase method, params Object[] parameters)
         {
-            if (target == null) throw new ArgumentNullException("target");
+            //if (target == null) throw new ArgumentNullException("target");
             if (method == null) throw new ArgumentNullException("method");
+            if (!method.IsStatic && target == null) throw new ArgumentNullException("target");
 
             return _Provider.Invoke(target, method, parameters);
         }

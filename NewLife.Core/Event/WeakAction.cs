@@ -94,8 +94,9 @@ namespace NewLife
             Object target = null;
             if (Target == null)
             {
-                //if (Method.IsStatic) Method.Invoke(null, new Object[] { e });
-                if (Method.IsStatic) target.Invoke(Method, e);
+                ////if (Method.IsStatic) Method.Invoke(null, new Object[] { e });
+                //if (Method.IsStatic) target.Invoke(Method, e);
+                if (Method.IsStatic) Reflect.Invoke(null, Method, e);
             }
             else
             {
