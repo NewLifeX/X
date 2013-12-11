@@ -151,19 +151,19 @@ namespace XCode
             return typeof(IEntity).GetAllSubclasses().ToList();
         }
 
-        /// <summary>获取指定连接名下的所有实体类</summary>
-        /// <param name="connName"></param>
-        /// <returns></returns>
-        public static IEnumerable<Type> LoadEntities(String connName)
-        {
-            return typeof(IEntity).GetAllSubclasses().Where(t => TableItem.Create(t).ConnName == connName);
-        }
+        ///// <summary>获取指定连接名下的所有实体类</summary>
+        ///// <param name="connName"></param>
+        ///// <returns></returns>
+        //public static IEnumerable<Type> LoadEntities(String connName)
+        //{
+        //    return typeof(IEntity).GetAllSubclasses().Where(t => TableItem.Create(t).ConnName == connName);
+        //}
 
         /// <summary>获取指定连接名下的所有实体类</summary>
         /// <param name="connName"></param>
         /// <param name="isLoadAssembly">是否从未加载程序集中获取类型。使用仅反射的方法检查目标类型，如果存在，则进行常规加载</param>
         /// <returns></returns>
-        public static IEnumerable<Type> LoadEntities(String connName, Boolean isLoadAssembly)
+        public static IEnumerable<Type> LoadEntities(String connName, Boolean isLoadAssembly = false)
         {
             return typeof(IEntity).GetAllSubclasses(isLoadAssembly).Where(t => TableItem.Create(t).ConnName == connName);
         }
@@ -178,7 +178,7 @@ namespace XCode
             var dic = new Dictionary<String, Type>(StringComparer.OrdinalIgnoreCase);
             var list = new List<String>();
             var list2 = new List<String>();
-            foreach (Type item in LoadEntities(connName))
+            foreach (var item in LoadEntities(connName, true))
             {
                 list.Add(item.Name);
 
