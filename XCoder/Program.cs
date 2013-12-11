@@ -22,7 +22,14 @@ namespace XCoder
             var args = Environment.GetCommandLineArgs();
             if (args != null && args.Length > 1)
             {
-                StartWithParameter(args);
+                try
+                {
+                    StartWithParameter(args);
+                }
+                catch (Exception ex)
+                {
+                    XTrace.WriteException(ex);
+                }
                 return;
             }
 
@@ -51,15 +58,10 @@ namespace XCoder
                 switch (args[i].ToLower())
                 {
                     case "-config":
-                        dic.Add(args[i].Substring(1), args[++i].Trim('\"'));
-                        break;
                     case "-model":
-                        dic.Add(args[i].Substring(1), args[++i].Trim('\"'));
-                        break;
                     case "-connstr":
-                        dic.Add(args[i].Substring(1), args[++i].Trim('\"'));
-                        break;
                     case "-provider":
+                    case "-log":
                         dic.Add(args[i].Substring(1), args[++i].Trim('\"'));
                         break;
                     default:
@@ -71,7 +73,15 @@ namespace XCoder
             var logfile = "";
             if (dic.TryGetValue("Log", out logfile) && !logfile.IsNullOrWhiteSpace())
             {
-                XTrace.Log = TextFileLog.Create(logfile);
+                XTrace.WriteLine("准备切换日志到 {0}", logfile);
+
+                try
+                {
+                    var log = TextFileLog.CreateFile(logfile);
+                    log.Info("XCoder.exe {0}", String.Join(" ", args));
+                    XTrace.Log = log;
+                }
+                catch (Exception ex) { XTrace.WriteException(ex); }
             }
 
             switch (args[1].ToLower())

@@ -29,9 +29,11 @@ using System.Runtime.InteropServices;
 //      修订号
 //
 [assembly: AssemblyVersion("6.0.*")]
-[assembly: AssemblyFileVersion("6.0.2013.0919")]
+[assembly: AssemblyFileVersion("6.0.2013.1211")]
 
 /*
+ * v6.0.2013.1211   命令行调用XCoder生成代码支持指定日志文件路径
+ * 
  * v6.0.2013.0919   合并数据建模工具、正则测试工具、通讯调试工具、图标水印处理工具
  * 
  * v5.1.2013.0906   更新扩展查询模版，默认的FindByxx/FindAllByxx函数里面，缓存查找采用__.xx名称，而不要用_.xx，后面默认得到字段名，不适合内存查找

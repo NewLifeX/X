@@ -20,20 +20,22 @@
 	var xpath = GetXPath(mypath);
 	
 	var exe = xpath + "XCoder.exe";
-	
+
+	WriteLine("开始生成 " + DateTime.Now);
+
 	// 如果数据模型文件不存在，则先导出一份
 	if(!File.Exists(mdl))
 	{
 		var connstr = String.Format("Data Source=.;Initial Catalog={0};user id=sa;password=Pass@word", name);
 		var provider = "MSSQL";
-		var ps = String.Format("-MakeModel -model \"{0}\" -ConnStr \"{1}\" -Provider {2}", mdl, connstr, provider);
+		var ps = String.Format("-MakeModel -model \"{0}\" -ConnStr \"{1}\" -Provider {2} -Log \"{3}\"", mdl, connstr, provider, mypath + "XCoder.log");
 		Process.Start(exe, ps).WaitForExit(10000);
 
 		if(!File.Exists(mdl)) throw new Exception("无法导出数据模型，请检查连接字符串！");
 	}
 	
 	var cfg = mypath + "set.config";
-	var arg = String.Format("-Render -model \"{0}\" -config \"{1}\"", mdl, cfg);
+	var arg = String.Format("-Render -model \"{0}\" -config \"{1}\" -Log \"{2}\"", mdl, cfg, mypath + "XCoder2.log");
 	WriteLine("路径：" + exe);
 	WriteLine("参数：" + arg);
 
@@ -56,7 +58,7 @@
 	Process.Start(exe, arg).WaitForExit(3000);
 
 	dic["Override"] = false;					// 是否覆盖目标文件
-	dic["OutputPath"] = mypath + "\\Entities";	// 输出目录
+	dic["OutputPath"] = mypath + "\\$(实体分类)";	// 输出目录
 	dic["TemplateName"] = "[内置]实体业务";		// 模版名
 	Save(cfg, dic);
 	WriteLine("生成：" + dic["TemplateName"]);
@@ -70,7 +72,7 @@
 	Process.Start(exe, arg).WaitForExit(3000);
 
 	dic["Override"] = false;					// 是否覆盖目标文件
-	dic["OutputPath"] = mypath + "..\\Web\\" + name;	// 输出目录
+	dic["OutputPath"] = mypath + "..\\Web\\" + name + "\\$(页面分类)";	// 输出目录
 	dic["UseCNFileName"] = false;				// 中文文件名
 	dic["TemplateName"] = "[内置]页面";			// 模版名
 	Save(cfg, dic);
