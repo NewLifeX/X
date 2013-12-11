@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using NewLife.Exceptions;
 using NewLife.Model;
 using NewLife.Reflection;
 using NewLife.Threading;
@@ -155,6 +156,8 @@ namespace XCoder
                 // 文件模版
                 var dir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, TemplatePath);
                 dir = Path.Combine(dir, tempName);
+                if (!Directory.Exists(dir)) throw new XException("找不到模版目录{0}，没有可用模版！", dir);
+
                 var ss = Directory.GetFiles(dir, "*.*", SearchOption.TopDirectoryOnly);
                 if (ss != null && ss.Length > 0)
                 {
