@@ -45,7 +45,7 @@ if(!Config.RenderGenEntity){#>
         [Description("<#=des#>")]
         [DataObjectField(<#=Field.PrimaryKey.ToString().ToLower()#>, <#=Field.Identity.ToString().ToLower()#>, <#=Field.Nullable.ToString().ToLower()#>, <#=Field.Length#>)]
         [BindColumn(<#=Field.ID#>, "<#=Field.ColumnName#>", "<#=des#>", <#=Field.Default==null?"null":"\""+Field.Default.Replace("\\", "\\\\")+"\""#>, "<#=Field.RawType#>", <#=Field.Precision#>, <#=Field.Scale#>, <#=Field.IsUnicode.ToString().ToLower()#>)]
-        public virtual <#=Field.DataType.Name#> <#=Field.Name#>
+        public virtual <#=Field.DataType==null?"":Field.DataType.Name#> <#=Field.Name#>
         {
             get { return _<#=Field.Name#>; }
             set { if (OnPropertyChanging(__.<#=Field.Name#>, value)) { _<#=Field.Name#> = value; OnPropertyChanged(__.<#=Field.Name#>); } }
@@ -144,7 +144,7 @@ if(!Config.RenderGenEntity){#>
             if(!String.IsNullOrEmpty(des)) des=des.Replace("\r\n"," ");
 #>
         /// <summary><#=des#></summary>
-        <#=Field.DataType.Name#> <#=Field.Name#> { get; set; }
+        <#=Field.DataType==null?"":Field.DataType.Name#> <#=Field.Name#> { get; set; }
 <#
         }
 #>        #endregion
