@@ -18,50 +18,13 @@ namespace XCoder
         {
             XTrace.UseWinForm();
 
-            #region 参数启动
+            // 参数启动
             var args = Environment.GetCommandLineArgs();
             if (args != null && args.Length > 1)
             {
-                var dic = new Dictionary<String, String>(StringComparer.OrdinalIgnoreCase);
-                if (args.Length > 2)
-                {
-                    for (int i = 2; i < args.Length - 1; i++)
-                    {
-                        switch (args[i].ToLower())
-                        {
-                            case "-config":
-                                dic.Add(args[i].Substring(1), args[++i].Trim('\"'));
-                                break;
-                            case "-model":
-                                dic.Add(args[i].Substring(1), args[++i].Trim('\"'));
-                                break;
-                            case "-connstr":
-                                dic.Add(args[i].Substring(1), args[++i].Trim('\"'));
-                                break;
-                            case "-provider":
-                                dic.Add(args[i].Substring(1), args[++i].Trim('\"'));
-                                break;
-                            default:
-                                break;
-                        }
-                    }
-                }
-                switch (args[1].ToLower())
-                {
-                    case "-render":
-                        Render(dic["Model"], dic["Config"]);
-                        return;
-                    case "-makemodel":
-                        MakeModel(dic["Model"], dic["ConnStr"], dic["Provider"]);
-                        return;
-                    case "-update":
-                        Update(false);
-                        return;
-                    default:
-                        break;
-                }
+                StartWithParameter(args);
+                return;
             }
-            #endregion
 
             try
             {
@@ -77,6 +40,54 @@ namespace XCoder
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new FrmMDI());
+        }
+
+        /// <summary>参数启动</summary>
+        static void StartWithParameter(String[] args)
+        {
+            var dic = new Dictionary<String, String>(StringComparer.OrdinalIgnoreCase);
+            for (int i = 2; i < args.Length - 1; i++)
+            {
+                switch (args[i].ToLower())
+                {
+                    case "-config":
+                        dic.Add(args[i].Substring(1), args[++i].Trim('\"'));
+                        break;
+                    case "-model":
+                        dic.Add(args[i].Substring(1), args[++i].Trim('\"'));
+                        break;
+                    case "-connstr":
+                        dic.Add(args[i].Substring(1), args[++i].Trim('\"'));
+                        break;
+                    case "-provider":
+                        dic.Add(args[i].Substring(1), args[++i].Trim('\"'));
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            // 转移日志
+            var logfile = "";
+            if (dic.TryGetValue("Log", out logfile) && !logfile.IsNullOrWhiteSpace())
+            {
+                XTrace.Log = TextFileLog.Create(logfile);
+            }
+
+            switch (args[1].ToLower())
+            {
+                case "-render":
+                    Render(dic["Model"], dic["Config"]);
+                    return;
+                case "-makemodel":
+                    MakeModel(dic["Model"], dic["ConnStr"], dic["Provider"]);
+                    return;
+                case "-update":
+                    Update(false);
+                    return;
+                default:
+                    break;
+            }
         }
 
         static void Update(Boolean isAsync = true)
