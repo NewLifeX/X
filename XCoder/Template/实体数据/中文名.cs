@@ -30,14 +30,17 @@ if(!Config.RenderGenEntity){#>
 }else{#>
     public partial class <#=Table.Name#><TEntity> : I<#=Table.Name#><#
 }#>
-    {<#if(Table.Columns.Count>0){#>
+    {<#
+if(Table.Columns.Count>0)
+{
+#>
         #region 属性<#
-        foreach(IDataColumn Field in Table.Columns)
-        {
-            String des=Field.Description;
-            if(!String.IsNullOrEmpty(des)) des=des.Replace("\r\n"," ").Replace("\\", "\\\\").Replace("'", "").Replace("\"", "");
-            String dis = Field.DisplayName;
-             if(!String.IsNullOrEmpty(dis)) dis=dis.Replace("\r\n"," ").Replace("'", " ").Replace("\"", "");
+    foreach(IDataColumn Field in Table.Columns)
+    {
+        String des=Field.Description;
+        if(!String.IsNullOrEmpty(des)) des=des.Replace("\r\n"," ").Replace("\\", "\\\\").Replace("'", "").Replace("\"", "");
+        String dis = Field.DisplayName;
+        if(!String.IsNullOrEmpty(dis)) dis=dis.Replace("\r\n"," ").Replace("'", " ").Replace("\"", "");
 #>
         private <#=Field.DataType.Name#> _<#=Field.Name#>;
         /// <summary><#=des#></summary>
@@ -51,7 +54,7 @@ if(!Config.RenderGenEntity){#>
             set { if (OnPropertyChanging(__.<#=Field.Name#>, value)) { _<#=Field.Name#> = value; OnPropertyChanged(__.<#=Field.Name#>); } }
         }
 <#
-        }
+    }
 #>        #endregion
 
         #region 获取/设置 字段值
@@ -97,21 +100,21 @@ if(!Config.RenderGenEntity){#>
                 }
             }
         }
-        #endregion<#}#>
+        #endregion
 
         #region 字段名
         /// <summary>取得<#=tdis#>字段信息的快捷方式</summary>
         public partial class _
         {<#
-       foreach(IDataColumn Field in Table.Columns)
-      {
+        foreach(IDataColumn Field in Table.Columns)
+        {
             String des=Field.Description;
             if(!String.IsNullOrEmpty(des)) des=des.Replace("\r\n"," ");
 #>
             ///<summary><#=des#></summary>
             public static readonly Field <#=Field.Name#> = FindByName(__.<#=Field.Name#>);
 <#
-      }
+        }
 #>
             static Field FindByName(String name) { return Meta.Table.FindByName(name); }
         }
@@ -119,24 +122,28 @@ if(!Config.RenderGenEntity){#>
         /// <summary>取得<#=tdis#>字段名称的快捷方式</summary>
         partial class __
         {<#
-       foreach(IDataColumn Field in Table.Columns)
-      {
+        foreach(IDataColumn Field in Table.Columns)
+        {
             String des=Field.Description;
             if(!String.IsNullOrEmpty(des)) des=des.Replace("\r\n"," ");
 #>
             ///<summary><#=des#></summary>
             public const String <#=Field.Name#> = "<#=Field.Name#>";
 <#
-      }
+        }
 #>
         }
-        #endregion
+        #endregion<#
+}#>
     }
 
     /// <summary><#=tdis#>接口</summary><# if(tdis!=tdes){#>
     /// <remarks><#=tdes#></remarks><#}#>
     public partial interface I<#=Table.Name#>
-    {
+    {<#
+if(Table.Columns.Count>0)
+{
+#>
         #region 属性<#
         foreach(IDataColumn Field in Table.Columns)
         {
@@ -154,6 +161,7 @@ if(!Config.RenderGenEntity){#>
         /// <param name="name">字段名</param>
         /// <returns></returns>
         Object this[String name] { get; set; }
-        #endregion
+        #endregion<#
+}#>
     }
 }
