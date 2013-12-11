@@ -14,18 +14,35 @@ namespace NewLife.Log
     public class TextFileLog : Logger, IDisposable
     {
         #region 构造
-        private TextFileLog(String path) { FilePath = path; }
+        private TextFileLog(String path, Boolean isfile)
+        {
+            if (!isfile)
+                LogPath = path;
+            else
+                LogFile = path;
+        }
 
-        static DictionaryCache<String, TextFileLog> cache = new DictionaryCache<string, TextFileLog>();
+        static DictionaryCache<String, TextFileLog> cache = new DictionaryCache<String, TextFileLog>(StringComparer.OrdinalIgnoreCase);
         /// <summary>每个目录的日志实例应该只有一个，所以采用静态创建</summary>
-        /// <param name="path"></param>
+        /// <param name="path">日志目录或日志文件路径</param>
         /// <returns></returns>
         public static TextFileLog Create(String path)
         {
             if (String.IsNullOrEmpty(path)) path = Config.GetConfig<String>("NewLife.LogPath", "Log");
 
             String key = path.ToLower();
-            return cache.GetItem<String>(key, path, (k, p) => new TextFileLog(p));
+            return cache.GetItem<String>(key, path, (k, p) => new TextFileLog(p, false));
+        }
+
+        /// <summary>每个目录的日志实例应该只有一个，所以采用静态创建</summary>
+        /// <param name="path">日志目录或日志文件路径</param>
+        /// <returns></returns>
+        public static TextFileLog CreateFile(String path)
+        {
+            if (String.IsNullOrEmpty(path)) return Create(path);
+
+            String key = path.ToLower();
+            return cache.GetItem<String>(key, path, (k, p) => new TextFileLog(p, true));
         }
 
         /// <summary>销毁</summary>
@@ -40,13 +57,9 @@ namespace NewLife.Log
         #endregion
 
         #region 属性
-        private String _FilePath;
-        /// <summary>文件路径</summary>
-        public String FilePath
-        {
-            get { return _FilePath; }
-            private set { _FilePath = value; }
-        }
+        private String _LogFile;
+        /// <summary>日志文件</summary>
+        public String LogFile { get { return _LogFile; } set { _LogFile = value; } }
 
         private String _LogPath;
         /// <summary>日志目录</summary>
@@ -54,17 +67,16 @@ namespace NewLife.Log
         {
             get
             {
-                if (!String.IsNullOrEmpty(_LogPath)) return _LogPath;
-
-                String dir = FilePath;
-                if (!Path.IsPathRooted(dir)) dir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, dir);
-
-                //保证\结尾
-                //if (!String.IsNullOrEmpty(dir) && dir.Substring(dir.Length - 1, 1) != @"\") dir += @"\";
-                dir = dir.EnsureEnd(@"\");
-
-                _LogPath = new DirectoryInfo(dir).FullName;
+                if (String.IsNullOrEmpty(_LogPath) && !String.IsNullOrEmpty(LogFile))
+                    _LogPath = Path.GetDirectoryName(LogFile).GetFullPath().EnsureEnd(@"\");
                 return _LogPath;
+            }
+            set
+            {
+                if (String.IsNullOrEmpty(value))
+                    _LogPath = value;
+                else
+                    _LogPath = value.GetFullPath().EnsureEnd(@"\");
             }
         }
 
@@ -78,31 +90,46 @@ namespace NewLife.Log
         /// <summary>初始化日志记录文件</summary>
         private void InitLog()
         {
-            String path = LogPath;
-            if (!String.IsNullOrEmpty(path) && !Directory.Exists(path)) Directory.CreateDirectory(path);
+            String path = LogPath.EnsureDirectory(false);
 
-            //if (path.Substring(path.Length - 2) != @"\") path += @"\";
-            var logfile = Path.Combine(path, DateTime.Now.ToString("yyyy_MM_dd") + ".log");
             StreamWriter writer = null;
-            int i = 0;
-            while (i < 10)
+            var logfile = LogFile;
+            if (!String.IsNullOrEmpty(logfile))
             {
                 try
                 {
                     var stream = new FileStream(logfile, FileMode.Append, FileAccess.Write, FileShare.ReadWrite);
                     writer = new StreamWriter(stream, Encoding.UTF8);
                     writer.AutoFlush = true;
-                    break;
                 }
-                catch
+                catch { }
+            }
+
+            if (writer == null)
+            {
+                logfile = Path.Combine(path, DateTime.Now.ToString("yyyy_MM_dd") + ".log");
+                int i = 0;
+                while (i < 10)
                 {
-                    if (logfile.EndsWith("_" + i + ".log"))
-                        logfile = logfile.Replace("_" + i + ".log", "_" + (++i) + ".log");
-                    else
-                        logfile = logfile.Replace(@".log", @"_0.log");
+                    try
+                    {
+                        var stream = new FileStream(logfile, FileMode.Append, FileAccess.Write, FileShare.ReadWrite);
+                        writer = new StreamWriter(stream, Encoding.UTF8);
+                        writer.AutoFlush = true;
+                        break;
+                    }
+                    catch
+                    {
+                        if (logfile.EndsWith("_" + i + ".log"))
+                            logfile = logfile.Replace("_" + i + ".log", "_" + (++i) + ".log");
+                        else
+                            logfile = logfile.Replace(@".log", @"_0.log");
+                    }
                 }
             }
-            if (i >= 10) throw new XException("无法写入日志！");
+            if (writer == null) throw new XException("无法写入日志！");
+
+            LogFile = logfile;
 
             if (!isFirst)
             {
@@ -327,7 +354,10 @@ namespace NewLife.Log
         /// <returns></returns>
         public override string ToString()
         {
-            return String.Format("{0} FilePath={1}", this.GetType().Name, FilePath);
+            if (!String.IsNullOrEmpty(LogFile))
+                return String.Format("{0} {1}", this.GetType().Name, LogFile);
+            else
+                return String.Format("{0} {1}", this.GetType().Name, LogPath);
         }
         #endregion
     }

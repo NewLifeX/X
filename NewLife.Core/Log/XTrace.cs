@@ -28,38 +28,6 @@ namespace NewLife.Log
         /// <summary>日志提供者，默认使用文本文件日志</summary>
         public static ILog Log { get { InitLog(); return _Log; } set { _Log = value; } }
 
-        //private static TextFileLog FileLog { get { InitLog(); return _Log as TextFileLog; } }
-
-        //private static Boolean _UseFileLog = true;
-        ///// <summary>使用文件日志</summary>
-        //public static Boolean UseFileLog { get { return _UseFileLog; } set { _UseFileLog = value; } }
-
-        ///// <summary>日志路径</summary>
-        //public static String LogPath { get { return FileLog.LogPath; } }
-
-        ///// <summary>输出日志</summary>
-        ///// <param name="msg">信息</param>
-        //[Obsolete("不再支持！")]
-        //public static void Write(String msg)
-        //{
-        //    InitLog();
-        //    if (OnWriteLog != null) OnWriteLog(null, WriteLogEventArgs.Current.Set(msg, null, false));
-
-        //    Log.Info(msg);
-        //}
-
-        ///// <summary>写日志</summary>
-        ///// <param name="format"></param>
-        ///// <param name="args"></param>
-        //[Obsolete("不再支持！")]
-        //public static void Write(String format, params Object[] args)
-        //{
-        //    InitLog();
-        //    if (OnWriteLog != null) OnWriteLog(null, WriteLogEventArgs.Current.Set(String.Format(format, args), null, false));
-
-        //    Log.Info(format, args);
-        //}
-
         /// <summary>输出日志</summary>
         /// <param name="msg">信息</param>
         public static void WriteLine(String msg)
