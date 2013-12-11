@@ -73,7 +73,9 @@ namespace XCoder
             var logfile = "";
             if (dic.TryGetValue("Log", out logfile) && !logfile.IsNullOrWhiteSpace())
             {
+#if DEBUG
                 XTrace.WriteLine("准备切换日志到 {0}", logfile);
+#endif
 
                 try
                 {
