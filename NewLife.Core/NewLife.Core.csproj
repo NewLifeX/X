@@ -175,11 +175,17 @@
     <Compile Include="Security\RSAHelper.cs" />
     <Compile Include="Security\SecurityHelper.cs" />
     <Compile Include="Serialization\Base\TextReaderBase.cs" />
+    <Compile Include="Serialization\Binary\BinaryDictionary.cs" />
+    <Compile Include="Serialization\Binary\BinaryList.cs" />
     <Compile Include="Serialization\Binary\BinaryReaderX.cs" />
+    <Compile Include="Serialization\Binary\BinaryReadWrite.cs" />
     <Compile Include="Serialization\Binary\BinarySettings.cs" />
     <Compile Include="Serialization\Binary\BinaryWriterX.cs" />
+    <Compile Include="Serialization\Binary\BinaryComposite.cs" />
     <Compile Include="Serialization\Binary\FieldSizeAttribute.cs" />
     <None Include="Serialization\Binary\FieldExtendAttribute.cs" />
+    <Compile Include="Serialization\Binary\BinaryGeneral.cs" />
+    <Compile Include="Serialization\Binary\IBinarySerialize.cs" />
     <Compile Include="Serialization\Interface\IReader2.cs" />
     <Compile Include="Serialization\Interface\IWriter2.cs" />
     <Compile Include="Serialization\Json\JsonAtomStringReader.cs" />
