@@ -159,6 +159,9 @@ namespace XCode.DataAccessLayer
 
             if (dbtable == null)
             {
+                // 没有字段的表不创建
+                if (entitytable.Columns.Count < 1) return;
+
                 #region 创建表
                 WriteLog("创建表：{0}({1})", entitytable.TableName, entitytable.Description);
 
