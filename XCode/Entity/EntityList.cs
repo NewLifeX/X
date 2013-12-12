@@ -11,12 +11,6 @@ using NewLife.Reflection;
 using XCode.Common;
 using XCode.Configuration;
 
-#if NET4
-using System.Linq;
-#else
-
-#endif
-
 namespace XCode
 {
     /// <summary>实体集合，提供批量查询和批量操作实体等操作。若需要使用Linq，需要先用<see cref="ToList"/>方法。</summary>
@@ -50,6 +44,25 @@ namespace XCode
             {
                 foreach (T item in collection)
                 {
+                    Add(item);
+                }
+            }
+        }
+
+        /// <summary>初始化</summary>
+        /// <param name="collection"></param>
+        /// <param name="startRowIndex"></param>
+        /// <param name="maximumRows"></param>
+        public EntityList(IEnumerable collection, Int32 startRowIndex, Int32 maximumRows)
+        {
+            if (collection != null)
+            {
+                var i = startRowIndex > 0 ? startRowIndex : 0;
+
+                foreach (T item in collection)
+                {
+                    if (maximumRows > 0 && ++i > maximumRows) break;
+
                     Add(item);
                 }
             }
@@ -110,6 +123,19 @@ namespace XCode
             }
 
             return this;
+        }
+
+        /// <summary>分页</summary>
+        /// <param name="startRowIndex"></param>
+        /// <param name="maximumRows"></param>
+        /// <returns></returns>
+        public EntityList<T> Page(Int32 startRowIndex, Int32 maximumRows)
+        {
+            if (Count <= 0) return this;
+
+            if (startRowIndex <= 0 && maximumRows <= 0) return this;
+
+            return new EntityList<T>(this, startRowIndex, maximumRows);
         }
         #endregion
 

@@ -334,5 +334,31 @@ namespace XCode
 
         private static void WriteLog(String format, params Object[] args) { if (DAL.Debug) DAL.WriteLog(format, args); }
         #endregion
+
+        #region 扩展方法
+        ///// <summary>实体类分页的扩展方法</summary>
+        ///// <typeparam name="TSource"></typeparam>
+        ///// <param name="source"></param>
+        ///// <param name="startRowIndex"></param>
+        ///// <param name="maximumRows"></param>
+        ///// <returns></returns>
+        //public static IEnumerable<TSource> Page<TSource>(this IEnumerable<TSource> source, Int32 startRowIndex, Int32 maximumRows)
+        //{
+        //    if (startRowIndex <= 0)
+        //    {
+        //        if (maximumRows <= 0)
+        //            return source;
+        //        else
+        //            return source.Skip(startRowIndex);
+        //    }
+        //    else
+        //    {
+        //        if (maximumRows <= 0)
+        //            return source.Take(maximumRows);
+        //        else
+        //            return source.Skip(startRowIndex).Take(maximumRows);
+        //    }
+        //}
+        #endregion
     }
 }
