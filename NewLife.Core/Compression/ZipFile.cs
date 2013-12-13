@@ -146,17 +146,17 @@ namespace NewLife.Compression
                 _file = null;
                 var fs = File.OpenRead(f);
 #if !DEBUG
-            try
+                try
 #endif
                 {
                     Read(fs);
                 }
 #if !DEBUG
-            catch (Exception ex)
-            {
-                fs.Dispose();
-                throw new ZipException("不是有效的Zip格式！", ex);
-            }
+                catch (Exception ex)
+                {
+                    fs.Dispose();
+                    throw new ZipException("不是有效的Zip格式！", ex);
+                }
 #endif
 
                 if (fs.Length < EmbedFileDataMaxSize) fs.Dispose();
@@ -203,7 +203,7 @@ namespace NewLife.Compression
                         if (p <= 0) break;
 
                         dir = dir.Substring(0, p);
-                        if (this[dir] == null)
+                        if (!Entries.ContainsKey(dir))
                         {
                             var de = new ZipEntry();
                             // 必须包含分隔符，因为这样才能被识别为目录
@@ -214,7 +214,7 @@ namespace NewLife.Compression
                 }
 
                 var n = 2;
-                while (this[name] != null) { name = e.FileName + "" + n++; }
+                while (Entries.ContainsKey(name)) { name = e.FileName + "" + n++; }
                 Entries.Add(name, e);
                 firstEntry = false;
 
@@ -370,7 +370,7 @@ namespace NewLife.Compression
             if (!String.IsNullOrEmpty(dir))
             {
                 if (!dir.EndsWith(DirSeparator)) dir += DirSeparator;
-                if (this[dir] == null)
+                if (!Entries.ContainsKey(dir))
                 {
                     var zde = new ZipEntry();
                     zde.FileName = dir;
