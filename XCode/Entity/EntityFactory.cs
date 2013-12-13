@@ -18,7 +18,7 @@ namespace XCode
         /// <summary>创建指定类型的实例</summary>
         /// <param name="typeName"></param>
         /// <returns></returns>
-        public static IEntity Create(String typeName) { return Create(GetType(typeName)); }
+        public static IEntity Create(String typeName) { return Create(GetEntityType(typeName)); }
 
         /// <summary>创建指定类型的实例</summary>
         /// <param name="type">类型</param>
@@ -38,10 +38,10 @@ namespace XCode
         /// <returns></returns>
         public static IEntityOperate CreateOperate(String typeName)
         {
-            Type type = GetType(typeName);
+            Type type = GetEntityType(typeName);
             if (type == null)
             {
-                WriteLog("创建实体操作接口时无法找到{0}类！", typeName);
+                DAL.WriteDebugLog("创建实体操作接口时无法找到{0}类！", typeName);
                 return null;
             }
 
@@ -60,19 +60,14 @@ namespace XCode
             // 确保实体类已被初始化，实际上，因为实体类静态构造函数中会注册IEntityOperate，所以下面的委托按理应该再也不会被执行了
             EnsureInit(type);
 
-            return op_cache.GetItem(type, delegate(Type key)
+            return op_cache.GetItem(type, key =>
             {
                 Type optype = null;
                 if (typeof(IEntityOperate).IsAssignableFrom(key))
-                {
                     optype = key;
-                }
                 else
-                {
-                    //Type t = GetEntityOperateType();
-                    //if (t != null) key = t.MakeGenericType(key);
                     optype = GetEntityOperateType(key);
-                }
+
                 if (optype == null || !typeof(IEntityOperate).IsAssignableFrom(optype))
                     throw new XCodeException("无法创建{0}的实体操作接口！", key);
 
@@ -91,15 +86,15 @@ namespace XCode
         {
             //return type.GetNestedType("EntityOperate", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance);
             // 所有内嵌类
-            Type[] ts = type.GetNestedTypes(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance);
+            var ts = type.GetNestedTypes(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance);
             if (ts != null && ts.Length > 0)
             {
-                foreach (Type item in ts)
+                foreach (var item in ts)
                 {
                     // 实现了IEntityOperate接口的内嵌类
                     if (typeof(IEntityOperate).IsAssignableFrom(item))
                     {
-                        Type optype = item;
+                        var optype = item;
                         // 此时这个内嵌类只是泛型声明而已
                         if (optype.IsGenericType && optype.IsGenericTypeDefinition)
                         {
@@ -113,6 +108,8 @@ namespace XCode
                     }
                 }
             }
+
+            // 递归父类
             if (type.BaseType != typeof(Object)) return GetEntityOperateType(type.BaseType);
 
             return null;
@@ -127,16 +124,30 @@ namespace XCode
             if (entity == null) return CreateOperate(type);
 
             // 重新使用判断，减少锁争夺
-            var oc = op_cache;
-            if (oc.ContainsKey(type)) return oc[type];
+            var eop = entity;
+            if (op_cache.TryGetValue(type, out eop) && eop != null && eop.GetType() == entity.GetType())
+            {
+                var opType = eop.GetType();
+                var enType = entity.GetType();
+
+                // 如果类型相同，或者opType从enType继承，则直接返回，保证缓存使用末端实体操作者opType
+                if (opType == enType || enType.IsAssignableFrom(opType)) return eop;
+            }
             lock (op_cache)
             // op_cache曾经是两次非常严重的死锁的核心所在
             // 事实上，不管怎么样处理，只要这里还锁定op_cache，那么实体类静态构造函数和CreateOperate方法，就有可能导致死锁产生
             //lock ("op_cache" + type.FullName)
             {
-                if (oc.ContainsKey(type)) return oc[type];
+                if (op_cache.TryGetValue(type, out eop) && eop != null && eop.GetType() == entity.GetType())
+                {
+                    var opType = eop.GetType();
+                    var enType = entity.GetType();
 
-                oc[type] = entity;
+                    // 如果类型相同，或者opType从enType继承，则直接返回，保证缓存使用末端实体操作者opType
+                    if (opType == enType || enType.IsAssignableFrom(opType)) return eop;
+                }
+
+                op_cache[type] = entity;
 
                 return entity;
             }
@@ -150,14 +161,6 @@ namespace XCode
         {
             return typeof(IEntity).GetAllSubclasses().ToList();
         }
-
-        ///// <summary>获取指定连接名下的所有实体类</summary>
-        ///// <param name="connName"></param>
-        ///// <returns></returns>
-        //public static IEnumerable<Type> LoadEntities(String connName)
-        //{
-        //    return typeof(IEntity).GetAllSubclasses().Where(t => TableItem.Create(t).ConnName == connName);
-        //}
 
         /// <summary>获取指定连接名下的所有实体类</summary>
         /// <param name="connName"></param>
@@ -248,14 +251,14 @@ namespace XCode
         }
 
         static DictionaryCache<String, Type> typeCache = new DictionaryCache<String, Type>();
-        internal static Type GetType(String typeName)
+        static Type GetEntityType(String typeName)
         {
             return typeCache.GetItem(typeName, GetTypeInternal);
         }
 
         private static Type GetTypeInternal(String typeName)
         {
-            var type = Reflect.GetTypeEx(typeName, true);
+            var type = typeName.GetTypeEx(true);
             if (type != null) return type;
 
             var entities = LoadEntities();
@@ -327,38 +330,6 @@ namespace XCode
                 _hasInited.Add(type);
             }
         }
-        #endregion
-
-        #region 调试输出
-        private static void WriteLog(String msg) { if (DAL.Debug) DAL.WriteLog(msg); }
-
-        private static void WriteLog(String format, params Object[] args) { if (DAL.Debug) DAL.WriteLog(format, args); }
-        #endregion
-
-        #region 扩展方法
-        ///// <summary>实体类分页的扩展方法</summary>
-        ///// <typeparam name="TSource"></typeparam>
-        ///// <param name="source"></param>
-        ///// <param name="startRowIndex"></param>
-        ///// <param name="maximumRows"></param>
-        ///// <returns></returns>
-        //public static IEnumerable<TSource> Page<TSource>(this IEnumerable<TSource> source, Int32 startRowIndex, Int32 maximumRows)
-        //{
-        //    if (startRowIndex <= 0)
-        //    {
-        //        if (maximumRows <= 0)
-        //            return source;
-        //        else
-        //            return source.Skip(startRowIndex);
-        //    }
-        //    else
-        //    {
-        //        if (maximumRows <= 0)
-        //            return source.Take(maximumRows);
-        //        else
-        //            return source.Skip(startRowIndex).Take(maximumRows);
-        //    }
-        //}
         #endregion
     }
 }

@@ -7,7 +7,6 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Xml.Serialization;
-using NewLife.Collections;
 using NewLife.IO;
 using NewLife.Reflection;
 using XCode.Common;

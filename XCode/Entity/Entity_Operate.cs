@@ -10,7 +10,8 @@ namespace XCode
 {
     partial class Entity<TEntity>
     {
-        internal class EntityOperate : IEntityOperate
+        /// <summary>默认的实体操作者</summary>
+        public class EntityOperate : IEntityOperate
         {
             #region 属性
             private IEntity _Default;
