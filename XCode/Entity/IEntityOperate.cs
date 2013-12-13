@@ -11,6 +11,9 @@ namespace XCode
     public interface IEntityOperate
     {
         #region 属性
+        /// <summary>实体类型</summary>
+        Type EntityType { get; }
+
         /// <summary>默认实体</summary>
         IEntity Default { get; set; }
 

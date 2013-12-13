@@ -29,9 +29,8 @@ namespace XCode
         public static class Meta
         {
             #region 基本属性
-            private static Type _ThisType;
             /// <summary>实体类型</summary>
-            public static Type ThisType { get { return _ThisType ?? (_ThisType = typeof(TEntity)); } set { _ThisType = value; } }
+            internal static Type ThisType { get { return typeof(TEntity); } }
 
             /// <summary>表信息</summary>
             public static TableItem Table { get { return TableItem.Create(ThisType); } }
@@ -67,7 +66,7 @@ namespace XCode
             /// <summary>表名。线程内允许修改，修改者负责还原</summary>
             public static String TableName
             {
-                get { return _TableName ?? (_TableName = Table.TableName); }
+                get { return TableName ?? (TableName = Table.TableName); }
                 set
                 {
                     //修改表名
@@ -121,12 +120,26 @@ namespace XCode
             }
             #endregion
 
+            #region 实体会话
+            [ThreadStatic]
+            private static EntitySession<TEntity> _Session;
+            /// <summary>实体会话</summary>
+            static EntitySession<TEntity> Session
+            {
+                get
+                {
+                    if (_Session == null) _Session = EntitySession<TEntity>.Create(Table.ConnName, Table.TableName);
+                    return _Session;
+                }
+            }
+            #endregion
+
             #region 数据库操作
             /// <summary>数据操作对象。</summary>
             public static DAL DBO { get { return DAL.Create(ConnName); } }
 
-            /// <summary>数据库类型</summary>
-            public static DatabaseType DbType { get { return DBO.DbType; } }
+            ///// <summary>数据库类型</summary>
+            //public static DatabaseType DbType { get { return DBO.DbType; } }
 
             /// <summary>执行SQL查询，返回记录集</summary>
             /// <param name="builder">SQL语句</param>
@@ -437,7 +450,7 @@ namespace XCode
                         Func check = delegate
                         {
 #if DEBUG
-                            DAL.WriteLog("开始{2}检查表[{0}/{1}]的数据表架构……", Table.DataTable.Name, DbType, DAL.NegativeCheckOnly ? "异步" : "同步");
+                            DAL.WriteLog("开始{2}检查表[{0}/{1}]的数据表架构……", Table.DataTable.Name, DBO.DbType, DAL.NegativeCheckOnly ? "异步" : "同步");
 #endif
 
                             var sw = new Stopwatch();
@@ -456,7 +469,7 @@ namespace XCode
                                 sw.Stop();
 
 #if DEBUG
-                                DAL.WriteLog("检查表[{0}/{1}]的数据表架构耗时{2}", Table.DataTable.Name, DbType, sw.Elapsed);
+                                DAL.WriteLog("检查表[{0}/{1}]的数据表架构耗时{2}", Table.DataTable.Name, DBO.DbType, sw.Elapsed);
 #endif
                             }
                         };
@@ -705,14 +718,14 @@ namespace XCode
             #endregion
 
             #region 一些设置
-            [ThreadStatic]
-            private static Boolean _AllowInsertIdentity;
-            /// <summary>是否允许向自增列插入数据。为免冲突，仅本线程有效</summary>
-            public static Boolean AllowInsertIdentity { get { return _AllowInsertIdentity; } set { _AllowInsertIdentity = value; } }
+            //[ThreadStatic]
+            //private static Boolean _AllowInsertIdentity;
+            ///// <summary>是否允许向自增列插入数据。为免冲突，仅本线程有效</summary>
+            //public static Boolean AllowInsertIdentity { get { return _AllowInsertIdentity; } set { _AllowInsertIdentity = value; } }
 
-            private static FieldItem _AutoSetGuidField;
-            /// <summary>自动设置Guid的字段。对实体类有效，可在实体类类型构造函数里面设置</summary>
-            public static FieldItem AutoSetGuidField { get { return _AutoSetGuidField; } set { _AutoSetGuidField = value; } }
+            //private static FieldItem _AutoSetGuidField;
+            ///// <summary>自动设置Guid的字段。对实体类有效，可在实体类类型构造函数里面设置</summary>
+            //public static FieldItem AutoSetGuidField { get { return _AutoSetGuidField; } set { _AutoSetGuidField = value; } }
             #endregion
         }
     }
