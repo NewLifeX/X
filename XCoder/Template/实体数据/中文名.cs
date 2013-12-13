@@ -25,10 +25,11 @@ foreach(IDataIndex di in Table.Indexes){if(di.Columns==null||di.Columns.Length<1
 foreach(IDataRelation dr in Table.Relations){#>
     [BindRelation("<#=dr.Column#>", <#=dr.Unique.ToString().ToLower()#>, "<#=dr.RelationTable#>", "<#=dr.RelationColumn#>")]<#}#>
     [BindTable("<#=Table.TableName#>", Description = "<#=tdes#>", ConnName = "<#=Config.EntityConnName#>", DbType = DatabaseType.<#=Table.DbType#><#if(Table.IsView){#>, IsView = true<#}#>)]<#
-if(!Config.RenderGenEntity){#>
-    public partial class <#=Table.Name#> : I<#=Table.Name#><#
+    Boolean Abstract = Table.Properties["抽象"]=="true";
+if(Config.RenderGenEntity || Abstract){#>
+    public <#if(Abstract){#>abstract <#}#>partial class <#=Table.Name#><TEntity> : I<#=Table.Name#><#
 }else{#>
-    public partial class <#=Table.Name#><TEntity> : I<#=Table.Name#><#
+    public partial class <#=Table.Name#> : I<#=Table.Name#><#
 }#>
     {<#
 if(Table.Columns.Count>0)

@@ -16,7 +16,12 @@ namespace <#=Config.NameSpace#>
     String tdes=Table.Description;
     if(!String.IsNullOrEmpty(tdes)) tdes=tdes.Replace("\r\n"," ").Replace("\\", "\\\\").Replace("'", "").Replace("\"", "");
     if(String.IsNullOrEmpty(tdis)) tdis=tdes;
-    if(Config.RenderGenEntity){#>
+
+    String baseType = !String.IsNullOrEmpty(Table.BaseType) ? Table.BaseType : Config.BaseClass;
+    Boolean Abstract = Table.Properties["抽象"]=="true";
+
+    if(Config.RenderGenEntity && !Abstract)
+{#>
     /// <summary><#=tdis#></summary><# if(tdis!=tdes){#>
     /// <remarks><#=tdes#></remarks><#}#>
     [ModelCheckMode(ModelCheckModes.CheckTableWhenFirstUse)]
@@ -25,10 +30,10 @@ namespace <#=Config.NameSpace#>
 }#>
     /// <summary><#=tdis#></summary><# if(tdis!=tdes){#>
     /// <remarks><#=tdes#></remarks><#}#><#
-if(!Config.RenderGenEntity){#>
-    public partial class <#=Table.Name#> : <#=Config.BaseClass#><<#=Table.Name#>><#
+if(Config.RenderGenEntity || Abstract){#>
+    public partial class <#=Table.Name#><TEntity> : <#=baseType#><TEntity> where TEntity : <#=Table.Name#><TEntity>, new()<#
 }else{#>
-    public partial class <#=Table.Name#><TEntity> : <#=Config.BaseClass#><TEntity> where TEntity : <#=Table.Name#><TEntity>, new()<#
+    public partial class <#=Table.Name#> : <#=baseType#><<#=Table.Name#>><#
 }#>
     {
         #region 对象操作<#@include Name="对象操作.xt"#>        #endregion

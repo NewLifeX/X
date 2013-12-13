@@ -39,13 +39,6 @@ namespace XCode.DataAccessLayer
         [Description("表名")]
         public String TableName { get { return _TableName; } set { _TableName = value; } }
 
-        private String _BaseType;
-        /// <summary>基类</summary>
-        [XmlAttribute]
-        [DisplayName("基类")]
-        [Description("基类")]
-        public String BaseType { get { return _BaseType; } set { _BaseType = value; } }
-
         private String _DisplayName;
         /// <summary>显示名</summary>
         [XmlAttribute]
@@ -105,6 +98,13 @@ namespace XCode.DataAccessLayer
         [DisplayName("数据库类型")]
         [Description("数据库类型")]
         public DatabaseType DbType { get { return _DbType; } set { _DbType = value; } }
+
+        private String _BaseType;
+        /// <summary>基类</summary>
+        [XmlAttribute]
+        [DisplayName("基类")]
+        [Description("基类")]
+        public String BaseType { get { return _BaseType; } set { _BaseType = value; } }
         #endregion
 
         #region 扩展属性
