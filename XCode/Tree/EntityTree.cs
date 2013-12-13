@@ -25,13 +25,15 @@ namespace XCode
     /// </remarks>
     /// <typeparam name="TKey">主键类型</typeparam>
     /// <typeparam name="TEntity">实体类型</typeparam>
-    public abstract class EntityTree<TKey, TEntity> : Entity<TEntity>, IEntityTree where TEntity : EntityTree<TKey, TEntity>, new()
+    public abstract partial class EntityTree<TKey, TEntity> : Entity<TEntity>, IEntityTree where TEntity : EntityTree<TKey, TEntity>, new()
     {
         #region 构造
-        //static EntityTree()
-        //{
-        //    Meta.OnDataChange += delegate { Root = null; };
-        //}
+        static EntityTree()
+        {
+            //Meta.OnDataChange += delegate { Root = null; };
+
+            EntityFactory.Register(Meta.ThisType, new EntityTreeOperate<TEntity>());
+        }
         #endregion
 
         #region 设置型属性

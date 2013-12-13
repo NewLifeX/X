@@ -219,6 +219,8 @@
     <None Include="Transform\DataTransform.cs" />
     <Compile Include="Transform\EntityTransform.cs" />
     <None Include="Transform\TransformBase.cs" />
+    <Compile Include="Tree\EntityTreeOperate.cs" />
+    <Compile Include="Tree\IEntityTreeOperate.cs" />
     <Compile Include="Web\DbRunTimeModule.cs" />
     <Compile Include="Test\TestHelper.cs" />
     <Compile Include="Test\实体测试.Biz.cs">
@@ -227,7 +229,6 @@
     <Compile Include="Test\实体测试.cs" />
     <Compile Include="Tree\EntityTree.cs" />
     <Compile Include="Tree\IEntityTree.cs" />
-    <Compile Include="Tree\IEntityTreeExtend.cs" />
     <None Include="DataAccessLayer\Model\数据模型.cd" />
     <None Include="Test\XCodeTest.cs" />
   </ItemGroup>

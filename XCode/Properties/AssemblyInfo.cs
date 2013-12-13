@@ -34,8 +34,8 @@ using System.Runtime.InteropServices;
 //
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
-[assembly: AssemblyVersion("8.9.*")]
-[assembly: AssemblyFileVersion("8.9.2013.1212")]
+[assembly: AssemblyVersion("8.10.*")]
+[assembly: AssemblyFileVersion("8.10.2013.1213")]
 
 /*
  * XCode的重大改进
@@ -52,6 +52,8 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v8.10.2013.1213  增强实体类扩展EntityOperate，支持继承扩展，逐步替代Meta
+ * 
  * v8.9.2013.1212   增加EntityList.Page用于实体列表分页，同时增加配套的构造函数
  * 
  * v8.9.2013.1005   增加字段扩展FieldExtension，把字段的时间扩展操作分离出来并优化

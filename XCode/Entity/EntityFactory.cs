@@ -73,7 +73,7 @@ namespace XCode
 
             // 重新使用判断，减少锁争夺
             var eop = entity;
-            if (op_cache.TryGetValue(type, out eop) && eop != null && eop.GetType() == entity.GetType())
+            if (op_cache.TryGetValue(type, out eop) && eop != null)
             {
                 var opType = eop.GetType();
                 var enType = entity.GetType();
@@ -86,7 +86,7 @@ namespace XCode
             // 事实上，不管怎么样处理，只要这里还锁定op_cache，那么实体类静态构造函数和CreateOperate方法，就有可能导致死锁产生
             //lock ("op_cache" + type.FullName)
             {
-                if (op_cache.TryGetValue(type, out eop) && eop != null && eop.GetType() == entity.GetType())
+                if (op_cache.TryGetValue(type, out eop) && eop != null)
                 {
                     var opType = eop.GetType();
                     var enType = entity.GetType();
