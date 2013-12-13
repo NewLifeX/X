@@ -203,7 +203,7 @@ namespace NewLife.Compression
                         if (p <= 0) break;
 
                         dir = dir.Substring(0, p);
-                        if (!Entries.ContainsKey(dir))
+                        if (!Entries.ContainsKey(dir + DirSeparator))
                         {
                             var de = new ZipEntry();
                             // 必须包含分隔符，因为这样才能被识别为目录
