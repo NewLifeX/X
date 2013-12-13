@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Text;
 
 namespace NewLife.Serialization
@@ -7,8 +6,13 @@ namespace NewLife.Serialization
     /// <summary>二进制读写接口</summary>
     public interface IBinaryReadWrite
     {
+        /// <summary>编码整数</summary>
         Boolean EncodeInt { get; }
+
+        /// <summary>小端字节序</summary>
         Boolean IsLittleEndian { get; }
+
+        /// <summary>文本编码</summary>
         Encoding Encoding { get; }
 
         /// <summary>写入一个对象</summary>
@@ -16,8 +20,14 @@ namespace NewLife.Serialization
         /// <returns></returns>
         Boolean Write(Object value);
 
+        /// <summary>写入字节</summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
         Boolean Write(Byte value);
 
+        /// <summary>写入大小</summary>
+        /// <param name="size"></param>
+        /// <returns></returns>
         Boolean WriteSize(Int32 size);
     }
 
