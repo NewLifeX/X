@@ -60,59 +60,7 @@ namespace XCode
             // 确保实体类已被初始化，实际上，因为实体类静态构造函数中会注册IEntityOperate，所以下面的委托按理应该再也不会被执行了
             EnsureInit(type);
 
-            return op_cache.GetItem(type, key =>
-            {
-                Type optype = null;
-                if (typeof(IEntityOperate).IsAssignableFrom(key))
-                    optype = key;
-                else
-                    optype = GetEntityOperateType(key);
-
-                if (optype == null || !typeof(IEntityOperate).IsAssignableFrom(optype))
-                    throw new XCodeException("无法创建{0}的实体操作接口！", key);
-
-                var op = optype.CreateInstance() as IEntityOperate;
-                if (op == null) throw new XCodeException("无法创建{0}的实体操作接口！", key);
-
-                // 如果源实体类型实现了IEntity接口，则以它的对象为操作者的默认值
-                // 因为可能存在非泛型继承，比如Admin=>Administrator=>Administrator<Administrator>
-                if (typeof(IEntity).IsAssignableFrom(key)) op.Default = key.CreateInstance() as IEntity;
-
-                return op;
-            });
-        }
-
-        static Type GetEntityOperateType(Type type)
-        {
-            //return type.GetNestedType("EntityOperate", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance);
-            // 所有内嵌类
-            var ts = type.GetNestedTypes(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance);
-            if (ts != null && ts.Length > 0)
-            {
-                foreach (var item in ts)
-                {
-                    // 实现了IEntityOperate接口的内嵌类
-                    if (typeof(IEntityOperate).IsAssignableFrom(item))
-                    {
-                        var optype = item;
-                        // 此时这个内嵌类只是泛型声明而已
-                        if (optype.IsGenericType && optype.IsGenericTypeDefinition)
-                        {
-                            // 从声明类中找到真正的实体类型，组建泛型内嵌类
-                            if (type.IsGenericType && !type.IsGenericTypeDefinition)
-                            {
-                                optype = optype.MakeGenericType(type.GetGenericArguments());
-                            }
-                        }
-                        return optype;
-                    }
-                }
-            }
-
-            // 递归父类
-            if (type.BaseType != typeof(Object)) return GetEntityOperateType(type.BaseType);
-
-            return null;
+            return op_cache.GetItem(type, key => { throw new XCodeException("无法创建{0}的实体操作接口！", key); });
         }
 
         /// <summary>使用指定的实体对象创建实体操作接口，主要用于Entity内部调用，避免反射带来的损耗</summary>
