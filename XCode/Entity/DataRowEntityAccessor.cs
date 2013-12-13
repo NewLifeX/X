@@ -61,11 +61,7 @@ namespace XCode
         #region 属性
         private Type _EntityType;
         /// <summary>实体类</summary>
-        public Type EntityType
-        {
-            get { return _EntityType; }
-            set { _EntityType = value; }
-        }
+        public Type EntityType { get { return _EntityType; } set { _EntityType = value; } }
 
         private IEntityOperate _Factory;
         /// <summary>实体操作者</summary>
@@ -83,8 +79,8 @@ namespace XCode
             {
                 if (_FieldItems == null)
                 {
-                    Dictionary<String, FieldItem> dic = new Dictionary<String, FieldItem>(StringComparer.OrdinalIgnoreCase);
-                    foreach (FieldItem item in Factory.AllFields)
+                    var dic = new Dictionary<String, FieldItem>(StringComparer.OrdinalIgnoreCase);
+                    foreach (var item in Factory.AllFields)
                     {
                         if (!dic.ContainsKey(item.ColumnName)) dic.Add(item.ColumnName, item);
                     }
@@ -103,18 +99,15 @@ namespace XCode
         /// <returns>实体数组</returns>
         public IEntityList LoadData(DataTable dt)
         {
-            //if (dt == null || dt.Rows.Count < 1) return null;
-
             // 准备好实体列表
-            //EntityList<TEntity> list = new EntityList<TEntity>(dt.Rows.Count);
             var list = typeof(EntityList<>).MakeGenericType(EntityType).CreateInstance(dt.Rows.Count) as IEntityList;
             if (dt == null || dt.Rows.Count < 1) return list;
 
-            List<FieldItem> ps = new List<FieldItem>();
-            List<String> exts = new List<String>();
+            var ps = new List<FieldItem>();
+            var exts = new List<String>();
             foreach (DataColumn item in dt.Columns)
             {
-                String name = item.ColumnName;
+                var name = item.ColumnName;
                 FieldItem fi = null;
                 if (FieldItems.TryGetValue(name, out fi))
                     ps.Add(fi);
@@ -125,9 +118,8 @@ namespace XCode
             // 遍历每一行数据，填充成为实体
             foreach (DataRow dr in dt.Rows)
             {
-                //TEntity obj = new TEntity();
                 // 由实体操作者创建实体对象，因为实体操作者可能更换
-                IEntity obj = Factory.Create();
+                var obj = Factory.Create();
                 LoadData(dr, obj, ps, exts);
                 list.Add(obj);
             }
@@ -141,11 +133,11 @@ namespace XCode
         {
             if (dr == null) return;
 
-            List<FieldItem> ps = new List<FieldItem>();
-            List<String> exts = new List<String>();
+            var ps = new List<FieldItem>();
+            var exts = new List<String>();
             foreach (DataColumn item in dr.Table.Columns)
             {
-                String name = item.ColumnName;
+                var name = item.ColumnName;
                 FieldItem fi = null;
                 if (FieldItems.TryGetValue(name, out fi))
                     ps.Add(fi);
@@ -161,24 +153,18 @@ namespace XCode
         /// <returns>实体数组</returns>
         public IEntityList LoadData(IDataReader dr)
         {
-            //if (dr == null) return null;
-
-            //// 先移到第一行，要取字段名等信息
-            //if (!dr.Read()) return null;
-
             // 准备好实体列表
-            IEntityList list = typeof(EntityList<>).MakeGenericType(EntityType).CreateInstance() as IEntityList;
-
+            var list = typeof(EntityList<>).MakeGenericType(EntityType).CreateInstance() as IEntityList;
             if (dr == null) return list;
 
             // 先移到第一行，要取字段名等信息
             if (!dr.Read()) return list;
 
-            List<FieldItem> ps = new List<FieldItem>();
-            List<String> exts = new List<String>();
+            var ps = new List<FieldItem>();
+            var exts = new List<String>();
             for (int i = 0; i < dr.FieldCount; i++)
             {
-                String name = dr.GetName(i);
+                var name = dr.GetName(i);
                 FieldItem fi = null;
                 if (FieldItems.TryGetValue(name, out fi))
                     ps.Add(fi);
@@ -190,13 +176,13 @@ namespace XCode
             do
             {
                 // 由实体操作者创建实体对象，因为实体操作者可能更换
-                IEntity entity = Factory.Create();
-                foreach (FieldItem item in ps)
+                var entity = Factory.Create();
+                foreach (var item in ps)
                 {
                     SetValue(entity, item.Name, item.Type, dr[item]);
                 }
 
-                foreach (String item in exts)
+                foreach (var item in exts)
                 {
                     SetValue(entity, item, null, dr[item]);
                 }
@@ -216,7 +202,7 @@ namespace XCode
             // IDataReader的GetSchemaTable方法太浪费资源了
             for (int i = 0; i < dr.FieldCount; i++)
             {
-                String name = dr.GetName(i);
+                var name = dr.GetName(i);
                 Type type = null;
 
                 FieldItem fi = null;
@@ -237,8 +223,8 @@ namespace XCode
         {
             if (dr == null) return null;
 
-            List<String> ps = new List<String>();
-            foreach (FieldItem fi in Factory.AllFields)
+            var ps = new List<String>();
+            foreach (var fi in Factory.AllFields)
             {
                 // 检查dr中是否有该属性的列。考虑到Select可能是不完整的，此时，只需要局部填充
                 if (dr.Table.Columns.Contains(fi.ColumnName))
@@ -252,12 +238,12 @@ namespace XCode
             // 扩展属性也写入
             if (entity.Extends != null && entity.Extends.Count > 0)
             {
-                foreach (String item in entity.Extends.Keys)
+                foreach (var item in entity.Extends)
                 {
                     try
                     {
-                        if (!ps.Contains(item) && dr.Table.Columns.Contains(item))
-                            dr[item] = entity.Extends[item];
+                        if (!ps.Contains(item.Key) && dr.Table.Columns.Contains(item.Key))
+                            dr[item.Key] = item.Value;
                     }
                     catch { }
                 }

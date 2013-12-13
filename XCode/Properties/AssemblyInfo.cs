@@ -53,6 +53,7 @@ using System.Runtime.InteropServices;
 
 /*
  * v8.10.2013.1213  增强实体类扩展EntityOperate，支持继承扩展，逐步替代Meta
+ *                  填充数据完成时调用实体类OnLoad方法。默认设定标记_IsFromDatabase
  * 
  * v8.9.2013.1212   增加EntityList.Page用于实体列表分页，同时增加配套的构造函数
  * 

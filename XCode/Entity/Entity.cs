@@ -96,7 +96,7 @@ namespace XCode
             }
             foreach (EntityBase entity in list)
             {
-                entity._IsFromDatabase = true;
+                entity.OnLoad();
             }
             //if (list is EntityList<TEntity>) return list as EntityList<TEntity>;
             // 减少一步类型转换
@@ -113,7 +113,7 @@ namespace XCode
             if (dr != null)
             {
                 dreAccessor.LoadData(dr, this);
-                _IsFromDatabase = true;
+                OnLoad();
             }
         }
 
@@ -138,12 +138,12 @@ namespace XCode
             }
             foreach (EntityBase entity in list)
             {
-                entity._IsFromDatabase = true;
+                entity.OnLoad();
             }
             //if (list is EntityList<TEntity>) return list as EntityList<TEntity>;
             // 减少一步类型转换
             var elist = list as EntityList<TEntity>;
-            if (elist != null) { return elist; }
+            if (elist != null) return elist;
 
             return new EntityList<TEntity>(list);
         }
@@ -155,7 +155,7 @@ namespace XCode
             if (dr != null)
             {
                 dreAccessor.LoadData(dr, this);
-                _IsFromDatabase = true;
+                OnLoad();
 
                 // 设置默认累加字段
                 var fs = AdditionalFields;
