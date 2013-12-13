@@ -16,6 +16,9 @@ namespace XCode.DataAccessLayer
         /// <summary>表名</summary>
         String TableName { get; set; }
 
+        /// <summary>基类</summary>
+        String BaseType { get; set; }
+
         /// <summary>所有者</summary>
         String Owner { get; set; }
 

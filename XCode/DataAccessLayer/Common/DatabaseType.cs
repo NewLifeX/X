@@ -5,37 +5,41 @@ namespace XCode.DataAccessLayer
     /// <summary>数据库类型</summary>
     public enum DatabaseType
     {
+        /// <summary>无效值</summary>
+        [Description("无效值")]
+        None = 0,
+
         /// <summary>MS的Access文件数据库</summary>
         [Description("Access文件数据库")]
-        Access = 0,
+        Access,
 
         /// <summary>MS的SqlServer数据库</summary>
         [Description("SqlServer数据库")]
-        SqlServer = 1,
+        SqlServer,
 
         /// <summary>Oracle数据库</summary>
         [Description("Oracle数据库")]
-        Oracle = 2,
+        Oracle,
 
         /// <summary>MySql数据库</summary>
         [Description("MySql数据库")]
-        MySql = 3,
+        MySql,
 
         /// <summary>SqlCe数据库</summary>
         [Description("SqlCe数据库")]
-        SqlCe = 4,
+        SqlCe,
 
         /// <summary>SQLite数据库</summary>
         [Description("SQLite数据库")]
-        SQLite = 5,
+        SQLite,
 
         /// <summary>Firebird数据库</summary>
         [Description("Firebird数据库")]
-        Firebird = 6,
+        Firebird,
 
         /// <summary>SqlCe数据库</summary>
         [Description("PostgreSQL数据库")]
-        PostgreSQL = 7,
+        PostgreSQL,
 
         /// <summary>网络虚拟数据库</summary>
         [Description("网络虚拟数据库")]
