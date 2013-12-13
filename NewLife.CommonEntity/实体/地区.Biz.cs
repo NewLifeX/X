@@ -13,13 +13,24 @@ namespace NewLife.CommonEntity
     [ModelCheckMode(ModelCheckModes.CheckTableWhenFirstUse)]
     public partial class Area<TEntity> : EntityTree<TEntity> where TEntity : Area<TEntity>, new()
     {
+        #region 构造
+        static Area()
+        {
+            // 注册新的实体树操作
+            Setting = new AreaSetting();
+        }
+
+        class AreaSetting : EntityTreeSetting<TEntity>
+        {
+            /// <summary>已重载。</summary>
+            public override string Key { get { return _.Code; } }
+
+            /// <summary>关联父键名，一般是Parent加主键，如ParentID</summary>
+            public override string Parent { get { return _.ParentCode; } }
+        }
+        #endregion
+
         #region 扩展属性
-        /// <summary>已重载。</summary>
-        protected override string KeyName { get { return _.Code; } }
-
-        /// <summary>关联父键名，一般是Parent加主键，如ParentID</summary>
-        protected override string ParentKeyName { get { return _.ParentCode; } }
-
         [NonSerialized]
         private String _FriendName;
         /// <summary>友好名</summary>

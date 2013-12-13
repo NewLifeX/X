@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
 using System.Text;
 using System.Web.UI.WebControls;
 using System.Xml.Serialization;
@@ -17,7 +16,7 @@ namespace XCode
 
     /// <summary>实体树基类，具有树形结构的实体继承该类即可得到各种树操作功能</summary>
     /// <remarks>
-    /// 实体树很神奇，子类可以通过<see cref="KeyName"/>、<see cref="ParentKeyName"/>、<see cref="SortingKeyName"/>、<see cref="NameKeyName"/>等设置型属性，
+    /// 实体树很神奇，子类可以通过KeyName、ParentKeyName、SortingKeyName、NameKeyName等设置型属性，
     /// 指定关联键、关联父键、排序键、名称键，其中前两个是必须的，它们是构造一棵树的根基！
     /// 
     /// 整个表会形成一颗实体树，同时也是一个实体列表，子级紧靠父级，同级排序，<see cref="Root"/>就是这棵树的根。
@@ -27,115 +26,58 @@ namespace XCode
     /// <typeparam name="TEntity">实体类型</typeparam>
     public abstract partial class EntityTree<TKey, TEntity> : Entity<TEntity>, IEntityTree where TEntity : EntityTree<TKey, TEntity>, new()
     {
-        #region 构造
-        static EntityTree()
-        {
-            //Meta.OnDataChange += delegate { Root = null; };
+        #region 静态构造
+        //static EntityTree()
+        //{
+        //    //Meta.OnDataChange += delegate { Root = null; };
 
-            EntityFactory.Register(Meta.ThisType, new EntityTreeOperate<TEntity>());
-        }
-        #endregion
+        //    //Operate = EntityFactory.Register(Meta.ThisType, new EntityTreeSetting<TEntity>()) as IEntityTreeOperate;
+        //}
 
-        #region 设置型属性
-        /// <summary>关联键名称，一般是主键，如ID</summary>
-        protected virtual String KeyName { get { return Meta.Unique.Name; } }
-
-        /// <summary>关联父键名，一般是Parent加主键，如ParentID</summary>
-        protected virtual String ParentKeyName
-        {
-            get
-            {
-                var name = "Parent" + KeyName;
-                //if (Meta.FieldNames.Contains(name)) return name;
-                // 不区分大小写的比较
-                if (Meta.FieldNames.Contains(name, StringComparer.OrdinalIgnoreCase)) return name;
-
-                return null;
-            }
-        }
-
-        private static String _SortingKeyName;
-        /// <summary>排序字段，默认是"Sorting", "Sort", "Rank"之一</summary>
-        protected virtual String SortingKeyName
-        {
-            get
-            {
-                if (_SortingKeyName == null)
-                {
-                    // Empty与null不同，可用于区分是否已计算
-                    _SortingKeyName = String.Empty;
-
-                    var names = new String[] { "Sorting", "Sort", "Rank" };
-                    var fs = Meta.FieldNames;
-                    foreach (var name in names)
-                    {
-                        //if (fs.Contains(name))
-                        // 不区分大小写的比较
-                        if (fs.Contains(name, StringComparer.OrdinalIgnoreCase))
-                        {
-                            _SortingKeyName = name;
-                            break;
-                        }
-                    }
-                }
-                return _SortingKeyName;
-            }
-        }
-
-        /// <summary>名称键名，如Name，否则使用第一个非自增字段</summary>
-        /// <remarks>影响NodeName、TreeNodeName、TreeNodeName2、FindByPath、GetFullPath、GetFullPath2等</remarks>
-        protected virtual String NameKeyName { get { return Meta.FieldNames.Contains("Name", StringComparer.OrdinalIgnoreCase) ? "Name" : Meta.Fields.Where(f => !f.IsIdentity).FirstOrDefault().Name; } }
-
-        /// <summary>是否缓存Childs、AllChilds、Parent等</summary>
-        protected virtual Boolean EnableCaching { get { return true; } }
-
-        /// <summary>是否大排序，较大排序值在前面</summary>
-        protected virtual Boolean BigSort { get { return true; } }
-
-        /// <summary>允许的最大深度。默认0，不限制</summary>
-        protected virtual Int32 MaxDeepth { get { return 0; } }
+        /// <summary>实体树操作者</summary>
+        protected static IEntityTreeSetting Setting = new EntityTreeSetting<TEntity> { Factory = Meta.Factory };
         #endregion
 
         #region 扩展属性
         /// <summary>排序值</summary>
         private Int32 Sort
         {
-            get { return String.IsNullOrEmpty(SortingKeyName) ? 0 : (Int32)this[SortingKeyName]; }
-            set { if (!String.IsNullOrEmpty(SortingKeyName) && (Int32)this[SortingKeyName] != value) SetItem(SortingKeyName, value); }
+            get { return String.IsNullOrEmpty(Setting.Sort) ? 0 : (Int32)this[Setting.Sort]; }
+            set { if (!String.IsNullOrEmpty(Setting.Sort) && (Int32)this[Setting.Sort] != value) SetItem(Setting.Sort, value); }
         }
 
         /// <summary>子节点</summary>
         public virtual EntityList<TEntity> Childs
         {
-            get { return EnableCaching ? GetExtend<EntityList<TEntity>>("Childs", e => FindChilds(), !IsNull((TKey)this[KeyName])) : FindChilds(); }
+            get { return Setting.EnableCaching ? GetExtend<EntityList<TEntity>>("Childs", e => FindChilds(), !IsNull((TKey)this[Setting.Key])) : FindChilds(); }
             set { SetExtend("Childs", value); }
         }
 
         /// <summary>子节点</summary>
-        protected virtual EntityList<TEntity> FindChilds() { return FindAllByParent((TKey)this[KeyName]); }
+        protected virtual EntityList<TEntity> FindChilds() { return FindAllByParent((TKey)this[Setting.Key]); }
 
         /// <summary>父节点</summary>
         [XmlIgnore]
         public virtual TEntity Parent
         {
-            get { return EnableCaching ? GetExtend<TEntity>("Parent", e => FindParent()) : FindParent(); }
+            get { return Setting.EnableCaching ? GetExtend<TEntity>("Parent", e => FindParent()) : FindParent(); }
             set { SetExtend("Parent", value); }
         }
 
         /// <summary>父节点</summary>
-        protected virtual TEntity FindParent() { return Meta.Cache.Entities.Find(KeyName, this[ParentKeyName]); }
+        protected virtual TEntity FindParent() { return Meta.Cache.Entities.Find(Setting.Key, this[Setting.Parent]); }
 
         /// <summary>父节点</summary>
         protected static TEntity FindByKeyWithCache(TKey key)
         {
-            return Meta.Cache.Entities.Find((Meta.Factory.Default as TEntity).KeyName, key);
+            return Meta.Cache.Entities.Find(Setting.Key, key);
         }
 
         /// <summary>子孙节点</summary>
         [XmlIgnore]
         public virtual EntityList<TEntity> AllChilds
         {
-            get { return EnableCaching ? GetExtend<EntityList<TEntity>>("AllChilds", e => FindAllChilds(this), !IsNull((TKey)this[KeyName])) : FindAllChilds(this); }
+            get { return Setting.EnableCaching ? GetExtend<EntityList<TEntity>>("AllChilds", e => FindAllChilds(this), !IsNull((TKey)this[Setting.Key])) : FindAllChilds(this); }
             set { SetExtend("AllChilds", value); }
         }
 
@@ -143,7 +85,7 @@ namespace XCode
         [XmlIgnore]
         public virtual EntityList<TEntity> AllParents
         {
-            get { return EnableCaching ? GetExtend<EntityList<TEntity>>("AllParents", e => FindAllParents(this)) : FindAllParents(this); }
+            get { return Setting.EnableCaching ? GetExtend<EntityList<TEntity>>("AllParents", e => FindAllParents(this)) : FindAllParents(this); }
             set { SetExtend("AllParents", value); }
         }
 
@@ -153,7 +95,7 @@ namespace XCode
         {
             get
             {
-                if (IsNull((TKey)this[KeyName])) return 0;
+                if (IsNull((TKey)this[Setting.Key])) return 0;
 
                 Int32 _Deepth = 1;
                 var list = AllParents;
@@ -184,7 +126,7 @@ namespace XCode
         {
             get
             {
-                var key = NameKeyName;
+                var key = Setting.Name;
                 if (String.IsNullOrEmpty(key)) return String.Empty;
 
                 return (String)this[key];
@@ -197,7 +139,7 @@ namespace XCode
         {
             get
             {
-                var key = NameKeyName;
+                var key = Setting.Name;
                 if (String.IsNullOrEmpty(key)) return String.Empty;
 
                 var parent = Parent;
@@ -213,7 +155,7 @@ namespace XCode
         {
             get
             {
-                String key = NameKeyName;
+                String key = Setting.Name;
                 if (String.IsNullOrEmpty(key)) return String.Empty;
 
                 Int32 d = Deepth;
@@ -229,7 +171,7 @@ namespace XCode
         {
             get
             {
-                String key = NameKeyName;
+                String key = Setting.Name;
                 if (String.IsNullOrEmpty(key)) return String.Empty;
 
                 Int32 d = Deepth;
@@ -256,10 +198,7 @@ namespace XCode
         [DataObjectMethod(DataObjectMethodType.Select)]
         public static EntityList<TEntity> FindAllByParent(TKey parentKey)
         {
-            // 根据默认值拿到各个键名
-            var def = Meta.Factory.Default as TEntity;
-
-            var list = Meta.Cache.Entities.FindAll(def.ParentKeyName, parentKey);
+            var list = Meta.Cache.Entities.FindAll(Setting.Parent, parentKey);
             // 如果是顶级，那么包含所有无头节点，无头节点由错误数据造成
             if (IsNull(parentKey))
             {
@@ -275,15 +214,15 @@ namespace XCode
             if (list == null) return new EntityList<TEntity>();
             if (list.Count < 1) return list;
 
-            if (!String.IsNullOrEmpty(def.SortingKeyName))
+            if (!String.IsNullOrEmpty(Setting.Sort))
             {
-                var n = def.BigSort ? 1 : -1;
+                var n = Setting.BigSort ? 1 : -1;
                 list.Sort((item1, item2) =>
                 {
                     if (item1.Sort != item2.Sort)
                         return -n * item1.Sort.CompareTo(item2.Sort);
                     else
-                        return (item1[def.KeyName] as IComparable).CompareTo(item2[def.KeyName]);
+                        return (item1[Setting.Key] as IComparable).CompareTo(item2[Setting.Key]);
                 });
             }
             return list;
@@ -293,15 +232,13 @@ namespace XCode
         /// <returns></returns>
         public static EntityList<TEntity> FindAllNoParent()
         {
-            var entity = Meta.Factory.Default as TEntity;
-
             var list = new EntityList<TEntity>();
             foreach (var item in Meta.Cache.Entities)
             {
                 // 有父节点的跳过
                 if (item.Parent != null) continue;
                 // 父节点为空的跳过
-                if (IsNull((TKey)item[entity.ParentKeyName])) continue;
+                if (IsNull((TKey)item[Setting.Parent])) continue;
 
                 list.Add(item);
             }
@@ -426,9 +363,9 @@ namespace XCode
 
             if (keys == null || keys.Length < 1)
             {
-                if (String.IsNullOrEmpty(NameKeyName)) return null;
+                if (String.IsNullOrEmpty(Setting.Name)) return null;
 
-                keys = new String[] { NameKeyName };
+                keys = new String[] { Setting.Name };
             }
 
             var list = Childs;
@@ -468,15 +405,15 @@ namespace XCode
             if (IsNull(key)) return false;
 
             // 自身
-            if (Object.Equals((TKey)this[KeyName], key)) return true;
+            if (Object.Equals((TKey)this[Setting.Key], key)) return true;
 
             // 子级
             var list = Childs;
-            if (list != null && list.Exists(KeyName, key)) return true;
+            if (list != null && list.Exists(Setting.Key, key)) return true;
 
             // 子孙
             list = AllChilds;
-            if (list != null && list.Exists(KeyName, key)) return true;
+            if (list != null && list.Exists(Setting.Key, key)) return true;
 
             return false;
         }
@@ -490,7 +427,7 @@ namespace XCode
                 var list = Childs;
                 if (list == null || list.Count < 1) return new List<TKey>();
 
-                return list.GetItem<TKey>(KeyName);
+                return list.GetItem<TKey>(Setting.Key);
             }
         }
 
@@ -522,7 +459,7 @@ namespace XCode
                 var list = AllChilds;
                 if (list == null || list.Count < 1) return new List<TKey>();
 
-                return list.GetItem<TKey>(KeyName);
+                return list.GetItem<TKey>(Setting.Key);
             }
         }
 
@@ -562,9 +499,9 @@ namespace XCode
 
         private static void MakeTree(TreeNodeCollection nodes, EntityList<TEntity> list, String url, Func<TEntity, TreeNode> func, EntityList<TEntity> parents)
         {
-            var def = Meta.Factory.Default as TEntity;
-            var id = def.KeyName;
-            var name = def.NameKeyName;
+            //var def = Meta.Factory.Default as TEntity;
+            var id = Setting.Key;
+            var name = Setting.Name;
 
             foreach (var item in list)
             {
@@ -625,7 +562,7 @@ namespace XCode
             var list = GetFullPath(includeSelf);
             if (list == null || list.Count < 1) return null;
 
-            var namekey = NameKeyName;
+            var namekey = Setting.Name;
 
             var sb = new StringBuilder();
             foreach (var item in list)
@@ -649,7 +586,7 @@ namespace XCode
             var list = GetFullPath(includeSelf);
             if (list == null || list.Count < 1) return separator;
 
-            var namekey = NameKeyName;
+            var namekey = Setting.Name;
 
             var sb = new StringBuilder();
             foreach (var item in list)
@@ -676,8 +613,8 @@ namespace XCode
 
             foreach (var item in list)
             {
-                item[KeyName] = default(TKey);
-                item[ParentKeyName] = default(TKey);
+                item[Setting.Key] = default(TKey);
+                item[Setting.Parent] = default(TKey);
 
                 item.ClearRelation();
             }
@@ -700,7 +637,7 @@ namespace XCode
                 {
                     foreach (var item in list)
                     {
-                        item[ParentKeyName] = this[KeyName];
+                        item[Setting.Parent] = this[Setting.Key];
                         count += item.BatchSave(true);
                     }
                 }
@@ -719,11 +656,10 @@ namespace XCode
         /// <summary>排序上升</summary>
         public void Up()
         {
-            var list = FindAllByParent((TKey)this[ParentKeyName]);
+            var list = FindAllByParent((TKey)this[Setting.Parent]);
             if (list == null || list.Count < 1) return;
 
-            var def = Meta.Factory.Default as TEntity;
-            var n = def.BigSort ? 1 : -1;
+            var n = Setting.BigSort ? 1 : -1;
 
             for (var i = 0; i < list.Count; i++)
             {
@@ -740,11 +676,10 @@ namespace XCode
         /// <summary>排序下降</summary>
         public void Down()
         {
-            var list = FindAllByParent((TKey)this[ParentKeyName]);
+            var list = FindAllByParent((TKey)this[Setting.Parent]);
             if (list == null || list.Count < 1) return;
 
-            var def = Meta.Factory.Default as TEntity;
-            var n = def.BigSort ? 1 : -1;
+            var n = Setting.BigSort ? 1 : -1;
 
             for (var i = 0; i < list.Count; i++)
             {
@@ -762,8 +697,8 @@ namespace XCode
         {
             if (entity == null) return false;
 
-            var v1 = this[KeyName];
-            var v2 = entity[KeyName];
+            var v1 = this[Setting.Key];
+            var v2 = entity[Setting.Key];
             if (typeof(TKey) == typeof(String)) return "" + v1 == "" + v2;
 
             return Object.Equals(v1, v2);
@@ -777,8 +712,8 @@ namespace XCode
         {
             base.Valid(isNew);
 
-            var key = (TKey)this[KeyName];
-            var pkey = (TKey)this[ParentKeyName];
+            var key = (TKey)this[Setting.Key];
+            var pkey = (TKey)this[Setting.Parent];
 
             var isnull = IsNull(key);
             var pisnull = IsNull(pkey);
@@ -790,12 +725,12 @@ namespace XCode
             {
                 //if (!Meta.Cache.Entities.Exists(KeyName, pkey) && FindCount(KeyName, pkey) <= 0) throw new XException("无效上级[" + pkey + "]！");
 
-                var parent = Meta.Cache.Entities.Find(KeyName, pkey);
-                if (parent == null) parent = Find(KeyName, pkey);
+                var parent = Meta.Cache.Entities.Find(Setting.Key, pkey);
+                if (parent == null) parent = Find(Setting.Key, pkey);
                 if (parent == null) throw new XException("无效上级[" + pkey + "]！");
 
                 // 检查最大深度
-                var maxdeepth = MaxDeepth;
+                var maxdeepth = Setting.MaxDeepth;
                 if (maxdeepth > 0)
                 {
                     if (parent.Deepth >= maxdeepth) throw new XException("已达到最大深度" + maxdeepth + "层！");
@@ -817,7 +752,7 @@ namespace XCode
             if (!isnull && !pisnull)
             {
                 var list = this.AllChilds;
-                if (list != null && list.Exists(KeyName, pkey))
+                if (list != null && list.Exists(Setting.Key, pkey))
                     throw new XException("上级[" + pkey + "]是当前节点的子孙节点！");
             }
         }

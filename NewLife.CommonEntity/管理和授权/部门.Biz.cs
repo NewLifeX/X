@@ -83,7 +83,7 @@ namespace NewLife.CommonEntity
         public String ParentName { get { return Parent == null ? null : Parent.Name; } }
 
         /// <summary>下一级等级名称</summary>
-        public String NextLevelName { get { return MaxDeepth > 0 && Deepth >= MaxDeepth ? null : OnGetLevelName(Level + 1); } }
+        public String NextLevelName { get { return Setting.MaxDeepth > 0 && Deepth >= Setting.MaxDeepth ? null : OnGetLevelName(Level + 1); } }
         #endregion
 
         #region 扩展查询﻿

@@ -115,7 +115,6 @@
     <Compile Include="Sync\ISyncMaster.cs" />
     <Compile Include="Sync\ISyncSlave.cs" />
     <Compile Include="Sync\SyncManager.cs" />
-    <Compile Include="Tree\EntityTreeKey.cs" />
     <Compile Include="Attributes\ModelCheckModeAttribute.cs" />
     <Compile Include="Attributes\ModelSortMode.cs" />
     <Compile Include="Cache\EntityDependency.cs" />
@@ -220,8 +219,7 @@
     <None Include="Transform\DataTransform.cs" />
     <Compile Include="Transform\EntityTransform.cs" />
     <None Include="Transform\TransformBase.cs" />
-    <Compile Include="Tree\EntityTreeOperate.cs" />
-    <Compile Include="Tree\IEntityTreeOperate.cs" />
+    <Compile Include="Tree\IEntityTreeSettting.cs" />
     <Compile Include="Web\DbRunTimeModule.cs" />
     <Compile Include="Test\TestHelper.cs" />
     <Compile Include="Test\实体测试.Biz.cs">
