@@ -34,9 +34,11 @@ using System.Runtime.InteropServices;
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("4.0.*")]
-[assembly: AssemblyFileVersion("4.0.2013.1211")]
+[assembly: AssemblyFileVersion("4.0.2013.1214")]
 
 /*
+ * v4.0.2013.1214   简化对象容器IObjectContainer，不再支持构造函数依赖注入，上一次取消了属性依赖注入
+ * 
  * v4.0.2013.1211   文本日志TextFileLog增加指定日志文件路径的创建方法
  * 
  * v4.0.2013.1024   增加反射接口IReflect，统一快速反射

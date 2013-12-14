@@ -246,21 +246,10 @@ namespace NewLife.Model
             if (to != null) map.ImplementType = to;
             if (instance != null) map.Instance = instance;
 
-            if (!dic.ContainsKey(id))
-            {
-                //if (OnRegistering != null) OnRegistering(this, new EventArgs<Type, IObjectMap>(from, map));
-                dic.Add(id, map);
-                //if (OnRegistered != null) OnRegistered(this, new EventArgs<Type, IObjectMap>(from, map));
-            }
+            if (!dic.ContainsKey(id)) dic.Add(id, map);
 
             return this;
         }
-
-        ///// <summary>注册前事件</summary>
-        //public event EventHandler<EventArgs<Type, IObjectMap>> OnRegistering;
-
-        ///// <summary>注册后事件</summary>
-        //public event EventHandler<EventArgs<Type, IObjectMap>> OnRegistered;
         #endregion
 
         #region 注册
@@ -385,77 +374,8 @@ namespace NewLife.Model
             if (map.ImplementType == null) throw new XException("设计错误，名为{0}的{1}实现未找到！", id, from);
 
             Object obj = null;
-            // 3，如果容器里面包含这个类型，并且指向的实例为空，则创建对象返回
-            // 4，如果有带参数构造函数，则从容器内获取各个参数的实例，最后创建对象返回
-            var cis = map.ImplementType.GetConstructors();
-            if (cis.Length <= 0)
-                obj = map.ImplementType.CreateInstance();
-            else
-            {
-                // 找到无参数构造函数
-                var ci = map.ImplementType.GetConstructor(Type.EmptyTypes);
-                if (ci != null)
-                {
-                    obj = map.ImplementType.CreateInstance();
-                }
-                else
-                {
-                    #region 构造函数注入
-                    // 参数值缓存，避免相同类型参数，出现在不同构造函数中，造成重复Resolve的问题
-                    var pscache = new Dictionary<Type, Object>();
-                    foreach (var item in cis)
-                    {
-                        var ps = new List<Object>();
-                        foreach (var pi in item.GetParameters())
-                        {
-                            Object pv = null;
-                            // 处理值类型
-                            if (pi.ParameterType.IsValueType)
-                            {
-                                pv = pi.ParameterType.CreateInstance();
-                                ps.Add(pv);
-                                continue;
-                            }
-
-                            // 从缓存里面拿
-                            if (pscache.TryGetValue(pi.ParameterType, out pv))
-                            {
-                                ps.Add(pv);
-                                continue;
-                            }
-
-                            dic = Find(pi.ParameterType);
-                            if (dic.Count > 0)
-                            {
-                                // 解析该参数类型的实例
-                                pv = Resolve(pi.ParameterType);
-                                if (pv != null)
-                                {
-                                    pscache.Add(pi.ParameterType, pv);
-                                    ps.Add(pv);
-                                    continue;
-                                }
-                            }
-
-                            // 任意一个参数解析失败，都将导致失败
-                            ps = null;
-                            break;
-                        }
-                        // 取得完整参数，可以构造了
-                        if (ps != null)
-                        {
-                            obj = Reflect.Invoke(null, item, ps.ToArray());
-                            break;
-                        }
-                    }
-
-                    // 遍历完所有构造函数都无法构造，失败！
-                    if (obj == null) throw new XException("容器无法完整构造目标对象的任意一个构造函数！");
-                    #endregion
-                }
-            }
-
-            return obj;
+            // 3，如果容器里面包含这个类型，并且指向的实例为空，则创建对象返回。不再支持构造函数依赖注入
+            return map.ImplementType.CreateInstance();
         }
 
         /// <summary>解析类型指定名称的实例</summary>
@@ -504,21 +424,6 @@ namespace NewLife.Model
             }
         }
 #endif
-
-        ///// <summary>解析类型所有已注册的实例</summary>
-        ///// <param name="from">接口类型</param>
-        ///// <returns></returns>
-        //public virtual IEnumerable<Object> ResolveAll(Type from)
-        //{
-        //    if (from == null) throw new ArgumentNullException("from");
-
-        //    return Find(from).Values.Select(e => e.Instance);
-        //}
-
-        ///// <summary>解析类型所有已注册的实例</summary>
-        ///// <typeparam name="TInterface">接口类型</typeparam>
-        ///// <returns></returns>
-        //public virtual IEnumerable<TInterface> ResolveAll<TInterface>() { return Find(typeof(TInterface)).Values.Select(e => e.Instance).Cast<TInterface>(); }
         #endregion
 
         #region 解析类型

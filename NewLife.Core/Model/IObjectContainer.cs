@@ -109,16 +109,6 @@ namespace NewLife.Model
         /// <param name="extend">扩展。若为ture，id为null而找不到时，采用第一个注册项；id不为null而找不到时，采用null注册项</param>
         /// <returns></returns>
         TInterface ResolveInstance<TInterface>(Object id = null, Boolean extend = false);
-
-        ///// <summary>解析类型所有已注册的实例</summary>
-        ///// <param name="from">接口类型</param>
-        ///// <returns></returns>
-        //IEnumerable<Object> ResolveAll(Type from);
-
-        ///// <summary>解析类型所有已注册的实例</summary>
-        ///// <typeparam name="TInterface">接口类型</typeparam>
-        ///// <returns></returns>
-        //IEnumerable<TInterface> ResolveAll<TInterface>();
         #endregion
 
         #region 解析类型
