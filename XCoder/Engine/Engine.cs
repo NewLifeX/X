@@ -116,9 +116,22 @@ namespace XCoder
         public String[] Render(IDataTable table)
         {
             var data = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
-            data["Config"] = Config;
+            //data["Config"] = Config;
             data["Tables"] = Tables;
             data["Table"] = table;
+
+            #region 配置
+            // 复制表属性到配置
+            var cfg = new XConfig();
+            foreach (var pi in cfg.GetType().GetProperties())
+            {
+                if (table.Properties.ContainsKey(pi.Name))
+                    cfg.SetValue(pi, table.Properties[pi.Name]);
+                else
+                    cfg.SetValue(pi, Config.GetValue(pi));
+            }
+            data["Config"] = cfg;
+            #endregion
 
             #region 模版预处理
             // 声明模版引擎
