@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.ComponentModel;
 using System.Runtime.ConstrainedExecution;
 using System.Threading;
 using System.Xml.Serialization;
@@ -108,5 +111,45 @@ namespace NewLife
         /// </remarks>
         ~DisposeBase() { Dispose(false); }
         #endregion
+    }
+
+    /// <summary>销毁助手。扩展方法专用</summary>
+    [EditorBrowsable(EditorBrowsableState.Advanced)]
+    public static class DisposeHelper
+    {
+        /// <summary>尝试销毁对象，如果有<see cref="IDisposable"/>则调用</summary>
+        /// <param name="obj"></param>
+        /// <returns></returns>
+        public static Object TryDispose(this Object obj)
+        {
+            if (obj == null) return obj;
+
+            // 列表元素销毁
+            if (obj is IEnumerable)
+            {
+                foreach (var item in (obj as IEnumerable))
+                {
+                    if (item is IDisposable)
+                    {
+                        try
+                        {
+                            (item as IDisposable).Dispose();
+                        }
+                        catch { }
+                    }
+                }
+            }
+            // 对象销毁
+            if (obj is IDisposable)
+            {
+                try
+                {
+                    (obj as IDisposable).Dispose();
+                }
+                catch { }
+            }
+
+            return obj;
+        }
     }
 }
