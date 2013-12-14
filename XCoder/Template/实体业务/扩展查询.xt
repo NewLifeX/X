@@ -36,7 +36,7 @@ if(Table.Indexes!=null&&Table.Indexes.Count>0){
             Args[i]=argName;
    
             if(sb2.Length>0) sb2.Append(", ");
-            sb2.Append("_."+Field.Name);
+            sb2.Append("__."+Field.Name);
             
             if(sb3.Length>0) sb3.Append(", ");
             sb3.Append(argName);

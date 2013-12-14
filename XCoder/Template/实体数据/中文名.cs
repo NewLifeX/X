@@ -25,9 +25,8 @@ foreach(IDataIndex di in Table.Indexes){if(di.Columns==null||di.Columns.Length<1
 foreach(IDataRelation dr in Table.Relations){#>
     [BindRelation("<#=dr.Column#>", <#=dr.Unique.ToString().ToLower()#>, "<#=dr.RelationTable#>", "<#=dr.RelationColumn#>")]<#}#>
     [BindTable("<#=Table.TableName#>", Description = "<#=tdes#>", ConnName = "<#=Config.EntityConnName#>", DbType = DatabaseType.<#=Table.DbType#><#if(Table.IsView){#>, IsView = true<#}#>)]<#
-    Boolean Abstract = Table.Properties["抽象"]=="true";
-if(Config.RenderGenEntity || Abstract){#>
-    public <#if(Abstract){#>abstract <#}#>partial class <#=Table.Name#><TEntity> : I<#=Table.Name#><#
+if(Config.RenderGenEntity){#>
+    public abstract partial class <#=Table.Name#><TEntity> : I<#=Table.Name#><#
 }else{#>
     public partial class <#=Table.Name#> : I<#=Table.Name#><#
 }#>
@@ -102,20 +101,22 @@ if(Table.Columns.Count>0)
             }
         }
         #endregion
-
+<#
+}
+#>
         #region 字段名
         /// <summary>取得<#=tdis#>字段信息的快捷方式</summary>
-        public partial class _
+        <#if(!Config.RenderGenEntity){#>public <#}#>partial class _
         {<#
-        foreach(IDataColumn Field in Table.Columns)
-        {
-            String des=Field.Description;
-            if(!String.IsNullOrEmpty(des)) des=des.Replace("\r\n"," ");
+foreach(IDataColumn Field in Table.GetAllColumns(Tables, true))
+{
+    String des=Field.Description;
+    if(!String.IsNullOrEmpty(des)) des=des.Replace("\r\n"," ");
 #>
             ///<summary><#=des#></summary>
             public static readonly Field <#=Field.Name#> = FindByName(__.<#=Field.Name#>);
 <#
-        }
+}
 #>
             static Field FindByName(String name) { return Meta.Table.FindByName(name); }
         }
@@ -123,39 +124,41 @@ if(Table.Columns.Count>0)
         /// <summary>取得<#=tdis#>字段名称的快捷方式</summary>
         partial class __
         {<#
-        foreach(IDataColumn Field in Table.Columns)
-        {
-            String des=Field.Description;
-            if(!String.IsNullOrEmpty(des)) des=des.Replace("\r\n"," ");
+foreach(IDataColumn Field in Table.GetAllColumns(Tables, true))
+{
+    String des=Field.Description;
+    if(!String.IsNullOrEmpty(des)) des=des.Replace("\r\n"," ");
 #>
             ///<summary><#=des#></summary>
             public const String <#=Field.Name#> = "<#=Field.Name#>";
 <#
-        }
+}
 #>
         }
-        #endregion<#
-}#>
+        #endregion
     }
 
     /// <summary><#=tdis#>接口</summary><# if(tdis!=tdes){#>
     /// <remarks><#=tdes#></remarks><#}#>
-    public partial interface I<#=Table.Name#>
+    public partial interface I<#=Table.Name#><#if(!String.IsNullOrEmpty(Table.BaseType)){#> : I<#=Table.BaseType#><#}#>
     {<#
 if(Table.Columns.Count>0)
 {
 #>
         #region 属性<#
-        foreach(IDataColumn Field in Table.Columns)
-        {
-            String des=Field.Description;
-            if(!String.IsNullOrEmpty(des)) des=des.Replace("\r\n"," ");
+    foreach(IDataColumn Field in Table.Columns)
+    {
+        String des=Field.Description;
+        if(!String.IsNullOrEmpty(des)) des=des.Replace("\r\n"," ");
 #>
         /// <summary><#=des#></summary>
         <#=Field.DataType==null?"":Field.DataType.Name#> <#=Field.Name#> { get; set; }
 <#
-        }
-#>        #endregion
+    }
+#>        #endregion<#
+    if(String.IsNullOrEmpty(Table.BaseType))
+    {
+#>
 
         #region 获取/设置 字段值
         /// <summary>获取/设置 字段值。</summary>
@@ -163,6 +166,8 @@ if(Table.Columns.Count>0)
         /// <returns></returns>
         Object this[String name] { get; set; }
         #endregion<#
-}#>
+    }
+}
+#>
     }
 }

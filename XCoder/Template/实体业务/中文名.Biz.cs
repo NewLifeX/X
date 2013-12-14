@@ -18,9 +18,7 @@ namespace <#=Config.NameSpace#>
     if(String.IsNullOrEmpty(tdis)) tdis=tdes;
 
     String baseType = !String.IsNullOrEmpty(Table.BaseType) ? Table.BaseType : Config.BaseClass;
-    Boolean Abstract = Table.Properties["抽象"]=="true";
-
-    if(Config.RenderGenEntity && !Abstract)
+    if(Config.RenderGenEntity)
 {#>
     /// <summary><#=tdis#></summary><# if(tdis!=tdes){#>
     /// <remarks><#=tdes#></remarks><#}#>
@@ -30,7 +28,7 @@ namespace <#=Config.NameSpace#>
 }#>
     /// <summary><#=tdis#></summary><# if(tdis!=tdes){#>
     /// <remarks><#=tdes#></remarks><#}#><#
-if(Config.RenderGenEntity || Abstract){#>
+if(Config.RenderGenEntity){#>
     public partial class <#=Table.Name#><TEntity> : <#=baseType#><TEntity> where TEntity : <#=Table.Name#><TEntity>, new()<#
 }else{#>
     public partial class <#=Table.Name#> : <#=baseType#><<#=Table.Name#>><#
