@@ -66,7 +66,7 @@ namespace XCode
             /// <summary>表名。线程内允许修改，修改者负责还原</summary>
             public static String TableName
             {
-                get { return TableName ?? (TableName = Table.TableName); }
+                get { return _TableName ?? (_TableName = Table.TableName); }
                 set
                 {
                     //修改表名
