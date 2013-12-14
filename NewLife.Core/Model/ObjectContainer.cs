@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using System.Collections.Generic;
 using NewLife.Configuration;
 using NewLife.Exceptions;
@@ -162,10 +161,6 @@ namespace NewLife.Model
                     if (value != null) ImplementType = value.GetType();
                 }
             }
-
-            private ModeFlags _Mode;
-            /// <summary>模式</summary>
-            public ModeFlags Mode { get { return _Mode; } set { _Mode = value; } }
             #endregion
 
             #region 方法
@@ -174,26 +169,6 @@ namespace NewLife.Model
                 return String.Format("[{0},{1}]", Identity, ImplementType != null ? ImplementType.Name : null);
             }
             #endregion
-        }
-
-        /// <summary>模式标记</summary>
-        [Flags]
-        enum ModeFlags
-        {
-            None = 0,
-
-            ///// <summary>
-            ///// 以单例模式注册，如果注册的是类型，则new一个实例
-            ///// </summary>
-            //Singleton = 1,
-
-            ///// <summary>
-            ///// 是否覆盖已有的注册
-            ///// </summary>
-            //Overwrite = 2,
-
-            /// <summary>是否扩展，扩展注册将附加在该接口的第一个注册项之后</summary>
-            Extend = 4
         }
         #endregion
 
@@ -207,10 +182,10 @@ namespace NewLife.Model
         /// <returns></returns>
         public virtual IObjectContainer Register(Type from, Type to, Object instance, Object id = null, Int32 priority = 0)
         {
-            return Register(from, to, instance, null, ModeFlags.None, id, priority);
+            return Register(from, to, instance, null, id, priority);
         }
 
-        private IObjectContainer Register(Type from, Type to, Object instance, String typeName, ModeFlags mode, Object id, Int32 priority)
+        private IObjectContainer Register(Type from, Type to, Object instance, String typeName, Object id, Int32 priority)
         {
             if (from == null) throw new ArgumentNullException("from");
             // 名称不能是null，否则字典里面会报错
@@ -228,7 +203,6 @@ namespace NewLife.Model
                     if (priority <= map.Priority) return this;
 
                     map.TypeName = typeName;
-                    map.Mode = mode;
                     map.ImplementType = to;
                     map.Instance = instance;
 
@@ -241,7 +215,6 @@ namespace NewLife.Model
             map = new Map();
             map.Identity = id;
             map.TypeName = typeName;
-            map.Mode = mode;
             map.Priority = priority;
             if (to != null) map.ImplementType = to;
             if (instance != null) map.Instance = instance;
@@ -410,7 +383,7 @@ namespace NewLife.Model
 
                 if (XTrace.Debug) XTrace.WriteLine("为{0}配置注册{1}，标识Identity={2}，优先级Priority={3}！", type.FullName, map.TypeName, map.Identity, map.Priority);
 
-                Register(type, null, null, map.TypeName, map.Mode, map.Identity, map.Priority/*, map.Singleton*/);
+                Register(type, null, null, map.TypeName,  map.Identity, map.Priority);
             }
         }
 
@@ -437,27 +410,9 @@ namespace NewLife.Model
                     case "type":
                         map.TypeName = item.Value;
                         break;
-                    case "singleton":
-                        //map.Singleton = item.Value.EqualIgnoreCase("true") || item.Value == "1";
-                        break;
                     case "priority":
                         Int32 n = 0;
                         if (Int32.TryParse(item.Value, out n)) map.Priority = n;
-                        break;
-                    case "mode":
-                        map.Mode = ModeFlags.None;
-                        //// 默认覆盖
-                        //map.Mode |= ModeFlags.Overwrite;
-                        String[] ss = item.Value.Split(new Char[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
-                        for (int i = 0; i < ss.Length; i++)
-                        {
-                            try
-                            {
-                                ModeFlags mf = (ModeFlags)Enum.Parse(typeof(ModeFlags), ss[i], true);
-                                map.Mode |= mf;
-                            }
-                            catch { }
-                        }
                         break;
                     default:
                         break;
