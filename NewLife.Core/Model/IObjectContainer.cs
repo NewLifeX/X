@@ -31,22 +31,6 @@ namespace NewLife.Model
         /// <returns></returns>
         IObjectContainer Register(Type from, Type to, Object instance, Object id = null, Int32 priority = 0);
 
-        /// <summary>注册类型和名称</summary>
-        /// <typeparam name="TInterface">接口类型</typeparam>
-        /// <typeparam name="TImplement">实现类型</typeparam>
-        /// <param name="id">标识</param>
-        /// <param name="priority">优先级</param>
-        /// <returns></returns>
-        IObjectContainer Register<TInterface, TImplement>(Object id = null, Int32 priority = 0);
-
-        /// <summary>注册类型指定名称的实例</summary>
-        /// <typeparam name="TInterface">接口类型</typeparam>
-        /// <param name="instance">实例</param>
-        /// <param name="id">标识</param>
-        /// <param name="priority">优先级</param>
-        /// <returns></returns>
-        IObjectContainer Register<TInterface>(Object instance, Object id = null, Int32 priority = 0);
-
         /// <summary>遍历所有程序集的所有类型，自动注册实现了指定接口或基类的类型。如果没有注册任何实现，则默认注册第一个排除类型</summary>
         /// <remarks>自动注册一般用于单实例功能扩展型接口</remarks>
         /// <param name="from">接口或基类</param>
@@ -62,23 +46,6 @@ namespace NewLife.Model
         /// <param name="excludeTypes">要排除的类型，一般是内部默认实现</param>
         /// <returns></returns>
         IObjectContainer AutoRegister(Type from, Func<Object, Object> getidCallback = null, Object id = null, Int32 priority = 0, params Type[] excludeTypes);
-
-        /// <summary>遍历所有程序集的所有类型，自动注册实现了指定接口或基类的类型。如果没有注册任何实现，则默认注册第一个排除类型</summary>
-        /// <remarks>自动注册一般用于单实例功能扩展型接口</remarks>
-        /// <typeparam name="TInterface">接口类型</typeparam>
-        /// <typeparam name="TImplement">要排除的类型，一般是内部默认实现</typeparam>
-        /// <returns></returns>
-        IObjectContainer AutoRegister<TInterface, TImplement>();
-
-        /// <summary>遍历所有程序集的所有类型，自动注册实现了指定接口或基类的类型。如果没有注册任何实现，则默认注册第一个排除类型</summary>
-        /// <remarks>自动注册一般用于单实例功能扩展型接口</remarks>
-        /// <typeparam name="TInterface">接口类型</typeparam>
-        /// <typeparam name="TImplement">要排除的类型，一般是内部默认实现</typeparam>
-        /// <param name="getidCallback">用于从外部类型对象中获取标识的委托</param>
-        /// <param name="id">标识</param>
-        /// <param name="priority">优先级</param>
-        /// <returns></returns>
-        IObjectContainer AutoRegister<TInterface, TImplement>(Func<Object, Object> getidCallback = null, Object id = null, Int32 priority = 0);
         #endregion
 
         #region 解析
@@ -90,25 +57,11 @@ namespace NewLife.Model
         Object Resolve(Type from, Object id = null, Boolean extend = false);
 
         /// <summary>解析类型指定名称的实例</summary>
-        /// <typeparam name="TInterface">接口类型</typeparam>
-        /// <param name="id">标识</param>
-        /// <param name="extend">扩展。若为ture，id为null而找不到时，采用第一个注册项；id不为null而找不到时，采用null注册项</param>
-        /// <returns></returns>
-        TInterface Resolve<TInterface>(Object id = null, Boolean extend = false);
-
-        /// <summary>解析类型指定名称的实例</summary>
         /// <param name="from">接口类型</param>
         /// <param name="id">标识</param>
         /// <param name="extend">扩展。若为ture，id为null而找不到时，采用第一个注册项；id不为null而找不到时，采用null注册项</param>
         /// <returns></returns>
         Object ResolveInstance(Type from, Object id = null, Boolean extend = false);
-
-        /// <summary>解析类型指定名称的实例</summary>
-        /// <typeparam name="TInterface">接口类型</typeparam>
-        /// <param name="id">标识</param>
-        /// <param name="extend">扩展。若为ture，id为null而找不到时，采用第一个注册项；id不为null而找不到时，采用null注册项</param>
-        /// <returns></returns>
-        TInterface ResolveInstance<TInterface>(Object id = null, Boolean extend = false);
         #endregion
 
         #region 解析类型
@@ -118,13 +71,6 @@ namespace NewLife.Model
         /// <param name="extend">扩展。若为ture，id为null而找不到时，采用第一个注册项；id不为null而找不到时，采用null注册项</param>
         /// <returns></returns>
         Type ResolveType(Type from, Object id = null, Boolean extend = false);
-
-        /// <summary>解析接口指定名称的实现类型</summary>
-        /// <typeparam name="TInterface">接口类型</typeparam>
-        /// <param name="id">标识</param>
-        /// <param name="extend">扩展。若为ture，id为null而找不到时，采用第一个注册项；id不为null而找不到时，采用null注册项</param>
-        /// <returns></returns>
-        Type ResolveType<TInterface>(Object id = null, Boolean extend = false);
 
         /// <summary>解析接口所有已注册的对象映射</summary>
         /// <param name="from">接口类型</param>

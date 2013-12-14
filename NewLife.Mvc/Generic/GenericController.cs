@@ -84,7 +84,7 @@ namespace NewLife.Mvc
         /// <param name="data"></param>
         public virtual void Render(string path, IDictionary<string, object> data)
         {
-            ITemplateEngine engine = Service.Resolve<ITemplateEngine>();
+            var engine = Service.Container.Resolve<ITemplateEngine>();
             path = GenericControllerFactory.ResolveTempletePath(path);
             String html = engine.Render(path, data);
             Response.Write(html);

@@ -127,7 +127,7 @@ namespace NewLife.Net.Tcp
 
         private IStatistics _AcceptStatistics;
         /// <summary>连接数统计信息。</summary>
-        public IStatistics AcceptStatistics { get { return _AcceptStatistics ?? (_AcceptStatistics = NetService.Resolve<IStatistics>()); } }
+        public IStatistics AcceptStatistics { get { return _AcceptStatistics ?? (_AcceptStatistics = NetService.Container.Resolve<IStatistics>()); } }
 
         void ProcessAccept(NetEventArgs e)
         {

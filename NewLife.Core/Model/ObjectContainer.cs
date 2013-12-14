@@ -253,22 +253,6 @@ namespace NewLife.Model
         #endregion
 
         #region 注册
-        /// <summary>注册类型和名称</summary>
-        /// <typeparam name="TInterface">接口类型</typeparam>
-        /// <typeparam name="TImplement">实现类型</typeparam>
-        /// <param name="id">标识</param>
-        /// <param name="priority">优先级</param>
-        /// <returns></returns>
-        public virtual IObjectContainer Register<TInterface, TImplement>(Object id = null, Int32 priority = 0) { return Register(typeof(TInterface), typeof(TImplement), null, id, priority); }
-
-        /// <summary>注册类型指定名称的实例</summary>
-        /// <typeparam name="TInterface">接口类型</typeparam>
-        /// <param name="instance">实例</param>
-        /// <param name="id">标识</param>
-        /// <param name="priority">优先级</param>
-        /// <returns></returns>
-        public virtual IObjectContainer Register<TInterface>(Object instance, Object id = null, Int32 priority = 0) { return Register(typeof(TInterface), null, instance, id, priority); }
-
         /// <summary>遍历所有程序集的所有类型，自动注册实现了指定接口或基类的类型。如果没有注册任何实现，则默认注册第一个排除类型</summary>
         /// <remarks>自动注册一般用于单实例功能扩展型接口</remarks>
         /// <param name="from">接口或基类</param>
@@ -330,23 +314,6 @@ namespace NewLife.Model
 
             return this;
         }
-
-        /// <summary>遍历所有程序集的所有类型，自动注册实现了指定接口或基类的类型。如果没有注册任何实现，则默认注册第一个排除类型</summary>
-        /// <remarks>自动注册一般用于单实例功能扩展型接口</remarks>
-        /// <typeparam name="TInterface">接口类型</typeparam>
-        /// <typeparam name="TImplement">要排除的类型，一般是内部默认实现</typeparam>
-        /// <returns></returns>
-        public virtual IObjectContainer AutoRegister<TInterface, TImplement>() { return AutoRegister(typeof(TInterface), typeof(TImplement)); }
-
-        /// <summary>遍历所有程序集的所有类型，自动注册实现了指定接口或基类的类型。如果没有注册任何实现，则默认注册第一个排除类型</summary>
-        /// <remarks>自动注册一般用于单实例功能扩展型接口</remarks>
-        /// <typeparam name="TInterface">接口类型</typeparam>
-        /// <typeparam name="TImplement">要排除的类型，一般是内部默认实现</typeparam>
-        /// <param name="getidCallback">用于从外部类型对象中获取标识的委托</param>
-        /// <param name="id">标识</param>
-        /// <param name="priority">优先级</param>
-        /// <returns></returns>
-        public virtual IObjectContainer AutoRegister<TInterface, TImplement>(Func<Object, Object> getidCallback = null, Object id = null, Int32 priority = 0) { return AutoRegister(typeof(TInterface), getidCallback, id, priority, typeof(TImplement)); }
         #endregion
 
         #region 解析
@@ -373,7 +340,6 @@ namespace NewLife.Model
             // 检查是否指定实现类型，这种可能性极低，根本就不应该存在
             if (map.ImplementType == null) throw new XException("设计错误，名为{0}的{1}实现未找到！", id, from);
 
-            Object obj = null;
             // 3，如果容器里面包含这个类型，并且指向的实例为空，则创建对象返回。不再支持构造函数依赖注入
             return map.ImplementType.CreateInstance();
         }
@@ -386,44 +352,11 @@ namespace NewLife.Model
         public virtual Object Resolve(Type from, Object id = null, Boolean extend = false) { return Resolve(from, false, id, extend); }
 
         /// <summary>解析类型指定名称的实例</summary>
-        /// <typeparam name="TInterface">接口类型</typeparam>
-        /// <param name="id">标识</param>
-        /// <param name="extend">扩展。若为ture，name为null而找不到时，采用第一个注册项；name不为null而找不到时，采用null注册项</param>
-        /// <returns></returns>
-        public virtual TInterface Resolve<TInterface>(Object id = null, Boolean extend = false) { return (TInterface)Resolve(typeof(TInterface), false, id, extend); }
-
-        /// <summary>解析类型指定名称的实例</summary>
         /// <param name="from">接口类型</param>
         /// <param name="id">标识</param>
         /// <param name="extend">扩展。若为ture，id为null而找不到时，采用第一个注册项；id不为null而找不到时，采用null注册项</param>
         /// <returns></returns>
         public virtual Object ResolveInstance(Type from, Object id = null, Boolean extend = false) { return Resolve(from, true, id, extend); }
-
-        /// <summary>解析类型指定名称的实例</summary>
-        /// <typeparam name="TInterface">接口类型</typeparam>
-        /// <param name="id">标识</param>
-        /// <param name="extend">扩展。若为ture，name为null而找不到时，采用第一个注册项；name不为null而找不到时，采用null注册项</param>
-        /// <returns></returns>
-#if !DEBUG
-        public virtual TInterface ResolveInstance<TInterface>(Object id = null, Boolean extend = false) { return (TInterface)Resolve(typeof(TInterface), true, id, extend); }
-#else
-        public virtual TInterface ResolveInstance<TInterface>(Object id = null, Boolean extend = false)
-        {
-            var obj = Resolve(typeof(TInterface), true, id, extend);
-            try
-            {
-                return (TInterface)obj;
-            }
-            catch (InvalidCastException ex)
-            {
-                var t = obj.GetType();
-                XTrace.WriteLine("ObjectType：{0} {1}", t.AssemblyQualifiedName, t.Assembly.Location);
-                t = typeof(TInterface);
-                XTrace.WriteLine("InterfaceType：{0} {1}", t.AssemblyQualifiedName, t.Assembly.Location);
-                throw ex;
-            }
-        }
-#endif
         #endregion
 
         #region 解析类型
@@ -443,13 +376,6 @@ namespace NewLife.Model
 
             return map.ImplementType;
         }
-
-        /// <summary>解析接口指定名称的实现类型</summary>
-        /// <typeparam name="TInterface">接口类型</typeparam>
-        /// <param name="id">标识</param>
-        /// <param name="extend">扩展。若为ture，name为null而找不到时，采用第一个注册项；name不为null而找不到时，采用null注册项</param>
-        /// <returns></returns>
-        public virtual Type ResolveType<TInterface>(Object id = null, Boolean extend = false) { return ResolveType(typeof(TInterface), id, extend); }
 
         /// <summary>解析接口所有已注册的对象映射</summary>
         /// <param name="from">接口类型</param>

@@ -32,7 +32,7 @@ namespace XCode.Accessors
         /// <returns></returns>
         public static IEntityAccessor Create(String name)
         {
-            return XCodeService.Resolve<IEntityAccessor>(Enum.Parse(typeof(EntityAccessorTypes), name));
+            return XCodeService.Container.Resolve<IEntityAccessor>(Enum.Parse(typeof(EntityAccessorTypes), name));
         }
 
         /// <summary>创建指定类型的实体访问器</summary>
@@ -41,7 +41,7 @@ namespace XCode.Accessors
         public static IEntityAccessor Create(EntityAccessorTypes kind)
         {
             //return Create(kind);
-            return XCodeService.Resolve<IEntityAccessor>(kind);
+            return XCodeService.Container.Resolve<IEntityAccessor>(kind);
         }
 
         internal static Boolean EqualIgnoreCase(this String str, EntityAccessorOptions option)

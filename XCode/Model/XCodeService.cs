@@ -6,8 +6,13 @@ using XCode.DataAccessLayer;
 namespace XCode.Model
 {
     /// <summary>XCode服务对象提供者</summary>
-    class XCodeService : ServiceContainer<XCodeService>
+    class XCodeService //: ServiceContainer<XCodeService>
     {
+        #region 当前静态服务容器
+        /// <summary>当前对象容器</summary>
+        public static IObjectContainer Container { get { return ObjectContainer.Current; } }
+        #endregion
+
         static XCodeService()
         {
             var container = Container;

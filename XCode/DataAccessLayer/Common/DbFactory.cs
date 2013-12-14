@@ -88,13 +88,13 @@ namespace XCode.DataAccessLayer
                 if (DAL.Debug) DAL.WriteLog("无法从{0}个默认数据库提供者中识别到{1}！", n, provider);
 
                 var type = Reflect.GetTypeEx(provider, true);
-                if (type != null) XCodeService.Register<IDatabase>(type, provider);
+                if (type != null) XCodeService.Container.Register<IDatabase>(type, provider);
                 return type;
             }
             else
             {
                 // 这里的默认值来自于上面Reg里面的最后那个
-                return XCodeService.ResolveType<IDatabase>(String.Empty);
+                return XCodeService.Container.ResolveType<IDatabase>(String.Empty);
             }
         }
         #endregion

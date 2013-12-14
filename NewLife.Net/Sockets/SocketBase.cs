@@ -513,7 +513,7 @@ namespace NewLife.Net.Sockets
         #region 统计
         private IStatistics _Statistics;
         /// <summary>统计信息，默认关闭，通过<see cref="IStatistics.Enable"/>打开。</summary>
-        public IStatistics Statistics { get { return _Statistics ?? (_Statistics = NetService.Resolve<IStatistics>()); } }
+        public IStatistics Statistics { get { return _Statistics ?? (_Statistics = NetService.Container.Resolve<IStatistics>()); } }
 
         /// <summary>增加计数</summary>
         protected void IncCounter() { Statistics.Increment(); }

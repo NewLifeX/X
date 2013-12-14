@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace NewLife.Model
+namespace System
 {
     /// <summary>模型扩展</summary>
     public static class ModelExtension

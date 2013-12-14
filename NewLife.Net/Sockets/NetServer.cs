@@ -371,7 +371,7 @@ namespace NewLife.Net.Sockets
         /// <returns></returns>
         protected virtual INetSession CreateSession(NetEventArgs e)
         {
-            var session = NetService.Resolve<INetSession>();
+            var session = NetService.Container.Resolve<INetSession>();
             session.Host = this;
 
             return session;

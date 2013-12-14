@@ -10,11 +10,16 @@ using NewLife.Net.Udp;
 namespace NewLife.Net
 {
     /// <summary>网络服务对象提供者</summary>
-    public class NetService : ServiceContainer<NetService>
+    public class NetService //: ServiceContainer<NetService>
     {
+        #region 当前静态服务容器
+        /// <summary>当前对象容器</summary>
+        public static IObjectContainer Container { get { return ObjectContainer.Current; } }
+        #endregion
+
         static NetService()
         {
-            IObjectContainer container = Container;
+            var container = Container;
             container.Register<IProxySession, ProxySession>()
                 .Register<ISocketServer, TcpServer>(ProtocolType.Tcp)
                 .Register<ISocketServer, UdpServer>(ProtocolType.Udp)
@@ -30,20 +35,6 @@ namespace NewLife.Net
         public static void Install() { }
 
         #region 方法
-        ///// <summary>解析符合条件的类型</summary>
-        ///// <typeparam name="TInterface"></typeparam>
-        ///// <param name="func"></param>
-        ///// <returns></returns>
-        //public static Type ResolveType<TInterface>(Func<IObjectMap, Boolean> func)
-        //{
-        //    foreach (IObjectMap item in Container.ResolveAll(typeof(TInterface)))
-        //    {
-        //        if (func(item)) return item.ImplementType;
-        //    }
-
-        //    return null;
-        //}
-
         /// <summary>根据网络标识创建客户端并连接（对Tcp）</summary>
         /// <param name="uri"></param>
         /// <returns></returns>
@@ -51,7 +42,7 @@ namespace NewLife.Net
         {
             if (uri == null) throw new ArgumentNullException("uri");
 
-            var client = NetService.Resolve<ISocketClient>(uri.ProtocolType);
+            var client = Container.Resolve<ISocketClient>(uri.ProtocolType);
             if (uri.EndPoint != null)
             {
                 client.AddressFamily = uri.EndPoint.AddressFamily;

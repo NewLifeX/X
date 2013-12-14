@@ -153,7 +153,7 @@ namespace NewLife.Net.Proxy
             //    _NotConnected.Remove(key);
             //}
 
-            var client = NetService.Resolve<ISocketClient>(RemoteUri.ProtocolType);
+            var client = NetService.Container.Resolve<ISocketClient>(RemoteUri.ProtocolType);
             var rep = RemoteUri.EndPoint;
             if (rep != null)
             {

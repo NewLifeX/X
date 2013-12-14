@@ -60,7 +60,7 @@ namespace NewLife.CommonEntity
     {
         #region 静态实例
         /// <summary>当前提供者</summary>
-        public static IManageProvider Provider { get { return CommonService.ResolveInstance<IManageProvider>(); } }
+        public static IManageProvider Provider { get { return CommonService.Container.ResolveInstance<IManageProvider>(); } }
         #endregion
 
         #region IManageProvider 接口
@@ -114,11 +114,11 @@ namespace NewLife.CommonEntity
             //else if (serviceType == typeof(IEntityForm))
             //    return CommonService.Resolve<IEntityForm>();
             if (serviceType == typeof(IManagePage))
-                return GetHttpCache(typeof(IManagePage), k => CommonService.Resolve<IManagePage>());
+                return GetHttpCache(typeof(IManagePage), k => CommonService.Container.Resolve<IManagePage>());
             else if (serviceType == typeof(IEntityForm))
-                return GetHttpCache(typeof(IEntityForm), k => CommonService.Resolve<IEntityForm>());
+                return GetHttpCache(typeof(IEntityForm), k => CommonService.Container.Resolve<IEntityForm>());
 
-            return CommonService.Resolve(serviceType);
+            return CommonService.Container.Resolve(serviceType);
         }
         #endregion
 

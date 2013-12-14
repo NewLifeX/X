@@ -49,7 +49,7 @@ namespace NewLife.Net.SGIP
 
         static void Install()
         {
-            NetService.Register<SGIPEntity, SGIPBind>(SGIPCommands.Bind)
+            NetService.Container.Register<SGIPEntity, SGIPBind>(SGIPCommands.Bind)
                 .Register<SGIPEntity, SGIPDeliver>(SGIPCommands.Deliver)
                 .Register<SGIPEntity, SGIPReport>(SGIPCommands.Report)
                 .Register<SGIPEntity, SGIPSubmit>(SGIPCommands.Submit)
@@ -75,7 +75,7 @@ namespace NewLife.Net.SGIP
             var len = reader.ReadInt32();
             var cmd = (SGIPCommands)reader.ReadUInt32();
 
-            var type = NetService.ResolveType<SGIPEntity>(cmd);
+            var type = NetService.Container.ResolveType<SGIPEntity>(cmd);
             var entity = reader.ReadObject(type) as SGIPEntity;
             entity.Command = cmd;
             return entity;

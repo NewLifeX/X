@@ -177,7 +177,7 @@ namespace NewLife.Net.Stun
         {
             if (_Socket == null)
             {
-                var client = NetService.Resolve<ISocketClient>(ProtocolType);
+                var client = NetService.Container.Resolve<ISocketClient>(ProtocolType);
                 client.Port = Port;
                 client.Client.SendTimeout = Timeout;
                 client.Client.ReceiveTimeout = Timeout;
@@ -199,7 +199,7 @@ namespace NewLife.Net.Stun
                 Object value = socket.GetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress);
                 if (!Convert.ToBoolean(value)) socket.Close();
 
-                var sk = NetService.Resolve<ISocketClient>(socket.ProtocolType);
+                var sk = NetService.Container.Resolve<ISocketClient>(socket.ProtocolType);
                 sk.Address = ep.Address;
                 sk.Port = ep.Port;
                 sk.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
