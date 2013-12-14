@@ -710,14 +710,18 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public static IDataTable CopyFrom(this IDataTable src, IDataTable des)
         {
-            src.ID = des.ID;
-            src.TableName = des.TableName;
-            src.Name = des.Name;
-            src.Owner = des.Owner;
-            src.DbType = des.DbType;
-            src.IsView = des.IsView;
-            src.DisplayName = des.DisplayName;
-            src.Description = des.Description;
+            //src.ID = des.ID;
+            //src.TableName = des.TableName;
+            //src.Name = des.Name;
+            //src.Owner = des.Owner;
+            //src.DbType = des.DbType;
+            //src.IsView = des.IsView;
+            //src.DisplayName = des.DisplayName;
+            //src.Description = des.Description;
+            foreach (var pi in typeof(IDataTable).GetProperties())
+            {
+                if (pi.CanWrite) src.SetValue(pi, des.GetValue(pi));
+            }
 
             return src;
         }
