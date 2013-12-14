@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
@@ -296,7 +297,7 @@ namespace NewLife.Messaging
 
         /// <summary>返回所有已注册消息</summary>
         /// <returns></returns>
-        public static IEnumerable<Message> ResolveAll() { return ObjectContainer.Current.ResolveAll<Message>(); }
+        public static IEnumerable<Message> ResolveAll() { return ObjectContainer.Current.ResolveAll(typeof(Message)).Select(m => m.Instance).Cast<Message>(); }
         #endregion
 
         #region 设置

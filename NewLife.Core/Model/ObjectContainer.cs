@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Collections.Generic;
 using NewLife.Configuration;
 using NewLife.Exceptions;
@@ -52,6 +53,10 @@ namespace NewLife.Model
         private IDictionary<Type, IDictionary<Object, IObjectMap>> _stores = null;
         private IDictionary<Type, IDictionary<Object, IObjectMap>> Stores { get { return _stores ?? (_stores = new Dictionary<Type, IDictionary<Object, IObjectMap>>()); } }
 
+        /// <summary>不存在又不添加时返回空列表</summary>
+        /// <param name="type"></param>
+        /// <param name="add"></param>
+        /// <returns></returns>
         private IDictionary<Object, IObjectMap> Find(Type type, Boolean add = false)
         {
             IDictionary<Object, IObjectMap> dic = null;
@@ -71,11 +76,13 @@ namespace NewLife.Model
                 }
             }
 
-            return null;
+            return new Dictionary<Object, IObjectMap>();
         }
 
         private IObjectMap FindMap(IDictionary<Object, IObjectMap> dic, Object id, Boolean extend = false)
         {
+            if (dic == null || dic.Count <= 0) return null;
+
             IObjectMap map = null;
             // 名称不能是null，否则字典里面会报错
             if (id == null) id = String.Empty;
@@ -225,9 +232,6 @@ namespace NewLife.Model
                     map.ImplementType = to;
                     map.Instance = instance;
 
-                    //if (OnRegistering != null) OnRegistering(this, new EventArgs<Type, IObjectMap>(from, map));
-                    //if (OnRegistered != null) OnRegistered(this, new EventArgs<Type, IObjectMap>(from, map));
-
                     return this;
                 }
                 else
@@ -301,7 +305,7 @@ namespace NewLife.Model
 
             // 如果存在已注册项，并且优先级大于0，那么这里就不要注册了
             var dic = Find(from);
-            if (dic != null)
+            if (dic.Count > 0)
             {
                 var map = FindMap(dic, null, false) as Map;
                 if (map != null && map.Priority > 0) return this;
@@ -366,7 +370,7 @@ namespace NewLife.Model
             var dic = Find(from);
             // 1，如果容器里面没有这个类型，则返回空
             // 这个type可能是接口类型
-            if (dic == null) return null;
+            if (dic.Count <= 0) return null;
 
             // 2，如果容器里面包含这个类型，并且指向的实例不为空，则返回
             // 根据名称去找，找不到返回空
@@ -421,7 +425,7 @@ namespace NewLife.Model
                             }
 
                             dic = Find(pi.ParameterType);
-                            if (dic != null && dic.Count > 0)
+                            if (dic.Count > 0)
                             {
                                 // 解析该参数类型的实例
                                 pv = Resolve(pi.ParameterType);
@@ -501,35 +505,20 @@ namespace NewLife.Model
         }
 #endif
 
-        /// <summary>解析类型所有已注册的实例</summary>
-        /// <param name="from">接口类型</param>
-        /// <returns></returns>
-        public virtual IEnumerable<Object> ResolveAll(Type from)
-        {
-            if (from == null) throw new ArgumentNullException("from");
+        ///// <summary>解析类型所有已注册的实例</summary>
+        ///// <param name="from">接口类型</param>
+        ///// <returns></returns>
+        //public virtual IEnumerable<Object> ResolveAll(Type from)
+        //{
+        //    if (from == null) throw new ArgumentNullException("from");
 
-            var dic = Find(from);
-            if (dic == null) yield break;
+        //    return Find(from).Values.Select(e => e.Instance);
+        //}
 
-            foreach (var item in dic.Values)
-            {
-                if (item.Instance != null) yield return item.Instance;
-            }
-        }
-
-        /// <summary>解析类型所有已注册的实例</summary>
-        /// <typeparam name="TInterface">接口类型</typeparam>
-        /// <returns></returns>
-        public virtual IEnumerable<TInterface> ResolveAll<TInterface>()
-        {
-            var dic = Find(typeof(TInterface));
-            if (dic == null) yield break;
-
-            foreach (var item in dic.Values)
-            {
-                if (item.Instance != null) yield return (TInterface)item.Instance;
-            }
-        }
+        ///// <summary>解析类型所有已注册的实例</summary>
+        ///// <typeparam name="TInterface">接口类型</typeparam>
+        ///// <returns></returns>
+        //public virtual IEnumerable<TInterface> ResolveAll<TInterface>() { return Find(typeof(TInterface)).Values.Select(e => e.Instance).Cast<TInterface>(); }
         #endregion
 
         #region 解析类型
@@ -544,10 +533,7 @@ namespace NewLife.Model
             // 名称不能是null，否则字典里面会报错
             if (id == null) id = String.Empty;
 
-            var dic = Find(from);
-            if (dic == null) return null;
-
-            var map = FindMap(dic, id, extend);
+            var map = FindMap(Find(from), id, extend);
             if (map == null) return null;
 
             return map.ImplementType;
@@ -560,37 +546,10 @@ namespace NewLife.Model
         /// <returns></returns>
         public virtual Type ResolveType<TInterface>(Object id = null, Boolean extend = false) { return ResolveType(typeof(TInterface), id, extend); }
 
-        /// <summary>解析类型所有已注册的实例</summary>
-        /// <param name="from">接口类型</param>
-        /// <returns></returns>
-        public virtual IEnumerable<Type> ResolveAllTypes(Type from)
-        {
-            if (from == null) throw new ArgumentNullException("from");
-
-            var dic = Find(from);
-            if (dic == null) yield break;
-
-            foreach (var item in dic.Values)
-            {
-                yield return item.ImplementType;
-            }
-        }
-
         /// <summary>解析接口所有已注册的对象映射</summary>
         /// <param name="from">接口类型</param>
         /// <returns></returns>
-        public virtual IEnumerable<IObjectMap> ResolveAllMaps(Type from)
-        {
-            if (from == null) throw new ArgumentNullException("from");
-
-            var dic = Find(from);
-            if (dic == null) yield break;
-
-            foreach (var item in dic.Values)
-            {
-                yield return item;
-            }
-        }
+        public virtual IEnumerable<IObjectMap> ResolveAll(Type from) { return Find(from).Values; }
         #endregion
 
         #region Xml配置文件注册

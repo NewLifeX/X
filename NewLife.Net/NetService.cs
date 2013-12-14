@@ -6,7 +6,6 @@ using NewLife.Net.Proxy;
 using NewLife.Net.Sockets;
 using NewLife.Net.Tcp;
 using NewLife.Net.Udp;
-using NewLife.Reflection;
 
 namespace NewLife.Net
 {
@@ -31,19 +30,19 @@ namespace NewLife.Net
         public static void Install() { }
 
         #region 方法
-        /// <summary>解析符合条件的类型</summary>
-        /// <typeparam name="TInterface"></typeparam>
-        /// <param name="func"></param>
-        /// <returns></returns>
-        public static Type ResolveType<TInterface>(Func<IObjectMap, Boolean> func)
-        {
-            foreach (IObjectMap item in Container.ResolveAllMaps(typeof(TInterface)))
-            {
-                if (func(item)) return item.ImplementType;
-            }
+        ///// <summary>解析符合条件的类型</summary>
+        ///// <typeparam name="TInterface"></typeparam>
+        ///// <param name="func"></param>
+        ///// <returns></returns>
+        //public static Type ResolveType<TInterface>(Func<IObjectMap, Boolean> func)
+        //{
+        //    foreach (IObjectMap item in Container.ResolveAll(typeof(TInterface)))
+        //    {
+        //        if (func(item)) return item.ImplementType;
+        //    }
 
-            return null;
-        }
+        //    return null;
+        //}
 
         /// <summary>根据网络标识创建客户端并连接（对Tcp）</summary>
         /// <param name="uri"></param>

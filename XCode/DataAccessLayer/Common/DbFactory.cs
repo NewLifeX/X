@@ -76,7 +76,7 @@ namespace XCode.DataAccessLayer
             if (!String.IsNullOrEmpty(provider))
             {
                 var n = 0;
-                foreach (var item in XCodeService.Container.ResolveAllMaps(typeof(IDatabase)))
+                foreach (var item in XCodeService.Container.ResolveAll(typeof(IDatabase)))
                 {
                     n++;
                     if ("" + item.Identity == "") continue;

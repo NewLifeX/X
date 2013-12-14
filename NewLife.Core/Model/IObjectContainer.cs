@@ -47,12 +47,6 @@ namespace NewLife.Model
         /// <returns></returns>
         IObjectContainer Register<TInterface>(Object instance, Object id = null, Int32 priority = 0);
 
-        ///// <summary>注册前事件</summary>
-        //event EventHandler<EventArgs<Type, IObjectMap>> OnRegistering;
-
-        ///// <summary>注册后事件</summary>
-        //event EventHandler<EventArgs<Type, IObjectMap>> OnRegistered;
-
         /// <summary>遍历所有程序集的所有类型，自动注册实现了指定接口或基类的类型。如果没有注册任何实现，则默认注册第一个排除类型</summary>
         /// <remarks>自动注册一般用于单实例功能扩展型接口</remarks>
         /// <param name="from">接口或基类</param>
@@ -116,15 +110,15 @@ namespace NewLife.Model
         /// <returns></returns>
         TInterface ResolveInstance<TInterface>(Object id = null, Boolean extend = false);
 
-        /// <summary>解析类型所有已注册的实例</summary>
-        /// <param name="from">接口类型</param>
-        /// <returns></returns>
-        IEnumerable<Object> ResolveAll(Type from);
+        ///// <summary>解析类型所有已注册的实例</summary>
+        ///// <param name="from">接口类型</param>
+        ///// <returns></returns>
+        //IEnumerable<Object> ResolveAll(Type from);
 
-        /// <summary>解析类型所有已注册的实例</summary>
-        /// <typeparam name="TInterface">接口类型</typeparam>
-        /// <returns></returns>
-        IEnumerable<TInterface> ResolveAll<TInterface>();
+        ///// <summary>解析类型所有已注册的实例</summary>
+        ///// <typeparam name="TInterface">接口类型</typeparam>
+        ///// <returns></returns>
+        //IEnumerable<TInterface> ResolveAll<TInterface>();
         #endregion
 
         #region 解析类型
@@ -142,15 +136,10 @@ namespace NewLife.Model
         /// <returns></returns>
         Type ResolveType<TInterface>(Object id = null, Boolean extend = false);
 
-        /// <summary>解析接口所有已注册的实现类型</summary>
-        /// <param name="from">接口类型</param>
-        /// <returns></returns>
-        IEnumerable<Type> ResolveAllTypes(Type from);
-
         /// <summary>解析接口所有已注册的对象映射</summary>
         /// <param name="from">接口类型</param>
         /// <returns></returns>
-        IEnumerable<IObjectMap> ResolveAllMaps(Type from);
+        IEnumerable<IObjectMap> ResolveAll(Type from);
         #endregion
     }
 
@@ -165,8 +154,5 @@ namespace NewLife.Model
 
         /// <summary>对象实例</summary>
         Object Instance { get; }
-
-        ///// <summary>单一实例</summary>
-        //Boolean Singleton { get; }
     }
 }

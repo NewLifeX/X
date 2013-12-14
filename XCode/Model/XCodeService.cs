@@ -1,6 +1,5 @@
 ﻿using System;
 using NewLife.Model;
-using NewLife.Reflection;
 using XCode.Accessors;
 using XCode.DataAccessLayer;
 
@@ -23,15 +22,15 @@ namespace XCode.Model
         }
 
         #region 方法
-        public static Type ResolveType<TInterface>(Func<IObjectMap, Boolean> func)
-        {
-            foreach (var item in Container.ResolveAllMaps(typeof(TInterface)))
-            {
-                if (func(item)) return item.ImplementType;
-            }
+        //public static Type ResolveType<TInterface>(Func<IObjectMap, Boolean> func)
+        //{
+        //    foreach (var item in Container.ResolveAll(typeof(TInterface)))
+        //    {
+        //        if (func(item)) return item.ImplementType;
+        //    }
 
-            return null;
-        }
+        //    return null;
+        //}
         #endregion
 
         #region 使用
