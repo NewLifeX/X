@@ -47,7 +47,6 @@ namespace XCode.DataAccessLayer
         {
             if (String.IsNullOrEmpty(name)) return false;
 
-            //return table.TableName.EqualIC(name) || table.Name.EqualIC(name);
             return name.EqualIgnoreCase(table.TableName, table.Name);
         }
 
@@ -59,8 +58,19 @@ namespace XCode.DataAccessLayer
         {
             if (String.IsNullOrEmpty(name)) return false;
 
-            //return column.ColumnName.EqualIC(name) || column.Name.EqualIC(name);
             return name.EqualIgnoreCase(column.ColumnName, column.Name);
+        }
+
+        static Boolean EqualIgnoreCase(this String[] src, String[] des)
+        {
+            if (src == null || src.Length == 0)
+                return des == null || des.Length == 0;
+            else if (des == null || des.Length == 0)
+                return false;
+
+            if (src.Length != des.Length) return false;
+
+            return !src.Except(des, StringComparer.OrdinalIgnoreCase).Any();
         }
 
         /// <summary>根据字段名找索引</summary>
@@ -69,22 +79,17 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public static IDataIndex GetIndex(this IDataTable table, params String[] columnNames)
         {
-            if (table == null || table.Indexes == null || table.Indexes.Count < 1 || columnNames == null || columnNames.Length < 1) return null;
+            if (table == null || table.Indexes.Count < 1 || columnNames == null || columnNames.Length < 1) return null;
 
-            var di = table.Indexes.FirstOrDefault(
-                e => e != null && e.Columns != null &&
-                    e.Columns.Length == columnNames.Length &&
-                    !e.Columns.Except(columnNames, StringComparer.OrdinalIgnoreCase).Any());
+            var di = table.Indexes.FirstOrDefault(e => e != null && e.Columns.EqualIgnoreCase(columnNames));
             if (di != null) return di;
 
             // 用别名再试一次
             var columns = table.GetColumns(columnNames);
             if (columns == null || columns.Length < 1) return null;
+
             columnNames = columns.Select(e => e.Name).ToArray();
-            di = table.Indexes.FirstOrDefault(
-                e => e.Columns != null &&
-                    e.Columns.Length == columnNames.Length &&
-                    !e.Columns.Except(columnNames, StringComparer.OrdinalIgnoreCase).Any());
+            di = table.Indexes.FirstOrDefault(e => e.Columns != null && e.Columns.EqualIgnoreCase(columnNames));
             if (di != null) return di;
 
             return null;
@@ -97,12 +102,6 @@ namespace XCode.DataAccessLayer
         public static IDataRelation GetRelation(this IDataTable table, String columnName)
         {
             return table.Relations.FirstOrDefault(e => e.Column.EqualIgnoreCase(columnName));
-            //foreach (var item in table.Relations)
-            //{
-            //    if (String.Equals(item.Column, columnName, StringComparison.OrdinalIgnoreCase)) return item;
-            //}
-
-            //return null;
         }
 
         /// <summary>根据字段、关联表、关联字段从指定表中查找关系</summary>
@@ -188,15 +187,6 @@ namespace XCode.DataAccessLayer
             var reader = XmlReader.Create(new MemoryStream(Encoding.UTF8.GetBytes(xml)), settings);
             while (reader.NodeType != XmlNodeType.Element) { if (!reader.Read())return null; }
             reader.ReadStartElement();
-            //if (atts != null && reader.HasAttributes)
-            //{
-            //    reader.MoveToFirstAttribute();
-            //    do
-            //    {
-            //        atts[reader.Name] = reader.Value;
-            //    }
-            //    while (reader.MoveToNextAttribute());
-            //}
 
             var list = new List<IDataTable>();
             var id = 1;
@@ -317,7 +307,7 @@ namespace XCode.DataAccessLayer
             WriteXml(writer, table);
 
             // 写字段
-            if (table.Columns != null && table.Columns.Count > 0 && table.Columns[0] is IXmlSerializable)
+            if (table.Columns.Count > 0)
             {
                 writer.WriteStartElement("Columns");
                 foreach (IXmlSerializable item in table.Columns)
@@ -328,7 +318,7 @@ namespace XCode.DataAccessLayer
                 }
                 writer.WriteEndElement();
             }
-            if (table.Indexes != null && table.Indexes.Count > 0 && table.Indexes[0] is IXmlSerializable)
+            if (table.Indexes.Count > 0)
             {
                 writer.WriteStartElement("Indexes");
                 foreach (IXmlSerializable item in table.Indexes)
@@ -339,7 +329,7 @@ namespace XCode.DataAccessLayer
                 }
                 writer.WriteEndElement();
             }
-            if (table.Relations != null && table.Relations.Count > 0 && table.Relations[0] is IXmlSerializable)
+            if (table.Relations.Count > 0)
             {
                 writer.WriteStartElement("Relations");
                 foreach (IXmlSerializable item in table.Relations)
@@ -364,7 +354,7 @@ namespace XCode.DataAccessLayer
             foreach (var pi in pis)
             {
                 if (!pi.CanRead) continue;
-                if (AttributeX.GetCustomAttribute<XmlIgnoreAttribute>(pi, false) != null) continue;
+                if (pi.GetCustomAttribute<XmlIgnoreAttribute>(false) != null) continue;
 
                 // 已处理的特性
                 names.Add(pi.Name);
@@ -393,17 +383,13 @@ namespace XCode.DataAccessLayer
                 var v2 = reader.GetAttribute("Alias");
                 if (!String.IsNullOrEmpty(v2))
                 {
-                    //pi2.SetValue(value, pi1.GetValue(value));
-                    //pi1.SetValue(value, v2);
                     value.SetValue(pi2, value.GetValue(pi1));
                     value.SetValue(pi1, v2);
                 }
                 // 写入的时候省略了相同的TableName/ColumnName
-                //v2 = (String)pi2.GetValue(value);
                 v2 = (String)value.GetValue(pi2);
                 if (String.IsNullOrEmpty(v2))
                 {
-                    //pi2.SetValue(value, pi1.GetValue(value));
                     value.SetValue(pi2, value.GetValue(pi1));
                 }
             }
@@ -425,7 +411,6 @@ namespace XCode.DataAccessLayer
                     {
                         if (!names.Contains(reader.Name))
                         {
-                            //dic.Add(reader.Name, reader.Value);
                             dic[reader.Name] = reader.Value;
                         }
                     } while (reader.MoveToNextAttribute());
@@ -458,7 +443,7 @@ namespace XCode.DataAccessLayer
             foreach (var pi in GetProperties(type))
             {
                 if (!pi.CanWrite) continue;
-                if (AttributeX.GetCustomAttribute<XmlIgnoreAttribute>(pi, false) != null) continue;
+                if (pi.GetCustomAttribute<XmlIgnoreAttribute>(false) != null) continue;
                 // 忽略ID
                 if (pi.Name == "ID") continue;
                 // IDataIndex跳过默认Name
@@ -708,17 +693,9 @@ namespace XCode.DataAccessLayer
         /// <param name="src"></param>
         /// <param name="des"></param>
         /// <returns></returns>
-        public static IDataTable CopyFrom(this IDataTable src, IDataTable des)
+        public static T CopyFrom<T>(this T src, T des)
         {
-            //src.ID = des.ID;
-            //src.TableName = des.TableName;
-            //src.Name = des.Name;
-            //src.Owner = des.Owner;
-            //src.DbType = des.DbType;
-            //src.IsView = des.IsView;
-            //src.DisplayName = des.DisplayName;
-            //src.Description = des.Description;
-            foreach (var pi in typeof(IDataTable).GetProperties())
+            foreach (var pi in typeof(T).GetProperties())
             {
                 if (pi.CanWrite) src.SetValue(pi, des.GetValue(pi));
             }
@@ -746,62 +723,6 @@ namespace XCode.DataAccessLayer
                     src.Columns[i].ID = i + 1;
                 }
             }
-
-            return src;
-        }
-
-        /// <summary>赋值数据列到另一个数据列</summary>
-        /// <param name="src"></param>
-        /// <param name="des"></param>
-        /// <returns></returns>
-        public static IDataColumn CopyFrom(this IDataColumn src, IDataColumn des)
-        {
-            src.ID = des.ID;
-            src.ColumnName = des.ColumnName;
-            src.Name = des.Name;
-            src.DataType = des.DataType;
-            src.RawType = des.RawType;
-            src.Identity = des.Identity;
-            src.PrimaryKey = des.PrimaryKey;
-            src.Length = des.Length;
-            src.NumOfByte = des.NumOfByte;
-            src.Precision = des.Precision;
-            src.Scale = des.Scale;
-            src.Nullable = des.Nullable;
-            src.IsUnicode = des.IsUnicode;
-            src.Default = des.Default;
-            src.DisplayName = des.DisplayName;
-            src.Description = des.Description;
-
-            return src.Fix();
-        }
-
-        /// <summary>赋值数据列到另一个数据列</summary>
-        /// <param name="src"></param>
-        /// <param name="des"></param>
-        /// <returns></returns>
-        public static IDataIndex CopyFrom(this IDataIndex src, IDataIndex des)
-        {
-            src.Name = des.Name;
-            src.Columns = des.Columns;
-            src.Unique = des.Unique;
-            src.PrimaryKey = des.PrimaryKey;
-            src.Computed = des.Computed;
-
-            return src;
-        }
-
-        /// <summary>赋值数据列到另一个数据列</summary>
-        /// <param name="src"></param>
-        /// <param name="des"></param>
-        /// <returns></returns>
-        public static IDataRelation CopyFrom(this IDataRelation src, IDataRelation des)
-        {
-            src.Column = des.Column;
-            src.RelationTable = des.RelationTable;
-            src.RelationColumn = des.RelationColumn;
-            src.Unique = des.Unique;
-            src.Computed = des.Computed;
 
             return src;
         }
