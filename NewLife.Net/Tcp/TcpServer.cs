@@ -225,16 +225,18 @@ namespace NewLife.Net.Tcp
                     _Sessions = null;
 
                     WriteLog("准备释放Tcp会话{0}个！", sessions.Count);
-                    if (sessions is IDisposable)
-                        (sessions as IDisposable).Dispose();
-                    else
-                    {
-                        foreach (var item in sessions.Values.ToArray())
-                        {
-                            item.Dispose();
-                        }
-                        sessions.Clear();
-                    }
+                    //if (sessions is IDisposable)
+                    //    (sessions as IDisposable).Dispose();
+                    //else
+                    //{
+                    //    foreach (var item in sessions.Values.ToArray())
+                    //    {
+                    //        item.Dispose();
+                    //    }
+                    //    sessions.Clear();
+                    //}
+                    sessions.TryDispose();
+                    sessions.Clear();
                 }
             }
         }

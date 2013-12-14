@@ -61,12 +61,14 @@ namespace NewLife.Collections
         {
             base.OnDispose(disposing);
 
-            for (int i = 0; i < _array.Length && i < Count; i++)
-            {
-                var item = _array[i];
-                if (item != null && item is IDisposable) (item as IDisposable).Dispose();
-                _array[i] = default(T);
-            }
+            //for (int i = 0; i < _array.Length && i < Count; i++)
+            //{
+            //    //var item = _array[i];
+            //    //if (item != null && item is IDisposable) (item as IDisposable).Dispose();
+            //    _array[i].TryDispose();
+            //    _array[i] = default(T);
+            //}
+            _array.TryDispose();
             _array = null;
         }
         #endregion

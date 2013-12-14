@@ -382,14 +382,8 @@ namespace NewLife.Collections
                     if (t < exp)
                     {
                         // 自动释放对象
-                        if (AutoDispose && item.Value.Value != null && item.Value.Value is IDisposable)
-                        {
-                            try
-                            {
-                                (item.Value.Value as IDisposable).Dispose();
-                            }
-                            catch { }
-                        }
+                        if (AutoDispose) item.Value.Value.TryDispose();
+
                         dic.Remove(item.Key);
                     }
                 }

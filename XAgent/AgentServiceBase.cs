@@ -1,4 +1,5 @@
 ﻿using System;
+using NewLife;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -452,13 +453,7 @@ namespace XAgent
         /// <param name="disposing"></param>
         protected override void Dispose(bool disposing)
         {
-            if (AttachServers != null)
-            {
-                foreach (var item in AttachServers.Values)
-                {
-                    if (item != null && item is IDisposable) (item as IDisposable).Dispose();
-                }
-            }
+            AttachServers.TryDispose();
 
             base.Dispose(disposing);
         }
