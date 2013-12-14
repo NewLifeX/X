@@ -28,7 +28,7 @@ namespace NewLife.Net
         /// <returns></returns>
         Int32 Receive(Byte[] buffer, Int32 offset = 0, Int32 count = -1);
 
-        /// <summary>开始异步接收，数据将在中<see cref="Received"/>返回</summary>
+        /// <summary>开始异步接收，数据将在<see cref="Received"/>中返回</summary>
         void ReceiveAsync();
 
         /// <summary>数据到达事件</summary>

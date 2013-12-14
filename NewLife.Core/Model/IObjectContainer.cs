@@ -47,11 +47,11 @@ namespace NewLife.Model
         /// <returns></returns>
         IObjectContainer Register<TInterface>(Object instance, Object id = null, Int32 priority = 0);
 
-        /// <summary>注册前事件</summary>
-        event EventHandler<EventArgs<Type, IObjectMap>> OnRegistering;
+        ///// <summary>注册前事件</summary>
+        //event EventHandler<EventArgs<Type, IObjectMap>> OnRegistering;
 
-        /// <summary>注册后事件</summary>
-        event EventHandler<EventArgs<Type, IObjectMap>> OnRegistered;
+        ///// <summary>注册后事件</summary>
+        //event EventHandler<EventArgs<Type, IObjectMap>> OnRegistered;
 
         /// <summary>遍历所有程序集的所有类型，自动注册实现了指定接口或基类的类型。如果没有注册任何实现，则默认注册第一个排除类型</summary>
         /// <remarks>自动注册一般用于单实例功能扩展型接口</remarks>
