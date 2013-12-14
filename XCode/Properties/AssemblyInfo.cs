@@ -35,7 +35,7 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
 [assembly: AssemblyVersion("8.10.*")]
-[assembly: AssemblyFileVersion("8.10.2013.1213")]
+[assembly: AssemblyFileVersion("8.10.2013.1214")]
 
 /*
  * XCode的重大改进
@@ -52,6 +52,8 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v8.10.2013.1214  IDataTable增加GetAllColumns方法，用于获取继承链上的所有字段
+ * 
  * v8.10.2013.1213  增强实体类扩展EntityOperate，支持继承扩展，逐步替代Meta
  *                  填充数据完成时调用实体类OnLoad方法。默认设定标记_IsFromDatabase
  *                  实体树EntityTree设置独立EntityTreeSettting

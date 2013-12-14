@@ -134,20 +134,7 @@ namespace XCode.DataAccessLayer
 
         /// <summary>主键集合。可以是空集合，但不能为null。</summary>
         [XmlIgnore]
-        public IDataColumn[] PrimaryKeys
-        {
-            get
-            {
-                //List<IDataColumn> list = Columns.FindAll(item => item.PrimaryKey);
-                //return list == null || list.Count < 1 ? new IDataColumn[0] : list.ToArray();
-
-                return Columns.FindAll(item => item.PrimaryKey).ToArray();
-            }
-        }
-
-        ///// <summary>显示名。如果有Description则使用Description，否则使用Name</summary>
-        //[XmlIgnore]
-        //public String DisplayName { get { return ModelResolver.Current.GetDisplayName(Name ?? TableName, Description); } }
+        public IDataColumn[] PrimaryKeys { get { return Columns.FindAll(item => item.PrimaryKey).ToArray(); } }
 
         private IDictionary<String, String> _Properties;
         /// <summary>扩展属性</summary>
@@ -197,31 +184,25 @@ namespace XCode.DataAccessLayer
         /// <summary>根据字段名获取字段</summary>
         /// <param name="name">名称</param>
         /// <returns></returns>
-        public virtual IDataColumn GetColumn(String name)
-        {
-            return ModelHelper.GetColumn(this, name);
-        }
+        public virtual IDataColumn GetColumn(String name) { return ModelHelper.GetColumn(this, name); }
 
         /// <summary>根据字段名数组获取字段数组</summary>
         /// <param name="names"></param>
         /// <returns></returns>
-        public virtual IDataColumn[] GetColumns(String[] names)
-        {
-            return ModelHelper.GetColumns(this, names);
-        }
+        public virtual IDataColumn[] GetColumns(String[] names) { return ModelHelper.GetColumns(this, names); }
 
         /// <summary>连接另一个表，处理两表间关系</summary>
         /// <param name="table"></param>
-        public virtual IDataTable Connect(IDataTable table)
-        {
-            return ModelResolver.Current.Connect(this, table);
-        }
+        public virtual IDataTable Connect(IDataTable table) { return ModelResolver.Current.Connect(this, table); }
 
         /// <summary>修正数据</summary>
-        public virtual IDataTable Fix()
-        {
-            return ModelResolver.Current.Fix(this);
-        }
+        public virtual IDataTable Fix() { return ModelResolver.Current.Fix(this); }
+
+        /// <summary>获取全部字段，包括继承的父类</summary>
+        /// <param name="tables">在该表集合里面找父类</param>
+        /// <param name="baseFirst">是否父类字段在前</param>
+        /// <returns></returns>
+        public virtual List<IDataColumn> GetAllColumns(IEnumerable<IDataTable> tables, Boolean baseFirst = true) { return ModelHelper.GetAllColumns(this, tables, baseFirst); }
 
         /// <summary>已重载。</summary>
         /// <returns></returns>
@@ -237,10 +218,7 @@ namespace XCode.DataAccessLayer
         #region 导入导出
         /// <summary>导出</summary>
         /// <returns></returns>
-        public String Export()
-        {
-            return this.ToXml();
-        }
+        public String Export() { return this.ToXml(); }
 
         /// <summary>导入</summary>
         /// <param name="xml"></param>
@@ -290,23 +268,11 @@ namespace XCode.DataAccessLayer
 
         /// <summary>读取</summary>
         /// <param name="reader"></param>
-        void IXmlSerializable.ReadXml(XmlReader reader)
-        {
-            //reader.ReadStartElement();
-
-            ModelHelper.ReadXml(this, reader);
-        }
+        void IXmlSerializable.ReadXml(XmlReader reader) { ModelHelper.ReadXml(this, reader); }
 
         /// <summary>写入</summary>
         /// <param name="writer"></param>
-        void IXmlSerializable.WriteXml(XmlWriter writer)
-        {
-            //writer.WriteStartElement("Table");
-
-            ModelHelper.WriteXml(this, writer);
-
-            //writer.WriteEndElement();
-        }
+        void IXmlSerializable.WriteXml(XmlWriter writer) { ModelHelper.WriteXml(this, writer); }
         #endregion
     }
 }

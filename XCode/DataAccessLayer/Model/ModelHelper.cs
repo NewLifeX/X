@@ -39,6 +39,35 @@ namespace XCode.DataAccessLayer
             return table.Columns.Where(c => names.Any(n => c.Is(n))).ToArray();
         }
 
+        /// <summary>获取全部字段，包括继承的父类</summary>
+        /// <param name="tables">在该表集合里面找父类</param>
+        /// <param name="baseFirst">是否父类字段在前</param>
+        /// <returns></returns>
+        public static List<IDataColumn> GetAllColumns(this IDataTable table, IEnumerable<IDataTable> tables, Boolean baseFirst = true)
+        {
+            var list = new List<List<IDataColumn>>();
+
+            var dt = table;
+            while (dt != null)
+            {
+                list.Add(dt.Columns);
+
+                var baseType = dt.BaseType;
+                if (baseType.IsNullOrWhiteSpace()) break;
+
+                dt = tables.FirstOrDefault(e => baseType.EqualIgnoreCase(e.Name, e.TableName));
+            }
+
+            if (baseFirst) list.Reverse();
+
+            var dts = new List<IDataColumn>();
+            foreach (var item in list)
+            {
+                dts.AddRange(item);
+            }
+            return dts;
+        }
+
         /// <summary>判断表是否等于指定名字</summary>
         /// <param name="table"></param>
         /// <param name="name">名称</param>
@@ -70,7 +99,8 @@ namespace XCode.DataAccessLayer
 
             if (src.Length != des.Length) return false;
 
-            return !src.Except(des, StringComparer.OrdinalIgnoreCase).Any();
+            //return !src.Except(des, StringComparer.OrdinalIgnoreCase).Any();
+            return src.SequenceEqual(des, StringComparer.OrdinalIgnoreCase);
         }
 
         /// <summary>根据字段名找索引</summary>
@@ -131,7 +161,6 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 序列化扩展
-
         /// <summary>导出模型</summary>
         /// <param name="tables"></param>
         /// <param name="atts">附加属性</param>
