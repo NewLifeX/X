@@ -219,7 +219,7 @@ namespace NewLife.CommonEntity
 
 		#region 字段名
 		/// <summary>取得统计字段名的快捷方式</summary>
-		public class _
+		class _
 		{
             ///<summary>编号</summary>
             public static readonly Field ID = Meta.Table.FindByName("ID");
