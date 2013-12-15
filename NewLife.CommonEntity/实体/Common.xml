@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Tables Version="8.10.5097.24140">
+  <Table Name="UserProfile" Description="用户配置" DbType="SqlServer" RenderGenEntity="true">
+    <Columns>
+      <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
+      <Column Name="UserID" DataType="Int32" Description="父编号" />
+      <Column Name="Name" DataType="String" Description="名称" />
+      <Column Name="Kind" DataType="Int32" Description="值类型" />
+      <Column Name="Value" DataType="String" Length="500" Description="值" />
+    </Columns>
+    <Indexes>
+      <Index Columns="UserID" />
+      <Index Columns="Name,UserID" Unique="True" />
+    </Indexes>
+  </Table>
+  <Table Name="Setting" Description="设置" DbType="SqlServer" RenderGenEntity="true">
+    <Columns>
+      <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
+      <Column Name="Name" DataType="String" Description="名称" />
+      <Column Name="ParentID" DataType="Int32" Description="父编号" />
+      <Column Name="Kind" DataType="Int32" Description="值类型" />
+      <Column Name="Value" DataType="String" Length="500" Description="值" />
+      <Column Name="DisplayName" DataType="String" Description="显示名" />
+      <Column Name="Sort" DataType="Int32" Description="排序" />
+    </Columns>
+    <Indexes>
+      <Index Columns="ParentID" />
+    </Indexes>
+  </Table>
+  <Table Name="Statistics" Description="统计" DbType="SqlServer" RenderGenEntity="true">
+    <Columns>
+      <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
+      <Column Name="Total" DataType="Int32" Description="总数" />
+      <Column Name="Today" DataType="Int32" Description="今天" />
+      <Column Name="Yesterday" DataType="Int32" Description="昨天" />
+      <Column Name="ThisWeek" DataType="Int32" Description="本周" />
+      <Column Name="LastWeek" DataType="Int32" Description="上周" />
+      <Column Name="ThisMonth" DataType="Int32" Description="本月" />
+      <Column Name="LastMonth" DataType="Int32" Description="上月" />
+      <Column Name="ThisYear" DataType="Int32" Description="本年" />
+      <Column Name="LastYear" DataType="Int32" Description="去年" />
+      <Column Name="LastTime" DataType="DateTime" Description="最后时间" />
+      <Column Name="LastIP" DataType="String" Description="最后IP" />
+      <Column Name="Remark" DataType="String" Length="500" Description="备注" />
+    </Columns>
+  </Table>
+  <Table Name="Sequence" Description="序列" DbType="SqlServer" RenderGenEntity="true">
+    <Columns>
+      <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
+      <Column Name="Name" DataType="String" Description="名称" />
+      <Column Name="Kind" DataType="Int32" Description="种类" />
+      <Column Name="Num" DataType="Int32" Description="数字" />
+      <Column Name="LastUpdate" DataType="DateTime" Description="最后更新" />
+    </Columns>
+    <Indexes>
+      <Index Columns="Name" Unique="True" />
+    </Indexes>
+  </Table>
+  <Table Name="Area" Description="地区" DbType="SqlServer" RenderGenEntity="true">
+    <Columns>
+      <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
+      <Column Name="Code" DataType="Int32" Description="代码" />
+      <Column Name="OldCode" DataType="Int32" Description="旧版本代码" />
+      <Column Name="OldCode2" DataType="Int32" Description="旧版本代码2" />
+      <Column Name="OldCode3" DataType="Int32" Description="旧版本代码3" />
+      <Column Name="Name" DataType="String" Nullable="False" Description="名称" />
+      <Column Name="ParentCode" DataType="Int32" Nullable="False" Default="0" Description="父地区代码" />
+      <Column Name="Sort" DataType="Int32" Default="0" Description="序号" />
+      <Column Name="Description" DataType="String" Length="-1" Description="描述" />
+    </Columns>
+    <Indexes>
+      <Index Columns="Code" Unique="True" />
+      <Index Columns="Name" />
+    </Indexes>
+  </Table>
+  <Table Name="Category" Description="分类" DbType="SqlServer" RenderGenEntity="true">
+    <Columns>
+      <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
+      <Column Name="Name" DataType="String" Nullable="False" Description="名称" />
+      <Column Name="ParentID" DataType="Int32" Nullable="False" Description="父分类" />
+      <Column Name="Sort" DataType="Int32" Description="排序" />
+      <Column Name="Remark" DataType="String" Length="250" Description="备注" />
+    </Columns>
+    <Indexes>
+      <Index Columns="Name" Unique="True" />
+      <Index Columns="ParentID" />
+    </Indexes>
+  </Table>
+  <Table Name="GuidCategory" Description="Guid分类" DbType="SqlServer" RenderGenEntity="true">
+    <Columns>
+      <Column Name="Guid" DataType="Guid" RawType="uniqueidentifier" PrimaryKey="True" NumOfByte="16" Description="编号" />
+      <Column Name="Name" DataType="String" Nullable="False" Description="名称" />
+      <Column Name="ParentGuid" DataType="String" Description="父分类" />
+      <Column Name="Sort" DataType="Int32" Description="排序" />
+      <Column Name="Remark" DataType="String" Length="250" Description="备注" />
+    </Columns>
+    <Indexes>
+      <Index Columns="Name" Unique="True" />
+      <Index Columns="ParentGuid" />
+    </Indexes>
+  </Table>
+  <Table Name="Simple" Description="简单信息" DbType="SqlServer" RenderGenEntity="true">
+    <Columns>
+      <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
+      <Column Name="Name" DataType="String" Description="信息名称" />
+    </Columns>
+    <Indexes>
+      <Index Columns="Name" Unique="True" />
+    </Indexes>
+  </Table>
+  <Table Name="SimpleTree" Description="简单分类" DbType="SqlServer" RenderGenEntity="true">
+    <Columns>
+      <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
+      <Column Name="Name" DataType="String" Description="名称索引" />
+      <Column Name="ParentID" DataType="Int32" Description="父编号" />
+      <Column Name="Sort" DataType="Int32" Description="序号" />
+    </Columns>
+    <Indexes>
+      <Index Columns="Name" Unique="True" />
+    </Indexes>
+  </Table>
+  <Table Name="Attachment" Description="附件" DbType="SqlServer" 实体分类="..\附件" RenderGenEntity="true">
+    <Columns>
+      <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
+      <Column Name="FileName" DataType="String" Length="200" Description="文件名" />
+      <Column Name="Size" DataType="Int32" Description="大小" />
+      <Column Name="Extension" DataType="String" Description="扩展名" />
+      <Column Name="Category" DataType="String" Description="分类" />
+      <Column Name="FilePath" DataType="String" Length="200" Description="文件路径" />
+      <Column Name="UserName" DataType="String" Description="上传者" />
+      <Column Name="UploadTime" DataType="DateTime" Description="上传时间" />
+      <Column Name="ContentType" DataType="String" Description="内容类型" />
+      <Column Name="StatID" DataType="Int32" Description="访问统计" />
+      <Column Name="IsEnable" DataType="Boolean" Description="是否启用" />
+    </Columns>
+    <Indexes>
+      <Index Columns="Category" />
+    </Indexes>
+  </Table>
+</Tables>

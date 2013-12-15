@@ -185,18 +185,18 @@ namespace NewLife.CommonEntity
         public static TEntity FindByID(Int32 id)
         {
             if (id <= 0) return null;
-            return Meta.Cache.Entities.Find(_.ID, id);
+            return Meta.Cache.Entities.Find(__.ID, id);
         }
 
         /// <summary>根据名字查找</summary>
         /// <param name="name">名称</param>
         /// <returns></returns>
-        public static TEntity FindByName(String name) { return Meta.Cache.Entities.Find(_.Name, name); }
+        public static TEntity FindByName(String name) { return Meta.Cache.Entities.Find(__.Name, name); }
 
         /// <summary>根据Url查找</summary>
         /// <param name="url"></param>
         /// <returns></returns>
-        public static TEntity FindByUrl(String url) { return Meta.Cache.Entities.FindIgnoreCase(_.Url, url); }
+        public static TEntity FindByUrl(String url) { return Meta.Cache.Entities.FindIgnoreCase(__.Url, url); }
 
         /// <summary>根据名字查找，支持路径查找</summary>
         /// <param name="name">名称</param>
@@ -213,7 +213,7 @@ namespace NewLife.CommonEntity
         /// <summary>根据权限名查找</summary>
         /// <param name="name">名称</param>
         /// <returns></returns>
-        public static TEntity FindByPerssion(String name) { return Meta.Cache.Entities.Find(_.Permission, name); }
+        public static TEntity FindByPerssion(String name) { return Meta.Cache.Entities.Find(__.Permission, name); }
 
         /// <summary>为了权限而查找，支持路径查找</summary>
         /// <param name="name">名称</param>
@@ -221,7 +221,7 @@ namespace NewLife.CommonEntity
         public static TEntity FindForPerssion(String name)
         {
             // 计算集合，为了处理同名的菜单
-            EntityList<TEntity> list = Meta.Cache.Entities.FindAll(_.Permission, name);
+            EntityList<TEntity> list = Meta.Cache.Entities.FindAll(__.Permission, name);
             if (list != null && list.Count == 1) return list[0];
 
             // 如果菜单同名，则使用当前页
@@ -282,7 +282,7 @@ namespace NewLife.CommonEntity
 
         //    // 找第一级
         //    entity = list.Find(name, ss[0]);
-        //    if (entity == null) entity = list.Find(_.Remark, ss[0]);
+        //    if (entity == null) entity = list.Find(__.Remark, ss[0]);
         //    if (entity == null) return null;
 
         //    // 是否还有下级
@@ -324,7 +324,7 @@ namespace NewLife.CommonEntity
         /// <returns></returns>
         public static EntityList<TEntity> FindAllByParentID(Int32 id)
         {
-            EntityList<TEntity> list = Meta.Cache.Entities.FindAll(_.ParentID, id);
+            EntityList<TEntity> list = Meta.Cache.Entities.FindAll(__.ParentID, id);
             if (list != null && list.Count > 0) list.Sort(new String[] { _.Sort, _.ID }, new Boolean[] { true, false });
             return list;
         }
@@ -382,7 +382,7 @@ namespace NewLife.CommonEntity
                 //顶级节点根据名字合并
                 if (ParentID == 0)
                 {
-                    TEntity m = Find(_.Name, Name);
+                    TEntity m = Find(__.Name, Name);
                     if (m != null)
                     {
                         this.ID = m.ID;
@@ -482,7 +482,7 @@ namespace NewLife.CommonEntity
 
                 // 根据目录找菜单，它将作为顶级菜单
                 top = FindForName(item);
-                if (top == null) top = Meta.Cache.Entities.Find(_.Remark, item);
+                if (top == null) top = Meta.Cache.Entities.Find(__.Remark, item);
                 if (top == null)
                 {
                     top = Root.Create(item, null, 0, item);
@@ -499,7 +499,7 @@ namespace NewLife.CommonEntity
         {
             // 根据目录找菜单，它将作为顶级菜单
             TEntity top = FindForName(dir);
-            if (top == null) top = Meta.Cache.Entities.Find(_.Remark, dir);
+            if (top == null) top = Meta.Cache.Entities.Find(__.Remark, dir);
 
             // 如果找不到，就取第一个作为顶级
             if (top == null)
@@ -509,7 +509,7 @@ namespace NewLife.CommonEntity
                     top = childs[0];
                 else
                 {
-                    //var list = FindAllByName(_.ParentID, 0, _.ID.Desc(), 0, 1);
+                    //var list = FindAllByName(__.ParentID, 0, _.ID.Desc(), 0, 1);
                     //if (list != null && list.Count > 1) top = list[0];
                     return Meta.Cache.Entities.ToList().OrderByDescending(e => e.Sort).FirstOrDefault(e => e.ParentID == 0);
                 }
@@ -580,10 +580,10 @@ namespace NewLife.CommonEntity
                 return num;
 
             //本目录菜单
-            //TEntity parent = Find(_.Name, dirName);
-            //if (parent == null) parent = Find(_.Remark, dirName);
+            //TEntity parent = Find(__.Name, dirName);
+            //if (parent == null) parent = Find(__.Remark, dirName);
             var parent = FindByName(dirName);
-            if (parent == null) parent = Meta.Cache.Entities.Find(_.Remark, dirName);
+            if (parent == null) parent = Meta.Cache.Entities.Find(__.Remark, dirName);
             if (parent == null)
             {
                 parent = top.Create(dirName, null, 0, dirName);
@@ -640,7 +640,7 @@ namespace NewLife.CommonEntity
                         //    url = String.Format(@"../{0}/{1}", dirName, Path.GetFileName(elm));
                         //else
                         url = Path.Combine(currentPath, Path.GetFileName(elm));
-                        //TEntity entity = Find(_.Url, url);
+                        //TEntity entity = Find(__.Url, url);
                         var entity = FindByUrl(url);
                         if (entity != null) continue;
 
@@ -662,11 +662,11 @@ namespace NewLife.CommonEntity
                 }
 
             //如果目录中没有菜单，移除目录
-            //if (parent != null && parent.ID > 0 && FindCount(_.ParentID, parent.ID) == 0)
+            //if (parent != null && parent.ID > 0 && FindCount(__.ParentID, parent.ID) == 0)
             //目录为新增加菜单且本级以下num为1则认为只增加了目录，并无子级
             if (isAddDir && num == 1)
             {
-                var remove = top.Childs.Find(_.ID, parent.ID);
+                var remove = top.Childs.Find(__.ID, parent.ID);
                 if (remove != null) top.Childs.Remove(remove);
                 parent.Delete();
                 num = num - 1;
@@ -735,8 +735,8 @@ namespace NewLife.CommonEntity
         //        if (files.Count < 1) continue;
 
         //        // 添加
-        //        TEntity parent = Find(_.Name, dirName);
-        //        if (parent == null) parent = Find(_.Remark, dirName);
+        //        TEntity parent = Find(__.Name, dirName);
+        //        if (parent == null) parent = Find(__.Remark, dirName);
         //        if (parent == null)
         //        {
         //            parent = top.AddChild(dirName, null, 0, dirName);
@@ -771,11 +771,11 @@ namespace NewLife.CommonEntity
         //            //    url = String.Format(@"../{0}/{1}", dirName, Path.GetFileName(elm));
         //            //else
         //            url = String.Format(@"../{0}/{1}", dirName, Path.GetFileName(elm));
-        //            TEntity entity = Find(_.Url, url);
+        //            TEntity entity = Find(__.Url, url);
         //            if (entity != null) continue;
 
         //            url = String.Format(@"../../{2}/{0}/{1}", dirName, Path.GetFileName(elm), dir);
-        //            entity = Find(_.Url, url);
+        //            entity = Find(__.Url, url);
         //            if (entity != null) continue;
 
         //            entity = parent.AddChild(Path.GetFileNameWithoutExtension(elm), url);

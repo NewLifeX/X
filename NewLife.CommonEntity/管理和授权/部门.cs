@@ -17,10 +17,9 @@ namespace NewLife.CommonEntity
     [BindIndex("IX_Department_ParentID_Name", true, "ParentID,Name")]
     [BindIndex("IX_Department_ParentID_Code", false, "ParentID,Code")]
     [BindTable("Department", Description = "部门", ConnName = "Common", DbType = DatabaseType.SqlServer)]
-    public partial class Department<TEntity> : IDepartment
+    public abstract partial class Department<TEntity> : IDepartment
     {
         #region 属性
-
         private Int32 _ID;
         /// <summary>编号</summary>
         [DisplayName("编号")]
@@ -191,7 +190,7 @@ namespace NewLife.CommonEntity
 
         #region 字段名
         /// <summary>取得部门字段信息的快捷方式</summary>
-        public partial class _
+        partial class _
         {
             ///<summary>编号</summary>
             public static readonly Field ID = FindByName(__.ID);

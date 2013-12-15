@@ -14,10 +14,9 @@ namespace NewLife.CommonEntity
     [Description("用户")]
     [BindIndex("IX_User_Account", true, "Account")]
     [BindTable("User", Description = "用户", ConnName = "Common", DbType = DatabaseType.SqlServer)]
-    public partial class User<TEntity> : IUser
+    public abstract partial class User<TEntity> : IUser
     {
         #region 属性
-
         private Int32 _ID;
         /// <summary>编号</summary>
         [DisplayName("编号")]
@@ -118,7 +117,7 @@ namespace NewLife.CommonEntity
 
         #region 字段名
         /// <summary>取得用户字段信息的快捷方式</summary>
-        public partial class _
+        partial class _
         {
             ///<summary>编号</summary>
             public static readonly Field ID = FindByName(__.ID);

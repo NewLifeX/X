@@ -47,7 +47,7 @@ namespace NewLife.CommonEntity
             String name = Name;
             if (String.IsNullOrEmpty(name))
             {
-                var entity = Find(_.ID, ID);
+                var entity = Find(__.ID, ID);
                 if (entity != null) name = entity.Name;
             }
             WriteLog(null, "删除", name);
@@ -136,7 +136,7 @@ namespace NewLife.CommonEntity
             // 用于引发基类的静态构造函数
             var entity = new TEntity();
 
-            AdditionalFields.Add(_.Logins);
+            AdditionalFields.Add(__.Logins);
         }
 
         /// <summary>首次连接数据库时初始化数据，仅用于实体类重载，用户不应该调用该方法</summary>
@@ -166,8 +166,8 @@ namespace NewLife.CommonEntity
         {
             base.Valid(isNew);
 
-            if (String.IsNullOrEmpty(Name)) throw new ArgumentNullException(_.Name, "用户名不能为空！");
-            if (RoleID < 1) throw new ArgumentNullException(_.RoleID, "没有指定角色！");
+            if (String.IsNullOrEmpty(Name)) throw new ArgumentNullException(__.Name, "用户名不能为空！");
+            if (RoleID < 1) throw new ArgumentNullException(__.RoleID, "没有指定角色！");
         }
         #endregion
 
@@ -266,9 +266,9 @@ namespace NewLife.CommonEntity
         public static TEntity FindByID(Int32 id)
         {
             if (Meta.Count >= 1000)
-                return Find(_.ID, id);
+                return Find(__.ID, id);
             else // 实体缓存
-                return Meta.Cache.Entities.Find(_.ID, id);
+                return Meta.Cache.Entities.Find(__.ID, id);
         }
 
         /// <summary>根据名称查找</summary>
@@ -279,9 +279,9 @@ namespace NewLife.CommonEntity
             if (String.IsNullOrEmpty(name)) return null;
 
             if (Meta.Count >= 1000)
-                return Find(_.Name, name);
+                return Find(__.Name, name);
             else // 实体缓存
-                return Meta.Cache.Entities.Find(_.Name, name);
+                return Meta.Cache.Entities.Find(__.Name, name);
         }
 
         /// <summary>根据SSOUserID查找</summary>
@@ -290,9 +290,9 @@ namespace NewLife.CommonEntity
         public static TEntity FindBySSOUserID(Int32 id)
         {
             if (Meta.Count >= 1000)
-                return Find(_.SSOUserID, id);
+                return Find(__.SSOUserID, id);
             else // 实体缓存
-                return Meta.Cache.Entities.Find(_.SSOUserID, id);
+                return Meta.Cache.Entities.Find(__.SSOUserID, id);
         }
 
         /// <summary>根据SSOUserID查找所有帐户</summary>
@@ -301,9 +301,9 @@ namespace NewLife.CommonEntity
         public static EntityList<TEntity> FindAllBySSOUserID(Int32 id)
         {
             if (Meta.Count >= 1000)
-                return FindAll(_.SSOUserID, id);
+                return FindAll(__.SSOUserID, id);
             else // 实体缓存
-                return Meta.Cache.Entities.FindAll(_.SSOUserID, id);
+                return Meta.Cache.Entities.FindAll(__.SSOUserID, id);
         }
 
         /// <summary>查询满足条件的记录集，分页、排序</summary>

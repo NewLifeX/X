@@ -232,7 +232,7 @@ namespace NewLife.CommonEntity
         /// <param name="isNew">是否新数据</param>
         public override void Valid(bool isNew)
         {
-            if (String.IsNullOrEmpty(Name)) throw new ArgumentNullException(_.Name, _.Name.DisplayName + "不能为空！");
+            if (String.IsNullOrEmpty(Name)) throw new ArgumentNullException(__.Name, _.Name.DisplayName + "不能为空！");
 
             base.Valid(isNew);
         }
@@ -283,7 +283,7 @@ namespace NewLife.CommonEntity
         {
             if (id <= 0 || Meta.Cache.Entities == null || Meta.Cache.Entities.Count < 1) return null;
 
-            return Meta.Cache.Entities.Find(_.ID, id);
+            return Meta.Cache.Entities.Find(__.ID, id);
         }
 
         /// <summary>根据名称查找角色</summary>
@@ -293,7 +293,7 @@ namespace NewLife.CommonEntity
         {
             if (String.IsNullOrEmpty(name) || Meta.Cache.Entities == null || Meta.Cache.Entities.Count < 1) return null;
 
-            return Meta.Cache.Entities.Find(_.Name, name);
+            return Meta.Cache.Entities.Find(__.Name, name);
         }
         #endregion
 

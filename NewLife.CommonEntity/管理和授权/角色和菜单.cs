@@ -18,10 +18,9 @@ namespace NewLife.CommonEntity
     [BindRelation("MenuID", false, "Menu", "ID")]
     [BindRelation("RoleID", false, "Role", "ID")]
     [BindTable("RoleMenu", Description = "角色和菜单", ConnName = "Common", DbType = DatabaseType.SqlServer)]
-    public partial class RoleMenu<TEntity> : IRoleMenu
+    public abstract partial class RoleMenu<TEntity> : IRoleMenu
     {
         #region 属性
-
         private Int32 _ID;
         /// <summary>编号</summary>
         [DisplayName("编号")]

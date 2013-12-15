@@ -33,9 +33,9 @@ namespace NewLife.CommonEntity
         public static TEntity FindByCode(Int32 code)
         {
             if (Meta.Count >= 1000)
-                return Find(_.Code, code);
+                return Find(__.Code, code);
             else // 实体缓存
-                return Meta.Cache.Entities.Find(_.Code, code);
+                return Meta.Cache.Entities.Find(__.Code, code);
             // 单对象缓存
             //return Meta.SingleCache[code];
         }
@@ -47,9 +47,9 @@ namespace NewLife.CommonEntity
         public static EntityList<TEntity> FindAllByName(String name)
         {
             if (Meta.Count >= 1000)
-                return FindAll(_.Name, name);
+                return FindAll(__.Name, name);
             else // 实体缓存
-                return Meta.Cache.Entities.FindAll(_.Name, name);
+                return Meta.Cache.Entities.FindAll(__.Name, name);
         }
 
         /// <summary>根据ID查找</summary>
@@ -59,9 +59,9 @@ namespace NewLife.CommonEntity
         public static TEntity FindByID(Int32 id)
         {
             if (Meta.Count >= 1000)
-                return Find(_.ID, id);
+                return Find(__.ID, id);
             else // 实体缓存
-                return Meta.Cache.Entities.Find(_.ID, id);
+                return Meta.Cache.Entities.Find(__.ID, id);
             // 单对象缓存
             //return Meta.SingleCache[id];
         }
@@ -102,13 +102,13 @@ namespace NewLife.CommonEntity
         //    base.Valid(isNew);
 
         //    // 这里验证参数范围，建议抛出参数异常，指定参数名，前端用户界面可以捕获参数异常并聚焦到对应的参数输入框
-        //    if (String.IsNullOrEmpty(_.Name)) throw new ArgumentNullException(_.Name, _.Name.Description + "无效！");
-        //    if (!isNew && ID < 1) throw new ArgumentOutOfRangeException(_.ID, _.ID.Description + "必须大于0！");
+        //    if (String.IsNullOrEmpty(__.Name)) throw new ArgumentNullException(__.Name, _.Name.Description + "无效！");
+        //    if (!isNew && ID < 1) throw new ArgumentOutOfRangeException(__.ID, _.ID.Description + "必须大于0！");
 
         //    // 在新插入数据或者修改了指定字段时进行唯一性验证，CheckExist内部抛出参数异常
-        //    if (isNew || Dirtys[_.Name]) CheckExist(_.Name);
-        //    if (isNew || Dirtys[_.Name] || Dirtys[_.DbType]) CheckExist(_.Name, _.DbType);
-        //    if ((isNew || Dirtys[_.Name]) && Exist(_.Name)) throw new ArgumentException(_.Name, "值为" + Name + "的" + _.Name.Description + "已存在！");
+        //    if (isNew || Dirtys[_.Name]) CheckExist(__.Name);
+        //    if (isNew || Dirtys[_.Name] || Dirtys[_.DbType]) CheckExist(__.Name, _.DbType);
+        //    if ((isNew || Dirtys[_.Name]) && Exist(__.Name)) throw new ArgumentException(__.Name, "值为" + Name + "的" + _.Name.Description + "已存在！");
         //}
 
 

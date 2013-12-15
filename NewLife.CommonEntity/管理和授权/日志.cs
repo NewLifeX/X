@@ -14,10 +14,9 @@ namespace NewLife.CommonEntity
     [Description("日志")]
     [BindIndex("IX_Log_Category", false, "Category")]
     [BindTable("Log", Description = "日志", ConnName = "Common", DbType = DatabaseType.SqlServer)]
-    public partial class Log<TEntity> : ILog
+    public abstract partial class Log<TEntity> : ILog
     {
         #region 属性
-
         private Int32 _ID;
         /// <summary>编号</summary>
         [DisplayName("编号")]
@@ -160,7 +159,7 @@ namespace NewLife.CommonEntity
 
         #region 字段名
         /// <summary>取得日志字段信息的快捷方式</summary>
-        public partial class _
+        partial class _
         {
             ///<summary>编号</summary>
             public static readonly Field ID = FindByName(__.ID);

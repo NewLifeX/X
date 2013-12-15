@@ -1,11 +1,7 @@
-﻿/*
- * XCoder v4.8.4526.33278
- * 作者：nnhy/NEWLIFE
- * 时间：2012-05-24 16:52:31
- * 版权：版权所有 (C) 新生命开发团队 2012
-*/
-﻿using System;
+﻿﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
+using System.Xml.Serialization;
 using XCode;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
@@ -17,11 +13,9 @@ namespace NewLife.CommonEntity
     [DataObject]
     [Description("用户配置")]
     [BindIndex("IX_UserProfile_UserID", false, "UserID")]
-    [BindIndex("IX_UserProfile_UserID_Name", true, "Name,UserID")]
-    [BindIndex("PK__UserProf__3214EC2707020F21", true, "ID")]
-    [BindIndex("PK_UserProfile_ID", true, "ID")]
+    [BindIndex("IU_UserProfile_Name_UserID", true, "Name,UserID")]
     [BindTable("UserProfile", Description = "用户配置", ConnName = "Common", DbType = DatabaseType.SqlServer)]
-    public partial class UserProfile<TEntity> : IUserProfile
+    public abstract partial class UserProfile<TEntity> : IUserProfile
     {
         #region 属性
         private Int32 _ID;
@@ -33,7 +27,7 @@ namespace NewLife.CommonEntity
         public virtual Int32 ID
         {
             get { return _ID; }
-            set { if (OnPropertyChanging("ID", value)) { _ID = value; OnPropertyChanged("ID"); } }
+            set { if (OnPropertyChanging(__.ID, value)) { _ID = value; OnPropertyChanged(__.ID); } }
         }
 
         private Int32 _UserID;
@@ -45,7 +39,7 @@ namespace NewLife.CommonEntity
         public virtual Int32 UserID
         {
             get { return _UserID; }
-            set { if (OnPropertyChanging("UserID", value)) { _UserID = value; OnPropertyChanged("UserID"); } }
+            set { if (OnPropertyChanging(__.UserID, value)) { _UserID = value; OnPropertyChanged(__.UserID); } }
         }
 
         private String _Name;
@@ -57,7 +51,7 @@ namespace NewLife.CommonEntity
         public virtual String Name
         {
             get { return _Name; }
-            set { if (OnPropertyChanging("Name", value)) { _Name = value; OnPropertyChanged("Name"); } }
+            set { if (OnPropertyChanging(__.Name, value)) { _Name = value; OnPropertyChanged(__.Name); } }
         }
 
         private Int32 _Kind;
@@ -69,7 +63,7 @@ namespace NewLife.CommonEntity
         public virtual Int32 Kind
         {
             get { return _Kind; }
-            set { if (OnPropertyChanging("Kind", value)) { _Kind = value; OnPropertyChanged("Kind"); } }
+            set { if (OnPropertyChanging(__.Kind, value)) { _Kind = value; OnPropertyChanged(__.Kind); } }
         }
 
         private String _Value;
@@ -81,9 +75,9 @@ namespace NewLife.CommonEntity
         public virtual String Value
         {
             get { return _Value; }
-            set { if (OnPropertyChanging("Value", value)) { _Value = value; OnPropertyChanged("Value"); } }
+            set { if (OnPropertyChanging(__.Value, value)) { _Value = value; OnPropertyChanged(__.Value); } }
         }
-		#endregion
+        #endregion
 
         #region 获取/设置 字段值
         /// <summary>
@@ -99,11 +93,11 @@ namespace NewLife.CommonEntity
             {
                 switch (name)
                 {
-                    case "ID" : return _ID;
-                    case "UserID" : return _UserID;
-                    case "Name" : return _Name;
-                    case "Kind" : return _Kind;
-                    case "Value" : return _Value;
+                    case __.ID : return _ID;
+                    case __.UserID : return _UserID;
+                    case __.Name : return _Name;
+                    case __.Kind : return _Kind;
+                    case __.Value : return _Value;
                     default: return base[name];
                 }
             }
@@ -111,11 +105,11 @@ namespace NewLife.CommonEntity
             {
                 switch (name)
                 {
-                    case "ID" : _ID = Convert.ToInt32(value); break;
-                    case "UserID" : _UserID = Convert.ToInt32(value); break;
-                    case "Name" : _Name = Convert.ToString(value); break;
-                    case "Kind" : _Kind = Convert.ToInt32(value); break;
-                    case "Value" : _Value = Convert.ToString(value); break;
+                    case __.ID : _ID = Convert.ToInt32(value); break;
+                    case __.UserID : _UserID = Convert.ToInt32(value); break;
+                    case __.Name : _Name = Convert.ToString(value); break;
+                    case __.Kind : _Kind = Convert.ToInt32(value); break;
+                    case __.Value : _Value = Convert.ToString(value); break;
                     default: base[name] = value; break;
                 }
             }
@@ -124,24 +118,44 @@ namespace NewLife.CommonEntity
 
         #region 字段名
         /// <summary>取得用户配置字段信息的快捷方式</summary>
-        public class _
+        partial class _
         {
             ///<summary>编号</summary>
-            public static readonly Field ID = FindByName("ID");
+            public static readonly Field ID = FindByName(__.ID);
 
             ///<summary>父编号</summary>
-            public static readonly Field UserID = FindByName("UserID");
+            public static readonly Field UserID = FindByName(__.UserID);
 
             ///<summary>名称</summary>
-            public static readonly Field Name = FindByName("Name");
+            public static readonly Field Name = FindByName(__.Name);
 
             ///<summary>值类型</summary>
-            public static readonly Field Kind = FindByName("Kind");
+            public static readonly Field Kind = FindByName(__.Kind);
 
             ///<summary>值</summary>
-            public static readonly Field Value = FindByName("Value");
+            public static readonly Field Value = FindByName(__.Value);
 
             static Field FindByName(String name) { return Meta.Table.FindByName(name); }
+        }
+
+        /// <summary>取得用户配置字段名称的快捷方式</summary>
+        partial class __
+        {
+            ///<summary>编号</summary>
+            public const String ID = "ID";
+
+            ///<summary>父编号</summary>
+            public const String UserID = "UserID";
+
+            ///<summary>名称</summary>
+            public const String Name = "Name";
+
+            ///<summary>值类型</summary>
+            public const String Kind = "Kind";
+
+            ///<summary>值</summary>
+            public const String Value = "Value";
+
         }
         #endregion
     }

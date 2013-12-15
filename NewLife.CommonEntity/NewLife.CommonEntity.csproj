@@ -60,6 +60,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="实体\XCoder.log">
+      <DependentUpon>XCoder.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+    <None Include="实体\XCoder.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>XCoder.log</LastGenOutput>
+    </None>
     <None Include="管理和授权\XCoder.log">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -200,6 +209,9 @@
     <EmbeddedResource Include="实体\AreaCode.txt">
       <!--       <DependentUpon>地区.cs</DependentUpon> -->
     </EmbeddedResource>
+    <Content Include="实体\Common.xml">
+      <SubType>Designer</SubType>
+    </Content>
     <Content Include="模版\模版.xml">
       <SubType>Designer</SubType>
     </Content>

@@ -27,8 +27,8 @@ namespace NewLife.CommonEntity
         public override void Valid(Boolean isNew)
         {
             // 这里验证参数范围，建议抛出参数异常，指定参数名，前端用户界面可以捕获参数异常并聚焦到对应的参数输入框
-            if (String.IsNullOrEmpty(Name)) throw new ArgumentNullException(_.Name, _.Name.DisplayName + "无效！");
-            if (!isNew && ID < 1) throw new ArgumentOutOfRangeException(_.ID, _.ID.DisplayName + "必须大于0！");
+            if (String.IsNullOrEmpty(Name)) throw new ArgumentNullException(__.Name, _.Name.DisplayName + "无效！");
+            if (!isNew && ID < 1) throw new ArgumentOutOfRangeException(__.ID, _.ID.DisplayName + "必须大于0！");
 
             // 建议先调用基类方法，基类方法会对唯一索引的数据进行验证
             base.Valid(isNew);
@@ -44,13 +44,13 @@ namespace NewLife.CommonEntity
             if (Level > 0)
             {
                 //// 根据等级查找以往的等级名称
-                //var entity = Find(_.Level == Level & _.LevelName.NotIsNullOrEmpty());
+                //var entity = Find(__.Level == Level & _.LevelName.NotIsNullOrEmpty());
                 //if (entity != null)
                 //{
                 //    if (String.IsNullOrEmpty(LevelName) || !Dirtys[_.LevelName])
                 //        LevelName = entity.LevelName;
                 //    else if (!String.IsNullOrEmpty(entity.LevelName) && LevelName != entity.LevelName)
-                //        throw new ArgumentOutOfRangeException(_.LevelName, "等级名[" + LevelName + "]不同于以前[" + entity.Name + "]曾经使用的[" + entity.LevelName + "]，其中一个有错！");
+                //        throw new ArgumentOutOfRangeException(__.LevelName, "等级名[" + LevelName + "]不同于以前[" + entity.Name + "]曾经使用的[" + entity.LevelName + "]，其中一个有错！");
                 //}
 
                 LevelName = OnGetLevelName(Level);
@@ -94,9 +94,9 @@ namespace NewLife.CommonEntity
         public static EntityList<TEntity> FindAllByCode(String code)
         {
             if (Meta.Count >= 1000)
-                return FindAll(_.Code, code);
+                return FindAll(__.Code, code);
             else // 实体缓存
-                return Meta.Cache.Entities.FindAll(_.Code, code);
+                return Meta.Cache.Entities.FindAll(__.Code, code);
         }
 
         /// <summary>根据护照或者签证查找</summary>
@@ -106,9 +106,9 @@ namespace NewLife.CommonEntity
         public static EntityList<TEntity> FindAllByName(String name)
         {
             if (Meta.Count >= 1000)
-                return FindAll(_.Name, name);
+                return FindAll(__.Name, name);
             else // 实体缓存
-                return Meta.Cache.Entities.FindAll(_.Name, name);
+                return Meta.Cache.Entities.FindAll(__.Name, name);
         }
 
         /// <summary>根据编号查找</summary>
@@ -118,9 +118,9 @@ namespace NewLife.CommonEntity
         public static TEntity FindByID(Int32 id)
         {
             if (Meta.Count >= 1000)
-                return Find(_.ID, id);
+                return Find(__.ID, id);
             else // 实体缓存
-                return Meta.Cache.Entities.Find(_.ID, id);
+                return Meta.Cache.Entities.Find(__.ID, id);
             // 单对象缓存
             //return Meta.SingleCache[id];
         }

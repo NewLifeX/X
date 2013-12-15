@@ -87,7 +87,7 @@ namespace NewLife.CommonEntity
             String remark = String.Format("Role={0},Menu={1},Permission={2}", RoleID, MenuID, PermissionFlag);
             if (RoleID <= 0 && MenuID <= 0)
             {
-                TEntity entity = Find(_.ID, ID);
+                TEntity entity = Find(__.ID, ID);
                 if (entity != null) remark = String.Format("Role={0},Menu={1},Permission={2}", RoleID, MenuID, PermissionFlag);
             }
             WriteLog("删除", remark);
@@ -103,17 +103,17 @@ namespace NewLife.CommonEntity
             if (Meta.Cache.Entities.Count < 1) return;
 
             var list = Meta.Cache.Entities;
-            if (menuID > 0) list = list.FindAll(_.MenuID, menuID);
+            if (menuID > 0) list = list.FindAll(__.MenuID, menuID);
             if (list == null || list.Count < 1) return;
 
-            var list2 = list.FindAll(_.Permission, (Int32)PermissionFlags.None);
+            var list2 = list.FindAll(__.Permission, (Int32)PermissionFlags.None);
             // 判断是否所有实体都是None权限
             if (list2 != null && list2.Count == list.Count)
             {
                 WriteLog("授权检查", String.Format("没有任何角色拥有菜单{0}的权限，准备授权所有角色拥有该菜单的所有权限！", menuID));
 
                 // 授权所有实体为All权限
-                list.SetItem(_.Permission, (Int32)PermissionFlags.All);
+                list.SetItem(__.Permission, (Int32)PermissionFlags.All);
                 list.Save();
             }
         }
@@ -140,7 +140,7 @@ namespace NewLife.CommonEntity
         {
             if (roleID <= 0 || Meta.Cache.Entities == null || Meta.Cache.Entities.Count < 1) return null;
 
-            return Meta.Cache.Entities.FindAll(_.RoleID, roleID);
+            return Meta.Cache.Entities.FindAll(__.RoleID, roleID);
         }
 
         /// <summary>根据菜单编号查询所有角色和菜单实体对象</summary>
@@ -151,7 +151,7 @@ namespace NewLife.CommonEntity
         {
             if (menuID <= 0 || Meta.Cache.Entities == null || Meta.Cache.Entities.Count < 1) return null;
 
-            return Meta.Cache.Entities.FindAll(_.MenuID, menuID);
+            return Meta.Cache.Entities.FindAll(__.MenuID, menuID);
         }
 
         /// <summary>根据角色编号和菜单查询一个角色和菜单实体对象</summary>
@@ -167,7 +167,7 @@ namespace NewLife.CommonEntity
             var list = FindAllByRoleID(roleID);
             if (list == null || list.Count < 1) return null;
 
-            return list.Find(_.MenuID, menuID);
+            return list.Find(__.MenuID, menuID);
         }
 
         /// <summary>查找所有无效的对应关系</summary>
@@ -242,7 +242,7 @@ namespace NewLife.CommonEntity
             foreach (var item in menuIDs)
             {
                 // 是否已存在
-                if (rms != null && rms.Exists(_.MenuID, item)) continue;
+                if (rms != null && rms.Exists(__.MenuID, item)) continue;
 
                 var entity = Create(roleID, item);
                 entity.Save();

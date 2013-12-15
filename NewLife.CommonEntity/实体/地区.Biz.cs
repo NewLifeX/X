@@ -107,7 +107,7 @@ namespace NewLife.CommonEntity
         public static TEntity FindByID(Int32 id)
         {
             if (id <= 0) return null;
-            return Meta.Cache.Entities.Find(_.ID, id);
+            return Meta.Cache.Entities.Find(__.ID, id);
         }
 
         /// <summary>按Code查找。实体缓存</summary>
@@ -130,7 +130,7 @@ namespace NewLife.CommonEntity
         public static TEntity FindByName(String name)
         {
             if (String.IsNullOrEmpty(name)) return null;
-            return Meta.Cache.Entities.Find(_.Name, name);
+            return Meta.Cache.Entities.Find(__.Name, name);
 
             //return FindAllByName(name);
             //return Root.FindAllByName(name);
@@ -154,8 +154,8 @@ namespace NewLife.CommonEntity
                     deepth = 1;
             }
 
-            //EntityList<TEntity> list = Meta.Cache.Entities.FindAll(_.Name, name);
-            //EntityList<TEntity> list = Childs.FindAll(_.Name, name);
+            //EntityList<TEntity> list = Meta.Cache.Entities.FindAll(__.Name, name);
+            //EntityList<TEntity> list = Childs.FindAll(__.Name, name);
             EntityList<TEntity> list = Childs.FindAll(a => CompAreaName(a.Name, name));
             if (list != null && list.Count > 0) return list;
 
@@ -201,7 +201,7 @@ namespace NewLife.CommonEntity
                     String last = name.Substring(i);
 
                     // 必须找到左边的，否则这个匹配没有意义
-                    //TEntity entity = Meta.Cache.Entities.Find(_.Name, first);
+                    //TEntity entity = Meta.Cache.Entities.Find(__.Name, first);
                     // 模糊查询一层
                     var list2 = FindAllByName(first, true, 1);
                     if (list2 != null && list2.Count > 0)
@@ -276,7 +276,7 @@ namespace NewLife.CommonEntity
         [DataObjectMethod(DataObjectMethodType.Select)]
         public static EntityList<TEntity> FindAllByParent(String parentname)
         {
-            var parent = Meta.Cache.Entities.Find(_.Name, parentname);
+            var parent = Meta.Cache.Entities.Find(__.Name, parentname);
             if (parent == null) return null;
 
             var list = FindAllByParent(parent.Code);
@@ -345,13 +345,13 @@ namespace NewLife.CommonEntity
             base.Valid(isNew);
 
             // 这里验证参数范围，建议抛出参数异常，指定参数名，前端用户界面可以捕获参数异常并聚焦到对应的参数输入框
-            if (String.IsNullOrEmpty(_.Name)) throw new ArgumentNullException(_.Name, _.Name.Description + "无效！");
-            if (Code < 1) throw new ArgumentOutOfRangeException(_.Code, _.Code.Description + "必须大于0！");
+            if (String.IsNullOrEmpty(__.Name)) throw new ArgumentNullException(__.Name, _.Name.Description + "无效！");
+            if (Code < 1) throw new ArgumentOutOfRangeException(__.Code, _.Code.Description + "必须大于0！");
 
             // 在新插入数据或者修改了指定字段时进行唯一性验证，CheckExist内部抛出参数异常
-            //if (isNew || Dirtys[_.Name]) CheckExist(_.Name);
-            if (isNew || Dirtys[_.Name] || Dirtys[_.ParentCode]) CheckExist(_.Name, _.ParentCode);
-            //if ((isNew || Dirtys[_.Name]) && Exist(_.Name)) throw new ArgumentException(_.Name, "值为" + Name + "的" + _.Name.Description + "已存在！");
+            //if (isNew || Dirtys[_.Name]) CheckExist(__.Name);
+            if (isNew || Dirtys[_.Name] || Dirtys[_.ParentCode]) CheckExist(__.Name, _.ParentCode);
+            //if ((isNew || Dirtys[_.Name]) && Exist(__.Name)) throw new ArgumentException(__.Name, "值为" + Name + "的" + _.Name.Description + "已存在！");
         }
 
         ///// <summary>

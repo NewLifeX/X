@@ -212,8 +212,8 @@ namespace NewLife.CommonEntity
         [DataObjectMethod(DataObjectMethodType.Select, true)]
         public static EntityList<TEntity> FindAllByCmdType(String catetory)
         {
-            //return FindAll(_.Category, catetory) as EntityList<Attachment>;
-            return FindAll(_.Category, catetory);
+            //return FindAll(__.Category, catetory) as EntityList<Attachment>;
+            return FindAll(__.Category, catetory);
         }
 
         /// <summary>根据主键查询一个附件实体对象用于表单编辑</summary>
@@ -235,9 +235,9 @@ namespace NewLife.CommonEntity
         /// <returns></returns>
         public static TEntity FindByID(Int32 id)
         {
-            //return Find(_.ID, id);
+            //return Find(__.ID, id);
             // 实体缓存
-            //return Meta.Cache.Entities.Find(_.ID, id);
+            //return Meta.Cache.Entities.Find(__.ID, id);
             // 单对象缓存
             return Meta.SingleCache[id];
         }
@@ -251,7 +251,7 @@ namespace NewLife.CommonEntity
             if (Meta.Count >= 1000)
                 return FindAll(new String[] { _.Category }, new Object[] { category });
             else // 实体缓存
-                return Meta.Cache.Entities.FindAll(_.Category, category);
+                return Meta.Cache.Entities.FindAll(__.Category, category);
         }
         #endregion
 

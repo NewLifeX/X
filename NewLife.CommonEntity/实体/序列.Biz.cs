@@ -38,7 +38,7 @@ namespace NewLife.CommonEntity
         #region 对象操作
         static Sequence()
         {
-            Meta.SingleCache.FindKeyMethod = delegate(Object name) { return Find(_.Name, name); };
+            Meta.SingleCache.FindKeyMethod = delegate(Object name) { return Find(__.Name, name); };
         }
 
         /// <summary>验证</summary>
@@ -94,9 +94,9 @@ namespace NewLife.CommonEntity
         /// <returns></returns>
         public static TEntity FindByID(Int32 __ID)
         {
-            return Find(_.ID, __ID);
+            return Find(__.ID, __ID);
             // 实体缓存
-            //return Meta.Cache.Entities.Find(_.ID, __ID);
+            //return Meta.Cache.Entities.Find(__.ID, __ID);
             // 单对象缓存
             //return Meta.SingleCache[__ID];
         }
@@ -108,9 +108,9 @@ namespace NewLife.CommonEntity
         {
             if (String.IsNullOrEmpty(__Name)) return null;
             //取消缓存，防止出现缓存过期无法获得对象
-            return Find(_.Name, __Name);
+            return Find(__.Name, __Name);
             // 实体缓存
-            //return Meta.Cache.Entities.Find(_.Name, __Name);
+            //return Meta.Cache.Entities.Find(__.Name, __Name);
             // 单对象缓存
             //return Meta.SingleCache[__Name];
         }

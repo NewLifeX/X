@@ -16,10 +16,9 @@ namespace NewLife.CommonEntity
     [BindIndex("IX_Administrator_RoleID", false, "RoleID")]
     [BindRelation("RoleID", false, "Role", "ID")]
     [BindTable("Administrator", Description = "管理员", ConnName = "Common", DbType = DatabaseType.SqlServer)]
-    public partial class Administrator<TEntity> : IAdministrator
+    public abstract partial class Administrator<TEntity> : IAdministrator
     {
         #region 属性
-
         private Int32 _ID;
         /// <summary>编号</summary>
         [DisplayName("编号")]
@@ -226,7 +225,7 @@ namespace NewLife.CommonEntity
         }
 
         /// <summary>取得管理员字段名称的快捷方式</summary>
-        partial class __
+        public partial class __
         {
             ///<summary>编号</summary>
             public const String ID = "ID";

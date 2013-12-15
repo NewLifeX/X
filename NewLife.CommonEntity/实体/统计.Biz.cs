@@ -23,11 +23,11 @@ namespace NewLife.CommonEntity
         #region 对象操作
         static Statistics()
         {
-            AdditionalFields.Add(_.Total);
-            AdditionalFields.Add(_.Today);
-            AdditionalFields.Add(_.ThisWeek);
-            AdditionalFields.Add(_.ThisMonth);
-            AdditionalFields.Add(_.ThisYear);
+            AdditionalFields.Add(__.Total);
+            AdditionalFields.Add(__.Today);
+            AdditionalFields.Add(__.ThisWeek);
+            AdditionalFields.Add(__.ThisMonth);
+            AdditionalFields.Add(__.ThisYear);
         }
         #endregion
 
@@ -73,9 +73,9 @@ namespace NewLife.CommonEntity
         /// <returns></returns>
         public static TEntity FindByID(Int32 id)
         {
-            //return Find(_.ID, id);
+            //return Find(__.ID, id);
             // 实体缓存
-            //return Meta.Cache.Entities.Find(_.ID, id);
+            //return Meta.Cache.Entities.Find(__.ID, id);
             // 单对象缓存
             return Meta.SingleCache[id];
         }

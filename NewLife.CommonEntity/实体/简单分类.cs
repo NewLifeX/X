@@ -1,11 +1,7 @@
-﻿/*
- * XCoder v4.8.4526.33278
- * 作者：nnhy/NEWLIFE
- * 时间：2012-05-24 16:52:29
- * 版权：版权所有 (C) 新生命开发团队 2012
-*/
-﻿using System;
+﻿﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
+using System.Xml.Serialization;
 using XCode;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
@@ -16,11 +12,9 @@ namespace NewLife.CommonEntity
     [Serializable]
     [DataObject]
     [Description("简单分类")]
-    [BindIndex("IX_SimpleTree", true, "Name")]
-    [BindIndex("PK__SimpleTr__3214EC270EA330E9", true, "ID")]
-    [BindIndex("PK_SimpleTree", true, "ID")]
+    [BindIndex("IU_SimpleTree_Name", true, "Name")]
     [BindTable("SimpleTree", Description = "简单分类", ConnName = "Common", DbType = DatabaseType.SqlServer)]
-    public partial class SimpleTree<TEntity> : ISimpleTree
+    public abstract partial class SimpleTree<TEntity> : ISimpleTree
     {
         #region 属性
         private Int32 _ID;
@@ -32,7 +26,7 @@ namespace NewLife.CommonEntity
         public virtual Int32 ID
         {
             get { return _ID; }
-            set { if (OnPropertyChanging("ID", value)) { _ID = value; OnPropertyChanged("ID"); } }
+            set { if (OnPropertyChanging(__.ID, value)) { _ID = value; OnPropertyChanged(__.ID); } }
         }
 
         private String _Name;
@@ -44,7 +38,7 @@ namespace NewLife.CommonEntity
         public virtual String Name
         {
             get { return _Name; }
-            set { if (OnPropertyChanging("Name", value)) { _Name = value; OnPropertyChanged("Name"); } }
+            set { if (OnPropertyChanging(__.Name, value)) { _Name = value; OnPropertyChanged(__.Name); } }
         }
 
         private Int32 _ParentID;
@@ -56,21 +50,21 @@ namespace NewLife.CommonEntity
         public virtual Int32 ParentID
         {
             get { return _ParentID; }
-            set { if (OnPropertyChanging("ParentID", value)) { _ParentID = value; OnPropertyChanged("ParentID"); } }
+            set { if (OnPropertyChanging(__.ParentID, value)) { _ParentID = value; OnPropertyChanged(__.ParentID); } }
         }
 
         private Int32 _Sort;
         /// <summary>序号</summary>
         [DisplayName("序号")]
         [Description("序号")]
-        [DataObjectField(false, false, true, 50)]
-        [BindColumn(4, "Sort", "序号", null, "int", 10, 0, true)]
+        [DataObjectField(false, false, true, 10)]
+        [BindColumn(4, "Sort", "序号", null, "int", 10, 0, false)]
         public virtual Int32 Sort
         {
             get { return _Sort; }
-            set { if (OnPropertyChanging("Sort", value)) { _Sort = value; OnPropertyChanged("Sort"); } }
+            set { if (OnPropertyChanging(__.Sort, value)) { _Sort = value; OnPropertyChanged(__.Sort); } }
         }
-		#endregion
+        #endregion
 
         #region 获取/设置 字段值
         /// <summary>
@@ -86,10 +80,10 @@ namespace NewLife.CommonEntity
             {
                 switch (name)
                 {
-                    case "ID" : return _ID;
-                    case "Name" : return _Name;
-                    case "ParentID" : return _ParentID;
-                    case "Sort" : return _Sort;
+                    case __.ID : return _ID;
+                    case __.Name : return _Name;
+                    case __.ParentID : return _ParentID;
+                    case __.Sort : return _Sort;
                     default: return base[name];
                 }
             }
@@ -97,10 +91,10 @@ namespace NewLife.CommonEntity
             {
                 switch (name)
                 {
-                    case "ID" : _ID = Convert.ToInt32(value); break;
-                    case "Name" : _Name = Convert.ToString(value); break;
-                    case "ParentID" : _ParentID = Convert.ToInt32(value); break;
-                    case "Sort": _Sort = Convert.ToInt32(value); break;
+                    case __.ID : _ID = Convert.ToInt32(value); break;
+                    case __.Name : _Name = Convert.ToString(value); break;
+                    case __.ParentID : _ParentID = Convert.ToInt32(value); break;
+                    case __.Sort : _Sort = Convert.ToInt32(value); break;
                     default: base[name] = value; break;
                 }
             }
@@ -109,21 +103,38 @@ namespace NewLife.CommonEntity
 
         #region 字段名
         /// <summary>取得简单分类字段信息的快捷方式</summary>
-        public class _
+        partial class _
         {
             ///<summary>编号</summary>
-            public static readonly Field ID = FindByName("ID");
+            public static readonly Field ID = FindByName(__.ID);
 
             ///<summary>名称索引</summary>
-            public static readonly Field Name = FindByName("Name");
+            public static readonly Field Name = FindByName(__.Name);
 
             ///<summary>父编号</summary>
-            public static readonly Field ParentID = FindByName("ParentID");
+            public static readonly Field ParentID = FindByName(__.ParentID);
 
             ///<summary>序号</summary>
-            public static readonly Field Sort = FindByName("Sort");
+            public static readonly Field Sort = FindByName(__.Sort);
 
             static Field FindByName(String name) { return Meta.Table.FindByName(name); }
+        }
+
+        /// <summary>取得简单分类字段名称的快捷方式</summary>
+        partial class __
+        {
+            ///<summary>编号</summary>
+            public const String ID = "ID";
+
+            ///<summary>名称索引</summary>
+            public const String Name = "Name";
+
+            ///<summary>父编号</summary>
+            public const String ParentID = "ParentID";
+
+            ///<summary>序号</summary>
+            public const String Sort = "Sort";
+
         }
         #endregion
     }

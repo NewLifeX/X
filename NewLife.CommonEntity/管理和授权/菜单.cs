@@ -16,10 +16,9 @@ namespace NewLife.CommonEntity
     [BindIndex("IX_Menu_ParentID_Name", false, "ParentID,Name")]
     [BindRelation("ID", true, "RoleMenu", "MenuID")]
     [BindTable("Menu", Description = "菜单", ConnName = "Common", DbType = DatabaseType.SqlServer)]
-    public partial class Menu<TEntity> : IMenu
+    public abstract partial class Menu<TEntity> : IMenu
     {
         #region 属性
-
         private Int32 _ID;
         /// <summary>编号</summary>
         [DisplayName("编号")]
@@ -115,21 +114,6 @@ namespace NewLife.CommonEntity
             get { return _IsShow; }
             set { if (OnPropertyChanging(__.IsShow, value)) { _IsShow = value; OnPropertyChanged(__.IsShow); } }
         }
-
-      
-        private String _Img;
-        /// <summary>名称</summary>
-        [DisplayName("图标")]
-        [Description("图标")]
-        [DataObjectField(false, false, true, 50)]
-        [BindColumn(9, "Img", "图标", null, "nvarchar(50)", 0, 0, true)]
-        public virtual String Img
-        {
-            get { return _Img; }
-            set { if (OnPropertyChanging(__.Img, value)) { _Img = value; OnPropertyChanged(__.Img); } }
-        }
-
-
         #endregion
 
         #region 获取/设置 字段值
@@ -154,7 +138,6 @@ namespace NewLife.CommonEntity
                     case __.Remark : return _Remark;
                     case __.Permission : return _Permission;
                     case __.IsShow : return _IsShow;
-                    case __.Img: return _Img;
                     default: return base[name];
                 }
             }
@@ -170,7 +153,6 @@ namespace NewLife.CommonEntity
                     case __.Remark : _Remark = Convert.ToString(value); break;
                     case __.Permission : _Permission = Convert.ToString(value); break;
                     case __.IsShow : _IsShow = Convert.ToBoolean(value); break;
-                    case __.Img: _Img = Convert.ToString(value); break;
                     default: base[name] = value; break;
                 }
             }
@@ -205,9 +187,6 @@ namespace NewLife.CommonEntity
             ///<summary>是否显示</summary>
             public static readonly Field IsShow = FindByName(__.IsShow);
 
-            ///<summary>图标</summary>
-            public static readonly Field Img = FindByName(__.Img);
-
             static Field FindByName(String name) { return Meta.Table.FindByName(name); }
         }
 
@@ -238,8 +217,6 @@ namespace NewLife.CommonEntity
             ///<summary>是否显示</summary>
             public const String IsShow = "IsShow";
 
-            ///<summary>是否显示</summary>
-            public const String Img = "Img";
         }
         #endregion
     }
@@ -271,9 +248,6 @@ namespace NewLife.CommonEntity
 
         /// <summary>是否显示</summary>
         Boolean IsShow { get; set; }
-
-        /// <summary>图标</summary>
-        String Img { get; set; }
         #endregion
 
         #region 获取/设置 字段值
