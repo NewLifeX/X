@@ -65,9 +65,9 @@ namespace System
             catch (InvalidCastException ex)
             {
                 var t = obj.GetType();
-                XTrace.WriteLine("ObjectType：{0} {1}", t.AssemblyQualifiedName, t.Assembly.Location);
+                NewLife.Log.XTrace.WriteLine("ObjectType：{0} {1}", t.AssemblyQualifiedName, t.Assembly.Location);
                 t = typeof(TInterface);
-                XTrace.WriteLine("InterfaceType：{0} {1}", t.AssemblyQualifiedName, t.Assembly.Location);
+                NewLife.Log.XTrace.WriteLine("InterfaceType：{0} {1}", t.AssemblyQualifiedName, t.Assembly.Location);
                 throw ex;
             }
         }
