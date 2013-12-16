@@ -17,10 +17,6 @@ using XCode.Cache;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
 
-#if DEBUG
-using XCode.Common;
-#endif
-
 namespace XCode
 {
     partial class Entity<TEntity>
@@ -121,25 +117,13 @@ namespace XCode
             #endregion
 
             #region 实体会话
-            [ThreadStatic]
-            private static EntitySession<TEntity> _Session;
             /// <summary>实体会话</summary>
-            static EntitySession<TEntity> Session
-            {
-                get
-                {
-                    if (_Session == null) _Session = EntitySession<TEntity>.Create(Table.ConnName, Table.TableName);
-                    return _Session;
-                }
-            }
+            static EntitySession<TEntity> Session { get { return EntitySession<TEntity>.Create(ConnName, TableName); } }
             #endregion
 
             #region 数据库操作
             /// <summary>数据操作对象。</summary>
             public static DAL DBO { get { return DAL.Create(ConnName); } }
-
-            ///// <summary>数据库类型</summary>
-            //public static DatabaseType DbType { get { return DBO.DbType; } }
 
             /// <summary>执行SQL查询，返回记录集</summary>
             /// <param name="builder">SQL语句</param>
@@ -554,46 +538,24 @@ namespace XCode
             /// <summary>格式化关键字</summary>
             /// <param name="name">名称</param>
             /// <returns></returns>
-            public static String FormatName(String name)
-            {
-                return DBO.Db.FormatName(name);
-            }
-
-            /// <summary>格式化关键字</summary>
-            /// <param name="name">名称</param>
-            /// <returns></returns>
-            [EditorBrowsable(EditorBrowsableState.Never)]
-            [Obsolete("改为使用FormatName")]
-            public static String FormatKeyWord(String name)
-            {
-                return FormatName(name);
-            }
+            public static String FormatName(String name) { return DBO.Db.FormatName(name); }
 
             /// <summary>格式化时间</summary>
             /// <param name="dateTime"></param>
             /// <returns></returns>
-            public static String FormatDateTime(DateTime dateTime)
-            {
-                return DBO.Db.FormatDateTime(dateTime);
-            }
+            public static String FormatDateTime(DateTime dateTime) { return DBO.Db.FormatDateTime(dateTime); }
 
             /// <summary>格式化数据为SQL数据</summary>
             /// <param name="name">名称</param>
             /// <param name="value">数值</param>
             /// <returns></returns>
-            public static String FormatValue(String name, Object value)
-            {
-                return FormatValue(Table.FindByName(name), value);
-            }
+            public static String FormatValue(String name, Object value) { return FormatValue(Table.FindByName(name), value); }
 
             /// <summary>格式化数据为SQL数据</summary>
             /// <param name="field">字段</param>
             /// <param name="value">数值</param>
             /// <returns></returns>
-            public static String FormatValue(FieldItem field, Object value)
-            {
-                return DBO.Db.FormatValue(field != null ? field.Field : null, value);
-            }
+            public static String FormatValue(FieldItem field, Object value) { return DBO.Db.FormatValue(field != null ? field.Field : null, value); }
             #endregion
 
             #region 缓存
@@ -605,21 +567,7 @@ namespace XCode
                 get
                 {
                     // 以连接名和表名为key，因为不同的库不同的表，缓存也不一样
-                    //String key = String.Format("{0}_{1}", ConnName, TableName);
-                    //if (_cache.ContainsKey(key)) return _cache[key];
-                    //lock (_cache)
-                    //{
-                    //    if (_cache.ContainsKey(key)) return _cache[key];
-
-                    return _cache.GetItem(String.Format("{0}_{1}", ConnName, TableName), delegate(String key)
-                    {
-                        var ec = new EntityCache<TEntity>();
-                        ec.ConnName = ConnName;
-                        ec.TableName = TableName;
-                        //_cache.Add(key, ec);
-
-                        return ec;
-                    });
+                    return _cache.GetItem(String.Format("{0}_{1}", ConnName, TableName), key => new EntityCache<TEntity> { ConnName = ConnName, TableName = TableName });
                 }
             }
 
@@ -627,8 +575,7 @@ namespace XCode
             //internal static Boolean UsingCache { get { return _cache.ContainsKey(String.Format("{0}_{1}", ConnName, TableName)); } }
 
             private static DictionaryCache<String, SingleEntityCache<Object, TEntity>> _singleCache = new DictionaryCache<String, SingleEntityCache<Object, TEntity>>();
-            /// <summary>
-            /// 单对象实体缓存。
+            /// <summary>单对象实体缓存。
             /// 建议自定义查询数据方法，并从二级缓存中获取实体数据，以抵消因初次填充而带来的消耗。
             /// </summary>
             public static SingleEntityCache<Object, TEntity> SingleCache
@@ -636,13 +583,7 @@ namespace XCode
                 get
                 {
                     // 以连接名和表名为key，因为不同的库不同的表，缓存也不一样
-                    return _singleCache.GetItem(String.Format("{0}_{1}", ConnName, TableName), delegate(String key)
-                    {
-                        var ec = new SingleEntityCache<Object, TEntity>();
-                        ec.ConnName = ConnName;
-                        ec.TableName = TableName;
-                        return ec;
-                    });
+                    return _singleCache.GetItem(String.Format("{0}_{1}", ConnName, TableName), key => new SingleEntityCache<Object, TEntity> { ConnName = ConnName, TableName = TableName });
                 }
             }
 
@@ -715,17 +656,6 @@ namespace XCode
                 String key = String.Format("{0}_{1}_{2}_Count", ConnName, TableName, ThisType.Name);
                 HttpRuntime.Cache.Remove(key);
             }
-            #endregion
-
-            #region 一些设置
-            //[ThreadStatic]
-            //private static Boolean _AllowInsertIdentity;
-            ///// <summary>是否允许向自增列插入数据。为免冲突，仅本线程有效</summary>
-            //public static Boolean AllowInsertIdentity { get { return _AllowInsertIdentity; } set { _AllowInsertIdentity = value; } }
-
-            //private static FieldItem _AutoSetGuidField;
-            ///// <summary>自动设置Guid的字段。对实体类有效，可在实体类类型构造函数里面设置</summary>
-            //public static FieldItem AutoSetGuidField { get { return _AutoSetGuidField; } set { _AutoSetGuidField = value; } }
             #endregion
         }
     }

@@ -18,17 +18,14 @@ namespace XCode.Configuration
         /// <summary>实体类型</summary>
         public Type EntityType { get { return _EntityType; } }
 
-        private BindTableAttribute _Table;
         /// <summary>绑定表特性</summary>
-        public BindTableAttribute Table { get { return _Table; } }
+        private BindTableAttribute _Table;
 
-        private BindIndexAttribute[] _Indexes;
         /// <summary>绑定索引特性</summary>
-        public BindIndexAttribute[] Indexes { get { return _Indexes; } }
+        private BindIndexAttribute[] _Indexes;
 
-        private BindRelationAttribute[] _Relations;
         /// <summary>绑定关系特性</summary>
-        public BindRelationAttribute[] Relations { get { return _Relations; } }
+        private BindRelationAttribute[] _Relations;
 
         private DescriptionAttribute _Description;
         /// <summary>说明</summary>
@@ -37,7 +34,7 @@ namespace XCode.Configuration
             get
             {
                 if (_Description != null && !String.IsNullOrEmpty(_Description.Description)) return _Description.Description;
-                if (Table != null && !String.IsNullOrEmpty(Table.Description)) return Table.Description;
+                if (_Table != null && !String.IsNullOrEmpty(_Table.Description)) return _Table.Description;
 
                 return null;
             }
@@ -45,8 +42,6 @@ namespace XCode.Configuration
 
         /// <summary>模型检查模式</summary>
         private ModelCheckModeAttribute _ModelCheckMode;
-        ///// <summary>模型检查模式</summary>
-        //private ModelCheckModeAttribute ModelCheckMode { get { return _ModelCheckMode; } }
         #endregion
 
         #region 属性
@@ -58,7 +53,7 @@ namespace XCode.Configuration
             {
                 if (String.IsNullOrEmpty(_TableName))
                 {
-                    var table = Table;
+                    var table = _Table;
                     var str = table != null ? table.Name : EntityType.Name;
                     var conn = ConnName;
 
@@ -71,9 +66,6 @@ namespace XCode.Configuration
                             if (dal.DbType == DatabaseType.Oracle)
                             {
                                 // 加上用户名
-                                //String UserID = (dal.Db as Oracle).UserID;
-                                //if (!String.IsNullOrEmpty(UserID)) str = UserID + "." + str;
-
                                 var ocsb = dal.Db.Factory.CreateConnectionStringBuilder();
                                 ocsb.ConnectionString = dal.ConnStr;
                                 if (ocsb.ContainsKey("User ID")) str = (String)ocsb["User ID"] + "." + str;
@@ -95,7 +87,7 @@ namespace XCode.Configuration
                 if (String.IsNullOrEmpty(_ConnName))
                 {
                     String connName = null;
-                    if (Table != null) connName = Table.ConnName;
+                    if (_Table != null) connName = _Table.ConnName;
 
                     String str = FindConnMap(connName, EntityType.Name);
                     _ConnName = String.IsNullOrEmpty(str) ? connName : str;
@@ -211,9 +203,7 @@ namespace XCode.Configuration
 
             _Indexes = type.GetCustomAttributes<BindIndexAttribute>(true);
             _Relations = type.GetCustomAttributes<BindRelationAttribute>(true);
-
             _Description = type.GetCustomAttribute<DescriptionAttribute>(true);
-
             _ModelCheckMode = type.GetCustomAttribute<ModelCheckModeAttribute>(true);
 
             InitFields();
@@ -226,20 +216,14 @@ namespace XCode.Configuration
         public static TableItem Create(Type type)
         {
             if (type == null) throw new ArgumentNullException("type");
-            //if (BindTableAttribute.GetCustomAttribute(type) == null)
-            //    throw new ArgumentOutOfRangeException("type", "类型" + type + "没有" + typeof(BindTableAttribute).Name + "特性！");
 
             // 不能给没有BindTableAttribute特性的类型创建TableItem，否则可能会在InitFields中抛出异常
             return cache.GetItem(type, key => key.GetCustomAttribute<BindTableAttribute>(true) != null ? new TableItem(key) : null);
         }
 
-        //Boolean hasInitFields = false;
         void InitFields()
         {
-            //if (hasInitFields) return;
-            //hasInitFields = true;
-
-            var bt = Table;
+            var bt = _Table;
             var table = DAL.CreateTable();
             _DataTable = table;
             table.TableName = bt.Name;
@@ -251,13 +235,8 @@ namespace XCode.Configuration
             var allfields = new List<FieldItem>();
             var fields = new List<FieldItem>();
             var pkeys = new List<FieldItem>();
-            //var pis = EntityType.GetProperties();
             foreach (var item in GetFields(EntityType))
             {
-                //// 排除索引器
-                //if (item.GetIndexParameters().Length > 0) continue;
-
-                //var fi = new Field(this, item);
                 var fi = item;
                 allfields.Add(fi);
 
@@ -283,19 +262,8 @@ namespace XCode.Configuration
 
                     if (ModelHelper.GetIndex(table, di.Columns) != null) continue;
 
-                    //// 如果这个索引的唯一字段是主键，则无需建立索引
-                    //var column = table.GetColumn(di.Columns[0]);
-                    //if (column == null || (di.Columns.Length == 1 && column.PrimaryKey)) continue;
                     // 如果索引全部就是主键，无需创建索引
                     if (table.GetColumns(di.Columns).All(e => e.PrimaryKey)) continue;
-
-                    //// 判断主键
-                    //IDataColumn[] dcs = table.GetColumns(di.Columns);
-                    //if (Array.TrueForAll<IDataColumn>(dcs, dc => dc.PrimaryKey))
-                    //{
-                    //    di.PrimaryKey = true;
-                    //    di.Unique = true;
-                    //}
 
                     table.Indexes.Add(di);
                 }
@@ -307,23 +275,9 @@ namespace XCode.Configuration
                     var dr = table.CreateRelation();
                     item.Fill(dr);
 
-                    Boolean exists = false;
-                    foreach (var elm in table.Relations)
-                    {
-                        if (!elm.Column.EqualIgnoreCase(dr.Column)) continue;
-                        if (!elm.RelationTable.EqualIgnoreCase(dr.RelationTable)) continue;
-                        if (!elm.RelationColumn.EqualIgnoreCase(dr.RelationColumn)) continue;
-
-                        exists = true;
-                        break;
-                    }
-
-                    if (!exists) table.Relations.Add(dr);
+                    if (table.GetRelation(dr) == null) table.Relations.Add(dr);
                 }
             }
-            //if (allfields != null && allfields.Count > 0) _AllFields = allfields.ToArray();
-            //if (fields != null && fields.Count > 0) _Fields = fields.ToArray();
-            //if (pkeys != null && pkeys.Count > 0) _PrimaryKeys = pkeys.ToArray();
 
             // 不允许为null
             _AllFields = allfields.ToArray();
