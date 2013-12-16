@@ -571,9 +571,6 @@ namespace XCode
                 }
             }
 
-            ///// <summary>是否在使用缓存</summary>
-            //internal static Boolean UsingCache { get { return _cache.ContainsKey(String.Format("{0}_{1}", ConnName, TableName)); } }
-
             private static DictionaryCache<String, SingleEntityCache<Object, TEntity>> _singleCache = new DictionaryCache<String, SingleEntityCache<Object, TEntity>>();
             /// <summary>单对象实体缓存。
             /// 建议自定义查询数据方法，并从二级缓存中获取实体数据，以抵消因初次填充而带来的消耗。
