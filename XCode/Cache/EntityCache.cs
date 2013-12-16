@@ -12,6 +12,31 @@ namespace XCode.Cache
     public class EntityCache<TEntity> : CacheBase<TEntity>, IEntityCache where TEntity : Entity<TEntity>, new()
     {
         #region 基本
+        private DateTime _ExpiredTime;
+        /// <summary>缓存过期时间</summary>
+        public DateTime ExpiredTime { get { return _ExpiredTime; } set { _ExpiredTime = value; } }
+
+        /// <summary>缓存更新次数</summary>
+        private Int64 Times;
+
+        private Int32 _Expriod = 60;
+        /// <summary>过期时间。单位是秒，默认60秒</summary>
+        public Int32 Expriod { get { return _Expriod; } set { _Expriod = value; } }
+
+        private Boolean _Asynchronous;
+        /// <summary>异步更新</summary>
+        public Boolean Asynchronous { get { return _Asynchronous; } set { _Asynchronous = value; } }
+
+        private Boolean _AllowNull = true;
+        /// <summary>允许缓存空对象</summary>
+        public Boolean AllowNull { get { return _AllowNull; } set { _AllowNull = value; } }
+
+        private Boolean _Using;
+        /// <summary>是否在使用缓存</summary>
+        internal Boolean Using { get { return _Using; } private set { _Using = value; } }
+        #endregion
+
+        #region 缓存核心
         private EntityList<TEntity> _Entities;
         /// <summary>实体集合。无数据返回空集合而不是null</summary>
         public EntityList<TEntity> Entities
@@ -42,17 +67,6 @@ namespace XCode.Cache
             }
         }
 
-        private DateTime _ExpiredTime;
-        /// <summary>缓存过期时间</summary>
-        public DateTime ExpiredTime { get { return _ExpiredTime; } set { _ExpiredTime = value; } }
-
-        /// <summary>缓存更新次数</summary>
-        private Int64 Times;
-
-        private Int32 _Expriod = 60;
-        /// <summary>过期时间。单位是秒，默认60秒</summary>
-        public Int32 Expriod { get { return _Expriod; } set { _Expriod = value; } }
-
         private FillListDelegate<TEntity> _FillListMethod;
         /// <summary>填充数据的方法</summary>
         public FillListDelegate<TEntity> FillListMethod
@@ -64,18 +78,6 @@ namespace XCode.Cache
             }
             set { _FillListMethod = value; }
         }
-
-        private Boolean _Asynchronous;
-        /// <summary>异步更新</summary>
-        public Boolean Asynchronous { get { return _Asynchronous; } set { _Asynchronous = value; } }
-
-        private Boolean _AllowNull = true;
-        /// <summary>允许缓存空对象</summary>
-        public Boolean AllowNull { get { return _AllowNull; } set { _AllowNull = value; } }
-
-        private Boolean _Using;
-        /// <summary>是否在使用缓存</summary>
-        internal Boolean Using { get { return _Using; } private set { _Using = value; } }
         #endregion
 
         #region 缓存操作
@@ -169,7 +171,7 @@ namespace XCode.Cache
                 var sb = new StringBuilder();
                 sb.AppendFormat("实体缓存<{0}>", typeof(TEntity).Name);
                 sb.AppendFormat("总次数{0}", Total);
-                if (Shoot1 > 0) sb.AppendFormat("，一级命中{0}（{1:P02}）", Shoot1, (Double)Shoot1 / Total);
+                if (Shoot1 > 0) sb.AppendFormat("，命中{0}（{1:P02}）", Shoot1, (Double)Shoot1 / Total);
                 if (Shoot2 > 0) sb.AppendFormat("，二级命中{0}（{1:P02}）", Shoot2, (Double)Shoot2 / Total);
 
                 XTrace.WriteLine(sb.ToString());
@@ -178,21 +180,7 @@ namespace XCode.Cache
         #endregion
 
         #region IEntityCache 成员
-        EntityList<IEntity> IEntityCache.Entities
-        {
-            get
-            {
-                List<TEntity> old = Entities;
-                if (old == null) return null;
-
-                EntityList<IEntity> list = new EntityList<IEntity>();
-                foreach (TEntity item in old)
-                {
-                    list.Add(item);
-                }
-                return list;
-            }
-        }
+        EntityList<IEntity> IEntityCache.Entities { get { return new EntityList<IEntity>(Entities); } }
 
         /// <summary>根据指定项查找</summary>
         /// <param name="name">属性名</param>
@@ -204,35 +192,12 @@ namespace XCode.Cache
         /// <param name="name">属性名</param>
         /// <param name="value">属性值</param>
         /// <returns></returns>
-        public EntityList<IEntity> FindAll(string name, object value)
-        {
-            List<TEntity> old = Entities.FindAll(name, value);
-            if (old == null) return null;
-
-            EntityList<IEntity> list = new EntityList<IEntity>();
-            foreach (TEntity item in old)
-            {
-                list.Add(item);
-            }
-            return list;
-        }
-
+        public EntityList<IEntity> FindAll(string name, object value) { return new EntityList<IEntity>(Entities.FindAll(name, value)); }
 
         /// <summary>检索与指定谓词定义的条件匹配的所有元素。</summary>
         /// <param name="match">条件</param>
         /// <returns></returns>
-        public EntityList<IEntity> FindAll(Predicate<IEntity> match)
-        {
-            List<TEntity> old = Entities.FindAll(e => match(e));
-            if (old == null) return null;
-
-            EntityList<IEntity> list = new EntityList<IEntity>();
-            foreach (TEntity item in old)
-            {
-                list.Add(item);
-            }
-            return list;
-        }
+        public EntityList<IEntity> FindAll(Predicate<IEntity> match) { return new EntityList<IEntity>(Entities.FindAll(e => match(e))); }
         #endregion
     }
 
