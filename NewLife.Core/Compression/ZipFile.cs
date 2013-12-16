@@ -515,10 +515,10 @@ namespace NewLife.Compression
             reader.Settings.UseObjRef = false;
             reader.Settings.SizeFormat = TypeCode.Int16;
             reader.Settings.Encoding = Encoding;
-#if DEBUG
-            reader.Debug = true;
-            reader.EnableTraceStream();
-#endif
+            //#if DEBUG
+            //            reader.Debug = true;
+            //            reader.EnableTraceStream();
+            //#endif
             return reader;
         }
 
