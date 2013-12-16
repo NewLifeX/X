@@ -40,6 +40,7 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>获取全部字段，包括继承的父类</summary>
+        /// <param name="table"></param>
         /// <param name="tables">在该表集合里面找父类</param>
         /// <param name="baseFirst">是否父类字段在前</param>
         /// <returns></returns>

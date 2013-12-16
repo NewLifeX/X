@@ -296,7 +296,7 @@ namespace XCode.DataAccessLayer
                 var x = Path.Combine(Path.GetPathRoot(Environment.SystemDirectory), @"X");
                 var xfile = Path.Combine(x, zipfile);
                 var xf = new FileInfo(xfile);
-                if (CacheZip && File.Exists(xfile) && xf.Length > 0 && xf.LastWriteTime.AddMonths(1) > DateTime.Now)
+                if (CacheZip && xf.Exists && xf.Length > 0 && xf.LastWriteTime.AddMonths(1) > DateTime.Now)
                     zipfile = xfile;
                 else
                 {
@@ -311,8 +311,19 @@ namespace XCode.DataAccessLayer
                         client.Timeout = 10000;
                         //if (!String.IsNullOrEmpty(dir) && !Directory.Exists(dir)) Directory.CreateDirectory(dir);
                         zipfile.EnsureDirectory(true);
-                        client.DownloadFile(url, zipfile);
-                        client.Dispose();
+                        try
+                        {
+                            client.DownloadFile(url, zipfile);
+                        }
+                        catch
+                        {
+                            // 如果无法下载数据驱动，过期的缓存文件也要了，总比没有好
+                            if (CacheZip && xf.Exists && xf.Length > 0)
+                                zipfile = xfile;
+                            else
+                                throw;
+                        }
+                        finally { client.Dispose(); }
                     }
 
                     if (CacheZip)
@@ -354,7 +365,7 @@ namespace XCode.DataAccessLayer
         {
             get
             {
-                if (_CacheZip == null) _CacheZip = Config.GetConfig<Boolean>("XCode.CacheZip", false);
+                if (_CacheZip == null) _CacheZip = Config.GetConfig<Boolean>("XCode.CacheZip", true);
 
                 return _CacheZip.Value;
             }
