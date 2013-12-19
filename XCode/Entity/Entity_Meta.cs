@@ -3,16 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Data.Common;
-using System.Diagnostics;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading;
-using System.Web;
 using NewLife;
-using NewLife.Collections;
-using NewLife.Log;
-using NewLife.Reflection;
-using NewLife.Threading;
 using XCode.Cache;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
@@ -39,18 +30,18 @@ namespace XCode
                 get { return _ConnName ?? (_ConnName = Table.ConnName); }
                 set
                 {
-                    //修改链接名，挂载当前表
-                    if (!String.IsNullOrEmpty(value) && !_ConnName.EqualIgnoreCase(value))
-                    {
-                        try
-                        {
-                            CheckTable(value, TableName);
-                        }
-                        catch { }
+                    ////修改链接名，挂载当前表
+                    //if (!String.IsNullOrEmpty(value) && !_ConnName.EqualIgnoreCase(value))
+                    //{
+                    //    //try
+                    //    //{
+                    //    //    CheckTable(value, TableName);
+                    //    //}
+                    //    //catch { }
 
-                        // 清空记录数缓存
-                        ClearCountCache();
-                    }
+                    //    // 清空记录数缓存
+                    //    ClearCountCache();
+                    //}
                     _ConnName = value;
 
                     if (String.IsNullOrEmpty(_ConnName)) _ConnName = Table.ConnName;
@@ -65,18 +56,18 @@ namespace XCode
                 get { return _TableName ?? (_TableName = Table.TableName); }
                 set
                 {
-                    //修改表名
-                    if (!String.IsNullOrEmpty(value) && !_TableName.EqualIgnoreCase(value))
-                    {
-                        try
-                        {
-                            CheckTable(ConnName, value);
-                        }
-                        catch { }
+                    ////修改表名
+                    //if (!String.IsNullOrEmpty(value) && !_TableName.EqualIgnoreCase(value))
+                    //{
+                    //    //try
+                    //    //{
+                    //    //    CheckTable(ConnName, value);
+                    //    //}
+                    //    //catch { }
 
-                        // 清空记录数缓存
-                        ClearCountCache();
-                    }
+                    //    // 清空记录数缓存
+                    //    ClearCountCache();
+                    //}
                     _TableName = value;
 
                     if (String.IsNullOrEmpty(_TableName)) _TableName = Table.TableName;
@@ -229,13 +220,14 @@ namespace XCode
             static void DataChange(String reason = null)
             {
                 // 还在事务保护里面，不更新缓存，最后提交或者回滚的时候再更新
-                // 一般事务保护用于批量更新数据，次数频繁删除缓存将会打来巨大的性能损耗
+                // 一般事务保护用于批量更新数据，频繁删除缓存将会打来巨大的性能损耗
                 // 2012-07-17 当前实体类开启的事务保护，必须由当前类结束，否则可能导致缓存数据的错乱
                 if (TransCount > 0) return;
 
-                Cache.Clear(reason);
-                //_Count = null;
-                ClearCountCache();
+                //Cache.Clear(reason);
+                ////_Count = null;
+                //ClearCountCache();
+                Session.ClearCache();
 
                 if (_OnDataChange != null) _OnDataChange(ThisType);
             }
@@ -252,223 +244,16 @@ namespace XCode
                         // 这里不能对委托进行弱引用，因为GC会回收委托，应该改为对对象进行弱引用
                         //WeakReference<Action<Type>> w = value;
 
-                        _OnDataChange += new WeakAction<Type>(value, delegate(Action<Type> handler) { _OnDataChange -= handler; }, true);
+                        _OnDataChange += new WeakAction<Type>(value, handler => { _OnDataChange -= handler; }, true);
                     }
                 }
                 remove { }
             }
 
-            private static Boolean IsGenerated { get { return ThisType.GetCustomAttribute<CompilerGeneratedAttribute>(true) != null; } }
-
-            /// <summary>记录已进行数据初始化的表</summary>
-            static Dictionary<String, AutoResetEvent> hasCheckInitData = new Dictionary<string, AutoResetEvent>(StringComparer.OrdinalIgnoreCase);
-            //static List<String> hasCheckInitData = new List<String>();
-
             /// <summary>检查并初始化数据。参数等待时间为0表示不等待</summary>
-            /// <param name="millisecondsTimeout">等待时间，-1表示不限，0表示不等待</param>
+            /// <param name="ms">等待时间，-1表示不限，0表示不等待</param>
             /// <returns>如果等待，返回是否收到信号</returns>
-            public static Boolean WaitForInitData(Int32 millisecondsTimeout = 0)
-            {
-                String key = ConnName + "$$$" + TableName;
-                AutoResetEvent e;
-                if (hasCheckInitData.TryGetValue(key, out e))
-                {
-                    // 是否需要等待
-                    if (millisecondsTimeout != 0 && e != null)
-                    {
-#if DEBUG
-                        if (DAL.Debug) DAL.WriteLog("开始等待初始化{0}数据{1}ms，调用栈：{2}", ThisType.FullName, millisecondsTimeout, XTrace.GetCaller());
-#else
-                        if (DAL.Debug) DAL.WriteLog("开始等待初始化{0}数据{1}ms", ThisType.FullName, millisecondsTimeout);
-#endif
-                        try
-                        {
-                            // 如果未收到信号，表示超时
-                            if (!e.WaitOne(millisecondsTimeout, false)) return false;
-                        }
-                        finally
-                        {
-#if DEBUG
-                            if (DAL.Debug) DAL.WriteLog("结束等待初始化{0}数据，调用栈：{1}", ThisType.FullName, XTrace.GetCaller());
-#else
-                            if (DAL.Debug) DAL.WriteLog("结束等待初始化{0}数据", ThisType.FullName);
-#endif
-                        }
-                    }
-                    return true;
-                }
-
-                e = new AutoResetEvent(false);
-                lock (hasCheckInitData)
-                {
-                    if (hasCheckInitData.ContainsKey(key)) return true;
-                    hasCheckInitData.Add(key, e);
-                }
-
-                // 如果该实体类是首次使用检查模型，则在这个时候检查
-                CheckModel();
-
-                // 输出调用者，方便调试
-#if DEBUG
-                if (DAL.Debug) DAL.WriteLog("初始化{0}数据，调用栈：{1}", ThisType.FullName, XTrace.GetCaller());
-#else
-                if (DAL.Debug) DAL.WriteLog("初始化{0}数据", ThisType.FullName);
-#endif
-
-                try
-                {
-                    EntityBase entity = Factory.Default as EntityBase;
-                    if (entity != null) entity.InitData();
-                }
-                catch (Exception ex)
-                {
-                    if (XTrace.Debug) XTrace.WriteLine("初始化数据出错！" + ex.ToString());
-                }
-                finally { e.Set(); }
-
-                return true;
-            }
-            #endregion
-
-            #region 架构检查
-            private static ICollection<String> hasCheckedTables = new HashSet<String>(StringComparer.OrdinalIgnoreCase);
-            private static void CheckTable(String connName, String tableName)
-            {
-                var key = String.Format("{0}#{1}", connName, tableName);
-                if (hasCheckedTables.Contains(key)) return;
-                lock (hasCheckedTables)
-                {
-                    if (hasCheckedTables.Contains(key)) return;
-
-                    // 检查新表名对应的数据表
-                    var table = TableItem.Create(ThisType).DataTable;
-                    // 克隆一份，防止修改
-                    table = table.Clone() as IDataTable;
-
-                    if (table.TableName != tableName)
-                    {
-                        // 修改一下索引名，否则，可能因为同一个表里面不同的索引冲突
-                        if (table.Indexes != null)
-                        {
-                            foreach (var di in table.Indexes)
-                            {
-                                var sb = new StringBuilder();
-                                sb.AppendFormat("IX_{0}", tableName);
-                                foreach (var item in di.Columns)
-                                {
-                                    sb.Append("_");
-                                    sb.Append(item);
-                                }
-
-                                di.Name = sb.ToString();
-                            }
-                        }
-                        table.TableName = tableName;
-                    }
-
-                    //var set = new NegativeSetting();
-                    //set.CheckOnly = DAL.NegativeCheckOnly;
-                    //set.NoDelete = DAL.NegativeNoDelete;
-                    //DAL.Create(connName).Db.CreateMetaData().SetTables(set, table);
-                    if (!DBO.HasCheckTables.Contains(TableName)) DBO.HasCheckTables.Add(TableName);
-                    DAL.Create(connName).SetTables(table);
-
-                    hasCheckedTables.Add(key);
-                }
-            }
-
-            static Int32[] hasCheckModel = new Int32[] { 0 };
-            private static void CheckModel()
-            {
-                //if (Interlocked.CompareExchange(ref hasCheckModel, 1, 0) != 0) return;
-                if (hasCheckModel[0] > 0) return;
-                lock (hasCheckModel)
-                {
-                    if (hasCheckModel[0] > 0) return;
-
-                    if (!DAL.NegativeEnable || DAL.NegativeExclude.Contains(ConnName) || DAL.NegativeExclude.Contains(TableName) || IsGenerated)
-                    {
-                        hasCheckModel[0] = 1;
-                        return;
-                    }
-
-                    var key = String.Format("{0}#{1}", ConnName, TableName);
-                    if (hasCheckedTables.Contains(key))
-                    {
-                        hasCheckModel[0] = 1;
-                        return;
-                    }
-                    hasCheckedTables.Add(key);
-
-                    // 输出调用者，方便调试
-#if DEBUG
-                    if (DAL.Debug) DAL.WriteLog("检查实体{0}的数据表架构，模式：{1}，调用栈：{2}", ThisType.FullName, Table.ModelCheckMode, XTrace.GetCaller());
-#else
-                    // CheckTableWhenFirstUse的实体类，在这里检查，有点意思，记下来
-                    if (DAL.Debug && Table.ModelCheckMode == ModelCheckModes.CheckTableWhenFirstUse)
-                        DAL.WriteLog("检查实体{0}的数据表架构，模式：{1}", ThisType.FullName, Table.ModelCheckMode);
-#endif
-
-                    // 第一次使用才检查的，此时检查
-                    Boolean ck = false;
-                    if (Table.ModelCheckMode == ModelCheckModes.CheckTableWhenFirstUse) ck = true;
-                    // 或者前面初始化的时候没有涉及的，也在这个时候检查
-                    if (!DBO.HasCheckTables.Contains(TableName))
-                    {
-                        if (!ck)
-                        {
-                            DBO.HasCheckTables.Add(TableName);
-
-#if DEBUG
-                            if (!ck && DAL.Debug) DAL.WriteLog("集中初始化表架构时没赶上，现在补上！");
-#endif
-
-                            ck = true;
-                        }
-                    }
-                    else
-                        ck = false;
-
-                    if (ck)
-                    {
-                        Func check = delegate
-                        {
-#if DEBUG
-                            DAL.WriteLog("开始{2}检查表[{0}/{1}]的数据表架构……", Table.DataTable.Name, DBO.DbType, DAL.NegativeCheckOnly ? "异步" : "同步");
-#endif
-
-                            var sw = new Stopwatch();
-                            sw.Start();
-
-                            try
-                            {
-                                //var set = new NegativeSetting();
-                                //set.CheckOnly = DAL.NegativeCheckOnly;
-                                //set.NoDelete = DAL.NegativeNoDelete;
-                                //DBO.Db.CreateMetaData().SetTables(set, Table.DataTable);
-                                DBO.SetTables(Table.DataTable);
-                            }
-                            finally
-                            {
-                                sw.Stop();
-
-#if DEBUG
-                                DAL.WriteLog("检查表[{0}/{1}]的数据表架构耗时{2}", Table.DataTable.Name, DBO.DbType, sw.Elapsed);
-#endif
-                            }
-                        };
-
-                        // 打开了开关，并且设置为true时，使用同步方式检查
-                        // 设置为false时，使用异步方式检查，因为上级的意思是不大关心数据库架构
-                        if (!DAL.NegativeCheckOnly)
-                            check();
-                        else
-                            ThreadPoolX.QueueUserWorkItem(check);
-                    }
-
-                    hasCheckModel[0] = 1;
-                }
-            }
+            public static Boolean WaitForInitData(Int32 ms = 0) { return Session.WaitForInitData(ms); }
             #endregion
 
             #region 事务保护
@@ -559,30 +344,14 @@ namespace XCode
             #endregion
 
             #region 缓存
-            private static DictionaryCache<String, EntityCache<TEntity>> _cache = new DictionaryCache<string, EntityCache<TEntity>>();
             /// <summary>实体缓存</summary>
             /// <returns></returns>
-            public static EntityCache<TEntity> Cache
-            {
-                get
-                {
-                    // 以连接名和表名为key，因为不同的库不同的表，缓存也不一样
-                    return _cache.GetItem(String.Format("{0}_{1}", ConnName, TableName), key => new EntityCache<TEntity> { ConnName = ConnName, TableName = TableName });
-                }
-            }
+            public static EntityCache<TEntity> Cache { get { return Session.Cache; } }
 
-            private static DictionaryCache<String, SingleEntityCache<Object, TEntity>> _singleCache = new DictionaryCache<String, SingleEntityCache<Object, TEntity>>();
             /// <summary>单对象实体缓存。
             /// 建议自定义查询数据方法，并从二级缓存中获取实体数据，以抵消因初次填充而带来的消耗。
             /// </summary>
-            public static SingleEntityCache<Object, TEntity> SingleCache
-            {
-                get
-                {
-                    // 以连接名和表名为key，因为不同的库不同的表，缓存也不一样
-                    return _singleCache.GetItem(String.Format("{0}_{1}", ConnName, TableName), key => new SingleEntityCache<Object, TEntity> { ConnName = ConnName, TableName = TableName });
-                }
-            }
+            public static SingleEntityCache<Object, TEntity> SingleCache { get { return Session.SingleCache; } }
 
             /// <summary>总记录数，小于1000时是精确的，大于1000时缓存10分钟</summary>
             public static Int32 Count { get { return (Int32)LongCount; } }
@@ -590,69 +359,7 @@ namespace XCode
             /// <summary>总记录数较小时，使用静态字段，较大时增加使用Cache</summary>
             private static Int64? _Count;
             /// <summary>总记录数，小于1000时是精确的，大于1000时缓存10分钟</summary>
-            public static Int64 LongCount
-            {
-                get
-                {
-                    String key = String.Format("{0}_{1}_{2}_Count", ConnName, TableName, ThisType.Name);
-
-                    // By 大石头 2012-05-27
-                    // 这里好像有问题，不明白上次为什么要注释
-                    Int64? n = _Count;
-                    if (n != null && n.HasValue)
-                    {
-                        // 等于0的时候也应该缓存，否则会一直查询这个表
-                        if (n.Value >= 0 && n.Value < 1000) return n.Value;
-
-                        // 大于1000，使用HttpCache
-                        Int64? k = (Int64?)HttpRuntime.Cache[key];
-                        if (k != null && k.HasValue) return k.Value;
-                    }
-
-                    CheckModel();
-
-                    Int64 m = 0;
-                    //if (n != null && n.HasValue && n.Value < 1000)
-                    //Int64? n = _Count;
-                    if (n != null && n.HasValue && n.Value < 1000)
-                        m = FindCountInternal();
-                    else
-                        m = DBO.Session.QueryCountFast(TableName);
-                    _Count = m;
-
-                    if (m >= 1000) HttpRuntime.Cache.Insert(key, m, null, DateTime.Now.AddMinutes(10), System.Web.Caching.Cache.NoSlidingExpiration);
-
-                    // 先拿到记录数再初始化，因为初始化时会用到记录数，同时也避免了死循环
-                    WaitForInitData();
-
-                    return m;
-                }
-            }
-
-            static Int32 FindCountInternal()
-            {
-                var sb = new SelectBuilder();
-                sb.Table = Meta.FormatName(Meta.TableName);
-
-                return Meta.QueryCount(sb);
-            }
-
-            private static void ClearCountCache()
-            {
-                Int64? n = _Count;
-                if (n == null || !n.HasValue) return;
-
-                // 只有小于1000时才清空_Count，因为大于1000时它要作为HttpCache的见证
-                if (n.Value < 1000)
-                {
-                    _Count = null;
-                    return;
-                }
-
-                //String key = ThisType.Name + "_Count";
-                String key = String.Format("{0}_{1}_{2}_Count", ConnName, TableName, ThisType.Name);
-                HttpRuntime.Cache.Remove(key);
-            }
+            public static Int64 LongCount { get { return Session.LongCount; } }
             #endregion
         }
     }
