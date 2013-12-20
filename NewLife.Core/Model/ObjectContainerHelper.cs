@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel;
 using NewLife.Model;
 using NewLife.Reflection;
+using NewLife.Log;
 
 namespace System
 {
