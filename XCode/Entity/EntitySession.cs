@@ -176,7 +176,7 @@ namespace XCode
 
                 // 输出调用者，方便调试
 #if DEBUG
-                    if (DAL.Debug) DAL.WriteLog("检查实体{0}的数据表架构，模式：{1}，调用栈：{2}", ThisType.FullName, Table.ModelCheckMode, XTrace.GetCaller());
+                if (DAL.Debug) DAL.WriteLog("检查实体{0}的数据表架构，模式：{1}，调用栈：{2}", ThisType.FullName, Table.ModelCheckMode, XTrace.GetCaller());
 #else
                 // CheckTableWhenFirstUse的实体类，在这里检查，有点意思，记下来
                 if (DAL.Debug && Table.ModelCheckMode == ModelCheckModes.CheckTableWhenFirstUse)
@@ -195,7 +195,7 @@ namespace XCode
                         dal.HasCheckTables.Add(TableName);
 
 #if DEBUG
-                            if (!ck && DAL.Debug) DAL.WriteLog("集中初始化表架构时没赶上，现在补上！");
+                        if (!ck && DAL.Debug) DAL.WriteLog("集中初始化表架构时没赶上，现在补上！");
 #endif
 
                         ck = true;
@@ -209,7 +209,7 @@ namespace XCode
                     Func check = delegate
                     {
 #if DEBUG
-                            DAL.WriteLog("开始{2}检查表[{0}/{1}]的数据表架构……", Table.DataTable.Name, DBO.DbType, DAL.NegativeCheckOnly ? "异步" : "同步");
+                        DAL.WriteLog("开始{2}检查表[{0}/{1}]的数据表架构……", Table.DataTable.Name, dal.Db.DbType, DAL.NegativeCheckOnly ? "异步" : "同步");
 #endif
 
                         var sw = new Stopwatch();
@@ -228,7 +228,7 @@ namespace XCode
                             sw.Stop();
 
 #if DEBUG
-                                DAL.WriteLog("检查表[{0}/{1}]的数据表架构耗时{2}", Table.DataTable.Name, DBO.DbType, sw.Elapsed);
+                            DAL.WriteLog("检查表[{0}/{1}]的数据表架构耗时{2}", Table.DataTable.Name, dal.Db.DbType, sw.Elapsed);
 #endif
                         }
                     };
