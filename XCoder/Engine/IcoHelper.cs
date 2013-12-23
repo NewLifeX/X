@@ -10,20 +10,24 @@ namespace XCoder
     {
         public static Icon GetIcon(String name)
         {
-            var src = FileSource.GetFileResource(null, "leaf.png");
-            if (src == null) return null;
-
-            using (var bmp = new Bitmap(src))
+            try
             {
-                using (var water = MakeWater(bmp, name, true))
-                {
-                    var ms = new MemoryStream();
-                    IconFile.Convert(water, ms, 32);
-                    ms.Position = 0;
+                var src = FileSource.GetFileResource(null, "leaf.png");
+                if (src == null) return null;
 
-                    return new Icon(ms);
+                using (var bmp = new Bitmap(src))
+                {
+                    using (var water = MakeWater(bmp, name, true))
+                    {
+                        var ms = new MemoryStream();
+                        IconFile.Convert(water, ms, 32);
+                        ms.Position = 0;
+
+                        return new Icon(ms);
+                    }
                 }
             }
+            catch { return null; }
         }
 
         static Image MakeWater(Image bmp, String txt, Boolean fitSize)
