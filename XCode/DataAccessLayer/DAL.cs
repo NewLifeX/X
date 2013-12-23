@@ -398,7 +398,7 @@ namespace XCode.DataAccessLayer
             {
                 sw.Stop();
 
-                WriteLog("检查连接[{0}/{1}]的数据库架构耗时{2}", ConnName, DbType, sw.Elapsed);
+                WriteLog("检查连接[{0}/{1}]的数据库架构耗时{2:n0}ms", ConnName, DbType, sw.Elapsed.TotalMilliseconds);
             }
         }
 

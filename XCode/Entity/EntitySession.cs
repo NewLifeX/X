@@ -66,7 +66,7 @@ namespace XCode
         /// <summary>检查并初始化数据。参数等待时间为0表示不等待</summary>
         /// <param name="ms">等待时间，-1表示不限，0表示不等待</param>
         /// <returns>如果等待，返回是否收到信号</returns>
-        public Boolean WaitForInitData(Int32 ms = 0)
+        public Boolean WaitForInitData(Int32 ms = 1000)
         {
             // 已初始化
             if (initState >= 2) return true;
@@ -77,11 +77,8 @@ namespace XCode
             if (initState == 1)
             {
                 #region 等待初始化
-#if DEBUG
-                if (DAL.Debug) DAL.WriteLog("开始等待初始化{0}数据{1}ms，调用栈：{2}", name, ms, XTrace.GetCaller());
-#else
+                //if (DAL.Debug) DAL.WriteLog("开始等待初始化{0}数据{1}ms，调用栈：{2}", name, ms, XTrace.GetCaller());
                 if (DAL.Debug) DAL.WriteLog("开始等待初始化{0}数据{1}ms", name, ms);
-#endif
                 try
                 {
                     // 如果未收到信号，表示超时
@@ -90,11 +87,8 @@ namespace XCode
                 }
                 finally
                 {
-#if DEBUG
-                    if (DAL.Debug) DAL.WriteLog("结束等待初始化{0}数据，调用栈：{1}", name, XTrace.GetCaller());
-#else
+                    //if (DAL.Debug) DAL.WriteLog("结束等待初始化{0}数据，调用栈：{1}", name, XTrace.GetCaller());
                     if (DAL.Debug) DAL.WriteLog("结束等待初始化{0}数据", name);
-#endif
                 }
                 #endregion
             }
@@ -107,11 +101,8 @@ namespace XCode
             CheckModel();
 
             // 输出调用者，方便调试
-#if DEBUG
-            if (DAL.Debug) DAL.WriteLog("初始化{0}数据，调用栈：{1}", name, XTrace.GetCaller());
-#else
+            //if (DAL.Debug) DAL.WriteLog("初始化{0}数据，调用栈：{1}", name, XTrace.GetCaller());
             if (DAL.Debug) DAL.WriteLog("初始化{0}数据", name);
-#endif
 
             try
             {
@@ -243,7 +234,7 @@ namespace XCode
                             sw.Stop();
 
 #if DEBUG
-                            DAL.WriteLog("检查表[{0}/{1}]的数据表架构耗时{2}", Table.DataTable.Name, dal.Db.DbType, sw.Elapsed);
+                            DAL.WriteLog("检查表[{0}/{1}]的数据表架构耗时{2:n0}ms", Table.DataTable.Name, dal.Db.DbType, sw.Elapsed.TotalMilliseconds);
 #endif
                         }
                     };
@@ -293,14 +284,21 @@ namespace XCode
         /// <summary>总记录数较小时，使用静态字段，较大时增加使用Cache</summary>
         private Int64? _Count;
         /// <summary>总记录数，小于1000时是精确的，大于1000时缓存10分钟</summary>
+        /// <remarks>
+        /// 1，检查静态字段，如果有数据且小于1000，直接返回，否则=>3
+        /// 2，如果有数据但大于1000，则返回缓存里面的有效数据
+        /// 3，来到这里，有可能是第一次访问，静态字段没有缓存，也有可能是大于1000的缓存过期
+        /// 4，检查模型
+        /// 5，根据需要查询数据
+        /// 6，如果大于1000，缓存数据
+        /// 7，检查数据初始化
+        /// </remarks>
         public Int64 LongCount
         {
             get
             {
                 var key = CacheKey;
 
-                // By 大石头 2012-05-27
-                // 这里好像有问题，不明白上次为什么要注释
                 Int64? n = _Count;
                 if (n != null && n.HasValue)
                 {
@@ -311,13 +309,13 @@ namespace XCode
                     Int64? k = (Int64?)HttpRuntime.Cache[key];
                     if (k != null && k.HasValue) return k.Value;
                 }
+                // 来到这里，有可能是第一次访问，静态字段没有缓存，也有可能是大于1000的缓存过期
 
                 CheckModel();
 
                 Int64 m = 0;
-                //if (n != null && n.HasValue && n.Value < 1000)
-                //Int64? n = _Count;
                 var dal = DAL.Create(ConnName);
+                // 大于1000的缓存过期
                 if (n != null && n.HasValue && n.Value < 1000)
                 {
                     var sb = new SelectBuilder();
@@ -327,7 +325,11 @@ namespace XCode
                     m = dal.SelectCount(sb, new String[] { TableName });
                 }
                 else
+                {
+                    // 第一次访问
                     m = dal.Session.QueryCountFast(TableName);
+                }
+
                 _Count = m;
 
                 if (m >= 1000) HttpRuntime.Cache.Insert(key, m, null, DateTime.Now.AddMinutes(10), System.Web.Caching.Cache.NoSlidingExpiration);

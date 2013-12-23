@@ -253,7 +253,7 @@ namespace XCode
             /// <summary>检查并初始化数据。参数等待时间为0表示不等待</summary>
             /// <param name="ms">等待时间，-1表示不限，0表示不等待</param>
             /// <returns>如果等待，返回是否收到信号</returns>
-            public static Boolean WaitForInitData(Int32 ms = 0) { return Session.WaitForInitData(ms); }
+            public static Boolean WaitForInitData(Int32 ms = 1000) { return Session.WaitForInitData(ms); }
             #endregion
 
             #region 事务保护
