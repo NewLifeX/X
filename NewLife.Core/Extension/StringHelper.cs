@@ -9,37 +9,6 @@ namespace System
     public static class StringHelper
     {
         #region 字符串扩展
-        ///// <summary>忽略大小写的字符串相等比较</summary>
-        ///// <param name="value">数值</param>
-        ///// <param name="str">待比较字符串</param>
-        ///// <returns></returns>
-        //[Obsolete("=>EqualIC")]
-        ////[EditorBrowsable(EditorBrowsableState.Never)]
-        //public static Boolean EqualIgnoreCase(this String value, String str)
-        //{
-        //    return String.Equals(value, str, StringComparison.OrdinalIgnoreCase);
-        //}
-
-        ///// <summary>忽略大小写的字符串开始比较，判断是否以任意一个待比较字符串开始</summary>
-        ///// <param name="value">数值</param>
-        ///// <param name="str">待比较字符串</param>
-        ///// <returns></returns>
-        //[Obsolete("=>StartsWithIC")]
-        //public static Boolean StartsWithIgnoreCase(this String value, String str)
-        //{
-        //    return value.StartsWith(str, StringComparison.OrdinalIgnoreCase);
-        //}
-
-        ///// <summary>忽略大小写的字符串结束比较，判断是否以任意一个待比较字符串结束</summary>
-        ///// <param name="value">数值</param>
-        ///// <param name="str">待比较字符串</param>
-        ///// <returns></returns>
-        //[Obsolete("=>EndsWithIC")]
-        //public static Boolean EndsWithIgnoreCase(this String value, String str)
-        //{
-        //    return value.EndsWith(str, StringComparison.OrdinalIgnoreCase);
-        //}
-
         /// <summary>忽略大小写的字符串相等比较，判断是否以任意一个待比较字符串相等</summary>
         /// <param name="value">数值</param>
         /// <param name="strs">待比较字符串数组</param>
@@ -438,8 +407,10 @@ namespace System
             return words;
         }
 
-        /// <summary>编辑距离，又称Levenshtein距离（也叫做Edit Distance），是指两个字串之间，由一个转成另一个所需的最少编辑操作次数。许可的编辑操作包括将一个字符替换成另一个字符，插入一个字符，删除一个字符。</summary>
+        /// <summary>编辑距离</summary>
         /// <remarks>
+        /// 又称Levenshtein距离（也叫做Edit Distance），是指两个字串之间，由一个转成另一个所需的最少编辑操作次数。
+        /// 许可的编辑操作包括将一个字符替换成另一个字符，插入一个字符，删除一个字符。
         /// 算法代码由@Aimeast 独立完成。http://www.cnblogs.com/Aimeast/archive/2011/09/05/2167844.html
         /// </remarks>
         /// <param name="str1"></param>

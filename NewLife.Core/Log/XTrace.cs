@@ -423,23 +423,18 @@ namespace NewLife.Log
 
                 if (method == null || String.IsNullOrEmpty(method.Name) || method.Name[0] == '<' && method.Name.Contains(">")) continue;
 
-                ////var name = method.ToString();
-                ////// 去掉前面的返回类型
-                ////var p = name.IndexOf(" ");
-                ////if (p >= 0) name = name.Substring(p + 1);
-
-                //var mix = MethodInfoX.Create(method);
                 var type = method.DeclaringType ?? method.ReflectedType;
-                //if (type != null)
-                //{
-                //    if (type != last)
-                //        sb.Append(mix.Name);
-                //    else
-                //        sb.Append(mix.TinyName);
-                //}
-                //else
-                //    sb.Append(mix.Name);
-                sb.Append(method.ToString());
+
+                var name = method.ToString();
+                // 去掉前面的返回类型
+                var p = name.IndexOf(" ");
+                if (p >= 0) name = name.Substring(p + 1);
+                // 去掉前面的System
+                name = name
+                    .Replace("System.Web.", null)
+                    .Replace("System.", null);
+
+                sb.Append(name);
 
                 // 如果到达了入口点，可以结束了
                 if (method == entry) break;
