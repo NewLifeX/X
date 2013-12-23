@@ -14,7 +14,11 @@ namespace XCoder
     {
         public static Icon GetIcon()
         {
-            return new Icon(Assembly.GetExecutingAssembly().GetManifestResourceStream(typeof(Source), "leaf.ico"));
+            try
+            {
+                return new Icon(Assembly.GetExecutingAssembly().GetManifestResourceStream(typeof(Source), "leaf.ico"));
+            }
+            catch { return null; }
         }
 
         public static String GetText(String name)
