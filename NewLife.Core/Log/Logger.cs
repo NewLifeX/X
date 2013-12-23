@@ -93,13 +93,10 @@ namespace NewLife.Log
                 }
             }
             if (args == null || args.Length < 1) return format;
-            else
-            {
-                format = format.Replace("{", "{{").Replace("}", "}}");
 
-                return String.Format(format, args);
-            }
-            //return String.Format(format, args);
+            //format = format.Replace("{", "{{").Replace("}", "}}");
+
+            return String.Format(format, args);
         }
         #endregion
 
