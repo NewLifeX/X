@@ -60,17 +60,23 @@ namespace XCode
         #region 数据初始化
         /// <summary>记录已进行数据初始化</summary>
         AutoResetEvent hasCheckInitData = null;
+        /// <summary>初始化状态，0未初始化，1正在初始化，2已完成</summary>
+        Int32 initState = 0;
 
         /// <summary>检查并初始化数据。参数等待时间为0表示不等待</summary>
         /// <param name="ms">等待时间，-1表示不限，0表示不等待</param>
         /// <returns>如果等待，返回是否收到信号</returns>
         public Boolean WaitForInitData(Int32 ms = 0)
         {
+            // 已初始化
+            if (initState >= 2) return true;
+
             var name = ThisType.FullName;
 
             // 是否需要等待
-            if (ms != 0 && hasCheckInitData != null)
+            if (initState == 1)
             {
+                #region 等待初始化
 #if DEBUG
                 if (DAL.Debug) DAL.WriteLog("开始等待初始化{0}数据{1}ms，调用栈：{2}", name, ms, XTrace.GetCaller());
 #else
@@ -90,9 +96,12 @@ namespace XCode
                     if (DAL.Debug) DAL.WriteLog("结束等待初始化{0}数据", name);
 #endif
                 }
+                #endregion
             }
 
-            if (hasCheckInitData == null) hasCheckInitData = new AutoResetEvent(false);
+            if (hasCheckInitData != null) return true;
+            hasCheckInitData = new AutoResetEvent(false);
+            initState = 1;
 
             // 如果该实体类是首次使用检查模型，则在这个时候检查
             CheckModel();
@@ -113,7 +122,13 @@ namespace XCode
             {
                 if (XTrace.Debug) XTrace.WriteLine("初始化数据出错！" + ex.ToString());
             }
-            finally { hasCheckInitData.Set(); }
+            finally
+            {
+                hasCheckInitData.Set();
+                hasCheckInitData.Close();
+
+                initState = 2;
+            }
 
             return true;
         }
@@ -159,18 +174,18 @@ namespace XCode
         }
 
         private Boolean IsGenerated { get { return ThisType.GetCustomAttribute<CompilerGeneratedAttribute>(true) != null; } }
-        Int32[] hasCheckModel = new Int32[] { 0 };
+        Boolean hasCheckModel = false;
+        Object _check_lock = new Object();
         private void CheckModel()
         {
-            //if (Interlocked.CompareExchange(ref hasCheckModel, 1, 0) != 0) return;
-            if (hasCheckModel[0] > 0) return;
-            lock (hasCheckModel)
+            if (hasCheckModel) return;
+            lock (_check_lock)
             {
-                if (hasCheckModel[0] > 0) return;
+                if (hasCheckModel) return;
 
                 if (!DAL.NegativeEnable || DAL.NegativeExclude.Contains(ConnName) || DAL.NegativeExclude.Contains(TableName) || IsGenerated)
                 {
-                    hasCheckModel[0] = 1;
+                    hasCheckModel = true;
                     return;
                 }
 
@@ -241,7 +256,7 @@ namespace XCode
                         ThreadPoolX.QueueUserWorkItem(check);
                 }
 
-                hasCheckModel[0] = 1;
+                hasCheckModel = true;
             }
         }
         #endregion
