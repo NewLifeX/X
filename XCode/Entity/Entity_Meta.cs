@@ -109,7 +109,7 @@ namespace XCode
 
             #region 实体会话
             /// <summary>实体会话</summary>
-            static EntitySession<TEntity> Session { get { return EntitySession<TEntity>.Create(ConnName, TableName); } }
+            public static EntitySession<TEntity> Session { get { return EntitySession<TEntity>.Create(ConnName, TableName); } }
             #endregion
 
             #region 数据库操作
@@ -126,29 +126,6 @@ namespace XCode
                 WaitForInitData();
 
                 return DBO.Select(builder, startRowIndex, maximumRows, Meta.TableName);
-            }
-
-            /// <summary>查询</summary>
-            /// <param name="sql">SQL语句</param>
-            /// <returns>结果记录集</returns>
-            //[Obsolete("请优先考虑使用SelectBuilder参数做查询！")]
-            public static DataSet Query(String sql)
-            {
-                WaitForInitData();
-
-                return DBO.Select(sql, Meta.TableName);
-            }
-
-            /// <summary>查询记录数</summary>
-            /// <param name="sql">SQL语句</param>
-            /// <returns>记录数</returns>
-            [EditorBrowsable(EditorBrowsableState.Never)]
-            [Obsolete("请优先考虑使用SelectBuilder参数做查询！")]
-            public static Int32 QueryCount(String sql)
-            {
-                WaitForInitData();
-
-                return DBO.SelectCount(sql, Meta.TableName);
             }
 
             /// <summary>查询记录数</summary>
@@ -356,8 +333,6 @@ namespace XCode
             /// <summary>总记录数，小于1000时是精确的，大于1000时缓存10分钟</summary>
             public static Int32 Count { get { return (Int32)LongCount; } }
 
-            /// <summary>总记录数较小时，使用静态字段，较大时增加使用Cache</summary>
-            private static Int64? _Count;
             /// <summary>总记录数，小于1000时是精确的，大于1000时缓存10分钟</summary>
             public static Int64 LongCount { get { return Session.LongCount; } }
             #endregion

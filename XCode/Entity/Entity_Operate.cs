@@ -233,7 +233,7 @@ namespace XCode
             /// <summary>查询</summary>
             /// <param name="sql">SQL语句</param>
             /// <returns>结果记录集</returns>
-            public virtual DataSet Query(String sql) { return Meta.Query(sql); }
+            public virtual DataSet Query(String sql) { return Meta.Session.Query(sql); }
 
             /// <summary>查询记录数</summary>
             /// <param name="sql">SQL语句</param>

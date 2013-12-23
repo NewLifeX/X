@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
+using System.Data.Common;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Web;
+using NewLife;
 using NewLife.Collections;
 using NewLife.Log;
 using NewLife.Reflection;
@@ -55,6 +58,9 @@ namespace XCode
 
         /// <summary>表信息</summary>
         TableItem Table { get { return TableItem.Create(ThisType); } }
+
+        /// <summary>数据操作层</summary>
+        internal DAL Dal { get { return DAL.Create(ConnName); } }
         #endregion
 
         #region 数据初始化
@@ -230,7 +236,7 @@ namespace XCode
                             //var set = new NegativeSetting();
                             //set.CheckOnly = DAL.NegativeCheckOnly;
                             //set.NoDelete = DAL.NegativeNoDelete;
-                            //DBO.Db.CreateMetaData().SetTables(set, Table.DataTable);
+                            //Dal.Db.CreateMetaData().SetTables(set, Table.DataTable);
                             dal.SetTables(Table.DataTable);
                         }
                         finally
@@ -345,6 +351,7 @@ namespace XCode
             }
         }
 
+        /// <summary>清除缓存</summary>
         public void ClearCache()
         {
             if (_cache != null) _cache.Clear();
@@ -363,6 +370,180 @@ namespace XCode
         }
 
         String CacheKey { get { return String.Format("{0}_{1}_{2}_Count", ConnName, TableName, ThisType.Name); } }
+        #endregion
+
+        #region 实体操作
+        #endregion
+
+        #region 数据库操作
+        /// <summary>执行SQL查询，返回记录集</summary>
+        /// <param name="builder">SQL语句</param>
+        /// <param name="startRowIndex">开始行，0表示第一行</param>
+        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
+        /// <returns></returns>
+        public DataSet Query(SelectBuilder builder, Int32 startRowIndex, Int32 maximumRows)
+        {
+            WaitForInitData();
+
+            return Dal.Select(builder, startRowIndex, maximumRows, TableName);
+        }
+
+        /// <summary>查询</summary>
+        /// <param name="sql">SQL语句</param>
+        /// <returns>结果记录集</returns>
+        //[Obsolete("请优先考虑使用SelectBuilder参数做查询！")]
+        public DataSet Query(String sql)
+        {
+            WaitForInitData();
+
+            return Dal.Select(sql, TableName);
+        }
+
+        /// <summary>查询记录数</summary>
+        /// <param name="sb">查询生成器</param>
+        /// <returns>记录数</returns>
+        public Int32 QueryCount(SelectBuilder sb)
+        {
+            WaitForInitData();
+
+            return Dal.SelectCount(sb, new String[] { TableName });
+        }
+
+        /// <summary>执行</summary>
+        /// <param name="sql">SQL语句</param>
+        /// <returns>影响的结果</returns>
+        public Int32 Execute(String sql)
+        {
+            WaitForInitData();
+
+            Int32 rs = Dal.Execute(sql, TableName);
+            executeCount++;
+            DataChange("修改数据");
+            return rs;
+        }
+
+        /// <summary>执行插入语句并返回新增行的自动编号</summary>
+        /// <param name="sql">SQL语句</param>
+        /// <returns>新增行的自动编号</returns>
+        public Int64 InsertAndGetIdentity(String sql)
+        {
+            WaitForInitData();
+
+            Int64 rs = Dal.InsertAndGetIdentity(sql, TableName);
+            executeCount++;
+            DataChange("修改数据");
+            return rs;
+        }
+
+        /// <summary>执行</summary>
+        /// <param name="sql">SQL语句</param>
+        /// <param name="type">命令类型，默认SQL文本</param>
+        /// <param name="ps">命令参数</param>
+        /// <returns>影响的结果</returns>
+        public Int32 Execute(String sql, CommandType type = CommandType.Text, params DbParameter[] ps)
+        {
+            WaitForInitData();
+
+            Int32 rs = Dal.Execute(sql, type, ps, TableName);
+            executeCount++;
+            DataChange("修改数据");
+            return rs;
+        }
+
+        /// <summary>执行插入语句并返回新增行的自动编号</summary>
+        /// <param name="sql">SQL语句</param>
+        /// <param name="type">命令类型，默认SQL文本</param>
+        /// <param name="ps">命令参数</param>
+        /// <returns>新增行的自动编号</returns>
+        public Int64 InsertAndGetIdentity(String sql, CommandType type = CommandType.Text, params DbParameter[] ps)
+        {
+            WaitForInitData();
+
+            Int64 rs = Dal.InsertAndGetIdentity(sql, type, ps, TableName);
+            executeCount++;
+            DataChange("修改数据");
+            return rs;
+        }
+
+        void DataChange(String reason = null)
+        {
+            // 还在事务保护里面，不更新缓存，最后提交或者回滚的时候再更新
+            // 一般事务保护用于批量更新数据，频繁删除缓存将会打来巨大的性能损耗
+            // 2012-07-17 当前实体类开启的事务保护，必须由当前类结束，否则可能导致缓存数据的错乱
+            if (TransCount > 0) return;
+
+            ClearCache();
+
+            if (_OnDataChange != null) _OnDataChange(ThisType);
+        }
+
+        //private static WeakReference<Action<Type>> _OnDataChange = new WeakReference<Action<Type>>();
+        private static Action<Type> _OnDataChange;
+        /// <summary>数据改变后触发。参数指定触发该事件的实体类</summary>
+        public static event Action<Type> OnDataChange
+        {
+            add
+            {
+                if (value != null)
+                {
+                    // 这里不能对委托进行弱引用，因为GC会回收委托，应该改为对对象进行弱引用
+                    //WeakReference<Action<Type>> w = value;
+
+                    _OnDataChange += new WeakAction<Type>(value, handler => { _OnDataChange -= handler; }, true);
+                }
+            }
+            remove { }
+        }
+        #endregion
+
+        #region 事务保护
+        private Int32 TransCount = 0;
+        private Int32 executeCount = 0;
+
+        /// <summary>开始事务</summary>
+        /// <returns>剩下的事务计数</returns>
+        public Int32 BeginTrans()
+        {
+            // 可能存在多层事务，这里不能把这个清零
+            //executeCount = 0;
+            return TransCount = Dal.BeginTransaction();
+        }
+
+        /// <summary>提交事务</summary>
+        /// <returns>剩下的事务计数</returns>
+        public Int32 Commit()
+        {
+            TransCount = Dal.Commit();
+            // 提交事务时更新数据，虽然不是绝对准确，但没有更好的办法
+            // 即使提交了事务，但只要事务内没有执行更新数据的操作，也不更新
+            // 2012-06-13 测试证明，修改数据后，提交事务后会更新缓存等数据
+            if (TransCount <= 0 && executeCount > 0)
+            {
+                DataChange("修改数据后提交事务");
+                // 回滚到顶层才更新数据
+                executeCount = 0;
+            }
+            return TransCount;
+        }
+
+        /// <summary>回滚事务，忽略异常</summary>
+        /// <returns>剩下的事务计数</returns>
+        public Int32 Rollback()
+        {
+            TransCount = Dal.Rollback();
+            // 回滚的时候貌似不需要更新缓存
+            //if (TransCount <= 0 && executeCount > 0) DataChange();
+            if (TransCount <= 0 && executeCount > 0)
+            {
+                // 因为在事务保护中添加或删除实体时直接操作了实体缓存，所以需要更新
+                DataChange("修改数据后回滚事务");
+                executeCount = 0;
+            }
+            return TransCount;
+        }
+
+        /// <summary>是否在事务保护中</summary>
+        internal Boolean UsingTrans { get { return TransCount > 0; } }
         #endregion
     }
 }

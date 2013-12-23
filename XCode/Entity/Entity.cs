@@ -773,7 +773,7 @@ namespace XCode
         /// <param name="sql">查询语句</param>
         /// <returns>实体数组</returns>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public static EntityList<TEntity> FindAll(String sql) { return LoadData(Meta.Query(sql)); }
+        public static EntityList<TEntity> FindAll(String sql) { return LoadData(Meta.Session.Query(sql)); }
         #endregion
 
         #region 获取查询SQL
