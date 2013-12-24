@@ -229,7 +229,9 @@ namespace XCode
                 {
                     var iv = item[names[i]];
                     if (!Object.Equals(iv, values[i]) &&
+                        // 整数相等比较
                         !(ts[i] && Convert.ToInt64(iv) == vs[i]) &&
+                        // 字符串不区分大小写比较，判定""和null为相等
                         !(ss[i] && ignoreCase && (iv + "").EqualIgnoreCase(values[i] + "")))
                     {
                         b = false;
