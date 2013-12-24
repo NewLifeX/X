@@ -384,20 +384,9 @@ namespace XCode
                 //        if (Helper.IsNullKey(this[field.Name])) return cache.Entities.FindAll(names, values).Count > 0;
                 //        break;
                 //}
-                if (Helper.IsNullKey(val))
-                {
-                    var fs = names.Select(e => Meta.Table.FindByName(e)).ToArray();
-                    foreach (var entity in cache.Entities)
-                    {
-                        foreach (var f in fs)
-                        {
+                var list = cache.Entities.FindAll(names, values, true);
+                if (Helper.IsNullKey(this[field.Name])) return list.Count > 0;
 
-                        }
-                    }
-                    return cache.Entities.FindAll(names, values).Count > 0;
-                }
-
-                var list = cache.Entities.FindAll(names, values);
                 if (list == null || list.Count < 1) return false;
                 if (list.Count > 1) return true;
 

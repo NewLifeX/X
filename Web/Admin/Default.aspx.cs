@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using NewLife.Common;
 using NewLife.CommonEntity;
+using XCode;
 
 public partial class Admin_Default : System.Web.UI.Page
 {
@@ -65,40 +66,45 @@ public partial class Admin_Default : System.Web.UI.Page
         // 自动修正菜单中英文
         if (root != null)
         {
-            root.CheckMenuName("Admin", "管理平台")
-                .CheckMenuName(@"Admin\Sys", "系统管理")
-                .CheckMenuName(@"Admin\Advance", "高级设置")
-                .CheckMenuName(@"Admin\Help", "帮助手册");
+            using (EntityTransaction trans = new EntityTransaction(EntityFactory.CreateOperate(root.GetType())))
+            {
+                root.CheckMenuName("Admin", "管理平台")
+                    .CheckMenuName(@"Admin\Sys", "系统管理")
+                    .CheckMenuName(@"Admin\Advance", "高级设置")
+                    .CheckMenuName(@"Admin\Help", "帮助手册");
 
-            // 自动挂载Main.aspx
-            IMenu menu = root.FindByPath("Admin");
-            if (menu != null && menu.Url == "../Admin/Default.aspx")
-            {
-                menu.Url = "../Admin/Main.aspx";
-                menu.Save();
-            }
-            if (menu != null)
-            {
-                #region 自动排序
-                IMenu menu2 = menu.FindByPath("Sys");
-                if (menu2 != null)
+                // 自动挂载Main.aspx
+                IMenu menu = root.FindByPath("Admin");
+                if (menu != null && menu.Url == "../Admin/Default.aspx")
                 {
-                    menu2.Sort = 3;
-                    menu2.Save();
+                    menu.Url = "../Admin/Main.aspx";
+                    menu.Save();
                 }
-                menu2 = menu.FindByPath("Advance");
-                if (menu2 != null)
+                if (menu != null)
                 {
-                    menu2.Sort = 2;
-                    menu2.Save();
+                    #region 自动排序
+                    IMenu menu2 = menu.FindByPath("Sys");
+                    if (menu2 != null)
+                    {
+                        menu2.Sort = 3;
+                        menu2.Save();
+                    }
+                    menu2 = menu.FindByPath("Advance");
+                    if (menu2 != null)
+                    {
+                        menu2.Sort = 2;
+                        menu2.Save();
+                    }
+                    menu2 = menu.FindByPath("Help");
+                    if (menu2 != null)
+                    {
+                        menu2.Sort = 1;
+                        menu2.Save();
+                    }
+                    #endregion
                 }
-                menu2 = menu.FindByPath("Help");
-                if (menu2 != null)
-                {
-                    menu2.Sort = 1;
-                    menu2.Save();
-                }
-                #endregion
+
+                trans.Commit();
             }
         }
         #endregion

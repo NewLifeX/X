@@ -80,7 +80,11 @@ namespace XCode
             // 已初始化
             if (initThread == -1) return true;
 
-            var name = String.Format("{0}@{1}/{2}", ThisType.Name, TableName, ConnName);
+            var name = ThisType.Name;
+            if (name == TableName)
+                name = String.Format("{0}/{1}", ThisType.Name, ConnName);
+            else
+                name = String.Format("{0}@{1}/{2}", ThisType.Name, TableName, ConnName);
 
             // 是否需要等待
             if (initThread > 0)
@@ -197,7 +201,7 @@ namespace XCode
                 }
 
                 // 输出调用者，方便调试
-                //if (DAL.Debug) DAL.WriteLog("检查实体{0}的数据表架构，模式：{1}，调用栈：{2}", ThisType.FullName, Table.ModelCheckMode, XTrace.GetCaller());
+                //if (DAL.Debug) DAL.WriteLog("检查实体{0}的数据表架构，模式：{1}，调用栈：{2}", ThisType.FullName, Table.ModelCheckMode, XTrace.GetCaller(1, 0, "\r\n<-"));
                 // CheckTableWhenFirstUse的实体类，在这里检查，有点意思，记下来
                 if (DAL.Debug && Table.ModelCheckMode == ModelCheckModes.CheckTableWhenFirstUse)
                     DAL.WriteLog("检查实体{0}的数据表架构，模式：{1}", ThisType.FullName, Table.ModelCheckMode);
@@ -355,9 +359,10 @@ namespace XCode
         }
 
         /// <summary>清除缓存</summary>
-        public void ClearCache()
+        /// <param name="reason">原因</param>
+        public void ClearCache(String reason = null)
         {
-            if (_cache != null) _cache.Clear();
+            if (_cache != null) _cache.Clear(reason);
 
             Int64? n = _Count;
             if (n == null || !n.HasValue) return;
@@ -486,7 +491,7 @@ namespace XCode
             // 2012-07-17 当前实体类开启的事务保护，必须由当前类结束，否则可能导致缓存数据的错乱
             if (TransCount > 0) return;
 
-            ClearCache();
+            ClearCache(reason);
 
             if (_OnDataChange != null) _OnDataChange(ThisType);
         }
