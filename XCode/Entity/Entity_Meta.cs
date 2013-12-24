@@ -110,6 +110,10 @@ namespace XCode
             #region 实体会话
             /// <summary>实体会话</summary>
             public static EntitySession<TEntity> Session { get { return EntitySession<TEntity>.Create(ConnName, TableName); } }
+
+            private static EntityHandlerManager _Handler;
+            /// <summary>实体处理器集合</summary>
+            public static EntityHandlerManager Handler { get { return _Handler ?? (_Handler = new EntityHandlerManager()); } }
             #endregion
 
             #region 数据库操作

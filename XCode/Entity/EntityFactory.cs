@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using NewLife.Collections;
 using NewLife.Log;
 using NewLife.Reflection;
@@ -278,6 +277,12 @@ namespace XCode
                 _hasInited.Add(type);
             }
         }
+        #endregion
+
+        #region 全局实体处理器
+        private static EntityHandlerManager _Handler;
+        /// <summary>实体处理器集合</summary>
+        public static EntityHandlerManager Handler { get { return _Handler ?? (_Handler = new EntityHandlerManager()); } }
         #endregion
     }
 }

@@ -184,7 +184,14 @@ namespace XCode
 
         /// <summary>把该对象持久化到数据库，添加/更新实体缓存。</summary>
         /// <returns></returns>
-        protected virtual Int32 OnInsert() { return Meta.Session.Insert(this); }
+        protected virtual Int32 OnInsert()
+        {
+            // 先全局，后本类
+            EntityFactory.Handler.OnChange(Meta.ThisType, this, true);
+            Meta.Handler.OnChange(Meta.ThisType, this, true);
+
+            return Meta.Session.Insert(this);
+        }
 
         /// <summary>更新数据，<see cref="Valid"/>后，在事务中调用<see cref="OnUpdate"/>。</summary>
         /// <returns></returns>
@@ -192,7 +199,14 @@ namespace XCode
 
         /// <summary>更新数据库，同时更新实体缓存</summary>
         /// <returns></returns>
-        protected virtual Int32 OnUpdate() { return Meta.Session.Update(this); }
+        protected virtual Int32 OnUpdate()
+        {
+            // 先全局，后本类
+            EntityFactory.Handler.OnChange(Meta.ThisType, this, false);
+            Meta.Handler.OnChange(Meta.ThisType, this, false);
+
+            return Meta.Session.Update(this);
+        }
 
         /// <summary>删除数据，通过在事务中调用OnDelete实现。</summary>
         /// <remarks>
@@ -236,7 +250,14 @@ namespace XCode
 
         /// <summary>从数据库中删除该对象，同时从实体缓存中删除</summary>
         /// <returns></returns>
-        protected virtual Int32 OnDelete() { return Meta.Session.Delete(this); }
+        protected virtual Int32 OnDelete()
+        {
+            // 先全局，后本类
+            EntityFactory.Handler.OnChange(Meta.ThisType, this, null);
+            Meta.Handler.OnChange(Meta.ThisType, this, null);
+
+            return Meta.Session.Delete(this);
+        }
 
         Int32 DoAction(Func<Int32> func, Boolean? isnew)
         {
@@ -943,7 +964,14 @@ namespace XCode
         /// <param name="names">更新属性列表</param>
         /// <param name="values">更新值列表</param>
         /// <returns>返回受影响的行数</returns>
-        public static Int32 Insert(String[] names, Object[] values) { return persistence.Insert(Meta.ThisType, names, values); }
+        public static Int32 Insert(String[] names, Object[] values)
+        {
+            // 先全局，后本类
+            EntityFactory.Handler.OnChange(Meta.ThisType, null, true);
+            Meta.Handler.OnChange(Meta.ThisType, null, true);
+
+            return persistence.Insert(Meta.ThisType, names, values);
+        }
 
         /// <summary>把一个实体对象更新到数据库</summary>
         /// <param name="obj">实体对象</param>
@@ -956,7 +984,14 @@ namespace XCode
         /// <param name="setClause">要更新的项和数据</param>
         /// <param name="whereClause">指定要更新的实体</param>
         /// <returns></returns>
-        public static Int32 Update(String setClause, String whereClause) { return persistence.Update(Meta.ThisType, setClause, whereClause); }
+        public static Int32 Update(String setClause, String whereClause)
+        {
+            // 先全局，后本类
+            EntityFactory.Handler.OnChange(Meta.ThisType, null, false);
+            Meta.Handler.OnChange(Meta.ThisType, null, false);
+
+            return persistence.Update(Meta.ThisType, setClause, whereClause);
+        }
 
         /// <summary>更新一批实体数据</summary>
         /// <param name="setNames">更新属性列表</param>
@@ -964,7 +999,14 @@ namespace XCode
         /// <param name="whereNames">条件属性列表</param>
         /// <param name="whereValues">条件值列表</param>
         /// <returns>返回受影响的行数</returns>
-        public static Int32 Update(String[] setNames, Object[] setValues, String[] whereNames, Object[] whereValues) { return persistence.Update(Meta.ThisType, setNames, setValues, whereNames, whereValues); }
+        public static Int32 Update(String[] setNames, Object[] setValues, String[] whereNames, Object[] whereValues)
+        {
+            // 先全局，后本类
+            EntityFactory.Handler.OnChange(Meta.ThisType, null, false);
+            Meta.Handler.OnChange(Meta.ThisType, null, false);
+
+            return persistence.Update(Meta.ThisType, setNames, setValues, whereNames, whereValues);
+        }
 
         /// <summary>
         /// 从数据库中删除指定实体对象。
@@ -979,13 +1021,27 @@ namespace XCode
         /// <summary>从数据库中删除指定条件的实体对象。</summary>
         /// <param name="whereClause">限制条件</param>
         /// <returns></returns>
-        public static Int32 Delete(String whereClause) { return persistence.Delete(Meta.ThisType, whereClause); }
+        public static Int32 Delete(String whereClause)
+        {
+            // 先全局，后本类
+            EntityFactory.Handler.OnChange(Meta.ThisType, null, null);
+            Meta.Handler.OnChange(Meta.ThisType, null, null);
+
+            return persistence.Delete(Meta.ThisType, whereClause);
+        }
 
         /// <summary>从数据库中删除指定属性列表和值列表所限定的实体对象。</summary>
         /// <param name="names">属性列表</param>
         /// <param name="values">值列表</param>
         /// <returns></returns>
-        public static Int32 Delete(String[] names, Object[] values) { return persistence.Delete(Meta.ThisType, names, values); }
+        public static Int32 Delete(String[] names, Object[] values)
+        {
+            // 先全局，后本类
+            EntityFactory.Handler.OnChange(Meta.ThisType, null, null);
+            Meta.Handler.OnChange(Meta.ThisType, null, null);
+
+            return persistence.Delete(Meta.ThisType, names, values);
+        }
 
         /// <summary>把一个实体对象更新到数据库</summary>
         /// <param name="obj">实体对象</param>
