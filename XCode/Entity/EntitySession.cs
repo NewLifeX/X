@@ -15,6 +15,7 @@ using NewLife.Threading;
 using XCode.Cache;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
+using XCode.Model;
 
 namespace XCode
 {
@@ -58,6 +59,8 @@ namespace XCode
 
         /// <summary>表信息</summary>
         TableItem Table { get { return TableItem.Create(ThisType); } }
+
+        IEntityOperate Operate { get { return EntityFactory.CreateOperate(ThisType); } }
 
         /// <summary>数据操作层</summary>
         internal DAL Dal { get { return DAL.Create(ConnName); } }
@@ -557,6 +560,79 @@ namespace XCode
 
         /// <summary>是否在事务保护中</summary>
         internal Boolean UsingTrans { get { return TransCount > 0; } }
+        #endregion
+
+        #region 实体操作
+        private static IEntityPersistence persistence { get { return XCodeService.Container.ResolveInstance<IEntityPersistence>(); } }
+
+        /// <summary>把该对象持久化到数据库，添加/更新实体缓存。</summary>
+        /// <param name="entity">实体对象</param>
+        /// <returns></returns>
+        public Int32 Insert(IEntity entity)
+        {
+            var rs = persistence.Insert(entity);
+
+            // 如果当前在事务中，并使用了缓存，则尝试更新缓存
+            if (UsingTrans && Cache.Using)
+            {
+                // 尽管用了事务保护，但是仍然可能有别的地方导致实体缓存更新，这点务必要注意
+                var fi = Operate.Unique;
+                var e = Cache.Entities.Find(fi.Name, entity[fi.Name]);
+                if (e != null)
+                {
+                    if (e != entity) e.CopyFrom(entity);
+                }
+                else
+                    Cache.Entities.Add(entity as TEntity);
+            }
+
+            return rs;
+        }
+
+        /// <summary>更新数据库，同时更新实体缓存</summary>
+        /// <param name="entity">实体对象</param>
+        /// <returns></returns>
+        public Int32 Update(IEntity entity)
+        {
+            var rs = persistence.Update(entity);
+
+            // 如果当前在事务中，并使用了缓存，则尝试更新缓存
+            if (UsingTrans && Cache.Using)
+            {
+                // 尽管用了事务保护，但是仍然可能有别的地方导致实体缓存更新，这点务必要注意
+                var fi = Operate.Unique;
+                var e = Cache.Entities.Find(fi.Name, entity[fi.Name]);
+                if (e != null)
+                {
+                    if (e != entity) e.CopyFrom(entity);
+                }
+                else
+                    Cache.Entities.Add(entity as TEntity);
+            }
+
+            return rs;
+        }
+
+        /// <summary>从数据库中删除该对象，同时从实体缓存中删除</summary>
+        /// <param name="entity">实体对象</param>
+        /// <returns></returns>
+        public Int32 Delete(IEntity entity)
+        {
+            var rs = persistence.Delete(entity);
+
+            // 如果当前在事务中，并使用了缓存，则尝试更新缓存
+            if (UsingTrans && Cache.Using)
+            {
+                var fi = Operate.Unique;
+                if (fi != null)
+                {
+                    var v = entity[fi.Name];
+                    Cache.Entities.RemoveAll(e => Object.Equals(e[fi.Name], v));
+                }
+            }
+
+            return rs;
+        }
         #endregion
     }
 }

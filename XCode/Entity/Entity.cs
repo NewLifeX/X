@@ -184,26 +184,7 @@ namespace XCode
 
         /// <summary>把该对象持久化到数据库，添加/更新实体缓存。</summary>
         /// <returns></returns>
-        protected virtual Int32 OnInsert()
-        {
-            var rs = persistence.Insert(this);
-
-            // 如果当前在事务中，并使用了缓存，则尝试更新缓存
-            if (Meta.UsingTrans && Meta.Cache.Using)
-            {
-                // 尽管用了事务保护，但是仍然可能有别的地方导致实体缓存更新，这点务必要注意
-                var fi = Meta.Unique;
-                var entity = Meta.Cache.Entities.Find(fi.Name, this[fi.Name]);
-                if (entity != null)
-                {
-                    if (entity != this) entity.CopyFrom(this);
-                }
-                else
-                    Meta.Cache.Entities.Add(this as TEntity);
-            }
-
-            return rs;
-        }
+        protected virtual Int32 OnInsert() { return Meta.Session.Insert(this); }
 
         /// <summary>更新数据，<see cref="Valid"/>后，在事务中调用<see cref="OnUpdate"/>。</summary>
         /// <returns></returns>
@@ -211,26 +192,7 @@ namespace XCode
 
         /// <summary>更新数据库，同时更新实体缓存</summary>
         /// <returns></returns>
-        protected virtual Int32 OnUpdate()
-        {
-            var rs = persistence.Update(this);
-
-            // 如果当前在事务中，并使用了缓存，则尝试更新缓存
-            if (Meta.UsingTrans && Meta.Cache.Using)
-            {
-                // 尽管用了事务保护，但是仍然可能有别的地方导致实体缓存更新，这点务必要注意
-                var fi = Meta.Unique;
-                var entity = Meta.Cache.Entities.Find(fi.Name, this[fi.Name]);
-                if (entity != null)
-                {
-                    if (entity != this) entity.CopyFrom(this);
-                }
-                else
-                    Meta.Cache.Entities.Add(this as TEntity);
-            }
-
-            return rs;
-        }
+        protected virtual Int32 OnUpdate() { return Meta.Session.Update(this); }
 
         /// <summary>删除数据，通过在事务中调用OnDelete实现。</summary>
         /// <remarks>
@@ -274,19 +236,7 @@ namespace XCode
 
         /// <summary>从数据库中删除该对象，同时从实体缓存中删除</summary>
         /// <returns></returns>
-        protected virtual Int32 OnDelete()
-        {
-            var rs = persistence.Delete(this);
-
-            // 如果当前在事务中，并使用了缓存，则尝试更新缓存
-            if (Meta.UsingTrans && Meta.Cache.Using)
-            {
-                var fi = Meta.Unique;
-                if (fi != null) Meta.Cache.Entities.RemoveAll(e => Object.Equals(e[fi.Name], this[fi.Name]));
-            }
-
-            return rs;
-        }
+        protected virtual Int32 OnDelete() { return Meta.Session.Delete(this); }
 
         Int32 DoAction(Func<Int32> func, Boolean? isnew)
         {
@@ -371,7 +321,7 @@ namespace XCode
         {
             if (Exist(names))
             {
-                StringBuilder sb = new StringBuilder();
+                var sb = new StringBuilder();
                 String name = null;
                 for (int i = 0; i < names.Length; i++)
                 {
@@ -406,38 +356,52 @@ namespace XCode
             }
 
             var field = Meta.Unique;
-            if (!Meta.Cache.Using)
+            var val = this[field.Name];
+            var cache = Meta.Session.Cache;
+            if (!cache.Using)
             {
                 // 如果是空主键，则采用直接判断记录数的方式，以加快速度
-                if (Helper.IsNullKey(this[field.Name])) return FindCount(names, values) > 0;
+                if (Helper.IsNullKey(val)) return FindCount(names, values) > 0;
 
                 var list = FindAll(names, values);
                 if (list == null || list.Count < 1) return false;
                 if (list.Count > 1) return true;
 
-                return !Object.Equals(this[field.Name], list[0][field.Name]);
+                return !Object.Equals(val, list[0][field.Name]);
             }
             else
             {
                 // 如果是空主键，则采用直接判断记录数的方式，以加快速度
-                //如果使用缓存查询的情况下会出现如果索引列标记唯一，由于默认情况下数据的查询是不区分大小写的（SQLite,SQLServer）,但是缓存查询是区分大小写的，所以无法捕获到异常信息，被数据库直接抛出异常
-                //if (Helper.IsNullKey(this[field.Name])) return Meta.Cache.Entities.FindAll(names, values).Count > 0;
-                switch (Meta.Table.DataTable.DbType)
+                // 如果使用缓存查询的情况下会出现如果索引列标记唯一，由于默认情况下数据的查询是不区分大小写的（SQLite,SQLServer）,但是缓存查询是区分大小写的，所以无法捕获到异常信息，被数据库直接抛出异常
+                //if (Helper.IsNullKey(this[field.Name])) return cache.Entities.FindAll(names, values).Count > 0;
+                //switch (Meta.Table.DataTable.DbType)
+                //{
+                //    case DatabaseType.SqlServer:
+                //    case DatabaseType.SQLite:
+                //        if (Helper.IsNullKey(this[field.Name])) return FindAll(names, values).Count > 0;
+                //        break;
+                //    default:
+                //        if (Helper.IsNullKey(this[field.Name])) return cache.Entities.FindAll(names, values).Count > 0;
+                //        break;
+                //}
+                if (Helper.IsNullKey(val))
                 {
-                    case DatabaseType.SqlServer:
-                    case DatabaseType.SQLite:
-                        if (Helper.IsNullKey(this[field.Name])) return FindAll(names, values).Count > 0;
-                        break;
-                    default:
-                        if (Helper.IsNullKey(this[field.Name])) return Meta.Cache.Entities.FindAll(names, values).Count > 0;
-                        break;
+                    var fs = names.Select(e => Meta.Table.FindByName(e)).ToArray();
+                    foreach (var entity in cache.Entities)
+                    {
+                        foreach (var f in fs)
+                        {
+
+                        }
+                    }
+                    return cache.Entities.FindAll(names, values).Count > 0;
                 }
 
-                var list = Meta.Cache.Entities.FindAll(names, values);
+                var list = cache.Entities.FindAll(names, values);
                 if (list == null || list.Count < 1) return false;
                 if (list.Count > 1) return true;
 
-                return !Object.Equals(this[field.Name], list[0][field.Name]);
+                return !Object.Equals(val, list[0][field.Name]);
             }
         }
         #endregion

@@ -183,8 +183,9 @@ namespace XCode
         /// <summary>根据指定项查找</summary>
         /// <param name="names">属性名集合</param>
         /// <param name="values">属性值集合</param>
+        /// <param name="ignoreCase">对于字符串字段是否忽略大小写</param>
         /// <returns></returns>
-        public EntityList<T> FindAll(String[] names, Object[] values)
+        public EntityList<T> FindAll(String[] names, Object[] values, Boolean ignoreCase = false)
         {
             if (Count < 1) return this;
 
@@ -195,16 +196,27 @@ namespace XCode
                 if (Helper.IsNullKey(values[0])) return null;
             }
 
+            // 特殊处理字符忽略大小写的情况
+            var ss = new Boolean[values.Length];
             // 特殊处理整数类型，避免出现相同值不同整型而导致结果不同
             var ts = new Boolean[values.Length];
             var vs = new Int64[values.Length];
             for (int i = 0; i < values.Length; i++)
             {
+                field = Factory.Table.FindByName(names[i]);
+                if (field != null)
+                {
+                    ss[i] = field.Type == typeof(String);
+                    ts[i] = field.Type.IsIntType();
+                }
+
                 if (values[i] == null) continue;
 
                 // 整型统一转为Int64后再比较，因为即使数值相等，类型不同的对象也是不等的
-                ts[i] = values[i].GetType().IsIntType();
+                ts[i] |= values[i].GetType().IsIntType();
                 if (ts[i]) vs[i] = Convert.ToInt64(values[i]);
+
+                ss[i] |= values[i].GetType() == typeof(String);
             }
 
             var list = new EntityList<T>();
@@ -216,7 +228,9 @@ namespace XCode
                 for (int i = 0; i < names.Length; i++)
                 {
                     var iv = item[names[i]];
-                    if (!Object.Equals(iv, values[i]) && !(ts[i] && Convert.ToInt64(iv) == vs[i]))
+                    if (!Object.Equals(iv, values[i]) &&
+                        !(ts[i] && Convert.ToInt64(iv) == vs[i]) &&
+                        !(ss[i] && ignoreCase && (iv + "").EqualIgnoreCase(values[i] + "")))
                     {
                         b = false;
                         break;
