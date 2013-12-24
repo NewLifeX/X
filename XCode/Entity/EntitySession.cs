@@ -409,6 +409,17 @@ namespace XCode
             return Dal.SelectCount(sb, new String[] { TableName });
         }
 
+        /// <summary>根据条件把普通查询SQL格式化为分页SQL。</summary>
+        /// <remarks>
+        /// 因为需要继承重写的原因，在数据类中并不方便缓存分页SQL。
+        /// 所以在这里做缓存。
+        /// </remarks>
+        /// <param name="builder">查询生成器</param>
+        /// <param name="startRowIndex">开始行，0表示第一行</param>
+        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
+        /// <returns>分页SQL</returns>
+        public SelectBuilder PageSplit(SelectBuilder builder, Int32 startRowIndex, Int32 maximumRows) { return Dal.PageSplit(builder, startRowIndex, maximumRows); }
+
         /// <summary>执行</summary>
         /// <param name="sql">SQL语句</param>
         /// <returns>影响的结果</returns>
@@ -477,10 +488,9 @@ namespace XCode
             if (_OnDataChange != null) _OnDataChange(ThisType);
         }
 
-        //private static WeakReference<Action<Type>> _OnDataChange = new WeakReference<Action<Type>>();
-        private static Action<Type> _OnDataChange;
+        private Action<Type> _OnDataChange;
         /// <summary>数据改变后触发。参数指定触发该事件的实体类</summary>
-        public static event Action<Type> OnDataChange
+        public event Action<Type> OnDataChange
         {
             add
             {
@@ -497,7 +507,10 @@ namespace XCode
         #endregion
 
         #region 事务保护
-        private Int32 TransCount = 0;
+        private Int32 _TransCount;
+        /// <summary>事务计数</summary>
+        public Int32 TransCount { get { return _TransCount; } private set { _TransCount = value; } }
+
         private Int32 executeCount = 0;
 
         /// <summary>开始事务</summary>

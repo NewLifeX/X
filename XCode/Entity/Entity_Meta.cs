@@ -114,6 +114,7 @@ namespace XCode
 
             #region 数据库操作
             /// <summary>数据操作对象。</summary>
+            [Obsolete("=>Session")]
             public static DAL DBO { get { return DAL.Create(ConnName); } }
 
             /// <summary>执行SQL查询，返回记录集</summary>
@@ -121,108 +122,59 @@ namespace XCode
             /// <param name="startRowIndex">开始行，0表示第一行</param>
             /// <param name="maximumRows">最大返回行数，0表示所有行</param>
             /// <returns></returns>
-            public static DataSet Query(SelectBuilder builder, Int32 startRowIndex, Int32 maximumRows)
-            {
-                WaitForInitData();
-
-                return DBO.Select(builder, startRowIndex, maximumRows, Meta.TableName);
-            }
+            [Obsolete("=>Session")]
+            public static DataSet Query(SelectBuilder builder, Int32 startRowIndex, Int32 maximumRows) { return Session.Query(builder, startRowIndex, maximumRows); }
 
             /// <summary>查询记录数</summary>
             /// <param name="sb">查询生成器</param>
             /// <returns>记录数</returns>
-            public static Int32 QueryCount(SelectBuilder sb)
-            {
-                WaitForInitData();
-
-                return DBO.SelectCount(sb, new String[] { Meta.TableName });
-            }
+            [Obsolete("=>Session")]
+            public static Int32 QueryCount(SelectBuilder sb) { return Session.QueryCount(sb); }
 
             /// <summary>执行</summary>
             /// <param name="sql">SQL语句</param>
             /// <returns>影响的结果</returns>
-            public static Int32 Execute(String sql)
-            {
-                WaitForInitData();
-
-                Int32 rs = DBO.Execute(sql, Meta.TableName);
-                executeCount++;
-                DataChange("修改数据");
-                return rs;
-            }
+            [Obsolete("=>Session")]
+            public static Int32 Execute(String sql) { return Session.Execute(sql); }
 
             /// <summary>执行插入语句并返回新增行的自动编号</summary>
             /// <param name="sql">SQL语句</param>
             /// <returns>新增行的自动编号</returns>
-            public static Int64 InsertAndGetIdentity(String sql)
-            {
-                WaitForInitData();
-
-                Int64 rs = DBO.InsertAndGetIdentity(sql, Meta.TableName);
-                executeCount++;
-                DataChange("修改数据");
-                return rs;
-            }
+            [Obsolete("=>Session")]
+            public static Int64 InsertAndGetIdentity(String sql) { return Session.InsertAndGetIdentity(sql); }
 
             /// <summary>执行</summary>
             /// <param name="sql">SQL语句</param>
             /// <param name="type">命令类型，默认SQL文本</param>
             /// <param name="ps">命令参数</param>
             /// <returns>影响的结果</returns>
-            public static Int32 Execute(String sql, CommandType type = CommandType.Text, params DbParameter[] ps)
-            {
-                WaitForInitData();
-
-                Int32 rs = DBO.Execute(sql, type, ps, Meta.TableName);
-                executeCount++;
-                DataChange("修改数据");
-                return rs;
-            }
+            [Obsolete("=>Session")]
+            public static Int32 Execute(String sql, CommandType type = CommandType.Text, params DbParameter[] ps) { return Session.Execute(sql, type, ps); }
 
             /// <summary>执行插入语句并返回新增行的自动编号</summary>
             /// <param name="sql">SQL语句</param>
             /// <param name="type">命令类型，默认SQL文本</param>
             /// <param name="ps">命令参数</param>
             /// <returns>新增行的自动编号</returns>
-            public static Int64 InsertAndGetIdentity(String sql, CommandType type = CommandType.Text, params DbParameter[] ps)
-            {
-                WaitForInitData();
+            [Obsolete("=>Session")]
+            public static Int64 InsertAndGetIdentity(String sql, CommandType type = CommandType.Text, params DbParameter[] ps) { return Session.InsertAndGetIdentity(sql, type, ps); }
 
-                Int64 rs = DBO.InsertAndGetIdentity(sql, type, ps, Meta.TableName);
-                executeCount++;
-                DataChange("修改数据");
-                return rs;
-            }
-
-            static void DataChange(String reason = null)
-            {
-                // 还在事务保护里面，不更新缓存，最后提交或者回滚的时候再更新
-                // 一般事务保护用于批量更新数据，频繁删除缓存将会打来巨大的性能损耗
-                // 2012-07-17 当前实体类开启的事务保护，必须由当前类结束，否则可能导致缓存数据的错乱
-                if (TransCount > 0) return;
-
-                //Cache.Clear(reason);
-                ////_Count = null;
-                //ClearCountCache();
-                Session.ClearCache();
-
-                if (_OnDataChange != null) _OnDataChange(ThisType);
-            }
-
-            //private static WeakReference<Action<Type>> _OnDataChange = new WeakReference<Action<Type>>();
-            private static Action<Type> _OnDataChange;
+            //private static Action<Type> _OnDataChange;
             /// <summary>数据改变后触发。参数指定触发该事件的实体类</summary>
+            [Obsolete("=>Session")]
+            [EditorBrowsable(EditorBrowsableState.Never)]
             public static event Action<Type> OnDataChange
             {
                 add
                 {
-                    if (value != null)
-                    {
-                        // 这里不能对委托进行弱引用，因为GC会回收委托，应该改为对对象进行弱引用
-                        //WeakReference<Action<Type>> w = value;
+                    Session.OnDataChange += value;
+                    //if (value != null)
+                    //{
+                    //    // 这里不能对委托进行弱引用，因为GC会回收委托，应该改为对对象进行弱引用
+                    //    //WeakReference<Action<Type>> w = value;
 
-                        _OnDataChange += new WeakAction<Type>(value, handler => { _OnDataChange -= handler; }, true);
-                    }
+                    //    _OnDataChange += new WeakAction<Type>(value, handler => { _OnDataChange -= handler; }, true);
+                    //}
                 }
                 remove { }
             }
@@ -230,82 +182,57 @@ namespace XCode
             /// <summary>检查并初始化数据。参数等待时间为0表示不等待</summary>
             /// <param name="ms">等待时间，-1表示不限，0表示不等待</param>
             /// <returns>如果等待，返回是否收到信号</returns>
+            [Obsolete("=>Session")]
+            [EditorBrowsable(EditorBrowsableState.Never)]
             public static Boolean WaitForInitData(Int32 ms = 1000) { return Session.WaitForInitData(ms); }
             #endregion
 
             #region 事务保护
-            [ThreadStatic]
-            private static Int32 TransCount = 0;
-            [ThreadStatic]
-            private static Int32 executeCount = 0;
-
             /// <summary>开始事务</summary>
             /// <returns>剩下的事务计数</returns>
-            public static Int32 BeginTrans()
-            {
-                // 可能存在多层事务，这里不能把这个清零
-                //executeCount = 0;
-                return TransCount = DBO.BeginTransaction();
-            }
+            [Obsolete("=>Session")]
+            [EditorBrowsable(EditorBrowsableState.Never)]
+            public static Int32 BeginTrans() { return Session.BeginTrans(); }
 
             /// <summary>提交事务</summary>
             /// <returns>剩下的事务计数</returns>
-            public static Int32 Commit()
-            {
-                TransCount = DBO.Commit();
-                // 提交事务时更新数据，虽然不是绝对准确，但没有更好的办法
-                // 即使提交了事务，但只要事务内没有执行更新数据的操作，也不更新
-                // 2012-06-13 测试证明，修改数据后，提交事务后会更新缓存等数据
-                if (TransCount <= 0 && executeCount > 0)
-                {
-                    DataChange("修改数据后提交事务");
-                    // 回滚到顶层才更新数据
-                    executeCount = 0;
-                }
-                return TransCount;
-            }
+            [Obsolete("=>Session")]
+            [EditorBrowsable(EditorBrowsableState.Never)]
+            public static Int32 Commit() { return Session.Commit(); }
 
             /// <summary>回滚事务，忽略异常</summary>
             /// <returns>剩下的事务计数</returns>
-            public static Int32 Rollback()
-            {
-                TransCount = DBO.Rollback();
-                // 回滚的时候貌似不需要更新缓存
-                //if (TransCount <= 0 && executeCount > 0) DataChange();
-                if (TransCount <= 0 && executeCount > 0)
-                {
-                    // 因为在事务保护中添加或删除实体时直接操作了实体缓存，所以需要更新
-                    DataChange("修改数据后回滚事务");
-                    executeCount = 0;
-                }
-                return TransCount;
-            }
+            [Obsolete("=>Session")]
+            [EditorBrowsable(EditorBrowsableState.Never)]
+            public static Int32 Rollback() { return Session.Rollback(); }
 
             /// <summary>是否在事务保护中</summary>
-            internal static Boolean UsingTrans { get { return TransCount > 0; } }
+            [Obsolete("=>Session")]
+            [EditorBrowsable(EditorBrowsableState.Never)]
+            internal static Boolean UsingTrans { get { return Session.TransCount > 0; } }
             #endregion
 
             #region 参数化
             /// <summary>创建参数</summary>
             /// <returns></returns>
-            public static DbParameter CreateParameter() { return DBO.Db.Factory.CreateParameter(); }
+            public static DbParameter CreateParameter() { return Session.Dal.Db.Factory.CreateParameter(); }
 
             /// <summary>格式化参数名</summary>
             /// <param name="name">名称</param>
             /// <returns></returns>
-            public static String FormatParameterName(String name) { return DBO.Db.FormatParameterName(name); }
+            public static String FormatParameterName(String name) { return Session.Dal.Db.FormatParameterName(name); }
             #endregion
 
             #region 辅助方法
             /// <summary>格式化关键字</summary>
             /// <param name="name">名称</param>
             /// <returns></returns>
-            public static String FormatName(String name) { return DBO.Db.FormatName(name); }
+            public static String FormatName(String name) { return Session.Dal.Db.FormatName(name); }
 
             /// <summary>格式化时间</summary>
             /// <param name="dateTime"></param>
             /// <returns></returns>
-            public static String FormatDateTime(DateTime dateTime) { return DBO.Db.FormatDateTime(dateTime); }
+            public static String FormatDateTime(DateTime dateTime) { return Session.Dal.Db.FormatDateTime(dateTime); }
 
             /// <summary>格式化数据为SQL数据</summary>
             /// <param name="name">名称</param>
@@ -317,7 +244,7 @@ namespace XCode
             /// <param name="field">字段</param>
             /// <param name="value">数值</param>
             /// <returns></returns>
-            public static String FormatValue(FieldItem field, Object value) { return DBO.Db.FormatValue(field != null ? field.Field : null, value); }
+            public static String FormatValue(FieldItem field, Object value) { return Session.Dal.Db.FormatValue(field != null ? field.Field : null, value); }
             #endregion
 
             #region 缓存

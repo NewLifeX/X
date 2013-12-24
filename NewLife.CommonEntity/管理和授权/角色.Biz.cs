@@ -36,13 +36,12 @@ namespace NewLife.CommonEntity
                 return;
             }
 
-            Menu<TMenuEntity>.Meta.WaitForInitData(10000);
+            Menu<TMenuEntity>.Meta.Session.WaitForInitData(10000);
             var ms = Menu<TMenuEntity>.Meta.Cache.Entities;
 
             if (XTrace.Debug) XTrace.WriteLine("开始初始化{0}授权数据……", typeof(TRoleMenuEntity).Name);
 
-            Meta.BeginTrans();
-            try
+            using (var trans = new EntityTransaction<TEntity>())
             {
                 Int32 id = 1;
                 var rs = Meta.Cache.Entities;
@@ -54,10 +53,9 @@ namespace NewLife.CommonEntity
                 // 授权访问所有菜单
                 if (ms != null && ms.Count > 0) RoleMenu<TRoleMenuEntity>.GrantAll(id, ms.GetItem<Int32>(Menu<TMenuEntity>._.ID));
 
-                Meta.Commit();
+                trans.Commit();
                 if (XTrace.Debug) XTrace.WriteLine("完成初始化{0}授权数据！", typeof(TRoleMenuEntity).Name);
             }
-            catch { Meta.Rollback(); throw; }
         }
 
         /// <summary>删除RoleMenu中无效的RoleID和无效的MenuID</summary>

@@ -695,18 +695,19 @@ namespace NewLife.CommonEntity.Web
         #region 保存
         private void SaveFormWithTrans()
         {
-            Entity<TEntity>.Meta.BeginTrans();
+            var session = Entity<TEntity>.Meta.Session;
+            session.BeginTrans();
             try
             {
                 SaveForm();
 
-                Entity<TEntity>.Meta.Commit();
+                session.Commit();
 
                 SaveFormSuccess();
             }
             catch (Exception ex)
             {
-                Entity<TEntity>.Meta.Rollback();
+                session.Rollback();
 
                 SaveFormUnsuccess(ex);
             }

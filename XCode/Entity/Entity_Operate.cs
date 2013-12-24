@@ -242,46 +242,46 @@ namespace XCode
             {
                 var sb = new SelectBuilder();
                 sb.Parse(sql);
-                return Meta.QueryCount(sb);
+                return Meta.Session.QueryCount(sb);
             }
 
             /// <summary>执行</summary>
             /// <param name="sql">SQL语句</param>
             /// <returns>影响的结果</returns>
-            public virtual Int32 Execute(String sql) { return Meta.Execute(sql); }
+            public virtual Int32 Execute(String sql) { return Meta.Session.Execute(sql); }
 
             /// <summary>执行插入语句并返回新增行的自动编号</summary>
             /// <param name="sql">SQL语句</param>
             /// <returns>新增行的自动编号</returns>
-            public virtual Int64 InsertAndGetIdentity(String sql) { return Meta.InsertAndGetIdentity(sql); }
+            public virtual Int64 InsertAndGetIdentity(String sql) { return Meta.Session.InsertAndGetIdentity(sql); }
 
             /// <summary>执行</summary>
             /// <param name="sql">SQL语句</param>
             /// <param name="type">命令类型，默认SQL文本</param>
             /// <param name="ps">命令参数</param>
             /// <returns>影响的结果</returns>
-            public virtual Int32 Execute(String sql, CommandType type, DbParameter[] ps) { return Meta.Execute(sql, type, ps); }
+            public virtual Int32 Execute(String sql, CommandType type, DbParameter[] ps) { return Meta.Session.Execute(sql, type, ps); }
 
             /// <summary>执行插入语句并返回新增行的自动编号</summary>
             /// <param name="sql">SQL语句</param>
             /// <param name="type">命令类型，默认SQL文本</param>
             /// <param name="ps">命令参数</param>
             /// <returns>新增行的自动编号</returns>
-            public virtual Int64 InsertAndGetIdentity(String sql, CommandType type, DbParameter[] ps) { return Meta.InsertAndGetIdentity(sql, type, ps); }
+            public virtual Int64 InsertAndGetIdentity(String sql, CommandType type, DbParameter[] ps) { return Meta.Session.InsertAndGetIdentity(sql, type, ps); }
             #endregion
 
             #region 事务
             /// <summary>开始事务</summary>
             /// <returns></returns>
-            public virtual Int32 BeginTransaction() { return Meta.BeginTrans(); }
+            public virtual Int32 BeginTransaction() { return Meta.Session.BeginTrans(); }
 
             /// <summary>提交事务</summary>
             /// <returns></returns>
-            public virtual Int32 Commit() { return Meta.Commit(); }
+            public virtual Int32 Commit() { return Meta.Session.Commit(); }
 
             /// <summary>回滚事务</summary>
             /// <returns></returns>
-            public virtual Int32 Rollback() { return Meta.Rollback(); }
+            public virtual Int32 Rollback() { return Meta.Session.Rollback(); }
             #endregion
 
             #region 参数化

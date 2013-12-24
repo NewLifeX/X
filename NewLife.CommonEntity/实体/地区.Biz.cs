@@ -550,8 +550,7 @@ namespace NewLife.CommonEntity
         /// <param name="reader"></param>
         public static void Import(StreamReader reader)
         {
-            Meta.BeginTrans();
-            try
+            using (var trans = new EntityTransaction<TEntity>())
             {
                 while (!reader.EndOfStream)
                 {
@@ -593,12 +592,7 @@ namespace NewLife.CommonEntity
 
                     entity.SaveWithoutValid();
                 }
-                Meta.Commit();
-            }
-            catch
-            {
-                Meta.Rollback();
-                throw;
+                trans.Commit();
             }
         }
 

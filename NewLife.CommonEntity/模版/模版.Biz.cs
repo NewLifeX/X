@@ -303,8 +303,7 @@ namespace NewLife.CommonEntity
             // 目标允许不存在
             //if (obj2 == null) return;
 
-            Meta.BeginTrans();
-            try
+            using (var trans = new EntityTransaction<TEntity>())
             {
                 if (obj1 is Template)
                 {
@@ -332,9 +331,8 @@ namespace NewLife.CommonEntity
                     td.Save();
                 }
 
-                Meta.Commit();
+                trans.Commit();
             }
-            catch { Meta.Rollback(); throw; }
         }
 
         /// <summary>获取路径所指定的模版，如果是模版目录，则返回Template，否则返回TemplateItem</summary>
@@ -374,8 +372,7 @@ namespace NewLife.CommonEntity
         /// <param name="prefix"></param>
         public static void ImportFromAssembly(Int32 pid, Assembly asm, String prefix)
         {
-            Meta.BeginTrans();
-            try
+            using (var trans = new EntityTransaction<TEntity>())
             {
                 // 默认导入到全局中
                 TEntity parent = FindByID(pid);
@@ -442,12 +439,7 @@ namespace NewLife.CommonEntity
                     }
                 }
 
-                Meta.Commit();
-            }
-            catch
-            {
-                Meta.Rollback();
-                throw;
+                trans.Commit();
             }
         }
         #endregion

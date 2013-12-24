@@ -29,8 +29,7 @@ namespace NewLife.CommonEntity
 
             if (XTrace.Debug) XTrace.WriteLine("开始初始化{0}菜单数据……", typeof(TEntity).Name);
 
-            Meta.BeginTrans();
-            try
+            using (var trans = new EntityTransaction<TEntity>())
             {
                 //Int32 sort = 1000;
                 //TEntity top = Root.AddChild("管理平台", null, sort -= 10, "Admin");
@@ -45,10 +44,9 @@ namespace NewLife.CommonEntity
                 //ScanAndAdd(top);
                 ScanAndAdd();
 
-                Meta.Commit();
+                trans.Commit();
                 if (XTrace.Debug) XTrace.WriteLine("完成初始化{0}菜单数据！", typeof(TEntity).Name);
             }
-            catch { Meta.Rollback(); throw; }
         }
 
         /// <summary>已重载。调用Save时写日志，而调用Insert和Update时不写日志</summary>
@@ -376,8 +374,7 @@ namespace NewLife.CommonEntity
         /// <summary>导入</summary>
         public virtual void Import()
         {
-            Meta.BeginTrans();
-            try
+            using (var trans = new EntityTransaction<TEntity>())
             {
                 //顶级节点根据名字合并
                 if (ParentID == 0)
@@ -413,12 +410,7 @@ namespace NewLife.CommonEntity
                     }
                 }
 
-                Meta.Commit();
-            }
-            catch
-            {
-                Meta.Rollback();
-                throw;
+                trans.Commit();
             }
         }
 

@@ -22,11 +22,12 @@ namespace XCode.Cache
         /// <param name="period">检查周期，单位毫秒。必须大于1000（1秒），以免误用。</param>
         public EntityDependency(Int32 period)
         {
-            Entity<TEntity>.Meta.OnDataChange += new Action<Type>(Meta_OnDataChange);
+            var session = Entity<TEntity>.Meta.Session;
+            session.OnDataChange += new Action<Type>(Meta_OnDataChange);
 
             if (period > 1000)
             {
-                count = Entity<TEntity>.Meta.LongCount;
+                count = session.LongCount;
                 timer = new TimerX(d => CheckCount(), null, period, period);
             }
         }

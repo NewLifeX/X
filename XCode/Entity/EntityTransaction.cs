@@ -21,12 +21,12 @@ namespace XCode
     public class EntityTransaction<TEntity> : EntityTransaction where TEntity : Entity<TEntity>, new()
     {
         /// <summary>为实体类实例化一个事务区域</summary>
-        public EntityTransaction() : base(null as IDbSession) { Entity<TEntity>.Meta.BeginTrans(); }
+        public EntityTransaction() : base(null as IDbSession) { Entity<TEntity>.Meta.Session.BeginTrans(); }
 
         /// <summary>提交事务</summary>
         public override void Commit()
         {
-            Entity<TEntity>.Meta.Commit();
+            Entity<TEntity>.Meta.Session.Commit();
 
             hasFinish = true;
         }
@@ -35,7 +35,7 @@ namespace XCode
         protected override void Rollback()
         {
             // 回滚时忽略异常
-            Entity<TEntity>.Meta.Rollback();
+            Entity<TEntity>.Meta.Session.Rollback();
 
             hasFinish = true;
         }

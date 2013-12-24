@@ -113,7 +113,7 @@ namespace XCode
                 if (_Root == null)
                 {
                     _Root = new TEntity();
-                    Meta.OnDataChange += delegate { _Root = null; };
+                    Meta.Session.OnDataChange += delegate { _Root = null; };
                 }
                 return _Root;
             }
@@ -627,8 +627,7 @@ namespace XCode
         {
             Int32 count = 0;
 
-            Meta.BeginTrans();
-            try
+            using (var trans = new EntityTransaction<TEntity>())
             {
                 var list = Childs;
                 if (saveSelf) count += Save();
@@ -642,14 +641,9 @@ namespace XCode
                     }
                 }
 
-                Meta.Commit();
+                trans.Commit();
 
                 return count;
-            }
-            catch
-            {
-                Meta.Rollback();
-                throw;
             }
         }
 

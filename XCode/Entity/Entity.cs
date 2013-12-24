@@ -46,10 +46,11 @@ namespace XCode
             DAL.WriteDebugLog("完成初始化实体类{0}", Meta.ThisType.Name);
         }
 
-        /// <summary>
-        /// 创建实体。可以重写改方法以实现实体对象的一些初始化工作。
+        /// <summary>创建实体。</summary>
+        /// <remarks>
+        /// 可以重写改方法以实现实体对象的一些初始化工作。
         /// 切记，写为实例方法仅仅是为了方便重载，所要返回的实例绝对不会是当前实例。
-        /// </summary>
+        /// </remarks>
         /// <param name="forEdit">是否为了编辑而创建，如果是，可以再次做一些相关的初始化工作</param>
         /// <returns></returns>
         [EditorBrowsable(EditorBrowsableState.Advanced)]
@@ -98,10 +99,9 @@ namespace XCode
             {
                 entity.OnLoad();
             }
-            //if (list is EntityList<TEntity>) return list as EntityList<TEntity>;
             // 减少一步类型转换
             var elist = list as EntityList<TEntity>;
-            if (elist != null) { return elist; }
+            if (elist != null) return elist;
 
             return new EntityList<TEntity>(list);
         }
@@ -140,7 +140,6 @@ namespace XCode
             {
                 entity.OnLoad();
             }
-            //if (list is EntityList<TEntity>) return list as EntityList<TEntity>;
             // 减少一步类型转换
             var elist = list as EntityList<TEntity>;
             if (elist != null) return elist;
@@ -257,8 +256,6 @@ namespace XCode
                     if (entity == null) return 0;
 
                     // 复制脏数据和扩展数据
-                    //names.ForEach((n, i) => entity.Dirtys[n] = true);
-                    //this.Extends.ForEach((d, i) => entity.Extends[d.Key] = d.Value);
                     foreach (var item in names)
                     {
                         entity.Dirtys[item] = true;
@@ -268,19 +265,7 @@ namespace XCode
                         entity.Extends[item.Key] = item.Value;
                     }
 
-                    //return entity.OnDelete();
                     return entity.DoAction(OnDelete, null);
-
-                    //Meta.BeginTrans();
-                    //try
-                    //{
-                    //    Int32 rs = entity.OnDelete();
-
-                    //    Meta.Commit();
-
-                    //    return rs;
-                    //}
-                    //catch { Meta.Rollback(); throw; }
                 }
             }
 
@@ -297,9 +282,6 @@ namespace XCode
             if (Meta.UsingTrans && Meta.Cache.Using)
             {
                 var fi = Meta.Unique;
-                //var entity = Meta.Cache.Entities.Find(fi.Name, this[fi.Name]);
-                //if (entity != null) Meta.Cache.Entities.Remove(entity);
-
                 if (fi != null) Meta.Cache.Entities.RemoveAll(e => Object.Equals(e[fi.Name], this[fi.Name]));
             }
 
@@ -308,18 +290,20 @@ namespace XCode
 
         Int32 DoAction(Func<Int32> func, Boolean? isnew)
         {
-            Meta.BeginTrans();
+            var session = Meta.Session;
+
+            session.BeginTrans();
             try
             {
                 if (isnew != null && enableValid) Valid(isnew.Value);
 
                 Int32 rs = func();
 
-                Meta.Commit();
+                session.Commit();
 
                 return rs;
             }
-            catch { Meta.Rollback(); throw; }
+            catch { session.Rollback(); throw; }
         }
 
         /// <summary>保存。根据主键检查数据库中是否已存在该对象，再决定调用Insert或Update</summary>
@@ -331,7 +315,6 @@ namespace XCode
             if (fi != null) return Convert.ToInt64(this[fi.Name]) > 0 ? Update() : Insert();
 
             fi = Meta.Unique;
-            //if (fi != null) return Helper.IsNullKey(this[fi.Name]) ? Insert() : Update();
             // 如果唯一主键不为空，应该通过后面判断，而不是直接Update
             if (fi != null && Helper.IsNullKey(this[fi.Name])) return Insert();
 
@@ -501,11 +484,12 @@ namespace XCode
         /// <returns></returns>
         static TEntity FindUnique(String whereClause)
         {
+            var session = Meta.Session;
             var builder = new SelectBuilder();
-            builder.Table = Meta.FormatName(Meta.TableName);
+            builder.Table = Meta.FormatName(session.TableName);
             // 谨记：某些项目中可能在where中使用了GroupBy，在分页时可能报错
             builder.Where = whereClause;
-            var list = LoadData(Meta.Query(builder, 0, 0));
+            var list = LoadData(session.Query(builder, 0, 0));
             if (list == null || list.Count < 1) return null;
 
             if (list.Count > 1 && DAL.Debug)
@@ -593,16 +577,12 @@ namespace XCode
         /// <summary>获取所有实体对象。获取大量数据时会非常慢，慎用</summary>
         /// <returns>实体数组</returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
-        public static EntityList<TEntity> FindAll()
-        {
-            return FindAll(null, null, null, 0, 0);
-            //return FindAll(String.Format("Select * From {0}", Meta.FormatName(Meta.TableName)));
-        }
+        public static EntityList<TEntity> FindAll() { return FindAll(null, null, null, 0, 0); }
 
-        /// <summary>
-        /// 查询并返回实体对象集合。
+        /// <summary>查询并返回实体对象集合。</summary>
+        /// <remarks>
         /// 最经典的批量查询，看这个Select @selects From Table Where @whereClause Order By @orderClause Limit @startRowIndex,@maximumRows，你就明白各参数的意思了。
-        /// </summary>
+        /// </remarks>
         /// <param name="whereClause">条件，不带Where</param>
         /// <param name="orderClause">排序，不带Order By</param>
         /// <param name="selects">查询列</param>
@@ -612,12 +592,12 @@ namespace XCode
         [DataObjectMethod(DataObjectMethodType.Select, false)]
         public static EntityList<TEntity> FindAll(String whereClause, String orderClause, String selects, Int32 startRowIndex, Int32 maximumRows)
         {
+            var session = Meta.Session;
+
             #region 海量数据查询优化
             // 海量数据尾页查询优化
             // 在海量数据分页中，取越是后面页的数据越慢，可以考虑倒序的方式
             // 只有在百万数据，且开始行大于五十万时才使用
-            //Int32 count = Meta.Count;
-            //if (startRowIndex > 500000 && count > 1000000)
 
             // 如下优化，避免了每次都调用Meta.Count而导致形成一次查询，虽然这次查询时间损耗不大
             // 但是绝大多数查询，都不需要进行类似的海量数据优化，显然，这个startRowIndex将会挡住99%以上的浪费
@@ -686,7 +666,7 @@ namespace XCode
                         var start = (Int32)(count - (startRowIndex + maximumRows));
 
                         var builder2 = CreateBuilder(whereClause, order, selects, start, max);
-                        var list = LoadData(Meta.Query(builder2, start, max));
+                        var list = LoadData(session.Query(builder2, start, max));
                         if (list == null || list.Count < 1) return list;
                         // 因为这样取得的数据是倒过来的，所以这里需要再倒一次
                         list.Reverse();
@@ -697,7 +677,7 @@ namespace XCode
             #endregion
 
             var builder = CreateBuilder(whereClause, orderClause, selects, startRowIndex, maximumRows);
-            return LoadData(Meta.Query(builder, startRowIndex, maximumRows));
+            return LoadData(session.Query(builder, startRowIndex, maximumRows));
         }
 
         /// <summary>根据属性列表以及对应的值列表，获取所有实体对象</summary>
@@ -787,7 +767,7 @@ namespace XCode
         public static SelectBuilder FindSQL(String whereClause, String orderClause, String selects, Int32 startRowIndex = 0, Int32 maximumRows = 0)
         {
             var builder = CreateBuilder(whereClause, orderClause, selects, startRowIndex, maximumRows, false);
-            return Meta.DBO.PageSplit(builder, startRowIndex, maximumRows);
+            return Meta.Session.PageSplit(builder, startRowIndex, maximumRows);
         }
 
         /// <summary>获取查询唯一键的SQL。比如Select ID From Table</summary>
@@ -934,14 +914,16 @@ namespace XCode
         /// <returns>总行数</returns>
         public static Int32 FindCount(String whereClause, String orderClause, String selects, Int32 startRowIndex, Int32 maximumRows)
         {
+            var session = Meta.Session;
+
             // 如果总记录数超过一万，为了提高性能，返回快速查找且带有缓存的总记录数
-            if (String.IsNullOrEmpty(whereClause) && Meta.Count > 10000) return Meta.Count;
+            if (String.IsNullOrEmpty(whereClause) && session.Count > 10000) return session.Count;
 
             var sb = new SelectBuilder();
-            sb.Table = Meta.FormatName(Meta.TableName);
+            sb.Table = Meta.FormatName(session.TableName);
             sb.Where = whereClause;
 
-            return Meta.QueryCount(sb);
+            return session.QueryCount(sb);
         }
 
         /// <summary>根据属性列表以及对应的值列表，返回总记录数</summary>
@@ -1060,13 +1042,13 @@ namespace XCode
         #endregion
 
         #region 构造SQL语句
-        /// <summary>把SQL模版格式化为SQL语句</summary>
-        /// <param name="obj">实体对象</param>
-        /// <param name="methodType"></param>
-        /// <returns>SQL字符串</returns>
-        [Obsolete("该成员在后续版本中将不再被支持！请使用XCodeService.Resolve<IEntityPersistence>().GetSql()！")]
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public static String SQL(Entity<TEntity> obj, DataObjectMethodType methodType) { return persistence.GetSql(obj, methodType); }
+        ///// <summary>把SQL模版格式化为SQL语句</summary>
+        ///// <param name="obj">实体对象</param>
+        ///// <param name="methodType"></param>
+        ///// <returns>SQL字符串</returns>
+        //[Obsolete("该成员在后续版本中将不再被支持！请使用XCodeService.Resolve<IEntityPersistence>().GetSql()！")]
+        //[EditorBrowsable(EditorBrowsableState.Never)]
+        //public static String SQL(Entity<TEntity> obj, DataObjectMethodType methodType) { return persistence.GetSql(obj, methodType); }
 
         /// <summary>
         /// 根据属性列表和值列表，构造查询条件。
@@ -1132,16 +1114,16 @@ namespace XCode
                 return String.Format("{0}{1}{2}", Meta.FormatName(field.ColumnName), action, Meta.FormatValue(field, value));
         }
 
-        /// <summary>
-        /// 默认条件。
-        /// 若有标识列，则使用一个标识列作为条件；
-        /// 如有主键，则使用全部主键作为条件。
-        /// </summary>
-        /// <param name="obj">实体对象</param>
-        /// <returns>条件</returns>
-        [Obsolete("该成员在后续版本中将不再被支持！请使用XCodeService.Resolve<IEntityPersistence>().GetPrimaryCondition()！")]
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        protected static String DefaultCondition(Entity<TEntity> obj) { return persistence.GetPrimaryCondition(obj); }
+        ///// <summary>
+        ///// 默认条件。
+        ///// 若有标识列，则使用一个标识列作为条件；
+        ///// 如有主键，则使用全部主键作为条件。
+        ///// </summary>
+        ///// <param name="obj">实体对象</param>
+        ///// <returns>条件</returns>
+        //[Obsolete("该成员在后续版本中将不再被支持！请使用XCodeService.Resolve<IEntityPersistence>().GetPrimaryCondition()！")]
+        //[EditorBrowsable(EditorBrowsableState.Never)]
+        //protected static String DefaultCondition(Entity<TEntity> obj) { return persistence.GetPrimaryCondition(obj); }
 
         static SelectBuilder CreateBuilder(String whereClause, String orderClause, String selects, Int32 startRowIndex, Int32 maximumRows, Boolean needOrderByID = true)
         {
