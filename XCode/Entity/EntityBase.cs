@@ -91,33 +91,9 @@ namespace XCode
         #endregion
 
         #region 导入导出XML
-        ///// <summary>建立Xml序列化器</summary>
-        ///// <returns></returns>
-        ////[Obsolete("该成员在后续版本中将不再被支持！")]
-        //protected virtual XmlSerializer CreateXmlSerializer()
-        //{
-        //    return new XmlSerializer(this.GetType());
-        //}
-
         /// <summary>导出XML</summary>
         /// <returns></returns>
-        //[Obsolete("该成员在后续版本中将不再被支持！请使用实体访问器IEntityAccessor替代！")]
-        public virtual String ToXml()
-        {
-            return this.ToXml(Encoding.UTF8, "", "");
-
-            //var serial = CreateXmlSerializer();
-            //using (var stream = new MemoryStream())
-            //{
-            //    var writer = new StreamWriter(stream, Encoding.UTF8);
-            //    serial.Serialize(writer, this);
-            //    var bts = stream.ToArray();
-            //    var xml = Encoding.UTF8.GetString(bts);
-            //    writer.Close();
-            //    if (!String.IsNullOrEmpty(xml)) xml = xml.Trim();
-            //    return xml;
-            //}
-        }
+        public virtual String ToXml() { return this.ToXml(Encoding.UTF8, "", ""); }
         #endregion
 
         #region 导入导出Json
@@ -265,21 +241,6 @@ namespace XCode
             get { return _depends ?? (_depends = new Dictionary<Type, List<String>>()); }
         }
 
-        /// <summary>改为线程静态，避免线程间干扰。注意初始化赋值对线程静态无效，只有第一个生效</summary>
-        [ThreadStatic]
-        private static Boolean? _StopExtend = false;
-        /// <summary>是否停止扩展属性，停止扩展属性后，可以避免扩展属性自动触发获取数据的功能</summary>
-        public static Boolean StopExtend
-        {
-            get
-            {
-                // 注意初始化赋值对线程静态无效，只有第一个生效
-                if (_StopExtend == null) _StopExtend = false;
-                return _StopExtend.Value;
-            }
-            set { _StopExtend = value; }
-        }
-
         /// <summary>获取扩展属性，获取数据时向指定的依赖实体类注册数据更改事件</summary>
         /// <typeparam name="TDependEntity">依赖实体类，该实体类数据更改时清空所有依赖于实体类的扩展属性</typeparam>
         /// <typeparam name="TResult">返回类型</typeparam>
@@ -304,8 +265,6 @@ namespace XCode
         {
             Object value = null;
             if (Extends.TryGetValue(key, out value)) return (TResult)value;
-
-            if (StopExtend) return default(TResult);
 
             // 针对每个类型，仅注册一个事件
             Type type = typeof(TDependEntity);
@@ -347,9 +306,6 @@ namespace XCode
         /// <param name="dependType">依赖类型</param>
         void RemoveExtend(Type dependType)
         {
-            // 停止扩展属性的情况下不生效
-            if (StopExtend) return;
-
             if (Depends == null || Extends.Count < 1) return;
             // 找到依赖类型的扩展属性键值集合
             List<String> list = null;
@@ -392,8 +348,7 @@ namespace XCode
                 Extends[key] = value;
                 if (!list.Contains(key)) list.Add(key);
 
-                // 停止扩展属性的情况下不生效
-                if (!StopExtend && list.Count == 1)
+                if (list.Count == 1)
                 {
                     Entity<TDependEntity>.Meta.OnDataChange += RemoveExtend;
                 }
