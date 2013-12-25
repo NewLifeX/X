@@ -449,31 +449,11 @@ namespace Test
         static String _file = "nnhy";
         static void Test11()
         {
-            if (!_file.IsNullOrWhiteSpace())
-            {
-                var f = _file;
-                _file = null;
-                Console.WriteLine(f);
-            }
-
-            var fileName = "test.zip".GetFullPath();
-            if (File.Exists(fileName)) File.Delete(fileName);
-
-            var zip = new ZipFile();
-            zip.Comment = "新生命开发团队";
-            zip.AddFile("NewLife.Core.pdb".GetFullPath());
-            zip.AddFile("NewLife.Core.xml".GetFullPath());
-            zip.Write(fileName);
-            zip.Dispose();
-
-            zip = new ZipFile(fileName);
-            Debug.Assert("新生命开发团队" == zip.Comment, "注释不一样");
-            Debug.Assert(2 == zip.Count, "文件个数不一样");
-            Debug.Assert("NewLife.Core.pdb" == zip[0].FileName);
-            Debug.Assert("NewLife.Core.xml" == zip[1].FileName);
-            zip.Dispose();
-
-            Console.WriteLine("测试通过！");
+            var admin = Administrator.FindAllWithCache()[0];
+            var xml = admin.ToXml();
+            Console.WriteLine(xml);
+            var e = Administrator.FromXml(xml);
+            Console.WriteLine(e);
         }
     }
 }

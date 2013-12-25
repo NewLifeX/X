@@ -10,6 +10,7 @@ using NewLife.Collections;
 using NewLife.IO;
 using NewLife.Reflection;
 using XCode.Common;
+using NewLife.Xml;
 
 namespace XCode
 {
@@ -90,30 +91,32 @@ namespace XCode
         #endregion
 
         #region 导入导出XML
-        /// <summary>建立Xml序列化器</summary>
-        /// <returns></returns>
-        //[Obsolete("该成员在后续版本中将不再被支持！")]
-        protected virtual XmlSerializer CreateXmlSerializer()
-        {
-            return new XmlSerializer(this.GetType());
-        }
+        ///// <summary>建立Xml序列化器</summary>
+        ///// <returns></returns>
+        ////[Obsolete("该成员在后续版本中将不再被支持！")]
+        //protected virtual XmlSerializer CreateXmlSerializer()
+        //{
+        //    return new XmlSerializer(this.GetType());
+        //}
 
         /// <summary>导出XML</summary>
         /// <returns></returns>
-        [Obsolete("该成员在后续版本中将不再被支持！请使用实体访问器IEntityAccessor替代！")]
+        //[Obsolete("该成员在后续版本中将不再被支持！请使用实体访问器IEntityAccessor替代！")]
         public virtual String ToXml()
         {
-            var serial = CreateXmlSerializer();
-            using (var stream = new MemoryStream())
-            {
-                var writer = new StreamWriter(stream, Encoding.UTF8);
-                serial.Serialize(writer, this);
-                var bts = stream.ToArray();
-                var xml = Encoding.UTF8.GetString(bts);
-                writer.Close();
-                if (!String.IsNullOrEmpty(xml)) xml = xml.Trim();
-                return xml;
-            }
+            return this.ToXml(Encoding.UTF8, "", "");
+
+            //var serial = CreateXmlSerializer();
+            //using (var stream = new MemoryStream())
+            //{
+            //    var writer = new StreamWriter(stream, Encoding.UTF8);
+            //    serial.Serialize(writer, this);
+            //    var bts = stream.ToArray();
+            //    var xml = Encoding.UTF8.GetString(bts);
+            //    writer.Close();
+            //    if (!String.IsNullOrEmpty(xml)) xml = xml.Trim();
+            //    return xml;
+            //}
         }
         #endregion
 
@@ -326,18 +329,13 @@ namespace XCode
 
         Object GetExtend<TDependEntity>(String key, Func<String, Object> func, List<String> list) where TDependEntity : Entity<TDependEntity>, new()
         {
-            //if (Database.Debug) Database.WriteLog("GetExtend({0}, {1})", key, this);
-
-            //Func<String, Object> func = args[0] as Func<String, Object>;
-            //List<String> list = args[1] as List<String>;
-
             Object value = null;
             if (func != null) value = func(key);
             if (!list.Contains(key)) list.Add(key);
             if (list.Count == 1)
             {
                 // 这里使用RemoveExtend而不是匿名函数，为了避免生成包装类，事件的Target将指向包装类的实例，
-                //而内部要对Target实行弱引用，就必须保证事件的Target是实体对象本身。
+                // 而内部要对Target实行弱引用，就必须保证事件的Target是实体对象本身。
                 // OnDataChange内部对事件进行了拆分，弱引用Target，反射调用Method，那样性能较低，所以使用了快速方法访问器MethodInfoEx，
                 Entity<TDependEntity>.Meta.OnDataChange += RemoveExtend;
             }
@@ -354,24 +352,15 @@ namespace XCode
 
             if (Depends == null || Extends.Count < 1) return;
             // 找到依赖类型的扩展属性键值集合
-            //List<String> list = Depends[dependType];
             List<String> list = null;
             if (!Depends.TryGetValue(dependType, out list) || list == null || list.Count < 1) return;
 
             lock (Extends)
             {
                 // 清理该类型的所有扩展属性
-                foreach (String key in list)
+                foreach (var key in list)
                 {
-                    //if (Extends.ContainsKey(key))
-                    {
-                        //if (Database.Debug)
-                        //{
-                        //    Object value = Extends[key];
-                        //    Database.WriteLog("RemoveExtend({0}, {1}, {2})", key, this, value != null ? value.ToString() : "null");
-                        //}
-                        Extends.Remove(key);
-                    }
+                    if (Extends.ContainsKey(key)) Extends.Remove(key);
                 }
                 list.Clear();
             }

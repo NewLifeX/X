@@ -1,4 +1,5 @@
 using System;
+using NewLife.Xml;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -1238,44 +1239,45 @@ namespace XCode
         #endregion
 
         #region 导入导出XML
-        /// <summary>建立Xml序列化器</summary>
-        /// <returns></returns>
-        //[Obsolete("该成员在后续版本中将不再被支持！")]
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        protected override XmlSerializer CreateXmlSerializer()
-        {
-            // 给每一个数据属性加上Xml默认值特性，让Xml序列化时避开数据与默认值相同的数据属性，减少Xml大小
-            var ovs = new XmlAttributeOverrides();
-            var entity = new TEntity();
-            foreach (var item in Meta.Fields)
-            {
-                var atts = new XmlAttributes();
-                atts.XmlAttribute = new XmlAttributeAttribute();
-                atts.XmlDefaultValue = entity[item.Name];
-                ovs.Add(item.DeclaringType, item.Name, atts);
-            }
-            return new XmlSerializer(this.GetType(), ovs);
-        }
+        ///// <summary>建立Xml序列化器</summary>
+        ///// <returns></returns>
+        ////[Obsolete("该成员在后续版本中将不再被支持！")]
+        //[EditorBrowsable(EditorBrowsableState.Never)]
+        //protected override XmlSerializer CreateXmlSerializer()
+        //{
+        //    // 给每一个数据属性加上Xml默认值特性，让Xml序列化时避开数据与默认值相同的数据属性，减少Xml大小
+        //    var ovs = new XmlAttributeOverrides();
+        //    var entity = new TEntity();
+        //    foreach (var item in Meta.Fields)
+        //    {
+        //        var atts = new XmlAttributes();
+        //        atts.XmlAttribute = new XmlAttributeAttribute();
+        //        atts.XmlDefaultValue = entity[item.Name];
+        //        ovs.Add(item.DeclaringType, item.Name, atts);
+        //    }
+        //    return new XmlSerializer(this.GetType(), ovs);
+        //}
 
         /// <summary>导入</summary>
         /// <param name="xml"></param>
         /// <returns></returns>
-        [Obsolete("该成员在后续版本中将不再被支持！")]
+        //[Obsolete("该成员在后续版本中将不再被支持！")]
         public static TEntity FromXml(String xml)
         {
             if (!String.IsNullOrEmpty(xml)) xml = xml.Trim();
 
-            StopExtend = true;
-            try
-            {
-                //IEntityOperate factory = EntityFactory.CreateOperate(typeof(TEntity));
-                var serial = ((TEntity)Meta.Factory.Default).CreateXmlSerializer();
-                using (var reader = new StringReader(xml))
-                {
-                    return serial.Deserialize(reader) as TEntity;
-                }
-            }
-            finally { StopExtend = false; }
+            return xml.ToXmlEntity<TEntity>();
+
+            //StopExtend = true;
+            //try
+            //{
+            //    var serial = ((TEntity)Meta.Factory.Default).CreateXmlSerializer();
+            //    using (var reader = new StringReader(xml))
+            //    {
+            //        return serial.Deserialize(reader) as TEntity;
+            //    }
+            //}
+            //finally { StopExtend = false; }
         }
         #endregion
 
