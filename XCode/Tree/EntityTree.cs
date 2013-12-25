@@ -212,7 +212,8 @@ namespace XCode
                 }
             }
             if (list == null) return new EntityList<TEntity>();
-            if (list.Count < 1) return list;
+            // 一个元素不需要排序
+            if (list.Count <= 1) return list;
 
             if (!String.IsNullOrEmpty(Setting.Sort))
             {
