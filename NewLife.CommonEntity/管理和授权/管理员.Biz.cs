@@ -65,7 +65,7 @@ namespace NewLife.CommonEntity
             get
             {
                 if (RoleID <= 0) return null;
-                var role = GetExtend<TRoleEntity, TRoleEntity>("Role", e => Role<TRoleEntity, TMenuEntity, TRoleMenuEntity>.FindByID(RoleID), false);
+                var role = Extends.GetExtend<TRoleEntity, TRoleEntity>("Role", e => Role<TRoleEntity, TMenuEntity, TRoleMenuEntity>.FindByID(RoleID), false);
                 // 如果找不到角色，并且处于初始化状态，则更正数据
                 if (role == null && Meta.Count <= 1 && Role<TRoleEntity>.Meta.Count > 0)
                 {
@@ -75,7 +75,7 @@ namespace NewLife.CommonEntity
                 }
                 return role;
             }
-            set { SetExtend<TRoleEntity>("Role", value); }
+            set { Extends.SetExtend<TRoleEntity>("Role", value); }
         }
 
         /// <summary>角色</summary>

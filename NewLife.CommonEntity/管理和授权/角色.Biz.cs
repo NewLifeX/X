@@ -96,7 +96,7 @@ namespace NewLife.CommonEntity
         [XmlIgnore]
         public virtual EntityList<TRoleMenuEntity> Menus
         {
-            get { return GetExtend<TRoleMenuEntity, EntityList<TRoleMenuEntity>>("Menus", e => RoleMenu<TRoleMenuEntity>.FindAllByRoleID(ID), false); }
+            get { return Extends.GetExtend<TRoleMenuEntity, EntityList<TRoleMenuEntity>>("Menus", e => RoleMenu<TRoleMenuEntity>.FindAllByRoleID(ID), false); }
             set { Extends["Menus"] = value; }
         }
 
@@ -106,7 +106,7 @@ namespace NewLife.CommonEntity
         {
             get
             {
-                return GetExtend<TMenuEntity, EntityList<TMenuEntity>>("MenuList", m =>
+                return Extends.GetExtend<TMenuEntity, EntityList<TMenuEntity>>("MenuList", m =>
                 {
                     var list = EntityList<TMenuEntity>.From<TRoleMenuEntity>(Menus, item => Menu<TMenuEntity>.FindByID(item.MenuID));
                     // 先按Sort降序，再按ID升序，的确更加完善
