@@ -67,7 +67,7 @@ namespace XCode
         /// <summary>父节点</summary>
         protected virtual TEntity FindParent() { return Meta.Cache.Entities.Find(Setting.Key, this[Setting.Parent]); }
 
-        /// <summary>父节点</summary>
+        /// <summary>在缓存中查找节点</summary>
         protected static TEntity FindByKeyWithCache(TKey key)
         {
             return Meta.Cache.Entities.Find(Setting.Key, key);

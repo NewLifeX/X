@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
-using NewLife.Collections;
 using System.Xml.Serialization;
+using NewLife.Collections;
 using NewLife.Reflection;
 
 namespace XCode
@@ -10,12 +9,6 @@ namespace XCode
     /// <summary>实体扩展</summary>
     public class EntityExtend : DictionaryCache<String, Object>, IDictionary<String, Object>
     {
-        //[NonSerialized]
-        //private DictionaryCache<String, Object> _Extends;
-        ///// <summary>扩展属性</summary>
-        //[XmlIgnore]
-        //public DictionaryCache<String, Object> Extends { get { return _Extends ?? (_Extends = new DictionaryCache<String, Object>()); } }
-
         [NonSerialized]
         private Dictionary<Type, List<String>> _depends;
         /// <summary>类型依赖</summary>
