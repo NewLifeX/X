@@ -595,7 +595,7 @@ namespace XCode
                     if (!String.IsNullOrEmpty(order))
                     {
                         String[] ss = order.Split(',');
-                        StringBuilder sb = new StringBuilder();
+                        var sb = new StringBuilder();
                         foreach (String item in ss)
                         {
                             String fn = item;
@@ -641,7 +641,9 @@ namespace XCode
                         var start = (Int32)(count - (startRowIndex + maximumRows));
 
                         var builder2 = CreateBuilder(whereClause, order, selects, start, max);
-                        var list = LoadData(session.Query(builder2, start, max));
+                        //var list = LoadData(session.Query(builder2, start, max));
+                        var ds = persistence.Query(Meta.ThisType, builder2, start, max);
+                        var list = LoadData(ds);
                         if (list == null || list.Count < 1) return list;
                         // 因为这样取得的数据是倒过来的，所以这里需要再倒一次
                         list.Reverse();
@@ -652,7 +654,8 @@ namespace XCode
             #endregion
 
             var builder = CreateBuilder(whereClause, orderClause, selects, startRowIndex, maximumRows);
-            return LoadData(session.Query(builder, startRowIndex, maximumRows));
+            //return LoadData(session.Query(builder, startRowIndex, maximumRows));
+            return LoadData(persistence.Query(Meta.ThisType, builder, startRowIndex, maximumRows));
         }
 
         /// <summary>根据属性列表以及对应的值列表，获取所有实体对象</summary>
@@ -742,7 +745,8 @@ namespace XCode
         public static SelectBuilder FindSQL(String whereClause, String orderClause, String selects, Int32 startRowIndex = 0, Int32 maximumRows = 0)
         {
             var builder = CreateBuilder(whereClause, orderClause, selects, startRowIndex, maximumRows, false);
-            return Meta.Session.PageSplit(builder, startRowIndex, maximumRows);
+            builder = Meta.Session.PageSplit(builder, startRowIndex, maximumRows);
+            return persistence.FindSQL(Meta.ThisType, builder);
         }
 
         /// <summary>获取查询唯一键的SQL。比如Select ID From Table</summary>
@@ -898,7 +902,8 @@ namespace XCode
             sb.Table = Meta.FormatName(session.TableName);
             sb.Where = whereClause;
 
-            return session.QueryCount(sb);
+            //return session.QueryCount(sb);
+            return persistence.QueryCount(Meta.ThisType, sb);
         }
 
         /// <summary>根据属性列表以及对应的值列表，返回总记录数</summary>

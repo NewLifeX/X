@@ -113,7 +113,6 @@
     <Compile Include="Entity\EntityExtend.cs" />
     <Compile Include="Entity\EntitySession.cs" />
     <Compile Include="Entity\IEntityEntry.cs" />
-    <Compile Include="Entity\IEntityHandler.cs" />
     <Compile Include="Sync\ISyncMaster.cs" />
     <Compile Include="Sync\ISyncSlave.cs" />
     <Compile Include="Sync\SyncManager.cs" />
