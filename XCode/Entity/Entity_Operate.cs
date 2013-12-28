@@ -283,20 +283,20 @@ namespace XCode
             #region 事务
             /// <summary>开始事务</summary>
             /// <returns></returns>
-            [Obsolete("=>Session")]
-            [EditorBrowsable(EditorBrowsableState.Never)]
+            //[Obsolete("=>Session")]
+            //[EditorBrowsable(EditorBrowsableState.Never)]
             public virtual Int32 BeginTransaction() { return Session.BeginTrans(); }
 
             /// <summary>提交事务</summary>
             /// <returns></returns>
-            [Obsolete("=>Session")]
-            [EditorBrowsable(EditorBrowsableState.Never)]
+            //[Obsolete("=>Session")]
+            //[EditorBrowsable(EditorBrowsableState.Never)]
             public virtual Int32 Commit() { return Session.Commit(); }
 
             /// <summary>回滚事务</summary>
             /// <returns></returns>
-            [Obsolete("=>Session")]
-            [EditorBrowsable(EditorBrowsableState.Never)]
+            //[Obsolete("=>Session")]
+            //[EditorBrowsable(EditorBrowsableState.Never)]
             public virtual Int32 Rollback() { return Session.Rollback(); }
             #endregion
 

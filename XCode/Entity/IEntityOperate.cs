@@ -250,20 +250,20 @@ namespace XCode
         #region 事务
         /// <summary>开始事务</summary>
         /// <returns></returns>
-        [Obsolete("=>Session")]
-        [EditorBrowsable(EditorBrowsableState.Never)]
+        //[Obsolete("=>Session")]
+        //[EditorBrowsable(EditorBrowsableState.Never)]
         Int32 BeginTransaction();
 
         /// <summary>提交事务</summary>
         /// <returns></returns>
-        [Obsolete("=>Session")]
-        [EditorBrowsable(EditorBrowsableState.Never)]
+        //[Obsolete("=>Session")]
+        //[EditorBrowsable(EditorBrowsableState.Never)]
         Int32 Commit();
 
         /// <summary>回滚事务</summary>
         /// <returns></returns>
-        [Obsolete("=>Session")]
-        [EditorBrowsable(EditorBrowsableState.Never)]
+        //[Obsolete("=>Session")]
+        //[EditorBrowsable(EditorBrowsableState.Never)]
         Int32 Rollback();
         #endregion
 
