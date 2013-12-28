@@ -428,7 +428,7 @@ namespace XCode
         {
             var session = Meta.Session;
             var builder = new SelectBuilder();
-            builder.Table = Meta.FormatName(session.TableName);
+            builder.Table = session.FormatedTableName;
             // 谨记：某些项目中可能在where中使用了GroupBy，在分页时可能报错
             builder.Where = whereClause;
             var list = LoadData(session.Query(builder, 0, 0));
@@ -729,7 +729,7 @@ namespace XCode
             if (String.IsNullOrEmpty(whereClause) && session.Count > 10000) return session.Count;
 
             var sb = new SelectBuilder();
-            sb.Table = Meta.FormatName(session.TableName);
+            sb.Table = session.FormatedTableName;
             sb.Where = whereClause;
 
             return session.QueryCount(sb);
@@ -1063,7 +1063,7 @@ namespace XCode
         {
             var builder = new SelectBuilder();
             builder.Column = selects;
-            builder.Table = Meta.FormatName(Meta.TableName);
+            builder.Table = Meta.Session.FormatedTableName;
             builder.OrderBy = orderClause;
             // 谨记：某些项目中可能在where中使用了GroupBy，在分页时可能报错
             builder.Where = whereClause;
