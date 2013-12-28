@@ -393,6 +393,7 @@ namespace XCode
         {
             WaitForInitData();
 
+            builder.Table = Operate.FormatName(TableName);
             return Dal.Select(builder, startRowIndex, maximumRows, TableName);
         }
 
@@ -408,13 +409,14 @@ namespace XCode
         }
 
         /// <summary>查询记录数</summary>
-        /// <param name="sb">查询生成器</param>
+        /// <param name="builder">查询生成器</param>
         /// <returns>记录数</returns>
-        public Int32 QueryCount(SelectBuilder sb)
+        public Int32 QueryCount(SelectBuilder builder)
         {
             WaitForInitData();
 
-            return Dal.SelectCount(sb, new String[] { TableName });
+            builder.Table = Operate.FormatName(TableName);
+            return Dal.SelectCount(builder, new String[] { TableName });
         }
 
         /// <summary>根据条件把普通查询SQL格式化为分页SQL。</summary>
@@ -426,7 +428,11 @@ namespace XCode
         /// <param name="startRowIndex">开始行，0表示第一行</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>分页SQL</returns>
-        public SelectBuilder PageSplit(SelectBuilder builder, Int32 startRowIndex, Int32 maximumRows) { return Dal.PageSplit(builder, startRowIndex, maximumRows); }
+        public SelectBuilder PageSplit(SelectBuilder builder, Int32 startRowIndex, Int32 maximumRows)
+        {
+            builder.Table = Operate.FormatName(TableName);
+            return Dal.PageSplit(builder, startRowIndex, maximumRows);
+        }
 
         /// <summary>执行</summary>
         /// <param name="sql">SQL语句</param>
@@ -568,12 +574,12 @@ namespace XCode
         #endregion
 
         #region 实体操作
-        private static IEntityPersistence persistence { get { return XCodeService.Container.ResolveInstance<IEntityPersistence>(); } }
+        private IEntityPersistence persistence { get { return XCodeService.Container.ResolveInstance<IEntityPersistence>(); } }
 
         /// <summary>把该对象持久化到数据库，添加/更新实体缓存。</summary>
         /// <param name="entity">实体对象</param>
         /// <returns></returns>
-        public Int32 Insert(IEntity entity)
+        public virtual Int32 Insert(IEntity entity)
         {
             var rs = persistence.Insert(entity);
 
@@ -597,7 +603,7 @@ namespace XCode
         /// <summary>更新数据库，同时更新实体缓存</summary>
         /// <param name="entity">实体对象</param>
         /// <returns></returns>
-        public Int32 Update(IEntity entity)
+        public virtual Int32 Update(IEntity entity)
         {
             var rs = persistence.Update(entity);
 
@@ -621,7 +627,7 @@ namespace XCode
         /// <summary>从数据库中删除该对象，同时从实体缓存中删除</summary>
         /// <param name="entity">实体对象</param>
         /// <returns></returns>
-        public Int32 Delete(IEntity entity)
+        public virtual Int32 Delete(IEntity entity)
         {
             var rs = persistence.Delete(entity);
 

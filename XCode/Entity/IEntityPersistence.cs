@@ -15,25 +15,25 @@ namespace XCode
     public interface IEntityPersistence
     {
         #region 查找方法
-        /// <summary>执行SQL查询，返回记录集</summary>
-        /// <param name="entityType">实体类型</param>
-        /// <param name="builder">SQL语句</param>
-        /// <param name="startRowIndex">开始行，0表示第一行</param>
-        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
-        /// <returns></returns>
-        DataSet Query(Type entityType, SelectBuilder builder, Int32 startRowIndex, Int32 maximumRows);
+        ///// <summary>执行SQL查询，返回记录集</summary>
+        ///// <param name="entityType">实体类型</param>
+        ///// <param name="builder">SQL语句</param>
+        ///// <param name="startRowIndex">开始行，0表示第一行</param>
+        ///// <param name="maximumRows">最大返回行数，0表示所有行</param>
+        ///// <returns></returns>
+        //DataSet Query(Type entityType, SelectBuilder builder, Int32 startRowIndex, Int32 maximumRows);
 
-        /// <summary>查询记录数</summary>
-        /// <param name="entityType">实体类型</param>
-        /// <param name="builder">查询生成器</param>
-        /// <returns>记录数</returns>
-        Int32 QueryCount(Type entityType, SelectBuilder builder);
+        ///// <summary>查询记录数</summary>
+        ///// <param name="entityType">实体类型</param>
+        ///// <param name="builder">查询生成器</param>
+        ///// <returns>记录数</returns>
+        //Int32 QueryCount(Type entityType, SelectBuilder builder);
 
-        /// <summary>执行SQL查询，返回记录集</summary>
-        /// <param name="entityType">实体类型</param>
-        /// <param name="builder">SQL语句</param>
-        /// <returns></returns>
-        SelectBuilder FindSQL(Type entityType, SelectBuilder builder);
+        ///// <summary>执行SQL查询，返回记录集</summary>
+        ///// <param name="entityType">实体类型</param>
+        ///// <param name="builder">SQL语句</param>
+        ///// <returns></returns>
+        //SelectBuilder FindSQL(Type entityType, SelectBuilder builder);
         #endregion
 
         #region 添删改方法
@@ -107,46 +107,46 @@ namespace XCode
     public class EntityPersistence : IEntityPersistence
     {
         #region 查找方法
-        /// <summary>执行SQL查询，返回记录集</summary>
-        /// <param name="entityType">实体类型</param>
-        /// <param name="builder">SQL语句</param>
-        /// <param name="startRowIndex">开始行，0表示第一行</param>
-        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
-        /// <returns></returns>
-        public virtual DataSet Query(Type entityType, SelectBuilder builder, Int32 startRowIndex, Int32 maximumRows)
-        {
-            var op = EntityFactory.CreateOperate(entityType);
-            var dal = DAL.Create(op.ConnName);
-            builder.Table = op.FormatName(op.TableName);
+        ///// <summary>执行SQL查询，返回记录集</summary>
+        ///// <param name="entityType">实体类型</param>
+        ///// <param name="builder">SQL语句</param>
+        ///// <param name="startRowIndex">开始行，0表示第一行</param>
+        ///// <param name="maximumRows">最大返回行数，0表示所有行</param>
+        ///// <returns></returns>
+        //public virtual DataSet Query(Type entityType, SelectBuilder builder, Int32 startRowIndex, Int32 maximumRows)
+        //{
+        //    var op = EntityFactory.CreateOperate(entityType);
+        //    var dal = DAL.Create(op.ConnName);
+        //    builder.Table = op.FormatName(op.TableName);
 
-            return dal.Select(builder, startRowIndex, maximumRows, op.TableName);
-        }
+        //    return dal.Select(builder, startRowIndex, maximumRows, op.TableName);
+        //}
 
-        /// <summary>查询记录数</summary>
-        /// <param name="entityType">实体类型</param>
-        /// <param name="builder">查询生成器</param>
-        /// <returns>记录数</returns>
-        public virtual Int32 QueryCount(Type entityType, SelectBuilder builder)
-        {
-            var op = EntityFactory.CreateOperate(entityType);
-            var dal = DAL.Create(op.ConnName);
-            builder.Table = op.FormatName(op.TableName);
+        ///// <summary>查询记录数</summary>
+        ///// <param name="entityType">实体类型</param>
+        ///// <param name="builder">查询生成器</param>
+        ///// <returns>记录数</returns>
+        //public virtual Int32 QueryCount(Type entityType, SelectBuilder builder)
+        //{
+        //    var op = EntityFactory.CreateOperate(entityType);
+        //    var dal = DAL.Create(op.ConnName);
+        //    builder.Table = op.FormatName(op.TableName);
 
-            return dal.SelectCount(builder, new String[] { op.TableName });
-        }
+        //    return dal.SelectCount(builder, new String[] { op.TableName });
+        //}
 
-        /// <summary>执行SQL查询，返回记录集</summary>
-        /// <param name="entityType">实体类型</param>
-        /// <param name="builder">SQL语句</param>
-        /// <returns></returns>
-        public virtual SelectBuilder FindSQL(Type entityType, SelectBuilder builder)
-        {
-            var op = EntityFactory.CreateOperate(entityType);
-            var dal = DAL.Create(op.ConnName);
-            builder.Table = op.FormatName(op.TableName);
+        ///// <summary>执行SQL查询，返回记录集</summary>
+        ///// <param name="entityType">实体类型</param>
+        ///// <param name="builder">SQL语句</param>
+        ///// <returns></returns>
+        //public virtual SelectBuilder FindSQL(Type entityType, SelectBuilder builder)
+        //{
+        //    var op = EntityFactory.CreateOperate(entityType);
+        //    var dal = DAL.Create(op.ConnName);
+        //    builder.Table = op.FormatName(op.TableName);
 
-            return builder;
-        }
+        //    return builder;
+        //}
         #endregion
 
         #region 添删改方法

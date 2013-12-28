@@ -185,14 +185,7 @@ namespace XCode
 
         /// <summary>把该对象持久化到数据库，添加/更新实体缓存。</summary>
         /// <returns></returns>
-        protected virtual Int32 OnInsert()
-        {
-            // 先全局，后本类
-            EntityFactory.Handler.OnChange(Meta.ThisType, this, true);
-            Meta.Handler.OnChange(Meta.ThisType, this, true);
-
-            return Meta.Session.Insert(this);
-        }
+        protected virtual Int32 OnInsert() { return Meta.Session.Insert(this); }
 
         /// <summary>更新数据，<see cref="Valid"/>后，在事务中调用<see cref="OnUpdate"/>。</summary>
         /// <returns></returns>
@@ -200,14 +193,7 @@ namespace XCode
 
         /// <summary>更新数据库，同时更新实体缓存</summary>
         /// <returns></returns>
-        protected virtual Int32 OnUpdate()
-        {
-            // 先全局，后本类
-            EntityFactory.Handler.OnChange(Meta.ThisType, this, false);
-            Meta.Handler.OnChange(Meta.ThisType, this, false);
-
-            return Meta.Session.Update(this);
-        }
+        protected virtual Int32 OnUpdate() { return Meta.Session.Update(this); }
 
         /// <summary>删除数据，通过在事务中调用OnDelete实现。</summary>
         /// <remarks>
@@ -251,14 +237,7 @@ namespace XCode
 
         /// <summary>从数据库中删除该对象，同时从实体缓存中删除</summary>
         /// <returns></returns>
-        protected virtual Int32 OnDelete()
-        {
-            // 先全局，后本类
-            EntityFactory.Handler.OnChange(Meta.ThisType, this, null);
-            Meta.Handler.OnChange(Meta.ThisType, this, null);
-
-            return Meta.Session.Delete(this);
-        }
+        protected virtual Int32 OnDelete() { return Meta.Session.Delete(this); }
 
         Int32 DoAction(Func<Int32> func, Boolean? isnew)
         {
@@ -394,18 +373,6 @@ namespace XCode
             else
             {
                 // 如果是空主键，则采用直接判断记录数的方式，以加快速度
-                // 如果使用缓存查询的情况下会出现如果索引列标记唯一，由于默认情况下数据的查询是不区分大小写的（SQLite,SQLServer）,但是缓存查询是区分大小写的，所以无法捕获到异常信息，被数据库直接抛出异常
-                //if (Helper.IsNullKey(this[field.Name])) return cache.Entities.FindAll(names, values).Count > 0;
-                //switch (Meta.Table.DataTable.DbType)
-                //{
-                //    case DatabaseType.SqlServer:
-                //    case DatabaseType.SQLite:
-                //        if (Helper.IsNullKey(this[field.Name])) return FindAll(names, values).Count > 0;
-                //        break;
-                //    default:
-                //        if (Helper.IsNullKey(this[field.Name])) return cache.Entities.FindAll(names, values).Count > 0;
-                //        break;
-                //}
                 var list = cache.Entities.FindAll(names, values, true);
                 if (Helper.IsNullKey(this[field.Name])) return list.Count > 0;
 
@@ -641,9 +608,7 @@ namespace XCode
                         var start = (Int32)(count - (startRowIndex + maximumRows));
 
                         var builder2 = CreateBuilder(whereClause, order, selects, start, max);
-                        //var list = LoadData(session.Query(builder2, start, max));
-                        var ds = persistence.Query(Meta.ThisType, builder2, start, max);
-                        var list = LoadData(ds);
+                        var list = LoadData(session.Query(builder2, start, max));
                         if (list == null || list.Count < 1) return list;
                         // 因为这样取得的数据是倒过来的，所以这里需要再倒一次
                         list.Reverse();
@@ -654,8 +619,7 @@ namespace XCode
             #endregion
 
             var builder = CreateBuilder(whereClause, orderClause, selects, startRowIndex, maximumRows);
-            //return LoadData(session.Query(builder, startRowIndex, maximumRows));
-            return LoadData(persistence.Query(Meta.ThisType, builder, startRowIndex, maximumRows));
+            return LoadData(session.Query(builder, startRowIndex, maximumRows));
         }
 
         /// <summary>根据属性列表以及对应的值列表，获取所有实体对象</summary>
@@ -745,8 +709,7 @@ namespace XCode
         public static SelectBuilder FindSQL(String whereClause, String orderClause, String selects, Int32 startRowIndex = 0, Int32 maximumRows = 0)
         {
             var builder = CreateBuilder(whereClause, orderClause, selects, startRowIndex, maximumRows, false);
-            builder = Meta.Session.PageSplit(builder, startRowIndex, maximumRows);
-            return persistence.FindSQL(Meta.ThisType, builder);
+            return Meta.Session.PageSplit(builder, startRowIndex, maximumRows);
         }
 
         /// <summary>获取查询唯一键的SQL。比如Select ID From Table</summary>
@@ -825,14 +788,12 @@ namespace XCode
                 String str = func(ks[i]);
                 if (String.IsNullOrEmpty(str)) continue;
 
-                //sb.AppendFormat("({0})", str);
                 if (str.Contains("Or") || str.ToLower().Contains("or"))
                     sb.AppendFormat("({0})", str);
                 else
                     sb.Append(str);
             }
 
-            //return sb.Length <= 0 ? null : sb.ToString();
             return exp;
         }
 
@@ -853,7 +814,6 @@ namespace XCode
                 sb.AppendFormat("{0} like '%{1}%'", Meta.FormatName(item.Name), key);
             }
 
-            //return sb.Length <= 0 ? null : sb.ToString();
             return exp;
         }
         #endregion
@@ -902,8 +862,7 @@ namespace XCode
             sb.Table = Meta.FormatName(session.TableName);
             sb.Where = whereClause;
 
-            //return session.QueryCount(sb);
-            return persistence.QueryCount(Meta.ThisType, sb);
+            return session.QueryCount(sb);
         }
 
         /// <summary>根据属性列表以及对应的值列表，返回总记录数</summary>
@@ -972,10 +931,6 @@ namespace XCode
         /// <returns>返回受影响的行数</returns>
         public static Int32 Insert(String[] names, Object[] values)
         {
-            // 先全局，后本类
-            EntityFactory.Handler.OnChange(Meta.ThisType, null, true);
-            Meta.Handler.OnChange(Meta.ThisType, null, true);
-
             return persistence.Insert(Meta.ThisType, names, values);
         }
 
@@ -992,10 +947,6 @@ namespace XCode
         /// <returns></returns>
         public static Int32 Update(String setClause, String whereClause)
         {
-            // 先全局，后本类
-            EntityFactory.Handler.OnChange(Meta.ThisType, null, false);
-            Meta.Handler.OnChange(Meta.ThisType, null, false);
-
             return persistence.Update(Meta.ThisType, setClause, whereClause);
         }
 
@@ -1007,10 +958,6 @@ namespace XCode
         /// <returns>返回受影响的行数</returns>
         public static Int32 Update(String[] setNames, Object[] setValues, String[] whereNames, Object[] whereValues)
         {
-            // 先全局，后本类
-            EntityFactory.Handler.OnChange(Meta.ThisType, null, false);
-            Meta.Handler.OnChange(Meta.ThisType, null, false);
-
             return persistence.Update(Meta.ThisType, setNames, setValues, whereNames, whereValues);
         }
 
@@ -1029,10 +976,6 @@ namespace XCode
         /// <returns></returns>
         public static Int32 Delete(String whereClause)
         {
-            // 先全局，后本类
-            EntityFactory.Handler.OnChange(Meta.ThisType, null, null);
-            Meta.Handler.OnChange(Meta.ThisType, null, null);
-
             return persistence.Delete(Meta.ThisType, whereClause);
         }
 
@@ -1042,10 +985,6 @@ namespace XCode
         /// <returns></returns>
         public static Int32 Delete(String[] names, Object[] values)
         {
-            // 先全局，后本类
-            EntityFactory.Handler.OnChange(Meta.ThisType, null, null);
-            Meta.Handler.OnChange(Meta.ThisType, null, null);
-
             return persistence.Delete(Meta.ThisType, names, values);
         }
 
