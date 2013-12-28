@@ -18,6 +18,9 @@ namespace XCode
 
         /// <summary>用于标识会话的键值</summary>
         String Key { get; }
+
+        /// <summary>已格式化的表名，带有中括号等</summary>
+        String FormatedTableName { get; }
         #endregion
 
         #region 数据初始化

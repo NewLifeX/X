@@ -64,6 +64,10 @@ namespace XCode
 
         /// <summary>数据操作层</summary>
         internal DAL Dal { get { return DAL.Create(ConnName); } }
+
+        private String _FormatedTableName;
+        /// <summary>已格式化的表名，带有中括号等</summary>
+        public virtual String FormatedTableName { get { return _FormatedTableName ?? (_FormatedTableName = Dal.Db.FormatName(TableName)); } }
         #endregion
 
         #region 数据初始化

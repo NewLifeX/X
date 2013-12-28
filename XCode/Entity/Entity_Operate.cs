@@ -50,7 +50,7 @@ namespace XCode
             public virtual String TableName { get { return Meta.TableName; } set { Meta.TableName = value; } }
 
             /// <summary>已格式化的表名，带有中括号等</summary>
-            public virtual String FormatedTableName { get { return Meta.FormatName(Meta.TableName); } }
+            public virtual String FormatedTableName { get { return Session.FormatedTableName; } }
 
             /// <summary>实体缓存</summary>
             public virtual IEntityCache Cache { get { return Session.Cache; } }
@@ -287,14 +287,20 @@ namespace XCode
             #region 事务
             /// <summary>开始事务</summary>
             /// <returns></returns>
+            [Obsolete("=>Session")]
+            [EditorBrowsable(EditorBrowsableState.Never)]
             public virtual Int32 BeginTransaction() { return Session.BeginTrans(); }
 
             /// <summary>提交事务</summary>
             /// <returns></returns>
+            [Obsolete("=>Session")]
+            [EditorBrowsable(EditorBrowsableState.Never)]
             public virtual Int32 Commit() { return Session.Commit(); }
 
             /// <summary>回滚事务</summary>
             /// <returns></returns>
+            [Obsolete("=>Session")]
+            [EditorBrowsable(EditorBrowsableState.Never)]
             public virtual Int32 Rollback() { return Session.Rollback(); }
             #endregion
 
