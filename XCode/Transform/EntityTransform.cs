@@ -133,14 +133,16 @@ namespace XCode.Transform
 
             // 在目标链接上启用事务保护
             eop.ConnName = DesConn;
-            eop.BeginTransaction();
+            // 提取实体会话，避免事务保护作用在错误的连接上
+            var session = eop.Session;
+            session.BeginTrans();
             try
             {
                 XTrace.WriteLine("{0} 共 {1}", name, count);
-                if (OnlyTransformToEmptyTable && eop.Count > 0)
+                if (OnlyTransformToEmptyTable && session.Count > 0)
                 {
                     XTrace.WriteLine("{0} 非空，跳过", name);
-                    eop.Rollback();
+                    session.Rollback();
                     return 0;
                 }
 
@@ -191,7 +193,7 @@ namespace XCode.Transform
 
                 // 在目标链接上启用事务保护
                 eop.ConnName = DesConn;
-                eop.Commit();
+                session.Commit();
 
                 return total;
             }
@@ -200,7 +202,7 @@ namespace XCode.Transform
                 XTrace.WriteLine("{0} 错误 {1}", name, ex.ToString());
                 // 在目标链接上启用事务保护
                 eop.ConnName = DesConn;
-                eop.Rollback();
+                session.Rollback();
                 throw;
             }
         }

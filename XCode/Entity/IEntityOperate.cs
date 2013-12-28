@@ -57,14 +57,12 @@ namespace XCode
         Int32 Count { get; }
         #endregion
 
-        #region 创建实体
+        #region 创建实体、填充数据
         /// <summary>创建一个实体对象</summary>
         /// <param name="forEdit">是否为了编辑而创建，如果是，可以再次做一些相关的初始化工作</param>
         /// <returns></returns>
         IEntity Create(Boolean forEdit = false);
-        #endregion
 
-        #region 填充数据
         /// <summary>加载记录集</summary>
         /// <param name="ds">记录集</param>
         /// <returns>实体数组</returns>
@@ -187,19 +185,17 @@ namespace XCode
         Int32 FindCountByName(String name, Object value, String orderClause, int startRowIndex, int maximumRows);
         #endregion
 
-        #region 导入导出XML
+        #region 导入导出XML/Json
         /// <summary>导入</summary>
         /// <param name="xml"></param>
         /// <returns></returns>
-        [Obsolete("该成员在后续版本中将不再被支持！请使用实体访问器IEntityAccessor替代！")]
+        //[Obsolete("该成员在后续版本中将不再被支持！请使用实体访问器IEntityAccessor替代！")]
         IEntity FromXml(String xml);
-        #endregion
 
-        #region 导入导出Json
         /// <summary>导入</summary>
         /// <param name="json"></param>
         /// <returns></returns>
-        [Obsolete("该成员在后续版本中将不再被支持！请使用实体访问器IEntityAccessor替代！")]
+        //[Obsolete("该成员在后续版本中将不再被支持！请使用实体访问器IEntityAccessor替代！")]
         IEntity FromJson(String json);
         #endregion
 
@@ -254,25 +250,35 @@ namespace XCode
         #region 事务
         /// <summary>开始事务</summary>
         /// <returns></returns>
+        [Obsolete("=>Session")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         Int32 BeginTransaction();
 
         /// <summary>提交事务</summary>
         /// <returns></returns>
+        [Obsolete("=>Session")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         Int32 Commit();
 
         /// <summary>回滚事务</summary>
         /// <returns></returns>
+        [Obsolete("=>Session")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         Int32 Rollback();
         #endregion
 
         #region 参数化
         /// <summary>创建参数</summary>
         /// <returns></returns>
+        [Obsolete("=>Session")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         DbParameter CreateParameter();
 
         /// <summary>格式化参数名</summary>
         /// <param name="name">名称</param>
         /// <returns></returns>
+        [Obsolete("=>Session")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         String FormatParameterName(String name);
         #endregion
 
@@ -328,6 +334,9 @@ namespace XCode
 
         /// <summary>自动设置Guid的字段。对实体类有效，可在实体类类型构造函数里面设置</summary>
         FieldItem AutoSetGuidField { get; set; }
+
+        /// <summary>默认累加字段</summary>
+        ICollection<String> AdditionalFields { get; }
         #endregion
     }
 }

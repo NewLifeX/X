@@ -79,7 +79,7 @@ namespace XCode
         #region 导入导出XML
         /// <summary>导出XML</summary>
         /// <returns></returns>
-        [Obsolete("该成员在后续版本中将不再被支持！")]
+        //[Obsolete("该成员在后续版本中将不再被支持！")]
         String ToXml();
         #endregion
 
@@ -88,30 +88,6 @@ namespace XCode
         /// <param name="entity"></param>
         /// <returns></returns>
         Boolean EqualTo(IEntity entity);
-        #endregion
-
-        #region 累加
-        /// <summary>设置累加字段。如果是第一次设置该字段，则保存该字段当前数据作为累加基础数据</summary>
-        /// <param name="name">字段名称</param>
-        /// <param name="reset">是否重置。可以保存当前数据作为累加基础数据</param>
-        /// <returns>是否成功设置累加字段。如果不是第一次设置，并且没有重置数据，那么返回失败</returns>
-        Boolean SetAdditionalField(String name, Boolean reset = false);
-
-        /// <summary>删除累加字段。</summary>
-        /// <param name="name">字段名称</param>
-        /// <param name="restore">是否恢复数据</param>
-        /// <returns>是否成功删除累加字段</returns>
-        Boolean RemoveAdditionalField(String name, Boolean restore = false);
-
-        /// <summary>尝试获取累加数据</summary>
-        /// <param name="name">字段名称</param>
-        /// <param name="value">累加数据</param>
-        /// <param name="sign">正负</param>
-        /// <returns>是否获取指定字段的累加数据</returns>
-        Boolean TryGetAdditionalValue(String name, out Object value, out Boolean sign);
-
-        /// <summary>清除累加字段数据。Update后调用该方法</summary>
-        void ClearAdditionalValues();
         #endregion
     }
 }

@@ -384,136 +384,40 @@ namespace XCode
         /// <summary>把整个集合插入到数据库</summary>
         /// <param name="useTransition">是否使用事务保护</param>
         /// <returns></returns>
-        public Int32 Insert(Boolean useTransition)
-        {
-            if (Count < 1) return 0;
+        public Int32 Insert(Boolean useTransition = true) { return DoAction(true, e => e.Insert()); }
 
-            var count = 0;
-
-            if (useTransition)
-            {
-                var dal = Factory;
-                dal.BeginTransaction();
-                try
-                {
-                    foreach (T item in this)
-                    {
-                        count += item.Insert();
-                    }
-
-                    dal.Commit();
-                }
-                catch
-                {
-                    dal.Rollback();
-                    throw;
-                }
-            }
-            else
-            {
-                foreach (T item in this)
-                {
-                    count += item.Insert();
-                }
-            }
-
-            return count;
-        }
-
-        /// <summary>把整个集合插入到数据库</summary>
-        /// <returns></returns>
-        public Int32 Insert() { return Insert(true); }
+        ///// <summary>把整个集合插入到数据库</summary>
+        ///// <returns></returns>
+        //public Int32 Insert() { return Insert(true); }
 
         /// <summary>把整个集合更新到数据库</summary>
         /// <param name="useTransition">是否使用事务保护</param>
         /// <returns></returns>
-        public Int32 Update(Boolean useTransition)
-        {
-            if (Count < 1) return 0;
+        public Int32 Update(Boolean useTransition = true) { return DoAction(true, e => e.Update()); }
 
-            var count = 0;
-
-            if (useTransition)
-            {
-                var dal = Factory;
-                dal.BeginTransaction();
-                try
-                {
-                    foreach (T item in this)
-                    {
-                        count += item.Update();
-                    }
-
-                    dal.Commit();
-                }
-                catch
-                {
-                    dal.Rollback();
-                    throw;
-                }
-            }
-            else
-            {
-                foreach (T item in this)
-                {
-                    count += item.Update();
-                }
-            }
-
-            return count;
-        }
-
-        /// <summary>把整个集合更新到数据库</summary>
-        /// <returns></returns>
-        public Int32 Update() { return Update(true); }
+        ///// <summary>把整个集合更新到数据库</summary>
+        ///// <returns></returns>
+        //public Int32 Update() { return Update(true); }
 
         /// <summary>把整个保存更新到数据库</summary>
         /// <param name="useTransition">是否使用事务保护</param>
         /// <returns></returns>
-        public Int32 Save(Boolean useTransition)
-        {
-            if (Count < 1) return 0;
+        public Int32 Save(Boolean useTransition = true) { return DoAction(true, e => e.Save()); }
 
-            var count = 0;
-
-            if (useTransition)
-            {
-                var dal = Factory;
-                dal.BeginTransaction();
-                try
-                {
-                    foreach (T item in this)
-                    {
-                        count += item.Save();
-                    }
-
-                    dal.Commit();
-                }
-                catch
-                {
-                    dal.Rollback();
-                    throw;
-                }
-            }
-            else
-            {
-                foreach (T item in this)
-                {
-                    count += item.Save();
-                }
-            }
-
-            return count;
-        }
-
-        /// <summary>把整个集合保存到数据库</summary>
-        /// <returns></returns>
-        public Int32 Save() { return Save(true); }
+        ///// <summary>把整个集合保存到数据库</summary>
+        ///// <returns></returns>
+        //public Int32 Save() { return Save(true); }
 
         /// <summary>把整个集合从数据库中删除</summary>
         /// <param name="useTransition">是否使用事务保护</param>
         /// <returns></returns>
-        public Int32 Delete(Boolean useTransition)
+        public Int32 Delete(Boolean useTransition = true) { return DoAction(true, e => e.Delete()); }
+
+        ///// <summary>把整个集合从数据库中删除</summary>
+        ///// <returns></returns>
+        //public Int32 Delete() { return DoAction(true, e => e.Delete()); }
+
+        Int32 DoAction(Boolean useTransition, Func<T, Int32> func)
         {
             if (Count < 1) return 0;
 
@@ -521,37 +425,26 @@ namespace XCode
 
             if (useTransition)
             {
-                var dal = Factory;
-                dal.BeginTransaction();
-                try
+                using (var trans = new EntityTransaction(Factory))
                 {
                     foreach (T item in this)
                     {
-                        count += item.Delete();
+                        count += func(item);
                     }
 
-                    dal.Commit();
-                }
-                catch
-                {
-                    dal.Rollback();
-                    throw;
+                    trans.Commit();
                 }
             }
             else
             {
                 foreach (T item in this)
                 {
-                    count += item.Delete();
+                    count += func(item);
                 }
             }
 
             return count;
         }
-
-        /// <summary>把整个集合从数据库中删除</summary>
-        /// <returns></returns>
-        public Int32 Delete() { return Delete(true); }
 
         /// <summary>设置所有实体中指定项的值</summary>
         /// <param name="name">指定项的名称</param>

@@ -394,7 +394,7 @@ namespace XCode
         /// <param name="startRowIndex">开始行，0表示第一行</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns></returns>
-        public DataSet Query(SelectBuilder builder, Int32 startRowIndex, Int32 maximumRows)
+        public virtual DataSet Query(SelectBuilder builder, Int32 startRowIndex, Int32 maximumRows)
         {
             WaitForInitData();
 
@@ -406,7 +406,7 @@ namespace XCode
         /// <param name="sql">SQL语句</param>
         /// <returns>结果记录集</returns>
         //[Obsolete("请优先考虑使用SelectBuilder参数做查询！")]
-        public DataSet Query(String sql)
+        public virtual DataSet Query(String sql)
         {
             WaitForInitData();
 
@@ -416,7 +416,7 @@ namespace XCode
         /// <summary>查询记录数</summary>
         /// <param name="builder">查询生成器</param>
         /// <returns>记录数</returns>
-        public Int32 QueryCount(SelectBuilder builder)
+        public virtual Int32 QueryCount(SelectBuilder builder)
         {
             WaitForInitData();
 
@@ -433,7 +433,7 @@ namespace XCode
         /// <param name="startRowIndex">开始行，0表示第一行</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>分页SQL</returns>
-        public SelectBuilder PageSplit(SelectBuilder builder, Int32 startRowIndex, Int32 maximumRows)
+        public virtual SelectBuilder PageSplit(SelectBuilder builder, Int32 startRowIndex, Int32 maximumRows)
         {
             builder.Table = Operate.FormatName(TableName);
             return Dal.PageSplit(builder, startRowIndex, maximumRows);
@@ -442,7 +442,7 @@ namespace XCode
         /// <summary>执行</summary>
         /// <param name="sql">SQL语句</param>
         /// <returns>影响的结果</returns>
-        public Int32 Execute(String sql)
+        public virtual Int32 Execute(String sql)
         {
             WaitForInitData();
 
@@ -455,7 +455,7 @@ namespace XCode
         /// <summary>执行插入语句并返回新增行的自动编号</summary>
         /// <param name="sql">SQL语句</param>
         /// <returns>新增行的自动编号</returns>
-        public Int64 InsertAndGetIdentity(String sql)
+        public virtual Int64 InsertAndGetIdentity(String sql)
         {
             WaitForInitData();
 
@@ -470,7 +470,7 @@ namespace XCode
         /// <param name="type">命令类型，默认SQL文本</param>
         /// <param name="ps">命令参数</param>
         /// <returns>影响的结果</returns>
-        public Int32 Execute(String sql, CommandType type = CommandType.Text, params DbParameter[] ps)
+        public virtual Int32 Execute(String sql, CommandType type = CommandType.Text, params DbParameter[] ps)
         {
             WaitForInitData();
 
@@ -485,7 +485,7 @@ namespace XCode
         /// <param name="type">命令类型，默认SQL文本</param>
         /// <param name="ps">命令参数</param>
         /// <returns>新增行的自动编号</returns>
-        public Int64 InsertAndGetIdentity(String sql, CommandType type = CommandType.Text, params DbParameter[] ps)
+        public virtual Int64 InsertAndGetIdentity(String sql, CommandType type = CommandType.Text, params DbParameter[] ps)
         {
             WaitForInitData();
 
@@ -528,13 +528,13 @@ namespace XCode
         #region 事务保护
         private Int32 _TransCount;
         /// <summary>事务计数</summary>
-        public Int32 TransCount { get { return _TransCount; } private set { _TransCount = value; } }
+        public virtual Int32 TransCount { get { return _TransCount; } private set { _TransCount = value; } }
 
         private Int32 executeCount = 0;
 
         /// <summary>开始事务</summary>
         /// <returns>剩下的事务计数</returns>
-        public Int32 BeginTrans()
+        public virtual Int32 BeginTrans()
         {
             // 可能存在多层事务，这里不能把这个清零
             //executeCount = 0;
@@ -543,7 +543,7 @@ namespace XCode
 
         /// <summary>提交事务</summary>
         /// <returns>剩下的事务计数</returns>
-        public Int32 Commit()
+        public virtual Int32 Commit()
         {
             TransCount = Dal.Commit();
             // 提交事务时更新数据，虽然不是绝对准确，但没有更好的办法
@@ -560,7 +560,7 @@ namespace XCode
 
         /// <summary>回滚事务，忽略异常</summary>
         /// <returns>剩下的事务计数</returns>
-        public Int32 Rollback()
+        public virtual Int32 Rollback()
         {
             TransCount = Dal.Rollback();
             // 回滚的时候貌似不需要更新缓存
@@ -576,6 +576,17 @@ namespace XCode
 
         /// <summary>是否在事务保护中</summary>
         internal Boolean UsingTrans { get { return TransCount > 0; } }
+        #endregion
+
+        #region 参数化
+        /// <summary>创建参数</summary>
+        /// <returns></returns>
+        public virtual DbParameter CreateParameter() { return Dal.Db.Factory.CreateParameter(); }
+
+        /// <summary>格式化参数名</summary>
+        /// <param name="name">名称</param>
+        /// <returns></returns>
+        public virtual String FormatParameterName(String name) { return Dal.Db.FormatParameterName(name); }
         #endregion
 
         #region 实体操作

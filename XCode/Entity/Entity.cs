@@ -85,7 +85,7 @@ namespace XCode
 
             var list = dreAccessor.LoadData(dt);
             // 设置默认累加字段
-            var fs = AdditionalFields;
+            var fs = Meta.Factory.AdditionalFields;
             if (fs.Count > 0)
             {
                 foreach (var entity in list)
@@ -126,7 +126,7 @@ namespace XCode
             var list = dreAccessor.LoadData(dr);
 
             // 设置默认累加字段
-            var fs = AdditionalFields;
+            var fs = Meta.Factory.AdditionalFields;
             if (fs.Count > 0)
             {
                 foreach (var entity in list)
@@ -158,7 +158,7 @@ namespace XCode
                 OnLoad();
 
                 // 设置默认累加字段
-                var fs = AdditionalFields;
+                var fs = Meta.Factory.AdditionalFields;
                 if (fs.Count > 0)
                 {
                     foreach (var item in fs)
@@ -976,14 +976,6 @@ namespace XCode
         #endregion
 
         #region 构造SQL语句
-        ///// <summary>把SQL模版格式化为SQL语句</summary>
-        ///// <param name="obj">实体对象</param>
-        ///// <param name="methodType"></param>
-        ///// <returns>SQL字符串</returns>
-        //[Obsolete("该成员在后续版本中将不再被支持！请使用XCodeService.Resolve<IEntityPersistence>().GetSql()！")]
-        //[EditorBrowsable(EditorBrowsableState.Never)]
-        //public static String SQL(Entity<TEntity> obj, DataObjectMethodType methodType) { return persistence.GetSql(obj, methodType); }
-
         /// <summary>
         /// 根据属性列表和值列表，构造查询条件。
         /// 例如构造多主键限制查询条件。
@@ -1001,7 +993,7 @@ namespace XCode
             if (values == null || values.Length <= 0) return null;
             if (names.Length != values.Length) throw new ArgumentException("属性列表必须和值列表一一对应");
 
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
             for (Int32 i = 0; i < names.Length; i++)
             {
                 FieldItem fi = Meta.Table.FindByName(names[i]);
@@ -1037,27 +1029,14 @@ namespace XCode
         [EditorBrowsable(EditorBrowsableState.Advanced)]
         public static String MakeCondition(FieldItem field, Object value, String action)
         {
-            if (!String.IsNullOrEmpty(action) && action.Contains("{0}"))
-            {
-                if (action.Contains("%"))
-                    return Meta.FormatName(field.ColumnName) + " Like " + Meta.FormatValue(field, String.Format(action, value));
-                else
-                    return Meta.FormatName(field.ColumnName) + String.Format(action, Meta.FormatValue(field, value));
-            }
-            else
-                return String.Format("{0}{1}{2}", Meta.FormatName(field.ColumnName), action, Meta.FormatValue(field, value));
-        }
+            var columnName = Meta.FormatName(field.ColumnName);
+            if (String.IsNullOrEmpty(action) || action.Contains("{0}")) return String.Format("{0}{1}{2}", columnName, action, Meta.FormatValue(field, value));
 
-        ///// <summary>
-        ///// 默认条件。
-        ///// 若有标识列，则使用一个标识列作为条件；
-        ///// 如有主键，则使用全部主键作为条件。
-        ///// </summary>
-        ///// <param name="obj">实体对象</param>
-        ///// <returns>条件</returns>
-        //[Obsolete("该成员在后续版本中将不再被支持！请使用XCodeService.Resolve<IEntityPersistence>().GetPrimaryCondition()！")]
-        //[EditorBrowsable(EditorBrowsableState.Never)]
-        //protected static String DefaultCondition(Entity<TEntity> obj) { return persistence.GetPrimaryCondition(obj); }
+            if (action.Contains("%"))
+                return columnName + " Like " + Meta.FormatValue(field, String.Format(action, value));
+            else
+                return columnName + String.Format(action, Meta.FormatValue(field, value));
+        }
 
         static SelectBuilder CreateBuilder(String whereClause, String orderClause, String selects, Int32 startRowIndex, Int32 maximumRows, Boolean needOrderByID = true)
         {
@@ -1100,8 +1079,7 @@ namespace XCode
         #endregion
 
         #region 获取/设置 字段值
-        /// <summary>
-        /// 获取/设置 字段值。
+        /// <summary>获取/设置 字段值。
         /// 一个索引，反射实现。
         /// 派生实体类可重写该索引，以避免发射带来的性能损耗。
         /// 基类已经实现了通用的快速访问，但是这里仍然重写，以增加控制，
@@ -1162,7 +1140,7 @@ namespace XCode
         }
         #endregion
 
-        #region 导入导出XML
+        #region 导入导出XML/Json
         /// <summary>导入</summary>
         /// <param name="xml"></param>
         /// <returns></returns>
@@ -1172,9 +1150,7 @@ namespace XCode
 
             return xml.ToXmlEntity<TEntity>();
         }
-        #endregion
 
-        #region 导入导出Json
         /// <summary>导入</summary>
         /// <param name="json"></param>
         /// <returns></returns>
@@ -1241,7 +1217,7 @@ namespace XCode
 
                     di = item;
 
-                    // 如果只有一个主键，并且是自增，再往下找别的。如果后面实在找不到，至少还有现在这个。
+                    // 如果不是唯一自增，再往下找别的。如果后面实在找不到，至少还有现在这个。
                     if (!(columns.Length == 1 && columns[0].Identity)) break;
                 }
 
@@ -1366,14 +1342,6 @@ namespace XCode
         /// <param name="key">键</param>
         /// <param name="value">值</param>
         protected void SetExtend(String key, Object value) { Extends.SetExtend<TEntity>(key, value); }
-        #endregion
-
-        #region 累加
-        [NonSerialized]
-        private static ICollection<String> _AdditionalFields;
-        /// <summary>默认累加字段</summary>
-        [XmlIgnore]
-        protected static ICollection<String> AdditionalFields { get { return _AdditionalFields ?? (_AdditionalFields = new HashSet<String>(StringComparer.OrdinalIgnoreCase)); } }
         #endregion
     }
 }

@@ -176,11 +176,15 @@ namespace XCode
             #region 参数化
             /// <summary>创建参数</summary>
             /// <returns></returns>
+            [Obsolete("=>Session")]
+            [EditorBrowsable(EditorBrowsableState.Never)]
             public static DbParameter CreateParameter() { return Session.Dal.Db.Factory.CreateParameter(); }
 
             /// <summary>格式化参数名</summary>
             /// <param name="name">名称</param>
             /// <returns></returns>
+            [Obsolete("=>Session")]
+            [EditorBrowsable(EditorBrowsableState.Never)]
             public static String FormatParameterName(String name) { return Session.Dal.Db.FormatParameterName(name); }
             #endregion
 

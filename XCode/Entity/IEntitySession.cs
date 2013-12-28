@@ -138,6 +138,17 @@ namespace XCode
         //internal Boolean UsingTrans { get { return TransCount > 0; } }
         #endregion
 
+        #region 参数化
+        /// <summary>创建参数</summary>
+        /// <returns></returns>
+        DbParameter CreateParameter();
+
+        /// <summary>格式化参数名</summary>
+        /// <param name="name">名称</param>
+        /// <returns></returns>
+        String FormatParameterName(String name);
+        #endregion
+
         #region 实体操作
         /// <summary>把该对象持久化到数据库，添加/更新实体缓存。</summary>
         /// <param name="entity">实体对象</param>

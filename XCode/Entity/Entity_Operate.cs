@@ -62,14 +62,12 @@ namespace XCode
             public virtual Int32 Count { get { return Session.Count; } }
             #endregion
 
-            #region 创建实体
+            #region 创建实体、填充数据
             /// <summary>创建一个实体对象</summary>
             /// <param name="forEdit">是否为了编辑而创建，如果是，可以再次做一些相关的初始化工作</param>
             /// <returns></returns>
             public virtual IEntity Create(Boolean forEdit = false) { return EntityType.CreateInstance() as TEntity; }
-            #endregion
 
-            #region 填充数据
             /// <summary>加载记录集</summary>
             /// <param name="ds">记录集</param>
             /// <returns>实体数组</returns>
@@ -215,15 +213,13 @@ namespace XCode
             }
             #endregion
 
-            #region 导入导出XML
+            #region 导入导出XML/Json
             /// <summary>导入</summary>
             /// <param name="xml"></param>
             /// <returns></returns>
             //[Obsolete("该成员在后续版本中将不再被支持！请使用实体访问器IEntityAccessor替代！")]
             public virtual IEntity FromXml(String xml) { return Entity<TEntity>.FromXml(xml); }
-            #endregion
 
-            #region 导入导出Json
             /// <summary>导入</summary>
             /// <param name="json"></param>
             /// <returns></returns>
@@ -307,12 +303,16 @@ namespace XCode
             #region 参数化
             /// <summary>创建参数</summary>
             /// <returns></returns>
-            public virtual DbParameter CreateParameter() { return Meta.CreateParameter(); }
+            [Obsolete("=>Session")]
+            [EditorBrowsable(EditorBrowsableState.Never)]
+            public virtual DbParameter CreateParameter() { return Session.CreateParameter(); }
 
             /// <summary>格式化参数名</summary>
             /// <param name="name"></param>
             /// <returns></returns>
-            public virtual String FormatParameterName(String name) { return Meta.FormatParameterName(name); }
+            [Obsolete("=>Session")]
+            [EditorBrowsable(EditorBrowsableState.Never)]
+            public virtual String FormatParameterName(String name) { return Session.FormatParameterName(name); }
             #endregion
 
             #region 辅助方法
@@ -370,6 +370,11 @@ namespace XCode
             private FieldItem _AutoSetGuidField;
             /// <summary>自动设置Guid的字段。对实体类有效，可在实体类类型构造函数里面设置</summary>
             public virtual FieldItem AutoSetGuidField { get { return _AutoSetGuidField; } set { _AutoSetGuidField = value; } }
+
+            [NonSerialized]
+            private ICollection<String> _AdditionalFields;
+            /// <summary>默认累加字段</summary>
+            public virtual ICollection<String> AdditionalFields { get { return _AdditionalFields ?? (_AdditionalFields = new HashSet<String>(StringComparer.OrdinalIgnoreCase)); } }
             #endregion
         }
     }

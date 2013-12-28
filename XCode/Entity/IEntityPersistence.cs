@@ -592,10 +592,12 @@ namespace XCode
 
         static DbParameter CreateParameter(StringBuilder sb, IEntityOperate op, FieldItem fi, Object value)
         {
-            var paraname = op.FormatParameterName(fi.ColumnName);
+            var session = op.Session;
+
+            var paraname = session.FormatParameterName(fi.ColumnName);
             sb.Append(paraname);
 
-            var dp = op.CreateParameter();
+            var dp = session.CreateParameter();
             dp.ParameterName = paraname;
             dp.Value = FormatParamValue(fi, value, op);
             dp.IsNullable = fi.IsNullable;
