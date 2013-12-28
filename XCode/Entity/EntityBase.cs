@@ -174,7 +174,6 @@ namespace XCode
                 if (_Dirtys == null) _Dirtys = new DirtyCollection();
                 return _Dirtys;
             }
-            //set { _Dirtys = value; }
         }
 
         /// <summary>脏属性。存储哪些属性的数据被修改过了。</summary>
@@ -198,23 +197,6 @@ namespace XCode
                 }
             }
             return count;
-        }
-
-        /// <summary>属性改变。重载时记得调用基类的该方法，以设置脏数据属性，否则数据将无法Update到数据库。</summary>
-        /// <param name="fieldName">字段名</param>
-        /// <param name="newValue">新属性值</param>
-        /// <returns>是否允许改变</returns>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        [Obsolete("改为使用OnPropertyChanging")]
-        protected virtual Boolean OnPropertyChange(String fieldName, Object newValue)
-        {
-            //if (_PropertyChanging != null) _PropertyChanging(this, new PropertyChangingEventArgs(fieldName));
-            //// 如果数据没有改变，不应该影响脏数据
-            ////Dirtys[fieldName] = true;
-            //if (!Object.Equals(this[fieldName], newValue)) Dirtys[fieldName] = true;
-            //return true;
-
-            return OnPropertyChanging(fieldName, newValue);
         }
         #endregion
 
@@ -247,18 +229,12 @@ namespace XCode
 
         #region 主键为空
         /// <summary>主键是否为空</summary>
-        Boolean IEntity.IsNullKey
-        {
-            get
-            {
-                return Helper.IsEntityNullKey(this);
-            }
-        }
+        Boolean IEntity.IsNullKey { get { return Helper.IsEntityNullKey(this); } }
 
         /// <summary>设置主键为空。Save将调用Insert</summary>
         void IEntity.SetNullKey()
         {
-            IEntityOperate eop = EntityFactory.CreateOperate(GetType());
+            var eop = EntityFactory.CreateOperate(GetType());
             foreach (var item in eop.Fields)
             {
                 if (item.PrimaryKey || item.IsIdentity) this[item.Name] = null;

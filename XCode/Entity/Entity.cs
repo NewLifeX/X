@@ -5,7 +5,6 @@ using System.ComponentModel;
 using System.Data;
 using System.Linq;
 using System.Text;
-using System.Xml.Serialization;
 using NewLife.IO;
 using NewLife.Reflection;
 using NewLife.Xml;
