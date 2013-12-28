@@ -136,15 +136,15 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region 对象操作﻿
-        /// <summary>已重载。</summary>
-        /// <param name="forEdit"></param>
-        /// <returns></returns>
-        protected override TEntity CreateInstance(bool forEdit = false)
-        {
-            TEntity entity = base.CreateInstance(forEdit);
-            if (forEdit) entity.Kind = "XTemplate";
-            return entity;
-        }
+        ///// <summary>已重载。</summary>
+        ///// <param name="forEdit"></param>
+        ///// <returns></returns>
+        //protected override TEntity CreateInstance(bool forEdit = false)
+        //{
+        //    TEntity entity = base.CreateInstance(forEdit);
+        //    if (forEdit) entity.Kind = "XTemplate";
+        //    return entity;
+        //}
 
         ///// <summary>
         ///// 已重载。基类先调用Valid(true)验证数据，然后在事务保护内调用OnInsert

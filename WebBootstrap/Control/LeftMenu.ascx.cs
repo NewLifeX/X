@@ -1,8 +1,8 @@
-﻿using NewLife.CommonEntity;
-using NewLife.Web;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using NewLife.CommonEntity;
+using NewLife.Web;
 
 public partial class Control_LeftMenu : System.Web.UI.UserControl
 {
@@ -80,7 +80,7 @@ public partial class Control_LeftMenu : System.Web.UI.UserControl
             set { _SubMenus = value; }
         }
 
-        private static List<LeftMenu> _GetMenu;
+        //private static List<LeftMenu> _GetMenu;
         /// <summary>获取当前菜单</summary>
         public static List<LeftMenu> GetMenu
         {

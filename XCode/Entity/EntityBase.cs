@@ -11,6 +11,7 @@ using NewLife.IO;
 using NewLife.Reflection;
 using XCode.Common;
 using NewLife.Xml;
+using XCode.Model;
 
 namespace XCode
 {
@@ -229,7 +230,20 @@ namespace XCode
 
         #region 累加
         [NonSerialized]
-        private IEntityAddition _Additions;
+        private IEntityAddition _Addition;
+        /// <summary>累加</summary>
+        internal IEntityAddition Addition
+        {
+            get
+            {
+                if (_Addition == null)
+                {
+                    _Addition = XCodeService.Container.Resolve<IEntityAddition>();
+                    _Addition.Entity = this;
+                }
+                return _Addition;
+            }
+        }
         #endregion
 
         #region 主键为空

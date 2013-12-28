@@ -23,11 +23,11 @@ namespace NewLife.CommonEntity
         #region 对象操作
         static Statistics()
         {
-            AdditionalFields.Add(__.Total);
-            AdditionalFields.Add(__.Today);
-            AdditionalFields.Add(__.ThisWeek);
-            AdditionalFields.Add(__.ThisMonth);
-            AdditionalFields.Add(__.ThisYear);
+            Meta.Factory.AdditionalFields.Add(__.Total);
+            Meta.Factory.AdditionalFields.Add(__.Today);
+            Meta.Factory.AdditionalFields.Add(__.ThisWeek);
+            Meta.Factory.AdditionalFields.Add(__.ThisMonth);
+            Meta.Factory.AdditionalFields.Add(__.ThisYear);
         }
         #endregion
 

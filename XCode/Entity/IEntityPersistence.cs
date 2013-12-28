@@ -233,7 +233,8 @@ namespace XCode
             //清除脏数据，避免重复提交
             if (entity.Dirtys != null) entity.Dirtys.Clear();
 
-            entity.ClearAdditionalValues();
+            //entity.ClearAdditionalValues();
+            EntityAddition.ClearValues(entity as EntityBase);
 
             return rs;
         }
@@ -609,7 +610,8 @@ namespace XCode
         {
             Object addvalue = null;
             Boolean sign;
-            if (!entity.TryGetAdditionalValue(name, out addvalue, out sign)) return false;
+            //if (!entity.TryGetAdditionalValue(name, out addvalue, out sign)) return false;
+            if (!EntityAddition.TryGetValue(entity as EntityBase, name, out addvalue, out sign)) return false;
 
             if (sign)
                 sb.AppendFormat("{0}+{1}", cname, addvalue);

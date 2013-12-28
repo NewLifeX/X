@@ -85,17 +85,7 @@ namespace XCode
 
             var list = dreAccessor.LoadData(dt);
             // ÉèÖÃÄ¬ÈÏÀÛ¼Ó×Ö¶Î
-            var fs = Meta.Factory.AdditionalFields;
-            if (fs.Count > 0)
-            {
-                foreach (var entity in list)
-                {
-                    foreach (var item in fs)
-                    {
-                        entity.SetAdditionalField(item);
-                    }
-                }
-            }
+            EntityAddition.SetField(list);
             foreach (EntityBase entity in list)
             {
                 entity.OnLoad();
@@ -126,17 +116,7 @@ namespace XCode
             var list = dreAccessor.LoadData(dr);
 
             // ÉèÖÃÄ¬ÈÏÀÛ¼Ó×Ö¶Î
-            var fs = Meta.Factory.AdditionalFields;
-            if (fs.Count > 0)
-            {
-                foreach (var entity in list)
-                {
-                    foreach (var item in fs)
-                    {
-                        entity.SetAdditionalField(item);
-                    }
-                }
-            }
+            EntityAddition.SetField(list);
             foreach (EntityBase entity in list)
             {
                 entity.OnLoad();
@@ -158,14 +138,7 @@ namespace XCode
                 OnLoad();
 
                 // ÉèÖÃÄ¬ÈÏÀÛ¼Ó×Ö¶Î
-                var fs = Meta.Factory.AdditionalFields;
-                if (fs.Count > 0)
-                {
-                    foreach (var item in fs)
-                    {
-                        SetAdditionalField(item);
-                    }
-                }
+                EntityAddition.SetField(this);
             }
         }
 
@@ -1030,7 +1003,7 @@ namespace XCode
         public static String MakeCondition(FieldItem field, Object value, String action)
         {
             var columnName = Meta.FormatName(field.ColumnName);
-            if (String.IsNullOrEmpty(action) || action.Contains("{0}")) return String.Format("{0}{1}{2}", columnName, action, Meta.FormatValue(field, value));
+            if (String.IsNullOrEmpty(action) || !action.Contains("{0}")) return String.Format("{0}{1}{2}", columnName, action, Meta.FormatValue(field, value));
 
             if (action.Contains("%"))
                 return columnName + " Like " + Meta.FormatValue(field, String.Format(action, value));

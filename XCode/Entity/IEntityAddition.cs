@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
+using System.Linq;
+using NewLife.Reflection;
 
 namespace XCode
 {
@@ -16,23 +17,23 @@ namespace XCode
         /// <param name="name">字段名称</param>
         /// <param name="reset">是否重置。可以保存当前数据作为累加基础数据</param>
         /// <returns>是否成功设置累加字段。如果不是第一次设置，并且没有重置数据，那么返回失败</returns>
-        Boolean SetAdditionalField(String name, Boolean reset = false);
+        Boolean SetField(String name, Boolean reset = false);
 
         /// <summary>删除累加字段。</summary>
         /// <param name="name">字段名称</param>
         /// <param name="restore">是否恢复数据</param>
         /// <returns>是否成功删除累加字段</returns>
-        Boolean RemoveAdditionalField(String name, Boolean restore = false);
+        Boolean RemoveField(String name, Boolean restore = false);
 
         /// <summary>尝试获取累加数据</summary>
         /// <param name="name">字段名称</param>
         /// <param name="value">累加数据</param>
         /// <param name="sign">正负</param>
         /// <returns>是否获取指定字段的累加数据</returns>
-        Boolean TryGetAdditionalValue(String name, out Object value, out Boolean sign);
+        Boolean TryGetValue(String name, out Object value, out Boolean sign);
 
         /// <summary>清除累加字段数据。Update后调用该方法</summary>
-        void ClearAdditionalValues();
+        void ClearValues();
         #endregion
     }
 
@@ -53,7 +54,7 @@ namespace XCode
         /// <param name="name">字段名称</param>
         /// <param name="reset">是否重置。可以保存当前数据作为累加基础数据</param>
         /// <returns>是否成功设置累加字段。如果不是第一次设置，并且没有重置数据，那么返回失败</returns>
-        public Boolean SetAdditionalField(String name, Boolean reset = false)
+        public Boolean SetField(String name, Boolean reset = false)
         {
             // 检查集合是否为空
             if (_Additions == null)
@@ -78,7 +79,7 @@ namespace XCode
         /// <param name="name">字段名称</param>
         /// <param name="restore">是否恢复数据</param>
         /// <returns>是否成功删除累加字段</returns>
-        public Boolean RemoveAdditionalField(String name, Boolean restore = false)
+        public Boolean RemoveField(String name, Boolean restore = false)
         {
             if (_Additions == null) return false;
 
@@ -95,7 +96,7 @@ namespace XCode
         /// <param name="value">累加数据绝对值</param>
         /// <param name="sign">正负</param>
         /// <returns>是否获取指定字段的累加数据</returns>
-        public Boolean TryGetAdditionalValue(String name, out Object value, out Boolean sign)
+        public Boolean TryGetValue(String name, out Object value, out Boolean sign)
         {
             value = null;
             sign = true;
@@ -170,7 +171,7 @@ namespace XCode
         }
 
         /// <summary>清除累加字段数据。Update后调用该方法</summary>
-        public void ClearAdditionalValues()
+        public void ClearValues()
         {
             if (_Additions == null) return;
 
@@ -178,6 +179,69 @@ namespace XCode
             {
                 _Additions[item] = Entity[item];
             }
+        }
+        #endregion
+
+        #region 静态
+        public static IEntityList SetField(IEntityList list)
+        {
+            if (list == null || list.Count < 1) return list;
+
+            var entityType = list[0].GetType();
+            var factory = EntityFactory.CreateOperate(entityType);
+            var fs = factory.AdditionalFields;
+            if (fs.Count > 0)
+            {
+                foreach (EntityBase entity in list)
+                {
+                    if (entity != null)
+                    {
+                        foreach (var item in fs)
+                        {
+                            entity.Addition.SetField(item);
+                        }
+                    }
+                }
+            }
+
+            return list;
+        }
+
+        public static void SetField(EntityBase entity)
+        {
+            if (entity == null) return;
+
+            var factory = EntityFactory.CreateOperate(entity.GetType());
+            var fs = factory.AdditionalFields;
+            if (fs.Count > 0)
+            {
+                foreach (var item in fs)
+                {
+                    entity.Addition.SetField(item);
+                }
+            }
+        }
+
+        public static void ClearValues(EntityBase entity)
+        {
+            if (entity == null) return;
+
+            entity.Addition.ClearValues();
+        }
+
+        /// <summary>尝试获取累加数据</summary>
+        /// <param name="name">字段名称</param>
+        /// <param name="value">累加数据绝对值</param>
+        /// <param name="sign">正负</param>
+        /// <returns>是否获取指定字段的累加数据</returns>
+        public static Boolean TryGetValue(EntityBase entity, String name, out Object value, out Boolean sign)
+        {
+            value = null;
+            sign = false;
+
+            if (entity == null) return false;
+
+            return entity.Addition.TryGetValue(name, out value, out sign);
         }
         #endregion
     }
