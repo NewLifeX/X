@@ -20,7 +20,7 @@ using XCode.Model;
 namespace XCode
 {
     /// <summary>实体会话。每个实体类、连接名和表名形成一个实体会话</summary>
-    public class EntitySession<TEntity> where TEntity : Entity<TEntity>, new()
+    public class EntitySession<TEntity> : IEntitySession where TEntity : Entity<TEntity>, new()
     {
         #region 属性
         private String _ConnName;
@@ -295,6 +295,9 @@ namespace XCode
             }
         }
 
+        IEntityCache IEntitySession.Cache { get { return Cache; } }
+        ISingleEntityCache IEntitySession.SingleCache { get { return SingleCache; } }
+
         /// <summary>总记录数，小于1000时是精确的，大于1000时缓存10分钟</summary>
         public Int32 Count { get { return (Int32)LongCount; } }
 
@@ -378,9 +381,6 @@ namespace XCode
         }
 
         String CacheKey { get { return String.Format("{0}_{1}_{2}_Count", ConnName, TableName, ThisType.Name); } }
-        #endregion
-
-        #region 实体操作
         #endregion
 
         #region 数据库操作

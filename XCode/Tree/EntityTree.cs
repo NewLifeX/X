@@ -65,12 +65,12 @@ namespace XCode
         }
 
         /// <summary>父节点</summary>
-        protected virtual TEntity FindParent() { return Meta.Cache.Entities.Find(Setting.Key, this[Setting.Parent]); }
+        protected virtual TEntity FindParent() { return Meta.Session.Cache.Entities.Find(Setting.Key, this[Setting.Parent]); }
 
         /// <summary>在缓存中查找节点</summary>
         protected static TEntity FindByKeyWithCache(TKey key)
         {
-            return Meta.Cache.Entities.Find(Setting.Key, key);
+            return Meta.Session.Cache.Entities.Find(Setting.Key, key);
         }
 
         /// <summary>子孙节点</summary>
@@ -198,7 +198,7 @@ namespace XCode
         [DataObjectMethod(DataObjectMethodType.Select)]
         public static EntityList<TEntity> FindAllByParent(TKey parentKey)
         {
-            var list = Meta.Cache.Entities.FindAll(Setting.Parent, parentKey);
+            var list = Meta.Session.Cache.Entities.FindAll(Setting.Parent, parentKey);
             // 如果是顶级，那么包含所有无头节点，无头节点由错误数据造成
             if (IsNull(parentKey))
             {
@@ -234,7 +234,7 @@ namespace XCode
         public static EntityList<TEntity> FindAllNoParent()
         {
             var list = new EntityList<TEntity>();
-            foreach (var item in Meta.Cache.Entities)
+            foreach (var item in Meta.Session.Cache.Entities)
             {
                 // 有父节点的跳过
                 if (item.Parent != null) continue;
@@ -720,7 +720,7 @@ namespace XCode
             {
                 //if (!Meta.Cache.Entities.Exists(KeyName, pkey) && FindCount(KeyName, pkey) <= 0) throw new XException("无效上级[" + pkey + "]！");
 
-                var parent = Meta.Cache.Entities.Find(Setting.Key, pkey);
+                var parent = Meta.Session.Cache.Entities.Find(Setting.Key, pkey);
                 if (parent == null) parent = Find(Setting.Key, pkey);
                 if (parent == null) throw new XException("无效上级[" + pkey + "]！");
 

@@ -5,6 +5,8 @@ using System.Data.Common;
 using XCode.Cache;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
+using NewLife.Reflection;
+using System.ComponentModel;
 
 namespace XCode
 {
@@ -13,17 +15,18 @@ namespace XCode
         /// <summary>默认的实体操作者</summary>
         public class EntityOperate : IEntityOperate
         {
-            #region 属性
+            #region 主要属性
             /// <summary>实体类型</summary>
             public virtual Type EntityType { get { return typeof(TEntity); } }
 
+            /// <summary>实体会话</summary>
+            public virtual IEntitySession Session { get { return Meta.Session; } }
+            #endregion
+
+            #region 属性
             private IEntity _Default;
             /// <summary>默认实体</summary>
-            public virtual IEntity Default
-            {
-                get { return _Default ?? (_Default = new TEntity()); }
-                set { _Default = value; }
-            }
+            public virtual IEntity Default { get { return _Default ?? (_Default = new TEntity()); } set { _Default = value; } }
 
             /// <summary>数据表元数据</summary>
             public virtual TableItem Table { get { return Meta.Table; } }
@@ -50,20 +53,20 @@ namespace XCode
             public virtual String FormatedTableName { get { return Meta.FormatName(Meta.TableName); } }
 
             /// <summary>实体缓存</summary>
-            public virtual IEntityCache Cache { get { return Meta.Cache; } }
+            public virtual IEntityCache Cache { get { return Session.Cache; } }
 
             /// <summary>单对象实体缓存</summary>
-            public virtual ISingleEntityCache SingleCache { get { return Meta.SingleCache; } }
+            public virtual ISingleEntityCache SingleCache { get { return Session.SingleCache; } }
 
             /// <summary>总记录数</summary>
-            public virtual Int32 Count { get { return Meta.Count; } }
+            public virtual Int32 Count { get { return Session.Count; } }
             #endregion
 
             #region 创建实体
             /// <summary>创建一个实体对象</summary>
             /// <param name="forEdit">是否为了编辑而创建，如果是，可以再次做一些相关的初始化工作</param>
             /// <returns></returns>
-            public virtual IEntity Create(Boolean forEdit = false) { return (Default as TEntity).CreateInstance(forEdit); }
+            public virtual IEntity Create(Boolean forEdit = false) { return EntityType.CreateInstance() as TEntity; }
             #endregion
 
             #region 填充数据
@@ -101,8 +104,7 @@ namespace XCode
             /// <returns>实体数组</returns>
             public virtual IEntityList FindAll() { return Entity<TEntity>.FindAll(); }
 
-            /// <summary>
-            /// 查询并返回实体对象集合。
+            /// <summary>查询并返回实体对象集合。
             /// 表名以及所有字段名，请使用类名以及字段对应的属性名，方法内转换为表名和列名
             /// </summary>
             /// <param name="whereClause">条件，不带Where</param>
@@ -217,7 +219,7 @@ namespace XCode
             /// <summary>导入</summary>
             /// <param name="xml"></param>
             /// <returns></returns>
-            [Obsolete("该成员在后续版本中将不再被支持！请使用实体访问器IEntityAccessor替代！")]
+            //[Obsolete("该成员在后续版本中将不再被支持！请使用实体访问器IEntityAccessor替代！")]
             public virtual IEntity FromXml(String xml) { return Entity<TEntity>.FromXml(xml); }
             #endregion
 
@@ -225,7 +227,7 @@ namespace XCode
             /// <summary>导入</summary>
             /// <param name="json"></param>
             /// <returns></returns>
-            [Obsolete("该成员在后续版本中将不再被支持！请使用实体访问器IEntityAccessor替代！")]
+            //[Obsolete("该成员在后续版本中将不再被支持！请使用实体访问器IEntityAccessor替代！")]
             public virtual IEntity FromJson(String json) { return Entity<TEntity>.FromJson(json); }
             #endregion
 
@@ -233,55 +235,67 @@ namespace XCode
             /// <summary>查询</summary>
             /// <param name="sql">SQL语句</param>
             /// <returns>结果记录集</returns>
-            public virtual DataSet Query(String sql) { return Meta.Session.Query(sql); }
+            [Obsolete("=>Session")]
+            [EditorBrowsable(EditorBrowsableState.Never)]
+            public virtual DataSet Query(String sql) { return Session.Query(sql); }
 
             /// <summary>查询记录数</summary>
             /// <param name="sql">SQL语句</param>
             /// <returns>记录数</returns>
+            [Obsolete("=>Session")]
+            [EditorBrowsable(EditorBrowsableState.Never)]
             public virtual Int32 QueryCount(String sql)
             {
                 var sb = new SelectBuilder();
                 sb.Parse(sql);
-                return Meta.Session.QueryCount(sb);
+                return Session.QueryCount(sb);
             }
 
             /// <summary>执行</summary>
             /// <param name="sql">SQL语句</param>
             /// <returns>影响的结果</returns>
-            public virtual Int32 Execute(String sql) { return Meta.Session.Execute(sql); }
+            [Obsolete("=>Session")]
+            [EditorBrowsable(EditorBrowsableState.Never)]
+            public virtual Int32 Execute(String sql) { return Session.Execute(sql); }
 
             /// <summary>执行插入语句并返回新增行的自动编号</summary>
             /// <param name="sql">SQL语句</param>
             /// <returns>新增行的自动编号</returns>
-            public virtual Int64 InsertAndGetIdentity(String sql) { return Meta.Session.InsertAndGetIdentity(sql); }
+            [Obsolete("=>Session")]
+            [EditorBrowsable(EditorBrowsableState.Never)]
+            public virtual Int64 InsertAndGetIdentity(String sql) { return Session.InsertAndGetIdentity(sql); }
 
             /// <summary>执行</summary>
             /// <param name="sql">SQL语句</param>
             /// <param name="type">命令类型，默认SQL文本</param>
             /// <param name="ps">命令参数</param>
             /// <returns>影响的结果</returns>
-            public virtual Int32 Execute(String sql, CommandType type, DbParameter[] ps) { return Meta.Session.Execute(sql, type, ps); }
+            [Obsolete("=>Session")]
+            [EditorBrowsable(EditorBrowsableState.Never)]
+            public virtual Int32 Execute(String sql, CommandType type, DbParameter[] ps) { return Session.Execute(sql, type, ps); }
 
             /// <summary>执行插入语句并返回新增行的自动编号</summary>
             /// <param name="sql">SQL语句</param>
             /// <param name="type">命令类型，默认SQL文本</param>
             /// <param name="ps">命令参数</param>
             /// <returns>新增行的自动编号</returns>
-            public virtual Int64 InsertAndGetIdentity(String sql, CommandType type, DbParameter[] ps) { return Meta.Session.InsertAndGetIdentity(sql, type, ps); }
+            [Obsolete("=>Session")]
+            [EditorBrowsable(EditorBrowsableState.Never)]
+            public virtual Int64 InsertAndGetIdentity(String sql, CommandType type, DbParameter[] ps) { return Session.InsertAndGetIdentity(sql, type, ps); }
             #endregion
 
             #region 事务
             /// <summary>开始事务</summary>
             /// <returns></returns>
-            public virtual Int32 BeginTransaction() { return Meta.Session.BeginTrans(); }
+            public virtual Int32 BeginTransaction() { return Session.BeginTrans(); }
 
             /// <summary>提交事务</summary>
             /// <returns></returns>
-            public virtual Int32 Commit() { return Meta.Session.Commit(); }
+            public virtual Int32 Commit() { return Session.Commit(); }
 
             /// <summary>回滚事务</summary>
             /// <returns></returns>
-            public virtual Int32 Rollback() { return Meta.Session.Rollback(); }
+            public virtual Int32 Rollback() { return Session.Rollback(); }
             #endregion
 
             #region 参数化

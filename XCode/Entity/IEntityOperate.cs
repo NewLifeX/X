@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Data;
 using System.Data.Common;
 using XCode.Cache;
@@ -10,10 +11,15 @@ namespace XCode
     /// <summary>数据实体操作接口</summary>
     public interface IEntityOperate
     {
-        #region 属性
+        #region 主要属性
         /// <summary>实体类型</summary>
         Type EntityType { get; }
 
+        /// <summary>实体会话</summary>
+        IEntitySession Session { get; }
+        #endregion
+
+        #region 属性
         /// <summary>默认实体</summary>
         IEntity Default { get; set; }
 
@@ -218,21 +224,29 @@ namespace XCode
         /// <summary>查询</summary>
         /// <param name="sql">SQL语句</param>
         /// <returns>结果记录集</returns>
+        [Obsolete("=>Session")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         DataSet Query(String sql);
 
         /// <summary>查询记录数</summary>
         /// <param name="sql">SQL语句</param>
         /// <returns>记录数</returns>
+        [Obsolete("=>Session")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         Int32 QueryCount(String sql);
 
         /// <summary>执行</summary>
         /// <param name="sql">SQL语句</param>
         /// <returns>影响的结果</returns>
+        [Obsolete("=>Session")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         Int32 Execute(String sql);
 
         /// <summary>执行插入语句并返回新增行的自动编号</summary>
         /// <param name="sql">SQL语句</param>
         /// <returns>新增行的自动编号</returns>
+        [Obsolete("=>Session")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         Int64 InsertAndGetIdentity(String sql);
 
         /// <summary>执行</summary>
@@ -240,6 +254,8 @@ namespace XCode
         /// <param name="type">命令类型，默认SQL文本</param>
         /// <param name="ps">命令参数</param>
         /// <returns>影响的结果</returns>
+        [Obsolete("=>Session")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         Int32 Execute(String sql, CommandType type = CommandType.Text, params DbParameter[] ps);
 
         /// <summary>执行插入语句并返回新增行的自动编号</summary>
@@ -247,6 +263,8 @@ namespace XCode
         /// <param name="type">命令类型，默认SQL文本</param>
         /// <param name="ps">命令参数</param>
         /// <returns>新增行的自动编号</returns>
+        [Obsolete("=>Session")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         Int64 InsertAndGetIdentity(String sql, CommandType type = CommandType.Text, params DbParameter[] ps);
         #endregion
 

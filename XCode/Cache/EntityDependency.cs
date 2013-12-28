@@ -39,7 +39,7 @@ namespace XCode.Cache
 
         void CheckCount()
         {
-            if (Entity<TEntity>.Meta.LongCount != count)
+            if (Entity<TEntity>.Meta.Session.LongCount != count)
             {
                 NotifyDependencyChanged(this, EventArgs.Empty);
 
@@ -54,10 +54,5 @@ namespace XCode.Cache
 
             if (timer != null) timer.Dispose();
         }
-
-        //public override string GetUniqueID()
-        //{
-        //    return base.GetUniqueID();
-        //}
     }
 }

@@ -156,6 +156,7 @@ namespace XCode
         public virtual Int32 Insert(IEntity entity)
         {
             var op = EntityFactory.CreateOperate(entity.GetType());
+            var session = op.Session;
 
             // 添加数据前，处理Guid
             SetGuidField(op, entity);
@@ -171,7 +172,7 @@ namespace XCode
             var bAllow = op.AllowInsertIdentity;
             if (field != null && field.IsIdentity && !bAllow)
             {
-                Int64 res = dps != null && dps.Length > 0 ? op.InsertAndGetIdentity(sql, CommandType.Text, dps) : op.InsertAndGetIdentity(sql);
+                Int64 res = dps != null && dps.Length > 0 ? session.InsertAndGetIdentity(sql, CommandType.Text, dps) : session.InsertAndGetIdentity(sql);
                 if (res > 0) entity[field.Name] = res;
                 rs = res > 0 ? 1 : 0;
             }
@@ -187,7 +188,7 @@ namespace XCode
                         if (bAllow) sql = String.Format("SET IDENTITY_INSERT {1} ON;{0};SET IDENTITY_INSERT {1} OFF", sql, op.FormatedTableName);
                     }
                 }
-                rs = dps != null && dps.Length > 0 ? op.Execute(sql, CommandType.Text, dps) : op.Execute(sql);
+                rs = dps != null && dps.Length > 0 ? session.Execute(sql, CommandType.Text, dps) : session.Execute(sql);
             }
 
             //清除脏数据，避免连续两次调用Save造成重复提交
@@ -226,7 +227,8 @@ namespace XCode
             if (String.IsNullOrEmpty(sql)) return 0;
 
             var op = EntityFactory.CreateOperate(entity.GetType());
-            Int32 rs = dps != null && dps.Length > 0 ? op.Execute(sql, CommandType.Text, dps) : op.Execute(sql);
+            var session = op.Session;
+            Int32 rs = dps != null && dps.Length > 0 ? session.Execute(sql, CommandType.Text, dps) : session.Execute(sql);
 
             //清除脏数据，避免重复提交
             if (entity.Dirtys != null) entity.Dirtys.Clear();
@@ -242,11 +244,12 @@ namespace XCode
         public virtual Int32 Delete(IEntity entity)
         {
             var op = EntityFactory.CreateOperate(entity.GetType());
+            var session = op.Session;
 
             String sql = DefaultCondition(entity);
             if (String.IsNullOrEmpty(sql)) return 0;
 
-            return op.Execute(String.Format("Delete From {0} Where {1}", op.FormatedTableName, sql));
+            return session.Execute(String.Format("Delete From {0} Where {1}", op.FormatedTableName, sql));
         }
 
         /// <summary>把一个实体对象持久化到数据库</summary>
@@ -260,13 +263,14 @@ namespace XCode
             if (values == null) throw new ArgumentNullException("values", "属性列表和值列表不能为空");
             if (names.Length != values.Length) throw new ArgumentException("属性列表必须和值列表一一对应");
 
-            IEntityOperate op = EntityFactory.CreateOperate(entityType);
+            var op = EntityFactory.CreateOperate(entityType);
+            var session = op.Session;
 
-            Dictionary<String, FieldItem> fs = new Dictionary<String, FieldItem>(StringComparer.OrdinalIgnoreCase);
-            foreach (FieldItem fi in op.Fields)
+            var fs = new Dictionary<String, FieldItem>(StringComparer.OrdinalIgnoreCase);
+            foreach (var fi in op.Fields)
                 fs.Add(fi.Name, fi);
-            StringBuilder sbn = new StringBuilder();
-            StringBuilder sbv = new StringBuilder();
+            var sbn = new StringBuilder();
+            var sbv = new StringBuilder();
             for (Int32 i = 0; i < names.Length; i++)
             {
                 if (!fs.ContainsKey(names[i])) throw new ArgumentException("类[" + entityType.FullName + "]中不存在[" + names[i] + "]属性");
@@ -280,7 +284,7 @@ namespace XCode
                 //sbv.Append(SqlDataFormat(values[i], fs[names[i]]));
                 sbv.Append(op.FormatValue(names[i], values[i]));
             }
-            return op.Execute(String.Format("Insert Into {2}({0}) values({1})", sbn.ToString(), sbv.ToString(), op.FormatedTableName));
+            return session.Execute(String.Format("Insert Into {2}({0}) values({1})", sbn.ToString(), sbv.ToString(), op.FormatedTableName));
         }
 
         /// <summary>更新一批实体数据</summary>
@@ -293,9 +297,10 @@ namespace XCode
             if (String.IsNullOrEmpty(setClause) || !setClause.Contains("=")) throw new ArgumentException("非法参数");
 
             var op = EntityFactory.CreateOperate(entityType);
+            var session = op.Session;
             var sql = String.Format("Update {0} Set {1}", op.FormatedTableName, setClause);
             if (!String.IsNullOrEmpty(whereClause)) sql += " Where " + whereClause;
-            return op.Execute(sql);
+            return session.Execute(sql);
         }
 
         /// <summary>更新一批实体数据</summary>
@@ -321,10 +326,11 @@ namespace XCode
         public virtual Int32 Delete(Type entityType, String whereClause)
         {
             var op = EntityFactory.CreateOperate(entityType);
+            var session = op.Session;
 
             var sql = String.Format("Delete From {0}", op.FormatedTableName);
             if (!String.IsNullOrEmpty(whereClause)) sql += " Where " + whereClause;
-            return op.Execute(sql);
+            return session.Execute(sql);
         }
 
         /// <summary>从数据库中删除指定属性列表和值列表所限定的实体对象。</summary>

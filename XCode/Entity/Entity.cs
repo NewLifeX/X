@@ -1,15 +1,14 @@
 using System;
-using NewLife.Xml;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
-using System.IO;
 using System.Linq;
 using System.Text;
 using System.Xml.Serialization;
 using NewLife.IO;
 using NewLife.Reflection;
+using NewLife.Xml;
 using XCode.Common;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
@@ -54,6 +53,7 @@ namespace XCode
         /// </remarks>
         /// <param name="forEdit">是否为了编辑而创建，如果是，可以再次做一些相关的初始化工作</param>
         /// <returns></returns>
+        [Obsolete("=>IEntityOperate")]
         [EditorBrowsable(EditorBrowsableState.Advanced)]
         protected virtual TEntity CreateInstance(Boolean forEdit = false)
         {
@@ -544,7 +544,7 @@ namespace XCode
             // 如下优化，避免了每次都调用Meta.Count而导致形成一次查询，虽然这次查询时间损耗不大
             // 但是绝大多数查询，都不需要进行类似的海量数据优化，显然，这个startRowIndex将会挡住99%以上的浪费
             Int64 count = 0;
-            if (startRowIndex > 500000 && (count = Meta.LongCount) > 1000000)
+            if (startRowIndex > 500000 && (count = session.LongCount) > 1000000)
             {
                 // 计算本次查询的结果行数
                 if (!String.IsNullOrEmpty(whereClause)) count = FindCount(whereClause, orderClause, selects, startRowIndex, maximumRows);
@@ -824,19 +824,19 @@ namespace XCode
         /// <param name="value">属性值</param>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
-        public static TEntity FindWithCache(String name, Object value) { return Meta.Cache.Entities.Find(name, value); }
+        public static TEntity FindWithCache(String name, Object value) { return Meta.Session.Cache.Entities.Find(name, value); }
 
         /// <summary>查找所有缓存</summary>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
-        public static EntityList<TEntity> FindAllWithCache() { return Meta.Cache.Entities; }
+        public static EntityList<TEntity> FindAllWithCache() { return Meta.Session.Cache.Entities; }
 
         /// <summary>根据属性以及对应的值，在缓存中获取所有实体对象</summary>
         /// <param name="name">属性</param>
         /// <param name="value">值</param>
         /// <returns>实体数组</returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
-        public static EntityList<TEntity> FindAllWithCache(String name, Object value) { return Meta.Cache.Entities.FindAll(name, value); }
+        public static EntityList<TEntity> FindAllWithCache(String name, Object value) { return Meta.Session.Cache.Entities.FindAll(name, value); }
         #endregion
 
         #region 取总记录数
@@ -1198,7 +1198,7 @@ namespace XCode
         /// <summary>导入</summary>
         /// <param name="json"></param>
         /// <returns></returns>
-        [Obsolete("该成员在后续版本中将不再被支持！")]
+        //[Obsolete("该成员在后续版本中将不再被支持！")]
         public static TEntity FromJson(String json)
         {
             return new Json().Deserialize<TEntity>(json);
@@ -1215,7 +1215,8 @@ namespace XCode
         /// <returns></returns>
         public virtual TEntity CloneEntity(Boolean setDirty = false)
         {
-            var obj = CreateInstance();
+            //var obj = CreateInstance();
+            var obj = Meta.Factory.Create() as TEntity;
             foreach (var fi in Meta.Fields)
             {
                 //obj[fi.Name] = this[fi.Name];

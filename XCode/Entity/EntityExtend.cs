@@ -70,7 +70,7 @@ namespace XCode
                 // 这里使用RemoveExtend而不是匿名函数，为了避免生成包装类，事件的Target将指向包装类的实例，
                 // 而内部要对Target实行弱引用，就必须保证事件的Target是实体对象本身。
                 // OnDataChange内部对事件进行了拆分，弱引用Target，反射调用Method，那样性能较低，所以使用了快速方法访问器MethodInfoEx，
-                Entity<TDependEntity>.Meta.OnDataChange += RemoveExtend;
+                Entity<TDependEntity>.Meta.Session.OnDataChange += RemoveExtend;
             }
 
             return value;
@@ -124,7 +124,7 @@ namespace XCode
 
                 if (list.Count == 1)
                 {
-                    Entity<TDependEntity>.Meta.OnDataChange += RemoveExtend;
+                    Entity<TDependEntity>.Meta.Session.OnDataChange += RemoveExtend;
                 }
             }
         }

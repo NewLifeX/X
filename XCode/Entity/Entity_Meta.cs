@@ -15,10 +15,27 @@ namespace XCode
         /// <summary>实体元数据</summary>
         public static class Meta
         {
-            #region 基本属性
+            #region 主要属性
             /// <summary>实体类型</summary>
             internal static Type ThisType { get { return typeof(TEntity); } }
 
+            /// <summary>实体操作者</summary>
+            public static IEntityOperate Factory
+            {
+                get
+                {
+                    Type type = ThisType;
+                    if (type.IsInterface) return null;
+
+                    return EntityFactory.CreateOperate(type);
+                }
+            }
+
+            /// <summary>实体会话</summary>
+            public static EntitySession<TEntity> Session { get { return EntitySession<TEntity>.Create(ConnName, TableName); } }
+            #endregion
+
+            #region 基本属性
             /// <summary>表信息</summary>
             public static TableItem Table { get { return TableItem.Create(ThisType); } }
 
@@ -30,18 +47,6 @@ namespace XCode
                 get { return _ConnName ?? (_ConnName = Table.ConnName); }
                 set
                 {
-                    ////修改链接名，挂载当前表
-                    //if (!String.IsNullOrEmpty(value) && !_ConnName.EqualIgnoreCase(value))
-                    //{
-                    //    //try
-                    //    //{
-                    //    //    CheckTable(value, TableName);
-                    //    //}
-                    //    //catch { }
-
-                    //    // 清空记录数缓存
-                    //    ClearCountCache();
-                    //}
                     _ConnName = value;
 
                     if (String.IsNullOrEmpty(_ConnName)) _ConnName = Table.ConnName;
@@ -56,18 +61,6 @@ namespace XCode
                 get { return _TableName ?? (_TableName = Table.TableName); }
                 set
                 {
-                    ////修改表名
-                    //if (!String.IsNullOrEmpty(value) && !_TableName.EqualIgnoreCase(value))
-                    //{
-                    //    //try
-                    //    //{
-                    //    //    CheckTable(ConnName, value);
-                    //    //}
-                    //    //catch { }
-
-                    //    // 清空记录数缓存
-                    //    ClearCountCache();
-                    //}
                     _TableName = value;
 
                     if (String.IsNullOrEmpty(_TableName)) _TableName = Table.TableName;
@@ -93,27 +86,6 @@ namespace XCode
                     return null;
                 }
             }
-
-            /// <summary>实体操作者</summary>
-            public static IEntityOperate Factory
-            {
-                get
-                {
-                    Type type = ThisType;
-                    if (type.IsInterface) return null;
-
-                    return EntityFactory.CreateOperate(type);
-                }
-            }
-            #endregion
-
-            #region 实体会话
-            /// <summary>实体会话</summary>
-            public static EntitySession<TEntity> Session { get { return EntitySession<TEntity>.Create(ConnName, TableName); } }
-
-            //private static EntityHandlerManager _Handler;
-            ///// <summary>实体处理器集合</summary>
-            //public static EntityHandlerManager Handler { get { return _Handler ?? (_Handler = new EntityHandlerManager()); } }
             #endregion
 
             #region 数据库操作
@@ -163,25 +135,10 @@ namespace XCode
             [Obsolete("=>Session")]
             public static Int64 InsertAndGetIdentity(String sql, CommandType type = CommandType.Text, params DbParameter[] ps) { return Session.InsertAndGetIdentity(sql, type, ps); }
 
-            //private static Action<Type> _OnDataChange;
             /// <summary>数据改变后触发。参数指定触发该事件的实体类</summary>
             [Obsolete("=>Session")]
             [EditorBrowsable(EditorBrowsableState.Never)]
-            public static event Action<Type> OnDataChange
-            {
-                add
-                {
-                    Session.OnDataChange += value;
-                    //if (value != null)
-                    //{
-                    //    // 这里不能对委托进行弱引用，因为GC会回收委托，应该改为对对象进行弱引用
-                    //    //WeakReference<Action<Type>> w = value;
-
-                    //    _OnDataChange += new WeakAction<Type>(value, handler => { _OnDataChange -= handler; }, true);
-                    //}
-                }
-                remove { }
-            }
+            public static event Action<Type> OnDataChange { add { Session.OnDataChange += value; } remove { } }
 
             /// <summary>检查并初始化数据。参数等待时间为0表示不等待</summary>
             /// <param name="ms">等待时间，-1表示不限，0表示不等待</param>
@@ -210,10 +167,10 @@ namespace XCode
             [EditorBrowsable(EditorBrowsableState.Never)]
             public static Int32 Rollback() { return Session.Rollback(); }
 
-            /// <summary>是否在事务保护中</summary>
-            [Obsolete("=>Session")]
-            [EditorBrowsable(EditorBrowsableState.Never)]
-            internal static Boolean UsingTrans { get { return Session.TransCount > 0; } }
+            ///// <summary>是否在事务保护中</summary>
+            //[Obsolete("=>Session")]
+            //[EditorBrowsable(EditorBrowsableState.Never)]
+            //internal static Boolean UsingTrans { get { return Session.TransCount > 0; } }
             #endregion
 
             #region 参数化
@@ -254,17 +211,25 @@ namespace XCode
             #region 缓存
             /// <summary>实体缓存</summary>
             /// <returns></returns>
+            //[Obsolete("=>Session")]
+            //[EditorBrowsable(EditorBrowsableState.Never)]
             public static EntityCache<TEntity> Cache { get { return Session.Cache; } }
 
             /// <summary>单对象实体缓存。
             /// 建议自定义查询数据方法，并从二级缓存中获取实体数据，以抵消因初次填充而带来的消耗。
             /// </summary>
+            //[Obsolete("=>Session")]
+            //[EditorBrowsable(EditorBrowsableState.Never)]
             public static SingleEntityCache<Object, TEntity> SingleCache { get { return Session.SingleCache; } }
 
             /// <summary>总记录数，小于1000时是精确的，大于1000时缓存10分钟</summary>
-            public static Int32 Count { get { return (Int32)LongCount; } }
+            //[Obsolete("=>Session")]
+            //[EditorBrowsable(EditorBrowsableState.Never)]
+            public static Int32 Count { get { return (Int32)Session.LongCount; } }
 
             /// <summary>总记录数，小于1000时是精确的，大于1000时缓存10分钟</summary>
+            [Obsolete("=>Session")]
+            [EditorBrowsable(EditorBrowsableState.Never)]
             public static Int64 LongCount { get { return Session.LongCount; } }
             #endregion
         }
