@@ -2,15 +2,11 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
-using System.IO;
-using System.Linq;
 using System.Text;
 using System.Xml.Serialization;
-using NewLife.Collections;
 using NewLife.IO;
-using NewLife.Reflection;
-using XCode.Common;
 using NewLife.Xml;
+using XCode.Common;
 using XCode.Model;
 
 namespace XCode
@@ -91,16 +87,13 @@ namespace XCode
         }
         #endregion
 
-        #region 导入导出XML
+        #region 导入导出XML、Json
         /// <summary>导出XML</summary>
         /// <returns></returns>
         public virtual String ToXml() { return this.ToXml(Encoding.UTF8, "", ""); }
-        #endregion
 
-        #region 导入导出Json
         /// <summary>导出Json</summary>
         /// <returns></returns>
-        [Obsolete("该成员在后续版本中将不再被支持！")]
         public virtual String ToJson()
         {
             Json json = new Json();
@@ -130,23 +123,29 @@ namespace XCode
         public virtual Int32 CopyFrom(IEntity entity, Boolean setDirty = true)
         {
             IEntity src = this;
-            var names1 = EntityFactory.CreateOperate(src.GetType()).FieldNames;
-            if (names1 == null || names1.Count < 1) return 0;
-            var names2 = EntityFactory.CreateOperate(entity.GetType()).FieldNames;
-            if (names2 == null || names2.Count < 1) return 0;
+            var nsSrc = EntityFactory.CreateOperate(src.GetType()).FieldNames;
+            //if (nsSrc == null || nsSrc.Count < 1) return 0;
+            var nsDes = EntityFactory.CreateOperate(entity.GetType()).FieldNames;
+            if (nsDes == null || nsDes.Count < 1) return 0;
 
             Int32 n = 0;
-            foreach (var item in names1)
+            foreach (var item in nsDes)
             {
-                if (names2.Contains(item))
+                if (nsSrc.Contains(item))
                 {
                     if (setDirty)
                         src.SetItem(item, entity[item]);
                     else
                         src[item] = entity[item];
-
-                    n++;
                 }
+                else
+                {
+                    // 如果没有该字段，则写入到扩展属性里面去
+                    src.Extends[item] = entity[item];
+                    if (setDirty) Dirtys[item] = true;
+                }
+
+                n++;
             }
             // 赋值扩展数据
             if (entity.Extends != null)
