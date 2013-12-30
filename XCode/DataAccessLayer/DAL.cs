@@ -303,7 +303,6 @@ namespace XCode.DataAccessLayer
 
             try
             {
-                //DatabaseSchema.Check(Db);
                 SetTables();
             }
             catch (Exception ex)
@@ -402,14 +401,10 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public IEntityOperate CreateOperate(String tableName)
         {
-            //var asm = EntityAssembly.Create(ConnName, Tables);
             var asm = Assembly;
             if (asm == null) return null;
-            //Type type = TypeX.GetType(asm, tableName);
-            //var type = AssemblyX.Create(asm).GetType(tableName);
             var type = asm.GetType(tableName);
             if (type == null)
-                //return EntityFactory.CreateOperate(tableName);
                 return null;
             else
                 return EntityFactory.CreateOperate(type);
