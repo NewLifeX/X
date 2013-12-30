@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using System.Linq;
 using NewLife.Collections;
 using NewLife.Reflection;
 
@@ -111,23 +112,38 @@ namespace System
         {
             if (target == null) return default(TResult);
 
-            var list = CustomAttributeData.GetCustomAttributes(target);
-
-            if (list != null && list.Count > 0)
+            try
             {
-                foreach (var item in list)
+                var list = CustomAttributeData.GetCustomAttributes(target);
+                if (list != null && list.Count > 0)
                 {
-                    if (!TypeX.Equal(typeof(TAttribute), item.Constructor.DeclaringType)) continue;
+                    foreach (var item in list)
+                    {
+                        if (!TypeX.Equal(typeof(TAttribute), item.Constructor.DeclaringType)) continue;
 
-                    var args = item.ConstructorArguments;
-                    if (args != null && args.Count > 0) return (TResult)args[0].Value;
+                        var args = item.ConstructorArguments;
+                        if (args != null && args.Count > 0) return (TResult)args[0].Value;
+                    }
+                }
+                if (inherit && target is Type)
+                {
+                    target = (target as Type).BaseType;
+                    if (target != null && target != typeof(Object))
+                        return GetCustomAttributeValue<TAttribute, TResult>(target, inherit);
                 }
             }
-            if (inherit && target is Type)
+            catch
             {
-                target = (target as Type).BaseType;
-                if (target != null && target != typeof(Object))
-                    return GetCustomAttributeValue<TAttribute, TResult>(target, inherit);
+                // 出错以后，如果不是仅反射加载，可以考虑正面来一次
+                if (!target.Module.Assembly.ReflectionOnly)
+                {
+                    var att = GetCustomAttribute<TAttribute>(target, inherit);
+                    if (att != null)
+                    {
+                        var pi = typeof(TAttribute).GetProperties().FirstOrDefault(p => p.PropertyType == typeof(TResult));
+                        if (pi != null) return (TResult)att.GetValue(pi);
+                    }
+                }
             }
 
             return default(TResult);

@@ -161,7 +161,6 @@
     <Compile Include="Reflection\IIndex.cs" />
     <Compile Include="Reflection\IReflect.cs" />
     <Compile Include="Reflection\Reflect.cs" />
-    <Compile Include="Reflection\ReflectHelper.cs" />
     <Compile Include="Reflection\快速反射\EventInfoX.cs" />
     <Compile Include="Reflection\OrcasNamer.cs" />
     <Compile Include="Reflection\TypeResolver.cs" />
