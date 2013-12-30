@@ -66,7 +66,7 @@ namespace XCode
         /// <param name="type">类型</param>
         /// <param name="entity"></param>
         /// <returns></returns>
-        internal static IEntityOperate Register(Type type, IEntityOperate entity)
+        public static IEntityOperate Register(Type type, IEntityOperate entity)
         {
             if (entity == null) return CreateOperate(type);
 
