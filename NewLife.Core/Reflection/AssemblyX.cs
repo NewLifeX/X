@@ -350,7 +350,8 @@ namespace NewLife.Reflection
 
             // 如果基类所在程序集没有强命名，则搜索时跳过所有强命名程序集
             // 因为继承类程序集的强命名要求基类程序集必须强命名
-            var hasNotSign = baseType.Assembly.GetName().GetPublicKey() == null;
+            var signs = baseType.Assembly.GetName().GetPublicKey();
+            var hasNotSign = signs == null || signs.Length <= 0;
 
             var list = new List<Type>();
             foreach (var item in GetAssemblies())
