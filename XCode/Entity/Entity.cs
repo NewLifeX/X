@@ -215,18 +215,16 @@ namespace XCode
         {
             var session = Meta.Session;
 
-            session.BeginTrans();
-            try
+            using (var trans = new EntityTransaction<TEntity>())
             {
                 if (isnew != null && enableValid) Valid(isnew.Value);
 
                 Int32 rs = func();
 
-                session.Commit();
+                trans.Commit();
 
                 return rs;
             }
-            catch { session.Rollback(); throw; }
         }
 
         /// <summary>保存。根据主键检查数据库中是否已存在该对象，再决定调用Insert或Update</summary>
