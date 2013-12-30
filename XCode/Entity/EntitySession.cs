@@ -150,43 +150,55 @@ namespace XCode
         #endregion
 
         #region 架构检查
-        //private void CheckTable()
-        //{
-        //    // 检查新表名对应的数据表
-        //    var table = Table.DataTable;
-        //    // 克隆一份，防止修改
-        //    table = table.Clone() as IDataTable;
+        private void CheckTable()
+        {
+#if DEBUG
+            DAL.WriteLog("开始{2}检查表[{0}/{1}]的数据表架构……", Table.DataTable.Name, Dal.Db.DbType, DAL.NegativeCheckOnly ? "异步" : "同步");
+#endif
 
-        //    if (table.TableName != TableName)
-        //    {
-        //        // 修改一下索引名，否则，可能因为同一个表里面不同的索引冲突
-        //        if (table.Indexes != null)
-        //        {
-        //            foreach (var di in table.Indexes)
-        //            {
-        //                var sb = new StringBuilder();
-        //                sb.AppendFormat("IX_{0}", TableName);
-        //                foreach (var item in di.Columns)
-        //                {
-        //                    sb.Append("_");
-        //                    sb.Append(item);
-        //                }
+            var sw = new Stopwatch();
+            sw.Start();
 
-        //                di.Name = sb.ToString();
-        //            }
-        //        }
-        //        table.TableName = TableName;
-        //    }
+            try
+            {
+                // 检查新表名对应的数据表
+                var table = Table.DataTable;
+                // 克隆一份，防止修改
+                table = table.Clone() as IDataTable;
 
-        //    //var set = new NegativeSetting();
-        //    //set.CheckOnly = DAL.NegativeCheckOnly;
-        //    //set.NoDelete = DAL.NegativeNoDelete;
-        //    //DAL.Create(connName).Db.CreateMetaData().SetTables(set, table);
+                if (table.TableName != TableName)
+                {
+                    // 修改一下索引名，否则，可能因为同一个表里面不同的索引冲突
+                    if (table.Indexes != null)
+                    {
+                        foreach (var di in table.Indexes)
+                        {
+                            var sb = new StringBuilder();
+                            sb.AppendFormat("IX_{0}", TableName);
+                            foreach (var item in di.Columns)
+                            {
+                                sb.Append("_");
+                                sb.Append(item);
+                            }
 
-        //    var dal = DAL.Create(ConnName);
-        //    if (!dal.HasCheckTables.Contains(TableName)) dal.HasCheckTables.Add(TableName);
-        //    DAL.Create(ConnName).SetTables(table);
-        //}
+                            di.Name = sb.ToString();
+                        }
+                    }
+                    table.TableName = TableName;
+                }
+
+                if (!Dal.HasCheckTables.Contains(TableName)) Dal.HasCheckTables.Add(TableName);
+                Dal.SetTables(table);
+            }
+            finally
+            {
+                sw.Stop();
+
+#if DEBUG
+                DAL.WriteLog("检查表[{0}/{1}]的数据表架构耗时{2:n0}ms", Table.DataTable.Name, Dal.DbType, sw.Elapsed.TotalMilliseconds);
+#endif
+            }
+        }
 
         private Boolean IsGenerated { get { return ThisType.GetCustomAttribute<CompilerGeneratedAttribute>(true) != null; } }
         Boolean hasCheckModel = false;
@@ -233,39 +245,12 @@ namespace XCode
 
                 if (ck)
                 {
-                    Func check = delegate
-                    {
-#if DEBUG
-                        DAL.WriteLog("开始{2}检查表[{0}/{1}]的数据表架构……", Table.DataTable.Name, dal.Db.DbType, DAL.NegativeCheckOnly ? "异步" : "同步");
-#endif
-
-                        var sw = new Stopwatch();
-                        sw.Start();
-
-                        try
-                        {
-                            //var set = new NegativeSetting();
-                            //set.CheckOnly = DAL.NegativeCheckOnly;
-                            //set.NoDelete = DAL.NegativeNoDelete;
-                            //Dal.Db.CreateMetaData().SetTables(set, Table.DataTable);
-                            dal.SetTables(Table.DataTable);
-                        }
-                        finally
-                        {
-                            sw.Stop();
-
-#if DEBUG
-                            DAL.WriteLog("检查表[{0}/{1}]的数据表架构耗时{2:n0}ms", Table.DataTable.Name, dal.Db.DbType, sw.Elapsed.TotalMilliseconds);
-#endif
-                        }
-                    };
-
                     // 打开了开关，并且设置为true时，使用同步方式检查
                     // 设置为false时，使用异步方式检查，因为上级的意思是不大关心数据库架构
                     if (!DAL.NegativeCheckOnly)
-                        check();
+                        CheckTable();
                     else
-                        ThreadPoolX.QueueUserWorkItem(check);
+                        ThreadPoolX.QueueUserWorkItem(CheckTable);
                 }
 
                 hasCheckModel = true;
