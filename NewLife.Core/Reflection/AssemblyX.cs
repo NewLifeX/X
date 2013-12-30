@@ -325,18 +325,6 @@ namespace NewLife.Reflection
             }
         }
 
-        ///// <summary>查找所有非系统程序集中的所有插件</summary>
-        ///// <param name="type">类型</param>
-        ///// <returns></returns>
-        //public static IEnumerable<Type> FindAllPlugins(Type type) { return FindAllPlugins(type, false); }
-
-        ///// <summary>查找所有非系统程序集中的所有插件</summary>
-        ///// <remarks>继承类所在的程序集会引用baseType所在的程序集，利用这一点可以做一定程度的性能优化。</remarks>
-        ///// <param name="baseType"></param>
-        ///// <param name="isLoadAssembly">是否从未加载程序集中获取类型。使用仅反射的方法检查目标类型，如果存在，则进行常规加载</param>
-        ///// <returns></returns>
-        //public static IEnumerable<Type> FindAllPlugins(Type baseType, Boolean isLoadAssembly) { return FindAllPlugins(baseType, isLoadAssembly, true); }
-
         /// <summary>查找所有非系统程序集中的所有插件</summary>
         /// <remarks>继承类所在的程序集会引用baseType所在的程序集，利用这一点可以做一定程度的性能优化。</remarks>
         /// <param name="baseType"></param>
@@ -356,7 +344,8 @@ namespace NewLife.Reflection
             var list = new List<Type>();
             foreach (var item in GetAssemblies())
             {
-                if (hasNotSign && item.Asm.GetName().GetPublicKey() != null) continue;
+                signs = item.Asm.GetName().GetPublicKey();
+                if (hasNotSign && signs != null && signs.Length > 0) continue;
 
                 // 如果excludeGlobalTypes为true，则指检查来自非GAC引用的程序集
                 if (excludeGlobalTypes && item.Asm.GlobalAssemblyCache) continue;
