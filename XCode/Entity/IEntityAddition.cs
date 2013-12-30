@@ -9,6 +9,7 @@ namespace XCode
     public interface IEntityAddition
     {
         #region 属性
+        /// <summary>实体对象</summary>
         IEntity Entity { get; set; }
         #endregion
 
@@ -230,6 +231,7 @@ namespace XCode
         }
 
         /// <summary>尝试获取累加数据</summary>
+        /// <param name="entity">实体对象</param>
         /// <param name="name">字段名称</param>
         /// <param name="value">累加数据绝对值</param>
         /// <param name="sign">正负</param>
