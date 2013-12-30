@@ -33,55 +33,22 @@ namespace XCode.DataAccessLayer
 
             ConnStr = ConnStrs[connName].ConnectionString;
             if (String.IsNullOrEmpty(ConnStr)) throw new XCodeException("请在使用数据库前设置[" + connName + "]连接字符串");
-
-            //// 创建数据库访问对象的时候，就开始检查数据库架构
-            //// 尽管这样会占用大量时间，但这种情况往往只存在于安装部署的时候
-            //// 要尽可能的减少非安装阶段的时间占用
-            //try
-            //{
-            //    //DatabaseSchema.Check(Db);
-            //    SetTables();
-            //}
-            //catch (Exception ex)
-            //{
-            //    if (Debug) WriteLog(ex.ToString());
-            //}
         }
 
         private static Dictionary<String, DAL> _dals = new Dictionary<String, DAL>(StringComparer.OrdinalIgnoreCase);
         /// <summary>创建一个数据访问层对象。</summary>
-        /// <param name="connName">配置名，或链接字符串</param>
+        /// <param name="connName">配置名</param>
         /// <returns>对应于指定链接的全局唯一的数据访问层对象</returns>
-        /// 2012.11.05 修正在WINFORM程序中，动态调整连接字后，无法生效的问题。BY HUIYUE
         public static DAL Create(String connName)
         {
             if (String.IsNullOrEmpty(connName)) throw new ArgumentNullException("connName");
 
+            // 如果需要修改一个DAL的连接字符串，不应该修改这里，而是修改DAL实例的ConnStr属性
             DAL dal = null;
-            if (_dals.TryGetValue(connName, out dal))
-            {
-                if (dal.ConnStr.Equals(ConnStrs[connName].ConnectionString))
-                {
-                    return dal;
-                }
-            }
+            if (_dals.TryGetValue(connName, out dal)) return dal;
             lock (_dals)
             {
-                if (_dals.TryGetValue(connName, out dal))
-                {
-                    if (dal.ConnStr.Equals(ConnStrs[connName].ConnectionString))
-                    {
-                        return dal;
-                    }
-                    else
-                    {
-                        _dals.Remove(connName);
-                    }
-                }
-
-                ////检查数据库最大连接数授权。
-                //if (License.DbConnectCount != _dals.Count + 1)
-                //    License.DbConnectCount = _dals.Count + 1;
+                if (_dals.TryGetValue(connName, out dal)) return dal;
 
                 dal = new DAL(connName);
                 // 不用connName，因为可能在创建过程中自动识别了ConnName
@@ -95,6 +62,9 @@ namespace XCode.DataAccessLayer
         private static Dictionary<String, ConnectionStringSettings> _connStrs;
         private static Dictionary<String, Type> _connTypes = new Dictionary<String, Type>(StringComparer.OrdinalIgnoreCase);
         /// <summary>链接字符串集合</summary>
+        /// <remarks>
+        /// 如果需要修改一个DAL的连接字符串，不应该修改这里，而是修改DAL实例的<see cref="ConnStr"/>属性
+        /// </remarks>
         public static Dictionary<String, ConnectionStringSettings> ConnStrs
         {
             get
@@ -103,21 +73,19 @@ namespace XCode.DataAccessLayer
                 lock (_connStrs_lock)
                 {
                     if (_connStrs != null) return _connStrs;
-                    Dictionary<String, ConnectionStringSettings> cs = new Dictionary<String, ConnectionStringSettings>(StringComparer.OrdinalIgnoreCase);
+                    var cs = new Dictionary<String, ConnectionStringSettings>(StringComparer.OrdinalIgnoreCase);
 
                     // 读取配置文件
-                    ConnectionStringSettingsCollection css = ConfigurationManager.ConnectionStrings;
+                    var css = ConfigurationManager.ConnectionStrings;
                     if (css != null && css.Count > 0)
                     {
                         foreach (ConnectionStringSettings set in css)
                         {
+                            if (set.ConnectionString.IsNullOrWhiteSpace()) continue;
                             if (set.Name == "LocalSqlServer") continue;
                             if (set.Name == "LocalMySqlServer") continue;
-                            if (String.IsNullOrEmpty(set.ConnectionString)) continue;
-                            if (String.IsNullOrEmpty(set.ConnectionString.Trim())) continue;
 
-                            Type type = DbFactory.GetProviderType(set.ConnectionString, set.ProviderName);
-                            //if (type == null) throw new XCodeException("无法识别的提供者" + set.ProviderName + "！");
+                            var type = DbFactory.GetProviderType(set.ConnectionString, set.ProviderName);
                             if (type == null) XTrace.WriteLine("无法识别{0}的提供者{1}！", set.Name, set.ProviderName);
 
                             cs.Add(set.Name, set);
@@ -179,10 +147,12 @@ namespace XCode.DataAccessLayer
                 return db.DbType;
             }
         }
-        //public DatabaseType DbType { get { return Db.DbType; } }
 
         private String _ConnStr;
         /// <summary>连接字符串</summary>
+        /// <remarks>
+        /// 修改连接字符串将会清空<see cref="Db"/>
+        /// </remarks>
         public String ConnStr
         {
             get { return _ConnStr; }
@@ -191,7 +161,10 @@ namespace XCode.DataAccessLayer
                 if (_ConnStr != value)
                 {
                     _ConnStr = value;
+                    _ProviderType = null;
                     _Db = null;
+
+                    AddConnStr(ConnName, _ConnStr, null, null);
                 }
             }
         }
@@ -208,9 +181,6 @@ namespace XCode.DataAccessLayer
                 if (type == null) throw new XCodeException("无法识别{0}的数据提供者！", ConnName);
 
                 _Db = type.CreateInstance() as IDatabase;
-                //// 使用鸭子类型，避免因接口版本差异而导致无法使用
-                //_Db = TypeX.ChangeType<IDatabase>(type.CreateInstance());
-                // 不为空才设置连接字符串，因为可能有内部包装
                 if (!String.IsNullOrEmpty(ConnName)) _Db.ConnName = ConnName;
                 if (!String.IsNullOrEmpty(ConnStr)) _Db.ConnectionString = DecodeConnStr(ConnStr);
 
@@ -250,7 +220,6 @@ namespace XCode.DataAccessLayer
                     c >= '0' && c <= '9' ||
                     c == '+' || c == '/' || c == '=')) return connstr;
             }
-            //if (!connstr.Any(c => !(c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c >= '0' && c <= '9' || c == '+' || c == '\\' || c == '='))) return connstr;
 
             Byte[] bts = null;
             try

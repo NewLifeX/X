@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Diagnostics;
@@ -131,7 +130,7 @@ namespace XCode
 
             try
             {
-                var entity = EntityFactory.CreateOperate(ThisType).Default as EntityBase;
+                var entity = Operate.Default as EntityBase;
                 if (entity != null) entity.InitData();
             }
             catch (Exception ex)
@@ -151,43 +150,43 @@ namespace XCode
         #endregion
 
         #region 架构检查
-        private void CheckTable()
-        {
-            // 检查新表名对应的数据表
-            var table = TableItem.Create(ThisType).DataTable;
-            // 克隆一份，防止修改
-            table = table.Clone() as IDataTable;
+        //private void CheckTable()
+        //{
+        //    // 检查新表名对应的数据表
+        //    var table = Table.DataTable;
+        //    // 克隆一份，防止修改
+        //    table = table.Clone() as IDataTable;
 
-            if (table.TableName != TableName)
-            {
-                // 修改一下索引名，否则，可能因为同一个表里面不同的索引冲突
-                if (table.Indexes != null)
-                {
-                    foreach (var di in table.Indexes)
-                    {
-                        var sb = new StringBuilder();
-                        sb.AppendFormat("IX_{0}", TableName);
-                        foreach (var item in di.Columns)
-                        {
-                            sb.Append("_");
-                            sb.Append(item);
-                        }
+        //    if (table.TableName != TableName)
+        //    {
+        //        // 修改一下索引名，否则，可能因为同一个表里面不同的索引冲突
+        //        if (table.Indexes != null)
+        //        {
+        //            foreach (var di in table.Indexes)
+        //            {
+        //                var sb = new StringBuilder();
+        //                sb.AppendFormat("IX_{0}", TableName);
+        //                foreach (var item in di.Columns)
+        //                {
+        //                    sb.Append("_");
+        //                    sb.Append(item);
+        //                }
 
-                        di.Name = sb.ToString();
-                    }
-                }
-                table.TableName = TableName;
-            }
+        //                di.Name = sb.ToString();
+        //            }
+        //        }
+        //        table.TableName = TableName;
+        //    }
 
-            //var set = new NegativeSetting();
-            //set.CheckOnly = DAL.NegativeCheckOnly;
-            //set.NoDelete = DAL.NegativeNoDelete;
-            //DAL.Create(connName).Db.CreateMetaData().SetTables(set, table);
+        //    //var set = new NegativeSetting();
+        //    //set.CheckOnly = DAL.NegativeCheckOnly;
+        //    //set.NoDelete = DAL.NegativeNoDelete;
+        //    //DAL.Create(connName).Db.CreateMetaData().SetTables(set, table);
 
-            var dal = DAL.Create(ConnName);
-            if (!dal.HasCheckTables.Contains(TableName)) dal.HasCheckTables.Add(TableName);
-            DAL.Create(ConnName).SetTables(table);
-        }
+        //    var dal = DAL.Create(ConnName);
+        //    if (!dal.HasCheckTables.Contains(TableName)) dal.HasCheckTables.Add(TableName);
+        //    DAL.Create(ConnName).SetTables(table);
+        //}
 
         private Boolean IsGenerated { get { return ThisType.GetCustomAttribute<CompilerGeneratedAttribute>(true) != null; } }
         Boolean hasCheckModel = false;
