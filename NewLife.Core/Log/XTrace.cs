@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
@@ -8,7 +7,6 @@ using System.Text;
 using System.Threading;
 using System.Windows.Forms;
 using NewLife.Configuration;
-using NewLife.Exceptions;
 using NewLife.Reflection;
 
 namespace NewLife.Log
@@ -59,10 +57,6 @@ namespace NewLife.Log
 
             Log.Error("{0}", ex);
         }
-
-        ///// <summary>输出异常日志</summary>
-        ///// <param name="ex">异常信息</param>
-        //public static void WriteExceptionWhenDebug(Exception ex) { if (Debug) WriteException(ex); }
 
         /// <summary>写日志事件。</summary>
         [Obsolete("请直接使用CompositeLog实现赋值给Log属性")]

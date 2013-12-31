@@ -80,23 +80,6 @@ namespace NewLife.Model
 
             if (disposing)
             {
-                //var ps = _Plugins;
-                //_Plugins = null;
-                //if (ps != null && ps.Count > 0)
-                //{
-                //    foreach (var item in ps)
-                //    {
-                //        if (item is IDisposable)
-                //        {
-                //            try
-                //            {
-                //                (item as IDisposable).Dispose();
-                //            }
-                //            catch { }
-                //        }
-                //    }
-                //}
-
                 _Plugins.TryDispose();
                 _Plugins = null;
             }
