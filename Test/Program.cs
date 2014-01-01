@@ -40,7 +40,7 @@ namespace Test
                 try
                 {
 #endif
-                Test11();
+                    Test11();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -450,10 +450,11 @@ namespace Test
         static void Test11()
         {
             var admin = Administrator.FindAllWithCache()[0];
-            var xml = admin.ToXml();
-            Console.WriteLine(xml);
-            var e = Administrator.FromXml(xml);
-            Console.WriteLine(e);
+            var bs = new Binary();
+            bs.Write(admin);
+            bs.Stream.Position = 0;
+            var buf = bs.Stream.ReadBytes();
+            Console.WriteLine(buf.ToHex());
         }
     }
 }

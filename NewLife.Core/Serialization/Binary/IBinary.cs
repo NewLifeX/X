@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Text;
+using System.Collections.Generic;
 
 namespace NewLife.Serialization
 {
-    /// <summary>二进制读写接口</summary>
-    public interface IBinaryReadWrite
+    /// <summary>二进制序列化接口</summary>
+    public interface IBinary
     {
+        #region 属性
         /// <summary>编码整数</summary>
         Boolean EncodeInt { get; }
 
@@ -15,6 +17,11 @@ namespace NewLife.Serialization
         /// <summary>文本编码</summary>
         Encoding Encoding { get; }
 
+        /// <summary>处理器列表</summary>
+        List<IBinaryHandler> Handlers { get; }
+        #endregion
+
+        #region 写入
         /// <summary>写入一个对象</summary>
         /// <param name="value"></param>
         /// <returns></returns>
@@ -23,19 +30,26 @@ namespace NewLife.Serialization
         /// <summary>写入字节</summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        Boolean Write(Byte value);
+        void Write(Byte value);
+
+        /// <summary>将字节数组部分写入当前流，不写入数组长度。</summary>
+        /// <param name="buffer">包含要写入的数据的字节数组。</param>
+        /// <param name="offset">buffer 中开始写入的起始点。</param>
+        /// <param name="count">要写入的字节数。</param>
+        void Write(Byte[] buffer, int offset, int count);
 
         /// <summary>写入大小</summary>
         /// <param name="size"></param>
         /// <returns></returns>
         Boolean WriteSize(Int32 size);
+        #endregion
     }
 
     /// <summary>二进制读写处理器接口</summary>
-    public interface IBinaryReadWriteHandler
+    public interface IBinaryHandler
     {
         /// <summary>宿主读写器</summary>
-        IBinaryReadWrite Host { get; set; }
+        IBinary Host { get; set; }
 
         /// <summary>写入一个对象</summary>
         /// <param name="value"></param>
@@ -49,11 +63,11 @@ namespace NewLife.Serialization
     }
 
     /// <summary>二进制读写处理器基类</summary>
-    public abstract class BinaryReadWriteHandlerBase : IBinaryReadWriteHandler
+    public abstract class BinaryHandlerBase : IBinaryHandler
     {
-        private IBinaryReadWrite _Host;
+        private IBinary _Host;
         /// <summary>宿主读写器</summary>
-        public IBinaryReadWrite Host { get { return _Host; } set { _Host = value; } }
+        public IBinary Host { get { return _Host; } set { _Host = value; } }
 
         /// <summary>写入一个对象</summary>
         /// <param name="value"></param>

@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace NewLife.Serialization.Binary
+namespace NewLife.Serialization
 {
     /// <summary>二进制基础类型处理器</summary>
-    public class BinaryGeneral : BinaryReadWriteHandlerBase
+    public class BinaryGeneral : BinaryHandlerBase
     {
         /// <summary>写入一个对象</summary>
         /// <param name="value">目标对象</param>
@@ -90,11 +90,7 @@ namespace NewLife.Serialization.Binary
         /// <param name="value">要写入的无符号字节。</param>
         public virtual void Write(Byte value)
         {
-            //SetDebugIndent();
-
             Host.Write(value);
-
-            //AutoFlush();
         }
 
         /// <summary>将字节数组写入，如果设置了UseSize，则先写入数组长度。</summary>
@@ -118,16 +114,18 @@ namespace NewLife.Serialization.Binary
 
         /// <summary>将字节数组部分写入当前流，不写入数组长度。</summary>
         /// <param name="buffer">包含要写入的数据的字节数组。</param>
-        /// <param name="index">buffer 中开始写入的起始点。</param>
+        /// <param name="offset">buffer 中开始写入的起始点。</param>
         /// <param name="count">要写入的字节数。</param>
-        public virtual void Write(byte[] buffer, int index, int count)
+        public virtual void Write(byte[] buffer, int offset, int count)
         {
-            if (buffer == null || buffer.Length < 1 || count <= 0 || index >= buffer.Length) return;
+            if (buffer == null || buffer.Length < 1 || count <= 0 || offset >= buffer.Length) return;
 
-            for (int i = 0; i < count && index + i < buffer.Length; i++)
-            {
-                Write(buffer[index + i]);
-            }
+            //for (int i = 0; i < count && offset + i < buffer.Length; i++)
+            //{
+            //    Write(buffer[offset + i]);
+            //}
+
+            Host.Write(buffer, offset, count);
         }
 
         /// <summary>写入字节数组，自动计算长度</summary>
