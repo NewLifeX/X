@@ -45,7 +45,6 @@ namespace NewLife.Serialization
 
         /// <summary>将一个有符号字节写入当前流，并将流的位置提升 1 个字节。</summary>
         /// <param name="value">要写入的有符号字节。</param>
-        //[CLSCompliant(false)]
         public virtual void Write(sbyte value) { Write((Byte)value); }
 
         /// <summary>将字节数组部分写入当前流，不写入数组长度。</summary>

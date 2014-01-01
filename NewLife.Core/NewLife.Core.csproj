@@ -71,7 +71,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Cctor.cs" />
     <Compile Include="Collections\DictionaryCache.cs" />
     <Compile Include="Collections\HashSet.cs" />
     <Compile Include="Collections\IStack.cs" />
@@ -180,7 +179,6 @@
     <Compile Include="Serialization\Binary\BinaryWriterX.cs" />
     <Compile Include="Serialization\Binary\BinaryComposite.cs" />
     <Compile Include="Serialization\Binary\FieldSizeAttribute.cs" />
-    <None Include="Serialization\Binary\FieldExtendAttribute.cs" />
     <Compile Include="Serialization\Binary\BinaryGeneral.cs" />
     <Compile Include="Serialization\Binary\IBinarySerialize.cs" />
     <Compile Include="Serialization\Interface\IReader2.cs" />
@@ -241,7 +239,6 @@
     <Compile Include="Reflection\快速反射\TypeX.cs" />
     <Compile Include="Common\WeakReference.cs" />
     <Compile Include="Event\EventArgs.cs" />
-    <Compile Include="InlineIL.cs" />
     <Compile Include="IO\ReadWriteMemoryStream.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Reflection\FastIndexAccessor.cs" />

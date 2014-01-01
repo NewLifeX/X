@@ -20,12 +20,7 @@ namespace NewLife.Serialization
             {
                 if (String.IsNullOrEmpty(_Name))
                 {
-                    _Name = this.GetType().Name;
-                    //if (_Name.EndsWith("Reader", StringComparison.OrdinalIgnoreCase))
-                    //    _Name = _Name.Substring(0, _Name.Length - "Reader".Length);
-                    //if (_Name.EndsWith("Writer", StringComparison.OrdinalIgnoreCase))
-                    //    _Name = _Name.Substring(0, _Name.Length - "Writer".Length);
-                    _Name = _Name.TrimEnd("Reader", "Writer");
+                    _Name = this.GetType().Name.TrimEnd("Reader", "Writer");
                 }
                 return _Name;
             }
@@ -194,26 +189,11 @@ namespace NewLife.Serialization
         public event EventHandler<EventArgs<Type, Object, IObjectMemberInfo[]>> OnGotMembers;
         #endregion
 
-        #region 对象默认值
-        ///// <summary>判断一个对象的某个成员是否默认值</summary>
-        ///// <param name="value">数值</param>
-        ///// <param name="member"></param>
-        ///// <returns></returns>
-        //internal static Boolean IsDefault(Object value, IObjectMemberInfo member)
-        //{
-        //    if (value == null) return false;
-
-        //    Object def = ObjectInfo.GetDefaultObject(value.GetType());
-        //    return Object.Equals(member[value], member[def]);
-        //}
-        #endregion
-
         #region 方法
         /// <summary>已重载。增加输出设置信息</summary>
         /// <returns></returns>
         public override string ToString()
         {
-            //var msg = base.ToString();
             var msg = this.GetType().Name;
 
             var ms = Stream;
@@ -329,27 +309,6 @@ namespace NewLife.Serialization
                 XTrace.Log.Debug(sb.ToString());
             }
         }
-
-        ///// <summary>设置调试缩进</summary>
-        ///// <param name="indent">缩进</param>
-        //public void SetDebugIndent(Int32 indent)
-        //{
-        //    if (!Debug) return;
-
-        //    if (IsConsole)
-        //    {
-        //        try
-        //        {
-        //            Console.CursorLeft = indent * 4;
-        //        }
-        //        catch { }
-        //    }
-        //    else
-        //    {
-        //        var msg = new String(' ', indent * 4);
-        //        XTrace.Write(msg);
-        //    }
-        //}
 
         private Int32 _Indent = 0;
         /// <summary>设置调试缩进</summary>
