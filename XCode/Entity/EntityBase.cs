@@ -201,8 +201,10 @@ namespace XCode
         #endregion
 
         #region 扩展属性
+        [NonSerialized]
         private EntityExtend _Extends;
         /// <summary>扩展属性</summary>
+        [XmlIgnore]
         public EntityExtend Extends { get { return _Extends ?? (_Extends = new EntityExtend()); } set { _Extends = value; } }
 
         /// <summary>扩展属性</summary>
@@ -213,6 +215,7 @@ namespace XCode
         [NonSerialized]
         private IEntityAddition _Addition;
         /// <summary>累加</summary>
+        [XmlIgnore]
         internal IEntityAddition Addition
         {
             get
