@@ -29,7 +29,6 @@ namespace NewLife.Serialization
 
         /// <summary>写入字节</summary>
         /// <param name="value"></param>
-        /// <returns></returns>
         void Write(Byte value);
 
         /// <summary>将字节数组部分写入当前流，不写入数组长度。</summary>
@@ -40,8 +39,7 @@ namespace NewLife.Serialization
 
         /// <summary>写入大小</summary>
         /// <param name="size"></param>
-        /// <returns></returns>
-        Boolean WriteSize(Int32 size);
+        void WriteSize(Int32 size);
         #endregion
     }
 

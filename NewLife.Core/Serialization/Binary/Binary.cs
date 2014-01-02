@@ -111,9 +111,32 @@ namespace NewLife.Serialization
         /// <summary>写入大小</summary>
         /// <param name="size"></param>
         /// <returns></returns>
-        public Boolean WriteSize(Int32 size)
+        public void WriteSize(Int32 size) { WriteEncoded(size); }
+
+        /// <summary>
+        /// 以7位压缩格式写入32位整数，小于7位用1个字节，小于14位用2个字节。
+        /// 由每次写入的一个字节的第一位标记后面的字节是否还是当前数据，所以每个字节实际可利用存储空间只有后7位。
+        /// </summary>
+        /// <param name="value">数值</param>
+        /// <returns>实际写入字节数</returns>
+        Int32 WriteEncoded(Int32 value)
         {
-            return false;
+            var list = new List<Byte>();
+
+            Int32 count = 1;
+            UInt32 num = (UInt32)value;
+            while (num >= 0x80)
+            {
+                list.Add((byte)(num | 0x80));
+                num = num >> 7;
+
+                count++;
+            }
+            list.Add((byte)num);
+
+            Write(list.ToArray(), 0, list.Count);
+
+            return count;
         }
         #endregion
 

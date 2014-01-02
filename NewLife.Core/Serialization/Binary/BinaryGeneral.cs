@@ -292,7 +292,7 @@ namespace NewLife.Serialization
         /// <returns>实际写入字节数</returns>
         public Int32 WriteEncoded(Int16 value)
         {
-            List<Byte> list = new List<Byte>();
+            var list = new List<Byte>();
 
             Int32 count = 1;
             UInt16 num = (UInt16)value;
@@ -318,7 +318,7 @@ namespace NewLife.Serialization
         /// <returns>实际写入字节数</returns>
         public Int32 WriteEncoded(Int32 value)
         {
-            List<Byte> list = new List<Byte>();
+            var list = new List<Byte>();
 
             Int32 count = 1;
             UInt32 num = (UInt32)value;
@@ -344,7 +344,7 @@ namespace NewLife.Serialization
         /// <returns>实际写入字节数</returns>
         public Int32 WriteEncoded(Int64 value)
         {
-            List<Byte> list = new List<Byte>();
+            var list = new List<Byte>();
 
             Int32 count = 1;
             UInt64 num = (UInt64)value;
