@@ -16,21 +16,24 @@ namespace NewLife.Serialization
         }
 
         /// <summary>写入对象</summary>
-        /// <param name="value"></param>
+        /// <param name="value">目标对象</param>
+        /// <param name="type">类型</param>
         /// <returns></returns>
-        public override Boolean Write(Object value)
+        public override Boolean Write(Object value, Type type)
         {
             if (value == null) return false;
 
             // 不支持基本类型
-            var type = value.GetType();
             if (Type.GetTypeCode(type) != TypeCode.Object) return false;
 
             // 获取成员
             foreach (var fi in GetMembers(type))
             {
-                XTrace.WriteLine(fi + "");
-                if (!Host.Write(value.GetValue(fi))) return false;
+                XTrace.WriteLine("{0} {1}", fi.FieldType.Name, fi.Name);
+
+                // 空成员写入0长度
+                var v = value.GetValue(fi);
+                if (!Host.Write(v, fi.FieldType)) return false;
             }
             return true;
         }

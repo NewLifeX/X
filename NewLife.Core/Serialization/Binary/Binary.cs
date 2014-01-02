@@ -46,6 +46,9 @@ namespace NewLife.Serialization
             //}
             list.Add(new BinaryGeneral { Host = this });
             list.Add(new BinaryComposite { Host = this });
+            // 根据优先级排序
+            list.Sort();
+            
             _Handlers = list;
         }
         #endregion
@@ -56,7 +59,12 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public Binary AddHandler(IBinaryHandler handler)
         {
-            if (handler != null) _Handlers.Add(handler);
+            if (handler != null)
+            {
+                _Handlers.Add(handler);
+                // 根据优先级排序
+                _Handlers.Sort();
+            }
 
             return this;
         }
@@ -76,18 +84,22 @@ namespace NewLife.Serialization
 
         #region 写入
         /// <summary>写入一个对象</summary>
-        /// <param name="value"></param>
+        /// <param name="value">目标对象</param>
+        /// <param name="type">类型</param>
         /// <returns></returns>
-        public Boolean Write(Object value)
+        public Boolean Write(Object value, Type type = null)
         {
-            if (value == null) return true;
+            if (type == null)
+            {
+                if (value == null) return true;
 
-            // 根据优先级排序
-            Handlers.Sort();
+                type = value.GetType();
+            }
+
             foreach (var item in Handlers)
             {
                 item.Host = this;
-                if (item.Write(value)) return true;
+                if (item.Write(value, type)) return true;
             }
             return false;
         }

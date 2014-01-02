@@ -23,9 +23,10 @@ namespace NewLife.Serialization
 
         #region 写入
         /// <summary>写入一个对象</summary>
-        /// <param name="value"></param>
+        /// <param name="value">目标对象</param>
+        /// <param name="type">类型</param>
         /// <returns></returns>
-        Boolean Write(Object value);
+        Boolean Write(Object value, Type type);
 
         /// <summary>写入字节</summary>
         /// <param name="value"></param>
@@ -53,9 +54,10 @@ namespace NewLife.Serialization
         Int32 Priority { get; set; }
 
         /// <summary>写入一个对象</summary>
-        /// <param name="value"></param>
+        /// <param name="value">目标对象</param>
+        /// <param name="type">类型</param>
         /// <returns></returns>
-        Boolean Write(Object value);
+        Boolean Write(Object value, Type type);
 
         ///// <summary>读取一个对象</summary>
         ///// <param name="value"></param>
@@ -75,9 +77,10 @@ namespace NewLife.Serialization
         public Int32 Priority { get { return _Priority; } set { _Priority = value; } }
 
         /// <summary>写入一个对象</summary>
-        /// <param name="value"></param>
+        /// <param name="value">目标对象</param>
+        /// <param name="type">类型</param>
         /// <returns></returns>
-        public abstract Boolean Write(Object value);
+        public abstract Boolean Write(Object value, Type type);
 
         Int32 IComparable<IBinaryHandler>.CompareTo(IBinaryHandler other)
         {

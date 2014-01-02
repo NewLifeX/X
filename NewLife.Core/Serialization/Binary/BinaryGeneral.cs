@@ -15,12 +15,11 @@ namespace NewLife.Serialization
 
         /// <summary>写入一个对象</summary>
         /// <param name="value">目标对象</param>
+        /// <param name="type">类型</param>
         /// <returns>是否处理成功</returns>
-        public override Boolean Write(Object value)
+        public override Boolean Write(Object value, Type type)
         {
-            if (value == null) return false;
-
-            var type = value.GetType();
+            if (value == null && type != typeof(String)) return false;
 
             switch (Type.GetTypeCode(type))
             {

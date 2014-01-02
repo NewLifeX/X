@@ -34,8 +34,8 @@ namespace NewLife.Log
 
         static readonly String[] DefaultTraceMembers = new String[] { "Write", "WriteByte", "Read", "ReadByte", "BeginRead", "BeginWrite", "EndRead", "EndWrite", "Seek", "Close", "Flush", "SetLength", "SetPosition" };
 
-        private Int32 _ShowPositionStep = 10;
-        /// <summary>显示位置的步长，位移超过此长度后输出位置。默认10，设为0不输出位置</summary>
+        private Int32 _ShowPositionStep = 16;
+        /// <summary>显示位置的步长，位移超过此长度后输出位置。默认16，设为0不输出位置</summary>
         public Int32 ShowPositionStep { get { return _ShowPositionStep; } set { _ShowPositionStep = value; } }
         #endregion
 
