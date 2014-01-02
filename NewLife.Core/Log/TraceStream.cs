@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using NewLife.Collections;
 
 namespace NewLife.Log
 {
@@ -12,11 +11,7 @@ namespace NewLife.Log
         #region 属性
         private Stream _BaseStream;
         /// <summary>基础流</summary>
-        public Stream BaseStream
-        {
-            get { return _BaseStream; }
-            set { _BaseStream = value; }
-        }
+        public Stream BaseStream { get { return _BaseStream; } set { _BaseStream = value; } }
 
         private ICollection<String> _TraceMembers;
         /// <summary>跟踪的成员</summary>
@@ -267,14 +262,13 @@ namespace NewLife.Log
             get { return _UseConsole; }
             set
             {
-                //if (value && !Runtime.IsConsole) throw new InvalidOperationException("非控制台程序无法使用该功能！");
                 if (value && !Runtime.IsConsole) return;
                 if (value == _UseConsole) return;
 
                 if (value)
-                    OnAction += new EventHandler<EventArgs<string, object[]>>(TraceStream_OnAction);
+                    OnAction += TraceStream_OnAction;
                 else
-                    OnAction -= new EventHandler<EventArgs<string, object[]>>(TraceStream_OnAction);
+                    OnAction -= TraceStream_OnAction;
 
                 _UseConsole = value;
             }
@@ -286,7 +280,7 @@ namespace NewLife.Log
 
         void TraceStream_OnAction(object sender, EventArgs<string, object[]> e)
         {
-            ConsoleColor color = Console.ForegroundColor;
+            var color = Console.ForegroundColor;
 
             // 红色动作
             Console.ForegroundColor = ConsoleColor.Red;
@@ -319,7 +313,6 @@ namespace NewLife.Log
             {
                 if (count == 1)
                 {
-                    //Console.Write("{0:X2} ({0})", Convert.ToInt32(buffer[0]));
                     Int32 n = Convert.ToInt32(buffer[0]);
                     // 大于10才显示十进制
                     if (n >= 10)
@@ -336,26 +329,16 @@ namespace NewLife.Log
             Console.Write("\t");
             if (e.Arg2.Length == 1)
             {
-                //Int32 n = Convert.ToInt32(e.Arg2[0]);
-                ////if (n >= 0) Console.Write(Convert.ToChar(n));
-                //// 只显示可见字符
-                //if (n >= '0') Console.Write(Convert.ToChar(n));
-
                 if (e.Arg2[0] != null)
                 {
-                    TypeCode tc = Type.GetTypeCode(e.Arg2[0].GetType());
-                    //if (tc >= TypeCode.Int16 && tc <= TypeCode.UInt64)
-                    if (tc != TypeCode.Object)
-                    {
-                        Console.Write(e.Arg2[0]);
-                    }
+                    var tc = Type.GetTypeCode(e.Arg2[0].GetType());
+                    if (tc != TypeCode.Object) Console.Write(e.Arg2[0]);
                 }
             }
             else if (buffer != null)
             {
                 if (count == 1)
                 {
-                    //Console.Write("{0} ({1})", Convert.ToChar(buffer[0]), Convert.ToInt32(buffer[0]));
                     // 只显示可见字符
                     if (buffer[0] >= '0') Console.Write("{0} ({1})", Convert.ToChar(buffer[0]), Convert.ToInt32(buffer[0]));
                 }
@@ -378,7 +361,6 @@ namespace NewLife.Log
             if (IsLittleEndian) return buffer;
 
             // 不要改变原来的数组
-            //Array.Reverse(buffer);
             var bts = new Byte[buffer.Length];
             Buffer.BlockCopy(buffer, 0, bts, 0, bts.Length);
             Array.Reverse(bts);
