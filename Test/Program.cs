@@ -40,7 +40,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test11();
+                Test11();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -446,11 +446,11 @@ namespace Test
             //Console.WriteLine("平均每次时间：{0:n0}毫秒", ct.Elapsed.TotalMilliseconds / ct.Times);
         }
 
-        static String _file = "nnhy";
         static void Test11()
         {
             var admin = Administrator.FindAllWithCache()[0];
             var bs = new Binary();
+            bs.EncodeInt = true;
             bs.EnableTrace();
             bs.Write(admin);
             bs.Stream.Position = 0;

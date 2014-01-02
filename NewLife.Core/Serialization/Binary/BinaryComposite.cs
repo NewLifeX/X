@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Reflection;
+using NewLife.Collections;
 using NewLife.Log;
 using NewLife.Reflection;
 
@@ -27,47 +29,71 @@ namespace NewLife.Serialization
             if (Type.GetTypeCode(type) != TypeCode.Object) return false;
 
             // 获取成员
-            foreach (var fi in GetMembers(type))
+            foreach (var member in GetMembers(type))
             {
-                XTrace.WriteLine("{0} {1}", fi.FieldType.Name, fi.Name);
+                var mtype = GetMemberType(member);
+                //XTrace.WriteLine("{0} {1}", mtype.Name, member.Name);
 
-                // 空成员写入0长度
-                var v = value.GetValue(fi);
-                if (!Host.Write(v, fi.FieldType)) return false;
+                var v = value.GetValue(member);
+                if (!Host.Write(v, mtype)) return false;
             }
             return true;
         }
 
+        #region 获取成员
         /// <summary>获取成员</summary>
         /// <param name="type"></param>
         /// <param name="baseFirst"></param>
         /// <returns></returns>
-        protected virtual IEnumerable<FieldInfo> GetMembers(Type type, Boolean baseFirst = true)
+        protected virtual IEnumerable<MemberInfo> GetMembers(Type type, Boolean baseFirst = true) { return GetFields(type, baseFirst).Cast<MemberInfo>(); }
+
+        private static DictionaryCache<Type, List<FieldInfo>> _cache1 = new DictionaryCache<Type, List<FieldInfo>>();
+        private static DictionaryCache<Type, List<FieldInfo>> _cache2 = new DictionaryCache<Type, List<FieldInfo>>();
+        /// <summary>获取字段</summary>
+        /// <param name="type"></param>
+        /// <param name="baseFirst"></param>
+        /// <returns></returns>
+        protected static List<FieldInfo> GetFields(Type type, Boolean baseFirst = true)
         {
-            if (type == typeof(Object)) yield break;
             if (baseFirst)
-            {
-                foreach (var fi in GetMembers(type.BaseType))
-                {
-                    yield return fi;
-                }
-            }
+                return _cache1.GetItem(type, key => GetFields2(key, true));
+            else
+                return _cache2.GetItem(type, key => GetFields2(key, false));
+        }
+
+        static List<FieldInfo> GetFields2(Type type, Boolean baseFirst = true)
+        {
+            var list = new List<FieldInfo>();
+
+            if (type == typeof(Object)) return list;
+
+            if (baseFirst) list.AddRange(GetFields(type.BaseType));
 
             var fis = type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
             foreach (var fi in fis)
             {
                 if (fi.GetCustomAttribute<NonSerializedAttribute>() != null) continue;
 
-                yield return fi;
+                list.Add(fi);
             }
 
-            if (!baseFirst)
+            if (!baseFirst) list.AddRange(GetFields(type.BaseType));
+
+            return list;
+        }
+
+        static Type GetMemberType(MemberInfo member)
+        {
+            switch (member.MemberType)
             {
-                foreach (var fi in GetMembers(type.BaseType))
-                {
-                    yield return fi;
-                }
+                case MemberTypes.Field:
+                    return (member as FieldInfo).FieldType;
+                case MemberTypes.Property:
+                    return (member as PropertyInfo).PropertyType;
+                default:
+                    throw new NotSupportedException();
             }
         }
+        #endregion
     }
 }
