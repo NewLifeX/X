@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using NewLife.Log;
 using NewLife.Reflection;
 
 namespace NewLife.Serialization
@@ -113,6 +114,17 @@ namespace NewLife.Serialization
         public Boolean WriteSize(Int32 size)
         {
             return false;
+        }
+        #endregion
+
+        #region 跟踪日志
+        /// <summary>使用跟踪流。实际上是重新包装一次Stream，必须在设置Stream，使用之前</summary>
+        public virtual void EnableTrace()
+        {
+            var stream = Stream;
+            if (stream == null || stream is TraceStream) return;
+
+            Stream = new TraceStream(stream) { Encoding = this.Encoding, IsLittleEndian = this.IsLittleEndian };
         }
         #endregion
     }

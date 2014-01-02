@@ -451,6 +451,7 @@ namespace Test
         {
             var admin = Administrator.FindAllWithCache()[0];
             var bs = new Binary();
+            bs.EnableTrace();
             bs.Write(admin);
             bs.Stream.Position = 0;
             var buf = bs.Stream.ReadBytes();

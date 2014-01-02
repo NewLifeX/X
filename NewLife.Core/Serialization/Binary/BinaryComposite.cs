@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
+using NewLife.Log;
 using NewLife.Reflection;
 
 namespace NewLife.Serialization
@@ -21,9 +22,14 @@ namespace NewLife.Serialization
         {
             if (value == null) return false;
 
-            foreach (var fi in GetMembers(value.GetType()))
+            // 不支持基本类型
+            var type = value.GetType();
+            if (Type.GetTypeCode(type) != TypeCode.Object) return false;
+
+            // 获取成员
+            foreach (var fi in GetMembers(type))
             {
-                Console.WriteLine(fi + "");
+                XTrace.WriteLine(fi + "");
                 if (!Host.Write(value.GetValue(fi))) return false;
             }
             return true;
