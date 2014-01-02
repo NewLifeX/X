@@ -37,13 +37,39 @@ namespace NewLife.Serialization
         {
             // 遍历所有处理器实现
             var list = new List<IBinaryHandler>();
-            foreach (var item in typeof(IBinaryHandler).GetAllSubclasses(true))
-            {
-                var handler = item.CreateInstance() as IBinaryHandler;
-                handler.Host = this;
-                list.Add(handler);
-            }
+            //foreach (var item in typeof(IBinaryHandler).GetAllSubclasses(true))
+            //{
+            //    var handler = item.CreateInstance() as IBinaryHandler;
+            //    handler.Host = this;
+            //    list.Add(handler);
+            //}
+            list.Add(new BinaryGeneral { Host = this });
+            list.Add(new BinaryComposite { Host = this });
             _Handlers = list;
+        }
+        #endregion
+
+        #region 处理器
+        /// <summary>添加处理器</summary>
+        /// <param name="handler"></param>
+        /// <returns></returns>
+        public Binary AddHandler(IBinaryHandler handler)
+        {
+            if (handler != null) _Handlers.Add(handler);
+
+            return this;
+        }
+
+        /// <summary>添加处理器</summary>
+        /// <typeparam name="THandler"></typeparam>
+        /// <param name="priority"></param>
+        /// <returns></returns>
+        public Binary AddHandler<THandler>(Int32 priority = 0) where THandler : IBinaryHandler, new()
+        {
+            var handler = new THandler();
+            if (priority != 0) handler.Priority = priority;
+
+            return AddHandler(handler);
         }
         #endregion
 
@@ -55,6 +81,8 @@ namespace NewLife.Serialization
         {
             if (value == null) return true;
 
+            // 根据优先级排序
+            Handlers.Sort();
             foreach (var item in Handlers)
             {
                 item.Host = this;

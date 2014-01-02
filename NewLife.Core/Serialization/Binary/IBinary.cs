@@ -46,10 +46,13 @@ namespace NewLife.Serialization
     }
 
     /// <summary>二进制读写处理器接口</summary>
-    public interface IBinaryHandler
+    public interface IBinaryHandler : IComparer<IBinaryHandler>
     {
         /// <summary>宿主读写器</summary>
         IBinary Host { get; set; }
+
+        /// <summary>优先级</summary>
+        Int32 Priority { get; set; }
 
         /// <summary>写入一个对象</summary>
         /// <param name="value"></param>
@@ -69,9 +72,19 @@ namespace NewLife.Serialization
         /// <summary>宿主读写器</summary>
         public IBinary Host { get { return _Host; } set { _Host = value; } }
 
+        private Int32 _Priority;
+        /// <summary>优先级</summary>
+        public Int32 Priority { get { return _Priority; } set { _Priority = value; } }
+
         /// <summary>写入一个对象</summary>
         /// <param name="value"></param>
         /// <returns></returns>
         public abstract Boolean Write(Object value);
+
+        Int32 IComparer<IBinaryHandler>.Compare(IBinaryHandler x, IBinaryHandler y)
+        {
+            // 优先级较大在前面
+            return y.Priority.CompareTo(x.Priority);
+        }
     }
 }

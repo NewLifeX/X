@@ -8,6 +8,12 @@ namespace NewLife.Serialization
     /// <summary>复合对象处理器</summary>
     public class BinaryComposite : BinaryHandlerBase
     {
+        /// <summary>实例化</summary>
+        public BinaryComposite()
+        {
+            Priority = 100;
+        }
+
         /// <summary>写入对象</summary>
         /// <param name="value"></param>
         /// <returns></returns>

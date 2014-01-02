@@ -7,6 +7,12 @@ namespace NewLife.Serialization
     /// <summary>二进制基础类型处理器</summary>
     public class BinaryGeneral : BinaryHandlerBase
     {
+        /// <summary>实例化</summary>
+        public BinaryGeneral()
+        {
+            Priority = 10;
+        }
+
         /// <summary>写入一个对象</summary>
         /// <param name="value">目标对象</param>
         /// <returns>是否处理成功</returns>
