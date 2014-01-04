@@ -381,7 +381,12 @@ $";
         {
             isdescs = null;
             if (orderby.IsNullOrWhiteSpace()) return null;
-
+            //2014-01-04 Modify by Apex
+            //处理order by带有函数的情况，避免分隔时将函数拆分导致错误
+            foreach (Match match in Regex.Matches(orderby, @"\([^\)]*\)", RegexOptions.Singleline))
+            {
+                orderby = orderby.Replace(match.Value, match.Value.Replace(",", "★"));
+            }
             String[] ss = orderby.Trim().Split(",");
             if (ss == null || ss.Length < 1) return null;
 
@@ -394,7 +399,7 @@ $";
                 // 拆分名称和排序，不知道是否存在多余一个空格的情况
                 if (ss2 != null && ss2.Length > 0)
                 {
-                    keys[i] = ss2[0];
+                    keys[i] = ss2[0].Replace("★", ",");
                     if (ss2.Length > 1 && ss2[1].EqualIgnoreCase("desc")) isdescs[i] = true;
                 }
             }
