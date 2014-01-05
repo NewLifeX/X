@@ -2,12 +2,12 @@
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.IO;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Text;
 using NewLife.Collections;
 using NewLife.Exceptions;
-using System.IO;
 
 namespace NewLife.Reflection
 {
@@ -71,20 +71,6 @@ namespace NewLife.Reflection
         /// <summary>根据代码编译出来可供直接调用的方法</summary>
         public MethodInfo Method { get { return _Method; } private set { _Method = value; } }
 
-        //private MethodInfoX _Mix;
-        ///// <summary>快速反射</summary>
-        //public MethodInfoX Mix { get { if (_Mix == null && Method != null)_Mix = MethodInfoX.Create(Method); return _Mix; } }
-
-        //static readonly String Refs =
-        //    "using System;\r\n" +
-        //    "using System.Collections;\r\n" +
-        //    "using System.Diagnostics;\r\n" +
-        //    "using System.Reflection;\r\n" +
-        //    "using System.Text;\r\n" +
-        //    "using System.IO;\r\n" +
-        //    "" +
-        //    "";
-
         private StringCollection _NameSpaces = new StringCollection{
             "System",
             "System.Collections",
@@ -98,51 +84,6 @@ namespace NewLife.Reflection
         private StringCollection _ReferencedAssemblies = new StringCollection();
         /// <summary>引用程序集集合</summary>
         public StringCollection ReferencedAssemblies { get { return _ReferencedAssemblies; } set { _ReferencedAssemblies = value; } }
-        #endregion
-
-        #region 自定义添加命名空间属性和方法
-        //private HashSet<String> CusNameSpaceList = new HashSet<String>();
-        ///// <summary>添加命名空间</summary>
-        ///// <param name="nameSpace"></param>
-        //public void AddNameSpace(String nameSpace)
-        //{
-        //    // 对于字符串来说，哈希集合的Contains更快
-        //    if (!String.IsNullOrEmpty(nameSpace) && !CusNameSpaceList.Contains(nameSpace))
-        //        CusNameSpaceList.Add(nameSpace);
-        //}
-
-        ////private String _cusNameSpaceStr = null;
-        ///// <summary>获取自定义命名空间</summary>
-        ///// <returns></returns>
-        //protected String GetCusNameSpaceStr()
-        //{
-        //    if (CusNameSpaceList.Count == 0) return String.Empty;
-        //    //if (_cusNameSpaceStr != null) return _cusNameSpaceStr;
-
-        //    //_cusNameSpaceStr = String.Empty;
-        //    //CusNameSpaceList.ForEach(names =>
-        //    //{
-        //    //    if (names[names.Length - 1] != ';')
-        //    //        names += ";";
-        //    //    if (!names.StartsWith("using"))
-        //    //        names = "using " + names;
-        //    //    _cusNameSpaceStr += names + "\r\n";
-        //    //});
-        //    //return _cusNameSpaceStr;
-
-        //    // 字符串相加有一定损耗
-        //    var sb = new StringBuilder(20 * CusNameSpaceList.Count);
-        //    foreach (var item in CusNameSpaceList)
-        //    {
-        //        if (!item.StartsWith("using")) sb.Append("using ");
-        //        sb.Append(item);
-        //        if (item[item.Length - 1] != ';') sb.Append(";");
-
-        //        sb.AppendLine();
-        //    }
-
-        //    return sb.ToString();
-        //}
         #endregion
 
         #region 创建
@@ -214,7 +155,6 @@ namespace NewLife.Reflection
 
             var names = new String[parameters.Count];
             parameters.Keys.CopyTo(names, 0);
-            //var types = TypeX.GetTypeArray(ps);
             var types = ps.GetTypeArray();
 
             var dic = se.Parameters;
@@ -242,7 +182,6 @@ namespace NewLife.Reflection
             {
                 names[i] = "p" + i;
             }
-            //var types = TypeX.GetTypeArray(parameters);
             var types = parameters.GetTypeArray();
 
             var dic = se.Parameters;
@@ -257,7 +196,11 @@ namespace NewLife.Reflection
 
         #region 动态编译
         /// <summary>生成代码。根据<see cref="Code"/>完善得到最终代码<see cref="FinalCode"/></summary>
-        public void GenerateCode()
+        public void GenerateCode() { FinalCode = GetFullCode(); }
+
+        /// <summary>获取完整源代码</summary>
+        /// <returns></returns>
+        public String GetFullCode()
         {
             if (String.IsNullOrEmpty(Code)) throw new ArgumentNullException("Code");
 
@@ -274,7 +217,7 @@ namespace NewLife.Reflection
                 if (!code.EndsWith(";")) code += ";";
 
                 var sb = new StringBuilder(64 + code.Length);
-                sb.Append("public static Object Main(");
+                sb.Append("\t\tpublic static Object Main(");
                 // 参数
                 var isfirst = false;
                 foreach (var item in Parameters)
@@ -287,9 +230,9 @@ namespace NewLife.Reflection
                     sb.AppendFormat("{0} {1}", item.Value.FullName, item.Key);
                 }
                 sb.AppendLine(")");
-                sb.AppendLine("{");
+                sb.AppendLine("\t\t{");
                 sb.AppendLine(code);
-                sb.AppendLine("}");
+                sb.AppendLine("\t\t}");
 
                 code = sb.ToString();
             }
@@ -297,7 +240,7 @@ namespace NewLife.Reflection
             // 这里也许用正则判断会更好一些
             else if (!code.Contains(" Main("))
             {
-                code = String.Format("static void Main() {{\r\n\t{0}\r\n}}", code);
+                code = String.Format("\t\tstatic void Main()\r\n\t\t{{\r\n\t\t\t{0}\r\n\t\t}}", code);
             }
 
             // 没有命名空间，包含一个
@@ -306,10 +249,10 @@ namespace NewLife.Reflection
                 // 没有类名，包含一个
                 if (!code.Contains("class "))
                 {
-                    code = String.Format("public class {0}{{\r\n{1}\r\n}}", this.GetType().Name, code);
+                    code = String.Format("\tpublic class {0}\r\n\t{{\r\n{1}\r\n\t}}", this.GetType().Name, code);
                 }
 
-                code = String.Format("namespace {0}{{\r\n{1}\r\n}}", this.GetType().Namespace, code);
+                code = String.Format("namespace {0}\r\n{{\r\n{1}\r\n}}", this.GetType().Namespace, code);
             }
 
             // 命名空间
@@ -326,7 +269,7 @@ namespace NewLife.Reflection
                 code = sb.ToString();
             }
 
-            FinalCode = code;
+            return code;
         }
 
         /// <summary>编译</summary>
@@ -406,20 +349,7 @@ namespace NewLife.Reflection
             }
 
             var provider = CodeDomProvider.CreateProvider("CSharp");
-            //var provider = CreateProvider();
-
             return provider.CompileAssemblyFromSource(options, classCode);
-
-            //var tf = XTrace.TempPath.CombinePath(Path.GetRandomFileName() + ".cs");
-            //File.WriteAllText(tf, classCode);
-            //try
-            //{
-            //    return CompileAssemblyFromSource(options, tf);
-            //}
-            //finally
-            //{
-            //    File.Delete(tf);
-            //}
         }
         #endregion
 
@@ -431,11 +361,6 @@ namespace NewLife.Reflection
         {
             if (Method == null) Compile();
             if (Method == null) throw new XException("脚本引擎未编译表达式！");
-
-            // 这里反射调用方法，为了提高性能，我们采用快速反射
-            //Method.Invoke(null, parameters);
-
-            //return Mix.Invoke(null, parameters);
             return "".Invoke(Method, parameters);
         }
         #endregion
@@ -469,163 +394,6 @@ namespace NewLife.Reflection
 
             return sb.ToString();
         }
-        #endregion
-
-        #region 辅助方法
-        ///// <summary>不知道是否有线程冲突</summary>
-        ////[ThreadStatic]
-        //private static CodeDomProvider _provider;
-        ///// <summary>建立代码编译提供者。尝试采用最新版本的编译器</summary>
-        ///// <returns></returns>
-        //public static CodeDomProvider CreateProvider()
-        //{
-        //    if (_provider != null) return _provider;
-
-        //    try
-        //    {
-        //        var reg = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\MSBuild\ToolsVersions");
-        //        var names = reg.GetSubKeyNames();
-        //        for (int i = 0; i < names.Length; i++)
-        //        //for (int i = names.Length - 1; i >= 0; i--)
-        //        {
-        //            var ver = names[i];
-        //            reg = reg.OpenSubKey(ver);
-
-        //            return _provider = new CSharpCodeProvider(new Dictionary<String, String>() { { "CompilerVersion", "v" + ver } });
-        //        }
-
-        //        return _provider = CodeDomProvider.CreateProvider("CSharp");
-        //    }
-        //    catch
-        //    {
-        //        return _provider = CodeDomProvider.CreateProvider("CSharp");
-        //    }
-        //}
-
-        //static String GetBuildToolsPath()
-        //{
-        //    try
-        //    {
-        //        var reg = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\MSBuild\ToolsVersions");
-        //        var names = reg.GetSubKeyNames();
-        //        for (int i = 0; i < names.Length; i++)
-        //        //for (int i = names.Length - 1; i >= 0; i--)
-        //        {
-        //            var ver = names[i];
-        //            reg = reg.OpenSubKey(ver);
-
-        //            var path = reg.GetValue("MSBuildToolsPath") as String;
-        //            if (!String.IsNullOrEmpty(path) && Directory.Exists(path)) return path;
-        //        }
-
-        //        return RuntimeEnvironment.GetRuntimeDirectory();
-        //    }
-        //    catch
-        //    {
-        //        return RuntimeEnvironment.GetRuntimeDirectory();
-        //    }
-        //}
-
-        //private static CompilerResults CompileAssemblyFromSource(CompilerParameters options, String fileName)
-        //{
-        //    if (options == null) throw new ArgumentNullException("options");
-
-        //    int nativeReturnValue = 0;
-        //    var results = new CompilerResults(options.TempFiles);
-
-        //    if (options.OutputAssembly == null || options.OutputAssembly.Length == 0)
-        //    {
-        //        var ext = options.GenerateExecutable ? "exe" : "dll";
-        //        options.OutputAssembly = results.TempFiles.AddExtension(ext, !options.GenerateInMemory);
-        //        new FileStream(options.OutputAssembly, FileMode.Create, FileAccess.ReadWrite).Close();
-        //    }
-        //    results.TempFiles.AddExtension("pdb");
-
-        //    var cmdArgs = CmdArgsFromParameters(options) + " \"" + fileName + "\"";
-        //    nativeReturnValue = Compile(options, cmdArgs);
-        //    results.NativeCompilerReturnValue = nativeReturnValue;
-
-        //    if (!results.Errors.HasErrors && options.GenerateInMemory)
-        //    {
-        //        var buffer = File.ReadAllBytes(options.OutputAssembly);
-        //        results.CompiledAssembly = Assembly.Load(buffer, null, options.Evidence);
-        //        return results;
-        //    }
-        //    results.PathToAssembly = options.OutputAssembly;
-        //    return results;
-        //}
-
-        //static Int32 Compile(CompilerParameters options, String arguments)
-        //{
-        //    String errorName = null;
-        //    var outputFile = options.TempFiles.AddExtension("out");
-
-        //    var path = Path.Combine(GetBuildToolsPath(), "csc.exe");
-
-        //    //var pis = options.GetType().GetProperty("SafeUserToken", BindingFlags.NonPublic | BindingFlags.Instance);
-        //    //var ip = (IntPtr)pis.GetValue(options, null);
-
-        //    return Executor.ExecWaitWithCapture(IntPtr.Zero, "\"" + path + "\" " + arguments, Environment.CurrentDirectory, options.TempFiles, ref outputFile, ref errorName);
-        //}
-
-        //private static String CmdArgsFromParameters(CompilerParameters options)
-        //{
-        //    var sb = new StringBuilder(128);
-        //    if (options.GenerateExecutable)
-        //    {
-        //        sb.Append("/t:exe ");
-        //        if (options.MainClass != null && options.MainClass.Length > 0)
-        //        {
-        //            sb.Append("/main:");
-        //            sb.Append(options.MainClass);
-        //            sb.Append(" ");
-        //        }
-        //    }
-        //    else
-        //        sb.Append("/t:library ");
-        //    sb.Append("/utf8output ");
-        //    foreach (string str in options.ReferencedAssemblies)
-        //    {
-        //        sb.Append("/R:");
-        //        sb.Append("\"");
-        //        sb.Append(str);
-        //        sb.Append("\"");
-        //        sb.Append(" ");
-        //    }
-        //    sb.Append("/out:");
-        //    sb.Append("\"");
-        //    sb.Append(options.OutputAssembly);
-        //    sb.Append("\"");
-        //    sb.Append(" ");
-        //    if (options.IncludeDebugInformation)
-        //    {
-        //        sb.Append("/D:DEBUG ");
-        //        sb.Append("/debug+ ");
-        //        sb.Append("/optimize- ");
-        //    }
-        //    else
-        //    {
-        //        sb.Append("/debug- ");
-        //        sb.Append("/optimize+ ");
-        //    }
-        //    if (options.Win32Resource != null) sb.Append("/win32res:\"" + options.Win32Resource + "\" ");
-        //    foreach (string str2 in options.EmbeddedResources)
-        //    {
-        //        sb.Append("/res:\"");
-        //        sb.Append(str2);
-        //        sb.Append("\" ");
-        //    }
-        //    foreach (string str3 in options.LinkedResources)
-        //    {
-        //        sb.Append("/linkres:\"");
-        //        sb.Append(str3);
-        //        sb.Append("\" ");
-        //    }
-        //    if (options.TreatWarningsAsErrors) sb.Append("/warnaserror ");
-        //    if (options.WarningLevel >= 0) sb.Append("/w:" + options.WarningLevel + " ");
-        //    if (options.CompilerOptions != null) sb.Append(options.CompilerOptions + " ");
-        //    return sb.ToString();
-        //}
         #endregion
     }
 }
