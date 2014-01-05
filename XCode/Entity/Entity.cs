@@ -13,6 +13,7 @@ using XCode.Configuration;
 using XCode.DataAccessLayer;
 using XCode.Exceptions;
 using XCode.Model;
+using System.Text.RegularExpressions;
 
 namespace XCode
 {
@@ -531,6 +532,12 @@ namespace XCode
 
                     if (!String.IsNullOrEmpty(order))
                     {
+                        //2014-01-05 Modify by Apex
+                        //处理order by带有函数的情况，避免分隔时将函数拆分导致错误
+                        foreach (Match match in Regex.Matches(order, @"\([^\)]*\)", RegexOptions.Singleline))
+                        {
+                            order = order.Replace(match.Value, match.Value.Replace(",", "★"));
+                        }
                         String[] ss = order.Split(',');
                         var sb = new StringBuilder();
                         foreach (String item in ss)
@@ -564,7 +571,7 @@ namespace XCode
                             sb.AppendFormat("{0} {1}", fn, od);
                         }
 
-                        order = sb.ToString();
+                        order = sb.ToString().Replace("★", ",");
                     }
                     #endregion
 
