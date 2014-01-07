@@ -150,19 +150,19 @@ namespace XCode
             #region 事务保护
             /// <summary>开始事务</summary>
             /// <returns>剩下的事务计数</returns>
-            [Obsolete("=>Session")]
+            //[Obsolete("=>Session")]
             [EditorBrowsable(EditorBrowsableState.Never)]
             public static Int32 BeginTrans() { return Session.BeginTrans(); }
 
             /// <summary>提交事务</summary>
             /// <returns>剩下的事务计数</returns>
-            [Obsolete("=>Session")]
+            //[Obsolete("=>Session")]
             [EditorBrowsable(EditorBrowsableState.Never)]
             public static Int32 Commit() { return Session.Commit(); }
 
             /// <summary>回滚事务，忽略异常</summary>
             /// <returns>剩下的事务计数</returns>
-            [Obsolete("=>Session")]
+            //[Obsolete("=>Session")]
             [EditorBrowsable(EditorBrowsableState.Never)]
             public static Int32 Rollback() { return Session.Rollback(); }
 
