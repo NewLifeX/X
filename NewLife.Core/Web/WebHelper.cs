@@ -259,7 +259,7 @@ namespace NewLife.Web
             //    return false;
             //}
             if (val.EqualIgnoreCase("True", "1")) return true;
-            if (val.EqualIgnoreCase("False", "0")) return true;
+            if (val.EqualIgnoreCase("False", "0")) return false;
 
             return r;
         }
