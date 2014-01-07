@@ -166,10 +166,8 @@ namespace XCode
             [EditorBrowsable(EditorBrowsableState.Never)]
             public static Int32 Rollback() { return Session.Rollback(); }
 
-            ///// <summary>是否在事务保护中</summary>
-            //[Obsolete("=>Session")]
-            //[EditorBrowsable(EditorBrowsableState.Never)]
-            //internal static Boolean UsingTrans { get { return Session.TransCount > 0; } }
+            /// <summary>创建事务</summary>
+            public static EntityTransaction CreateTrans() { return new EntityTransaction<TEntity>(); }
             #endregion
 
             #region 参数化

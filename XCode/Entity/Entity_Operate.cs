@@ -298,6 +298,9 @@ namespace XCode
             //[Obsolete("=>Session")]
             //[EditorBrowsable(EditorBrowsableState.Never)]
             public virtual Int32 Rollback() { return Session.Rollback(); }
+
+            /// <summary>创建事务</summary>
+            public virtual EntityTransaction CreateTrans() { return new EntityTransaction<TEntity>(); }
             #endregion
 
             #region 参数化

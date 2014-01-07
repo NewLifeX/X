@@ -265,6 +265,9 @@ namespace XCode
         //[Obsolete("=>Session")]
         //[EditorBrowsable(EditorBrowsableState.Never)]
         Int32 Rollback();
+
+        /// <summary>创建事务</summary>
+        EntityTransaction CreateTrans();
         #endregion
 
         #region 参数化
