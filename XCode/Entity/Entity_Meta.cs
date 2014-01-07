@@ -16,7 +16,7 @@ namespace XCode
         {
             #region 主要属性
             /// <summary>实体类型</summary>
-            internal static Type ThisType { get { return typeof(TEntity); } }
+            public static Type ThisType { get { return typeof(TEntity); } }
 
             /// <summary>实体操作者</summary>
             public static IEntityOperate Factory

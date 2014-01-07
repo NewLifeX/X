@@ -386,36 +386,36 @@ namespace XCode
         /// <returns></returns>
         public Int32 Insert(Boolean useTransition = true) { return DoAction(true, e => e.Insert()); }
 
-        ///// <summary>把整个集合插入到数据库</summary>
-        ///// <returns></returns>
-        //public Int32 Insert() { return Insert(true); }
+        /// <summary>把整个集合插入到数据库</summary>
+        /// <returns></returns>
+        public Int32 Insert() { return Insert(true); }
 
         /// <summary>把整个集合更新到数据库</summary>
         /// <param name="useTransition">是否使用事务保护</param>
         /// <returns></returns>
         public Int32 Update(Boolean useTransition = true) { return DoAction(true, e => e.Update()); }
 
-        ///// <summary>把整个集合更新到数据库</summary>
-        ///// <returns></returns>
-        //public Int32 Update() { return Update(true); }
+        /// <summary>把整个集合更新到数据库</summary>
+        /// <returns></returns>
+        public Int32 Update() { return Update(true); }
 
         /// <summary>把整个保存更新到数据库</summary>
         /// <param name="useTransition">是否使用事务保护</param>
         /// <returns></returns>
         public Int32 Save(Boolean useTransition = true) { return DoAction(true, e => e.Save()); }
 
-        ///// <summary>把整个集合保存到数据库</summary>
-        ///// <returns></returns>
-        //public Int32 Save() { return Save(true); }
+        /// <summary>把整个集合保存到数据库</summary>
+        /// <returns></returns>
+        public Int32 Save() { return Save(true); }
 
         /// <summary>把整个集合从数据库中删除</summary>
         /// <param name="useTransition">是否使用事务保护</param>
         /// <returns></returns>
         public Int32 Delete(Boolean useTransition = true) { return DoAction(true, e => e.Delete()); }
 
-        ///// <summary>把整个集合从数据库中删除</summary>
-        ///// <returns></returns>
-        //public Int32 Delete() { return DoAction(true, e => e.Delete()); }
+        /// <summary>把整个集合从数据库中删除</summary>
+        /// <returns></returns>
+        public Int32 Delete() { return DoAction(true, e => e.Delete()); }
 
         Int32 DoAction(Boolean useTransition, Func<T, Int32> func)
         {
