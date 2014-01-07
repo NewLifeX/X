@@ -8,10 +8,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("新生命核心库")]
 [assembly: AssemblyDescription("各种基础功能")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("新生命开发团队")]
 [assembly: AssemblyProduct("NewLife.Core")]
-[assembly: AssemblyCopyright("\x00a92002-2013 新生命开发团队")]
-[assembly: AssemblyTrademark("四叶草")]
 [assembly: AssemblyCulture("")]
 
 // 将 ComVisible 设置为 false 使此程序集中的类型

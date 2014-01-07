@@ -118,6 +118,7 @@
     <Compile Include="Model\ObjectContainerHelper.cs" />
     <Compile Include="Net\ITransport.cs" />
     <Compile Include="Net\NetUri.cs" />
+    <Compile Include="Properties\AssemblyInfo_.cs" />
     <Compile Include="Reflection\Action.cs" />
     <Compile Include="Extension\EnumHelper.cs" />
     <Compile Include="Extension\Linq\Buffer.cs" />
