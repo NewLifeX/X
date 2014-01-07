@@ -205,7 +205,7 @@ namespace NewLife.Reflection
             if (String.IsNullOrEmpty(Code)) throw new ArgumentNullException("Code");
 
             // 预处理代码
-            var code = Code;
+            var code = Code.Trim();
             // 把命名空间提取出来
             code = ParseNameSpace(code);
 
@@ -240,6 +240,9 @@ namespace NewLife.Reflection
             // 这里也许用正则判断会更好一些
             else if (!code.Contains(" Main("))
             {
+                // 如果不是;和}结尾，则增加分号
+                var last = code[code.Length - 1];
+                if (last != ';' && last != '}') code += ";";
                 code = String.Format("\t\tstatic void Main()\r\n\t\t{{\r\n\t\t\t{0}\r\n\t\t}}", code);
             }
 
@@ -392,7 +395,7 @@ namespace NewLife.Reflection
                 sb.AppendLine(item);
             }
 
-            return sb.ToString();
+            return sb.ToString().Trim();
         }
         #endregion
     }
