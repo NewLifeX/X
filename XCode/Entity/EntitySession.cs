@@ -323,20 +323,19 @@ namespace XCode
                 CheckModel();
 
                 Int64 m = 0;
-                var dal = DAL.Create(ConnName);
                 // 大于1000的缓存过期
                 if (n != null && n.HasValue && n.Value < 1000)
                 {
                     var sb = new SelectBuilder();
-                    sb.Table = dal.Db.FormatName(TableName);
+                    sb.Table = FormatedTableName;
 
                     WaitForInitData();
-                    m = dal.SelectCount(sb, new String[] { TableName });
+                    m = Dal.SelectCount(sb, new String[] { TableName });
                 }
                 else
                 {
                     // 第一次访问
-                    m = dal.Session.QueryCountFast(TableName);
+                    m = Dal.Session.QueryCountFast(TableName);
                 }
 
                 _Count = m;
@@ -382,7 +381,7 @@ namespace XCode
         {
             WaitForInitData();
 
-            builder.Table = Operate.FormatName(TableName);
+            //builder.Table = FormatedTableName;
             return Dal.Select(builder, startRowIndex, maximumRows, TableName);
         }
 
@@ -404,7 +403,7 @@ namespace XCode
         {
             WaitForInitData();
 
-            builder.Table = Operate.FormatName(TableName);
+            //builder.Table = FormatedTableName;
             return Dal.SelectCount(builder, new String[] { TableName });
         }
 
@@ -419,7 +418,7 @@ namespace XCode
         /// <returns>分页SQL</returns>
         public virtual SelectBuilder PageSplit(SelectBuilder builder, Int32 startRowIndex, Int32 maximumRows)
         {
-            builder.Table = Operate.FormatName(TableName);
+            //builder.Table = FormatedTableName;
             return Dal.PageSplit(builder, startRowIndex, maximumRows);
         }
 
