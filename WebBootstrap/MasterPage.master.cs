@@ -21,17 +21,6 @@ public partial class MasterPage : System.Web.UI.MasterPage
 
     protected void Page_Load(object sender, EventArgs e)
     {
-        //FieldInfoX fix = FieldInfoX.Create(Page.GetType(), "Manager");
-
-        //if (fix != null)
-        //{
-        //    IManagePage manager = fix.GetValue(Page) as IManagePage;
-        //    if (manager != null)
-        //    {
-        //        Title = manager.CurrentMenu.Name;
-        //        Navigation = manager.Navigation;
-        //    }
-        //}
         IManagePage manager = Reflect.GetValue(Page, "Manager", false) as IManagePage;
         if (manager != null)
         {

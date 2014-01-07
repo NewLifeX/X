@@ -626,7 +626,6 @@ namespace NewLife.Common
 
         static Boolean _inited = false;
         static Type _type;
-        //static PropertyInfoX _pix;
         static String[] GetPinYinByMS(Char chr)
         {
             if (_type == null)
@@ -634,14 +633,13 @@ namespace NewLife.Common
                 if (_inited) return null;
 
                 _inited = true;
-                _type = Reflect.GetTypeEx("ChineseChar", true);
-                //_pix = PropertyInfoX.Create(_type, "Pinyins");
+                _type = "ChineseChar".GetTypeEx(true);
             }
 
             //var obj = _type.CreateInstance(chr);
             //return _pix.GetValue(obj) as String[];
 
-            return _type.CreateInstance(chr).GetValue("Pinyins") as String[];
+            return _type.CreateInstance(chr).GetValue("Pinyins", false) as String[];
         }
     }
 }

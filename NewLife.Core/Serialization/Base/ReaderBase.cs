@@ -618,11 +618,9 @@ namespace NewLife.Serialization
             #endregion
 
             #region 检查类型是否有指定类型的构造函数，如果有，直接创建类型，并把数组作为构造函数传入
-            //var ci = ConstructorInfoX.Create(type, new Type[] { typeof(IEnumerable) });
             var ci = type.GetConstructor(new Type[] { typeof(IEnumerable) });
             if (ci != null)
             {
-                //value = ci.CreateInstance(items);
                 value = Reflect.Invoke(null, ci, items);
                 return true;
             }
@@ -865,7 +863,7 @@ namespace NewLife.Serialization
             var typeName = ReadString();
             if (String.IsNullOrEmpty(typeName)) return null;
 
-            var type = Reflect.GetTypeEx(typeName, true);
+            var type = typeName.GetTypeEx(true);
             if (type != null) return type;
 
             throw new XException("无法找到名为{0}的类型！", typeName);

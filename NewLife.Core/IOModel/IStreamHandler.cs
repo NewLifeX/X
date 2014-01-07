@@ -148,9 +148,9 @@ namespace NewLife.IO
                     list = new List<Type>();
                     dic.Add(name, list);
                 }
-                foreach (String item in ss)
+                foreach (var item in ss)
                 {
-                    Type type = Reflect.GetTypeEx(item, true);
+                    var type = item.GetTypeEx(true);
                     list.Add(type);
                 }
             }

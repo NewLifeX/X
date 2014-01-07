@@ -328,12 +328,9 @@ namespace NewLife.CommonEntity.Web
             {
                 SetControlValue(control, Entity[field.Name]);
 
-                //PropertyInfoX pix = PropertyInfoX.Create(control.GetType(), "ToolTip");
-                //if (pix != null && String.IsNullOrEmpty((String)pix.GetValue(control)))
-                //{
-                //    pix.SetValue(control, toolTip);
-                //}
-                if (String.IsNullOrEmpty(control.GetValue("ToolTip") + "")) control.SetValue("ToolTip", toolTip);
+                //if (String.IsNullOrEmpty(control.GetValue("ToolTip") + "")) control.SetValue("ToolTip", toolTip);
+                Object v = null;
+                if (control.TryGetValue("ToolTip", out v) && String.IsNullOrEmpty(v + "")) control.SetValue("", toolTip);
             }
         }
 

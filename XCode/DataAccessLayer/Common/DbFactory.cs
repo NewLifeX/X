@@ -87,7 +87,7 @@ namespace XCode.DataAccessLayer
 
                 if (DAL.Debug) DAL.WriteLog("无法从{0}个默认数据库提供者中识别到{1}！", n, provider);
 
-                var type = Reflect.GetTypeEx(provider, true);
+                var type = provider.GetTypeEx(true);
                 if (type != null) XCodeService.Container.Register<IDatabase>(type, provider);
                 return type;
             }

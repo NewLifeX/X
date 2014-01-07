@@ -645,7 +645,7 @@ namespace NewLife.IO
                     id = (string)obj2;
                     if (id != null)
                     {
-                        t = Reflect.GetTypeEx(id);
+                        t = id.GetTypeEx();
                         if (t == null)
                         {
                             if (throwOnError)

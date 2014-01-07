@@ -31,21 +31,15 @@ namespace NewLife.Web
                     if (IPAddress.TryParse(Context.Request.UserHostAddress, out ip))
                     {
                         // 尝试获取端口
-                        //TypeX tx = TypeX.Create(typeof(HttpContext));
-                        //var pi = PropertyInfoX.Create(typeof(HttpContext), "WorkerRequest");
-                        //if (pi != null)
+                        try
                         {
-                            try
+                            var wr = Context.GetValue("WorkerRequest", false) as HttpWorkerRequest;
+                            if (wr != null)
                             {
-                                //HttpWorkerRequest wr = pi.GetValue(Context) as HttpWorkerRequest;
-                                var wr = Context.GetValue("WorkerRequest") as HttpWorkerRequest;
-                                if (wr != null)
-                                {
-                                    port = wr.GetRemotePort();
-                                }
+                                port = wr.GetRemotePort();
                             }
-                            catch { }
                         }
+                        catch { }
                     }
                     _RemoteEndPoint = new IPEndPoint(ip, port);
                 }

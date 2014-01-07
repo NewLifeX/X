@@ -1,19 +1,12 @@
 ﻿using System;
-using NewLife.Reflection;
 using System.Web.UI.HtmlControls;
 using NewLife.CommonEntity;
-using System.Reflection;
+using NewLife.Reflection;
 
 public partial class ManagerPage : System.Web.UI.MasterPage
 {
     protected void Page_Load(object sender, EventArgs e)
     {
-        //FieldInfo fix = FieldInfoX.Create(Page.GetType(), "Manager");
-        //if (fix != null)
-        //{
-        //    IManagePage manager = fix.GetValue(Page) as IManagePage;
-        //    if (manager != null) Navigation.Text = manager.Navigation;
-        //}
         IManagePage manager = Reflect.GetValue(Page, "Manager", false) as IManagePage;
         if (manager != null) Navigation.Text = manager.Navigation;
 

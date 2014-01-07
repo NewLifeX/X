@@ -1,4 +1,5 @@
 ﻿﻿﻿using System;
+using System.Collections.Generic;
 using System.Text;
 using System.Web.UI;
 using NewLife.CommonEntity;
@@ -43,7 +44,7 @@ public abstract class MyEntityList : Page
 
         StringBuilder sb = new StringBuilder();
         IEntityOperate op = EntityFactory.CreateOperate(EntityType);
-        HashSet<String> hs = new HashSet<string>(op.FieldNames, StringComparer.OrdinalIgnoreCase);
+        HashSet<String> hs = new HashSet<String>(op.FieldNames, StringComparer.OrdinalIgnoreCase);
         foreach (String item in Request.QueryString.Keys)
         {
             // 仅接受实体类成员

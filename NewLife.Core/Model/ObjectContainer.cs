@@ -371,7 +371,7 @@ namespace NewLife.Model
                 var name = item.Key;
                 if (name.IsNullOrWhiteSpace()) continue;
 
-                var type = Reflect.GetTypeEx(name, true);
+                var type = name.GetTypeEx(true);
                 if (type == null)
                 {
                     XTrace.WriteLine("未找到对象容器配置{0}中的类型{1}！", item.Key, name);
@@ -383,7 +383,7 @@ namespace NewLife.Model
 
                 if (XTrace.Debug) XTrace.WriteLine("为{0}配置注册{1}，标识Identity={2}，优先级Priority={3}！", type.FullName, map.TypeName, map.Identity, map.Priority);
 
-                Register(type, null, null, map.TypeName,  map.Identity, map.Priority);
+                Register(type, null, null, map.TypeName, map.Identity, map.Priority);
             }
         }
 

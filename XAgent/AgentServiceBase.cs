@@ -395,7 +395,7 @@ namespace XAgent
                     {
                         WriteLine("");
                         WriteLine("正在加载：{0} = {1}", item.Key, item.Value);
-                        var type = Reflect.GetTypeEx(item.Value, true);
+                        var type = item.Value.GetTypeEx(true);
                         if (type != null)
                         {
                             var service = type.CreateInstance() as IServer;

@@ -707,10 +707,7 @@ e.ClickElement('a',function(i){{
             // 查询总记录数的就不要插手了
             if (e.ExecutingSelectCount) return;
 
-            //var fix = FieldInfoX.Create(sender.GetType(), "_owner");
-            //if (fix == null) return;
-
-            var ods = sender.GetValue("_owner") as ObjectDataSource;
+            var ods = sender.GetValue("_owner", false) as ObjectDataSource;
             if (ods == null) return;
 
             // 如果有排序参数，并且排序参数有默认值，并且传过来的为空，则处理
