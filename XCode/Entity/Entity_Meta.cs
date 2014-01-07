@@ -99,6 +99,12 @@ namespace XCode
             /// <returns></returns>
             [Obsolete("=>Session")]
             public static DataSet Query(SelectBuilder builder, Int32 startRowIndex, Int32 maximumRows) { return Session.Query(builder, startRowIndex, maximumRows); }
+           
+            /// <summary>执行SQL查询，返回记录集</summary>
+            /// <param name="sql">SQL语句</param>
+            /// <returns></returns>
+            [Obsolete("=>Session")]
+            public static DataSet Query(String sql) { return Session.Query(sql); }
 
             /// <summary>查询记录数</summary>
             /// <param name="sb">查询生成器</param>
