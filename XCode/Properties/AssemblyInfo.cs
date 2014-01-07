@@ -9,10 +9,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("新生命数据映射框架")]
 [assembly: AssemblyDescription("包括并大于Orm的数据映射框架")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("新生命开发团队")]
 [assembly: AssemblyProduct("XCode")]
-[assembly: AssemblyCopyright("\x00a92002-2012 新生命开发团队")]
-[assembly: AssemblyTrademark("四叶草")]
 [assembly: AssemblyCulture("")]
 
 // 将 ComVisible 设置为 false 使此程序集中的类型

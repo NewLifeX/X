@@ -62,6 +62,9 @@
     <Reference Include="System.XML" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\NewLife.Core\Properties\AssemblyInfo_.cs">
+      <Link>Properties\AssemblyInfo_.cs</Link>
+    </Compile>
     <Compile Include="Engine\IcoHelper.cs" />
     <Compile Include="FrmFrame.cs">
       <SubType>Form</SubType>

@@ -65,6 +65,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\NewLife.Core\Properties\AssemblyInfo_.cs">
+      <Link>Properties\AssemblyInfo_.cs</Link>
+    </Compile>
     <Compile Include="Box\BoxControl.cs" />
     <Compile Include="Box\LinkBox.cs" />
     <Compile Include="Box\LinkBoxField.cs" />

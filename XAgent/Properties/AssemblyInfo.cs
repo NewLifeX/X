@@ -7,10 +7,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("新生命服务组件")]
 [assembly: AssemblyDescription("支撑Windows服务应用的基础组件")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("新生命开发团队")]
 [assembly: AssemblyProduct("XAgent")]
-[assembly: AssemblyCopyright("\x00a92002-2012 新生命开发团队")]
-[assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
 // 将 ComVisible 设置为 false 使此程序集中的类型

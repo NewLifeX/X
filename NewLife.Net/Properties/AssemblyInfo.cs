@@ -7,10 +7,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("新生命网络库")]
 [assembly: AssemblyDescription("网络通讯基础框架及各种协议实现")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("新生命开发团队")]
 [assembly: AssemblyProduct("NewLife.Net")]
-[assembly: AssemblyCopyright("\x00a92002-2012 新生命开发团队")]
-[assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
 // 将 ComVisible 设置为 false 使此程序集中的类型

@@ -79,6 +79,9 @@
       <LastGenOutput>XCoder.log</LastGenOutput>
     </None>
     <None Include="附件\AttachmentEntityAccessor.cs" />
+    <Compile Include="..\NewLife.Core\Properties\AssemblyInfo_.cs">
+      <Link>Properties\AssemblyInfo_.cs</Link>
+    </Compile>
     <Compile Include="Common\CommonService.cs" />
     <Compile Include="Common\CommonEntityBase.cs" />
     <Compile Include="Exceptions\EntityException.cs" />

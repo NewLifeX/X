@@ -62,6 +62,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\NewLife.Core\Properties\AssemblyInfo_.cs">
+      <Link>Properties\AssemblyInfo_.cs</Link>
+    </Compile>
     <Compile Include="Tags\TagTemplate.cs" />
     <Compile Include="Templating\Directive.cs" />
     <Compile Include="Templating\Template2.cs">
