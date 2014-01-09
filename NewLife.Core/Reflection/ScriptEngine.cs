@@ -296,7 +296,13 @@ namespace NewLife.Reflection
                 else
                 {
                     var err = rs.Errors[0];
-                    throw new XException("{0} {1} {2}({3},{4})", err.ErrorNumber, err.ErrorText, err.FileName, err.Line, err.Column);
+
+                    // 异常中输出错误代码行
+                    var code = "";
+                    var ss = FinalCode.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
+                    if (err.Line > 0 && err.Line <= ss.Length) code = ss[err.Line - 1].Trim();
+
+                    throw new XException("{0} {1} {2}({3},{4}) {5}", err.ErrorNumber, err.ErrorText, err.FileName, err.Line, err.Column, code);
                 }
             }
         }
