@@ -217,7 +217,7 @@ namespace NewLife.Reflection
                 if (!code.EndsWith(";")) code += ";";
 
                 var sb = new StringBuilder(64 + code.Length);
-                sb.Append("\t\tpublic static Object Main(");
+                sb.Append("\t\tpublic static Object Eval(");
                 // 参数
                 var isfirst = false;
                 foreach (var item in Parameters)
@@ -231,6 +231,7 @@ namespace NewLife.Reflection
                 }
                 sb.AppendLine(")");
                 sb.AppendLine("\t\t{");
+                sb.Append("\t\t\t");
                 sb.AppendLine(code);
                 sb.AppendLine("\t\t}");
 
@@ -289,8 +290,8 @@ namespace NewLife.Reflection
                 if (rs.Errors == null || !rs.Errors.HasErrors)
                 {
                     var type = rs.CompiledAssembly.GetTypes()[0];
-                    //Method = MethodInfoX.Create(type, "Execute");
-                    Method = type.GetMethod("Main", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+                    var name = IsExpression ? "Eval" : "Main";
+                    Method = type.GetMethod(name, BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
                 }
                 else
                 {
@@ -310,6 +311,7 @@ namespace NewLife.Reflection
             {
                 options = new CompilerParameters();
                 options.GenerateInMemory = true;
+                options.GenerateExecutable = !IsExpression;
             }
 
             var hs = new HashSet<String>(StringComparer.OrdinalIgnoreCase);
