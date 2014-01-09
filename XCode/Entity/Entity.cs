@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Data;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using NewLife.IO;
 using NewLife.Reflection;
 using NewLife.Xml;
@@ -13,7 +14,6 @@ using XCode.Configuration;
 using XCode.DataAccessLayer;
 using XCode.Exceptions;
 using XCode.Model;
-using System.Text.RegularExpressions;
 
 namespace XCode
 {
@@ -1223,6 +1223,11 @@ namespace XCode
             else
                 return "实体" + Meta.ThisType.Name;
         }
+
+        /// <summary>默认累加字段</summary>
+        [Obsolete("=>IEntityOperate")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public static ICollection<String> AdditionalFields { get { return Meta.Factory.AdditionalFields; } }
         #endregion
 
         #region 脏数据
