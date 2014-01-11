@@ -8,6 +8,7 @@ using System.Reflection.Emit;
 using System.Text;
 using NewLife.Collections;
 using NewLife.Exceptions;
+using NewLife.Log;
 
 namespace NewLife.Reflection
 {
@@ -84,9 +85,19 @@ namespace NewLife.Reflection
         private StringCollection _ReferencedAssemblies = new StringCollection();
         /// <summary>引用程序集集合</summary>
         public StringCollection ReferencedAssemblies { get { return _ReferencedAssemblies; } set { _ReferencedAssemblies = value; } }
+
+        private ILog _Log;
+        /// <summary>日志</summary>
+        public ILog Log { get { return _Log; } set { _Log = value; } }
         #endregion
 
         #region 创建
+        static ScriptEngine()
+        {
+            // 考虑到某些要引用的程序集在别的目录
+            AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
+        }
+
         /// <summary>构造函数私有，禁止外部越过Create方法直接创建实例</summary>
         /// <param name="code">代码片段</param>
         /// <param name="isExpression">是否表达式，表达式将编译成为一个Main方法</param>
@@ -289,6 +300,17 @@ namespace NewLife.Reflection
                 var rs = Compile(FinalCode, null);
                 if (rs.Errors == null || !rs.Errors.HasErrors)
                 {
+                    // 加载外部程序集
+                    foreach (var item in ReferencedAssemblies)
+                    {
+                        try
+                        {
+                            Assembly.LoadFrom(item);
+                            WriteLog("加载外部程序集：{0}", item);
+                        }
+                        catch { }
+                    }
+
                     try
                     {
                         var type = rs.CompiledAssembly.GetTypes()[0];
@@ -414,6 +436,25 @@ namespace NewLife.Reflection
             }
 
             return sb.ToString().Trim();
+        }
+
+        void WriteLog(String format, params Object[] args)
+        {
+            if (Log != null) Log.Info(format, args);
+        }
+
+        static Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
+        {
+            var name = args.Name;
+            if (String.IsNullOrEmpty(name)) return null;
+
+            // 遍历现有程序集
+            foreach (var item in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                if (item.FullName == name) return item;
+            }
+
+            return null;
         }
         #endregion
     }
