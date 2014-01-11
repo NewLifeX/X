@@ -65,7 +65,7 @@ namespace NewLife.Messaging
                     if (!String.IsNullOrEmpty(d))
                     {
                         if (d.StartsWith("?")) d = d.Substring(1);
-                        s = new MemoryStream(DataHelper.FromHex(d));
+                        s = new MemoryStream(d.ToHex());
                     }
                 }
                 //var msg = Message.Read(s);
