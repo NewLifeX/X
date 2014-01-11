@@ -152,6 +152,38 @@ namespace System
             Buffer.BlockCopy(src, offset, bts, 0, bts.Length);
             return bts;
         }
+
+        ///// <summary>把一个数组写入到另一个数组</summary>
+        ///// <param name="src">源数组</param>
+        ///// <param name="des">目标数组</param>
+        ///// <param name="offset">起始位置</param>
+        ///// <param name="count">字节数</param>
+        ///// <returns></returns>
+        //public static Byte[] Write(this Byte[] src, Byte[] des, Int32 offset = 0, Int32 count = 0)
+        //{
+        //    if (count <= 0) count = src.Length - offset;
+
+        //    for (int i = 0; i < length; i++)
+        //    {
+
+        //    }
+        //}
+
+        /// <summary>合并两个数组</summary>
+        /// <param name="src">源数组</param>
+        /// <param name="des">目标数组</param>
+        /// <param name="offset">起始位置</param>
+        /// <param name="count">字节数</param>
+        /// <returns></returns>
+        public static Byte[] Combine(this Byte[] src, Byte[] des, Int32 offset = 0, Int32 count = 0)
+        {
+            if (count <= 0) count = src.Length - offset;
+
+            var buf = new Byte[src.Length + count];
+            Buffer.BlockCopy(src, 0, buf, 0, src.Length);
+            Buffer.BlockCopy(des, offset, buf, src.Length, count);
+            return buf;
+        }
         #endregion
 
         #region 数据流转换
