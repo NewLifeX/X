@@ -289,9 +289,19 @@ namespace NewLife.Reflection
                 var rs = Compile(FinalCode, null);
                 if (rs.Errors == null || !rs.Errors.HasErrors)
                 {
-                    var type = rs.CompiledAssembly.GetTypes()[0];
-                    var name = IsExpression ? "Eval" : "Main";
-                    Method = type.GetMethod(name, BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+                    try
+                    {
+                        var type = rs.CompiledAssembly.GetTypes()[0];
+                        var name = IsExpression ? "Eval" : "Main";
+                        Method = type.GetMethod(name, BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+                    }
+                    catch (ReflectionTypeLoadException ex)
+                    {
+                        if (ex.LoaderExceptions != null && ex.LoaderExceptions.Length > 0)
+                            throw ex.LoaderExceptions[0];
+                        else
+                            throw;
+                    }
                 }
                 else
                 {
