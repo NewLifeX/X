@@ -2,6 +2,8 @@
 using System.IO.Compression;
 using System.Text;
 using System.Collections.Generic;
+using System.Globalization;
+using System.ComponentModel;
 
 namespace System
 {
@@ -538,6 +540,64 @@ namespace System
                 if (source[p + i] != buffer[i]) return false;
             }
             return true;
+        }
+        #endregion
+
+        #region 十六进制编码
+        /// <summary>把字节数组编码为十六进制字符串</summary>
+        /// <param name="data"></param>
+        /// <param name="offset">偏移</param>
+        /// <param name="count">数量</param>
+        /// <returns></returns>
+        public static String ToHex(this Byte[] data, Int32 offset = 0, Int32 count = 0)
+        {
+            if (data == null || data.Length < 1) return null;
+            if (count <= 0) count = data.Length - offset;
+
+            //return BitConverter.ToString(data).Replace("-", null);
+            // 上面的方法要替换-，效率太低
+            var cs = new Char[count * 2];
+            // 两个索引一起用，避免乘除带来的性能损耗
+            for (int i = 0, j = 0; i < count; i++, j += 2)
+            {
+                Byte b = data[offset + i];
+                cs[j] = GetHexValue(b / 0x10);
+                cs[j + 1] = GetHexValue(b % 0x10);
+            }
+            return new String(cs);
+        }
+
+        private static char GetHexValue(int i)
+        {
+            if (i < 10) return (char)(i + 0x30);
+            return (char)(i - 10 + 0x41);
+        }
+
+        /// <summary>把十六进制字符串解码字节数组</summary>
+        /// <param name="data"></param>
+        /// <param name="startIndex">起始位置</param>
+        /// <param name="length">长度</param>
+        /// <returns></returns>
+        [Obsolete("ToHex")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public static Byte[] FromHex(this String data, Int32 startIndex = 0, Int32 length = 0) { return ToHex(data, startIndex, length); }
+
+        /// <summary>解密</summary>
+        /// <param name="data">Hex编码的字符串</param>
+        /// <param name="startIndex">起始位置</param>
+        /// <param name="length">长度</param>
+        /// <returns></returns>
+        public static Byte[] ToHex(this String data, Int32 startIndex = 0, Int32 length = 0)
+        {
+            if (String.IsNullOrEmpty(data)) return null;
+            if (length <= 0) length = data.Length - startIndex;
+
+            var bts = new Byte[length / 2];
+            for (int i = 0; i < bts.Length; i++)
+            {
+                bts[i] = Byte.Parse(data.Substring(startIndex + 2 * i, 2), NumberStyles.HexNumber);
+            }
+            return bts;
         }
         #endregion
     }

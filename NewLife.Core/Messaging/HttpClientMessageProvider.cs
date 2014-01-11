@@ -3,7 +3,6 @@ using System.ComponentModel;
 using System.IO;
 using System.Net;
 using NewLife.IO;
-using NewLife.Security;
 using NewLife.Web;
 
 namespace NewLife.Messaging
@@ -55,7 +54,7 @@ namespace NewLife.Messaging
                 Byte[] rs = null;
                 var data = message.GetStream().ReadBytes();
                 if (data.Length < 128)
-                    rs = Client.DownloadData(new Uri(Uri.ToString() + "?" + DataHelper.ToHex(data)));
+                    rs = Client.DownloadData(new Uri(Uri.ToString() + "?" + data.ToHex()));
                 else
                     rs = Client.UploadData(Uri, data);
                 if (rs == null || rs.Length < 1) return null;
@@ -82,7 +81,7 @@ namespace NewLife.Messaging
                 }
                 var data = stream.ReadBytes();
                 if (data.Length < 128)
-                    client.DownloadDataAsync(new Uri(Uri.ToString() + "?" + DataHelper.ToHex(data)));
+                    client.DownloadDataAsync(new Uri(Uri.ToString() + "?" + data.ToHex()));
                 else
                     client.UploadDataAsync(Uri, data);
             }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
@@ -250,44 +251,18 @@ namespace NewLife.Security
         /// <param name="offset">偏移</param>
         /// <param name="count">数量</param>
         /// <returns></returns>
-        public static String ToHex(this Byte[] data, Int32 offset = 0, Int32 count = 0)
-        {
-            if (data == null || data.Length < 1) return null;
-            if (count <= 0) count = data.Length - offset;
+        [Obsolete("=>IOHelper.ToHex")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public static String ToHex(this Byte[] data, Int32 offset = 0, Int32 count = 0) { return IOHelper.ToHex(data, offset, count); }
 
-            //return BitConverter.ToString(data).Replace("-", null);
-            // 上面的方法要替换-，效率太低
-            Char[] cs = new Char[count * 2];
-            // 两个索引一起用，避免乘除带来的性能损耗
-            for (int i = 0, j = 0; i < count; i++, j += 2)
-            {
-                Byte b = data[offset + i];
-                cs[j] = GetHexValue(b / 0x10);
-                cs[j + 1] = GetHexValue(b % 0x10);
-            }
-            return new String(cs);
-        }
-
-        private static char GetHexValue(int i)
-        {
-            if (i < 10) return (char)(i + 0x30);
-            return (char)(i - 10 + 0x41);
-        }
-
-        /// <summary>解密</summary>
+        /// <summary>把十六进制字符串解码字节数组</summary>
         /// <param name="data"></param>
+        /// <param name="startIndex">起始位置</param>
+        /// <param name="length">长度</param>
         /// <returns></returns>
-        public static Byte[] FromHex(String data)
-        {
-            if (String.IsNullOrEmpty(data)) return null;
-
-            Byte[] bts = new Byte[data.Length / 2];
-            for (int i = 0; i < data.Length / 2; i++)
-            {
-                bts[i] = (Byte)Convert.ToInt32(data.Substring(2 * i, 2), 16);
-            }
-            return bts;
-        }
+        [Obsolete("=>IOHelper.ToHex")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public static Byte[] FromHex(String data, Int32 startIndex = 0, Int32 length = 0) { return IOHelper.ToHex(data, startIndex, length); }
         #endregion
     }
 }

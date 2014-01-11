@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using System.Net;
-using NewLife.Security;
 
 namespace NewLife.IO
 {
@@ -54,7 +53,7 @@ namespace NewLife.IO
             {
                 String url = Uri.ToString();
                 if (!url.Contains("?")) url += "?";
-                url += DataHelper.ToHex(data);
+                url += data.ToHex();
                 return Client.DownloadData(url);
             }
             else
@@ -72,7 +71,7 @@ namespace NewLife.IO
             {
                 String url = Uri.ToString();
                 if (!url.Contains("?")) url += "?";
-                url += DataHelper.ToHex(data);
+                url += data.ToHex();
                 Client.DownloadDataAsync(new Uri(url), null);
             }
             else
