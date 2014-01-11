@@ -543,80 +543,33 @@ namespace System
         }
         #endregion
 
-        #region 字节数组读写整数
-        /// <summary>从数组中读取整数</summary>
+        #region 倒序、更换字节序
+        /// <summary>倒序、更换字节序</summary>
         /// <param name="buf">字节数组</param>
-        /// <param name="offset">偏移</param>
-        /// <param name="isLittleEndian">是否小字节序</param>
         /// <returns></returns>
-        public static Int16 ReadInt16(this Byte[] buf, Int32 offset = 0, Boolean isLittleEndian = true)
+        public static unsafe Byte[] Reverse(this Byte[] buf)
         {
-            Int16 n = 0;
-            if (isLittleEndian)
-            {
-                for (int i = 0; i < 2; i++)
-                {
-                    n = (Int16)((n << 16) + buf[offset + i]);
-                }
-            }
-            else
-            {
-                for (int i = 2 - 1; i >= 0; i--)
-                {
-                    n = (Int16)((n << 16) + buf[offset + i]);
-                }
-            }
-            return n;
-        }
+            if (buf == null || buf.Length < 2) return buf;
 
-        /// <summary>从数组中读取整数</summary>
-        /// <param name="buf">字节数组</param>
-        /// <param name="offset">偏移</param>
-        /// <param name="isLittleEndian">是否小字节序</param>
-        /// <returns></returns>
-        public static Int32 ReadInt32(this Byte[] buf, Int32 offset = 0, Boolean isLittleEndian = true)
-        {
-            Int32 n = 0;
-            if (isLittleEndian)
+            if (buf.Length > 100)
             {
-                for (int i = 0; i < 4; i++)
-                {
-                    n = (Int32)((n << 16) + buf[offset + i]);
-                }
+                Array.Reverse(buf);
+                return buf;
             }
-            else
-            {
-                for (int i = 4 - 1; i >= 0; i--)
-                {
-                    n = (Int32)((n << 16) + buf[offset + i]);
-                }
-            }
-            return n;
-        }
 
-        /// <summary>从数组中读取整数</summary>
-        /// <param name="buf">字节数组</param>
-        /// <param name="offset">偏移</param>
-        /// <param name="isLittleEndian">是否小字节序</param>
-        /// <returns></returns>
-        public static Int64 ReadInt64(this Byte[] buf, Int32 offset = 0, Boolean isLittleEndian = true)
-        {
-            Int64 n = 0;
-            if (isLittleEndian)
+            // 小数组使用指针更快
+            fixed (Byte* p = buf)
             {
-                for (int i = 0; i < 8; i++)
+                Byte* pStart = p;
+                Byte* pEnd = p + buf.Length - 1;
+                for (var i = buf.Length / 2; i > 0; i--)
                 {
-                    n = (Int64)((n << 16) + buf[offset + i]);
+                    var temp = *pStart;
+                    *pStart++ = *pEnd;
+                    *pEnd-- = temp;
                 }
             }
-            else
-            {
-                for (int i = 8 - 1; i >= 0; i--)
-                {
-                    n = (Int64)((n << 16) + buf[offset + i]);
-                }
-            }
-            return n;
+            return buf;
         }
         #endregion
 

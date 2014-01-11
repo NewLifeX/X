@@ -35,6 +35,7 @@ using System.Runtime.InteropServices;
 
 /*
  * v4.0.2014.0111   IOHelper为Byte[]增加扩展方法Combine，用于合并两个数组
+ *                  IOHelper为Byte[]增加扩展方法Reverse，用于字节数组倒序，主要是更换大小字节序
  * 
  * v4.0.2013.1214   简化对象容器IObjectContainer，不再支持构造函数依赖注入，上一次取消了属性依赖注入
  *                  增加扩展方法TryDispose，支持试图释放资源的各种场合
