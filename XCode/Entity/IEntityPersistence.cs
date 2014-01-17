@@ -412,8 +412,8 @@ namespace XCode
                 // 标识列不需要插入，别的类型都需要
                 if (CheckIdentity(fi, value, op, sbNames, sbValues)) continue;
 
-                // 1，有脏数据的字段一定要参与
-                if (!entity.Dirtys[fi.Name])
+                // 1，有脏数据的字段一定要参与同时对于实体有值的也应该参与（针对通过置空主键的方式另存）
+                if (!entity.Dirtys[fi.Name] && value == null)
                 {
                     // 2，没有脏数据，允许空的字段不参与
                     if (fi.IsNullable) continue;
