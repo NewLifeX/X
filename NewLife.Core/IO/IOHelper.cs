@@ -167,7 +167,7 @@ namespace System
         /// <param name="offset">起始位置</param>
         /// <param name="count">复制字节数</param>
         /// <returns>返回复制的总字节数</returns>
-        public static Byte[] ReadBytes(this Byte[] src, Int32 offset, Int32 count)
+        public static Byte[] ReadBytes(this Byte[] src, Int32 offset = 0, Int32 count = 0)
         {
             // 即使是全部，也要复制一份，而不只是返回原数组，因为可能就是为了复制数组
             if (count <= 0) count = src.Length - offset;
@@ -651,6 +651,17 @@ namespace System
         public static Byte[] ToHex(this String data, Int32 startIndex = 0, Int32 length = 0)
         {
             if (String.IsNullOrEmpty(data)) return null;
+
+            // 过滤特殊字符
+            data = data.Trim()
+                .Replace("-", null)
+                .Replace("0x", null)
+                .Replace("0X", null)
+                .Replace(" ", null)
+                .Replace("\r", null)
+                .Replace("\n", null)
+                .Replace(",", null);
+
             if (length <= 0) length = data.Length - startIndex;
 
             var bts = new Byte[length / 2];

@@ -115,7 +115,7 @@ namespace NewLife.Net.Stress
             if (!String.IsNullOrEmpty(cfg.Data))
             {
                 if (cfg.Data.StartsWithIgnoreCase("0x"))
-                    _buffer = DataHelper.FromHex(cfg.Data.Substring(2).Trim());
+                    _buffer = cfg.Data.Substring(2).Trim().ToHex();
                 else
                     _buffer = Encoding.UTF8.GetBytes(cfg.Data);
 
