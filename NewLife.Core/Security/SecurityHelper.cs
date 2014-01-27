@@ -100,15 +100,6 @@ namespace System
             using (var stream = new CryptoStream(instream, sa.CreateDecryptor(), CryptoStreamMode.Read))
             {
                 stream.CopyTo(outstream);
-                //while (true)
-                //{
-                //    Byte[] buffer = new Byte[1024];
-                //    Int32 count = stream.Read(buffer, 0, buffer.Length);
-                //    if (count <= 0) break;
-
-                //    outstream.Write(buffer, 0, count);
-                //    if (count < buffer.Length) break;
-                //}
             }
 
             return sa;
@@ -125,18 +116,6 @@ namespace System
             using (var stream = new CryptoStream(new MemoryStream(data), sa.CreateDecryptor(), CryptoStreamMode.Read))
             {
                 return stream.ReadBytes();
-                //var ms2 = new MemoryStream();
-                //while (true)
-                //{
-                //    Byte[] buffer = new Byte[1024];
-                //    Int32 count = stream.Read(buffer, 0, buffer.Length);
-                //    if (count <= 0) break;
-
-                //    ms2.Write(buffer, 0, count);
-                //    if (count < buffer.Length) break;
-                //}
-
-                //return ms2.ToArray();
             }
         }
         #endregion

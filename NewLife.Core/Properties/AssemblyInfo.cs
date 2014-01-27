@@ -31,9 +31,11 @@ using System.Runtime.InteropServices;
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("4.0.*")]
-[assembly: AssemblyFileVersion("4.0.2014.0111")]
+[assembly: AssemblyFileVersion("4.0.2014.0127")]
 
 /*
+ * v4.0.2014.0127   IOHelper为Stream增加Write和ToArray方法
+ * 
  * v4.0.2014.0111   IOHelper为Byte[]增加扩展方法Combine，用于合并两个数组
  *                  IOHelper为Byte[]增加扩展方法Reverse，用于字节数组倒序，主要是更换大小字节序
  * 

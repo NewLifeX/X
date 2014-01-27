@@ -140,6 +140,28 @@ namespace System
             return total;
         }
 
+        /// <summary>把一个数据流写入到另一个数据流</summary>
+        /// <param name="des">目的数据流</param>
+        /// <param name="src">源数据流</param>
+        /// <param name="bufferSize">缓冲区大小，也就是每次复制的大小</param>
+        /// <param name="max">最大复制字节数</param>
+        /// <returns></returns>
+        public static Stream Write(this Stream des, Stream src, Int32 bufferSize = 0, Int32 max = 0)
+        {
+            src.CopyTo(des);
+            return des;
+        }
+
+        /// <summary>把一个字节数组写入到一个数据流</summary>
+        /// <param name="des">目的数据流</param>
+        /// <param name="src">源数据流</param>
+        /// <returns></returns>
+        public static Stream Write(this Stream des, params Byte[] src)
+        {
+            if (src != null && src.Length > 0) des.Write(src, 0, src.Length);
+            return des;
+        }
+
         /// <summary>复制数组</summary>
         /// <param name="src">源数组</param>
         /// <param name="offset">起始位置</param>
@@ -189,14 +211,14 @@ namespace System
         #endregion
 
         #region 数据流转换
-        /// <summary>流转为字节数组</summary>
+        /// <summary>数据流转为字节数组</summary>
         /// <remarks>
         /// 针对MemoryStream进行优化。内存流的Read实现是一个个字节复制，而ToArray是调用内部内存复制方法
         /// 如果要读完数据，又不支持定位，则采用内存流搬运
         /// 如果指定长度超过数据流长度，就让其报错，因为那是调用者所期望的值
         /// </remarks>
         /// <param name="stream">数据流</param>
-        /// <param name="length">长度</param>
+        /// <param name="length">长度，0表示读到结束</param>
         /// <returns></returns>
         public static Byte[] ReadBytes(this Stream stream, Int64 length = 0)
         {
@@ -204,13 +226,14 @@ namespace System
 
             // 针对MemoryStream进行优化。内存流的Read实现是一个个字节复制，而ToArray是调用内部内存复制方法
             var ms = stream as MemoryStream;
-            if (ms != null && ms.Position == 0 && (length == 0 || length == ms.Length))
+            if (ms != null && ms.Position == 0 && (length <= 0 || length == ms.Length))
             {
+                ms.Position = ms.Length;
                 // 如果长度一致
                 var buf = ms.GetBuffer();
                 if (buf.Length == ms.Length) return buf;
 
-                ms.Position += length;
+                // ToArray带有复制，效率稍逊
                 return ms.ToArray();
             }
 
@@ -220,17 +243,14 @@ namespace System
                 stream.Read(bytes, 0, bytes.Length);
                 return bytes;
             }
-            // 如果要读完数据，又不支持定位，则采用内存流搬运
-            else if (!stream.CanSeek)
-            {
-                //var bytes = new Byte[length];
-                //stream.Read(bytes, 0, bytes.Length);
-                //return bytes;
 
+            // 如果要读完数据，又不支持定位，则采用内存流搬运
+            if (!stream.CanSeek)
+            {
                 ms = new MemoryStream();
                 while (true)
                 {
-                    Byte[] buffer = new Byte[1024];
+                    var buffer = new Byte[1024];
                     Int32 count = stream.Read(buffer, 0, buffer.Length);
                     if (count <= 0) break;
 
@@ -250,6 +270,17 @@ namespace System
                 stream.Read(bytes, 0, bytes.Length);
                 return bytes;
             }
+        }
+
+        /// <summary>数据流转为字节数组，从0开始，无视数据流的当前位置</summary>
+        /// <param name="stream">数据流</param>
+        /// <returns></returns>
+        public static Byte[] ToArray(this Stream stream)
+        {
+            if (stream is MemoryStream) return (stream as MemoryStream).ToArray();
+
+            stream.Position = 0;
+            return stream.ReadBytes();
         }
 
         /// <summary>从数据流中读取字节数组，直到遇到指定字节数组</summary>
