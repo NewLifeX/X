@@ -395,31 +395,45 @@ namespace Test
         {
             var str = "78-01-6B-CC-D1-64-68-08-2B-67-00-01-21-86-2D-9F-4F-AD-3F-BB-FD-F8-EB-3D-6F-0D-8C-0C-4C-F5-8A-CB-D3-18-0F-2F-60-30-04-CB-32-30-70-33-94-A7-E6-24-E7-E7-A6-EA-95-54-94-00-00-38-FD-12-D4";
             var buf = str.ToHex().ReadBytes(2);
+            Console.WriteLine("压缩原文：");
+            Console.WriteLine(buf.ToHex("-", 16));
             Console.WriteLine("Length={0}", buf.Length);
             var old = buf;
 
             buf = buf.Decompress();
+            var old2 = buf;
+            Console.WriteLine("解压：");
             Console.WriteLine(buf.ToHex("-", 16));
             Console.WriteLine("Length={0}", buf.Length);
 
             buf = buf.Compress();
-            Console.WriteLine(buf.ToHex());
+            Console.WriteLine("压缩：");
+            Console.WriteLine(buf.ToHex("-", 16));
             Console.WriteLine("Length={0}", buf.Length);
-
             Console.WriteLine(buf.CompareTo(old));
+
+            buf = buf.Decompress();
+            Console.WriteLine("再次解压：");
+            Console.WriteLine(buf.ToHex("-", 16));
+            Console.WriteLine("Length={0}", buf.Length);
+            Console.WriteLine(buf.CompareTo(old2));
 
             str = "81-6C-29-00-80-56-77-00-00-00-00-00-12-00-B4-F3-CA-AF-CD-B7-C7-EB-BC-ED-30-32-30-35-2E-73-77-66-01-C3-A0-00-31-00-00-00-00-00-00-00-0B-00-77-65-6C-63-6F-6D-65-2E-74-78-74";
             old = buf = str.ToHex();
             str = "78-01-ED-BD-07-60-1C-49-96-25-26-2F-6D-CA-7B-7F-4A-F5-4A-D7-E0-74-A1-08-80-60-13-24-D8-90-40-10-EC-C1-88-CD-E6-92-EC-1D-69-47-23-29-AB-2A-81-CA-65-56-65-5D-66-16-40-CC-ED-9D-BC-F7-DE-7B-EF-BD-F7-DE-7B-EF-BD-F7-BA-3B-9D-4E-27-F7-DF-FF-3F-5C-66-64-01-6C-F6-CE-4A-DA-C9-9E-21-80-AA-C8-1F-3F-7E-7C-1F-3F-22-FE-E0-F2-CE-AF-F1-07-FD-E4-D5-AF-81-E7-B7-F8-35-FE-B6-5F-F6-CF-FC-8D-FF-FC-DF-F9-4F-FE-B7-7F-DF-7F-BF-B3-B7-73-7F-DC-5C-9D-FF-9A-FF-E8-5F-F4-6B-EC-FE-1A-F2-FC-86-BF-C6-55-5E-4E-AB-45-3E-6E-DF-B5-FF-0F";
             var buf2 = str.ToHex().ReadBytes(2);
 
+            Console.WriteLine("原文：");
+            Console.WriteLine(buf.ToHex("-", 16));
             buf = buf.Compress();
-            Console.WriteLine(buf.ToHex());
+            Console.WriteLine("压缩后：");
+            Console.WriteLine(buf.ToHex("-", 16));
             Console.WriteLine("Length={0}", buf.Length);
             Console.WriteLine(buf.CompareTo(buf2));
 
             buf = buf.Decompress();
-            Console.WriteLine(buf.ToHex());
+            Console.WriteLine("解压后：");
+            Console.WriteLine(buf.ToHex("-", 16));
             Console.WriteLine("Length={0}", buf.Length);
             Console.WriteLine(buf.CompareTo(old));
         }
