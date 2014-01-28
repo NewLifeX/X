@@ -1,9 +1,9 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.ComponentModel;
+using System.Globalization;
+using System.IO;
 using System.IO.Compression;
 using System.Text;
-using System.Collections.Generic;
-using System.Globalization;
-using System.ComponentModel;
 
 namespace System
 {
@@ -49,7 +49,7 @@ namespace System
         }
 
         /// <summary>压缩字节数组</summary>
-        /// <param name="data"></param>
+        /// <param name="data">字节数组</param>
         /// <returns></returns>
         public static Byte[] Compress(this Byte[] data)
         {
@@ -59,7 +59,7 @@ namespace System
         }
 
         /// <summary>解压缩字节数组</summary>
-        /// <param name="data"></param>
+        /// <param name="data">字节数组</param>
         /// <returns></returns>
         public static Byte[] Decompress(this Byte[] data)
         {
@@ -606,7 +606,7 @@ namespace System
 
         #region 十六进制编码
         /// <summary>把字节数组编码为十六进制字符串</summary>
-        /// <param name="data"></param>
+        /// <param name="data">字节数组</param>
         /// <param name="offset">偏移</param>
         /// <param name="count">数量</param>
         /// <returns></returns>
@@ -628,6 +628,55 @@ namespace System
             return new String(cs);
         }
 
+        /// <summary>把字节数组编码为十六进制字符串，带有分隔符和分组功能</summary>
+        /// <param name="data">字节数组</param>
+        /// <param name="separate">分隔符</param>
+        /// <param name="groupSize">分组大小，为0时对每个字节应用分隔符，否则对每个分组使用</param>
+        /// <returns></returns>
+        public static String ToHex(this Byte[] data, String separate, Int32 groupSize = 0)
+        {
+            if (data == null || data.Length < 1) return null;
+            if (groupSize < 0) groupSize = 0;
+
+            if (groupSize == 0)
+            {
+                // 没有分隔符
+                if (String.IsNullOrEmpty(separate)) return data.ToHex();
+
+                // 特殊处理
+                if (separate == "-") return BitConverter.ToString(data);
+            }
+
+            var count = data.Length;
+            var len = count * 2;
+            if (!String.IsNullOrEmpty(separate)) len += (count - 1) * separate.Length;
+            if (groupSize > 0)
+            {
+                // 计算分组个数
+                var g = (count - 1) / groupSize;
+                len += g * 2;
+                // 扣除间隔
+                if (!String.IsNullOrEmpty(separate)) len -= g * separate.Length;
+            }
+            var sb = new StringBuilder(len);
+            for (int i = 0; i < count; i++)
+            {
+                if (sb.Length > 0)
+                {
+                    if (i % groupSize == 0)
+                        sb.AppendLine();
+                    else
+                        sb.Append(separate);
+                }
+
+                Byte b = data[i];
+                sb.Append(GetHexValue(b / 0x10));
+                sb.Append(GetHexValue(b % 0x10));
+            }
+
+            return sb.ToString();
+        }
+
         private static char GetHexValue(int i)
         {
             if (i < 10) return (char)(i + 0x30);
@@ -635,7 +684,7 @@ namespace System
         }
 
         /// <summary>把十六进制字符串解码字节数组</summary>
-        /// <param name="data"></param>
+        /// <param name="data">字节数组</param>
         /// <param name="startIndex">起始位置</param>
         /// <param name="length">长度</param>
         /// <returns></returns>

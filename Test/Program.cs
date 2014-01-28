@@ -399,7 +399,7 @@ namespace Test
             var old = buf;
 
             buf = buf.Decompress();
-            Console.WriteLine(buf.ToHex());
+            Console.WriteLine(buf.ToHex("-", 16));
             Console.WriteLine("Length={0}", buf.Length);
 
             buf = buf.Compress();

@@ -35,6 +35,7 @@ using System.Runtime.InteropServices;
 
 /*
  * v4.0.2014.0127   IOHelper为Stream增加Write和ToArray方法
+ *                  IOHelper为Byte[]增加扩展方法ToHex，带有分隔符和分组功能
  * 
  * v4.0.2014.0111   IOHelper为Byte[]增加扩展方法Combine，用于合并两个数组
  *                  IOHelper为Byte[]增加扩展方法Reverse，用于字节数组倒序，主要是更换大小字节序
