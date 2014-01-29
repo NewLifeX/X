@@ -16,7 +16,7 @@ namespace NewLife.IO
         /// <param name="filename"></param>
         /// <param name="dest"></param>
         /// <param name="overWrite"></param>
-        public static void ReleaseFile(Assembly asm, String filename, String dest, Boolean overWrite)
+        public static void ReleaseFile(this Assembly asm, String filename, String dest, Boolean overWrite = false)
         {
             if (String.IsNullOrEmpty(filename)) return;
 
@@ -55,7 +55,7 @@ namespace NewLife.IO
         /// <param name="prefix"></param>
         /// <param name="dest"></param>
         /// <param name="overWrite"></param>
-        public static void ReleaseFolder(Assembly asm, String prefix, String dest, Boolean overWrite)
+        public static void ReleaseFolder(this Assembly asm, String prefix, String dest, Boolean overWrite = false)
         {
             if (asm == null) asm = Assembly.GetCallingAssembly();
             ReleaseFolder(asm, prefix, dest, overWrite, null);
@@ -67,7 +67,7 @@ namespace NewLife.IO
         /// <param name="dest"></param>
         /// <param name="overWrite"></param>
         /// <param name="filenameResolver"></param>
-        public static void ReleaseFolder(Assembly asm, String prefix, String dest, Boolean overWrite, Func<String, String> filenameResolver)
+        public static void ReleaseFolder(this Assembly asm, String prefix, String dest, Boolean overWrite = false, Func<String, String> filenameResolver = null)
         {
             if (asm == null) asm = Assembly.GetCallingAssembly();
 
@@ -89,7 +89,7 @@ namespace NewLife.IO
             }
 
             // 开始处理
-            foreach (String item in ns)
+            foreach (var item in ns)
             {
                 var stream = asm.GetManifestResourceStream(item);
 
@@ -133,7 +133,7 @@ namespace NewLife.IO
         /// <param name="asm"></param>
         /// <param name="filename"></param>
         /// <returns></returns>
-        public static Stream GetFileResource(Assembly asm, String filename)
+        public static Stream GetFileResource(this Assembly asm, String filename)
         {
             if (String.IsNullOrEmpty(filename)) return null;
 

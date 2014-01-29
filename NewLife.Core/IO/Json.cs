@@ -12,7 +12,7 @@ using NewLife.Reflection;
 
 namespace NewLife.IO
 {
-    /// <summary>Json</summary>
+    /// <summary>Json序列化，源自于FX3.5</summary>
     public class Json
     {
         #region 属性
@@ -21,25 +21,17 @@ namespace NewLife.IO
 
         private Int32 _MaxJsonLength = 0x20000000;
         /// <summary>最大长度</summary>
-        public Int32 MaxJsonLength
-        {
-            get { return _MaxJsonLength; }
-            set { _MaxJsonLength = value; }
-        }
+        public Int32 MaxJsonLength { get { return _MaxJsonLength; } set { _MaxJsonLength = value; } }
 
         private Int32 _RecursionLimit = 100;
         /// <summary>递归限制</summary>
-        public Int32 RecursionLimit
-        {
-            get { return _RecursionLimit; }
-            set { _RecursionLimit = value; }
-        }
+        public Int32 RecursionLimit { get { return _RecursionLimit; } set { _RecursionLimit = value; } }
         #endregion
 
         #region 构造
         static Json()
         {
-            DateTime time = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+            var time = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
             DatetimeMinTimeTicks = time.Ticks;
         }
         #endregion
@@ -132,13 +124,9 @@ namespace NewLife.IO
         private static void SerializeBoolean(bool obj, StringBuilder sb)
         {
             if (obj)
-            {
                 sb.Append("true");
-            }
             else
-            {
                 sb.Append("false");
-            }
         }
 
         private void SerializeCustomObject(object obj, StringBuilder sb, int depth, Hashtable objectsInUse, SerializationFormat serializationFormat)
@@ -161,10 +149,8 @@ namespace NewLife.IO
             {
                 if (fi.IsDefined(typeof(NonSerializedAttribute), true)) continue;
 
-                if (!flag)
-                {
-                    sb.Append(',');
-                }
+                if (!flag) sb.Append(',');
+
                 SerializeString(fi.Name, sb);
                 sb.Append(':');
                 SerializeValue(obj.GetValue(fi), sb, depth, objectsInUse, serializationFormat);
@@ -177,10 +163,8 @@ namespace NewLife.IO
                 var getMethod = pi.GetGetMethod();
                 if ((getMethod != null) && (getMethod.GetParameters().Length <= 0))
                 {
-                    if (!flag)
-                    {
-                        sb.Append(',');
-                    }
+                    if (!flag) sb.Append(',');
+
                     SerializeString(pi.Name, sb);
                     sb.Append(':');
                     SerializeValue(obj.GetValue(pi), sb, depth, objectsInUse, serializationFormat);
@@ -230,10 +214,8 @@ namespace NewLife.IO
                 }
                 else
                 {
-                    if (!flag)
-                    {
-                        sb.Append(',');
-                    }
+                    if (!flag) sb.Append(',');
+
                     SerializeDictionaryKeyValue(key, entry.Value, sb, depth, objectsInUse, serializationFormat);
                     flag = false;
                 }
@@ -254,10 +236,8 @@ namespace NewLife.IO
             bool flag = true;
             foreach (object obj2 in enumerable)
             {
-                if (!flag)
-                {
-                    sb.Append(',');
-                }
+                if (!flag) sb.Append(',');
+
                 SerializeValue(obj2, sb, depth, objectsInUse, serializationFormat);
                 flag = false;
             }
@@ -271,7 +251,7 @@ namespace NewLife.IO
 
         internal static string SerializeInternal(object o)
         {
-            Json serializer = new Json();
+            var serializer = new Json();
             return serializer.Serialize(o);
         }
 
@@ -334,28 +314,18 @@ namespace NewLife.IO
                 {
                     Uri uri = o as Uri;
                     if (uri != null)
-                    {
                         SerializeUri(uri, sb);
-                    }
                     else if (o is double)
-                    {
                         sb.Append(((double)o).ToString("r", CultureInfo.InvariantCulture));
-                    }
                     else if (o is float)
-                    {
                         sb.Append(((float)o).ToString("r", CultureInfo.InvariantCulture));
-                    }
                     else if (o.GetType().IsPrimitive || (o is decimal))
                     {
-                        IConvertible convertible = o as IConvertible;
+                        var convertible = o as IConvertible;
                         if (convertible != null)
-                        {
                             sb.Append(convertible.ToString(CultureInfo.InvariantCulture));
-                        }
                         else
-                        {
                             sb.Append(o.ToString());
-                        }
                     }
                     else
                     {
@@ -382,30 +352,23 @@ namespace NewLife.IO
                                     throw new InvalidOperationException(string.Format("循环引用{0}！", enumType.FullName));
                                 }
                                 objectsInUse.Add(o, null);
-                                IDictionary dictionary = o as IDictionary;
+                                var dictionary = o as IDictionary;
                                 if (dictionary != null)
                                 {
                                     SerializeDictionary(dictionary, sb, depth, objectsInUse, serializationFormat);
                                 }
                                 else
                                 {
-                                    IEnumerable enumerable = o as IEnumerable;
+                                    var enumerable = o as IEnumerable;
                                     if (enumerable != null)
-                                    {
                                         SerializeEnumerable(enumerable, sb, depth, objectsInUse, serializationFormat);
-                                    }
                                     else
-                                    {
                                         SerializeCustomObject(o, sb, depth, objectsInUse, serializationFormat);
-                                    }
                                 }
                             }
                             finally
                             {
-                                if (objectsInUse != null)
-                                {
-                                    objectsInUse.Remove(o);
-                                }
+                                if (objectsInUse != null) objectsInUse.Remove(o);
                             }
                         }
                     }
@@ -523,15 +486,9 @@ namespace NewLife.IO
         private class ReferenceComparer : IEqualityComparer
         {
             // Methods
-            bool IEqualityComparer.Equals(object x, object y)
-            {
-                return (x == y);
-            }
+            bool IEqualityComparer.Equals(object x, object y) { return x == y; }
 
-            int IEqualityComparer.GetHashCode(object obj)
-            {
-                return RuntimeHelpers.GetHashCode(obj);
-            }
+            int IEqualityComparer.GetHashCode(object obj) { return RuntimeHelpers.GetHashCode(obj); }
         }
 
         internal enum SerializationFormat
@@ -567,7 +524,7 @@ namespace NewLife.IO
 
             private static bool AssignToPropertyOrField(object propertyValue, object o, string memberName, Json serializer, bool throwOnError)
             {
-                IDictionary dictionary = o as IDictionary;
+                var dictionary = o as IDictionary;
                 if (dictionary != null)
                 {
                     if (!ConvertObjectToTypeMain(propertyValue, null, serializer, throwOnError, out propertyValue))
@@ -577,17 +534,16 @@ namespace NewLife.IO
                     dictionary[memberName] = propertyValue;
                     return true;
                 }
-                Type type = o.GetType();
-                PropertyInfo property = type.GetProperty(memberName, BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
+                var type = o.GetType();
+                var property = type.GetProperty(memberName, BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
                 if (property != null)
                 {
-                    MethodInfo setMethod = property.GetSetMethod();
+                    var setMethod = property.GetSetMethod();
                     if (setMethod != null)
                     {
                         if (!ConvertObjectToTypeMain(propertyValue, property.PropertyType, serializer, throwOnError, out propertyValue))
-                        {
                             return false;
-                        }
+
                         try
                         {
                             //MethodInfoX.Create(setMethod).Invoke(o, new object[] { propertyValue });
@@ -596,10 +552,8 @@ namespace NewLife.IO
                         }
                         catch
                         {
-                            if (throwOnError)
-                            {
-                                throw;
-                            }
+                            if (throwOnError) throw;
+
                             return false;
                         }
                     }
@@ -608,9 +562,8 @@ namespace NewLife.IO
                 if (field != null)
                 {
                     if (!ConvertObjectToTypeMain(propertyValue, field.FieldType, serializer, throwOnError, out propertyValue))
-                    {
                         return false;
-                    }
+
                     try
                     {
                         //FieldInfoX.Create(field).SetValue(o, propertyValue);
@@ -619,10 +572,8 @@ namespace NewLife.IO
                     }
                     catch
                     {
-                        if (throwOnError)
-                        {
-                            throw;
-                        }
+                        if (throwOnError) throw;
+
                         return false;
                     }
                 }
@@ -648,10 +599,8 @@ namespace NewLife.IO
                         t = id.GetTypeEx();
                         if (t == null)
                         {
-                            if (throwOnError)
-                            {
-                                throw new InvalidOperationException();
-                            }
+                            if (throwOnError) throw new InvalidOperationException();
+
                             convertedObject = null;
                             return false;
                         }
@@ -662,7 +611,7 @@ namespace NewLife.IO
                 {
                     o = Activator.CreateInstance(t);
                 }
-                List<string> list = new List<string>(dictionary.Keys);
+                var list = new List<String>(dictionary.Keys);
                 if (IsGenericDictionary(type))
                 {
                     Type type3 = type.GetGenericArguments()[0];
@@ -811,7 +760,7 @@ namespace NewLife.IO
 
             private static bool ConvertObjectToTypeInternal(object o, Type type, Json serializer, bool throwOnError, out object convertedObject)
             {
-                IDictionary<string, object> dictionary = o as IDictionary<string, object>;
+                var dictionary = o as IDictionary<string, object>;
                 if (dictionary != null)
                 {
                     return ConvertDictionaryToObject(dictionary, type, serializer, throwOnError, out convertedObject);
@@ -833,7 +782,7 @@ namespace NewLife.IO
                     convertedObject = o;
                     return true;
                 }
-                TypeConverter converter = TypeDescriptor.GetConverter(type);
+                var converter = TypeDescriptor.GetConverter(type);
                 if (converter.CanConvertFrom(o.GetType()))
                 {
                     try
@@ -843,10 +792,8 @@ namespace NewLife.IO
                     }
                     catch
                     {
-                        if (throwOnError)
-                        {
-                            throw;
-                        }
+                        if (throwOnError) throw;
+
                         convertedObject = null;
                         return false;
                     }
@@ -870,10 +817,8 @@ namespace NewLife.IO
                     }
                     catch
                     {
-                        if (throwOnError)
-                        {
-                            throw;
-                        }
+                        if (throwOnError) throw;
+
                         convertedObject = null;
                         return false;
                     }
@@ -935,11 +880,7 @@ namespace NewLife.IO
                 {
                     return false;
                 }
-                if (t == typeof(object))
-                {
-                    return false;
-                }
-                return true;
+                return t != typeof(object);
             }
 
             private static bool IsGenericDictionary(Type type)
@@ -953,10 +894,8 @@ namespace NewLife.IO
 
             private static bool IsNonNullableValueType(Type type)
             {
-                if ((type == null) || !type.IsValueType)
-                {
-                    return false;
-                }
+                if ((type == null) || !type.IsValueType) return false;
+
                 if (type.IsGenericType)
                 {
                     return !(type.GetGenericTypeDefinition() == typeof(Nullable<>));
@@ -1017,17 +956,15 @@ namespace NewLife.IO
                 }
                 else
                 {
-                    if (c != 'u')
-                    {
-                        throw new ArgumentException(_s.GetDebugString("错误的转义符！"));
-                    }
+                    if (c != 'u') throw new ArgumentException(_s.GetDebugString("错误的转义符！"));
+
                     sb.Append((char)int.Parse(_s.MoveNext(4), NumberStyles.HexNumber, CultureInfo.InvariantCulture));
                 }
             }
 
             internal static object BasicDeserialize(string input, int depthLimit, Json serializer)
             {
-                JsonObjectDeserializer deserializer = new JsonObjectDeserializer(input, depthLimit, serializer);
+                var deserializer = new JsonObjectDeserializer(input, depthLimit, serializer);
                 object obj2 = deserializer.DeserializeInternal(0);
                 char? nextNonEmptyChar = deserializer._s.GetNextNonEmptyChar();
                 int? nullable3 = nextNonEmptyChar.HasValue ? new int?(nextNonEmptyChar.GetValueOrDefault()) : null;
@@ -1040,14 +977,10 @@ namespace NewLife.IO
 
             private char CheckQuoteChar(char? c)
             {
-                if (c == '\'')
-                {
-                    return c.Value;
-                }
-                if (c != '"')
-                {
-                    throw new ArgumentException(_s.GetDebugString("字符串没有引号！"));
-                }
+                if (c == '\'') return c.Value;
+
+                if (c != '"') throw new ArgumentException(_s.GetDebugString("字符串没有引号！"));
+
                 return '"';
             }
 
@@ -1132,7 +1065,7 @@ namespace NewLife.IO
                 }
                 if (IsNextElementObject(nextNonEmptyChar))
                 {
-                    IDictionary<string, object> o = DeserializeDictionary(depth);
+                    var o = DeserializeDictionary(depth);
                     if (o.ContainsKey(ServerTypeFieldName))
                     {
                         return ObjectConverter.ConvertObjectToType(o, null, _serializer);
@@ -1196,15 +1129,11 @@ namespace NewLife.IO
                 char? nextNonEmptyChar = _s.GetNextNonEmptyChar();
                 char? nullable2 = nextNonEmptyChar;
                 int? nullable4 = nullable2.HasValue ? new int?(nullable2.GetValueOrDefault()) : null;
-                if (!nullable4.HasValue)
-                {
-                    return null;
-                }
+                if (!nullable4.HasValue) return null;
+
                 _s.MovePrev();
-                if (IsNextElementString(nextNonEmptyChar))
-                {
-                    return DeserializeString();
-                }
+                if (IsNextElementString(nextNonEmptyChar)) return DeserializeString();
+
                 return DeserializePrimitiveToken();
             }
 
@@ -1212,18 +1141,10 @@ namespace NewLife.IO
             {
                 double num4;
                 string s = DeserializePrimitiveToken();
-                if (s.Equals("null"))
-                {
-                    return null;
-                }
-                if (s.Equals("true"))
-                {
-                    return true;
-                }
-                if (s.Equals("false"))
-                {
-                    return false;
-                }
+                if (s.Equals("null")) return null;
+                if (s.Equals("true")) return true;
+                if (s.Equals("false")) return false;
+
                 bool flag = s.IndexOf('.') >= 0;
                 if (s.LastIndexOf("e", StringComparison.OrdinalIgnoreCase) < 0)
                 {
@@ -1370,10 +1291,7 @@ namespace NewLife.IO
             #endregion
 
             #region 方法
-            internal JsonString(string s)
-            {
-                _s = s;
-            }
+            internal JsonString(string s) { _s = s; }
 
             internal string GetDebugString(string message)
             {
@@ -1408,10 +1326,7 @@ namespace NewLife.IO
                 return null;
             }
 
-            internal void MovePrev()
-            {
-                if (_index > 0) _index--;
-            }
+            internal void MovePrev() { if (_index > 0) _index--; }
 
             internal void MovePrev(int count)
             {
