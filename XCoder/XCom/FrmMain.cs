@@ -4,7 +4,6 @@ using System.Text;
 using System.Windows.Forms;
 using NewLife.Log;
 using NewLife.Reflection;
-using NewLife.Security;
 using XCoder;
 
 namespace XCom
@@ -123,8 +122,8 @@ namespace XCom
                 var sp = new SerialPort(name, cfg.BaudRate, cfg.Parity, cfg.DataBits, cfg.StopBits);
                 sp.Open();
                 sp.DtrEnable = chkDTR.Checked;
-                sp.BreakState = chkBreak.Checked;
                 sp.RtsEnable = chkRTS.Checked;
+                if (chkBreak.Checked) sp.BreakState = chkBreak.Checked;
 
                 _Com = new Com { Serial = sp };
                 _Com.Encoding = cfg.Encoding;
@@ -201,7 +200,7 @@ namespace XCom
             // 16进制发送
             Byte[] data = null;
             if (chkHEXSend.Checked)
-                data = DataHelper.FromHex(str);
+                data = str.ToHex();
             else
                 data = _Com.Encoding.GetBytes(str);
 
