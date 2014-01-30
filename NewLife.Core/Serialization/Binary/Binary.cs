@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using NewLife.Log;
-using NewLife.Reflection;
 
 namespace NewLife.Serialization
 {

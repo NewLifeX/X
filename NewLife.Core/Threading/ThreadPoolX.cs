@@ -16,43 +16,19 @@ namespace NewLife.Threading
         #region 基本属性
         private Int32 _MaxThreads;
         /// <summary>最大线程数</summary>
-        public Int32 MaxThreads
-        {
-            get { return _MaxThreads; }
-            set { _MaxThreads = value; }
-        }
+        public Int32 MaxThreads { get { return _MaxThreads; } set { _MaxThreads = value; } }
 
         private Int32 _MinThreads;
         /// <summary>最小线程数</summary>
-        public Int32 MinThreads
-        {
-            get { return _MinThreads; }
-            set { _MinThreads = value; }
-        }
+        public Int32 MinThreads { get { return _MinThreads; } set { _MinThreads = value; } }
 
         private String _Name;
         /// <summary>线程池名称</summary>
-        public String Name
-        {
-            get { return _Name; }
-            set { _Name = value; }
-        }
+        public String Name { get { return _Name; } set { _Name = value; } }
 
         private Exception _LastError;
         /// <summary>最后的异常</summary>
-        public Exception LastError
-        {
-            get { return _LastError; }
-            set { _LastError = value; }
-        }
-
-        //private Boolean _EnableWait;
-        ///// <summary>启用等待</summary>
-        //public Boolean EnableWait
-        //{
-        //    get { return _EnableWait; }
-        //    set { _EnableWait = value; }
-        //}
+        public Exception LastError { get { return _LastError; } set { _LastError = value; } }
         #endregion
 
         #region 线程
@@ -71,7 +47,7 @@ namespace NewLife.Threading
                     {
                         if (_ManagerThread == null)
                         {
-                            Thread thread = new Thread(Work);
+                            var thread = new Thread(Work);
                             //thread.Name = Name + "线程池维护线程";
                             thread.Name = Name + "PM";
                             thread.IsBackground = true;
@@ -84,7 +60,6 @@ namespace NewLife.Threading
                 }
                 return _ManagerThread;
             }
-            //set { _ManagerThread = value; }
         }
 
         /// <summary>第一个任务到来时初始化线程池</summary>
@@ -111,27 +86,15 @@ namespace NewLife.Threading
 
         private Int32 _ThreadCount;
         /// <summary>当前线程数</summary>
-        public Int32 ThreadCount
-        {
-            get { return _ThreadCount; }
-            private set { _ThreadCount = value; }
-        }
+        public Int32 ThreadCount { get { return _ThreadCount; } private set { _ThreadCount = value; } }
 
         private Int32 _RunningCount;
         /// <summary>正在处理任务的线程数</summary>
-        public Int32 RunningCount
-        {
-            get { return _RunningCount; }
-            private set { _RunningCount = value; }
-        }
+        public Int32 RunningCount { get { return _RunningCount; } private set { _RunningCount = value; } }
 
         private AutoResetEvent _Event = new AutoResetEvent(false);
         /// <summary>事件量</summary>
-        private AutoResetEvent Event
-        {
-            get { return _Event; }
-            //set { _Event = value; }
-        }
+        private AutoResetEvent Event { get { return _Event; } }
 
         /// <summary>用户维护线程组的锁</summary>
         private Object SyncLock_Threads = new object();
@@ -147,20 +110,7 @@ namespace NewLife.Threading
                 if (_Tasks == null) _Tasks = new SortedList<Int32, ThreadTask>();
                 return _Tasks;
             }
-            //set { _Tasks = value; }
         }
-
-        //private Dictionary<Int32,AutoResetEvent> _TaskEvents;
-        ///// <summary>事件量集合</summary>
-        //private Dictionary<Int32, AutoResetEvent> TaskEvents
-        //{
-        //    get
-        //    {
-        //        if (_TaskEvents == null) _TaskEvents = new Dictionary<Int32, AutoResetEvent>();
-        //        return _TaskEvents;
-        //    }
-        //    set { _TaskEvents = value; }
-        //}
 
         /// <summary>任务队列同步锁</summary>
         private Object Sync_Tasks = new object();
@@ -176,9 +126,6 @@ namespace NewLife.Threading
             //最大线程数为4×处理器个数
             MaxThreads = 10 * Environment.ProcessorCount;
             MinThreads = 2 * Environment.ProcessorCount;
-
-            ////默认不使用等待
-            //EnableWait = false;
         }
 
         private static DictionaryCache<String, ThreadPoolX> _cache = new DictionaryCache<String, ThreadPoolX>();
@@ -189,7 +136,7 @@ namespace NewLife.Threading
         {
             if (String.IsNullOrEmpty(name)) throw new ArgumentNullException(name, "线程池名字不能为空！");
 
-            return _cache.GetItem(name, delegate(String key) { return new ThreadPoolX(key); });
+            return _cache.GetItem(name, key => new ThreadPoolX(key));
         }
 
         private static ThreadPoolX _Instance;
@@ -212,19 +159,13 @@ namespace NewLife.Threading
         /// <summary>把用户工作项放入队列</summary>
         /// <param name="method">任务方法</param>
         /// <returns>任务编号</returns>
-        public Int32 Queue(WaitCallback method)
-        {
-            return Queue(method, null);
-        }
+        public Int32 Queue(WaitCallback method) { return Queue(method, null); }
 
         /// <summary>把用户工作项放入队列</summary>
         /// <param name="method">任务方法</param>
         /// <param name="argument">任务参数</param>
         /// <returns>任务编号</returns>
-        public Int32 Queue(WaitCallback method, Object argument)
-        {
-            return Queue(new ThreadTask(method, argument));
-        }
+        public Int32 Queue(WaitCallback method, Object argument) { return Queue(new ThreadTask(method, argument)); }
 
         /// <summary>把用户工作项放入队列。指定任务被取消时执行的方法，该方法仅针对尚未被线程开始调用时的任务有效</summary>
         /// <param name="method">任务方法</param>
@@ -267,7 +208,7 @@ namespace NewLife.Threading
             // 要取消的任务
             ThreadTask task = null;
             // 任务状态
-            TaskState state = TaskState.Finished;
+            var state = TaskState.Finished;
 
             #region 检查任务是否还在队列里面
             if (Tasks.ContainsKey(id))
@@ -293,12 +234,12 @@ namespace NewLife.Threading
                 {
                     if (Threads.Count > 0)
                     {
-                        foreach (ThreadX item in Threads)
+                        foreach (var item in Threads)
                         {
                             if (item.Task != null && item.Task.ID == id)
                             {
                                 task = item.Task;
-                                Boolean b = item.Running;
+                                var b = item.Running;
                                 item.Abort(true);
                                 if (b)
                                     state = TaskState.Running;
@@ -337,7 +278,7 @@ namespace NewLife.Threading
                 if (Tasks == null || Tasks.Count < 1) return;
 
                 list = new List<ThreadTask>();
-                foreach (ThreadTask item in Tasks.Values)
+                foreach (var item in Tasks.Values)
                 {
                     list.Add(item);
                 }
@@ -346,7 +287,7 @@ namespace NewLife.Threading
 
             if (list == null || list.Count < 1) return;
 
-            foreach (ThreadTask item in list)
+            foreach (var item in list)
             {
                 if (item.AbortMethod != null)
                 {
@@ -370,7 +311,7 @@ namespace NewLife.Threading
                 if (Threads == null || Threads.Count < 1) return;
 
                 list = new List<ThreadTask>();
-                foreach (ThreadX item in Threads)
+                foreach (var item in Threads)
                 {
                     if (item.Running)
                     {
@@ -382,7 +323,7 @@ namespace NewLife.Threading
 
             if (list == null || list.Count < 1) return;
 
-            foreach (ThreadTask item in list)
+            foreach (var item in list)
             {
                 if (item.AbortMethod != null)
                 {
@@ -415,7 +356,7 @@ namespace NewLife.Threading
             lock (SyncLock_Threads)
             {
                 if (Threads == null || Threads.Count < 1) return TaskState.Finished;
-                foreach (ThreadX item in Threads)
+                foreach (var item in Threads)
                 {
                     if (item.Task != null && item.Task.ID == id)
                     {
@@ -444,7 +385,7 @@ namespace NewLife.Threading
         /// <returns>是否在等待之前退出同步域</returns>
         public Boolean WaitAll(Int32 millisecondsTimeout)
         {
-            Stopwatch watch = Stopwatch.StartNew();
+            var sw = Stopwatch.StartNew();
 
             Int32 Interval = 10;
             while (true)
@@ -460,44 +401,11 @@ namespace NewLife.Threading
                         WriteLog("取任务数异常！" + ex.ToString());
                     }
                 }
-                if (watch.ElapsedMilliseconds >= millisecondsTimeout) return false;
+                if (sw.ElapsedMilliseconds >= millisecondsTimeout) return false;
 
                 Thread.Sleep(Interval);
             }
             return true;
-
-            //if (!EnableWait) throw new InvalidOperationException("使用WaitAll前必须设置EnableWait，WaitAll仅对设置EnableWait后添加的任务生效！");
-
-            ////没有事件量
-            //if (TaskEvents.Count < 1) return false;
-
-            //List<AutoResetEvent> events = new List<AutoResetEvent>();
-            //foreach (AutoResetEvent item in TaskEvents.Values)
-            //{
-            //    events.Add(item);
-            //}
-
-            ////WaitAll最大只能等待64个事件，分批等待
-            //if (events.Count < 64)
-            //    return WaitHandle.WaitAll(events.ToArray(), millisecondsTimeout, true);
-            //else
-            //{
-            //    List<AutoResetEvent> evs = new List<AutoResetEvent>();
-            //    for (int i = 0; i < events.Count; i++)
-            //    {
-            //        if (evs.Count < 64)
-            //            evs.Add(events[i]);
-            //        else
-            //        {
-            //            //如果已经超时
-            //            if (!WaitHandle.WaitAll(evs.ToArray(), millisecondsTimeout, true)) return true;
-
-            //            evs.Clear();
-            //        }
-            //    }
-            //    if (evs.Count > 0) return WaitHandle.WaitAll(evs.ToArray(), millisecondsTimeout, true);
-            //    return false;
-            //}
         }
         #endregion
 
@@ -580,13 +488,6 @@ namespace NewLife.Threading
                                 Int32 id = Tasks.Keys[0];
                                 thread.Task = Tasks[id];
                                 Tasks.RemoveAt(0);
-                                ////设置事件量
-                                //if (EnableWait)
-                                //{
-                                //    AutoResetEvent e = new AutoResetEvent(false);
-                                //    thread.Task.Event = e;
-                                //    TaskEvents.Add(thread.Task.ID, e);
-                                //}
 
                                 //处理任务
                                 thread.Start();
@@ -612,22 +513,6 @@ namespace NewLife.Threading
                 }
             }
 
-            ////检查任务是否正在处理
-            //if (Threads.Count > 0)
-            //{
-            //    lock (SyncLock_Threads)
-            //    {
-            //        if (Threads.Count > 0)
-            //        {
-            //            foreach (ThreadX item in Threads)
-            //            {
-            //                //取消任务线程
-            //                item.Abort(false);
-            //            }
-            //        }
-            //    }
-            //}
-
             // 结束所有工作了，回家吧
             AbortAll();
         }
@@ -639,7 +524,7 @@ namespace NewLife.Threading
             //保证活动线程数不超过最大线程数
             if (Threads.Count >= MaxThreads) return null;
 
-            ThreadX thread = new ThreadX();
+            var thread = new ThreadX();
             //thread.Name = Name + "线程池" + ThreadCount + "号线程";
             //thread.Name = String.Format("{0}线程池{1,3}号线程", Name, ThreadCount);
             thread.Name = Name + "P" + ThreadCount;
@@ -656,13 +541,7 @@ namespace NewLife.Threading
 
         void thread_OnTaskFinished(object sender, EventArgs e)
         {
-            ThreadX thread = sender as ThreadX;
-
-            ////检查事件量
-            //if (thread != null && thread.Task != null && thread.Task.Event != null)
-            //{
-            //    thread.Task.Event.Set();
-            //}
+            var thread = sender as ThreadX;
 
             Close(thread);
 
@@ -678,7 +557,7 @@ namespace NewLife.Threading
         {
             lock (SyncLock_Threads)
             {
-                foreach (ThreadX item in Threads)
+                foreach (var item in Threads)
                 {
                     if (item != null && item.IsAlive && !item.Running) return item;
                 }
@@ -686,7 +565,7 @@ namespace NewLife.Threading
                 //没有空闲线程，加一个
                 if (Threads.Count < MaxThreads)
                 {
-                    ThreadX thread = AddThread();
+                    var thread = AddThread();
                     Threads.Add(thread);
 
                     RunningCount++;
@@ -745,12 +624,12 @@ namespace NewLife.Threading
         {
             if (callback == null) return;
 
-            WaitCallback cb = new WaitCallback(delegate(Object s)
+            var cb = new WaitCallback(s =>
             {
-                Object[] ss = (Object[])s;
-                WaitCallback wcb = ss[0] as WaitCallback;
-                Object st = ss[1];
-                Action<Exception> onerr = ss[2] as Action<Exception>;
+                var ss = (Object[])s;
+                var wcb = ss[0] as WaitCallback;
+                var st = ss[1];
+                var onerr = ss[2] as Action<Exception>;
 
                 try
                 {
@@ -773,7 +652,7 @@ namespace NewLife.Threading
         /// <param name="callback"></param>
         public static void QueueUserWorkItem(Func callback)
         {
-            QueueUserWorkItem(callback, delegate(Exception ex)
+            QueueUserWorkItem(callback, ex =>
             {
                 if (XTrace.Debug) XTrace.WriteException(ex);
             });
@@ -787,11 +666,11 @@ namespace NewLife.Threading
         {
             if (callback == null) return;
 
-            WaitCallback cb = new WaitCallback(delegate(Object s)
+            var cb = new WaitCallback(s =>
             {
-                Object[] ss = (Object[])s;
-                Func func = ss[0] as Func;
-                Action<Exception> onerr = ss[1] as Action<Exception>;
+                var ss = (Object[])s;
+                var func = ss[0] as Func;
+                var onerr = ss[1] as Action<Exception>;
 
                 try
                 {
