@@ -18,22 +18,9 @@ namespace NewLife.Serialization
         /// <summary>数据流</summary>
         public Stream Stream { get { return _Stream ?? (_Stream = new MemoryStream()); } set { _Stream = value; } }
 
-        private XmlWriterSettings _Settings;
-        /// <summary>设置</summary>
-        public XmlWriterSettings Settings
-        {
-            get
-            {
-                if (_Settings == null)
-                {
-                    _Settings = new XmlWriterSettings();
-                    _Settings.Encoding = Encoding.UTF8.TrimPreamble();
-                    _Settings.Indent = true;
-                }
-                return _Settings;
-            }
-            set { _Settings = value; }
-        }
+        private Encoding _Encoding;
+        /// <summary>编码</summary>
+        public Encoding Encoding { get { return _Encoding; } set { _Encoding = value; } }
 
         private Int32 _Depth;
         /// <summary>深度</summary>
@@ -149,14 +136,59 @@ namespace NewLife.Serialization
             }
         }
 
+        Boolean IFormatterX.Write(Object value, Type type) { return Write(value, null, type); }
+
         private XmlWriter _Writer;
         /// <summary>获取Xml写入器</summary>
         /// <returns></returns>
         public XmlWriter GetWriter()
         {
-            if (_Writer == null) _Writer = XmlWriter.Create(Stream, Settings);
+            if (_Writer == null)
+            {
+                var set = new XmlWriterSettings();
+                set.Encoding = Encoding.TrimPreamble();
+                set.Indent = true;
+
+                _Writer = XmlWriter.Create(Stream, set);
+            }
 
             return _Writer;
+        }
+        #endregion
+
+        #region 读取
+        /// <summary>读取指定类型对象</summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        public Object Read(Type type)
+        {
+            var value = type.CreateInstance();
+            if (!TryRead(type, ref value)) throw new Exception("读取失败！");
+
+            return value;
+        }
+
+        /// <summary>尝试读取指定类型对象</summary>
+        /// <param name="type"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public Boolean TryRead(Type type, ref Object value)
+        {
+            foreach (var item in Handlers)
+            {
+                if (item.Write(value, type)) return true;
+            }
+            return false;
+        }
+
+        private XmlReader _Reader;
+        /// <summary>获取Xml读取器</summary>
+        /// <returns></returns>
+        public XmlReader GetReader()
+        {
+            if (_Reader == null) _Reader = XmlReader.Create(Stream);
+
+            return _Reader;
         }
         #endregion
 
@@ -182,7 +214,7 @@ namespace NewLife.Serialization
             var stream = Stream;
             if (stream == null || stream is TraceStream) return;
 
-            Stream = new TraceStream(stream) { Encoding = Settings.Encoding };
+            Stream = new TraceStream(stream) { Encoding = this.Encoding };
         }
         #endregion
     }

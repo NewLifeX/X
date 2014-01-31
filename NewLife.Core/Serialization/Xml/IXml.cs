@@ -6,17 +6,17 @@ using System.Xml;
 namespace NewLife.Serialization
 {
     /// <summary>二进制序列化接口</summary>
-    public interface IXml
+    public interface IXml : IFormatterX
     {
         #region 属性
-        /// <summary>设置</summary>
-        XmlWriterSettings Settings { get; }
+        /// <summary>编码</summary>
+        Encoding Encoding { get; set; }
 
         /// <summary>处理器列表</summary>
         List<IXmlHandler> Handlers { get; }
         #endregion
 
-        #region 写入
+        #region 方法
         /// <summary>写入一个对象</summary>
         /// <param name="value">目标对象</param>
         /// <param name="name">名称</param>
@@ -27,6 +27,10 @@ namespace NewLife.Serialization
         /// <summary>获取Xml写入器</summary>
         /// <returns></returns>
         XmlWriter GetWriter();
+
+        /// <summary>获取Xml读取器</summary>
+        /// <returns></returns>
+        XmlReader GetReader();
         #endregion
     }
 

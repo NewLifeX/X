@@ -5,7 +5,7 @@ using System.Collections.Generic;
 namespace NewLife.Serialization
 {
     /// <summary>二进制序列化接口</summary>
-    public interface IBinary
+    public interface IBinary : IFormatterX
     {
         #region 属性
         /// <summary>编码整数</summary>
@@ -22,12 +22,6 @@ namespace NewLife.Serialization
         #endregion
 
         #region 写入
-        /// <summary>写入一个对象</summary>
-        /// <param name="value">目标对象</param>
-        /// <param name="type">类型</param>
-        /// <returns></returns>
-        Boolean Write(Object value, Type type);
-
         /// <summary>写入字节</summary>
         /// <param name="value"></param>
         void Write(Byte value);
@@ -41,6 +35,16 @@ namespace NewLife.Serialization
         /// <summary>写入大小</summary>
         /// <param name="size"></param>
         void WriteSize(Int32 size);
+        #endregion
+
+        #region 读取
+        /// <summary>读取字节</summary>
+        /// <returns></returns>
+        Byte ReadByte();
+
+        /// <summary>读取大小</summary>
+        /// <returns></returns>
+        Int32 ReadSize();
         #endregion
     }
 
@@ -59,10 +63,11 @@ namespace NewLife.Serialization
         /// <returns></returns>
         Boolean Write(Object value, Type type);
 
-        ///// <summary>读取一个对象</summary>
-        ///// <param name="value"></param>
-        ///// <returns></returns>
-        //Boolean Read(Object value);
+        /// <summary>尝试读取指定类型对象</summary>
+        /// <param name="type"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        Boolean TryRead(Type type, ref Object value);
     }
 
     /// <summary>二进制读写处理器基类</summary>
@@ -81,6 +86,12 @@ namespace NewLife.Serialization
         /// <param name="type">类型</param>
         /// <returns></returns>
         public abstract Boolean Write(Object value, Type type);
+
+        /// <summary>尝试读取指定类型对象</summary>
+        /// <param name="type"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public abstract Boolean TryRead(Type type, ref Object value);
 
         Int32 IComparable<IBinaryHandler>.CompareTo(IBinaryHandler other)
         {

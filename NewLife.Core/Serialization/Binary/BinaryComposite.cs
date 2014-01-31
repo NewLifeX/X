@@ -40,6 +40,15 @@ namespace NewLife.Serialization
             return true;
         }
 
+        /// <summary>尝试读取指定类型对象</summary>
+        /// <param name="type"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public override Boolean TryRead(Type type, ref Object value)
+        {
+            return false;
+        }
+
         #region 获取成员
         /// <summary>获取成员</summary>
         /// <param name="type"></param>

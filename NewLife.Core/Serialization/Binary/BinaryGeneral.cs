@@ -24,16 +24,18 @@ namespace NewLife.Serialization
             switch (Type.GetTypeCode(type))
             {
                 case TypeCode.Boolean:
-                    Write((Boolean)value);
+                    Host.Write((Boolean)value ? 1 : 0);
                     return true;
                 case TypeCode.Byte:
-                    Write((Byte)value);
+                case TypeCode.SByte:
+                    Host.Write((Byte)value);
                     return true;
                 case TypeCode.Char:
                     Write((Char)value);
                     return true;
                 case TypeCode.DBNull:
-                    Write((Byte)0);
+                case TypeCode.Empty:
+                    Host.Write((Byte)0);
                     return true;
                 case TypeCode.DateTime:
                     Write((DateTime)value);
@@ -43,9 +45,6 @@ namespace NewLife.Serialization
                     return true;
                 case TypeCode.Double:
                     Write((Double)value);
-                    return true;
-                case TypeCode.Empty:
-                    Write((Byte)0);
                     return true;
                 case TypeCode.Int16:
                     Write((Int16)value);
@@ -58,9 +57,6 @@ namespace NewLife.Serialization
                     return true;
                 case TypeCode.Object:
                     break;
-                case TypeCode.SByte:
-                    Write((SByte)value);
-                    return true;
                 case TypeCode.Single:
                     Write((Single)value);
                     return true;
@@ -89,7 +85,88 @@ namespace NewLife.Serialization
             return false;
         }
 
-        #region 基元类型
+        /// <summary>尝试读取指定类型对象</summary>
+        /// <param name="type"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public override Boolean TryRead(Type type, ref Object value)
+        {
+            if (type == null)
+            {
+                if (value == null) return false;
+                type = value.GetType();
+            }
+
+            var code = Type.GetTypeCode(type);
+            switch (code)
+            {
+                case TypeCode.Boolean:
+                    value = Host.ReadByte() > 0;
+                    return true;
+                case TypeCode.Byte:
+                    value = Host.ReadByte();
+                    return true;
+                case TypeCode.Char:
+                    value = ReadChar();
+                    return true;
+                case TypeCode.DBNull:
+                    value = DBNull.Value;
+                    return true;
+                case TypeCode.DateTime:
+                    value = ReadDateTime();
+                    return true;
+                case TypeCode.Decimal:
+                    value = ReadDecimal();
+                    return true;
+                case TypeCode.Double:
+                    value = ReadDouble();
+                    return true;
+                case TypeCode.Empty:
+                    value = null;
+                    return true;
+                case TypeCode.Int16:
+                    value = ReadInt16();
+                    return true;
+                case TypeCode.Int32:
+                    value = ReadInt32();
+                    return true;
+                case TypeCode.Int64:
+                    value = ReadInt64();
+                    return true;
+                case TypeCode.Object:
+                    break;
+                case TypeCode.SByte:
+                    value = ReadSByte();
+                    return true;
+                case TypeCode.Single:
+                    value = ReadSingle();
+                    return true;
+                case TypeCode.String:
+                    value = ReadString();
+                    return true;
+                case TypeCode.UInt16:
+                    value = ReadUInt16();
+                    return true;
+                case TypeCode.UInt32:
+                    value = ReadUInt32();
+                    return true;
+                case TypeCode.UInt64:
+                    value = ReadUInt64();
+                    return true;
+                default:
+                    break;
+            }
+
+            if (type == typeof(Guid))
+            {
+                value = new Guid(ReadBytes(16));
+                return true;
+            }
+
+            return false;
+        }
+
+        #region 基元类型写入
         #region 字节
         /// <summary>将一个无符号字节写入</summary>
         /// <param name="value">要写入的无符号字节。</param>
@@ -124,11 +201,6 @@ namespace NewLife.Serialization
         public virtual void Write(byte[] buffer, int offset, int count)
         {
             if (buffer == null || buffer.Length < 1 || count <= 0 || offset >= buffer.Length) return;
-
-            //for (int i = 0; i < count && offset + i < buffer.Length; i++)
-            //{
-            //    Write(buffer[offset + i]);
-            //}
 
             Host.Write(buffer, offset, count);
         }
@@ -261,10 +333,6 @@ namespace NewLife.Serialization
         #endregion
 
         #region 其它
-        /// <summary>将单字节 Boolean 值写入</summary>
-        /// <param name="value">要写入的 Boolean 值</param>
-        public virtual void Write(Boolean value) { Write((Byte)(value ? 1 : 0)); }
-
         /// <summary>将一个十进制值写入当前流，并将流位置提升十六个字节。</summary>
         /// <param name="value">要写入的十进制值。</param>
         public virtual void Write(Decimal value)
@@ -279,6 +347,141 @@ namespace NewLife.Serialization
         /// <summary>写入Guid</summary>
         /// <param name="value">数值</param>
         public virtual void Write(Guid value) { Write(value.ToByteArray(), -1); }
+        #endregion
+        #endregion
+
+        #region 基元类型读取
+        #region 字节
+        /// <summary>从当前流中读取下一个字节，并使流的当前位置提升 1 个字节。</summary>
+        /// <returns></returns>
+        public virtual byte ReadByte() { return Host.ReadByte(); }
+
+        /// <summary>从当前流中将 count 个字节读入字节数组，如果count小于0，则先读取字节数组长度。</summary>
+        /// <param name="count">要读取的字节数。</param>
+        /// <returns></returns>
+        public virtual byte[] ReadBytes(int count)
+        {
+            if (count < 0) count = Host.ReadSize();
+
+            if (count <= 0) return null;
+
+            Byte[] buffer = new Byte[count];
+            for (int i = 0; i < count; i++)
+            {
+                buffer[i] = ReadByte();
+            }
+
+            return buffer;
+        }
+
+        /// <summary>从此流中读取一个有符号字节，并使流的当前位置提升 1 个字节。</summary>
+        /// <returns></returns>
+        //[CLSCompliant(false)]
+        public virtual sbyte ReadSByte() { return (SByte)ReadByte(); }
+        #endregion
+
+        #region 有符号整数
+        /// <summary>读取整数的字节数组，某些写入器（如二进制写入器）可能需要改变字节顺序</summary>
+        /// <param name="count">数量</param>
+        /// <returns></returns>
+        protected virtual Byte[] ReadIntBytes(Int32 count) { return ReadBytes(count); }
+
+        /// <summary>从当前流中读取 2 字节有符号整数，并使流的当前位置提升 2 个字节。</summary>
+        /// <returns></returns>
+        public virtual short ReadInt16() { return BitConverter.ToInt16(ReadIntBytes(2), 0); }
+
+        /// <summary>从当前流中读取 4 字节有符号整数，并使流的当前位置提升 4 个字节。</summary>
+        /// <returns></returns>
+        public virtual int ReadInt32() { return BitConverter.ToInt32(ReadIntBytes(4), 0); }
+
+        /// <summary>从当前流中读取 8 字节有符号整数，并使流的当前位置向前移动 8 个字节。</summary>
+        /// <returns></returns>
+        public virtual long ReadInt64() { return BitConverter.ToInt64(ReadIntBytes(8), 0); }
+        #endregion
+
+        #region 无符号整数
+        /// <summary>使用 Little-Endian 编码从当前流中读取 2 字节无符号整数，并将流的位置提升 2 个字节。</summary>
+        /// <returns></returns>
+        //[CLSCompliant(false)]
+        public virtual ushort ReadUInt16() { return (UInt16)ReadInt16(); }
+
+        /// <summary>从当前流中读取 4 字节无符号整数并使流的当前位置提升 4 个字节。</summary>
+        /// <returns></returns>
+        //[CLSCompliant(false)]
+        public virtual uint ReadUInt32() { return (UInt32)ReadInt32(); }
+
+        /// <summary>从当前流中读取 8 字节无符号整数并使流的当前位置提升 8 个字节。</summary>
+        /// <returns></returns>
+        //[CLSCompliant(false)]
+        public virtual ulong ReadUInt64() { return (UInt64)ReadInt64(); }
+        #endregion
+
+        #region 浮点数
+        /// <summary>从当前流中读取 4 字节浮点值，并使流的当前位置提升 4 个字节。</summary>
+        /// <returns></returns>
+        public virtual float ReadSingle() { return BitConverter.ToSingle(ReadBytes(4), 0); }
+
+        /// <summary>从当前流中读取 8 字节浮点值，并使流的当前位置提升 8 个字节。</summary>
+        /// <returns></returns>
+        public virtual double ReadDouble() { return BitConverter.ToDouble(ReadBytes(8), 0); }
+        #endregion
+
+        #region 字符串
+        /// <summary>从当前流中读取下一个字符，并根据所使用的 Encoding 和从流中读取的特定字符，提升流的当前位置。</summary>
+        /// <returns></returns>
+        public virtual char ReadChar() { return Convert.ToChar(ReadByte()); }
+
+        /// <summary>从当前流中读取 count 个字符，以字符数组的形式返回数据，并根据所使用的 Encoding 和从流中读取的特定字符，提升当前位置。</summary>
+        /// <param name="count">要读取的字符数。</param>
+        /// <returns></returns>
+        public virtual char[] ReadChars(int count)
+        {
+            if (count < 0) count = Host.ReadSize();
+
+            //// count个字符可能的最大字节数
+            //var max = Settings.Encoding.GetMaxByteCount(count);
+
+            // 首先按最小值读取
+            var data = ReadBytes(count);
+
+            return Host.Encoding.GetChars(data);
+        }
+
+        /// <summary>从当前流中读取一个字符串。字符串有长度前缀，一次 7 位地被编码为整数。</summary>
+        /// <returns></returns>
+        public virtual string ReadString()
+        {
+            // 先读长度
+            Int32 n = Host.ReadSize();
+            if (n < 0) return null;
+            if (n == 0) return String.Empty;
+
+            Byte[] buffer = ReadBytes(n);
+
+            return Host.Encoding.GetString(buffer);
+        }
+        #endregion
+
+        #region 其它
+        /// <summary>从当前流中读取 Boolean 值，并使该流的当前位置提升 1 个字节。</summary>
+        /// <returns></returns>
+        public virtual bool ReadBoolean() { return ReadByte() != 0; }
+
+        /// <summary>从当前流中读取十进制数值，并将该流的当前位置提升十六个字节。</summary>
+        /// <returns></returns>
+        public virtual decimal ReadDecimal()
+        {
+            Int32[] data = new Int32[4];
+            for (int i = 0; i < data.Length; i++)
+            {
+                data[i] = ReadInt32();
+            }
+            return new Decimal(data);
+        }
+
+        /// <summary>读取一个时间日期</summary>
+        /// <returns></returns>
+        public virtual DateTime ReadDateTime() { return new DateTime(ReadInt64()); }
         #endregion
         #endregion
 
