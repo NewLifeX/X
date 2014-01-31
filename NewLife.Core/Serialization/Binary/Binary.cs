@@ -28,7 +28,7 @@ namespace NewLife.Serialization
 
         private List<IBinaryHandler> _Handlers;
         /// <summary>处理器列表</summary>
-        public List<IBinaryHandler> Handlers { get { return _Handlers; } }
+        public List<IBinaryHandler> Handlers { get { return _Handlers ?? (_Handlers = new List<IBinaryHandler>()); } }
         #endregion
 
         #region 构造

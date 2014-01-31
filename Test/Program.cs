@@ -37,7 +37,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test11();
+                    Test5();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -244,28 +244,15 @@ namespace Test
 
         static void Test5()
         {
-            DAL.AddConnStr("xxgk", "Data Source=192.168.1.21;Initial Catalog=信息公开;user id=sa;password=Pass@word", null, "mssql");
-            var dal = DAL.Create("xxgk");
+            var admin = new Administrator();
+            admin.Name = "大石头";
 
-            DAL.AddConnStr("xxgk2", "Data Source=XXGK.db;Version=3;", null, "sqlite");
-            File.Delete("XXGK.db");
+            var xml = new Xml();
+            xml.Write(admin);
 
-            //DAL.ShowSQL = false;
-
-            var etf = new EntityTransform();
-            etf.SrcConn = "xxgk";
-            etf.DesConn = "xxgk2";
-            etf.AllowInsertIdentity = true;
-            //etf.TableNames.Remove("PubInfoLog");
-            //etf.TableNames.Remove("PublicInformation");
-            //etf.TableNames.Remove("SystemUserLog");
-            etf.PartialTableNames.Add("PubInfoLog");
-            etf.PartialTableNames.Add("PublicInformation");
-            etf.PartialTableNames.Add("SystemUserLog");
-            etf.PartialCount = 25;
-            etf.OnTransformTable += (s, e) => { if (e.Arg.TableName == "")e.Arg = null; };
-            var rs = etf.Transform();
-            Console.WriteLine("共转移：{0}", rs);
+            xml.Stream.Position = 0;
+            var str = xml.Stream.ToStr();
+            Console.WriteLine(str);
         }
 
         static void Test6()

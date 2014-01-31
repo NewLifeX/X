@@ -233,7 +233,7 @@ namespace NewLife.Xml
 
             return encoding;
         }
-        private static Encoding utf8Encoding = new UTF8Encoding(false);
+        private static Encoding utf8Encoding;
         private static Encoding utf32Encoding;
         private static Encoding unicodeEncoding;
 
