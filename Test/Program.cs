@@ -37,7 +37,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test5();
+                TestNatProxy();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -56,19 +56,20 @@ namespace Test
         static HttpProxy http = null;
         private static void Test1()
         {
-            //var server = new HttpReverseProxy();
-            //server.Port = 888;
-            //server.ServerHost = "www.cnblogs.com";
-            //server.ServerPort = 80;
-            //server.Start();
+            var server = new HttpReverseProxy();
+            server.Port = 888;
+            server.ServerHost = "www.cnblogs.com";
+            server.ServerPort = 80;
+            server.Start();
 
-            //var ns = Enum.GetNames(typeof(ConsoleColor));
-            //var vs = Enum.GetValues(typeof(ConsoleColor));
-            //for (int i = 0; i < ns.Length; i++)
-            //{
-            //    Console.ForegroundColor = (ConsoleColor)vs.GetValue(i);
-            //    Console.WriteLine(ns[i]);
-            //}
+            var ns = Enum.GetNames(typeof(ConsoleColor));
+            var vs = Enum.GetValues(typeof(ConsoleColor));
+            for (int i = 0; i < ns.Length; i++)
+            {
+                Console.ForegroundColor = (ConsoleColor)vs.GetValue(i);
+                Console.WriteLine(ns[i]);
+            }
+            Console.ReadKey();
 
             //NewLife.Net.Application.AppTest.Start();
 
@@ -109,6 +110,16 @@ namespace Test
             //    }
             //}
         }
+        private static void TestNatProxy()
+        {
+            NATProxy proxy = new NATProxy();
+            proxy.ServerAddress = System.Net.IPAddress.Parse("192.168.2.184");
+            proxy.Port = 8000;
+            proxy.ServerPort = 6800;
+            proxy.ServerProtocolType = System.Net.Sockets.ProtocolType.Tcp;
+            proxy.Start();
+            
+        }
 
         static void ShowStatus()
         {
@@ -125,7 +136,7 @@ namespace Test
                     }
                     foreach (var item in http.Sessions.Values.ToArray())
                     {
-                        var remote = (item as IProxySession).Remote;
+                        var remote = (item as IProxySession).RemoteClientSession;
                         if (remote != null) asyncCount += remote.Host.AsyncCount;
                     }
                 }
