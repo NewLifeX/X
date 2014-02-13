@@ -7,7 +7,24 @@ namespace NewLife.Net.Proxy
     public abstract class ProxyBase<TProxySession> : NetServer<TProxySession>, IProxy
         where TProxySession : ProxySession, new()
     {
+        #region 构造函数--老树添加
+        public ProxyBase()
+        {
+            //必须要使UseSession = true，否则创建的session对象无Host属性，在ShowSession时，无法获取Host.Name
+            UseSession = true;
+        }
+        #endregion
+
         #region 业务
+        protected override void OnStart()
+        {
+            base.OnStart();
+
+            foreach (var item in Servers)
+            {
+                
+            }
+        }
         /// <summary>创建会话</summary>
         /// <param name="e"></param>
         /// <returns></returns>

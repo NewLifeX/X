@@ -78,7 +78,7 @@ namespace NewLife.Net.Proxy
         {
             var s = session as ProxySession;
             //s.RemoteEndPoint = new IPEndPoint(ServerAddress, ServerPort);
-            var uri = s.RemoteUri;
+            var uri = s.RemoteServerUri;
             uri.Address = ServerAddress;
             uri.Port = ServerPort;
             if (ServerProtocolType == ProtocolType.Tcp || ServerProtocolType == ProtocolType.Udp)

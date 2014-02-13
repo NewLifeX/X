@@ -20,8 +20,8 @@ namespace NewLife.Net.Proxy
     /// <summary>代理会话。客户端的一次转发请求（或者Tcp连接），就是一个会话。转发的全部操作都在会话中完成。</summary>
     /// <remarks>
     /// 一个会话应该包含两端，两个Socket，服务端和客户端
-    /// 客户端<see cref="INetSession.Session"/>发来的数据，在这里经过一系列过滤器后，转发给服务端<see cref="Remote"/>；
-    /// 服务端<see cref="Remote"/>返回的数据，在这里经过过滤器后，转发给客户端<see cref="INetSession.Session"/>。
+    /// 客户端<see cref="INetSession.Session"/>发来的数据，在这里经过一系列过滤器后，转发给服务端<see cref="RemoteClientSession"/>；
+    /// 服务端<see cref="RemoteClientSession"/>返回的数据，在这里经过过滤器后，转发给客户端<see cref="INetSession.Session"/>。
     /// </remarks>
     public class ProxySession : NetSession, IProxySession
     {
@@ -32,7 +32,7 @@ namespace NewLife.Net.Proxy
 
         private ISocketSession _Remote;
         /// <summary>远程服务端。跟目标服务端通讯的那个Socket，其实是客户端TcpClientX/UdpClientX</summary>
-        public ISocketSession Remote { get { return _Remote; } set { _Remote = value; } }
+        public ISocketSession RemoteClientSession { get { return _Remote; } set { _Remote = value; } } 
 
         //private IPEndPoint _RemoteEndPoint;
         ///// <summary>服务端远程IP终结点</summary>
@@ -44,7 +44,7 @@ namespace NewLife.Net.Proxy
 
         private NetUri _RemoteUri;
         /// <summary>服务端地址</summary>
-        public NetUri RemoteUri { get { return _RemoteUri ?? (_RemoteUri = new NetUri()); } }
+        public NetUri RemoteServerUri { get { return _RemoteUri ?? (_RemoteUri = new NetUri()); } }
 
         //private String _RemoteHost;
         ///// <summary>远程主机</summary>
@@ -55,7 +55,7 @@ namespace NewLife.Net.Proxy
         /// <summary>实例化一个代理会话</summary>
         public ProxySession()
         {
-            DisposeWhenSendError = true;
+            DisposeWhenSendError = true;            
         }
 
         /// <summary>子类重载实现资源释放逻辑时必须首先调用基类方法</summary>
@@ -64,10 +64,10 @@ namespace NewLife.Net.Proxy
         {
             base.OnDispose(disposing);
 
-            var remote = Remote;
+            var remote = RemoteClientSession;
             if (remote != null)
             {
-                Remote = null;
+                RemoteClientSession = null;
                 remote.Dispose();
             }
         }
@@ -79,7 +79,7 @@ namespace NewLife.Net.Proxy
         public override void Start(ReceivedEventArgs e)
         {
             // 如果未指定远程协议，则与来源协议一致
-            if (RemoteUri.ProtocolType == 0) RemoteUri.ProtocolType = Session.ProtocolType;
+            if (RemoteServerUri.ProtocolType == 0) RemoteServerUri.ProtocolType = Session.ProtocolType;
 
             base.Start(e);
         }
@@ -92,10 +92,10 @@ namespace NewLife.Net.Proxy
 
             if (e.Stream != null)
             {
-                if (Remote == null) StartRemote(e);
+                if (RemoteClientSession == null) StartRemote(e);
 
                 //Remote.Send(stream, RemoteEndPoint);
-                if (Remote != null) SendRemote(e.Stream);
+                if (RemoteClientSession != null) SendRemote(e.Stream);
             }
         }
 
@@ -107,7 +107,7 @@ namespace NewLife.Net.Proxy
             ISocketSession session = null;
             try
             {
-                WriteDebugLog("Proxy[{0}].StartRemote {1}", ID, RemoteUri);
+                WriteDebugLog("Proxy[{0}].StartRemote {1}", ID, RemoteServerUri);
 
                 session = CreateRemote(e);
                 //if (client.ProtocolType == ProtocolType.Tcp && !client.Client.Connected) client.Connect(RemoteEndPoint);
@@ -121,7 +121,7 @@ namespace NewLife.Net.Proxy
                 session.ReceiveAsync();
 
                 //Debug.Assert(session.Client.Connected);
-                Remote = session;
+                RemoteClientSession = session;
             }
             catch (Exception ex)
             {
@@ -131,7 +131,7 @@ namespace NewLife.Net.Proxy
                 var ts = DateTime.Now - start;
                 //var host = String.IsNullOrEmpty(RemoteHost) ? "" + RemoteEndPoint : RemoteHost;
                 //throw new XException(ex, "无法连接远程服务器{0}！耗时{1}！", RemoteUri, ts);
-                WriteLog("无法为{0}连接远程服务器{1}！耗时{2}！{3}", ClientUri, RemoteUri, ts, ex.Message);
+                WriteLog("无法为{0}连接远程服务器{1}！耗时{2}！{3}", ClientUri, RemoteServerUri, ts, ex.Message);
             }
         }
 
@@ -153,8 +153,8 @@ namespace NewLife.Net.Proxy
             //    _NotConnected.Remove(key);
             //}
 
-            var client = NetService.Container.Resolve<ISocketClient>(RemoteUri.ProtocolType);
-            var rep = RemoteUri.EndPoint;
+            var client = NetService.Container.Resolve<ISocketClient>(RemoteServerUri.ProtocolType);
+            var rep = RemoteServerUri.EndPoint;
             if (rep != null)
             {
                 client.AddressFamily = rep.AddressFamily;
@@ -182,7 +182,7 @@ namespace NewLife.Net.Proxy
         /// <param name="e"></param>
         protected virtual void OnReceiveRemote(ReceivedEventArgs e)
         {
-            WriteDebugLog("Proxy[{0}].OnReceiveRemote {1} <= {2}", ID, RemoteUri.EndPoint, e.Stream.Length);
+            WriteDebugLog("Proxy[{0}].OnReceiveRemote {1} <= {2}", ID, RemoteServerUri.EndPoint, e.Stream.Length);
 
             if (e.Stream != null)
             {
@@ -210,7 +210,7 @@ namespace NewLife.Net.Proxy
         {
             try
             {
-                Remote.Send(buffer, offset, size);
+                RemoteClientSession.Send(buffer, offset, size);
             }
             catch { this.Dispose(); throw; }
 
@@ -224,7 +224,7 @@ namespace NewLife.Net.Proxy
         {
             try
             {
-                Remote.Send(stream);
+                RemoteClientSession.Send(stream);
             }
             catch { this.Dispose(); throw; }
 
@@ -238,7 +238,7 @@ namespace NewLife.Net.Proxy
         {
             try
             {
-                Remote.Send(msg, encoding);
+                RemoteClientSession.Send(msg, encoding);
             }
             catch { this.Dispose(); throw; }
 
@@ -249,7 +249,7 @@ namespace NewLife.Net.Proxy
         #region 辅助
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override string ToString() { return base.ToString() + "=>" + Remote; }
+        public override string ToString() { return base.ToString() + "=>" + RemoteClientSession; }
         #endregion
     }
 }
