@@ -177,17 +177,17 @@ namespace XCode.DataAccessLayer
             var tid = Thread.CurrentThread.ManagedThreadId;
             IDbSession session = null;
             // 会话可能已经被销毁
-            if (_sessions.TryGetValue(tid, out session) && !session.Disposed) return session;
+            if (_sessions.TryGetValue(tid, out session) && session != null && !session.Disposed) return session;
             lock (_sessions)
             {
-                if (_sessions.TryGetValue(tid, out session) && !session.Disposed) return session;
+                if (_sessions.TryGetValue(tid, out session) && session != null && !session.Disposed) return session;
 
                 session = OnCreateSession();
                 session.ConnectionString = ConnectionString;
-                //if (session is DbSession) (session as DbSession).Database = this;
+
                 // 减少一步类型转换
                 var dbSession = session as DbSession;
-                if (dbSession != null) { dbSession.Database = this; }
+                if (dbSession != null) dbSession.Database = this;
 
                 _sessions[tid] = session;
 
