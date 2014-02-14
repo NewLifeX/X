@@ -36,10 +36,9 @@ namespace NewLife.Xml
         public static String ToXml(this Object obj, Encoding encoding = null, String prefix = null, String ns = null, Boolean includeDeclaration = false, Boolean attachCommit = false)
         {
             if (obj == null) throw new ArgumentNullException("obj");
-            if (encoding == null)
-                encoding = utf8Encoding;
-            else
-                encoding = encoding.TrimPreamble();
+            if (encoding == null) encoding = Encoding.UTF8;
+            // 删除字节序
+            encoding = encoding.TrimPreamble();
 
             using (var stream = new MemoryStream())
             {
@@ -60,7 +59,9 @@ namespace NewLife.Xml
         public static void ToXml(this Object obj, Stream stream, Encoding encoding = null, String prefix = null, String ns = null, Boolean includeDeclaration = false, Boolean attachCommit = false)
         {
             if (obj == null) throw new ArgumentNullException("obj");
-            if (encoding == null) encoding = utf8Encoding;
+            if (encoding == null) encoding = Encoding.UTF8;
+            // 删除字节序
+            encoding = encoding.TrimPreamble();
 
             var type = obj.GetType();
             if (!type.IsPublic) throw new XException("类型{0}不是public，不能进行Xml序列化！", type.FullName);
@@ -227,15 +228,15 @@ namespace NewLife.Xml
             var bts = encoding.GetPreamble();
             if (bts == null || bts.Length < 1) return encoding;
 
-            if (encoding is UTF8Encoding) return utf8Encoding ?? (utf8Encoding = new UTF8Encoding(false));
-            if (encoding is UTF32Encoding) return utf32Encoding ?? (utf32Encoding = new UTF32Encoding(false, false));
-            if (encoding is UnicodeEncoding) return unicodeEncoding ?? (unicodeEncoding = new UnicodeEncoding(false, false));
+            if (encoding is UTF8Encoding) return _utf8Encoding ?? (_utf8Encoding = new UTF8Encoding(false));
+            if (encoding is UTF32Encoding) return _utf32Encoding ?? (_utf32Encoding = new UTF32Encoding(false, false));
+            if (encoding is UnicodeEncoding) return _unicodeEncoding ?? (_unicodeEncoding = new UnicodeEncoding(false, false));
 
             return encoding;
         }
-        private static Encoding utf8Encoding;
-        private static Encoding utf32Encoding;
-        private static Encoding unicodeEncoding;
+        private static Encoding _utf8Encoding;
+        private static Encoding _utf32Encoding;
+        private static Encoding _unicodeEncoding;
 
         internal static Boolean CanXmlConvert(this Type type)
         {

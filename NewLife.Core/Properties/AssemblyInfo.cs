@@ -31,9 +31,11 @@ using System.Runtime.InteropServices;
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("4.0.*")]
-[assembly: AssemblyFileVersion("4.0.2014.0127")]
+[assembly: AssemblyFileVersion("4.0.2014.0214")]
 
 /*
+ * v4.0.2014.0214   修正XmlHelper中因错误使用私有成员而导致编码为空的错误
+ * 
  * v4.0.2014.0127   IOHelper为Stream增加Write和ToArray方法
  *                  IOHelper为Byte[]增加扩展方法ToHex，带有分隔符和分组功能
  * 
