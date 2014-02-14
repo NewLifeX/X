@@ -524,8 +524,8 @@ namespace NewLife.Reflection
         public static List<AssemblyX> GetMyAssemblies()
         {
             var list = new List<AssemblyX>();
-            var hs = new List<String>();
-            var cur = AppDomain.CurrentDomain.BaseDirectory.ToLower();
+            var hs = new HashSet<String>(StringComparer.OrdinalIgnoreCase);
+            var cur = AppDomain.CurrentDomain.BaseDirectory;
             foreach (var asmx in GetAssemblies())
             {
                 if (String.IsNullOrEmpty(asmx.FileVersion)) continue;
@@ -535,7 +535,7 @@ namespace NewLife.Reflection
                 //if (file.StartsWith("file:///")) file = file.Substring("file:///".Length);
                 file = file.TrimStart("file:///");
                 file = file.Replace("/", "\\");
-                if (!file.StartsWith(cur)) continue;
+                if (!file.StartsWithIgnoreCase(cur)) continue;
 
                 if (!hs.Contains(file))
                 {
@@ -552,7 +552,7 @@ namespace NewLife.Reflection
                 //if (file.StartsWith("file:///")) file = file.Substring("file:///".Length);
                 file = file.TrimStart("file:///");
                 file = file.Replace("/", "\\");
-                if (!file.StartsWith(cur)) continue;
+                if (!file.StartsWithIgnoreCase(cur)) continue;
 
                 if (!hs.Contains(file))
                 {
