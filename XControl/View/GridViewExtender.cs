@@ -12,12 +12,6 @@ using System.Web.UI.WebControls;
 using NewLife.Reflection;
 using NewLife.Web;
 
-#if NET4
-using System.Linq;
-#else
-
-#endif
-
 [assembly: WebResource("XControl.View.GridViewExtender.js", "text/javascript")]
 
 namespace XControl
@@ -685,31 +679,38 @@ e.ClickElement('a',function(i){{
 
         #endregion 多选
 
-        #region ObjectDataSource默认排序
+        #region ObjectDataSource默认排序/优化查询
         void FixObjectDataSourceOrder(ObjectDataSource ods)
         {
             if (ods == null) return;
 
-            // 如果有排序参数，并且排序参数有默认值，并且传过来的为空，则处理
-            if (!String.IsNullOrEmpty(ods.SortParameterName))
-            {
-                Parameter p = ods.SelectParameters[ods.SortParameterName];
-                if (p != null && !String.IsNullOrEmpty(p.DefaultValue))
-                    ods.Selecting += new ObjectDataSourceSelectingEventHandler(ods_Selecting);
-            }
+            //// 如果有排序参数，并且排序参数有默认值，并且传过来的为空，则处理
+            //if (!String.IsNullOrEmpty(ods.SortParameterName))
+            //{
+            //    var p = ods.SelectParameters[ods.SortParameterName];
+            //    if (p != null && !String.IsNullOrEmpty(p.DefaultValue))
+            //        ods.Selecting += ods_Selecting;
+            //}
 
-            ods.Selected += new ObjectDataSourceStatusEventHandler(ods_Selected);
+            ods.Selecting += ods_Selecting;
+            ods.Selected += ods_Selected;
         }
+
+        private DataSourceSelectArguments _Arguments;
 
         void ods_Selecting(object sender, ObjectDataSourceSelectingEventArgs e)
         {
             if (sender == null) return;
+
+            _Arguments = e.Arguments;
+
             // 查询总记录数的就不要插手了
             if (e.ExecutingSelectCount) return;
 
             var ods = sender.GetValue("_owner", false) as ObjectDataSource;
             if (ods == null) return;
 
+            #region 默认排序
             // 如果有排序参数，并且排序参数有默认值，并且传过来的为空，则处理
             if (!String.IsNullOrEmpty(ods.SortParameterName))
             {
@@ -725,6 +726,7 @@ e.ClickElement('a',function(i){{
                     }
                 }
             }
+            #endregion
         }
 
         void ods_Selected(object sender, ObjectDataSourceStatusEventArgs e)
@@ -733,7 +735,31 @@ e.ClickElement('a',function(i){{
             if (data is Int32)
                 TotalCount = (Int32)data;
             else
+            {
                 DataSource = data;
+
+                // 查询结果不足最大数，且从0开始，则不需要再次查询总记录数
+                if (_Arguments != null && _Arguments.RetrieveTotalRowCount && _Arguments.StartRowIndex <= 0 && data is IEnumerable)
+                {
+                    var count = 0;
+                    foreach (var item in data as IEnumerable)
+                    {
+                        count++;
+                    }
+
+                    if (count < _Arguments.MaximumRows)
+                    {
+                        TotalCount = count;
+
+                        var ods = sender.GetValue("_owner", false) as ObjectDataSource;
+                        // 不能修改RetrieveTotalRowCount，否则页面不显示总记录数
+                        //if (ods != null) _Arguments.RetrieveTotalRowCount = false;
+                        if (ods != null) ods.SelectCountMethod = null;
+
+                        //XTrace.Log.Info("{2}结果集数量{0}小于最大行数{1}，且从0开始，直接作为总记录数！", count, _Arguments.MaximumRows, ods.TypeName);
+                    }
+                }
+            }
         }
         #endregion
 

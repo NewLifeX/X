@@ -34,10 +34,12 @@ using System.Web.UI;
 //
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
-[assembly: AssemblyVersion("1.13.*")]
-[assembly: AssemblyFileVersion("1.13.2012.1225")]
+[assembly: AssemblyVersion("1.14.*")]
+[assembly: AssemblyFileVersion("1.14.2014.0214")]
 
 /*
+ * v1.14.2014.0214  GridViewExtender控制ObjectDataSource，查询结果不足最大数，且从0开始，则不需要再次查询总记录数
+ * 
  * v1.13.2012.1225  GridViewExtender拦截GridView调用ObjectDataSource的Insert/Update/Delete异常，并通过alert向用户友好提示
  * 
  * v1.13.2012.0401  修改效验码控件VerifyCodeBox,使更符合传统asp.net验证控件的使用习惯,修正了验证码图片可能隐藏的问题,使用方法没有变化
