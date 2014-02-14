@@ -738,26 +738,26 @@ e.ClickElement('a',function(i){{
             {
                 DataSource = data;
 
-                // 查询结果不足最大数，且从0开始，则不需要再次查询总记录数
-                if (_Arguments != null && _Arguments.RetrieveTotalRowCount && _Arguments.StartRowIndex <= 0 && data is IEnumerable)
+                var count = 0;
+                if (data is IEnumerable)
                 {
-                    var count = 0;
                     foreach (var item in data as IEnumerable)
                     {
                         count++;
                     }
+                }
 
-                    if (count < _Arguments.MaximumRows)
-                    {
-                        TotalCount = count;
+                // 查询结果不足最大数，且从0开始，则不需要再次查询总记录数
+                if (_Arguments != null && _Arguments.RetrieveTotalRowCount && _Arguments.StartRowIndex <= 0 && count < _Arguments.MaximumRows)
+                {
+                    TotalCount = count;
 
-                        var ods = sender.GetValue("_owner", false) as ObjectDataSource;
-                        // 不能修改RetrieveTotalRowCount，否则页面不显示总记录数
-                        //if (ods != null) _Arguments.RetrieveTotalRowCount = false;
-                        if (ods != null) ods.SelectCountMethod = null;
+                    var ods = sender.GetValue("_owner", false) as ObjectDataSource;
+                    // 不能修改RetrieveTotalRowCount，否则页面不显示总记录数
+                    //if (ods != null) _Arguments.RetrieveTotalRowCount = false;
+                    if (ods != null) ods.SelectCountMethod = null;
 
-                        //XTrace.Log.Info("{2}结果集数量{0}小于最大行数{1}，且从0开始，直接作为总记录数！", count, _Arguments.MaximumRows, ods.TypeName);
-                    }
+                    //XTrace.Log.Info("{2}结果集数量{0}小于最大行数{1}，且从0开始，直接作为总记录数！", count, _Arguments.MaximumRows, ods.TypeName);
                 }
             }
         }
