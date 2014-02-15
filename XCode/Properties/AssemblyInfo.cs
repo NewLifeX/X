@@ -32,7 +32,7 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
 [assembly: AssemblyVersion("8.10.*")]
-[assembly: AssemblyFileVersion("8.10.2014.0107")]
+[assembly: AssemblyFileVersion("8.10.2014.0215")]
 
 /*
  * XCode的重大改进
@@ -49,6 +49,8 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v8.10.2014.0215  修正EntitySession.WaitForInitData中没有阻止多线程进入的问题
+ * 
  * v8.10.2014.0107  增加Meta.CreateTrans/IEntityOperate.CreateTrans，方便使用using的事务
  * 
  * v8.10.2013.1214  IDataTable增加GetAllColumns方法，用于获取继承链上的所有字段

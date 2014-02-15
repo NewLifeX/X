@@ -72,9 +72,9 @@ namespace XCode
 
         #region 数据初始化
         /// <summary>记录已进行数据初始化</summary>
-        AutoResetEvent hasCheckInitData = null;
-        /// <summary>初始化状态，0未初始化，>0是正在初始化的线程ID，-1已完成</summary>
+        Boolean hasCheckInitData = false;
         Int32 initThread = 0;
+        Object _wait_lock = new Object();
 
         /// <summary>检查并初始化数据。参数等待时间为0表示不等待</summary>
         /// <param name="ms">等待时间，-1表示不限，0表示不等待</param>
@@ -82,70 +82,57 @@ namespace XCode
         public Boolean WaitForInitData(Int32 ms = 1000)
         {
             // 已初始化
-            if (initThread == -1) return true;
+            if (hasCheckInitData) return true;
 
-            var name = ThisType.Name;
-            if (name == TableName)
-                name = String.Format("{0}/{1}", ThisType.Name, ConnName);
-            else
-                name = String.Format("{0}@{1}/{2}", ThisType.Name, TableName, ConnName);
+            //!!! 一定一定小心堵塞的是自己
+            if (initThread == Thread.CurrentThread.ManagedThreadId) return true;
 
-            // 是否需要等待
-            if (initThread > 0)
+            if (!Monitor.TryEnter(_wait_lock, ms))
             {
-                #region 等待初始化
-                //!!! 一定一定小心堵塞的是自己
-                if (initThread == Thread.CurrentThread.ManagedThreadId) return true;
-
                 //if (DAL.Debug) DAL.WriteLog("开始等待初始化{0}数据{1}ms，调用栈：{2}", name, ms, XTrace.GetCaller());
-                if (DAL.Debug) DAL.WriteLog("开始等待{2}初始化{0}数据{1:n0}ms", name, ms, initThread);
+                if (DAL.Debug) DAL.WriteLog("等待初始化{0}数据{1:n0}ms失败", ThisType.Name, ms);
+                return false;
+            }
+            initThread = Thread.CurrentThread.ManagedThreadId;
+            try
+            {
+                // 已初始化
+                if (hasCheckInitData) return true;
+
+                var name = ThisType.Name;
+                if (name == TableName)
+                    name = String.Format("{0}/{1}", ThisType.Name, ConnName);
+                else
+                    name = String.Format("{0}@{1}/{2}", ThisType.Name, TableName, ConnName);
+
+                // 如果该实体类是首次使用检查模型，则在这个时候检查
                 try
                 {
-                    // 如果未收到信号，表示超时
-                    if (!hasCheckInitData.WaitOne(ms, false)) return false;
-                    return true;
+                    CheckModel();
                 }
-                finally
+                catch { }
+
+                // 输出调用者，方便调试
+                //if (DAL.Debug) DAL.WriteLog("初始化{0}数据，调用栈：{1}", name, XTrace.GetCaller());
+                if (DAL.Debug) DAL.WriteLog("初始化{0}数据", name);
+
+                try
                 {
-                    //if (DAL.Debug) DAL.WriteLog("结束等待初始化{0}数据，调用栈：{1}", name, XTrace.GetCaller());
-                    if (DAL.Debug) DAL.WriteLog("结束等待{1}初始化{0}数据", name, initThread);
+                    var entity = Operate.Default as EntityBase;
+                    if (entity != null) entity.InitData();
                 }
-                #endregion
-            }
+                catch (Exception ex)
+                {
+                    if (XTrace.Debug) XTrace.WriteLine("初始化数据出错！" + ex.ToString());
+                }
 
-            if (hasCheckInitData != null) return true;
-            hasCheckInitData = new AutoResetEvent(false);
-            initThread = Thread.CurrentThread.ManagedThreadId;
-
-            // 如果该实体类是首次使用检查模型，则在这个时候检查
-            try
-            {
-                CheckModel();
-            }
-            catch { }
-
-            // 输出调用者，方便调试
-            //if (DAL.Debug) DAL.WriteLog("初始化{0}数据，调用栈：{1}", name, XTrace.GetCaller());
-            if (DAL.Debug) DAL.WriteLog("初始化{0}数据", name);
-
-            try
-            {
-                var entity = Operate.Default as EntityBase;
-                if (entity != null) entity.InitData();
-            }
-            catch (Exception ex)
-            {
-                if (XTrace.Debug) XTrace.WriteLine("初始化数据出错！" + ex.ToString());
+                return true;
             }
             finally
             {
-                hasCheckInitData.Set();
-                hasCheckInitData.Close();
-
-                initThread = -1;
+                hasCheckInitData = true;
+                Monitor.Exit(_wait_lock);
             }
-
-            return true;
         }
         #endregion
 

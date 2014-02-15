@@ -10,6 +10,8 @@ v2.0 数据架构功能，实体和数据结构双向映射
 v1.2 使用泛型基类
 v1.0 创建XCode
 
+v8.10.2014.0215  修正EntitySession.WaitForInitData中没有阻止多线程进入的问题
+
 v8.10.2014.0107  增加Meta.CreateTrans/IEntityOperate.CreateTrans，方便使用using的事务
 
 v8.10.2013.1214  IDataTable增加GetAllColumns方法，用于获取继承链上的所有字段
