@@ -1,13 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Security.Cryptography;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading;
 using System.Web;
 using System.Xml.Serialization;
-using NewLife.Log;
-using NewLife.Model;
 using NewLife.Xml;
 
 namespace NewLife.Web
@@ -33,22 +28,47 @@ namespace NewLife.Web
         protected virtual void OnBeginRequest(object sender, EventArgs e)
         {
             var app = sender as HttpApplication;
-            var context = app.Context;
-
-            String path = app.Request.AppRelativeCurrentExecutionFilePath.Substring(1);
-            String query = app.Request.QueryString.ToString();
+            var path = app.Request.AppRelativeCurrentExecutionFilePath.TrimStart('~');
 
             var cfg = UrlConfig.Current;
+            CheckConfig(cfg);
             foreach (var item in cfg.Urls)
             {
                 var url = item.GetRewriteUrl(path);
                 if (url != null)
                 {
-                    context.RewritePath(url);
-
-                    return;
+                    if (RewritePath(url)) return;
                 }
             }
+        }
+
+        /// <summary>检查配置。如果配置项为空，则增加示例配置</summary>
+        /// <param name="config"></param>
+        protected virtual void CheckConfig(UrlConfig config)
+        {
+            if (config.Urls == null) config.Urls = new List<UrlConfig.Item>();
+            if (config.Urls.Count < 1)
+            {
+                config.Urls.Add(new UrlConfig.Item { Url = "Test_(\\d+)", To = "Test.aspx?ID=$1" });
+                config.Save();
+            }
+        }
+
+        /// <summary>重定向到目标地址</summary>
+        /// <param name="url"></param>
+        /// <returns>是否成功重定向</returns>
+        protected virtual Boolean RewritePath(String url)
+        {
+            var query = "";
+            var p = url.IndexOf('?');
+            if (p >= 0)
+            {
+                query = url.Substring(p + 1);
+                url = url.Substring(0, p);
+            }
+            HttpContext.Current.RewritePath(url, null, query);
+
+            return true;
         }
         #endregion
     }

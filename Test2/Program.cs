@@ -21,7 +21,7 @@ namespace Test2
                 try
                 {
 #endif
-                    Test4();
+                Test4();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -128,7 +128,7 @@ namespace Test2
 
         static void server_Received(object sender, NetEventArgs e)
         {
-            Console.WriteLine("{1}收到：{0}", DataHelper.ToHex(e.Buffer, e.Offset, e.BytesTransferred), e.Socket.ProtocolType);
+            Console.WriteLine("{1}收到：{0}", e.Buffer.ToHex(e.Offset, e.BytesTransferred), e.Socket.ProtocolType);
             var session = e.Session;
 
             if (e.Buffer.StartsWith(new Byte[] { 0xFF, 0xFA })) return;
