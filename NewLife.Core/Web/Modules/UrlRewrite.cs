@@ -4,6 +4,7 @@ using System.Text.RegularExpressions;
 using System.Web;
 using System.Xml.Serialization;
 using NewLife.Xml;
+using System.ComponentModel;
 
 namespace NewLife.Web
 {
@@ -49,7 +50,7 @@ namespace NewLife.Web
             if (config.Urls == null) config.Urls = new List<UrlConfig.Item>();
             if (config.Urls.Count < 1)
             {
-                config.Urls.Add(new UrlConfig.Item { Url = "Test_(\\d+)", To = "Test.aspx?ID=$1" });
+                config.Urls.Add(new UrlConfig.Item { Url = "Test_(\\d+)", Target = "Test.aspx?ID=$1" });
                 config.Save();
             }
         }
@@ -74,11 +75,13 @@ namespace NewLife.Web
     }
 
     /// <summary>Url重写地址配置</summary>
+    [Description("Url重写地址配置")]
     [XmlConfigFile("Config/UrlRewrite.config", 15000)]
     public class UrlConfig : XmlConfig<UrlConfig>
     {
         private List<Item> _Urls;
         /// <summary>匹配地址集合</summary>
+        [Description("Url为匹配请求地址的正则表达式，Target为要重写的目标地址，可以使用$1等匹配项")]
         public List<Item> Urls { get { return _Urls; } set { _Urls = value; } }
 
         /// <summary>Url重写地址配置项</summary>
@@ -89,9 +92,10 @@ namespace NewLife.Web
             [XmlAttribute]
             public String Url { get { return _Url; } set { _Url = value; } }
 
-            private String _To;
+            private String _Target;
             /// <summary>目标地址</summary>
-            public String To { get { return _To; } set { _To = value; } }
+            [XmlAttribute]
+            public String Target { get { return _Target; } set { _Target = value; } }
 
             private Regex _reg;
             /// <summary>获取指定输入的重写Url</summary>
@@ -99,12 +103,16 @@ namespace NewLife.Web
             /// <returns></returns>
             public String GetRewriteUrl(String input)
             {
+                if (String.IsNullOrEmpty(input)) return input;
+                if (String.IsNullOrEmpty(Url)) return null;
+                if (String.IsNullOrEmpty(Target)) return null;
+
                 if (_reg == null) _reg = new Regex(Url, RegexOptions.IgnoreCase);
 
                 var m = _reg.Match(input);
-                if (m == null) return null;
+                if (m == null || !m.Success) return null;
 
-                return m.Result(To);
+                return m.Result(Target);
             }
         }
     }
