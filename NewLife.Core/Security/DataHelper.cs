@@ -246,14 +246,14 @@ namespace NewLife.Security
         #endregion
 
         #region 编码
-        /// <summary>把字节数组编码为十六进制字符串</summary>
-        /// <param name="data"></param>
-        /// <param name="offset">偏移</param>
-        /// <param name="count">数量</param>
-        /// <returns></returns>
-        [Obsolete("=>IOHelper.ToHex")]
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public static String ToHex(this Byte[] data, Int32 offset = 0, Int32 count = 0) { return IOHelper.ToHex(data, offset, count); }
+        ///// <summary>把字节数组编码为十六进制字符串</summary>
+        ///// <param name="data"></param>
+        ///// <param name="offset">偏移</param>
+        ///// <param name="count">数量</param>
+        ///// <returns></returns>
+        //[Obsolete("=>IOHelper.ToHex")]
+        //[EditorBrowsable(EditorBrowsableState.Never)]
+        //public static String ToHex(this Byte[] data, Int32 offset = 0, Int32 count = 0) { return IOHelper.ToHex(data, offset, count); }
 
         /// <summary>把十六进制字符串解码字节数组</summary>
         /// <param name="data"></param>
