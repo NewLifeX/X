@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Text.RegularExpressions;
 using System.Web;
 using System.Xml.Serialization;
 using NewLife.Xml;
-using System.ComponentModel;
 
 namespace NewLife.Web
 {
@@ -50,7 +50,7 @@ namespace NewLife.Web
             if (config.Urls == null) config.Urls = new List<UrlConfig.Item>();
             if (config.Urls.Count < 1)
             {
-                config.Urls.Add(new UrlConfig.Item { Url = "Test_(\\d+)", Target = "Test.aspx?ID=$1" });
+                config.Urls.Add(new UrlConfig.Item { Name = "测试", Url = "Test_(\\d+)", Target = "Test.aspx?ID=$1" });
                 config.Save();
             }
         }
@@ -81,12 +81,17 @@ namespace NewLife.Web
     {
         private List<Item> _Urls;
         /// <summary>匹配地址集合</summary>
-        [Description("Url为匹配请求地址的正则表达式，Target为要重写的目标地址，可以使用$1等匹配项")]
+        [Description("Url为匹配请求地址的正则表达式，Target为要重写的目标地址，可以使用$1等匹配项，Name只是标识作用，不参与业务处理")]
         public List<Item> Urls { get { return _Urls; } set { _Urls = value; } }
 
         /// <summary>Url重写地址配置项</summary>
         public class Item
         {
+            private String _Name;
+            /// <summary>名称</summary>
+            [XmlAttribute]
+            public String Name { get { return _Name; } set { _Name = value; } }
+
             private String _Url;
             /// <summary>Url正则表达式</summary>
             [XmlAttribute]
