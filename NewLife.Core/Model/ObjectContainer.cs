@@ -209,7 +209,12 @@ namespace NewLife.Model
                     return this;
                 }
                 else
-                    dic.Remove(id);
+                {
+                    lock (dic)
+                    {
+                        dic.Remove(id);
+                    }
+                }
             }
 
             map = new Map();
@@ -219,7 +224,13 @@ namespace NewLife.Model
             if (to != null) map.ImplementType = to;
             if (instance != null) map.Instance = instance;
 
-            if (!dic.ContainsKey(id)) dic.Add(id, map);
+            if (!dic.ContainsKey(id))
+            {
+                lock (dic)
+                {
+                    if (!dic.ContainsKey(id)) dic.Add(id, map);
+                }
+            }
 
             return this;
         }
