@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Xml.Serialization;
 using NewLife.Exceptions;
 using NewLife.Log;
 
@@ -19,6 +20,7 @@ namespace NewLife.Xml
     /// <typeparam name="TConfig"></typeparam>
     public class XmlConfig<TConfig> where TConfig : XmlConfig<TConfig>, new()
     {
+        #region 静态
         private static TConfig _Current;
         /// <summary>当前实例。通过置空可以使其重新加载。</summary>
         public static TConfig Current
@@ -30,9 +32,9 @@ namespace NewLife.Xml
                 if (config != null)
                 {
                     // 现存有对象，尝试再次加载，可能因为未修改而返回null，这样只需要返回现存对象即可
-                    if (!IsUpdated) return config;
+                    if (!config.IsUpdated) return config;
 
-                    var cfg = Load();
+                    var cfg = Load(_.ConfigFile);
                     if (cfg == null) return config;
 
                     _Current = cfg;
@@ -41,16 +43,18 @@ namespace NewLife.Xml
                 else
                 {
                     // 现在没有对象，尝试加载，若返回null则实例化一个新的
-                    config = Load();
+                    config = Load(_.ConfigFile);
                     if (config == null)
                     {
                         config = new TConfig();
+                        config.ConfigFile = _.ConfigFile.GetFullPath();
 
                         // 创建或覆盖
                         if (XTrace.Debug) XTrace.WriteLine("{0}的配置文件{1}不存在或加载出错，准备用默认配置覆盖！", typeof(TConfig).Name, _.ConfigFile);
                         try
                         {
-                            config.Save();
+                            // 根据配置，有可能不保存，直接返回默认
+                            if (_.SaveNew) config.Save();
                         }
                         catch (Exception ex)
                         {
@@ -75,6 +79,14 @@ namespace NewLife.Xml
             /// <summary>重新加载时间。单位：毫秒</summary>
             public static Int32 ReloadTime { get { return _ReloadTime; } set { _ReloadTime = value; } }
 
+            private static Boolean _SaveNew = true;
+            /// <summary>没有配置文件时是否保存新配置。默认true</summary>
+            public static Boolean SaveNew { get { return _SaveNew; } set { _SaveNew = value; } }
+
+            private static Boolean _CheckFormat = true;
+            /// <summary>是否检查配置文件格式，当格式不一致是保存新格式配置文件。默认true</summary>
+            public static Boolean CheckFormat { get { return _CheckFormat; } set { _CheckFormat = value; } }
+
             static _()
             {             // 获取XmlConfigFileAttribute特性，那里会指定配置文件名称
                 var att = typeof(TConfig).GetCustomAttribute<XmlConfigFileAttribute>(true);
@@ -94,43 +106,45 @@ namespace NewLife.Xml
             }
         }
 
-        static XmlConfig()
-        {
-            // 实例化一次，用于触发派生类中可能的静态构造函数
-            //var config = new TConfig();
-            var config = Current;
+        //static XmlConfig()
+        //{
+        //    // 实例化一次，用于触发派生类中可能的静态构造函数
+        //    //var config = new TConfig();
+        //    var config = Current;
 
-            var filename = _.ConfigFile.GetFullPath();
-            if (!filename.IsNullOrWhiteSpace() && File.Exists(filename))
-            {
-                // 如果默认加载后的配置与保存的配置不一致，说明可能配置实体类已变更，需要强制覆盖
-                try
-                {
-                    var xml1 = File.ReadAllText(filename);
-                    var xml2 = config.ToXml(null, "", "", true, true);
-                    if (xml1 != xml2) config.Save();
-                }
-                catch (Exception ex)
-                {
-                    XTrace.WriteException(ex);
-                }
-            }
-        }
+        //    var filename = _.ConfigFile.GetFullPath();
+        //    if (!filename.IsNullOrWhiteSpace() && File.Exists(filename))
+        //    {
+        //        // 如果默认加载后的配置与保存的配置不一致，说明可能配置实体类已变更，需要强制覆盖
+        //        if (_.CheckFormat) config.CheckFormat(filename);
+        //    }
+        //}
+        #endregion
 
-        #region 检查是否已更新
+        #region 属性
+        [NonSerialized]
+        private String _ConfigFile;
+        /// <summary>配置文件</summary>
+        [XmlIgnore]
+        protected String ConfigFile { get { return _ConfigFile; } set { _ConfigFile = value; } }
+
         /// <summary>最后写入时间</summary>
-        private static DateTime lastWrite;
+        [XmlIgnore]
+        private DateTime lastWrite;
         /// <summary>过期时间。如果在这个时间之后再次访问，将检查文件修改时间</summary>
-        private static DateTime expire;
+        [XmlIgnore]
+        private DateTime expire;
 
-        static Boolean IsUpdated
+        /// <summary>是否已更新</summary>
+        [XmlIgnore]
+        protected Boolean IsUpdated
         {
             get
             {
                 var now = DateTime.Now;
                 if (_.ReloadTime > 0 && expire < now)
                 {
-                    var fi = new FileInfo(_.ConfigFile.GetFullPath());
+                    var fi = new FileInfo(ConfigFile);
                     fi.Refresh();
                     expire = now.AddMilliseconds(_.ReloadTime);
 
@@ -145,10 +159,14 @@ namespace NewLife.Xml
         }
         #endregion
 
-        static TConfig Load()
+        #region 加载
+        /// <summary>加载指定配置文件</summary>
+        /// <param name="filename"></param>
+        /// <returns></returns>
+        public static TConfig Load(String filename)
         {
-            var filename = _.ConfigFile.GetFullPath();
             if (filename.IsNullOrWhiteSpace()) return null;
+            filename = filename.GetFullPath();
             if (!File.Exists(filename)) return null;
 
             try
@@ -170,24 +188,49 @@ namespace NewLife.Xml
                 }
                 if (config == null) return null;
 
+                config.ConfigFile = filename;
                 config.OnLoaded();
 
                 return config;
             }
             catch (Exception ex) { XTrace.WriteException(ex); return null; }
         }
+        #endregion
 
+        #region 成员方法
         /// <summary>从配置文件中读取完成后触发</summary>
-        protected virtual void OnLoaded() { }
+        protected virtual void OnLoaded()
+        {
+            // 如果默认加载后的配置与保存的配置不一致，说明可能配置实体类已变更，需要强制覆盖
+            if (_.CheckFormat) CheckFormat();
+        }
+
+        /// <summary>是否检查配置文件格式，当格式不一致是保存新格式配置文件</summary>
+        protected virtual void CheckFormat()
+        {
+            var config = this;
+            try
+            {
+                var xml1 = File.ReadAllText(ConfigFile);
+                var xml2 = config.ToXml(null, "", "", true, true);
+                if (xml1 != xml2) config.Save();
+            }
+            catch (Exception ex)
+            {
+                XTrace.WriteException(ex);
+            }
+        }
 
         /// <summary>保存到配置文件中去</summary>
         public virtual void Save()
         {
-            var filename = _.ConfigFile;
+            //var filename = _.ConfigFile;
+            var filename = ConfigFile;
             if (filename.IsNullOrWhiteSpace()) throw new XException("未指定{0}的配置文件路径！", typeof(TConfig).Name);
             filename = filename.GetFullPath();
 
             this.ToXmlFile(filename, null, "", "", true, true);
         }
+        #endregion
     }
 }
