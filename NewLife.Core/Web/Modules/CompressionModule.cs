@@ -17,7 +17,7 @@ namespace NewLife.Web
         /// <param name="context"></param>
         void IHttpModule.Init(HttpApplication context)
         {
-            context.PostReleaseRequestState += new EventHandler(CompressContent);
+            context.PostReleaseRequestState += CompressContent;
         }
         #endregion
 
@@ -31,17 +31,13 @@ namespace NewLife.Web
             if (!(app.Context.CurrentHandler is System.Web.UI.Page) || app.Request["HTTP_X_MICROSOFTAJAX"] != null) return;
 
             // 如果已经写入头部，这里就不能压缩了
-            //var pix = PropertyInfoX.Create(app.Response.GetType(), "HeadersWritten");
-            //if (pix != null && (Boolean)pix.GetValue(app.Response)) return;
             Object rs = null;
             if (app.Response.TryGetValue("HeadersWritten", out rs) && (Boolean)rs) return;
             // .net 2.0没有HeadersWritten
-            //if (PropertyInfoX.GetValue<Boolean>(app.Response, "HeadersWritten")) return;
 
             //压缩
             String url = app.Request.Url.OriginalString.ToLower();
-            String files = Config.GetConfig<String>("NewLife.CommonEntity.CompressFiles", ".aspx,.axd,.js,.css");
-            if (files.ToLower().Split(",", ";", " ").Any(t => url.Contains(t)))
+            if (CanCompress(url))
             {
                 //是否支持压缩协议
                 if (IsEncodingAccepted(GZIP))
@@ -55,6 +51,20 @@ namespace NewLife.Web
                     SetEncoding(DEFLATE);
                 }
             }
+        }
+
+        private String[] exts;
+        /// <summary>是否可压缩文件</summary>
+        /// <param name="url"></param>
+        /// <returns></returns>
+        protected virtual Boolean CanCompress(String url)
+        {
+            if (exts == null)
+            {
+                String files = Config.GetMutilConfig<String>(".aspx,.axd,.js,.css", "NewLife.Web.CompressFiles", "NewLife.CommonEntity.CompressFiles");
+                exts = files.ToLower().Split(",", ";", " ");
+            }
+            return exts.Any(t => url.Contains(t));
         }
 
         /// <summary>检查请求头，确认客户端是否支持压缩编码</summary>
