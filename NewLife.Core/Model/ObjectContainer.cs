@@ -85,7 +85,6 @@ namespace NewLife.Model
             // 如果找到，直接返回
             if (dic.TryGetValue(id, out map) || dic.TryGetValue(id + "", out map)) return map;
 
-            //if (!String.IsNullOrEmpty(id))
             if (id == null || "" + id == String.Empty)
             {
                 // 如果名称不为空，则试一试找空的
@@ -285,13 +284,7 @@ namespace NewLife.Model
             }
 
             // 如果没有注册任何实现，则默认注册第一个排除类型
-            if (excludeTypes.Length > 0)
-            {
-                //if (dic == null)
-                {
-                    Register(from, excludeTypes[0], null, id, priority);
-                }
-            }
+            if (excludeTypes.Length > 0) Register(from, excludeTypes[0], null, id, priority);
 
             return this;
         }
@@ -305,6 +298,28 @@ namespace NewLife.Model
             if (id == null) id = String.Empty;
 
             var dic = Find(from);
+            // 不需要自动注册，用户可以自己调用自动注册，并且这样子会破坏架构
+            //if (dic == null && id == String.Empty)
+            //{
+            //    // 再来一次，添加字典，确保这个自动搜索过程只执行一次
+            //    dic = Find(from, true);
+
+            //    // 遍历所有程序集，自动加载
+            //    foreach (var item in from.GetAllSubclasses(true))
+            //    {
+            //        // 实例化一次，让这个类有机会执行类型构造函数，可以获取旧的类型实现
+            //        var obj = item.CreateInstance();
+
+            //        if (XTrace.Debug) XTrace.WriteLine("Resolve时为{0}自动注册{1}！", from.FullName, item.FullName);
+
+            //        Register(from, null, obj);
+
+            //        return getInstance ? obj : item.CreateInstance();
+            //    }
+
+            //    return null;
+            //}
+
             // 1，如果容器里面没有这个类型，则返回空
             // 这个type可能是接口类型
             if (dic == null || dic.Count <= 0) return null;
@@ -316,7 +331,6 @@ namespace NewLife.Model
             // 如果就是为了取实例，直接返回
             if (getInstance) return map.Instance;
             // 否则每次都实例化
-            //if (map.Instance != null) return map.Instance;
 
             // 检查是否指定实现类型，这种可能性极低，根本就不应该存在
             if (map.ImplementType == null) throw new XException("设计错误，名为{0}的{1}实现未找到！", id, from);
