@@ -61,21 +61,18 @@ namespace NewLife.Model
             IDictionary<Object, IObjectMap> dic = null;
             if (Stores.TryGetValue(type, out dic)) return dic;
 
-            if (add)
+            if (!add) return null;
+
+            lock (Stores)
             {
-                lock (Stores)
-                {
-                    if (Stores.TryGetValue(type, out dic)) return dic;
+                if (Stores.TryGetValue(type, out dic)) return dic;
 
-                    // 名称不区分大小写
-                    //dic = new Dictionary<Object, IObjectMap>(StringComparer.OrdinalIgnoreCase);
-                    dic = new Dictionary<Object, IObjectMap>();
-                    Stores.Add(type, dic);
-                    return dic;
-                }
+                // 名称不区分大小写
+                //dic = new Dictionary<Object, IObjectMap>(StringComparer.OrdinalIgnoreCase);
+                dic = new Dictionary<Object, IObjectMap>();
+                Stores.Add(type, dic);
+                return dic;
             }
-
-            return new Dictionary<Object, IObjectMap>();
         }
 
         private IObjectMap FindMap(IDictionary<Object, IObjectMap> dic, Object id, Boolean extend = false)
@@ -262,7 +259,7 @@ namespace NewLife.Model
 
             // 如果存在已注册项，并且优先级大于0，那么这里就不要注册了
             var dic = Find(from);
-            if (dic.Count > 0)
+            if (dic != null && dic.Count > 0)
             {
                 var map = FindMap(dic, null, false) as Map;
                 if (map != null && map.Priority > 0) return this;
@@ -310,7 +307,7 @@ namespace NewLife.Model
             var dic = Find(from);
             // 1，如果容器里面没有这个类型，则返回空
             // 这个type可能是接口类型
-            if (dic.Count <= 0) return null;
+            if (dic == null || dic.Count <= 0) return null;
 
             // 2，如果容器里面包含这个类型，并且指向的实例不为空，则返回
             // 根据名称去找，找不到返回空
@@ -364,7 +361,14 @@ namespace NewLife.Model
         /// <summary>解析接口所有已注册的对象映射</summary>
         /// <param name="from">接口类型</param>
         /// <returns></returns>
-        public virtual IEnumerable<IObjectMap> ResolveAll(Type from) { return Find(from).Values; }
+        public virtual IEnumerable<IObjectMap> ResolveAll(Type from)
+        {
+            var dic = Find(from);
+            if (dic != null)
+                return Find(from).Values;
+            else
+                return new List<IObjectMap>();
+        }
         #endregion
 
         #region Xml配置文件注册
