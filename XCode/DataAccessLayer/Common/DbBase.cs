@@ -68,7 +68,8 @@ namespace XCode.DataAccessLayer
             var ss = _sessions;
             if (ss != null)
             {
-                _sessions = null;
+                // 不要清空，否则可能引起CreateSession中的_sessions[tid] = session;报null异常
+                //_sessions = null;
 
                 // 销毁本数据库的所有数据库会话
                 lock (ss)
