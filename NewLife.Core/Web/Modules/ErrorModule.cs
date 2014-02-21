@@ -4,7 +4,6 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Web;
-using NewLife.Collections;
 using NewLife.Log;
 using NewLife.Model;
 
@@ -20,7 +19,7 @@ namespace NewLife.Web
         /// <param name="context"></param>
         void IHttpModule.Init(HttpApplication context)
         {
-            context.Error += new EventHandler(OnError);
+            context.Error += OnError;
         }
         #endregion
 
@@ -65,24 +64,24 @@ namespace NewLife.Web
 
             var sb = new StringBuilder();
             sb.AppendLine(ex.ToString());
-            sb.AppendFormat("来源：{0}\r\n", Request.UserHostAddress);
-            sb.AppendFormat("平台：{0}\r\n", Request.UserAgent);
+            if (!String.IsNullOrEmpty(Request.UserHostAddress))
+                sb.AppendFormat("来源：{0}\r\n", Request.UserHostAddress);
+            if (!String.IsNullOrEmpty(Request.UserAgent))
+                sb.AppendFormat("平台：{0}\r\n", Request.UserAgent);
             sb.AppendFormat("文件：{0}\r\n", Request.CurrentExecutionFilePath);
             sb.AppendFormat("访问：{0}\r\n", Request.Url);
-            sb.AppendFormat("引用：{0}\r\n", Request.UrlReferrer);
-            sb.AppendFormat("方式：{0} {1:n}\r\n", Request.HttpMethod, Request.ContentLength);
+            if (!String.IsNullOrEmpty(Request.UrlReferrer + ""))
+                sb.AppendFormat("引用：{0}\r\n", Request.UrlReferrer);
+            if (!String.IsNullOrEmpty(Request.HttpMethod) || Request.ContentLength > 0)
+                sb.AppendFormat("方式：{0} {1:n}\r\n", Request.HttpMethod, Request.ContentLength);
 
             var id = Thread.CurrentPrincipal;
-            if (id != null && id.Identity != null) sb.AppendFormat("用户：{0}({1})\r\n", id.Identity.Name, id.Identity.AuthenticationType);
+            if (id != null && id.Identity != null && !String.IsNullOrEmpty(id.Identity.Name))
+                sb.AppendFormat("用户：{0}({1})\r\n", id.Identity.Name, id.Identity.AuthenticationType);
 
-            //if (Providers.Length > 0)
-            //{
-            //    foreach (var item in Providers)
-            //    {
-            //        item.AddInfo(ex, sb);
-            //    }
-            //}
+            // 具体使用哪一种提供者由用户决定
             var eip = ObjectContainer.Current.Resolve<IErrorInfoProvider>();
+            //var eip = ObjectContainer.Current.AutoRegister(typeof(IErrorInfoProvider)).Resolve<IErrorInfoProvider>();
             if (eip != null) eip.AddInfo(ex, sb);
 
             XTrace.WriteLine(sb.ToString());
@@ -102,26 +101,6 @@ namespace NewLife.Web
                 Response.Write("非常抱歉，服务器遇到错误，请与管理员联系！");
             }
         }
-
-        //private static IErrorInfoProvider[] _Providers;
-        ///// <summary>提供者集合</summary>
-        //static IErrorInfoProvider[] Providers
-        //{
-        //    get
-        //    {
-        //        if (_Providers == null)
-        //        {
-        //            var list = new List<IErrorInfoProvider>();
-        //            foreach (var item in AssemblyX.FindAllPlugins(typeof(IErrorInfoProvider), true))
-        //            {
-        //                list.Add(TypeX.CreateInstance(item) as IErrorInfoProvider);
-        //            }
-
-        //            _Providers = list.ToArray();
-        //        }
-        //        return _Providers;
-        //    }
-        //}
         #endregion
     }
 
