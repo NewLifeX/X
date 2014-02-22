@@ -377,13 +377,15 @@ namespace NewLife.Collections
             // 缓存数大于0才启动定时器
             if (Items.Count < 1) return;
 
-            if (clearTimer == null || clearTimer.Disposed)
+            if (clearTimer == null)
                 clearTimer = new TimerX(RemoveNotAlive, null, ClearExpriod * 1000, ClearExpriod * 1000);
         }
 
         void StopTimer()
         {
-            if (clearTimer != null && !clearTimer.Disposed) clearTimer.Dispose();
+            var tx = clearTimer;
+            clearTimer = null;
+            if (tx != null) tx.Dispose();
         }
 
         /// <summary>移除过期的缓存项</summary>

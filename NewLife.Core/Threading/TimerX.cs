@@ -10,12 +10,13 @@ namespace NewLife.Threading
     /// 为了避免系统的Timer可重入的问题，差别在于本地调用完成后才开始计算时间间隔。这实际上也是经常用到的。
     /// 
     /// 因为挂载在静态列表上，必须从外部主动调用<see cref="IDisposable.Dispose"/>才能销毁定时器。
+    /// 上一行不对，因为<see cref="Callback"/>采用弱引用，当回调函数所在对象被销毁时，对应的定时器可以自动销毁。
     /// 
     /// 该定时器不能放入太多任务，否则适得其反！
     /// 
     /// TimerX必须维持对象，否则很容易被GC回收。
     /// </remarks>
-    public class TimerX : DisposeBase
+    public class TimerX : /*DisposeBase*/IDisposable
     {
         #region 属性
         private WeakAction<Object> _Callback;
@@ -76,6 +77,12 @@ namespace NewLife.Threading
 
             TimerXHelper.Add(this);
         }
+
+        /// <summary>销毁定时器</summary>
+        public void Dispose()
+        {
+            TimerXHelper.Remove(this);
+        }
         #endregion
 
         #region 辅助
@@ -113,18 +120,6 @@ namespace NewLife.Threading
 
                     WriteLog("TimerX.Add {0}ms {1}", timer.Period, timer);
 
-                    timer.OnDisposed += (sender, e) =>
-                    {
-                        var tx = sender as TimerX;
-                        if (tx == null) return;
-                        lock (timers)
-                        {
-                            WriteLog("TimerX.Remove {0}", tx);
-
-                            if (timers.Contains(tx)) timers.Remove(tx);
-                        }
-                    };
-
                     if (thread == null)
                     {
                         thread = new Thread(Process);
@@ -135,6 +130,18 @@ namespace NewLife.Threading
                     }
 
                     if (waitForTimer != null && waitForTimer.SafeWaitHandle != null && !waitForTimer.SafeWaitHandle.IsClosed) waitForTimer.Set();
+                }
+            }
+
+            public static void Remove(TimerX timer)
+            {
+                if (timer == null) return;
+
+                lock (timers)
+                {
+                    WriteLog("TimerX.Remove {0}", timer);
+
+                    if (timers.Contains(timer)) timers.Remove(timer);
                 }
             }
 
