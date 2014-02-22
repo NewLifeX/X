@@ -45,13 +45,9 @@ namespace NewLife.Collections
             {
                 _ClearExpriod = value;
                 if (value > 0)
-                {
-                    if (clearTimer == null) clearTimer = new TimerX(RemoveNotAlive, null, value * 1000, value * 1000);
-                }
+                    StartTimer();
                 else
-                {
-                    if (clearTimer != null) clearTimer.Dispose();
-                }
+                    StopTimer();
             }
         }
 
@@ -173,12 +169,15 @@ namespace NewLife.Collections
                 {
                     var value = default(TValue);
                     if (cacheDefault) items[key] = new CacheItem(value, expriod);
+                    StartTimer();
+
                     return value;
                 }
                 else
                 {
                     var value = func(key);
                     if (cacheDefault || !Object.Equals(value, default(TValue))) items[key] = new CacheItem(value, expriod);
+                    StartTimer();
 
                     return value;
                 }
@@ -221,6 +220,7 @@ namespace NewLife.Collections
 
                 var value = func(key, arg);
                 if (cacheDefault || !Object.Equals(value, default(TValue))) items[key] = new CacheItem(value, expriod);
+                StartTimer();
 
                 return value;
             }
@@ -266,6 +266,7 @@ namespace NewLife.Collections
 
                 var value = func(key, arg, arg2);
                 if (cacheDefault || !Object.Equals(value, default(TValue))) items[key] = new CacheItem(value, expriod);
+                StartTimer();
 
                 return value;
             }
@@ -315,6 +316,7 @@ namespace NewLife.Collections
 
                 var value = func(key, arg, arg2, arg3);
                 if (cacheDefault || !Object.Equals(value, default(TValue))) items[key] = new CacheItem(value, expriod);
+                StartTimer();
 
                 return value;
             }
@@ -351,6 +353,7 @@ namespace NewLife.Collections
 
                 var value = func(key, arg, arg2, arg3, arg4);
                 if (cacheDefault || !Object.Equals(value, default(TValue))) items[key] = new CacheItem(value, expriod);
+                StartTimer();
 
                 return value;
             }
@@ -361,6 +364,17 @@ namespace NewLife.Collections
         /// <summary>清理会话计时器</summary>
         private TimerX clearTimer;
 
+        void StartTimer()
+        {
+            // 缓存数大于0才启动定时器
+            if (Items.Count < 1) return;
+
+            if (clearTimer == null || clearTimer.Disposed)
+                clearTimer = new TimerX(RemoveNotAlive, null, ClearExpriod * 1000, ClearExpriod * 1000);
+        }
+
+        void StopTimer() { if (clearTimer != null && !clearTimer.Disposed)clearTimer.Dispose(); }
+
         /// <summary>移除过期的缓存项</summary>
         void RemoveNotAlive(Object state)
         {
@@ -368,10 +382,19 @@ namespace NewLife.Collections
             if (expriod <= 0) return;
 
             var dic = Items;
-            if (dic.Count < 1) return;
+            if (dic.Count < 1)
+            {
+                // 缓存数小于0时关闭定时器
+                StopTimer();
+                return;
+            }
             lock (dic)
             {
-                if (dic.Count < 1) return;
+                if (dic.Count < 1)
+                {
+                    StopTimer();
+                    return;
+                }
 
                 // 这里先计算，性能很重要
                 var now = DateTime.Now;

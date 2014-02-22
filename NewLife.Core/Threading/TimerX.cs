@@ -113,7 +113,7 @@ namespace NewLife.Threading
 
                     WriteLog("TimerX.Add {0}ms {1}", timer.Period, timer);
 
-                    timer.OnDisposed += new EventHandler(delegate(Object sender, EventArgs e)
+                    timer.OnDisposed += (sender, e) =>
                     {
                         var tx = sender as TimerX;
                         if (tx == null) return;
@@ -123,7 +123,7 @@ namespace NewLife.Threading
 
                             if (timers.Contains(tx)) timers.Remove(tx);
                         }
-                    });
+                    };
 
                     if (thread == null)
                     {

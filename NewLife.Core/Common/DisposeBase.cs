@@ -53,8 +53,7 @@ namespace NewLife
         /// <summary>被销毁时触发事件</summary>
         [field: NonSerialized]
         public event EventHandler OnDisposed;
-
-
+        
         /// <summary>释放资源，参数表示是否由Dispose调用。该方法保证OnDispose只被调用一次！</summary>
         /// <param name="disposing"></param>
         private void Dispose(Boolean disposing)
