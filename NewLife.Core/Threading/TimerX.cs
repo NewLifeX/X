@@ -65,8 +65,8 @@ namespace NewLife.Threading
         public TimerX(WaitCallback callback, object state, int dueTime, int period, Boolean usethreadpool)
         {
             if (callback == null) throw new ArgumentNullException("callback");
-            if (dueTime < Timeout.Infinite) throw new ArgumentOutOfRangeException("dueTime");
-            if (period < Timeout.Infinite) throw new ArgumentOutOfRangeException("period");
+            if (dueTime < 0) throw new ArgumentOutOfRangeException("dueTime");
+            if (period <= 0) throw new ArgumentOutOfRangeException("period");
 
             Callback = new WeakAction<object>(callback);
             State = state;

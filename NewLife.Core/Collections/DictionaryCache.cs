@@ -375,7 +375,7 @@ namespace NewLife.Collections
         void StartTimer()
         {
             // 缓存数大于0才启动定时器
-            if (Items.Count < 1) return;
+            if (ClearExpriod <= 0 || Items.Count < 1) return;
 
             if (clearTimer == null)
                 clearTimer = new TimerX(RemoveNotAlive, null, ClearExpriod * 1000, ClearExpriod * 1000);
