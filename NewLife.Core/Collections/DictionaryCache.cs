@@ -11,7 +11,7 @@ namespace NewLife.Collections
     /// <remarks>常用匿名函数或者Lambda表达式作为委托。</remarks>
     /// <typeparam name="TKey">键类型</typeparam>
     /// <typeparam name="TValue">值类型</typeparam>
-    public class DictionaryCache<TKey, TValue> : DisposeBase, IDictionary<TKey, TValue>
+    public class DictionaryCache<TKey, TValue> : /*DisposeBase, */IDictionary<TKey, TValue>, IDisposable
     {
         #region 属性
         private Int32 _Expriod = 0;
@@ -70,13 +70,20 @@ namespace NewLife.Collections
         /// <param name="comparer"></param>
         public DictionaryCache(IEqualityComparer<TKey> comparer) { Items = new Dictionary<TKey, CacheItem>(comparer); }
 
-        /// <summary>子类重载实现资源释放逻辑时必须首先调用基类方法</summary>
-        /// <param name="disposing">从Dispose调用（释放所有资源）还是析构函数调用（释放非托管资源）。
-        /// 因为该方法只会被调用一次，所以该参数的意义不太大。</param>
-        protected override void OnDispose(bool disposing)
-        {
-            base.OnDispose(disposing);
+        ///// <summary>子类重载实现资源释放逻辑时必须首先调用基类方法</summary>
+        ///// <param name="disposing">从Dispose调用（释放所有资源）还是析构函数调用（释放非托管资源）。
+        ///// 因为该方法只会被调用一次，所以该参数的意义不太大。</param>
+        //protected override void OnDispose(bool disposing)
+        //{
+        //    base.OnDispose(disposing);
 
+        //    StopTimer();
+        //}
+
+        /// <summary>销毁字典，关闭</summary>
+        public void Dispose()
+        {
+            Items.Clear();
             StopTimer();
         }
         #endregion
