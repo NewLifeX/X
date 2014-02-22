@@ -56,7 +56,7 @@ namespace NewLife.Compression
     /// ZipFile.Extract("aa.zip", "Test");
     /// </code>
     /// </example>
-    public partial class ZipFile : DisposeBase, IEnumerable, IEnumerable<ZipEntry>
+    public partial class ZipFile : IDisposable, IEnumerable, IEnumerable<ZipEntry>
     {
         #region 属性
         private String _Name;
@@ -108,26 +108,15 @@ namespace NewLife.Compression
         }
 
         /// <summary>释放资源</summary>
-        /// <param name="disposing"></param>
-        protected override void OnDispose(bool disposing)
+        public void Dispose()
         {
-            base.OnDispose(disposing);
-
             var entries = _Entries;
+            _Entries = null;
             if (entries != null && entries.Count > 0)
             {
                 // 是否所有实体，因为里面可能含有数据流
-                foreach (var item in entries.Values)
-                {
-                    try
-                    {
-                        item.Dispose();
-                    }
-                    catch { }
-                }
-
+                entries.Values.TryDispose();
                 entries.Clear();
-                _Entries = null;
             }
         }
         #endregion

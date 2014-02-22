@@ -10,7 +10,6 @@ using System.Text;
 using ADODB;
 using ADOX;
 using DAO;
-using NewLife;
 using NewLife.IO;
 using NewLife.Log;
 using NewLife.Reflection;
@@ -246,7 +245,7 @@ namespace XCode.DataAccessLayer
         #region 构架
         protected override List<IDataTable> OnGetTables(ICollection<String> names)
         {
-            DataTable dt = GetSchema(_.Tables, null);
+            var dt = GetSchema(_.Tables, null);
             if (dt == null || dt.Rows == null || dt.Rows.Count < 1) return null;
 
             // 默认列出所有字段
@@ -259,26 +258,26 @@ namespace XCode.DataAccessLayer
 
         protected override List<IDataColumn> GetFields(IDataTable xt)
         {
-            List<IDataColumn> list = base.GetFields(xt);
+            var list = base.GetFields(xt);
             if (list == null || list.Count < 1) return null;
 
-            Dictionary<String, IDataColumn> dic = new Dictionary<String, IDataColumn>(StringComparer.OrdinalIgnoreCase);
-            foreach (IDataColumn xf in list)
+            var dic = new Dictionary<String, IDataColumn>(StringComparer.OrdinalIgnoreCase);
+            foreach (var xf in list)
             {
                 dic.Add(xf.ColumnName, xf);
             }
 
             try
             {
-                using (ADOTabe table = GetTable(xt.TableName))
+                using (var table = GetTable(xt.TableName))
                 {
                     if (table.Supported && table.Columns != null)
                     {
-                        foreach (ADOColumn item in table.Columns)
+                        foreach (var item in table.Columns)
                         {
                             if (!dic.ContainsKey(item.Name)) continue;
 
-                            IDataColumn field = dic[item.Name];
+                            var field = dic[item.Name];
                             field.Identity = item.AutoIncrement;
                             if (!field.Identity) field.Nullable = item.Nullable;
                         }
@@ -553,7 +552,7 @@ namespace XCode.DataAccessLayer
         {
             try
             {
-                using (ADOTabe tb = GetTable(table.TableName))
+                using (var tb = GetTable(table.TableName))
                 {
                     tb.Description = value;
                     return true;
@@ -571,11 +570,11 @@ namespace XCode.DataAccessLayer
         {
             try
             {
-                using (ADOTabe table = GetTable(field.Table.TableName))
+                using (var table = GetTable(field.Table.TableName))
                 {
                     if (table.Supported && table.Columns != null)
                     {
-                        foreach (ADOColumn item in table.Columns)
+                        foreach (var item in table.Columns)
                         {
                             if (item.Name == field.ColumnName)
                             {
@@ -606,11 +605,11 @@ namespace XCode.DataAccessLayer
 
             try
             {
-                using (ADOTabe table = GetTable(field.Table.TableName))
+                using (var table = GetTable(field.Table.TableName))
                 {
                     if (table.Supported && table.Columns != null)
                     {
-                        foreach (ADOColumn item in table.Columns)
+                        foreach (var item in table.Columns)
                         {
                             if (item.Name == field.ColumnName)
                             {
@@ -690,7 +689,7 @@ namespace XCode.DataAccessLayer
     }
 
     #region ADOX封装
-    internal class ADOTabe : DisposeBase
+    internal class ADOTabe : /*DisposeBase*/IDisposable
     {
         #region ADOX属性
         private Table _Table;
@@ -754,11 +753,7 @@ namespace XCode.DataAccessLayer
         #region DAO属性
         private String _TableName;
         /// <summary>表名</summary>
-        public String TableName
-        {
-            get { return _TableName; }
-            set { _TableName = value; }
-        }
+        public String TableName { get { return _TableName; } set { _TableName = value; } }
 
         private TableDef _TableDef;
         /// <summary>表定义</summary>
@@ -888,15 +883,13 @@ namespace XCode.DataAccessLayer
             TableName = tablename;
         }
 
-        protected override void OnDispose(bool disposing)
+        public void Dispose()
         {
-            base.OnDispose(disposing);
-
             try
             {
                 if (_Columns != null && _Columns.Count > 0)
                 {
-                    foreach (ADOColumn item in _Columns)
+                    foreach (var item in _Columns)
                     {
                         item.Dispose();
                     }
@@ -925,7 +918,7 @@ namespace XCode.DataAccessLayer
         #endregion
     }
 
-    internal class ADOColumn : DisposeBase
+    internal class ADOColumn : /*DisposeBase*/IDisposable
     {
         #region 属性
         private Column _Column;
@@ -1056,10 +1049,8 @@ namespace XCode.DataAccessLayer
             //Field = field;
         }
 
-        protected override void OnDispose(bool disposing)
+        public void Dispose()
         {
-            base.OnDispose(disposing);
-
             try
             {
                 if (Column != null) Marshal.ReleaseComObject(Column);

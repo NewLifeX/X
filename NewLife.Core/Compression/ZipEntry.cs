@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
-using NewLife.Collections;
 using NewLife.Exceptions;
 using NewLife.Reflection;
 using NewLife.Security;
@@ -11,7 +10,7 @@ using NewLife.Serialization;
 namespace NewLife.Compression
 {
     /// <summary>Zip实体。包含文件头信息和文件位置</summary>
-    public class ZipEntry : DisposeBase
+    public class ZipEntry : IDisposable
     {
         #region 数据属性
         private UInt32 _Signature = ZipConstants.ZipEntrySignature;
@@ -123,19 +122,9 @@ namespace NewLife.Compression
         #region 构造
         internal ZipEntry() { }
 
-        //internal ZipEntry(String fileName):this(File.OpenRead(fileName) { }
-
-        //internal ZipEntry(Stream stream)
-        //{
-
-        //}
-
         /// <summary>释放资源</summary>
-        /// <param name="disposing"></param>
-        protected override void OnDispose(bool disposing)
+        public void Dispose()
         {
-            base.OnDispose(disposing);
-
             if (DataSource != null)
             {
                 try
@@ -509,7 +498,7 @@ namespace NewLife.Compression
         }
 
         #region 数据流
-        class StreamDataSource : DisposeBase, IDataSource
+        class StreamDataSource : /*DisposeBase, */IDataSource
         {
             private Stream _Stream;
             /// <summary>数据流</summary>
@@ -552,10 +541,8 @@ namespace NewLife.Compression
                 Length = length;
             }
 
-            protected override void OnDispose(bool disposing)
+            public void Dispose()
             {
-                base.OnDispose(disposing);
-
                 if (_Stream != null)
                 {
                     try

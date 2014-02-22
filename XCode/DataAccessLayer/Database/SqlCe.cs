@@ -171,7 +171,7 @@ namespace XCode.DataAccessLayer
             DAL.WriteDebugLog("创建数据库：{0}", FileName);
 
             var sce = SqlCeEngine.Create(ConnectionString);
-            if (sce != null) sce.CreateDatabase();
+            if (sce != null) sce.CreateDatabase().Dispose();
         }
 
         /// <summary>执行插入语句并返回新增行的自动编号</summary>
@@ -518,7 +518,7 @@ namespace XCode.DataAccessLayer
         }
     }
 
-    class SqlCeEngine : DisposeBase
+    class SqlCeEngine : IDisposable
     {
         private static Type _EngineType = "System.Data.SqlServerCe.SqlCeEngine".GetTypeEx(true);
         /// <summary></summary>
@@ -545,23 +545,10 @@ namespace XCode.DataAccessLayer
             catch { return null; }
         }
 
-        protected override void OnDispose(bool disposing)
-        {
-            base.OnDispose(disposing);
+        public void Dispose() { Engine.TryDispose(); }
 
-            Engine.TryDispose();
-        }
+        public SqlCeEngine CreateDatabase() { Engine.Invoke("CreateDatabase"); return this; }
 
-        public void CreateDatabase()
-        {
-            //MethodInfoX.Invoke<Object>(Engine, "CreateDatabase");
-            Engine.Invoke("CreateDatabase");
-        }
-
-        public void Shrink()
-        {
-            //MethodInfoX.Invoke<Object>(Engine, "Shrink");
-            Engine.Invoke("Shrink");
-        }
+        public SqlCeEngine Shrink() { Engine.Invoke("Shrink"); return this; }
     }
 }
