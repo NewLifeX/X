@@ -266,6 +266,8 @@ namespace XCode
         internal static void EnsureInit(Type type)
         {
             if (_hasInited.Contains(type)) return;
+            // 先实例化，在锁里面添加到列表但不实例化，避免实体类的实例化过程中访问CreateOperate导致死锁产生
+            type.CreateInstance();
             lock (_hasInited)
             // 如果这里锁定_hasInited，还是有可能死锁，因为可能实体类A的静态构造函数中可能导致调用另一个实体类的EnsureInit
             // 其实我们这里加锁的目的，本来就是为了避免重复添加同一个type而已
@@ -273,7 +275,7 @@ namespace XCode
             {
                 if (_hasInited.Contains(type)) return;
 
-                type.CreateInstance();
+                //type.CreateInstance();
                 _hasInited.Add(type);
             }
         }
