@@ -77,7 +77,7 @@ namespace NewLife.Collections
         {
             base.OnDispose(disposing);
 
-            if (clearTimer != null) clearTimer.Dispose();
+            StopTimer();
         }
         #endregion
 
@@ -131,6 +131,7 @@ namespace NewLife.Collections
                     {
                         Items[key] = new CacheItem(value, Expriod);
                     }
+                    StartTimer();
                 }
             }
         }
@@ -373,7 +374,10 @@ namespace NewLife.Collections
                 clearTimer = new TimerX(RemoveNotAlive, null, ClearExpriod * 1000, ClearExpriod * 1000);
         }
 
-        void StopTimer() { if (clearTimer != null && !clearTimer.Disposed)clearTimer.Dispose(); }
+        void StopTimer()
+        {
+            if (clearTimer != null && !clearTimer.Disposed) clearTimer.Dispose();
+        }
 
         /// <summary>移除过期的缓存项</summary>
         void RemoveNotAlive(Object state)

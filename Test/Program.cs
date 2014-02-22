@@ -21,6 +21,7 @@ using NewLife.Xml;
 using XCode.DataAccessLayer;
 using XCode.Sync;
 using XCode.Transform;
+using NewLife.Collections;
 
 namespace Test
 {
@@ -37,7 +38,7 @@ namespace Test
                 try
                 {
 #endif
-                TestNatProxy();
+                Test3();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -118,7 +119,7 @@ namespace Test
             proxy.ServerPort = 6800;
             proxy.ServerProtocolType = System.Net.Sockets.ProtocolType.Tcp;
             proxy.Start();
-            
+
         }
 
         static void ShowStatus()
@@ -181,21 +182,12 @@ namespace Test
 
         static void Test3()
         {
-            using (var sp = new SerialPort("COM2"))
-            {
-                sp.Open();
-
-                var b = 0;
-                while (true)
-                {
-                    Console.WriteLine(b);
-                    var bs = new Byte[] { (Byte)b };
-                    sp.Write(bs, 0, bs.Length);
-                    b = b == 0 ? 0xFF : 0;
-
-                    Thread.Sleep(1000);
-                }
-            }
+            TimerX.Debug = true;
+            var dic = new DictionaryCache<Int32, Int32> { Expriod = 2 };
+            Thread.Sleep(3000);
+            var id = dic.GetItem(2, null);
+            Console.WriteLine("ID={0}", id);
+            Thread.Sleep(3000);
         }
 
         static NetServer server = null;
