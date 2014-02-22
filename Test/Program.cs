@@ -184,10 +184,20 @@ namespace Test
         {
             TimerX.Debug = true;
             var dic = new DictionaryCache<Int32, Int32> { Expriod = 2 };
-            Thread.Sleep(3000);
-            var id = dic.GetItem(2, null);
-            Console.WriteLine("ID={0}", id);
-            Thread.Sleep(3000);
+            //Thread.Sleep(3000);
+            //var id = dic.GetItem(2, null);
+            //Console.WriteLine("ID={0}", id);
+            //Thread.Sleep(3000);
+            lock (dic)
+            {
+                Console.WriteLine("111");
+                lock (dic)
+                {
+                    Console.WriteLine("www");
+                }
+                Console.WriteLine("333");
+            }
+            Console.WriteLine("444");
         }
 
         static NetServer server = null;
