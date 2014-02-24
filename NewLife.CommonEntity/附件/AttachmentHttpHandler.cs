@@ -37,6 +37,23 @@ namespace NewLife.CommonEntity.Web
                 return n;
             }
         }
+
+
+        /// <summary>
+        /// 获取或设置 是否禁用浏览器缓存 默认启用
+        /// </summary>
+        public bool BrowserCacheDisable { get; set; }
+        private TimeSpan _browserCacheMaxAge = new TimeSpan(100, 0, 0, 0);
+
+        /// <summary>
+        /// 获取或设置 浏览器最大缓存时间 默认100天
+        /// </summary>
+        public TimeSpan BrowserCacheMaxAge
+        {
+            get { return _browserCacheMaxAge; }
+            set { _browserCacheMaxAge = value; }
+        }
+
         #endregion
 
         #region 文件流
@@ -88,7 +105,21 @@ namespace NewLife.CommonEntity.Web
 
             // 增加统计
             attachment.Increment(null);
-
+            //增加 浏览器缓存 304缓存 By Soar、毅 2014年2月24日
+            if (!this.BrowserCacheDisable)
+            {
+                var request = context.Request;
+                var since = request.ServerVariables["HTTP_IF_MODIFIED_SINCE"];
+                if (!String.IsNullOrEmpty(since))
+                {
+                    DateTime dt;
+                    if (DateTime.TryParse(since, out dt) && dt >= attachment.UploadTime)
+                    {
+                        context.Response.StatusCode = 304;
+                        return;
+                    }
+                }
+            }
             var stream = GetStream(context, attachment);
             if (stream.CanSeek && stream.Position >= stream.Length) stream.Position = 0;
             try
@@ -134,6 +165,16 @@ namespace NewLife.CommonEntity.Web
         /// <param name="dispositionMode"></param>
         protected virtual void OnResponse(HttpContext context, IAttachment attachment, Stream stream, String dispositionMode)
         {
+            //增加 浏览器缓存 304缓存 By Soar、毅 2014年2月24日
+            if (!this.BrowserCacheDisable)
+            {
+                var response = context.Response;
+                response.ExpiresAbsolute = DateTime.Now.Add(this.BrowserCacheMaxAge);
+                response.Cache.SetMaxAge(BrowserCacheMaxAge);
+                response.Cache.SetRevalidation(HttpCacheRevalidation.AllCaches);
+                response.Cache.SetCacheability(HttpCacheability.Public);
+                response.Cache.SetLastModified(attachment.UploadTime);
+            }
             var wd = new WebDownload();
             wd.Stream = stream;
             wd.FileName = attachment.FileName;
