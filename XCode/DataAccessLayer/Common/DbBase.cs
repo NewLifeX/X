@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Data.OleDb;
@@ -42,12 +43,6 @@ namespace XCode.DataAccessLayer
         {
             base.OnDispose(disposing);
 
-            //if (_sessions != null)
-            //{
-            //    // 销毁本线程的数据库会话，似乎无法销毁别的线程的数据库会话
-            //    if (_sessions.ContainsKey(this)) _sessions.Remove(this);
-            //}
-
             if (_sessions != null) ReleaseSession();
 
             if (_metadata != null)
@@ -71,18 +66,21 @@ namespace XCode.DataAccessLayer
                 // 不要清空，否则可能引起CreateSession中的_sessions[tid] = session;报null异常
                 //_sessions = null;
 
+                List<IDbSession> list = null;
                 // 销毁本数据库的所有数据库会话
+                // 复制后再销毁，避免销毁导致异常，也降低加锁时间避免死锁
                 lock (ss)
                 {
-                    foreach (var item in ss)
-                    {
-                        try
-                        {
-                            if (item.Value != null) item.Value.Dispose();
-                        }
-                        catch { }
-                    }
+                    list = ss.Values.ToList();
                     ss.Clear();
+                }
+                foreach (var item in list)
+                {
+                    try
+                    {
+                        if (item != null) item.Dispose();
+                    }
+                    catch { }
                 }
             }
         }
@@ -123,9 +121,14 @@ namespace XCode.DataAccessLayer
 
                 OnSetConnectionString(builder);
 
-                _ConnectionString = builder.ConnectionString;
+                // 只有连接字符串改变，才释放会话
+                var connStr = builder.ConnectionString;
+                if (_ConnectionString != connStr)
+                {
+                    _ConnectionString = connStr;
 
-                ReleaseSession();
+                    ReleaseSession();
+                }
             }
         }
 
