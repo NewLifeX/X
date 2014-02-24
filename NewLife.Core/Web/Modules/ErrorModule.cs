@@ -72,8 +72,10 @@ namespace NewLife.Web
             sb.AppendFormat("访问：{0}\r\n", Request.Url);
             if (!String.IsNullOrEmpty(Request.UrlReferrer + ""))
                 sb.AppendFormat("引用：{0}\r\n", Request.UrlReferrer);
-            if (!String.IsNullOrEmpty(Request.HttpMethod) || Request.ContentLength > 0)
-                sb.AppendFormat("方式：{0} {1:n}\r\n", Request.HttpMethod, Request.ContentLength);
+            if (Request.ContentLength > 0)
+                sb.AppendFormat("方式：{0} {1:n0}\r\n", Request.HttpMethod, Request.ContentLength);
+            else
+                sb.AppendFormat("方式：{0}\r\n", Request.HttpMethod);
 
             var id = Thread.CurrentPrincipal;
             if (id != null && id.Identity != null && !String.IsNullOrEmpty(id.Identity.Name))
