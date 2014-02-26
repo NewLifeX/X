@@ -156,9 +156,9 @@ namespace XTemplate.Templating
         {
             if (templates == null || templates.Length < 1) throw new ArgumentNullException("templates");
 
-            Dictionary<String, String> dic = new Dictionary<string, string>();
+            var dic = new Dictionary<string, string>();
 
-            String prefix = !String.IsNullOrEmpty(name) ? name : "Class";
+            var prefix = !String.IsNullOrEmpty(name) ? name : "Class";
 
             if (templates.Length == 1)
             {
@@ -183,20 +183,20 @@ namespace XTemplate.Templating
             if (templates == null || templates.Count < 1) throw new ArgumentNullException("templates");
 
             // 计算hash
-            StringBuilder sb = new StringBuilder();
-            foreach (KeyValuePair<String, String> item in templates)
+            var sb = new StringBuilder();
+            foreach (var item in templates)
             {
                 sb.Append(Hash(item.Key));
                 sb.Append(Hash(item.Value));
             }
 
-            String hash = Hash(sb.ToString());
+            var hash = Hash(sb.ToString());
 
             return cache.GetItem<IDictionary<String, String>>(hash, templates, delegate(String key, IDictionary<String, String> contents)
             {
-                Template entity = new Template();
+                var entity = new Template();
 
-                foreach (KeyValuePair<String, String> item in contents)
+                foreach (var item in contents)
                 {
                     entity.AddTemplateItem(item.Key, item.Value);
                 }
@@ -479,18 +479,16 @@ namespace XTemplate.Templating
             }
             else if (directive.Name.EqualIgnoreCase("template"))
             {
-                if (!item.Processed)
-                {
-                    // 由模版指令指定类名
-                    String name = directive.GetParameter("name");
-                    if (!String.IsNullOrEmpty(name)) item.ClassName = name;
+                if (item.Processed) throw new TemplateException(directive.Block, "多个模版指令！");
 
-                    //item.BaseClassName = directive.GetParameter("inherits");
-                    if (directive.TryGetParameter("inherits", out name)) item.BaseClassName = name;
-                    item.Processed = true;
-                }
-                else
-                    throw new TemplateException(directive.Block, "多个模版指令！");
+                // 由模版指令指定类名
+                var name = "";
+                if (directive.TryGetParameter("name", out name) && !String.IsNullOrEmpty(name)) item.ClassName = name;
+
+                //item.BaseClassName = directive.GetParameter("inherits");
+                if (directive.TryGetParameter("inherits", out name)) item.BaseClassName = name;
+                item.Processed = true;
+
             }
             else if (directive.Name.EqualIgnoreCase("var"))
             {
@@ -527,8 +525,7 @@ namespace XTemplate.Templating
 
             if (type.IsGenericType && !type.IsGenericTypeDefinition)
             {
-                Type[] ts = type.GetGenericArguments();
-                foreach (Type elm in ts)
+                foreach (var elm in type.GetGenericArguments())
                 {
                     if (!elm.IsGenericParameter) ImportType(item, elm);
                 }
