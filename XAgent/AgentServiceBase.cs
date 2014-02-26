@@ -934,26 +934,26 @@ namespace XAgent
             }
             #endregion
 
-            //其次检查基础服务XAgent是否安装和启动
-            #region 其次检查基础服务是否安装和启动
-            var xagentService = Services.First(s => s.ServiceName == "XAgent");
-            if (xagentService == null)
-            {
-                //安装服务
-                ServiceControl.Install(true);
+            ////其次检查基础服务XAgent是否安装和启动
+            //#region 其次检查基础服务是否安装和启动
+            //var xagentService = Services.First(s => s.ServiceName == "XAgent");
+            //if (xagentService == null)
+            //{
+            //    //安装服务
+            //    ServiceControl.Install(true);
 
-                Services = ServiceController.GetServices();
-                xagentService = Services.First(s => s.ServiceName == "XAgent");
-                if (xagentService == null) { throw new Exception("XAgent服务无法安装"); }
-            }
-            if (xagentService.Status != ServiceControllerStatus.Running)
-            {
-                //启动服务
-                ServiceControl.ControlService(true);
+            //    Services = ServiceController.GetServices();
+            //    xagentService = Services.First(s => s.ServiceName == "XAgent");
+            //    if (xagentService == null) { throw new Exception("XAgent服务无法安装"); }
+            //}
+            //if (xagentService.Status != ServiceControllerStatus.Running)
+            //{
+            //    //启动服务
+            //    ServiceControl.ControlService(true);
 
-                if (xagentService.Status != ServiceControllerStatus.Running) { throw new Exception("XAgent服务无法启动"); }
-            }
-            #endregion
+            //    if (xagentService.Status != ServiceControllerStatus.Running) { throw new Exception("XAgent服务无法启动"); }
+            //}
+            //#endregion
 
             ////启动自己的业务逻辑
             //StartOwnWork();
