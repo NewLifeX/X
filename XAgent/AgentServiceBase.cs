@@ -1,9 +1,7 @@
 ﻿using System;
-using NewLife;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.ServiceProcess;
 using System.Threading;
@@ -12,6 +10,11 @@ using NewLife.Log;
 using NewLife.Model;
 using NewLife.Reflection;
 using NewLife.Threading;
+#if NET4
+using System.Linq;
+#else
+using NewLife.Linq;
+#endif
 
 namespace XAgent
 {
@@ -395,10 +398,10 @@ namespace XAgent
                     {
                         WriteLine("");
                         WriteLine("正在加载：{0} = {1}", item.Key, item.Value);
-                        var type = item.Value.GetTypeEx(true);
+                        var type = TypeX.GetType(item.Value, true);
                         if (type != null)
                         {
-                            var service = type.CreateInstance() as IServer;
+                            var service = TypeX.CreateInstance(type) as IServer;
                             if (service != null) AttachServers[item.Key] = service;
                         }
                     }
@@ -419,8 +422,7 @@ namespace XAgent
                             if (Config.TryGetConfig(name, pi.PropertyType, out value))
                             {
                                 WriteLine("配置：{0} = {1}", name, value);
-                                //PropertyInfoX.Create(pi).SetValue(item.Value, value);
-                                item.Value.SetValue(pi, value);
+                                PropertyInfoX.Create(pi).SetValue(item.Value, value);
                             }
                         }
                     }
@@ -453,7 +455,13 @@ namespace XAgent
         /// <param name="disposing"></param>
         protected override void Dispose(bool disposing)
         {
-            AttachServers.TryDispose();
+            if (AttachServers != null)
+            {
+                foreach (var item in AttachServers.Values)
+                {
+                    if (item != null && item is IDisposable) (item as IDisposable).Dispose();
+                }
+            }
 
             base.Dispose(disposing);
         }
@@ -903,7 +911,7 @@ namespace XAgent
             #region 首先检查是否有依赖服务
             // 1.服务本身的依赖
             ServiceController[] servicesDependedOn = null;
-            ServiceController scApp = Services.First(s => s.ServiceName == ServiceName);
+            ServiceController scApp = Services.FirstOrDefault(s => s.ServiceName == ServiceName);
             if (scApp != null)
             {
                 servicesDependedOn = scApp.ServicesDependedOn;
@@ -923,13 +931,16 @@ namespace XAgent
             }
             // 2.配置文件的依赖
             String[] scConfig = NewLife.Configuration.Config.GetConfigSplit<String>("ServicesDependedOn", ",", null);
-            foreach (var item in scConfig)
+            if (scConfig != null)
             {
-                ServiceController sc = Services.First(s => s.ServiceName == item);
-                if (sc != null) sc.Start();
-                else
+                foreach (var item in scConfig)
                 {
-                    throw new Exception(String.Format("依赖服务{0}不存在", item));
+                    ServiceController sc = Services.FirstOrDefault(s => s.ServiceName == item);
+                    if (sc != null) sc.Start();
+                    else
+                    {
+                        throw new Exception(String.Format("依赖服务{0}不存在", item));
+                    }
                 }
             }
             #endregion

@@ -1,9 +1,15 @@
 ﻿using System;
-using System.Diagnostics;
+using System.Collections.Generic;
+using System.Text;
 using System.IO;
-using System.Linq;
+using System.Diagnostics;
 using System.ServiceProcess;
 using NewLife.Log;
+#if NET4
+using System.Linq;
+#else
+using NewLife.Linq;
+#endif
 
 namespace XAgent
 {
@@ -15,10 +21,6 @@ namespace XAgent
         #region 服务安装和启动
         /// <summary>安装、卸载 服务</summary>
         /// <param name="isinstall">是否安装</param>
-        /// <param name="exeName">Exe名称</param>
-        /// <param name="displayName">显示名</param>
-        /// <param name="description">描述</param>
-        /// <param name="dir">目录</param>
         public static void Install(Boolean isinstall, String exeName = "XAgent", String displayName = "XAgent服务代理", String description = "XAgent服务代理", String dir = "")
         {
             var name = exeName;
@@ -40,7 +42,6 @@ namespace XAgent
 
         /// <summary>启动、停止 服务</summary>
         /// <param name="isstart"></param>
-        /// <param name="serviceName"></param>
         public static void ControlService(Boolean isstart, String serviceName = "XAgent")
         {
             if (isstart)
@@ -98,7 +99,7 @@ namespace XAgent
 
         #region 获取依赖基础服务的服务集合
         /// <summary>
-        /// 获取依赖于<paramref name="serviceName"/>实例的服务
+        /// 获取依赖于<see cref="serviceName"/>实例的服务
         /// </summary>
         /// <param name="serviceName"></param>
         /// <returns></returns>
@@ -111,7 +112,7 @@ namespace XAgent
             return sc.DependentServices;
         }
         /// <summary>
-        /// 获取依赖于<paramref name="serviceName"/>实例的服务名称
+        /// 获取依赖于<see cref="serviceName"/>实例的服务名称
         /// </summary>
         /// <param name="serviceName"></param>
         /// <returns></returns>
