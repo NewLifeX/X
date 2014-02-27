@@ -17,9 +17,9 @@ namespace XTemplate.Templating
 
         static TemplateParser()
         {
-            escapeReplacingEvaluator = delegate(Match match)
+            escapeReplacingEvaluator = match =>
             {
-                if (match.Success && (match.Value != null))
+                if (match.Success && match.Value != null)
                 {
                     Int32 length = (Int32)Math.Floor((double)match.Value.Length / 2.0);
                     return match.Value.Substring(0, length);
@@ -27,7 +27,7 @@ namespace XTemplate.Templating
                 return String.Empty;
             };
 
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
             sb.AppendFormat(@"(?<text>^(\\\\)+)(?=<#)|");
             sb.AppendFormat(@"{0}@(?<directive>.*?){1}|", startTag, endTag);
             sb.AppendFormat(@"{0}\!(?<member>.*?){1}|", startTag, endTag);

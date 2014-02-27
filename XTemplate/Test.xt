@@ -1,0 +1,15 @@
+﻿指令
+<#@template inherits="NewLife.CMX.Templates.Index"#>
+
+包含
+<#@include Name="Header"#>
+
+表达式
+<#= Name #>
+
+语句
+<#if(true){#>
+<#}#>
+
+注释
+<#= Name \\#>
