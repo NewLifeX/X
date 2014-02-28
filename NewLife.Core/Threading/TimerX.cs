@@ -160,7 +160,7 @@ namespace NewLife.Threading
                         //Int32 count = 0;
                         // 设置一个较大的间隔，内部会根据处理情况调整该值为最合理值
                         period = 60000;
-                        foreach (TimerX timer in list)
+                        foreach (var timer in list)
                         {
                             ProcessItem(timer);
                         }
@@ -200,9 +200,10 @@ namespace NewLife.Threading
 
             static void ProcessItem(TimerX timer)
             {
-                // 删除过期的
-                if (!timer.Callback.IsAlive)
+                // 删除过期的，为了避免占用过多CPU资源，TimerX禁止小于10ms的任务调度
+                if (!timer.Callback.IsAlive || timer.Period < 10)
                 {
+                    if (timer.Period < 10) XTrace.WriteLine("为了避免占用过多CPU资源，TimerX禁止小于10ms的任务调度，关闭任务{0}", timer);
                     lock (timers)
                     {
                         timers.Remove(timer);
@@ -211,8 +212,8 @@ namespace NewLife.Threading
                     return;
                 }
 
-                TimeSpan ts = timer.NextTime - DateTime.Now;
-                Int32 d = (Int32)ts.TotalMilliseconds;
+                var ts = timer.NextTime - DateTime.Now;
+                var d = (Int32)ts.TotalMilliseconds;
                 if (d > 0)
                 {
                     // 缩小间隔，便于快速调用
