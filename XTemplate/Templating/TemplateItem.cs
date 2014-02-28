@@ -25,7 +25,7 @@ namespace XTemplate.Templating
 
         private List<String> _Imports;
         /// <summary>引用命名空间</summary>
-        internal List<String> Imports { get { return _Imports ?? (_Imports = new List<String>()); } }
+        public List<String> Imports { get { return _Imports ?? (_Imports = new List<String>()); } }
 
         private Boolean _Processed;
         /// <summary>是否已处理过</summary>

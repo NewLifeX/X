@@ -152,10 +152,11 @@ namespace XTemplate.Templating
                 var ss = Config.GetConfigSplit<String>("XTemplate.Imports", null);
                 if (ss != null && ss.Length > 0) list.AddRange(ss);
 
+                // 常用命名空间
                 var names = new String[] { "System", "System.Collections", "System.Collections.Generic", "System.Text" };
                 if (names != null && names.Length > 0)
                 {
-                    foreach (String item in names)
+                    foreach (var item in names)
                     {
                         if (!list.Contains(item)) list.Add(item);
                     }
@@ -163,10 +164,6 @@ namespace XTemplate.Templating
 
                 // 特别支持
                 var supports = new Dictionary<String, String[]>();
-                //supports.Add("XCode", new String[] { "XCode", "XCode.DataAccessLayer" });
-                supports.Add("XCommon", new String[] { "XCommon" });
-                supports.Add("XControl", new String[] { "XControl" });
-                //supports.Add("NewLife.CommonEntity", new String[] { "NewLife.CommonEntity" });
                 supports.Add("System.Web", new String[] { "System.Web" });
                 supports.Add("System.Xml", new String[] { "System.Xml" });
 
@@ -194,9 +191,9 @@ namespace XTemplate.Templating
                 maps.Add("NewLife.Core");
                 maps.Add("NewLife.CommonEntity");
 
-                foreach (String item in maps)
+                foreach (var item in maps)
                 {
-                    foreach (Assembly asm in asms)
+                    foreach (var asm in asms)
                     {
                         if (!asm.FullName.StartsWith(item + ",")) continue;
 
@@ -205,7 +202,7 @@ namespace XTemplate.Templating
                         {
                             String name = type.Namespace;
                             if (String.IsNullOrEmpty(name)) continue;
-                            if (!name.StartsWith("XCode") && !name.StartsWith("NewLife")) continue;
+                            //if (!name.StartsWith("XCode") && !name.StartsWith("NewLife")) continue;
                             if (!list.Contains(name)) list.Add(name);
                         }
                     }
