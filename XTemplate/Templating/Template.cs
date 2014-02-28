@@ -850,7 +850,7 @@ namespace XTemplate.Templating
             CompilerResults results = null;
             if (Debug)
             {
-                var sb = new StringBuilder();
+                //var sb = new StringBuilder();
 
                 #region 调试状态，把生成的类文件和最终dll输出到XTemp目录下
                 var tempPath = XTrace.TempPath;
@@ -861,7 +861,7 @@ namespace XTemplate.Templating
 
                 var srcpath = tempPath.CombinePath("src").EnsureDirectory(false);
 
-                //var files = new List<String>();
+                var files = new List<String>();
                 foreach (var item in tmp.Templates)
                 {
                     // 输出模版内容，为了调试使用
@@ -880,9 +880,8 @@ namespace XTemplate.Templating
                     name = srcpath.CombinePath(name);
                     File.WriteAllText(name, item.Source);
 
-                    sb.AppendLine(item.Source);
-
-                    //files.Add(name);
+                    //sb.AppendLine(item.Source);
+                    files.Add(name);
                 }
                 #endregion
 
@@ -894,9 +893,9 @@ namespace XTemplate.Templating
                     options.IncludeDebugInformation = true;
                 }
 
-                //results = provider.CompileAssemblyFromFile(options, files.ToArray());
+                results = provider.CompileAssemblyFromFile(options, files.ToArray());
                 // 必须从内存字符串编译，否则pdb会定向到最终源代码文件
-                results = provider.CompileAssemblyFromSource(options, new String[] { sb.ToString() });
+                //results = provider.CompileAssemblyFromSource(options, new String[] { sb.ToString() });
             }
             else
             {
