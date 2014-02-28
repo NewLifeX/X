@@ -11,7 +11,7 @@ namespace XCode.DataAccessLayer
     partial class DAL
     {
         #region 统计属性
-        private Boolean _EnableCache = true;
+        private Boolean _EnableCache = XCache.Kind != XCache.CacheKinds.关闭缓存;
         /// <summary>是否启用缓存</summary>
         /// <remarks>设为false可清空缓存</remarks>
         public Boolean EnableCache
@@ -68,14 +68,11 @@ namespace XCode.DataAccessLayer
         [Obsolete("请优先考虑使用SelectBuilder参数做分页！")]
         public String PageSplit(String sql, Int32 startRowIndex, Int32 maximumRows, String keyColumn)
         {
-            var cacheKey = String.Format("{0}_{1}_{2}_{3}_{4}", sql, startRowIndex, maximumRows, ConnName, keyColumn);
+            var cacheKey = String.Format("{0}_{1}_{2}_{3}_{4}", sql, startRowIndex, maximumRows, keyColumn, ConnName);
 
             // 一个项目可能同时采用多种数据库，分页缓存不能采用静态
             if (_PageSplitCache == null) _PageSplitCache = new DictionaryCache<String, String>(StringComparer.OrdinalIgnoreCase);
-            return _PageSplitCache.GetItem<String, Int32, Int32, String>(cacheKey, sql, startRowIndex, maximumRows, keyColumn, (k, b, s, m, kc) =>
-            {
-                return Db.PageSplit(b, s, m, kc);
-            });
+            return _PageSplitCache.GetItem(cacheKey, sql, startRowIndex, maximumRows, keyColumn, (k, b, s, m, kc) => Db.PageSplit(b, s, m, kc));
         }
 
         private DictionaryCache<String, SelectBuilder> _PageSplitCache2;
@@ -90,7 +87,7 @@ namespace XCode.DataAccessLayer
         /// <returns>分页SQL</returns>
         public SelectBuilder PageSplit(SelectBuilder builder, Int32 startRowIndex, Int32 maximumRows)
         {
-            var cacheKey = String.Format("{0}_{1}_{2}_{3}_", builder, startRowIndex, maximumRows, ConnName);
+            var cacheKey = String.Format("{0}_{1}_{2}_{3}", builder, startRowIndex, maximumRows, ConnName);
 
             // 一个项目可能同时采用多种数据库，分页缓存不能采用静态
             if (_PageSplitCache2 == null)
@@ -104,10 +101,7 @@ namespace XCode.DataAccessLayer
                     _PageSplitCache2.Expriod = 60;
                 }
             }
-            return _PageSplitCache2.GetItem<SelectBuilder, Int32, Int32>(cacheKey, builder, startRowIndex, maximumRows, (k, b, s, m) =>
-            {
-                return Db.PageSplit(b, s, m);
-            });
+            return _PageSplitCache2.GetItem(cacheKey, builder, startRowIndex, maximumRows, (k, b, s, m) => Db.PageSplit(b, s, m));
         }
 
         /// <summary>执行SQL查询，返回记录集</summary>
@@ -140,20 +134,9 @@ namespace XCode.DataAccessLayer
         {
             builder = PageSplit(builder, startRowIndex, maximumRows);
             if (builder == null) return null;
+
             return Select(builder.ToString(), tableNames);
         }
-
-        ///// <summary>执行SQL查询，返回分页记录集</summary>
-        ///// <param name="sql">SQL语句</param>
-        ///// <param name="startRowIndex">开始行，0表示第一行</param>
-        ///// <param name="maximumRows">最大返回行数，0表示所有行</param>
-        ///// <param name="keyColumn">唯一键。用于not in分页</param>
-        ///// <param name="tableNames">所依赖的表的表名</param>
-        ///// <returns></returns>
-        //public DataSet Select(String sql, Int32 startRowIndex, Int32 maximumRows, String keyColumn, params String[] tableNames)
-        //{
-        //    return Select(PageSplit(sql, startRowIndex, maximumRows, keyColumn), tableNames);
-        //}
 
         /// <summary>执行SQL查询，返回总记录数</summary>
         /// <param name="sql">SQL语句</param>
@@ -165,9 +148,13 @@ namespace XCode.DataAccessLayer
         {
             CheckBeforeUseDatabase();
 
-            String cacheKey = sql + "_SelectCount" + "_" + ConnName;
-            Int32 rs = 0;
-            if (EnableCache && XCache.TryGetItem(cacheKey, out rs)) return rs;
+            var cacheKey = "";
+            var rs = 0;
+            if (EnableCache)
+            {
+                cacheKey = sql + "_SelectCount" + "_" + ConnName;
+                if (XCache.TryGetItem(cacheKey, out rs)) return rs;
+            }
 
             Interlocked.Increment(ref _QueryTimes);
             // 为了向前兼容，这里转为Int32，如果需要获取Int64，可直接调用Session
@@ -186,10 +173,13 @@ namespace XCode.DataAccessLayer
         {
             CheckBeforeUseDatabase();
 
-            String sql = sb.ToString();
-            String cacheKey = sql + "_SelectCount" + "_" + ConnName;
-            Int32 rs = 0;
-            if (EnableCache && XCache.TryGetItem(cacheKey, out rs)) return rs;
+            var cacheKey = "";
+            var rs = 0;
+            if (EnableCache)
+            {
+                cacheKey = sb + "_SelectCount" + "_" + ConnName;
+                if (XCache.TryGetItem(cacheKey, out rs)) return rs;
+            }
 
             Interlocked.Increment(ref _QueryTimes);
             rs = (Int32)Session.QueryCount(sb);
@@ -207,10 +197,14 @@ namespace XCode.DataAccessLayer
         {
             CheckBeforeUseDatabase();
 
+            Interlocked.Increment(ref _ExecuteTimes);
+
+            var rs = Session.Execute(sql);
+
             // 移除所有和受影响表有关的缓存
             if (EnableCache) XCache.Remove(tableNames);
-            Interlocked.Increment(ref _ExecuteTimes);
-            return Session.Execute(sql);
+
+            return rs;
         }
 
         /// <summary>执行插入语句并返回新增行的自动编号</summary>
@@ -221,10 +215,14 @@ namespace XCode.DataAccessLayer
         {
             CheckBeforeUseDatabase();
 
+            Interlocked.Increment(ref _ExecuteTimes);
+
+            var rs = Session.InsertAndGetIdentity(sql);
+
             // 移除所有和受影响表有关的缓存
             if (EnableCache) XCache.Remove(tableNames);
-            Interlocked.Increment(ref _ExecuteTimes);
-            return Session.InsertAndGetIdentity(sql);
+
+            return rs;
         }
 
         /// <summary>执行SQL语句，返回受影响的行数</summary>
@@ -237,10 +235,14 @@ namespace XCode.DataAccessLayer
         {
             CheckBeforeUseDatabase();
 
+            Interlocked.Increment(ref _ExecuteTimes);
+
+            var rs = Session.Execute(sql, type, ps);
+
             // 移除所有和受影响表有关的缓存
             if (EnableCache) XCache.Remove(tableNames);
-            Interlocked.Increment(ref _ExecuteTimes);
-            return Session.Execute(sql, type, ps);
+
+            return rs;
         }
 
         /// <summary>执行插入语句并返回新增行的自动编号</summary>
@@ -253,10 +255,14 @@ namespace XCode.DataAccessLayer
         {
             CheckBeforeUseDatabase();
 
+            Interlocked.Increment(ref _ExecuteTimes);
+
+            var rs = Session.InsertAndGetIdentity(sql, type, ps);
+
             // 移除所有和受影响表有关的缓存
             if (EnableCache) XCache.Remove(tableNames);
-            Interlocked.Increment(ref _ExecuteTimes);
-            return Session.InsertAndGetIdentity(sql, type, ps);
+
+            return rs;
         }
 
         /// <summary>执行CMD，返回记录集</summary>
@@ -267,16 +273,19 @@ namespace XCode.DataAccessLayer
         {
             CheckBeforeUseDatabase();
 
-            var cacheKey = cmd.CommandText + "_" + ConnName;
+            var cacheKey = "";
             DataSet ds = null;
-            if (EnableCache && XCache.TryGetItem(cacheKey, out ds)) return ds;
+            if (EnableCache)
+            {
+                cacheKey = cmd.CommandText + "_" + ConnName;
+                if (XCache.TryGetItem(cacheKey, out ds)) return ds;
+            }
 
             Interlocked.Increment(ref _QueryTimes);
             ds = Session.Query(cmd);
 
             if (EnableCache) XCache.Add(cacheKey, ds, tableNames);
 
-            Session.AutoClose();
             return ds;
         }
 
@@ -288,12 +297,12 @@ namespace XCode.DataAccessLayer
         {
             CheckBeforeUseDatabase();
 
+            Interlocked.Increment(ref _ExecuteTimes);
+            var ret = Session.Execute(cmd);
+
             // 移除所有和受影响表有关的缓存
             if (EnableCache) XCache.Remove(tableNames);
 
-            Interlocked.Increment(ref _ExecuteTimes);
-            Int32 ret = Session.Execute(cmd);
-            Session.AutoClose();
             return ret;
         }
         #endregion

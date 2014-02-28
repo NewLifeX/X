@@ -32,7 +32,7 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
 [assembly: AssemblyVersion("8.10.*")]
-[assembly: AssemblyFileVersion("8.10.2014.0221")]
+[assembly: AssemblyFileVersion("8.10.2014.0228")]
 
 /*
  * XCode的重大改进
@@ -49,6 +49,8 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v8.10.2014.0228  修正DAL中在关闭一级缓存的情况下仍然使用一级缓存的问题
+ * 
  * v8.10.2014.0221  修正CreateSession中的_sessions[tid] = session报null异常的问题，修改DbBase.ConnectionString引发ReleaseSession从而导致_sessions = null
  * 
  * v8.10.2014.0215  修正EntitySession.WaitForInitData中没有阻止多线程进入的问题
