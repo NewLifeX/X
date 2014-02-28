@@ -88,7 +88,7 @@ namespace NewLife.Log
                     {
                         //if (!dic.TryGetValue(key, out cc))
                         {
-                            cc = colors[dic.Count % 7];
+                            cc = colors[dic.Count % colors.Length];
                             dic[key] = cc;
                         }
                     }
