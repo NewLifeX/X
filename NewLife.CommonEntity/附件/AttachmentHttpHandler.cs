@@ -113,7 +113,9 @@ namespace NewLife.CommonEntity.Web
                 if (!String.IsNullOrEmpty(since))
                 {
                     DateTime dt;
-                    if (DateTime.TryParse(since, out dt) && dt >= attachment.UploadTime)
+                    //if (DateTime.TryParse(since, out dt) && dt >= attachment.UploadTime)
+                    //!!! 注意：本地修改时间精确到毫秒，而HTTP_IF_MODIFIED_SINCE只能到秒
+                    if (DateTime.TryParse(since, out dt) && (dt - attachment.UploadTime).TotalSeconds > -1)
                     {
                         context.Response.StatusCode = 304;
                         return;
