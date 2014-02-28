@@ -10,11 +10,7 @@ using NewLife.Log;
 using NewLife.Model;
 using NewLife.Reflection;
 using NewLife.Threading;
-#if NET4
 using System.Linq;
-#else
-using NewLife.Linq;
-#endif
 
 namespace XAgent
 {
