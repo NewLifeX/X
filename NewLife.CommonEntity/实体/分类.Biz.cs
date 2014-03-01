@@ -6,6 +6,7 @@
 */
 ﻿using System;
 using System.ComponentModel;
+using NewLife.Exceptions;
 using XCode;
 
 namespace NewLife.CommonEntity
@@ -17,6 +18,46 @@ namespace NewLife.CommonEntity
     /// <summary>分类</summary>
     public partial class Category<TEntity> : EntityTree<TEntity> where TEntity : Category<TEntity>, new()
     {
+        #region 对象操作
+        /// <summary>验证</summary>
+        /// <param name="isNew"></param>
+        public override void Valid(bool isNew)
+        {
+            base.Valid(isNew);
+
+            if (String.IsNullOrEmpty(Name)) throw new ArgumentOutOfRangeException("Name", "无效的名称！");
+        }
+
+        /// <summary>删除时检查</summary>
+        /// <returns></returns>
+        protected override int OnDelete()
+        {
+            if (Num > 0) throw new XException("分类【{0}】下有{1}个项，禁止删除！", Name, Num);
+
+            return base.OnDelete();
+        }
+
+        /// <summary>初始化数据</summary>
+        protected override void InitData()
+        {
+            base.InitData();
+
+            if (Meta.Count < 1)
+            {
+                var entity = new TEntity();
+                entity.Name = "大类";
+                entity.Save();
+
+                var topID = entity.ID;
+
+                entity = new TEntity();
+                entity.Name = "小类";
+                entity.ParentID = topID;
+                entity.Save();
+            }
+        }
+        #endregion
+
         #region 扩展属性﻿
         #endregion
 

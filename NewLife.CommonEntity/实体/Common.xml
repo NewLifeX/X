@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Tables Version="8.10.5097.24140">
+<Tables Version="8.10.5172.34801">
   <Table Name="UserProfile" Description="用户配置" DbType="SqlServer" RenderGenEntity="true">
     <Columns>
       <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
@@ -79,6 +79,7 @@
       <Column Name="Name" DataType="String" Nullable="False" Description="名称" />
       <Column Name="ParentID" DataType="Int32" Nullable="False" Description="父分类" />
       <Column Name="Sort" DataType="Int32" Description="排序" />
+      <Column Name="Num" DataType="Int32" Description="数量" />
       <Column Name="Remark" DataType="String" Length="250" Description="备注" />
     </Columns>
     <Indexes>
