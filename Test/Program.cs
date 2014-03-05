@@ -22,6 +22,7 @@ using XCode.DataAccessLayer;
 using XCode.Sync;
 using XCode.Transform;
 using NewLife.Collections;
+using System.Net;
 
 namespace Test
 {
@@ -38,7 +39,7 @@ namespace Test
                 try
                 {
 #endif
-                Test3();
+                Test12();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -437,5 +438,43 @@ namespace Test
             Console.WriteLine("Length={0}", buf.Length);
             Console.WriteLine(buf.CompareTo(old));
         }
+
+        static NetServer test12Server = null;
+        static Thread[] test12Ths = null;
+        static void Test12()
+        {
+            test12Server = new NetServer();
+            test12Server.Address = IPAddress.Parse("127.0.0.1");
+            test12Server.Port = 9000;
+            test12Server.ProtocolType = System.Net.Sockets.ProtocolType.IPv4;
+            test12Server.Received += new EventHandler<NetEventArgs>(test12Server_Received);
+            test12Server.Start();
+
+            test12Ths = new Thread[50];
+            for (int i = 0; i < test12Ths.Length; i++)
+            {
+                test12Ths[i] = new Thread(test12Send);
+                test12Ths[i].Name = "thread " + i.ToString();
+                test12Ths[i].IsBackground = true;
+                test12Ths[i].Start();
+            }
+
+        }
+
+        static void test12Server_Received(object sender, NetEventArgs e)
+        {
+            //e.Session.Send(e.GetStream());
+            Console.WriteLine(e.GetString());
+        }
+        static void test12Send()
+        {
+            ISocketSession session = NetService.CreateSession(new NetUri("Tcp://127.0.0.1:9000"));
+            while (true)
+            {
+                Thread.Sleep(100);
+                session.Send("abcdefghijklmn");
+            }
+        }
+
     }
 }
