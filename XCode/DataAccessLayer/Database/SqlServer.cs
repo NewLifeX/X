@@ -867,7 +867,9 @@ namespace XCode.DataAccessLayer
 
         public override string DropDefaultSQL(IDataColumn field)
         {
-            if (String.IsNullOrEmpty(field.Default)) return String.Empty;
+            //if (String.IsNullOrEmpty(field.Default)) return String.Empty;
+            // 默认值有可能是空字符串
+            if (field.Default == null) return String.Empty;
 
             String sql = null;
             if (IsSQL2005)
@@ -875,13 +877,13 @@ namespace XCode.DataAccessLayer
             else
                 sql = String.Format("select b.name from syscolumns a inner join sysobjects b on a.cdefault=b.id inner join sysobjects c on a.id=c.id where a.name='{1}' and c.name='{0}' and b.xtype='D'", field.Table.TableName, field.ColumnName);
 
-            DataSet ds = Database.CreateSession().Query(sql);
+            var ds = Database.CreateSession().Query(sql);
             if (ds == null || ds.Tables == null || ds.Tables[0].Rows.Count < 1) return null;
 
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
             foreach (DataRow dr in ds.Tables[0].Rows)
             {
-                String name = dr[0].ToString();
+                var name = dr[0].ToString();
                 if (sb.Length > 0) sb.AppendLine(";");
                 sb.AppendFormat("Alter Table {0} Drop CONSTRAINT {1}", FormatName(field.Table.TableName), name);
             }
