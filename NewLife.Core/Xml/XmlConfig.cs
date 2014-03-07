@@ -33,6 +33,7 @@ namespace NewLife.Xml
                 {
                     // 现存有对象，尝试再次加载，可能因为未修改而返回null，这样只需要返回现存对象即可
                     if (!config.IsUpdated) return config;
+                    XTrace.WriteLine("{0}的配置文件{1}有更新，重新加载配置！", typeof(TConfig), config.ConfigFile);
 
                     var cfg = Load(_.ConfigFile);
                     if (cfg == null) return config;
@@ -50,7 +51,7 @@ namespace NewLife.Xml
                         config.ConfigFile = _.ConfigFile.GetFullPath();
 
                         // 创建或覆盖
-                        if (XTrace.Debug) XTrace.WriteLine("{0}的配置文件{1}不存在或加载出错，准备用默认配置覆盖！", typeof(TConfig).Name, _.ConfigFile);
+                        XTrace.WriteLine("{0}的配置文件{1}不存在或加载出错，准备用默认配置覆盖！", typeof(TConfig).Name, _.ConfigFile);
                         try
                         {
                             // 根据配置，有可能不保存，直接返回默认
@@ -157,6 +158,19 @@ namespace NewLife.Xml
                 return false;
             }
         }
+
+        /// <summary>设置过期重新加载配置的时间</summary>
+        void SetExpire()
+        {
+            if (_.ReloadTime > 0)
+            {
+                // 这里必须在加载后即可设置过期时间和最后写入时间，否则下一次访问的时候，IsUpdated会报告文件已更新
+                var fi = new FileInfo(ConfigFile);
+                fi.Refresh();
+                lastWrite = fi.LastWriteTime;
+                expire = DateTime.Now.AddMilliseconds(_.ReloadTime);
+            }
+        }
         #endregion
 
         #region 加载
@@ -189,6 +203,7 @@ namespace NewLife.Xml
                 if (config == null) return null;
 
                 config.ConfigFile = filename;
+                config.SetExpire();  // 设定过期时间
                 config.OnLoaded();
 
                 return config;
@@ -213,7 +228,11 @@ namespace NewLife.Xml
             {
                 var xml1 = File.ReadAllText(ConfigFile);
                 var xml2 = config.ToXml(null, "", "", true, true);
-                if (xml1 != xml2) config.Save();
+                if (xml1 != xml2)
+                {
+                    XTrace.WriteLine("配置文件{0}格式不一致，保存为最新格式！", ConfigFile);
+                    config.Save();
+                }
             }
             catch (Exception ex)
             {

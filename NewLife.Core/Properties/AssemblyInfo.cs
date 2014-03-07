@@ -31,9 +31,11 @@ using System.Runtime.InteropServices;
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("4.1.*")]
-[assembly: AssemblyFileVersion("4.1.2014.0219")]
+[assembly: AssemblyFileVersion("4.1.2014.0307")]
 
 /*
+ * v4.1.2014.0307   修正XmlConfig中因逻辑错误导致频繁重新加载配置的错误
+ * 
  * v4.1.2014.0219   增加UrlRewrite模块，允许集成扩展
  * 
  * v4.0.2014.0214   修正XmlHelper中因错误使用私有成员而导致编码为空的错误
