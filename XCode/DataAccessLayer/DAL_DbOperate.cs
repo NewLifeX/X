@@ -25,31 +25,17 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>缓存个数</summary>
-        public Int32 CacheCount
-        {
-            get
-            {
-                return XCache.Count;
-            }
-        }
+        public Int32 CacheCount { get { return XCache.Count; } }
 
         [ThreadStatic]
         private static Int32 _QueryTimes;
         /// <summary>查询次数</summary>
-        public static Int32 QueryTimes
-        {
-            //get { return DB != null ? DB.QueryTimes : 0; }
-            get { return _QueryTimes; }
-        }
+        public static Int32 QueryTimes { get { return _QueryTimes; } }
 
         [ThreadStatic]
         private static Int32 _ExecuteTimes;
         /// <summary>执行次数</summary>
-        public static Int32 ExecuteTimes
-        {
-            //get { return DB != null ? DB.ExecuteTimes : 0; }
-            get { return _ExecuteTimes; }
-        }
+        public static Int32 ExecuteTimes { get { return _ExecuteTimes; } }
         #endregion
 
         #region 使用缓存后的数据操作方法
