@@ -784,7 +784,7 @@ namespace XCode.DataAccessLayer
                     // 如果还有默认值，加上
                     if (field.Default != null)
                     {
-                        df = AddDefaultSQL(field);
+                        df = AddDefaultSQLWithNoCheck(field);
                         if (!String.IsNullOrEmpty(df)) sql += ";" + Environment.NewLine + df;
                     }
                 }
@@ -840,29 +840,37 @@ namespace XCode.DataAccessLayer
 
         public override string AddDefaultSQL(IDataColumn field)
         {
-            String sql = DropDefaultSQL(field);
+            var sql = DropDefaultSQL(field);
             if (!String.IsNullOrEmpty(sql)) sql += ";" + Environment.NewLine;
 
+            var sql2 = AddDefaultSQLWithNoCheck(field);
+            if (String.IsNullOrEmpty(sql2))
+                return sql;
+            else
+                return sql + ";" + Environment.NewLine + sql2;
+        }
+
+        string AddDefaultSQLWithNoCheck(IDataColumn field)
+        {
             var tc = Type.GetTypeCode(field.DataType);
 
-            String dv = field.Default;
+            var dv = field.Default;
             if (CheckAndGetDefault(field, ref dv))
             {
-                if (String.IsNullOrEmpty(dv)) return sql;
-                sql += String.Format("Alter Table {0} Add CONSTRAINT DF_{0}_{1} DEFAULT {2} FOR {1}", field.Table.TableName, field.ColumnName, dv);
-                return sql;
+                //if (String.IsNullOrEmpty(dv)) return null;
+                if (dv == null) return null;
+                return String.Format("Alter Table {0} Add CONSTRAINT DF_{0}_{1} DEFAULT {2} FOR {1}", field.Table.TableName, field.ColumnName, dv);
             }
 
             if (tc == TypeCode.String)
-                sql += String.Format("Alter Table {0} Add CONSTRAINT DF_{0}_{1} DEFAULT N'{2}' FOR {1}", field.Table.TableName, field.ColumnName, field.Default);
+                return String.Format("Alter Table {0} Add CONSTRAINT DF_{0}_{1} DEFAULT N'{2}' FOR {1}", field.Table.TableName, field.ColumnName, field.Default);
             //else if (tc == TypeCode.DateTime)
             //{
             //    String dv = CheckAndGetDefault(field, field.Default);
             //    sql += String.Format("Alter Table {0} Add CONSTRAINT DF_{0}_{1} DEFAULT {2} FOR {1}", field.Table.Name, field.Name, dv);
             //}
             else
-                sql += String.Format("Alter Table {0} Add CONSTRAINT DF_{0}_{1} DEFAULT {2} FOR {1}", field.Table.TableName, field.ColumnName, field.Default);
-            return sql;
+                return String.Format("Alter Table {0} Add CONSTRAINT DF_{0}_{1} DEFAULT {2} FOR {1}", field.Table.TableName, field.ColumnName, field.Default);
         }
 
         public override string DropDefaultSQL(IDataColumn field)
