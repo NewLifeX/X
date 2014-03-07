@@ -269,6 +269,11 @@ namespace XCode.DataAccessLayer
                 IDataColumn dbf = null;
                 if (!dbdic.TryGetValue(item.ColumnName, out dbf)) continue;
 
+                if (IsColumnTypeChanged(item, dbf))
+                {
+                    WriteLog("字段{0}.{1}类型需要由{2}改变为{3}", entitytable.Name, item.Name, dbf.DataType, item.DataType);
+                    PerformSchema(sb, onlySql, DDLSchema.AlterColumn, item, dbf);
+                }
                 if (IsColumnChanged(item, dbf, entityDb)) PerformSchema(sb, onlySql, DDLSchema.AlterColumn, item, dbf);
                 if (IsColumnDefaultChanged(item, dbf, entityDb)) ChangeColmnDefault(sb, onlySql, item, dbf, entityDb);
 
@@ -370,18 +375,6 @@ namespace XCode.DataAccessLayer
             if (entityColumn.PrimaryKey != dbColumn.PrimaryKey) return true;
             if (entityColumn.Nullable != dbColumn.Nullable && !entityColumn.Identity && !entityColumn.PrimaryKey) return true;
 
-            // 比较类型
-            if (entityColumn.DataType != dbColumn.DataType)
-            {
-                // 类型不匹配，不一定就是有改变，还要查找类型对照表是否有匹配的，只要存在任意一个匹配，就说明是合法的
-                Boolean b = false;
-                foreach (KeyValuePair<Type, Type> item in FieldTypeMaps)
-                {
-                    if (entityColumn.DataType == item.Key && dbColumn.DataType == item.Value) { b = true; break; }
-                }
-                if (!b) return true;
-            }
-
             // 是否已改变
             Boolean isChanged = false;
 
@@ -405,6 +398,19 @@ namespace XCode.DataAccessLayer
             }
 
             return isChanged;
+        }
+
+        protected virtual Boolean IsColumnTypeChanged(IDataColumn entityColumn, IDataColumn dbColumn)
+        {
+            if (entityColumn.DataType == dbColumn.DataType) return false;
+
+            // 类型不匹配，不一定就是有改变，还要查找类型对照表是否有匹配的，只要存在任意一个匹配，就说明是合法的
+            foreach (var item in FieldTypeMaps)
+            {
+                if (dbColumn.DataType == item.Key && entityColumn.DataType == item.Value) return false;
+            }
+
+            return true;
         }
 
         /// <summary>检查字段默认值是否有改变</summary>
@@ -495,7 +501,7 @@ namespace XCode.DataAccessLayer
             // 每个分号后面故意加上空格，是为了让DbMetaData执行SQL时，不要按照分号加换行来拆分这个SQL语句
             var sb = new StringBuilder();
             sb.AppendLine("BEGIN TRANSACTION; ");
-            sb.AppendFormat("Alter Table {0} Rename To {1}", tableName, tempTableName);
+            sb.Append(RenameTable(tableName, tempTableName));
             sb.AppendLine("; ");
             sb.Append(CreateTableSQL(entitytable));
             sb.AppendLine("; ");
@@ -566,6 +572,11 @@ namespace XCode.DataAccessLayer
             return sb.ToString();
         }
 
+        protected virtual String RenameTable(String tableName, String tempTableName)
+        {
+            return String.Format("Alter Table {0} Rename To {1}", tableName, tempTableName);
+        }
+
         /// <summary>
         /// 获取架构语句，该执行的已经执行。
         /// 如果取不到语句，则输出日志信息；
@@ -577,7 +588,7 @@ namespace XCode.DataAccessLayer
         /// <param name="values"></param>
         protected void PerformSchema(StringBuilder sb, Boolean onlySql, DDLSchema schema, params Object[] values)
         {
-            String sql = GetSchemaSQL(schema, values);
+            var sql = GetSchemaSQL(schema, values);
             if (!String.IsNullOrEmpty(sql))
             {
                 if (sb.Length > 0) sb.AppendLine(";");
@@ -590,7 +601,7 @@ namespace XCode.DataAccessLayer
                 // 只有null才表示通过非SQL的方式处理，而String.Empty表示已经通过别的SQL处理，这里不用输出日志
 
                 // 没办法形成SQL，输出日志信息
-                StringBuilder s = new StringBuilder();
+                var s = new StringBuilder();
                 if (values != null && values.Length > 0)
                 {
                     foreach (Object item in values)

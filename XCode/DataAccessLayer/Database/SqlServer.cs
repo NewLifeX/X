@@ -23,15 +23,18 @@ namespace XCode.DataAccessLayer
         /// <summary>工厂</summary>
         public override DbProviderFactory Factory { get { return SqlClientFactory.Instance; } }
 
-        private Boolean? _IsSQL2005;
         /// <summary>是否SQL2005及以上</summary>
-        public Boolean IsSQL2005
+        public Boolean IsSQL2005 { get { return Version.Major > 8; } }
+
+        private Version _Version;
+        /// <summary>是否SQL2005及以上</summary>
+        public Version Version
         {
             get
             {
-                if (_IsSQL2005 == null)
+                if (_Version == null)
                 {
-                    if (String.IsNullOrEmpty(ConnectionString)) return false;
+                    if (String.IsNullOrEmpty(ConnectionString)) return _Version = new Version();
 
                     // 独立Session，避免因切换数据库而导致出错
                     var session = OnCreateSession() as DbSession;
@@ -40,13 +43,6 @@ namespace XCode.DataAccessLayer
                     String ver = null;
                     try
                     {
-                        ////切换到master库
-                        //String dbname = session.DatabaseName;
-                        ////如果指定了数据库名，并且不是master，则切换到master
-                        //if (!String.IsNullOrEmpty(dbname) && !dbname.EqualIgnoreCase(SystemDatabaseName))
-                        //{
-                        //    session.DatabaseName = SystemDatabaseName;
-                        //}
                         //如果指定了数据库名，并且不是master，则切换到master
                         session.DatabaseName = SystemDatabaseName;
 
@@ -55,26 +51,17 @@ namespace XCode.DataAccessLayer
                         ver = session.Conn.ServerVersion;
                         session.AutoClose();
 
-                        //_IsSQL2005 = !ver.StartsWith("08");
-                        _IsSQL2005 = Int32.Parse(ver.Substring(0, 2)) > 8;
-
-                        //if (!String.IsNullOrEmpty(dbname) && !dbname.EqualIgnoreCase(SystemDatabaseName))
-                        //{
-                        //    session.DatabaseName = dbname;
-                        //}
+                        _Version = new Version(ver);
                     }
                     catch (Exception ex)
                     {
                         XTrace.WriteLine("查询[{0}]的版本时出错，将按MSSQL2000进行分页处理！{1}", ConnName, ex);
-                        _IsSQL2005 = false;
+                        _Version = new Version();
                     }
                     finally { session.Dispose(); }
-
-                    //if (DAL.Debug) DAL.WriteLog("[{0}/{1}]版本：{2}，{3}是MSSQL2000！", ConnName, DbType, ver, _IsSQL2005.Value ? "不" : "");
                 }
-                return _IsSQL2005.Value;
+                return _Version;
             }
-            //set { _IsSQL2005 = value; }
         }
 
         private String _DataPath;
@@ -321,6 +308,8 @@ namespace XCode.DataAccessLayer
         #region 属性
         /// <summary>是否SQL2005</summary>
         public Boolean IsSQL2005 { get { return (Database as SqlServer).IsSQL2005; } }
+
+        public Version Version { get { return (Database as SqlServer).Version; } }
 
         /// <summary>0级类型</summary>
         public String level0type { get { return IsSQL2005 ? "SCHEMA" : "USER"; } }
@@ -726,6 +715,37 @@ namespace XCode.DataAccessLayer
             return dt != null && dt.Rows != null && dt.Rows.Count > 0;
         }
 
+        protected override string RenameTable(string tableName, string tempTableName)
+        {
+            if (Version.Major >= 9)
+                return String.Format("EXECUTE sp_rename N'{0}', N'{1}', 'OBJECT' ", tableName, tempTableName);
+            else
+                return base.RenameTable(tableName, tempTableName);
+        }
+
+        protected override string ReBuildTable(IDataTable entitytable, IDataTable dbtable)
+        {
+            //return String.Format("SET IDENTITY_INSERT {1} ON;{0};SET IDENTITY_INSERT {1} OFF", base.ReBuildTable(entitytable, dbtable), Database.FormatName(entitytable.TableName));
+            var sql = base.ReBuildTable(entitytable, dbtable);
+            if (String.IsNullOrEmpty(sql)) return sql;
+
+            var tableName = Database.FormatName(entitytable.TableName);
+            var ss = sql.Split("; " + Environment.NewLine);
+            //var list = new List<String>(ss);
+            //list.Insert(1, String.Format("SET IDENTITY_INSERT {0} ON", tableName));
+            //list.Insert(list.Count - 1, String.Format("SET IDENTITY_INSERT {0} OFF", tableName));
+            //return String.Join("; " + Environment.NewLine, list.ToArray());
+            for (int i = 0; i < ss.Length; i++)
+            {
+                if (ss[i].StartsWithIgnoreCase("Insert Into"))
+                {
+                    ss[i] = String.Format("SET IDENTITY_INSERT {1} ON;{0};SET IDENTITY_INSERT {1} OFF", ss[i], tableName);
+                    break;
+                }
+            }
+            return String.Join("; " + Environment.NewLine, ss);
+        }
+
         public override string AddTableDescriptionSQL(IDataTable table)
         {
             return String.Format("EXEC dbo.sp_addextendedproperty @name=N'MS_Description', @value=N'{1}' , @level0type=N'{2}',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'{0}'", table.TableName, table.Description, level0type);
@@ -749,6 +769,8 @@ namespace XCode.DataAccessLayer
                 //return DropColumnSQL(oldfield) + ";" + Environment.NewLine + AddColumnSQL(field);
                 return ReBuildTable(field.Table, oldfield.Table);
             }
+            // 类型改变，必须重建表
+            if (IsColumnTypeChanged(field, oldfield)) return ReBuildTable(field.Table, oldfield.Table);
 
             var sql = String.Format("Alter Table {0} Alter Column {1}", FormatName(field.Table.TableName), FieldClause(field, false));
             var pk = DeletePrimaryKeySQL(field);

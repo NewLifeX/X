@@ -488,7 +488,7 @@ namespace XCode.DataAccessLayer
                     // 根据常用行，从不常用到常用排序，然后配对进入映射表
                     Type[] types = new Type[] { typeof(SByte), typeof(Byte), typeof(UInt16), typeof(Int16), typeof(UInt64), typeof(Int64), typeof(UInt32), typeof(Int32) };
 
-                    List<KeyValuePair<Type, Type>> list = new List<KeyValuePair<Type, Type>>();
+                    var list = new List<KeyValuePair<Type, Type>>();
                     for (int i = 0; i < types.Length; i++)
                     {
                         for (int j = i + 1; j < types.Length; j++)
@@ -535,7 +535,7 @@ namespace XCode.DataAccessLayer
             }
 
             // 如果该类型无法识别，则去尝试使用最接近的高阶类型
-            foreach (KeyValuePair<Type, Type> item in FieldTypeMaps)
+            foreach (var item in FieldTypeMaps)
             {
                 if (item.Key.FullName == typeName)
                 {
