@@ -522,7 +522,7 @@ namespace XCode.DataAccessLayer
             {
                 names[i] = table.PrimaryKeys[i].ColumnName;
             }
-            IDataIndex di = ModelHelper.GetIndex(table, names);
+            var di = ModelHelper.GetIndex(table, names);
             if (di == null)
             {
                 di = table.CreateIndex();

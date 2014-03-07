@@ -5,6 +5,7 @@ using System.Data.Common;
 using System.Data.SqlClient;
 using System.Data.SqlTypes;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Web.Hosting;
@@ -742,14 +743,15 @@ namespace XCode.DataAccessLayer
 
         public override string AlterColumnSQL(IDataColumn field, IDataColumn oldfield)
         {
-            // 创建为自增，先删后加
+            // 创建为自增，重建表
             if (field.Identity && !oldfield.Identity)
             {
-                return DropColumnSQL(oldfield) + ";" + Environment.NewLine + AddColumnSQL(field);
+                //return DropColumnSQL(oldfield) + ";" + Environment.NewLine + AddColumnSQL(field);
+                return ReBuildTable(field.Table, oldfield.Table);
             }
 
-            String sql = String.Format("Alter Table {0} Alter Column {1}", FormatName(field.Table.TableName), FieldClause(field, false));
-            String pk = DeletePrimaryKeySQL(field);
+            var sql = String.Format("Alter Table {0} Alter Column {1}", FormatName(field.Table.TableName), FieldClause(field, false));
+            var pk = DeletePrimaryKeySQL(field);
             if (field.PrimaryKey)
             {
                 // 如果没有主键删除脚本，表明没有主键
@@ -770,6 +772,44 @@ namespace XCode.DataAccessLayer
                     sql += ";" + Environment.NewLine + pk;
                 }
             }
+
+            // 需要提前删除相关默认值
+            if (oldfield.Default != null)
+            {
+                var df = DropDefaultSQL(oldfield);
+                if (!String.IsNullOrEmpty(df))
+                {
+                    sql = df + ";" + Environment.NewLine + sql;
+
+                    // 如果还有默认值，加上
+                    if (field.Default != null)
+                    {
+                        df = AddDefaultSQL(field);
+                        if (!String.IsNullOrEmpty(df)) sql += ";" + Environment.NewLine + df;
+                    }
+                }
+            }
+            // 需要提前删除相关索引
+            foreach (var di in oldfield.Table.Indexes)
+            {
+                // 如果包含该字段
+                if (di.Columns.Contains(oldfield.ColumnName, StringComparer.OrdinalIgnoreCase))
+                {
+                    var dis = DropIndexSQL(di);
+                    if (!String.IsNullOrEmpty(dis)) sql = dis + ";" + Environment.NewLine + sql;
+                }
+            }
+            // 如果还有索引，则加上
+            foreach (var di in field.Table.Indexes)
+            {
+                // 如果包含该字段
+                if (di.Columns.Contains(field.ColumnName, StringComparer.OrdinalIgnoreCase))
+                {
+                    var cis = CreateIndexSQL(di);
+                    if (!String.IsNullOrEmpty(cis)) sql += ";" + Environment.NewLine + cis;
+                }
+            }
+
             return sql;
         }
 
