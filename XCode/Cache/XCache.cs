@@ -148,7 +148,7 @@ namespace XCode.Cache
 
             if (AutoCheckCacheTimer != null) return;
 
-            AutoCheckCacheTimer = new TimerX(Check, null, CheckPeriod, CheckPeriod);
+            AutoCheckCacheTimer = new TimerX(Check, null, CheckPeriod * 1000, CheckPeriod * 1000);
             //// 声明定时器。无限延长时间，实际上不工作
             //AutoCheckCacheTimer = new Timer(new TimerCallback(Check), null, Timeout.Infinite, Timeout.Infinite);
             //// 改变定时器为5秒后触发一次。
