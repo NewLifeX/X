@@ -28,7 +28,7 @@ namespace NewLife
         /// <param name="value">待转换对象</param>
         /// <param name="defaultValue">默认值。待转换对象无效时使用</param>
         /// <returns></returns>
-        public static Int32 ToInt32(this Object value, Int32 defaultValue = 0) { return _Convert.ToInt32(value, defaultValue); }
+        public static Int32 ToInt(this Object value, Int32 defaultValue = 0) { return _Convert.ToInt(value, defaultValue); }
 
         ///// <summary>转为布尔型</summary>
         ///// <param name="value">待转换对象</param>
@@ -61,7 +61,7 @@ namespace NewLife
         /// <param name="value">待转换对象</param>
         /// <param name="defaultValue">默认值。待转换对象无效时使用</param>
         /// <returns></returns>
-        public virtual Int32 ToInt32(Object value, Int32 defaultValue)
+        public virtual Int32 ToInt(Object value, Int32 defaultValue)
         {
             if (value == null) return defaultValue;
 
