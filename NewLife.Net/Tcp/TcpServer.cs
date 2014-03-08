@@ -28,7 +28,7 @@ namespace NewLife.Net.Tcp
         /// <summary>最大不活动时间。
         /// 对于每一个会话连接，如果超过该时间仍然没有收到任何数据，则断开会话连接。
         /// 单位秒，默认30秒。时间不是太准确，建议15秒的倍数。为0表示不检查。</summary>
-        public Int32 MaxNotActive { get { return _MaxNotActive; } set { _MaxNotActive = value; } }
+        public Int32 MaxNotActive { get { return _MaxNotActive; } set { _MaxNotActive = value; UseSession = true; } }
 
         private Boolean _AutoReceiveAsync = true;
         /// <summary>自动开始会话的异步接收。
