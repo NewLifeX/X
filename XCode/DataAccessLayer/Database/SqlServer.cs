@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
@@ -728,6 +729,9 @@ namespace XCode.DataAccessLayer
             //return String.Format("SET IDENTITY_INSERT {1} ON;{0};SET IDENTITY_INSERT {1} OFF", base.ReBuildTable(entitytable, dbtable), Database.FormatName(entitytable.TableName));
             var sql = base.ReBuildTable(entitytable, dbtable);
             if (String.IsNullOrEmpty(sql)) return sql;
+
+            // 特殊处理带标识列的表，需要增加SET IDENTITY_INSERT
+            if (!entitytable.Columns.Any(e => e.Identity)) return sql;
 
             var tableName = Database.FormatName(entitytable.TableName);
             var ss = sql.Split("; " + Environment.NewLine);
