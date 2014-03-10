@@ -23,6 +23,7 @@ using XCode.Sync;
 using XCode.Transform;
 using NewLife.Collections;
 using System.Net;
+using NewLife.Net.Tcp;
 
 namespace Test
 {
@@ -449,6 +450,14 @@ namespace Test
             test12Server.ProtocolType = System.Net.Sockets.ProtocolType.IPv4;
             test12Server.Received += new EventHandler<NetEventArgs>(test12Server_Received);
             test12Server.Start();
+            foreach (var item in  test12Server.Servers)
+            {
+                if (item is TcpServer)
+                {
+                    (item as TcpServer).MaxNotActive = 5;
+                    (item as TcpServer).ShowEventLog = true;
+                }
+            }
 
             test12Ths = new Thread[1];
             for (int i = 0; i < test12Ths.Length; i++)
@@ -469,14 +478,21 @@ namespace Test
         static void test12Send()
         {
             ISocketSession session = NetService.CreateSession(new NetUri("Tcp://127.0.0.1:9000"));
+            return;
             //服务端检测不到有客户端连接
             Thread.Sleep(3000);
-            while (true)
+            //while (true)
             {
-                Thread.Sleep(100);
-                session.Send("abcdefghijklmn");
-                //此时同时触发客户端连接事件和接收数据事件。
-                break;
+                Thread.Sleep(10000);
+                try
+                {
+                    session.Send("abcdefghijklmn");
+                    //此时同时触发客户端连接事件和接收数据事件。
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
             }
         }
 
