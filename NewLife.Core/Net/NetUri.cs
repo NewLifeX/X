@@ -49,19 +49,29 @@ namespace NewLife.Net
         [XmlIgnore]
         public IPAddress Address { get { return EndPoint.Address; } set { EndPoint.Address = value; _Host = value + ""; } }
 
-        [NonSerialized]
         private String _Host;
         /// <summary>主机</summary>
-        [XmlIgnore]
         public String Host { get { return _Host; } set { _Host = value; try { EndPoint.Address = ParseAddress(value); } catch { } } }
 
+        private Int32 _Port;
         /// <summary>端口</summary>
-        [XmlIgnore]
-        public Int32 Port { get { return EndPoint.Port; } set { EndPoint.Port = value; } }
+        public Int32 Port { get { return _Port = EndPoint.Port; } set { _Port = EndPoint.Port = value; } }
 
-        private IPEndPoint _EndPoint;
+        [NonSerialized]
+        private IPEndPoint _EndPoint = new IPEndPoint(IPAddress.Any, 0);
         /// <summary>终结点</summary>
-        public IPEndPoint EndPoint { get { return _EndPoint ?? (_EndPoint = new IPEndPoint(IPAddress.Any, 0)); } set { _EndPoint = value; _Host = value == null ? null : value.Address.ToString(); } }
+        [XmlIgnore]
+        public IPEndPoint EndPoint
+        {
+            get { return _EndPoint; }
+            set
+            {
+                // 考虑到序列化问题，Host可能是域名，而Address只是地址
+                _EndPoint = value ?? new IPEndPoint(IPAddress.Any, 0);
+                _Host = _EndPoint.Address + "";
+                _Port = _EndPoint.Port;
+            }
+        }
         #endregion
 
         #region 构造
