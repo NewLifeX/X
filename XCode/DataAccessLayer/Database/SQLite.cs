@@ -5,6 +5,7 @@ using System.Data.Common;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using NewLife;
 using NewLife.Reflection;
 
 namespace XCode.DataAccessLayer
@@ -34,13 +35,21 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>工厂</summary>
-        public override DbProviderFactory Factory
-        {
-            get { return dbProviderFactory; }
-        }
+        public override DbProviderFactory Factory { get { return dbProviderFactory; } }
 
         /// <summary>是否内存数据库</summary>
         public Boolean IsMemoryDatabase { get { return FileName.EqualIgnoreCase(MemoryDatabase); } }
+
+        private Boolean _AutoVacuum;
+        /// <summary>自动收缩数据库</summary>
+        /// <remarks>
+        /// 当一个事务从数据库中删除了数据并提交后，数据库文件的大小保持不变。
+        /// 即使整页的数据都被删除，该页也会变成“空闲页”等待再次被使用，而不会实际地被从数据库文件中删除。
+        /// 执行vacuum操作，可以通过重建数据库文件来清除数据库内所有的未用空间，使数据库文件变小。
+        /// 但是，如果一个数据库在创建时被指定为auto_vacuum数据库，当删除事务提交时，数据库文件会自动缩小。
+        /// 使用auto_vacuum数据库可以节省空间，但却会增加数据库操作的时间。
+        /// </remarks>
+        public Boolean AutoVacuum { get { return _AutoVacuum; } set { _AutoVacuum = value; } }
 
         static readonly String MemoryDatabase = ":memory:";
 
@@ -71,6 +80,13 @@ namespace XCode.DataAccessLayer
             // 绝大多数情况下，都是小型应用，发生数据损坏的几率微乎其微，而多出来的问题让人觉得很烦，所以还是采用内存设置
             // 将来可以增加自动恢复数据的功能
             if (!builder.ContainsKey("Journal Mode")) builder["Journal Mode"] = "Memory";
+
+            // 自动清理数据
+            if (builder.ContainsKey("autoVacuum"))
+            {
+                AutoVacuum = builder["autoVacuum"].ToBoolean();
+                builder.Remove("autoVacuum");
+            }
         }
         #endregion
 
@@ -191,6 +207,11 @@ namespace XCode.DataAccessLayer
             if ((Database as SQLite).IsMemoryDatabase) return;
 
             base.CreateDatabase();
+
+            // 打开自动清理数据库模式，此条命令必须放在创建表之前使用
+            // 当从SQLite中删除数据时，数据文件大小不会减小，当重新插入数据时，
+            // 将使用那块“空白”空间，打开自动清理后，删除数据后，会自动清理“空白”空间
+            if ((Database as SQLite).AutoVacuum) Execute("PRAGMA auto_vacuum = 1");
         }
         #endregion
 
@@ -550,6 +571,8 @@ namespace XCode.DataAccessLayer
 
             base.CheckTable(entitytable, dbtable, setting);
         }
+
+        public override string CompactDatabaseSQL() { return "VACUUM"; }
         #endregion
     }
 }

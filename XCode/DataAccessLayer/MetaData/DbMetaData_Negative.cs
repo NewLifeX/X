@@ -113,7 +113,7 @@ namespace XCode.DataAccessLayer
                 }
                 else
                 {
-                    String sql = GetSchemaSQL(DDLSchema.CreateDatabase, null, null);
+                    var sql = GetSchemaSQL(DDLSchema.CreateDatabase, null, null);
                     if (String.IsNullOrEmpty(sql))
                         WriteLog("请为连接{0}创建数据库！", ConnName);
                     else
@@ -767,6 +767,8 @@ namespace XCode.DataAccessLayer
                     return CreateIndexSQL((IDataIndex)values[0]);
                 case DDLSchema.DropIndex:
                     return DropIndexSQL((IDataIndex)values[0]);
+                case DDLSchema.CompactDatabase:
+                    return CompactDatabaseSQL();
                 default:
                     break;
             }
@@ -1007,10 +1009,14 @@ namespace XCode.DataAccessLayer
         {
             return String.Format("Drop Index {0} On {1}", FormatName(index.Name), FormatName(index.Table.TableName));
         }
+
+        public virtual String CompactDatabaseSQL() { return null; }
         #endregion
 
         #region 操作
         protected virtual void Backup(String dbname, String file) { throw new NotImplementedException(); }
+
+        public virtual String CompactDatabase() { throw new NotImplementedException(); }
         #endregion
     }
 }

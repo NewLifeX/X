@@ -10,6 +10,8 @@ v2.0 数据架构功能，实体和数据结构双向映射
 v1.2 使用泛型基类
 v1.0 创建XCode
 
+v8.10.2014.0310  SQLite连接字符串支持auto_vacuum，指定是否自动收缩数据库
+
 v8.10.2014.0228  修正DAL中在关闭一级缓存的情况下仍然使用一级缓存的问题
 
 v8.10.2014.0221  修正CreateSession中的_sessions[tid] = session报null异常的问题，修改DbBase.ConnectionString引发ReleaseSession从而导致_sessions = null

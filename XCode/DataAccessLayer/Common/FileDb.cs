@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data.Common;
 using System.Data.OleDb;
 using System.IO;
 
@@ -14,7 +13,7 @@ namespace XCode.DataAccessLayer
         {
             get
             {
-                DbConnectionStringBuilder builder = Factory.CreateConnectionStringBuilder();
+                var builder = Factory.CreateConnectionStringBuilder();
                 if (builder != null)
                 {
                     builder[_.DataSource] = Path.GetTempFileName();
@@ -42,11 +41,7 @@ namespace XCode.DataAccessLayer
 
         private String _FileName;
         /// <summary>文件</summary>
-        public String FileName
-        {
-            get { return _FileName; }
-            set { _FileName = value; }
-        }
+        public String FileName { get { return _FileName; } set { _FileName = value; } }
         #endregion
     }
 
@@ -97,10 +92,7 @@ namespace XCode.DataAccessLayer
     {
         #region 属性
         /// <summary>文件</summary>
-        public String FileName
-        {
-            get { return (Database as FileDbBase).FileName; }
-        }
+        public String FileName { get { return (Database as FileDbBase).FileName; } }
         #endregion
 
         #region 数据定义
@@ -133,7 +125,7 @@ namespace XCode.DataAccessLayer
             if (String.IsNullOrEmpty(FileName)) return;
 
             // 提前创建目录
-            String dir = Path.GetDirectoryName(FileName);
+            var dir = Path.GetDirectoryName(FileName);
             if (!String.IsNullOrEmpty(dir) && !Directory.Exists(dir)) Directory.CreateDirectory(dir);
 
             if (!File.Exists(FileName))
@@ -147,7 +139,7 @@ namespace XCode.DataAccessLayer
         protected virtual void DropDatabase()
         {
             //首先关闭数据库
-            DbBase db = Database as DbBase;
+            var db = Database as DbBase;
             if (db != null)
                 db.ReleaseSession();
             else
