@@ -35,7 +35,7 @@ namespace NewLife
         ///// <returns></returns>
         //public static Boolean ToBoolean(this Object value) { return _Convert.ToBoolean(value, false); }
 
-        /// <summary>转为布尔型</summary>
+        /// <summary>转为布尔型。支持大小写True/False、0和非零</summary>
         /// <param name="value">待转换对象</param>
         /// <param name="defaultValue">默认值。待转换对象无效时使用</param>
         /// <returns></returns>
@@ -90,7 +90,7 @@ namespace NewLife
         //static readonly String[] trueStr = new String[] { "True", "Y", "Yes", "On" };
         //static readonly String[] falseStr = new String[] { "False", "N", "N", "Off" };
 
-        /// <summary>转为布尔型</summary>
+        /// <summary>转为布尔型。支持大小写True/False、0和非零</summary>
         /// <param name="value">待转换对象</param>
         /// <param name="defaultValue">默认值。待转换对象无效时使用</param>
         /// <returns></returns>
