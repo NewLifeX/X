@@ -51,25 +51,38 @@ namespace NewLife.Net
 
         private String _Host;
         /// <summary>主机</summary>
-        public String Host { get { return _Host; } set { _Host = value; try { EndPoint.Address = ParseAddress(value); } catch { } } }
+        public String Host { get { return _Host; } set { _Host = value; _EndPoint = null; /*只清空，避免这里耗时 try { EndPoint.Address = ParseAddress(value); } catch { }*/ } }
 
         private Int32 _Port;
         /// <summary>端口</summary>
         public Int32 Port { get { return _Port = EndPoint.Port; } set { _Port = EndPoint.Port = value; } }
 
         [NonSerialized]
-        private IPEndPoint _EndPoint = new IPEndPoint(IPAddress.Any, 0);
+        private IPEndPoint _EndPoint;
         /// <summary>终结点</summary>
         [XmlIgnore]
         public IPEndPoint EndPoint
         {
-            get { return _EndPoint; }
+            get
+            {
+                // Host每次改变都会清空
+                if (_EndPoint == null) _EndPoint = new IPEndPoint(ParseAddress(_Host), _Port);
+                return _EndPoint;
+            }
             set
             {
                 // 考虑到序列化问题，Host可能是域名，而Address只是地址
-                _EndPoint = value ?? new IPEndPoint(IPAddress.Any, 0);
-                _Host = _EndPoint.Address + "";
-                _Port = _EndPoint.Port;
+                _EndPoint = value;
+                if (value != null)
+                {
+                    _Host = _EndPoint.Address + "";
+                    _Port = _EndPoint.Port;
+                }
+                else
+                {
+                    _Host = null;
+                    _Port = 0;
+                }
             }
         }
         #endregion

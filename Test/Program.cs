@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
-using System.IO.Ports;
 using System.Linq;
+using System.Net;
 using System.Reflection;
 using System.Threading;
+using NewLife.Collections;
 using NewLife.Common;
 using NewLife.CommonEntity;
 using NewLife.Log;
@@ -14,16 +15,13 @@ using NewLife.Net;
 using NewLife.Net.Common;
 using NewLife.Net.Proxy;
 using NewLife.Net.Sockets;
+using NewLife.Net.Tcp;
 using NewLife.Reflection;
 using NewLife.Serialization;
 using NewLife.Threading;
 using NewLife.Xml;
 using XCode.DataAccessLayer;
 using XCode.Sync;
-using XCode.Transform;
-using NewLife.Collections;
-using System.Net;
-using NewLife.Net.Tcp;
 
 namespace Test
 {
@@ -40,7 +38,7 @@ namespace Test
                 try
                 {
 #endif
-                Test12();
+                    Test3();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -184,22 +182,20 @@ namespace Test
 
         static void Test3()
         {
-            TimerX.Debug = true;
-            var dic = new DictionaryCache<Int32, Int32> { Expriod = 2 };
-            //Thread.Sleep(3000);
-            //var id = dic.GetItem(2, null);
-            //Console.WriteLine("ID={0}", id);
-            //Thread.Sleep(3000);
-            lock (dic)
-            {
-                Console.WriteLine("111");
-                lock (dic)
-                {
-                    Console.WriteLine("www");
-                }
-                Console.WriteLine("333");
-            }
-            Console.WriteLine("444");
+            var uri = new NetUri("udp://x2:3389");
+
+            Console.WriteLine(uri);
+            Console.WriteLine(uri.ProtocolType);
+            Console.WriteLine(uri.EndPoint);
+            Console.WriteLine(uri.Address);
+            Console.WriteLine(uri.Host);
+            Console.WriteLine(uri.Port);
+
+            var xml = uri.ToXml();
+            Console.WriteLine(xml);
+
+            uri = xml.ToXmlEntity<NetUri>();
+            Console.WriteLine(uri);
         }
 
         static NetServer server = null;
@@ -450,7 +446,7 @@ namespace Test
             test12Server.ProtocolType = System.Net.Sockets.ProtocolType.IPv4;
             test12Server.Received += new EventHandler<NetEventArgs>(test12Server_Received);
             test12Server.Start();
-            foreach (var item in  test12Server.Servers)
+            foreach (var item in test12Server.Servers)
             {
                 if (item is TcpServer)
                 {
