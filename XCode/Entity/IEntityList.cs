@@ -44,6 +44,12 @@ namespace XCode
         /// <param name="value">数值</param>
         /// <returns></returns>
         Boolean Exists(String name, Object value);
+
+        /// <summary>分页</summary>
+        /// <param name="startRowIndex">起始索引，0开始</param>
+        /// <param name="maximumRows">最大个数</param>
+        /// <returns></returns>
+        IEntityList Page(Int32 startRowIndex, Int32 maximumRows);
         #endregion
 
         #region 对象操作

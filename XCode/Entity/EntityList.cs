@@ -126,8 +126,8 @@ namespace XCode
         }
 
         /// <summary>分页</summary>
-        /// <param name="startRowIndex"></param>
-        /// <param name="maximumRows"></param>
+        /// <param name="startRowIndex">起始索引，0开始</param>
+        /// <param name="maximumRows">最大个数</param>
         /// <returns></returns>
         public EntityList<T> Page(Int32 startRowIndex, Int32 maximumRows)
         {
@@ -378,6 +378,12 @@ namespace XCode
         IEntityList IEntityList.SetItem(String name, Object value) { return SetItem(name, value); }
 
         IEntityList IEntityList.FromXml(String xml) { return FromXml(xml); }
+        
+        /// <summary>分页</summary>
+        /// <param name="startRowIndex">起始索引，0开始</param>
+        /// <param name="maximumRows">最大个数</param>
+        /// <returns></returns>
+        IEntityList IEntityList.Page(Int32 startRowIndex, Int32 maximumRows) { return Page(startRowIndex, maximumRows); }
         #endregion
 
         #region 对象操作
