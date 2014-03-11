@@ -242,9 +242,8 @@ namespace XCoder
                 var dir = Path.GetDirectoryName(fileName);
                 if (!String.IsNullOrEmpty(dir) && !Directory.Exists(dir)) Directory.CreateDirectory(dir);
                 //File.WriteAllText(fileName, content, Encoding.UTF8);
-                //将文件保存为utf-8无bom格式
-                UTF8Encoding utf8 = new UTF8Encoding(false);
-                File.WriteAllText(fileName, content, utf8);
+                // 将文件保存为utf-8无bom格式
+                File.WriteAllText(fileName, content, new UTF8Encoding(false));
 
                 rs.Add(content);
             }
