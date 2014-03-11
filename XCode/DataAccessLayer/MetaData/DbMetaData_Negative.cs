@@ -402,29 +402,15 @@ namespace XCode.DataAccessLayer
 
         protected virtual Boolean IsColumnTypeChanged(IDataColumn entityColumn, IDataColumn dbColumn)
         {
-            //if (entityColumn.DataType == dbColumn.DataType) return false;
+            if (entityColumn.DataType == dbColumn.DataType) return false;
 
-            //// 类型不匹配，不一定就是有改变，还要查找类型对照表是否有匹配的，只要存在任意一个匹配，就说明是合法的
-            //foreach (var item in FieldTypeMaps)
-            //{
-            //    if (dbColumn.DataType == item.Key && entityColumn.DataType == item.Value) return false;
-            //}
-
-            //return true;
-
-            // 先使用旧代码，上面新的代码实体类中存在SByte类型的字段，导致系统启动都会重建表
-            // 比较类型
-            if (entityColumn.DataType != dbColumn.DataType)
+            // 类型不匹配，不一定就是有改变，还要查找类型对照表是否有匹配的，只要存在任意一个匹配，就说明是合法的
+            foreach (var item in FieldTypeMaps)
             {
-                // 类型不匹配，不一定就是有改变，还要查找类型对照表是否有匹配的，只要存在任意一个匹配，就说明是合法的
-                Boolean b = false;
-                foreach (KeyValuePair<Type, Type> item in FieldTypeMaps)
-                {
-                    if (entityColumn.DataType == item.Key && dbColumn.DataType == item.Value) { b = true; break; }
-                }
-                if (!b) return true;
+                if (entityColumn.DataType == item.Key && dbColumn.DataType == item.Value) return false;
             }
-            return false;
+
+            return true;
         }
 
         /// <summary>检查字段默认值是否有改变</summary>
