@@ -333,7 +333,14 @@ namespace XCode.DataAccessLayer
                     if (CacheZip)
                     {
                         DAL.WriteLog("准备缓存{0}到{1}！", zipfile, xfile);
-                        File.Copy(zipfile, xfile, true);
+                        try
+                        {
+                            File.Copy(zipfile, xfile, true);
+                        }
+                        catch (Exception ex)
+                        {
+                            DAL.WriteLog("缓存失败！{0}", ex);
+                        }
                     }
                 }
                 sw.Stop();
