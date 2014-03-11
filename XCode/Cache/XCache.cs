@@ -158,6 +158,8 @@ namespace XCode.Cache
 
         #region 添加缓存
         /// <summary>添加数据表缓存。</summary>
+        /// <param name="cache">缓存对象</param>
+        /// <param name="prefix">前缀</param>
         /// <param name="sql">SQL语句</param>
         /// <param name="value">待缓存记录集</param>
         /// <param name="tableNames">表名数组</param>
@@ -291,6 +293,7 @@ namespace XCode.Cache
 
         #region 查找缓存
         /// <summary>获取DataSet缓存</summary>
+        /// <param name="cache">缓存对象</param>
         /// <param name="sql">SQL语句</param>
         /// <param name="value">结果</param>
         /// <returns></returns>
