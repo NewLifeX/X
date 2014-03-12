@@ -114,12 +114,11 @@ namespace Test
         private static void TestNatProxy()
         {
             NATProxy proxy = new NATProxy();
-            proxy.ServerAddress = System.Net.IPAddress.Parse("192.168.2.184");
+            proxy.ServerAddress = System.Net.IPAddress.Parse("192.168.2.20");
+            proxy.ServerPort = 1433;
             proxy.Port = 8000;
-            proxy.ServerPort = 6800;
             proxy.ServerProtocolType = System.Net.Sockets.ProtocolType.Tcp;
             proxy.Start();
-
         }
 
         static void ShowStatus()
@@ -443,27 +442,33 @@ namespace Test
             test12Server = new NetServer();
             test12Server.Address = IPAddress.Parse("127.0.0.1");
             test12Server.Port = 9000;
-            test12Server.ProtocolType = System.Net.Sockets.ProtocolType.IPv4;
+            test12Server.ProtocolType = System.Net.Sockets.ProtocolType.Tcp;
+            test12Server.Accepted += new EventHandler<NetEventArgs>(test12Server_Accepted);
             test12Server.Received += new EventHandler<NetEventArgs>(test12Server_Received);
             test12Server.Start();
             foreach (var item in test12Server.Servers)
             {
                 if (item is TcpServer)
                 {
-                    (item as TcpServer).MaxNotActive = 5;
+                    //(item as TcpServer).MaxNotActive = 5;
                     (item as TcpServer).ShowEventLog = true;
                 }
             }
 
-            test12Ths = new Thread[1];
-            for (int i = 0; i < test12Ths.Length; i++)
-            {
-                test12Ths[i] = new Thread(test12Send);
-                test12Ths[i].Name = "thread " + i.ToString();
-                test12Ths[i].IsBackground = true;
-                test12Ths[i].Start();
-            }
+            //test12Ths = new Thread[1];
+            //for (int i = 0; i < test12Ths.Length; i++)
+            //{
+            //    test12Ths[i] = new Thread(test12Send);
+            //    test12Ths[i].Name = "thread " + i.ToString();
+            //    test12Ths[i].IsBackground = true;
+            //    test12Ths[i].Start();
+            //}
 
+        }
+
+        static void test12Server_Accepted(object sender, NetEventArgs e)
+        {
+            Console.WriteLine("accept client");
         }
 
         static void test12Server_Received(object sender, NetEventArgs e)
