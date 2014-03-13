@@ -75,7 +75,7 @@ namespace XCode
         //    return list.ToArray();
         //}
 
-        /// <summary>填充索引</summary>
+        /// <summary>填充关系</summary>
         /// <param name="relation"></param>
         internal void Fill(IDataRelation relation)
         {
