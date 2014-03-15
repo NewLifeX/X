@@ -25,6 +25,7 @@ namespace XTemplate.Templating
             return BitConverter.ToString(md5.ComputeHash(Encoding.UTF8.GetBytes(str))).Replace("-", null);
         }
 
+        static String _Filter = @"\/.- $";
         /// <summary>把名称处理为标准类名</summary>
         /// <param name="fileName"></param>
         /// <returns></returns>
@@ -32,7 +33,11 @@ namespace XTemplate.Templating
         {
             String name = fileName;
             //if (name.Contains(".")) name = name.Substring(0, name.LastIndexOf("."));
-            name = name.Replace(@"\", "_").Replace(@"/", "_").Replace(".", "_");
+            //name = name.Replace(@"\", "_").Replace(@"/", "_").Replace(".", "_").Replace("-", "_");
+            foreach (var item in _Filter)
+            {
+                name = name.Replace(item, '_');
+            }
             name = name.Replace(Path.VolumeSeparatorChar, '_');
             name = name.Replace(Path.PathSeparator, '_');
             return name;
