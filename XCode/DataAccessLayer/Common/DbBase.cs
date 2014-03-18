@@ -330,7 +330,7 @@ namespace XCode.DataAccessLayer
                         finally { client.Dispose(); }
                     }
 
-                    if (CacheZip)
+                    if (CacheZip && !zipfile.EqualIgnoreCase(xfile))
                     {
                         DAL.WriteLog("准备缓存{0}到{1}！", zipfile, xfile);
                         try
