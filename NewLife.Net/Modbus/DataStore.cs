@@ -79,7 +79,7 @@ namespace NewLife.Net.Modbus
         /// <param name="n"></param>
         public BitStore(Int32 n)
         {
-            if (n <= 0) n = 16;
+            if (n <= 0) n = 64;
             Coils = new Boolean[n];
         }
 
@@ -123,7 +123,7 @@ namespace NewLife.Net.Modbus
         /// <param name="n"></param>
         public WordStore(Int32 n)
         {
-            if (n <= 0) n = 16;
+            if (n <= 0) n = 64;
             Regs = new UInt16[n];
         }
 
