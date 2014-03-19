@@ -285,7 +285,7 @@ namespace NewLife.Compression
                     {
                         // 记录数据流位置，待会用来计算已压缩大小
                         Int64 p = writer.Stream.Position;
-                        source.CompressLzma(writer.Stream, 12);
+                        source.CompressLzma(writer.Stream, 10);
                         CompressedSize = (UInt32)(writer.Stream.Position - p);
                         //#if DEBUG
                         //                        if (ts != null) ts.UseConsole = true;

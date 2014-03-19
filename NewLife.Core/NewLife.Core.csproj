@@ -98,6 +98,9 @@
     <Compile Include="Compression\RangeCoder\RangeCoder.cs" />
     <Compile Include="Compression\RangeCoder\RangeCoderBit.cs" />
     <Compile Include="Compression\RangeCoder\RangeCoderBitTree.cs" />
+    <Compile Include="Compression\SevenZip.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Compression\ZipException.cs" />
     <Compile Include="Compression\ZipConstants.cs" />
     <Compile Include="Compression\ZipEntry.cs" />

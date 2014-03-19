@@ -257,8 +257,8 @@ namespace Test
         {
             using (var zf = new ZipFile())
             {
-                zf.AddFile("Test.exe");
-                zf.AddFile("NewLife.Core.dll");
+                zf.AddFile("XCode.pdb");
+                zf.AddFile("NewLife.Core.pdb");
 
                 zf.Write("test.zip");
                 zf.Write("test.7z");
