@@ -1,8 +1,8 @@
 using System;
 using System.IO;
-using SevenZip.Compression.RangeCoder;
+using NewLife.Compression.RangeCoder;
 
-namespace SevenZip.Compression.LZMA
+namespace NewLife.Compression.LZMA
 {
     /// <summary>LZMA±àÂë</summary>
     public class Encoder : ICoder, ISetCoderProperties, IWriteCoderProperties

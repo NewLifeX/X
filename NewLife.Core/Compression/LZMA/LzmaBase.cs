@@ -1,6 +1,6 @@
 // LzmaBase.cs
 
-namespace SevenZip.Compression.LZMA
+namespace NewLife.Compression.LZMA
 {
     static class Base
     {

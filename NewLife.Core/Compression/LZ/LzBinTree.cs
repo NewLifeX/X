@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using NewLife.Security;
 
-namespace SevenZip.Compression.LZ
+namespace NewLife.Compression.LZ
 {
     class BinTree : InWindow, IMatchFinder
     {

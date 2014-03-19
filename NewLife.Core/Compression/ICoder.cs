@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 
-namespace SevenZip
+namespace NewLife.Compression
 {
     /// <summary>解码输入流引发异常</summary>
     class DataErrorException : ApplicationException
@@ -33,7 +33,7 @@ namespace SevenZip
         /// <param name="inSize">输入大小，-1表示未知</param>
         /// <param name="outSize">输出大小，-1表示未知</param>
         /// <param name="progress">进度引用委托</param>
-        /// <exception cref="SevenZip.DataErrorException">输入流无效</exception>
+        /// <exception cref="NewLife.Compression.DataErrorException">输入流无效</exception>
         void Code(Stream inStream, Stream outStream, Int64 inSize, Int64 outSize, ICodeProgress progress);
     };
 

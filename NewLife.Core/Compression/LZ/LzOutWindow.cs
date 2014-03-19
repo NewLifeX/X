@@ -1,6 +1,6 @@
 using System.IO;
 
-namespace SevenZip.Compression.LZ
+namespace NewLife.Compression.LZ
 {
     class OutWindow
     {

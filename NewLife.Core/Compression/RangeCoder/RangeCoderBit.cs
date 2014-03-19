@@ -1,6 +1,6 @@
 using System;
 
-namespace SevenZip.Compression.RangeCoder
+namespace NewLife.Compression.RangeCoder
 {
     struct BitEncoder
     {
