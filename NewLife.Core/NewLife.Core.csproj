@@ -90,6 +90,7 @@
     <Compile Include="Compression\LZMA\LzmaBase.cs" />
     <Compile Include="Compression\LZMA\LzmaDecoder.cs" />
     <Compile Include="Compression\LZMA\LzmaEncoder.cs" />
+    <Compile Include="Compression\LZMA\LzmaStream.cs" />
     <Compile Include="Compression\LZ\IMatchFinder.cs" />
     <Compile Include="Compression\LZ\LzBinTree.cs" />
     <Compile Include="Compression\LZ\LzInWindow.cs" />

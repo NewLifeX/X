@@ -8,6 +8,9 @@ namespace NewLife.Compression
         /// <summary>A direct copy of the file contents is held in the archive</summary>
         Stored = 0,
 
+        /// <summary>7Zip∏Ò Ω</summary>
+        ServenZip = 1,
+
         /// <summary>
         /// Common Zip compression method using a sliding dictionary
         /// of up to 32KB and secondary compression from Huffman/Shannon-Fano trees
