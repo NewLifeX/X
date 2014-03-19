@@ -2,7 +2,7 @@
 
 namespace NewLife.Compression.LZMA
 {
-    static class Base
+    static class LzmaBase
     {
         public const uint kNumRepDistances = 4;
         public const uint kNumStates = 12;

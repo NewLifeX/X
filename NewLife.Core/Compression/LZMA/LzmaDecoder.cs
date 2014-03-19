@@ -5,23 +5,23 @@ using NewLife.Compression.RangeCoder;
 namespace NewLife.Compression.LZMA
 {
     /// <summary>LZMA解码</summary>
-    public class Decoder : ICoder, ISetDecoderProperties // ,Stream
+    public class LzmaDecoder : ICoder, ISetDecoderProperties // ,Stream
     {
         class LenDecoder
         {
             BitDecoder m_Choice = new BitDecoder();
             BitDecoder m_Choice2 = new BitDecoder();
-            BitTreeDecoder[] m_LowCoder = new BitTreeDecoder[Base.kNumPosStatesMax];
-            BitTreeDecoder[] m_MidCoder = new BitTreeDecoder[Base.kNumPosStatesMax];
-            BitTreeDecoder m_HighCoder = new BitTreeDecoder(Base.kNumHighLenBits);
+            BitTreeDecoder[] m_LowCoder = new BitTreeDecoder[LzmaBase.kNumPosStatesMax];
+            BitTreeDecoder[] m_MidCoder = new BitTreeDecoder[LzmaBase.kNumPosStatesMax];
+            BitTreeDecoder m_HighCoder = new BitTreeDecoder(LzmaBase.kNumHighLenBits);
             uint m_NumPosStates = 0;
 
             public void Create(uint numPosStates)
             {
                 for (uint posState = m_NumPosStates; posState < numPosStates; posState++)
                 {
-                    m_LowCoder[posState] = new BitTreeDecoder(Base.kNumLowLenBits);
-                    m_MidCoder[posState] = new BitTreeDecoder(Base.kNumMidLenBits);
+                    m_LowCoder[posState] = new BitTreeDecoder(LzmaBase.kNumLowLenBits);
+                    m_MidCoder[posState] = new BitTreeDecoder(LzmaBase.kNumMidLenBits);
                 }
                 m_NumPosStates = numPosStates;
             }
@@ -44,12 +44,12 @@ namespace NewLife.Compression.LZMA
                     return m_LowCoder[posState].Decode(rangeDecoder);
                 else
                 {
-                    uint symbol = Base.kNumLowLenSymbols;
+                    uint symbol = LzmaBase.kNumLowLenSymbols;
                     if (m_Choice2.Decode(rangeDecoder) == 0)
                         symbol += m_MidCoder[posState].Decode(rangeDecoder);
                     else
                     {
-                        symbol += Base.kNumMidLenSymbols;
+                        symbol += LzmaBase.kNumMidLenSymbols;
                         symbol += m_HighCoder.Decode(rangeDecoder);
                     }
                     return symbol;
@@ -134,17 +134,17 @@ namespace NewLife.Compression.LZMA
         LZ.OutWindow m_OutWindow = new LZ.OutWindow();
         RangeCoder.Decoder m_RangeDecoder = new RangeCoder.Decoder();
 
-        BitDecoder[] m_IsMatchDecoders = new BitDecoder[Base.kNumStates << Base.kNumPosStatesBitsMax];
-        BitDecoder[] m_IsRepDecoders = new BitDecoder[Base.kNumStates];
-        BitDecoder[] m_IsRepG0Decoders = new BitDecoder[Base.kNumStates];
-        BitDecoder[] m_IsRepG1Decoders = new BitDecoder[Base.kNumStates];
-        BitDecoder[] m_IsRepG2Decoders = new BitDecoder[Base.kNumStates];
-        BitDecoder[] m_IsRep0LongDecoders = new BitDecoder[Base.kNumStates << Base.kNumPosStatesBitsMax];
+        BitDecoder[] m_IsMatchDecoders = new BitDecoder[LzmaBase.kNumStates << LzmaBase.kNumPosStatesBitsMax];
+        BitDecoder[] m_IsRepDecoders = new BitDecoder[LzmaBase.kNumStates];
+        BitDecoder[] m_IsRepG0Decoders = new BitDecoder[LzmaBase.kNumStates];
+        BitDecoder[] m_IsRepG1Decoders = new BitDecoder[LzmaBase.kNumStates];
+        BitDecoder[] m_IsRepG2Decoders = new BitDecoder[LzmaBase.kNumStates];
+        BitDecoder[] m_IsRep0LongDecoders = new BitDecoder[LzmaBase.kNumStates << LzmaBase.kNumPosStatesBitsMax];
 
-        BitTreeDecoder[] m_PosSlotDecoder = new BitTreeDecoder[Base.kNumLenToPosStates];
-        BitDecoder[] m_PosDecoders = new BitDecoder[Base.kNumFullDistances - Base.kEndPosModelIndex];
+        BitTreeDecoder[] m_PosSlotDecoder = new BitTreeDecoder[LzmaBase.kNumLenToPosStates];
+        BitDecoder[] m_PosDecoders = new BitDecoder[LzmaBase.kNumFullDistances - LzmaBase.kEndPosModelIndex];
 
-        BitTreeDecoder m_PosAlignDecoder = new BitTreeDecoder(Base.kNumAlignBits);
+        BitTreeDecoder m_PosAlignDecoder = new BitTreeDecoder(LzmaBase.kNumAlignBits);
 
         LenDecoder m_LenDecoder = new LenDecoder();
         LenDecoder m_RepLenDecoder = new LenDecoder();
@@ -157,11 +157,11 @@ namespace NewLife.Compression.LZMA
         uint m_PosStateMask;
 
         /// <summary>实例化解码器</summary>
-        public Decoder()
+        public LzmaDecoder()
         {
             m_DictionarySize = 0xFFFFFFFF;
-            for (int i = 0; i < Base.kNumLenToPosStates; i++)
-                m_PosSlotDecoder[i] = new BitTreeDecoder(Base.kNumPosSlotBits);
+            for (int i = 0; i < LzmaBase.kNumLenToPosStates; i++)
+                m_PosSlotDecoder[i] = new BitTreeDecoder(LzmaBase.kNumPosSlotBits);
         }
 
         void SetDictionarySize(uint dictionarySize)
@@ -186,7 +186,7 @@ namespace NewLife.Compression.LZMA
 
         void SetPosBitsProperties(int pb)
         {
-            if (pb > Base.kNumPosStatesBitsMax)
+            if (pb > LzmaBase.kNumPosStatesBitsMax)
                 throw new InvalidParamException();
             uint numPosStates = (uint)1 << pb;
             m_LenDecoder.Create(numPosStates);
@@ -201,11 +201,11 @@ namespace NewLife.Compression.LZMA
             m_OutWindow.Init(outStream, _solid);
 
             uint i;
-            for (i = 0; i < Base.kNumStates; i++)
+            for (i = 0; i < LzmaBase.kNumStates; i++)
             {
                 for (uint j = 0; j <= m_PosStateMask; j++)
                 {
-                    uint index = (i << Base.kNumPosStatesBitsMax) + j;
+                    uint index = (i << LzmaBase.kNumPosStatesBitsMax) + j;
                     m_IsMatchDecoders[index].Init();
                     m_IsRep0LongDecoders[index].Init();
                 }
@@ -216,10 +216,10 @@ namespace NewLife.Compression.LZMA
             }
 
             m_LiteralDecoder.Init();
-            for (i = 0; i < Base.kNumLenToPosStates; i++)
+            for (i = 0; i < LzmaBase.kNumLenToPosStates; i++)
                 m_PosSlotDecoder[i].Init();
             // m_PosSpecDecoder.Init();
-            for (i = 0; i < Base.kNumFullDistances - Base.kEndPosModelIndex; i++)
+            for (i = 0; i < LzmaBase.kNumFullDistances - LzmaBase.kEndPosModelIndex; i++)
                 m_PosDecoders[i].Init();
 
             m_LenDecoder.Init();
@@ -237,7 +237,7 @@ namespace NewLife.Compression.LZMA
         {
             Init(inStream, outStream);
 
-            Base.State state = new Base.State();
+            LzmaBase.State state = new LzmaBase.State();
             state.Init();
             uint rep0 = 0, rep1 = 0, rep2 = 0, rep3 = 0;
 
@@ -245,7 +245,7 @@ namespace NewLife.Compression.LZMA
             UInt64 outSize64 = (UInt64)outSize;
             if (nowPos64 < outSize64)
             {
-                if (m_IsMatchDecoders[state.Index << Base.kNumPosStatesBitsMax].Decode(m_RangeDecoder) != 0)
+                if (m_IsMatchDecoders[state.Index << LzmaBase.kNumPosStatesBitsMax].Decode(m_RangeDecoder) != 0)
                     throw new DataErrorException();
                 state.UpdateChar();
                 byte b = m_LiteralDecoder.DecodeNormal(m_RangeDecoder, 0, 0);
@@ -258,7 +258,7 @@ namespace NewLife.Compression.LZMA
                 // while(nowPos64 < next)
                 {
                     uint posState = (uint)nowPos64 & m_PosStateMask;
-                    if (m_IsMatchDecoders[(state.Index << Base.kNumPosStatesBitsMax) + posState].Decode(m_RangeDecoder) == 0)
+                    if (m_IsMatchDecoders[(state.Index << LzmaBase.kNumPosStatesBitsMax) + posState].Decode(m_RangeDecoder) == 0)
                     {
                         byte b;
                         byte prevByte = m_OutWindow.GetByte(0);
@@ -278,7 +278,7 @@ namespace NewLife.Compression.LZMA
                         {
                             if (m_IsRepG0Decoders[state.Index].Decode(m_RangeDecoder) == 0)
                             {
-                                if (m_IsRep0LongDecoders[(state.Index << Base.kNumPosStatesBitsMax) + posState].Decode(m_RangeDecoder) == 0)
+                                if (m_IsRep0LongDecoders[(state.Index << LzmaBase.kNumPosStatesBitsMax) + posState].Decode(m_RangeDecoder) == 0)
                                 {
                                     state.UpdateShortRep();
                                     m_OutWindow.PutByte(m_OutWindow.GetByte(rep0));
@@ -307,7 +307,7 @@ namespace NewLife.Compression.LZMA
                                 rep1 = rep0;
                                 rep0 = distance;
                             }
-                            len = m_RepLenDecoder.Decode(m_RangeDecoder, posState) + Base.kMatchMinLen;
+                            len = m_RepLenDecoder.Decode(m_RangeDecoder, posState) + LzmaBase.kMatchMinLen;
                             state.UpdateRep();
                         }
                         else
@@ -315,20 +315,20 @@ namespace NewLife.Compression.LZMA
                             rep3 = rep2;
                             rep2 = rep1;
                             rep1 = rep0;
-                            len = Base.kMatchMinLen + m_LenDecoder.Decode(m_RangeDecoder, posState);
+                            len = LzmaBase.kMatchMinLen + m_LenDecoder.Decode(m_RangeDecoder, posState);
                             state.UpdateMatch();
-                            uint posSlot = m_PosSlotDecoder[Base.GetLenToPosState(len)].Decode(m_RangeDecoder);
-                            if (posSlot >= Base.kStartPosModelIndex)
+                            uint posSlot = m_PosSlotDecoder[LzmaBase.GetLenToPosState(len)].Decode(m_RangeDecoder);
+                            if (posSlot >= LzmaBase.kStartPosModelIndex)
                             {
                                 int numDirectBits = (int)((posSlot >> 1) - 1);
                                 rep0 = ((2 | (posSlot & 1)) << numDirectBits);
-                                if (posSlot < Base.kEndPosModelIndex)
+                                if (posSlot < LzmaBase.kEndPosModelIndex)
                                     rep0 += BitTreeDecoder.ReverseDecode(m_PosDecoders,
                                             rep0 - posSlot - 1, m_RangeDecoder, numDirectBits);
                                 else
                                 {
                                     rep0 += (m_RangeDecoder.DecodeDirectBits(
-                                        numDirectBits - Base.kNumAlignBits) << Base.kNumAlignBits);
+                                        numDirectBits - LzmaBase.kNumAlignBits) << LzmaBase.kNumAlignBits);
                                     rep0 += m_PosAlignDecoder.ReverseDecode(m_RangeDecoder);
                                 }
                             }
@@ -361,7 +361,7 @@ namespace NewLife.Compression.LZMA
             int remainder = properties[0] / 9;
             int lp = remainder % 5;
             int pb = remainder / 5;
-            if (pb > Base.kNumPosStatesBitsMax)
+            if (pb > LzmaBase.kNumPosStatesBitsMax)
                 throw new InvalidParamException();
             UInt32 dictionarySize = 0;
             for (int i = 0; i < 4; i++)

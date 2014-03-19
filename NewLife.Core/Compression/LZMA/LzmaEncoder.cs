@@ -5,7 +5,7 @@ using NewLife.Compression.RangeCoder;
 namespace NewLife.Compression.LZMA
 {
     /// <summary>LZMA±àÂë</summary>
-    public class Encoder : ICoder, ISetCoderProperties, IWriteCoderProperties
+    public class LzmaEncoder : ICoder, ISetCoderProperties, IWriteCoderProperties
     {
         enum EMatchFinderType
         {
@@ -17,7 +17,7 @@ namespace NewLife.Compression.LZMA
 
         static Byte[] g_FastPos = new Byte[1 << 11];
 
-        static Encoder()
+        static LzmaEncoder()
         {
             const Byte kFastSlots = 22;
             int c = 2;
@@ -49,15 +49,15 @@ namespace NewLife.Compression.LZMA
             return (UInt32)(g_FastPos[pos >> 26] + 52);
         }
 
-        Base.State _state = new Base.State();
+        LzmaBase.State _state = new LzmaBase.State();
         Byte _previousByte;
-        UInt32[] _repDistances = new UInt32[Base.kNumRepDistances];
+        UInt32[] _repDistances = new UInt32[LzmaBase.kNumRepDistances];
 
         void BaseInit()
         {
             _state.Init();
             _previousByte = 0;
-            for (UInt32 i = 0; i < Base.kNumRepDistances; i++)
+            for (UInt32 i = 0; i < LzmaBase.kNumRepDistances; i++)
                 _repDistances[i] = 0;
         }
 
@@ -167,16 +167,16 @@ namespace NewLife.Compression.LZMA
         {
             RangeCoder.BitEncoder _choice = new RangeCoder.BitEncoder();
             RangeCoder.BitEncoder _choice2 = new RangeCoder.BitEncoder();
-            RangeCoder.BitTreeEncoder[] _lowCoder = new RangeCoder.BitTreeEncoder[Base.kNumPosStatesEncodingMax];
-            RangeCoder.BitTreeEncoder[] _midCoder = new RangeCoder.BitTreeEncoder[Base.kNumPosStatesEncodingMax];
-            RangeCoder.BitTreeEncoder _highCoder = new RangeCoder.BitTreeEncoder(Base.kNumHighLenBits);
+            RangeCoder.BitTreeEncoder[] _lowCoder = new RangeCoder.BitTreeEncoder[LzmaBase.kNumPosStatesEncodingMax];
+            RangeCoder.BitTreeEncoder[] _midCoder = new RangeCoder.BitTreeEncoder[LzmaBase.kNumPosStatesEncodingMax];
+            RangeCoder.BitTreeEncoder _highCoder = new RangeCoder.BitTreeEncoder(LzmaBase.kNumHighLenBits);
 
             public LenEncoder()
             {
-                for (UInt32 posState = 0; posState < Base.kNumPosStatesEncodingMax; posState++)
+                for (UInt32 posState = 0; posState < LzmaBase.kNumPosStatesEncodingMax; posState++)
                 {
-                    _lowCoder[posState] = new RangeCoder.BitTreeEncoder(Base.kNumLowLenBits);
-                    _midCoder[posState] = new RangeCoder.BitTreeEncoder(Base.kNumMidLenBits);
+                    _lowCoder[posState] = new RangeCoder.BitTreeEncoder(LzmaBase.kNumLowLenBits);
+                    _midCoder[posState] = new RangeCoder.BitTreeEncoder(LzmaBase.kNumMidLenBits);
                 }
             }
 
@@ -194,16 +194,16 @@ namespace NewLife.Compression.LZMA
 
             public void Encode(RangeCoder.Encoder rangeEncoder, UInt32 symbol, UInt32 posState)
             {
-                if (symbol < Base.kNumLowLenSymbols)
+                if (symbol < LzmaBase.kNumLowLenSymbols)
                 {
                     _choice.Encode(rangeEncoder, 0);
                     _lowCoder[posState].Encode(rangeEncoder, symbol);
                 }
                 else
                 {
-                    symbol -= Base.kNumLowLenSymbols;
+                    symbol -= LzmaBase.kNumLowLenSymbols;
                     _choice.Encode(rangeEncoder, 1);
-                    if (symbol < Base.kNumMidLenSymbols)
+                    if (symbol < LzmaBase.kNumMidLenSymbols)
                     {
                         _choice2.Encode(rangeEncoder, 0);
                         _midCoder[posState].Encode(rangeEncoder, symbol);
@@ -211,7 +211,7 @@ namespace NewLife.Compression.LZMA
                     else
                     {
                         _choice2.Encode(rangeEncoder, 1);
-                        _highCoder.Encode(rangeEncoder, symbol - Base.kNumMidLenSymbols);
+                        _highCoder.Encode(rangeEncoder, symbol - LzmaBase.kNumMidLenSymbols);
                     }
                 }
             }
@@ -223,41 +223,41 @@ namespace NewLife.Compression.LZMA
                 UInt32 b0 = a1 + _choice2.GetPrice0();
                 UInt32 b1 = a1 + _choice2.GetPrice1();
                 UInt32 i = 0;
-                for (i = 0; i < Base.kNumLowLenSymbols; i++)
+                for (i = 0; i < LzmaBase.kNumLowLenSymbols; i++)
                 {
                     if (i >= numSymbols)
                         return;
                     prices[st + i] = a0 + _lowCoder[posState].GetPrice(i);
                 }
-                for (; i < Base.kNumLowLenSymbols + Base.kNumMidLenSymbols; i++)
+                for (; i < LzmaBase.kNumLowLenSymbols + LzmaBase.kNumMidLenSymbols; i++)
                 {
                     if (i >= numSymbols)
                         return;
-                    prices[st + i] = b0 + _midCoder[posState].GetPrice(i - Base.kNumLowLenSymbols);
+                    prices[st + i] = b0 + _midCoder[posState].GetPrice(i - LzmaBase.kNumLowLenSymbols);
                 }
                 for (; i < numSymbols; i++)
-                    prices[st + i] = b1 + _highCoder.GetPrice(i - Base.kNumLowLenSymbols - Base.kNumMidLenSymbols);
+                    prices[st + i] = b1 + _highCoder.GetPrice(i - LzmaBase.kNumLowLenSymbols - LzmaBase.kNumMidLenSymbols);
             }
         };
 
-        const UInt32 kNumLenSpecSymbols = Base.kNumLowLenSymbols + Base.kNumMidLenSymbols;
+        const UInt32 kNumLenSpecSymbols = LzmaBase.kNumLowLenSymbols + LzmaBase.kNumMidLenSymbols;
 
         class LenPriceTableEncoder : LenEncoder
         {
-            UInt32[] _prices = new UInt32[Base.kNumLenSymbols << Base.kNumPosStatesBitsEncodingMax];
+            UInt32[] _prices = new UInt32[LzmaBase.kNumLenSymbols << LzmaBase.kNumPosStatesBitsEncodingMax];
             UInt32 _tableSize;
-            UInt32[] _counters = new UInt32[Base.kNumPosStatesEncodingMax];
+            UInt32[] _counters = new UInt32[LzmaBase.kNumPosStatesEncodingMax];
 
             public void SetTableSize(UInt32 tableSize) { _tableSize = tableSize; }
 
             public UInt32 GetPrice(UInt32 symbol, UInt32 posState)
             {
-                return _prices[posState * Base.kNumLenSymbols + symbol];
+                return _prices[posState * LzmaBase.kNumLenSymbols + symbol];
             }
 
             void UpdateTable(UInt32 posState)
             {
-                SetPrices(posState, _tableSize, _prices, posState * Base.kNumLenSymbols);
+                SetPrices(posState, _tableSize, _prices, posState * LzmaBase.kNumLenSymbols);
                 _counters[posState] = _tableSize;
             }
 
@@ -278,7 +278,7 @@ namespace NewLife.Compression.LZMA
         const UInt32 kNumOpts = 1 << 12;
         class Optimal
         {
-            public Base.State State;
+            public LzmaBase.State State;
 
             public bool Prev1IsChar;
             public bool Prev2;
@@ -303,24 +303,24 @@ namespace NewLife.Compression.LZMA
         LZ.IMatchFinder _matchFinder = null;
         RangeCoder.Encoder _rangeEncoder = new RangeCoder.Encoder();
 
-        RangeCoder.BitEncoder[] _isMatch = new RangeCoder.BitEncoder[Base.kNumStates << Base.kNumPosStatesBitsMax];
-        RangeCoder.BitEncoder[] _isRep = new RangeCoder.BitEncoder[Base.kNumStates];
-        RangeCoder.BitEncoder[] _isRepG0 = new RangeCoder.BitEncoder[Base.kNumStates];
-        RangeCoder.BitEncoder[] _isRepG1 = new RangeCoder.BitEncoder[Base.kNumStates];
-        RangeCoder.BitEncoder[] _isRepG2 = new RangeCoder.BitEncoder[Base.kNumStates];
-        RangeCoder.BitEncoder[] _isRep0Long = new RangeCoder.BitEncoder[Base.kNumStates << Base.kNumPosStatesBitsMax];
+        RangeCoder.BitEncoder[] _isMatch = new RangeCoder.BitEncoder[LzmaBase.kNumStates << LzmaBase.kNumPosStatesBitsMax];
+        RangeCoder.BitEncoder[] _isRep = new RangeCoder.BitEncoder[LzmaBase.kNumStates];
+        RangeCoder.BitEncoder[] _isRepG0 = new RangeCoder.BitEncoder[LzmaBase.kNumStates];
+        RangeCoder.BitEncoder[] _isRepG1 = new RangeCoder.BitEncoder[LzmaBase.kNumStates];
+        RangeCoder.BitEncoder[] _isRepG2 = new RangeCoder.BitEncoder[LzmaBase.kNumStates];
+        RangeCoder.BitEncoder[] _isRep0Long = new RangeCoder.BitEncoder[LzmaBase.kNumStates << LzmaBase.kNumPosStatesBitsMax];
 
-        RangeCoder.BitTreeEncoder[] _posSlotEncoder = new RangeCoder.BitTreeEncoder[Base.kNumLenToPosStates];
+        RangeCoder.BitTreeEncoder[] _posSlotEncoder = new RangeCoder.BitTreeEncoder[LzmaBase.kNumLenToPosStates];
 
-        RangeCoder.BitEncoder[] _posEncoders = new RangeCoder.BitEncoder[Base.kNumFullDistances - Base.kEndPosModelIndex];
-        RangeCoder.BitTreeEncoder _posAlignEncoder = new RangeCoder.BitTreeEncoder(Base.kNumAlignBits);
+        RangeCoder.BitEncoder[] _posEncoders = new RangeCoder.BitEncoder[LzmaBase.kNumFullDistances - LzmaBase.kEndPosModelIndex];
+        RangeCoder.BitTreeEncoder _posAlignEncoder = new RangeCoder.BitTreeEncoder(LzmaBase.kNumAlignBits);
 
         LenPriceTableEncoder _lenEncoder = new LenPriceTableEncoder();
         LenPriceTableEncoder _repMatchLenEncoder = new LenPriceTableEncoder();
 
         LiteralEncoder _literalEncoder = new LiteralEncoder();
 
-        UInt32[] _matchDistances = new UInt32[Base.kMatchMaxLen * 2 + 2];
+        UInt32[] _matchDistances = new UInt32[LzmaBase.kMatchMaxLen * 2 + 2];
 
         UInt32 _numFastBytes = kNumFastBytesDefault;
         UInt32 _longestMatchLength;
@@ -333,9 +333,9 @@ namespace NewLife.Compression.LZMA
 
         bool _longestMatchWasFound;
 
-        UInt32[] _posSlotPrices = new UInt32[1 << (Base.kNumPosSlotBits + Base.kNumLenToPosStatesBits)];
-        UInt32[] _distancesPrices = new UInt32[Base.kNumFullDistances << Base.kNumLenToPosStatesBits];
-        UInt32[] _alignPrices = new UInt32[Base.kAlignTableSize];
+        UInt32[] _posSlotPrices = new UInt32[1 << (LzmaBase.kNumPosSlotBits + LzmaBase.kNumLenToPosStatesBits)];
+        UInt32[] _distancesPrices = new UInt32[LzmaBase.kNumFullDistances << LzmaBase.kNumLenToPosStatesBits];
+        UInt32[] _alignPrices = new UInt32[LzmaBase.kAlignTableSize];
         UInt32 _alignPriceCount;
 
         UInt32 _distTableSize = (kDefaultDictionaryLogSize * 2);
@@ -373,18 +373,18 @@ namespace NewLife.Compression.LZMA
 
             if (_dictionarySize == _dictionarySizePrev && _numFastBytesPrev == _numFastBytes)
                 return;
-            _matchFinder.Create(_dictionarySize, kNumOpts, _numFastBytes, Base.kMatchMaxLen + 1);
+            _matchFinder.Create(_dictionarySize, kNumOpts, _numFastBytes, LzmaBase.kMatchMaxLen + 1);
             _dictionarySizePrev = _dictionarySize;
             _numFastBytesPrev = _numFastBytes;
         }
 
         /// <summary>ÊµÀý»¯±àÂëÆ÷</summary>
-        public Encoder()
+        public LzmaEncoder()
         {
             for (int i = 0; i < kNumOpts; i++)
                 _optimum[i] = new Optimal();
-            for (int i = 0; i < Base.kNumLenToPosStates; i++)
-                _posSlotEncoder[i] = new RangeCoder.BitTreeEncoder(Base.kNumPosSlotBits);
+            for (int i = 0; i < LzmaBase.kNumLenToPosStates; i++)
+                _posSlotEncoder[i] = new RangeCoder.BitTreeEncoder(LzmaBase.kNumPosSlotBits);
         }
 
         void SetWriteEndMarkerMode(bool writeEndMarker)
@@ -398,11 +398,11 @@ namespace NewLife.Compression.LZMA
             _rangeEncoder.Init();
 
             uint i;
-            for (i = 0; i < Base.kNumStates; i++)
+            for (i = 0; i < LzmaBase.kNumStates; i++)
             {
                 for (uint j = 0; j <= _posStateMask; j++)
                 {
-                    uint complexState = (i << Base.kNumPosStatesBitsMax) + j;
+                    uint complexState = (i << LzmaBase.kNumPosStatesBitsMax) + j;
                     _isMatch[complexState].Init();
                     _isRep0Long[complexState].Init();
                 }
@@ -412,9 +412,9 @@ namespace NewLife.Compression.LZMA
                 _isRepG2[i].Init();
             }
             _literalEncoder.Init();
-            for (i = 0; i < Base.kNumLenToPosStates; i++)
+            for (i = 0; i < LzmaBase.kNumLenToPosStates; i++)
                 _posSlotEncoder[i].Init();
-            for (i = 0; i < Base.kNumFullDistances - Base.kEndPosModelIndex; i++)
+            for (i = 0; i < LzmaBase.kNumFullDistances - LzmaBase.kEndPosModelIndex; i++)
                 _posEncoders[i].Init();
 
             _lenEncoder.Init((UInt32)1 << _posStateBits);
@@ -437,7 +437,7 @@ namespace NewLife.Compression.LZMA
                 lenRes = _matchDistances[numDistancePairs - 2];
                 if (lenRes == _numFastBytes)
                     lenRes += _matchFinder.GetMatchLen((int)lenRes - 1, _matchDistances[numDistancePairs - 1],
-                        Base.kMatchMaxLen - lenRes);
+                        LzmaBase.kMatchMaxLen - lenRes);
             }
             _additionalOffset++;
         }
@@ -452,19 +452,19 @@ namespace NewLife.Compression.LZMA
             }
         }
 
-        UInt32 GetRepLen1Price(Base.State state, UInt32 posState)
+        UInt32 GetRepLen1Price(LzmaBase.State state, UInt32 posState)
         {
             return _isRepG0[state.Index].GetPrice0() +
-                    _isRep0Long[(state.Index << Base.kNumPosStatesBitsMax) + posState].GetPrice0();
+                    _isRep0Long[(state.Index << LzmaBase.kNumPosStatesBitsMax) + posState].GetPrice0();
         }
 
-        UInt32 GetPureRepPrice(UInt32 repIndex, Base.State state, UInt32 posState)
+        UInt32 GetPureRepPrice(UInt32 repIndex, LzmaBase.State state, UInt32 posState)
         {
             UInt32 price;
             if (repIndex == 0)
             {
                 price = _isRepG0[state.Index].GetPrice0();
-                price += _isRep0Long[(state.Index << Base.kNumPosStatesBitsMax) + posState].GetPrice1();
+                price += _isRep0Long[(state.Index << LzmaBase.kNumPosStatesBitsMax) + posState].GetPrice1();
             }
             else
             {
@@ -480,22 +480,22 @@ namespace NewLife.Compression.LZMA
             return price;
         }
 
-        UInt32 GetRepPrice(UInt32 repIndex, UInt32 len, Base.State state, UInt32 posState)
+        UInt32 GetRepPrice(UInt32 repIndex, UInt32 len, LzmaBase.State state, UInt32 posState)
         {
-            UInt32 price = _repMatchLenEncoder.GetPrice(len - Base.kMatchMinLen, posState);
+            UInt32 price = _repMatchLenEncoder.GetPrice(len - LzmaBase.kMatchMinLen, posState);
             return price + GetPureRepPrice(repIndex, state, posState);
         }
 
         UInt32 GetPosLenPrice(UInt32 pos, UInt32 len, UInt32 posState)
         {
             UInt32 price;
-            UInt32 lenToPosState = Base.GetLenToPosState(len);
-            if (pos < Base.kNumFullDistances)
-                price = _distancesPrices[(lenToPosState * Base.kNumFullDistances) + pos];
+            UInt32 lenToPosState = LzmaBase.GetLenToPosState(len);
+            if (pos < LzmaBase.kNumFullDistances)
+                price = _distancesPrices[(lenToPosState * LzmaBase.kNumFullDistances) + pos];
             else
-                price = _posSlotPrices[(lenToPosState << Base.kNumPosSlotBits) + GetPosSlot2(pos)] +
-                    _alignPrices[pos & Base.kAlignMask];
-            return price + _lenEncoder.GetPrice(len - Base.kMatchMinLen, posState);
+                price = _posSlotPrices[(lenToPosState << LzmaBase.kNumPosSlotBits) + GetPosSlot2(pos)] +
+                    _alignPrices[pos & LzmaBase.kAlignMask];
+            return price + _lenEncoder.GetPrice(len - LzmaBase.kMatchMinLen, posState);
         }
 
         UInt32 Backward(out UInt32 backRes, UInt32 cur)
@@ -532,8 +532,8 @@ namespace NewLife.Compression.LZMA
             return _optimumCurrentIndex;
         }
 
-        UInt32[] reps = new UInt32[Base.kNumRepDistances];
-        UInt32[] repLens = new UInt32[Base.kNumRepDistances];
+        UInt32[] reps = new UInt32[LzmaBase.kNumRepDistances];
+        UInt32[] repLens = new UInt32[LzmaBase.kNumRepDistances];
 
 
         UInt32 GetOptimum(UInt32 position, out UInt32 backRes)
@@ -565,15 +565,15 @@ namespace NewLife.Compression.LZMA
                 backRes = 0xFFFFFFFF;
                 return 1;
             }
-            if (numAvailableBytes > Base.kMatchMaxLen)
-                numAvailableBytes = Base.kMatchMaxLen;
+            if (numAvailableBytes > LzmaBase.kMatchMaxLen)
+                numAvailableBytes = LzmaBase.kMatchMaxLen;
 
             UInt32 repMaxIndex = 0;
             UInt32 i;
-            for (i = 0; i < Base.kNumRepDistances; i++)
+            for (i = 0; i < LzmaBase.kNumRepDistances; i++)
             {
                 reps[i] = _repDistances[i];
-                repLens[i] = _matchFinder.GetMatchLen(0 - 1, reps[i], Base.kMatchMaxLen);
+                repLens[i] = _matchFinder.GetMatchLen(0 - 1, reps[i], LzmaBase.kMatchMaxLen);
                 if (repLens[i] > repLens[repMaxIndex])
                     repMaxIndex = i;
             }
@@ -587,7 +587,7 @@ namespace NewLife.Compression.LZMA
 
             if (lenMain >= _numFastBytes)
             {
-                backRes = _matchDistances[numDistancePairs - 1] + Base.kNumRepDistances;
+                backRes = _matchDistances[numDistancePairs - 1] + LzmaBase.kNumRepDistances;
                 MovePos(lenMain - 1);
                 return lenMain;
             }
@@ -605,11 +605,11 @@ namespace NewLife.Compression.LZMA
 
             UInt32 posState = (position & _posStateMask);
 
-            _optimum[1].Price = _isMatch[(_state.Index << Base.kNumPosStatesBitsMax) + posState].GetPrice0() +
+            _optimum[1].Price = _isMatch[(_state.Index << LzmaBase.kNumPosStatesBitsMax) + posState].GetPrice0() +
                     _literalEncoder.GetSubCoder(position, _previousByte).GetPrice(!_state.IsCharState(), matchByte, currentByte);
             _optimum[1].MakeAsChar();
 
-            UInt32 matchPrice = _isMatch[(_state.Index << Base.kNumPosStatesBitsMax) + posState].GetPrice1();
+            UInt32 matchPrice = _isMatch[(_state.Index << LzmaBase.kNumPosStatesBitsMax) + posState].GetPrice1();
             UInt32 repMatchPrice = matchPrice + _isRep[_state.Index].GetPrice1();
 
             if (matchByte == currentByte)
@@ -642,7 +642,7 @@ namespace NewLife.Compression.LZMA
                 _optimum[len--].Price = kIfinityPrice;
             while (len >= 2);
 
-            for (i = 0; i < Base.kNumRepDistances; i++)
+            for (i = 0; i < LzmaBase.kNumRepDistances; i++)
             {
                 UInt32 repLen = repLens[i];
                 if (repLen < 2)
@@ -680,7 +680,7 @@ namespace NewLife.Compression.LZMA
                     {
                         optimum.Price = curAndLenPrice;
                         optimum.PosPrev = 0;
-                        optimum.BackPrev = distance + Base.kNumRepDistances;
+                        optimum.BackPrev = distance + LzmaBase.kNumRepDistances;
                         optimum.Prev1IsChar = false;
                     }
                     if (len == _matchDistances[offs])
@@ -710,14 +710,14 @@ namespace NewLife.Compression.LZMA
                 }
                 position++;
                 UInt32 posPrev = _optimum[cur].PosPrev;
-                Base.State state;
+                LzmaBase.State state;
                 if (_optimum[cur].Prev1IsChar)
                 {
                     posPrev--;
                     if (_optimum[cur].Prev2)
                     {
                         state = _optimum[_optimum[cur].PosPrev2].State;
-                        if (_optimum[cur].BackPrev2 < Base.kNumRepDistances)
+                        if (_optimum[cur].BackPrev2 < LzmaBase.kNumRepDistances)
                             state.UpdateRep();
                         else
                             state.UpdateMatch();
@@ -747,13 +747,13 @@ namespace NewLife.Compression.LZMA
                     else
                     {
                         pos = _optimum[cur].BackPrev;
-                        if (pos < Base.kNumRepDistances)
+                        if (pos < LzmaBase.kNumRepDistances)
                             state.UpdateRep();
                         else
                             state.UpdateMatch();
                     }
                     Optimal opt = _optimum[posPrev];
-                    if (pos < Base.kNumRepDistances)
+                    if (pos < LzmaBase.kNumRepDistances)
                     {
                         if (pos == 0)
                         {
@@ -786,7 +786,7 @@ namespace NewLife.Compression.LZMA
                     }
                     else
                     {
-                        reps[0] = (pos - Base.kNumRepDistances);
+                        reps[0] = (pos - LzmaBase.kNumRepDistances);
                         reps[1] = opt.Backs0;
                         reps[2] = opt.Backs1;
                         reps[3] = opt.Backs2;
@@ -805,7 +805,7 @@ namespace NewLife.Compression.LZMA
                 posState = (position & _posStateMask);
 
                 UInt32 curAnd1Price = curPrice +
-                    _isMatch[(state.Index << Base.kNumPosStatesBitsMax) + posState].GetPrice0() +
+                    _isMatch[(state.Index << LzmaBase.kNumPosStatesBitsMax) + posState].GetPrice0() +
                     _literalEncoder.GetSubCoder(position, _matchFinder.GetIndexByte(0 - 2)).
                     GetPrice(!state.IsCharState(), matchByte, currentByte);
 
@@ -820,7 +820,7 @@ namespace NewLife.Compression.LZMA
                     nextIsChar = true;
                 }
 
-                matchPrice = curPrice + _isMatch[(state.Index << Base.kNumPosStatesBitsMax) + posState].GetPrice1();
+                matchPrice = curPrice + _isMatch[(state.Index << LzmaBase.kNumPosStatesBitsMax) + posState].GetPrice1();
                 repMatchPrice = matchPrice + _isRep[state.Index].GetPrice1();
 
                 if (matchByte == currentByte &&
@@ -851,11 +851,11 @@ namespace NewLife.Compression.LZMA
                     UInt32 lenTest2 = _matchFinder.GetMatchLen(0, reps[0], t);
                     if (lenTest2 >= 2)
                     {
-                        Base.State state2 = state;
+                        LzmaBase.State state2 = state;
                         state2.UpdateChar();
                         UInt32 posStateNext = (position + 1) & _posStateMask;
                         UInt32 nextRepMatchPrice = curAnd1Price +
-                            _isMatch[(state2.Index << Base.kNumPosStatesBitsMax) + posStateNext].GetPrice1() +
+                            _isMatch[(state2.Index << LzmaBase.kNumPosStatesBitsMax) + posStateNext].GetPrice1() +
                             _isRep[state2.Index].GetPrice1();
                         {
                             UInt32 offset = cur + 1 + lenTest2;
@@ -878,7 +878,7 @@ namespace NewLife.Compression.LZMA
 
                 UInt32 startLen = 2; // speed optimization 
 
-                for (UInt32 repIndex = 0; repIndex < Base.kNumRepDistances; repIndex++)
+                for (UInt32 repIndex = 0; repIndex < LzmaBase.kNumRepDistances; repIndex++)
                 {
                     UInt32 lenTest = _matchFinder.GetMatchLen(0 - 1, reps[repIndex], numAvailableBytes);
                     if (lenTest < 2)
@@ -911,19 +911,19 @@ namespace NewLife.Compression.LZMA
                         UInt32 lenTest2 = _matchFinder.GetMatchLen((Int32)lenTest, reps[repIndex], t);
                         if (lenTest2 >= 2)
                         {
-                            Base.State state2 = state;
+                            LzmaBase.State state2 = state;
                             state2.UpdateRep();
                             UInt32 posStateNext = (position + lenTest) & _posStateMask;
                             UInt32 curAndLenCharPrice =
                                     repMatchPrice + GetRepPrice(repIndex, lenTest, state, posState) +
-                                    _isMatch[(state2.Index << Base.kNumPosStatesBitsMax) + posStateNext].GetPrice0() +
+                                    _isMatch[(state2.Index << LzmaBase.kNumPosStatesBitsMax) + posStateNext].GetPrice0() +
                                     _literalEncoder.GetSubCoder(position + lenTest,
                                     _matchFinder.GetIndexByte((Int32)lenTest - 1 - 1)).GetPrice(true,
                                     _matchFinder.GetIndexByte((Int32)((Int32)lenTest - 1 - (Int32)(reps[repIndex] + 1))),
                                     _matchFinder.GetIndexByte((Int32)lenTest - 1));
                             state2.UpdateChar();
                             posStateNext = (position + lenTest + 1) & _posStateMask;
-                            UInt32 nextMatchPrice = curAndLenCharPrice + _isMatch[(state2.Index << Base.kNumPosStatesBitsMax) + posStateNext].GetPrice1();
+                            UInt32 nextMatchPrice = curAndLenCharPrice + _isMatch[(state2.Index << LzmaBase.kNumPosStatesBitsMax) + posStateNext].GetPrice1();
                             UInt32 nextRepMatchPrice = nextMatchPrice + _isRep[state2.Index].GetPrice1();
 
                             // for(; lenTest2 >= 2; lenTest2--)
@@ -974,7 +974,7 @@ namespace NewLife.Compression.LZMA
                         {
                             optimum.Price = curAndLenPrice;
                             optimum.PosPrev = cur;
-                            optimum.BackPrev = curBack + Base.kNumRepDistances;
+                            optimum.BackPrev = curBack + LzmaBase.kNumRepDistances;
                             optimum.Prev1IsChar = false;
                         }
 
@@ -986,11 +986,11 @@ namespace NewLife.Compression.LZMA
                                 UInt32 lenTest2 = _matchFinder.GetMatchLen((Int32)lenTest, curBack, t);
                                 if (lenTest2 >= 2)
                                 {
-                                    Base.State state2 = state;
+                                    LzmaBase.State state2 = state;
                                     state2.UpdateMatch();
                                     UInt32 posStateNext = (position + lenTest) & _posStateMask;
                                     UInt32 curAndLenCharPrice = curAndLenPrice +
-                                        _isMatch[(state2.Index << Base.kNumPosStatesBitsMax) + posStateNext].GetPrice0() +
+                                        _isMatch[(state2.Index << LzmaBase.kNumPosStatesBitsMax) + posStateNext].GetPrice0() +
                                         _literalEncoder.GetSubCoder(position + lenTest,
                                         _matchFinder.GetIndexByte((Int32)lenTest - 1 - 1)).
                                         GetPrice(true,
@@ -998,7 +998,7 @@ namespace NewLife.Compression.LZMA
                                         _matchFinder.GetIndexByte((Int32)lenTest - 1));
                                     state2.UpdateChar();
                                     posStateNext = (position + lenTest + 1) & _posStateMask;
-                                    UInt32 nextMatchPrice = curAndLenCharPrice + _isMatch[(state2.Index << Base.kNumPosStatesBitsMax) + posStateNext].GetPrice1();
+                                    UInt32 nextMatchPrice = curAndLenCharPrice + _isMatch[(state2.Index << LzmaBase.kNumPosStatesBitsMax) + posStateNext].GetPrice1();
                                     UInt32 nextRepMatchPrice = nextMatchPrice + _isRep[state2.Index].GetPrice1();
 
                                     UInt32 offset = lenTest + 1 + lenTest2;
@@ -1014,7 +1014,7 @@ namespace NewLife.Compression.LZMA
                                         optimum.Prev1IsChar = true;
                                         optimum.Prev2 = true;
                                         optimum.PosPrev2 = cur;
-                                        optimum.BackPrev2 = curBack + Base.kNumRepDistances;
+                                        optimum.BackPrev2 = curBack + LzmaBase.kNumRepDistances;
                                     }
                                 }
                             }
@@ -1038,18 +1038,18 @@ namespace NewLife.Compression.LZMA
             if (!_writeEndMark)
                 return;
 
-            _isMatch[(_state.Index << Base.kNumPosStatesBitsMax) + posState].Encode(_rangeEncoder, 1);
+            _isMatch[(_state.Index << LzmaBase.kNumPosStatesBitsMax) + posState].Encode(_rangeEncoder, 1);
             _isRep[_state.Index].Encode(_rangeEncoder, 0);
             _state.UpdateMatch();
-            UInt32 len = Base.kMatchMinLen;
-            _lenEncoder.Encode(_rangeEncoder, len - Base.kMatchMinLen, posState);
-            UInt32 posSlot = (1 << Base.kNumPosSlotBits) - 1;
-            UInt32 lenToPosState = Base.GetLenToPosState(len);
+            UInt32 len = LzmaBase.kMatchMinLen;
+            _lenEncoder.Encode(_rangeEncoder, len - LzmaBase.kMatchMinLen, posState);
+            UInt32 posSlot = (1 << LzmaBase.kNumPosSlotBits) - 1;
+            UInt32 lenToPosState = LzmaBase.GetLenToPosState(len);
             _posSlotEncoder[lenToPosState].Encode(_rangeEncoder, posSlot);
             int footerBits = 30;
             UInt32 posReduced = (((UInt32)1) << footerBits) - 1;
-            _rangeEncoder.EncodeDirectBits(posReduced >> Base.kNumAlignBits, footerBits - Base.kNumAlignBits);
-            _posAlignEncoder.ReverseEncode(_rangeEncoder, posReduced & Base.kAlignMask);
+            _rangeEncoder.EncodeDirectBits(posReduced >> LzmaBase.kNumAlignBits, footerBits - LzmaBase.kNumAlignBits);
+            _posAlignEncoder.ReverseEncode(_rangeEncoder, posReduced & LzmaBase.kAlignMask);
         }
 
         void Flush(UInt32 nowPos)
@@ -1096,7 +1096,7 @@ namespace NewLife.Compression.LZMA
                 UInt32 len, numDistancePairs; // it's not used
                 ReadMatchDistances(out len, out numDistancePairs);
                 UInt32 posState = (UInt32)(nowPos64) & _posStateMask;
-                _isMatch[(_state.Index << Base.kNumPosStatesBitsMax) + posState].Encode(_rangeEncoder, 0);
+                _isMatch[(_state.Index << LzmaBase.kNumPosStatesBitsMax) + posState].Encode(_rangeEncoder, 0);
                 _state.UpdateChar();
                 Byte curByte = _matchFinder.GetIndexByte((Int32)(0 - _additionalOffset));
                 _literalEncoder.GetSubCoder((UInt32)(nowPos64), _previousByte).Encode(_rangeEncoder, curByte);
@@ -1115,7 +1115,7 @@ namespace NewLife.Compression.LZMA
                 UInt32 len = GetOptimum((UInt32)nowPos64, out pos);
 
                 UInt32 posState = ((UInt32)nowPos64) & _posStateMask;
-                UInt32 complexState = (_state.Index << Base.kNumPosStatesBitsMax) + posState;
+                UInt32 complexState = (_state.Index << LzmaBase.kNumPosStatesBitsMax) + posState;
                 if (len == 1 && pos == 0xFFFFFFFF)
                 {
                     _isMatch[complexState].Encode(_rangeEncoder, 0);
@@ -1134,7 +1134,7 @@ namespace NewLife.Compression.LZMA
                 else
                 {
                     _isMatch[complexState].Encode(_rangeEncoder, 1);
-                    if (pos < Base.kNumRepDistances)
+                    if (pos < LzmaBase.kNumRepDistances)
                     {
                         _isRep[_state.Index].Encode(_rangeEncoder, 1);
                         if (pos == 0)
@@ -1160,7 +1160,7 @@ namespace NewLife.Compression.LZMA
                             _state.UpdateShortRep();
                         else
                         {
-                            _repMatchLenEncoder.Encode(_rangeEncoder, len - Base.kMatchMinLen, posState);
+                            _repMatchLenEncoder.Encode(_rangeEncoder, len - LzmaBase.kMatchMinLen, posState);
                             _state.UpdateRep();
                         }
                         UInt32 distance = _repDistances[pos];
@@ -1175,30 +1175,30 @@ namespace NewLife.Compression.LZMA
                     {
                         _isRep[_state.Index].Encode(_rangeEncoder, 0);
                         _state.UpdateMatch();
-                        _lenEncoder.Encode(_rangeEncoder, len - Base.kMatchMinLen, posState);
-                        pos -= Base.kNumRepDistances;
+                        _lenEncoder.Encode(_rangeEncoder, len - LzmaBase.kMatchMinLen, posState);
+                        pos -= LzmaBase.kNumRepDistances;
                         UInt32 posSlot = GetPosSlot(pos);
-                        UInt32 lenToPosState = Base.GetLenToPosState(len);
+                        UInt32 lenToPosState = LzmaBase.GetLenToPosState(len);
                         _posSlotEncoder[lenToPosState].Encode(_rangeEncoder, posSlot);
 
-                        if (posSlot >= Base.kStartPosModelIndex)
+                        if (posSlot >= LzmaBase.kStartPosModelIndex)
                         {
                             int footerBits = (int)((posSlot >> 1) - 1);
                             UInt32 baseVal = ((2 | (posSlot & 1)) << footerBits);
                             UInt32 posReduced = pos - baseVal;
 
-                            if (posSlot < Base.kEndPosModelIndex)
+                            if (posSlot < LzmaBase.kEndPosModelIndex)
                                 RangeCoder.BitTreeEncoder.ReverseEncode(_posEncoders,
                                         baseVal - posSlot - 1, _rangeEncoder, footerBits, posReduced);
                             else
                             {
-                                _rangeEncoder.EncodeDirectBits(posReduced >> Base.kNumAlignBits, footerBits - Base.kNumAlignBits);
-                                _posAlignEncoder.ReverseEncode(_rangeEncoder, posReduced & Base.kAlignMask);
+                                _rangeEncoder.EncodeDirectBits(posReduced >> LzmaBase.kNumAlignBits, footerBits - LzmaBase.kNumAlignBits);
+                                _posAlignEncoder.ReverseEncode(_rangeEncoder, posReduced & LzmaBase.kAlignMask);
                                 _alignPriceCount++;
                             }
                         }
                         UInt32 distance = pos;
-                        for (UInt32 i = Base.kNumRepDistances - 1; i >= 1; i--)
+                        for (UInt32 i = LzmaBase.kNumRepDistances - 1; i >= 1; i--)
                             _repDistances[i] = _repDistances[i - 1];
                         _repDistances[0] = distance;
                         _matchPriceCount++;
@@ -1212,7 +1212,7 @@ namespace NewLife.Compression.LZMA
                     // if (!_fastMode)
                     if (_matchPriceCount >= (1 << 7))
                         FillDistancesPrices();
-                    if (_alignPriceCount >= Base.kAlignTableSize)
+                    if (_alignPriceCount >= LzmaBase.kAlignTableSize)
                         FillAlignPrices();
                     inSize = nowPos64;
                     outSize = _rangeEncoder.GetProcessedSizeAdd();
@@ -1265,9 +1265,9 @@ namespace NewLife.Compression.LZMA
                 FillAlignPrices();
             }
 
-            _lenEncoder.SetTableSize(_numFastBytes + 1 - Base.kMatchMinLen);
+            _lenEncoder.SetTableSize(_numFastBytes + 1 - LzmaBase.kMatchMinLen);
             _lenEncoder.UpdateTables((UInt32)1 << _posStateBits);
-            _repMatchLenEncoder.SetTableSize(_numFastBytes + 1 - Base.kMatchMinLen);
+            _repMatchLenEncoder.SetTableSize(_numFastBytes + 1 - LzmaBase.kMatchMinLen);
             _repMatchLenEncoder.UpdateTables((UInt32)1 << _posStateBits);
 
             nowPos64 = 0;
@@ -1318,12 +1318,12 @@ namespace NewLife.Compression.LZMA
             outStream.Write(properties, 0, kPropSize);
         }
 
-        UInt32[] tempPrices = new UInt32[Base.kNumFullDistances];
+        UInt32[] tempPrices = new UInt32[LzmaBase.kNumFullDistances];
         UInt32 _matchPriceCount;
 
         void FillDistancesPrices()
         {
-            for (UInt32 i = Base.kStartPosModelIndex; i < Base.kNumFullDistances; i++)
+            for (UInt32 i = LzmaBase.kStartPosModelIndex; i < LzmaBase.kNumFullDistances; i++)
             {
                 UInt32 posSlot = GetPosSlot(i);
                 int footerBits = (int)((posSlot >> 1) - 1);
@@ -1332,22 +1332,22 @@ namespace NewLife.Compression.LZMA
                     baseVal - posSlot - 1, footerBits, i - baseVal);
             }
 
-            for (UInt32 lenToPosState = 0; lenToPosState < Base.kNumLenToPosStates; lenToPosState++)
+            for (UInt32 lenToPosState = 0; lenToPosState < LzmaBase.kNumLenToPosStates; lenToPosState++)
             {
                 UInt32 posSlot;
                 RangeCoder.BitTreeEncoder encoder = _posSlotEncoder[lenToPosState];
 
-                UInt32 st = (lenToPosState << Base.kNumPosSlotBits);
+                UInt32 st = (lenToPosState << LzmaBase.kNumPosSlotBits);
                 for (posSlot = 0; posSlot < _distTableSize; posSlot++)
                     _posSlotPrices[st + posSlot] = encoder.GetPrice(posSlot);
-                for (posSlot = Base.kEndPosModelIndex; posSlot < _distTableSize; posSlot++)
-                    _posSlotPrices[st + posSlot] += ((((posSlot >> 1) - 1) - Base.kNumAlignBits) << RangeCoder.BitEncoder.kNumBitPriceShiftBits);
+                for (posSlot = LzmaBase.kEndPosModelIndex; posSlot < _distTableSize; posSlot++)
+                    _posSlotPrices[st + posSlot] += ((((posSlot >> 1) - 1) - LzmaBase.kNumAlignBits) << RangeCoder.BitEncoder.kNumBitPriceShiftBits);
 
-                UInt32 st2 = lenToPosState * Base.kNumFullDistances;
+                UInt32 st2 = lenToPosState * LzmaBase.kNumFullDistances;
                 UInt32 i;
-                for (i = 0; i < Base.kStartPosModelIndex; i++)
+                for (i = 0; i < LzmaBase.kStartPosModelIndex; i++)
                     _distancesPrices[st2 + i] = _posSlotPrices[st + i];
-                for (; i < Base.kNumFullDistances; i++)
+                for (; i < LzmaBase.kNumFullDistances; i++)
                     _distancesPrices[st2 + i] = _posSlotPrices[st + GetPosSlot(i)] + tempPrices[i];
             }
             _matchPriceCount = 0;
@@ -1355,7 +1355,7 @@ namespace NewLife.Compression.LZMA
 
         void FillAlignPrices()
         {
-            for (UInt32 i = 0; i < Base.kAlignTableSize; i++)
+            for (UInt32 i = 0; i < LzmaBase.kAlignTableSize; i++)
                 _alignPrices[i] = _posAlignEncoder.ReverseGetPrice(i);
             _alignPriceCount = 0;
         }
@@ -1390,7 +1390,7 @@ namespace NewLife.Compression.LZMA
                             if (!(prop is Int32))
                                 throw new InvalidParamException();
                             Int32 numFastBytes = (Int32)prop;
-                            if (numFastBytes < 5 || numFastBytes > Base.kMatchMaxLen)
+                            if (numFastBytes < 5 || numFastBytes > LzmaBase.kMatchMaxLen)
                                 throw new InvalidParamException();
                             _numFastBytes = (UInt32)numFastBytes;
                             break;
@@ -1425,7 +1425,7 @@ namespace NewLife.Compression.LZMA
                             const int kDicLogSizeMaxCompress = 30;
                             if (!(prop is Int32)) throw new InvalidParamException();
                             Int32 dictionarySize = (Int32)prop;
-                            if (dictionarySize < (UInt32)(1 << Base.kDicLogSizeMin) ||
+                            if (dictionarySize < (UInt32)(1 << LzmaBase.kDicLogSizeMin) ||
                                 dictionarySize > (UInt32)(1 << kDicLogSizeMaxCompress))
                                 throw new InvalidParamException();
                             _dictionarySize = (UInt32)dictionarySize;
@@ -1441,7 +1441,7 @@ namespace NewLife.Compression.LZMA
                             if (!(prop is Int32))
                                 throw new InvalidParamException();
                             Int32 v = (Int32)prop;
-                            if (v < 0 || v > (UInt32)Base.kNumPosStatesBitsEncodingMax)
+                            if (v < 0 || v > (UInt32)LzmaBase.kNumPosStatesBitsEncodingMax)
                                 throw new InvalidParamException();
                             _posStateBits = (int)v;
                             _posStateMask = (((UInt32)1) << (int)_posStateBits) - 1;
@@ -1452,7 +1452,7 @@ namespace NewLife.Compression.LZMA
                             if (!(prop is Int32))
                                 throw new InvalidParamException();
                             Int32 v = (Int32)prop;
-                            if (v < 0 || v > (UInt32)Base.kNumLitPosStatesBitsEncodingMax)
+                            if (v < 0 || v > (UInt32)LzmaBase.kNumLitPosStatesBitsEncodingMax)
                                 throw new InvalidParamException();
                             _numLiteralPosStateBits = (int)v;
                             break;
@@ -1462,7 +1462,7 @@ namespace NewLife.Compression.LZMA
                             if (!(prop is Int32))
                                 throw new InvalidParamException();
                             Int32 v = (Int32)prop;
-                            if (v < 0 || v > (UInt32)Base.kNumLitContextBitsMax)
+                            if (v < 0 || v > (UInt32)LzmaBase.kNumLitContextBitsMax)
                                 throw new InvalidParamException(); ;
                             _numLiteralContextBits = (int)v;
                             break;

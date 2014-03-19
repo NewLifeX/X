@@ -59,7 +59,7 @@ namespace NewLife.Compression.LZMA
         #endregion
 
         #region 读写成员
-        Encoder _Encoder;
+        LzmaEncoder _Encoder;
         /// <summary>读取解压缩数据流</summary>
         /// <param name="buffer"></param>
         /// <param name="offset"></param>
@@ -71,7 +71,7 @@ namespace NewLife.Compression.LZMA
 
             if (_Encoder == null)
             {
-                _Encoder = new Encoder();
+                _Encoder = new LzmaEncoder();
             }
 
             var ms = new MemoryStream(buffer, offset, count);
@@ -80,7 +80,7 @@ namespace NewLife.Compression.LZMA
             return (Int32)ms.Position;
         }
 
-        Decoder _Decoder;
+        LzmaDecoder _Decoder;
         /// <summary>写入数据并压缩</summary>
         /// <param name="buffer"></param>
         /// <param name="offset"></param>
@@ -91,7 +91,7 @@ namespace NewLife.Compression.LZMA
 
             if (_Decoder == null)
             {
-                _Decoder = new Decoder();
+                _Decoder = new LzmaDecoder();
             }
 
             var ms = new MemoryStream(buffer, offset, count);
