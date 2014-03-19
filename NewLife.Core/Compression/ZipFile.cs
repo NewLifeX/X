@@ -301,6 +301,22 @@ namespace NewLife.Compression
         {
             if (String.IsNullOrEmpty(fileName)) throw new ArgumentNullException("fileName");
 
+            // 根据文件后缀决定采用的压缩算法
+            var method = CompressionMethod.Stored;
+            var ext = Path.GetExtension(fileName);
+            if (ext == ".7z" || ext == ".lzma")
+                method = CompressionMethod.LZMA;
+            else
+                method = CompressionMethod.Deflated;
+
+            if (method != CompressionMethod.Stored)
+            {
+                foreach (var item in Entries.Values)
+                {
+                    item.CompressionMethod = method;
+                }
+            }
+
             using (var fs = File.Create(fileName))
             {
                 Write(fs);
@@ -520,7 +536,7 @@ namespace NewLife.Compression
             writer.Settings.Encoding = Encoding;
 #if DEBUG
             writer.Debug = true;
-            writer.EnableTraceStream();
+            //writer.EnableTraceStream();
 #endif
             return writer;
         }

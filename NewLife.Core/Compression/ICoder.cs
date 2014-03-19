@@ -1,5 +1,7 @@
 using System;
 using System.IO;
+using NewLife.Compression.LZMA;
+using System.IO.Compression;
 
 namespace NewLife.Compression
 {
@@ -113,5 +115,47 @@ namespace NewLife.Compression
         /// <summary>设置解码属性</summary>
         /// <param name="properties"></param>
         void SetDecoderProperties(byte[] properties);
+    }
+
+    /// <summary>Lzma助手</summary>
+    public static class LzmaHelper
+    {
+        /// <summary>压缩数据流</summary>
+        /// <param name="inStream">输入流</param>
+        /// <param name="outStream">输出流。如果不指定，则内部实例化一个内存流</param>
+        /// <param name="level">压缩等级</param>
+        /// <remarks>返回输出流，注意此时指针位于末端</remarks>
+        public static Stream CompressLzma(this Stream inStream, Stream outStream = null, Int32 level = 4)
+        {
+            if (outStream == null) outStream = new MemoryStream();
+
+            // 第三个参数为true，保持数据流打开，内部不应该干涉外部，不要关闭外部的数据流
+            using (var stream = new LzmaStream(outStream, CompressionMode.Compress, level))
+            {
+                inStream.CopyTo(stream);
+                stream.Flush();
+                stream.Close();
+            }
+
+            return outStream;
+        }
+
+        /// <summary>解压缩数据流</summary>
+        /// <param name="inStream">输入流</param>
+        /// <param name="outStream">输出流。如果不指定，则内部实例化一个内存流</param>
+        /// <remarks>返回输出流，注意此时指针位于末端</remarks>
+        public static Stream DecompressLzma(this Stream inStream, Stream outStream = null)
+        {
+            if (outStream == null) outStream = new MemoryStream();
+
+            // 第三个参数为true，保持数据流打开，内部不应该干涉外部，不要关闭外部的数据流
+            using (var stream = new LzmaStream(inStream, CompressionMode.Decompress))
+            {
+                stream.CopyTo(outStream);
+                stream.Close();
+            }
+
+            return outStream;
+        }
     }
 }

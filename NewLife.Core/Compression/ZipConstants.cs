@@ -3,13 +3,10 @@ using System;
 namespace NewLife.Compression
 {
     /// <summary>压缩方法</summary>
-    enum CompressionMethod : ushort
+    public enum CompressionMethod : ushort
     {
         /// <summary>A direct copy of the file contents is held in the archive</summary>
         Stored = 0,
-
-        /// <summary>7Zip格式</summary>
-        ServenZip = 1,
 
         /// <summary>
         /// Common Zip compression method using a sliding dictionary
@@ -22,6 +19,9 @@ namespace NewLife.Compression
 
         /// <summary>BZip2 compression. Not supported by #Zip.</summary>
         BZip2 = 11,
+
+        /// <summary>7Zip格式</summary>
+        LZMA = 14,
 
         /// <summary>WinZip special for AES encryption, Now supported by #Zip.</summary>
         WinZipAES = 99,

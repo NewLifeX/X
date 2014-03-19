@@ -22,6 +22,7 @@ using NewLife.Threading;
 using NewLife.Xml;
 using XCode.DataAccessLayer;
 using XCode.Sync;
+using NewLife.Compression;
 
 namespace Test
 {
@@ -38,7 +39,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test3();
+                Test5();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -254,15 +255,23 @@ namespace Test
 
         static void Test5()
         {
-            var admin = new Administrator();
-            admin.Name = "大石头";
+            using (var zf = new ZipFile())
+            {
+                zf.AddFile("Test.exe");
+                zf.AddFile("NewLife.Core.dll");
 
-            var xml = new Xml();
-            xml.Write(admin);
+                zf.Write("test.zip");
+                zf.Write("test.7z");
+            }
+            //using (var zf = new ZipFile("Test.lzma.zip"))
+            //{
+            //    foreach (var item in zf.Entries.Values)
+            //    {
+            //        Console.WriteLine("{0} {1}", item.FileName, item.CompressionMethod);
+            //    }
 
-            xml.Stream.Position = 0;
-            var str = xml.Stream.ToStr();
-            Console.WriteLine(str);
+            //    zf.Extract("lzma");
+            //}
         }
 
         static void Test6()

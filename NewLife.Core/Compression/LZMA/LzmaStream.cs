@@ -29,6 +29,15 @@ namespace NewLife.Compression.LZMA
             _Mode = mode;
             _Level = level;
         }
+
+        ///// <summary>销毁</summary>
+        ///// <param name="disposing"></param>
+        //protected override void Dispose(bool disposing)
+        //{
+        //    if (_Encoder != null) _Encoder.TryDispose();
+
+        //    base.Dispose(disposing);
+        //}
         #endregion
 
         #region 数据流成员
@@ -59,7 +68,7 @@ namespace NewLife.Compression.LZMA
         #endregion
 
         #region 读写成员
-        LzmaEncoder _Encoder;
+        LzmaDecoder _Decoder;
         /// <summary>读取解压缩数据流</summary>
         /// <param name="buffer"></param>
         /// <param name="offset"></param>
@@ -69,18 +78,18 @@ namespace NewLife.Compression.LZMA
         {
             if (_Mode != CompressionMode.Decompress) throw new InvalidOperationException();
 
-            if (_Encoder == null)
+            if (_Decoder == null)
             {
-                _Encoder = new LzmaEncoder();
+                _Decoder = new LzmaDecoder();
             }
 
             var ms = new MemoryStream(buffer, offset, count);
-            _Encoder.Code(BaseStream, ms, -1, -1, null);
+            _Decoder.Code(BaseStream, ms, -1, -1, null);
 
             return (Int32)ms.Position;
         }
 
-        LzmaDecoder _Decoder;
+        LzmaEncoder _Encoder;
         /// <summary>写入数据并压缩</summary>
         /// <param name="buffer"></param>
         /// <param name="offset"></param>
@@ -89,9 +98,9 @@ namespace NewLife.Compression.LZMA
         {
             if (_Mode != CompressionMode.Compress) throw new InvalidOperationException();
 
-            if (_Decoder == null)
+            if (_Encoder == null)
             {
-                _Decoder = new LzmaDecoder();
+                _Encoder = new LzmaEncoder();
             }
 
             var ms = new MemoryStream(buffer, offset, count);
