@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using NewLife.Security;
 
 namespace SevenZip.Compression.LZ
 {
@@ -137,11 +138,11 @@ namespace SevenZip.Compression.LZ
 
             if (HASH_ARRAY)
             {
-                UInt32 temp = CRC.Table[_bufferBase[cur]] ^ _bufferBase[cur + 1];
+                UInt32 temp = Crc32.Table[_bufferBase[cur]] ^ _bufferBase[cur + 1];
                 hash2Value = temp & (kHash2Size - 1);
                 temp ^= ((UInt32)(_bufferBase[cur + 2]) << 8);
                 hash3Value = temp & (kHash3Size - 1);
-                hashValue = (temp ^ (CRC.Table[_bufferBase[cur + 3]] << 5)) & _hashMask;
+                hashValue = (temp ^ (Crc32.Table[_bufferBase[cur + 3]] << 5)) & _hashMask;
             }
             else
                 hashValue = _bufferBase[cur] ^ ((UInt32)(_bufferBase[cur + 1]) << 8);
@@ -272,13 +273,13 @@ namespace SevenZip.Compression.LZ
 
                 if (HASH_ARRAY)
                 {
-                    UInt32 temp = CRC.Table[_bufferBase[cur]] ^ _bufferBase[cur + 1];
+                    UInt32 temp = Crc32.Table[_bufferBase[cur]] ^ _bufferBase[cur + 1];
                     UInt32 hash2Value = temp & (kHash2Size - 1);
                     _hash[hash2Value] = _pos;
                     temp ^= ((UInt32)(_bufferBase[cur + 2]) << 8);
                     UInt32 hash3Value = temp & (kHash3Size - 1);
                     _hash[kHash3Offset + hash3Value] = _pos;
-                    hashValue = (temp ^ (CRC.Table[_bufferBase[cur + 3]] << 5)) & _hashMask;
+                    hashValue = (temp ^ (Crc32.Table[_bufferBase[cur + 3]] << 5)) & _hashMask;
                 }
                 else
                     hashValue = _bufferBase[cur] ^ ((UInt32)(_bufferBase[cur + 1]) << 8);

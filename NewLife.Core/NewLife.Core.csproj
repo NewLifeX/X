@@ -86,7 +86,6 @@
     <Compile Include="Common\Runtime.cs" />
     <Compile Include="Common\SysConfig.cs" />
     <Compile Include="Common\Utility.cs" />
-    <Compile Include="Compression\CRC.cs" />
     <Compile Include="Compression\ICoder.cs" />
     <Compile Include="Compression\LZMA\LzmaBase.cs" />
     <Compile Include="Compression\LZMA\LzmaDecoder.cs" />
