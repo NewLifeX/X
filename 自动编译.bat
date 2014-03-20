@@ -47,18 +47,6 @@ copy ..\Bin4\N*.* ..\DLL4\ /y
 copy ..\Bin4\X*.* ..\DLL4\ /y
 del ..\DLL4\*.config /f/s/q
 
-:: 编译Debug版本
-for %%i in (NewLife.Core XCode NewLife.CommonEntity NewLife.Mvc NewLife.Net XAgent XControl XTemplate) do (
-	%vs% X组件.sln /Build Debug /Project %%i
-	%vs% X组件.sln /Build Net4Debug /Project %%i
-)
-copy ..\Bin\N*.* ..\DLL\Debug\ /y
-copy ..\Bin\X*.* ..\DLL\Debug\ /y
-del ..\DLL\Debug\*.config /f/s/q
-copy ..\Bin4\N*.* ..\DLL4\Debug\ /y
-copy ..\Bin4\X*.* ..\DLL4\Debug\ /y
-del ..\DLL4\Debug\*.config /f/s/q
-
 for %%i in (XCoder.exe XCoder.exe.config NewLife.Core.dll XCode.dll XTemplate.dll) do (
 	copy ..\代码生成\%%i ..\XCoder\%%i /y
 )
