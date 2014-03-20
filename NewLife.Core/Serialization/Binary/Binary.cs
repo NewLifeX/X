@@ -1,20 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
+using System.Reflection;
 using NewLife.Log;
 using NewLife.Reflection;
 
 namespace NewLife.Serialization
 {
     /// <summary>二进制序列化</summary>
-    public class Binary : IBinary
+    public class Binary : FormatterBase, IBinary
     {
         #region 属性
-        private Stream _Stream;
-        /// <summary>数据流</summary>
-        public Stream Stream { get { return _Stream ?? (_Stream = new MemoryStream()); } set { _Stream = value; } }
-
         private Boolean _EncodeInt;
         /// <summary>使用7位编码整数</summary>
         public Boolean EncodeInt { get { return _EncodeInt; } set { _EncodeInt = value; } }
@@ -22,10 +18,6 @@ namespace NewLife.Serialization
         private Boolean _IsLittleEndian;
         /// <summary>小端字节序</summary>
         public Boolean IsLittleEndian { get { return _IsLittleEndian; } set { _IsLittleEndian = value; } }
-
-        private Encoding _Encoding = Encoding.UTF8;
-        /// <summary>字符串编码</summary>
-        public Encoding Encoding { get { return _Encoding; } set { _Encoding = value; } }
 
         private List<IBinaryHandler> _Handlers;
         /// <summary>处理器列表</summary>
@@ -105,19 +97,13 @@ namespace NewLife.Serialization
 
         /// <summary>写入字节</summary>
         /// <param name="value"></param>
-        public void Write(Byte value)
-        {
-            Stream.WriteByte(value);
-        }
+        public void Write(Byte value) { Stream.WriteByte(value); }
 
         /// <summary>将字节数组部分写入当前流，不写入数组长度。</summary>
         /// <param name="buffer">包含要写入的数据的字节数组。</param>
         /// <param name="offset">buffer 中开始写入的起始点。</param>
         /// <param name="count">要写入的字节数。</param>
-        public virtual void Write(byte[] buffer, int offset, int count)
-        {
-            Stream.Write(buffer, offset, count);
-        }
+        public virtual void Write(byte[] buffer, int offset, int count) { Stream.Write(buffer, offset, count); }
 
         /// <summary>写入大小</summary>
         /// <param name="size"></param>
@@ -189,8 +175,10 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public Int32 ReadSize()
         {
-            var sizeFormat = TypeCode.Int32;
+            var size = GetSize();
+            if (size >= 0) return size;
 
+            var sizeFormat = TypeCode.Int32;
             switch (sizeFormat)
             {
                 case TypeCode.Int16:
@@ -205,6 +193,27 @@ namespace NewLife.Serialization
                 case TypeCode.UInt64:
                     return ReadEncodedInt32();
             }
+        }
+
+        Int32 GetSize()
+        {
+            var member = Member as MemberInfo;
+            if (member != null)
+            {
+                // 获取FieldSizeAttribute特性
+                var att = member.GetCustomAttribute<FieldSizeAttribute>();
+                if (att != null)
+                {
+                    // 如果指定了固定大小，直接返回
+                    if (att.Size > 0 && String.IsNullOrEmpty(att.ReferenceName)) return att.Size;
+
+                    // 如果指定了引用字段，则找引用字段所表示的长度
+                    var size = att.GetReferenceSize(Hosts.Peek(), member);
+                    if (size >= 0) return size;
+                }
+            }
+
+            return -1;
         }
         #endregion
 

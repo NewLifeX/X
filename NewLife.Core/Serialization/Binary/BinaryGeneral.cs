@@ -162,6 +162,16 @@ namespace NewLife.Serialization
                 value = new Guid(ReadBytes(16));
                 return true;
             }
+            else if (type == typeof(Byte[]))
+            {
+                value = ReadBytes(-1);
+                return true;
+            }
+            else if (type == typeof(Char[]))
+            {
+                value = ReadChars(-1);
+                return true;
+            }
 
             return false;
         }
@@ -456,7 +466,7 @@ namespace NewLife.Serialization
             if (n < 0) return null;
             if (n == 0) return String.Empty;
 
-            Byte[] buffer = ReadBytes(n);
+            var buffer = ReadBytes(n);
 
             return Host.Encoding.GetString(buffer);
         }

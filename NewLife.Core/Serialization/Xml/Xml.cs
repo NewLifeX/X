@@ -11,17 +11,9 @@ using NewLife.Xml;
 namespace NewLife.Serialization
 {
     /// <summary>Xml序列化</summary>
-    public class Xml : IXml
+    public class Xml : FormatterBase, IXml
     {
         #region 属性
-        private Stream _Stream;
-        /// <summary>数据流</summary>
-        public Stream Stream { get { return _Stream ?? (_Stream = new MemoryStream()); } set { _Stream = value; } }
-
-        private Encoding _Encoding;
-        /// <summary>编码</summary>
-        public Encoding Encoding { get { return _Encoding; } set { _Encoding = value; } }
-
         private Int32 _Depth;
         /// <summary>深度</summary>
         public Int32 Depth { get { return _Depth; } set { _Depth = value; } }

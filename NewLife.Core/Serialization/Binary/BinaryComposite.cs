@@ -55,16 +55,23 @@ namespace NewLife.Serialization
             // 不支持基本类型
             if (Type.GetTypeCode(type) != TypeCode.Object) return false;
 
-            // 获取成员
-            foreach (var member in GetMembers(type))
+            Host.Hosts.Push(value);
+            try
             {
-                var mtype = GetMemberType(member);
+                // 获取成员
+                foreach (var member in GetMembers(type))
+                {
+                    var mtype = GetMemberType(member);
+                    Host.Member = member;
 
-                Object v = null;
-                if (!Host.TryRead(mtype, ref v)) return false;
+                    Object v = null;
+                    if (!Host.TryRead(mtype, ref v)) return false;
 
-                value.SetValue(member, v);
+                    value.SetValue(member, v);
+                }
             }
+            finally { Host.Hosts.Pop(); }
+
             return true;
         }
 
