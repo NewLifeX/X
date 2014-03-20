@@ -1,9 +1,8 @@
 ﻿using System;
-using System.Linq;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using NewLife.Collections;
-using NewLife.Log;
 using NewLife.Reflection;
 
 namespace NewLife.Serialization
@@ -28,15 +27,31 @@ namespace NewLife.Serialization
             // 不支持基本类型
             if (Type.GetTypeCode(type) != TypeCode.Object) return false;
 
-            // 获取成员
-            foreach (var member in GetMembers(type))
-            {
-                var mtype = GetMemberType(member);
-                //XTrace.WriteLine("{0} {1}", mtype.Name, member.Name);
+            var ms = GetMembers(type);
 
-                var v = value.GetValue(member);
-                if (!Host.Write(v, mtype)) return false;
+            // 遍历成员，寻找FieldSizeAttribute特性，重新设定大小字段的值
+            foreach (var member in ms)
+            {
+                // 获取FieldSizeAttribute特性
+                var att = member.GetCustomAttribute<FieldSizeAttribute>();
+                if (att != null) att.SetReferenceSize(value, member, Host.Encoding);
             }
+
+            Host.Hosts.Push(value);
+            try
+            {
+                // 获取成员
+                foreach (var member in ms)
+                {
+                    var mtype = GetMemberType(member);
+                    Host.Member = member;
+
+                    var v = value.GetValue(member);
+                    if (!Host.Write(v, mtype)) return false;
+                }
+            }
+            finally { Host.Hosts.Pop(); }
+
             return true;
         }
 
@@ -55,6 +70,7 @@ namespace NewLife.Serialization
             // 不支持基本类型
             if (Type.GetTypeCode(type) != TypeCode.Object) return false;
 
+            if (value == null) value = type.CreateInstance();
             Host.Hosts.Push(value);
             try
             {
@@ -80,7 +96,7 @@ namespace NewLife.Serialization
         /// <param name="type"></param>
         /// <param name="baseFirst"></param>
         /// <returns></returns>
-        protected virtual IEnumerable<MemberInfo> GetMembers(Type type, Boolean baseFirst = true) { return GetFields(type, baseFirst).Cast<MemberInfo>(); }
+        protected virtual List<MemberInfo> GetMembers(Type type, Boolean baseFirst = true) { return GetFields(type, baseFirst).Cast<MemberInfo>().ToList(); }
 
         private static DictionaryCache<Type, List<FieldInfo>> _cache1 = new DictionaryCache<Type, List<FieldInfo>>();
         private static DictionaryCache<Type, List<FieldInfo>> _cache2 = new DictionaryCache<Type, List<FieldInfo>>();

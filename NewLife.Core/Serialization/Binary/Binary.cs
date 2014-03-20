@@ -108,7 +108,29 @@ namespace NewLife.Serialization
         /// <summary>写入大小</summary>
         /// <param name="size"></param>
         /// <returns></returns>
-        public void WriteSize(Int32 size) { WriteEncoded(size); }
+        public void WriteSize(Int32 size)
+        {
+            if (HasFieldSize()) return;
+
+            WriteEncoded(size);
+        }
+
+        Boolean HasFieldSize()
+        {
+            var member = Member as MemberInfo;
+            if (member != null)
+            {
+                // 获取FieldSizeAttribute特性
+                var att = member.GetCustomAttribute<FieldSizeAttribute>();
+                if (att != null)
+                {
+                    // 如果指定了固定大小或者引用字段，直接返回
+                    if (att.Size > 0 || !String.IsNullOrEmpty(att.ReferenceName)) return true;
+                }
+            }
+
+            return false;
+        }
 
         /// <summary>
         /// 以7位压缩格式写入32位整数，小于7位用1个字节，小于14位用2个字节。
