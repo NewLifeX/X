@@ -59,8 +59,8 @@ svn commit -m "自动编译" ..\XCoder
 :: 6，打包Src和DLL到FTP
 set zipexe="C:\Program Files\WinRAR\WinRAR.exe"
 set zip=%zipexe% a -m5 -s -z..\Src\Readme.txt -ibck
-::set zip="D:\Pro\7-zip\7z.exe" a -tzip -mx9 -mfb258
-set zipfile=%date:~0,4%%date:~5,2%%date:~8,2%%time:~0,2%%time:~3,2%%time:~6,2%.rar
+::set zipexe="D:\Pro\7-zip\7z.exe"
+::set zip=%zipexe% a -tzip -mx9
 set dest=E:\XX\X
 
 :: 发布Src源码
@@ -68,7 +68,7 @@ rd XCoder\bin /s/q
 rd XCoder\obj /s/q
 set zipfile=Src.zip
 del Src*.zip /f/q
-%zip% -r %zipfile% NewLife.Core\*.cs NewLife.CommonEntity\*.cs XControl\*.cs XAgent\*.cs XCode\Entity\*.cs XCode\DataAccessLayer\Common\*.cs XCoder\*.* XTemplate\Templating\Template.cs
+%zip% -r %zipfile% XCoder\*.*
 move /y Src*.zip %dest%\%zipfile%
 
 :: 发布XCode例子源码
@@ -89,18 +89,7 @@ move /y XCodeSample*.zip %dest%\%zipfile%
 pushd ..\DLL
 set zipfile=DLL.zip
 del DLL*.zip /f/q
-%zip% %zipfile% *.dll *.exe *.pdb *.xml *.chm
-move /y DLL*.zip %dest%\%zipfile%
-:: 恢复目录
-popd
-
-:: 发布Debug DLL压缩包
-:: 保存当前目录，并切换目录
-pushd ..\DLL\Debug\
-set zipfile=DLL_Debug.zip
-del DLL*.zip /f/q
-set zip=%zipexe% a -m5 -s -z..\..\Src\Readme.txt -ibck
-%zip% %zipfile% *.dll *.exe *.pdb *.xml *.chm
+%zip% %zipfile% *.dll *.exe *.pdb *.xml
 move /y DLL*.zip %dest%\%zipfile%
 :: 恢复目录
 popd
@@ -111,18 +100,7 @@ pushd ..\DLL4
 set zipfile=DLL4.zip
 del DLL*.zip /f/q
 set zip4=%zipexe% a -m5 -s -z..\Src\Readme4.txt -ibck
-%zip4% %zipfile% *.dll *.exe *.pdb *.xml *.chm
-move /y DLL*.zip %dest%\%zipfile%
-:: 恢复目录
-popd
-
-:: 发布Debug DLL4压缩包
-:: 保存当前目录，并切换目录
-pushd ..\DLL4\Debug\
-set zipfile=DLL4_Debug.zip
-del DLL*.zip /f/q
-set zip4=%zipexe% a -m5 -s -z..\..\Src\Readme4.txt -ibck
-%zip4% %zipfile% *.dll *.exe *.pdb *.xml *.chm
+%zip4% %zipfile% *.dll *.exe *.pdb *.xml
 move /y DLL*.zip %dest%\%zipfile%
 :: 恢复目录
 popd
