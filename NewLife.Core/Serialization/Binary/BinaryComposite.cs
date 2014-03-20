@@ -46,7 +46,26 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public override Boolean TryRead(Type type, ref Object value)
         {
-            return false;
+            if (type == null)
+            {
+                if (value == null) return false;
+                type = value.GetType();
+            }
+
+            // 不支持基本类型
+            if (Type.GetTypeCode(type) != TypeCode.Object) return false;
+
+            // 获取成员
+            foreach (var member in GetMembers(type))
+            {
+                var mtype = GetMemberType(member);
+
+                Object v = null;
+                if (!Host.TryRead(mtype, ref v)) return false;
+
+                value.SetValue(member, v);
+            }
+            return true;
         }
 
         #region 获取成员

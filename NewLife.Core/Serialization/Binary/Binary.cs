@@ -171,7 +171,7 @@ namespace NewLife.Serialization
         {
             foreach (var item in Handlers)
             {
-                if (item.Write(value, type)) return true;
+                if (item.TryRead(type, ref value)) return true;
             }
             return false;
         }
