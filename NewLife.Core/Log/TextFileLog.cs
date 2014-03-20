@@ -129,7 +129,8 @@ namespace NewLife.Log
             }
             if (writer == null) throw new XException("无法写入日志！");
 
-            LogFile = logfile;
+            // 这里赋值，会导致log文件名不会随时间而自动改变
+            //LogFile = logfile;
 
             if (!isFirst)
             {
