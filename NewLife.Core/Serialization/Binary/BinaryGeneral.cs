@@ -375,11 +375,12 @@ namespace NewLife.Serialization
 
             if (count <= 0) return null;
 
-            Byte[] buffer = new Byte[count];
-            for (int i = 0; i < count; i++)
-            {
-                buffer[i] = ReadByte();
-            }
+            //Byte[] buffer = new Byte[count];
+            //for (int i = 0; i < count; i++)
+            //{
+            //    buffer[i] = ReadByte();
+            //}
+            var buffer = Host.ReadBytes(count);
 
             return buffer;
         }
@@ -394,7 +395,15 @@ namespace NewLife.Serialization
         /// <summary>读取整数的字节数组，某些写入器（如二进制写入器）可能需要改变字节顺序</summary>
         /// <param name="count">数量</param>
         /// <returns></returns>
-        protected virtual Byte[] ReadIntBytes(Int32 count) { return ReadBytes(count); }
+        protected virtual Byte[] ReadIntBytes(Int32 count)
+        {
+            var buffer = ReadBytes(count);
+
+            // 如果不是小端字节顺序，则倒序
+            if (!Host.IsLittleEndian) Array.Reverse(buffer);
+
+            return buffer;
+        }
 
         /// <summary>从当前流中读取 2 字节有符号整数，并使流的当前位置提升 2 个字节。</summary>
         /// <returns></returns>

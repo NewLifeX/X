@@ -42,6 +42,11 @@ namespace NewLife.Serialization
         /// <returns></returns>
         Byte ReadByte();
 
+        /// <summary>从当前流中将 count 个字节读入字节数组</summary>
+        /// <param name="count">要读取的字节数。</param>
+        /// <returns></returns>
+        Byte[] ReadBytes(int count);
+
         /// <summary>读取大小</summary>
         /// <returns></returns>
         Int32 ReadSize();

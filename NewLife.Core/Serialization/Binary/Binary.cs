@@ -193,6 +193,17 @@ namespace NewLife.Serialization
             return (Byte)b;
         }
 
+        /// <summary>从当前流中将 count 个字节读入字节数组</summary>
+        /// <param name="count">要读取的字节数。</param>
+        /// <returns></returns>
+        public virtual Byte[] ReadBytes(int count)
+        {
+            var buffer = new Byte[count];
+            Stream.Read(buffer, 0, count);
+
+            return buffer;
+        }
+
         /// <summary>读取大小</summary>
         /// <returns></returns>
         public Int32 ReadSize()
