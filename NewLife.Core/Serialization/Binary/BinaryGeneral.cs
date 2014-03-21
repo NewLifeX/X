@@ -81,6 +81,16 @@ namespace NewLife.Serialization
                 Write((Guid)value);
                 return true;
             }
+            else if (type == typeof(Byte[]))
+            {
+                Write((Byte[])value);
+                return true;
+            }
+            else if (type == typeof(Char[]))
+            {
+                Write((Char[])value);
+                return true;
+            }
 
             return false;
         }
@@ -193,7 +203,7 @@ namespace NewLife.Serialization
             if (buffer == null)
             {
                 var size = Host.WriteSize(0);
-                if (size > 0) Host.Write(new Byte[size - buffer.Length]);
+                if (size > 0) Host.Write(new Byte[size - buffer.Length], 0, -1);
             }
             else
             {
@@ -206,7 +216,7 @@ namespace NewLife.Serialization
                     else
                     {
                         Host.Write(buffer, 0, buffer.Length);
-                        Host.Write(new Byte[size - buffer.Length]);
+                        Host.Write(new Byte[size - buffer.Length], 0, -1);
                     }
                 }
                 else
