@@ -189,14 +189,32 @@ namespace NewLife.Serialization
         /// <param name="buffer">包含要写入的数据的字节数组。</param>
         public virtual void Write(byte[] buffer)
         {
+            // 可能因为FieldSize设定需要补充0字节
             if (buffer == null)
             {
-                Host.WriteSize(0);
-                return;
+                var size = Host.WriteSize(0);
+                if (size > 0) Host.Write(new Byte[size - buffer.Length]);
             }
-
-            Host.WriteSize(buffer.Length);
-            Write(buffer, 0, buffer.Length);
+            else
+            {
+                var size = Host.WriteSize(buffer.Length);
+                if (size > 0)
+                {
+                    // 写入数据，超长截断，不足补0
+                    if (buffer.Length >= size)
+                        Host.Write(buffer, 0, size);
+                    else
+                    {
+                        Host.Write(buffer, 0, buffer.Length);
+                        Host.Write(new Byte[size - buffer.Length]);
+                    }
+                }
+                else
+                {
+                    // 非FieldSize写入
+                    Host.Write(buffer, 0, buffer.Length);
+                }
+            }
         }
 
         /// <summary>将一个有符号字节写入当前流，并将流的位置提升 1 个字节。</summary>
@@ -316,13 +334,17 @@ namespace NewLife.Serialization
         {
             if (chars == null)
             {
-                Host.WriteSize(0);
+                //Host.WriteSize(0);
+                // 可能因为FieldSize设定需要补充0字节
+                Write(new Byte[0]);
                 return;
             }
 
             if (chars.Length < 1 || count <= 0 || index >= chars.Length)
             {
-                Host.WriteSize(0);
+                //Host.WriteSize(0);
+                // 可能因为FieldSize设定需要补充0字节
+                Write(new Byte[0]);
                 return;
             }
 

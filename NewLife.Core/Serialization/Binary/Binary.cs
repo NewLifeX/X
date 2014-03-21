@@ -108,29 +108,32 @@ namespace NewLife.Serialization
         /// <summary>写入大小</summary>
         /// <param name="size"></param>
         /// <returns></returns>
-        public void WriteSize(Int32 size)
+        public Int32 WriteSize(Int32 size)
         {
-            if (HasFieldSize()) return;
+            //if (HasFieldSize()) return;
+            var fieldsize = GetFieldSize();
+            if (fieldsize >= 0) return fieldsize;
 
             WriteEncoded(size);
+            return -1;
         }
 
-        Boolean HasFieldSize()
-        {
-            var member = Member as MemberInfo;
-            if (member != null)
-            {
-                // 获取FieldSizeAttribute特性
-                var att = member.GetCustomAttribute<FieldSizeAttribute>();
-                if (att != null)
-                {
-                    // 如果指定了固定大小或者引用字段，直接返回
-                    if (att.Size > 0 || !String.IsNullOrEmpty(att.ReferenceName)) return true;
-                }
-            }
+        //Boolean HasFieldSize()
+        //{
+        //    var member = Member as MemberInfo;
+        //    if (member != null)
+        //    {
+        //        // 获取FieldSizeAttribute特性
+        //        var att = member.GetCustomAttribute<FieldSizeAttribute>();
+        //        if (att != null)
+        //        {
+        //            // 如果指定了固定大小或者引用字段，直接返回
+        //            if (att.Size > 0 || !String.IsNullOrEmpty(att.ReferenceName)) return true;
+        //        }
+        //    }
 
-            return false;
-        }
+        //    return false;
+        //}
 
         /// <summary>
         /// 以7位压缩格式写入32位整数，小于7位用1个字节，小于14位用2个字节。
@@ -208,7 +211,7 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public Int32 ReadSize()
         {
-            var size = GetSize();
+            var size = GetFieldSize();
             if (size >= 0) return size;
 
             var sizeFormat = TypeCode.Int32;
@@ -228,7 +231,7 @@ namespace NewLife.Serialization
             }
         }
 
-        Int32 GetSize()
+        Int32 GetFieldSize()
         {
             var member = Member as MemberInfo;
             if (member != null)

@@ -33,8 +33,9 @@ namespace NewLife.Serialization
         void Write(Byte[] buffer, int offset, int count);
 
         /// <summary>写入大小</summary>
-        /// <param name="size"></param>
-        void WriteSize(Int32 size);
+        /// <param name="size">要写入的大小值</param>
+        /// <returns>返回特性指定的固定长度，如果没有则返回-1</returns>
+        Int32 WriteSize(Int32 size);
         #endregion
 
         #region 读取
