@@ -79,7 +79,7 @@ namespace NewLife.Serialization
         /// <param name="value">目标对象</param>
         /// <param name="type">类型</param>
         /// <returns></returns>
-        public Boolean Write(Object value, Type type = null)
+        public virtual Boolean Write(Object value, Type type = null)
         {
             if (type == null)
             {
@@ -97,7 +97,7 @@ namespace NewLife.Serialization
 
         /// <summary>写入字节</summary>
         /// <param name="value"></param>
-        public void Write(Byte value) { Stream.WriteByte(value); }
+        public virtual void Write(Byte value) { Stream.WriteByte(value); }
 
         /// <summary>将字节数组部分写入当前流，不写入数组长度。</summary>
         /// <param name="buffer">包含要写入的数据的字节数组。</param>
@@ -112,7 +112,7 @@ namespace NewLife.Serialization
         /// <summary>写入大小</summary>
         /// <param name="size"></param>
         /// <returns></returns>
-        public Int32 WriteSize(Int32 size)
+        public virtual Int32 WriteSize(Int32 size)
         {
             //if (HasFieldSize()) return;
             var fieldsize = GetFieldSize();
@@ -121,23 +121,6 @@ namespace NewLife.Serialization
             WriteEncoded(size);
             return -1;
         }
-
-        //Boolean HasFieldSize()
-        //{
-        //    var member = Member as MemberInfo;
-        //    if (member != null)
-        //    {
-        //        // 获取FieldSizeAttribute特性
-        //        var att = member.GetCustomAttribute<FieldSizeAttribute>();
-        //        if (att != null)
-        //        {
-        //            // 如果指定了固定大小或者引用字段，直接返回
-        //            if (att.Size > 0 || !String.IsNullOrEmpty(att.ReferenceName)) return true;
-        //        }
-        //    }
-
-        //    return false;
-        //}
 
         /// <summary>
         /// 以7位压缩格式写入32位整数，小于7位用1个字节，小于14位用2个字节。
@@ -170,7 +153,7 @@ namespace NewLife.Serialization
         /// <summary>读取指定类型对象</summary>
         /// <param name="type"></param>
         /// <returns></returns>
-        public Object Read(Type type)
+        public virtual Object Read(Type type)
         {
             var value = type.CreateInstance();
             if (!TryRead(type, ref value)) throw new Exception("读取失败！");
@@ -182,7 +165,7 @@ namespace NewLife.Serialization
         /// <param name="type"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        public Boolean TryRead(Type type, ref Object value)
+        public virtual Boolean TryRead(Type type, ref Object value)
         {
             foreach (var item in Handlers)
             {
@@ -193,7 +176,7 @@ namespace NewLife.Serialization
 
         /// <summary>读取字节</summary>
         /// <returns></returns>
-        public Byte ReadByte()
+        public virtual Byte ReadByte()
         {
             var b = Stream.ReadByte();
             if (b < 0) throw new Exception("数据流超出范围！");
@@ -213,7 +196,7 @@ namespace NewLife.Serialization
 
         /// <summary>读取大小</summary>
         /// <returns></returns>
-        public Int32 ReadSize()
+        public virtual Int32 ReadSize()
         {
             var size = GetFieldSize();
             if (size >= 0) return size;
