@@ -110,7 +110,15 @@ namespace NewLife.Web
         }
 
         /// <summary>停止输出</summary>
-        public virtual IJs End() { HttpContext.Current.Response.End(); return this; }
+        public virtual IJs End()
+        {
+            //HttpContext.Current.Response.End();
+            // http://www.newlifex.com/showtopic-1106.aspx
+            // 用End引发异常
+            HttpContext.Current.Response.Flush();
+            HttpContext.Current.ApplicationInstance.CompleteRequest();
+            return this;
+        }
 
         /// <summary>后退一步</summary>
         public virtual IJs Back() { return WriteScript("history.go(-1);"); }
