@@ -38,19 +38,21 @@ namespace NewLife.Serialization
             }
 
             Host.Hosts.Push(value);
-            try
-            {
-                // 获取成员
-                foreach (var member in ms)
-                {
-                    var mtype = GetMemberType(member);
-                    Host.Member = member;
 
-                    var v = value.GetValue(member);
-                    if (!Host.Write(v, mtype)) return false;
+            // 获取成员
+            foreach (var member in ms)
+            {
+                var mtype = GetMemberType(member);
+                Host.Member = member;
+
+                var v = value.GetValue(member);
+                if (!Host.Write(v, mtype))
+                {
+                    Host.Hosts.Pop();
+                    return false;
                 }
             }
-            finally { Host.Hosts.Pop(); }
+            Host.Hosts.Pop();
 
             return true;
         }
@@ -71,22 +73,25 @@ namespace NewLife.Serialization
             if (Type.GetTypeCode(type) != TypeCode.Object) return false;
 
             if (value == null) value = type.CreateInstance();
+
             Host.Hosts.Push(value);
-            try
+
+            // 获取成员
+            foreach (var member in GetMembers(type))
             {
-                // 获取成员
-                foreach (var member in GetMembers(type))
+                var mtype = GetMemberType(member);
+                Host.Member = member;
+
+                Object v = null;
+                if (!Host.TryRead(mtype, ref v))
                 {
-                    var mtype = GetMemberType(member);
-                    Host.Member = member;
-
-                    Object v = null;
-                    if (!Host.TryRead(mtype, ref v)) return false;
-
-                    value.SetValue(member, v);
+                    Host.Hosts.Pop();
+                    return false;
                 }
+
+                value.SetValue(member, v);
             }
-            finally { Host.Hosts.Pop(); }
+            Host.Hosts.Pop();
 
             return true;
         }
