@@ -67,9 +67,9 @@
             // 
             // txtPrefix
             // 
-            this.txtPrefix.Location = new System.Drawing.Point(66, 21);
+            this.txtPrefix.Location = new System.Drawing.Point(75, 21);
             this.txtPrefix.Name = "txtPrefix";
-            this.txtPrefix.Size = new System.Drawing.Size(243, 23);
+            this.txtPrefix.Size = new System.Drawing.Size(226, 23);
             this.txtPrefix.TabIndex = 36;
             // 
             // cbCutPrefix
