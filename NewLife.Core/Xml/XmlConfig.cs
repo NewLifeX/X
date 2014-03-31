@@ -49,6 +49,8 @@ namespace NewLife.Xml
                     {
                         config = new TConfig();
                         config.ConfigFile = _.ConfigFile.GetFullPath();
+                        config.SetExpire();  // 设定过期时间
+                        config.OnLoaded();
 
                         // 创建或覆盖
                         XTrace.WriteLine("{0}的配置文件{1}不存在或加载出错，准备用默认配置覆盖！", typeof(TConfig).Name, _.ConfigFile);
@@ -166,8 +168,13 @@ namespace NewLife.Xml
             {
                 // 这里必须在加载后即可设置过期时间和最后写入时间，否则下一次访问的时候，IsUpdated会报告文件已更新
                 var fi = new FileInfo(ConfigFile);
-                fi.Refresh();
-                lastWrite = fi.LastWriteTime;
+                if (fi.Exists)
+                {
+                    fi.Refresh();
+                    lastWrite = fi.LastWriteTime;
+                }
+                else
+                    lastWrite = DateTime.Now;
                 expire = DateTime.Now.AddMilliseconds(_.ReloadTime);
             }
         }
