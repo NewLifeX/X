@@ -16,9 +16,15 @@ namespace NewLife.Collections
     public class ObjectPool<T> : DisposeBase //where T : new()
     {
         #region 属性
+#if NET4
+        private ConcurrentStack<T> _Stock;
+        /// <summary>在库</summary>
+        public ConcurrentStack<T> Stock { get { return _Stock; } set { _Stock = value; } }
+#else
         private IStack<T> _Stock;
         /// <summary>在库</summary>
         public IStack<T> Stock { get { return _Stock; } set { _Stock = value; } }
+#endif
 
         private Int32 _Max = 1000;
         /// <summary>最大缓存数。默认1000，超过后将启用定时器来清理</summary>
@@ -116,8 +122,9 @@ namespace NewLife.Collections
             // 把超标的全部清了
             while (stack.Count > Max)
             {
-                var obj = stack.Pop() as IDisposable;
-                if (obj != null) obj.Dispose();
+                //var obj = stack.Pop() as IDisposable;
+                //if (obj != null) obj.Dispose();
+                state.TryDispose();
 
                 Interlocked.Increment(ref _FreeCount);
             }
@@ -143,7 +150,8 @@ namespace NewLife.Collections
                 // 释放托管资源
                 if (_Stock != null)
                 {
-                    _Stock.Dispose();
+                    //_Stock.Dispose();
+                    _Stock.TryDispose();
                     _Stock = null;
                 }
             }

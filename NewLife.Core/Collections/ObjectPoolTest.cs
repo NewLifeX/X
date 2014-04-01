@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using NewLife.Log;
 
+#if !NET4
 namespace NewLife.Collections
 {
     /// <summary>对象池测试</summary>
@@ -117,3 +118,4 @@ namespace NewLife.Collections
         }
     }
 }
+#endif
