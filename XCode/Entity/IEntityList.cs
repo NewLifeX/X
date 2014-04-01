@@ -68,6 +68,11 @@ namespace XCode
         /// <returns></returns>
         Int32 Save(Boolean useTransition);
 
+				/// <summary>把整个保存更新到数据库，保存时不需要验证</summary>
+				/// <param name="useTransition">是否使用事务保护</param>
+				/// <returns></returns>
+				Int32 SaveWithoutValid(Boolean useTransition);
+
         /// <summary>把整个集合从数据库中删除</summary>
         /// <param name="useTransition">是否使用事务保护</param>
         /// <returns></returns>

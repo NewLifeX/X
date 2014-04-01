@@ -390,7 +390,7 @@ namespace XCode
         /// <summary>把整个集合插入到数据库</summary>
         /// <param name="useTransition">是否使用事务保护</param>
         /// <returns></returns>
-        public Int32 Insert(Boolean useTransition = true) { return DoAction(true, e => e.Insert()); }
+				public Int32 Insert(Boolean useTransition = true) { return DoAction(useTransition, e => e.Insert()); }
 
         /// <summary>把整个集合插入到数据库</summary>
         /// <returns></returns>
@@ -399,7 +399,7 @@ namespace XCode
         /// <summary>把整个集合更新到数据库</summary>
         /// <param name="useTransition">是否使用事务保护</param>
         /// <returns></returns>
-        public Int32 Update(Boolean useTransition = true) { return DoAction(true, e => e.Update()); }
+				public Int32 Update(Boolean useTransition = true) { return DoAction(useTransition, e => e.Update()); }
 
         /// <summary>把整个集合更新到数据库</summary>
         /// <returns></returns>
@@ -408,16 +408,25 @@ namespace XCode
         /// <summary>把整个保存更新到数据库</summary>
         /// <param name="useTransition">是否使用事务保护</param>
         /// <returns></returns>
-        public Int32 Save(Boolean useTransition = true) { return DoAction(true, e => e.Save()); }
+				public Int32 Save(Boolean useTransition = true) { return DoAction(useTransition, e => e.Save()); }
 
         /// <summary>把整个集合保存到数据库</summary>
         /// <returns></returns>
         public Int32 Save() { return Save(true); }
 
+				/// <summary>把整个保存更新到数据库，保存时不需要验证</summary>
+				/// <param name="useTransition">是否使用事务保护</param>
+				/// <returns></returns>
+				public Int32 SaveWithoutValid(Boolean useTransition = true) { return DoAction(useTransition, e => e.SaveWithoutValid()); }
+
+				/// <summary>把整个集合保存到数据库，保存时不需要验证</summary>
+				/// <returns></returns>
+				public Int32 SaveWithoutValid() { return SaveWithoutValid(true); }
+
         /// <summary>把整个集合从数据库中删除</summary>
         /// <param name="useTransition">是否使用事务保护</param>
         /// <returns></returns>
-        public Int32 Delete(Boolean useTransition = true) { return DoAction(true, e => e.Delete()); }
+				public Int32 Delete(Boolean useTransition = true) { return DoAction(useTransition, e => e.Delete()); }
 
         /// <summary>把整个集合从数据库中删除</summary>
         /// <returns></returns>
