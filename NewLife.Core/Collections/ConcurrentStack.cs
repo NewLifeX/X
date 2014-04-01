@@ -1,10 +1,12 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
+using NewLife;
+using NewLife.Collections;
+using NewLife.Threading;
 
-namespace NewLife.Collections
+#if !NET4
+namespace System.Collections.Concurrent
 {
     /// <summary>先进先出LIFO的原子栈结构，采用CAS保证线程安全。利用单链表实现。</summary>
     /// <remarks>
@@ -17,7 +19,7 @@ namespace NewLife.Collections
     /// <typeparam name="T"></typeparam>
     [Serializable]
     [DebuggerDisplay("Count = {Count}")]
-    public class InterlockedStack<T> : DisposeBase, IStack<T>, IEnumerable<T>, ICollection, IEnumerable
+    public class ConcurrentStack<T> : DisposeBase, IStack<T>, IEnumerable<T>, ICollection, IEnumerable
     {
         #region 属性
         /// <summary>栈顶</summary>
@@ -27,12 +29,32 @@ namespace NewLife.Collections
         /// <summary>元素个数</summary>
         public Int32 Count { get { return _Count; } }
 
+        /// <summary>是否空</summary>
+        public Boolean IsEmpty { get { return Top == null; } }
+
         private Boolean _UseNodePool;
         /// <summary>是否使用节点池。采用节点池可以避免分配节点造成的GC压力，但是会让性能有所降低。</summary>
         public Boolean UseNodePool { get { return _UseNodePool; } set { _UseNodePool = value; } }
         #endregion
 
         #region 构造
+        /// <summary>实例化</summary>
+        public ConcurrentStack() { }
+
+        /// <summary>使用一个集合初始化</summary>
+        /// <param name="collection"></param>
+        public ConcurrentStack(IEnumerable<T> collection)
+        {
+            SingleListNode<T> node = null;
+            foreach (T local in collection)
+            {
+                var node2 = new SingleListNode<T>(local);
+                node2.Next = node;
+                node = node2;
+            }
+            Top = node;
+        }
+
         /// <summary>子类重载实现资源释放逻辑时必须首先调用基类方法</summary>
         /// <param name="disposing">从Dispose调用（释放所有资源）还是析构函数调用（释放非托管资源）</param>
         protected override void OnDispose(bool disposing)
@@ -52,32 +74,59 @@ namespace NewLife.Collections
         {
             Debug.Assert(item != null);
 
-            //SingleListNode<T> newTop = PopNode(item);
-            SingleListNode<T> newTop = UseNodePool ? PopNode(item) : new SingleListNode<T>(item);
-            SingleListNode<T> oldTop;
-            //SpinWait sw = null;
-            while (true)
-            {
-                // 记住当前栈顶
-                oldTop = Top;
-
-                // 设置新对象的下一个节点为当前栈顶
-                newTop.Next = oldTop;
-
-                // 比较并交换
-                // 如果当前栈顶第一个参数的Top等于第三个参数，表明没有被别的线程修改，保存第二参数到第一参数中
-                // 否则，不相等表明当前栈顶已经被修改过，操作失败，执行循环
-                if (Interlocked.CompareExchange<SingleListNode<T>>(ref Top, newTop, oldTop) == oldTop) break;
-
-                Thread.SpinWait(1);
-                //if (sw == null) sw = new SpinWait();
-                //sw.SpinOnce();
-            }
+            var node = CreateNode(item);
+            // 设置新对象的下一个节点为当前栈顶
+            node.Next = Top;
+            if (Interlocked.CompareExchange(ref Top, node, node.Next) != node.Next) this.PushCore(node, node);
 
             Interlocked.Increment(ref _Count);
 
             // 数量较多时，自动采用节点池
             if (!UseNodePool && _Count > 100) UseNodePool = true;
+        }
+
+        /// <summary>向栈压入一个对象数组</summary>
+        /// <param name="items"></param>
+        /// <param name="startIndex"></param>
+        /// <param name="count"></param>
+        public void PushRange(T[] items, int startIndex = 0, int count = -1)
+        {
+            if (items == null) throw new ArgumentNullException("items");
+            if (count < 0) count = items.Length - startIndex;
+
+            if (count == 0) return;
+
+            var head = CreateNode(items[startIndex]);
+            var tail = head;
+            for (int i = startIndex + 1; i < startIndex + count; i++)
+            {
+                var node = CreateNode(items[i]);
+                node.Next = head;
+                head = node;
+            }
+            tail.Next = Top;
+            if (Interlocked.CompareExchange(ref Top, head, tail.Next) != tail.Next) this.PushCore(head, tail);
+
+            Interlocked.Add(ref _Count, count);
+
+            // 数量较多时，自动采用节点池
+            if (!UseNodePool && _Count > 100) UseNodePool = true;
+        }
+
+        private void PushCore(SingleListNode<T> head, SingleListNode<T> tail)
+        {
+            var wait = new SpinWait();
+            do
+            {
+                wait.SpinOnce();
+
+                // 设置新对象的下一个节点为当前栈顶
+                tail.Next = Top;
+            }
+            // 比较并交换
+            // 如果当前栈顶第一个参数的Top等于第三个参数，表明没有被别的线程修改，保存第二参数到第一参数中
+            // 否则，不相等表明当前栈顶已经被修改过，操作失败，执行循环
+            while (Interlocked.CompareExchange(ref Top, head, tail.Next) != tail.Next);
         }
 
         /// <summary>从栈中弹出一个对象</summary>
@@ -115,7 +164,7 @@ namespace NewLife.Collections
                 // 比较并交换
                 // 如果当前栈顶第一个参数的Top等于第三个参数，表明没有被别的线程修改，保存第二参数到第一参数中
                 // 否则，不相等表明当前栈顶已经被修改过，操作失败，执行循环
-                if (Interlocked.CompareExchange<SingleListNode<T>>(ref Top, newTop, oldTop) == oldTop) break;
+                if (Interlocked.CompareExchange(ref Top, newTop, oldTop) == oldTop) break;
 
                 Thread.SpinWait(1);
                 //if (sw == null) sw = new SpinWait();
@@ -172,6 +221,8 @@ namespace NewLife.Collections
 
         const Int32 MaxFreeCount = 100;
 
+        SingleListNode<T> CreateNode(T item) { return UseNodePool ? PopNode(item) : new SingleListNode<T>(item); }
+
         SingleListNode<T> PopNode(T item)
         {
             SingleListNode<T> newTop;
@@ -186,7 +237,7 @@ namespace NewLife.Collections
                 // 设置新栈顶为当前栈顶的下一个节点
                 newTop = oldTop.Next;
 
-                if (Interlocked.CompareExchange<SingleListNode<T>>(ref FreeTop, newTop, oldTop) == oldTop) break;
+                if (Interlocked.CompareExchange(ref FreeTop, newTop, oldTop) == oldTop) break;
 
                 Thread.SpinWait(1);
                 //if (sw == null) sw = new SpinWait();
@@ -209,18 +260,17 @@ namespace NewLife.Collections
             //// 如果自由节点太多，就不要了
             //if (FreeCount > MaxFreeCount) return;
 
-            SingleListNode<T> newTop = node;
-            SingleListNode<T> oldTop;
+            var newTop = node;
             //SpinWait sw = null;
             while (true)
             {
                 // 记住当前
-                oldTop = FreeTop;
+                var oldTop = FreeTop;
 
                 // 设置新对象的下一个节点为当前栈顶
                 newTop.Next = oldTop;
 
-                if (Interlocked.CompareExchange<SingleListNode<T>>(ref FreeTop, newTop, oldTop) == oldTop) break;
+                if (Interlocked.CompareExchange(ref FreeTop, newTop, oldTop) == oldTop) break;
 
                 Thread.SpinWait(1);
                 //if (sw == null) sw = new SpinWait();
@@ -239,27 +289,33 @@ namespace NewLife.Collections
             _Count = 0;
             Top = null;
 
-            for (var node = top; node != null; )
+            for (var node = top; node != null; node = node.Next)
             {
-                top = node;
-                node = node.Next;
-
-                // 断开关系链，避免内存泄漏
-                top.Next = null;
-                top.Item = default(T);
+                if (UseNodePool)
+                    PushNode(node);
+                else
+                {
+                    // 断开关系链，避免内存泄漏
+                    node.Next = null;
+                    node.Item = default(T);
+                }
             }
         }
 
         /// <summary>转为数组</summary>
         /// <returns></returns>
-        public T[] ToArray()
-        {
-            if (Count < 1) return null;
+        public T[] ToArray() { return ToList().ToArray(); }
 
-            T[] arr = new T[Count];
-            ((ICollection)this).CopyTo(arr, 0);
-            return arr;
+        private List<T> ToList()
+        {
+            var list = new List<T>();
+            for (var node = Top; node != null; node = node.Next)
+            {
+                list.Add(node.Item);
+            }
+            return list;
         }
+
         #endregion
 
         #region ICollection 成员
@@ -298,3 +354,4 @@ namespace NewLife.Collections
         #endregion
     }
 }
+#endif

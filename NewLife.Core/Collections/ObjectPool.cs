@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Threading;
 using NewLife.Log;
@@ -40,7 +41,7 @@ namespace NewLife.Collections
 
         #region 构造
         /// <summary>实例化一个对象池</summary>
-        public ObjectPool() { Stock = new InterlockedStack<T>(); }
+        public ObjectPool() { Stock = new ConcurrentStack<T>(); }
         #endregion
 
         #region 事件

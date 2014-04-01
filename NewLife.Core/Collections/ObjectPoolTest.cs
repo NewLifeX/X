@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using NewLife.Log;
@@ -16,9 +17,9 @@ namespace NewLife.Collections
             var pool1 = new ObjectPool<T>();
             pool1.Stock = new SafeStack<T>(max);
             var pool2 = new ObjectPool<T>();
-            pool2.Stock = new InterlockedStack<T>();
+            pool2.Stock = new ConcurrentStack<T>();
             var pool3 = new ObjectPool<T>();
-            pool3.Stock = new InterlockedStack<T>() { UseNodePool = true };
+            pool3.Stock = new ConcurrentStack<T>() { UseNodePool = true };
             var pool4 = new ObjectPool<T>();
             pool4.Stock = new LockStack<T>();
 

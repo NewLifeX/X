@@ -30,10 +30,12 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“内部版本号”和“修订号”的默认值，
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("4.1.*")]
-[assembly: AssemblyFileVersion("4.1.2014.0307")]
+[assembly: AssemblyVersion("4.2.*")]
+[assembly: AssemblyFileVersion("4.2.2014.0401")]
 
 /*
+ * v4.2.2014.0401   增加并行字典、并行栈、并行队列
+ * 
  * v4.1.2014.0307   修正XmlConfig中因逻辑错误导致频繁重新加载配置的错误
  * 
  * v4.1.2014.0219   增加UrlRewrite模块，允许集成扩展

@@ -7,7 +7,7 @@ namespace NewLife.Collections
 {
     /// <summary>基于数组实现的线程安全栈。快速高效，不会形成内存碎片。</summary>
     /// <remarks>
-    /// 链表做的原子栈<see cref="InterlockedStack&lt;T&gt;"/>，本来是为了做对象池用的，但是链表节点自身也会形成内存碎片，给GC压力，十分纠结。
+    /// 链表做的原子栈<see cref="System.Collections.Concurrent.ConcurrentStack&lt;T&gt;"/>，本来是为了做对象池用的，但是链表节点自身也会形成内存碎片，给GC压力，十分纠结。
     /// 一直认为用数组做存储是效率最好的，但是纠结于无法实现原子操作，而迟迟不敢动手。
     /// 
     /// 最好指定初始容量，因为采用数组作为存储结构最大的缺点就是容量固定，从而导致满存储时必须重新分配数组，并且复制。

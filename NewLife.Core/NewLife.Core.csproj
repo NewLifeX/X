@@ -71,6 +71,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Collections\CollectionHelper.cs" />
+    <Compile Include="Collections\ConcurrentDictionary.cs" />
+    <Compile Include="Collections\ConcurrentQueue.cs" />
     <Compile Include="Collections\DictionaryCache.cs" />
     <Compile Include="Collections\HashSet.cs" />
     <Compile Include="Collections\IStack.cs" />
@@ -80,7 +83,7 @@
     <Compile Include="Collections\ObjectPoolTest.cs" />
     <Compile Include="Collections\SafeStack.cs" />
     <Compile Include="Collections\SingleListNode.cs" />
-    <Compile Include="Collections\InterlockedStack.cs" />
+    <Compile Include="Collections\ConcurrentStack.cs" />
     <Compile Include="Collections\WeakRefDictionary.cs" />
     <Compile Include="Common\PinYin.cs" />
     <Compile Include="Common\Runtime.cs" />

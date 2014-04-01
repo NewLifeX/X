@@ -8,19 +8,11 @@ namespace NewLife.Collections
     {
         private T _Item;
         /// <summary>元素</summary>
-        public T Item
-        {
-            get { return _Item; }
-            set { _Item = value; }
-        }
+        public T Item { get { return _Item; } set { _Item = value; } }
 
         private SingleListNode<T> _Next;
         /// <summary>下一个节点</summary>
-        public SingleListNode<T> Next
-        {
-            get { return _Next; }
-            set { _Next = value; }
-        }
+        public SingleListNode<T> Next { get { return _Next; } set { _Next = value; } }
 
         /// <summary>初始化</summary>
         public SingleListNode() { }
