@@ -50,6 +50,12 @@ namespace XCode.Cache
             }
             set { _FindKeyMethod = value; }
         }
+        /// <summary>查找数据的方法，内部使用</summary>
+        internal FindKeyDelegate<TKey, TEntity> FindKeyMethodInternal
+        {
+            get { return _FindKeyMethod; }
+            set { _FindKeyMethod = value; }
+        }
 
         //private Boolean _Asynchronous;
         ///// <summary>异步更新</summary>

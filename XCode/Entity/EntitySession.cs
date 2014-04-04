@@ -267,7 +267,19 @@ namespace XCode
             get
             {
                 // 以连接名和表名为key，因为不同的库不同的表，缓存也不一样
-                return _singleCache ?? (_singleCache = new SingleEntityCache<Object, TEntity> { ConnName = ConnName, TableName = TableName });
+                //return _singleCache ?? (_singleCache = new SingleEntityCache<Object, TEntity> { ConnName = ConnName, TableName = TableName });
+                if (_singleCache == null)
+                {
+                    _singleCache = new SingleEntityCache<Object, TEntity>();
+                    _singleCache.ConnName = ConnName;
+                    _singleCache.TableName = TableName;
+                    _singleCache.Expriod = Entity<TEntity>.Meta.SingleEntityCacheExpriod;
+                    _singleCache.MaxEntity = Entity<TEntity>.Meta.SingleEntityCacheMaxEntity;
+                    _singleCache.AutoSave = Entity<TEntity>.Meta.SingleEntityCacheAutoSave;
+                    _singleCache.AllowNull = Entity<TEntity>.Meta.SingleEntityCacheAllowNull;
+                    _singleCache.FindKeyMethodInternal = Entity<TEntity>.Meta.SingleEntityCacheFindKeyMethod;
+                }
+                return _singleCache;
             }
         }
 
