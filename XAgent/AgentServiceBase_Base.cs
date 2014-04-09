@@ -50,8 +50,8 @@ namespace XAgent
                 //filename = Assembly.GetExecutingAssembly().Location;
                 //return filename;
                 //String filename = Assembly.GetEntryAssembly().Location;
-                Process p = Process.GetCurrentProcess();
-                String filename = p.MainModule.FileName;
+                var p = Process.GetCurrentProcess();
+                var filename = p.MainModule.FileName;
                 filename = Path.GetFileName(filename);
                 filename = filename.Replace(".vshost.", ".");
                 return filename;
@@ -106,29 +106,6 @@ namespace XAgent
                 if (_Intervals != null) return _Intervals;
 
                 _Intervals = Config.GetConfigSplit<Int32>("XAgent.Interval", null, Config.GetConfigSplit<Int32>("Interval", null, new Int32[] { 60 }));
-                //if (_Intervals == null) _Intervals = new Int32[] { 60 };
-
-                //String str = Config.GetConfig<String>("XAgent.Interval", Config.GetConfig<String>("Interval"));
-                //if (String.IsNullOrEmpty(str))
-                //{
-                //    _Intervals = new Int32[] { 60 };
-                //}
-                //else
-                //{
-                //    String[] ss = str.Split(new Char[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries);
-                //    List<Int32> list = new List<Int32>(ss.Length);
-                //    foreach (String item in ss)
-                //    {
-                //        str = item.Trim();
-                //        if (String.IsNullOrEmpty(str)) continue;
-
-                //        Int32 result = 60;
-                //        if (!Int32.TryParse(str, out result)) result = 60;
-                //        if (result <= 0) result = 60;
-                //        list.Add(result);
-                //    }
-                //    _Intervals = list.ToArray();
-                //}
                 return _Intervals;
             }
             set { _Intervals = value; }
@@ -189,7 +166,8 @@ namespace XAgent
         public static void Install(Boolean isinstall)
         {
             var name = AgentServiceName.Replace(" ", "_");
-            WriteLine("在win7/win2008及更高系统中，可能需要管理员权限执行才能安装/卸载服务。");
+            // win7及以上系统时才提示
+            if (Environment.OSVersion.Version.Major >= 6) WriteLine("在win7/win2008及更高系统中，可能需要管理员权限执行才能安装/卸载服务。");
             if (isinstall)
             {
                 RunSC("create " + name + " BinPath= \"" + Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ExeName) + " -s\" start= auto DisplayName= \"" + AgentDisplayName + "\"");
@@ -221,9 +199,9 @@ namespace XAgent
         {
             WriteLine("RunCmd " + cmd);
 
-            Process p = new Process();
-            ProcessStartInfo si = new ProcessStartInfo();
-            String path = Environment.SystemDirectory;
+            var p = new Process();
+            var si = new ProcessStartInfo();
+            var path = Environment.SystemDirectory;
             path = Path.Combine(path, @"cmd.exe");
             si.FileName = path;
             if (!cmd.StartsWith(@"/")) cmd = @"/c " + cmd;
@@ -239,7 +217,7 @@ namespace XAgent
             {
                 p.WaitForExit();
 
-                String str = p.StandardOutput.ReadToEnd();
+                var str = p.StandardOutput.ReadToEnd();
                 if (!String.IsNullOrEmpty(str)) WriteLine(str.Trim(new Char[] { '\r', '\n', '\t' }).Trim());
                 str = p.StandardError.ReadToEnd();
                 if (!String.IsNullOrEmpty(str)) WriteLine(str.Trim(new Char[] { '\r', '\n', '\t' }).Trim());
@@ -250,7 +228,7 @@ namespace XAgent
         /// <param name="cmd"></param>
         protected static void RunSC(String cmd)
         {
-            String path = Environment.SystemDirectory;
+            var path = Environment.SystemDirectory;
             path = Path.Combine(path, @"sc.exe");
             if (!File.Exists(path)) path = "sc.exe";
             if (!File.Exists(path)) return;
@@ -294,7 +272,7 @@ namespace XAgent
             if (list == null || list.Count < 1) return null;
 
             //return list.Find(delegate(ServiceController item) { return item.ServiceName == name; });
-            foreach (ServiceController item in list)
+            foreach (var item in list)
             {
                 if (item.ServiceName == name) return item;
             }
@@ -351,6 +329,7 @@ namespace XAgent
         internal static void RunUI()
         {
             FreeConsole();
+
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new FrmMain());
