@@ -352,108 +352,17 @@ namespace NewLife.Reflection
 
         private static Type GetTypeInternal(String typeName, Boolean isLoadAssembly)
         {
-            if (String.IsNullOrEmpty(typeName)) throw new ArgumentNullException("typeName");
+            //if (String.IsNullOrEmpty(typeName)) throw new ArgumentNullException("typeName");
 
             // 基本获取
             var type = Type.GetType(typeName);
             if (type != null) return type;
 
-            #region 处理泛型
-            var start = typeName.IndexOf("<");
-            if (start > 0)
-            {
-                var end = typeName.LastIndexOf(">");
-                // <>也不行
-                if (end > start + 1)
-                {
-                    // GT<P1,P2,P3,P4>
-                    var gname = typeName.Substring(0, start);
-                    var pname = typeName.Substring(start + 1, end - start - 1);
-                    //pname = "P1,P2<aa,bb>,P3,P4";
-                    var pnames = new List<String>();
+            // 处理泛型
+            if (typeName[typeName.Length - 1] == '>') return GetGenericType(typeName, isLoadAssembly);
 
-                    // 只能用栈来分析泛型参数了
-                    var count = 0;
-                    var last = 0;
-                    for (var i = 0; i < pname.Length; i++)
-                    {
-                        var item = pname[i];
-
-                        if (item == '<')
-                            count++;
-                        else if (item == '>')
-                            count--;
-                        else if (item == ',' && count == 0)
-                        {
-                            pnames.Add(pname.Substring(last, i - last).Trim());
-                            last = i + 1;
-                        }
-                    }
-                    if (last <= pname.Length) pnames.Add(pname.Substring(last, pname.Length - last).Trim());
-
-                    gname += "`" + pnames.Count;
-
-                    // 先找外部的，如果外部都找不到，那就没意义了
-                    var gt = GetType(gname, isLoadAssembly);
-                    if (gt == null) return null;
-
-                    var ts = new List<Type>(pnames.Count);
-                    foreach (var item in pnames)
-                    {
-                        // 如果任何一个参数为空，说明这只是一个泛型定义而已
-                        if (String.IsNullOrEmpty(item)) return gt;
-
-                        var t = GetType(item, isLoadAssembly);
-                        if (t == null) return null;
-
-                        ts.Add(t);
-                    }
-
-                    return gt.MakeGenericType(ts.ToArray());
-                }
-            }
-            #endregion
-
-            #region 处理数组   有可能是   aa [[ dddd ]]  ,也有可能是  aa[dddd]
-            //因Json.cs 序列化Dictionary或泛型数组 导致报错，追踪至此作了调整，只是优化了算法，应该不会产生后果  (上海石头 2013.4.8)
-            bool blnFlag = false;
-            start = typeName.LastIndexOf("[[");
-            if (start > 0) blnFlag = true;
-            if (start < 0) start = typeName.LastIndexOf("[");
-            if (start > 0)
-            {
-                Int32 end = typeName.LastIndexOf("]]");
-                if (end < 0) end = typeName.LastIndexOf("]");
-                if (end > start)
-                {
-                    // Int32[][]  String[,,]
-                    var gname = typeName.Substring(0, start);
-                    var pname = "";
-                    if (blnFlag == false)
-                        pname = typeName.Substring(start + 1, end - start - 1);
-                    else
-                        pname = typeName.Substring(start + 2, end - start - 2);
-
-                    // 先找外部的，如果外部都找不到，那就没意义了
-                    var gt = GetType(gname, isLoadAssembly);
-                    if (gt == null) return null;
-
-                    if (String.IsNullOrEmpty(pname)) return gt.MakeArrayType();
-
-                    //pname = ",,,";
-                    var pnames = pname.Split(new Char[] { ',' });
-                    if (pnames == null || pnames.Length < 1) return gt.MakeArrayType();
-
-                    if (gt.IsGenericType == true)   //如果是泛型对象
-                    {
-                        Type[] tmpType = { Type.GetType(pnames[0]) };
-                        return gt.MakeGenericType(tmpType);
-                    }
-                    else
-                        return gt.MakeArrayType(pnames.Length);
-                }
-            }
-            #endregion
+            // 处理数组   有可能是   aa [[ dddd ]]  ,也有可能是  aa[dddd]
+            if (typeName[typeName.Length - 1] == ']') return GetArrayType(typeName, isLoadAssembly);
 
             // 处理内嵌类型
 
@@ -483,6 +392,7 @@ namespace NewLife.Reflection
                 if (type != null) return type;
             }
 
+            // 尝试加载只读程序集
             if (isLoadAssembly)
             {
                 foreach (var asm in AssemblyX.ReflectionOnlyGetAssemblies())
@@ -508,16 +418,105 @@ namespace NewLife.Reflection
                 }
             }
 
-            //// 尝试系统的
-            //if (!typeName.Contains("."))
-            //{
-            //    type = Type.GetType("System." + typeName);
-            //    if (type != null) return type;
-            //    type = Type.GetType("NewLife." + typeName);
-            //    if (type != null) return type;
-            //}
-
             return null;
+        }
+
+        private static Type GetGenericType(String typeName, Boolean isLoadAssembly)
+        {
+            var start = typeName.IndexOf("<");
+            if (start <= 0) return null;
+
+            var end = typeName.LastIndexOf(">");
+            // <>也不行
+            if (end <= start + 1 || end != typeName.Length - 1) return null;
+
+            // GT<P1,P2,P3,P4>
+            var gname = typeName.Substring(0, start);
+            var pname = typeName.Substring(start + 1, end - start - 1);
+            //pname = "P1,P2<aa,bb>,P3,P4";
+            var pnames = new List<String>();
+
+            // 因为泛型参数里面还可能含有泛型，只能用栈来分析泛型参数了
+            var count = 0;
+            var last = 0;
+            for (var i = 0; i < pname.Length; i++)
+            {
+                var item = pname[i];
+
+                if (item == '<')
+                    count++;
+                else if (item == '>')
+                    count--;
+                else if (item == ',' && count == 0)
+                {
+                    pnames.Add(pname.Substring(last, i - last).Trim());
+                    last = i + 1;
+                }
+            }
+            if (last <= pname.Length) pnames.Add(pname.Substring(last, pname.Length - last).Trim());
+
+            // 泛型定义名称等于泛型类名加上参数数量
+            gname += "`" + pnames.Count;
+
+            // 先找外部的，如果外部都找不到，那就没意义了
+            var gt = GetType(gname, isLoadAssembly);
+            if (gt == null) return null;
+
+            var ts = new List<Type>(pnames.Count);
+            foreach (var item in pnames)
+            {
+                // 如果任何一个参数为空，说明这只是一个泛型定义而已
+                if (String.IsNullOrEmpty(item)) return gt;
+
+                var t = GetType(item, isLoadAssembly);
+                if (t == null) return null;
+
+                ts.Add(t);
+            }
+
+            return gt.MakeGenericType(ts.ToArray());
+        }
+
+        private static Type GetArrayType(String typeName, Boolean isLoadAssembly)
+        {
+            // 处理数组   有可能是   aa [[ dddd ]]  ,也有可能是  aa[dddd]
+            // 因Json.cs 序列化Dictionary或泛型数组 导致报错，追踪至此作了调整，只是优化了算法，应该不会产生后果  (上海石头 2013.4.8)
+            bool blnFlag = false;
+            var start = typeName.LastIndexOf("[[");
+            if (start > 0) blnFlag = true;
+            if (start < 0) start = typeName.LastIndexOf("[");
+            if (start > 0) return null;
+
+            Int32 end = typeName.LastIndexOf("]]");
+            if (end < 0) end = typeName.LastIndexOf("]");
+            if (end > start) return null;
+
+            // Int32[][]  String[,,]
+            var gname = typeName.Substring(0, start);
+            var pname = "";
+            if (blnFlag == false)
+                pname = typeName.Substring(start + 1, end - start - 1);
+            else
+                pname = typeName.Substring(start + 2, end - start - 2);
+
+            // 先找外部的，如果外部都找不到，那就没意义了
+            var gt = GetType(gname, isLoadAssembly);
+            if (gt == null) return null;
+
+            if (String.IsNullOrEmpty(pname)) return gt.MakeArrayType();
+
+            //pname = ",,,";
+            var pnames = pname.Split(new Char[] { ',' });
+            if (pnames == null || pnames.Length < 1) return gt.MakeArrayType();
+
+            if (gt.IsGenericType == true)   //如果是泛型对象
+            {
+                //Type[] tmpType = { Type.GetType(pnames[0]) };
+                //return gt.MakeGenericType(tmpType);
+                return gt.MakeGenericType(pnames.Select(n => GetType(n, isLoadAssembly)).ToArray());
+            }
+            else
+                return gt.MakeArrayType(pnames.Length);
         }
         #endregion
 

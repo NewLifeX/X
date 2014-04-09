@@ -116,12 +116,7 @@ namespace NewLife.Reflection
 
         static AssemblyX()
         {
-            AppDomain.CurrentDomain.ReflectionOnlyAssemblyResolve += new ResolveEventHandler(CurrentDomain_ReflectionOnlyAssemblyResolve);
-        }
-
-        static Assembly CurrentDomain_ReflectionOnlyAssemblyResolve(object sender, ResolveEventArgs args)
-        {
-            return Assembly.ReflectionOnlyLoad(args.Name);
+            AppDomain.CurrentDomain.ReflectionOnlyAssemblyResolve += (sender, args) => Assembly.ReflectionOnlyLoad(args.Name);
         }
         #endregion
 
@@ -445,14 +440,39 @@ namespace NewLife.Reflection
 
         private static ICollection<String> _AssemblyPaths;
         /// <summary>程序集目录集合</summary>
-        public static ICollection<String> AssemblyPaths { get { return _AssemblyPaths ?? (_AssemblyPaths = new HashSet<String>(StringComparer.OrdinalIgnoreCase)); } set { _AssemblyPaths = value; } }
+        public static ICollection<String> AssemblyPaths
+        {
+            get
+            {
+                if (_AssemblyPaths == null)
+                {
+                    var set = new HashSet<String>(StringComparer.OrdinalIgnoreCase);
+
+                    set.Add(AppDomain.CurrentDomain.BaseDirectory);
+                    if (HttpRuntime.AppDomainId != null) set.Add(HttpRuntime.BinDirectory);
+
+                    // 增加所有程序集所在目录为搜索目录，便于查找程序集
+                    foreach (var asm in GetAssemblies())
+                    {
+                        if (String.IsNullOrEmpty(asm.Location)) continue;
+
+                        var dir = Path.GetDirectoryName(asm.Location).EnsureEnd("\\");
+                        if (!set.Contains(dir)) set.Add(dir);
+                    }
+
+                    _AssemblyPaths = set;
+                }
+                return _AssemblyPaths;
+            }
+            set { _AssemblyPaths = value; }
+        }
 
         /// <summary>获取当前程序域所有只反射程序集的辅助类</summary>
         /// <returns></returns>
         public static IEnumerable<AssemblyX> ReflectionOnlyGetAssemblies()
         {
-            var path = AppDomain.CurrentDomain.BaseDirectory;
-            if (HttpRuntime.AppDomainId != null) path = HttpRuntime.BinDirectory;
+            //var path = AppDomain.CurrentDomain.BaseDirectory;
+            //if (HttpRuntime.AppDomainId != null) path = HttpRuntime.BinDirectory;
 
             var loadeds = GetAssemblies().ToList();
 
@@ -468,7 +488,7 @@ namespace NewLife.Reflection
                 yield return item;
             }
 
-            foreach (var asm in ReflectionOnlyLoad(path)) yield return asm;
+            //foreach (var asm in ReflectionOnlyLoad(path)) yield return asm;
 
             foreach (var item in AssemblyPaths)
             {
@@ -531,8 +551,6 @@ namespace NewLife.Reflection
                 if (String.IsNullOrEmpty(asmx.FileVersion)) continue;
                 var file = asmx.Asm.CodeBase;
                 if (String.IsNullOrEmpty(file)) continue;
-                //file = file.ToLower();
-                //if (file.StartsWith("file:///")) file = file.Substring("file:///".Length);
                 file = file.TrimStart("file:///");
                 file = file.Replace("/", "\\");
                 if (!file.StartsWithIgnoreCase(cur)) continue;
@@ -548,8 +566,6 @@ namespace NewLife.Reflection
                 if (String.IsNullOrEmpty(asmx.FileVersion)) continue;
                 var file = asmx.Asm.CodeBase;
                 if (String.IsNullOrEmpty(file)) continue;
-                //file = file.ToLower();
-                //if (file.StartsWith("file:///")) file = file.Substring("file:///".Length);
                 file = file.TrimStart("file:///");
                 file = file.Replace("/", "\\");
                 if (!file.StartsWithIgnoreCase(cur)) continue;
