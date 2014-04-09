@@ -639,7 +639,14 @@ namespace NewLife.Common
             //var obj = _type.CreateInstance(chr);
             //return _pix.GetValue(obj) as String[];
 
-            return _type.CreateInstance(chr).GetValue("Pinyins", false) as String[];
+            try
+            {
+                return _type.CreateInstance(chr).GetValue("Pinyins", false) as String[];
+            }
+            catch (Exception)
+            {
+                return null;
+            }
         }
     }
 }
