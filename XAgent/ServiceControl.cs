@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.IO;
 using System.Diagnostics;
+using System.IO;
+using System.Linq;
 using System.ServiceProcess;
 using NewLife.Log;
-using System.Linq;
 
 namespace XAgent
 {
@@ -26,7 +24,8 @@ namespace XAgent
             var name = exeName;
             if (dir.IsNullOrWhiteSpace()) dir = AppDomain.CurrentDomain.BaseDirectory;
 
-            WriteLine("在win7/win2008及更高系统中，可能需要管理员权限执行才能安装/卸载服务。");
+            // win7及以上系统时才提示
+            if (Environment.OSVersion.Version.Major >= 6) WriteLine("在win7/win2008及更高系统中，可能需要管理员权限执行才能安装/卸载服务。");
             if (isinstall)
             {
                 RunSC("create " + name + " BinPath= \"" + Path.Combine(dir, exeName) + " -s\" start= auto DisplayName= \"" + displayName + "\"");
@@ -59,9 +58,9 @@ namespace XAgent
         {
             WriteLine("RunCmd " + cmd);
 
-            Process p = new Process();
-            ProcessStartInfo si = new ProcessStartInfo();
-            String path = Environment.SystemDirectory;
+            var p = new Process();
+            var si = new ProcessStartInfo();
+            var path = Environment.SystemDirectory;
             path = Path.Combine(path, @"cmd.exe");
             si.FileName = path;
             if (!cmd.StartsWith(@"/")) cmd = @"/c " + cmd;
@@ -77,7 +76,7 @@ namespace XAgent
             {
                 p.WaitForExit();
 
-                String str = p.StandardOutput.ReadToEnd();
+                var str = p.StandardOutput.ReadToEnd();
                 if (!String.IsNullOrEmpty(str))
                     WriteLine(str.Trim(new Char[] { '\r', '\n', '\t' }).Trim());
                 str = p.StandardError.ReadToEnd();
