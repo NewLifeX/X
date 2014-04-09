@@ -2,15 +2,16 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.ServiceProcess;
 using System.Threading;
+using NewLife;
 using NewLife.Configuration;
 using NewLife.Log;
 using NewLife.Model;
 using NewLife.Reflection;
 using NewLife.Threading;
-using System.Linq;
 
 namespace XAgent
 {
@@ -47,7 +48,7 @@ namespace XAgent
                 String cmd = Args[1].ToLower();
                 if (cmd == "-s")  //启动服务
                 {
-                    ServiceBase[] ServicesToRun = new ServiceBase[] { Instance };
+                    var ServicesToRun = new ServiceBase[] { Instance };
 
                     try
                     {
@@ -55,7 +56,7 @@ namespace XAgent
                     }
                     catch (Exception ex)
                     {
-                        XTrace.WriteLine(ex.ToString());
+                        XTrace.WriteException(ex);
                     }
                     return;
                 }
@@ -117,7 +118,7 @@ namespace XAgent
                     Console.Write("请选择操作（-x是命令行参数）：");
 
                     //读取命令
-                    ConsoleKeyInfo key = Console.ReadKey();
+                    var key = Console.ReadKey();
                     if (key.KeyChar == '0') break;
                     Console.WriteLine();
                     Console.WriteLine();
@@ -225,11 +226,6 @@ namespace XAgent
             File.WriteAllText("启动.bat", ExeName + " -start");
             File.WriteAllText("停止.bat", ExeName + " -stop");
         }
-
-        //static void XTrace_OnWriteLog(object sender, WriteLogEventArgs e)
-        //{
-        //    Console.WriteLine(e.ToString());
-        //}
 
         /// <summary>显示状态</summary>
         protected virtual void ShowStatus()
@@ -418,7 +414,8 @@ namespace XAgent
                             if (Config.TryGetConfig(name, pi.PropertyType, out value))
                             {
                                 WriteLine("配置：{0} = {1}", name, value);
-                                PropertyInfoX.Create(pi).SetValue(item.Value, value);
+                                //PropertyInfoX.Create(pi).SetValue(item.Value, value);
+                                item.Value.SetValue(pi, value);
                             }
                         }
                     }
@@ -453,10 +450,11 @@ namespace XAgent
         {
             if (AttachServers != null)
             {
-                foreach (var item in AttachServers.Values)
-                {
-                    if (item != null && item is IDisposable) (item as IDisposable).Dispose();
-                }
+                //foreach (var item in AttachServers.Values)
+                //{
+                //    if (item != null && item is IDisposable) (item as IDisposable).Dispose();
+                //}
+                AttachServers.Values.TryDispose();
             }
 
             base.Dispose(disposing);
@@ -593,7 +591,7 @@ namespace XAgent
             //if (threads != null && threads.IsAlive) threads.Abort();
             if (Threads != null)
             {
-                foreach (Thread item in Threads)
+                foreach (var item in Threads)
                 {
                     try
                     {
@@ -615,7 +613,7 @@ namespace XAgent
         {
             if (index < 0 || index >= ThreadCount) throw new ArgumentOutOfRangeException("index");
 
-            Thread item = Threads[index];
+            var item = Threads[index];
             try
             {
                 if (item != null && item.IsAlive) item.Abort();
@@ -843,8 +841,8 @@ namespace XAgent
 
             //执行重启服务的批处理
             //RunCmd(filename, false, false);
-            Process p = new Process();
-            ProcessStartInfo si = new ProcessStartInfo();
+            var p = new Process();
+            var si = new ProcessStartInfo();
             si.FileName = filename;
             si.UseShellExecute = true;
             si.CreateNoWindow = true;
@@ -901,13 +899,13 @@ namespace XAgent
         /// </summary>
         public void PreStartWork()
         {
-            ServiceController[] Services = ServiceController.GetServices();
+            var Services = ServiceController.GetServices();
 
             //首先检查是否有依赖服务
             #region 首先检查是否有依赖服务
             // 1.服务本身的依赖
             ServiceController[] servicesDependedOn = null;
-            ServiceController scApp = Services.FirstOrDefault(s => s.ServiceName == ServiceName);
+            var scApp = Services.FirstOrDefault(s => s.ServiceName == ServiceName);
             if (scApp != null)
             {
                 servicesDependedOn = scApp.ServicesDependedOn;
@@ -926,17 +924,16 @@ namespace XAgent
                 }
             }
             // 2.配置文件的依赖
-            String[] scConfig = NewLife.Configuration.Config.GetConfigSplit<String>("ServicesDependedOn", ",", null);
+            var scConfig = Config.GetConfigSplit<String>("XAgent.ServicesDependedOn", ",", Config.GetConfigSplit<String>("ServicesDependedOn", ",", null));
             if (scConfig != null)
             {
                 foreach (var item in scConfig)
                 {
-                    ServiceController sc = Services.FirstOrDefault(s => s.ServiceName == item);
-                    if (sc != null) sc.Start();
+                    var sc = Services.FirstOrDefault(s => s.ServiceName == item);
+                    if (sc != null)
+                        sc.Start();
                     else
-                    {
                         throw new Exception(String.Format("依赖服务{0}不存在", item));
-                    }
                 }
             }
             #endregion
@@ -965,14 +962,6 @@ namespace XAgent
             ////启动自己的业务逻辑
             //StartOwnWork();
         }
-
-        ///// <summary>
-        ///// 业务逻辑部分
-        ///// </summary>
-        //public virtual void StartOwnWork()
-        //{
-
-        //}
         #endregion
     }
 }
