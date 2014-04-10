@@ -607,6 +607,18 @@ namespace NewLife.Common
             return String.Empty;
         }
 
+        /// <summary>获取多音节拼音</summary>
+        /// <param name="ch"></param>
+        /// <returns></returns>
+        public static String[] GetMulti(Char ch)
+        {
+            // 多音节优先使用微软库
+            var ss = GetPinYinByMS(ch);
+            if (ss != null) return ss;
+
+            return new String[] { Get(ch) };
+        }
+
         /// <summary>把汉字转换成拼音(全拼)</summary>
         /// <param name="str">汉字字符串</param>
         /// <returns>转换后的拼音(全拼)字符串</returns>
