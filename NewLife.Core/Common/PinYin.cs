@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Text;
+using NewLife.Log;
 using NewLife.Reflection;
 
 namespace NewLife.Common
@@ -634,19 +635,22 @@ namespace NewLife.Common
 
                 _inited = true;
                 _type = "ChineseChar".GetTypeEx(true);
+
+                if (_type == null) XTrace.WriteLine("未找到微软拼音库ChnCharInfo.dll");
             }
+            if (_type == null) return null;
 
             //var obj = _type.CreateInstance(chr);
             //return _pix.GetValue(obj) as String[];
 
-            try
-            {
-                return _type.CreateInstance(chr).GetValue("Pinyins", false) as String[];
-            }
-            catch (Exception)
-            {
-                return null;
-            }
+            //try
+            //{
+            return _type.CreateInstance(chr).GetValue("Pinyins", false) as String[];
+            //}
+            //catch (Exception)
+            //{
+            //    return null;
+            //}
         }
     }
 }
