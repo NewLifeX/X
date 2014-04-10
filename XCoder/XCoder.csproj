@@ -66,12 +66,6 @@
       <Link>Properties\AssemblyInfo_.cs</Link>
     </Compile>
     <Compile Include="Engine\IcoHelper.cs" />
-    <Compile Include="FrmFrame.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="FrmFrame.Designer.cs">
-      <DependentUpon>FrmFrame.cs</DependentUpon>
-    </Compile>
     <Compile Include="FrmMDI.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -126,9 +120,6 @@
     <Compile Include="XRegex\FrmMain.designer.cs">
       <DependentUpon>FrmMain.cs</DependentUpon>
     </Compile>
-    <EmbeddedResource Include="FrmFrame.resx">
-      <DependentUpon>FrmFrame.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="FrmMDI.resx">
       <DependentUpon>FrmMDI.cs</DependentUpon>
     </EmbeddedResource>

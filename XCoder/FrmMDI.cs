@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Reflection;
 using System.Windows.Forms;
 using NewLife.Reflection;
@@ -19,6 +20,29 @@ namespace XCoder
         {
             var asm = AssemblyX.Create(Assembly.GetExecutingAssembly());
             Text = String.Format("新生命超级码神工具 v{0} {1:HH:mm:ss}编译", asm.CompileVersion, asm.Compile);
+
+            var name = Path.GetFileNameWithoutExtension(Application.ExecutablePath);
+            switch (name.ToLower())
+            {
+                case "xcoder":
+                    CreateForm<FrmMain>();
+                    break;
+                case "xcom":
+                case "com":
+                    CreateForm<XCom.FrmMain>();
+                    break;
+                case "xregex":
+                case "regex":
+                    CreateForm<NewLife.XRegex.FrmMain>();
+                    break;
+                case "xico":
+                case "ico":
+                    CreateForm<XICO.FrmMain>();
+                    break;
+                default:
+                    CreateForm<FrmMain>();
+                    break;
+            }
         }
         #endregion
 
@@ -57,7 +81,7 @@ namespace XCoder
 
         private void OpenFile(object sender, EventArgs e)
         {
-            OpenFileDialog openFileDialog = new OpenFileDialog();
+            var openFileDialog = new OpenFileDialog();
             openFileDialog.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
             openFileDialog.Filter = "文本文件(*.txt)|*.txt|所有文件(*.*)|*.*";
             if (openFileDialog.ShowDialog(this) == DialogResult.OK)
@@ -68,7 +92,7 @@ namespace XCoder
 
         private void SaveAsToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            SaveFileDialog saveFileDialog = new SaveFileDialog();
+            var saveFileDialog = new SaveFileDialog();
             saveFileDialog.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
             saveFileDialog.Filter = "文本文件(*.txt)|*.txt|所有文件(*.*)|*.*";
             if (saveFileDialog.ShowDialog(this) == DialogResult.OK)
@@ -105,7 +129,7 @@ namespace XCoder
 
         private void CloseAllToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            foreach (Form childForm in MdiChildren)
+            foreach (var childForm in MdiChildren)
             {
                 childForm.Close();
             }
