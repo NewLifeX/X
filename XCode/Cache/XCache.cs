@@ -32,7 +32,8 @@ namespace XCode.Cache
         ///  0	永久静态缓存；
         /// >0	静态缓存时间，单位是秒；
         /// </summary>
-        public static Int32 Expiration = -1;
+        //public static Int32 Expiration = -1;
+        static Int32 Expiration { get { return DAL.CacheExpiration; } }
 
         /// <summary>数据缓存类型</summary>
         internal static CacheKinds Kind { get { return Expiration > 0 ? CacheKinds.有效期缓存 : (CacheKinds)Expiration; } }
@@ -41,11 +42,11 @@ namespace XCode.Cache
         static XCache()
         {
             //读取缓存有效期
-            Expiration = Config.GetMutilConfig<Int32>(-2, "XCode.Cache.Expiration", "XCacheExpiration");
+            //Expiration = Config.GetMutilConfig<Int32>(-2, "XCode.Cache.Expiration", "XCacheExpiration");
             //读取检查周期
             CheckPeriod = Config.GetMutilConfig<Int32>(5, "XCode.Cache.CheckPeriod", "XCacheCheckPeriod");
 
-            if (Expiration < -2) Expiration = -2;
+            //if (Expiration < -2) Expiration = -2;
             if (CheckPeriod <= 0) CheckPeriod = 5;
 
             if (DAL.Debug)

@@ -32,7 +32,7 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
 [assembly: AssemblyVersion("8.10.*")]
-[assembly: AssemblyFileVersion("8.10.2014.0311")]
+[assembly: AssemblyFileVersion("8.10.2014.0412")]
 
 /*
  * XCode的重大改进
@@ -49,6 +49,8 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v8.10.2014.0412  增加DAL.CacheExpiration全局设置一级缓存
+ * 
  * v8.10.2014.0311  为IEntityList接口增加Page分页方法
  * 
  * v8.10.2014.0310  SQLite连接字符串支持auto_vacuum，指定是否自动收缩数据库
