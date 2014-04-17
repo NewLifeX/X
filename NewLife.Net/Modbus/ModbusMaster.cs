@@ -98,8 +98,8 @@ namespace NewLife.Net.Modbus
 #endif
 
             // 预期返回指令长度，传入参数expect没有考虑头部和校验位
-            Transport.FrameSize = expect + ModbusEntity.NO_DATA_LENGTH;
-            Transport.Send(buf);
+          //  Transport.FrameSize = expect + ModbusEntity.NO_DATA_LENGTH;
+           // Transport.Send(buf);
 
             // lscy 2013-7-29 
             // 发送后，休眠一段时间，避免设备数据未全部写到串口缓冲区中
@@ -107,7 +107,7 @@ namespace NewLife.Net.Modbus
             if (Delay > 0) Thread.Sleep(Delay);
 
             // 读取
-            var count = Transport.Receive(buf_receive);
+            int count = Transport.Receive(buf_receive);
             if (count <= 0) return null;
 
 #if DEBUG

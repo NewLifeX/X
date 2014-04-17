@@ -15,6 +15,7 @@
 #endregion
 
 using System;
+using Microsoft.SPOT;
 
 namespace NewLife.Net.Modbus
 {
@@ -70,20 +71,21 @@ namespace NewLife.Net.Modbus
         /// <returns></returns>
         public virtual ModbusSlave Listen()
         {
+            Debug.Print("ModbusSlave Listen()");
             if (inited) return this;
             inited = true;
 
             if (Host == 0) Host = 1;
-
+            Debug.Print("Transport).............");
             if (Transport == null) throw new ArgumentNullException("Transport");
-
+            Debug.Print("Transport.Received.............");
             var name = Transport.ToString();
-
+            Debug.Print("WriteLine(this.GetType().Name + ");
             Transport.Received += (t, d) => Process(d);
-            Transport.ReceiveAsync();
-
+           // Transport.ReceiveAsync();
+            Debug.Print("WriteLine(this.GetType().Name + " );
             WriteLine(this.GetType().Name + "在" + name + "上监听Host=" + Host);
-
+            Debug.Print("ModbusSlave Listen().............");
             return this;
         }
 
@@ -92,15 +94,19 @@ namespace NewLife.Net.Modbus
         /// <returns></returns>
         public virtual Byte[] Process(Byte[] buf)
         {
+            Debug.Print("Process(Byte[] buf)");
 #if DEBUG
+            Debug.Print("Process(Byte[] buf)");
             var str = "Request :";
             for (int i = 0; i < buf.Length; i++)
             {
                 str += " " + buf[i].ToString("X2");
             }
+            Debug.Print("Process(Byte[] buf)");
             WriteLine(str);
+            Debug.Print("Process(Byte[] buf)");
 #endif
-
+            Debug.Print("Process(Byte[] buf)");
             // 处理
             var entity = new ModbusEntity().Parse(buf);
             // 检查主机
@@ -112,8 +118,10 @@ namespace NewLife.Net.Modbus
             else
                 entity = Process(entity);
             buf = entity.ToArray();
+            Debug.Print("Process(Byte[] buf)");
 
 #if DEBUG
+            Debug.Print("Process(Byte[] buf)");
             str = "Response:";
             for (int i = 0; i < buf.Length; i++)
             {
@@ -121,7 +129,9 @@ namespace NewLife.Net.Modbus
             }
             WriteLine(str);
             WriteLine("");
+            Debug.Print("Process(Byte[] buf)");
 #endif
+            Debug.Print("Process(Byte[] buf)...........");
             return buf;
         }
 

@@ -32,6 +32,8 @@ namespace NewLife.Net.Modbus
 
         /// <summary>数据到达事件</summary>
         event TransportEventHandler Received;
+
+        int Receive(byte[] buf_receive);
     }
 
     /// <summary>传输口数据到达委托</summary>
