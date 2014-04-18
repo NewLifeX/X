@@ -81,7 +81,7 @@ namespace NewLife.Log
             lock (_lock)
             {
                 if (_Log != null) return;
-                _Log = TextFileLog.Create(null);
+                _Log = TextFileLog.Create(LogPath);
             }
 
             var asmx = AssemblyX.Create(Assembly.GetExecutingAssembly());
