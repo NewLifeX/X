@@ -151,7 +151,7 @@ namespace NewLife.Net.Modbus
 #endif
             var end = DateTime.Now.AddMilliseconds(timeout);
 #if MF
-            while (sp.BytesToRead < ExpectedFrame && sp.IsOpen && end > DateTime.Now) Thread.Sleep(1);
+            while (sp.BytesToRead < FrameSize && sp.IsOpen && end > DateTime.Now) Thread.Sleep(1);
 #else
             while (sp.BytesToRead < FrameSize && sp.IsOpen && end > DateTime.Now) Thread.SpinWait(1);
 #endif
