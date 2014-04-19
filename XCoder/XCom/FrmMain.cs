@@ -230,7 +230,8 @@ namespace XCom
                     lastSend = _Com.BytesOfSent;
                 }
 
-                // 检查串口是否已关闭
+                // 检查串口是否已断开，自动关闭已断开的串口，避免内存暴涨
+                if (!_Com.Serial.IsOpen) btnConnect_Click(btnConnect, EventArgs.Empty);
             }
             else
             {
