@@ -141,20 +141,7 @@ namespace XCoder
         private Boolean _Debug;
         /// <summary>调试</summary>
         [DisplayName("调试")]
-        public Boolean Debug
-        {
-            get { return _Debug; }
-            set { _Debug = value; }
-        }
-
-        private DateTime _LastUpdate;
-        /// <summary>最后更新时间</summary>
-        [DisplayName("最后更新时间")]
-        public DateTime LastUpdate
-        {
-            get { return _LastUpdate; }
-            set { _LastUpdate = value; }
-        }
+        public Boolean Debug { get { return _Debug; } set { _Debug = value; } }
 
         private SerializableDictionary<String, String> _Items;
         /// <summary> 字典属性</summary>
@@ -163,9 +150,15 @@ namespace XCoder
         #endregion
 
         #region 全局
-        //private static XConfig _Current;
-        ///// <summary>实例</summary>
-        //public static XConfig Current { get { return _Current ?? (_Current = Load()); } set { _Current = value; } }
+        private DateTime _LastUpdate;
+        /// <summary>最后更新时间</summary>
+        [DisplayName("最后更新时间")]
+        public DateTime LastUpdate { get { return _LastUpdate; } set { _LastUpdate = value; } }
+
+        private String _LastTool;
+        /// <summary>最后一个使用的工具</summary>
+        [DisplayName("最后一个使用的工具")]
+        public String LastTool { get { return _LastTool; } set { _LastTool = value; } }
         #endregion
 
         #region 加载/保存

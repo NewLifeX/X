@@ -21,7 +21,8 @@ namespace XCoder
             var asm = AssemblyX.Create(Assembly.GetExecutingAssembly());
             Text = String.Format("新生命超级码神工具 v{0} {1:HH:mm:ss}编译", asm.CompileVersion, asm.Compile);
 
-            var name = Path.GetFileNameWithoutExtension(Application.ExecutablePath);
+            //var name = Path.GetFileNameWithoutExtension(Application.ExecutablePath);
+            var name = XConfig.Current.LastTool + "";
             switch (name.ToLower())
             {
                 case "xcoder":
@@ -40,7 +41,7 @@ namespace XCoder
                     CreateForm<XICO.FrmMain>();
                     break;
                 default:
-                    CreateForm<FrmMain>();
+                    //CreateForm<FrmMain>();
                     break;
             }
         }
@@ -49,6 +50,19 @@ namespace XCoder
         #region 应用窗口
         void CreateForm<TForm>() where TForm : Form, new()
         {
+            // 倒数第二段
+            var ss = typeof(TForm).FullName.Split(".");
+            if (ss.Length >= 2)
+            {
+                var name = ss[ss.Length - 2];
+                var cfg = XConfig.Current;
+                if (name != cfg.LastTool)
+                {
+                    cfg.LastTool = name;
+                    cfg.Save();
+                }
+            }
+
             var frm = new TForm();
             frm.MdiParent = this;
             frm.WindowState = FormWindowState.Maximized;
