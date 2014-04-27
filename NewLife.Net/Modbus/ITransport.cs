@@ -1,12 +1,13 @@
 ﻿using System;
 
-namespace NewLife.Net.Modbus
+namespace NewLife.Net
 {
-    /// <summary>传输接口</summary>
+    /// <summary>帧数据传输接口</summary>
+    /// <remarks>实现者确保数据以包的形式传输，屏蔽数据的粘包和拆包</remarks>
     public interface ITransport : IDisposable
     {
         /// <summary>读取的期望帧长度，小于该长度为未满一帧，读取不做返回</summary>
-        Int32 ExpectedFrame { get; set; }
+        Int32 FrameSize { get; set; }
 
         /// <summary>打开</summary>
         void Open();
@@ -18,17 +19,17 @@ namespace NewLife.Net.Modbus
         /// <param name="buffer">缓冲区</param>
         /// <param name="offset">偏移</param>
         /// <param name="count">数量</param>
-        void Write(Byte[] buffer, Int32 offset = 0, Int32 count = -1);
+        void Send(Byte[] buffer, Int32 offset = 0, Int32 count = -1);
 
         /// <summary>读取指定长度的数据</summary>
         /// <param name="buffer">缓冲区</param>
         /// <param name="offset">偏移</param>
         /// <param name="count">数量</param>
         /// <returns></returns>
-        Int32 Read(Byte[] buffer, Int32 offset = 0, Int32 count = -1);
+        Int32 Receive(Byte[] buffer, Int32 offset = 0, Int32 count = -1);
 
-        /// <summary>开始监听</summary>
-        void Listen();
+        /// <summary>开始异步接收，数据将在<see cref="Received"/>中返回</summary>
+        void ReceiveAsync();
 
         /// <summary>数据到达事件</summary>
         event TransportEventHandler Received;
