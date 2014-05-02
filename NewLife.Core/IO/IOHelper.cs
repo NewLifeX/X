@@ -185,21 +185,24 @@ namespace System
             return bts;
         }
 
-        ///// <summary>把一个数组写入到另一个数组</summary>
-        ///// <param name="src">源数组</param>
-        ///// <param name="des">目标数组</param>
-        ///// <param name="offset">起始位置</param>
-        ///// <param name="count">字节数</param>
-        ///// <returns></returns>
-        //public static Byte[] Write(this Byte[] src, Byte[] des, Int32 offset = 0, Int32 count = 0)
-        //{
-        //    if (count <= 0) count = src.Length - offset;
+        /// <summary>向字节数组写入一片数据</summary>
+        /// <param name="data"></param>
+        /// <param name="srcOffset"></param>
+        /// <param name="buf"></param>
+        /// <param name="offset">偏移</param>
+        /// <param name="count">数量</param>
+        /// <returns></returns>
+        public static Byte[] Write(this Byte[] data, Int32 srcOffset, Byte[] buf, Int32 offset = 0, Int32 count = -1)
+        {
+            if (count <= 0) count = data.Length - offset;
 
-        //    for (int i = 0; i < length; i++)
-        //    {
-
-        //    }
-        //}
+#if MF
+            Array.Copy(buf, srcOffset, data, offset, count);
+#else
+            Buffer.BlockCopy(buf, srcOffset, data, offset, count);
+#endif
+            return data;
+        }
 
         /// <summary>合并两个数组</summary>
         /// <param name="src">源数组</param>

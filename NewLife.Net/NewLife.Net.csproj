@@ -122,12 +122,6 @@
     <Compile Include="Modbus\ModbusException.cs" />
     <Compile Include="Modbus\ModbusMaster.cs" />
     <Compile Include="Modbus\ModbusSlave.cs" />
-    <Compile Include="Modbus\SerialTransport.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Modbus\UdpTransport.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="Model\DataEventArgs.cs">
       <SubType>Code</SubType>
     </Compile>
