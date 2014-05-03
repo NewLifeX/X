@@ -121,5 +121,16 @@ namespace NewLife.Log
             set { _Level = value; }
         }
         #endregion
+
+        #region 静态空实现
+        private static ILog _Null = new NullLogger();
+        /// <summary>空日志实现</summary>
+        public static ILog Null { get { return _Null; } }
+
+        class NullLogger : Logger
+        {
+            protected override void OnWrite(LogLevel level, string format, params object[] args) { }
+        }
+        #endregion
     }
 }
