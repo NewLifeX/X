@@ -17,6 +17,36 @@ namespace NewLife.Net.Sockets
         public Socket Client { get { if (Socket == null) EnsureCreate(); return Socket; } set { Socket = value; } }
         #endregion
 
+        #region 远程
+        private NetUri _RemoteUri;
+        /// <summary>远程地址</summary>
+        public NetUri RemoteUri
+        {
+            get
+            {
+                if (_RemoteUri != null)
+                {
+                    _RemoteUri.ProtocolType = ProtocolType;
+                    return _RemoteUri;
+                }
+
+                var uri = new NetUri();
+                uri.ProtocolType = ProtocolType;
+                var socket = Socket;
+                try
+                {
+                    if (socket != null && socket.Connected) uri.EndPoint = socket.RemoteEndPoint as IPEndPoint;
+                }
+                catch (ObjectDisposedException) { }
+
+                return _RemoteUri = uri;
+            }
+        }
+
+        /// <summary>远程终结点</summary>
+        public IPEndPoint RemoteEndPoint { get { return RemoteUri.EndPoint; } }
+        #endregion
+
         #region 构造
         /// <summary>实例化</summary>
         public SocketClient()

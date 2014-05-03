@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Text;
+using System.Net;
 
 namespace NewLife.Net.Sockets
 {
@@ -29,6 +30,12 @@ namespace NewLife.Net.Sockets
 
         /// <summary>会话数据流，供用户程序使用，内部不做处理。可用于解决Tcp粘包的问题，把多余的分片放入该数据流中。</summary>
         Stream Stream { get; set; }
+
+        /// <summary>远程地址</summary>
+        NetUri RemoteUri { get; }
+
+        /// <summary>远程终结点</summary>
+        IPEndPoint RemoteEndPoint { get; }
         #endregion
 
         #region 发送

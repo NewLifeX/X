@@ -222,7 +222,8 @@ namespace NewLife.Net.Application
                 item.MaxNotActive = 10 * 60;
             }
             server.Start();
-            server.EnableLog = false;
+            //server.EnableLog = false;
+            server.Log = null;
 
             ThreadPoolX.QueueUserWorkItem(ShowStatus);
 

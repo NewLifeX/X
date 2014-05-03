@@ -1,6 +1,6 @@
-﻿using System.Net;
+﻿using System;
+using System.Net;
 using System.Net.Sockets;
-using NewLife.Net.Common;
 
 namespace NewLife.Net.Sockets
 {
@@ -23,14 +23,14 @@ namespace NewLife.Net.Sockets
         /// <summary>本地终结点</summary>
         IPEndPoint LocalEndPoint { get; }
 
-        /// <summary>远程终结点</summary>
-        IPEndPoint RemoteEndPoint { get; }
-
         /// <summary>本地地址</summary>
         NetUri LocalUri { get; }
 
-        /// <summary>远程地址</summary>
-        NetUri RemoteUri { get; }
+        ///// <summary>远程地址</summary>
+        //NetUri RemoteUri { get; }
+
+        ///// <summary>远程终结点</summary>
+        //IPEndPoint RemoteEndPoint { get; }
         #endregion
     }
 }

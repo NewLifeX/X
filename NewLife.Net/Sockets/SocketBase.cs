@@ -3,10 +3,10 @@ using System.Collections;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using NewLife.Exceptions;
+using NewLife.Log;
 using NewLife.Net.Common;
 using NewLife.Reflection;
 using NewLife.Threading;
@@ -61,7 +61,8 @@ namespace NewLife.Net.Sockets
             set
             {
                 // 外部设置套接字时，除非是已绑定的，否则不清除本地Uri
-                if (value != null && value.IsBound) _LocalUri = _RemoteUri = null;
+                //if (value != null && value.IsBound) _LocalUri = _RemoteUri = null;
+                if (value != null && value.IsBound) _LocalUri = null;
 
                 _Socket = value;
             }
@@ -118,36 +119,6 @@ namespace NewLife.Net.Sockets
 
         /// <summary>本地终结点</summary>
         public IPEndPoint LocalEndPoint { get { return LocalUri.EndPoint; } }
-        #endregion
-
-        #region 远程
-        private NetUri _RemoteUri;
-        /// <summary>远程地址</summary>
-        public NetUri RemoteUri
-        {
-            get
-            {
-                if (_RemoteUri != null)
-                {
-                    _RemoteUri.ProtocolType = ProtocolType;
-                    return _RemoteUri;
-                }
-
-                var uri = new NetUri();
-                uri.ProtocolType = ProtocolType;
-                var socket = Socket;
-                try
-                {
-                    if (socket != null && socket.Connected) uri.EndPoint = socket.RemoteEndPoint as IPEndPoint;
-                }
-                catch (ObjectDisposedException) { }
-
-                return _RemoteUri = uri;
-            }
-        }
-
-        /// <summary>远程终结点</summary>
-        public IPEndPoint RemoteEndPoint { get { return RemoteUri.EndPoint; } }
         #endregion
 
         //private Int32 _BufferSize = 10240;
@@ -325,7 +296,8 @@ namespace NewLife.Net.Sockets
                 var ep = new IPEndPoint(Address, Port);
                 socket.Bind(ep);
 
-                _LocalUri = _RemoteUri = null;
+                //_LocalUri = _RemoteUri = null;
+                _LocalUri = null;
             }
         }
 
@@ -366,7 +338,7 @@ namespace NewLife.Net.Sockets
             // 异步完成，减少一个计数
             Interlocked.Decrement(ref _AsyncCount);
 
-            if (ShowEventLog && EnableLog) ShowEvent(e);
+            if (ShowEventLog && Log.Level >= LogLevel.Debug) ShowEvent(e);
 
             try
             {
@@ -490,7 +462,7 @@ namespace NewLife.Net.Sockets
             var sb = new StringBuilder();
             sb.AppendFormat("[{0}] {1} {2}://{3}", e.ID, e.LastOperation, ProtocolType, LocalEndPoint);
             var ep = e.RemoteIPEndPoint;
-            if (ep == null || ep.Address.IsAny()) ep = RemoteEndPoint;
+            //if (ep == null || ep.Address.IsAny()) ep = RemoteEndPoint;
             if ((ep == null || ep.Address.IsAny()) && e.LastOperation == SocketAsyncOperation.Accept && e.AcceptSocket != null) ep = e.AcceptSocket.RemoteEndPoint as IPEndPoint;
             if (ep != null && !ep.Address.IsAny()) sb.AppendFormat("=>{0}", ep);
             //sb.AppendFormat(" {0}", e.LastOperation);

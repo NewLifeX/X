@@ -7,6 +7,7 @@ using System.Text;
 using NewLife.Model;
 using NewLife.Net.Tcp;
 using NewLife.Net.Udp;
+using NewLife.Log;
 
 namespace NewLife.Net.Sockets
 {
@@ -333,7 +334,8 @@ namespace NewLife.Net.Sockets
         /// <param name="e"></param>
         protected virtual void OnError(object sender, NetEventArgs e)
         {
-            if (!EnableLog) return;
+            //if (!EnableLog) return;
+            if (Log.Level < LogLevel.Info) return;
 
             if ((e.SocketError == SocketError.OperationAborted || e.SocketError == SocketError.ConnectionReset) && !ShowAbortAsError) return;
 
