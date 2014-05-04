@@ -34,7 +34,7 @@ namespace XCode.DataAccessLayer
             var dir = root.CombinePath(!Runtime.Is64BitProcess ? "x86" : "x64");
             //if (Directory.Exists(dir)) SetDllDirectory(dir);
             // 不要判断是否存在，因为可能目录还不存在，一会下载驱动后将创建目录
-            SetDllDirectory(dir);
+            if (!Runtime.Mono) SetDllDirectory(dir);
         }
 
         /// <summary>销毁资源时，回滚未提交事务，并关闭数据库连接</summary>

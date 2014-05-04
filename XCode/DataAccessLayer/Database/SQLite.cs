@@ -26,7 +26,9 @@ namespace XCode.DataAccessLayer
                 {
                     lock (typeof(SQLite))
                     {
-                        if (_dbProviderFactory == null) _dbProviderFactory = GetProviderFactory("System.Data.SQLite.dll", "System.Data.SQLite.SQLiteFactory");
+                        // Mono有自己的驱动，因为SQLite是混合编译，里面的C++代码与平台相关，不能通用
+                        var name = Runtime.Mono ? "Mono" : "System";
+                        if (_dbProviderFactory == null) _dbProviderFactory = GetProviderFactory(name + ".Data.SQLite.dll", name + ".Data.SQLite.SQLiteFactory");
                     }
                 }
 
