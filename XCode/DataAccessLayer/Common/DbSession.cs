@@ -112,7 +112,7 @@ namespace XCode.DataAccessLayer
                 }
                 catch (DbException)
                 {
-                    DAL.WriteLog("导致错误的连接字符串：{0}", ConnectionString);
+                    DAL.WriteLog("导致错误的连接字符串：{0}", Conn.ConnectionString);
                     throw;
                 }
             }
@@ -538,7 +538,7 @@ namespace XCode.DataAccessLayer
             // 如果启用了事务保护，这里要新开一个连接，否则MSSQL里面报错，SQLite不报错，其它数据库未测试
             var isTrans = TransactionCount > 0;
 
-            DbConnection conn;
+            DbConnection conn = null;
             if (isTrans)
             {
                 try
@@ -549,7 +549,7 @@ namespace XCode.DataAccessLayer
                 }
                 catch (DbException ex)
                 {
-                    DAL.WriteLog("导致错误的连接字符串：{0}", ConnectionString);
+                    DAL.WriteLog("导致错误的连接字符串：{0}", conn.ConnectionString);
                     throw new XDbSessionException(this, "取得所有表构架出错！连接字符串有问题，请查看日志！", ex);
                 }
             }
