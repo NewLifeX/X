@@ -31,9 +31,11 @@ using System.Runtime.InteropServices;
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("4.2.*")]
-[assembly: AssemblyFileVersion("4.2.2014.0401")]
+[assembly: AssemblyFileVersion("4.2.2014.0504")]
 
 /*
+ * v4.2.2014.0504   增加Runtime.Mono，是否Mono环境
+ * 
  * v4.2.2014.0401   增加并行字典、并行栈、并行队列
  * 
  * v4.1.2014.0307   修正XmlConfig中因逻辑错误导致频繁重新加载配置的错误

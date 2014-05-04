@@ -108,6 +108,20 @@ namespace NewLife
         public static Boolean IsWeb { get { return !String.IsNullOrEmpty(HttpRuntime.AppDomainAppId); } }
         #endregion
 
+        #region Mono
+        private static Boolean? _Mono;
+        /// <summary>是否Mono环境</summary>
+        public static Boolean Mono
+        {
+            get
+            {
+                if (_Mono == null) _Mono = Type.GetType("Mono.Runtime") != null;
+
+                return _Mono.Value;
+            }
+        }
+        #endregion
+
         #region 64位系统
         /// <summary>确定当前操作系统是否为 64 位操作系统。</summary>
         /// <returns>如果操作系统为 64 位操作系统，则为 true；否则为 false。</returns>
