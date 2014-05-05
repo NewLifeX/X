@@ -112,7 +112,7 @@ namespace XCode.DataAccessLayer
                 }
                 catch (DbException)
                 {
-                    DAL.WriteLog("导致错误的连接字符串：{0}", Conn.ConnectionString);
+                    DAL.WriteLog("导致Open错误的连接字符串：{0}", Conn.ConnectionString);
                     throw;
                 }
             }
@@ -150,6 +150,8 @@ namespace XCode.DataAccessLayer
             set
             {
                 if (DatabaseName == value) return;
+
+                //XTrace.Log.Info("DatabaseName {0}=>{1}", DatabaseName, value);
 
                 //if (Opened)
                 //{
@@ -220,10 +222,7 @@ namespace XCode.DataAccessLayer
             set { _Trans = value; }
         }
 
-        /// <summary>
-        /// 事务计数。
-        /// 当且仅当事务计数等于1时，才提交或回滚。
-        /// </summary>
+        /// <summary>事务计数。当且仅当事务计数等于1时，才提交或回滚。</summary>
         private Int32 TransactionCount = 0;
 
         /// <summary>开始事务</summary>
@@ -549,7 +548,7 @@ namespace XCode.DataAccessLayer
                 }
                 catch (DbException ex)
                 {
-                    DAL.WriteLog("导致错误的连接字符串：{0}", conn.ConnectionString);
+                    DAL.WriteLog("导致GetSchema错误的连接字符串：{0}", conn.ConnectionString);
                     throw new XDbSessionException(this, "取得所有表构架出错！连接字符串有问题，请查看日志！", ex);
                 }
             }
