@@ -336,8 +336,8 @@ namespace XCode.Configuration
             if (list.Count <= 0) return new WhereExpression();
             //if (list.Count <= 0) throw new ArgumentNullException("value");
 
-            // 如果只有一项，修改为等于
-            if (list.Count <= 1) return CreateExpression("=", vs[0]);
+            // 如果In操作且只有一项，修改为等于
+            if (flag && list.Count == 1) return CreateExpression("=", vs[0]);
 
             return new WhereExpression(String.Format("{0}{2} In({1})", name, String.Join(",", list.ToArray()), flag ? "" : " Not"));
         }
