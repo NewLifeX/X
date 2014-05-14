@@ -56,22 +56,14 @@ namespace NewLife.CommonEntity
         #region 属性
         private Control _Container;
         /// <summary>容器</summary>
-        public Control Container
-        {
-            get { return _Container; }
-            set { _Container = value; }
-        }
+        public Control Container { get { return _Container; } set { _Container = value; } }
 
         /// <summary>页面</summary>
         protected Page Page { get { return Container.Page; } }
 
         private Type _EntityType;
         /// <summary>实体类</summary>
-        public Type EntityType
-        {
-            get { return _EntityType; }
-            set { _EntityType = value; }
-        }
+        public Type EntityType { get { return _EntityType; } set { _EntityType = value; } }
         #endregion
 
         #region IManagerPage 成员
@@ -97,10 +89,10 @@ namespace NewLife.CommonEntity
         #region 生命周期
         void Init()
         {
-            Page.InitComplete += new EventHandler(Page_InitComplete);
-            Page.PreLoad += new EventHandler(OnPreLoad);
+            Page.InitComplete += Page_InitComplete;
+            Page.PreLoad += OnPreLoad;
             //Page.LoadComplete += new EventHandler(OnLoadComplete);
-            Page.PreRender += new EventHandler(OnRender);
+            Page.PreRender += OnRender;
         }
 
         void Page_InitComplete(object sender, EventArgs e)
@@ -123,8 +115,9 @@ namespace NewLife.CommonEntity
                 {
                     Response.StatusCode = 403;
                     //Response.SubStatusCode = 15;
-                    Response.StatusDescription = "没有权限访问该页！";
-                    Response.Write("没有权限访问该页！");
+                    var msg = String.Format("[{0}]没有权限访问[{1}]页！", CurrentAdmin, PermissionName);
+                    Response.StatusDescription = msg;
+                    Response.Write(msg);
                     Response.End();
                 }
             }
@@ -140,10 +133,6 @@ namespace NewLife.CommonEntity
             //chenqi 当页面不再验证权限是，此方法不被执行 
             if (ValidatePermission)
                 CheckAddAndDeletePermission();
-        }
-
-        void OnLoadComplete(object sender, EventArgs e)
-        {
         }
 
         void OnRender(object sender, EventArgs e)
