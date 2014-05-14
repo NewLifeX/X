@@ -1,4 +1,4 @@
-<%@ Page Title="<#=Table.DisplayName#>管理" Language="C#" MasterPageFile="~/Admin/ManagerPage.master" AutoEventWireup="true" CodeFile="<#=Table.Name#>Form.aspx.cs" Inherits="<#=Config.EntityConnName+"_"+Table.Name#>Form"%>
+﻿<%@ Page Title="<#=Table.DisplayName#>管理" Language="C#" MasterPageFile="~/Admin/ManagerPage.master" AutoEventWireup="true" CodeFile="<#=Table.Name#>Form.aspx.cs" Inherits="<#=Config.EntityConnName+"_"+Table.Name#>Form"%>
 
 <asp:Content ID="Content1" runat="server" ContentPlaceHolderID="C">
     <table border="0" class="m_table" cellspacing="1" cellpadding="0" align="Center">

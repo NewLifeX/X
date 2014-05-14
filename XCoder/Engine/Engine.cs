@@ -138,6 +138,9 @@ namespace XCoder
             //Template tt = new Template();
             Template.Debug = Config.Debug;
             var templates = new Dictionary<string, string>();
+            // 每一个模版的编码，用于作为输出文件的编码
+            var encs = new List<Encoding>();
+
             var tempName = Config.TemplateName;
             var tempKind = "";
             var p = tempName.IndexOf(']');
@@ -162,13 +165,15 @@ namespace XCoder
                         content = Config.HeadTemplate + content;
 
                     templates.Add(key.Substring(name.Length + 1), content);
+                    encs.Add(Encoding.UTF8);
                 }
             }
             else
             {
                 // 文件模版
-                var dir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, TemplatePath);
-                dir = Path.Combine(dir, tempName);
+                //var dir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, TemplatePath);
+                //dir = Path.Combine(dir, tempName);
+                var dir = TemplatePath.GetFullPath().CombinePath(tempName);
                 if (!Directory.Exists(dir)) throw new XException("找不到模版目录{0}，没有可用模版！", dir);
 
                 var ss = Directory.GetFiles(dir, "*.*", SearchOption.TopDirectoryOnly);
@@ -188,6 +193,7 @@ namespace XCoder
                             content = Config.HeadTemplate + content;
 
                         templates.Add(name, content);
+                        encs.Add(GetEncoding(item));
                     }
                 }
             }
@@ -220,8 +226,10 @@ namespace XCoder
             tt.Compile();
 
             var rs = new List<String>();
+            var i = -1;
             foreach (var item in tt.Templates)
             {
+                i++;
                 if (item.Included) continue;
 
                 // 计算输出文件名
@@ -243,7 +251,10 @@ namespace XCoder
                 if (!String.IsNullOrEmpty(dir) && !Directory.Exists(dir)) Directory.CreateDirectory(dir);
                 //File.WriteAllText(fileName, content, Encoding.UTF8);
                 // 将文件保存为utf-8无bom格式
-                File.WriteAllText(fileName, content, new UTF8Encoding(false));
+                //File.WriteAllText(fileName, content, new UTF8Encoding(false));
+
+                // 使用模版文件本身的文件编码来作为输出文件的编码，默认UTF8
+                File.WriteAllText(fileName, content, encs[i]);
 
                 rs.Add(content);
             }
@@ -406,6 +417,21 @@ namespace XCoder
 
             trans.Add(text);
             trans.Add(tranText);
+        }
+        #endregion
+
+        #region 辅助
+        /// <summary>获取文件编码</summary>
+        /// <param name="file"></param>
+        /// <returns></returns>
+        static Encoding GetEncoding(String file)
+        {
+            if (String.IsNullOrEmpty(file) || !File.Exists(file)) return Encoding.UTF8;
+
+            using (var reader = new StreamReader(file, Encoding.UTF8, true))
+            {
+                return reader.CurrentEncoding;
+            }
         }
         #endregion
     }
