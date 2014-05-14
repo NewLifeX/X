@@ -115,7 +115,7 @@ namespace NewLife.CommonEntity
                 {
                     Response.StatusCode = 403;
                     //Response.SubStatusCode = 15;
-                    var msg = String.Format("[{0}]没有权限访问[{1}]页！", CurrentAdmin, PermissionName);
+                    var msg = String.Format("[{0}]没有权限访问[{1}]！页面：{2}", CurrentAdmin, PermissionName, CurrentMenu);
                     Response.StatusDescription = msg;
                     Response.Write(msg);
                     Response.End();
