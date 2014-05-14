@@ -253,6 +253,7 @@ namespace XCoder
                 // 将文件保存为utf-8无bom格式
                 //File.WriteAllText(fileName, content, new UTF8Encoding(false));
 
+                // aspx页面如果不是UTF8编码，很有可能出现页面中文乱码，CMX生成的页面文件出现该情况
                 // 使用模版文件本身的文件编码来作为输出文件的编码，默认UTF8
                 File.WriteAllText(fileName, content, encs[i]);
 
