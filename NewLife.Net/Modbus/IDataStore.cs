@@ -23,10 +23,22 @@ namespace NewLife.Net.Modbus
     /// <param name="value">数值</param>
     public delegate void WriteCoilHandler(Int32 i, Boolean value);
 
+    /// <summary>读取线圈</summary>
+    /// <param name="i"></param>
+    /// <param name="value">数值</param>
+    /// <returns></returns>
+    public delegate Boolean ReadCoilHandler(Int32 i, Boolean value);
+
     /// <summary>写入寄存器</summary>
     /// <param name="i"></param>
     /// <param name="value">数值</param>
-    public delegate void WriteRegisterHandler(Int32 i, Int32 value);
+    public delegate void WriteRegisterHandler(Int32 i, UInt16 value);
+
+    /// <summary>读取寄存器</summary>
+    /// <param name="i"></param>
+    /// <param name="value">数值</param>
+    /// <returns></returns>
+    public delegate UInt16 ReadRegisterHandler(Int32 i, UInt16 value);
 
     /// <summary>位存储接口</summary>
     public interface IBitStore
@@ -52,6 +64,9 @@ namespace NewLife.Net.Modbus
 
         /// <summary>写入线圈</summary>
         event WriteCoilHandler OnWrite;
+
+        /// <summary>读取线圈</summary>
+        event ReadCoilHandler OnRead;
     }
 
     /// <summary>字存储接口</summary>
@@ -78,5 +93,8 @@ namespace NewLife.Net.Modbus
 
         /// <summary>写入寄存器</summary>
         event WriteRegisterHandler OnWrite;
+
+        /// <summary>读取寄存器</summary>
+        event ReadRegisterHandler OnRead;
     }
 }

@@ -60,7 +60,13 @@ namespace NewLife.Net.Modbus
         /// <summary>读取状态</summary>
         /// <param name="i"></param>
         /// <returns></returns>
-        public Boolean Read(Int32 i) { return Coils[i]; }
+        public Boolean Read(Int32 i)
+        {
+            //return Coils[i];
+            var value = Coils[i];
+            if (OnRead != null) value = OnRead(i, value);
+            return value;
+        }
 
         /// <summary>写入状态</summary>
         /// <param name="i"></param>
@@ -85,6 +91,9 @@ namespace NewLife.Net.Modbus
 
         /// <summary>写入线圈</summary>
         public event WriteCoilHandler OnWrite;
+
+        /// <summary>读取线圈</summary>
+        public event ReadCoilHandler OnRead;
     }
 
     /// <summary>默认字存储</summary>
@@ -104,7 +113,12 @@ namespace NewLife.Net.Modbus
         /// <summary>读取</summary>
         /// <param name="i"></param>
         /// <returns></returns>
-        public UInt16 Read(Int32 i) { return Regs[i]; }
+        public UInt16 Read(Int32 i)
+        {
+            var value = Regs[i];
+            if (OnRead != null) value = OnRead(i, value);
+            return value;
+        }
 
         /// <summary>写入</summary>
         /// <param name="i"></param>
@@ -129,5 +143,8 @@ namespace NewLife.Net.Modbus
 
         /// <summary>写入寄存器</summary>
         public event WriteRegisterHandler OnWrite;
+
+        /// <summary>读取寄存器</summary>
+        public event ReadRegisterHandler OnRead;
     }
 }
