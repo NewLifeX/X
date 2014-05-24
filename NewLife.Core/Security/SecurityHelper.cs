@@ -56,7 +56,9 @@ namespace System
         #endregion
 
         #region 同步加密扩展
-        /// <summary>对称加密算法扩展</summary>
+        /// <summary>对称加密算法扩展
+        /// <para>注意：CryptoStream会把 outstream 数据流关闭</para>
+        /// </summary>
         /// <param name="sa"></param>
         /// <param name="instream"></param>
         /// <param name="outstream"></param>
@@ -90,7 +92,9 @@ namespace System
             }
         }
 
-        /// <summary>对称解密算法扩展</summary>
+        /// <summary>对称解密算法扩展
+        /// <para>注意：CryptoStream会把 instream 数据流关闭</para>
+        /// </summary>
         /// <param name="sa"></param>
         /// <param name="instream"></param>
         /// <param name="outstream"></param>
