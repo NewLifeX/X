@@ -239,11 +239,16 @@ namespace System
             var ms = stream as MemoryStream;
             if (ms != null && ms.Position == 0 && (length <= 0 || length == ms.Length))
             {
+                // 这儿为什么要加这句？不论GetBuffer或ToArray方法都没有用到Position属性
                 ms.Position = ms.Length;
-                // 如果长度一致
-                var buf = ms.GetBuffer();
-                if (buf.Length == ms.Length) return buf;
-
+                // 如果MemoryStream(byte[] buffer,...)构造生成的实例，是不允许访问MemoryStream内部的_buffer数组的
+                try
+                {
+                    // 如果长度一致
+                    var buf = ms.GetBuffer();
+                    if (buf.Length == ms.Length) return buf;
+                }
+                catch { }
                 // ToArray带有复制，效率稍逊
                 return ms.ToArray();
             }
