@@ -194,11 +194,12 @@ namespace NewLife.Net.Modbus
         /// <returns></returns>
         ModbusEntity ReadCoils(ModbusEntity entity)
         {
+            var data = entity.Data;
             // 无效功能指令
-            if (entity.Data == null || entity.Data.Length != 4) return entity.SetError(Errors.MessageLength);
+            if (data == null || data.Length != 4) return entity.SetError(Errors.MessageLength);
 
-            var addr = entity.Data.ReadUInt16(0);
-            var count = entity.Data.ReadUInt16(2);
+            var addr = data.ReadUInt16(0);
+            var count = data.ReadUInt16(2);
             // 输出数量不正确 count <= 0x07D0=2000
             if (count == 0 || count > 0x07D0) return entity.SetError(Errors.Count);
 
@@ -229,6 +230,7 @@ namespace NewLife.Net.Modbus
 #if DEBUG
             WriteLine(func + "(0x" + addr.ToString("X2") + ", 0x" + count.ToString("X2") + ")");
 #endif
+            if (OnReadCoil != null) OnReadCoil(entity, addr, count);
 
             // 返回的时候，用字节存储每一个线圈的状态
             var n = count >> 3;
@@ -265,11 +267,12 @@ namespace NewLife.Net.Modbus
         /// <returns></returns>
         ModbusEntity WriteSingleCoil(ModbusEntity entity)
         {
+            var data = entity.Data;
             // 无效功能指令
-            if (entity.Data == null || entity.Data.Length < 4) return entity.SetError(Errors.MessageLength);
+            if (data == null || data.Length < 4) return entity.SetError(Errors.MessageLength);
 
-            var addr = entity.Data.ReadUInt16(0);
-            var val = entity.Data.ReadUInt16(2);
+            var addr = data.ReadUInt16(0);
+            var val = data.ReadUInt16(2);
             // 输出值 False=0 True=0xFF00
             if (val != 0 && val != 0xFF00) return entity.SetError(Errors.Value);
 
@@ -284,17 +287,25 @@ namespace NewLife.Net.Modbus
 #endif
 
             //store.Write(addr, flag);
-            // 支持一下连续写入
-            for (var i = 2; i + 1 < entity.Data.Length; i += 2, addr++)
-            {
-                store.Write(addr, entity.Data.ReadUInt16(i) != 0);
 
-                // 读出来
-                entity.Data.WriteUInt16(i, (UInt16)(store.Read(addr) ? 0xFF00 : 0));
+            var count = 0;
+            // 支持一下连续写入
+            for (var i = 2; i + 1 < data.Length; i += 2)
+            {
+                store.Write(addr + i - 2, data.ReadUInt16(i) != 0);
+
+            }
+
+            if (OnWriteCoil != null) OnWriteCoil(entity, addr, count);
+
+            // 读出来
+            for (var i = 2; i + 1 < data.Length; i += 2)
+            {
+                data.WriteUInt16(i, (UInt16)(store.Read(addr + i - 2) ? 0xFF00 : 0));
             }
 
             //// 读出来
-            //entity.Data.WriteUInt16(2, (UInt16)(store.Read(addr) ? 0xFF00 : 0));
+            //data.WriteUInt16(2, (UInt16)(store.Read(addr) ? 0xFF00 : 0));
 
             return entity;
         }
@@ -308,15 +319,16 @@ namespace NewLife.Net.Modbus
         /// <returns></returns>
         ModbusEntity WriteMultipleCoils(ModbusEntity entity)
         {
+            var data = entity.Data;
             // 2字节地址，2字节数量，1字节计数，至少1字节的数据字节
-            if (entity.Data == null || entity.Data.Length < 2 + 2 + 1 + 1) return entity.SetError(Errors.MessageLength);
+            if (data == null || data.Length < 2 + 2 + 1 + 1) return entity.SetError(Errors.MessageLength);
 
-            var addr = entity.Data.ReadUInt16(0);
-            var size = entity.Data.ReadUInt16(2);
-            var count = entity.Data[4];
+            var addr = data.ReadUInt16(0);
+            var size = data.ReadUInt16(2);
+            var count = data[4];
 
             // 输出数量
-            if (size > 0x07B0 || count + 5 != entity.Data.Length) return entity.SetError(Errors.Count);
+            if (size > 0x07B0 || count + 5 != data.Length) return entity.SetError(Errors.Count);
 
             var store = DataStore.Coils;
             // 起始地址+输出数量
@@ -331,7 +343,7 @@ namespace NewLife.Net.Modbus
             for (int i = 0; i < size; i++)
             {
                 // 数据位于5+m字节的n位
-                var flag = ((entity.Data[5 + m] >> n) & 0x01) == 0x01;
+                var flag = ((data[5 + m] >> n) & 0x01) == 0x01;
 
                 store.Write(addr + i, flag);
 
@@ -342,11 +354,19 @@ namespace NewLife.Net.Modbus
                 }
             }
 
+            if (OnWriteCoil != null) OnWriteCoil(entity, addr, size);
+
             // 响应只要这么一点点
-            entity.Data = entity.Data.ReadBytes(0, 4);
+            entity.Data = data.ReadBytes(0, 4);
 
             return entity;
         }
+
+        /// <summary>读取线圈前触发</summary>
+        public event ModbusHandler OnReadCoil;
+
+        /// <summary>写入线圈后触发</summary>
+        public event ModbusHandler OnWriteCoil;
         #endregion
 
         #region 寄存器
@@ -364,11 +384,12 @@ namespace NewLife.Net.Modbus
         /// <returns></returns>
         ModbusEntity ReadRegisters(ModbusEntity entity)
         {
+            var data = entity.Data;
             // 无效功能指令
-            if (entity.Data == null || entity.Data.Length != 4) return entity.SetError(Errors.MessageLength);
+            if (data == null || data.Length != 4) return entity.SetError(Errors.MessageLength);
 
-            var addr = entity.Data.ReadUInt16(0);
-            var count = entity.Data.ReadUInt16(2);
+            var addr = data.ReadUInt16(0);
+            var count = data.ReadUInt16(2);
             // 输出数量不正确 count <= 0x07D0=2000
             //if (count == 0 || count > 0x07D0) return entity.SetError(3);
             if (count == 0) return entity.SetError(Errors.Count);
@@ -401,6 +422,7 @@ namespace NewLife.Net.Modbus
 #if DEBUG
             WriteLine(func + "(0x" + addr.ToString("X2") + ", 0x" + count.ToString("X2") + ")");
 #endif
+            if (OnReadRegister != null) OnReadRegister(entity, addr, count);
 
             var buf = new Byte[1 + count * 2];
             buf[0] = (Byte)(count * 2);
@@ -425,11 +447,12 @@ namespace NewLife.Net.Modbus
         /// <returns></returns>
         ModbusEntity WriteSingleRegister(ModbusEntity entity)
         {
+            var data = entity.Data;
             // 无效功能指令
-            if (entity.Data == null || entity.Data.Length < 4) return entity.SetError(Errors.MessageLength);
+            if (data == null || data.Length < 4) return entity.SetError(Errors.MessageLength);
 
-            var addr = entity.Data.ReadUInt16(0);
-            var val = entity.Data.ReadUInt16(2);
+            var addr = data.ReadUInt16(0);
+            var val = data.ReadUInt16(2);
             // 寄存器值 0<<val<<0xFFFF
             //if (val != 0 && val != 0xFF00) return entity.SetError(3);
 
@@ -441,12 +464,15 @@ namespace NewLife.Net.Modbus
             WriteLine("WriteSingleRegister(0x" + addr.ToString("X2") + ", 0x" + val.ToString("X2") + ")");
 #endif
 
-            store.Write(addr, val);
+            //store.Write(addr, val);
+            var count = 0;
             // 支持多字连续写入
-            for (int i = 4; i + 1 < entity.Data.Length; i += 2)
+            for (int i = 2; i + 1 < data.Length; i += 2, count++)
             {
-                store.Write(++addr, entity.Data.ReadUInt16(i));
+                store.Write(addr + count, data.ReadUInt16(i));
             }
+
+            if (OnWriteRegister != null) OnWriteRegister(entity, addr, count);
 
             return entity;
         }
@@ -460,15 +486,16 @@ namespace NewLife.Net.Modbus
         /// <returns></returns>
         ModbusEntity WriteMultipleRegisters(ModbusEntity entity)
         {
+            var data = entity.Data;
             // 2字节地址，2字节数量，1字节计数，至少1字节的数据字节
-            if (entity.Data == null || entity.Data.Length < 2 + 2 + 1 + 2) return entity.SetError(Errors.MessageLength);
+            if (data == null || data.Length < 2 + 2 + 1 + 2) return entity.SetError(Errors.MessageLength);
 
-            var addr = entity.Data.ReadUInt16(0);
-            var size = entity.Data.ReadUInt16(2);
-            var count = entity.Data[4];
+            var addr = data.ReadUInt16(0);
+            var size = data.ReadUInt16(2);
+            var count = data[4];
 
             // 输出数量
-            if (size > 0x07B0 || entity.Data.Length - 5 != count) return entity.SetError(Errors.Count);
+            if (size > 0x07B0 || data.Length - 5 != count) return entity.SetError(Errors.Count);
 
             var store = DataStore.HoldingRegisters;
             // 起始地址+输出数量
@@ -480,14 +507,22 @@ namespace NewLife.Net.Modbus
 
             for (int i = 0; i < size; i++)
             {
-                store.Write(addr + i, entity.Data.ReadUInt16(5 + i * 2));
+                store.Write(addr + i, data.ReadUInt16(5 + i * 2));
             }
 
+            if (OnWriteRegister != null) OnWriteRegister(entity, addr, size);
+
             // 响应只要这么一点点
-            entity.Data = entity.Data.ReadBytes(0, 4);
+            entity.Data = data.ReadBytes(0, 4);
 
             return entity;
         }
+
+        /// <summary>读取寄存器前触发</summary>
+        public event ModbusHandler OnReadRegister;
+
+        /// <summary>写入寄存器后触发</summary>
+        public event ModbusHandler OnWriteRegister;
         #endregion
 
         #region 诊断标识
@@ -500,10 +535,11 @@ namespace NewLife.Net.Modbus
         /// <returns></returns>
         ModbusEntity Diagnostics(ModbusEntity entity)
         {
+            var data = entity.Data;
             // 无效功能指令。2字节子功能码，多字节的数据
-            if (entity.Data == null || entity.Data.Length < 2) return entity.SetError(Errors.MessageLength);
+            if (data == null || data.Length < 2) return entity.SetError(Errors.MessageLength);
 
-            var sub = entity.Data.ReadUInt16(0);
+            var sub = data.ReadUInt16(0);
 #if DEBUG
             WriteLine("Diagnostics(0x" + sub.ToString("X2") + ")");
 #endif
@@ -521,8 +557,9 @@ namespace NewLife.Net.Modbus
         /// <returns></returns>
         ModbusEntity ReportIdentity(ModbusEntity entity)
         {
+            var data = entity.Data;
             // 无效功能指令。
-            if (entity.Data != null && entity.Data.Length > 0) return entity.SetError(Errors.MessageLength);
+            if (data != null && data.Length > 0) return entity.SetError(Errors.MessageLength);
 
 #if DEBUG
             WriteLine("ReportIdentity()");
@@ -550,4 +587,20 @@ namespace NewLife.Net.Modbus
         }
         #endregion
     }
+
+    /// <summary>事件委托</summary>
+    /// <param name="entity"></param>
+    /// <param name="index"></param>
+    /// <param name="count"></param>
+    public delegate void ModbusHandler(ModbusEntity entity, Int32 index, Int32 count);
+
+    ///// <summary>写线圈委托</summary>
+    ///// <param name="i"></param>
+    ///// <param name="value"></param>
+    //public delegate void WriteCoilHandler(Int32 i, Int32 count);
+
+    ///// <summary>写寄存器委托</summary>
+    ///// <param name="i"></param>
+    ///// <param name="value"></param>
+    //public delegate void WriteRegisterHandler(Int32 i, Int32 count);
 }

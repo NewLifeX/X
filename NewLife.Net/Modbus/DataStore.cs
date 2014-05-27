@@ -52,7 +52,7 @@ namespace NewLife.Net.Modbus
         /// <returns></returns>
         public Int32 Count { get { return Coils.Length; } }
 
-        /// <summary>索引器，不影响<see cref="OnWrite"/>事件</summary>
+        /// <summary>索引器</summary>
         /// <param name="i"></param>
         /// <returns></returns>
         public Boolean this[Int32 i] { get { return Coils[i]; } set { Coils[i] = value; } }
@@ -64,7 +64,7 @@ namespace NewLife.Net.Modbus
         {
             //return Coils[i];
             var value = Coils[i];
-            if (OnRead != null) value = OnRead(i, value);
+            //if (OnRead != null) value = OnRead(i, value);
             return value;
         }
 
@@ -75,7 +75,7 @@ namespace NewLife.Net.Modbus
         {
             Coils[i] = flag;
 
-            if (OnWrite != null) OnWrite(i, flag);
+            //if (OnWrite != null) OnWrite(i, flag);
         }
 
         /// <summary>初始化</summary>
@@ -89,11 +89,11 @@ namespace NewLife.Net.Modbus
             Coils = new Boolean[n];
         }
 
-        /// <summary>写入线圈</summary>
-        public event WriteCoilHandler OnWrite;
+        ///// <summary>写入线圈</summary>
+        //public event WriteCoilHandler OnWrite;
 
-        /// <summary>读取线圈</summary>
-        public event ReadCoilHandler OnRead;
+        ///// <summary>读取线圈</summary>
+        //public event ReadCoilHandler OnRead;
     }
 
     /// <summary>默认字存储</summary>
@@ -105,7 +105,7 @@ namespace NewLife.Net.Modbus
         /// <returns></returns>
         public Int32 Count { get { return Regs.Length; } }
 
-        /// <summary>索引器，不影响<see cref="OnWrite"/>事件</summary>
+        /// <summary>索引器</summary>
         /// <param name="i"></param>
         /// <returns></returns>
         public UInt16 this[Int32 i] { get { return Regs[i]; } set { Regs[i] = value; } }
@@ -116,7 +116,7 @@ namespace NewLife.Net.Modbus
         public UInt16 Read(Int32 i)
         {
             var value = Regs[i];
-            if (OnRead != null) value = OnRead(i, value);
+            //if (OnRead != null) value = OnRead(i, value);
             return value;
         }
 
@@ -127,7 +127,7 @@ namespace NewLife.Net.Modbus
         {
             Regs[i] = value;
 
-            if (OnWrite != null) OnWrite(i, value);
+            //if (OnWrite != null) OnWrite(i, value);
         }
 
         /// <summary>初始化</summary>
@@ -141,10 +141,10 @@ namespace NewLife.Net.Modbus
             Regs = new UInt16[n];
         }
 
-        /// <summary>写入寄存器</summary>
-        public event WriteRegisterHandler OnWrite;
+        ///// <summary>写入寄存器</summary>
+        //public event WriteRegisterHandler OnWrite;
 
-        /// <summary>读取寄存器</summary>
-        public event ReadRegisterHandler OnRead;
+        ///// <summary>读取寄存器</summary>
+        //public event ReadRegisterHandler OnRead;
     }
 }
