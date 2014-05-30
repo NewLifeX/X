@@ -290,9 +290,9 @@ namespace NewLife.Net.Modbus
 
             var count = 0;
             // 支持一下连续写入
-            for (var i = 2; i + 1 < data.Length; i += 2)
+            for (var i = 2; i + 1 < data.Length; i += 2, count++)
             {
-                store.Write(addr + i - 2, data.ReadUInt16(i) != 0);
+                store.Write(addr + count, data.ReadUInt16(i) != 0);
 
             }
 
