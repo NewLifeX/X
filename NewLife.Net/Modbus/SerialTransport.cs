@@ -93,6 +93,8 @@ namespace NewLife.Net.Modbus
             lock (sp)
             {
                 sp.Write(buffer, offset, count);
+                // 必须强行刷出，作为一条完整的指令
+                sp.Flush();
             }
         }
 
