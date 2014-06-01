@@ -97,18 +97,21 @@ namespace NewLife.Net.Modbus
             WriteLine(str);
 #endif
 
-            // 预期返回指令长度，传入参数expect没有考虑头部和校验位
-            Transport.FrameSize = expect + ModbusEntity.NO_DATA_LENGTH;
-            Transport.Send(buf);
+            // Modbus加锁，防止冲突
+            lock (this)
+            {
+                // 预期返回指令长度，传入参数expect没有考虑头部和校验位
+                Transport.FrameSize = expect + ModbusEntity.NO_DATA_LENGTH;
+                Transport.Send(buf);
 
-            // lscy 2013-7-29 
-            // 发送后，休眠一段时间，避免设备数据未全部写到串口缓冲区中
-            // 一般情况下，100ms 已足够
-            if (Delay > 0) Thread.Sleep(Delay);
+                // lscy 2013-7-29 
+                // 发送后，休眠一段时间，避免设备数据未全部写到串口缓冲区中
+                // 一般情况下，100ms 已足够
+                if (Delay > 0) Thread.Sleep(Delay);
 
-            // 读取
-            var count = Transport.Receive(buf_receive);
-            if (count <= 0) return null;
+                // 读取
+                var count = Transport.Receive(buf_receive);
+                if (count <= 0) return null;
 
 #if DEBUG
             str = "Response:";
@@ -120,10 +123,11 @@ namespace NewLife.Net.Modbus
             WriteLine("");
 #endif
 
-            var rs = new ModbusEntity().Parse(buf_receive, 0, count);
-            if (rs == null) return null;
-            if (rs.IsException) throw new ModbusException(rs.Data != null && rs.Data.Length > 0 ? (Errors)rs.Data[0] : (Errors)0);
-            return rs;
+                var rs = new ModbusEntity().Parse(buf_receive, 0, count);
+                if (rs == null) return null;
+                if (rs.IsException) throw new ModbusException(rs.Data != null && rs.Data.Length > 0 ? (Errors)rs.Data[0] : (Errors)0);
+                return rs;
+            }
         }
         #endregion
 
