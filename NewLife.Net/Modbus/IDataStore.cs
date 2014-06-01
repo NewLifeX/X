@@ -81,7 +81,7 @@ namespace NewLife.Net.Modbus
         /// <param name="i"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        public static IWordStore WriteInt32(this IWordStore store, Int32 i, UInt32 value)
+        public static IWordStore WriteUInt32(this IWordStore store, Int32 i, UInt32 value)
         {
             store.Write(i, (UInt16)(value >> 16));
             store.Write(i + 1, (UInt16)(value & 0xFFFF));
