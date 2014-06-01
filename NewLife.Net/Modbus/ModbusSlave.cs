@@ -37,9 +37,9 @@ namespace NewLife.Net.Modbus
         /// <summary>数据存储</summary>
         public IDataStore DataStore { get { return _DataStore ?? (_DataStore = new DataStore()); } set { _DataStore = value; } }
 
-        private ITransport _Transport;
+        private ITransport[] _Transports = new ITransport[4];
         /// <summary>传输口</summary>
-        public ITransport Transport { get { return _Transport; } set { _Transport = value; } }
+        public ITransport[] Transports { get { return _Transports; } /*set { _Transport = value; }*/ }
 
         private Boolean _EnableDebug;
         /// <summary>启用调试</summary>
@@ -61,26 +61,35 @@ namespace NewLife.Net.Modbus
         {
             if (disposing) GC.SuppressFinalize(this);
 
-            if (Transport != null) Transport.Dispose();
+            //if (Transport != null) Transport.Dispose();
+            for (int i = 0; i < Transports.Length; i++)
+            {
+                if (Transports[i] != null) Transports[i].Dispose();
+            }
         }
         #endregion
 
         #region Modbus功能
         /// <summary>开始监听</summary>
         /// <returns></returns>
-        public virtual ModbusSlave Listen()
+        public virtual ModbusSlave Listen(ITransport transport)
         {
-            if (inited) return this;
-            inited = true;
+            if (transport == null) throw new ArgumentNullException("transport");
 
-            if (Host == 0) Host = 1;
+            // 找到一个空位，放入数组
+            for (int i = 0; i < Transports.Length; i++)
+            {
+                if (Transports[i] == null)
+                {
+                    Transports[i] = transport;
+                    break;
+                }
+            }
 
-            if (Transport == null) throw new ArgumentNullException("Transport");
+            var name = transport.ToString();
 
-            var name = Transport.ToString();
-
-            Transport.Received += (t, d) => Process(d);
-            Transport.ReceiveAsync();
+            transport.Received += (t, d) => Process(d);
+            transport.ReceiveAsync();
 
             WriteLine(this.GetType().Name + "在" + name + "上监听Host=" + Host);
 
