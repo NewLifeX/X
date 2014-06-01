@@ -137,7 +137,11 @@ namespace NewLife.Net.Modbus
         /// <returns></returns>
         public Boolean ReadCoil(Int32 addr)
         {
-            return ReadInputs(MBFunction.ReadCoils, addr, 1)[0];
+            //return ReadInputs(MBFunction.ReadCoils, addr, 1)[0];
+            // 小心内部可能没有返回
+            var rs = ReadInputs(MBFunction.ReadCoils, addr, 1);
+            if (rs == null || rs.Length < 1) return false;
+            return rs[0];
         }
 
         /// <summary>读取线圈状态</summary>
