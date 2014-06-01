@@ -18,28 +18,6 @@ namespace NewLife.Net.Modbus
         IWordStore HoldingRegisters { get; }
     }
 
-    ///// <summary>写入线圈</summary>
-    ///// <param name="i"></param>
-    ///// <param name="value">数值</param>
-    //public delegate void WriteCoilHandler(Int32 i, Boolean value);
-
-    ///// <summary>读取线圈</summary>
-    ///// <param name="i"></param>
-    ///// <param name="value">数值</param>
-    ///// <returns></returns>
-    //public delegate Boolean ReadCoilHandler(Int32 i, Boolean value);
-
-    ///// <summary>写入寄存器</summary>
-    ///// <param name="i"></param>
-    ///// <param name="value">数值</param>
-    //public delegate void WriteRegisterHandler(Int32 i, UInt16 value);
-
-    ///// <summary>读取寄存器</summary>
-    ///// <param name="i"></param>
-    ///// <param name="value">数值</param>
-    ///// <returns></returns>
-    //public delegate UInt16 ReadRegisterHandler(Int32 i, UInt16 value);
-
     /// <summary>位存储接口</summary>
     public interface IBitStore
     {
@@ -61,12 +39,6 @@ namespace NewLife.Net.Modbus
         /// <param name="i"></param>
         /// <param name="flag"></param>
         void Write(Int32 i, Boolean flag);
-
-        ///// <summary>写入线圈</summary>
-        //event WriteCoilHandler OnWrite;
-
-        ///// <summary>读取线圈</summary>
-        //event ReadCoilHandler OnRead;
     }
 
     /// <summary>字存储接口</summary>
@@ -90,11 +62,31 @@ namespace NewLife.Net.Modbus
         /// <param name="i"></param>
         /// <param name="value">数值</param>
         void Write(Int32 i, UInt16 value);
+    }
 
-        ///// <summary>写入寄存器</summary>
-        //event WriteRegisterHandler OnWrite;
+    /// <summary>存储类助手</summary>
+    public static class StoreHelper
+    {
+        /// <summary>读取整个UInt32</summary>
+        /// <param name="store"></param>
+        /// <param name="i"></param>
+        /// <returns></returns>
+        public static UInt32 ReadUInt32(this IWordStore store, Int32 i)
+        {
+            return (UInt32)((store.Read(i) << 16) + store.Read(i + 1));
+        }
 
-        ///// <summary>读取寄存器</summary>
-        //event ReadRegisterHandler OnRead;
+        /// <summary>写入整个UInt32</summary>
+        /// <param name="store"></param>
+        /// <param name="i"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static IWordStore WriteInt32(this IWordStore store, Int32 i, UInt32 value)
+        {
+            store.Write(i, (UInt16)(value >> 16));
+            store.Write(i + 1, (UInt16)(value & 0xFFFF));
+
+            return store;
+        }
     }
 }
