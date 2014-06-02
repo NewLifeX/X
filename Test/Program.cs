@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Sockets;
 using System.Reflection;
 using System.Threading;
 using NewLife.Collections;
@@ -39,7 +40,7 @@ namespace Test
                 try
                 {
 #endif
-                Test5();
+                TestNatProxy();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -115,10 +116,13 @@ namespace Test
         private static void TestNatProxy()
         {
             NATProxy proxy = new NATProxy();
-            proxy.ServerAddress = System.Net.IPAddress.Parse("192.168.2.20");
-            proxy.ServerPort = 1433;
+            proxy.ServerAddress = System.Net.IPAddress.Parse("192.168.1.105");
+            proxy.ServerPort = 6800;
+
+            proxy.Address = proxy.ServerAddress;
+            proxy.AddressFamily = AddressFamily.InterNetwork;
             proxy.Port = 8000;
-            proxy.ServerProtocolType = System.Net.Sockets.ProtocolType.Tcp;
+            proxy.ServerProtocolType = ProtocolType.Tcp;
             proxy.Start();
         }
 
