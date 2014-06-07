@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Linq;
 using System.IO.Ports;
 using System.Text;
 using System.Threading;
 using NewLife;
 using NewLife.Log;
+using NewLife.Threading;
 
 namespace XCom
 {
@@ -28,27 +30,56 @@ namespace XCom
         #endregion
 
         #region 构造
+        TimerX tx;
+
         protected override void OnDispose(bool disposing)
         {
             base.OnDispose(disposing);
 
             if (_Serial != null && _Serial.IsOpen)
             {
+                var sp = _Serial;
+                _Serial = null;
                 try
                 {
-                    _Serial.Close();
-                    _Serial.Dispose();
-                    _Serial = null;
+                    sp.Close();
+                    sp.Dispose();
                 }
                 catch { }
             }
+
+            if (tx != null) tx.Dispose();
         }
         #endregion
 
         #region 方法
         public Com Open()
         {
-            if (!Serial.IsOpen) Serial.Open();
+            if (!Serial.IsOpen)
+            {
+                Serial.Open();
+
+                var t = 1 * 1000;
+                tx = new TimerX(s =>
+                {
+                    // 如果串口已关闭，则销毁
+                    if (_Serial != null && !_Serial.IsOpen)
+                    {
+                        XTrace.WriteLine("串口已关闭，自动销毁！");
+                        Dispose();
+                    }
+                    else
+                    {
+                        // 如果串口不存在，也销毁
+                        var ports = SerialPort.GetPortNames();
+                        if (ports == null || ports.Length < 1 || !ports.Contains(Serial.PortName))
+                        {
+                            XTrace.WriteLine("串口已经不存在，自动销毁！");
+                            Dispose();
+                        }
+                    }
+                }, null, t, t);
+            }
 
             return this;
         }

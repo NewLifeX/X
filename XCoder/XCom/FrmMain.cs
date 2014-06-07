@@ -132,56 +132,63 @@ namespace XCom
         #endregion
 
         #region 收发数据
+        void Connect()
+        {
+            var name = cbName.SelectedItem + "";
+            if (String.IsNullOrEmpty(name))
+            {
+                MessageBox.Show("请选择串口！", this.Text);
+                cbName.Focus();
+                return;
+            }
+            var p = name.IndexOf("(");
+            if (p > 0) name = name.Substring(0, p);
+
+            SaveInfo();
+            var cfg = Config.Current;
+
+            // 如果上次没有关闭，则关闭
+            if (_Com != null) _Com.Dispose();
+
+            var sp = new SerialPort(name, cfg.BaudRate, cfg.Parity, cfg.DataBits, cfg.StopBits);
+            _Com = new Com { Serial = sp };
+            _Com.Open();
+            sp.DtrEnable = chkDTR.Checked;
+            sp.RtsEnable = chkRTS.Checked;
+            if (chkBreak.Checked) sp.BreakState = chkBreak.Checked;
+
+            _Com.Encoding = cfg.Encoding;
+            _Com.Received += _Com_Received;
+            _Com.Listen();
+
+            pnlSet.Enabled = false;
+            gbSet2.Enabled = false;
+            btnConnect.Text = "关闭";
+        }
+
+        void Disconnect()
+        {
+            if (_Com != null)
+            {
+                var cm = _Com;
+                _Com = null;
+                cm.Dispose();
+            }
+
+            pnlSet.Enabled = true;
+            gbSet2.Enabled = true;
+            btnConnect.Text = "打开";
+
+            ShowPorts();
+        }
+
         private void btnConnect_Click(object sender, EventArgs e)
         {
             var btn = sender as Button;
             if (btn.Text == "打开")
-            {
-                var name = cbName.SelectedItem + "";
-                if (String.IsNullOrEmpty(name))
-                {
-                    MessageBox.Show("请选择串口！", this.Text);
-                    cbName.Focus();
-                    return;
-                }
-                var p = name.IndexOf("(");
-                if (p > 0) name = name.Substring(0, p);
-
-                SaveInfo();
-                var cfg = Config.Current;
-
-                // 如果上次没有关闭，则关闭
-                if (_Com != null) _Com.Dispose();
-
-                var sp = new SerialPort(name, cfg.BaudRate, cfg.Parity, cfg.DataBits, cfg.StopBits);
-                sp.Open();
-                sp.DtrEnable = chkDTR.Checked;
-                sp.RtsEnable = chkRTS.Checked;
-                if (chkBreak.Checked) sp.BreakState = chkBreak.Checked;
-
-                _Com = new Com { Serial = sp };
-                _Com.Encoding = cfg.Encoding;
-                _Com.Received += _Com_Received;
-                _Com.Listen();
-
-                pnlSet.Enabled = false;
-                gbSet2.Enabled = false;
-                btn.Text = "关闭";
-            }
+                Connect();
             else
-            {
-                if (_Com != null)
-                {
-                    _Com.Dispose();
-                    _Com = null;
-                }
-
-                pnlSet.Enabled = true;
-                gbSet2.Enabled = true;
-                btn.Text = "打开";
-
-                ShowPorts();
-            }
+                Disconnect();
         }
 
         MemoryStream _stream;
@@ -217,21 +224,28 @@ namespace XCom
         Int32 lastSend = 0;
         private void timer1_Tick(object sender, EventArgs e)
         {
-            if (_Com != null)
+            var sp = _Com;
+            if (sp != null)
             {
-                if (_Com.BytesOfReceived != lastReceive)
+                if (sp.Serial == null && btnConnect.Text == "关闭")
                 {
-                    gbReceive.Text = (gbReceive.Tag + "").Replace("0", _Com.BytesOfReceived + "");
-                    lastReceive = _Com.BytesOfReceived;
+                    Disconnect();
+                    return;
                 }
-                if (_Com.BytesOfSent != lastSend)
+
+                if (sp.BytesOfReceived != lastReceive)
                 {
-                    gbSend.Text = (gbSend.Tag + "").Replace("0", _Com.BytesOfSent + "");
-                    lastSend = _Com.BytesOfSent;
+                    gbReceive.Text = (gbReceive.Tag + "").Replace("0", sp.BytesOfReceived + "");
+                    lastReceive = sp.BytesOfReceived;
+                }
+                if (sp.BytesOfSent != lastSend)
+                {
+                    gbSend.Text = (gbSend.Tag + "").Replace("0", sp.BytesOfSent + "");
+                    lastSend = sp.BytesOfSent;
                 }
 
                 // 检查串口是否已断开，自动关闭已断开的串口，避免内存暴涨
-                if (!_Com.Serial.IsOpen) btnConnect_Click(btnConnect, EventArgs.Empty);
+                if (sp.Serial != null && !sp.Serial.IsOpen) btnConnect_Click(btnConnect, EventArgs.Empty);
             }
             else
             {
@@ -289,10 +303,11 @@ namespace XCom
         private void mi清空_Click(object sender, EventArgs e)
         {
             txtReceive.Clear();
-            if (_Com != null)
+            var sp = _Com;
+            if (sp != null)
             {
-                _Com.BytesOfReceived = 0;
-                _Com.Serial.DiscardInBuffer();
+                sp.BytesOfReceived = 0;
+                if (sp.Serial != null) sp.Serial.DiscardInBuffer();
             }
         }
 
