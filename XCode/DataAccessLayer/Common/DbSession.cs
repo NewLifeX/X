@@ -170,17 +170,24 @@ namespace XCode.DataAccessLayer
                 //如果没有打开，则改变链接字符串
                 var builder = new DbConnectionStringBuilder();
                 builder.ConnectionString = ConnectionString;
+                var flag = false;
                 if (builder.ContainsKey("Database"))
                 {
                     builder["Database"] = value;
+                    flag = true;
                     ConnectionString = builder.ToString();
                     Conn.ConnectionString = ConnectionString;
                 }
                 else if (builder.ContainsKey("Initial Catalog"))
                 {
                     builder["Initial Catalog"] = value;
-                    ConnectionString = builder.ToString();
-                    Conn.ConnectionString = ConnectionString;
+                    flag = true;
+                }
+                if (flag)
+                {
+                    var connStr = builder.ToString();
+                    ConnectionString = connStr;
+                    Conn.ConnectionString = connStr;
                 }
                 if (b) Open();
                 //}
