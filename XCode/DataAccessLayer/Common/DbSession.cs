@@ -68,6 +68,7 @@ namespace XCode.DataAccessLayer
                     }
                     catch (ObjectDisposedException) { this.Dispose(); throw; }
                     //_Conn.ConnectionString = Database.ConnectionString;
+                    if (ConnectionString.IsNullOrWhiteSpace()) throw new XCodeException("[{0}]未指定连接字符串！", Database == null ? "" : Database.ConnName);
                     _Conn.ConnectionString = ConnectionString;
                 }
                 return _Conn;
