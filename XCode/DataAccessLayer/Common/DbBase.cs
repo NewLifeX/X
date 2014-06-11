@@ -112,7 +112,7 @@ namespace XCode.DataAccessLayer
         {
             get
             {
-                if (_ConnectionString == null) _ConnectionString = DefaultConnectionString;
+                //if (_ConnectionString == null) _ConnectionString = DefaultConnectionString;
                 return _ConnectionString;
             }
             set
