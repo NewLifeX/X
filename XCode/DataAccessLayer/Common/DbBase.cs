@@ -14,6 +14,7 @@ using NewLife.Compression;
 using NewLife.Configuration;
 using NewLife.Reflection;
 using NewLife.Web;
+using XCode.Exceptions;
 
 namespace XCode.DataAccessLayer
 {
@@ -131,6 +132,12 @@ namespace XCode.DataAccessLayer
             }
         }
 
+        protected void checkConnStr()
+        {
+            if (ConnectionString.IsNullOrWhiteSpace())
+                throw new XCodeException("[{0}]未指定连接字符串！", ConnName);
+        }
+
         protected virtual String DefaultConnectionString { get { return String.Empty; } }
 
         /// <summary>设置连接字符串时允许从中取值或修改，基类用于读取拥有者Owner，子类重写时应调用基类</summary>
@@ -186,11 +193,13 @@ namespace XCode.DataAccessLayer
                 if (_sessions.TryGetValue(tid, out session) && session != null && !session.Disposed) return session;
 
                 session = OnCreateSession();
-                session.ConnectionString = ConnectionString;
 
                 // 减少一步类型转换
                 var dbSession = session as DbSession;
                 if (dbSession != null) dbSession.Database = this;
+
+                checkConnStr();
+                session.ConnectionString = ConnectionString;
 
                 _sessions[tid] = session;
 

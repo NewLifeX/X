@@ -38,6 +38,7 @@ namespace XCode.DataAccessLayer
 
                     // 独立Session，避免因切换数据库而导致出错
                     var session = OnCreateSession() as DbSession;
+                    checkConnStr();
                     session.ConnectionString = ConnectionString;
                     session.Database = this;
                     String ver = null;

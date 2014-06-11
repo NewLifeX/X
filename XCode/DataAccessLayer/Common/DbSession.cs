@@ -68,12 +68,18 @@ namespace XCode.DataAccessLayer
                     }
                     catch (ObjectDisposedException) { this.Dispose(); throw; }
                     //_Conn.ConnectionString = Database.ConnectionString;
-                    if (ConnectionString.IsNullOrWhiteSpace()) throw new XCodeException("[{0}]未指定连接字符串！", Database == null ? "" : Database.ConnName);
+                    checkConnStr();
                     _Conn.ConnectionString = ConnectionString;
                 }
                 return _Conn;
             }
             //set { _Conn = value; }
+        }
+
+        protected void checkConnStr()
+        {
+            if (ConnectionString.IsNullOrWhiteSpace())
+                throw new XCodeException("[{0}]未指定连接字符串！", Database == null ? "" : Database.ConnName);
         }
 
         private Int32 _QueryTimes;
@@ -551,6 +557,7 @@ namespace XCode.DataAccessLayer
                 try
                 {
                     conn = Factory.CreateConnection();
+                    checkConnStr();
                     conn.ConnectionString = ConnectionString;
                     conn.Open();
                 }
