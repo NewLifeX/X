@@ -15,6 +15,7 @@ using NewLife.Configuration;
 using NewLife.Reflection;
 using NewLife.Web;
 using XCode.Exceptions;
+using NewLife.Log;
 
 namespace XCode.DataAccessLayer
 {
@@ -125,6 +126,12 @@ namespace XCode.DataAccessLayer
                 var connStr = builder.ConnectionString;
                 if (_ConnectionString != connStr)
                 {
+                    if (_ConnectionString != null)
+                    {
+                        XTrace.WriteLine("{0}连接字符串改变 {1}=>{2}", ConnName, _ConnectionString, connStr);
+                        XTrace.DebugStack();
+                    }
+
                     _ConnectionString = connStr;
 
                     ReleaseSession();

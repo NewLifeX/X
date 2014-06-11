@@ -90,18 +90,17 @@ namespace XCode.DataAccessLayer
             {
                 DAL.WriteDebugLog("GetSchema({0})异常重试！{1},连接字符串 {2}", collectionName, ex.Message, ConnectionString);
 
-                String dbname = DatabaseName;
+                var dbname = DatabaseName;
                 if (dbname != SystemDatabaseName) DatabaseName = SystemDatabaseName;
-                DataTable dt = null;
+
                 try
                 {
-                    dt = base.GetSchema(collectionName, restrictionValues);
+                    return base.GetSchema(collectionName, restrictionValues);
                 }
                 finally
                 {
                     if (dbname != SystemDatabaseName) DatabaseName = dbname;
                 }
-                return dt;
             }
         }
         #endregion

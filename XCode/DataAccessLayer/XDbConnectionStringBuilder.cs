@@ -13,13 +13,7 @@ namespace XCode.DataAccessLayer
         #region 属性
         private Dictionary<String, String> _Keys = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         /// <summary>已重载。</summary>
-        public override ICollection Keys
-        {
-            get
-            {
-                return _Keys.Keys;
-            }
-        }
+        public override ICollection Keys { get { return _Keys.Keys; } }
         #endregion
 
         #region 方法
@@ -77,7 +71,7 @@ namespace XCode.DataAccessLayer
             {
                 if (Count <= 0) return null;
 
-                StringBuilder sb = new StringBuilder();
+                var sb = new StringBuilder();
                 foreach (String item in Keys)
                 {
                     if (sb.Length > 0) sb.Append(";");
@@ -91,9 +85,9 @@ namespace XCode.DataAccessLayer
                 Clear();
                 if (String.IsNullOrEmpty(value)) return;
 
-                String[] kvs = value.Split(new String[] { ";" }, StringSplitOptions.RemoveEmptyEntries);
+                var kvs = value.Split(new String[] { ";" }, StringSplitOptions.RemoveEmptyEntries);
                 if (kvs == null || kvs.Length <= 0) return;
-                foreach (String item in kvs)
+                foreach (var item in kvs)
                 {
                     Int32 p = item.IndexOf("=");
                     // 没有等号，或者等号在第一位，都不合法
@@ -143,10 +137,7 @@ namespace XCode.DataAccessLayer
         #region 辅助
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override string ToString()
-        {
-            return ConnectionString;
-        }
+        public override string ToString() { return ConnectionString; }
         #endregion
     }
 }

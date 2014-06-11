@@ -67,11 +67,7 @@ namespace XCode.DataAccessLayer
 
         private String _DataPath;
         /// <summary>Êý¾ÝÄ¿Â¼</summary>
-        public String DataPath
-        {
-            get { return _DataPath; }
-            set { _DataPath = value; }
-        }
+        public String DataPath { get { return _DataPath; } set { _DataPath = value; } }
 
         const String Application_Name = "Application Name";
         protected override void OnSetConnectionString(XDbConnectionStringBuilder builder)
