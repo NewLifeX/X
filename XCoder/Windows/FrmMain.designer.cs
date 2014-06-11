@@ -86,6 +86,7 @@
             this.检查更新ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.关于ToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.label9 = new System.Windows.Forms.Label();
+            this.timer1 = new System.Windows.Forms.Timer(this.components);
             this.gbConnect.SuspendLayout();
             this.gbTable.SuspendLayout();
             this.statusStrip1.SuspendLayout();
@@ -283,9 +284,7 @@
             this.webBrowser1.ScriptErrorsSuppressed = true;
             this.webBrowser1.Size = new System.Drawing.Size(336, 168);
             this.webBrowser1.TabIndex = 54;
-            this.webBrowser1.Url = new System.Uri("http://www.newlifex.com/archiver/showforum-2.aspx?r=XCoder", System.UriKind.Absolute);
             this.webBrowser1.DocumentCompleted += new System.Windows.Forms.WebBrowserDocumentCompletedEventHandler(this.webBrowser1_DocumentCompleted);
-            this.webBrowser1.Navigating += new System.Windows.Forms.WebBrowserNavigatingEventHandler(this.webBrowser1_Navigating);
             // 
             // lbEditHeader
             // 
@@ -704,6 +703,12 @@
             this.label9.TabIndex = 32;
             this.label9.Text = "两种用法：";
             // 
+            // timer1
+            // 
+            this.timer1.Enabled = true;
+            this.timer1.Interval = 1000;
+            this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
+            // 
             // FrmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
@@ -805,6 +810,7 @@
         private System.Windows.Forms.CheckBox cbIncludeView;
         private System.Windows.Forms.ToolStripMenuItem 添加模型ToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem 在线帮助文档ToolStripMenuItem;
+        private System.Windows.Forms.Timer timer1;
 	}
 }
 

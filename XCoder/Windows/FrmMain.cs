@@ -788,6 +788,16 @@ namespace XCoder
                 }
             }
         }
+
+        private void timer1_Tick(object sender, EventArgs e)
+        {
+            timer1.Enabled = false;
+
+            var asm = AssemblyX.Create(Assembly.GetExecutingAssembly());
+            //webBrowser1.Navigate("http://www.newlifex.com/archiver/showforum-2.aspx", false);
+            webBrowser1.Url = new Uri("http://www.newlifex.com/archiver/showforum-2.aspx?r=XCoder_v" + asm.CompileVersion);
+            webBrowser1.Navigating += webBrowser1_Navigating;
+        }
         #endregion
 
         #region 添加模型-@宁波-小董 2013
