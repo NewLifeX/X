@@ -138,9 +138,9 @@ namespace XCode.DataAccessLayer
         public override object SetSchema(DDLSchema schema, params object[] values)
         {
             var session = Database.CreateSession();
+            var databaseName = session.DatabaseName;
 
-            var databaseName = values == null || values.Length < 1 ? null : (String)values[0];
-            if (String.IsNullOrEmpty(databaseName)) databaseName = session.DatabaseName;
+            if (values != null && values.Length > 0 && values[0] is String && values[0] + "" != "") databaseName = (String)values[0];
 
             switch (schema)
             {

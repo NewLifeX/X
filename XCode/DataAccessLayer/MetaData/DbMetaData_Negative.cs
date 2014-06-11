@@ -206,7 +206,7 @@ namespace XCode.DataAccessLayer
                 {
                     if (entitydic.ContainsKey(item.ColumnName.ToLower()))
                     {
-                        WriteLog("《" + entitytable.Name + "》实体中存在重复列名，请检查《" + entitytable.TableName + "》表《" + item.Name + "》属性的ColumnName配置（目前配置为："+item.ColumnName+"）。");
+                        WriteLog("《" + entitytable.Name + "》实体中存在重复列名，请检查《" + entitytable.TableName + "》表《" + item.Name + "》属性的ColumnName配置（目前配置为：" + item.ColumnName + "）。");
                         continue;
                     }
                     entitydic.Add(item.ColumnName.ToLower(), item);
@@ -687,7 +687,11 @@ namespace XCode.DataAccessLayer
                 }
                 catch (Exception ex)
                 {
+                    //#if DEBUG
+                    //WriteLog("修改表{0}失败！{1}", schema.ToString(), ex.ToString());
+                    //#else
                     WriteLog("修改表{0}失败！{1}", schema.ToString(), ex.Message);
+                    //#endif
                 }
             }
         }

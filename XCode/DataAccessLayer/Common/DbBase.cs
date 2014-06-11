@@ -118,7 +118,7 @@ namespace XCode.DataAccessLayer
             set
             {
 #if DEBUG
-                XTrace.WriteLine("{0}设定连接字符串 {1}", ConnName, value);
+                //XTrace.WriteLine("{0}设定连接字符串 {1}", ConnName, value);
 #endif
                 var builder = new XDbConnectionStringBuilder();
                 builder.ConnectionString = value;
@@ -128,15 +128,15 @@ namespace XCode.DataAccessLayer
                 // 只有连接字符串改变，才释放会话
                 var connStr = builder.ConnectionString;
 #if DEBUG
-               XTrace.WriteLine("{0}格式化连接字符串 {1}", ConnName, connStr);
+               //XTrace.WriteLine("{0}格式化连接字符串 {1}", ConnName, connStr);
 #endif
                 if (_ConnectionString != connStr)
                 {
-                    if (_ConnectionString != null)
-                    {
-                        XTrace.WriteLine("{0}连接字符串改变 {1}=>{2}", ConnName, _ConnectionString, connStr);
-                        XTrace.DebugStack();
-                    }
+                    //if (_ConnectionString != null)
+                    //{
+                    //    XTrace.WriteLine("{0}连接字符串改变 {1}=>{2}", ConnName, _ConnectionString, connStr);
+                    //    XTrace.DebugStack();
+                    //}
 
                     _ConnectionString = connStr;
 
