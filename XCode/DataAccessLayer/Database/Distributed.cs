@@ -53,19 +53,11 @@ namespace XCode.DataAccessLayer
         #region 读写服务器集合
         private Server[] _WriteServers;
         /// <summary>写入服务器集合</summary>
-        public Server[] WriteServers
-        {
-            get { return _WriteServers; }
-            set { _WriteServers = value; }
-        }
+        public Server[] WriteServers { get { return _WriteServers; } set { _WriteServers = value; } }
 
         private Server[] _ReadServers;
         /// <summary>读取服务器集合</summary>
-        public Server[] ReadServers
-        {
-            get { return _ReadServers; }
-            set { _ReadServers = value; }
-        }
+        public Server[] ReadServers { get { return _ReadServers; } set { _ReadServers = value; } }
 
         const String ExceptionMessage1 = "缺少写入服务器配置WriteServer！";
         const String ExceptionMessage2 = "缺少读取服务器配置ReadServer！";
@@ -74,16 +66,13 @@ namespace XCode.DataAccessLayer
         {
             if (String.IsNullOrEmpty(connStr)) return;
 
-            DbConnectionStringBuilder builder = new DbConnectionStringBuilder();
+            var builder = new XDbConnectionStringBuilder();
             builder.ConnectionString = connStr;
 
-            if (builder.ContainsKey("WriteServer")) throw new XDbException(this, ExceptionMessage1);
-            if (builder.ContainsKey("ReadServer")) throw new XDbException(this, ExceptionMessage2);
-
-            String ws = (String)builder["WriteServer"];
-            String rs = (String)builder["ReadServer"];
-            if (String.IsNullOrEmpty(ws)) throw new XDbException(this, ExceptionMessage1);
-            if (String.IsNullOrEmpty(rs)) throw new XDbException(this, ExceptionMessage2);
+            var ws = "";
+            var rs = "";
+            if (!builder.TryGetValue("WriteServer", out ws) || String.IsNullOrEmpty(ws)) throw new XDbException(this, ExceptionMessage1);
+            if (!builder.TryGetValue("ReadServer", out rs) || String.IsNullOrEmpty(rs)) throw new XDbException(this, ExceptionMessage2);
 
             #region 加载写入服务器
             String[] ss = ws.Split(new Char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
