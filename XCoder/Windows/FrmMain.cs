@@ -778,11 +778,12 @@ namespace XCoder
                 if (!url.IsNullOrWhiteSpace())
                 {
                     // 精简版替换为完整版
+                    var asm = AssemblyX.Create(Assembly.GetExecutingAssembly());
                     url = url.Replace("/archiver/", "/");
                     if (url.Contains("?"))
-                        url += "&r=XCoder";
+                        url += "&r=XCoder_v" + asm.CompileVersion;
                     else
-                        url += "?r=XCoder";
+                        url += "?r=XCoder_v" + asm.CompileVersion;
                     Process.Start(url);
                     e.Cancel = true;
                 }
