@@ -393,18 +393,27 @@ namespace XCode.DataAccessLayer
         //}
 
         #region 架构定义
-        public override object SetSchema(DDLSchema schema, params object[] values)
+        //public override object SetSchema(DDLSchema schema, params object[] values)
+        //{
+        //    if (schema == DDLSchema.DatabaseExist)
+        //    {
+        //        IDbSession session = Database.CreateSession();
+
+        //        DataTable dt = GetSchema(_.Databases, new String[] { values != null && values.Length > 0 ? (String)values[0] : session.DatabaseName });
+        //        if (dt == null || dt.Rows == null || dt.Rows.Count < 1) return false;
+        //        return true;
+        //    }
+
+        //    return base.SetSchema(schema, values);
+        //}
+
+        protected override bool DatabaseExist(string databaseName)
         {
-            if (schema == DDLSchema.DatabaseExist)
-            {
-                IDbSession session = Database.CreateSession();
+            //return base.DatabaseExist(databaseName);
 
-                DataTable dt = GetSchema(_.Databases, new String[] { values != null && values.Length > 0 ? (String)values[0] : session.DatabaseName });
-                if (dt == null || dt.Rows == null || dt.Rows.Count < 1) return false;
-                return true;
-            }
-
-            return base.SetSchema(schema, values);
+            var session = Database.CreateSession();
+            var dt = GetSchema(_.Databases, new String[] { databaseName });
+            return dt != null && dt.Rows != null && dt.Rows.Count > 0;
         }
 
         //public override string CreateDatabaseSQL(string dbname, string file)

@@ -31,8 +31,8 @@ using System.Runtime.InteropServices;
 //
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
-[assembly: AssemblyVersion("8.10.*")]
-[assembly: AssemblyFileVersion("8.10.2014.0412")]
+[assembly: AssemblyVersion("8.11.*")]
+[assembly: AssemblyFileVersion("8.11.2014.0612")]
 
 /*
  * XCode的重大改进
@@ -49,6 +49,8 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v8.11.2014.0612  重新整理远程数据库访问时切换系统库的逻辑
+ * 
  * v8.10.2014.0412  增加DAL.CacheExpiration全局设置一级缓存
  * 
  * v8.10.2014.0311  为IEntityList接口增加Page分页方法

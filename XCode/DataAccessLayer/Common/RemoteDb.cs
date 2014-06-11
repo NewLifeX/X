@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Data;
 using System.Threading;
+using NewLife.Reflection;
 
 namespace XCode.DataAccessLayer
 {
@@ -20,25 +21,21 @@ namespace XCode.DataAccessLayer
                 if (_ServerVersion != null) return _ServerVersion;
                 _ServerVersion = String.Empty;
 
-                var session = CreateSession();
-                var dbname = session.DatabaseName;
-                if (dbname != SystemDatabaseName) session.DatabaseName = SystemDatabaseName;
-                if (!session.Opened) session.Open();
-                try
+                var session = CreateSession() as RemoteDbSession;
+                _ServerVersion = session.ProcessWithSystem(s =>
                 {
-                    _ServerVersion = session.Conn.ServerVersion;
+                    if (!session.Opened) session.Open();
+                    try
+                    {
+                        return session.Conn.ServerVersion;
+                    }
+                    finally
+                    {
+                        session.AutoClose();
+                    }
+                }) as String;
 
-                    return _ServerVersion;
-                }
-                catch //ahuang 2013。06。25 当数据库连接字符串有误取不到ServerVersion
-                {
-                    return String.Empty;
-                }
-                finally
-                {
-                    session.AutoClose();
-                    if (dbname != SystemDatabaseName) session.DatabaseName = dbname;
-                }
+                return _ServerVersion;
             }
         }
 
@@ -58,7 +55,6 @@ namespace XCode.DataAccessLayer
                 return base.DefaultConnectionString;
             }
         }
-
         #endregion
     }
 
@@ -82,25 +78,40 @@ namespace XCode.DataAccessLayer
         #region 架构
         public override DataTable GetSchema(string collectionName, string[] restrictionValues)
         {
-            try
-            {
-                return base.GetSchema(collectionName, restrictionValues);
-            }
-            catch (Exception ex)
-            {
-                DAL.WriteDebugLog("GetSchema({0})异常重试！{1},连接字符串 {2}", collectionName, ex.Message, ConnectionString);
+            //try
+            //{
+            return base.GetSchema(collectionName, restrictionValues);
+            //}
+            //catch (Exception ex)
+            //{
+            //    DAL.WriteDebugLog("GetSchema({0})异常重试！{1},连接字符串 {2}", collectionName, ex.Message, ConnectionString);
+            //}
+        }
+        #endregion
 
-                var dbname = DatabaseName;
-                if (dbname != SystemDatabaseName) DatabaseName = SystemDatabaseName;
+        #region 系统权限处理
+        public Object ProcessWithSystem(Func<IDbSession, Object> callback)
+        {
+            var session = this;
+            var dbname = session.DatabaseName;
+            var sysdbname = SystemDatabaseName;
 
+            //如果指定了数据库名，并且不是master，则切换到master
+            if (!String.IsNullOrEmpty(dbname) && !dbname.EqualIgnoreCase(sysdbname))
+            {
+                session.DatabaseName = sysdbname;
                 try
                 {
-                    return base.GetSchema(collectionName, restrictionValues);
+                    return callback(session);
                 }
                 finally
                 {
-                    if (dbname != SystemDatabaseName) DatabaseName = dbname;
+                    session.DatabaseName = dbname;
                 }
+            }
+            else
+            {
+                return callback(session);
             }
         }
         #endregion
@@ -126,66 +137,52 @@ namespace XCode.DataAccessLayer
         #region 架构定义
         public override object SetSchema(DDLSchema schema, params object[] values)
         {
-            IDbSession session = Database.CreateSession();
+            var session = Database.CreateSession();
 
-            Object obj = null;
-            String dbname = String.Empty;
-            String databaseName = String.Empty;
-            String sysdbname = SystemDatabaseName;
+            var databaseName = values == null || values.Length < 1 ? null : (String)values[0];
+            if (String.IsNullOrEmpty(databaseName)) databaseName = session.DatabaseName;
 
             switch (schema)
             {
-                case DDLSchema.DatabaseExist:
-                    databaseName = values == null || values.Length < 1 ? null : (String)values[0];
-                    if (String.IsNullOrEmpty(databaseName)) databaseName = session.DatabaseName;
-                    values = new Object[] { databaseName };
-
-                    dbname = session.DatabaseName;
-
-                    //如果指定了数据库名，并且不是master，则切换到master
-                    if (!String.IsNullOrEmpty(dbname) && !dbname.EqualIgnoreCase(sysdbname))
-                    {
-                        session.DatabaseName = sysdbname;
-                        try
-                        {
-                            obj = session.QueryCount(GetSchemaSQL(schema, values)) > 0;
-                        }
-                        finally
-                        {
-                            session.DatabaseName = dbname;
-                        }
-                        return obj;
-                    }
-                    else
-                    {
-                        return session.QueryCount(GetSchemaSQL(schema, values)) > 0;
-                    }
                 case DDLSchema.TableExist:
                     return session.QueryCount(GetSchemaSQL(schema, values)) > 0;
+
+                case DDLSchema.DatabaseExist:
+                    return ProcessWithSystem(s => DatabaseExist(databaseName));
+
                 case DDLSchema.CreateDatabase:
-                    databaseName = values == null || values.Length < 1 ? null : (String)values[0];
-                    if (String.IsNullOrEmpty(databaseName)) databaseName = session.DatabaseName;
                     values = new Object[] { databaseName, values == null || values.Length < 2 ? null : values[1] };
 
-                    dbname = session.DatabaseName;
-                    session.DatabaseName = sysdbname;
-                    try
-                    {
-                        obj = base.SetSchema(schema, values);
-                    }
-                    finally
-                    {
-                        session.DatabaseName = dbname;
-                    }
+                    var obj = ProcessWithSystem(s => base.SetSchema(schema, values));
 
                     // 创建数据库后，需要等待它初始化
                     Thread.Sleep(5000);
 
                     return obj;
+
+                case DDLSchema.DropDatabase:
+                    return ProcessWithSystem(s => DropDatabase(databaseName));
+
                 default:
                     break;
             }
             return base.SetSchema(schema, values);
+        }
+
+        protected virtual Boolean DatabaseExist(String databaseName)
+        {
+            var session = Database.CreateSession();
+            return session.QueryCount(GetSchemaSQL(DDLSchema.DatabaseExist, new Object[] { databaseName })) > 0;
+        }
+
+        protected virtual Boolean DropDatabase(String databaseName)
+        {
+            return (Boolean)base.SetSchema(DDLSchema.DropDatabase, new Object[] { databaseName });
+        }
+
+        Object ProcessWithSystem(Func<IDbSession, Object> callback)
+        {
+            return (Database.CreateSession() as RemoteDbSession).ProcessWithSystem(callback);
         }
         #endregion
     }

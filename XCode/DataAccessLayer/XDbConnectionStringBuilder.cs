@@ -1,66 +1,66 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Text;
 
 namespace XCode.DataAccessLayer
 {
     /// <summary>连接字符串构造器</summary>
     /// <remarks>未稳定，仅供XCode内部使用，不建议外部使用</remarks>
-    class XDbConnectionStringBuilder : StringDictionary
+    class XDbConnectionStringBuilder : Dictionary<String, String>
     {
         #region 属性
-        private Dictionary<String, String> _Keys = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-        /// <summary>已重载。</summary>
-        public override ICollection Keys { get { return _Keys.Keys; } }
+        //private Dictionary<String, String> _Keys = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        ///// <summary>已重载。</summary>
+        //public override ICollection Keys { get { return _Keys.Keys; } }
+        #endregion
+
+        #region 构造
+        /// <summary>实例化不区分大小写的哈希集合</summary>
+        public XDbConnectionStringBuilder() : base(StringComparer.OrdinalIgnoreCase) { }
         #endregion
 
         #region 方法
-        /// <summary>已重载。</summary>
-        /// <param name="key"></param>
-        /// <param name="value">数值</param>
-        public override void Add(string key, string value)
-        {
-            base.Add(key, value);
+        ///// <summary>已重载。</summary>
+        ///// <param name="key"></param>
+        ///// <param name="value">数值</param>
+        //public override void Add(string key, string value)
+        //{
+        //    base.Add(key, value);
 
-            _Keys.Add(key, key.ToLower());
-        }
+        //    _Keys.Add(key, key.ToLower());
+        //}
 
-        /// <summary>已重载。</summary>
-        /// <param name="key"></param>
-        public override void Remove(string key)
-        {
-            base.Remove(key);
+        ///// <summary>已重载。</summary>
+        ///// <param name="key"></param>
+        //public override void Remove(string key)
+        //{
+        //    base.Remove(key);
 
-            _Keys.Remove(key);
-        }
+        //    _Keys.Remove(key);
+        //}
 
-        /// <summary>已重载。</summary>
-        public override void Clear()
-        {
-            base.Clear();
+        ///// <summary>已重载。</summary>
+        //public override void Clear()
+        //{
+        //    base.Clear();
 
-            _Keys.Clear();
-        }
+        //    _Keys.Clear();
+        //}
 
-        /// <summary>已重载。</summary>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public override string this[string key]
-        {
-            get
-            {
-                return base[key];
-            }
-            set
-            {
-                if (ContainsKey(key))
-                    base[key] = value;
-                else
-                    Add(key, value);
-            }
-        }
+        ///// <summary>已重载。</summary>
+        ///// <param name="key"></param>
+        ///// <returns></returns>
+        //public override string this[string key]
+        //{
+        //    get { return base[key]; }
+        //    set
+        //    {
+        //        if (ContainsKey(key))
+        //            base[key] = value;
+        //        else
+        //            Add(key, value);
+        //    }
+        //}
         #endregion
 
         #region 连接字符串
@@ -72,10 +72,10 @@ namespace XCode.DataAccessLayer
                 if (Count <= 0) return null;
 
                 var sb = new StringBuilder();
-                foreach (String item in Keys)
+                foreach (var item in this)
                 {
                     if (sb.Length > 0) sb.Append(";");
-                    sb.AppendFormat("{0}={1}", item, base[item]);
+                    sb.AppendFormat("{0}={1}", item.Key, item.Value);
                 }
 
                 return sb.ToString();
@@ -103,20 +103,20 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 方法
-        /// <summary>尝试获取值</summary>
-        /// <param name="key"></param>
-        /// <param name="value">数值</param>
-        /// <returns></returns>
-        public Boolean TryGetValue(String key, out String value)
-        {
-            value = null;
+        ///// <summary>尝试获取值</summary>
+        ///// <param name="key"></param>
+        ///// <param name="value">数值</param>
+        ///// <returns></returns>
+        //public Boolean TryGetValue(String key, out String value)
+        //{
+        //    value = null;
 
-            if (!ContainsKey(key)) return false;
+        //    if (!ContainsKey(key)) return false;
 
-            value = this[key];
+        //    value = this[key];
 
-            return true;
-        }
+        //    return true;
+        //}
 
         /// <summary>获取并删除连接字符串中的项</summary>
         /// <param name="key"></param>

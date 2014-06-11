@@ -52,7 +52,17 @@ namespace XCode.DataAccessLayer
 
         private String _ConnectionString;
         /// <summary>链接字符串，会话单独保存，允许修改，修改不会影响数据库中的连接字符串</summary>
-        public String ConnectionString { get { return _ConnectionString; } set { _ConnectionString = value; } }
+        public String ConnectionString
+        {
+            get { return _ConnectionString; }
+            set
+            {
+                _ConnectionString = value;
+#if DEBUG
+                XTrace.WriteLine("DbSession设定连接字符串 {0}", value);
+#endif
+            }
+        }
 
         private DbConnection _Conn;
         /// <summary>数据连接对象。</summary>
@@ -158,46 +168,31 @@ namespace XCode.DataAccessLayer
             {
                 if (DatabaseName == value) return;
 
-                //XTrace.Log.Info("DatabaseName {0}=>{1}", DatabaseName, value);
+                // 因为MSSQL多次出现因连接字符串错误而导致的报错，连接字符串变错设置变空了，这里统一关闭连接，采用保守做法修改字符串
+                var b = Opened;
+                if (b) Close();
 
-                //if (Opened)
-                //{
-                //    //如果已打开，则调用链接来切换
-                //    Conn.ChangeDatabase(value);
-                //}
-                //else
-                //{
-                //DAL.WriteDebugLog("{0}=>{1}", Conn.Database, value);
-                ////XTrace.DebugStack(3);
-
-                //// 因为MSSQL多次出现因连接字符串错误而导致的报错，连接字符串变错设置变空了，这里统一关闭连接，采用保守做法修改字符串
-                //var b = Opened;
-                //if (b) Close();
-
-                ////如果没有打开，则改变链接字符串
-                //var builder = new DbConnectionStringBuilder();
-                //builder.ConnectionString = ConnectionString;
-                //var flag = false;
-                //if (builder.ContainsKey("Database"))
-                //{
-                //    builder["Database"] = value;
-                //    flag = true;
-                //    ConnectionString = builder.ToString();
-                //    Conn.ConnectionString = ConnectionString;
-                //}
-                //else if (builder.ContainsKey("Initial Catalog"))
-                //{
-                //    builder["Initial Catalog"] = value;
-                //    flag = true;
-                //}
-                //if (flag)
-                //{
-                //    var connStr = builder.ToString();
-                //    ConnectionString = connStr;
-                //    Conn.ConnectionString = connStr;
-                //}
-                //if (b) Open();
-                //}
+                //如果没有打开，则改变链接字符串
+                var builder = new XDbConnectionStringBuilder();
+                builder.ConnectionString = ConnectionString;
+                var flag = false;
+                if (builder.ContainsKey("Database"))
+                {
+                    builder["Database"] = value;
+                    flag = true;
+                }
+                else if (builder.ContainsKey("Initial Catalog"))
+                {
+                    builder["Initial Catalog"] = value;
+                    flag = true;
+                }
+                if (flag)
+                {
+                    var connStr = builder.ToString();
+                    ConnectionString = connStr;
+                    Conn.ConnectionString = connStr;
+                }
+                if (b) Open();
             }
         }
 
