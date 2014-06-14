@@ -418,7 +418,7 @@ namespace NewLife.Log
                 if (method == null || String.IsNullOrEmpty(method.Name) || method.Name[0] == '<' && method.Name.Contains(">")) continue;
 
                 var type = method.DeclaringType ?? method.ReflectedType;
-                sb.Append(type.Name);
+                if (type != null) sb.Append(type.Name);
                 sb.Append(".");
 
                 var name = method.ToString();
