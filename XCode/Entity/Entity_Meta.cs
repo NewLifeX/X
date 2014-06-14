@@ -6,6 +6,7 @@ using System.Data.Common;
 using XCode.Cache;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
+using NewLife.Reflection;
 
 namespace XCode
 {
@@ -88,9 +89,7 @@ namespace XCode
             #endregion
 
             #region 单实体对象缓存属性
-
             private static Int32 _SingleEntityCacheExpriod = 60;
-
             /// <summary>过期时间。单位是秒，默认60秒</summary>
             public static Int32 SingleEntityCacheExpriod
             {
@@ -99,7 +98,6 @@ namespace XCode
             }
 
             private static Int32 _SingleEntityCacheMaxEntity = 10000;
-
             /// <summary>最大实体数。默认10000</summary>
             public static Int32 SingleEntityCacheMaxEntity
             {
@@ -108,7 +106,6 @@ namespace XCode
             }
 
             private static Boolean _SingleEntityCacheAutoSave = true;
-
             /// <summary>缓存到期时自动保存</summary>
             public static Boolean SingleEntityCacheAutoSave
             {
@@ -117,7 +114,6 @@ namespace XCode
             }
 
             private static Boolean _SingleEntityCacheAllowNull;
-
             /// <summary>允许缓存空对象</summary>
             public static Boolean SingleEntityCacheAllowNull
             {
@@ -126,7 +122,6 @@ namespace XCode
             }
 
             private static FindKeyDelegate<Object, TEntity> _SingleEntityCacheFindKeyMethod;
-
             /// <summary>单对象缓存查找数据的方法</summary>
             /// <remarks>
             /// 只要静态构造函数中赋值一次，分表分库产生多个的实体会话都可以在这儿获取单对象缓存查找数据的方法
@@ -136,7 +131,6 @@ namespace XCode
                 get { return _SingleEntityCacheFindKeyMethod; }
                 set { _SingleEntityCacheFindKeyMethod = value; }
             }
-
             #endregion
 
             #region 数据库操作
@@ -151,7 +145,7 @@ namespace XCode
             /// <returns></returns>
             [Obsolete("=>Session")]
             public static DataSet Query(SelectBuilder builder, Int32 startRowIndex, Int32 maximumRows) { return Session.Query(builder, startRowIndex, maximumRows); }
-           
+
             /// <summary>执行SQL查询，返回记录集</summary>
             /// <param name="sql">SQL语句</param>
             /// <returns></returns>
@@ -290,6 +284,56 @@ namespace XCode
             [Obsolete("=>Session")]
             [EditorBrowsable(EditorBrowsableState.Never)]
             public static Int64 LongCount { get { return Session.LongCount; } }
+            #endregion
+
+            #region 分表分库
+            /// <summary>在分库上执行操作，自动还原</summary>
+            /// <param name="connName"></param>
+            /// <param name="tableName"></param>
+            /// <param name="func"></param>
+            /// <returns></returns>
+            public static Object ProcessWithSplit(String connName, String tableName, Func<Object> func)
+            {
+                using (var split = CreateSplit(connName, tableName))
+                {
+                    return func();
+                }
+            }
+
+            /// <summary>创建分库会话，using结束时自动还原</summary>
+            /// <param name="connName">连接名</param>
+            /// <param name="tableName">表名</param>
+            /// <returns></returns>
+            public static IDisposable CreateSplit(String connName, String tableName)
+            {
+                return new SplitPackge(connName, tableName);
+            }
+
+            class SplitPackge : IDisposable
+            {
+                private String _ConnName;
+                /// <summary>连接名</summary>
+                public String ConnName { get { return _ConnName; } set { _ConnName = value; } }
+
+                private String _TableName;
+                /// <summary>表名</summary>
+                public String TableName { get { return _TableName; } set { _TableName = value; } }
+
+                public SplitPackge(String connName, String tableName)
+                {
+                    ConnName = Meta.ConnName;
+                    TableName = Meta.TableName;
+
+                    Meta.ConnName = connName;
+                    Meta.TableName = tableName;
+                }
+
+                public void Dispose()
+                {
+                    Meta.ConnName = ConnName;
+                    Meta.TableName = TableName;
+                }
+            }
             #endregion
         }
     }
