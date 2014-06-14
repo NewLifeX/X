@@ -47,14 +47,14 @@ namespace NewLife
         #region 构造
         /// <summary>实例化</summary>
         /// <param name="target">目标对象</param>
-        /// <param name="method"></param>
+        /// <param name="method">目标方法</param>
         public WeakAction(Object target, MethodInfo method) : this(target, method, null, false) { }
 
         /// <summary>实例化</summary>
         /// <param name="target">目标对象</param>
-        /// <param name="method"></param>
-        /// <param name="unHandler"></param>
-        /// <param name="once"></param>
+        /// <param name="method">目标方法</param>
+        /// <param name="unHandler">取消注册回调</param>
+        /// <param name="once">是否一次性事件</param>
         public WeakAction(Object target, MethodInfo method, Action<Action<TArgs>> unHandler, Boolean once)
         {
             if (target != null)
@@ -74,13 +74,13 @@ namespace NewLife
         }
 
         /// <summary>实例化</summary>
-        /// <param name="handler"></param>
+        /// <param name="handler">事件处理器</param>
         public WeakAction(Delegate handler) : this(handler.Target, handler.Method, null, false) { }
 
         /// <summary>使用事件处理器、取消注册回调、是否一次性事件来初始化</summary>
-        /// <param name="handler"></param>
-        /// <param name="unHandler"></param>
-        /// <param name="once"></param>
+        /// <param name="handler">事件处理器</param>
+        /// <param name="unHandler">取消注册回调</param>
+        /// <param name="once">是否一次性事件</param>
         public WeakAction(Delegate handler, Action<Action<TArgs>> unHandler, Boolean once) : this(handler.Target, handler.Method, unHandler, once) { }
         #endregion
 
