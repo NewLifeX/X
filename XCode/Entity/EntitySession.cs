@@ -194,7 +194,19 @@ namespace XCode
                 }
 
                 if (!Dal.HasCheckTables.Contains(TableName)) Dal.HasCheckTables.Add(TableName);
-                Dal.SetTables(table);
+
+                var set = new NegativeSetting();
+                set.CheckOnly = DAL.NegativeCheckOnly;
+                set.NoDelete = DAL.NegativeNoDelete;
+
+                // 对于分库操作，强制检查架构，但不删除数据
+                if (Default != this)
+                {
+                    set.CheckOnly = false;
+                    set.NoDelete = true;
+                }
+
+                Dal.SetTables(set, table);
             }
             finally
             {

@@ -9,6 +9,7 @@ using NewLife.Reflection;
 using NewLife.Threading;
 using XCode.Code;
 using XCode.Exceptions;
+using System.ComponentModel;
 
 namespace XCode.DataAccessLayer
 {
@@ -365,7 +366,7 @@ namespace XCode.DataAccessLayer
                     {
                         WriteLog(ConnName + "待检查表架构的实体个数：" + list.Count);
 
-                        SetTables(list.ToArray());
+                        SetTables(null, list.ToArray());
                     }
                 }
             }
@@ -379,9 +380,16 @@ namespace XCode.DataAccessLayer
 
         /// <summary>在当前连接上检查指定数据表的架构</summary>
         /// <param name="tables"></param>
-        public void SetTables(params IDataTable[] tables)
+        [Obsolete("=>SetTables(set, tables)")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public void SetTables(params IDataTable[] tables) { SetTables(null, tables); }
+
+        /// <summary>在当前连接上检查指定数据表的架构</summary>
+        /// <param name="set"></param>
+        /// <param name="tables"></param>
+        public void SetTables(NegativeSetting set, params IDataTable[] tables)
         {
-            var set = new NegativeSetting();
+            if (set == null) set = new NegativeSetting();
             set.CheckOnly = DAL.NegativeCheckOnly;
             set.NoDelete = DAL.NegativeNoDelete;
             //if (set.CheckOnly && DAL.Debug) WriteLog("XCode.Negative.CheckOnly设置为True，只是检查不对数据库进行操作");
