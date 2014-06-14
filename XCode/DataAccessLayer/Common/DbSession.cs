@@ -58,9 +58,9 @@ namespace XCode.DataAccessLayer
             set
             {
                 _ConnectionString = value;
-#if DEBUG
-                XTrace.WriteLine("DbSession设定连接字符串 {0}", value);
-#endif
+                //#if DEBUG
+                //                XTrace.WriteLine("DbSession设定连接字符串 {0}", value);
+                //#endif
             }
         }
 
