@@ -22,6 +22,7 @@ for %%i in (Src DLL DLL4 XCoder) do (
 		svn checkout %svn%/%%i %%i
 	) else (
 		svn info %svn%/%%i
+		svn revert %%i
 		svn update %%i
 	)
 )
@@ -47,8 +48,11 @@ copy ..\Bin4\N*.* ..\DLL4\ /y
 copy ..\Bin4\X*.* ..\DLL4\ /y
 del ..\DLL4\*.config /f/s/q
 
+if not exist ..\XCoder\Zip (
+	md ..\XCoder\Zip
+)
 for %%i in (XCoder.exe XCoder.exe.config NewLife.Core.dll XCode.dll XTemplate.dll) do (
-	copy ..\代码生成\%%i ..\XCoder\%%i /y
+	copy ..\XCoder\%%i ..\XCoder\Zip\%%i /y
 )
 
 :: 5，提交DLL更新
@@ -107,11 +111,15 @@ popd
 
 :: 发布代码生成器XCoder
 :: 保存当前目录，并切换目录
-pushd ..\XCoder
+pushd ..\XCoder\Zip
 set zipfile=XCoder.zip
 del XCoder*.zip /f/q
-set zip=%zipexe% a -m5 -s -z..\Src\Readme.txt -ibck
+::del *.vshost.* /f/q
+::del Setting.config /f/q
+set zip=%zipexe% a -m5 -s -z..\..\Src\Readme.txt -ibck
 %zip% %zipfile% *.dll *.exe *.config
 move /y XCoder*.zip %dest%\%zipfile%
 :: 恢复目录
 popd
+
+::pause
