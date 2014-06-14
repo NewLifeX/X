@@ -89,48 +89,49 @@ namespace XCode
             #endregion
 
             #region 单实体对象缓存属性
-            private static Int32 _SingleEntityCacheExpriod = 60;
-            /// <summary>过期时间。单位是秒，默认60秒</summary>
-            public static Int32 SingleEntityCacheExpriod
-            {
-                get { return _SingleEntityCacheExpriod; }
-                set { _SingleEntityCacheExpriod = value; }
-            }
+            // 直接暴露单对象缓存参数设置，破坏了系统结构，现在只需要对第一个会话设定，其它会话可以自动复制第一个会话的设置
+            //private static Int32 _SingleEntityCacheExpriod = 60;
+            ///// <summary>过期时间。单位是秒，默认60秒</summary>
+            //public static Int32 SingleEntityCacheExpriod
+            //{
+            //    get { return _SingleEntityCacheExpriod; }
+            //    set { _SingleEntityCacheExpriod = value; }
+            //}
 
-            private static Int32 _SingleEntityCacheMaxEntity = 10000;
-            /// <summary>最大实体数。默认10000</summary>
-            public static Int32 SingleEntityCacheMaxEntity
-            {
-                get { return _SingleEntityCacheMaxEntity; }
-                set { _SingleEntityCacheMaxEntity = value; }
-            }
+            //private static Int32 _SingleEntityCacheMaxEntity = 10000;
+            ///// <summary>最大实体数。默认10000</summary>
+            //public static Int32 SingleEntityCacheMaxEntity
+            //{
+            //    get { return _SingleEntityCacheMaxEntity; }
+            //    set { _SingleEntityCacheMaxEntity = value; }
+            //}
 
-            private static Boolean _SingleEntityCacheAutoSave = true;
-            /// <summary>缓存到期时自动保存</summary>
-            public static Boolean SingleEntityCacheAutoSave
-            {
-                get { return _SingleEntityCacheAutoSave; }
-                set { _SingleEntityCacheAutoSave = value; }
-            }
+            //private static Boolean _SingleEntityCacheAutoSave = true;
+            ///// <summary>缓存到期时自动保存</summary>
+            //public static Boolean SingleEntityCacheAutoSave
+            //{
+            //    get { return _SingleEntityCacheAutoSave; }
+            //    set { _SingleEntityCacheAutoSave = value; }
+            //}
 
-            private static Boolean _SingleEntityCacheAllowNull;
-            /// <summary>允许缓存空对象</summary>
-            public static Boolean SingleEntityCacheAllowNull
-            {
-                get { return _SingleEntityCacheAllowNull; }
-                set { _SingleEntityCacheAllowNull = value; }
-            }
+            //private static Boolean _SingleEntityCacheAllowNull;
+            ///// <summary>允许缓存空对象</summary>
+            //public static Boolean SingleEntityCacheAllowNull
+            //{
+            //    get { return _SingleEntityCacheAllowNull; }
+            //    set { _SingleEntityCacheAllowNull = value; }
+            //}
 
-            private static FindKeyDelegate<Object, TEntity> _SingleEntityCacheFindKeyMethod;
-            /// <summary>单对象缓存查找数据的方法</summary>
-            /// <remarks>
-            /// 只要静态构造函数中赋值一次，分表分库产生多个的实体会话都可以在这儿获取单对象缓存查找数据的方法
-            /// ## 苦竹 添加 2014.04.04 20:25 ##</remarks>
-            public static FindKeyDelegate<Object, TEntity> SingleEntityCacheFindKeyMethod
-            {
-                get { return _SingleEntityCacheFindKeyMethod; }
-                set { _SingleEntityCacheFindKeyMethod = value; }
-            }
+            //private static FindKeyDelegate<Object, TEntity> _SingleEntityCacheFindKeyMethod;
+            ///// <summary>单对象缓存查找数据的方法</summary>
+            ///// <remarks>
+            ///// 只要静态构造函数中赋值一次，分表分库产生多个的实体会话都可以在这儿获取单对象缓存查找数据的方法
+            ///// ## 苦竹 添加 2014.04.04 20:25 ##</remarks>
+            //public static FindKeyDelegate<Object, TEntity> SingleEntityCacheFindKeyMethod
+            //{
+            //    get { return _SingleEntityCacheFindKeyMethod; }
+            //    set { _SingleEntityCacheFindKeyMethod = value; }
+            //}
             #endregion
 
             #region 数据库操作

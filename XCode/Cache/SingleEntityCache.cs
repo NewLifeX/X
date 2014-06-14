@@ -50,12 +50,12 @@ namespace XCode.Cache
             }
             set { _FindKeyMethod = value; }
         }
-        /// <summary>查找数据的方法，内部使用</summary>
-        internal FindKeyDelegate<TKey, TEntity> FindKeyMethodInternal
-        {
-            get { return _FindKeyMethod; }
-            set { _FindKeyMethod = value; }
-        }
+        ///// <summary>查找数据的方法，内部使用</summary>
+        //internal FindKeyDelegate<TKey, TEntity> FindKeyMethodInternal
+        //{
+        //    get { return _FindKeyMethod; }
+        //    set { _FindKeyMethod = value; }
+        //}
 
         //private Boolean _Asynchronous;
         ///// <summary>异步更新</summary>
@@ -400,6 +400,19 @@ namespace XCode.Cache
         /// <param name="key"></param>
         /// <returns></returns>
         IEntity ISingleEntityCache.this[object key] { get { return GetItem((TKey)key); } }
+        #endregion
+
+        #region 辅助
+        internal SingleEntityCache<TKey, TEntity> CopySettingFrom(SingleEntityCache<TKey, TEntity> ec)
+        {
+            this.Expriod = ec.Expriod;
+            this.MaxEntity = ec.MaxEntity;
+            this.AutoSave = ec.AutoSave;
+            this.AllowNull = ec.AllowNull;
+            this.FindKeyMethod = ec.FindKeyMethod;
+
+            return this;
+        }
         #endregion
     }
 

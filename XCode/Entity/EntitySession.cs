@@ -320,7 +320,14 @@ namespace XCode
             get
             {
                 // 以连接名和表名为key，因为不同的库不同的表，缓存也不一样
-                return _cache ?? (_cache = new EntityCache<TEntity> { ConnName = ConnName, TableName = TableName });
+                if (_cache == null)
+                {
+                    var ec = new EntityCache<TEntity> { ConnName = ConnName, TableName = TableName };
+                    // 从默认会话复制参数
+                    if (Default != this) ec.CopySettingFrom(Default.Cache);
+                    _cache = ec;
+                }
+                return _cache;
             }
         }
 
@@ -336,14 +343,19 @@ namespace XCode
                 //return _singleCache ?? (_singleCache = new SingleEntityCache<Object, TEntity> { ConnName = ConnName, TableName = TableName });
                 if (_singleCache == null)
                 {
-                    _singleCache = new SingleEntityCache<Object, TEntity>();
-                    _singleCache.ConnName = ConnName;
-                    _singleCache.TableName = TableName;
-                    _singleCache.Expriod = Entity<TEntity>.Meta.SingleEntityCacheExpriod;
-                    _singleCache.MaxEntity = Entity<TEntity>.Meta.SingleEntityCacheMaxEntity;
-                    _singleCache.AutoSave = Entity<TEntity>.Meta.SingleEntityCacheAutoSave;
-                    _singleCache.AllowNull = Entity<TEntity>.Meta.SingleEntityCacheAllowNull;
-                    _singleCache.FindKeyMethodInternal = Entity<TEntity>.Meta.SingleEntityCacheFindKeyMethod;
+                    var sc = new SingleEntityCache<Object, TEntity>();
+                    sc.ConnName = ConnName;
+                    sc.TableName = TableName;
+                    //sc.Expriod = Entity<TEntity>.Meta.SingleEntityCacheExpriod;
+                    //sc.MaxEntity = Entity<TEntity>.Meta.SingleEntityCacheMaxEntity;
+                    //sc.AutoSave = Entity<TEntity>.Meta.SingleEntityCacheAutoSave;
+                    //sc.AllowNull = Entity<TEntity>.Meta.SingleEntityCacheAllowNull;
+                    //sc.FindKeyMethodInternal = Entity<TEntity>.Meta.SingleEntityCacheFindKeyMethod;
+
+                    // 从默认会话复制参数
+                    if (Default != this) sc.CopySettingFrom(Default.SingleCache);
+
+                    _singleCache = sc;
                 }
                 return _singleCache;
             }

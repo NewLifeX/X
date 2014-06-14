@@ -13,7 +13,7 @@ namespace XCode.Cache
         #region 基本
         private DateTime _ExpiredTime;
         /// <summary>缓存过期时间</summary>
-        public DateTime ExpiredTime { get { return _ExpiredTime; } set { _ExpiredTime = value; } }
+        public DateTime ExpiredTime { get { return _ExpiredTime; } private set { _ExpiredTime = value; } }
 
         /// <summary>缓存更新次数</summary>
         private Int64 Times;
@@ -197,6 +197,18 @@ namespace XCode.Cache
         /// <param name="match">条件</param>
         /// <returns></returns>
         public EntityList<IEntity> FindAll(Predicate<IEntity> match) { return new EntityList<IEntity>(Entities.FindAll(e => match(e))); }
+        #endregion
+
+        #region 辅助
+        internal EntityCache<TEntity> CopySettingFrom(EntityCache<TEntity> ec)
+        {
+            this.Expriod = ec.Expriod;
+            this.Asynchronous = ec.Asynchronous;
+            this.AllowNull = ec.AllowNull;
+            this.FillListMethod = ec.FillListMethod;
+
+            return this;
+        }
         #endregion
     }
 
