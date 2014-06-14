@@ -9,12 +9,29 @@ using System.Web;
 using NewLife;
 using NewLife.Collections;
 using NewLife.Log;
-using NewLife.Reflection;
 using NewLife.Threading;
 using XCode.Cache;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
 using XCode.Model;
+
+/*
+ * 检查表结构流程：
+ * Create           创建实体会话，此时不能做任何操作，原则上各种操作要延迟到最后
+ * Query/Execute    查询修改数据
+ *      WaitForInitData     等待数据初始化
+ *          Monitor.TryEnter    只会被调用一次，后续线程进入需要等待
+ *          CheckModel          lock阻塞检查模型架构
+ *              CheckTable      检查表
+ *                  FixIndexName    修正索引名称
+ *                  SetTables       设置表架构
+ *              CheckTableAync  异步检查表
+ *          InitData
+ *          Monitor.Exit        初始化完成
+ * Count            总记录数
+ *      CheckModel
+ *      WaitForInitData
+ * */
 
 namespace XCode
 {
@@ -68,6 +85,23 @@ namespace XCode
         private String _FormatedTableName;
         /// <summary>已格式化的表名，带有中括号等</summary>
         public virtual String FormatedTableName { get { return _FormatedTableName ?? (_FormatedTableName = Dal.Db.FormatName(TableName)); } }
+
+        private EntitySession<TEntity> _Default;
+        /// <summary>该实体类的默认会话。</summary>
+        private EntitySession<TEntity> Default
+        {
+            get
+            {
+                if (_Default != null) return _Default;
+
+                if (ConnName == Table.ConnName && TableName == Table.TableName)
+                    _Default = this;
+                else
+                    _Default = Create(Table.ConnName, Table.TableName);
+
+                return _Default;
+            }
+        }
         #endregion
 
         #region 数据初始化
@@ -101,9 +135,9 @@ namespace XCode
 
                 var name = ThisType.Name;
                 if (name == TableName)
-                    name = String.Format("{0}/{1}", ThisType.Name, ConnName);
+                    name = String.Format("{0}@{1}", ThisType.Name, ConnName);
                 else
-                    name = String.Format("{0}@{1}/{2}", ThisType.Name, TableName, ConnName);
+                    name = String.Format("{0}#{1}@{2}", ThisType.Name, TableName, ConnName);
 
                 // 如果该实体类是首次使用检查模型，则在这个时候检查
                 try
@@ -155,22 +189,7 @@ namespace XCode
 
                 if (table.TableName != TableName)
                 {
-                    // 修改一下索引名，否则，可能因为同一个表里面不同的索引冲突
-                    if (table.Indexes != null)
-                    {
-                        foreach (var di in table.Indexes)
-                        {
-                            var sb = new StringBuilder();
-                            sb.AppendFormat("IX_{0}", TableName);
-                            foreach (var item in di.Columns)
-                            {
-                                sb.Append("_");
-                                sb.Append(item);
-                            }
-
-                            di.Name = sb.ToString();
-                        }
-                    }
+                    FixIndexName(table);
                     table.TableName = TableName;
                 }
 
@@ -187,6 +206,26 @@ namespace XCode
             }
         }
 
+        void FixIndexName(IDataTable table)
+        {
+            // 修改一下索引名，否则，可能因为同一个表里面不同的索引冲突
+            if (table.Indexes != null)
+            {
+                foreach (var di in table.Indexes)
+                {
+                    var sb = new StringBuilder();
+                    sb.AppendFormat("IX_{0}", TableName);
+                    foreach (var item in di.Columns)
+                    {
+                        sb.Append("_");
+                        sb.Append(item);
+                    }
+
+                    di.Name = sb.ToString();
+                }
+            }
+        }
+
         private Boolean IsGenerated { get { return ThisType.GetCustomAttribute<CompilerGeneratedAttribute>(true) != null; } }
         Boolean hasCheckModel = false;
         Object _check_lock = new Object();
@@ -197,11 +236,26 @@ namespace XCode
             {
                 if (hasCheckModel) return;
 
-                if (!DAL.NegativeEnable || DAL.NegativeExclude.Contains(ConnName) || DAL.NegativeExclude.Contains(TableName) || IsGenerated)
+                // 是否默认连接和默认表名，非默认则强制检查，并且不允许异步检查（异步检查会导致ConnName和TableName不对）
+                var def = Default;
+
+                if (def == this)
                 {
-                    hasCheckModel = true;
-                    return;
+                    if (!DAL.NegativeEnable ||
+                        DAL.NegativeExclude.Contains(ConnName) ||
+                        DAL.NegativeExclude.Contains(TableName) ||
+                        IsGenerated)
+                    {
+                        hasCheckModel = true;
+                        return;
+                    }
                 }
+#if DEBUG
+                else
+                {
+                    DAL.WriteLog("[{0}@{1}]非默认表名连接名，强制要求检查架构！", TableName, ConnName);
+                }
+#endif
 
                 // 输出调用者，方便调试
                 //if (DAL.Debug) DAL.WriteLog("检查实体{0}的数据表架构，模式：{1}，调用栈：{2}", ThisType.FullName, Table.ModelCheckMode, XTrace.GetCaller(1, 0, "\r\n<-"));
@@ -210,7 +264,7 @@ namespace XCode
                     DAL.WriteLog("检查实体{0}的数据表架构，模式：{1}", ThisType.FullName, Table.ModelCheckMode);
 
                 // 第一次使用才检查的，此时检查
-                Boolean ck = false;
+                var ck = false;
                 if (Table.ModelCheckMode == ModelCheckModes.CheckTableWhenFirstUse) ck = true;
                 // 或者前面初始化的时候没有涉及的，也在这个时候检查
                 var dal = DAL.Create(ConnName);
@@ -234,7 +288,7 @@ namespace XCode
                 {
                     // 打开了开关，并且设置为true时，使用同步方式检查
                     // 设置为false时，使用异步方式检查，因为上级的意思是不大关心数据库架构
-                    if (!DAL.NegativeCheckOnly)
+                    if (!DAL.NegativeCheckOnly || def != this)
                         CheckTable();
                     else
                         ThreadPoolX.QueueUserWorkItem(CheckTable);
@@ -371,6 +425,8 @@ namespace XCode
         #endregion
 
         #region 数据库操作
+        void InitData() { WaitForInitData(); }
+
         /// <summary>执行SQL查询，返回记录集</summary>
         /// <param name="builder">SQL语句</param>
         /// <param name="startRowIndex">开始行，0表示第一行</param>
@@ -378,7 +434,7 @@ namespace XCode
         /// <returns></returns>
         public virtual DataSet Query(SelectBuilder builder, Int32 startRowIndex, Int32 maximumRows)
         {
-            WaitForInitData();
+            InitData();
 
             //builder.Table = FormatedTableName;
             return Dal.Select(builder, startRowIndex, maximumRows, TableName);
@@ -390,7 +446,7 @@ namespace XCode
         //[Obsolete("请优先考虑使用SelectBuilder参数做查询！")]
         public virtual DataSet Query(String sql)
         {
-            WaitForInitData();
+            InitData();
 
             return Dal.Select(sql, TableName);
         }
@@ -400,7 +456,7 @@ namespace XCode
         /// <returns>记录数</returns>
         public virtual Int32 QueryCount(SelectBuilder builder)
         {
-            WaitForInitData();
+            InitData();
 
             //builder.Table = FormatedTableName;
             return Dal.SelectCount(builder, new String[] { TableName });
@@ -426,11 +482,11 @@ namespace XCode
         /// <returns>影响的结果</returns>
         public virtual Int32 Execute(String sql)
         {
-            WaitForInitData();
+            InitData();
 
             Int32 rs = Dal.Execute(sql, TableName);
             executeCount++;
-            DataChange("修改数据");
+            DataChange("Execute");
             return rs;
         }
 
@@ -439,11 +495,11 @@ namespace XCode
         /// <returns>新增行的自动编号</returns>
         public virtual Int64 InsertAndGetIdentity(String sql)
         {
-            WaitForInitData();
+            InitData();
 
             Int64 rs = Dal.InsertAndGetIdentity(sql, TableName);
             executeCount++;
-            DataChange("修改数据");
+            DataChange("InsertAndGetIdentity");
             return rs;
         }
 
@@ -454,11 +510,11 @@ namespace XCode
         /// <returns>影响的结果</returns>
         public virtual Int32 Execute(String sql, CommandType type = CommandType.Text, params DbParameter[] ps)
         {
-            WaitForInitData();
+            InitData();
 
             Int32 rs = Dal.Execute(sql, type, ps, TableName);
             executeCount++;
-            DataChange("修改数据");
+            DataChange("Execute " + type);
             return rs;
         }
 
@@ -469,11 +525,11 @@ namespace XCode
         /// <returns>新增行的自动编号</returns>
         public virtual Int64 InsertAndGetIdentity(String sql, CommandType type = CommandType.Text, params DbParameter[] ps)
         {
-            WaitForInitData();
+            InitData();
 
             Int64 rs = Dal.InsertAndGetIdentity(sql, type, ps, TableName);
             executeCount++;
-            DataChange("修改数据");
+            DataChange("InsertAndGetIdentity " + type);
             return rs;
         }
 
@@ -500,6 +556,7 @@ namespace XCode
                     // 这里不能对委托进行弱引用，因为GC会回收委托，应该改为对对象进行弱引用
                     //WeakReference<Action<Type>> w = value;
 
+                    // 弱引用事件，只会执行一次，一次以后自动取消注册
                     _OnDataChange += new WeakAction<Type>(value, handler => { _OnDataChange -= handler; }, true);
                 }
             }
