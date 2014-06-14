@@ -20,15 +20,22 @@ namespace NewLife.CommonEntity
             if (Meta.Count > 0) return;
 
             #region 新数据添加
+            var tbname = Meta.TableName;
+            var cnname = Meta.ConnName;
+
             // 异步初始化
             ThreadPoolX.QueueUserWorkItem(() =>
             {
                 if (XTrace.Debug) XTrace.WriteLine("开始初始化{0}地区数据……", typeof(TEntity).Name);
 
-                using (var sr = new StreamReader(FileSource.GetFileResource(Assembly.GetExecutingAssembly(), "AreaCode.txt")))
+                Meta.ProcessWithSplit(cnname, tbname, () =>
                 {
-                    Import(sr);
-                }
+                    using (var sr = new StreamReader(FileSource.GetFileResource(Assembly.GetExecutingAssembly(), "AreaCode.txt")))
+                    {
+                        Import(sr);
+                    }
+                    return null;
+                });
 
                 if (XTrace.Debug) XTrace.WriteLine("完成初始化{0}地区数据！", typeof(TEntity).Name);
             });
