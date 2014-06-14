@@ -28,6 +28,7 @@ namespace NewLife.CommonEntity
             {
                 if (XTrace.Debug) XTrace.WriteLine("开始初始化{0}地区数据……", typeof(TEntity).Name);
 
+                // 异步初始化需要注意分表分库的可能
                 Meta.ProcessWithSplit(cnname, tbname, () =>
                 {
                     using (var sr = new StreamReader(FileSource.GetFileResource(Assembly.GetExecutingAssembly(), "AreaCode.txt")))
