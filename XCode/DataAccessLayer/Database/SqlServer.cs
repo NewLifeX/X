@@ -262,11 +262,13 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public override Int64 QueryCountFast(string tableName)
         {
-            //String sql = String.Format("select rows from sysindexes where id = object_id('{0}') and indid in (0,1)", tableName);
-            //return ExecuteScalar<Int64>(sql);
-
             tableName = tableName.Trim().Trim('[', ']').Trim();
-            return QueryIndex()[tableName];
+
+            var n = 0l;
+            if (QueryIndex().TryGetValue(tableName, out n)) return n;
+
+            String sql = String.Format("select rows from sysindexes where id = object_id('{0}') and indid in (0,1)", tableName);
+            return ExecuteScalar<Int64>(sql);
         }
 
         Dictionary<String, Int64> _index;
