@@ -11,7 +11,6 @@ using System.Text.RegularExpressions;
 using System.Web.Hosting;
 using NewLife;
 using NewLife.Log;
-using System.Threading;
 
 namespace XCode.DataAccessLayer
 {
@@ -275,7 +274,11 @@ namespace XCode.DataAccessLayer
 
         Dictionary<String, Int64> QueryIndex()
         {
-            if (_index == null) return _index = QueryIndex_();
+            if (_index == null)
+            {
+                _next = DateTime.Now.AddSeconds(10);
+                return _index = QueryIndex_();
+            }
 
             // ¼ì²é¸üÐÂ
             if (_next < DateTime.Now)
