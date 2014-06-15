@@ -50,20 +50,8 @@ namespace XCode.Cache
     public abstract class CacheBase : DisposeBase
     {
         #region 设置
-        private static Boolean? _Debug;
         /// <summary>是否调试缓存模块</summary>
-        public static Boolean Debug
-        {
-            get
-            {
-                if (_Debug != null) return _Debug.Value;
-
-                _Debug = Config.GetConfig<Boolean>("XCode.Cache.Debug", false);
-
-                return _Debug.Value;
-            }
-            set { _Debug = value; }
-        }
+        public static Boolean Debug { get { return CacheSetting.Debug; } }
         #endregion
     }
 }

@@ -201,26 +201,6 @@ namespace XCode.DataAccessLayer
             }
             set { _TraceSQLTime = value; }
         }
-
-        private static Int32? _CacheExpiration;
-        /// <summary>缓存相对有效期。
-        /// -2	关闭缓存
-        /// -1	非独占数据库，有外部系统操作数据库，使用请求级缓存；
-        ///  0	永久静态缓存；
-        /// >0	静态缓存时间，单位是秒；
-        /// </summary>
-        public static Int32 CacheExpiration
-        {
-            get
-            {
-                if (_CacheExpiration.HasValue) return _CacheExpiration.Value;
-
-                _CacheExpiration = Config.GetMutilConfig<Int32>(-2, "XCode.Cache.Expiration", "XCacheExpiration");
-
-                return _CacheExpiration.Value;
-            }
-            set { _CacheExpiration = value; }
-        }
         #endregion
     }
 }

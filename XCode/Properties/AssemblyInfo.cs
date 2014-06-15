@@ -31,8 +31,8 @@ using System.Runtime.InteropServices;
 //
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
-[assembly: AssemblyVersion("8.11.*")]
-[assembly: AssemblyFileVersion("8.11.2014.0616")]
+[assembly: AssemblyVersion("8.12.*")]
+[assembly: AssemblyFileVersion("8.12.2014.0616")]
 
 /*
  * XCode的重大改进
@@ -49,6 +49,9 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v8.12.2014.0616  缓存模块增加Alone独占数据库以及实体缓存过期时间等配置，独占数据库是加大缓存权重以及过期时间
+ *                  EntitySession增加HoldCache，指示在更新数据库不许清空缓存（CURD可同步更新实体缓存），而只能让其过期
+ * 
  * v8.11.2014.0616  优化MSSQL的QueryCountFast，每次查询所有表行数，并缓存短时间
  * 
  * v8.11.2014.0614  增加分表分库专属方法Meta.ProcessWithSplit/Meta.CreateSplit

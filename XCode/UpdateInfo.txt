@@ -10,6 +10,9 @@ v2.0 数据架构功能，实体和数据结构双向映射
 v1.2 使用泛型基类
 v1.0 创建XCode
 
+v8.12.2014.0616  缓存模块增加Alone独占数据库以及实体缓存过期时间等配置，独占数据库是加大缓存权重以及过期时间
+                 EntitySession增加HoldCache，指示在更新数据库不许清空缓存（CURD可同步更新实体缓存），而只能让其过期
+
 v8.11.2014.0616  优化MSSQL的QueryCountFast，每次查询所有表行数，并缓存短时间
 
 v8.11.2014.0614  增加分表分库专属方法Meta.ProcessWithSplit/Meta.CreateSplit

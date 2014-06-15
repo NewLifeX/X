@@ -430,6 +430,8 @@ namespace XCode
         /// <param name="reason">原因</param>
         public void ClearCache(String reason = null)
         {
+            if (HoldCache) return;
+
             if (_cache != null) _cache.Clear(reason);
 
             Int64? n = _Count;
@@ -446,6 +448,11 @@ namespace XCode
         }
 
         String CacheKey { get { return String.Format("{0}_{1}_{2}_Count", ConnName, TableName, ThisType.Name); } }
+
+        private Boolean _HoldCache = CacheSetting.Alone;
+        /// <summary>在数据修改时保持缓存，直到数据过期，独占数据库时默认打开，否则默认关闭</summary>
+        /// <remarks>实体缓存和单对象缓存能够自动维护更新数据，保持缓存数据最新，在普通CURD中足够使用</remarks>
+        public Boolean HoldCache { get { return _HoldCache; } set { _HoldCache = value; } }
         #endregion
 
         #region 数据库操作
@@ -663,7 +670,7 @@ namespace XCode
             var rs = persistence.Insert(entity);
 
             // 如果当前在事务中，并使用了缓存，则尝试更新缓存
-            if (UsingTrans && Cache.Using)
+            if (HoldCache || UsingTrans && Cache.Using)
             {
                 // 尽管用了事务保护，但是仍然可能有别的地方导致实体缓存更新，这点务必要注意
                 var fi = Operate.Unique;
@@ -674,6 +681,8 @@ namespace XCode
                 }
                 else
                     Cache.Entities.Add(entity as TEntity);
+
+                if (_Count != null) _Count++;
             }
 
             return rs;
@@ -687,7 +696,7 @@ namespace XCode
             var rs = persistence.Update(entity);
 
             // 如果当前在事务中，并使用了缓存，则尝试更新缓存
-            if (UsingTrans && Cache.Using)
+            if (HoldCache || UsingTrans && Cache.Using)
             {
                 // 尽管用了事务保护，但是仍然可能有别的地方导致实体缓存更新，这点务必要注意
                 var fi = Operate.Unique;
@@ -711,7 +720,7 @@ namespace XCode
             var rs = persistence.Delete(entity);
 
             // 如果当前在事务中，并使用了缓存，则尝试更新缓存
-            if (UsingTrans && Cache.Using)
+            if (HoldCache || UsingTrans && Cache.Using)
             {
                 var fi = Operate.Unique;
                 if (fi != null)
@@ -719,6 +728,8 @@ namespace XCode
                     var v = entity[fi.Name];
                     Cache.Entities.RemoveAll(e => Object.Equals(e[fi.Name], v));
                 }
+
+                if (_Count != null) _Count--;
             }
 
             return rs;

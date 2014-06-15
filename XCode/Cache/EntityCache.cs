@@ -13,17 +13,17 @@ namespace XCode.Cache
         #region 基本
         private DateTime _ExpiredTime;
         /// <summary>缓存过期时间</summary>
-        public DateTime ExpiredTime { get { return _ExpiredTime; } private set { _ExpiredTime = value; } }
+        DateTime ExpiredTime { get { return _ExpiredTime; } set { _ExpiredTime = value; } }
 
         /// <summary>缓存更新次数</summary>
         private Int64 Times;
 
-        private Int32 _Expriod = 60;
-        /// <summary>过期时间。单位是秒，默认60秒</summary>
+        private Int32 _Expriod = CacheSetting.EntityCacheExpire;
+        /// <summary>过期时间。单位是秒，默认60秒/600秒（独占数据库）</summary>
         public Int32 Expriod { get { return _Expriod; } set { _Expriod = value; } }
 
-        private Boolean _Asynchronous;
-        /// <summary>异步更新</summary>
+        private Boolean _Asynchronous = CacheSetting.Alone;
+        /// <summary>异步更新，独占数据库时默认打开</summary>
         public Boolean Asynchronous { get { return _Asynchronous; } set { _Asynchronous = value; } }
 
         private Boolean _AllowNull = true;
@@ -83,7 +83,7 @@ namespace XCode.Cache
         void UpdateCache(Boolean isnull)
         {
             // 异步更新时，如果为空，表明首次，同步获取数据
-            if (Asynchronous && !isnull)
+            if (Times > 0 && Asynchronous && !isnull)
             {
                 // 这里直接计算有效期，避免每次判断缓存有效期时进行的时间相加而带来的性能损耗
                 // 设置时间放在获取缓存之前，让其它线程不要空等

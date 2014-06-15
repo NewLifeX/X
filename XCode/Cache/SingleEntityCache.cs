@@ -18,8 +18,8 @@ namespace XCode.Cache
     public class SingleEntityCache<TKey, TEntity> : CacheBase<TEntity>, ISingleEntityCache where TEntity : Entity<TEntity>, new()
     {
         #region 属性
-        private Int32 _Expriod = 60;
-        /// <summary>过期时间。单位是秒，默认60秒</summary>
+        private Int32 _Expriod = CacheSetting.SingleCacheExpire;
+        /// <summary>过期时间。单位是秒，默认60秒/600秒（独占数据库）</summary>
         public Int32 Expriod { get { return _Expriod; } set { _Expriod = value; } }
 
         private Int32 _MaxEntity = 10000;
