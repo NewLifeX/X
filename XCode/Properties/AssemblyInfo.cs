@@ -32,7 +32,7 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
 [assembly: AssemblyVersion("8.11.*")]
-[assembly: AssemblyFileVersion("8.11.2014.0614")]
+[assembly: AssemblyFileVersion("8.11.2014.0616")]
 
 /*
  * XCode的重大改进
@@ -49,6 +49,8 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v8.11.2014.0616  优化MSSQL的QueryCountFast，每次查询所有表行数，并缓存短时间
+ * 
  * v8.11.2014.0614  增加分表分库专属方法Meta.ProcessWithSplit/Meta.CreateSplit
  * 
  * v8.11.2014.0612  重新整理远程数据库访问时切换系统库的逻辑

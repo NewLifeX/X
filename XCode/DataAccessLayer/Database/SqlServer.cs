@@ -11,6 +11,7 @@ using System.Text.RegularExpressions;
 using System.Web.Hosting;
 using NewLife;
 using NewLife.Log;
+using System.Threading;
 
 namespace XCode.DataAccessLayer
 {
@@ -262,22 +263,43 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public override Int64 QueryCountFast(string tableName)
         {
-            String sql = String.Format("select rows from sysindexes where id = object_id('{0}') and indid in (0,1)", tableName);
-            return ExecuteScalar<Int64>(sql);
+            //String sql = String.Format("select rows from sysindexes where id = object_id('{0}') and indid in (0,1)", tableName);
+            //return ExecuteScalar<Int64>(sql);
 
-            //QueryTimes++;
-            //DbCommand cmd = CreateCommand();
-            //cmd.CommandText = sql;
-            //WriteSQL(cmd.CommandText);
-            //try
-            //{
-            //    return Convert.ToInt64(cmd.ExecuteScalar());
-            //}
-            //catch (DbException ex)
-            //{
-            //    throw OnException(ex, cmd.CommandText);
-            //}
-            //finally { AutoClose(); }
+            tableName = tableName.Trim().Trim('[', ']').Trim();
+            return QueryIndex()[tableName];
+        }
+
+        Dictionary<String, Int64> _index;
+        DateTime _next;
+
+        Dictionary<String, Int64> QueryIndex()
+        {
+            if (_index == null) return _index = QueryIndex_();
+
+            // 检查更新
+            if (_next < DateTime.Now)
+            {
+                _next = DateTime.Now.AddSeconds(10);
+                //// 同一个会话里面，不担心分表分库的问题，倒是有可能有冲突
+                //ThreadPool.QueueUserWorkItem(s => _index = QueryIndex_());
+
+                _index = QueryIndex_();
+            }
+
+            // 直接返回旧的
+            return _index;
+        }
+
+        Dictionary<String, Int64> QueryIndex_()
+        {
+            var ds = Query("select object_name(id) as objname,rows from sysindexes where indid in (0,1) and status in (0,2066)");
+            var dic = new Dictionary<String, Int64>(StringComparer.OrdinalIgnoreCase);
+            foreach (DataRow dr in ds.Tables[0].Rows)
+            {
+                dic.Add(dr[0] + "", (Int32)dr[1]);
+            }
+            return dic;
         }
 
         /// <summary>执行插入语句并返回新增行的自动编号</summary>
