@@ -70,7 +70,7 @@ namespace XCode.Cache
                 if (_Alone.HasValue) return _Alone.Value;
 
                 _Alone = Config.GetConfig<Boolean>("XCode.Cache.Alone", !Debug);
-                if (Debug) DAL.WriteLog("使用数据库方式：{0}", _Alone.Value ? "独占，加大缓存权重" : "非独占");
+                DAL.WriteLog("使用数据库方式：{0}", _Alone.Value ? "独占，加大缓存权重" : "非独占");
 
                 return _Alone.Value;
             }

@@ -148,7 +148,7 @@ namespace XCode
 
                 // 输出调用者，方便调试
                 //if (DAL.Debug) DAL.WriteLog("初始化{0}数据，调用栈：{1}", name, XTrace.GetCaller());
-                if (DAL.Debug) DAL.WriteLog("初始化{0}数据", name);
+                //if (DAL.Debug) DAL.WriteLog("初始化{0}数据", name);
 
                 try
                 {
