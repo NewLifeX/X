@@ -325,7 +325,8 @@ namespace XCode
                     var ec = new EntityCache<TEntity> { ConnName = ConnName, TableName = TableName };
                     // 从默认会话复制参数
                     if (Default != this) ec.CopySettingFrom(Default.Cache);
-                    _cache = ec;
+                    //_cache = ec;
+                    Interlocked.CompareExchange<EntityCache<TEntity>>(ref _cache, ec, null);
                 }
                 return _cache;
             }
@@ -355,7 +356,8 @@ namespace XCode
                     // 从默认会话复制参数
                     if (Default != this) sc.CopySettingFrom(Default.SingleCache);
 
-                    _singleCache = sc;
+                    //_singleCache = sc;
+                    Interlocked.CompareExchange<SingleEntityCache<Object, TEntity>>(ref _singleCache, sc, null);
                 }
                 return _singleCache;
             }
