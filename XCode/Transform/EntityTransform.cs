@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using NewLife;
-using NewLife.Collections;
 using NewLife.Log;
 #if !NET4
 using NewLife.Reflection;

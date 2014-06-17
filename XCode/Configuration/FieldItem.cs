@@ -385,7 +385,7 @@ namespace XCode.Configuration
         /// <returns></returns>
         public WhereExpression NotIsNullOrEmpty() { return NotIsNull().And(NotEqual("")); }
 
-        /// <summary>是否True或者False和Null</summary>
+        /// <summary>是否True或者False/Null，参数决定两组之一</summary>
         /// <param name="flag"></param>
         /// <returns></returns>
         public WhereExpression IsTrue(Boolean? flag)
@@ -393,14 +393,14 @@ namespace XCode.Configuration
             if (flag == null) return null;
 
             var f = flag.Value;
-            if (f) return Equal(f);
+            if (f) return Equal(true);
 
-            if (this.Type == typeof(Boolean) && !IsNullable) return Equal(f);
+            if (this.Type == typeof(Boolean) && !IsNullable) return Equal(false);
 
-            return NotEqual(!f).Or(IsNull());
+            return NotEqual(true).Or(IsNull());
         }
 
-        /// <summary>是否False或者True和Null</summary>
+        /// <summary>是否False或者True/Null，参数决定两组之一</summary>
         /// <param name="flag"></param>
         /// <returns></returns>
         public WhereExpression IsFalse(Boolean? flag)
@@ -408,11 +408,11 @@ namespace XCode.Configuration
             if (flag == null) return null;
 
             var f = flag.Value;
-            if (!f) return Equal(f);
+            if (!f) return Equal(false);
 
-            if (this.Type == typeof(Boolean) && !IsNullable) return Equal(f);
+            if (this.Type == typeof(Boolean) && !IsNullable) return Equal(true);
 
-            return NotEqual(!f).Or(IsNull());
+            return NotEqual(false).Or(IsNull());
         }
 
         /// <summary>时间专用区间函数</summary>
@@ -441,11 +441,6 @@ namespace XCode.Configuration
                 return exp & this < end;
             }
         }
-
-        //public WhereExpression EqualWhenLargeThan(Object value)
-        //{
-
-        //}
         #endregion
 
         #region 重载运算符
@@ -484,12 +479,34 @@ namespace XCode.Configuration
         #region 排序
         /// <summary>升序</summary>
         /// <returns></returns>
-        public OrderExpression Asc() { return new OrderExpression(Factory.FormatName(Name)); }
+        public ConcatExpression Asc() { return new ConcatExpression(Factory.FormatName(Name)); }
 
         /// <summary>降序</summary>
         /// <remarks>感谢 树懒（303409914）发现这里的错误</remarks>
         /// <returns></returns>
-        public OrderExpression Desc() { return new OrderExpression().Desc(Factory.FormatName(Name)); }
+        public ConcatExpression Desc() { return new ConcatExpression(Factory.FormatName(Name) + " Desc"); }
+        #endregion
+
+        #region 分组选择
+        /// <summary>分组</summary>
+        /// <returns></returns>
+        public ConcatExpression GroupBy() { return new ConcatExpression(String.Format("Group By {0}", Factory.FormatName(Name))); }
+
+        /// <summary>数量</summary>
+        /// <returns></returns>
+        public ConcatExpression Count() { return new ConcatExpression(String.Format("Count({0}) as {0}", Factory.FormatName(Name))); }
+
+        /// <summary>求和</summary>
+        /// <returns></returns>
+        public ConcatExpression Sum() { return new ConcatExpression(String.Format("Sum({0}) as {0}", Factory.FormatName(Name))); }
+
+        /// <summary>最小值</summary>
+        /// <returns></returns>
+        public ConcatExpression Min() { return new ConcatExpression(String.Format("Min({0}) as {0}", Factory.FormatName(Name))); }
+
+        /// <summary>最大值</summary>
+        /// <returns></returns>
+        public ConcatExpression Max() { return new ConcatExpression(String.Format("Max({0}) as {0}", Factory.FormatName(Name))); }
         #endregion
 
         #region 类型转换

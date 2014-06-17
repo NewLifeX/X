@@ -187,7 +187,7 @@ namespace XCode
                 if (names.SequenceEqual(names2))
                 {
                     // 再次查询
-                    var entity = Find(persistence.GetPrimaryCondition(this));
+                    var entity = Find(persistence.GetPrimaryCondition(this), null);
                     // 如果目标数据不存在，就没必要删除了
                     if (entity == null) return 0;
 
@@ -386,7 +386,7 @@ namespace XCode
             IDataIndex di = Meta.Table.DataTable.GetIndex(names);
             if (di != null && di.Unique) return FindUnique(MakeCondition(names, values, "And"));
 
-            return Find(MakeCondition(names, values, "And"));
+            return Find(MakeCondition(names, values, "And"), null);
         }
 
         /// <summary>
@@ -417,14 +417,25 @@ namespace XCode
         /// <param name="whereClause">查询条件</param>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
+        //[EditorBrowsable(EditorBrowsableState.Never)]
+        //[Obsolete("=>Find(String whereClause, String orderClause = null)")]
         public static TEntity Find(String whereClause)
         {
-            IList<TEntity> list = FindAll(whereClause, null, null, 0, 1);
-            if (list == null || list.Count < 1)
-                return null;
-            else
-                return list[0];
+            var list = FindAll(whereClause, null, null, 0, 1);
+            return list.Count < 1 ? null : list[0];
         }
+
+        // 不能这么做，我们默认Find的条件能过滤出来一行数据
+        ///// <summary>根据条件查找单个实体</summary>
+        ///// <param name="whereClause">查询条件</param>
+        ///// <param name="orderClause">排序，不带Order By</param>
+        ///// <returns></returns>
+        //[DataObjectMethod(DataObjectMethodType.Select, false)]
+        //public static TEntity Find(String whereClause, String orderClause = null)
+        //{
+        //    var list = FindAll(whereClause, orderClause, null, 0, 1);
+        //    return list.Count < 1 ? null : list[0];
+        //}
 
         /// <summary>根据主键查找单个实体</summary>
         /// <param name="key">唯一主键的值</param>
@@ -483,6 +494,26 @@ namespace XCode
             }
 
             return entity;
+        }
+
+        /// <summary>查询指定字段的最小值</summary>
+        /// <param name="field">指定字段</param>
+        /// <param name="whereClause">条件字句</param>
+        /// <returns></returns>
+        public static Int32 FindMin(String field, String whereClause = null)
+        {
+            var list = FindAll(whereClause, field, null, 0, 1);
+            return list.Count < 1 ? 0 : Convert.ToInt32(list[0][field]);
+        }
+
+        /// <summary>查询指定字段的最大值</summary>
+        /// <param name="field">指定字段</param>
+        /// <param name="whereClause">条件字句</param>
+        /// <returns></returns>
+        public static Int32 FindMax(String field, String whereClause = null)
+        {
+            var list = FindAll(whereClause, field + " Desc", null, 0, 1);
+            return list.Count < 1 ? 0 : Convert.ToInt32(list[0][field]);
         }
         #endregion
 

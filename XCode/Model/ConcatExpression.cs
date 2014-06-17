@@ -1,11 +1,10 @@
 ﻿using System;
-using System.ComponentModel;
 using System.Text;
 
 namespace XCode
 {
-    /// <summary>排序表达式</summary>
-    public class OrderExpression
+    /// <summary>逗号连接表达式</summary>
+    public class ConcatExpression
     {
         #region 属性
         private StringBuilder _Builder = new StringBuilder();
@@ -15,18 +14,18 @@ namespace XCode
 
         #region 构造
         /// <summary>实例化</summary>
-        public OrderExpression() { }
+        public ConcatExpression() { }
 
         /// <summary>实例化</summary>
         /// <param name="exp"></param>
-        public OrderExpression(String exp) { Builder.Append(exp); }
+        public ConcatExpression(String exp) { Builder.Append(exp); }
         #endregion
 
         #region 方法
         /// <summary>增加</summary>
         /// <param name="exp"></param>
         /// <returns></returns>
-        public OrderExpression And(String exp)
+        public ConcatExpression And(String exp)
         {
             if (String.IsNullOrEmpty(exp)) return this;
 
@@ -36,22 +35,32 @@ namespace XCode
             return this;
         }
 
-        /// <summary>升序</summary>
-        /// <returns></returns>
-        [Obsolete("=>.And(_.ID.Asc())")]
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public OrderExpression Asc(String exp) { return And(exp); }
+        ///// <summary>数量</summary>
+        ///// <returns></returns>
+        //public ConcatExpression Count(String exp)
+        //{
+        //    if (String.IsNullOrEmpty(exp)) exp = "*";
 
-        /// <summary>降序</summary>
-        /// <returns></returns>
-        [Obsolete("=>.And(_.ID.Desc())")]
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public OrderExpression Desc(String exp)
-        {
-            if (String.IsNullOrEmpty(exp)) return this;
+        //    return And(String.Format("Count({0}) as {0}", exp));
+        //}
 
-            return And(exp + " Desc");
-        }
+        ///// <summary>数量</summary>
+        ///// <returns></returns>
+        //public ConcatExpression Min(String exp)
+        //{
+        //    if (String.IsNullOrEmpty(exp)) exp = "*";
+
+        //    return And(String.Format("Min({0}) as {0}", exp));
+        //}
+
+        ///// <summary>数量</summary>
+        ///// <returns></returns>
+        //public ConcatExpression Max(String exp)
+        //{
+        //    if (String.IsNullOrEmpty(exp)) exp = "*";
+
+        //    return And(String.Format("Max({0}) as {0}", exp));
+        //}
 
         /// <summary>已重载。</summary>
         /// <returns></returns>
@@ -65,7 +74,7 @@ namespace XCode
         /// <summary>类型转换</summary>
         /// <param name="obj"></param>
         /// <returns></returns>
-        public static implicit operator String(OrderExpression obj)
+        public static implicit operator String(ConcatExpression obj)
         {
             return obj != null ? obj.ToString() : null;
         }
@@ -76,7 +85,7 @@ namespace XCode
         /// <param name="exp"></param>
         /// <param name="value">数值</param>
         /// <returns></returns>
-        public static OrderExpression operator &(OrderExpression exp, Object value)
+        public static ConcatExpression operator &(ConcatExpression exp, Object value)
         {
             if (value == null) return exp;
 
