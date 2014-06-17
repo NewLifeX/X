@@ -24,6 +24,8 @@ using NewLife.Xml;
 using XCode.DataAccessLayer;
 using XCode.Sync;
 using NewLife.Compression;
+using XCode.Cache;
+using XCode.Transform;
 
 namespace Test
 {
@@ -40,7 +42,7 @@ namespace Test
                 try
                 {
 #endif
-                TestNatProxy();
+                    Test13();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -510,5 +512,36 @@ namespace Test
             }
         }
 
+        static void Test13()
+        {
+            var file = @"E:\BaiduYunDownload\xiaomi.db";
+            var file2 = Path.ChangeExtension(file, "sqlite");
+            DAL.AddConnStr("src", "Data Source=" + file, null, "sqlite");
+            DAL.AddConnStr("des", "Data Source=" + file2, null, "sqlite");
+
+            if (!File.Exists(file2))
+            {
+                var et = new EntityTransform();
+                et.SrcConn = "src";
+                et.DesConn = "des";
+                //et.PartialTableNames.Add("xiaomi");
+                //et.PartialCount = 1000000;
+
+                et.Transform();
+            }
+
+            var sw = new Stopwatch();
+
+            var dal = DAL.Create("src");
+            var eop = dal.CreateOperate(dal.Tables[0].TableName);
+            sw.Start();
+            var count = eop.Count;
+            sw.Stop();
+            XTrace.WriteLine("{0} 耗时 {1}ms", count, sw.ElapsedMilliseconds);
+            sw.Reset(); sw.Start();
+            count = eop.FindCount();
+            sw.Stop();
+            XTrace.WriteLine("{0} 耗时 {1}ms", count, sw.ElapsedMilliseconds);
+        }
     }
 }
