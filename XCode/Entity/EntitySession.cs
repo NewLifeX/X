@@ -387,7 +387,10 @@ namespace XCode
             {
                 var key = CacheKey;
 
+                // 当前缓存的值
                 Int64? n = _Count;
+
+                // 如果有缓存，则考虑返回吧
                 if (n != null && n.HasValue)
                 {
                     // 等于0的时候也应该缓存，否则会一直查询这个表
@@ -402,7 +405,7 @@ namespace XCode
                 CheckModel();
 
                 Int64 m = 0;
-                // 大于1000的缓存过期
+                // 小于1000的精确查询，大于1000的快速查询
                 if (n != null && n.HasValue && n.Value < 1000)
                 {
                     var sb = new SelectBuilder();
@@ -413,8 +416,19 @@ namespace XCode
                 }
                 else
                 {
-                    // 第一次访问
-                    m = Dal.Session.QueryCountFast(TableName);
+                    // 第一次访问，SQLite的Select Count非常慢，数据大于阀值时，使用最大ID作为表记录数
+                    var max = 0;
+                    if (Dal.DbType == DatabaseType.SQLite && Table.Identity != null)
+                    {
+                        // 先查一下最大值
+                        max = Entity<TEntity>.FindMax(Table.Identity.ColumnName);
+                    }
+
+                    // 100w数据时，没有预热Select Count需要3000ms，预热后需要500ms
+                    if (max < 500000)
+                        m = Dal.Session.QueryCountFast(TableName);
+                    else
+                        m = max;
                 }
 
                 _Count = m;

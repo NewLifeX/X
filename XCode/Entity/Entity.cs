@@ -502,8 +502,9 @@ namespace XCode
         /// <returns></returns>
         public static Int32 FindMin(String field, String whereClause = null)
         {
-            var list = FindAll(whereClause, field, null, 0, 1);
-            return list.Count < 1 ? 0 : Convert.ToInt32(list[0][field]);
+            var fd = Meta.Table.FindByName(field);
+            var list = FindAll(whereClause, fd, null, 0, 1);
+            return list.Count < 1 ? 0 : Convert.ToInt32(list[0][fd.Name]);
         }
 
         /// <summary>查询指定字段的最大值</summary>
@@ -512,8 +513,9 @@ namespace XCode
         /// <returns></returns>
         public static Int32 FindMax(String field, String whereClause = null)
         {
-            var list = FindAll(whereClause, field + " Desc", null, 0, 1);
-            return list.Count < 1 ? 0 : Convert.ToInt32(list[0][field]);
+            var fd = Meta.Table.FindByName(field);
+            var list = FindAll(whereClause, fd.Desc(), null, 0, 1);
+            return list.Count < 1 ? 0 : Convert.ToInt32(list[0][fd.Name]);
         }
         #endregion
 
