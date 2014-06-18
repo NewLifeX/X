@@ -180,7 +180,12 @@ namespace NewLife.Net.Modbus
             }
             catch (Exception ex)
             {
-                WriteLine(ex.Message);
+                //WriteLine(ex.Message);
+#if MF
+                Microsoft.SPOT.Debug.Print(ex.Message);
+#else
+                NewLife.Log.XTrace.WriteLine(ex.ToString());
+#endif
 
                 // 执行错误
                 return entity.SetError(Errors.ProcessError);
