@@ -187,7 +187,7 @@ namespace XCode
                 if (names.SequenceEqual(names2))
                 {
                     // 再次查询
-                    var entity = Find(persistence.GetPrimaryCondition(this), null);
+                    var entity = Find(persistence.GetPrimaryCondition(this));
                     // 如果目标数据不存在，就没必要删除了
                     if (entity == null) return 0;
 
@@ -386,7 +386,7 @@ namespace XCode
             IDataIndex di = Meta.Table.DataTable.GetIndex(names);
             if (di != null && di.Unique) return FindUnique(MakeCondition(names, values, "And"));
 
-            return Find(MakeCondition(names, values, "And"), null);
+            return Find(MakeCondition(names, values, "And"));
         }
 
         /// <summary>
