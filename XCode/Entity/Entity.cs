@@ -919,6 +919,7 @@ namespace XCode
         /// <param name="names">更新属性列表</param>
         /// <param name="values">更新值列表</param>
         /// <returns>返回受影响的行数</returns>
+        [EditorBrowsable(EditorBrowsableState.Advanced)]
         public static Int32 Insert(String[] names, Object[] values)
         {
             return persistence.Insert(Meta.ThisType, names, values);
@@ -935,6 +936,7 @@ namespace XCode
         /// <param name="setClause">要更新的项和数据</param>
         /// <param name="whereClause">指定要更新的实体</param>
         /// <returns></returns>
+        [EditorBrowsable(EditorBrowsableState.Advanced)]
         public static Int32 Update(String setClause, String whereClause)
         {
             return persistence.Update(Meta.ThisType, setClause, whereClause);
@@ -946,6 +948,7 @@ namespace XCode
         /// <param name="whereNames">条件属性列表</param>
         /// <param name="whereValues">条件值列表</param>
         /// <returns>返回受影响的行数</returns>
+        [EditorBrowsable(EditorBrowsableState.Advanced)]
         public static Int32 Update(String[] setNames, Object[] setValues, String[] whereNames, Object[] whereValues)
         {
             return persistence.Update(Meta.ThisType, setNames, setValues, whereNames, whereValues);
@@ -964,6 +967,7 @@ namespace XCode
         /// <summary>从数据库中删除指定条件的实体对象。</summary>
         /// <param name="whereClause">限制条件</param>
         /// <returns></returns>
+        [EditorBrowsable(EditorBrowsableState.Advanced)]
         public static Int32 Delete(String whereClause)
         {
             return persistence.Delete(Meta.ThisType, whereClause);
@@ -973,6 +977,7 @@ namespace XCode
         /// <param name="names">属性列表</param>
         /// <param name="values">值列表</param>
         /// <returns></returns>
+        [EditorBrowsable(EditorBrowsableState.Advanced)]
         public static Int32 Delete(String[] names, Object[] values)
         {
             return persistence.Delete(Meta.ThisType, names, values);
