@@ -422,10 +422,8 @@ namespace XCode
                     var max = 0l;
                     if (Dal.DbType == DatabaseType.SQLite && Table.Identity != null)
                     {
-                        // 实际上，只有第一次会查询最大ID
-                        if (_LastCount != null)
-                            max = _LastCount.Value;
-                        else
+                        // 除第一次外，将依据上一次记录数决定是否使用最大ID
+                        if (_LastCount == null || _LastCount.Value > 500000)
                         {
                             // 先查一下最大值
                             //max = Entity<TEntity>.FindMax(Table.Identity.ColumnName);
@@ -715,9 +713,9 @@ namespace XCode
                 }
                 else
                     Cache.Entities.Add(entity as TEntity);
-
-                if (_Count != null) _Count++;
             }
+
+            if (_Count != null) _Count++;
 
             return rs;
         }
@@ -762,9 +760,9 @@ namespace XCode
                     var v = entity[fi.Name];
                     Cache.Entities.RemoveAll(e => Object.Equals(e[fi.Name], v));
                 }
-
-                if (_Count != null) _Count--;
             }
+
+            if (_Count != null) _Count--;
 
             return rs;
         }

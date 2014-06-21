@@ -584,6 +584,16 @@ namespace Test
             count = eop.FindCount();
             sw.Stop();
             XTrace.WriteLine("{0} 耗时 {1}ms", count, sw.ElapsedMilliseconds);
+
+            var entity = eop.Create();
+            entity["username"] = "Stone";
+            entity.Save();
+            count = eop.FindCount();
+            Console.WriteLine(count);
+
+            entity.Delete();
+            count = eop.FindCount();
+            Console.WriteLine(count);
         }
     }
 }
