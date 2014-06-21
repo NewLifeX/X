@@ -537,8 +537,9 @@ namespace Test
                 }
             }
 
-            //var user = User.FindByAccount("Admin");
-            //Console.WriteLine(user);
+            AssemblyX.AssemblyPaths.Add(dir);
+            var user = User.FindByAccount("Admin");
+            Console.WriteLine(user);
         }
 
         static void Test13()

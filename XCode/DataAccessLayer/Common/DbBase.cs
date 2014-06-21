@@ -16,6 +16,7 @@ using NewLife.Reflection;
 using NewLife.Web;
 using XCode.Exceptions;
 using NewLife.Log;
+using System.Reflection;
 
 namespace XCode.DataAccessLayer
 {
@@ -128,7 +129,7 @@ namespace XCode.DataAccessLayer
                 // 只有连接字符串改变，才释放会话
                 var connStr = builder.ConnectionString;
 #if DEBUG
-               //XTrace.WriteLine("{0}格式化连接字符串 {1}", ConnName, connStr);
+                //XTrace.WriteLine("{0}格式化连接字符串 {1}", ConnName, connStr);
 #endif
                 if (_ConnectionString != connStr)
                 {
@@ -276,6 +277,25 @@ namespace XCode.DataAccessLayer
             }
 
             var type = className.GetTypeEx(true);
+            if (type == null)
+            {
+                XTrace.WriteLine("驱动文件{0}非法或不适用于当前环境，准备删除后重新下载！", file);
+
+                File.Delete(file);
+
+                CheckAndDownload(file);
+
+                // 如果还没有，就写异常
+                if (!File.Exists(file)) throw new FileNotFoundException("缺少文件" + file + "！", file);
+
+                type = className.GetTypeEx(true);
+                // 上面这货有缓存，可能失败
+                if (type == null)
+                {
+                    var asm = Assembly.LoadFile(file);
+                    type = asm.GetType(className);
+                }
+            }
             if (type == null) return null;
 
             var field = type.GetFieldEx("Instance");

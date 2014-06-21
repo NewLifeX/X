@@ -515,15 +515,24 @@ namespace NewLife.Reflection
 
             var loadeds = GetAssemblies().ToList();
 
+            var ver = new Version(Assembly.GetExecutingAssembly().ImageRuntimeVersion.TrimStart('v'));
+
             foreach (var item in ss)
             {
                 // 仅尝试加载dll和exe，不加载vshost文件
                 //if (!item.EndsWith(".dll", StringComparison.OrdinalIgnoreCase) &&
                 //    !item.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) ||
                 //    item.EndsWith(".vshost.exe", StringComparison.OrdinalIgnoreCase)) continue;
-                if (!item.EndsWithIgnoreCase(".dll", ".exe") || item.EndsWithIgnoreCase(".vshost.exe")) continue;
+                if (!item.EndsWithIgnoreCase(".dll", ".exe", ".vshost.exe")) continue;
 
-                if (loadeds.Any(e => e.Location.EqualIgnoreCase(item)) || loadeds2.Any(e => e.Location.EqualIgnoreCase(item))) continue;
+                if (loadeds.Any(e => e.Location.EqualIgnoreCase(item)) ||
+                    loadeds2.Any(e => e.Location.EqualIgnoreCase(item))) continue;
+
+                // 仅加载.Net文件，并且小于等于当前版本
+                var pe = PEImage.Read(item);
+                if (pe == null || !pe.IsNet) continue;
+                // 只判断主次版本，只要这两个相同，后面可以兼容
+                if (pe.Version.Major > ver.Major || pe.Version.Minor > pe.Version.Minor) continue;
 
                 AssemblyX asmx = null;
                 try

@@ -35,6 +35,8 @@ namespace NewLife.Reflection
         /// <summary>版本</summary>
         public Version Version { get { return _Version; } set { _Version = value; } }
 
+        public Boolean IsNet { get { return ExecutableKind.Has(PortableExecutableKinds.ILOnly) && Version != null; } }
+
         Section[] Sections;
         DataDirectory cli;
         DataDirectory metadata;
@@ -297,7 +299,6 @@ namespace NewLife.Reflection
 
             var buf = reader.ReadBytes(reader.ReadInt32());
             var version = Encoding.ASCII.GetString(buf).TrimEnd('\0').TrimStart('v');
-            //Runtime = version.ParseRuntime();
             Version = new Version(version);
 
             return true;
