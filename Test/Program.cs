@@ -541,10 +541,15 @@ namespace Test
             var user = User.FindByAccount("Admin");
             Console.WriteLine(user);
 
-            var user2 = new UserB();
+            var user2 = UserB.FindByAccount("Stone");
+            if (user2 == null) user2 = new UserB();
             user2.Account = "Stone";
-            user2.Insert();
+            user2.Save();
             user2.Delete();
+
+            user = User.FindByAccount("Admin");
+            Console.WriteLine(user);
+
         }
 
         class UserB : User { }

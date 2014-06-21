@@ -92,7 +92,7 @@ namespace XCode.Cache
 
                 if (Debug)
                 {
-                    var reason = Times == 0 ? "第一次" : (isnull ? "无缓存数据" : Expriod + "秒过期");
+                    var reason = Times == 1 ? "第一次" : (isnull ? "无缓存数据" : Expriod + "秒过期");
                     DAL.WriteLog("异步更新实体缓存（第{2}次）：{0} 原因：{1}", typeof(TEntity).FullName, reason, Times);
                 }
 
@@ -103,7 +103,7 @@ namespace XCode.Cache
                 Times++;
                 if (Debug)
                 {
-                    var reason = Times == 0 ? "第一次" : (isnull ? "无缓存数据" : Expriod + "秒过期");
+                    var reason = Times == 1 ? "第一次" : (isnull ? "无缓存数据" : Expriod + "秒过期");
                     DAL.WriteLog("更新实体缓存（第{2}次）：{0} 原因：{1} {3}", typeof(TEntity).FullName, reason, Times, XTrace.GetCaller(2, 2));
                 }
 
@@ -145,6 +145,9 @@ namespace XCode.Cache
                 // 修改为最小，确保过期
                 ExpiredTime = DateTime.MinValue;
                 _Entities = null;
+
+                // 清空后，表示不使用缓存
+                Using = false;
             }
         }
         #endregion

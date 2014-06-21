@@ -369,6 +369,8 @@ namespace XCode
         /// <summary>总记录数，小于1000时是精确的，大于1000时缓存10分钟</summary>
         public Int32 Count { get { return (Int32)LongCount; } }
 
+        /// <summary>上一次记录数，用于衡量缓存策略，不受缓存清空</summary>
+        private Int64? _LastCount;
         /// <summary>总记录数较小时，使用静态字段，较大时增加使用Cache</summary>
         private Int64? _Count;
         /// <summary>总记录数，小于1000时是精确的，大于1000时缓存10分钟</summary>
@@ -417,11 +419,25 @@ namespace XCode
                 else
                 {
                     // 第一次访问，SQLite的Select Count非常慢，数据大于阀值时，使用最大ID作为表记录数
-                    var max = 0;
+                    var max = 0l;
                     if (Dal.DbType == DatabaseType.SQLite && Table.Identity != null)
                     {
-                        // 先查一下最大值
-                        max = Entity<TEntity>.FindMax(Table.Identity.ColumnName);
+                        // 实际上，只有第一次会查询最大ID
+                        if (_LastCount != null)
+                            max = _LastCount.Value;
+                        else
+                        {
+                            // 先查一下最大值
+                            //max = Entity<TEntity>.FindMax(Table.Identity.ColumnName);
+                            // 依赖关系FindMax=>FindAll=>Query=>InitData=>Meta.Count，所以不能使用
+
+                            var builder = new SelectBuilder();
+                            builder.Table = FormatedTableName;
+                            builder.OrderBy = Table.Identity.Desc();
+                            var ds = Dal.Select(builder, 0, 1, TableName);
+                            if (ds.Tables[0].Rows.Count > 0)
+                                max = Convert.ToInt64(ds.Tables[0].Rows[0][Table.Identity.ColumnName]);
+                        }
                     }
 
                     // 100w数据时，没有预热Select Count需要3000ms，预热后需要500ms
@@ -432,6 +448,7 @@ namespace XCode
                 }
 
                 _Count = m;
+                _LastCount = m;
 
                 if (m >= 1000) HttpRuntime.Cache.Insert(key, m, null, DateTime.Now.AddMinutes(10), System.Web.Caching.Cache.NoSlidingExpiration);
 
