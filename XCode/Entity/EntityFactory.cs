@@ -56,6 +56,9 @@ namespace XCode
         {
             if (type == null) throw new ArgumentNullException("type");
 
+            // 有可能有子类直接继承实体类，这里需要找到继承泛型实体类的那一层
+            while (!type.BaseType.IsGenericType) type = type.BaseType;
+
             // 确保实体类已被初始化，实际上，因为实体类静态构造函数中会注册IEntityOperate，所以下面的委托按理应该再也不会被执行了
             EnsureInit(type);
 

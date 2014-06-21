@@ -516,31 +516,38 @@ namespace Test
             //{
             //    var pe = PEImage.Read(fs);
             //}
-            var dir = "../Bin".GetFullPath();
-            foreach (var item in Directory.GetFiles(dir))
-            {
-                if (item.EndsWithIgnoreCase(".dll", ".exe"))
-                {
-                    var pe = PEImage.Read(item);
-                    if (pe != null)
-                        Console.WriteLine("{0,-35} {1} {2} {3} {4}", item, pe.Machine, pe.Kind, pe.ExecutableKind, pe.Version);
-                }
-            }
-            dir = "../Bin4".GetFullPath();
-            foreach (var item in Directory.GetFiles(dir))
-            {
-                if (item.EndsWithIgnoreCase(".dll", ".exe"))
-                {
-                    var pe = PEImage.Read(item);
-                    if (pe != null)
-                        Console.WriteLine("{0,-35} {1} {2} {3} {4}", item, pe.Machine, pe.Kind, pe.ExecutableKind, pe.Version);
-                }
-            }
+            //var dir = "../Bin".GetFullPath();
+            //foreach (var item in Directory.GetFiles(dir))
+            //{
+            //    if (item.EndsWithIgnoreCase(".dll", ".exe"))
+            //    {
+            //        var pe = PEImage.Read(item);
+            //        if (pe != null)
+            //            Console.WriteLine("{0,-35} {1} {2} {3} {4}", item, pe.Machine, pe.Kind, pe.ExecutableKind, pe.Version);
+            //    }
+            //}
+            //dir = "../Bin4".GetFullPath();
+            //foreach (var item in Directory.GetFiles(dir))
+            //{
+            //    if (item.EndsWithIgnoreCase(".dll", ".exe"))
+            //    {
+            //        var pe = PEImage.Read(item);
+            //        if (pe != null)
+            //            Console.WriteLine("{0,-35} {1} {2} {3} {4}", item, pe.Machine, pe.Kind, pe.ExecutableKind, pe.Version);
+            //    }
+            //}
 
-            AssemblyX.AssemblyPaths.Add(dir);
+            //AssemblyX.AssemblyPaths.Add(dir);
             var user = User.FindByAccount("Admin");
             Console.WriteLine(user);
+
+            var user2 = new UserB();
+            user2.Account = "Stone";
+            user2.Insert();
+            user2.Delete();
         }
+
+        class UserB : User { }
 
         static void Test13()
         {
