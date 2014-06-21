@@ -9,6 +9,9 @@ using RVA = System.UInt32;
 namespace NewLife.Reflection
 {
     /// <summary>PE镜像</summary>
+    /// <remarks>
+    /// 
+    /// </remarks>
     public class PEImage
     {
         #region 属性
@@ -245,11 +248,13 @@ namespace NewLife.Reflection
             Sections = sections;
         }
 
-        void ReadCLIHeader(BinaryReader reader)
+        Boolean ReadCLIHeader(BinaryReader reader)
         {
             var stream = reader.BaseStream;
 
-            stream.Position = ResolveVirtualAddress(cli.VirtualAddress);
+            var addr = ResolveVirtualAddress(cli.VirtualAddress);
+            if (addr < 0) return false;
+            stream.Position = addr;
 
             // - CLIHeader
 
@@ -271,13 +276,17 @@ namespace NewLife.Reflection
             // VTableFixups				8
             // ExportAddressTableJumps	8
             // ManagedNativeHeader		8
+
+            return true;
         }
 
         Boolean ReadMetadata(BinaryReader reader)
         {
             var stream = reader.BaseStream;
 
-            stream.Position = ResolveVirtualAddress(metadata.VirtualAddress);
+            var addr = ResolveVirtualAddress(metadata.VirtualAddress);
+            if (addr < 0) return false;
+            stream.Position = addr;
 
             if (reader.ReadUInt32() != 0x424a5342) return false;
 
@@ -296,11 +305,10 @@ namespace NewLife.Reflection
         #endregion
 
         #region 辅助
-        uint ResolveVirtualAddress(RVA rva)
+        Int64 ResolveVirtualAddress(RVA rva)
         {
             var section = GetSectionAtVirtualAddress(rva);
-            if (section == null)
-                throw new ArgumentOutOfRangeException();
+            if (section == null) return -1;
 
             return rva + section.PointerToRawData - section.VirtualAddress;
         }

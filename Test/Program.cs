@@ -6,9 +6,9 @@ using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
 using System.Threading;
-using NewLife.Collections;
 using NewLife.Common;
 using NewLife.CommonEntity;
+using NewLife.Compression;
 using NewLife.Log;
 using NewLife.Messaging;
 using NewLife.Model;
@@ -23,8 +23,6 @@ using NewLife.Threading;
 using NewLife.Xml;
 using XCode.DataAccessLayer;
 using XCode.Sync;
-using NewLife.Compression;
-using XCode.Cache;
 using XCode.Transform;
 
 namespace Test
@@ -42,7 +40,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test13();
+                Test8();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -510,6 +508,37 @@ namespace Test
                     Console.WriteLine(ex.Message);
                 }
             }
+        }
+
+        static void Test8()
+        {
+            //using (var fs = new FileStream("System.Data.SQLite.dll", FileMode.Open, FileAccess.ReadWrite))
+            //{
+            //    var pe = PEImage.Read(fs);
+            //}
+            var dir = "../Bin".GetFullPath();
+            foreach (var item in Directory.GetFiles(dir))
+            {
+                if (item.EndsWithIgnoreCase(".dll", ".exe"))
+                {
+                    var pe = PEImage.Read(item);
+                    if (pe != null)
+                        Console.WriteLine("{0,-35} {1} {2} {3} {4}", item, pe.Machine, pe.Kind, pe.ExecutableKind, pe.Version);
+                }
+            }
+            dir = "../Bin4".GetFullPath();
+            foreach (var item in Directory.GetFiles(dir))
+            {
+                if (item.EndsWithIgnoreCase(".dll", ".exe"))
+                {
+                    var pe = PEImage.Read(item);
+                    if (pe != null)
+                        Console.WriteLine("{0,-35} {1} {2} {3} {4}", item, pe.Machine, pe.Kind, pe.ExecutableKind, pe.Version);
+                }
+            }
+
+            //var user = User.FindByAccount("Admin");
+            //Console.WriteLine(user);
         }
 
         static void Test13()
