@@ -479,34 +479,34 @@ namespace XCode.Configuration
         #region 排序
         /// <summary>升序</summary>
         /// <returns></returns>
-        public ConcatExpression Asc() { return new ConcatExpression(Factory.FormatName(Name)); }
+        public ConcatExpression Asc() { return new ConcatExpression(Factory.FormatName(ColumnName)); }
 
         /// <summary>降序</summary>
         /// <remarks>感谢 树懒（303409914）发现这里的错误</remarks>
         /// <returns></returns>
-        public ConcatExpression Desc() { return new ConcatExpression(Factory.FormatName(Name) + " Desc"); }
+        public ConcatExpression Desc() { return new ConcatExpression(Factory.FormatName(ColumnName) + " Desc"); }
         #endregion
 
         #region 分组选择
         /// <summary>分组</summary>
         /// <returns></returns>
-        public ConcatExpression GroupBy() { return new ConcatExpression(String.Format("Group By {0}", Factory.FormatName(Name))); }
+        public ConcatExpression GroupBy() { return new ConcatExpression(String.Format("Group By {0}", Factory.FormatName(ColumnName))); }
 
         /// <summary>数量</summary>
         /// <returns></returns>
-        public ConcatExpression Count() { return new ConcatExpression(String.Format("Count({0}) as {0}", Factory.FormatName(Name))); }
+        public ConcatExpression Count() { return new ConcatExpression(String.Format("Count({0}) as {0}", Factory.FormatName(ColumnName))); }
 
         /// <summary>求和</summary>
         /// <returns></returns>
-        public ConcatExpression Sum() { return new ConcatExpression(String.Format("Sum({0}) as {0}", Factory.FormatName(Name))); }
+        public ConcatExpression Sum() { return new ConcatExpression(String.Format("Sum({0}) as {0}", Factory.FormatName(ColumnName))); }
 
         /// <summary>最小值</summary>
         /// <returns></returns>
-        public ConcatExpression Min() { return new ConcatExpression(String.Format("Min({0}) as {0}", Factory.FormatName(Name))); }
+        public ConcatExpression Min() { return new ConcatExpression(String.Format("Min({0}) as {0}", Factory.FormatName(ColumnName))); }
 
         /// <summary>最大值</summary>
         /// <returns></returns>
-        public ConcatExpression Max() { return new ConcatExpression(String.Format("Max({0}) as {0}", Factory.FormatName(Name))); }
+        public ConcatExpression Max() { return new ConcatExpression(String.Format("Max({0}) as {0}", Factory.FormatName(ColumnName))); }
         #endregion
 
         #region 类型转换
