@@ -57,6 +57,7 @@ namespace XCode
     public class EntityTransaction : DisposeBase
     {
         #region 属性
+        private Boolean hasStart;
         /// <summary>是否已完成事务</summary>
         protected Boolean hasFinish;
 
@@ -71,7 +72,11 @@ namespace XCode
         public EntityTransaction(IDbSession session)
         {
             Session = session;
-            if (session != null) session.BeginTransaction();
+            if (session != null)
+            {
+                session.BeginTransaction();
+                hasStart = true;
+            }
         }
 
         /// <summary>用数据访问对象来实例化一个事务区域</summary>
@@ -89,7 +94,7 @@ namespace XCode
         {
             base.OnDispose(disposing);
 
-            if (!hasFinish) Rollback();
+            if (hasStart && !hasFinish) Rollback();
         }
         #endregion
 
