@@ -127,6 +127,10 @@ namespace XCode.DataAccessLayer
                 {
                     Conn.Open();
                 }
+                catch (InvalidOperationException ex)
+                {
+                    if (ex.Message == null || !ex.Message.Contains("句柄未初始化")) throw;
+                }
                 catch (DbException)
                 {
                     DAL.WriteLog("导致Open错误的连接字符串：{0}", Conn.ConnectionString);
@@ -555,6 +559,10 @@ namespace XCode.DataAccessLayer
                     checkConnStr();
                     conn.ConnectionString = ConnectionString;
                     conn.Open();
+                }
+                catch (InvalidOperationException ex)
+                {
+                    if (ex.Message == null || !ex.Message.Contains("句柄未初始化")) throw;
                 }
                 catch (DbException ex)
                 {

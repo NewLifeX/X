@@ -43,15 +43,15 @@ namespace XCode
             // 针对每个类型，仅注册一个事件
             Type type = typeof(TDependEntity);
             List<String> list = null;
-            if (!Depends.TryGetValue(type, out list))
+            var dps = Depends;
+            if (!dps.TryGetValue(type, out list))
             {
-                lock (Depends)
+                lock (dps)
                 {
-                    if (!Depends.TryGetValue(type, out list))
+                    if (!dps.TryGetValue(type, out list))
                     {
-
                         list = new List<String>();
-                        Depends.Add(type, list);
+                        dps.Add(type, list);
                     }
                 }
             }
