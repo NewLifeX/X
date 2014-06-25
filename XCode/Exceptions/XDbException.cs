@@ -4,6 +4,7 @@ using XCode.DataAccessLayer;
 namespace XCode.Exceptions
 {
     /// <summary>数据访问层异常</summary>
+    [Serializable]
     public class XDbException : XCodeException
     {
         private IDatabase _Database;

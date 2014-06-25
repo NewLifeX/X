@@ -4,6 +4,7 @@ using XCode.DataAccessLayer;
 namespace XCode.Exceptions
 {
     /// <summary>数据库元数据异常</summary>
+    [Serializable]
     public class XDbMetaDataException : XDbException
     {
         private IMetaData _MetaData;
