@@ -11,49 +11,22 @@ namespace NewLife.CommonEntity.Web
     public class AttachmentHttpHandler : IHttpHandler
     {
         #region IHttpHandler 成员
-        bool IHttpHandler.IsReusable
-        {
-            get { return false; }
-        }
+        bool IHttpHandler.IsReusable { get { return false; } }
 
-        void IHttpHandler.ProcessRequest(HttpContext context)
-        {
-            OnProcess(context);
-        }
+        void IHttpHandler.ProcessRequest(HttpContext context) { OnProcess(context); }
         #endregion
 
         #region 属性
         /// <summary>文件编号</summary>
-        public Int32 ID
-        {
-            get
-            {
-                String str = HttpContext.Current.Request["ID"];
-                if (String.IsNullOrEmpty(str)) return 0;
+        public Int32 ID { get { return HttpContext.Current.Request["ID"].ToInt(); } }
 
-                Int32 n = 0;
-                if (!Int32.TryParse(str, out n)) n = 0;
+        private Boolean _BrowserCache;
+        /// <summary>是否使用浏览器缓存 默认禁用</summary>
+        public Boolean BrowserCache { get { return _BrowserCache; } set { _BrowserCache = value; } }
 
-                return n;
-            }
-        }
-
-
-        /// <summary>
-        /// 获取或设置 是否禁用浏览器缓存 默认启用
-        /// </summary>
-        public bool BrowserCacheDisable { get; set; }
         private TimeSpan _browserCacheMaxAge = new TimeSpan(100, 0, 0, 0);
-
-        /// <summary>
-        /// 获取或设置 浏览器最大缓存时间 默认100天
-        /// </summary>
-        public TimeSpan BrowserCacheMaxAge
-        {
-            get { return _browserCacheMaxAge; }
-            set { _browserCacheMaxAge = value; }
-        }
-
+        /// <summary>浏览器最大缓存时间 默认100天</summary>
+        public TimeSpan BrowserCacheMaxAge { get { return _browserCacheMaxAge; } set { _browserCacheMaxAge = value; } }
         #endregion
 
         #region 文件流
@@ -105,23 +78,12 @@ namespace NewLife.CommonEntity.Web
 
             // 增加统计
             attachment.Increment(null);
-            //增加 浏览器缓存 304缓存 By Soar、毅 2014年2月24日
-            if (!this.BrowserCacheDisable)
-            {
-                var request = context.Request;
-                var since = request.ServerVariables["HTTP_IF_MODIFIED_SINCE"];
-                if (!String.IsNullOrEmpty(since))
-                {
-                    DateTime dt;
-                    //if (DateTime.TryParse(since, out dt) && dt >= attachment.UploadTime)
-                    //!!! 注意：本地修改时间精确到毫秒，而HTTP_IF_MODIFIED_SINCE只能到秒
-                    if (DateTime.TryParse(since, out dt) && (dt - attachment.UploadTime).TotalSeconds > -1)
-                    {
-                        context.Response.StatusCode = 304;
-                        return;
-                    }
-                }
-            }
+
+            // 检查浏览器缓存
+            var wd = new WebDownload();
+            wd.ModifyTime = attachment.UploadTime;
+            if (wd.CheckCache()) return;
+
             var stream = GetStream(context, attachment);
             if (stream.CanSeek && stream.Position >= stream.Length) stream.Position = 0;
             try
@@ -167,23 +129,26 @@ namespace NewLife.CommonEntity.Web
         /// <param name="dispositionMode"></param>
         protected virtual void OnResponse(HttpContext context, IAttachment attachment, Stream stream, String dispositionMode)
         {
-            //增加 浏览器缓存 304缓存 By Soar、毅 2014年2月24日
-            if (!this.BrowserCacheDisable)
-            {
-                var response = context.Response;
-                response.ExpiresAbsolute = DateTime.Now.Add(this.BrowserCacheMaxAge);
-                response.Cache.SetMaxAge(BrowserCacheMaxAge);
-                response.Cache.SetRevalidation(HttpCacheRevalidation.AllCaches);
-                response.Cache.SetCacheability(HttpCacheability.Public);
-                response.Cache.SetLastModified(attachment.UploadTime);
-            }
             var wd = new WebDownload();
             wd.Stream = stream;
             wd.FileName = attachment.FileName;
             if (!String.IsNullOrEmpty(dispositionMode)) wd.Mode = WebDownload.ParseMode(dispositionMode);
             if (!String.IsNullOrEmpty(attachment.ContentType)) wd.ContentType = attachment.ContentType;
+
+            if (BrowserCache)
+            {
+                wd.BrowserCache = true;
+                wd.ModifyTime = attachment.UploadTime;
+                wd.BrowserCacheMaxAge = BrowserCacheMaxAge;
+            }
+
+            OnReader(wd);
             wd.Render();
         }
+
+        /// <summary>参数准备完毕，输出前</summary>
+        /// <param name="wd"></param>
+        protected virtual void OnReader(WebDownload wd) { }
         #endregion
     }
 }

@@ -9,21 +9,31 @@ namespace NewLife.CommonEntity.Web
     public class DownloadFile : AttachmentHttpHandler
     {
         #region 业务
-        /// <summary>响应</summary>
-        /// <param name="context"></param>
-        /// <param name="attachment"></param>
-        /// <param name="stream"></param>
-        /// <param name="dispositionMode"></param>
-        protected override void OnResponse(HttpContext context, IAttachment attachment, Stream stream, string dispositionMode)
+        ///// <summary>响应</summary>
+        ///// <param name="context"></param>
+        ///// <param name="attachment"></param>
+        ///// <param name="stream"></param>
+        ///// <param name="dispositionMode"></param>
+        //protected override void OnResponse(HttpContext context, IAttachment attachment, Stream stream, string dispositionMode)
+        //{
+        //    var wd = new WebDownload();
+        //    wd.Stream = stream;
+        //    wd.FileName = attachment.FileName;
+        //    //if (!String.IsNullOrEmpty(dispositionMode)) wd.Mode = (WebDownload.DispositionMode)Enum.Parse(typeof(WebDownload.DispositionMode), dispositionMode);
+        //    wd.Mode = WebDownload.DispositionMode.Attachment;
+        //    if (!String.IsNullOrEmpty(attachment.ContentType)) wd.ContentType = attachment.ContentType;
+        //    wd.Speed = 100;
+        //    wd.Render();
+        //}
+
+        /// <summary>参数准备完毕，输出前</summary>
+        /// <param name="wd"></param>
+        protected override void OnReader(WebDownload wd)
         {
-            var wd = new WebDownload();
-            wd.Stream = stream;
-            wd.FileName = attachment.FileName;
-            //if (!String.IsNullOrEmpty(dispositionMode)) wd.Mode = (WebDownload.DispositionMode)Enum.Parse(typeof(WebDownload.DispositionMode), dispositionMode);
+            base.OnReader(wd);
+
             wd.Mode = WebDownload.DispositionMode.Attachment;
-            if (!String.IsNullOrEmpty(attachment.ContentType)) wd.ContentType = attachment.ContentType;
             wd.Speed = 100;
-            wd.Render();
         }
         #endregion
     }

@@ -15,26 +15,40 @@ namespace NewLife.Web
         public Stream Stream { get { return _Stream; } set { _Stream = value; } }
 
         private String _FileName;
-        /// <summary>属性说明</summary>
+        /// <summary>文件名</summary>
         public String FileName { get { return _FileName; } set { _FileName = value; } }
 
         private String _ContentType = "application/octet-stream";
         /// <summary>内容类型</summary>
         public String ContentType { get { return _ContentType; } set { _ContentType = value; } }
 
-        private DispositionMode _Mode;
+        private DispositionMode _Mode = DispositionMode.None;
         /// <summary>附件配置模式，是在浏览器直接打开，还是提示另存为</summary>
         public DispositionMode Mode { get { return _Mode; } set { _Mode = value; } }
 
         private Int64 _Speed;
-        /// <summary>速度，每响应一个包后睡眠的毫秒数，0表示不限制</summary>
+        /// <summary>速度，每秒传输字节数，根据包大小，每响应一个包后睡眠指定毫秒数，0表示不限制</summary>
         public Int64 Speed { get { return _Speed; } set { _Speed = value; } }
+
+        /// <summary>是否启用浏览器缓存 默认禁用</summary>
+        public bool BrowserCache { get; set; }
+
+        private TimeSpan _browserCacheMaxAge = new TimeSpan(100, 0, 0, 0);
+        /// <summary>浏览器最大缓存时间 默认100天</summary>
+        public TimeSpan BrowserCacheMaxAge { get { return _browserCacheMaxAge; } set { _browserCacheMaxAge = value; } }
+
+        private DateTime _ModifyTime;
+        /// <summary>文件数据最后修改时间，浏览器缓存时用</summary>
+        public DateTime ModifyTime { get { return _ModifyTime; } set { _ModifyTime = value; } }
         #endregion
 
         #region 枚举
         /// <summary>附件配置模式</summary>
         public enum DispositionMode
         {
+            /// <summary>不设置</summary>
+            None,
+
             /// <summary>内联模式，在浏览器直接打开</summary>
             Inline,
 
@@ -73,6 +87,44 @@ namespace NewLife.Web
         }
         #endregion
 
+        /// <summary>检查浏览器缓存是否依然有效，如果有效则跳过Render</summary>
+        /// <returns></returns>
+        public virtual Boolean CheckCache()
+        {
+            //增加 浏览器缓存 304缓存
+            //if (BrowserCache)
+            {
+                var Request = HttpContext.Current.Request;
+                var Response = HttpContext.Current.Response;
+
+                var since = Request.ServerVariables["HTTP_IF_MODIFIED_SINCE"];
+                if (!String.IsNullOrEmpty(since))
+                {
+                    DateTime dt;
+                    //if (DateTime.TryParse(since, out dt) && dt >= attachment.UploadTime)
+                    //!!! 注意：本地修改时间精确到毫秒，而HTTP_IF_MODIFIED_SINCE只能到秒
+                    if (DateTime.TryParse(since, out dt) && (dt - ModifyTime).TotalSeconds > -1)
+                    {
+                        Response.StatusCode = 304;
+                        return true;
+                    }
+                }
+                // WebDev不支持HTTP_IF_MODIFIED_SINCE，但是可以用HTTP_IF_NONE_MATCH
+                var etag = Request.ServerVariables["HTTP_IF_NONE_MATCH"];
+                if (!String.IsNullOrEmpty(etag))
+                {
+                    Int64 ticks = 0;
+                    if (Int64.TryParse(etag, out ticks) && (new DateTime(ticks) - ModifyTime).TotalSeconds > -1)
+                    {
+                        Response.StatusCode = 304;
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
         /// <summary>输出数据流</summary>
         public virtual void Render()
         {
@@ -110,7 +162,24 @@ namespace NewLife.Web
             }
             Response.AddHeader("Connection", "Keep-Alive");
             Response.ContentType = ContentType;
-            Response.AddHeader("Content-Disposition", Mode + ";filename=" + HttpUtility.UrlEncode(FileName, Encoding.UTF8));
+            if (Mode != DispositionMode.None)
+                Response.AddHeader("Content-Disposition", Mode + ";filename=" + HttpUtility.UrlEncode(FileName, Encoding.UTF8));
+
+            //增加 浏览器缓存 304缓存
+            if (BrowserCache)
+            {
+                //Response.ExpiresAbsolute = DateTime.Now.Add(BrowserCacheMaxAge);
+                //Response.Cache.SetMaxAge(BrowserCacheMaxAge);
+                //Response.Cache.SetRevalidation(HttpCacheRevalidation.AllCaches);
+                //Response.Cache.SetCacheability(HttpCacheability.Public);
+                //Response.Cache.SetLastModified(ModifyTime);
+
+                Response.Cache.SetETag(ModifyTime.Ticks.ToString());
+                Response.Cache.SetLastModified(ModifyTime);
+                Response.Cache.SetCacheability(HttpCacheability.Public);
+                Response.Cache.SetMaxAge(BrowserCacheMaxAge);
+                Response.Cache.SetSlidingExpiration(true);
+            }
 
             //stream.Seek(startBytes, SeekOrigin.Begin);
             int maxCount = (int)Math.Floor((fileLength - startBytes) / (double)pack) + 1;
