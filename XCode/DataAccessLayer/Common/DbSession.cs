@@ -52,17 +52,7 @@ namespace XCode.DataAccessLayer
 
         private String _ConnectionString;
         /// <summary>链接字符串，会话单独保存，允许修改，修改不会影响数据库中的连接字符串</summary>
-        public String ConnectionString
-        {
-            get { return _ConnectionString; }
-            set
-            {
-                _ConnectionString = value;
-                //#if DEBUG
-                //                XTrace.WriteLine("DbSession设定连接字符串 {0}", value);
-                //#endif
-            }
-        }
+        public String ConnectionString { get { return _ConnectionString; } set { _ConnectionString = value; } }
 
         private DbConnection _Conn;
         /// <summary>数据连接对象。</summary>
@@ -126,10 +116,6 @@ namespace XCode.DataAccessLayer
                 try
                 {
                     Conn.Open();
-                }
-                catch (InvalidOperationException ex)
-                {
-                    if (ex.Message == null || !ex.Message.Contains("句柄未初始化")) throw;
                 }
                 catch (DbException)
                 {
@@ -559,10 +545,6 @@ namespace XCode.DataAccessLayer
                     checkConnStr();
                     conn.ConnectionString = ConnectionString;
                     conn.Open();
-                }
-                catch (InvalidOperationException ex)
-                {
-                    if (ex.Message == null || !ex.Message.Contains("句柄未初始化")) throw;
                 }
                 catch (DbException ex)
                 {
