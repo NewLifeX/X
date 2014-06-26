@@ -496,6 +496,8 @@ namespace XCode.DataAccessLayer
                             list.Add(new KeyValuePair<Type, Type>(types[i], types[j]));
                         }
                     }
+                    // 因为等价，字节需要能够互相映射
+                    list.Add(new KeyValuePair<Type, Type>(typeof(Byte), typeof(SByte)));
                     // 因为自增的原因，某些字段需要被映射到Int64里面来
                     list.Add(new KeyValuePair<Type, Type>(typeof(UInt32), typeof(Int64)));
                     list.Add(new KeyValuePair<Type, Type>(typeof(Int32), typeof(Int64)));
