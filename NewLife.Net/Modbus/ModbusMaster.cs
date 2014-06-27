@@ -397,6 +397,7 @@ namespace NewLife.Net.Modbus
         #region 诊断标识
         /// <summary>诊断</summary>
         /// <remarks>
+        /// 01080000801A
         /// 请求：0x08|2字节子功能|n*2字节数据
         /// 响应：0x08|2字节子功能|n*2字节数据
         /// </remarks>
@@ -416,6 +417,9 @@ namespace NewLife.Net.Modbus
         }
 
         /// <summary>返回标识</summary>
+        /// <remarks>
+        /// 0111C02C
+        /// </remarks>
         /// <returns></returns>
         public Byte[] ReportIdentity()
         {
