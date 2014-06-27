@@ -88,7 +88,7 @@ namespace NewLife.Net
         {
             Open();
 
-#if !MF
+#if !MF && DEBUG
             WriteLog("Write:{0}", BitConverter.ToString(buffer));
 #endif
 
@@ -136,7 +136,7 @@ namespace NewLife.Net
                 catch { }
             }
 
-#if !MF
+#if !MF && DEBUG
             WriteLog("Read:{0} Expected/True={1}/{2}", BitConverter.ToString(buffer, bufstart, offset - bufstart), FrameSize, offset - bufstart);
 #endif
 
@@ -181,7 +181,7 @@ namespace NewLife.Net
         {
             Open();
 
-            Serial.DataReceived += new SerialDataReceivedEventHandler(DataReceived);
+            Serial.DataReceived += DataReceived;
             //serial.ErrorReceived += new SerialErrorReceivedEventHandler(port_ErrorReceived);
         }
 
