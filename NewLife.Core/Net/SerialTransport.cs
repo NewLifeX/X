@@ -72,7 +72,12 @@ namespace NewLife.Net
         /// <summary>关闭</summary>
         public virtual void Close()
         {
-            if (Serial != null && Serial.IsOpen) Serial.Close();
+            // 关闭时必须清空，否则更换属性后再次打开也无法改变属性
+            if (Serial != null)
+            {
+                if (Serial.IsOpen) Serial.Close();
+                Serial = null;
+            }
         }
 
         /// <summary>写入数据</summary>
