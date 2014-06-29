@@ -40,7 +40,7 @@ namespace Test
                 try
                 {
 #endif
-                Test8();
+                    Test8();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -512,47 +512,33 @@ namespace Test
 
         static void Test8()
         {
-            //using (var fs = new FileStream("System.Data.SQLite.dll", FileMode.Open, FileAccess.ReadWrite))
-            //{
-            //    var pe = PEImage.Read(fs);
-            //}
-            //var dir = "../Bin".GetFullPath();
-            //foreach (var item in Directory.GetFiles(dir))
-            //{
-            //    if (item.EndsWithIgnoreCase(".dll", ".exe"))
-            //    {
-            //        var pe = PEImage.Read(item);
-            //        if (pe != null)
-            //            Console.WriteLine("{0,-35} {1} {2} {3} {4}", item, pe.Machine, pe.Kind, pe.ExecutableKind, pe.Version);
-            //    }
-            //}
-            //dir = "../Bin4".GetFullPath();
-            //foreach (var item in Directory.GetFiles(dir))
-            //{
-            //    if (item.EndsWithIgnoreCase(".dll", ".exe"))
-            //    {
-            //        var pe = PEImage.Read(item);
-            //        if (pe != null)
-            //            Console.WriteLine("{0,-35} {1} {2} {3} {4}", item, pe.Machine, pe.Kind, pe.ExecutableKind, pe.Version);
-            //    }
-            //}
+            var st = new SerialTransport();
+            st.PortName = "COM65";  // 通讯口
+            st.FrameSize = 16;      // 数据帧大小
 
-            //AssemblyX.AssemblyPaths.Add(dir);
-            var user = User.FindByAccount("Admin");
-            Console.WriteLine(user);
+            st.Received += (s, e) =>
+            {
+                Console.WriteLine("收到 {0}", e.ToHex());
+                // 返回null表示没有数据需要返回给对方
+                return null;
+            };
+            // 开始异步操作
+            st.ReceiveAsync();
 
-            var user2 = UserB.FindByAccount("Stone");
-            if (user2 == null) user2 = new UserB();
-            user2.Account = "Stone";
-            user2.Save();
-            user2.Delete();
+            //var buf = "01080000801A".ToHex();
+            var buf = "0111C02C".ToHex();
+            for (int i = 0; i < 100; i++)
+            {
+                Console.WriteLine("发送 {0}", buf.ToHex());
+                try
+                {
+                    st.Send(buf);
+                }
+                catch (Exception ex) { Console.WriteLine("发送错误 " + ex.Message); }
 
-            user = User.FindByAccount("Admin");
-            Console.WriteLine(user);
-
+                Thread.Sleep(1000);
+            }
         }
-
-        class UserB : User { }
 
         static void Test13()
         {
