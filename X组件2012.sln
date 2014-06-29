@@ -43,8 +43,6 @@ Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "Web", "Web\", "{AAC0A525-4C
 		Release.AspNetCompiler.ForceOverwrite = "true"
 		Release.AspNetCompiler.FixedNames = "false"
 		Release.AspNetCompiler.Debug = "False"
-		VWDPort = "29795"
-		VWDDynamicPort = "true"
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NewLife.Core.Test", "NewLife.Core.Test\NewLife.Core.Test.csproj", "{ADC0BECC-C59A-4A82-BFCE-02EBD2966204}"
@@ -60,6 +58,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NewLife.Net.Test", "NewLife
 EndProject
 Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "WebBootstrap", "WebBootstrap\", "{F4EA7043-C362-4088-A706-66865026DD2C}"
 	ProjectSection(WebsiteProperties) = preProject
+		SccProjectName = ""
+		SccAuxPath = ""
+		SccLocalPath = ""
+		SccProvider = ""
 		TargetFrameworkMoniker = ".NETFramework,Version%3Dv2.0"
 		ProjectReferences = "{5813c22e-eeb3-4dee-a45c-bb218041193a}|NewLife.Core.dll;{b49aba5a-c5da-45f4-87f1-b435ec51d710}|XCode.dll;{a82e3aa8-6181-460d-a6ee-cc453b83d340}|XControl.dll;{50d7fae5-2304-4395-a6fa-7d35279d9d84}|NewLife.CommonEntity.dll;{95272f1d-5ed9-423d-ab5f-decbd89b032f}|NewLife.Bootstrap.dll;"
 		Debug.AspNetCompiler.VirtualPath = "/WebBootstrap"

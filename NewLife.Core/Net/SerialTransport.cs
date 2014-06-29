@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO.Ports;
 using System.Linq;
 using System.Threading;
+using Microsoft.Win32;
 using NewLife.Threading;
 
 namespace NewLife.Net
@@ -321,6 +323,31 @@ namespace NewLife.Net
             }
         }
 #endif
+        #endregion
+
+        #region 辅助
+        /// <summary>获取带有描述的串口名，没有时返回空数组</summary>
+        /// <returns></returns>
+        public static String[] GetPortNames()
+        {
+            var list = new List<String>();
+            using (var key = Registry.LocalMachine.OpenSubKey(@"HARDWARE\DEVICEMAP\SERIALCOMM", false))
+            {
+                if (key != null)
+                {
+                    foreach (var item in key.GetValueNames())
+                    {
+                        var value = key.GetValue(item) + "";
+                        var name = item;
+                        var p = item.LastIndexOf('\\');
+                        if (p >= 0) name = name.Substring(p + 1);
+
+                        list.Add(String.Format("{0}({1})", value, name));
+                    }
+                }
+            }
+            return list.ToArray();
+        }
         #endregion
 
         #region 日志

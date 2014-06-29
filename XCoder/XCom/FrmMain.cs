@@ -5,13 +5,16 @@ using System.Text;
 using System.Threading;
 using System.Windows.Forms;
 using NewLife.Log;
+using NewLife.Net;
 using XCoder;
 
 namespace XCom
 {
     public partial class FrmMain : Form
     {
-        Com _Com;
+        SerialTransport _Com;
+        Int32 BytesOfReceived;
+        Int32 BytesOfSent;
 
         #region 窗体
         public FrmMain()
@@ -52,7 +55,7 @@ namespace XCom
 
             cbDataBit.DataSource = new Int32[] { 5, 6, 7, 8 };
 
-            var cfg = Config.Current;
+            var cfg = SerialConfig.Current;
             cbName.SelectedItem = cfg.PortName;
             cbBaundrate.SelectedItem = cfg.BaudRate;
             cbDataBit.SelectedItem = cfg.DataBits;
@@ -91,7 +94,7 @@ namespace XCom
         {
             try
             {
-                var cfg = Config.Current;
+                var cfg = SerialConfig.Current;
                 cfg.PortName = cbName.SelectedItem + "";
                 cfg.BaudRate = (Int32)cbBaundrate.SelectedItem;
                 cfg.DataBits = (Int32)cbDataBit.SelectedItem;
@@ -118,7 +121,7 @@ namespace XCom
             if (_nextport > DateTime.Now) return;
             _nextport = DateTime.Now.AddSeconds(1);
 
-            var ps = IOHelper.GetPortNames();
+            var ps = SerialTransport.GetPortNames();
             var str = String.Join(",", ps);
             // 如果端口有所改变，则重新绑定
             if (_ports != str)
@@ -145,21 +148,21 @@ namespace XCom
             if (p > 0) name = name.Substring(0, p);
 
             SaveInfo();
-            var cfg = Config.Current;
+            var cfg = SerialConfig.Current;
 
             // 如果上次没有关闭，则关闭
             if (_Com != null) _Com.Dispose();
 
             var sp = new SerialPort(name, cfg.BaudRate, cfg.Parity, cfg.DataBits, cfg.StopBits);
-            _Com = new Com { Serial = sp };
+            _Com = new SerialTransport { Serial = sp };
             _Com.Open();
             sp.DtrEnable = chkDTR.Checked;
             sp.RtsEnable = chkRTS.Checked;
             if (chkBreak.Checked) sp.BreakState = chkBreak.Checked;
 
-            _Com.Encoding = cfg.Encoding;
+            //_Com.Encoding = cfg.Encoding;
             _Com.Received += _Com_Received;
-            _Com.Listen();
+            _Com.ReceiveAsync();
 
             pnlSet.Enabled = false;
             gbSet2.Enabled = false;
@@ -193,31 +196,35 @@ namespace XCom
 
         MemoryStream _stream;
         StreamReader _reader;
-        void _Com_Received(object sender, DataReceivedEventArgs e)
+        Byte[] _Com_Received(ITransport sender, Byte[] data)
         {
-            if (e.Data == null || e.Data.Length < 1) return;
+            if (data == null || data.Length < 1) return null;
 
             var line = "";
-            if (Config.Current.HexShow)
-                line = e.Data.ToHex();
+            if (SerialConfig.Current.HexShow)
+                line = data.ToHex();
             else
             {
-                line = _Com.Encoding.GetString(e.Data);
+                var cfg = SerialConfig.Current;
+
+                line = cfg.Encoding.GetString(data);
                 if (_stream == null)
                     _stream = new MemoryStream();
                 else if (_stream.Length > 10 * 1024 && _stream.Position == _stream.Length) // 达到最大大小时，从头开始使用
                     _stream = new MemoryStream();
-                _stream.Write(e.Data);
-                _stream.Seek(-1 * e.Data.Length, SeekOrigin.Current);
+                _stream.Write(data);
+                _stream.Seek(-1 * data.Length, SeekOrigin.Current);
 
                 if (_reader == null ||
                     _reader.BaseStream != _stream ||
-                    _reader.CurrentEncoding != _Com.Encoding) _reader = new StreamReader(_stream, _Com.Encoding);
+                    _reader.CurrentEncoding != cfg.Encoding) _reader = new StreamReader(_stream, cfg.Encoding);
                 line = _reader.ReadToEnd();
             }
 
             //XTrace.UseWinFormWriteLog(txtReceive, line, 100000);
             TextControlLog.WriteLog(txtReceive, line);
+
+            return null;
         }
 
         Int32 lastReceive = 0;
@@ -233,15 +240,15 @@ namespace XCom
                     return;
                 }
 
-                if (sp.BytesOfReceived != lastReceive)
+                if (BytesOfReceived != lastReceive)
                 {
-                    gbReceive.Text = (gbReceive.Tag + "").Replace("0", sp.BytesOfReceived + "");
-                    lastReceive = sp.BytesOfReceived;
+                    gbReceive.Text = (gbReceive.Tag + "").Replace("0", BytesOfReceived + "");
+                    lastReceive = BytesOfReceived;
                 }
-                if (sp.BytesOfSent != lastSend)
+                if (BytesOfSent != lastSend)
                 {
-                    gbSend.Text = (gbSend.Tag + "").Replace("0", sp.BytesOfSent + "");
-                    lastSend = sp.BytesOfSent;
+                    gbSend.Text = (gbSend.Tag + "").Replace("0", BytesOfSent + "");
+                    lastSend = BytesOfSent;
                 }
 
                 // 检查串口是否已断开，自动关闭已断开的串口，避免内存暴涨
@@ -263,19 +270,20 @@ namespace XCom
                 return;
             }
 
+            var cfg = SerialConfig.Current;
             // 16进制发送
             Byte[] data = null;
-            if (Config.Current.HexSend)
+            if (cfg.HexSend)
                 data = str.ToHex();
             else
-                data = _Com.Encoding.GetBytes(str);
+                data = cfg.Encoding.GetBytes(str);
             if (data != null)
             {
                 // 多次发送
                 var count = (Int32)numMutilSend.Value;
                 for (int i = 0; i < count; i++)
                 {
-                    _Com.Write(data);
+                    _Com.Send(data);
                     Thread.Sleep(100);
                 }
             }
@@ -294,10 +302,10 @@ namespace XCom
             }
 
             // 保存编码
-            var cfg = Config.Current;
+            var cfg = SerialConfig.Current;
             cfg.WebEncoding = mi.Name;
 
-            if (_Com != null) _Com.Encoding = cfg.Encoding;
+            //if (_Com != null) _Com.Encoding = cfg.Encoding;
         }
 
         private void mi清空_Click(object sender, EventArgs e)
@@ -306,21 +314,21 @@ namespace XCom
             var sp = _Com;
             if (sp != null)
             {
-                sp.BytesOfReceived = 0;
+                BytesOfReceived = 0;
                 if (sp.Serial != null) sp.Serial.DiscardInBuffer();
             }
         }
 
         private void miHEX编码_Click(object sender, EventArgs e)
         {
-            var cfg = Config.Current;
+            var cfg = SerialConfig.Current;
             cfg.HexShow = miHEX编码.Checked;
             mi字符串编码.Checked = !miHEX编码.Checked;
         }
 
         private void mi字符串编码_Click(object sender, EventArgs e)
         {
-            var cfg = Config.Current;
+            var cfg = SerialConfig.Current;
             cfg.HexShow = miHEX编码.Checked = !mi字符串编码.Checked;
         }
         #endregion
@@ -331,14 +339,14 @@ namespace XCom
             txtSend.Clear();
             if (_Com != null)
             {
-                _Com.BytesOfSent = 0;
+                BytesOfSent = 0;
                 _Com.Serial.DiscardOutBuffer();
             }
         }
 
         private void miHEX编码2_Click(object sender, EventArgs e)
         {
-            Config.Current.HexSend = miHEX编码2.Checked;
+            SerialConfig.Current.HexSend = miHEX编码2.Checked;
         }
         #endregion
     }

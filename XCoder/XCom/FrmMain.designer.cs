@@ -139,7 +139,7 @@
             // 
             this.cbBaundrate.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cbBaundrate.FormattingEnabled = true;
-            this.cbBaundrate.Location = new System.Drawing.Point(193, 3);
+            this.cbBaundrate.Location = new System.Drawing.Point(259, 3);
             this.cbBaundrate.Name = "cbBaundrate";
             this.cbBaundrate.Size = new System.Drawing.Size(62, 20);
             this.cbBaundrate.TabIndex = 3;
@@ -147,7 +147,7 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(145, 7);
+            this.label2.Location = new System.Drawing.Point(211, 7);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(53, 12);
             this.label2.TabIndex = 2;
@@ -159,7 +159,7 @@
             this.cbName.FormattingEnabled = true;
             this.cbName.Location = new System.Drawing.Point(44, 3);
             this.cbName.Name = "cbName";
-            this.cbName.Size = new System.Drawing.Size(95, 20);
+            this.cbName.Size = new System.Drawing.Size(160, 20);
             this.cbName.TabIndex = 1;
             // 
             // label1
@@ -333,12 +333,12 @@
             this.miHEX编码,
             this.mi字符串编码});
             this.menuReceive.Name = "contextMenuStrip1";
-            this.menuReceive.Size = new System.Drawing.Size(153, 92);
+            this.menuReceive.Size = new System.Drawing.Size(137, 70);
             // 
             // mi清空
             // 
             this.mi清空.Name = "mi清空";
-            this.mi清空.Size = new System.Drawing.Size(152, 22);
+            this.mi清空.Size = new System.Drawing.Size(136, 22);
             this.mi清空.Text = "清空";
             this.mi清空.Click += new System.EventHandler(this.mi清空_Click);
             // 
@@ -346,7 +346,7 @@
             // 
             this.miHEX编码.CheckOnClick = true;
             this.miHEX编码.Name = "miHEX编码";
-            this.miHEX编码.Size = new System.Drawing.Size(152, 22);
+            this.miHEX编码.Size = new System.Drawing.Size(136, 22);
             this.miHEX编码.Text = "HEX编码";
             this.miHEX编码.Click += new System.EventHandler(this.miHEX编码_Click);
             // 
@@ -354,7 +354,7 @@
             // 
             this.mi字符串编码.CheckOnClick = true;
             this.mi字符串编码.Name = "mi字符串编码";
-            this.mi字符串编码.Size = new System.Drawing.Size(152, 22);
+            this.mi字符串编码.Size = new System.Drawing.Size(136, 22);
             this.mi字符串编码.Text = "字符串编码";
             this.mi字符串编码.Click += new System.EventHandler(this.mi字符串编码_Click);
             // 
@@ -432,7 +432,7 @@
             // 
             // btnConnect
             // 
-            this.btnConnect.Location = new System.Drawing.Point(283, 8);
+            this.btnConnect.Location = new System.Drawing.Point(346, 8);
             this.btnConnect.Name = "btnConnect";
             this.btnConnect.Size = new System.Drawing.Size(67, 29);
             this.btnConnect.TabIndex = 3;
@@ -454,7 +454,7 @@
             this.pnlSet.Controls.Add(this.label1);
             this.pnlSet.Location = new System.Drawing.Point(12, 8);
             this.pnlSet.Name = "pnlSet";
-            this.pnlSet.Size = new System.Drawing.Size(262, 29);
+            this.pnlSet.Size = new System.Drawing.Size(324, 29);
             this.pnlSet.TabIndex = 10;
             // 
             // FrmMain

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO.Ports;
 using System.Text;
@@ -9,7 +8,7 @@ using NewLife.Xml;
 namespace XCom
 {
     [XmlConfigFile("XCom.config")]
-    public class Config : XmlConfig<Config>
+    public class SerialConfig : XmlConfig<SerialConfig>
     {
         private String _PortName = "COM1";
         /// <summary>串口名</summary>

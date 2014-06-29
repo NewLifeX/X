@@ -96,16 +96,13 @@
       <DependentUpon>NewModel.cs</DependentUpon>
     </Compile>
     <Compile Include="NewModelForm\WinFormHelper.cs" />
-    <Compile Include="XCom\Com.cs" />
     <Compile Include="XCom\Config.cs" />
-    <Compile Include="XCom\DataReceivedEventArgs.cs" />
     <Compile Include="XCom\FrmMain.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="XCom\FrmMain.designer.cs">
       <DependentUpon>FrmMain.cs</DependentUpon>
     </Compile>
-    <Compile Include="XCom\IOHelper.cs" />
     <Compile Include="XICO\FrmMain.cs">
       <SubType>Form</SubType>
     </Compile>
