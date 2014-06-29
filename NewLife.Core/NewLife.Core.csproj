@@ -123,6 +123,8 @@
     <Compile Include="Net\NetUri.cs" />
     <Compile Include="Net\SerialTransport.cs" />
     <Compile Include="Net\UdpTransport.cs" />
+    <Compile Include="Net\Upgrade.cs" />
+    <Compile Include="Net\UpgradeVersion.cs" />
     <Compile Include="Properties\AssemblyInfo_.cs" />
     <Compile Include="Reflection\Action.cs" />
     <Compile Include="Extension\EnumHelper.cs" />

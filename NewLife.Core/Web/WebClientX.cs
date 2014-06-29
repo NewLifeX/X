@@ -66,6 +66,10 @@ namespace NewLife.Web
         private DecompressionMethods _AutomaticDecompression;
         /// <summary>自动解压缩模式。</summary>
         public DecompressionMethods AutomaticDecompression { get { return _AutomaticDecompression; } set { _AutomaticDecompression = value; } }
+
+        //private String _UserAgent;
+        /// <summary>User-Agent 标头，指定有关客户端代理的信息</summary>
+        public String UserAgent { get { return Headers[HttpRequestHeader.UserAgent]; } set { Headers[HttpRequestHeader.UserAgent] = value; } }
         #endregion
 
         #region 构造
