@@ -31,9 +31,11 @@ using System.Runtime.InteropServices;
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("4.3.*")]
-[assembly: AssemblyFileVersion("4.3.2014.0621")]
+[assembly: AssemblyFileVersion("4.3.2014.0629")]
 
 /*
+ * v4.3.2014.0629   改进SerialTransport，支持串口断开检测，以及断开重连机制
+ * 
  * v4.3.2014.0621   增加PE镜像解析类，识别x86/x64、FX2/FX4、托管/非托管
  * 
  * v4.2.2014.0504   增加Runtime.Mono，是否Mono环境

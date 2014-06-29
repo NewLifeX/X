@@ -1,10 +1,39 @@
 ﻿using System;
 using System.IO.Ports;
+using System.Linq;
 using System.Threading;
+using NewLife.Threading;
 
 namespace NewLife.Net
 {
     /// <summary>串口传输</summary>
+    /// <example>
+    /// 标准例程：
+    /// <code>
+    /// var st = new SerialTransport();
+    /// st.PortName = "COM65";  // 通讯口
+    /// st.FrameSize = 16;      // 数据帧大小
+    /// 
+    /// st.Received += (s, e) =>
+    /// {
+    ///     Console.WriteLine("收到 {0}", e.ToHex());
+    ///     // 返回null表示没有数据需要返回给对方
+    ///     return null;
+    /// };
+    /// // 开始异步操作
+    /// st.ReceiveAsync();
+    /// 
+    /// //var buf = "01080000801A".ToHex();
+    /// var buf = "0111C02C".ToHex();
+    /// for (int i = 0; i &lt; 100; i++)
+    /// {
+    ///     Console.WriteLine("发送 {0}", buf.ToHex());
+    ///     st.Send(buf);
+    /// 
+    ///     Thread.Sleep(1000);
+    /// }
+    /// </code>
+    /// </example>
     public class SerialTransport : ITransport, IDisposable
     {
         #region 属性
@@ -34,10 +63,20 @@ namespace NewLife.Net
 
         private Int32 _ExpectedFrame = 1;
         /// <summary>读取的期望帧长度，小于该长度为未满一帧，读取不做返回</summary>
+        /// <remarks>如果读取超时，也有可能返回</remarks>
         public Int32 FrameSize { get { return _ExpectedFrame; } set { _ExpectedFrame = value; } }
         #endregion
 
         #region 构造
+#if !MF
+        /// <summary>串口传输</summary>
+        public SerialTransport()
+        {
+            // 每隔一段时间检查一次串口是否已经关闭，如果串口已经不存在，则关闭该传输口
+            timer = new TimerX(CheckDisconnect, null, 3000, 3000);
+        }
+#endif
+
         /// <summary>析构</summary>
         ~SerialTransport() { Dispose(false); }
 
@@ -51,6 +90,9 @@ namespace NewLife.Net
             if (disposing) GC.SuppressFinalize(this);
 
             if (Serial != null) Serial.Dispose();
+#if !MF
+            if (timer != null) timer.Dispose();
+#endif
         }
         #endregion
 
@@ -77,6 +119,10 @@ namespace NewLife.Net
             {
                 if (Serial.IsOpen) Serial.Close();
                 Serial = null;
+
+#if !MF
+                OnDisconnect();
+#endif
             }
         }
 
@@ -182,8 +228,13 @@ namespace NewLife.Net
             Open();
 
             Serial.DataReceived += DataReceived;
-            //serial.ErrorReceived += new SerialErrorReceivedEventHandler(port_ErrorReceived);
+            //Serial.ErrorReceived += Serial_ErrorReceived;
         }
+
+        //void Serial_ErrorReceived(object sender, SerialErrorReceivedEventArgs e)
+        //{
+        //    XTrace.WriteLine("串口{0}错误 {1}", PortName, e.EventType);
+        //}
 
         void DataReceived(object sender, SerialDataReceivedEventArgs e)
         {
@@ -223,6 +274,53 @@ namespace NewLife.Net
 
         /// <summary>数据到达事件，事件里调用<see cref="Receive"/>读取数据</summary>
         public event TransportEventHandler Received;
+        #endregion
+
+        #region 自动检测串口断开
+#if !MF
+        /// <summary>断开时触发，可能是人为断开，也可能是串口链路断开</summary>
+        public event EventHandler Disconnected;
+
+        Boolean isInEvent;
+        void OnDisconnect()
+        {
+            if (Disconnected != null)
+            {
+                // 判断是否在事件中，避免外部在断开时间中调用Close造成死循环
+                if (!isInEvent)
+                {
+                    isInEvent = true;
+
+                    Disconnected(this, EventArgs.Empty);
+
+                    isInEvent = false;
+                }
+            }
+        }
+
+        TimerX timer;
+        /// <summary>检查串口是否已经断开</summary>
+        /// <remarks>
+        /// FX串口异步操作有严重的泄漏缺陷，如果外部硬件长时间断开，
+        /// SerialPort.IsOpen检测不到，并且会无限大占用内存。
+        /// </remarks>
+        /// <param name="state"></param>
+        void CheckDisconnect(Object state)
+        {
+            if (String.IsNullOrEmpty(PortName) || Serial == null || !Serial.IsOpen) return;
+
+            // 如果端口已经不存在，则断开吧
+            if (!SerialPort.GetPortNames().Contains(PortName))
+            {
+#if DEBUG
+                XTrace.WriteLine("串口{0}已经不存在，准备关闭！", PortName);
+#endif
+
+                //OnDisconnect();
+                Close();
+            }
+        }
+#endif
         #endregion
 
         #region 日志
