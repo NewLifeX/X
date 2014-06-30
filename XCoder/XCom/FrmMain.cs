@@ -156,6 +156,8 @@ namespace XCom
             var sp = new SerialPort(name, cfg.BaudRate, cfg.Parity, cfg.DataBits, cfg.StopBits);
             _Com = new SerialTransport { Serial = sp };
             _Com.Open();
+            _Com.Disconnected += (s, e) => Disconnect();
+
             sp.DtrEnable = chkDTR.Checked;
             sp.RtsEnable = chkRTS.Checked;
             if (chkBreak.Checked) sp.BreakState = chkBreak.Checked;

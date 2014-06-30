@@ -41,7 +41,22 @@ namespace NewLife.Net
         #region 属性
         private SerialPort _Serial;
         /// <summary>串口对象</summary>
-        public SerialPort Serial { get { return _Serial; } set { _Serial = value; } }
+        public SerialPort Serial
+        {
+            get { return _Serial; }
+            set
+            {
+                _Serial = value;
+                if (_Serial != null)
+                {
+                    PortName = _Serial.PortName;
+                    BaudRate = _Serial.BaudRate;
+                    Parity = _Serial.Parity;
+                    DataBits = _Serial.DataBits;
+                    StopBits = _Serial.StopBits;
+                }
+            }
+        }
 
         private String _PortName = "COM1";
         /// <summary>端口名称。默认COM1</summary>
