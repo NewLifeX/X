@@ -343,19 +343,17 @@ namespace XCode.DataAccessLayer
             //一次性把所有的表说明查出来
             DataTable DescriptionTable = null;
 
-            var b = DbSession._ShowSQL;
             DbSession.ShowSQL = false;
             try
             {
                 DescriptionTable = session.Query(DescriptionSql).Tables[0];
             }
             catch { }
-            DbSession._ShowSQL = b;
+            DbSession._ShowSQL = null;
 
             DataTable dt = GetSchema(_.Tables, null);
             if (dt == null || dt.Rows == null || dt.Rows.Count < 1) return null;
 
-            b = DbSession._ShowSQL;
             DbSession.ShowSQL = false;
             try
             {
@@ -363,7 +361,7 @@ namespace XCode.DataAccessLayer
                 AllIndexes = session.Query(IndexSql).Tables[0];
             }
             catch { }
-            DbSession._ShowSQL = b;
+            DbSession._ShowSQL = null;
             #endregion
 
             // 列出用户表
