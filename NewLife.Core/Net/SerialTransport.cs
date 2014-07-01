@@ -132,10 +132,20 @@ namespace NewLife.Net
         public virtual void Close()
         {
             // 关闭时必须清空，否则更换属性后再次打开也无法改变属性
-            if (Serial != null)
+            var sp = Serial;
+            if (sp != null)
             {
-                if (Serial.IsOpen) Serial.Close();
                 Serial = null;
+                if (sp.IsOpen)
+                {
+                    // 关闭的时候不向外抛出错误，以确保完成关闭
+                    try
+                    {
+                        sp.Close();
+                    }
+                    catch { }
+                }
+                //Serial = null;
 
 #if !MF
                 OnDisconnect();
