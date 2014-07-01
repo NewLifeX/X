@@ -64,7 +64,8 @@ namespace NewLife.Log
                     //if (line + 5 > txt.Lines.Length && txt.SelectionLength <= 0)
                     //{
                     // 取得最后一行首字符索引
-                    var last = txt.GetFirstCharIndexFromLine(txt.Lines.Length - 1);
+                    var lines = txt.Lines.Length;
+                    var last = lines <= 1 ? 0 : txt.GetFirstCharIndexFromLine(lines - 1);
                     if (last >= 0)
                     {
                         // 滚动到最后一行第一个字符
