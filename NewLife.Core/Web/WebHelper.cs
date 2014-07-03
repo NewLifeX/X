@@ -103,8 +103,8 @@ namespace NewLife.Web
                     if (HttpContext.Current.Request != null)
                     {
                         str = HttpContext.Current.Request.ServerVariables["REMOTE_ADDR"];
-                        if (string.IsNullOrEmpty(str)) str = HttpContext.Current.Request.ServerVariables["HTTP_X_FORWARDED_FOR"];
-                        if (string.IsNullOrEmpty(str)) str = HttpContext.Current.Request.UserHostName;
+                        if (String.IsNullOrEmpty(str)) str = HttpContext.Current.Request.ServerVariables["HTTP_X_FORWARDED_FOR"];
+                        if (String.IsNullOrEmpty(str)) str = HttpContext.Current.Request.UserHostName;
                         if (String.IsNullOrEmpty(str)) str = HttpContext.Current.Request.UserHostAddress;
                         HttpContext.Current.Items["UserHostAddress"] = str;
                         return str;
@@ -286,6 +286,72 @@ namespace NewLife.Web
             if (String.IsNullOrEmpty(val)) return r;
             Double.TryParse(val, out r);
             return r;
+        }
+        #endregion
+
+        #region Cookie
+        /// <summary>写入Cookie</summary>
+        /// <param name="name">名称</param>
+        /// <param name="value">值</param>
+        public static void WriteCookie(String name, String value)
+        {
+            var cookie = HttpContext.Current.Request.Cookies[name];
+            if (cookie == null) cookie = new HttpCookie(name);
+
+            cookie.Value = value;
+            HttpContext.Current.Response.AppendCookie(cookie);
+        }
+
+        /// <summary>写入Cookie</summary>
+        /// <param name="name">名称</param>
+        /// <param name="key">键</param>
+        /// <param name="value">值</param>
+        public static void WriteCookie(String name, String key, String value)
+        {
+            var cookie = HttpContext.Current.Request.Cookies[name];
+            if (cookie == null) cookie = new HttpCookie(name);
+
+            cookie[key] = value;
+            HttpContext.Current.Response.AppendCookie(cookie);
+        }
+
+        /// <summary>写入Cookie</summary>
+        /// <param name="name">名称</param>
+        /// <param name="value">值</param>
+        /// <param name="expires">过期时间，单位秒</param>
+        public static void WriteCookie(String name, String value, int expires)
+        {
+            var cookie = HttpContext.Current.Request.Cookies[name];
+            if (cookie == null) cookie = new HttpCookie(name);
+
+            cookie.Value = value;
+            cookie.Expires = DateTime.Now.AddSeconds(expires);
+            HttpContext.Current.Response.AppendCookie(cookie);
+        }
+
+        /// <summary>读取Cookie</summary>
+        /// <param name="name">名称</param>
+        /// <returns></returns>
+        public static String ReadCookie(String name)
+        {
+            var cookies = HttpContext.Current.Request.Cookies;
+            if (cookies == null) return null;
+            if (cookies[name] == null) return "";
+
+            return cookies[name].Value + "";
+        }
+
+        /// <summary>读取Cookie</summary>
+        /// <param name="name">名称</param>
+        /// <param name="key">键</param>
+        /// <returns></returns>
+        public static String ReadCookie(String name, String key)
+        {
+            var cookies = HttpContext.Current.Request.Cookies;
+            if (cookies == null) return null;
+            if (cookies[name] == null || cookies[name][key] == null) return "";
+
+            return cookies[name][key] + "";
         }
         #endregion
     }
