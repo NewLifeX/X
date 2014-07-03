@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using NewLife.Collections;
-using XCode.Configuration;
 
 namespace XCode
 {
@@ -16,6 +15,13 @@ namespace XCode
         {
             // 使用实体列表作为内部列表，便于提供排序等功能
             InnerList = new EntityList<T>();
+        }
+
+        /// <summary>实体列表</summary>
+        /// <param name="list"></param>
+        public EntityListView(IList<T> list)
+        {
+            InnerList = list;
         }
 
         /// <summary>已重载。新增元素时，触发事件改变</summary>
@@ -59,8 +65,7 @@ namespace XCode
         #region 属性
         Boolean _AllowEdit = true;
         /// <summary>获取是否可更新列表中的项。</summary>
-        bool IBindingList.AllowEdit { get { return _AllowEdit; } }
-        bool AllowEdit
+        public Boolean AllowEdit
         {
             get { return _AllowEdit; }
             set { if (_AllowEdit != value) { _AllowEdit = value; OnListChanged(ResetEventArgs); }; }
@@ -68,8 +73,7 @@ namespace XCode
 
         Boolean _AllowNew = true;
         /// <summary>获取是否可以使用 System.ComponentModel.IBindingList.AddNew() 向列表中添加项。</summary>
-        bool IBindingList.AllowNew { get { return _AllowNew; } }
-        bool AllowNew
+        public Boolean AllowNew
         {
             get { return _AllowNew; }
             set { if (_AllowNew != value) { _AllowNew = value; OnListChanged(ResetEventArgs); }; }
@@ -77,8 +81,7 @@ namespace XCode
 
         Boolean _AllowRemove = true;
         /// <summary>获取是否可以使用 System.Collections.IList.Remove(System.Object) 或 System.Collections.IList.RemoveAt(System.Int32)从列表中移除项。</summary>
-        bool IBindingList.AllowRemove { get { return _AllowRemove; } }
-        bool AllowDelete
+        public Boolean AllowRemove
         {
             get { return _AllowRemove; }
             set { if (_AllowRemove != value) { _AllowRemove = value; OnListChanged(ResetEventArgs); }; }
@@ -86,79 +89,61 @@ namespace XCode
 
         Boolean _IsSorted = false;
         /// <summary>获取是否对列表中的项进行排序。</summary>
-        bool IBindingList.IsSorted { get { return _IsSorted; } }
-        bool IsSorted
+        public Boolean IsSorted
         {
             get { return _IsSorted; }
             set { if (_IsSorted != value) { _IsSorted = value; OnListChanged(ResetEventArgs); }; }
         }
 
         ListSortDirection _SortDirection;
-        ListSortDirection IBindingList.SortDirection { get { return _SortDirection; } }
         /// <summary>获取排序的方向。</summary>
-        ListSortDirection SortDirection
+        public ListSortDirection SortDirection
         {
             get { return _SortDirection; }
             set { if (_SortDirection != value) { _SortDirection = value; OnListChanged(ResetEventArgs); }; }
         }
 
         PropertyDescriptor _SortProperty;
-        PropertyDescriptor IBindingList.SortProperty { get { return _SortProperty; } }
         /// <summary>获取正在用于排序的 System.ComponentModel.PropertyDescriptor。</summary>
-        PropertyDescriptor SortProperty
+        public PropertyDescriptor SortProperty
         {
             get { return _SortProperty; }
             set { if (_SortProperty != value) { _SortProperty = value; OnListChanged(ResetEventArgs); }; }
         }
 
-        bool IBindingList.SupportsChangeNotification
-        {
-            get { return true; }
-        }
+        Boolean IBindingList.SupportsChangeNotification { get { return true; } }
 
-        bool IBindingList.SupportsSearching
-        {
-            get { return true; }
-        }
+        Boolean IBindingList.SupportsSearching { get { return true; } }
 
-        bool IBindingList.SupportsSorting
-        {
-            get { return true; }
-        }
+        Boolean IBindingList.SupportsSorting { get { return true; } }
         #endregion
 
         #region 事件
-        event ListChangedEventHandler _ListChanged;
-        event ListChangedEventHandler IBindingList.ListChanged
-        {
-            add { _ListChanged += value; }
-            remove { _ListChanged -= value; }
-        }
+        /// <summary>列表改变事件</summary>
+        public event ListChangedEventHandler ListChanged;
 
         static ListChangedEventArgs ResetEventArgs = new ListChangedEventArgs(ListChangedType.Reset, -1);
 
         void OnListChanged(ListChangedEventArgs e)
         {
-            if (_ListChanged != null) _ListChanged(this, e);
+            if (ListChanged != null) ListChanged(this, e);
         }
         #endregion
 
         #region 方法
-        void IBindingList.AddIndex(PropertyDescriptor property)
-        {
-        }
+        void IBindingList.AddIndex(PropertyDescriptor property) { }
 
         object IBindingList.AddNew()
         {
             T entity = (T)Factory.Create();
             base.Add(entity);
-            //OnListChanged(new ListChangedEventArgs(ListChangedType.ItemAdded, base.IndexOf(entity)));
+            OnListChanged(new ListChangedEventArgs(ListChangedType.ItemAdded, base.IndexOf(entity)));
             return entity;
         }
 
         void IBindingList.ApplySort(PropertyDescriptor property, ListSortDirection direction)
         {
-            EntityList<T> list = InnerList as EntityList<T>;
+            var list = InnerList as EntityList<T>;
             if (list == null || list.Count < 1) return;
 
             list.Sort(property.Name, direction == ListSortDirection.Descending);
@@ -172,25 +157,22 @@ namespace XCode
 
         int IBindingList.Find(PropertyDescriptor property, object key)
         {
-            EntityList<T> list = InnerList as EntityList<T>;
+            var list = InnerList as EntityList<T>;
             if (list == null || list.Count < 1) return -1;
 
             return list.FindIndex(item => Object.Equals(item[property.Name], key));
-            //return -1;
         }
 
-        void IBindingList.RemoveIndex(PropertyDescriptor property)
-        {
-        }
+        void IBindingList.RemoveIndex(PropertyDescriptor property) { }
 
         void IBindingList.RemoveSort()
         {
-            EntityList<T> list = InnerList as EntityList<T>;
+            var list = InnerList as EntityList<T>;
             if (list == null || list.Count < 1) return;
 
-            FieldItem fi = Factory.Fields[0];
-            Boolean isDesc = false;
-            foreach (FieldItem item in Factory.Fields)
+            var fi = Factory.Fields[0];
+            var isDesc = false;
+            foreach (var item in Factory.Fields)
             {
                 if (item.IsIdentity)
                 {
@@ -225,7 +207,7 @@ namespace XCode
             if (list == null || list.Count < 1) return;
 
             var ns = new List<string>();
-            var ds = new List<bool>();
+            var ds = new List<Boolean>();
             foreach (ListSortDescription item in sorts)
             {
                 ns.Add(item.PropertyDescriptor.Name);
@@ -253,9 +235,9 @@ namespace XCode
             set { if (_SortDescriptions != value) { _SortDescriptions = value; OnListChanged(ResetEventArgs); }; }
         }
 
-        bool IBindingListView.SupportsAdvancedSorting { get { return true; } }
+        Boolean IBindingListView.SupportsAdvancedSorting { get { return true; } }
 
-        bool IBindingListView.SupportsFiltering { get { return false; } }
+        Boolean IBindingListView.SupportsFiltering { get { return false; } }
         #endregion
 
         #region ICancelAddNew 成员
@@ -280,7 +262,7 @@ namespace XCode
         {
             get
             {
-                Type type = typeof(T);
+                var type = typeof(T);
                 if (!type.IsInterface) return type;
 
                 if (Count > 0) return this[0].GetType();
@@ -294,7 +276,7 @@ namespace XCode
         {
             get
             {
-                Type type = EntityType;
+                var type = EntityType;
                 if (type.IsInterface) return null;
 
                 return EntityFactory.CreateOperate(type);

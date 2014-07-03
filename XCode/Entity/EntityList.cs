@@ -886,20 +886,14 @@ namespace XCode
             if (!typeof(T).IsInterface) return this;
 
             // 支持空列表
-            return ToArray(null);
-        }
-        #endregion
-
-        #region 复制
-        IList ToArray(Type type)
-        {
             // 元素类型
-            if (type == null) type = EntityType;
+            var type = EntityType;
             // 泛型
             type = typeof(EntityListView<>).MakeGenericType(type);
 
             // 直接复制集合更快
-            return type.CreateInstance(this) as IList;
+            var list = new EntityList<T>(ToArray());
+            return type.CreateInstance(list) as IList;
         }
         #endregion
 
