@@ -79,8 +79,8 @@ namespace NewLife.Log
 
             //txt.Invoke(func, msg);
             var ar = txt.BeginInvoke(func, msg);
-            //if (ar.AsyncWaitHandle.WaitOne(1000))
-            //    txt.EndInvoke(ar);
+            if (!ar.AsyncWaitHandle.WaitOne(10))
+                txt.EndInvoke(ar);
         }
     }
 }
