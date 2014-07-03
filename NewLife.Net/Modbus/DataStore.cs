@@ -60,23 +60,12 @@ namespace NewLife.Net.Modbus
         /// <summary>读取状态</summary>
         /// <param name="i"></param>
         /// <returns></returns>
-        public Boolean Read(Int32 i)
-        {
-            //return Coils[i];
-            var value = Coils[i];
-            //if (OnRead != null) value = OnRead(i, value);
-            return value;
-        }
+        public Boolean Read(Int32 i) { return Coils[i]; }
 
         /// <summary>写入状态</summary>
         /// <param name="i"></param>
         /// <param name="flag"></param>
-        public void Write(Int32 i, Boolean flag)
-        {
-            Coils[i] = flag;
-
-            //if (OnWrite != null) OnWrite(i, flag);
-        }
+        public void Write(Int32 i, Boolean flag) { Coils[i] = flag; }
 
         /// <summary>初始化</summary>
         public BitStore() : this(0) { }
@@ -89,11 +78,9 @@ namespace NewLife.Net.Modbus
             Coils = new Boolean[n];
         }
 
-        ///// <summary>写入线圈</summary>
-        //public event WriteCoilHandler OnWrite;
-
-        ///// <summary>读取线圈</summary>
-        //public event ReadCoilHandler OnRead;
+        /// <summary>数组形式</summary>
+        /// <returns></returns>
+        public Boolean[] ToArray() { return Coils; }
     }
 
     /// <summary>默认字存储</summary>
@@ -113,22 +100,12 @@ namespace NewLife.Net.Modbus
         /// <summary>读取</summary>
         /// <param name="i"></param>
         /// <returns></returns>
-        public UInt16 Read(Int32 i)
-        {
-            var value = Regs[i];
-            //if (OnRead != null) value = OnRead(i, value);
-            return value;
-        }
+        public UInt16 Read(Int32 i) { return Regs[i]; }
 
         /// <summary>写入</summary>
         /// <param name="i"></param>
         /// <param name="value">数值</param>
-        public void Write(Int32 i, UInt16 value)
-        {
-            Regs[i] = value;
-
-            //if (OnWrite != null) OnWrite(i, value);
-        }
+        public void Write(Int32 i, UInt16 value) { Regs[i] = value; }
 
         /// <summary>初始化</summary>
         public WordStore() : this(0) { }
@@ -141,10 +118,8 @@ namespace NewLife.Net.Modbus
             Regs = new UInt16[n];
         }
 
-        ///// <summary>写入寄存器</summary>
-        //public event WriteRegisterHandler OnWrite;
-
-        ///// <summary>读取寄存器</summary>
-        //public event ReadRegisterHandler OnRead;
+        /// <summary>数组形式</summary>
+        /// <returns></returns>
+        public UInt16[] ToArray() { return Regs; }
     }
 }

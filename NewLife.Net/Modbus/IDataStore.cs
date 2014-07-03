@@ -39,6 +39,10 @@ namespace NewLife.Net.Modbus
         /// <param name="i"></param>
         /// <param name="flag"></param>
         void Write(Int32 i, Boolean flag);
+
+        /// <summary>数组形式</summary>
+        /// <returns></returns>
+        Boolean[] ToArray();
     }
 
     /// <summary>字存储接口</summary>
@@ -62,6 +66,10 @@ namespace NewLife.Net.Modbus
         /// <param name="i"></param>
         /// <param name="value">数值</param>
         void Write(Int32 i, UInt16 value);
+
+        /// <summary>数组形式</summary>
+        /// <returns></returns>
+        UInt16[] ToArray();
     }
 
     /// <summary>存储类助手</summary>

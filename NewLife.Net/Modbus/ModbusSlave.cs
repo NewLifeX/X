@@ -45,7 +45,7 @@ namespace NewLife.Net.Modbus
         /// <summary>启用调试</summary>
         public Boolean EnableDebug { get { return _EnableDebug; } set { _EnableDebug = value; } }
 
-        private Boolean inited;
+        //private Boolean inited;
         #endregion
 
         #region 构造
