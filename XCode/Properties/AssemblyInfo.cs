@@ -32,7 +32,7 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
 [assembly: AssemblyVersion("8.12.*")]
-[assembly: AssemblyFileVersion("8.12.2014.0617")]
+[assembly: AssemblyFileVersion("8.12.2014.0703")]
 
 /*
  * XCode的重大改进
@@ -49,6 +49,8 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v8.12.2014.0703  修正EntityList在高并发遍历数据时存在版本冲突的问题
+ * 
  * v8.12.2014.0617  Entity增加FindMin/FindMax
  *                  FieldItem增加GroupBy/Count/Sum/Min/Max等
  *                  SQLite的Select Count非常慢，数据大于阀值时，使用最大ID作为表记录数

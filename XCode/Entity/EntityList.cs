@@ -83,7 +83,8 @@ namespace XCode
         /// <returns></returns>
         public static EntityList<T> operator +(EntityList<T> entities1, EntityList<T> entities2)
         {
-            if ((entities1 == null || entities1.Count < 1) && (entities2 == null || entities2.Count < 1)) return entities1;
+            if ((entities1 == null || entities1.Count < 1) &&
+                (entities2 == null || entities2.Count < 1)) return entities1;
 
             var list = new EntityList<T>();
             if (entities1 != null && entities1.Count > 0) list.AddRange(entities1);
@@ -98,14 +99,11 @@ namespace XCode
         /// <returns></returns>
         public static EntityList<T> operator -(EntityList<T> entities1, EntityList<T> entities2)
         {
-            if (entities1 == null || entities1.Count < 1) return entities1;
+            if ((entities1 == null || entities1.Count < 1) &&
+                (entities2 == null || entities2.Count < 1)) return entities1;
 
-            var list = new EntityList<T>();
-            foreach (var item in entities1)
-            {
-                if (entities2 != null && !entities2.Contains(item)) list.Add(item);
-            }
-
+            var list = new EntityList<T>(entities1);
+            list.RemoveAll(e => entities2.Contains(e));
             return list;
         }
         #endregion
@@ -135,7 +133,8 @@ namespace XCode
 
             if (startRowIndex <= 0 && maximumRows <= 0) return this;
 
-            return new EntityList<T>(this, startRowIndex, maximumRows);
+            // 先转数组再构造分页，避免多线程版本冲突
+            return new EntityList<T>(ToArray(), startRowIndex, maximumRows);
         }
         #endregion
 
@@ -156,28 +155,19 @@ namespace XCode
                 if (Helper.IsNullKey(value)) return null;
             }
 
-            var list = new EntityList<T>();
-
             // 特殊处理整数类型，避免出现相同值不同整型而导致结果不同
             if (value != null && value.GetType().IsIntType())
             {
                 // 整型统一转为Int64后再比较，因为即使数值相等，类型不同的对象也是不等的
                 var v6 = Convert.ToInt64(value);
-                foreach (var item in this)
-                {
-                    if (item == null) continue;
-                    if (Convert.ToInt64(item[name]) == v6) list.Add(item);
-                }
+                var list = base.FindAll(e => Convert.ToInt32(e[name]) == v6);
+                return new EntityList<T>(list);
             }
             else
             {
-                foreach (var item in this)
-                {
-                    if (item == null) continue;
-                    if (Object.Equals(item[name], value)) list.Add(item);
-                }
+                var list = base.FindAll(e => Object.Equals(e[name], value));
+                return new EntityList<T>(list);
             }
-            return list;
         }
 
         /// <summary>根据指定项查找</summary>
@@ -220,8 +210,9 @@ namespace XCode
             }
 
             var list = new EntityList<T>();
-            foreach (var item in this)
+            for (int k = 0; k < Count; k++)
             {
+                var item = this[k];
                 if (item == null) continue;
 
                 var b = true;
@@ -248,15 +239,10 @@ namespace XCode
         /// <returns></returns>
         public new EntityList<T> FindAll(Predicate<T> match)
         {
-            if (Count < 1) return this;
+            if (Count < 1) return new EntityList<T>();
 
-            var list = new EntityList<T>();
-            foreach (var item in this)
-            {
-                if (item == null) continue;
-                if (match(item)) list.Add(item);
-            }
-            return list;
+            var list = base.FindAll(match);
+            return new EntityList<T>(list);
         }
 
         /// <summary>根据指定项查找</summary>
@@ -272,25 +258,15 @@ namespace XCode
             {
                 // 整型统一转为Int64后再比较，因为即使数值相等，类型不同的对象也是不等的
                 var v6 = Convert.ToInt64(value);
-                foreach (var item in this)
-                {
-                    if (item == null) continue;
-                    if (Convert.ToInt64(item[name]) == v6) return item;
-                }
-                return default(T);
+                return base.Find(e => Convert.ToInt64(e[name]) == v6);
             }
             else
             {
-                foreach (var item in this)
-                {
-                    if (item == null) continue;
-                    if (Object.Equals(item[name], value)) return item;
-                }
-                return default(T);
+                return base.Find(e => Object.Equals(e[name], value));
             }
         }
 
-        /// <summary>根据指定项查找字符串。忽略大小写</summary>
+        /// <summary>根据指定项查找字符串，忽略大小写，非字符串属性将报错</summary>
         /// <param name="name">属性名</param>
         /// <param name="value">属性值</param>
         /// <returns></returns>
@@ -298,13 +274,8 @@ namespace XCode
         {
             if (Count < 1) return this;
 
-            var list = new EntityList<T>();
-            foreach (var item in this)
-            {
-                if (item == null) continue;
-                if (((String)item[name]).EqualIgnoreCase(value)) list.Add(item);
-            }
-            return list;
+            var list = base.FindAll(e => ((String)e[name]).EqualIgnoreCase(value));
+            return new EntityList<T>(list);
         }
 
         /// <summary>根据指定项查找字符串。忽略大小写</summary>
@@ -315,12 +286,7 @@ namespace XCode
         {
             if (Count < 1) return default(T);
 
-            foreach (var item in this)
-            {
-                if (item == null) continue;
-                if (((String)item[name]).EqualIgnoreCase(value)) return item;
-            }
-            return default(T);
+            return Find(e => ((String)e[name]).EqualIgnoreCase(value));
         }
 
         /// <summary>集合是否包含指定项</summary>
@@ -329,15 +295,9 @@ namespace XCode
         /// <returns></returns>
         public Boolean Exists(String name, Object value)
         {
+            if (Count < 1) return false;
             return Find(name, value) != null;
-            //if (Count < 1) return false;
 
-            //foreach (T item in this)
-            //{
-            //    if (item == null) continue;
-            //    if (Object.Equals(item[name], value)) return true;
-            //}
-            //return false;
         }
         #endregion
 
@@ -378,7 +338,7 @@ namespace XCode
         IEntityList IEntityList.SetItem(String name, Object value) { return SetItem(name, value); }
 
         IEntityList IEntityList.FromXml(String xml) { return FromXml(xml); }
-        
+
         /// <summary>分页</summary>
         /// <param name="startRowIndex">起始索引，0开始</param>
         /// <param name="maximumRows">最大个数</param>
@@ -437,14 +397,13 @@ namespace XCode
             if (Count < 1) return 0;
 
             var count = 0;
-
             if (useTransition)
             {
-                using (var trans = new EntityTransaction(Factory))
+                using (var trans = Factory.CreateTrans())
                 {
-                    foreach (T item in this)
+                    for (int i = 0; i < Count; i++)
                     {
-                        count += func(item);
+                        count += func(this[i]);
                     }
 
                     trans.Commit();
@@ -452,9 +411,9 @@ namespace XCode
             }
             else
             {
-                foreach (T item in this)
+                for (int i = 0; i < Count; i++)
                 {
-                    count += func(item);
+                    count += func(this[i]);
                 }
             }
 
@@ -468,11 +427,7 @@ namespace XCode
         {
             if (Count < 1) return this;
 
-            foreach (var item in this)
-            {
-                if (item == null) continue;
-                if (!Object.Equals(item[name], value)) item.SetItem(name, value);
-            }
+            ForEach(e => { if (e != null && !Object.Equals(e[name], value)) e.SetItem(name, value); });
 
             return this;
         }
@@ -499,14 +454,14 @@ namespace XCode
             if (Count < 1) return list;
 
             var type = typeof(TResult);
-            foreach (var item in this)
+            for (int i = 0; i < Count; i++)
             {
+                var item = this[i];
                 if (item == null) continue;
 
                 // 避免集合插入了重复项
-                //var obj = TypeX.ChangeType<TResult>(item[name]);
                 var obj = item[name].ChangeType<TResult>();
-                if (!allowRepeated && !list.Contains(obj)) list.Add(obj);
+                if (allowRepeated || !list.Contains(obj)) list.Add(obj);
             }
             return list;
         }
@@ -535,10 +490,10 @@ namespace XCode
             if (Count < 1) return null;
 
             var sb = new StringBuilder(Count * 10);
-            foreach (var item in this)
+            for (int i = 0; i < Count; i++)
             {
                 if (sb.Length > 0) sb.Append(separator);
-                sb.Append("" + item);
+                sb.Append("" + this[i]);
             }
             return sb.ToString();
         }
@@ -794,10 +749,10 @@ namespace XCode
         /// <returns></returns>
         public DataTable ToDataTable(Boolean allowUpdate = true)
         {
-            DataTable dt = new DataTable();
-            foreach (FieldItem item in Factory.Fields)
+            var dt = new DataTable();
+            foreach (var item in Factory.Fields)
             {
-                DataColumn dc = new DataColumn();
+                var dc = new DataColumn();
                 dc.ColumnName = item.Name;
                 dc.DataType = item.Type;
                 dc.Caption = item.Description;
@@ -813,10 +768,11 @@ namespace XCode
             // 判断是否有数据，即使没有数据，也需要创建一个空格DataTable
             if (Count > 0)
             {
-                foreach (IEntity entity in this)
+                for (int i = 0; i < Count; i++)
                 {
-                    DataRow dr = dt.NewRow();
-                    foreach (FieldItem item in Factory.Fields)
+                    var entity = this[i];
+                    var dr = dt.NewRow();
+                    foreach (var item in Factory.Fields)
                     {
                         dr[item.Name] = entity[item.Name];
                     }
@@ -827,9 +783,9 @@ namespace XCode
             // 如果允许更新数据，那么绑定三个事件，委托到实体类的更新操作
             if (allowUpdate)
             {
-                dt.RowChanging += new DataRowChangeEventHandler(dt_RowChanging);
-                dt.RowDeleting += new DataRowChangeEventHandler(dt_RowDeleting);
-                dt.TableNewRow += new DataTableNewRowEventHandler(dt_TableNewRow);
+                dt.RowChanging += dt_RowChanging;
+                dt.RowDeleting += dt_RowDeleting;
+                dt.TableNewRow += dt_TableNewRow;
             }
 
             return dt;
@@ -837,9 +793,9 @@ namespace XCode
 
         void dt_TableNewRow(object sender, DataTableNewRowEventArgs e)
         {
-            IEntity entity = Factory.FindByKeyForEdit(null);
-            DataRow dr = e.Row;
-            foreach (FieldItem item in Factory.Fields)
+            var entity = Factory.FindByKeyForEdit(null);
+            var dr = e.Row;
+            foreach (var item in Factory.Fields)
             {
                 dr[item.Name] = entity[item.Name];
             }
@@ -847,9 +803,9 @@ namespace XCode
 
         void dt_RowChanging(object sender, DataRowChangeEventArgs e)
         {
-            IEntity entity = Factory.Create();
-            DataRow dr = e.Row;
-            foreach (FieldItem item in Factory.Fields)
+            var entity = Factory.Create();
+            var dr = e.Row;
+            foreach (var item in Factory.Fields)
             {
                 //entity[item.Name] = dr[item.Name];
                 // 影响脏数据
@@ -868,9 +824,9 @@ namespace XCode
 
         void dt_RowDeleting(object sender, DataRowChangeEventArgs e)
         {
-            IEntity entity = Factory.Create();
-            DataRow dr = e.Row;
-            foreach (FieldItem item in Factory.Fields)
+            var entity = Factory.Create();
+            var dr = e.Row;
+            foreach (var item in Factory.Fields)
             {
                 entity[item.Name] = dr[item.Name];
             }
@@ -882,7 +838,7 @@ namespace XCode
         /// <returns></returns>
         public DataSet ToDataSet()
         {
-            DataSet ds = new DataSet();
+            var ds = new DataSet();
             ds.Tables.Add(ToDataTable());
             return ds;
         }
@@ -896,12 +852,7 @@ namespace XCode
         /// <summary>任意集合转为实体集合</summary>
         /// <param name="collection"></param>
         /// <returns></returns>
-        public static EntityList<T> From(IEnumerable collection)
-        {
-            //if (collection == null || collection.GetEnumerator() == null) return null;
-
-            return new EntityList<T>(collection);
-        }
+        public static EntityList<T> From(IEnumerable collection) { return new EntityList<T>(collection); }
 
         /// <summary>拥有指定类型转换器的转换</summary>
         /// <typeparam name="T2"></typeparam>
@@ -910,9 +861,7 @@ namespace XCode
         /// <returns></returns>
         public static EntityList<T> From<T2>(IEnumerable collection, Func<T2, T> func)
         {
-            //if (collection == null || collection.GetEnumerator() == null) return null;
-
-            EntityList<T> list = new EntityList<T>();
+            var list = new EntityList<T>();
             if (collection == null) return list;
             foreach (T2 item in collection)
             {
@@ -924,24 +873,19 @@ namespace XCode
                     entity = func(item);
                 if (entity != null) list.Add(entity);
             }
-            //if (list == null || list.Count < 1) return null;
             return list;
         }
         #endregion
 
         #region IListSource接口
-        bool IListSource.ContainsListCollection
-        {
-            get { return Count > 0; }
-        }
+        bool IListSource.ContainsListCollection { get { return Count > 0; } }
 
         IList IListSource.GetList()
         {
             // 如果是接口，创建新的集合，否则返回自身
             if (!typeof(T).IsInterface) return this;
 
-            //if (Count < 1) return null;
-
+            // 支持空列表
             return ToArray(null);
         }
         #endregion
@@ -949,21 +893,13 @@ namespace XCode
         #region 复制
         IList ToArray(Type type)
         {
-            //if (Count < 1) return null;
-
             // 元素类型
             if (type == null) type = EntityType;
             // 泛型
             type = typeof(EntityListView<>).MakeGenericType(type);
 
-            // 初始化集合，实际上是创建了一个真正的实体类型
-            IList list = type.CreateInstance() as IList;
-            for (int i = 0; i < Count; i++)
-            {
-                list.Add(this[i]);
-            }
-
-            return list;
+            // 直接复制集合更快
+            return type.CreateInstance(this) as IList;
         }
         #endregion
 
@@ -978,7 +914,7 @@ namespace XCode
         {
             get
             {
-                Type type = typeof(T);
+                var type = typeof(T);
                 if (!type.IsInterface) return type;
 
                 if (Count > 0) return this[0].GetType();
@@ -992,7 +928,7 @@ namespace XCode
         {
             get
             {
-                Type type = EntityType;
+                var type = EntityType;
                 if (type.IsInterface) return null;
 
                 return EntityFactory.CreateOperate(type);
@@ -1024,20 +960,7 @@ namespace XCode
             Insert(index, (T)item);
         }
 
-        //void IList<IEntity>.RemoveAt(int index)
-        //{
-        //    RemoveAt(index);
-        //}
-
-        IEntity IList<IEntity>.this[int index]
-        {
-            get { return this[index]; }
-            set
-            {
-                VerifyValueType(value);
-                this[index] = (T)value;
-            }
-        }
+        IEntity IList<IEntity>.this[int index] { get { return this[index]; } set { VerifyValueType(value); this[index] = (T)value; } }
         #endregion
 
         #region ICollection<IEntity> 成员
@@ -1047,11 +970,6 @@ namespace XCode
             VerifyValueType(item);
             Add((T)item);
         }
-
-        //void ICollection<IEntity>.Clear()
-        //{
-        //    throw new NotImplementedException();
-        //}
 
         bool ICollection<IEntity>.Contains(IEntity item)
         {
@@ -1065,7 +983,7 @@ namespace XCode
             if (array == null || array.Length == 0) return;
 
             VerifyValueType(array[0]);
-            T[] arr = new T[array.Length];
+            var arr = new T[array.Length];
             CopyTo(arr, arrayIndex);
             for (int i = arrayIndex; i < array.Length; i++)
             {
@@ -1073,15 +991,7 @@ namespace XCode
             }
         }
 
-        //int ICollection<IEntity>.Count
-        //{
-        //    get { return Count; }
-        //}
-
-        bool ICollection<IEntity>.IsReadOnly
-        {
-            get { return (this as ICollection<T>).IsReadOnly; }
-        }
+        bool ICollection<IEntity>.IsReadOnly { get { return (this as ICollection<T>).IsReadOnly; } }
 
         bool ICollection<IEntity>.Remove(IEntity item)
         {
@@ -1089,64 +999,10 @@ namespace XCode
 
             return Remove((T)item);
         }
-
         #endregion
 
         #region IEnumerable<IEntity> 成员
-        IEnumerator<IEntity> IEnumerable<IEntity>.GetEnumerator()
-        {
-            //return new EntityEnumerator(this);
-
-            foreach (T item in this)
-            {
-                yield return item;
-            }
-        }
-
-        //class EntityEnumerator : IEnumerator<IEntity>
-        //{
-        //    EntityList<T> _list;
-        //    Int32 index;
-        //    T current;
-
-        //    public EntityEnumerator(EntityList<T> list) { _list = list; }
-
-        //    #region IEnumerator<IEntity> 成员
-
-        //    public IEntity Current
-        //    {
-        //        get { return current; }
-        //    }
-
-        //    #endregion
-
-        //    #region IDisposable 成员
-        //    public void Dispose() { }
-        //    #endregion
-
-        //    #region IEnumerator 成员
-
-        //    object IEnumerator.Current
-        //    {
-        //        get { return current; }
-        //    }
-
-        //    public bool MoveNext()
-        //    {
-        //        if (index >= _list.Count) return false;
-
-        //        current = _list[index++];
-
-        //        return true;
-        //    }
-
-        //    public void Reset()
-        //    {
-        //        index = 0;
-        //        current = default(T);
-        //    }
-        //    #endregion
-        //}
+        IEnumerator<IEntity> IEnumerable<IEntity>.GetEnumerator() { for (int i = 0; i < Count; i++) yield return this[i]; }
         #endregion
     }
 }
