@@ -712,7 +712,12 @@ namespace XCode
                     if (e != entity) e.CopyFrom(entity);
                 }
                 else
+                {
+                    // 加入超级缓存的实体对象，需要标记来自数据库
+                    if (entity is EntityBase) (entity as EntityBase).OnLoad();
+
                     Cache.Entities.Add(entity as TEntity);
+                }
             }
 
             if (_Count != null) _Count++;
@@ -738,7 +743,12 @@ namespace XCode
                     if (e != entity) e.CopyFrom(entity);
                 }
                 else
+                {
+                    // 加入超级缓存的实体对象，需要标记来自数据库
+                    if (entity is EntityBase) (entity as EntityBase).OnLoad();
+
                     Cache.Entities.Add(entity as TEntity);
+                }
             }
 
             return rs;
