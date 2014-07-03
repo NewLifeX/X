@@ -36,6 +36,8 @@ namespace XCode.Cache
             catch (ObjectDisposedException) { }
             catch (Exception ex)
             {
+                // 无效操作，句柄未初始化，不用出现
+                if (ex is InvalidOperationException && ex.Message.Contains("句柄未初始化")) return;
                 if (DAL.Debug) DAL.WriteLog(ex.ToString());
             }
             finally
