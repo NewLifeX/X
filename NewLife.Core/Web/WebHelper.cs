@@ -102,7 +102,9 @@ namespace NewLife.Web
 
                     if (HttpContext.Current.Request != null)
                     {
-                        str = HttpContext.Current.Request.UserHostName;
+                        str = HttpContext.Current.Request.ServerVariables["REMOTE_ADDR"];
+                        if (string.IsNullOrEmpty(str)) str = HttpContext.Current.Request.ServerVariables["HTTP_X_FORWARDED_FOR"];
+                        if (string.IsNullOrEmpty(str)) str = HttpContext.Current.Request.UserHostName;
                         if (String.IsNullOrEmpty(str)) str = HttpContext.Current.Request.UserHostAddress;
                         HttpContext.Current.Items["UserHostAddress"] = str;
                         return str;
