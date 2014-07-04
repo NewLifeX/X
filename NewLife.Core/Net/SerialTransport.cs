@@ -106,7 +106,7 @@ namespace NewLife.Net
         {
             if (disposing) GC.SuppressFinalize(this);
 
-            if (Serial != null) Serial.Dispose();
+            if (Serial != null) Close();
 #if !MF
             if (timer != null) timer.Dispose();
 #endif
@@ -138,12 +138,16 @@ namespace NewLife.Net
                 Serial = null;
                 if (sp.IsOpen)
                 {
+#if MF
                     // 关闭的时候不向外抛出错误，以确保完成关闭
                     try
                     {
                         sp.Close();
                     }
                     catch { }
+#else
+                    ThreadPoolX.QueueUserWorkItem(() => sp.Close());
+#endif
                 }
                 //Serial = null;
 
