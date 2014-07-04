@@ -174,9 +174,9 @@ namespace XCom
 
         void Disconnect()
         {
-            if (_Com != null)
+            var cm = _Com;
+            if (cm != null)
             {
-                var cm = _Com;
                 _Com = null;
                 //cm.Dispose();
                 // 异步调用释放，避免死锁卡死界面UI
