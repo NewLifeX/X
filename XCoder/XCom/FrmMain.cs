@@ -6,6 +6,7 @@ using System.Threading;
 using System.Windows.Forms;
 using NewLife.Log;
 using NewLife.Net;
+using NewLife.Threading;
 using XCoder;
 
 namespace XCom
@@ -177,7 +178,9 @@ namespace XCom
             {
                 var cm = _Com;
                 _Com = null;
-                cm.Dispose();
+                //cm.Dispose();
+                // 异步调用释放，避免死锁卡死界面UI
+                ThreadPoolX.QueueUserWorkItem(() => cm.Dispose());
             }
 
             pnlSet.Enabled = true;
