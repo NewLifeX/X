@@ -1,4 +1,6 @@
-﻿v4.3.2014.0703   WebHelper增加Cookie读写操作
+﻿v4.4.2014.0704   增加窗口控件操作的ControlHelper，扩展若干常用Invoke方法
+
+v4.3.2014.0703   WebHelper增加Cookie读写操作
 
 v4.3.2014.0629   改进SerialTransport，支持串口断开检测，以及断开重连机制
 

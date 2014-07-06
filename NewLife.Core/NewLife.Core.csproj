@@ -290,6 +290,7 @@
     </Compile>
     <Compile Include="Web\WebDownload.cs" />
     <Compile Include="Web\WebHelper.cs" />
+    <Compile Include="Windows\ControlHelper.cs" />
     <Compile Include="Xml\ExtendData.cs" />
     <Compile Include="Xml\SerializableDictionary.cs" />
     <Compile Include="Xml\XmlConfig.cs" />
