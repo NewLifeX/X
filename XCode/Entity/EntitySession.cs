@@ -419,7 +419,7 @@ namespace XCode
                 else
                 {
                     // 第一次访问，SQLite的Select Count非常慢，数据大于阀值时，使用最大ID作为表记录数
-                    var max = 0l;
+                    var max = 0L;
                     if (Dal.DbType == DatabaseType.SQLite && Table.Identity != null)
                     {
                         // 除第一次外，将依据上一次记录数决定是否使用最大ID

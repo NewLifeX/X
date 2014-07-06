@@ -264,7 +264,7 @@ namespace XCode.DataAccessLayer
         {
             tableName = tableName.Trim().Trim('[', ']').Trim();
 
-            var n = 0l;
+            var n = 0L;
             if (QueryIndex().TryGetValue(tableName, out n)) return n;
 
             String sql = String.Format("select rows from sysindexes where id = object_id('{0}') and indid in (0,1)", tableName);
