@@ -344,7 +344,7 @@ namespace NewLife.Net
             if (!SerialPort.GetPortNames().Contains(PortName))
             {
 #if DEBUG
-                XTrace.WriteLine("串口{0}已经不存在，准备关闭！", PortName);
+                NewLife.Log.XTrace.WriteLine("串口{0}已经不存在，准备关闭！", PortName);
 #endif
 
                 //OnDisconnect();

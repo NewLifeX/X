@@ -4,7 +4,7 @@ using System.Text;
 using System.Windows.Forms;
 using NewLife.Reflection;
 
-namespace NewLife.Windows
+namespace System.Windows.Forms
 {
     /// <summary>控件助手</summary>
     public static class ControlHelper
@@ -50,6 +50,32 @@ namespace NewLife.Windows
         public static TResult Invoke<T, TResult>(this Control control, Func<T, TResult> method, T arg)
         {
             return (TResult)control.Invoke(method, arg);
+        }
+
+        /// <summary>执行二参数无返回值的委托</summary>
+        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="T2"></typeparam>
+        /// <param name="control"></param>
+        /// <param name="method"></param>
+        /// <param name="arg"></param>
+        /// <param name="arg2"></param>
+        public static void Invoke<T, T2>(this Control control, Action<T, T2> method, T arg, T2 arg2)
+        {
+            control.Invoke(method, arg, arg2);
+        }
+
+        /// <summary>执行二参数和返回值的委托</summary>
+        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="T2"></typeparam>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="control"></param>
+        /// <param name="method"></param>
+        /// <param name="arg"></param>
+        /// <param name="arg2"></param>
+        /// <returns></returns>
+        public static TResult Invoke<T, T2, TResult>(this Control control, Func<T, T2, TResult> method, T arg, T2 arg2)
+        {
+            return (TResult)control.Invoke(method, arg, arg2);
         }
         #endregion
     }
