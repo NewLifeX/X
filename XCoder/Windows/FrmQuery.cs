@@ -71,8 +71,8 @@ namespace XCoder
                     msg += String.Format(" 耗时{0:HH:mm:ss.zzz}", sw.Elapsed);
                 }
 
-                this.Invoke(new Action<String>(s => lbStatus.Text = s), msg);
-                if (dt != null) this.Invoke(new Action<DataTable>(d => gv.DataSource = d), dt);
+                this.Invoke(s => lbStatus.Text = s, msg);
+                if (dt != null) this.Invoke(d => gv.DataSource = d, dt);
             };
 
             ThreadPoolX.QueueUserWorkItem(callback, sql);
@@ -106,7 +106,7 @@ namespace XCoder
                     msg += String.Format(" 耗时{0:HH:mm:ss.zzz}", sw.Elapsed);
                 }
 
-                this.Invoke(new Action<String>(s => lbStatus.Text = s), msg);
+                this.Invoke(s => lbStatus.Text = s, msg);
             };
 
             ThreadPoolX.QueueUserWorkItem(callback, sql);

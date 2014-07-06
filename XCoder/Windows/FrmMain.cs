@@ -174,7 +174,7 @@ namespace XCoder
             }
 
             // 远程数据库耗时太长，这里先列出来
-            this.Invoke(new Action<List<String>>(SetDatabaseList), list);
+            this.Invoke(SetDatabaseList, list);
             //!!! 必须另外实例化一个列表，否则作为数据源绑定时，会因为是同一个对象而被跳过
             list = new List<String>(list);
 
@@ -253,7 +253,7 @@ namespace XCoder
             {
                 list.AddRange(names);
 
-                this.Invoke(new Action<List<String>>(SetDatabaseList), list);
+                this.Invoke(SetDatabaseList, list);
             }
         }
 

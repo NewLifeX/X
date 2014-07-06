@@ -157,7 +157,9 @@ namespace XCom
             var sp = new SerialPort(name, cfg.BaudRate, cfg.Parity, cfg.DataBits, cfg.StopBits);
             _Com = new SerialTransport { Serial = sp };
             _Com.Open();
-            _Com.Disconnected += (s, e) => Disconnect();
+            //_Com.Disconnected += (s, e) => Disconnect();
+            // 需要考虑UI线程
+            _Com.Disconnected += (s, e) => this.Invoke(Disconnect);
 
             sp.DtrEnable = chkDTR.Checked;
             sp.RtsEnable = chkRTS.Checked;

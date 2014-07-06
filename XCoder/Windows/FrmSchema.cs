@@ -5,7 +5,6 @@ using System.Data;
 using System.Data.Common;
 using System.Windows.Forms;
 using NewLife.Log;
-using NewLife.Reflection;
 using NewLife.Threading;
 using XCode.DataAccessLayer;
 
@@ -51,14 +50,14 @@ namespace XCoder
         #region 加载
         void SetTables(Object data)
         {
-            List<IDataTable> tables = Db.CreateMetaData().GetTables();
-            this.Invoke(new Func<ComboBox, IEnumerable, Boolean>(SetList), cbTables, tables);
+            var tables = Db.CreateMetaData().GetTables();
+            this.Invoke<ComboBox, IEnumerable, Boolean>(SetList, cbTables, tables);
         }
 
         void SetSchemas(Object data)
         {
-            ICollection<String> list = Db.CreateMetaData().MetaDataCollections;
-            this.Invoke(new Func<ComboBox, IEnumerable, Boolean>(SetList), cbSchemas, list);
+            var list = Db.CreateMetaData().MetaDataCollections;
+            this.Invoke((s, lst) => SetList(s, lst), cbSchemas, list);
         }
 
         Boolean SetList(ComboBox cb, IEnumerable data)
