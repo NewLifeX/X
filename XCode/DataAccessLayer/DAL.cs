@@ -305,6 +305,8 @@ namespace XCode.DataAccessLayer
 
         #region 反向工程
         Int32 _hasCheck;
+        /// <summary>使用数据库之前检查表架构</summary>
+        /// <remarks>不阻塞，可能第一个线程正在检查表架构，别的线程已经开始使用数据库了</remarks>
         void CheckBeforeUseDatabase()
         {
             if (_hasCheck > 0 || Interlocked.CompareExchange(ref _hasCheck, 1, 0) > 0) return;
@@ -332,8 +334,24 @@ namespace XCode.DataAccessLayer
         }
 
         internal List<String> HasCheckTables = new List<String>();
+        /// <summary>检查是否已存在，如果不存在则添加</summary>
+        /// <param name="tableName"></param>
+        /// <returns></returns>
+        internal Boolean CheckAndAdd(String tableName)
+        {
+            var tbs = HasCheckTables;
+            if (tbs.Contains(tableName)) return true;
+            lock (tbs)
+            {
+                if (tbs.Contains(tableName)) return true;
 
-        /// <summary>检查数据表架构，不受反向工程启用开关限制</summary>
+                tbs.Add(tableName);
+            }
+
+            return false;
+        }
+
+        /// <summary>检查数据表架构，不受反向工程启用开关限制，仅检查未经过常规检查的表</summary>
         public void CheckTables()
         {
             WriteLog("开始检查连接[{0}/{1}]的数据库架构……", ConnName, DbType);
@@ -346,11 +364,13 @@ namespace XCode.DataAccessLayer
                 var list = EntityFactory.GetTables(ConnName);
                 if (list != null && list.Count > 0)
                 {
-                    // 全都标为已初始化的
-                    foreach (var item in list)
-                    {
-                        if (!HasCheckTables.Contains(item.TableName)) HasCheckTables.Add(item.TableName);
-                    }
+                    // 移除所有已初始化的
+                    list.RemoveAll(dt => CheckAndAdd(dt.TableName));
+                    //// 全都标为已初始化的
+                    //foreach (var item in list)
+                    //{
+                    //    if (!HasCheckTables.Contains(item.TableName)) HasCheckTables.Add(item.TableName);
+                    //}
 
                     // 过滤掉被排除的表名
                     if (NegativeExclude.Count > 0)
@@ -389,9 +409,12 @@ namespace XCode.DataAccessLayer
         /// <param name="tables"></param>
         public void SetTables(NegativeSetting set, params IDataTable[] tables)
         {
-            if (set == null) set = new NegativeSetting();
-            set.CheckOnly = DAL.NegativeCheckOnly;
-            set.NoDelete = DAL.NegativeNoDelete;
+            if (set == null)
+            {
+                set = new NegativeSetting();
+                set.CheckOnly = DAL.NegativeCheckOnly;
+                set.NoDelete = DAL.NegativeNoDelete;
+            }
             //if (set.CheckOnly && DAL.Debug) WriteLog("XCode.Negative.CheckOnly设置为True，只是检查不对数据库进行操作");
             //if (set.NoDelete && DAL.Debug) WriteLog("XCode.Negative.NoDelete设置为True，不会删除数据表多余字段");
             Db.CreateMetaData().SetTables(set, tables);

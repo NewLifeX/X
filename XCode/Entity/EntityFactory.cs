@@ -121,7 +121,7 @@ namespace XCode
             return typeof(IEntity).GetAllSubclasses(isLoadAssembly).Where(t => TableItem.Create(t).ConnName == connName);
         }
 
-        /// <summary>获取指定连接名下的所有实体数据表</summary>
+        /// <summary>获取指定连接名下的初始化时检查的所有实体数据表，用于反向工程检查表架构</summary>
         /// <param name="connName"></param>
         /// <returns></returns>
         public static List<IDataTable> GetTables(String connName)

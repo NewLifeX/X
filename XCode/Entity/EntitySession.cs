@@ -173,6 +173,10 @@ namespace XCode
         #region 架构检查
         private void CheckTable()
         {
+            //if (Dal.HasCheckTables.Contains(TableName)) return;
+            //Dal.HasCheckTables.Add(TableName);
+            if (Dal.CheckAndAdd(TableName)) return;
+
 #if DEBUG
             DAL.WriteLog("开始{2}检查表[{0}/{1}]的数据表架构……", Table.DataTable.Name, Dal.Db.DbType, DAL.NegativeCheckOnly ? "异步" : "同步");
 #endif
@@ -192,8 +196,6 @@ namespace XCode
                     FixIndexName(table);
                     table.TableName = TableName;
                 }
-
-                if (!Dal.HasCheckTables.Contains(TableName)) Dal.HasCheckTables.Add(TableName);
 
                 var set = new NegativeSetting();
                 set.CheckOnly = DAL.NegativeCheckOnly;
@@ -241,6 +243,7 @@ namespace XCode
         private Boolean IsGenerated { get { return ThisType.GetCustomAttribute<CompilerGeneratedAttribute>(true) != null; } }
         Boolean hasCheckModel = false;
         Object _check_lock = new Object();
+        /// <summary>检查模型。依据反向工程设置、是否首次使用检查、是否已常规检查等</summary>
         private void CheckModel()
         {
             if (hasCheckModel) return;
