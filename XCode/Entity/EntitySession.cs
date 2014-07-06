@@ -173,9 +173,7 @@ namespace XCode
         #region 架构检查
         private void CheckTable()
         {
-            //if (Dal.HasCheckTables.Contains(TableName)) return;
-            //Dal.HasCheckTables.Add(TableName);
-            if (Dal.CheckAndAdd(TableName)) return;
+            //if (Dal.CheckAndAdd(TableName)) return;
 
 #if DEBUG
             DAL.WriteLog("开始{2}检查表[{0}/{1}]的数据表架构……", Table.DataTable.Name, Dal.Db.DbType, DAL.NegativeCheckOnly ? "异步" : "同步");
