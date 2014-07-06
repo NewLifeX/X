@@ -76,6 +76,7 @@ namespace XCode.Configuration
                 }
                 return _TableName;
             }
+            set { _TableName = value; DataTable.TableName = value; }
         }
 
         private String _ConnName;
@@ -94,6 +95,7 @@ namespace XCode.Configuration
                 }
                 return _ConnName;
             }
+            set { _ConnName = value; }
         }
 
         private static List<String> _ConnMaps;
