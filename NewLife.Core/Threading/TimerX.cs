@@ -36,7 +36,7 @@ namespace NewLife.Threading
         public Int32 Timers { get { return _Timers; } set { _Timers = value; } }
 
         private Int32 _Period;
-        /// <summary>间隔周期</summary>
+        /// <summary>间隔周期。毫秒，设为0则只调用一次</summary>
         public Int32 Period { get { return _Period; } set { _Period = value; } }
 
         private Boolean _UseThreadPool;
@@ -54,7 +54,7 @@ namespace NewLife.Threading
         /// <param name="state">用户数据</param>
         /// <param name="dueTime">多久之后开始</param>
         /// <param name="period">间隔周期</param>
-        public TimerX(WaitCallback callback, object state, int dueTime, int period) : this(callback, state, dueTime, period, period > 10000) { }
+        public TimerX(WaitCallback callback, Object state, Int32 dueTime, Int32 period) : this(callback, state, dueTime, period, period > 10000) { }
 
         /// <summary>实例化一个不可重入的定时器</summary>
         /// <param name="callback">委托</param>
@@ -62,13 +62,13 @@ namespace NewLife.Threading
         /// <param name="dueTime">多久之后开始</param>
         /// <param name="period">间隔周期</param>
         /// <param name="usethreadpool">是否使用线程池。对于耗时短小且比较频繁的操作，不好使用线程池，减少线程切换。</param>
-        public TimerX(WaitCallback callback, object state, int dueTime, int period, Boolean usethreadpool)
+        public TimerX(WaitCallback callback, Object state, Int32 dueTime, Int32 period, Boolean usethreadpool)
         {
             if (callback == null) throw new ArgumentNullException("callback");
             if (dueTime < 0) throw new ArgumentOutOfRangeException("dueTime");
             if (period <= 0) throw new ArgumentOutOfRangeException("period");
 
-            Callback = new WeakAction<object>(callback);
+            Callback = new WeakAction<Object>(callback);
             State = state;
             Period = period;
             UseThreadPool = usethreadpool;
@@ -82,6 +82,18 @@ namespace NewLife.Threading
         public void Dispose()
         {
             TimerXHelper.Remove(this);
+        }
+        #endregion
+
+        #region 静态方法
+        /// <summary>延迟执行一个委托</summary>
+        /// <param name="callback"></param>
+        /// <param name="ms"></param>
+        /// <returns></returns>
+        public static TimerX Delay(WaitCallback callback, Int32 ms)
+        {
+            var timer = new TimerX(callback, null, ms, 0);
+            return timer;
         }
         #endregion
 
@@ -112,6 +124,8 @@ namespace NewLife.Threading
 
             static List<TimerX> timers = new List<TimerX>();
 
+            /// <summary>把定时器加入队列</summary>
+            /// <param name="timer"></param>
             public static void Add(TimerX timer)
             {
                 lock (timers)
@@ -148,19 +162,21 @@ namespace NewLife.Threading
             static AutoResetEvent waitForTimer;
             static Int32 period = 10;
 
+            /// <summary>调度主程序</summary>
+            /// <param name="state"></param>
             static void Process(Object state)
             {
                 while (true)
                 {
                     try
                     {
-                        var list = Prepare();
+                        var arr = Prepare();
 
                         // 记录本次循环有几个任务被处理
                         //Int32 count = 0;
                         // 设置一个较大的间隔，内部会根据处理情况调整该值为最合理值
                         period = 60000;
-                        foreach (var timer in list)
+                        foreach (var timer in arr)
                         {
                             ProcessItem(timer);
                         }
@@ -175,7 +191,9 @@ namespace NewLife.Threading
                 }
             }
 
-            static List<TimerX> Prepare()
+            /// <summary>准备好定时器列表</summary>
+            /// <returns></returns>
+            static TimerX[] Prepare()
             {
                 if (timers == null || timers.Count < 1)
                 {
@@ -189,21 +207,21 @@ namespace NewLife.Threading
                     waitForTimer.WaitOne(Timeout.Infinite, false);
                 }
 
-                List<TimerX> list = null;
                 lock (timers)
                 {
-                    list = new List<TimerX>(timers);
+                    return timers.ToArray();
                 }
-
-                return list;
             }
 
+            /// <summary>处理每一个定时器</summary>
+            /// <param name="timer"></param>
             static void ProcessItem(TimerX timer)
             {
                 // 删除过期的，为了避免占用过多CPU资源，TimerX禁止小于10ms的任务调度
-                if (!timer.Callback.IsAlive || timer.Period < 10)
+                if (!timer.Callback.IsAlive || timer.Period < 10 && timer.Period > 0)
                 {
-                    if (timer.Period < 10) XTrace.WriteLine("为了避免占用过多CPU资源，TimerX禁止小于10ms的任务调度，关闭任务{0}", timer);
+                    // 周期0表示只执行一次
+                    if (timer.Period < 10 && timer.Period > 0) XTrace.WriteLine("为了避免占用过多CPU资源，TimerX禁止小于10ms的任务调度，关闭任务{0}", timer);
                     lock (timers)
                     {
                         timers.Remove(timer);
@@ -243,7 +261,18 @@ namespace NewLife.Threading
                     timer.Timers++;
                     timer.Calling = false;
                     timer.NextTime = DateTime.Now.AddMilliseconds(timer.Period);
-                    if (timer.Period < period) period = timer.Period;
+
+                    // 清理一次性定时器
+                    if (timer.Period <= 0)
+                    {
+                        lock (timers)
+                        {
+                            timers.Remove(timer);
+                            timer.Dispose();
+                        }
+                    }
+                    if (timer.Period < period)
+                        period = timer.Period;
                 }
             }
         }
