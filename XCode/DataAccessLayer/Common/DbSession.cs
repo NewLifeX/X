@@ -616,17 +616,23 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region Sql日志输出
-        [ThreadStatic]
-        internal static Boolean? _ShowSQL;
+        private Boolean? _ShowSQL;
         /// <summary>是否输出SQL语句，默认为XCode调试开关XCode.Debug</summary>
-        public static Boolean ShowSQL
+        public Boolean ShowSQL
         {
             get
             {
                 if (_ShowSQL == null) return DAL.ShowSQL;
                 return _ShowSQL.Value;
             }
-            set { _ShowSQL = value; }
+            set
+            {
+                // 如果设定值跟DAL.ShowSQL相同，则直接使用DAL.ShowSQL
+                if (value == DAL.ShowSQL)
+                    _ShowSQL = null;
+                else
+                    _ShowSQL = value;
+            }
         }
 
         static TextFileLog logger;
@@ -634,7 +640,7 @@ namespace XCode.DataAccessLayer
         /// <summary>写入SQL到文本中</summary>
         /// <param name="sql"></param>
         /// <param name="ps"></param>
-        public static void WriteSQL(String sql, params DbParameter[] ps)
+        public void WriteSQL(String sql, params DbParameter[] ps)
         {
             if (!ShowSQL) return;
 
@@ -678,9 +684,9 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        public static void WriteSQL(DbCommand cmd)
+        public void WriteSQL(DbCommand cmd)
         {
-            String sql = cmd.CommandText;
+            var sql = cmd.CommandText;
             if (cmd.CommandType != CommandType.Text) sql = String.Format("[{0}]{1}", cmd.CommandType, sql);
 
             DbParameter[] ps = null;

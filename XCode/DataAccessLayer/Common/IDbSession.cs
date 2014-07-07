@@ -29,6 +29,9 @@ namespace XCode.DataAccessLayer
 
         /// <summary>执行次数</summary>
         Int32 ExecuteTimes { get; set; }
+
+        /// <summary>是否输出SQL</summary>
+        Boolean ShowSQL { get; set; }
         #endregion
 
         #region 打开/关闭

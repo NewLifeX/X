@@ -338,30 +338,31 @@ namespace XCode.DataAccessLayer
         protected override List<IDataTable> OnGetTables(ICollection<String> names)
         {
             #region 查表说明、字段信息、索引信息
-            IDbSession session = Database.CreateSession();
+            var session = Database.CreateSession();
 
             //一次性把所有的表说明查出来
             DataTable DescriptionTable = null;
 
-            DbSession.ShowSQL = false;
+            var old = session.ShowSQL;
+            session.ShowSQL = false;
             try
             {
                 DescriptionTable = session.Query(DescriptionSql).Tables[0];
             }
             catch { }
-            DbSession._ShowSQL = null;
+            session.ShowSQL = old;
 
-            DataTable dt = GetSchema(_.Tables, null);
+            var dt = GetSchema(_.Tables, null);
             if (dt == null || dt.Rows == null || dt.Rows.Count < 1) return null;
 
-            DbSession.ShowSQL = false;
+            session.ShowSQL = false;
             try
             {
                 AllFields = session.Query(SchemaSql).Tables[0];
                 AllIndexes = session.Query(IndexSql).Tables[0];
             }
             catch { }
-            DbSession._ShowSQL = null;
+            session.ShowSQL = old;
             #endregion
 
             // 列出用户表
