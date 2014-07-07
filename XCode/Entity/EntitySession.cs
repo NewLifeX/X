@@ -80,7 +80,7 @@ namespace XCode
 
         private DAL _Dal;
         /// <summary>数据操作层</summary>
-        internal DAL Dal { get { return _Dal ?? (_Dal = DAL.Create(ConnName)); } }
+        public DAL Dal { get { return _Dal ?? (_Dal = DAL.Create(ConnName)); } }
 
         private String _FormatedTableName;
         /// <summary>已格式化的表名，带有中括号等</summary>
