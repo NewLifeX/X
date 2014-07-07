@@ -351,7 +351,7 @@ namespace XCode
                 if (list.Count > 1) return true;
 
                 // 如果是Guid等主键，可能提前赋值，插入操作不能比较主键，直接判断判断存在的唯一索引即可
-                if (isNew) return true;
+                if (isNew && !field.IsIdentity) return true;
 
                 return !Object.Equals(val, list[0][field.Name]);
             }
@@ -365,7 +365,7 @@ namespace XCode
                 if (list.Count > 1) return true;
 
                 // 如果是Guid等主键，可能提前赋值，插入操作不能比较主键，直接判断判断存在的唯一索引即可
-                if (isNew) return true;
+                if (isNew && !field.IsIdentity) return true;
 
                 return !Object.Equals(val, list[0][field.Name]);
             }
