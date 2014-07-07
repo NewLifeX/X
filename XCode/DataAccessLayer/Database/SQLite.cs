@@ -59,6 +59,10 @@ namespace XCode.DataAccessLayer
         /// </remarks>
         public Boolean AutoVacuum { get { return _AutoVacuum; } set { _AutoVacuum = value; } }
 
+        private Boolean _UseLock;
+        /// <summary>使用锁来控制并发</summary>
+        public Boolean UseLock { get { return _UseLock; } set { _UseLock = value; } }
+
         static readonly String MemoryDatabase = ":memory:";
 
         protected override string OnResolveFile(string file)
@@ -96,6 +100,9 @@ namespace XCode.DataAccessLayer
                 AutoVacuum = builder["autoVacuum"].ToBoolean();
                 builder.Remove("autoVacuum");
             }
+
+            var value = "";
+            if (builder.TryGetAndRemove("UseLock", out value) && !String.IsNullOrEmpty(value)) UseLock = value.ToBoolean();
         }
         #endregion
 
@@ -230,6 +237,17 @@ namespace XCode.DataAccessLayer
 
         TResult Retry<TArg, TResult>(Func<TArg, TResult> func, TArg arg)
         {
+            var db = Database as SQLite;
+            // 支持使用锁来控制SQLite并发
+            // 必须锁数据库对象，因为一个数据库可能有多个数据会话
+            if (db.UseLock)
+            {
+                lock (db)
+                {
+                    return func(arg);
+                }
+            }
+
             //! 如果异常是文件锁定，则重试
             for (int i = 0; i < RetryTimes; i++)
             {

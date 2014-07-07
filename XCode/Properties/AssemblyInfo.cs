@@ -31,8 +31,8 @@ using System.Runtime.InteropServices;
 //
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
-[assembly: AssemblyVersion("8.12.*")]
-[assembly: AssemblyFileVersion("8.12.2014.0703")]
+[assembly: AssemblyVersion("8.13.*")]
+[assembly: AssemblyFileVersion("8.13.2014.0707")]
 
 /*
  * XCode的重大改进
@@ -49,6 +49,8 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v8.13.2014.0707  支持使用锁来控制SQLite并发
+ * 
  * v8.12.2014.0703  修正EntityList在高并发遍历数据时存在版本冲突的问题
  * 
  * v8.12.2014.0617  Entity增加FindMin/FindMax
