@@ -48,7 +48,7 @@ namespace XCode.DataAccessLayer
         /// <summary>是否内存数据库</summary>
         public Boolean IsMemoryDatabase { get { return FileName.EqualIgnoreCase(MemoryDatabase); } }
 
-        private Boolean _AutoVacuum = true;
+        private Boolean _AutoVacuum;
         /// <summary>自动收缩数据库</summary>
         /// <remarks>
         /// 当一个事务从数据库中删除了数据并提交后，数据库文件的大小保持不变。
