@@ -285,6 +285,7 @@ namespace XCode.DataAccessLayer
             // 检查更新
             if (_next < DateTime.Now)
             {
+                // 先改时间，让别的线程先用着旧的
                 _next = DateTime.Now.AddSeconds(10);
                 //// 同一个会话里面，不担心分表分库的问题，倒是有可能有冲突
                 //ThreadPool.QueueUserWorkItem(s => _index = QueryIndex_());
