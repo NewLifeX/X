@@ -29,6 +29,9 @@ namespace XCode.DataAccessLayer
 
         /// <summary>数据库服务器版本</summary>
         String ServerVersion { get; }
+
+        /// <summary>是否输出SQL</summary>
+        Boolean ShowSQL { get; set; }
         #endregion
 
         #region 方法

@@ -622,13 +622,13 @@ namespace XCode.DataAccessLayer
         {
             get
             {
-                if (_ShowSQL == null) return DAL.ShowSQL;
+                if (_ShowSQL == null) return Database.ShowSQL;
                 return _ShowSQL.Value;
             }
             set
             {
-                // 如果设定值跟DAL.ShowSQL相同，则直接使用DAL.ShowSQL
-                if (value == DAL.ShowSQL)
+                // 如果设定值跟Database.ShowSQL相同，则直接使用Database.ShowSQL
+                if (value == Database.ShowSQL)
                     _ShowSQL = null;
                 else
                     _ShowSQL = value;

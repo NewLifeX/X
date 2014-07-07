@@ -5,6 +5,7 @@ using System.Data.OleDb;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -12,11 +13,10 @@ using System.Web;
 using NewLife;
 using NewLife.Compression;
 using NewLife.Configuration;
+using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.Web;
 using XCode.Exceptions;
-using NewLife.Log;
-using System.Reflection;
 
 namespace XCode.DataAccessLayer
 {
@@ -93,6 +93,7 @@ namespace XCode.DataAccessLayer
         {
             public static readonly String DataSource = "Data Source";
             public static readonly String Owner = "Owner";
+            public static readonly String ShowSQL = "ShowSQL";
         }
         #endregion
 
@@ -160,6 +161,7 @@ namespace XCode.DataAccessLayer
         {
             String value;
             if (builder.TryGetAndRemove(_.Owner, out value) && !String.IsNullOrEmpty(value)) Owner = value;
+            if (builder.TryGetAndRemove(_.ShowSQL, out value) && !String.IsNullOrEmpty(value)) ShowSQL = value.ToBoolean();
         }
 
         private String _Owner;
@@ -837,6 +839,27 @@ namespace XCode.DataAccessLayer
             file = new FileInfo(file).FullName;
 
             return file;
+        }
+        #endregion
+
+        #region Sql日志输出
+        private Boolean? _ShowSQL;
+        /// <summary>是否输出SQL语句，默认为XCode调试开关XCode.Debug</summary>
+        public Boolean ShowSQL
+        {
+            get
+            {
+                if (_ShowSQL == null) return DAL.ShowSQL;
+                return _ShowSQL.Value;
+            }
+            set
+            {
+                // 如果设定值跟DAL.ShowSQL相同，则直接使用DAL.ShowSQL
+                if (value == DAL.ShowSQL)
+                    _ShowSQL = null;
+                else
+                    _ShowSQL = value;
+            }
         }
         #endregion
     }
