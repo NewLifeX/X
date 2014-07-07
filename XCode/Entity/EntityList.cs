@@ -517,6 +517,8 @@ namespace XCode
             {
                 // Object.Equals可以有效的处理两个元素都为空的问题
                 if (Object.Equals(item1[name], item2[name])) return 0;
+                // 如果为空，或者不是比较类型，则返回-1，说明小于
+                if (item1[name] == null || !(item1[name] is IComparable)) return -1;
                 return (item1[name] as IComparable).CompareTo(item2[name]) * n;
             });
 
