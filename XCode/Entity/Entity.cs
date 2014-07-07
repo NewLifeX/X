@@ -282,16 +282,26 @@ namespace XCode
                     if (!isNew) changed = columns.Any(c => Dirtys[c.Name]);
 
                     // 存在检查
-                    if (isNew || changed) CheckExist(columns.Select(c => c.Name).Distinct().ToArray());
+                    if (isNew || changed) CheckExist(isNew, columns.Select(c => c.Name).Distinct().ToArray());
                 }
             }
         }
 
+        /// <summary>根据指定键检查数据，返回数据是否已存在</summary>
+        /// <param name="names"></param>
+        /// <returns></returns>
+        public virtual Boolean Exist(params String[] names) { return Exist(true, names); }
+
         /// <summary>根据指定键检查数据是否已存在，若已存在，抛出ArgumentOutOfRangeException异常</summary>
         /// <param name="names"></param>
-        public virtual void CheckExist(params String[] names)
+        public virtual void CheckExist(params String[] names) { CheckExist(true, names); }
+
+        /// <summary>根据指定键检查数据是否已存在，若已存在，抛出ArgumentOutOfRangeException异常</summary>
+        /// <param name="isNew">是否新数据</param>
+        /// <param name="names"></param>
+        public virtual void CheckExist(Boolean isNew, params String[] names)
         {
-            if (Exist(names))
+            if (Exist(isNew, names))
             {
                 var sb = new StringBuilder();
                 String name = null;
@@ -315,9 +325,10 @@ namespace XCode
         }
 
         /// <summary>根据指定键检查数据，返回数据是否已存在</summary>
+        /// <param name="isNew">是否新数据</param>
         /// <param name="names"></param>
         /// <returns></returns>
-        public virtual Boolean Exist(params String[] names)
+        public virtual Boolean Exist(Boolean isNew, params String[] names)
         {
             // 根据指定键查找所有符合的数据，然后比对。
             // 当然，也可以通过指定键和主键配合，找到拥有指定键，但是不是当前主键的数据，只查记录数。
@@ -339,16 +350,22 @@ namespace XCode
                 if (list == null || list.Count < 1) return false;
                 if (list.Count > 1) return true;
 
+                // 如果是Guid等主键，可能提前赋值，插入操作不能比较主键，直接判断判断存在的唯一索引即可
+                if (isNew) return true;
+
                 return !Object.Equals(val, list[0][field.Name]);
             }
             else
             {
                 // 如果是空主键，则采用直接判断记录数的方式，以加快速度
                 var list = cache.Entities.FindAll(names, values, true);
-                if (Helper.IsNullKey(this[field.Name])) return list.Count > 0;
+                if (Helper.IsNullKey(val)) return list.Count > 0;
 
                 if (list == null || list.Count < 1) return false;
                 if (list.Count > 1) return true;
+
+                // 如果是Guid等主键，可能提前赋值，插入操作不能比较主键，直接判断判断存在的唯一索引即可
+                if (isNew) return true;
 
                 return !Object.Equals(val, list[0][field.Name]);
             }
