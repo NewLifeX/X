@@ -36,7 +36,9 @@ namespace NewLife.Reflection
         public Version Version { get { return _Version; } set { _Version = value; } }
 
         /// <summary>是否.Net程序</summary>
-        public Boolean IsNet { get { return ExecutableKind.Has(PortableExecutableKinds.ILOnly) && Version != null; } }
+        public Boolean IsNet { get { return Version != null; } }
+        // 不能只判断ILOnly，System.Data.SQLite.dll得到的ExecutableKind是24
+        //public Boolean IsNet { get { return ExecutableKind.Has(PortableExecutableKinds.ILOnly) && Version != null; } }
 
         Section[] Sections;
         DataDirectory cli;
