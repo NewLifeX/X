@@ -297,6 +297,14 @@ namespace XCode.DataAccessLayer
                 return ExecuteScalar<Int64>(sql2 + ";Select last_insert_rowid() newid", type, ps);
             }, sql);
         }
+
+        public override DbCommand CreateCommand()
+        {
+            var cmd = base.CreateCommand();
+            // SQLite驱动内部的SQLite3.Step会等待指定秒数
+            cmd.CommandTimeout = 3;
+            return cmd;
+        }
         #endregion
     }
 
