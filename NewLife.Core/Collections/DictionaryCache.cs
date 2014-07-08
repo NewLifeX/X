@@ -129,7 +129,9 @@ namespace NewLife.Collections
                 if (Items.TryGetValue(key, out item))
                 {
                     item.Value = value;
-                    item.ExpiredTime = DateTime.Now;
+                    //更新当前缓存项的过期时间
+                    //item.ExpiredTime = DateTime.Now;
+                    item.ExpiredTime = DateTime.Now.AddSeconds(Expriod);
                 }
                 else
                 {
