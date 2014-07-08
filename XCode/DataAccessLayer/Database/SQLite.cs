@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using NewLife;
+using NewLife.Log;
 using NewLife.Reflection;
 
 namespace XCode.DataAccessLayer
@@ -101,8 +102,15 @@ namespace XCode.DataAccessLayer
                 builder.Remove("autoVacuum");
             }
 
+            // 默认超时时间
+            if (!builder.ContainsKey("Default Timeout")) builder["Default Timeout"] = 1 + "";
+
             var value = "";
-            if (builder.TryGetAndRemove("UseLock", out value) && !String.IsNullOrEmpty(value)) UseLock = value.ToBoolean();
+            if (builder.TryGetAndRemove("UseLock", out value) && !String.IsNullOrEmpty(value))
+            {
+                UseLock = value.ToBoolean();
+                if (UseLock) DAL.WriteLog("[{0}]使用SQLite文件锁", ConnName);
+            }
         }
         #endregion
 
@@ -211,6 +219,14 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public override String StringConcat(String left, String right) { return (!String.IsNullOrEmpty(left) ? left : "\'\'") + "||" + (!String.IsNullOrEmpty(right) ? right : "\'\'"); }
         #endregion
+
+        #region 读写锁
+#if NET4
+        public ReaderWriterLockSlim rwLock = new ReaderWriterLockSlim();
+#else
+        public ReaderWriterLock rwLock = new ReaderWriterLock();
+#endif
+        #endregion
     }
 
     /// <summary>SQLite数据库</summary>
@@ -235,46 +251,91 @@ namespace XCode.DataAccessLayer
         /// <summary>文件锁定重试次数</summary>
         const Int32 RetryTimes = 5;
 
-        TResult Retry<TArg, TResult>(Func<TArg, TResult> func, TArg arg)
+
+        TResult TryWrite<TArg, TResult>(Func<TArg, TResult> func, TArg arg)
         {
             var db = Database as SQLite;
             // 支持使用锁来控制SQLite并发
             // 必须锁数据库对象，因为一个数据库可能有多个数据会话
             if (db.UseLock)
             {
-                lock (db)
-                {
-                    return func(arg);
-                }
-            }
-
-            //! 如果异常是文件锁定，则重试
-            for (int i = 0; i < RetryTimes; i++)
-            {
+                var rwLock = db.rwLock;
+#if NET4
+                rwLock.EnterWriteLock();
+#else
+                rwLock.AcquireWriterLock(30000);
+#endif
                 try
                 {
                     return func(arg);
                 }
-                catch (Exception ex)
+                finally
                 {
-                    if (i >= RetryTimes - 1) throw;
-
-                    if (ex.Message == "The database file is locked")
-                    {
-                        Thread.Sleep(300);
-                        continue;
-                    }
-
-                    throw;
+#if NET4
+                    rwLock.ExitWriteLock();
+#else
+                    rwLock.ReleaseWriterLock();
+#endif
                 }
             }
-            return default(TResult);
+
+            return func(arg);
+
+            ////! 如果异常是文件锁定，则重试
+            //for (int i = 0; i < RetryTimes; i++)
+            //{
+            //    try
+            //    {
+            //        return func(arg);
+            //    }
+            //    catch (Exception ex)
+            //    {
+            //        if (i >= RetryTimes - 1) throw;
+
+            //        if (ex.Message == "The database file is locked")
+            //        {
+            //            Thread.Sleep(300);
+            //            continue;
+            //        }
+
+            //        throw;
+            //    }
+            //}
+            //return default(TResult);
         }
+
+        TResult TryRead<TArg, TResult>(Func<TArg, TResult> func, TArg arg)
+        {
+            var db = Database as SQLite;
+            // 支持使用锁来控制SQLite并发
+            if (!db.UseLock) return func(arg);
+
+            var rwLock = db.rwLock;
+#if NET4
+            rwLock.EnterReadLock();
+#else
+            rwLock.AcquireReaderLock(30000);
+#endif
+            try
+            {
+                return func(arg);
+            }
+            finally
+            {
+#if NET4
+                rwLock.ExitReadLock();
+#else
+                rwLock.ReleaseReaderLock();
+#endif
+            }
+        }
+
+        public override int BeginTransaction() { return TryWrite<Object, Int32>(s => base.BeginTransaction(), null); }
 
         /// <summary>已重载。增加锁</summary>
         /// <param name="cmd"></param>
         /// <returns></returns>
-        public override Int32 Execute(DbCommand cmd) { return Retry<DbCommand, Int32>(base.Execute, cmd); }
+        public override Int32 Execute(DbCommand cmd) { return TryWrite<DbCommand, Int32>(base.Execute, cmd); }
 
         /// <summary>执行插入语句并返回新增行的自动编号</summary>
         /// <param name="sql">SQL语句</param>
@@ -283,21 +344,31 @@ namespace XCode.DataAccessLayer
         /// <returns>新增行的自动编号</returns>
         public override Int64 InsertAndGetIdentity(string sql, CommandType type = CommandType.Text, params DbParameter[] ps)
         {
-            return Retry<String, Int64>(delegate(String sql2)
+            return TryWrite<String, Int64>(delegate(String sql2)
             {
                 return ExecuteScalar<Int64>(sql2 + ";Select last_insert_rowid() newid", type, ps);
             }, sql);
         }
 
-        protected override T ExecuteScalar<T>(DbCommand cmd) { return Retry<DbCommand, T>(base.ExecuteScalar<T>, cmd); }
+        public override DataSet Query(DbCommand cmd) { return TryRead<DbCommand, DataSet>(base.Query, cmd); }
 
-        public override DbCommand CreateCommand()
+        protected override T ExecuteScalar<T>(DbCommand cmd)
         {
-            var cmd = base.CreateCommand();
-            // SQLite驱动内部的SQLite3.Step会等待指定秒数
-            cmd.CommandTimeout = 3;
-            return cmd;
+            return TryRead<DbCommand, T>(base.ExecuteScalar<T>, cmd);
         }
+
+        //public override T ExecuteScalar<T>(String sql, CommandType type = CommandType.Text, params DbParameter[] ps)
+        //{
+        //    return TryRead<String, T>(s => base.ExecuteScalar<T>(sql, type, ps), sql);
+        //}
+
+        //public override DbCommand CreateCommand()
+        //{
+        //    var cmd = base.CreateCommand();
+        //    // SQLite驱动内部的SQLite3.Step会等待指定秒数
+        //    cmd.CommandTimeout = 15;
+        //    return cmd;
+        //}
         #endregion
     }
 

@@ -512,31 +512,63 @@ namespace Test
 
         static void Test8()
         {
-            var st = new SerialTransport();
-            st.PortName = "COM65";  // 通讯口
-            st.FrameSize = 16;      // 数据帧大小
+            var file = "Common.db";
+            if (File.Exists(file)) File.Delete(file);
 
-            st.Received += (s, e) =>
-            {
-                Console.WriteLine("收到 {0}", e.ToHex());
-                // 返回null表示没有数据需要返回给对方
-                return null;
-            };
-            // 开始异步操作
-            st.ReceiveAsync();
+            var admin = Administrator.FindByID(1);
 
-            //var buf = "01080000801A".ToHex();
-            var buf = "0111C02C".ToHex();
-            for (int i = 0; i < 100; i++)
+            DAL.ShowSQL = false;
+            ThreadPoolX.Debug = false;
+            var pool = ThreadPoolX.Instance;
+            pool.MaxThreads = 5;
+            idx = 0;
+            Total = 0;
+            Error = 0;
+            var count = pool.MaxThreads * 40;
+            for (int i = 0; i < count; i++)
             {
-                Console.WriteLine("发送 {0}", buf.ToHex());
+                pool.Queue(Test8_2);
+            }
+            pool.WaitAll(2000);
+            var max = count * 10.0;
+            for (int i = 0; i < 10000; i++)
+            {
+                Console.CursorLeft = 0;
+
+                Console.Write("正确：{0} 错误：{1} 已完成：{2:p}", Total, Error, (Total + Error) / max);
+
+                Thread.Sleep(500);
+            }
+        }
+
+        static Int32 idx = 0;
+        static Int32 Total = 0;
+        static Int32 Error = 0;
+
+        static void Test8_2(Object state)
+        {
+            var tid = Thread.CurrentThread.ManagedThreadId;
+            var rnd = new Random((Int32)DateTime.Now.Ticks);
+            var pre = "Test_" + tid + "_" + rnd.Next(999999999) + "_";
+            for (int i = 0; i < 10; i++)
+            {
                 try
                 {
-                    st.Send(buf);
-                }
-                catch (Exception ex) { Console.WriteLine("发送错误 " + ex.Message); }
+                    var admin = new Administrator();
+                    //admin.Name = pre + rnd.Next(0, 999999999);
+                    admin.Name = pre + idx++;
+                    admin.RoleID = 1;
+                    admin.Insert();
 
-                Thread.Sleep(1000);
+                    Total++;
+                }
+                catch (Exception ex)
+                {
+                    if (!ex.Message.Contains(" is locked"))
+                        XTrace.WriteLine(ex.Message);
+
+                    Error++;
+                }
             }
         }
 

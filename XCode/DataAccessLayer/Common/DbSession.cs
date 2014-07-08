@@ -113,6 +113,7 @@ namespace XCode.DataAccessLayer
 
             if (Conn != null && Conn.State == ConnectionState.Closed)
             {
+#if DEBUG
                 try
                 {
                     Conn.Open();
@@ -122,6 +123,9 @@ namespace XCode.DataAccessLayer
                     DAL.WriteLog("导致Open错误的连接字符串：{0}", Conn.ConnectionString);
                     throw;
                 }
+#else
+                Conn.Open();
+#endif
             }
         }
 
@@ -226,7 +230,7 @@ namespace XCode.DataAccessLayer
 
         /// <summary>开始事务</summary>
         /// <returns>剩下的事务计数</returns>
-        public Int32 BeginTransaction()
+        public virtual Int32 BeginTransaction()
         {
             if (Disposed) throw new ObjectDisposedException(this.GetType().Name);
 
@@ -539,6 +543,7 @@ namespace XCode.DataAccessLayer
             DbConnection conn = null;
             if (isTrans)
             {
+#if DEBUG
                 try
                 {
                     conn = Factory.CreateConnection();
@@ -551,6 +556,12 @@ namespace XCode.DataAccessLayer
                     DAL.WriteLog("导致GetSchema错误的连接字符串：{0}", conn.ConnectionString);
                     throw new XDbSessionException(this, "取得所有表构架出错！连接字符串有问题，请查看日志！", ex);
                 }
+#else
+                conn = Factory.CreateConnection();
+                checkConnStr();
+                conn.ConnectionString = ConnectionString;
+                conn.Open();
+#endif
             }
             else
             {
