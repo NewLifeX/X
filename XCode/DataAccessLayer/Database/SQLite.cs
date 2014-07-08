@@ -271,15 +271,6 @@ namespace XCode.DataAccessLayer
             return default(TResult);
         }
 
-        ///// <summary>
-        ///// 已重载。增加锁
-        ///// </summary>
-        ///// <param name="sql">SQL语句</param>
-        ///// <param name="type">命令类型，默认SQL文本</param>
-        ///// <param name="ps">命令参数</param>
-        ///// <returns></returns>
-        //public override Int32 Execute(string sql, CommandType type = CommandType.Text, params DbParameter[] ps) { return Retry<String, Int32>(base.Execute, sql); }
-
         /// <summary>已重载。增加锁</summary>
         /// <param name="cmd"></param>
         /// <returns></returns>
@@ -297,6 +288,8 @@ namespace XCode.DataAccessLayer
                 return ExecuteScalar<Int64>(sql2 + ";Select last_insert_rowid() newid", type, ps);
             }, sql);
         }
+
+        protected override T ExecuteScalar<T>(DbCommand cmd) { return Retry<DbCommand, T>(base.ExecuteScalar<T>, cmd); }
 
         public override DbCommand CreateCommand()
         {
