@@ -30,6 +30,12 @@ namespace XCode.DataAccessLayer
                 // 在嵌套事务中，Rollback只能减少嵌套层数，而_Trans.Rollback能让事务马上回滚
                 if (_Trans != null && Opened) _Trans.Rollback();
                 if (_Conn != null) Close();
+                if (_Conn != null)
+                {
+                    var conn = _Conn;
+                    _Conn = null;
+                    conn.Dispose();
+                }
             }
             catch (ObjectDisposedException) { }
             catch (Exception ex)
