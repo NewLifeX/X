@@ -83,7 +83,8 @@ namespace XCode.DataAccessLayer
             // 优化SQLite，如果原始字符串里面没有这些参数，就设置这些参数
             if (!builder.ContainsKey("Pooling")) builder["Pooling"] = "true";
             if (!builder.ContainsKey("Cache Size")) builder["Cache Size"] = "50000";
-            if (!builder.ContainsKey("Page Size")) builder["Page Size"] = "32768";
+            // 加大Page Size会导致磁盘IO大大加大，性能反而有所下降
+            //if (!builder.ContainsKey("Page Size")) builder["Page Size"] = "32768";
             // 这两个设置可以让SQLite拥有数十倍的极限性能，但同时又加大了风险，如果系统遭遇突然断电，数据库会出错，而导致系统无法自动恢复
             if (!builder.ContainsKey("Synchronous")) builder["Synchronous"] = "Off";
             // Journal Mode的内存设置太激进了，容易出事，关闭
@@ -111,6 +112,17 @@ namespace XCode.DataAccessLayer
                 UseLock = value.ToBoolean();
                 if (UseLock) DAL.WriteLog("[{0}]使用SQLite文件锁", ConnName);
             }
+        }
+        #endregion
+
+        #region 构造
+        protected override void OnDispose(bool disposing)
+        {
+            base.OnDispose(disposing);
+
+            // 清空连接池
+            var type = Factory.CreateConnection().GetType();
+            type.Invoke("ClearAllPools");
         }
         #endregion
 
@@ -221,11 +233,11 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 读写锁
-#if NET4
-        public ReaderWriterLockSlim rwLock = new ReaderWriterLockSlim();
-#else
-        public ReaderWriterLock rwLock = new ReaderWriterLock();
-#endif
+//#if NET4
+//        public ReaderWriterLockSlim rwLock = new ReaderWriterLockSlim();
+//#else
+//        public ReaderWriterLock rwLock = new ReaderWriterLock();
+//#endif
         #endregion
     }
 
@@ -254,81 +266,81 @@ namespace XCode.DataAccessLayer
 
         TResult TryWrite<TArg, TResult>(Func<TArg, TResult> func, TArg arg)
         {
-            var db = Database as SQLite;
-            // 支持使用锁来控制SQLite并发
-            // 必须锁数据库对象，因为一个数据库可能有多个数据会话
-            if (db.UseLock)
+//            var db = Database as SQLite;
+//            // 支持使用锁来控制SQLite并发
+//            // 必须锁数据库对象，因为一个数据库可能有多个数据会话
+//            if (db.UseLock)
+//            {
+//                var rwLock = db.rwLock;
+//#if NET4
+//                rwLock.EnterWriteLock();
+//#else
+//                rwLock.AcquireWriterLock(30000);
+//#endif
+//                try
+//                {
+//                    return func(arg);
+//                }
+//                finally
+//                {
+//#if NET4
+//                    rwLock.ExitWriteLock();
+//#else
+//                    rwLock.ReleaseWriterLock();
+//#endif
+//                }
+//            }
+
+            //return func(arg);
+
+            //! 如果异常是文件锁定，则重试
+            for (int i = 0; i < RetryTimes; i++)
             {
-                var rwLock = db.rwLock;
-#if NET4
-                rwLock.EnterWriteLock();
-#else
-                rwLock.AcquireWriterLock(30000);
-#endif
                 try
                 {
                     return func(arg);
                 }
-                finally
+                catch (Exception ex)
                 {
-#if NET4
-                    rwLock.ExitWriteLock();
-#else
-                    rwLock.ReleaseWriterLock();
-#endif
+                    if (i >= RetryTimes - 1) throw;
+
+                    if (ex.Message.Contains("is locked"))
+                    {
+                        Thread.Sleep(300);
+                        continue;
+                    }
+
+                    throw;
                 }
             }
-
-            return func(arg);
-
-            ////! 如果异常是文件锁定，则重试
-            //for (int i = 0; i < RetryTimes; i++)
-            //{
-            //    try
-            //    {
-            //        return func(arg);
-            //    }
-            //    catch (Exception ex)
-            //    {
-            //        if (i >= RetryTimes - 1) throw;
-
-            //        if (ex.Message == "The database file is locked")
-            //        {
-            //            Thread.Sleep(300);
-            //            continue;
-            //        }
-
-            //        throw;
-            //    }
-            //}
-            //return default(TResult);
+            return default(TResult);
         }
 
-        TResult TryRead<TArg, TResult>(Func<TArg, TResult> func, TArg arg)
-        {
-            var db = Database as SQLite;
-            // 支持使用锁来控制SQLite并发
-            if (!db.UseLock) return func(arg);
+//        TResult TryRead<TArg, TResult>(Func<TArg, TResult> func, TArg arg)
+//        {
+//            var db = Database as SQLite;
+//            // 支持使用锁来控制SQLite并发
+//            if (!db.UseLock) return func(arg);
 
-            var rwLock = db.rwLock;
-#if NET4
-            rwLock.EnterReadLock();
-#else
-            rwLock.AcquireReaderLock(30000);
-#endif
-            try
-            {
-                return func(arg);
-            }
-            finally
-            {
-#if NET4
-                rwLock.ExitReadLock();
-#else
-                rwLock.ReleaseReaderLock();
-#endif
-            }
-        }
+//            var rwLock = db.rwLock;
+//#if NET4
+//            rwLock.EnterReadLock();
+//#else
+//            rwLock.AcquireReaderLock(30000);
+//#endif
+//            try
+//            {
+//                return func(arg);
+//            }
+//            finally
+//            {
+//#if NET4
+//                rwLock.ExitReadLock();
+//#else
+//                rwLock.ReleaseReaderLock();
+//#endif
+//            }
+//        }
 
         public override int BeginTransaction() { return TryWrite<Object, Int32>(s => base.BeginTransaction(), null); }
 
@@ -350,16 +362,11 @@ namespace XCode.DataAccessLayer
             }, sql);
         }
 
-        public override DataSet Query(DbCommand cmd) { return TryRead<DbCommand, DataSet>(base.Query, cmd); }
+        //public override DataSet Query(DbCommand cmd) { return TryRead<DbCommand, DataSet>(base.Query, cmd); }
 
-        protected override T ExecuteScalar<T>(DbCommand cmd)
-        {
-            return TryRead<DbCommand, T>(base.ExecuteScalar<T>, cmd);
-        }
-
-        //public override T ExecuteScalar<T>(String sql, CommandType type = CommandType.Text, params DbParameter[] ps)
+        //protected override T ExecuteScalar<T>(DbCommand cmd)
         //{
-        //    return TryRead<String, T>(s => base.ExecuteScalar<T>(sql, type, ps), sql);
+        //    return TryRead<DbCommand, T>(base.ExecuteScalar<T>, cmd);
         //}
 
         //public override DbCommand CreateCommand()
