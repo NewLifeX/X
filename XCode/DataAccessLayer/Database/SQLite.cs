@@ -120,9 +120,13 @@ namespace XCode.DataAccessLayer
         {
             base.OnDispose(disposing);
 
-            // 清空连接池
-            var type = Factory.CreateConnection().GetType();
-            type.Invoke("ClearAllPools");
+            // 不用Factory属性，为了避免触发加载SQLite驱动
+            if (_dbProviderFactory != null)
+            {
+                // 清空连接池
+                var type = _dbProviderFactory.CreateConnection().GetType();
+                type.Invoke("ClearAllPools");
+            }
         }
         #endregion
 
@@ -233,11 +237,11 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 读写锁
-//#if NET4
-//        public ReaderWriterLockSlim rwLock = new ReaderWriterLockSlim();
-//#else
-//        public ReaderWriterLock rwLock = new ReaderWriterLock();
-//#endif
+        //#if NET4
+        //        public ReaderWriterLockSlim rwLock = new ReaderWriterLockSlim();
+        //#else
+        //        public ReaderWriterLock rwLock = new ReaderWriterLock();
+        //#endif
         #endregion
     }
 
@@ -266,30 +270,30 @@ namespace XCode.DataAccessLayer
 
         TResult TryWrite<TArg, TResult>(Func<TArg, TResult> func, TArg arg)
         {
-//            var db = Database as SQLite;
-//            // 支持使用锁来控制SQLite并发
-//            // 必须锁数据库对象，因为一个数据库可能有多个数据会话
-//            if (db.UseLock)
-//            {
-//                var rwLock = db.rwLock;
-//#if NET4
-//                rwLock.EnterWriteLock();
-//#else
-//                rwLock.AcquireWriterLock(30000);
-//#endif
-//                try
-//                {
-//                    return func(arg);
-//                }
-//                finally
-//                {
-//#if NET4
-//                    rwLock.ExitWriteLock();
-//#else
-//                    rwLock.ReleaseWriterLock();
-//#endif
-//                }
-//            }
+            //            var db = Database as SQLite;
+            //            // 支持使用锁来控制SQLite并发
+            //            // 必须锁数据库对象，因为一个数据库可能有多个数据会话
+            //            if (db.UseLock)
+            //            {
+            //                var rwLock = db.rwLock;
+            //#if NET4
+            //                rwLock.EnterWriteLock();
+            //#else
+            //                rwLock.AcquireWriterLock(30000);
+            //#endif
+            //                try
+            //                {
+            //                    return func(arg);
+            //                }
+            //                finally
+            //                {
+            //#if NET4
+            //                    rwLock.ExitWriteLock();
+            //#else
+            //                    rwLock.ReleaseWriterLock();
+            //#endif
+            //                }
+            //            }
 
             //return func(arg);
 
@@ -316,31 +320,31 @@ namespace XCode.DataAccessLayer
             return default(TResult);
         }
 
-//        TResult TryRead<TArg, TResult>(Func<TArg, TResult> func, TArg arg)
-//        {
-//            var db = Database as SQLite;
-//            // 支持使用锁来控制SQLite并发
-//            if (!db.UseLock) return func(arg);
+        //        TResult TryRead<TArg, TResult>(Func<TArg, TResult> func, TArg arg)
+        //        {
+        //            var db = Database as SQLite;
+        //            // 支持使用锁来控制SQLite并发
+        //            if (!db.UseLock) return func(arg);
 
-//            var rwLock = db.rwLock;
-//#if NET4
-//            rwLock.EnterReadLock();
-//#else
-//            rwLock.AcquireReaderLock(30000);
-//#endif
-//            try
-//            {
-//                return func(arg);
-//            }
-//            finally
-//            {
-//#if NET4
-//                rwLock.ExitReadLock();
-//#else
-//                rwLock.ReleaseReaderLock();
-//#endif
-//            }
-//        }
+        //            var rwLock = db.rwLock;
+        //#if NET4
+        //            rwLock.EnterReadLock();
+        //#else
+        //            rwLock.AcquireReaderLock(30000);
+        //#endif
+        //            try
+        //            {
+        //                return func(arg);
+        //            }
+        //            finally
+        //            {
+        //#if NET4
+        //                rwLock.ExitReadLock();
+        //#else
+        //                rwLock.ReleaseReaderLock();
+        //#endif
+        //            }
+        //        }
 
         public override int BeginTransaction() { return TryWrite<Object, Int32>(s => base.BeginTransaction(), null); }
 
