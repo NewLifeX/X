@@ -21,6 +21,7 @@ using NewLife.Reflection;
 using NewLife.Serialization;
 using NewLife.Threading;
 using NewLife.Xml;
+using XCode.Cache;
 using XCode.DataAccessLayer;
 using XCode.Sync;
 using XCode.Transform;
@@ -31,7 +32,7 @@ namespace Test
     {
         private static void Main(string[] args)
         {
-            XTrace.UseConsole();
+            //XTrace.UseConsole();
             while (true)
             {
                 Stopwatch sw = new Stopwatch();
@@ -512,32 +513,103 @@ namespace Test
 
         static void Test8()
         {
-            var file = "Common.db";
+            //// 删除数据库
+            //var file = "Common.db";
+            //if (File.Exists(file)) File.Delete(file);
+
+            XTrace.Debug = false;
+            // 关闭SQL日志，关闭线程池调试
+            DAL.ShowSQL = false;
+            DAL.Debug = false;
+            CacheSetting.Debug = false;
+            ThreadPoolX.Debug = false;
+
+            TestSQLite(100, 0);
+            TestSQLite(100, 1);
+            TestSQLite(100, 2);
+            TestSQLite(100, 5);
+            TestSQLite(100, 10);
+
+            TestSQLite(50, 0);
+            TestSQLite(50, 1);
+            TestSQLite(50, 2);
+            TestSQLite(50, 5);
+            TestSQLite(50, 10);
+
+            TestSQLite(20, 0);
+            TestSQLite(20, 1);
+            TestSQLite(20, 2);
+            TestSQLite(20, 5);
+            TestSQLite(20, 10);
+
+            TestSQLite(10, 0);
+            TestSQLite(10, 1);
+            TestSQLite(10, 2);
+            TestSQLite(10, 5);
+            TestSQLite(10, 10);
+
+            TestSQLite(5, 0);
+            TestSQLite(5, 1);
+            TestSQLite(5, 2);
+            TestSQLite(5, 5);
+            TestSQLite(5, 10);
+        }
+
+        static void TestSQLite(Int32 maxths = 50, Int32 timeout = 0)
+        {
+            var key = String.Format("Common_{0}_{1}", maxths, timeout);
+            var file = key + ".db";
             if (File.Exists(file)) File.Delete(file);
 
-            var admin = Administrator.FindByID(1);
+            if (!DAL.ConnStrs.ContainsKey(key)) DAL.AddConnStr(key, "Data Source=" + file + ";Default Timeout=" + timeout, null, "SQLite");
+            // 修改默认链接，所有线程生效
+            Administrator.Meta.Table.ConnName = key;
+            Administrator.Meta.ConnName = key;
 
-            DAL.ShowSQL = false;
-            ThreadPoolX.Debug = false;
+            // 查询预热一次
+            var admin = Administrator.FindByID(1);
+            if (admin != null) admin.Delete();
+
+            //Thread.Sleep(2000);
+            Console.Write("{0,3}并发{1,2}s延迟 ", maxths, timeout);
+
+            // 使用线程池
             var pool = ThreadPoolX.Instance;
-            pool.MaxThreads = 5;
+            // 最大工作线程
+            pool.MaxThreads = maxths;
+
             idx = 0;
             Total = 0;
             Error = 0;
-            var count = pool.MaxThreads * 40;
-            for (int i = 0; i < count; i++)
-            {
-                pool.Queue(Test8_2);
-            }
-            pool.WaitAll(2000);
-            var max = count * 10.0;
-            for (int i = 0; i < 10000; i++)
-            {
-                Console.CursorLeft = 0;
 
-                Console.Write("正确：{0} 错误：{1} 已完成：{2:p}", Total, Error, (Total + Error) / max);
+            var sw = new Stopwatch();
+            sw.Start();
+            // 任务数量为最大工作线程的10倍
+            var count = pool.MaxThreads * 100;
+            for (int i = 0; i < count; i++) pool.Queue(Test8_2, key);
 
+            pool.WaitAll(200);
+            var max = count * 2.0;
+            var left = Console.CursorLeft;
+            while (true)
+            {
+                Console.CursorLeft = left;
+
+                Console.Write("正确：{0} 错误：{1} 完成：{2:p} 速度：{3}", Total, Error, (Total + Error) / max, (Int32)(Total / sw.Elapsed.TotalSeconds));
+
+                if (pool.RunningCount <= 0) break;
                 Thread.Sleep(500);
+            }
+            //Console.WriteLine();
+            sw.Stop();
+            Console.WriteLine(" 耗时 {0}s", (Int32)sw.Elapsed.TotalSeconds);
+
+            if (File.Exists(file))
+            {
+                DAL.Create(key).Db.Dispose();
+                GC.Collect();
+                Thread.Sleep(1000);
+                File.Delete(file);
             }
         }
 
@@ -547,27 +619,33 @@ namespace Test
 
         static void Test8_2(Object state)
         {
+            Administrator.Meta.ConnName = state + "";
+
             var tid = Thread.CurrentThread.ManagedThreadId;
             var rnd = new Random((Int32)DateTime.Now.Ticks);
             var pre = "Test_" + tid + "_" + rnd.Next(999999999) + "_";
-            for (int i = 0; i < 10; i++)
+            // 每个线程重复10次插入操作
+            for (int i = 0; i < 2; i++)
             {
+                //Thread.Sleep(100);
+                // 全局计数，避免名称重复
+                Interlocked.Increment(ref idx);
                 try
                 {
                     var admin = new Administrator();
-                    //admin.Name = pre + rnd.Next(0, 999999999);
-                    admin.Name = pre + idx++;
+                    admin.Name = pre + idx;
                     admin.RoleID = 1;
                     admin.Insert();
 
-                    Total++;
+                    Interlocked.Increment(ref Total);
                 }
                 catch (Exception ex)
                 {
+                    // 输出非数据库锁定错误
                     if (!ex.Message.Contains(" is locked"))
                         XTrace.WriteLine(ex.Message);
 
-                    Error++;
+                    Interlocked.Increment(ref Error);
                 }
             }
         }
