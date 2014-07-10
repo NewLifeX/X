@@ -255,7 +255,11 @@ namespace NewLife.Xml
             if (filename.IsNullOrWhiteSpace()) throw new XException("未指定{0}的配置文件路径！", typeof(TConfig).Name);
             filename = filename.GetFullPath();
 
-            this.ToXmlFile(filename, null, "", "", true, true);
+            // 加锁避免多线程保存同一个文件冲突
+            lock (this)
+            {
+                this.ToXmlFile(filename, null, "", "", true, true);
+            }
         }
         #endregion
     }
