@@ -60,9 +60,9 @@ namespace XCode.DataAccessLayer
         /// </remarks>
         public Boolean AutoVacuum { get { return _AutoVacuum; } set { _AutoVacuum = value; } }
 
-        private Boolean _UseLock;
-        /// <summary>使用锁来控制并发</summary>
-        public Boolean UseLock { get { return _UseLock; } set { _UseLock = value; } }
+        //private Boolean _UseLock;
+        ///// <summary>使用锁来控制并发</summary>
+        //public Boolean UseLock { get { return _UseLock; } set { _UseLock = value; } }
 
         static readonly String MemoryDatabase = ":memory:";
 
@@ -104,14 +104,14 @@ namespace XCode.DataAccessLayer
             }
 
             // 默认超时时间
-            if (!builder.ContainsKey("Default Timeout")) builder["Default Timeout"] = 1 + "";
+            if (!builder.ContainsKey("Default Timeout")) builder["Default Timeout"] = 2 + "";
 
-            var value = "";
-            if (builder.TryGetAndRemove("UseLock", out value) && !String.IsNullOrEmpty(value))
-            {
-                UseLock = value.ToBoolean();
-                if (UseLock) DAL.WriteLog("[{0}]使用SQLite文件锁", ConnName);
-            }
+            //var value = "";
+            //if (builder.TryGetAndRemove("UseLock", out value) && !String.IsNullOrEmpty(value))
+            //{
+            //    UseLock = value.ToBoolean();
+            //    if (UseLock) DAL.WriteLog("[{0}]使用SQLite文件锁", ConnName);
+            //}
         }
         #endregion
 
@@ -264,61 +264,60 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 基本方法 查询/执行
-        /// <summary>文件锁定重试次数</summary>
-        const Int32 RetryTimes = 5;
+        ///// <summary>文件锁定重试次数</summary>
+        //const Int32 RetryTimes = 5;
 
+        //TResult TryWrite<TArg, TResult>(Func<TArg, TResult> func, TArg arg)
+        //{
+        //    //            var db = Database as SQLite;
+        //    //            // 支持使用锁来控制SQLite并发
+        //    //            // 必须锁数据库对象，因为一个数据库可能有多个数据会话
+        //    //            if (db.UseLock)
+        //    //            {
+        //    //                var rwLock = db.rwLock;
+        //    //#if NET4
+        //    //                rwLock.EnterWriteLock();
+        //    //#else
+        //    //                rwLock.AcquireWriterLock(30000);
+        //    //#endif
+        //    //                try
+        //    //                {
+        //    //                    return func(arg);
+        //    //                }
+        //    //                finally
+        //    //                {
+        //    //#if NET4
+        //    //                    rwLock.ExitWriteLock();
+        //    //#else
+        //    //                    rwLock.ReleaseWriterLock();
+        //    //#endif
+        //    //                }
+        //    //            }
 
-        TResult TryWrite<TArg, TResult>(Func<TArg, TResult> func, TArg arg)
-        {
-            //            var db = Database as SQLite;
-            //            // 支持使用锁来控制SQLite并发
-            //            // 必须锁数据库对象，因为一个数据库可能有多个数据会话
-            //            if (db.UseLock)
-            //            {
-            //                var rwLock = db.rwLock;
-            //#if NET4
-            //                rwLock.EnterWriteLock();
-            //#else
-            //                rwLock.AcquireWriterLock(30000);
-            //#endif
-            //                try
-            //                {
-            //                    return func(arg);
-            //                }
-            //                finally
-            //                {
-            //#if NET4
-            //                    rwLock.ExitWriteLock();
-            //#else
-            //                    rwLock.ReleaseWriterLock();
-            //#endif
-            //                }
-            //            }
+        //    return func(arg);
 
-            //return func(arg);
+        //    ////! 如果异常是文件锁定，则重试
+        //    //for (int i = 0; i < RetryTimes; i++)
+        //    //{
+        //    //    try
+        //    //    {
+        //    //        return func(arg);
+        //    //    }
+        //    //    catch (Exception ex)
+        //    //    {
+        //    //        if (i >= RetryTimes - 1) throw;
 
-            //! 如果异常是文件锁定，则重试
-            for (int i = 0; i < RetryTimes; i++)
-            {
-                try
-                {
-                    return func(arg);
-                }
-                catch (Exception ex)
-                {
-                    if (i >= RetryTimes - 1) throw;
+        //    //        if (ex.Message.Contains("is locked"))
+        //    //        {
+        //    //            Thread.Sleep(300);
+        //    //            continue;
+        //    //        }
 
-                    if (ex.Message.Contains("is locked"))
-                    {
-                        Thread.Sleep(300);
-                        continue;
-                    }
-
-                    throw;
-                }
-            }
-            return default(TResult);
-        }
+        //    //        throw;
+        //    //    }
+        //    //}
+        //    //return default(TResult);
+        //}
 
         //        TResult TryRead<TArg, TResult>(Func<TArg, TResult> func, TArg arg)
         //        {
@@ -346,12 +345,12 @@ namespace XCode.DataAccessLayer
         //            }
         //        }
 
-        public override int BeginTransaction() { return TryWrite<Object, Int32>(s => base.BeginTransaction(), null); }
+        //public override int BeginTransaction() { return TryWrite<Object, Int32>(s => base.BeginTransaction(), null); }
 
-        /// <summary>已重载。增加锁</summary>
-        /// <param name="cmd"></param>
-        /// <returns></returns>
-        public override Int32 Execute(DbCommand cmd) { return TryWrite<DbCommand, Int32>(base.Execute, cmd); }
+        ///// <summary>已重载。增加锁</summary>
+        ///// <param name="cmd"></param>
+        ///// <returns></returns>
+        //public override Int32 Execute(DbCommand cmd) { return TryWrite<DbCommand, Int32>(base.Execute, cmd); }
 
         /// <summary>执行插入语句并返回新增行的自动编号</summary>
         /// <param name="sql">SQL语句</param>
@@ -360,10 +359,11 @@ namespace XCode.DataAccessLayer
         /// <returns>新增行的自动编号</returns>
         public override Int64 InsertAndGetIdentity(string sql, CommandType type = CommandType.Text, params DbParameter[] ps)
         {
-            return TryWrite<String, Int64>(delegate(String sql2)
-            {
-                return ExecuteScalar<Int64>(sql2 + ";Select last_insert_rowid() newid", type, ps);
-            }, sql);
+            //return TryWrite<String, Int64>(delegate(String sql2)
+            //{
+            //    return ExecuteScalar<Int64>(sql2 + ";Select last_insert_rowid() newid", type, ps);
+            //}, sql);
+            return ExecuteScalar<Int64>(sql + ";Select last_insert_rowid() newid", type, ps);
         }
 
         //public override DataSet Query(DbCommand cmd) { return TryRead<DbCommand, DataSet>(base.Query, cmd); }
@@ -424,7 +424,7 @@ namespace XCode.DataAccessLayer
 
         protected override string GetFieldType(IDataColumn field)
         {
-            String typeName = base.GetFieldType(field);
+            var typeName = base.GetFieldType(field);
 
             // 自增字段必须是integer
             if (field.Identity && typeName == "int") return "integer";
@@ -434,7 +434,7 @@ namespace XCode.DataAccessLayer
 
         protected override DataRow[] FindDataType(IDataColumn field, string typeName, bool? isLong)
         {
-            DataRow[] drs = base.FindDataType(field, typeName, isLong);
+            var drs = base.FindDataType(field, typeName, isLong);
             if (drs == null || drs.Length < 1)
             {
                 // 字符串
