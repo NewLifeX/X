@@ -20,7 +20,7 @@ namespace XCode.Cache
         #endregion
 
         /// <summary>调用填充方法前设置连接名和表名，调用后还原</summary>
-        internal void InvokeFill(Func callback)
+        internal TResult InvokeFill<T, TResult>(Func<T, TResult> callback, T arg)
         {
             var cn = Entity<TEntity>.Meta.ConnName;
             var tn = Entity<TEntity>.Meta.TableName;
@@ -30,17 +30,18 @@ namespace XCode.Cache
 
             try
             {
-                callback();
+                return callback(arg);
             }
             // 屏蔽对象销毁异常
-            catch (ObjectDisposedException) { }
+            catch (ObjectDisposedException) { return default(TResult); }
             // 屏蔽线程取消异常
-            catch (ThreadAbortException) { }
+            catch (ThreadAbortException) { return default(TResult); }
             catch (Exception ex)
             {
                 // 无效操作，句柄未初始化，不用出现
-                if (ex is InvalidOperationException && ex.Message.Contains("句柄未初始化")) return;
+                if (ex is InvalidOperationException && ex.Message.Contains("句柄未初始化")) return default(TResult);
                 if (DAL.Debug) DAL.WriteLog(ex.ToString());
+                throw;
             }
             finally
             {

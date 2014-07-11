@@ -2,6 +2,8 @@
 using System.Text;
 using System.Threading;
 using NewLife.Log;
+using NewLife.Reflection;
+using NewLife.Threading;
 using XCode.DataAccessLayer;
 
 namespace XCode.Cache
@@ -66,9 +68,9 @@ namespace XCode.Cache
             }
         }
 
-        private FillListDelegate<TEntity> _FillListMethod;
+        private Func<EntityList<TEntity>> _FillListMethod;
         /// <summary>填充数据的方法</summary>
-        public FillListDelegate<TEntity> FillListMethod
+        public Func<EntityList<TEntity>> FillListMethod
         {
             get
             {
@@ -96,7 +98,7 @@ namespace XCode.Cache
                     DAL.WriteLog("异步更新实体缓存（第{2}次）：{0} 原因：{1}", typeof(TEntity).FullName, reason, Times);
                 }
 
-                ThreadPool.QueueUserWorkItem(FillWaper, isnull);
+                ThreadPoolX.QueueUserWorkItem(FillWaper, isnull);
             }
             else
             {
@@ -117,22 +119,23 @@ namespace XCode.Cache
 
         private void FillWaper(Object state)
         {
-            try
-            {
-                InvokeFill(delegate { _Entities = FillListMethod(); });
+            //try
+            //{
+            //InvokeFill(delegate { _Entities = FillListMethod(); });
+            _Entities = InvokeFill<Object, EntityList<TEntity>>(s => FillListMethod(), null);
 
-                // HUIYUE 2012.12.08
-                // 注释掉这句，这句会导致在 _Entities.Count = 0 的情况下多次调用EntityList<TEntity>.Empty
-                // 使得 EntityList<TEntity>.Empty 被赋值，然后就杯具了
-                // 清空
-                //if (_Entities != null && _Entities.Count < 1) _Entities = null;
+            // HUIYUE 2012.12.08
+            // 注释掉这句，这句会导致在 _Entities.Count = 0 的情况下多次调用EntityList<TEntity>.Empty
+            // 使得 EntityList<TEntity>.Empty 被赋值，然后就杯具了
+            // 清空
+            //if (_Entities != null && _Entities.Count < 1) _Entities = null;
 
-                if (Debug) DAL.WriteLog("完成更新缓存（第{1}次）：{0}", typeof(TEntity).FullName, Times);
-            }
-            catch (Exception ex)
-            {
-                XTrace.WriteException(ex);
-            }
+            if (Debug) DAL.WriteLog("完成更新缓存（第{1}次）：{0}", typeof(TEntity).FullName, Times);
+            //}
+            //catch (Exception ex)
+            //{
+            //    XTrace.WriteException(ex);
+            //}
         }
 
         /// <summary>清除缓存</summary>
@@ -215,8 +218,8 @@ namespace XCode.Cache
         #endregion
     }
 
-    /// <summary>填充数据的方法</summary>
-    /// <typeparam name="TEntity">实体类型</typeparam>
-    /// <returns></returns>
-    public delegate EntityList<TEntity> FillListDelegate<TEntity>() where TEntity : Entity<TEntity>, new();
+    ///// <summary>填充数据的方法</summary>
+    ///// <typeparam name="TEntity">实体类型</typeparam>
+    ///// <returns></returns>
+    //public delegate EntityList<TEntity> FillListDelegate<TEntity>() where TEntity : Entity<TEntity>, new();
 }

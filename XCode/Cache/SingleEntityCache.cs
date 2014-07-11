@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using NewLife.Log;
+using NewLife.Reflection;
 using NewLife.Threading;
 using XCode.DataAccessLayer;
 
@@ -34,9 +35,9 @@ namespace XCode.Cache
         /// <summary>允许缓存空对象</summary>
         public Boolean AllowNull { get { return _AllowNull; } set { _AllowNull = value; } }
 
-        private FindKeyDelegate<TKey, TEntity> _FindKeyMethod;
+        private Func<TKey, TEntity> _FindKeyMethod;
         /// <summary>查找数据的方法</summary>
-        public FindKeyDelegate<TKey, TEntity> FindKeyMethod
+        public Func<TKey, TEntity> FindKeyMethod
         {
             get
             {
@@ -166,13 +167,13 @@ namespace XCode.Cache
         /// <summary>命中</summary>
         public Int32 Shoot;
 
-        /// <summary>第一次命中</summary>
+        /// <summary>第一次命中，加锁之前</summary>
         public Int32 Shoot1;
 
-        /// <summary>第二次命中</summary>
+        /// <summary>第二次命中，加锁之后</summary>
         public Int32 Shoot2;
 
-        /// <summary>无效次数</summary>
+        /// <summary>无效次数，不允许空但是查到对象又为空</summary>
         public Int32 Invalid;
 
         /// <summary>下一次显示时间</summary>
@@ -183,7 +184,7 @@ namespace XCode.Cache
         {
             if (Total > 0)
             {
-                StringBuilder sb = new StringBuilder();
+                var sb = new StringBuilder();
                 sb.AppendFormat("单对象缓存<{0},{1}>", typeof(TKey).Name, typeof(TEntity).Name);
                 sb.AppendFormat("总次数{0}", Total);
                 if (Shoot > 0) sb.AppendFormat("，数据命中{0}（{1:P02}）", Shoot, (Double)Shoot / Total);
@@ -204,8 +205,8 @@ namespace XCode.Cache
             if (key == null) return null;
             if (Type.GetTypeCode(typeof(TKey)) == TypeCode.String)
             {
-                String value = key as String;
-                if (String.IsNullOrEmpty(value)) return null;
+                var value = key as String;
+                if (value == String.Empty) return null;
             }
 
             // 更新统计信息
@@ -233,41 +234,28 @@ namespace XCode.Cache
                 item.Key = key;
 
                 //队列满时，移除最老的一个
-                if (Entities.Count >= MaxEntity)
-                {
-                    TKey keyFirst = GetFirstKey();
-                    if (keyFirst != null && (Type.GetTypeCode(typeof(TKey)) != TypeCode.String || String.IsNullOrEmpty(keyFirst as String)))
-                    {
-                        CacheItem item2 = null;
-                        if (Entities.TryGetValue(keyFirst, out item2) && item2 != null)
-                        {
-                            if (Debug) DAL.WriteLog("单实体缓存{0}超过最大数量限制{1}，准备移除第一项{2}", typeof(TEntity).FullName, MaxEntity, keyFirst);
-
-                            Entities.Remove(keyFirst);
-
-                            //自动保存
-                            if (AutoSave && item2.Entity != null) InvokeFill(delegate { item2.Entity.Update(); });
-                        }
-                    }
-                }
+                while (Entities.Count >= MaxEntity) RemoveFirst();
 
                 //查找数据
                 //TEntity entity = FindKeyMethod(key);
-                TEntity entity = null;
-                InvokeFill(delegate { entity = FindKeyMethod(key); });
-                if (entity != null || AllowNull)
-                {
-                    item.Entity = entity;
-                    item.ExpireTime = DateTime.Now.AddSeconds(Expriod);
+                //TEntity entity = null;
+                //InvokeFill(delegate { entity = FindKeyMethod(key); });
+                //var entity = InvokeFill(FindKeyMethod, key);
+                //if (entity != null || AllowNull)
+                //{
+                //    item.Entity = entity;
+                //    item.ExpireTime = DateTime.Now.AddSeconds(Expriod);
 
-                    if (!Entities.ContainsKey(key)) Entities.Add(key, item);
-                }
-                else
-                {
-                    Interlocked.Increment(ref Invalid);
-                }
+                //    if (!Entities.ContainsKey(key)) Entities.Add(key, item);
+                //}
+                //else
+                //{
+                //    Interlocked.Increment(ref Invalid);
+                //}
 
-                return entity;
+                //return entity;
+
+                return UpdateCache(item, key);
             }
         }
 
@@ -289,20 +277,63 @@ namespace XCode.Cache
             }
 
             //自动保存
-            if (AutoSave && item.Entity != null) InvokeFill(delegate { item.Entity.Update(); });
+            AutoUpdate(item);
 
             //查找数据
             //item.Entity = FindKeyMethod(key);
-            InvokeFill(delegate { item.Entity = FindKeyMethod(key); });
-            item.ExpireTime = DateTime.Now.AddSeconds(Expriod);
+            //InvokeFill(e => e.Entity = FindKeyMethod(key), item);
+            //item.Entity = InvokeFill(FindKeyMethod, key);
+            //item.ExpireTime = DateTime.Now.AddSeconds(Expriod);
 
-            return item.Entity;
+            //return item.Entity;
+
+            return UpdateCache(item, key);
+        }
+
+        /// <summary>更新缓存</summary>
+        /// <param name="item"></param>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        TEntity UpdateCache(CacheItem item, TKey key)
+        {
+            var entity = InvokeFill(FindKeyMethod, key);
+            if (entity != null || AllowNull)
+            {
+                item.Entity = entity;
+                item.ExpireTime = DateTime.Now.AddSeconds(Expriod);
+
+                if (!Entities.ContainsKey(key)) Entities.Add(key, item);
+            }
+            else
+            {
+                Interlocked.Increment(ref Invalid);
+            }
+
+            return entity;
         }
 
         /// <summary>获取数据</summary>
         /// <param name="key"></param>
         /// <returns></returns>
         public TEntity this[TKey key] { get { return GetItem(key); } }
+
+        private void RemoveFirst()
+        {
+            var keyFirst = GetFirstKey();
+            if (keyFirst != null && (Type.GetTypeCode(typeof(TKey)) != TypeCode.String || String.IsNullOrEmpty(keyFirst as String)))
+            {
+                CacheItem item = null;
+                if (Entities.TryGetValue(keyFirst, out item) && item != null)
+                {
+                    if (Debug) DAL.WriteLog("单实体缓存{0}超过最大数量限制{1}，准备移除第一项{2}", typeof(TEntity).FullName, MaxEntity, keyFirst);
+
+                    Entities.Remove(keyFirst);
+
+                    //自动保存
+                    AutoUpdate(item);
+                }
+            }
+        }
 
         private TKey GetFirstKey()
         {
@@ -311,6 +342,11 @@ namespace XCode.Cache
                 return item.Key;
             }
             return default(TKey);
+        }
+
+        private void AutoUpdate(CacheItem item)
+        {
+            if (item != null && AutoSave && item.Entity != null) InvokeFill(e => e.Entity.Update(), item);
         }
         #endregion
 
@@ -366,7 +402,7 @@ namespace XCode.Cache
             {
                 if (!Entities.TryGetValue(key, out item)) return;
 
-                if (AutoSave && item != null && item.Entity != null) InvokeFill(delegate { item.Entity.Update(); });
+                AutoUpdate(item);
 
                 Entities.Remove(key);
             }
@@ -381,13 +417,13 @@ namespace XCode.Cache
             {
                 lock (Entities)
                 {
-                    foreach (TKey key in Entities.Keys)
+                    foreach (var key in Entities.Keys)
                     {
-                        CacheItem item = Entities[key];
+                        var item = Entities[key];
                         if (item == null || item.Entity == null) continue;
 
                         //item.Entity.Update();
-                        InvokeFill(delegate { item.Entity.Update(); });
+                        AutoUpdate(item);
                     }
                 }
             }
@@ -417,10 +453,10 @@ namespace XCode.Cache
         #endregion
     }
 
-    /// <summary>查找数据的方法</summary>
-    /// <typeparam name="TKey">键值类型</typeparam>
-    /// <typeparam name="TEntity">实体类型</typeparam>
-    /// <param name="key">键值</param>
-    /// <returns></returns>
-    public delegate TEntity FindKeyDelegate<TKey, TEntity>(TKey key) where TEntity : Entity<TEntity>, new();
+    ///// <summary>查找数据的方法</summary>
+    ///// <typeparam name="TKey">键值类型</typeparam>
+    ///// <typeparam name="TEntity">实体类型</typeparam>
+    ///// <param name="key">键值</param>
+    ///// <returns></returns>
+    //public delegate TEntity FindKeyDelegate<TKey, TEntity>(TKey key) where TEntity : Entity<TEntity>, new();
 }
