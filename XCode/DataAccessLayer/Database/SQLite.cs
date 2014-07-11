@@ -123,9 +123,13 @@ namespace XCode.DataAccessLayer
             // 不用Factory属性，为了避免触发加载SQLite驱动
             if (_dbProviderFactory != null)
             {
-                // 清空连接池
-                var type = _dbProviderFactory.CreateConnection().GetType();
-                type.Invoke("ClearAllPools");
+                try
+                {
+                    // 清空连接池
+                    var type = _dbProviderFactory.CreateConnection().GetType();
+                    type.Invoke("ClearAllPools");
+                }
+                catch { }
             }
         }
         #endregion
