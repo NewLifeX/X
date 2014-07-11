@@ -19,8 +19,8 @@ namespace XCode.Cache
         public String TableName { get { return _TableName; } set { _TableName = value; } }
         #endregion
 
-        /// <summary>调用填充方法前设置连接名和表名，调用后还原</summary>
-        internal TResult InvokeFill<T, TResult>(Func<T, TResult> callback, T arg)
+        /// <summary>调用委托方法前设置连接名和表名，调用后还原</summary>
+        internal TResult Invoke<T, TResult>(Func<T, TResult> callback, T arg)
         {
             var cn = Entity<TEntity>.Meta.ConnName;
             var tn = Entity<TEntity>.Meta.TableName;

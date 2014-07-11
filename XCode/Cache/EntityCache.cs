@@ -119,10 +119,7 @@ namespace XCode.Cache
 
         private void FillWaper(Object state)
         {
-            //try
-            //{
-            //InvokeFill(delegate { _Entities = FillListMethod(); });
-            _Entities = InvokeFill<Object, EntityList<TEntity>>(s => FillListMethod(), null);
+            _Entities = Invoke<Object, EntityList<TEntity>>(s => FillListMethod(), null);
 
             // HUIYUE 2012.12.08
             // 注释掉这句，这句会导致在 _Entities.Count = 0 的情况下多次调用EntityList<TEntity>.Empty
@@ -131,11 +128,6 @@ namespace XCode.Cache
             //if (_Entities != null && _Entities.Count < 1) _Entities = null;
 
             if (Debug) DAL.WriteLog("完成更新缓存（第{1}次）：{0}", typeof(TEntity).FullName, Times);
-            //}
-            //catch (Exception ex)
-            //{
-            //    XTrace.WriteException(ex);
-            //}
         }
 
         /// <summary>清除缓存</summary>
@@ -217,9 +209,4 @@ namespace XCode.Cache
         }
         #endregion
     }
-
-    ///// <summary>填充数据的方法</summary>
-    ///// <typeparam name="TEntity">实体类型</typeparam>
-    ///// <returns></returns>
-    //public delegate EntityList<TEntity> FillListDelegate<TEntity>() where TEntity : Entity<TEntity>, new();
 }

@@ -51,20 +51,6 @@ namespace XCode.Cache
             }
             set { _FindKeyMethod = value; }
         }
-        ///// <summary>查找数据的方法，内部使用</summary>
-        //internal FindKeyDelegate<TKey, TEntity> FindKeyMethodInternal
-        //{
-        //    get { return _FindKeyMethod; }
-        //    set { _FindKeyMethod = value; }
-        //}
-
-        //private Boolean _Asynchronous;
-        ///// <summary>异步更新</summary>
-        //public Boolean Asynchronous
-        //{
-        //    get { return _Asynchronous; }
-        //    set { _Asynchronous = value; }
-        //}
         #endregion
 
         #region 构造
@@ -72,12 +58,14 @@ namespace XCode.Cache
         /// <summary>实例化一个实体缓存</summary>
         public SingleEntityCache()
         {
-            timer = new TimerX(d => Check(), null, Expriod * 1000, Expriod * 1000);
+            // 启动一个定时器，用于定时清理过期缓存。因为比较耗时，最后一个参数采用线程池
+            timer = new TimerX(d => Check(), null, Expriod * 1000, Expriod * 1000, true);
         }
 
         /// <summary>定期检查实体，如果过期，则触发保存</summary>
         void Check()
         {
+            // 加锁后把缓存集合拷贝到数组中，避免后面遍历的时候出现多线程冲突
             CacheItem[] cs = null;
             if (Entities.Count <= 0) return;
             lock (Entities)
@@ -88,40 +76,41 @@ namespace XCode.Cache
                 Entities.Values.CopyTo(cs, 0);
             }
 
-            if (cs != null && cs.Length > 0)
+            if (cs == null || cs.Length < 0) return;
+
+            var list = new List<TKey>();
+            foreach (var item in cs)
             {
-                var list = new List<TKey>();
-                foreach (var item in cs)
+                // 是否过期
+                if (item.ExpireTime > DateTime.Now)
                 {
-                    // 是否过期
-                    if (item.ExpireTime > DateTime.Now)
+                    if (item.Entity != null)
                     {
-                        if (item.Entity != null)
+                        // 自动保存
+                        if (AutoSave)
                         {
-                            // 自动保存
-                            if (AutoSave)
+                            // 捕获异常，不影响别人
+                            try
                             {
-                                // 捕获异常，不影响别人
-                                try
-                                {
-                                    item.Entity.Update();
-                                }
-                                catch { }
+                                //item.Entity.Update();
+                                // 需要在原连接名表名里面更新对象
+                                AutoUpdate(item);
                             }
-                            item.Entity = null;
+                            catch { }
                         }
-                        list.Add(item.Key);
+                        item.Entity = null;
                     }
+                    list.Add(item.Key);
                 }
-                // 从缓存中删除
-                if (list.Count > 0)
+            }
+            // 从缓存中删除，必须加锁
+            if (list.Count > 0)
+            {
+                lock (Entities)
                 {
-                    lock (Entities)
+                    foreach (var item in list)
                     {
-                        foreach (var item in list)
-                        {
-                            if (Entities.ContainsKey(item)) Entities.Remove(item);
-                        }
+                        if (Entities.ContainsKey(item)) Entities.Remove(item);
                     }
                 }
             }
@@ -217,7 +206,8 @@ namespace XCode.Cache
             if (Entities.TryGetValue(key, out item) && item != null)
             {
                 Interlocked.Increment(ref Shoot1);
-                return GetItem(item, key);
+                // 下面的GetData里会判断过期并处理
+                return GetData(item, key);
             }
 
             // 加锁
@@ -227,7 +217,7 @@ namespace XCode.Cache
                 if (Entities.TryGetValue(key, out item) && item != null)
                 {
                     Interlocked.Increment(ref Shoot2);
-                    return GetItem(item, key);
+                    return GetData(item, key);
                 }
 
                 item = new CacheItem();
@@ -236,25 +226,7 @@ namespace XCode.Cache
                 //队列满时，移除最老的一个
                 while (Entities.Count >= MaxEntity) RemoveFirst();
 
-                //查找数据
-                //TEntity entity = FindKeyMethod(key);
-                //TEntity entity = null;
-                //InvokeFill(delegate { entity = FindKeyMethod(key); });
-                //var entity = InvokeFill(FindKeyMethod, key);
-                //if (entity != null || AllowNull)
-                //{
-                //    item.Entity = entity;
-                //    item.ExpireTime = DateTime.Now.AddSeconds(Expriod);
-
-                //    if (!Entities.ContainsKey(key)) Entities.Add(key, item);
-                //}
-                //else
-                //{
-                //    Interlocked.Increment(ref Invalid);
-                //}
-
-                //return entity;
-
+                // 更新缓存
                 return UpdateCache(item, key);
             }
         }
@@ -265,28 +237,21 @@ namespace XCode.Cache
         /// <param name="item"></param>
         /// <param name="key"></param>
         /// <returns></returns>
-        private TEntity GetItem(CacheItem item, TKey key)
+        private TEntity GetData(CacheItem item, TKey key)
         {
             if (item == null) return null;
 
-            //未过期，直接返回
+            // 未过期，直接返回
             if (DateTime.Now <= item.ExpireTime)
             {
                 Interlocked.Increment(ref Shoot);
                 return item.Entity;
             }
 
-            //自动保存
+            // 自动保存
             AutoUpdate(item);
 
-            //查找数据
-            //item.Entity = FindKeyMethod(key);
-            //InvokeFill(e => e.Entity = FindKeyMethod(key), item);
-            //item.Entity = InvokeFill(FindKeyMethod, key);
-            //item.ExpireTime = DateTime.Now.AddSeconds(Expriod);
-
-            //return item.Entity;
-
+            // 更新过期缓存
             return UpdateCache(item, key);
         }
 
@@ -296,7 +261,8 @@ namespace XCode.Cache
         /// <returns></returns>
         TEntity UpdateCache(CacheItem item, TKey key)
         {
-            var entity = InvokeFill(FindKeyMethod, key);
+            // 在原连接名表名里面获取
+            var entity = Invoke(FindKeyMethod, key);
             if (entity != null || AllowNull)
             {
                 item.Entity = entity;
@@ -317,6 +283,7 @@ namespace XCode.Cache
         /// <returns></returns>
         public TEntity this[TKey key] { get { return GetItem(key); } }
 
+        /// <summary>移除第一个缓存项</summary>
         private void RemoveFirst()
         {
             var keyFirst = GetFirstKey();
@@ -335,6 +302,8 @@ namespace XCode.Cache
             }
         }
 
+        /// <summary>获取第一个缓存项</summary>
+        /// <returns></returns>
         private TKey GetFirstKey()
         {
             foreach (var item in Entities)
@@ -344,9 +313,11 @@ namespace XCode.Cache
             return default(TKey);
         }
 
+        /// <summary>自动更新，最主要是在原连接名和表名里面更新对象</summary>
+        /// <param name="item"></param>
         private void AutoUpdate(CacheItem item)
         {
-            if (item != null && AutoSave && item.Entity != null) InvokeFill(e => e.Entity.Update(), item);
+            if (item != null && AutoSave && item.Entity != null) Invoke(e => e.Entity.Update(), item);
         }
         #endregion
 
@@ -415,11 +386,12 @@ namespace XCode.Cache
 
             if (AutoSave)
             {
+                // 加锁处理自动保存
                 lock (Entities)
                 {
-                    foreach (var key in Entities.Keys)
+                    foreach (var key in Entities)
                     {
-                        var item = Entities[key];
+                        var item = key.Value;
                         if (item == null || item.Entity == null) continue;
 
                         //item.Entity.Update();
@@ -452,11 +424,4 @@ namespace XCode.Cache
         }
         #endregion
     }
-
-    ///// <summary>查找数据的方法</summary>
-    ///// <typeparam name="TKey">键值类型</typeparam>
-    ///// <typeparam name="TEntity">实体类型</typeparam>
-    ///// <param name="key">键值</param>
-    ///// <returns></returns>
-    //public delegate TEntity FindKeyDelegate<TKey, TEntity>(TKey key) where TEntity : Entity<TEntity>, new();
 }
