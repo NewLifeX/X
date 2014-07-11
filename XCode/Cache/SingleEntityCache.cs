@@ -51,15 +51,31 @@ namespace XCode.Cache
             }
             set { _FindKeyMethod = value; }
         }
+
+        private Boolean _Using;
+        /// <summary>是否在使用缓存</summary>
+        internal Boolean Using { get { return _Using; } private set { _Using = value; } }
         #endregion
 
-        #region 构造
+        #region 构造、检查过期缓存
         TimerX timer = null;
         /// <summary>实例化一个实体缓存</summary>
         public SingleEntityCache()
         {
             // 启动一个定时器，用于定时清理过期缓存。因为比较耗时，最后一个参数采用线程池
             timer = new TimerX(d => Check(), null, Expriod * 1000, Expriod * 1000, true);
+        }
+
+        /// <summary>子类重载实现资源释放逻辑时必须首先调用基类方法</summary>
+        /// <param name="disposing">从Dispose调用（释放所有资源）还是析构函数调用（释放非托管资源）。
+        /// 因为该方法只会被调用一次，所以该参数的意义不太大。</param>
+        protected override void OnDispose(bool disposing)
+        {
+            Clear();
+
+            if (timer != null) timer.Dispose();
+
+            base.OnDispose(disposing);
         }
 
         /// <summary>定期检查实体，如果过期，则触发保存</summary>
@@ -112,18 +128,10 @@ namespace XCode.Cache
                     {
                         if (Entities.ContainsKey(item)) Entities.Remove(item);
                     }
+
+                    Using = Entities.Count > 0;
                 }
             }
-        }
-
-        /// <summary>子类重载实现资源释放逻辑时必须首先调用基类方法</summary>
-        /// <param name="disposing">从Dispose调用（释放所有资源）还是析构函数调用（释放非托管资源）。
-        /// 因为该方法只会被调用一次，所以该参数的意义不太大。</param>
-        protected override void OnDispose(bool disposing)
-        {
-            Clear();
-
-            base.OnDispose(disposing);
         }
         #endregion
 
@@ -188,6 +196,11 @@ namespace XCode.Cache
         #endregion
 
         #region 获取数据
+        /// <summary>获取数据</summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public TEntity this[TKey key] { get { return GetItem(key); } }
+
         private TEntity GetItem(TKey key)
         {
             // 为空的key，直接返回null，不进行缓存查找
@@ -225,6 +238,8 @@ namespace XCode.Cache
 
                 //队列满时，移除最老的一个
                 while (Entities.Count >= MaxEntity) RemoveFirst();
+
+                Using = true;
 
                 // 更新缓存
                 return UpdateCache(item, key);
@@ -277,11 +292,6 @@ namespace XCode.Cache
 
             return entity;
         }
-
-        /// <summary>获取数据</summary>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public TEntity this[TKey key] { get { return GetItem(key); } }
 
         /// <summary>移除第一个缓存项</summary>
         private void RemoveFirst()
@@ -376,6 +386,8 @@ namespace XCode.Cache
                 AutoUpdate(item);
 
                 Entities.Remove(key);
+
+                Using = Entities.Count > 0;
             }
         }
 
@@ -401,6 +413,8 @@ namespace XCode.Cache
             }
 
             Entities.Clear();
+
+            Using = false;
         }
         #endregion
 

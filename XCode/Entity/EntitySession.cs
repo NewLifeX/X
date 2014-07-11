@@ -703,22 +703,31 @@ namespace XCode
             var rs = persistence.Insert(entity);
 
             // 如果当前在事务中，并使用了缓存，则尝试更新缓存
-            if ((HoldCache || UsingTrans) && Cache.Using)
+            if (HoldCache || UsingTrans)
             {
-                // 尽管用了事务保护，但是仍然可能有别的地方导致实体缓存更新，这点务必要注意
-                var fi = Operate.Unique;
-                var e = Cache.Entities.Find(fi.Name, entity[fi.Name]);
-                if (e != null)
+                if (Cache.Using)
                 {
-                    if (e != entity) e.CopyFrom(entity);
-                }
-                else
-                {
-                    // 加入超级缓存的实体对象，需要标记来自数据库
-                    if (entity is EntityBase) (entity as EntityBase).OnLoad();
+                    // 尽管用了事务保护，但是仍然可能有别的地方导致实体缓存更新，这点务必要注意
+                    var fi = Operate.Unique;
+                    var e = Cache.Entities.Find(fi.Name, entity[fi.Name]);
+                    if (e != null)
+                    {
+                        if (e != entity) e.CopyFrom(entity);
+                    }
+                    else
+                    {
+                        // 加入超级缓存的实体对象，需要标记来自数据库
+                        if (entity is EntityBase) (entity as EntityBase).OnLoad();
 
-                    Cache.Entities.Add(entity as TEntity);
+                        Cache.Entities.Add(entity as TEntity);
+                    }
                 }
+            }
+            // 自动加入单对象缓存
+            if (SingleCache.Using)
+            {
+                var fi = Operate.Unique;
+                if (fi != null) SingleCache.Add(entity[fi.Name], entity as TEntity);
             }
 
             if (_Count != null) _Count++;
@@ -751,6 +760,25 @@ namespace XCode
                     Cache.Entities.Add(entity as TEntity);
                 }
             }
+            // 自动加入单对象缓存
+            if (SingleCache.Using)
+            {
+                var fi = Operate.Unique;
+                if (fi != null)
+                {
+                    var key = entity[fi.Name];
+                    // 复制到单对象缓存
+                    var e = SingleCache[key];
+                    if (e != null)
+                    {
+                        if (e != entity) e.CopyFrom(entity);
+                    }
+                    else
+                    {
+                        SingleCache.Add(key, entity as TEntity);
+                    }
+                }
+            }
 
             return rs;
         }
@@ -770,6 +798,16 @@ namespace XCode
                 {
                     var v = entity[fi.Name];
                     Cache.Entities.RemoveAll(e => Object.Equals(e[fi.Name], v));
+                }
+            }
+            // 自动加入单对象缓存
+            if (SingleCache.Using)
+            {
+                var fi = Operate.Unique;
+                if (fi != null)
+                {
+                    var key = entity[fi.Name];
+                    SingleCache.RemoveKey(key);
                 }
             }
 
