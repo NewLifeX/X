@@ -1,6 +1,6 @@
 ﻿using System;
+using System.Threading;
 using NewLife;
-using NewLife.Configuration;
 using NewLife.Reflection;
 using XCode.DataAccessLayer;
 
@@ -34,6 +34,8 @@ namespace XCode.Cache
             }
             // 屏蔽对象销毁异常
             catch (ObjectDisposedException) { }
+            // 屏蔽线程取消异常
+            catch (ThreadAbortException) { }
             catch (Exception ex)
             {
                 // 无效操作，句柄未初始化，不用出现
