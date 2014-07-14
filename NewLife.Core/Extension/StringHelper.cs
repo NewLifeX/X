@@ -330,13 +330,16 @@ namespace System
             if (!String.IsNullOrEmpty(start))
             {
                 var p = str.IndexOf(start);
-                if (p >= 0) str = str.Substring(p + start.Length);
+                if (p < 0) return null;
+                str = str.Substring(p + start.Length);
             }
 
             if (!String.IsNullOrEmpty(end))
             {
                 var p = str.IndexOf(end);
-                if (p >= 0) str = str.Substring(0, p);
+                if (p < 0) return null;
+
+                str = str.Substring(0, p);
             }
 
             return str;
