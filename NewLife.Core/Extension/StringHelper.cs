@@ -313,13 +313,15 @@ namespace System
 
         /// <summary>从字符串中检索子字符串，在指定头部字符串之后，指定尾部字符串之前</summary>
         /// <param name="str">目标字符串</param>
-        /// <param name="start">头部字符串</param>
-        /// <param name="end">尾部字符串</param>
+        /// <param name="before">头部字符串</param>
+        /// <param name="suffix">尾部字符串</param>
+        /// <param name="startIndex">搜索的开始位置</param>
+        /// <param name="positions">位置数组，两个元素分别记录头尾位置</param>
         /// <returns></returns>
-        public static String Substring(this String str, String start, String end = null)
+        public static String Substring(this String str, String before, String after = null, Int32 startIndex = 0, Int32[] positions = null)
         {
             if (String.IsNullOrEmpty(str)) return str;
-            if (String.IsNullOrEmpty(start) && String.IsNullOrEmpty(end)) return str;
+            if (String.IsNullOrEmpty(before) && String.IsNullOrEmpty(after)) return str;
 
             /*
              * 1，只有start，从该字符串之后部分
@@ -327,22 +329,29 @@ namespace System
              * 3，同时start和end，取中间部分
              */
 
-            if (!String.IsNullOrEmpty(start))
+            var p = -1;
+            if (!String.IsNullOrEmpty(before))
             {
-                var p = str.IndexOf(start);
+                p = str.IndexOf(before, startIndex);
                 if (p < 0) return null;
-                str = str.Substring(p + start.Length);
+                p += before.Length;
+
+                // 记录位置
+                if (positions != null && positions.Length > 0) positions[0] = p;
             }
 
-            if (!String.IsNullOrEmpty(end))
-            {
-                var p = str.IndexOf(end);
-                if (p < 0) return null;
+            if (String.IsNullOrEmpty(after)) return str.Substring(p);
 
-                str = str.Substring(0, p);
-            }
+            var f = str.IndexOf(after, p >= 0 ? p : startIndex);
+            if (f < 0) return null;
 
-            return str;
+            // 记录位置
+            if (positions != null && positions.Length > 1) positions[1] = f;
+
+            if (p >= 0)
+                return str.Substring(p, f);
+            else
+                return str.Substring(0, f);
         }
 
         /// <summary>根据最大长度截取字符串，并允许以指定空白填充末尾</summary>
