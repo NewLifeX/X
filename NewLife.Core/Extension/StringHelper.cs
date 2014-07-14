@@ -311,6 +311,37 @@ namespace System
             return str;
         }
 
+        /// <summary>从字符串中检索子字符串，在指定头部字符串之后，指定尾部字符串之前</summary>
+        /// <param name="str">目标字符串</param>
+        /// <param name="start">头部字符串</param>
+        /// <param name="end">尾部字符串</param>
+        /// <returns></returns>
+        public static String Substring(this String str, String start, String end = null)
+        {
+            if (String.IsNullOrEmpty(str)) return str;
+            if (String.IsNullOrEmpty(start) && String.IsNullOrEmpty(end)) return str;
+
+            /*
+             * 1，只有start，从该字符串之后部分
+             * 2，只有end，从开头到该字符串之前
+             * 3，同时start和end，取中间部分
+             */
+
+            if (!String.IsNullOrEmpty(start))
+            {
+                var p = str.IndexOf(start);
+                if (p >= 0) str = str.Substring(p + start.Length);
+            }
+
+            if (!String.IsNullOrEmpty(end))
+            {
+                var p = str.IndexOf(end);
+                if (p >= 0) str = str.Substring(0, p);
+            }
+
+            return str;
+        }
+
         /// <summary>根据最大长度截取字符串，并允许以指定空白填充末尾</summary>
         /// <param name="str"></param>
         /// <param name="maxLength"></param>
