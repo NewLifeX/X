@@ -349,7 +349,7 @@ namespace System
             if (positions != null && positions.Length > 1) positions[1] = f;
 
             if (p >= 0)
-                return str.Substring(p, f);
+                return str.Substring(p, f - p);
             else
                 return str.Substring(0, f);
         }
