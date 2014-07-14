@@ -75,8 +75,8 @@ namespace XCode
             if (session != null)
             {
                 session.BeginTransaction();
-                hasStart = true;
             }
+            hasStart = true;
         }
 
         /// <summary>用数据访问对象来实例化一个事务区域</summary>
