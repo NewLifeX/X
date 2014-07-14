@@ -313,15 +313,15 @@ namespace System
 
         /// <summary>从字符串中检索子字符串，在指定头部字符串之后，指定尾部字符串之前</summary>
         /// <param name="str">目标字符串</param>
-        /// <param name="before">头部字符串</param>
-        /// <param name="suffix">尾部字符串</param>
+        /// <param name="after">头部字符串，在它之后</param>
+        /// <param name="before">尾部字符串，在它之前</param>
         /// <param name="startIndex">搜索的开始位置</param>
         /// <param name="positions">位置数组，两个元素分别记录头尾位置</param>
         /// <returns></returns>
-        public static String Substring(this String str, String before, String after = null, Int32 startIndex = 0, Int32[] positions = null)
+        public static String Substring(this String str, String after, String before = null, Int32 startIndex = 0, Int32[] positions = null)
         {
             if (String.IsNullOrEmpty(str)) return str;
-            if (String.IsNullOrEmpty(before) && String.IsNullOrEmpty(after)) return str;
+            if (String.IsNullOrEmpty(after) && String.IsNullOrEmpty(before)) return str;
 
             /*
              * 1，只有start，从该字符串之后部分
@@ -330,19 +330,19 @@ namespace System
              */
 
             var p = -1;
-            if (!String.IsNullOrEmpty(before))
+            if (!String.IsNullOrEmpty(after))
             {
-                p = str.IndexOf(before, startIndex);
+                p = str.IndexOf(after, startIndex);
                 if (p < 0) return null;
-                p += before.Length;
+                p += after.Length;
 
                 // 记录位置
                 if (positions != null && positions.Length > 0) positions[0] = p;
             }
 
-            if (String.IsNullOrEmpty(after)) return str.Substring(p);
+            if (String.IsNullOrEmpty(before)) return str.Substring(p);
 
-            var f = str.IndexOf(after, p >= 0 ? p : startIndex);
+            var f = str.IndexOf(before, p >= 0 ? p : startIndex);
             if (f < 0) return null;
 
             // 记录位置
