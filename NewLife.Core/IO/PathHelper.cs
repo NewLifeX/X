@@ -85,5 +85,32 @@ namespace System.IO
             return path;
         }
         #endregion
+
+        #region 文件扩展
+        /// <summary>文件路径作为文件信息</summary>
+        /// <param name="file"></param>
+        /// <returns></returns>
+        public static FileInfo AsFile(this String file)
+        {
+            return new FileInfo(file);
+        }
+
+        /// <summary>从文件中读取数据</summary>
+        /// <param name="file"></param>
+        /// <param name="offset"></param>
+        /// <param name="count"></param>
+        /// <returns></returns>
+        public static Byte[] ReadBytes(this FileInfo file, Int32 offset = 0, Int32 count = 0)
+        {
+            using (var fs = file.OpenRead())
+            {
+                fs.Position = offset;
+
+                if (count <= 0) count = (Int32)(fs.Length - offset);
+
+                return fs.ReadBytes(count);
+            }
+        }
+        #endregion
     }
 }
