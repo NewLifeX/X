@@ -30,10 +30,12 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“内部版本号”和“修订号”的默认值，
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("4.4.*")]
-[assembly: AssemblyFileVersion("4.4.2014.0704")]
+[assembly: AssemblyVersion("4.5.*")]
+[assembly: AssemblyFileVersion("4.5.2014.0715")]
 
 /*
+ * v4.5.2014.0715   增加EncodingHelper，检测数据流字符编码
+ * 
  * v4.4.2014.0704   增加窗口控件操作的ControlHelper，扩展若干常用Invoke方法
  * 
  * v4.3.2014.0703   WebHelper增加Cookie读写操作

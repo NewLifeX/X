@@ -5,10 +5,12 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
+using System.Text;
 using System.Threading;
 using NewLife.Common;
 using NewLife.CommonEntity;
 using NewLife.Compression;
+using NewLife.IO;
 using NewLife.Log;
 using NewLife.Messaging;
 using NewLife.Model;
@@ -32,7 +34,7 @@ namespace Test
     {
         private static void Main(string[] args)
         {
-            //XTrace.UseConsole();
+            XTrace.UseConsole();
             while (true)
             {
                 Stopwatch sw = new Stopwatch();
@@ -41,7 +43,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test8();
+                    Test10();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -646,6 +648,36 @@ namespace Test
                         XTrace.WriteLine(ex.Message);
 
                     Interlocked.Increment(ref Error);
+                }
+            }
+        }
+
+        static void Test10()
+        {
+            // 扫描所有文件样本，检测编码
+            var root = @"E:\Auto\STM32F1\";
+            foreach (var fi in Directory.GetFiles(root, "*.c", SearchOption.AllDirectories))
+            {
+                Console.WriteLine(fi.TrimStart(root));
+
+                var encoding = fi.AsFile().ReadBytes(0, 4).DetectBOM();
+                if (encoding != null)
+                {
+                    Console.WriteLine("固定编码：{0}", encoding.EncodingName);
+                }
+                else
+                {
+                    var encoding1 = EncodingHelper.Detect(fi);
+                    var encoding2 = Encoding.UTF8;
+                    // 特殊打开，为了获取文件编码
+                    using (var reader = new StreamReader(fi, encoding2, true))
+                    {
+                        encoding2 = reader.CurrentEncoding;
+                        var txt = reader.ReadToEnd();
+                    }
+
+                    Console.WriteLine("结果：{0}\t{1} vs {2}", encoding1 == encoding2,
+                        encoding1 == null ? "" : encoding1.EncodingName, encoding2.EncodingName);
                 }
             }
         }

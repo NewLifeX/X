@@ -1,4 +1,6 @@
-﻿v4.4.2014.0704   增加窗口控件操作的ControlHelper，扩展若干常用Invoke方法
+﻿v4.5.2014.0715   增加EncodingHelper，检测数据流字符编码
+
+v4.4.2014.0704   增加窗口控件操作的ControlHelper，扩展若干常用Invoke方法
 
 v4.3.2014.0703   WebHelper增加Cookie读写操作
 
