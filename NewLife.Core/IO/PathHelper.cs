@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Collections.Generic;
+using System.Text;
 using System.Web;
 using NewLife.IO;
 
@@ -92,10 +93,7 @@ namespace System.IO
         /// <summary>文件路径作为文件信息</summary>
         /// <param name="file"></param>
         /// <returns></returns>
-        public static FileInfo AsFile(this String file)
-        {
-            return new FileInfo(file);
-        }
+        public static FileInfo AsFile(this String file) { return new FileInfo(file.GetFullPath()); }
 
         /// <summary>从文件中读取数据</summary>
         /// <param name="file"></param>
@@ -155,41 +153,75 @@ namespace System.IO
         /// <summary>路径作为目录信息</summary>
         /// <param name="dir"></param>
         /// <returns></returns>
-        public static DirectoryInfo AsDirectory(this String dir)
-        {
-            return new DirectoryInfo(dir);
-        }
+        public static DirectoryInfo AsDirectory(this String dir) { return new DirectoryInfo(dir.GetFullPath()); }
 
-        /// <summary>从指定目录更新本目录的文件</summary>
-        /// <param name="di"></param>
-        /// <param name="src"></param>
-        /// <param name="searchPattern"></param>
-        /// <param name="allSub"></param>
+        /// <summary>获取目录内所有符合条件的文件，支持多文件扩展匹配</summary>
+        /// <param name="di">目录</param>
+        /// <param name="exts">文件扩展列表。比如*.exe|*.dll|*.config</param>
+        /// <param name="allSub">是否包含所有子孙目录文件</param>
         /// <returns></returns>
-        public static Int32 UpdateFrom(this DirectoryInfo di, String src, String searchPattern = null, Boolean allSub = false)
+        public static IEnumerable<FileInfo> GetAllFiles(this DirectoryInfo di, String exts = null, Boolean allSub = false)
         {
-            if (di == null || String.IsNullOrEmpty(di.FullName)) return 0;
-            if (!String.IsNullOrEmpty(src) || !Directory.Exists(src)) return 0;
-
-            var root = di.FullName.GetFullPath().EnsureEnd("\\");
-            if (String.IsNullOrEmpty(searchPattern)) searchPattern = "*.*";
+            if (String.IsNullOrEmpty(exts)) exts = "*";
             var opt = allSub ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
 
-            var count = 0;
-            foreach (var item in Directory.GetFiles(root, searchPattern, opt))
+            foreach (var pattern in exts.Split(";", "|"))
             {
-                var srcFile = src.CombinePath(item.TrimStart(root));
-
-                try
+                foreach (var item in di.GetFiles(pattern, opt))
                 {
-                    File.Copy(srcFile, item, true);
-
-                    count++;
+                    yield return item;
                 }
-                catch { }
             }
-            return count;
         }
+
+        //public static IEnumerable<String> GetAllFileNames(this DirectoryInfo di, String searchPattern = null, Boolean allSub = true)
+        //{
+        //    var root = di.FullName.GetFullPath().EnsureEnd("\\");
+        //    if (String.IsNullOrEmpty(searchPattern)) searchPattern = "*";
+        //    var opt = allSub ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
+
+        //    foreach (var pattern in searchPattern.Split(";", "|"))
+        //    {
+        //        foreach (var item in di.GetFiles(pattern, opt))
+        //        {
+        //            yield return item.FullName.TrimStart(root);
+        //        }
+        //    }
+        //}
+
+        ///// <summary>从指定目录更新本目录的文件</summary>
+        ///// <param name="di"></param>
+        ///// <param name="src"></param>
+        ///// <param name="searchPattern"></param>
+        ///// <param name="allSub"></param>
+        ///// <returns></returns>
+        //public static Int32 UpdateFrom(this DirectoryInfo di, String src, String searchPattern = null, Boolean allSub = true)
+        //{
+        //    if (di == null || String.IsNullOrEmpty(di.FullName)) return 0;
+        //    if (!String.IsNullOrEmpty(src) || !Directory.Exists(src)) return 0;
+
+        //    var root = di.FullName.GetFullPath().EnsureEnd("\\");
+        //    if (String.IsNullOrEmpty(searchPattern)) searchPattern = "*";
+        //    var opt = allSub ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
+
+        //    var count = 0;
+        //    foreach (var pattern in searchPattern.Split(";"))
+        //    {
+        //        foreach (var item in Directory.GetFiles(root, pattern, opt))
+        //        {
+        //            var srcFile = src.CombinePath(item.TrimStart(root));
+
+        //            try
+        //            {
+        //                File.Copy(srcFile, item, true);
+
+        //                count++;
+        //            }
+        //            catch { }
+        //        }
+        //    }
+        //    return count;
+        //}
         #endregion
     }
 }
