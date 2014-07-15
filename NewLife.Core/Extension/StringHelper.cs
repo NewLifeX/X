@@ -79,7 +79,7 @@ namespace System
             return value.Split(separators, StringSplitOptions.RemoveEmptyEntries);
         }
 
-        /// <summary>拆分字符串成为名值字典</summary>
+        /// <summary>拆分字符串成为名值字典。逗号分号分组，等号分隔</summary>
         /// <param name="str"></param>
         /// <param name="nameValueSeparator"></param>
         /// <param name="separators"></param>
