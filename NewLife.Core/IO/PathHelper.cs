@@ -145,8 +145,6 @@ namespace System.IO
                 }
             }
         }
-
-        //public static Stream WriteText(this FileInfo file)
         #endregion
 
         #region 目录扩展
