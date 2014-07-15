@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -11,25 +13,21 @@ namespace NewLife.IO
         #region 编码检测
         /// <summary>检测文件编码</summary>
         /// <param name="filename">文件名</param>
-        /// <param name="defaultEncoding">默认编码</param>
         /// <returns></returns>
-        public static Encoding Detect(String filename, Encoding defaultEncoding = null)
+        public static Encoding Detect(String filename)
         {
             using (var fs = File.OpenRead(filename))
             {
-                return Detect(fs, defaultEncoding, 0x10000);
+                return Detect(fs);
             }
         }
 
         /// <summary>检测数据流编码</summary>
         /// <param name="stream">数据流</param>
-        /// <param name="defaultEncoding">默认编码</param>
         /// <param name="sampleSize">BOM检测失败时用于启发式探索的数据大小</param>
         /// <returns></returns>
-        public static Encoding Detect(this Stream stream, Encoding defaultEncoding = null, Int64 sampleSize = 0x10000)
+        public static Encoding Detect(this Stream stream, Int64 sampleSize = 0x400)
         {
-            //if (defaultEncoding == null) defaultEncoding = Encoding.UTF8;
-
             // 记录数据流原始位置，后面需要复原
             var pos = stream.Position;
             stream.Position = 0;
@@ -52,41 +50,54 @@ namespace NewLife.IO
             if (stream.Length > boms.Length) stream.Read(data, boms.Length, data.Length - boms.Length);
             stream.Position = pos;
 
-            // 开始探测
-            encoding = DetectUnicode(data);
-            if (encoding != null) return encoding;
-
-            encoding = DetectASCII(data);
-            if (encoding != null) return encoding;
-
-            encoding = DetectDefault(data, defaultEncoding);
-            if (encoding != null) return encoding;
-
-            return defaultEncoding;
+            return DetectInternal(data);
         }
 
         /// <summary>检测字节数组编码</summary>
         /// <param name="data">字节数组</param>
-        /// <param name="defaultEncoding">默认编码</param>
         /// <returns></returns>
-        public static Encoding Detect(this Byte[] data, Encoding defaultEncoding = null)
+        public static Encoding Detect(this Byte[] data)
         {
-            //if (defaultEncoding == null) defaultEncoding = Encoding.UTF8;
-
+            // 探测BOM头
             var encoding = DetectBOM(data);
             if (encoding != null) return encoding;
 
-            // 开始探测
-            encoding = DetectUnicode(data);
+            return DetectInternal(data);
+        }
+
+        static Encoding DetectInternal(Byte[] data)
+        {
+            // 探测Unicode编码
+            var encoding = DetectUnicode(data);
             if (encoding != null) return encoding;
 
+            // 简单方法探测ASCII
             encoding = DetectASCII(data);
             if (encoding != null) return encoding;
 
-            encoding = DetectDefault(data, defaultEncoding);
-            if (encoding != null) return encoding;
+            // 最笨的办法尝试
+            var encs = new Encoding[] {
+                // 常用
+                Encoding.UTF8,
+                // 用户界面选择语言编码
+                Encoding.GetEncoding(CultureInfo.CurrentUICulture.TextInfo.ANSICodePage),
+                // 本地默认编码
+                Encoding.Default
+            };
+            encs = encs.Where(s => s != null).GroupBy(s => s.CodePage).Select(s => s.First()).ToArray();
 
-            return defaultEncoding;
+            // 如果有单字节编码，优先第一个非单字节的编码
+            Encoding first = null;
+            foreach (var enc in encs)
+            {
+                if (IsMatch(data, enc))
+                {
+                    if (!enc.IsSingleByte) return enc;
+
+                    if (first == null) first = enc;
+                }
+            }
+            return first;
         }
 
         /// <summary>检测BOM字节序</summary>
@@ -129,16 +140,34 @@ namespace NewLife.IO
             return Encoding.ASCII;
         }
 
-        static Encoding DetectDefault(Byte[] data, Encoding defaultEncoding)
+        static Boolean IsMatch(Byte[] data, Encoding encoding)
         {
-            if (defaultEncoding == null) defaultEncoding = Encoding.Default;
+            if (encoding == null) encoding = Encoding.Default;
 
-            var str = defaultEncoding.GetString(data);
-            var buf = defaultEncoding.GetBytes(str);
+            try
+            {
+                var str = encoding.GetString(data);
+                var buf = encoding.GetBytes(str);
 
-            if (data.CompareTo(buf) == 0) return defaultEncoding;
+                // 考虑到噪声干扰，只要0.9
+                var score = buf.Length * 9 / 10;
+                var match = 0;
+                for (var i = 0; i < buf.Length; i++)
+                {
+                    if (data[i] == buf[i])
+                    {
+                        match++;
+                        if (match >= score) return true;
+                    }
+                }
+                //if (match >= buf.Length * 0.9)
+                //    return true;
 
-            return null;
+                //return data.CompareTo(buf) == 0;
+            }
+            catch { }
+
+            return false;
         }
 
         /// <summary>启发式探测Unicode编码</summary>
@@ -243,10 +272,12 @@ namespace NewLife.IO
 
                 // 很不幸运，事实上，它仅仅可能是UTF-8。如果所有字符都在0~127范围，那是没有问题的，绝大部分西方字符在UTF-8都在这个范围。
                 // 然而如果部分字符在大写区域（西方口语字符），用UTF-8编码处理可能造成误伤。所以我们需要继续分析。
+                // 随机生成字符成为可疑序列的可能性是：128 / (256 * 256) = 0.2%
+                // 在西方文本数据，这要小得多，绝大部分文本数据停留在小于127的范围。所以我们假定在500000个字符中多余一个UTF-8字符
 
-                if ((suspiciousUTF8SequenceCount * 500000.0 / data.Length >= 1) //suspicious sequences
+                if ((suspiciousUTF8SequenceCount * 500000.0 / data.Length >= 1) // 可疑序列
                     && (
-                    //all suspicious, so cannot evaluate proportion of US-Ascii
+                    // 所有可疑情况，无法平率ASCII可能性
                            data.Length - suspiciousUTF8BytesTotal == 0
                            ||
                            likelyUSASCIIBytesInSample * 1.0 / (data.Length - suspiciousUTF8BytesTotal) >= 0.8
