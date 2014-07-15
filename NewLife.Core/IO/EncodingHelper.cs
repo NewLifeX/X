@@ -71,10 +71,6 @@ namespace NewLife.IO
             var encoding = DetectUnicode(data);
             if (encoding != null) return encoding;
 
-            // 简单方法探测ASCII
-            encoding = DetectASCII(data);
-            if (encoding != null) return encoding;
-
             // 最笨的办法尝试
             var encs = new Encoding[] {
                 // 常用
@@ -87,17 +83,22 @@ namespace NewLife.IO
             encs = encs.Where(s => s != null).GroupBy(s => s.CodePage).Select(s => s.First()).ToArray();
 
             // 如果有单字节编码，优先第一个非单字节的编码
-            Encoding first = null;
             foreach (var enc in encs)
             {
                 if (IsMatch(data, enc))
                 {
                     if (!enc.IsSingleByte) return enc;
 
-                    if (first == null) first = enc;
+                    if (encoding == null) encoding = enc;
                 }
             }
-            return first;
+            if (encoding != null) return encoding;
+
+            // 简单方法探测ASCII
+            encoding = DetectASCII(data);
+            if (encoding != null) return encoding;
+
+            return null;
         }
 
         /// <summary>检测BOM字节序</summary>
