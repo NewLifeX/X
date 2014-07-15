@@ -1,4 +1,6 @@
-﻿using System.Web;
+﻿using System.Text;
+using System.Web;
+using NewLife.IO;
 
 namespace System.IO
 {
@@ -111,6 +113,42 @@ namespace System.IO
                 return fs.ReadBytes(count);
             }
         }
+
+        /// <summary>把数据写入文件指定位置</summary>
+        /// <param name="file"></param>
+        /// <param name="data"></param>
+        /// <param name="offset"></param>
+        /// <returns></returns>
+        public static FileInfo WriteBytes(this FileInfo file, Byte[] data, Int32 offset = 0)
+        {
+            using (var fs = file.OpenWrite())
+            {
+                fs.Position = offset;
+
+                fs.Write(data, offset, data.Length);
+            }
+
+            return file;
+        }
+
+        /// <summary>读取所有文本，自动检测编码</summary>
+        /// <remarks>性能较File.ReadAllText略慢，可通过提前检测BOM编码来优化</remarks>
+        /// <param name="file"></param>
+        /// <param name="encoding"></param>
+        /// <returns></returns>
+        public static String ReadText(this FileInfo file, Encoding encoding = null)
+        {
+            using (var fs = file.OpenRead())
+            {
+                if (encoding == null) encoding = fs.Detect(Encoding.Default);
+                using (var reader = new StreamReader(fs, encoding))
+                {
+                    return reader.ReadToEnd();
+                }
+            }
+        }
+
+        //public static Stream WriteText(this FileInfo file)
         #endregion
     }
 }
