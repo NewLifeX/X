@@ -22,6 +22,17 @@ namespace NewLife.IO
             }
         }
 
+        /// <summary>检测文件编码</summary>
+        /// <param name="file"></param>
+        /// <returns></returns>
+        public static Encoding DetectEncoding(this FileInfo file)
+        {
+            using (var fs = file.OpenRead())
+            {
+                return fs.Detect();
+            }
+        }
+
         /// <summary>检测数据流编码</summary>
         /// <param name="stream">数据流</param>
         /// <param name="sampleSize">BOM检测失败时用于启发式探索的数据大小</param>

@@ -138,7 +138,7 @@ namespace System.IO
         {
             using (var fs = file.OpenRead())
             {
-                if (encoding == null) encoding = fs.Detect(Encoding.Default);
+                if (encoding == null) encoding = fs.Detect() ?? Encoding.Default;
                 using (var reader = new StreamReader(fs, encoding))
                 {
                     return reader.ReadToEnd();
