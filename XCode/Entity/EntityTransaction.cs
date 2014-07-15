@@ -21,7 +21,13 @@ namespace XCode
     public class EntityTransaction<TEntity> : EntityTransaction where TEntity : Entity<TEntity>, new()
     {
         /// <summary>为实体类实例化一个事务区域</summary>
-        public EntityTransaction() : base(null as IDbSession) { Entity<TEntity>.Meta.Session.BeginTrans(); }
+        public EntityTransaction()
+            : base(null as IDbSession)
+        {
+            Entity<TEntity>.Meta.Session.BeginTrans();
+
+            hasStart = true;
+        }
 
         /// <summary>提交事务</summary>
         public override void Commit()
@@ -57,7 +63,8 @@ namespace XCode
     public class EntityTransaction : DisposeBase
     {
         #region 属性
-        private Boolean hasStart;
+        /// <summary>是否已经开始事务</summary>
+        protected Boolean hasStart;
         /// <summary>是否已完成事务</summary>
         protected Boolean hasFinish;
 
@@ -75,8 +82,8 @@ namespace XCode
             if (session != null)
             {
                 session.BeginTransaction();
+                hasStart = true;
             }
-            hasStart = true;
         }
 
         /// <summary>用数据访问对象来实例化一个事务区域</summary>
