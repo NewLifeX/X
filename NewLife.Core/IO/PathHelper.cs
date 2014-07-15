@@ -150,5 +150,46 @@ namespace System.IO
 
         //public static Stream WriteText(this FileInfo file)
         #endregion
+
+        #region 目录扩展
+        /// <summary>路径作为目录信息</summary>
+        /// <param name="dir"></param>
+        /// <returns></returns>
+        public static DirectoryInfo AsDirectory(this String dir)
+        {
+            return new DirectoryInfo(dir);
+        }
+
+        /// <summary>从指定目录更新本目录的文件</summary>
+        /// <param name="di"></param>
+        /// <param name="src"></param>
+        /// <param name="searchPattern"></param>
+        /// <param name="allSub"></param>
+        /// <returns></returns>
+        public static Int32 UpdateFrom(this DirectoryInfo di, String src, String searchPattern = null, Boolean allSub = false)
+        {
+            if (di == null || String.IsNullOrEmpty(di.FullName)) return 0;
+            if (!String.IsNullOrEmpty(src) || !Directory.Exists(src)) return 0;
+
+            var root = di.FullName.GetFullPath().EnsureEnd("\\");
+            if (String.IsNullOrEmpty(searchPattern)) searchPattern = "*.*";
+            var opt = allSub ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
+
+            var count = 0;
+            foreach (var item in Directory.GetFiles(root, searchPattern, opt))
+            {
+                var srcFile = src.CombinePath(item.TrimStart(root));
+
+                try
+                {
+                    File.Copy(srcFile, item, true);
+
+                    count++;
+                }
+                catch { }
+            }
+            return count;
+        }
+        #endregion
     }
 }
