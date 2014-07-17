@@ -132,6 +132,8 @@ namespace XCode.DataAccessLayer
         //    }
         //}
 
+        protected override string ReservedWordsStr { get { return "Log"; } }
+
         /// <summary>格式化时间为SQL字符串</summary>
         /// <param name="dateTime">时间值</param>
         /// <returns></returns>
@@ -184,7 +186,8 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public override string FormatIdentity(IDataColumn field, Object value)
         {
-            return String.Format("GEN_ID(GEN_{0}, 1)", field.Table.TableName);
+            //return String.Format("GEN_ID(GEN_{0}, 1)", field.Table.TableName);
+            return String.Format("next value for SEQ_{0}", field.Table.TableName);
         }
 
         ///// <summary>系统数据库名</summary>
@@ -308,8 +311,13 @@ namespace XCode.DataAccessLayer
             String sql = base.CreateTableSQL(table);
             if (String.IsNullOrEmpty(sql)) return sql;
 
-            String sqlSeq = String.Format("Create GENERATOR GEN_{0}", table.TableName);
-            return sql + "; " + Environment.NewLine + sqlSeq;
+            //String sqlSeq = String.Format("Create GENERATOR GEN_{0}", table.TableName);
+            //return sql + "; " + Environment.NewLine + sqlSeq;
+
+            String sqlSeq = String.Format("Create Sequence SEQ_{0}", table.TableName);
+            //return sql + "; " + Environment.NewLine + sqlSeq;
+            // 去掉分号后的空格，Oracle不支持同时执行多个语句
+            return sql + ";" + Environment.NewLine + sqlSeq;
         }
 
         public override string DropTableSQL(String tableName)
@@ -317,7 +325,10 @@ namespace XCode.DataAccessLayer
             String sql = base.DropTableSQL(tableName);
             if (String.IsNullOrEmpty(sql)) return sql;
 
-            String sqlSeq = String.Format("Drop GENERATOR GEN_{0}", tableName);
+            //String sqlSeq = String.Format("Drop GENERATOR GEN_{0}", tableName);
+            //return sql + "; " + Environment.NewLine + sqlSeq;
+
+            String sqlSeq = String.Format("Drop Sequence SEQ_{0}", tableName);
             return sql + "; " + Environment.NewLine + sqlSeq;
         }
 
