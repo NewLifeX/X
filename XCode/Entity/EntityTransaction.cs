@@ -40,8 +40,12 @@ namespace XCode
         /// <summary>回滚事务</summary>
         protected override void Rollback()
         {
-            // 回滚时忽略异常
-            Entity<TEntity>.Meta.Session.Rollback();
+            try
+            {
+                // 回滚时忽略异常
+                if (hasStart && !hasFinish) Entity<TEntity>.Meta.Session.Rollback();
+            }
+            catch { }
 
             hasFinish = true;
         }
@@ -101,7 +105,14 @@ namespace XCode
         {
             base.OnDispose(disposing);
 
-            if (hasStart && !hasFinish) Rollback();
+            if (hasStart && !hasFinish)
+            {
+                try
+                {
+                    Rollback();
+                }
+                catch { }
+            }
         }
         #endregion
 
@@ -118,7 +129,7 @@ namespace XCode
         protected virtual void Rollback()
         {
             // 回滚时忽略异常
-            Session.Rollback(true);
+            if (hasStart && !hasFinish && Session != null) Session.Rollback(true);
 
             hasFinish = true;
         }
