@@ -461,8 +461,8 @@ namespace XCode.DataAccessLayer
             if (String.IsNullOrEmpty(sql) || table.PrimaryKeys == null || table.PrimaryKeys.Length < 2) return sql;
 
             // 处理多主键
-            StringBuilder sb = new StringBuilder();
-            foreach (IDataColumn item in table.PrimaryKeys)
+            var sb = new StringBuilder();
+            foreach (var item in table.PrimaryKeys)
             {
                 if (sb.Length > 0) sb.Append(",");
                 sb.Append(FormatName(item.ColumnName));
@@ -532,7 +532,7 @@ namespace XCode.DataAccessLayer
             {
                 if (String.IsNullOrEmpty(_SchemaSql))
                 {
-                    StringBuilder sb = new StringBuilder();
+                    var sb = new StringBuilder();
                     sb.Append("SELECT ");
                     sb.Append("表名=d.name,");
                     sb.Append("字段序号=a.colorder,");
@@ -974,7 +974,7 @@ namespace XCode.DataAccessLayer
 
         public override String DropDatabaseSQL(String dbname)
         {
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
             sb.AppendLine("use master");
             sb.AppendLine(";");
             sb.AppendLine("declare   @spid   varchar(20),@dbname   varchar(20)");

@@ -948,11 +948,11 @@ namespace XCode.DataAccessLayer
 
         public virtual String CreateTableSQL(IDataTable table)
         {
-            List<IDataColumn> Fields = new List<IDataColumn>(table.Columns);
+            var Fields = new List<IDataColumn>(table.Columns);
             //Fields.Sort(delegate(IDataColumn item1, IDataColumn item2) { return item1.ID.CompareTo(item2.ID); });
             Fields.OrderBy(dc => dc.ID);
 
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
 
             sb.AppendFormat("Create Table {0}(", FormatName(table.TableName));
             for (Int32 i = 0; i < Fields.Count; i++)
@@ -996,7 +996,7 @@ namespace XCode.DataAccessLayer
 
         public virtual String CreateIndexSQL(IDataIndex index)
         {
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
             if (index.Unique)
                 sb.Append("Create Unique Index ");
             else

@@ -564,11 +564,11 @@ namespace XCode.DataAccessLayer
             // 去掉类型中，长度等限制条件
             if (typeName.Contains("(")) typeName = typeName.Substring(0, typeName.IndexOf("("));
 
-            DataTable dt = DataTypes;
+            var dt = DataTypes;
             if (dt == null) return null;
 
             DataRow[] drs = null;
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
 
             // 匹配TypeName，TypeName具有唯一性
             sb.AppendFormat("TypeName='{0}'", typeName);
@@ -673,9 +673,9 @@ namespace XCode.DataAccessLayer
             String ps = null;
             if (!TryGetDataRowValue<String>(dr, "CreateParameters", out ps) || String.IsNullOrEmpty(ps)) return null;
 
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
             sb.Append("(");
-            String[] pms = ps.Split(new Char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+            var pms = ps.Split(new Char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
             for (int i = 0; i < pms.Length; i++)
             {
                 if (sb.Length > 1) sb.Append(",");

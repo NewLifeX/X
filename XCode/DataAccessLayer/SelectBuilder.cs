@@ -416,7 +416,7 @@ $";
 
             if (keys.Length == 1) return isdescs != null && isdescs.Length > 0 && isdescs[0] ? keys[0] + " Desc" : keys[0];
 
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
             for (int i = 0; i < keys.Length; i++)
             {
                 if (sb.Length > 0) sb.Append(", ");
