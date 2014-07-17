@@ -78,14 +78,28 @@ namespace XCode.DataAccessLayer
         #region 架构
         public override DataTable GetSchema(string collectionName, string[] restrictionValues)
         {
-            //try
-            //{
-            return base.GetSchema(collectionName, restrictionValues);
-            //}
-            //catch (Exception ex)
-            //{
-            //    DAL.WriteDebugLog("GetSchema({0})异常重试！{1},连接字符串 {2}", collectionName, ex.Message, ConnectionString);
-            //}
+            try
+            {
+                return base.GetSchema(collectionName, restrictionValues);
+            }
+            catch (Exception ex)
+            {
+                DAL.WriteDebugLog("[3]GetSchema({0})异常重试！{1},连接字符串 {2}", collectionName, ex.Message, ConnectionString, Database.ConnName);
+
+                // 如果没有数据库，登录会失败，需要切换到系统数据库再试试
+                return ProcessWithSystem(s => base.GetSchema(collectionName, restrictionValues)) as DataTable;
+                //var dbname = DatabaseName;
+                //if (dbname != SystemDatabaseName) DatabaseName = SystemDatabaseName;
+
+                //try
+                //{
+                //    return base.GetSchema(collectionName, restrictionValues);
+                //}
+                //finally
+                //{
+                //    if (dbname != SystemDatabaseName) DatabaseName = dbname;
+                //}
+            }
         }
         #endregion
 
@@ -140,7 +154,7 @@ namespace XCode.DataAccessLayer
             var session = Database.CreateSession();
             var databaseName = session.DatabaseName;
 
-            if (values != null && values.Length > 0 && values[0] is String && values[0] + "" != "") databaseName =  values[0]+"";  //ahuang 2014.06.12  类型强制转string的bug
+            if (values != null && values.Length > 0 && values[0] is String && values[0] + "" != "") databaseName = values[0] + "";  //ahuang 2014.06.12  类型强制转string的bug
 
             switch (schema)
             {
