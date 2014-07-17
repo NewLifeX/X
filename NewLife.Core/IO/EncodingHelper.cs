@@ -78,10 +78,7 @@ namespace NewLife.IO
 
         static Encoding DetectInternal(Byte[] data)
         {
-            // 探测Unicode编码
-            var encoding = DetectUnicode(data);
-            if (encoding != null) return encoding;
-
+            Encoding encoding = null;
             // 最笨的办法尝试
             var encs = new Encoding[] {
                 // 常用
@@ -103,6 +100,10 @@ namespace NewLife.IO
                     if (encoding == null) encoding = enc;
                 }
             }
+            if (encoding != null) return encoding;
+
+            // 探测Unicode编码
+            encoding = DetectUnicode(data);
             if (encoding != null) return encoding;
 
             // 简单方法探测ASCII
