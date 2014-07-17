@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -43,7 +44,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test10();
+                Test14();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -682,6 +683,79 @@ namespace Test
             }
         }
 
+        static void Test14()
+        {
+            DAL.NegativeEnable = true;
+            //User.Meta.Table.ConnName = "SqlCe";
+            User.Meta.Table.ConnName = "Common0";
+            // 预热
+            User.FindByKey(1);
+            var rnd = new Random((Int32)DateTime.Now.Ticks);
+            if (User.Meta.Count < 200)
+            {
+                for (int i = 0; i < 20000; i++)
+                {
+                    var user = new User();
+                    user.Account = "Name" + rnd.Next(0, 1000000000);
+                    user.Insert();
+                }
+            }
+            // 清空
+            Console.Clear();
+
+            Func func = () =>
+            {
+                var sw = new Stopwatch();
+                for (int i = 0; i < 100; i++)
+                {
+                    sw.Reset();
+                    sw.Start();
+                    try
+                    {
+                        User.FindByKey(1);
+                    }
+                    catch (Exception ex) { Console.WriteLine(ex.Message); }
+                    sw.Stop();
+                    Console.WriteLine("耗时：{0:n0}", sw.ElapsedMilliseconds);
+
+                    Thread.Sleep(1000);
+                }
+            };
+            ThreadPoolX.QueueUserWorkItem(func);
+
+            Thread.Sleep(1500);
+
+            for (int i = 0; i < 100; i++)
+            {
+                Console.WriteLine("开始事务");
+                //User.Meta.CreateTrans();
+                using (var trans = User.Meta.CreateTrans())
+                //try
+                {
+                    var entity = new User();
+                    entity.Account = "1234";
+                    entity.Insert();
+
+                    var id = entity.ID;
+
+                    Thread.Sleep(3000);
+                    entity = User.FindByKey(1);
+                    entity.Password = "11223344" + rnd.Next(0, 1000);
+                    entity.Update();
+
+                    var list = User.FindAll();
+                    Console.WriteLine(list.Count);
+
+                    entity = User.FindByKey(id);
+                    entity.Delete();
+
+                    if (rnd.Next(0, 2) > 0) trans.Commit();
+                }
+                //catch { }
+                Console.WriteLine("结束事务");
+            }
+        }
+
         static void Test13()
         {
             var file = @"E:\BaiduYunDownload\xiaomi.db";
@@ -722,6 +796,63 @@ namespace Test
             entity.Delete();
             count = eop.FindCount();
             Console.WriteLine(count);
+        }
+
+        static void Test15()
+        {
+            var list = new List<Int32>();
+            list.Add(1);
+            list.Add(3);
+            list.Add(1);
+
+            var list2 = new List<Int32>();
+            //list2.AddRange(list);
+            foreach (var item in list)
+            {
+                // Array.IndexOf()
+                if (!list2.Contains(item)) list2.Add(item);
+            }
+            list.Capacity = 4000;
+            //list.Clear();
+            //list = list2;
+            Console.WriteLine(list[2]);
+
+            var arr = list.ToArray();
+
+            var n = list.IndexOf(1);
+            Console.WriteLine(n);
+
+            n = list.LastIndexOf(1);
+            Console.WriteLine(n);
+
+            n = list[list.Count - 1];
+            //list2.Remove(1);
+            //list2.RemoveAll(e => e == 1);
+
+            foreach (var item in list2)
+            {
+                Console.WriteLine(item);
+            }
+
+            var dic = new Dictionary<Int32, String>();
+            dic.Add(11, "111");
+            dic.Add(33, "123");
+            dic.Add(22, "222");
+
+            if (dic.ContainsKey(33)) dic.Remove(33);
+
+            dic[11] = "xxx";
+
+            var str = dic[22];
+            Console.WriteLine(str);
+            str.GetHashCode();
+
+            foreach (var item in dic)
+            {
+                Console.WriteLine("{0}={1}", item.Key, item.Value);
+            }
+
+            //Stack<Int32>
         }
     }
 }
