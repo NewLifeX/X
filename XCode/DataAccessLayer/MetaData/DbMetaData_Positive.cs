@@ -588,7 +588,6 @@ namespace XCode.DataAccessLayer
             }
 
             // 匹配DataType，重复的可能性很大
-            DataRow[] drs2 = null;
             sb = new StringBuilder();
             sb.AppendFormat("DataType='{0}'", typeName);
 
@@ -599,8 +598,12 @@ namespace XCode.DataAccessLayer
                 // 找到太多，试试过滤自增等
                 if (drs.Length > 1 && field.Identity && dt.Columns.Contains("IsAutoIncrementable"))
                 {
-                    var dr = drs.FirstOrDefault(e => (Boolean)e["IsAutoIncrementable"]);
-                    if (dr != null) drs = new DataRow[] { dr };
+                    var drs1 = drs.Where(e => (Boolean)e["IsAutoIncrementable"]).ToArray();
+                    if (drs1 != null)
+                    {
+                        if (drs1.Length == 1) return drs1;
+                        drs = drs1;
+                    }
                 }
 
                 sb.AppendFormat(" And ColumnSize>={0}", field.Length);
@@ -609,7 +612,7 @@ namespace XCode.DataAccessLayer
                 if (field.DataType == typeof(String) && (field.Length > Database.LongTextLength || field.Length <= 0))
                     sb.AppendFormat(" And IsLong=1");
 
-                drs2 = dt.Select(sb.ToString(), "IsBestMatch Desc, ColumnSize Asc, IsFixedLength Asc, IsLong Asc");
+                var drs2 = dt.Select(sb.ToString(), "IsBestMatch Desc, ColumnSize Asc, IsFixedLength Asc, IsLong Asc");
                 if (drs2 == null || drs2.Length < 1) return drs;
                 if (drs2.Length == 1) return drs2;
 
