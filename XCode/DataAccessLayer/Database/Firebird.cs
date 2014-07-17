@@ -132,7 +132,7 @@ namespace XCode.DataAccessLayer
         //    }
         //}
 
-        protected override string ReservedWordsStr { get { return "Log"; } }
+        //protected override string ReservedWordsStr { get { return "Log"; } }
 
         /// <summary>格式化时间为SQL字符串</summary>
         /// <param name="dateTime">时间值</param>
