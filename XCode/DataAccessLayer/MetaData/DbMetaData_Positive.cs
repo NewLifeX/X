@@ -6,6 +6,7 @@ using System.Data.Common;
 using System.Text;
 using NewLife.Reflection;
 using XCode.Exceptions;
+using System.Linq;
 
 namespace XCode.DataAccessLayer
 {
@@ -572,29 +573,35 @@ namespace XCode.DataAccessLayer
 
             // 匹配TypeName，TypeName具有唯一性
             sb.AppendFormat("TypeName='{0}'", typeName);
-            //drs = dt.Select(String.Format("TypeName='{0}'", typeName));
-
-            // 处理自增
-            if (field.Identity && dt.Columns.Contains("IsAutoIncrementable")) sb.Append(" And IsAutoIncrementable=1");
 
             drs = dt.Select(sb.ToString());
             if (drs != null && drs.Length > 0)
             {
-                //if (drs.Length > 1) throw new XDbMetaDataException(this, "TypeName具有唯一性！");
+                // 找到太多，试试过滤自增等
+                if (drs.Length > 1 && field.Identity && dt.Columns.Contains("IsAutoIncrementable"))
+                {
+                    var dr = drs.FirstOrDefault(e => (Boolean)e["IsAutoIncrementable"]);
+                    if (dr != null) return new DataRow[] { dr };
+                }
+
                 return drs;
             }
+
             // 匹配DataType，重复的可能性很大
             DataRow[] drs2 = null;
             sb = new StringBuilder();
             sb.AppendFormat("DataType='{0}'", typeName);
 
-            // 处理自增
-            if (field.Identity && dt.Columns.Contains("IsAutoIncrementable")) sb.Append(" And IsAutoIncrementable=1");
-
             drs = dt.Select(sb.ToString());
             if (drs != null && drs.Length > 0)
             {
                 if (drs.Length == 1) return drs;
+                // 找到太多，试试过滤自增等
+                if (drs.Length > 1 && field.Identity && dt.Columns.Contains("IsAutoIncrementable"))
+                {
+                    var dr = drs.FirstOrDefault(e => (Boolean)e["IsAutoIncrementable"]);
+                    if (dr != null) drs = new DataRow[] { dr };
+                }
 
                 sb.AppendFormat(" And ColumnSize>={0}", field.Length);
                 //if (field.DataType == typeof(String) && field.Length > Database.LongTextLength) sb.AppendFormat(" And IsLong=1");
@@ -610,6 +617,16 @@ namespace XCode.DataAccessLayer
             }
             return null;
         }
+
+        ///// <summary>检查是否自增，如果自增，则附加过滤条件</summary>
+        ///// <param name="dt"></param>
+        ///// <param name="field"></param>
+        ///// <param name="where"></param>
+        ///// <returns></returns>
+        //protected virtual Boolean CheckAutoIncrementable(DataTable dt, IDataColumn field,StringBuilder where)
+        //{
+        //    if (field.Identity && dt.Columns.Contains("IsAutoIncrementable")) sb.Append(" And IsAutoIncrementable=1");
+        //}
 
         /// <summary>取字段类型</summary>
         /// <param name="field">字段</param>
