@@ -472,23 +472,23 @@ namespace XCode.DataAccessLayer
             {
                 if (_FieldTypeMaps == null)
                 {
-                    //_FieldTypeMaps = new List<KeyValuePair<Type, Type>>();
-                    //_FieldTypeMaps.Add(new KeyValuePair<Type, Type>(typeof(SByte), typeof(Byte)));
-                    //_FieldTypeMaps.Add(new KeyValuePair<Type, Type>(typeof(SByte), typeof(Int16)));
-                    //_FieldTypeMaps.Add(new KeyValuePair<Type, Type>(typeof(UInt64), typeof(Int64)));
-                    //_FieldTypeMaps.Add(new KeyValuePair<Type, Type>(typeof(UInt64), typeof(Int32)));
-                    //_FieldTypeMaps.Add(new KeyValuePair<Type, Type>(typeof(Int64), typeof(Int32)));
-                    //_FieldTypeMaps.Add(new KeyValuePair<Type, Type>(typeof(UInt32), typeof(Int32)));
-                    //_FieldTypeMaps.Add(new KeyValuePair<Type, Type>(typeof(UInt16), typeof(Int16)));
+                    var list = new List<KeyValuePair<Type, Type>>();
+                    //list.Add(new KeyValuePair<Type, Type>(typeof(SByte), typeof(Byte)));
+                    //list.Add(new KeyValuePair<Type, Type>(typeof(SByte), typeof(Int16)));
+                    //list.Add(new KeyValuePair<Type, Type>(typeof(UInt64), typeof(Int64)));
+                    //list.Add(new KeyValuePair<Type, Type>(typeof(UInt64), typeof(Int32)));
+                    //list.Add(new KeyValuePair<Type, Type>(typeof(Int64), typeof(Int32)));
+                    //list.Add(new KeyValuePair<Type, Type>(typeof(UInt32), typeof(Int32)));
+                    //list.Add(new KeyValuePair<Type, Type>(typeof(UInt16), typeof(Int16)));
                     //// 因为自增的原因，某些字段需要被映射到Int32里面来
-                    //_FieldTypeMaps.Add(new KeyValuePair<Type, Type>(typeof(SByte), typeof(Int32)));
-                    //_FieldTypeMaps.Add(new KeyValuePair<Type, Type>(typeof(UInt16), typeof(Int32)));
-                    //_FieldTypeMaps.Add(new KeyValuePair<Type, Type>(typeof(Int16), typeof(Int32)));
+                    //list.Add(new KeyValuePair<Type, Type>(typeof(SByte), typeof(Int32)));
+                    //list.Add(new KeyValuePair<Type, Type>(typeof(UInt16), typeof(Int32)));
+                    //list.Add(new KeyValuePair<Type, Type>(typeof(Int16), typeof(Int32)));
 
                     // 根据常用行，从不常用到常用排序，然后配对进入映射表
-                    Type[] types = new Type[] { typeof(SByte), typeof(Byte), typeof(UInt16), typeof(Int16), typeof(UInt64), typeof(Int64), typeof(UInt32), typeof(Int32) };
+                    var types = new Type[] { typeof(SByte), typeof(Byte), typeof(UInt16), typeof(Int16), typeof(UInt64), typeof(Int64), typeof(UInt32), typeof(Int32) };
 
-                    var list = new List<KeyValuePair<Type, Type>>();
+                    // 把不常用的类型映射到常用类型，比如数据库SByte映射到实体类Byte，UInt32映射到Int32，而不需要重新修改数据库
                     for (int i = 0; i < types.Length; i++)
                     {
                         for (int j = i + 1; j < types.Length; j++)
