@@ -305,7 +305,9 @@ namespace NewLife.Reflection
                     {
                         try
                         {
-                            Assembly.LoadFrom(item);
+                            //Assembly.LoadFrom(item);
+                            // 先加载到内存，再加载程序集，避免文件被锁定
+                            Assembly.Load(File.ReadAllBytes(item));
                             WriteLog("加载外部程序集：{0}", item);
                         }
                         catch { }
