@@ -390,6 +390,23 @@ namespace XCode.DataAccessLayer
     /// <summary>SQLite元数据</summary>
     class SQLiteMetaData : FileDbMetaData
     {
+        #region 数据类型
+        protected override List<KeyValuePair<Type, Type>> FieldTypeMaps
+        {
+            get
+            {
+                if (_FieldTypeMaps == null)
+                {
+                    var list = base.FieldTypeMaps;
+                    // SQLite自增字段有时是Int64，需要到Int32的映射
+                    if (!list.Any(e => e.Key == typeof(Int64) && e.Value == typeof(Int32)))
+                        list.Add(new KeyValuePair<Type, Type>(typeof(Int64), typeof(Int32)));
+                }
+                return base.FieldTypeMaps;
+            }
+        }
+        #endregion
+
         #region 构架
         protected override List<IDataTable> OnGetTables(ICollection<String> names)
         {

@@ -464,7 +464,7 @@ namespace XCode.DataAccessLayer
             internal protected set { _DataTypes = value; }
         }
 
-        private List<KeyValuePair<Type, Type>> _FieldTypeMaps;
+        protected List<KeyValuePair<Type, Type>> _FieldTypeMaps;
         /// <summary>字段类型映射</summary>
         protected virtual List<KeyValuePair<Type, Type>> FieldTypeMaps
         {
