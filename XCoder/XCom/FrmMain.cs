@@ -155,23 +155,26 @@ namespace XCom
             if (_Com != null) _Com.Dispose();
 
             var sp = new SerialPort(name, cfg.BaudRate, cfg.Parity, cfg.DataBits, cfg.StopBits);
-            _Com = new SerialTransport { Serial = sp };
-            _Com.Open();
+            var st = new SerialTransport { Serial = sp };
+            st.Open();
             //_Com.Disconnected += (s, e) => Disconnect();
             // 需要考虑UI线程
-            _Com.Disconnected += (s, e) => this.Invoke(Disconnect);
+            st.Disconnected += (s, e) => this.Invoke(Disconnect);
 
             sp.DtrEnable = chkDTR.Checked;
             sp.RtsEnable = chkRTS.Checked;
             if (chkBreak.Checked) sp.BreakState = chkBreak.Checked;
 
             //_Com.Encoding = cfg.Encoding;
-            _Com.Received += _Com_Received;
-            _Com.ReceiveAsync();
+            st.Received += _Com_Received;
+            st.ReceiveAsync();
 
             pnlSet.Enabled = false;
             gbSet2.Enabled = false;
             btnConnect.Text = "关闭";
+
+            // 必须完成串口打开以后再赋值，否则定时器会轮询导致报错
+            _Com = st;
         }
 
         void Disconnect()
@@ -241,7 +244,7 @@ namespace XCom
             var sp = _Com;
             if (sp != null)
             {
-                if (sp.Serial == null && btnConnect.Text == "关闭")
+                if ((sp.Serial == null || !sp.Serial.IsOpen) && btnConnect.Text == "打开")
                 {
                     Disconnect();
                     return;
