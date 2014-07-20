@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
+using System.Web;
 using NewLife;
 using NewLife.Collections;
 using NewLife.Log;
@@ -690,6 +691,14 @@ namespace XCode.DataAccessLayer
                 }
                 sb.Append("]");
                 sql = sb.ToString();
+            }
+
+            // 如果页面设定有XCode_SQLList列表，则往列表写入SQL语句
+            var context = HttpContext.Current;
+            if (context != null)
+            {
+                var list = context.Items["XCode_SQLList"] as List<String>;
+                if(list!=null)list.Add(sql);
             }
 
             if (String.IsNullOrEmpty(DAL.SQLPath))
