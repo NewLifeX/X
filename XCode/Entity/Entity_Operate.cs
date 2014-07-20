@@ -74,6 +74,87 @@ namespace XCode
             public virtual IEntityList LoadData(DataSet ds) { return Entity<TEntity>.LoadData(ds); }
             #endregion
 
+            #region 批量操作
+
+            /// <summary>根据条件删除实体记录，此操作跨越缓存，使用事务保护</summary>
+            /// <param name="whereClause">条件，不带Where</param>
+            /// <param name="batchSize">每次删除记录数</param>
+            public virtual void DeleteAll(String whereClause, Int32 batchSize)
+            {
+                Entity<TEntity>.DeleteAll(whereClause, batchSize);
+            }
+
+            /// <summary>批量处理实体记录，此操作跨越缓存</summary>
+            /// <param name="action">处理实体记录集方法</param>
+            /// <param name="useTransition">是否使用事务保护</param>
+            /// <param name="batchSize">每次处理记录数</param>
+            public virtual void ProcessAll(Action<IEntityList> action, Boolean useTransition = true, Int32 batchSize = 500)
+            {
+                ProcessAll(action, null, null, null, useTransition, batchSize);
+            }
+
+            /// <summary>批量处理实体记录，此操作跨越缓存</summary>
+            /// <param name="action">处理实体记录集方法</param>
+            /// <param name="whereClause">条件，不带Where</param>
+            /// <param name="useTransition">是否使用事务保护</param>
+            /// <param name="batchSize">每次处理记录数</param>
+            public virtual void ProcessAll(Action<IEntityList> action, String whereClause, Boolean useTransition = true, Int32 batchSize = 500)
+            {
+                ProcessAll(action, whereClause, null, null, useTransition, batchSize);
+            }
+
+            /// <summary>批量处理实体记录，此操作跨越缓存，使用事务保护</summary>
+            /// <param name="action">实体记录操作方法</param>
+            /// <param name="whereClause">条件，不带Where</param>
+            /// <param name="orderClause">排序，不带Order By</param>
+            /// <param name="selects">查询列</param>
+            /// <param name="useTransition">是否使用事务保护</param>
+            /// <param name="batchSize">每次处理记录数</param>
+            public virtual void ProcessAll(Action<IEntityList> action, String whereClause, String orderClause, String selects, Boolean useTransition, Int32 batchSize)
+            {
+                if (useTransition)
+                {
+                    using (var trans = new EntityTransaction<TEntity>())
+                    {
+                        var count = Entity<TEntity>.FindCount(whereClause, orderClause, selects, 0, 0);
+                        //var total = 0;
+                        var index = 0;
+                        while (true)
+                        {
+                            var size = Math.Min(batchSize, count - index);
+                            if (size <= 0) { break; }
+
+                            var list = Entity<TEntity>.FindAll(whereClause, orderClause, selects, index, size);
+                            if ((list == null) || (list.Count < 1)) { break; }
+                            index += list.Count;
+
+                            action(list);
+                        }
+
+                        trans.Commit();
+                    }
+                }
+                else
+                {
+                    var count = Entity<TEntity>.FindCount(whereClause, orderClause, selects, 0, 0);
+                    //var total = 0;
+                    var index = 0;
+                    while (true)
+                    {
+                        var size = Math.Min(batchSize, count - index);
+                        if (size <= 0) { break; }
+
+                        var list = Entity<TEntity>.FindAll(whereClause, orderClause, selects, index, size);
+                        if ((list == null) || (list.Count < 1)) { break; }
+                        index += list.Count;
+
+                        action(list);
+                    }
+                }
+            }
+
+            #endregion
+
             #region 查找单个实体
             /// <summary>根据属性以及对应的值，查找单个实体</summary>
             /// <param name="name">名称</param>

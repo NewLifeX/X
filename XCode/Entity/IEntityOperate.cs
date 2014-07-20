@@ -69,6 +69,37 @@ namespace XCode
         IEntityList LoadData(DataSet ds);
         #endregion
 
+        #region 批量操作
+
+        /// <summary>根据条件删除实体记录，此操作跨越缓存，使用事务保护</summary>
+        /// <param name="whereClause">条件，不带Where</param>
+        /// <param name="batchSize">每次删除记录数</param>
+        void DeleteAll(String whereClause, Int32 batchSize);
+
+        /// <summary>批量处理实体记录，此操作跨越缓存</summary>
+        /// <param name="action">处理实体记录集方法</param>
+        /// <param name="useTransition">是否使用事务保护</param>
+        /// <param name="batchSize">每次处理记录数</param>
+        void ProcessAll(Action<IEntityList> action, Boolean useTransition, Int32 batchSize);
+
+        /// <summary>批量处理实体记录，此操作跨越缓存</summary>
+        /// <param name="action">处理实体记录集方法</param>
+        /// <param name="whereClause">条件，不带Where</param>
+        /// <param name="useTransition">是否使用事务保护</param>
+        /// <param name="batchSize">每次处理记录数</param>
+        void ProcessAll(Action<IEntityList> action, String whereClause, Boolean useTransition, Int32 batchSize);
+
+        /// <summary>批量处理实体记录，此操作跨越缓存，使用事务保护</summary>
+        /// <param name="action">实体记录操作方法</param>
+        /// <param name="whereClause">条件，不带Where</param>
+        /// <param name="orderClause">排序，不带Order By</param>
+        /// <param name="selects">查询列</param>
+        /// <param name="useTransition">是否使用事务保护</param>
+        /// <param name="batchSize">每次处理记录数</param>
+        void ProcessAll(Action<IEntityList> action, String whereClause, String orderClause, String selects, Boolean useTransition, Int32 batchSize);
+
+        #endregion
+
         #region 查找单个实体
         /// <summary>根据属性以及对应的值，查找单个实体</summary>
         /// <param name="name">名称</param>
