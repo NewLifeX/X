@@ -33,8 +33,8 @@ namespace NewLife.Web
         /// <summary>是否启用浏览器缓存 默认禁用</summary>
         public bool BrowserCache { get; set; }
 
-        private TimeSpan _browserCacheMaxAge = new TimeSpan(100, 0, 0, 0);
-        /// <summary>浏览器最大缓存时间 默认100天</summary>
+        private TimeSpan _browserCacheMaxAge = new TimeSpan(30, 0, 0, 0);
+        /// <summary>浏览器最大缓存时间 默认30天</summary>
         public TimeSpan BrowserCacheMaxAge { get { return _browserCacheMaxAge; } set { _browserCacheMaxAge = value; } }
 
         private DateTime _ModifyTime;
@@ -183,6 +183,8 @@ namespace NewLife.Web
 
             //stream.Seek(startBytes, SeekOrigin.Begin);
             int maxCount = (int)Math.Floor((fileLength - startBytes) / (double)pack) + 1;
+            // 如果不足一个包，则缩小缓冲区，避免浪费内存
+            if (pack > stream.Length) pack = (Int32)stream.Length;
             var buffer = new Byte[pack];
             for (int i = 0; i < maxCount; i++)
             {
