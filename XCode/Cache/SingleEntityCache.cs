@@ -98,7 +98,7 @@ namespace XCode.Cache
             foreach (var item in cs)
             {
                 // 是否过期
-                if (item.ExpireTime > DateTime.Now)
+                if (item.ExpireTime <= DateTime.Now)
                 {
                     if (item.Entity != null)
                     {
