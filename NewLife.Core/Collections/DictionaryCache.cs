@@ -59,6 +59,14 @@ namespace NewLife.Collections
         /// <summary>移除过期缓存项时，自动调用其Dispose</summary>
         public Boolean AutoDispose { get { return _AutoDispose; } set { _AutoDispose = value; } }
 
+        private Boolean _CacheDefault = true;
+        /// <summary>是否缓存默认值，有时候委托返回默认值不希望被缓存，而是下一次尽快进行再次计算。默认true</summary>
+        public Boolean CacheDefault { get { return _CacheDefault; } set { _CacheDefault = value; } }
+
+        private Boolean _DelayLock;
+        /// <summary>延迟加锁，字典没有数据时，先计算结果再加锁加入字典，避免大量不同键的插入操作形成排队影响性能。默认false</summary>
+        public Boolean DelayLock { get { return _DelayLock; } set { _DelayLock = value; } }
+
         private Dictionary<TKey, CacheItem> Items;
         #endregion
 
@@ -151,20 +159,16 @@ namespace NewLife.Collections
         /// <returns></returns>
         public virtual TValue GetItem(TKey key, Func<TKey, TValue> func)
         {
-            return GetItem(key, func, true);
-        }
-
-        /// <summary>扩展获取数据项，当数据项不存在时，通过调用委托获取数据项。线程安全。</summary>
-        /// <param name="key">键</param>
-        /// <param name="func">获取值的委托，该委托以键作为参数</param>
-        /// <param name="cacheDefault">是否缓存默认值，可选参数，默认缓存</param>
-        /// <returns></returns>
-        public virtual TValue GetItem(TKey key, Func<TKey, TValue> func, Boolean cacheDefault)
-        {
             var expriod = Expriod;
             var items = Items;
             CacheItem item;
             if (items.TryGetValue(key, out item) && (expriod <= 0 || !item.Expired)) return item.Value;
+
+            // 提前计算，避免因为不同的Key错误锁定了主键
+            var value = default(TValue);
+            // 如果延迟加锁，则提前计算
+            if (DelayLock && func != null) value = func(key);
+
             lock (this)
             {
                 if (items.TryGetValue(key, out item) && (expriod <= 0 || !item.Expired)) return item.Value;
@@ -177,20 +181,18 @@ namespace NewLife.Collections
 
                 if (func == null)
                 {
-                    var value = default(TValue);
-                    if (cacheDefault) items[key] = new CacheItem(value, expriod);
-                    StartTimer();
-
-                    return value;
+                    if (CacheDefault) items[key] = new CacheItem(value, expriod);
                 }
                 else
                 {
-                    var value = func(key);
-                    if (cacheDefault || !Object.Equals(value, default(TValue))) items[key] = new CacheItem(value, expriod);
-                    StartTimer();
+                    // 如果不是延迟加锁，则现在计算
+                    if (!DelayLock) value = func(key);
 
-                    return value;
+                    if (CacheDefault || !Object.Equals(value, default(TValue))) items[key] = new CacheItem(value, expriod);
                 }
+                StartTimer();
+
+                return value;
             }
         }
 
@@ -201,18 +203,6 @@ namespace NewLife.Collections
         /// <param name="func">获取值的委托，该委托除了键参数外，还有一个泛型参数</param>
         /// <returns></returns>
         public virtual TValue GetItem<TArg>(TKey key, TArg arg, Func<TKey, TArg, TValue> func)
-        {
-            return GetItem<TArg>(key, arg, func, true);
-        }
-
-        /// <summary>扩展获取数据项，当数据项不存在时，通过调用委托获取数据项。线程安全。</summary>
-        /// <typeparam name="TArg">参数类型</typeparam>
-        /// <param name="key">键</param>
-        /// <param name="arg">参数</param>
-        /// <param name="func">获取值的委托，该委托除了键参数外，还有一个泛型参数</param>
-        /// <param name="cacheDefault">是否缓存默认值，可选参数，默认缓存</param>
-        /// <returns></returns>
-        public virtual TValue GetItem<TArg>(TKey key, TArg arg, Func<TKey, TArg, TValue> func, Boolean cacheDefault)
         {
             var expriod = Expriod;
             var items = Items;
@@ -229,7 +219,7 @@ namespace NewLife.Collections
                 }
 
                 var value = func(key, arg);
-                if (cacheDefault || !Object.Equals(value, default(TValue))) items[key] = new CacheItem(value, expriod);
+                if (CacheDefault || !Object.Equals(value, default(TValue))) items[key] = new CacheItem(value, expriod);
                 StartTimer();
 
                 return value;
@@ -246,20 +236,6 @@ namespace NewLife.Collections
         /// <returns></returns>
         public virtual TValue GetItem<TArg, TArg2>(TKey key, TArg arg, TArg2 arg2, Func<TKey, TArg, TArg2, TValue> func)
         {
-            return GetItem<TArg, TArg2>(key, arg, arg2, func, true);
-        }
-
-        /// <summary>扩展获取数据项，当数据项不存在时，通过调用委托获取数据项。线程安全。</summary>
-        /// <typeparam name="TArg">参数类型</typeparam>
-        /// <typeparam name="TArg2">参数类型2</typeparam>
-        /// <param name="key">键</param>
-        /// <param name="arg">参数</param>
-        /// <param name="arg2">参数2</param>
-        /// <param name="func">获取值的委托，该委托除了键参数外，还有两个泛型参数</param>
-        /// <param name="cacheDefault">是否缓存默认值，可选参数，默认缓存</param>
-        /// <returns></returns>
-        public virtual TValue GetItem<TArg, TArg2>(TKey key, TArg arg, TArg2 arg2, Func<TKey, TArg, TArg2, TValue> func, Boolean cacheDefault)
-        {
             var expriod = Expriod;
             var items = Items;
             CacheItem item;
@@ -275,7 +251,7 @@ namespace NewLife.Collections
                 }
 
                 var value = func(key, arg, arg2);
-                if (cacheDefault || !Object.Equals(value, default(TValue))) items[key] = new CacheItem(value, expriod);
+                if (CacheDefault || !Object.Equals(value, default(TValue))) items[key] = new CacheItem(value, expriod);
                 StartTimer();
 
                 return value;
@@ -294,22 +270,6 @@ namespace NewLife.Collections
         /// <returns></returns>
         public virtual TValue GetItem<TArg, TArg2, TArg3>(TKey key, TArg arg, TArg2 arg2, TArg3 arg3, Func<TKey, TArg, TArg2, TArg3, TValue> func)
         {
-            return GetItem<TArg, TArg2, TArg3>(key, arg, arg2, arg3, func, true);
-        }
-
-        /// <summary>扩展获取数据项，当数据项不存在时，通过调用委托获取数据项。线程安全。</summary>
-        /// <typeparam name="TArg">参数类型</typeparam>
-        /// <typeparam name="TArg2">参数类型2</typeparam>
-        /// <typeparam name="TArg3">参数类型3</typeparam>
-        /// <param name="key">键</param>
-        /// <param name="arg">参数</param>
-        /// <param name="arg2">参数2</param>
-        /// <param name="arg3">参数3</param>
-        /// <param name="func">获取值的委托，该委托除了键参数外，还有三个泛型参数</param>
-        /// <param name="cacheDefault">是否缓存默认值，可选参数，默认缓存</param>
-        /// <returns></returns>
-        public virtual TValue GetItem<TArg, TArg2, TArg3>(TKey key, TArg arg, TArg2 arg2, TArg3 arg3, Func<TKey, TArg, TArg2, TArg3, TValue> func, Boolean cacheDefault)
-        {
             var expriod = Expriod;
             var items = Items;
             CacheItem item;
@@ -325,7 +285,7 @@ namespace NewLife.Collections
                 }
 
                 var value = func(key, arg, arg2, arg3);
-                if (cacheDefault || !Object.Equals(value, default(TValue))) items[key] = new CacheItem(value, expriod);
+                if (CacheDefault || !Object.Equals(value, default(TValue))) items[key] = new CacheItem(value, expriod);
                 StartTimer();
 
                 return value;
@@ -343,9 +303,8 @@ namespace NewLife.Collections
         /// <param name="arg3">参数3</param>
         /// <param name="arg4">参数4</param>
         /// <param name="func">获取值的委托，该委托除了键参数外，还有三个泛型参数</param>
-        /// <param name="cacheDefault">是否缓存默认值，可选参数，默认缓存</param>
         /// <returns></returns>
-        public virtual TValue GetItem<TArg, TArg2, TArg3, TArg4>(TKey key, TArg arg, TArg2 arg2, TArg3 arg3, TArg4 arg4, Func<TKey, TArg, TArg2, TArg3, TArg4, TValue> func, Boolean cacheDefault = true)
+        public virtual TValue GetItem<TArg, TArg2, TArg3, TArg4>(TKey key, TArg arg, TArg2 arg2, TArg3 arg3, TArg4 arg4, Func<TKey, TArg, TArg2, TArg3, TArg4, TValue> func)
         {
             var expriod = Expriod;
             var items = Items;
@@ -362,7 +321,7 @@ namespace NewLife.Collections
                 }
 
                 var value = func(key, arg, arg2, arg3, arg4);
-                if (cacheDefault || !Object.Equals(value, default(TValue))) items[key] = new CacheItem(value, expriod);
+                if (CacheDefault || !Object.Equals(value, default(TValue))) items[key] = new CacheItem(value, expriod);
                 StartTimer();
 
                 return value;

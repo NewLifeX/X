@@ -56,8 +56,10 @@ namespace XCode
                 }
             }
 
+            CacheDefault = cacheDefault;
+
             // 这里使用了成员方法GetExtend<TDependEntity>而不是匿名函数，为了避免生成包装类，且每次调用前实例化包装类带来较大开销
-            return (TResult)GetItem<Func<String, Object>, List<String>>(key, func, list, GetExtend<TDependEntity>, cacheDefault);
+            return (TResult)GetItem<Func<String, Object>, List<String>>(key, func, list, GetExtend<TDependEntity>);
         }
 
         Object GetExtend<TDependEntity>(String key, Func<String, Object> func, List<String> list) where TDependEntity : Entity<TDependEntity>, new()

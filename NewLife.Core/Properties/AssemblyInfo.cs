@@ -30,10 +30,12 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“内部版本号”和“修订号”的默认值，
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("4.5.*")]
-[assembly: AssemblyFileVersion("4.5.2014.0715")]
+[assembly: AssemblyVersion("4.6.*")]
+[assembly: AssemblyFileVersion("4.6.2014.0722")]
 
 /*
+ * v4.6.2014.0722   DictionaryCache增加DelayLock，支持在锁外提前计算结果，避免每个key独占锁太长时间
+ * 
  * v4.5.2014.0715   增加EncodingHelper，检测数据流字符编码
  * 
  * v4.4.2014.0704   增加窗口控件操作的ControlHelper，扩展若干常用Invoke方法
