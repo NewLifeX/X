@@ -88,13 +88,16 @@ namespace NewLife.Net.Modbus
             // 发送
             var buf = entity.ToArray();
 
-#if DEBUG
+#if MF && DEBUG
             var str = "Request :";
             for (int i = 0; i < buf.Length; i++)
             {
                 str += " " + buf[i].ToString("X2");
             }
             WriteLine(str);
+#endif
+#if !MF
+            if (EnableDebug) WriteLine(entity.Function + " :" + buf.ToHex());
 #endif
 
             // Modbus加锁，防止冲突
@@ -113,7 +116,7 @@ namespace NewLife.Net.Modbus
                 var count = Transport.Receive(buf_receive);
                 if (count <= 0) return null;
 
-#if DEBUG
+#if MF && DEBUG
             str = "Response:";
             for (int i = 0; i < count; i++)
             {
@@ -121,6 +124,9 @@ namespace NewLife.Net.Modbus
             }
             WriteLine(str);
             WriteLine("");
+#endif
+#if !MF
+                if (EnableDebug) WriteLine(new String(' ', entity.Function.ToString().Length) + "=>" + buf.ToHex());
 #endif
 
                 var rs = new ModbusEntity().Parse(buf_receive, 0, count);
