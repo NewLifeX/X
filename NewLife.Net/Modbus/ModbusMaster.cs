@@ -126,7 +126,7 @@ namespace NewLife.Net.Modbus
             WriteLine("");
 #endif
 #if !MF
-                if (EnableDebug) WriteLine(new String(' ', entity.Function.ToString().Length) + "=>" + buf.ToHex());
+                if (EnableDebug) WriteLine(new String(' ', entity.Function.ToString().Length) + "=>" + buf_receive.ToHex(0, count));
 #endif
 
                 var rs = new ModbusEntity().Parse(buf_receive, 0, count);
