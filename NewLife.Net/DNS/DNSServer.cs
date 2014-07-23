@@ -103,7 +103,7 @@ namespace NewLife.Net.DNS
         #endregion
 
         #region 方法
-        DictionaryCache<String, DNSEntity> cache = new DictionaryCache<string, DNSEntity>() { Expriod = 600, Asynchronous = true };
+        DictionaryCache<String, DNSEntity> cache = new DictionaryCache<string, DNSEntity>() { Expriod = 600, Asynchronous = true, CacheDefault = false };
 
         /// <summary>接收处理</summary>
         /// <param name="sender"></param>
@@ -154,7 +154,7 @@ namespace NewLife.Net.DNS
             }
 
             // 读取缓存
-            var rs = cache.GetItem<DNSEntity>(request.ToString(), request, GetDNS, false);
+            var rs = cache.GetItem<DNSEntity>(request.ToString(), request, GetDNS);
 
             // 返回给客户端
             if (rs != null)
