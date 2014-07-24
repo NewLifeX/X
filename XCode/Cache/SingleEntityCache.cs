@@ -98,6 +98,7 @@ namespace XCode.Cache
             foreach (var item in cs)
             {
                 // 是否过期
+                // 单对象缓存每次缓存的时候，设定一个将来的过期时间，然后以后只需要比较过期时间和当前时间就可以了
                 if (item.ExpireTime <= DateTime.Now)
                 {
                     if (item.Entity != null)
