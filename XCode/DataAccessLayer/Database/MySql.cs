@@ -183,17 +183,18 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public override string FormatValue(IDataColumn field, object value)
         {
-            //if (field.DataType == typeof(String))
-            //{
-            //    if (value == null) return field.Nullable ? "null" : "``";
-            //    if (String.IsNullOrEmpty(value.ToString()) && field.Nullable) return "null";
-            //    return "`" + value + "`";
-            //}
-            //else
-            if (field.DataType == typeof(Boolean))
-            {
-                return (Boolean)value ? "'Y'" : "'N'";
-            }
+            var code = Type.GetTypeCode(field.DataType);
+            if (code == TypeCode.String)
+                if (field.DataType == typeof(String))
+                {
+                    if (value == null) return field.Nullable ? "null" : "''";
+
+                    return "'" + value.ToString().Replace("'", @"\'") + "'";
+                }
+                else if (code == TypeCode.Boolean)
+                {
+                    return (Boolean)value ? "'Y'" : "'N'";
+                }
 
             return base.FormatValue(field, value);
         }
