@@ -717,8 +717,7 @@ namespace XCode.DataAccessLayer
             else if (value != null)
                 type = value.GetType();
 
-            TypeCode code = Type.GetTypeCode(type);
-
+            var code = Type.GetTypeCode(type);
             if (code == TypeCode.String)
             {
                 if (value == null) return isNullable ? "null" : "''";
