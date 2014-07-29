@@ -304,8 +304,15 @@ namespace NewLife.Reflection
             stream.Seek(8, SeekOrigin.Current);
 
             var buf = reader.ReadBytes(reader.ReadInt32());
-            var version = Encoding.ASCII.GetString(buf).TrimEnd('\0').TrimStart('v');
-            Version = new Version(version);
+            if (buf != null && buf.Length > 0)
+            {
+                var version = Encoding.ASCII.GetString(buf).TrimEnd('\0').TrimStart('v');
+                try
+                {
+                    Version = new Version(version);
+                }
+                catch { }
+            }
 
             return true;
         }
