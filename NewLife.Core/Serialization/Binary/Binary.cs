@@ -53,6 +53,7 @@ namespace NewLife.Serialization
         {
             if (handler != null)
             {
+                handler.Host = this;
                 _Handlers.Add(handler);
                 // 根据优先级排序
                 _Handlers.Sort();
@@ -68,6 +69,7 @@ namespace NewLife.Serialization
         public Binary AddHandler<THandler>(Int32 priority = 0) where THandler : IBinaryHandler, new()
         {
             var handler = new THandler();
+            handler.Host = this;
             if (priority != 0) handler.Priority = priority;
 
             return AddHandler(handler);

@@ -31,9 +31,11 @@ using System.Runtime.InteropServices;
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("4.6.*")]
-[assembly: AssemblyFileVersion("4.6.2014.0722")]
+[assembly: AssemblyFileVersion("4.6.2014.0731")]
 
 /*
+ * v4.6.2014.0731   二进制序列化增加List处理器
+ * 
  * v4.6.2014.0722   DictionaryCache增加DelayLock，支持在锁外提前计算结果，避免每个key独占锁太长时间
  * 
  * v4.5.2014.0715   增加EncodingHelper，检测数据流字符编码
