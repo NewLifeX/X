@@ -439,15 +439,33 @@ namespace NewLife.Serialization
 
         /// <summary>从当前流中读取 2 字节有符号整数，并使流的当前位置提升 2 个字节。</summary>
         /// <returns></returns>
-        public virtual short ReadInt16() { return BitConverter.ToInt16(ReadIntBytes(2), 0); }
+        public virtual short ReadInt16()
+        {
+            if (Host.EncodeInt)
+                return ReadEncodedInt16();
+            else
+                return BitConverter.ToInt16(ReadIntBytes(2), 0);
+        }
 
         /// <summary>从当前流中读取 4 字节有符号整数，并使流的当前位置提升 4 个字节。</summary>
         /// <returns></returns>
-        public virtual int ReadInt32() { return BitConverter.ToInt32(ReadIntBytes(4), 0); }
+        public virtual int ReadInt32()
+        {
+            if (Host.EncodeInt)
+                return ReadEncodedInt32();
+            else
+                return BitConverter.ToInt32(ReadIntBytes(4), 0);
+        }
 
         /// <summary>从当前流中读取 8 字节有符号整数，并使流的当前位置向前移动 8 个字节。</summary>
         /// <returns></returns>
-        public virtual long ReadInt64() { return BitConverter.ToInt64(ReadIntBytes(8), 0); }
+        public virtual long ReadInt64()
+        {
+            if (Host.EncodeInt)
+                return ReadEncodedInt64();
+            else
+                return BitConverter.ToInt64(ReadIntBytes(8), 0);
+        }
         #endregion
 
         #region 无符号整数
@@ -533,6 +551,68 @@ namespace NewLife.Serialization
         /// <summary>读取一个时间日期</summary>
         /// <returns></returns>
         public virtual DateTime ReadDateTime() { return new DateTime(ReadInt64()); }
+        #endregion
+
+        #region 7位压缩编码整数
+        /// <summary>以压缩格式读取16位整数</summary>
+        /// <returns></returns>
+        public Int16 ReadEncodedInt16()
+        {
+            Byte b;
+            Int16 rs = 0;
+            Byte n = 0;
+            while (true)
+            {
+                b = ReadByte();
+                // 必须转为Int16，否则可能溢出
+                rs += (Int16)((b & 0x7f) << n);
+                if ((b & 0x80) == 0) break;
+
+                n += 7;
+                if (n >= 16) throw new FormatException("数字值过大，无法使用压缩格式读取！");
+            }
+            return rs;
+        }
+
+        /// <summary>以压缩格式读取32位整数</summary>
+        /// <returns></returns>
+        public Int32 ReadEncodedInt32()
+        {
+            Byte b;
+            Int32 rs = 0;
+            Byte n = 0;
+            while (true)
+            {
+                b = ReadByte();
+                // 必须转为Int32，否则可能溢出
+                rs += (Int32)((b & 0x7f) << n);
+                if ((b & 0x80) == 0) break;
+
+                n += 7;
+                if (n >= 32) throw new FormatException("数字值过大，无法使用压缩格式读取！");
+            }
+            return rs;
+        }
+
+        /// <summary>以压缩格式读取64位整数</summary>
+        /// <returns></returns>
+        public Int64 ReadEncodedInt64()
+        {
+            Byte b;
+            Int64 rs = 0;
+            Byte n = 0;
+            while (true)
+            {
+                b = ReadByte();
+                // 必须转为Int64，否则可能溢出
+                rs += (Int64)(b & 0x7f) << n;
+                if ((b & 0x80) == 0) break;
+
+                n += 7;
+                if (n >= 64) throw new FormatException("数字值过大，无法使用压缩格式读取！");
+            }
+            return rs;
+        }
         #endregion
         #endregion
 
