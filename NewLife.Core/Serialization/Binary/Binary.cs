@@ -201,21 +201,25 @@ namespace NewLife.Serialization
             var size = GetFieldSize();
             if (size >= 0) return size;
 
-            var sizeFormat = TypeCode.Int32;
-            switch (sizeFormat)
-            {
-                case TypeCode.Int16:
-                    return ReadInt16();
-                case TypeCode.UInt16:
-                    return ReadEncodedInt16();
-                case TypeCode.Int32:
-                case TypeCode.Int64:
-                default:
-                    return ReadInt32();
-                case TypeCode.UInt32:
-                case TypeCode.UInt64:
-                    return ReadEncodedInt32();
-            }
+            if(EncodeInt)
+                return ReadEncodedInt32();
+            else
+                return ReadInt32();
+            //var sizeFormat = TypeCode.Int32;
+            //switch (sizeFormat)
+            //{
+            //    case TypeCode.Int16:
+            //        return ReadInt16();
+            //    case TypeCode.UInt16:
+            //        return ReadEncodedInt16();
+            //    case TypeCode.Int32:
+            //    case TypeCode.Int64:
+            //    default:
+            //        return ReadInt32();
+            //    case TypeCode.UInt32:
+            //    case TypeCode.UInt64:
+            //        return ReadEncodedInt32();
+            //}
         }
 
         Int32 GetFieldSize()
