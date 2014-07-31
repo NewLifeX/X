@@ -19,9 +19,13 @@ namespace NewLife.Serialization
         /// <summary>小端字节序</summary>
         public Boolean IsLittleEndian { get { return _IsLittleEndian; } set { _IsLittleEndian = value; } }
 
-        private List<IBinaryHandler> _Handlers;
+        private Boolean _UseFieldSize;
+        /// <summary>使用指定大小的FieldSizeAttribute特性，默认false</summary>
+        public Boolean UseFieldSize { get { return _UseFieldSize; } set { _UseFieldSize = value; } }
+
+        private List<IBinaryHandler> _Handlers = new List<IBinaryHandler>();
         /// <summary>处理器列表</summary>
-        public List<IBinaryHandler> Handlers { get { return _Handlers ?? (_Handlers = new List<IBinaryHandler>()); } }
+        public List<IBinaryHandler> Handlers { get { return _Handlers; } }
         #endregion
 
         #region 构造
@@ -116,9 +120,11 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public virtual Int32 WriteSize(Int32 size)
         {
-            //if (HasFieldSize()) return;
-            var fieldsize = GetFieldSize();
-            if (fieldsize >= 0) return fieldsize;
+            if (UseFieldSize)
+            {
+                var fieldsize = GetFieldSize();
+                if (fieldsize >= 0) return fieldsize;
+            }
 
             WriteEncoded(size);
             return -1;
@@ -200,10 +206,13 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public virtual Int32 ReadSize()
         {
-            var size = GetFieldSize();
-            if (size >= 0) return size;
+            if (UseFieldSize)
+            {
+                var size = GetFieldSize();
+                if (size >= 0) return size;
+            }
 
-            if(EncodeInt)
+            if (EncodeInt)
                 return ReadEncodedInt32();
             else
                 return ReadInt32();
@@ -321,6 +330,10 @@ namespace NewLife.Serialization
             }
             return rs;
         }
+        #endregion
+
+        #region 辅助函数
+
         #endregion
 
         #region 跟踪日志

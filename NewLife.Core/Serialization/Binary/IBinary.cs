@@ -17,6 +17,9 @@ namespace NewLife.Serialization
         /// <summary>文本编码</summary>
         Encoding Encoding { get; }
 
+        /// <summary>使用指定大小的FieldSizeAttribute特性，默认false</summary>
+        Boolean UseFieldSize { get; }
+
         /// <summary>处理器列表</summary>
         List<IBinaryHandler> Handlers { get; }
         #endregion

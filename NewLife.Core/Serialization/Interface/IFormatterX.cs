@@ -55,8 +55,8 @@ namespace NewLife.Serialization
         /// <summary>成员</summary>
         public MemberInfo Member { get { return _Member; } set { _Member = value; } }
 
-        private Encoding _Encoding = Encoding.UTF8;
-        /// <summary>字符串编码</summary>
+        private Encoding _Encoding = Encoding.Default;
+        /// <summary>字符串编码，默认Default</summary>
         public Encoding Encoding { get { return _Encoding; } set { _Encoding = value; } }
         #endregion
 

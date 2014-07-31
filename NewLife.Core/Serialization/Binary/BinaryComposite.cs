@@ -29,12 +29,15 @@ namespace NewLife.Serialization
 
             var ms = GetMembers(type);
 
-            // 遍历成员，寻找FieldSizeAttribute特性，重新设定大小字段的值
-            foreach (var member in ms)
+            if (Host.UseFieldSize)
             {
-                // 获取FieldSizeAttribute特性
-                var att = member.GetCustomAttribute<FieldSizeAttribute>();
-                if (att != null) att.SetReferenceSize(value, member, Host.Encoding);
+                // 遍历成员，寻找FieldSizeAttribute特性，重新设定大小字段的值
+                foreach (var member in ms)
+                {
+                    // 获取FieldSizeAttribute特性
+                    var att = member.GetCustomAttribute<FieldSizeAttribute>();
+                    if (att != null) att.SetReferenceSize(value, member, Host.Encoding);
+                }
             }
 
             Host.Hosts.Push(value);
