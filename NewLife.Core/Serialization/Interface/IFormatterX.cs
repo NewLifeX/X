@@ -41,9 +41,11 @@ namespace NewLife.Serialization
     public abstract class FormatterBase //: IFormatterX
     {
         #region 属性
+        private Int64 _StartPosition = 0;
+
         private Stream _Stream;
         /// <summary>数据流</summary>
-        public virtual Stream Stream { get { return _Stream ?? (_Stream = new MemoryStream()); } set { _Stream = value; } }
+        public virtual Stream Stream { get { return _Stream ?? (_Stream = new MemoryStream()); } set { _Stream = value; _StartPosition = value == null ? 0 : value.Position; } }
 
         private Stack<Object> _Hosts = new Stack<Object>();
         /// <summary>主对象</summary>
@@ -56,6 +58,23 @@ namespace NewLife.Serialization
         private Encoding _Encoding = Encoding.UTF8;
         /// <summary>字符串编码</summary>
         public Encoding Encoding { get { return _Encoding; } set { _Encoding = value; } }
+        #endregion
+
+        #region 方法
+        /// <summary>获取流里面的数据</summary>
+        /// <returns></returns>
+        public Byte[] GetBytes()
+        {
+            var ms = Stream;
+            var pos = ms.Position;
+            if (pos == 0 || pos == _StartPosition) return new Byte[0];
+
+            if (ms is MemoryStream && pos == ms.Length && _StartPosition == 0)
+                return (ms as MemoryStream).ToArray();
+
+            ms.Position = _StartPosition;
+            return ms.ReadBytes(pos - _StartPosition);
+        }
         #endregion
     }
 }
