@@ -44,7 +44,7 @@ namespace Test
                 try
                 {
 #endif
-                Test14();
+                    Test15();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -800,59 +800,16 @@ namespace Test
 
         static void Test15()
         {
-            var list = new List<Int32>();
-            list.Add(1);
-            list.Add(3);
-            list.Add(1);
+            var list = new List<String>();
+            list.Add("23fsdfs");
+            list.Add("skdfjsiofowo");
+            list.Add("dkkddkdkdkk");
 
-            var list2 = new List<Int32>();
-            //list2.AddRange(list);
-            foreach (var item in list)
-            {
-                // Array.IndexOf()
-                if (!list2.Contains(item)) list2.Add(item);
-            }
-            list.Capacity = 4000;
-            //list.Clear();
-            //list = list2;
-            Console.WriteLine(list[2]);
+            var bn = new Binary();
+            bn.AddHandler<BinaryList>();
 
-            var arr = list.ToArray();
-
-            var n = list.IndexOf(1);
-            Console.WriteLine(n);
-
-            n = list.LastIndexOf(1);
-            Console.WriteLine(n);
-
-            n = list[list.Count - 1];
-            //list2.Remove(1);
-            //list2.RemoveAll(e => e == 1);
-
-            foreach (var item in list2)
-            {
-                Console.WriteLine(item);
-            }
-
-            var dic = new Dictionary<Int32, String>();
-            dic.Add(11, "111");
-            dic.Add(33, "123");
-            dic.Add(22, "222");
-
-            if (dic.ContainsKey(33)) dic.Remove(33);
-
-            dic[11] = "xxx";
-
-            var str = dic[22];
-            Console.WriteLine(str);
-            str.GetHashCode();
-
-            foreach (var item in dic)
-            {
-                Console.WriteLine("{0}={1}", item.Key, item.Value);
-            }
-
-            //Stack<Int32>
+            bn.Write(list);
+            Console.WriteLine(bn.GetBytes().ToHex());
         }
     }
 }

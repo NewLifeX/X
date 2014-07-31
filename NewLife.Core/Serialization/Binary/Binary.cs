@@ -115,7 +115,7 @@ namespace NewLife.Serialization
             Stream.Write(buffer, offset, count);
         }
 
-        /// <summary>写入大小</summary>
+        /// <summary>写入大小，如果有FieldSize则返回，否则写入编码的大小</summary>
         /// <param name="size"></param>
         /// <returns></returns>
         public virtual Int32 WriteSize(Int32 size)

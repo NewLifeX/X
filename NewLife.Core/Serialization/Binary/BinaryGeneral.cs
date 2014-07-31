@@ -365,7 +365,18 @@ namespace NewLife.Serialization
 
         /// <summary>写入字符串</summary>
         /// <param name="value">要写入的值。</param>
-        public virtual void Write(String value) { Write(value == null ? null : value.ToCharArray()); }
+        public virtual void Write(String value)
+        {
+            //Write(value == null ? null : value.ToCharArray());
+            if (value == null || value.Length == 0)
+            {
+                Write((Byte)0);
+            }
+
+            // 先用写入字节长度
+            var buffer = Host.Encoding.GetBytes(value);
+            Write(buffer);
+        }
         #endregion
 
         #region 时间日期
