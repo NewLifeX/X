@@ -9,7 +9,8 @@ namespace System
     public static class AttributeX
     {
         #region 静态方法
-        private static DictionaryCache<String, Object> _miCache = new DictionaryCache<String, Object>();
+        private static DictionaryCache<MemberInfo, DictionaryCache<Type, Array>> _miCache = new DictionaryCache<MemberInfo, DictionaryCache<Type, Array>>();
+        private static DictionaryCache<MemberInfo, DictionaryCache<Type, Array>> _miCache2 = new DictionaryCache<MemberInfo, DictionaryCache<Type, Array>>();
 
         /// <summary>获取自定义特性，带有缓存功能，避免因.Net内部GetCustomAttributes没有缓存而带来的损耗</summary>
         /// <typeparam name="TAttribute"></typeparam>
@@ -20,20 +21,34 @@ namespace System
         {
             if (member == null) return new TAttribute[0];
 
-            var key = "";
-            var type = (member as Type) ?? member.DeclaringType ?? member.ReflectedType;
-            if (type != null)
-                key = String.Format("{0}_{1}", type.FullName, member.Name);
-            else
-                key = String.Format("{0}_{1}", member.Module.Assembly.FullName, member.MetadataToken);
+            var micache = _miCache;
+            if (!inherit) micache = _miCache2;
 
-            key = String.Format("{0}_{1}_{2}", key, typeof(TAttribute).FullName, inherit);
-
-            return (TAttribute[])_miCache.GetItem<MemberInfo, Boolean>(key, member, inherit, (k, m, h) =>
+            // 二级字典缓存
+            var cache = micache.GetItem(member, m => new DictionaryCache<Type, Array>());
+            var atts = cache.GetItem<MemberInfo, Boolean>(typeof(TAttribute), member, inherit, (t, m, inh) =>
             {
-                var atts = m.GetCustomAttributes(typeof(TAttribute), h) as TAttribute[];
-                return atts == null ? new TAttribute[0] : atts;
+                return m.GetCustomAttributes(t, inh).Cast<TAttribute>().ToArray();
             });
+            if (atts == null || atts.Length <= 0) return new TAttribute[0];
+
+            //return atts.Cast<TAttribute>().ToArray();
+            return atts as TAttribute[];
+
+            //var key = "";
+            //var type = (member as Type) ?? member.DeclaringType ?? member.ReflectedType;
+            //if (type != null)
+            //    key = String.Format("{0}_{1}", type.FullName, member.Name);
+            //else
+            //    key = String.Format("{0}_{1}", member.Module.Assembly.FullName, member.MetadataToken);
+
+            //key = String.Format("{0}_{1}_{2}", key, typeof(TAttribute).FullName, inherit);
+
+            //return (TAttribute[])_miCache.GetItem<MemberInfo, Boolean>(key, member, inherit, (k, m, h) =>
+            //{
+            //    var atts = m.GetCustomAttributes(typeof(TAttribute), h) as TAttribute[];
+            //    return atts == null ? new TAttribute[0] : atts;
+            //});
         }
 
         /// <summary>获取自定义属性</summary>
