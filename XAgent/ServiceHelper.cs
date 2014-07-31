@@ -5,6 +5,8 @@ using System.Diagnostics;
 using System.IO;
 using System.ServiceProcess;
 using NewLife.Log;
+using System.Linq;
+using NewLife.Configuration;
 
 namespace XAgent
 {
@@ -187,6 +189,49 @@ namespace XAgent
             }
             catch { return null; }
             finally { if (control != null)control.Dispose(); }
+        }
+        #endregion
+
+        #region 服务依赖
+        /// <summary>启动服务准备工作</summary>
+        public static void PreStartWork(this IAgentService service)
+        {
+            var Services = ServiceController.GetServices();
+
+            //首先检查是否有依赖服务
+            // 1.服务本身的依赖
+            ServiceController[] servicesDependedOn = null;
+            var scApp = Services.FirstOrDefault(s => s.ServiceName == service.ServiceName);
+            if (scApp != null)
+            {
+                servicesDependedOn = scApp.ServicesDependedOn;
+
+                foreach (var sc in servicesDependedOn)
+                {
+                    try
+                    {
+                        sc.Start();
+                    }
+                    catch (Exception ex)
+                    {
+                        //依赖服务启动未成功
+                        throw new Exception("依赖服务" + sc.ServiceName + "未启动成功", ex);
+                    }
+                }
+            }
+            // 2.配置文件的依赖
+            var scConfig = Config.GetConfigSplit<String>("XAgent.ServicesDependedOn", ",", Config.GetConfigSplit<String>("ServicesDependedOn", ",", null));
+            if (scConfig != null)
+            {
+                foreach (var item in scConfig)
+                {
+                    var sc = Services.FirstOrDefault(s => s.ServiceName == item);
+                    if (sc != null)
+                        sc.Start();
+                    else
+                        throw new Exception(String.Format("依赖服务{0}不存在", item));
+                }
+            }
         }
         #endregion
 
