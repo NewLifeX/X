@@ -34,6 +34,8 @@ namespace XAgent
             //提升进程优先级
             Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.High;
 
+            var service = Instance as TService;
+
             // 根据配置修改服务名
             String name = Config.GetConfig<String>("XAgent.ServiceName");
             if (!String.IsNullOrEmpty(name)) Instance.ServiceName = name;
@@ -48,7 +50,7 @@ namespace XAgent
                 String cmd = Args[1].ToLower();
                 if (cmd == "-s")  //启动服务
                 {
-                    var ServicesToRun = new ServiceBase[] { Instance };
+                    var ServicesToRun = new ServiceBase[] { service };
 
                     try
                     {
@@ -62,37 +64,37 @@ namespace XAgent
                 }
                 else if (cmd == "-i") //安装服务
                 {
-                    Install(true);
+                    service.Install(true);
                     return;
                 }
                 else if (cmd == "-u") //卸载服务
                 {
-                    Install(false);
+                    service.Install(false);
                     return;
                 }
                 else if (cmd == "-start") //启动服务
                 {
-                    ControlService(true);
+                    service.ControlService(true);
                     return;
                 }
                 else if (cmd == "-stop") //停止服务
                 {
-                    ControlService(false);
+                    service.ControlService(false);
                     return;
                 }
                 else if (cmd == "-run") //循环执行任务
                 {
-                    TService service = new TService();
-                    service.StartWork();
+                    var service2 = new TService();
+                    service2.StartWork();
                     Console.ReadKey(true);
                     return;
                 }
                 else if (cmd == "-step") //单步执行任务
                 {
-                    TService service = new TService();
-                    for (int i = 0; i < service.ThreadCount; i++)
+                    var service2 = new TService();
+                    for (int i = 0; i < service2.ThreadCount; i++)
                     {
-                        service.Work(i);
+                        service2.Work(i);
                     }
                     return;
                 }
@@ -100,21 +102,21 @@ namespace XAgent
             }
             else
             {
-                Console.Title = AgentDisplayName;
+                Console.Title = service.DisplayName;
 
                 #region 命令行
                 //XTrace.OnWriteLog += new EventHandler<WriteLogEventArgs>(XTrace_OnWriteLog);
                 XTrace.UseConsole();
 
-                TService serivce = Instance as TService;
+                //TService service = Instance as TService;
 
                 //输出状态
-                serivce.ShowStatus();
+                service.ShowStatus();
 
                 while (true)
                 {
                     //输出菜单
-                    serivce.ShowMenu();
+                    service.ShowMenu();
                     Console.Write("请选择操作（-x是命令行参数）：");
 
                     //读取命令
@@ -127,20 +129,20 @@ namespace XAgent
                     {
                         case 1:
                             //输出状态
-                            serivce.ShowStatus();
+                            service.ShowStatus();
 
                             break;
                         case 2:
-                            if (IsInstalled == true)
-                                Install(false);
+                            if (service.IsInstalled() == true)
+                                service.Install(false);
                             else
-                                Install(true);
+                                service.Install(true);
                             break;
                         case 3:
-                            if (IsRunning == true)
-                                ControlService(false);
+                            if (service.IsRunning() == true)
+                                service.ControlService(false);
                             else
-                                ControlService(true);
+                                service.ControlService(true);
                             break;
                         case 4:
                             #region 单步调试
@@ -160,12 +162,12 @@ namespace XAgent
                                 {
                                     for (int i = 0; i < Instance.ThreadCount; i++)
                                     {
-                                        serivce.Work(i);
+                                        service.Work(i);
                                     }
                                 }
                                 else
                                 {
-                                    serivce.Work(n);
+                                    service.Work(n);
                                 }
                                 Console.WriteLine("单步调试完成！");
                             }
@@ -180,12 +182,12 @@ namespace XAgent
                             try
                             {
                                 Console.WriteLine("正在循环调试……");
-                                serivce.StartWork();
+                                service.StartWork();
 
                                 Console.WriteLine("任意键结束循环调试！");
                                 Console.ReadKey(true);
 
-                                serivce.StopWork();
+                                service.StopWork();
                             }
                             catch (Exception ex)
                             {
@@ -196,12 +198,12 @@ namespace XAgent
                         case 6:
                             #region 附加服务
                             Console.WriteLine("正在附加服务调试……");
-                            serivce.StartAttachServers();
+                            service.StartAttachServers();
 
                             Console.WriteLine("任意键结束附加服务调试！");
                             Console.ReadKey(true);
 
-                            serivce.StopAttachServers();
+                            service.StopAttachServers();
                             #endregion
                             break;
                         case 7:
@@ -221,10 +223,12 @@ namespace XAgent
         /// <summary>生成批处理</summary>
         protected virtual void MakeBat()
         {
-            File.WriteAllText("安装.bat", ExeName + " -i");
-            File.WriteAllText("卸载.bat", ExeName + " -u");
-            File.WriteAllText("启动.bat", ExeName + " -start");
-            File.WriteAllText("停止.bat", ExeName + " -stop");
+            var name = ServiceHelper.ExeName;
+
+            File.WriteAllText("安装.bat", name + " -i");
+            File.WriteAllText("卸载.bat", name + " -u");
+            File.WriteAllText("启动.bat", name + " -start");
+            File.WriteAllText("停止.bat", name + " -stop");
         }
 
         /// <summary>显示状态</summary>
@@ -233,27 +237,27 @@ namespace XAgent
             var color = Console.ForegroundColor;
             Console.ForegroundColor = ConsoleColor.Red;
 
-            if (AgentServiceName != AgentDisplayName)
-                Console.WriteLine("服务：{0}({1})", AgentDisplayName, AgentServiceName);
+            var service = Instance;
+            var name = service.ServiceName;
+
+            if (name != service.DisplayName)
+                Console.WriteLine("服务：{0}({1})", service.DisplayName, name);
             else
-                Console.WriteLine("服务：{0}", AgentServiceName);
-            Console.WriteLine("描述：{0}", AgentDescription);
+                Console.WriteLine("服务：{0}", name);
+            Console.WriteLine("描述：{0}", service.Description);
             Console.Write("状态：");
-            if (IsInstalled == null)
+            if (service.IsInstalled() == null)
                 Console.WriteLine("未知");
-            else if (IsInstalled == false)
+            else if (service.IsInstalled() == false)
                 Console.WriteLine("未安装");
             else
             {
-                if (IsRunning == null)
+                if (service.IsRunning() == null)
                     Console.WriteLine("未知");
+                else if (service.IsRunning() == false)
+                    Console.WriteLine("未启动");
                 else
-                {
-                    if (IsRunning == false)
-                        Console.WriteLine("未启动");
-                    else
-                        Console.WriteLine("运行中");
-                }
+                    Console.WriteLine("运行中");
             }
 
             var asm = AssemblyX.Create(Assembly.GetExecutingAssembly());
@@ -276,15 +280,17 @@ namespace XAgent
         /// <summary>显示菜单</summary>
         protected virtual void ShowMenu()
         {
+            var service = Instance;
+
             var color = Console.ForegroundColor;
             Console.ForegroundColor = ConsoleColor.Yellow;
 
             Console.WriteLine();
             Console.WriteLine("1 显示状态");
 
-            if (IsInstalled == true)
+            if (service.IsInstalled() == true)
             {
-                if (IsRunning == true)
+                if (service.IsRunning() == true)
                 {
                     Console.WriteLine("3 停止服务 -stop");
                 }
@@ -300,7 +306,7 @@ namespace XAgent
                 Console.WriteLine("2 安装服务 -i");
             }
 
-            if (IsRunning != true)
+            if (service.IsRunning() != true)
             {
                 Console.WriteLine("4 单步调试 -step");
                 Console.WriteLine("5 循环调试 -run");
@@ -816,11 +822,11 @@ namespace XAgent
             String filename = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "重启.bat");
             if (File.Exists(filename)) File.Delete(filename);
 
-            File.AppendAllText(filename, "net stop " + AgentServiceName);
+            File.AppendAllText(filename, "net stop " + ServiceName);
             File.AppendAllText(filename, Environment.NewLine);
             File.AppendAllText(filename, "ping 127.0.0.1 -n 5 > nul ");
             File.AppendAllText(filename, Environment.NewLine);
-            File.AppendAllText(filename, "net start " + AgentServiceName);
+            File.AppendAllText(filename, "net start " + ServiceName);
 
             //准备重启服务，等待所有工作线程返回
             IsShutdowning = true;
@@ -883,11 +889,11 @@ namespace XAgent
             foreach (var item in ss)
             {
                 // 注意：IsServiceRunning返回三种状态，null表示未知
-                if (IsServiceRunning(item) == false)
+                if (ServiceHelper.IsServiceRunning(item) == false)
                 {
                     WriteLine("发现服务{0}被关闭，准备启动！", item);
 
-                    RunCmd("net start " + item, false, true);
+                    ServiceHelper.RunCmd("net start " + item, false, true);
                 }
             }
         }

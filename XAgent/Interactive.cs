@@ -90,21 +90,23 @@ namespace XAgent
         #region 托盘图标初始化
         static void Init()
         {
-            Container Components = new Container();
-            NotifyIcon ni = new NotifyIcon(Components);
-            ContextMenuStrip menu = new ContextMenuStrip();
+            var Components = new Container();
+            var ni = new NotifyIcon(Components);
+            var menu = new ContextMenuStrip();
 
             menu.Size = new Size(153, 98);
             menu.Items.Add("主界面", null, delegate { MainForm.Show(); MainForm.BringToFront(); });
             menu.Items.Add("打开目录", null, delegate { Process.Start("explorer.exe", "\"" + AppDomain.CurrentDomain.BaseDirectory + "\""); });
-            ToolStripSeparator tsmi = new System.Windows.Forms.ToolStripSeparator();
+            var tsmi = new ToolStripSeparator();
             tsmi.Size = new Size(menu.Size.Width - 4, 6);
             menu.Items.Add(tsmi);
             menu.Items.Add("退出", null, delegate
             {
-                if (MessageBox.Show("退出将会同时关闭" + AgentServiceBase.AgentDisplayName + "服务，确定退出？", "退出", MessageBoxButtons.YesNo) == DialogResult.Yes)
+                var service = AgentServiceBase.Instance;
+                if (MessageBox.Show("退出将会同时关闭" + service.DisplayName + "服务，确定退出？", "退出", MessageBoxButtons.YesNo) == DialogResult.Yes)
                 {
-                    AgentServiceBase.ControlService(false);
+                    //AgentServiceBase.ControlService(false);
+                    service.ControlService(false);
                     Application.Exit();
                 }
             });
@@ -112,12 +114,12 @@ namespace XAgent
             //ni.Icon = null;
             ni.ContextMenuStrip = menu;
             ni.Visible = true;
-            ComponentResourceManager resources = new ComponentResourceManager(typeof(FrmMain));
+            var resources = new ComponentResourceManager(typeof(FrmMain));
             //ni.Icon = ((Icon)(resources.GetObject("notifyIcon1.Icon")));
             ni.Icon = new Icon(Assembly.GetExecutingAssembly().GetManifestResourceStream(typeof(Interactive), "leaf.ico"));
             ni.Text = "新生命服务代理";
             ni.Visible = true;
-            ni.MouseDoubleClick += new MouseEventHandler(ni_MouseDoubleClick);
+            ni.MouseDoubleClick += ni_MouseDoubleClick;
         }
 
         static void ni_MouseDoubleClick(object sender, MouseEventArgs e)

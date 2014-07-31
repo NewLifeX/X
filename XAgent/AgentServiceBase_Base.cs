@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Diagnostics;
-using System.IO;
 using System.Runtime.InteropServices;
 using System.ServiceProcess;
 using System.Windows.Forms;
@@ -13,14 +10,14 @@ using NewLife.Reflection;
 namespace XAgent
 {
     /// <summary>服务程序基类</summary>
-    public abstract class AgentServiceBase : ServiceBase
+    public abstract class AgentServiceBase : ServiceBase, IAgentService
     {
         #region 属性
         /// <summary>显示名</summary>
-        public virtual String DisplayName { get { return AgentServiceName; } }
+        public virtual String DisplayName { get { return ServiceName; } }
 
         /// <summary>描述</summary>
-        public virtual String Description { get { return AgentServiceName + "服务"; } }
+        public virtual String Description { get { return ServiceName + "服务"; } }
 
         /// <summary>线程数</summary>
         public virtual Int32 ThreadCount { get { return 1; } }
@@ -29,35 +26,16 @@ namespace XAgent
         public virtual String[] ThreadNames { get { return null; } }
         #endregion
 
-        #region 静态属性
-        /// <summary>服务名</summary>
-        public static String AgentServiceName { get { return Instance.ServiceName; } }
-
-        /// <summary>显示名</summary>
-        public static String AgentDisplayName { get { return Config.GetConfig<String>("XAgent.DisplayName", Instance.DisplayName); } }
-
-        /// <summary>服务描述</summary>
-        public static String AgentDescription { get { return Config.GetConfig<String>("XAgent.Description", Instance.Description); } }
-
-        /// <summary>Exe程序名</summary>
-        internal static String ExeName
+        #region 构造
+        /// <summary>初始化</summary>
+        public AgentServiceBase()
         {
-            get
-            {
-                //String filename= AppDomain.CurrentDomain.FriendlyName.Replace(".vshost.", ".");
-                //if (filename.EndsWith(".exe", StringComparison.OrdinalIgnoreCase)) return filename;
-
-                //filename = Assembly.GetExecutingAssembly().Location;
-                //return filename;
-                //String filename = Assembly.GetEntryAssembly().Location;
-                var p = Process.GetCurrentProcess();
-                var filename = p.MainModule.FileName;
-                filename = Path.GetFileName(filename);
-                filename = filename.Replace(".vshost.", ".");
-                return filename;
-            }
+            // 指定默认服务名
+            if (String.IsNullOrEmpty(ServiceName)) ServiceName = this.GetType().Name;
         }
+        #endregion
 
+        #region 静态属性
         internal protected static AgentServiceBase _Instance;
         /// <summary>服务实例。每个应用程序域只有一个服务实例</summary>
         public static AgentServiceBase Instance
@@ -88,12 +66,6 @@ namespace XAgent
             }
             set { _Instance = value; }
         }
-
-        /// <summary>是否已安装</summary>
-        public static Boolean? IsInstalled { get { return IsServiceInstalled(AgentServiceName); } }
-
-        /// <summary>是否已启动</summary>
-        public static Boolean? IsRunning { get { return IsServiceRunning(AgentServiceName); } }
         #endregion
 
         #region 辅助函数及属性
@@ -160,82 +132,6 @@ namespace XAgent
         }
         #endregion
 
-        #region 服务安装和启动
-        /// <summary>安装、卸载 服务</summary>
-        /// <param name="isinstall">是否安装</param>
-        public static void Install(Boolean isinstall)
-        {
-            var name = AgentServiceName.Replace(" ", "_");
-            // win7及以上系统时才提示
-            if (Environment.OSVersion.Version.Major >= 6) WriteLine("在win7/win2008及更高系统中，可能需要管理员权限执行才能安装/卸载服务。");
-            if (isinstall)
-            {
-                RunSC("create " + name + " BinPath= \"" + Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ExeName) + " -s\" start= auto DisplayName= \"" + AgentDisplayName + "\"");
-                RunSC("description " + name + " \"" + AgentDescription + "\"");
-            }
-            else
-            {
-                ControlService(false);
-
-                RunSC("Delete " + name);
-            }
-        }
-
-        /// <summary>启动、停止 服务</summary>
-        /// <param name="isstart"></param>
-        public static void ControlService(Boolean isstart)
-        {
-            if (isstart)
-                RunCmd("net start " + AgentServiceName, false, true);
-            else
-                RunCmd("net stop " + AgentServiceName, false, true);
-        }
-
-        /// <summary>执行一个命令</summary>
-        /// <param name="cmd"></param>
-        /// <param name="showWindow"></param>
-        /// <param name="waitForExit"></param>
-        protected static void RunCmd(String cmd, Boolean showWindow, Boolean waitForExit)
-        {
-            WriteLine("RunCmd " + cmd);
-
-            var p = new Process();
-            var si = new ProcessStartInfo();
-            var path = Environment.SystemDirectory;
-            path = Path.Combine(path, @"cmd.exe");
-            si.FileName = path;
-            if (!cmd.StartsWith(@"/")) cmd = @"/c " + cmd;
-            si.Arguments = cmd;
-            si.UseShellExecute = false;
-            si.CreateNoWindow = !showWindow;
-            si.RedirectStandardOutput = true;
-            si.RedirectStandardError = true;
-            p.StartInfo = si;
-
-            p.Start();
-            if (waitForExit)
-            {
-                p.WaitForExit();
-
-                var str = p.StandardOutput.ReadToEnd();
-                if (!String.IsNullOrEmpty(str)) WriteLine(str.Trim(new Char[] { '\r', '\n', '\t' }).Trim());
-                str = p.StandardError.ReadToEnd();
-                if (!String.IsNullOrEmpty(str)) WriteLine(str.Trim(new Char[] { '\r', '\n', '\t' }).Trim());
-            }
-        }
-
-        /// <summary>执行SC命令</summary>
-        /// <param name="cmd"></param>
-        protected static void RunSC(String cmd)
-        {
-            var path = Environment.SystemDirectory;
-            path = Path.Combine(path, @"sc.exe");
-            if (!File.Exists(path)) path = "sc.exe";
-            if (!File.Exists(path)) return;
-            RunCmd(path + " " + cmd, false, true);
-        }
-        #endregion
-
         #region 日志
         /// <summary>写日志</summary>
         /// <param name="format"></param>
@@ -259,69 +155,6 @@ namespace XAgent
         public static void WriteLog(String msg)
         {
             if (XTrace.Debug) XTrace.WriteLine(msg);
-        }
-        #endregion
-
-        #region 辅助
-        /// <summary>取得服务</summary>
-        /// <param name="name"></param>
-        /// <returns></returns>
-        public static ServiceController GetService(String name)
-        {
-            var list = new List<ServiceController>(ServiceController.GetServices());
-            if (list == null || list.Count < 1) return null;
-
-            //return list.Find(delegate(ServiceController item) { return item.ServiceName == name; });
-            foreach (var item in list)
-            {
-                if (item.ServiceName == name) return item;
-            }
-            return null;
-        }
-
-        /// <summary>是否已安装</summary>
-        public static Boolean? IsServiceInstalled(String name)
-        {
-            ServiceController control = null;
-            try
-            {
-                // 取的时候就抛异常，是不知道是否安装的
-                control = GetService(name);
-                if (control == null) return false;
-                try
-                {
-                    //尝试访问一下才知道是否已安装
-                    Boolean b = control.CanShutdown;
-                    return true;
-                }
-                catch { return false; }
-            }
-            catch { return null; }
-            finally { if (control != null)control.Dispose(); }
-        }
-
-        /// <summary>是否已启动</summary>
-        public static Boolean? IsServiceRunning(String name)
-        {
-            ServiceController control = null;
-            try
-            {
-                control = GetService(name);
-                if (control == null) return false;
-                try
-                {
-                    //尝试访问一下才知道是否已安装
-                    Boolean b = control.CanShutdown;
-                }
-                catch { return false; }
-
-                control.Refresh();
-                if (control.Status == ServiceControllerStatus.Running) return true;
-                if (control.Status == ServiceControllerStatus.Stopped) return false;
-                return null;
-            }
-            catch { return null; }
-            finally { if (control != null)control.Dispose(); }
         }
         #endregion
 
