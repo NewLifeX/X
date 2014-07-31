@@ -58,7 +58,7 @@ namespace XAgent
             }
         }
 
-        private static AgentServiceBase _Instance;
+        internal protected static AgentServiceBase _Instance;
         /// <summary>服务实例。每个应用程序域只有一个服务实例</summary>
         public static AgentServiceBase Instance
         {

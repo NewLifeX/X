@@ -23,7 +23,7 @@ namespace XAgent
         #region 构造
         static AgentServiceBase()
         {
-            if (Instance == null) Instance = new TService();
+            if (_Instance == null) _Instance = new TService();
         }
         #endregion
 
