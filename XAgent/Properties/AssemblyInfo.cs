@@ -28,10 +28,12 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“内部版本号”和“修订号”的默认值，
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("2.3.*")]
-[assembly: AssemblyFileVersion("2.3.2012.0419")]
+[assembly: AssemblyVersion("2.4.*")]
+[assembly: AssemblyFileVersion("2.4.2014.0731")]
 
 /*
+ * v2.4.2014.0731   分离代理服务接口，利用扩展方法减轻代理服务类的复杂度
+ * 
  * v2.3.2012.0419   增加看门狗功能，守护其它服务。
  * 
  * v2.2.2012.0209   完善对附加代理服务的支持，支持通过配置来设置附加代理服务
