@@ -558,8 +558,8 @@ namespace XCode.DataAccessLayer
                         sbName.Append(FormatName(name));
                         //sbValue.Append(FormatName(name));
 
-                        // 处理字符串不允许空
-                        if (item.DataType == typeof(String) && !item.Nullable)
+                        // 处理字符串不允许空，ntext不支持+""
+                        if (item.DataType == typeof(String) && !item.Nullable && item.Length > 0 && item.Length < 500)
                             sbValue.Append(Database.StringConcat(FormatName(name), "\'\'"));
                         else
                             sbValue.Append(FormatName(name));
