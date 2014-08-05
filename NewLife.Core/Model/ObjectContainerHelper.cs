@@ -52,12 +52,12 @@ namespace System
 #if !DEBUG
         public static TInterface ResolveInstance<TInterface>(this IObjectContainer container, Object id = null, Boolean extend = false)
         {
-            return (TInterface)container.Resolve(typeof(TInterface), id, extend);
+            return (TInterface)container.ResolveInstance(typeof(TInterface), id, extend);
         }
 #else
         public static TInterface ResolveInstance<TInterface>(this IObjectContainer container, Object id = null, Boolean extend = false)
         {
-            var obj = container.Resolve(typeof(TInterface), id, extend);
+            var obj = container.ResolveInstance(typeof(TInterface), id, extend);
             try
             {
                 return (TInterface)obj;
