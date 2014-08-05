@@ -867,6 +867,11 @@ namespace XCode.DataAccessLayer
             return sql;
         }
 
+        public override string DropIndexSQL(IDataIndex index)
+        {
+            return String.Format("Drop Index {1}.{0}", FormatName(index.Name), FormatName(index.Table.TableName));
+        }
+
         public override string DropColumnSQL(IDataColumn field)
         {
             //É¾³ýÄ¬ÈÏÖµ
