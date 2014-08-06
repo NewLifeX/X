@@ -702,6 +702,7 @@ namespace XCode
         {
             var rs = persistence.Insert(entity);
 
+            TEntity entityobj = null;
             // 如果当前在事务中，并使用了缓存，则尝试更新缓存
             if (HoldCache || UsingTrans)
             {
@@ -717,9 +718,12 @@ namespace XCode
                     else
                     {
                         // 加入超级缓存的实体对象，需要标记来自数据库
-                        if (entity is EntityBase) (entity as EntityBase).OnLoad();
-
-                        Cache.Entities.Add(entity as TEntity);
+                        entityobj = entity as TEntity;
+                        if (entityobj != null)
+                        {
+                            entityobj.OnLoad();
+                            Cache.Entities.Add(entityobj);
+                        }
                     }
                 }
             }
@@ -727,7 +731,16 @@ namespace XCode
             if (SingleCache.Using)
             {
                 var fi = Operate.Unique;
-                if (fi != null) SingleCache.Add(entity[fi.Name], entity as TEntity);
+                if (fi != null)
+                {
+                    // 这里也需要标记来自数据库，防止实体缓存没有使用的情况下不对新增的实体对象做标记，不再正确验证脏数据
+                    if (entityobj == null) entityobj = entity as TEntity;
+                    if (entityobj != null)
+                    {
+                        entityobj.OnLoad();
+                        SingleCache.Add(entity[fi.Name], entityobj);
+                    }
+                }
             }
 
             if (_Count != null) _Count++;
@@ -742,6 +755,7 @@ namespace XCode
         {
             var rs = persistence.Update(entity);
 
+            TEntity entityobj = null;
             // 如果当前在事务中，并使用了缓存，则尝试更新缓存
             if ((HoldCache || UsingTrans) && Cache.Using)
             {
@@ -755,9 +769,12 @@ namespace XCode
                 else
                 {
                     // 加入超级缓存的实体对象，需要标记来自数据库
-                    if (entity is EntityBase) (entity as EntityBase).OnLoad();
-
-                    Cache.Entities.Add(entity as TEntity);
+                    entityobj = entity as TEntity;
+                    if (entityobj != null)
+                    {
+                        entityobj.OnLoad();
+                        Cache.Entities.Add(entityobj);
+                    }
                 }
             }
             // 自动加入单对象缓存
@@ -775,7 +792,13 @@ namespace XCode
                     }
                     else
                     {
-                        SingleCache.Add(key, entity as TEntity);
+                        // 这里也需要标记来自数据库，防止实体缓存没有使用的情况下不对新增的实体对象做标记，不再正确验证脏数据
+                        if (entityobj == null) entityobj = entity as TEntity;
+                        if (entityobj != null)
+                        {
+                            entityobj.OnLoad();
+                            SingleCache.Add(key, entityobj);
+                        }
                     }
                 }
             }
