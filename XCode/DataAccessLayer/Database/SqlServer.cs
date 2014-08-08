@@ -746,7 +746,7 @@ namespace XCode.DataAccessLayer
 
         protected override string RenameTable(string tableName, string tempTableName)
         {
-            if (Version.Major >= 9)
+            if (Version.Major >= 8)
                 return String.Format("EXECUTE sp_rename N'{0}', N'{1}', 'OBJECT' ", tableName, tempTableName);
             else
                 return base.RenameTable(tableName, tempTableName);
