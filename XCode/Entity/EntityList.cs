@@ -507,7 +507,9 @@ namespace XCode
         {
             if (Count < 1) return this;
 
+            if (String.IsNullOrEmpty(name)) throw new ArgumentNullException("name");
             var type = GetItemType(name);
+            if (type == null) throw new ArgumentNullException("name", "无法找到字段" + name + "的类型");
             if (!typeof(IComparable).IsAssignableFrom(type)) throw new NotSupportedException(String.Format("排序字段{0}的类型{1}不支持比较！", name, type.FullName));
 
             var n = 1;
