@@ -638,6 +638,19 @@ namespace XCode
         /// <returns>剩下的事务计数</returns>
         public virtual Int32 BeginTrans()
         {
+            /* 这里也需要执行初始化检查架构，因为无法确定在调用此方法前是否已使用实体类进行架构检查，如下调用会造成事务不平衡而上抛异常：
+             * Exception：执行SqlServer的Dispose时出错：System.InvalidOperationException: 此 SqlTransaction 已完成；它再也无法使用。
+             * 
+             * 如果实体的模型检查模式为CheckTableWhenFirstUse，直接执行静态操作
+             * using (var trans = new EntityTransaction<TEntity>())
+             * {
+             *   TEntity.Delete(whereExp);
+             *   TEntity.Update(new String[] { 字段1,字段2 }, new Object[] { 值1,值1 }, whereExp);
+             *   trans.Commit();
+             * }
+             */
+            InitData();
+
             // 可能存在多层事务，这里不能把这个清零
             //executeCount = 0;
             return TransCount = Dal.BeginTransaction();
