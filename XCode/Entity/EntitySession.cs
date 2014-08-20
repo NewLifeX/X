@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Data;
 using System.Data.Common;
 using System.Diagnostics;
@@ -31,6 +32,15 @@ using XCode.Model;
  * Count            总记录数
  *      CheckModel
  *      WaitForInitData
+ *
+ * 缓存更新规则如下：
+ * 1、直接执行SQL语句进行新增、编辑、删除操作，强制清空实体缓存、单对象缓存
+ * 2、无论独占模式或非独占模式，使用实体对象或实体列表进行的对象操作，不再主动清空缓存。
+ * 3、事务提交时对缓存的操作参考前两条
+ * 4、事务回滚时一律强制清空缓存（因为无法判断什么异常触发回滚，回滚之前对缓存进行了哪些修改无法记录）
+ * 5、强制清空缓存时传入执行更新操作记录数，如果存在更新操作清除实体缓存、单对象缓存。
+ * 6、强制清空缓存时如果只有新增和删除操作，先判断当前实体类有无使用实体缓存，如果使用了实体缓存证明当前实体总记录数不大，
+ *    清空实体缓存的同时清空单对象缓存，确保单对象缓存和实体缓存引用同一实体对象；没有实体缓存则不对单对象缓存进行清空操作。
  * */
 
 namespace XCode
@@ -373,7 +383,7 @@ namespace XCode
         /// <summary>上一次记录数，用于衡量缓存策略，不受缓存清空</summary>
         private Int64? _LastCount;
         /// <summary>总记录数较小时，使用静态字段，较大时增加使用Cache</summary>
-        private Int64? _Count;
+        private Int64 _Count = -1L;
         /// <summary>总记录数，小于1000时是精确的，大于1000时缓存10分钟</summary>
         /// <remarks>
         /// 1，检查静态字段，如果有数据且小于1000，直接返回，否则=>3
@@ -391,13 +401,13 @@ namespace XCode
                 var key = CacheKey;
 
                 // 当前缓存的值
-                Int64? n = _Count;
+                Int64 n = _Count;
 
                 // 如果有缓存，则考虑返回吧
-                if (n != null && n.HasValue)
+                if (n > -1L)
                 {
                     // 等于0的时候也应该缓存，否则会一直查询这个表
-                    if (n.Value >= 0 && n.Value < 1000) return n.Value;
+                    if (n < 1000L) { return n; }
 
                     // 大于1000，使用HttpCache
                     Int64? k = (Int64?)HttpRuntime.Cache[key];
@@ -407,9 +417,9 @@ namespace XCode
 
                 CheckModel();
 
-                Int64 m = 0;
+                Int64 m = 0L;
                 // 小于1000的精确查询，大于1000的快速查询
-                if (n != null && n.HasValue && n.Value < 1000)
+                if (n > -1L && n <= 1000L)
                 {
                     var sb = new SelectBuilder();
                     sb.Table = FormatedTableName;
@@ -460,23 +470,99 @@ namespace XCode
 
         /// <summary>清除缓存</summary>
         /// <param name="reason">原因</param>
-        public void ClearCache(String reason = null)
+        /// <param name="isUpdateMode">是否执行更新实体操作</param>
+        /// <param name="isTransRoolback">是否在事务回滚时执行更新实体操作</param>
+        private void ClearCache(String reason, Boolean isUpdateMode, Boolean isTransRoolback)
         {
-            if (HoldCache) return;
-
-            if (_cache != null) _cache.Clear(reason);
-
-            Int64? n = _Count;
-            if (n == null || !n.HasValue) return;
-
-            // 只有小于1000时才清空_Count，因为大于1000时它要作为HttpCache的见证
-            if (n.Value < 1000)
+            // 无法判断事务回滚是由什么样的异常触发，缓存数据可能已被修改，所有强制清空缓存
+            //if (HoldCache && !isTransRoolback)
+            if (!isTransRoolback) // 非独占模式下也保持缓存，由缓存有效期设置来清空
             {
-                _Count = null;
-                return;
+                if (_cache != null && _cache.Using)
+                {
+                    /* 这里我先屏蔽，需要改动业务代码里是否使用实体缓存的代码，所以就不加这个判断了 */
+
+                    // 在独占模式下，当实体记录数大于1000，清空实体缓存后不再使用
+                    // 如果不清空，业务代码在记录数大于1000后不再调用实体缓存，就没有清空的机会了，
+                    // 而且在独占模式或事务保护中实体的新增、编辑、删除操作会一直维护实体缓存
+                    // http://www.newlifex.com/showtopic-1152.aspx
+                    //if (Count > _cache.MaxCount)
+                    //{
+                    //    _cache.Clear("实体记录数大于{0}条，销毁实体缓存！！！".FormatWith(_cache.MaxCount));
+                    //}
+                }
+            }
+            else
+            {
+                ForceClearCache(reason, isUpdateMode);
+            }
+        }
+
+        /// <summary>清除缓存，直接执行SQl语句或事务回滚时使用</summary>
+        /// <param name="reason">原因</param>
+        /// <param name="isUpdateMode">是否执行更新实体操作</param>
+        /// <remarks>http://www.newlifex.com/showtopic-1216.aspx</remarks>
+        private void ForceClearCache(String reason, Boolean isUpdateMode)
+        {
+            var clearEntityCache = false;
+            if (_cache != null && _cache.Using)
+            {
+                clearEntityCache = true;
+                _cache.Clear(reason);
             }
 
-            HttpRuntime.Cache.Remove(CacheKey);
+            // 因为单对象缓存在实际应用场景中可能会非常庞大
+            // 添加、删除不再维护单对象缓存，新添加的会自动获取，删除的一直保留在内存中等待SingleCache的定时清理或RemoveFirst方法慢慢清除
+            // 如果清理了实体缓存证明当前实体数据量不大，也清除单对象缓存，尽量使单对象缓存的实体对象与实体缓存中的实体对象一致
+            if (isUpdateMode || clearEntityCache)
+            {
+                if (_singleCache != null && _singleCache.Using)
+                {
+                    ThreadPoolX.QueueUserWorkItem(() =>
+                    {
+                        _singleCache.Clear(reason);
+                        _singleCache.Initialize();
+                    });
+                }
+            }
+
+            if (!isUpdateMode)
+            {
+                Int64 n = _Count;
+                if (n < 0L) { return; }
+
+                // 只有小于等于1000时才清空_Count，因为大于1000时它要作为HttpCache的见证
+                if (n > 1000L)
+                {
+                    HttpRuntime.Cache.Remove(CacheKey);
+                }
+                else
+                {
+                    _Count = -1L;
+                }
+            }
+        }
+
+        /// <summary>清除缓存</summary>
+        /// <param name="reason">原因</param>
+        public void ClearCache(String reason)
+        {
+            if (_cache != null && _cache.Using) { _cache.Clear(reason); }
+
+            if (_singleCache != null && _singleCache.Using) { _singleCache.Clear(reason); }
+
+            Int64 n = _Count;
+            if (n < 0L) { return; }
+
+            // 只有小于等于1000时才清空_Count，因为大于1000时它要作为HttpCache的见证
+            if (n < 1000L)
+            {
+                _Count = -1L;
+            }
+            else
+            {
+                HttpRuntime.Cache.Remove(CacheKey);
+            }
         }
 
         String CacheKey { get { return String.Format("{0}_{1}_{2}_Count", ConnName, TableName, ThisType.Name); } }
@@ -484,7 +570,16 @@ namespace XCode
         private Boolean _HoldCache = CacheSetting.Alone;
         /// <summary>在数据修改时保持缓存，直到数据过期，独占数据库时默认打开，否则默认关闭</summary>
         /// <remarks>实体缓存和单对象缓存能够自动维护更新数据，保持缓存数据最新，在普通CURD中足够使用</remarks>
-        public Boolean HoldCache { get { return _HoldCache; } set { _HoldCache = value; } }
+        public Boolean HoldCache
+        {
+            get { return _HoldCache; }
+            set
+            {
+                _HoldCache = value;
+                Cache.HoldCache = value;
+                SingleCache.HoldCache = value;
+            }
+        }
         #endregion
 
         #region 数据库操作
@@ -543,26 +638,88 @@ namespace XCode
         /// <summary>执行</summary>
         /// <param name="sql">SQL语句</param>
         /// <returns>影响的结果</returns>
-        public virtual Int32 Execute(String sql)
+        public Int32 Execute(String sql)
+        {
+            //InitData();
+
+            //Int32 rs = Dal.Execute(sql, TableName);
+            //executeCount++;
+            //DataChange("Execute");
+            //return rs;
+            return Execute(true, false, sql);
+        }
+
+        /// <summary>执行</summary>
+        /// <param name="forceClearCache">是否跨越实体操作，直接执行SQL语句</param>
+        /// <param name="isUpdateMode">是否执行更新实体操作</param>
+        /// <param name="sql">SQL语句</param>
+        /// <returns>影响的结果</returns>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public Int32 Execute(Boolean forceClearCache, Boolean isUpdateMode, String sql)
         {
             InitData();
 
             Int32 rs = Dal.Execute(sql, TableName);
-            executeCount++;
-            DataChange("Execute");
+            _ExecuteCount++;
+            if (forceClearCache) { _DirectExecuteSQLCount++; }
+            if (isUpdateMode) { _UpdateCount++; }
+            DataChange("Execute", forceClearCache, isUpdateMode);
+            return rs;
+        }
+
+        /// <summary>执行Truncate语句</summary>
+        /// <param name="sql">SQL语句</param>
+        /// <returns>影响的结果</returns>
+        public virtual Int32 Truncate(String sql)
+        {
+            InitData();
+
+            Int32 rs;
+            if (Dal.DbType == DatabaseType.SQLite)
+            {
+                rs = Dal.Execute(String.Format("Delete From {0}", FormatedTableName), TableName);
+                Dal.Execute("VACUUM", TableName);
+                Dal.Execute(String.Format("update sqlite_sequence set seq=0 where name={0}", FormatedTableName), TableName);
+                return rs;
+            }
+            else
+            {
+                rs = Dal.Execute(sql, TableName);
+            }
+
+            ClearCache("TRUNCATE TABLE");
+            if (_OnDataChange != null) { _OnDataChange(ThisType); }
+
             return rs;
         }
 
         /// <summary>执行插入语句并返回新增行的自动编号</summary>
         /// <param name="sql">SQL语句</param>
         /// <returns>新增行的自动编号</returns>
-        public virtual Int64 InsertAndGetIdentity(String sql)
+        public Int64 InsertAndGetIdentity(String sql)
+        {
+            //InitData();
+
+            //Int64 rs = Dal.InsertAndGetIdentity(sql, TableName);
+            //executeCount++;
+            //DataChange("InsertAndGetIdentity");
+            //return rs;
+            return InsertAndGetIdentity(true, sql);
+        }
+
+        /// <summary>执行插入语句并返回新增行的自动编号</summary>
+        /// <param name="forceClearCache">是否跨越实体操作，直接执行SQL语句</param>
+        /// <param name="sql">SQL语句</param>
+        /// <returns>新增行的自动编号</returns>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public Int64 InsertAndGetIdentity(Boolean forceClearCache, String sql)
         {
             InitData();
 
             Int64 rs = Dal.InsertAndGetIdentity(sql, TableName);
-            executeCount++;
-            DataChange("InsertAndGetIdentity");
+            _ExecuteCount++;
+            if (forceClearCache) { _DirectExecuteSQLCount++; }
+            DataChange("InsertAndGetIdentity", forceClearCache, false);
             return rs;
         }
 
@@ -571,13 +728,34 @@ namespace XCode
         /// <param name="type">命令类型，默认SQL文本</param>
         /// <param name="ps">命令参数</param>
         /// <returns>影响的结果</returns>
-        public virtual Int32 Execute(String sql, CommandType type = CommandType.Text, params DbParameter[] ps)
+        public Int32 Execute(String sql, CommandType type = CommandType.Text, params DbParameter[] ps)
+        {
+            //InitData();
+
+            //Int32 rs = Dal.Execute(sql, type, ps, TableName);
+            //executeCount++;
+            //DataChange("Execute " + type);
+            //return rs;
+            return Execute(true, false, sql, type, ps);
+        }
+
+        /// <summary>执行</summary>
+        /// <param name="forceClearCache">是否跨越实体操作，直接执行SQL语句</param>
+        /// <param name="isUpdateMode">是否执行更新实体操作</param>
+        /// <param name="sql">SQL语句</param>
+        /// <param name="type">命令类型，默认SQL文本</param>
+        /// <param name="ps">命令参数</param>
+        /// <returns>影响的结果</returns>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public Int32 Execute(Boolean forceClearCache, Boolean isUpdateMode, String sql, CommandType type = CommandType.Text, params DbParameter[] ps)
         {
             InitData();
 
             Int32 rs = Dal.Execute(sql, type, ps, TableName);
-            executeCount++;
-            DataChange("Execute " + type);
+            _ExecuteCount++;
+            if (forceClearCache) { _DirectExecuteSQLCount++; }
+            if (isUpdateMode) { _UpdateCount++; }
+            DataChange("Execute " + type, forceClearCache, isUpdateMode);
             return rs;
         }
 
@@ -586,26 +764,57 @@ namespace XCode
         /// <param name="type">命令类型，默认SQL文本</param>
         /// <param name="ps">命令参数</param>
         /// <returns>新增行的自动编号</returns>
-        public virtual Int64 InsertAndGetIdentity(String sql, CommandType type = CommandType.Text, params DbParameter[] ps)
+        public Int64 InsertAndGetIdentity(String sql, CommandType type = CommandType.Text, params DbParameter[] ps)
+        {
+            //InitData();
+
+            //Int64 rs = Dal.InsertAndGetIdentity(sql, type, ps, TableName);
+            //executeCount++;
+            //DataChange("InsertAndGetIdentity " + type);
+            //return rs;
+            return InsertAndGetIdentity(true, sql, type, ps);
+        }
+
+        /// <summary>执行插入语句并返回新增行的自动编号</summary>
+        /// <param name="forceClearCache">是否跨越实体操作，直接执行SQL语句</param>
+        /// <param name="sql">SQL语句</param>
+        /// <param name="type">命令类型，默认SQL文本</param>
+        /// <param name="ps">命令参数</param>
+        /// <returns>新增行的自动编号</returns>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public Int64 InsertAndGetIdentity(Boolean forceClearCache, String sql, CommandType type = CommandType.Text, params DbParameter[] ps)
         {
             InitData();
 
             Int64 rs = Dal.InsertAndGetIdentity(sql, type, ps, TableName);
-            executeCount++;
-            DataChange("InsertAndGetIdentity " + type);
+            _ExecuteCount++;
+            if (forceClearCache) { _DirectExecuteSQLCount++; }
+            DataChange("InsertAndGetIdentity " + type, forceClearCache, false);
             return rs;
         }
 
-        void DataChange(String reason = null)
+        private void DataChange(String reason, Boolean forceClearCache, Boolean isUpdateMode)
         {
             // 还在事务保护里面，不更新缓存，最后提交或者回滚的时候再更新
             // 一般事务保护用于批量更新数据，频繁删除缓存将会打来巨大的性能损耗
             // 2012-07-17 当前实体类开启的事务保护，必须由当前类结束，否则可能导致缓存数据的错乱
-            if (TransCount > 0) return;
+            if (_TransCount > 0) { return; }
 
-            ClearCache(reason);
+            DataChange(reason, forceClearCache, isUpdateMode, false);
+        }
 
-            if (_OnDataChange != null) _OnDataChange(ThisType);
+        private void DataChange(String reason, Boolean forceClearCache, Boolean isUpdateMode, Boolean isTransRoolback)
+        {
+            if (!forceClearCache)
+            {
+                ClearCache(String.Format("{0}（F{1}-U{2}）", reason, forceClearCache ? 1 : 0, isUpdateMode ? 1 : 0), isUpdateMode, isTransRoolback);
+            }
+            else
+            {
+                ForceClearCache(String.Format("{0}（F{1}-U{2}）", reason, forceClearCache ? 1 : 0, isUpdateMode ? 1 : 0), isUpdateMode);
+            }
+
+            if (_OnDataChange != null) { _OnDataChange(ThisType); }
         }
 
         private Action<Type> _OnDataChange;
@@ -628,11 +837,18 @@ namespace XCode
         #endregion
 
         #region 事务保护
-        private Int32 _TransCount;
         /// <summary>事务计数</summary>
-        public virtual Int32 TransCount { get { return _TransCount; } private set { _TransCount = value; } }
-
-        private Int32 executeCount = 0;
+        [ThreadStatic]
+        private static Int32 _TransCount;
+        /// <summary>实体操作次数</summary>
+        [ThreadStatic]
+        private static Int32 _ExecuteCount = 0;
+        /// <summary>实体更新操作次数</summary>
+        [ThreadStatic]
+        private static Int32 _UpdateCount = 0;
+        /// <summary>直接执行SQL语句次数</summary>
+        [ThreadStatic]
+        private static Int32 _DirectExecuteSQLCount = 0;
 
         /// <summary>开始事务</summary>
         /// <returns>剩下的事务计数</returns>
@@ -653,44 +869,89 @@ namespace XCode
 
             // 可能存在多层事务，这里不能把这个清零
             //executeCount = 0;
-            return TransCount = Dal.BeginTransaction();
+
+            _ExecuteCount = 0;
+            _UpdateCount = 0;
+            _DirectExecuteSQLCount = 0;
+
+            return _TransCount = Dal.BeginTransaction();
         }
 
         /// <summary>提交事务</summary>
         /// <returns>剩下的事务计数</returns>
         public virtual Int32 Commit()
         {
-            TransCount = Dal.Commit();
-            // 提交事务时更新数据，虽然不是绝对准确，但没有更好的办法
-            // 即使提交了事务，但只要事务内没有执行更新数据的操作，也不更新
-            // 2012-06-13 测试证明，修改数据后，提交事务后会更新缓存等数据
-            if (TransCount <= 0 && executeCount > 0)
+            //TransCount = Dal.Commit();
+            //// 提交事务时更新数据，虽然不是绝对准确，但没有更好的办法
+            //// 即使提交了事务，但只要事务内没有执行更新数据的操作，也不更新
+            //// 2012-06-13 测试证明，修改数据后，提交事务后会更新缓存等数据
+            //if (TransCount <= 0 && executeCount > 0)
+            //{
+            //    DataChange("修改数据后提交事务");
+            //    // 回滚到顶层才更新数据
+            //    executeCount = 0;
+            //}
+            //return TransCount;
+            if (_ExecuteCount > 0)
             {
-                DataChange("修改数据后提交事务");
-                // 回滚到顶层才更新数据
-                executeCount = 0;
+                Dal.AddDirtiedEntitySession(Key, this, _ExecuteCount, _UpdateCount, _DirectExecuteSQLCount);
+
+                _ExecuteCount = 0;
+                _UpdateCount = 0;
+                _DirectExecuteSQLCount = 0;
             }
-            return TransCount;
+            _TransCount = Dal.Commit();
+            return _TransCount;
         }
 
         /// <summary>回滚事务，忽略异常</summary>
         /// <returns>剩下的事务计数</returns>
         public virtual Int32 Rollback()
         {
-            TransCount = Dal.Rollback();
-            // 回滚的时候貌似不需要更新缓存
-            //if (TransCount <= 0 && executeCount > 0) DataChange();
-            if (TransCount <= 0 && executeCount > 0)
+            //TransCount = Dal.Rollback();
+            //// 回滚的时候貌似不需要更新缓存
+            ////if (TransCount <= 0 && executeCount > 0) DataChange();
+            //if (TransCount <= 0 && executeCount > 0)
+            //{
+            //    // 因为在事务保护中添加或删除实体时直接操作了实体缓存，所以需要更新
+            //    DataChange("修改数据后回滚事务");
+            //    executeCount = 0;
+            //}
+            //return TransCount;
+            if (_ExecuteCount > 0)
             {
-                // 因为在事务保护中添加或删除实体时直接操作了实体缓存，所以需要更新
-                DataChange("修改数据后回滚事务");
-                executeCount = 0;
+                Dal.AddDirtiedEntitySession(Key, this, _ExecuteCount, _UpdateCount, _DirectExecuteSQLCount);
+
+                //// 因为在事务保护中添加或删除实体时直接操作了实体缓存，所以需要更新
+                //DataChange("修改数据后回滚事务", _DirectExecuteSQLCount > 0, _UpdateCount > 0, true);
+                _ExecuteCount = 0;
+                _UpdateCount = 0;
+                _DirectExecuteSQLCount = 0;
             }
-            return TransCount;
+            _TransCount = Dal.Rollback();
+            return _TransCount;
+        }
+
+        /// <summary>触发脏实体会话提交事务后的缓存更新操作</summary>
+        /// <param name="updateCount">实体更新操作次数</param>
+        /// <param name="directExecuteSQLCount">直接执行SQL语句次数</param>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public void RaiseCommitDataChange(Int32 updateCount, Int32 directExecuteSQLCount)
+        {
+            DataChange("修改数据后提交事务", directExecuteSQLCount > 0, updateCount > 0, false);
+        }
+
+        /// <summary>触发脏实体会话回滚事务后的缓存更新操作</summary>
+        /// <param name="updateCount">实体更新操作次数</param>
+        /// <param name="directExecuteSQLCount">直接执行SQL语句次数</param>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public void RaiseRoolbackDataChange(Int32 updateCount, Int32 directExecuteSQLCount)
+        {
+            DataChange("修改数据后回滚事务", directExecuteSQLCount > 0, updateCount > 0, true);
         }
 
         /// <summary>是否在事务保护中</summary>
-        internal Boolean UsingTrans { get { return TransCount > 1;/*因为Insert上面一定有一层缓存，这里减去1*/ } }
+        internal Boolean UsingTrans { get { return _TransCount > 1;/*因为Insert上面一定有一层缓存，这里减去1*/ } }
         //internal Boolean UsingTrans { get { return TransCount > 0; } }
         #endregion
 
@@ -739,24 +1000,25 @@ namespace XCode
                         }
                     }
                 }
-            }
-            // 自动加入单对象缓存
-            if (SingleCache.Using)
-            {
-                var fi = Operate.Unique;
-                if (fi != null)
+                // 自动加入单对象缓存
+                if (SingleCache.Using)
                 {
-                    // 这里也需要标记来自数据库，防止实体缓存没有使用的情况下不对新增的实体对象做标记，不再正确验证脏数据
                     if (entityobj == null) entityobj = entity as TEntity;
                     if (entityobj != null)
                     {
-                        entityobj.OnLoad();
-                        SingleCache.Add(entity[fi.Name], entityobj);
+                        var getkeymethod = SingleCache.GetKeyMethod;
+                        if (getkeymethod != null)
+                        {
+                            // 这里也需要标记来自数据库，防止实体缓存没有使用的情况下不对新增的实体对象做标记，不再正确验证脏数据
+                            var key = getkeymethod(entityobj);
+                            entityobj.OnLoad();
+                            SingleCache.Add(key, entityobj);
+                        }
                     }
                 }
             }
 
-            if (_Count != null) _Count++;
+            if (_Count > -1L) Interlocked.Increment(ref _Count);
 
             return rs;
         }
@@ -770,47 +1032,59 @@ namespace XCode
 
             TEntity entityobj = null;
             // 如果当前在事务中，并使用了缓存，则尝试更新缓存
-            if ((HoldCache || UsingTrans) && Cache.Using)
+            if (HoldCache || UsingTrans)
             {
-                // 尽管用了事务保护，但是仍然可能有别的地方导致实体缓存更新，这点务必要注意
-                var fi = Operate.Unique;
-                var e = Cache.Entities.Find(fi.Name, entity[fi.Name]);
-                if (e != null)
+                if (Cache.Using)
                 {
-                    if (e != entity) e.CopyFrom(entity);
-                }
-                else
-                {
-                    // 加入超级缓存的实体对象，需要标记来自数据库
-                    entityobj = entity as TEntity;
-                    if (entityobj != null)
-                    {
-                        entityobj.OnLoad();
-                        Cache.Entities.Add(entityobj);
-                    }
-                }
-            }
-            // 自动加入单对象缓存
-            if (SingleCache.Using)
-            {
-                var fi = Operate.Unique;
-                if (fi != null)
-                {
-                    var key = entity[fi.Name];
-                    // 复制到单对象缓存
-                    var e = SingleCache[key];
+                    // 尽管用了事务保护，但是仍然可能有别的地方导致实体缓存更新，这点务必要注意
+                    var fi = Operate.Unique;
+                    var e = Cache.Entities.Find(fi.Name, entity[fi.Name]);
                     if (e != null)
                     {
                         if (e != entity) e.CopyFrom(entity);
                     }
                     else
                     {
-                        // 这里也需要标记来自数据库，防止实体缓存没有使用的情况下不对新增的实体对象做标记，不再正确验证脏数据
-                        if (entityobj == null) entityobj = entity as TEntity;
+                        // 加入超级缓存的实体对象，需要标记来自数据库
+                        entityobj = entity as TEntity;
                         if (entityobj != null)
                         {
                             entityobj.OnLoad();
-                            SingleCache.Add(key, entityobj);
+                            Cache.Entities.Add(entityobj);
+                        }
+                    }
+                }
+
+                // 自动加入单对象缓存
+                if (SingleCache.Using)
+                {
+                    if (entityobj == null) entityobj = entity as TEntity;
+                    if (entityobj != null)
+                    {
+                        var getkeymethod = SingleCache.GetKeyMethod;
+                        if (getkeymethod != null)
+                        {
+                            var key = getkeymethod(entityobj);
+                            // 复制到单对象缓存
+                            TEntity cacheitem;
+                            if (SingleCache.TryGetItem(key, out cacheitem))
+                            {
+                                if (cacheitem != null)
+                                {
+                                    if (cacheitem != entityobj) { cacheitem.CopyFrom(entityobj); }
+                                }
+                                else // 存在允许存储空对象的情况
+                                {
+                                    SingleCache.RemoveKey(key);
+                                    entityobj.OnLoad();
+                                    SingleCache.Add(key, entityobj);
+                                }
+                            }
+                            else
+                            {
+                                entityobj.OnLoad();
+                                SingleCache.Add(key, entityobj);
+                            }
                         }
                     }
                 }
@@ -827,30 +1101,62 @@ namespace XCode
             var rs = persistence.Delete(entity);
 
             // 如果当前在事务中，并使用了缓存，则尝试更新缓存
-            if ((HoldCache || UsingTrans) && Cache.Using)
+            if (HoldCache || UsingTrans  )
             {
-                var fi = Operate.Unique;
-                if (fi != null)
+                if (Cache.Using)
                 {
-                    var v = entity[fi.Name];
-                    Cache.Entities.RemoveAll(e => Object.Equals(e[fi.Name], v));
+                    var fi = Operate.Unique;
+                    if (fi != null)
+                    {
+                        var v = entity[fi.Name];
+                        Cache.Entities.RemoveAll(e => Object.Equals(e[fi.Name], v));
+                    }
                 }
-            }
-            // 自动加入单对象缓存
-            if (SingleCache.Using)
-            {
-                var fi = Operate.Unique;
-                if (fi != null)
+                // 自动加入单对象缓存
+                if (SingleCache.Using)
                 {
-                    var key = entity[fi.Name];
-                    SingleCache.RemoveKey(key);
+                    var entityobj = entity as TEntity;
+                    if (entityobj != null)
+                    {
+                        var getkeymethod = SingleCache.GetKeyMethod;
+                        if (getkeymethod != null)
+                        {
+                            var key = getkeymethod(entityobj);
+                            SingleCache.RemoveKey(key);
+                        }
+                    }
                 }
             }
 
-            if (_Count != null) _Count--;
+            if (_Count > -1L) { Interlocked.Decrement(ref _Count); }
 
             return rs;
         }
         #endregion
     }
+
+    #region 脏实体会话
+
+    /// <summary>脏实体会话，嵌套事务回滚时使用</summary>
+    /// <remarks>http://www.newlifex.com/showtopic-1216.aspx</remarks>
+    public class DirtiedEntitySession
+    {
+        internal Int32 ExecuteCount { get; set; }
+
+        internal Int32 UpdateCount { get; set; }
+
+        internal Int32 DirectExecuteSQLCount { get; set; }
+
+        internal IEntitySession Session { get; set; }
+
+        internal DirtiedEntitySession(IEntitySession session, Int32 executeCount, Int32 updateCount, Int32 directExecuteSQLCount)
+        {
+            Session = session;
+            ExecuteCount = executeCount;
+            UpdateCount = updateCount;
+            DirectExecuteSQLCount = directExecuteSQLCount;
+        }
+    }
+
+    #endregion
 }

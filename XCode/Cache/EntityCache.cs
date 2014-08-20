@@ -24,6 +24,18 @@ namespace XCode.Cache
         /// <summary>过期时间。单位是秒，默认60秒/600秒（独占数据库）</summary>
         public Int32 Expriod { get { return _Expriod; } set { _Expriod = value; } }
 
+        private Boolean _HoldCache = CacheSetting.Alone;
+        /// <summary>在数据修改时保持缓存，不再过期，独占数据库时默认打开，否则默认关闭</summary>
+        public Boolean HoldCache
+        {
+            get { return _HoldCache; }
+            set
+            {
+                _HoldCache = value;
+                Asynchronous = true;
+            }
+        }
+
         private Boolean _Asynchronous = CacheSetting.Alone;
         /// <summary>异步更新，独占数据库时默认打开</summary>
         public Boolean Asynchronous { get { return _Asynchronous; } set { _Asynchronous = value; } }
@@ -45,6 +57,9 @@ namespace XCode.Cache
             get
             {
                 XCache.CheckShowStatics(ref NextShow, ref Total, ShowStatics);
+
+                // 独占模式下，缓存不再过期
+                if (HoldCache && _Entities != null) { Interlocked.Increment(ref Shoot1); return _Entities; }
 
                 // 两种情况更新缓存：1，缓存过期；2，不允许空但是集合又是空
                 Boolean isnull = !AllowNull && _Entities == null;
@@ -203,6 +218,7 @@ namespace XCode.Cache
             this.Expriod = ec.Expriod;
             this.Asynchronous = ec.Asynchronous;
             this.AllowNull = ec.AllowNull;
+            this.HoldCache = ec.HoldCache;
             this.FillListMethod = ec.FillListMethod;
 
             return this;

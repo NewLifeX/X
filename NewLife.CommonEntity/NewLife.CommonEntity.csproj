@@ -84,6 +84,7 @@
     </Compile>
     <Compile Include="Common\CommonService.cs" />
     <Compile Include="Common\CommonEntityBase.cs" />
+    <Compile Include="Common\EntityCacheConfig.cs" />
     <Compile Include="Exceptions\EntityException.cs" />
     <Compile Include="Interfaces\ICommonManageProvider.cs" />
     <Compile Include="Interfaces\IEntityForm.cs" />

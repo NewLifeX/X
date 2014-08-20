@@ -172,7 +172,8 @@ namespace XCode
             var bAllow = op.AllowInsertIdentity;
             if (field != null && field.IsIdentity && !bAllow)
             {
-                Int64 res = dps != null && dps.Length > 0 ? session.InsertAndGetIdentity(sql, CommandType.Text, dps) : session.InsertAndGetIdentity(sql);
+                //Int64 res = dps != null && dps.Length > 0 ? session.InsertAndGetIdentity(sql, CommandType.Text, dps) : session.InsertAndGetIdentity(sql);
+                Int64 res = dps != null && dps.Length > 0 ? session.InsertAndGetIdentity(false, sql, CommandType.Text, dps) : session.InsertAndGetIdentity(false, sql);
                 if (res > 0) entity[field.Name] = res;
                 rs = res > 0 ? 1 : 0;
             }
@@ -188,7 +189,8 @@ namespace XCode
                         if (bAllow) sql = String.Format("SET IDENTITY_INSERT {1} ON;{0};SET IDENTITY_INSERT {1} OFF", sql, op.FormatedTableName);
                     }
                 }
-                rs = dps != null && dps.Length > 0 ? session.Execute(sql, CommandType.Text, dps) : session.Execute(sql);
+                //rs = dps != null && dps.Length > 0 ? session.Execute(sql, CommandType.Text, dps) : session.Execute(sql);
+                rs = dps != null && dps.Length > 0 ? session.Execute(false, false, sql, CommandType.Text, dps) : session.Execute(false, false, sql);
             }
 
             //清除脏数据，避免连续两次调用Save造成重复提交
@@ -228,7 +230,8 @@ namespace XCode
 
             var op = EntityFactory.CreateOperate(entity.GetType());
             var session = op.Session;
-            Int32 rs = dps != null && dps.Length > 0 ? session.Execute(sql, CommandType.Text, dps) : session.Execute(sql);
+            //Int32 rs = dps != null && dps.Length > 0 ? session.Execute(sql, CommandType.Text, dps) : session.Execute(sql);
+            Int32 rs = dps != null && dps.Length > 0 ? session.Execute(false, true, sql, CommandType.Text, dps) : session.Execute(false, true, sql);
 
             //清除脏数据，避免重复提交
             if (entity.Dirtys != null) entity.Dirtys.Clear();
@@ -250,7 +253,8 @@ namespace XCode
             String sql = DefaultCondition(entity);
             if (String.IsNullOrEmpty(sql)) return 0;
 
-            return session.Execute(String.Format("Delete From {0} Where {1}", op.FormatedTableName, sql));
+            //return session.Execute(String.Format("Delete From {0} Where {1}", op.FormatedTableName, sql));
+            return session.Execute(false, false, String.Format("Delete From {0} Where {1}", op.FormatedTableName, sql));
         }
 
         /// <summary>把一个实体对象持久化到数据库</summary>
@@ -285,7 +289,8 @@ namespace XCode
                 //sbv.Append(SqlDataFormat(values[i], fs[names[i]]));
                 sbv.Append(op.FormatValue(names[i], values[i]));
             }
-            return session.Execute(String.Format("Insert Into {2}({0}) values({1})", sbn.ToString(), sbv.ToString(), op.FormatedTableName));
+            //return session.Execute(String.Format("Insert Into {2}({0}) values({1})", sbn.ToString(), sbv.ToString(), op.FormatedTableName));
+            return session.Execute(true, false, String.Format("Insert Into {2}({0}) values({1})", sbn.ToString(), sbv.ToString(), op.FormatedTableName));
         }
 
         /// <summary>更新一批实体数据</summary>
@@ -301,7 +306,8 @@ namespace XCode
             var session = op.Session;
             var sql = String.Format("Update {0} Set {1}", op.FormatedTableName, setClause);
             if (!String.IsNullOrEmpty(whereClause)) sql += " Where " + whereClause;
-            return session.Execute(sql);
+            //return session.Execute(sql);
+            return session.Execute(true, true, sql);
         }
 
         /// <summary>更新一批实体数据</summary>
@@ -331,7 +337,8 @@ namespace XCode
 
             var sql = String.Format("Delete From {0}", op.FormatedTableName);
             if (!String.IsNullOrEmpty(whereClause)) sql += " Where " + whereClause;
-            return session.Execute(sql);
+            //return session.Execute(sql);
+            return session.Execute(true, false, sql);
         }
 
         /// <summary>从数据库中删除指定属性列表和值列表所限定的实体对象。</summary>
@@ -344,6 +351,15 @@ namespace XCode
             var op = EntityFactory.CreateOperate(entityType);
 
             return Delete(entityType, op.MakeCondition(names, values, "And"));
+        }
+
+        /// <summary>清除当前实体所在数据表所有数据，并重置标识列为该列的种子。</summary>
+        /// <returns></returns>
+        public Int32 Truncate(Type entityType)
+        {
+            var op = EntityFactory.CreateOperate(entityType);
+            var session = op.Session;
+            return session.Truncate(String.Format("TRUNCATE TABLE {0}", session.FormatedTableName));
         }
         #endregion
 

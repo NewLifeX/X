@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Data;
 using System.Data.Common;
 using NewLife;
@@ -65,6 +66,27 @@ namespace XCode.DataAccessLayer
         /// <param name="ignoreException">是否忽略异常</param>
         /// <returns>剩下的事务计数</returns>
         Int32 Rollback(Boolean ignoreException = true);
+
+        /// <summary>添加脏实体会话</summary>
+        /// <param name="key">实体会话关键字</param>
+        /// <param name="entitySession">事务嵌套处理中，事务真正提交或回滚之前，进行了子事务提交的实体会话</param>
+        /// <param name="executeCount">实体操作次数</param>
+        /// <param name="updateCount">实体更新操作次数</param>
+        /// <param name="directExecuteSQLCount">直接执行SQL语句次数</param>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        void AddDirtiedEntitySession(String key, IEntitySession entitySession, Int32 executeCount, Int32 updateCount, Int32 directExecuteSQLCount);
+
+        /// <summary>移除脏实体会话</summary>
+        /// <param name="key">实体会话关键字</param>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        void RemoveDirtiedEntitySession(String key);
+
+        /// <summary>获取脏实体会话</summary>
+        /// <param name="key">实体会话关键字</param>
+        /// <param name="session">脏实体会话</param>
+        /// <returns></returns>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        Boolean TryGetDirtiedEntitySession(String key, out DirtiedEntitySession session);
         #endregion
 
         #region 基本方法 查询/执行

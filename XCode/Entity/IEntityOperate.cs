@@ -80,14 +80,16 @@ namespace XCode
         /// <param name="action">处理实体记录集方法</param>
         /// <param name="useTransition">是否使用事务保护</param>
         /// <param name="batchSize">每次处理记录数</param>
-        void ProcessAll(Action<IEntityList> action, Boolean useTransition, Int32 batchSize);
+        /// <param name="maxCount">处理最大记录数，默认0，处理所有行</param>
+        void ProcessAll(Action<IEntityList> action, Boolean useTransition, Int32 batchSize, Int32 maxCount);
 
         /// <summary>批量处理实体记录，此操作跨越缓存</summary>
         /// <param name="action">处理实体记录集方法</param>
         /// <param name="whereClause">条件，不带Where</param>
         /// <param name="useTransition">是否使用事务保护</param>
         /// <param name="batchSize">每次处理记录数</param>
-        void ProcessAll(Action<IEntityList> action, String whereClause, Boolean useTransition, Int32 batchSize);
+        /// <param name="maxCount">处理最大记录数，默认0，处理所有行</param>
+        void ProcessAll(Action<IEntityList> action, String whereClause, Boolean useTransition, Int32 batchSize, Int32 maxCount);
 
         /// <summary>批量处理实体记录，此操作跨越缓存，使用事务保护</summary>
         /// <param name="action">实体记录操作方法</param>
@@ -96,7 +98,8 @@ namespace XCode
         /// <param name="selects">查询列</param>
         /// <param name="useTransition">是否使用事务保护</param>
         /// <param name="batchSize">每次处理记录数</param>
-        void ProcessAll(Action<IEntityList> action, String whereClause, String orderClause, String selects, Boolean useTransition, Int32 batchSize);
+        /// <param name="maxCount">处理最大记录数，默认0，处理所有行</param>
+        void ProcessAll(Action<IEntityList> action, String whereClause, String orderClause, String selects, Boolean useTransition, Int32 batchSize, Int32 maxCount);
 
         #endregion
 

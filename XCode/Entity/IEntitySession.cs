@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Data;
 using System.Data.Common;
 using XCode.Cache;
@@ -95,10 +96,25 @@ namespace XCode
         /// <returns>影响的结果</returns>
         Int32 Execute(String sql);
 
+        /// <summary>执行</summary>
+        /// <param name="forceClearCache">是否跨越实体操作，直接执行SQL语句</param>
+        /// <param name="isUpdateMode">是否执行更新实体操作</param>
+        /// <param name="sql">SQL语句</param>
+        /// <returns>影响的结果</returns>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        Int32 Execute(Boolean forceClearCache, Boolean isUpdateMode, String sql);
+
         /// <summary>执行插入语句并返回新增行的自动编号</summary>
         /// <param name="sql">SQL语句</param>
         /// <returns>新增行的自动编号</returns>
         Int64 InsertAndGetIdentity(String sql);
+
+        /// <summary>执行插入语句并返回新增行的自动编号</summary>
+        /// <param name="forceClearCache">是否跨越实体操作，直接执行SQL语句</param>
+        /// <param name="sql">SQL语句</param>
+        /// <returns>新增行的自动编号</returns>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        Int64 InsertAndGetIdentity(Boolean forceClearCache, String sql);
 
         /// <summary>执行</summary>
         /// <param name="sql">SQL语句</param>
@@ -107,6 +123,16 @@ namespace XCode
         /// <returns>影响的结果</returns>
         Int32 Execute(String sql, CommandType type = CommandType.Text, params DbParameter[] ps);
 
+        /// <summary>执行</summary>
+        /// <param name="forceClearCache">是否跨越实体操作，直接执行SQL语句</param>
+        /// <param name="isUpdateMode">是否执行更新实体操作</param>
+        /// <param name="sql">SQL语句</param>
+        /// <param name="type">命令类型，默认SQL文本</param>
+        /// <param name="ps">命令参数</param>
+        /// <returns>影响的结果</returns>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        Int32 Execute(Boolean forceClearCache, Boolean isUpdateMode, String sql, CommandType type = CommandType.Text, params DbParameter[] ps);
+
         /// <summary>执行插入语句并返回新增行的自动编号</summary>
         /// <param name="sql">SQL语句</param>
         /// <param name="type">命令类型，默认SQL文本</param>
@@ -114,13 +140,27 @@ namespace XCode
         /// <returns>新增行的自动编号</returns>
         Int64 InsertAndGetIdentity(String sql, CommandType type = CommandType.Text, params DbParameter[] ps);
 
+        /// <summary>执行插入语句并返回新增行的自动编号</summary>
+        /// <param name="forceClearCache">是否跨越实体操作，直接执行SQL语句</param>
+        /// <param name="sql">SQL语句</param>
+        /// <param name="type">命令类型，默认SQL文本</param>
+        /// <param name="ps">命令参数</param>
+        /// <returns>新增行的自动编号</returns>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        Int64 InsertAndGetIdentity(Boolean forceClearCache, String sql, CommandType type = CommandType.Text, params DbParameter[] ps);
+
+        /// <summary>执行Truncate语句</summary>
+        /// <param name="sql">SQL语句</param>
+        /// <returns>影响的结果</returns>
+        Int32 Truncate(String sql);
+
         /// <summary>数据改变后触发。参数指定触发该事件的实体类</summary>
         event Action<Type> OnDataChange;
         #endregion
 
         #region 事务保护
-        /// <summary>事务计数</summary>
-        Int32 TransCount { get; }
+        ///// <summary>事务计数</summary>
+        //Int32 TransCount { get; }
 
         /// <summary>开始事务</summary>
         /// <returns>剩下的事务计数</returns>
@@ -136,6 +176,18 @@ namespace XCode
 
         ///// <summary>是否在事务保护中</summary>
         //internal Boolean UsingTrans { get { return TransCount > 0; } }
+
+        /// <summary>触发脏实体会话提交事务后的缓存更新操作</summary>
+        /// <param name="updateCount">实体更新操作次数</param>
+        /// <param name="directExecuteSQLCount">直接执行SQL语句次数</param>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        void RaiseCommitDataChange(Int32 updateCount, Int32 directExecuteSQLCount);
+
+        /// <summary>触发脏实体会话回滚事务后的缓存更新操作</summary>
+        /// <param name="updateCount">实体更新操作次数</param>
+        /// <param name="directExecuteSQLCount">直接执行SQL语句次数</param>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        void RaiseRoolbackDataChange(Int32 updateCount, Int32 directExecuteSQLCount);
         #endregion
 
         #region 参数化

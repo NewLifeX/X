@@ -309,6 +309,36 @@ namespace XCode.DataAccessLayer
         /// <summary>回滚事务，忽略异常</summary>
         /// <returns>剩下的事务计数</returns>
         public Int32 Rollback() { return Session.Rollback(); }
+
+        /// <summary>添加脏实体会话</summary>
+        /// <param name="key">实体会话关键字</param>
+        /// <param name="entitySession">事务嵌套处理中，事务真正提交或回滚之前，进行了子事务提交的实体会话</param>
+        /// <param name="executeCount">实体操作次数</param>
+        /// <param name="updateCount">实体更新操作次数</param>
+        /// <param name="directExecuteSQLCount">直接执行SQL语句次数</param>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        internal void AddDirtiedEntitySession(String key, IEntitySession entitySession, Int32 executeCount, Int32 updateCount, Int32 directExecuteSQLCount)
+        {
+            Session.AddDirtiedEntitySession(key, entitySession, executeCount, updateCount, directExecuteSQLCount);
+        }
+
+        /// <summary>移除脏实体会话</summary>
+        /// <param name="key">实体会话关键字</param>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        internal void RemoveDirtiedEntitySession(String key)
+        {
+            Session.RemoveDirtiedEntitySession(key);
+        }
+
+        /// <summary>获取脏实体会话</summary>
+        /// <param name="key">实体会话关键字</param>
+        /// <param name="session">脏实体会话</param>
+        /// <returns></returns>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        internal Boolean TryGetDirtiedEntitySession(String key, out DirtiedEntitySession session)
+        {
+            return Session.TryGetDirtiedEntitySession(key, out session);
+        }
         #endregion
     }
 }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Data;
 using System.Data.Common;
 using System.Diagnostics;
@@ -234,6 +235,8 @@ namespace XCode.DataAccessLayer
 
         /// <summary>事务计数。当且仅当事务计数等于1时，才提交或回滚。</summary>
         private Int32 TransactionCount = 0;
+        /// <summary>脏实体会话</summary>
+        private Dictionary<String, DirtiedEntitySession> _EntitySession = new Dictionary<String, DirtiedEntitySession>();
 
         /// <summary>开始事务</summary>
         /// <returns>剩下的事务计数</returns>
@@ -241,7 +244,11 @@ namespace XCode.DataAccessLayer
         {
             if (Disposed) throw new ObjectDisposedException(this.GetType().Name);
 
-            if (TransactionCount < 0) TransactionCount = 0;
+            if (TransactionCount <= 0)
+            {
+                TransactionCount = 0;
+                _EntitySession.Clear();
+            }
             TransactionCount++;
             if (TransactionCount > 1) return TransactionCount;
 
@@ -268,13 +275,31 @@ namespace XCode.DataAccessLayer
             if (Trans == null) throw new XDbSessionException(this, "当前并未开始事务，请用BeginTransaction方法开始新事务！");
             try
             {
-                if (Trans.Connection != null) Trans.Commit();
+                if (Trans.Connection != null)
+                {
+                    Trans.Commit();
+
+                    foreach (var item in _EntitySession)
+                    {
+                        var dirtiedSession = item.Value;
+                        if (dirtiedSession.ExecuteCount > 0)
+                        {
+                            dirtiedSession.Session.RaiseCommitDataChange(dirtiedSession.UpdateCount, dirtiedSession.DirectExecuteSQLCount);
+                        }
+                    }
+                }
                 Trans = null;
                 if (IsAutoClose) Close();
             }
             catch (DbException ex)
             {
                 throw OnException(ex);
+            }
+            finally
+            {
+                Trans = null;
+                _EntitySession.Clear();
+                if (IsAutoClose) { Close(); }
             }
 
             return TransactionCount;
@@ -294,15 +319,72 @@ namespace XCode.DataAccessLayer
             Trans = null;
             try
             {
-                if (tr.Connection != null) tr.Rollback();
-                if (IsAutoClose) Close();
+                if (tr.Connection != null)
+                {
+                    tr.Rollback();
+
+                    foreach (var item in _EntitySession)
+                    {
+                        var dirtiedSession = item.Value;
+                        if (dirtiedSession.ExecuteCount > 0)
+                        {
+                            dirtiedSession.Session.RaiseRoolbackDataChange(dirtiedSession.UpdateCount, dirtiedSession.DirectExecuteSQLCount);
+                        }
+                    }
+                }
             }
             catch (DbException ex)
             {
                 if (!ignoreException) throw OnException(ex);
             }
+            finally
+            {
+                tr = null;
+                _EntitySession.Clear();
+                if (IsAutoClose) { Close(); }
+            }
 
             return TransactionCount;
+        }
+
+        /// <summary>添加脏实体会话</summary>
+        /// <param name="key">实体会话关键字</param>
+        /// <param name="entitySession">事务嵌套处理中，事务真正提交或回滚之前，进行了子事务提交的实体会话</param>
+        /// <param name="executeCount">实体操作次数</param>
+        /// <param name="updateCount">实体更新操作次数</param>
+        /// <param name="directExecuteSQLCount">直接执行SQL语句次数</param>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public void AddDirtiedEntitySession(String key, IEntitySession entitySession, Int32 executeCount, Int32 updateCount, Int32 directExecuteSQLCount)
+        {
+            DirtiedEntitySession oldsession;
+            if (_EntitySession.TryGetValue(key, out oldsession))
+            {
+                oldsession.ExecuteCount += executeCount;
+                oldsession.UpdateCount += updateCount;
+                oldsession.DirectExecuteSQLCount += directExecuteSQLCount;
+            }
+            else
+            {
+                _EntitySession.Add(key, new DirtiedEntitySession(entitySession, executeCount, updateCount, directExecuteSQLCount));
+            }
+        }
+
+        /// <summary>移除脏实体会话</summary>
+        /// <param name="key">实体会话关键字</param>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public void RemoveDirtiedEntitySession(String key)
+        {
+            _EntitySession.Remove(key);
+        }
+
+        /// <summary>获取脏实体会话</summary>
+        /// <param name="key">实体会话关键字</param>
+        /// <param name="session">脏实体会话</param>
+        /// <returns></returns>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public Boolean TryGetDirtiedEntitySession(String key, out DirtiedEntitySession session)
+        {
+            return _EntitySession.TryGetValue(key, out session);
         }
         #endregion
 

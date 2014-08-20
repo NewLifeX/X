@@ -88,7 +88,8 @@ namespace XCode
             /// <param name="action">处理实体记录集方法</param>
             /// <param name="useTransition">是否使用事务保护</param>
             /// <param name="batchSize">每次处理记录数</param>
-            public virtual void ProcessAll(Action<IEntityList> action, Boolean useTransition = true, Int32 batchSize = 500)
+            /// <param name="maxCount">处理最大记录数，默认0，处理所有行</param>
+            public virtual void ProcessAll(Action<IEntityList> action, Boolean useTransition = true, Int32 batchSize = 500, Int32 maxCount = 0)
             {
                 ProcessAll(action, null, null, null, useTransition, batchSize);
             }
@@ -98,7 +99,8 @@ namespace XCode
             /// <param name="whereClause">条件，不带Where</param>
             /// <param name="useTransition">是否使用事务保护</param>
             /// <param name="batchSize">每次处理记录数</param>
-            public virtual void ProcessAll(Action<IEntityList> action, String whereClause, Boolean useTransition = true, Int32 batchSize = 500)
+            /// <param name="maxCount">处理最大记录数，默认0，处理所有行</param>
+            public virtual void ProcessAll(Action<IEntityList> action, String whereClause, Boolean useTransition = true, Int32 batchSize = 500, Int32 maxCount = 0)
             {
                 ProcessAll(action, whereClause, null, null, useTransition, batchSize);
             }
@@ -110,18 +112,19 @@ namespace XCode
             /// <param name="selects">查询列</param>
             /// <param name="useTransition">是否使用事务保护</param>
             /// <param name="batchSize">每次处理记录数</param>
-            public virtual void ProcessAll(Action<IEntityList> action, String whereClause, String orderClause, String selects, Boolean useTransition, Int32 batchSize)
+            /// <param name="maxCount">处理最大记录数，默认0，处理所有行</param>
+            public virtual void ProcessAll(Action<IEntityList> action, String whereClause, String orderClause, String selects, Boolean useTransition, Int32 batchSize, Int32 maxCount = 0)
             {
                 if (useTransition)
                 {
                     using (var trans = new EntityTransaction<TEntity>())
                     {
                         var count = Entity<TEntity>.FindCount(whereClause, orderClause, selects, 0, 0);
-                        //var total = 0;
+                        var total = maxCount <= 0 ? count : Math.Min(maxCount, count);
                         var index = 0;
                         while (true)
                         {
-                            var size = Math.Min(batchSize, count - index);
+                            var size = Math.Min(batchSize, total - index);
                             if (size <= 0) { break; }
 
                             var list = Entity<TEntity>.FindAll(whereClause, orderClause, selects, index, size);
@@ -137,11 +140,11 @@ namespace XCode
                 else
                 {
                     var count = Entity<TEntity>.FindCount(whereClause, orderClause, selects, 0, 0);
-                    //var total = 0;
+                    var total = maxCount <= 0 ? count : Math.Min(maxCount, count);
                     var index = 0;
                     while (true)
                     {
-                        var size = Math.Min(batchSize, count - index);
+                        var size = Math.Min(batchSize, total - index);
                         if (size <= 0) { break; }
 
                         var list = Entity<TEntity>.FindAll(whereClause, orderClause, selects, index, size);
