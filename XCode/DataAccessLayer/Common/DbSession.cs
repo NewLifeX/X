@@ -288,8 +288,6 @@ namespace XCode.DataAccessLayer
                         }
                     }
                 }
-                Trans = null;
-                if (IsAutoClose) Close();
             }
             catch (DbException ex)
             {
