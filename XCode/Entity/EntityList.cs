@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Xml.Serialization;
 using NewLife.IO;
@@ -131,10 +132,11 @@ namespace XCode
         {
             if (Count <= 0) return this;
 
-            if (startRowIndex <= 0 && maximumRows <= 0) return this;
+            if (startRowIndex <= 0 && (maximumRows <= 0 || maximumRows >= Count))  return this; 
 
             // 先转数组再构造分页，避免多线程版本冲突
-            return new EntityList<T>(ToArray(), startRowIndex, maximumRows);
+            //return new EntityList<T>(ToArray(), startRowIndex, maximumRows);
+            return new EntityList<T>(ToList().Skip(startRowIndex).Take(maximumRows));
         }
         #endregion
 
