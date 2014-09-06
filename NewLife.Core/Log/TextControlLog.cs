@@ -57,8 +57,34 @@ namespace NewLife.Log
                     //var line = txt.GetLineFromCharIndex(cur);
                     // AppendText本身就会让文本滚动到最后，不需要额外的滚动代码
 
+                    // 记录原原则
+                    var selstart = txt.SelectionStart;
+                    var sellen = txt.SelectionLength;
+
                     // 输出日志
-                    if (m != null) txt.AppendText(m);
+                    if (m != null)
+                    {
+                        //txt.AppendText(m);
+                        // 需要考虑处理特殊符号
+                        ProcessBackspace(txt, ref m);
+
+                        if (String.IsNullOrEmpty(m)) return;
+                        txt.AppendText(m);
+                    }
+
+                    // 如果有选择，则不要滚动
+                    if (sellen > 0)
+                    {
+                        // 恢复选择
+                        if (selstart < txt.TextLength)
+                        {
+                            sellen = Math.Min(sellen, txt.TextLength - selstart - 1);
+                            txt.Select(selstart, sellen);
+                            txt.ScrollToCaret();
+                        }
+
+                        return;
+                    }
 
                     // 5行内滚动
                     //if (line + 5 > txt.Lines.Length && txt.SelectionLength <= 0)
@@ -82,6 +108,40 @@ namespace NewLife.Log
             ar.AsyncWaitHandle.WaitOne(100);
             //if (!ar.AsyncWaitHandle.WaitOne(10))
             //    txt.EndInvoke(ar);
+        }
+
+        static void ProcessBackspace(TextBoxBase txt, ref String m)
+        {
+            var p = m.IndexOf('\b');
+            while (p >= 0)
+            {
+                // 计算一共有多少个字符
+                var count = 1;
+                while (m[p + count] == '\b') count++;
+
+                // 前面的字符不足，消去前面历史字符
+                if (p < count)
+                {
+                    count -= p;
+                    // 选中最后字符，然后干掉它
+                    if (txt.TextLength > count)
+                    {
+                        txt.Select(txt.TextLength - count, count);
+                        txt.SelectedText = null;
+                    }
+                    else
+                        txt.Clear();
+                }
+                else if (p > count)
+                {
+                    // 少输出一个
+                    txt.AppendText(m.Substring(0, p - count));
+                }
+
+                if (p == m.Length - count) break;
+                m = m.Substring(p + count);
+                p = m.IndexOf('\b');
+            }
         }
     }
 }
