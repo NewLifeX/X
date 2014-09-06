@@ -8,6 +8,7 @@ using NewLife.Log;
 using NewLife.Net;
 using NewLife.Threading;
 using XCoder;
+using NewLife;
 
 namespace XCom
 {
@@ -75,17 +76,10 @@ namespace XCom
                 ti.Click += Encoding_Click;
             }
 
-            if (cfg.HexShow)
-            {
-                miHEX编码.Checked = true;
-                mi字符串编码.Checked = false;
-            }
-            else
-            {
-                // 选中编码
-                miHEX编码.Checked = false;
-                mi字符串编码.Checked = true;
-            }
+            miHEX编码.Checked = cfg.HexShow;
+            mi字符串编码.Checked = !cfg.HexShow;
+            miHex不换行.Checked = !cfg.HexNewLine;
+            miHex自动换行.Checked = cfg.HexNewLine;
 
             // 发送菜单HEX编码
             miHEX编码2.Checked = cfg.HexSend;
@@ -156,6 +150,7 @@ namespace XCom
 
             var sp = new SerialPort(name, cfg.BaudRate, cfg.Parity, cfg.DataBits, cfg.StopBits);
             var st = new SerialTransport { Serial = sp };
+            st.FrameSize = 8;
             st.Open();
             //_Com.Disconnected += (s, e) => Disconnect();
             // 需要考虑UI线程
@@ -210,13 +205,16 @@ namespace XCom
         {
             if (data == null || data.Length < 1) return null;
 
+            var cfg = SerialConfig.Current;
+
             var line = "";
-            if (SerialConfig.Current.HexShow)
+            if (cfg.HexShow)
+            {
                 line = data.ToHex();
+                if (cfg.HexNewLine) line += Environment.NewLine;
+            }
             else
             {
-                var cfg = SerialConfig.Current;
-
                 line = cfg.Encoding.GetString(data);
                 if (_stream == null)
                     _stream = new MemoryStream();
@@ -334,6 +332,18 @@ namespace XCom
             var cfg = SerialConfig.Current;
             cfg.HexShow = miHEX编码.Checked;
             mi字符串编码.Checked = !miHEX编码.Checked;
+        }
+
+        private void 自动换行ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var ti = sender as ToolStripMenuItem;
+            var other = miHex不换行;
+            if (ti == miHex不换行) other = miHex自动换行;
+
+            var cfg = SerialConfig.Current;
+            cfg.HexNewLine = ti.Tag.ToBoolean();
+            ti.Checked = true;
+            other.Checked = false;
         }
 
         private void mi字符串编码_Click(object sender, EventArgs e)

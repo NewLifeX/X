@@ -26,9 +26,11 @@ using System.Runtime.InteropServices;
 //      修订号
 //
 [assembly: AssemblyVersion("6.1.*")]
-[assembly: AssemblyFileVersion("6.1.2014.0607")]
+[assembly: AssemblyFileVersion("6.1.2014.0907")]
 
 /*
+ * v6.1.2014.0907   串口工具XCOM以十六进制输出时，可以选择是否自动换行
+ * 
  * v6.1.2014.0607   串口工具XCOM，自动检测到串口断开时，断开串口连接，避免内存溢出
  * 
  * v6.0.2014.0514   使用模版文件本身的文件编码来作为输出文件的编码，默认UTF8

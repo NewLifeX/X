@@ -48,6 +48,11 @@ namespace XCom
         [Description("十六进制显示")]
         public Boolean HexShow { get { return _HexShow; } set { _HexShow = value; } }
 
+        private Boolean _HexNewLine;
+        /// <summary>十六进制自动换行</summary>
+        [Description("十六进制自动换行")]
+        public Boolean HexNewLine { get { return _HexNewLine; } set { _HexNewLine = value; } }
+
         private Boolean _HexSend;
         /// <summary>十六进制发送</summary>
         [Description("十六进制发送")]

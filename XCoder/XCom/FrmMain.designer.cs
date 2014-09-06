@@ -65,6 +65,8 @@
             this.btnConnect = new System.Windows.Forms.Button();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
             this.pnlSet = new System.Windows.Forms.Panel();
+            this.miHex不换行 = new System.Windows.Forms.ToolStripMenuItem();
+            this.miHex自动换行 = new System.Windows.Forms.ToolStripMenuItem();
             this.gbSet2.SuspendLayout();
             this.gbStatus.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numMutilSend)).BeginInit();
@@ -333,20 +335,23 @@
             this.miHEX编码,
             this.mi字符串编码});
             this.menuReceive.Name = "contextMenuStrip1";
-            this.menuReceive.Size = new System.Drawing.Size(137, 70);
+            this.menuReceive.Size = new System.Drawing.Size(153, 92);
             // 
             // mi清空
             // 
             this.mi清空.Name = "mi清空";
-            this.mi清空.Size = new System.Drawing.Size(136, 22);
+            this.mi清空.Size = new System.Drawing.Size(152, 22);
             this.mi清空.Text = "清空";
             this.mi清空.Click += new System.EventHandler(this.mi清空_Click);
             // 
             // miHEX编码
             // 
             this.miHEX编码.CheckOnClick = true;
+            this.miHEX编码.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.miHex不换行,
+            this.miHex自动换行});
             this.miHEX编码.Name = "miHEX编码";
-            this.miHEX编码.Size = new System.Drawing.Size(136, 22);
+            this.miHEX编码.Size = new System.Drawing.Size(152, 22);
             this.miHEX编码.Text = "HEX编码";
             this.miHEX编码.Click += new System.EventHandler(this.miHEX编码_Click);
             // 
@@ -354,7 +359,7 @@
             // 
             this.mi字符串编码.CheckOnClick = true;
             this.mi字符串编码.Name = "mi字符串编码";
-            this.mi字符串编码.Size = new System.Drawing.Size(136, 22);
+            this.mi字符串编码.Size = new System.Drawing.Size(152, 22);
             this.mi字符串编码.Text = "字符串编码";
             this.mi字符串编码.Click += new System.EventHandler(this.mi字符串编码_Click);
             // 
@@ -457,6 +462,24 @@
             this.pnlSet.Size = new System.Drawing.Size(324, 29);
             this.pnlSet.TabIndex = 10;
             // 
+            // miHex不换行
+            // 
+            this.miHex不换行.Checked = true;
+            this.miHex不换行.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.miHex不换行.Name = "miHex不换行";
+            this.miHex不换行.Size = new System.Drawing.Size(152, 22);
+            this.miHex不换行.Tag = "false";
+            this.miHex不换行.Text = "不换行";
+            this.miHex不换行.Click += new System.EventHandler(this.自动换行ToolStripMenuItem_Click);
+            // 
+            // miHex自动换行
+            // 
+            this.miHex自动换行.Name = "miHex自动换行";
+            this.miHex自动换行.Size = new System.Drawing.Size(152, 22);
+            this.miHex自动换行.Tag = "true";
+            this.miHex自动换行.Text = "自动换行";
+            this.miHex自动换行.Click += new System.EventHandler(this.自动换行ToolStripMenuItem_Click);
+            // 
             // FrmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
@@ -526,6 +549,8 @@
         private System.Windows.Forms.ContextMenuStrip menuSend;
         private System.Windows.Forms.ToolStripMenuItem mi清空2;
         private System.Windows.Forms.ToolStripMenuItem miHEX编码2;
+        private System.Windows.Forms.ToolStripMenuItem miHex不换行;
+        private System.Windows.Forms.ToolStripMenuItem miHex自动换行;
     }
 }
 
