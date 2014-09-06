@@ -103,26 +103,31 @@ namespace NewLife.Log
                 catch { }
             });
 
-            //txt.Invoke(func, msg);
-            var ar = txt.BeginInvoke(func, msg);
-            ar.AsyncWaitHandle.WaitOne(100);
+            txt.Invoke(func, msg);
+            //var ar = txt.BeginInvoke(func, msg);
+            //ar.AsyncWaitHandle.WaitOne(100);
             //if (!ar.AsyncWaitHandle.WaitOne(10))
             //    txt.EndInvoke(ar);
         }
 
         static void ProcessBackspace(TextBoxBase txt, ref String m)
         {
+            var size = m.Length;
             var p = m.IndexOf('\b');
             while (p >= 0)
             {
                 // 计算一共有多少个字符
                 var count = 1;
-                while (m[p + count] == '\b') count++;
+                while (p + count < m.Length && m[p + count] == '\b') count++;
 
                 // 前面的字符不足，消去前面历史字符
                 if (p < count)
                 {
                     count -= p;
+                    if (count < 21)
+                    {
+                        size = size - count;
+                    }
                     // 选中最后字符，然后干掉它
                     if (txt.TextLength > count)
                     {
@@ -138,7 +143,11 @@ namespace NewLife.Log
                     txt.AppendText(m.Substring(0, p - count));
                 }
 
-                if (p == m.Length - count) break;
+                if (p == m.Length - count)
+                {
+                    m = null;
+                    break;
+                }
                 m = m.Substring(p + count);
                 p = m.IndexOf('\b');
             }

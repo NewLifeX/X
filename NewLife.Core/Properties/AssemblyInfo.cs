@@ -31,9 +31,11 @@ using System.Runtime.InteropServices;
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("4.6.*")]
-[assembly: AssemblyFileVersion("4.6.2014.0731")]
+[assembly: AssemblyFileVersion("4.6.2014.0907")]
 
 /*
+ * v4.6.2014.0907   文本控件输出文本时支持退格字符，可实现时钟等固定位置刷新文本的效果
+ * 
  * v4.6.2014.0731   二进制序列化增加List处理器
  * 
  * v4.6.2014.0722   DictionaryCache增加DelayLock，支持在锁外提前计算结果，避免每个key独占锁太长时间
