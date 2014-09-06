@@ -588,11 +588,11 @@ namespace Test
             var sw = new Stopwatch();
             sw.Start();
             // 任务数量为最大工作线程的10倍
-            var count = pool.MaxThreads * 100;
+            var count = pool.MaxThreads * 10;
             for (int i = 0; i < count; i++) pool.Queue(Test8_2, key);
 
             pool.WaitAll(200);
-            var max = count * 2.0;
+            var max = count * 20.0;
             var left = Console.CursorLeft;
             while (true)
             {
@@ -600,7 +600,7 @@ namespace Test
 
                 Console.Write("正确：{0} 错误：{1} 完成：{2:p} 速度：{3}", Total, Error, (Total + Error) / max, (Int32)(Total / sw.Elapsed.TotalSeconds));
 
-                if (pool.RunningCount <= 0) break;
+                if (pool.RunningCount <= 0 && pool.QueryCount() <= 0) break;
                 Thread.Sleep(500);
             }
             //Console.WriteLine();
@@ -612,7 +612,11 @@ namespace Test
                 DAL.Create(key).Db.Dispose();
                 GC.Collect();
                 Thread.Sleep(1000);
-                File.Delete(file);
+                try
+                {
+                    File.Delete(file);
+                }
+                catch { }
             }
         }
 
@@ -627,29 +631,34 @@ namespace Test
             var tid = Thread.CurrentThread.ManagedThreadId;
             var rnd = new Random((Int32)DateTime.Now.Ticks);
             var pre = "Test_" + tid + "_" + rnd.Next(999999999) + "_";
-            // 每个线程重复10次插入操作
-            for (int i = 0; i < 2; i++)
+            using (var trans = Administrator.Meta.CreateTrans())
             {
-                //Thread.Sleep(100);
-                // 全局计数，避免名称重复
-                Interlocked.Increment(ref idx);
-                try
+                // 每个线程重复10次插入操作
+                for (int i = 0; i < 20; i++)
                 {
-                    var admin = new Administrator();
-                    admin.Name = pre + idx;
-                    admin.RoleID = 1;
-                    admin.Insert();
+                    //Thread.Sleep(100);
+                    // 全局计数，避免名称重复
+                    Interlocked.Increment(ref idx);
+                    try
+                    {
+                        var admin = new Administrator();
+                        admin.Name = pre + idx;
+                        admin.RoleID = 1;
+                        admin.Insert();
 
-                    Interlocked.Increment(ref Total);
-                }
-                catch (Exception ex)
-                {
-                    // 输出非数据库锁定错误
-                    if (!ex.Message.Contains(" is locked"))
-                        XTrace.WriteLine(ex.Message);
+                        Interlocked.Increment(ref Total);
+                    }
+                    catch (Exception ex)
+                    {
+                        // 输出非数据库锁定错误
+                        if (!ex.Message.Contains(" is locked"))
+                            XTrace.WriteLine(ex.Message);
 
-                    Interlocked.Increment(ref Error);
+                        Interlocked.Increment(ref Error);
+                    }
                 }
+
+                trans.Commit();
             }
         }
 
@@ -800,16 +809,12 @@ namespace Test
 
         static void Test15()
         {
-            var list = new List<String>();
-            list.Add("23fsdfs");
-            list.Add("skdfjsiofowo");
-            list.Add("dkkddkdkdkk");
-
-            var bn = new Binary();
-            bn.AddHandler<BinaryList>();
-
-            bn.Write(list);
-            Console.WriteLine(bn.GetBytes().ToHex());
+            Console.Write("Big ");
+            for (int i = 0; i < 3; i++)
+            {
+                Console.Write((Char)8);
+            }
+            Console.Write("Stone");
         }
     }
 }
