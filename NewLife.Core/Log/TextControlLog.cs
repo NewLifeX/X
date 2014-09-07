@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Media;
 using System.Windows.Forms;
 using NewLife.Exceptions;
 
@@ -66,7 +67,9 @@ namespace NewLife.Log
                     {
                         //txt.AppendText(m);
                         // 需要考虑处理特殊符号
+                        ProcessBell(ref m);
                         ProcessBackspace(txt, ref m);
+                        ProcessReturn(txt, ref m);
 
                         if (String.IsNullOrEmpty(m)) return;
                         txt.AppendText(m);
@@ -112,10 +115,11 @@ namespace NewLife.Log
 
         static void ProcessBackspace(TextBoxBase txt, ref String m)
         {
-            var size = m.Length;
-            var p = m.IndexOf('\b');
-            while (p >= 0)
+            while (true)
             {
+                var p = m.IndexOf('\b');
+                if (p < 0) break;
+
                 // 计算一共有多少个字符
                 var count = 1;
                 while (p + count < m.Length && m[p + count] == '\b') count++;
@@ -124,10 +128,6 @@ namespace NewLife.Log
                 if (p < count)
                 {
                     count -= p;
-                    if (count < 21)
-                    {
-                        size = size - count;
-                    }
                     // 选中最后字符，然后干掉它
                     if (txt.TextLength > count)
                     {
@@ -149,7 +149,68 @@ namespace NewLife.Log
                     break;
                 }
                 m = m.Substring(p + count);
-                p = m.IndexOf('\b');
+            }
+        }
+
+        /// <summary>处理回车，移到行首</summary>
+        /// <param name="txt"></param>
+        /// <param name="m"></param>
+        static void ProcessReturn(TextBoxBase txt, ref String m)
+        {
+            while (true)
+            {
+                var p = m.IndexOf('\r');
+                if (p < 0) break;
+
+                // 后一个是
+                if (p + 1 < m.Length && m[p + 1] == '\n')
+                {
+                    txt.AppendText(m.Substring(0, p + 2));
+                    m = m.Substring(p + 2);
+                    continue;
+                }
+
+                // 后一个不是\n，移到行首
+                if (p >= 0)
+                {
+                    // 取得最后一行首字符索引
+                    var lines = txt.Lines.Length;
+                    var last = lines <= 1 ? 0 : txt.GetFirstCharIndexFromLine(lines - 1);
+                    if (last >= 0)
+                    {
+                        // 最后一行第一个字符，删掉整行
+                        txt.Select(last, txt.TextLength - last);
+                        txt.SelectedText = null;
+                    }
+                }
+
+                if (p + 1 == m.Length)
+                {
+                    m = null;
+                    break;
+                }
+                m = m.Substring(p + 1);
+            }
+        }
+
+        static void ProcessBell(ref String m)
+        {
+            var ch = (Char)7;
+            var p = 0;
+            while (true)
+            {
+                p = m.IndexOf(ch, p);
+                if (p < 0) break;
+
+                if (p > 0)
+                {
+                    var str = m.Substring(0, p);
+                    if (p + 1 < m.Length) str += m.Substring(p + 1);
+                    m = str;
+                }
+
+                Console.Beep();
+                //SystemSounds.Beep.Play();
             }
         }
     }
