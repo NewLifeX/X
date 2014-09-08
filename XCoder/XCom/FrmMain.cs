@@ -205,6 +205,8 @@ namespace XCom
         {
             if (data == null || data.Length < 1) return null;
 
+            BytesOfReceived += data.Length;
+
             var cfg = SerialConfig.Current;
 
             var line = "";
@@ -291,6 +293,8 @@ namespace XCom
                 var count = (Int32)numMutilSend.Value;
                 for (int i = 0; i < count; i++)
                 {
+                    BytesOfSent += data.Length;
+
                     _Com.Send(data);
                     Thread.Sleep(100);
                 }
