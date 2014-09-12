@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Text;
-using System.Web;
 using NewLife.IO;
 
 namespace System.IO
@@ -23,10 +22,14 @@ namespace System.IO
         {
             if (String.IsNullOrEmpty(path)) return path;
 
+            // 处理路径分隔符，兼容Windows和Linux
+            var sep = Path.PathSeparator + "";
+            var sep2 = sep == "/" ? "\\" : "/";
+            path = path.Replace(sep2, sep);
             if (!Path.IsPathRooted(path))
             {
                 path = path.TrimStart('~');
-                path = path.Replace("/", "\\").TrimStart('\\');
+                path = path.TrimStart(sep);
 
                 path = Path.Combine(BaseDirectory, path);
             }

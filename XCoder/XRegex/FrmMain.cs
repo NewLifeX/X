@@ -399,14 +399,15 @@ namespace NewLife.XRegex
         void LoadMenuTree(ToolStripItemCollection items, String path)
         {
             // 遍历目录
-
-            String[] dirs = Directory.GetDirectories(path, "*", SearchOption.TopDirectoryOnly);
+            var dirs = Directory.GetDirectories(path, "*", SearchOption.TopDirectoryOnly);
             if (dirs != null && dirs.Length > 0)
             {
-                foreach (String item in dirs)
+                foreach (var item in dirs)
                 {
-                    String name = item;
-                    if (name.Contains("\\")) name = name.Substring(name.LastIndexOf("\\") + 1);
+                    var name = item;
+                    var sep = Path.PathSeparator + "";
+                    var p = name.LastIndexOf(sep);
+                    if (p >= 0) name = name.Substring(p + 1);
 
                     ToolStripMenuItem menu = new ToolStripMenuItem(name);
                     menu.Click += MenuItem_Click;

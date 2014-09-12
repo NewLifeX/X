@@ -822,17 +822,20 @@ namespace XCode.DataAccessLayer
         {
             if (String.IsNullOrEmpty(file)) return file;
 
-            if (file.StartsWith("~/") || file.StartsWith("~\\"))
+            var sep = Path.PathSeparator + "";
+            var sep2 = sep == "/" ? "\\" : "/";
+            var bpath = AppDomain.CurrentDomain.BaseDirectory.EnsureEnd(sep);
+            if (file.StartsWith("~" + sep) || file.StartsWith("~" + sep2))
             {
-                file = file.Replace("/", "\\").Replace("~\\", AppDomain.CurrentDomain.BaseDirectory.TrimEnd('\\') + "\\");
+                file = file.Replace(sep2, sep).Replace("~" + sep, bpath);
             }
-            else if (file.StartsWith("./") || file.StartsWith(".\\"))
+            else if (file.StartsWith("." + sep) || file.StartsWith("." + sep2))
             {
-                file = file.Replace("/", "\\").Replace(".\\", AppDomain.CurrentDomain.BaseDirectory.TrimEnd('\\') + "\\");
+                file = file.Replace(sep2, sep).Replace("." + sep, bpath);
             }
             else if (!Path.IsPathRooted(file))
             {
-                file = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, file.Replace("/", "\\"));
+                file = bpath.CombinePath(file.Replace(sep2, sep));
             }
             // 过滤掉不必要的符号
             file = new FileInfo(file).FullName;

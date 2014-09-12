@@ -329,11 +329,11 @@ namespace NewLife.CommonEntity
                 config = Config.GetConfig<String>(key);
 
                 // 如果不存在，则返回顶级设置路径后加上类别作为目录名
-                if (String.IsNullOrEmpty(config)) config = Path.Combine(GetConfigPath(null), category);
+                if (String.IsNullOrEmpty(config)) config = GetConfigPath(null).CombinePath(category);
             }
 
             // 加上当前目录
-            config = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, config);
+            config = config.GetFullPath();
             // 重新计算目录，去掉..等字符
             config = new DirectoryInfo(config).FullName;
             return config;
