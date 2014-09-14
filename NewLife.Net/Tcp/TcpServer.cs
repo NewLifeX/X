@@ -159,6 +159,9 @@ namespace NewLife.Net.Tcp
 
             // 来自这里的事件参数没有远程地址
             if (AutoReceiveAsync) (session as TcpClientX).Start(e);
+
+            // todo chenqi
+           // NetEventArgs.Push(e);
         }
 
         /// <summary>已重载。</summary>
