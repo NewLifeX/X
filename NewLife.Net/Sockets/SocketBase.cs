@@ -80,7 +80,7 @@ namespace NewLife.Net.Sockets
             {
                 if (_LocalUri != null) return _LocalUri;
 
-                var uri = new NetUri();
+                var uri = new NetUri(ProtocolType, new IPEndPoint(IPAddress.Any, 0));
                 uri.ProtocolType = ProtocolType;
                 var socket = Socket;
                 try
@@ -226,7 +226,7 @@ namespace NewLife.Net.Sockets
         {
             base.OnDispose(disposing);
 
-            //if (_arg != null) NetEventArgs.Push(_arg); //此处不能做此操作，会导致异常，并且连接无法正常断开，移动把网络清理干净后，再将参数还回池中
+          //  if (_arg != null) NetEventArgs.Push(_arg); //此处不能做此操作，会导致异常，并且连接无法正常断开，移动把网络清理干净后，再将参数还回池中
 
             var socket = Socket;
             if (socket != null)
@@ -243,7 +243,8 @@ namespace NewLife.Net.Sockets
                 if (dp != null) dp.Dispose();
                 _Statistics = null;
             }
-            if (_arg != null) NetEventArgs.Push(_arg);
+            if (_arg != null)
+                NetEventArgs.Push(_arg);
         }
         #endregion
 
