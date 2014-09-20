@@ -178,6 +178,7 @@ namespace NewLife.Net.Sockets
             Int32 time = NetHelper.Debug ? 60000 : 600000;
             new TimerX(s => Runtime.ReleaseMemory(), null, time, time, false);
 
+#if !NET4
             try
             {
                 // 写在另外一个方法里面，保证不会在当前方法编译的时候就报错
@@ -193,14 +194,17 @@ namespace NewLife.Net.Sockets
                 else
                     throw ex;
             }
+#endif
         }
 
+#if !NET4
         static void CheckNet21()
         {
             var e = new NetEventArgs();
             //(e as IDisposable).Dispose();
             e.AcceptSocket = null;
         }
+#endif
 
         /// <summary>实例化</summary>
         public SocketBase()
@@ -226,7 +230,7 @@ namespace NewLife.Net.Sockets
         {
             base.OnDispose(disposing);
 
-          //  if (_arg != null) NetEventArgs.Push(_arg); //此处不能做此操作，会导致异常，并且连接无法正常断开，移动把网络清理干净后，再将参数还回池中
+            //  if (_arg != null) NetEventArgs.Push(_arg); //此处不能做此操作，会导致异常，并且连接无法正常断开，移动把网络清理干净后，再将参数还回池中
 
             var socket = Socket;
             if (socket != null)
