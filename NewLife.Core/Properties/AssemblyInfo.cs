@@ -31,9 +31,11 @@ using System.Runtime.InteropServices;
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("4.6.*")]
-[assembly: AssemblyFileVersion("4.6.2014.0907")]
+[assembly: AssemblyFileVersion("4.6.2014.0928")]
 
 /*
+ * v4.6.2014.0928   IOHelper给Byte[]增加读写整数的扩展方法，特别支持大小端
+ * 
  * v4.6.2014.0907   文本控件输出文本时支持退格字符，可实现时钟等固定位置刷新文本的效果
  *                  支持回车\r到行首，支持\7的Beep嘟嘟声
  * 
