@@ -623,12 +623,15 @@ namespace System
         /// <summary>把字节数组编码为十六进制字符串</summary>
         /// <param name="data">字节数组</param>
         /// <param name="offset">偏移</param>
-        /// <param name="count">数量</param>
+        /// <param name="count">数量。超过实际数量时，使用实际数量</param>
         /// <returns></returns>
         public static String ToHex(this Byte[] data, Int32 offset = 0, Int32 count = 0)
         {
             if (data == null || data.Length < 1) return null;
-            if (count <= 0) count = data.Length - offset;
+            if (count <= 0)
+                count = data.Length - offset;
+            else if (offset + count > data.Length)
+                count = data.Length - offset;
 
             //return BitConverter.ToString(data).Replace("-", null);
             // 上面的方法要替换-，效率太低
