@@ -44,7 +44,7 @@ namespace NewLife.Serialization
         private Int64 _StartPosition = 0;
 
         private Stream _Stream;
-        /// <summary>数据流</summary>
+        /// <summary>数据流。默认实例化一个内存数据流</summary>
         public virtual Stream Stream { get { return _Stream ?? (_Stream = new MemoryStream()); } set { _Stream = value; _StartPosition = value == null ? 0 : value.Position; } }
 
         private Stack<Object> _Hosts = new Stack<Object>();

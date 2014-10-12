@@ -12,11 +12,11 @@ namespace NewLife.Serialization
     {
         #region 属性
         private Boolean _EncodeInt;
-        /// <summary>使用7位编码整数</summary>
+        /// <summary>使用7位编码整数。默认false不使用</summary>
         public Boolean EncodeInt { get { return _EncodeInt; } set { _EncodeInt = value; } }
 
         private Boolean _IsLittleEndian;
-        /// <summary>小端字节序</summary>
+        /// <summary>小端字节序。默认false，是大端而不是小端</summary>
         public Boolean IsLittleEndian { get { return _IsLittleEndian; } set { _IsLittleEndian = value; } }
 
         private Boolean _UseFieldSize;
