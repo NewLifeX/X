@@ -873,6 +873,9 @@ namespace NewLife
             }
         }
 
+        /// <summary>获取Xsd类型</summary>
+        /// <param name="schemaSet"></param>
+        /// <returns></returns>
         public static XmlQualifiedName GetXsdType(XmlSchemaSet schemaSet)
         {
             return new XmlQualifiedName("String", XmlSchema.Namespace);
