@@ -65,6 +65,7 @@
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.Management" />
     <Reference Include="System.Web" />
     <Reference Include="System.Windows.Forms" />
@@ -292,7 +293,14 @@
     </Compile>
     <Compile Include="Web\WebDownload.cs" />
     <Compile Include="Web\WebHelper.cs" />
+    <Compile Include="Net\SerialPortConfig.cs" />
     <Compile Include="Windows\ControlHelper.cs" />
+    <Compile Include="Windows\SerialPortList.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Windows\SerialPortList.designer.cs">
+      <DependentUpon>SerialPortList.cs</DependentUpon>
+    </Compile>
     <Compile Include="Xml\ExtendData.cs" />
     <Compile Include="Xml\SerializableDictionary.cs" />
     <Compile Include="Xml\XmlConfig.cs" />
@@ -304,6 +312,9 @@
     <Compile Include="Xml\XmlWriterX.cs" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="Windows\SerialPortList.resx">
+      <DependentUpon>SerialPortList.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="X组件.txt" />
     <EmbeddedResource Include="Web\Modules\SystemStart.htm" />
     <Content Include="说明.txt" />
