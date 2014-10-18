@@ -1,12 +1,8 @@
 ﻿using System;
-using System.IO;
-using System.IO.Ports;
 using System.Threading;
 using System.Windows.Forms;
 using NewLife;
 using NewLife.Log;
-using NewLife.Net;
-using NewLife.Threading;
 using XCoder;
 
 namespace XCom
@@ -29,6 +25,8 @@ namespace XCom
             gbReceive.Tag = gbReceive.Text;
             gbSend.Tag = gbSend.Text;
 
+            spList.ReceivedString += OnReceived;
+
             var menu = spList.Menu;
             txtReceive.ContextMenuStrip = menu;
 
@@ -47,7 +45,6 @@ namespace XCom
 
             // 需要考虑UI线程
             st.Disconnected += (s, e) => this.Invoke(Disconnect);
-            spList.Received += OnReceived;
 
             btnConnect.Text = "关闭";
         }
@@ -55,7 +52,6 @@ namespace XCom
         void Disconnect()
         {
             spList.Port.Disconnected -= (s, e) => this.Invoke(Disconnect);
-            spList.Received -= OnReceived;
             spList.Disconnect();
 
             btnConnect.Text = "打开";

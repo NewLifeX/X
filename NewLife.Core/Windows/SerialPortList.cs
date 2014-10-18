@@ -1,7 +1,7 @@
 ﻿using System;
-using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.IO.Ports;
 using System.Text;
@@ -13,6 +13,7 @@ using NewLife.Threading;
 namespace NewLife.Windows
 {
     /// <summary>串口列表控件</summary>
+    [DefaultEvent("ReceivedString")]
     public partial class SerialPortList : UserControl
     {
         #region 属性
@@ -347,9 +348,17 @@ namespace NewLife.Windows
             return data.Length;
         }
 
+        //public event SerialReceived Received;
+        /// <summary>收到数据时触发。第一个参数是数据，第二个参数返回是否继续往下传递数据</summary>
+        [Browsable(true)]
+        [EditorBrowsable(EditorBrowsableState.Always)]
+        public event EventHandler<EventArgs<Byte[], Boolean>> Received;
+
         /// <summary>收到数据时转为字符串后触发该事件。注意字符串编码和十六进制编码。</summary>
         /// <remarks>如果需要收到的数据，可直接在<seealso cref="Port"/>上挂载事件</remarks>
-        public event EventHandler<EventArgs<String>> Received;
+        [Browsable(true)]
+        [EditorBrowsable(EditorBrowsableState.Always)]
+        public event EventHandler<EventArgs<String>> ReceivedString;
 
         MemoryStream _stream;
         StreamReader _reader;
@@ -359,7 +368,16 @@ namespace NewLife.Windows
 
             BytesOfReceived += data.Length;
 
-            if (Received == null) return null;
+            // 处理数据委托
+            if (Received != null)
+            {
+                var e = new EventArgs<Byte[], Boolean>(data, true);
+                Received(this, e);
+                if (!e.Arg2) return null;
+            }
+
+            // 处理字符串委托
+            if (ReceivedString == null) return null;
 
             var cfg = SerialPortConfig.Current;
 
@@ -385,7 +403,7 @@ namespace NewLife.Windows
                 line = _reader.ReadToEnd();
             }
 
-            if (Received != null) Received(this, new EventArgs<string>(line));
+            if (ReceivedString != null) ReceivedString(this, new EventArgs<string>(line));
 
             return null;
         }
