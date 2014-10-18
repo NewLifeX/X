@@ -96,7 +96,6 @@
       <DependentUpon>NewModel.cs</DependentUpon>
     </Compile>
     <Compile Include="NewModelForm\WinFormHelper.cs" />
-    <Compile Include="XCom\Config.cs" />
     <Compile Include="XCom\FrmMain.cs">
       <SubType>Form</SubType>
     </Compile>

@@ -38,6 +38,16 @@
             this.mi数据位 = new System.Windows.Forms.ToolStripMenuItem();
             this.mi停止位 = new System.Windows.Forms.ToolStripMenuItem();
             this.mi校验 = new System.Windows.Forms.ToolStripMenuItem();
+            this.mi字符串编码 = new System.Windows.Forms.ToolStripMenuItem();
+            this.miHEX编码 = new System.Windows.Forms.ToolStripMenuItem();
+            this.miHex不换行 = new System.Windows.Forms.ToolStripMenuItem();
+            this.miHex自动换行 = new System.Windows.Forms.ToolStripMenuItem();
+            this.mi高级 = new System.Windows.Forms.ToolStripMenuItem();
+            this.miDTR = new System.Windows.Forms.ToolStripMenuItem();
+            this.miRTS = new System.Windows.Forms.ToolStripMenuItem();
+            this.miBreak = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripSeparator();
+            this.toolStripMenuItem2 = new System.Windows.Forms.ToolStripSeparator();
             this.contextMenuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -87,9 +97,14 @@
             this.contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.mi数据位,
             this.mi停止位,
-            this.mi校验});
+            this.mi校验,
+            this.mi高级,
+            this.toolStripMenuItem1,
+            this.mi字符串编码,
+            this.miHEX编码,
+            this.toolStripMenuItem2});
             this.contextMenuStrip1.Name = "contextMenuStrip1";
-            this.contextMenuStrip1.Size = new System.Drawing.Size(153, 92);
+            this.contextMenuStrip1.Size = new System.Drawing.Size(153, 170);
             // 
             // mi数据位
             // 
@@ -108,6 +123,75 @@
             this.mi校验.Name = "mi校验";
             this.mi校验.Size = new System.Drawing.Size(152, 22);
             this.mi校验.Text = "校验";
+            // 
+            // mi字符串编码
+            // 
+            this.mi字符串编码.Name = "mi字符串编码";
+            this.mi字符串编码.Size = new System.Drawing.Size(152, 22);
+            this.mi字符串编码.Text = "字符串编码";
+            this.mi字符串编码.Click += new System.EventHandler(this.mi字符串编码_Click);
+            // 
+            // miHEX编码
+            // 
+            this.miHEX编码.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.miHex不换行,
+            this.miHex自动换行});
+            this.miHEX编码.Name = "miHEX编码";
+            this.miHEX编码.Size = new System.Drawing.Size(152, 22);
+            this.miHEX编码.Text = "HEX编码";
+            this.miHEX编码.Click += new System.EventHandler(this.miHEX编码_Click);
+            // 
+            // miHex不换行
+            // 
+            this.miHex不换行.Name = "miHex不换行";
+            this.miHex不换行.Size = new System.Drawing.Size(152, 22);
+            this.miHex不换行.Text = "不换行";
+            this.miHex不换行.Click += new System.EventHandler(this.miHex自动换行_Click);
+            // 
+            // miHex自动换行
+            // 
+            this.miHex自动换行.Name = "miHex自动换行";
+            this.miHex自动换行.Size = new System.Drawing.Size(152, 22);
+            this.miHex自动换行.Text = "自动换行";
+            this.miHex自动换行.Click += new System.EventHandler(this.miHex自动换行_Click);
+            // 
+            // mi高级
+            // 
+            this.mi高级.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.miDTR,
+            this.miRTS,
+            this.miBreak});
+            this.mi高级.Name = "mi高级";
+            this.mi高级.Size = new System.Drawing.Size(152, 22);
+            this.mi高级.Text = "高级";
+            // 
+            // miDTR
+            // 
+            this.miDTR.Name = "miDTR";
+            this.miDTR.Size = new System.Drawing.Size(152, 22);
+            this.miDTR.Text = "DTR";
+            // 
+            // miRTS
+            // 
+            this.miRTS.Name = "miRTS";
+            this.miRTS.Size = new System.Drawing.Size(152, 22);
+            this.miRTS.Text = "RTS";
+            // 
+            // miBreak
+            // 
+            this.miBreak.Name = "miBreak";
+            this.miBreak.Size = new System.Drawing.Size(152, 22);
+            this.miBreak.Text = "Break";
+            // 
+            // toolStripMenuItem1
+            // 
+            this.toolStripMenuItem1.Name = "toolStripMenuItem1";
+            this.toolStripMenuItem1.Size = new System.Drawing.Size(149, 6);
+            // 
+            // toolStripMenuItem2
+            // 
+            this.toolStripMenuItem2.Name = "toolStripMenuItem2";
+            this.toolStripMenuItem2.Size = new System.Drawing.Size(149, 6);
             // 
             // SerialPortList
             // 
@@ -138,6 +222,16 @@
         private System.Windows.Forms.ToolStripMenuItem mi数据位;
         private System.Windows.Forms.ToolStripMenuItem mi停止位;
         private System.Windows.Forms.ToolStripMenuItem mi校验;
+        private System.Windows.Forms.ToolStripMenuItem mi字符串编码;
+        private System.Windows.Forms.ToolStripMenuItem miHEX编码;
+        private System.Windows.Forms.ToolStripMenuItem miHex不换行;
+        private System.Windows.Forms.ToolStripMenuItem miHex自动换行;
+        private System.Windows.Forms.ToolStripMenuItem mi高级;
+        private System.Windows.Forms.ToolStripMenuItem miDTR;
+        private System.Windows.Forms.ToolStripMenuItem miRTS;
+        private System.Windows.Forms.ToolStripMenuItem miBreak;
+        private System.Windows.Forms.ToolStripSeparator toolStripMenuItem1;
+        private System.Windows.Forms.ToolStripSeparator toolStripMenuItem2;
 
     }
 }

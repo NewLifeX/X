@@ -35,6 +35,13 @@ namespace XCom
 
             gbReceive.Tag = gbReceive.Text;
             gbSend.Tag = gbSend.Text;
+
+            var menu = spList.Menu;
+            txtReceive.ContextMenuStrip = menu;
+
+            // 添加清空
+            var ti = menu.Items.Add("清空");
+            ti.Click += mi清空_Click;
         }
 
         private void FrmMain_FormClosing(object sender, FormClosingEventArgs e)
@@ -47,39 +54,7 @@ namespace XCom
         #region 加载保存信息
         void LoadInfo()
         {
-            ShowPorts();
-            cbStopBit.DataSource = Enum.GetValues(typeof(StopBits));
-            cbParity.DataSource = Enum.GetValues(typeof(Parity));
-
-            cbStopBit.SelectedItem = StopBits.One;
-
-            cbBaundrate.DataSource = new Int32[] { 1200, 2400, 4800, 9600, 14400, 19200, 38400, 56000, 57600, 115200, 194000 };
-
-            cbDataBit.DataSource = new Int32[] { 5, 6, 7, 8 };
-
-            var cfg = SerialConfig.Current;
-            cbName.SelectedItem = cfg.PortName;
-            cbBaundrate.SelectedItem = cfg.BaudRate;
-            cbDataBit.SelectedItem = cfg.DataBits;
-            cbStopBit.SelectedItem = cfg.StopBits;
-            cbParity.SelectedItem = cfg.Parity;
-
-            //cbEncoding.DataSource = new String[] { Encoding.Default.WebName, Encoding.ASCII.WebName, Encoding.UTF8.WebName };
-            // 添加编码子菜单
-            var encs = new Encoding[] { Encoding.Default, Encoding.ASCII, Encoding.UTF8 };
-            foreach (var item in encs)
-            {
-                var ti = mi字符串编码.DropDownItems.Add(item.EncodingName) as ToolStripMenuItem;
-                ti.Name = item.WebName;
-                ti.Tag = item;
-                ti.Checked = item.WebName.EqualIgnoreCase(cfg.WebEncoding);
-                ti.Click += Encoding_Click;
-            }
-
-            miHEX编码.Checked = cfg.HexShow;
-            mi字符串编码.Checked = !cfg.HexShow;
-            miHex不换行.Checked = !cfg.HexNewLine;
-            miHex自动换行.Checked = cfg.HexNewLine;
+            var cfg = SerialPortConfig.Current;
 
             // 发送菜单HEX编码
             miHEX编码2.Checked = cfg.HexSend;
@@ -89,17 +64,9 @@ namespace XCom
         {
             try
             {
-                var cfg = SerialConfig.Current;
-                cfg.PortName = cbName.SelectedItem + "";
-                cfg.BaudRate = (Int32)cbBaundrate.SelectedItem;
-                cfg.DataBits = (Int32)cbDataBit.SelectedItem;
-                cfg.StopBits = (StopBits)cbStopBit.SelectedItem;
-                cfg.Parity = (Parity)cbParity.SelectedItem;
-                //cfg.Encoding = (Encoding)cbEncoding.SelectedItem;
-                //cfg.WebEncoding = cbEncoding.SelectedItem + "";
+                var cfg = SerialPortConfig.Current;
 
-                //cfg.HexSend = chkHEXSend.Checked;
-                //cfg.HexShow = chkHEXShow.Checked;
+                cfg.HexSend = miHEX编码2.Checked;
 
                 cfg.Save();
             }
@@ -108,46 +75,28 @@ namespace XCom
                 XTrace.WriteException(ex);
             }
         }
-
-        String _ports = null;
-        DateTime _nextport = DateTime.MinValue;
-        void ShowPorts()
-        {
-            if (_nextport > DateTime.Now) return;
-            _nextport = DateTime.Now.AddSeconds(1);
-
-            var ps = SerialTransport.GetPortNames();
-            var str = String.Join(",", ps);
-            // 如果端口有所改变，则重新绑定
-            if (_ports != str)
-            {
-                _ports = str;
-                var old = cbName.SelectedItem + "";
-                cbName.DataSource = ps;
-                if (!String.IsNullOrEmpty(old) && Array.IndexOf(ps, old) >= 0) cbName.SelectedItem = old;
-            }
-        }
         #endregion
 
         #region 收发数据
         void Connect()
         {
-            var name = cbName.SelectedItem + "";
-            if (String.IsNullOrEmpty(name))
-            {
-                MessageBox.Show("请选择串口！", this.Text);
-                cbName.Focus();
-                return;
-            }
-            var p = name.IndexOf("(");
-            if (p > 0) name = name.Substring(0, p);
+            //var name = cbName.SelectedItem + "";
+            //if (String.IsNullOrEmpty(name))
+            //{
+            //    MessageBox.Show("请选择串口！", this.Text);
+            //    cbName.Focus();
+            //    return;
+            //}
+            //var p = name.IndexOf("(");
+            //if (p > 0) name = name.Substring(0, p);
 
-            SaveInfo();
-            var cfg = SerialConfig.Current;
+            //SaveInfo();
+            var cfg = SerialPortConfig.Current;
 
-            // 如果上次没有关闭，则关闭
-            if (_Com != null) _Com.Dispose();
+            //// 如果上次没有关闭，则关闭
+            //if (_Com != null) _Com.Dispose();
 
+            var name = "";
             var sp = new SerialPort(name, cfg.BaudRate, cfg.Parity, cfg.DataBits, cfg.StopBits);
             var st = new SerialTransport { Serial = sp };
             st.FrameSize = 8;
@@ -156,16 +105,14 @@ namespace XCom
             // 需要考虑UI线程
             st.Disconnected += (s, e) => this.Invoke(Disconnect);
 
-            sp.DtrEnable = chkDTR.Checked;
-            sp.RtsEnable = chkRTS.Checked;
-            if (chkBreak.Checked) sp.BreakState = chkBreak.Checked;
+            //sp.DtrEnable = chkDTR.Checked;
+            //sp.RtsEnable = chkRTS.Checked;
+            //if (chkBreak.Checked) sp.BreakState = chkBreak.Checked;
 
-            //_Com.Encoding = cfg.Encoding;
             st.Received += _Com_Received;
             st.ReceiveAsync();
 
-            pnlSet.Enabled = false;
-            gbSet2.Enabled = false;
+            spList.Enabled = false;
             btnConnect.Text = "关闭";
 
             // 必须完成串口打开以后再赋值，否则定时器会轮询导致报错
@@ -183,11 +130,10 @@ namespace XCom
                 ThreadPoolX.QueueUserWorkItem(() => cm.Dispose());
             }
 
-            pnlSet.Enabled = true;
-            gbSet2.Enabled = true;
+            spList.Enabled = true;
             btnConnect.Text = "打开";
 
-            ShowPorts();
+            spList.ShowPorts();
         }
 
         private void btnConnect_Click(object sender, EventArgs e)
@@ -207,7 +153,7 @@ namespace XCom
 
             BytesOfReceived += data.Length;
 
-            var cfg = SerialConfig.Current;
+            var cfg = SerialPortConfig.Current;
 
             var line = "";
             if (cfg.HexShow)
@@ -266,7 +212,7 @@ namespace XCom
             }
             else
             {
-                ShowPorts();
+                spList.ShowPorts();
             }
         }
 
@@ -280,7 +226,7 @@ namespace XCom
                 return;
             }
 
-            var cfg = SerialConfig.Current;
+            var cfg = SerialPortConfig.Current;
             // 16进制发送
             Byte[] data = null;
             if (cfg.HexSend)
@@ -303,23 +249,6 @@ namespace XCom
         #endregion
 
         #region 接收右键菜单
-        private void Encoding_Click(object sender, EventArgs e)
-        {
-            // 不要选其它
-            var mi = sender as ToolStripMenuItem;
-            if (mi == null) return;
-            foreach (ToolStripMenuItem item in (mi.OwnerItem as ToolStripMenuItem).DropDownItems)
-            {
-                item.Checked = item == mi;
-            }
-
-            // 保存编码
-            var cfg = SerialConfig.Current;
-            cfg.WebEncoding = mi.Name;
-
-            //if (_Com != null) _Com.Encoding = cfg.Encoding;
-        }
-
         private void mi清空_Click(object sender, EventArgs e)
         {
             txtReceive.Clear();
@@ -329,31 +258,6 @@ namespace XCom
                 BytesOfReceived = 0;
                 if (sp.Serial != null) sp.Serial.DiscardInBuffer();
             }
-        }
-
-        private void miHEX编码_Click(object sender, EventArgs e)
-        {
-            var cfg = SerialConfig.Current;
-            cfg.HexShow = miHEX编码.Checked;
-            mi字符串编码.Checked = !miHEX编码.Checked;
-        }
-
-        private void 自动换行ToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            var ti = sender as ToolStripMenuItem;
-            var other = miHex不换行;
-            if (ti == miHex不换行) other = miHex自动换行;
-
-            var cfg = SerialConfig.Current;
-            cfg.HexNewLine = ti.Tag.ToBoolean();
-            ti.Checked = true;
-            other.Checked = false;
-        }
-
-        private void mi字符串编码_Click(object sender, EventArgs e)
-        {
-            var cfg = SerialConfig.Current;
-            cfg.HexShow = miHEX编码.Checked = !mi字符串编码.Checked;
         }
         #endregion
 
@@ -370,7 +274,7 @@ namespace XCom
 
         private void miHEX编码2_Click(object sender, EventArgs e)
         {
-            SerialConfig.Current.HexSend = miHEX编码2.Checked;
+            SerialPortConfig.Current.HexSend = miHEX编码2.Checked;
         }
         #endregion
     }

@@ -32,11 +32,11 @@ namespace NewLife.Windows
         #endregion
 
         #region 加载保存信息
-        void LoadInfo()
+        /// <summary>加载配置信息</summary>
+        public void LoadInfo()
         {
             ShowPorts();
 
-            var ti = FindMenu("数据位");
             BindMenu(mi数据位, new Int32[] { 5, 6, 7, 8 }, On数据位Click);
             BindMenu(mi停止位, Enum.GetValues(typeof(StopBits)), On停止位Click);
             BindMenu(mi校验, Enum.GetValues(typeof(Parity)), On校验Click);
@@ -53,9 +53,23 @@ namespace NewLife.Windows
             //cbEncoding.DataSource = new String[] { Encoding.Default.WebName, Encoding.ASCII.WebName, Encoding.UTF8.WebName };
             // 添加编码子菜单
             var encs = new Encoding[] { Encoding.Default, Encoding.ASCII, Encoding.UTF8 };
+            foreach (var item in encs)
+            {
+                var ti = mi字符串编码.DropDownItems.Add(item.EncodingName) as ToolStripMenuItem;
+                ti.Name = item.WebName;
+                ti.Tag = item;
+                ti.Checked = item.WebName.EqualIgnoreCase(cfg.WebEncoding);
+                ti.Click += On编码Click;
+            }
+
+            miHEX编码.Checked = cfg.HexShow;
+            mi字符串编码.Checked = !cfg.HexShow;
+            miHex不换行.Checked = !cfg.HexNewLine;
+            miHex自动换行.Checked = cfg.HexNewLine;
         }
 
-        void SaveInfo()
+        /// <summary>保存配置信息</summary>
+        public void SaveInfo()
         {
             try
             {
@@ -101,17 +115,62 @@ namespace NewLife.Windows
         #endregion
 
         #region 菜单设置
+        /// <summary>右键菜单</summary>
+        public ContextMenuStrip Menu { get { return contextMenuStrip1; } }
+
         void On数据位Click(object sender, EventArgs e)
         {
 
         }
+
         void On停止位Click(object sender, EventArgs e)
         {
 
         }
+
         void On校验Click(object sender, EventArgs e)
         {
 
+        }
+
+        void On编码Click(object sender, EventArgs e)
+        {
+            // 不要选其它
+            var mi = sender as ToolStripMenuItem;
+            if (mi == null) return;
+            foreach (ToolStripMenuItem item in (mi.OwnerItem as ToolStripMenuItem).DropDownItems)
+            {
+                item.Checked = item == mi;
+            }
+
+            // 保存编码
+            var cfg = SerialPortConfig.Current;
+            cfg.WebEncoding = mi.Name;
+        }
+
+        private void mi字符串编码_Click(object sender, EventArgs e)
+        {
+            var cfg = SerialPortConfig.Current;
+            cfg.HexShow = miHEX编码.Checked = !mi字符串编码.Checked;
+        }
+
+        private void miHEX编码_Click(object sender, EventArgs e)
+        {
+            var cfg = SerialPortConfig.Current;
+            cfg.HexShow = miHEX编码.Checked;
+            mi字符串编码.Checked = !miHEX编码.Checked;
+        }
+
+        private void miHex自动换行_Click(object sender, EventArgs e)
+        {
+            var ti = sender as ToolStripMenuItem;
+            var other = miHex不换行;
+            if (ti == miHex不换行) other = miHex自动换行;
+
+            var cfg = SerialPortConfig.Current;
+            cfg.HexNewLine = ti.Tag.ToBoolean();
+            ti.Checked = true;
+            other.Checked = false;
         }
         #endregion
 
