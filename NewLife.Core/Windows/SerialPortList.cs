@@ -1,22 +1,36 @@
 ﻿using System;
+using System.Linq;
 using System.Collections;
+using System.Collections.Generic;
+using System.IO;
 using System.IO.Ports;
 using System.Text;
 using System.Windows.Forms;
 using NewLife.Log;
 using NewLife.Net;
+using NewLife.Threading;
 
 namespace NewLife.Windows
 {
     /// <summary>串口列表控件</summary>
     public partial class SerialPortList : UserControl
     {
+        #region 属性
         private SerialTransport _Port;
         /// <summary>端口</summary>
         public SerialTransport Port { get { return _Port; } set { _Port = value; } }
 
         /// <summary>选择的端口</summary>
         public String SelectedPort { get { return cbName.SelectedItem + ""; } set { } }
+
+        private Int32 _BytesOfReceived;
+        /// <summary>收到的字节数</summary>
+        public Int32 BytesOfReceived { get { return _BytesOfReceived; } set { _BytesOfReceived = value; } }
+
+        private Int32 _BytesOfSent;
+        /// <summary>发送的字节数</summary>
+        public Int32 BytesOfSent { get { return _BytesOfSent; } set { _BytesOfSent = value; } }
+        #endregion
 
         #region 构造
         /// <summary></summary>
@@ -28,6 +42,19 @@ namespace NewLife.Windows
         private void SerialPortList_Load(object sender, EventArgs e)
         {
             LoadInfo();
+
+            var frm = Parent as Form;
+            if (frm != null)
+            {
+                frm.FormClosing += frm_FormClosing;
+            }
+        }
+
+        void frm_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            SaveInfo();
+
+            if (Port != null) Port.Close();
         }
         #endregion
 
@@ -37,9 +64,9 @@ namespace NewLife.Windows
         {
             ShowPorts();
 
-            BindMenu(mi数据位, new Int32[] { 5, 6, 7, 8 }, On数据位Click);
-            BindMenu(mi停止位, Enum.GetValues(typeof(StopBits)), On停止位Click);
-            BindMenu(mi校验, Enum.GetValues(typeof(Parity)), On校验Click);
+            BindMenu(mi数据位, On数据位Click, new Int32[] { 5, 6, 7, 8 });
+            BindMenu(mi停止位, On停止位Click, Enum.GetValues(typeof(StopBits)));
+            BindMenu(mi校验, On校验Click, Enum.GetValues(typeof(Parity)));
 
             cbBaundrate.DataSource = new Int32[] { 1200, 2400, 4800, 9600, 14400, 19200, 38400, 56000, 57600, 115200, 194000 };
 
@@ -52,9 +79,18 @@ namespace NewLife.Windows
 
             //cbEncoding.DataSource = new String[] { Encoding.Default.WebName, Encoding.ASCII.WebName, Encoding.UTF8.WebName };
             // 添加编码子菜单
-            var encs = new Encoding[] { Encoding.Default, Encoding.ASCII, Encoding.UTF8 };
-            foreach (var item in encs)
+            var encs = new Encoding[] { Encoding.Default, Encoding.ASCII, Encoding.UTF8, Encoding.Unicode, Encoding.BigEndianUnicode, Encoding.UTF32 };
+            var list = new List<Encoding>(encs);
+            // 暂时不用这么多编码
+            //list.AddRange(Encoding.GetEncodings().Select(e => e.GetEncoding()).Where(e => !encs.Contains(e)));
+            var k = 0;
+            foreach (var item in list)
             {
+                if (k++ == encs.Length)
+                {
+                    var sep = new ToolStripSeparator();
+                    mi字符串编码.DropDownItems.Add(sep);
+                }
                 var ti = mi字符串编码.DropDownItems.Add(item.EncodingName) as ToolStripMenuItem;
                 ti.Name = item.WebName;
                 ti.Tag = item;
@@ -62,10 +98,11 @@ namespace NewLife.Windows
                 ti.Click += On编码Click;
             }
 
-            miHEX编码.Checked = cfg.HexShow;
+            miHEX编码接收.Checked = cfg.HexShow;
             mi字符串编码.Checked = !cfg.HexShow;
             miHex不换行.Checked = !cfg.HexNewLine;
             miHex自动换行.Checked = cfg.HexNewLine;
+            miHEX编码发送.Checked = cfg.HexSend;
         }
 
         /// <summary>保存配置信息</summary>
@@ -151,14 +188,14 @@ namespace NewLife.Windows
         private void mi字符串编码_Click(object sender, EventArgs e)
         {
             var cfg = SerialPortConfig.Current;
-            cfg.HexShow = miHEX编码.Checked = !mi字符串编码.Checked;
+            cfg.HexShow = miHEX编码接收.Checked = !mi字符串编码.Checked;
         }
 
         private void miHEX编码_Click(object sender, EventArgs e)
         {
             var cfg = SerialPortConfig.Current;
-            cfg.HexShow = miHEX编码.Checked;
-            mi字符串编码.Checked = !miHEX编码.Checked;
+            cfg.HexShow = miHEX编码接收.Checked;
+            mi字符串编码.Checked = !miHEX编码接收.Checked;
         }
 
         private void miHex自动换行_Click(object sender, EventArgs e)
@@ -171,6 +208,12 @@ namespace NewLife.Windows
             cfg.HexNewLine = ti.Tag.ToBoolean();
             ti.Checked = true;
             other.Checked = false;
+        }
+
+        private void miHEX编码发送_Click(object sender, EventArgs e)
+        {
+            var cfg = SerialPortConfig.Current;
+            cfg.HexShow = miHEX编码发送.Checked;
         }
         #endregion
 
@@ -203,21 +246,48 @@ namespace NewLife.Windows
             Port.Parity = cfg.Parity;
             Port.DataBits = cfg.DataBits;
             Port.StopBits = cfg.StopBits;
-            Port.Open();
+
+            //Port.Open();
+
+            Port.Received += OnReceived;
+            Port.ReceiveAsync();
+
+            Port.EnsureCreate();
+            var sp = Port.Serial;
+            // 这几个需要打开端口以后才能设置
+            sp.DtrEnable = miDTR.Checked;
+            sp.RtsEnable = miRTS.Checked;
+            sp.BreakState = miBreak.Checked;
+
+            this.Enabled = false;
         }
 
         /// <summary>断开串口连接</summary>
         public void Disconnect()
         {
-            if (Port != null) Port.Close();
+            Port.Received -= OnReceived;
+            if (Port != null)
+            {
+                // 异步调用释放，避免死锁卡死界面UI
+                ThreadPoolX.QueueUserWorkItem(() => Port.Close());
+            }
 
-            //this.Enabled = true;
             ShowPorts();
+
+            this.Enabled = true;
         }
 
         private void timer1_Tick(object sender, EventArgs e)
         {
-            if (this.Enabled) ShowPorts();
+            if (this.Enabled)
+            {
+                ShowPorts();
+            }
+            else
+            {
+                // 检查串口是否已断开，自动关闭已断开的串口，避免内存暴涨
+                if (Port != null && Port.Serial != null && !Port.Serial.IsOpen) Disconnect();
+            }
         }
         #endregion
 
@@ -227,8 +297,9 @@ namespace NewLife.Windows
             return contextMenuStrip1.Items.Find(name, false)[0];
         }
 
-        void BindMenu(ToolStripMenuItem ti, IEnumerable em, EventHandler handler)
+        void BindMenu(ToolStripMenuItem ti, EventHandler handler, IEnumerable em)
         {
+            ti.DropDownItems.Clear();
             foreach (var item in em)
             {
                 var tsi = ti.DropDownItems.Add(item + "");
@@ -242,6 +313,107 @@ namespace NewLife.Windows
             foreach (ToolStripMenuItem item in ti.DropDownItems)
             {
                 item.Checked = item + "" == value + "";
+            }
+        }
+        #endregion
+
+        #region 收发数据
+        /// <summary>发送字节数组</summary>
+        /// <param name="data"></param>
+        public void Send(Byte[] data)
+        {
+            if (data == null || data.Length <= 0) return;
+
+            BytesOfSent += data.Length;
+
+            Port.Send(data);
+        }
+
+        /// <summary>发送字符串。根据配置进行十六进制编码</summary>
+        /// <param name="str"></param>
+        /// <returns>发送字节数</returns>
+        public Int32 Send(String str)
+        {
+            var cfg = SerialPortConfig.Current;
+            // 16进制发送
+            Byte[] data = null;
+            if (cfg.HexSend)
+                data = str.ToHex();
+            else
+                data = cfg.Encoding.GetBytes(str);
+
+            Send(data);
+
+            return data.Length;
+        }
+
+        /// <summary>收到数据时转为字符串后触发该事件。注意字符串编码和十六进制编码。</summary>
+        /// <remarks>如果需要收到的数据，可直接在<seealso cref="Port"/>上挂载事件</remarks>
+        public event EventHandler<EventArgs<String>> Received;
+
+        MemoryStream _stream;
+        StreamReader _reader;
+        Byte[] OnReceived(ITransport sender, Byte[] data)
+        {
+            if (data == null || data.Length < 1) return null;
+
+            BytesOfReceived += data.Length;
+
+            if (Received == null) return null;
+
+            var cfg = SerialPortConfig.Current;
+
+            var line = "";
+            if (cfg.HexShow)
+            {
+                line = data.ToHex();
+                if (cfg.HexNewLine) line += Environment.NewLine;
+            }
+            else
+            {
+                line = cfg.Encoding.GetString(data);
+                if (_stream == null)
+                    _stream = new MemoryStream();
+                else if (_stream.Length > 10 * 1024 && _stream.Position == _stream.Length) // 达到最大大小时，从头开始使用
+                    _stream = new MemoryStream();
+                _stream.Write(data);
+                _stream.Seek(-1 * data.Length, SeekOrigin.Current);
+
+                if (_reader == null ||
+                    _reader.BaseStream != _stream ||
+                    _reader.CurrentEncoding != cfg.Encoding) _reader = new StreamReader(_stream, cfg.Encoding);
+                line = _reader.ReadToEnd();
+            }
+
+            if (Received != null) Received(this, new EventArgs<string>(line));
+
+            return null;
+        }
+        #endregion
+
+        #region 收发统计
+        /// <summary>清空发送</summary>
+        public void ClearSend()
+        {
+            BytesOfSent = 0;
+
+            var sp = Port;
+            if (sp != null)
+            {
+                if (sp.Serial != null) sp.Serial.DiscardOutBuffer();
+            }
+        }
+
+        /// <summary>清空接收</summary>
+        public void ClearReceive()
+        {
+            BytesOfReceived = 0;
+            if (_stream != null) _stream.SetLength(0);
+
+            var sp = Port;
+            if (sp != null)
+            {
+                if (sp.Serial != null) sp.Serial.DiscardInBuffer();
             }
         }
         #endregion

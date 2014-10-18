@@ -36,7 +36,6 @@
             this.txtSend = new System.Windows.Forms.TextBox();
             this.menuSend = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.mi清空2 = new System.Windows.Forms.ToolStripMenuItem();
-            this.miHEX编码2 = new System.Windows.Forms.ToolStripMenuItem();
             this.label7 = new System.Windows.Forms.Label();
             this.btnSend = new System.Windows.Forms.Button();
             this.btnConnect = new System.Windows.Forms.Button();
@@ -123,25 +122,16 @@
             // menuSend
             // 
             this.menuSend.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.mi清空2,
-            this.miHEX编码2});
+            this.mi清空2});
             this.menuSend.Name = "menuSend";
-            this.menuSend.Size = new System.Drawing.Size(125, 48);
+            this.menuSend.Size = new System.Drawing.Size(101, 26);
             // 
             // mi清空2
             // 
             this.mi清空2.Name = "mi清空2";
-            this.mi清空2.Size = new System.Drawing.Size(124, 22);
+            this.mi清空2.Size = new System.Drawing.Size(152, 22);
             this.mi清空2.Text = "清空";
             this.mi清空2.Click += new System.EventHandler(this.mi清空2_Click);
-            // 
-            // miHEX编码2
-            // 
-            this.miHEX编码2.CheckOnClick = true;
-            this.miHEX编码2.Name = "miHEX编码2";
-            this.miHEX编码2.Size = new System.Drawing.Size(124, 22);
-            this.miHEX编码2.Text = "HEX编码";
-            this.miHEX编码2.Click += new System.EventHandler(this.miHEX编码2_Click);
             // 
             // label7
             // 
@@ -182,6 +172,8 @@
             // 
             // spList
             // 
+            this.spList.BytesOfReceived = 0;
+            this.spList.BytesOfSent = 0;
             this.spList.Location = new System.Drawing.Point(12, 8);
             this.spList.Name = "spList";
             this.spList.Port = null;
@@ -201,7 +193,6 @@
             this.Name = "FrmMain";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "串口调试工具";
-            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.FrmMain_FormClosing);
             this.Load += new System.EventHandler(this.FrmMain_Load);
             ((System.ComponentModel.ISupportInitialize)(this.numMutilSend)).EndInit();
             this.gbReceive.ResumeLayout(false);
@@ -226,7 +217,6 @@
         private System.Windows.Forms.Label label7;
         private System.Windows.Forms.ContextMenuStrip menuSend;
         private System.Windows.Forms.ToolStripMenuItem mi清空2;
-        private System.Windows.Forms.ToolStripMenuItem miHEX编码2;
         private NewLife.Windows.SerialPortList spList;
     }
 }

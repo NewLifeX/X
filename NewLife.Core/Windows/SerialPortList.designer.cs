@@ -39,7 +39,7 @@
             this.mi停止位 = new System.Windows.Forms.ToolStripMenuItem();
             this.mi校验 = new System.Windows.Forms.ToolStripMenuItem();
             this.mi字符串编码 = new System.Windows.Forms.ToolStripMenuItem();
-            this.miHEX编码 = new System.Windows.Forms.ToolStripMenuItem();
+            this.miHEX编码接收 = new System.Windows.Forms.ToolStripMenuItem();
             this.miHex不换行 = new System.Windows.Forms.ToolStripMenuItem();
             this.miHex自动换行 = new System.Windows.Forms.ToolStripMenuItem();
             this.mi高级 = new System.Windows.Forms.ToolStripMenuItem();
@@ -48,6 +48,7 @@
             this.miBreak = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripSeparator();
             this.toolStripMenuItem2 = new System.Windows.Forms.ToolStripSeparator();
+            this.miHEX编码发送 = new System.Windows.Forms.ToolStripMenuItem();
             this.contextMenuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -101,10 +102,11 @@
             this.mi高级,
             this.toolStripMenuItem1,
             this.mi字符串编码,
-            this.miHEX编码,
+            this.miHEX编码接收,
+            this.miHEX编码发送,
             this.toolStripMenuItem2});
             this.contextMenuStrip1.Name = "contextMenuStrip1";
-            this.contextMenuStrip1.Size = new System.Drawing.Size(153, 170);
+            this.contextMenuStrip1.Size = new System.Drawing.Size(153, 192);
             // 
             // mi数据位
             // 
@@ -131,15 +133,15 @@
             this.mi字符串编码.Text = "字符串编码";
             this.mi字符串编码.Click += new System.EventHandler(this.mi字符串编码_Click);
             // 
-            // miHEX编码
+            // miHEX编码接收
             // 
-            this.miHEX编码.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.miHEX编码接收.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.miHex不换行,
             this.miHex自动换行});
-            this.miHEX编码.Name = "miHEX编码";
-            this.miHEX编码.Size = new System.Drawing.Size(152, 22);
-            this.miHEX编码.Text = "HEX编码";
-            this.miHEX编码.Click += new System.EventHandler(this.miHEX编码_Click);
+            this.miHEX编码接收.Name = "miHEX编码接收";
+            this.miHEX编码接收.Size = new System.Drawing.Size(152, 22);
+            this.miHEX编码接收.Text = "HEX编码接收";
+            this.miHEX编码接收.Click += new System.EventHandler(this.miHEX编码_Click);
             // 
             // miHex不换行
             // 
@@ -193,6 +195,13 @@
             this.toolStripMenuItem2.Name = "toolStripMenuItem2";
             this.toolStripMenuItem2.Size = new System.Drawing.Size(149, 6);
             // 
+            // miHEX编码发送
+            // 
+            this.miHEX编码发送.Name = "miHEX编码发送";
+            this.miHEX编码发送.Size = new System.Drawing.Size(152, 22);
+            this.miHEX编码发送.Text = "HEX编码发送";
+            this.miHEX编码发送.Click += new System.EventHandler(this.miHEX编码发送_Click);
+            // 
             // SerialPortList
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
@@ -223,7 +232,7 @@
         private System.Windows.Forms.ToolStripMenuItem mi停止位;
         private System.Windows.Forms.ToolStripMenuItem mi校验;
         private System.Windows.Forms.ToolStripMenuItem mi字符串编码;
-        private System.Windows.Forms.ToolStripMenuItem miHEX编码;
+        private System.Windows.Forms.ToolStripMenuItem miHEX编码接收;
         private System.Windows.Forms.ToolStripMenuItem miHex不换行;
         private System.Windows.Forms.ToolStripMenuItem miHex自动换行;
         private System.Windows.Forms.ToolStripMenuItem mi高级;
@@ -232,6 +241,7 @@
         private System.Windows.Forms.ToolStripMenuItem miBreak;
         private System.Windows.Forms.ToolStripSeparator toolStripMenuItem1;
         private System.Windows.Forms.ToolStripSeparator toolStripMenuItem2;
+        private System.Windows.Forms.ToolStripMenuItem miHEX编码发送;
 
     }
 }
