@@ -40,9 +40,13 @@ namespace NewLife.Windows
             InitializeComponent();
         }
 
+        TimerX _timer;
         private void SerialPortList_Load(object sender, EventArgs e)
         {
             LoadInfo();
+
+            // 挂载定时器
+            _timer = new TimerX(OnCheck, null, 300, 300);
 
             var frm = Parent as Form;
             if (frm != null)
@@ -54,6 +58,9 @@ namespace NewLife.Windows
         void frm_FormClosing(object sender, FormClosingEventArgs e)
         {
             SaveInfo();
+
+            _timer.Dispose();
+            _timer = null;
 
             if (Port != null) Port.Close();
         }
@@ -145,9 +152,13 @@ namespace NewLife.Windows
             if (_ports != str)
             {
                 _ports = str;
-                var old = cbName.SelectedItem + "";
-                cbName.DataSource = ps;
-                if (!String.IsNullOrEmpty(old) && Array.IndexOf(ps, old) >= 0) cbName.SelectedItem = old;
+
+                this.Invoke(() =>
+                {
+                    var old = cbName.SelectedItem + "";
+                    cbName.DataSource = ps;
+                    if (!String.IsNullOrEmpty(old) && Array.IndexOf(ps, old) >= 0) cbName.SelectedItem = old;
+                });
             }
         }
         #endregion
@@ -219,8 +230,6 @@ namespace NewLife.Windows
         #endregion
 
         #region 窗体
-        //public new Boolean Focus() { return cbName.Focus(); }
-
         /// <summary>连接串口</summary>
         public void Connect()
         {
@@ -278,7 +287,7 @@ namespace NewLife.Windows
             this.Enabled = true;
         }
 
-        private void timer1_Tick(object sender, EventArgs e)
+        private void OnCheck(Object state)
         {
             if (this.Enabled)
             {
