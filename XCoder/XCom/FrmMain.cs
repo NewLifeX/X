@@ -31,7 +31,10 @@ namespace XCom
             txtReceive.ContextMenuStrip = menu;
 
             // 添加清空
-            var ti = menu.Items.Add("清空");
+            menu.Items.Insert(0, new ToolStripSeparator());
+            //var ti = menu.Items.Add("清空");
+            var ti = new ToolStripMenuItem("清空");
+            menu.Items.Insert(0, ti);
             ti.Click += mi清空_Click;
         }
         #endregion
