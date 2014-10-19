@@ -822,7 +822,7 @@ namespace XCode.DataAccessLayer
         {
             if (String.IsNullOrEmpty(file)) return file;
 
-            var sep = Path.PathSeparator + "";
+            var sep = Path.DirectorySeparatorChar + "";
             var sep2 = sep == "/" ? "\\" : "/";
             var bpath = AppDomain.CurrentDomain.BaseDirectory.EnsureEnd(sep);
             if (file.StartsWith("~" + sep) || file.StartsWith("~" + sep2))

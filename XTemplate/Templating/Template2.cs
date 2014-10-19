@@ -38,7 +38,9 @@ namespace XTemplate.Templating
             {
                 name = name.Replace(item, '_');
             }
-            name = name.Replace(Path.VolumeSeparatorChar, '_');
+            name = name.Replace(Path.VolumeSeparatorChar, '_'); 
+            name = name.Replace(Path.DirectorySeparatorChar, '_');
+            name = name.Replace(Path.AltDirectorySeparatorChar, '_');
             name = name.Replace(Path.PathSeparator, '_');
             return name;
         }

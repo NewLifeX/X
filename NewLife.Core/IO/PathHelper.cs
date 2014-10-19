@@ -23,7 +23,7 @@ namespace System.IO
             if (String.IsNullOrEmpty(path)) return path;
 
             // 处理路径分隔符，兼容Windows和Linux
-            var sep = Path.PathSeparator + "";
+            var sep = Path.DirectorySeparatorChar + "";
             var sep2 = sep == "/" ? "\\" : "/";
             path = path.Replace(sep2, sep);
             if (!Path.IsPathRooted(path))
@@ -54,7 +54,7 @@ namespace System.IO
 
             var dir = path;
             // 斜杠结尾的路径一定是目录，无视第二参数
-            if (dir[dir.Length - 1] == Path.PathSeparator)
+            if (dir[dir.Length - 1] == Path.DirectorySeparatorChar)
                 dir = Path.GetDirectoryName(path);
             else if (isfile)
                 dir = Path.GetDirectoryName(path);

@@ -404,12 +404,12 @@ namespace NewLife.XRegex
             {
                 foreach (var item in dirs)
                 {
-                    var name = item;
-                    var sep = Path.PathSeparator + "";
-                    var p = name.LastIndexOf(sep);
-                    if (p >= 0) name = name.Substring(p + 1);
+                    var name = Path.GetFileName(item);
+                    //var sep = Path.DirectorySeparatorChar + "";
+                    //var p = name.LastIndexOf(sep);
+                    //if (p >= 0) name = name.Substring(p + 1);
 
-                    ToolStripMenuItem menu = new ToolStripMenuItem(name);
+                    var menu = new ToolStripMenuItem(name);
                     menu.Click += MenuItem_Click;
 
                     LoadMenuTree(menu.DropDownItems, Path.Combine(path, item));
