@@ -519,6 +519,11 @@ namespace XCode
 
             Sort((item1, item2) =>
             {
+                // 特殊情况下出现列表元素为空，然后下面比较的时候出错，这里特殊处理一下
+                if (item1 == null && item2 == null) return 0;
+                if (item1 == null && item2 != null) return -n;   // 把空节点排到前面
+                if (item1 != null && item2 == null) return n;
+
                 // Object.Equals可以有效的处理两个元素都为空的问题
                 if (Object.Equals(item1[name], item2[name])) return 0;
                 // 如果为空，或者不是比较类型，则返回-1，说明小于
