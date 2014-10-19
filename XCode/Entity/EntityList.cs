@@ -23,7 +23,7 @@ namespace XCode
     /// 后来在.Net 2.0上实现了Linq，该类的对象查询方法将会逐步淡出，建议优先考虑Linq。
     /// </remarks>
     [Serializable]
-    public partial class EntityList<T> : List<T>, IEntityList, IList, IList<IEntity>, IListSource, IEnumerable where T : IEntity
+    public partial class EntityList<T> : List<T>, IEntityList, IList, IList<IEntity>, IListSource, IEnumerable, ICloneable where T : IEntity
     {
         #region 构造函数
         /// <summary>构造一个实体对象集合</summary>
@@ -132,7 +132,7 @@ namespace XCode
         {
             if (Count <= 0) return this;
 
-            if (startRowIndex <= 0 && (maximumRows <= 0 || maximumRows >= Count))  return this; 
+            if (startRowIndex <= 0 && (maximumRows <= 0 || maximumRows >= Count)) return this;
 
             // 先转数组再构造分页，避免多线程版本冲突
             //return new EntityList<T>(ToArray(), startRowIndex, maximumRows);
@@ -1008,6 +1008,15 @@ namespace XCode
 
         #region IEnumerable<IEntity> 成员
         IEnumerator<IEntity> IEnumerable<IEntity>.GetEnumerator() { for (int i = 0; i < Count; i++) yield return this[i]; }
+        #endregion
+
+        #region 克隆接口
+        /// <summary>把当前列表的元素复制到新列表里面去</summary>
+        /// <remarks>其实直接new一个新的列表就好了，但是做克隆方法更方便链式写法</remarks>
+        /// <returns></returns>
+        public EntityList<T> Clone() { return new EntityList<T>(this); }
+
+        object ICloneable.Clone() { return Clone(); }
         #endregion
     }
 }
