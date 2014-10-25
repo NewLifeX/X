@@ -74,6 +74,8 @@ namespace NewLife.Serialization
 
             // 不支持基本类型
             if (Type.GetTypeCode(type) != TypeCode.Object) return false;
+            // 不支持基类不是Object的特殊类型
+            if (type.BaseType != typeof(Object)) return false;
 
             if (value == null) value = type.CreateInstance();
 
@@ -124,7 +126,8 @@ namespace NewLife.Serialization
         {
             var list = new List<FieldInfo>();
 
-            if (type == typeof(Object)) return list;
+            // Void*的基类就是null
+            if (type == typeof(Object) || type.BaseType == null) return list;
 
             if (baseFirst) list.AddRange(GetFields(type.BaseType));
 

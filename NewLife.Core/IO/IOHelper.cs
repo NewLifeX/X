@@ -888,6 +888,12 @@ namespace System
         /// <returns></returns>
         public static String ToBase64(this Byte[] data, Int32 offset = 0, Int32 count = 0, Base64FormattingOptions options = Base64FormattingOptions.None)
         {
+            if (data == null || data.Length < 1) return null;
+            if (count <= 0)
+                count = data.Length - offset;
+            else if (offset + count > data.Length)
+                count = data.Length - offset;
+
             return Convert.ToBase64String(data, offset, count, options);
         }
 

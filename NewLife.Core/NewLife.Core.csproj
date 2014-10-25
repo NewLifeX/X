@@ -191,6 +191,7 @@
     <Compile Include="Serialization\Binary\FieldSizeAttribute.cs" />
     <Compile Include="Serialization\Binary\BinaryGeneral.cs" />
     <Compile Include="Serialization\Binary\IBinary.cs" />
+    <Compile Include="Serialization\Binary\BinaryUnknown.cs" />
     <Compile Include="Serialization\Interface\IFormatterX.cs" />
     <Compile Include="Serialization\Interface\IReader2.cs" />
     <Compile Include="Serialization\Interface\IWriter2.cs" />

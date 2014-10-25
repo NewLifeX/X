@@ -371,6 +371,7 @@ namespace NewLife.Serialization
             if (value == null || value.Length == 0)
             {
                 Write((Byte)0);
+                return;
             }
 
             // 先用写入字节长度

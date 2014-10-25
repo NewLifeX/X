@@ -33,7 +33,7 @@ namespace NewLife.Serialization
         /// <param name="buffer">包含要写入的数据的字节数组。</param>
         /// <param name="offset">buffer 中开始写入的起始点。</param>
         /// <param name="count">要写入的字节数。</param>
-        void Write(Byte[] buffer, int offset, int count);
+        void Write(Byte[] buffer, Int32 offset = 0, Int32 count = -1);
 
         /// <summary>写入大小</summary>
         /// <param name="size">要写入的大小值</param>
@@ -49,7 +49,7 @@ namespace NewLife.Serialization
         /// <summary>从当前流中将 count 个字节读入字节数组</summary>
         /// <param name="count">要读取的字节数。</param>
         /// <returns></returns>
-        Byte[] ReadBytes(int count);
+        Byte[] ReadBytes(Int32 count);
 
         /// <summary>读取大小</summary>
         /// <returns></returns>

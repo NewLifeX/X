@@ -64,5 +64,10 @@ namespace NewLife.Net
         /// <summary>最后更新时间</summary>
         [Description("最后更新时间")]
         public DateTime LastUpdate { get { return _LastUpdate; } set { _LastUpdate = value; } }
+
+        private String _Extend;
+        /// <summary>扩展数据</summary>
+        [Description("扩展数据")]
+        public String Extend { get { return _Extend; } set { _Extend = value; } }
     }
 }

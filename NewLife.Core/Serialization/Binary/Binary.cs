@@ -109,7 +109,7 @@ namespace NewLife.Serialization
         /// <param name="buffer">包含要写入的数据的字节数组。</param>
         /// <param name="offset">buffer 中开始写入的起始点。</param>
         /// <param name="count">要写入的字节数。</param>
-        public virtual void Write(byte[] buffer, int offset, int count)
+        public virtual void Write(Byte[] buffer, Int32 offset = 0, Int32 count = -1)
         {
             if (count < 0) count = buffer.Length - offset;
             Stream.Write(buffer, offset, count);
@@ -126,7 +126,12 @@ namespace NewLife.Serialization
                 if (fieldsize >= 0) return fieldsize;
             }
 
-            WriteEncoded(size);
+            if (EncodeInt)
+                WriteEncoded(size);
+            else
+            {
+                Write(size);
+            }
             return -1;
         }
 
@@ -194,7 +199,7 @@ namespace NewLife.Serialization
         /// <summary>从当前流中将 count 个字节读入字节数组</summary>
         /// <param name="count">要读取的字节数。</param>
         /// <returns></returns>
-        public virtual Byte[] ReadBytes(int count)
+        public virtual Byte[] ReadBytes(Int32 count)
         {
             var buffer = new Byte[count];
             Stream.Read(buffer, 0, count);
@@ -215,7 +220,8 @@ namespace NewLife.Serialization
             if (EncodeInt)
                 return ReadEncodedInt32();
             else
-                return ReadInt32();
+                //return ReadInt32();
+                return (Int32)Read(typeof(Int32));
             //var sizeFormat = TypeCode.Int32;
             //switch (sizeFormat)
             //{
@@ -267,7 +273,7 @@ namespace NewLife.Serialization
 
         /// <summary>从当前流中读取 4 字节有符号整数，并使流的当前位置提升 4 个字节。</summary>
         /// <returns></returns>
-        int ReadInt32() { return BitConverter.ToInt32(ReadIntBytes(4), 0); }
+        Int32 ReadInt32() { return BitConverter.ToInt32(ReadIntBytes(4), 0); }
         #endregion
 
         #region 7位压缩编码整数
