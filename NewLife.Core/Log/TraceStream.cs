@@ -219,6 +219,8 @@ namespace NewLife.Log
             if (stream == null) stream = new MemoryStream();
             BaseStream = stream;
             UseConsole = true;
+
+            if (!UseConsole) OnAction += XTrace_OnAction;
         }
         #endregion
 
@@ -366,6 +368,80 @@ namespace NewLife.Log
             Array.Reverse(bts);
 
             return bts;
+        }
+        #endregion
+
+        #region 日志
+        void XTrace_OnAction(object sender, EventArgs<string, object[]> e)
+        {
+            var sb = new StringBuilder();
+
+            // 红色动作
+            sb.AppendFormat(e.Arg1);
+
+            // 白色十六进制
+            sb.AppendFormat("\t");
+
+            Byte[] buffer = null;
+            Int32 offset = 0;
+            Int32 count = 0;
+            if (e.Arg2.Length > 1)
+            {
+                if (e.Arg2[0] is Byte[]) buffer = (Byte[])e.Arg2[0];
+                offset = (Int32)e.Arg2[1];
+                count = (Int32)e.Arg2[e.Arg2.Length - 1];
+            }
+
+            if (e.Arg2.Length == 1)
+            {
+                Int32 n = Convert.ToInt32(e.Arg2[0]);
+                // 大于10才显示十进制
+                if (n >= 10)
+                    sb.AppendFormat("{0:X2} ({0})", n);
+                else
+                    sb.AppendFormat("{0:X2}", n);
+            }
+            else if (buffer != null)
+            {
+                if (count == 1)
+                {
+                    Int32 n = Convert.ToInt32(buffer[0]);
+                    // 大于10才显示十进制
+                    if (n >= 10)
+                        sb.AppendFormat("{0:X2} ({0})", n);
+                    else
+                        sb.AppendFormat("{0:X2}", n);
+                }
+                else
+                    sb.AppendFormat(BitConverter.ToString(buffer, offset, count <= 50 ? count : 50) + (count <= 50 ? "" : "...（共" + count + "）"));
+            }
+
+            // 黄色内容
+            sb.AppendFormat("\t");
+            if (e.Arg2.Length == 1)
+            {
+                if (e.Arg2[0] != null)
+                {
+                    var tc = Type.GetTypeCode(e.Arg2[0].GetType());
+                    if (tc != TypeCode.Object) sb.AppendFormat(e.Arg2[0] + "");
+                }
+            }
+            else if (buffer != null)
+            {
+                if (count == 1)
+                {
+                    // 只显示可见字符
+                    if (buffer[0] >= '0') sb.AppendFormat("{0} ({1})", Convert.ToChar(buffer[0]), Convert.ToInt32(buffer[0]));
+                }
+                else if (count == 2)
+                    sb.AppendFormat(BitConverter.ToInt16(Format(buffer), offset) + "");
+                else if (count == 4)
+                    sb.AppendFormat(BitConverter.ToInt32(Format(buffer), offset) + "");
+                else if (count < 50)
+                    sb.AppendFormat(Encoding.GetString(buffer, offset, count));
+            }
+
+            XTrace.WriteLine(sb.ToString());
         }
         #endregion
     }
