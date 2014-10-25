@@ -36,6 +36,27 @@ namespace XCom
             var ti = new ToolStripMenuItem("清空");
             menu.Items.Insert(0, ti);
             ti.Click += mi清空_Click;
+
+            ti = new ToolStripMenuItem("字体");
+            menu.Items.Add(ti);
+            ti.Click += mi字体_Click;
+
+            ti = new ToolStripMenuItem("前景色");
+            menu.Items.Add(ti);
+            ti.Click += mi前景色_Click;
+
+            ti = new ToolStripMenuItem("背景色");
+            menu.Items.Add(ti);
+            ti.Click += mi背景色_Click;
+
+            // 加载保存的颜色
+            var ui = UIConfig.Load();
+            if (ui != null)
+            {
+                txtReceive.Font = ui.Font;
+                txtReceive.BackColor = ui.BackColor;
+                txtReceive.ForeColor = ui.ForeColor;
+            }
         }
         #endregion
 
@@ -137,6 +158,42 @@ namespace XCom
         {
             txtSend.Clear();
             spList.ClearSend();
+        }
+
+        void mi字体_Click(object sender, EventArgs e)
+        {
+            fontDialog1.Font = txtReceive.Font;
+            if (fontDialog1.ShowDialog() != DialogResult.OK) return;
+
+            txtReceive.Font = fontDialog1.Font;
+
+            var ui = UIConfig.Load() ?? new UIConfig();
+            ui.Font = txtReceive.Font;
+            ui.Save();
+        }
+
+        void mi前景色_Click(object sender, EventArgs e)
+        {
+            colorDialog1.Color = txtReceive.ForeColor;
+            if (colorDialog1.ShowDialog() != DialogResult.OK) return;
+
+            txtReceive.ForeColor = colorDialog1.Color;
+
+            var ui = UIConfig.Load() ?? new UIConfig();
+            ui.ForeColor = txtReceive.ForeColor;
+            ui.Save();
+        }
+
+        void mi背景色_Click(object sender, EventArgs e)
+        {
+            colorDialog1.Color = txtReceive.BackColor;
+            if (colorDialog1.ShowDialog() != DialogResult.OK) return;
+
+            txtReceive.BackColor = colorDialog1.Color;
+
+            var ui = UIConfig.Load() ?? new UIConfig();
+            ui.BackColor = txtReceive.BackColor;
+            ui.Save();
         }
         #endregion
     }

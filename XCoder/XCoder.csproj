@@ -102,6 +102,7 @@
     <Compile Include="XCom\FrmMain.designer.cs">
       <DependentUpon>FrmMain.cs</DependentUpon>
     </Compile>
+    <Compile Include="XCom\UIConfig.cs" />
     <Compile Include="XICO\FrmMain.cs">
       <SubType>Form</SubType>
     </Compile>

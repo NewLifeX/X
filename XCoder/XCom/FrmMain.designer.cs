@@ -31,16 +31,18 @@
             this.components = new System.ComponentModel.Container();
             this.numMutilSend = new System.Windows.Forms.NumericUpDown();
             this.gbReceive = new System.Windows.Forms.GroupBox();
-            this.txtReceive = new System.Windows.Forms.TextBox();
+            this.txtReceive = new System.Windows.Forms.RichTextBox();
             this.gbSend = new System.Windows.Forms.GroupBox();
-            this.txtSend = new System.Windows.Forms.TextBox();
-            this.menuSend = new System.Windows.Forms.ContextMenuStrip(this.components);
-            this.mi清空2 = new System.Windows.Forms.ToolStripMenuItem();
+            this.txtSend = new System.Windows.Forms.RichTextBox();
             this.label7 = new System.Windows.Forms.Label();
             this.btnSend = new System.Windows.Forms.Button();
+            this.menuSend = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.mi清空2 = new System.Windows.Forms.ToolStripMenuItem();
             this.btnConnect = new System.Windows.Forms.Button();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
+            this.fontDialog1 = new System.Windows.Forms.FontDialog();
             this.spList = new NewLife.Windows.SerialPortList();
+            this.colorDialog1 = new System.Windows.Forms.ColorDialog();
             ((System.ComponentModel.ISupportInitialize)(this.numMutilSend)).BeginInit();
             this.gbReceive.SuspendLayout();
             this.gbSend.SuspendLayout();
@@ -81,15 +83,15 @@
             // 
             // txtReceive
             // 
-            this.txtReceive.BackColor = System.Drawing.Color.BurlyWood;
+            this.txtReceive.BackColor = System.Drawing.Color.Tan;
             this.txtReceive.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.txtReceive.Font = new System.Drawing.Font("宋体", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.txtReceive.HideSelection = false;
             this.txtReceive.Location = new System.Drawing.Point(3, 17);
-            this.txtReceive.Multiline = true;
             this.txtReceive.Name = "txtReceive";
-            this.txtReceive.ReadOnly = true;
-            this.txtReceive.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
             this.txtReceive.Size = new System.Drawing.Size(544, 221);
-            this.txtReceive.TabIndex = 0;
+            this.txtReceive.TabIndex = 1;
+            this.txtReceive.Text = "";
             // 
             // gbSend
             // 
@@ -112,26 +114,13 @@
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.txtSend.BackColor = System.Drawing.Color.BlanchedAlmond;
-            this.txtSend.ContextMenuStrip = this.menuSend;
-            this.txtSend.Location = new System.Drawing.Point(0, 20);
-            this.txtSend.Multiline = true;
+            this.txtSend.Font = new System.Drawing.Font("宋体", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.txtSend.HideSelection = false;
+            this.txtSend.Location = new System.Drawing.Point(0, 19);
             this.txtSend.Name = "txtSend";
             this.txtSend.Size = new System.Drawing.Size(451, 59);
-            this.txtSend.TabIndex = 0;
-            // 
-            // menuSend
-            // 
-            this.menuSend.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.mi清空2});
-            this.menuSend.Name = "menuSend";
-            this.menuSend.Size = new System.Drawing.Size(101, 26);
-            // 
-            // mi清空2
-            // 
-            this.mi清空2.Name = "mi清空2";
-            this.mi清空2.Size = new System.Drawing.Size(100, 22);
-            this.mi清空2.Text = "清空";
-            this.mi清空2.Click += new System.EventHandler(this.mi清空2_Click);
+            this.txtSend.TabIndex = 2;
+            this.txtSend.Text = "";
             // 
             // label7
             // 
@@ -153,6 +142,20 @@
             this.btnSend.Text = "发送";
             this.btnSend.UseVisualStyleBackColor = true;
             this.btnSend.Click += new System.EventHandler(this.btnSend_Click);
+            // 
+            // menuSend
+            // 
+            this.menuSend.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.mi清空2});
+            this.menuSend.Name = "menuSend";
+            this.menuSend.Size = new System.Drawing.Size(101, 26);
+            // 
+            // mi清空2
+            // 
+            this.mi清空2.Name = "mi清空2";
+            this.mi清空2.Size = new System.Drawing.Size(100, 22);
+            this.mi清空2.Text = "清空";
+            this.mi清空2.Click += new System.EventHandler(this.mi清空2_Click);
             // 
             // btnConnect
             // 
@@ -196,7 +199,6 @@
             this.Load += new System.EventHandler(this.FrmMain_Load);
             ((System.ComponentModel.ISupportInitialize)(this.numMutilSend)).EndInit();
             this.gbReceive.ResumeLayout(false);
-            this.gbReceive.PerformLayout();
             this.gbSend.ResumeLayout(false);
             this.gbSend.PerformLayout();
             this.menuSend.ResumeLayout(false);
@@ -207,9 +209,7 @@
         #endregion
 
         private System.Windows.Forms.GroupBox gbReceive;
-        private System.Windows.Forms.TextBox txtReceive;
         private System.Windows.Forms.GroupBox gbSend;
-        private System.Windows.Forms.TextBox txtSend;
         private System.Windows.Forms.NumericUpDown numMutilSend;
         private System.Windows.Forms.Button btnSend;
         private System.Windows.Forms.Button btnConnect;
@@ -218,6 +218,10 @@
         private System.Windows.Forms.ContextMenuStrip menuSend;
         private System.Windows.Forms.ToolStripMenuItem mi清空2;
         private NewLife.Windows.SerialPortList spList;
+        private System.Windows.Forms.RichTextBox txtReceive;
+        private System.Windows.Forms.RichTextBox txtSend;
+        private System.Windows.Forms.FontDialog fontDialog1;
+        private System.Windows.Forms.ColorDialog colorDialog1;
     }
 }
 
