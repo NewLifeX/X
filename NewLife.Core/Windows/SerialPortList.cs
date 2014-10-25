@@ -200,31 +200,21 @@ namespace NewLife.Windows
         private void mi字符串编码_Click(object sender, EventArgs e)
         {
             var cfg = SerialPortConfig.Current;
-            cfg.HexShow = miHEX编码接收.Checked = !mi字符串编码.Checked;
-        }
-
-        private void miHEX编码_Click(object sender, EventArgs e)
-        {
-            var cfg = SerialPortConfig.Current;
-            cfg.HexShow = miHEX编码接收.Checked;
-            mi字符串编码.Checked = !miHEX编码接收.Checked;
+            //cfg.HexShow = miHEX编码接收.Checked = !mi字符串编码.Checked;
+            cfg.HexShow = SelectMenu(sender, mi字符串编码, miHEX编码接收) == 1;
         }
 
         private void miHex自动换行_Click(object sender, EventArgs e)
         {
-            var ti = sender as ToolStripMenuItem;
-            var other = miHex不换行;
-            if (ti == miHex不换行) other = miHex自动换行;
-
             var cfg = SerialPortConfig.Current;
-            cfg.HexNewLine = ti.Tag.ToBoolean();
-            ti.Checked = true;
-            other.Checked = false;
+            //cfg.HexNewLine = ti.Tag.ToBoolean();
+            cfg.HexNewLine = SelectMenu(sender, miHEX编码接收.DropDownItems) == 1;
         }
 
         private void miHEX编码发送_Click(object sender, EventArgs e)
         {
             var cfg = SerialPortConfig.Current;
+            miHEX编码发送.Checked = !miHEX编码发送.Checked;
             cfg.HexShow = miHEX编码发送.Checked;
         }
         #endregion
@@ -324,6 +314,36 @@ namespace NewLife.Windows
             {
                 item.Checked = item + "" == value + "";
             }
+        }
+
+        /// <summary>在一个菜单列表中点击某一个菜单，改变菜单选择并返回选中的菜单索引</summary>
+        /// <param name="sender"></param>
+        /// <param name="ms"></param>
+        Int32 SelectMenu(Object sender, params ToolStripMenuItem[] ms)
+        {
+            var mi = sender as ToolStripMenuItem;
+            if (mi == null) return -1;
+
+            var idx = -1;
+            for (int i = 0; i < ms.Length; i++)
+            {
+                if (ms[i] == mi)
+                {
+                    ms[i].Checked = true;
+                    idx = i;
+                }
+                else
+                    ms[i].Checked = false;
+            }
+            return idx;
+        }
+
+        Int32 SelectMenu(Object sender, ToolStripItemCollection ms)
+        {
+            var arr = new ToolStripMenuItem[ms.Count];
+            ms.CopyTo(arr, 0);
+
+            return SelectMenu(sender, arr);
         }
         #endregion
 

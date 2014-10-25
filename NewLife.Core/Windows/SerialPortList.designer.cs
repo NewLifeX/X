@@ -100,24 +100,24 @@
             this.miHEX编码发送,
             this.toolStripMenuItem2});
             this.contextMenuStrip1.Name = "contextMenuStrip1";
-            this.contextMenuStrip1.Size = new System.Drawing.Size(149, 170);
+            this.contextMenuStrip1.Size = new System.Drawing.Size(153, 192);
             // 
             // mi数据位
             // 
             this.mi数据位.Name = "mi数据位";
-            this.mi数据位.Size = new System.Drawing.Size(148, 22);
+            this.mi数据位.Size = new System.Drawing.Size(152, 22);
             this.mi数据位.Text = "数据位";
             // 
             // mi停止位
             // 
             this.mi停止位.Name = "mi停止位";
-            this.mi停止位.Size = new System.Drawing.Size(148, 22);
+            this.mi停止位.Size = new System.Drawing.Size(152, 22);
             this.mi停止位.Text = "停止位";
             // 
             // mi校验
             // 
             this.mi校验.Name = "mi校验";
-            this.mi校验.Size = new System.Drawing.Size(148, 22);
+            this.mi校验.Size = new System.Drawing.Size(152, 22);
             this.mi校验.Text = "校验";
             // 
             // mi高级
@@ -127,7 +127,7 @@
             this.miRTS,
             this.miBreak});
             this.mi高级.Name = "mi高级";
-            this.mi高级.Size = new System.Drawing.Size(148, 22);
+            this.mi高级.Size = new System.Drawing.Size(152, 22);
             this.mi高级.Text = "高级";
             // 
             // miDTR
@@ -151,12 +151,12 @@
             // toolStripMenuItem1
             // 
             this.toolStripMenuItem1.Name = "toolStripMenuItem1";
-            this.toolStripMenuItem1.Size = new System.Drawing.Size(145, 6);
+            this.toolStripMenuItem1.Size = new System.Drawing.Size(149, 6);
             // 
             // mi字符串编码
             // 
             this.mi字符串编码.Name = "mi字符串编码";
-            this.mi字符串编码.Size = new System.Drawing.Size(148, 22);
+            this.mi字符串编码.Size = new System.Drawing.Size(152, 22);
             this.mi字符串编码.Text = "字符串编码";
             this.mi字符串编码.Click += new System.EventHandler(this.mi字符串编码_Click);
             // 
@@ -166,35 +166,37 @@
             this.miHex不换行,
             this.miHex自动换行});
             this.miHEX编码接收.Name = "miHEX编码接收";
-            this.miHEX编码接收.Size = new System.Drawing.Size(148, 22);
+            this.miHEX编码接收.Size = new System.Drawing.Size(152, 22);
             this.miHEX编码接收.Text = "HEX编码接收";
-            this.miHEX编码接收.Click += new System.EventHandler(this.miHEX编码_Click);
+            this.miHEX编码接收.Click += new System.EventHandler(this.mi字符串编码_Click);
             // 
             // miHex不换行
             // 
             this.miHex不换行.Name = "miHex不换行";
-            this.miHex不换行.Size = new System.Drawing.Size(124, 22);
+            this.miHex不换行.Size = new System.Drawing.Size(152, 22);
+            this.miHex不换行.Tag = "false";
             this.miHex不换行.Text = "不换行";
             this.miHex不换行.Click += new System.EventHandler(this.miHex自动换行_Click);
             // 
             // miHex自动换行
             // 
             this.miHex自动换行.Name = "miHex自动换行";
-            this.miHex自动换行.Size = new System.Drawing.Size(124, 22);
+            this.miHex自动换行.Size = new System.Drawing.Size(152, 22);
+            this.miHex自动换行.Tag = "true";
             this.miHex自动换行.Text = "自动换行";
             this.miHex自动换行.Click += new System.EventHandler(this.miHex自动换行_Click);
             // 
             // miHEX编码发送
             // 
             this.miHEX编码发送.Name = "miHEX编码发送";
-            this.miHEX编码发送.Size = new System.Drawing.Size(148, 22);
+            this.miHEX编码发送.Size = new System.Drawing.Size(152, 22);
             this.miHEX编码发送.Text = "HEX编码发送";
             this.miHEX编码发送.Click += new System.EventHandler(this.miHEX编码发送_Click);
             // 
             // toolStripMenuItem2
             // 
             this.toolStripMenuItem2.Name = "toolStripMenuItem2";
-            this.toolStripMenuItem2.Size = new System.Drawing.Size(145, 6);
+            this.toolStripMenuItem2.Size = new System.Drawing.Size(149, 6);
             // 
             // SerialPortList
             // 
