@@ -169,17 +169,29 @@ namespace NewLife.Windows
 
         void On数据位Click(object sender, EventArgs e)
         {
+            SelectMenu(sender);
 
+            var mi = sender as ToolStripMenuItem;
+            var cfg = SerialPortConfig.Current;
+            cfg.DataBits = (Int32)mi.Tag;
         }
 
         void On停止位Click(object sender, EventArgs e)
         {
+            SelectMenu(sender);
 
+            var mi = sender as ToolStripMenuItem;
+            var cfg = SerialPortConfig.Current;
+            cfg.StopBits = (StopBits)mi.Tag;
         }
 
         void On校验Click(object sender, EventArgs e)
         {
+            SelectMenu(sender);
 
+            var mi = sender as ToolStripMenuItem;
+            var cfg = SerialPortConfig.Current;
+            cfg.Parity = (Parity)mi.Tag;
         }
 
         void On编码Click(object sender, EventArgs e)
@@ -187,10 +199,11 @@ namespace NewLife.Windows
             // 不要选其它
             var mi = sender as ToolStripMenuItem;
             if (mi == null) return;
-            foreach (ToolStripMenuItem item in (mi.OwnerItem as ToolStripMenuItem).DropDownItems)
-            {
-                item.Checked = item == mi;
-            }
+            //foreach (ToolStripMenuItem item in (mi.OwnerItem as ToolStripMenuItem).DropDownItems)
+            //{
+            //    item.Checked = item == mi;
+            //}
+            SelectMenu(sender);
 
             // 保存编码
             var cfg = SerialPortConfig.Current;
@@ -202,13 +215,16 @@ namespace NewLife.Windows
             var cfg = SerialPortConfig.Current;
             //cfg.HexShow = miHEX编码接收.Checked = !mi字符串编码.Checked;
             cfg.HexShow = SelectMenu(sender, mi字符串编码, miHEX编码接收) == 1;
+
+            // 收起菜单
+            contextMenuStrip1.Hide();
         }
 
         private void miHex自动换行_Click(object sender, EventArgs e)
         {
             var cfg = SerialPortConfig.Current;
             //cfg.HexNewLine = ti.Tag.ToBoolean();
-            cfg.HexNewLine = SelectMenu(sender, miHEX编码接收.DropDownItems) == 1;
+            cfg.HexNewLine = SelectMenu(sender) == 1;
         }
 
         private void miHEX编码发送_Click(object sender, EventArgs e)
@@ -216,6 +232,12 @@ namespace NewLife.Windows
             var cfg = SerialPortConfig.Current;
             miHEX编码发送.Checked = !miHEX编码发送.Checked;
             cfg.HexShow = miHEX编码发送.Checked;
+        }
+
+        private void miDTR_Click(object sender, EventArgs e)
+        {
+            var mi = sender as ToolStripMenuItem;
+            mi.Checked = !mi.Checked;
         }
         #endregion
 
@@ -338,8 +360,17 @@ namespace NewLife.Windows
             return idx;
         }
 
-        Int32 SelectMenu(Object sender, ToolStripItemCollection ms)
+        /// <summary>在同级菜单中选择</summary>
+        /// <param name="sender"></param>
+        /// <param name="tsi"></param>
+        /// <returns></returns>
+        Int32 SelectMenu(Object sender, ToolStripItem tsi = null)
         {
+            if (tsi == null) tsi = (sender as ToolStripMenuItem).OwnerItem;
+
+            var ms = (tsi as ToolStripMenuItem).DropDownItems;
+            if (ms == null) return -1;
+
             var arr = new ToolStripMenuItem[ms.Count];
             ms.CopyTo(arr, 0);
 
