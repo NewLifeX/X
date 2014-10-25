@@ -878,5 +878,33 @@ namespace System
             return bts;
         }
         #endregion
+
+        #region BASE64编码
+        /// <summary>字节数组转为Base64编码</summary>
+        /// <param name="data"></param>
+        /// <param name="offset"></param>
+        /// <param name="count"></param>
+        /// <param name="options"></param>
+        /// <returns></returns>
+        public static String ToBase64(this Byte[] data, Int32 offset = 0, Int32 count = 0, Base64FormattingOptions options = Base64FormattingOptions.None)
+        {
+            return Convert.ToBase64String(data, offset, count, options);
+        }
+
+        /// <summary>Base64字符串转为字节数组</summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        public static Byte[] ToBase64(this String data)
+        {
+            if (String.IsNullOrEmpty(data)) return null;
+
+            //// 过滤特殊字符
+            //data = data.Trim()
+            //    .Replace("\r", null)
+            //    .Replace("\n", null);
+
+            return Convert.FromBase64String(data);
+        }
+        #endregion
     }
 }
