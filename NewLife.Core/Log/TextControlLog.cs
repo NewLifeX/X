@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Media;
+using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using NewLife.Exceptions;
 
@@ -89,19 +89,16 @@ namespace NewLife.Log
                         return;
                     }
 
-                    // 5行内滚动
-                    //if (line + 5 > txt.Lines.Length && txt.SelectionLength <= 0)
+                    //// 取得最后一行首字符索引
+                    //var lines = txt.Lines.Length;
+                    //var last = lines <= 1 ? 0 : txt.GetFirstCharIndexFromLine(lines - 1);
+                    //if (last >= 0)
                     //{
-                    // 取得最后一行首字符索引
-                    var lines = txt.Lines.Length;
-                    var last = lines <= 1 ? 0 : txt.GetFirstCharIndexFromLine(lines - 1);
-                    if (last >= 0)
-                    {
-                        // 滚动到最后一行第一个字符
-                        txt.Select(last, 0);
-                        txt.ScrollToCaret();
-                    }
+                    //    // 滚动到最后一行第一个字符
+                    //    txt.Select(last, 0);
+                    //    txt.ScrollToCaret();
                     //}
+                    SendMessage(txt.Handle, WM_VSCROLL, SB_BOTTOM, 0);
                 }
                 catch { }
             });
@@ -213,5 +210,10 @@ namespace NewLife.Log
                 //SystemSounds.Beep.Play();
             }
         }
+
+        [DllImport("user32.dll")]
+        static extern int SendMessage(IntPtr hwnd, int wMsg, int wParam, int lParam);
+        private const int SB_BOTTOM = 7;
+        private const int WM_VSCROLL = 0x115;
     }
 }

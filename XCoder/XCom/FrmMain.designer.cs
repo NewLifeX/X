@@ -81,7 +81,7 @@
             // 
             // txtReceive
             // 
-            this.txtReceive.BackColor = System.Drawing.Color.White;
+            this.txtReceive.BackColor = System.Drawing.Color.BurlyWood;
             this.txtReceive.Dock = System.Windows.Forms.DockStyle.Fill;
             this.txtReceive.Location = new System.Drawing.Point(3, 17);
             this.txtReceive.Multiline = true;
@@ -111,7 +111,7 @@
             this.txtSend.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.txtSend.BackColor = System.Drawing.Color.White;
+            this.txtSend.BackColor = System.Drawing.Color.BlanchedAlmond;
             this.txtSend.ContextMenuStrip = this.menuSend;
             this.txtSend.Location = new System.Drawing.Point(0, 20);
             this.txtSend.Multiline = true;
@@ -129,7 +129,7 @@
             // mi清空2
             // 
             this.mi清空2.Name = "mi清空2";
-            this.mi清空2.Size = new System.Drawing.Size(152, 22);
+            this.mi清空2.Size = new System.Drawing.Size(100, 22);
             this.mi清空2.Text = "清空";
             this.mi清空2.Click += new System.EventHandler(this.mi清空2_Click);
             // 
