@@ -884,9 +884,9 @@ namespace System
         /// <param name="data"></param>
         /// <param name="offset"></param>
         /// <param name="count"></param>
-        /// <param name="options"></param>
+        /// <param name="lineBreak">是否换行显示</param>
         /// <returns></returns>
-        public static String ToBase64(this Byte[] data, Int32 offset = 0, Int32 count = 0, Base64FormattingOptions options = Base64FormattingOptions.None)
+        public static String ToBase64(this Byte[] data, Int32 offset = 0, Int32 count = 0, Boolean lineBreak = false)
         {
             if (data == null || data.Length < 1) return null;
             if (count <= 0)
@@ -894,7 +894,7 @@ namespace System
             else if (offset + count > data.Length)
                 count = data.Length - offset;
 
-            return Convert.ToBase64String(data, offset, count, options);
+            return Convert.ToBase64String(data, offset, count, lineBreak ? Base64FormattingOptions.InsertLineBreaks : Base64FormattingOptions.None);
         }
 
         /// <summary>Base64字符串转为字节数组</summary>

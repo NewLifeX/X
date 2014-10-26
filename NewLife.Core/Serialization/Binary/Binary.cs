@@ -92,6 +92,9 @@ namespace NewLife.Serialization
                 if (value == null) return true;
 
                 type = value.GetType();
+
+                // 一般类型为空是顶级调用
+                WriteLog("BinaryWrite {0} {1}", type.Name, value);
             }
 
             foreach (var item in Handlers)
@@ -350,6 +353,18 @@ namespace NewLife.Serialization
             if (stream == null || stream is TraceStream) return;
 
             Stream = new TraceStream(stream) { Encoding = this.Encoding, IsLittleEndian = this.IsLittleEndian };
+        }
+
+        private Boolean _Debug;
+        /// <summary>是否调试</summary>
+        public Boolean Debug { get { return _Debug; } set { _Debug = value; } }
+
+        /// <summary>输出日志</summary>
+        /// <param name="format"></param>
+        /// <param name="args"></param>
+        public void WriteLog(String format, params Object[] args)
+        {
+            if (Debug) XTrace.WriteLine(format, args);
         }
         #endregion
     }

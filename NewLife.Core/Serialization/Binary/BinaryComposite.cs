@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using NewLife.Collections;
+using NewLife.Log;
 using NewLife.Reflection;
 
 namespace NewLife.Serialization
@@ -28,6 +29,7 @@ namespace NewLife.Serialization
             if (Type.GetTypeCode(type) != TypeCode.Object) return false;
 
             var ms = GetMembers(type);
+            WriteLog("BinaryWrite类{0} 共有成员{1}个", type.Name, ms.Count);
 
             if (Host.UseFieldSize)
             {
@@ -49,6 +51,7 @@ namespace NewLife.Serialization
                 Host.Member = member;
 
                 var v = value.GetValue(member);
+                WriteLog("    {0}.{1} {2}", type.Name, member.Name, v);
                 if (!Host.Write(v, mtype))
                 {
                     Host.Hosts.Pop();
@@ -77,15 +80,19 @@ namespace NewLife.Serialization
             // 不支持基类不是Object的特殊类型
             if (type.BaseType != typeof(Object)) return false;
 
+            var ms = GetMembers(type);
+            WriteLog("BinaryRead类{0} 共有成员{1}个", type.Name, ms.Count);
+
             if (value == null) value = type.CreateInstance();
 
             Host.Hosts.Push(value);
 
             // 获取成员
-            foreach (var member in GetMembers(type))
+            foreach (var member in ms)
             {
                 var mtype = GetMemberType(member);
                 Host.Member = member;
+                WriteLog("    {0}.{1}", type.Name, member.Name);
 
                 Object v = null;
                 if (!Host.TryRead(mtype, ref v))

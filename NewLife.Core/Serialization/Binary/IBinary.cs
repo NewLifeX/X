@@ -55,6 +55,16 @@ namespace NewLife.Serialization
         /// <returns></returns>
         Int32 ReadSize();
         #endregion
+
+        #region 调试日志
+        /// <summary>是否启用调试</summary>
+        Boolean Debug { get; set; }
+
+        /// <summary>输出日志</summary>
+        /// <param name="format"></param>
+        /// <param name="args"></param>
+        void WriteLog(String format, params Object[] args);
+        #endregion
     }
 
     /// <summary>二进制读写处理器接口</summary>
@@ -106,6 +116,14 @@ namespace NewLife.Serialization
         {
             // 优先级较大在前面
             return this.Priority.CompareTo(other.Priority);
+        }
+
+        /// <summary>输出日志</summary>
+        /// <param name="format"></param>
+        /// <param name="args"></param>
+        public void WriteLog(String format, params Object[] args)
+        {
+            Host.WriteLog(format, args);
         }
     }
 }
