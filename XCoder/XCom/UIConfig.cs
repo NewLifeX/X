@@ -50,12 +50,15 @@ namespace XCom
             var ms = new MemoryStream(buf);
 
             var binary = new Binary();
+            binary.EncodeInt = true;
+            binary.AddHandler<BinaryFont>(11);
+            binary.AddHandler<BinaryColor>(12);
             binary.AddHandler<BinaryUnknown>(20);
             binary.Stream = ms;
-#if DEBUG
+//#if DEBUG
             binary.Debug = true;
             binary.EnableTrace();
-#endif
+//#endif
 
             try
             {
@@ -67,15 +70,18 @@ namespace XCom
         public void Save()
         {
             var binary = new Binary();
+            binary.EncodeInt = true;
+            binary.AddHandler<BinaryFont>(11);
+            binary.AddHandler<BinaryColor>(12);
             binary.AddHandler<BinaryUnknown>(20);
-#if DEBUG
+//#if DEBUG
             binary.Debug = true;
             binary.EnableTrace();
-#endif
+//#endif
             binary.Write(this);
 
             var cfg = SerialPortConfig.Current;
-            cfg.Extend = binary.Stream.ToArray().ToBase64(0, 0, true);
+            cfg.Extend = binary.GetBytes().ToBase64(0, 0, true);
             cfg.Save();
         }
     }

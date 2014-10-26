@@ -32,6 +32,11 @@ namespace NewLife.Serialization
         /// <returns></returns>
         Object Read(Type type);
 
+        /// <summary>读取指定类型对象</summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        T Read<T>();
+
         /// <summary>尝试读取指定类型对象</summary>
         /// <param name="type"></param>
         /// <param name="value"></param>

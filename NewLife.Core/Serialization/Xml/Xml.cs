@@ -160,6 +160,14 @@ namespace NewLife.Serialization
             return value;
         }
 
+        /// <summary>读取指定类型对象</summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public T Read<T>()
+        {
+            return (T)(Object)Read(typeof(T));
+        }
+
         /// <summary>尝试读取指定类型对象</summary>
         /// <param name="type"></param>
         /// <param name="value"></param>

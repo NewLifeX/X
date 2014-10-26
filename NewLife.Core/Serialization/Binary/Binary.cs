@@ -94,7 +94,7 @@ namespace NewLife.Serialization
                 type = value.GetType();
 
                 // 一般类型为空是顶级调用
-                WriteLog("BinaryWrite {0} {1}", type.Name, value);
+                if (Hosts.Count == 0) WriteLog("BinaryWrite {0} {1}", type.Name, value);
             }
 
             foreach (var item in Handlers)
@@ -177,12 +177,22 @@ namespace NewLife.Serialization
             return value;
         }
 
+        /// <summary>读取指定类型对象</summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public T Read<T>()
+        {
+            return (T)(Object)Read(typeof(T));
+        }
+
         /// <summary>尝试读取指定类型对象</summary>
         /// <param name="type"></param>
         /// <param name="value"></param>
         /// <returns></returns>
         public virtual Boolean TryRead(Type type, ref Object value)
         {
+            if (Hosts.Count == 0) WriteLog("BinaryRead {0} {1}", type.Name, value);
+            
             foreach (var item in Handlers)
             {
                 if (item.TryRead(type, ref value)) return true;
