@@ -24,6 +24,17 @@ namespace XCom
         public Color ForeColor { get { return _ForeColor; } set { _ForeColor = value; } }
         #endregion
 
+        private static UIConfig _Current;
+        /// <summary>当前配置</summary>
+        public static UIConfig Current
+        {
+            get
+            {
+                if (_Current == null) _Current = Load() ?? new UIConfig();
+                return _Current;
+            }
+        }
+
         public static UIConfig Load()
         {
             var cfg = SerialPortConfig.Current;
@@ -39,9 +50,12 @@ namespace XCom
             var ms = new MemoryStream(buf);
 
             var binary = new Binary();
-            binary.AddHandler<BinaryUnknown>();
+            binary.AddHandler<BinaryUnknown>(20);
             binary.Stream = ms;
+#if DEBUG
+            binary.Debug = true;
             binary.EnableTrace();
+#endif
 
             try
             {
@@ -53,12 +67,15 @@ namespace XCom
         public void Save()
         {
             var binary = new Binary();
-            binary.AddHandler<BinaryUnknown>();
-            binary.Write(this);
+            binary.AddHandler<BinaryUnknown>(20);
+#if DEBUG
+            binary.Debug = true;
             binary.EnableTrace();
+#endif
+            binary.Write(this);
 
             var cfg = SerialPortConfig.Current;
-            cfg.Extend = binary.Stream.ToArray().ToBase64();
+            cfg.Extend = binary.Stream.ToArray().ToBase64(0, 0, true);
             cfg.Save();
         }
     }

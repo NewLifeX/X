@@ -167,7 +167,7 @@ namespace XCom
 
             txtReceive.Font = fontDialog1.Font;
 
-            var ui = UIConfig.Load() ?? new UIConfig();
+            var ui = UIConfig.Current;
             ui.Font = txtReceive.Font;
             ui.Save();
         }
@@ -179,7 +179,7 @@ namespace XCom
 
             txtReceive.ForeColor = colorDialog1.Color;
 
-            var ui = UIConfig.Load() ?? new UIConfig();
+            var ui = UIConfig.Current;
             ui.ForeColor = txtReceive.ForeColor;
             ui.Save();
         }
@@ -191,7 +191,7 @@ namespace XCom
 
             txtReceive.BackColor = colorDialog1.Color;
 
-            var ui = UIConfig.Load() ?? new UIConfig();
+            var ui = UIConfig.Current;
             ui.BackColor = txtReceive.BackColor;
             ui.Save();
         }
