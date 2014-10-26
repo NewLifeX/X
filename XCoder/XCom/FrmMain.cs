@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Drawing;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows.Forms;
 using NewLife;
@@ -132,6 +134,8 @@ namespace XCom
                     gbSend.Text = (gbSend.Tag + "").Replace("0", tcount + "");
                     lastSend = tcount;
                 }
+
+                ChangeColor();
             }
         }
 
@@ -203,6 +207,126 @@ namespace XCom
             var ui = UIConfig.Current;
             ui.BackColor = txtReceive.BackColor;
             ui.Save();
+        }
+        #endregion
+
+        #region 着色
+        Int32 _pColor = 0;
+        static Color _Key = Color.FromArgb(255, 170, 0);
+        static Color _Num = Color.FromArgb(255, 58, 131);
+        static Color _KeyName = Color.FromArgb(0, 255, 255);
+
+        static String[] _Keys = new String[] { 
+            "(", ")", "{", "}", "*", "->", "+", "-", "*", "/", "\\", "%", "&", "|", "!", "=", ";", ",", ">", "<", 
+            "void", "new", "delete", "true", "false" 
+        };
+
+        void ChangeColor()
+        {
+            if (_pColor > txtReceive.TextLength) _pColor = 0;
+            if (_pColor == txtReceive.TextLength) return;
+
+            // 有选择时不着色
+            if (txtReceive.SelectionLength > 0) return;
+
+            //var color = Color.Yellow;
+            //var color = Color.FromArgb(255, 170, 0);
+            //ChangeColor("Send", color);
+            foreach (var item in _Keys)
+            {
+                ChangeColor(item, _Key);
+            }
+
+            ChangeCppColor();
+            ChangeKeyNameColor();
+            ChangeNumColor();
+
+            // 移到最后，避免瞬间有字符串写入，所以减去100
+            _pColor = txtReceive.TextLength;
+            if (_pColor < 0) _pColor = 0;
+        }
+
+        private void ChangeColor(string text, Color color)
+        {
+            var rtx = txtReceive;
+
+            int s = _pColor;
+            //while ((-1 + text.Length - 1) != (s = text.Length - 1 + rtx.Find(text, s, -1, RichTextBoxFinds.WholeWord)))
+            while (true)
+            {
+                s = rtx.Find(text, s, -1, RichTextBoxFinds.WholeWord);
+                if (s < 0) break;
+                if (s > rtx.TextLength - 1) break;
+                s++;
+
+                rtx.SelectionColor = color;
+                //rtx.SelectionFont = new Font(rtx.SelectionFont.FontFamily, rtx.SelectionFont.Size, FontStyle.Bold);
+            }
+            //rtx.Select(0, 0);
+            rtx.SelectionLength = 0;
+        }
+
+        // 正则匹配，数字开头的词
+        static Regex _reg = new Regex(@"(?i)\b\d.*?\b", RegexOptions.Compiled);
+        void ChangeNumColor()
+        {
+            var rtx = txtReceive;
+
+            //// 获取尾部字符串
+            //var str = rtx.Text.Substring(_pColor);
+            //if (str.IsNullOrWhiteSpace()) return;
+
+            //var color = Color.Red;
+            //var color = Color.FromArgb(255, 58, 131);
+
+            var ms = _reg.Matches(rtx.Text, _pColor);
+            foreach (Match item in ms)
+            {
+                rtx.Select(item.Index, item.Length);
+                rtx.SelectionColor = _Num;
+            }
+            rtx.SelectionLength = 0;
+            //rtx.Select(0, 0);
+        }
+
+        static Regex _reg2 = new Regex(@"(?i)(\b\w+\b)(::)(\b\w+\b)", RegexOptions.Compiled);
+        /// <summary>改变C++类名方法名颜色</summary>
+        void ChangeCppColor()
+        {
+            var rtx = txtReceive;
+            var color = Color.FromArgb(30, 154, 224);
+            var color3 = Color.FromArgb(85, 228, 57);
+
+            var ms = _reg2.Matches(rtx.Text, _pColor);
+            foreach (Match item in ms)
+            {
+                rtx.Select(item.Groups[1].Index, item.Groups[1].Length);
+                rtx.SelectionColor = color;
+
+                rtx.Select(item.Groups[2].Index, item.Groups[2].Length);
+                rtx.SelectionColor = _Key;
+
+                rtx.Select(item.Groups[3].Index, item.Groups[3].Length);
+                rtx.SelectionColor = color3;
+            }
+            rtx.SelectionLength = 0;
+        }
+
+        static Regex _reg3 = new Regex(@"(?i)(\b\w+\b)(\s*[=:])[^:]", RegexOptions.Compiled);
+        void ChangeKeyNameColor()
+        {
+            var rtx = txtReceive;
+
+            var ms = _reg3.Matches(rtx.Text, _pColor);
+            foreach (Match item in ms)
+            {
+                rtx.Select(item.Groups[1].Index, item.Groups[1].Length);
+                rtx.SelectionColor = _KeyName;
+
+                rtx.Select(item.Groups[2].Index, item.Groups[2].Length);
+                rtx.SelectionColor = _Key;
+            }
+            rtx.SelectionLength = 0;
         }
         #endregion
     }
