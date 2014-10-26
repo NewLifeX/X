@@ -10,6 +10,9 @@ namespace NewLife.Serialization
     public interface IFormatterX
     {
         #region 属性
+        /// <summary>数据流</summary>
+        Stream Stream { get; set; }
+
         /// <summary>主对象</summary>
         Stack<Object> Hosts { get; }
 

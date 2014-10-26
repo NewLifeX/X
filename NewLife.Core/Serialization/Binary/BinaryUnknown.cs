@@ -24,6 +24,9 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public override Boolean Write(Object value, Type type)
         {
+            // 需要检查序列化标记
+            if (type.GetCustomAttribute<SerializableAttribute>() == null) return false;
+
             // 先写引用
             if (value == null)
             {
@@ -33,13 +36,14 @@ namespace NewLife.Serialization
 
             // 调用.Net的二进制序列化来解决剩下的事情
             var bf = new BinaryFormatter();
-            var ms = new MemoryStream();
-            bf.Serialize(ms, value);
-            ms.Position = 0;
-            var buf = ms.ToArray();
+            //var ms = new MemoryStream();
+            //bf.Serialize(ms, value);
+            //ms.Position = 0;
+            //var buf = ms.ToArray();
 
-            Host.WriteSize(buf.Length);
-            Host.Write(buf);
+            //Host.WriteSize(buf.Length);
+            //Host.Write(buf);
+            bf.Serialize(Host.Stream, value);
 
             return true;
         }
@@ -50,13 +54,17 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public override Boolean TryRead(Type type, ref Object value)
         {
+            // 需要检查序列化标记
+            if (type.GetCustomAttribute<SerializableAttribute>() == null) return false;
+
             // 先读取引用
             var len = Host.ReadSize();
             if (len == 0) return true;
 
             var bf = new BinaryFormatter();
-            var ms = new MemoryStream(Host.ReadBytes(len));
-            value = bf.Deserialize(ms);
+            //var ms = new MemoryStream(Host.ReadBytes(len));
+            //value = bf.Deserialize(ms);
+            value = bf.Deserialize(Host.Stream);
 
             return true;
         }
