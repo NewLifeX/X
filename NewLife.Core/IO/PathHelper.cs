@@ -148,6 +148,25 @@ namespace System.IO
                 }
             }
         }
+
+        /// <summary>把文本写入文件，自动检测编码</summary>
+        /// <param name="file"></param>
+        /// <param name="text"></param>
+        /// <param name="encoding"></param>
+        /// <returns></returns>
+        public static FileInfo WriteText(this FileInfo file, String text, Encoding encoding = null)
+        {
+            using (var fs = file.OpenWrite())
+            {
+                if (encoding == null) encoding = fs.Detect() ?? Encoding.Default;
+                using (var writer = new StreamWriter(fs, encoding))
+                {
+                    writer.Write(text);
+                }
+            }
+
+            return file;
+        }
         #endregion
 
         #region 目录扩展
