@@ -118,11 +118,7 @@ namespace XCode.Cache
 
         private Func _InitializeMethod;
         /// <summary>初始化缓存的方法，默认为空</summary>
-        public Func InitializeMethod
-        {
-            get { return _InitializeMethod; }
-            set { _InitializeMethod = value; }
-        }
+        public Func InitializeMethod { get { return _InitializeMethod; } set { _InitializeMethod = value; } }
 
         private Boolean _HoldCache = CacheSetting.Alone;
 
@@ -133,14 +129,15 @@ namespace XCode.Cache
             set
             {
                 _HoldCache = value;
-                if (_HoldCache)
-                {
-                    if (_Timer != null) { _Timer.Dispose(); }
-                }
-                else
-                {
-                    StartTimer();
-                }
+                // 独占模式也需要用到定时器，否则无法自动保存
+                //if (_HoldCache)
+                //{
+                //    if (_Timer != null) { _Timer.Dispose(); }
+                //}
+                //else
+                //{
+                //    StartTimer();
+                //}
             }
         }
 
@@ -163,7 +160,7 @@ namespace XCode.Cache
         private void StartTimer()
         {
             // 独占模式下，不再自动清除缓存项
-            if (HoldCache) { return; }
+            //if (HoldCache) { return; }
 
             if (_Timer == null)
             {
@@ -192,6 +189,9 @@ namespace XCode.Cache
         /// <summary>定期检查实体，如果过期，则触发保存</summary>
         void Check()
         {
+            // 独占缓存不删除缓存，仅判断自动保存
+            if (HoldCache && !AutoSave) return;
+
             // 加锁后把缓存集合拷贝到数组中，避免后面遍历的时候出现多线程冲突
             CacheItem[] cs = null;
             if (Entities.Count <= 0) return;
@@ -231,6 +231,9 @@ namespace XCode.Cache
                     list.Add(item);
                 }
             }
+            // 独占缓存不删除缓存
+            if (HoldCache) return;
+
             // 从缓存中删除，必须加锁
             if (list.Count > 0)
             {
@@ -657,7 +660,9 @@ namespace XCode.Cache
             if (item == null) return null;
 
             // 未过期，直接返回
-            if (HoldCache || item.ExpireTime > DateTime.Now)
+            //if (HoldCache || item.ExpireTime > DateTime.Now)
+            // 这里不能判断独占缓存，否则将失去自动保存的机会
+            if (item.ExpireTime > DateTime.Now)
             {
                 Interlocked.Increment(ref Shoot);
                 return item.Entity;
