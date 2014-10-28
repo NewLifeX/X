@@ -79,6 +79,28 @@ namespace System
             return value.Split(separators, StringSplitOptions.RemoveEmptyEntries);
         }
 
+        /// <summary>拆分字符串成为整型数组</summary>
+        /// <remarks>过滤空格、过滤无效、过滤重复</remarks>
+        /// <param name="value">数值</param>
+        /// <param name="separators"></param>
+        /// <returns></returns>
+        public static Int32[] SplitAsInt(this String value, params String[] separators)
+        {
+            if (String.IsNullOrEmpty(value)) return new Int32[0];
+
+            var ss = value.Split(separators, StringSplitOptions.RemoveEmptyEntries);
+            var list = new List<Int32>();
+            foreach (var item in ss)
+            {
+                var id = 0;
+                if (!Int32.TryParse(item.Trim(), out id)) continue;
+
+                if (!list.Contains(id)) list.Add(id);
+            }
+
+            return list.ToArray();
+        }
+
         /// <summary>拆分字符串成为名值字典。逗号分号分组，等号分隔</summary>
         /// <param name="str"></param>
         /// <param name="nameValueSeparator"></param>
