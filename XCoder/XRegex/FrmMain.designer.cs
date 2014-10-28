@@ -31,7 +31,6 @@
             this.components = new System.ComponentModel.Container();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.txtOption = new System.Windows.Forms.TextBox();
-            this.txtPattern = new System.Windows.Forms.TextBox();
             this.ptMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.正则ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.chkSingleline = new System.Windows.Forms.CheckBox();
@@ -39,7 +38,6 @@
             this.chkMultiline = new System.Windows.Forms.CheckBox();
             this.chkIgnoreCase = new System.Windows.Forms.CheckBox();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
-            this.txtContent = new System.Windows.Forms.TextBox();
             this.txtMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.例子ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.radioButton2 = new System.Windows.Forms.RadioButton();
@@ -73,6 +71,8 @@
             this.splitContainer2 = new System.Windows.Forms.SplitContainer();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
             this.folderBrowserDialog1 = new System.Windows.Forms.FolderBrowserDialog();
+            this.txtPattern = new System.Windows.Forms.RichTextBox();
+            this.txtContent = new System.Windows.Forms.RichTextBox();
             this.groupBox1.SuspendLayout();
             this.ptMenu.SuspendLayout();
             this.groupBox2.SuspendLayout();
@@ -96,8 +96,8 @@
             // 
             // groupBox1
             // 
-            this.groupBox1.Controls.Add(this.txtOption);
             this.groupBox1.Controls.Add(this.txtPattern);
+            this.groupBox1.Controls.Add(this.txtOption);
             this.groupBox1.Controls.Add(this.chkSingleline);
             this.groupBox1.Controls.Add(this.chkIgnorePatternWhitespace);
             this.groupBox1.Controls.Add(this.chkMultiline);
@@ -119,20 +119,6 @@
             this.txtOption.ReadOnly = true;
             this.txtOption.Size = new System.Drawing.Size(333, 21);
             this.txtOption.TabIndex = 14;
-            // 
-            // txtPattern
-            // 
-            this.txtPattern.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.txtPattern.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(224)))), ((int)(((byte)(192)))));
-            this.txtPattern.ContextMenuStrip = this.ptMenu;
-            this.txtPattern.Font = new System.Drawing.Font("微软雅黑", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.txtPattern.Location = new System.Drawing.Point(6, 42);
-            this.txtPattern.Multiline = true;
-            this.txtPattern.Name = "txtPattern";
-            this.txtPattern.Size = new System.Drawing.Size(748, 94);
-            this.txtPattern.TabIndex = 13;
             // 
             // ptMenu
             // 
@@ -220,20 +206,6 @@
             this.groupBox2.TabIndex = 1;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "数据源";
-            // 
-            // txtContent
-            // 
-            this.txtContent.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.txtContent.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(192)))));
-            this.txtContent.ContextMenuStrip = this.txtMenu;
-            this.txtContent.Font = new System.Drawing.Font("微软雅黑", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.txtContent.Location = new System.Drawing.Point(6, 42);
-            this.txtContent.Multiline = true;
-            this.txtContent.Name = "txtContent";
-            this.txtContent.Size = new System.Drawing.Size(748, 143);
-            this.txtContent.TabIndex = 14;
             // 
             // txtMenu
             // 
@@ -343,7 +315,7 @@
             this.groupBox3.Size = new System.Drawing.Size(760, 169);
             this.groupBox3.TabIndex = 2;
             this.groupBox3.TabStop = false;
-            this.groupBox3.Text = "匹配结果";
+            this.groupBox3.Text = "匹配结果(Match|Group|Capture)";
             // 
             // splitContainer3
             // 
@@ -558,6 +530,36 @@
             // 
             this.folderBrowserDialog1.ShowNewFolderButton = false;
             // 
+            // txtPattern
+            // 
+            this.txtPattern.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.txtPattern.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(224)))), ((int)(((byte)(192)))));
+            this.txtPattern.ContextMenuStrip = this.ptMenu;
+            this.txtPattern.Font = new System.Drawing.Font("微软雅黑", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.txtPattern.HideSelection = false;
+            this.txtPattern.Location = new System.Drawing.Point(6, 45);
+            this.txtPattern.Name = "txtPattern";
+            this.txtPattern.Size = new System.Drawing.Size(748, 94);
+            this.txtPattern.TabIndex = 15;
+            this.txtPattern.Text = "";
+            // 
+            // txtContent
+            // 
+            this.txtContent.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.txtContent.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(192)))));
+            this.txtContent.ContextMenuStrip = this.txtMenu;
+            this.txtContent.Font = new System.Drawing.Font("微软雅黑", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.txtContent.HideSelection = false;
+            this.txtContent.Location = new System.Drawing.Point(6, 43);
+            this.txtContent.Name = "txtContent";
+            this.txtContent.Size = new System.Drawing.Size(748, 143);
+            this.txtContent.TabIndex = 16;
+            this.txtContent.Text = "";
+            // 
             // FrmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
@@ -641,9 +643,9 @@
         private System.Windows.Forms.RadioButton radioButton1;
         private System.Windows.Forms.Panel panel1;
         private System.Windows.Forms.RichTextBox rtReplace;
-        private System.Windows.Forms.TextBox txtPattern;
-        private System.Windows.Forms.TextBox txtContent;
         private System.Windows.Forms.TextBox txtOption;
+        private System.Windows.Forms.RichTextBox txtPattern;
+        private System.Windows.Forms.RichTextBox txtContent;
     }
 }
 

@@ -216,7 +216,7 @@ namespace NewLife.XRegex
             int i = 1;
             foreach (Match match in ms)
             {
-                ListViewItem item = lvMatch.Items.Add(i.ToString());
+                var item = lvMatch.Items.Add(i.ToString());
                 item.SubItems.Add(match.Value);
                 item.SubItems.Add(String.Format("({0},{1},{2})", txtContent.GetLineFromCharIndex(match.Index), match.Index, match.Length));
                 item.Tag = match;
@@ -284,11 +284,11 @@ namespace NewLife.XRegex
             lvGroup.Items.Clear();
             lvCapture.Items.Clear();
 
-            Regex reg = lvMatch.Tag as Regex;
+            var reg = lvMatch.Tag as Regex;
             for (int i = 0; i < m.Groups.Count; i++)
             {
-                Group g = m.Groups[i];
-                ListViewItem item = lvGroup.Items.Add(i.ToString());
+                var g = m.Groups[i];
+                var item = lvGroup.Items.Add(i.ToString());
                 item.SubItems.Add(reg.GroupNameFromNumber(i));
                 item.SubItems.Add(g.Value);
                 item.SubItems.Add(String.Format("({0},{1},{2})", txtContent.GetLineFromCharIndex(g.Index), g.Index, g.Length));
@@ -315,8 +315,8 @@ namespace NewLife.XRegex
 
             for (int i = 0; i < g.Captures.Count; i++)
             {
-                Capture c = g.Captures[i];
-                ListViewItem item = lvCapture.Items.Add(i.ToString());
+                var c = g.Captures[i];
+                var item = lvCapture.Items.Add(i.ToString());
                 item.SubItems.Add(c.Value);
                 item.SubItems.Add(String.Format("({0},{1},{2})", txtContent.GetLineFromCharIndex(c.Index), c.Index, c.Length));
                 item.Tag = g.Captures[i];
@@ -329,7 +329,7 @@ namespace NewLife.XRegex
 
             // 当前选择项
             Capture c = lvCapture.SelectedItems[0].Tag as Capture;
-            //rtContent.SelectedText = c.Value;
+            txtContent.SelectedText = c.Value;
             txtContent.Select(c.Index, c.Length);
             txtContent.ScrollToCaret();
         }
