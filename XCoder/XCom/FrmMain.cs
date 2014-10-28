@@ -266,8 +266,8 @@ namespace XCom
             rtx.SelectionLength = 0;
         }
 
-        // 正则匹配，数字开头的词
-        static Regex _reg = new Regex(@"(?i)\b\d.*?\b", RegexOptions.Compiled);
+        // 正则匹配，数字开头的词。支持0x开头的十六进制
+        static Regex _reg = new Regex(@"(?i)\b([1-9]|0x)([0-9a-fA-F]*)", RegexOptions.Compiled);
         void ChangeNumColor()
         {
             var rtx = txtReceive;
