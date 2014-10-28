@@ -153,26 +153,26 @@ namespace XCode.Cache
         public SingleEntityCache()
         {
             // 启动一个定时器，用于定时清理过期缓存。因为比较耗时，最后一个参数采用线程池
-            //timer = new TimerX(d => Check(), null, Expriod * 1000, Expriod * 1000, true);
+            _Timer = new TimerX(d => Check(), null, Expriod * 1000, Expriod * 1000, true);
         }
 
-        /// <summary>启动一个定时器，用于定时清理过期缓存。因为比较耗时，最后一个参数采用线程池</summary>
-        private void StartTimer()
-        {
-            // 独占模式下，不再自动清除缓存项
-            //if (HoldCache) { return; }
+        ///// <summary>启动一个定时器，用于定时清理过期缓存。因为比较耗时，最后一个参数采用线程池</summary>
+        //private void StartTimer()
+        //{
+        //    // 独占模式下，不再自动清除缓存项
+        //    //if (HoldCache) { return; }
 
-            if (_Timer == null)
-            {
-                // 启动一个定时器
-                var timer = new TimerX(d => Check(), null, Expriod * 1000, Expriod * 1000, true);
-                if (Interlocked.CompareExchange<TimerX>(ref _Timer, timer, null) != null)
-                {
-                    timer.Dispose();
-                    timer = null;
-                }
-            }
-        }
+        //    if (_Timer == null)
+        //    {
+        //        // 启动一个定时器
+        //        var timer = new TimerX(d => Check(), null, Expriod * 1000, Expriod * 1000, true);
+        //        if (Interlocked.CompareExchange<TimerX>(ref _Timer, timer, null) != null)
+        //        {
+        //            timer.Dispose();
+        //            timer = null;
+        //        }
+        //    }
+        //}
 
         /// <summary>子类重载实现资源释放逻辑时必须首先调用基类方法</summary>
         /// <param name="disposing">从Dispose调用（释放所有资源）还是析构函数调用（释放非托管资源）。
