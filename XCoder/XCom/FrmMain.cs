@@ -52,7 +52,7 @@ namespace XCom
             ti.Click += mi背景色_Click;
 
             // 加载保存的颜色
-            var ui = UIConfig.Current;
+            var ui = UIConfig.Load();
             if (ui != null)
             {
                 try
@@ -61,12 +61,15 @@ namespace XCom
                     txtReceive.BackColor = ui.BackColor;
                     txtReceive.ForeColor = ui.ForeColor;
                 }
-                catch
-                {
-                    ui.Font = txtReceive.Font;
-                    ui.BackColor = txtReceive.BackColor;
-                    ui.ForeColor = txtReceive.ForeColor;
-                }
+                catch { ui = null; }
+            }
+            if (ui == null)
+            {
+                ui = UIConfig.Current;
+                ui.Font = txtReceive.Font;
+                ui.BackColor = txtReceive.BackColor;
+                ui.ForeColor = txtReceive.ForeColor;
+                ui.Save();
             }
         }
         #endregion
