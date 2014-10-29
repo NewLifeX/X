@@ -217,7 +217,7 @@ namespace XCom
         static Color _KeyName = Color.FromArgb(0, 255, 255);
 
         static String[] _Keys = new String[] { 
-            "(", ")", "{", "}", "*", "->", "+", "-", "*", "/", "\\", "%", "&", "|", "!", "=", ";", ",", ">", "<", 
+            "(", ")", "{", "}", "[", "]", "*", "->", "+", "-", "*", "/", "\\", "%", "&", "|", "!", "=", ";", ",", ">", "<", 
             "void", "new", "delete", "true", "false" 
         };
 
@@ -289,7 +289,7 @@ namespace XCom
             //rtx.Select(0, 0);
         }
 
-        static Regex _reg2 = new Regex(@"(?i)(\b\w+\b)(::)(\b\w+\b)", RegexOptions.Compiled);
+        static Regex _reg2 = new Regex(@"(?i)(\b\w+\b)(\s*::\s*)(\b\w+\b)", RegexOptions.Compiled);
         /// <summary>改变C++类名方法名颜色</summary>
         void ChangeCppColor()
         {
@@ -312,7 +312,7 @@ namespace XCom
             rtx.SelectionLength = 0;
         }
 
-        static Regex _reg3 = new Regex(@"(?i)(\b\w+\b)(\s*[=:])[^:]", RegexOptions.Compiled);
+        static Regex _reg3 = new Regex(@"(?i)(\b\w+\b)(\s*[=:])[^:]\s*", RegexOptions.Compiled);
         void ChangeKeyNameColor()
         {
             var rtx = txtReceive;
