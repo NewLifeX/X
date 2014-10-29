@@ -267,7 +267,7 @@ namespace XCom
         }
 
         // 正则匹配，数字开头的词。支持0x开头的十六进制
-        static Regex _reg = new Regex(@"(?i)\b([1-9]|0x)([0-9a-fA-F]*)", RegexOptions.Compiled);
+        static Regex _reg = new Regex(@"(?i)\b([1-9]|0x)([0-9a-fA-F]*)(.*?)\b", RegexOptions.Compiled);
         void ChangeNumColor()
         {
             var rtx = txtReceive;
@@ -282,8 +282,16 @@ namespace XCom
             var ms = _reg.Matches(rtx.Text, _pColor);
             foreach (Match item in ms)
             {
-                rtx.Select(item.Index, item.Length);
+                //rtx.Select(item.Index, item.Length);
+                //rtx.SelectionColor = _Num;
+                rtx.Select(item.Groups[1].Index, item.Groups[1].Length);
                 rtx.SelectionColor = _Num;
+
+                rtx.Select(item.Groups[2].Index, item.Groups[2].Length);
+                rtx.SelectionColor = _Num;
+
+                rtx.Select(item.Groups[3].Index, item.Groups[3].Length);
+                rtx.SelectionColor = _Key;
             }
             rtx.SelectionLength = 0;
             //rtx.Select(0, 0);
