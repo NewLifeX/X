@@ -257,6 +257,7 @@ namespace XCom
             //while ((-1 + text.Length - 1) != (s = text.Length - 1 + rtx.Find(text, s, -1, RichTextBoxFinds.WholeWord)))
             while (true)
             {
+                if (s >= rtx.TextLength) break;
                 s = rtx.Find(text, s, -1, RichTextBoxFinds.WholeWord);
                 if (s < 0) break;
                 if (s > rtx.TextLength - 1) break;
