@@ -231,7 +231,7 @@ namespace NewLife.Windows
         {
             var cfg = SerialPortConfig.Current;
             miHEX编码发送.Checked = !miHEX编码发送.Checked;
-            cfg.HexShow = miHEX编码发送.Checked;
+            cfg.HexSend = miHEX编码发送.Checked;
         }
 
         private void miDTR_Click(object sender, EventArgs e)
