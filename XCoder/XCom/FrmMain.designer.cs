@@ -34,15 +34,15 @@
             this.txtReceive = new System.Windows.Forms.RichTextBox();
             this.gbSend = new System.Windows.Forms.GroupBox();
             this.txtSend = new System.Windows.Forms.RichTextBox();
-            this.label7 = new System.Windows.Forms.Label();
-            this.btnSend = new System.Windows.Forms.Button();
             this.menuSend = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.mi清空2 = new System.Windows.Forms.ToolStripMenuItem();
+            this.label7 = new System.Windows.Forms.Label();
+            this.btnSend = new System.Windows.Forms.Button();
             this.btnConnect = new System.Windows.Forms.Button();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
             this.fontDialog1 = new System.Windows.Forms.FontDialog();
-            this.spList = new NewLife.Windows.SerialPortList();
             this.colorDialog1 = new System.Windows.Forms.ColorDialog();
+            this.spList = new NewLife.Windows.SerialPortList();
             ((System.ComponentModel.ISupportInitialize)(this.numMutilSend)).BeginInit();
             this.gbReceive.SuspendLayout();
             this.gbSend.SuspendLayout();
@@ -125,6 +125,20 @@
             this.txtSend.TabIndex = 2;
             this.txtSend.Text = "";
             // 
+            // menuSend
+            // 
+            this.menuSend.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.mi清空2});
+            this.menuSend.Name = "menuSend";
+            this.menuSend.Size = new System.Drawing.Size(101, 26);
+            // 
+            // mi清空2
+            // 
+            this.mi清空2.Name = "mi清空2";
+            this.mi清空2.Size = new System.Drawing.Size(100, 22);
+            this.mi清空2.Text = "清空";
+            this.mi清空2.Click += new System.EventHandler(this.mi清空2_Click);
+            // 
             // label7
             // 
             this.label7.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
@@ -145,20 +159,6 @@
             this.btnSend.Text = "发送";
             this.btnSend.UseVisualStyleBackColor = true;
             this.btnSend.Click += new System.EventHandler(this.btnSend_Click);
-            // 
-            // menuSend
-            // 
-            this.menuSend.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.mi清空2});
-            this.menuSend.Name = "menuSend";
-            this.menuSend.Size = new System.Drawing.Size(101, 26);
-            // 
-            // mi清空2
-            // 
-            this.mi清空2.Name = "mi清空2";
-            this.mi清空2.Size = new System.Drawing.Size(100, 22);
-            this.mi清空2.Text = "清空";
-            this.mi清空2.Click += new System.EventHandler(this.mi清空2_Click);
             // 
             // btnConnect
             // 
@@ -186,6 +186,7 @@
             this.spList.SelectedPort = "COM1(Serial0)";
             this.spList.Size = new System.Drawing.Size(341, 29);
             this.spList.TabIndex = 6;
+            this.spList.ReceivedString += new System.EventHandler<NewLife.Windows.StringEventArgs>(this.OnReceived);
             // 
             // FrmMain
             // 

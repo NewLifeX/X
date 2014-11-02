@@ -271,6 +271,7 @@ namespace NewLife.Windows
 
             //Port.Open();
 
+            Port.Disconnected += Port_Disconnected;
             Port.Received += OnReceived;
             Port.ReceiveAsync();
 
@@ -284,9 +285,15 @@ namespace NewLife.Windows
             this.Enabled = false;
         }
 
+        void Port_Disconnected(object sender, EventArgs e)
+        {
+            Disconnect();
+        }
+
         /// <summary>断开串口连接</summary>
         public void Disconnect()
         {
+            Port.Disconnected -= Port_Disconnected;
             Port.Received -= OnReceived;
             if (Port != null)
             {
@@ -305,11 +312,11 @@ namespace NewLife.Windows
             {
                 ShowPorts();
             }
-            else
-            {
-                // 检查串口是否已断开，自动关闭已断开的串口，避免内存暴涨
-                if (Port != null && Port.Serial != null && !Port.Serial.IsOpen) Disconnect();
-            }
+            //else
+            //{
+            //    // 检查串口是否已断开，自动关闭已断开的串口，避免内存暴涨
+            //    if (Port != null && Port.Serial != null && !Port.Serial.IsOpen) Disconnect();
+            //}
         }
         #endregion
 
@@ -412,13 +419,13 @@ namespace NewLife.Windows
         /// <summary>收到数据时触发。第一个参数是数据，第二个参数返回是否继续往下传递数据</summary>
         [Browsable(true)]
         [EditorBrowsable(EditorBrowsableState.Always)]
-        public event EventHandler<EventArgs<Byte[], Boolean>> Received;
+        public event EventHandler<BufferEventArgs> Received;
 
         /// <summary>收到数据时转为字符串后触发该事件。注意字符串编码和十六进制编码。</summary>
         /// <remarks>如果需要收到的数据，可直接在<seealso cref="Port"/>上挂载事件</remarks>
         [Browsable(true)]
         [EditorBrowsable(EditorBrowsableState.Always)]
-        public event EventHandler<EventArgs<String>> ReceivedString;
+        public event EventHandler<StringEventArgs> ReceivedString;
 
         MemoryStream _stream;
         StreamReader _reader;
@@ -431,9 +438,12 @@ namespace NewLife.Windows
             // 处理数据委托
             if (Received != null)
             {
-                var e = new EventArgs<Byte[], Boolean>(data, true);
+                var e = new BufferEventArgs { Value = data };
                 Received(this, e);
-                if (!e.Arg2) return null;
+                if (!e.Cancel) return null;
+                // 外部可能修改了数据
+                data = e.Value;
+                //if (!BufferEventArgs.Invoke(Received, data)) return null;
             }
 
             // 处理字符串委托
@@ -463,7 +473,7 @@ namespace NewLife.Windows
                 line = _reader.ReadToEnd();
             }
 
-            if (ReceivedString != null) ReceivedString(this, new EventArgs<string>(line));
+            if (ReceivedString != null) ReceivedString(this, new StringEventArgs { Value = line });
 
             return null;
         }
@@ -495,5 +505,28 @@ namespace NewLife.Windows
             }
         }
         #endregion
+    }
+
+    /// <summary>字符串事件参数</summary>
+    public class StringEventArgs : EventArgs
+    {
+        private String _Value;
+        /// <summary>字符串值</summary>
+        public String Value { get { return _Value; } set { _Value = value; } }
+    }
+
+    /// <summary>缓冲区事件参数</summary>
+    public class BufferEventArgs : CancelEventArgs
+    {
+        private Byte[] _Value;
+        /// <summary>缓冲区数据</summary>
+        public Byte[] Value { get { return _Value; } set { _Value = value; } }
+
+        //public static Boolean Invoke(EventHandler<BufferEventArgs> handler, Object sender, Byte[] buf)
+        //{
+        //    var e = new BufferEventArgs { Value = buf, Cancel = false };
+        //    handler(sender, e);
+        //    return e.Cancel;
+        //}
     }
 }

@@ -5,6 +5,7 @@ using System.Threading;
 using System.Windows.Forms;
 using NewLife;
 using NewLife.Log;
+using NewLife.Windows;
 using XCoder;
 
 namespace XCom
@@ -27,7 +28,7 @@ namespace XCom
             gbReceive.Tag = gbReceive.Text;
             gbSend.Tag = gbSend.Text;
 
-            spList.ReceivedString += OnReceived;
+            //spList.ReceivedString += OnReceived;
 
             var menu = spList.Menu;
             txtReceive.ContextMenuStrip = menu;
@@ -104,9 +105,9 @@ namespace XCom
                 Disconnect();
         }
 
-        void OnReceived(Object sender, EventArgs<String> e)
+        void OnReceived(Object sender, StringEventArgs e)
         {
-            var line = e.Arg;
+            var line = e.Value;
             //XTrace.UseWinFormWriteLog(txtReceive, line, 100000);
             TextControlLog.WriteLog(txtReceive, line);
         }
