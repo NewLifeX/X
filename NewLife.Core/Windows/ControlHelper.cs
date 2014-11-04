@@ -15,6 +15,8 @@ namespace System.Windows.Forms
         /// <returns></returns>
         public static void Invoke(this Control control, Func method)
         {
+            if (control.IsDisposed) return;
+
             control.Invoke(method);
         }
 
