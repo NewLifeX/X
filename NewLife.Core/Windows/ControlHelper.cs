@@ -96,6 +96,8 @@ namespace System.Windows.Forms
         /// <returns></returns>
         public static TextBoxBase Append(this TextBoxBase txt, String msg, Int32 maxLines = 1000)
         {
+            if (txt.IsDisposed) return txt;
+
             var func = new Action<String>(m =>
             {
                 try
@@ -171,6 +173,8 @@ namespace System.Windows.Forms
         /// <returns></returns>
         public static TextBoxBase Scroll(this TextBoxBase txt, Boolean bottom = true)
         {
+            if (txt.IsDisposed) return txt;
+
             SendMessage(txt.Handle, WM_VSCROLL, bottom ? SB_BOTTOM : SB_TOP, 0);
 
             return txt;
