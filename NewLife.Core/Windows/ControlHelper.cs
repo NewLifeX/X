@@ -27,6 +27,8 @@ namespace System.Windows.Forms
         /// <returns></returns>
         public static TResult Invoke<TResult>(this Control control, Func<TResult> method)
         {
+            if (control.IsDisposed) return default(TResult);
+
             return (TResult)control.Invoke(method);
         }
 
@@ -38,6 +40,8 @@ namespace System.Windows.Forms
         /// <returns></returns>
         public static void Invoke<T>(this Control control, Action<T> method, T arg)
         {
+            if (control.IsDisposed) return;
+
             control.Invoke(method, arg);
         }
 
@@ -50,6 +54,8 @@ namespace System.Windows.Forms
         /// <returns></returns>
         public static TResult Invoke<T, TResult>(this Control control, Func<T, TResult> method, T arg)
         {
+            if (control.IsDisposed) return default(TResult);
+
             return (TResult)control.Invoke(method, arg);
         }
 
@@ -62,6 +68,8 @@ namespace System.Windows.Forms
         /// <param name="arg2"></param>
         public static void Invoke<T, T2>(this Control control, Action<T, T2> method, T arg, T2 arg2)
         {
+            if (control.IsDisposed) return;
+
             control.Invoke(method, arg, arg2);
         }
 
