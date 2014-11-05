@@ -2,6 +2,7 @@
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using NewLife.Reflection;
+using NewLife.Threading;
 
 namespace System.Windows.Forms
 {
@@ -276,8 +277,23 @@ namespace System.Windows.Forms
                     m = str;
                 }
 
-                Console.Beep();
+                //Console.Beep();
+                // 用定时器来控制Beep，避免被堵塞
+                if (_timer == null) _timer = new TimerX(Bell, null, 100, 100);
+                _Beep = true;
                 //SystemSounds.Beep.Play();
+                p++;
+            }
+        }
+
+        static TimerX _timer;
+        static Boolean _Beep;
+        static void Bell(Object state)
+        {
+            if (_Beep)
+            {
+                _Beep = false;
+                Console.Beep();
             }
         }
 
