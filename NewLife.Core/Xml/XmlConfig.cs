@@ -233,9 +233,14 @@ namespace NewLife.Xml
             var config = this;
             try
             {
-                var xml1 = File.ReadAllText(ConfigFile);
-                var xml2 = config.ToXml(null, "", "", true, true);
-                if (xml1 != xml2)
+                var flag = File.Exists(ConfigFile);
+                if (!flag)
+                {
+                    var xml1 = File.ReadAllText(ConfigFile);
+                    var xml2 = config.ToXml(null, "", "", true, true);
+                    flag = xml1 != xml2;
+                }
+                if (flag)
                 {
                     XTrace.WriteLine("配置文件{0}格式不一致，保存为最新格式！", ConfigFile);
                     config.Save();
