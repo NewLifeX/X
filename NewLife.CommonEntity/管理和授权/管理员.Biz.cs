@@ -10,6 +10,7 @@ using NewLife.Log;
 using NewLife.Security;
 using NewLife.Web;
 using XCode;
+using System.Linq;
 
 namespace NewLife.CommonEntity
 {
@@ -26,6 +27,45 @@ namespace NewLife.CommonEntity
         where TMenuEntity : Menu<TMenuEntity>, new()
     {
         #region 对象操作
+        //static Administrator()
+        //{
+        //    // 初始化时执行必要的权限检查，以防万一管理员无法操作
+        //}
+
+        /// <summary>初始化数据</summary>
+        protected override void InitData()
+        {
+            base.InitData();
+
+            CheckRole();
+        }
+
+        /// <summary>初始化时执行必要的权限检查，以防万一管理员无法操作</summary>
+        static void CheckRole()
+        {
+            var rs = Role<TRoleEntity>.Meta.Cache.Entities;
+            var list = rs.ToList();
+            var sys = list.FirstOrDefault(e => e.IsSystem);
+            if (sys == null) return;
+
+            // 如果没有任何角色拥有权限管理的权限，那是很悲催的事情
+            var count = 0;
+            var nes = Menu<TMenuEntity>.Necessaries;
+            foreach (var item in nes)
+            {
+                if (!list.Any(e => e.Has(item, PermissionFlags.All)))
+                {
+                    count++;
+                    sys.Set(item, PermissionFlags.All);
+                }
+            }
+            if (count > 0)
+            {
+                XTrace.WriteLine("共有{0}个必要菜单，没有任何角色拥有权限，准备授权第一系统角色{1}拥有其完全管理权！", count, sys);
+                sys.Save();
+            }
+        }
+
         /// <summary>已重载。调用Save时写日志，而调用Insert和Update时不写日志</summary>
         /// <returns></returns>
         public override int Save()

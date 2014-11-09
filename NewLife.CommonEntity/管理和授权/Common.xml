@@ -50,6 +50,7 @@
       <Column Name="Remark" DataType="String" Length="500" Description="备注" />
       <Column Name="Permission" DataType="String" Description="权限" />
       <Column Name="IsShow" DataType="Boolean" Description="是否显示" />
+      <Column Name="Necessary" DataType="Boolean" Description="必要的菜单。必须至少有角色拥有这些权限，如果没有则自动授权给系统角色" />
       <Column Name="Roles" DataType="String" Description="多角色" />
     </Columns>
     <Indexes>

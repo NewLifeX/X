@@ -244,7 +244,7 @@ namespace NewLife.CommonEntity
             {
                 // 必须有至少一个可用的系统角色
                 var list = Meta.Cache.Entities.ToList();
-                if (!list.Any(e => e.IsSystem))
+                if (list.Count > 0 && !list.Any(e => e.IsSystem))
                 {
                     // 如果没有，让第一个角色作为系统角色
                     var role = list[0];
@@ -361,6 +361,41 @@ namespace NewLife.CommonEntity
         /// <summary>本角色权限集合</summary>
         public Dictionary<Int32, PermissionFlags> Permissions { get { return _Permissions; } set { _Permissions = value; } }
 
+        /// <summary>是否拥有指定资源的指定权限</summary>
+        /// <param name="resid"></param>
+        /// <param name="flag"></param>
+        /// <returns></returns>
+        public Boolean Has(Int32 resid, PermissionFlags flag = PermissionFlags.None)
+        {
+            var pf = PermissionFlags.None;
+            if (!Permissions.TryGetValue(resid, out pf)) return false;
+
+            return pf.Has(flag);
+        }
+
+        /// <summary>删除指定资源的权限</summary>
+        /// <param name="resid"></param>
+        public void Remove(Int32 resid)
+        {
+            if (Permissions.ContainsKey(resid)) Permissions.Remove(resid);
+        }
+
+        /// <summary>设置该角色拥有指定资源的指定权限</summary>
+        /// <param name="resid"></param>
+        /// <param name="flag"></param>
+        public void Set(Int32 resid, PermissionFlags flag = PermissionFlags.All)
+        {
+            var pf = PermissionFlags.None;
+            if (!Permissions.TryGetValue(resid, out pf))
+            {
+                Permissions.Add(resid, flag);
+            }
+            else
+            {
+                Permissions[resid] = pf | flag;
+            }
+        }
+
         void LoadPermission()
         {
             Permissions.Clear();
@@ -376,15 +411,22 @@ namespace NewLife.CommonEntity
 
         void SavePermission()
         {
-            Permission = null;
-            if (Permissions.Count <= 0) return;
+            // 不能这样子直接清空，因为可能没有任何改变，而这么做会两次改变脏数据，让系统以为有改变
+            //Permission = null;
+            if (Permissions.Count <= 0)
+            {
+                Permission = null;
+                return;
+            }
 
             var sb = new StringBuilder();
-            foreach (var item in Permissions)
+            // 根据资源按照从小到大排序一下
+            foreach (var item in Permissions.OrderBy(e => e.Key))
             {
                 if (sb.Length > 0) sb.Append(",");
                 sb.AppendFormat("{0}#{1}", item.Key, (Int32)item.Value);
             }
+            Permission = sb.ToString();
         }
 
         ///// <summary>设置资源权限</summary>

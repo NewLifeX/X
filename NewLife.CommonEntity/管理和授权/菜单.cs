@@ -115,12 +115,24 @@ namespace NewLife.CommonEntity
             set { if (OnPropertyChanging(__.IsShow, value)) { _IsShow = value; OnPropertyChanged(__.IsShow); } }
         }
 
+        private Boolean _Necessary;
+        /// <summary>必要的菜单。必须至少有角色拥有这些权限，如果没有则自动授权给系统角色</summary>
+        [DisplayName("必要的菜单")]
+        [Description("必要的菜单。必须至少有角色拥有这些权限，如果没有则自动授权给系统角色")]
+        [DataObjectField(false, false, true, 1)]
+        [BindColumn(9, "Necessary", "必要的菜单。必须至少有角色拥有这些权限，如果没有则自动授权给系统角色", null, "bit", 0, 0, false)]
+        public virtual Boolean Necessary
+        {
+            get { return _Necessary; }
+            set { if (OnPropertyChanging(__.Necessary, value)) { _Necessary = value; OnPropertyChanged(__.Necessary); } }
+        }
+
         private String _Roles;
         /// <summary>多角色</summary>
         [DisplayName("多角色")]
         [Description("多角色")]
         [DataObjectField(false, false, true, 50)]
-        [BindColumn(9, "Roles", "多角色", null, "nvarchar(50)", 0, 0, true)]
+        [BindColumn(10, "Roles", "多角色", null, "nvarchar(50)", 0, 0, true)]
         public virtual String Roles
         {
             get { return _Roles; }
@@ -150,6 +162,7 @@ namespace NewLife.CommonEntity
                     case __.Remark : return _Remark;
                     case __.Permission : return _Permission;
                     case __.IsShow : return _IsShow;
+                    case __.Necessary : return _Necessary;
                     case __.Roles : return _Roles;
                     default: return base[name];
                 }
@@ -166,6 +179,7 @@ namespace NewLife.CommonEntity
                     case __.Remark : _Remark = Convert.ToString(value); break;
                     case __.Permission : _Permission = Convert.ToString(value); break;
                     case __.IsShow : _IsShow = Convert.ToBoolean(value); break;
+                    case __.Necessary : _Necessary = Convert.ToBoolean(value); break;
                     case __.Roles : _Roles = Convert.ToString(value); break;
                     default: base[name] = value; break;
                 }
@@ -201,6 +215,9 @@ namespace NewLife.CommonEntity
             ///<summary>是否显示</summary>
             public static readonly Field IsShow = FindByName(__.IsShow);
 
+            ///<summary>必要的菜单。必须至少有角色拥有这些权限，如果没有则自动授权给系统角色</summary>
+            public static readonly Field Necessary = FindByName(__.Necessary);
+
             ///<summary>多角色</summary>
             public static readonly Field Roles = FindByName(__.Roles);
 
@@ -233,6 +250,9 @@ namespace NewLife.CommonEntity
 
             ///<summary>是否显示</summary>
             public const String IsShow = "IsShow";
+
+            ///<summary>必要的菜单。必须至少有角色拥有这些权限，如果没有则自动授权给系统角色</summary>
+            public const String Necessary = "Necessary";
 
             ///<summary>多角色</summary>
             public const String Roles = "Roles";
@@ -268,6 +288,9 @@ namespace NewLife.CommonEntity
 
         /// <summary>是否显示</summary>
         Boolean IsShow { get; set; }
+
+        /// <summary>必要的菜单。必须至少有角色拥有这些权限，如果没有则自动授权给系统角色</summary>
+        Boolean Necessary { get; set; }
 
         /// <summary>多角色</summary>
         String Roles { get; set; }

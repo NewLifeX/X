@@ -122,23 +122,23 @@ namespace NewLife.CommonEntity
             }
         }
 
-        /// <summary>当前页所对应的菜单项。通过实体资格提供者，保证取得正确的菜单项</summary>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        [Obsolete("该成员在后续版本中讲不再被支持！")]
-        public static IMenu CurrentMenu
-        {
-            get
-            {
-                //return TypeResolver.GetPropertyValue(typeof(IMenu), "Current") as IMenu;
+        ///// <summary>当前页所对应的菜单项。通过实体资格提供者，保证取得正确的菜单项</summary>
+        //[EditorBrowsable(EditorBrowsableState.Never)]
+        //[Obsolete("该成员在后续版本中讲不再被支持！")]
+        //public static IMenu CurrentMenu
+        //{
+        //    get
+        //    {
+        //        //return TypeResolver.GetPropertyValue(typeof(IMenu), "Current") as IMenu;
 
-                var provider = CommonManageProvider.Provider;
-                if (provider == null) return null;
+        //        var provider = CommonManageProvider.Provider;
+        //        if (provider == null) return null;
 
-                //var type = provider.MenuType;
-                //return PropertyInfoX.Create(type, "Current").GetValue() as IMenu;
-                return provider.MenuType.GetValue("Current") as IMenu;
-            }
-        }
+        //        //var type = provider.MenuType;
+        //        //return PropertyInfoX.Create(type, "Current").GetValue() as IMenu;
+        //        return provider.MenuType.GetValue("Current") as IMenu;
+        //    }
+        //}
 
         static TEntity GetCurrentMenu()
         {
@@ -180,6 +180,19 @@ namespace NewLife.CommonEntity
             // 兼容旧版本
             url = String.Format(@"../{0}/{1}", di.Name, fileName);
             return FindByUrl(url);
+        }
+
+        /// <summary>必要的菜单。必须至少有角色拥有这些权限，如果没有则自动授权给系统角色</summary>
+        internal static Int32[] Necessaries
+        {
+            get
+            {
+                // 找出所有的必要菜单，如果没有，则表示全部都是必要
+                var list = FindAllWithCache(__.Necessary, true);
+                if (list.Count <= 0) list = Meta.Cache.Entities;
+
+                return list.GetItem<Int32>(__.ID).ToArray();
+            }
         }
         #endregion
 
@@ -944,14 +957,17 @@ namespace NewLife.CommonEntity
         /// <summary>排序下降</summary>
         void Down();
 
-        /// <summary>保存</summary>
-        /// <returns></returns>
-        Int32 Save();
+        ///// <summary>保存</summary>
+        ///// <returns></returns>
+        //Int32 Save();
     }
 
     public interface IMenuFactory : IEntityOperate
     {
         IMenu Root { get; }
+
+        ///// <summary>必要的菜单。必须至少有角色拥有这些权限，如果没有则自动授权给系统角色</summary>
+        //Int32[] Necessary { get; }
     }
 
     /// <summary>菜单实体工厂</summary>
