@@ -1,8 +1,7 @@
 ﻿using System;
+using System.Linq;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Threading;
-using System.Web.UI;
 using NewLife.Reflection;
 using XCode;
 
@@ -28,24 +27,6 @@ namespace NewLife.CommonEntity
         Type RoleMenuType { get; }
         #endregion
 
-        #region 页面和表单
-        /// <summary>创建管理页控制器</summary>
-        /// <param name="container"></param>
-        /// <param name="entityType"></param>
-        /// <returns></returns>
-        [Obsolete("该成员在后续版本中讲不再被支持！")]
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        IManagePage CreatePage(Control container, Type entityType);
-
-        /// <summary>创建实体表单控制器</summary>
-        /// <param name="container"></param>
-        /// <param name="entityType"></param>
-        /// <returns></returns>
-        [Obsolete("该成员在后续版本中讲不再被支持！")]
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        IEntityForm CreateForm(Control container, Type entityType);
-        #endregion
-
         #region 菜单
         /// <summary>菜单根，如果不支持则返回null</summary>
         IMenu MenuRoot { get; }
@@ -60,6 +41,18 @@ namespace NewLife.CommonEntity
         /// <returns></returns>
         IList<IMenu> GetMySubMenus(Int32 menuid);
         #endregion
+
+        ///// <summary>创建指定类型指定动作的日志实体</summary>
+        ///// <param name="type">类型</param>
+        ///// <param name="action"></param>
+        ///// <returns></returns>
+        //ILog CreateLog(Type type, String action);
+
+        ///// <summary>写日志</summary>
+        ///// <param name="type">类型</param>
+        ///// <param name="action">操作</param>
+        ///// <param name="remark">备注</param>
+        //void WriteLog(Type type, String action, String remark);
     }
 
     /// <summary>通用实体类管理提供者</summary>
@@ -130,7 +123,7 @@ namespace NewLife.CommonEntity
             if (hasInit > 0 || Interlocked.CompareExchange(ref hasInit, 1, 0) != 0) return;
 
             var btype = typeof(Object);
-            var adminType = typeof(Administrator<,,,,>);
+            var adminType = typeof(Administrator<,,>);
             var type = _AdministratorType = typeof(TAdministrator);
             while (type != typeof(Object))
             {
@@ -140,42 +133,12 @@ namespace NewLife.CommonEntity
                     var ts = type.GetGenericArguments();
                     _RoleType = ts[1];
                     _MenuType = ts[2];
-                    _RoleMenuType = ts[3];
-                    _LogType = ts[4];
+                    //_RoleMenuType = ts[3];
+                    //_LogType = ts[4];
                     break;
                 }
                 type = type.BaseType;
             }
-        }
-        #endregion
-
-        #region 页面和表单
-        /// <summary>创建管理页控制器</summary>
-        /// <param name="container"></param>
-        /// <param name="entityType"></param>
-        /// <returns></returns>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        [Obsolete("该成员在后续版本中讲不再被支持！")]
-        public virtual IManagePage CreatePage(Control container, Type entityType)
-        {
-            IManagePage page = GetService<IManagePage>();
-            page.Init(container, entityType);
-
-            return page;
-        }
-
-        /// <summary>创建实体表单控制器</summary>
-        /// <param name="container"></param>
-        /// <param name="entityType"></param>
-        /// <returns></returns>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        [Obsolete("该成员在后续版本中讲不再被支持！")]
-        public virtual IEntityForm CreateForm(Control container, Type entityType)
-        {
-            IEntityForm form = GetService<IEntityForm>();
-            form.Init(container, entityType);
-
-            return form;
         }
         #endregion
 
@@ -228,7 +191,16 @@ namespace NewLife.CommonEntity
                 if (menu == null) return null;
             }
 
-            return admin.Role.GetMySubMenus(menu.ID);
+            //return admin.Role.GetMySubMenus(menu.ID);
+
+            var menus = menu.AllChilds;
+            if (menus.Count < 1) return menus;
+
+            // 请求角色过滤资源权限
+            var res = admin.Role.Resources;
+            menus = menus.Where(e => res.Contains(e.ID)).ToList();
+
+            return menus;
         }
         #endregion
     }

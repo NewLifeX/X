@@ -1,41 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Tables Version="8.10.5097.24140">
-  <Table Name="Administrator" Description="管理员" DbType="SqlServer">
+<Tables Version="8.13.5422.21755">
+  <Table Name="Administrator" Description="管理员" DbType="SqlServer" RenderGenEntity="true">
     <Columns>
       <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
       <Column Name="Name" DataType="String" Description="名称" />
       <Column Name="Password" DataType="String" Description="密码" />
       <Column Name="DisplayName" DataType="String" Description="显示名" />
+      <Column Name="Mail" DataType="String" Description="邮件" />
+      <Column Name="Phone" DataType="String" Description="电话" />
+      <Column Name="Code" DataType="String" Description="唯一代码。比如身份证、SSOID等" />
       <Column Name="RoleID" DataType="Int32" Description="角色" />
+      <Column Name="Roles" DataType="String" Description="多角色" />
       <Column Name="Logins" DataType="Int32" Description="登录次数" />
       <Column Name="LastLogin" DataType="DateTime" Description="最后登录" />
       <Column Name="LastLoginIP" DataType="String" Description="最后登陆IP" />
-      <Column Name="SSOUserID" DataType="Int32" Description="登录用户编号" />
       <Column Name="IsEnable" DataType="Boolean" Description="是否使用" />
+      <Column Name="Profile" DataType="String" Length="500" Description="配置信息" />
     </Columns>
     <Indexes>
-      <Index Name="IX_Administrator_Name" Columns="Name" Unique="True" />
+      <Index Columns="Name" />
       <Index Columns="RoleID" />
     </Indexes>
     <Relations>
       <Relation Column="RoleID" RelationTable="Role" RelationColumn="ID" />
     </Relations>
   </Table>
-  <Table Name="Role" Description="角色" DbType="SqlServer">
+  <Table Name="Role" Description="角色" DbType="SqlServer" RenderGenEntity="true">
     <Columns>
       <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
       <Column Name="Name" DataType="String" Description="角色名称" />
       <Column Name="IsSystem" DataType="Boolean" Description="是否系统角色。系统角色用于业务系统开发使用，禁止删除" />
+      <Column Name="Permission" DataType="String" Length="-1" Description="权限" />
     </Columns>
     <Indexes>
-      <Index Name="IX_Role_Name" Columns="Name" Unique="True" />
+      <Index Columns="Name" Unique="True" />
     </Indexes>
     <Relations>
       <Relation Column="ID" RelationTable="RoleMenu" RelationColumn="RoleID" Unique="True" />
       <Relation Column="ID" RelationTable="Administrator" RelationColumn="RoleID" Unique="True" />
     </Relations>
   </Table>
-  <Table Name="Menu" Description="菜单" DbType="SqlServer">
+  <Table Name="Menu" Description="菜单" DbType="SqlServer" BaseType="EntityTree" RenderGenEntity="true">
     <Columns>
       <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
       <Column Name="Name" DataType="String" Description="名称" />
@@ -45,6 +50,7 @@
       <Column Name="Remark" DataType="String" Length="500" Description="备注" />
       <Column Name="Permission" DataType="String" Description="权限" />
       <Column Name="IsShow" DataType="Boolean" Description="是否显示" />
+      <Column Name="Roles" DataType="String" Description="多角色" />
     </Columns>
     <Indexes>
       <Index Columns="Name" />
@@ -54,24 +60,7 @@
       <Relation Column="ID" RelationTable="RoleMenu" RelationColumn="MenuID" Unique="True" />
     </Relations>
   </Table>
-  <Table Name="RoleMenu" Description="角色和菜单" DbType="SqlServer">
-    <Columns>
-      <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
-      <Column Name="RoleID" DataType="Int32" Description="角色编号" />
-      <Column Name="MenuID" DataType="Int32" Description="菜单编号" />
-      <Column Name="Permission" DataType="Int32" Description="权限" />
-    </Columns>
-    <Indexes>
-      <Index Columns="MenuID" />
-      <Index Columns="RoleID" />
-      <Index Name="IX_RoleMenu_MenuID_RoleID" Columns="MenuID,RoleID" Unique="True" />
-    </Indexes>
-    <Relations>
-      <Relation Column="MenuID" RelationTable="Menu" RelationColumn="ID" />
-      <Relation Column="RoleID" RelationTable="Role" RelationColumn="ID" />
-    </Relations>
-  </Table>
-  <Table Name="Log" Description="日志" DbType="SqlServer">
+  <Table Name="Log" Description="日志" DbType="SqlServer" RenderGenEntity="true">
     <Columns>
       <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
       <Column Name="Category" DataType="String" Description="类别" />
@@ -86,7 +75,7 @@
       <Index Columns="Category" />
     </Indexes>
   </Table>
-  <Table Name="User" Description="用户" DbType="SqlServer">
+  <Table Name="User" Description="用户" DbType="SqlServer" RenderGenEntity="true">
     <Columns>
       <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
       <Column Name="Account" DataType="String" Description="账号" />
@@ -95,10 +84,10 @@
       <Column Name="IsEnable" DataType="Boolean" Description="是否启用" />
     </Columns>
     <Indexes>
-      <Index Name="IX_User_Account" Columns="Account" Unique="True" />
+      <Index Columns="Account" Unique="True" />
     </Indexes>
   </Table>
-  <Table Name="Department" Description="部门" DbType="SqlServer">
+  <Table Name="Department" Description="部门" DbType="SqlServer" BaseType="EntityTree" RenderGenEntity="true">
     <Columns>
       <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
       <Column Name="Name" DataType="String" Description="名称" />
@@ -114,7 +103,7 @@
     <Indexes>
       <Index Columns="Name" />
       <Index Columns="Code" />
-      <Index Name="IX_Department_ParentID_Name" Columns="ParentID,Name" Unique="True" />
+      <Index Columns="ParentID,Name" Unique="True" />
       <Index Columns="ParentID,Code" />
     </Indexes>
   </Table>

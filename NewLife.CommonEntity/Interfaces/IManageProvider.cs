@@ -109,10 +109,6 @@ namespace NewLife.CommonEntity
         /// <returns></returns>
         public virtual Object GetService(Type serviceType)
         {
-            //if (serviceType == typeof(IManagePage))
-            //    return CommonService.Resolve<IManagePage>();
-            //else if (serviceType == typeof(IEntityForm))
-            //    return CommonService.Resolve<IEntityForm>();
             if (serviceType == typeof(IManagePage))
                 return GetHttpCache(typeof(IManagePage), k => CommonService.Container.Resolve<IManagePage>());
             else if (serviceType == typeof(IEntityForm))
@@ -131,7 +127,7 @@ namespace NewLife.CommonEntity
         {
             if (HttpContext.Current.Items[key] != null) return HttpContext.Current.Items[key];
 
-            Object value = func(key);
+            var value = func(key);
 
             HttpContext.Current.Items[key] = value;
 

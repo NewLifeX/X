@@ -14,8 +14,8 @@ namespace NewLife.CommonEntity
         /// <param name="remark">备注</param>
         public static void WriteLog(String action, String remark)
         {
-            var admin = ManageProvider.Provider.Current as IAdministrator;
-            if (admin != null) admin.WriteLog(typeof(TEntity), action, remark);
+            //var admin = ManageProvider.Provider.Current as IAdministrator;
+            //if (admin != null) admin.WriteLog(typeof(TEntity), action, remark);
         }
         #endregion
     }

@@ -12,7 +12,7 @@ namespace NewLife.CommonEntity
     [Serializable]
     [DataObject]
     [Description("角色")]
-    [BindIndex("IX_Role_Name", true, "Name")]
+    [BindIndex("IU_Role_Name", true, "Name")]
     [BindRelation("ID", true, "RoleMenu", "RoleID")]
     [BindRelation("ID", true, "Administrator", "RoleID")]
     [BindTable("Role", Description = "角色", ConnName = "Common", DbType = DatabaseType.SqlServer)]
@@ -54,6 +54,18 @@ namespace NewLife.CommonEntity
             get { return _IsSystem; }
             set { if (OnPropertyChanging(__.IsSystem, value)) { _IsSystem = value; OnPropertyChanged(__.IsSystem); } }
         }
+
+        private String _Permission;
+        /// <summary>权限</summary>
+        [DisplayName("权限")]
+        [Description("权限")]
+        [DataObjectField(false, false, true, -1)]
+        [BindColumn(4, "Permission", "权限", null, "ntext", 0, 0, true)]
+        public virtual String Permission
+        {
+            get { return _Permission; }
+            set { if (OnPropertyChanging(__.Permission, value)) { _Permission = value; OnPropertyChanged(__.Permission); } }
+        }
         #endregion
 
         #region 获取/设置 字段值
@@ -73,6 +85,7 @@ namespace NewLife.CommonEntity
                     case __.ID : return _ID;
                     case __.Name : return _Name;
                     case __.IsSystem : return _IsSystem;
+                    case __.Permission : return _Permission;
                     default: return base[name];
                 }
             }
@@ -83,6 +96,7 @@ namespace NewLife.CommonEntity
                     case __.ID : _ID = Convert.ToInt32(value); break;
                     case __.Name : _Name = Convert.ToString(value); break;
                     case __.IsSystem : _IsSystem = Convert.ToBoolean(value); break;
+                    case __.Permission : _Permission = Convert.ToString(value); break;
                     default: base[name] = value; break;
                 }
             }
@@ -91,7 +105,7 @@ namespace NewLife.CommonEntity
 
         #region 字段名
         /// <summary>取得角色字段信息的快捷方式</summary>
-        public partial class _
+        partial class _
         {
             ///<summary>编号</summary>
             public static readonly Field ID = FindByName(__.ID);
@@ -101,6 +115,9 @@ namespace NewLife.CommonEntity
 
             ///<summary>是否系统角色。系统角色用于业务系统开发使用，禁止删除</summary>
             public static readonly Field IsSystem = FindByName(__.IsSystem);
+
+            ///<summary>权限</summary>
+            public static readonly Field Permission = FindByName(__.Permission);
 
             static Field FindByName(String name) { return Meta.Table.FindByName(name); }
         }
@@ -116,6 +133,9 @@ namespace NewLife.CommonEntity
 
             ///<summary>是否系统角色。系统角色用于业务系统开发使用，禁止删除</summary>
             public const String IsSystem = "IsSystem";
+
+            ///<summary>权限</summary>
+            public const String Permission = "Permission";
 
         }
         #endregion
@@ -133,6 +153,9 @@ namespace NewLife.CommonEntity
 
         /// <summary>是否系统角色。系统角色用于业务系统开发使用，禁止删除</summary>
         Boolean IsSystem { get; set; }
+
+        /// <summary>权限</summary>
+        String Permission { get; set; }
         #endregion
 
         #region 获取/设置 字段值

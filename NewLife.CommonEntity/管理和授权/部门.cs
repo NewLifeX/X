@@ -14,7 +14,7 @@ namespace NewLife.CommonEntity
     [Description("部门")]
     [BindIndex("IX_Department_Name", false, "Name")]
     [BindIndex("IX_Department_Code", false, "Code")]
-    [BindIndex("IX_Department_ParentID_Name", true, "ParentID,Name")]
+    [BindIndex("IU_Department_ParentID_Name", true, "ParentID,Name")]
     [BindIndex("IX_Department_ParentID_Code", false, "ParentID,Code")]
     [BindTable("Department", Description = "部门", ConnName = "Common", DbType = DatabaseType.SqlServer)]
     public abstract partial class Department<TEntity> : IDepartment
@@ -263,7 +263,7 @@ namespace NewLife.CommonEntity
     }
 
     /// <summary>部门接口</summary>
-    public partial interface IDepartment
+    public partial interface IDepartment : IEntityTree
     {
         #region 属性
         /// <summary>编号</summary>
@@ -295,13 +295,6 @@ namespace NewLife.CommonEntity
 
         /// <summary>配置文件</summary>
         String Profile { get; set; }
-        #endregion
-
-        #region 获取/设置 字段值
-        /// <summary>获取/设置 字段值。</summary>
-        /// <param name="name">字段名</param>
-        /// <returns></returns>
-        Object this[String name] { get; set; }
         #endregion
     }
 }

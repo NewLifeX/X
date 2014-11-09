@@ -13,7 +13,7 @@
 }
 -->
 </style>
-由nnhy/X生成于：2013-12-15 13:26:14 <BR />
+由nnhy/X2生成于：2014-11-09 20:26:46 <BR />
 
 Administrator：
 <strong>管理员 （Administrator）</strong> <BR>
@@ -79,11 +79,59 @@ Administrator：
     <td> </td>
   </tr>
   <tr class="dbbody">
+    <td>邮件 </td>
+    <td>Mail</td>
+    <td>Mail</td>
+    <td>String</td>
+    <td>50</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">&nbsp;</td>
+    <td> </td>
+    <td> </td>
+  </tr>
+  <tr class="dbbody">
+    <td>电话 </td>
+    <td>Phone</td>
+    <td>Phone</td>
+    <td>String</td>
+    <td>50</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">&nbsp;</td>
+    <td> </td>
+    <td> </td>
+  </tr>
+  <tr class="dbbody">
+    <td>唯一代码 </td>
+    <td>Code</td>
+    <td>Code</td>
+    <td>String</td>
+    <td>50</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">&nbsp;</td>
+    <td> </td>
+    <td>比如身份证、SSOID等 </td>
+  </tr>
+  <tr class="dbbody">
     <td>角色 </td>
     <td>RoleID</td>
     <td>RoleID</td>
     <td>Int32</td>
     <td>10</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">&nbsp;</td>
+    <td> </td>
+    <td> </td>
+  </tr>
+  <tr class="dbbody">
+    <td>多角色 </td>
+    <td>Roles</td>
+    <td>Roles</td>
+    <td>String</td>
+    <td>50</td>
     <td align="center">&nbsp;</td>
     <td align="center">&nbsp;</td>
     <td align="center">&nbsp;</td>
@@ -127,11 +175,11 @@ Administrator：
     <td> </td>
   </tr>
   <tr class="dbbody">
-    <td>登录用户编号 </td>
-    <td>SSOUserID</td>
-    <td>SSOUserID</td>
-    <td>Int32</td>
-    <td>10</td>
+    <td>是否使用 </td>
+    <td>IsEnable</td>
+    <td>IsEnable</td>
+    <td>Boolean</td>
+    <td>1</td>
     <td align="center">&nbsp;</td>
     <td align="center">&nbsp;</td>
     <td align="center">&nbsp;</td>
@@ -139,11 +187,11 @@ Administrator：
     <td> </td>
   </tr>
   <tr class="dbbody">
-    <td>是否使用 </td>
-    <td>IsEnable</td>
-    <td>IsEnable</td>
-    <td>Boolean</td>
-    <td>1</td>
+    <td>配置信息 </td>
+    <td>Profile</td>
+    <td>Profile</td>
+    <td>String</td>
+    <td>500</td>
     <td align="center">&nbsp;</td>
     <td align="center">&nbsp;</td>
     <td align="center">&nbsp;</td>
@@ -203,10 +251,22 @@ Role：
     <td> </td>
     <td>系统角色用于业务系统开发使用，禁止删除 </td>
   </tr>
+  <tr class="dbbody">
+    <td>权限 </td>
+    <td>Permission</td>
+    <td>Permission</td>
+    <td>String</td>
+    <td>-1</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">&nbsp;</td>
+    <td align="center">&nbsp;</td>
+    <td> </td>
+    <td> </td>
+  </tr>
 </table>
 
 Menu：
-<strong>菜单 （Menu）</strong> <BR>
+<strong>菜单 （Menu）=> EntityTree</strong> <BR>
 <table border="0" cellspacing="0" class="dbtable">
   <tr align="center" valign="middle" class="caption">
     <td width="150">中文名</td>
@@ -316,65 +376,12 @@ Menu：
     <td> </td>
     <td> </td>
   </tr>
-</table>
-
-RoleMenu：
-<strong>角色和菜单 （RoleMenu）</strong> <BR>
-<table border="0" cellspacing="0" class="dbtable">
-  <tr align="center" valign="middle" class="caption">
-    <td width="150">中文名</td>
-    <td width="150">英文名</td>
-    <td width="150">字段名</td>
-    <td width="75">数据类型</td>
-    <td width="50">大小</td>
-    <td width="35">主键</td>
-    <td width="35">唯一</td>
-    <td width="35">必填</td>
-    <td width="75">默认值</td>
-    <td width="150">描述</td>
-  </tr>
   <tr class="dbbody">
-    <td>编号 </td>
-    <td>ID</td>
-    <td>ID</td>
-    <td>Int32</td>
-    <td>10</td>
-    <td align="center">是</td>
-    <td align="center">是</td>
-    <td align="center">是</td>
-    <td> </td>
-    <td> </td>
-  </tr>
-  <tr class="dbbody">
-    <td>角色编号 </td>
-    <td>RoleID</td>
-    <td>RoleID</td>
-    <td>Int32</td>
-    <td>10</td>
-    <td align="center">&nbsp;</td>
-    <td align="center">&nbsp;</td>
-    <td align="center">&nbsp;</td>
-    <td> </td>
-    <td> </td>
-  </tr>
-  <tr class="dbbody">
-    <td>菜单编号 </td>
-    <td>MenuID</td>
-    <td>MenuID</td>
-    <td>Int32</td>
-    <td>10</td>
-    <td align="center">&nbsp;</td>
-    <td align="center">&nbsp;</td>
-    <td align="center">&nbsp;</td>
-    <td> </td>
-    <td> </td>
-  </tr>
-  <tr class="dbbody">
-    <td>权限 </td>
-    <td>Permission</td>
-    <td>Permission</td>
-    <td>Int32</td>
-    <td>10</td>
+    <td>多角色 </td>
+    <td>Roles</td>
+    <td>Roles</td>
+    <td>String</td>
+    <td>50</td>
     <td align="center">&nbsp;</td>
     <td align="center">&nbsp;</td>
     <td align="center">&nbsp;</td>
@@ -574,7 +581,7 @@ User：
 </table>
 
 Department：
-<strong>部门 （Department）</strong> <BR>
+<strong>部门 （Department）=> EntityTree</strong> <BR>
 <table border="0" cellspacing="0" class="dbtable">
   <tr align="center" valign="middle" class="caption">
     <td width="150">中文名</td>

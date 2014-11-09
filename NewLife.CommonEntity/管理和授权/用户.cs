@@ -12,7 +12,7 @@ namespace NewLife.CommonEntity
     [Serializable]
     [DataObject]
     [Description("用户")]
-    [BindIndex("IX_User_Account", true, "Account")]
+    [BindIndex("IU_User_Account", true, "Account")]
     [BindTable("User", Description = "用户", ConnName = "Common", DbType = DatabaseType.SqlServer)]
     public abstract partial class User<TEntity> : IUser
     {

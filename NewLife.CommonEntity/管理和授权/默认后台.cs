@@ -7,7 +7,7 @@ namespace NewLife.CommonEntity
     /// <summary>管理员</summary>
     [Serializable]
     [ModelCheckMode(ModelCheckModes.CheckTableWhenFirstUse)]
-    public class Administrator : Administrator<Administrator, Role, Menu, RoleMenu, Log> { }
+    public class Administrator : Administrator<Administrator, Role, Menu> { }
 
     /// <summary>菜单</summary>
     [Serializable]
@@ -17,12 +17,12 @@ namespace NewLife.CommonEntity
     /// <summary>角色</summary>
     [Serializable]
     [ModelCheckMode(ModelCheckModes.CheckTableWhenFirstUse)]
-    public class Role : Role<Role, Menu, RoleMenu> { }
+    public class Role : Role<Role> { }
 
-    /// <summary>角色和菜单</summary>
-    [Serializable]
-    [ModelCheckMode(ModelCheckModes.CheckTableWhenFirstUse)]
-    public class RoleMenu : RoleMenu<RoleMenu> { }
+    ///// <summary>角色和菜单</summary>
+    //[Serializable]
+    //[ModelCheckMode(ModelCheckModes.CheckTableWhenFirstUse)]
+    //public class RoleMenu : RoleMenu<RoleMenu> { }
 
     /// <summary>日志</summary>
     [Serializable]

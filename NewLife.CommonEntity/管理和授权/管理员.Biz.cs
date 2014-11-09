@@ -20,12 +20,10 @@ namespace NewLife.CommonEntity
     /// <typeparam name="TRoleMenuEntity">角色菜单实体类</typeparam>
     /// <typeparam name="TLogEntity">日志实体类</typeparam>
     [Serializable]
-    public partial class Administrator<TEntity, TRoleEntity, TMenuEntity, TRoleMenuEntity, TLogEntity> : Administrator<TEntity>
-        where TEntity : Administrator<TEntity, TRoleEntity, TMenuEntity, TRoleMenuEntity, TLogEntity>, new()
-        where TRoleEntity : Role<TRoleEntity, TMenuEntity, TRoleMenuEntity>, new()
+    public partial class Administrator<TEntity, TRoleEntity, TMenuEntity> : Administrator<TEntity>
+        where TEntity : Administrator<TEntity, TRoleEntity, TMenuEntity>, new()
+        where TRoleEntity : Role<TRoleEntity>, new()
         where TMenuEntity : Menu<TMenuEntity>, new()
-        where TRoleMenuEntity : RoleMenu<TRoleMenuEntity>, new()
-        where TLogEntity : Log<TLogEntity>, new()
     {
         #region 对象操作
         /// <summary>已重载。调用Save时写日志，而调用Insert和Update时不写日志</summary>
@@ -47,7 +45,7 @@ namespace NewLife.CommonEntity
             String name = Name;
             if (String.IsNullOrEmpty(name))
             {
-                var entity = Find(__.ID, ID);
+                var entity = Find("ID", ID);
                 if (entity != null) name = entity.Name;
             }
             WriteLog(null, "删除", name);
@@ -65,21 +63,22 @@ namespace NewLife.CommonEntity
             get
             {
                 if (RoleID <= 0) return null;
-                var role = Extends.GetExtend<TRoleEntity, TRoleEntity>("Role", e => Role<TRoleEntity, TMenuEntity, TRoleMenuEntity>.FindByID(RoleID), false);
-                // 如果找不到角色，并且处于初始化状态，则更正数据
-                if (role == null && Meta.Count <= 1 && Role<TRoleEntity>.Meta.Count > 0)
-                {
-                    role = Role<TRoleEntity>.Meta.Cache.Entities[0];
-                    RoleID = role.ID;
-                    this.Save();
-                }
-                return role;
+                //var role = Extends.GetExtend<TRoleEntity, TRoleEntity>("Role", e => Role<TRoleEntity, TMenuEntity, TRoleMenuEntity>.FindByID(RoleID), false);
+                //// 如果找不到角色，并且处于初始化状态，则更正数据
+                //if (role == null && Meta.Count <= 1 && Role<TRoleEntity>.Meta.Count > 0)
+                //{
+                //    role = Role<TRoleEntity>.Meta.Cache.Entities[0];
+                //    RoleID = role.ID;
+                //    this.Save();
+                //}
+                //return role;
+                return Role<TRoleEntity>.FindByID(RoleID);
             }
-            set { Extends.SetExtend<TRoleEntity>("Role", value); }
+            //set { Extends.SetExtend<TRoleEntity>("Role", value); }
         }
 
         /// <summary>角色</summary>
-        internal protected override IRole RoleInternal { get { return Role; } set { Role = (TRoleEntity)value; } }
+        internal protected override IRole RoleInternal { get { return Role; } /*set { Role = (TRoleEntity)value; }*/ }
 
         /// <summary>根据权限名（权限路径）找到权限菜单实体</summary>
         /// <param name="name">名称</param>
@@ -107,18 +106,18 @@ namespace NewLife.CommonEntity
             return menu;
         }
 
-        /// <summary>创建当前管理员的日志实体</summary>
-        /// <param name="type">类型</param>
-        /// <param name="action"></param>
-        /// <returns></returns>
-        public override ILog CreateLog(Type type, string action)
-        {
-            var log = Log<TLogEntity>.Create(type, action);
-            log.UserID = ID;
-            log.UserName = FriendName;
+        ///// <summary>创建当前管理员的日志实体</summary>
+        ///// <param name="type">类型</param>
+        ///// <param name="action"></param>
+        ///// <returns></returns>
+        //public override ILog CreateLog(Type type, string action)
+        //{
+        //    var log = Log<TLogEntity>.Create(type, action);
+        //    log.UserID = ID;
+        //    log.UserName = FriendName;
 
-            return log;
-        }
+        //    return log;
+        //}
         #endregion
     }
 
@@ -127,7 +126,7 @@ namespace NewLife.CommonEntity
     /// 基础实体类应该是只有一个泛型参数的，需要用到别的类型时，可以继承一个，也可以通过虚拟重载等手段让基类实现
     /// </remarks>
     /// <typeparam name="TEntity">管理员类型</typeparam>
-    public abstract partial class Administrator<TEntity> : Entity<TEntity>, IAdministrator, IManageUser//, IPrincipal//, IIdentity
+    public abstract partial class Administrator<TEntity> : CommonEntityBase<TEntity>, IAdministrator, IManageUser//, IPrincipal//, IIdentity
         where TEntity : Administrator<TEntity>, new()
     {
         #region 对象操作
@@ -289,27 +288,49 @@ namespace NewLife.CommonEntity
                 return Meta.Cache.Entities.Find(__.Name, name);
         }
 
-        /// <summary>根据SSOUserID查找</summary>
+        /// <summary>根据邮箱地址查找</summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        public static TEntity FindBySSOUserID(Int32 id)
+        public static TEntity FindByMail(String mail)
         {
             if (Meta.Count >= 1000)
-                return Find(__.SSOUserID, id);
+                return Find(__.Mail, mail);
             else // 实体缓存
-                return Meta.Cache.Entities.Find(__.SSOUserID, id);
+                return Meta.Cache.Entities.Find(__.Mail, mail);
         }
 
-        /// <summary>根据SSOUserID查找所有帐户</summary>
-        /// <param name="id"></param>
+        /// <summary>根据手机号码查找</summary>
+        /// <param name="phone"></param>
         /// <returns></returns>
-        public static EntityList<TEntity> FindAllBySSOUserID(Int32 id)
+        public static TEntity FindByPhone(String phone)
         {
             if (Meta.Count >= 1000)
-                return FindAll(__.SSOUserID, id);
+                return Find(__.Phone, phone);
             else // 实体缓存
-                return Meta.Cache.Entities.FindAll(__.SSOUserID, id);
+                return Meta.Cache.Entities.Find(__.Phone, phone);
         }
+
+        /// <summary>根据唯一代码查找</summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public static TEntity FindByCode(String code)
+        {
+            if (Meta.Count >= 1000)
+                return Find(__.Code, code);
+            else // 实体缓存
+                return Meta.Cache.Entities.Find(__.Code, code);
+        }
+
+        ///// <summary>根据SSOUserID查找所有帐户</summary>
+        ///// <param name="id"></param>
+        ///// <returns></returns>
+        //public static EntityList<TEntity> FindAllBySSOUserID(Int32 id)
+        //{
+        //    if (Meta.Count >= 1000)
+        //        return FindAll(__.SSOUserID, id);
+        //    else // 实体缓存
+        //        return Meta.Cache.Entities.FindAll(__.SSOUserID, id);
+        //}
 
         /// <summary>查询满足条件的记录集，分页、排序</summary>
         /// <param name="key">关键字</param>
@@ -530,39 +551,40 @@ namespace NewLife.CommonEntity
             if (entity == null) return false;
 
             // 申请权限
-            return entity.Acquire(menuID, flag);
+            //return entity.Acquire(menuID, flag);
+            return true;
         }
 
-        /// <summary>创建当前管理员的日志实体</summary>
-        /// <param name="type">类型</param>
-        /// <param name="action"></param>
-        /// <returns></returns>
-        public abstract ILog CreateLog(Type type, String action);
+        ///// <summary>创建当前管理员的日志实体</summary>
+        ///// <param name="type">类型</param>
+        ///// <param name="action"></param>
+        ///// <returns></returns>
+        //public abstract ILog CreateLog(Type type, String action);
 
-        /// <summary>写日志</summary>
-        /// <param name="action">操作</param>
-        /// <param name="remark">备注</param>
-        public static void WriteLog(String action, String remark)
-        {
-            //IEntityOperate op = EntityFactory.CreateOperate(TypeResolver.Resolve(typeof(IAdministrator), null));
+        ///// <summary>写日志</summary>
+        ///// <param name="action">操作</param>
+        ///// <param name="remark">备注</param>
+        //public static void WriteLog(String action, String remark)
+        //{
+        //    //IEntityOperate op = EntityFactory.CreateOperate(TypeResolver.Resolve(typeof(IAdministrator), null));
 
-            var provider = CommonManageProvider.Provider;
-            if (provider == null) return;
+        //    var provider = CommonManageProvider.Provider;
+        //    if (provider == null) return;
 
-            var op = EntityFactory.CreateOperate(provider.AdminstratorType);
-            var admin = op.Default as IAdministrator;
-            if (admin != null) admin.WriteLog(typeof(TEntity), action, remark);
-        }
+        //    var op = EntityFactory.CreateOperate(provider.AdminstratorType);
+        //    var admin = op.Default as IAdministrator;
+        //    if (admin != null) admin.WriteLog(typeof(TEntity), action, remark);
+        //}
         #endregion
 
         #region IAdministrator 成员
         /// <summary>角色</summary>
         [XmlIgnore]
-        IRole IAdministrator.Role { get { return RoleInternal; } set { RoleInternal = value; } }
+        IRole IAdministrator.Role { get { return RoleInternal; } /*set { RoleInternal = value; }*/ }
 
         /// <summary>角色</summary>
         [XmlIgnore]
-        internal protected abstract IRole RoleInternal { get; set; }
+        internal protected abstract IRole RoleInternal { get; /*set;*/ }
 
         /// <summary>角色名</summary>
         public virtual String RoleName { get { return RoleInternal == null ? null : RoleInternal.Name; } set { } }
@@ -575,13 +597,13 @@ namespace NewLife.CommonEntity
         {
             if (!Config.GetConfig<Boolean>("NewLife.CommonEntity.WriteEntityLog", true)) return;
 
-            if (type == null) type = this.GetType();
-            var log = CreateLog(type, action);
-            if (log != null)
-            {
-                log.Remark = remark;
-                log.Save();
-            }
+            //if (type == null) type = this.GetType();
+            //var log = CreateLog(type, action);
+            //if (log != null)
+            //{
+            //    log.Remark = remark;
+            //    log.Save();
+            //}
         }
         #endregion
 
@@ -663,7 +685,7 @@ namespace NewLife.CommonEntity
         String FriendName { get; }
 
         /// <summary>角色</summary>
-        IRole Role { get; set; }
+        IRole Role { get; /*set;*/ }
 
         /// <summary>角色名</summary>
         String RoleName { get; set; }
@@ -690,17 +712,17 @@ namespace NewLife.CommonEntity
         /// <returns></returns>
         Boolean Acquire(String name);
 
-        /// <summary>创建指定类型指定动作的日志实体</summary>
-        /// <param name="type">类型</param>
-        /// <param name="action"></param>
-        /// <returns></returns>
-        ILog CreateLog(Type type, String action);
+        ///// <summary>创建指定类型指定动作的日志实体</summary>
+        ///// <param name="type">类型</param>
+        ///// <param name="action"></param>
+        ///// <returns></returns>
+        //ILog CreateLog(Type type, String action);
 
-        /// <summary>写日志</summary>
-        /// <param name="type">类型</param>
-        /// <param name="action">操作</param>
-        /// <param name="remark">备注</param>
-        void WriteLog(Type type, String action, String remark);
+        ///// <summary>写日志</summary>
+        ///// <param name="type">类型</param>
+        ///// <param name="action">操作</param>
+        ///// <param name="remark">备注</param>
+        //void WriteLog(Type type, String action, String remark);
 
         /// <summary>注销</summary>
         void Logout();

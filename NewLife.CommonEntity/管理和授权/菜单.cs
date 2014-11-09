@@ -114,6 +114,18 @@ namespace NewLife.CommonEntity
             get { return _IsShow; }
             set { if (OnPropertyChanging(__.IsShow, value)) { _IsShow = value; OnPropertyChanged(__.IsShow); } }
         }
+
+        private String _Roles;
+        /// <summary>多角色</summary>
+        [DisplayName("多角色")]
+        [Description("多角色")]
+        [DataObjectField(false, false, true, 50)]
+        [BindColumn(9, "Roles", "多角色", null, "nvarchar(50)", 0, 0, true)]
+        public virtual String Roles
+        {
+            get { return _Roles; }
+            set { if (OnPropertyChanging(__.Roles, value)) { _Roles = value; OnPropertyChanged(__.Roles); } }
+        }
         #endregion
 
         #region 获取/设置 字段值
@@ -138,6 +150,7 @@ namespace NewLife.CommonEntity
                     case __.Remark : return _Remark;
                     case __.Permission : return _Permission;
                     case __.IsShow : return _IsShow;
+                    case __.Roles : return _Roles;
                     default: return base[name];
                 }
             }
@@ -153,6 +166,7 @@ namespace NewLife.CommonEntity
                     case __.Remark : _Remark = Convert.ToString(value); break;
                     case __.Permission : _Permission = Convert.ToString(value); break;
                     case __.IsShow : _IsShow = Convert.ToBoolean(value); break;
+                    case __.Roles : _Roles = Convert.ToString(value); break;
                     default: base[name] = value; break;
                 }
             }
@@ -161,7 +175,7 @@ namespace NewLife.CommonEntity
 
         #region 字段名
         /// <summary>取得菜单字段信息的快捷方式</summary>
-        public partial class _
+        partial class _
         {
             ///<summary>编号</summary>
             public static readonly Field ID = FindByName(__.ID);
@@ -186,6 +200,9 @@ namespace NewLife.CommonEntity
 
             ///<summary>是否显示</summary>
             public static readonly Field IsShow = FindByName(__.IsShow);
+
+            ///<summary>多角色</summary>
+            public static readonly Field Roles = FindByName(__.Roles);
 
             static Field FindByName(String name) { return Meta.Table.FindByName(name); }
         }
@@ -217,12 +234,15 @@ namespace NewLife.CommonEntity
             ///<summary>是否显示</summary>
             public const String IsShow = "IsShow";
 
+            ///<summary>多角色</summary>
+            public const String Roles = "Roles";
+
         }
         #endregion
     }
 
     /// <summary>菜单接口</summary>
-    public partial interface IMenu
+    public partial interface IMenu : IEntityTree
     {
         #region 属性
         /// <summary>编号</summary>
@@ -248,13 +268,9 @@ namespace NewLife.CommonEntity
 
         /// <summary>是否显示</summary>
         Boolean IsShow { get; set; }
-        #endregion
 
-        #region 获取/设置 字段值
-        /// <summary>获取/设置 字段值。</summary>
-        /// <param name="name">字段名</param>
-        /// <returns></returns>
-        Object this[String name] { get; set; }
+        /// <summary>多角色</summary>
+        String Roles { get; set; }
         #endregion
     }
 }

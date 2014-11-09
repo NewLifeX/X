@@ -186,10 +186,6 @@
       <DependentUpon>角色.cs</DependentUpon>
     </Compile>
     <Compile Include="管理和授权\角色.cs" />
-    <Compile Include="管理和授权\角色和菜单.Biz.cs">
-      <DependentUpon>角色和菜单.cs</DependentUpon>
-    </Compile>
-    <Compile Include="管理和授权\角色和菜单.cs" />
     <Compile Include="附件\附件.Biz.cs">
       <DependentUpon>附件.cs</DependentUpon>
     </Compile>

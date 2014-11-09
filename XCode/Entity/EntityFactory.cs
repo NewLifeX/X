@@ -65,6 +65,14 @@ namespace XCode
             return op_cache.GetItem(type, key => { throw new XCodeException("无法创建{0}的实体操作接口！", key); });
         }
 
+        /// <summary>根据类型创建实体工厂</summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        public static IEntityOperate AsFactory(this Type type)
+        {
+            return CreateOperate(type);
+        }
+
         /// <summary>使用指定的实体对象创建实体操作接口，主要用于Entity内部调用，避免反射带来的损耗</summary>
         /// <param name="type">类型</param>
         /// <param name="entity"></param>

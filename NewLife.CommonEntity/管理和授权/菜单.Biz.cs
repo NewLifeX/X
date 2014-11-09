@@ -19,6 +19,13 @@ namespace NewLife.CommonEntity
     public partial class Menu<TEntity> : EntityTree<TEntity>, IMenu where TEntity : Menu<TEntity>, new()
     {
         #region 对象操作
+        static Menu()
+        {
+            var entity = new TEntity();
+
+            EntityFactory.Register(typeof(TEntity), new MenuFactory<TEntity>());
+        }
+
         /// <summary>首次连接数据库时初始化数据，仅用于实体类重载，用户不应该调用该方法</summary>
         [EditorBrowsable(EditorBrowsableState.Never)]
         protected override void InitData()
@@ -819,8 +826,8 @@ namespace NewLife.CommonEntity
         /// <param name="remark">备注</param>
         public static void WriteLog(String action, String remark)
         {
-            var admin = ManageProvider.Provider.Current as IAdministrator;
-            if (admin != null) admin.WriteLog(typeof(TEntity), action, remark);
+            //var admin = ManageProvider.Provider.Current as IAdministrator;
+            //if (admin != null) admin.WriteLog(typeof(TEntity), action, remark);
         }
         #endregion
 
@@ -940,5 +947,17 @@ namespace NewLife.CommonEntity
         /// <summary>保存</summary>
         /// <returns></returns>
         Int32 Save();
+    }
+
+    public interface IMenuFactory : IEntityOperate
+    {
+        IMenu Root { get; }
+    }
+
+    /// <summary>菜单实体工厂</summary>
+    /// <typeparam name="TEntity"></typeparam>
+    public class MenuFactory<TEntity> : Menu<TEntity>.EntityOperate where TEntity : Menu<TEntity>, new()
+    {
+        public IMenu Root { get { return Menu<TEntity>.Root; } }
     }
 }
