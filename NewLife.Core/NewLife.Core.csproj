@@ -95,6 +95,7 @@
     <Compile Include="Compression\ZipConstants.cs" />
     <Compile Include="Compression\ZipEntry.cs" />
     <Compile Include="Compression\ZipFile.cs" />
+    <Compile Include="Configuration\CombConfig.cs" />
     <Compile Include="Extension\BitHelper.cs" />
     <Compile Include="IO\EncodingHelper.cs" />
     <Compile Include="IO\PathHelper.cs" />
