@@ -44,7 +44,20 @@ namespace NewLife.CommonEntity
         static void CheckRole()
         {
             var rs = Role<TRoleEntity>.Meta.Cache.Entities;
+            if (rs.Count <= 0) return;
             var list = rs.ToList();
+
+            // 如果某些菜单已经被删除，但是角色权限表仍然存在，则删除
+            var ids = Menu<TMenuEntity>.FindAllWithCache().GetItem<Int32>("ID").ToArray();
+            foreach (var role in rs)
+            {
+                if (!role.CheckValid(ids))
+                {
+                    XTrace.WriteLine("删除[{0}]中的无效资源权限！", role);
+                    role.Save();
+                }
+            }
+
             var sys = list.FirstOrDefault(e => e.IsSystem);
             if (sys == null) return;
 
@@ -61,7 +74,7 @@ namespace NewLife.CommonEntity
             }
             if (count > 0)
             {
-                XTrace.WriteLine("共有{0}个必要菜单，没有任何角色拥有权限，准备授权第一系统角色{1}拥有其完全管理权！", count, sys);
+                XTrace.WriteLine("共有{0}个必要菜单，没有任何角色拥有权限，准备授权第一系统角色[{1}]拥有其完全管理权！", count, sys);
                 sys.Save();
             }
         }

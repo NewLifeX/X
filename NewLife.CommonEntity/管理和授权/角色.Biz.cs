@@ -396,6 +396,28 @@ namespace NewLife.CommonEntity
             }
         }
 
+        /// <summary>检查是否有无效权限项，有则删除</summary>
+        /// <param name="resids"></param>
+        internal Boolean CheckValid(Int32[] resids)
+        {
+            if (resids == null || resids.Length == 0) return true;
+
+            var count = Permissions.Count;
+
+            var list = new List<Int32>();
+            foreach (var item in Permissions)
+            {
+                if (!resids.Contains(item.Key)) list.Add(item.Key);
+            }
+            // 删除无效项
+            foreach (var item in list)
+            {
+                Permissions.Remove(item);
+            }
+
+            return count == Permissions.Count;
+        }
+
         void LoadPermission()
         {
             Permissions.Clear();

@@ -194,6 +194,8 @@ namespace NewLife.CommonEntity
                 return list.GetItem<Int32>(__.ID).ToArray();
             }
         }
+
+        //interface static Int32[]
         #endregion
 
         #region 扩展查询
