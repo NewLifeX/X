@@ -23,7 +23,7 @@ namespace NewLife.CommonEntity
         {
             var entity = new TEntity();
 
-            EntityFactory.Register(typeof(TEntity), new MenuFactory<TEntity>());
+            //EntityFactory.Register(typeof(TEntity), new MenuFactory<TEntity>());
         }
 
         /// <summary>首次连接数据库时初始化数据，仅用于实体类重载，用户不应该调用该方法</summary>
@@ -194,8 +194,6 @@ namespace NewLife.CommonEntity
                 return list.GetItem<Int32>(__.ID).ToArray();
             }
         }
-
-        //interface static Int32[]
         #endregion
 
         #region 扩展查询
@@ -347,6 +345,22 @@ namespace NewLife.CommonEntity
             EntityList<TEntity> list = Meta.Cache.Entities.FindAll(__.ParentID, id);
             if (list != null && list.Count > 0) list.Sort(new String[] { _.Sort, _.ID }, new Boolean[] { true, false });
             return list;
+        }
+
+        /// <summary>取得当前角色的子菜单，有权限、可显示、排序</summary>
+        /// <param name="filters"></param>
+        /// <returns></returns>
+        public IList<IMenu> GetMySubMenus(Int32[] filters)
+        {
+            var list = AllChilds;
+            if (list == null || list.Count < 1) return null;
+
+            //list = list.FindAll(Menu<TEntity>._.ParentID, parentID);
+            //if (list == null || list.Count < 1) return null;
+            list = list.FindAll(Menu<TEntity>._.IsShow, true);
+            if (list == null || list.Count < 1) return null;
+
+            return list.ToList().Where(e => filters.Contains(e.ID)).Cast<IMenu>().ToList();
         }
         #endregion
 
@@ -962,20 +976,25 @@ namespace NewLife.CommonEntity
         ///// <summary>保存</summary>
         ///// <returns></returns>
         //Int32 Save();
+
+        /// <summary></summary>
+        /// <param name="filters"></param>
+        /// <returns></returns>
+        IList<IMenu> GetMySubMenus(Int32[] filters);
     }
 
-    public interface IMenuFactory : IEntityOperate
-    {
-        IMenu Root { get; }
+    //public interface IMenuFactory : IEntityOperate
+    //{
+    //    IMenu Root { get; }
 
-        ///// <summary>必要的菜单。必须至少有角色拥有这些权限，如果没有则自动授权给系统角色</summary>
-        //Int32[] Necessary { get; }
-    }
+    //    ///// <summary>必要的菜单。必须至少有角色拥有这些权限，如果没有则自动授权给系统角色</summary>
+    //    //Int32[] Necessary { get; }
+    //}
 
-    /// <summary>菜单实体工厂</summary>
-    /// <typeparam name="TEntity"></typeparam>
-    public class MenuFactory<TEntity> : Menu<TEntity>.EntityOperate where TEntity : Menu<TEntity>, new()
-    {
-        public IMenu Root { get { return Menu<TEntity>.Root; } }
-    }
+    ///// <summary>菜单实体工厂</summary>
+    ///// <typeparam name="TEntity"></typeparam>
+    //public class MenuFactory<TEntity> : Menu<TEntity>.EntityOperate where TEntity : Menu<TEntity>, new()
+    //{
+    //    public IMenu Root { get { return Menu<TEntity>.Root; } }
+    //}
 }

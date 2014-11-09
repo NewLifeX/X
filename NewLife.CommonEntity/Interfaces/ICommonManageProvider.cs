@@ -193,14 +193,16 @@ namespace NewLife.CommonEntity
 
             //return admin.Role.GetMySubMenus(menu.ID);
 
-            var menus = menu.AllChilds;
-            if (menus.Count < 1) return menus;
+            return menu.GetMySubMenus(admin.Role.Resources);
 
-            // 请求角色过滤资源权限
-            var res = admin.Role.Resources;
-            menus = menus.Where(e => res.Contains(e.ID)).ToList();
+            //var menus = menu.AllChilds;
+            //if (menus.Count < 1) return menus;
 
-            return menus;
+            //// 请求角色过滤资源权限
+            //var res = admin.Role.Resources;
+            //menus = menus.Where(e => res.Contains(e.ID)).ToList();
+
+            //return menus;
         }
         #endregion
     }
