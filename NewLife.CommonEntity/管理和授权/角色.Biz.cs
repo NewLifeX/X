@@ -240,7 +240,23 @@ namespace NewLife.CommonEntity
         {
             base.InitData();
 
-            if (Meta.Count > 0) return;
+            if (Meta.Count > 0)
+            {
+                // 必须有至少一个可用的系统角色
+                var list = Meta.Cache.Entities.ToList();
+                if (!list.Any(e => e.IsSystem))
+                {
+                    // 如果没有，让第一个角色作为系统角色
+                    var role = list[0];
+                    role.IsSystem = true;
+
+                    XTrace.WriteLine("必须有至少一个可用的系统角色，修改{0}为系统角色！", role.Name);
+
+                    role.Save();
+                }
+
+                return;
+            }
 
             if (XTrace.Debug) XTrace.WriteLine("开始初始化{0}角色数据……", typeof(TEntity).Name);
 
@@ -308,6 +324,7 @@ namespace NewLife.CommonEntity
             return base.Delete();
         }
 
+        /// <summary>加载权限字典</summary>
         protected override void OnLoad()
         {
             base.OnLoad();
