@@ -219,56 +219,56 @@ namespace XCode.DataAccessLayer
     internal class MySqlSession : RemoteDbSession
     {
         #region 快速查询单表记录数
-        /// <summary>快速查询单表记录数，大数据量时，稍有偏差。</summary>
-        /// <param name="tableName"></param>
-        /// <returns></returns>
-        public override Int64 QueryCountFast(String tableName)
-        {
-            tableName = tableName.Trim().Trim('`', '`').Trim();
+        ///// <summary>快速查询单表记录数，大数据量时，稍有偏差。</summary>
+        ///// <param name="tableName"></param>
+        ///// <returns></returns>
+        //public override Int64 QueryCountFast(String tableName)
+        //{
+        //    tableName = tableName.Trim().Trim('`', '`').Trim();
 
-            var n = 0L;
-            if (QueryIndex().TryGetValue(tableName, out n)) { return n; }
+        //    var n = 0L;
+        //    if (QueryIndex().TryGetValue(tableName, out n)) { return n; }
 
-            var sql = String.Format("select table_rows from information_schema.tables where table_schema=SCHEMA() and table_name='{0}'", tableName);
-            return ExecuteScalar<Int64>(sql);
-        }
+        //    var sql = String.Format("select table_rows from information_schema.tables where table_schema=SCHEMA() and table_name='{0}'", tableName);
+        //    return ExecuteScalar<Int64>(sql);
+        //}
 
-        Dictionary<String, Int64> _index;
-        DateTime _next;
+        //Dictionary<String, Int64> _index;
+        //DateTime _next;
 
-        Dictionary<String, Int64> QueryIndex()
-        {
-            if (_index == null)
-            {
-                _next = DateTime.Now.AddSeconds(10);
-                return _index = QueryIndex_();
-            }
+        //Dictionary<String, Int64> QueryIndex()
+        //{
+        //    if (_index == null)
+        //    {
+        //        _next = DateTime.Now.AddSeconds(10);
+        //        return _index = QueryIndex_();
+        //    }
 
-            // 检查更新
-            if (_next < DateTime.Now)
-            {
-                // 先改时间，让别的线程先用着旧的
-                _next = DateTime.Now.AddSeconds(10);
-                //// 同一个会话里面，不担心分表分库的问题，倒是有可能有冲突
-                //ThreadPool.QueueUserWorkItem(s => _index = QueryIndex_());
+        //    // 检查更新
+        //    if (_next < DateTime.Now)
+        //    {
+        //        // 先改时间，让别的线程先用着旧的
+        //        _next = DateTime.Now.AddSeconds(10);
+        //        //// 同一个会话里面，不担心分表分库的问题，倒是有可能有冲突
+        //        //ThreadPool.QueueUserWorkItem(s => _index = QueryIndex_());
 
-                _index = QueryIndex_();
-            }
+        //        _index = QueryIndex_();
+        //    }
 
-            // 直接返回旧的
-            return _index;
-        }
+        //    // 直接返回旧的
+        //    return _index;
+        //}
 
-        Dictionary<String, Int64> QueryIndex_()
-        {
-            var ds = Query("select table_name,table_rows from information_schema.tables where table_schema=SCHEMA()");
-            var dic = new Dictionary<String, Int64>(StringComparer.OrdinalIgnoreCase);
-            foreach (DataRow dr in ds.Tables[0].Rows)
-            {
-                dic.Add(dr[0] + "", Convert.ToInt64(dr[1]));
-            }
-            return dic;
-        }
+        //Dictionary<String, Int64> QueryIndex_()
+        //{
+        //    var ds = Query("select table_name,table_rows from information_schema.tables where table_schema=SCHEMA()");
+        //    var dic = new Dictionary<String, Int64>(StringComparer.OrdinalIgnoreCase);
+        //    foreach (DataRow dr in ds.Tables[0].Rows)
+        //    {
+        //        dic.Add(dr[0] + "", Convert.ToInt64(dr[1]));
+        //    }
+        //    return dic;
+        //}
         #endregion
 
         #region 基本方法 查询/执行
