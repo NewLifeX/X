@@ -521,7 +521,7 @@ namespace NewLife
         public Char[] GetHexChars(CombGuidSequentialSegmentType sequentialType)
         {
             //if (IsNull) { throw new HmExceptionBase("此 CombGuid 结构字节数组为空！"); }
-            if (IsNull) { return GetHexChars(sequentialType); }
+            if (IsNull) { return Empty.GetHexChars(sequentialType); }
 
             var offset = 0;
             var guidChars = new Char[32];
