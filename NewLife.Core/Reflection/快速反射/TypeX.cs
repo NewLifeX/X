@@ -368,10 +368,10 @@ namespace NewLife.Reflection
 
             // 尝试本程序集
             var asms = new[] { 
-                Assembly.GetExecutingAssembly(),
-                Assembly.GetCallingAssembly(), 
-                Assembly.GetEntryAssembly() };
-            var loads = new List<Assembly>();
+                AssemblyX.Create(Assembly.GetExecutingAssembly()),
+                AssemblyX.Create(Assembly.GetCallingAssembly()), 
+                AssemblyX.Create(Assembly.GetEntryAssembly()) };
+            var loads = new List<AssemblyX>();
 
             foreach (var asm in asms)
             {
@@ -385,8 +385,8 @@ namespace NewLife.Reflection
             // 尝试所有程序集
             foreach (var asm in AssemblyX.GetAssemblies())
             {
-                if (loads.Contains(asm.Asm)) continue;
-                loads.Add(asm.Asm);
+                if (loads.Contains(asm)) continue;
+                loads.Add(asm);
 
                 type = asm.GetType(typeName);
                 if (type != null) return type;
