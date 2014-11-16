@@ -389,10 +389,12 @@ namespace System
         /// <returns></returns>
         public static unsafe UInt32 ToUInt32(this Byte[] data, Int32 offset = 0, Boolean isLittleEndian = true)
         {
+            if (isLittleEndian) return BitConverter.ToUInt32(data, offset);
+
             // BitConverter得到小端，如果不是小端字节顺序，则倒序
             fixed (byte* numRef = &(data[offset]))
             {
-                if (offset % 4 == 0) return *(((UInt32*)numRef));
+                //if (offset % 4 == 0) return *(((UInt32*)numRef));
                 if (isLittleEndian)
                     return (UInt32)(numRef[0] | numRef[1] << 8 | numRef[2] << 0x10 | numRef[3] << 0x18);
                 else
@@ -407,9 +409,11 @@ namespace System
         /// <returns></returns>
         public static unsafe UInt64 ReadUInt64(this Byte[] data, Int32 offset = 0, Boolean isLittleEndian = true)
         {
+            if (isLittleEndian) return BitConverter.ToUInt64(data, offset);
+
             fixed (byte* numRef = &(data[offset]))
             {
-                if (offset % 8 == 0) return *(((UInt64*)numRef));
+                //if (offset % 8 == 0) return *(((UInt64*)numRef));
                 if (isLittleEndian)
                 {
                     int num1 = numRef[0] | numRef[1] << 8 | numRef[2] << 0x10 | numRef[3] << 0x18;
