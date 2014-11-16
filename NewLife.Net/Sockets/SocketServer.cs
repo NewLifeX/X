@@ -34,7 +34,11 @@ namespace NewLife.Net.Sockets
         {
             base.OnDispose(disposing);
 
-            Stop();
+            try
+            {
+                Stop();
+            }
+            catch { }
         }
         #endregion
 
