@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using NewLife.Log;
+using NewLife.Net;
 using NewLife.Net.Application;
 using NewLife.Net.Modbus;
 using NewLife.Net.Proxy;
@@ -21,7 +22,7 @@ namespace Test2
                 try
                 {
 #endif
-                Test4();
+                    Test5();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -139,28 +140,28 @@ namespace Test2
 
         static void Test3()
         {
-            var slave = new ModbusSlave();
-            slave.Transport = new SerialTransport { PortName = "COM17" };
+            //var slave = new ModbusSlave();
+            //slave.Transport = new SerialTransport { PortName = "COM17" };
 
-            var ds = slave.DataStore;
-            ds.Coils.OnWrite += Coils_OnWrite;
-            ds.HoldingRegisters.OnWrite += HoldingRegisters_OnWrite;
+            //var ds = slave.DataStore;
+            //ds.Coils.OnWrite += Coils_OnWrite;
+            //ds.HoldingRegisters.OnWrite += HoldingRegisters_OnWrite;
 
-            //slave.EnableDebug = true;
-            slave.Listen();
+            ////slave.EnableDebug = true;
+            //slave.Listen();
 
-            var flag = false;
-            for (UInt16 i = 0; i < 10000; i++)
-            {
-                ds.Coils[0] = flag;
-                flag = !flag;
-                ds.Coils[1] = flag;
+            //var flag = false;
+            //for (UInt16 i = 0; i < 10000; i++)
+            //{
+            //    ds.Coils[0] = flag;
+            //    flag = !flag;
+            //    ds.Coils[1] = flag;
 
-                ds.HoldingRegisters[0] = i;
-                ds.HoldingRegisters[3] = (UInt16)(i % 2);
+            //    ds.HoldingRegisters[0] = i;
+            //    ds.HoldingRegisters[3] = (UInt16)(i % 2);
 
-                Thread.Sleep(300);
-            }
+            //    Thread.Sleep(300);
+            //}
         }
 
         static void HoldingRegisters_OnWrite(int i, int value)
@@ -198,6 +199,22 @@ namespace Test2
                 ns = master.ReadHoldingRegister(i);
                 Console.WriteLine("Reg {0}={1}", i, ns);
             }
+        }
+
+        static UdpServer _udpServer;
+        static void Test5()
+        {
+            if (_udpServer != null) return;
+
+            _udpServer = new UdpServer();
+            _udpServer.Port = 888;
+            _udpServer.Received += _udpServer_Received;
+            _udpServer.Start();
+        }
+
+        static void _udpServer_Received(object sender, NetEventArgs e)
+        {
+            XTrace.WriteLine("收到{0}的数据{1}字节：{2}", e.RemoteIPEndPoint, e.BytesTransferred, e.Buffer.ToHex(0, e.BytesTransferred));
         }
     }
 }
