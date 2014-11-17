@@ -68,7 +68,10 @@ namespace NewLife.Net
         {
             if (Client == null || !Client.Client.Connected)
             {
-                Client = new UdpClient(HostName, Port);
+                if (!String.IsNullOrEmpty(HostName))
+                    Client = new UdpClient(HostName, Port);
+                else
+                    Client = new UdpClient(Port);
                 if (Timeout > 0) Client.Client.ReceiveTimeout = Timeout;
             }
         }
