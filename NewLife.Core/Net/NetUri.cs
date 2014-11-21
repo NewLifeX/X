@@ -177,7 +177,7 @@ namespace NewLife.Net
         /// <summary>分析地址</summary>
         /// <param name="hostname">主机地址</param>
         /// <returns></returns>
-        static IPAddress ParseAddress(String hostname)
+        public static IPAddress ParseAddress(String hostname)
         {
             if (String.IsNullOrEmpty(hostname)) return null;
 

@@ -8,13 +8,17 @@ namespace NewLife.Net
     public class UdpTransport : ITransport, IDisposable
     {
         #region 属性
-        private String _HostName;
-        /// <summary>主机名</summary>
-        public String HostName { get { return _HostName; } set { _HostName = value; } }
+        //private String _HostName;
+        ///// <summary>主机名</summary>
+        //public String HostName { get { return _HostName; } set { _HostName = value; } }
 
         private Int32 _Port;
         /// <summary>端口</summary>
         public Int32 Port { get { return _Port; } set { _Port = value; } }
+
+        private IPEndPoint _Remote;
+        /// <summary>远程结点地址</summary>
+        public IPEndPoint Remote { get { return _Remote; } set { _Remote = value; } }
 
         private Int32 _Timeout = 3000;
         /// <summary>超时。默认3000ms</summary>
@@ -42,8 +46,9 @@ namespace NewLife.Net
         /// <param name="port"></param>
         public UdpTransport(String host, Int32 port)
         {
-            HostName = host;
-            Port = port;
+            //HostName = host;
+            //Port = port;
+            Remote = new IPEndPoint(NetUri.ParseAddress(host), port);
         }
 
         /// <summary>析构</summary>
@@ -66,10 +71,10 @@ namespace NewLife.Net
         /// <summary>打开</summary>
         public void Open()
         {
-            if (Client == null || !Client.Client.Connected)
+            if (Client == null || !Client.Client.IsBound)
             {
-                if (!String.IsNullOrEmpty(HostName))
-                    Client = new UdpClient(HostName, Port);
+                if (Remote != null)
+                    Client = new UdpClient(Remote);
                 else
                     Client = new UdpClient(Port);
                 if (Timeout > 0) Client.Client.ReceiveTimeout = Timeout;
@@ -99,10 +104,20 @@ namespace NewLife.Net
             var sp = Client;
             lock (sp)
             {
-                if (offset == 0)
-                    sp.Send(buffer, count);
+                if (Client.Client.Connected)
+                {
+                    if (offset == 0)
+                        sp.Send(buffer, count);
+                    else
+                        sp.Send(buffer.ReadBytes(offset, count), count);
+                }
                 else
-                    sp.Send(buffer.ReadBytes(offset, count), count);
+                {
+                    if (offset == 0)
+                        sp.Send(buffer, count, Remote);
+                    else
+                        sp.Send(buffer.ReadBytes(offset, count), count, Remote);
+                }
             }
         }
 
@@ -125,6 +140,7 @@ namespace NewLife.Net
                 {
                     var remoteEP = new IPEndPoint(IPAddress.Any, 0);
                     var data = sp.Receive(ref remoteEP);
+                    Remote = remoteEP;
                     if (data != null && data.Length > 0)
                     {
                         size = data.Length;
@@ -164,6 +180,7 @@ namespace NewLife.Net
             var server = ar.AsyncState as UdpClient;
             var ep = new IPEndPoint(IPAddress.Any, 0);
             var data = server.EndReceive(ar, ref ep);
+            Remote = ep;
 
             // 开始新的监听
             server.BeginReceive(OnReceive, server);
