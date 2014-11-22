@@ -278,9 +278,13 @@ namespace NewLife.Windows
             Port.EnsureCreate();
             var sp = Port.Serial;
             // 这几个需要打开端口以后才能设置
-            sp.DtrEnable = miDTR.Checked;
-            sp.RtsEnable = miRTS.Checked;
-            sp.BreakState = miBreak.Checked;
+            try
+            {
+                if (sp.DtrEnable != miDTR.Checked) sp.DtrEnable = miDTR.Checked;
+                if (sp.RtsEnable != miRTS.Checked) sp.RtsEnable = miRTS.Checked;
+                if (sp.BreakState != miBreak.Checked) sp.BreakState = miBreak.Checked;
+            }
+            catch { }
 
             this.Enabled = false;
         }
