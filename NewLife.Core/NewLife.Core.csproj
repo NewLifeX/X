@@ -123,9 +123,11 @@
     <Compile Include="Model\IPlugin.cs" />
     <Compile Include="Model\ModelExtension.cs" />
     <Compile Include="Model\ObjectContainerHelper.cs" />
+    <Compile Include="Net\ReceivedEventArgs.cs" />
     <Compile Include="Net\ITransport.cs" />
     <Compile Include="Net\NetUri.cs" />
     <Compile Include="Net\SerialTransport.cs" />
+    <Compile Include="Net\UdpClientX.cs" />
     <Compile Include="Net\UdpTransport.cs" />
     <Compile Include="Net\Upgrade.cs" />
     <Compile Include="Net\UpgradeVersion.cs" />

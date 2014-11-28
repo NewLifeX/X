@@ -30,10 +30,12 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“内部版本号”和“修订号”的默认值，
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("4.6.*")]
-[assembly: AssemblyFileVersion("4.6.2014.1104")]
+[assembly: AssemblyVersion("4.7.*")]
+[assembly: AssemblyFileVersion("4.7.2014.1129")]
 
 /*
+ * v4.7.2014.1129   增加UdpClientX，基于APM模型，简单实用
+ * 
  * v4.6.2014.1104   控件助手ControlHelper类增加文本控件扩展和文本控件着色
  * 
  * v4.6.2014.0928   IOHelper给Byte[]增加读写整数的扩展方法，特别支持大小端
