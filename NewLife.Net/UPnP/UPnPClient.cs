@@ -7,7 +7,6 @@ using System.Threading;
 using NewLife.Configuration;
 using NewLife.Log;
 using NewLife.Net.Sockets;
-using NewLife.Net.Udp;
 using NewLife.Xml;
 
 namespace NewLife.Net.UPnP
@@ -39,15 +38,15 @@ namespace NewLife.Net.UPnP
     public class UPnPClient : Netbase
     {
         #region 属性
-        private UdpClientX _Udp;
+        private UdpSession _Udp;
         /// <summary>Udp客户端，用于发现网关设备</summary>
-        private UdpClientX Udp
+        private UdpSession Udp
         {
             get
             {
                 if (_Udp == null)
                 {
-                    _Udp = new UdpClientX();
+                    _Udp = new UdpSession();
                     //_Udp.Name = "UPnPClient";
                     //_Udp.ProtocolType = ProtocolType.Udp;
                     _Udp.Received += new EventHandler<NetEventArgs>(Udp_Received);

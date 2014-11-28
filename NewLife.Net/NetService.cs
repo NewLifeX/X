@@ -5,7 +5,6 @@ using NewLife.Net.Common;
 using NewLife.Net.Proxy;
 using NewLife.Net.Sockets;
 using NewLife.Net.Tcp;
-using NewLife.Net.Udp;
 
 namespace NewLife.Net
 {
@@ -22,11 +21,11 @@ namespace NewLife.Net
             var container = Container;
             container.Register<IProxySession, ProxySession>()
                 .Register<ISocketServer, TcpServer>(ProtocolType.Tcp)
-                .Register<ISocketServer, UdpServer>(ProtocolType.Udp)
-                .Register<ISocketClient, TcpClientX>(ProtocolType.Tcp)
-                .Register<ISocketClient, UdpClientX>(ProtocolType.Udp)
-                .Register<ISocketSession, TcpClientX>(ProtocolType.Tcp)
-                .Register<ISocketSession, UdpServer>(ProtocolType.Udp)
+                //.Register<ISocketServer, UdpServer>(ProtocolType.Udp)
+                .Register<ISocketClient, TcpSession>(ProtocolType.Tcp)
+                //.Register<ISocketClient, UdpClientX>(ProtocolType.Udp)
+                .Register<ISocketSession, TcpSession>(ProtocolType.Tcp)
+                //.Register<ISocketSession, UdpServer>(ProtocolType.Udp)
                 .Register<IStatistics, Statistics>()
                 .Register<INetSession, NetSession>();
         }

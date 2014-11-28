@@ -62,7 +62,7 @@ namespace NewLife.Net.SGIP
         public Boolean Login()
         {
             WriteLog(String.Format("正在连接服务器…… {0}:{1}", IP, Port));
-            var client = new TcpClientX();
+            var client = new TcpSession();
             Client = client;
             try
             {

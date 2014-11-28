@@ -6,49 +6,31 @@ using System.Text;
 
 namespace NewLife.Net
 {
-    /// <summary>增强的UDP客户端</summary>
-    public class UdpClientX : DisposeBase
+    /// <summary>增强的UDP</summary>
+    public class UdpSession : SessionBase
     {
         #region 属性
-        private NetUri _Local = new NetUri(ProtocolType.Udp, IPAddress.Any, 0);
-        /// <summary>本地绑定信息</summary>
-        public NetUri Local { get { return _Local; } set { _Local = value; } }
-
-        /// <summary>端口</summary>
-        public Int32 Port { get { return _Local.Port; } set { _Local.Port = value; } }
-
-        private NetUri _Remote;
-        /// <summary>远程结点地址</summary>
-        public NetUri Remote { get { return _Remote; } set { _Remote = value; } }
-
-        private Int32 _Timeout = 3000;
-        /// <summary>超时。默认3000ms</summary>
-        public Int32 Timeout { get { return _Timeout; } set { _Timeout = value; } }
-
         private UdpClient _Client;
         /// <summary>客户端</summary>
         public UdpClient Client { get { return _Client; } set { _Client = value; } }
         #endregion
 
         #region 构造
+        /// <summary>实例化增强UDP</summary>
+        public UdpSession() { Local = new NetUri(ProtocolType.Udp, IPAddress.Any, 0); }
+
         /// <summary>使用监听口初始化</summary>
         /// <param name="listenPort"></param>
-        public UdpClientX(Int32 listenPort)
+        public UdpSession(Int32 listenPort)
+            : this()
         {
             Port = listenPort;
-        }
-
-        /// <summary>销毁</summary>
-        /// <param name="disposing"></param>
-        protected override void OnDispose(Boolean disposing)
-        {
-            Close();
         }
         #endregion
 
         #region 方法
         /// <summary>打开</summary>
-        public void Open()
+        public override void Open()
         {
             if (Client == null || !Client.Client.IsBound)
             {
@@ -58,7 +40,7 @@ namespace NewLife.Net
         }
 
         /// <summary>关闭</summary>
-        public void Close()
+        public override void Close()
         {
             if (Client != null) Client.Close();
             Client = null;
@@ -71,7 +53,7 @@ namespace NewLife.Net
         /// <param name="buffer">缓冲区</param>
         /// <param name="offset">偏移</param>
         /// <param name="count">数量</param>
-        public void Send(Byte[] buffer, Int32 offset = 0, Int32 count = -1)
+        public override void Send(Byte[] buffer, Int32 offset = 0, Int32 count = -1)
         {
             Open();
 
@@ -103,7 +85,7 @@ namespace NewLife.Net
         /// <param name="offset">偏移</param>
         /// <param name="count">数量</param>
         /// <returns></returns>
-        public Int32 Receive(Byte[] buffer, Int32 offset = 0, Int32 count = -1)
+        public override Int32 Receive(Byte[] buffer, Int32 offset = 0, Int32 count = -1)
         {
             Open();
 
@@ -129,7 +111,7 @@ namespace NewLife.Net
 
         #region 异步接收
         /// <summary>开始监听</summary>
-        public void ReceiveAsync()
+        public override void ReceiveAsync()
         {
             if (Client == null) Open();
 
@@ -156,32 +138,14 @@ namespace NewLife.Net
         protected virtual void OnReceive(Byte[] data, IPEndPoint remote)
         {
             // 分析处理
-            if (Received != null)
-            {
-                var e = new UdpReceivedEventArgs();
-                e.Data = data;
-                e.Remote = remote;
+            var e = new UdpReceivedEventArgs();
+            e.Data = data;
+            e.Remote = remote;
 
-                Received(this, e);
+            RaiseReceive(e);
 
-                // 数据发回去
-                if (e.Feedback) Client.Send(e.Data, e.Length, e.Remote);
-            }
-        }
-
-        /// <summary>数据到达事件，事件里调用<see cref="Receive"/>读取数据</summary>
-        public event EventHandler<ReceivedEventArgs> Received;
-        #endregion
-
-        #region 辅助
-        /// <summary>已重载。</summary>
-        /// <returns></returns>
-        public override string ToString()
-        {
-            if (Remote != null)
-                return String.Format("{0}=>{1}:{2}", Local, Remote.EndPoint, Remote.Port);
-            else
-                return Local.ToString();
+            // 数据发回去
+            if (e.Feedback) Client.Send(e.Data, e.Length, e.Remote);
         }
         #endregion
     }

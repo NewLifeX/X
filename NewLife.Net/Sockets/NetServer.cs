@@ -1,13 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using NewLife.Log;
 using NewLife.Model;
 using NewLife.Net.Tcp;
-using NewLife.Net.Udp;
-using NewLife.Log;
 
 namespace NewLife.Net.Sockets
 {
@@ -308,7 +306,7 @@ namespace NewLife.Net.Sockets
             session.OnDisposed += (s, e2) => ns.Dispose();
             if (UseSession) AddSession(ns);
 
-            var tc = session as TcpClientX;
+            var tc = session as TcpSession;
             if (tc != null)
             {
                 tc.Received += OnReceived;

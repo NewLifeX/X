@@ -4,7 +4,6 @@ using System.Net.Sockets;
 using System.Threading;
 using NewLife.Net.Sockets;
 using NewLife.Net.Tcp;
-using NewLife.Net.Udp;
 
 namespace NewLife.Net.P2P
 {
@@ -65,16 +64,16 @@ namespace NewLife.Net.P2P
                     var server = new TcpServer();
                     Server = server;
                     server.ReuseAddress = true;
-                    server.Accepted += new EventHandler<NetEventArgs>(server_Accepted);
+                    server.Accepted += server_Accepted;
                 }
                 else
                 {
-                    var server = new UdpServer();
-                    Server = server;
+                    var server = new UdpSession();
+                    //Server = server;
                     //server.ReuseAddress = true;
-                    server.Received += new EventHandler<NetEventArgs>(server_Received);
-                    server.Bind();
-                    //server.ReceiveAsync();
+                    server.Received += server_Received;
+                    //server.Bind();
+                    server.ReceiveAsync();
                 }
 
                 Server.Start();
@@ -161,7 +160,7 @@ namespace NewLife.Net.P2P
             {
                 var server = Server;
 
-                var client = new TcpClientX();
+                var client = new TcpSession();
                 Client = client;
                 client.Address = server.LocalEndPoint.Address;
                 client.Port = server.LocalEndPoint.Port;
@@ -194,7 +193,7 @@ namespace NewLife.Net.P2P
             Random rnd = new Random((Int32)DateTime.Now.Ticks);
             Thread.Sleep(rnd.Next(0, 2000));
 
-            var client = new TcpClientX();
+            var client = new TcpSession();
             Client = client;
             client.Address = server.LocalEndPoint.Address;
             client.Port = server.LocalEndPoint.Port;
@@ -259,7 +258,7 @@ namespace NewLife.Net.P2P
             }
             else
             {
-                var client = new TcpClientX();
+                var client = new TcpSession();
                 client.Address = Server.LocalEndPoint.Address;
                 client.Port = Server.LocalEndPoint.Port;
                 client.ReuseAddress = true;

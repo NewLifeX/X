@@ -37,18 +37,18 @@ namespace NewLife.Net.IO
         #region 事件
         void server_Accepted(object sender, NetEventArgs e)
         {
-            TcpClientX session = e.Socket as TcpClientX;
+            TcpSession session = e.Socket as TcpSession;
             if (session == null) return;
 
             //session.NoDelay = false;
             SetEvent(session);
         }
 
-        void SetEvent(TcpClientX session)
+        void SetEvent(TcpSession session)
         {
             session.Received += delegate(Object sender, NetEventArgs e)
             {
-                TcpClientX tc = sender as TcpClientX;
+                TcpSession tc = sender as TcpSession;
 
                 Stream stream = null;
                 if (!tc.Items.Contains("Stream"))

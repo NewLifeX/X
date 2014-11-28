@@ -5,7 +5,6 @@ using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
 using NewLife.Net.Sockets;
-using NewLife.Net.Udp;
 using NewLife.Reflection;
 
 namespace NewLife.Net.Stun

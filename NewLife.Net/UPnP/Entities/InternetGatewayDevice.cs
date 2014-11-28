@@ -264,7 +264,7 @@ namespace NewLife.Net.UPnP
             //String body = String.Format(SOAP_BODY, xml);
             String header = String.Format(SOAP_HEADER, uri.PathAndQuery, uri.Host + ":" + uri.Port, action, Encoding.UTF8.GetByteCount(xml));
 
-            var client = new TcpClientX();
+            var client = new TcpSession();
             try
             {
                 client.Connect(uri.Host, uri.Port);

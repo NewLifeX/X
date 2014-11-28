@@ -24,7 +24,7 @@ namespace NewLife.Net.IO
         /// <param name="port"></param>
         public void Connect(String hostname, Int32 port)
         {
-            if (Client == null) Client = new TcpClientX();
+            if (Client == null) Client = new TcpSession();
             Client.Connect(hostname, port);
         }
 
