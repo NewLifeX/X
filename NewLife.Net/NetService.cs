@@ -68,7 +68,8 @@ namespace NewLife.Net
                 if (server is UdpServer)
                 {
                     var udp = server as UdpServer;
-                    udp.ReceiveAsync();
+                    udp.Open();
+                    //udp.ReceiveAsync();
                     return udp.CreateSession(uri.EndPoint);
                 }
             }

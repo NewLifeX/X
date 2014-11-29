@@ -43,6 +43,7 @@ namespace NewLife.Net
             _Filter = remote;
 
             server.Received += server_Received;
+            //server.ReceiveAsync();
         }
 
         protected override void OnDispose(bool disposing)
@@ -61,6 +62,8 @@ namespace NewLife.Net
             if (count <= 0) count = buffer.Length - offset;
             if (offset > 0) buffer = buffer.ReadBytes(offset, count);
 
+            Server.WriteLog("UdpSend {0}", Remote.EndPoint);
+
             Server.Client.Send(buffer, count, Remote.EndPoint);
         }
 
@@ -68,6 +71,7 @@ namespace NewLife.Net
         {
             if (_Filter.Address != IPAddress.Any && _Filter.Address != IPAddress.IPv6Any)
             {
+                //!!! 居然不能直接判断IPAddress相等
                 if (_Filter.Address != remote.Address) return false;
             }
             if (_Filter.Port != 0)
@@ -104,6 +108,9 @@ namespace NewLife.Net
         #endregion
 
         #region 异步接收
+        /// <summary>开始异步接收数据</summary>
+        public void ReceiveAsync() { Server.ReceiveAsync(); }
+
         public event EventHandler<ReceivedEventArgs> Received;
 
         void server_Received(object sender, ReceivedEventArgs e)

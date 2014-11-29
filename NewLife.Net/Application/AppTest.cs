@@ -77,7 +77,7 @@ namespace NewLife.Net.Application
             {
                 _are.Reset();
                 session.Received += OnReceived;
-                //session.ReceiveAsync();
+                session.ReceiveAsync();
             }
             if (isSendData) session.Send(msg);
             if (isReceiveData)

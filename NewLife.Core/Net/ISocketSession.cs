@@ -55,6 +55,9 @@ namespace NewLife.Net
         #endregion
 
         #region 异步接收
+        /// <summary>开始异步接收数据</summary>
+        void ReceiveAsync();
+
         /// <summary>数据到达，在事件处理代码中，事件参数不得另作他用，套接字事件池将会将其回收。</summary>
         event EventHandler<ReceivedEventArgs> Received;
         #endregion

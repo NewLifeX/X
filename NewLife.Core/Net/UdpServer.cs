@@ -175,6 +175,8 @@ namespace NewLife.Net
             }
             catch (ObjectDisposedException) { return; }
 
+            WriteLog("OnReceive {0}", ep);
+
             Remote.EndPoint = ep;
 
             // 开始新的监听
