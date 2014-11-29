@@ -4,9 +4,7 @@ using NewLife.Log;
 using NewLife.Net;
 using NewLife.Net.Application;
 using NewLife.Net.Modbus;
-using NewLife.Net.Proxy;
 using NewLife.Net.Sockets;
-using NewLife.Net.Udp;
 using NewLife.Security;
 
 namespace Test2
@@ -91,7 +89,7 @@ namespace Test2
 
             String str = "7E 2F 44 82 10 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 05 01 0D";
 
-            using (var client = new UdpClientX())
+            using (var client = new UdpServer())
             {
                 client.Connect("192.168.1.10", 24);
                 //for (int i = 0; i < ss.Length; i++)
@@ -127,16 +125,16 @@ namespace Test2
             //}
         }
 
-        static void server_Received(object sender, NetEventArgs e)
-        {
-            Console.WriteLine("{1}收到：{0}", e.Buffer.ToHex(e.Offset, e.BytesTransferred), e.Socket.ProtocolType);
-            var session = e.Session;
+        //static void server_Received(object sender, NetEventArgs e)
+        //{
+        //    Console.WriteLine("{1}收到：{0}", e.Buffer.ToHex(e.Offset, e.BytesTransferred), e.Socket.ProtocolType);
+        //    var session = e.Session;
 
-            if (e.Buffer.StartsWith(new Byte[] { 0xFF, 0xFA })) return;
+        //    if (e.Buffer.StartsWith(new Byte[] { 0xFF, 0xFA })) return;
 
-            Thread.Sleep(1000);
-            //session.Send(e.Buffer, e.Offset, e.BytesTransferred, e.RemoteEndPoint);
-        }
+        //    Thread.Sleep(1000);
+        //    //session.Send(e.Buffer, e.Offset, e.BytesTransferred, e.RemoteEndPoint);
+        //}
 
         static void Test3()
         {
@@ -209,12 +207,17 @@ namespace Test2
             _udpServer = new UdpServer();
             _udpServer.Port = 888;
             _udpServer.Received += _udpServer_Received;
-            _udpServer.Start();
+            _udpServer.Open();
+
+            Console.ReadKey();
+            _udpServer.Dispose();
+            _udpServer = null;
         }
 
-        static void _udpServer_Received(object sender, NetEventArgs e)
+        static void _udpServer_Received(object sender, ReceivedEventArgs e)
         {
-            XTrace.WriteLine("收到{0}的数据{1}字节：{2}", e.RemoteIPEndPoint, e.BytesTransferred, e.Buffer.ToHex(0, e.BytesTransferred));
+            var session = sender as ISocketSession;
+            XTrace.WriteLine("{0} [{1}]：{2}", session.Remote, e.Stream.Length, e.Stream.ReadBytes().ToHex());
         }
     }
 }

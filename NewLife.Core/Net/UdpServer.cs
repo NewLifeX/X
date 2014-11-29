@@ -22,7 +22,10 @@ namespace NewLife.Net
 
         #region 构造
         /// <summary>实例化增强UDP</summary>
-        public UdpServer() { Local = new NetUri(ProtocolType.Udp, IPAddress.Any, 0); }
+        public UdpServer()
+        {
+            Local = new NetUri(ProtocolType.Udp, IPAddress.Any, 0);
+        }
 
         /// <summary>使用监听口初始化</summary>
         /// <param name="listenPort"></param>
@@ -40,7 +43,10 @@ namespace NewLife.Net
             if (Client == null || !Client.Client.IsBound)
             {
                 Client = new UdpClient(Port);
+                if (Port == 0) Port = (Client.Client.LocalEndPoint as IPEndPoint).Port;
                 if (Timeout > 0) Client.Client.ReceiveTimeout = Timeout;
+
+                WriteLog("监听 {0}", Local);
             }
 
             return true;
@@ -49,6 +55,8 @@ namespace NewLife.Net
         /// <summary>关闭</summary>
         protected override Boolean OnClose()
         {
+            WriteLog("停止 {0}", Local);
+
             if (Client != null) Client.Close();
             Client = null;
 
@@ -60,6 +68,8 @@ namespace NewLife.Net
         /// <returns></returns>
         protected override Boolean OnConnect(IPEndPoint remoteEP)
         {
+            WriteLog("连接 {0}", remoteEP);
+
             Client.Connect(remoteEP);
 
             return true;
@@ -153,12 +163,22 @@ namespace NewLife.Net
         void OnReceive(IAsyncResult ar)
         {
             // 接收数据
+            var client = ar.AsyncState as UdpClient;
+            if (client == null) return;
+
             IPEndPoint ep = null;
-            var data = Client.EndReceive(ar, ref ep);
+            Byte[] data = null;
+
+            try
+            {
+                data = client.EndReceive(ar, ref ep);
+            }
+            catch (ObjectDisposedException) { return; }
+
             Remote.EndPoint = ep;
 
             // 开始新的监听
-            Client.BeginReceive(OnReceive, Client);
+            client.BeginReceive(OnReceive, client);
 
             OnReceive(data, ep);
         }

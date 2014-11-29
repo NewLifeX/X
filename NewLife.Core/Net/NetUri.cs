@@ -66,7 +66,7 @@ namespace NewLife.Net
             get
             {
                 // Host每次改变都会清空
-                if (_EndPoint == null) _EndPoint = new IPEndPoint(ParseAddress(_Host), _Port);
+                if (_EndPoint == null) _EndPoint = new IPEndPoint(ParseAddress(_Host) ?? IPAddress.Any, _Port);
                 return _EndPoint;
             }
             set

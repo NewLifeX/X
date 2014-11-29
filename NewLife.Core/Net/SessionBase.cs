@@ -2,6 +2,8 @@
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using NewLife.Configuration;
+using NewLife.Log;
 
 namespace NewLife.Net
 {
@@ -9,14 +11,14 @@ namespace NewLife.Net
     public abstract class SessionBase : DisposeBase, ISocketClient
     {
         #region 属性
-        private NetUri _Local;
+        private NetUri _Local = new NetUri();
         /// <summary>本地绑定信息</summary>
         public NetUri Local { get { return _Local; } set { _Local = value; } }
 
         /// <summary>端口</summary>
         public Int32 Port { get { return _Local.Port; } set { _Local.Port = value; } }
 
-        private NetUri _Remote;
+        private NetUri _Remote = new NetUri();
         /// <summary>远程结点地址</summary>
         public NetUri Remote { get { return _Remote; } set { _Remote = value; } }
 
@@ -45,6 +47,8 @@ namespace NewLife.Net
         /// <param name="disposing"></param>
         protected override void OnDispose(Boolean disposing)
         {
+            base.OnDispose(disposing);
+
             Close();
         }
         #endregion
@@ -55,7 +59,11 @@ namespace NewLife.Net
         {
             if (Active) return;
 
+            UseReceiveAsync = Received != null;
+
             Active = OnOpen();
+
+            if (UseReceiveAsync) ReceiveAsync();
         }
 
         /// <summary>打开</summary>
@@ -129,6 +137,20 @@ namespace NewLife.Net
         }
         #endregion
 
+        #region 日志
+        private Boolean _Debug = Config.GetConfig<Boolean>("NewLife.Net.Debug", true);
+        /// <summary>调试开关</summary>
+        public Boolean Debug { get { return _Debug; } set { _Debug = value; } }
+
+        /// <summary>输出日志</summary>
+        /// <param name="format"></param>
+        /// <param name="args"></param>
+        public void WriteLog(String format, params Object[] args)
+        {
+            if (Debug) XTrace.WriteLine(format, args);
+        }
+        #endregion
+
         #region 辅助
         /// <summary>已重载。</summary>
         /// <returns></returns>
@@ -141,60 +163,4 @@ namespace NewLife.Net
         }
         #endregion
     }
-
-    ///// <summary>会话扩展</summary>
-    //public static class SessionHelper
-    //{
-    //    /// <summary>发送数据流</summary>
-    //    /// <param name="session"></param>
-    //    /// <param name="stream"></param>
-    //    /// <returns>返回自身，用于链式写法</returns>
-    //    public static SessionBase Send(this SessionBase session, Stream stream)
-    //    {
-    //        Int64 total = 0;
-
-    //        var size = 1472;
-    //        var buffer = new Byte[size];
-    //        while (true)
-    //        {
-    //            var count = stream.Read(buffer, 0, buffer.Length);
-    //            if (count <= 0) break;
-
-    //            session.Send(buffer, 0, count);
-    //            total += count;
-
-    //            if (count < buffer.Length) break;
-    //        }
-    //        return session;
-    //    }
-
-    //    /// <summary>向指定目的地发送信息</summary>
-    //    /// <param name="session"></param>
-    //    /// <param name="message"></param>
-    //    /// <param name="encoding"></param>
-    //    /// <param name="remoteEP"></param>
-    //    /// <returns>返回自身，用于链式写法</returns>
-    //    public static SessionBase Send(this SessionBase session, String message, Encoding encoding = null)
-    //    {
-    //        if (encoding == null) encoding = Encoding.UTF8;
-
-    //        session.Send(encoding.GetBytes(message));
-
-    //        return session;
-    //    }
-
-    //    /// <summary>接收字符串</summary>
-    //    /// <param name="session"></param>
-    //    /// <param name="encoding"></param>
-    //    /// <returns></returns>
-    //    public static String ReceiveString(this SessionBase session, Encoding encoding = null)
-    //    {
-    //        var buf = new Byte[1500];
-    //        var count = session.Receive(buf);
-    //        if (count == 0) return null;
-
-    //        if (encoding == null) encoding = Encoding.UTF8;
-    //        return encoding.GetString(buf, 0, count);
-    //    }
-    //}
 }
