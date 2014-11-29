@@ -33,10 +33,6 @@ namespace NewLife.Net.Application
             {
                 var server = Activator.CreateInstance(item) as NetServer;
                 server.Start();
-                //foreach (var s in server.Servers)
-                //{
-                //    s.UseThreadPool = false;
-                //}
                 list.Add(server);
             }
         }
@@ -129,7 +125,7 @@ namespace NewLife.Net.Application
 
         static void StartEchoServer(Int32 port)
         {
-            IPEndPoint ep = new IPEndPoint(IPAddress.Loopback, port);
+            var ep = new IPEndPoint(IPAddress.Loopback, port);
 
             TestSends("Echo", ep, true);
 

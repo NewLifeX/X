@@ -101,7 +101,7 @@ namespace NewLife.Net.Sockets
         {
             base.OnDispose(disposing);
 
-            Stop();
+            if (Active) Stop();
 
             // 释放托管资源
             if (disposing)

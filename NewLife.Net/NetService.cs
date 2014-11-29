@@ -25,7 +25,7 @@ namespace NewLife.Net
                 .Register<ISocketClient, TcpSession>(ProtocolType.Tcp)
                 .Register<ISocketClient, UdpServer>(ProtocolType.Udp)
                 .Register<ISocketSession, TcpSession>(ProtocolType.Tcp)
-                .Register<ISocketSession, UdpServer>(ProtocolType.Udp)
+                //.Register<ISocketSession, UdpServer>(ProtocolType.Udp)
                 .Register<IStatistics, Statistics>()
                 .Register<INetSession, NetSession>();
         }
@@ -60,6 +60,19 @@ namespace NewLife.Net
 
             //return CreateClient(uri).CreateSession(uri.EndPoint);
             //return CreateClient(uri);
+
+            // 特殊处理UDP
+            if (uri.ProtocolType == ProtocolType.Udp)
+            {
+                var server = Container.Resolve<ISocketServer>(uri.ProtocolType);
+                if (server is UdpServer)
+                {
+                    var udp = server as UdpServer;
+                    udp.ReceiveAsync();
+                    return udp.CreateSession(uri.EndPoint);
+                }
+            }
+
             var client = Container.Resolve<ISocketSession>(uri.ProtocolType);
             if (uri.EndPoint != null)
             {

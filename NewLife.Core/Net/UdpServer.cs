@@ -203,6 +203,16 @@ namespace NewLife.Net
         }
         #endregion
 
+        #region 会话接口
+        /// <summary>创建会话</summary>
+        /// <param name="remoteEP"></param>
+        /// <returns></returns>
+        public virtual ISocketSession CreateSession(IPEndPoint remoteEP)
+        {
+            return new UdpSession(this, remoteEP);
+        }
+        #endregion
+
         #region IServer接口
         void IServer.Start()
         {

@@ -122,6 +122,8 @@ namespace NewLife.Net
         public static ISocketClient Send(this ISocketClient session, Stream stream)
         {
             var size = 1460;
+            var remain = (Int32)(stream.Length - stream.Position);
+            if (remain < size) size = remain;
             var buffer = new Byte[size];
             while (true)
             {
