@@ -584,7 +584,7 @@ namespace NewLife.Net.Proxy
 
             /// <summary>远程连接断开时触发。默认销毁整个会话，子类可根据业务情况决定客户端与代理的链接是否重用。</summary>
             /// <param name="session"></param>
-            protected override void OnRemoteDispose(ISocketSession session)
+            protected override void OnRemoteDispose(ISocketClient session)
             {
                 // 如果客户端不要求保持连接，就销毁吧
                 if (!KeepAlive) base.OnRemoteDispose(session);

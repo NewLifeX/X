@@ -24,7 +24,7 @@ namespace NewLife.Net.Application
         /// <param name="e"></param>
         protected override void OnAccepted(object sender, NetEventArgs e)
         {
-            WriteLog("Chargen {0}", e.Session.RemoteUri);
+            WriteLog("Chargen {0}", e.Session.Remote);
 
             // 如果没有远程地址，或者远程地址是广播地址，则跳过。否则会攻击广播者。
             // Tcp的该属性可能没值，可以忽略
@@ -48,9 +48,9 @@ namespace NewLife.Net.Application
         protected override void OnReceived(object sender, NetEventArgs e)
         {
             if (e.BytesTransferred > 100)
-                WriteLog("Chargen {0} [{1}]", e.Session.RemoteUri, e.BytesTransferred);
+                WriteLog("Chargen {0} [{1}]", e.Session.Remote, e.BytesTransferred);
             else
-                WriteLog("Chargen {0} [{1}] {2}", e.Session.RemoteUri, e.BytesTransferred, e.GetString());
+                WriteLog("Chargen {0} [{1}] {2}", e.Session.Remote, e.BytesTransferred, e.GetString());
         }
 
         /// <summary>出错时</summary>
@@ -68,7 +68,7 @@ namespace NewLife.Net.Application
 
         void LoopSend(Object state)
         {
-            var session = state as ISocketSession;
+            var session = state as ISocketClient;
             if (session == null) return;
 
             hasError = false;
@@ -98,7 +98,7 @@ namespace NewLife.Net.Application
         Int32 Length = 72;
         Int32 Index = 0;
 
-        void Send(ISocketSession session)
+        void Send(ISocketClient session)
         {
             Int32 startIndex = Index++;
             if (Index >= Length) Index = 0;

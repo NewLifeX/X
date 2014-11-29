@@ -25,7 +25,7 @@ namespace NewLife.Net.Sockets
         ISocketServer Server { get; set; }
 
         /// <summary>客户端。跟客户端通讯的那个Socket，其实是服务端TcpClientX/UdpServer</summary>
-        ISocketSession Session { get; set; }
+        ISocketClient Session { get; set; }
 
         /// <summary>客户端远程IP终结点</summary>
         IPEndPoint ClientEndPoint { get; set; }

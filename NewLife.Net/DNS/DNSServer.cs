@@ -111,7 +111,7 @@ namespace NewLife.Net.DNS
         protected override void OnReceived(object sender, NetEventArgs e)
         {
             var session = e.Session;
-            Boolean isTcp = session.ProtocolType == ProtocolType.Tcp;
+            Boolean isTcp = session.Local.ProtocolType == ProtocolType.Tcp;
 
             // 解析
             var request = DNSEntity.Read(e.GetStream(), isTcp);
@@ -130,12 +130,12 @@ namespace NewLife.Net.DNS
         /// <param name="session"></param>
         /// <param name="request"></param>
         /// <returns></returns>
-        protected virtual DNSEntity Request(ISocketSession session, DNSEntity request)
+        protected virtual DNSEntity Request(ISocketClient session, DNSEntity request)
         {
-            Boolean isTcp = session.ProtocolType == ProtocolType.Tcp;
+            Boolean isTcp = session.Local.ProtocolType == ProtocolType.Tcp;
 
             // 处理，修改
-            WriteDNSLog("{0}://{1} 请求 {2}", session.ProtocolType, session.RemoteEndPoint, request);
+            WriteDNSLog("{0}://{1} 请求 {2}", session.Local.ProtocolType, session.RemoteEndPoint, request);
 
             // 请求事件，如果第二参数有值，则直接返回
             if (OnRequest != null)
@@ -213,9 +213,9 @@ namespace NewLife.Net.DNS
         /// <param name="session"></param>
         /// <param name="request"></param>
         /// <param name="response"></param>
-        protected virtual void Response(ISocketSession session, DNSEntity request, DNSEntity response)
+        protected virtual void Response(ISocketClient session, DNSEntity request, DNSEntity response)
         {
-            Boolean isTcp = session.ProtocolType == ProtocolType.Tcp;
+            Boolean isTcp = session.Local.ProtocolType == ProtocolType.Tcp;
 
             if (OnResponse != null)
             {
@@ -231,7 +231,7 @@ namespace NewLife.Net.DNS
             // 请求父级代理
             NetUri parent = null;
             Byte[] data = null;
-            ISocketSession session = null;
+            ISocketClient session = null;
 
             NetUri[] us = null;
             lock (Parents) { us = Parents.ToArray(); }
@@ -332,8 +332,8 @@ namespace NewLife.Net.DNS
         /// <summary>响应</summary>
         public DNSEntity Response { get { return _Response; } set { _Response = value; } }
 
-        private ISocketSession _Session;
+        private ISocketClient _Session;
         /// <summary>网络会话</summary>
-        public ISocketSession Session { get { return _Session; } set { _Session = value; } }
+        public ISocketClient Session { get { return _Session; } set { _Session = value; } }
     }
 }

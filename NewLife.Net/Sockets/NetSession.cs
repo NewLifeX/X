@@ -32,9 +32,9 @@ namespace NewLife.Net.Sockets
         /// <summary>主服务</summary>
         NetServer INetSession.Host { get { return _Host; } set { _Host = value; } }
 
-        private ISocketSession _Session;
+        private ISocketClient _Session;
         /// <summary>客户端。跟客户端通讯的那个Socket，其实是服务端TcpSession/UdpServer</summary>
-        public ISocketSession Session { get { return _Session; } set { _Session = value; } }
+        public ISocketClient Session { get { return _Session; } set { _Session = value; } }
 
         private ISocketServer _Server;
         /// <summary>服务端。跟目标服务端通讯的那个Socket，其实是客户端TcpClientX/UdpClientX</summary>
@@ -45,7 +45,7 @@ namespace NewLife.Net.Sockets
         public IPEndPoint ClientEndPoint { get { return _ClientEndPoint; } set { _ClientEndPoint = value; } }
 
         /// <summary>客户端地址</summary>
-        public NetUri ClientUri { get { return new NetUri(Session != null ? Session.ProtocolType : ProtocolType.IP, ClientEndPoint); } }
+        public NetUri ClientUri { get { return new NetUri(Session != null ? Session.Local.ProtocolType : ProtocolType.IP, ClientEndPoint); } }
         #endregion
 
         #region 方法
@@ -56,7 +56,7 @@ namespace NewLife.Net.Sockets
             ShowSession();
 
             // Tcp挂接事件，Udp直接处理数据
-            if (Session.ProtocolType == ProtocolType.Tcp)
+            if (Session.Local.ProtocolType == ProtocolType.Tcp)
             {
                 Session.Received += (s, e2) => OnReceive(e2);
                 Session.OnDisposed += (s, e2) => this.Dispose();
@@ -81,7 +81,7 @@ namespace NewLife.Net.Sockets
             base.OnDispose(disposing);
 
             //var session = Session;
-            //if (session.ProtocolType == ProtocolType.Tcp)
+            //if (session.Local.ProtocolType == ProtocolType.Tcp)
             //{
             //    session.Received -= new EventHandler<NetEventArgs>(Session_Received);
             //    session.Disconnect();

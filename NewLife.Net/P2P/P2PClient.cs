@@ -12,7 +12,7 @@ namespace NewLife.Net.P2P
     /// Tcp打洞流程（A想连接B）：
     /// 1，客户端A通过路由器NAT-A连接打洞服务器S
     /// 2，A向S发送标识，异步等待响应
-    /// 3，S记录A的标识和会话<see cref="ISocketSession"/>
+    /// 3，S记录A的标识和会话<see cref="ISocketClient"/>
     /// 3，客户端B，从业务通道拿到标识
     /// 4，B通过路由器NAT-B连接打洞服务器S，异步等待响应
     /// 5，B向S发送标识

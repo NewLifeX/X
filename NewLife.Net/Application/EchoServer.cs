@@ -22,9 +22,9 @@ namespace NewLife.Net.Application
             var session = e.Session;
 
             if (e.BytesTransferred > 100)
-                WriteLog("Echo {0} [{1}]", session.RemoteUri, e.BytesTransferred);
+                WriteLog("Echo {0} [{1}]", session.Remote, e.BytesTransferred);
             else
-                WriteLog("Echo {0} [{1}] {2}", session.RemoteUri, e.BytesTransferred, e.GetString());
+                WriteLog("Echo {0} [{1}] {2}", session.Remote, e.BytesTransferred, e.GetString());
 
             //Send(e.Socket, e.Buffer, e.Offset, e.BytesTransferred, e.RemoteEndPoint);
             //session.Send(e.Buffer, e.Offset, e.BytesTransferred, e.RemoteEndPoint);

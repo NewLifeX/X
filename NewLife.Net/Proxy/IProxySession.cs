@@ -19,7 +19,7 @@ namespace NewLife.Net.Proxy
         IProxy Proxy { get; set; }
 
         /// <summary>远程客户端。跟目标服务端通讯的那个Socket，其实是客户端TcpClientX/UdpClientX</summary>
-        ISocketSession RemoteClientSession { get; set; }
+        ISocketClient RemoteClientSession { get; set; }
 
         ///// <summary>远程客户端IP终结点</summary>
         //IPEndPoint RemoteEndPoint { get; set; }

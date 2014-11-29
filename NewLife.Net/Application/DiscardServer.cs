@@ -23,9 +23,9 @@ namespace NewLife.Net.Application
             try
             {
                 if (e.BytesTransferred > 100)
-                    WriteLog("Discard {0} [{1}]", session.RemoteUri, e.BytesTransferred);
+                    WriteLog("Discard {0} [{1}]", session.Remote, e.BytesTransferred);
                 else
-                    WriteLog("Discard {0} [{1}] {2}", session.RemoteUri, e.BytesTransferred, e.GetString());
+                    WriteLog("Discard {0} [{1}] {2}", session.Remote, e.BytesTransferred, e.GetString());
             }
             finally
             {

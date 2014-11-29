@@ -14,7 +14,7 @@ namespace NewLife.Net.Tcp
     /// 
     /// 注意：服务器接受连接请求后，不会开始处理数据，而是由<see cref="Accepted"/>事件订阅者决定何时开始处理数据。
     /// </remarks>
-    public class TcpServer : DisposeBase
+    public class TcpServer : DisposeBase, ISocketServer
     {
         #region 属性
         private NetUri _Local = new NetUri(ProtocolType.Tcp, IPAddress.Any, 0);
@@ -38,6 +38,10 @@ namespace NewLife.Net.Tcp
         private TcpListener _Server;
         /// <summary>服务器</summary>
         public TcpListener Server { get { return _Server; } set { _Server = value; } }
+
+        private Boolean _Active;
+        /// <summary>是否活动</summary>
+        public Boolean Active { get { return _Active; } set { _Active = value; } }
         #endregion
 
         #region 构造
@@ -63,6 +67,7 @@ namespace NewLife.Net.Tcp
             AcceptAsync();
         }
 
+        /// <summary>停止</summary>
         public virtual void Stop()
         {
             if (Server != null) Server.Stop();

@@ -36,41 +36,19 @@ namespace NewLife.Net.Sockets
         /// <summary>服务名</summary>
         public String Name { get { return _Name ?? (_Name = GetType().Name); } set { _Name = value; } }
 
-        private IPAddress _Address = IPAddress.Any;
-        /// <summary>监听本地地址</summary>
-        public IPAddress Address
-        {
-            get { return _Address; }
-            set
-            {
-                _Address = value;
-                if (value != null) AddressFamily = value.AddressFamily;
-            }
-        }
+        private NetUri _Local = new NetUri();
+        /// <summary>本地结点</summary>
+        public NetUri Local { get { return _Local; } set { _Local = value; } }
 
-        private Int32 _Port;
         /// <summary>端口</summary>
-        public Int32 Port { get { return _Port; } set { _Port = value; } }
+        public Int32 Port { get { return _Local.Port; } set { _Local.Port = value; } }
 
-        private AddressFamily _AddressFamily = AddressFamily.Unknown;
-        /// <summary>地址族。如果使用Unknown，将同时使用IPv4和IPv6。</summary>
-        public AddressFamily AddressFamily
-        {
-            get { return _AddressFamily; }
-            set
-            {
-                _AddressFamily = value;
-
-                // 根据地址族选择合适的本地地址
-                _Address = _Address.GetRightAny(value);
-            }
-        }
+        public ProtocolType ProtocolType { get { return _Local.ProtocolType; } set { _Local.ProtocolType = value; } }
 
         private List<ISocketServer> _Servers;
         /// <summary>服务器集合。</summary>
         public IList<ISocketServer> Servers { get { return _Servers ?? (_Servers = new List<ISocketServer>()); } }
 
-        //private SocketServer _Server;
         /// <summary>服务器。返回服务器集合中的第一个服务器</summary>
         public ISocketServer Server
         {
@@ -86,10 +64,6 @@ namespace NewLife.Net.Sockets
 
         /// <summary>是否活动</summary>
         public Boolean Active { get { return Server != null && Server.Active; } }
-
-        private ProtocolType _Protocol = ProtocolType.Unknown;
-        /// <summary>协议类型。如果使用Unknown，将同时使用Tcp和Udp</summary>
-        public ProtocolType ProtocolType { get { return _Protocol; } set { _Protocol = value; } }
 
         private Boolean _ShowAbortAsError;
         /// <summary>显示取消操作作为错误</summary>
@@ -109,7 +83,7 @@ namespace NewLife.Net.Sockets
         /// <param name="port"></param>
         public NetServer(IPAddress address, Int32 port)
         {
-            Address = address;
+            Local.Address = address;
             Port = port;
         }
 
@@ -117,13 +91,15 @@ namespace NewLife.Net.Sockets
         /// <param name="address"></param>
         /// <param name="port"></param>
         /// <param name="protocolType"></param>
-        public NetServer(IPAddress address, Int32 port, ProtocolType protocolType) : this(address, port) { ProtocolType = protocolType; }
+        public NetServer(IPAddress address, Int32 port, ProtocolType protocolType) : this(address, port) { Local.ProtocolType = protocolType; }
 
         /// <summary>已重载。释放会话集合等资源</summary>
         /// <param name="disposing"></param>
         protected override void OnDispose(bool disposing)
         {
             base.OnDispose(disposing);
+
+            Stop();
 
             // 释放托管资源
             if (disposing)
@@ -165,23 +141,23 @@ namespace NewLife.Net.Sockets
         {
             if (Servers.Contains(server)) return false;
 
-            if (server.ProtocolType == ProtocolType.Tcp)
+            if (server.Local.ProtocolType == ProtocolType.Tcp)
             {
                 var svr = server as TcpServer;
-                svr.Accepted += new EventHandler<NetEventArgs>(OnAccepted);
+                svr.Accepted += OnAccepted;
             }
-            else if (server.ProtocolType == ProtocolType.Udp)
+            else if (server.Local.ProtocolType == ProtocolType.Udp)
             {
                 var svr = server as UdpServer;
-                svr.Received += new EventHandler<NetEventArgs>(OnAccepted);
-                svr.Received += new EventHandler<NetEventArgs>(OnReceived);
+                svr.Received += OnAccepted;
+                svr.Received += OnReceived;
             }
             else
             {
-                throw new Exception("不支持的协议类型" + server.ProtocolType + "！");
+                throw new Exception("不支持的协议类型" + server.Local.ProtocolType + "！");
             }
 
-            //server.Error += new EventHandler<NetEventArgs>(OnError);
+            //server.Error += OnError);
 
             Servers.Add(server);
             return true;
@@ -211,7 +187,7 @@ namespace NewLife.Net.Sockets
         {
             if (Servers.Count <= 0)
             {
-                var list = CreateServer(Address, Port, ProtocolType, AddressFamily);
+                var list = CreateServer(Local.Address, Port, Local.ProtocolType, Local.Address.AddressFamily);
                 foreach (var item in list)
                 {
                     AttachServer(item);
@@ -235,7 +211,7 @@ namespace NewLife.Net.Sockets
                 return;
             }
 
-            ProtocolType = Server.ProtocolType;
+            Local.ProtocolType = Server.Local.ProtocolType;
 
             WriteLog("{0} 准备就绪！", Name);
         }
@@ -407,12 +383,12 @@ namespace NewLife.Net.Sockets
                 case AddressFamily.InterNetwork:
                 case AddressFamily.InterNetworkV6:
                     var svr = new TServer();
-                    svr.Address = address.GetRightAny(family);
+                    svr.Local.Address = address.GetRightAny(family);
                     svr.Port = port;
-                    svr.AddressFamily = family;
+                    //svr.AddressFamily = family;
 
                     // 协议端口不能是已经被占用
-                    if (!NetHelper.IsUsed(svr.ProtocolType, svr.Address, svr.Port)) list.Add(svr);
+                    if (!NetHelper.IsUsed(svr.Local.ProtocolType, svr.Local.Address, svr.Port)) list.Add(svr);
                     break;
                 default:
                     // 其它情况表示同时支持IPv4和IPv6

@@ -1,13 +1,11 @@
 ﻿using System;
 using System.IO;
 using System.Net;
-using System.Net.Sockets;
-using System.Text;
 
 namespace NewLife.Net
 {
     /// <summary>会话基类</summary>
-    public abstract class SessionBase : DisposeBase
+    public abstract class SessionBase : DisposeBase, ISocketClient
     {
         #region 属性
         private NetUri _Local;
@@ -24,6 +22,14 @@ namespace NewLife.Net
         private Int32 _Timeout = 3000;
         /// <summary>超时。默认3000ms</summary>
         public Int32 Timeout { get { return _Timeout; } set { _Timeout = value; } }
+
+        private Boolean _Active;
+        /// <summary>是否活动</summary>
+        public Boolean Active { get { return _Active; } set { _Active = value; } }
+
+        private Stream _Stream = new MemoryStream();
+        /// <summary>会话数据流，供用户程序使用，内部不做处理。可用于解决Tcp粘包的问题，把多余的分片放入该数据流中。</summary>
+        public Stream Stream { get { return _Stream; } set { _Stream = value; } }
         #endregion
 
         #region 构造
@@ -37,22 +43,57 @@ namespace NewLife.Net
 
         #region 方法
         /// <summary>打开</summary>
-        public abstract void Open();
+        public virtual void Open()
+        {
+            if (Active) return;
+
+            Active = OnOpen();
+        }
+
+        /// <summary>打开</summary>
+        /// <returns></returns>
+        protected abstract Boolean OnOpen();
 
         /// <summary>关闭</summary>
-        public abstract void Close();
+        public virtual void Close()
+        {
+            if (!Active) return;
+
+            if (OnClose()) Active = false;
+        }
+
+        /// <summary>关闭</summary>
+        /// <returns></returns>
+        protected abstract Boolean OnClose();
+
+        /// <summary>连接</summary>
+        /// <param name="remoteEP"></param>
+        void ISocketClient.Connect(IPEndPoint remoteEP)
+        {
+            Remote.EndPoint = remoteEP;
+
+            OnConnect(remoteEP);
+        }
+
+        /// <summary>连接</summary>
+        /// <param name="remoteEP"></param>
+        /// <returns></returns>
+        protected abstract Boolean OnConnect(IPEndPoint remoteEP);
 
         /// <summary>发送数据</summary>
         /// <remarks>
-        /// 目标地址由<seealso cref="Remote"/>决定，如需精细控制，可直接操作<seealso cref="Client"/>
+        /// 目标地址由<seealso cref="Remote"/>决定
         /// </remarks>
         /// <param name="buffer">缓冲区</param>
         /// <param name="offset">偏移</param>
         /// <param name="count">数量</param>
         public abstract void Send(Byte[] buffer, Int32 offset = 0, Int32 count = -1);
 
+        /// <summary>接收数据</summary>
+        /// <returns></returns>
+        public abstract Byte[] Receive();
+
         /// <summary>读取指定长度的数据，一般是一帧</summary>
-        /// <remarks>如需直接返回数据，可直接操作<seealso cref="Client"/></remarks>
         /// <param name="buffer">缓冲区</param>
         /// <param name="offset">偏移</param>
         /// <param name="count">数量</param>
@@ -61,6 +102,10 @@ namespace NewLife.Net
         #endregion
 
         #region 异步接收
+        private Boolean _UseReceiveAsync;
+        /// <summary>是否异步接收数据</summary>
+        public Boolean UseReceiveAsync { get { return _UseReceiveAsync; } set { _UseReceiveAsync = value; } }
+
         /// <summary>开始异步接收</summary>
         public abstract void ReceiveAsync();
 
@@ -88,59 +133,59 @@ namespace NewLife.Net
         #endregion
     }
 
-    /// <summary>会话扩展</summary>
-    public static class SessionHelper
-    {
-        /// <summary>发送数据流</summary>
-        /// <param name="session"></param>
-        /// <param name="stream"></param>
-        /// <returns>返回自身，用于链式写法</returns>
-        public static SessionBase Send(this SessionBase session, Stream stream)
-        {
-            Int64 total = 0;
+    ///// <summary>会话扩展</summary>
+    //public static class SessionHelper
+    //{
+    //    /// <summary>发送数据流</summary>
+    //    /// <param name="session"></param>
+    //    /// <param name="stream"></param>
+    //    /// <returns>返回自身，用于链式写法</returns>
+    //    public static SessionBase Send(this SessionBase session, Stream stream)
+    //    {
+    //        Int64 total = 0;
 
-            var size = 1472;
-            var buffer = new Byte[size];
-            while (true)
-            {
-                var count = stream.Read(buffer, 0, buffer.Length);
-                if (count <= 0) break;
+    //        var size = 1472;
+    //        var buffer = new Byte[size];
+    //        while (true)
+    //        {
+    //            var count = stream.Read(buffer, 0, buffer.Length);
+    //            if (count <= 0) break;
 
-                session.Send(buffer, 0, count);
-                total += count;
+    //            session.Send(buffer, 0, count);
+    //            total += count;
 
-                if (count < buffer.Length) break;
-            }
-            return session;
-        }
+    //            if (count < buffer.Length) break;
+    //        }
+    //        return session;
+    //    }
 
-        /// <summary>向指定目的地发送信息</summary>
-        /// <param name="session"></param>
-        /// <param name="message"></param>
-        /// <param name="encoding"></param>
-        /// <param name="remoteEP"></param>
-        /// <returns>返回自身，用于链式写法</returns>
-        public static SessionBase Send(this SessionBase session, String message, Encoding encoding = null)
-        {
-            if (encoding == null) encoding = Encoding.UTF8;
+    //    /// <summary>向指定目的地发送信息</summary>
+    //    /// <param name="session"></param>
+    //    /// <param name="message"></param>
+    //    /// <param name="encoding"></param>
+    //    /// <param name="remoteEP"></param>
+    //    /// <returns>返回自身，用于链式写法</returns>
+    //    public static SessionBase Send(this SessionBase session, String message, Encoding encoding = null)
+    //    {
+    //        if (encoding == null) encoding = Encoding.UTF8;
 
-            session.Send(encoding.GetBytes(message));
+    //        session.Send(encoding.GetBytes(message));
 
-            return session;
-        }
+    //        return session;
+    //    }
 
-        /// <summary>接收字符串</summary>
-        /// <param name="session"></param>
-        /// <param name="encoding"></param>
-        /// <returns></returns>
-        public static String ReceiveString(this SessionBase session, Encoding encoding = null)
-        {
-            var buf = new Byte[1500];
-            var count = session.Receive(buf);
-            if (count == 0) return null;
+    //    /// <summary>接收字符串</summary>
+    //    /// <param name="session"></param>
+    //    /// <param name="encoding"></param>
+    //    /// <returns></returns>
+    //    public static String ReceiveString(this SessionBase session, Encoding encoding = null)
+    //    {
+    //        var buf = new Byte[1500];
+    //        var count = session.Receive(buf);
+    //        if (count == 0) return null;
 
-            if (encoding == null) encoding = Encoding.UTF8;
-            return encoding.GetString(buf, 0, count);
-        }
-    }
+    //        if (encoding == null) encoding = Encoding.UTF8;
+    //        return encoding.GetString(buf, 0, count);
+    //    }
+    //}
 }

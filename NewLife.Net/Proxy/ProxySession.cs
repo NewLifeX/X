@@ -30,9 +30,9 @@ namespace NewLife.Net.Proxy
         /// <summary>代理对象</summary>
         IProxy IProxySession.Proxy { get { return _Proxy; } set { _Proxy = value; } }
 
-        private ISocketSession _Remote;
+        private ISocketClient _Remote;
         /// <summary>远程服务端。跟目标服务端通讯的那个Socket，其实是客户端TcpClientX/UdpClientX</summary>
-        public ISocketSession RemoteClientSession { get { return _Remote; } set { _Remote = value; } } 
+        public ISocketClient RemoteClientSession { get { return _Remote; } set { _Remote = value; } } 
 
         //private IPEndPoint _RemoteEndPoint;
         ///// <summary>服务端远程IP终结点</summary>
@@ -79,7 +79,7 @@ namespace NewLife.Net.Proxy
         public override void Start(ReceivedEventArgs e)
         {
             // 如果未指定远程协议，则与来源协议一致
-            if (RemoteServerUri.ProtocolType == 0) RemoteServerUri.ProtocolType = Session.ProtocolType;
+            if (RemoteServerUri.ProtocolType == 0) RemoteServerUri.ProtocolType = Session.Local.ProtocolType;
 
             base.Start(e);
         }
@@ -104,7 +104,7 @@ namespace NewLife.Net.Proxy
         protected virtual void StartRemote(ReceivedEventArgs e)
         {
             var start = DateTime.Now;
-            ISocketSession session = null;
+            ISocketClient session = null;
             try
             {
                 WriteDebugLog("Proxy[{0}].StartRemote {1}", ID, RemoteServerUri);
@@ -115,7 +115,7 @@ namespace NewLife.Net.Proxy
                 {
                     // 这个是必须清空的，是否需要保持会话呢，由OnRemoteDispose决定
                     _Remote = null;
-                    OnRemoteDispose(s as ISocketSession);
+                    OnRemoteDispose(s as ISocketClient);
                 };
                 session.Received += new EventHandler<ReceivedEventArgs>(Remote_Received);
                 session.ReceiveAsync();
@@ -141,7 +141,7 @@ namespace NewLife.Net.Proxy
         /// <summary>为会话创建与远程服务器通讯的Socket。可以使用Socket池达到重用的目的。默认实现创建与服务器相同类型的客户端</summary>
         /// <param name="e"></param>
         /// <returns></returns>
-        protected virtual ISocketSession CreateRemote(ReceivedEventArgs e)
+        protected virtual ISocketClient CreateRemote(ReceivedEventArgs e)
         {
             //var key = "" + RemoteEndPoint;
             //if (String.IsNullOrEmpty(key)) throw new ArgumentNullException("RemoteEndPoint");
@@ -167,7 +167,7 @@ namespace NewLife.Net.Proxy
 
         /// <summary>远程连接断开时触发。默认销毁整个会话，子类可根据业务情况决定客户端与代理的链接是否重用。</summary>
         /// <param name="client"></param>
-        protected virtual void OnRemoteDispose(ISocketSession client) { this.Dispose(); }
+        protected virtual void OnRemoteDispose(ISocketClient client) { this.Dispose(); }
 
         void Remote_Received(object sender, ReceivedEventArgs e)
         {

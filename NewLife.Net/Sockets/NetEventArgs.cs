@@ -30,9 +30,9 @@ namespace NewLife.Net.Sockets
         /// </summary>
         public ISocket Socket { get { return _Socket; } set { _Socket = value; } }
 
-        private ISocketSession _Session;
+        private ISocketClient _Session;
         /// <summary>Socket会话</summary>
-        public ISocketSession Session { get { return _Session; } set { _Session = value; } }
+        public ISocketClient Session { get { return _Session; } set { _Session = value; } }
 
         private Exception _Error;
         /// <summary>异常信息</summary>

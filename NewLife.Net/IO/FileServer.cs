@@ -46,23 +46,27 @@ namespace NewLife.Net.IO
 
         void SetEvent(TcpSession session)
         {
-            session.Received += delegate(Object sender, NetEventArgs e)
+            session.Received += (sender, e) =>
             {
                 TcpSession tc = sender as TcpSession;
 
-                Stream stream = null;
-                if (!tc.Items.Contains("Stream"))
-                {
-                    stream = new MemoryStream();
-                    tc.Items["Stream"] = stream;
-                }
-                else
-                {
-                    stream = tc.Items["Stream"] as Stream;
-                }
+                //Stream stream = null;
+                //if (!tc.Items.Contains("Stream"))
+                //{
+                //    stream = new MemoryStream();
+                //    tc.Items["Stream"] = stream;
+                //}
+                //else
+                //{
+                //    stream = tc.Items["Stream"] as Stream;
+                //}
 
-                // 把数据写入流
-                e.WriteTo(stream);
+                //// 把数据写入流
+                //e.WriteTo(stream);
+
+                var stream = tc.Stream;
+                stream.Write(e.Data, 0, e.Length);
+                stream.Seek(-1 * e.Length, SeekOrigin.Current);
 
                 // 数据太少时等下一次，不过基本上不可能。5是FileFormat可能的最小长度
                 if (stream.Length < 5) return;

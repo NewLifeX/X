@@ -36,7 +36,7 @@ namespace NewLife.Net.Common
             }
             try
             {
-                Process(s, session, session.RemoteUri);
+                Process(s, session, session.Remote);
 
                 // 如果还有剩下，写入数据流，供下次使用
                 if (s.Position < s.Length)

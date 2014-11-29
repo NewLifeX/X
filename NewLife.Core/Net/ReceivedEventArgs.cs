@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 
 namespace NewLife.Net
@@ -25,6 +26,10 @@ namespace NewLife.Net
         private Int32 _Length;
         /// <summary>数据长度</summary>
         public Int32 Length { get { return _Length; } set { _Length = value; } }
+
+        private Stream _Stream;
+        /// <summary>数据流</summary>
+        public Stream Stream { get { return _Stream; } set { _Stream = value; } }
 
         private Boolean _Feedback;
         /// <summary>是否把数据反馈给对方</summary>

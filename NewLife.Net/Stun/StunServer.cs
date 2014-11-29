@@ -58,12 +58,12 @@ namespace NewLife.Net.Stun
 
                 foreach (var item in Servers)
                 {
-                    if (item.ProtocolType == ProtocolType.Tcp) continue;
+                    if (item.Local.ProtocolType == ProtocolType.Tcp) continue;
 
                     // 查询公网地址和网络类型，如果是受限网络，或者对称网络，则采用本地端口，因此此时只能依赖端口映射，将来这里可以考虑操作UPnP
                     if (rs == null)
                     {
-                        item.Bind();
+                        //item.Bind();
                         rs = new StunClient(item).Query();
                         if (rs != null && rs.Type == StunNetType.Blocked && rs.Public != null) rs.Type = StunNetType.Symmetric;
                         WriteLog("网络类型：{0} {1}", rs.Type, rs.Type.GetDescription());
@@ -71,18 +71,18 @@ namespace NewLife.Net.Stun
                         if (ep != null) pub = ep.Address;
                     }
                     else
-                        ep = new StunClient(item.ProtocolType, item.Port).GetPublic();
+                        ep = new StunClient(item.Local.ProtocolType, item.Port).GetPublic();
                     if (rs.Type > StunNetType.RestrictedCone) ep = new IPEndPoint(pub, item.Port);
-                    WriteLog("{0}://{1}:{2}的公网地址：{3}", item.ProtocolType, item.Address, item.Port, ep);
+                    WriteLog("{0}的公网地址：{3}", item.Local, ep);
                     dic.Add(item.Port, ep);
                 }
                 // Tcp没办法获取公网地址，只能通过Udp获取到的公网地址加上端口形成，所以如果要使用Tcp，服务器必须拥有独立公网地址
                 foreach (var item in Servers)
                 {
-                    if (item.ProtocolType != ProtocolType.Tcp) continue;
+                    if (item.Local.ProtocolType != ProtocolType.Tcp) continue;
 
                     ep = new IPEndPoint(pub, item.Port);
-                    WriteLog("{0}://{1}:{2}的公网地址：{3}", item.ProtocolType, item.Address, item.Port, ep);
+                    WriteLog("{0}的公网地址：{3}", item.Local, ep);
                     dic.Add(item.Port + 100000, ep);
                 }
                 //var ep = StunClient.GetPublic(Port, 2000);
@@ -112,7 +112,7 @@ namespace NewLife.Net.Stun
                 //if (remote == null && session != null) remote = session.RemoteEndPoint;
 
                 var request = StunMessage.Read(e.GetStream());
-                WriteLog("{0}://{1} {2}{3}{4}", session.ProtocolType, remote, request.Type, request.ChangeIP ? " ChangeIP" : "", request.ChangePort ? " ChangePort" : "");
+                WriteLog("{0}://{1} {2}{3}{4}", session.Local.ProtocolType, remote, request.Type, request.ChangeIP ? " ChangeIP" : "", request.ChangePort ? " ChangePort" : "");
 
                 // 如果是兄弟服务器发过来的，修正响应地址
                 switch (request.Type)
@@ -173,25 +173,25 @@ namespace NewLife.Net.Stun
         /// <param name="request"></param>
         /// <param name="session"></param>
         /// <returns></returns>
-        protected void OnBind(StunMessage request, ISocketSession session)
+        protected void OnBind(StunMessage request, ISocketClient session)
         {
             var rs = new StunMessage();
             rs.Type = StunMessageType.BindingResponse;
             rs.TransactionID = request.TransactionID;
             rs.MappedAddress = session.RemoteEndPoint;
             //rs.SourceAddress = session.GetRelativeEndPoint(remote.Address);
-            if (session.ProtocolType == ProtocolType.Tcp)
+            if (session.Local.ProtocolType == ProtocolType.Tcp)
                 rs.SourceAddress = Public[session.Host.Port + 100000];
             else
                 rs.SourceAddress = Public[session.Host.Port];
 
             // 找另一个
-            ISocketSession session2 = null;
+            ISocketClient session2 = null;
             Int32 anotherPort = 0;
             for (int i = 0; i < Servers.Count; i++)
             {
                 var server = Servers[i];
-                if (server.ProtocolType == session.ProtocolType && server.LocalEndPoint.Port != session.LocalEndPoint.Port)
+                if (server.ProtocolType == session.Local.ProtocolType && server.LocalEndPoint.Port != session.LocalEndPoint.Port)
                 {
                     anotherPort = server.Port;
                     if (server.ProtocolType == ProtocolType.Tcp)
@@ -200,13 +200,13 @@ namespace NewLife.Net.Stun
                     }
                     else
                     {
-                        session2 = server as ISocketSession;
+                        session2 = server as ISocketClient;
                         if (session2 != null) break;
                     }
                 }
             }
             //rs.ChangedAddress = Partner ?? session2.GetRelativeEndPoint(remote.Address);
-            if (session.ProtocolType == ProtocolType.Tcp)
+            if (session.Local.ProtocolType == ProtocolType.Tcp)
                 rs.ChangedAddress = Partner ?? Public[anotherPort + 100000];
             else
                 rs.ChangedAddress = Partner ?? Public[anotherPort];

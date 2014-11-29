@@ -53,7 +53,7 @@ namespace NewLife.Net.Application
         static AutoResetEvent _are = new AutoResetEvent(true);
         static void OnReceived(object sender, ReceivedEventArgs e)
         {
-            var session = sender as ISocketSession;
+            var session = sender as ISocketClient;
             Console.WriteLine("客户端{0} 收到 [{1}] {2}", session, e.Stream.Length, e.Stream.ToStr());
 
             _are.Set();
@@ -241,14 +241,14 @@ namespace NewLife.Net.Application
             var session = e.Session;
 
             //if (e.BytesTransferred > 100)
-            //    Console.WriteLine("Echo {0} [{1}]", session.RemoteUri, e.BytesTransferred);
+            //    Console.WriteLine("Echo {0} [{1}]", session.Remote, e.BytesTransferred);
             //else
-            //    Console.WriteLine("Echo {0} [{1}] {2}", session.RemoteUri, e.BytesTransferred, e.GetString());
+            //    Console.WriteLine("Echo {0} [{1}] {2}", session.Remote, e.BytesTransferred, e.GetString());
             var msg = "";
             if (e.BytesTransferred > 100)
-                msg = String.Format("Echo {0} [{1}]", session.RemoteUri, e.BytesTransferred);
+                msg = String.Format("Echo {0} [{1}]", session.Remote, e.BytesTransferred);
             else
-                msg = String.Format("Echo {0} [{1}] {2}", session.RemoteUri, e.BytesTransferred, e.GetString());
+                msg = String.Format("Echo {0} [{1}] {2}", session.Remote, e.BytesTransferred, e.GetString());
 
             session.Send(e.Buffer, e.Offset, e.BytesTransferred);
         }
@@ -337,7 +337,7 @@ namespace NewLife.Net.Application
 
             var msg = String.Format("Hi I am {0}!", p.ID);
 
-            var sessions = new ISocketSession[p.Count];
+            var sessions = new ISocketClient[p.Count];
             for (int k = 0; k < 100; k++)
             {
                 Console.WriteLine("第{1}轮处理：{0}", p.ID, k + 1);

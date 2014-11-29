@@ -10,9 +10,9 @@ namespace NewLife.Net.Common
     /// <summary>客户端消息提供者</summary>
     public class ClientMessageProvider : MessageProvider
     {
-        private ISocketSession _Session;
+        private ISocketClient _Session;
         /// <summary>客户端</summary>
-        public ISocketSession Session
+        public ISocketClient Session
         {
             get { return _Session; }
             set
@@ -32,7 +32,7 @@ namespace NewLife.Net.Common
                         // 局域网环境下,UDP包大小为1024*8,速度达到2M/s,丢包情况理想.
                         // 外网环境下,UDP包大小为548,速度理想,丢包情况理想.
                         // http://www.cnblogs.com/begingame/archive/2011/08/18/2145138.html
-                        MaxMessageSize = value.ProtocolType == ProtocolType.Udp ? 1472 : 1460;
+                        MaxMessageSize = value.Local.ProtocolType == ProtocolType.Udp ? 1472 : 1460;
                         //MaxMessageSize = value.ProtocolType == ProtocolType.Udp ? 1024 * 8 : 1460;
                         //value.Host.Socket.DontFragment = true;
 
@@ -56,12 +56,12 @@ namespace NewLife.Net.Common
             try
             {
                 var message = Message.Read(e.Stream);
-                Process(message, session.RemoteUri);
+                Process(message, session.Remote);
             }
             catch (Exception ex)
             {
                 var msg = new ExceptionMessage() { Value = ex };
-                Process(msg, session.RemoteUri);
+                Process(msg, session.Remote);
             }
         }
 
@@ -83,10 +83,10 @@ namespace NewLife.Net.Common
             session.Send(stream);
 
             // UDP暂停一会，避免连续发送导致数据包丢失
-            if (session.ProtocolType == ProtocolType.Udp) Thread.Sleep(10);
+            if (session.Local.ProtocolType == ProtocolType.Udp) Thread.Sleep(10);
         }
 
-        ISocketSession GetSession()
+        ISocketClient GetSession()
         {
             var session = Session;
             Boolean needUpdate = false;

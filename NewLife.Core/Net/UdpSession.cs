@@ -3,11 +3,12 @@ using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using NewLife.Model;
 
 namespace NewLife.Net
 {
     /// <summary>增强的UDP</summary>
-    public class UdpSession : SessionBase
+    public class UdpSession : SessionBase, ISocketServer
     {
         #region 属性
         private UdpClient _Client;
@@ -30,25 +31,39 @@ namespace NewLife.Net
 
         #region 方法
         /// <summary>打开</summary>
-        public override void Open()
+        protected override Boolean OnOpen()
         {
             if (Client == null || !Client.Client.IsBound)
             {
                 Client = new UdpClient(Port);
                 if (Timeout > 0) Client.Client.ReceiveTimeout = Timeout;
             }
+
+            return true;
         }
 
         /// <summary>关闭</summary>
-        public override void Close()
+        protected override Boolean OnClose()
         {
             if (Client != null) Client.Close();
             Client = null;
+
+            return true;
+        }
+
+        /// <summary>连接</summary>
+        /// <param name="remoteEP"></param>
+        /// <returns></returns>
+        protected override Boolean OnConnect(IPEndPoint remoteEP)
+        {
+            Client.Connect(remoteEP);
+
+            return true;
         }
 
         /// <summary>发送数据</summary>
         /// <remarks>
-        /// 目标地址由<seealso cref="Remote"/>决定，如需精细控制，可直接操作<seealso cref="Client"/>
+        /// 目标地址由<seealso cref="SessionBase.Remote"/>决定，如需精细控制，可直接操作<seealso cref="Client"/>
         /// </remarks>
         /// <param name="buffer">缓冲区</param>
         /// <param name="offset">偏移</param>
@@ -79,8 +94,20 @@ namespace NewLife.Net
             }
         }
 
+        /// <summary>接收数据</summary>
+        /// <returns></returns>
+        public override Byte[] Receive()
+        {
+            Open();
+
+            IPEndPoint remoteEP = null;
+            var data = Client.Receive(ref remoteEP);
+            Remote.EndPoint = remoteEP;
+
+            return data;
+        }
+
         /// <summary>读取指定长度的数据，一般是一帧</summary>
-        /// <remarks>如需直接返回数据，可直接操作<seealso cref="Client"/></remarks>
         /// <param name="buffer">缓冲区</param>
         /// <param name="offset">偏移</param>
         /// <param name="count">数量</param>
@@ -146,6 +173,18 @@ namespace NewLife.Net
 
             // 数据发回去
             if (e.Feedback) Client.Send(e.Data, e.Length, e.Remote);
+        }
+        #endregion
+
+        #region IServer接口
+        void IServer.Start()
+        {
+            Open();
+        }
+
+        void IServer.Stop()
+        {
+            Close();
         }
         #endregion
     }

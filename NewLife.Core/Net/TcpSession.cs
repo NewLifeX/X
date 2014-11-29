@@ -37,27 +37,41 @@ namespace NewLife.Net
 
         #region 方法
         /// <summary>打开</summary>
-        public override void Open()
+        protected override Boolean OnOpen()
         {
             if (Client == null || !Client.Client.IsBound)
             {
                 Client = new TcpClient(Local.EndPoint);
                 if (Timeout > 0) Client.Client.ReceiveTimeout = Timeout;
 
-                Client.Connect(Remote.EndPoint);
+                if (Remote != null) Client.Connect(Remote.EndPoint);
             }
+
+            return true;
         }
 
         /// <summary>关闭</summary>
-        public override void Close()
+        protected override Boolean OnClose()
         {
             if (Client != null) Client.Close();
             Client = null;
+
+            return true;
+        }
+
+        /// <summary>连接</summary>
+        /// <param name="remoteEP"></param>
+        /// <returns></returns>
+        protected override Boolean OnConnect(IPEndPoint remoteEP)
+        {
+            Client.Connect(remoteEP);
+
+            return true;
         }
 
         /// <summary>发送数据</summary>
         /// <remarks>
-        /// 目标地址由<seealso cref="Remote"/>决定，如需精细控制，可直接操作<seealso cref="Client"/>
+        /// 目标地址由<seealso cref="SessionBase.Remote"/>决定，如需精细控制，可直接操作<seealso cref="Client"/>
         /// </remarks>
         /// <param name="buffer">缓冲区</param>
         /// <param name="offset">偏移</param>
@@ -71,8 +85,19 @@ namespace NewLife.Net
             Stream.Write(buffer, 0, count);
         }
 
+        /// <summary>接收数据</summary>
+        /// <returns></returns>
+        public override Byte[] Receive()
+        {
+            Open();
+
+            var buf = new Byte[1024 * 8];
+
+            var count = Client.GetStream().Read(buf, 0, buf.Length);
+            return buf.ReadBytes(0, count);
+        }
+
         /// <summary>读取指定长度的数据，一般是一帧</summary>
-        /// <remarks>如需直接返回数据，可直接操作<seealso cref="Client"/></remarks>
         /// <param name="buffer">缓冲区</param>
         /// <param name="offset">偏移</param>
         /// <param name="count">数量</param>
@@ -83,8 +108,7 @@ namespace NewLife.Net
 
             if (count < 0) count = buffer.Length - offset;
 
-            var size = Client.GetStream().Read(buffer, offset, count);
-            return size;
+            return Client.GetStream().Read(buffer, offset, count);
         }
         #endregion
 

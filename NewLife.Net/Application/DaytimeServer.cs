@@ -24,7 +24,7 @@ namespace NewLife.Net.Application
             var session = e.Session;
             //try
             //{
-            WriteLog("Daytime {0}", session.RemoteUri);
+            WriteLog("Daytime {0}", session.Remote);
 
             base.OnAccepted(sender, e);
 

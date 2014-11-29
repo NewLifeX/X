@@ -24,7 +24,7 @@ namespace NewLife.Net
                 //.Register<ISocketServer, UdpServer>(ProtocolType.Udp)
                 .Register<ISocketClient, TcpSession>(ProtocolType.Tcp)
                 //.Register<ISocketClient, UdpClientX>(ProtocolType.Udp)
-                .Register<ISocketSession, TcpSession>(ProtocolType.Tcp)
+                .Register<ISocketClient, TcpSession>(ProtocolType.Tcp)
                 //.Register<ISocketSession, UdpServer>(ProtocolType.Udp)
                 .Register<IStatistics, Statistics>()
                 .Register<INetSession, NetSession>();
@@ -54,7 +54,7 @@ namespace NewLife.Net
         /// <summary>根据网络标识创建客户端会话并连接（对Tcp）</summary>
         /// <param name="uri"></param>
         /// <returns></returns>
-        public static ISocketSession CreateSession(NetUri uri)
+        public static ISocketClient CreateSession(NetUri uri)
         {
             if (uri == null) throw new ArgumentNullException("uri");
 

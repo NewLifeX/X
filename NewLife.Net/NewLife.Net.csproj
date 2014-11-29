@@ -262,19 +262,10 @@
     <Compile Include="Smtp\SmtpSession.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Sockets\ReceivedEventArgs.cs" />
     <Compile Include="Sockets\INetSession.cs" />
-    <Compile Include="Sockets\ISocket.cs" />
-    <Compile Include="Sockets\ISocketAddress.cs" />
-    <Compile Include="Sockets\ISocketClient.cs" />
-    <Compile Include="Sockets\ISocketServer.cs" />
-    <Compile Include="Sockets\ISocketSession.cs" />
     <Compile Include="Sockets\Netbase.cs" />
     <Compile Include="Sockets\NetServer.cs" />
     <Compile Include="Sockets\NetSession.cs" />
-    <Compile Include="Sockets\SocketBase.cs" />
-    <Compile Include="Sockets\SocketClient.cs" />
-    <Compile Include="Sockets\SocketServer.cs" />
     <Compile Include="Sockets\NetEventArgs.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Sockets\SocketStream.cs" />
