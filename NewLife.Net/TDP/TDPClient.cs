@@ -4,9 +4,9 @@ namespace NewLife.Net.TDP
     class TDPClient
     {
         #region 属性
-        private UdpSession _Udp;
+        private UdpServer _Udp;
         /// <summary>UDP客户端</summary>
-        public UdpSession Udp { get { return _Udp; } set { _Udp = value; } }
+        public UdpServer Udp { get { return _Udp; } set { _Udp = value; } }
         #endregion
 
         #region 连接

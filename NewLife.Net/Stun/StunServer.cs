@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -101,17 +102,14 @@ namespace NewLife.Net.Stun
         /// <summary>接收到数据时</summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        protected override void OnReceived(object sender, NetEventArgs e)
+        protected override void OnReceive(ISocketSession session, Stream stream)
         {
-            base.OnReceived(sender, e);
-
-            if (e.BytesTransferred > 0)
+            if (stream.Length > 0)
             {
-                var session = e.Session;
                 IPEndPoint remote = e.RemoteIPEndPoint;
                 //if (remote == null && session != null) remote = session.RemoteEndPoint;
 
-                var request = StunMessage.Read(e.GetStream());
+                var request = StunMessage.Read(stream);
                 WriteLog("{0}://{1} {2}{3}{4}", session.Local.ProtocolType, remote, request.Type, request.ChangeIP ? " ChangeIP" : "", request.ChangePort ? " ChangePort" : "");
 
                 // 如果是兄弟服务器发过来的，修正响应地址

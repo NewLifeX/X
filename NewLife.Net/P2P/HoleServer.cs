@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading;
 using NewLife.Net.Sockets;
 
@@ -29,14 +30,11 @@ namespace NewLife.Net.P2P
         /// <summary>收到数据时</summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        protected override void OnReceived(object sender, NetEventArgs e)
+        protected override void OnReceive(ISocketSession session, Stream stream)
         {
-            base.OnReceived(sender, e);
+            var remoteEP = session.Remote.EndPoint;
 
-            var session = e.Session;
-            var remoteEP = e.RemoteIPEndPoint;
-
-            var str = e.GetString();
+            var str = stream.ToStr();
             WriteLog("");
             WriteLog(remoteEP + "=>" + session.Local.EndPoint + " " + str);
 

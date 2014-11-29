@@ -38,15 +38,15 @@ namespace NewLife.Net.UPnP
     public class UPnPClient : Netbase
     {
         #region 属性
-        private UdpSession _Udp;
+        private UdpServer _Udp;
         /// <summary>Udp客户端，用于发现网关设备</summary>
-        private UdpSession Udp
+        private UdpServer Udp
         {
             get
             {
                 if (_Udp == null)
                 {
-                    _Udp = new UdpSession();
+                    _Udp = new UdpServer();
                     //_Udp.Name = "UPnPClient";
                     //_Udp.ProtocolType = ProtocolType.Udp;
                     _Udp.Received += new EventHandler<NetEventArgs>(Udp_Received);

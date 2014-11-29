@@ -68,7 +68,7 @@ namespace NewLife.Net.P2P
                 }
                 else
                 {
-                    var server = new UdpSession();
+                    var server = new UdpServer();
                     //Server = server;
                     //server.ReuseAddress = true;
                     server.Received += server_Received;

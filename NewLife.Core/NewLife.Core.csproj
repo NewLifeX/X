@@ -133,11 +133,13 @@
     <Compile Include="Net\TcpSession.cs" />
     <Compile Include="Net\TcpServer.cs" />
     <Compile Include="Net\TcpSessionCollection.cs" />
+    <Compile Include="Net\UdpServer.cs" />
     <Compile Include="Net\UdpSession.cs" />
     <Compile Include="Net\UdpTransport.cs" />
     <Compile Include="Net\Upgrade.cs" />
     <Compile Include="Net\UpgradeVersion.cs" />
     <Compile Include="Net\SessionBase.cs" />
+    <Compile Include="Net\ISocketSession.cs" />
     <Compile Include="Properties\AssemblyInfo_.cs" />
     <Compile Include="Reflection\Action.cs" />
     <Compile Include="Extension\EnumHelper.cs" />

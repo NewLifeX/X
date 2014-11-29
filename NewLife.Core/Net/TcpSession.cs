@@ -6,7 +6,7 @@ using System.Net.Sockets;
 namespace NewLife.Net
 {
     /// <summary>增强TCP客户端</summary>
-    public class TcpSession : SessionBase
+    public class TcpSession : SessionBase, ISocketSession
     {
         #region 属性
         private TcpClient _Client;
@@ -17,9 +17,9 @@ namespace NewLife.Net
         ///// <summary>收到空数据时抛出异常并断开连接。</summary>
         //public Boolean DisconnectWhenEmptyData { get { return _DisconnectWhenEmptyData; } set { _DisconnectWhenEmptyData = value; } }
 
-        private Stream _Stream;
-        /// <summary>会话数据流，供用户程序使用，内部不做处理。可用于解决Tcp粘包的问题，把多余的分片放入该数据流中。</summary>
-        public Stream Stream { get { return _Stream; } set { _Stream = value; } }
+        //private Stream _Stream;
+        ///// <summary>会话数据流，供用户程序使用，内部不做处理。可用于解决Tcp粘包的问题，把多余的分片放入该数据流中。</summary>
+        //public Stream Stream { get { return _Stream; } set { _Stream = value; } }
         #endregion
 
         #region 构造
@@ -145,7 +145,7 @@ namespace NewLife.Net
             var e = new ReceivedEventArgs();
             e.Data = data;
 
-            RaiseReceive(e);
+            RaiseReceive(this, e);
 
             // 数据发回去
             if (e.Feedback) Send(e.Data, 0, e.Length);

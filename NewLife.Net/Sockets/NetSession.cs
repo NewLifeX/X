@@ -32,9 +32,9 @@ namespace NewLife.Net.Sockets
         /// <summary>主服务</summary>
         NetServer INetSession.Host { get { return _Host; } set { _Host = value; } }
 
-        private ISocketClient _Session;
+        private ISocketSession _Session;
         /// <summary>客户端。跟客户端通讯的那个Socket，其实是服务端TcpSession/UdpServer</summary>
-        public ISocketClient Session { get { return _Session; } set { _Session = value; } }
+        public ISocketSession Session { get { return _Session; } set { _Session = value; } }
 
         private ISocketServer _Server;
         /// <summary>服务端。跟目标服务端通讯的那个Socket，其实是客户端TcpClientX/UdpClientX</summary>

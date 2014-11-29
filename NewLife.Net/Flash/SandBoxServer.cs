@@ -1,4 +1,6 @@
-﻿using System.Net.Sockets;
+﻿using System;
+using System.IO;
+using System.Net.Sockets;
 using NewLife.Net.Sockets;
 
 namespace NewLife.Net
@@ -21,10 +23,9 @@ namespace NewLife.Net
         /// <summary>数据返回</summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        protected override void OnReceived(object sender, NetEventArgs e)
+        protected override void OnReceive(ISocketSession session, Stream stream)
         {
-            var session = e.Session;
-            string sss = e.GetString();
+            string sss = stream.ToStr();
             if (sss == "<policy-file-request/>\0")
             {
                 session.Send(System.Text.Encoding.UTF8.GetBytes(_Policy.ToCharArray()));

@@ -1,4 +1,6 @@
-﻿using NewLife.Net.Sockets;
+﻿using System;
+using System.IO;
+using NewLife.Net.Sockets;
 
 namespace NewLife.Net.Application
 {
@@ -17,15 +19,14 @@ namespace NewLife.Net.Application
         /// <summary>已重载。</summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        protected override void OnReceived(object sender, NetEventArgs e)
+        protected override void OnReceive(ISocketSession session, Stream stream)
         {
-            var session = e.Session;
             try
             {
-                if (e.BytesTransferred > 100)
-                    WriteLog("Discard {0} [{1}]", session.Remote, e.BytesTransferred);
+                if (stream.Length > 100)
+                    WriteLog("Discard {0} [{1}]", session.Remote, stream.Length);
                 else
-                    WriteLog("Discard {0} [{1}] {2}", session.Remote, e.BytesTransferred, e.GetString());
+                    WriteLog("Discard {0} [{1}] {2}", session.Remote, stream.Length, stream.ToStr());
             }
             finally
             {

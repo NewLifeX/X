@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Net.Sockets;
 using System.Threading;
 using NewLife.Net.Sockets;
@@ -22,35 +23,35 @@ namespace NewLife.Net.Application
         /// <summary>已重载。</summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        protected override void OnAccepted(object sender, NetEventArgs e)
+        protected override void OnAccept(ISocketServer server, ISocketSession session)
         {
-            WriteLog("Chargen {0}", e.Session.Remote);
+            WriteLog("Chargen {0}", session.Remote);
 
             // 如果没有远程地址，或者远程地址是广播地址，则跳过。否则会攻击广播者。
             // Tcp的该属性可能没值，可以忽略
-            var remote = e.RemoteIPEndPoint;
+            var remote = session.Remote.EndPoint;
             if (remote != null && remote.Address.IsAny()) return;
 
             // 使用多线程
-            Thread thread = new Thread(LoopSend);
+            var thread = new Thread(LoopSend);
             thread.Name = "Chargen.LoopSend";
             thread.IsBackground = true;
             thread.Priority = ThreadPriority.Lowest;
-            thread.Start(e.Session);
+            thread.Start(session);
 
             // 调用基类，为接收数据准备，避免占用过大内存
-            base.OnAccepted(sender, e);
+            //base.OnAccepted(sender, e);
         }
 
         /// <summary>已重载。</summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        protected override void OnReceived(object sender, NetEventArgs e)
+        protected override void OnReceive(ISocketSession session, Stream stream)
         {
-            if (e.BytesTransferred > 100)
-                WriteLog("Chargen {0} [{1}]", e.Session.Remote, e.BytesTransferred);
+            if (stream.Length > 100)
+                WriteLog("Chargen {0} [{1}]", session.Remote, stream.Length);
             else
-                WriteLog("Chargen {0} [{1}] {2}", e.Session.Remote, e.BytesTransferred, e.GetString());
+                WriteLog("Chargen {0} [{1}] {2}", session.Remote, stream.Length, stream.ToStr());
         }
 
         /// <summary>出错时</summary>

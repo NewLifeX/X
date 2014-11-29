@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using NewLife.IO;
 using NewLife.Net.Sockets;
 
@@ -37,9 +38,9 @@ namespace NewLife.Net.Application
         /// <summary>已重载。</summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        protected override void OnReceived(object sender, NetEventArgs e)
+        protected override void OnReceive(ISocketSession session, Stream stream)
         {
-            if (e.BytesTransferred > 0) StreamHandler.Process(StreamHandlerName, e.GetStream());
+            if (stream.Length > 0) StreamHandler.Process(StreamHandlerName, stream);
         }
     }
 }

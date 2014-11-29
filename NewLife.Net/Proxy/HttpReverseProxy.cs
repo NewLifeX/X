@@ -30,9 +30,9 @@ namespace NewLife.Net.Proxy
         }
 
         /// <summary>创建会话</summary>
-        /// <param name="e"></param>
+        /// <param name="session"></param>
         /// <returns></returns>
-        protected override INetSession CreateSession(NetEventArgs e)
+        protected override INetSession CreateSession(ISocketSession session)
         {
             return new Session();
         }

@@ -113,10 +113,11 @@ namespace NewLife.Net
         public event EventHandler<ReceivedEventArgs> Received;
 
         /// <summary>触发数据到达时间</summary>
+        /// <param name="sender"></param>
         /// <param name="e"></param>
-        protected virtual void RaiseReceive(ReceivedEventArgs e)
+        protected virtual void RaiseReceive(Object sender, ReceivedEventArgs e)
         {
-            if (Received != null) Received(this, e);
+            if (Received != null) Received(sender, e);
         }
         #endregion
 

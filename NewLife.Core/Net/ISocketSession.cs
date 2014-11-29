@@ -16,7 +16,7 @@ namespace NewLife.Net
     /// 
     /// 所以，它必须具有收发数据的能力。
     /// </remarks>
-    public interface ISocketClient : IDisposable2
+    public interface ISocketSession : IDisposable2
     {
         #region 属性
         /// <summary>会话数据流，供用户程序使用，内部不做处理。可用于解决Tcp粘包的问题，把多余的分片放入该数据流中。</summary>
@@ -30,25 +30,9 @@ namespace NewLife.Net
 
         /// <summary>远程地址</summary>
         NetUri Remote { get; set; }
-
-        ///// <summary>远程终结点</summary>
-        //IPEndPoint RemoteEndPoint { get; }
-
-        /// <summary>是否活动</summary>
-        Boolean Active { get; set; }
         #endregion
 
         #region 方法
-        /// <summary>打开</summary>
-        void Open();
-
-        /// <summary>关闭</summary>
-        void Close();
-
-        /// <summary>连接</summary>
-        /// <param name="remoteEP"></param>
-        void Connect(IPEndPoint remoteEP);
-
         /// <summary>发送数据</summary>
         /// <remarks>
         /// 目标地址由<seealso cref="Remote"/>决定
@@ -71,51 +55,21 @@ namespace NewLife.Net
         #endregion
 
         #region 异步接收
-        /// <summary>是否异步接收数据</summary>
-        Boolean UseReceiveAsync { get; }
-
-        /// <summary>开始异步接收数据</summary>
-        void ReceiveAsync();
-
         /// <summary>数据到达，在事件处理代码中，事件参数不得另作他用，套接字事件池将会将其回收。</summary>
         event EventHandler<ReceivedEventArgs> Received;
         #endregion
     }
 
     /// <summary>Socket会话扩展</summary>
-    public static class SocketClientHelper
+    public static class SocketSessionHelper
     {
-        #region 连接
-        /// <summary>连接</summary>
-        /// <param name="session"></param>
-        /// <param name="address"></param>
-        /// <param name="port"></param>
-        /// <returns></returns>
-        public static ISocketClient Connect(this ISocketClient session, IPAddress address, Int32 port)
-        {
-            session.Connect(new IPEndPoint(address, port));
-            return session;
-        }
-
-        /// <summary>连接</summary>
-        /// <param name="session"></param>
-        /// <param name="host"></param>
-        /// <param name="port"></param>
-        /// <returns></returns>
-        public static ISocketClient Connect(this ISocketClient session, String host, Int32 port)
-        {
-            session.Connect(new IPEndPoint(NetUri.ParseAddress(host), port));
-            return session;
-        }
-        #endregion
-
         #region 发送
         /// <summary>发送数据流</summary>
         /// <param name="session">会话</param>
         /// <param name="stream"></param>
         /// <returns></returns>
         /// <returns>返回自身，用于链式写法</returns>
-        public static ISocketClient Send(this ISocketClient session, Stream stream)
+        public static ISocketSession Send(this ISocketSession session, Stream stream)
         {
             var size = 1460;
             var buffer = new Byte[size];
@@ -136,7 +90,7 @@ namespace NewLife.Net
         /// <param name="msg"></param>
         /// <param name="encoding"></param>
         /// <returns>返回自身，用于链式写法</returns>
-        public static ISocketClient Send(this ISocketClient session, String msg, Encoding encoding = null)
+        public static ISocketSession Send(this ISocketSession session, String msg, Encoding encoding = null)
         {
             if (String.IsNullOrEmpty(msg)) return session;
 
@@ -152,7 +106,7 @@ namespace NewLife.Net
         /// <param name="session">会话</param>
         /// <param name="encoding"></param>
         /// <returns></returns>
-        public static String ReceiveString(this ISocketClient session, Encoding encoding = null)
+        public static String ReceiveString(this ISocketSession session, Encoding encoding = null)
         {
             var buffer = session.Receive();
             if (buffer == null || buffer.Length < 1) return null;

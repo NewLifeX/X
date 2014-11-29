@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -43,6 +44,7 @@ namespace NewLife.Net.Sockets
         /// <summary>端口</summary>
         public Int32 Port { get { return _Local.Port; } set { _Local.Port = value; } }
 
+        /// <summary>协议类型</summary>
         public ProtocolType ProtocolType { get { return _Local.ProtocolType; } set { _Local.ProtocolType = value; } }
 
         private List<ISocketServer> _Servers;
@@ -149,7 +151,7 @@ namespace NewLife.Net.Sockets
             else if (server.Local.ProtocolType == ProtocolType.Udp)
             {
                 var svr = server as UdpServer;
-                svr.Received += OnAccepted;
+                //svr.Received += OnAccepted;
                 svr.Received += OnReceived;
             }
             else
@@ -261,23 +263,33 @@ namespace NewLife.Net.Sockets
 
         #region 业务
         /// <summary>连接完成。在事件处理代码中，事件参数不得另作他用，套接字事件池将会将其回收。</summary>
-        public event EventHandler<NetEventArgs> Accepted;
+        public event EventHandler<AcceptedEventArgs> Accepted;
 
         /// <summary>数据到达，在事件处理代码中，事件参数不得另作他用，套接字事件池将会将其回收。</summary>
-        public event EventHandler<NetEventArgs> Received;
+        public event EventHandler<ReceivedEventArgs> Received;
 
         /// <summary>接受连接时，对于Udp是收到数据时（同时触发OnReceived）。
         /// 如果业务逻辑简单，不需要使用会话，可以重载<see cref="OnAccepted"/>来屏蔽。</summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        protected virtual void OnAccepted(Object sender, NetEventArgs e)
+        void OnAccepted(Object sender, AcceptedEventArgs e)
         {
             var session = e.Session;
 
-            var ns = CreateSession(e);
-            ns.Server = sender as ISocketServer;
+            OnAccept(sender as ISocketServer, session);
+
+            if (Accepted != null) Accepted(sender, e);
+        }
+
+        /// <summary>收到连接时</summary>
+        /// <param name="server"></param>
+        /// <param name="session"></param>
+        protected virtual void OnAccept(ISocketServer server, ISocketSession session)
+        {
+            var ns = CreateSession(session);
+            ns.Server = server;
             ns.Session = session;
-            ns.ClientEndPoint = e.RemoteIPEndPoint;
+            ns.ClientEndPoint = session.Remote.EndPoint;
 
             session.OnDisposed += (s, e2) => ns.Dispose();
             if (UseSession) AddSession(ns);
@@ -290,17 +302,29 @@ namespace NewLife.Net.Sockets
             }
 
             // 开始会话处理
-            ns.Start(new ReceivedEventArgs(e.GetStream()));
-
-            if (Accepted != null) Accepted(sender, e);
+            //ns.Start(new ReceivedEventArgs(stream));
         }
 
         /// <summary>收到数据时</summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        protected virtual void OnReceived(Object sender, NetEventArgs e)
+        void OnReceived(Object sender, ReceivedEventArgs e)
         {
+            var session = sender as ISocketSession;
+
+            //if (UseSession && Accepted != null) Accepted(sender, new AcceptedEventArgs { Session = session });
+
+            OnReceive(session, e.Stream);
+
             if (Received != null) Received(sender, e);
+        }
+
+        /// <summary>收到数据时</summary>
+        /// <param name="session"></param>
+        /// <param name="stream"></param>
+        protected virtual void OnReceive(ISocketSession session, Stream stream)
+        {
+
         }
 
         /// <summary>断开连接/发生错误</summary>
@@ -343,14 +367,14 @@ namespace NewLife.Net.Sockets
         }
 
         /// <summary>创建会话</summary>
-        /// <param name="e"></param>
+        /// <param name="session"></param>
         /// <returns></returns>
-        protected virtual INetSession CreateSession(NetEventArgs e)
+        protected virtual INetSession CreateSession(ISocketSession session)
         {
-            var session = NetService.Container.Resolve<INetSession>();
-            session.Host = this;
+            var ns = NetService.Container.Resolve<INetSession>();
+            ns.Host = this;
 
-            return session;
+            return ns;
         }
         #endregion
 
@@ -431,9 +455,9 @@ namespace NewLife.Net.Sockets
     public class NetServer<TSession> : NetServer where TSession : class, INetSession, new()
     {
         /// <summary>创建会话</summary>
-        /// <param name="e"></param>
+        /// <param name="session"></param>
         /// <returns></returns>
-        protected override INetSession CreateSession(NetEventArgs e) { return new TSession(); }
+        protected override INetSession CreateSession(ISocketSession session) { return new TSession(); }
 
         /// <summary>获取指定标识的会话</summary>
         /// <param name="id"></param>

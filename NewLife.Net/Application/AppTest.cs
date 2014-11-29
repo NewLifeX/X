@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -236,21 +237,22 @@ namespace NewLife.Net.Application
         /// <summary>已重载。</summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        static void OnReceived(object sender, NetEventArgs e)
+        static void OnReceive(ISocketSession session, Stream stream)
         {
-            var session = e.Session;
-
-            //if (e.BytesTransferred > 100)
-            //    Console.WriteLine("Echo {0} [{1}]", session.Remote, e.BytesTransferred);
+            //if (stream.Length > 100)
+            //    Console.WriteLine("Echo {0} [{1}]", session.Remote, stream.Length);
             //else
-            //    Console.WriteLine("Echo {0} [{1}] {2}", session.Remote, e.BytesTransferred, e.GetString());
+            //    Console.WriteLine("Echo {0} [{1}] {2}", session.Remote, stream.Length, e.GetString());
+            var p = stream.Position;
             var msg = "";
-            if (e.BytesTransferred > 100)
-                msg = String.Format("Echo {0} [{1}]", session.Remote, e.BytesTransferred);
+            if (stream.Length > 100)
+                msg = String.Format("Echo {0} [{1}]", session.Remote, stream.Length);
             else
-                msg = String.Format("Echo {0} [{1}] {2}", session.Remote, e.BytesTransferred, e.GetString());
+                msg = String.Format("Echo {0} [{1}] {2}", session.Remote, stream.Length, stream.ToStr());
 
-            session.Send(e.Buffer, e.Offset, e.BytesTransferred);
+            //session.Send(e.Buffer, e.Offset, stream.Length);
+            stream.Position = p;
+            session.Send(stream);
         }
 
         static void ShowStatus()

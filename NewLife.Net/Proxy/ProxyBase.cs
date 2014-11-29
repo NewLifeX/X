@@ -26,15 +26,15 @@ namespace NewLife.Net.Proxy
             }
         }
         /// <summary>创建会话</summary>
-        /// <param name="e"></param>
+        /// <param name="session"></param>
         /// <returns></returns>
-        protected override INetSession CreateSession(NetEventArgs e)
+        protected override INetSession CreateSession(ISocketSession session)
         {
-            var session = new TProxySession();
-            var ps = session as IProxySession;
+            var rs = new TProxySession();
+            var ps = rs as IProxySession;
             if (ps != null) ps.Proxy = this;
 
-            return session;
+            return rs;
         }
 
         /// <summary>添加会话。子类可以在添加会话前对会话进行一些处理</summary>

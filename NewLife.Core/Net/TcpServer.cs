@@ -78,7 +78,7 @@ namespace NewLife.Net.Tcp
         #region 连接处理
         /// <summary>连接完成。在事件处理代码中，事件参数不得另作他用，套接字事件池将会将其回收。</summary>
         /// <remarks>这里一定不需要再次ReceiveAsync，因为TcpServer在处理完成Accepted事件后，会调用Start->ReceiveAsync</remarks>
-        public event EventHandler<EventArgs<TcpSession>> Accepted;
+        public event EventHandler<AcceptedEventArgs> Accepted;
 
         void AcceptAsync()
         {
@@ -92,7 +92,7 @@ namespace NewLife.Net.Tcp
             AcceptAsync();
 
             var session = CreateSession(client);
-            if (Accepted != null) Accepted(this, new EventArgs<TcpSession>(session));
+            if (Accepted != null) Accepted(this, new AcceptedEventArgs { Session = session });
 
             Sessions.Add(session.Remote.EndPoint, session);
 
@@ -155,5 +155,13 @@ namespace NewLife.Net.Tcp
             }
         }
         #endregion
+    }
+
+    /// <summary>接受连接时触发</summary>
+    public class AcceptedEventArgs : EventArgs
+    {
+        private TcpSession _Session;
+        /// <summary>会话</summary>
+        public TcpSession Session { get { return _Session; } set { _Session = value; } }
     }
 }

@@ -19,14 +19,9 @@ namespace NewLife.Net.Application
         /// <summary>已重载。</summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        protected override void OnAccepted(object sender, NetEventArgs e)
+        protected override void OnAccept(ISocketServer server, ISocketSession session)
         {
-            var session = e.Session;
-            //try
-            //{
             WriteLog("Daytime {0}", session.Remote);
-
-            base.OnAccepted(sender, e);
 
             Byte[] buffer = Encoding.ASCII.GetBytes(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff"));
             //Send(e.Socket, buffer, 0, buffer.Length, e.RemoteEndPoint);

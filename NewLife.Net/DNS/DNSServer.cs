@@ -108,13 +108,13 @@ namespace NewLife.Net.DNS
         /// <summary>接收处理</summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        protected override void OnReceived(object sender, NetEventArgs e)
+        protected override void OnReceive(ISocketSession session, Stream stream)
         {
             var session = e.Session;
             Boolean isTcp = session.Local.ProtocolType == ProtocolType.Tcp;
 
             // 解析
-            var request = DNSEntity.Read(e.GetStream(), isTcp);
+            var request = DNSEntity.Read(stream, isTcp);
 
             var response = Request(session, request);
             if (response != null)
