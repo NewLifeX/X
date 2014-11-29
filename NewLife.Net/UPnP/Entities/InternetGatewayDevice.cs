@@ -265,19 +265,20 @@ namespace NewLife.Net.UPnP
             String header = String.Format(SOAP_HEADER, uri.PathAndQuery, uri.Host + ":" + uri.Port, action, Encoding.UTF8.GetByteCount(xml));
 
             var client = new TcpSession();
+            var session = client as ISocketSession;
             try
             {
                 client.Connect(uri.Host, uri.Port);
-                client.Send(header + xml);
+                session.Send(header + xml);
 
-                String response = client.ReceiveString();
+                String response = session.ReceiveString();
                 if (String.IsNullOrEmpty(response)) return null;
 
                 Int32 p = response.IndexOf("\r\n\r\n");
                 if (p < 0) return null;
 
                 response = response.Substring(p).Trim();
-                if (String.IsNullOrEmpty(response)) response = client.ReceiveString();
+                if (String.IsNullOrEmpty(response)) response = session.ReceiveString();
 
                 //Envelope env = null;
                 //XmlSerializer serial = new XmlSerializer(typeof(Envelope));

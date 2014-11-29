@@ -110,7 +110,7 @@ namespace NewLife.Net.DNS
         /// <param name="e"></param>
         protected override void OnReceive(ISocketSession session, Stream stream)
         {
-            var session = e.Session;
+            //var session = e.Session;
             Boolean isTcp = session.Local.ProtocolType == ProtocolType.Tcp;
 
             // 解析
@@ -130,12 +130,12 @@ namespace NewLife.Net.DNS
         /// <param name="session"></param>
         /// <param name="request"></param>
         /// <returns></returns>
-        protected virtual DNSEntity Request(ISocketClient session, DNSEntity request)
+        protected virtual DNSEntity Request(ISocketSession session, DNSEntity request)
         {
             Boolean isTcp = session.Local.ProtocolType == ProtocolType.Tcp;
 
             // 处理，修改
-            WriteDNSLog("{0}://{1} 请求 {2}", session.Local.ProtocolType, session.RemoteEndPoint, request);
+            WriteDNSLog("{0} 请求 {1}", session.Local, request);
 
             // 请求事件，如果第二参数有值，则直接返回
             if (OnRequest != null)
@@ -213,7 +213,7 @@ namespace NewLife.Net.DNS
         /// <param name="session"></param>
         /// <param name="request"></param>
         /// <param name="response"></param>
-        protected virtual void Response(ISocketClient session, DNSEntity request, DNSEntity response)
+        protected virtual void Response(ISocketSession session, DNSEntity request, DNSEntity response)
         {
             Boolean isTcp = session.Local.ProtocolType == ProtocolType.Tcp;
 
@@ -231,7 +231,7 @@ namespace NewLife.Net.DNS
             // 请求父级代理
             NetUri parent = null;
             Byte[] data = null;
-            ISocketClient session = null;
+            ISocketSession session = null;
 
             NetUri[] us = null;
             lock (Parents) { us = Parents.ToArray(); }
@@ -332,8 +332,8 @@ namespace NewLife.Net.DNS
         /// <summary>响应</summary>
         public DNSEntity Response { get { return _Response; } set { _Response = value; } }
 
-        private ISocketClient _Session;
+        private ISocketSession _Session;
         /// <summary>网络会话</summary>
-        public ISocketClient Session { get { return _Session; } set { _Session = value; } }
+        public ISocketSession Session { get { return _Session; } set { _Session = value; } }
     }
 }

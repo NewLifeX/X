@@ -48,7 +48,7 @@ namespace NewLife.Net.P2P
                 {
                     // 集合里面没有，认为是发起邀请方，做好记录
                     ns = NetService.Container.Resolve<INetSession>();
-                    ns.Server = sender as ISocketServer;
+                    //ns.Server = sender as ISocketServer;
                     ns.Session = session;
                     ns.ClientEndPoint = remoteEP;
                     Clients[name] = ns;

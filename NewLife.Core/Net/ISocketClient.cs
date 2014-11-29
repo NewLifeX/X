@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Net;
+using System.Net.Sockets;
 using System.Text;
 
 namespace NewLife.Net
@@ -16,17 +17,17 @@ namespace NewLife.Net
     /// 
     /// 所以，它必须具有收发数据的能力。
     /// </remarks>
-    public interface ISocketClient : IDisposable2
+    public interface ISocketClient : ISocket
     {
         #region 属性
         /// <summary>会话数据流，供用户程序使用，内部不做处理。可用于解决Tcp粘包的问题，把多余的分片放入该数据流中。</summary>
         Stream Stream { get; set; }
 
-        /// <summary>本地地址</summary>
-        NetUri Local { get; set; }
+        ///// <summary>本地地址</summary>
+        //NetUri Local { get; set; }
 
-        /// <summary>端口</summary>
-        Int32 Port { get; set; }
+        ///// <summary>端口</summary>
+        //Int32 Port { get; set; }
 
         /// <summary>远程地址</summary>
         NetUri Remote { get; set; }
@@ -36,6 +37,9 @@ namespace NewLife.Net
 
         /// <summary>是否活动</summary>
         Boolean Active { get; set; }
+
+        ///// <summary>底层Socket</summary>
+        //Socket Client { get; set; }
         #endregion
 
         #region 方法

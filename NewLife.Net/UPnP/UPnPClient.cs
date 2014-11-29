@@ -49,7 +49,7 @@ namespace NewLife.Net.UPnP
                     _Udp = new UdpServer();
                     //_Udp.Name = "UPnPClient";
                     //_Udp.ProtocolType = ProtocolType.Udp;
-                    _Udp.Received += new EventHandler<NetEventArgs>(Udp_Received);
+                    _Udp.Received += Udp_Received;
                     //_Udp.Start();
                     _Udp.ReceiveAsync();
                 }
@@ -99,7 +99,7 @@ namespace NewLife.Net.UPnP
             IPAddress address = NetHelper.ParseAddress("239.255.255.250");
 
             Udp.Client.EnableBroadcast = true;
-            Udp.Send(UPNP_DISCOVER, Encoding.ASCII, new IPEndPoint(address, 1900));
+            Udp.Client.Send(UPNP_DISCOVER, Encoding.ASCII, new IPEndPoint(address, 1900));
 
             //Boolean hasDefault = false;
             //foreach (var item in NetHelper.GetMulticasts())
@@ -128,13 +128,15 @@ namespace NewLife.Net.UPnP
         }
 
         //List<String> process = new List<String>();
-        void Udp_Received(object sender, NetEventArgs e)
+        void Udp_Received(object sender, ReceivedEventArgs e)
         {
-            String content = e.GetString();
+            var content = e.Stream.ToStr();
             if (String.IsNullOrEmpty(content)) return;
 
-            IPEndPoint remote = e.RemoteEndPoint as IPEndPoint;
-            IPAddress address = remote.Address;
+            var udp = e as UdpReceivedEventArgs;
+
+            var remote = udp.Remote;
+            var address = remote.Address;
             WriteLog("发现UPnP设备：{0}", remote);
 
             //分析数据并反序列化

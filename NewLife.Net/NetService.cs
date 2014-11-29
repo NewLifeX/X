@@ -21,11 +21,11 @@ namespace NewLife.Net
             var container = Container;
             container.Register<IProxySession, ProxySession>()
                 .Register<ISocketServer, TcpServer>(ProtocolType.Tcp)
-                //.Register<ISocketServer, UdpServer>(ProtocolType.Udp)
+                .Register<ISocketServer, UdpServer>(ProtocolType.Udp)
                 .Register<ISocketClient, TcpSession>(ProtocolType.Tcp)
-                //.Register<ISocketClient, UdpClientX>(ProtocolType.Udp)
-                .Register<ISocketClient, TcpSession>(ProtocolType.Tcp)
-                //.Register<ISocketSession, UdpServer>(ProtocolType.Udp)
+                .Register<ISocketClient, UdpServer>(ProtocolType.Udp)
+                .Register<ISocketSession, TcpSession>(ProtocolType.Tcp)
+                .Register<ISocketSession, UdpServer>(ProtocolType.Udp)
                 .Register<IStatistics, Statistics>()
                 .Register<INetSession, NetSession>();
         }
@@ -44,7 +44,7 @@ namespace NewLife.Net
             var client = Container.Resolve<ISocketClient>(uri.ProtocolType);
             if (uri.EndPoint != null)
             {
-                client.AddressFamily = uri.EndPoint.AddressFamily;
+                //client.AddressFamily = uri.EndPoint.AddressFamily;
                 if (uri.ProtocolType == ProtocolType.Tcp) client.Connect(uri.EndPoint);
             }
 
@@ -54,11 +54,21 @@ namespace NewLife.Net
         /// <summary>根据网络标识创建客户端会话并连接（对Tcp）</summary>
         /// <param name="uri"></param>
         /// <returns></returns>
-        public static ISocketClient CreateSession(NetUri uri)
+        public static ISocketSession CreateSession(NetUri uri)
         {
             if (uri == null) throw new ArgumentNullException("uri");
 
-            return CreateClient(uri).CreateSession(uri.EndPoint);
+            //return CreateClient(uri).CreateSession(uri.EndPoint);
+            //return CreateClient(uri);
+            var client = Container.Resolve<ISocketSession>(uri.ProtocolType);
+            if (uri.EndPoint != null)
+            {
+                //client.AddressFamily = uri.EndPoint.AddressFamily;
+                //if (uri.ProtocolType == ProtocolType.Tcp) (client as ISocketClient).Connect(uri.EndPoint);
+                if (client is ISocketClient && !uri.Address.IsAny() && uri.Port != 0) (client as ISocketClient).Connect(uri.EndPoint);
+            }
+
+            return client;
         }
         #endregion
     }

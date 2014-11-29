@@ -84,7 +84,7 @@ namespace NewLife.Net.Proxy
             if (ServerProtocolType == ProtocolType.Tcp || ServerProtocolType == ProtocolType.Udp)
                 uri.ProtocolType = ServerProtocolType;
             else
-                uri.ProtocolType = session.Server.ProtocolType;
+                uri.ProtocolType = session.Server.Local.ProtocolType;
 
             base.AddSession(session);
         }

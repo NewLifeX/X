@@ -16,7 +16,7 @@ namespace NewLife.Net
     /// 
     /// 所以，它必须具有收发数据的能力。
     /// </remarks>
-    public interface ISocketSession : IDisposable2
+    public interface ISocketSession : ISocket
     {
         #region 属性
         /// <summary>会话数据流，供用户程序使用，内部不做处理。可用于解决Tcp粘包的问题，把多余的分片放入该数据流中。</summary>

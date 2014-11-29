@@ -80,8 +80,8 @@ namespace NewLife.Net.Application
             if (isAsync && isReceiveData)
             {
                 _are.Reset();
-                session.Received += new EventHandler<ReceivedEventArgs>(OnReceived);
-                session.ReceiveAsync();
+                session.Received += OnReceived;
+                //session.ReceiveAsync();
             }
             if (isSendData) session.Send(msg);
             if (isReceiveData)
@@ -103,7 +103,7 @@ namespace NewLife.Net.Application
                 }
             }
             session.Dispose();
-            if (session.Host != null) session.Host.Dispose();
+            //if (session.Host != null) session.Host.Dispose();
             Console.WriteLine("结束！");
         }
 
@@ -264,10 +264,10 @@ namespace NewLife.Net.Application
                 try
                 {
                     var asyncCount = 0;
-                    foreach (var item in server.Servers)
-                    {
-                        asyncCount += item.AsyncCount;
-                    }
+                    //foreach (var item in server.Servers)
+                    //{
+                    //    asyncCount += item.AsyncCount;
+                    //}
                     //foreach (var item in server.Sessions.Values.ToArray())
                     //{
                     //    var remote = (item as IProxySession).Remote;
@@ -339,7 +339,7 @@ namespace NewLife.Net.Application
 
             var msg = String.Format("Hi I am {0}!", p.ID);
 
-            var sessions = new ISocketClient[p.Count];
+            var sessions = new ISocketSession[p.Count];
             for (int k = 0; k < 100; k++)
             {
                 Console.WriteLine("第{1}轮处理：{0}", p.ID, k + 1);
@@ -354,7 +354,7 @@ namespace NewLife.Net.Application
                             session = NetService.CreateSession(p.Uri);
                             // 异步接收，什么也不做
                             //session.Received += (s, e) => { };
-                            session.ReceiveAsync();
+                            //session.ReceiveAsync();
 
                             sessions[i] = session;
                         }

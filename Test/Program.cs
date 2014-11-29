@@ -512,7 +512,7 @@ namespace Test
         }
         static void test12Send()
         {
-            ISocketSession session = NetService.CreateSession(new NetUri("Tcp://127.0.0.1:9000"));
+            ISocketClient session = NetService.CreateSession(new NetUri("Tcp://127.0.0.1:9000"));
             return;
             //服务端检测不到有客户端连接
             Thread.Sleep(3000);

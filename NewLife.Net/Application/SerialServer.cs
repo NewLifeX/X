@@ -165,7 +165,7 @@ namespace NewLife.Net.Application
                 //base.OnReceive(e);
             }
 
-            void ReadAndSend(SerialPort sp, ISocketClient session)
+            void ReadAndSend(SerialPort sp, ISocketSession session)
             {
                 // 读取数据
                 var data = Read(sp, Host.ReceivedBytesThreshold);

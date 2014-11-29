@@ -1,6 +1,6 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XControl", "XControl\XControl.csproj", "{A82E3AA8-6181-460D-A6EE-CC453B83D340}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XCoder", "XCoder\XCoder.csproj", "{3EB3A5F1-F785-4672-A21D-A3117FC12129}"
@@ -60,6 +60,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NewLife.Net.Test", "NewLife
 EndProject
 Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "WebBootstrap", "WebBootstrap\", "{F4EA7043-C362-4088-A706-66865026DD2C}"
 	ProjectSection(WebsiteProperties) = preProject
+		SccProjectName = ""
+		SccAuxPath = ""
+		SccLocalPath = ""
+		SccProvider = ""
 		TargetFrameworkMoniker = ".NETFramework,Version%3Dv2.0"
 		ProjectReferences = "{5813c22e-eeb3-4dee-a45c-bb218041193a}|NewLife.Core.dll;{b49aba5a-c5da-45f4-87f1-b435ec51d710}|XCode.dll;{a82e3aa8-6181-460d-a6ee-cc453b83d340}|XControl.dll;{50d7fae5-2304-4395-a6fa-7d35279d9d84}|NewLife.CommonEntity.dll;{95272f1d-5ed9-423d-ab5f-decbd89b032f}|NewLife.Bootstrap.dll;"
 		Debug.AspNetCompiler.VirtualPath = "/WebBootstrap"
@@ -84,9 +88,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "UnitTest", "UnitTest", "{C05117DE-0085-44F9-AE89-0973AD32ABCC}"
 EndProject
 Global
-	GlobalSection(TestCaseManagementSettings) = postSolution
-		CategoryFile = X组件.vsmdi
-	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Net4Debug|Any CPU = Net4Debug|Any CPU

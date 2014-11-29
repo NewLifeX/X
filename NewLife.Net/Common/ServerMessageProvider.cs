@@ -35,18 +35,19 @@ namespace NewLife.Net.Common
         {
             Server = server;
 
-            server.Received += new EventHandler<NetEventArgs>(server_Received);
+            server.Received += server_Received;
         }
 
         /// <summary>当前会话</summary>
         [ThreadStatic]
-        private static WeakReference<ISocketClient> Session = null;
+        private static WeakReference<ISocketSession> Session = null;
 
-        void server_Received(object sender, NetEventArgs e)
+        void server_Received(object sender, ReceivedEventArgs e)
         {
-            var session = e.Session;
-            Session = new WeakReference<ISocketClient>(session);
-            var stream = e.GetStream();
+            var session = sender as ISocketSession;
+            Session = new WeakReference<ISocketSession>(session);
+
+            var stream = e.Stream;
             // 如果上次还留有数据，复制进去
             if (session.Stream != null && session.Stream.Position < session.Stream.Length)
             {
@@ -65,7 +66,7 @@ namespace NewLife.Net.Common
         /// <summary>收到数据流</summary>
         /// <param name="session"></param>
         /// <param name="stream"></param>
-        protected virtual void OnReceive(ISocketClient session, Stream stream)
+        protected virtual void OnReceive(ISocketSession session, Stream stream)
         {
             try
             {

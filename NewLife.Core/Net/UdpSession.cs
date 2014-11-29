@@ -15,6 +15,9 @@ namespace NewLife.Net
         /// <summary>服务器</summary>
         public UdpServer Server { get { return _Server; } set { _Server = value; } }
 
+        /// <summary>底层Socket</summary>
+        Socket ISocket.Socket { get { return _Server == null ? null : _Server.Client.Client; } }
+
         private Stream _Stream = new MemoryStream();
         /// <summary>数据流</summary>
         public Stream Stream { get { return _Stream; } set { _Stream = value; } }

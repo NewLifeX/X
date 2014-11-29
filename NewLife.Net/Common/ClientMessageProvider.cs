@@ -90,13 +90,13 @@ namespace NewLife.Net.Common
         {
             var session = Session;
             Boolean needUpdate = false;
-            if (session == null || session.Disposed || session.Host == null)
+            if (session == null || session.Disposed /*|| session.Host == null*/)
                 needUpdate = true;
             else
             {
-                var socket = session.Host.Socket;
-                if (socket == null || socket.ProtocolType == ProtocolType.Tcp && !socket.Connected)
-                    needUpdate = true;
+                //var socket = session.Host.Socket;
+                //if (socket == null || socket.ProtocolType == ProtocolType.Tcp && !socket.Connected)
+                //    needUpdate = true;
             }
 
             if (needUpdate && OnUpdate != null) OnUpdate(this, EventArgs.Empty);

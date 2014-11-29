@@ -106,7 +106,7 @@ namespace NewLife.Net.Stun
         {
             if (stream.Length > 0)
             {
-                IPEndPoint remote = e.RemoteIPEndPoint;
+                var remote = session.Remote;
                 //if (remote == null && session != null) remote = session.RemoteEndPoint;
 
                 var request = StunMessage.Read(stream);
@@ -118,12 +118,12 @@ namespace NewLife.Net.Stun
                     case StunMessageType.BindingRequest:
                         //case StunMessageType.BindingResponse:
                         request.Type = StunMessageType.BindingRequest;
-                        if (request.ResponseAddress != null) remote = request.ResponseAddress;
+                        if (request.ResponseAddress != null) remote.EndPoint = request.ResponseAddress;
                         break;
                     case StunMessageType.SharedSecretRequest:
                         //case StunMessageType.SharedSecretResponse:
                         request.Type = StunMessageType.SharedSecretRequest;
-                        if (request.ResponseAddress != null) remote = request.ResponseAddress;
+                        if (request.ResponseAddress != null) remote.EndPoint = request.ResponseAddress;
                         break;
                     default:
                         break;
@@ -132,21 +132,21 @@ namespace NewLife.Net.Stun
                 // 是否需要发给伙伴
                 if (request.ChangeIP)
                 {
-                    if (Partner != null && !Partner.Equals(session.Host.LocalEndPoint.GetRelativeEndPoint(Partner.Address)))
-                    {
-                        // 发给伙伴
-                        request.ChangeIP = false;
-                        // 记住对方的地址
-                        request.ResponseAddress = remote;
-                        //session.Send(request.GetStream(), Partner);
-                        var us = session.Host as UdpServer;
-                        if (us != null)
-                        {
-                            //us.CreateSession(Partner).Send(request.GetStream());
-                            us.Send(request.GetStream(), Partner);
-                        }
-                        return;
-                    }
+                    //if (Partner != null && !Partner.Equals(session.Host.LocalEndPoint.GetRelativeEndPoint(Partner.Address)))
+                    //{
+                    //    // 发给伙伴
+                    //    request.ChangeIP = false;
+                    //    // 记住对方的地址
+                    //    request.ResponseAddress = remote.EndPoint;
+                    //    //session.Send(request.GetStream(), Partner);
+                    //    var us = session.Host as UdpServer;
+                    //    if (us != null)
+                    //    {
+                    //        //us.CreateSession(Partner).Send(request.GetStream());
+                    //        us.Send(request.GetStream(), Partner);
+                    //    }
+                    //    return;
+                    //}
                     // 如果没有伙伴地址，采用不同端口代替
                     request.ChangePort = true;
                 }
@@ -155,7 +155,7 @@ namespace NewLife.Net.Stun
                 switch (request.Type)
                 {
                     case StunMessageType.BindingRequest:
-                        OnBind(request, session);
+                        //OnBind(request, session);
                         break;
                     case StunMessageType.SharedSecretRequest:
                         break;
@@ -176,12 +176,12 @@ namespace NewLife.Net.Stun
             var rs = new StunMessage();
             rs.Type = StunMessageType.BindingResponse;
             rs.TransactionID = request.TransactionID;
-            rs.MappedAddress = session.RemoteEndPoint;
+            rs.MappedAddress = session.Remote.EndPoint;
             //rs.SourceAddress = session.GetRelativeEndPoint(remote.Address);
             if (session.Local.ProtocolType == ProtocolType.Tcp)
-                rs.SourceAddress = Public[session.Host.Port + 100000];
+                rs.SourceAddress = Public[session.Port + 100000];
             else
-                rs.SourceAddress = Public[session.Host.Port];
+                rs.SourceAddress = Public[session.Port];
 
             // 找另一个
             ISocketClient session2 = null;
@@ -189,10 +189,10 @@ namespace NewLife.Net.Stun
             for (int i = 0; i < Servers.Count; i++)
             {
                 var server = Servers[i];
-                if (server.ProtocolType == session.Local.ProtocolType && server.LocalEndPoint.Port != session.LocalEndPoint.Port)
+                if (server.Local.ProtocolType == session.Local.ProtocolType && server.Local.Port != session.Local.Port)
                 {
                     anotherPort = server.Port;
-                    if (server.ProtocolType == ProtocolType.Tcp)
+                    if (server.Local.ProtocolType == ProtocolType.Tcp)
                     {
                         break;
                     }

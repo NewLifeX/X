@@ -39,6 +39,9 @@ namespace NewLife.Net.Tcp
         /// <summary>服务器</summary>
         public TcpListener Server { get { return _Server; } set { _Server = value; } }
 
+        /// <summary>底层Socket</summary>
+        Socket ISocket.Socket { get { return _Server == null ? null : _Server.Server; } }
+
         private Boolean _Active;
         /// <summary>是否活动</summary>
         public Boolean Active { get { return _Active; } set { _Active = value; } }

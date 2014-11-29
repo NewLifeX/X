@@ -14,6 +14,10 @@ namespace NewLife.Net
         private UdpClient _Client;
         /// <summary>客户端</summary>
         public UdpClient Client { get { return _Client; } set { _Client = value; } }
+
+        /// <summary>获取Socket</summary>
+        /// <returns></returns>
+        internal override Socket GetSocket() { return Client == null ? null : Client.Client; }
         #endregion
 
         #region 构造

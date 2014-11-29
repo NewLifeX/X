@@ -37,15 +37,15 @@ namespace NewLife.Net.IO
 
         void SendFile(String fileName, String root)
         {
-            FileFormat entity = new FileFormat(fileName, root);
-            MemoryStream format = new MemoryStream();
+            var entity = new FileFormat(fileName, root);
+            var format = new MemoryStream();
             entity.Write(format);
             format.Position = 0;
-            //Client.Send(format);
-            //Client.Send(entity.Stream);
-            var session = Client.CreateSession();
-            session.Send(format)
-                .Send(entity.Stream);
+            Client.Send(format);
+            Client.Send(entity.Stream);
+            //var session = Client.CreateSession();
+            //session.Send(format)
+            //    .Send(entity.Stream);
         }
 
         /// <summary>发送目录</summary>

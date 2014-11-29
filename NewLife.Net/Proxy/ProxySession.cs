@@ -157,10 +157,11 @@ namespace NewLife.Net.Proxy
             var rep = RemoteServerUri.EndPoint;
             if (rep != null)
             {
-                client.AddressFamily = rep.AddressFamily;
+                //client.AddressFamily = rep.AddressFamily;
                 client.Connect(rep);
             }
-            return client.CreateSession();
+            //return client.CreateSession();
+            return client;
 
             //return NetService.CreateSession(new NetUri(RemoteProtocolType, RemoteEndPoint));
         }

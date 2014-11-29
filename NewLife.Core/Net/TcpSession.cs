@@ -13,6 +13,10 @@ namespace NewLife.Net
         /// <summary>客户端</summary>
         public TcpClient Client { get { return _Client; } set { _Client = value; } }
 
+        /// <summary>获取Socket</summary>
+        /// <returns></returns>
+        internal override Socket GetSocket() { return Client == null ? null : Client.Client; }
+
         //private Boolean _DisconnectWhenEmptyData = false;
         ///// <summary>收到空数据时抛出异常并断开连接。</summary>
         //public Boolean DisconnectWhenEmptyData { get { return _DisconnectWhenEmptyData; } set { _DisconnectWhenEmptyData = value; } }

@@ -179,9 +179,9 @@ namespace NewLife.Net.Stun
             {
                 var client = NetService.Container.Resolve<ISocketClient>(ProtocolType);
                 client.Port = Port;
-                client.Client.SendTimeout = Timeout;
-                client.Client.ReceiveTimeout = Timeout;
-                client.Bind();
+                client.Socket.SendTimeout = Timeout;
+                client.Socket.ReceiveTimeout = Timeout;
+                //client.Bind();
                 _Socket = client;
             }
         }
@@ -200,12 +200,13 @@ namespace NewLife.Net.Stun
                 if (!Convert.ToBoolean(value)) socket.Close();
 
                 var sk = NetService.Container.Resolve<ISocketClient>(socket.ProtocolType);
-                sk.Address = ep.Address;
-                sk.Port = ep.Port;
-                sk.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
-                sk.Bind();
-                sk.Client.SendTimeout = sto;
-                sk.Client.ReceiveTimeout = rto;
+                //sk.Address = ep.Address;
+                //sk.Port = ep.Port;
+                sk.Local.EndPoint = ep;
+                sk.Socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+                //sk.Bind();
+                sk.Socket.SendTimeout = sto;
+                sk.Socket.ReceiveTimeout = rto;
 
                 _Socket2 = sk;
             }

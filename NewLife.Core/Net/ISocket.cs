@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net.Sockets;
 
 namespace NewLife.Net
 {
@@ -9,8 +10,8 @@ namespace NewLife.Net
     public interface ISocket : IDisposable2
     {
         #region 属性
-        ///// <summary>基础Socket对象</summary>
-        //Socket Socket { get; set; }
+        /// <summary>基础Socket对象</summary>
+        Socket Socket { get; /*set;*/ }
 
         /// <summary>本地地址</summary>
         NetUri Local { get; set; }

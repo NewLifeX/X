@@ -81,7 +81,8 @@ namespace NewLife.Net.SGIP
 
             WriteLog("正在登录……");
 
-            client.Send(cmd.GetStream());
+            var session = client as ISocketSession;
+            session.Send(cmd.GetStream());
             var data = client.Receive();
             var resp = SGIPEntity.Read(new MemoryStream(data)) as SGIPResponse;
 
@@ -89,7 +90,7 @@ namespace NewLife.Net.SGIP
             if (resp.Result != SGIPErrorCodes.Success) throw new Exception("登录失败！" + resp.Result.GetDescription());
 
             //登录完成，开始读取指令
-            client.Received += new EventHandler<NetEventArgs>(Client_Received);
+            client.Received += Client_Received;
             client.ReceiveAsync();
 
             Logined = true;
@@ -99,7 +100,7 @@ namespace NewLife.Net.SGIP
             return true;
         }
 
-        void Client_Received(object sender, NetEventArgs e)
+        void Client_Received(object sender, ReceivedEventArgs e)
         {
         }
         #endregion
@@ -179,7 +180,7 @@ namespace NewLife.Net.SGIP
             {
                 WriteLog("正在注销……");
 
-                if (Client != null && Client.Client.Connected)
+                if (Client != null && Client.Socket.Connected)
                 {
                     try
                     {
@@ -218,7 +219,7 @@ namespace NewLife.Net.SGIP
         /// <returns></returns>
         private SGIPEntity Read()
         {
-            if (Client == null || !Client.Client.Connected) throw new InvalidOperationException("没有连接到服务器！");
+            if (Client == null || !Client.Socket.Connected) throw new InvalidOperationException("没有连接到服务器！");
 
             try
             {
@@ -238,7 +239,7 @@ namespace NewLife.Net.SGIP
         /// <param name="cmd"></param>
         private void Write(SGIPEntity cmd)
         {
-            if (Client == null || !Client.Client.Connected) throw new InvalidOperationException("没有连接到服务器！");
+            if (Client == null || !Client.Socket.Connected) throw new InvalidOperationException("没有连接到服务器！");
 
             if (cmd.SrcNodeSequence < 1) cmd.SrcNodeSequence = SrcNodeSequence;
 
@@ -246,7 +247,7 @@ namespace NewLife.Net.SGIP
             {
                 try
                 {
-                    Client.CreateSession().Send(cmd.GetStream());
+                    Client.Send(cmd.GetStream());
                 }
                 catch (Exception ex)
                 {

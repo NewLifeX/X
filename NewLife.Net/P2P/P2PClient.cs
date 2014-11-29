@@ -63,7 +63,7 @@ namespace NewLife.Net.P2P
                 {
                     var server = new TcpServer();
                     Server = server;
-                    server.ReuseAddress = true;
+                    //server.ReuseAddress = true;
                     server.Accepted += server_Accepted;
                 }
                 else
@@ -82,14 +82,17 @@ namespace NewLife.Net.P2P
             }
         }
 
-        void server_Received(object sender, NetEventArgs e)
+        void server_Received(object sender, ReceivedEventArgs e)
         {
-            var remote = "" + e.RemoteIPEndPoint;
+            var session = sender as ISocketSession;
+
+            var str = e.Stream.ToStr();
+            var remote = "" + session.Remote.EndPoint;
             if (remote == "" + HoleServer)
             {
-                WriteLog("HoleServer数据到来：{0} {1}", e.RemoteIPEndPoint, e.GetString());
+                WriteLog("HoleServer数据到来：{0} {1}", session.Remote, str);
 
-                var ss = e.GetString().Split(":");
+                var ss = str.Split(":");
                 if (ss == null || ss.Length < 2) return;
 
                 IPAddress address = null;
@@ -102,7 +105,7 @@ namespace NewLife.Net.P2P
                 Console.WriteLine("准备连接对方：{0}", ep);
                 while (Success <= 0)
                 {
-                    (Server as UdpServer).Send("Hello!", null, ep);
+                    (Server as UdpServer).Client.Send("Hello!", null, ep);
 
                     Thread.Sleep(100);
                     if (Success > 0) break;
@@ -111,16 +114,16 @@ namespace NewLife.Net.P2P
             }
             else if (remote == "" + ParterAddress)
             {
-                WriteLog("Parter数据到来：{0} {1}", e.RemoteIPEndPoint, e.GetString());
+                WriteLog("Parter数据到来：{0} {1}", session.Remote, str);
                 //Success = true;
                 if (Success > 0) Success++;
 
-                var session = e.Session;
+                //var session = e.Session;
                 if (session != null)
                 {
                     session.Send("P2P连接已建立！", null);
                     WriteLog("P2P连接已建立！");
-                    session.Send("我与" + e.RemoteIPEndPoint + "的P2P连接已建立！", null);
+                    session.Send("我与" + session.Remote + "的P2P连接已建立！", null);
 
                     while (true)
                     {
@@ -136,18 +139,18 @@ namespace NewLife.Net.P2P
             }
             else
             {
-                WriteLog("未识别的数据到来：{0} {1}", e.RemoteIPEndPoint, e.GetString());
+                WriteLog("未识别的数据到来：{0} {1}", session.Remote, str);
             }
         }
 
-        void server_Accepted(object sender, NetEventArgs e)
+        void server_Accepted(object sender, AcceptedEventArgs e)
         {
-            WriteLog("连接到来：{0}", e.RemoteIPEndPoint);
+            var session = e.Session as ISocketSession;
+            WriteLog("连接到来：{0}", session.Remote);
 
-            var session = e.Session;
             if (session != null)
             {
-                session.Received += new EventHandler<ReceivedEventArgs>(client_Received);
+                session.Received += client_Received;
                 session.Send("P2P连接已建立！");
                 WriteLog("P2P连接已建立！");
             }
@@ -162,13 +165,14 @@ namespace NewLife.Net.P2P
 
                 var client = new TcpSession();
                 Client = client;
-                client.Address = server.LocalEndPoint.Address;
-                client.Port = server.LocalEndPoint.Port;
-                client.ReuseAddress = true;
-                client.Connect(HoleServer);
-                var session = client.CreateSession();
-                session.Received += new EventHandler<ReceivedEventArgs>(client_Received);
-                session.ReceiveAsync();
+                //client.Address = server.LocalEndPoint.Address;
+                //client.Port = server.LocalEndPoint.Port;
+                //client.ReuseAddress = true;
+                //client.Connect(HoleServer);
+                //var session = client.CreateSession();
+                var session = client as ISocketSession;
+                session.Received += client_Received;
+                client.ReceiveAsync();
             }
         }
 
@@ -195,17 +199,18 @@ namespace NewLife.Net.P2P
 
             var client = new TcpSession();
             Client = client;
-            client.Address = server.LocalEndPoint.Address;
-            client.Port = server.LocalEndPoint.Port;
-            client.ReuseAddress = true;
+            //client.Address = server.LocalEndPoint.Address;
+            //client.Port = server.LocalEndPoint.Port;
+            //client.ReuseAddress = true;
+            client.Local.EndPoint = server.Local.EndPoint;
             Console.WriteLine("准备连接对方：{0}", ep);
             try
             {
-                client.Connect(ep);
-                client.Received += new EventHandler<NetEventArgs>(client_Received2);
+                //client.Connect(ep);
+                client.Received += client_Received2;
                 client.ReceiveAsync();
 
-                client.Send("Hello!");
+                Client.Send("Hello!");
             }
             catch (Exception ex)
             {
@@ -213,9 +218,10 @@ namespace NewLife.Net.P2P
             }
         }
 
-        void client_Received2(object sender, NetEventArgs e)
+        void client_Received2(object sender, ReceivedEventArgs e)
         {
-            WriteLog("数据到来2：{0} {1}", e.RemoteIPEndPoint, e.GetString());
+            var session = sender as ISocketSession;
+            WriteLog("数据到来2：{0} {1}", session.Remote, e.Stream.ToStr());
         }
         #endregion
 
@@ -249,27 +255,28 @@ namespace NewLife.Net.P2P
             var server = Server as UdpServer;
             if (server != null)
             {
-                server.Send(msg, null, HoleServer);
+                server.Client.Send(msg, null, HoleServer);
                 //server.Send("test", null, HoleServer);
                 if (msg.StartsWith("reg"))
                 {
-                    server.Send("checknat", null, ep);
+                    server.Client.Send("checknat", null, ep);
                 }
             }
             else
             {
-                var client = new TcpSession();
-                client.Address = Server.LocalEndPoint.Address;
-                client.Port = Server.LocalEndPoint.Port;
-                client.ReuseAddress = true;
-                client.Connect(ep);
+                var client = new TcpSession() as ISocketSession;
+                //client.Address = Server.LocalEndPoint.Address;
+                //client.Port = Server.LocalEndPoint.Port;
+                //client.ReuseAddress = true;
+                //client.Connect(ep);
+                client.Local.EndPoint = Server.Local.EndPoint;
                 client.Send("checknat");
-                WriteLog("HoleServer数据到来：", client.ReceiveString());
+                WriteLog("HoleServer数据到来：{0}", client.ReceiveString());
                 client.Dispose();
 
                 EnsureClient();
                 //Client.Send(msg, null);
-                Client.CreateSession().Send(msg);
+                Client.Send(msg);
             }
         }
         #endregion

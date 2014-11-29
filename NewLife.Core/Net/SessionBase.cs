@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Net;
+using System.Net.Sockets;
 
 namespace NewLife.Net
 {
@@ -30,6 +31,13 @@ namespace NewLife.Net
         private Stream _Stream = new MemoryStream();
         /// <summary>会话数据流，供用户程序使用，内部不做处理。可用于解决Tcp粘包的问题，把多余的分片放入该数据流中。</summary>
         public Stream Stream { get { return _Stream; } set { _Stream = value; } }
+
+        /// <summary>底层Socket</summary>
+        public Socket Socket { get { return GetSocket(); } }
+
+        /// <summary>获取Socket</summary>
+        /// <returns></returns>
+        internal abstract Socket GetSocket();
         #endregion
 
         #region 构造
