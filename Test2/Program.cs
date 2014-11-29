@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net;
 using System.Threading;
 using NewLife.Log;
 using NewLife.Net;
@@ -20,7 +21,7 @@ namespace Test2
                 try
                 {
 #endif
-                    Test1();
+                Test1();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -49,10 +50,19 @@ namespace Test2
 
             _udpServer = new UdpServer();
             _udpServer.Port = 888;
-            _udpServer.Received += _udpServer_Received;
+            //_udpServer.Received += _udpServer_Received;
+            _udpServer.Timeout = 5000;
             _udpServer.Open();
 
-            Console.ReadKey();
+            var session = _udpServer.CreateSession(new IPEndPoint(IPAddress.Any, 0));
+            for (int i = 0; i < 5; i++)
+            {
+                var buf = session.Receive();
+                Console.WriteLine(buf.ToHex());
+                session.Send("Hello");
+            }
+
+            //Console.ReadKey();
             _udpServer.Dispose();
             _udpServer = null;
         }

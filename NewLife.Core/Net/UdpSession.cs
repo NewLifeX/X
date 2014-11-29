@@ -31,6 +31,8 @@ namespace NewLife.Net
         private NetUri _Remote;
         /// <summary>远程地址</summary>
         public NetUri Remote { get { return _Remote; } set { _Remote = value; } }
+
+        private IPEndPoint _Filter;
         #endregion
 
         #region 构造
@@ -38,6 +40,7 @@ namespace NewLife.Net
         {
             Server = server;
             Remote = new NetUri(ProtocolType.Udp, remote);
+            _Filter = remote;
 
             server.Received += server_Received;
         }
@@ -61,16 +64,42 @@ namespace NewLife.Net
             Server.Client.Send(buffer, count, Remote.EndPoint);
         }
 
+        Boolean CheckFilter(IPEndPoint remote)
+        {
+            if (_Filter.Address != IPAddress.Any && _Filter.Address != IPAddress.IPv6Any)
+            {
+                if (_Filter.Address != remote.Address) return false;
+            }
+            if (_Filter.Port != 0)
+            {
+                if (_Filter.Port != remote.Port) return false;
+            }
+
+            return true;
+        }
+
         public byte[] Receive()
         {
             // UDP会话的直接读取可能会读到不是自己的数据
-            return Server.Receive();
+            var buf = Server.Receive();
+
+            var ep = Server.Remote.EndPoint;
+            if (!CheckFilter(ep)) return new Byte[0];
+            Remote.EndPoint = ep;
+
+            return buf;
         }
 
         public int Receive(byte[] buffer, int offset = 0, int count = -1)
         {
             // UDP会话的直接读取可能会读到不是自己的数据
-            return Server.Receive(buffer, offset, count);
+            var size = Server.Receive(buffer, offset, count);
+
+            var ep = Server.Remote.EndPoint;
+            if (!CheckFilter(ep)) return 0;
+            Remote.EndPoint = ep;
+
+            return size;
         }
         #endregion
 
@@ -83,7 +112,7 @@ namespace NewLife.Net
 
             // 判断是否自己的数据
             var udp = e as UdpReceivedEventArgs;
-            if (udp.Remote == Remote.EndPoint)
+            if (CheckFilter(udp.Remote))
             {
                 Received(this, e);
             }
