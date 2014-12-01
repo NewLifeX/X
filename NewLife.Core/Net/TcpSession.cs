@@ -61,7 +61,7 @@ namespace NewLife.Net
         internal TcpSession(ISocketServer server, TcpClient client)
             : this(client)
         {
-            Active = true; 
+            Active = true;
             _Server = server;
         }
         #endregion
@@ -136,9 +136,11 @@ namespace NewLife.Net
         {
             Open();
 
-            var buf = new Byte[1024 * 8];
+            var buf = new Byte[1024 * 2];
 
             var count = Client.GetStream().Read(buf, 0, buf.Length);
+            if (count == 0) return new Byte[0];
+
             return buf.ReadBytes(0, count);
         }
 
@@ -190,6 +192,11 @@ namespace NewLife.Net
             }
             catch (Exception ex) { OnError("EndRead", ex); }
 
+            if (DisconnectWhenEmptyData && count == 0)
+            {
+                Close();
+            }
+
             // 开始新的监听
             var buf = new Byte[1500];
             try
@@ -200,11 +207,6 @@ namespace NewLife.Net
             catch (Exception ex) { OnError("BeginRead", ex); return; }
 
             OnReceive(data, count);
-
-            if (DisconnectWhenEmptyData)
-            {
-                Close();
-            }
         }
 
         /// <summary>处理收到的数据</summary>

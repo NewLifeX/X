@@ -175,10 +175,12 @@ namespace System
         /// <param name="offset">起始位置</param>
         /// <param name="count">复制字节数</param>
         /// <returns>返回复制的总字节数</returns>
-        public static Byte[] ReadBytes(this Byte[] src, Int32 offset = 0, Int32 count = 0)
+        public static Byte[] ReadBytes(this Byte[] src, Int32 offset = 0, Int32 count = -1)
         {
+            if (count == 0) return new Byte[0];
+
             // 即使是全部，也要复制一份，而不只是返回原数组，因为可能就是为了复制数组
-            if (count <= 0) count = src.Length - offset;
+            if (count < 0) count = src.Length - offset;
 
             var bts = new Byte[count];
             Buffer.BlockCopy(src, offset, bts, 0, bts.Length);
@@ -210,9 +212,9 @@ namespace System
         /// <param name="offset">起始位置</param>
         /// <param name="count">字节数</param>
         /// <returns></returns>
-        public static Byte[] Combine(this Byte[] src, Byte[] des, Int32 offset = 0, Int32 count = 0)
+        public static Byte[] Combine(this Byte[] src, Byte[] des, Int32 offset = 0, Int32 count = -1)
         {
-            if (count <= 0) count = src.Length - offset;
+            if (count < 0) count = src.Length - offset;
 
             var buf = new Byte[src.Length + count];
             Buffer.BlockCopy(src, 0, buf, 0, src.Length);
@@ -231,9 +233,10 @@ namespace System
         /// <param name="stream">数据流</param>
         /// <param name="length">长度，0表示读到结束</param>
         /// <returns></returns>
-        public static Byte[] ReadBytes(this Stream stream, Int64 length = 0)
+        public static Byte[] ReadBytes(this Stream stream, Int64 length = -1)
         {
             if (stream == null) return null;
+            if (length == 0) return new Byte[0];
 
             // 针对MemoryStream进行优化。内存流的Read实现是一个个字节复制，而ToArray是调用内部内存复制方法
             var ms = stream as MemoryStream;
@@ -304,9 +307,12 @@ namespace System
         /// <param name="offset">字节数组中的偏移</param>
         /// <param name="length">字节数组中的查找长度</param>
         /// <returns>未找到时返回空，0位置范围大小为0的字节数组</returns>
-        public static Byte[] ReadTo(this Stream stream, Byte[] buffer, Int64 offset = 0, Int64 length = 0)
+        public static Byte[] ReadTo(this Stream stream, Byte[] buffer, Int64 offset = 0, Int64 length = -1)
         {
             //if (!stream.CanSeek) throw new XException("流不支持查找！");
+
+            if (length == 0) return new Byte[0];
+            if (length < 0) length = buffer.Length - offset;
 
             var ori = stream.Position;
             var p = stream.IndexOf(buffer, offset, length);

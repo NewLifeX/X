@@ -22,7 +22,14 @@ namespace NewLife.Net
 
         private NetUri _Local;
         /// <summary>本地地址</summary>
-        public NetUri Local { get { return _Local ?? (_Local = Server.Local); } set { Server.Local = _Local = value; } }
+        public NetUri Local
+        {
+            get
+            {
+                return _Local ?? (_Local = Server == null ? null : Server.Local);
+            }
+            set { Server.Local = _Local = value; }
+        }
 
         /// <summary>端口</summary>
         public Int32 Port { get { return Local.Port; } set { Local.Port = value; } }
