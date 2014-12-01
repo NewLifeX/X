@@ -322,10 +322,7 @@ namespace NewLife.Net.Sockets
         /// <summary>收到数据时</summary>
         /// <param name="session"></param>
         /// <param name="stream"></param>
-        protected virtual void OnReceive(ISocketSession session, Stream stream)
-        {
-
-        }
+        protected virtual void OnReceive(ISocketSession session, Stream stream) { }
 
         /// <summary>断开连接/发生错误</summary>
         /// <param name="sender"></param>

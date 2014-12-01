@@ -47,8 +47,6 @@ namespace NewLife.Net
             if (Client == null || !Client.Client.IsBound)
             {
                 Client = new UdpClient(Port);
-                if (Port == 0) Port = (Client.Client.LocalEndPoint as IPEndPoint).Port;
-                if (Timeout > 0) Client.Client.ReceiveTimeout = Timeout;
 
                 //WriteLog("监听 {0}", Local);
             }

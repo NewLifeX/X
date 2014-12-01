@@ -28,7 +28,11 @@ namespace NewLife.Net
 
         #region 构造
         /// <summary>实例化增强UDP</summary>
-        public TcpSession() { Local = new NetUri(ProtocolType.Tcp, IPAddress.Any, 0); }
+        public TcpSession()
+        {
+            Local = new NetUri(ProtocolType.Tcp, IPAddress.Any, 0);
+            Remote = new NetUri(ProtocolType.Tcp, IPAddress.Any, 0);
+        }
 
         /// <summary>使用监听口初始化</summary>
         /// <param name="listenPort"></param>
@@ -41,6 +45,7 @@ namespace NewLife.Net
         /// <summary>用TCP客户端初始化</summary>
         /// <param name="client"></param>
         public TcpSession(TcpClient client)
+            : this()
         {
             if (client == null) return;
 
@@ -57,7 +62,7 @@ namespace NewLife.Net
             if (Client == null || !Client.Client.IsBound)
             {
                 Client = new TcpClient(Local.EndPoint);
-                if (Timeout > 0) Client.Client.ReceiveTimeout = Timeout;
+                //if (Timeout > 0) Client.Client.ReceiveTimeout = Timeout;
 
                 if (Remote != null) Client.Connect(Remote.EndPoint);
             }
@@ -106,7 +111,7 @@ namespace NewLife.Net
 
             if (count < 0) count = buffer.Length - offset;
 
-            Stream.Write(buffer, 0, count);
+            Client.GetStream().Write(buffer, 0, count);
         }
 
         /// <summary>接收数据</summary>
@@ -168,11 +173,24 @@ namespace NewLife.Net
             // 分析处理
             var e = new ReceivedEventArgs();
             e.Data = data;
+            e.Length = count;
 
             RaiseReceive(this, e);
 
             // 数据发回去
             if (e.Feedback) Send(e.Data, 0, e.Length);
+        }
+        #endregion
+
+        #region 辅助
+        /// <summary>已重载。</summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            if (Remote != null && !Remote.EndPoint.IsAny())
+                return String.Format("{0}=>{1}", Local, Remote.EndPoint);
+            else
+                return Local.ToString();
         }
         #endregion
     }

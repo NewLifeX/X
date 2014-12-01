@@ -158,6 +158,15 @@ namespace NewLife.Net.Tcp
             }
         }
         #endregion
+
+        #region 辅助
+        /// <summary>已重载。</summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            return String.Format("{0} [{1}]", Local, Sessions.Count);
+        }
+        #endregion
     }
 
     /// <summary>接受连接时触发</summary>

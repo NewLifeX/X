@@ -62,6 +62,11 @@ namespace NewLife.Net
             UseReceiveAsync = Received != null;
 
             Active = OnOpen();
+            if (Active)
+            {
+                if (Port == 0) Port = (Socket.LocalEndPoint as IPEndPoint).Port;
+                if (Timeout > 0) Socket.ReceiveTimeout = Timeout;
+            }
 
             if (UseReceiveAsync) ReceiveAsync();
         }

@@ -29,7 +29,7 @@ namespace NewLife.Net
 
         private Stream _Stream;
         /// <summary>数据流</summary>
-        public Stream Stream { get { return _Stream ?? (_Stream = new MemoryStream(Data)); } set { _Stream = value; } }
+        public Stream Stream { get { return _Stream ?? (_Stream = new MemoryStream(Data, 0, Length)); } set { _Stream = value; } }
 
         private Boolean _Feedback;
         /// <summary>是否把数据反馈给对方</summary>
