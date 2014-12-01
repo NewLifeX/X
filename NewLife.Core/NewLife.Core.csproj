@@ -126,6 +126,8 @@
     <Compile Include="Net\ISocket.cs" />
     <Compile Include="Net\ISocketServer.cs" />
     <Compile Include="Net\ISocketClient.cs" />
+    <Compile Include="Net\NetException.cs" />
+    <Compile Include="Net\NetHelper.cs" />
     <Compile Include="Net\ReceivedEventArgs.cs" />
     <Compile Include="Net\ITransport.cs" />
     <Compile Include="Net\NetUri.cs" />

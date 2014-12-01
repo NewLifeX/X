@@ -157,7 +157,7 @@ namespace NewLife.Net
         public override string ToString()
         {
             if (Remote != null)
-                return String.Format("{0}=>{1}:{2}", Local, Remote.EndPoint, Remote.Port);
+                return String.Format("{0}=>{1}", Local, Remote.EndPoint);
             else
                 return Local.ToString();
         }

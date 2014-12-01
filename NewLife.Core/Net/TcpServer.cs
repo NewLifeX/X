@@ -130,7 +130,7 @@ namespace NewLife.Net.Tcp
         /// <returns></returns>
         protected virtual TcpSession CreateSession(TcpClient client)
         {
-            var session = new TcpSession();
+            var session = new TcpSession(client);
 
             return session;
         }

@@ -11,7 +11,7 @@ namespace NewLife.Net
         #region 属性
         private TcpClient _Client;
         /// <summary>客户端</summary>
-        public TcpClient Client { get { return _Client; } set { _Client = value; } }
+        public TcpClient Client { get { return _Client; } private set { _Client = value; } }
 
         /// <summary>获取Socket</summary>
         /// <returns></returns>
@@ -36,6 +36,17 @@ namespace NewLife.Net
             : this()
         {
             Port = listenPort;
+        }
+
+        /// <summary>用TCP客户端初始化</summary>
+        /// <param name="client"></param>
+        public TcpSession(TcpClient client)
+        {
+            if (client == null) return;
+
+            Client = client;
+            if (client.Client.LocalEndPoint != null) Local.EndPoint = (IPEndPoint)client.Client.LocalEndPoint;
+            if (client.Client.RemoteEndPoint != null) Remote.EndPoint = (IPEndPoint)client.Client.RemoteEndPoint;
         }
         #endregion
 
@@ -68,6 +79,15 @@ namespace NewLife.Net
         /// <returns></returns>
         protected override Boolean OnConnect(IPEndPoint remoteEP)
         {
+            Open();
+
+            // 如果已连接，需要特殊处理
+            if (Client.Connected)
+            {
+                if (Client.Client.RemoteEndPoint.Equals(remoteEP)) return true;
+
+                Client.Client.Disconnect(true);
+            }
             Client.Connect(remoteEP);
 
             return true;

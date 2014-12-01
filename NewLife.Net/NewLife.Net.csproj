@@ -79,7 +79,6 @@
     <Compile Include="Common\ClientMessageProvider.cs" />
     <Compile Include="Common\ExceptionEventArgs.cs" />
     <Compile Include="Common\IStatistics.cs" />
-    <Compile Include="Common\NetException.cs" />
     <Compile Include="Common\SessionMessageProvider.cs" />
     <Compile Include="Common\Statistics.cs" />
     <Compile Include="Common\ServerMessageProvider.cs" />
@@ -139,7 +138,6 @@
     <Compile Include="NTP\NTPClient.cs" />
     <Compile Include="Application\StreamServer.cs" />
     <Compile Include="Application\TimeServer.cs" />
-    <Compile Include="Common\NetHelper.cs" />
     <Compile Include="IO\FileClient.cs" />
     <Compile Include="IO\FileFormat.cs" />
     <Compile Include="IO\FileServer.cs" />

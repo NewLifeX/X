@@ -69,9 +69,12 @@ namespace NewLife.Net
 
         Boolean CheckFilter(IPEndPoint remote)
         {
-            if (_Filter.Address != IPAddress.Any && _Filter.Address != IPAddress.IPv6Any)
+            //if (_Filter.Address != IPAddress.Any && _Filter.Address != IPAddress.IPv6Any)
+            //{
+            //    //!!! 居然不能直接判断IPAddress相等
+            // 傻帽，IPAddress是类，不同实例对象当然不相等啦
+            if (_Filter.Address.IsAny())
             {
-                //!!! 居然不能直接判断IPAddress相等
                 if (_Filter.Address != remote.Address) return false;
             }
             if (_Filter.Port != 0)
