@@ -129,6 +129,11 @@ namespace System
         /// <returns></returns>
         public static Boolean IsAny(this IPAddress address) { return IPAddress.Any.Equals(address) || IPAddress.IPv6Any.Equals(address); }
 
+        /// <summary>是否Any结点</summary>
+        /// <param name="endpoint"></param>
+        /// <returns></returns>
+        public static Boolean IsAny(this EndPoint endpoint) { return (endpoint as IPEndPoint).Address.IsAny() || (endpoint as IPEndPoint).Port == 0; }
+
         /// <summary>获取相对于指定远程地址的本地地址</summary>
         /// <param name="address"></param>
         /// <param name="remote"></param>

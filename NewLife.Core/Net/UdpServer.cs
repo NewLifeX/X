@@ -18,6 +18,10 @@ namespace NewLife.Net
         /// <summary>获取Socket</summary>
         /// <returns></returns>
         internal override Socket GetSocket() { return Client == null ? null : Client.Client; }
+
+        private Int32 _Sessions;
+        /// <summary>会话数</summary>
+        public Int32 Sessions { get { return _Sessions; } private set { _Sessions = value; } }
         #endregion
 
         #region 构造
@@ -46,7 +50,7 @@ namespace NewLife.Net
                 if (Port == 0) Port = (Client.Client.LocalEndPoint as IPEndPoint).Port;
                 if (Timeout > 0) Client.Client.ReceiveTimeout = Timeout;
 
-                WriteLog("监听 {0}", Local);
+                //WriteLog("监听 {0}", Local);
             }
 
             return true;
@@ -55,9 +59,13 @@ namespace NewLife.Net
         /// <summary>关闭</summary>
         protected override Boolean OnClose()
         {
-            WriteLog("停止 {0}", Local);
+            //WriteLog("停止 {0}", Local);
 
-            if (Client != null) Client.Close();
+            if (Client != null)
+            {
+                Client.Close();
+                NetHelper.Close(Client.Client);
+            }
             Client = null;
 
             return true;
@@ -175,7 +183,7 @@ namespace NewLife.Net
             }
             catch (ObjectDisposedException) { return; }
 
-            WriteLog("OnReceive {0}", ep);
+            //WriteLog("OnReceive {0}", ep);
 
             Remote.EndPoint = ep;
 
@@ -196,7 +204,7 @@ namespace NewLife.Net
             e.Remote = remote;
 
             // 为该连接单独创建一个会话，方便直接通信
-            var session = new UdpSession(this, remote);
+            var session = CreateSession(remote);
 
             RaiseReceive(session, e);
 
@@ -211,7 +219,13 @@ namespace NewLife.Net
         /// <returns></returns>
         public virtual ISocketSession CreateSession(IPEndPoint remoteEP)
         {
-            return new UdpSession(this, remoteEP);
+            var session = new UdpSession(this, remoteEP);
+            Sessions++;
+            session.OnDisposed += (s, e) =>
+            {
+                Sessions--;
+            };
+            return session;
         }
         #endregion
 
@@ -224,6 +238,15 @@ namespace NewLife.Net
         void IServer.Stop()
         {
             Close();
+        }
+        #endregion
+
+        #region 辅助
+        /// <summary>已重载。</summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            return String.Format("{0} [{1}]", Local, Sessions);
         }
         #endregion
     }

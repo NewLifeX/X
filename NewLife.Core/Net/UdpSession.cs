@@ -51,6 +51,9 @@ namespace NewLife.Net
             base.OnDispose(disposing);
 
             Server.Received -= server_Received;
+            // 释放对服务对象的引用，如果没有其它引用，服务对象将会被回收
+            Server = null;
+            GC.Collect();
         }
         #endregion
 
@@ -62,7 +65,7 @@ namespace NewLife.Net
             if (count <= 0) count = buffer.Length - offset;
             if (offset > 0) buffer = buffer.ReadBytes(offset, count);
 
-            Server.WriteLog("UdpSend {0}", Remote.EndPoint);
+            //Server.WriteLog("UdpSend {0}", Remote.EndPoint);
 
             Server.Client.Send(buffer, count, Remote.EndPoint);
         }
@@ -126,6 +129,18 @@ namespace NewLife.Net
             {
                 Received(this, e);
             }
+        }
+        #endregion
+
+        #region 辅助
+        /// <summary>已重载。</summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            if (Remote != null&&!Remote.EndPoint.IsAny())
+                return String.Format("{0}=>{1}", Local, Remote.EndPoint);
+            else
+                return Local.ToString();
         }
         #endregion
     }

@@ -138,7 +138,7 @@ namespace NewLife.Net
         #endregion
 
         #region 日志
-        private Boolean _Debug = Config.GetConfig<Boolean>("NewLife.Net.Debug", true);
+        private Boolean _Debug = NetHelper.Debug;
         /// <summary>调试开关</summary>
         public Boolean Debug { get { return _Debug; } set { _Debug = value; } }
 
@@ -156,10 +156,10 @@ namespace NewLife.Net
         /// <returns></returns>
         public override string ToString()
         {
-            if (Remote != null)
-                return String.Format("{0}=>{1}", Local, Remote.EndPoint);
-            else
-                return Local.ToString();
+            //if (Remote != null)
+            //    return String.Format("{0}=>{1}", Local, Remote.EndPoint);
+            //else
+            return Local.ToString();
         }
         #endregion
     }
