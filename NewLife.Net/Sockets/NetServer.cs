@@ -299,6 +299,10 @@ namespace NewLife.Net.Sockets
             ns.ClientEndPoint = session.Remote.EndPoint;
 
             session.OnDisposed += (s, e2) => ns.Dispose();
+
+            SessionCount++;
+            ns.OnDisposed += (s, e2) => SessionCount--;
+
             if (UseSession) AddSession(ns);
 
             var tc = session as TcpSession;
@@ -353,6 +357,10 @@ namespace NewLife.Net.Sockets
         private IDictionary<Int32, INetSession> _Sessions;
         /// <summary>会话集合。用自增的数字ID作为标识，业务应用自己维持ID与业务主键的对应关系。</summary>
         public IDictionary<Int32, INetSession> Sessions { get { return _Sessions ?? (_Sessions = new Dictionary<Int32, INetSession>()); } }
+
+        private Int32 _SessionCount;
+        /// <summary>会话数</summary>
+        public Int32 SessionCount { get { return _SessionCount; } set { _SessionCount = value; } }
 
         private Int32 sessionID = 0;
         /// <summary>添加会话。子类可以在添加会话前对会话进行一些处理</summary>

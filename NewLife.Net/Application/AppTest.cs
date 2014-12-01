@@ -218,7 +218,7 @@ namespace NewLife.Net.Application
             server = new NetServer();
             server.ProtocolType = ProtocolType.Tcp;
             server.Port = port;
-            server.UseSession = true;
+            //server.UseSession = true;
             server.Received += server_Received;
             // 最大不活跃时间设为10分钟
             foreach (TcpServer item in server.Servers)
@@ -295,7 +295,9 @@ namespace NewLife.Net.Application
                     var color = Console.ForegroundColor;
                     Console.ForegroundColor = ConsoleColor.Yellow;
                     //Console.WriteLine("异步:{0} 会话:{1} Thread:{2}/{3}/{4} Pool:{5}/{6}/{7}", asyncCount, server.Sessions.Count, threads, wt, cpt, pool.StockCount, pool.FreeCount, pool.CreateCount);
-                    Console.WriteLine("消息:{0} 会话:{1} Thread:{2}/{3}/{4}", asyncCount, server.Sessions.Count, threads, wt, cpt);
+                    //var count = server.Sessions.Count;
+                    var count = server.SessionCount;
+                    Console.WriteLine("消息:{0} 会话:{1} Thread:{2}/{3}/{4}", asyncCount, count, threads, wt, cpt);
                     Console.ForegroundColor = color;
                 }
                 catch { }
