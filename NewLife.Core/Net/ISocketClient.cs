@@ -53,6 +53,9 @@ namespace NewLife.Net
         /// <param name="remoteEP"></param>
         void Connect(IPEndPoint remoteEP);
 
+        /// <summary>断开连接</summary>
+        void Disconnect();
+
         /// <summary>发送数据</summary>
         /// <remarks>
         /// 目标地址由<seealso cref="Remote"/>决定

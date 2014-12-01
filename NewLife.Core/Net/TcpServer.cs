@@ -60,6 +60,8 @@ namespace NewLife.Net.Tcp
         /// <summary>开始</summary>
         public virtual void Start()
         {
+            if (Active) return;
+
             // 开始监听
             if (Server == null) Server = new TcpListener(Local.EndPoint);
 
@@ -68,13 +70,19 @@ namespace NewLife.Net.Tcp
             Server.Start();
 
             AcceptAsync();
+
+            Active = true;
         }
 
         /// <summary>停止</summary>
         public virtual void Stop()
         {
+            if (!Active) return;
+
             if (Server != null) Server.Stop();
             Server = null;
+
+            Active = false;
         }
         #endregion
 
@@ -90,9 +98,20 @@ namespace NewLife.Net.Tcp
 
         void OnAccept(IAsyncResult ar)
         {
-            var client = Server.EndAcceptTcpClient(ar);
+            if (!Active) return;
+
+            if (Server == null) return;
+
+            TcpClient client = null;
+            try
+            {
+                client = Server.EndAcceptTcpClient(ar);
+            }
+            catch (ObjectDisposedException) { return; }
 
             AcceptAsync();
+
+            WriteLog("{0} Accept {1}", this, client.Client.RemoteEndPoint);
 
             var session = CreateSession(client);
             if (Accepted != null) Accepted(this, new AcceptedEventArgs { Session = session });
@@ -101,6 +120,8 @@ namespace NewLife.Net.Tcp
 
             // 设置心跳时间
             //client.Client.SetTcpKeepAlive(true);
+
+            session.Active = true;
 
             // 自动开始异步接收处理
             if (AutoReceiveAsync) session.ReceiveAsync();
@@ -156,6 +177,20 @@ namespace NewLife.Net.Tcp
                     sessions.Clear();
                 }
             }
+        }
+        #endregion
+
+        #region 日志
+        private Boolean _Debug = NetHelper.Debug;
+        /// <summary>调试开关</summary>
+        public Boolean Debug { get { return _Debug; } set { _Debug = value; } }
+
+        /// <summary>输出日志</summary>
+        /// <param name="format"></param>
+        /// <param name="args"></param>
+        public void WriteLog(String format, params Object[] args)
+        {
+            if (Debug) XTrace.WriteLine(format, args);
         }
         #endregion
 

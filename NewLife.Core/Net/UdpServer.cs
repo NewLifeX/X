@@ -47,8 +47,9 @@ namespace NewLife.Net
             if (Client == null || !Client.Client.IsBound)
             {
                 Client = new UdpClient(Port);
+                if (Port == 0) Port = (Socket.LocalEndPoint as IPEndPoint).Port;
 
-                //WriteLog("监听 {0}", Local);
+                WriteLog("{0}.Open {1}", this.GetType().Name, this);
             }
 
             return true;
@@ -57,7 +58,7 @@ namespace NewLife.Net
         /// <summary>关闭</summary>
         protected override Boolean OnClose()
         {
-            //WriteLog("停止 {0}", Local);
+            WriteLog("{0}.Close {1}", this.GetType().Name, this);
 
             if (Client != null)
             {
@@ -168,6 +169,7 @@ namespace NewLife.Net
 
         void OnReceive(IAsyncResult ar)
         {
+            if (!Active) return;
             // 接收数据
             var client = ar.AsyncState as UdpClient;
             if (client == null) return;

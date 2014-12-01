@@ -62,9 +62,11 @@ namespace NewLife.Net
             if (Client == null || !Client.Client.IsBound)
             {
                 Client = new TcpClient(Local.EndPoint);
-                //if (Timeout > 0) Client.Client.ReceiveTimeout = Timeout;
+                if (Port == 0) Port = (Socket.LocalEndPoint as IPEndPoint).Port;
 
-                if (Remote != null) Client.Connect(Remote.EndPoint);
+                WriteLog("{0}.Open {1}", this.GetType().Name, this);
+
+                if (Remote != null && !Remote.EndPoint.IsAny()) Client.Connect(Remote.EndPoint);
             }
 
             return true;
@@ -73,6 +75,8 @@ namespace NewLife.Net
         /// <summary>关闭</summary>
         protected override Boolean OnClose()
         {
+            WriteLog("{0}.Close {1}", this.GetType().Name, this);
+
             if (Client != null) Client.Close();
             Client = null;
 
@@ -84,7 +88,7 @@ namespace NewLife.Net
         /// <returns></returns>
         protected override Boolean OnConnect(IPEndPoint remoteEP)
         {
-            Open();
+            //Open();
 
             // 如果已连接，需要特殊处理
             if (Client.Connected)
@@ -93,6 +97,7 @@ namespace NewLife.Net
 
                 Client.Client.Disconnect(true);
             }
+
             Client.Connect(remoteEP);
 
             return true;
@@ -154,8 +159,9 @@ namespace NewLife.Net
 
         void OnReceive(IAsyncResult ar)
         {
+            if (!Active) return;
             var client = Client;
-            if (client == null) return;
+            if (client == null || !client.Connected) return;
 
             // 接收数据
             var data = (Byte[])ar.AsyncState;
@@ -164,11 +170,15 @@ namespace NewLife.Net
             {
                 count = client.GetStream().EndRead(ar);
             }
-            catch (ObjectDisposedException) { }
+            catch (ObjectDisposedException) { return; }
 
             // 开始新的监听
             var buf = new Byte[1500];
-            client.GetStream().BeginRead(buf, 0, buf.Length, OnReceive, buf);
+            try
+            {
+                client.GetStream().BeginRead(buf, 0, buf.Length, OnReceive, buf);
+            }
+            catch (ObjectDisposedException) { }
 
             OnReceive(data, count);
         }

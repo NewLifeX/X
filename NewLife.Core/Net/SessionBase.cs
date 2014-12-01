@@ -80,6 +80,8 @@ namespace NewLife.Net
         {
             if (!Active) return;
 
+            //(this as ISocketClient).Disconnect();
+
             if (OnClose()) Active = false;
         }
 
@@ -91,7 +93,11 @@ namespace NewLife.Net
         /// <param name="remoteEP"></param>
         void ISocketClient.Connect(IPEndPoint remoteEP)
         {
+            Open();
+
             Remote.EndPoint = remoteEP;
+
+            WriteLog("{0} Connect {1}", this, remoteEP);
 
             OnConnect(remoteEP);
         }
@@ -100,6 +106,21 @@ namespace NewLife.Net
         /// <param name="remoteEP"></param>
         /// <returns></returns>
         protected abstract Boolean OnConnect(IPEndPoint remoteEP);
+
+        void ISocketClient.Disconnect()
+        {
+            WriteLog("{0} Disconnect {1}", this, Remote.EndPoint);
+
+            OnDisconnect();
+        }
+
+        /// <summary>断开连接</summary>
+        /// <returns></returns>
+        protected virtual Boolean OnDisconnect()
+        {
+            if (Socket != null && Socket.Connected) Socket.Disconnect(true);
+            return true;
+        }
 
         /// <summary>发送数据</summary>
         /// <remarks>
