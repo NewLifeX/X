@@ -106,6 +106,7 @@ namespace System
         }
 
         /// <summary>针对IPv4和IPv6获取合适的Any地址</summary>
+        /// <remarks>除了Any地址以为，其它地址不具备等效性</remarks>
         /// <param name="address"></param>
         /// <param name="family"></param>
         /// <returns></returns>

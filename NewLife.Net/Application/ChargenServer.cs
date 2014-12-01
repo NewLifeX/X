@@ -56,11 +56,11 @@ namespace NewLife.Net.Application
         }
 
         /// <summary>触发异常</summary>
-        /// <param name="action">动作</param>
-        /// <param name="ex">异常</param>
-        protected override void OnError(String action, Exception ex)
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        protected override void OnError(Object sender, ExceptionEventArgs e)
         {
-            base.OnError(action, ex);
+            base.OnError(sender, e);
 
             // 出现重置错误，可能是UDP发送时客户端重置了，标识错误，让所有循环终止
             //if (e.LastOperation == SocketAsyncOperation.ReceiveFrom && e.SocketError == SocketError.ConnectionReset) hasError = true;

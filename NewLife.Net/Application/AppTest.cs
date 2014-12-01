@@ -111,7 +111,7 @@ namespace NewLife.Net.Application
 
         static void TestSends(String name, IPEndPoint ep, Boolean isSendData, Boolean isReceiveData = true)
         {
-            if (ep.AddressFamily == AddressFamily.InterNetworkV6) return;
+            //if (ep.AddressFamily == AddressFamily.InterNetworkV6) return;
 
             Console.WriteLine();
             Console.WriteLine("{0}：", name);

@@ -47,6 +47,10 @@ namespace NewLife.Net.Sockets
         /// <summary>协议类型</summary>
         public ProtocolType ProtocolType { get { return _Local.ProtocolType; } set { _Local.ProtocolType = value; } }
 
+        private AddressFamily _AddressFamily = AddressFamily.Unknown;
+        /// <summary>寻址方案</summary>
+        public AddressFamily AddressFamily { get { return _AddressFamily; } set { _AddressFamily = value; } }
+
         private List<ISocketServer> _Servers;
         /// <summary>服务器集合。</summary>
         public IList<ISocketServer> Servers { get { return _Servers ?? (_Servers = new List<ISocketServer>()); } }
@@ -93,7 +97,11 @@ namespace NewLife.Net.Sockets
         /// <param name="address"></param>
         /// <param name="port"></param>
         /// <param name="protocolType"></param>
-        public NetServer(IPAddress address, Int32 port, ProtocolType protocolType) : this(address, port) { Local.ProtocolType = protocolType; }
+        public NetServer(IPAddress address, Int32 port, ProtocolType protocolType)
+            : this(address, port)
+        {
+            Local.ProtocolType = protocolType;
+        }
 
         /// <summary>已重载。释放会话集合等资源</summary>
         /// <param name="disposing"></param>
@@ -159,7 +167,7 @@ namespace NewLife.Net.Sockets
                 throw new Exception("不支持的协议类型" + server.Local.ProtocolType + "！");
             }
 
-            //server.Error += OnError);
+            server.Error += OnError;
 
             Servers.Add(server);
             return true;
@@ -189,7 +197,7 @@ namespace NewLife.Net.Sockets
         {
             if (Servers.Count <= 0)
             {
-                var list = CreateServer(Local.Address, Port, Local.ProtocolType, Local.Address.AddressFamily);
+                var list = CreateServer(Local.Address, Port, Local.ProtocolType, AddressFamily);
                 foreach (var item in list)
                 {
                     AttachServer(item);
@@ -325,9 +333,9 @@ namespace NewLife.Net.Sockets
         protected virtual void OnReceive(ISocketSession session, Stream stream) { }
 
         /// <summary>触发异常</summary>
-        /// <param name="action">动作</param>
-        /// <param name="ex">异常</param>
-        protected virtual void OnError(String action, Exception ex)
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        protected virtual void OnError(Object sender, ExceptionEventArgs e)
         {
             //if (!EnableLog) return;
             if (Log.Level < LogLevel.Info) return;

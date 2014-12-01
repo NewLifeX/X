@@ -72,6 +72,12 @@ namespace NewLife.Net
         {
             if (Client == null || !Client.Client.IsBound)
             {
+                // 根据目标地址适配本地IPv4/IPv6
+                if (Remote != null && !Remote.Address.IsAny())
+                {
+                    Local.Address = Local.Address.GetRightAny(Remote.Address.AddressFamily);
+                }
+                
                 Client = new TcpClient(Local.EndPoint);
                 if (Port == 0) Port = (Socket.LocalEndPoint as IPEndPoint).Port;
 

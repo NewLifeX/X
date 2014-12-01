@@ -46,7 +46,7 @@ namespace NewLife.Net
         {
             if (Client == null || !Client.Client.IsBound)
             {
-                Client = new UdpClient(Port);
+                Client = new UdpClient(Local.EndPoint);
                 if (Port == 0) Port = (Socket.LocalEndPoint as IPEndPoint).Port;
 
                 WriteLog("{0}.Open {1}", this.GetType().Name, this);
@@ -229,6 +229,14 @@ namespace NewLife.Net
         /// <returns></returns>
         public virtual ISocketSession CreateSession(IPEndPoint remoteEP)
         {
+            if (!Active)
+            {
+                // 根据目标地址适配本地IPv4/IPv6
+                Local.Address = Local.Address.GetRightAny(remoteEP.AddressFamily);
+
+                Open();
+            }
+
             var session = new UdpSession(this, remoteEP);
             Sessions++;
             session.OnDisposed += (s, e) =>
