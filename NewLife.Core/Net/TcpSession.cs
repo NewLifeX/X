@@ -154,13 +154,21 @@ namespace NewLife.Net
 
         void OnReceive(IAsyncResult ar)
         {
+            var client = Client;
+            if (client == null) return;
+
             // 接收数据
             var data = (Byte[])ar.AsyncState;
-            var count = Client.GetStream().EndRead(ar);
+            var count = 0;
+            try
+            {
+                count = client.GetStream().EndRead(ar);
+            }
+            catch (ObjectDisposedException) { }
 
             // 开始新的监听
             var buf = new Byte[1500];
-            Client.GetStream().BeginRead(buf, 0, buf.Length, OnReceive, buf);
+            client.GetStream().BeginRead(buf, 0, buf.Length, OnReceive, buf);
 
             OnReceive(data, count);
         }

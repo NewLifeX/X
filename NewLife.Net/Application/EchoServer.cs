@@ -21,6 +21,8 @@ namespace NewLife.Net.Application
         /// <param name="stream"></param>
         protected override void OnReceive(ISocketSession session, Stream stream)
         {
+            if (stream.Length == 0) return;
+
             var p = stream.Position;
             if (stream.Length > 100)
                 WriteLog("Echo {0} [{1}]", session.Remote, stream.Length);
