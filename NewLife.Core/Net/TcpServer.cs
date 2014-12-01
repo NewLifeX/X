@@ -207,8 +207,8 @@ namespace NewLife.Net.Tcp
     /// <summary>接受连接时触发</summary>
     public class AcceptedEventArgs : EventArgs
     {
-        private TcpSession _Session;
+        private ISocketSession _Session;
         /// <summary>会话</summary>
-        public TcpSession Session { get { return _Session; } set { _Session = value; } }
+        public ISocketSession Session { get { return _Session; } set { _Session = value; } }
     }
 }

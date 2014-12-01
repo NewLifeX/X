@@ -312,7 +312,8 @@ namespace NewLife.Net.Sockets
         {
             var session = sender as ISocketSession;
 
-            //if (UseSession && Accepted != null) Accepted(sender, new AcceptedEventArgs { Session = session });
+            // 特殊处理Udp.Accept
+            if (session.Local.ProtocolType == ProtocolType.Udp) OnAccepted(sender, new AcceptedEventArgs { Session = session });
 
             OnReceive(session, e.Stream);
 

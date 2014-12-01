@@ -75,7 +75,7 @@ namespace NewLife.Net
         /// <returns></returns>
         protected override Boolean OnConnect(IPEndPoint remoteEP)
         {
-            WriteLog("连接 {0}", remoteEP);
+            //WriteLog("连接 {0}", remoteEP);
 
             Client.Connect(remoteEP);
 
@@ -98,14 +98,14 @@ namespace NewLife.Net
             var sp = Client;
             lock (sp)
             {
-                //if (Client.Client.Connected)
-                //{
-                //    if (offset == 0)
-                //        sp.Send(buffer, count);
-                //    else
-                //        sp.Send(buffer.ReadBytes(offset, count), count);
-                //}
-                //else
+                if (Client.Client.Connected)
+                {
+                    if (offset == 0)
+                        sp.Send(buffer, count);
+                    else
+                        sp.Send(buffer.ReadBytes(offset, count), count);
+                }
+                else
                 {
                     if (offset == 0)
                         sp.Send(buffer, count, Remote.EndPoint);
@@ -183,7 +183,7 @@ namespace NewLife.Net
             }
             catch (ObjectDisposedException) { return; }
 
-            //WriteLog("OnReceive {0}", ep);
+            WriteLog("OnReceive {0}", ep);
 
             Remote.EndPoint = ep;
 

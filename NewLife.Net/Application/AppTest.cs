@@ -100,6 +100,8 @@ namespace NewLife.Net.Application
             }
             session.Dispose();
             //if (session.Host != null) session.Host.Dispose();
+            session = null;
+            GC.Collect();
             Console.WriteLine("结束！");
         }
 
