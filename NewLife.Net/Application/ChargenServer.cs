@@ -55,15 +55,16 @@ namespace NewLife.Net.Application
                 WriteLog("Chargen {0} [{1}] {2}", session.Remote, stream.Length, stream.ToStr());
         }
 
-        /// <summary>出错时</summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        protected override void OnError(object sender, NetEventArgs e)
+        /// <summary>触发异常</summary>
+        /// <param name="action">动作</param>
+        /// <param name="ex">异常</param>
+        protected override void OnError(String action, Exception ex)
         {
-            base.OnError(sender, e);
+            base.OnError(action, ex);
 
             // 出现重置错误，可能是UDP发送时客户端重置了，标识错误，让所有循环终止
-            if (e.LastOperation == SocketAsyncOperation.ReceiveFrom && e.SocketError == SocketError.ConnectionReset) hasError = true;
+            //if (e.LastOperation == SocketAsyncOperation.ReceiveFrom && e.SocketError == SocketError.ConnectionReset) hasError = true;
+            hasError = true;
         }
 
         Boolean hasError = false;

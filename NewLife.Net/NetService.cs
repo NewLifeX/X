@@ -26,7 +26,7 @@ namespace NewLife.Net
                 .Register<ISocketClient, UdpServer>(ProtocolType.Udp)
                 .Register<ISocketSession, TcpSession>(ProtocolType.Tcp)
                 //.Register<ISocketSession, UdpServer>(ProtocolType.Udp)
-                .Register<IStatistics, Statistics>()
+                //.Register<IStatistics, Statistics>()
                 .Register<INetSession, NetSession>();
         }
 

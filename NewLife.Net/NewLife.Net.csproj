@@ -75,11 +75,8 @@
     <Compile Include="Application\DiscardServer.cs" />
     <Compile Include="Application\EchoServer.cs" />
     <Compile Include="Application\SerialServer.cs" />
-    <Compile Include="Common\BufferPool.cs" />
     <Compile Include="Common\ClientMessageProvider.cs" />
-    <Compile Include="Common\IStatistics.cs" />
     <Compile Include="Common\SessionMessageProvider.cs" />
-    <Compile Include="Common\Statistics.cs" />
     <Compile Include="Common\ServerMessageProvider.cs" />
     <Compile Include="Dhcp\DchpMessageType.cs" />
     <Compile Include="Dhcp\DhcpEntity.cs" />
@@ -263,9 +260,7 @@
     <Compile Include="Sockets\Netbase.cs" />
     <Compile Include="Sockets\NetServer.cs" />
     <Compile Include="Sockets\NetSession.cs" />
-    <Compile Include="Sockets\NetEventArgs.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Sockets\SocketStream.cs" />
     <Compile Include="Stress\TcpStressClient.cs" />
     <Compile Include="Stress\TcpStressConfig.cs" />
     <Compile Include="Stress\TcpStress.cs" />

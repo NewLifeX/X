@@ -324,21 +324,20 @@ namespace NewLife.Net.Sockets
         /// <param name="stream"></param>
         protected virtual void OnReceive(ISocketSession session, Stream stream) { }
 
-        /// <summary>断开连接/发生错误</summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        protected virtual void OnError(object sender, NetEventArgs e)
+        /// <summary>触发异常</summary>
+        /// <param name="action">动作</param>
+        /// <param name="ex">异常</param>
+        protected virtual void OnError(String action, Exception ex)
         {
             //if (!EnableLog) return;
             if (Log.Level < LogLevel.Info) return;
 
-            if ((e.SocketError == SocketError.OperationAborted || e.SocketError == SocketError.ConnectionReset) && !ShowAbortAsError) return;
+            //if ((e.SocketError == SocketError.OperationAborted || e.SocketError == SocketError.ConnectionReset) && !ShowAbortAsError) return;
 
-            if (e.SocketError != SocketError.Success || e.Error != null)
-                WriteLog("{0} {1}错误 {2} {3}", sender, e.LastOperation, e.SocketError, e.Error);
-            else
-                WriteDebugLog("{0} {1}断开！", sender, e.LastOperation);
-            //WriteLog("{0}断开！", e.LastOperation);
+            //if (e.SocketError != SocketError.Success || e.Error != null)
+            //    WriteLog("{0} {1}错误 {2} {3}", sender, e.LastOperation, e.SocketError, e.Error);
+            //else
+            //    WriteDebugLog("{0} {1}断开！", sender, e.LastOperation);
         }
         #endregion
 

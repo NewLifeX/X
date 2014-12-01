@@ -182,7 +182,7 @@ namespace NewLife.Net
             catch (ObjectDisposedException) { return; }
             catch (Exception ex) { OnError("EndReceive", ex); return; }
 
-            WriteLog("{0}.OnReceive {1}<={2} [{3}]", this.GetType().Name, this, ep, data.Length);
+            //WriteLog("{0}.OnReceive {1}<={2} [{3}]", this.GetType().Name, this, ep, data.Length);
 
             Remote.EndPoint = ep;
 

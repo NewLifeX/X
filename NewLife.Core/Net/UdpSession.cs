@@ -66,7 +66,7 @@ namespace NewLife.Net
             if (count <= 0) count = buffer.Length - offset;
             if (offset > 0) buffer = buffer.ReadBytes(offset, count);
 
-            Server.WriteLog("{0}.Send {1} [{2}]", this.GetType().Name, this, count);
+            //Server.WriteLog("{0}.Send {1} [{2}]", this.GetType().Name, this, count);
 
             Server.Client.Send(buffer, count, Remote.EndPoint);
         }

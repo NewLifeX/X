@@ -86,7 +86,7 @@ namespace NewLife.Net.Application
                         //Console.WriteLine("客户端" + session + " " + session.ReceiveString());
                         var buf = session.Receive();
                         Console.WriteLine("客户端{0} 收到 [{1}]: {2}", session, buf.Length, buf.ToStr());
-                        
+
                         rs = true;
                     }
                     catch (Exception ex)
@@ -213,7 +213,7 @@ namespace NewLife.Net.Application
             Int32 port = ReadInt("请输入监听端口：", 1, 65535);
 
             // 扩大事件池
-            NetEventArgs.Pool.Max = 200000;
+            //NetEventArgs.Pool.Max = 200000;
 
             server = new NetServer();
             server.ProtocolType = ProtocolType.Tcp;
@@ -259,7 +259,7 @@ namespace NewLife.Net.Application
 
         static void ShowStatus()
         {
-            var pool = NetEventArgs.Pool;
+            //var pool = NetEventArgs.Pool;
 
             while (true)
             {
@@ -283,7 +283,8 @@ namespace NewLife.Net.Application
 
                     var color = Console.ForegroundColor;
                     Console.ForegroundColor = ConsoleColor.Yellow;
-                    Console.WriteLine("异步:{0} 会话:{1} Thread:{2}/{3}/{4} Pool:{5}/{6}/{7}", asyncCount, server.Sessions.Count, threads, wt, cpt, pool.StockCount, pool.FreeCount, pool.CreateCount);
+                    //Console.WriteLine("异步:{0} 会话:{1} Thread:{2}/{3}/{4} Pool:{5}/{6}/{7}", asyncCount, server.Sessions.Count, threads, wt, cpt, pool.StockCount, pool.FreeCount, pool.CreateCount);
+                    Console.WriteLine("异步:{0} 会话:{1} Thread:{2}/{3}/{4}", asyncCount, server.Sessions.Count, threads, wt, cpt);
                     Console.ForegroundColor = color;
                 }
                 catch { }

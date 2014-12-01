@@ -14,55 +14,31 @@ namespace NewLife.Net.IO
         /// <summary>保存路径</summary>
         public String SavedPath
         {
-            get { return _SavedPath ?? (_SavedPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data")); }
+            get { return _SavedPath ?? (_SavedPath = "Data"); }
             set { _SavedPath = value; }
         }
         #endregion
 
         #region 方法
-        /// <summary>已重载。</summary>
-        protected override void EnsureCreateServer()
+        /// <summary>实例化一个文件服务</summary>
+        public FileServer()
         {
-            Name = "文件服务";
+            Port = 33;
 
-            //TcpServer svr = new TcpServer(Address, Port);
-            //svr.Accepted += new EventHandler<NetEventArgs>(server_Accepted);
-            //// 允许同时处理多个数据包
-            //svr.NoDelay = false;
-            //// 使用线程池来处理事件
-            //svr.UseThreadPool = true;
+            Name = "文件服务";
         }
         #endregion
 
         #region 事件
-        void server_Accepted(object sender, NetEventArgs e)
+        /// <summary>收到连接时</summary>
+        /// <param name="session"></param>
+        protected override void OnAccept(ISocketSession session)
         {
-            TcpSession session = e.Socket as TcpSession;
-            if (session == null) return;
+            base.OnAccept(session);
 
-            //session.NoDelay = false;
-            SetEvent(session);
-        }
-
-        void SetEvent(TcpSession session)
-        {
             session.Received += (sender, e) =>
             {
-                TcpSession tc = sender as TcpSession;
-
-                //Stream stream = null;
-                //if (!tc.Items.Contains("Stream"))
-                //{
-                //    stream = new MemoryStream();
-                //    tc.Items["Stream"] = stream;
-                //}
-                //else
-                //{
-                //    stream = tc.Items["Stream"] as Stream;
-                //}
-
-                //// 把数据写入流
-                //e.WriteTo(stream);
+                var tc = sender as ISocketSession;
 
                 var stream = tc.Stream;
                 stream.Write(e.Data, 0, e.Length);
@@ -71,9 +47,8 @@ namespace NewLife.Net.IO
                 // 数据太少时等下一次，不过基本上不可能。5是FileFormat可能的最小长度
                 if (stream.Length < 5) return;
 
-                FileFormat format = FileFormat.Load(stream);
+                var format = FileFormat.Load(stream);
             };
-            //session.Error += new EventHandler<ExceptionEventArgs>(OnError);
         }
         #endregion
     }
