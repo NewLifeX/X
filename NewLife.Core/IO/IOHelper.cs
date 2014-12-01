@@ -366,6 +366,26 @@ namespace System
 
             return encoding.GetString(buf, idx, buf.Length - idx);
         }
+
+        /// <summary>字节数组转换为字符串</summary>
+        /// <param name="buf">字节数组</param>
+        /// <param name="encoding">编码格式</param>
+        /// <returns></returns>
+        public static String ToStr(this Byte[] buf, Encoding encoding = null)
+        {
+            if (buf == null || buf.Length < 1) return null;
+            if (encoding == null) encoding = Encoding.UTF8;
+
+            // 可能数据流前面有编码字节序列，需要先去掉
+            var idx = 0;
+            var preamble = encoding.GetPreamble();
+            if (preamble != null && preamble.Length > 0)
+            {
+                if (buf.StartsWith(preamble)) idx = preamble.Length;
+            }
+
+            return encoding.GetString(buf, idx, buf.Length - idx);
+        }
         #endregion
 
         #region 数据转整数
