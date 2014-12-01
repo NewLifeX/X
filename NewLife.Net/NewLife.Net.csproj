@@ -77,7 +77,6 @@
     <Compile Include="Application\SerialServer.cs" />
     <Compile Include="Common\BufferPool.cs" />
     <Compile Include="Common\ClientMessageProvider.cs" />
-    <Compile Include="Common\ExceptionEventArgs.cs" />
     <Compile Include="Common\IStatistics.cs" />
     <Compile Include="Common\SessionMessageProvider.cs" />
     <Compile Include="Common\Statistics.cs" />

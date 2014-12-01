@@ -44,7 +44,7 @@ namespace NewLife.Net.Tcp
 
         private Boolean _Active;
         /// <summary>是否活动</summary>
-        public Boolean Active { get { return _Active; } set { _Active = value; } }
+        public Boolean Active { get { return _Active || Disposed; } set { _Active = value; } }
         #endregion
 
         #region 构造
@@ -93,7 +93,12 @@ namespace NewLife.Net.Tcp
 
         void AcceptAsync()
         {
-            Server.BeginAcceptTcpClient(OnAccept, null);
+            try
+            {
+                Server.BeginAcceptTcpClient(OnAccept, null);
+            }
+            catch (ObjectDisposedException) { return; }
+            catch (Exception ex) { OnError("BeginAcceptTcpClient", ex); return; }
         }
 
         void OnAccept(IAsyncResult ar)
@@ -108,6 +113,7 @@ namespace NewLife.Net.Tcp
                 client = Server.EndAcceptTcpClient(ar);
             }
             catch (ObjectDisposedException) { return; }
+            catch (Exception ex) { OnError("EndAcceptTcpClient", ex); return; }
 
             AcceptAsync();
 
@@ -177,6 +183,20 @@ namespace NewLife.Net.Tcp
                     sessions.Clear();
                 }
             }
+        }
+        #endregion
+
+        #region 异常处理
+        /// <summary>错误发生/断开连接时</summary>
+        public event EventHandler<ExceptionEventArgs> Error;
+
+        /// <summary>触发异常</summary>
+        /// <param name="action">动作</param>
+        /// <param name="ex">异常</param>
+        protected virtual void OnError(String action, Exception ex)
+        {
+            WriteLog("{0}.{1}Error {2} {3}", this.GetType().Name, action, this, ex.Message);
+            if (Error != null) Error(this, new ExceptionEventArgs { Exception = ex });
         }
         #endregion
 

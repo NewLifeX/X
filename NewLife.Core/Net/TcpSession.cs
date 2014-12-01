@@ -171,6 +171,7 @@ namespace NewLife.Net
                 count = client.GetStream().EndRead(ar);
             }
             catch (ObjectDisposedException) { return; }
+            catch (Exception ex) { OnError("EndRead", ex); return; }
 
             // 开始新的监听
             var buf = new Byte[1500];
@@ -179,6 +180,7 @@ namespace NewLife.Net
                 client.GetStream().BeginRead(buf, 0, buf.Length, OnReceive, buf);
             }
             catch (ObjectDisposedException) { }
+            catch (Exception ex) { OnError("BeginRead", ex); return; }
 
             OnReceive(data, count);
         }

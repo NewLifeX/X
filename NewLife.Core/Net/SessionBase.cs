@@ -28,7 +28,7 @@ namespace NewLife.Net
 
         private Boolean _Active;
         /// <summary>是否活动</summary>
-        public Boolean Active { get { return _Active; } set { _Active = value; } }
+        public Boolean Active { get { return _Active || Disposed; } set { _Active = value; } }
 
         private Stream _Stream = new MemoryStream();
         /// <summary>会话数据流，供用户程序使用，内部不做处理。可用于解决Tcp粘包的问题，把多余的分片放入该数据流中。</summary>
@@ -59,14 +59,14 @@ namespace NewLife.Net
         {
             if (Active) return;
 
-            UseReceiveAsync = Received != null;
+            // 即使没有事件，也允许强行打开异步接收
+            if (!UseReceiveAsync && Received != null) UseReceiveAsync = true;
 
             Active = OnOpen();
-            if (Active)
-            {
-                if (Port == 0) Port = (Socket.LocalEndPoint as IPEndPoint).Port;
-                if (Timeout > 0) Socket.ReceiveTimeout = Timeout;
-            }
+            if (!Active) return;
+
+            if (Port == 0) Port = (Socket.LocalEndPoint as IPEndPoint).Port;
+            if (Timeout > 0) Socket.ReceiveTimeout = Timeout;
 
             if (UseReceiveAsync) ReceiveAsync();
         }
@@ -97,6 +97,8 @@ namespace NewLife.Net
 
             Open();
 
+            if (Socket == null || !Socket.Connected) return;
+
             WriteLog("{0} Connect {1}", this, remoteEP);
 
             OnConnect(remoteEP);
@@ -109,6 +111,8 @@ namespace NewLife.Net
 
         void ISocketClient.Disconnect()
         {
+            if (Socket == null || !Socket.Connected) return;
+
             WriteLog("{0} Disconnect {1}", this, Remote.EndPoint);
 
             OnDisconnect();
@@ -160,6 +164,20 @@ namespace NewLife.Net
         protected virtual void RaiseReceive(Object sender, ReceivedEventArgs e)
         {
             if (Received != null) Received(sender, e);
+        }
+        #endregion
+
+        #region 异常处理
+        /// <summary>错误发生/断开连接时</summary>
+        public event EventHandler<ExceptionEventArgs> Error;
+
+        /// <summary>触发异常</summary>
+        /// <param name="action">动作</param>
+        /// <param name="ex">异常</param>
+        protected virtual void OnError(String action, Exception ex)
+        {
+            WriteLog("{0}.{1}Error {2} {3}", this.GetType().Name, action, this, ex.Message);
+            if (Error != null) Error(this, new ExceptionEventArgs { Exception = ex });
         }
         #endregion
 

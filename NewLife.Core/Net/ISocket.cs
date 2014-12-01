@@ -35,8 +35,8 @@ namespace NewLife.Net
         #endregion
 
         #region 事件
-        ///// <summary>错误发生/断开连接时</summary>
-        //event EventHandler<ExceptionEventArgs> Error;
+        /// <summary>错误发生/断开连接时</summary>
+        event EventHandler<ExceptionEventArgs> Error;
         #endregion
     }
 }

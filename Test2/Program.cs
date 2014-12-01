@@ -31,6 +31,7 @@ namespace Test2
                 }
 #endif
 
+                GC.Collect();
                 Console.WriteLine("OK!");
                 ConsoleKeyInfo key = Console.ReadKey(true);
                 if (key.Key != ConsoleKey.C) break;
@@ -64,6 +65,7 @@ namespace Test2
             client.Send(ms.ToArray());
 
             Thread.Sleep(5000);
+            client.Dispose();
         }
 
         static void client_Received(object sender, ReceivedEventArgs e)

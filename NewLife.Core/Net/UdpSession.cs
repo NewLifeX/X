@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
 
 namespace NewLife.Net
 {
@@ -44,6 +42,7 @@ namespace NewLife.Net
 
             server.Received += server_Received;
             //server.ReceiveAsync();
+            server.Error += server_Error;
         }
 
         protected override void OnDispose(bool disposing)
@@ -51,6 +50,7 @@ namespace NewLife.Net
             base.OnDispose(disposing);
 
             Server.Received -= server_Received;
+            Server.Error -= server_Error;
             // 释放对服务对象的引用，如果没有其它引用，服务对象将会被回收
             Server = null;
             GC.Collect();
@@ -60,8 +60,6 @@ namespace NewLife.Net
         #region 收发
         public void Send(byte[] buffer, int offset = 0, int count = -1)
         {
-            //Server.Send(buffer, offset, count);
-
             if (count <= 0) count = buffer.Length - offset;
             if (offset > 0) buffer = buffer.ReadBytes(offset, count);
 
@@ -76,13 +74,9 @@ namespace NewLife.Net
             //{
             //    //!!! 居然不能直接判断IPAddress相等
             // 傻帽，IPAddress是类，不同实例对象当然不相等啦
-            if (_Filter.Address.IsAny())
+            if (!_Filter.IsAny())
             {
-                if (_Filter.Address != remote.Address) return false;
-            }
-            if (_Filter.Port != 0)
-            {
-                if (_Filter.Port != remote.Port) return false;
+                if (_Filter.Address != remote.Address || _Filter.Port != remote.Port) return false;
             }
 
             return true;
@@ -90,7 +84,7 @@ namespace NewLife.Net
 
         public byte[] Receive()
         {
-            // UDP会话的直接读取可能会读到不是自己的数据
+            // UDP会话的直接读取可能会读到不是自己的数据，所以尽量不要两个会话一起读
             var buf = Server.Receive();
 
             var ep = Server.Remote.EndPoint;
@@ -102,7 +96,7 @@ namespace NewLife.Net
 
         public int Receive(byte[] buffer, int offset = 0, int count = -1)
         {
-            // UDP会话的直接读取可能会读到不是自己的数据
+            // UDP会话的直接读取可能会读到不是自己的数据，所以尽量不要两个会话一起读
             var size = Server.Receive(buffer, offset, count);
 
             var ep = Server.Remote.EndPoint;
@@ -132,12 +126,31 @@ namespace NewLife.Net
         }
         #endregion
 
+        #region 异常处理
+        /// <summary>错误发生/断开连接时</summary>
+        public event EventHandler<ExceptionEventArgs> Error;
+
+        void server_Error(object sender, ExceptionEventArgs e)
+        {
+            OnError(null, e.Exception);
+        }
+
+        /// <summary>触发异常</summary>
+        /// <param name="action">动作</param>
+        /// <param name="ex">异常</param>
+        protected virtual void OnError(String action, Exception ex)
+        {
+            Server.WriteLog("{0}.{1}Error {2} {3}", this.GetType().Name, action, this, ex.Message);
+            if (Error != null) Error(this, new ExceptionEventArgs { Exception = ex });
+        }
+        #endregion
+
         #region 辅助
         /// <summary>已重载。</summary>
         /// <returns></returns>
         public override string ToString()
         {
-            if (Remote != null&&!Remote.EndPoint.IsAny())
+            if (Remote != null && !Remote.EndPoint.IsAny())
                 return String.Format("{0}=>{1}", Local, Remote.EndPoint);
             else
                 return Local.ToString();

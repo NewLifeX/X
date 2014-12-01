@@ -75,8 +75,6 @@ namespace NewLife.Net
         /// <returns></returns>
         protected override Boolean OnConnect(IPEndPoint remoteEP)
         {
-            //WriteLog("连接 {0}", remoteEP);
-
             Client.Connect(remoteEP);
 
             return true;
@@ -182,13 +180,19 @@ namespace NewLife.Net
                 data = client.EndReceive(ar, ref ep);
             }
             catch (ObjectDisposedException) { return; }
+            catch (Exception ex) { OnError("EndReceive", ex); return; }
 
             WriteLog("OnReceive {0}", ep);
 
             Remote.EndPoint = ep;
 
             // 开始新的监听
-            client.BeginReceive(OnReceive, client);
+            try
+            {
+                client.BeginReceive(OnReceive, client);
+            }
+            catch (ObjectDisposedException) { return; }
+            catch (Exception ex) { OnError("BeginReceive", ex); return; }
 
             OnReceive(data, ep);
         }
