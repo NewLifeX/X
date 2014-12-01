@@ -41,8 +41,8 @@ namespace Test2
 
         private static void Test1()
         {
-            //NewLife.Net.Application.AppTest.TcpConnectionTest();
-            AppTest.Start();
+            AppTest.TcpConnectionTest();
+            //AppTest.Start();
         }
 
         static void Test2()

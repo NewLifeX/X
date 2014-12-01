@@ -218,7 +218,8 @@ namespace NewLife.Net.Application
             server = new NetServer();
             server.ProtocolType = ProtocolType.Tcp;
             server.Port = port;
-            server.Received += OnReceived;
+            server.UseSession = true;
+            server.Received += server_Received;
             // 最大不活跃时间设为10分钟
             foreach (TcpServer item in server.Servers)
             {
@@ -236,11 +237,20 @@ namespace NewLife.Net.Application
             server.Dispose();
         }
 
+        static void server_Received(object sender, ReceivedEventArgs e)
+        {
+            OnReceive(sender as ISocketSession, e.Stream);
+        }
+
         /// <summary>已重载。</summary>
         /// <param name="session"></param>
         /// <param name="stream"></param>
         static void OnReceive(ISocketSession session, Stream stream)
         {
+            if (stream.Length == 0) return;
+
+            asyncCount++;
+
             //if (stream.Length > 100)
             //    Console.WriteLine("Echo {0} [{1}]", session.Remote, stream.Length);
             //else
@@ -257,6 +267,7 @@ namespace NewLife.Net.Application
             session.Send(stream);
         }
 
+        static Int32 asyncCount = 0;
         static void ShowStatus()
         {
             //var pool = NetEventArgs.Pool;
@@ -265,7 +276,7 @@ namespace NewLife.Net.Application
             {
                 try
                 {
-                    var asyncCount = 0;
+                    //var asyncCount = 0;
                     //foreach (var item in server.Servers)
                     //{
                     //    asyncCount += item.AsyncCount;
@@ -284,7 +295,7 @@ namespace NewLife.Net.Application
                     var color = Console.ForegroundColor;
                     Console.ForegroundColor = ConsoleColor.Yellow;
                     //Console.WriteLine("异步:{0} 会话:{1} Thread:{2}/{3}/{4} Pool:{5}/{6}/{7}", asyncCount, server.Sessions.Count, threads, wt, cpt, pool.StockCount, pool.FreeCount, pool.CreateCount);
-                    Console.WriteLine("异步:{0} 会话:{1} Thread:{2}/{3}/{4}", asyncCount, server.Sessions.Count, threads, wt, cpt);
+                    Console.WriteLine("消息:{0} 会话:{1} Thread:{2}/{3}/{4}", asyncCount, server.Sessions.Count, threads, wt, cpt);
                     Console.ForegroundColor = color;
                 }
                 catch { }
