@@ -21,8 +21,8 @@ namespace NewLife.Net.Application
         }
 
         /// <summary>已重载。</summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
+        /// <param name="server"></param>
+        /// <param name="session"></param>
         protected override void OnAccept(ISocketServer server, ISocketSession session)
         {
             WriteLog("Chargen {0}", session.Remote);
@@ -44,10 +44,12 @@ namespace NewLife.Net.Application
         }
 
         /// <summary>已重载。</summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
+        /// <param name="session"></param>
+        /// <param name="stream"></param>
         protected override void OnReceive(ISocketSession session, Stream stream)
         {
+            if (stream.Length == 0) return;
+
             if (stream.Length > 100)
                 WriteLog("Chargen {0} [{1}]", session.Remote, stream.Length);
             else
@@ -69,7 +71,7 @@ namespace NewLife.Net.Application
 
         void LoopSend(Object state)
         {
-            var session = state as ISocketClient;
+            var session = state as ISocketSession;
             if (session == null) return;
 
             hasError = false;
@@ -91,7 +93,6 @@ namespace NewLife.Net.Application
             }
             finally
             {
-                //session.Disconnect();
                 session.Dispose();
             }
         }
@@ -99,7 +100,7 @@ namespace NewLife.Net.Application
         Int32 Length = 72;
         Int32 Index = 0;
 
-        void Send(ISocketClient session)
+        void Send(ISocketSession session)
         {
             Int32 startIndex = Index++;
             if (Index >= Length) Index = 0;
@@ -114,8 +115,7 @@ namespace NewLife.Net.Application
                 buffer[p] = (Byte)(i + 32);
             }
 
-            //Send(sender, buffer, 0, buffer.Length, remoteEP);
-            session.Send(buffer, 0, buffer.Length);
+            session.Send(buffer);
         }
     }
 }

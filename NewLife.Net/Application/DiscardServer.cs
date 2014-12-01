@@ -17,22 +17,16 @@ namespace NewLife.Net.Application
         }
 
         /// <summary>已重载。</summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
+        /// <param name="session"></param>
+        /// <param name="stream"></param>
         protected override void OnReceive(ISocketSession session, Stream stream)
         {
-            try
-            {
-                if (stream.Length > 100)
-                    WriteLog("Discard {0} [{1}]", session.Remote, stream.Length);
-                else
-                    WriteLog("Discard {0} [{1}] {2}", session.Remote, stream.Length, stream.ToStr());
-            }
-            finally
-            {
-                //(e.Session).Disconnect();
-                session.Dispose();
-            }
+            if (stream.Length == 0) return;
+
+            if (stream.Length > 100)
+                WriteLog("Discard {0} [{1}] {2}...", session.Remote, stream.Length, stream.ReadBytes(1000).ToStr());
+            else
+                WriteLog("Discard {0} [{1}] {2}", session.Remote, stream.Length, stream.ToStr());
         }
     }
 }

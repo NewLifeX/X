@@ -19,8 +19,8 @@ namespace NewLife.Net.Application
         static readonly DateTime STARTTIME = new DateTime(1970, 1, 1);
 
         /// <summary>已重载。</summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
+        /// <param name="server"></param>
+        /// <param name="session"></param>
         protected override void OnAccept(ISocketServer server, ISocketSession session)
         {
             WriteLog("Time {0}", session.Remote);
@@ -33,15 +33,6 @@ namespace NewLife.Net.Application
             //Send(e.Socket, buffer, 0, buffer.Length, e.RemoteEndPoint);
             //session.Send(buffer, 0, buffer.Length, e.RemoteEndPoint);
             session.Send(buffer);
-
-            //    // 等一秒，等客户端接收数据
-            //    Thread.Sleep(1000);
-            //}
-            //finally
-            //{
-            //    //session.Disconnect();
-            //    session.Dispose();
-            //}
         }
     }
 }
