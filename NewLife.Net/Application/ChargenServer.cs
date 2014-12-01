@@ -24,7 +24,7 @@ namespace NewLife.Net.Application
         /// <param name="session"></param>
         protected override void OnAccept(ISocketSession session)
         {
-            WriteLog("Chargen {0}", session.Remote);
+            WriteLog("Chargen {0} OnAccept", session.Remote);
 
             // 如果没有远程地址，或者远程地址是广播地址，则跳过。否则会攻击广播者。
             // Tcp的该属性可能没值，可以忽略
@@ -35,7 +35,7 @@ namespace NewLife.Net.Application
             var thread = new Thread(LoopSend);
             thread.Name = "Chargen.LoopSend";
             thread.IsBackground = true;
-            thread.Priority = ThreadPriority.Lowest;
+            //thread.Priority = ThreadPriority.Lowest;
             thread.Start(session);
 
             // 调用基类，为接收数据准备，避免占用过大内存
@@ -79,7 +79,8 @@ namespace NewLife.Net.Application
             try
             {
                 // 不断的发送数据，直到连接断开为止
-                while (!hasError)
+                //while (!hasError)
+                for (int i = 0; i < 64 && !hasError; i++)
                 {
                     try
                     {

@@ -17,9 +17,9 @@ namespace NewLife.Net
         /// <returns></returns>
         internal override Socket GetSocket() { return Client == null ? null : Client.Client; }
 
-        //private Boolean _DisconnectWhenEmptyData = false;
-        ///// <summary>收到空数据时抛出异常并断开连接。</summary>
-        //public Boolean DisconnectWhenEmptyData { get { return _DisconnectWhenEmptyData; } set { _DisconnectWhenEmptyData = value; } }
+        private Boolean _DisconnectWhenEmptyData = true;
+        /// <summary>收到空数据时抛出异常并断开连接。</summary>
+        public Boolean DisconnectWhenEmptyData { get { return _DisconnectWhenEmptyData; } set { _DisconnectWhenEmptyData = value; } }
 
         //private Stream _Stream;
         ///// <summary>会话数据流，供用户程序使用，内部不做处理。可用于解决Tcp粘包的问题，把多余的分片放入该数据流中。</summary>
@@ -61,6 +61,7 @@ namespace NewLife.Net
         internal TcpSession(ISocketServer server, TcpClient client)
             : this(client)
         {
+            Active = true; 
             _Server = server;
         }
         #endregion
@@ -181,7 +182,13 @@ namespace NewLife.Net
                 count = client.GetStream().EndRead(ar);
             }
             catch (ObjectDisposedException) { return; }
-            catch (Exception ex) { OnError("EndRead", ex); return; }
+            catch (SocketException ex)
+            {
+                OnError("EndRead", ex);
+                Close();
+                return;
+            }
+            catch (Exception ex) { OnError("EndRead", ex); }
 
             // 开始新的监听
             var buf = new Byte[1500];
@@ -193,6 +200,11 @@ namespace NewLife.Net
             catch (Exception ex) { OnError("BeginRead", ex); return; }
 
             OnReceive(data, count);
+
+            if (DisconnectWhenEmptyData)
+            {
+                Close();
+            }
         }
 
         /// <summary>处理收到的数据</summary>

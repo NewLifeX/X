@@ -180,7 +180,13 @@ namespace NewLife.Net
                 data = client.EndReceive(ar, ref ep);
             }
             catch (ObjectDisposedException) { return; }
-            catch (Exception ex) { OnError("EndReceive", ex); return; }
+            catch (SocketException ex)
+            {
+                OnError("EndReceive", ex);
+                if (ex.SocketErrorCode != SocketError.ConnectionReset) Close();
+                return;
+            }
+            catch (Exception ex) { OnError("EndReceive", ex); }
 
             //WriteLog("{0}.OnReceive {1}<={2} [{3}]", this.GetType().Name, this, ep, data.Length);
 
@@ -192,7 +198,7 @@ namespace NewLife.Net
                 client.BeginReceive(OnReceive, client);
             }
             catch (ObjectDisposedException) { return; }
-            catch (Exception ex) { OnError("BeginReceive", ex); return; }
+            catch (Exception ex) { OnError("BeginReceive", ex); }
 
             OnReceive(data, ep);
         }
