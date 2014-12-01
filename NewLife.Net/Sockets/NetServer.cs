@@ -305,7 +305,7 @@ namespace NewLife.Net.Sockets
             if (tc != null)
             {
                 tc.Received += OnReceived;
-                //tc.Error += new EventHandler<ExceptionEventArgs>(OnError);
+                tc.Error += OnError;
             }
 
             // 开始会话处理
