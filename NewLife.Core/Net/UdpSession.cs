@@ -63,20 +63,18 @@ namespace NewLife.Net
             if (count <= 0) count = buffer.Length - offset;
             if (offset > 0) buffer = buffer.ReadBytes(offset, count);
 
-            //Server.WriteLog("UdpSend {0}", Remote.EndPoint);
+            Server.WriteLog("{0}.Send {1} [{2}]", this.GetType().Name, this, count);
 
             Server.Client.Send(buffer, count, Remote.EndPoint);
         }
 
         Boolean CheckFilter(IPEndPoint remote)
         {
-            //if (_Filter.Address != IPAddress.Any && _Filter.Address != IPAddress.IPv6Any)
-            //{
-            //    //!!! 居然不能直接判断IPAddress相等
-            // 傻帽，IPAddress是类，不同实例对象当然不相等啦
+            // IPAddress是类，不同实例对象当然不相等啦
             if (!_Filter.IsAny())
             {
-                if (_Filter.Address != remote.Address || _Filter.Port != remote.Port) return false;
+                //if (_Filter.Address != remote.Address || _Filter.Port != remote.Port) return false;
+                if (!_Filter.Equals(remote)) return false;
             }
 
             return true;

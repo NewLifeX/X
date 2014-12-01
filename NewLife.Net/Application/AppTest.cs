@@ -5,7 +5,7 @@ using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
-using NewLife.Net.Common;
+using NewLife.Log;
 using NewLife.Net.Sockets;
 using NewLife.Net.Tcp;
 using NewLife.Threading;
@@ -50,20 +50,15 @@ namespace NewLife.Net.Application
         static AutoResetEvent _are = new AutoResetEvent(true);
         static void OnReceived(object sender, ReceivedEventArgs e)
         {
-            var session = sender as ISocketClient;
-            Console.WriteLine("客户端{0} 收到 [{1}] {2}", session, e.Stream.Length, e.Stream.ToStr());
+            var session = sender as ISocketSession;
+            Console.WriteLine("客户端{0} 收到 [{1}]: {2}", session, e.Stream.Length, e.Stream.ToStr());
 
             _are.Set();
         }
 
-        static void OnError(object sender, NetEventArgs e)
+        static void OnError(object sender, ExceptionEventArgs e)
         {
-            if (e.SocketError == SocketError.OperationAborted) return;
-
-            if (e.SocketError != SocketError.Success || e.Error != null)
-                Console.WriteLine("客户端{0} {3}错误 {1} {2}", sender, e.SocketError, e.Error, e.LastOperation);
-            else
-                Console.WriteLine("客户端{0} {1}断开！", sender, e.LastOperation);
+            Console.WriteLine("客户端{0}错误 {1}", sender, e.Exception);
         }
 
         static void TestSend(String name, NetUri uri, Boolean isAsync, Boolean isSendData, Boolean isReceiveData)
@@ -72,7 +67,7 @@ namespace NewLife.Net.Application
 
             String msg = String.Format("{0}Test_{1}_{2}!", name, uri.ProtocolType, isAsync ? "异步" : "同步");
             var session = NetService.CreateSession(uri);
-            //session.Host.Error += new EventHandler<NetEventArgs>(OnError);
+            session.Error += OnError;
             if (isAsync && isReceiveData)
             {
                 _are.Reset();
@@ -80,13 +75,19 @@ namespace NewLife.Net.Application
                 session.ReceiveAsync();
             }
             if (isSendData) session.Send(msg);
+
+            var rs = false;
             if (isReceiveData)
             {
                 if (!isAsync)
                 {
                     try
                     {
-                        Console.WriteLine("客户端" + session + " " + session.ReceiveString());
+                        //Console.WriteLine("客户端" + session + " " + session.ReceiveString());
+                        var buf = session.Receive();
+                        Console.WriteLine("客户端{0} 收到 [{1}]: {2}", session, buf.Length, buf.ToStr());
+                        
+                        rs = true;
                     }
                     catch (Exception ex)
                     {
@@ -95,14 +96,17 @@ namespace NewLife.Net.Application
                 }
                 else
                 {
-                    if (!_are.WaitOne(2000)) Debug.Fail("异步超时！");
+                    if (!_are.WaitOne(2000))
+                        Debug.Fail("异步超时！");
+                    else
+                        rs = true;
                 }
             }
             session.Dispose();
-            //if (session.Host != null) session.Host.Dispose();
             session = null;
             GC.Collect();
-            Console.WriteLine("结束！");
+
+            XTrace.WriteLine(rs ? "成功！" : "失败！");
         }
 
         static void TestSends(String name, IPEndPoint ep, Boolean isSendData, Boolean isReceiveData = true)
