@@ -301,7 +301,7 @@ namespace NewLife.Net.Sockets
             session.OnDisposed += (s, e2) => ns.Dispose();
 
             SessionCount++;
-            ns.OnDisposed += (s, e2) => SessionCount--;
+            session.OnDisposed += (s, e2) => SessionCount--;
 
             if (UseSession) AddSession(ns);
 
@@ -313,7 +313,7 @@ namespace NewLife.Net.Sockets
             }
 
             // 开始会话处理
-            //ns.Start(new ReceivedEventArgs(stream));
+            ns.Start();
         }
 
         /// <summary>收到数据时</summary>

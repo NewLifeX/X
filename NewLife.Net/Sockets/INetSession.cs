@@ -35,9 +35,8 @@ namespace NewLife.Net.Sockets
         #endregion
 
         #region 方法
-        /// <summary>开始会话处理。参数e里面可能含有数据</summary>
-        /// <param name="e"></param>
-        void Start(ReceivedEventArgs e);
+        /// <summary>开始会话处理。</summary>
+        void Start();
         #endregion
 
         #region 收发

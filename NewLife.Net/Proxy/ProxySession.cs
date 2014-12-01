@@ -74,14 +74,13 @@ namespace NewLife.Net.Proxy
         #endregion
 
         #region 数据交换
-        /// <summary>开始会话处理。参数e里面可能含有数据</summary>
-        /// <param name="e"></param>
-        public override void Start(ReceivedEventArgs e)
+        /// <summary>开始会话处理。</summary>
+        public override void Start()
         {
             // 如果未指定远程协议，则与来源协议一致
             if (RemoteServerUri.ProtocolType == 0) RemoteServerUri.ProtocolType = Session.Local.ProtocolType;
 
-            base.Start(e);
+            base.Start();
         }
 
         /// <summary>收到客户端发来的数据</summary>

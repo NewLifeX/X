@@ -82,7 +82,7 @@ namespace NewLife.Net.Tcp
                 {
                     var item = elm.Value;
                     //if (item == null || item.Disposed || item.Socket == null) list.Add(elm.Key);
-                    if (item == null || item.Disposed /*|| notactive > 0 && item.Host.Statistics.Last.AddSeconds(notactive) < DateTime.Now*/)
+                    if (item == null || item.Disposed || !item.Active /*|| notactive > 0 && item.Host.Statistics.Last.AddSeconds(notactive) < DateTime.Now*/)
                     {
                         keys.Add(elm.Key);
                         values.Add(elm.Value);

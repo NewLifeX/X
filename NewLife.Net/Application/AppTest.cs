@@ -218,7 +218,7 @@ namespace NewLife.Net.Application
             server = new NetServer();
             server.ProtocolType = ProtocolType.Tcp;
             server.Port = port;
-            //server.UseSession = true;
+            server.UseSession = true;
             server.Received += server_Received;
             // 最大不活跃时间设为10分钟
             foreach (TcpServer item in server.Servers)
@@ -226,7 +226,6 @@ namespace NewLife.Net.Application
                 item.MaxNotActive = 10 * 60;
             }
             server.Start();
-            //server.EnableLog = false;
             server.Log = null;
 
             ThreadPoolX.QueueUserWorkItem(ShowStatus);
@@ -255,15 +254,15 @@ namespace NewLife.Net.Application
             //    Console.WriteLine("Echo {0} [{1}]", session.Remote, stream.Length);
             //else
             //    Console.WriteLine("Echo {0} [{1}] {2}", session.Remote, stream.Length, e.GetString());
-            var p = stream.Position;
-            var msg = "";
-            if (stream.Length > 100)
-                msg = String.Format("Echo {0} [{1}]", session.Remote, stream.Length);
-            else
-                msg = String.Format("Echo {0} [{1}] {2}", session.Remote, stream.Length, stream.ToStr());
+            //var p = stream.Position;
+            //var msg = "";
+            //if (stream.Length > 100)
+            //    msg = String.Format("Echo {0} [{1}]", session.Remote, stream.Length);
+            //else
+            //    msg = String.Format("Echo {0} [{1}] {2}", session.Remote, stream.Length, stream.ToStr());
 
-            //session.Send(e.Buffer, e.Offset, stream.Length);
-            stream.Position = p;
+            ////session.Send(e.Buffer, e.Offset, stream.Length);
+            //stream.Position = p;
             session.Send(stream);
         }
 

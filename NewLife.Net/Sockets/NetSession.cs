@@ -49,9 +49,8 @@ namespace NewLife.Net.Sockets
         #endregion
 
         #region 方法
-        /// <summary>开始会话处理。参数e里面可能含有数据</summary>
-        /// <param name="e"></param>
-        public virtual void Start(ReceivedEventArgs e)
+        /// <summary>开始会话处理。</summary>
+        public virtual void Start()
         {
             ShowSession();
 
@@ -64,8 +63,8 @@ namespace NewLife.Net.Sockets
                 // 这里不需要再次Start，因为TcpServer在处理完成Accepted事件后，会调用Start
                 //(Session as TcpClientX).Start(e);
             }
-            else
-                OnReceive(e);
+            //else
+            //    OnReceive(new ReceivedEventArgs());
         }
 
         [Conditional("DEBUG")]
@@ -97,7 +96,10 @@ namespace NewLife.Net.Sockets
         #region 业务核心
         /// <summary>收到客户端发来的数据</summary>
         /// <param name="e"></param>
-        protected virtual void OnReceive(ReceivedEventArgs e) { if (Received != null)Received(this, e); }
+        protected virtual void OnReceive(ReceivedEventArgs e)
+        {
+            if (Received != null) Received(this, e);
+        }
 
         /// <summary>数据到达，在事件处理代码中，事件参数不得另作他用，套接字事件池将会将其回收。</summary>
         public event EventHandler<ReceivedEventArgs> Received;
