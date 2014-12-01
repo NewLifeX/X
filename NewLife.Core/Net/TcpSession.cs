@@ -24,6 +24,10 @@ namespace NewLife.Net
         //private Stream _Stream;
         ///// <summary>会话数据流，供用户程序使用，内部不做处理。可用于解决Tcp粘包的问题，把多余的分片放入该数据流中。</summary>
         //public Stream Stream { get { return _Stream; } set { _Stream = value; } }
+
+        ISocketServer _Server;
+        /// <summary>Socket服务器。当前通讯所在的Socket服务器，其实是TcpServer/UdpServer</summary>
+        ISocketServer ISocketSession.Server { get { return _Server; } }
         #endregion
 
         #region 构造
@@ -52,6 +56,12 @@ namespace NewLife.Net
             Client = client;
             if (client.Client.LocalEndPoint != null) Local.EndPoint = (IPEndPoint)client.Client.LocalEndPoint;
             if (client.Client.RemoteEndPoint != null) Remote.EndPoint = (IPEndPoint)client.Client.RemoteEndPoint;
+        }
+
+        internal TcpSession(ISocketServer server, TcpClient client)
+            : this(client)
+        {
+            _Server = server;
         }
         #endregion
 

@@ -276,18 +276,17 @@ namespace NewLife.Net.Sockets
         {
             var session = e.Session;
 
-            OnAccept(sender as ISocketServer, session);
+            OnAccept(session);
 
             if (Accepted != null) Accepted(sender, e);
         }
 
         /// <summary>收到连接时</summary>
-        /// <param name="server"></param>
         /// <param name="session"></param>
-        protected virtual void OnAccept(ISocketServer server, ISocketSession session)
+        protected virtual void OnAccept(ISocketSession session)
         {
             var ns = CreateSession(session);
-            ns.Server = server;
+            ns.Server = session.Server;
             ns.Session = session;
             ns.ClientEndPoint = session.Remote.EndPoint;
 

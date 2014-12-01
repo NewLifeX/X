@@ -19,9 +19,8 @@ namespace NewLife.Net.Application
         static readonly DateTime STARTTIME = new DateTime(1970, 1, 1);
 
         /// <summary>已重载。</summary>
-        /// <param name="server"></param>
         /// <param name="session"></param>
-        protected override void OnAccept(ISocketServer server, ISocketSession session)
+        protected override void OnAccept(ISocketSession session)
         {
             WriteLog("Time {0}", session.Remote);
 

@@ -17,9 +17,8 @@ namespace NewLife.Net.Application
         }
 
         /// <summary>已重载。</summary>
-        /// <param name="server"></param>
         /// <param name="session"></param>
-        protected override void OnAccept(ISocketServer server, ISocketSession session)
+        protected override void OnAccept(ISocketSession session)
         {
             WriteLog("Daytime {0}", session.Remote);
 

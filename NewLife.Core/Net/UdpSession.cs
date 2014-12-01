@@ -30,6 +30,9 @@ namespace NewLife.Net
         /// <summary>远程地址</summary>
         public NetUri Remote { get { return _Remote; } set { _Remote = value; } }
 
+        /// <summary>Socket服务器。当前通讯所在的Socket服务器，其实是TcpServer/UdpServer</summary>
+        ISocketServer ISocketSession.Server { get { return _Server; } }
+
         private IPEndPoint _Filter;
         #endregion
 
