@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Net;
 using System.Threading;
 using NewLife.Log;
@@ -21,7 +22,7 @@ namespace Test2
                 try
                 {
 #endif
-                Test1();
+                Test2();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -41,6 +42,34 @@ namespace Test2
         {
             //NewLife.Net.Application.AppTest.TcpConnectionTest();
             AppTest.Start();
+        }
+
+        static void Test2()
+        {
+            var client = new TcpSession();
+            client.Received += client_Received;
+            client.Connect("114.80.156.91", 8888);
+
+            var ms = new MemoryStream();
+            ms.Write(new Byte[4]);
+            ms.WriteByte(1);
+            ms.WriteByte(0x10);
+            ms.Write(new Byte[0x10]);
+            //ms.Write(0x12);
+            //ms.Write(0x34);
+
+            var crc = new Crc32().Update(ms).Value;
+            ms.Write(BitConverter.GetBytes(crc));
+
+            client.Send(ms.ToArray());
+
+            Thread.Sleep(5000);
+        }
+
+        static void client_Received(object sender, ReceivedEventArgs e)
+        {
+            var session = sender as ISocketSession;
+            XTrace.WriteLine("客户端 {0} 收到：{1}", session, e.Stream.ToStr());
         }
 
         static UdpServer _udpServer;

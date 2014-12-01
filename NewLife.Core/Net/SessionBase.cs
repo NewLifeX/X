@@ -93,9 +93,9 @@ namespace NewLife.Net
         /// <param name="remoteEP"></param>
         void ISocketClient.Connect(IPEndPoint remoteEP)
         {
-            Open();
-
             Remote.EndPoint = remoteEP;
+
+            Open();
 
             WriteLog("{0} Connect {1}", this, remoteEP);
 
