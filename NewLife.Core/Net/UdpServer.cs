@@ -250,7 +250,10 @@ namespace NewLife.Net
         /// <returns></returns>
         public override string ToString()
         {
-            return String.Format("{0} [{1}]", Local, Sessions);
+            if (Sessions > 0)
+                return String.Format("{0} [{1}]", Local, Sessions);
+            else
+                return Local.ToString();
         }
         #endregion
     }

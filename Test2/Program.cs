@@ -22,7 +22,7 @@ namespace Test2
                 try
                 {
 #endif
-                Test2();
+                Test1();
 #if !DEBUG
                 }
                 catch (Exception ex)

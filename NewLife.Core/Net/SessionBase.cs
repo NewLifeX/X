@@ -176,8 +176,11 @@ namespace NewLife.Net
         /// <param name="ex">异常</param>
         protected virtual void OnError(String action, Exception ex)
         {
-            WriteLog("{0}.{1}Error {2} {3}", this.GetType().Name, action, this, ex.Message);
+            WriteLog("{0}.{1}Error {2} {3}", this.GetType().Name, action, this, ex == null ? null : ex.Message);
             if (Error != null) Error(this, new ExceptionEventArgs { Exception = ex });
+
+            // 发生异常时仅关闭，也许可以重用
+            if (ex != null) Close();
         }
         #endregion
 

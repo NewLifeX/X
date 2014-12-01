@@ -140,8 +140,10 @@ namespace NewLife.Net
         /// <param name="ex">异常</param>
         protected virtual void OnError(String action, Exception ex)
         {
-            Server.WriteLog("{0}.{1}Error {2} {3}", this.GetType().Name, action, this, ex.Message);
+            Server.WriteLog("{0}.{1}Error {2} {3}", this.GetType().Name, action, this, ex == null ? null : ex.Message);
             if (Error != null) Error(this, new ExceptionEventArgs { Exception = ex });
+
+            //if (ex != null) Close();
         }
         #endregion
 

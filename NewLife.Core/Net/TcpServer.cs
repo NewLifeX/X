@@ -65,6 +65,8 @@ namespace NewLife.Net.Tcp
             // 开始监听
             if (Server == null) Server = new TcpListener(Local.EndPoint);
 
+            WriteLog("{0}.Start {1}", this.GetType().Name, this);
+
             // 三次握手之后，Accept之前的总连接个数，队列满之后，新连接将得到主动拒绝ConnectionRefused错误
             // 在我（大石头）的开发机器上，实际上这里的最大值只能是200，大于200跟200一个样
             Server.Start();
@@ -78,6 +80,8 @@ namespace NewLife.Net.Tcp
         public virtual void Stop()
         {
             if (!Active) return;
+
+            WriteLog("{0}.Stop {1}", this.GetType().Name, this);
 
             if (Server != null) Server.Stop();
             Server = null;
@@ -195,8 +199,11 @@ namespace NewLife.Net.Tcp
         /// <param name="ex">异常</param>
         protected virtual void OnError(String action, Exception ex)
         {
-            WriteLog("{0}.{1}Error {2} {3}", this.GetType().Name, action, this, ex.Message);
+            WriteLog("{0}.{1}Error {2} {3}", this.GetType().Name, action, this, ex == null ? null : ex.Message);
             if (Error != null) Error(this, new ExceptionEventArgs { Exception = ex });
+
+            // 发生异常时仅关闭，也许可以重用
+            if (ex != null) Stop();
         }
         #endregion
 
@@ -219,7 +226,10 @@ namespace NewLife.Net.Tcp
         /// <returns></returns>
         public override string ToString()
         {
-            return String.Format("{0} [{1}]", Local, Sessions.Count);
+            if (Sessions.Count > 0)
+                return String.Format("{0} [{1}]", Local, Sessions.Count);
+            else
+                return Local.ToString();
         }
         #endregion
     }
