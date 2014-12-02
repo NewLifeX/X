@@ -23,39 +23,35 @@ namespace NewLife.Net
         /// <summary>会话数据流，供用户程序使用，内部不做处理。可用于解决Tcp粘包的问题，把多余的分片放入该数据流中。</summary>
         Stream Stream { get; set; }
 
-        ///// <summary>本地地址</summary>
-        //NetUri Local { get; set; }
-
-        ///// <summary>端口</summary>
-        //Int32 Port { get; set; }
-
         /// <summary>远程地址</summary>
         NetUri Remote { get; set; }
 
-        ///// <summary>远程终结点</summary>
-        //IPEndPoint RemoteEndPoint { get; }
-
         /// <summary>是否活动</summary>
         Boolean Active { get; set; }
-
-        ///// <summary>底层Socket</summary>
-        //Socket Client { get; set; }
         #endregion
 
-        #region 方法
+        #region 开关连接
         /// <summary>打开</summary>
         void Open();
 
         /// <summary>关闭</summary>
         void Close();
 
-        /// <summary>连接</summary>
-        /// <param name="remoteEP"></param>
-        void Connect(IPEndPoint remoteEP);
+        /// <summary>打开后触发。</summary>
+        event EventHandler Opened;
 
-        /// <summary>断开连接</summary>
-        void Disconnect();
+        /// <summary>关闭后触发。可实现掉线重连</summary>
+        event EventHandler Closed;
 
+        ///// <summary>连接</summary>
+        ///// <param name="remoteEP"></param>
+        //void Connect(IPEndPoint remoteEP);
+
+        ///// <summary>断开连接</summary>
+        //void Disconnect();
+        #endregion
+
+        #region 收发数据
         /// <summary>发送数据</summary>
         /// <remarks>
         /// 目标地址由<seealso cref="Remote"/>决定
@@ -93,27 +89,27 @@ namespace NewLife.Net
     public static class SocketClientHelper
     {
         #region 连接
-        /// <summary>连接</summary>
-        /// <param name="session"></param>
-        /// <param name="address"></param>
-        /// <param name="port"></param>
-        /// <returns></returns>
-        public static ISocketClient Connect(this ISocketClient session, IPAddress address, Int32 port)
-        {
-            session.Connect(new IPEndPoint(address, port));
-            return session;
-        }
+        ///// <summary>连接</summary>
+        ///// <param name="session"></param>
+        ///// <param name="address"></param>
+        ///// <param name="port"></param>
+        ///// <returns></returns>
+        //public static ISocketClient Connect(this ISocketClient session, IPAddress address, Int32 port)
+        //{
+        //    session.Connect(new IPEndPoint(address, port));
+        //    return session;
+        //}
 
-        /// <summary>连接</summary>
-        /// <param name="session"></param>
-        /// <param name="host"></param>
-        /// <param name="port"></param>
-        /// <returns></returns>
-        public static ISocketClient Connect(this ISocketClient session, String host, Int32 port)
-        {
-            session.Connect(new IPEndPoint(NetUri.ParseAddress(host), port));
-            return session;
-        }
+        ///// <summary>连接</summary>
+        ///// <param name="session"></param>
+        ///// <param name="host"></param>
+        ///// <param name="port"></param>
+        ///// <returns></returns>
+        //public static ISocketClient Connect(this ISocketClient session, String host, Int32 port)
+        //{
+        //    session.Connect(new IPEndPoint(NetUri.ParseAddress(host), port));
+        //    return session;
+        //}
         #endregion
 
         #region 发送

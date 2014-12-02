@@ -171,6 +171,19 @@ namespace NewLife.Net
 
             return this;
         }
+
+        /// <summary>从另一个对象复制</summary>
+        /// <param name="uri"></param>
+        /// <returns></returns>
+        public NetUri CopyFrom(Uri uri)
+        {
+            if (uri == null) return this;
+
+            this.Host = uri.Host;
+            this.Port = uri.Port;
+
+            return this;
+        }
         #endregion
 
         #region 辅助

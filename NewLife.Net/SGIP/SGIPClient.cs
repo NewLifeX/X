@@ -66,6 +66,7 @@ namespace NewLife.Net.SGIP
             Client = client;
             try
             {
+                //client.Connect(IP, Port);
                 client.Connect(IP, Port);
             }
             catch (Exception ex)

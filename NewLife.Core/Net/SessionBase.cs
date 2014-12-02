@@ -49,7 +49,11 @@ namespace NewLife.Net
         {
             base.OnDispose(disposing);
 
-            Close();
+            try
+            {
+                Close();
+            }
+            catch { }
         }
         #endregion
 
@@ -68,6 +72,9 @@ namespace NewLife.Net
             if (Port == 0) Port = (Socket.LocalEndPoint as IPEndPoint).Port;
             if (Timeout > 0) Socket.ReceiveTimeout = Timeout;
 
+            // 触发打开完成的事件
+            if (Opened != null) Opened(this, EventArgs.Empty);
+
             if (UseReceiveAsync) ReceiveAsync();
         }
 
@@ -80,51 +87,57 @@ namespace NewLife.Net
         {
             if (!Active) return;
 
-            //(this as ISocketClient).Disconnect();
-
             if (OnClose()) Active = false;
+
+            if (Closed != null) Closed(this, EventArgs.Empty);
         }
 
         /// <summary>关闭</summary>
         /// <returns></returns>
         protected abstract Boolean OnClose();
 
-        /// <summary>连接</summary>
-        /// <param name="remoteEP"></param>
-        void ISocketClient.Connect(IPEndPoint remoteEP)
-        {
-            Remote.EndPoint = remoteEP;
+        /// <summary>打开后触发。</summary>
+        public event EventHandler Opened;
 
-            Open();
+        /// <summary>关闭后触发。可实现掉线重连</summary>
+        public event EventHandler Closed;
 
-            if (Socket == null || !Socket.Connected) return;
+        ///// <summary>连接</summary>
+        ///// <param name="remoteEP"></param>
+        //void ISocketClient.Connect(IPEndPoint remoteEP)
+        //{
+        //    Remote.EndPoint = remoteEP;
 
-            WriteLog("{0} Connect {1}", this, remoteEP);
+        //    Open();
 
-            OnConnect(remoteEP);
-        }
+        //    if (Socket == null || !Socket.Connected) return;
 
-        /// <summary>连接</summary>
-        /// <param name="remoteEP"></param>
-        /// <returns></returns>
-        protected abstract Boolean OnConnect(IPEndPoint remoteEP);
+        //    WriteLog("{0} Connect {1}", this, remoteEP);
 
-        void ISocketClient.Disconnect()
-        {
-            if (Socket == null || !Socket.Connected) return;
+        //    OnConnect(remoteEP);
+        //}
 
-            WriteLog("{0} Disconnect {1}", this, Remote.EndPoint);
+        ///// <summary>连接</summary>
+        ///// <param name="remoteEP"></param>
+        ///// <returns></returns>
+        //protected abstract Boolean OnConnect(IPEndPoint remoteEP);
 
-            OnDisconnect();
-        }
+        //void ISocketClient.Disconnect()
+        //{
+        //    if (Socket == null || !Socket.Connected) return;
 
-        /// <summary>断开连接</summary>
-        /// <returns></returns>
-        protected virtual Boolean OnDisconnect()
-        {
-            if (Socket != null && Socket.Connected) Socket.Disconnect(true);
-            return true;
-        }
+        //    WriteLog("{0} Disconnect {1}", this, Remote.EndPoint);
+
+        //    OnDisconnect();
+        //}
+
+        ///// <summary>断开连接</summary>
+        ///// <returns></returns>
+        //protected virtual Boolean OnDisconnect()
+        //{
+        //    if (Socket != null && Socket.Connected) Socket.Disconnect(true);
+        //    return true;
+        //}
 
         /// <summary>发送数据</summary>
         /// <remarks>

@@ -42,11 +42,11 @@ namespace NewLife.Net
             if (uri == null) throw new ArgumentNullException("uri");
 
             var client = Container.Resolve<ISocketClient>(uri.ProtocolType);
-            if (uri.EndPoint != null)
-            {
-                //client.AddressFamily = uri.EndPoint.AddressFamily;
-                if (uri.ProtocolType == ProtocolType.Tcp) client.Connect(uri.EndPoint);
-            }
+            //if (uri.EndPoint != null)
+            //{
+            //    if (uri.ProtocolType == ProtocolType.Tcp) client.Connect(uri.EndPoint);
+            //}
+            client.Remote = uri;
 
             return client;
         }
@@ -57,9 +57,6 @@ namespace NewLife.Net
         public static ISocketSession CreateSession(NetUri uri)
         {
             if (uri == null) throw new ArgumentNullException("uri");
-
-            //return CreateClient(uri).CreateSession(uri.EndPoint);
-            //return CreateClient(uri);
 
             // 特殊处理UDP
             if (uri.ProtocolType == ProtocolType.Udp)
@@ -75,12 +72,12 @@ namespace NewLife.Net
             }
 
             var client = Container.Resolve<ISocketSession>(uri.ProtocolType);
-            if (uri.EndPoint != null)
-            {
-                //client.AddressFamily = uri.EndPoint.AddressFamily;
-                //if (uri.ProtocolType == ProtocolType.Tcp) (client as ISocketClient).Connect(uri.EndPoint);
-                if (client is ISocketClient && !uri.Address.IsAny() && uri.Port != 0) (client as ISocketClient).Connect(uri.EndPoint);
-            }
+            //if (uri.EndPoint != null)
+            //{
+            //    //if (uri.ProtocolType == ProtocolType.Tcp) (client as ISocketClient).Connect(uri.EndPoint);
+            //    if (client is ISocketClient && !uri.EndPoint.IsAny()) (client as ISocketClient).Connect(uri.EndPoint);
+            //}
+            client.Remote = uri;
 
             return client;
         }

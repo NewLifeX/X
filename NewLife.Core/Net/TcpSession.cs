@@ -82,9 +82,9 @@ namespace NewLife.Net
                 if (Port == 0) Port = (Socket.LocalEndPoint as IPEndPoint).Port;
 
                 WriteLog("{0}.Open {1}", this.GetType().Name, this);
-
-                if (Remote != null && !Remote.EndPoint.IsAny()) Client.Connect(Remote.EndPoint);
             }
+
+            if (Remote != null && !Remote.EndPoint.IsAny()) Client.Connect(Remote.EndPoint);
 
             return true;
         }
@@ -95,30 +95,58 @@ namespace NewLife.Net
             WriteLog("{0}.Close {1}", this.GetType().Name, this);
 
             if (Client != null) Client.Close();
-            Client = null;
+            //Client = null;
 
             return true;
         }
 
-        /// <summary>连接</summary>
+        /// <summary>打开远程连接</summary>
         /// <param name="remoteEP"></param>
         /// <returns></returns>
-        protected override Boolean OnConnect(IPEndPoint remoteEP)
+        public TcpSession Connect(IPEndPoint remoteEP)
         {
-            //Open();
+            Remote.EndPoint = remoteEP;
+            Open();
 
-            // 如果已连接，需要特殊处理
-            if (Client.Connected)
-            {
-                if (Client.Client.RemoteEndPoint.Equals(remoteEP)) return true;
+            Client.Connect(Remote.EndPoint);
 
-                Client.Client.Disconnect(true);
-            }
-
-            Client.Connect(remoteEP);
-
-            return true;
+            return this;
         }
+
+        /// <summary>打开远程连接</summary>
+        /// <param name="host"></param>
+        /// <param name="port"></param>
+        /// <returns></returns>
+        public TcpSession Connect(String host, Int32 port)
+        {
+            Remote.Host = host;
+            Remote.Port = port;
+            Open();
+
+            Client.Connect(Remote.EndPoint);
+
+            return this;
+        }
+
+        ///// <summary>连接</summary>
+        ///// <param name="remoteEP"></param>
+        ///// <returns></returns>
+        //protected override Boolean OnConnect(IPEndPoint remoteEP)
+        //{
+        //    //Open();
+
+        //    // 如果已连接，需要特殊处理
+        //    if (Client.Connected)
+        //    {
+        //        if (Client.Client.RemoteEndPoint.Equals(remoteEP)) return true;
+
+        //        Client.Client.Disconnect(true);
+        //    }
+
+        //    Client.Connect(remoteEP);
+
+        //    return true;
+        //}
 
         /// <summary>发送数据</summary>
         /// <remarks>

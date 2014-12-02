@@ -142,27 +142,7 @@ namespace NewLife.Net.Proxy
         /// <returns></returns>
         protected virtual ISocketClient CreateRemote(ReceivedEventArgs e)
         {
-            //var key = "" + RemoteEndPoint;
-            //if (String.IsNullOrEmpty(key)) throw new ArgumentNullException("RemoteEndPoint");
-
-            //DateTime dt;
-            //if (_NotConnected.TryGetValue(key, out dt))
-            //{
-            //    if (dt > DateTime.Now) throw new NetException("指定时间内连接{0}超时，稍候再试！", key);
-            //    _NotConnected.Remove(key);
-            //}
-
-            var client = NetService.Container.Resolve<ISocketClient>(RemoteServerUri.ProtocolType);
-            var rep = RemoteServerUri.EndPoint;
-            if (rep != null)
-            {
-                //client.AddressFamily = rep.AddressFamily;
-                client.Connect(rep);
-            }
-            //return client.CreateSession();
-            return client;
-
-            //return NetService.CreateSession(new NetUri(RemoteProtocolType, RemoteEndPoint));
+            return NetService.CreateClient(RemoteServerUri);
         }
 
         /// <summary>远程连接断开时触发。默认销毁整个会话，子类可根据业务情况决定客户端与代理的链接是否重用。</summary>

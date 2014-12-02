@@ -24,8 +24,13 @@ namespace NewLife.Net.IO
         /// <param name="port"></param>
         public void Connect(String hostname, Int32 port)
         {
-            if (Client == null) Client = new TcpSession();
-            Client.Connect(hostname, port);
+            if (Client == null)
+            {
+                var tcp = new TcpSession();
+                Client = tcp;
+                //Client.Connect(hostname, port);
+                tcp.Connect(hostname, port);
+            }
         }
 
         /// <summary>发送文件</summary>

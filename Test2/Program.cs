@@ -23,7 +23,7 @@ namespace Test2
                 try
                 {
 #endif
-                Test1();
+                    Test1();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -42,9 +42,9 @@ namespace Test2
 
         private static void Test1()
         {
+            AppTest.Start();
             //AppTest.TcpConnectionTest();
-            //AppTest.Start();
-            TcpStress.Main();
+            //TcpStress.Main();
         }
 
         static void Test2()

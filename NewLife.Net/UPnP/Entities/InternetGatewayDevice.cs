@@ -268,6 +268,7 @@ namespace NewLife.Net.UPnP
             var session = client as ISocketSession;
             try
             {
+                //client.Connect(uri.Host, uri.Port);
                 client.Connect(uri.Host, uri.Port);
                 session.Send(header + xml);
 

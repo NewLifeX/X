@@ -46,6 +46,12 @@ namespace NewLife.Net
         {
             if (Client == null || !Client.Client.IsBound)
             {
+                // 根据目标地址适配本地IPv4/IPv6
+                if (Remote != null && !Remote.Address.IsAny())
+                {
+                    Local.Address = Local.Address.GetRightAny(Remote.Address.AddressFamily);
+                }
+
                 Client = new UdpClient(Local.EndPoint);
                 if (Port == 0) Port = (Socket.LocalEndPoint as IPEndPoint).Port;
 
@@ -65,20 +71,20 @@ namespace NewLife.Net
                 Client.Close();
                 NetHelper.Close(Client.Client);
             }
-            Client = null;
+            //Client = null;
 
             return true;
         }
 
-        /// <summary>连接</summary>
-        /// <param name="remoteEP"></param>
-        /// <returns></returns>
-        protected override Boolean OnConnect(IPEndPoint remoteEP)
-        {
-            Client.Connect(remoteEP);
+        ///// <summary>连接</summary>
+        ///// <param name="remoteEP"></param>
+        ///// <returns></returns>
+        //protected override Boolean OnConnect(IPEndPoint remoteEP)
+        //{
+        //    Client.Connect(remoteEP);
 
-            return true;
-        }
+        //    return true;
+        //}
 
         /// <summary>发送数据</summary>
         /// <remarks>
@@ -288,7 +294,6 @@ namespace NewLife.Net
         /// <summary>远程地址</summary>
         public IPEndPoint Remote { get { return _Remote; } set { _Remote = value; } }
     }
-
 
     /// <summary>Udp扩展</summary>
     public static class UdpHelper
