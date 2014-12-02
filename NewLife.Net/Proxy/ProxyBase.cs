@@ -16,15 +16,16 @@ namespace NewLife.Net.Proxy
         #endregion
 
         #region 业务
-        protected override void OnStart()
-        {
-            base.OnStart();
+        //protected override void OnStart()
+        //{
+        //    base.OnStart();
 
-            foreach (var item in Servers)
-            {
+        //    foreach (var item in Servers)
+        //    {
                 
-            }
-        }
+        //    }
+        //}
+
         /// <summary>创建会话</summary>
         /// <param name="session"></param>
         /// <returns></returns>

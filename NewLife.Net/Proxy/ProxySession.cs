@@ -116,7 +116,7 @@ namespace NewLife.Net.Proxy
                     _Remote = null;
                     OnRemoteDispose(s as ISocketClient);
                 };
-                session.Received += new EventHandler<ReceivedEventArgs>(Remote_Received);
+                session.Received += Remote_Received;
                 session.ReceiveAsync();
 
                 //Debug.Assert(session.Client.Connected);
