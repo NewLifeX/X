@@ -7,6 +7,7 @@ using NewLife.Net;
 using NewLife.Net.Application;
 using NewLife.Net.Modbus;
 using NewLife.Net.Sockets;
+using NewLife.Net.Stress;
 using NewLife.Security;
 
 namespace Test2
@@ -41,8 +42,9 @@ namespace Test2
 
         private static void Test1()
         {
-            AppTest.TcpConnectionTest();
+            //AppTest.TcpConnectionTest();
             //AppTest.Start();
+            TcpStress.Main();
         }
 
         static void Test2()

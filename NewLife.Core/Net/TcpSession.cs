@@ -77,7 +77,7 @@ namespace NewLife.Net
                 {
                     Local.Address = Local.Address.GetRightAny(Remote.Address.AddressFamily);
                 }
-                
+
                 Client = new TcpClient(Local.EndPoint);
                 if (Port == 0) Port = (Socket.LocalEndPoint as IPEndPoint).Port;
 
@@ -133,7 +133,23 @@ namespace NewLife.Net
 
             if (count < 0) count = buffer.Length - offset;
 
-            Client.GetStream().Write(buffer, 0, count);
+            try
+            {
+                Client.GetStream().Write(buffer, 0, count);
+            }
+            //catch (ObjectDisposedException) { return; }
+            //catch (SocketException ex)
+            //{
+            //    OnError("Write", ex);
+            //    Close();
+            //    return;
+            //}
+            catch (Exception ex)
+            {
+                OnError("Write", ex);
+                Close();
+                throw;
+            }
         }
 
         /// <summary>接收数据</summary>

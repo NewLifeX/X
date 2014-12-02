@@ -269,23 +269,10 @@ namespace NewLife.Net.Application
         static Int32 asyncCount = 0;
         static void ShowStatus()
         {
-            //var pool = NetEventArgs.Pool;
-
             while (true)
             {
                 try
                 {
-                    //var asyncCount = 0;
-                    //foreach (var item in server.Servers)
-                    //{
-                    //    asyncCount += item.AsyncCount;
-                    //}
-                    //foreach (var item in server.Sessions.Values.ToArray())
-                    //{
-                    //    var remote = (item as IProxySession).Remote;
-                    //    if (remote != null) asyncCount += remote.Host.AsyncCount;
-                    //}
-
                     Int32 wt = 0;
                     Int32 cpt = 0;
                     ThreadPool.GetAvailableThreads(out wt, out cpt);

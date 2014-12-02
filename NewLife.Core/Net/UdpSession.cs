@@ -76,7 +76,16 @@ namespace NewLife.Net
 
             Server.WriteLog("{0}.Send {1} [{2}]", this.GetType().Name, this, count);
 
-            Server.Client.Send(buffer, count, Remote.EndPoint);
+            try
+            {
+                Server.Client.Send(buffer, count, Remote.EndPoint);
+            }
+            catch (Exception ex)
+            {
+                OnError("Send", ex);
+                Dispose();
+                throw;
+            }
         }
 
         Boolean CheckFilter(IPEndPoint remote)

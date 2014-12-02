@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Net;
 using System.Net.Sockets;
-using System.Threading;
+using NewLife.Threading;
 
 namespace NewLife.Net.Stress
 {
@@ -25,7 +25,7 @@ namespace NewLife.Net.Stress
         public Int32 Times { get { return _Times; } set { _Times = value; } }
 
         Socket socket;
-        Timer sendTimer;
+        TimerX sendTimer;
         #endregion
 
         #region 事件
@@ -83,7 +83,7 @@ namespace NewLife.Net.Stress
         /// <summary>开始发送</summary>
         public void StartSend()
         {
-            sendTimer = new Timer(SendData, null, Interval, Interval);
+            sendTimer = new TimerX(SendData, null, Interval, Interval);
         }
 
         private void SendData(Object state)

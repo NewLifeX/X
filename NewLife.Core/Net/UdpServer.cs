@@ -93,23 +93,32 @@ namespace NewLife.Net
 
             if (count < 0) count = buffer.Length - offset;
 
-            var sp = Client;
-            lock (sp)
+            try
             {
-                if (Client.Client.Connected)
+                var sp = Client;
+                lock (sp)
                 {
-                    if (offset == 0)
-                        sp.Send(buffer, count);
+                    if (Client.Client.Connected)
+                    {
+                        if (offset == 0)
+                            sp.Send(buffer, count);
+                        else
+                            sp.Send(buffer.ReadBytes(offset, count), count);
+                    }
                     else
-                        sp.Send(buffer.ReadBytes(offset, count), count);
+                    {
+                        if (offset == 0)
+                            sp.Send(buffer, count, Remote.EndPoint);
+                        else
+                            sp.Send(buffer.ReadBytes(offset, count), count, Remote.EndPoint);
+                    }
                 }
-                else
-                {
-                    if (offset == 0)
-                        sp.Send(buffer, count, Remote.EndPoint);
-                    else
-                        sp.Send(buffer.ReadBytes(offset, count), count, Remote.EndPoint);
-                }
+            }
+            catch (Exception ex)
+            {
+                OnError("Send", ex);
+                //if (Client.Client.Connected) Close();
+                throw;
             }
         }
 

@@ -38,7 +38,7 @@ namespace NewLife.Net.Stress
         [Description("使用前缀长度")]
         public Boolean UseLength { get { return _UseLength; } set { _UseLength = value; } }
 
-        private Int32 _SendInterval = 10;
+        private Int32 _SendInterval = 1000;
         /// <summary>发送数据间隔，单位毫秒</summary>
         [Description("发送数据间隔，单位毫秒")]
         public Int32 SendInterval { get { return _SendInterval; } set { _SendInterval = value; } }

@@ -4,6 +4,7 @@ using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading;
 using NewLife.Log;
 using NewLife.Model;
 using NewLife.Net.Tcp;
@@ -298,10 +299,12 @@ namespace NewLife.Net.Sockets
             ns.Session = session;
             ns.ClientEndPoint = session.Remote.EndPoint;
 
-            session.OnDisposed += (s, e2) => ns.Dispose();
+            //SessionCount++;
+            //session.OnDisposed += (s, e2) => SessionCount--;
+            Interlocked.Increment(ref _SessionCount);
+            session.OnDisposed += (s, e2) => Interlocked.Decrement(ref _SessionCount);
 
-            SessionCount++;
-            session.OnDisposed += (s, e2) => SessionCount--;
+            session.OnDisposed += (s, e2) => ns.Dispose();
 
             if (UseSession) AddSession(ns);
 
