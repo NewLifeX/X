@@ -28,10 +28,12 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“内部版本号”和“修订号”的默认值，
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("2.3.*")]
-[assembly: AssemblyFileVersion("2.3.2013.0917")]
+[assembly: AssemblyVersion("3.0.*")]
+[assembly: AssemblyFileVersion("3.0.2014.1202")]
 
 /*
+ * v3.0.2014.1202   第三代网络库完成，回归APM模型，以简单为核心理念。网络基础测试通过，Tcp压力测试2w通过
+ * 
  * v2.3.2013.0917   Modbus数据存储增加不触发写入事件的索引器操作
  * 
  * v2.3.2013.0716   升级Modbus协议，不再使用二进制序列化，保持和MF兼容
