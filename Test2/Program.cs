@@ -23,7 +23,7 @@ namespace Test2
                 try
                 {
 #endif
-                    Test1();
+                    Test2();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -50,8 +50,9 @@ namespace Test2
         static void Test2()
         {
             var client = new TcpSession();
+            client.Debug = true;
             client.Received += client_Received;
-            client.Connect("114.80.156.91", 8888);
+            client.Connect("114.80.156.91", 8848);
 
             var ms = new MemoryStream();
             ms.Write(new Byte[4]);
@@ -66,7 +67,7 @@ namespace Test2
 
             client.Send(ms.ToArray());
 
-            Thread.Sleep(5000);
+            Thread.Sleep(50000);
             client.Dispose();
         }
 

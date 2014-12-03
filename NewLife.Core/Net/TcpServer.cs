@@ -45,7 +45,7 @@ namespace NewLife.Net.Tcp
 
         private Boolean _Active;
         /// <summary>是否活动</summary>
-        public Boolean Active { get { return _Active || Disposed; } set { _Active = value; } }
+        public Boolean Active { get { return _Active; } set { _Active = value; } }
 
         private Boolean _ThrowException;
         /// <summary>是否抛出异常，默认false不抛出。Send/Receive时可能发生异常，该设置决定是直接抛出异常还是通过<see cref="Error"/>事件</summary>
@@ -92,7 +92,7 @@ namespace NewLife.Net.Tcp
         /// <summary>开始</summary>
         public virtual void Start()
         {
-            if (Active) return;
+            if (Active || Disposed) return;
 
             // 开始监听
             if (Server == null) Server = new TcpListener(Local.EndPoint);

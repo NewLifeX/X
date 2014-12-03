@@ -29,6 +29,10 @@ namespace NewLife.Net
         ISocketServer _Server;
         /// <summary>Socket服务器。当前通讯所在的Socket服务器，其实是TcpServer/UdpServer。该属性决定本会话是客户端会话还是服务的会话</summary>
         ISocketServer ISocketSession.Server { get { return _Server; } }
+
+        private Boolean _AutoReconnect = true;
+        /// <summary>是否自动重连，默认true。发生异常断开连接时，自动重连服务端。</summary>
+        public Boolean AutoReconnect { get { return _AutoReconnect; } set { _AutoReconnect = value; } }
         #endregion
 
         #region 构造
@@ -111,6 +115,8 @@ namespace NewLife.Net
 
             if (Client != null)
             {
+                // 提前关闭这个标识，否则Close时可能触发自动重连机制
+                Active = false;
                 try
                 {
                     Client.Close();
@@ -123,7 +129,7 @@ namespace NewLife.Net
                     return false;
                 }
             }
-            //Client = null;
+            Client = null;
 
             return true;
         }
@@ -209,6 +215,7 @@ namespace NewLife.Net
 
                     // 发送异常可能是连接出了问题，需要关闭
                     Close();
+                    Reconnect();
 
                     if (ThrowException) throw;
                 }
@@ -257,6 +264,7 @@ namespace NewLife.Net
 
                     // 发送异常可能是连接出了问题，需要关闭
                     Close();
+                    Reconnect();
 
                     if (ThrowException) throw;
                 }
@@ -287,6 +295,7 @@ namespace NewLife.Net
 
                     // 异常一般是网络错误
                     Close();
+                    Reconnect();
 
                     if (ThrowException) throw;
                 }
@@ -318,6 +327,7 @@ namespace NewLife.Net
 
                     // 异常一般是网络错误
                     Close();
+                    Reconnect();
                 }
                 return;
             }
@@ -348,6 +358,17 @@ namespace NewLife.Net
 
             // 数据发回去
             if (e.Feedback) Send(e.Data, 0, e.Length);
+        }
+        #endregion
+
+        #region 自动重连
+        void Reconnect()
+        {
+            if (!AutoReconnect || Disposed) return;
+
+            WriteLog("{0}.Reconnect {1}", this.GetType().Name, this);
+
+            Open();
         }
         #endregion
 

@@ -28,7 +28,7 @@ namespace NewLife.Net
 
         private Boolean _Active;
         /// <summary>是否活动</summary>
-        public Boolean Active { get { return _Active || Disposed; } set { _Active = value; } }
+        public Boolean Active { get { return _Active; } set { _Active = value; } }
 
         private Stream _Stream = new MemoryStream();
         /// <summary>会话数据流，供用户程序使用，内部不做处理。可用于解决Tcp粘包的问题，把多余的分片放入该数据流中。</summary>
@@ -70,6 +70,7 @@ namespace NewLife.Net
         /// <returns>是否成功</returns>
         public virtual Boolean Open()
         {
+            if (Disposed) return false;
             if (Active) return true;
 
             // 即使没有事件，也允许强行打开异步接收
