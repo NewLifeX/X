@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Net.Sockets;
-using NewLife.Exceptions;
 
 namespace NewLife.Net
 {

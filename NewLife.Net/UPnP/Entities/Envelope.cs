@@ -2,7 +2,6 @@
 using System.Xml;
 using System.Xml.Schema;
 using System.Xml.Serialization;
-using NewLife.Exceptions;
 
 namespace NewLife.Net.UPnP
 {

@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using NewLife.Exceptions;
+using NewLife;
 using NewLife.Model;
 using NewLife.Reflection;
 using NewLife.Threading;

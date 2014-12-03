@@ -7,7 +7,6 @@ using System.Reflection;
 using System.Reflection.Emit;
 using System.Text;
 using NewLife.Collections;
-using NewLife.Exceptions;
 using NewLife.Log;
 
 namespace NewLife.Reflection

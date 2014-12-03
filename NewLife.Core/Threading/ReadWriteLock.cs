@@ -2,7 +2,6 @@
 using System.Diagnostics;
 using System.Threading;
 using NewLife.Collections;
-using NewLife.Exceptions;
 using NewLife.Log;
 
 namespace NewLife.Threading

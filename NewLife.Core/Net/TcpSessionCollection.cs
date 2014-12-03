@@ -2,7 +2,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Net;
-using NewLife.Exceptions;
 using NewLife.Threading;
 
 namespace NewLife.Net.Tcp

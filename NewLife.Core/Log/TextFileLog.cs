@@ -5,7 +5,6 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using NewLife.Collections;
-using NewLife.Exceptions;
 using NewLife.Configuration;
 
 namespace NewLife.Log

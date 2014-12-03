@@ -7,7 +7,6 @@ using System.Reflection;
 using System.Text;
 using System.Xml;
 using System.Xml.Serialization;
-using NewLife.Exceptions;
 using NewLife.Reflection;
 
 namespace NewLife.Xml

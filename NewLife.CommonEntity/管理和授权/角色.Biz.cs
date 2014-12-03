@@ -3,10 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Text;
-using System.Xml.Serialization;
-using NewLife.Exceptions;
 using NewLife.Log;
-using XCode;
 
 namespace NewLife.CommonEntity
 {

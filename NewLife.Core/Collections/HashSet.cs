@@ -1,4 +1,4 @@
-﻿using NewLife.Exceptions;
+﻿using NewLife;
 
 namespace System.Collections.Generic
 {

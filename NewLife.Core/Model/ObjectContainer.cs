@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using NewLife.Configuration;
-using NewLife.Exceptions;
 using NewLife.Log;
 using NewLife.Reflection;
 

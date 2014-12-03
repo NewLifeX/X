@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using NewLife.Exceptions;
 
 namespace NewLife.IO
 {

@@ -1,6 +1,6 @@
 ﻿using System;
 using System.CodeDom.Compiler;
-using NewLife.Exceptions;
+using NewLife;
 
 namespace XTemplate.Templating
 {

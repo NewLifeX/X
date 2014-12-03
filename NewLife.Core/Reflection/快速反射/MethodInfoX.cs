@@ -5,7 +5,6 @@ using System.Reflection;
 using System.Reflection.Emit;
 using System.Text;
 using NewLife.Collections;
-using NewLife.Exceptions;
 
 namespace NewLife.Reflection
 {

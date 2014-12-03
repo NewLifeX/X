@@ -3,7 +3,6 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Xml.Serialization;
-using NewLife.Exceptions;
 using NewLife.Serialization;
 
 namespace NewLife.Net

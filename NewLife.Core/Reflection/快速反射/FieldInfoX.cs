@@ -3,7 +3,6 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Reflection.Emit;
 using NewLife.Collections;
-using NewLife.Exceptions;
 
 namespace NewLife.Reflection
 {

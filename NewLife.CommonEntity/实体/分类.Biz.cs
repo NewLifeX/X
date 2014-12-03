@@ -6,7 +6,6 @@
 */
 ﻿using System;
 using System.ComponentModel;
-using NewLife.Exceptions;
 using XCode;
 
 namespace NewLife.CommonEntity

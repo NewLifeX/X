@@ -5,7 +5,6 @@ using System.ComponentModel;
 using System.Runtime.ConstrainedExecution;
 using System.Threading;
 using System.Xml.Serialization;
-using NewLife.Exceptions;
 using NewLife.Log;
 
 namespace NewLife

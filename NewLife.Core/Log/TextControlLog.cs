@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Runtime.InteropServices;
 using System.Windows.Forms;
-using NewLife.Exceptions;
 
 namespace NewLife.Log
 {

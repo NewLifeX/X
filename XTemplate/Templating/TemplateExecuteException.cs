@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Runtime.Serialization;
-using NewLife.Exceptions;
+using NewLife;
 
 namespace XTemplate.Templating
 {

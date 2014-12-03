@@ -3,7 +3,7 @@ using System.ComponentModel;
 using System.Drawing;
 using System.Web.UI;
 using System.Web.UI.WebControls;
-using NewLife.Exceptions;
+using NewLife;
 
 namespace XControl
 {

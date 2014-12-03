@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Runtime.Serialization;
-using NewLife.Exceptions;
+using NewLife;
 
-namespace XCode.Exceptions
+namespace XCode
 {
     /// <summary>XCode异常</summary>
     [Serializable]

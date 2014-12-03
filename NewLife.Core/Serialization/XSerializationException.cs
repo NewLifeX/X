@@ -1,5 +1,4 @@
 ﻿using System;
-using NewLife.Exceptions;
 
 namespace NewLife.Serialization
 {

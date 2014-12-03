@@ -8,7 +8,6 @@ using System;
 using System.ComponentModel;
 using System.Linq;
 using System.Xml.Serialization;
-using NewLife.Exceptions;
 using XCode;
 
 namespace NewLife.CommonEntity

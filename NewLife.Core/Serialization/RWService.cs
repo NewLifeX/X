@@ -1,5 +1,4 @@
-﻿using NewLife.Exceptions;
-using NewLife.Xml;
+﻿using NewLife.Xml;
 
 namespace NewLife.Serialization
 {

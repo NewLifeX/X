@@ -7,7 +7,6 @@ using System.Net;
 using System.Reflection;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
-using NewLife.Exceptions;
 using NewLife.Log;
 using NewLife.Reflection;
 

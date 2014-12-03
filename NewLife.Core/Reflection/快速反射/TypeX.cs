@@ -10,7 +10,6 @@ using System.Reflection.Emit;
 using System.Runtime.Serialization;
 using System.Text;
 using NewLife.Collections;
-using NewLife.Exceptions;
 using NewLife.Log;
 
 namespace NewLife.Reflection

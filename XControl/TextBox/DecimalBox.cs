@@ -5,7 +5,7 @@ using System.Drawing;
 using System.Globalization;
 using System.Web.UI;
 using System.Web.UI.WebControls;
-using NewLife.Exceptions;
+using NewLife;
 
 namespace XControl
 {

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using System.Xml.Serialization;
-using NewLife.Exceptions;
 using NewLife.Log;
 
 namespace NewLife.Xml

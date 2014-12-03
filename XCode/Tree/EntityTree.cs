@@ -4,7 +4,7 @@ using System.ComponentModel;
 using System.Text;
 using System.Web.UI.WebControls;
 using System.Xml.Serialization;
-using NewLife.Exceptions;
+using NewLife;
 using NewLife.Reflection;
 
 namespace XCode

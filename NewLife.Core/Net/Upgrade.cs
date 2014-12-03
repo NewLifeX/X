@@ -6,7 +6,6 @@ using System.Reflection;
 using System.Windows.Forms;
 using NewLife.Compression;
 using NewLife.Configuration;
-using NewLife.Exceptions;
 using NewLife.Log;
 using NewLife.Security;
 using NewLife.Web;

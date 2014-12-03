@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
-using NewLife.Exceptions;
 using NewLife.Reflection;
 using NewLife.Security;
 using NewLife.Serialization;
