@@ -163,36 +163,44 @@ namespace NewLife.Net.Tcp
             //catch (SocketException ex)
             catch (Exception ex)
             {
-                if (!ex.IsDisposed()) OnError("EndAcceptTcpClient", ex);
+                if (!ex.IsDisposed())
+                {
+                    OnError("EndAcceptTcpClient", ex);
 
-                // EndAcceptTcpClient异常一般是网络故障，但是为了确保系统可靠性，我们仍然不能关闭服务器
-                //Stop();
+                    // EndAcceptTcpClient异常一般是网络故障，但是为了确保系统可靠性，我们仍然不能关闭服务器
+                    //Stop();
+
+                    // 开始新的监听，避免因为异常就失去网络服务
+                    AcceptAsync(false);
+                }
 
                 return;
             }
             //catch (Exception ex) { OnError("EndAcceptTcpClient", ex); }
 
             // 在用户线程池里面去处理数据
-            ThreadPoolX.QueueUserWorkItem(obj =>
-            {
-                var tcp = obj as TcpClient;
-
-                WriteLog("{0} Accept {1}", this, tcp.Client.RemoteEndPoint);
-
-                var session = CreateSession(tcp);
-                if (Accepted != null) Accepted(this, new AcceptedEventArgs { Session = session });
-
-                Sessions.Add(session.Remote.EndPoint, session);
-
-                // 设置心跳时间
-                tcp.Client.SetTcpKeepAlive(true);
-
-                // 自动开始异步接收处理
-                if (AutoReceiveAsync) session.ReceiveAsync();
-            }, client);
+            ThreadPoolX.QueueUserWorkItem(obj => OnAccept(obj as TcpClient), client);
 
             // 开始新的征程
             AcceptAsync(false);
+        }
+
+        /// <summary>收到新连接时处理</summary>
+        /// <param name="client"></param>
+        protected virtual void OnAccept(TcpClient client)
+        {
+            WriteLog("{0} Accept {1}", this, client.Client.RemoteEndPoint);
+
+            var session = CreateSession(client);
+            if (Accepted != null) Accepted(this, new AcceptedEventArgs { Session = session });
+
+            Sessions.Add(session.Remote.EndPoint, session);
+
+            // 设置心跳时间
+            client.Client.SetTcpKeepAlive(true);
+
+            // 自动开始异步接收处理
+            if (AutoReceiveAsync) session.ReceiveAsync();
         }
         #endregion
 

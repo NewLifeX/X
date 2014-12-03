@@ -41,9 +41,9 @@ namespace NewLife.Net
         /// <summary>Socket服务器。当前通讯所在的Socket服务器，其实是TcpServer/UdpServer</summary>
         ISocketServer ISocketSession.Server { get { return _Server; } }
 
-        private Boolean _ThrowException;
+        //private Boolean _ThrowException;
         /// <summary>是否抛出异常，默认false不抛出。Send/Receive时可能发生异常，该设置决定是直接抛出异常还是通过<see cref="Error"/>事件</summary>
-        public Boolean ThrowException { get { return _ThrowException; } set { _ThrowException = value; } }
+        public Boolean ThrowException { get { return Server.ThrowException; } set { Server.ThrowException = value; } }
 
         private IStatistics _Statistics = new Statistics();
         /// <summary>统计信息</summary>

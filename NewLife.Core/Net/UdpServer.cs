@@ -3,7 +3,9 @@ using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading;
 using NewLife.Model;
+using NewLife.Threading;
 
 namespace NewLife.Net
 {
@@ -68,8 +70,18 @@ namespace NewLife.Net
 
             if (Client != null)
             {
-                Client.Close();
-                NetHelper.Close(Client.Client);
+                try
+                {
+                    Client.Close();
+                    //NetHelper.Close(Client.Client);
+                }
+                catch (Exception ex)
+                {
+                    if (!ex.IsDisposed()) OnError("Close", ex);
+                    if (ThrowException) throw;
+
+                    return false;
+                }
             }
             //Client = null;
 
@@ -93,9 +105,10 @@ namespace NewLife.Net
         /// <param name="buffer">缓冲区</param>
         /// <param name="offset">偏移</param>
         /// <param name="count">数量</param>
+        /// <returns>是否成功</returns>
         public override Boolean Send(Byte[] buffer, Int32 offset = 0, Int32 count = -1)
         {
-            Open();
+            if (!Open()) return false;
 
             if (count < 0) count = buffer.Length - offset;
 
@@ -124,9 +137,16 @@ namespace NewLife.Net
             }
             catch (Exception ex)
             {
-                OnError("Send", ex);
-                //if (Client.Client.Connected) Close();
-                throw;
+                if (!ex.IsDisposed())
+                {
+                    OnError("Send", ex);
+
+                    // 发送异常可能是连接出了问题，UDP不需要关闭
+                    //Close();
+
+                    if (ThrowException) throw;
+                }
+                return false;
             }
         }
 
@@ -134,13 +154,18 @@ namespace NewLife.Net
         /// <returns></returns>
         public override Byte[] Receive()
         {
-            Open();
+            if (!Open()) return null;
 
-            IPEndPoint remoteEP = null;
-            var data = Client.Receive(ref remoteEP);
-            Remote.EndPoint = remoteEP;
+            //IPEndPoint remoteEP = null;
+            //var data = Client.Receive(ref remoteEP);
+            //Remote.EndPoint = remoteEP;
 
-            return data;
+            var buf = new Byte[1024 * 2];
+            var count = Receive(buf, 0, buf.Length);
+            if (count < 0) return null;
+            if (count == 0) return new Byte[0];
+
+            return buf.ReadBytes(0, count);
         }
 
         /// <summary>读取指定长度的数据，一般是一帧</summary>
@@ -150,22 +175,39 @@ namespace NewLife.Net
         /// <returns></returns>
         public override Int32 Receive(Byte[] buffer, Int32 offset = 0, Int32 count = -1)
         {
-            Open();
+            if (!Open()) return -1;
 
             if (count < 0) count = buffer.Length - offset;
 
             var size = 0;
             var sp = Client;
 
-            IPEndPoint remoteEP = null;
-            var data = Client.Receive(ref remoteEP);
-            Remote.EndPoint = remoteEP;
-            if (data != null && data.Length > 0)
+            try
             {
-                size = data.Length;
-                // 计算还有多少可用空间
-                if (size > count) size = count;
-                buffer.Write(offset, data, 0, size);
+                IPEndPoint remoteEP = null;
+                var data = Client.Receive(ref remoteEP);
+                Remote.EndPoint = remoteEP;
+                if (data != null && data.Length > 0)
+                {
+                    size = data.Length;
+                    // 计算还有多少可用空间
+                    if (size > count) size = count;
+                    buffer.Write(offset, data, 0, size);
+                }
+            }
+            catch (Exception ex)
+            {
+                if (!ex.IsDisposed())
+                {
+                    OnError("Receive", ex);
+
+                    // 发送异常可能是连接出了问题，UDP不需要关闭
+                    //Close();
+
+                    if (ThrowException) throw;
+                }
+
+                return -1;
             }
 
             return size;
@@ -174,12 +216,29 @@ namespace NewLife.Net
 
         #region 异步接收
         /// <summary>开始监听</summary>
+        /// <returns>是否成功</returns>
         public override Boolean ReceiveAsync()
         {
             if (!Open()) return false;
 
-            // 开始新的监听
-            Client.BeginReceive(OnReceive, Client);
+            try
+            {
+                // 开始新的监听
+                Client.BeginReceive(OnReceive, Client);
+            }
+            catch (Exception ex)
+            {
+                if (!ex.IsDisposed())
+                {
+                    OnError("ReceiveAsync", ex);
+
+                    // 异常一般是网络错误，UDP不需要关闭
+                    //Close();
+
+                    if (ThrowException) throw;
+                }
+                return false;
+            }
 
             return true;
         }
@@ -198,28 +257,31 @@ namespace NewLife.Net
             {
                 data = client.EndReceive(ar, ref ep);
             }
-            catch (ObjectDisposedException) { return; }
-            catch (SocketException ex)
+            catch (Exception ex)
             {
-                OnError("EndReceive", ex);
-                if (ex.SocketErrorCode != SocketError.ConnectionReset) Close();
+                if (!ex.IsDisposed())
+                {
+                    OnError("EndReceive", ex);
+
+                    // 异常一般是网络错误，UDP不需要关闭
+                    //Close();
+                    //if (ex.SocketErrorCode != SocketError.ConnectionReset) Close();
+
+                    // 开始新的监听，避免因为异常就失去网络服务
+                    ReceiveAsync();
+                }
                 return;
             }
-            catch (Exception ex) { OnError("EndReceive", ex); }
 
             //WriteLog("{0}.OnReceive {1}<={2} [{3}]", this.GetType().Name, this, ep, data.Length);
 
             Remote.EndPoint = ep;
 
-            // 开始新的监听
-            try
-            {
-                client.BeginReceive(OnReceive, client);
-            }
-            catch (ObjectDisposedException) { return; }
-            catch (Exception ex) { OnError("BeginReceive", ex); }
+            // 在用户线程池里面去处理数据
+            ThreadPoolX.QueueUserWorkItem(() => OnReceive(data, ep));
 
-            OnReceive(data, ep);
+            // 开始新的监听
+            ReceiveAsync();
         }
 
         /// <summary>处理收到的数据</summary>
@@ -253,14 +315,15 @@ namespace NewLife.Net
                 // 根据目标地址适配本地IPv4/IPv6
                 Local.Address = Local.Address.GetRightAny(remoteEP.AddressFamily);
 
-                Open();
+                if (!Open()) return null;
             }
 
             var session = new UdpSession(this, remoteEP);
-            Sessions++;
+            Interlocked.Increment(ref _Sessions);
             session.OnDisposed += (s, e) =>
             {
-                Sessions--;
+                //Sessions--;
+                Interlocked.Decrement(ref _Sessions);
             };
             return session;
         }
