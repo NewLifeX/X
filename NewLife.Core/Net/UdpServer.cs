@@ -93,7 +93,7 @@ namespace NewLife.Net
         /// <param name="buffer">缓冲区</param>
         /// <param name="offset">偏移</param>
         /// <param name="count">数量</param>
-        public override void Send(Byte[] buffer, Int32 offset = 0, Int32 count = -1)
+        public override Boolean Send(Byte[] buffer, Int32 offset = 0, Int32 count = -1)
         {
             Open();
 
@@ -119,6 +119,8 @@ namespace NewLife.Net
                             sp.Send(buffer.ReadBytes(offset, count), count, Remote.EndPoint);
                     }
                 }
+
+                return true;
             }
             catch (Exception ex)
             {
@@ -172,12 +174,14 @@ namespace NewLife.Net
 
         #region 异步接收
         /// <summary>开始监听</summary>
-        public override void ReceiveAsync()
+        public override Boolean ReceiveAsync()
         {
-            if (Client == null) Open();
+            if (!Open()) return false;
 
             // 开始新的监听
             Client.BeginReceive(OnReceive, Client);
+
+            return true;
         }
 
         void OnReceive(IAsyncResult ar)

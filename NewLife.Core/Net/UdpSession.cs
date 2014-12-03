@@ -77,7 +77,7 @@ namespace NewLife.Net
         #endregion
 
         #region 收发
-        public void Send(byte[] buffer, int offset = 0, int count = -1)
+        public Boolean Send(byte[] buffer, int offset = 0, int count = -1)
         {
             if (count <= 0) count = buffer.Length - offset;
             if (offset > 0) buffer = buffer.ReadBytes(offset, count);
@@ -87,6 +87,8 @@ namespace NewLife.Net
             try
             {
                 Server.Client.Send(buffer, count, Remote.EndPoint);
+
+                return true;
             }
             catch (Exception ex)
             {
@@ -135,7 +137,7 @@ namespace NewLife.Net
 
         #region 异步接收
         /// <summary>开始异步接收数据</summary>
-        public void ReceiveAsync() { Server.ReceiveAsync(); }
+        public Boolean ReceiveAsync() { return Server.ReceiveAsync(); }
 
         public event EventHandler<ReceivedEventArgs> Received;
 

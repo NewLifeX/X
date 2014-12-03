@@ -37,7 +37,8 @@ namespace NewLife.Net
         /// <param name="buffer">缓冲区</param>
         /// <param name="offset">偏移</param>
         /// <param name="count">数量</param>
-        void Send(Byte[] buffer, Int32 offset = 0, Int32 count = -1);
+        /// <returns>是否成功</returns>
+        Boolean Send(Byte[] buffer, Int32 offset = 0, Int32 count = -1);
 
         /// <summary>接收数据</summary>
         /// <returns></returns>
@@ -53,7 +54,8 @@ namespace NewLife.Net
 
         #region 异步接收
         /// <summary>开始异步接收数据</summary>
-        void ReceiveAsync();
+        /// <returns>是否成功</returns>
+        Boolean ReceiveAsync();
 
         /// <summary>数据到达，在事件处理代码中，事件参数不得另作他用，套接字事件池将会将其回收。</summary>
         event EventHandler<ReceivedEventArgs> Received;

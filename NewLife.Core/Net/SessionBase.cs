@@ -67,15 +67,16 @@ namespace NewLife.Net
 
         #region 方法
         /// <summary>打开</summary>
-        public virtual void Open()
+        /// <returns>是否成功</returns>
+        public virtual Boolean Open()
         {
-            if (Active) return;
+            if (Active) return true;
 
             // 即使没有事件，也允许强行打开异步接收
             if (!UseReceiveAsync && Received != null) UseReceiveAsync = true;
 
             Active = OnOpen();
-            if (!Active) return;
+            if (!Active) return false;
 
             if (Port == 0) Port = (Socket.LocalEndPoint as IPEndPoint).Port;
             if (Timeout > 0) Socket.ReceiveTimeout = Timeout;
@@ -84,6 +85,8 @@ namespace NewLife.Net
             if (Opened != null) Opened(this, EventArgs.Empty);
 
             if (UseReceiveAsync) ReceiveAsync();
+
+            return true;
         }
 
         /// <summary>打开</summary>
@@ -91,13 +94,17 @@ namespace NewLife.Net
         protected abstract Boolean OnOpen();
 
         /// <summary>关闭</summary>
-        public virtual void Close()
+        /// <returns>是否成功</returns>
+        public virtual Boolean Close()
         {
-            if (!Active) return;
+            if (!Active) return true;
 
             if (OnClose()) Active = false;
 
+            // 触发关闭完成的事件
             if (Closed != null) Closed(this, EventArgs.Empty);
+
+            return !Active;
         }
 
         /// <summary>关闭</summary>
@@ -154,7 +161,8 @@ namespace NewLife.Net
         /// <param name="buffer">缓冲区</param>
         /// <param name="offset">偏移</param>
         /// <param name="count">数量</param>
-        public abstract void Send(Byte[] buffer, Int32 offset = 0, Int32 count = -1);
+        /// <returns>是否成功</returns>
+        public abstract Boolean Send(Byte[] buffer, Int32 offset = 0, Int32 count = -1);
 
         /// <summary>接收数据</summary>
         /// <returns></returns>
@@ -174,7 +182,8 @@ namespace NewLife.Net
         public Boolean UseReceiveAsync { get { return _UseReceiveAsync; } set { _UseReceiveAsync = value; } }
 
         /// <summary>开始异步接收</summary>
-        public abstract void ReceiveAsync();
+        /// <returns>是否成功</returns>
+        public abstract Boolean ReceiveAsync();
 
         /// <summary>数据到达事件</summary>
         public event EventHandler<ReceivedEventArgs> Received;
@@ -198,10 +207,7 @@ namespace NewLife.Net
         protected virtual void OnError(String action, Exception ex)
         {
             WriteLog("{0}.{1}Error {2} {3}", this.GetType().Name, action, this, ex == null ? null : ex.Message);
-            if (Error != null) Error(this, new ExceptionEventArgs { Exception = ex });
-
-            //// 发生异常时仅关闭，也许可以重用
-            //if (ex != null) Close();
+            if (Error != null) Error(this, new ExceptionEventArgs { Action = action, Exception = ex });
         }
         #endregion
 

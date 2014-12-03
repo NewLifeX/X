@@ -2,6 +2,7 @@
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using NewLife.Threading;
 
 namespace NewLife.Net
 {
@@ -26,7 +27,7 @@ namespace NewLife.Net
         //public Stream Stream { get { return _Stream; } set { _Stream = value; } }
 
         ISocketServer _Server;
-        /// <summary>Socket服务器。当前通讯所在的Socket服务器，其实是TcpServer/UdpServer</summary>
+        /// <summary>Socket服务器。当前通讯所在的Socket服务器，其实是TcpServer/UdpServer。该属性决定本会话是客户端会话还是服务的会话</summary>
         ISocketServer ISocketSession.Server { get { return _Server; } }
         #endregion
 
@@ -84,7 +85,21 @@ namespace NewLife.Net
                 WriteLog("{0}.Open {1}", this.GetType().Name, this);
             }
 
-            if (Remote != null && !Remote.EndPoint.IsAny()) Client.Connect(Remote.EndPoint);
+            // 打开端口前如果已设定远程地址，则自动连接
+            if (Remote != null && !Remote.EndPoint.IsAny())
+            {
+                try
+                {
+                    Client.Connect(Remote.EndPoint);
+                }
+                catch (Exception ex)
+                {
+                    if (!ex.IsDisposed()) OnError("Connect", ex);
+                    if (ThrowException) throw;
+
+                    return false;
+                }
+            }
 
             return true;
         }
@@ -94,7 +109,20 @@ namespace NewLife.Net
         {
             WriteLog("{0}.Close {1}", this.GetType().Name, this);
 
-            if (Client != null) Client.Close();
+            if (Client != null)
+            {
+                try
+                {
+                    Client.Close();
+                }
+                catch (Exception ex)
+                {
+                    if (!ex.IsDisposed()) OnError("Close", ex);
+                    if (ThrowException) throw;
+
+                    return false;
+                }
+            }
             //Client = null;
 
             return true;
@@ -103,29 +131,36 @@ namespace NewLife.Net
         /// <summary>打开远程连接</summary>
         /// <param name="remoteEP"></param>
         /// <returns></returns>
-        public TcpSession Connect(IPEndPoint remoteEP)
+        public Boolean Connect(IPEndPoint remoteEP)
         {
             Remote.EndPoint = remoteEP;
-            Open();
+            if (!Open()) return false;
 
-            Client.Connect(Remote.EndPoint);
+            // 如果前面已经打开连接，这里就不需要继续了
+            if (Client.Connected) return true;
 
-            return this;
+            try
+            {
+                Client.Connect(Remote.EndPoint);
+            }
+            catch (Exception ex)
+            {
+                if (!ex.IsDisposed()) OnError("Connect", ex);
+                if (ThrowException) throw;
+
+                return false;
+            }
+
+            return true;
         }
 
         /// <summary>打开远程连接</summary>
         /// <param name="host"></param>
         /// <param name="port"></param>
         /// <returns></returns>
-        public TcpSession Connect(String host, Int32 port)
+        public Boolean Connect(String host, Int32 port)
         {
-            Remote.Host = host;
-            Remote.Port = port;
-            Open();
-
-            Client.Connect(Remote.EndPoint);
-
-            return this;
+            return Connect(NetHelper.ParseEndPoint(host, port));
         }
 
         ///// <summary>连接</summary>
@@ -155,9 +190,10 @@ namespace NewLife.Net
         /// <param name="buffer">缓冲区</param>
         /// <param name="offset">偏移</param>
         /// <param name="count">数量</param>
-        public override void Send(Byte[] buffer, Int32 offset = 0, Int32 count = -1)
+        /// <returns>是否成功</returns>
+        public override Boolean Send(Byte[] buffer, Int32 offset = 0, Int32 count = -1)
         {
-            Open();
+            if (!Open()) return false;
 
             if (count < 0) count = buffer.Length - offset;
 
@@ -165,30 +201,34 @@ namespace NewLife.Net
             {
                 Client.GetStream().Write(buffer, 0, count);
             }
-            //catch (ObjectDisposedException) { return; }
-            //catch (SocketException ex)
-            //{
-            //    OnError("Write", ex);
-            //    Close();
-            //    return;
-            //}
             catch (Exception ex)
             {
-                OnError("Write", ex);
-                Close();
-                throw;
+                if (!ex.IsDisposed())
+                {
+                    OnError("Send", ex);
+
+                    // 发送异常可能是连接出了问题，需要关闭
+                    Close();
+
+                    if (ThrowException) throw;
+                }
+
+                return false;
             }
+
+            return true;
         }
 
         /// <summary>接收数据</summary>
-        /// <returns></returns>
+        /// <returns>收到的数据。如果没有数据返回0长度数组，如果出错返回null</returns>
         public override Byte[] Receive()
         {
-            Open();
+            if (!Open()) return null;
 
             var buf = new Byte[1024 * 2];
 
-            var count = Client.GetStream().Read(buf, 0, buf.Length);
+            var count = Receive(buf, 0, buf.Length);
+            if (count < 0) return null;
             if (count == 0) return new Byte[0];
 
             return buf.ReadBytes(0, count);
@@ -201,28 +241,65 @@ namespace NewLife.Net
         /// <returns></returns>
         public override Int32 Receive(Byte[] buffer, Int32 offset = 0, Int32 count = -1)
         {
-            Open();
+            if (!Open()) return -1;
 
             if (count < 0) count = buffer.Length - offset;
 
-            return Client.GetStream().Read(buffer, offset, count);
+            try
+            {
+                return Client.GetStream().Read(buffer, offset, count);
+            }
+            catch (Exception ex)
+            {
+                if (!ex.IsDisposed())
+                {
+                    OnError("Receive", ex);
+
+                    // 发送异常可能是连接出了问题，需要关闭
+                    Close();
+
+                    if (ThrowException) throw;
+                }
+
+                return -1;
+            }
         }
         #endregion
 
-        #region 接收
+        #region 异步接收
         /// <summary>开始监听</summary>
-        public override void ReceiveAsync()
+        /// <returns>是否成功</returns>
+        public override Boolean ReceiveAsync()
         {
-            if (Client == null) Open();
+            if (!Open()) return false;
 
-            // 开始新的监听
-            var buf = new Byte[1500];
-            Client.GetStream().BeginRead(buf, 0, buf.Length, OnReceive, buf);
+            try
+            {
+                // 开始新的监听
+                var buf = new Byte[1500];
+                Client.GetStream().BeginRead(buf, 0, buf.Length, OnReceive, buf);
+            }
+            catch (Exception ex)
+            {
+                if (!ex.IsDisposed())
+                {
+                    OnError("ReceiveAsync", ex);
+
+                    // 异常一般是网络错误
+                    Close();
+
+                    if (ThrowException) throw;
+                }
+                return false;
+            }
+
+            return true;
         }
 
         void OnReceive(IAsyncResult ar)
         {
             if (!Active) return;
+
             var client = Client;
             if (client == null || !client.Connected) return;
 
@@ -233,30 +310,28 @@ namespace NewLife.Net
             {
                 count = client.GetStream().EndRead(ar);
             }
-            catch (ObjectDisposedException) { return; }
-            catch (SocketException ex)
+            catch (Exception ex)
             {
-                OnError("EndRead", ex);
-                Close();
+                if (!ex.IsDisposed())
+                {
+                    OnError("EndReceive", ex);
+
+                    // 异常一般是网络错误
+                    Close();
+                }
                 return;
             }
-            catch (Exception ex) { OnError("EndRead", ex); }
 
             if (DisconnectWhenEmptyData && count == 0)
             {
                 Close();
             }
 
-            // 开始新的监听
-            var buf = new Byte[1500];
-            try
-            {
-                client.GetStream().BeginRead(buf, 0, buf.Length, OnReceive, buf);
-            }
-            catch (ObjectDisposedException) { }
-            catch (Exception ex) { OnError("BeginRead", ex); return; }
+            // 在用户线程池里面处理数据
+            ThreadPoolX.QueueUserWorkItem(() => OnReceive(data, count));
 
-            OnReceive(data, count);
+            // 开始新的监听
+            ReceiveAsync();
         }
 
         /// <summary>处理收到的数据</summary>

@@ -137,7 +137,6 @@ namespace NewLife.Net.Tcp
                 Server.BeginAcceptTcpClient(OnAccept, null);
                 return true;
             }
-            //catch (ObjectDisposedException) { return false; }
             catch (Exception ex)
             {
                 if (!ex.IsDisposed()) OnError("BeginAcceptTcpClient", ex);
