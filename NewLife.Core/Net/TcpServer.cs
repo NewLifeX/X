@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using NewLife.Log;
+using NewLife.Threading;
 
 namespace NewLife.Net.Tcp
 {
@@ -139,7 +140,10 @@ namespace NewLife.Net.Tcp
             //catch (ObjectDisposedException) { return false; }
             catch (Exception ex)
             {
-                if (!(ex is ObjectDisposedException)) OnError("BeginAcceptTcpClient", ex);
+                if (!ex.IsDisposed()) OnError("BeginAcceptTcpClient", ex);
+
+                // BeginAcceptTcpClient异常一般是服务器已经被关闭，所以这里不需要去关闭服务器
+
                 if (throwException) throw;
                 return false;
             }
@@ -156,29 +160,40 @@ namespace NewLife.Net.Tcp
             {
                 client = Server.EndAcceptTcpClient(ar);
             }
-            catch (ObjectDisposedException) { return; }
-            catch (SocketException ex)
+            //catch (ObjectDisposedException) { return; }
+            //catch (SocketException ex)
+            catch (Exception ex)
             {
-                OnError("EndAcceptTcpClient", ex);
-                Stop();
+                if (!ex.IsDisposed()) OnError("EndAcceptTcpClient", ex);
+
+                // EndAcceptTcpClient异常一般是网络故障，但是为了确保系统可靠性，我们仍然不能关闭服务器
+                //Stop();
+
                 return;
             }
-            catch (Exception ex) { OnError("EndAcceptTcpClient", ex); }
+            //catch (Exception ex) { OnError("EndAcceptTcpClient", ex); }
 
-            AcceptAsync(ThrowException);
+            // 在用户线程池里面去处理数据
+            ThreadPoolX.QueueUserWorkItem(obj =>
+            {
+                var tcp = obj as TcpClient;
 
-            WriteLog("{0} Accept {1}", this, client.Client.RemoteEndPoint);
+                WriteLog("{0} Accept {1}", this, tcp.Client.RemoteEndPoint);
 
-            var session = CreateSession(client);
-            if (Accepted != null) Accepted(this, new AcceptedEventArgs { Session = session });
+                var session = CreateSession(tcp);
+                if (Accepted != null) Accepted(this, new AcceptedEventArgs { Session = session });
 
-            Sessions.Add(session.Remote.EndPoint, session);
+                Sessions.Add(session.Remote.EndPoint, session);
 
-            // 设置心跳时间
-            //client.Client.SetTcpKeepAlive(true);
+                // 设置心跳时间
+                tcp.Client.SetTcpKeepAlive(true);
 
-            // 自动开始异步接收处理
-            if (AutoReceiveAsync) session.ReceiveAsync();
+                // 自动开始异步接收处理
+                if (AutoReceiveAsync) session.ReceiveAsync();
+            }, client);
+
+            // 开始新的征程
+            AcceptAsync(false);
         }
         #endregion
 
@@ -221,10 +236,7 @@ namespace NewLife.Net.Tcp
         protected virtual void OnError(String action, Exception ex)
         {
             WriteLog("{0}.{1}Error {2} {3}", this.GetType().Name, action, this, ex == null ? null : ex.Message);
-            if (Error != null) Error(this, new ExceptionEventArgs { Exception = ex });
-
-            //// 发生异常时仅关闭，也许可以重用
-            //if (ex is SocketException) Stop();
+            if (Error != null) Error(this, new ExceptionEventArgs { Action = action, Exception = ex });
         }
         #endregion
 
