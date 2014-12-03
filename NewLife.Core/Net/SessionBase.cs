@@ -40,6 +40,14 @@ namespace NewLife.Net
         /// <summary>获取Socket</summary>
         /// <returns></returns>
         internal abstract Socket GetSocket();
+
+        private Boolean _ThrowException;
+        /// <summary>是否抛出异常，默认false不抛出。Send/Receive时可能发生异常，该设置决定是直接抛出异常还是通过<see cref="Error"/>事件</summary>
+        public Boolean ThrowException { get { return _ThrowException; } set { _ThrowException = value; } }
+
+        private IStatistics _Statistics = new Statistics();
+        /// <summary>统计信息</summary>
+        public IStatistics Statistics { get { return _Statistics; } private set { _Statistics = value; } }
         #endregion
 
         #region 构造
@@ -53,7 +61,7 @@ namespace NewLife.Net
             {
                 Close();
             }
-            catch { }
+            catch (Exception ex) { OnError("Dispose", ex); }
         }
         #endregion
 

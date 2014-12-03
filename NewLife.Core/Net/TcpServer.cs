@@ -31,7 +31,7 @@ namespace NewLife.Net.Tcp
         public Int32 MaxNotActive { get { return _MaxNotActive; } set { _MaxNotActive = value; } }
 
         private Boolean _AutoReceiveAsync = true;
-        /// <summary>自动开始会话的异步接收。
+        /// <summary>自动开始会话的异步接收，默认true。
         /// 接受连接请求后，自动开始会话的异步接收，默认打开，如果会话需要同步接收数据，需要关闭该选项。</summary>
         public Boolean AutoReceiveAsync { get { return _AutoReceiveAsync; } set { _AutoReceiveAsync = value; } }
 
@@ -45,6 +45,14 @@ namespace NewLife.Net.Tcp
         private Boolean _Active;
         /// <summary>是否活动</summary>
         public Boolean Active { get { return _Active || Disposed; } set { _Active = value; } }
+
+        private Boolean _ThrowException;
+        /// <summary>是否抛出异常，默认false不抛出。Send/Receive时可能发生异常，该设置决定是直接抛出异常还是通过<see cref="Error"/>事件</summary>
+        public Boolean ThrowException { get { return _ThrowException; } set { _ThrowException = value; } }
+
+        private IStatistics _Statistics = new Statistics();
+        /// <summary>统计信息</summary>
+        public IStatistics Statistics { get { return _Statistics; } private set { _Statistics = value; } }
         #endregion
 
         #region 构造
@@ -54,6 +62,29 @@ namespace NewLife.Net.Tcp
         /// <summary>构造TCP服务器对象</summary>
         /// <param name="port"></param>
         public TcpServer(Int32 port) { Port = port; }
+        #endregion
+
+        #region 释放资源
+        /// <summary>已重载。释放会话集合等资源</summary>
+        /// <param name="disposing"></param>
+        protected override void OnDispose(bool disposing)
+        {
+            base.OnDispose(disposing);
+
+            // 释放托管资源
+            if (disposing)
+            {
+                var sessions = _Sessions;
+                if (sessions != null)
+                {
+                    _Sessions = null;
+
+                    XTrace.WriteLine("准备释放Tcp会话{0}个！", sessions.Count);
+                    sessions.TryDispose();
+                    sessions.Clear();
+                }
+            }
+        }
         #endregion
 
         #region 开始停止
@@ -71,7 +102,7 @@ namespace NewLife.Net.Tcp
             // 在我（大石头）的开发机器上，实际上这里的最大值只能是200，大于200跟200一个样
             Server.Start();
 
-            AcceptAsync();
+            if (!AcceptAsync(true)) return;
 
             Active = true;
         }
@@ -95,14 +126,23 @@ namespace NewLife.Net.Tcp
         /// <remarks>这里一定不需要再次ReceiveAsync，因为TcpServer在处理完成Accepted事件后，会调用Start->ReceiveAsync</remarks>
         public event EventHandler<AcceptedEventArgs> Accepted;
 
-        void AcceptAsync()
+        /// <summary>开启异步接受新连接</summary>
+        /// <param name="throwException">是否抛出异常</param>
+        /// <returns>开启异步是否成功</returns>
+        Boolean AcceptAsync(Boolean throwException)
         {
             try
             {
                 Server.BeginAcceptTcpClient(OnAccept, null);
+                return true;
             }
-            catch (ObjectDisposedException) { return; }
-            catch (Exception ex) { OnError("BeginAcceptTcpClient", ex); return; }
+            //catch (ObjectDisposedException) { return false; }
+            catch (Exception ex)
+            {
+                if (!(ex is ObjectDisposedException)) OnError("BeginAcceptTcpClient", ex);
+                if (throwException) throw;
+                return false;
+            }
         }
 
         void OnAccept(IAsyncResult ar)
@@ -125,7 +165,7 @@ namespace NewLife.Net.Tcp
             }
             catch (Exception ex) { OnError("EndAcceptTcpClient", ex); }
 
-            AcceptAsync();
+            AcceptAsync(ThrowException);
 
             WriteLog("{0} Accept {1}", this, client.Client.RemoteEndPoint);
 
@@ -168,29 +208,6 @@ namespace NewLife.Net.Tcp
             var session = new TcpSession(this, client);
 
             return session;
-        }
-        #endregion
-
-        #region 释放资源
-        /// <summary>已重载。释放会话集合等资源</summary>
-        /// <param name="disposing"></param>
-        protected override void OnDispose(bool disposing)
-        {
-            base.OnDispose(disposing);
-
-            // 释放托管资源
-            if (disposing)
-            {
-                var sessions = _Sessions;
-                if (sessions != null)
-                {
-                    _Sessions = null;
-
-                    XTrace.WriteLine("准备释放Tcp会话{0}个！", sessions.Count);
-                    sessions.TryDispose();
-                    sessions.Clear();
-                }
-            }
         }
         #endregion
 

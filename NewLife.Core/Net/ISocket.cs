@@ -1,11 +1,15 @@
 ﻿using System;
 using System.Net.Sockets;
+using NewLife.Exceptions;
 
 namespace NewLife.Net
 {
     /// <summary>基础Socket接口</summary>
     /// <remarks>
-    /// 主要是对Socket封装一层，把所有异步操作结果转移到事件中去。
+    /// 封装所有基础接口的共有特性！
+    /// 
+    /// 核心设计理念：事件驱动，接口统一，简单易用！
+    /// 异常处理理念：确保主流程简单易用，特殊情况的异常通过事件处理！
     /// </remarks>
     public interface ISocket : IDisposable2
     {
@@ -19,8 +23,11 @@ namespace NewLife.Net
         /// <summary>端口</summary>
         Int32 Port { get; set; }
 
-        ///// <summary>接收数据包统计信息，默认关闭，通过<see cref="IStatistics.Enable"/>打开。</summary>
-        //IStatistics Statistics { get; }
+        /// <summary>是否抛出异常，默认false不抛出。Send/Receive时可能发生异常，该设置决定是直接抛出异常还是通过<see cref="Error"/>事件</summary>
+        Boolean ThrowException { get; set; }
+
+        /// <summary>接收数据包统计信息，默认关闭，通过<see cref="IStatistics.Enable"/>打开。</summary>
+        IStatistics Statistics { get; }
 
         ///// <summary>异步操作计数</summary>
         //Int32 AsyncCount { get; }
