@@ -82,6 +82,22 @@ namespace NewLife.Net
         /// <summary>读取的期望帧长度，小于该长度为未满一帧，读取不做返回</summary>
         /// <remarks>如果读取超时，也有可能返回</remarks>
         public Int32 FrameSize { get { return _ExpectedFrame; } set { _ExpectedFrame = value; } }
+
+        private String _Description;
+        /// <summary>描述信息</summary>
+        public String Description
+        {
+            get
+            {
+                if (_Description == null)
+                {
+                    var dic = GetNames();
+                    if (!dic.TryGetValue(PortName, out _Description))
+                        _Description = "";
+                }
+                return _Description;
+            }
+        }
         #endregion
 
         #region 构造
@@ -126,6 +142,8 @@ namespace NewLife.Net
             EnsureCreate();
 
             if (!Serial.IsOpen) Serial.Open();
+
+            _Description = null;
         }
 
         /// <summary>关闭</summary>
@@ -360,6 +378,16 @@ namespace NewLife.Net
         public static String[] GetPortNames()
         {
             var list = new List<String>();
+            foreach (var item in GetNames())
+            {
+                list.Add(String.Format("{0}({1})", item.Key, item.Value));
+            }
+            return list.ToArray();
+        }
+
+        static Dictionary<String, String> GetNames()
+        {
+            var dic = new Dictionary<String, String>();
             using (var key = Registry.LocalMachine.OpenSubKey(@"HARDWARE\DEVICEMAP\SERIALCOMM", false))
             {
                 if (key != null)
@@ -371,11 +399,12 @@ namespace NewLife.Net
                         var p = item.LastIndexOf('\\');
                         if (p >= 0) name = name.Substring(p + 1);
 
-                        list.Add(String.Format("{0}({1})", value, name));
+                        //list.Add(String.Format("{0}({1})", value, name));
+                        dic.Add(value, name);
                     }
                 }
             }
-            return list.ToArray();
+            return dic;
         }
         #endregion
 
