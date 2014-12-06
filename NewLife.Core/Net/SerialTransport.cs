@@ -133,7 +133,12 @@ namespace NewLife.Net
         /// <summary>确保创建</summary>
         public virtual void EnsureCreate()
         {
-            if (Serial == null) Serial = new SerialPort(PortName, BaudRate, Parity, DataBits, StopBits);
+            if (Serial == null)
+            {
+                Serial = new SerialPort(PortName, BaudRate, Parity, DataBits, StopBits);
+
+                _Description = null;
+            }
         }
 
         /// <summary>打开</summary>
@@ -142,8 +147,6 @@ namespace NewLife.Net
             EnsureCreate();
 
             if (!Serial.IsOpen) Serial.Open();
-
-            _Description = null;
         }
 
         /// <summary>关闭</summary>
