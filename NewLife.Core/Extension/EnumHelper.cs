@@ -35,11 +35,12 @@ namespace System
 
             if (value)
             {
-                // 必须先检查是否包含这个标识位，因为异或的操作仅仅是取反
-                if ((s & f) != f) s ^= f;
+                s |= f;
             }
             else
-                s = s | f;
+            {
+                s &= ~f;
+            }
 
             return (T)Enum.ToObject(typeof(T), s);
         }
