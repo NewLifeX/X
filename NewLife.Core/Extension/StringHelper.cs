@@ -142,6 +142,19 @@ namespace System
 
             return sb;
         }
+
+        /// <summary>字符串转数组</summary>
+        /// <param name="str"></param>
+        /// <param name="encoding"></param>
+        /// <returns></returns>
+        public static Byte[] GetBytes(this String str, Encoding encoding = null)
+        {
+            if (str == null) return null;
+            if (str == String.Empty) return new Byte[0];
+
+            if (encoding == null) encoding = Encoding.UTF8;
+            return encoding.GetBytes(str);
+        }
         #endregion
 
         #region 截取扩展

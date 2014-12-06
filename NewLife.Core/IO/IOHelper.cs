@@ -376,21 +376,25 @@ namespace System
         /// <summary>字节数组转换为字符串</summary>
         /// <param name="buf">字节数组</param>
         /// <param name="encoding">编码格式</param>
+        /// <param name="offset">字节数组中的偏移</param>
+        /// <param name="count">字节数组中的查找长度</param>
         /// <returns></returns>
-        public static String ToStr(this Byte[] buf, Encoding encoding = null)
+        public static String ToStr(this Byte[] buf, Encoding encoding = null, Int32 offset = 0, Int32 count = -1)
         {
-            if (buf == null || buf.Length < 1) return null;
+            if (buf == null || buf.Length < 1 || offset >= buf.Length) return null;
             if (encoding == null) encoding = Encoding.UTF8;
+
+            if (count < 0) count = buf.Length - offset;
 
             // 可能数据流前面有编码字节序列，需要先去掉
             var idx = 0;
             var preamble = encoding.GetPreamble();
             if (preamble != null && preamble.Length > 0)
             {
-                if (buf.StartsWith(preamble)) idx = preamble.Length;
+                if (buf.ReadBytes(offset, preamble.Length).StartsWith(preamble)) idx = preamble.Length;
             }
 
-            return encoding.GetString(buf, idx, buf.Length - idx);
+            return encoding.GetString(buf, offset + idx, count - idx);
         }
         #endregion
 
