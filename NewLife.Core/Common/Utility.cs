@@ -76,6 +76,25 @@ namespace NewLife
                 if (Int32.TryParse(str, out n)) return n;
                 return defaultValue;
             }
+            else if (value is Byte[])
+            {
+                var buf = (Byte[])value;
+                if (buf == null || buf.Length < 1) return defaultValue;
+
+                switch (buf.Length)
+                {
+                    case 1:
+                        return buf[0];
+                    case 2:
+                        return BitConverter.ToInt16(buf, 0);
+                    case 3:
+                        return BitConverter.ToInt32(new Byte[] { buf[0], buf[1], buf[2], 0 }, 0);
+                    case 4:
+                        return BitConverter.ToInt32(buf, 0);
+                    default:
+                        break;
+                }
+            }
 
             //var tc = Type.GetTypeCode(value.GetType());
             //if (tc >= TypeCode.Char && tc <= TypeCode.Decimal) return Convert.ToInt32(value);

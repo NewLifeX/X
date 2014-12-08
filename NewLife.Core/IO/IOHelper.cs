@@ -404,7 +404,7 @@ namespace System
         /// <param name="offset">偏移</param>
         /// <param name="isLittleEndian">是否小端字节序</param>
         /// <returns></returns>
-        public static UInt16 ReadUInt16(this Byte[] data, Int32 offset = 0, Boolean isLittleEndian = true)
+        public static UInt16 ToUInt16(this Byte[] data, Int32 offset = 0, Boolean isLittleEndian = true)
         {
             if (isLittleEndian)
                 return (UInt16)((data[offset + 1] << 8) | data[offset]);
@@ -437,7 +437,7 @@ namespace System
         /// <param name="offset">偏移</param>
         /// <param name="isLittleEndian">是否小端字节序</param>
         /// <returns></returns>
-        public static unsafe UInt64 ReadUInt64(this Byte[] data, Int32 offset = 0, Boolean isLittleEndian = true)
+        public static unsafe UInt64 ToUInt64(this Byte[] data, Int32 offset = 0, Boolean isLittleEndian = true)
         {
             if (isLittleEndian) return BitConverter.ToUInt64(data, offset);
 
@@ -465,7 +465,7 @@ namespace System
         /// <param name="offset">偏移</param>
         /// <param name="isLittleEndian">是否小端字节序</param>
         /// <returns></returns>
-        public static Byte[] WriteUInt16(this Byte[] data, UInt16 n, Int32 offset = 0, Boolean isLittleEndian = true)
+        public static Byte[] Write(this Byte[] data, UInt16 n, Int32 offset = 0, Boolean isLittleEndian = true)
         {
             // STM32单片机是小端
             // Modbus协议规定大端
@@ -490,7 +490,7 @@ namespace System
         /// <param name="offset">偏移</param>
         /// <param name="isLittleEndian">是否小端字节序</param>
         /// <returns></returns>
-        public static Byte[] WriteUInt32(this Byte[] data, UInt32 n, Int32 offset = 0, Boolean isLittleEndian = true)
+        public static Byte[] Write(this Byte[] data, UInt32 n, Int32 offset = 0, Boolean isLittleEndian = true)
         {
             if (isLittleEndian)
             {
@@ -518,7 +518,7 @@ namespace System
         /// <param name="offset">偏移</param>
         /// <param name="isLittleEndian">是否小端字节序</param>
         /// <returns></returns>
-        public static Byte[] WriteUInt64(this Byte[] data, UInt64 n, Int32 offset = 0, Boolean isLittleEndian = true)
+        public static Byte[] Write(this Byte[] data, UInt64 n, Int32 offset = 0, Boolean isLittleEndian = true)
         {
             if (isLittleEndian)
             {
@@ -538,6 +538,66 @@ namespace System
             }
 
             return data;
+        }
+
+        /// <summary>整数转为字节数组，注意大小端字节序</summary>
+        /// <param name="value"></param>
+        /// <param name="isLittleEndian"></param>
+        /// <returns></returns>
+        public static Byte[] GetBytes(this UInt16 value, Boolean isLittleEndian = true)
+        {
+            var buf = new Byte[2];
+            return buf.Write(value, 0, isLittleEndian);
+        }
+
+        /// <summary>整数转为字节数组，注意大小端字节序</summary>
+        /// <param name="value"></param>
+        /// <param name="isLittleEndian"></param>
+        /// <returns></returns>
+        public static Byte[] GetBytes(this Int16 value, Boolean isLittleEndian = true)
+        {
+            var buf = new Byte[2];
+            return buf.Write((UInt16)value, 0, isLittleEndian);
+        }
+
+        /// <summary>整数转为字节数组，注意大小端字节序</summary>
+        /// <param name="value"></param>
+        /// <param name="isLittleEndian"></param>
+        /// <returns></returns>
+        public static Byte[] GetBytes(this UInt32 value, Boolean isLittleEndian = true)
+        {
+            var buf = new Byte[4];
+            return buf.Write(value, 0, isLittleEndian);
+        }
+
+        /// <summary>整数转为字节数组，注意大小端字节序</summary>
+        /// <param name="value"></param>
+        /// <param name="isLittleEndian"></param>
+        /// <returns></returns>
+        public static Byte[] GetBytes(this Int32 value, Boolean isLittleEndian = true)
+        {
+            var buf = new Byte[4];
+            return buf.Write((UInt32)value, 0, isLittleEndian);
+        }
+
+        /// <summary>整数转为字节数组，注意大小端字节序</summary>
+        /// <param name="value"></param>
+        /// <param name="isLittleEndian"></param>
+        /// <returns></returns>
+        public static Byte[] GetBytes(this UInt64 value, Boolean isLittleEndian = true)
+        {
+            var buf = new Byte[8];
+            return buf.Write(value, 0, isLittleEndian);
+        }
+
+        /// <summary>整数转为字节数组，注意大小端字节序</summary>
+        /// <param name="value"></param>
+        /// <param name="isLittleEndian"></param>
+        /// <returns></returns>
+        public static Byte[] GetBytes(this Int64 value, Boolean isLittleEndian = true)
+        {
+            var buf = new Byte[8];
+            return buf.Write((UInt64)value, 0, isLittleEndian);
         }
         #endregion
 
