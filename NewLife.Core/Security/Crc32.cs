@@ -32,9 +32,9 @@ namespace NewLife.Security
     /// </remarks>
     public sealed class Crc32 //: HashAlgorithm
     {
-        #region 数据表
         const uint CrcSeed = 0xFFFFFFFF;
 
+        #region 数据表
         /// <summary>校验表</summary>
         public readonly static uint[] Table;
 
@@ -63,7 +63,7 @@ namespace NewLife.Security
         /// <summary>校验值</summary>
         uint crc = CrcSeed;
         /// <summary>校验值</summary>
-        public uint Value { get { return crc ^ CrcSeed; } set { crc = value ^ CrcSeed; } }
+        public UInt32 Value { get { return crc ^ CrcSeed; } set { crc = value ^ CrcSeed; } }
 
         /// <summary>重置清零</summary>
         public Crc32 Reset() { crc = CrcSeed; return this; }
@@ -92,8 +92,8 @@ namespace NewLife.Security
         public Crc32 Update(byte[] buffer, int offset = 0, int count = 0)
         {
             if (buffer == null) throw new ArgumentNullException("buffer");
-            if (count < 0) throw new ArgumentOutOfRangeException("count", "Count不能小于0！");
-            if (count == 0) count = buffer.Length;
+            //if (count < 0) throw new ArgumentOutOfRangeException("count", "Count不能小于0！");
+            if (count <= 0) count = buffer.Length;
             if (offset < 0 || offset + count > buffer.Length) throw new ArgumentOutOfRangeException("offset");
 
             while (--count >= 0)
@@ -110,8 +110,8 @@ namespace NewLife.Security
         public Crc32 Update(Stream stream, Int64 count = 0)
         {
             if (stream == null) throw new ArgumentNullException("stream");
-            if (count < 0) throw new ArgumentOutOfRangeException("count", "Count不能小于0！");
-            if (count == 0) count = Int64.MaxValue;
+            //if (count < 0) throw new ArgumentOutOfRangeException("count", "Count不能小于0！");
+            if (count <= 0) count = Int64.MaxValue;
 
             while (--count >= 0)
             {
@@ -122,6 +122,36 @@ namespace NewLife.Security
             }
 
             return this;
+        }
+
+        /// <summary>计算校验码</summary>
+        /// <param name="buf"></param>
+        /// <param name="offset"></param>
+        /// <param name="count"></param>
+        /// <returns></returns>
+        public static UInt32 Compute(Byte[] buf, Int32 offset = 0, Int32 count = -1)
+        {
+            var crc = new Crc32();
+            crc.Update(buf, offset, count);
+            return crc.Value;
+        }
+
+        /// <summary>计算校验码</summary>
+        /// <param name="stream"></param>
+        /// <param name="position">如果大于等于0，则表示从该位置开始计算</param>
+        /// <param name="count"></param>
+        /// <returns></returns>
+        public static UInt32 Compute(Stream stream, Int64 position = -1, Int32 count = 0)
+        {
+            if (position >= 0)
+            {
+                count = (Int32)(stream.Position - position);
+                stream.Position = position;
+            }
+
+            var crc = new Crc32();
+            crc.Update(stream, count);
+            return crc.Value;
         }
 
         //#region 抽象实现

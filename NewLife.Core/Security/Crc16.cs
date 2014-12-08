@@ -93,8 +93,8 @@ namespace NewLife.Security
         public Crc16 Update(byte[] buffer, int offset = 0, int count = 0)
         {
             if (buffer == null) throw new ArgumentNullException("buffer");
-            if (count < 0) throw new ArgumentOutOfRangeException("count", "Count不能小于0！");
-            if (count == 0) count = buffer.Length;
+            //if (count < 0) throw new ArgumentOutOfRangeException("count", "Count不能小于0！");
+            if (count <= 0) count = buffer.Length;
             if (offset < 0 || offset + count > buffer.Length) throw new ArgumentOutOfRangeException("offset");
 
             //while (--count >= 0)
@@ -118,8 +118,8 @@ namespace NewLife.Security
         public Crc16 Update(Stream stream, Int64 count = 0)
         {
             if (stream == null) throw new ArgumentNullException("stream");
-            if (count < 0) throw new ArgumentOutOfRangeException("count", "Count不能小于0！");
-            if (count == 0) count = Int64.MaxValue;
+            //if (count < 0) throw new ArgumentOutOfRangeException("count", "Count不能小于0！");
+            if (count <= 0) count = Int64.MaxValue;
 
             while (--count >= 0)
             {
@@ -139,6 +139,36 @@ namespace NewLife.Security
             }
 
             return this;
+        }
+
+        /// <summary>计算校验码</summary>
+        /// <param name="buf"></param>
+        /// <param name="offset"></param>
+        /// <param name="count"></param>
+        /// <returns></returns>
+        public static UInt16 Compute(Byte[] buf, Int32 offset = 0, Int32 count = -1)
+        {
+            var crc = new Crc16();
+            crc.Update(buf, offset, count);
+            return crc.Value;
+        }
+
+        /// <summary>计算校验码</summary>
+        /// <param name="stream"></param>
+        /// <param name="position">如果大于等于0，则表示从该位置开始计算</param>
+        /// <param name="count"></param>
+        /// <returns></returns>
+        public static UInt16 Compute(Stream stream, Int64 position = -1, Int32 count = 0)
+        {
+            if (position >= 0)
+            {
+                count = (Int32)(stream.Position - position);
+                stream.Position = position;
+            }
+
+            var crc = new Crc16();
+            crc.Update(stream, count);
+            return crc.Value;
         }
     }
 }
