@@ -339,6 +339,9 @@ namespace NewLife.Net.Sockets
         /// <param name="stream"></param>
         protected virtual void OnReceive(ISocketSession session, Stream stream) { }
 
+        /// <summary>错误发生/断开连接时</summary>
+        public event EventHandler<ExceptionEventArgs> Error;
+
         /// <summary>触发异常</summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -346,6 +349,8 @@ namespace NewLife.Net.Sockets
         {
             //if (!EnableLog) return;
             if (Log.Level < LogLevel.Info) return;
+
+            if (Error != null) Error(sender, e);
 
             //if ((e.SocketError == SocketError.OperationAborted || e.SocketError == SocketError.ConnectionReset) && !ShowAbortAsError) return;
 
