@@ -11,7 +11,7 @@ namespace NewLife.Serialization
         public BinaryList()
         {
             // 优先级
-            Priority = 10;
+            Priority = 20;
         }
 
         /// <summary>写入</summary>

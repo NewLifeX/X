@@ -42,6 +42,8 @@ namespace NewLife.Serialization
             //}
             list.Add(new BinaryGeneral { Host = this });
             list.Add(new BinaryComposite { Host = this });
+            list.Add(new BinaryList { Host = this });
+            //list.Add(new BinaryDictionary { Host = this });
             // 根据优先级排序
             list.Sort();
 

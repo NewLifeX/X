@@ -74,7 +74,7 @@ namespace NewLife.Serialization
                 // 最后一个不需要计算
                 if (i < ss.Length - 1)
                 {
-                    if (mi != null) value = value.GetValue(member);
+                    if (mi != null) value = value.GetValue(mi);
                 }
             }
 
