@@ -78,7 +78,8 @@ namespace NewLife.Serialization
             // 不支持基本类型
             if (Type.GetTypeCode(type) != TypeCode.Object) return false;
             // 不支持基类不是Object的特殊类型
-            if (type.BaseType != typeof(Object)) return false;
+            //if (type.BaseType != typeof(Object)) return false;
+            if (!typeof(Object).IsAssignableFrom(type)) return false;
 
             var ms = GetMembers(type);
             WriteLog("BinaryRead类{0} 共有成员{1}个", type.Name, ms.Count);
