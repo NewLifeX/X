@@ -86,6 +86,14 @@ namespace NewLife.Net
         }
         #endregion
 
+        #region 扩展属性
+        /// <summary>是否Tcp协议</summary>
+        public Boolean IsTcp { get { return ProtocolType == ProtocolType.Tcp; } }
+
+        /// <summary>是否Udp协议</summary>
+        public Boolean IsUdp { get { return ProtocolType == ProtocolType.Udp; } }
+        #endregion
+
         #region 构造
         /// <summary>实例化</summary>
         public NetUri() { }
