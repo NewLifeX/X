@@ -83,6 +83,9 @@ namespace NewLife.Net.DNS
 
             return Answers[0];
         }
+
+        /// <summary>是否PTR类型</summary>
+        public Boolean IsPTR { get { return Type == DNSQueryType.PTR; } }
         #endregion
 
         #region 读写
@@ -96,9 +99,10 @@ namespace NewLife.Net.DNS
                 var ms = new MemoryStream();
                 WriteRaw(ms);
 
-                var data = BitConverter.GetBytes((Int16)ms.Length);
-                Array.Reverse(data);
-                stream.Write(data, 0, data.Length);
+                //var data = BitConverter.GetBytes((Int16)ms.Length);
+                //Array.Reverse(data);
+                //stream.Write(data, 0, data.Length);
+                stream.Write(((Int16)ms.Length).GetBytes(false));
                 ms.WriteTo(stream);
             }
             else
@@ -109,19 +113,25 @@ namespace NewLife.Net.DNS
         /// <param name="stream"></param>
         public void WriteRaw(Stream stream)
         {
-            var writer = new BinaryWriterX();
-            writer.Settings.IsLittleEndian = false;
-            writer.Settings.UseObjRef = false;
-            writer.Settings.Encoding = Encoding.Default;
-            writer.Stream = stream;
-#if DEBUG
-            if (NetHelper.Debug)
-            {
-                writer.Debug = true;
-                writer.EnableTraceStream();
-            }
-#endif
-            writer.WriteObject(this);
+            //            var writer = new BinaryWriterX();
+            //            writer.Settings.IsLittleEndian = false;
+            //            writer.Settings.UseObjRef = false;
+            //            writer.Settings.Encoding = Encoding.Default;
+            //            writer.Stream = stream;
+            //#if DEBUG
+            //            if (NetHelper.Debug)
+            //            {
+            //                writer.Debug = true;
+            //                writer.EnableTraceStream();
+            //            }
+            //#endif
+            //            writer.WriteObject(this);
+
+            var binary = new Binary();
+            binary.Stream = stream;
+            binary.UseFieldSize = true;
+            binary.AddHandler<BinaryDNS>();
+            binary.Write(this);
         }
 
         /// <summary>获取当前对象的数据流</summary>
@@ -156,7 +166,6 @@ namespace NewLife.Net.DNS
             // 跳过2个字节的长度
             if (forTcp)
             {
-                //stream.Seek(2, SeekOrigin.Current);
                 // 必须全部先读出来，否则内部的字符串映射位移不正确
                 var data = new Byte[2];
                 stream.Read(data, 0, data.Length);
@@ -178,19 +187,25 @@ namespace NewLife.Net.DNS
         /// <returns></returns>
         public static DNSEntity ReadRaw(Stream stream)
         {
-            var reader = new BinaryReaderX();
-            reader.Settings.IsLittleEndian = false;
-            reader.Settings.UseObjRef = false;
-            reader.Settings.Encoding = Encoding.Default;
-            reader.Stream = stream;
-#if DEBUG
-            if (NetHelper.Debug)
-            {
-                reader.Debug = true;
-                reader.EnableTraceStream();
-            }
-#endif
-            return reader.ReadObject<DNSEntity>();
+            //            var reader = new BinaryReaderX();
+            //            reader.Settings.IsLittleEndian = false;
+            //            reader.Settings.UseObjRef = false;
+            //            reader.Settings.Encoding = Encoding.Default;
+            //            reader.Stream = stream;
+            //#if DEBUG
+            //            if (NetHelper.Debug)
+            //            {
+            //                reader.Debug = true;
+            //                reader.EnableTraceStream();
+            //            }
+            //#endif
+            //            return reader.ReadObject<DNSEntity>();
+
+            var binary = new Binary();
+            binary.Stream = stream;
+            binary.UseFieldSize = true;
+            binary.AddHandler<BinaryDNS>();
+            return binary.Read<DNSEntity>();
         }
         #endregion
 

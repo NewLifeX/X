@@ -19,7 +19,7 @@ namespace NewLife.Net.DNS
         /// <summary>是否响应</summary>
         public Boolean Response { get { return _D1.Has(D1.Response); } set { _D1 = _D1.Set<D1>(D1.Response, value); } }
 
-        /// <summary>长度4位，值0是标准查询，1是反向查询，2死服务器状态查询。</summary>
+        /// <summary>长度4位，值0是标准查询，1是反向查询，2是服务器状态查询。</summary>
         public DNSOpcodeType Opcode { get { return (DNSOpcodeType)(((UInt16)_D1 >> 3) & 0xFF); } set { _D1 = (D1)((UInt16)_D1 | ((Byte)value << 3)); } }
 
         /// <summary>长度1位，授权应答(Authoritative Answer) - 这个比特位在应答的时候才有意义，指出给出应答的服务器是查询域名的授权解析服务器。</summary>
@@ -36,7 +36,6 @@ namespace NewLife.Net.DNS
 
         /// <summary>长度1位，支持递归(Recursion Available) - 这个比特位在应答中设置或取消，用来代表服务器是否支持递归查询。</summary>
         public Boolean RecursionAvailable { get { return (_D2 & 0x80) == 0x80; } set { _D2 = (Byte)(value ? _D2 | 0x80 : _D2 & 0x7F); } }
-
 
         internal UInt16 Reserved
         {

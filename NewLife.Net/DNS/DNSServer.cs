@@ -8,7 +8,6 @@ using System.Net.Sockets;
 using System.Text;
 using NewLife.Collections;
 using NewLife.Log;
-using NewLife.Net.Common;
 using NewLife.Net.Sockets;
 
 namespace NewLife.Net.DNS
@@ -110,8 +109,7 @@ namespace NewLife.Net.DNS
         /// <param name="e"></param>
         protected override void OnReceive(ISocketSession session, Stream stream)
         {
-            //var session = e.Session;
-            Boolean isTcp = session.Local.ProtocolType == ProtocolType.Tcp;
+            var isTcp = session.Local.IsTcp;
 
             // 解析
             var request = DNSEntity.Read(stream, isTcp);
@@ -132,7 +130,7 @@ namespace NewLife.Net.DNS
         /// <returns></returns>
         protected virtual DNSEntity Request(ISocketSession session, DNSEntity request)
         {
-            Boolean isTcp = session.Local.ProtocolType == ProtocolType.Tcp;
+            var isTcp = session.Local.IsTcp;
 
             // 处理，修改
             WriteDNSLog("{0} 请求 {1}", session.Local, request);
@@ -147,7 +145,7 @@ namespace NewLife.Net.DNS
             }
 
             // 如果是PTR请求
-            if (request.Type == DNSQueryType.PTR)
+            if (request.IsPTR)
             {
                 var ptr = RequestPTR(request);
                 if (ptr != null) return ptr;
@@ -159,11 +157,8 @@ namespace NewLife.Net.DNS
             // 返回给客户端
             if (rs != null)
             {
-                //String file = String.Format("dns_{0:MMddHHmmss}.bin", DateTime.Now);
-                //File.WriteAllBytes(file, entity2.GetStream().ReadBytes());
-
                 // 如果是PTR请求
-                if (request.Type == DNSQueryType.PTR && rs.Type == DNSQueryType.PTR)
+                if (request.IsPTR && rs.IsPTR)
                 {
                     var ptr = request.Questions[0] as DNS_PTR;
                     var ptr2 = rs.GetAnswer() as DNS_PTR;
@@ -215,7 +210,7 @@ namespace NewLife.Net.DNS
         /// <param name="response"></param>
         protected virtual void Response(ISocketSession session, DNSEntity request, DNSEntity response)
         {
-            Boolean isTcp = session.Local.ProtocolType == ProtocolType.Tcp;
+            var isTcp = session.Local.IsTcp;
 
             if (OnResponse != null)
             {
@@ -241,7 +236,7 @@ namespace NewLife.Net.DNS
                 session = NetService.CreateSession(item);
                 parent = item;
                 // 如果是PTR请求
-                if (request.Type == DNSQueryType.PTR)
+                if (request.IsPTR)
                 {
                     // 复制一份，防止修改外部
                     request = new DNSEntity().CloneFrom(request);

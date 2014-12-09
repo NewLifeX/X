@@ -80,6 +80,7 @@
     <Compile Include="Common\ServerMessageProvider.cs" />
     <Compile Include="Dhcp\DchpMessageType.cs" />
     <Compile Include="Dhcp\DhcpEntity.cs" />
+    <Compile Include="DNS\BinaryDNS.cs" />
     <Compile Include="DNS\DNSOpcodeType.cs" />
     <Compile Include="DNS\DNSRcodeType.cs" />
     <Compile Include="DNS\DNS_NS.cs" />
