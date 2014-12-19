@@ -304,6 +304,29 @@ namespace System.Windows.Forms
         private const int WM_VSCROLL = 0x115;
         #endregion
 
+        #region 设置控件样式
+        /// <summary>设置默认样式，包括字体、前景色、背景色</summary>
+        /// <param name="control"></param>
+        /// <returns></returns>
+        public static Control SetDefaultStyle(this Control control, Int32 size = 10)
+        {
+            control.SetFontSize(size);
+            control.ForeColor = Color.White;
+            control.BackColor = Color.FromArgb(42, 33, 28);
+            return control;
+        }
+
+        /// <summary>设置字体大小</summary>
+        /// <param name="control"></param>
+        /// <param name="size"></param>
+        /// <returns></returns>
+        public static Control SetFontSize(this Control control, Int32 size = 10)
+        {
+            control.Font = new Font(control.Font.FontFamily, size, GraphicsUnit.Point);
+            return control;
+        }
+        #endregion
+
         #region 文本控件着色
         //Int32 _pColor = 0;
         static Color _Key = Color.FromArgb(255, 170, 0);
