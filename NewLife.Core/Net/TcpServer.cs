@@ -192,6 +192,8 @@ namespace NewLife.Net.Tcp
             WriteLog("{0} Accept {1}", this, client.Client.RemoteEndPoint);
 
             var session = CreateSession(client);
+            // 服务端不支持掉线重连
+            session.AutoReconnect = false;
             if (Accepted != null) Accepted(this, new AcceptedEventArgs { Session = session });
 
             Sessions.Add(session.Remote.EndPoint, session);
