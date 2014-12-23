@@ -5,7 +5,7 @@ using System.Net.Sockets;
 using NewLife.Log;
 using NewLife.Threading;
 
-namespace NewLife.Net.Tcp
+namespace NewLife.Net
 {
     /// <summary>TCP服务器</summary>
     /// <remarks>

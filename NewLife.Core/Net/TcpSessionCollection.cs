@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Net;
 using NewLife.Threading;
 
-namespace NewLife.Net.Tcp
+namespace NewLife.Net
 {
     /// <summary>会话集合。带有自动清理不活动会话的功能</summary>
     class TcpSessionCollection : DisposeBase, IDictionary<IPEndPoint, TcpSession>
