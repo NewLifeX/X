@@ -32,12 +32,12 @@ namespace NewLife.Net
         void ReceiveAsync();
 
         /// <summary>数据到达事件</summary>
-        event TransportEventHandler Received;
+        event EventHandler<ReceivedEventArgs> Received;
     }
 
-    /// <summary>传输口数据到达委托</summary>
-    /// <param name="transport">传输口</param>
-    /// <param name="data">收到的数据</param>
-    /// <returns>要发回去的数据</returns>
-    public delegate Byte[] TransportEventHandler(ITransport transport, Byte[] data);
+    ///// <summary>传输口数据到达委托</summary>
+    ///// <param name="transport">传输口</param>
+    ///// <param name="data">收到的数据</param>
+    ///// <returns>要发回去的数据</returns>
+    //public delegate Byte[] TransportEventHandler(ITransport transport, Byte[] data);
 }

@@ -188,15 +188,18 @@ namespace NewLife.Net
             // 分析处理
             if (Received != null)
             {
-                data = Received(this, data);
+                var e = new UdpReceivedEventArgs { Data = data };
+                e.Remote = ep;
+                e.UserState = ep;
+                Received(this, e);
 
                 // 数据发回去
-                if (data != null) server.Send(data, data.Length, ep);
+                if (e.Feedback) server.Send(data, data.Length, ep);
             }
         }
 
         /// <summary>数据到达事件，事件里调用<see cref="Receive"/>读取数据</summary>
-        public event TransportEventHandler Received;
+        public event EventHandler<ReceivedEventArgs> Received;
         #endregion
 
         #region 日志

@@ -31,9 +31,11 @@ using System.Runtime.InteropServices;
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("5.0.*")]
-[assembly: AssemblyFileVersion("5.0.2014.1202")]
+[assembly: AssemblyFileVersion("5.0.2014.1223")]
 
 /*
+ * v5.0.2014.1223   升级ITransport接口的事件实现方式，为上层应用开发提供强大有效的框架支持
+ * 
  * v5.0.2014.1202   第三代网络库完成，回归APM模型，以简单为核心理念。网络基础测试通过，Tcp压力测试2w通过
  * 
  * v4.7.2014.1129   增加UdpClientX，基于APM模型，简单实用

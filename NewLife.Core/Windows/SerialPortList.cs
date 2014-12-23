@@ -433,25 +433,26 @@ namespace NewLife.Windows
 
         MemoryStream _stream;
         StreamReader _reader;
-        Byte[] OnReceived(ITransport sender, Byte[] data)
+        void OnReceived(Object sender, ReceivedEventArgs e)
         {
-            if (data == null || data.Length < 1) return null;
+            var data = e.Data;
+            if (data == null || data.Length < 1) return;
 
             BytesOfReceived += data.Length;
 
             // 处理数据委托
             if (Received != null)
             {
-                var e = new BufferEventArgs { Value = data };
-                Received(this, e);
-                if (!e.Cancel) return null;
+                var e2 = new BufferEventArgs { Value = data };
+                Received(this, e2);
+                if (!e2.Cancel) return;
                 // 外部可能修改了数据
-                data = e.Value;
+                data = e2.Value;
                 //if (!BufferEventArgs.Invoke(Received, data)) return null;
             }
 
             // 处理字符串委托
-            if (ReceivedString == null) return null;
+            if (ReceivedString == null) return;
 
             var cfg = SerialPortConfig.Current;
 
@@ -478,8 +479,6 @@ namespace NewLife.Windows
             }
 
             if (ReceivedString != null) ReceivedString(this, new StringEventArgs { Value = line });
-
-            return null;
         }
         #endregion
 

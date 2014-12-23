@@ -317,15 +317,16 @@ namespace NewLife.Net
         {
             if (Received != null)
             {
-                buf = Received(this, buf);
+                var e = new ReceivedEventArgs(buf);
+                Received(this, e);
 
                 // 数据发回去
-                if (buf != null) Serial.Write(buf, 0, buf.Length);
+                if (e.Feedback) Serial.Write(buf, 0, buf.Length);
             }
         }
 
         /// <summary>数据到达事件，事件里调用<see cref="Receive"/>读取数据</summary>
-        public event TransportEventHandler Received;
+        public event EventHandler<ReceivedEventArgs> Received;
         #endregion
 
         #region 自动检测串口断开
