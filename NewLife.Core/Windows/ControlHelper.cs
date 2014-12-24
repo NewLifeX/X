@@ -306,7 +306,8 @@ namespace System.Windows.Forms
 
         #region 设置控件样式
         /// <summary>设置默认样式，包括字体、前景色、背景色</summary>
-        /// <param name="control"></param>
+        /// <param name="control">控件</param>
+        /// <param name="size">字体大小</param>
         /// <returns></returns>
         public static Control SetDefaultStyle(this Control control, Int32 size = 10)
         {

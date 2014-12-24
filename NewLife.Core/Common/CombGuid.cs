@@ -743,6 +743,7 @@ namespace NewLife
         /// <para>- 或 Guid 格式字符串 - </para>
         /// <para>8、4、4、4 和 12 位数字的分组，各组之间有连线符，dddddddd-dddd-dddd-dddd-dddddddddddd</para>
         /// </param>
+        /// <param name="sequentialType"></param>
         /// <param name="result">将包含已分析的值的结构。 如果此方法返回 true，result 包含有效的 CombGuid。 如果此方法返回 false，result 等于 CombGuid.Null。</param>
         /// <remarks>如果传入的 value 为字节数组时，解析生成的 CombGuid 结构实例将拥有此字节数组。</remarks>
         /// <returns></returns>
@@ -1124,6 +1125,9 @@ namespace NewLife
             }
         }
 
+        /// <summary></summary>
+        /// <param name="schemaSet"></param>
+        /// <returns></returns>
         public static XmlQualifiedName GetXsdType(XmlSchemaSet schemaSet)
         {
             return new XmlQualifiedName("String", XmlSchema.Namespace);
