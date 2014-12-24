@@ -3,7 +3,6 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using NewLife.Net.Sockets;
-using NewLife.Net.Tcp;
 
 namespace NewLife.Net.P2P
 {

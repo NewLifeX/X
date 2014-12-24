@@ -7,7 +7,6 @@ using System.Net.Sockets;
 using System.Threading;
 using NewLife.Log;
 using NewLife.Net.Sockets;
-using NewLife.Net.Tcp;
 using NewLife.Threading;
 
 namespace NewLife.Net.Application

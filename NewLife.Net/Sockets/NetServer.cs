@@ -7,7 +7,6 @@ using System.Text;
 using System.Threading;
 using NewLife.Log;
 using NewLife.Model;
-using NewLife.Net.Tcp;
 
 namespace NewLife.Net.Sockets
 {

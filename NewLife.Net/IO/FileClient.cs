@@ -1,7 +1,5 @@
 ﻿using System;
 using System.IO;
-using NewLife.Net.Sockets;
-using NewLife.Net.Tcp;
 
 namespace NewLife.Net.IO
 {

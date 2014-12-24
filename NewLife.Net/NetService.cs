@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Net.Sockets;
 using NewLife.Model;
-using NewLife.Net.Common;
 using NewLife.Net.Proxy;
 using NewLife.Net.Sockets;
-using NewLife.Net.Tcp;
 
 namespace NewLife.Net
 {
