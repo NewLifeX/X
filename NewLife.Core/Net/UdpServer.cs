@@ -10,7 +10,7 @@ using NewLife.Threading;
 namespace NewLife.Net
 {
     /// <summary>增强的UDP</summary>
-    public class UdpServer : SessionBase, ISocketServer
+    public class UdpServer : SessionBase, ISocketServer, ITransport
     {
         #region 属性
         private UdpClient _Client;
@@ -24,6 +24,9 @@ namespace NewLife.Net
         private Int32 _Sessions;
         /// <summary>会话数</summary>
         public Int32 Sessions { get { return _Sessions; } private set { _Sessions = value; } }
+
+        ///// <summary>读取的期望帧长度。该参数对UDP无效</summary>
+        //Int32 ITransport.FrameSize { get { return 0; } set { } }
         #endregion
 
         #region 构造
@@ -70,9 +73,13 @@ namespace NewLife.Net
 
             if (Client != null)
             {
+                var udp = Client;
+                Client = null;
                 try
                 {
-                    Client.Close();
+                    if (_Async != null && _Async.AsyncWaitHandle != null) _Async.AsyncWaitHandle.Close();
+
+                    udp.Close();
                     //NetHelper.Close(Client.Client);
                 }
                 catch (Exception ex)
@@ -83,7 +90,6 @@ namespace NewLife.Net
                     return false;
                 }
             }
-            //Client = null;
 
             return true;
         }
@@ -156,10 +162,6 @@ namespace NewLife.Net
         {
             if (!Open()) return null;
 
-            //IPEndPoint remoteEP = null;
-            //var data = Client.Receive(ref remoteEP);
-            //Remote.EndPoint = remoteEP;
-
             var buf = new Byte[1024 * 2];
             var count = Receive(buf, 0, buf.Length);
             if (count < 0) return null;
@@ -201,7 +203,7 @@ namespace NewLife.Net
                 {
                     OnError("Receive", ex);
 
-                    // 发送异常可能是连接出了问题，UDP不需要关闭
+                    // 异常可能是连接出了问题，UDP不需要关闭
                     //Close();
 
                     if (ThrowException) throw;
@@ -215,16 +217,19 @@ namespace NewLife.Net
         #endregion
 
         #region 异步接收
+        private IAsyncResult _Async;
+
         /// <summary>开始监听</summary>
         /// <returns>是否成功</returns>
         public override Boolean ReceiveAsync()
         {
             if (!Open()) return false;
 
+            if (_Async != null) return true;
             try
             {
                 // 开始新的监听
-                Client.BeginReceive(OnReceive, Client);
+                _Async = Client.BeginReceive(OnReceive, Client);
             }
             catch (Exception ex)
             {
@@ -245,6 +250,8 @@ namespace NewLife.Net
 
         void OnReceive(IAsyncResult ar)
         {
+            _Async = null;
+
             if (!Active) return;
             // 接收数据
             var client = ar.AsyncState as UdpClient;
@@ -320,11 +327,7 @@ namespace NewLife.Net
 
             var session = new UdpSession(this, remoteEP);
             Interlocked.Increment(ref _Sessions);
-            session.OnDisposed += (s, e) =>
-            {
-                //Sessions--;
-                Interlocked.Decrement(ref _Sessions);
-            };
+            session.OnDisposed += (s, e) => Interlocked.Decrement(ref _Sessions);
             return session;
         }
         #endregion
@@ -374,7 +377,6 @@ namespace NewLife.Net
         {
             Int64 total = 0;
 
-            //var size = stream.CanSeek ? stream.Length - stream.Position : udp.BufferSize;
             var size = 1472;
             Byte[] buffer = new Byte[size];
             while (true)
@@ -409,8 +411,6 @@ namespace NewLife.Net
         /// <returns>返回自身，用于链式写法</returns>
         public static UdpClient Send(this UdpClient udp, String message, Encoding encoding = null, IPEndPoint remoteEP = null)
         {
-            //Send(udp, Encoding.UTF8.GetBytes(message), remoteEP);
-
             if (encoding == null)
                 Send(udp, Encoding.UTF8.GetBytes(message), remoteEP);
             else
@@ -448,7 +448,7 @@ namespace NewLife.Net
         public static String ReceiveString(this UdpClient udp, Encoding encoding = null)
         {
             IPEndPoint ep = null;
-            Byte[] buffer = udp.Receive(ref ep);
+            var buffer = udp.Receive(ref ep);
             if (buffer == null || buffer.Length < 1) return null;
 
             if (encoding == null) encoding = Encoding.UTF8;

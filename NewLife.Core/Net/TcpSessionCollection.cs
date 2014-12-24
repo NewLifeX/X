@@ -7,9 +7,9 @@ using NewLife.Threading;
 namespace NewLife.Net
 {
     /// <summary>会话集合。带有自动清理不活动会话的功能</summary>
-    class TcpSessionCollection : DisposeBase, IDictionary<IPEndPoint, TcpSession>
+    class TcpSessionCollection : DisposeBase, IDictionary<String, TcpSession>
     {
-        Dictionary<IPEndPoint, TcpSession> _dic = new Dictionary<IPEndPoint, TcpSession>();
+        Dictionary<String, TcpSession> _dic = new Dictionary<String, TcpSession>();
 
         //private Int32 sessionID = 0;
 
@@ -20,8 +20,8 @@ namespace NewLife.Net
             lock (_dic)
             {
                 //session.ID = ++sessionID;
-                session.OnDisposed += (s, e) => { lock (_dic) { _dic.Remove((s as TcpSession).Remote.EndPoint); } };
-                _dic.Add(session.Remote.EndPoint, session);
+                session.OnDisposed += (s, e) => { lock (_dic) { _dic.Remove((s as TcpSession).Remote.EndPoint + ""); } };
+                _dic.Add(session.Remote.EndPoint + "", session);
 
                 if (clearTimer == null) clearTimer = new TimerX(RemoveNotAlive, null, ClearPeriod, ClearPeriod);
             }
@@ -68,7 +68,7 @@ namespace NewLife.Net
         {
             if (_dic.Count < 1) return;
 
-            var keys = new List<IPEndPoint>();
+            var keys = new List<String>();
             var values = new List<TcpSession>();
             lock (_dic)
             {
@@ -117,15 +117,15 @@ namespace NewLife.Net
         IEnumerator IEnumerable.GetEnumerator() { return _dic.GetEnumerator(); }
         #endregion
 
-        #region IDictionary<IPEndPoint,TcpSession> 成员
+        #region IDictionary<String,TcpSession> 成员
 
-        void IDictionary<IPEndPoint, TcpSession>.Add(IPEndPoint key, TcpSession value) { Add(value); }
+        void IDictionary<String, TcpSession>.Add(String key, TcpSession value) { Add(value); }
 
-        bool IDictionary<IPEndPoint, TcpSession>.ContainsKey(IPEndPoint key) { return _dic.ContainsKey(key); }
+        bool IDictionary<String, TcpSession>.ContainsKey(String key) { return _dic.ContainsKey(key); }
 
-        ICollection<IPEndPoint> IDictionary<IPEndPoint, TcpSession>.Keys { get { return _dic.Keys; } }
+        ICollection<String> IDictionary<String, TcpSession>.Keys { get { return _dic.Keys; } }
 
-        bool IDictionary<IPEndPoint, TcpSession>.Remove(IPEndPoint key)
+        bool IDictionary<String, TcpSession>.Remove(String key)
         {
             TcpSession session;
             if (!_dic.TryGetValue(key, out session)) return false;
@@ -136,31 +136,31 @@ namespace NewLife.Net
             return _dic.Remove(key);
         }
 
-        bool IDictionary<IPEndPoint, TcpSession>.TryGetValue(IPEndPoint key, out TcpSession value) { return _dic.TryGetValue(key, out value); }
+        bool IDictionary<String, TcpSession>.TryGetValue(String key, out TcpSession value) { return _dic.TryGetValue(key, out value); }
 
-        ICollection<TcpSession> IDictionary<IPEndPoint, TcpSession>.Values { get { return _dic.Values; } }
+        ICollection<TcpSession> IDictionary<String, TcpSession>.Values { get { return _dic.Values; } }
 
-        TcpSession IDictionary<IPEndPoint, TcpSession>.this[IPEndPoint key] { get { return _dic[key]; } set { _dic[key] = value; } }
+        TcpSession IDictionary<String, TcpSession>.this[String key] { get { return _dic[key]; } set { _dic[key] = value; } }
 
         #endregion
 
-        #region ICollection<KeyValuePair<IPEndPoint,TcpSession>> 成员
+        #region ICollection<KeyValuePair<String,TcpSession>> 成员
 
-        void ICollection<KeyValuePair<IPEndPoint, TcpSession>>.Add(KeyValuePair<IPEndPoint, TcpSession> item)
+        void ICollection<KeyValuePair<String, TcpSession>>.Add(KeyValuePair<String, TcpSession> item)
         {
             throw new XException("不支持！请使用Add(TcpSession session)方法！");
         }
 
-        bool ICollection<KeyValuePair<IPEndPoint, TcpSession>>.Contains(KeyValuePair<IPEndPoint, TcpSession> item) { throw new NotImplementedException(); }
+        bool ICollection<KeyValuePair<String, TcpSession>>.Contains(KeyValuePair<String, TcpSession> item) { throw new NotImplementedException(); }
 
-        void ICollection<KeyValuePair<IPEndPoint, TcpSession>>.CopyTo(KeyValuePair<IPEndPoint, TcpSession>[] array, int arrayIndex) { throw new NotImplementedException(); }
+        void ICollection<KeyValuePair<String, TcpSession>>.CopyTo(KeyValuePair<String, TcpSession>[] array, int arrayIndex) { throw new NotImplementedException(); }
 
-        bool ICollection<KeyValuePair<IPEndPoint, TcpSession>>.Remove(KeyValuePair<IPEndPoint, TcpSession> item) { throw new XException("不支持！请直接销毁会话对象！"); }
+        bool ICollection<KeyValuePair<String, TcpSession>>.Remove(KeyValuePair<String, TcpSession> item) { throw new XException("不支持！请直接销毁会话对象！"); }
 
         #endregion
 
-        #region IEnumerable<KeyValuePair<IPEndPoint,TcpSession>> 成员
-        IEnumerator<KeyValuePair<IPEndPoint, TcpSession>> IEnumerable<KeyValuePair<IPEndPoint, TcpSession>>.GetEnumerator()
+        #region IEnumerable<KeyValuePair<String,TcpSession>> 成员
+        IEnumerator<KeyValuePair<String, TcpSession>> IEnumerable<KeyValuePair<String, TcpSession>>.GetEnumerator()
         {
             throw new NotImplementedException();
         }

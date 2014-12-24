@@ -7,7 +7,7 @@ using NewLife.Threading;
 namespace NewLife.Net
 {
     /// <summary>增强TCP客户端</summary>
-    public class TcpSession : SessionBase, ISocketSession
+    public class TcpSession : SessionBase, ISocketSession, ITransport
     {
         #region 属性
         private TcpClient _Client;
@@ -33,6 +33,11 @@ namespace NewLife.Net
         private Boolean _AutoReconnect = true;
         /// <summary>是否自动重连，默认true。发生异常断开连接时，自动重连服务端。</summary>
         public Boolean AutoReconnect { get { return _AutoReconnect; } set { _AutoReconnect = value; } }
+
+        //private Int32 _FrameSize = 0;
+        ///// <summary>读取的期望帧长度，小于该长度为未满一帧，读取不做返回</summary>
+        ///// <remarks>如果读取超时，也有可能返回</remarks>
+        //public Int32 FrameSize { get { return _FrameSize; } set { _FrameSize = value; } }
         #endregion
 
         #region 构造
@@ -59,8 +64,9 @@ namespace NewLife.Net
             if (client == null) return;
 
             Client = client;
-            if (client.Client.LocalEndPoint != null) Local.EndPoint = (IPEndPoint)client.Client.LocalEndPoint;
-            if (client.Client.RemoteEndPoint != null) Remote.EndPoint = (IPEndPoint)client.Client.RemoteEndPoint;
+            var socket = client.Client;
+            if (socket.LocalEndPoint != null) Local.EndPoint = (IPEndPoint)socket.LocalEndPoint;
+            if (socket.RemoteEndPoint != null) Remote.EndPoint = (IPEndPoint)socket.RemoteEndPoint;
         }
 
         internal TcpSession(ISocketServer server, TcpClient client)
@@ -119,6 +125,8 @@ namespace NewLife.Net
                 Active = false;
                 try
                 {
+                    if (_Async != null && _Async.AsyncWaitHandle != null) _Async.AsyncWaitHandle.Close();
+
                     Client.Close();
                 }
                 catch (Exception ex)
@@ -275,17 +283,20 @@ namespace NewLife.Net
         #endregion
 
         #region 异步接收
+        private IAsyncResult _Async;
+
         /// <summary>开始监听</summary>
         /// <returns>是否成功</returns>
         public override Boolean ReceiveAsync()
         {
             if (!Open()) return false;
 
+            if (_Async != null) return true;
             try
             {
                 // 开始新的监听
                 var buf = new Byte[1500];
-                Client.GetStream().BeginRead(buf, 0, buf.Length, OnReceive, buf);
+                _Async = Client.GetStream().BeginRead(buf, 0, buf.Length, OnReceive, buf);
             }
             catch (Exception ex)
             {
@@ -307,6 +318,8 @@ namespace NewLife.Net
 
         void OnReceive(IAsyncResult ar)
         {
+            _Async = null;
+
             if (!Active) return;
 
             var client = Client;

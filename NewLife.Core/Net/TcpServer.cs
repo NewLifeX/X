@@ -73,17 +73,9 @@ namespace NewLife.Net
             base.OnDispose(disposing);
 
             // 释放托管资源
-            if (disposing)
+            //if (disposing)
             {
-                var sessions = _Sessions;
-                if (sessions != null)
-                {
-                    _Sessions = null;
-
-                    XTrace.WriteLine("准备释放Tcp会话{0}个！", sessions.Count);
-                    sessions.TryDispose();
-                    sessions.Clear();
-                }
+                Stop();
             }
         }
         #endregion
@@ -115,6 +107,10 @@ namespace NewLife.Net
 
             WriteLog("{0}.Stop {1}", this.GetType().Name, this);
 
+            if (_Async != null && _Async.AsyncWaitHandle != null) _Async.AsyncWaitHandle.Close();
+
+            CloseAllSession();
+
             if (Server != null) Server.Stop();
             Server = null;
 
@@ -127,14 +123,17 @@ namespace NewLife.Net
         /// <remarks>这里一定不需要再次ReceiveAsync，因为TcpServer在处理完成Accepted事件后，会调用Start->ReceiveAsync</remarks>
         public event EventHandler<AcceptedEventArgs> Accepted;
 
+        private IAsyncResult _Async;
+
         /// <summary>开启异步接受新连接</summary>
         /// <param name="throwException">是否抛出异常</param>
         /// <returns>开启异步是否成功</returns>
         Boolean AcceptAsync(Boolean throwException)
         {
+            if (_Async != null) return true;
             try
             {
-                Server.BeginAcceptTcpClient(OnAccept, null);
+                _Async = Server.BeginAcceptTcpClient(OnAccept, null);
                 return true;
             }
             catch (Exception ex)
@@ -150,6 +149,8 @@ namespace NewLife.Net
 
         void OnAccept(IAsyncResult ar)
         {
+            _Async = null;
+
             if (!Active) return;
 
             if (Server == null) return;
@@ -159,8 +160,6 @@ namespace NewLife.Net
             {
                 client = Server.EndAcceptTcpClient(ar);
             }
-            //catch (ObjectDisposedException) { return; }
-            //catch (SocketException ex)
             catch (Exception ex)
             {
                 if (!ex.IsDisposed())
@@ -176,7 +175,6 @@ namespace NewLife.Net
 
                 return;
             }
-            //catch (Exception ex) { OnError("EndAcceptTcpClient", ex); }
 
             // 在用户线程池里面去处理数据
             ThreadPoolX.QueueUserWorkItem(obj => OnAccept(obj as TcpClient), client);
@@ -194,9 +192,10 @@ namespace NewLife.Net
             var session = CreateSession(client);
             // 服务端不支持掉线重连
             session.AutoReconnect = false;
+            session.Log = Log;
             if (Accepted != null) Accepted(this, new AcceptedEventArgs { Session = session });
 
-            Sessions.Add(session.Remote.EndPoint, session);
+            Sessions.Add(session.Remote.EndPoint + "", session);
 
             // 设置心跳时间
             client.Client.SetTcpKeepAlive(true);
@@ -208,9 +207,9 @@ namespace NewLife.Net
 
         #region 会话
         private Object _Sessions_lock = new object();
-        private IDictionary<IPEndPoint, TcpSession> _Sessions;
+        private IDictionary<String, TcpSession> _Sessions;
         /// <summary>会话集合。用自增的数字ID作为标识，业务应用自己维持ID与业务主键的对应关系。</summary>
-        public IDictionary<IPEndPoint, TcpSession> Sessions
+        public IDictionary<String, TcpSession> Sessions
         {
             get
             {
@@ -233,6 +232,19 @@ namespace NewLife.Net
 
             return session;
         }
+
+        private void CloseAllSession()
+        {
+            var sessions = _Sessions;
+            if (sessions != null)
+            {
+                _Sessions = null;
+
+                XTrace.WriteLine("准备释放Tcp会话{0}个！", sessions.Count);
+                sessions.TryDispose();
+                sessions.Clear();
+            }
+        }
         #endregion
 
         #region 异常处理
@@ -244,22 +256,22 @@ namespace NewLife.Net
         /// <param name="ex">异常</param>
         protected virtual void OnError(String action, Exception ex)
         {
-            WriteLog("{0}.{1}Error {2} {3}", this.GetType().Name, action, this, ex == null ? null : ex.Message);
+            if (Log != null) Log.Error("{0}.{1}Error {2} {3}", this.GetType().Name, action, this, ex == null ? null : ex.Message);
             if (Error != null) Error(this, new ExceptionEventArgs { Action = action, Exception = ex });
         }
         #endregion
 
         #region 日志
-        private Boolean _Debug = false;
-        /// <summary>调试开关</summary>
-        public Boolean Debug { get { return _Debug; } set { _Debug = value; } }
+        private ILog _Log;
+        /// <summary>日志对象</summary>
+        public ILog Log { get { return _Log; } set { _Log = value; } }
 
         /// <summary>输出日志</summary>
         /// <param name="format"></param>
         /// <param name="args"></param>
         public void WriteLog(String format, params Object[] args)
         {
-            if (Debug) XTrace.WriteLine(format, args);
+            if (Log != null) Log.Info(format, args);
         }
         #endregion
 

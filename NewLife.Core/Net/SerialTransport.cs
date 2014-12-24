@@ -139,33 +139,36 @@ namespace NewLife.Net
         }
 
         /// <summary>打开</summary>
-        public virtual void Open()
+        public virtual Boolean Open()
         {
             EnsureCreate();
 
             if (!Serial.IsOpen) Serial.Open();
+
+            return true;
         }
 
         /// <summary>关闭</summary>
-        public virtual void Close()
+        public virtual Boolean Close()
         {
             // 关闭时必须清空，否则更换属性后再次打开也无法改变属性
             var sp = Serial;
             if (sp != null)
             {
                 Serial = null;
-                if (sp.IsOpen)
-                    ThreadPoolX.QueueUserWorkItem(() => sp.Close());
+                if (sp.IsOpen) sp.Close();
 
                 OnDisconnect();
             }
+
+            return true;
         }
 
         /// <summary>写入数据</summary>
         /// <param name="buffer">缓冲区</param>
         /// <param name="offset">偏移</param>
         /// <param name="count">数量</param>
-        public virtual void Send(Byte[] buffer, Int32 offset = 0, Int32 count = -1)
+        public virtual Boolean Send(Byte[] buffer, Int32 offset = 0, Int32 count = -1)
         {
             Open();
 
@@ -178,6 +181,8 @@ namespace NewLife.Net
             {
                 sp.Write(buffer, offset, count);
             }
+
+            return true;
         }
 
         /// <summary>从串口中读取指定长度的数据，一般是一帧</summary>
@@ -234,12 +239,14 @@ namespace NewLife.Net
 
         #region 异步接收
         /// <summary>开始监听</summary>
-        public virtual void ReceiveAsync()
+        public virtual Boolean ReceiveAsync()
         {
             Open();
 
             Serial.DataReceived += DataReceived;
             //Serial.ErrorReceived += Serial_ErrorReceived;
+
+            return true;
         }
 
         //void Serial_ErrorReceived(object sender, SerialErrorReceivedEventArgs e)
@@ -266,7 +273,8 @@ namespace NewLife.Net
             }
             catch (Exception ex)
             {
-                WriteLog("Error " + ex.Message);
+                //WriteLog("Error " + ex.Message);
+                if (Log != null) Log.Error("DataReceived Error {0}", ex.Message);
             }
         }
 
@@ -367,12 +375,16 @@ namespace NewLife.Net
         #endregion
 
         #region 日志
+        private ILog _Log;
+        /// <summary>日志对象</summary>
+        public ILog Log { get { return _Log; } set { _Log = value; } }
+
         /// <summary>输出日志</summary>
-        /// <param name="formart"></param>
+        /// <param name="format"></param>
         /// <param name="args"></param>
-        public static void WriteLog(String formart, params Object[] args)
+        public void WriteLog(String format, params Object[] args)
         {
-            XTrace.WriteLine(formart, args);
+            if (Log != null) Log.Info(format, args);
         }
 
         /// <summary>已重载</summary>

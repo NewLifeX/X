@@ -6,7 +6,7 @@ using System.Net.Sockets;
 namespace NewLife.Net
 {
     /// <summary>Udp会话。仅用于服务端与某一固定远程地址通信</summary>
-    class UdpSession : DisposeBase, ISocketSession
+    class UdpSession : DisposeBase, ISocketSession, ITransport
     {
         #region 属性
         private UdpServer _Server;
@@ -41,7 +41,6 @@ namespace NewLife.Net
         /// <summary>Socket服务器。当前通讯所在的Socket服务器，其实是TcpServer/UdpServer</summary>
         ISocketServer ISocketSession.Server { get { return _Server; } }
 
-        //private Boolean _ThrowException;
         /// <summary>是否抛出异常，默认false不抛出。Send/Receive时可能发生异常，该设置决定是直接抛出异常还是通过<see cref="Error"/>事件</summary>
         public Boolean ThrowException { get { return Server.ThrowException; } set { Server.ThrowException = value; } }
 
@@ -50,6 +49,9 @@ namespace NewLife.Net
         public IStatistics Statistics { get { return _Statistics; } private set { _Statistics = value; } }
 
         private IPEndPoint _Filter;
+
+        ///// <summary>读取的期望帧长度。该参数对UDP无效</summary>
+        //Int32 ITransport.FrameSize { get { return 0; } set { } }
         #endregion
 
         #region 构造
@@ -60,7 +62,7 @@ namespace NewLife.Net
             _Filter = remote;
 
             server.Received += server_Received;
-            //server.ReceiveAsync();
+            server.ReceiveAsync();
             server.Error += server_Error;
         }
 
@@ -168,10 +170,8 @@ namespace NewLife.Net
         /// <param name="ex">异常</param>
         protected virtual void OnError(String action, Exception ex)
         {
-            Server.WriteLog("{0}.{1}Error {2} {3}", this.GetType().Name, action, this, ex == null ? null : ex.Message);
+            if (Server.Log != null) Server.Log.Error("{0}.{1}Error {2} {3}", this.GetType().Name, action, this, ex == null ? null : ex.Message);
             if (Error != null) Error(this, new ExceptionEventArgs { Exception = ex });
-
-            //if (ex != null) Close();
         }
         #endregion
 
@@ -185,6 +185,12 @@ namespace NewLife.Net
             else
                 return Local.ToString();
         }
+        #endregion
+
+        #region ITransport接口
+        bool ITransport.Open() { return true; }
+
+        bool ITransport.Close() { return true; }
         #endregion
     }
 }

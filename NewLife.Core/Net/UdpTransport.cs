@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net;
 using System.Net.Sockets;
+using NewLife.Log;
 
 namespace NewLife.Net
 {
@@ -8,10 +9,6 @@ namespace NewLife.Net
     public class UdpTransport : ITransport, IDisposable
     {
         #region 属性
-        //private String _HostName;
-        ///// <summary>主机名</summary>
-        //public String HostName { get { return _HostName; } set { _HostName = value; } }
-
         private Int32 _Port;
         /// <summary>端口</summary>
         public Int32 Port { get { return _Port; } set { _Port = value; } }
@@ -28,9 +25,9 @@ namespace NewLife.Net
         /// <summary>客户端</summary>
         public UdpClient Client { get { return _Client; } set { _Client = value; } }
 
-        private Int32 _ExpectedFrame;
+        private Int32 _FrameSize;
         /// <summary>读取的期望帧长度，小于该长度为未满一帧，读取不做返回</summary>
-        public Int32 FrameSize { get { return _ExpectedFrame; } set { _ExpectedFrame = value; } }
+        public Int32 FrameSize { get { return _FrameSize; } set { _FrameSize = value; } }
         #endregion
 
         #region 构造
@@ -46,8 +43,6 @@ namespace NewLife.Net
         /// <param name="port"></param>
         public UdpTransport(String host, Int32 port)
         {
-            //HostName = host;
-            //Port = port;
             Remote = new IPEndPoint(NetUri.ParseAddress(host), port);
         }
 
@@ -95,9 +90,7 @@ namespace NewLife.Net
         {
             Open();
 
-#if !MF
             WriteLog("Write:{0}", BitConverter.ToString(buffer));
-#endif
 
             if (count < 0) count = buffer.Length - offset;
 
@@ -152,9 +145,7 @@ namespace NewLife.Net
                 catch { }
             }
 
-#if !MF
             WriteLog("Read:{0}", BitConverter.ToString(buffer, offset, size));
-#endif
 
             return size;
         }
@@ -208,9 +199,7 @@ namespace NewLife.Net
         /// <param name="args"></param>
         public static void WriteLog(String formart, params Object[] args)
         {
-#if !MF
-            NewLife.Log.XTrace.WriteLine(formart, args);
-#endif
+            XTrace.WriteLine(formart, args);
         }
         #endregion
     }

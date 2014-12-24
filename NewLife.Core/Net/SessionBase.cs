@@ -31,7 +31,7 @@ namespace NewLife.Net
         public Boolean Active { get { return _Active; } set { _Active = value; } }
 
         private Stream _Stream = new MemoryStream();
-        /// <summary>会话数据流，供用户程序使用，内部不做处理。可用于解决Tcp粘包的问题，把多余的分片放入该数据流中。</summary>
+        /// <summary>会话数据流。可用于解决Tcp粘包的问题，把多余的分片放入该数据流中。</summary>
         public Stream Stream { get { return _Stream; } set { _Stream = value; } }
 
         /// <summary>底层Socket</summary>
@@ -207,22 +207,22 @@ namespace NewLife.Net
         /// <param name="ex">异常</param>
         protected virtual void OnError(String action, Exception ex)
         {
-            WriteLog("{0}.{1}Error {2} {3}", this.GetType().Name, action, this, ex == null ? null : ex.Message);
+            if (Log != null) Log.Error("{0}.{1}Error {2} {3}", this.GetType().Name, action, this, ex == null ? null : ex.Message);
             if (Error != null) Error(this, new ExceptionEventArgs { Action = action, Exception = ex });
         }
         #endregion
 
         #region 日志
-        private Boolean _Debug = false;
-        /// <summary>调试开关</summary>
-        public Boolean Debug { get { return _Debug; } set { _Debug = value; } }
+        private ILog _Log;
+        /// <summary>日志对象</summary>
+        public ILog Log { get { return _Log; } set { _Log = value; } }
 
         /// <summary>输出日志</summary>
         /// <param name="format"></param>
         /// <param name="args"></param>
         public void WriteLog(String format, params Object[] args)
         {
-            if (Debug) XTrace.WriteLine(format, args);
+            if (Log != null) Log.Info(format, args);
         }
         #endregion
 
