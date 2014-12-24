@@ -88,6 +88,11 @@ namespace XCoder
         {
             CreateForm<XICO.FrmMain>();
         }
+
+        private void 网络调试工具ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            CreateForm<XNet.FrmMain>();
+        }
         #endregion
 
         #region 菜单控制

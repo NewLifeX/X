@@ -110,6 +110,7 @@
       <DependentUpon>FrmMain.cs</DependentUpon>
     </Compile>
     <Compile Include="XICO\IconFile.cs" />
+    <Compile Include="XNet\WorkModes.cs" />
     <Compile Include="XRegex\FileResource.cs" />
     <Compile Include="XRegex\FrmMain.cs">
       <SubType>Form</SubType>
@@ -117,6 +118,13 @@
     <Compile Include="XRegex\FrmMain.designer.cs">
       <DependentUpon>FrmMain.cs</DependentUpon>
     </Compile>
+    <Compile Include="XNet\FrmMain.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="XNet\FrmMain.designer.cs">
+      <DependentUpon>FrmMain.cs</DependentUpon>
+    </Compile>
+    <Compile Include="XNet\UIConfig.cs" />
     <EmbeddedResource Include="FrmMDI.resx">
       <DependentUpon>FrmMDI.cs</DependentUpon>
     </EmbeddedResource>
@@ -276,6 +284,10 @@
       <Project>{5813C22E-EEB3-4DEE-A45C-BB218041193A}</Project>
       <Name>NewLife.Core</Name>
     </ProjectReference>
+    <ProjectReference Include="..\NewLife.Net\NewLife.Net.csproj">
+      <Project>{5a8ef50c-3394-4c1e-99f0-33efe8691cb0}</Project>
+      <Name>NewLife.Net</Name>
+    </ProjectReference>
     <ProjectReference Include="..\XCode\XCode.csproj">
       <Project>{B49ABA5A-C5DA-45F4-87F1-B435EC51D710}</Project>
       <Name>XCode</Name>
@@ -299,6 +311,9 @@
       <DependentUpon>FrmMain.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="XRegex\FrmMain.resx">
+      <DependentUpon>FrmMain.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="XNet\FrmMain.resx">
       <DependentUpon>FrmMain.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="数据库命名规范.txt" />

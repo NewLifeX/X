@@ -76,6 +76,7 @@
             this.statusStrip = new System.Windows.Forms.StatusStrip();
             this.toolStripStatusLabel = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolTip = new System.Windows.Forms.ToolTip(this.components);
+            this.网络调试工具ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip.SuspendLayout();
             this.toolStrip.SuspendLayout();
             this.statusStrip.SuspendLayout();
@@ -114,6 +115,7 @@
             this.fileMenu.Name = "fileMenu";
             this.fileMenu.Size = new System.Drawing.Size(58, 21);
             this.fileMenu.Text = "文件(&F)";
+            this.fileMenu.Visible = false;
             // 
             // newToolStripMenuItem
             // 
@@ -227,7 +229,8 @@
             this.数据建模工具ToolStripMenuItem,
             this.正则表达式工具ToolStripMenuItem,
             this.通讯调试工具ToolStripMenuItem,
-            this.图标水印处理工具ToolStripMenuItem});
+            this.图标水印处理工具ToolStripMenuItem,
+            this.网络调试工具ToolStripMenuItem});
             this.toolsMenu.Name = "toolsMenu";
             this.toolsMenu.Size = new System.Drawing.Size(59, 21);
             this.toolsMenu.Text = "工具(&T)";
@@ -250,7 +253,7 @@
             // 
             this.通讯调试工具ToolStripMenuItem.Name = "通讯调试工具ToolStripMenuItem";
             this.通讯调试工具ToolStripMenuItem.Size = new System.Drawing.Size(172, 22);
-            this.通讯调试工具ToolStripMenuItem.Text = "通讯调试工具";
+            this.通讯调试工具ToolStripMenuItem.Text = "串口调试工具";
             this.通讯调试工具ToolStripMenuItem.Click += new System.EventHandler(this.通讯调试工具ToolStripMenuItem_Click);
             // 
             // 图标水印处理工具ToolStripMenuItem
@@ -276,42 +279,42 @@
             // newWindowToolStripMenuItem
             // 
             this.newWindowToolStripMenuItem.Name = "newWindowToolStripMenuItem";
-            this.newWindowToolStripMenuItem.Size = new System.Drawing.Size(142, 22);
+            this.newWindowToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.newWindowToolStripMenuItem.Text = "新建窗口(&N)";
             this.newWindowToolStripMenuItem.Click += new System.EventHandler(this.ShowNewForm);
             // 
             // cascadeToolStripMenuItem
             // 
             this.cascadeToolStripMenuItem.Name = "cascadeToolStripMenuItem";
-            this.cascadeToolStripMenuItem.Size = new System.Drawing.Size(142, 22);
+            this.cascadeToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.cascadeToolStripMenuItem.Text = "层叠(&C)";
             this.cascadeToolStripMenuItem.Click += new System.EventHandler(this.CascadeToolStripMenuItem_Click);
             // 
             // tileVerticalToolStripMenuItem
             // 
             this.tileVerticalToolStripMenuItem.Name = "tileVerticalToolStripMenuItem";
-            this.tileVerticalToolStripMenuItem.Size = new System.Drawing.Size(142, 22);
+            this.tileVerticalToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.tileVerticalToolStripMenuItem.Text = "垂直平铺(&V)";
             this.tileVerticalToolStripMenuItem.Click += new System.EventHandler(this.TileVerticalToolStripMenuItem_Click);
             // 
             // tileHorizontalToolStripMenuItem
             // 
             this.tileHorizontalToolStripMenuItem.Name = "tileHorizontalToolStripMenuItem";
-            this.tileHorizontalToolStripMenuItem.Size = new System.Drawing.Size(142, 22);
+            this.tileHorizontalToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.tileHorizontalToolStripMenuItem.Text = "水平平铺(&H)";
             this.tileHorizontalToolStripMenuItem.Click += new System.EventHandler(this.TileHorizontalToolStripMenuItem_Click);
             // 
             // closeAllToolStripMenuItem
             // 
             this.closeAllToolStripMenuItem.Name = "closeAllToolStripMenuItem";
-            this.closeAllToolStripMenuItem.Size = new System.Drawing.Size(142, 22);
+            this.closeAllToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.closeAllToolStripMenuItem.Text = "全部关闭(&L)";
             this.closeAllToolStripMenuItem.Click += new System.EventHandler(this.CloseAllToolStripMenuItem_Click);
             // 
             // arrangeIconsToolStripMenuItem
             // 
             this.arrangeIconsToolStripMenuItem.Name = "arrangeIconsToolStripMenuItem";
-            this.arrangeIconsToolStripMenuItem.Size = new System.Drawing.Size(142, 22);
+            this.arrangeIconsToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.arrangeIconsToolStripMenuItem.Text = "排列图标(&A)";
             this.arrangeIconsToolStripMenuItem.Click += new System.EventHandler(this.ArrangeIconsToolStripMenuItem_Click);
             // 
@@ -333,6 +336,7 @@
             this.contentsToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.F1)));
             this.contentsToolStripMenuItem.Size = new System.Drawing.Size(166, 22);
             this.contentsToolStripMenuItem.Text = "目录(&C)";
+            this.contentsToolStripMenuItem.Visible = false;
             // 
             // indexToolStripMenuItem
             // 
@@ -341,6 +345,7 @@
             this.indexToolStripMenuItem.Name = "indexToolStripMenuItem";
             this.indexToolStripMenuItem.Size = new System.Drawing.Size(166, 22);
             this.indexToolStripMenuItem.Text = "索引(&I)";
+            this.indexToolStripMenuItem.Visible = false;
             // 
             // searchToolStripMenuItem
             // 
@@ -349,6 +354,7 @@
             this.searchToolStripMenuItem.Name = "searchToolStripMenuItem";
             this.searchToolStripMenuItem.Size = new System.Drawing.Size(166, 22);
             this.searchToolStripMenuItem.Text = "搜索(&S)";
+            this.searchToolStripMenuItem.Visible = false;
             // 
             // toolStripSeparator8
             // 
@@ -462,6 +468,13 @@
             this.toolStripStatusLabel.Size = new System.Drawing.Size(32, 17);
             this.toolStripStatusLabel.Text = "状态";
             // 
+            // 网络调试工具ToolStripMenuItem
+            // 
+            this.网络调试工具ToolStripMenuItem.Name = "网络调试工具ToolStripMenuItem";
+            this.网络调试工具ToolStripMenuItem.Size = new System.Drawing.Size(172, 22);
+            this.网络调试工具ToolStripMenuItem.Text = "网络调试工具";
+            this.网络调试工具ToolStripMenuItem.Click += new System.EventHandler(this.网络调试工具ToolStripMenuItem_Click);
+            // 
             // FrmMDI
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
@@ -535,6 +548,7 @@
         private System.Windows.Forms.ToolStripMenuItem 正则表达式工具ToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem 通讯调试工具ToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem 图标水印处理工具ToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem 网络调试工具ToolStripMenuItem;
     }
 }
 
