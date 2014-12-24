@@ -53,10 +53,9 @@ namespace XCom
             binary.AddHandler<BinaryColor>(12);
             binary.AddHandler<BinaryUnknown>(20);
             binary.Stream = ms;
-//#if DEBUG
-            binary.Debug = true;
-            binary.EnableTrace();
-//#endif
+
+            //binary.Debug = true;
+            //binary.EnableTrace();
 
             try
             {
@@ -72,10 +71,10 @@ namespace XCom
             binary.AddHandler<BinaryFont>(11);
             binary.AddHandler<BinaryColor>(12);
             binary.AddHandler<BinaryUnknown>(20);
-//#if DEBUG
-            binary.Debug = true;
-            binary.EnableTrace();
-//#endif
+
+            //binary.Debug = true;
+            //binary.EnableTrace();
+
             binary.Write(this);
 
             var cfg = SerialPortConfig.Current;

@@ -6,7 +6,6 @@ using System.Windows.Forms;
 using NewLife.Log;
 using NewLife.Net;
 using NewLife.Net.Sockets;
-using NewLife.Windows;
 using XCoder;
 
 namespace XNet
@@ -99,6 +98,7 @@ namespace XNet
 
             var port = (Int32)numPort.Value;
             _Server = new NetServer();
+            _Server.Log = XTrace.Log;
             _Server.Port = port;
             if (!cbAddr.Text.Contains("所有本地")) _Server.Local.Address = IPAddress.Parse(cbAddr.SelectedText);
             _Server.Received += OnReceived;
@@ -127,6 +127,7 @@ namespace XNet
                 case WorkModes.TCP_Client:
                     _Server = null;
                     _TcpSession = new TcpSession();
+                    _TcpSession.Log = XTrace.Log;
                     _TcpSession.Received += OnReceived;
                     _TcpSession.Open();
                     break;
