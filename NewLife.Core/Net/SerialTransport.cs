@@ -4,6 +4,7 @@ using System.IO.Ports;
 using System.Linq;
 using System.Threading;
 using Microsoft.Win32;
+using NewLife.Log;
 using NewLife.Threading;
 
 namespace NewLife.Net
@@ -78,10 +79,10 @@ namespace NewLife.Net
         /// <summary>停止位。默认One</summary>
         public StopBits StopBits { get { return _StopBits; } set { _StopBits = value; } }
 
-        private Int32 _ExpectedFrame = 1;
+        private Int32 _FrameSize = 1;
         /// <summary>读取的期望帧长度，小于该长度为未满一帧，读取不做返回</summary>
         /// <remarks>如果读取超时，也有可能返回</remarks>
-        public Int32 FrameSize { get { return _ExpectedFrame; } set { _ExpectedFrame = value; } }
+        public Int32 FrameSize { get { return _FrameSize; } set { _FrameSize = value; } }
 
         private String _Description;
         /// <summary>描述信息</summary>
@@ -101,14 +102,12 @@ namespace NewLife.Net
         #endregion
 
         #region 构造
-#if !MF
         /// <summary>串口传输</summary>
         public SerialTransport()
         {
             // 每隔一段时间检查一次串口是否已经关闭，如果串口已经不存在，则关闭该传输口
             timer = new TimerX(CheckDisconnect, null, 3000, 3000);
         }
-#endif
 
         /// <summary>析构</summary>
         ~SerialTransport() { Dispose(false); }
@@ -123,9 +122,7 @@ namespace NewLife.Net
             if (disposing) GC.SuppressFinalize(this);
 
             if (Serial != null) Close();
-#if !MF
             if (timer != null) timer.Dispose();
-#endif
         }
         #endregion
 
@@ -158,23 +155,9 @@ namespace NewLife.Net
             {
                 Serial = null;
                 if (sp.IsOpen)
-                {
-#if MF
-                    // 关闭的时候不向外抛出错误，以确保完成关闭
-                    try
-                    {
-                        sp.Close();
-                    }
-                    catch { }
-#else
                     ThreadPoolX.QueueUserWorkItem(() => sp.Close());
-#endif
-                }
-                //Serial = null;
 
-#if !MF
                 OnDisconnect();
-#endif
             }
         }
 
@@ -186,9 +169,7 @@ namespace NewLife.Net
         {
             Open();
 
-#if !MF && DEBUG
             WriteLog("Write:{0}", BitConverter.ToString(buffer));
-#endif
 
             if (count < 0) count = buffer.Length - offset;
 
@@ -234,9 +215,7 @@ namespace NewLife.Net
                 catch { }
             }
 
-#if !MF && DEBUG
-            WriteLog("Read:{0} Expected/True={1}/{2}", BitConverter.ToString(buffer, bufstart, offset - bufstart), FrameSize, offset - bufstart);
-#endif
+            WriteLog("Read:{0} Expected/True={1}/{2}", buffer.ToHex(bufstart, offset - bufstart), FrameSize, offset - bufstart);
 
             return offset - bufstart;
         }
@@ -247,29 +226,9 @@ namespace NewLife.Net
 
             // 等待1秒，直到有数据为止
             var timeout = sp.ReadTimeout;
-#if MF
-            if (timeout <= 0) timeout = 500;
-#else
             if (timeout <= 0) timeout = 200;
-#endif
             var end = DateTime.Now.AddMilliseconds(timeout);
-#if MF
-            while (sp.BytesToRead < FrameSize && sp.IsOpen && end > DateTime.Now) Thread.Sleep(1);
-#else
             while (sp.BytesToRead < FrameSize && sp.IsOpen && end > DateTime.Now) Thread.SpinWait(1);
-#endif
-
-#if MF
-            // 注释下面这个代码后，性能提升15%
-            var n = 0;
-            // 暂停一会，可能还有数据
-            while (sp.BytesToRead > n)
-            {
-                n = sp.BytesToRead;
-                // 暂停一会，可能还有数据
-                Thread.Sleep(10);
-            }
-#endif
         }
         #endregion
 
@@ -330,7 +289,6 @@ namespace NewLife.Net
         #endregion
 
         #region 自动检测串口断开
-#if !MF
         /// <summary>断开时触发，可能是人为断开，也可能是串口链路断开</summary>
         public event EventHandler Disconnected;
 
@@ -365,15 +323,12 @@ namespace NewLife.Net
             // 如果端口已经不存在，则断开吧
             if (!SerialPort.GetPortNames().Contains(PortName))
             {
-#if DEBUG
-                NewLife.Log.XTrace.WriteLine("串口{0}已经不存在，准备关闭！", PortName);
-#endif
+                WriteLog("串口{0}已经不存在，准备关闭！", PortName);
 
                 //OnDisconnect();
                 Close();
             }
         }
-#endif
         #endregion
 
         #region 辅助
@@ -403,7 +358,6 @@ namespace NewLife.Net
                         var p = item.LastIndexOf('\\');
                         if (p >= 0) name = name.Substring(p + 1);
 
-                        //list.Add(String.Format("{0}({1})", value, name));
                         dic.Add(value, name);
                     }
                 }
@@ -418,18 +372,14 @@ namespace NewLife.Net
         /// <param name="args"></param>
         public static void WriteLog(String formart, params Object[] args)
         {
-#if !MF
-            NewLife.Log.XTrace.WriteLine(formart, args);
-#endif
+            XTrace.WriteLine(formart, args);
         }
 
         /// <summary>已重载</summary>
         /// <returns></returns>
         public override string ToString()
         {
-            //return PortName + "(SerialPort)";
-            // MF中没有String.IsNullOrEmpty
-            if (PortName != null && PortName != String.Empty)
+            if (!String.IsNullOrEmpty(PortName))
                 return PortName;
             else
                 return "(SerialPort)";
