@@ -167,8 +167,16 @@ namespace XNet
 
         void OnReceived(Object sender, ReceivedEventArgs e)
         {
+            var session = sender as ISocketSession;
+            if (session == null)
+            {
+                var ns = sender as INetSession;
+                if (ns == null) return;
+                session = ns.Session;
+            }
+
             //var line = e.Stream.ToStr();
-            var line = e.Data.ToHex(0, e.Length);
+            var line = String.Format("{0} [{1}]: {2}\r\n", session.Remote, e.Length, e.Data.ToHex(0, e.Length));
             //XTrace.UseWinFormWriteLog(txtReceive, line, 100000);
             TextControlLog.WriteLog(txtReceive, line);
         }
