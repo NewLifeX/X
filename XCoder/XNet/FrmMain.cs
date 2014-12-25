@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading;
 using System.Windows.Forms;
 using NewLife.Log;
 using NewLife.Net;
@@ -100,20 +101,12 @@ namespace XNet
             _Server = new NetServer();
             _Server.Log = XTrace.Log;
             _Server.Port = port;
-            if (!cbAddr.Text.Contains("所有本地")) _Server.Local.Address = IPAddress.Parse(cbAddr.SelectedText);
+            if (!cbAddr.Text.Contains("所有本地")) _Server.Local.Host = cbAddr.Text;
             _Server.Received += OnReceived;
 
             switch (GetMode())
             {
                 case WorkModes.UDP_TCP:
-                    //_TcpSever = new TcpServer(port);
-                    //_TcpSever.Accepted += _TcpSever_Accepted;
-                    //_TcpSever.Start();
-
-                    //_UdpServer = new UdpServer(port);
-                    //_UdpServer.Received += _UdpServer_Received;
-                    //_UdpServer.Open();
-
                     _Server.Start();
                     break;
                 case WorkModes.UDP:
@@ -129,6 +122,8 @@ namespace XNet
                     _TcpSession = new TcpSession();
                     _TcpSession.Log = XTrace.Log;
                     _TcpSession.Received += OnReceived;
+                    _TcpSession.Remote.Port = port;
+                    _TcpSession.Remote.Host = cbAddr.Text;
                     _TcpSession.Open();
                     break;
                 default:
@@ -182,57 +177,58 @@ namespace XNet
         }
 
         Int32 _pColor = 0;
+        Int32 BytesOfReceived = 0;
+        Int32 BytesOfSent = 0;
         Int32 lastReceive = 0;
         Int32 lastSend = 0;
         private void timer1_Tick(object sender, EventArgs e)
         {
-            //var sp = spList.Port;
-            //if (sp != null)
-            //{
-            //    // 检查串口是否已断开，自动关闭已断开的串口，避免内存暴涨
-            //    if (!spList.Enabled && btnConnect.Text == "打开")
-            //    {
-            //        Disconnect();
-            //        return;
-            //    }
+            if (!pnlSetting.Enabled)
+            {
+                //    // 检查串口是否已断开，自动关闭已断开的串口，避免内存暴涨
+                //    if (!spList.Enabled && btnConnect.Text == "打开")
+                //    {
+                //        Disconnect();
+                //        return;
+                //    }
 
-            //    var rcount = spList.BytesOfReceived;
-            //    var tcount = spList.BytesOfSent;
-            //    if (rcount != lastReceive)
-            //    {
-            //        gbReceive.Text = (gbReceive.Tag + "").Replace("0", rcount + "");
-            //        lastReceive = rcount;
-            //    }
-            //    if (tcount != lastSend)
-            //    {
-            //        gbSend.Text = (gbSend.Tag + "").Replace("0", tcount + "");
-            //        lastSend = tcount;
-            //    }
+                var rcount = BytesOfReceived;
+                var tcount = BytesOfSent;
+                if (rcount != lastReceive)
+                {
+                    gbReceive.Text = (gbReceive.Tag + "").Replace("0", rcount + "");
+                    lastReceive = rcount;
+                }
+                if (tcount != lastSend)
+                {
+                    gbSend.Text = (gbSend.Tag + "").Replace("0", tcount + "");
+                    lastSend = tcount;
+                }
 
-            //    //ChangeColor();
-            //    txtReceive.ColourDefault(_pColor);
-            //    _pColor = txtReceive.TextLength;
-            //}
+                txtReceive.ColourDefault(_pColor);
+                _pColor = txtReceive.TextLength;
+            }
         }
 
         private void btnSend_Click(object sender, EventArgs e)
         {
-            //var str = txtSend.Text;
-            //if (String.IsNullOrEmpty(str))
-            //{
-            //    MessageBox.Show("发送内容不能为空！", this.Text);
-            //    txtSend.Focus();
-            //    return;
-            //}
+            var str = txtSend.Text;
+            if (String.IsNullOrEmpty(str))
+            {
+                MessageBox.Show("发送内容不能为空！", this.Text);
+                txtSend.Focus();
+                return;
+            }
 
-            //// 多次发送
-            //var count = (Int32)numMutilSend.Value;
-            //for (int i = 0; i < count; i++)
-            //{
-            //    spList.Send(str);
+            // 多次发送
+            var count = (Int32)numMutilSend.Value;
+            for (int i = 0; i < count; i++)
+            {
+                //spList.Send(str);
+                _TcpSession.Send(str);
 
-            //    Thread.Sleep(100);
-            //}
+                Thread.Sleep(100);
+            }
         }
         #endregion
 
@@ -301,6 +297,7 @@ namespace XNet
                     break;
                 case WorkModes.TCP_Client:
                     cbAddr.DropDownStyle = ComboBoxStyle.DropDown;
+                    cbAddr.DataSource = null;
                     cbAddr.Items.Clear();
                     break;
                 default:
