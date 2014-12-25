@@ -4,9 +4,11 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Windows.Forms;
+using NewLife;
 using NewLife.Log;
 using NewLife.Net;
 using NewLife.Net.Sockets;
+using NewLife.Reflection;
 using XCoder;
 
 namespace XNet
@@ -111,7 +113,8 @@ namespace XNet
             if (!cbAddr.Text.Contains("所有本地")) _Server.Local.Host = cbAddr.Text;
             _Server.Received += OnReceived;
 
-            switch (GetMode())
+            var mode = GetMode();
+            switch (mode)
             {
                 case WorkModes.UDP_TCP:
                     _Server.Start();
@@ -136,6 +139,18 @@ namespace XNet
                     config.Address = cbAddr.Text;
                     break;
                 default:
+                    if ((Int32)mode > 0)
+                    {
+                        var type = TypeX.GetType(mode.ToString() + "Server");
+                        if (type == null) throw new XException("未识别服务[{0}]", mode);
+
+                        var ns = type.CreateInstance() as NetServer;
+                        ns.Local.Host = _Server.Local.Host;
+                        config.Port = ns.Port;
+                        numPort.Value = ns.Port;
+                        _Server = ns;
+                        _Server.Start();
+                    }
                     break;
             }
 
@@ -300,12 +315,6 @@ namespace XNet
 
             switch (mode)
             {
-                case WorkModes.UDP_TCP:
-                case WorkModes.UDP:
-                case WorkModes.TCP_Server:
-                    cbAddr.DropDownStyle = ComboBoxStyle.DropDownList;
-                    cbAddr.DataSource = GetIPs();
-                    break;
                 case WorkModes.TCP_Client:
                     cbAddr.DropDownStyle = ComboBoxStyle.DropDown;
                     cbAddr.DataSource = null;
@@ -313,6 +322,11 @@ namespace XNet
                     cbAddr.Text = NetConfig.Current.Address;
                     break;
                 default:
+                case WorkModes.UDP_TCP:
+                case WorkModes.UDP:
+                case WorkModes.TCP_Server:
+                    cbAddr.DropDownStyle = ComboBoxStyle.DropDownList;
+                    cbAddr.DataSource = GetIPs();
                     break;
             }
         }

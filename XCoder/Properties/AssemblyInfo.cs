@@ -25,10 +25,12 @@ using System.Runtime.InteropServices;
 //      内部版本号
 //      修订号
 //
-[assembly: AssemblyVersion("6.1.*")]
-[assembly: AssemblyFileVersion("6.1.2014.0907")]
+[assembly: AssemblyVersion("6.2.*")]
+[assembly: AssemblyFileVersion("6.2.2014.1225")]
 
 /*
+ * v6.2.2014.1225   增加网络调试工具，支持TCP/UDP混合，支持内置基础网络服务协议解析
+ * 
  * v6.1.2014.0907   串口工具XCOM以十六进制输出时，可以选择是否自动换行
  * 
  * v6.1.2014.0607   串口工具XCOM，自动检测到串口断开时，断开串口连接，避免内存溢出

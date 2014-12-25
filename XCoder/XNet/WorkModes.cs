@@ -15,6 +15,18 @@ namespace XNet
         [Description("TCP服务端")]
         TCP_Server,
         [Description("TCP客户端")]
-        TCP_Client
+        TCP_Client,
+
+        [Description("Echo服务")]
+        Echo,
+
+        [Description("Chargen服务")]
+        Chargen,
+
+        [Description("Daytime服务")]
+        Daytime,
+
+        [Description("Time服务")]
+        Time
     }
 }
