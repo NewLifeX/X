@@ -66,7 +66,9 @@ namespace NewLife.Net.SGIP
             try
             {
                 //client.Connect(IP, Port);
-                client.Connect(IP, Port);
+                //client.Connect(IP, Port);
+                client.Remote.Host = IP;
+                client.Remote.Port = Port;
             }
             catch (Exception ex)
             {

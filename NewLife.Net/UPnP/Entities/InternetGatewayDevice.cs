@@ -267,7 +267,8 @@ namespace NewLife.Net.UPnP
             try
             {
                 //client.Connect(uri.Host, uri.Port);
-                client.Connect(uri.Host, uri.Port);
+                client.Remote.Host = uri.Host;
+                client.Remote.Port = uri.Port;
                 session.Send(header + xml);
 
                 String response = session.ReceiveString();

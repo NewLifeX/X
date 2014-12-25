@@ -27,7 +27,9 @@ namespace NewLife.Net.IO
                 var tcp = new TcpSession();
                 Client = tcp;
                 //Client.Connect(hostname, port);
-                tcp.Connect(hostname, port);
+                //tcp.Connect(hostname, port);
+                tcp.Remote.Port = port;
+                tcp.Remote.Host = hostname;
             }
         }
 

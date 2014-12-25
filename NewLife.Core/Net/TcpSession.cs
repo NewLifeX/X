@@ -96,7 +96,9 @@ namespace NewLife.Net
             }
 
             // 打开端口前如果已设定远程地址，则自动连接
-            if (Remote != null && !Remote.EndPoint.IsAny())
+            if (Remote == null || Remote.EndPoint.IsAny()) return false;
+
+            //if (Remote != null && !Remote.EndPoint.IsAny())
             {
                 try
                 {
@@ -142,59 +144,39 @@ namespace NewLife.Net
             return true;
         }
 
-        /// <summary>打开远程连接</summary>
-        /// <param name="remoteEP"></param>
-        /// <returns></returns>
-        public Boolean Connect(IPEndPoint remoteEP)
-        {
-            Remote.EndPoint = remoteEP;
-            if (!Open()) return false;
-
-            // 如果前面已经打开连接，这里就不需要继续了
-            if (Client.Connected) return true;
-
-            try
-            {
-                Client.Connect(Remote.EndPoint);
-            }
-            catch (Exception ex)
-            {
-                if (!ex.IsDisposed()) OnError("Connect", ex);
-                if (ThrowException) throw;
-
-                return false;
-            }
-
-            return true;
-        }
-
-        /// <summary>打开远程连接</summary>
-        /// <param name="host"></param>
-        /// <param name="port"></param>
-        /// <returns></returns>
-        public Boolean Connect(String host, Int32 port)
-        {
-            return Connect(NetHelper.ParseEndPoint(host, port));
-        }
-
-        ///// <summary>连接</summary>
+        ///// <summary>打开远程连接</summary>
         ///// <param name="remoteEP"></param>
         ///// <returns></returns>
-        //protected override Boolean OnConnect(IPEndPoint remoteEP)
+        //public Boolean Connect(IPEndPoint remoteEP)
         //{
-        //    //Open();
+        //    Remote.EndPoint = remoteEP;
+        //    if (!Open()) return false;
 
-        //    // 如果已连接，需要特殊处理
-        //    if (Client.Connected)
+        //    // 如果前面已经打开连接，这里就不需要继续了
+        //    if (Client.Connected) return true;
+
+        //    try
         //    {
-        //        if (Client.Client.RemoteEndPoint.Equals(remoteEP)) return true;
+        //        Client.Connect(Remote.EndPoint);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        if (!ex.IsDisposed()) OnError("Connect", ex);
+        //        if (ThrowException) throw;
 
-        //        Client.Client.Disconnect(true);
+        //        return false;
         //    }
 
-        //    Client.Connect(remoteEP);
-
         //    return true;
+        //}
+
+        ///// <summary>打开远程连接</summary>
+        ///// <param name="host"></param>
+        ///// <param name="port"></param>
+        ///// <returns></returns>
+        //public Boolean Connect(String host, Int32 port)
+        //{
+        //    return Connect(NetHelper.ParseEndPoint(host, port));
         //}
 
         /// <summary>发送数据</summary>
