@@ -240,9 +240,12 @@ namespace NewLife.Net
             {
                 _Sessions = null;
 
-                XTrace.WriteLine("准备释放Tcp会话{0}个！", sessions.Count);
-                sessions.TryDispose();
-                sessions.Clear();
+                if (sessions.Count > 0)
+                {
+                    XTrace.WriteLine("准备释放Tcp会话{0}个！", sessions.Count);
+                    sessions.TryDispose();
+                    sessions.Clear();
+                }
             }
         }
         #endregion
