@@ -26,7 +26,7 @@ namespace XNet
             //var asmx = AssemblyX.Entry;
             //this.Text = asmx.Title;
 
-            this.Icon = IcoHelper.GetIcon("串口");
+            this.Icon = IcoHelper.GetIcon("网络");
         }
 
         private void FrmMain_Load(object sender, EventArgs e)
@@ -46,6 +46,9 @@ namespace XNet
 
             cbAddr.DropDownStyle = ComboBoxStyle.DropDownList;
             cbAddr.DataSource = GetIPs();
+
+            var config = NetConfig.Current;
+            if (config.Port > 0) numPort.Value = config.Port;
 
             //var menu = spList.Menu;
             //txtReceive.ContextMenuStrip = menu;
@@ -98,6 +101,10 @@ namespace XNet
             _TcpSession = null;
 
             var port = (Int32)numPort.Value;
+
+            var config = NetConfig.Current;
+            config.Port = port;
+
             _Server = new NetServer();
             _Server.Log = XTrace.Log;
             _Server.Port = port;
@@ -125,6 +132,8 @@ namespace XNet
                     _TcpSession.Remote.Port = port;
                     _TcpSession.Remote.Host = cbAddr.Text;
                     _TcpSession.Open();
+
+                    config.Address = cbAddr.Text;
                     break;
                 default:
                     break;
@@ -132,6 +141,8 @@ namespace XNet
 
             pnlSetting.Enabled = false;
             btnConnect.Text = "关闭";
+
+            config.Save();
         }
 
         void Disconnect()
@@ -299,6 +310,7 @@ namespace XNet
                     cbAddr.DropDownStyle = ComboBoxStyle.DropDown;
                     cbAddr.DataSource = null;
                     cbAddr.Items.Clear();
+                    cbAddr.Text = NetConfig.Current.Address;
                     break;
                 default:
                     break;

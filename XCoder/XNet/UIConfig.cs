@@ -35,7 +35,7 @@ namespace XNet
 
         public static UIConfig Load()
         {
-            var cfg = SerialPortConfig.Current;
+            var cfg = NetConfig.Current;
             if (cfg.Extend.IsNullOrWhiteSpace()) return null;
 
             Byte[] buf = null;
@@ -77,7 +77,7 @@ namespace XNet
 
             binary.Write(this);
 
-            var cfg = SerialPortConfig.Current;
+            var cfg = NetConfig.Current;
             cfg.Extend = binary.GetBytes().ToBase64(0, 0, true);
             cfg.Save();
         }
