@@ -313,7 +313,7 @@ namespace System
 
         static void Wake(String mac)
         {
-            mac = mac.Replace("-", null);
+            mac = mac.Replace("-", null).Replace(":", null);
             var buffer = new Byte[mac.Length / 2];
             for (int i = 0; i < buffer.Length; i++)
             {
