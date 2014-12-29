@@ -71,6 +71,24 @@ namespace XControl
             }
         }
 
+        /// <summary>用户自定义日期格式</summary>
+        [Bindable(true)]
+        [Category("专用")]
+        [Description("是否只显示时间部分格式")]
+        [DefaultValue("")]
+        [Localizable(true)]
+        public String CDateFmt
+        {
+            get
+            {
+                return (String)ViewState["CDateFmt"] ?? "";
+            }
+            set
+            {
+                ViewState["CDateFmt"] = value;
+            }
+        }
+
         /// <summary>客户端只读</summary>
         [Bindable(true)]
         [Category("专用")]
@@ -146,15 +164,21 @@ namespace XControl
             }
             set
             {
-                if (LongTime)
+                //自定义格式优先级高于LongTime 和 MinTime
+                if (CDateFmt.IsNullOrEmpty())
                 {
-                    if (MinTime)
-                        Text = value.ToString("HH:mm:ss");
-                    else
-                        Text = value.ToString("yyyy-MM-dd HH:mm:ss");
+                    if (LongTime)
+                    {
+                        if (MinTime)
+                            Text = value.ToString("HH:mm:ss");
+                        else
+                            Text = value.ToString("yyyy-MM-dd HH:mm:ss");
+                    }
                 }
                 else
+                {
                     Text = value.ToString("yyyy-MM-dd");
+                }
             }
         }
 
@@ -239,12 +263,19 @@ namespace XControl
                 StringBuilder sb = new StringBuilder();
                 sb.Append("WdatePicker({");
                 sb.Append("autoPickDate:true");
-                if (LongTime)
+                if (CDateFmt.IsNullOrEmpty())
                 {
-                    if (MinTime)
-                        sb.Append(",dateFmt:'HH:mm:ss'");
-                    else
-                        sb.Append(",dateFmt:'yyyy-MM-dd HH:mm:ss'");
+                    if (LongTime)
+                    {
+                        if (MinTime)
+                            sb.Append(",dateFmt:'HH:mm:ss'");
+                        else
+                            sb.Append(",dateFmt:'yyyy-MM-dd HH:mm:ss'");
+                    }
+                }
+                else
+                {
+                    sb.Append(",dateFmt:'" + CDateFmt + "'");
                 }
                 //else
                 //    sb.Append(",dateFmt:'yyyy-MM-dd'");
