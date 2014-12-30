@@ -333,7 +333,7 @@ namespace NewLife.Net
             }
 
             // 在用户线程池里面处理数据
-            ThreadPoolX.QueueUserWorkItem(() => OnReceive(data, count));
+            ThreadPoolX.QueueUserWorkItem(() => OnReceive(data, count), ex => OnError("OnReceive", ex));
 
             // 开始新的监听
             ReceiveAsync();

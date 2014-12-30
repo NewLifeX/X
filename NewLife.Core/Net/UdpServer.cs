@@ -285,7 +285,7 @@ namespace NewLife.Net
             Remote.EndPoint = ep;
 
             // 在用户线程池里面去处理数据
-            ThreadPoolX.QueueUserWorkItem(() => OnReceive(data, ep));
+            ThreadPoolX.QueueUserWorkItem(() => OnReceive(data, ep), ex => OnError("OnReceive", ex));
 
             // 开始新的监听
             ReceiveAsync();
