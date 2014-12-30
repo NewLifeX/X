@@ -118,6 +118,7 @@
     <Compile Include="Entity\EntityExtend.cs" />
     <Compile Include="Entity\EntitySession.cs" />
     <Compile Include="Entity\IEntitySession.cs" />
+    <Compile Include="Entity\SelectModes.cs" />
     <Compile Include="Model\ConcatExpression.cs" />
     <Compile Include="Sync\ISyncMaster.cs" />
     <Compile Include="Sync\ISyncSlave.cs" />
