@@ -51,6 +51,11 @@ namespace NewLife
         /// <param name="defaultValue">默认值。待转换对象无效时使用</param>
         /// <returns></returns>
         public static DateTime ToDateTime(this Object value, DateTime defaultValue) { return _Convert.ToDateTime(value, defaultValue); }
+
+        /// <summary>时间日期转为yyyy-MM-dd HH:mm:ss完整字符串</summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static String ToFullString(this DateTime value) { return _Convert.ToFullString(value); }
         #endregion
     }
 
@@ -191,5 +196,10 @@ namespace NewLife
             }
             return new string(ch);
         }
+
+        /// <summary>时间日期转为yyyy-MM-dd HH:mm:ss完整字符串</summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public virtual String ToFullString(DateTime value) { return value.ToString("yyyy-MM-dd HH:mm:ss"); }
     }
 }
