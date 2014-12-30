@@ -188,22 +188,22 @@ namespace System
         }
 
         /// <summary>向字节数组写入一片数据</summary>
-        /// <param name="data"></param>
-        /// <param name="srcOffset"></param>
-        /// <param name="buf"></param>
-        /// <param name="offset">偏移</param>
+        /// <param name="dst">目标数组</param>
+        /// <param name="dstOffset">目标偏移</param>
+        /// <param name="src">源数组</param>
+        /// <param name="srcOffset">源数组偏移</param>
         /// <param name="count">数量</param>
         /// <returns></returns>
-        public static Byte[] Write(this Byte[] data, Int32 srcOffset, Byte[] buf, Int32 offset = 0, Int32 count = -1)
+        public static Byte[] Write(this Byte[] dst, Int32 dstOffset, Byte[] src, Int32 srcOffset = 0, Int32 count = -1)
         {
-            if (count <= 0) count = data.Length - offset;
+            if (count <= 0) count = src.Length - srcOffset;
 
 #if MF
-            Array.Copy(buf, srcOffset, data, offset, count);
+            Array.Copy(src, srcOffset, dst, dstOffset, count);
 #else
-            Buffer.BlockCopy(buf, srcOffset, data, offset, count);
+            Buffer.BlockCopy(src, srcOffset, dst, dstOffset, count);
 #endif
-            return data;
+            return dst;
         }
 
         /// <summary>合并两个数组</summary>
