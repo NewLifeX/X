@@ -883,7 +883,7 @@ namespace XCode
         /// <param name="startRowIndex">开始行，0表示第一行。这里无意义，仅仅为了保持与FindAll相同的方法签名</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行。这里无意义，仅仅为了保持与FindAll相同的方法签名</param>
         /// <returns>总行数</returns>
-        public static Int32 FindCount(String whereClause, String orderClause, String selects, Int32 startRowIndex, Int32 maximumRows)
+        public static Int32 FindCount(String whereClause, String orderClause = null, String selects = null, Int32 startRowIndex = 0, Int32 maximumRows = 0)
         {
             var session = Meta.Session;
 
