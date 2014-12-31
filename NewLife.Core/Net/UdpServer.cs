@@ -406,7 +406,7 @@ namespace NewLife.Net
         /// <summary>向指定目的地发送信息</summary>
         /// <param name="udp"></param>
         /// <param name="message"></param>
-        /// <param name="encoding"></param>
+        /// <param name="encoding">文本编码，默认null表示UTF-8编码</param>
         /// <param name="remoteEP"></param>
         /// <returns>返回自身，用于链式写法</returns>
         public static UdpClient Send(this UdpClient udp, String message, Encoding encoding = null, IPEndPoint remoteEP = null)
@@ -443,7 +443,7 @@ namespace NewLife.Net
 
         /// <summary>接收字符串</summary>
         /// <param name="udp"></param>
-        /// <param name="encoding"></param>
+        /// <param name="encoding">文本编码，默认null表示UTF-8编码</param>
         /// <returns></returns>
         public static String ReceiveString(this UdpClient udp, Encoding encoding = null)
         {

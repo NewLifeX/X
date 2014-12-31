@@ -56,7 +56,7 @@ namespace NewLife.Net.Sockets
         /// <param name="encoding"></param>
         INetSession Send(string msg, Encoding encoding = null);
 
-        /// <summary>数据到达，在事件处理代码中，事件参数不得另作他用，套接字事件池将会将其回收。</summary>
+        /// <summary>数据到达事件</summary>
         event EventHandler<ReceivedEventArgs> Received;
         #endregion
     }

@@ -2,7 +2,6 @@
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
-using NewLife.Configuration;
 using NewLife.Log;
 
 namespace NewLife.Net

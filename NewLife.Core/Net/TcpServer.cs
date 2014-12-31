@@ -72,11 +72,7 @@ namespace NewLife.Net
         {
             base.OnDispose(disposing);
 
-            // 释放托管资源
-            //if (disposing)
-            {
-                Stop();
-            }
+            Stop();
         }
         #endregion
 
@@ -119,7 +115,7 @@ namespace NewLife.Net
         #endregion
 
         #region 连接处理
-        /// <summary>连接完成。在事件处理代码中，事件参数不得另作他用，套接字事件池将会将其回收。</summary>
+        /// <summary>连接完成事件</summary>
         /// <remarks>这里一定不需要再次ReceiveAsync，因为TcpServer在处理完成Accepted事件后，会调用Start->ReceiveAsync</remarks>
         public event EventHandler<AcceptedEventArgs> Accepted;
 
@@ -208,7 +204,7 @@ namespace NewLife.Net
         #region 会话
         private Object _Sessions_lock = new object();
         private IDictionary<String, TcpSession> _Sessions;
-        /// <summary>会话集合。用自增的数字ID作为标识，业务应用自己维持ID与业务主键的对应关系。</summary>
+        /// <summary>会话集合。用地址端口作为标识，业务应用自己维持地址端口与业务主键的对应关系。</summary>
         public IDictionary<String, TcpSession> Sessions
         {
             get
@@ -265,7 +261,7 @@ namespace NewLife.Net
         #endregion
 
         #region 日志
-        private ILog _Log;
+        private ILog _Log = Logger.Null;
         /// <summary>日志对象</summary>
         public ILog Log { get { return _Log; } set { _Log = value; } }
 
