@@ -289,7 +289,7 @@ namespace NewLife.Net.Sockets
             if (Accepted != null) Accepted(sender, e);
         }
 
-        /// <summary>收到连接时</summary>
+        /// <summary>收到连接时，建立会话，并挂接数据接收和错误处理事件</summary>
         /// <param name="session"></param>
         protected virtual void OnAccept(ISocketSession session)
         {
@@ -298,8 +298,6 @@ namespace NewLife.Net.Sockets
             ns.Session = session;
             ns.ClientEndPoint = session.Remote.EndPoint;
 
-            //SessionCount++;
-            //session.OnDisposed += (s, e2) => SessionCount--;
             Interlocked.Increment(ref _SessionCount);
             session.OnDisposed += (s, e2) => Interlocked.Decrement(ref _SessionCount);
 
@@ -333,7 +331,7 @@ namespace NewLife.Net.Sockets
             if (Received != null) Received(sender, e);
         }
 
-        /// <summary>收到数据时</summary>
+        /// <summary>收到数据时，最原始的数据处理，但不影响会话内部的数据处理</summary>
         /// <param name="session"></param>
         /// <param name="stream"></param>
         protected virtual void OnReceive(ISocketSession session, Stream stream) { }

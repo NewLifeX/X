@@ -82,7 +82,7 @@ namespace NewLife.Net.Sockets
         #endregion
 
         #region 业务核心
-        /// <summary>收到客户端发来的数据</summary>
+        /// <summary>收到客户端发来的数据，触发<seealso cref="Received"/>事件，重载者可直接处理数据</summary>
         /// <param name="e"></param>
         protected virtual void OnReceive(ReceivedEventArgs e)
         {
@@ -94,25 +94,12 @@ namespace NewLife.Net.Sockets
         #endregion
 
         #region 收发
-        //private Boolean _DisposeWhenSendError;
-        ///// <summary>发送错误时销毁</summary>
-        //public Boolean DisposeWhenSendError { get { return _DisposeWhenSendError; } set { _DisposeWhenSendError = value; } }
-
         /// <summary>发送数据</summary>
         /// <param name="buffer">缓冲区</param>
         /// <param name="offset">位移</param>
         /// <param name="size">写入字节数</param>
         public virtual INetSession Send(byte[] buffer, int offset = 0, int size = 0)
         {
-            //if (DisposeWhenSendError)
-            //{
-            //    try
-            //    {
-            //        Session.Send(buffer, offset, size);
-            //    }
-            //    catch { this.Dispose(); throw; }
-            //}
-            //else
             Session.Send(buffer, offset, size);
 
             return this;
@@ -123,15 +110,6 @@ namespace NewLife.Net.Sockets
         /// <returns></returns>
         public virtual INetSession Send(Stream stream)
         {
-            //if (DisposeWhenSendError)
-            //{
-            //    try
-            //    {
-            //        Session.Send(stream);
-            //    }
-            //    catch { this.Dispose(); throw; }
-            //}
-            //else
             Session.Send(stream);
 
             return this;
@@ -142,15 +120,6 @@ namespace NewLife.Net.Sockets
         /// <param name="encoding"></param>
         public virtual INetSession Send(string msg, Encoding encoding = null)
         {
-            //if (DisposeWhenSendError)
-            //{
-            //    try
-            //    {
-            //        Session.Send(msg, encoding);
-            //    }
-            //    catch { this.Dispose(); throw; }
-            //}
-            //else
             Session.Send(msg, encoding);
 
             return this;
