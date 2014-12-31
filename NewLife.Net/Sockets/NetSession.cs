@@ -58,12 +58,8 @@ namespace NewLife.Net.Sockets
             {
                 Session.Received += (s, e2) => OnReceive(e2);
                 Session.OnDisposed += (s, e2) => this.Dispose();
-
-                // 这里不需要再次Start，因为TcpServer在处理完成Accepted事件后，会调用Start
-                //(Session as TcpClientX).Start(e);
+                Session.Error += OnError;
             }
-            //else
-            //    OnReceive(new ReceivedEventArgs());
         }
 
         [Conditional("DEBUG")]
@@ -78,13 +74,6 @@ namespace NewLife.Net.Sockets
         {
             base.OnDispose(disposing);
 
-            //var session = Session;
-            //if (session.Local.ProtocolType == ProtocolType.Tcp)
-            //{
-            //    session.Received -= new EventHandler<NetEventArgs>(Session_Received);
-            //    session.Disconnect();
-            //    session.Dispose();
-            //}
             Session.Dispose();
 
             Server = null;
@@ -100,14 +89,14 @@ namespace NewLife.Net.Sockets
             if (Received != null) Received(this, e);
         }
 
-        /// <summary>数据到达，在事件处理代码中，事件参数不得另作他用，套接字事件池将会将其回收。</summary>
+        /// <summary>数据到达事件</summary>
         public event EventHandler<ReceivedEventArgs> Received;
         #endregion
 
         #region 收发
-        private Boolean _DisposeWhenSendError;
-        /// <summary>发送错误时销毁</summary>
-        public Boolean DisposeWhenSendError { get { return _DisposeWhenSendError; } set { _DisposeWhenSendError = value; } }
+        //private Boolean _DisposeWhenSendError;
+        ///// <summary>发送错误时销毁</summary>
+        //public Boolean DisposeWhenSendError { get { return _DisposeWhenSendError; } set { _DisposeWhenSendError = value; } }
 
         /// <summary>发送数据</summary>
         /// <param name="buffer">缓冲区</param>
@@ -115,16 +104,16 @@ namespace NewLife.Net.Sockets
         /// <param name="size">写入字节数</param>
         public virtual INetSession Send(byte[] buffer, int offset = 0, int size = 0)
         {
-            if (DisposeWhenSendError)
-            {
-                try
-                {
-                    Session.Send(buffer, offset, size);
-                }
-                catch { this.Dispose(); throw; }
-            }
-            else
-                Session.Send(buffer, offset, size);
+            //if (DisposeWhenSendError)
+            //{
+            //    try
+            //    {
+            //        Session.Send(buffer, offset, size);
+            //    }
+            //    catch { this.Dispose(); throw; }
+            //}
+            //else
+            Session.Send(buffer, offset, size);
 
             return this;
         }
@@ -134,16 +123,16 @@ namespace NewLife.Net.Sockets
         /// <returns></returns>
         public virtual INetSession Send(Stream stream)
         {
-            if (DisposeWhenSendError)
-            {
-                try
-                {
-                    Session.Send(stream);
-                }
-                catch { this.Dispose(); throw; }
-            }
-            else
-                Session.Send(stream);
+            //if (DisposeWhenSendError)
+            //{
+            //    try
+            //    {
+            //        Session.Send(stream);
+            //    }
+            //    catch { this.Dispose(); throw; }
+            //}
+            //else
+            Session.Send(stream);
 
             return this;
         }
@@ -153,19 +142,26 @@ namespace NewLife.Net.Sockets
         /// <param name="encoding"></param>
         public virtual INetSession Send(string msg, Encoding encoding = null)
         {
-            if (DisposeWhenSendError)
-            {
-                try
-                {
-                    Session.Send(msg, encoding);
-                }
-                catch { this.Dispose(); throw; }
-            }
-            else
-                Session.Send(msg, encoding);
+            //if (DisposeWhenSendError)
+            //{
+            //    try
+            //    {
+            //        Session.Send(msg, encoding);
+            //    }
+            //    catch { this.Dispose(); throw; }
+            //}
+            //else
+            Session.Send(msg, encoding);
 
             return this;
         }
+        #endregion
+
+        #region 异常处理
+        /// <summary>错误处理</summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        protected virtual void OnError(object sender, ExceptionEventArgs e) { }
         #endregion
 
         #region 辅助

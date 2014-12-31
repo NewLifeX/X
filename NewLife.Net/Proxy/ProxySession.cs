@@ -55,7 +55,7 @@ namespace NewLife.Net.Proxy
         /// <summary>实例化一个代理会话</summary>
         public ProxySession()
         {
-            DisposeWhenSendError = true;            
+            //DisposeWhenSendError = true;            
         }
 
         /// <summary>子类重载实现资源释放逻辑时必须首先调用基类方法</summary>
@@ -223,6 +223,13 @@ namespace NewLife.Net.Proxy
             catch { this.Dispose(); throw; }
 
             return this;
+        }
+        #endregion
+
+        #region 错误处理
+        protected override void OnError(object sender, ExceptionEventArgs e)
+        {
+            if (e.Exception != null) Dispose();
         }
         #endregion
 

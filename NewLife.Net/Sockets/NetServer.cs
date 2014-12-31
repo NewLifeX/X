@@ -52,7 +52,7 @@ namespace NewLife.Net.Sockets
         public AddressFamily AddressFamily { get { return _AddressFamily; } set { _AddressFamily = value; } }
 
         private List<ISocketServer> _Servers;
-        /// <summary>服务器集合。</summary>
+        /// <summary>服务器集合</summary>
         public IList<ISocketServer> Servers { get { return _Servers ?? (_Servers = new List<ISocketServer>()); } }
 
         /// <summary>服务器。返回服务器集合中的第一个服务器</summary>
