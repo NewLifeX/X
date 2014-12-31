@@ -308,7 +308,7 @@ namespace XCode.Configuration
         }
 
         /// <summary>In操作</summary>
-        /// <remarks>空参数不参与表达式操作，不生成该部分SQL拼接</remarks>
+        /// <remarks>空参数不参与表达式操作，不生成该部分SQL拼接。只有一项时转为等于</remarks>
         /// <param name="value">枚举数据，会转化为字符串</param>
         /// <returns></returns>
         public WhereExpression In(IEnumerable value) { return _In(value, true); }
@@ -337,7 +337,13 @@ namespace XCode.Configuration
             //if (list.Count <= 0) throw new ArgumentNullException("value");
 
             // 如果In操作且只有一项，修改为等于
-            if (flag && list.Count == 1) return CreateExpression("=", vs[0]);
+            if (list.Count == 1)
+            {
+                if (flag)
+                    return CreateExpression("=", vs[0]);
+                else
+                    return CreateExpression("<>", vs[0]);
+            }
 
             return new WhereExpression(String.Format("{0}{2} In({1})", name, String.Join(",", list.ToArray()), flag ? "" : " Not"));
         }
@@ -356,7 +362,7 @@ namespace XCode.Configuration
         }
 
         /// <summary>NotIn操作</summary>
-        /// <remarks>空参数不参与表达式操作，不生成该部分SQL拼接</remarks>
+        /// <remarks>空参数不参与表达式操作，不生成该部分SQL拼接。只有一项时修改为不等于</remarks>
         /// <param name="value">数值</param>
         /// <returns></returns>
         public WhereExpression NotIn(IEnumerable value) { return _In(value, false); }
@@ -492,21 +498,36 @@ namespace XCode.Configuration
         /// <returns></returns>
         public ConcatExpression GroupBy() { return new ConcatExpression(String.Format("Group By {0}", Factory.FormatName(ColumnName))); }
 
+        public ConcatExpression Aggregate(String action, String newName)
+        {
+            var name = Factory.FormatName(ColumnName);
+            if (String.IsNullOrEmpty(newName))
+                newName = name;
+            else
+                newName = Factory.FormatName(newName);
+
+            return new ConcatExpression(String.Format("{2}({0}) as {1}", name, newName, action));
+        }
+
         /// <summary>数量</summary>
+        /// <param name="newName">聚合后as的新名称，默认空，表示跟前面字段名一致</param>
         /// <returns></returns>
-        public ConcatExpression Count() { return new ConcatExpression(String.Format("Count({0}) as {0}", Factory.FormatName(ColumnName))); }
+        public ConcatExpression Count(String newName = null) { return Aggregate("Count", newName); }
 
         /// <summary>求和</summary>
+        /// <param name="newName">聚合后as的新名称，默认空，表示跟前面字段名一致</param>
         /// <returns></returns>
-        public ConcatExpression Sum() { return new ConcatExpression(String.Format("Sum({0}) as {0}", Factory.FormatName(ColumnName))); }
+        public ConcatExpression Sum(String newName = null) { return Aggregate("Sum", newName); }
 
         /// <summary>最小值</summary>
+        /// <param name="newName">聚合后as的新名称，默认空，表示跟前面字段名一致</param>
         /// <returns></returns>
-        public ConcatExpression Min() { return new ConcatExpression(String.Format("Min({0}) as {0}", Factory.FormatName(ColumnName))); }
+        public ConcatExpression Min(String newName = null) { return Aggregate("Min", newName); }
 
         /// <summary>最大值</summary>
+        /// <param name="newName">聚合后as的新名称，默认空，表示跟前面字段名一致</param>
         /// <returns></returns>
-        public ConcatExpression Max() { return new ConcatExpression(String.Format("Max({0}) as {0}", Factory.FormatName(ColumnName))); }
+        public ConcatExpression Max(String newName = null) { return Aggregate("Max", newName); }
         #endregion
 
         #region 类型转换
