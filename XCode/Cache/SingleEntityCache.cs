@@ -210,9 +210,9 @@ namespace XCode.Cache
                             }
                             catch { }
                         }
-                        item.Entity = null;
+                        if (!HoldCache) { item.Entity = null; }
                     }
-                    list.Add(item);
+                    if (!HoldCache) { list.Add(item); }
                 }
             }
             // 独占缓存不删除缓存
