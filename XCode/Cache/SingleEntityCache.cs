@@ -29,22 +29,18 @@ namespace XCode.Cache
         public Int32 MaxEntity { get { return _MaxEntity; } set { _MaxEntity = value; } }
 
         private Boolean _AutoSave = true;
-        /// <summary>缓存到期时自动保存</summary>
+        /// <summary>缓存到期时自动保存，默认true</summary>
         public Boolean AutoSave { get { return _AutoSave; } set { _AutoSave = value; } }
 
         private Boolean _AllowNull;
-        /// <summary>允许缓存空对象</summary>
+        /// <summary>允许缓存空对象，默认false</summary>
         public Boolean AllowNull { get { return _AllowNull; } set { _AllowNull = value; } }
 
         #region 主键
 
         private Boolean _MasterKeyUsingUniqueField = true;
         /// <summary>单对象缓存主键是否使用实体模型唯一键（第一个标识列或者唯一的主键）</summary>
-        public Boolean MasterKeyUsingUniqueField
-        {
-            get { return _MasterKeyUsingUniqueField; }
-            set { _MasterKeyUsingUniqueField = value; }
-        }
+        public Boolean MasterKeyUsingUniqueField { get { return _MasterKeyUsingUniqueField; } set { _MasterKeyUsingUniqueField = value; } }
 
         private Func<TEntity, TKey> _GetKeyMethod;
         /// <summary>获取缓存主键的方法，默认方法为获取实体主键值</summary>
@@ -92,27 +88,15 @@ namespace XCode.Cache
 
         private Boolean _SlaveKeyIgnoreCase = false;
         /// <summary>从键是否区分大小写</summary>
-        public Boolean SlaveKeyIgnoreCase
-        {
-            get { return _SlaveKeyIgnoreCase; }
-            set { _SlaveKeyIgnoreCase = value; }
-        }
+        public Boolean SlaveKeyIgnoreCase { get { return _SlaveKeyIgnoreCase; } set { _SlaveKeyIgnoreCase = value; } }
 
         private Func<String, TEntity> _FindSlaveKeyMethod;
         /// <summary>根据从键查找数据的方法</summary>
-        public Func<String, TEntity> FindSlaveKeyMethod
-        {
-            get { return _FindSlaveKeyMethod; }
-            set { _FindSlaveKeyMethod = value; }
-        }
+        public Func<String, TEntity> FindSlaveKeyMethod { get { return _FindSlaveKeyMethod; } set { _FindSlaveKeyMethod = value; } }
 
         private Func<TEntity, String> _GetSlaveKeyMethod;
         /// <summary>获取缓存从键的方法，默认为空</summary>
-        public Func<TEntity, String> GetSlaveKeyMethod
-        {
-            get { return _GetSlaveKeyMethod; }
-            set { _GetSlaveKeyMethod = value; }
-        }
+        public Func<TEntity, String> GetSlaveKeyMethod { get { return _GetSlaveKeyMethod; } set { _GetSlaveKeyMethod = value; } }
 
         #endregion
 
@@ -179,11 +163,11 @@ namespace XCode.Cache
         /// 因为该方法只会被调用一次，所以该参数的意义不太大。</param>
         protected override void OnDispose(bool disposing)
         {
+            base.OnDispose(disposing);
+
             Clear("资源释放");
 
             if (_Timer != null) _Timer.Dispose();
-
-            base.OnDispose(disposing);
         }
 
         /// <summary>定期检查实体，如果过期，则触发保存</summary>
@@ -241,8 +225,8 @@ namespace XCode.Cache
                 {
                     foreach (var item in list)
                     {
-                        //if (Entities.ContainsKey(item.Key)) Entities.Remove(item.Key);
-                        Entities.Remove(item.Key);
+                        if (Entities.ContainsKey(item.Key)) Entities.Remove(item.Key);
+                        //Entities.Remove(item.Key);
                     }
 
                     Using = Entities.Count > 0;
