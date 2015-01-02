@@ -24,14 +24,14 @@ namespace NewLife.Net.Sockets
         /// <summary>Socket服务器。当前通讯所在的Socket服务器，其实是TcpServer/UdpServer</summary>
         ISocketServer Server { get; set; }
 
-        /// <summary>客户端。跟客户端通讯的那个Socket，其实是服务端TcpClientX/UdpServer</summary>
+        /// <summary>客户端。跟客户端通讯的那个Socket，其实是服务端TcpSession/UdpSession</summary>
         ISocketSession Session { get; set; }
 
-        /// <summary>客户端远程IP终结点</summary>
-        IPEndPoint ClientEndPoint { get; set; }
+        ///// <summary>客户端远程IP终结点</summary>
+        //IPEndPoint ClientEndPoint { get; set; }
 
         /// <summary>客户端地址</summary>
-        NetUri ClientUri { get; }
+        NetUri Remote { get; }
         #endregion
 
         #region 方法

@@ -292,7 +292,7 @@ namespace NewLife.Net.Proxy
                 else
                     throw new NetException("无法处理的请求！{0}", entity);
 
-                WriteDebugLog("[{4}] {3} => {0} {1} [{2}]", entity.Method, oriUrl, entity.ContentLength, ClientEndPoint, ID);
+                WriteDebugLog("[{4}] {3} => {0} {1} [{2}]", entity.Method, oriUrl, entity.ContentLength, Session.Remote.EndPoint, ID);
 
                 // 可能不含Host
                 if (String.IsNullOrEmpty(entity.Host)) entity.Host = host;

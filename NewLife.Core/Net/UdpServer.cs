@@ -62,6 +62,7 @@ namespace NewLife.Net
                 Client = new UdpClient(Local.EndPoint);
                 if (Port == 0) Port = (Socket.LocalEndPoint as IPEndPoint).Port;
 
+                // 如果使用了新会话事件，也需要开启异步接收
                 if (!UseReceiveAsync && NewSession != null) UseReceiveAsync = true;
 
                 WriteLog("{0}.Open {1}", this.GetType().Name, this);

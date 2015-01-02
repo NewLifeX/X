@@ -50,7 +50,7 @@ namespace NewLife.Net.P2P
                     ns = NetService.Container.Resolve<INetSession>();
                     //ns.Server = sender as ISocketServer;
                     ns.Session = session;
-                    ns.ClientEndPoint = remoteEP;
+                    //ns.ClientEndPoint = remoteEP;
                     Clients[name] = ns;
                     session.OnDisposed += (s, e2) => ns.Dispose();
                     ns.OnDisposed += (s, e2) => Clients.Remove(name);
@@ -63,17 +63,17 @@ namespace NewLife.Net.P2P
                 else
                 {
                     // 如果连续注册两次可能会有问题，这里要处理一下
-                    if ("" + ns.ClientEndPoint == "" + remoteEP)
-                        session.Send("Has Register!", null);
-                    else
+                    //if ("" + ns.ClientEndPoint == "" + remoteEP)
+                    //    session.Send("Has Register!", null);
+                    //else
                     {
                         // 到这里，应该是被邀请方到来，同时响应双方
-                        session.Send(ns.ClientEndPoint.ToString(), null);
+                        session.Send(remoteEP.ToString(), null);
 
                         // 同时还要通知对方
                         ns.Session.Send(remoteEP.ToString(), null);
 
-                        WriteLog("邀请已接受：{0} {1} {2}", name, remoteEP, ns.ClientEndPoint);
+                        WriteLog("邀请已接受：{0} {1} {2}", name, remoteEP, remoteEP);
 
                         Clients.Remove(name);
                         Thread.Sleep(1000);
@@ -89,7 +89,7 @@ namespace NewLife.Net.P2P
                 INetSession ns = null;
                 if (Clients.TryGetValue(ss[1], out ns))
                 {
-                    session.Send("invite:" + ns.ClientEndPoint.ToString(), null);
+                    session.Send("invite:" + remoteEP, null);
 
                     // 同时还要通知对方
                     ns.Session.Send("invite:" + remoteEP.ToString(), null);

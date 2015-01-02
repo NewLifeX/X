@@ -71,12 +71,12 @@ namespace NewLife.Net.Sockets
         /// <summary>是否活动</summary>
         public Boolean Active { get { return Server != null && Server.Active; } }
 
-        private Boolean _ShowAbortAsError;
-        /// <summary>显示取消操作作为错误</summary>
-        public Boolean ShowAbortAsError { get { return _ShowAbortAsError; } set { _ShowAbortAsError = value; } }
+        //private Boolean _ShowAbortAsError;
+        ///// <summary>显示取消操作作为错误。默认false</summary>
+        //public Boolean ShowAbortAsError { get { return _ShowAbortAsError; } set { _ShowAbortAsError = value; } }
 
         private Boolean _UseSession;
-        /// <summary>使用会话</summary>
+        /// <summary>使用会话。默认false</summary>
         public Boolean UseSession { get { return _UseSession; } set { _UseSession = value; } }
         #endregion
 
@@ -151,6 +151,7 @@ namespace NewLife.Net.Sockets
         {
             if (Servers.Contains(server)) return false;
 
+            server.Log = Log;
             server.NewSession += Server_NewSession;
             //if (server.Local.ProtocolType == ProtocolType.Tcp)
             //{
@@ -232,7 +233,7 @@ namespace NewLife.Net.Sockets
 
             foreach (var item in Servers)
             {
-                item.Log = Log;
+                //item.Log = Log;
                 item.Start();
 
                 // 如果是随机端口，反写回来，并且修改其它服务器的端口
@@ -270,14 +271,13 @@ namespace NewLife.Net.Sockets
         #endregion
 
         #region 业务
-        /// <summary>连接完成。在事件处理代码中，事件参数不得另作他用，套接字事件池将会将其回收。</summary>
+        /// <summary>新会话，对于TCP是新连接，对于UDP是新客户端</summary>
         public event EventHandler<SessionEventArgs> NewSession;
 
-        /// <summary>数据到达，在事件处理代码中，事件参数不得另作他用，套接字事件池将会将其回收。</summary>
+        /// <summary>某个会话的数据到达。sender是ISocketSession</summary>
         public event EventHandler<ReceivedEventArgs> Received;
 
-        /// <summary>接受连接时，对于Udp是收到数据时（同时触发OnReceived）。
-        /// 如果业务逻辑简单，不需要使用会话，可以重载<see cref="Server_NewSession"/>来屏蔽。</summary>
+        /// <summary>接受连接时，对于Udp是收到数据时（同时触发OnReceived）。</summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
         void Server_NewSession(Object sender, SessionEventArgs e)
@@ -299,18 +299,20 @@ namespace NewLife.Net.Sockets
             var ns = CreateSession(session);
             ns.Server = session.Server;
             ns.Session = session;
-            ns.ClientEndPoint = session.Remote.EndPoint;
+            //ns.ClientEndPoint = session.Remote.EndPoint;
 
             session.OnDisposed += (s, e2) => ns.Dispose();
 
             if (UseSession) AddSession(ns);
 
-            var tc = session as TcpSession;
-            if (tc != null)
-            {
-                tc.Received += OnReceived;
-                tc.Error += OnError;
-            }
+            //var tc = session as TcpSession;
+            //if (tc != null)
+            //{
+            //    tc.Received += OnReceived;
+            //    tc.Error += OnError;
+            //}
+            session.Received += OnReceived;
+            session.Error += OnError;
 
             // 开始会话处理
             ns.Start();
@@ -336,7 +338,7 @@ namespace NewLife.Net.Sockets
         /// <param name="stream"></param>
         protected virtual void OnReceive(ISocketSession session, Stream stream) { }
 
-        /// <summary>错误发生/断开连接时</summary>
+        /// <summary>错误发生/断开连接时。sender是ISocketSession</summary>
         public event EventHandler<ExceptionEventArgs> Error;
 
         /// <summary>触发异常</summary>

@@ -36,7 +36,7 @@ namespace NewLife.Net.Http
         {
             get
             {
-                string remoteIP = ClientEndPoint.Address.ToString();
+                string remoteIP = Session.Remote.Host;
                 if (string.IsNullOrEmpty(remoteIP)) return false;
                 if (!remoteIP.Equals("127.0.0.1") && !remoteIP.Equals("::1") && !remoteIP.Equals("::ffff:127.0.0.1")) return LocalServerIP.Equals(remoteIP);
                 return true;
@@ -47,7 +47,7 @@ namespace NewLife.Net.Http
         {
             get
             {
-                var localEndPoint = ClientEndPoint;
+                var localEndPoint = Session.Remote.EndPoint;
                 if (localEndPoint != null && localEndPoint.Address != null) return localEndPoint.Address.ToString();
                 return this.DefaultLocalHostIP;
             }

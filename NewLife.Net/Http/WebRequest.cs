@@ -134,12 +134,12 @@ namespace NewLife.Net.Http
         public override string GetRemoteAddress()
         {
             //_connectionPermission.Assert();
-            return Session.ClientEndPoint.Address.ToString();
+            return Session.Remote.Host;
         }
 
         /// <summary>提供对请求标头的指定成员的访问。</summary>
         /// <returns>客户端的 HTTP 端口号。</returns>
-        public override int GetRemotePort() { return Session.ClientEndPoint.Port; }
+        public override int GetRemotePort() { return Session.Remote.Port; }
 
         /// <summary>在派生类中被重写时，返回本地服务器的名称。</summary>
         /// <returns>本地服务器的名称。</returns>

@@ -87,7 +87,7 @@ namespace NewLife.Net.Proxy
         /// <param name="e"></param>
         protected override void OnReceive(ReceivedEventArgs e)
         {
-            WriteDebugLog("Proxy[{0}].OnReceive {1} => {2}", ID, ClientEndPoint, e.Stream.Length);
+            WriteDebugLog("Proxy[{0}].OnReceive {1} => {2}", ID, Session.Remote.EndPoint, e.Stream.Length);
 
             if (e.Stream != null)
             {
@@ -130,7 +130,7 @@ namespace NewLife.Net.Proxy
                 var ts = DateTime.Now - start;
                 //var host = String.IsNullOrEmpty(RemoteHost) ? "" + RemoteEndPoint : RemoteHost;
                 //throw new XException(ex, "无法连接远程服务器{0}！耗时{1}！", RemoteUri, ts);
-                WriteLog("无法为{0}连接远程服务器{1}！耗时{2}！{3}", ClientUri, RemoteServerUri, ts, ex.Message);
+                WriteLog("无法为{0}连接远程服务器{1}！耗时{2}！{3}", Remote, RemoteServerUri, ts, ex.Message);
             }
         }
 

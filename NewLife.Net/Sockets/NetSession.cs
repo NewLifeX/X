@@ -39,12 +39,12 @@ namespace NewLife.Net.Sockets
         /// <summary>服务端。跟目标服务端通讯的那个Socket，其实是客户端TcpClientX/UdpClientX</summary>
         public ISocketServer Server { get { return _Server; } set { _Server = value; } }
 
-        private IPEndPoint _ClientEndPoint;
-        /// <summary>客户端远程IP终结点</summary>
-        public IPEndPoint ClientEndPoint { get { return _ClientEndPoint; } set { _ClientEndPoint = value; } }
+        //private IPEndPoint _ClientEndPoint;
+        ///// <summary>客户端远程IP终结点</summary>
+        //public IPEndPoint ClientEndPoint { get { return _ClientEndPoint; } set { _ClientEndPoint = value; } }
 
         /// <summary>客户端地址</summary>
-        public NetUri ClientUri { get { return new NetUri(Session != null ? Session.Local.ProtocolType : ProtocolType.IP, ClientEndPoint); } }
+        public NetUri Remote { get { return Session.Remote; } }
         #endregion
 
         #region 方法
@@ -53,8 +53,8 @@ namespace NewLife.Net.Sockets
         {
             ShowSession();
 
-            // Tcp挂接事件，Udp直接处理数据
-            if (Session.Local.ProtocolType == ProtocolType.Tcp)
+            //// Tcp挂接事件，Udp直接处理数据
+            //if (Session.Local.ProtocolType == ProtocolType.Tcp)
             {
                 Session.Received += (s, e2) => OnReceive(e2);
                 Session.OnDisposed += (s, e2) => this.Dispose();
@@ -136,7 +136,11 @@ namespace NewLife.Net.Sockets
         #region 辅助
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override string ToString() { return Session == null ? base.ToString() : Session.ToString(); }
+        public override string ToString()
+        {
+            //return Session == null ? base.ToString() : Session.ToString();
+            return String.Format("[{0}] {1}", ID, Session);
+        }
         #endregion
     }
 }
