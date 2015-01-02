@@ -204,7 +204,7 @@ namespace NewLife.Net
         {
             _LastTime = DateTime.Now;
 
-            WriteDebugLog("收到数据[{0}]: {1}", e.Length, e.Data.ToHex(0, Math.Min(e.Length, 16)));
+            WriteLog("收到{0}的数据[{1}]: {2}", Remote, e.Length, e.Data.ToHex(0, Math.Min(e.Length, 32)));
 
             if (Received != null) Received(sender, e);
         }

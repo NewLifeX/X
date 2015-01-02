@@ -34,6 +34,7 @@ namespace NewLife.Net
         public UdpServer()
         {
             Local = new NetUri(ProtocolType.Udp, IPAddress.Any, 0);
+            Remote.ProtocolType = ProtocolType.Udp;
             _Sessions = new SessionCollection(this);
         }
 
@@ -339,12 +340,12 @@ namespace NewLife.Net
             var session = _Sessions.Get(remoteEP + "");
             if (session == null)
             {
-                WriteDebugLog("新会话 {0}", remoteEP);
-
                 session = new UdpSession(this, remoteEP);
                 //Interlocked.Increment(ref _Sessions);
                 //session.OnDisposed += (s, e) => Interlocked.Decrement(ref _Sessions);
                 _Sessions.Add(session);
+
+                WriteLog("{0}新会话 {1}", this, remoteEP);
 
                 // 触发新会话事件
                 if (NewSession != null) NewSession(this, new SessionEventArgs { Session = session });

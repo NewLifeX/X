@@ -232,6 +232,7 @@ namespace NewLife.Net.Sockets
 
             foreach (var item in Servers)
             {
+                item.Log = Log;
                 item.Start();
 
                 // 如果是随机端口，反写回来，并且修改其它服务器的端口

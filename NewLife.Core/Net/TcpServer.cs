@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using NewLife.Log;
@@ -189,7 +190,7 @@ namespace NewLife.Net
         /// <param name="client"></param>
         protected virtual void OnAccept(TcpClient client)
         {
-            WriteLog("{0} Accept {1}", this, client.Client.RemoteEndPoint);
+            WriteLog("{0}新会话 {1}", this, client.Client.RemoteEndPoint);
 
             var session = CreateSession(client);
             // 服务端不支持掉线重连
@@ -255,7 +256,11 @@ namespace NewLife.Net
         #endregion
 
         #region 日志
+#if DEBUG
+        private ILog _Log = XTrace.Log;
+#else
         private ILog _Log = Logger.Null;
+#endif
         /// <summary>日志对象</summary>
         public ILog Log { get { return _Log; } set { _Log = value; } }
 
@@ -263,6 +268,15 @@ namespace NewLife.Net
         /// <param name="format"></param>
         /// <param name="args"></param>
         public void WriteLog(String format, params Object[] args)
+        {
+            if (Log != null) Log.Info(format, args);
+        }
+
+        /// <summary>输出日志</summary>
+        /// <param name="format"></param>
+        /// <param name="args"></param>
+        [Conditional("DEBUG")]
+        public void WriteDebugLog(String format, params Object[] args)
         {
             if (Log != null) Log.Info(format, args);
         }

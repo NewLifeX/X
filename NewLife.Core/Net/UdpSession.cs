@@ -2,6 +2,7 @@
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using NewLife.Log;
 
 namespace NewLife.Net
 {
@@ -60,6 +61,10 @@ namespace NewLife.Net
         private DateTime _LastTime;
         /// <summary>最后一次通信时间，主要表示活跃时间，对TCP包括收发，对UDP只包括收</summary>
         public DateTime LastTime { get { return _LastTime; } }
+
+        //private ILog _Log;
+        /// <summary>日志提供者</summary>
+        public ILog Log { get { return Server.Log; } set { Server.Log = value; } }
         #endregion
 
         #region 构造

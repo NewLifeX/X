@@ -2,6 +2,7 @@
 using System.IO;
 using System.Net.Sockets;
 using System.Text;
+using NewLife.Log;
 
 namespace NewLife.Net
 {
@@ -32,6 +33,9 @@ namespace NewLife.Net
 
         ///// <summary>异步操作计数</summary>
         //Int32 AsyncCount { get; }
+
+        /// <summary>日志提供者</summary>
+        ILog Log { get; set; }
         #endregion
 
         #region 方法
