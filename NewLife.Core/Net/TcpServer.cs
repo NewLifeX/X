@@ -203,9 +203,9 @@ namespace NewLife.Net
 
         #region 会话
         private Object _Sessions_lock = new object();
-        private IDictionary<String, TcpSession> _Sessions;
+        private IDictionary<String, ISocketSession> _Sessions;
         /// <summary>会话集合。用地址端口作为标识，业务应用自己维持地址端口与业务主键的对应关系。</summary>
-        public IDictionary<String, TcpSession> Sessions
+        public IDictionary<String, ISocketSession> Sessions
         {
             get
             {

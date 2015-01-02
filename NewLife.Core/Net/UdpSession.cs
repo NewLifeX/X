@@ -52,6 +52,14 @@ namespace NewLife.Net
 
         ///// <summary>读取的期望帧长度。该参数对UDP无效</summary>
         //Int32 ITransport.FrameSize { get { return 0; } set { } }
+
+        private DateTime _StartTime = DateTime.Now;
+        /// <summary>通信开始时间</summary>
+        public DateTime StartTime { get { return _StartTime; } }
+
+        private DateTime _LastTime;
+        /// <summary>最后一次通信时间，主要表示活跃时间，对TCP包括收发，对UDP只包括收</summary>
+        public DateTime LastTime { get { return _LastTime; } }
         #endregion
 
         #region 构造
@@ -121,6 +129,8 @@ namespace NewLife.Net
             if (!CheckFilter(ep)) return new Byte[0];
             Remote.EndPoint = ep;
 
+            _LastTime = DateTime.Now;
+
             return buf;
         }
 
@@ -132,6 +142,8 @@ namespace NewLife.Net
             var ep = Server.Remote.EndPoint;
             if (!CheckFilter(ep)) return 0;
             Remote.EndPoint = ep;
+
+            _LastTime = DateTime.Now;
 
             return size;
         }
@@ -145,13 +157,15 @@ namespace NewLife.Net
 
         void server_Received(object sender, ReceivedEventArgs e)
         {
-            if (Received == null) return;
+            //if (Received == null) return;
 
             // 判断是否自己的数据
             var udp = e as UdpReceivedEventArgs;
             if (CheckFilter(udp.Remote))
             {
-                Received(this, e);
+                _LastTime = DateTime.Now;
+
+                if (Received != null) Received(this, e);
             }
         }
         #endregion

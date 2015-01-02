@@ -47,6 +47,14 @@ namespace NewLife.Net
         private IStatistics _Statistics = new Statistics();
         /// <summary>统计信息</summary>
         public IStatistics Statistics { get { return _Statistics; } private set { _Statistics = value; } }
+
+        private DateTime _StartTime = DateTime.Now;
+        /// <summary>通信开始时间</summary>
+        public DateTime StartTime { get { return _StartTime; } }
+
+        internal protected DateTime _LastTime;
+        /// <summary>最后一次通信时间，主要表示活跃时间，对TCP包括收发，对UDP只包括收</summary>
+        public DateTime LastTime { get { return _LastTime; } }
         #endregion
 
         #region 构造
@@ -193,6 +201,8 @@ namespace NewLife.Net
         /// <param name="e"></param>
         protected virtual void RaiseReceive(Object sender, ReceivedEventArgs e)
         {
+            _LastTime = DateTime.Now;
+
             if (Received != null) Received(sender, e);
         }
         #endregion

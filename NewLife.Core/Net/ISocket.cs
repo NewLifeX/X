@@ -54,6 +54,12 @@ namespace NewLife.Net
         #region 属性
         /// <summary>远程地址</summary>
         NetUri Remote { get; set; }
+
+        /// <summary>通信开始时间</summary>
+        DateTime StartTime { get; }
+
+        /// <summary>最后一次通信时间，主要表示会话活跃时间，对TCP包括收发，对UDP只包括收</summary>
+        DateTime LastTime { get; }
         #endregion
 
         #region 方法
