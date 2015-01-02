@@ -190,19 +190,20 @@ namespace NewLife.Net
         /// <param name="client"></param>
         protected virtual void OnAccept(TcpClient client)
         {
-            WriteLog("{0}新会话 {1}", this, client.Client.RemoteEndPoint);
-
             var session = CreateSession(client);
             // 服务端不支持掉线重连
             session.AutoReconnect = false;
             session.Log = Log;
             //if (Accepted != null) Accepted(this, new AcceptedEventArgs { Session = session });
-            if (NewSession != null) NewSession(this, new SessionEventArgs { Session = session });
-
-            _Sessions.Add(session);
 
             // 设置心跳时间
             client.Client.SetTcpKeepAlive(true);
+
+            _Sessions.Add(session);
+
+            WriteLog("{0}新会话 {1}", this, client.Client.RemoteEndPoint);
+
+            if (NewSession != null) NewSession(this, new SessionEventArgs { Session = session });
 
             // 自动开始异步接收处理
             if (AutoReceiveAsync) session.ReceiveAsync();

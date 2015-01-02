@@ -83,6 +83,8 @@ namespace NewLife.Net
         {
             base.OnDispose(disposing);
 
+            Server.WriteLog("{0}.Close {1}", this.GetType().Name, this);
+
             Server.Received -= server_Received;
             Server.Error -= server_Error;
             // 释放对服务对象的引用，如果没有其它引用，服务对象将会被回收

@@ -114,6 +114,11 @@ namespace Test2
             var server = new NetServer();
             server.Port = 888;
             server.Log = XTrace.Log;
+            server.EnsureCreateServer();
+            foreach (var item in server.Servers)
+            {
+                item.MaxNotActive = 8;
+            }
             server.Start();
         }
     }

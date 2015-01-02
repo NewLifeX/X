@@ -192,7 +192,7 @@ namespace NewLife.Net.Sockets
         }
 
         /// <summary>确保建立服务器</summary>
-        protected virtual void EnsureCreateServer()
+        public virtual void EnsureCreateServer()
         {
             if (Servers.Count <= 0)
             {

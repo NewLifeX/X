@@ -43,7 +43,7 @@ namespace NewLife.Net.Stun
         }
 
         /// <summary>确保建立服务器</summary>
-        protected override void EnsureCreateServer()
+        public override void EnsureCreateServer()
         {
             if (Servers.Count <= 0)
             {

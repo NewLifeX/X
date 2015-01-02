@@ -23,7 +23,7 @@ namespace NewLife.Net.Application
         public String StreamHandlerName { get { return _StreamHandlerName; } set { _StreamHandlerName = value; } }
 
         /// <summary>已重载。</summary>
-        protected override void EnsureCreateServer()
+        public override void EnsureCreateServer()
         {
             if (String.IsNullOrEmpty(StreamHandlerName)) throw new Exception("未指定数据流处理器名称！");
 
