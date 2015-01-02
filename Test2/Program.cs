@@ -23,7 +23,7 @@ namespace Test2
                 try
                 {
 #endif
-                    Test2();
+                    Test3();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -50,9 +50,11 @@ namespace Test2
         static void Test2()
         {
             var client = new TcpSession();
-            client.Debug = true;
+            //client.Debug = true;
             client.Received += client_Received;
-            client.Connect("114.80.156.91", 8848);
+            client.Remote = "tcp://114.80.156.91:8848";
+            client.Open();
+            //client.Connect("114.80.156.91", 8848);
 
             var ms = new MemoryStream();
             ms.Write(new Byte[4]);
@@ -105,6 +107,14 @@ namespace Test2
         {
             var session = sender as ISocketSession;
             XTrace.WriteLine("{0} [{1}]：{2}", session.Remote, e.Stream.Length, e.Stream.ReadBytes().ToHex());
+        }
+
+        static void Test3()
+        {
+            var server = new NetServer();
+            server.Port = 888;
+
+            server.Start();
         }
     }
 }

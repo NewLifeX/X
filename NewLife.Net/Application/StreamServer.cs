@@ -36,8 +36,8 @@ namespace NewLife.Net.Application
         }
 
         /// <summary>已重载。</summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
+        /// <param name="session"></param>
+        /// <param name="stream"></param>
         protected override void OnReceive(ISocketSession session, Stream stream)
         {
             if (stream.Length > 0) StreamHandler.Process(StreamHandlerName, stream);

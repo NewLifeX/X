@@ -21,8 +21,8 @@ namespace NewLife.Net
             ProtocolType = ProtocolType.Tcp;
         }
         /// <summary>数据返回</summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
+        /// <param name="session"></param>
+        /// <param name="stream"></param>
         protected override void OnReceive(ISocketSession session, Stream stream)
         {
             string sss = stream.ToStr();

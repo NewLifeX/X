@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
@@ -52,9 +53,9 @@ namespace NewLife.Net
         /// <summary>通信开始时间</summary>
         public DateTime StartTime { get { return _StartTime; } }
 
-        internal protected DateTime _LastTime;
+        private DateTime _LastTime;
         /// <summary>最后一次通信时间，主要表示活跃时间，对TCP包括收发，对UDP只包括收</summary>
-        public DateTime LastTime { get { return _LastTime; } }
+        public DateTime LastTime { get { return _LastTime; } internal protected set { _LastTime = value; } }
         #endregion
 
         #region 构造
@@ -203,6 +204,8 @@ namespace NewLife.Net
         {
             _LastTime = DateTime.Now;
 
+            WriteDebugLog("收到数据[{0}]: {1}", e.Length, e.Data.ToHex(0, Math.Min(e.Length, 16)));
+
             if (Received != null) Received(sender, e);
         }
         #endregion
@@ -222,7 +225,11 @@ namespace NewLife.Net
         #endregion
 
         #region 日志
-        private ILog _Log;
+#if DEBUG
+        private ILog _Log = XTrace.Log;
+#else
+        private ILog _Log = Logger.Null;
+#endif
         /// <summary>日志对象</summary>
         public ILog Log { get { return _Log; } set { _Log = value; } }
 
@@ -230,6 +237,15 @@ namespace NewLife.Net
         /// <param name="format"></param>
         /// <param name="args"></param>
         public void WriteLog(String format, params Object[] args)
+        {
+            if (Log != null) Log.Info(format, args);
+        }
+
+        /// <summary>输出日志</summary>
+        /// <param name="format"></param>
+        /// <param name="args"></param>
+        [Conditional("DEBUG")]
+        public void WriteDebugLog(String format, params Object[] args)
         {
             if (Log != null) Log.Info(format, args);
         }
@@ -245,6 +261,8 @@ namespace NewLife.Net
             //else
             return Local.ToString();
         }
+
+
         #endregion
     }
 }

@@ -12,10 +12,10 @@ namespace NewLife.Net.Pop3
         #endregion
 
         #region 启动会话
-        void Start()
-        {
+        //void Start()
+        //{
 
-        }
+        //}
         #endregion
     }
 }

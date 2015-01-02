@@ -228,6 +228,16 @@ namespace NewLife.Net
         }
         #endregion
 
+        #region 重载运算符
+        /// <summary>重载类型转换，字符串直接转为NetUri对象</summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static implicit operator NetUri(String value)
+        {
+            return new NetUri(value);
+        }
+        #endregion
+
         #region IAccessor 成员
 
         bool IAccessor.Read(IReader reader) { return false; }

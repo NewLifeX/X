@@ -13,7 +13,7 @@ namespace NewLife.Net
     /// 
     /// 服务器完全处于异步工作状态，任何操作都不可能被阻塞。
     /// 
-    /// 注意：服务器接受连接请求后，不会开始处理数据，而是由<see cref="Accepted"/>事件订阅者决定何时开始处理数据。
+    /// 注意：服务器接受连接请求后，不会开始处理数据，而是由<see cref="NewSession"/>事件订阅者决定何时开始处理数据。
     /// </remarks>
     public class TcpServer : DisposeBase, ISocketServer
     {
@@ -58,11 +58,14 @@ namespace NewLife.Net
 
         #region 构造
         /// <summary>构造TCP服务器对象</summary>
-        public TcpServer() { }
+        public TcpServer()
+        {
+            _Sessions = new SessionCollection(this);
+        }
 
         /// <summary>构造TCP服务器对象</summary>
         /// <param name="port"></param>
-        public TcpServer(Int32 port) { Port = port; }
+        public TcpServer(Int32 port) : this() { Port = port; }
         #endregion
 
         #region 释放资源
@@ -115,9 +118,12 @@ namespace NewLife.Net
         #endregion
 
         #region 连接处理
-        /// <summary>连接完成事件</summary>
-        /// <remarks>这里一定不需要再次ReceiveAsync，因为TcpServer在处理完成Accepted事件后，会调用Start->ReceiveAsync</remarks>
-        public event EventHandler<AcceptedEventArgs> Accepted;
+        ///// <summary>连接完成事件</summary>
+        ///// <remarks>这里一定不需要再次ReceiveAsync，因为TcpServer在处理完成Accepted事件后，会调用Start->ReceiveAsync</remarks>
+        //public event EventHandler<AcceptedEventArgs> Accepted;
+
+        /// <summary>新会话时触发</summary>
+        public event EventHandler<SessionEventArgs> NewSession;
 
         private IAsyncResult _Async;
 
@@ -189,9 +195,10 @@ namespace NewLife.Net
             // 服务端不支持掉线重连
             session.AutoReconnect = false;
             session.Log = Log;
-            if (Accepted != null) Accepted(this, new AcceptedEventArgs { Session = session });
+            //if (Accepted != null) Accepted(this, new AcceptedEventArgs { Session = session });
+            if (NewSession != null) NewSession(this, new SessionEventArgs { Session = session });
 
-            Sessions.Add(session.Remote.EndPoint + "", session);
+            _Sessions.Add(session);
 
             // 设置心跳时间
             client.Client.SetTcpKeepAlive(true);
@@ -202,22 +209,9 @@ namespace NewLife.Net
         #endregion
 
         #region 会话
-        private Object _Sessions_lock = new object();
-        private IDictionary<String, ISocketSession> _Sessions;
+        private SessionCollection _Sessions;
         /// <summary>会话集合。用地址端口作为标识，业务应用自己维持地址端口与业务主键的对应关系。</summary>
-        public IDictionary<String, ISocketSession> Sessions
-        {
-            get
-            {
-                if (_Sessions != null) return _Sessions;
-                lock (_Sessions_lock)
-                {
-                    if (_Sessions != null) return _Sessions;
-
-                    return _Sessions = new TcpSessionCollection() { Server = this };
-                }
-            }
-        }
+        public IDictionary<String, ISocketSession> Sessions { get { return _Sessions; } }
 
         /// <summary>创建会话</summary>
         /// <param name="client"></param>
@@ -287,11 +281,11 @@ namespace NewLife.Net
         #endregion
     }
 
-    /// <summary>接受连接时触发</summary>
-    public class AcceptedEventArgs : EventArgs
-    {
-        private ISocketSession _Session;
-        /// <summary>会话</summary>
-        public ISocketSession Session { get { return _Session; } set { _Session = value; } }
-    }
+    ///// <summary>接受连接时触发</summary>
+    //public class AcceptedEventArgs : EventArgs
+    //{
+    //    private ISocketSession _Session;
+    //    /// <summary>会话</summary>
+    //    public ISocketSession Session { get { return _Session; } set { _Session = value; } }
+    //}
 }

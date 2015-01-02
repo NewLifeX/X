@@ -26,4 +26,12 @@ namespace NewLife.Net
         ISocketServer Server { get; }
         #endregion
     }
+
+    /// <summary>会话事件参数</summary>
+    public class SessionEventArgs : EventArgs
+    {
+        private ISocketSession _Session;
+        /// <summary>会话</summary>
+        public ISocketSession Session { get { return _Session; } set { _Session = value; } }
+    }
 }

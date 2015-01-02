@@ -8,6 +8,7 @@ namespace NewLife.Net.Proxy
         where TProxySession : ProxySession, new()
     {
         #region 构造函数--老树添加
+        /// <summary></summary>
         public ProxyBase()
         {
             //必须要使UseSession = true，否则创建的session对象无Host属性，在ShowSession时，无法获取Host.Name

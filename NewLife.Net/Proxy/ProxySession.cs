@@ -227,6 +227,9 @@ namespace NewLife.Net.Proxy
         #endregion
 
         #region 错误处理
+        /// <summary></summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         protected override void OnError(object sender, ExceptionEventArgs e)
         {
             if (e.Exception != null) Dispose();

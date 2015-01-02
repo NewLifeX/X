@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
@@ -21,12 +22,11 @@ namespace NewLife.Net
         /// <returns></returns>
         internal override Socket GetSocket() { return Client == null ? null : Client.Client; }
 
-        private Int32 _Sessions;
-        /// <summary>会话数</summary>
-        public Int32 Sessions { get { return _Sessions; } private set { _Sessions = value; } }
-
-        ///// <summary>读取的期望帧长度。该参数对UDP无效</summary>
-        //Int32 ITransport.FrameSize { get { return 0; } set { } }
+        private Int32 _MaxNotActive = 30;
+        /// <summary>最大不活动时间。
+        /// 对于每一个会话连接，如果超过该时间仍然没有收到任何数据，则断开会话连接。
+        /// 单位秒，默认30秒。时间不是太准确，建议15秒的倍数。为0表示不检查。</summary>
+        public Int32 MaxNotActive { get { return _MaxNotActive; } set { _MaxNotActive = value; } }
         #endregion
 
         #region 构造
@@ -34,6 +34,7 @@ namespace NewLife.Net
         public UdpServer()
         {
             Local = new NetUri(ProtocolType.Udp, IPAddress.Any, 0);
+            _Sessions = new SessionCollection(this);
         }
 
         /// <summary>使用监听口初始化</summary>
@@ -59,6 +60,8 @@ namespace NewLife.Net
 
                 Client = new UdpClient(Local.EndPoint);
                 if (Port == 0) Port = (Socket.LocalEndPoint as IPEndPoint).Port;
+
+                if (!UseReceiveAsync && NewSession != null) UseReceiveAsync = true;
 
                 WriteLog("{0}.Open {1}", this.GetType().Name, this);
             }
@@ -311,7 +314,14 @@ namespace NewLife.Net
         }
         #endregion
 
-        #region 会话接口
+        #region 会话
+        /// <summary>新会话时触发</summary>
+        public event EventHandler<SessionEventArgs> NewSession;
+
+        private SessionCollection _Sessions;
+        /// <summary>会话集合。用地址端口作为标识，业务应用自己维持地址端口与业务主键的对应关系。</summary>
+        public IDictionary<String, ISocketSession> Sessions { get { return _Sessions; } }
+
         /// <summary>创建会话</summary>
         /// <param name="remoteEP"></param>
         /// <returns></returns>
@@ -325,9 +335,21 @@ namespace NewLife.Net
                 if (!Open()) return null;
             }
 
-            var session = new UdpSession(this, remoteEP);
-            Interlocked.Increment(ref _Sessions);
-            session.OnDisposed += (s, e) => Interlocked.Decrement(ref _Sessions);
+            // 需要查找已有会话，已有会话不存在时才创建新会话
+            var session = _Sessions.Get(remoteEP + "");
+            if (session == null)
+            {
+                WriteDebugLog("新会话 {0}", remoteEP);
+
+                session = new UdpSession(this, remoteEP);
+                //Interlocked.Increment(ref _Sessions);
+                //session.OnDisposed += (s, e) => Interlocked.Decrement(ref _Sessions);
+                _Sessions.Add(session);
+
+                // 触发新会话事件
+                if (NewSession != null) NewSession(this, new SessionEventArgs { Session = session });
+            }
+
             return session;
         }
         #endregion
@@ -349,8 +371,8 @@ namespace NewLife.Net
         /// <returns></returns>
         public override string ToString()
         {
-            if (Sessions > 0)
-                return String.Format("{0} [{1}]", Local, Sessions);
+            if (Sessions.Count > 0)
+                return String.Format("{0} [{1}]", Local, Sessions.Count);
             else
                 return Local.ToString();
         }

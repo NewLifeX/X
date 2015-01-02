@@ -212,7 +212,7 @@ namespace NewLife.Net
                 return false;
             }
 
-            _LastTime = DateTime.Now;
+            LastTime = DateTime.Now;
 
             return true;
         }
@@ -229,7 +229,7 @@ namespace NewLife.Net
             if (count < 0) return null;
             if (count == 0) return new Byte[0];
 
-            _LastTime = DateTime.Now;
+            LastTime = DateTime.Now;
 
             return buf.ReadBytes(0, count);
         }
@@ -266,7 +266,7 @@ namespace NewLife.Net
                 return -1;
             }
 
-            _LastTime = DateTime.Now;
+            LastTime = DateTime.Now;
 
             return rs;
         }

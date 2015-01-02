@@ -100,8 +100,8 @@ namespace NewLife.Net.Stun
 
         #region 方法
         /// <summary>接收到数据时</summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
+        /// <param name="session"></param>
+        /// <param name="stream"></param>
         protected override void OnReceive(ISocketSession session, Stream stream)
         {
             if (stream.Length > 0)

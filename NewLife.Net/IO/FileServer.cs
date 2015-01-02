@@ -30,9 +30,9 @@ namespace NewLife.Net.IO
         #region 事件
         /// <summary>收到连接时</summary>
         /// <param name="session"></param>
-        protected override void OnAccept(ISocketSession session)
+        protected override void OnNewSession(ISocketSession session)
         {
-            base.OnAccept(session);
+            base.OnNewSession(session);
 
             session.Received += (sender, e) =>
             {

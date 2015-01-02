@@ -20,7 +20,7 @@ namespace NewLife.Net.Application
 
         /// <summary>已重载。</summary>
         /// <param name="session"></param>
-        protected override void OnAccept(ISocketSession session)
+        protected override void OnNewSession(ISocketSession session)
         {
             WriteLog("Time {0}", session.Remote);
 

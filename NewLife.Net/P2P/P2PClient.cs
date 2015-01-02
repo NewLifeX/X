@@ -63,7 +63,7 @@ namespace NewLife.Net.P2P
                     var server = new TcpServer();
                     Server = server;
                     //server.ReuseAddress = true;
-                    server.Accepted += server_Accepted;
+                    server.NewSession += server_Accepted;
                 }
                 else
                 {
@@ -142,7 +142,7 @@ namespace NewLife.Net.P2P
             }
         }
 
-        void server_Accepted(object sender, AcceptedEventArgs e)
+        void server_Accepted(object sender, SessionEventArgs e)
         {
             var session = e.Session as ISocketSession;
             WriteLog("连接到来：{0}", session.Remote);

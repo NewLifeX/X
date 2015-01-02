@@ -75,10 +75,10 @@ namespace NewLife.Net.Http
         #endregion
 
         #region 启动会话
-        void Start()
-        {
+        //void Start()
+        //{
 
-        }
+        //}
         #endregion
 
         #region 方法

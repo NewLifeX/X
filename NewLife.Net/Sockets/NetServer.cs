@@ -15,7 +15,7 @@ namespace NewLife.Net.Sockets
     /// 网络服务器模型，所有网络应用服务器可以通过继承该类实现。
     /// 该类仅实现了业务应用对网络流的操作，与具体网络协议无关。
     /// 
-    /// 收到请求<see cref="OnAccepted"/>后，会建立<see cref="CreateSession"/>会话，并加入到会话集合<see cref="Sessions"/>中，然后启动<see cref="Start"/>会话处理；
+    /// 收到请求<see cref="Server_NewSession"/>后，会建立<see cref="CreateSession"/>会话，并加入到会话集合<see cref="Sessions"/>中，然后启动<see cref="Start"/>会话处理；
     /// 
     /// 快速用法：
     /// 指定端口后直接<see cref="Start"/>，NetServer将同时监听Tcp/Udp和IPv4/IPv6（会检查是否支持）四个端口。
@@ -25,7 +25,7 @@ namespace NewLife.Net.Sockets
     /// 
     /// 标准用法：
     /// 使用<see cref="AttachServer"/>方法向网络服务器添加Socket服务，其中第一个将作为默认Socket服务<see cref="Server"/>。
-    /// 如果Socket服务集合<see cref="Servers"/>为空，将依据地址<see cref="Address"/>、端口<see cref="Port"/>、地址族<see cref="AddressFamily"/>、协议<see cref="ProtocolType"/>创建默认Socket服务。
+    /// 如果Socket服务集合<see cref="Servers"/>为空，将依据地址<see cref="Local"/>、端口<see cref="Port"/>、地址族<see cref="AddressFamily"/>、协议<see cref="ProtocolType"/>创建默认Socket服务。
     /// 如果地址族<see cref="AddressFamily"/>指定为IPv4和IPv6以外的值，将同时创建IPv4和IPv6两个Socket服务；
     /// 如果协议<see cref="ProtocolType"/>指定为Tcp和Udp以外的值，将同时创建Tcp和Udp两个Socket服务；
     /// 默认情况下，地址族<see cref="AddressFamily"/>和协议<see cref="ProtocolType"/>都是其它值，所以一共将会创建四个Socket服务（Tcp、Tcpv6、Udp、Udpv6）。
@@ -151,21 +151,20 @@ namespace NewLife.Net.Sockets
         {
             if (Servers.Contains(server)) return false;
 
-            if (server.Local.ProtocolType == ProtocolType.Tcp)
-            {
-                var svr = server as TcpServer;
-                svr.Accepted += OnAccepted;
-            }
-            else if (server.Local.ProtocolType == ProtocolType.Udp)
-            {
-                var svr = server as UdpServer;
-                //svr.Received += OnAccepted;
-                svr.Received += OnReceived;
-            }
-            else
-            {
-                throw new Exception("不支持的协议类型" + server.Local.ProtocolType + "！");
-            }
+            server.NewSession += Server_NewSession;
+            //if (server.Local.ProtocolType == ProtocolType.Tcp)
+            //{
+            //    var svr = server as TcpServer;
+            //}
+            //else if (server.Local.ProtocolType == ProtocolType.Udp)
+            //{
+            //    var svr = server as UdpServer;
+            //    svr.Received += OnReceived;
+            //}
+            //else
+            //{
+            //    throw new Exception("不支持的协议类型" + server.Local.ProtocolType + "！");
+            //}
 
             server.Error += OnError;
 
@@ -271,35 +270,35 @@ namespace NewLife.Net.Sockets
 
         #region 业务
         /// <summary>连接完成。在事件处理代码中，事件参数不得另作他用，套接字事件池将会将其回收。</summary>
-        public event EventHandler<AcceptedEventArgs> Accepted;
+        public event EventHandler<SessionEventArgs> NewSession;
 
         /// <summary>数据到达，在事件处理代码中，事件参数不得另作他用，套接字事件池将会将其回收。</summary>
         public event EventHandler<ReceivedEventArgs> Received;
 
         /// <summary>接受连接时，对于Udp是收到数据时（同时触发OnReceived）。
-        /// 如果业务逻辑简单，不需要使用会话，可以重载<see cref="OnAccepted"/>来屏蔽。</summary>
+        /// 如果业务逻辑简单，不需要使用会话，可以重载<see cref="Server_NewSession"/>来屏蔽。</summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        void OnAccepted(Object sender, AcceptedEventArgs e)
+        void Server_NewSession(Object sender, SessionEventArgs e)
         {
             var session = e.Session;
 
-            OnAccept(session);
+            OnNewSession(session);
 
-            if (Accepted != null) Accepted(sender, e);
+            if (NewSession != null) NewSession(sender, e);
         }
 
         /// <summary>收到连接时，建立会话，并挂接数据接收和错误处理事件</summary>
         /// <param name="session"></param>
-        protected virtual void OnAccept(ISocketSession session)
+        protected virtual void OnNewSession(ISocketSession session)
         {
+            Interlocked.Increment(ref _SessionCount);
+            session.OnDisposed += (s, e2) => Interlocked.Decrement(ref _SessionCount);
+
             var ns = CreateSession(session);
             ns.Server = session.Server;
             ns.Session = session;
             ns.ClientEndPoint = session.Remote.EndPoint;
-
-            Interlocked.Increment(ref _SessionCount);
-            session.OnDisposed += (s, e2) => Interlocked.Decrement(ref _SessionCount);
 
             session.OnDisposed += (s, e2) => ns.Dispose();
 
@@ -323,8 +322,8 @@ namespace NewLife.Net.Sockets
         {
             var session = sender as ISocketSession;
 
-            // 特殊处理Udp.Accept
-            if (session.Local.ProtocolType == ProtocolType.Udp) OnAccepted(sender, new AcceptedEventArgs { Session = session });
+            //// 特殊处理Udp.Accept
+            //if (session.Local.ProtocolType == ProtocolType.Udp) OnAccepted(sender, new SessionEventArgs { Session = session });
 
             OnReceive(session, e.Stream);
 

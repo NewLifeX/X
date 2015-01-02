@@ -105,8 +105,8 @@ namespace NewLife.Net.DNS
         DictionaryCache<String, DNSEntity> cache = new DictionaryCache<string, DNSEntity>() { Expriod = 600, Asynchronous = true, CacheDefault = false };
 
         /// <summary>接收处理</summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
+        /// <param name="session"></param>
+        /// <param name="stream"></param>
         protected override void OnReceive(ISocketSession session, Stream stream)
         {
             var isTcp = session.Local.IsTcp;

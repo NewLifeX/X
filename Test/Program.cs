@@ -461,7 +461,7 @@ namespace Test
             test12Server.Port = 9000;
             test12Server.ProtocolType = System.Net.Sockets.ProtocolType.Tcp;
             test12Server.AddressFamily = AddressFamily.InterNetwork;
-            test12Server.Accepted += new EventHandler<NetEventArgs>(test12Server_Accepted);
+            test12Server.NewSession += new EventHandler<NetEventArgs>(test12Server_Accepted);
             test12Server.Received += new EventHandler<NetEventArgs>(test12Server_Received);
             test12Server.Start();
             foreach (var item in test12Server.Servers)

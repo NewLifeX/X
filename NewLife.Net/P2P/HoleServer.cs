@@ -28,8 +28,8 @@ namespace NewLife.Net.P2P
 
         #region 方法
         /// <summary>收到数据时</summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
+        /// <param name="session"></param>
+        /// <param name="stream"></param>
         protected override void OnReceive(ISocketSession session, Stream stream)
         {
             var remoteEP = session.Remote.EndPoint;

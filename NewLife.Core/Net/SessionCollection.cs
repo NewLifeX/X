@@ -7,12 +7,35 @@ using NewLife.Threading;
 namespace NewLife.Net
 {
     /// <summary>会话集合。带有自动清理不活动会话的功能</summary>
-    class TcpSessionCollection : DisposeBase, IDictionary<String, ISocketSession>
+    class SessionCollection : DisposeBase, IDictionary<String, ISocketSession>
     {
+        #region 属性
         Dictionary<String, ISocketSession> _dic = new Dictionary<String, ISocketSession>();
 
-        //private Int32 sessionID = 0;
+        private ISocketServer _Server;
+        /// <summary>服务端</summary>
+        public ISocketServer Server { get { return _Server; } }
 
+        private Int32 _ClearPeriod = 5000;
+        /// <summary>清理周期。单位毫秒，默认5000毫秒。</summary>
+        public Int32 ClearPeriod { get { return _ClearPeriod; } set { _ClearPeriod = value; } }
+
+        /// <summary>清理会话计时器</summary>
+        private TimerX clearTimer;
+        #endregion
+
+        #region 构造
+        public SessionCollection(ISocketServer server) { _Server = server; }
+
+        protected override void OnDispose(bool disposing)
+        {
+            base.OnDispose(disposing);
+
+            CloseAll();
+        }
+        #endregion
+
+        #region 主要方法
         /// <summary>添加新会话，并设置会话编号</summary>
         /// <param name="session"></param>
         public void Add(ISocketSession session)
@@ -27,13 +50,19 @@ namespace NewLife.Net
             }
         }
 
-        private TcpServer _Server;
-        /// <summary>服务端</summary>
-        public TcpServer Server { get { return _Server; } set { _Server = value; } }
+        /// <summary>获取会话，加锁</summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public ISocketSession Get(String key)
+        {
+            lock (_dic)
+            {
+                ISocketSession session = null;
+                if (!_dic.TryGetValue(key, out session)) return null;
 
-        private Int32 _ClearPeriod = 15000;
-        /// <summary>清理周期。单位毫秒，默认15000毫秒。</summary>
-        public Int32 ClearPeriod { get { return _ClearPeriod; } set { _ClearPeriod = value; } }
+                return session;
+            }
+        }
 
         /// <summary>关闭所有</summary>
         public void CloseAll()
@@ -51,17 +80,12 @@ namespace NewLife.Net
                 _dic.Clear();
                 foreach (var item in ns)
                 {
-                    //if (item == null || item.Disposed || item.Socket == null) continue;
                     if (item == null || item.Disposed) continue;
 
-                    //item.Close();
                     item.Dispose();
                 }
             }
         }
-
-        /// <summary>清理会话计时器</summary>
-        private TimerX clearTimer;
 
         /// <summary>移除不活动的会话</summary>
         void RemoveNotAlive(Object state)
@@ -74,36 +98,32 @@ namespace NewLife.Net
             {
                 if (_dic.Count < 1) return;
 
-                Int32 notactive = Server != null ? Server.MaxNotActive : 0;
+                Int32 notactive = Server != null ? Server.MaxNotActive : 30;
                 // 这里可能有问题，曾经见到，_list有元素，但是value为null，这里居然没有进行遍历而直接跳过
                 // 操作这个字典的时候，必须加锁，否则就会数据错乱，成了这个样子，无法枚举
                 foreach (var elm in _dic)
                 {
                     var item = elm.Value;
-                    //if (item == null || item.Disposed || item.Socket == null) list.Add(elm.Key);
-                    if (item == null || item.Disposed /*|| !item.Active || notactive > 0 && item.Host.Statistics.Last.AddSeconds(notactive) < DateTime.Now*/)
+                    // 判断是否已超过最大不活跃时间
+                    if (item == null || item.Disposed || notactive > 0 && item.LastTime.AddSeconds(notactive) < DateTime.Now)
                     {
                         keys.Add(elm.Key);
                         values.Add(elm.Value);
                     }
                 }
+                // 从会话集合里删除这些键值，现在在锁内部，操作安全
                 foreach (var item in keys)
                 {
                     _dic.Remove(item);
                 }
             }
+            // 已经离开了锁，慢慢释放各个会话
             foreach (var item in values)
             {
                 item.Dispose();
             }
         }
-
-        protected override void OnDispose(bool disposing)
-        {
-            base.OnDispose(disposing);
-
-            CloseAll();
-        }
+        #endregion
 
         #region 成员
         public void Clear() { _dic.Clear(); }

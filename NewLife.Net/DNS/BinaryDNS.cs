@@ -41,7 +41,7 @@ namespace NewLife.Net.DNS
             else
                 return false;
 
-            return _binary.Write(value, type);
+            //return _binary.Write(value, type);
         }
 
         public override bool TryRead(Type type, ref object value)

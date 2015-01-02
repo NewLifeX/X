@@ -136,7 +136,7 @@
     <Compile Include="Net\Statistics.cs" />
     <Compile Include="Net\TcpSession.cs" />
     <Compile Include="Net\TcpServer.cs" />
-    <Compile Include="Net\TcpSessionCollection.cs" />
+    <Compile Include="Net\SessionCollection.cs" />
     <Compile Include="Net\UdpServer.cs" />
     <Compile Include="Net\UdpSession.cs" />
     <Compile Include="Net\Upgrade.cs" />
