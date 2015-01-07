@@ -13,7 +13,7 @@ namespace NewLife.CommonEntity
     /// IManageProvider足够精简，使得大多数用户可以自定义实现；
     /// 也因为其简单稳定，大多数需要涉及用户与权限功能的操作，均可以直接使用该接口。
     /// </remarks>
-    public interface IManageProvider
+    public interface IManageProvider : IServiceProvider
     {
         /// <summary>管理用户类</summary>
         Type ManageUserType { get; }
@@ -41,15 +41,15 @@ namespace NewLife.CommonEntity
         /// <param name="user"></param>
         void Logout(IManageUser user);
 
-        /// <summary>获取服务</summary>
-        /// <typeparam name="TService"></typeparam>
-        /// <returns></returns>
-        TService GetService<TService>();
+        ///// <summary>获取服务</summary>
+        ///// <typeparam name="TService"></typeparam>
+        ///// <returns></returns>
+        //TService GetService<TService>();
 
-        /// <summary>获取服务</summary>
-        /// <param name="serviceType"></param>
-        /// <returns></returns>
-        Object GetService(Type serviceType);
+        ///// <summary>获取服务</summary>
+        ///// <param name="serviceType"></param>
+        ///// <returns></returns>
+        //Object GetService(Type serviceType);
     }
 
     /// <summary>管理提供者</summary>
@@ -59,6 +59,12 @@ namespace NewLife.CommonEntity
     public class ManageProvider<TUser> : IManageProvider, IErrorInfoProvider where TUser : User<TUser>, new()
     {
         #region 静态实例
+        static ManageProvider()
+        {
+            // 为了引发CommonService的静态构造函数，从而实现自动注册
+            var container = CommonService.Container;
+        }
+
         /// <summary>当前提供者</summary>
         public static IManageProvider Provider { get { return CommonService.Container.ResolveInstance<IManageProvider>(); } }
         #endregion
@@ -99,10 +105,10 @@ namespace NewLife.CommonEntity
         /// <param name="user"></param>
         public virtual void Logout(IManageUser user) { Current = null; }
 
-        /// <summary>获取服务</summary>
-        /// <typeparam name="TService"></typeparam>
-        /// <returns></returns>
-        public TService GetService<TService>() { return (TService)GetService(typeof(TService)); }
+        ///// <summary>获取服务</summary>
+        ///// <typeparam name="TService"></typeparam>
+        ///// <returns></returns>
+        //public TService GetService<TService>() { return (TService)GetService(typeof(TService)); }
 
         /// <summary>获取服务</summary>
         /// <param name="serviceType"></param>
@@ -142,8 +148,8 @@ namespace NewLife.CommonEntity
             var user = Current;
             if (user != null)
             {
-                if (user.Properties.ContainsKey("RoleName"))
-                    builder.AppendFormat("登录：{0}({1})\r\n", user.Account, user.Properties["RoleName"]);
+                if (user["RoleName"] != null)
+                    builder.AppendFormat("登录：{0}({1})\r\n", user.Account, user["RoleName"]);
                 else
                     builder.AppendFormat("登录：{0}\r\n", user.Account);
             }

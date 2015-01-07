@@ -347,30 +347,30 @@ namespace NewLife.CommonEntity
         ///// <summary>密码</summary>
         //string IManageUser.Password { get { return Password; } set { Password = value; } }
 
-        [NonSerialized]
-        IDictionary<String, Object> _Properties;
-        /// <summary>属性集合</summary>
-        IDictionary<String, Object> IManageUser.Properties
-        {
-            get
-            {
-                if (_Properties == null)
-                {
-                    var dic = new Dictionary<String, Object>();
-                    foreach (var item in Meta.FieldNames)
-                    {
-                        dic[item] = this[item];
-                    }
-                    foreach (var item in Extends)
-                    {
-                        dic[item.Key] = item.Value;
-                    }
+        //[NonSerialized]
+        //IDictionary<String, Object> _Properties;
+        ///// <summary>属性集合</summary>
+        //IDictionary<String, Object> IManageUser.Properties
+        //{
+        //    get
+        //    {
+        //        if (_Properties == null)
+        //        {
+        //            var dic = new Dictionary<String, Object>();
+        //            foreach (var item in Meta.FieldNames)
+        //            {
+        //                dic[item] = this[item];
+        //            }
+        //            foreach (var item in Extends)
+        //            {
+        //                dic[item.Key] = item.Value;
+        //            }
 
-                    _Properties = dic;
-                }
-                return _Properties;
-            }
-        }
+        //            _Properties = dic;
+        //        }
+        //        return _Properties;
+        //    }
+        //}
         #endregion
     }
 

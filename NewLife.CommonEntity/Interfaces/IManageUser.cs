@@ -24,7 +24,12 @@ namespace NewLife.CommonEntity
         /// <summary>是否启用</summary>
         Boolean IsEnable { get; set; }
 
-        /// <summary>属性集合</summary>
-        IDictionary<String, Object> Properties { get; }
+        ///// <summary>属性集合</summary>
+        //IDictionary<String, Object> Properties { get; }
+        
+        /// <summary>获取/设置 字段值。</summary>
+        /// <param name="name">字段名</param>
+        /// <returns></returns>
+        Object this[String name] { get; set; }
     }
 }

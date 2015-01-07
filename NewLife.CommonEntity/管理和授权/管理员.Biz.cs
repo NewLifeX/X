@@ -707,28 +707,28 @@ namespace NewLife.CommonEntity
         /// <summary>是否管理员</summary>
         Boolean IManageUser.IsAdmin { get { return RoleName == "管理员" || RoleName == "超级管理员"; } set { } }
 
-        [NonSerialized]
-        IDictionary<String, Object> _Properties;
-        /// <summary>属性集合</summary>
-        IDictionary<String, Object> IManageUser.Properties
-        {
-            get
-            {
-                if (_Properties == null)
-                {
-                    _Properties = new Dictionary<String, Object>();
-                    foreach (var item in Meta.FieldNames)
-                    {
-                        _Properties[item] = this[item];
-                    }
-                    foreach (var item in Extends)
-                    {
-                        _Properties[item.Key] = item.Value;
-                    }
-                }
-                return _Properties;
-            }
-        }
+        //[NonSerialized]
+        //IDictionary<String, Object> _Properties;
+        ///// <summary>属性集合</summary>
+        //IDictionary<String, Object> IManageUser.Properties
+        //{
+        //    get
+        //    {
+        //        if (_Properties == null)
+        //        {
+        //            _Properties = new Dictionary<String, Object>();
+        //            foreach (var item in Meta.FieldNames)
+        //            {
+        //                _Properties[item] = this[item];
+        //            }
+        //            foreach (var item in Extends)
+        //            {
+        //                _Properties[item.Key] = item.Value;
+        //            }
+        //        }
+        //        return _Properties;
+        //    }
+        //}
         #endregion
     }
 
