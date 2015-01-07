@@ -984,7 +984,7 @@ namespace XCode
                 {
                     // 尽管用了事务保护，但是仍然可能有别的地方导致实体缓存更新，这点务必要注意
                     var fi = Operate.Unique;
-                    var e = Cache.Entities.Find(fi.Name, entity[fi.Name]);
+                    var e = fi != null ? Cache.Entities.Find(fi.Name, entity[fi.Name]) : null;
                     if (e != null)
                     {
                         if (e != entity) e.CopyFrom(entity);
@@ -1038,7 +1038,7 @@ namespace XCode
                 {
                     // 尽管用了事务保护，但是仍然可能有别的地方导致实体缓存更新，这点务必要注意
                     var fi = Operate.Unique;
-                    var e = Cache.Entities.Find(fi.Name, entity[fi.Name]);
+                    var e = fi != null ? Cache.Entities.Find(fi.Name, entity[fi.Name]) : null;
                     if (e != null)
                     {
                         if (e != entity) e.CopyFrom(entity);
@@ -1101,7 +1101,7 @@ namespace XCode
             var rs = persistence.Delete(entity);
 
             // 如果当前在事务中，并使用了缓存，则尝试更新缓存
-            if (HoldCache || UsingTrans  )
+            if (HoldCache || UsingTrans)
             {
                 if (Cache.Using)
                 {

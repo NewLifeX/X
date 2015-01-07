@@ -256,7 +256,10 @@ namespace XCode
 
             // 判断是否所有主键相等
             var op = EntityFactory.CreateOperate(this.GetType());
-            foreach (var item in op.Table.PrimaryKeys)
+            var ps = op.Table.PrimaryKeys;
+            // 如果没有主键，则判断所有字段
+            if (ps == null || ps.Length < 1) ps = op.Table.Fields;
+            foreach (var item in ps)
             {
                 var v1 = this[item.Name];
                 var v2 = entity[item.Name];

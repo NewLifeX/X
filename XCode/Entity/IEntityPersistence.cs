@@ -682,8 +682,9 @@ namespace XCode
             // 没有标识列和主键，返回取所有数据的语句
             if (ps == null || ps.Length < 1)
             {
-                if (DAL.Debug) throw new XCodeException("因为没有主键，无法给实体类构造默认条件！");
-                return null;
+                //if (DAL.Debug) throw new XCodeException("因为没有主键，无法给实体类构造默认条件！");
+                //return null;
+                ps = op.Table.Fields;
             }
 
             var sb = new StringBuilder();

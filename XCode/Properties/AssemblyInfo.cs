@@ -32,7 +32,7 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
 [assembly: AssemblyVersion("8.13.*")]
-[assembly: AssemblyFileVersion("8.13.2014.0720")]
+[assembly: AssemblyFileVersion("8.13.2015.0107")]
 
 /*
  * XCode的重大改进
@@ -49,6 +49,8 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v8.13.2015.0107  修正部分实体类因没有主键导致删除数据错误的BUG
+ * 
  * v8.13.2014.0720  如果页面设定有XCode_SQLList列表，则往列表写入SQL语句
  * 
  * v8.13.2014.0707  支持使用锁来控制SQLite并发
