@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
@@ -55,6 +54,30 @@ namespace NewLife.Net
         {
             Data = data;
             Length = data.Length;
+        }
+        #endregion
+
+        #region 方法
+        /// <summary>以字符串表示</summary>
+        /// <param name="encoding">字符串编码，默认URF-8</param>
+        /// <returns></returns>
+        public String ToStr(Encoding encoding = null)
+        {
+            if (Length <= 0 || Data == null || Data.Length <= 0) return String.Empty;
+
+            if (encoding == null) encoding = Encoding.UTF8;
+
+            return Data.ToStr(encoding, 0, Length);
+        }
+
+        /// <summary>以十六进制编码表示</summary>
+        /// <param name="maxLength">最大显示多少个字节</param>
+        /// <returns></returns>
+        public String ToHex(Int32 maxLength = 32)
+        {
+            if (Length <= 0 || Data == null || Data.Length <= 0) return String.Empty;
+
+            return Data.ToHex(0, Math.Min(Length, maxLength));
         }
         #endregion
     }

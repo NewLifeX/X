@@ -6,9 +6,6 @@ namespace NewLife.Net
     /// <remarks>实现者确保数据以包的形式传输，屏蔽数据的粘包和拆包</remarks>
     public interface ITransport : IDisposable
     {
-        ///// <summary>读取的期望帧长度，小于该长度为未满一帧，读取不做返回</summary>
-        //Int32 FrameSize { get; set; }
-
         /// <summary>打开</summary>
         Boolean Open();
 
@@ -34,10 +31,4 @@ namespace NewLife.Net
         /// <summary>数据到达事件</summary>
         event EventHandler<ReceivedEventArgs> Received;
     }
-
-    ///// <summary>传输口数据到达委托</summary>
-    ///// <param name="transport">传输口</param>
-    ///// <param name="data">收到的数据</param>
-    ///// <returns>要发回去的数据</returns>
-    //public delegate Byte[] TransportEventHandler(ITransport transport, Byte[] data);
 }
