@@ -19,6 +19,22 @@ namespace NewLife.Serialization
         /// <returns>是否处理成功</returns>
         public override Boolean Write(Object value, Type type)
         {
+            if (type == typeof(Guid))
+            {
+                Write((Guid)value);
+                return true;
+            }
+            else if (type == typeof(Byte[]))
+            {
+                Write((Byte[])value);
+                return true;
+            }
+            else if (type == typeof(Char[]))
+            {
+                Write((Char[])value);
+                return true;
+            }
+
             if (value == null && type != typeof(String)) return false;
 
             switch (Type.GetTypeCode(type))
@@ -74,22 +90,6 @@ namespace NewLife.Serialization
                     return true;
                 default:
                     break;
-            }
-
-            if (type == typeof(Guid))
-            {
-                Write((Guid)value);
-                return true;
-            }
-            else if (type == typeof(Byte[]))
-            {
-                Write((Byte[])value);
-                return true;
-            }
-            else if (type == typeof(Char[]))
-            {
-                Write((Char[])value);
-                return true;
             }
 
             return false;
