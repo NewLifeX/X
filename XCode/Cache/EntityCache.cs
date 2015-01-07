@@ -59,7 +59,7 @@ namespace XCode.Cache
                 XCache.CheckShowStatics(ref NextShow, ref Total, ShowStatics);
 
                 // 独占模式下，缓存不再过期
-                if (HoldCache && _Entities != null) { Interlocked.Increment(ref Shoot1); return _Entities; }
+                if (HoldCache && _Entities != null) { Interlocked.Increment(ref Shoot1); return _Entities ?? new EntityList<TEntity>(); }
 
                 // 两种情况更新缓存：1，缓存过期；2，不允许空但是集合又是空
                 Boolean isnull = !AllowNull && _Entities == null;
