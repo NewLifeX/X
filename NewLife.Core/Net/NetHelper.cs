@@ -389,5 +389,25 @@ namespace System
             }
         }
         #endregion
+
+        #region MAC获取/ARP协议
+        [DllImport("Iphlpapi.dll")]
+        private static extern int SendARP(UInt32 destip, UInt32 srcip, Byte[] mac, ref Int32 length);
+
+        /// <summary>根据IP地址获取MAC地址</summary>
+        /// <param name="ip"></param>
+        /// <returns></returns>
+        public static Byte[] GetMac(this IPAddress ip)
+        {
+            // 考虑到IPv6是16字节，不确定SendARP是否支持IPv6
+            var len = 16;
+            var buf = new Byte[16];
+            var rs = SendARP(ip.GetAddressBytes().ToUInt32(), 0, buf, ref len);
+            if (rs != 0 || len <= 0) return null;
+
+            if (len != buf.Length) buf = buf.ReadBytes(0, len);
+            return buf;
+        }
+        #endregion
     }
 }

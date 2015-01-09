@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Threading;
@@ -23,7 +24,7 @@ namespace Test2
                 try
                 {
 #endif
-                    Test3();
+                    Test4();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -121,6 +122,43 @@ namespace Test2
                 item.MaxNotActive = 8;
             }
             server.Start();
+        }
+
+        static void Test4()
+        {
+            var sw = new Stopwatch();
+            sw.Start();
+            //var ip = IPAddress.Parse("192.168.0.1");
+            //var mac = ip.GetMac();
+            //Console.WriteLine(mac.ToHex("-"));
+            for (int i = 1; i < 256; i++)
+            {
+                //var ip = IPAddress.Parse("192.168.0." + i);
+                //var mac = ip.GetMac();
+                //if (mac != null) Console.WriteLine("{0}\t{1}", ip, mac.ToHex("-"));
+                ThreadPool.QueueUserWorkItem(GetMac, i);
+            }
+            while (total < 255)
+            {
+                Console.Title = String.Format("完成：{0}/{1} {2}", success, total, sw.Elapsed);
+                Thread.Sleep(500);
+            }
+            sw.Stop();
+            Console.WriteLine("耗时 {0}", sw.Elapsed);
+        }
+
+        static Int32 success = 0;
+        static Int32 total = 0;
+        static void GetMac(Object state)
+        {
+            var ip = IPAddress.Parse("192.168.0." + state);
+            var mac = ip.GetMac();
+            if (mac != null)
+            {
+                success++;
+                Console.WriteLine("{0}\t{1}", ip, mac.ToHex("-"));
+            }
+            total++;
         }
     }
 }
