@@ -62,13 +62,14 @@ namespace NewLife.Web
             var Request = HttpContext.Current.Request;
             var Response = HttpContext.Current.Response;
 
+            // 上层可能清空错误，这里不要拦截
             var ex = Server.GetLastError();
-            if (ex == null) return;
+            //if (ex == null) return;
 
             if (!NeedProcess(ex)) return;
 
             var sb = new StringBuilder();
-            sb.AppendLine(ex.ToString());
+            if (ex != null) sb.AppendLine(ex.ToString());
             if (!String.IsNullOrEmpty(Request.UserHostAddress))
                 sb.AppendFormat("来源：{0}\r\n", Request.UserHostAddress);
             if (!String.IsNullOrEmpty(Request.UserAgent))
