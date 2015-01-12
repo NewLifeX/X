@@ -41,10 +41,13 @@ namespace NewLife.CommonEntity
         /// <param name="user"></param>
         void Logout(IManageUser user);
 
-        ///// <summary>获取服务</summary>
-        ///// <typeparam name="TService"></typeparam>
-        ///// <returns></returns>
-        //TService GetService<TService>();
+        /// <summary>获取服务</summary>
+        /// <remarks>
+        /// 其实IServiceProvider有该扩展方法，但是在FX2里面不方面使用，所以这里保留
+        /// </remarks>
+        /// <typeparam name="TService"></typeparam>
+        /// <returns></returns>
+        TService GetService<TService>();
 
         ///// <summary>获取服务</summary>
         ///// <param name="serviceType"></param>
@@ -105,10 +108,10 @@ namespace NewLife.CommonEntity
         /// <param name="user"></param>
         public virtual void Logout(IManageUser user) { Current = null; }
 
-        ///// <summary>获取服务</summary>
-        ///// <typeparam name="TService"></typeparam>
-        ///// <returns></returns>
-        //public TService GetService<TService>() { return (TService)GetService(typeof(TService)); }
+        /// <summary>获取服务</summary>
+        /// <typeparam name="TService"></typeparam>
+        /// <returns></returns>
+        public TService GetService<TService>() { return (TService)GetService(typeof(TService)); }
 
         /// <summary>获取服务</summary>
         /// <param name="serviceType"></param>
