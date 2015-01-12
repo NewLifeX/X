@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 using System.Web;
 using System.Web.UI;
 using NewLife.Log;
@@ -115,7 +116,11 @@ namespace NewLife.Web
             //HttpContext.Current.Response.End();
             // http://www.newlifex.com/showtopic-1106.aspx
             // 用End引发异常
-            HttpContext.Current.Response.Flush();
+            var Response = HttpContext.Current.Response;
+            // 设置编码，避免乱码，关键是Charset
+            Response.ContentEncoding = Encoding.UTF8;
+            Response.Charset = Encoding.UTF8.WebName;
+            Response.Flush();
             HttpContext.Current.ApplicationInstance.CompleteRequest();
             return this;
         }
