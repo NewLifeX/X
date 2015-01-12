@@ -63,10 +63,11 @@ public partial class Pages_RoleMenu : MyEntityList
         CheckBoxList cblist = e.Row.FindControl("CheckBoxList1") as CheckBoxList;
 
         // 检查权限
-        IRoleMenu rm = FindByRoleAndMenu(RoleID, entity.ID);
-        cb.Checked = (rm != null);
-        if (rm != null) cb.ToolTip = rm.PermissionFlag.ToString();
-        //if (rm != null) cb.Text = rm.PermissionFlag.ToString();
+        PermissionFlags pf = FindByRoleAndMenu(RoleID, entity.ID);
+        //cb.Checked = (pf != PermissionFlags.None);
+        Role role = Role.FindByID(RoleID);
+        cb.Checked = role.Permissions.ContainsKey(entity.ID);
+        cb.ToolTip = pf.ToString();
 
         // 如果有子节点，则不显示
         if (entity.Childs != null && entity.Childs.Count > 0)
@@ -82,10 +83,10 @@ public partial class Pages_RoleMenu : MyEntityList
         foreach (PermissionFlags item in flags.Keys)
         {
             if (item == PermissionFlags.None) continue;
-            if (!IsFullPermission && item >= PermissionFlags.Custom1) continue;
+            if (!IsFullPermission && item > PermissionFlags.Delete) continue;
 
             ListItem li = new ListItem(flags[item], ((Int32)item).ToString());
-            if (rm != null && (rm.PermissionFlag & item) == item) li.Selected = true;
+            if ((pf & item) == item) li.Selected = true;
             cblist.Items.Add(li);
         }
     }
@@ -104,11 +105,11 @@ public partial class Pages_RoleMenu : MyEntityList
         if (menu == null) return;
 
         // 检查权限
-        IRoleMenu rm = FindByRoleAndMenu(RoleID, menu.ID);
+        PermissionFlags pf = FindByRoleAndMenu(RoleID, menu.ID);
         if (cb.Checked)
         {
             // 没有权限，增加
-            if (rm == null)
+            if (pf == PermissionFlags.None)
             {
                 if (!Manager.Acquire(PermissionFlags.Insert))
                 {
@@ -116,11 +117,15 @@ public partial class Pages_RoleMenu : MyEntityList
                     return;
                 }
 
-                rm = Factory.Create(false) as IRoleMenu;
-                rm.RoleID = RoleID;
-                rm.MenuID = menu.ID;
-                rm.PermissionFlag = PermissionFlags.All;
-                rm.Save();
+                //rm = Factory.Create(false) as IRoleMenu;
+                //rm.RoleID = RoleID;
+                //rm.MenuID = menu.ID;
+                //rm.PermissionFlag = PermissionFlags.All;
+                //rm.Save();
+
+                Role role = Role.FindByID(RoleID);
+                role.Set(menu.ID, PermissionFlags.All);
+                role.Save();
 
                 // 如果父级没有授权，则授权
                 CheckAndAddParent(RoleID, menu);
@@ -129,7 +134,7 @@ public partial class Pages_RoleMenu : MyEntityList
         else
         {
             // 如果有权限，删除
-            if (rm != null)
+            if (pf != PermissionFlags.None)
             {
                 if (!Manager.Acquire(PermissionFlags.Delete))
                 {
@@ -137,12 +142,15 @@ public partial class Pages_RoleMenu : MyEntityList
                     return;
                 }
 
-                (rm as IEntity).Delete();
+                //(rm as IEntity).Delete();
+                Role role = Role.FindByID(RoleID);
+                role.Remove(menu.ID);
+                role.Save();
             }
         }
 
         // 清空缓存，否则一会绑定的时候会绑定旧数据
-        _rms = null;
+        //_rms = null;
         gv.DataBind();
     }
 
@@ -163,9 +171,10 @@ public partial class Pages_RoleMenu : MyEntityList
         if (menu == null) return;
 
         // 检查权限
-        IRoleMenu rm = FindByRoleAndMenu(RoleID, menu.ID);
+        PermissionFlags pf = FindByRoleAndMenu(RoleID, menu.ID);
+        Role role = Role.FindByID(RoleID);
         // 没有权限，增加
-        if (rm == null)
+        if (pf == PermissionFlags.None)
         {
             if (!Manager.Acquire(PermissionFlags.Insert))
             {
@@ -173,9 +182,10 @@ public partial class Pages_RoleMenu : MyEntityList
                 return;
             }
 
-            rm = Factory.Create(false) as IRoleMenu;
-            rm.RoleID = RoleID;
-            rm.MenuID = menu.ID;
+            //rm = Factory.Create(false) as IRoleMenu;
+            //rm.RoleID = RoleID;
+            //rm.MenuID = menu.ID;
+            role.Set(menu.ID, PermissionFlags.None);
         }
 
         // 遍历权限项
@@ -185,7 +195,7 @@ public partial class Pages_RoleMenu : MyEntityList
             if (item.Selected) flag |= (PermissionFlags)(Int32.Parse(item.Value));
         }
 
-        if (rm.PermissionFlag != flag)
+        if (pf != flag)
         {
             if (!Manager.Acquire(PermissionFlags.Update))
             {
@@ -193,15 +203,18 @@ public partial class Pages_RoleMenu : MyEntityList
                 return;
             }
 
-            rm.PermissionFlag = flag;
-            rm.Save();
+            //rm.PermissionFlag = flag;
+            //rm.Save();
+            //role.Set(menu.ID, flag);
+            role.Permissions[menu.ID] = flag;
 
             // 如果父级没有授权，则授权
             CheckAndAddParent(RoleID, menu);
         }
+        role.Save();
 
-        // 清空缓存，否则一会绑定的时候会绑定旧数据
-        _rms = null;
+        //// 清空缓存，否则一会绑定的时候会绑定旧数据
+        //_rms = null;
         gv.DataBind();
     }
 
@@ -210,30 +223,33 @@ public partial class Pages_RoleMenu : MyEntityList
         // 如果父级没有授权，则授权
         while ((menu = menu.Parent) != null)
         {
-            IRoleMenu rm = FindByRoleAndMenu(roleid, menu.ID);
-            if (rm == null)
-            {
-                rm = Factory.Create(false) as IRoleMenu;
-                rm.RoleID = roleid;
-                rm.MenuID = menu.ID;
-                rm.PermissionFlag = PermissionFlags.All;
-                rm.Save();
-            }
+            //IRoleMenu rm = FindByRoleAndMenu(roleid, menu.ID);
+            //if (rm == null)
+            //{
+            //    rm = Factory.Create(false) as IRoleMenu;
+            //    rm.RoleID = roleid;
+            //    rm.MenuID = menu.ID;
+            //    rm.PermissionFlag = PermissionFlags.All;
+            //    rm.Save();
+            //}
         }
     }
 
-    EntityList<IEntity> _rms;
-    IRoleMenu FindByRoleAndMenu(Int32 roleID, Int32 menuID)
+    //EntityList<IEntity> _rms;
+    PermissionFlags FindByRoleAndMenu(Int32 roleID, Int32 menuID)
     {
-        if (_rms == null)
-        {
-            Factory.Cache.Clear(null);
-            _rms = Factory.Cache.Entities;
-        }
-        return _rms.Find(delegate(IEntity e)
-        {
-            IRoleMenu rm = e as IRoleMenu;
-            return rm.RoleID == roleID && rm.MenuID == menuID;
-        }) as IRoleMenu;
+        Role role = Role.FindByID(roleID);
+        return role == null ? PermissionFlags.None : role.Get(menuID);
+
+        //if (_rms == null)
+        //{
+        //    Factory.Cache.Clear(null);
+        //    _rms = Factory.Cache.Entities;
+        //}
+        //return _rms.Find(delegate(IEntity e)
+        //{
+        //    IRoleMenu rm = e as IRoleMenu;
+        //    return rm.RoleID == roleID && rm.MenuID == menuID;
+        //}) as IRoleMenu;
     }
 }

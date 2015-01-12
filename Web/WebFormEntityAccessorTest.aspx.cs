@@ -33,7 +33,7 @@ public partial class WebFormEntityAccessorTest : System.Web.UI.Page
             Debug.Assert(Math.Abs((admin.LastLogin - admin2.LastLogin).Ticks) < TimeSpan.FromSeconds(1).Ticks);
             Debug.Assert(admin.RoleID == admin2.RoleID);
             Debug.Assert(admin.RoleName == admin2.RoleName);
-            Debug.Assert(admin.SSOUserID == admin2.SSOUserID);
+            //Debug.Assert(admin.SSOUserID == admin2.SSOUserID);
         }
     }
     protected void fieldID_Click(object sender, EventArgs e)

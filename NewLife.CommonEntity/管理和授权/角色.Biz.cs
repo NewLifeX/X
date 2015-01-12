@@ -377,6 +377,17 @@ namespace NewLife.CommonEntity
             if (Permissions.ContainsKey(resid)) Permissions.Remove(resid);
         }
 
+        /// <summary>获取权限</summary>
+        /// <param name="resid"></param>
+        /// <returns></returns>
+        public PermissionFlags Get(Int32 resid)
+        {
+            PermissionFlags pf;
+            if (!Permissions.TryGetValue(resid, out pf)) return PermissionFlags.None;
+
+            return pf;
+        }
+
         /// <summary>设置该角色拥有指定资源的指定权限</summary>
         /// <param name="resid"></param>
         /// <param name="flag"></param>
@@ -442,6 +453,10 @@ namespace NewLife.CommonEntity
             // 根据资源按照从小到大排序一下
             foreach (var item in Permissions.OrderBy(e => e.Key))
             {
+                //// 跳过None
+                //if (item.Value == PermissionFlags.None) continue;
+                // 不要跳过None，因为None表示只读
+
                 if (sb.Length > 0) sb.Append(",");
                 sb.AppendFormat("{0}#{1}", item.Key, (Int32)item.Value);
             }
