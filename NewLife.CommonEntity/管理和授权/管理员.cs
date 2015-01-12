@@ -32,11 +32,11 @@ namespace NewLife.CommonEntity
         }
 
         private String _Name;
-        /// <summary>名称</summary>
+        /// <summary>名称。登录用户名</summary>
         [DisplayName("名称")]
-        [Description("名称")]
+        [Description("名称。登录用户名")]
         [DataObjectField(false, false, true, 50)]
-        [BindColumn(2, "Name", "名称", null, "nvarchar(50)", 0, 0, true)]
+        [BindColumn(2, "Name", "名称。登录用户名", null, "nvarchar(50)", 0, 0, true)]
         public virtual String Name
         {
             get { return _Name; }
@@ -56,11 +56,11 @@ namespace NewLife.CommonEntity
         }
 
         private String _DisplayName;
-        /// <summary>显示名</summary>
+        /// <summary>显示名。昵称、中文名等</summary>
         [DisplayName("显示名")]
-        [Description("显示名")]
+        [Description("显示名。昵称、中文名等")]
         [DataObjectField(false, false, true, 50)]
-        [BindColumn(4, "DisplayName", "显示名", null, "nvarchar(50)", 0, 0, true)]
+        [BindColumn(4, "DisplayName", "显示名。昵称、中文名等", null, "nvarchar(50)", 0, 0, true)]
         public virtual String DisplayName
         {
             get { return _DisplayName; }
@@ -104,11 +104,11 @@ namespace NewLife.CommonEntity
         }
 
         private Int32 _RoleID;
-        /// <summary>角色</summary>
+        /// <summary>角色。主要角色</summary>
         [DisplayName("角色")]
-        [Description("角色")]
+        [Description("角色。主要角色")]
         [DataObjectField(false, false, true, 10)]
-        [BindColumn(8, "RoleID", "角色", null, "int", 10, 0, false)]
+        [BindColumn(8, "RoleID", "角色。主要角色", null, "int", 10, 0, false)]
         public virtual Int32 RoleID
         {
             get { return _RoleID; }
@@ -116,11 +116,11 @@ namespace NewLife.CommonEntity
         }
 
         private String _Roles;
-        /// <summary>多角色</summary>
+        /// <summary>多角色。逗号分隔</summary>
         [DisplayName("多角色")]
-        [Description("多角色")]
+        [Description("多角色。逗号分隔")]
         [DataObjectField(false, false, true, 50)]
-        [BindColumn(9, "Roles", "多角色", null, "nvarchar(50)", 0, 0, true)]
+        [BindColumn(9, "Roles", "多角色。逗号分隔", null, "nvarchar(50)", 0, 0, true)]
         public virtual String Roles
         {
             get { return _Roles; }
@@ -250,13 +250,13 @@ namespace NewLife.CommonEntity
             ///<summary>编号</summary>
             public static readonly Field ID = FindByName(__.ID);
 
-            ///<summary>名称</summary>
+            ///<summary>名称。登录用户名</summary>
             public static readonly Field Name = FindByName(__.Name);
 
             ///<summary>密码</summary>
             public static readonly Field Password = FindByName(__.Password);
 
-            ///<summary>显示名</summary>
+            ///<summary>显示名。昵称、中文名等</summary>
             public static readonly Field DisplayName = FindByName(__.DisplayName);
 
             ///<summary>邮件</summary>
@@ -268,10 +268,10 @@ namespace NewLife.CommonEntity
             ///<summary>唯一代码。比如身份证、SSOID等</summary>
             public static readonly Field Code = FindByName(__.Code);
 
-            ///<summary>角色</summary>
+            ///<summary>角色。主要角色</summary>
             public static readonly Field RoleID = FindByName(__.RoleID);
 
-            ///<summary>多角色</summary>
+            ///<summary>多角色。逗号分隔</summary>
             public static readonly Field Roles = FindByName(__.Roles);
 
             ///<summary>登录次数</summary>
@@ -298,13 +298,13 @@ namespace NewLife.CommonEntity
             ///<summary>编号</summary>
             public const String ID = "ID";
 
-            ///<summary>名称</summary>
+            ///<summary>名称。登录用户名</summary>
             public const String Name = "Name";
 
             ///<summary>密码</summary>
             public const String Password = "Password";
 
-            ///<summary>显示名</summary>
+            ///<summary>显示名。昵称、中文名等</summary>
             public const String DisplayName = "DisplayName";
 
             ///<summary>邮件</summary>
@@ -316,10 +316,10 @@ namespace NewLife.CommonEntity
             ///<summary>唯一代码。比如身份证、SSOID等</summary>
             public const String Code = "Code";
 
-            ///<summary>角色</summary>
+            ///<summary>角色。主要角色</summary>
             public const String RoleID = "RoleID";
 
-            ///<summary>多角色</summary>
+            ///<summary>多角色。逗号分隔</summary>
             public const String Roles = "Roles";
 
             ///<summary>登录次数</summary>
@@ -348,13 +348,13 @@ namespace NewLife.CommonEntity
         /// <summary>编号</summary>
         Int32 ID { get; set; }
 
-        /// <summary>名称</summary>
+        /// <summary>名称。登录用户名</summary>
         String Name { get; set; }
 
         /// <summary>密码</summary>
         String Password { get; set; }
 
-        /// <summary>显示名</summary>
+        /// <summary>显示名。昵称、中文名等</summary>
         String DisplayName { get; set; }
 
         /// <summary>邮件</summary>
@@ -366,10 +366,10 @@ namespace NewLife.CommonEntity
         /// <summary>唯一代码。比如身份证、SSOID等</summary>
         String Code { get; set; }
 
-        /// <summary>角色</summary>
+        /// <summary>角色。主要角色</summary>
         Int32 RoleID { get; set; }
 
-        /// <summary>多角色</summary>
+        /// <summary>多角色。逗号分隔</summary>
         String Roles { get; set; }
 
         /// <summary>登录次数</summary>

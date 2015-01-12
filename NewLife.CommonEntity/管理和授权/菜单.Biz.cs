@@ -352,7 +352,7 @@ namespace NewLife.CommonEntity
         /// <returns></returns>
         public IList<IMenu> GetMySubMenus(Int32[] filters)
         {
-            var list = AllChilds;
+            var list = Childs;
             if (list == null || list.Count < 1) return null;
 
             //list = list.FindAll(Menu<TEntity>._.ParentID, parentID);

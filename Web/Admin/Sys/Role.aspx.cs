@@ -68,7 +68,8 @@ public partial class Pages_Role : MyEntityList
         {
             if (role.ID == tmp.ID || role.Name == "管理员") return false;
 
-            role.CopyRoleMenuFrom(tmp);
+            //role.CopyRoleMenuFrom(tmp);
+            role.Permission = tmp.Permission;
 
             return true;
         });

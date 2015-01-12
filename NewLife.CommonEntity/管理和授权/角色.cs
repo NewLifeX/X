@@ -13,8 +13,6 @@ namespace NewLife.CommonEntity
     [DataObject]
     [Description("角色")]
     [BindIndex("IU_Role_Name", true, "Name")]
-    [BindRelation("ID", true, "RoleMenu", "RoleID")]
-    [BindRelation("ID", true, "Administrator", "RoleID")]
     [BindTable("Role", Description = "角色", ConnName = "Common", DbType = DatabaseType.SqlServer)]
     public abstract partial class Role<TEntity> : IRole
     {
@@ -32,11 +30,11 @@ namespace NewLife.CommonEntity
         }
 
         private String _Name;
-        /// <summary>角色名称</summary>
-        [DisplayName("角色名称")]
-        [Description("角色名称")]
+        /// <summary>名称</summary>
+        [DisplayName("名称")]
+        [Description("名称")]
         [DataObjectField(false, false, true, 50)]
-        [BindColumn(2, "Name", "角色名称", null, "nvarchar(50)", 0, 0, true)]
+        [BindColumn(2, "Name", "名称", null, "nvarchar(50)", 0, 0, true)]
         public virtual String Name
         {
             get { return _Name; }
@@ -59,8 +57,8 @@ namespace NewLife.CommonEntity
         /// <summary>权限</summary>
         [DisplayName("权限")]
         [Description("权限")]
-        [DataObjectField(false, false, true, -1)]
-        [BindColumn(4, "Permission", "权限", null, "ntext", 0, 0, true)]
+        [DataObjectField(false, false, true, 500)]
+        [BindColumn(4, "Permission", "权限", null, "nvarchar(500)", 0, 0, true)]
         public virtual String Permission
         {
             get { return _Permission; }
@@ -110,7 +108,7 @@ namespace NewLife.CommonEntity
             ///<summary>编号</summary>
             public static readonly Field ID = FindByName(__.ID);
 
-            ///<summary>角色名称</summary>
+            ///<summary>名称</summary>
             public static readonly Field Name = FindByName(__.Name);
 
             ///<summary>是否系统角色。系统角色用于业务系统开发使用，禁止删除</summary>
@@ -128,7 +126,7 @@ namespace NewLife.CommonEntity
             ///<summary>编号</summary>
             public const String ID = "ID";
 
-            ///<summary>角色名称</summary>
+            ///<summary>名称</summary>
             public const String Name = "Name";
 
             ///<summary>是否系统角色。系统角色用于业务系统开发使用，禁止删除</summary>
@@ -148,7 +146,7 @@ namespace NewLife.CommonEntity
         /// <summary>编号</summary>
         Int32 ID { get; set; }
 
-        /// <summary>角色名称</summary>
+        /// <summary>名称</summary>
         String Name { get; set; }
 
         /// <summary>是否系统角色。系统角色用于业务系统开发使用，禁止删除</summary>

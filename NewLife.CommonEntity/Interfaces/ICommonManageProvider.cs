@@ -187,8 +187,8 @@ namespace NewLife.CommonEntity
             {
                 menu = root;
                 if (menu == null || menu.Childs == null || menu.Childs.Count < 1) return null;
-                menu = menu.Childs[0];
-                if (menu == null) return null;
+                //menu = menu.Childs[0];
+                //if (menu == null) return null;
             }
 
             //return admin.Role.GetMySubMenus(menu.ID);

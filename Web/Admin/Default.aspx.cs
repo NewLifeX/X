@@ -50,7 +50,8 @@ public partial class Admin_Default : System.Web.UI.Page
 
         if (admin.Role != null)
         {
-            List<IMenu> list = admin.Role.GetMySubMenus(root.ID);
+            //List<IMenu> list = admin.Role.GetMySubMenus(root.ID);
+            IList<IMenu> list = provider.GetMySubMenus(root.ID);
             menuItem.DataSource = list;
             menuItem.DataBind();
 

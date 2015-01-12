@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Tables Version="8.13.5422.21755">
+<Tables Version="8.13.5491.2097">
   <Table Name="Administrator" Description="管理员" DbType="SqlServer" RenderGenEntity="true">
     <Columns>
       <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
-      <Column Name="Name" DataType="String" Description="名称" />
+      <Column Name="Name" DataType="String" Description="名称。登录用户名" />
       <Column Name="Password" DataType="String" Description="密码" />
-      <Column Name="DisplayName" DataType="String" Description="显示名" />
+      <Column Name="DisplayName" DataType="String" Description="显示名。昵称、中文名等" />
       <Column Name="Mail" DataType="String" Description="邮件" />
       <Column Name="Phone" DataType="String" Description="电话" />
       <Column Name="Code" DataType="String" Description="唯一代码。比如身份证、SSOID等" />
-      <Column Name="RoleID" DataType="Int32" Description="角色" />
-      <Column Name="Roles" DataType="String" Description="多角色" />
+      <Column Name="RoleID" DataType="Int32" Description="角色。主要角色" />
+      <Column Name="Roles" DataType="String" Description="多角色。逗号分隔" />
       <Column Name="Logins" DataType="Int32" Description="登录次数" />
       <Column Name="LastLogin" DataType="DateTime" Description="最后登录" />
       <Column Name="LastLoginIP" DataType="String" Description="最后登陆IP" />
@@ -28,17 +28,13 @@
   <Table Name="Role" Description="角色" DbType="SqlServer" RenderGenEntity="true">
     <Columns>
       <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
-      <Column Name="Name" DataType="String" Description="角色名称" />
+      <Column Name="Name" DataType="String" Description="名称" />
       <Column Name="IsSystem" DataType="Boolean" Description="是否系统角色。系统角色用于业务系统开发使用，禁止删除" />
-      <Column Name="Permission" DataType="String" Length="-1" Description="权限" />
+      <Column Name="Permission" DataType="String" Length="500" Description="权限" />
     </Columns>
     <Indexes>
       <Index Columns="Name" Unique="True" />
     </Indexes>
-    <Relations>
-      <Relation Column="ID" RelationTable="RoleMenu" RelationColumn="RoleID" Unique="True" />
-      <Relation Column="ID" RelationTable="Administrator" RelationColumn="RoleID" Unique="True" />
-    </Relations>
   </Table>
   <Table Name="Menu" Description="菜单" DbType="SqlServer" BaseType="EntityTree" RenderGenEntity="true">
     <Columns>
@@ -47,7 +43,7 @@
       <Column Name="ParentID" DataType="Int32" Description="父编号" />
       <Column Name="Url" DataType="String" Length="200" Description="链接" />
       <Column Name="Sort" DataType="Int32" Description="序号" />
-      <Column Name="Remark" DataType="String" Length="500" Description="备注" />
+      <Column Name="Remark" DataType="String" Length="200" Description="备注" />
       <Column Name="Permission" DataType="String" Description="权限" />
       <Column Name="IsShow" DataType="Boolean" Description="是否显示" />
       <Column Name="Necessary" DataType="Boolean" Description="必要的菜单。必须至少有角色拥有这些权限，如果没有则自动授权给系统角色" />

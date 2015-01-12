@@ -83,8 +83,8 @@ namespace NewLife.CommonEntity
         /// <summary>备注</summary>
         [DisplayName("备注")]
         [Description("备注")]
-        [DataObjectField(false, false, true, 500)]
-        [BindColumn(6, "Remark", "备注", null, "nvarchar(500)", 0, 0, true)]
+        [DataObjectField(false, false, true, 200)]
+        [BindColumn(6, "Remark", "备注", null, "nvarchar(200)", 0, 0, true)]
         public virtual String Remark
         {
             get { return _Remark; }
