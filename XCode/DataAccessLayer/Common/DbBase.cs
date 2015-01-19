@@ -16,7 +16,6 @@ using NewLife.Configuration;
 using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.Web;
-using XCode.Exceptions;
 
 namespace XCode.DataAccessLayer
 {
@@ -378,6 +377,8 @@ namespace XCode.DataAccessLayer
                         DAL.WriteLog("准备缓存{0}到{1}！", zipfile, xfile);
                         try
                         {
+                            // 确保文件目录存在
+                            xfile.EnsureDirectory();
                             File.Copy(zipfile, xfile, true);
                         }
                         catch (Exception ex)
@@ -404,6 +405,7 @@ namespace XCode.DataAccessLayer
         }
 
         static String _ServiceAddress;
+        /// <summary>服务端地址</summary>
         static String ServiceAddress
         {
             get
@@ -415,6 +417,7 @@ namespace XCode.DataAccessLayer
         }
 
         static Boolean? _CacheZip;
+        /// <summary>是否缓存Zip压缩包</summary>
         static Boolean CacheZip
         {
             get
