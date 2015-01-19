@@ -13,7 +13,7 @@ using XCode;
 public partial class Pages_RoleMenu : MyEntityList
 {
     /// <summary>实体类型</summary>
-    public override Type EntityType { get { return CommonManageProvider.Provider.RoleMenuType; } set { base.EntityType = value; } }
+    public override Type EntityType { get { return CommonManageProvider.Provider.MenuType; } set { base.EntityType = value; } }
 
     IEntityOperate Factory { get { return EntityFactory.CreateOperate(EntityType); } }
 

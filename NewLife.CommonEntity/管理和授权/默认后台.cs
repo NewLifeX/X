@@ -7,7 +7,7 @@ namespace NewLife.CommonEntity
     /// <summary>管理员</summary>
     [Serializable]
     [ModelCheckMode(ModelCheckModes.CheckTableWhenFirstUse)]
-    public class Administrator : Administrator<Administrator, Role, Menu> { }
+    public class Administrator : Administrator<Administrator> { }
 
     /// <summary>菜单</summary>
     [Serializable]

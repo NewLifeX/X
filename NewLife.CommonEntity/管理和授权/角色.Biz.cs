@@ -1,9 +1,11 @@
 ﻿using System;
+using NewLife.Reflection;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using NewLife.Log;
+using XCode;
 
 namespace NewLife.CommonEntity
 {
@@ -252,6 +254,8 @@ namespace NewLife.CommonEntity
                     role.Save();
                 }
 
+                CheckRole();
+
                 return;
             }
 
@@ -263,6 +267,47 @@ namespace NewLife.CommonEntity
             entity.Save();
 
             if (XTrace.Debug) XTrace.WriteLine("完成初始化{0}角色数据！", typeof(TEntity).Name);
+        }
+
+        /// <summary>初始化时执行必要的权限检查，以防万一管理员无法操作</summary>
+        static void CheckRole()
+        {
+            var rs = Meta.Cache.Entities;
+            if (rs.Count <= 0) return;
+            var list = rs.ToList();
+
+            // 如果某些菜单已经被删除，但是角色权限表仍然存在，则删除
+            var menuType = ManageProvider.Provider.GetService(typeof(IMenu)) as Type;
+            var eop = menuType.CreateInstance() as IEntityOperate;
+            var ids = eop.FindAllWithCache().GetItem<Int32>("ID").ToArray();
+            foreach (var role in rs)
+            {
+                if (!role.CheckValid(ids))
+                {
+                    XTrace.WriteLine("删除[{0}]中的无效资源权限！", role);
+                    role.Save();
+                }
+            }
+
+            var sys = list.FirstOrDefault(e => e.IsSystem);
+            if (sys == null) return;
+
+            // 如果没有任何角色拥有权限管理的权限，那是很悲催的事情
+            var count = 0;
+            var nes = menuType.GetValue("Necessaries", false) as Int32[];
+            foreach (var item in nes)
+            {
+                if (!list.Any(e => e.Has(item, PermissionFlags.All)))
+                {
+                    count++;
+                    sys.Set(item, PermissionFlags.All);
+                }
+            }
+            if (count > 0)
+            {
+                XTrace.WriteLine("共有{0}个必要菜单，没有任何角色拥有权限，准备授权第一系统角色[{1}]拥有其完全管理权！", count, sys);
+                sys.Save();
+            }
         }
 
         /// <summary>验证数据，通过抛出异常的方式提示验证失败。</summary>
@@ -341,6 +386,11 @@ namespace NewLife.CommonEntity
 
             return Meta.Cache.Entities.Find(__.ID, id);
         }
+
+        /// <summary>根据编号查找角色</summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        IRole IRole.FindByID(Int32 id) { return FindByID(id); }
 
         /// <summary>根据名称查找角色</summary>
         /// <param name="name">名称</param>
@@ -560,6 +610,11 @@ namespace NewLife.CommonEntity
 
         /// <summary>当前角色拥有的资源</summary>
         Int32[] Resources { get; }
+
+        /// <summary>根据编号查找角色</summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        IRole FindByID(Int32 id);
 
         /// <summary>保存</summary>
         /// <returns></returns>

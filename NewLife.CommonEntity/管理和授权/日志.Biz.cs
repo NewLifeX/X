@@ -163,6 +163,12 @@ namespace NewLife.CommonEntity
             return Create(name, action);
         }
 
+        /// <summary>创建</summary>
+        /// <param name="type"></param>
+        /// <param name="action"></param>
+        /// <returns></returns>
+        ILog ILog.Create(Type type, String action) { return Create(type, action); }
+
         static DictionaryCache<Type, String> desCache = new DictionaryCache<Type, string>();
         /// <summary>获取实体类的描述名</summary>
         /// <param name="type">类型</param>
@@ -208,6 +214,12 @@ namespace NewLife.CommonEntity
 
     public partial interface ILog
     {
+        /// <summary>创建</summary>
+        /// <param name="type"></param>
+        /// <param name="action"></param>
+        /// <returns></returns>
+        ILog Create(Type type, String action);
+
         /// <summary>写日志</summary>
         /// <param name="type">类型</param>
         /// <param name="action">操作</param>

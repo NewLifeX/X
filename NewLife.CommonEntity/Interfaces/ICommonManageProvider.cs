@@ -116,7 +116,7 @@ namespace NewLife.CommonEntity
             if (hasInit > 0 || Interlocked.CompareExchange(ref hasInit, 1, 0) != 0) return;
 
             var btype = typeof(Object);
-            var adminType = typeof(Administrator<,,>);
+            var adminType = typeof(Administrator<>);
             var type = _AdministratorType = typeof(TAdministrator);
             while (type != typeof(Object))
             {
@@ -124,14 +124,18 @@ namespace NewLife.CommonEntity
                 if (type.IsGenericType && type.GetGenericTypeDefinition() == adminType)
                 {
                     var ts = type.GetGenericArguments();
-                    _RoleType = ts[1];
-                    _MenuType = ts[2];
+                    //_RoleType = ts[1];
+                    //_MenuType = ts[2];
                     //_RoleMenuType = ts[3];
                     //_LogType = ts[4];
                     break;
                 }
                 type = type.BaseType;
             }
+
+            _RoleType = GetService(typeof(IRole)) as Type;
+            _MenuType = GetService(typeof(IMenu)) as Type;
+            _LogType = GetService(typeof(ILog)) as Type;
         }
         #endregion
 

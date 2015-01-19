@@ -920,19 +920,24 @@ namespace NewLife.CommonEntity
             return this;
         }
 
-        /// <summary>父菜单</summary>
-        IMenu IMenu.Parent { get { return Parent; } }
+        /// <summary>当前菜单</summary>
+        IMenu IMenu.Current { get { return Current; } }
 
-        /// <summary>子菜单</summary>
-        IList<IMenu> IMenu.Childs { get { return Childs.OfType<IMenu>().ToList(); } }
+        ///// <summary>子菜单</summary>
+        //IList<IMenu> IMenu.Childs { get { return Childs.OfType<IMenu>().ToList(); } }
 
-        /// <summary>子孙菜单</summary>
-        IList<IMenu> IMenu.AllChilds { get { return AllChilds.OfType<IMenu>().ToList(); } }
+        ///// <summary>子孙菜单</summary>
+        //IList<IMenu> IMenu.AllChilds { get { return AllChilds.OfType<IMenu>().ToList(); } }
 
         /// <summary>根据层次路径查找</summary>
         /// <param name="path">层次路径</param>
         /// <returns></returns>
         IMenu IMenu.FindByPath(String path) { return FindByPath(path, _.Name, _.Permission, _.Remark); }
+
+        /// <summary>根据权限查找</summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        IMenu IMenu.FindForPerssion(String name) { return FindForPerssion(name); }
         #endregion
     }
 
@@ -950,22 +955,27 @@ namespace NewLife.CommonEntity
         /// <param name="newName"></param>
         IMenu CheckMenuName(String oldName, String newName);
 
-        /// <summary>父菜单</summary>
-        IMenu Parent { get; }
+        /// <summary>当前菜单</summary>
+        IMenu Current { get; }
 
-        /// <summary>子菜单</summary>
-        IList<IMenu> Childs { get; }
+        ///// <summary>子菜单</summary>
+        //IList<IMenu> Childs { get; }
 
-        /// <summary>子孙菜单</summary>
-        IList<IMenu> AllChilds { get; }
+        ///// <summary>子孙菜单</summary>
+        //IList<IMenu> AllChilds { get; }
 
-        /// <summary>深度</summary>
-        Int32 Deepth { get; }
+        ///// <summary>深度</summary>
+        //Int32 Deepth { get; }
 
         /// <summary>根据层次路径查找</summary>
         /// <param name="path">层次路径</param>
         /// <returns></returns>
         IMenu FindByPath(String path);
+
+        /// <summary>根据权限查找</summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        IMenu FindForPerssion(String name);
 
         /// <summary>排序上升</summary>
         void Up();

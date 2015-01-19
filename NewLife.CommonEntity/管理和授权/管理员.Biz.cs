@@ -15,148 +15,6 @@ using System.Linq;
 namespace NewLife.CommonEntity
 {
     /// <summary>管理员</summary>
-    /// <typeparam name="TEntity">管理员实体类</typeparam>
-    /// <typeparam name="TRoleEntity">角色实体类</typeparam>
-    /// <typeparam name="TMenuEntity">菜单实体类</typeparam>
-    /// <typeparam name="TRoleMenuEntity">角色菜单实体类</typeparam>
-    /// <typeparam name="TLogEntity">日志实体类</typeparam>
-    [Serializable]
-    public partial class Administrator<TEntity, TRoleEntity, TMenuEntity> : Administrator<TEntity>
-        where TEntity : Administrator<TEntity, TRoleEntity, TMenuEntity>, new()
-        where TRoleEntity : Role<TRoleEntity>, new()
-        where TMenuEntity : Menu<TMenuEntity>, new()
-    {
-        #region 对象操作
-        /// <summary>初始化数据</summary>
-        protected override void InitData()
-        {
-            base.InitData();
-
-            CheckRole();
-        }
-
-        /// <summary>初始化时执行必要的权限检查，以防万一管理员无法操作</summary>
-        static void CheckRole()
-        {
-            var rs = Role<TRoleEntity>.Meta.Cache.Entities;
-            if (rs.Count <= 0) return;
-            var list = rs.ToList();
-
-            // 如果某些菜单已经被删除，但是角色权限表仍然存在，则删除
-            var ids = Menu<TMenuEntity>.FindAllWithCache().GetItem<Int32>("ID").ToArray();
-            foreach (var role in rs)
-            {
-                if (!role.CheckValid(ids))
-                {
-                    XTrace.WriteLine("删除[{0}]中的无效资源权限！", role);
-                    role.Save();
-                }
-            }
-
-            var sys = list.FirstOrDefault(e => e.IsSystem);
-            if (sys == null) return;
-
-            // 如果没有任何角色拥有权限管理的权限，那是很悲催的事情
-            var count = 0;
-            var nes = Menu<TMenuEntity>.Necessaries;
-            foreach (var item in nes)
-            {
-                if (!list.Any(e => e.Has(item, PermissionFlags.All)))
-                {
-                    count++;
-                    sys.Set(item, PermissionFlags.All);
-                }
-            }
-            if (count > 0)
-            {
-                XTrace.WriteLine("共有{0}个必要菜单，没有任何角色拥有权限，准备授权第一系统角色[{1}]拥有其完全管理权！", count, sys);
-                sys.Save();
-            }
-        }
-
-        /// <summary>已重载。调用Save时写日志，而调用Insert和Update时不写日志</summary>
-        /// <returns></returns>
-        public override int Save()
-        {
-            if (ID == 0)
-                WriteLog(null, "添加", Name);
-            else
-                WriteLog(null, "修改", Name);
-
-            return base.Save();
-        }
-
-        /// <summary>已重载。</summary>
-        /// <returns></returns>
-        public override int Delete()
-        {
-            String name = Name;
-            if (String.IsNullOrEmpty(name))
-            {
-                var entity = Find("ID", ID);
-                if (entity != null) name = entity.Name;
-            }
-            WriteLog(null, "删除", name);
-
-            return base.Delete();
-        }
-        #endregion
-
-        #region 权限日志
-        /// <summary>角色</summary>
-        /// <remarks>扩展属性不缓存空对象，一般来说，每个管理员都有对应的角色，如果没有，可能是在初始化</remarks>
-        [XmlIgnore]
-        public virtual TRoleEntity Role
-        {
-            get
-            {
-                if (RoleID <= 0) return null;
-                //var role = Extends.GetExtend<TRoleEntity, TRoleEntity>("Role", e => Role<TRoleEntity, TMenuEntity, TRoleMenuEntity>.FindByID(RoleID), false);
-                //// 如果找不到角色，并且处于初始化状态，则更正数据
-                //if (role == null && Meta.Count <= 1 && Role<TRoleEntity>.Meta.Count > 0)
-                //{
-                //    role = Role<TRoleEntity>.Meta.Cache.Entities[0];
-                //    RoleID = role.ID;
-                //    this.Save();
-                //}
-                //return role;
-                return Role<TRoleEntity>.FindByID(RoleID);
-            }
-            //set { Extends.SetExtend<TRoleEntity>("Role", value); }
-        }
-
-        /// <summary>角色</summary>
-        internal protected override IRole RoleInternal { get { return Role; } /*set { Role = (TRoleEntity)value; }*/ }
-
-        /// <summary>根据权限名（权限路径）找到权限菜单实体</summary>
-        /// <param name="name">名称</param>
-        /// <returns></returns>
-        public override IMenu FindPermissionMenu(string name)
-        {
-            // 优先使用当前页，除非当前页与权限名不同
-            var entity = Menu<TMenuEntity>.Current;
-            if (entity != null && entity.Permission == name) return entity;
-
-            // 根据权限名找
-            return Menu<TMenuEntity>.FindForPerssion(name);
-        }
-
-        ///// <summary>创建当前管理员的日志实体</summary>
-        ///// <param name="type">类型</param>
-        ///// <param name="action"></param>
-        ///// <returns></returns>
-        //public override ILog CreateLog(Type type, string action)
-        //{
-        //    var log = Log<TLogEntity>.Create(type, action);
-        //    log.UserID = ID;
-        //    log.UserName = FriendName;
-
-        //    return log;
-        //}
-        #endregion
-    }
-
-    /// <summary>管理员</summary>
     /// <remarks>
     /// 基础实体类应该是只有一个泛型参数的，需要用到别的类型时，可以继承一个，也可以通过虚拟重载等手段让基类实现
     /// </remarks>
@@ -207,6 +65,33 @@ namespace NewLife.CommonEntity
 
             if (String.IsNullOrEmpty(Name)) throw new ArgumentNullException(__.Name, "用户名不能为空！");
             if (RoleID < 1) throw new ArgumentNullException(__.RoleID, "没有指定角色！");
+        }
+
+        /// <summary>已重载。调用Save时写日志，而调用Insert和Update时不写日志</summary>
+        /// <returns></returns>
+        public override int Save()
+        {
+            if (ID == 0)
+                WriteLog(null, "添加", Name);
+            else
+                WriteLog(null, "修改", Name);
+
+            return base.Save();
+        }
+
+        /// <summary>已重载。</summary>
+        /// <returns></returns>
+        public override int Delete()
+        {
+            String name = Name;
+            if (String.IsNullOrEmpty(name))
+            {
+                var entity = Find("ID", ID);
+                if (entity != null) name = entity.Name;
+            }
+            WriteLog(null, "删除", name);
+
+            return base.Delete();
         }
         #endregion
 
@@ -509,10 +394,10 @@ namespace NewLife.CommonEntity
             //Thread.CurrentPrincipal = null;
         }
 
-        /// <summary>根据权限名（权限路径）找到权限菜单实体</summary>
-        /// <param name="name">名称</param>
-        /// <returns></returns>
-        public abstract IMenu FindPermissionMenu(String name);
+        ///// <summary>根据权限名（权限路径）找到权限菜单实体</summary>
+        ///// <param name="name">名称</param>
+        ///// <returns></returns>
+        //public abstract IMenu FindPermissionMenu(String name);
 
         /// <summary>拥有指定菜单的权限</summary>
         /// <param name="name">名称</param>
@@ -586,17 +471,38 @@ namespace NewLife.CommonEntity
         //}
         #endregion
 
-        #region IAdministrator 成员
+        #region 权限日志
         /// <summary>角色</summary>
+        /// <remarks>扩展属性不缓存空对象，一般来说，每个管理员都有对应的角色，如果没有，可能是在初始化</remarks>
         [XmlIgnore]
-        IRole IAdministrator.Role { get { return RoleInternal; } /*set { RoleInternal = value; }*/ }
+        public virtual IRole Role
+        {
+            get
+            {
+                if (RoleID <= 0) return null;
 
-        /// <summary>角色</summary>
-        [XmlIgnore]
-        internal protected abstract IRole RoleInternal { get; /*set;*/ }
+                var role = ManageProvider.Get<IRole>();
+
+                return role.FindByID(RoleID);
+            }
+        }
 
         /// <summary>角色名</summary>
-        public virtual String RoleName { get { return RoleInternal == null ? null : RoleInternal.Name; } set { } }
+        public virtual String RoleName { get { return Role == null ? null : Role.Name; } set { } }
+
+        /// <summary>根据权限名（权限路径）找到权限菜单实体</summary>
+        /// <param name="name">名称</param>
+        /// <returns></returns>
+        public IMenu FindPermissionMenu(string name)
+        {
+            var factory = ManageProvider.Get<IMenu>();
+            // 优先使用当前页，除非当前页与权限名不同
+            var entity = factory.Current;
+            if (entity != null && entity.Permission == name) return entity;
+
+            // 根据权限名找
+            return factory.FindForPerssion(name);
+        }
 
         /// <summary>写日志</summary>
         /// <param name="type">类型</param>
@@ -606,13 +512,14 @@ namespace NewLife.CommonEntity
         {
             if (!Config.GetConfig<Boolean>("NewLife.CommonEntity.WriteEntityLog", true)) return;
 
-            //if (type == null) type = this.GetType();
-            //var log = CreateLog(type, action);
-            //if (log != null)
-            //{
-            //    log.Remark = remark;
-            //    log.Save();
-            //}
+            if (type == null) type = this.GetType();
+
+            var factory = ManageProvider.Get<ILog>();
+            var log = factory.Create(type, action);
+            log.UserID = ID;
+            log.UserName = FriendName;
+            log.Remark = remark;
+            log.Save();
         }
         #endregion
 

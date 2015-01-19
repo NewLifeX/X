@@ -3,6 +3,7 @@ using System.Text;
 using System.Web;
 using NewLife.Reflection;
 using NewLife.Web;
+using XCode;
 
 namespace NewLife.CommonEntity
 {
@@ -147,6 +148,27 @@ namespace NewLife.CommonEntity
                 else
                     builder.AppendFormat("登录：{0}\r\n", user.Account);
             }
+        }
+        #endregion
+
+        #region 实体类扩展
+        /// <summary>根据实体类接口获取实体工厂</summary>
+        /// <typeparam name="TIEntity"></typeparam>
+        /// <returns></returns>
+        internal static IEntityOperate GetFactory<TIEntity>()
+        {
+            var type = Provider.GetService(typeof(TIEntity)) as Type;
+            if (type == null) return null;
+
+            return EntityFactory.CreateOperate(type);
+        }
+
+        internal static T Get<T>()
+        {
+            var eop = GetFactory<T>();
+            if (eop == null) return default(T);
+
+            return (T)eop.Default;
         }
         #endregion
     }
