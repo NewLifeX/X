@@ -22,9 +22,6 @@ namespace NewLife.CommonEntity
 
         /// <summary>角色类</summary>
         Type RoleType { get; }
-
-        /// <summary>权限类</summary>
-        Type RoleMenuType { get; }
         #endregion
 
         #region 菜单
@@ -113,10 +110,6 @@ namespace NewLife.CommonEntity
         /// <summary>角色类</summary>
         public virtual Type RoleType { get { return _RoleType; } }
 
-        private Type _RoleMenuType;
-        /// <summary>权限类</summary>
-        public virtual Type RoleMenuType { get { return _RoleMenuType; } }
-
         Int32 hasInit = 0;
         void InitType()
         {
@@ -187,22 +180,9 @@ namespace NewLife.CommonEntity
             {
                 menu = root;
                 if (menu == null || menu.Childs == null || menu.Childs.Count < 1) return null;
-                //menu = menu.Childs[0];
-                //if (menu == null) return null;
             }
 
-            //return admin.Role.GetMySubMenus(menu.ID);
-
             return menu.GetMySubMenus(admin.Role.Resources);
-
-            //var menus = menu.AllChilds;
-            //if (menus.Count < 1) return menus;
-
-            //// 请求角色过滤资源权限
-            //var res = admin.Role.Resources;
-            //menus = menus.Where(e => res.Contains(e.ID)).ToList();
-
-            //return menus;
         }
         #endregion
     }

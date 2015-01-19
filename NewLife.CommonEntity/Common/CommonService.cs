@@ -15,8 +15,6 @@ namespace NewLife.CommonEntity
         static CommonService()
         {
             Container
-                //.Register<IManageProvider, ManageProvider>()
-                //.Register<ICommonManageProvider, CommonManageProvider>()
                 .AutoRegister(typeof(IManageProvider), typeof(CommonManageProvider), typeof(ManageProvider))
                 .AutoRegister(typeof(IErrorInfoProvider), typeof(CommonManageProvider), typeof(ManageProvider))
                 .AutoRegister<IEntityForm, EntityForm2>()

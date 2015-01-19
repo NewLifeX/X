@@ -27,11 +27,6 @@ namespace NewLife.CommonEntity
         where TMenuEntity : Menu<TMenuEntity>, new()
     {
         #region 对象操作
-        //static Administrator()
-        //{
-        //    // 初始化时执行必要的权限检查，以防万一管理员无法操作
-        //}
-
         /// <summary>初始化数据</summary>
         protected override void InitData()
         {
@@ -143,20 +138,7 @@ namespace NewLife.CommonEntity
             if (entity != null && entity.Permission == name) return entity;
 
             // 根据权限名找
-            var menu = Menu<TMenuEntity>.FindForPerssion(name);
-            if (menu != null) return menu;
-
-            //取消菜单名称检查
-            //// 找不到的时候，修改当前页面
-            //if (menu == null)
-            //{
-            //    if (entity != null)
-            //    {
-            //        if (entity.ResetName(name)) menu = entity;
-            //    }
-            //}
-
-            return menu;
+            return Menu<TMenuEntity>.FindForPerssion(name);
         }
 
         ///// <summary>创建当前管理员的日志实体</summary>
@@ -300,18 +282,6 @@ namespace NewLife.CommonEntity
         /// <summary>当前登录用户，不带自动登录</summary>
         public static TEntity CurrentNoAutoLogin { get { return HttpState.Get(null, null); } }
 
-        /// <summary>当前登录用户。通过实体资格提供者，保证取得正确的管理员</summary>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        [Obsolete("该成员在后续版本中讲不再被支持！")]
-        public static IAdministrator CurrentAdministrator
-        {
-            get
-            {
-                //return TypeResolver.GetPropertyValue(typeof(IAdministrator), "Current") as IAdministrator;
-                return ManageProvider.Provider.Current as IAdministrator;
-            }
-        }
-
         /// <summary>友好名字</summary>
         public virtual String FriendName { get { return String.IsNullOrEmpty(DisplayName) ? Name : DisplayName; } }
         #endregion
@@ -373,17 +343,6 @@ namespace NewLife.CommonEntity
             else // 实体缓存
                 return Meta.Cache.Entities.Find(__.Code, code);
         }
-
-        ///// <summary>根据SSOUserID查找所有帐户</summary>
-        ///// <param name="id"></param>
-        ///// <returns></returns>
-        //public static EntityList<TEntity> FindAllBySSOUserID(Int32 id)
-        //{
-        //    if (Meta.Count >= 1000)
-        //        return FindAll(__.SSOUserID, id);
-        //    else // 实体缓存
-        //        return Meta.Cache.Entities.FindAll(__.SSOUserID, id);
-        //}
 
         /// <summary>查询满足条件的记录集，分页、排序</summary>
         /// <param name="key">关键字</param>
@@ -485,13 +444,10 @@ namespace NewLife.CommonEntity
 
         static TEntity Login(String username, String password, Int32 hashTimes)
         {
-            //if (String.IsNullOrEmpty(username)) return null;
-            //if (String.IsNullOrEmpty(username)) throw new Exception("该帐号不存在！");
             if (String.IsNullOrEmpty(username)) throw new ArgumentNullException("username", "该帐号不存在！");
             //过滤帐号中的空格，防止出现无操作无法登录的情况
             var account = username.Trim();
             var user = FindByName(account);
-            //if (user == null) return null;
             if (user == null) throw new EntityException("帐号{0}不存在！", account);
 
             if (!user.IsEnable) throw new EntityException("账号{0}被禁用！", account);
@@ -660,40 +616,6 @@ namespace NewLife.CommonEntity
         }
         #endregion
 
-        #region IPrincipal 成员
-        //[NonSerialized]
-        //private IIdentity idt;
-        //[XmlIgnore]
-        //IIdentity IPrincipal.Identity
-        //{
-        //    get { return idt ?? (idt = new GenericIdentity(Name, "CommonEntity")); }
-        //}
-
-        //bool IPrincipal.IsInRole(string role)
-        //{
-        //    return RoleName == role;
-        //}
-        #endregion
-
-        #region IIdentity 成员
-        //[XmlIgnore]
-        //string IIdentity.AuthenticationType
-        //{
-        //    get { return "CommonEntity"; }
-        //}
-
-        //[XmlIgnore]
-        //bool IIdentity.IsAuthenticated
-        //{
-        //    get { return true; }
-        //}
-
-        //string IIdentity.Name
-        //{
-        //    get { return Name; }
-        //}
-        #endregion
-
         #region IManageUser 成员
         /// <summary>编号</summary>
         object IManageUser.Uid { get { return ID; } }
@@ -706,29 +628,6 @@ namespace NewLife.CommonEntity
 
         /// <summary>是否管理员</summary>
         Boolean IManageUser.IsAdmin { get { return RoleName == "管理员" || RoleName == "超级管理员"; } set { } }
-
-        //[NonSerialized]
-        //IDictionary<String, Object> _Properties;
-        ///// <summary>属性集合</summary>
-        //IDictionary<String, Object> IManageUser.Properties
-        //{
-        //    get
-        //    {
-        //        if (_Properties == null)
-        //        {
-        //            _Properties = new Dictionary<String, Object>();
-        //            foreach (var item in Meta.FieldNames)
-        //            {
-        //                _Properties[item] = this[item];
-        //            }
-        //            foreach (var item in Extends)
-        //            {
-        //                _Properties[item.Key] = item.Value;
-        //            }
-        //        }
-        //        return _Properties;
-        //    }
-        //}
         #endregion
     }
 
