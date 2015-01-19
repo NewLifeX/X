@@ -95,8 +95,6 @@
     <Compile Include="实体\SysSetting.cs" />
     <Compile Include="帮助\手册.Biz.cs" />
     <Compile Include="帮助\手册.cs" />
-    <Compile Include="管理和授权\部门.Biz.cs" />
-    <Compile Include="管理和授权\部门.cs" />
     <Compile Include="附件\AttachmentHttpHandler.cs" />
     <Compile Include="附件\DownloadFile.cs" />
     <Compile Include="Web\EntityForm.cs">
@@ -166,10 +164,6 @@
       <DependentUpon>日志.cs</DependentUpon>
     </Compile>
     <Compile Include="管理和授权\日志.cs" />
-    <Compile Include="管理和授权\用户.Biz.cs">
-      <DependentUpon>用户.cs</DependentUpon>
-    </Compile>
-    <Compile Include="管理和授权\用户.cs" />
     <Compile Include="管理和授权\管理员.Biz.cs">
       <DependentUpon>管理员.cs</DependentUpon>
     </Compile>

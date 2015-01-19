@@ -55,11 +55,11 @@ namespace NewLife.CommonEntity
         //Object GetService(Type serviceType);
     }
 
-    /// <summary>管理提供者</summary>
-    public class ManageProvider : ManageProvider<User> { }
+    ///// <summary>管理提供者</summary>
+    //public class ManageProvider : ManageProvider<User> { }
 
     /// <summary>管理提供者</summary>
-    public class ManageProvider<TUser> : IManageProvider, IErrorInfoProvider where TUser : User<TUser>, new()
+    public abstract class ManageProvider : IManageProvider, IErrorInfoProvider
     {
         #region 静态实例
         static ManageProvider()
@@ -74,35 +74,26 @@ namespace NewLife.CommonEntity
 
         #region IManageProvider 接口
         /// <summary>管理用户类</summary>
-        public virtual Type ManageUserType { get { return typeof(TUser); } }
+        public abstract Type ManageUserType { get; }
 
         /// <summary>当前用户</summary>
-        public virtual IManageUser Current { get { return User<TUser>.Current; } set { User<TUser>.Current = value as TUser; } }
+        public abstract IManageUser Current { get; set; }
 
         /// <summary>根据用户编号查找</summary>
         /// <param name="userid"></param>
         /// <returns></returns>
-        public virtual IManageUser FindByID(Object userid)
-        {
-            return User<TUser>.FindByID((Int32)userid);
-        }
+        public abstract IManageUser FindByID(Object userid);
 
         /// <summary>根据用户帐号查找</summary>
         /// <param name="account"></param>
         /// <returns></returns>
-        public virtual IManageUser FindByAccount(String account)
-        {
-            return User<TUser>.FindByAccount(account);
-        }
+        public abstract IManageUser FindByAccount(String account);
 
         /// <summary>登录</summary>
         /// <param name="account"></param>
         /// <param name="password"></param>
         /// <returns></returns>
-        public virtual IManageUser Login(String account, String password)
-        {
-            return User<TUser>.Login(account, password);
-        }
+        public abstract IManageUser Login(String account, String password);
 
         /// <summary>注销</summary>
         /// <param name="user"></param>

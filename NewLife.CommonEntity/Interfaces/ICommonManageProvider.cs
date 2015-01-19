@@ -72,7 +72,7 @@ namespace NewLife.CommonEntity
         public override Type ManageUserType { get { return AdminstratorType; } }
 
         /// <summary>当前用户</summary>
-        public override IManageUser Current { get { return Administrator<TAdministrator>.Current; } }
+        public override IManageUser Current { get { return Administrator<TAdministrator>.Current; } set { Administrator<TAdministrator>.Current = (TAdministrator)value; } }
 
         /// <summary>根据用户编号查找</summary>
         /// <param name="userid"></param>
