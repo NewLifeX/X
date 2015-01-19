@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Threading;
 using NewLife.Reflection;
 using XCode;
+using NewLife.Model;
 
 namespace NewLife.CommonEntity
 {
@@ -133,9 +134,9 @@ namespace NewLife.CommonEntity
                 type = type.BaseType;
             }
 
-            _RoleType = GetService(typeof(IRole)) as Type;
-            _MenuType = GetService(typeof(IMenu)) as Type;
-            _LogType = GetService(typeof(ILog)) as Type;
+            _RoleType = ObjectContainer.Current.ResolveType<IRole>();
+            _MenuType = ObjectContainer.Current.ResolveType<IMenu>();
+            _LogType = ObjectContainer.Current.ResolveType<ILog>();
         }
         #endregion
 

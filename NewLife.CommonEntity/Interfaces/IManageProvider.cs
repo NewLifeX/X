@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Text;
 using System.Web;
+using NewLife.Model;
 using NewLife.Reflection;
 using NewLife.Web;
 using XCode;
@@ -157,7 +158,7 @@ namespace NewLife.CommonEntity
         /// <returns></returns>
         internal static IEntityOperate GetFactory<TIEntity>()
         {
-            var type = Provider.GetService(typeof(TIEntity)) as Type;
+            var type = ObjectContainer.Current.ResolveType<TIEntity>();
             if (type == null) return null;
 
             return EntityFactory.CreateOperate(type);

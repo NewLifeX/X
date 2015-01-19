@@ -19,6 +19,12 @@ namespace NewLife.CommonEntity
                 .AutoRegister(typeof(IErrorInfoProvider), typeof(CommonManageProvider), typeof(ManageProvider))
                 .AutoRegister<IEntityForm, EntityForm2>()
                 .AutoRegister<IManagePage, ManagePage>();
+
+            Container
+                .AutoRegister<IAdministrator, Administrator>()
+                .AutoRegister<IRole, Role>()
+                .AutoRegister<IMenu, Menu>()
+                .AutoRegister<ILog, Log>();
         }
     }
 }
