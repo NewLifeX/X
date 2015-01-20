@@ -110,10 +110,10 @@ namespace XCode.Cache
                 if (Debug)
                 {
                     var reason = Times == 1 ? "第一次" : (isnull ? "无缓存数据" : Expriod + "秒过期");
-                    DAL.WriteLog("异步更新实体缓存（第{2}次）：{0} 原因：{1}", typeof(TEntity).FullName, reason, Times);
+                    DAL.WriteLog("异步更新实体缓存（第{2}次）：{0} 原因：{1} {3}", typeof(TEntity).FullName, reason, Times, XTrace.GetCaller(3, 8));
                 }
 
-                ThreadPoolX.QueueUserWorkItem(FillWaper, isnull);
+                ThreadPoolX.QueueUserWorkItem(FillWaper, Times);
             }
             else
             {
@@ -121,10 +121,10 @@ namespace XCode.Cache
                 if (Debug)
                 {
                     var reason = Times == 1 ? "第一次" : (isnull ? "无缓存数据" : Expriod + "秒过期");
-                    DAL.WriteLog("更新实体缓存（第{2}次）：{0} 原因：{1} {3}", typeof(TEntity).FullName, reason, Times, XTrace.GetCaller(2, 2));
+                    DAL.WriteLog("更新实体缓存（第{2}次）：{0} 原因：{1} {3}", typeof(TEntity).FullName, reason, Times, XTrace.GetCaller(3, 8));
                 }
 
-                FillWaper(isnull);
+                FillWaper(Times);
 
                 // 这里直接计算有效期，避免每次判断缓存有效期时进行的时间相加而带来的性能损耗
                 // 设置时间放在获取缓存之后，避免缓存尚未拿到，其它线程拿到空数据
@@ -145,7 +145,7 @@ namespace XCode.Cache
             // 清空
             if (_Entities != null && _Entities.Count == 0) _Entities = null;
 
-            if (Debug) DAL.WriteLog("完成更新缓存（第{1}次）：{0}", typeof(TEntity).FullName, Times);
+            if (Debug) DAL.WriteLog("完成更新缓存（第{1}次）：{0}", typeof(TEntity).FullName, state);
         }
 
         /// <summary>清除缓存</summary>

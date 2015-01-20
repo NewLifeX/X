@@ -441,7 +441,7 @@ namespace XCode
                             // 依赖关系FindMax=>FindAll=>Query=>InitData=>Meta.Count，所以不能使用
 
                             if (DAL.Debug) DAL.WriteLog("第一次访问，SQLite的Select Count非常慢，数据大于阀值时，使用最大ID作为表记录数");
-                            DAL.WriteLog(XTrace.GetCaller(1, 8));
+
                             var builder = new SelectBuilder();
                             builder.Table = FormatedTableName;
                             builder.OrderBy = Table.Identity.Desc();
