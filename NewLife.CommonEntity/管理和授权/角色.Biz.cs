@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using NewLife.Log;
 using XCode;
+using System.Threading;
 
 namespace NewLife.CommonEntity
 {
@@ -34,192 +35,6 @@ namespace NewLife.CommonEntity
         [Description("删除")]
         Delete = 8,
     }
-
-    ///// <summary>角色</summary>
-    //public partial class Role<TEntity, TMenuEntity> : Role<TEntity>
-    //    where TEntity : Role<TEntity, TMenuEntity>, new()
-    //    where TMenuEntity : Menu<TMenuEntity>, new()
-    //{
-    //    #region 对象操作
-    //    ///// <summary>首次连接数据库时初始化数据，仅用于实体类重载，用户不应该调用该方法</summary>
-    //    //[EditorBrowsable(EditorBrowsableState.Never)]
-    //    //protected override void InitData()
-    //    //{
-    //    //    base.InitData();
-
-    //    //    // 如果角色菜单对应关系为空或者只有一个，则授权第一个角色访问所有菜单
-    //    //    if (RoleMenu<TRoleMenuEntity>.Meta.Count > 0)
-    //    //    {
-    //    //        if (XTrace.Debug) XTrace.WriteLine("如果某一个菜单对应的RoleMenu（角色菜单对应关系）为空或者只有一个，则授权第一个角色访问所有菜单！");
-
-    //    //        foreach (var item in Menu<TMenuEntity>.Root.AllChilds)
-    //    //        {
-    //    //            RoleMenu<TRoleMenuEntity>.CheckNonePerssion(item.ID);
-    //    //        }
-
-    //    //        ClearRoleMenu();
-    //    //        return;
-    //    //    }
-
-    //    //    Menu<TMenuEntity>.Meta.Session.WaitForInitData(10000);
-    //    //    var ms = Menu<TMenuEntity>.Meta.Cache.Entities;
-
-    //    //    if (XTrace.Debug) XTrace.WriteLine("开始初始化{0}授权数据……", typeof(TRoleMenuEntity).Name);
-
-    //    //    using (var trans = new EntityTransaction<TEntity>())
-    //    //    {
-    //    //        Int32 id = 1;
-    //    //        var rs = Meta.Cache.Entities;
-    //    //        if (rs != null && rs.Count > 0)
-    //    //        {
-    //    //            id = rs[0].ID;
-    //    //        }
-
-    //    //        // 授权访问所有菜单
-    //    //        if (ms != null && ms.Count > 0) RoleMenu<TRoleMenuEntity>.GrantAll(id, ms.GetItem<Int32>("ID"));
-
-    //    //        trans.Commit();
-    //    //        if (XTrace.Debug) XTrace.WriteLine("完成初始化{0}授权数据！", typeof(TRoleMenuEntity).Name);
-    //    //    }
-    //    //}
-
-    //    ///// <summary>删除RoleMenu中无效的RoleID和无效的MenuID</summary>
-    //    //public static void ClearRoleMenu()
-    //    //{
-    //    //    // 等待RoleMenu初始化完成
-    //    //    Int32 count = RoleMenu<TRoleMenuEntity>.Meta.Count;
-    //    //    count = Menu<TMenuEntity>.Meta.Count;
-
-    //    //    //// 统计所有RoleID和MenuID
-    //    //    //var list1 = Meta.Cache.Entities.ToList();
-    //    //    //var list2 = Menu<TMenuEntity>.Meta.Cache.Entities.ToList();
-
-    //    //    //var exp = new WhereExpression();
-    //    //    //exp &= RoleMenu<TRoleMenuEntity>._.RoleID.NotIn(list1.Select(e => e.ID));
-    //    //    //exp |= RoleMenu<TRoleMenuEntity>._.MenuID.NotIn(list2.Select(e => e.ID));
-
-    //    //    // 查询所有。之所以不是调用Delete删除，是为了引发RoleMenu里面的Delete写日志
-    //    //    var rms = RoleMenu<TRoleMenuEntity>.FindAllInvalid(FindSQLWithKey(), Menu<TMenuEntity>.FindSQLWithKey());
-    //    //    if (rms == null || rms.Count < 1) return;
-
-    //    //    if (XTrace.Debug) XTrace.WriteLine("删除RoleMenu中无效的RoleID和无效的MenuID！");
-
-    //    //    rms.Delete();
-    //    //}
-
-    //    ///// <summary>已重载。关联删除权限项。</summary>
-    //    ///// <returns></returns>
-    //    //protected override int OnDelete()
-    //    //{
-    //    //    if (Menus != null) Menus.Delete();
-    //    //    return base.OnDelete();
-    //    //}
-    //    #endregion
-
-    //    #region 扩展属性
-    //    ///// <summary>菜单</summary>
-    //    //[XmlIgnore]
-    //    //public virtual EntityList<TRoleMenuEntity> Menus
-    //    //{
-    //    //    get { return Extends.GetExtend<TRoleMenuEntity, EntityList<TRoleMenuEntity>>("Menus", e => RoleMenu<TRoleMenuEntity>.FindAllByRoleID(ID), false); }
-    //    //    set { Extends["Menus"] = value; }
-    //    //}
-
-    //    /// <summary>拥有权限的菜单</summary>
-    //    [XmlIgnore]
-    //    public virtual EntityList<TMenuEntity> MenuList
-    //    {
-    //        get
-    //        {
-    //            return Extends.GetExtend<TMenuEntity, EntityList<TMenuEntity>>("MenuList", m =>
-    //            {
-    //                var list = EntityList<TMenuEntity>.From<TRoleMenuEntity>(Menus, item => Menu<TMenuEntity>.FindByID(item.MenuID));
-    //                // 先按Sort降序，再按ID升序，的确更加完善
-    //                if (list != null) list.Sort(new String[] { Menu<TMenuEntity>._.Sort, Menu<TMenuEntity>._.ID }, new bool[] { true, false });
-    //                return list;
-
-    //                // 新代码很不稳定，先用旧的
-    //                //if (Menus == null || Menus.Count < 1) return null;
-
-    //                //var list = Menus.ToList()
-    //                //    .Select(e => Menu<TMenuEntity>.FindByID(e.MenuID))
-    //                //    .OrderByDescending(e => e.Sort)
-    //                //    .ThenBy(e => e.ID);
-    //                //return new EntityList<TMenuEntity>(list);
-    //            }, false);
-    //        }
-    //        set { Extends["MenuList"] = value; }
-    //    }
-    //    #endregion
-
-    //    #region 业务
-    //    /// <summary>申请指定菜单指定操作的权限</summary>
-    //    /// <param name="menuID"></param>
-    //    /// <param name="flag"></param>
-    //    /// <returns></returns>
-    //    public override Boolean Acquire(Int32 menuID, PermissionFlags flag)
-    //    {
-    //        if (menuID <= 0 || MenuList == null || MenuList.Count < 1) return false;
-
-    //        // 找到菜单。自下而上递归查找，任意一级没有权限即视为无权限
-    //        Int32 id = menuID;
-    //        // 避免可能的死循环
-    //        var list = new List<Int32>();
-    //        while (id > 0)
-    //        {
-    //            var entity = MenuList.Find(Menu<TMenuEntity>._.ID, id);
-    //            if (entity == null) return false;
-
-    //            if (entity.Parent == null) break;
-
-    //            id = entity.ParentID;
-    //            if (list.Contains(id)) return false;
-    //            list.Add(id);
-    //        }
-
-    //        // 申请权限
-    //        if (flag == PermissionFlags.None) return true;
-
-    //        TRoleMenuEntity rm = Menus.Find(RoleMenu<TRoleMenuEntity>._.MenuID, menuID);
-    //        if (rm == null) return false;
-
-    //        return rm.Acquire(flag);
-    //    }
-
-    //    /// <summary>取得当前角色的子菜单，有权限、可显示、排序</summary>
-    //    /// <param name="parentID"></param>
-    //    /// <returns></returns>
-    //    public EntityList<TMenuEntity> GetMySubMenus(Int32 parentID)
-    //    {
-    //        var list = MenuList;
-    //        if (list == null || list.Count < 1) return null;
-
-    //        list = list.FindAll(Menu<TMenuEntity>._.ParentID, parentID);
-    //        if (list == null || list.Count < 1) return null;
-    //        list = list.FindAll(Menu<TMenuEntity>._.IsShow, true);
-    //        if (list == null || list.Count < 1) return null;
-
-    //        return list;
-    //    }
-
-    //    /// <summary>取得当前角色的子菜单，有权限、可显示、排序</summary>
-    //    /// <param name="parentID"></param>
-    //    /// <returns></returns>
-    //    protected internal override List<IMenu> GetMySubMenusInternal(int parentID)
-    //    {
-    //        var list = GetMySubMenus(parentID);
-    //        if (list == null || list.Count < 1) return null;
-
-    //        return list.Cast<IMenu>().ToList();
-    //    }
-
-    //    ///// <summary>当前角色拥有的权限</summary>
-    //    //public override List<IRoleMenu> RoleMenus { get { return Menus.ToList().Cast<IRoleMenu>().ToList(); } }
-
-    //    /// <summary>当前角色拥有的菜单</summary>
-    //    internal protected override List<IMenu> MenusInternal { get { return MenuList.ToList().Cast<IMenu>().ToList(); } }
-    //    #endregion
-    //}
 
     /// <summary>角色</summary>
     /// <typeparam name="TEntity"></typeparam>
@@ -275,7 +90,16 @@ namespace NewLife.CommonEntity
         static void CheckRole()
         {
             var rs = Meta.Cache.Entities;
-            if (rs.Count <= 0) return;
+            for (int i = 0; rs.Count == 0 && i < 100; i++)
+            {
+                rs = Meta.Cache.Entities;
+                Thread.Sleep(10);
+            }
+            if (rs.Count <= 0)
+            {
+                XTrace.WriteLine("Role.CheckRole 居然没有拿到菜单");
+                return;
+            }
             var list = rs.ToList();
 
             // 如果某些菜单已经被删除，但是角色权限表仍然存在，则删除

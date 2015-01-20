@@ -406,7 +406,12 @@ namespace NewLife.CommonEntity
             var filters = new HashSet<String>(appDirsFileFilter, StringComparer.OrdinalIgnoreCase);
 
             // 如果不包含Admin，以它开头
-            if (!appDirs.Contains("Admin")) appDirs.Insert(0, "Admin");
+            //if (!appDirs.Contains("Admin")) appDirs.Insert(0, "Admin");
+            if (appDirs.Count == 0 || appDirs.Count == 1 && appDirs[0] == "Admin")
+            {
+                var dis = Directory.GetDirectories(".".GetFullPath());
+                appDirs.AddRange(dis.Select(e => Path.GetFileName(e)));
+            }
 
             Int32 total = 0;
             foreach (var item in appDirs)
@@ -427,41 +432,18 @@ namespace NewLife.CommonEntity
                 if (top == null) top = Meta.Cache.Entities.Find(__.Remark, item);
                 if (top == null)
                 {
+                    if (!IsBizDir(p)) continue;
+
                     top = Root.Create(item, null, 0, item);
-                    top.Save();
+                    // 内层用到了再保存
+                    //top.Save();
                 }
-                total += ScanAndAdd(item, top, filters, appDirsIsAllFilter);
+                total += ScanAndAdd(p, top, filters, appDirsIsAllFilter);
             }
+            XTrace.WriteLine("扫描目录共生成菜单 {0} 个", total);
 
             return total;
         }
-
-        //static TEntity GetTopForDir(String dir)
-        //{
-        //    // 根据目录找菜单，它将作为顶级菜单
-        //    var top = FindForName(dir);
-        //    if (top == null) top = Meta.Cache.Entities.Find(__.Remark, dir);
-
-        //    // 如果找不到，就取第一个作为顶级
-        //    if (top == null)
-        //    {
-        //        var childs = Root.Childs;
-        //        if (childs != null && childs.Count > 0)
-        //            top = childs[0];
-        //        else
-        //        {
-        //            //var list = FindAllByName(__.ParentID, 0, _.ID.Desc(), 0, 1);
-        //            //if (list != null && list.Count > 1) top = list[0];
-        //            return Meta.Cache.Entities.ToList().OrderByDescending(e => e.Sort).FirstOrDefault(e => e.ParentID == 0);
-        //        }
-        //    }
-        //    return top;
-        //}
-
-        ///// <summary>扫描指定目录并添加文件到第一个顶级菜单之下</summary>
-        ///// <param name="dir"></param>
-        ///// <returns></returns>
-        //public static Int32 ScanAndAdd(String dir) { return ScanAndAdd(dir, GetTopForDir(dir)); }
 
         /// <summary>扫描指定目录并添加文件到顶级菜单之下</summary>
         /// <param name="dir">扫描目录</param>
@@ -472,43 +454,22 @@ namespace NewLife.CommonEntity
         static Int32 ScanAndAdd(String dir, TEntity parent, ICollection<String> fileFilter = null, Boolean isFilterChildDir = false)
         {
             if (String.IsNullOrEmpty(dir)) throw new ArgumentNullException("dir");
-            //if (top == null) throw new ArgumentNullException("top");
 
             // 要扫描的目录
             var p = dir.GetFullPath();
             if (!Directory.Exists(p)) return 0;
 
-            //本意，获取目录名
-            var dirName = new DirectoryInfo(p).Name;
-
-            if (dirName.EqualIgnoreCase("Frame", "Asc", "images")) return 0;
-            if (dirName.StartsWithIgnoreCase("img")) return 0;
-
-            //本目录aspx页面
+            // 本目录aspx页面
             var fs = Directory.GetFiles(p, "*.aspx", SearchOption.TopDirectoryOnly);
-            //本目录子子录
+            // 本目录子子录
             var dis = Directory.GetDirectories(p);
-            //如没有页面和子目录
+            // 如没有页面和子目录
             if ((fs == null || fs.Length < 1) && (dis == null || dis.Length < 1)) return 0;
 
             // 添加
             var num = 0;
 
-            ////本目录菜单
-            //var parent = FindByName(dirName);
-            //if (parent == null) parent = Meta.Cache.Entities.Find(__.Remark, dirName);
-            ////目录是否做为新菜单
-            //var isAddDir = false;
-            //if (parent == null)
-            //{
-            //    parent = top.Create(dirName, null, 0, dirName);
-            //    parent.Save();
-            //    num++;
-            //    //目录为新增菜单
-            //    isAddDir = true;
-            //}
-
-            XTrace.WriteLine("分析菜单下的页面 {0} 共有文件{1}个 子目录{2}个", parent.Name, fs.Length, dis.Length);
+            XTrace.WriteLine("分析菜单 {0} 下的页面 {1} 共有文件{2}个 子目录{3}个", parent.Name, dir, fs.Length, dis.Length);
 
             //aspx
             if (fs != null && fs.Length > 0)
@@ -516,33 +477,39 @@ namespace NewLife.CommonEntity
                 var currentPath = GetPathForScan(p, !dir.Contains("/") && !dir.Contains("\\"));
                 foreach (var elm in fs)
                 {
+                    // 获取页面标题，如果没有标题则认定不是业务页面
+                    var title = GetPageTitle(elm);
+                    if (title.IsNullOrWhiteSpace()) continue;
+
+                    // 修正上一级添加的菜单信息
                     var file = Path.GetFileName(elm);
                     if (file.EqualIgnoreCase("Default.aspx"))
                     {
+                        if (parent.ID == 0) num++;
                         parent.Url = currentPath.CombinePath("Default.aspx");
-                        String title = GetPageTitle(elm);
-                        if (!String.IsNullOrEmpty(title)) parent.Name = parent.Permission = title;
+                        parent.Name = parent.Permission = title;
                         parent.Save();
+                        continue;
                     }
 
                     // 过滤特定文件名文件
                     // 采用哈希集合查询字符串更快
                     if (fileFilter != null && fileFilter.Contains(file)) continue;
 
+                    var name = Path.GetFileNameWithoutExtension(elm);
                     // 过滤掉表单页面
-                    if (Path.GetFileNameWithoutExtension(elm).EndsWithIgnoreCase("Form")) continue;
+                    if (name.EndsWithIgnoreCase("Form")) continue;
                     // 过滤掉选择页面
-                    if (Path.GetFileNameWithoutExtension(elm).StartsWithIgnoreCase("Select")) continue;
-                    //if (elm.EndsWith("Default.aspx", StringComparison.OrdinalIgnoreCase)) continue;
+                    if (name.StartsWithIgnoreCase("Select")) continue;
 
                     // 全部使用全路径
-                    var url = currentPath.CombinePath(Path.GetFileName(elm));
+                    var url = currentPath.CombinePath(file);
                     var entity = FindByUrl(url);
                     if (entity != null) continue;
 
-                    entity = parent.Create(Path.GetFileNameWithoutExtension(elm), url);
-                    String elmTitle = GetPageTitle(elm);
-                    if (!String.IsNullOrEmpty(elmTitle)) entity.Name = entity.Permission = elmTitle;
+                    if (parent.ID == 0) { parent.Save(); num++; }
+                    entity = parent.Create(name, url);
+                    entity.Name = entity.Permission = title;
                     entity.Save();
 
                     num++;
@@ -552,38 +519,20 @@ namespace NewLife.CommonEntity
             // 子级目录
             if (dis == null || dis.Length > 0)
             {
-                foreach (String item in dis)
+                if (!isFilterChildDir) fileFilter = null;
+                foreach (var item in dis)
                 {
-                    //num += isFilterChildDir ? ScanAndAdd(item, parent, fileFilter, true) : ScanAndAdd(item, parent, null, false);
+                    if (!IsBizDir(item)) continue;
+
                     var dirname = Path.GetFileName(item);
                     var menu = parent.Create(dirname, null, 0, dirname);
-                    menu.Save();
-                    num++;
+                    // 内层用到了再保存
+                    //menu.Save(); 
+                    //num++;
 
-                    var count = 0;
-                    if (isFilterChildDir)
-                        count = ScanAndAdd(item, menu, fileFilter, true);
-                    else
-                        count = ScanAndAdd(item, menu, null, false);
-
-                    if (count == 0)
-                    {
-                        menu.Delete();
-                        num--;
-                    }
-                    else
-                        num += count;
+                    num += ScanAndAdd(item, menu, fileFilter, isFilterChildDir);
                 }
             }
-
-            ////如果目录中没有菜单，移除目录
-            ////目录为新增加菜单且本级以下num为1则认为只增加了目录，并无子级
-            //if (num == 1)
-            //{
-            //    if (parent.Parent != null) parent.Parent.Childs.Remove(parent);
-            //    parent.Delete();
-            //    num--;
-            //}
 
             return num;
         }
@@ -605,6 +554,28 @@ namespace NewLife.CommonEntity
             currentPath = currentPath.CombinePath(p.Replace(AppDomain.CurrentDomain.BaseDirectory, null)).Replace("\\", "/").EnsureEnd("/");
 
             return currentPath;
+        }
+
+        /// <summary>非业务的目录列表</summary>
+        static HashSet<String> _NotBizDirs = new HashSet<string>(
+            new String[] { 
+                "Frame", "Asc", "Ascx", "images", "js", "css", "scripts" ,
+                "Bin","App_Code","App_Data","Config","Log"
+            },
+            StringComparer.OrdinalIgnoreCase);
+        /// <summary>是否业务目录</summary>
+        /// <param name="dir"></param>
+        /// <returns></returns>
+        static Boolean IsBizDir(String dir)
+        {
+            var dirName = new DirectoryInfo(dir).Name;
+
+            if (_NotBizDirs.Contains(dirName)) return false;
+            if (dirName.StartsWithIgnoreCase("img")) return false;
+
+            // 判断是否存在aspx文件
+            var fs = Directory.GetFiles(dir, "*.aspx", SearchOption.AllDirectories);
+            return fs != null && fs.Length > 0;
         }
 
         static Regex reg_PageTitle = new Regex("\\bTitle=\"([^\"]*)\"", RegexOptions.IgnoreCase | RegexOptions.Compiled);
