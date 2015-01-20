@@ -277,8 +277,8 @@ namespace NewLife.CommonEntity
             var list = rs.ToList();
 
             // 如果某些菜单已经被删除，但是角色权限表仍然存在，则删除
-            var menuType = ManageProvider.Provider.GetService(typeof(IMenu)) as Type;
-            var eop = menuType.CreateInstance() as IEntityOperate;
+            var factory = ManageProvider.Get<IMenu>();
+            var eop = ManageProvider.GetFactory<IMenu>();
             var ids = eop.FindAllWithCache().GetItem<Int32>("ID").ToArray();
             foreach (var role in rs)
             {
@@ -294,7 +294,7 @@ namespace NewLife.CommonEntity
 
             // 如果没有任何角色拥有权限管理的权限，那是很悲催的事情
             var count = 0;
-            var nes = menuType.GetValue("Necessaries", false) as Int32[];
+            var nes = factory.GetType().GetValue("Necessaries", false) as Int32[];
             foreach (var item in nes)
             {
                 if (!list.Any(e => e.Has(item, PermissionFlags.All)))
