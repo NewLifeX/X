@@ -64,9 +64,6 @@ namespace NewLife.CommonEntity
         void WriteLog(Type type, String action, String remark);
     }
 
-    ///// <summary>管理提供者</summary>
-    //public class ManageProvider : ManageProvider<User> { }
-
     /// <summary>管理提供者</summary>
     public abstract class ManageProvider : IManageProvider, IErrorInfoProvider
     {

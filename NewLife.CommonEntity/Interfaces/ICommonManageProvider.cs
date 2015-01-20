@@ -1,10 +1,9 @@
 ﻿using System;
-using System.Linq;
 using System.Collections.Generic;
 using System.Threading;
+using NewLife.Model;
 using NewLife.Reflection;
 using XCode;
-using NewLife.Model;
 
 namespace NewLife.CommonEntity
 {
@@ -39,18 +38,6 @@ namespace NewLife.CommonEntity
         /// <returns></returns>
         IList<IMenu> GetMySubMenus(Int32 menuid);
         #endregion
-
-        ///// <summary>创建指定类型指定动作的日志实体</summary>
-        ///// <param name="type">类型</param>
-        ///// <param name="action"></param>
-        ///// <returns></returns>
-        //ILog CreateLog(Type type, String action);
-
-        ///// <summary>写日志</summary>
-        ///// <param name="type">类型</param>
-        ///// <param name="action">操作</param>
-        ///// <param name="remark">备注</param>
-        //void WriteLog(Type type, String action, String remark);
     }
 
     /// <summary>通用实体类管理提供者</summary>
@@ -116,24 +103,7 @@ namespace NewLife.CommonEntity
         {
             if (hasInit > 0 || Interlocked.CompareExchange(ref hasInit, 1, 0) != 0) return;
 
-            var btype = typeof(Object);
-            var adminType = typeof(Administrator<>);
-            var type = _AdministratorType = typeof(TAdministrator);
-            while (type != typeof(Object))
-            {
-                // 找到五参数泛型，取泛型参数作为各自的类型
-                if (type.IsGenericType && type.GetGenericTypeDefinition() == adminType)
-                {
-                    var ts = type.GetGenericArguments();
-                    //_RoleType = ts[1];
-                    //_MenuType = ts[2];
-                    //_RoleMenuType = ts[3];
-                    //_LogType = ts[4];
-                    break;
-                }
-                type = type.BaseType;
-            }
-
+            _AdministratorType = ObjectContainer.Current.ResolveType<IRole>();
             _RoleType = ObjectContainer.Current.ResolveType<IRole>();
             _MenuType = ObjectContainer.Current.ResolveType<IMenu>();
             _LogType = ObjectContainer.Current.ResolveType<ILog>();
