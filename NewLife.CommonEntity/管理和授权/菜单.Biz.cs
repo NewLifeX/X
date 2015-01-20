@@ -6,7 +6,6 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Web;
-using System.Web.UI;
 using System.Xml.Serialization;
 using NewLife.Configuration;
 using NewLife.Log;
@@ -39,7 +38,6 @@ namespace NewLife.CommonEntity
             using (var trans = new EntityTransaction<TEntity>())
             {
                 // 准备增加Admin目录下的所有页面
-                //ScanAndAdd(top);
                 ScanAndAdd();
 
                 trans.Commit();
@@ -229,70 +227,12 @@ namespace NewLife.CommonEntity
             return Root.FindByPath(name, _.Permission);
         }
 
-        ///// <summary>
-        ///// 路径查找
-        ///// </summary>
-        ///// <param name="list"></param>
-        ///// <param name="path"></param>
-        ///// <param name="name">名称</param>
-        ///// <returns></returns>
-        //public static TEntity FindByPath(EntityList<TEntity> list, String path, String name)
-        //{
-        //    if (list == null || list.Count < 1) return null;
-        //    if (String.IsNullOrEmpty(path) || String.IsNullOrEmpty(name)) return null;
-
-        //    // 尝试一次性查找
-        //    TEntity entity = list.Find(name, path);
-        //    if (entity != null) return entity;
-
-        //    String[] ss = path.Split(new Char[] { '.', '/', '\\' }, StringSplitOptions.RemoveEmptyEntries);
-        //    if (ss == null || ss.Length < 1) return null;
-
-        //    // 找第一级
-        //    entity = list.Find(name, ss[0]);
-        //    if (entity == null) entity = list.Find(__.Remark, ss[0]);
-        //    if (entity == null) return null;
-
-        //    // 是否还有下级
-        //    if (ss.Length == 1) return entity;
-
-        //    // 递归找下级
-        //    return FindByPath(entity.Childs, String.Join("\\", ss, 1, ss.Length - 1), name);
-
-        //    //EntityList<TEntity> list3 = new EntityList<TEntity>();
-        //    //for (int i = 0; i < ss.Length; i++)
-        //    //{
-        //    //    // 找到符合当前级别的所有节点
-        //    //    EntityList<TEntity> list2 = list.FindAll(name, ss[i]);
-        //    //    if (list2 == null || list2.Count < 1) return null;
-
-        //    //    // 是否到了最后
-        //    //    if (i == ss.Length - 1)
-        //    //    {
-        //    //        list3 = list2;
-        //    //        break;
-        //    //    }
-
-        //    //    // 找到它们的子节点
-        //    //    list3.Clear();
-        //    //    foreach (TEntity item in list2)
-        //    //    {
-        //    //        if (item.Childs != null && item.Childs.Count > 0) list3.AddRange(item.Childs);
-        //    //    }
-        //    //    if (list3 == null || list3.Count < 1) return null;
-        //    //}
-        //    //if (list3 != null && list3.Count > 0)
-        //    //    return list[0];
-        //    //else
-        //    //    return null;
-        //}
-
         /// <summary>查找指定菜单的子菜单</summary>
         /// <param name="id"></param>
         /// <returns></returns>
         public static EntityList<TEntity> FindAllByParentID(Int32 id)
         {
-            EntityList<TEntity> list = Meta.Cache.Entities.FindAll(__.ParentID, id);
+            var list = Meta.Cache.Entities.FindAll(__.ParentID, id);
             if (list != null && list.Count > 0) list.Sort(new String[] { _.Sort, _.ID }, new Boolean[] { true, false });
             return list;
         }
@@ -474,7 +414,7 @@ namespace NewLife.CommonEntity
             //aspx
             if (fs != null && fs.Length > 0)
             {
-                var currentPath = GetPathForScan(p, !dir.Contains("/") && !dir.Contains("\\"));
+                var currentPath = GetPathForScan(p);
                 foreach (var elm in fs)
                 {
                     // 获取页面标题，如果没有标题则认定不是业务页面
@@ -539,9 +479,8 @@ namespace NewLife.CommonEntity
 
         /// <summary>获取目录层级</summary>
         /// <param name="dir"></param>
-        /// <param name="isTop">是否顶级目录</param>
         /// <returns></returns>
-        static String GetPathForScan(String dir, Boolean isTop)
+        static String GetPathForScan(String dir)
         {
             if (String.IsNullOrEmpty(dir)) throw new ArgumentNullException("dir");
 
@@ -549,11 +488,18 @@ namespace NewLife.CommonEntity
             var p = dir.GetFullPath();
             if (!Directory.Exists(dir)) return "";
 
+            var dirPath = p.Replace(AppDomain.CurrentDomain.BaseDirectory, null);
             //获取层级
-            var currentPath = isTop ? "../" : "../../";
-            currentPath = currentPath.CombinePath(p.Replace(AppDomain.CurrentDomain.BaseDirectory, null)).Replace("\\", "/").EnsureEnd("/");
+            var ss = dirPath.Split("\\");
+            var sb = new StringBuilder();
+            for (int i = 0; i < ss.Length; i++)
+            {
+                sb.Append("../");
+            }
+            var currentPath = sb.ToString();
+            currentPath = currentPath.CombinePath(dirPath);
 
-            return currentPath;
+            return currentPath.Replace("\\", "/").EnsureEnd("/");
         }
 
         /// <summary>非业务的目录列表</summary>

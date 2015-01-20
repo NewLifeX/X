@@ -1,12 +1,11 @@
 ﻿using System;
-using NewLife.Reflection;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Text;
-using NewLife.Log;
-using XCode;
 using System.Threading;
+using NewLife.Log;
+using NewLife.Reflection;
 
 namespace NewLife.CommonEntity
 {
@@ -57,7 +56,9 @@ namespace NewLife.CommonEntity
             if (Meta.Count > 0)
             {
                 // 必须有至少一个可用的系统角色
-                var list = Meta.Cache.Entities.ToList();
+                //var list = Meta.Cache.Entities.ToList();
+                // InitData中用缓存将会导致二次调用InitData，从而有一定几率死锁
+                var list = FindAll().ToList();
                 if (list.Count > 0 && !list.Any(e => e.IsSystem))
                 {
                     // 如果没有，让第一个角色作为系统角色
@@ -89,17 +90,9 @@ namespace NewLife.CommonEntity
         /// <summary>初始化时执行必要的权限检查，以防万一管理员无法操作</summary>
         static void CheckRole()
         {
-            var rs = Meta.Cache.Entities;
-            for (int i = 0; rs.Count == 0 && i < 100; i++)
-            {
-                rs = Meta.Cache.Entities;
-                Thread.Sleep(10);
-            }
-            if (rs.Count <= 0)
-            {
-                XTrace.WriteLine("Role.CheckRole 居然没有拿到菜单");
-                return;
-            }
+            //var rs = Meta.Cache.Entities;
+            // InitData中用缓存将会导致二次调用InitData，从而有一定几率死锁
+            var rs = FindAll();
             var list = rs.ToList();
 
             // 如果某些菜单已经被删除，但是角色权限表仍然存在，则删除

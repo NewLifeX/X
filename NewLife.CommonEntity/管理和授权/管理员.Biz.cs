@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data.Common;
 using System.Web;
@@ -10,7 +9,6 @@ using NewLife.Log;
 using NewLife.Security;
 using NewLife.Web;
 using XCode;
-using System.Linq;
 
 namespace NewLife.CommonEntity
 {
@@ -394,11 +392,6 @@ namespace NewLife.CommonEntity
             //Thread.CurrentPrincipal = null;
         }
 
-        ///// <summary>根据权限名（权限路径）找到权限菜单实体</summary>
-        ///// <param name="name">名称</param>
-        ///// <returns></returns>
-        //public abstract IMenu FindPermissionMenu(String name);
-
         /// <summary>拥有指定菜单的权限</summary>
         /// <param name="name">名称</param>
         /// <returns></returns>
@@ -409,7 +402,6 @@ namespace NewLife.CommonEntity
             var menu = FindPermissionMenu(name);
             if (menu == null) return false;
 
-            //return Acquire((Int32)menu["ID"], PermissionFlags.None);
             return Acquire(menu.ID, PermissionFlags.None);
         }
 
@@ -448,27 +440,6 @@ namespace NewLife.CommonEntity
             //return entity.Acquire(menuID, flag);
             return true;
         }
-
-        ///// <summary>创建当前管理员的日志实体</summary>
-        ///// <param name="type">类型</param>
-        ///// <param name="action"></param>
-        ///// <returns></returns>
-        //public abstract ILog CreateLog(Type type, String action);
-
-        ///// <summary>写日志</summary>
-        ///// <param name="action">操作</param>
-        ///// <param name="remark">备注</param>
-        //public static void WriteLog(String action, String remark)
-        //{
-        //    //IEntityOperate op = EntityFactory.CreateOperate(TypeResolver.Resolve(typeof(IAdministrator), null));
-
-        //    var provider = CommonManageProvider.Provider;
-        //    if (provider == null) return;
-
-        //    var op = EntityFactory.CreateOperate(provider.AdminstratorType);
-        //    var admin = op.Default as IAdministrator;
-        //    if (admin != null) admin.WriteLog(typeof(TEntity), action, remark);
-        //}
         #endregion
 
         #region 权限日志
@@ -570,18 +541,6 @@ namespace NewLife.CommonEntity
         /// <param name="name">名称</param>
         /// <returns></returns>
         Boolean Acquire(String name);
-
-        ///// <summary>创建指定类型指定动作的日志实体</summary>
-        ///// <param name="type">类型</param>
-        ///// <param name="action"></param>
-        ///// <returns></returns>
-        //ILog CreateLog(Type type, String action);
-
-        ///// <summary>写日志</summary>
-        ///// <param name="type">类型</param>
-        ///// <param name="action">操作</param>
-        ///// <param name="remark">备注</param>
-        //void WriteLog(Type type, String action, String remark);
 
         /// <summary>注销</summary>
         void Logout();
