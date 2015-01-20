@@ -58,9 +58,9 @@ namespace NewLife.CommonEntity
             }
 
             if (ID == 0)
-                WriteLog("添加", Name);
+                WriteLog("添加", Name + " " + Url);
             else if (HasDirty)
-                WriteLog("修改", Name);
+                WriteLog("修改", Name + " " + Url);
 
             return base.Save();
         }
@@ -69,13 +69,13 @@ namespace NewLife.CommonEntity
         /// <returns></returns>
         public override int Delete()
         {
-            String name = Name;
+            var name = Name;
             if (String.IsNullOrEmpty(name))
             {
-                TEntity entity = FindByID(ID);
+                var entity = FindByID(ID);
                 if (entity != null) name = entity.Name;
             }
-            WriteLog("删除", name);
+            WriteLog("删除", name + " " + Url);
 
             return base.Delete();
         }
@@ -615,8 +615,6 @@ namespace NewLife.CommonEntity
         /// <param name="remark">备注</param>
         public static void WriteLog(String action, String remark)
         {
-            //var admin = ManageProvider.Provider.Current as IAdministrator;
-            //if (admin != null) admin.WriteLog(typeof(TEntity), action, remark);
             ManageProvider.Provider.WriteLog(typeof(TEntity), action, remark);
         }
         #endregion

@@ -37,10 +37,9 @@
             </asp:BoundField>
             <asp:BoundField DataField="OccurTime" HeaderText="时间" SortExpression="OccurTime"
                 DataFormatString="{0:yyyy-MM-dd HH:mm:ss}">
-                <ItemStyle HorizontalAlign="Center" VerticalAlign="Middle" Width="120px" />
+                <ItemStyle HorizontalAlign="Center" Width="120px" />
             </asp:BoundField>
             <asp:BoundField DataField="Remark" HeaderText="详细信息" SortExpression="Remark">
-                <ItemStyle HorizontalAlign="Center" VerticalAlign="Middle" />
             </asp:BoundField>
         </Columns>
         <EmptyDataTemplate>
