@@ -38,15 +38,6 @@ namespace NewLife.CommonEntity
 
             using (var trans = new EntityTransaction<TEntity>())
             {
-                //Int32 sort = 1000;
-                //TEntity top = Root.AddChild("管理平台", null, sort -= 10, "Admin");
-                //TEntity entity = top.AddChild("系统管理", null, sort -= 10, "System");
-                //entity.AddChild("菜单管理", "../../Admin/System/Menu.aspx", sort -= 10, "菜单管理");
-                //entity.AddChild("管理员管理", "../../Admin/System/Admin.aspx", sort -= 10, "管理员管理");
-                //entity.AddChild("角色管理", "../../Admin/System/Role.aspx", sort -= 10, "角色管理");
-                //entity.AddChild("权限管理", "../../Admin/System/RoleMenu.aspx", sort -= 10, "权限管理");
-                //entity.AddChild("日志查看", "../../Admin/System/Log.aspx", sort -= 10, "日志查看");
-
                 // 准备增加Admin目录下的所有页面
                 //ScanAndAdd(top);
                 ScanAndAdd();
@@ -857,6 +848,7 @@ namespace NewLife.CommonEntity
         {
             //var admin = ManageProvider.Provider.Current as IAdministrator;
             //if (admin != null) admin.WriteLog(typeof(TEntity), action, remark);
+            ManageProvider.Provider.WriteLog(typeof(TEntity), action, remark);
         }
         #endregion
 

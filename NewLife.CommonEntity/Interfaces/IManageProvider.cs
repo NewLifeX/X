@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Text;
 using System.Web;
+using NewLife.Configuration;
 using NewLife.Model;
 using NewLife.Reflection;
 using NewLife.Web;
@@ -55,6 +56,12 @@ namespace NewLife.CommonEntity
         ///// <param name="serviceType"></param>
         ///// <returns></returns>
         //Object GetService(Type serviceType);
+
+        /// <summary>写日志</summary>
+        /// <param name="type">类型</param>
+        /// <param name="action">操作</param>
+        /// <param name="remark">备注</param>
+        void WriteLog(Type type, String action, String remark);
     }
 
     ///// <summary>管理提供者</summary>
@@ -117,6 +124,31 @@ namespace NewLife.CommonEntity
                 return GetHttpCache(typeof(IEntityForm), k => CommonService.Container.Resolve<IEntityForm>());
 
             return CommonService.Container.Resolve(serviceType);
+        }
+
+        /// <summary>写日志</summary>
+        /// <param name="type">类型</param>
+        /// <param name="action">操作</param>
+        /// <param name="remark">备注</param>
+        public virtual void WriteLog(Type type, String action, String remark)
+        {
+            if (!Config.GetConfig<Boolean>("NewLife.CommonEntity.WriteEntityLog", true)) return;
+
+            if (type == null) type = this.GetType();
+
+            var user = Current;
+
+            var factory = ManageProvider.Get<ILog>();
+            var log = factory.Create(type, action);
+
+            if (user != null)
+            {
+                log.UserID = user.ID;
+                log.UserName = user.ToString();
+            }
+
+            log.Remark = remark;
+            log.Save();
         }
         #endregion
 
