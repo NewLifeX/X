@@ -1,6 +1,6 @@
-﻿using NewLife.Common;
+﻿using System;
+using NewLife.Common;
 using NewLife.CommonEntity;
-using System;
 
 public partial class Admin_Default : System.Web.UI.Page
 {

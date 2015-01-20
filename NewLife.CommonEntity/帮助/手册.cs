@@ -18,7 +18,7 @@ namespace NewLife.CommonEntity
     [Description("手册")]
     [BindIndex("IX_Manual_Url", true, "Url")]
     [BindIndex("PK_Manual", true, "ID")]
-    [BindTable("Manual", Description = "手册", ConnName = "Manual", DbType = DatabaseType.SqlServer)]
+    [BindTable("Manual", Description = "手册", ConnName = "Common", DbType = DatabaseType.SqlServer)]
     public partial class Manual<TEntity> : IManual
     {
         #region 属性
@@ -105,7 +105,7 @@ namespace NewLife.CommonEntity
             get { return _UpdateTime; }
             set { if (OnPropertyChanging("UpdateTime", value)) { _UpdateTime = value; OnPropertyChanged("UpdateTime"); } }
         }
-		#endregion
+        #endregion
 
         #region 获取/设置 字段值
         /// <summary>
@@ -121,13 +121,13 @@ namespace NewLife.CommonEntity
             {
                 switch (name)
                 {
-                    case "ID" : return _ID;
-                    case "Url" : return _Url;
-                    case "Summary" : return _Summary;
-                    case "Content" : return _Content;
-                    case "UserName" : return _UserName;
-                    case "CreateTime" : return _CreateTime;
-                    case "UpdateTime" : return _UpdateTime;
+                    case "ID": return _ID;
+                    case "Url": return _Url;
+                    case "Summary": return _Summary;
+                    case "Content": return _Content;
+                    case "UserName": return _UserName;
+                    case "CreateTime": return _CreateTime;
+                    case "UpdateTime": return _UpdateTime;
                     default: return base[name];
                 }
             }
@@ -135,13 +135,13 @@ namespace NewLife.CommonEntity
             {
                 switch (name)
                 {
-                    case "ID" : _ID = Convert.ToInt32(value); break;
-                    case "Url" : _Url = Convert.ToString(value); break;
-                    case "Summary" : _Summary = Convert.ToString(value); break;
-                    case "Content" : _Content = Convert.ToString(value); break;
-                    case "UserName" : _UserName = Convert.ToString(value); break;
-                    case "CreateTime" : _CreateTime = Convert.ToDateTime(value); break;
-                    case "UpdateTime" : _UpdateTime = Convert.ToDateTime(value); break;
+                    case "ID": _ID = Convert.ToInt32(value); break;
+                    case "Url": _Url = Convert.ToString(value); break;
+                    case "Summary": _Summary = Convert.ToString(value); break;
+                    case "Content": _Content = Convert.ToString(value); break;
+                    case "UserName": _UserName = Convert.ToString(value); break;
+                    case "CreateTime": _CreateTime = Convert.ToDateTime(value); break;
+                    case "UpdateTime": _UpdateTime = Convert.ToDateTime(value); break;
                     default: base[name] = value; break;
                 }
             }

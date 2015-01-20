@@ -64,7 +64,6 @@ public partial class Pages_RoleMenu : MyEntityList
 
         // 检查权限
         PermissionFlags pf = FindByRoleAndMenu(RoleID, entity.ID);
-        //cb.Checked = (pf != PermissionFlags.None);
         Role role = Role.FindByID(RoleID);
         cb.Checked = role.Permissions.ContainsKey(entity.ID);
         cb.ToolTip = pf.ToString();
@@ -116,12 +115,6 @@ public partial class Pages_RoleMenu : MyEntityList
                     WebHelper.Alert("没有添加权限！");
                     return;
                 }
-
-                //rm = Factory.Create(false) as IRoleMenu;
-                //rm.RoleID = RoleID;
-                //rm.MenuID = menu.ID;
-                //rm.PermissionFlag = PermissionFlags.All;
-                //rm.Save();
 
                 Role role = Role.FindByID(RoleID);
                 role.Set(menu.ID, PermissionFlags.All);
@@ -182,9 +175,6 @@ public partial class Pages_RoleMenu : MyEntityList
                 return;
             }
 
-            //rm = Factory.Create(false) as IRoleMenu;
-            //rm.RoleID = RoleID;
-            //rm.MenuID = menu.ID;
             role.Set(menu.ID, PermissionFlags.None);
         }
 
@@ -203,9 +193,6 @@ public partial class Pages_RoleMenu : MyEntityList
                 return;
             }
 
-            //rm.PermissionFlag = flag;
-            //rm.Save();
-            //role.Set(menu.ID, flag);
             role.Permissions[menu.ID] = flag;
 
             // 如果父级没有授权，则授权
@@ -240,16 +227,5 @@ public partial class Pages_RoleMenu : MyEntityList
     {
         Role role = Role.FindByID(roleID);
         return role == null ? PermissionFlags.None : role.Get(menuID);
-
-        //if (_rms == null)
-        //{
-        //    Factory.Cache.Clear(null);
-        //    _rms = Factory.Cache.Entities;
-        //}
-        //return _rms.Find(delegate(IEntity e)
-        //{
-        //    IRoleMenu rm = e as IRoleMenu;
-        //    return rm.RoleID == roleID && rm.MenuID == menuID;
-        //}) as IRoleMenu;
     }
 }

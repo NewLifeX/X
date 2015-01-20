@@ -94,6 +94,7 @@ public partial class Control_LeftMenu : System.Web.UI.UserControl
                 Int32 MenuID = WebHelper.RequestInt("ID");
 
                 ICommonManageProvider cmp = CommonManageProvider.Provider;
+                if (MenuID == 0) MenuID = cmp.MenuRoot.Childs[0].ID;
 
                 List<IMenu> menu = cmp.GetMySubMenus(MenuID) as List<IMenu>;
 
@@ -128,19 +129,21 @@ public partial class Control_LeftMenu : System.Web.UI.UserControl
         /// <returns></returns>
         public static LeftMenu ConvertToMenu(IMenu menu, String Name, String Url, String Icon)
         {
-            LeftMenu Lm = new LeftMenu();
+            LeftMenu lm = new LeftMenu();
             if (menu != null)
             {
-                Lm.Name = menu.Name;
-                Lm.Url = menu.Url;
+                lm.Name = menu.Name;
+                lm.Url = menu.Url;
             }
             else
             {
-                Lm.Name = Name;
-                Lm.Url = Url;
+                lm.Name = Name;
+                lm.Url = Url;
             }
-            Lm.Icon = Icon;
-            return Lm;
+            // 去掉一层
+            if (lm.Url != null && lm.Url.StartsWith("../")) lm.Url = lm.Url.Substring(3);
+            lm.Icon = Icon;
+            return lm;
         }
     }
     #endregion
