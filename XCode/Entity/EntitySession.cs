@@ -951,8 +951,8 @@ namespace XCode
         }
 
         /// <summary>是否在事务保护中</summary>
-        internal Boolean UsingTrans { get { return _TransCount > 1;/*因为Insert上面一定有一层缓存，这里减去1*/ } }
-        //internal Boolean UsingTrans { get { return TransCount > 0; } }
+        //internal Boolean UsingTrans { get { return _TransCount > 1;/*因为Insert上面一定有一层缓存，这里减去1*/ } }
+        internal Boolean UsingTrans { get { return _TransCount > 0; } }
         #endregion
 
         #region 参数化
