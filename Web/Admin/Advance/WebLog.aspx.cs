@@ -13,7 +13,7 @@ public partial class Admin_System_WebLog : MyEntityList
     {
         if (!IsPostBack)
         {
-            String logPath = XTrace.LogPath;
+            String logPath = PathHelper.GetFullPath(XTrace.LogPath);
             if (Directory.Exists(logPath))
             {
                 String[] files = Directory.GetFiles(logPath, "*.log", SearchOption.TopDirectoryOnly);
@@ -37,6 +37,7 @@ public partial class Admin_System_WebLog : MyEntityList
         if (!Int32.TryParse(name.Replace("_", null), out n) || n <= 0) return;
 
         String fileName = Path.Combine(XTrace.LogPath, name + ".log");
+        fileName = PathHelper.GetFullPath(fileName);
         if (!File.Exists(fileName)) return;
         FileInfo fileinfo = new FileInfo(fileName);
         if (fileinfo.Length < 307200)
