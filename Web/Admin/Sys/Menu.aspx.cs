@@ -19,7 +19,7 @@ public partial class Pages_Menu : MyEntityList
     {
         try
         {
-            Int32 n = (Int32)Reflect.Invoke(EntityType, "ScanAndAdd", null);
+            Int32 n = (Int32)Reflect.Invoke(EntityType, "ScanAndAdd", new Object[0]);
 
             WebHelper.Alert("扫描完成，共添加菜单" + n + "个！");
         }
