@@ -267,6 +267,8 @@ namespace NewLife.CommonEntity
             entity.Save();
 
             if (XTrace.Debug) XTrace.WriteLine("完成初始化{0}角色数据！", typeof(TEntity).Name);
+
+            CheckRole();
         }
 
         /// <summary>初始化时执行必要的权限检查，以防万一管理员无法操作</summary>
