@@ -62,12 +62,12 @@ namespace XCode.Cache
                 if (HoldCache && _Entities != null) { Interlocked.Increment(ref Shoot1); return _Entities ?? new EntityList<TEntity>(); }
 
                 // 两种情况更新缓存：1，缓存过期；2，不允许空但是集合又是空
-                Boolean isnull = !AllowNull && _Entities == null;
+                Boolean isnull = !AllowNull && (_Entities == null || _Entities.Count == 0);
                 if (isnull || DateTime.Now >= ExpiredTime)
                 {
                     lock (this)
                     {
-                        isnull = !AllowNull && _Entities == null;
+                        isnull = !AllowNull && (_Entities == null || _Entities.Count == 0);
                         if (isnull || DateTime.Now >= ExpiredTime)
                             UpdateCache(isnull);
                         else
@@ -139,8 +139,11 @@ namespace XCode.Cache
             // HUIYUE 2012.12.08
             // 注释掉这句，这句会导致在 _Entities.Count = 0 的情况下多次调用EntityList<TEntity>.Empty
             // 使得 EntityList<TEntity>.Empty 被赋值，然后就杯具了
+
+            // 不冲突，现在不用Empty了
+
             // 清空
-            //if (_Entities != null && _Entities.Count < 1) _Entities = null;
+            if (_Entities != null && _Entities.Count == 0) _Entities = null;
 
             if (Debug) DAL.WriteLog("完成更新缓存（第{1}次）：{0}", typeof(TEntity).FullName, Times);
         }
