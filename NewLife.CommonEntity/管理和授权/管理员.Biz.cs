@@ -197,7 +197,7 @@ namespace NewLife.CommonEntity
         }
 
         /// <summary>根据邮箱地址查找</summary>
-        /// <param name="id"></param>
+        /// <param name="mail"></param>
         /// <returns></returns>
         public static TEntity FindByMail(String mail)
         {
@@ -219,7 +219,7 @@ namespace NewLife.CommonEntity
         }
 
         /// <summary>根据唯一代码查找</summary>
-        /// <param name="id"></param>
+        /// <param name="code"></param>
         /// <returns></returns>
         public static TEntity FindByCode(String code)
         {

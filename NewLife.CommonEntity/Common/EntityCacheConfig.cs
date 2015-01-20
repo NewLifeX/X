@@ -22,6 +22,7 @@ namespace NewLife.CommonEntity
                 DisableSingleCache = disableSingleCache;
             }
 
+            /// <summary>实例化</summary>
             public EntityCacheInfo()
             {
             }
