@@ -440,6 +440,8 @@ namespace XCode
                             //max = Entity<TEntity>.FindMax(Table.Identity.ColumnName);
                             // 依赖关系FindMax=>FindAll=>Query=>InitData=>Meta.Count，所以不能使用
 
+                            if (DAL.Debug) DAL.WriteLog("第一次访问，SQLite的Select Count非常慢，数据大于阀值时，使用最大ID作为表记录数");
+                            DAL.WriteLog(XTrace.GetCaller(1, 8));
                             var builder = new SelectBuilder();
                             builder.Table = FormatedTableName;
                             builder.OrderBy = Table.Identity.Desc();
@@ -976,44 +978,23 @@ namespace XCode
         {
             var rs = persistence.Insert(entity);
 
-            TEntity entityobj = null;
             // 如果当前在事务中，并使用了缓存，则尝试更新缓存
             if (HoldCache || UsingTrans)
             {
-                if (Cache.Using)
-                {
-                    // 尽管用了事务保护，但是仍然可能有别的地方导致实体缓存更新，这点务必要注意
-                    var fi = Operate.Unique;
-                    var e = fi != null ? Cache.Entities.Find(fi.Name, entity[fi.Name]) : null;
-                    if (e != null)
-                    {
-                        if (e != entity) e.CopyFrom(entity);
-                    }
-                    else
-                    {
-                        // 加入超级缓存的实体对象，需要标记来自数据库
-                        entityobj = entity as TEntity;
-                        if (entityobj != null)
-                        {
-                            entityobj.OnLoad();
-                            Cache.Entities.Add(entityobj);
-                        }
-                    }
-                }
+                CheckAndUpdateCache(entity);
+
                 // 自动加入单对象缓存
-                if (SingleCache.Using)
+                if (_singleCache != null)
                 {
-                    if (entityobj == null) entityobj = entity as TEntity;
-                    if (entityobj != null)
+                    var entityobj = entity as TEntity;
+
+                    var getkeymethod = SingleCache.GetKeyMethod;
+                    if (getkeymethod != null)
                     {
-                        var getkeymethod = SingleCache.GetKeyMethod;
-                        if (getkeymethod != null)
-                        {
-                            // 这里也需要标记来自数据库，防止实体缓存没有使用的情况下不对新增的实体对象做标记，不再正确验证脏数据
-                            var key = getkeymethod(entityobj);
-                            entityobj.OnLoad();
-                            SingleCache.Add(key, entityobj);
-                        }
+                        // 这里也需要标记来自数据库，防止实体缓存没有使用的情况下不对新增的实体对象做标记，不再正确验证脏数据
+                        var key = getkeymethod(entityobj);
+                        entityobj.OnLoad();
+                        SingleCache.Add(key, entityobj);
                     }
                 }
             }
@@ -1030,61 +1011,38 @@ namespace XCode
         {
             var rs = persistence.Update(entity);
 
-            TEntity entityobj = null;
             // 如果当前在事务中，并使用了缓存，则尝试更新缓存
             if (HoldCache || UsingTrans)
             {
-                if (Cache.Using)
-                {
-                    // 尽管用了事务保护，但是仍然可能有别的地方导致实体缓存更新，这点务必要注意
-                    var fi = Operate.Unique;
-                    var e = fi != null ? Cache.Entities.Find(fi.Name, entity[fi.Name]) : null;
-                    if (e != null)
-                    {
-                        if (e != entity) e.CopyFrom(entity);
-                    }
-                    else
-                    {
-                        // 加入超级缓存的实体对象，需要标记来自数据库
-                        entityobj = entity as TEntity;
-                        if (entityobj != null)
-                        {
-                            entityobj.OnLoad();
-                            Cache.Entities.Add(entityobj);
-                        }
-                    }
-                }
+                CheckAndUpdateCache(entity);
 
                 // 自动加入单对象缓存
-                if (SingleCache.Using)
+                if (_singleCache != null)
                 {
-                    if (entityobj == null) entityobj = entity as TEntity;
-                    if (entityobj != null)
+                    var entityobj = entity as TEntity;
+                    var getkeymethod = SingleCache.GetKeyMethod;
+                    if (getkeymethod != null)
                     {
-                        var getkeymethod = SingleCache.GetKeyMethod;
-                        if (getkeymethod != null)
+                        var key = getkeymethod(entityobj);
+                        // 复制到单对象缓存
+                        TEntity cacheitem;
+                        if (SingleCache.TryGetItem(key, out cacheitem))
                         {
-                            var key = getkeymethod(entityobj);
-                            // 复制到单对象缓存
-                            TEntity cacheitem;
-                            if (SingleCache.TryGetItem(key, out cacheitem))
+                            if (cacheitem != null)
                             {
-                                if (cacheitem != null)
-                                {
-                                    if (cacheitem != entityobj) { cacheitem.CopyFrom(entityobj); }
-                                }
-                                else // 存在允许存储空对象的情况
-                                {
-                                    SingleCache.RemoveKey(key);
-                                    entityobj.OnLoad();
-                                    SingleCache.Add(key, entityobj);
-                                }
+                                if (cacheitem != entityobj) { cacheitem.CopyFrom(entityobj); }
                             }
-                            else
+                            else // 存在允许存储空对象的情况
                             {
+                                SingleCache.RemoveKey(key);
                                 entityobj.OnLoad();
                                 SingleCache.Add(key, entityobj);
                             }
+                        }
+                        else
+                        {
+                            entityobj.OnLoad();
+                            SingleCache.Add(key, entityobj);
                         }
                     }
                 }
@@ -1103,7 +1061,7 @@ namespace XCode
             // 如果当前在事务中，并使用了缓存，则尝试更新缓存
             if (HoldCache || UsingTrans)
             {
-                if (Cache.Using)
+                if (_cache != null)
                 {
                     var fi = Operate.Unique;
                     if (fi != null)
@@ -1113,7 +1071,7 @@ namespace XCode
                     }
                 }
                 // 自动加入单对象缓存
-                if (SingleCache.Using)
+                if (_singleCache != null)
                 {
                     var entityobj = entity as TEntity;
                     if (entityobj != null)
@@ -1131,6 +1089,29 @@ namespace XCode
             if (_Count > -1L) { Interlocked.Decrement(ref _Count); }
 
             return rs;
+        }
+
+        void CheckAndUpdateCache(IEntity entity)
+        {
+            if (_cache == null) return;
+
+            // 尽管用了事务保护，但是仍然可能有别的地方导致实体缓存更新，这点务必要注意
+            var fi = Operate.Unique;
+            var e = fi != null ? Cache.Entities.Find(fi.Name, entity[fi.Name]) : null;
+            if (e != null)
+            {
+                if (e != entity) e.CopyFrom(entity);
+            }
+            else
+            {
+                // 加入超级缓存的实体对象，需要标记来自数据库
+                var entityobj = entity as TEntity;
+                if (entityobj != null)
+                {
+                    entityobj.OnLoad();
+                    Cache.Entities.Add(entityobj);
+                }
+            }
         }
         #endregion
     }
