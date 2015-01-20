@@ -923,11 +923,14 @@ namespace NewLife.CommonEntity
         /// <summary>当前菜单</summary>
         IMenu IMenu.Current { get { return Current; } }
 
-        ///// <summary>子菜单</summary>
-        //IList<IMenu> IMenu.Childs { get { return Childs.OfType<IMenu>().ToList(); } }
+        /// <summary>父菜单</summary>
+        IMenu IMenu.Parent { get { return Parent; } }
 
-        ///// <summary>子孙菜单</summary>
-        //IList<IMenu> IMenu.AllChilds { get { return AllChilds.OfType<IMenu>().ToList(); } }
+        /// <summary>子菜单</summary>
+        IList<IMenu> IMenu.Childs { get { return Childs.OfType<IMenu>().ToList(); } }
+
+        /// <summary>子孙菜单</summary>
+        IList<IMenu> IMenu.AllChilds { get { return AllChilds.OfType<IMenu>().ToList(); } }
 
         /// <summary>根据层次路径查找</summary>
         /// <param name="path">层次路径</param>
@@ -958,11 +961,14 @@ namespace NewLife.CommonEntity
         /// <summary>当前菜单</summary>
         IMenu Current { get; }
 
-        ///// <summary>子菜单</summary>
-        //IList<IMenu> Childs { get; }
+        /// <summary>父菜单</summary>
+        new IMenu Parent { get; }
 
-        ///// <summary>子孙菜单</summary>
-        //IList<IMenu> AllChilds { get; }
+        /// <summary>子菜单</summary>
+        new IList<IMenu> Childs { get; }
+
+        /// <summary>子孙菜单</summary>
+        new IList<IMenu> AllChilds { get; }
 
         ///// <summary>深度</summary>
         //Int32 Deepth { get; }
