@@ -138,7 +138,7 @@ namespace NewLife.Log
         public override string ToString()
         {
             if (Exception != null) Message += Exception.ToString();
-            return String.Format("{0:HH:mm:ss.fff} {1} {2} {3} {4}", Time, ThreadID, IsPoolThread ? (IsWeb ? 'W' : 'Y') : 'N', String.IsNullOrEmpty(ThreadName) ? "-" : ThreadName, Message);
+            return String.Format("{0:HH:mm:ss.fff} {1,2} {2} {3} {4}", Time, ThreadID, IsPoolThread ? (IsWeb ? 'W' : 'Y') : 'N', String.IsNullOrEmpty(ThreadName) ? "-" : ThreadName, Message);
         }
         #endregion
     }

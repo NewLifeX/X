@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
@@ -19,7 +18,6 @@ using NewLife.Net;
 using NewLife.Net.Common;
 using NewLife.Net.Proxy;
 using NewLife.Net.Sockets;
-using NewLife.Net.Tcp;
 using NewLife.Reflection;
 using NewLife.Serialization;
 using NewLife.Threading;
@@ -44,7 +42,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test12();
+                    Test13();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -60,112 +58,112 @@ namespace Test
             }
         }
 
-        static HttpProxy http = null;
-        private static void Test1()
-        {
-            var server = new HttpReverseProxy();
-            server.Port = 888;
-            server.ServerHost = "www.cnblogs.com";
-            server.ServerPort = 80;
-            server.Start();
+        //static HttpProxy http = null;
+        //private static void Test1()
+        //{
+        //    var server = new HttpReverseProxy();
+        //    server.Port = 888;
+        //    server.ServerHost = "www.cnblogs.com";
+        //    server.ServerPort = 80;
+        //    server.Start();
 
-            var ns = Enum.GetNames(typeof(ConsoleColor));
-            var vs = Enum.GetValues(typeof(ConsoleColor));
-            for (int i = 0; i < ns.Length; i++)
-            {
-                Console.ForegroundColor = (ConsoleColor)vs.GetValue(i);
-                Console.WriteLine(ns[i]);
-            }
-            Console.ReadKey();
+        //    var ns = Enum.GetNames(typeof(ConsoleColor));
+        //    var vs = Enum.GetValues(typeof(ConsoleColor));
+        //    for (int i = 0; i < ns.Length; i++)
+        //    {
+        //        Console.ForegroundColor = (ConsoleColor)vs.GetValue(i);
+        //        Console.WriteLine(ns[i]);
+        //    }
+        //    Console.ReadKey();
 
-            //NewLife.Net.Application.AppTest.Start();
+        //    //NewLife.Net.Application.AppTest.Start();
 
-            http = new HttpProxy();
-            http.Port = 8080;
-            http.EnableCache = true;
-            //http.OnResponse += new EventHandler<HttpProxyEventArgs>(http_OnResponse);
-            http.Start();
+        //    http = new HttpProxy();
+        //    http.Port = 8080;
+        //    http.EnableCache = true;
+        //    //http.OnResponse += new EventHandler<HttpProxyEventArgs>(http_OnResponse);
+        //    http.Start();
 
-            var old = HttpProxy.GetIEProxy();
-            if (!old.IsNullOrWhiteSpace()) Console.WriteLine("旧代理：{0}", old);
-            HttpProxy.SetIEProxy("127.0.0.1:" + http.Port);
-            Console.WriteLine("已设置IE代理，任意键结束测试，关闭IE代理！");
+        //    var old = HttpProxy.GetIEProxy();
+        //    if (!old.IsNullOrWhiteSpace()) Console.WriteLine("旧代理：{0}", old);
+        //    HttpProxy.SetIEProxy("127.0.0.1:" + http.Port);
+        //    Console.WriteLine("已设置IE代理，任意键结束测试，关闭IE代理！");
 
-            ThreadPoolX.QueueUserWorkItem(ShowStatus);
+        //    ThreadPoolX.QueueUserWorkItem(ShowStatus);
 
-            Console.ReadKey(true);
-            HttpProxy.SetIEProxy(old);
+        //    Console.ReadKey(true);
+        //    HttpProxy.SetIEProxy(old);
 
-            //server.Dispose();
-            http.Dispose();
+        //    //server.Dispose();
+        //    http.Dispose();
 
-            //var ds = new DNSServer();
-            //ds.Start();
+        //    //var ds = new DNSServer();
+        //    //ds.Start();
 
-            //for (int i = 5; i < 6; i++)
-            //{
-            //    var buffer = File.ReadAllBytes("dns" + i + ".bin");
-            //    var entity2 = DNSEntity.Read(buffer, false);
-            //    Console.WriteLine(entity2);
+        //    //for (int i = 5; i < 6; i++)
+        //    //{
+        //    //    var buffer = File.ReadAllBytes("dns" + i + ".bin");
+        //    //    var entity2 = DNSEntity.Read(buffer, false);
+        //    //    Console.WriteLine(entity2);
 
-            //    var buffer2 = entity2.GetStream().ReadBytes();
+        //    //    var buffer2 = entity2.GetStream().ReadBytes();
 
-            //    var p = buffer.CompareTo(buffer2);
-            //    if (p != 0)
-            //    {
-            //        Console.WriteLine("{0:X2} {1:X2} {2:X2}", p, buffer[p], buffer2[p]);
-            //    }
-            //}
-        }
-        private static void TestNatProxy()
-        {
-            NATProxy proxy = new NATProxy();
-            proxy.ServerAddress = System.Net.IPAddress.Parse("192.168.1.105");
-            proxy.ServerPort = 6800;
+        //    //    var p = buffer.CompareTo(buffer2);
+        //    //    if (p != 0)
+        //    //    {
+        //    //        Console.WriteLine("{0:X2} {1:X2} {2:X2}", p, buffer[p], buffer2[p]);
+        //    //    }
+        //    //}
+        //}
+        //private static void TestNatProxy()
+        //{
+        //    NATProxy proxy = new NATProxy();
+        //    proxy.ServerAddress = System.Net.IPAddress.Parse("192.168.1.105");
+        //    proxy.ServerPort = 6800;
 
-            proxy.Address = proxy.ServerAddress;
-            proxy.AddressFamily = AddressFamily.InterNetwork;
-            proxy.Port = 8000;
-            proxy.ServerProtocolType = ProtocolType.Tcp;
-            proxy.Start();
-        }
+        //    proxy.Address = proxy.ServerAddress;
+        //    proxy.AddressFamily = AddressFamily.InterNetwork;
+        //    proxy.Port = 8000;
+        //    proxy.ServerProtocolType = ProtocolType.Tcp;
+        //    proxy.Start();
+        //}
 
-        static void ShowStatus()
-        {
-            //var pool = PropertyInfoX.GetValue<SocketBase, ObjectPool<NetEventArgs>>("Pool");
-            var pool = NetEventArgs.Pool;
+        //static void ShowStatus()
+        //{
+        //    //var pool = PropertyInfoX.GetValue<SocketBase, ObjectPool<NetEventArgs>>("Pool");
+        //    var pool = NetEventArgs.Pool;
 
-            while (true)
-            {
-                var asyncCount = 0; try
-                {
-                    foreach (var item in http.Servers)
-                    {
-                        asyncCount += item.AsyncCount;
-                    }
-                    foreach (var item in http.Sessions.Values.ToArray())
-                    {
-                        var remote = (item as IProxySession).RemoteClientSession;
-                        if (remote != null) asyncCount += remote.Host.AsyncCount;
-                    }
-                }
-                catch (Exception ex) { Console.WriteLine(ex.ToString()); }
+        //    while (true)
+        //    {
+        //        var asyncCount = 0; try
+        //        {
+        //            foreach (var item in http.Servers)
+        //            {
+        //                asyncCount += item.AsyncCount;
+        //            }
+        //            foreach (var item in http.Sessions.Values.ToArray())
+        //            {
+        //                var remote = (item as IProxySession).RemoteClientSession;
+        //                if (remote != null) asyncCount += remote.Host.AsyncCount;
+        //            }
+        //        }
+        //        catch (Exception ex) { Console.WriteLine(ex.ToString()); }
 
-                Int32 wt = 0;
-                Int32 cpt = 0;
-                ThreadPool.GetAvailableThreads(out wt, out cpt);
-                Int32 threads = Process.GetCurrentProcess().Threads.Count;
+        //        Int32 wt = 0;
+        //        Int32 cpt = 0;
+        //        ThreadPool.GetAvailableThreads(out wt, out cpt);
+        //        Int32 threads = Process.GetCurrentProcess().Threads.Count;
 
-                var color = Console.ForegroundColor;
-                Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.WriteLine("异步:{0} 会话:{1} Thread:{2}/{3}/{4} Pool:{5}/{6}/{7}", asyncCount, http.Sessions.Count, threads, wt, cpt, pool.StockCount, pool.FreeCount, pool.CreateCount);
-                Console.ForegroundColor = color;
+        //        var color = Console.ForegroundColor;
+        //        Console.ForegroundColor = ConsoleColor.Yellow;
+        //        Console.WriteLine("异步:{0} 会话:{1} Thread:{2}/{3}/{4} Pool:{5}/{6}/{7}", asyncCount, http.Sessions.Count, threads, wt, cpt, pool.StockCount, pool.FreeCount, pool.CreateCount);
+        //        Console.ForegroundColor = color;
 
-                Thread.Sleep(3000);
+        //        Thread.Sleep(3000);
 
-                //GC.Collect();
-            }
-        }
+        //        //GC.Collect();
+        //    }
+        //}
 
         static void Test2()
         {
@@ -206,60 +204,60 @@ namespace Test
             Console.WriteLine(uri);
         }
 
-        static NetServer server = null;
-        static IMessageProvider smp = null;
-        static IMessageProvider cmp = null;
-        static void Test4()
-        {
-            Console.Clear();
-            if (server == null)
-            {
-                server = new NetServer();
-                server.Port = 1234;
-                //server.Received += new EventHandler<NetEventArgs>(server_Received);
+        //static NetServer server = null;
+        //static IMessageProvider smp = null;
+        //static IMessageProvider cmp = null;
+        //static void Test4()
+        //{
+        //    Console.Clear();
+        //    if (server == null)
+        //    {
+        //        server = new NetServer();
+        //        server.Port = 1234;
+        //        //server.Received += new EventHandler<NetEventArgs>(server_Received);
 
-                var mp = new ServerMessageProvider(server);
-                mp.OnReceived += new EventHandler<MessageEventArgs>(smp_OnReceived);
-                //mp.MaxMessageSize = 1460;
-                mp.AutoJoinGroup = true;
-                smp = mp;
+        //        var mp = new ServerMessageProvider(server);
+        //        mp.OnReceived += new EventHandler<MessageEventArgs>(smp_OnReceived);
+        //        //mp.MaxMessageSize = 1460;
+        //        mp.AutoJoinGroup = true;
+        //        smp = mp;
 
-                server.Start();
-            }
+        //        server.Start();
+        //    }
 
-            if (cmp == null)
-            {
-                var client = NetService.CreateSession(new NetUri("udp://::1:1234"));
-                client.ReceiveAsync();
-                cmp = new ClientMessageProvider() { Session = client };
-                cmp.OnReceived += new EventHandler<MessageEventArgs>(cmp_OnReceived);
-            }
+        //    if (cmp == null)
+        //    {
+        //        var client = NetService.CreateSession(new NetUri("udp://::1:1234"));
+        //        client.ReceiveAsync();
+        //        cmp = new ClientMessageProvider() { Session = client };
+        //        cmp.OnReceived += new EventHandler<MessageEventArgs>(cmp_OnReceived);
+        //    }
 
-            //Message.Debug = true;
-            var msg = new EntityMessage();
-            var rnd = new Random((Int32)DateTime.Now.Ticks);
-            var bts = new Byte[rnd.Next(1000000, 5000000)];
-            //var bts = new Byte[1460 * 1 - rnd.Next(0, 20)];
-            rnd.NextBytes(bts);
-            msg.Value = bts;
+        //    //Message.Debug = true;
+        //    var msg = new EntityMessage();
+        //    var rnd = new Random((Int32)DateTime.Now.Ticks);
+        //    var bts = new Byte[rnd.Next(1000000, 5000000)];
+        //    //var bts = new Byte[1460 * 1 - rnd.Next(0, 20)];
+        //    rnd.NextBytes(bts);
+        //    msg.Value = bts;
 
-            //var rs = cmp.SendAndReceive(msg, 5000);
-            cmp.Send(msg);
-        }
+        //    //var rs = cmp.SendAndReceive(msg, 5000);
+        //    cmp.Send(msg);
+        //}
 
-        static void smp_OnReceived(object sender, MessageEventArgs e)
-        {
-            var msg = e.Message;
-            Console.WriteLine("服务端收到：{0}", msg);
-            var rs = new EntityMessage();
-            rs.Value = "收到" + msg;
-            (sender as IMessageProvider).Send(rs);
-        }
+        //static void smp_OnReceived(object sender, MessageEventArgs e)
+        //{
+        //    var msg = e.Message;
+        //    Console.WriteLine("服务端收到：{0}", msg);
+        //    var rs = new EntityMessage();
+        //    rs.Value = "收到" + msg;
+        //    (sender as IMessageProvider).Send(rs);
+        //}
 
-        static void cmp_OnReceived(object sender, MessageEventArgs e)
-        {
-            Console.WriteLine("客户端收到：{0}", e.Message);
-        }
+        //static void cmp_OnReceived(object sender, MessageEventArgs e)
+        //{
+        //    Console.WriteLine("客户端收到：{0}", e.Message);
+        //}
 
         static void Test5()
         {
@@ -452,84 +450,84 @@ namespace Test
             Console.WriteLine(buf.CompareTo(old));
         }
 
-        static NetServer test12Server = null;
-        static Thread[] test12Ths = null;
-        static void Test12()
-        {
-            test12Server = new NetServer();
-            test12Server.Address = IPAddress.Parse("192.168.2.55");
-            test12Server.Port = 9000;
-            test12Server.ProtocolType = System.Net.Sockets.ProtocolType.Tcp;
-            test12Server.AddressFamily = AddressFamily.InterNetwork;
-            test12Server.NewSession += new EventHandler<NetEventArgs>(test12Server_Accepted);
-            test12Server.Received += new EventHandler<NetEventArgs>(test12Server_Received);
-            test12Server.Start();
-            foreach (var item in test12Server.Servers)
-            {
-                if (item is TcpServer)
-                {
-                    //(item as TcpServer).MaxNotActive = 5;
-                    (item as TcpServer).ShowEventLog = true;
-                }
-            }
+        //static NetServer test12Server = null;
+        //static Thread[] test12Ths = null;
+        //static void Test12()
+        //{
+        //    test12Server = new NetServer();
+        //    test12Server.Address = IPAddress.Parse("192.168.2.55");
+        //    test12Server.Port = 9000;
+        //    test12Server.ProtocolType = System.Net.Sockets.ProtocolType.Tcp;
+        //    test12Server.AddressFamily = AddressFamily.InterNetwork;
+        //    test12Server.NewSession += new EventHandler<NetEventArgs>(test12Server_Accepted);
+        //    test12Server.Received += new EventHandler<NetEventArgs>(test12Server_Received);
+        //    test12Server.Start();
+        //    foreach (var item in test12Server.Servers)
+        //    {
+        //        if (item is TcpServer)
+        //        {
+        //            //(item as TcpServer).MaxNotActive = 5;
+        //            (item as TcpServer).ShowEventLog = true;
+        //        }
+        //    }
 
-            //test12Ths = new Thread[1];
-            //for (int i = 0; i < test12Ths.Length; i++)
-            //{
-            //    test12Ths[i] = new Thread(test12Send);
-            //    test12Ths[i].Name = "thread " + i.ToString();
-            //    test12Ths[i].IsBackground = true;
-            //    test12Ths[i].Start();
-            //}
+        //    //test12Ths = new Thread[1];
+        //    //for (int i = 0; i < test12Ths.Length; i++)
+        //    //{
+        //    //    test12Ths[i] = new Thread(test12Send);
+        //    //    test12Ths[i].Name = "thread " + i.ToString();
+        //    //    test12Ths[i].IsBackground = true;
+        //    //    test12Ths[i].Start();
+        //    //}
 
-        }
+        //}
 
-        static void test12Server_Accepted(object sender, NetEventArgs e)
-        {
-            Console.WriteLine("accept client");
-        }
+        //static void test12Server_Accepted(object sender, NetEventArgs e)
+        //{
+        //    Console.WriteLine("accept client");
+        //}
 
-        static void test12Server_Received(object sender, NetEventArgs e)
-        {
-            //e.Session.Send(e.GetStream());
-            Console.WriteLine(e.GetString());
+        //static void test12Server_Received(object sender, NetEventArgs e)
+        //{
+        //    //e.Session.Send(e.GetStream());
+        //    Console.WriteLine(e.GetString());
 
-            // 以下代码不会执行
-            // 内部通过OnError已处理，
-            if (e.BytesTransferred == 0)
-            {
-                ////if (e.SocketError == SocketError.OperationAborted || e.SocketError == SocketError.ConnectionReset)
-                ////{
-                    
-                ////    return;
-                ////}
+        //    // 以下代码不会执行
+        //    // 内部通过OnError已处理，
+        //    if (e.BytesTransferred == 0)
+        //    {
+        //        ////if (e.SocketError == SocketError.OperationAborted || e.SocketError == SocketError.ConnectionReset)
+        //        ////{
 
-                if (e.SocketError != SocketError.Success || e.Error != null)
-                    Console.WriteLine("{0} {1}错误 {2} {3}", sender, e.LastOperation, e.SocketError, e.Error);
-                else
-                    Console.WriteLine("{0} {1}断开！", sender, e.LastOperation);
-            }
-        }
-        static void test12Send()
-        {
-            ISocketClient session = NetService.CreateSession(new NetUri("Tcp://127.0.0.1:9000"));
-            return;
-            //服务端检测不到有客户端连接
-            Thread.Sleep(3000);
-            //while (true)
-            {
-                Thread.Sleep(10000);
-                try
-                {
-                    session.Send("abcdefghijklmn");
-                    //此时同时触发客户端连接事件和接收数据事件。
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex.Message);
-                }
-            }
-        }
+        //        ////    return;
+        //        ////}
+
+        //        if (e.SocketError != SocketError.Success || e.Error != null)
+        //            Console.WriteLine("{0} {1}错误 {2} {3}", sender, e.LastOperation, e.SocketError, e.Error);
+        //        else
+        //            Console.WriteLine("{0} {1}断开！", sender, e.LastOperation);
+        //    }
+        //}
+        //static void test12Send()
+        //{
+        //    ISocketClient session = NetService.CreateSession(new NetUri("Tcp://127.0.0.1:9000"));
+        //    return;
+        //    //服务端检测不到有客户端连接
+        //    Thread.Sleep(3000);
+        //    //while (true)
+        //    {
+        //        Thread.Sleep(10000);
+        //        try
+        //        {
+        //            session.Send("abcdefghijklmn");
+        //            //此时同时触发客户端连接事件和接收数据事件。
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            Console.WriteLine(ex.Message);
+        //        }
+        //    }
+        //}
 
         static void Test8()
         {
@@ -706,79 +704,6 @@ namespace Test
                     Console.WriteLine("结果：{0}\t{1} vs {2}", encoding1 == encoding2,
                         encoding1 == null ? "" : encoding1.EncodingName, encoding2.EncodingName);
                 }
-            }
-        }
-
-        static void Test14()
-        {
-            DAL.NegativeEnable = true;
-            //User.Meta.Table.ConnName = "SqlCe";
-            User.Meta.Table.ConnName = "Common0";
-            // 预热
-            User.FindByKey(1);
-            var rnd = new Random((Int32)DateTime.Now.Ticks);
-            if (User.Meta.Count < 200)
-            {
-                for (int i = 0; i < 20000; i++)
-                {
-                    var user = new User();
-                    user.Account = "Name" + rnd.Next(0, 1000000000);
-                    user.Insert();
-                }
-            }
-            // 清空
-            Console.Clear();
-
-            Func func = () =>
-            {
-                var sw = new Stopwatch();
-                for (int i = 0; i < 100; i++)
-                {
-                    sw.Reset();
-                    sw.Start();
-                    try
-                    {
-                        User.FindByKey(1);
-                    }
-                    catch (Exception ex) { Console.WriteLine(ex.Message); }
-                    sw.Stop();
-                    Console.WriteLine("耗时：{0:n0}", sw.ElapsedMilliseconds);
-
-                    Thread.Sleep(1000);
-                }
-            };
-            ThreadPoolX.QueueUserWorkItem(func);
-
-            Thread.Sleep(1500);
-
-            for (int i = 0; i < 100; i++)
-            {
-                Console.WriteLine("开始事务");
-                //User.Meta.CreateTrans();
-                using (var trans = User.Meta.CreateTrans())
-                //try
-                {
-                    var entity = new User();
-                    entity.Account = "1234";
-                    entity.Insert();
-
-                    var id = entity.ID;
-
-                    Thread.Sleep(3000);
-                    entity = User.FindByKey(1);
-                    entity.Password = "11223344" + rnd.Next(0, 1000);
-                    entity.Update();
-
-                    var list = User.FindAll();
-                    Console.WriteLine(list.Count);
-
-                    entity = User.FindByKey(id);
-                    entity.Delete();
-
-                    if (rnd.Next(0, 2) > 0) trans.Commit();
-                }
-                //catch { }
-                Console.WriteLine("结束事务");
             }
         }
 
