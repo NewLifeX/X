@@ -37,7 +37,7 @@ namespace NewLife.Net
     /// }
     /// </code>
     /// </example>
-    public class SerialTransport : ITransport, IDisposable
+    public class SerialTransport : DisposeBase, ITransport, IDisposable
     {
         #region 属性
         private SerialPort _Serial;
@@ -109,17 +109,11 @@ namespace NewLife.Net
             timer = new TimerX(CheckDisconnect, null, 3000, 3000);
         }
 
-        /// <summary>析构</summary>
-        ~SerialTransport() { Dispose(false); }
-
-        /// <summary>销毁</summary>
-        public void Dispose() { Dispose(true); }
-
         /// <summary>销毁</summary>
         /// <param name="disposing"></param>
-        protected virtual void Dispose(Boolean disposing)
+        protected override void OnDispose(Boolean disposing)
         {
-            if (disposing) GC.SuppressFinalize(this);
+            base.OnDispose(disposing);
 
             if (Serial != null) Close();
             if (timer != null) timer.Dispose();
