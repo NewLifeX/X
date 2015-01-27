@@ -128,15 +128,6 @@ td
     margin: 2px 0 4px 4px;
     border: 0px;
 }
-input[type="submit"], .manager-page #ctl00_C_btnSearch, .manager-page #ctl00_C_Button1 {
-    background: url("button_s.jpg") no-repeat scroll 0 0 transparent;
-    border: medium none;
-    height: 30px;
-    line-height: 34px;
-    margin: 0;
-    padding: 0;
-    width: 66px;
-}
 .toolbar input[type=text]
 {
     border: 1px solid;

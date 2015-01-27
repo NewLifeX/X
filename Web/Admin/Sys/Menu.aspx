@@ -7,11 +7,11 @@
         <XCL:LinkBox ID="lbAdd" runat="server" BoxHeight="400px" BoxWidth="370px" Url="MenuForm.aspx"
             IconLeft="~/Admin/images/icons/new.gif" EnableViewState="False"><b>添加菜单</b></XCL:LinkBox>
         <asp:Label ID="Label_Info" runat="server" ForeColor="Red"></asp:Label>
-        &nbsp;&nbsp;&nbsp;<asp:Button ID="Button2" runat="server" Text="导出" OnClick="Button2_Click" />
+        &nbsp;&nbsp;&nbsp;<asp:Button ID="Button2" runat="server" Text="导出" OnClick="Button2_Click" CssClass="btn btn-success" />
         &nbsp;&nbsp;&nbsp;
         <asp:FileUpload ID="FileUpload1" runat="server" />
-        &nbsp;<asp:Button ID="Button3" runat="server" Text="导入" OnClick="Button3_Click" />
-        &nbsp;<asp:Button ID="Button1" runat="server" Text="扫描目录" OnClick="Button1_Click" />
+        &nbsp;<asp:Button ID="Button3" runat="server" Text="导入" OnClick="Button3_Click" CssClass="btn btn-danger" />
+        &nbsp;<asp:Button ID="Button1" runat="server" Text="扫描目录" OnClick="Button1_Click" CssClass="btn btn-warning" />
     </div>
     <asp:GridView ID="gv" runat="server" AutoGenerateColumns="False" DataKeyNames="ID"
         CssClass="m_table" CellPadding="0" GridLines="None" PageSize="15" EnableModelValidation="True"

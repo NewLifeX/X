@@ -6,10 +6,10 @@
     <div class="toolbar">
         角色名称：
         <asp:TextBox ID="txtName" runat="server" CssClass="textfield"></asp:TextBox>
-        &nbsp;<asp:Button ID="btnAdd" runat="server" Text="添加" OnClick="Button1_Click" />
+        &nbsp;<asp:Button ID="btnAdd" runat="server" Text="添加" OnClick="Button1_Click" CssClass="btn btn-success" />
         &nbsp;模版角色：<asp:TextBox ID="txtRoleTemplate" runat="server" CssClass="textfield"></asp:TextBox>
         &nbsp;<asp:Button ID="btnCopyRole" runat="server" Text="批量复制权限" 
-            OnClientClick='return confirm("确定批量操作吗？")' onclick="btnCopyRole_Click" />
+            OnClientClick='return confirm("确定批量操作吗？")' onclick="btnCopyRole_Click" CssClass="btn btn-danger" />
     </div>
     <asp:GridView ID="gv" runat="server" AutoGenerateColumns="False" DataKeyNames="ID"
         DataSourceID="ods" AllowPaging="True" AllowSorting="True" CssClass="m_table"
