@@ -1,5 +1,5 @@
 ﻿<%@ Page Language="C#" AutoEventWireup="true" CodeFile="Main.aspx.cs" Inherits="Admin_Main"
-    MasterPageFile="~/MasterPage.master" %>
+    MasterPageFile="~/Admin/MasterPage.master" %>
 
 <%@ Import Namespace="System.Diagnostics" %>
 <%@ Import Namespace="System.Collections.Generic" %>
