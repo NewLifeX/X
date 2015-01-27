@@ -87,55 +87,6 @@ td
     height: 28px;
     padding: 3px;
 }
-.toolbar a
-{
-    -moz-user-select: none;
-    background: url(btnout_bg_left.gif) no-repeat scroll left center transparent;
-    float: left;
-    height: 25px;
-    margin: 0 5px 0 0;
-    text-decoration: none;
-    color: #666666;
-}
-
-.toolbar a b
-{
-    background: url(btnout_bg_right.gif) no-repeat scroll right center transparent;
-    color: #666666;
-    cursor: pointer;
-    display: inline-block;
-    font-weight: normal;
-    height: 25px;
-    line-height: 28px;
-    padding: 0 4px 0 3px;
-    white-space: nowrap;
-}
-
-.toolbar a:hover
-{
-    background: url(btnover_bg_left.gif) no-repeat scroll left center transparent;
-}
-
-.toolbar a:hover b
-{
-    background: url(btnover_bg_right.gif) no-repeat scroll right center transparent;
-    color: #333333;
-}
-
-.toolbar a img
-{
-    float: left;
-    margin: 2px 0 4px 4px;
-    border: 0px;
-}
-.toolbar input[type=text]
-{
-    border: 1px solid;
-    border-color: #bebebe #e1e1e1 #e1e1e1 #bebebe;
-    padding: 3px;
-    /*background: url(input_bg.jpg) repeat-x 0px 0px;*/
-    margin-right: 7px;
-}
 .m_table input[type=text]
 {
     border: 1px solid;

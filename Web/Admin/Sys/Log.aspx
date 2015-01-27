@@ -8,10 +8,10 @@
             <asp:ListItem>全部</asp:ListItem>
         </asp:DropDownList>
         &nbsp;管理员：<asp:DropDownList ID="ddlAdmin" runat="server" AppendDataBoundItems="True"
-            DataTextField="FriendName" DataValueField="ID">
+            DataTextField="Name" DataValueField="ID">
             <asp:ListItem Value="0">全部</asp:ListItem>
         </asp:DropDownList>
-        &nbsp;关键字：<asp:TextBox ID="key" runat="server" CssClass="textfield" Width="70px"></asp:TextBox>
+        &nbsp;关键字：<asp:TextBox ID="key" runat="server" CssClass="form-control" Width="70px"></asp:TextBox>
         &nbsp;时间：<XCL:DateTimePicker ID="StartDate" runat="server" LongTime="False">
         </XCL:DateTimePicker>
         &nbsp;至

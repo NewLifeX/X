@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="<%= ResolveUrl("~/UI/css/unicorn.main.css")%>" type="text/css" />
     <link rel="stylesheet" href="<%= ResolveUrl("~/UI/css/unicorn.grey.css")%>" class="skin-color" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <script src="../js/jquery.min.js" type="text/javascript"></script>
+    <script src="<%= ResolveUrl("~/js/jquery.min.js")%>" type="text/javascript"></script>
     <script src="<%= ResolveUrl("~/UI/js/excanvas.min.js")%>" type="text/javascript"></script>
     <script src="<%= ResolveUrl("~/UI/js/bootstrap.min.js")%>" type="text/javascript"></script>
     <asp:ContentPlaceHolder ID="H" runat="server">
