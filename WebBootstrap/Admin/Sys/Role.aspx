@@ -1,4 +1,4 @@
-﻿<%@ Page Title="权限管理" Language="C#" MasterPageFile="~/Admin/MasterPage.master" AutoEventWireup="true"
+﻿<%@ Page Title="权限管理" Language="C#" MasterPageFile="~/Admin/ManagerPage.master" AutoEventWireup="true"
     CodeFile="Role.aspx.cs" Inherits="Common_Role" %>
 
 <asp:Content ID="g" ContentPlaceHolderID="H" runat="server">

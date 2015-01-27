@@ -1,16 +1,8 @@
 ﻿<%@ Page Language="C#" AutoEventWireup="true" CodeFile="SysConfig.aspx.cs" Inherits="Admin_SysConfig"
-    Title="系统配置" %>
+    Title="系统配置" MasterPageFile="~/Admin/ManagerPage.master" %>
 <%@ Import Namespace="NewLife.Reflection" %>
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head id="Head1" runat="server">
-    <title></title>
-    <link href="../images/css.css" rel="stylesheet" type="text/css" />
-</head>
-<body>
-    <form id="form1" runat="server">
-    <div>
+<asp:Content ID="Content1" ContentPlaceHolderID="C" runat="server">
     <table border="0" class="m_table" cellspacing="1" cellpadding="0" align="Center">
         <tr>
             <th colspan="3">系统配置</th>
@@ -53,6 +45,4 @@
             </tr>
         </table>
     </div>
-    </form>
-</body>
-</html>
+</asp:Content>

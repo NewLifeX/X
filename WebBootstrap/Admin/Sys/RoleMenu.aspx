@@ -1,4 +1,4 @@
-﻿<%@ Page Title="角色和菜单管理" Language="C#" MasterPageFile="~/Admin/MasterPage.master" AutoEventWireup="true"
+﻿<%@ Page Title="角色和菜单管理" Language="C#" MasterPageFile="~/Admin/ManagerPage.master" AutoEventWireup="true"
     CodeFile="RoleMenu.aspx.cs" Inherits="Common_RoleMenu" %>
 
 <asp:Content ID="h" runat="server" ContentPlaceHolderID="H">
