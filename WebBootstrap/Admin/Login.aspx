@@ -10,8 +10,8 @@
     <link rel="stylesheet" href="<%= ResolveUrl("~/UI/css/bootstrap-responsive.min.css")%>"
         type="text/css" />
     <link rel="stylesheet" href="<%= ResolveUrl("~/UI/css/unicorn.login.css") %>" type="text/css" />
-    <script src="<%= ResolveUrl("~/UI/js/jquery.min.js") %>" type="text/javascript"></script>
-    <script src="<%= ResolveUrl("~/Scripts/Common.js") %>" type="text/javascript"></script>
+    <script src="../js/jquery.min.js" type="text/javascript"></script>
+    <script src="../Scripts/Common.js" type="text/javascript"></script>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 </head>
 <body>

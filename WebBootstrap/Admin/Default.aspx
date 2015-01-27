@@ -14,11 +14,11 @@
     <link rel="stylesheet" href="<%= ResolveUrl("~/UI/css/unicorn.grey.css")%>" class="skin-color" type="text/css" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <script src="<%= ResolveUrl("~/UI/js/excanvas.min.js")%>" type="text/javascript"></script>
-    <script src="<%= ResolveUrl("~/UI/js/jquery.min.js")%>" type="text/javascript"></script>
+    <script src="../js/jquery.min.js" type="text/javascript"></script>
     <script src="<%= ResolveUrl("~/UI/js/jquery.ui.custom.js")%>" type="text/javascript"></script>
     <script src="<%= ResolveUrl("~/UI/js/bootstrap.min.js")%>" type="text/javascript"></script>
     <script src="<%= ResolveUrl("~/UI/js/unicorn.js")%>" type="text/javascript"></script>
-    <script src="<%= ResolveUrl("~/Scripts/Common.js")%>" type="text/javascript"></script>
+    <script src="../Scripts/Common.js" type="text/javascript"></script>
     <style type="text/css">
         #maincontent {
             position: absolute;
