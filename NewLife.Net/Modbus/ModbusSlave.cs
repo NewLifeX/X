@@ -88,7 +88,11 @@ namespace NewLife.Net.Modbus
 
             var name = transport.ToString();
 
+#if !MF
             transport.Received += (s, e) => { e.Data = Process(e.Data); e.Feedback = true; };
+#else
+            transport.Received += (ts, data) => { return Process(data); };
+#endif
             transport.ReceiveAsync();
 
             WriteLine(this.GetType().Name + "在" + name + "上监听Host=" + Host);
