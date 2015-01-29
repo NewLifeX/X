@@ -1,0 +1,60 @@
+﻿<%@ Master Language="C#" AutoEventWireup="true" CodeFile="Site.master.cs" Inherits="Site" %>
+<%@ Register Assembly="NewLife.Bootstrap" Namespace="NewLife.Bootstrap.Controls" TagPrefix="nbc" %>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head id="Head1" runat="server">
+    <title></title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="content/js/jquery-2.1.3.min.js"></script>
+    <script src="/content/js/bootstrap.min.js"></script>
+     <!-- Bootstrap -->
+    <link href="/content/css/bootstrap.min.css" rel="stylesheet" media="screen" />
+    <asp:ContentPlaceHolder ID="head" runat="server">
+    </asp:ContentPlaceHolder>
+</head>
+<body>
+    <form id="form2" runat="server">
+        <nbc:NavBar ID="NavBar1" runat="server" Title="freweb.net" Position="Top">
+            <Content>
+                <nbc:DropdownMenu runat="server" RightToLeft="true">
+                    <asp:ListItem Text="Home" Selected="True"></asp:ListItem>
+                    <asp:ListItem Text="Dashboard" Enabled="false"></asp:ListItem>
+                </nbc:DropdownMenu>
+            </Content>
+        </nbc:NavBar>
+        <div class="container-fluid">            
+            <div class="row-fluid">
+                <div class="span2" style="margin-top:20px;">
+                    <nbc:NavList ID="NavList1" runat="server">
+                        <Items>
+                            <nbc:NavListItem Header="true" Text="Administração" Icon="wrench" />
+                            <nbc:NavListItem Text="Utilizadores" />
+                            <nbc:NavListItem Text="Grupos" />
+                            <nbc:NavListItem Text="Parametros" />
+                            <nbc:NavListItem Header="true" Text="Conteúdos" Icon="filter" />
+                            <nbc:NavListItem Text="Categorias" />
+                            <nbc:NavListItem Text="Artigos" />
+                            <nbc:NavListItem Text="Noticias" />
+                            <nbc:NavListItem Text="Anexos" />
+                            <nbc:NavListItem Text="Imagens" />
+                            <nbc:NavListItem Text="Menus" />
+                            <nbc:NavListItem Text="Agenda" />
+                            <nbc:NavListItem Header="true" Text="Votações" Icon="road" />
+                            <nbc:NavListItem Text="Perguntas" />
+                            <nbc:NavListItem Text="Respostas" />
+                            <nbc:NavListItem Header="true" Text="Executivos" Icon="user" />
+                            <nbc:NavListItem Text="Executivos" />
+                            <nbc:NavListItem Text="Partidos" />
+                            <nbc:NavListItem Text="Cargos" />
+                        </Items>
+                    </nbc:NavList>
+                </div>
+                <div class="span10">
+                    <asp:ContentPlaceHolder ID="ContentPlaceHolder1" runat="server" />
+                    
+                </div>
+            </div>
+        </div>
+    </form>
+</body>
+</html>

@@ -1,5 +1,5 @@
 ﻿<%@ Page Language="C#" AutoEventWireup="true" CodeFile="SysConfig.aspx.cs" Inherits="Admin_SysConfig"
-    Title="系统配置" MasterPageFile="~/Admin/ManagerPage.master" %>
+    Title="系统配置" MasterPageFile="~/Admin/MasterPage.master" %>
 
 <%@ Import Namespace="NewLife.Reflection" %>
 <asp:Content ID="Content1" runat="server" ContentPlaceHolderID="C">

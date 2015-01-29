@@ -1,4 +1,4 @@
-﻿<%@ Page Title="菜单管理" Language="C#" MasterPageFile="~/Admin/ManagerPage.master" AutoEventWireup="true" CodeFile="MenuForm.aspx.cs" Inherits="MenuForm" %>
+﻿<%@ Page Title="菜单管理" Language="C#" MasterPageFile="~/Admin/MasterPage.master" AutoEventWireup="true" CodeFile="MenuForm.aspx.cs" Inherits="MenuForm" %>
 
 <asp:Content ID="Content1" runat="server" ContentPlaceHolderID="C">
     <div class="row-filuid">
