@@ -14,7 +14,7 @@
 </head>
 <body>
     <form id="form2" runat="server">
-        <nbc:NavBar ID="NavBar1" runat="server" Title="freweb.net" Position="Top">
+        <nbc:NavBar ID="NavBar1" runat="server" Title="新生命开发团队" Position="Top">
             <Content>
                 <nbc:DropdownMenu runat="server" RightToLeft="true">
                     <asp:ListItem Text="Home" Selected="True"></asp:ListItem>
