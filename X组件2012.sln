@@ -89,26 +89,6 @@ Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "WebBootstrap", "WebBootstra
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NewLife.Bootstrap", "NewLife.Bootstrap\NewLife.Bootstrap.csproj", "{95272F1D-5ED9-423D-AB5F-DECBD89B032F}"
 EndProject
-Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "docs", "E:\Bootstrap\bootstrap-3.3.2\docs\", "{03FAA6EE-EA4F-4D5C-AC33-74F420D5329A}"
-	ProjectSection(WebsiteProperties) = preProject
-		TargetFrameworkMoniker = ".NETFramework,Version%3Dv4.0"
-		Debug.AspNetCompiler.VirtualPath = "/docs"
-		Debug.AspNetCompiler.PhysicalPath = "E:\Bootstrap\bootstrap-3.3.2\docs\"
-		Debug.AspNetCompiler.TargetPath = "PrecompiledWeb\docs\"
-		Debug.AspNetCompiler.Updateable = "true"
-		Debug.AspNetCompiler.ForceOverwrite = "true"
-		Debug.AspNetCompiler.FixedNames = "false"
-		Debug.AspNetCompiler.Debug = "True"
-		Release.AspNetCompiler.VirtualPath = "/docs"
-		Release.AspNetCompiler.PhysicalPath = "E:\Bootstrap\bootstrap-3.3.2\docs\"
-		Release.AspNetCompiler.TargetPath = "PrecompiledWeb\docs\"
-		Release.AspNetCompiler.Updateable = "true"
-		Release.AspNetCompiler.ForceOverwrite = "true"
-		Release.AspNetCompiler.FixedNames = "false"
-		Release.AspNetCompiler.Debug = "False"
-		VWDPort = "4986"
-	EndProjectSection
-EndProject
 Global
 	GlobalSection(TestCaseManagementSettings) = postSolution
 		CategoryFile = X组件.vsmdi
@@ -238,14 +218,6 @@ Global
 		{95272F1D-5ED9-423D-AB5F-DECBD89B032F}.Net4Release|Any CPU.Build.0 = Net4Release|Any CPU
 		{95272F1D-5ED9-423D-AB5F-DECBD89B032F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{95272F1D-5ED9-423D-AB5F-DECBD89B032F}.Release|Any CPU.Build.0 = Release|Any CPU
-		{03FAA6EE-EA4F-4D5C-AC33-74F420D5329A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{03FAA6EE-EA4F-4D5C-AC33-74F420D5329A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{03FAA6EE-EA4F-4D5C-AC33-74F420D5329A}.Net4Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{03FAA6EE-EA4F-4D5C-AC33-74F420D5329A}.Net4Debug|Any CPU.Build.0 = Debug|Any CPU
-		{03FAA6EE-EA4F-4D5C-AC33-74F420D5329A}.Net4Release|Any CPU.ActiveCfg = Debug|Any CPU
-		{03FAA6EE-EA4F-4D5C-AC33-74F420D5329A}.Net4Release|Any CPU.Build.0 = Debug|Any CPU
-		{03FAA6EE-EA4F-4D5C-AC33-74F420D5329A}.Release|Any CPU.ActiveCfg = Debug|Any CPU
-		{03FAA6EE-EA4F-4D5C-AC33-74F420D5329A}.Release|Any CPU.Build.0 = Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
