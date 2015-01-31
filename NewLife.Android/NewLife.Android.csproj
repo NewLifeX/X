@@ -268,6 +268,30 @@
     <Compile Include="..\NewLife.Core\Security\SecurityHelper.cs">
       <Link>Security\SecurityHelper.cs</Link>
     </Compile>
+    <Compile Include="..\NewLife.Core\Serialization\Binary\Binary.cs">
+      <Link>Serialization\Binary\Binary.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Serialization\Binary\BinaryComposite.cs">
+      <Link>Serialization\Binary\BinaryComposite.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Serialization\Binary\BinaryDictionary.cs">
+      <Link>Serialization\Binary\BinaryDictionary.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Serialization\Binary\BinaryGeneral.cs">
+      <Link>Serialization\Binary\BinaryGeneral.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Serialization\Binary\BinaryList.cs">
+      <Link>Serialization\Binary\BinaryList.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Serialization\Binary\FieldSizeAttribute.cs">
+      <Link>Serialization\Binary\FieldSizeAttribute.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Serialization\Binary\IBinary.cs">
+      <Link>Serialization\Binary\IBinary.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Serialization\Interface\IFormatterX.cs">
+      <Link>Serialization\Interface\IFormatterX.cs</Link>
+    </Compile>
     <Compile Include="..\NewLife.Core\Threading\TaskState.cs">
       <Link>Threading\TaskState.cs</Link>
     </Compile>
