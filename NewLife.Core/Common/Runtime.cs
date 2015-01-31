@@ -7,7 +7,9 @@ using System.Reflection.Emit;
 using System.Runtime.ConstrainedExecution;
 using System.Runtime.InteropServices;
 using System.Security;
+#if !Android
 using System.Web;
+#endif
 
 namespace NewLife
 {
@@ -104,8 +106,10 @@ namespace NewLife
         #endregion
 
         #region Web环境
+#if !Android
         /// <summary>是否Web环境</summary>
         public static Boolean IsWeb { get { return !String.IsNullOrEmpty(HttpRuntime.AppDomainAppId); } }
+#endif
         #endregion
 
         #region Mono

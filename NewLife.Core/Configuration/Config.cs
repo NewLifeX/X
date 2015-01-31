@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Configuration;
+#if !Android
 using System.Web.Configuration;
+#endif
 using NewLife.Reflection;
 
 namespace NewLife.Configuration
@@ -16,48 +18,22 @@ namespace NewLife.Configuration
         #region 属性
         private static List<String> hasLoad = new List<String>();
 
+#if Android
+        private static NameValueCollection _AppSettings = new NameValueCollection();
+        /// <summary>应用设置。Android不支持这种配置，仅用该技巧欺骗编译器</summary>
+        public static NameValueCollection AppSettings { get { return _AppSettings; } }
+
+        class ConfigurationErrorsException : Exception { }
+#else
         /// <summary>应用设置</summary>
         public static NameValueCollection AppSettings { get { return ConfigurationManager.AppSettings; } }
 
         /// <summary>连接字符串设置</summary>
         public static ConnectionStringSettingsCollection ConnectionStrings { get { return ConfigurationManager.ConnectionStrings; } }
-
-        //private static Object _httpHandlers;
-        ///// <summary>获取httphandlers</summary>
-        //public static Object httpHandlers
-        //{
-        //    get
-        //    {
-        //        if (_httpHandlers == null && !hasLoad.Contains("httpHandlers"))
-        //        {
-        //            _httpHandlers = ConfigurationManager.GetSection("system.web/httpHandlers");
-        //            hasLoad.Add("httpHandlers");
-        //        }
-        //        return _httpHandlers;
-        //    }
-        //}
+#endif
         #endregion
 
         #region 获取
-        ///// <summary>获取httpHandlers</summary>
-        ///// <returns></returns>
-        //public static List<HttpHandlerAction> GethttpHandlers()
-        //{
-        //    var value = new List<HttpHandlerAction>();
-
-        //    var httphanset = httpHandlers as HttpHandlersSection;
-        //    if (httphanset == null) return value;
-
-        //    var cec = (ConfigurationElementCollection)httphanset.Handlers;
-
-        //    for (Int32 i = 0; i < cec.Count; i++)
-        //    {
-        //        value.Add(httphanset.Handlers[i]);
-        //    }
-
-        //    return value;
-        //}
-
         /// <summary>是否包含指定项的设置</summary>
         /// <param name="name">名称</param>
         /// <returns></returns>
@@ -269,6 +245,7 @@ namespace NewLife.Configuration
         #endregion
 
         #region 设置参数 老树添加
+#if !Android
         /// <summary>设置配置文件参数</summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="name">名称</param>
@@ -315,6 +292,7 @@ namespace NewLife.Configuration
                 ConfigurationManager.RefreshSection("appSettings");
             }
         }
+#endif
         #endregion
     }
 }

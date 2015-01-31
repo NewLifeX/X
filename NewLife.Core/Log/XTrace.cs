@@ -5,7 +5,9 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
+#if !Android
 using System.Windows.Forms;
+#endif
 using NewLife.Configuration;
 using NewLife.Reflection;
 
@@ -69,6 +71,18 @@ namespace NewLife.Log
             AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
         }
 
+#if Android
+        static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+        {
+            var msg = "" + e.ExceptionObject;
+            WriteLine(msg);
+            if (e.IsTerminating)
+            {
+                Log.Fatal("异常退出！");
+            }
+        }
+#endif
+
         static object _lock = new object();
 
         /// <summary>
@@ -90,7 +104,7 @@ namespace NewLife.Log
         #endregion
 
         #region 使用控制台输出
-        //private static Int32 init = 0;
+#if !Android
         /// <summary>使用控制台输出日志，只能调用一次</summary>
         /// <param name="useColor">是否使用颜色，默认使用</param>
         /// <param name="useFileLog">是否同时使用文件日志，默认使用</param>
@@ -125,9 +139,11 @@ namespace NewLife.Log
                 Log = new CompositeLog(clg, ftl);
             }
         }
+#endif
         #endregion
 
         #region 拦截WinForm异常
+#if !Android
         private static Int32 initWF = 0;
         private static Boolean _ShowErrorMessage;
         //private static String _Title;
@@ -169,9 +185,11 @@ namespace NewLife.Log
             WriteException(e.Exception);
             if (_ShowErrorMessage && Application.MessageLoop) MessageBox.Show("" + e.Exception, "出错", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
+#endif
         #endregion
 
         #region 使用WinForm控件输出日志
+#if !Android
         /// <summary>在WinForm控件上输出日志，主要考虑非UI线程操作</summary>
         /// <remarks>不是常用功能，为了避免干扰常用功能，保持UseWinForm开头</remarks>
         /// <param name="control">要绑定日志输出的WinForm控件</param>
@@ -221,6 +239,7 @@ namespace NewLife.Log
 
             TextControlLog.WriteLog(control, msg, maxLines);
         }
+#endif
         #endregion
 
         #region 属性

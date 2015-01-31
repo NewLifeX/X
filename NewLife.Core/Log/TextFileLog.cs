@@ -215,7 +215,11 @@ namespace NewLife.Log
                 }
             }
 
+#if Android
+            writer.WriteLine("#ApplicationType: {0}", "Android");
+#else
             writer.WriteLine("#ApplicationType: {0}", Runtime.IsConsole ? "Console" : (Runtime.IsWeb ? "Web" : "WinForm"));
+#endif
             writer.WriteLine("#CLR: {0}", Environment.Version);
 
             writer.WriteLine("#OS: {0}, {1}/{2}", Runtime.OSName, Environment.UserName, Environment.MachineName);

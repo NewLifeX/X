@@ -64,6 +64,7 @@ namespace System
             return atts[0];
         }
 
+#if !Android
         private static DictionaryCache<String, Object> _asmCache = new DictionaryCache<String, Object>();
 
         /// <summary>获取自定义属性，带有缓存功能，避免因.Net内部GetCustomAttributes没有缓存而带来的损耗</summary>
@@ -94,6 +95,7 @@ namespace System
 
             return avs[0];
         }
+#endif
 
         /// <summary>获取自定义属性的值。可用于ReflectionOnly加载的程序集</summary>
         /// <typeparam name="TAttribute"></typeparam>

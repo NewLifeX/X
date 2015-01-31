@@ -1,0 +1,213 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{19B3CD60-CE6C-4EB8-8FCE-67ABC1D7727A}</ProjectGuid>
+    <ProjectTypeGuids>{EFBA0AD7-5A72-4C68-AF49-83D382785DCF};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>NewLife.Android</RootNamespace>
+    <AssemblyName>NewLife.Android</AssemblyName>
+    <FileAlignment>512</FileAlignment>
+    <AndroidResgenFile>Resources\Resource.Designer.cs</AndroidResgenFile>
+    <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
+    <AndroidUseLatestPlatformSdk>True</AndroidUseLatestPlatformSdk>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>..\..\Android\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;Android,NET4</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>..\..\Android\</OutputPath>
+    <DefineConstants>TRACE;Android,NET4</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Mono.Android" />
+    <Reference Include="Mono.CSharp" />
+    <Reference Include="mscorlib" />
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Net" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\NewLife.Core\Collections\CollectionHelper.cs">
+      <Link>Collections\CollectionHelper.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Collections\DictionaryCache.cs">
+      <Link>Collections\DictionaryCache.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Common\DisposeBase.cs">
+      <Link>Common\DisposeBase.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Common\Runtime.cs">
+      <Link>Common\Runtime.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Common\Utility.cs">
+      <Link>Common\Utility.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Common\WeakReference.cs">
+      <Link>Common\WeakReference.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Configuration\Config.cs">
+      <Link>Configuration\Config.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Event\EventArgs.cs">
+      <Link>Event\EventArgs.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Event\WeakAction.cs">
+      <Link>Event\WeakAction.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Exceptions\XException.cs">
+      <Link>Exceptions\XException.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Extension\BitHelper.cs">
+      <Link>Extension\BitHelper.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Extension\EnumHelper.cs">
+      <Link>Extension\EnumHelper.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Extension\StringHelper.cs">
+      <Link>Extension\StringHelper.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\IO\EncodingHelper.cs">
+      <Link>IO\EncodingHelper.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\IO\IOHelper.cs">
+      <Link>IO\IOHelper.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\IO\Json.cs">
+      <Link>IO\Json.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\IO\PathHelper.cs">
+      <Link>IO\PathHelper.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Log\CompositeLog.cs">
+      <Link>Log\CompositeLog.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Log\ILog.cs">
+      <Link>Log\ILog.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Log\Logger.cs">
+      <Link>Log\Logger.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Log\LogLevel.cs">
+      <Link>Log\LogLevel.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Log\TextFileLog.cs">
+      <Link>Log\TextFileLog.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Log\WriteLogEventArgs.cs">
+      <Link>Log\WriteLogEventArgs.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Log\XTrace.cs">
+      <Link>Log\XTrace.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Properties\AssemblyInfo.cs">
+      <Link>Properties\AssemblyInfo.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Properties\AssemblyInfo_.cs">
+      <Link>Properties\AssemblyInfo_.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Reflection\AssemblyX.cs">
+      <Link>Reflection\AssemblyX.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Reflection\AttributeX.cs">
+      <Link>Reflection\AttributeX.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Reflection\EmitHelper.cs">
+      <Link>Reflection\EmitHelper.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Reflection\EmitReflect.cs">
+      <Link>Reflection\EmitReflect.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Reflection\Func.cs">
+      <Link>Reflection\Func.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Reflection\IReflect.cs">
+      <Link>Reflection\IReflect.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Reflection\Reflect.cs">
+      <Link>Reflection\Reflect.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Reflection\ReflectHelper.cs">
+      <Link>Reflection\ReflectHelper.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Reflection\TypeResolver.cs">
+      <Link>Reflection\TypeResolver.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Reflection\TypeResolverProvider.cs">
+      <Link>Reflection\TypeResolverProvider.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Reflection\快速反射\ConstructorInfoX.cs">
+      <Link>Reflection\快速反射\ConstructorInfoX.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Reflection\快速反射\EventInfoX.cs">
+      <Link>Reflection\快速反射\EventInfoX.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Reflection\快速反射\FastMethod.cs">
+      <Link>Reflection\快速反射\FastMethod.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Reflection\快速反射\FieldInfoX.cs">
+      <Link>Reflection\快速反射\FieldInfoX.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Reflection\快速反射\MemberInfoX.cs">
+      <Link>Reflection\快速反射\MemberInfoX.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Reflection\快速反射\MethodInfoX.cs">
+      <Link>Reflection\快速反射\MethodInfoX.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Reflection\快速反射\PropertyInfoX.cs">
+      <Link>Reflection\快速反射\PropertyInfoX.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Reflection\快速反射\TypeX.cs">
+      <Link>Reflection\快速反射\TypeX.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Threading\TaskState.cs">
+      <Link>Threading\TaskState.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Threading\ThreadPoolX.cs">
+      <Link>Threading\ThreadPoolX.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Threading\ThreadTask.cs">
+      <Link>Threading\ThreadTask.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Threading\ThreadX.cs">
+      <Link>Threading\ThreadX.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Threading\TimerX.cs">
+      <Link>Threading\TimerX.cs</Link>
+    </Compile>
+    <Compile Include="Resources\Resource.Designer.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\AboutResources.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\Values\Strings.xml" />
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

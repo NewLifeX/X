@@ -5,7 +5,9 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
+#if !Android
 using System.Web;
+#endif
 using NewLife.Collections;
 using NewLife.Log;
 
@@ -116,7 +118,9 @@ namespace NewLife.Reflection
 
         static AssemblyX()
         {
+#if !Android
             AppDomain.CurrentDomain.ReflectionOnlyAssemblyResolve += (sender, args) => Assembly.ReflectionOnlyLoad(args.Name);
+#endif
         }
         #endregion
 
@@ -215,32 +219,32 @@ namespace NewLife.Reflection
         #endregion
 
         #region 获取特性
-        /// <summary>获取自定义属性</summary>
-        /// <typeparam name="TAttribute"></typeparam>
-        /// <returns></returns>
-        [Obsolete("=>Asm.GetCustomAttribute<TAttribute>")]
-        public TAttribute GetCustomAttribute<TAttribute>() { return Asm.GetCustomAttribute<TAttribute>(); }
+        ///// <summary>获取自定义属性</summary>
+        ///// <typeparam name="TAttribute"></typeparam>
+        ///// <returns></returns>
+        //[Obsolete("=>Asm.GetCustomAttribute<TAttribute>")]
+        //public TAttribute GetCustomAttribute<TAttribute>() { return Asm.GetCustomAttribute<TAttribute>(); }
 
-        /// <summary>获取自定义属性的值。可用于ReflectionOnly加载的程序集</summary>
-        /// <typeparam name="TAttribute"></typeparam>
-        /// <typeparam name="TResult"></typeparam>
-        /// <returns></returns>
-        [Obsolete("=>Asm.GetCustomAttributeValue<TAttribute, TResult>")]
-        public TResult GetCustomAttributeValue<TAttribute, TResult>()
-        {
-            var list = CustomAttributeData.GetCustomAttributes(Asm);
-            if (list == null || list.Count < 1) return default(TResult);
+        ///// <summary>获取自定义属性的值。可用于ReflectionOnly加载的程序集</summary>
+        ///// <typeparam name="TAttribute"></typeparam>
+        ///// <typeparam name="TResult"></typeparam>
+        ///// <returns></returns>
+        //[Obsolete("=>Asm.GetCustomAttributeValue<TAttribute, TResult>")]
+        //public TResult GetCustomAttributeValue<TAttribute, TResult>()
+        //{
+        //    var list = CustomAttributeData.GetCustomAttributes(Asm);
+        //    if (list == null || list.Count < 1) return default(TResult);
 
-            foreach (var item in list)
-            {
-                if (typeof(TAttribute) != item.Constructor.DeclaringType) continue;
+        //    foreach (var item in list)
+        //    {
+        //        if (typeof(TAttribute) != item.Constructor.DeclaringType) continue;
 
-                if (item.ConstructorArguments != null && item.ConstructorArguments.Count > 0)
-                    return (TResult)item.ConstructorArguments[0].Value;
-            }
+        //        if (item.ConstructorArguments != null && item.ConstructorArguments.Count > 0)
+        //            return (TResult)item.ConstructorArguments[0].Value;
+        //    }
 
-            return default(TResult);
-        }
+        //    return default(TResult);
+        //}
         #endregion
 
         #region 方法
@@ -449,7 +453,9 @@ namespace NewLife.Reflection
                     var set = new HashSet<String>(StringComparer.OrdinalIgnoreCase);
 
                     set.Add(AppDomain.CurrentDomain.BaseDirectory);
+#if !Android
                     if (HttpRuntime.AppDomainId != null) set.Add(HttpRuntime.BinDirectory);
+#endif
 
                     // 增加所有程序集所在目录为搜索目录，便于查找程序集
                     foreach (var asm in GetAssemblies())
@@ -528,11 +534,13 @@ namespace NewLife.Reflection
                 if (loadeds.Any(e => e.Location.EqualIgnoreCase(item)) ||
                     loadeds2.Any(e => e.Location.EqualIgnoreCase(item))) continue;
 
+#if !Android
                 // 仅加载.Net文件，并且小于等于当前版本
                 var pe = PEImage.Read(item);
                 if (pe == null || !pe.IsNet) continue;
                 // 只判断主次版本，只要这两个相同，后面可以兼容
                 if (pe.Version.Major > ver.Major || pe.Version.Minor > pe.Version.Minor) continue;
+#endif
 
                 AssemblyX asmx = null;
                 try

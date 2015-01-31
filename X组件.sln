@@ -1,6 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
+# Visual Studio 2013
+VisualStudioVersion = 12.0.31101.0
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XControl", "XControl\XControl.csproj", "{A82E3AA8-6181-460D-A6EE-CC453B83D340}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XCoder", "XCoder\XCoder.csproj", "{3EB3A5F1-F785-4672-A21D-A3117FC12129}"
@@ -25,8 +27,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test2", "Test2\Test2.csproj
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NewLife.Mvc", "NewLife.Mvc\NewLife.Mvc.csproj", "{E50FC131-90E6-4D21-8F87-84BDF4B841B7}"
 EndProject
-Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "Web", "Web\", "{AAC0A525-4C8D-4D30-B145-288E8CB5CF8A}"
+Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "Web(2)", "Web\", "{AAC0A525-4C8D-4D30-B145-288E8CB5CF8A}"
 	ProjectSection(WebsiteProperties) = preProject
+		SccProjectName = ""
+		SccAuxPath = ""
+		SccLocalPath = ""
+		SccProvider = ""
 		TargetFrameworkMoniker = ".NETFramework,Version%3Dv2.0"
 		ProjectReferences = "{50D7FAE5-2304-4395-A6FA-7D35279D9D84}|NewLife.CommonEntity.dll;{5813C22E-EEB3-4DEE-A45C-BB218041193A}|NewLife.Core.dll;{B49ABA5A-C5DA-45F4-87F1-B435EC51D710}|XCode.dll;{A82E3AA8-6181-460D-A6EE-CC453B83D340}|XControl.dll;"
 		Debug.AspNetCompiler.VirtualPath = "/Web"
@@ -45,6 +51,7 @@ Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "Web", "Web\", "{AAC0A525-4C
 		Release.AspNetCompiler.Debug = "False"
 		VWDPort = "17686"
 		VWDDynamicPort = "true"
+		SlnRelativePath = "Web\"
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NewLife.Core.Test", "NewLife.Core.Test\NewLife.Core.Test.csproj", "{ADC0BECC-C59A-4A82-BFCE-02EBD2966204}"
@@ -81,6 +88,7 @@ Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "WebBootstrap", "WebBootstra
 		Release.AspNetCompiler.FixedNames = "false"
 		Release.AspNetCompiler.Debug = "False"
 		VWDPort = "17689"
+		SlnRelativePath = "WebBootstrap\"
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NewLife.Bootstrap", "NewLife.Bootstrap\NewLife.Bootstrap.csproj", "{95272F1D-5ED9-423D-AB5F-DECBD89B032F}"
@@ -222,8 +230,8 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
+		{6AB57657-0627-40AC-ACC2-FF697E45FAF1} = {C05117DE-0085-44F9-AE89-0973AD32ABCC}
 		{ADC0BECC-C59A-4A82-BFCE-02EBD2966204} = {C05117DE-0085-44F9-AE89-0973AD32ABCC}
 		{6D5EA117-7DC7-4390-935A-97C36F0BB29C} = {C05117DE-0085-44F9-AE89-0973AD32ABCC}
-		{6AB57657-0627-40AC-ACC2-FF697E45FAF1} = {C05117DE-0085-44F9-AE89-0973AD32ABCC}
 	EndGlobalSection
 EndGlobal

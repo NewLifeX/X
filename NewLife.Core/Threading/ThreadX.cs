@@ -211,7 +211,9 @@ namespace NewLife.Threading
                     LastError = ex;
 
                     //异常参数指明是否需要终止线程
+#if !Android
                     if (ex.ExceptionState != null && (Boolean)ex.ExceptionState)
+#endif
                     {
                         Thread = null;
                         internalEvent.Close();
@@ -229,7 +231,9 @@ namespace NewLife.Threading
                     else
                     {
                         //异常参数指明是否需要终止线程
+#if !Android
                         if (e.ExceptionState != null && (Boolean)e.ExceptionState)
+#endif
                         {
                             Thread = null;
                             internalEvent.Close();

@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Threading;
+#if !Android
 using System.Web;
+#endif
 
 namespace NewLife.Log
 {
@@ -130,7 +132,9 @@ namespace NewLife.Log
             ThreadID = thread.ManagedThreadId;
             IsPoolThread = thread.IsThreadPoolThread;
             ThreadName = thread.Name;
+#if !Android
             IsWeb = HttpContext.Current != null;
+#endif
         }
 
         /// <summary>已重载。</summary>

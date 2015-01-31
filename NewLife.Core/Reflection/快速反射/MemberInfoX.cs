@@ -59,6 +59,7 @@ namespace NewLife.Reflection
             }
         }
 
+#if !Android
         private String _DocName;
         /// <summary>文档名</summary>
         public String DocName
@@ -73,8 +74,8 @@ namespace NewLife.Reflection
                 }
                 return _DocName;
             }
-            //set { _DocName = value; }
         }
+#endif
 
         private List<String> hasLoad = new List<String>();
 
