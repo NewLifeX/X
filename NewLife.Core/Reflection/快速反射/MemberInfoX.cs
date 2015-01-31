@@ -277,7 +277,7 @@ namespace NewLife.Reflection
         /// <typeparam name="TAttribute"></typeparam>
         /// <typeparam name="TResult"></typeparam>
         /// <returns></returns>
-        public TResult GetCustomAttributeValue<TAttribute, TResult>()
+        public TResult GetCustomAttributeValue<TAttribute, TResult>() where TAttribute : Attribute
         {
             return Member.GetCustomAttributeValue<TAttribute, TResult>(true);
         }

@@ -53,7 +53,8 @@ namespace System
             var type = value.GetType();
             var item = type.GetField(value.ToString(), BindingFlags.Public | BindingFlags.Static);
 
-            var att = AttributeX.GetCustomAttribute<DescriptionAttribute>(item, false);
+            //var att = AttributeX.GetCustomAttribute<DescriptionAttribute>(item, false);
+            var att = item.GetCustomAttribute<DescriptionAttribute>(false);
             if (att != null && !String.IsNullOrEmpty(att.Description)) return att.Description;
 
             return null;
@@ -91,10 +92,12 @@ namespace System
 
                 String des = item.Name;
 
-                var dna = AttributeX.GetCustomAttribute<DisplayNameAttribute>(item, false);
+                //var dna = AttributeX.GetCustomAttribute<DisplayNameAttribute>(item, false);
+                var dna = item.GetCustomAttribute<DisplayNameAttribute>(false);
                 if (dna != null && !String.IsNullOrEmpty(dna.DisplayName)) des = dna.DisplayName;
 
-                var att = AttributeX.GetCustomAttribute<DescriptionAttribute>(item, false);
+                //var att = AttributeX.GetCustomAttribute<DescriptionAttribute>(item, false);
+                var att = item.GetCustomAttribute<DescriptionAttribute>(false);
                 if (att != null && !String.IsNullOrEmpty(att.Description)) des = att.Description;
                 dic.Add(value, des);
             }

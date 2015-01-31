@@ -118,6 +118,24 @@
     <Compile Include="..\NewLife.Core\Log\XTrace.cs">
       <Link>Log\XTrace.cs</Link>
     </Compile>
+    <Compile Include="..\NewLife.Core\Model\IObjectContainer.cs">
+      <Link>Model\IObjectContainer.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Model\IPlugin.cs">
+      <Link>Model\IPlugin.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Model\IServer.cs">
+      <Link>Model\IServer.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Model\ModelExtension.cs">
+      <Link>Model\ModelExtension.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Model\ObjectContainer.cs">
+      <Link>Model\ObjectContainer.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Model\ObjectContainerHelper.cs">
+      <Link>Model\ObjectContainerHelper.cs</Link>
+    </Compile>
     <Compile Include="..\NewLife.Core\Properties\AssemblyInfo.cs">
       <Link>Properties\AssemblyInfo.cs</Link>
     </Compile>
@@ -178,6 +196,27 @@
     <Compile Include="..\NewLife.Core\Reflection\快速反射\TypeX.cs">
       <Link>Reflection\快速反射\TypeX.cs</Link>
     </Compile>
+    <Compile Include="..\NewLife.Core\Security\Certificate.cs">
+      <Link>Security\Certificate.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Security\Crc16.cs">
+      <Link>Security\Crc16.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Security\Crc32.cs">
+      <Link>Security\Crc32.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Security\DataHelper.cs">
+      <Link>Security\DataHelper.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Security\DSAHelper.cs">
+      <Link>Security\DSAHelper.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Security\RSAHelper.cs">
+      <Link>Security\RSAHelper.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Security\SecurityHelper.cs">
+      <Link>Security\SecurityHelper.cs</Link>
+    </Compile>
     <Compile Include="..\NewLife.Core\Threading\TaskState.cs">
       <Link>Threading\TaskState.cs</Link>
     </Compile>
@@ -192,6 +231,18 @@
     </Compile>
     <Compile Include="..\NewLife.Core\Threading\TimerX.cs">
       <Link>Threading\TimerX.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Xml\XmlConfig.cs">
+      <Link>Xml\XmlConfig.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Xml\XmlConfigFileAttribute.cs">
+      <Link>Xml\XmlConfigFileAttribute.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Xml\XmlEntity.cs">
+      <Link>Xml\XmlEntity.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Xml\XmlHelper.cs">
+      <Link>Xml\XmlHelper.cs</Link>
     </Compile>
     <Compile Include="Resources\Resource.Designer.cs" />
   </ItemGroup>

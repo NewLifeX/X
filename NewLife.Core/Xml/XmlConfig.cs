@@ -2,6 +2,9 @@
 using System.IO;
 using System.Xml.Serialization;
 using NewLife.Log;
+#if Android
+using System.Reflection;
+#endif
 
 namespace NewLife.Xml
 {

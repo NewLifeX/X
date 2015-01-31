@@ -2,6 +2,9 @@
 using System.Linq;
 using NewLife.Collections;
 using NewLife.Reflection;
+#if Android
+using System.Reflection;
+#endif
 
 namespace System
 {
@@ -9,6 +12,7 @@ namespace System
     public static class AttributeX
     {
         #region 静态方法
+#if !Android
         private static DictionaryCache<MemberInfo, DictionaryCache<Type, Array>> _miCache = new DictionaryCache<MemberInfo, DictionaryCache<Type, Array>>();
         private static DictionaryCache<MemberInfo, DictionaryCache<Type, Array>> _miCache2 = new DictionaryCache<MemberInfo, DictionaryCache<Type, Array>>();
 
@@ -64,7 +68,6 @@ namespace System
             return atts[0];
         }
 
-#if !Android
         private static DictionaryCache<String, Object> _asmCache = new DictionaryCache<String, Object>();
 
         /// <summary>获取自定义属性，带有缓存功能，避免因.Net内部GetCustomAttributes没有缓存而带来的损耗</summary>
@@ -101,7 +104,7 @@ namespace System
         /// <typeparam name="TAttribute"></typeparam>
         /// <typeparam name="TResult"></typeparam>
         /// <returns></returns>
-        public static TResult GetCustomAttributeValue<TAttribute, TResult>(this Assembly target)
+        public static TResult GetCustomAttributeValue<TAttribute, TResult>(this Assembly target) where TAttribute : Attribute
         {
             if (target == null) return default(TResult);
 
@@ -125,7 +128,7 @@ namespace System
         /// <param name="target">目标对象</param>
         /// <param name="inherit">是否递归</param>
         /// <returns></returns>
-        public static TResult GetCustomAttributeValue<TAttribute, TResult>(this MemberInfo target, Boolean inherit = true)
+        public static TResult GetCustomAttributeValue<TAttribute, TResult>(this MemberInfo target, Boolean inherit = true) where TAttribute : Attribute
         {
             if (target == null) return default(TResult);
 
@@ -154,7 +157,8 @@ namespace System
                 // 出错以后，如果不是仅反射加载，可以考虑正面来一次
                 if (!target.Module.Assembly.ReflectionOnly)
                 {
-                    var att = GetCustomAttribute<TAttribute>(target, inherit);
+                    //var att = GetCustomAttribute<TAttribute>(target, inherit);
+                    var att = target.GetCustomAttribute<TAttribute>(inherit);
                     if (att != null)
                     {
                         var pi = typeof(TAttribute).GetProperties().FirstOrDefault(p => p.PropertyType == typeof(TResult));
