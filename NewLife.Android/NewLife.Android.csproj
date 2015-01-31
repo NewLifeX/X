@@ -136,6 +136,57 @@
     <Compile Include="..\NewLife.Core\Model\ObjectContainerHelper.cs">
       <Link>Model\ObjectContainerHelper.cs</Link>
     </Compile>
+    <Compile Include="..\NewLife.Core\Net\ISocket.cs">
+      <Link>Net\ISocket.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Net\ISocketClient.cs">
+      <Link>Net\ISocketClient.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Net\ISocketServer.cs">
+      <Link>Net\ISocketServer.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Net\ISocketSession.cs">
+      <Link>Net\ISocketSession.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Net\IStatistics.cs">
+      <Link>Net\IStatistics.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Net\ITransport.cs">
+      <Link>Net\ITransport.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Net\NetException.cs">
+      <Link>Net\NetException.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Net\NetHelper.cs">
+      <Link>Net\NetHelper.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Net\NetUri.cs">
+      <Link>Net\NetUri.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Net\ReceivedEventArgs.cs">
+      <Link>Net\ReceivedEventArgs.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Net\SessionBase.cs">
+      <Link>Net\SessionBase.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Net\SessionCollection.cs">
+      <Link>Net\SessionCollection.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Net\Statistics.cs">
+      <Link>Net\Statistics.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Net\TcpServer.cs">
+      <Link>Net\TcpServer.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Net\TcpSession.cs">
+      <Link>Net\TcpSession.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Net\UdpServer.cs">
+      <Link>Net\UdpServer.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Net\UdpSession.cs">
+      <Link>Net\UdpSession.cs</Link>
+    </Compile>
     <Compile Include="..\NewLife.Core\Properties\AssemblyInfo.cs">
       <Link>Properties\AssemblyInfo.cs</Link>
     </Compile>

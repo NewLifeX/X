@@ -3,7 +3,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Xml.Serialization;
-using NewLife.Serialization;
+//using NewLife.Serialization;
 
 namespace NewLife.Net
 {
@@ -12,7 +12,7 @@ namespace NewLife.Net
     /// 仅序列化<see cref="ProtocolType"/>和<see cref="EndPoint"/>，其它均是配角！
     /// 有可能<see cref="Host"/>代表主机域名，而<see cref="Address"/>指定主机IP地址。
     /// </remarks>
-    public class NetUri : IAccessor
+    public class NetUri //: IAccessor
     {
         #region 属性
         private ProtocolType _ProtocolType;
@@ -240,20 +240,20 @@ namespace NewLife.Net
 
         #region IAccessor 成员
 
-        bool IAccessor.Read(IReader reader) { return false; }
+        //bool IAccessor.Read(IReader reader) { return false; }
 
-        bool IAccessor.ReadComplete(IReader reader, bool success)
-        {
-            // 因为反序列化仅给字段复制，重新设置一下，保证Protocol等属性有值
-            ProtocolType = ProtocolType;
-            EndPoint = EndPoint;
+        //bool IAccessor.ReadComplete(IReader reader, bool success)
+        //{
+        //    // 因为反序列化仅给字段复制，重新设置一下，保证Protocol等属性有值
+        //    ProtocolType = ProtocolType;
+        //    EndPoint = EndPoint;
 
-            return success;
-        }
+        //    return success;
+        //}
 
-        bool IAccessor.Write(IWriter writer) { return false; }
+        //bool IAccessor.Write(IWriter writer) { return false; }
 
-        bool IAccessor.WriteComplete(IWriter writer, bool success) { return success; }
+        //bool IAccessor.WriteComplete(IWriter writer, bool success) { return success; }
 
         #endregion
     }
