@@ -340,6 +340,8 @@ namespace NewLife.Net
                 Close();
             }
 
+            LastTime = DateTime.Now;
+
             // 在用户线程池里面处理数据
             ThreadPoolX.QueueUserWorkItem(() => OnReceive(data, count), ex => OnError("OnReceive", ex));
 

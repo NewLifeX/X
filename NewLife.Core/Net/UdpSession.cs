@@ -59,7 +59,7 @@ namespace NewLife.Net
         public DateTime StartTime { get { return _StartTime; } }
 
         private DateTime _LastTime;
-        /// <summary>最后一次通信时间，主要表示活跃时间，对TCP包括收发，对UDP只包括收</summary>
+        /// <summary>最后一次通信时间，主要表示活跃时间，包括收发</summary>
         public DateTime LastTime { get { return _LastTime; } }
 
         //private ILog _Log;
@@ -100,6 +100,8 @@ namespace NewLife.Net
             if (offset > 0) buffer = buffer.ReadBytes(offset, count);
 
             Server.WriteLog("{0}.Send {1} [{2}]", this.GetType().Name, this, count);
+
+            _LastTime = DateTime.Now;
 
             try
             {

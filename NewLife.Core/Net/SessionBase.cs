@@ -54,7 +54,7 @@ namespace NewLife.Net
         public DateTime StartTime { get { return _StartTime; } }
 
         private DateTime _LastTime;
-        /// <summary>最后一次通信时间，主要表示活跃时间，对TCP包括收发，对UDP只包括收</summary>
+        /// <summary>最后一次通信时间，主要表示活跃时间，包括收发</summary>
         public DateTime LastTime { get { return _LastTime; } internal protected set { _LastTime = value; } }
         #endregion
 
