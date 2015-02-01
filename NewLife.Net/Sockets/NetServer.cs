@@ -231,8 +231,11 @@ namespace NewLife.Net.Sockets
         {
             EnsureCreateServer();
 
+            WriteLog("{0} 准备开始监听{1}个服务器", Name, Servers.Count);
+
             foreach (var item in Servers)
             {
+                if (item.Port > 0) WriteLog("{0} 开始监听 {1}", Name, item);
                 //item.Log = Log;
                 item.Start();
 
@@ -246,8 +249,7 @@ namespace NewLife.Net.Sockets
                         if (elm != item && elm.Port == 0) elm.Port = Port;
                     }
                 }
-
-                WriteLog("{0} 开始监听 {1}", Name, item);
+                if (item.Port <= 0) WriteLog("{0} 开始监听 {1}", Name, item);
             }
         }
 
@@ -256,9 +258,12 @@ namespace NewLife.Net.Sockets
         {
             if (!Active) throw new InvalidOperationException("服务没有开始！");
 
+            WriteLog("{0} 准备停止监听{1}个服务器", Name, Servers.Count);
+
             foreach (var item in Servers)
             {
                 WriteLog("{0} 停止监听 {1}", Name, item);
+                item.Stop();
             }
 
             OnStop();
