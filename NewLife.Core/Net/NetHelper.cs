@@ -135,6 +135,11 @@ namespace System
         /// <returns></returns>
         public static Boolean IsAny(this EndPoint endpoint) { return (endpoint as IPEndPoint).Address.IsAny() || (endpoint as IPEndPoint).Port == 0; }
 
+        /// <summary>是否IPv4地址</summary>
+        /// <param name="address"></param>
+        /// <returns></returns>
+        public static Boolean IsIPv4(this IPAddress address) { return address.AddressFamily == AddressFamily.InterNetwork; }
+
         /// <summary>获取相对于指定远程地址的本地地址</summary>
         /// <param name="address"></param>
         /// <param name="remote"></param>
