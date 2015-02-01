@@ -216,14 +216,14 @@ namespace NewLife.Net.Sockets
 
             if (Server == null)
             {
-                WriteLog("{0} 没有可用Socket服务器！", Name);
+                WriteLog("没有可用Socket服务器！");
 
                 return;
             }
 
             Local.ProtocolType = Server.Local.ProtocolType;
 
-            WriteLog("{0} 准备就绪！", Name);
+            WriteLog("准备就绪！");
         }
 
         /// <summary>开始时调用的方法</summary>
@@ -231,11 +231,11 @@ namespace NewLife.Net.Sockets
         {
             EnsureCreateServer();
 
-            WriteLog("{0} 准备开始监听{1}个服务器", Name, Servers.Count);
+            WriteLog("准备开始监听{0}个服务器", Servers.Count);
 
             foreach (var item in Servers)
             {
-                if (item.Port > 0) WriteLog("{0} 开始监听 {1}", Name, item);
+                if (item.Port > 0) WriteLog("开始监听 {0}", item);
                 //item.Log = Log;
                 item.Start();
 
@@ -249,7 +249,7 @@ namespace NewLife.Net.Sockets
                         if (elm != item && elm.Port == 0) elm.Port = Port;
                     }
                 }
-                if (item.Port <= 0) WriteLog("{0} 开始监听 {1}", Name, item);
+                if (item.Port <= 0) WriteLog("开始监听 {0}", item);
             }
         }
 
@@ -258,17 +258,17 @@ namespace NewLife.Net.Sockets
         {
             if (!Active) throw new InvalidOperationException("服务没有开始！");
 
-            WriteLog("{0} 准备停止监听{1}个服务器", Name, Servers.Count);
+            WriteLog("准备停止监听{0}个服务器", Servers.Count);
 
             foreach (var item in Servers)
             {
-                WriteLog("{0} 停止监听 {1}", Name, item);
+                WriteLog("停止监听 {0}", item);
                 item.Stop();
             }
 
             OnStop();
 
-            WriteLog("{0} 已停止！", Name);
+            WriteLog("已停止！");
         }
 
         /// <summary>停止时调用的方法</summary>
@@ -302,20 +302,14 @@ namespace NewLife.Net.Sockets
             session.OnDisposed += (s, e2) => Interlocked.Decrement(ref _SessionCount);
 
             var ns = CreateSession(session);
+            ns.Host = this;
             ns.Server = session.Server;
             ns.Session = session;
-            //ns.ClientEndPoint = session.Remote.EndPoint;
 
             session.OnDisposed += (s, e2) => ns.Dispose();
 
             if (UseSession) AddSession(ns);
 
-            //var tc = session as TcpSession;
-            //if (tc != null)
-            //{
-            //    tc.Received += OnReceived;
-            //    tc.Error += OnError;
-            //}
             session.Received += OnReceived;
             session.Error += OnError;
 
@@ -351,17 +345,9 @@ namespace NewLife.Net.Sockets
         /// <param name="e"></param>
         protected virtual void OnError(Object sender, ExceptionEventArgs e)
         {
-            //if (!EnableLog) return;
             if (Log.Level < LogLevel.Info) return;
 
             if (Error != null) Error(sender, e);
-
-            //if ((e.SocketError == SocketError.OperationAborted || e.SocketError == SocketError.ConnectionReset) && !ShowAbortAsError) return;
-
-            //if (e.SocketError != SocketError.Success || e.Error != null)
-            //    WriteLog("{0} {1}错误 {2} {3}", sender, e.LastOperation, e.SocketError, e.Error);
-            //else
-            //    WriteDebugLog("{0} {1}断开！", sender, e.LastOperation);
         }
         #endregion
 
@@ -397,6 +383,8 @@ namespace NewLife.Net.Sockets
         {
             var ns = NetService.Container.Resolve<INetSession>();
             ns.Host = this;
+            ns.Server = session.Server;
+            ns.Session = session;
 
             return ns;
         }
@@ -455,6 +443,13 @@ namespace NewLife.Net.Sockets
         #endregion
 
         #region 辅助
+        /// <summary>已重载。日志加上前缀</summary>
+        /// <param name="format"></param>
+        /// <param name="args"></param>
+        public override void WriteLog(string format, params object[] args)
+        {
+            base.WriteLog(String.Format("{0} {1}", Name, format), args);
+        }
         /// <summary>已重载。</summary>
         /// <returns></returns>
         public override string ToString()
@@ -482,7 +477,15 @@ namespace NewLife.Net.Sockets
         /// <summary>创建会话</summary>
         /// <param name="session"></param>
         /// <returns></returns>
-        protected override INetSession CreateSession(ISocketSession session) { return new TSession(); }
+        protected override INetSession CreateSession(ISocketSession session)
+        {
+            var ns = new TSession();
+            ns.Host = this;
+            ns.Server = session.Server;
+            ns.Session = session;
+
+            return ns;
+        }
 
         /// <summary>获取指定标识的会话</summary>
         /// <param name="id"></param>

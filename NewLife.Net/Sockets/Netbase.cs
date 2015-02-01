@@ -35,7 +35,7 @@ namespace NewLife.Net.Sockets
         /// <summary>写日志</summary>
         /// <param name="format"></param>
         /// <param name="args"></param>
-        public void WriteLog(String format, params Object[] args)
+        public virtual void WriteLog(String format, params Object[] args)
         {
             //if (EnableLog) NetHelper.WriteLog(format, args);
             Log.Info(format, args);
@@ -45,7 +45,7 @@ namespace NewLife.Net.Sockets
         /// <param name="format"></param>
         /// <param name="args"></param>
         [Conditional("DEBUG")]
-        public void WriteDebugLog(String format, params Object[] args)
+        public virtual void WriteDebugLog(String format, params Object[] args)
         {
             //if (EnableLog) NetHelper.WriteLog(format, args);
             Log.Debug(format, args);

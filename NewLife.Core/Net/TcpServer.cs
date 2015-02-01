@@ -273,14 +273,14 @@ namespace NewLife.Net
             if (Log != null) Log.Info(format, args);
         }
 
-        /// <summary>输出日志</summary>
-        /// <param name="format"></param>
-        /// <param name="args"></param>
-        [Conditional("DEBUG")]
-        public void WriteDebugLog(String format, params Object[] args)
-        {
-            if (Log != null) Log.Info(format, args);
-        }
+        ///// <summary>输出日志</summary>
+        ///// <param name="format"></param>
+        ///// <param name="args"></param>
+        //[Conditional("DEBUG")]
+        //public void WriteDebugLog(String format, params Object[] args)
+        //{
+        //    if (Log != null) Log.Info(format, args);
+        //}
         #endregion
 
         #region 辅助

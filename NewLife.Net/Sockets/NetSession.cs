@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
-using System.Net;
-using System.Net.Sockets;
 using System.Text;
 
 namespace NewLife.Net.Sockets
@@ -25,7 +23,6 @@ namespace NewLife.Net.Sockets
         private Int32 _ID;
         /// <summary>编号</summary>
         public virtual Int32 ID { get { return _ID; } set { if (_ID > 0)throw new NetException("禁止修改会话编号！"); _ID = value; } }
-        //Int32 INetSession.ID { get { return _ID; } set { if (_ID > 0)throw new NetException("禁止修改会话编号！"); _ID = value; } }
 
         private NetServer _Host;
         /// <summary>主服务</summary>
@@ -39,10 +36,6 @@ namespace NewLife.Net.Sockets
         /// <summary>服务端。跟目标服务端通讯的那个Socket，其实是客户端TcpClientX/UdpClientX</summary>
         public ISocketServer Server { get { return _Server; } set { _Server = value; } }
 
-        //private IPEndPoint _ClientEndPoint;
-        ///// <summary>客户端远程IP终结点</summary>
-        //public IPEndPoint ClientEndPoint { get { return _ClientEndPoint; } set { _ClientEndPoint = value; } }
-
         /// <summary>客户端地址</summary>
         public NetUri Remote { get { return Session.Remote; } }
         #endregion
@@ -53,19 +46,15 @@ namespace NewLife.Net.Sockets
         {
             ShowSession();
 
-            //// Tcp挂接事件，Udp直接处理数据
-            //if (Session.Local.ProtocolType == ProtocolType.Tcp)
-            {
-                Session.Received += (s, e2) => OnReceive(e2);
-                Session.OnDisposed += (s, e2) => this.Dispose();
-                Session.Error += OnError;
-            }
+            Session.Received += (s, e2) => OnReceive(e2);
+            Session.OnDisposed += (s, e2) => this.Dispose();
+            Session.Error += OnError;
         }
 
         [Conditional("DEBUG")]
         void ShowSession()
         {
-            WriteLog("{2}会话{0}：{1}", ID, this, _Host.Name);
+            WriteLog("{0}", Session);
         }
 
         /// <summary>子类重载实现资源释放逻辑时必须首先调用基类方法</summary>
@@ -134,12 +123,20 @@ namespace NewLife.Net.Sockets
         #endregion
 
         #region 辅助
+        /// <summary>已重载。日志加上前缀</summary>
+        /// <param name="format"></param>
+        /// <param name="args"></param>
+        public override void WriteLog(string format, params object[] args)
+        {
+            base.WriteLog(String.Format("{0}[{1}] {2}", _Host == null ? "" : _Host.Name, ID, format), args);
+        }
+
         /// <summary>已重载。</summary>
         /// <returns></returns>
         public override string ToString()
         {
             //return Session == null ? base.ToString() : Session.ToString();
-            return String.Format("[{0}] {1}", ID, Session);
+            return String.Format("{0}[{1}] {2}", _Host == null ? "" : _Host.Name, ID, Session);
         }
         #endregion
     }
