@@ -4,7 +4,6 @@ using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using System.Threading;
 using NewLife.Model;
 using NewLife.Threading;
 
@@ -99,16 +98,6 @@ namespace NewLife.Net
             return true;
         }
 
-        ///// <summary>连接</summary>
-        ///// <param name="remoteEP"></param>
-        ///// <returns></returns>
-        //protected override Boolean OnConnect(IPEndPoint remoteEP)
-        //{
-        //    Client.Connect(remoteEP);
-
-        //    return true;
-        //}
-
         /// <summary>发送数据</summary>
         /// <remarks>
         /// 目标地址由<seealso cref="SessionBase.Remote"/>决定，如需精细控制，可直接操作<seealso cref="Client"/>
@@ -119,6 +108,8 @@ namespace NewLife.Net
         /// <returns>是否成功</returns>
         public override Boolean Send(Byte[] buffer, Int32 offset = 0, Int32 count = -1)
         {
+            if (Disposed) throw new ObjectDisposedException(this.GetType().Name);
+
             if (!Open()) return false;
 
             if (count < 0) count = buffer.Length - offset;
@@ -165,6 +156,8 @@ namespace NewLife.Net
         /// <returns></returns>
         public override Byte[] Receive()
         {
+            if (Disposed) throw new ObjectDisposedException(this.GetType().Name);
+
             if (!Open()) return null;
 
             var buf = new Byte[1024 * 2];
@@ -182,6 +175,8 @@ namespace NewLife.Net
         /// <returns></returns>
         public override Int32 Receive(Byte[] buffer, Int32 offset = 0, Int32 count = -1)
         {
+            if (Disposed) throw new ObjectDisposedException(this.GetType().Name);
+
             if (!Open()) return -1;
 
             if (count < 0) count = buffer.Length - offset;
@@ -228,6 +223,8 @@ namespace NewLife.Net
         /// <returns>是否成功</returns>
         public override Boolean ReceiveAsync()
         {
+            if (Disposed) throw new ObjectDisposedException(this.GetType().Name);
+
             if (!Open()) return false;
 
             if (_Async != null) return true;
@@ -329,6 +326,8 @@ namespace NewLife.Net
         /// <returns></returns>
         public virtual ISocketSession CreateSession(IPEndPoint remoteEP)
         {
+            if (Disposed) throw new ObjectDisposedException(this.GetType().Name);
+
             if (!Active)
             {
                 // 根据目标地址适配本地IPv4/IPv6

@@ -78,7 +78,9 @@ namespace NewLife.Net
         /// <returns>是否成功</returns>
         public virtual Boolean Open()
         {
-            if (Disposed) return false;
+            if (Disposed) throw new ObjectDisposedException(this.GetType().Name);
+
+            //if (Disposed) return false;
             if (Active) return true;
 
             // 即使没有事件，也允许强行打开异步接收
@@ -125,44 +127,7 @@ namespace NewLife.Net
 
         /// <summary>关闭后触发。可实现掉线重连</summary>
         public event EventHandler Closed;
-
-        ///// <summary>连接</summary>
-        ///// <param name="remoteEP"></param>
-        //void ISocketClient.Connect(IPEndPoint remoteEP)
-        //{
-        //    Remote.EndPoint = remoteEP;
-
-        //    Open();
-
-        //    if (Socket == null || !Socket.Connected) return;
-
-        //    WriteLog("{0} Connect {1}", this, remoteEP);
-
-        //    OnConnect(remoteEP);
-        //}
-
-        ///// <summary>连接</summary>
-        ///// <param name="remoteEP"></param>
-        ///// <returns></returns>
-        //protected abstract Boolean OnConnect(IPEndPoint remoteEP);
-
-        //void ISocketClient.Disconnect()
-        //{
-        //    if (Socket == null || !Socket.Connected) return;
-
-        //    WriteLog("{0} Disconnect {1}", this, Remote.EndPoint);
-
-        //    OnDisconnect();
-        //}
-
-        ///// <summary>断开连接</summary>
-        ///// <returns></returns>
-        //protected virtual Boolean OnDisconnect()
-        //{
-        //    if (Socket != null && Socket.Connected) Socket.Disconnect(true);
-        //    return true;
-        //}
-
+        
         /// <summary>发送数据</summary>
         /// <remarks>
         /// 目标地址由<seealso cref="Remote"/>决定

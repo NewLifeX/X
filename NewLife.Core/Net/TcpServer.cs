@@ -67,9 +67,7 @@ namespace NewLife.Net
         /// <summary>构造TCP服务器对象</summary>
         /// <param name="port"></param>
         public TcpServer(Int32 port) : this() { Port = port; }
-        #endregion
-
-        #region 释放资源
+        
         /// <summary>已重载。释放会话集合等资源</summary>
         /// <param name="disposing"></param>
         protected override void OnDispose(bool disposing)
@@ -84,6 +82,8 @@ namespace NewLife.Net
         /// <summary>开始</summary>
         public virtual void Start()
         {
+            if (Disposed) throw new ObjectDisposedException(this.GetType().Name);
+
             if (Active || Disposed) return;
 
             // 开始监听
@@ -295,12 +295,4 @@ namespace NewLife.Net
         }
         #endregion
     }
-
-    ///// <summary>接受连接时触发</summary>
-    //public class AcceptedEventArgs : EventArgs
-    //{
-    //    private ISocketSession _Session;
-    //    /// <summary>会话</summary>
-    //    public ISocketSession Session { get { return _Session; } set { _Session = value; } }
-    //}
 }

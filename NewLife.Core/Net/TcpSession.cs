@@ -143,41 +143,6 @@ namespace NewLife.Net
             return true;
         }
 
-        ///// <summary>打开远程连接</summary>
-        ///// <param name="remoteEP"></param>
-        ///// <returns></returns>
-        //public Boolean Connect(IPEndPoint remoteEP)
-        //{
-        //    Remote.EndPoint = remoteEP;
-        //    if (!Open()) return false;
-
-        //    // 如果前面已经打开连接，这里就不需要继续了
-        //    if (Client.Connected) return true;
-
-        //    try
-        //    {
-        //        Client.Connect(Remote.EndPoint);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        if (!ex.IsDisposed()) OnError("Connect", ex);
-        //        if (ThrowException) throw;
-
-        //        return false;
-        //    }
-
-        //    return true;
-        //}
-
-        ///// <summary>打开远程连接</summary>
-        ///// <param name="host"></param>
-        ///// <param name="port"></param>
-        ///// <returns></returns>
-        //public Boolean Connect(String host, Int32 port)
-        //{
-        //    return Connect(NetHelper.ParseEndPoint(host, port));
-        //}
-
         /// <summary>发送数据</summary>
         /// <remarks>
         /// 目标地址由<seealso cref="SessionBase.Remote"/>决定，如需精细控制，可直接操作<seealso cref="Client"/>
