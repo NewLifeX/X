@@ -83,6 +83,8 @@ namespace NewLife.Net
                 {
                     if (_Async != null && _Async.AsyncWaitHandle != null) _Async.AsyncWaitHandle.Close();
 
+                    CloseAllSession();
+
                     udp.Close();
                     //NetHelper.Close(Client.Client);
                 }
@@ -352,6 +354,22 @@ namespace NewLife.Net
             }
 
             return session;
+        }
+
+        private void CloseAllSession()
+        {
+            var sessions = _Sessions;
+            if (sessions != null)
+            {
+                _Sessions = null;
+
+                if (sessions.Count > 0)
+                {
+                    WriteLog("准备释放会话{0}个！", sessions.Count);
+                    sessions.TryDispose();
+                    sessions.Clear();
+                }
+            }
         }
         #endregion
 

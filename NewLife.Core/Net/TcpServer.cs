@@ -234,7 +234,7 @@ namespace NewLife.Net
 
                 if (sessions.Count > 0)
                 {
-                    XTrace.WriteLine("准备释放Tcp会话{0}个！", sessions.Count);
+                    WriteLog("准备释放会话{0}个！", sessions.Count);
                     sessions.TryDispose();
                     sessions.Clear();
                 }
