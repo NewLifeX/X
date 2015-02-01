@@ -105,7 +105,7 @@ namespace NewLife.Net
                 {
                     var item = elm.Value;
                     // 判断是否已超过最大不活跃时间
-                    if (item == null || item.Disposed || notactive > 0 && item.LastTime.AddSeconds(notactive) < DateTime.Now)
+                    if (item == null || item.Disposed || notactive > 0 && IsNotAlive(item, notactive))
                     {
                         keys.Add(elm.Key);
                         values.Add(elm.Value);
@@ -122,6 +122,13 @@ namespace NewLife.Net
             {
                 item.Dispose();
             }
+        }
+
+        Boolean IsNotAlive(ISocketSession session, Int32 noactive)
+        {
+            // 如果有最后时间则判断最后时间，否则判断开始时间
+            var time = session.LastTime > DateTime.MinValue ? session.LastTime : session.StartTime;
+            return time.AddSeconds(noactive) < DateTime.Now;
         }
         #endregion
 
