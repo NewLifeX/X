@@ -289,7 +289,7 @@ namespace NewLife.Net.Stun
             // 如果本地地址就是映射地址，表示没有NAT。这里的本地地址应该有问题，永远都会是0.0.0.0
             //if (client.LocalEndPoint.Equals(test1response.MappedAddress))
             var pub = rs.MappedAddress;
-            if (pub != null && (socket.LocalEndPoint as IPEndPoint).Port == pub.Port && NetHelper.GetIPs().Any(e => e.Equals(pub.Address)))
+            if (pub != null && (socket.LocalEndPoint as IPEndPoint).Port == pub.Port && pub.Address.IsLocal())
             {
                 // 要求STUN服务器从另一个地址和端口向当前映射端口发送消息。如果收到，表明是完全开放网络；如果没收到，可能是防火墙阻止了。
                 rs = Query(socket, msg, remote);

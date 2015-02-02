@@ -27,7 +27,7 @@ namespace NewLife.Net.Http
         {
             get
             {
-                if (_localServerIP == null) _localServerIP = "" + NetHelper.GetIPs().FirstOrDefault();
+                if (_localServerIP == null) _localServerIP = "" + NetHelper.MyIP();
                 return _localServerIP;
             }
         }

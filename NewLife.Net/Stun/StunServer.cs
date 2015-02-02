@@ -53,7 +53,7 @@ namespace NewLife.Net.Stun
 
                 var dic = new Dictionary<Int32, IPEndPoint>();
                 IPEndPoint ep = null;
-                IPAddress pub = NetHelper.GetIPs().FirstOrDefault(e => e.AddressFamily == AddressFamily.InterNetwork);
+                var pub = NetHelper.MyIP();
                 StunResult rs = null;
                 WriteLog("获取公网地址……");
 

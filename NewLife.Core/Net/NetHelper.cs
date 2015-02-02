@@ -140,6 +140,11 @@ namespace System
         /// <returns></returns>
         public static Boolean IsIPv4(this IPAddress address) { return address.AddressFamily == AddressFamily.InterNetwork; }
 
+        /// <summary>是否本地地址</summary>
+        /// <param name="address"></param>
+        /// <returns></returns>
+        public static Boolean IsLocal(this IPAddress address) { return IPAddress.IsLoopback(address) || GetIPs().Any(ip => ip.Equals(address)); }
+
         /// <summary>获取相对于指定远程地址的本地地址</summary>
         /// <param name="address"></param>
         /// <param name="remote"></param>
@@ -262,6 +267,26 @@ namespace System
             }
         }
 
+        /// <summary>获取可用的网关地址</summary>
+        /// <returns></returns>
+        public static IEnumerable<IPAddress> GetGateways()
+        {
+            var list = new List<IPAddress>();
+            foreach (var item in GetActiveInterfaces())
+            {
+                if (item != null && item.GatewayAddresses.Count > 0)
+                {
+                    foreach (var elm in item.GatewayAddresses)
+                    {
+                        if (list.Contains(elm.Address)) continue;
+                        list.Add(elm.Address);
+
+                        yield return elm.Address;
+                    }
+                }
+            }
+        }
+
         /// <summary>获取可用的IP地址</summary>
         /// <returns></returns>
         public static IEnumerable<IPAddress> GetIPs()
@@ -300,6 +325,20 @@ namespace System
                     }
                 }
             }
+        }
+
+        /// <summary>获取本地第一个IPv4地址</summary>
+        /// <returns></returns>
+        public static IPAddress MyIP()
+        {
+            return GetIPs().FirstOrDefault(ip => ip.IsIPv4() && !IPAddress.IsLoopback(ip));
+        }
+
+        /// <summary>获取本地第一个IPv6地址</summary>
+        /// <returns></returns>
+        public static IPAddress MyIPv6()
+        {
+            return GetIPs().FirstOrDefault(ip => !ip.IsIPv4() && !IPAddress.IsLoopback(ip));
         }
         #endregion
 

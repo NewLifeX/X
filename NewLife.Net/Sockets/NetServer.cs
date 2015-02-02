@@ -493,7 +493,7 @@ namespace NewLife.Net.Sockets
         /// <summary>获取指定标识的会话</summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        public TSession GetSession(Int32 id)
+        public new TSession GetSession(Int32 id)
         {
             if (id <= 0) return null;
 

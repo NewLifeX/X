@@ -188,7 +188,7 @@ namespace NewLife.Net.DNS
             var ptr = request.Questions[0] as DNS_PTR;
             // 对本地的请求马上返回
             var addr = ptr.Address;
-            if (addr != null && (IPAddress.IsLoopback(addr) || NetHelper.GetIPs().Any(ip => ip + "" == addr + "")))
+            if (addr != null && addr.IsLocal())
             {
                 var ptr2 = new DNS_PTR();
                 ptr2.Name = ptr.Name;
