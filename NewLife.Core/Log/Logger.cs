@@ -102,7 +102,7 @@ namespace NewLife.Log
 
         #region 属性
         private LogLevel? _Level;
-        /// <summary>日志等级，只输出大于等于该级别的日志</summary>
+        /// <summary>日志等级，只输出大于等于该级别的日志，默认Info，打开NewLife.Debug时默认为最低的Debug</summary>
         public LogLevel Level
         {
             get
@@ -112,7 +112,8 @@ namespace NewLife.Log
                 try
                 {
                     var def = LogLevel.Info;
-                    if (Config.GetConfig<Boolean>("NewLife.Debug")) def = LogLevel.Debug;
+                    //if (Config.GetConfig<Boolean>("NewLife.Debug")) def = LogLevel.Debug;
+                    if (XTrace.Debug) def = LogLevel.Debug;
 
                     return Config.GetConfig<LogLevel>("NewLife.LogLevel", def);
                 }

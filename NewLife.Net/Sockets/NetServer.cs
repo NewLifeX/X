@@ -345,7 +345,7 @@ namespace NewLife.Net.Sockets
         /// <param name="e"></param>
         protected virtual void OnError(Object sender, ExceptionEventArgs e)
         {
-            if (Log.Level < LogLevel.Info) return;
+            //if (Log.Level < LogLevel.Info) return;
 
             if (Error != null) Error(sender, e);
         }

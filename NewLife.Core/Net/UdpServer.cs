@@ -284,12 +284,16 @@ namespace NewLife.Net
                 return;
             }
 
-            //WriteLog("{0}.OnReceive {1}<={2} [{3}]", this.GetType().Name, this, ep, data.Length);
-
             Remote.EndPoint = ep;
 
             // 在用户线程池里面去处理数据
-            ThreadPoolX.QueueUserWorkItem(() => OnReceive(data, ep), ex => OnError("OnReceive", ex));
+            ThreadPoolX.QueueUserWorkItem(() =>
+            {
+                // 日志输出放在这里，既保证和处理函数一个线程，又不会被重载覆盖
+                Log.Debug("{0}.OnReceive {1}<={2} [{3}]", this.GetType().Name, this, ep, data.Length);
+
+                OnReceive(data, ep);
+            }, ex => OnError("OnReceive", ex));
 
             // 开始新的监听
             ReceiveAsync();
@@ -298,7 +302,7 @@ namespace NewLife.Net
         /// <summary>处理收到的数据</summary>
         /// <param name="data"></param>
         /// <param name="remote"></param>
-        protected virtual void OnReceive(Byte[] data, IPEndPoint remote)
+        internal protected virtual void OnReceive(Byte[] data, IPEndPoint remote)
         {
             // 分析处理
             var e = new UdpReceivedEventArgs();

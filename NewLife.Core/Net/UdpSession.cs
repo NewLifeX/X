@@ -101,7 +101,7 @@ namespace NewLife.Net
             if (count <= 0) count = buffer.Length - offset;
             if (offset > 0) buffer = buffer.ReadBytes(offset, count);
 
-            Server.WriteLog("{0}.Send {1} [{2}]", this.GetType().Name, this, count);
+            Server.Log.Debug("{0}.Send {1} [{2}]", this.GetType().Name, this, count);
 
             _LastTime = DateTime.Now;
 
@@ -139,7 +139,13 @@ namespace NewLife.Net
             var buf = Server.Receive();
 
             var ep = Server.Remote.EndPoint;
-            if (!CheckFilter(ep)) return new Byte[0];
+            if (!CheckFilter(ep))
+            {
+                // 交给其它会话
+                Server.OnReceive(buf, ep);
+                return new Byte[0];
+            }
+
             Remote.EndPoint = ep;
 
             _LastTime = DateTime.Now;
@@ -155,7 +161,13 @@ namespace NewLife.Net
             var size = Server.Receive(buffer, offset, count);
 
             var ep = Server.Remote.EndPoint;
-            if (!CheckFilter(ep)) return 0;
+            if (!CheckFilter(ep))
+            {
+                // 交给其它会话
+                Server.OnReceive(buffer.ReadBytes(offset, size), ep);
+                return 0;
+            }
+
             Remote.EndPoint = ep;
 
             _LastTime = DateTime.Now;

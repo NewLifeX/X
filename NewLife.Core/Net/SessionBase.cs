@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
@@ -11,6 +10,10 @@ namespace NewLife.Net
     public abstract class SessionBase : DisposeBase, ISocketClient
     {
         #region 属性
+        private String _Name;
+        /// <summary>名称</summary>
+        public String Name { get { return _Name; } set { _Name = value; } }
+
         private NetUri _Local = new NetUri();
         /// <summary>本地绑定信息</summary>
         public NetUri Local { get { return _Local; } set { _Local = value; } }
@@ -59,6 +62,12 @@ namespace NewLife.Net
         #endregion
 
         #region 构造
+        /// <summary>构造函数，初始化默认名称</summary>
+        public SessionBase()
+        {
+            Name = this.GetType().Name;
+        }
+
         /// <summary>销毁</summary>
         /// <param name="disposing"></param>
         protected override void OnDispose(Boolean disposing)
@@ -127,7 +136,7 @@ namespace NewLife.Net
 
         /// <summary>关闭后触发。可实现掉线重连</summary>
         public event EventHandler Closed;
-        
+
         /// <summary>发送数据</summary>
         /// <remarks>
         /// 目标地址由<seealso cref="Remote"/>决定
@@ -169,7 +178,7 @@ namespace NewLife.Net
         {
             _LastTime = DateTime.Now;
 
-            WriteLog("收到{0}的数据[{1}]: {2}", Remote, e.Length, e.Data.ToHex(0, Math.Min(e.Length, 32)));
+            Log.Debug("收到{0} [{1}]: {2}", Remote, e.Length, e.Data.ToHex(0, Math.Min(e.Length, 32)));
 
             if (Received != null) Received(sender, e);
         }
@@ -206,14 +215,14 @@ namespace NewLife.Net
             if (Log != null) Log.Info(format, args);
         }
 
-        /// <summary>输出日志</summary>
-        /// <param name="format"></param>
-        /// <param name="args"></param>
-        [Conditional("DEBUG")]
-        public void WriteDebugLog(String format, params Object[] args)
-        {
-            if (Log != null) Log.Info(format, args);
-        }
+        ///// <summary>输出日志</summary>
+        ///// <param name="format"></param>
+        ///// <param name="args"></param>
+        //[Conditional("DEBUG")]
+        //public void WriteDebugLog(String format, params Object[] args)
+        //{
+        //    if (Log != null) Log.Debug(format, args);
+        //}
         #endregion
 
         #region 辅助
@@ -226,8 +235,6 @@ namespace NewLife.Net
             //else
             return Local.ToString();
         }
-
-
         #endregion
     }
 }
