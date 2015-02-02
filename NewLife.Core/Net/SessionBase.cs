@@ -178,7 +178,7 @@ namespace NewLife.Net
         {
             _LastTime = DateTime.Now;
 
-            Log.Debug("收到{0} [{1}]: {2}", Remote, e.Length, e.Data.ToHex(0, Math.Min(e.Length, 32)));
+            Log.Debug("{0}.Receive {1} [{2}]: {3}", Name, Remote, e.Length, e.Data.ToHex(0, Math.Min(e.Length, 32)));
 
             if (Received != null) Received(sender, e);
         }
@@ -193,7 +193,7 @@ namespace NewLife.Net
         /// <param name="ex">异常</param>
         protected virtual void OnError(String action, Exception ex)
         {
-            if (Log != null) Log.Error("{0}.{1}Error {2} {3}", this.GetType().Name, action, this, ex == null ? null : ex.Message);
+            if (Log != null) Log.Error("{0}.{1}Error {2} {3}", Name, action, this, ex == null ? null : ex.Message);
             if (Error != null) Error(this, new ExceptionEventArgs { Action = action, Exception = ex });
         }
         #endregion
@@ -214,15 +214,6 @@ namespace NewLife.Net
         {
             if (Log != null) Log.Info(format, args);
         }
-
-        ///// <summary>输出日志</summary>
-        ///// <param name="format"></param>
-        ///// <param name="args"></param>
-        //[Conditional("DEBUG")]
-        //public void WriteDebugLog(String format, params Object[] args)
-        //{
-        //    if (Log != null) Log.Debug(format, args);
-        //}
         #endregion
 
         #region 辅助
@@ -230,9 +221,6 @@ namespace NewLife.Net
         /// <returns></returns>
         public override string ToString()
         {
-            //if (Remote != null)
-            //    return String.Format("{0}=>{1}", Local, Remote.EndPoint);
-            //else
             return Local.ToString();
         }
         #endregion

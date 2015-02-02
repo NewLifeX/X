@@ -10,6 +10,14 @@ namespace NewLife.Net
     class UdpSession : DisposeBase, ISocketSession, ITransport
     {
         #region 属性
+        private Int32 _ID;
+        /// <summary>会话编号</summary>
+        public Int32 ID { get { return _ID; } set { _ID = value; } }
+
+        private String _Name;
+        /// <summary>名称</summary>
+        public String Name { get { return _Name; } set { _Name = value; } }
+
         private UdpServer _Server;
         /// <summary>服务器</summary>
         public UdpServer Server { get { return _Server; } set { _Server = value; } }
@@ -51,9 +59,6 @@ namespace NewLife.Net
 
         private IPEndPoint _Filter;
 
-        ///// <summary>读取的期望帧长度。该参数对UDP无效</summary>
-        //Int32 ITransport.FrameSize { get { return 0; } set { } }
-
         private DateTime _StartTime = DateTime.Now;
         /// <summary>通信开始时间</summary>
         public DateTime StartTime { get { return _StartTime; } }
@@ -70,6 +75,7 @@ namespace NewLife.Net
         #region 构造
         public UdpSession(UdpServer server, IPEndPoint remote)
         {
+            Name = server.Name;
             Server = server;
             Remote = new NetUri(ProtocolType.Udp, remote);
             _Filter = remote;
@@ -83,7 +89,7 @@ namespace NewLife.Net
         {
             base.OnDispose(disposing);
 
-            Server.WriteLog("{0}.Close {1}", this.GetType().Name, this);
+            Server.WriteLog("{0}[{1}].Close {2}", Server.Name, ID, this);
 
             Server.Received -= server_Received;
             Server.Error -= server_Error;
@@ -101,7 +107,7 @@ namespace NewLife.Net
             if (count <= 0) count = buffer.Length - offset;
             if (offset > 0) buffer = buffer.ReadBytes(offset, count);
 
-            Server.Log.Debug("{0}.Send {1} [{2}]", this.GetType().Name, this, count);
+            Server.Log.Debug("{0}[{1}].Send {2} [{3}]: {4}", Server.Name, ID, Remote, count, buffer.ToHex(0, Math.Min(count, 32)));
 
             _LastTime = DateTime.Now;
 
@@ -216,7 +222,7 @@ namespace NewLife.Net
         /// <param name="ex">异常</param>
         protected virtual void OnError(String action, Exception ex)
         {
-            if (Server.Log != null) Server.Log.Error("{0}.{1}Error {2} {3}", this.GetType().Name, action, this, ex == null ? null : ex.Message);
+            if (Server.Log != null) Server.Log.Error("{0}[{1}].{2}Error {3} {4}", Server.Name, ID, action, this, ex == null ? null : ex.Message);
             if (Error != null) Error(this, new ExceptionEventArgs { Exception = ex });
         }
         #endregion

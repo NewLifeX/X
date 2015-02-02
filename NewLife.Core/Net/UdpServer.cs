@@ -64,7 +64,7 @@ namespace NewLife.Net
                 // 如果使用了新会话事件，也需要开启异步接收
                 if (!UseReceiveAsync && NewSession != null) UseReceiveAsync = true;
 
-                WriteLog("{0}.Open {1}", this.GetType().Name, this);
+                WriteLog("{0}.Open {1}", Name, this);
             }
 
             return true;
@@ -73,7 +73,7 @@ namespace NewLife.Net
         /// <summary>关闭</summary>
         protected override Boolean OnClose()
         {
-            WriteLog("{0}.Close {1}", this.GetType().Name, this);
+            WriteLog("{0}.Close {1}", Name, this);
 
             if (Client != null)
             {
@@ -290,7 +290,7 @@ namespace NewLife.Net
             ThreadPoolX.QueueUserWorkItem(() =>
             {
                 // 日志输出放在这里，既保证和处理函数一个线程，又不会被重载覆盖
-                Log.Debug("{0}.OnReceive {1}<={2} [{3}]", this.GetType().Name, this, ep, data.Length);
+                //Log.Debug("{0}.OnReceive {1}<={2} [{3}]", Name, this, ep, data.Length);
 
                 OnReceive(data, ep);
             }, ex => OnError("OnReceive", ex));
@@ -327,6 +327,7 @@ namespace NewLife.Net
         /// <summary>会话集合。用地址端口作为标识，业务应用自己维持地址端口与业务主键的对应关系。</summary>
         public IDictionary<String, ISocketSession> Sessions { get { return _Sessions; } }
 
+        Int32 g_ID = 1;
         /// <summary>创建会话</summary>
         /// <param name="remoteEP"></param>
         /// <returns></returns>
@@ -346,12 +347,14 @@ namespace NewLife.Net
             var session = _Sessions.Get(remoteEP + "");
             if (session == null)
             {
-                session = new UdpSession(this, remoteEP);
+                var us = new UdpSession(this, remoteEP);
+                us.ID = g_ID++;
+                session = us;
                 //Interlocked.Increment(ref _Sessions);
                 //session.OnDisposed += (s, e) => Interlocked.Decrement(ref _Sessions);
                 _Sessions.Add(session);
 
-                WriteLog("{0}新会话 {1}", this, remoteEP);
+                WriteLog("{0}[{1}].NewSession {2}", Name, us.ID, remoteEP);
 
                 // 触发新会话事件
                 if (NewSession != null) NewSession(this, new SessionEventArgs { Session = session });

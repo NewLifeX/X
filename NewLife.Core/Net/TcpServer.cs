@@ -19,6 +19,10 @@ namespace NewLife.Net
     public class TcpServer : DisposeBase, ISocketServer
     {
         #region 属性
+        private String _Name;
+        /// <summary>名称</summary>
+        public String Name { get { return _Name; } set { _Name = value; } }
+
         private NetUri _Local = new NetUri(ProtocolType.Tcp, IPAddress.Any, 0);
         /// <summary>本地绑定信息</summary>
         public NetUri Local { get { return _Local; } set { _Local = value; } }
@@ -61,13 +65,14 @@ namespace NewLife.Net
         /// <summary>构造TCP服务器对象</summary>
         public TcpServer()
         {
+            Name = this.GetType().Name;
             _Sessions = new SessionCollection(this);
         }
 
         /// <summary>构造TCP服务器对象</summary>
         /// <param name="port"></param>
         public TcpServer(Int32 port) : this() { Port = port; }
-        
+
         /// <summary>已重载。释放会话集合等资源</summary>
         /// <param name="disposing"></param>
         protected override void OnDispose(bool disposing)
@@ -89,7 +94,7 @@ namespace NewLife.Net
             // 开始监听
             if (Server == null) Server = new TcpListener(Local.EndPoint);
 
-            WriteLog("{0}.Start {1}", this.GetType().Name, this);
+            WriteLog("{0}.Start {1}", Name, this);
 
             // 三次握手之后，Accept之前的总连接个数，队列满之后，新连接将得到主动拒绝ConnectionRefused错误
             // 在我（大石头）的开发机器上，实际上这里的最大值只能是200，大于200跟200一个样
@@ -105,7 +110,7 @@ namespace NewLife.Net
         {
             if (!Active) return;
 
-            WriteLog("{0}.Stop {1}", this.GetType().Name, this);
+            WriteLog("{0}.Stop {1}", Name, this);
 
             if (_Async != null && _Async.AsyncWaitHandle != null) _Async.AsyncWaitHandle.Close();
 
@@ -251,7 +256,7 @@ namespace NewLife.Net
         /// <param name="ex">异常</param>
         protected virtual void OnError(String action, Exception ex)
         {
-            if (Log != null) Log.Error("{0}.{1}Error {2} {3}", this.GetType().Name, action, this, ex == null ? null : ex.Message);
+            if (Log != null) Log.Error("{0}.{1}Error {2} {3}", Name, action, this, ex == null ? null : ex.Message);
             if (Error != null) Error(this, new ExceptionEventArgs { Action = action, Exception = ex });
         }
         #endregion
@@ -272,15 +277,6 @@ namespace NewLife.Net
         {
             if (Log != null) Log.Info(format, args);
         }
-
-        ///// <summary>输出日志</summary>
-        ///// <param name="format"></param>
-        ///// <param name="args"></param>
-        //[Conditional("DEBUG")]
-        //public void WriteDebugLog(String format, params Object[] args)
-        //{
-        //    if (Log != null) Log.Info(format, args);
-        //}
         #endregion
 
         #region 辅助

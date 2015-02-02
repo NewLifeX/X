@@ -32,11 +32,6 @@ namespace NewLife.Net
         private Boolean _AutoReconnect = true;
         /// <summary>是否自动重连，默认true。发生异常断开连接时，自动重连服务端。</summary>
         public Boolean AutoReconnect { get { return _AutoReconnect; } set { _AutoReconnect = value; } }
-
-        //private Int32 _FrameSize = 0;
-        ///// <summary>读取的期望帧长度，小于该长度为未满一帧，读取不做返回</summary>
-        ///// <remarks>如果读取超时，也有可能返回</remarks>
-        //public Int32 FrameSize { get { return _FrameSize; } set { _FrameSize = value; } }
         #endregion
 
         #region 构造
@@ -91,7 +86,7 @@ namespace NewLife.Net
                 Client = new TcpClient(Local.EndPoint);
                 if (Port == 0) Port = (Socket.LocalEndPoint as IPEndPoint).Port;
 
-                WriteLog("{0}.Open {1}", this.GetType().Name, this);
+                WriteLog("{0}.Open {1}", Name, this);
             }
 
             // 打开端口前如果已设定远程地址，则自动连接
@@ -118,7 +113,7 @@ namespace NewLife.Net
         /// <summary>关闭</summary>
         protected override Boolean OnClose()
         {
-            WriteLog("{0}.Close {1}", this.GetType().Name, this);
+            WriteLog("{0}.Close {1}", Name, this);
 
             if (Client != null)
             {
@@ -336,7 +331,7 @@ namespace NewLife.Net
         {
             if (!AutoReconnect || Disposed) return;
 
-            WriteLog("{0}.Reconnect {1}", this.GetType().Name, this);
+            WriteLog("{0}.Reconnect {1}", Name, this);
 
             Open();
         }

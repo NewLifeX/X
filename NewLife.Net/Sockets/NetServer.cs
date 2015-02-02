@@ -151,21 +151,9 @@ namespace NewLife.Net.Sockets
         {
             if (Servers.Contains(server)) return false;
 
+            server.Name = String.Format("{0}{1}{2}", Name, server.Local.IsTcp ? "Tcp" : "Udp", server.Local.Address.IsIPv4() ? "" : "6");
             server.Log = Log;
             server.NewSession += Server_NewSession;
-            //if (server.Local.ProtocolType == ProtocolType.Tcp)
-            //{
-            //    var svr = server as TcpServer;
-            //}
-            //else if (server.Local.ProtocolType == ProtocolType.Udp)
-            //{
-            //    var svr = server as UdpServer;
-            //    svr.Received += OnReceived;
-            //}
-            //else
-            //{
-            //    throw new Exception("不支持的协议类型" + server.Local.ProtocolType + "！");
-            //}
 
             server.Error += OnError;
 
@@ -381,7 +369,7 @@ namespace NewLife.Net.Sockets
         /// <returns></returns>
         protected virtual INetSession CreateSession(ISocketSession session)
         {
-            var ns = NetService.Container.Resolve<INetSession>(); 
+            var ns = NetService.Container.Resolve<INetSession>();
             ns.Host = this;
             ns.Server = session.Server;
             ns.Session = session;
