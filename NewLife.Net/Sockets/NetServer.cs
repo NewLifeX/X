@@ -381,12 +381,27 @@ namespace NewLife.Net.Sockets
         /// <returns></returns>
         protected virtual INetSession CreateSession(ISocketSession session)
         {
-            var ns = NetService.Container.Resolve<INetSession>();
+            var ns = NetService.Container.Resolve<INetSession>(); 
             ns.Host = this;
             ns.Server = session.Server;
             ns.Session = session;
 
             return ns;
+        }
+
+        /// <summary>根据会话ID查找会话</summary>
+        /// <param name="sessionid"></param>
+        /// <returns></returns>
+        public INetSession GetSession(Int32 sessionid)
+        {
+            if (sessionid == 0) return null;
+
+            lock (Sessions)
+            {
+                INetSession ns = null;
+                if (!Sessions.TryGetValue(sessionid, out ns)) return null;
+                return ns;
+            }
         }
         #endregion
 
