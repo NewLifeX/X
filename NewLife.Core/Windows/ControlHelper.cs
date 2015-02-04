@@ -159,8 +159,8 @@ namespace System.Windows.Forms
                 catch { }
             });
 
-            txt.Invoke(func, msg);
-            //var ar = txt.BeginInvoke(func, msg);
+            //txt.Invoke(func, msg);
+            var ar = txt.BeginInvoke(func, msg);
             //ar.AsyncWaitHandle.WaitOne(100);
             //if (!ar.AsyncWaitHandle.WaitOne(10))
             //    txt.EndInvoke(ar);
