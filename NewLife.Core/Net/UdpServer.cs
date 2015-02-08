@@ -272,7 +272,9 @@ namespace NewLife.Net
             {
                 if (!ex.IsDisposed())
                 {
-                    OnError("EndReceive", ex);
+                    // 屏蔽连接重置的异常
+                    var sex = ex as SocketException;
+                    if (sex == null || sex.SocketErrorCode != SocketError.ConnectionReset) OnError("EndReceive", ex);
 
                     // 异常一般是网络错误，UDP不需要关闭
                     //Close();
