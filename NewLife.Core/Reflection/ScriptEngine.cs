@@ -405,6 +405,15 @@ namespace NewLife.Reflection
         {
             if (Method == null) Compile();
             if (Method == null) throw new XException("脚本引擎未编译表达式！");
+            // Main函数可能含有参数string[] args
+            if (parameters == null || parameters.Length == 0)
+            {
+                var ms = Method.GetParameters();
+                if (Method.Name.EqualIgnoreCase("Main") && ms.Length == 1 && ms[0].ParameterType == typeof(String[]))
+                {
+                    parameters = new Object[] { new String[] { "" } };
+                }
+            }
             return "".Invoke(Method, parameters);
         }
         #endregion
