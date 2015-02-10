@@ -97,8 +97,12 @@ namespace NewLife.Web
         protected override WebResponse GetWebResponse(WebRequest request)
         {
             var response = base.GetWebResponse(request);
-
-            if (response is HttpWebResponse) Cookie.Add((response as HttpWebResponse).Cookies);
+            var http = response as HttpWebResponse;
+            if (http != null)
+            {
+                Cookie.Add(http.Cookies);
+                if (!String.IsNullOrEmpty(http.CharacterSet)) Encoding = System.Text.Encoding.GetEncoding(http.CharacterSet);
+            }
 
             return response;
         }
@@ -116,7 +120,7 @@ namespace NewLife.Web
 
             // 处理编码
             var enc = Encoding;
-            if (ResponseHeaders[HttpResponseHeader.ContentType].Contains("utf-8")) enc = System.Text.Encoding.UTF8;
+            //if (ResponseHeaders[HttpResponseHeader.ContentType].Contains("utf-8")) enc = System.Text.Encoding.UTF8;
 
             return buf.ToStr(enc);
         }
