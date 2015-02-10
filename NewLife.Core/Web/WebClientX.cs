@@ -91,5 +91,22 @@ namespace NewLife.Web
             if (iscompress) AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
         }
         #endregion
+
+        #region 方法
+        /// <summary>获取指定地址的Html，自动处理文本编码</summary>
+        /// <param name="url"></param>
+        /// <returns></returns>
+        public String GetHtml(String url)
+        {
+            var buf = DownloadData(url);
+            if (buf == null || buf.Length == 0) return null;
+
+            // 处理编码
+            var enc = Encoding;
+            if (ResponseHeaders[HttpResponseHeader.ContentType].Contains("utf-8")) enc = System.Text.Encoding.UTF8;
+
+            return buf.ToStr(enc);
+        }
+        #endregion
     }
 }

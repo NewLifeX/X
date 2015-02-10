@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Net;
-using System.Net.Sockets;
 using System.Reflection;
 using System.Text;
 using System.Threading;
@@ -15,9 +12,6 @@ using NewLife.Log;
 using NewLife.Messaging;
 using NewLife.Model;
 using NewLife.Net;
-using NewLife.Net.Common;
-using NewLife.Net.Proxy;
-using NewLife.Net.Sockets;
 using NewLife.Reflection;
 using NewLife.Serialization;
 using NewLife.Threading;
@@ -26,6 +20,7 @@ using XCode.Cache;
 using XCode.DataAccessLayer;
 using XCode.Sync;
 using XCode.Transform;
+using NewLife;
 
 namespace Test
 {
@@ -42,7 +37,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test13();
+                    Test15();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -57,113 +52,6 @@ namespace Test
                 if (key.Key != ConsoleKey.C) break;
             }
         }
-
-        //static HttpProxy http = null;
-        //private static void Test1()
-        //{
-        //    var server = new HttpReverseProxy();
-        //    server.Port = 888;
-        //    server.ServerHost = "www.cnblogs.com";
-        //    server.ServerPort = 80;
-        //    server.Start();
-
-        //    var ns = Enum.GetNames(typeof(ConsoleColor));
-        //    var vs = Enum.GetValues(typeof(ConsoleColor));
-        //    for (int i = 0; i < ns.Length; i++)
-        //    {
-        //        Console.ForegroundColor = (ConsoleColor)vs.GetValue(i);
-        //        Console.WriteLine(ns[i]);
-        //    }
-        //    Console.ReadKey();
-
-        //    //NewLife.Net.Application.AppTest.Start();
-
-        //    http = new HttpProxy();
-        //    http.Port = 8080;
-        //    http.EnableCache = true;
-        //    //http.OnResponse += new EventHandler<HttpProxyEventArgs>(http_OnResponse);
-        //    http.Start();
-
-        //    var old = HttpProxy.GetIEProxy();
-        //    if (!old.IsNullOrWhiteSpace()) Console.WriteLine("旧代理：{0}", old);
-        //    HttpProxy.SetIEProxy("127.0.0.1:" + http.Port);
-        //    Console.WriteLine("已设置IE代理，任意键结束测试，关闭IE代理！");
-
-        //    ThreadPoolX.QueueUserWorkItem(ShowStatus);
-
-        //    Console.ReadKey(true);
-        //    HttpProxy.SetIEProxy(old);
-
-        //    //server.Dispose();
-        //    http.Dispose();
-
-        //    //var ds = new DNSServer();
-        //    //ds.Start();
-
-        //    //for (int i = 5; i < 6; i++)
-        //    //{
-        //    //    var buffer = File.ReadAllBytes("dns" + i + ".bin");
-        //    //    var entity2 = DNSEntity.Read(buffer, false);
-        //    //    Console.WriteLine(entity2);
-
-        //    //    var buffer2 = entity2.GetStream().ReadBytes();
-
-        //    //    var p = buffer.CompareTo(buffer2);
-        //    //    if (p != 0)
-        //    //    {
-        //    //        Console.WriteLine("{0:X2} {1:X2} {2:X2}", p, buffer[p], buffer2[p]);
-        //    //    }
-        //    //}
-        //}
-        //private static void TestNatProxy()
-        //{
-        //    NATProxy proxy = new NATProxy();
-        //    proxy.ServerAddress = System.Net.IPAddress.Parse("192.168.1.105");
-        //    proxy.ServerPort = 6800;
-
-        //    proxy.Address = proxy.ServerAddress;
-        //    proxy.AddressFamily = AddressFamily.InterNetwork;
-        //    proxy.Port = 8000;
-        //    proxy.ServerProtocolType = ProtocolType.Tcp;
-        //    proxy.Start();
-        //}
-
-        //static void ShowStatus()
-        //{
-        //    //var pool = PropertyInfoX.GetValue<SocketBase, ObjectPool<NetEventArgs>>("Pool");
-        //    var pool = NetEventArgs.Pool;
-
-        //    while (true)
-        //    {
-        //        var asyncCount = 0; try
-        //        {
-        //            foreach (var item in http.Servers)
-        //            {
-        //                asyncCount += item.AsyncCount;
-        //            }
-        //            foreach (var item in http.Sessions.Values.ToArray())
-        //            {
-        //                var remote = (item as IProxySession).RemoteClientSession;
-        //                if (remote != null) asyncCount += remote.Host.AsyncCount;
-        //            }
-        //        }
-        //        catch (Exception ex) { Console.WriteLine(ex.ToString()); }
-
-        //        Int32 wt = 0;
-        //        Int32 cpt = 0;
-        //        ThreadPool.GetAvailableThreads(out wt, out cpt);
-        //        Int32 threads = Process.GetCurrentProcess().Threads.Count;
-
-        //        var color = Console.ForegroundColor;
-        //        Console.ForegroundColor = ConsoleColor.Yellow;
-        //        Console.WriteLine("异步:{0} 会话:{1} Thread:{2}/{3}/{4} Pool:{5}/{6}/{7}", asyncCount, http.Sessions.Count, threads, wt, cpt, pool.StockCount, pool.FreeCount, pool.CreateCount);
-        //        Console.ForegroundColor = color;
-
-        //        Thread.Sleep(3000);
-
-        //        //GC.Collect();
-        //    }
-        //}
 
         static void Test2()
         {
@@ -203,61 +91,6 @@ namespace Test
             uri = xml.ToXmlEntity<NetUri>();
             Console.WriteLine(uri);
         }
-
-        //static NetServer server = null;
-        //static IMessageProvider smp = null;
-        //static IMessageProvider cmp = null;
-        //static void Test4()
-        //{
-        //    Console.Clear();
-        //    if (server == null)
-        //    {
-        //        server = new NetServer();
-        //        server.Port = 1234;
-        //        //server.Received += new EventHandler<NetEventArgs>(server_Received);
-
-        //        var mp = new ServerMessageProvider(server);
-        //        mp.OnReceived += new EventHandler<MessageEventArgs>(smp_OnReceived);
-        //        //mp.MaxMessageSize = 1460;
-        //        mp.AutoJoinGroup = true;
-        //        smp = mp;
-
-        //        server.Start();
-        //    }
-
-        //    if (cmp == null)
-        //    {
-        //        var client = NetService.CreateSession(new NetUri("udp://::1:1234"));
-        //        client.ReceiveAsync();
-        //        cmp = new ClientMessageProvider() { Session = client };
-        //        cmp.OnReceived += new EventHandler<MessageEventArgs>(cmp_OnReceived);
-        //    }
-
-        //    //Message.Debug = true;
-        //    var msg = new EntityMessage();
-        //    var rnd = new Random((Int32)DateTime.Now.Ticks);
-        //    var bts = new Byte[rnd.Next(1000000, 5000000)];
-        //    //var bts = new Byte[1460 * 1 - rnd.Next(0, 20)];
-        //    rnd.NextBytes(bts);
-        //    msg.Value = bts;
-
-        //    //var rs = cmp.SendAndReceive(msg, 5000);
-        //    cmp.Send(msg);
-        //}
-
-        //static void smp_OnReceived(object sender, MessageEventArgs e)
-        //{
-        //    var msg = e.Message;
-        //    Console.WriteLine("服务端收到：{0}", msg);
-        //    var rs = new EntityMessage();
-        //    rs.Value = "收到" + msg;
-        //    (sender as IMessageProvider).Send(rs);
-        //}
-
-        //static void cmp_OnReceived(object sender, MessageEventArgs e)
-        //{
-        //    Console.WriteLine("客户端收到：{0}", e.Message);
-        //}
 
         static void Test5()
         {
@@ -751,12 +584,15 @@ namespace Test
 
         static void Test15()
         {
-            Console.Write("Big ");
-            for (int i = 0; i < 3; i++)
+            var up = new Upgrade();
+            up.Name = "XScript";
+            up.Server = "http://www.newlifex.com/showtopic-369.aspx";
+            if (up.Check())
             {
-                Console.Write((Char)8);
+                Console.WriteLine(up.Title);
+                Console.WriteLine(up.DownloadUrl);
+                Console.WriteLine(up.FileTime.ToFullString());
             }
-            Console.Write("Stone");
         }
     }
 }
