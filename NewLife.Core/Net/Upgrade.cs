@@ -159,7 +159,8 @@ namespace NewLife.Net
                 dic[name] = url;
             }
 
-            return FileTime > DateTime.MinValue;
+            // 只有文件时间大于编译时间才更新，需要考虑文件编译后过一段时间才打包
+            return FileTime > Compile.AddMinutes(10);
         }
 
         /// <summary>开始更新</summary>
