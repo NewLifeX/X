@@ -18,6 +18,55 @@ namespace NewLife.Web
         /// <summary>Cookie容器</summary>
         public CookieContainer Cookie { get { return _Cookie ?? (_Cookie = new CookieContainer()); } set { _Cookie = value; } }
 
+        #endregion
+
+        #region 属性
+        private String _Accept;
+        /// <summary>可接受类型</summary>
+        public String Accept { get { return _Accept; } set { _Accept = value; } }
+
+        private String _AcceptLanguage;
+        /// <summary>可接受语言</summary>
+        public String AcceptLanguage { get { return _AcceptLanguage; } set { _AcceptLanguage = value; } }
+
+        private String _Referer;
+        /// <summary>引用页面</summary>
+        public String Referer { get { return _Referer; } set { _Referer = value; } }
+
+        private Int32 _Timeout;
+        /// <summary>超时，毫秒</summary>
+        public Int32 Timeout { get { return _Timeout; } set { _Timeout = value; } }
+
+        private DecompressionMethods _AutomaticDecompression;
+        /// <summary>自动解压缩模式。</summary>
+        public DecompressionMethods AutomaticDecompression { get { return _AutomaticDecompression; } set { _AutomaticDecompression = value; } }
+
+        private String _UserAgent;
+        /// <summary>User-Agent 标头，指定有关客户端代理的信息</summary>
+        public String UserAgent { get { return _UserAgent; } set { _UserAgent = value; } }
+        #endregion
+
+        #region 构造
+        /// <summary>实例化</summary>
+        public WebClientX() { }
+
+        /// <summary>初始化常用的东西</summary>
+        /// <param name="ie">是否模拟ie</param>
+        /// <param name="iscompress">是否压缩</param>
+        public WebClientX(Boolean ie, Boolean iscompress)
+        {
+            if (ie)
+            {
+                Accept = "image/jpeg, image/gif, */*";
+                AcceptLanguage = "zh-CN";
+                //Headers[HttpRequestHeader.AcceptEncoding] = "gzip, deflate";
+                UserAgent = "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.1; Trident/5.0; SLCC2; .NET CLR 2.0.50727; .NET CLR 3.5.30729; .NET CLR 3.0.30729; Media Center PC 6.0; .NET4.0C; .NET4.0E)";
+            }
+            if (iscompress) AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
+        }
+        #endregion
+
+        #region 重载设置属性
         /// <summary>重写获取请求</summary>
         /// <param name="address"></param>
         /// <returns></returns>
@@ -25,12 +74,16 @@ namespace NewLife.Web
         {
             var request = base.GetWebRequest(address);
 
-            //if (request is HttpWebRequest) (request as HttpWebRequest).CookieContainer = Cookie;
             var hr = request as HttpWebRequest;
             if (hr != null)
             {
                 hr.CookieContainer = Cookie;
                 hr.AutomaticDecompression = AutomaticDecompression;
+
+                if (!String.IsNullOrEmpty(Accept)) hr.Accept = Accept;
+                if (!String.IsNullOrEmpty(AcceptLanguage)) hr.Headers[HttpRequestHeader.AcceptLanguage] = AcceptLanguage;
+                if (!String.IsNullOrEmpty(UserAgent)) hr.UserAgent = UserAgent;
+                if (!String.IsNullOrEmpty(Accept)) hr.Accept = Accept;
             }
 
             if (Timeout > 0) request.Timeout = Timeout;
@@ -51,47 +104,6 @@ namespace NewLife.Web
         }
         #endregion
 
-        #region 属性
-        ///// <summary>可接受类型</summary>
-        //public String Accept
-        //{
-        //    get { return Headers[HttpRequestHeader.Accept]; }
-        //    set { Headers[HttpRequestHeader.Accept] = value; }
-        //}
-
-        private Int32 _Timeout;
-        /// <summary>超时，毫秒</summary>
-        public Int32 Timeout { get { return _Timeout; } set { _Timeout = value; } }
-
-        private DecompressionMethods _AutomaticDecompression;
-        /// <summary>自动解压缩模式。</summary>
-        public DecompressionMethods AutomaticDecompression { get { return _AutomaticDecompression; } set { _AutomaticDecompression = value; } }
-
-        //private String _UserAgent;
-        /// <summary>User-Agent 标头，指定有关客户端代理的信息</summary>
-        public String UserAgent { get { return Headers[HttpRequestHeader.UserAgent]; } set { Headers[HttpRequestHeader.UserAgent] = value; } }
-        #endregion
-
-        #region 构造
-        /// <summary>实例化</summary>
-        public WebClientX() { }
-
-        /// <summary>初始化常用的东西</summary>
-        /// <param name="ie">是否模拟ie</param>
-        /// <param name="iscompress">是否压缩</param>
-        public WebClientX(Boolean ie, Boolean iscompress)
-        {
-            if (ie)
-            {
-                Headers[HttpRequestHeader.Accept] = "image/jpeg, image/gif, */*";
-                Headers[HttpRequestHeader.AcceptLanguage] = "zh-CN";
-                //Headers[HttpRequestHeader.AcceptEncoding] = "gzip, deflate";
-                Headers[HttpRequestHeader.UserAgent] = "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.1; Trident/5.0; SLCC2; .NET CLR 2.0.50727; .NET CLR 3.5.30729; .NET CLR 3.0.30729; Media Center PC 6.0; .NET4.0C; .NET4.0E)";
-            }
-            if (iscompress) AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
-        }
-        #endregion
-
         #region 方法
         /// <summary>获取指定地址的Html，自动处理文本编码</summary>
         /// <param name="url"></param>
@@ -99,6 +111,7 @@ namespace NewLife.Web
         public String GetHtml(String url)
         {
             var buf = DownloadData(url);
+            Referer = url;
             if (buf == null || buf.Length == 0) return null;
 
             // 处理编码
