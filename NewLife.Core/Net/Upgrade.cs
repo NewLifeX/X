@@ -209,6 +209,8 @@ namespace NewLife.Net
             }
 
             if (!File.Exists(file)) return false;
+            // 如果已经更新过，则也不再更新
+            if (File.Exists(file + ".updated")) return false;
 
             // 解压更新程序包
             if (!file.EndsWithIgnoreCase(".zip")) return false;
@@ -233,6 +235,11 @@ namespace NewLife.Net
             Process.Start(si);
 
             WriteLog("已启动更新程序来升级，升级脚本 {0}", updatebat);
+
+            // 设置更新标记
+            file += ".updated";
+            WriteLog("设置已更新标记 {0}", file);
+            File.CreateText(file).Close();
 
             Application.Exit();
 
