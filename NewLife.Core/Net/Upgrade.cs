@@ -290,7 +290,8 @@ namespace NewLife.Net
             // 启动
             if (AutoStart)
             {
-                sb.AppendFormat("start \"{0}\"", Application.ExecutablePath);
+                var bin = Application.ExecutablePath;
+                sb.AppendFormat("start /D \"{0}\" /I {1}", Path.GetDirectoryName(bin), bin);
                 sb.AppendLine();
             }
 
@@ -298,6 +299,10 @@ namespace NewLife.Net
             sb.AppendFormat("del \"{0}\" /f/q", updatebat);
             sb.AppendLine();
 #endif
+
+            sb.AppendFormat("{0}\\ping -n 3 127.0.0.1 >nul", Environment.SystemDirectory);
+            sb.AppendLine();
+            sb.AppendLine("exit");
 
             File.WriteAllText(updatebat, sb.ToString(), Encoding.Default);
         }

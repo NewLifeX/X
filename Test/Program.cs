@@ -42,7 +42,7 @@ namespace Test
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine(ex.ToString());
+                    XTrace.WriteException(ex);
                 }
 #endif
 
@@ -584,7 +584,9 @@ namespace Test
 
         static void Test15()
         {
+            XTrace.WriteLine(Environment.CurrentDirectory);
             var up = new Upgrade();
+            up.Log = XTrace.Log;
             up.Name = "XScript";
             up.Server = "http://www.newlifex.com/showtopic-1334.aspx";
             if (up.Check())
