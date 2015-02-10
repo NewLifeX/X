@@ -1,107 +1,110 @@
-﻿<%@ Page Language="C#" MasterPageFile="~/Admin/ManagerPage.master" AutoEventWireup="true"
-    CodeFile="AdminInfo.aspx.cs" Inherits="Pages_AdminInfo" Title="用户信息" %>
+﻿<%@ page language="C#" masterpagefile="~/Admin/ManagerPage.master" autoeventwireup="true"
+    codefile="AdminInfo.aspx.cs" inherits="Pages_AdminInfo" title="用户信息" %>
 
-<asp:Content ID="C" ContentPlaceHolderID="C" runat="server">
-    <table border="0" class="m_table" cellspacing="1" cellpadding="0" align="Center">
-        <tr>
-            <th colspan="2">
-                用户信息
-            </th>
-        </tr>
-        <tr>
-            <td align="right">
-                名称：
-            </td>
-            <td>
-                <asp:TextBox ID="frmName" runat="server" ReadOnly="true"></asp:TextBox>
-            </td>
-        </tr>
-        <tr>
-            <td align="right">
-                密码：
-            </td>
-            <td>
-                <asp:TextBox ID="frmPassword" runat="server" TextMode="Password"></asp:TextBox>
-            </td>
-        </tr>
-        <tr>
-            <td align="right">
-                显示名：
-            </td>
-            <td>
-                <asp:TextBox ID="frmDisplayName" runat="server"></asp:TextBox>
-            </td>
-        </tr>
-        <tr>
-            <td align="right">
-                角色：
-            </td>
-            <td>
-                <asp:Label ID="frmRoleName" runat="server"></asp:Label>
-            </td>
-        </tr>
-        <tr>
-            <td align="right">
-                登录次数：
-            </td>
-            <td>
-                <asp:Label ID="frmLogins" runat="server"></asp:Label>
-            </td>
-        </tr>
-        <tr>
-            <td align="right">
-                最后登录：
-            </td>
-            <td>
-                <asp:Label ID="frmLastLogin" runat="server"></asp:Label>
-            </td>
-        </tr>
-        <tr>
-            <td align="right">
-                最后登陆IP：
-            </td>
-            <td>
-                <asp:Label ID="frmLastLoginIP" runat="server"></asp:Label>
-            </td>
-        </tr>
-        <tr>
-            <td align="right">
-                QQ：
-            </td>
-            <td>
-                <asp:TextBox ID="frmQQ" runat="server"></asp:TextBox>
-            </td>
-        </tr>
-        <tr>
-            <td align="right">
-                MSN：
-            </td>
-            <td>
-                <asp:TextBox ID="frmMSN" runat="server"></asp:TextBox>
-            </td>
-        </tr>
-        <tr>
-            <td align="right">
-                邮箱：
-            </td>
-            <td>
-                <XCL:MailBox ID="frmEmail" runat="server"></XCL:MailBox>
-            </td>
-        </tr>
-        <tr>
-            <td align="right">
-                电话：
-            </td>
-            <td>
-                <asp:TextBox ID="frmPhone" runat="server"></asp:TextBox>
-            </td>
-        </tr>
-    </table>
-    <table border="0" align="Center" width="100%">
-        <tr>
-            <td align="center">
-                <asp:Button ID="btnSave" runat="server" CausesValidation="True" Text='保存' />
-            </td>
-        </tr>
-    </table>
-</asp:Content>
+<asp:content id="C" contentplaceholderid="C" runat="server">
+
+    <div class="col-lg-12">
+        <h4 class="page-header">用户信息</h4>
+    </div>
+
+
+
+    <div class="form-group">
+        <label class="col-sm-2 control-label">
+            名称：
+        </label>
+        <div class="col-sm-10">
+            <asp:textbox id="frmName" class="form-control" runat="server" readonly="true"></asp:textbox>
+            </label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-2 control-label">
+            密码：
+        </label>
+        <div class="col-sm-10">
+            <asp:textbox id="frmPassword" class="form-control" runat="server" textmode="Password"></asp:textbox>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-2 control-label">
+            显示名：
+        </label>
+        <div class="col-sm-10">
+            <asp:textbox id="frmDisplayName" class="form-control" runat="server"></asp:textbox>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-2 control-label">
+            角色：
+        </label>
+        <div class="col-sm-10">
+            <asp:label id="frmRoleName" runat="server"></asp:label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-2 control-label">
+            登录次数：
+        </label>
+        <div class="col-sm-10">
+            <asp:label id="frmLogins" runat="server"></asp:label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-2 control-label">
+            最后登录：
+        </label>
+        <div class="col-sm-10">
+            <asp:label id="frmLastLogin" runat="server"></asp:label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-2 control-label">
+            最后登陆IP：
+        </label>
+        <div class="col-sm-10">
+            <asp:label id="frmLastLoginIP" runat="server"></asp:label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-2 control-label">
+            QQ：
+        </label>
+        <div class="col-sm-10">
+            <asp:textbox id="frmQQ" class="form-control"  runat="server"></asp:textbox>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-2 control-label">
+            MSN：
+        </label>
+        <div class="col-sm-10">
+            <asp:textbox id="frmMSN" class="form-control" runat="server"></asp:textbox>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-2 control-label">
+            邮箱：
+        </label>
+        <div class="col-sm-10">
+            <xcl:mailbox id="frmEmail" class="form-control" runat="server"></xcl:mailbox>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-2 control-label">
+            电话：
+        </label>
+        <div class="col-sm-10">
+            <asp:textbox id="frmPhone" class="form-control" runat="server"></asp:textbox>
+        </div>
+    </div>
+    <div class="form-group text-center">
+        <asp:button id="btnSave" runat="server" cssclass="btn btn-primary" causesvalidation="True" text='保存' />
+    </div>
+
+   <script>
+$(document).ready(function(){
+$("input[type=text],input[type=password]").removeAttr("style").css("width","200px");
+});
+   </script>
+</asp:content>

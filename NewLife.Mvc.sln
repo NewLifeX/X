@@ -1,66 +1,85 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NewLife.Mvc", "NewLife.Mvc\NewLife.Mvc.csproj", "{E50FC131-90E6-4D21-8F87-84BDF4B841B7}"
-EndProject
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.31101.0
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NewLife.Core", "NewLife.Core\NewLife.Core.csproj", "{5813C22E-EEB3-4DEE-A45C-BB218041193A}"
 EndProject
-Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "NewLife.Mvc.Test", "NewLife.Mvc.Test\", "{FD6B2035-F3DD-4624-A095-D0B51908B917}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XTemplate", "XTemplate\XTemplate.csproj", "{55BA37EE-01A2-438F-A0FB-6B57440BF2F0}"
+EndProject
+Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "Web", "http://localhost:49936", "{8BD8F7EB-6F06-4F01-A4C0-36C14C1BFD10}"
 	ProjectSection(WebsiteProperties) = preProject
+		UseIISExpress = "true"
 		TargetFrameworkMoniker = ".NETFramework,Version%3Dv2.0"
-		ProjectReferences = "{5813C22E-EEB3-4DEE-A45C-BB218041193A}|NewLife.Core.dll;{E50FC131-90E6-4D21-8F87-84BDF4B841B7}|NewLife.Mvc.dll;{55BA37EE-01A2-438F-A0FB-6B57440BF2F0}|XTemplate.dll;"
-		Debug.AspNetCompiler.VirtualPath = "/NewLife.Mvc.Test"
-		Debug.AspNetCompiler.PhysicalPath = "NewLife.Mvc.Test\"
-		Debug.AspNetCompiler.TargetPath = "PrecompiledWeb\NewLife.Mvc.Test\"
+		ProjectReferences = "{50d7fae5-2304-4395-a6fa-7d35279d9d84}|NewLife.CommonEntity.dll;"
+		Debug.AspNetCompiler.VirtualPath = "/localhost_49936"
+		Debug.AspNetCompiler.PhysicalPath = "Web\"
+		Debug.AspNetCompiler.TargetPath = "PrecompiledWeb\localhost_49936\"
 		Debug.AspNetCompiler.Updateable = "true"
 		Debug.AspNetCompiler.ForceOverwrite = "true"
 		Debug.AspNetCompiler.FixedNames = "false"
 		Debug.AspNetCompiler.Debug = "True"
-		Release.AspNetCompiler.VirtualPath = "/NewLife.Mvc.Test"
-		Release.AspNetCompiler.PhysicalPath = "NewLife.Mvc.Test\"
-		Release.AspNetCompiler.TargetPath = "PrecompiledWeb\NewLife.Mvc.Test\"
+		Release.AspNetCompiler.VirtualPath = "/localhost_49936"
+		Release.AspNetCompiler.PhysicalPath = "Web\"
+		Release.AspNetCompiler.TargetPath = "PrecompiledWeb\localhost_49936\"
 		Release.AspNetCompiler.Updateable = "true"
 		Release.AspNetCompiler.ForceOverwrite = "true"
 		Release.AspNetCompiler.FixedNames = "false"
 		Release.AspNetCompiler.Debug = "False"
-		VWDPort = "1111"
-		VWDDynamicPort = "false"
-		VWDVirtualPath = "/MvcTest"
+		SlnRelativePath = "Web\"
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XTemplate", "XTemplate\XTemplate.csproj", "{55BA37EE-01A2-438F-A0FB-6B57440BF2F0}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NewLife.CommonEntity", "NewLife.CommonEntity\NewLife.CommonEntity.csproj", "{50D7FAE5-2304-4395-A6FA-7D35279D9D84}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		.Net 2.0|Any CPU = .Net 2.0|Any CPU
 		Debug|Any CPU = Debug|Any CPU
+		Net4Debug|Any CPU = Net4Debug|Any CPU
+		Net4Release|Any CPU = Net4Release|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{E50FC131-90E6-4D21-8F87-84BDF4B841B7}..Net 2.0|Any CPU.ActiveCfg = Release|Any CPU
-		{E50FC131-90E6-4D21-8F87-84BDF4B841B7}..Net 2.0|Any CPU.Build.0 = Release|Any CPU
-		{E50FC131-90E6-4D21-8F87-84BDF4B841B7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E50FC131-90E6-4D21-8F87-84BDF4B841B7}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E50FC131-90E6-4D21-8F87-84BDF4B841B7}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E50FC131-90E6-4D21-8F87-84BDF4B841B7}.Release|Any CPU.Build.0 = Release|Any CPU
-		{5813C22E-EEB3-4DEE-A45C-BB218041193A}..Net 2.0|Any CPU.ActiveCfg = .Net 2.0|Any CPU
-		{5813C22E-EEB3-4DEE-A45C-BB218041193A}..Net 2.0|Any CPU.Build.0 = .Net 2.0|Any CPU
+		{5813C22E-EEB3-4DEE-A45C-BB218041193A}..Net 2.0|Any CPU.ActiveCfg = Net4Release|Any CPU
+		{5813C22E-EEB3-4DEE-A45C-BB218041193A}..Net 2.0|Any CPU.Build.0 = Net4Release|Any CPU
 		{5813C22E-EEB3-4DEE-A45C-BB218041193A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{5813C22E-EEB3-4DEE-A45C-BB218041193A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5813C22E-EEB3-4DEE-A45C-BB218041193A}.Net4Debug|Any CPU.ActiveCfg = Net4Debug|Any CPU
+		{5813C22E-EEB3-4DEE-A45C-BB218041193A}.Net4Debug|Any CPU.Build.0 = Net4Debug|Any CPU
+		{5813C22E-EEB3-4DEE-A45C-BB218041193A}.Net4Release|Any CPU.ActiveCfg = Net4Release|Any CPU
+		{5813C22E-EEB3-4DEE-A45C-BB218041193A}.Net4Release|Any CPU.Build.0 = Net4Release|Any CPU
 		{5813C22E-EEB3-4DEE-A45C-BB218041193A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5813C22E-EEB3-4DEE-A45C-BB218041193A}.Release|Any CPU.Build.0 = Release|Any CPU
-		{FD6B2035-F3DD-4624-A095-D0B51908B917}..Net 2.0|Any CPU.ActiveCfg = Debug|Any CPU
-		{FD6B2035-F3DD-4624-A095-D0B51908B917}..Net 2.0|Any CPU.Build.0 = Debug|Any CPU
-		{FD6B2035-F3DD-4624-A095-D0B51908B917}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{FD6B2035-F3DD-4624-A095-D0B51908B917}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{FD6B2035-F3DD-4624-A095-D0B51908B917}.Release|Any CPU.ActiveCfg = Debug|Any CPU
-		{FD6B2035-F3DD-4624-A095-D0B51908B917}.Release|Any CPU.Build.0 = Debug|Any CPU
 		{55BA37EE-01A2-438F-A0FB-6B57440BF2F0}..Net 2.0|Any CPU.ActiveCfg = Release|Any CPU
 		{55BA37EE-01A2-438F-A0FB-6B57440BF2F0}..Net 2.0|Any CPU.Build.0 = Release|Any CPU
 		{55BA37EE-01A2-438F-A0FB-6B57440BF2F0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{55BA37EE-01A2-438F-A0FB-6B57440BF2F0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{55BA37EE-01A2-438F-A0FB-6B57440BF2F0}.Net4Debug|Any CPU.ActiveCfg = Net4Debug|Any CPU
+		{55BA37EE-01A2-438F-A0FB-6B57440BF2F0}.Net4Debug|Any CPU.Build.0 = Net4Debug|Any CPU
+		{55BA37EE-01A2-438F-A0FB-6B57440BF2F0}.Net4Release|Any CPU.ActiveCfg = Net4Release|Any CPU
+		{55BA37EE-01A2-438F-A0FB-6B57440BF2F0}.Net4Release|Any CPU.Build.0 = Net4Release|Any CPU
 		{55BA37EE-01A2-438F-A0FB-6B57440BF2F0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{55BA37EE-01A2-438F-A0FB-6B57440BF2F0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8BD8F7EB-6F06-4F01-A4C0-36C14C1BFD10}..Net 2.0|Any CPU.ActiveCfg = Debug|Any CPU
+		{8BD8F7EB-6F06-4F01-A4C0-36C14C1BFD10}..Net 2.0|Any CPU.Build.0 = Debug|Any CPU
+		{8BD8F7EB-6F06-4F01-A4C0-36C14C1BFD10}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8BD8F7EB-6F06-4F01-A4C0-36C14C1BFD10}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8BD8F7EB-6F06-4F01-A4C0-36C14C1BFD10}.Net4Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8BD8F7EB-6F06-4F01-A4C0-36C14C1BFD10}.Net4Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8BD8F7EB-6F06-4F01-A4C0-36C14C1BFD10}.Net4Release|Any CPU.ActiveCfg = Debug|Any CPU
+		{8BD8F7EB-6F06-4F01-A4C0-36C14C1BFD10}.Net4Release|Any CPU.Build.0 = Debug|Any CPU
+		{8BD8F7EB-6F06-4F01-A4C0-36C14C1BFD10}.Release|Any CPU.ActiveCfg = Debug|Any CPU
+		{8BD8F7EB-6F06-4F01-A4C0-36C14C1BFD10}.Release|Any CPU.Build.0 = Debug|Any CPU
+		{50D7FAE5-2304-4395-A6FA-7D35279D9D84}..Net 2.0|Any CPU.ActiveCfg = Net4Release|Any CPU
+		{50D7FAE5-2304-4395-A6FA-7D35279D9D84}..Net 2.0|Any CPU.Build.0 = Net4Release|Any CPU
+		{50D7FAE5-2304-4395-A6FA-7D35279D9D84}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{50D7FAE5-2304-4395-A6FA-7D35279D9D84}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{50D7FAE5-2304-4395-A6FA-7D35279D9D84}.Net4Debug|Any CPU.ActiveCfg = Net4Debug|Any CPU
+		{50D7FAE5-2304-4395-A6FA-7D35279D9D84}.Net4Debug|Any CPU.Build.0 = Net4Debug|Any CPU
+		{50D7FAE5-2304-4395-A6FA-7D35279D9D84}.Net4Release|Any CPU.ActiveCfg = Net4Release|Any CPU
+		{50D7FAE5-2304-4395-A6FA-7D35279D9D84}.Net4Release|Any CPU.Build.0 = Net4Release|Any CPU
+		{50D7FAE5-2304-4395-A6FA-7D35279D9D84}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{50D7FAE5-2304-4395-A6FA-7D35279D9D84}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
