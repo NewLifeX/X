@@ -30,10 +30,12 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“内部版本号”和“修订号”的默认值，
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("5.1.*")]
-[assembly: AssemblyFileVersion("5.1.2015.0131")]
+[assembly: AssemblyVersion("5.2.*")]
+[assembly: AssemblyFileVersion("5.2.2015.0211")]
 
 /*
+ * v5.2.2015.0211   增加轻量级自动更新Upgrade，从网页自动查找更新包
+ * 
  * v5.1.2015.0131   X组件核心库兼容MonoAndroid
  * 
  * v5.0.2014.1223   升级ITransport接口的事件实现方式，为上层应用开发提供强大有效的框架支持

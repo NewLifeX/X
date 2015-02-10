@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Linq;
+using System.IO;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Text.RegularExpressions;
@@ -6,6 +8,10 @@ using NewLife.Configuration;
 using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.Web;
+using NewLife.Compression;
+using System.Diagnostics;
+using System.Windows.Forms;
+using System.Text;
 
 namespace NewLife.Net
 {
@@ -37,17 +43,17 @@ namespace NewLife.Net
         /// <summary>本地编译时间</summary>
         public DateTime Compile { get { return _Compile; } set { _Compile = value; } }
 
-        //private UpgradeVersion _ServerVersion;
-        ///// <summary>更新版本信息</summary>
-        //public UpgradeVersion ServerVersion { get { return _ServerVersion; } set { _ServerVersion = value; } }
+        private Boolean _AutoStart = true;
+        /// <summary>更新完成以后自动启动主程序</summary>
+        public Boolean AutoStart { get { return _AutoStart; } set { _AutoStart = value; } }
+
+        private String _UpdatePath = "Update";
+        /// <summary>更新目录</summary>
+        public String UpdatePath { get { return _UpdatePath; } set { _UpdatePath = value; } }
 
         private String _TempPath = XTrace.TempPath;
         /// <summary>临时目录</summary>
         public String TempPath { get { return _TempPath; } set { _TempPath = value; } }
-
-        //private String _VerFile;
-        ///// <summary>版本文件</summary>
-        //public String VerFile { get { return _VerFile; } set { _VerFile = value; } }
         #endregion
 
         #region 远程目标文件信息
@@ -55,13 +61,13 @@ namespace NewLife.Net
         /// <summary>文件列表</summary>
         public Dictionary<String, String> Files { get { return _Files; } set { _Files = value; } }
 
-        private String _Title;
+        private String _FileName;
         /// <summary>标题</summary>
-        public String Title { get { return _Title; } set { _Title = value; } }
+        public String FileName { get { return _FileName; } set { _FileName = value; } }
 
-        private String _DownloadUrl;
+        private String _FileUrl;
         /// <summary>下载地址</summary>
-        public String DownloadUrl { get { return _DownloadUrl; } set { _DownloadUrl = value; } }
+        public String FileUrl { get { return _FileUrl; } set { _FileUrl = value; } }
 
         private DateTime _FileTime;
         /// <summary>文件时间</summary>
@@ -78,18 +84,6 @@ namespace NewLife.Net
             Version = asm.GetName().Version;
             Name = asm.GetName().Name;
             Compile = asmx.Compile;
-
-            //// 如果版本文件存在，加载
-            //VerFile = Name + "Ver.xml";
-            //VerFile = TempPath.CombinePath(VerFile).GetFullPath();
-            //if (File.Exists(VerFile))
-            //{
-            //    try
-            //    {
-            //        ServerVersion = File.ReadAllText(VerFile).ToXmlEntity<UpgradeVersion>();
-            //    }
-            //    catch { }
-            //}
         }
         #endregion
 
@@ -114,21 +108,11 @@ namespace NewLife.Net
                 url = String.Format(url, Name, Version);
             }
 
+            WriteLog("准备获取更新信息 {0}", url);
+
             var web = CreateClient();
             var html = web.GetHtml(url);
             if (String.IsNullOrEmpty(html)) return false;
-
-            //var ver = html.ToXmlEntity<UpgradeVersion>();
-            //if (ver == null) return false;
-
-            //ServerVersion = ver;
-            //ver.ToXmlFile(VerFile);
-
-            //// 检查最低版本要求
-            //if (ver.MinVersion != null && ver.MinVersion > Version) return false;
-
-            //// 检查更新版本
-            //return ver.Version > Version;
 
             // 分析所有链接
             var reg = new Regex("<a(?:[^>]*) href=?\"([^>\"]*)?\"(?:[^>]*)>(?<内容>[^<]*)</a>", RegexOptions.IgnoreCase);
@@ -140,11 +124,13 @@ namespace NewLife.Net
                 url = item.Groups[1].Value.Trim();
 
                 // 不是满足条件的name不要
-                if (!name.StartsWithIgnoreCase(Name)) continue;
+                if (!name.StartsWithIgnoreCase(Name) && !name.Contains(Name)) continue;
 
                 // 完善下载地址
                 var uri = new Uri(buri, url);
                 url = uri.ToString();
+
+                WriteLog("发现 {0} {1}", name, url);
 
                 // 分割名称，计算时间
                 var p = name.LastIndexOf("_");
@@ -164,8 +150,8 @@ namespace NewLife.Net
                         if (dt.Year < DateTime.Now.Year + 10 && dt > FileTime)
                         {
                             FileTime = dt;
-                            Title = name;
-                            DownloadUrl = url;
+                            FileName = name;
+                            FileUrl = url;
                         }
                     }
                 }
@@ -177,83 +163,163 @@ namespace NewLife.Net
         }
 
         /// <summary>开始更新</summary>
-        public void Start()
+        public void Download()
         {
-            //if (ServerVersion == null) throw new Exception("未检查新版本！");
-            //if (String.IsNullOrEmpty(ServerVersion.Url)) throw new Exception("升级包地址无效！");
+            if (FileName == null) throw new Exception("没有可用新版本！");
+            if (String.IsNullOrEmpty(FileUrl)) throw new Exception("升级包地址无效！");
 
-            //var ver = ServerVersion;
+            // 如果更新包不存在，则下载
+            var file = UpdatePath.CombinePath(FileName).GetFullPath();
+            if (!File.Exists(file))
+            {
+                WriteLog("准备下载 {0} 到 {1}", FileUrl, file);
 
-            //// 如果更新包不存在，则下载
-            //var file = TempPath.CombinePath(ver.Name).GetFullPath();
-            //if (!CheckCrc(file, ver.Crc))
-            //{
-            //    var web = CreateClient();
-            //    web.DownloadFile(ver.Url, file);
-            //}
+                var sw = new Stopwatch();
+                sw.Start();
 
-            //if (!String.IsNullOrEmpty(ver.Upgrader))
-            //{
-            //    // 检查并下载更新程序
-            //    file = TempPath.CombinePath(ver.Upgrader).GetFullPath();
-            //    if (!CheckCrc(file, ver.UpgraderCrc))
-            //    {
-            //        var web = CreateClient();
-            //        web.DownloadFile(ver.UpgraderUrl, file);
-            //    }
+                var web = CreateClient();
+                web.DownloadFile(FileUrl, file.EnsureDirectory());
 
-            //    // 解压更新程序包
-            //    if (file.EndsWithIgnoreCase(".zip"))
-            //    {
-            //        var p = Path.GetFileNameWithoutExtension(file);
-            //        ZipFile.Extract(file, p);
-            //        // 找到第一个exe
-            //        var f = Directory.GetFiles(p, "*.exe").FirstOrDefault();
-            //        if (String.IsNullOrEmpty(f)) throw new XException("更新程序包错误，无法找到主程序 {0}", file);
-            //        file = f;
-            //    }
+                sw.Stop();
+                WriteLog("下载完成！大小{0:n0}字节，耗时{1:n0}ms", file.AsFile().Length, sw.ElapsedMilliseconds);
+            }
 
-            //    // 执行更新程序包
-            //    var si = new ProcessStartInfo();
-            //    si.FileName = file;
-            //    si.WorkingDirectory = Path.GetDirectoryName(si.FileName);
-            //    si.Arguments = "-pid " + Process.GetCurrentProcess().Id + " -xml \"" + VerFile + "\"";
-            //    if (!XTrace.Debug)
-            //    {
-            //        si.CreateNoWindow = true;
-            //        si.WindowStyle = ProcessWindowStyle.Hidden;
-            //    }
-            //    si.UseShellExecute = false;
-            //    Process.Start(si);
+            // 设置更新标记
+            file += ".update";
+            WriteLog("设置更新标记 {0}", file);
+            File.CreateText(file).Close();
+        }
 
-            //    XTrace.WriteLine("已启动更新程序来升级，升级配置：{0}", VerFile);
+        /// <summary>检查并执行更新操作</summary>
+        public Boolean Update()
+        {
+            // 查找更新目录
+            var fis = Directory.GetFiles(UpdatePath, "*.update");
+            if (fis == null || fis.Length == 0) return false;
 
-            //    Application.Exit();
-            //}
+            var file = fis[0].GetFullPath().TrimEnd(".update");
+            WriteLog("发现更新包 {0}，删除所有更新标记文件", file);
+            foreach (var item in fis)
+            {
+                try
+                {
+                    File.Delete(item);
+                }
+                catch { }
+            }
+
+            if (!File.Exists(file)) return false;
+
+            // 解压更新程序包
+            if (!file.EndsWithIgnoreCase(".zip")) return false;
+
+            var p = TempPath.CombinePath(Path.GetFileNameWithoutExtension(file));
+            WriteLog("解压缩更新包到临时目录 {0}", p);
+            ZipFile.Extract(file, p);
+
+            var updatebat = UpdatePath.CombinePath("update.bat").GetFullPath();
+            MakeBat(updatebat, p, ".".GetFullPath());
+
+            // 执行更新程序包
+            var si = new ProcessStartInfo();
+            si.FileName = updatebat;
+            si.WorkingDirectory = Path.GetDirectoryName(si.FileName);
+            if (!XTrace.Debug)
+            {
+                si.CreateNoWindow = true;
+                si.WindowStyle = ProcessWindowStyle.Hidden;
+            }
+            si.UseShellExecute = false;
+            Process.Start(si);
+
+            WriteLog("已启动更新程序来升级，升级脚本 {0}", updatebat);
+
+            Application.Exit();
+
+            return true;
         }
         #endregion
 
         #region 辅助
-        static WebClientX CreateClient()
+        private WebClientX _Client;
+        private WebClientX CreateClient()
         {
+            if (_Client != null) return _Client;
+
             var web = new WebClientX(true, true);
             web.UserAgent = "NewLife.Upgrade";
-            return web;
+            return _Client = web;
         }
 
-        //static Boolean CheckCrc(String file, String crc)
-        //{
-        //    if (!File.Exists(file)) return false;
-        //    if (String.IsNullOrEmpty(crc)) return false;
+        void MakeBat(String updatebat, String tmpdir, String curdir)
+        {
+            var sb = new StringBuilder();
 
-        //    var c32 = new Crc32();
-        //    using (var fs = File.OpenRead(file))
-        //    {
-        //        c32.Update(fs);
-        //    }
+            // 等待一定时间后，干掉当前进程
+            sb.AppendFormat("{0}\\ping -n 2 127.0.0.1 >nul", Environment.SystemDirectory);
+            sb.AppendLine();
+            sb.AppendFormat("{0}\\taskkill /F /PID {1}", Environment.SystemDirectory, Process.GetCurrentProcess().Id);
+            sb.AppendLine();
 
-        //    return c32.Value.ToString("X8").EqualIgnoreCase(crc);
-        //}
+            // 备份配置文件
+            var cfgs = Directory.GetFiles(curdir);
+            foreach (var item in cfgs)
+            {
+                if (item.EndsWithIgnoreCase(".config", ".xml"))
+                {
+                    sb.AppendFormat("move /Y \"{0}\" \"{0}.bak\"", item.GetFullPath());
+                    sb.AppendLine();
+                }
+            }
+
+            // 复制
+            sb.AppendFormat("copy \"{0}\\*.*\" \"{1}\" /y", tmpdir, curdir);
+            sb.AppendLine();
+            sb.AppendLine("rd \"" + tmpdir + "\" /s /q");
+
+            // 还原配置文件
+            foreach (var item in cfgs)
+            {
+                if (item.EndsWithIgnoreCase(".config", ".xml"))
+                {
+                    sb.AppendFormat("move /Y \"{0}.bak\" \"{0}\"", item.GetFullPath());
+                    sb.AppendLine();
+                }
+            }
+
+            // 启动
+            if (AutoStart)
+            {
+                sb.AppendFormat("start \"{0}\"", Application.ExecutablePath);
+                sb.AppendLine();
+            }
+
+#if !DEBUG
+            sb.AppendFormat("del \"{0}\" /f/q", updatebat);
+            sb.AppendLine();
+#endif
+
+            File.WriteAllText(updatebat, sb.ToString(), Encoding.Default);
+        }
+        #endregion
+
+        #region 日志
+#if DEBUG
+        private ILog _Log = XTrace.Log;
+#else
+        private ILog _Log = Logger.Null;
+#endif
+        /// <summary>日志对象</summary>
+        public ILog Log { get { return _Log; } set { _Log = value; } }
+
+        /// <summary>输出日志</summary>
+        /// <param name="format"></param>
+        /// <param name="args"></param>
+        public void WriteLog(String format, params Object[] args)
+        {
+            format = String.Format("[{0}]{1}", Name, format);
+            if (Log != null) Log.Info(format, args);
+        }
         #endregion
     }
 }

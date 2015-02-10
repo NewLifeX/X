@@ -586,12 +586,15 @@ namespace Test
         {
             var up = new Upgrade();
             up.Name = "XScript";
-            up.Server = "http://www.newlifex.com/showtopic-369.aspx";
+            up.Server = "http://www.newlifex.com/showtopic-1334.aspx";
             if (up.Check())
             {
-                Console.WriteLine(up.Title);
-                Console.WriteLine(up.DownloadUrl);
+                Console.WriteLine(up.FileName);
+                Console.WriteLine(up.FileUrl);
                 Console.WriteLine(up.FileTime.ToFullString());
+
+                up.Download();
+                up.Update();
             }
         }
     }
