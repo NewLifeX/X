@@ -57,7 +57,7 @@ namespace XCode
 				case TypeCode.UInt16:
 				case TypeCode.UInt32:
 				case TypeCode.UInt64:
-					return Convert.ToInt64(v1) != Convert.ToInt64(v2);
+					return Convert.ToInt64(v1) == Convert.ToInt64(v2);
 				case TypeCode.String:
 					return v1 + "" == v2 + "";
 				default:
