@@ -79,32 +79,24 @@
       <Link>Properties\AssemblyInfo_.cs</Link>
     </Compile>
     <Compile Include="Accessors\BinaryEntityAccessor.cs">
-      <DependentUpon>SerializationEntityAccessorBase.cs</DependentUpon>
     </Compile>
     <Compile Include="Accessors\EntityAccessorBase.cs">
-      <DependentUpon>IEntityAccessor.cs</DependentUpon>
     </Compile>
     <Compile Include="Accessors\EntityAccessorEventArgs.cs" />
     <Compile Include="Accessors\EntityAccessorFactory.cs" />
     <Compile Include="Accessors\EntityAccessorOptions.cs" />
     <Compile Include="Accessors\EntityAccessorTypes.cs" />
     <Compile Include="Accessors\HttpEntityAccessor.cs">
-      <DependentUpon>EntityAccessorBase.cs</DependentUpon>
     </Compile>
     <Compile Include="Accessors\JsonEntityAccessor.cs">
-      <DependentUpon>SerializationEntityAccessorBase.cs</DependentUpon>
     </Compile>
     <Compile Include="Accessors\SerializationEntityAccessorBase.cs">
-      <DependentUpon>EntityAccessorBase.cs</DependentUpon>
     </Compile>
     <Compile Include="Accessors\WebFormEntityAccessor.cs">
-      <DependentUpon>EntityAccessorBase.cs</DependentUpon>
     </Compile>
     <Compile Include="Accessors\WinFormEntityAccessor.cs">
-      <DependentUpon>EntityAccessorBase.cs</DependentUpon>
     </Compile>
     <Compile Include="Accessors\XmlEntityAccessor.cs">
-      <DependentUpon>SerializationEntityAccessorBase.cs</DependentUpon>
     </Compile>
     <Compile Include="Attributes\BindColumnAttribute.cs" />
     <Compile Include="Attributes\BindIndexAttribute.cs" />
@@ -135,16 +127,12 @@
     <Compile Include="Configuration\TableItem.cs" />
     <Compile Include="DataAccessLayer\Common\DatabaseType.cs" />
     <Compile Include="DataAccessLayer\Common\FileDb.cs">
-      <DependentUpon>DbBase.cs</DependentUpon>
     </Compile>
     <Compile Include="DataAccessLayer\Common\RemoteDb.cs">
-      <DependentUpon>DbBase.cs</DependentUpon>
     </Compile>
     <Compile Include="DataAccessLayer\DAL_DbOperate.cs">
-      <DependentUpon>DAL.cs</DependentUpon>
     </Compile>
     <Compile Include="DataAccessLayer\DAL_Setting.cs">
-      <DependentUpon>DAL.cs</DependentUpon>
     </Compile>
     <Compile Include="DataAccessLayer\Database\Distributed.cs" />
     <Compile Include="DataAccessLayer\Database\Firebird.cs" />
@@ -155,10 +143,8 @@
     <Compile Include="DataAccessLayer\Common\DbFactory.cs" />
     <Compile Include="DataAccessLayer\Common\IDatabase.cs" />
     <Compile Include="DataAccessLayer\MetaData\DbMetaData_Negative.cs">
-      <DependentUpon>DbMetaData.cs</DependentUpon>
     </Compile>
     <Compile Include="DataAccessLayer\MetaData\DbMetaData_Positive.cs">
-      <DependentUpon>DbMetaData.cs</DependentUpon>
     </Compile>
     <Compile Include="DataAccessLayer\MetaData\NegativeSetting.cs" />
     <Compile Include="DataAccessLayer\Model\IModelResolver.cs" />
@@ -177,7 +163,6 @@
     <Compile Include="Entity\DataRowEntityAccessor.cs" />
     <Compile Include="Entity\EntityListView.cs" />
     <Compile Include="Entity\EntityBase_Interface.cs">
-      <DependentUpon>EntityBase.cs</DependentUpon>
     </Compile>
     <Compile Include="Entity\EntityTransaction.cs" />
     <Compile Include="Entity\IEntityList.cs" />
@@ -210,10 +195,8 @@
     <Compile Include="Entity\EntityFactory.cs" />
     <Compile Include="Entity\EntityList.cs" />
     <Compile Include="Entity\Entity_Meta.cs">
-      <DependentUpon>Entity.cs</DependentUpon>
     </Compile>
     <Compile Include="Entity\Entity_Operate.cs">
-      <DependentUpon>Entity.cs</DependentUpon>
     </Compile>
     <Compile Include="Entity\IEntity.cs" />
     <Compile Include="Entity\IEntityOperate.cs" />
