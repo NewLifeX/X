@@ -37,7 +37,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test15();
+                    Test14();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -580,6 +580,37 @@ namespace Test
             entity.Delete();
             count = eop.FindCount();
             Console.WriteLine(count);
+        }
+
+        static void Test14()
+        {
+            var type = typeof(BB);
+            var mm = type.GetPropertyEx("mono");
+            Console.WriteLine(mm);
+            mm = type.GetPropertyEx("mono", true);
+            Console.WriteLine(mm);
+
+            var mf = type.GetFieldEx("mono");
+            Console.WriteLine(mf);
+            mf = type.GetFieldEx("mono", true);
+            Console.WriteLine(mf);
+
+            var mb = type.GetMemberEx("mono");
+            Console.WriteLine(mb);
+            mb = type.GetMemberEx("mono", true);
+            Console.WriteLine(mb);
+        }
+
+        class A
+        {
+            private Int32 _Mono;
+            /// <summary>属性说明</summary>
+            protected Int32 Mono { get { return _Mono; } set { _Mono = value; } }
+            private Int32 mono;
+        }
+        class BB : A
+        {
+
         }
 
         static void Test15()
