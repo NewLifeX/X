@@ -1,5 +1,8 @@
 ﻿using System;
+using NewLife.Reflection;
+using System.Collections.Specialized;
 using System.IO;
+using System.Reflection;
 using System.Text;
 using System.Web;
 using System.Web.UI;
@@ -194,6 +197,34 @@ namespace NewLife.Web
         #region Http请求
         /// <summary>Http请求</summary>
         public static HttpRequest Request { get { return HttpContext.Current != null ? HttpContext.Current.Request : null; } }
+
+        /// <summary>把Http请求的数据反射填充到目标对象</summary>
+        /// <param name="target">要反射搜索的目标对象，比如页面Page</param>
+        /// <returns></returns>
+        public static Int32 Fill(Object target)
+        {
+            if (target == null) return 0;
+
+            var count = 0;
+            var type = target.GetType();
+            var nvs = new NameValueCollection[] { Request.QueryString, Request.Form };
+
+            // 精确搜索属性、字段，模糊搜索属性、字段
+            foreach (var nv in nvs)
+            {
+                foreach (var item in nv.AllKeys)
+                {
+                    var member = type.GetMemberEx(item, true);
+                    if (member != null && (member is FieldInfo || member is PropertyInfo))
+                    {
+                        count++;
+                        target.SetValue(member, nv[item]);
+                    }
+                }
+            }
+
+            return count;
+        }
 
         //public static Int32 GetInt(String name, Int32 defaultValue = 0) { return Request[name].ToInt(defaultValue); }
 
