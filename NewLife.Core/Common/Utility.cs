@@ -2,7 +2,7 @@
 using System.ComponentModel;
 using System.Globalization;
 
-namespace NewLife
+namespace System
 {
     /// <summary>工具类</summary>
     /// <remarks>

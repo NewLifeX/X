@@ -157,6 +157,17 @@ namespace System
             if (encoding == null) encoding = Encoding.UTF8;
             return encoding.GetBytes(value);
         }
+
+        /// <summary>格式化字符串</summary>
+        /// <param name="value">格式字符串</param>
+        /// <param name="args">参数</param>
+        /// <returns></returns>
+        public static String Format(this String value, params Object[] args)
+        {
+            if (String.IsNullOrEmpty(value)) return value;
+
+            return String.Format(value, args);
+        }
         #endregion
 
         #region 截取扩展
@@ -267,7 +278,7 @@ namespace System
         //}
 
         /// <summary>确保字符串以指定的另一字符串开始，不区分大小写</summary>
-        /// <param name="str"></param>
+        /// <param name="str">字符串</param>
         /// <param name="start"></param>
         /// <returns></returns>
         public static String EnsureStart(this String str, String start)
@@ -281,7 +292,7 @@ namespace System
         }
 
         /// <summary>确保字符串以指定的另一字符串结束，不区分大小写</summary>
-        /// <param name="str"></param>
+        /// <param name="str">字符串</param>
         /// <param name="end"></param>
         /// <returns></returns>
         public static String EnsureEnd(this String str, String end)
@@ -302,10 +313,6 @@ namespace System
         {
             if (String.IsNullOrEmpty(str)) return str;
             if (starts == null || starts.Length < 1 || String.IsNullOrEmpty(starts[0])) return str;
-
-            //if (!str.StartsWith(start, StringComparison.OrdinalIgnoreCase)) return str;
-
-            //return str.Substring(start.Length);
 
             for (int i = 0; i < starts.Length; i++)
             {
@@ -330,10 +337,6 @@ namespace System
             if (String.IsNullOrEmpty(str)) return str;
             if (ends == null || ends.Length < 1 || String.IsNullOrEmpty(ends[0])) return str;
 
-            //if (!str.EndsWith(end, StringComparison.OrdinalIgnoreCase)) return str;
-
-            //return str.Substring(0, str.Length - end.Length);
-
             for (int i = 0; i < ends.Length; i++)
             {
                 if (str.EndsWith(ends[i], StringComparison.OrdinalIgnoreCase))
@@ -349,6 +352,7 @@ namespace System
         }
 
         /// <summary>从字符串中检索子字符串，在指定头部字符串之后，指定尾部字符串之前</summary>
+        /// <remarks>常用于截取xml某一个元素等操作</remarks>
         /// <param name="str">目标字符串</param>
         /// <param name="after">头部字符串，在它之后</param>
         /// <param name="before">尾部字符串，在它之前</param>
@@ -392,9 +396,9 @@ namespace System
         }
 
         /// <summary>根据最大长度截取字符串，并允许以指定空白填充末尾</summary>
-        /// <param name="str"></param>
-        /// <param name="maxLength"></param>
-        /// <param name="pad"></param>
+        /// <param name="str">字符串</param>
+        /// <param name="maxLength">截取后字符串的最大允许长度，包含后面填充</param>
+        /// <param name="pad">需要填充在后面的字符串，比如几个圆点</param>
         /// <returns></returns>
         public static String Cut(this String str, Int32 maxLength, String pad = null)
         {
@@ -409,10 +413,11 @@ namespace System
         }
 
         /// <summary>根据最大长度截取字符串（二进制计算长度），并允许以指定空白填充末尾</summary>
-        /// <param name="str"></param>
-        /// <param name="maxLength"></param>
-        /// <param name="pad"></param>
-        /// <param name="strict">严格模式时，遇到截断位置位于一个字符中间时，忽略该字符，否则包括该字符</param>
+        /// <remarks>默认采用Default编码进行处理，其它编码请参考本函数代码另外实现</remarks>
+        /// <param name="str">字符串</param>
+        /// <param name="maxLength">截取后字符串的最大允许长度，包含后面填充</param>
+        /// <param name="pad">需要填充在后面的字符串，比如几个圆点</param>
+        /// <param name="strict">严格模式时，遇到截断位置位于一个字符中间时，忽略该字符，否则包括该字符。默认true</param>
         /// <returns></returns>
         public static String CutBinary(this String str, Int32 maxLength, String pad = null, Boolean strict = true)
         {
