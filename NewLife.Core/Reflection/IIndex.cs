@@ -40,28 +40,6 @@ namespace NewLife.Reflection
             if (String.IsNullOrEmpty(name)) throw new ArgumentNullException("name");
 
             return target.TryGetValue(name, out value);
-
-            //value = null;
-
-            ////尝试匹配属性
-            ////var property = PropertyInfoX.Create(target.GetType(), name);
-            //var property = target.GetType().GetProperty(name);
-            //if (property != null)
-            //{
-            //    //value = property.GetValue(target);
-            //    value = target.GetValue(property);
-            //    return true;
-            //}
-
-            ////尝试匹配字段
-            //var field = target.GetType().GetField(name);
-            //if (field != null)
-            //{
-            //    value = target.GetValue(field);
-            //    return true;
-            //}
-
-            //return false;
         }
 
         /// <summary>获取目标对象指定属性字段的值</summary>
@@ -69,10 +47,7 @@ namespace NewLife.Reflection
         /// <param name="target">目标对象</param>
         /// <param name="name">名称</param>
         /// <returns></returns>
-        public static T GetValue<T>(IIndex target, String name)
-        {
-            return (T)GetValue(target, name);
-        }
+        public static T GetValue<T>(IIndex target, String name) { return (T)GetValue(target, name); }
 
         /// <summary>尝试获取目标对象指定属性字段的值，返回是否成功</summary>
         /// <typeparam name="T"></typeparam>
@@ -110,24 +85,6 @@ namespace NewLife.Reflection
         public static Boolean TrySetValue(IIndex target, String name, Object value)
         {
             return target.SetValue(name, value);
-            ////尝试匹配属性
-            //var property = Reflect.GetProperty(target.GetType(), name);
-            //if (property != null)
-            //{
-            //    target.SetValue(property, value);
-            //    return true;
-            //}
-
-            ////尝试匹配字段
-            //var field = Reflect.GetField(target.GetType(), name);
-            //if (field != null)
-            //{
-            //    //field.SetValue(target, value);
-            //    target.SetValue(field, value);
-            //    return true;
-            //}
-
-            //return false;
         }
     }
 }

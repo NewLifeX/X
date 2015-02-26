@@ -15,7 +15,7 @@ namespace NewLife.Reflection
         #endregion
 
         #region 反射获取
-        /// <summary>根据名称获取类型</summary>
+        /// <summary>根据名称获取类型。可搜索当前目录DLL，自动加载</summary>
         /// <param name="typeName">类型名</param>
         /// <param name="isLoadAssembly">是否从未加载程序集中获取类型。使用仅反射的方法检查目标类型，如果存在，则进行常规加载</param>
         /// <returns></returns>
@@ -63,7 +63,7 @@ namespace NewLife.Reflection
             return _Provider.GetField(type, name, ignoreCase);
         }
 
-        /// <summary>获取成员。搜索私有、静态、基类</summary>
+        /// <summary>获取成员。搜索私有、静态、基类，优先返回大小写精确匹配成员</summary>
         /// <param name="type">类型</param>
         /// <param name="name">名称</param>
         /// <param name="ignoreCase">忽略大小写</param>
@@ -180,40 +180,45 @@ namespace NewLife.Reflection
             if (String.IsNullOrEmpty(name)) return false;
 
             var type = GetType(ref target);
-            var pi = GetPropertyEx(type, name);
-            if (pi != null)
-            {
-                value = target.GetValue(pi);
-                return true;
-            }
+            //var pi = GetPropertyEx(type, name);
+            //if (pi != null)
+            //{
+            //    value = target.GetValue(pi);
+            //    return true;
+            //}
 
-            var fi = GetFieldEx(type, name);
-            if (fi != null)
-            {
-                value = target.GetValue(fi);
-                return true;
-            }
+            //var fi = GetFieldEx(type, name);
+            //if (fi != null)
+            //{
+            //    value = target.GetValue(fi);
+            //    return true;
+            //}
 
-            return false;
+            var mi = type.GetMemberEx(name, true);
+            if (mi == null) return false;
+
+            value = target.GetValue(mi);
+
+            return true;
         }
 
-        /// <summary>获取目标对象的属性值</summary>
-        /// <param name="target">目标对象</param>
-        /// <param name="property">属性</param>
-        /// <returns></returns>
-        public static Object GetValue(this Object target, PropertyInfo property)
-        {
-            return _Provider.GetValue(target, property);
-        }
+        ///// <summary>获取目标对象的属性值</summary>
+        ///// <param name="target">目标对象</param>
+        ///// <param name="property">属性</param>
+        ///// <returns></returns>
+        //public static Object GetValue(this Object target, PropertyInfo property)
+        //{
+        //    return _Provider.GetValue(target, property);
+        //}
 
-        /// <summary>获取目标对象的字段值</summary>
-        /// <param name="target">目标对象</param>
-        /// <param name="field">字段</param>
-        /// <returns></returns>
-        public static Object GetValue(this Object target, FieldInfo field)
-        {
-            return _Provider.GetValue(target, field);
-        }
+        ///// <summary>获取目标对象的字段值</summary>
+        ///// <param name="target">目标对象</param>
+        ///// <param name="field">字段</param>
+        ///// <returns></returns>
+        //public static Object GetValue(this Object target, FieldInfo field)
+        //{
+        //    return _Provider.GetValue(target, field);
+        //}
 
         /// <summary>获取目标对象的成员值</summary>
         /// <param name="target">目标对象</param>
@@ -239,33 +244,38 @@ namespace NewLife.Reflection
             if (String.IsNullOrEmpty(name)) return false;
 
             var type = GetType(ref target);
-            var pi = GetPropertyEx(type, name);
-            if (pi != null) { target.SetValue(pi, value); return true; }
+            //var pi = GetPropertyEx(type, name);
+            //if (pi != null) { target.SetValue(pi, value); return true; }
 
-            var fi = GetFieldEx(type, name);
-            if (fi != null) { target.SetValue(fi, value); return true; }
+            //var fi = GetFieldEx(type, name);
+            //if (fi != null) { target.SetValue(fi, value); return true; }
+
+            var mi = type.GetMemberEx(name, true);
+            if (mi == null) return false;
+
+            target.SetValue(mi, value);
 
             //throw new ArgumentException("类[" + type.FullName + "]中不存在[" + name + "]属性或字段。");
-            return false;
+            return true;
         }
 
-        /// <summary>设置目标对象的属性值</summary>
-        /// <param name="target">目标对象</param>
-        /// <param name="property">属性</param>
-        /// <param name="value">数值</param>
-        public static void SetValue(this Object target, PropertyInfo property, Object value)
-        {
-            _Provider.SetValue(target, property, value);
-        }
+        ///// <summary>设置目标对象的属性值</summary>
+        ///// <param name="target">目标对象</param>
+        ///// <param name="property">属性</param>
+        ///// <param name="value">数值</param>
+        //public static void SetValue(this Object target, PropertyInfo property, Object value)
+        //{
+        //    _Provider.SetValue(target, property, value);
+        //}
 
-        /// <summary>设置目标对象的字段值</summary>
-        /// <param name="target">目标对象</param>
-        /// <param name="field">字段</param>
-        /// <param name="value">数值</param>
-        public static void SetValue(this Object target, FieldInfo field, Object value)
-        {
-            _Provider.SetValue(target, field, value);
-        }
+        ///// <summary>设置目标对象的字段值</summary>
+        ///// <param name="target">目标对象</param>
+        ///// <param name="field">字段</param>
+        ///// <param name="value">数值</param>
+        //public static void SetValue(this Object target, FieldInfo field, Object value)
+        //{
+        //    _Provider.SetValue(target, field, value);
+        //}
 
         /// <summary>设置目标对象的成员值</summary>
         /// <param name="target">目标对象</param>

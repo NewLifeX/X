@@ -182,7 +182,6 @@
     <Compile Include="Reflection\EmitReflect.cs" />
     <Compile Include="Reflection\IL\ILInstruction.cs" />
     <Compile Include="Reflection\IL\MethodBodyReader.cs" />
-    <Compile Include="Reflection\IIndex.cs" />
     <Compile Include="Reflection\IReflect.cs" />
     <Compile Include="Reflection\PEImage.cs" />
     <Compile Include="Reflection\Reflect.cs" />
