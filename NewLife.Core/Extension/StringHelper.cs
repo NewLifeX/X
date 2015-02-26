@@ -10,7 +10,7 @@ namespace System
     {
         #region 字符串扩展
         /// <summary>忽略大小写的字符串相等比较，判断是否以任意一个待比较字符串相等</summary>
-        /// <param name="value">数值</param>
+        /// <param name="value">字符串</param>
         /// <param name="strs">待比较字符串数组</param>
         /// <returns></returns>
         public static Boolean EqualIgnoreCase(this String value, params String[] strs)
@@ -23,7 +23,7 @@ namespace System
         }
 
         /// <summary>忽略大小写的字符串开始比较，判断是否以任意一个待比较字符串开始</summary>
-        /// <param name="value">数值</param>
+        /// <param name="value">字符串</param>
         /// <param name="strs">待比较字符串数组</param>
         /// <returns></returns>
         public static Boolean StartsWithIgnoreCase(this String value, params String[] strs)
@@ -36,7 +36,7 @@ namespace System
         }
 
         /// <summary>忽略大小写的字符串结束比较，判断是否以任意一个待比较字符串结束</summary>
-        /// <param name="value">数值</param>
+        /// <param name="value">字符串</param>
         /// <param name="strs">待比较字符串数组</param>
         /// <returns></returns>
         public static Boolean EndsWithIgnoreCase(this String value, params String[] strs)
@@ -49,12 +49,12 @@ namespace System
         }
 
         /// <summary>指示指定的字符串是 null 还是 String.Empty 字符串</summary>
-        /// <param name="value">指定的字符串</param>
+        /// <param name="value">字符串</param>
         /// <returns></returns>
         public static Boolean IsNullOrEmpty(this String value) { return value == null || value.Length <= 0; }
 
         /// <summary>是否空或者空白字符串</summary>
-        /// <param name="value">数值</param>
+        /// <param name="value">字符串</param>
         /// <returns></returns>
         public static Boolean IsNullOrWhiteSpace(this String value)
         {
@@ -69,24 +69,26 @@ namespace System
         }
 
         /// <summary>拆分字符串</summary>
-        /// <param name="value">数值</param>
-        /// <param name="separators"></param>
+        /// <param name="value">字符串</param>
+        /// <param name="separators">分组分隔符，默认逗号分号</param>
         /// <returns></returns>
         public static String[] Split(this String value, params String[] separators)
         {
             if (String.IsNullOrEmpty(value)) return new String[0];
+            if (separators == null || separators.Length < 1) separators = new String[] { ",", ";" };
 
             return value.Split(separators, StringSplitOptions.RemoveEmptyEntries);
         }
 
         /// <summary>拆分字符串成为整型数组</summary>
         /// <remarks>过滤空格、过滤无效、过滤重复</remarks>
-        /// <param name="value">数值</param>
-        /// <param name="separators"></param>
+        /// <param name="value">字符串</param>
+        /// <param name="separators">分组分隔符，默认逗号分号</param>
         /// <returns></returns>
         public static Int32[] SplitAsInt(this String value, params String[] separators)
         {
             if (String.IsNullOrEmpty(value)) return new Int32[0];
+            if (separators == null || separators.Length < 1) separators = new String[] { ",", ";" };
 
             var ss = value.Split(separators, StringSplitOptions.RemoveEmptyEntries);
             var list = new List<Int32>();
@@ -102,58 +104,58 @@ namespace System
         }
 
         /// <summary>拆分字符串成为名值字典。逗号分号分组，等号分隔</summary>
-        /// <param name="str"></param>
-        /// <param name="nameValueSeparator"></param>
-        /// <param name="separators"></param>
+        /// <param name="value">字符串</param>
+        /// <param name="nameValueSeparator">名值分隔符，默认等于号</param>
+        /// <param name="separators">分组分隔符，默认逗号分号</param>
         /// <returns></returns>
-        public static IDictionary<String, String> SplitAsDictionary(this String str, String nameValueSeparator = "=", params String[] separators)
+        public static IDictionary<String, String> SplitAsDictionary(this String value, String nameValueSeparator = "=", params String[] separators)
         {
             var dic = new Dictionary<String, String>();
-            if (str.IsNullOrWhiteSpace()) return dic;
+            if (value.IsNullOrWhiteSpace()) return dic;
 
             if (String.IsNullOrEmpty(nameValueSeparator)) nameValueSeparator = "=";
             if (separators == null || separators.Length < 1) separators = new String[] { ",", ";" };
 
-            String[] ss = str.Split(separators, StringSplitOptions.RemoveEmptyEntries);
+            var ss = value.Split(separators, StringSplitOptions.RemoveEmptyEntries);
             if (ss == null || ss.Length < 1) return null;
 
             foreach (var item in ss)
             {
-                Int32 p = item.IndexOf(nameValueSeparator);
+                var p = item.IndexOf(nameValueSeparator);
                 // 在前后都不行
                 if (p <= 0 || p >= item.Length - 1) continue;
 
-                String key = item.Substring(0, p).Trim();
+                var key = item.Substring(0, p).Trim();
                 dic[key] = item.Substring(p + nameValueSeparator.Length).Trim();
             }
 
             return dic;
         }
 
-        /// <summary>追加分隔符字符串，除了开头</summary>
-        /// <param name="sb"></param>
-        /// <param name="str"></param>
+        /// <summary>追加分隔符字符串，忽略开头，常用于拼接</summary>
+        /// <param name="sb">字符串构造者</param>
+        /// <param name="separator">分隔符</param>
         /// <returns></returns>
-        public static StringBuilder AppendSeparate(this StringBuilder sb, String str)
+        public static StringBuilder Separate(this StringBuilder sb, String separator)
         {
-            if (sb == null || String.IsNullOrEmpty(str)) return sb;
+            if (sb == null || String.IsNullOrEmpty(separator)) return sb;
 
-            if (sb.Length > 0) sb.Append(str);
+            if (sb.Length > 0) sb.Append(separator);
 
             return sb;
         }
 
         /// <summary>字符串转数组</summary>
-        /// <param name="str"></param>
-        /// <param name="encoding"></param>
+        /// <param name="value">字符串</param>
+        /// <param name="encoding">编码，默认utf-8无BOM</param>
         /// <returns></returns>
-        public static Byte[] GetBytes(this String str, Encoding encoding = null)
+        public static Byte[] GetBytes(this String value, Encoding encoding = null)
         {
-            if (str == null) return null;
-            if (str == String.Empty) return new Byte[0];
+            if (value == null) return null;
+            if (value == String.Empty) return new Byte[0];
 
             if (encoding == null) encoding = Encoding.UTF8;
-            return encoding.GetBytes(str);
+            return encoding.GetBytes(value);
         }
         #endregion
 

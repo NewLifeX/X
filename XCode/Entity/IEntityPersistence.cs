@@ -455,9 +455,8 @@ namespace XCode
                 //// 20120509增加，同时还得判断是否相同数据库或者数据库默认值，比如MSSQL数据库默认值不是GetDate，那么其它数据库是不可能使用的
                 //if (!String.IsNullOrEmpty(fi.DefaultValue) && !entity.Dirtys[fi.Name] && CanUseDefault(fi, op)) continue;
 
-                sbNames.AppendSeparate(", ");
-                sbNames.Append(op.FormatName(fi.ColumnName));
-                sbValues.AppendSeparate(", ");
+                sbNames.Separate(", ").Append(op.FormatName(fi.ColumnName));
+                sbValues.Separate(", ");
 
                 //// 可空类型插入空
                 //if (!obj.Dirtys[fi.Name] && fi.DataObjectField.IsNullable)
@@ -491,9 +490,8 @@ namespace XCode
             // 允许返回String.Empty作为插入空
             if (idv == null) return true;
 
-            sbNames.AppendSeparate(", ");
-            sbNames.Append(op.FormatName(fi.ColumnName));
-            sbValues.AppendSeparate(", ");
+            sbNames.Separate(", ").Append(op.FormatName(fi.ColumnName));
+            sbValues.Separate(", ");
 
             sbValues.Append(idv);
 
@@ -527,7 +525,7 @@ namespace XCode
 
                 var value = entity[fi.Name];
 
-                sb.AppendSeparate(", "); // 加逗号
+                sb.Separate(", "); // 加逗号
 
                 var name = op.FormatName(fi.ColumnName);
                 sb.Append(name);
