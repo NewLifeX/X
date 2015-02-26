@@ -24,6 +24,13 @@ namespace System
         /// <returns></returns>
         public static Int32 ToInt(this Object value, Int32 defaultValue = 0) { return _Convert.ToInt(value, defaultValue); }
 
+        /// <summary>转为浮点数，转换失败时返回默认值。支持字符串、全角、字节数组（小端）</summary>
+        /// <remarks>Single可以先转为最常用的Double后再二次处理</remarks>
+        /// <param name="value">待转换对象</param>
+        /// <param name="defaultValue">默认值。待转换对象无效时使用</param>
+        /// <returns></returns>
+        public static Double ToDouble(this Object value, Double defaultValue = 0) { return _Convert.ToDouble(value, defaultValue); }
+
         /// <summary>转为布尔型，转换失败时返回默认值。支持大小写True/False、0和非零</summary>
         /// <param name="value">待转换对象</param>
         /// <param name="defaultValue">默认值。待转换对象无效时使用</param>
@@ -99,6 +106,59 @@ namespace System
             try
             {
                 return Convert.ToInt32(value);
+            }
+            catch { return defaultValue; }
+        }
+
+        /// <summary>转为浮点数</summary>
+        /// <param name="value">待转换对象</param>
+        /// <param name="defaultValue">默认值。待转换对象无效时使用</param>
+        /// <returns></returns>
+        public virtual Double ToDouble(Object value, Double defaultValue)
+        {
+            if (value == null) return defaultValue;
+
+            // 特殊处理字符串，也是最常见的
+            if (value is String)
+            {
+                var str = value as String;
+                str = ToDBC(str).Trim();
+                if (String.IsNullOrEmpty(str)) return defaultValue;
+
+                var n = defaultValue;
+                if (Double.TryParse(str, out n)) return n;
+                return defaultValue;
+            }
+            else if (value is Byte[])
+            {
+                var buf = (Byte[])value;
+                if (buf == null || buf.Length < 1) return defaultValue;
+
+                switch (buf.Length)
+                {
+                    case 1:
+                        return buf[0];
+                    case 2:
+                        return BitConverter.ToInt16(buf, 0);
+                    case 3:
+                        return BitConverter.ToInt32(new Byte[] { buf[0], buf[1], buf[2], 0 }, 0);
+                    case 4:
+                        return BitConverter.ToInt32(buf, 0);
+                    default:
+                        // 凑够8字节
+                        if (buf.Length < 8)
+                        {
+                            var bts = new Byte[8];
+                            Buffer.BlockCopy(buf, 0, bts, 0, buf.Length);
+                            buf = bts;
+                        }
+                        return BitConverter.ToDouble(buf, 0);
+                }
+            }
+
+            try
+            {
+                return Convert.ToDouble(value);
             }
             catch { return defaultValue; }
         }
