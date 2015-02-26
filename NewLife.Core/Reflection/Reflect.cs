@@ -39,26 +39,40 @@ namespace NewLife.Reflection
             return _Provider.GetMethod(type, name, paramTypes);
         }
 
-        /// <summary>获取属性</summary>
+        /// <summary>获取属性。搜索私有、静态、基类</summary>
         /// <param name="type">类型</param>
         /// <param name="name">名称</param>
+        /// <param name="ignoreCase">忽略大小写</param>
         /// <returns></returns>
-        public static PropertyInfo GetPropertyEx(this Type type, String name)
+        public static PropertyInfo GetPropertyEx(this Type type, String name, Boolean ignoreCase = false)
         {
             if (String.IsNullOrEmpty(name)) return null;
 
-            return _Provider.GetProperty(type, name);
+            return _Provider.GetProperty(type, name, ignoreCase);
         }
 
-        /// <summary>获取字段</summary>
+        /// <summary>获取字段。搜索私有、静态、基类</summary>
         /// <param name="type">类型</param>
         /// <param name="name">名称</param>
+        /// <param name="ignoreCase">忽略大小写</param>
         /// <returns></returns>
-        public static FieldInfo GetFieldEx(this Type type, String name)
+        public static FieldInfo GetFieldEx(this Type type, String name, Boolean ignoreCase = false)
         {
             if (String.IsNullOrEmpty(name)) return null;
 
-            return _Provider.GetField(type, name);
+            return _Provider.GetField(type, name, ignoreCase);
+        }
+
+        /// <summary>获取成员。搜索私有、静态、基类</summary>
+        /// <param name="type">类型</param>
+        /// <param name="name">名称</param>
+        /// <param name="ignoreCase">忽略大小写</param>
+        /// <returns></returns>
+        public static MemberInfo GetMemberEx(this Type type, String name, Boolean ignoreCase = false)
+        {
+            if (String.IsNullOrEmpty(name)) return null;
+
+            return _Provider.GetMember(type, name, ignoreCase);
         }
         #endregion
 

@@ -28,14 +28,23 @@ namespace NewLife.Reflection
         /// <summary>获取属性</summary>
         /// <param name="type">类型</param>
         /// <param name="name">名称</param>
+        /// <param name="ignoreCase">忽略大小写</param>
         /// <returns></returns>
-        PropertyInfo GetProperty(Type type, String name);
+        PropertyInfo GetProperty(Type type, String name, Boolean ignoreCase);
 
         /// <summary>获取字段</summary>
         /// <param name="type">类型</param>
         /// <param name="name">名称</param>
+        /// <param name="ignoreCase">忽略大小写</param>
         /// <returns></returns>
-        FieldInfo GetField(Type type, String name);
+        FieldInfo GetField(Type type, String name, Boolean ignoreCase);
+
+        /// <summary>获取成员</summary>
+        /// <param name="type">类型</param>
+        /// <param name="name">名称</param>
+        /// <param name="ignoreCase">忽略大小写</param>
+        /// <returns></returns>
+        MemberInfo GetMember(Type type, String name, Boolean ignoreCase);
         #endregion
 
         #region 反射调用
@@ -152,6 +161,7 @@ namespace NewLife.Reflection
         }
 
         static BindingFlags bf = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance;
+        static BindingFlags bfic = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance | BindingFlags.IgnoreCase;
 
         /// <summary>获取方法</summary>
         /// <remarks>用于具有多个签名的同名方法的场合，不确定是否存在性能问题，不建议普通场合使用</remarks>
@@ -167,13 +177,14 @@ namespace NewLife.Reflection
         /// <summary>获取属性</summary>
         /// <param name="type">类型</param>
         /// <param name="name">名称</param>
+        /// <param name="ignoreCase">忽略大小写</param>
         /// <returns></returns>
-        public virtual PropertyInfo GetProperty(Type type, String name)
+        public virtual PropertyInfo GetProperty(Type type, String name, Boolean ignoreCase)
         {
-            // 父类属性的获取需要递归，有些类型的父类为空，比如接口
+            // 父类私有属性的获取需要递归，可见范围则不需要，有些类型的父类为空，比如接口
             while (type != null && type != typeof(Object))
             {
-                var pi = type.GetProperty(name, bf);
+                var pi = type.GetProperty(name, ignoreCase ? bfic : bf);
                 if (pi != null) return pi;
 
                 type = type.BaseType;
@@ -184,14 +195,44 @@ namespace NewLife.Reflection
         /// <summary>获取字段</summary>
         /// <param name="type">类型</param>
         /// <param name="name">名称</param>
+        /// <param name="ignoreCase">忽略大小写</param>
         /// <returns></returns>
-        public virtual FieldInfo GetField(Type type, String name)
+        public virtual FieldInfo GetField(Type type, String name, Boolean ignoreCase)
         {
-            // 父类字段的获取需要递归，有些类型的父类为空，比如接口
+            // 父类私有字段的获取需要递归，可见范围则不需要，有些类型的父类为空，比如接口
             while (type != null && type != typeof(Object))
             {
-                var fi = type.GetField(name, bf);
+                var fi = type.GetField(name, ignoreCase ? bfic : bf);
                 if (fi != null) return fi;
+
+                type = type.BaseType;
+            }
+            return null;
+        }
+
+        /// <summary>获取成员</summary>
+        /// <param name="type">类型</param>
+        /// <param name="name">名称</param>
+        /// <param name="ignoreCase">忽略大小写</param>
+        /// <returns></returns>
+        public virtual MemberInfo GetMember(Type type, String name, Boolean ignoreCase)
+        {
+            // 父类私有成员的获取需要递归，可见范围则不需要，有些类型的父类为空，比如接口
+            while (type != null && type != typeof(Object))
+            {
+                var fs = type.GetMember(name, ignoreCase ? bfic : bf);
+                if (fs != null && fs.Length > 0)
+                {
+                    // 得到多个的时候，优先返回精确匹配
+                    if (ignoreCase && fs.Length > 1)
+                    {
+                        foreach (var fi in fs)
+                        {
+                            if (fi.Name == name) return fi;
+                        }
+                    }
+                    return fs[0];
+                }
 
                 type = type.BaseType;
             }
