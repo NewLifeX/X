@@ -158,13 +158,23 @@ namespace System
             return encoding.GetBytes(value);
         }
 
-        /// <summary>格式化字符串</summary>
+        /// <summary>格式化字符串。特别支持无格式化字符串的时间参数</summary>
         /// <param name="value">格式字符串</param>
         /// <param name="args">参数</param>
         /// <returns></returns>
         public static String Format(this String value, params Object[] args)
         {
             if (String.IsNullOrEmpty(value)) return value;
+
+            // 特殊处理时间格式化。这些年，无数项目实施因为时间格式问题让人发狂
+            for (int i = 0; i < args.Length; i++)
+            {
+                if (args[i] is DateTime)
+                {
+                    // 没有写格式化字符串的时间参数，一律转为标准时间字符串
+                    if (value.Contains("{" + i + "}")) args[i] = ((DateTime)args[i]).ToFullString();
+                }
+            }
 
             return String.Format(value, args);
         }
