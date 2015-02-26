@@ -1,65 +1,57 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Globalization;
 
 namespace NewLife
 {
     /// <summary>工具类</summary>
     /// <remarks>
-    /// 采用对象容器架构，允许外部重载工具类的各种实现
+    /// 采用静态架构，允许外部重载工具类的各种实现<seealso cref="DefaultConvert"/>。
+    /// 所有类型转换均支持默认值，默认值为该default(T)，在转换失败时返回默认值。
     /// </remarks>
     public static class Utility
     {
-        //static Utility()
-        //{
-        //    _Convert = ObjectContainer.Current.AutoRegister<DefaultConvert, DefaultConvert>().Resolve<DefaultConvert>();
-        //}
-
         #region 类型转换
         private static DefaultConvert _Convert = new DefaultConvert();
         /// <summary>类型转换提供者</summary>
+        /// <remarks>重载默认提供者<seealso cref="DefaultConvert"/>并赋值给<see cref="Convert"/>可改变所有类型转换的行为</remarks>
         public static DefaultConvert Convert { get { return _Convert; } set { _Convert = value; } }
 
-        ///// <summary>转为整数</summary>
-        ///// <param name="value">待转换对象</param>
-        ///// <returns></returns>
-        //public static Int32 ToInt32(this Object value) { return _Convert.ToInt32(value, 0); }
-
-        /// <summary>转为整数</summary>
+        /// <summary>转为整数，转换失败时返回默认值。支持字符串、全角、字节数组（小端）</summary>
+        /// <remarks>Int16/UInt32/Int64等，可以先转为最常用的Int32后再二次处理</remarks>
         /// <param name="value">待转换对象</param>
         /// <param name="defaultValue">默认值。待转换对象无效时使用</param>
         /// <returns></returns>
         public static Int32 ToInt(this Object value, Int32 defaultValue = 0) { return _Convert.ToInt(value, defaultValue); }
 
-        ///// <summary>转为布尔型</summary>
-        ///// <param name="value">待转换对象</param>
-        ///// <returns></returns>
-        //public static Boolean ToBoolean(this Object value) { return _Convert.ToBoolean(value, false); }
-
-        /// <summary>转为布尔型。支持大小写True/False、0和非零</summary>
+        /// <summary>转为布尔型，转换失败时返回默认值。支持大小写True/False、0和非零</summary>
         /// <param name="value">待转换对象</param>
         /// <param name="defaultValue">默认值。待转换对象无效时使用</param>
         /// <returns></returns>
         public static Boolean ToBoolean(this Object value, Boolean defaultValue = false) { return _Convert.ToBoolean(value, defaultValue); }
 
-        /// <summary>转为时间日期</summary>
+        /// <summary>转为时间日期，转换失败时返回最小时间</summary>
         /// <param name="value">待转换对象</param>
         /// <returns></returns>
         public static DateTime ToDateTime(this Object value) { return _Convert.ToDateTime(value, DateTime.MinValue); }
 
-        /// <summary>转为时间日期</summary>
+        /// <summary>转为时间日期，转换失败时返回默认值</summary>
+        /// <remarks><see cref="DateTime.MinValue"/>不是常量无法做默认值</remarks>
         /// <param name="value">待转换对象</param>
         /// <param name="defaultValue">默认值。待转换对象无效时使用</param>
         /// <returns></returns>
         public static DateTime ToDateTime(this Object value, DateTime defaultValue) { return _Convert.ToDateTime(value, defaultValue); }
 
         /// <summary>时间日期转为yyyy-MM-dd HH:mm:ss完整字符串</summary>
-        /// <param name="value"></param>
+        /// <remarks>最常用的时间日期格式，可以无视各平台以及系统自定义的时间格式</remarks>
+        /// <param name="value">待转换对象</param>
         /// <returns></returns>
         public static String ToFullString(this DateTime value) { return _Convert.ToFullString(value); }
         #endregion
     }
 
     /// <summary>默认转换</summary>
+    [EditorBrowsable(EditorBrowsableState.Advanced)]
     public class DefaultConvert
     {
         /// <summary>转为整数</summary>
