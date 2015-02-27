@@ -103,7 +103,7 @@ namespace NewLife.CommonEntity
         {
             if (hasInit > 0 || Interlocked.CompareExchange(ref hasInit, 1, 0) != 0) return;
 
-            _AdministratorType = ObjectContainer.Current.ResolveType<IRole>();
+            _AdministratorType = ObjectContainer.Current.ResolveType<IAdministrator>();
             _RoleType = ObjectContainer.Current.ResolveType<IRole>();
             _MenuType = ObjectContainer.Current.ResolveType<IMenu>();
             _LogType = ObjectContainer.Current.ResolveType<ILog>();

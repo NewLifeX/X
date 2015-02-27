@@ -9,7 +9,7 @@ using NewLife.Reflection;
 using NewLife.Web;
 using XControl;
 
-public partial class Admin_SysConfig : System.Web.UI.Page
+public partial class Admin_SysConfig : MyEntityList
 {
     /// <summary>系统配置。如果重载，修改这里即可。</summary>
     public static SysConfig Config { get { return SysConfig.Current; } }
