@@ -2,7 +2,7 @@
     Title="管理员管理" MasterPageFile="~/Admin/ManagerPage.master" %>
 
 <asp:Content ID="C" ContentPlaceHolderID="C" runat="server">
-    <div class="toolbar">
+    <div class="container-fluid">
         角色：<XCL:DropDownList ID="ddlRole" runat="server" DataSourceID="odsRole" AppendDataBoundItems="true"
             DataTextField="Name" DataValueField="ID" AutoPostBack="True">
             <asp:ListItem Value="0">请选择</asp:ListItem>
@@ -14,22 +14,22 @@
         </asp:DropDownList>
         关键字：
         <asp:TextBox runat="server" ID="txtKey" />
-        <asp:Button ID="Button1" runat="server" Text="查询" />
+        <asp:Button ID="Button1" runat="server" Text="查询" CssClass="btn btn-primary" />
         <XCL:LinkBox ID="lbAdd" runat="server" BoxHeight="370px" BoxWidth="440px" Url="AdminForm.aspx"
             IconLeft="~/Admin/images/icons/new.gif"><b>添加管理员</b></XCL:LinkBox>
         &nbsp;<asp:Button ID="btnDelete" runat="server" Text="批量删除" OnClientClick='return confirm("确定批量删除吗？")'
-            OnClick="btnDelete_Click" />
+            OnClick="btnDelete_Click" CssClass="btn btn-danger" />
         &nbsp;<asp:Button ID="btnEnable" runat="server" Text="批量启用" OnClientClick='return confirm("确定批量启用吗？")'
-            OnClick="btnEnable_Click" />
+            OnClick="btnEnable_Click" CssClass="btn btn-success" />
         &nbsp;<asp:Button ID="btnDisable" runat="server" Text="批量禁用" OnClientClick='return confirm("确定批量禁用吗？")'
-            OnClick="btnDisable_Click" />
+            OnClick="btnDisable_Click" CssClass="btn btn-warning" />
         &nbsp;<asp:Button ID="btnUpgradeToRole" runat="server" Text="批量升级为角色" OnClientClick='return confirm("确定批量升级吗？")'
             OnClick="btnUpgradeToRole_Click" Visible="false" />
         &nbsp;<asp:Button ID="btnChangePass" Visible="false" runat="server" Text="批量修改密码"
             OnClientClick='return confirm("确定批量修改密码吗？")' OnClick="btnChangePass_Click" />
     </div>
     <asp:GridView ID="gv" runat="server" AutoGenerateColumns="False" DataKeyNames="ID"
-        DataSourceID="ods" CssClass="m_table" CellPadding="0" GridLines="None" 
+        DataSourceID="ods" CssClass="table table-hover" CellPadding="0" GridLines="None" 
         EnableModelValidation="True" AllowPaging="True" AllowSorting="True" 
         PageSize="10">
         <Columns>
@@ -43,7 +43,7 @@
             <asp:BoundField DataField="ID" HeaderText="编号" SortExpression="ID" InsertVisible="False"
                 ReadOnly="True">
                 <HeaderStyle Width="40px" />
-                <ItemStyle CssClass="key" HorizontalAlign="Center" />
+                <ItemStyle HorizontalAlign="Center" />
             </asp:BoundField>
             <XCL:LinkBoxField HeaderText="用户名" DataNavigateUrlFields="ID" DataNavigateUrlFormatString="AdminForm.aspx?ID={0}"
                 Height="400px" DataTextField="Name" Width="370px" Title="编辑管理员" SortExpression="Name">

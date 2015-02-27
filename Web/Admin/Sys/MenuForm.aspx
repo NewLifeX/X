@@ -2,7 +2,7 @@
     CodeFile="MenuForm.aspx.cs" Title="菜单管理" Inherits="Pages_MenuForm" %>
 
 <asp:Content ID="Content1" ContentPlaceHolderID="C" runat="server">
-    <table border="0" class="m_table" cellspacing="1" cellpadding="0" align="Center">
+    <table border="0" class="m_table" cellspacing="1" cellpadding="0"">
         <tr>
             <th colspan="2">
                 菜单
@@ -72,12 +72,12 @@
             </td>
         </tr>
     </table>
-    <table border="0" align="Center" width="100%">
+    <table border="0" width="100%">
         <tr>
             <td align="center">
-                <asp:Button ID="UpdateButton" runat="server" CausesValidation="True" Text="更新" />
+                <asp:Button ID="UpdateButton" runat="server" CausesValidation="True" Text="更新" CssClass="btn btn-primary" />
                 &nbsp;<asp:Button ID="Button2" runat="server" OnClientClick="parent.Dialog.CloseSelfDialog(frameElement);return false;"
-                    Text="返回" />
+                    Text="返回" CssClass="btn btn-warning" />
             </td>
         </tr>
     </table>

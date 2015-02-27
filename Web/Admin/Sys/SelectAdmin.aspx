@@ -16,7 +16,7 @@
                 DataTextField="Name" DataValueField="ID">
                 <asp:ListItem Value="0">请选择</asp:ListItem>
             </XCL:DropDownList>
-            <asp:Button ID="Button3" runat="server" Text="搜索" />
+            <asp:Button ID="Button3" runat="server" Text="搜索" CssClass="btn btn-primary" />
             &nbsp; 选择了：<asp:Label ID="lblmsg" runat="server" ForeColor="Red">未选择
             </asp:Label>（提示：双击选中）
         </div>

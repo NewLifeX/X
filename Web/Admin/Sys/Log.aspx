@@ -2,7 +2,7 @@
     Title="日志查看" MasterPageFile="~/Admin/ManagerPage.master" EnableEventValidation="false" %>
 
 <asp:Content ID="Content1" ContentPlaceHolderID="C" runat="server">
-    <div class="toolbar">
+    <div class="container-fluid">
         类别：<asp:DropDownList ID="ddlCategory" runat="server" AppendDataBoundItems="True"
             DataSourceID="odsCategory" DataTextField="Category" DataValueField="Category">
             <asp:ListItem>全部</asp:ListItem>
@@ -17,7 +17,7 @@
         &nbsp;至
         <XCL:DateTimePicker ID="EndDate" runat="server" LongTime="False">
         </XCL:DateTimePicker>
-        &nbsp;<asp:Button ID="Button1" runat="server" Text="查询" />
+        &nbsp;<asp:Button ID="Button1" runat="server" Text="查询" CssClass="btn btn-primary" />
     </div>
     <asp:GridView ID="GridView1" runat="server" AutoGenerateColumns="False" DataKeyNames="ID"
         DataSourceID="ods" AllowPaging="True" AllowSorting="True" CssClass="m_table"

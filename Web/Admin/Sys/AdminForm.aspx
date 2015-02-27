@@ -2,7 +2,7 @@
     CodeFile="AdminForm.aspx.cs" Inherits="Pages_AdminForm" Title="管理员管理" %>
 
 <asp:Content ID="C" ContentPlaceHolderID="C" runat="server">
-    <table border="0" class="m_table" cellspacing="1" cellpadding="0" align="Center">
+    <table border="0" class="m_table" cellspacing="1" cellpadding="0">
         <tr>
             <th colspan="2">管理员</th>
         </tr>
@@ -12,7 +12,7 @@
         </tr>
 <tr>
             <td align="right">密码：</td>
-            <td><asp:TextBox ID="frmPassword" runat="server" TextMode="Password"></asp:TextBox></td>
+            <td><asp:TextBox ID="frmPassword_" runat="server" TextMode="Password"></asp:TextBox></td>
         </tr>
 <tr>
             <td align="right">显示名：</td>
@@ -38,23 +38,7 @@
                 QQ：
             </td>
             <td>
-                <asp:TextBox ID="frmQQ" runat="server" ></asp:TextBox>
-            </td>
-        </tr>
-        <tr>
-            <td align="right">
-                MSN：
-            </td>
-            <td>
-                <asp:TextBox ID="frmMSN" runat="server" ></asp:TextBox>
-            </td>
-        </tr>
-        <tr>
-            <td align="right">
-                邮箱：
-            </td>
-            <td>
-                <XCL:MailBox ID="frmEmail" runat="server" ></XCL:MailBox>
+                <asp:TextBox ID="frmCode" runat="server" ></asp:TextBox>
             </td>
         </tr>
         <tr>
@@ -65,12 +49,20 @@
                 <asp:TextBox ID="frmPhone" runat="server" ></asp:TextBox>
             </td>
         </tr>
+        <tr>
+            <td align="right">
+                邮箱：
+            </td>
+            <td>
+                <XCL:MailBox ID="frmMail" runat="server" ></XCL:MailBox>
+            </td>
+        </tr>
     </table>
-    <table border="0" align="Center" width="100%">
+    <table border="0" width="100%">
         <tr>
             <td align="center">
-                <asp:Button ID="btnSave" runat="server" CausesValidation="True" Text='保存' />
-                &nbsp;<asp:Button ID="btnReturn" runat="server" OnClientClick="parent.Dialog.CloseSelfDialog(frameElement);return false;" Text="返回" />
+                <asp:Button ID="btnSave" runat="server" CausesValidation="True" Text='保存' CssClass="btn btn-primary" />
+                &nbsp;<asp:Button ID="btnReturn" runat="server" OnClientClick="parent.Dialog.CloseSelfDialog(frameElement);return false;" Text="返回" CssClass="btn btn-warning" />
             </td>
         </tr>
     </table>
