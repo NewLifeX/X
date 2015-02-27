@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Text;
+using System.Web.UI.WebControls;
 using NewLife.Log;
 using NewLife.Reflection;
+using NewLife.Web;
 
 namespace NewLife.CommonEntity
 {
@@ -170,6 +172,15 @@ namespace NewLife.CommonEntity
             WriteLog("删除", this);
 
             return base.Delete();
+        }
+
+        /// <summary>已重载。</summary>
+        /// <returns></returns>
+        public override int Save()
+        {
+            SavePermission();
+
+            return base.Save();
         }
 
         /// <summary>加载权限字典</summary>
@@ -393,6 +404,191 @@ namespace NewLife.CommonEntity
         //    return n;
         //}
         #endregion
+
+        #region 前端页面
+        /// <summary>绑定权限项列表时，二次绑定权限子项</summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        /// <param name="role"></param>
+        /// <param name="isfull"></param>
+        public static void RowDataBound(object sender, GridViewRowEventArgs e, IRole role, Boolean isfull)
+        {
+            if (e.Row == null) return;
+
+            // 当前菜单项
+            var menu = e.Row.DataItem as IMenu;
+            if (menu == null) return;
+
+            var cb = e.Row.FindControl("CheckBox1") as CheckBox;
+            var cblist = e.Row.FindControl("CheckBoxList1") as CheckBoxList;
+
+            // 检查权限
+            var pf = role.Get(menu.ID);
+
+            //cb.Checked = role.Permissions.ContainsKey(menu.ID);
+            cb.Checked = role.Has(menu.ID);
+            cb.ToolTip = pf.ToString();
+
+            // 如果有子节点，则不显示
+            if (menu.Childs != null && menu.Childs.Count > 0)
+            {
+                //cb.Visible = false;
+                cblist.Visible = false;
+                return;
+            }
+
+            // 检查权限
+            var flags = EnumHelper.GetDescriptions<PermissionFlags>();
+            cblist.Items.Clear();
+            foreach (var item in flags.Keys)
+            {
+                if (item == PermissionFlags.None) continue;
+                if (!isfull && item > PermissionFlags.Delete) continue;
+
+                var li = new ListItem(flags[item], ((Int32)item).ToString());
+                if ((pf & item) == item) li.Selected = true;
+                cblist.Items.Add(li);
+            }
+        }
+
+        /// <summary>修改单个功能项权限时</summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        /// <param name="role"></param>
+        /// <returns></returns>
+        public static Boolean CheckedChanged(object sender, EventArgs e, IRole role)
+        {
+            var cb = sender as CheckBox;
+            if (cb == null) return false;
+
+            var row = cb.BindingContainer as GridViewRow;
+            if (row == null) return false;
+
+            //var menu = CommonManageProvider.Provider.MenuRoot.AllChilds[row.DataItemIndex];
+            var provider = CommonManageProvider.Provider;
+            var menuid = (Int32)(row.NamingContainer as GridView).DataKeys[row.DataItemIndex].Value;
+            //var menu = provider.MenuRoot.AllChilds.FirstOrDefault(m => m.ID == menuid);
+            var menu = provider.FindByMenuID(menuid);
+            if (menu == null) return false;
+
+            var Manager = cb.Page.GetValue("Manager") as IManagePage;
+
+            // 检查权限
+            var pf = role.Get(menu.ID);
+
+            if (cb.Checked)
+            {
+                // 没有权限，增加
+                if (pf == PermissionFlags.None)
+                {
+                    if (!Manager.Acquire(PermissionFlags.Insert))
+                    {
+                        WebHelper.Alert("没有添加权限！");
+                        return false;
+                    }
+
+                    role.Set(menu.ID, PermissionFlags.All);
+
+                    // 如果父级没有授权，则授权
+                    CheckAndAddParent(role, menu);
+
+                    role.Save();
+                }
+            }
+            else
+            {
+                // 如果有权限，删除
+                if (pf != PermissionFlags.None)
+                {
+                    if (!Manager.Acquire(PermissionFlags.Delete))
+                    {
+                        WebHelper.Alert("没有删除权限！");
+                        return false;
+                    }
+
+                    role.Remove(menu.ID);
+                    role.Save();
+                }
+            }
+
+            return true;
+        }
+
+        /// <summary>选择改变时</summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        /// <param name="role"></param>
+        /// <returns></returns>
+        public static Boolean SelectedIndexChanged(object sender, EventArgs e, IRole role)
+        {
+            var cb = sender as CheckBoxList;
+
+            //只需判断cb是否为空，该角色只有“查看”权限时cb.SelectedItem为空。
+            //if (cb == null || cb.SelectedItem == null) return;
+            if (cb == null) return false;
+
+            var row = cb.BindingContainer as GridViewRow;
+            if (row == null) return false;
+
+            //var menu = CommonManageProvider.Provider.MenuRoot.AllChilds[row.DataItemIndex] as IMenu;
+            var provider = CommonManageProvider.Provider;
+            var menuid = (Int32)(row.NamingContainer as GridView).DataKeys[row.DataItemIndex].Value;
+            //var menu = provider.MenuRoot.AllChilds.FirstOrDefault(m => m.ID == menuid);
+            var menu = provider.FindByMenuID(menuid);
+            if (menu == null) return false;
+
+            var Manager = cb.Page.GetValue("Manager") as IManagePage;
+
+            var pf = role.Get(menu.ID);
+
+            // 没有权限，增加
+            if (pf == PermissionFlags.None)
+            {
+                if (!Manager.Acquire(PermissionFlags.Insert))
+                {
+                    WebHelper.Alert("没有添加权限！");
+                    return false;
+                }
+
+                role.Set(menu.ID, PermissionFlags.None);
+            }
+
+            // 遍历权限项
+            var flag = PermissionFlags.None;
+            foreach (ListItem item in cb.Items)
+            {
+                if (item.Selected) flag |= (PermissionFlags)(Int32.Parse(item.Value));
+            }
+
+            if (pf != flag)
+            {
+                if (!Manager.Acquire(PermissionFlags.Update))
+                {
+                    WebHelper.Alert("没有编辑权限！");
+                    return false;
+                }
+
+                //role.Permissions[menu.ID] = flag;
+                role.Remove(menu.ID);
+                role.Set(menu.ID, flag);
+
+                // 如果父级没有授权，则授权
+                CheckAndAddParent(role, menu);
+            }
+            role.Save();
+
+            return true;
+        }
+
+        static void CheckAndAddParent(IRole role, IMenu menu)
+        {
+            // 如果父级没有授权，则授权
+            while ((menu = menu.Parent) != null && menu.ID != 0)
+            {
+                role.Set(menu.ID, PermissionFlags.All);
+            }
+        }
+        #endregion
     }
 
     public partial interface IRole
@@ -413,6 +609,26 @@ namespace NewLife.CommonEntity
 
         ///// <summary>当前角色拥有的菜单</summary>
         //List<IMenu> Menus { get; }
+
+        /// <summary>是否拥有指定资源的指定权限</summary>
+        /// <param name="resid"></param>
+        /// <param name="flag"></param>
+        /// <returns></returns>
+        Boolean Has(Int32 resid, PermissionFlags flag = PermissionFlags.None);
+
+        /// <summary>删除指定资源的权限</summary>
+        /// <param name="resid"></param>
+        void Remove(Int32 resid);
+
+        /// <summary>获取权限</summary>
+        /// <param name="resid"></param>
+        /// <returns></returns>
+        PermissionFlags Get(Int32 resid);
+
+        /// <summary>设置该角色拥有指定资源的指定权限</summary>
+        /// <param name="resid"></param>
+        /// <param name="flag"></param>
+        void Set(Int32 resid, PermissionFlags flag = PermissionFlags.All);
 
         /// <summary>当前角色拥有的资源</summary>
         Int32[] Resources { get; }
