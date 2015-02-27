@@ -227,9 +227,9 @@ namespace NewLife.Reflection
         public static Object GetValue(this Object target, MemberInfo member)
         {
             if (member is PropertyInfo)
-                return target.GetValue(member as PropertyInfo);
+                return _Provider.GetValue(target, member as PropertyInfo);
             else if (member is FieldInfo)
-                return target.GetValue(member as FieldInfo);
+                return _Provider.GetValue(target, member as FieldInfo);
             else
                 throw new ArgumentOutOfRangeException("member");
         }
