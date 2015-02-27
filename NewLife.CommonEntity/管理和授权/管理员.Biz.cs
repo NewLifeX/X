@@ -65,18 +65,6 @@ namespace NewLife.CommonEntity
             if (RoleID < 1) throw new ArgumentNullException(__.RoleID, "没有指定角色！");
         }
 
-        /// <summary>已重载。调用Save时写日志，而调用Insert和Update时不写日志</summary>
-        /// <returns></returns>
-        public override int Save()
-        {
-            if (ID == 0)
-                WriteLog(null, "添加", Name);
-            else
-                WriteLog(null, "修改", Name);
-
-            return base.Save();
-        }
-
         /// <summary>已重载。</summary>
         /// <returns></returns>
         public override int Delete()
@@ -87,7 +75,7 @@ namespace NewLife.CommonEntity
                 var entity = Find("ID", ID);
                 if (entity != null) name = entity.Name;
             }
-            WriteLog(null, "删除", name);
+            WriteLog("删除", name);
 
             return base.Delete();
         }
@@ -475,23 +463,23 @@ namespace NewLife.CommonEntity
             return factory.FindForPerssion(name);
         }
 
-        /// <summary>写日志</summary>
-        /// <param name="type">类型</param>
-        /// <param name="action">操作</param>
-        /// <param name="remark">备注</param>
-        public void WriteLog(Type type, String action, String remark)
-        {
-            if (!Config.GetConfig<Boolean>("NewLife.CommonEntity.WriteEntityLog", true)) return;
+        ///// <summary>写日志</summary>
+        ///// <param name="type">类型</param>
+        ///// <param name="action">操作</param>
+        ///// <param name="remark">备注</param>
+        //public void WriteLog(Type type, String action, String remark)
+        //{
+        //    if (!Config.GetConfig<Boolean>("NewLife.CommonEntity.WriteEntityLog", true)) return;
 
-            if (type == null) type = this.GetType();
+        //    if (type == null) type = this.GetType();
 
-            var factory = ManageProvider.Get<ILog>();
-            var log = factory.Create(type, action);
-            log.UserID = ID;
-            log.UserName = FriendName;
-            log.Remark = remark;
-            log.Save();
-        }
+        //    var factory = ManageProvider.Get<ILog>();
+        //    var log = factory.Create(type, action);
+        //    log.UserID = ID;
+        //    log.UserName = FriendName;
+        //    log.Remark = remark;
+        //    log.Save();
+        //}
         #endregion
 
         #region IManageUser 成员

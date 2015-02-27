@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Text;
-using System.Threading;
 using NewLife.Log;
 using NewLife.Reflection;
 
@@ -140,18 +139,6 @@ namespace NewLife.CommonEntity
             SavePermission();
         }
 
-        /// <summary>已重载。调用Save时写日志，而调用Insert和Update时不写日志</summary>
-        /// <returns></returns>
-        public override int Save()
-        {
-            if (ID == 0)
-                WriteLog("添加", Name);
-            else
-                WriteLog("修改", Name);
-
-            return base.Save();
-        }
-
         /// <summary>已重载。</summary>
         /// <returns></returns>
         public override int Delete()
@@ -180,7 +167,7 @@ namespace NewLife.CommonEntity
                 throw new XException(msg);
             }
 
-            WriteLog("删除", name);
+            WriteLog("删除", this);
 
             return base.Delete();
         }

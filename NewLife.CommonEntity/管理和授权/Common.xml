@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Tables Version="8.13.5491.2097">
+<Tables Version="8.13.5535.22128">
   <Table Name="Administrator" Description="管理员" DbType="SqlServer" RenderGenEntity="true">
     <Columns>
       <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
@@ -10,7 +10,6 @@
       <Column Name="Phone" DataType="String" Description="电话" />
       <Column Name="Code" DataType="String" Description="唯一代码。比如身份证、SSOID等" />
       <Column Name="RoleID" DataType="Int32" Description="角色。主要角色" />
-      <Column Name="Roles" DataType="String" Description="多角色。逗号分隔" />
       <Column Name="Logins" DataType="Int32" Description="登录次数" />
       <Column Name="LastLogin" DataType="DateTime" Description="最后登录" />
       <Column Name="LastLoginIP" DataType="String" Description="最后登陆IP" />

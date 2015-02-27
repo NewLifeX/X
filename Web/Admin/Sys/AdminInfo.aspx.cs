@@ -23,12 +23,12 @@ public partial class Pages_AdminInfo : MyEntityForm
 
     void EntityForm_OnSetForm(object sender, EntityFormEventArgs e)
     {
-        frmPassword.Text = null;
+        frmPassword_.Text = null;
     }
 
     void EntityForm_OnGetForm(object sender, EntityFormEventArgs e)
     {
-        if (!String.IsNullOrEmpty(frmPassword.Text)) EntityForm.Entity.SetItem("Password", DataHelper.Hash(frmPassword.Text));
+        if (!String.IsNullOrEmpty(frmPassword_.Text)) EntityForm.Entity.SetItem("Password", DataHelper.Hash(frmPassword_.Text));
     }
 
     protected void Page_Load(object sender, EventArgs e)

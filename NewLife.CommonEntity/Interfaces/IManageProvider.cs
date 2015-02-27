@@ -167,7 +167,6 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region IErrorInfoProvider 成员
-
         void IErrorInfoProvider.AddInfo(Exception ex, StringBuilder builder)
         {
             var user = Current;
