@@ -18,7 +18,7 @@ public partial class Pages_Role : MyEntityList
         ods.DataObjectTypeName = type.FullName;
     }
 
-    protected void Button1_Click(object sender, EventArgs e)
+    protected void btnAdd_Click(object sender, EventArgs e)
     {
         if (!Manager.Acquire(PermissionFlags.Insert))
         {
@@ -38,6 +38,14 @@ public partial class Pages_Role : MyEntityList
             IRole role = Factory.Create(false) as IRole;
 
             role.Name = txtName.Text;
+
+            Int32[] vs = gvExt.SelectedIntValues;
+            if (vs != null && vs.Length > 0)
+            {
+                IRole entity = FindByRoleID(vs[0]);
+                role.Permission = entity.Permission;
+            }
+
             role.Save();
 
             txtName.Text = "";
@@ -54,72 +62,10 @@ public partial class Pages_Role : MyEntityList
         }
     }
 
-    protected void btnCopyRole_Click(object sender, EventArgs e)
-    {
-        IRole tmp = FindByRoleName(txtRoleTemplate.Text);
-        if (tmp == null)
-        {
-            WebHelper.Alert("未指定模版角色！");
-            txtRoleTemplate.Focus();
-            return;
-        }
-
-        DoBatch("复制权限", delegate(IRole role)
-        {
-            if (role.ID == tmp.ID || role.Name == "管理员") return false;
-
-            //role.CopyRoleMenuFrom(tmp);
-            role.Permission = tmp.Permission;
-
-            return true;
-        });
-    }
-
-    void DoBatch(String action, Func<IRole, Boolean> callback)
-    {
-        Int32[] vs = gvExt.SelectedIntValues;
-        if (vs == null || vs.Length < 1) return;
-
-        Int32 n = 0;
-        IEntityOperate eop = Factory;
-        eop.BeginTransaction();
-        try
-        {
-            foreach (Int32 item in vs)
-            {
-                IRole entity = FindByRoleID(item);
-                if (entity != null && callback(entity))
-                {
-                    entity.Save();
-                    n++;
-                }
-            }
-
-            eop.Commit();
-
-            WebHelper.Alert("成功为" + n + "个部门" + action + "！");
-        }
-        catch (Exception ex)
-        {
-            eop.Rollback();
-
-            WebHelper.Alert("操作失败！" + ex.Message);
-        }
-
-        if (n > 0) gv.DataBind();
-    }
-
     IRole FindByRoleID(Int32 id)
     {
         if (id <= 0) return null;
 
         return Factory.FindWithCache("ID", id) as IRole;
-    }
-
-    IRole FindByRoleName(String name)
-    {
-        if (String.IsNullOrEmpty(name)) return null;
-
-        return Factory.FindWithCache("Name", name) as IRole;
     }
 }

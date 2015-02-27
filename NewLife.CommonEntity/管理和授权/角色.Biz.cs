@@ -191,6 +191,15 @@ namespace NewLife.CommonEntity
             // 构造权限字典
             LoadPermission();
         }
+
+        /// <summary>如果Permission被修改，则重新加载</summary>
+        /// <param name="fieldName"></param>
+        protected override void OnPropertyChanged(string fieldName)
+        {
+            base.OnPropertyChanged(fieldName);
+
+            if (fieldName == __.Permission) LoadPermission();
+        }
         #endregion
 
         #region 扩展查询
@@ -312,7 +321,8 @@ namespace NewLife.CommonEntity
             //Permission = null;
             if (Permissions.Count <= 0)
             {
-                Permission = null;
+                //Permission = null;
+                SetItem(__.Permission, null);
                 return;
             }
 
@@ -327,7 +337,7 @@ namespace NewLife.CommonEntity
                 if (sb.Length > 0) sb.Append(",");
                 sb.AppendFormat("{0}#{1}", item.Key, (Int32)item.Value);
             }
-            Permission = sb.ToString();
+            SetItem(__.Permission, sb.ToString());
         }
 
         ///// <summary>设置资源权限</summary>
