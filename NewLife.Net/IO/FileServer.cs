@@ -152,12 +152,12 @@ namespace NewLife.Net.IO
 
                 var file = Host.SavedPath.CombinePath(Inf.Name).EnsureDirectory();
                 Stream = file.AsFile().OpenWrite();
-                WriteLog("接收{0}，{1:n0}字节", Inf.Name, Inf.Length);
+                WriteLog("接收{0}，{1:n0}kb", Inf.Name, Inf.Length / 1024);
 
                 if (stream.Position >= stream.Length) return;
             }
 
-            //WriteLog("收到{0:n0}字节", ms.Length - ms.Position);
+            WriteLog("收到{0:n0}字节", stream.Length - stream.Position);
             if (e.Length > 0 && stream.Position < stream.Length)
             {
                 Length += (stream.Length - stream.Position);

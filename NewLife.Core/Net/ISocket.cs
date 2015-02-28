@@ -113,8 +113,8 @@ namespace NewLife.Net
         public static ISocketRemote Send(this ISocketRemote session, Stream stream)
         {
             var size = session.Socket.SendBufferSize;
-            var remain = (Int32)(stream.Length - stream.Position);
-            if (remain < size) size = remain;
+            var remain = stream.Length - stream.Position;
+            if (remain < size) size = (Int32)remain;
             var buffer = new Byte[size];
             while (true)
             {

@@ -34,6 +34,8 @@ namespace NewLife.Net.IO
             {
                 var tcp = new TcpSession();
                 tcp.UseProcessAsync = false;
+                // 因为第一个包发送文件头，所以必须在一个会话里面完成文件传输，不能使用断线重连
+                tcp.AutoReconnect = false;
                 Client = tcp;
                 tcp.Remote.Port = port;
                 tcp.Remote.Host = hostname;
@@ -52,7 +54,7 @@ namespace NewLife.Net.IO
         void SendFile(String fileName, String root)
         {
             var ff = new FileFormat(fileName, root);
-            WriteLog("{2} 发送文件{0}，{1:n0}字节", ff.Name, ff.Length, Client.Local);
+            WriteLog("{2} 发送文件{0}，{1:n0}kb", ff.Name, ff.Length / 1024, Client.Local);
             Client.Send(ff.GetHeader());
             //Client.Send(ff.Stream);
             using (var fs = fileName.AsFile().OpenRead())

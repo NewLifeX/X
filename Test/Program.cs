@@ -38,7 +38,7 @@ namespace Test
                 try
                 {
 #endif
-                Test14();
+                    Test14();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -585,15 +585,43 @@ namespace Test
 
         static void Test14()
         {
+            Console.Clear();
+            XTrace.Log.Level = LogLevel.Info;
             var server = new FileServer();
+            server.Log = XTrace.Log;
             server.Start();
 
-            var client = new FileClient();
-            client.Connect("127.0.0.1", server.Port);
-            client.SendFile("Test.exe");
+            var count = 0;
+            WaitCallback func = s =>
+            {
+                count++;
+                var client = new FileClient();
+                try
+                {
+                    client.Log = XTrace.Log;
+                    if (s + "" == "Test.exe")
+                        client.Connect("127.0.0.1", server.Port);
+                    else
+                        client.Connect("::1", server.Port);
+                    client.SendFile(s + "");
+                }
+                finally
+                {
+                    count--;
+                    client.Dispose();
+                }
+            };
 
-            Thread.Sleep(1000);
-            client.Dispose();
+            ThreadPoolX.QueueUserWorkItem(func, "Test.exe");
+            ThreadPoolX.QueueUserWorkItem(func, "NewLife.Core.dll");
+            ThreadPoolX.QueueUserWorkItem(func, "NewLife.Net.dll");
+
+            var file = @"F:\MS\cn_visual_studio_ultimate_2013_with_update_4_x86_dvd_5935081.iso";
+            if (File.Exists(file))
+                ThreadPoolX.QueueUserWorkItem(func, file);
+
+            Thread.Sleep(500);
+            while (count > 0) Thread.Sleep(200);
             server.Dispose();
         }
 
