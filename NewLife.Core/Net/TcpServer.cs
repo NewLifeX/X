@@ -41,6 +41,10 @@ namespace NewLife.Net
         /// 接受连接请求后，自动开始会话的异步接收，默认打开，如果会话需要同步接收数据，需要关闭该选项。</summary>
         public Boolean AutoReceiveAsync { get { return _AutoReceiveAsync; } set { _AutoReceiveAsync = value; } }
 
+        private Boolean _UseProcessAsync = true;
+        /// <summary>是否异步处理接收到的数据，默认true利于提升网络吞吐量。异步处理有可能造成数据包乱序，特别是Tcp</summary>
+        public Boolean UseProcessAsync { get { return _UseProcessAsync; } set { _UseProcessAsync = value; } }
+
         private TcpListener _Server;
         /// <summary>服务器</summary>
         public TcpListener Server { get { return _Server; } set { _Server = value; } }
@@ -212,6 +216,7 @@ namespace NewLife.Net
 
             // 自动开始异步接收处理
             if (AutoReceiveAsync) session.ReceiveAsync();
+            session.UseProcessAsync = UseProcessAsync;
         }
         #endregion
 
@@ -284,8 +289,10 @@ namespace NewLife.Net
         /// <returns></returns>
         public override string ToString()
         {
-            if (Sessions.Count > 0)
-                return String.Format("{0} [{1}]", Local, Sessions.Count);
+            var ss=Sessions;
+            var count = ss != null ? ss.Count : 0;
+            if (count > 0)
+                return String.Format("{0} [{1}]", Local, count);
             else
                 return Local.ToString();
         }

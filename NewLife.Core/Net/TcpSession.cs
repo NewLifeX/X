@@ -239,7 +239,7 @@ namespace NewLife.Net
         /// <returns>是否成功</returns>
         public override Boolean ReceiveAsync()
         {
-            if (!Open()) return false;
+            if (Disposed || !Open()) return false;
 
             if (_Async != null) return true;
             try
@@ -314,6 +314,7 @@ namespace NewLife.Net
                 catch (Exception ex)
                 {
                     OnError("OnReceive", ex);
+                    if (Disposed) return;
                 }
             }
 
