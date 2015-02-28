@@ -2,12 +2,12 @@
     Title="网站数据库" MasterPageFile="~/Admin/ManagerPage.master" EnableEventValidation="false" %>
 
 <asp:Content ID="Content1" ContentPlaceHolderID="C" runat="server">
-    <div class="toolbar">
+    <div class="row-fluid navbar navbar-default navbar-form">
         数据库链接：<asp:DropDownList ID="ddlConn" runat="server" AutoPostBack="True" OnSelectedIndexChanged="ddlConn_SelectedIndexChanged">
         </asp:DropDownList>
         &nbsp;<asp:TextBox ID="txtConnStr" runat="server" Width="803px"></asp:TextBox>
     </div>
-    <div class="toolbar" style="height: auto;">
+    <div class="row-fluid navbar navbar-default navbar-form">
         <asp:Panel ID="Panel1" runat="server">
             数据表：<asp:DropDownList ID="ddlTable" runat="server" AutoPostBack="True" OnSelectedIndexChanged="ddlTable_SelectedIndexChanged">
             </asp:DropDownList>

@@ -1,11 +1,11 @@
 ﻿<%@ Master Language="C#" AutoEventWireup="true" CodeFile="ManagerPage.master.cs"
     Inherits="ManagerPage" %>
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
+<!DOCTYPE html>
+<html lang="zh-CN">
 <head runat="server">
     <title>管理平台</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="stylesheet" href="<%= ResolveUrl("~/bootstrap/css/bootstrap.min.css")%>" type="text/css" />
     <%--<link rel="stylesheet" href="<%= ResolveUrl("~/bootstrap/css/bootstrap-theme.min.css")%>" type="text/css" />--%>
     <link rel="stylesheet" href="<%= ResolveUrl("~/bootstrap/css/bootstrap-responsive.min.css")%>" type="text/css" />
@@ -19,14 +19,13 @@
 </head>
 <body>
     <form id="form1" runat="server" class="form-horizontal" role="form">
-    <div class="toolbar">
-        <img src="<%= ResolveUrl("~/Admin/images/tb.gif") %>" width="16" height="16" alt="" />
-        你当前的位置：<asp:Literal ID="Navigation" runat="server" EnableViewState="false"></asp:Literal>
-    </div>
-    <div class="container-fluid">
-        <asp:ContentPlaceHolder ID="C" runat="server">
-        </asp:ContentPlaceHolder>
-    </div>
+        <div class="container-fluid">
+            <div class="row-fluid breadcrumb">
+                当前位置：<asp:Literal ID="Navigation" runat="server" EnableViewState="false"></asp:Literal>
+            </div>
+            <asp:ContentPlaceHolder ID="C" runat="server">
+            </asp:ContentPlaceHolder>
+        </div>
     </form>
 </body>
 </html>

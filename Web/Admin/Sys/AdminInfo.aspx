@@ -1,16 +1,16 @@
-﻿<%@ page language="C#" masterpagefile="~/Admin/ManagerPage.master" autoeventwireup="true"
-    codefile="AdminInfo.aspx.cs" inherits="Pages_AdminInfo" title="用户信息" %>
+﻿<%@ Page Language="C#" MasterPageFile="~/Admin/ManagerPage.master" AutoEventWireup="true"
+    CodeFile="AdminInfo.aspx.cs" Inherits="Pages_AdminInfo" Title="用户信息" %>
 
-<asp:content id="C" contentplaceholderid="C" runat="server">
-    <div class="col-lg-12">
+<asp:Content ID="C" ContentPlaceHolderID="C" runat="server">
+    <%--<div class="col-lg-12">
         <h4 class="page-header">用户信息</h4>
-    </div>
+    </div>--%>
     <div class="form-group">
         <label class="col-sm-2 control-label">
             名称：
         </label>
         <div class="col-sm-10">
-            <asp:textbox id="frmName" class="form-control" runat="server" readonly="true"></asp:textbox>
+            <asp:TextBox ID="frmName" class="form-control" runat="server" ReadOnly="true"></asp:TextBox>
         </div>
     </div>
     <div class="form-group">
@@ -18,7 +18,7 @@
             密码：
         </label>
         <div class="col-sm-10">
-            <asp:textbox id="frmPassword_" class="form-control" runat="server" textmode="Password"></asp:textbox>
+            <asp:TextBox ID="frmPassword_" class="form-control" runat="server" TextMode="Password"></asp:TextBox>
         </div>
     </div>
     <div class="form-group">
@@ -26,7 +26,7 @@
             显示名：
         </label>
         <div class="col-sm-10">
-            <asp:textbox id="frmDisplayName" class="form-control" runat="server"></asp:textbox>
+            <asp:TextBox ID="frmDisplayName" class="form-control" runat="server"></asp:TextBox>
         </div>
     </div>
     <div class="form-group">
@@ -34,7 +34,7 @@
             角色：
         </label>
         <div class="col-sm-10">
-            <asp:label id="frmRoleName" runat="server"></asp:label>
+            <asp:Label ID="frmRoleName" runat="server"></asp:Label>
         </div>
     </div>
     <div class="form-group">
@@ -42,15 +42,16 @@
             QQ：
         </label>
         <div class="col-sm-10">
-            <asp:textbox id="frmCode" class="form-control"  runat="server"></asp:textbox>
+            <asp:TextBox ID="frmCode" class="form-control" runat="server"></asp:TextBox>
         </div>
     </div>
     <div class="form-group">
         <label class="col-sm-2 control-label">
             邮箱：
         </label>
-        <div class="col-sm-10">
-            <xcl:mailbox id="frmMail" class="form-control" runat="server"></xcl:mailbox>
+        <div class="col-sm-10 input-group">
+            <span class="input-group-addon">@</span>
+            <XCL:MailBox ID="frmMail" class="form-control" runat="server"></XCL:MailBox>
         </div>
     </div>
     <div class="form-group">
@@ -58,7 +59,7 @@
             电话：
         </label>
         <div class="col-sm-10">
-            <asp:textbox id="frmPhone" class="form-control" runat="server"></asp:textbox>
+            <asp:TextBox ID="frmPhone" class="form-control" runat="server"></asp:TextBox>
         </div>
     </div>
     <div class="form-group">
@@ -66,7 +67,7 @@
             登录次数：
         </label>
         <div class="col-sm-10">
-            <asp:label id="frmLogins" runat="server"></asp:label>
+            <asp:Label ID="frmLogins" runat="server"></asp:Label>
         </div>
     </div>
     <div class="form-group">
@@ -74,7 +75,7 @@
             最后登录：
         </label>
         <div class="col-sm-10">
-            <asp:label id="frmLastLogin" runat="server"></asp:label>
+            <asp:Label ID="frmLastLogin" runat="server"></asp:Label>
         </div>
     </div>
     <div class="form-group">
@@ -82,16 +83,16 @@
             最后登陆IP：
         </label>
         <div class="col-sm-10">
-            <asp:label id="frmLastLoginIP" runat="server"></asp:label>
+            <asp:Label ID="frmLastLoginIP" runat="server"></asp:Label>
         </div>
     </div>
     <div class="form-group text-center">
-        <asp:button id="btnSave" runat="server" cssclass="btn btn-primary" causesvalidation="True" text='保存' />
+        <asp:Button ID="btnSave" runat="server" CssClass="btn btn-primary" CausesValidation="True" Text='保存' />
     </div>
 
-   <script>
-$(document).ready(function(){
-$("input[type=text],input[type=password]").removeAttr("style").css("width","200px");
-});
-   </script>
-</asp:content>
+    <script>
+        $(document).ready(function () {
+            $("input[type=text],input[type=password]").removeAttr("style").css("width", "200px");
+        });
+    </script>
+</asp:Content>

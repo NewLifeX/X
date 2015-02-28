@@ -2,7 +2,7 @@
     Title="日志查看" MasterPageFile="~/Admin/ManagerPage.master" EnableEventValidation="false" %>
 
 <asp:Content ID="Content1" ContentPlaceHolderID="C" runat="server">
-    <div class="container-fluid">
+    <div class="row-fluid navbar navbar-default navbar-form">
         类别：<asp:DropDownList ID="ddlCategory" runat="server" AppendDataBoundItems="True"
             DataSourceID="odsCategory" DataTextField="Category" DataValueField="Category">
             <asp:ListItem>全部</asp:ListItem>
@@ -19,33 +19,34 @@
         </XCL:DateTimePicker>
         &nbsp;<asp:Button ID="Button1" runat="server" Text="查询" CssClass="btn btn-primary" />
     </div>
-    <asp:GridView ID="GridView1" runat="server" AutoGenerateColumns="False" DataKeyNames="ID"
-        DataSourceID="ods" AllowPaging="True" AllowSorting="True" CssClass="m_table"
-        CellPadding="0" CellSpacing="1" GridLines="None" PageSize="20" EnableModelValidation="True">
-        <Columns>
-            <asp:BoundField DataField="ID" HeaderText="序号" InsertVisible="False" ReadOnly="True"
-                SortExpression="ID">
-                <ItemStyle HorizontalAlign="Center" VerticalAlign="Middle" Width="60px" CssClass="key" />
-            </asp:BoundField>
-            <asp:BoundField DataField="Category" HeaderText="类别" SortExpression="Category" />
-            <asp:BoundField DataField="Action" HeaderText="操作" SortExpression="Action" />
-            <asp:BoundField DataField="UserName" HeaderText="管理员" SortExpression="UserName">
-                <ItemStyle HorizontalAlign="Center" VerticalAlign="Middle" Width="80px" />
-            </asp:BoundField>
-            <asp:BoundField DataField="IP" HeaderText="IP地址" SortExpression="IP">
-                <ItemStyle VerticalAlign="Middle" Width="100px" />
-            </asp:BoundField>
-            <asp:BoundField DataField="OccurTime" HeaderText="时间" SortExpression="OccurTime"
-                DataFormatString="{0:yyyy-MM-dd HH:mm:ss}">
-                <ItemStyle HorizontalAlign="Center" Width="120px" />
-            </asp:BoundField>
-            <asp:BoundField DataField="Remark" HeaderText="详细信息" SortExpression="Remark">
-            </asp:BoundField>
-        </Columns>
-        <EmptyDataTemplate>
-            没有符合条件的数据！
-        </EmptyDataTemplate>
-    </asp:GridView>
+    <div class="row-fluid">
+        <asp:GridView ID="GridView1" runat="server" AutoGenerateColumns="False" DataKeyNames="ID"
+            DataSourceID="ods" AllowPaging="True" AllowSorting="True" CssClass="table table-hover"
+            CellPadding="0" CellSpacing="1" GridLines="None" PageSize="20" EnableModelValidation="True">
+            <Columns>
+                <asp:BoundField DataField="ID" HeaderText="序号" InsertVisible="False" ReadOnly="True"
+                    SortExpression="ID">
+                    <ItemStyle HorizontalAlign="Center" VerticalAlign="Middle" Width="60px" />
+                </asp:BoundField>
+                <asp:BoundField DataField="Category" HeaderText="类别" SortExpression="Category" />
+                <asp:BoundField DataField="Action" HeaderText="操作" SortExpression="Action" />
+                <asp:BoundField DataField="UserName" HeaderText="管理员" SortExpression="UserName">
+                    <ItemStyle HorizontalAlign="Center" VerticalAlign="Middle" Width="80px" />
+                </asp:BoundField>
+                <asp:BoundField DataField="IP" HeaderText="IP地址" SortExpression="IP">
+                    <ItemStyle VerticalAlign="Middle" Width="100px" />
+                </asp:BoundField>
+                <asp:BoundField DataField="OccurTime" HeaderText="时间" SortExpression="OccurTime"
+                    DataFormatString="{0:yyyy-MM-dd HH:mm:ss}">
+                    <ItemStyle HorizontalAlign="Center" Width="150px" />
+                </asp:BoundField>
+                <asp:BoundField DataField="Remark" HeaderText="详细信息" SortExpression="Remark"></asp:BoundField>
+            </Columns>
+            <EmptyDataTemplate>
+                没有符合条件的数据！
+            </EmptyDataTemplate>
+        </asp:GridView>
+    </div>
     <asp:ObjectDataSource ID="ods" runat="server" EnablePaging="True" OldValuesParameterFormatString="original_{0}"
         SelectCountMethod="SearchCount" SelectMethod="Search" SortParameterName="orderClause"
         TypeName="">

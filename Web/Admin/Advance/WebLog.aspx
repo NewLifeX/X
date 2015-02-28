@@ -2,7 +2,7 @@
     Title="网站日志" MasterPageFile="~/Admin/ManagerPage.master" EnableEventValidation="false" ValidateRequest="false" %>
 
 <asp:Content ID="Content1" ContentPlaceHolderID="C" runat="server">
-    <div class="toolbar">
+    <div class="row-fluid navbar navbar-default navbar-form">
         日志文件：
         <asp:DropDownList ID="DropDownList1" runat="server">
         </asp:DropDownList>

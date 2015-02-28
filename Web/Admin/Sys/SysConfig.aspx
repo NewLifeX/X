@@ -4,9 +4,9 @@
 <%@ Import Namespace="NewLife.Reflection" %>
 
 <asp:Content ID="Content1" ContentPlaceHolderID="C" runat="server">
-    <div class="col-lg-12">
+    <%--<div class="col-lg-12">
         <h4 class="page-header">系统配置</h4>
-    </div>
+    </div>--%>
     <% 
         foreach (System.Reflection.PropertyInfo pi in GetProperties())
         {
