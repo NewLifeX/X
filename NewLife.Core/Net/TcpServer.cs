@@ -240,7 +240,7 @@ namespace NewLife.Net
             var sessions = _Sessions;
             if (sessions != null)
             {
-                _Sessions = null;
+                //_Sessions = null;
 
                 if (sessions.Count > 0)
                 {

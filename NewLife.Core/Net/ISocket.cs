@@ -112,7 +112,7 @@ namespace NewLife.Net
         /// <returns>返回自身，用于链式写法</returns>
         public static ISocketRemote Send(this ISocketRemote session, Stream stream)
         {
-            var size = 1460;
+            var size = session.Socket.SendBufferSize;
             var remain = (Int32)(stream.Length - stream.Position);
             if (remain < size) size = remain;
             var buffer = new Byte[size];

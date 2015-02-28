@@ -248,7 +248,7 @@ namespace NewLife.Net
             try
             {
                 // 开始新的监听
-                var buf = new Byte[1500];
+                var buf = new Byte[Client.ReceiveBufferSize];
                 _Async = Client.GetStream().BeginRead(buf, 0, buf.Length, OnReceive, buf);
             }
             catch (Exception ex)
