@@ -214,9 +214,10 @@ namespace NewLife.Net
 
             if (NewSession != null) NewSession(this, new SessionEventArgs { Session = session });
 
+            // 必须在ReceiveAsync之前设定是否使用异步处理，否则ReceiveAsync可能马上有数据返回
+            session.UseProcessAsync = UseProcessAsync;
             // 自动开始异步接收处理
             if (AutoReceiveAsync) session.ReceiveAsync();
-            session.UseProcessAsync = UseProcessAsync;
         }
         #endregion
 
