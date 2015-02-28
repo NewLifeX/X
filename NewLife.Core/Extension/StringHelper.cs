@@ -162,7 +162,8 @@ namespace System
         /// <param name="value">格式字符串</param>
         /// <param name="args">参数</param>
         /// <returns></returns>
-        public static String Format(this String value, params Object[] args)
+        //public static String Format(this String value, params Object[] args)
+        public static String F(this String value, params Object[] args)
         {
             if (String.IsNullOrEmpty(value)) return value;
 

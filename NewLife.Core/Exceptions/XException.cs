@@ -19,7 +19,7 @@ namespace NewLife
         /// <summary>初始化</summary>
         /// <param name="format"></param>
         /// <param name="args"></param>
-        public XException(String format, params Object[] args) : base(String.Format(format, args)) { }
+        public XException(String format, params Object[] args) : base(format.F(args)) { }
 
         /// <summary>初始化</summary>
         /// <param name="message"></param>
@@ -30,7 +30,7 @@ namespace NewLife
         /// <param name="innerException"></param>
         /// <param name="format"></param>
         /// <param name="args"></param>
-        public XException(Exception innerException, String format, params Object[] args) : base(String.Format(format, args), innerException) { }
+        public XException(Exception innerException, String format, params Object[] args) : base(format.F(args), innerException) { }
 
         /// <summary>初始化</summary>
         /// <param name="innerException"></param>
