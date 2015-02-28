@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.Text;
+using System;
 
 namespace NewLife.Net.Sockets
 {
@@ -26,7 +27,7 @@ namespace NewLife.Net.Sockets
 
         private NetServer _Host;
         /// <summary>主服务</summary>
-        public NetServer Host { get { return _Host; } set { _Host = value; } }
+        NetServer INetSession.Host { get { return _Host; } set { _Host = value; } }
 
         private ISocketSession _Session;
         /// <summary>客户端。跟客户端通讯的那个Socket，其实是服务端TcpSession/UdpServer</summary>
@@ -128,7 +129,17 @@ namespace NewLife.Net.Sockets
         /// <param name="args"></param>
         public override void WriteLog(string format, params object[] args)
         {
-            base.WriteLog(String.Format("{0}[{1}] {2}", _Host == null ? "" : _Host.Name, ID, format), args);
+            var name = _Host == null ? "" : _Host.Name;
+            base.WriteLog("{0}[{1}] {2}".F(name, ID, format), args);
+        }
+
+        /// <summary>输出错误日志</summary>
+        /// <param name="format"></param>
+        /// <param name="args"></param>
+        public virtual void WriteError(String format, params Object[] args)
+        {
+            var name = _Host == null ? "" : _Host.Name;
+            Log.Error("{0}[{1}] {2}".F(name, ID, format), args);
         }
 
         /// <summary>已重载。</summary>

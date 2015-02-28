@@ -37,6 +37,8 @@ namespace NewLife.Net.IO
                 Client = tcp;
                 tcp.Remote.Port = port;
                 tcp.Remote.Host = hostname;
+
+                tcp.Open();
             }
         }
 
@@ -50,7 +52,7 @@ namespace NewLife.Net.IO
         void SendFile(String fileName, String root)
         {
             var ff = new FileFormat(fileName, root);
-            WriteLog("发送文件 {0}，大小 {1:n0}字节", ff.Name, ff.Length);
+            WriteLog("{2} 发送文件{0}，{1:n0}字节", ff.Name, ff.Length, Client.Local);
             Client.Send(ff.GetHeader());
             //Client.Send(ff.Stream);
             using (var fs = fileName.AsFile().OpenRead())

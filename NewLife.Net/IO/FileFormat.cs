@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using NewLife.Security;
 
 namespace NewLife.Net.IO
 {
@@ -15,21 +16,13 @@ namespace NewLife.Net.IO
         /// <summary>文件大小</summary>
         public Int64 Length { get { return _Length; } set { _Length = value; } }
 
-        private FileInfo _Info;
-        /// <summary>文件信息</summary>
-        public FileInfo Info { get { return _Info; } set { _Info = value; } }
+        private Int32 _Checksum;
+        /// <summary>头部检验和</summary>
+        public Int32 Checksum { get { return _Checksum; } set { _Checksum = value; } }
 
-        //private FileStream _Stream;
-        ///// <summary>文件流</summary>
-        //public FileStream Stream
-        //{
-        //    get
-        //    {
-        //        if (_Stream == null && Info != null) _Stream = Info.OpenRead();
-        //        return _Stream;
-        //    }
-        //    set { _Stream = value; }
-        //}
+        private Int32 _Crc;
+        /// <summary>计算出来的32位头部检验码</summary>
+        public Int32 Crc { get { return _Crc; } set { _Crc = value; } }
         #endregion
 
         #region 构造
@@ -41,7 +34,7 @@ namespace NewLife.Net.IO
         /// <param name="root"></param>
         public FileFormat(String fileName, String root)
         {
-            Info = new FileInfo(fileName);
+            var fi = new FileInfo(fileName);
 
             if (String.IsNullOrEmpty(root))
             {
@@ -57,7 +50,7 @@ namespace NewLife.Net.IO
             }
 
             Name = fileName;
-            Length = Info.Length;
+            Length = fi.Length;
         }
         #endregion
 
@@ -66,18 +59,24 @@ namespace NewLife.Net.IO
         /// <param name="stream"></param>
         public void Read(Stream stream)
         {
+            var p = stream.Position;
             var reader = new BinaryReader(stream);
             Name = reader.ReadString();
             Length = reader.ReadInt64();
+            Crc = (Int32)Crc32.Compute(stream, 0, 0);
+            Checksum = reader.ReadInt32();
         }
 
         /// <summary>写入</summary>
         /// <param name="stream"></param>
         public void Write(Stream stream)
         {
+            var p = stream.Position;
             var writer = new BinaryWriter(stream);
             writer.Write(Name);
             writer.Write(Length);
+            Checksum = Crc = (Int32)Crc32.Compute(stream, 0, 0);
+            writer.Write(Checksum);
         }
 
         /// <summary>获取头部数据流</summary>
@@ -89,27 +88,6 @@ namespace NewLife.Net.IO
             ms.Position = 0;
             return ms;
         }
-
-        ///// <summary>保存文件</summary>
-        ///// <param name="root"></param>
-        ///// <param name="stream"></param>
-        //public void Save(String root, Stream stream)
-        //{
-        //    Info = new FileInfo(Path.Combine(root, Name));
-        //    if (!Info.Exists && !Info.Directory.Exists) Info.Directory.Create();
-        //    Stream = Info.Open(FileMode.Create, FileAccess.Write);
-
-        //    var buffer = new Byte[10240];
-        //    Int64 count = 0;
-        //    while (count < Length)
-        //    {
-        //        var n = stream.Read(buffer, 0, buffer.Length);
-        //        if (n <= 0) break;
-
-        //        Stream.Write(buffer, 0, n);
-        //        count += n;
-        //    }
-        //}
         #endregion
     }
 }

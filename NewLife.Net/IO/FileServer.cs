@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Net.Sockets;
 using NewLife.Net.Sockets;
 
 namespace NewLife.Net.IO
@@ -18,6 +19,7 @@ namespace NewLife.Net.IO
         public FileServer()
         {
             Port = 33;
+            ProtocolType = ProtocolType.Tcp;
 
             Name = "文件服务";
         }
@@ -58,16 +60,61 @@ namespace NewLife.Net.IO
     }
 
     /// <summary>文件服务会话</summary>
-    public class FileSession : NetSession
+    public class FileSession : NetSession<FileServer>
     {
         #region 属性
         private FileFormat _Inf;
         /// <summary>文件信息</summary>
         public FileFormat Inf { get { return _Inf; } set { _Inf = value; } }
 
+        private Int64 _Length;
+        /// <summary>长度</summary>
+        public Int64 Length { get { return _Length; } set { _Length = value; } }
+
         private FileStream _Stream;
         /// <summary>文件流</summary>
         public FileStream Stream { get { return _Stream; } set { _Stream = value; } }
+
+        private DateTime _StartTime;
+        /// <summary>开始时间</summary>
+        public DateTime StartTime { get { return _StartTime; } set { _StartTime = value; } }
+        #endregion
+
+        #region 构造
+        //public FileSession()
+        //{
+        //}
+
+        ///// <summary>开始</summary>
+        //public override void Start()
+        //{
+        //    base.Start();
+        //    StartTime = Session.StartTime;
+        //}
+
+        /// <summary>销毁会话</summary>
+        /// <param name="disposing"></param>
+        protected override void OnDispose(bool disposing)
+        {
+            base.OnDispose(disposing);
+
+            CloseStream();
+        }
+
+        void CloseStream()
+        {
+            if (Stream != null)
+            {
+                try
+                {
+                    Stream.Flush();
+                    Stream.SetLength(Stream.Position);
+                    Stream.Dispose();
+                }
+                catch { }
+                Stream = null;
+            }
+        }
         #endregion
 
         /// <summary>处理收到的数据</summary>
@@ -76,46 +123,60 @@ namespace NewLife.Net.IO
         {
             //base.OnReceive(e);
 
-            var ms = e.Stream;
+            var stream = e.Stream;
 
             // 第一个数据包解析头部
-            if (Inf == null)
+            if (e.Length > 0 && Inf == null)
             {
-                Inf = new FileFormat();
+                var fi = new FileFormat();
                 try
                 {
-                    Inf.Read(ms);
+                    fi.Read(stream);
+
+                    if (fi.Checksum != fi.Crc)
+                        throw new XException("文件{0}校验和错误{1:X8}!={2:X8}！", fi.Name, fi.Checksum, fi.Crc);
                 }
                 catch (Exception ex)
                 {
-                    Log.Error("无法解析文件头！", ex.Message);
+                    WriteError("无法解析文件头！{0}", ex.Message);
                     // 如果加载失败，则关闭会话
                     Dispose();
                     return;
                 }
+                Inf = fi;
+                Length = 0;
+                if (StartTime == DateTime.MinValue) StartTime = Session.StartTime;
 
-                var file = (Host as FileServer).SavedPath.CombinePath(Inf.Name).EnsureDirectory();
+                // 加大网络缓冲区
+                Session.Socket.ReceiveBufferSize = 2 * 1024 * 1024;
+
+                var file = Host.SavedPath.CombinePath(Inf.Name).EnsureDirectory();
                 Stream = file.AsFile().OpenWrite();
-                WriteLog("接收文件 {0}，大小 {1:n0}字节，保存到 {2}", Inf.Name, Inf.Length, file);
+                WriteLog("接收{0}，{1:n0}字节", Inf.Name, Inf.Length);
 
-                if (ms.Position >= ms.Length) return;
+                if (stream.Position >= stream.Length) return;
             }
 
-            WriteLog("收到{0:n0}字节", ms.Length - ms.Position);
-            Stream.Write(ms);
-        }
-
-        /// <summary>销毁会话</summary>
-        /// <param name="disposing"></param>
-        protected override void OnDispose(bool disposing)
-        {
-            base.OnDispose(disposing);
-
-            if (Stream != null)
+            //WriteLog("收到{0:n0}字节", ms.Length - ms.Position);
+            if (e.Length > 0 && stream.Position < stream.Length)
             {
-                Stream.Flush();
-                Stream.SetLength(Stream.Position);
-                Stream.Dispose();
+                Length += (stream.Length - stream.Position);
+                if (Stream != null && Stream.CanWrite) Stream.Write(stream);
+                //}
+                //else
+                //{
+                if (Length >= Inf.Length)
+                {
+                    var ms = (DateTime.Now - StartTime).TotalMilliseconds;
+                    var speed = Length / 1024 / ms * 1000;
+                    WriteLog("{0}接收完成，{1:n0}ms，{2:n0}kb/s", Inf.Name, (Int32)ms, (Int32)speed);
+                    //Dispose();
+
+                    // 清空，方便接收下一个文件
+                    Inf = null;
+                    CloseStream();
+                    StartTime = DateTime.MinValue;
+                }
             }
         }
     }

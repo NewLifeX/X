@@ -152,6 +152,7 @@ namespace NewLife.Net.Sockets
             if (Servers.Contains(server)) return false;
 
             server.Name = String.Format("{0}{1}{2}", Name, server.Local.IsTcp ? "Tcp" : "Udp", server.Local.Address.IsIPv4() ? "" : "6");
+            // 内部服务器日志更多是为了方便网络库调试，而网络服务器日志用于应用开发
             server.Log = Log;
             server.NewSession += Server_NewSession;
 
