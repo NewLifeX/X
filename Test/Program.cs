@@ -586,7 +586,7 @@ namespace Test
         static void Test14()
         {
             Console.Clear();
-            XTrace.Log.Level = LogLevel.Info;
+            //XTrace.Log.Level = LogLevel.Info;
             var server = new FileServer();
             server.Log = XTrace.Log;
             server.Start();
@@ -612,9 +612,9 @@ namespace Test
                 }
             };
 
-            ThreadPoolX.QueueUserWorkItem(func, "Test.exe");
-            ThreadPoolX.QueueUserWorkItem(func, "NewLife.Core.dll");
-            ThreadPoolX.QueueUserWorkItem(func, "NewLife.Net.dll");
+            //ThreadPoolX.QueueUserWorkItem(func, "Test.exe");
+            //ThreadPoolX.QueueUserWorkItem(func, "NewLife.Core.dll");
+            //ThreadPoolX.QueueUserWorkItem(func, "NewLife.Net.dll");
 
             var file = @"F:\MS\cn_visual_studio_ultimate_2013_with_update_4_x86_dvd_5935081.iso";
             if (File.Exists(file))

@@ -59,6 +59,10 @@ namespace NewLife.Net.IO
         /// <param name="stream"></param>
         public void Read(Stream stream)
         {
+            var b = stream.ReadByte();
+            if (b < 0 || b > 0x7F) throw new Exception("非法数据流！");
+            stream.Seek(-1, SeekOrigin.Current);
+
             var p = stream.Position;
             var reader = new BinaryReader(stream);
             Name = reader.ReadString();
@@ -74,6 +78,8 @@ namespace NewLife.Net.IO
             var p = stream.Position;
             var writer = new BinaryWriter(stream);
             writer.Write(Name);
+            if (stream.Position - p >= 0x7F) throw new Exception("文件名必须小于127字节");
+
             writer.Write(Length);
             Checksum = Crc = (Int32)Crc32.Compute(stream, 0, 0);
             writer.Write(Checksum);

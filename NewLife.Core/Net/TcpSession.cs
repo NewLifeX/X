@@ -157,7 +157,9 @@ namespace NewLife.Net
 
             try
             {
-                Client.GetStream().Write(buffer, 0, count);
+                // 修改发送缓冲区
+                if (Client.SendBufferSize < count) Client.SendBufferSize = count;
+                Client.GetStream().Write(buffer, offset, count);
             }
             catch (Exception ex)
             {

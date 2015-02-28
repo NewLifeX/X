@@ -109,11 +109,21 @@ namespace NewLife.Net
         /// <summary>发送数据流</summary>
         /// <param name="session">会话</param>
         /// <param name="stream">数据流</param>
-        /// <returns>返回自身，用于链式写法</returns>
-        public static ISocketRemote Send(this ISocketRemote session, Stream stream)
+        /// <returns>返回是否成功</returns>
+        public static Boolean Send(this ISocketRemote session, Stream stream)
         {
-            var size = session.Socket.SendBufferSize;
+            // UDP的最大缓冲区
+            var size = 1460L;
+            // TCP可以加大
             var remain = stream.Length - stream.Position;
+            if (remain > size && session.Socket.SocketType == SocketType.Stream)
+            {
+                // 至少使用发送缓冲区的大小，默认8k
+                size = session.Socket.SendBufferSize;
+                // 超大数据流，缓存加大一千倍
+                while (size < 0x80000000 && remain > size << 10)
+                    size <<= 1;
+            }
             if (remain < size) size = (Int32)remain;
             var buffer = new Byte[size];
             while (true)
@@ -121,11 +131,12 @@ namespace NewLife.Net
                 var count = stream.Read(buffer, 0, buffer.Length);
                 if (count <= 0) break;
 
-                session.Send(buffer, 0, count);
+                //XTrace.WriteLine("发送{0:p}", (Double)stream.Position / stream.Length);
+                if (!session.Send(buffer, 0, count)) return false;
 
                 if (count < buffer.Length) break;
             }
-            return session;
+            return true;
         }
 
         /// <summary>发送字符串</summary>
@@ -133,14 +144,12 @@ namespace NewLife.Net
         /// <param name="msg">要发送的字符串</param>
         /// <param name="encoding">文本编码，默认null表示UTF-8编码</param>
         /// <returns>返回自身，用于链式写法</returns>
-        public static ISocketRemote Send(this ISocketRemote session, String msg, Encoding encoding = null)
+        public static Boolean Send(this ISocketRemote session, String msg, Encoding encoding = null)
         {
-            if (String.IsNullOrEmpty(msg)) return session;
+            if (String.IsNullOrEmpty(msg)) return session.Send(new Byte[0]);
 
             if (encoding == null) encoding = Encoding.UTF8;
-            session.Send(encoding.GetBytes(msg));
-
-            return session;
+            return session.Send(encoding.GetBytes(msg));
         }
         #endregion
 

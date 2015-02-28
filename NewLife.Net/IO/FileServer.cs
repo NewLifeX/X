@@ -30,7 +30,13 @@ namespace NewLife.Net.IO
         public override bool AttachServer(ISocketServer server)
         {
             // 接收文件需要顺序
-            if (server is TcpServer) (server as TcpServer).UseProcessAsync = false;
+            if (server is TcpServer)
+            {
+                var tcp = server as TcpServer;
+                tcp.UseProcessAsync = false;
+                // 连续传输文件，间隔不得超过5秒
+                tcp.MaxNotActive = 5;
+            }
             return base.AttachServer(server);
         }
         #endregion
@@ -99,6 +105,11 @@ namespace NewLife.Net.IO
             base.OnDispose(disposing);
 
             CloseStream();
+
+            if (Inf != null)
+            {
+                WriteError("{0}接收失败，完成度{1:p}", Inf.Name, (Double)Length / Inf.Length);
+            }
         }
 
         void CloseStream()
@@ -148,7 +159,7 @@ namespace NewLife.Net.IO
                 if (StartTime == DateTime.MinValue) StartTime = Session.StartTime;
 
                 // 加大网络缓冲区
-                Session.Socket.ReceiveBufferSize = 2 * 1024 * 1024;
+                Session.Socket.ReceiveBufferSize = 8 * 1024 * 1024;
 
                 var file = Host.SavedPath.CombinePath(Inf.Name).EnsureDirectory();
                 Stream = file.AsFile().OpenWrite();
@@ -157,18 +168,21 @@ namespace NewLife.Net.IO
                 if (stream.Position >= stream.Length) return;
             }
 
-            WriteLog("收到{0:n0}字节", stream.Length - stream.Position);
-            if (e.Length > 0 && stream.Position < stream.Length)
+            var len = stream.Length - stream.Position;
+            if (len > 0)
             {
-                Length += (stream.Length - stream.Position);
+                Length += len;
+                var ms = (DateTime.Now - StartTime).TotalMilliseconds;
+                var speed = Length / 1024 / ms * 1000;
+                WriteLog("收到{0:n0}字节，{1:n0}kb/s，完成{2:p}", len, (Int32)speed, (Double)Length / Inf.Length);
                 if (Stream != null && Stream.CanWrite) Stream.Write(stream);
                 //}
                 //else
                 //{
                 if (Length >= Inf.Length)
                 {
-                    var ms = (DateTime.Now - StartTime).TotalMilliseconds;
-                    var speed = Length / 1024 / ms * 1000;
+                    //var ms = (DateTime.Now - StartTime).TotalMilliseconds;
+                    //var speed = Length / 1024 / ms * 1000;
                     WriteLog("{0}接收完成，{1:n0}ms，{2:n0}kb/s", Inf.Name, (Int32)ms, (Int32)speed);
                     //Dispose();
 

@@ -36,6 +36,7 @@ namespace NewLife.Net.IO
                 tcp.UseProcessAsync = false;
                 // 因为第一个包发送文件头，所以必须在一个会话里面完成文件传输，不能使用断线重连
                 tcp.AutoReconnect = false;
+                tcp.ThrowException = true;
                 Client = tcp;
                 tcp.Remote.Port = port;
                 tcp.Remote.Host = hostname;
