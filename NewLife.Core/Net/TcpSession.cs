@@ -302,8 +302,20 @@ namespace NewLife.Net
 
             LastTime = DateTime.Now;
 
-            // 在用户线程池里面处理数据
-            ThreadPoolX.QueueUserWorkItem(() => OnReceive(data, count), ex => OnError("OnReceive", ex));
+            if (UseProcessAsync)
+                // 在用户线程池里面处理数据
+                ThreadPoolX.QueueUserWorkItem(() => OnReceive(data, count), ex => OnError("OnReceive", ex));
+            else
+            {
+                try
+                {
+                    OnReceive(data, count);
+                }
+                catch (Exception ex)
+                {
+                    OnError("OnReceive", ex);
+                }
+            }
 
             // 开始新的监听
             ReceiveAsync();

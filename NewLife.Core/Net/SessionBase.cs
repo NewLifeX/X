@@ -164,6 +164,10 @@ namespace NewLife.Net
         /// <summary>是否异步接收数据</summary>
         public Boolean UseReceiveAsync { get { return _UseReceiveAsync; } set { _UseReceiveAsync = value; } }
 
+        private Boolean _UseProcessAsync = true;
+        /// <summary>是否异步处理接收到的数据，默认true。异步处理有可能造成数据包乱序，特别是Tcp</summary>
+        public Boolean UseProcessAsync { get { return _UseProcessAsync; } set { _UseProcessAsync = value; } }
+
         /// <summary>开始异步接收</summary>
         /// <returns>是否成功</returns>
         public abstract Boolean ReceiveAsync();
