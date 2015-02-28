@@ -75,6 +75,9 @@ namespace NewLife.Net
         /// <summary>打开</summary>
         protected override Boolean OnOpen()
         {
+            // 服务端会话没有打开
+            if (_Server != null) return false;
+
             if (Client == null || !Client.Client.IsBound)
             {
                 // 根据目标地址适配本地IPv4/IPv6
@@ -100,7 +103,7 @@ namespace NewLife.Net
                 }
                 catch (Exception ex)
                 {
-                    if (!ex.IsDisposed()) OnError("Connect", ex);
+                    if (!Disposed && !ex.IsDisposed()) OnError("Connect", ex);
                     if (ThrowException) throw;
 
                     return false;

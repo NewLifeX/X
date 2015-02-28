@@ -182,7 +182,9 @@ namespace NewLife.Net
         {
             _LastTime = DateTime.Now;
 
-            Log.Debug("{0}.Receive {1} [{2}]: {3}", Name, Remote, e.Length, e.Data.ToHex(0, Math.Min(e.Length, 32)));
+            var hex = "";
+            if (e.Length > 0) hex = e.Data.ToHex(0, Math.Min(e.Length, 32));
+            Log.Debug("{0}.Receive {1} [{2}]: {3}", Name, Remote, e.Length, hex);
 
             if (Received != null) Received(sender, e);
         }

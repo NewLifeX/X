@@ -9,39 +9,27 @@ namespace NewLife.Net.IO
         #region 属性
         private String _Name;
         /// <summary>文件名</summary>
-        public String Name
-        {
-            get { return _Name; }
-            set { _Name = value; }
-        }
+        public String Name { get { return _Name; } set { _Name = value; } }
 
         private Int64 _Length;
         /// <summary>文件大小</summary>
-        public Int64 Length
-        {
-            get { return _Length; }
-            set { _Length = value; }
-        }
+        public Int64 Length { get { return _Length; } set { _Length = value; } }
 
         private FileInfo _Info;
         /// <summary>文件信息</summary>
-        public FileInfo Info
-        {
-            get { return _Info; }
-            set { _Info = value; }
-        }
+        public FileInfo Info { get { return _Info; } set { _Info = value; } }
 
-        private FileStream _Stream;
-        /// <summary>文件流</summary>
-        public FileStream Stream
-        {
-            get
-            {
-                if (_Stream == null && Info != null) _Stream = Info.OpenRead();
-                return _Stream;
-            }
-            set { _Stream = value; }
-        }
+        //private FileStream _Stream;
+        ///// <summary>文件流</summary>
+        //public FileStream Stream
+        //{
+        //    get
+        //    {
+        //        if (_Stream == null && Info != null) _Stream = Info.OpenRead();
+        //        return _Stream;
+        //    }
+        //    set { _Stream = value; }
+        //}
         #endregion
 
         #region 构造
@@ -75,65 +63,53 @@ namespace NewLife.Net.IO
 
         #region 方法
         /// <summary>读取</summary>
-        /// <param name="reader"></param>
-        public void Read(BinaryReader reader)
-        {
-            Name = reader.ReadString();
-            Length = reader.ReadInt64();
-        }
-
-        /// <summary>写入</summary>
-        /// <param name="writer"></param>
-        public void Write(BinaryWriter writer)
-        {
-            writer.Write(Name);
-            writer.Write(Length);
-        }
-
-        /// <summary>读取</summary>
         /// <param name="stream"></param>
         public void Read(Stream stream)
         {
-            Read(new BinaryReader(stream));
+            var reader = new BinaryReader(stream);
+            Name = reader.ReadString();
+            Length = reader.ReadInt64();
         }
 
         /// <summary>写入</summary>
         /// <param name="stream"></param>
         public void Write(Stream stream)
         {
-            Write(new BinaryWriter(stream));
+            var writer = new BinaryWriter(stream);
+            writer.Write(Name);
+            writer.Write(Length);
         }
 
-        /// <summary>从流中加载一个文件格式对象</summary>
-        /// <param name="stream"></param>
+        /// <summary>获取头部数据流</summary>
         /// <returns></returns>
-        public static FileFormat Load(Stream stream)
+        public Stream GetHeader()
         {
-            FileFormat ff = new FileFormat();
-            ff.Read(stream);
-            return ff;
+            var ms = new MemoryStream();
+            Write(ms);
+            ms.Position = 0;
+            return ms;
         }
 
-        /// <summary>保存文件</summary>
-        /// <param name="root"></param>
-        /// <param name="stream"></param>
-        public void Save(String root, Stream stream)
-        {
-            Info = new FileInfo(Path.Combine(root, Name));
-            if (!Info.Exists && !Info.Directory.Exists) Info.Directory.Create();
-            Stream = Info.Open(FileMode.Create, FileAccess.Write);
+        ///// <summary>保存文件</summary>
+        ///// <param name="root"></param>
+        ///// <param name="stream"></param>
+        //public void Save(String root, Stream stream)
+        //{
+        //    Info = new FileInfo(Path.Combine(root, Name));
+        //    if (!Info.Exists && !Info.Directory.Exists) Info.Directory.Create();
+        //    Stream = Info.Open(FileMode.Create, FileAccess.Write);
 
-            Byte[] buffer = new Byte[10240];
-            Int64 count = 0;
-            while (count < Length)
-            {
-                Int32 n = stream.Read(buffer, 0, buffer.Length);
-                if (n <= 0) break;
+        //    var buffer = new Byte[10240];
+        //    Int64 count = 0;
+        //    while (count < Length)
+        //    {
+        //        var n = stream.Read(buffer, 0, buffer.Length);
+        //        if (n <= 0) break;
 
-                Stream.Write(buffer, 0, n);
-                count += n;
-            }
-        }
+        //        Stream.Write(buffer, 0, n);
+        //        count += n;
+        //    }
+        //}
         #endregion
     }
 }

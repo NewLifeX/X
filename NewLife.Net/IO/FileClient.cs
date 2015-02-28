@@ -1,18 +1,26 @@
 ﻿using System;
 using System.IO;
+using NewLife.Log;
 
 namespace NewLife.Net.IO
 {
     /// <summary>文件客户端</summary>
-    public class FileClient
+    public class FileClient : DisposeBase
     {
         #region 属性
         private ISocketClient _Client;
         /// <summary>客户端连接</summary>
-        public ISocketClient Client
+        public ISocketClient Client { get { return _Client; } set { _Client = value; } }
+        #endregion
+
+        #region 构造
+        /// <summary>销毁客户端</summary>
+        /// <param name="disposing"></param>
+        protected override void OnDispose(bool disposing)
         {
-            get { return _Client; }
-            set { _Client = value; }
+            base.OnDispose(disposing);
+
+            if (Client != null) Client.Dispose();
         }
         #endregion
 
@@ -25,9 +33,8 @@ namespace NewLife.Net.IO
             if (Client == null)
             {
                 var tcp = new TcpSession();
+                tcp.UseProcessAsync = false;
                 Client = tcp;
-                //Client.Connect(hostname, port);
-                //tcp.Connect(hostname, port);
                 tcp.Remote.Port = port;
                 tcp.Remote.Host = hostname;
             }
@@ -42,15 +49,14 @@ namespace NewLife.Net.IO
 
         void SendFile(String fileName, String root)
         {
-            var entity = new FileFormat(fileName, root);
-            var format = new MemoryStream();
-            entity.Write(format);
-            format.Position = 0;
-            Client.Send(format);
-            Client.Send(entity.Stream);
-            //var session = Client.CreateSession();
-            //session.Send(format)
-            //    .Send(entity.Stream);
+            var ff = new FileFormat(fileName, root);
+            WriteLog("发送文件 {0}，大小 {1:n0}字节", ff.Name, ff.Length);
+            Client.Send(ff.GetHeader());
+            //Client.Send(ff.Stream);
+            using (var fs = fileName.AsFile().OpenRead())
+            {
+                Client.Send(fs);
+            }
         }
 
         /// <summary>发送目录</summary>
@@ -61,6 +67,24 @@ namespace NewLife.Net.IO
             {
                 SendFile(item, directoryName);
             }
+        }
+        #endregion
+
+        #region 日志
+#if DEBUG
+        private ILog _Log = XTrace.Log;
+#else
+        private ILog _Log = Logger.Null;
+#endif
+        /// <summary>日志对象</summary>
+        public ILog Log { get { return _Log; } set { _Log = value; } }
+
+        /// <summary>输出日志</summary>
+        /// <param name="format"></param>
+        /// <param name="args"></param>
+        public void WriteLog(String format, params Object[] args)
+        {
+            if (Log != null) Log.Info(format, args);
         }
         #endregion
     }

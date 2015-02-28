@@ -76,7 +76,7 @@ namespace NewLife.Net.Sockets
         //public Boolean ShowAbortAsError { get { return _ShowAbortAsError; } set { _ShowAbortAsError = value; } }
 
         private Boolean _UseSession;
-        /// <summary>使用会话。默认false</summary>
+        /// <summary>使用会话集合，允许遍历会话。默认false</summary>
         public Boolean UseSession { get { return _UseSession; } set { _UseSession = value; } }
         #endregion
 
@@ -290,6 +290,8 @@ namespace NewLife.Net.Sockets
             session.OnDisposed += (s, e2) => Interlocked.Decrement(ref _SessionCount);
 
             var ns = CreateSession(session);
+            // sessionID变大后，可能达到最大值，然后变为-1，再变为0，所以不用担心
+            ns.ID = ++sessionID;
             ns.Host = this;
             ns.Server = session.Server;
             ns.Session = session;
@@ -356,8 +358,6 @@ namespace NewLife.Net.Sockets
             var dic = Sessions;
             lock (dic)
             {
-                // sessionID变大后，可能达到最大值，然后变为-1，再变为0，所以不用担心
-                session.ID = ++sessionID;
                 if (session.Host == null) session.Host = this;
                 session.OnDisposed += (s, e) => { lock (dic) { dic.Remove((s as INetSession).ID); } };
                 dic[session.ID] = session;
@@ -453,6 +453,7 @@ namespace NewLife.Net.Sockets
         {
             base.WriteLog(String.Format("{0} {1}", Name, format), args);
         }
+       
         /// <summary>已重载。</summary>
         /// <returns></returns>
         public override string ToString()

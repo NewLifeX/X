@@ -26,7 +26,7 @@ namespace NewLife.Net.Sockets
 
         private NetServer _Host;
         /// <summary>主服务</summary>
-        NetServer INetSession.Host { get { return _Host; } set { _Host = value; } }
+        public NetServer Host { get { return _Host; } set { _Host = value; } }
 
         private ISocketSession _Session;
         /// <summary>客户端。跟客户端通讯的那个Socket，其实是服务端TcpSession/UdpServer</summary>
