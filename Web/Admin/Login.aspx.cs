@@ -1,14 +1,11 @@
 ﻿using System;
 using System.Threading;
-using NewLife.Common;
 using NewLife.CommonEntity;
 using NewLife.CommonEntity.Exceptions;
 using NewLife.Log;
-using NewLife.Security;
 using NewLife.Threading;
 using NewLife.Web;
 using XCode;
-using XControl;
 
 public partial class Admin_Login : System.Web.UI.Page
 {
@@ -26,10 +23,7 @@ public partial class Admin_Login : System.Web.UI.Page
         if (user != null)
         {
             if (String.Equals("logout", Request["action"], StringComparison.OrdinalIgnoreCase))
-            {
-                IAdministrator admin = user as IAdministrator;
-                if (admin == null) admin.Logout();
-            }
+                Provider.Current = null;
             else
                 Response.Redirect("Default.aspx");
         }

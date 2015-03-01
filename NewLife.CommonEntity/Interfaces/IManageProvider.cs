@@ -21,7 +21,7 @@ namespace NewLife.CommonEntity
         /// <summary>管理用户类</summary>
         Type ManageUserType { get; }
 
-        /// <summary>当前用户</summary>
+        /// <summary>当前登录用户，设为空则注销登录</summary>
         IManageUser Current { get; set; }
 
         /// <summary>根据用户编号查找</summary>

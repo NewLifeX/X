@@ -145,6 +145,9 @@ namespace NewLife.CommonEntity
             }
             set
             {
+                var entity = HttpState.Get(null, null);
+                if (entity != null) WriteLog("注销", entity.Name);
+
                 HttpState.Current = value;
                 //Thread.CurrentPrincipal = (IPrincipal)value;
             }
@@ -375,7 +378,6 @@ namespace NewLife.CommonEntity
         /// <summary>注销</summary>
         public virtual void Logout()
         {
-            WriteLog("注销", Name);
             Current = null;
             //Thread.CurrentPrincipal = null;
         }
