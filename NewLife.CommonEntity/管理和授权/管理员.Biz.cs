@@ -112,17 +112,22 @@ namespace NewLife.CommonEntity
             set
             {
                 var key = "Admin";
+                var Session = HttpContext.Current.Session;
 
                 // 特殊处理注销
                 if (value == null)
                 {
                     var entity = Current;
                     if (entity != null) WriteLog("注销", entity.Name);
-                }
 
-                // 修改Session
-                var Session = HttpContext.Current.Session;
-                if (Session != null) Session[key] = value;
+                    // 修改Session
+                    if (Session != null) Session.Remove(key);
+                }
+                else
+                {
+                    // 修改Session
+                    if (Session != null) Session[key] = value;
+                }
 
                 // 修改Cookie
                 SetCookie(key, value);
@@ -362,7 +367,7 @@ namespace NewLife.CommonEntity
 
         static TEntity GetCookie(String key)
         {
-            var cookie = HttpContext.Current.Response.Cookies[key];
+            var cookie = HttpContext.Current.Request.Cookies[key];
             if (cookie == null) return null;
 
             var user = HttpUtility.UrlDecode(cookie["u"]);
@@ -396,6 +401,7 @@ namespace NewLife.CommonEntity
             else
             {
                 cookie.Value = null;
+                HttpContext.Current.Response.Cookies.Remove(key);
             }
         }
 

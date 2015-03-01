@@ -57,7 +57,7 @@
 </head>
 <body>
     <div class="container">
-        <form class="form-signin">
+        <form class="form-signin" method="post">
             <h2 class="form-signin-heading"><%= NewLife.Common.SysConfig.Current.DisplayName %></h2>
             <label for="user" class="sr-only">用户名</label>
             <input type="text" name="user" class="form-control" placeholder="用户名" required autofocus>

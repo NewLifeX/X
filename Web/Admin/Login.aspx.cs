@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using System.Web;
 using NewLife.CommonEntity;
 using NewLife.CommonEntity.Exceptions;
 using NewLife.Log;
@@ -31,12 +32,6 @@ public partial class Admin_Login : System.Web.UI.Page
         if (WebHelper.RequestBool("login")) Login();
     }
 
-    void SetPass(String pass)
-    {
-        String js = String.Format("$('user').value='{0}';", pass.Replace("'", "\\'"));
-        ClientScript.RegisterStartupScript(this.GetType(), "SetPass", js, true);
-    }
-
     void Login()
     {
         try
@@ -46,7 +41,16 @@ public partial class Admin_Login : System.Web.UI.Page
 
             Provider.Login(user, pass);
             if (Provider.Current != null)
+            {
+                // 处理记住密码
+                HttpCookie cookie = Response.Cookies["Admin"];
+                if (WebHelper.RequestBool("remember"))
+                    cookie.Expires = DateTime.Now.AddDays(30);
+                else
+                    cookie.Expires = DateTime.MinValue;
+
                 Response.Redirect("Default.aspx");
+            }
             else
             {
                 XTrace.WriteLine("{0}登录失败，但是没有异常，很是奇怪！", user);
