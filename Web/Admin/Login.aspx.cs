@@ -23,13 +23,13 @@ public partial class Admin_Login : System.Web.UI.Page
         IManageUser user = Provider.Current;
         if (user != null)
         {
-            if (String.Equals("logout", Request["action"], StringComparison.OrdinalIgnoreCase))
+            if (Request["act"] == "logout")
                 Provider.Current = null;
             else
                 Response.Redirect("Default.aspx");
         }
 
-        if (WebHelper.RequestBool("login")) Login();
+        if (Request["login"] == "true") Login();
     }
 
     void Login()
