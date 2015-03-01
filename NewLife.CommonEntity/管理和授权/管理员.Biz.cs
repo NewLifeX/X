@@ -82,79 +82,55 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region 扩展属性
-        static HttpState<TEntity> _httpState;
-        /// <summary>Http状态，子类可以重新给HttpState赋值，以控制保存Http状态的过程</summary>
-        public static HttpState<TEntity> HttpState
-        {
-            get
-            {
-                if (_httpState != null) return _httpState;
-                _httpState = new HttpState<TEntity>("Admin");
-                _httpState.CookieToEntity = new Converter<HttpCookie, TEntity>(delegate(HttpCookie cookie)
-                {
-                    if (cookie == null) return null;
-
-                    var user = HttpUtility.UrlDecode(cookie["u"]);
-                    var pass = cookie["p"];
-                    if (String.IsNullOrEmpty(user) || String.IsNullOrEmpty(pass)) return null;
-
-                    try
-                    {
-                        return Login(user, pass, -1);
-                    }
-                    catch (DbException ex)
-                    {
-                        XTrace.WriteLine("{0}登录失败！{1}", user, ex);
-                        return null;
-                    }
-                    catch (Exception ex)
-                    {
-                        WriteLog("登录", user + "登录失败！" + ex.Message);
-                        return null;
-                    }
-                });
-                _httpState.EntityToCookie = new Converter<TEntity, HttpCookie>(delegate(TEntity entity)
-                {
-                    var cookie = HttpContext.Current.Response.Cookies[_httpState.Key];
-                    if (entity != null)
-                    {
-                        cookie["u"] = HttpUtility.UrlEncode(entity.Name);
-                        cookie["p"] = !String.IsNullOrEmpty(entity.Password) ? DataHelper.Hash(entity.Password) : null;
-                    }
-                    else
-                    {
-                        cookie.Value = null;
-                    }
-
-                    return cookie;
-                });
-
-                return _httpState;
-            }
-            set { _httpState = value; }
-        }
-
         /// <summary>当前登录用户</summary>
         public static TEntity Current
         {
             get
             {
-                var entity = HttpState.Current;
-                if (HttpState.Get(null, null) != entity) HttpState.Current = entity;
+                var key = "Admin";
+
+                if (HttpContext.Current == null) return null;
+                var Session = HttpContext.Current.Session;
+                if (Session == null) return null;
+
+                // 从Session中获取
+                var entity = Session[key] as TEntity;
+                if (entity != null) return entity;
+
+                // 设置一个陷阱，避免重复计算Cookie
+                if (Session[key] != null) return null;
+
+                // 从Cookie中获取
+                entity = GetCookie(key);
+                if (entity != null)
+                    Session[key] = entity;
+                else
+                    Session[key] = "1";
+
                 return entity;
             }
             set
             {
-                var entity = HttpState.Get(null, null);
-                if (entity != null) WriteLog("注销", entity.Name);
+                var key = "Admin";
 
-                HttpState.Current = value;
-                //Thread.CurrentPrincipal = (IPrincipal)value;
+                // 特殊处理注销
+                if (value == null)
+                {
+                    var entity = Current;
+                    if (entity != null) WriteLog("注销", entity.Name);
+                }
+
+                // 修改Session
+                var Session = HttpContext.Current.Session;
+                if (Session != null) Session[key] = value;
+
+                // 修改Cookie
+                SetCookie(key, value);
             }
         }
 
-        /// <summary>当前登录用户，不带自动登录</summary>
-        public static TEntity CurrentNoAutoLogin { get { return HttpState.Get(null, null); } }
+        ///// <summary>当前登录用户，不带自动登录</summary>
+        //public static TEntity CurrentNoAutoLogin { get { return HttpState.Get(null, null); } }
 
         /// <summary>友好名字</summary>
         public virtual String FriendName { get { return String.IsNullOrEmpty(DisplayName) ? Name : DisplayName; } }
@@ -319,6 +295,7 @@ namespace NewLife.CommonEntity
         static TEntity Login(String username, String password, Int32 hashTimes)
         {
             if (String.IsNullOrEmpty(username)) throw new ArgumentNullException("username", "该帐号不存在！");
+
             //过滤帐号中的空格，防止出现无操作无法登录的情况
             var account = username.Trim();
             var user = FindByName(account);
@@ -372,6 +349,7 @@ namespace NewLife.CommonEntity
             LastLogin = DateTime.Now;
             var ip = WebHelper.UserHost;
             if (!String.IsNullOrEmpty(ip)) LastLoginIP = ip;
+
             return Update();
         }
 
@@ -380,6 +358,45 @@ namespace NewLife.CommonEntity
         {
             Current = null;
             //Thread.CurrentPrincipal = null;
+        }
+
+        static TEntity GetCookie(String key)
+        {
+            var cookie = HttpContext.Current.Response.Cookies[key];
+            if (cookie == null) return null;
+
+            var user = HttpUtility.UrlDecode(cookie["u"]);
+            var pass = cookie["p"];
+            if (String.IsNullOrEmpty(user) || String.IsNullOrEmpty(pass)) return null;
+
+            try
+            {
+                return Login(user, pass, -1);
+            }
+            catch (DbException ex)
+            {
+                XTrace.WriteLine("{0}登录失败！{1}", user, ex);
+                return null;
+            }
+            catch (Exception ex)
+            {
+                WriteLog("登录", user + "登录失败！" + ex.Message);
+                return null;
+            }
+        }
+
+        static void SetCookie(String key, TEntity entity)
+        {
+            var cookie = HttpContext.Current.Response.Cookies[key];
+            if (entity != null)
+            {
+                cookie["u"] = HttpUtility.UrlEncode(entity.Name);
+                cookie["p"] = !String.IsNullOrEmpty(entity.Password) ? DataHelper.Hash(entity.Password) : null;
+            }
+            else
+            {
+                cookie.Value = null;
+            }
         }
 
         /// <summary>拥有指定菜单的权限</summary>
@@ -464,24 +481,6 @@ namespace NewLife.CommonEntity
             // 根据权限名找
             return factory.FindForPerssion(name);
         }
-
-        ///// <summary>写日志</summary>
-        ///// <param name="type">类型</param>
-        ///// <param name="action">操作</param>
-        ///// <param name="remark">备注</param>
-        //public void WriteLog(Type type, String action, String remark)
-        //{
-        //    if (!Config.GetConfig<Boolean>("NewLife.CommonEntity.WriteEntityLog", true)) return;
-
-        //    if (type == null) type = this.GetType();
-
-        //    var factory = ManageProvider.Get<ILog>();
-        //    var log = factory.Create(type, action);
-        //    log.UserID = ID;
-        //    log.UserName = FriendName;
-        //    log.Remark = remark;
-        //    log.Save();
-        //}
         #endregion
 
         #region IManageUser 成员

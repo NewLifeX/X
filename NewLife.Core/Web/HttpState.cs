@@ -12,35 +12,19 @@ namespace NewLife.Web
         #region 属性
         private String _Key;
         /// <summary>键值</summary>
-        public String Key
-        {
-            get { return _Key; }
-            set { _Key = value; }
-        }
+        public String Key { get { return _Key; } set { _Key = value; } }
 
         private Boolean _EnableSession = true;
         /// <summary>使用Session</summary>
-        public Boolean EnableSession
-        {
-            get { return _EnableSession; }
-            set { _EnableSession = value; }
-        }
+        public Boolean EnableSession { get { return _EnableSession; } set { _EnableSession = value; } }
 
         private Boolean _EnableHttpItems = true;
         /// <summary>使用HttpItems</summary>
-        public Boolean EnableHttpItems
-        {
-            get { return _EnableHttpItems; }
-            set { _EnableHttpItems = value; }
-        }
+        public Boolean EnableHttpItems { get { return _EnableHttpItems; } set { _EnableHttpItems = value; } }
 
         private Boolean _EnableCache = false;
         /// <summary>使用Cache</summary>
-        public Boolean EnableCache
-        {
-            get { return _EnableCache; }
-            set { _EnableCache = value; }
-        }
+        public Boolean EnableCache { get { return _EnableCache; } set { _EnableCache = value; } }
 
         //private TimeSpan _CacheTime;
         ///// <summary>Cache缓存的时间</summary>
@@ -52,11 +36,7 @@ namespace NewLife.Web
 
         private Boolean _EnableCookie = true;
         /// <summary>使用Cookie</summary>
-        public Boolean EnableCookie
-        {
-            get { return _EnableCookie; }
-            set { _EnableCookie = value; }
-        }
+        public Boolean EnableCookie { get { return _EnableCookie; } set { _EnableCookie = value; } }
 
         /// <summary>实体转为Cookie的方法</summary>
         public Converter<T, HttpCookie> EntityToCookie;
@@ -97,28 +77,18 @@ namespace NewLife.Web
         #region 核心
         /// <summary>获取Http状态</summary>
         /// <param name="conv">把Cookie转为实体的转换器</param>
-        /// <returns></returns>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        [Obsolete("该方法在将来版本中将不再支持，请使用T Get(Converter<HttpCookie, T> conv, Converter<HttpState<T>, T> load)")]
-        public T Get(Converter<HttpCookie, T> conv)
-        {
-            return Get(conv, null);
-        }
-
-        /// <summary>获取Http状态</summary>
-        /// <param name="conv">把Cookie转为实体的转换器</param>
         /// <param name="load">自定义加载方法</param>
         /// <returns></returns>
         public T Get(Converter<HttpCookie, T> conv, Converter<HttpState<T>, T> load)
         {
             T entity = default(T);
 
-            HttpContext http = Http;
+            var http = Http;
             if (http == null) return entity;
 
-            String key = Key;
+            var key = Key;
 
-            String sessionID = String.Empty;
+            var sessionID = String.Empty;
 
             // 尝试Items
             if (EnableHttpItems && http.Items != null)
@@ -137,57 +107,21 @@ namespace NewLife.Web
             // 尝试全局Cache
             if (EnableCache && !String.IsNullOrEmpty(sessionID))
             {
-                //// SessionID作为全局缓存的key，使得非当前会话可以修改当前会话的数据
-                //sessionID += "_" + key;
-
                 entity = GetCache(sessionID);
-                if (entity != null)
-                {
-                    //Set(entity, null, null);
-                    return entity;
-                }
+                if (entity != null) return entity;
             }
             // 尝试Cookie
             if (EnableCookie && http.Request != null && http.Request.Cookies != null)
             {
-                //if (func != null)
-                //{
-                //    // 防止重入
-                //    String key2 = key + "_Getting";
-                //    if (!http.Items.Contains(key2))
-                //    {
-                //        http.Items[key2] = true;
-                //        //try
-                //        //{
-                //        entity = func();
-                //        //}
-                //        //finally
-                //        //{
-                //        //    http.Items.Remove(key2);
-                //        //}
-                //    }
-                //}
                 if (conv != null && Array.IndexOf(http.Request.Cookies.AllKeys, key) >= 0)
                 {
                     entity = conv(http.Request.Cookies[key]);
                 }
             }
             // 自定义加载
-            if (load != null)
-            {
-                entity = load(this);
-            }
-            return entity;
-        }
+            if (load != null) entity = load(this);
 
-        /// <summary>设置Http状态</summary>
-        /// <param name="entity"></param>
-        /// <param name="conv">把实体转换为Cookie的转换器</param>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        [Obsolete("该方法在将来版本中将不再支持，请使用void Set(T entity, Converter<T, HttpCookie> conv, Converter<T, Boolean> save)")]
-        public void Set(T entity, Converter<T, HttpCookie> conv)
-        {
-            Set(entity, conv, null);
+            return entity;
         }
 
         /// <summary>设置Http状态</summary>
@@ -369,11 +303,7 @@ namespace NewLife.Web
             sessionID += "_" + Key;
 
             T entity = Http.Cache[sessionID] as T;
-            if (entity != null)
-            {
-                //Set(entity, null, null);
-                return entity;
-            }
+            if (entity != null) return entity;
 
             return default(T);
         }
