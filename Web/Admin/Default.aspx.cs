@@ -19,6 +19,10 @@ public partial class Admin_Default : System.Web.UI.Page
     /// <summary>系统配置。如果重载，修改这里即可。</summary>
     public static SysConfig Config { get { return SysConfig.Current; } }
 
+    private IList<IMenu> _Menus = new List<IMenu>();
+    /// <summary>菜单</summary>
+    public IList<IMenu> Menus { get { return _Menus; } set { _Menus = value; } }
+
     protected override void OnPreLoad(EventArgs e)
     {
         base.OnPreLoad(e);
@@ -35,8 +39,9 @@ public partial class Admin_Default : System.Web.UI.Page
         {
             if (root != null)
             {
-                menuItem.DataSource = root.Childs;
-                menuItem.DataBind();
+                Menus = root.Childs;
+                //menuItem.DataSource = root.Childs;
+                //menuItem.DataBind();
             }
             return;
         }
@@ -52,8 +57,9 @@ public partial class Admin_Default : System.Web.UI.Page
         {
             //List<IMenu> list = admin.Role.GetMySubMenus(root.ID);
             IList<IMenu> list = provider.GetMySubMenus(root.ID);
-            menuItem.DataSource = list;
-            menuItem.DataBind();
+            Menus = list;
+            //menuItem.DataSource = list;
+            //menuItem.DataBind();
 
             if (list != null && list.Count > 0)
             {
@@ -113,6 +119,13 @@ public partial class Admin_Default : System.Web.UI.Page
 
     protected void Page_Load(object sender, EventArgs e)
     {
-        this.Title = Config.DisplayName;
+        //this.Title = Config.DisplayName;
+    }
+
+    String[] icos = new String[] { "fa-tachometer", "fa-desktop", "fa-list", "fa-pencil-square-o", "fa-list-alt", "fa-calendar", "fa-picture-o", "fa-tag", "fa-file-o" };
+    Int32 _idx = 0;
+    public String GetIco()
+    {
+        return icos[_idx++];
     }
 }
