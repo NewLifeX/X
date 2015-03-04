@@ -23,10 +23,12 @@ namespace System.IO
             if (String.IsNullOrEmpty(path)) return path;
 
             // 处理路径分隔符，兼容Windows和Linux
-            var sep = Path.DirectorySeparatorChar + "";
-            var sep2 = sep == "/" ? "\\" : "/";
+            var sep = Path.DirectorySeparatorChar;
+            var sep2 = sep == '/' ? '\\' : '/';
             path = path.Replace(sep2, sep);
-            if (!Path.IsPathRooted(path))
+            //if (!Path.IsPathRooted(path))
+            //!!! 注意：不能直接依赖于Path.IsPathRooted判断，/和\开头的路径虽然是绝对路径，但是它们不是驱动器级别的绝对路径
+            if (path[0] == sep || path[0] == sep2 || !Path.IsPathRooted(path))
             {
                 path = path.TrimStart('~');
                 path = path.TrimStart(sep);
