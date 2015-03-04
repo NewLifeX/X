@@ -83,7 +83,8 @@ namespace System.IO
         /// <returns></returns>
         public static String CombinePath(this String path, params String[] ps)
         {
-            if (path == null || ps == null || ps.Length < 1) return path;
+            if (ps == null || ps.Length < 1) return path;
+            if (path == null) path = String.Empty;
 
             //return Path.Combine(path, path2);
             foreach (var item in ps)
