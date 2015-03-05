@@ -31,8 +31,8 @@ using System.Runtime.InteropServices;
 //
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
-[assembly: AssemblyVersion("8.13.*")]
-[assembly: AssemblyFileVersion("8.13.2015.0107")]
+[assembly: AssemblyVersion("8.14.*")]
+[assembly: AssemblyFileVersion("8.14.2015.0305")]
 
 /*
  * XCode的重大改进
@@ -49,6 +49,8 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v8.14.2015.0305  字段名集合Meta.FieldNames和实体索引this[name]等不再区分大小写比较，要求数据表不得使用同名但不同大小写的字段名
+ * 
  * v8.13.2015.0107  修正部分实体类因没有主键导致删除数据错误的BUG
  * 
  * v8.13.2014.0720  如果页面设定有XCode_SQLList列表，则往列表写入SQL语句

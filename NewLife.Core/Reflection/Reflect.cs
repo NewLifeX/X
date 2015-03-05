@@ -39,7 +39,7 @@ namespace NewLife.Reflection
             return _Provider.GetMethod(type, name, paramTypes);
         }
 
-        /// <summary>获取属性。搜索私有、静态、基类</summary>
+        /// <summary>获取属性。搜索私有、静态、基类，优先返回大小写精确匹配成员</summary>
         /// <param name="type">类型</param>
         /// <param name="name">名称</param>
         /// <param name="ignoreCase">忽略大小写</param>
@@ -51,7 +51,7 @@ namespace NewLife.Reflection
             return _Provider.GetProperty(type, name, ignoreCase);
         }
 
-        /// <summary>获取字段。搜索私有、静态、基类</summary>
+        /// <summary>获取字段。搜索私有、静态、基类，优先返回大小写精确匹配成员</summary>
         /// <param name="type">类型</param>
         /// <param name="name">名称</param>
         /// <param name="ignoreCase">忽略大小写</param>

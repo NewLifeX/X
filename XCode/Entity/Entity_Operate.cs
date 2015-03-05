@@ -38,7 +38,7 @@ namespace XCode
             public virtual FieldItem[] Fields { get { return Meta.Fields; } }
 
             /// <summary>字段名列表</summary>
-            public virtual IList<String> FieldNames { get { return Meta.FieldNames; } }
+            public virtual ICollection<String> FieldNames { get { return Meta.FieldNames; } }
 
             /// <summary>唯一键，返回第一个标识列或者唯一的主键</summary>
             public virtual FieldItem Unique { get { return Meta.Unique; } }

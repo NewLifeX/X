@@ -167,21 +167,29 @@ namespace XCode.Configuration
         [XmlIgnore]
         public FieldItem[] PrimaryKeys { get { return _PrimaryKeys; } }
 
-        private IList<String> _FieldNames;
+        private ICollection<String> _FieldNames;
         /// <summary>字段名集合</summary>
         [XmlIgnore]
-        public IList<String> FieldNames
+        public ICollection<String> FieldNames
         {
             get
             {
                 if (_FieldNames != null) return _FieldNames;
 
-                var list = new List<String>();
+                var list = new HashSet<String>(StringComparer.OrdinalIgnoreCase);
+                var dic = new Dictionary<String, String>(StringComparer.OrdinalIgnoreCase);
                 foreach (var item in Fields)
                 {
-                    if (!list.Contains(item.Name)) list.Add(item.Name);
+                    if (!list.Contains(item.Name))
+                    {
+                        list.Add(item.Name);
+                        dic.Add(item.Name, item.Name);
+                    }
+                    else
+                        DAL.WriteLog("数据表{0}发现同名但不同大小写的字段{1}和{2}，违反设计原则！", TableName, dic[item.Name], item.Name);
                 }
-                _FieldNames = new ReadOnlyCollection<String>(list);
+                //_FieldNames = new ReadOnlyCollection<String>(list);
+                _FieldNames = list;
 
                 return _FieldNames;
             }

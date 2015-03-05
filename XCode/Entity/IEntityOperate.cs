@@ -33,7 +33,7 @@ namespace XCode
         FieldItem[] Fields { get; }
 
         /// <summary>字段名列表</summary>
-        IList<String> FieldNames { get; }
+        ICollection<String> FieldNames { get; }
 
         /// <summary>唯一键，返回第一个标识列或者唯一的主键</summary>
         FieldItem Unique { get; }

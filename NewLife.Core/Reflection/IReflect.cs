@@ -184,7 +184,10 @@ namespace NewLife.Reflection
             // 父类私有属性的获取需要递归，可见范围则不需要，有些类型的父类为空，比如接口
             while (type != null && type != typeof(Object))
             {
-                var pi = type.GetProperty(name, ignoreCase ? bfic : bf);
+                //var pi = type.GetProperty(name, ignoreCase ? bfic : bf);
+                var pi = type.GetProperty(name, bf);
+                if (pi != null) return pi;
+                if (ignoreCase) pi = type.GetProperty(name, bfic);
                 if (pi != null) return pi;
 
                 type = type.BaseType;
@@ -202,7 +205,10 @@ namespace NewLife.Reflection
             // 父类私有字段的获取需要递归，可见范围则不需要，有些类型的父类为空，比如接口
             while (type != null && type != typeof(Object))
             {
-                var fi = type.GetField(name, ignoreCase ? bfic : bf);
+                //var fi = type.GetField(name, ignoreCase ? bfic : bf);
+                var fi = type.GetField(name, bf);
+                if (fi != null) return fi;
+                if (ignoreCase) fi = type.GetField(name, bfic);
                 if (fi != null) return fi;
 
                 type = type.BaseType;

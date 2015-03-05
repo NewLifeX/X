@@ -1282,15 +1282,15 @@ namespace XCode
         {
             get
             {
-                //∆•≈‰◊÷∂Œ
+                // ∆•≈‰◊÷∂Œ
                 if (Meta.FieldNames.Contains(name))
                 {
-                    var field = this.GetType().GetFieldEx("_" + name);
+                    var field = this.GetType().GetFieldEx("_" + name, true);
                     if (field != null) return this.GetValue(field);
                 }
 
-                //≥¢ ‘∆•≈‰ Ù–‘
-                var property = this.GetType().GetPropertyEx(name);
+                // ≥¢ ‘∆•≈‰ Ù–‘
+                var property = this.GetType().GetPropertyEx(name, true);
                 if (property != null && property.CanRead) return this.GetValue(property);
 
                 Object obj = null;
@@ -1305,7 +1305,7 @@ namespace XCode
                 //∆•≈‰◊÷∂Œ
                 if (Meta.FieldNames.Contains(name))
                 {
-                    var field = this.GetType().GetFieldEx("_" + name);
+                    var field = this.GetType().GetFieldEx("_" + name, true);
                     if (field != null)
                     {
                         this.SetValue(field, value);
@@ -1314,7 +1314,7 @@ namespace XCode
                 }
 
                 //≥¢ ‘∆•≈‰ Ù–‘
-                var property = this.GetType().GetPropertyEx(name);
+                var property = this.GetType().GetPropertyEx(name, true);
                 if (property != null && property.CanWrite)
                 {
                     this.SetValue(property, value);

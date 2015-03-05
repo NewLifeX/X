@@ -74,7 +74,7 @@ namespace XCode
             public static FieldItem[] Fields { get { return Table.Fields; } }
 
             /// <summary>字段名列表</summary>
-            public static IList<String> FieldNames { get { return Table.FieldNames; } }
+            public static ICollection<String> FieldNames { get { return Table.FieldNames; } }
 
             /// <summary>唯一键，返回第一个标识列或者唯一的主键</summary>
             public static FieldItem Unique

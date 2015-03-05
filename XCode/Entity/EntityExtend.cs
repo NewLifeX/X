@@ -9,6 +9,9 @@ namespace XCode
     /// <summary>实体扩展</summary>
     public class EntityExtend : DictionaryCache<String, Object>, IDictionary<String, Object>
     {
+        /// <summary>实体类一个不区分键大小写的实体扩展</summary>
+        public EntityExtend() : base(StringComparer.OrdinalIgnoreCase) { }
+
         [NonSerialized]
         private Dictionary<Type, List<String>> _depends;
         /// <summary>类型依赖</summary>
