@@ -80,7 +80,7 @@ namespace System
         }
 
         /// <summary>拆分字符串成为整型数组，默认逗号分号分隔，无效时返回空数组</summary>
-        /// <remarks>过滤空格、过滤无效、过滤重复</remarks>
+        /// <remarks>过滤空格、过滤无效、不过滤重复</remarks>
         /// <param name="value">字符串</param>
         /// <param name="separators">分组分隔符，默认逗号分号</param>
         /// <returns></returns>
@@ -96,7 +96,9 @@ namespace System
                 var id = 0;
                 if (!Int32.TryParse(item.Trim(), out id)) continue;
 
-                if (!list.Contains(id)) list.Add(id);
+                // 本意只是拆分字符串然后转为数字，不应该过滤重复项
+                //if (!list.Contains(id))
+                list.Add(id);
             }
 
             return list.ToArray();
