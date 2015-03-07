@@ -68,7 +68,7 @@ namespace System
             return true;
         }
 
-        /// <summary>拆分字符串</summary>
+        /// <summary>拆分字符串，过滤空格，无效时返回空数组</summary>
         /// <param name="value">字符串</param>
         /// <param name="separators">分组分隔符，默认逗号分号</param>
         /// <returns></returns>
@@ -80,7 +80,7 @@ namespace System
             return value.Split(separators, StringSplitOptions.RemoveEmptyEntries);
         }
 
-        /// <summary>拆分字符串成为整型数组</summary>
+        /// <summary>拆分字符串成为整型数组，默认逗号分号分隔，无效时返回空数组</summary>
         /// <remarks>过滤空格、过滤无效、过滤重复</remarks>
         /// <param name="value">字符串</param>
         /// <param name="separators">分组分隔符，默认逗号分号</param>
@@ -316,7 +316,7 @@ namespace System
             return str + end;
         }
 
-        /// <summary>从当前字符串开头移除另一字符串，不区分大小写</summary>
+        /// <summary>从当前字符串开头移除另一字符串，不区分大小写，循环多次匹配前缀</summary>
         /// <param name="str">当前字符串</param>
         /// <param name="starts">另一字符串</param>
         /// <returns></returns>
@@ -339,7 +339,7 @@ namespace System
             return str;
         }
 
-        /// <summary>从当前字符串结尾移除另一字符串，不区分大小写</summary>
+        /// <summary>从当前字符串结尾移除另一字符串，不区分大小写，循环多次匹配后缀</summary>
         /// <param name="str">当前字符串</param>
         /// <param name="ends">另一字符串</param>
         /// <returns></returns>
@@ -463,6 +463,48 @@ namespace System
             if (strict) while (encoding.GetByteCount(str.ToCharArray(), 0, clen) > len) clen--;
 
             return str.Substring(0, clen) + pad;
+        }
+
+        /// <summary>从当前字符串开头移除另一字符串以及之前的部分</summary>
+        /// <param name="str">当前字符串</param>
+        /// <param name="starts">另一字符串</param>
+        /// <returns></returns>
+        public static String CutStart(this String str, params String[] starts)
+        {
+            if (String.IsNullOrEmpty(str)) return str;
+            if (starts == null || starts.Length < 1 || String.IsNullOrEmpty(starts[0])) return str;
+
+            for (int i = 0; i < starts.Length; i++)
+            {
+                var p = str.IndexOf(starts[i]);
+                if (p >= 0)
+                {
+                    str = str.Substring(p + starts[i].Length);
+                    if (String.IsNullOrEmpty(str)) break;
+                }
+            }
+            return str;
+        }
+
+        /// <summary>从当前字符串结尾移除另一字符串以及之后的部分</summary>
+        /// <param name="str">当前字符串</param>
+        /// <param name="ends">另一字符串</param>
+        /// <returns></returns>
+        public static String CutEnd(this String str, params String[] ends)
+        {
+            if (String.IsNullOrEmpty(str)) return str;
+            if (ends == null || ends.Length < 1 || String.IsNullOrEmpty(ends[0])) return str;
+
+            for (int i = 0; i < ends.Length; i++)
+            {
+                var p = str.LastIndexOf(ends[i]);
+                if (p >= 0)
+                {
+                    str = str.Substring(0, p);
+                    if (String.IsNullOrEmpty(str)) break;
+                }
+            }
+            return str;
         }
         #endregion
 
