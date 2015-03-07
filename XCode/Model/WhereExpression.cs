@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace XCode
 {
@@ -31,6 +32,7 @@ namespace XCode
             Builder.Append(content);
         }
 
+        static Regex _regOr = new Regex("\bOr\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
         /// <summary>And操作</summary>
         /// <param name="exp"></param>
         /// <returns></returns>
@@ -43,7 +45,7 @@ namespace XCode
             if (!String.IsNullOrEmpty(exp))
             {
                 // And连接，如果左右两端其中一段有Or，则必须加括号
-                if (Builder.Length > 0 && Builder.ToString().IndexOf("Or", StringComparison.OrdinalIgnoreCase) >= 0)
+                if (Builder.Length > 0 && _regOr.IsMatch(Builder.ToString()))
                 {
                     // 有可能本身就有括号了
                     if (!(Builder[0] == '(' && Builder[Builder.Length - 1] == ')'))
@@ -54,7 +56,7 @@ namespace XCode
                 }
 
                 // And连接，如果左右两端其中一段有Or，则必须加括号
-                if (exp.IndexOf("Or", StringComparison.OrdinalIgnoreCase) >= 0)
+                if (_regOr.IsMatch(exp))
                 {
                     // 有可能本身就有括号了
                     if (!(exp[0] == '(' && exp[exp.Length - 1] == ')')) { exp = "(" + exp + ")"; }
