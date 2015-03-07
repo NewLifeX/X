@@ -124,6 +124,17 @@ namespace NewLife.Web
 
             return buf.ToStr(enc);
         }
+
+        /// <summary>获取指定地址的Html，分析所有超链接</summary>
+        /// <param name="url"></param>
+        /// <returns></returns>
+        public Link[] GetLinks(String url)
+        {
+            var html = GetHtml(url);
+            if (html.IsNullOrWhiteSpace()) return new Link[0];
+
+            return Link.Parse(html, url);
+        }
         #endregion
     }
 }

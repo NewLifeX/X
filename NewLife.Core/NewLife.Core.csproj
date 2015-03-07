@@ -292,6 +292,7 @@
     <Compile Include="Threading\TimerX.cs" />
     <Compile Include="Web\Css.cs" />
     <Compile Include="Web\Js.cs" />
+    <Compile Include="Web\Link.cs" />
     <Compile Include="Web\Modules\ErrorModule.cs" />
     <Compile Include="Web\Modules\HttpModuleLoader.cs" />
     <Compile Include="Web\Modules\CompressionModule.cs" />

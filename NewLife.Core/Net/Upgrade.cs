@@ -1,17 +1,16 @@
 ﻿using System;
-using System.Linq;
-using System.IO;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
 using System.Reflection;
-using System.Text.RegularExpressions;
+using System.Text;
+using System.Windows.Forms;
+using NewLife.Compression;
 using NewLife.Configuration;
 using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.Web;
-using NewLife.Compression;
-using System.Diagnostics;
-using System.Windows.Forms;
-using System.Text;
 
 namespace NewLife.Net
 {
@@ -54,24 +53,10 @@ namespace NewLife.Net
         private String _TempPath = XTrace.TempPath;
         /// <summary>临时目录</summary>
         public String TempPath { get { return _TempPath; } set { _TempPath = value; } }
-        #endregion
 
-        #region 远程目标文件信息
-        private Dictionary<String, String> _Files = new Dictionary<String, String>(StringComparer.OrdinalIgnoreCase);
-        /// <summary>文件列表</summary>
-        public Dictionary<String, String> Files { get { return _Files; } set { _Files = value; } }
-
-        private String _FileName;
-        /// <summary>标题</summary>
-        public String FileName { get { return _FileName; } set { _FileName = value; } }
-
-        private String _FileUrl;
-        /// <summary>下载地址</summary>
-        public String FileUrl { get { return _FileUrl; } set { _FileUrl = value; } }
-
-        private DateTime _FileTime;
-        /// <summary>文件时间</summary>
-        public DateTime FileTime { get { return _FileTime; } set { _FileTime = value; } }
+        private Link[] _Links = new Link[0];
+        /// <summary>超链接信息，其中第一个为最佳匹配项</summary>
+        public Link[] Links { get { return _Links; } set { _Links = value; } }
         #endregion
 
         #region 构造
@@ -112,74 +97,50 @@ namespace NewLife.Net
 
             var web = CreateClient();
             var html = web.GetHtml(url);
-            if (String.IsNullOrEmpty(html)) return false;
+            var links = Link.Parse(html, url, item => item.Name.StartsWithIgnoreCase(Name) || item.Name.Contains(Name));
+            if (links.Length < 1) return false;
 
             // 分析所有链接
-            var reg = new Regex("<a(?:[^>]*) href=?\"([^>\"]*)?\"(?:[^>]*)>(?<内容>[^<]*)</a>", RegexOptions.IgnoreCase);
-            var dic = Files;
-            var buri = new Uri(url);
-            foreach (Match item in reg.Matches(html))
+            var list = new List<Link>();
+            foreach (var link in links)
             {
-                var name = item.Groups[2].Value.Trim();
-                url = item.Groups[1].Value.Trim();
-
                 // 不是满足条件的name不要
-                if (!name.StartsWithIgnoreCase(Name) && !name.Contains(Name)) continue;
+                if (!link.Name.StartsWithIgnoreCase(Name) || !link.Name.Contains(Name)) continue;
 
-                // 完善下载地址
-                var uri = new Uri(buri, url);
-                url = uri.ToString();
-
-                WriteLog("发现 {0} {1}", name, url);
-
-                // 分割名称，计算时间
-                var p = name.LastIndexOf("_");
-                if (p > 0)
+                // 第一个时间命中
+                if (link.Time.Year < DateTime.Now.Year + 10)
                 {
-                    var ts = name.Substring(p + 1);
-                    if (ts.StartsWith("20") && ts.Length >= 4 + 2 + 2 + 2 + 2 + 2)
-                    {
-                        var dt = new DateTime(
-                            ts.Substring(0, 4).ToInt(),
-                            ts.Substring(4, 2).ToInt(),
-                            ts.Substring(6, 2).ToInt(),
-                            ts.Substring(8, 2).ToInt(),
-                            ts.Substring(10, 2).ToInt(),
-                            ts.Substring(12, 2).ToInt());
-
-                        if (dt.Year < DateTime.Now.Year + 10 && dt > FileTime)
-                        {
-                            FileTime = dt;
-                            FileName = name;
-                            FileUrl = url;
-                        }
-                    }
+                    list.Add(link);
                 }
-
-                dic[name] = url;
             }
+            if (list.Count < 1) return false;
+
+            // 按照时间降序
+            Links = list.OrderByDescending(e => e.Time).ToArray();
 
             // 只有文件时间大于编译时间才更新，需要考虑文件编译后过一段时间才打包
-            return FileTime > Compile.AddMinutes(10);
+            return Links[0].Time > Compile.AddMinutes(10);
         }
 
         /// <summary>开始更新</summary>
         public void Download()
         {
-            if (FileName == null) throw new Exception("没有可用新版本！");
-            if (String.IsNullOrEmpty(FileUrl)) throw new Exception("升级包地址无效！");
+            if (Links.Length == 0) throw new Exception("没有可用新版本！");
+
+            var link = Links[0];
+            if (String.IsNullOrEmpty(link.Url)) throw new Exception("升级包地址无效！");
 
             // 如果更新包不存在，则下载
-            var file = UpdatePath.CombinePath(FileName).GetFullPath();
+            var file = UpdatePath.CombinePath(link.Name).GetFullPath();
             if (!File.Exists(file))
             {
-                WriteLog("准备下载 {0} 到 {1}", FileUrl, file);
+                WriteLog("准备下载 {0} 到 {1}", link.Url, file);
 
                 var sw = new Stopwatch();
                 sw.Start();
 
                 var web = CreateClient();
-                web.DownloadFile(FileUrl, file.EnsureDirectory());
+                web.DownloadFile(link.Url, file.EnsureDirectory());
 
                 sw.Stop();
                 WriteLog("下载完成！大小{0:n0}字节，耗时{1:n0}ms", file.AsFile().Length, sw.ElapsedMilliseconds);

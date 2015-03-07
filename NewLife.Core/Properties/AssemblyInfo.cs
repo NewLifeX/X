@@ -31,9 +31,11 @@ using System.Runtime.InteropServices;
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("5.2.*")]
-[assembly: AssemblyFileVersion("5.2.2015.0211")]
+[assembly: AssemblyFileVersion("5.2.2015.0307")]
 
 /*
+ * v5.2.2015.0307   增加Link，扩展WebClientX.GetLinks，用于从网页分析超链接以便于下载
+ * 
  * v5.2.2015.0211   增加轻量级自动更新Upgrade，从网页自动查找更新包
  * 
  * v5.1.2015.0131   X组件核心库兼容MonoAndroid

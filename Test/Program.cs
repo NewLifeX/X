@@ -38,7 +38,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test14();
+                    Test15();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -634,9 +634,9 @@ namespace Test
             up.Server = "http://www.newlifex.com/showtopic-1334.aspx";
             if (up.Check())
             {
-                Console.WriteLine(up.FileName);
-                Console.WriteLine(up.FileUrl);
-                Console.WriteLine(up.FileTime.ToFullString());
+                //Console.WriteLine(up.FileName);
+                //Console.WriteLine(up.FileUrl);
+                //Console.WriteLine(up.FileTime.ToFullString());
 
                 up.Download();
                 up.Update();
