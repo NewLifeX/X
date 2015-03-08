@@ -180,6 +180,7 @@ namespace NewLife.Reflection
         /// <summary>取值</summary>
         /// <param name="obj"></param>
         /// <returns></returns>
+        [DebuggerHidden]
         [DebuggerStepThrough]
         public override Object GetValue(Object obj)
         {
@@ -192,6 +193,7 @@ namespace NewLife.Reflection
         /// <summary>赋值</summary>
         /// <param name="obj"></param>
         /// <param name="value">数值</param>
+        [DebuggerHidden]
         [DebuggerStepThrough]
         public override void SetValue(Object obj, Object value)
         {

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Reflection;
 
 namespace NewLife.Reflection
@@ -81,6 +82,7 @@ namespace NewLife.Reflection
         /// <param name="type">类型</param>
         /// <param name="parameters">参数数组</param>
         /// <returns></returns>
+        [DebuggerHidden]
         public static Object CreateInstance(this Type type, params Object[] parameters)
         {
             if (type == null) throw new ArgumentNullException("type");
@@ -140,6 +142,7 @@ namespace NewLife.Reflection
         /// <param name="method">方法</param>
         /// <param name="parameters">方法参数</param>
         /// <returns></returns>
+        [DebuggerHidden]
         public static Object Invoke(this Object target, MethodBase method, params Object[] parameters)
         {
             //if (target == null) throw new ArgumentNullException("target");
@@ -154,6 +157,7 @@ namespace NewLife.Reflection
         /// <param name="name">名称</param>
         /// <param name="throwOnError">出错时是否抛出异常</param>
         /// <returns></returns>
+        [DebuggerHidden]
         public static Object GetValue(this Object target, String name, Boolean throwOnError = true)
         {
             if (target == null) throw new ArgumentNullException("target");
@@ -224,6 +228,7 @@ namespace NewLife.Reflection
         /// <param name="target">目标对象</param>
         /// <param name="member">成员</param>
         /// <returns></returns>
+        [DebuggerHidden]
         public static Object GetValue(this Object target, MemberInfo member)
         {
             if (member is PropertyInfo)
@@ -239,6 +244,7 @@ namespace NewLife.Reflection
         /// <param name="name">名称</param>
         /// <param name="value">数值</param>
         /// <remarks>反射调用是否成功</remarks>
+        [DebuggerHidden]
         public static Boolean SetValue(this Object target, String name, Object value)
         {
             if (String.IsNullOrEmpty(name)) return false;
@@ -281,6 +287,7 @@ namespace NewLife.Reflection
         /// <param name="target">目标对象</param>
         /// <param name="member">成员</param>
         /// <param name="value">数值</param>
+        [DebuggerHidden]
         public static void SetValue(this Object target, MemberInfo member, Object value)
         {
             if (member is PropertyInfo)

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Reflection;
 
 namespace NewLife.Reflection
@@ -37,6 +38,7 @@ namespace NewLife.Reflection
         /// <param name="type">类型</param>
         /// <param name="parameters">参数数组</param>
         /// <returns></returns>
+        [DebuggerHidden]
         public override Object CreateInstance(Type type, params Object[] parameters) { return TypeX.CreateInstance(type, parameters); }
 
         /// <summary>反射调用指定对象的方法</summary>
@@ -44,6 +46,7 @@ namespace NewLife.Reflection
         /// <param name="method">方法</param>
         /// <param name="parameters">方法参数</param>
         /// <returns></returns>
+        [DebuggerHidden]
         public override Object Invoke(Object target, MethodBase method, params Object[] parameters)
         {
             if (method is MethodInfo)
@@ -56,6 +59,7 @@ namespace NewLife.Reflection
         /// <param name="target">目标对象</param>
         /// <param name="property">属性</param>
         /// <returns></returns>
+        [DebuggerHidden]
         public override Object GetValue(Object target, PropertyInfo property)
         {
             return PropertyInfoX.Create(property).GetValue(target);
@@ -65,6 +69,7 @@ namespace NewLife.Reflection
         /// <param name="target">目标对象</param>
         /// <param name="field">字段</param>
         /// <returns></returns>
+        [DebuggerHidden]
         public override Object GetValue(Object target, FieldInfo field)
         {
             return FieldInfoX.Create(field).GetValue(target);
@@ -74,6 +79,7 @@ namespace NewLife.Reflection
         /// <param name="target">目标对象</param>
         /// <param name="property">属性</param>
         /// <param name="value">数值</param>
+        [DebuggerHidden]
         public override void SetValue(Object target, PropertyInfo property, Object value)
         {
             PropertyInfoX.Create(property).SetValue(target, value);
@@ -83,6 +89,7 @@ namespace NewLife.Reflection
         /// <param name="target">目标对象</param>
         /// <param name="field">字段</param>
         /// <param name="value">数值</param>
+        [DebuggerHidden]
         public override void SetValue(Object target, FieldInfo field, Object value)
         {
             FieldInfoX.Create(field).SetValue(target, value);
