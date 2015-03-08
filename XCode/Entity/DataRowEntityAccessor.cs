@@ -80,7 +80,7 @@ namespace XCode
                 if (_FieldItems == null)
                 {
                     var dic = new Dictionary<String, FieldItem>(StringComparer.OrdinalIgnoreCase);
-                    foreach (var item in Factory.AllFields)
+                    foreach (var item in Factory.Fields)
                     {
                         if (!dic.ContainsKey(item.ColumnName)) dic.Add(item.ColumnName, item);
                     }
