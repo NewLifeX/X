@@ -427,14 +427,17 @@ namespace NewLife.Log
 
             int count = st.FrameCount;
             var sb = new StringBuilder(count * 20);
-            if (maxNum > 0 && maxNum < count) count = maxNum;
-            for (int i = 0; i < count; i++)
+            //if (maxNum > 0 && maxNum < count) count = maxNum;
+            for (int i = 0; i < count && maxNum > 0; i++)
             {
                 var sf = st.GetFrame(i);
                 var method = sf.GetMethod();
-                // 跳过<>类型的匿名方法
 
+                // 跳过<>类型的匿名方法
                 if (method == null || String.IsNullOrEmpty(method.Name) || method.Name[0] == '<' && method.Name.Contains(">")) continue;
+
+                // 跳过有[DebuggerHidden]特性的方法
+                if (method.GetCustomAttribute<DebuggerHiddenAttribute>() != null) continue;
 
                 var type = method.DeclaringType ?? method.ReflectedType;
                 if (type != null) sb.Append(type.Name);
@@ -457,6 +460,8 @@ namespace NewLife.Log
                 if (i < count - 1) sb.Append(split);
 
                 last = type;
+
+                maxNum--;
             }
             return sb.ToString();
         }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Xml.Serialization;
 using NewLife.Collections;
 using NewLife.Reflection;
@@ -24,6 +25,7 @@ namespace XCode
         /// <param name="key">键值</param>
         /// <param name="func">回调</param>
         /// <returns></returns>
+        [DebuggerHidden]
         public virtual TResult GetExtend<TDependEntity, TResult>(String key, Func<String, Object> func)
             where TDependEntity : Entity<TDependEntity>, new()
         {
@@ -37,6 +39,7 @@ namespace XCode
         /// <param name="func">回调</param>
         /// <param name="cacheDefault">是否缓存默认值，可选参数，默认缓存</param>
         /// <returns></returns>
+        [DebuggerHidden]
         public virtual TResult GetExtend<TDependEntity, TResult>(String key, Func<String, Object> func, Boolean cacheDefault)
             where TDependEntity : Entity<TDependEntity>, new()
         {
@@ -65,6 +68,7 @@ namespace XCode
             return (TResult)GetItem<Func<String, Object>, List<String>>(key, func, list, GetExtend<TDependEntity>);
         }
 
+        [DebuggerHidden]
         Object GetExtend<TDependEntity>(String key, Func<String, Object> func, List<String> list) where TDependEntity : Entity<TDependEntity>, new()
         {
             Object value = null;
@@ -105,6 +109,7 @@ namespace XCode
         /// <typeparam name="TDependEntity"></typeparam>
         /// <param name="key"></param>
         /// <param name="value">数值</param>
+        [DebuggerHidden]
         public virtual void SetExtend<TDependEntity>(String key, Object value) where TDependEntity : Entity<TDependEntity>, new()
         {
             // 针对每个类型，仅注册一个事件

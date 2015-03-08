@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -1522,6 +1523,7 @@ namespace XCode
         /// <param name="key">键</param>
         /// <param name="func">回调</param>
         /// <returns></returns>
+        [DebuggerHidden]
         [EditorBrowsable(EditorBrowsableState.Advanced)]
         protected TResult GetExtend<TResult>(String key, Func<String, Object> func) { return Extends.GetExtend<TEntity, TResult>(key, func); }
 
@@ -1531,12 +1533,14 @@ namespace XCode
         /// <param name="func">回调</param>
         /// <param name="cacheDefault">是否缓存默认值，可选参数，默认缓存</param>
         /// <returns></returns>
+        [DebuggerHidden]
         [EditorBrowsable(EditorBrowsableState.Advanced)]
         protected TResult GetExtend<TResult>(String key, Func<String, Object> func, Boolean cacheDefault) { return Extends.GetExtend<TEntity, TResult>(key, func, cacheDefault); }
 
         /// <summary>设置依赖于当前实体类的扩展属性</summary>
         /// <param name="key">键</param>
         /// <param name="value">值</param>
+        [DebuggerHidden]
         protected void SetExtend(String key, Object value) { Extends.SetExtend<TEntity>(key, value); }
         #endregion
     }
