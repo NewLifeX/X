@@ -1,5 +1,7 @@
 ﻿using System;
+using System.IO;
 using System.Net;
+using System.Linq;
 
 namespace NewLife.Web
 {
@@ -134,6 +136,34 @@ namespace NewLife.Web
             if (html.IsNullOrWhiteSpace()) return new Link[0];
 
             return Link.Parse(html, url);
+        }
+
+        /// <summary>分析指定页面指定名称的链接，并下载到目标目录，返回目标文件</summary>
+        /// <remarks>
+        /// 根据版本或时间降序排序选择
+        /// </remarks>
+        /// <param name="url">指定页面</param>
+        /// <param name="name">页面上指定名称的链接</param>
+        /// <param name="destdir">要下载到的目标目录</param>
+        /// <returns>返回已下载的文件，无效时返回空</returns>
+        public String DownloadLink(String url, String name, String destdir)
+        {
+            var ls = GetLinks(url);
+            if (ls.Length == 0) return null;
+
+            // 过滤名称后降序排序
+            ls = ls.Where(e => e.Name.StartsWithIgnoreCase(name) || e.Name.Contains(name))
+                .Where(e => !e.Url.IsNullOrWhiteSpace())
+                .OrderByDescending(e => e.Version)
+                .OrderByDescending(e => e.Time)
+                .ToArray();
+            if (ls.Length == 0) return null;
+
+            var link = ls[0];
+            // 开始下载文件，注意要提前建立目录，否则会报错
+            var file = destdir.CombinePath(link.Name).EnsureDirectory();
+            DownloadFile(link.Url, file);
+            return file;
         }
         #endregion
     }
