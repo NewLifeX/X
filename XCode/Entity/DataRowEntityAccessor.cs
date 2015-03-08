@@ -15,25 +15,25 @@ namespace XCode
         /// <returns>实体数组</returns>
         IEntityList LoadData(DataTable dt);
 
-        /// <summary>从一个数据行对象加载数据。不加载关联对象。</summary>
-        /// <param name="dr">数据行</param>
-        /// <param name="entity">实体对象</param>
-        void LoadData(DataRow dr, IEntity entity);
+        ///// <summary>从一个数据行对象加载数据。不加载关联对象。</summary>
+        ///// <param name="dr">数据行</param>
+        ///// <param name="entity">实体对象</param>
+        //void LoadData(DataRow dr, IEntity entity);
 
-        /// <summary>从数据读写器加载数据。无数据时返回空集合而不是null。</summary>
-        /// <param name="dr">数据读写器</param>
-        /// <returns>实体数组</returns>
-        IEntityList LoadData(IDataReader dr);
+        ///// <summary>从数据读写器加载数据。无数据时返回空集合而不是null。</summary>
+        ///// <param name="dr">数据读写器</param>
+        ///// <returns>实体数组</returns>
+        //IEntityList LoadData(IDataReader dr);
 
-        /// <summary>从一个数据行对象加载数据。不加载关联对象。</summary>
-        /// <param name="dr">数据读写器</param>
-        /// <param name="entity">实体对象</param>
-        void LoadData(IDataReader dr, IEntity entity);
+        ///// <summary>从一个数据行对象加载数据。不加载关联对象。</summary>
+        ///// <param name="dr">数据读写器</param>
+        ///// <param name="entity">实体对象</param>
+        //void LoadData(IDataReader dr, IEntity entity);
 
-        /// <summary>把数据复制到数据行对象中。</summary>
-        /// <param name="entity">实体对象</param>
-        /// <param name="dr">数据行</param>
-        DataRow ToData(IEntity entity, ref DataRow dr);
+        ///// <summary>把数据复制到数据行对象中。</summary>
+        ///// <param name="entity">实体对象</param>
+        ///// <param name="dr">数据行</param>
+        //DataRow ToData(IEntity entity, ref DataRow dr);
     }
 
     /// <summary>在数据行和实体类之间映射数据接口的提供者</summary>
@@ -103,7 +103,9 @@ namespace XCode
             var list = typeof(EntityList<>).MakeGenericType(EntityType).CreateInstance(dt.Rows.Count) as IEntityList;
             if (dt == null || dt.Rows.Count < 1) return list;
 
+            // 对应数据表中字段的实体字段
             var ps = new List<FieldItem>();
+            // 数据表中找不到对应的实体字段的数据字段
             var exts = new List<String>();
             foreach (DataColumn item in dt.Columns)
             {
@@ -119,169 +121,176 @@ namespace XCode
             foreach (DataRow dr in dt.Rows)
             {
                 // 由实体操作者创建实体对象，因为实体操作者可能更换
-                var obj = Factory.Create();
-                LoadData(dr, obj, ps, exts);
-                list.Add(obj);
-            }
-            return list;
-        }
-
-        /// <summary>从一个数据行对象加载数据。不加载关联对象。</summary>
-        /// <param name="dr">数据行</param>
-        /// <param name="entity">实体对象</param>
-        public void LoadData(DataRow dr, IEntity entity)
-        {
-            if (dr == null) return;
-
-            var ps = new List<FieldItem>();
-            var exts = new List<String>();
-            foreach (DataColumn item in dr.Table.Columns)
-            {
-                var name = item.ColumnName;
-                FieldItem fi = null;
-                if (FieldItems.TryGetValue(name, out fi))
-                    ps.Add(fi);
-                else
-                    exts.Add(name);
-            }
-
-            LoadData(dr, entity, ps, exts);
-        }
-
-        /// <summary>从数据读写器加载数据。无数据时返回空集合而不是null。</summary>
-        /// <param name="dr">数据读写器</param>
-        /// <returns>实体数组</returns>
-        public IEntityList LoadData(IDataReader dr)
-        {
-            // 准备好实体列表
-            var list = typeof(EntityList<>).MakeGenericType(EntityType).CreateInstance() as IEntityList;
-            if (dr == null) return list;
-
-            // 先移到第一行，要取字段名等信息
-            if (!dr.Read()) return list;
-
-            var ps = new List<FieldItem>();
-            var exts = new List<String>();
-            for (int i = 0; i < dr.FieldCount; i++)
-            {
-                var name = dr.GetName(i);
-                FieldItem fi = null;
-                if (FieldItems.TryGetValue(name, out fi))
-                    ps.Add(fi);
-                else
-                    exts.Add(name);
-            }
-
-            // 遍历每一行数据，填充成为实体
-            do
-            {
-                // 由实体操作者创建实体对象，因为实体操作者可能更换
                 var entity = Factory.Create();
+                //LoadData(dr, entity, ps, exts);
                 foreach (var item in ps)
-                {
                     SetValue(entity, item.Name, item.Type, dr[item]);
-                }
 
                 foreach (var item in exts)
-                {
                     SetValue(entity, item, null, dr[item]);
-                }
 
                 list.Add(entity);
-            } while (dr.Read());
+            }
             return list;
         }
 
-        /// <summary>从一个数据读写器加载数据。不加载关联对象。</summary>
-        /// <param name="dr">数据读写器</param>
-        /// <param name="entity">实体对象</param>
-        public void LoadData(IDataReader dr, IEntity entity)
-        {
-            if (dr == null) return;
+        ///// <summary>从一个数据行对象加载数据。不加载关联对象。</summary>
+        ///// <param name="dr">数据行</param>
+        ///// <param name="entity">实体对象</param>
+        //public void LoadData(DataRow dr, IEntity entity)
+        //{
+        //    if (dr == null) return;
 
-            // IDataReader的GetSchemaTable方法太浪费资源了
-            for (int i = 0; i < dr.FieldCount; i++)
-            {
-                var name = dr.GetName(i);
-                Type type = null;
+        //    var ps = new List<FieldItem>();
+        //    var exts = new List<String>();
+        //    foreach (DataColumn item in dr.Table.Columns)
+        //    {
+        //        var name = item.ColumnName;
+        //        FieldItem fi = null;
+        //        if (FieldItems.TryGetValue(name, out fi))
+        //            ps.Add(fi);
+        //        else
+        //            exts.Add(name);
+        //    }
 
-                FieldItem fi = null;
-                if (FieldItems.TryGetValue(name, out fi))
-                {
-                    name = fi.Name;
-                    type = fi.Type;
-                }
+        //    LoadData(dr, entity, ps, exts);
+        //}
 
-                SetValue(entity, name, type, dr.GetValue(i));
-            }
-        }
+        ///// <summary>从数据读写器加载数据。无数据时返回空集合而不是null。</summary>
+        ///// <param name="dr">数据读写器</param>
+        ///// <returns>实体数组</returns>
+        //public IEntityList LoadData(IDataReader dr)
+        //{
+        //    // 准备好实体列表
+        //    var list = typeof(EntityList<>).MakeGenericType(EntityType).CreateInstance() as IEntityList;
+        //    if (dr == null) return list;
 
-        /// <summary>把数据复制到数据行对象中。</summary>
-        /// <param name="entity">实体对象</param>
-        /// <param name="dr">数据行</param>
-        public DataRow ToData(IEntity entity, ref DataRow dr)
-        {
-            if (dr == null) return null;
+        //    // 先移到第一行，要取字段名等信息
+        //    if (!dr.Read()) return list;
 
-            var ps = new List<String>();
-            foreach (var fi in Factory.AllFields)
-            {
-                // 检查dr中是否有该属性的列。考虑到Select可能是不完整的，此时，只需要局部填充
-                if (dr.Table.Columns.Contains(fi.ColumnName))
-                {
-                    dr[fi.ColumnName] = entity[fi.Name];
-                }
+        //    var ps = new List<FieldItem>();
+        //    var exts = new List<String>();
+        //    for (int i = 0; i < dr.FieldCount; i++)
+        //    {
+        //        var name = dr.GetName(i);
+        //        FieldItem fi = null;
+        //        if (FieldItems.TryGetValue(name, out fi))
+        //            ps.Add(fi);
+        //        else
+        //            exts.Add(name);
+        //    }
 
-                ps.Add(fi.ColumnName);
-            }
+        //    // 遍历每一行数据，填充成为实体
+        //    do
+        //    {
+        //        // 由实体操作者创建实体对象，因为实体操作者可能更换
+        //        var entity = Factory.Create();
+        //        foreach (var item in ps)
+        //        {
+        //            SetValue(entity, item.Name, item.Type, dr[item]);
+        //        }
 
-            // 扩展属性也写入
-            if (entity.Extends != null && entity.Extends.Count > 0)
-            {
-                foreach (var item in entity.Extends)
-                {
-                    try
-                    {
-                        if (!ps.Contains(item.Key) && dr.Table.Columns.Contains(item.Key))
-                            dr[item.Key] = item.Value;
-                    }
-                    catch { }
-                }
-            }
-            return dr;
-        }
+        //        foreach (var item in exts)
+        //        {
+        //            SetValue(entity, item, null, dr[item]);
+        //        }
+
+        //        list.Add(entity);
+        //    } while (dr.Read());
+        //    return list;
+        //}
+
+        ///// <summary>从一个数据读写器加载数据。不加载关联对象。</summary>
+        ///// <param name="dr">数据读写器</param>
+        ///// <param name="entity">实体对象</param>
+        //public void LoadData(IDataReader dr, IEntity entity)
+        //{
+        //    if (dr == null) return;
+
+        //    // IDataReader的GetSchemaTable方法太浪费资源了
+        //    for (int i = 0; i < dr.FieldCount; i++)
+        //    {
+        //        var name = dr.GetName(i);
+        //        Type type = null;
+
+        //        FieldItem fi = null;
+        //        if (FieldItems.TryGetValue(name, out fi))
+        //        {
+        //            name = fi.Name;
+        //            type = fi.Type;
+        //        }
+
+        //        SetValue(entity, name, type, dr.GetValue(i));
+        //    }
+        //}
+
+        ///// <summary>把数据复制到数据行对象中。</summary>
+        ///// <param name="entity">实体对象</param>
+        ///// <param name="dr">数据行</param>
+        //public DataRow ToData(IEntity entity, ref DataRow dr)
+        //{
+        //    if (dr == null) return null;
+
+        //    var ps = new List<String>();
+        //    foreach (var fi in Factory.AllFields)
+        //    {
+        //        // 检查dr中是否有该属性的列。考虑到Select可能是不完整的，此时，只需要局部填充
+        //        if (dr.Table.Columns.Contains(fi.ColumnName))
+        //        {
+        //            dr[fi.ColumnName] = entity[fi.Name];
+        //        }
+
+        //        ps.Add(fi.ColumnName);
+        //    }
+
+        //    // 扩展属性也写入
+        //    if (entity.Extends != null && entity.Extends.Count > 0)
+        //    {
+        //        foreach (var item in entity.Extends)
+        //        {
+        //            try
+        //            {
+        //                if (!ps.Contains(item.Key) && dr.Table.Columns.Contains(item.Key))
+        //                    dr[item.Key] = item.Value;
+        //            }
+        //            catch { }
+        //        }
+        //    }
+        //    return dr;
+        //}
         #endregion
 
         #region 方法
         static String[] TrueString = new String[] { "true", "y", "yes", "1" };
         static String[] FalseString = new String[] { "false", "n", "no", "0" };
 
-        private void LoadData(DataRow dr, IEntity entity, List<FieldItem> ps, List<String> exts)
-        {
-            if (dr == null) return;
+        //private void LoadData(DataRow dr, IEntity entity, List<FieldItem> ps, List<String> exts)
+        //{
+        //    if (dr == null) return;
 
-            foreach (var item in ps)
-            {
-                SetValue(entity, item.Name, item.Type, dr[item]);
-            }
+        //    foreach (var item in ps)
+        //    {
+        //        SetValue(entity, item.Name, item.Type, dr[item]);
+        //    }
 
-            foreach (var item in exts)
-            {
-                SetValue(entity, item, null, dr[item]);
-            }
-        }
+        //    foreach (var item in exts)
+        //    {
+        //        SetValue(entity, item, null, dr[item]);
+        //    }
+        //}
 
         private void SetValue(IEntity entity, String name, Type type, Object value)
         {
-            // 注意：name并不一定是实体类的成员
-            var oldValue = entity[name];
-
-            if (type == null)
+            // 注意：name并不一定是实体类的成员，随便读取原数据可能会造成不必要的麻烦
+            Object oldValue = null;
+            if (type != null)
+                // 仅对精确匹配的字段进行读取旧值
+                oldValue = entity[name];
+            else
             {
-                if (oldValue != null)
-                    type = oldValue.GetType();
-                else if (value != null)
-                    type = value.GetType();
+                type = value.GetType();
+                // 如果扩展数据里面有该字段也读取旧值
+                if (entity.Extends.ContainsKey(name)) oldValue = entity.Extends[name];
             }
 
             // 不处理相同数据的赋值

@@ -96,54 +96,54 @@ namespace XCode
             return new EntityList<TEntity>(list);
         }
 
-        /// <summary>从一个数据行对象加载数据。不加载关联对象。</summary>
-        /// <param name="dr">数据行</param>
-        public override void LoadData(DataRow dr)
-        {
-            if (dr != null)
-            {
-                dreAccessor.LoadData(dr, this);
-                OnLoad();
-            }
-        }
+        ///// <summary>从一个数据行对象加载数据。不加载关联对象。</summary>
+        ///// <param name="dr">数据行</param>
+        //public override void LoadData(DataRow dr)
+        //{
+        //    if (dr != null)
+        //    {
+        //        dreAccessor.LoadData(dr, this);
+        //        OnLoad();
+        //    }
+        //}
 
-        /// <summary>加载数据读写器。无数据时返回空集合而不是null。</summary>
-        /// <param name="dr">数据读写器</param>
-        /// <returns>实体数组</returns>
-        public static EntityList<TEntity> LoadData(IDataReader dr)
-        {
-            var list = dreAccessor.LoadData(dr);
+        ///// <summary>加载数据读写器。无数据时返回空集合而不是null。</summary>
+        ///// <param name="dr">数据读写器</param>
+        ///// <returns>实体数组</returns>
+        //public static EntityList<TEntity> LoadData(IDataReader dr)
+        //{
+        //    var list = dreAccessor.LoadData(dr);
 
-            // 设置默认累加字段
-            EntityAddition.SetField(list);
-            foreach (EntityBase entity in list)
-            {
-                entity.OnLoad();
-            }
-            // 减少一步类型转换
-            var elist = list as EntityList<TEntity>;
-            if (elist != null) return elist;
+        //    // 设置默认累加字段
+        //    EntityAddition.SetField(list);
+        //    foreach (EntityBase entity in list)
+        //    {
+        //        entity.OnLoad();
+        //    }
+        //    // 减少一步类型转换
+        //    var elist = list as EntityList<TEntity>;
+        //    if (elist != null) return elist;
 
-            return new EntityList<TEntity>(list);
-        }
+        //    return new EntityList<TEntity>(list);
+        //}
 
-        /// <summary>从一个数据行对象加载数据。不加载关联对象。</summary>
-        /// <param name="dr">数据读写器</param>
-        public override void LoadDataReader(IDataReader dr)
-        {
-            if (dr != null)
-            {
-                dreAccessor.LoadData(dr, this);
-                OnLoad();
+        ///// <summary>从一个数据行对象加载数据。不加载关联对象。</summary>
+        ///// <param name="dr">数据读写器</param>
+        //public override void LoadDataReader(IDataReader dr)
+        //{
+        //    if (dr != null)
+        //    {
+        //        dreAccessor.LoadData(dr, this);
+        //        OnLoad();
 
-                // 设置默认累加字段
-                EntityAddition.SetField(this);
-            }
-        }
+        //        // 设置默认累加字段
+        //        EntityAddition.SetField(this);
+        //    }
+        //}
 
-        /// <summary>把数据复制到数据行对象中。</summary>
-        /// <param name="dr">数据行</param>
-        public virtual DataRow ToData(ref DataRow dr) { return dr == null ? null : dreAccessor.ToData(this, ref dr); }
+        ///// <summary>把数据复制到数据行对象中。</summary>
+        ///// <param name="dr">数据行</param>
+        //public virtual DataRow ToData(ref DataRow dr) { return dr == null ? null : dreAccessor.ToData(this, ref dr); }
 
         private static IDataRowEntityAccessor dreAccessor { get { return XCodeService.CreateDataRowEntityAccessor(Meta.ThisType); } }
         #endregion
@@ -817,14 +817,14 @@ namespace XCode
             return FindAll(MakeCondition(new String[] { name }, new Object[] { value }, "And"), orderClause, null, startRowIndex, maximumRows);
         }
 
-        /// <summary>查询SQL并返回实体对象数组。
-        /// Select方法将直接使用参数指定的查询语句进行查询，不进行任何转换。
-        /// </summary>
-        /// <param name="sql">查询语句</param>
-        /// <returns>实体数组</returns>
-        [Obsolete("=>Session")]
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public static EntityList<TEntity> FindAll(String sql) { return LoadData(Meta.Session.Query(sql)); }
+        ///// <summary>查询SQL并返回实体对象数组。
+        ///// Select方法将直接使用参数指定的查询语句进行查询，不进行任何转换。
+        ///// </summary>
+        ///// <param name="sql">查询语句</param>
+        ///// <returns>实体数组</returns>
+        //[Obsolete("=>Session")]
+        //[EditorBrowsable(EditorBrowsableState.Never)]
+        //public static EntityList<TEntity> FindAll(String sql) { return LoadData(Meta.Session.Query(sql)); }
 
         /// <summary>同时查询满足条件的记录集和记录总数</summary>
         /// <param name="whereClause">条件，不带Where</param>

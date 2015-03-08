@@ -23,13 +23,13 @@ namespace XCode
         #endregion
 
         #region 填充数据
-        /// <summary>从一个数据行对象加载数据。不加载关联对象。</summary>
-        /// <param name="dr">数据行</param>
-        public abstract void LoadData(DataRow dr);
+        ///// <summary>从一个数据行对象加载数据。不加载关联对象。</summary>
+        ///// <param name="dr">数据行</param>
+        //public abstract void LoadData(DataRow dr);
 
-        /// <summary>从一个数据行对象加载数据。不加载关联对象。</summary>
-        /// <param name="dr">数据读写器</param>
-        public abstract void LoadDataReader(IDataReader dr);
+        ///// <summary>从一个数据行对象加载数据。不加载关联对象。</summary>
+        ///// <param name="dr">数据读写器</param>
+        //public abstract void LoadDataReader(IDataReader dr);
 
         /// <summary>填充数据完成时调用。默认设定标记<see cref="_IsFromDatabase"/></summary>
         internal protected virtual void OnLoad() { _IsFromDatabase = true; }

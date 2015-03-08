@@ -25,9 +25,9 @@ namespace XCode
         #endregion
 
         #region 填充数据
-        /// <summary>从一个数据行对象加载数据。不加载关联对象。</summary>
-        /// <param name="dr">数据行</param>
-        void LoadData(DataRow dr);
+        ///// <summary>从一个数据行对象加载数据。不加载关联对象。</summary>
+        ///// <param name="dr">数据行</param>
+        //void LoadData(DataRow dr);
         #endregion
 
         #region 操作
