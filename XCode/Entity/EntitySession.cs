@@ -1093,7 +1093,7 @@ namespace XCode
 
         void CheckAndUpdateCache(IEntity entity)
         {
-            if (_cache == null) return;
+            if (_cache == null || _cache.Busy) return;
 
             // 尽管用了事务保护，但是仍然可能有别的地方导致实体缓存更新，这点务必要注意
             var fi = Operate.Unique;

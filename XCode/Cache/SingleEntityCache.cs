@@ -37,9 +37,9 @@ namespace XCode.Cache
         public Boolean AllowNull { get { return _AllowNull; } set { _AllowNull = value; } }
 
         #region 主键
-        private Boolean _MasterKeyUsingUniqueField = true;
-        /// <summary>单对象缓存主键是否使用实体模型唯一键（第一个标识列或者唯一的主键）</summary>
-        public Boolean MasterKeyUsingUniqueField { get { return _MasterKeyUsingUniqueField; } set { _MasterKeyUsingUniqueField = value; } }
+        //private Boolean _MasterKeyUsingUniqueField = true;
+        ///// <summary>单对象缓存主键是否使用实体模型唯一键（第一个标识列或者唯一的主键）</summary>
+        //public Boolean MasterKeyUsingUniqueField { get { return _MasterKeyUsingUniqueField; } set { _MasterKeyUsingUniqueField = value; } }
 
         private Func<TEntity, TKey> _GetKeyMethod;
         /// <summary>获取缓存主键的方法，默认方法为获取实体主键值</summary>
@@ -218,15 +218,8 @@ namespace XCode.Cache
         #endregion
 
         #region 单对象缓存
-
-        /*
-         * 从键类型暂没想好如何利用泛型，String类型是最常用的，硬性规定String类型，避免装箱拆箱的性能损耗
-         */
-
         private Object _SyncRoot = new Object();
 
-        //private SortedList<TKey, CacheItem> _Entities;
-        //! Dictionary在集合方面具有较好查找性能，直接用字段，提高可能的性能
         /// <summary>单对象缓存</summary>
         private Dictionary<TKey, CacheItem> Entities = new Dictionary<TKey, CacheItem>();
 
@@ -296,23 +289,17 @@ namespace XCode.Cache
         #endregion
 
         #region 获取数据
-        #region 主键获取
         /// <summary>根据主键获取实体数据</summary>
         /// <param name="key"></param>
         /// <returns></returns>
         public TEntity this[TKey key] { get { return GetItem(key); } }
 
-        private TEntity GetItem(TKey key)
+        private TEntity GetItem(TKey key) { return GetItem(Entities, key); }
+
+        private TEntity GetItem<TKey2>(IDictionary<TKey2, CacheItem> dic, TKey2 key)
         {
             // 为空的key，直接返回null，不进行缓存查找
             if (key == null) return null;
-            //if (Type.GetTypeCode(typeof(TKey)) == TypeCode.String)
-            //{
-            //    var value = key as String;
-            //    if (value == String.Empty) return null;
-            //}
-            var svalue = key as String;
-            if (svalue != null && svalue.Length == 0) return null;
 
             // 更新统计信息
             XCache.CheckShowStatics(ref NextShow, ref Total, ShowStatics);
@@ -320,11 +307,11 @@ namespace XCode.Cache
             // 如果找到项，返回
             CacheItem item = null;
             // 如果TryGetValue获取成功，item为空说明同一时间别的线程已做删除操作
-            if (Entities.TryGetValue(key, out item) && item != null)
+            if (dic.TryGetValue(key, out item) && item != null)
             {
                 Interlocked.Increment(ref Shoot1);
                 // 下面的GetData里会判断过期并处理
-                return GetData(item, key);
+                return GetData(item);
             }
 
             ClearUp();
@@ -332,108 +319,52 @@ namespace XCode.Cache
             lock (_SyncRoot)
             {
                 // 再次尝试获取
-                if (Entities.TryGetValue(key, out item) && item != null)
+                if (dic.TryGetValue(key, out item) && item != null)
                 {
                     Interlocked.Increment(ref Shoot2);
-                    return GetData(item, key);
+                    return GetData(item);
                 }
-                var entity = Invoke(FindKeyMethod, key);
-                if (entity != null || AllowNull)
-                    TryAddWithMasterKey(key, entity);
+
+                // 开始更新数据，然后加入缓存
+                TEntity entity = null;
+                if (dic == Entities)
+                    entity = Invoke(FindKeyMethod, (TKey)(Object)key);
                 else
+                    entity = Invoke(FindSlaveKeyMethod, key + "");
+
+                if (entity == null && !AllowNull)
                     Interlocked.Increment(ref Invalid);
+                else
+                    TryAdd(entity);
 
                 return entity;
             }
         }
 
-        private Boolean TryAddWithMasterKey(TKey masterKey, TEntity entity)
+        /// <summary>尝试向两个字典加入数据</summary>
+        /// <param name="entity"></param>
+        /// <returns></returns>
+        private Boolean TryAdd(TEntity entity)
         {
             Using = true;
 
             var item = new CacheItem();
+
             String slaveKey = null;
-            if (GetSlaveKeyMethod != null) { slaveKey = GetSlaveKeyMethod(entity); }
-            item.Key = masterKey;
+            if (GetSlaveKeyMethod != null) slaveKey = GetSlaveKeyMethod(entity);
+
+            var mkey = GetKeyMethod(entity);
+            item.Key = mkey;
             item.SlaveKey = slaveKey;
             item.Entity = entity;
             item.ExpireTime = DateTime.Now.AddSeconds(Expriod);
 
-            return TryAdd(masterKey, slaveKey, item);
-        }
-        #endregion
-
-        #region 从键获取
-        /// <summary>根据从键获取实体数据</summary>
-        /// <param name="slaveKey"></param>
-        /// <returns></returns>
-        public TEntity GetItemWithSlaveKey(String slaveKey)
-        {
-            // 为空的key，直接返回null，不进行缓存查找
-            if (slaveKey.IsNullOrWhiteSpace()) return null;
-            if (FindSlaveKeyMethod == null) return null;
-
-            // 更新统计信息
-            XCache.CheckShowStatics(ref NextShow, ref Total, ShowStatics);
-
-            // 如果找到项，返回
-            CacheItem item = null;
-            // 如果TryGetValue获取成功，item为空说明同一时间别的线程已做删除操作
-            if (SlaveEntities.TryGetValue(slaveKey, out item) && item != null)
-            {
-                Interlocked.Increment(ref Shoot1);
-                // 下面的GetData里会判断过期并处理
-                return GetData(item, item.Key);
-            }
-
-            ClearUp();
-
-            lock (_SyncRoot)
-            {
-                // 再次尝试获取
-                if (SlaveEntities.TryGetValue(slaveKey, out item) && item != null)
-                {
-                    Interlocked.Increment(ref Shoot2);
-                    return GetData(item, item.Key);
-                }
-                var entity = Invoke(FindSlaveKeyMethod, slaveKey);
-                if (entity != null || AllowNull)
-                    TryAddWithSlaveKey(slaveKey, entity);
-                else
-                    Interlocked.Increment(ref Invalid);
-
-                return entity;
-            }
-        }
-
-        private Boolean TryAddWithSlaveKey(String slaveKey, TEntity entity)
-        {
-            Using = true;
-
-            var item = new CacheItem();
-            var masterKey = GetKeyMethod(entity);
-            item.Key = masterKey;
-            item.SlaveKey = slaveKey;
-            item.Entity = entity;
-            item.ExpireTime = DateTime.Now.AddSeconds(Expriod);
-
-            return TryAdd(masterKey, slaveKey, item);
-        }
-        #endregion
-
-        /// <summary>添加实体对象到缓存</summary>
-        /// <param name="masterKey"></param>
-        /// <param name="slaveKey"></param>
-        /// <param name="item"></param>
-        /// <returns></returns>
-        private Boolean TryAdd(TKey masterKey, String slaveKey, CacheItem item)
-        {
             var success = false;
             lock (Entities)
             {
-                if (!Entities.ContainsKey(masterKey))
+                if (!Entities.ContainsKey(mkey))
                 {
-                    Entities.Add(masterKey, item);
+                    Entities.Add(mkey, item);
                     success = true;
                 }
             }
@@ -448,14 +379,18 @@ namespace XCode.Cache
             return success;
         }
 
+        /// <summary>根据从键获取实体数据</summary>
+        /// <param name="slaveKey"></param>
+        /// <returns></returns>
+        public TEntity GetItemWithSlaveKey(String slaveKey) { return GetItem(SlaveEntities, slaveKey); }
+
         /// <summary>内部处理返回对象。
         /// 把对象传进来，而不是只传键值然后查找，是为了避免别的线程移除该项
         /// </summary>
         /// <remarks>此方法只做更新操作，不再进行缓存新增操作</remarks>
         /// <param name="item"></param>
-        /// <param name="key"></param>
         /// <returns></returns>
-        private TEntity GetData(CacheItem item, TKey key)
+        private TEntity GetData(CacheItem item)
         {
             if (item == null) return null;
 
@@ -475,7 +410,7 @@ namespace XCode.Cache
             if (HoldCache || item.ExpireTime > DateTime.Now) { return item.Entity; }
 
             // 更新过期缓存，在原连接名表名里面获取
-            var entity = Invoke(FindKeyMethod, key);
+            var entity = Invoke(FindKeyMethod, item.Key);
             if (entity != null || AllowNull)
             {
                 item.Entity = entity;
@@ -559,16 +494,6 @@ namespace XCode.Cache
         /// <summary>是否包含指定从键</summary>
         /// <param name="key"></param>
         /// <returns></returns>
-        public Boolean ContainsSlaveKey(Int32 key) { return SlaveEntities.ContainsKey("" + key); }
-
-        /// <summary>是否包含指定从键</summary>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public Boolean ContainsSlaveKey(Int64 key) { return SlaveEntities.ContainsKey("" + key); }
-
-        /// <summary>是否包含指定从键</summary>
-        /// <param name="key"></param>
-        /// <returns></returns>
         public Boolean ContainsSlaveKey(String key) { return SlaveEntities.ContainsKey(key); }
 
         /// <summary>尝试从单对象缓存中获取与指定的主键关联的实体对象</summary>
@@ -633,7 +558,7 @@ namespace XCode.Cache
                 }
                 else
                 {
-                    return TryAddWithMasterKey(key, value);
+                    return TryAdd(value);
                 }
             }
         }
@@ -716,16 +641,6 @@ namespace XCode.Cache
         /// <summary>根据从键获取实体数据</summary>
         /// <param name="slaveKey"></param>
         /// <returns></returns>
-        IEntity ISingleEntityCache.GetItemWithSlaveKey(Int32 slaveKey) { return GetItemWithSlaveKey("" + slaveKey); }
-
-        /// <summary>根据从键获取实体数据</summary>
-        /// <param name="slaveKey"></param>
-        /// <returns></returns>
-        IEntity ISingleEntityCache.GetItemWithSlaveKey(Int64 slaveKey) { return GetItemWithSlaveKey("" + slaveKey); }
-
-        /// <summary>根据从键获取实体数据</summary>
-        /// <param name="slaveKey"></param>
-        /// <returns></returns>
         IEntity ISingleEntityCache.GetItemWithSlaveKey(String slaveKey) { return GetItemWithSlaveKey(slaveKey); }
 
         /// <summary>是否包含指定主键</summary>
@@ -773,7 +688,7 @@ namespace XCode.Cache
             this.AllowNull = ec.AllowNull;
             this.HoldCache = ec.HoldCache;
 
-            this.MasterKeyUsingUniqueField = ec.MasterKeyUsingUniqueField;
+            //this.MasterKeyUsingUniqueField = ec.MasterKeyUsingUniqueField;
             //this.KeyIgnoreCase = ec.KeyIgnoreCase;
             this.GetKeyMethod = ec.GetKeyMethod;
             this.FindKeyMethod = ec.FindKeyMethod;

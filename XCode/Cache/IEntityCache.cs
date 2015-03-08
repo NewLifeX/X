@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace XCode.Cache
 {
@@ -46,8 +45,8 @@ namespace XCode.Cache
     /// <summary>单对象缓存接口</summary>
     public interface ISingleEntityCache : IEntityCacheBase
     {
-        /// <summary>单对象缓存主键是否使用实体模型唯一键（第一个标识列或者唯一的主键）</summary>
-        Boolean MasterKeyUsingUniqueField { get; set; }
+        ///// <summary>单对象缓存主键是否使用实体模型唯一键（第一个标识列或者唯一的主键）</summary>
+        //Boolean MasterKeyUsingUniqueField { get; set; }
 
         /// <summary>在数据修改时保持缓存，不再过期，独占数据库时默认打开，否则默认关闭</summary>
         Boolean HoldCache { get; set; }
@@ -56,16 +55,6 @@ namespace XCode.Cache
         /// <param name="key"></param>
         /// <returns></returns>
         IEntity this[Object key] { get; }
-
-        /// <summary>根据从键获取实体数据</summary>
-        /// <param name="slaveKey"></param>
-        /// <returns></returns>
-        IEntity GetItemWithSlaveKey(Int32 slaveKey);
-
-        /// <summary>根据从键获取实体数据</summary>
-        /// <param name="slaveKey"></param>
-        /// <returns></returns>
-        IEntity GetItemWithSlaveKey(Int64 slaveKey);
 
         /// <summary>根据从键获取实体数据</summary>
         /// <param name="slaveKey"></param>
@@ -84,16 +73,6 @@ namespace XCode.Cache
         /// <param name="key"></param>
         /// <returns></returns>
         Boolean ContainsKey(Object key);
-
-        /// <summary>是否包含指定从键</summary>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        Boolean ContainsSlaveKey(Int32 key);
-
-        /// <summary>是否包含指定从键</summary>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        Boolean ContainsSlaveKey(Int64 key);
 
         /// <summary>是否包含指定从键</summary>
         /// <param name="key"></param>

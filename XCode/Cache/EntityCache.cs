@@ -48,12 +48,14 @@ namespace XCode.Cache
         private Boolean _Using;
         /// <summary>是否在使用缓存，在不触发缓存动作的情况下检查是否有使用缓存</summary>
         internal Boolean Using { get { return _Using; } private set { _Using = value; } }
+
+        /// <summary>当前获得锁的线程</summary>
+        private Int32 _thread = 0;
+        /// <summary>是否正在繁忙</summary>
+        internal Boolean Busy { get { return _thread > 0; } }
         #endregion
 
         #region 缓存核心
-        /// <summary>当前获得锁的线程</summary>
-        private Int32 _thread = 0;
-
         private EntityList<TEntity> _Entities;
         /// <summary>实体集合。无数据返回空集合而不是null</summary>
         public EntityList<TEntity> Entities
