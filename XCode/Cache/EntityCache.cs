@@ -45,10 +45,6 @@ namespace XCode.Cache
         /// <summary>异步更新，默认打开</summary>
         public Boolean Asynchronous { get { return _Asynchronous; } set { _Asynchronous = value; } }
 
-        private Boolean _AllowNull = true;
-        /// <summary>允许缓存空对象，默认true允许以避免频繁请求空表</summary>
-        public Boolean AllowNull { get { return _AllowNull; } set { _AllowNull = value; } }
-
         private Boolean _Using;
         /// <summary>是否在使用缓存，在不触发缓存动作的情况下检查是否有使用缓存</summary>
         internal Boolean Using { get { return _Using; } private set { _Using = value; } }
@@ -76,8 +72,13 @@ namespace XCode.Cache
 
                 // 两种情况更新缓存：1，缓存过期；2，不允许空但是集合又是空
                 Boolean nodata = _Entities == null || _Entities.Count == 0;
-                if (!AllowNull && nodata || DateTime.Now >= ExpiredTime)
+                if (nodata || DateTime.Now >= ExpiredTime)
                 {
+                    // 为了确保缓存数据有效可用，这里必须加锁，保证第一个线程更新拿到数据之前其它线程全部排队
+                    // 即使打开了异步更新，首次读取数据也是同步
+                    // 这里特别要注意，第一个线程取得锁以后，如果因为设计失误，导致重复进入缓存，这是设计错误
+
+                    //!!! 所有加锁的地方都务必消息，同一个线程可以重入同一个锁
                     if (_thread == Thread.CurrentThread.ManagedThreadId) throw new XCodeException("设计错误！当前线程正在获取缓存，在完成之前，本线程不应该使用实体缓存！");
 
                     lock (this)
@@ -85,7 +86,7 @@ namespace XCode.Cache
                         _thread = Thread.CurrentThread.ManagedThreadId;
 
                         nodata = _Entities == null || _Entities.Count == 0;
-                        if (!AllowNull && nodata || DateTime.Now >= ExpiredTime)
+                        if (nodata || DateTime.Now >= ExpiredTime)
                             UpdateCache(nodata);
                         else
                             Interlocked.Increment(ref Shoot2);
@@ -244,7 +245,6 @@ namespace XCode.Cache
         {
             this.Expriod = ec.Expriod;
             this.Asynchronous = ec.Asynchronous;
-            this.AllowNull = ec.AllowNull;
             this.HoldCache = ec.HoldCache;
             this.FillListMethod = ec.FillListMethod;
 
