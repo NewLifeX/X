@@ -81,7 +81,9 @@ namespace XCode.Cache
                     // 这里特别要注意，第一个线程取得锁以后，如果因为设计失误，导致重复进入缓存，这是设计错误
 
                     //!!! 所有加锁的地方都务必消息，同一个线程可以重入同一个锁
-                    if (_thread == Thread.CurrentThread.ManagedThreadId) throw new XCodeException("设计错误！当前线程正在获取缓存，在完成之前，本线程不应该使用实体缓存！");
+                    //if (_thread == Thread.CurrentThread.ManagedThreadId) throw new XCodeException("设计错误！当前线程正在获取缓存，在完成之前，本线程不应该使用实体缓存！");
+                    // 同一个线程重入查询实体缓存时，直接返回已有缓存或者空，这符合一般设计逻辑
+                    if (_thread == Thread.CurrentThread.ManagedThreadId) return _Entities ?? new EntityList<TEntity>();
 
                     lock (this)
                     {
