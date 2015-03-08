@@ -78,15 +78,14 @@ namespace XCode.Cache
         }
 
         private static Int32? _EntityCacheExpire;
-        /// <summary>实体缓存过期时间，独占数据库默认600，非独占默认60</summary>
+        /// <summary>实体缓存过期时间，默认60秒</summary>
         public static Int32 EntityCacheExpire
         {
             get
             {
                 if (_EntityCacheExpire.HasValue) return _EntityCacheExpire.Value;
 
-                var n = Alone ? 600 : 60;
-                _EntityCacheExpire = Config.GetConfig<Int32>("XCode.Cache.EntityCacheExpire", n);
+                _EntityCacheExpire = Config.GetConfig<Int32>("XCode.Cache.EntityCacheExpire", 60);
 
                 return _EntityCacheExpire.Value;
             }
@@ -94,15 +93,14 @@ namespace XCode.Cache
         }
 
         private static Int32? _SingleCacheExpire;
-        /// <summary>单对象缓存过期时间，独占数据库默认600，非独占默认60</summary>
+        /// <summary>单对象缓存过期时间，默认60秒</summary>
         public static Int32 SingleCacheExpire
         {
             get
             {
                 if (_SingleCacheExpire.HasValue) return _SingleCacheExpire.Value;
 
-                var n = Alone ? 600 : 60;
-                _SingleCacheExpire = Config.GetConfig<Int32>("XCode.Cache.SingleCacheExpire", n);
+                _SingleCacheExpire = Config.GetConfig<Int32>("XCode.Cache.SingleCacheExpire", 60);
 
                 return _SingleCacheExpire.Value;
             }
