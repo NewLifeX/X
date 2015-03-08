@@ -39,13 +39,6 @@ namespace XCode.Cache
         /// <returns></returns>
         EntityList<IEntity> FindAll(Predicate<IEntity> match);
 
-        ///// <summary>
-        ///// 按指定字段排序
-        ///// </summary>
-        ///// <param name="name">字段</param>
-        ///// <param name="isDesc">是否降序</param>
-        //void Sort(String name, Boolean isDesc);
-
         /// <summary>清除缓存</summary>
         void Clear(String reason = null);
     }
@@ -78,42 +71,6 @@ namespace XCode.Cache
         /// <param name="slaveKey"></param>
         /// <returns></returns>
         IEntity GetItemWithSlaveKey(String slaveKey);
-
-        /// <summary>根据主键获取实体记录列表</summary>
-        /// <param name="keys"></param>
-        /// <returns></returns>
-        IEntityList FindAllInKeys(IEnumerable<Int32> keys);
-
-        /// <summary>根据主键获取实体记录列表</summary>
-        /// <param name="keys"></param>
-        /// <returns></returns>
-        IEntityList FindAllInKeys(IEnumerable<Int64> keys);
-
-        /// <summary>根据主键获取实体记录列表</summary>
-        /// <typeparam name="T">主键原始类型</typeparam>
-        /// <param name="keys">主键字符串，以逗号或分号分割</param>
-        /// <returns></returns>
-        IEntityList FindAllInKeys<T>(String keys);
-
-        /// <summary>根据从键获取实体记录列表</summary>
-        /// <param name="slavekeys"></param>
-        /// <returns></returns>
-        IEntityList FindAllInSlaveKeys(IEnumerable<Int32> slavekeys);
-
-        /// <summary>根据从键获取实体记录列表</summary>
-        /// <param name="slavekeys"></param>
-        /// <returns></returns>
-        IEntityList FindAllInSlaveKeys(IEnumerable<Int64> slavekeys);
-
-        /// <summary>根据从键获取实体记录列表</summary>
-        /// <param name="slavekeys"></param>
-        /// <returns></returns>
-        IEntityList FindAllInSlaveKeys(IEnumerable<String> slavekeys);
-
-        /// <summary>根据从键获取实体记录列表</summary>
-        /// <param name="slavekeys"></param>
-        /// <returns></returns>
-        IEntityList FindAllInSlaveKeys(String slavekeys);
 
         /// <summary>初始化单对象缓存，服务端启动时预载入实体记录集</summary>
         /// <remarks>注意事项：

@@ -37,7 +37,6 @@ namespace XCode.Cache
         public Boolean AllowNull { get { return _AllowNull; } set { _AllowNull = value; } }
 
         #region 主键
-
         private Boolean _MasterKeyUsingUniqueField = true;
         /// <summary>单对象缓存主键是否使用实体模型唯一键（第一个标识列或者唯一的主键）</summary>
         public Boolean MasterKeyUsingUniqueField { get { return _MasterKeyUsingUniqueField; } set { _MasterKeyUsingUniqueField = value; } }
@@ -52,13 +51,7 @@ namespace XCode.Cache
                 {
                     var fi = Entity<TEntity>.Meta.Unique;
                     if (fi != null)
-                    {
-                        _GetKeyMethod = entity => (TKey)entity[fi.Name];
-                    }
-                    //if (_GetKeyMethod == null)
-                    //{
-                    //	throw new ArgumentNullException("GetKeyMethod", "没有找到GetKey方法，请先设置获取缓存键的方法！");
-                    //}
+                        _GetKeyMethod = entity => (TKey)entity[Entity<TEntity>.Meta.Unique.Name];
                 }
                 return _GetKeyMethod;
             }
@@ -81,11 +74,9 @@ namespace XCode.Cache
             }
             set { _FindKeyMethod = value; }
         }
-
         #endregion
 
         #region 从键
-
         private Boolean _SlaveKeyIgnoreCase = false;
         /// <summary>从键是否区分大小写</summary>
         public Boolean SlaveKeyIgnoreCase { get { return _SlaveKeyIgnoreCase; } set { _SlaveKeyIgnoreCase = value; } }
@@ -97,7 +88,6 @@ namespace XCode.Cache
         private Func<TEntity, String> _GetSlaveKeyMethod;
         /// <summary>获取缓存从键的方法，默认为空</summary>
         public Func<TEntity, String> GetSlaveKeyMethod { get { return _GetSlaveKeyMethod; } set { _GetSlaveKeyMethod = value; } }
-
         #endregion
 
         private Func _InitializeMethod;
@@ -105,7 +95,6 @@ namespace XCode.Cache
         public Func InitializeMethod { get { return _InitializeMethod; } set { _InitializeMethod = value; } }
 
         private Boolean _HoldCache = CacheSetting.Alone;
-
         /// <summary>在数据修改时保持缓存，不再过期，独占数据库时默认打开，否则默认关闭</summary>
         /// <remarks>独占模式也需要用到定时器，否则无法自动保存</remarks>
         public Boolean HoldCache { get { return _HoldCache; } set { _HoldCache = value; } }
@@ -307,122 +296,6 @@ namespace XCode.Cache
         #endregion
 
         #region 获取数据
-
-        #region 批量主键获取
-
-        /// <summary>根据主键获取实体记录列表</summary>
-        /// <param name="keys"></param>
-        /// <returns></returns>
-        public EntityList<TEntity> FindAllInKeys(IEnumerable<Int32> keys)
-        {
-            if (keys == null) { return new EntityList<TEntity>(); }
-
-            var type = typeof(TKey);
-            var skeys = keys.Select(e => (TKey)e.ChangeType(type));
-            return FindAllInKeys(skeys);
-        }
-
-        /// <summary>根据主键获取实体记录列表</summary>
-        /// <param name="keys"></param>
-        /// <returns></returns>
-        public EntityList<TEntity> FindAllInKeys(IEnumerable<Int64> keys)
-        {
-            if (keys == null) { return new EntityList<TEntity>(); }
-
-            var type = typeof(TKey);
-            var skeys = keys.Select(e => (TKey)e.ChangeType(type));
-            return FindAllInKeys(skeys);
-        }
-
-        /// <summary>根据主键获取实体记录列表</summary>
-        /// <param name="keys"></param>
-        /// <returns></returns>
-        public EntityList<TEntity> FindAllInKeys(IEnumerable<TKey> keys)
-        {
-            if (keys == null) { return new EntityList<TEntity>(); }
-
-            var list = new EntityList<TEntity>(32);
-            foreach (var key in keys)
-            {
-                var entity = GetItem(key);
-                if (entity != null) { list.Add(entity); }
-            }
-            return list;
-        }
-
-        /// <summary>根据主键获取实体记录列表</summary>
-        /// <typeparam name="T">主键原始类型</typeparam>
-        /// <param name="keys">主键字符串，以逗号或分号分割</param>
-        /// <returns></returns>
-        public EntityList<TEntity> FindAllInKeys<T>(String keys)
-        {
-            if (keys.IsNullOrWhiteSpace()) { return new EntityList<TEntity>(); }
-
-            var srctype = typeof(T);
-            var desttype = typeof(TKey);
-            var kvs = keys.Split(new Char[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries);
-            if (srctype == typeof(String))
-            {
-                return FindAllInKeys(kvs.Select(e => (TKey)e.ChangeType(desttype)));
-            }
-            else
-            {
-                return FindAllInKeys(kvs.Select(e => (T)e.ChangeType(srctype)).Select(e => (TKey)e.ChangeType(desttype)));
-            }
-        }
-
-        #endregion
-
-        #region 批量从键获取
-
-        /// <summary>根据从键获取实体记录列表</summary>
-        /// <param name="slavekeys"></param>
-        /// <returns></returns>
-        public EntityList<TEntity> FindAllInSlaveKeys(IEnumerable<Int32> slavekeys)
-        {
-            if (slavekeys == null) { return new EntityList<TEntity>(); }
-            var skeys = slavekeys.Select(e => "" + e);
-            return FindAllInSlaveKeys(skeys);
-        }
-
-        /// <summary>根据从键获取实体记录列表</summary>
-        /// <param name="slavekeys"></param>
-        /// <returns></returns>
-        public EntityList<TEntity> FindAllInSlaveKeys(IEnumerable<Int64> slavekeys)
-        {
-            if (slavekeys == null) { return new EntityList<TEntity>(); }
-            var skeys = slavekeys.Select(e => "" + e);
-            return FindAllInSlaveKeys(skeys);
-        }
-
-        /// <summary>根据从键获取实体记录列表</summary>
-        /// <param name="slavekeys"></param>
-        /// <returns></returns>
-        public EntityList<TEntity> FindAllInSlaveKeys(IEnumerable<String> slavekeys)
-        {
-            var list = new EntityList<TEntity>();
-            if (slavekeys != null)
-            {
-                foreach (var key in slavekeys)
-                {
-                    var entity = GetItemWithSlaveKey(key);
-                    if (entity != null) { list.Add(entity); }
-                }
-            }
-            return list;
-        }
-
-        /// <summary>根据从键获取实体记录列表</summary>
-        /// <param name="slavekeys"></param>
-        /// <returns></returns>
-        public EntityList<TEntity> FindAllInSlaveKeys(String slavekeys, params String[] separators)
-        {
-            if (separators == null || separators.Length < 1) { separators = new String[] { ",", ";" }; }
-            return FindAllInSlaveKeys(slavekeys.Split(separators, StringSplitOptions.RemoveEmptyEntries));
-        }
-
-        #endregion
-
         #region 主键获取
         /// <summary>根据主键获取实体数据</summary>
         /// <param name="key"></param>
@@ -466,13 +339,10 @@ namespace XCode.Cache
                 }
                 var entity = Invoke(FindKeyMethod, key);
                 if (entity != null || AllowNull)
-                {
                     TryAddWithMasterKey(key, entity);
-                }
                 else
-                {
                     Interlocked.Increment(ref Invalid);
-                }
+
                 return entity;
             }
         }
@@ -494,22 +364,6 @@ namespace XCode.Cache
         #endregion
 
         #region 从键获取
-        /// <summary>根据从键获取实体数据</summary>
-        /// <param name="slaveKey"></param>
-        /// <returns></returns>
-        public TEntity GetItemWithSlaveKey(Int32 slaveKey)
-        {
-            return GetItemWithSlaveKey("" + slaveKey);
-        }
-
-        /// <summary>根据从键获取实体数据</summary>
-        /// <param name="slaveKey"></param>
-        /// <returns></returns>
-        public TEntity GetItemWithSlaveKey(Int64 slaveKey)
-        {
-            return GetItemWithSlaveKey("" + slaveKey);
-        }
-
         /// <summary>根据从键获取实体数据</summary>
         /// <param name="slaveKey"></param>
         /// <returns></returns>
@@ -544,13 +398,10 @@ namespace XCode.Cache
                 }
                 var entity = Invoke(FindSlaveKeyMethod, slaveKey);
                 if (entity != null || AllowNull)
-                {
                     TryAddWithSlaveKey(slaveKey, entity);
-                }
                 else
-                {
                     Interlocked.Increment(ref Invalid);
-                }
+
                 return entity;
             }
         }
@@ -638,29 +489,6 @@ namespace XCode.Cache
             return entity;
         }
 
-        ///// <summary>更新缓存</summary>
-        ///// <param name="item"></param>
-        ///// <param name="key"></param>
-        ///// <returns></returns>
-        //TEntity UpdateCache(CacheItem item, TKey key)
-        //{
-        //    // 在原连接名表名里面获取
-        //    var entity = Invoke(FindKeyMethod, key);
-        //    if (entity != null || AllowNull)
-        //    {
-        //        item.Entity = entity;
-        //        item.ExpireTime = DateTime.Now.AddSeconds(Expriod);
-
-        //        if (!Entities.ContainsKey(key)) Entities.Add(key, item);
-        //    }
-        //    else
-        //    {
-        //        Interlocked.Increment(ref Invalid);
-        //    }
-
-        //    return entity;
-        //}
-
         /// <summary>清理缓存队列</summary>
         private void ClearUp()
         {
@@ -674,7 +502,7 @@ namespace XCode.Cache
                     if (first != null && !first.SlaveKey.IsNullOrWhiteSpace()) { list.Add(first); }
                 }
             }
-            if (list.Count < 1) { return; }
+            if (list.Count < 1) return;
             lock (SlaveEntities)
             {
                 foreach (var item in list)
@@ -687,34 +515,20 @@ namespace XCode.Cache
         /// <summary>移除第一个缓存项</summary>
         private CacheItem RemoveFirst()
         {
-            var keyFirst = GetFirstKey();
-            if (keyFirst != null && (Type.GetTypeCode(typeof(TKey)) != TypeCode.String || String.IsNullOrEmpty(keyFirst as String)))
-            {
-                CacheItem item = null;
-                if (Entities.TryGetValue(keyFirst, out item) && item != null)
-                {
-                    if (Debug) DAL.WriteLog("单实体缓存{0}超过最大数量限制{1}，准备移除第一项{2}", typeof(TEntity).FullName, MaxEntity, keyFirst);
+            var keyFirst = Entities.Keys.FirstOrDefault();
+            if (keyFirst == null) return null;
 
-                    Entities.Remove(keyFirst);
+            CacheItem item = null;
+            if (!Entities.TryGetValue(keyFirst, out item)) return null;
 
-                    //自动保存
-                    AutoUpdate(item);
+            if (Debug) DAL.WriteLog("单实体缓存{0}超过最大数量限制{1}，准备移除第一项{2}", typeof(TEntity).FullName, MaxEntity, keyFirst);
 
-                    return item;
-                }
-            }
-            return null;
-        }
+            Entities.Remove(keyFirst);
 
-        /// <summary>获取第一个缓存项</summary>
-        /// <returns></returns>
-        private TKey GetFirstKey()
-        {
-            foreach (var item in Entities)
-            {
-                return item.Key;
-            }
-            return default(TKey);
+            //自动保存
+            if (item != null) AutoUpdate(item);
+
+            return item;
         }
 
         /// <summary>自动更新，最主要是在原连接名和表名里面更新对象</summary>
@@ -913,42 +727,6 @@ namespace XCode.Cache
         /// <param name="slaveKey"></param>
         /// <returns></returns>
         IEntity ISingleEntityCache.GetItemWithSlaveKey(String slaveKey) { return GetItemWithSlaveKey(slaveKey); }
-
-        /// <summary>根据主键获取实体记录列表</summary>
-        /// <param name="keys"></param>
-        /// <returns></returns>
-        IEntityList ISingleEntityCache.FindAllInKeys(IEnumerable<Int32> keys) { return FindAllInKeys(keys); }
-
-        /// <summary>根据主键获取实体记录列表</summary>
-        /// <param name="keys"></param>
-        /// <returns></returns>
-        IEntityList ISingleEntityCache.FindAllInKeys(IEnumerable<Int64> keys) { return FindAllInKeys(keys); }
-
-        /// <summary>根据主键获取实体记录列表</summary>
-        /// <typeparam name="T">主键原始类型</typeparam>
-        /// <param name="keys">主键字符串，以逗号或分号分割</param>
-        /// <returns></returns>
-        IEntityList ISingleEntityCache.FindAllInKeys<T>(String keys) { return FindAllInKeys<T>(keys); }
-
-        /// <summary>根据从键获取实体记录列表</summary>
-        /// <param name="slavekeys"></param>
-        /// <returns></returns>
-        IEntityList ISingleEntityCache.FindAllInSlaveKeys(IEnumerable<Int32> slavekeys) { return FindAllInSlaveKeys(slavekeys); }
-
-        /// <summary>根据从键获取实体记录列表</summary>
-        /// <param name="slavekeys"></param>
-        /// <returns></returns>
-        IEntityList ISingleEntityCache.FindAllInSlaveKeys(IEnumerable<Int64> slavekeys) { return FindAllInSlaveKeys(slavekeys); }
-
-        /// <summary>根据从键获取实体记录列表</summary>
-        /// <param name="slavekeys"></param>
-        /// <returns></returns>
-        IEntityList ISingleEntityCache.FindAllInSlaveKeys(IEnumerable<String> slavekeys) { return FindAllInSlaveKeys(slavekeys); }
-
-        /// <summary>根据从键获取实体记录列表</summary>
-        /// <param name="slavekeys"></param>
-        /// <returns></returns>
-        IEntityList ISingleEntityCache.FindAllInSlaveKeys(String slavekeys) { return FindAllInSlaveKeys(slavekeys); }
 
         /// <summary>是否包含指定主键</summary>
         /// <param name="key"></param>
