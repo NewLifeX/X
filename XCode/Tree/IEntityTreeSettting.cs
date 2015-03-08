@@ -70,7 +70,7 @@ namespace XCode
                     // Empty与null不同，可用于区分是否已计算
                     _SortingKeyName = String.Empty;
 
-                    var names = new String[] { "Sorting", "Sort", "Rank" };
+                    var names = new String[] { "Sorting", "Sort", "Rank", "DisplayOrder", "Order" };
                     var fs = Factory.FieldNames;
                     foreach (var name in names)
                     {

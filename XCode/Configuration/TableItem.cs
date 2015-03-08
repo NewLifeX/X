@@ -168,7 +168,7 @@ namespace XCode.Configuration
         public FieldItem[] PrimaryKeys { get { return _PrimaryKeys; } }
 
         private ICollection<String> _FieldNames;
-        /// <summary>字段名集合</summary>
+        /// <summary>字段名集合，不区分大小写的哈希表存储，外部不要修改元素数据</summary>
         [XmlIgnore]
         public ICollection<String> FieldNames
         {

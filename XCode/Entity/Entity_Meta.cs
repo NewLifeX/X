@@ -73,7 +73,7 @@ namespace XCode
             /// <summary>所有绑定到数据表的属性</summary>
             public static FieldItem[] Fields { get { return Table.Fields; } }
 
-            /// <summary>字段名列表</summary>
+            /// <summary>字段名集合，不区分大小写的哈希表存储，外部不要修改元素数据</summary>
             public static ICollection<String> FieldNames { get { return Table.FieldNames; } }
 
             /// <summary>唯一键，返回第一个标识列或者唯一的主键</summary>

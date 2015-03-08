@@ -1431,10 +1431,13 @@ namespace XCode
                 }
             }
 
-            if (Meta.FieldNames.Contains("Name"))
-                return this["Name"] == null ? null : this["Name"].ToString();
-            else if (Meta.FieldNames.Contains("ID"))
-                return this["ID"] == null ? null : this["ID"].ToString();
+            var fs = Meta.FieldNames;
+            if (fs.Contains("Name"))
+                return this["Name"] + "";
+            else if (fs.Contains("Title"))
+                return this["Title"] + "";
+            else if (fs.Contains("ID"))
+                return this["ID"] + "";
             else
                 return "ΚµΜε" + Meta.ThisType.Name;
         }
