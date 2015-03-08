@@ -522,10 +522,10 @@
                             <a href="#">首页</a>
                         </li>
 
-                        <li>
+                        <%--<li>
                             <a href="#">表格</a>
                         </li>
-                        <li class="active">Simple &amp; Dynamic</li>
+                        <li class="active">Simple &amp; Dynamic</li>--%>
                     </ul>
                     <!-- /.breadcrumb -->
 
@@ -639,19 +639,10 @@
                     <!-- /.ace-settings-container -->
 
                     <!-- /section:settings.box -->
-                    <div class="page-header">
-                        <h1>表格
-								<small>
-                                    <i class="ace-icon fa fa-angle-double-right"></i>
-                                    Static &amp; Dynamic Tables
-                                </small>
-                        </h1>
-                    </div>
-                    <!-- /.page-header -->
 
                     <div class="row">
-                        <div class="col-xs-12">
-                            <iframe height="100%" width="100%" border="0" frameborder="0" id="main" name="main" src="<%=DefaultMain %>"></iframe>
+                        <div class="col-xs-12" style="height: 400px;">
+                            <iframe style="width: 100%; height: 100%" border="0" frameborder="0" id="main" name="main" src="<%=DefaultMain %>"></iframe>
                         </div>
                         <!-- /.col -->
                     </div>
