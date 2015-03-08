@@ -87,6 +87,7 @@ public partial class Admin_Default : System.Web.UI.Page
                     menu.Url = "../Admin/Main.aspx";
                     menu.Save();
                 }
+                if (menu == null) menu = root;
                 if (menu != null)
                 {
                     #region 自动排序

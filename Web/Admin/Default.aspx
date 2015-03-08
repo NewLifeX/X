@@ -424,11 +424,12 @@
             <!-- /.sidebar-shortcuts -->
 
             <ul class="nav nav-list">
-<%
-foreach (IMenu menu in Menus)
-{
-%>
-                <li<%if(menu==Menus[0]){ %> class="active open"<%} %>>
+                <%
+                    foreach (IMenu menu in Menus)
+                    {
+                %>
+                <li<%if (menu == Menus[0])
+                     { %> class="active open" <%} %>>
                     <a href="#" class="dropdown-toggle">
                         <i class="menu-icon fa <%= GetIco() %>"></i>
                         <span class="menu-text"><%= menu.Name %></span>
@@ -444,10 +445,26 @@ foreach (IMenu menu in Menus)
     {
 %>
                         <li>
+<%
+        if (menu2.Childs.Count > 0)
+        {
+%>
                             <a href="#" class="dropdown-toggle">
                                 <i class="menu-icon fa fa-caret-right"></i>
                                 <%= menu2.Name %>
                             </a>
+<%
+        }
+        else
+        { 
+%>
+                            <a href="<%= menu2.Url %>" target="main">
+                                <i class="menu-icon fa fa-caret-right"></i>
+                                <%= menu2.Name %>
+                            </a>
+<%
+        }
+%>
 
                             <b class="arrow"></b>
                     <ul class="submenu">
