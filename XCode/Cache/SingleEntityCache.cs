@@ -107,23 +107,8 @@ namespace XCode.Cache
         private Boolean _HoldCache = CacheSetting.Alone;
 
         /// <summary>在数据修改时保持缓存，不再过期，独占数据库时默认打开，否则默认关闭</summary>
-        public Boolean HoldCache
-        {
-            get { return _HoldCache; }
-            set
-            {
-                _HoldCache = value;
-                // 独占模式也需要用到定时器，否则无法自动保存
-                //if (_HoldCache)
-                //{
-                //    if (_Timer != null) { _Timer.Dispose(); }
-                //}
-                //else
-                //{
-                //    StartTimer();
-                //}
-            }
-        }
+        /// <remarks>独占模式也需要用到定时器，否则无法自动保存</remarks>
+        public Boolean HoldCache { get { return _HoldCache; } set { _HoldCache = value; } }
 
         private Boolean _Using;
         /// <summary>是否在使用缓存</summary>
@@ -139,24 +124,6 @@ namespace XCode.Cache
             // 启动一个定时器，用于定时清理过期缓存。因为比较耗时，最后一个参数采用线程池
             _Timer = new TimerX(d => Check(), null, Expriod * 1000, Expriod * 1000, true);
         }
-
-        ///// <summary>启动一个定时器，用于定时清理过期缓存。因为比较耗时，最后一个参数采用线程池</summary>
-        //private void StartTimer()
-        //{
-        //    // 独占模式下，不再自动清除缓存项
-        //    //if (HoldCache) { return; }
-
-        //    if (_Timer == null)
-        //    {
-        //        // 启动一个定时器
-        //        var timer = new TimerX(d => Check(), null, Expriod * 1000, Expriod * 1000, true);
-        //        if (Interlocked.CompareExchange<TimerX>(ref _Timer, timer, null) != null)
-        //        {
-        //            timer.Dispose();
-        //            timer = null;
-        //        }
-        //    }
-        //}
 
         /// <summary>子类重载实现资源释放逻辑时必须首先调用基类方法</summary>
         /// <param name="disposing">从Dispose调用（释放所有资源）还是析构函数调用（释放非托管资源）。
@@ -204,7 +171,6 @@ namespace XCode.Cache
                             // 捕获异常，不影响别人
                             try
                             {
-                                //item.Entity.Update();
                                 // 需要在原连接名表名里面更新对象
                                 AutoUpdate(item);
                             }
@@ -226,7 +192,6 @@ namespace XCode.Cache
                     foreach (var item in list)
                     {
                         if (Entities.ContainsKey(item.Key)) Entities.Remove(item.Key);
-                        //Entities.Remove(item.Key);
                     }
 
                     Using = Entities.Count > 0;

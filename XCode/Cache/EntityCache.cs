@@ -99,7 +99,7 @@ namespace XCode.Cache
 
                 Using = true;
 
-                if (_Entities == null) XTrace.WriteLine("实体缓存数据为空 {0}", typeof(TEntity).FullName);
+                //if (_Entities == null) XTrace.WriteLine("实体缓存数据为空 {0}", typeof(TEntity).FullName);
 
                 return _Entities ?? new EntityList<TEntity>();
             }
@@ -159,10 +159,10 @@ namespace XCode.Cache
         {
             _Entities = Invoke<Object, EntityList<TEntity>>(s => FillListMethod(), null);
 
-            if (Debug && _Entities.Count == 0) DAL.WriteLog("实体缓存为空：{0}", typeof(TEntity).FullName);
+            //if (Debug && _Entities.Count == 0) DAL.WriteLog("实体缓存为空：{0}", typeof(TEntity).FullName);
 
             // 清空
-            if (_Entities != null && _Entities.Count == 0) _Entities = null;
+            //if (_Entities != null && _Entities.Count == 0) _Entities = null;
 
             if (Debug) DAL.WriteLog("完成更新缓存（第{1}次）：{0}", typeof(TEntity).FullName, state);
         }
@@ -181,7 +181,7 @@ namespace XCode.Cache
                 {
                     // 修改为最小，确保过期
                     ExpiredTime = DateTime.MinValue;
-                    _Entities = null;
+                    //_Entities = null;
                 }
 
                 // 清空后，表示不使用缓存
