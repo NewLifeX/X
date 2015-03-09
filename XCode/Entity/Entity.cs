@@ -649,18 +649,18 @@ namespace XCode
         #endregion
 
         #region 静态查询
-        /// <summary>获取所有实体对象。获取大量数据时会非常慢，慎用</summary>
+        /// <summary>获取所有数据。获取大量数据时会非常慢，慎用。没有数据时返回空集合而不是null</summary>
         /// <returns>实体数组</returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
         public static EntityList<TEntity> FindAll() { return FindAll(null, null, null, 0, 0); }
 
-        /// <summary>查询并返回实体对象集合。</summary>
+        /// <summary>最标准的查询数据。没有数据时返回空集合而不是null</summary>
         /// <remarks>
         /// 最经典的批量查询，看这个Select @selects From Table Where @whereClause Order By @orderClause Limit @startRowIndex,@maximumRows，你就明白各参数的意思了。
         /// </remarks>
-        /// <param name="whereClause">条件，不带Where</param>
-        /// <param name="orderClause">排序，不带Order By</param>
-        /// <param name="selects">查询列</param>
+        /// <param name="whereClause">条件字句，不带Where</param>
+        /// <param name="orderClause">排序字句，不带Order By</param>
+        /// <param name="selects">查询列，默认null表示所有字段</param>
         /// <param name="startRowIndex">开始行，0表示第一行</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>实体集</returns>
@@ -761,7 +761,7 @@ namespace XCode
             return LoadData(session.Query(builder, startRowIndex, maximumRows));
         }
 
-        /// <summary>根据属性列表以及对应的值列表，获取所有实体对象</summary>
+        /// <summary>根据属性列表以及对应的值列表查询数据。没有数据时返回空集合而不是null</summary>
         /// <param name="names">属性列表</param>
         /// <param name="values">值列表</param>
         /// <returns>实体数组</returns>
@@ -781,14 +781,14 @@ namespace XCode
             return FindAll(MakeCondition(names, values, "And"), null, null, 0, 0);
         }
 
-        /// <summary>根据属性以及对应的值，获取所有实体对象</summary>
+        /// <summary>根据属性以及对应的值查询数据。没有数据时返回空集合而不是null</summary>
         /// <param name="name">属性</param>
         /// <param name="value">值</param>
         /// <returns>实体数组</returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
         public static EntityList<TEntity> FindAll(String name, Object value) { return FindAll(new String[] { name }, new Object[] { value }); }
 
-        /// <summary>根据属性以及对应的值，获取所有实体对象</summary>
+        /// <summary>根据属性以及对应的值查询数据，带排序。没有数据时返回空集合而不是null</summary>
         /// <param name="name">属性</param>
         /// <param name="value">值</param>
         /// <param name="orderClause">排序，不带Order By</param>
@@ -826,7 +826,7 @@ namespace XCode
         //[EditorBrowsable(EditorBrowsableState.Never)]
         //public static EntityList<TEntity> FindAll(String sql) { return LoadData(Meta.Session.Query(sql)); }
 
-        /// <summary>同时查询满足条件的记录集和记录总数</summary>
+        /// <summary>同时查询满足条件的记录集和记录总数。没有数据时返回空集合而不是null</summary>
         /// <param name="whereClause">条件，不带Where</param>
         /// <param name="orderClause">排序，不带Order By</param>
         /// <param name="selects">查询列</param>
@@ -859,12 +859,12 @@ namespace XCode
         [DataObjectMethod(DataObjectMethodType.Select, false)]
         public static TEntity FindWithCache(String name, Object value) { return Meta.Session.Cache.Entities.Find(name, value); }
 
-        /// <summary>查找所有缓存</summary>
+        /// <summary>查找所有缓存。没有数据时返回空集合而不是null</summary>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
         public static EntityList<TEntity> FindAllWithCache() { return Meta.Session.Cache.Entities; }
 
-        /// <summary>根据属性以及对应的值，在缓存中获取所有实体对象</summary>
+        /// <summary>根据属性以及对应的值，在缓存中查询数据。没有数据时返回空集合而不是null</summary>
         /// <param name="name">属性</param>
         /// <param name="value">值</param>
         /// <returns>实体数组</returns>
@@ -965,7 +965,7 @@ namespace XCode
         #endregion
 
         #region 高级查询
-        /// <summary>查询满足条件的记录集，分页、排序</summary>
+        /// <summary>查询满足条件的记录集，分页、排序。没有数据时返回空集合而不是null</summary>
         /// <param name="key">关键字</param>
         /// <param name="orderClause">排序，不带Order By</param>
         /// <param name="startRowIndex">开始行，0表示第一行</param>
@@ -982,7 +982,7 @@ namespace XCode
         /// <returns>记录数</returns>
         public static Int32 SearchCount(String key, String orderClause, Int32 startRowIndex, Int32 maximumRows) { return FindCount(SearchWhereByKeys(key, null), null, null, 0, 0); }
 
-        /// <summary>同时查询满足条件的记录集和记录总数</summary>
+        /// <summary>同时查询满足条件的记录集和记录总数。没有数据时返回空集合而不是null</summary>
         /// <param name="key"></param>
         /// <param name="orderClause"></param>
         /// <param name="startRowIndex"></param>
@@ -1004,33 +1004,6 @@ namespace XCode
             }
 
             return FindAll(SearchWhereByKeys(key, null), orderClause, null, startRowIndex, maximumRows);
-        }
-
-        /// <summary>构建关键字查询条件</summary>
-        /// <param name="sb"></param>
-        /// <param name="keys"></param>
-        [Obsolete("=>SearchWhereByKeys(String keys)")]
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public static void SearchWhereByKeys(StringBuilder sb, String keys) { SearchWhereByKeys(sb, keys, null); }
-
-        /// <summary>构建关键字查询条件</summary>
-        /// <param name="sb"></param>
-        /// <param name="keys"></param>
-        /// <param name="func"></param>
-        [Obsolete("=>SearchWhereByKeys(String keys)")]
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public static void SearchWhereByKeys(StringBuilder sb, String keys, Func<String, WhereExpression> func)
-        {
-            if (String.IsNullOrEmpty(keys)) return;
-
-            String str = SearchWhereByKeys(keys, func);
-            if (String.IsNullOrEmpty(str)) return;
-
-            if (sb.Length > 0) sb.Append(" And ");
-            if (str.Contains("Or") || str.ToLower().Contains("or"))
-                sb.AppendFormat("({0})", str);
-            else
-                sb.Append(str);
         }
 
         /// <summary>根据空格分割的关键字集合构建查询条件</summary>

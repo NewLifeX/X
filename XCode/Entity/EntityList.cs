@@ -16,6 +16,8 @@ namespace XCode
 {
     /// <summary>实体集合，提供批量查询和批量操作实体等操作。若需要使用Linq，需要先用<see cref="ToList"/>方法。</summary>
     /// <remarks>
+    /// 强烈建议所有返回实体集合的方法，在没有满足条件的数据时返回空集合而不是null，以减少各种判断！
+    /// 
     /// 在.Net 2.0时代，没有Linq可用时，该类的对象查询等方法发挥了很大的作用。
     /// 但是弱类型比较的写法，不太方便，并且有时会带来非常难以查找的错误。
     /// 比如Object.Equal比较Int16和Int32两个数字，是不相等的，也就是说，如果有个Int32字段，传入Int16的数字是无法找到任何匹配项的。
@@ -141,7 +143,7 @@ namespace XCode
         #endregion
 
         #region 对象查询
-        /// <summary>根据指定项查找</summary>
+        /// <summary>根据指定项查找。没有数据时返回空集合而不是null</summary>
         /// <param name="name">属性名</param>
         /// <param name="value">属性值</param>
         /// <returns></returns>
@@ -154,7 +156,7 @@ namespace XCode
             if (field != null && (field.IsIdentity || field.PrimaryKey))
             {
                 // 唯一键为空时，比如自增且参数小于等于0时，返回空
-                if (Helper.IsNullKey(value)) return null;
+                if (Helper.IsNullKey(value)) return new EntityList<T>();
             }
 
             // 特殊处理整数类型，避免出现相同值不同整型而导致结果不同
@@ -162,7 +164,7 @@ namespace XCode
             {
                 // 整型统一转为Int64后再比较，因为即使数值相等，类型不同的对象也是不等的
                 var v6 = Convert.ToInt64(value);
-                var list = base.FindAll(e => Convert.ToInt32(e[name]) == v6);
+                var list = base.FindAll(e => Convert.ToInt64(e[name]) == v6);
                 return new EntityList<T>(list);
             }
             else
@@ -172,7 +174,7 @@ namespace XCode
             }
         }
 
-        /// <summary>根据指定项查找</summary>
+        /// <summary>根据指定项查找。没有数据时返回空集合而不是null</summary>
         /// <param name="names">属性名集合</param>
         /// <param name="values">属性值集合</param>
         /// <param name="ignoreCase">对于字符串字段是否忽略大小写</param>
@@ -185,7 +187,7 @@ namespace XCode
             if (field != null && (field.IsIdentity || field.PrimaryKey))
             {
                 // 唯一键为自增且参数小于等于0时，返回空
-                if (Helper.IsNullKey(values[0])) return null;
+                if (Helper.IsNullKey(values[0])) return new EntityList<T>();
             }
 
             // 特殊处理字符忽略大小写的情况
@@ -236,7 +238,7 @@ namespace XCode
             return list;
         }
 
-        /// <summary>检索与指定谓词定义的条件匹配的所有元素。</summary>
+        /// <summary>检索与指定谓词定义的条件匹配的所有元素。没有数据时返回空集合而不是null</summary>
         /// <param name="match">条件</param>
         /// <returns></returns>
         public new EntityList<T> FindAll(Predicate<T> match)
@@ -268,7 +270,7 @@ namespace XCode
             }
         }
 
-        /// <summary>根据指定项查找字符串，忽略大小写，非字符串属性将报错</summary>
+        /// <summary>根据指定项查找字符串，忽略大小写，非字符串属性将报错。没有数据时返回空集合而不是null</summary>
         /// <param name="name">属性名</param>
         /// <param name="value">属性值</param>
         /// <returns></returns>
