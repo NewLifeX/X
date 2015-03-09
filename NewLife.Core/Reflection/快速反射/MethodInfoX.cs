@@ -223,7 +223,7 @@ namespace NewLife.Reflection
         /// <param name="obj"></param>
         /// <param name="parameters">参数数组</param>
         /// <returns></returns>
-        public Object InvokeByDictionaryParameter(Object obj, IDictionary parameters)
+        public Object InvokeWithParams(Object obj, IDictionary parameters)
         {
             //// 没有传入参数
             //if (parameters == null || parameters.Count < 1) return Invoke(obj, null);
@@ -283,7 +283,7 @@ namespace NewLife.Reflection
         /// <param name="name">名称</param>
         /// <param name="parameters">参数数组</param>
         /// <returns></returns>
-        public static TResult InvokeByDictionaryParameter<TResult>(Object target, String name, IDictionary parameters)
+        public static TResult InvokeWithParams<TResult>(Object target, String name, IDictionary parameters)
         {
             if (target == null) throw new ArgumentNullException("target");
             if (String.IsNullOrEmpty(name)) throw new ArgumentNullException("name");
@@ -291,7 +291,7 @@ namespace NewLife.Reflection
             MethodInfoX mix = Create(target.GetType(), name);
             if (mix == null) throw new XException("类{0}中无法找到{1}方法！", target.GetType().Name, name);
 
-            return (TResult)mix.InvokeByDictionaryParameter(target, parameters);
+            return (TResult)mix.InvokeWithParams(target, parameters);
         }
 
         /// <summary>通过传入参数字典快速调用静态方法</summary>
@@ -300,14 +300,14 @@ namespace NewLife.Reflection
         /// <param name="name">名称</param>
         /// <param name="parameters">参数数组</param>
         /// <returns></returns>
-        public static TResult InvokeByDictionaryParameter<TTarget, TResult>(String name, IDictionary parameters)
+        public static TResult InvokeWithParams<TTarget, TResult>(String name, IDictionary parameters)
         {
             if (String.IsNullOrEmpty(name)) throw new ArgumentNullException("name");
 
             MethodInfoX mix = Create(typeof(TTarget), name);
             if (mix == null) throw new XException("类{0}中无法找到{1}方法！", typeof(TTarget).Name, name);
 
-            return (TResult)mix.InvokeByDictionaryParameter(null, parameters);
+            return (TResult)mix.InvokeWithParams(null, parameters);
         }
         #endregion
 

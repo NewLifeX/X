@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Reflection;
@@ -67,6 +68,13 @@ namespace NewLife.Reflection
         /// <param name="parameters">方法参数</param>
         /// <returns></returns>
         Object Invoke(Object target, MethodBase method, params Object[] parameters);
+
+        /// <summary>反射调用指定对象的方法</summary>
+        /// <param name="target">要调用其方法的对象，如果要调用静态方法，则target是类型</param>
+        /// <param name="method">方法</param>
+        /// <param name="parameters">方法参数字典</param>
+        /// <returns></returns>
+        Object InvokeWithParams(Object target, MethodBase method, IDictionary parameters);
 
         ///// <summary>获取目标对象指定名称的属性/字段值</summary>
         ///// <param name="target">目标对象</param>
@@ -262,6 +270,13 @@ namespace NewLife.Reflection
         {
             return method.Invoke(target, parameters);
         }
+
+        /// <summary>反射调用指定对象的方法</summary>
+        /// <param name="target">要调用其方法的对象，如果要调用静态方法，则target是类型</param>
+        /// <param name="method">方法</param>
+        /// <param name="parameters">方法参数字典</param>
+        /// <returns></returns>
+        public virtual Object InvokeWithParams(Object target, MethodBase method, IDictionary parameters) { throw new NotSupportedException(); }
 
         /// <summary>获取目标对象的属性值</summary>
         /// <param name="target">目标对象</param>

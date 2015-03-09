@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
@@ -150,6 +151,21 @@ namespace NewLife.Reflection
             if (!method.IsStatic && target == null) throw new ArgumentNullException("target");
 
             return _Provider.Invoke(target, method, parameters);
+        }
+
+        /// <summary>反射调用指定对象的方法</summary>
+        /// <param name="target">要调用其方法的对象，如果要调用静态方法，则target是类型</param>
+        /// <param name="method">方法</param>
+        /// <param name="parameters">方法参数字典</param>
+        /// <returns></returns>
+        [DebuggerHidden]
+        public static Object InvokeWithParams(this Object target, MethodBase method, IDictionary parameters)
+        {
+            //if (target == null) throw new ArgumentNullException("target");
+            if (method == null) throw new ArgumentNullException("method");
+            if (!method.IsStatic && target == null) throw new ArgumentNullException("target");
+
+            return _Provider.InvokeWithParams(target, method, parameters);
         }
 
         /// <summary>获取目标对象指定名称的属性/字段值</summary>

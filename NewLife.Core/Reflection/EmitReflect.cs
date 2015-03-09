@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
@@ -51,6 +52,19 @@ namespace NewLife.Reflection
         {
             if (method is MethodInfo)
                 return MethodInfoX.Create(method).Invoke(target, parameters);
+            else
+                return base.Invoke(target, method, parameters);
+        }
+
+        /// <summary>反射调用指定对象的方法</summary>
+        /// <param name="target">要调用其方法的对象，如果要调用静态方法，则target是类型</param>
+        /// <param name="method">方法</param>
+        /// <param name="parameters">方法参数字典</param>
+        /// <returns></returns>
+        public override Object InvokeWithParams(Object target, MethodBase method, IDictionary parameters)
+        {
+            if (method is MethodInfo)
+                return MethodInfoX.Create(method).InvokeWithParams(target, parameters);
             else
                 return base.Invoke(target, method, parameters);
         }
