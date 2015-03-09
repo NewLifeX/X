@@ -2,19 +2,17 @@
 using NewLife.CommonEntity;
 using NewLife.Web;
 using XCode;
+using XCode.Web;
 
 public partial class Pages_Log : MyEntityList
 {
-    //public EntityList<Log> DataList;
-    public Grid grid = new Grid();
+    public Grid grid = new Grid(Log.Meta.Factory);
 
     protected void Page_Load(object sender, EventArgs e)
     {
-        //DataList = Log.FindAll(null, grid.OrderBy, null, 0, 10);
+        grid.PageSize = 10;
 
         Type type = CommonManageProvider.Provider.LogType;
-        ods.TypeName = type.FullName;
-        ods.DataObjectTypeName = type.FullName;
         odsCategory.TypeName = type.FullName;
         odsCategory.DataObjectTypeName = type.FullName;
 
@@ -28,7 +26,5 @@ public partial class Pages_Log : MyEntityList
                 ddlAdmin.DataBind();
             }
         }
-
-        grid.DataMethod = Log.FindAll;
     }
 }
