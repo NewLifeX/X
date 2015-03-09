@@ -10,7 +10,7 @@ public partial class Pages_Log : MyEntityList
 
     protected void Page_Load(object sender, EventArgs e)
     {
-        grid.PageSize = 10;
+        grid.DefaultPageSize = 10;
 
         Type type = CommonManageProvider.Provider.LogType;
         odsCategory.TypeName = type.FullName;

@@ -13,7 +13,7 @@ namespace XCode.Web
         //    RunTimeFormat = "查询{0}次，执行{1}次，耗时{2}毫秒！";
         //}
 
-        private static String _RunTimeFormat = "查询{0}次，执行{1}次，耗时{2}毫秒！";
+        private static String _RunTimeFormat = "查询{0}次，执行{1}次，耗时{2:n0}毫秒！";
         /// <summary>执行时间字符串</summary>
         public static String DbRunTimeFormat { get { return _RunTimeFormat; } set { _RunTimeFormat = value; } }
 

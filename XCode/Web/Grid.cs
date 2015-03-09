@@ -12,37 +12,41 @@ namespace XCode.Web
     {
         #region 属性
         private IEntityList _DataSource;
-        /// <summary>数据源</summary>
-        public IEntityList DataSource { get { if (_DataSource == null)PerformSelect(); return _DataSource; } set { _DataSource = value; } }
-
-        private List<String> _Titles;
-        /// <summary>标题集合</summary>
-        public List<String> Titles { get { return _Titles; } set { _Titles = value; } }
-
-        private List<String> _Names;
-        /// <summary>名称集合</summary>
-        public List<String> Names { get { return _Names; } set { _Names = value; } }
+        /// <summary>数据源。如果为空，将会自动使用<see cref="Where"/>查询</summary>
+        public IEntityList DataSource
+        {
+            get
+            {
+                if (_DataSource == null) Select();
+                return _DataSource;
+            }
+            set { _DataSource = value; }
+        }
         #endregion
 
         #region 构造
         /// <summary>无参数构造</summary>
-        public Grid() { }
+        public Grid() { Init(); }
 
         /// <summary>使用实体工厂构造</summary>
         /// <param name="factory"></param>
-        public Grid(IEntityOperate factory) { Factory = factory; }
+        public Grid(IEntityOperate factory) { Factory = factory; Init(); }
+
+        /// <summary>获取参数</summary>
+        public void Init()
+        {
+            PageIndex = WebHelper.RequestInt("PageIndex");
+            PageSize = WebHelper.RequestInt("PageSize");
+            Sort = WebHelper.Request["Sort"];
+            SortDesc = WebHelper.Request["Desc"].ToInt() != 0;
+        }
         #endregion
 
         #region 方法
-        //public virtual String Render()
-        //{
-        //    var sb = new HtmlWriter();
-        //    sb.Append("<table class=\"table table-bordered table-hover table-striped table-condensed\">");
-        //    sb.Append("</table>");
-
-        //    return sb.ToString();
-        //}
-
+        /// <summary>生成头部。</summary>
+        /// <param name="includeHeader">是否包含thead和tr</param>
+        /// <param name="names">冒号分割，前面是排序字段名，后面是标题名，没有冒号表示不排序</param>
+        /// <returns></returns>
         public virtual String RenderHeader(Boolean includeHeader, params String[] names)
         {
             var sb = new StringBuilder();
@@ -57,33 +61,7 @@ namespace XCode.Web
             }
             if (includeHeader) sb.Append("</tr></thead>");
             return sb.ToString();
-
-            //ww.Indent += 4;
-            //ww.AppendLine("<thead>");
-
-            //ww.Indent += 4;
-            //ww.AppendLine("<tr>");
-
-            //ww.Indent += 4;
-            //for (int i = 0; i < Titles.Count; i++)
-            //{
-            //    ww.AppendLine("<th>{0}</th>", Titles[0]);
-            //}
-            //ww.Indent -= 4;
-
-            //ww.AppendLine("</tr>");
-            //ww.Indent -= 4;
-
-            //ww.AppendLine("</thead>");
-            //ww.Indent -= 4;
         }
-
-        //protected virtual void RenderBody(HtmlWriter ww)
-        //{
-        //    ww.Indent += 4;
-
-        //    ww.Indent -= 4;
-        //}
 
         /// <summary>获取基础Url，用于附加参数</summary>
         /// <param name="where"></param>
@@ -97,6 +75,7 @@ namespace XCode.Web
             var nvs = WebHelper.Request.QueryString;
             foreach (var item in nvs.AllKeys)
             {
+                if (item.IsNullOrWhiteSpace()) continue;
                 // 过滤
                 if (item.EqualIgnoreCase("Sort", "Desc"))
                 {
@@ -119,22 +98,29 @@ namespace XCode.Web
         #endregion
 
         #region 排序
+        private String _Sort;
+        /// <summary>排序字段</summary>
+        public String Sort { get { return _Sort; } set { _Sort = value; } }
+
+        private Boolean _SortDesc;
+        /// <summary>是否降序</summary>
+        public Boolean SortDesc { get { return _SortDesc; } set { _SortDesc = value; } }
+
         /// <summary>获取排序的Url</summary>
         /// <param name="name"></param>
         /// <returns></returns>
         public virtual String GetSortUrl(String name)
         {
             // 首次访问该排序项，默认升序，重复访问取反
-            var sort = WebHelper.Request["Sort"];
-            var desc = WebHelper.Request["Desc"].ToInt() == 0;
-            if (sort.EqualIgnoreCase(name)) desc = !desc;
+            var desc = false;
+            if (Sort.EqualIgnoreCase(name)) desc = !SortDesc;
 
             var url = GetBaseUrl(true, false, true);
             if (url.Length > 1) url += "&";
             if (desc)
-                return url + "Sort={0}".F(name);
-            else
                 return url + "Sort={0}&Desc=1".F(name);
+            else
+                return url + "Sort={0}".F(name);
         }
 
         /// <summary>排序字句</summary>
@@ -142,33 +128,26 @@ namespace XCode.Web
         {
             get
             {
-                var sort = WebHelper.Request["Sort"];
+                var sort = Sort;
                 if (sort.IsNullOrWhiteSpace()) return null;
-
-                var desc = WebHelper.Request["Desc"].ToInt() == 0;
-                if (desc) sort += " Desc";
+                if (SortDesc) sort += " Desc";
                 return sort;
             }
         }
         #endregion
 
         #region 分页
-        private Int32 _PageSize = 20;
-        /// <summary>页大小</summary>
-        public Int32 PageSize { get { return _PageSize; } set { _PageSize = value; } }
+        private Int32 _DefaultPageSize = 20;
+        /// <summary>默认页大小</summary>
+        public Int32 DefaultPageSize { get { return _DefaultPageSize; } set { if (value <= 0)value = 20; _DefaultPageSize = value; } }
 
-        private Int32 _PageIndex;
+        private Int32 _PageSize = 0;
+        /// <summary>页大小。设置有值时采用已有值，否则采用默认也大小</summary>
+        public Int32 PageSize { get { return _PageSize > 0 ? _PageSize : DefaultPageSize; } set { _PageSize = value; } }
+
+        private Int32 _PageIndex = 1;
         /// <summary>页索引</summary>
-        public Int32 PageIndex
-        {
-            get
-            {
-                if (_PageIndex <= 0) _PageIndex = WebHelper.RequestInt("PageIndex");
-                if (_PageIndex < 1) _PageIndex = 1;
-                return _PageIndex;
-            }
-            set { _PageIndex = value; }
-        }
+        public Int32 PageIndex { get { return _PageIndex; } set { if (value <= 0)value = 1; _PageIndex = value; } }
 
         private Int32 _TotalCount = -1;
         /// <summary>总记录数</summary>
@@ -176,7 +155,7 @@ namespace XCode.Web
         {
             get
             {
-                if (_TotalCount < 0) _TotalCount = Factory.FindCount(SearchWhere(), null, null, 0, 0);
+                if (_TotalCount < 0) _TotalCount = Factory.FindCount(Where, null, null, 0, 0);
                 return _TotalCount;
             }
             set { _TotalCount = value; }
@@ -211,13 +190,13 @@ namespace XCode.Web
 
             if (PageIndex == 1)
             {
-                txt = txt.Replace("{首页}", null);
-                txt = txt.Replace("{上一页}", null);
+                txt = txt.Replace("{首页}", "首页&nbsp;");
+                txt = txt.Replace("{上一页}", "上一页&nbsp;");
             }
             if (PageIndex >= PageCount)
             {
-                txt = txt.Replace("{尾页}", null);
-                txt = txt.Replace("{下一页}", null);
+                txt = txt.Replace("{尾页}", "尾页&nbsp;");
+                txt = txt.Replace("{下一页}", "下一页&nbsp;");
             }
 
             if (PageIndex > 1)
@@ -237,8 +216,12 @@ namespace XCode.Web
         String GetPageUrl(String name, Int32 index)
         {
             var url = GetBaseUrl(true, true, false);
-            if (url.Length > 1) url += "&";
-            if (PageIndex != index && index > 1) url += "PageIndex=" + index;
+            if (PageIndex != index && index > 1)
+            {
+                if (url.Length > 1) url += "&";
+                url += "PageIndex=" + index;
+            }
+            if (PageSize != DefaultPageSize) url += "&PageSize=" + PageSize;
 
             var txt = PageUrlTemplate;
             txt = txt.Replace("{链接}", url);
@@ -249,58 +232,43 @@ namespace XCode.Web
         #endregion
 
         #region 查询
-        ///// <summary>查询数据的方法</summary>
-        //public Func<String, String, String, Int32, Int32, IEntityList> SelectMethod;
-
-        //private Int32 _SelectCountMethod;
-        ///// <summary>查询记录数的方法</summary>
-        //public Int32 SelectCountMethod { get { return _SelectCountMethod; } set { _SelectCountMethod = value; } }
-
         private IEntityOperate _Factory;
         /// <summary>实体工厂</summary>
         public IEntityOperate Factory { get { return _Factory; } set { _Factory = value; } }
 
-        public virtual String SearchWhere()
+        private String _Where;
+        /// <summary>查询条件。由外部根据<see cref="Params"/>构造后赋值，<see cref="Select"/>将会调用该条件查询数据</summary>
+        public String Where { get { return _Where; } set { _Where = value; } }
+
+        /// <summary>普通查询参数，不包含分页和排序</summary>
+        public virtual IDictionary<String, String> Params
         {
-            return null;
+            get
+            {
+                var dic = new Dictionary<String, String>(StringComparer.OrdinalIgnoreCase);
+                var sb = new StringBuilder();
+                var nvs = WebHelper.Request.QueryString;
+                foreach (var item in nvs.AllKeys)
+                {
+                    if (item.IsNullOrWhiteSpace()) continue;
+                    // 过滤
+                    if (item.EqualIgnoreCase("Sort", "Desc")) continue;
+                    if (item.EqualIgnoreCase("PageIndex", "PageSize")) continue;
+
+                    dic[item] = nvs[item];
+                    //var fi = Factory.Table.FindByName(item);
+                }
+
+                return dic;
+            }
         }
 
-        protected virtual void PerformSelect()
+        /// <summary>执行数据查询</summary>
+        public virtual void Select()
         {
-            DataSource = Factory.FindAll(SearchWhere(), OrderBy, null, (PageIndex - 1) * PageSize, PageSize);
+            DataSource = Factory.FindAll(Where, OrderBy, null, (PageIndex - 1) * PageSize, PageSize);
+            TotalCount = Factory.FindCount(Where, null, null, 0, 0);
         }
         #endregion
     }
-
-    ///// <summary>网页写入器</summary>
-    //public class HtmlWriter
-    //{
-    //    /// <summary>内部写入器</summary>
-    //    public StringBuilder Builder = new StringBuilder();
-
-    //    private Int32 _Indent;
-    //    /// <summary>缩进空格数</summary>
-    //    public Int32 Indent { get { return _Indent; } set { _Indent = value; } }
-
-    //    public HtmlWriter Append(String format, params Object[] args)
-    //    {
-    //        if (Indent > 0) Builder.Append(new String(' ', Indent));
-    //        Builder.Append(format.F(args));
-
-    //        return this;
-    //    }
-
-    //    public HtmlWriter AppendLine(String format, params Object[] args)
-    //    {
-    //        if (Indent > 0) Builder.Append(new String(' ', Indent));
-    //        Builder.AppendLine(format.F(args));
-
-    //        return this;
-    //    }
-
-    //    public override string ToString()
-    //    {
-    //        return Builder.ToString();
-    //    }
-    //}
 }
