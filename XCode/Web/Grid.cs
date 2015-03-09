@@ -78,10 +78,12 @@ namespace XCode.Web
         {
             var sb = new StringBuilder();
             sb.Append("?");
-            var nvs = WebHelper.Request.QueryString;
-            foreach (var item in nvs.AllKeys)
+            var nvs = WebHelper.Request;
+            foreach (var item in AllKeys)
             {
                 if (item.IsNullOrWhiteSpace()) continue;
+                if (item.StartsWithIgnoreCase("__VIEWSTATE")) continue;
+
                 // 过滤
                 if (item.EqualIgnoreCase("Sort", "Desc"))
                 {
@@ -100,6 +102,18 @@ namespace XCode.Web
                 sb.AppendFormat("{0}={1}", item, nvs[item]);
             }
             return sb.ToString();
+        }
+
+        private String[] AllKeys
+        {
+            get
+            {
+                var rq = WebHelper.Request;
+                var list = new List<String>();
+                list.AddRange(rq.QueryString.AllKeys);
+                list.AddRange(rq.Form.AllKeys);
+                return list.ToArray();
+            }
         }
         #endregion
 
@@ -262,10 +276,12 @@ namespace XCode.Web
             {
                 var dic = new Dictionary<String, String>(StringComparer.OrdinalIgnoreCase);
                 var sb = new StringBuilder();
-                var nvs = WebHelper.Request.QueryString;
-                foreach (var item in nvs.AllKeys)
+                var nvs = WebHelper.Request;
+                foreach (var item in AllKeys)
                 {
                     if (item.IsNullOrWhiteSpace()) continue;
+                    if (item.StartsWithIgnoreCase("__VIEWSTATE")) continue;
+
                     // 过滤
                     if (item.EqualIgnoreCase("Sort", "Desc")) continue;
                     if (item.EqualIgnoreCase("PageIndex", "PageSize")) continue;

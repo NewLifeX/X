@@ -12,8 +12,5 @@ public partial class Pages_Log : MyEntityList
     {
         grid.DefaultPageSize = 10;
         grid.WhereMethod = "SearchWhere";
-
-        Form.Method = "Get";
-        Page.EnableViewState = false;
     }
 }

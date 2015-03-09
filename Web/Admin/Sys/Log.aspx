@@ -13,7 +13,9 @@
                         <option value="全部">全部</option>
                         <%foreach (ILog item in Log.FindAllCategory())
                           {
-                        %><option value="<%= item.Category %>"><%= item.Category %></option>
+                        %><option value="<%= item.Category %>" <%if (Request["ddlCategory"] == item.Category)
+                                                                 {%>
+                            selected<%} %>><%= item.Category %></option>
                         <%
                           } %>
                     </select>
@@ -24,7 +26,9 @@
                         <option value="0">全部</option>
                         <%foreach (IAdministrator item in Administrator.FindAllWithCache())
                           {
-                        %><option value="<%= item.ID %>"><%= item.FriendName %></option>
+                        %><option value="<%= item.ID %>" <%if (Request["ddlAdminID"] == item.ID + "")
+                                                           {%>
+                            selected<%} %>><%= item.FriendName %></option>
                         <%
                           } %>
                     </select>
