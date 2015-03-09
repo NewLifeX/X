@@ -1,24 +1,65 @@
 ﻿<%@ Page Language="C#" AutoEventWireup="true" CodeFile="Log.aspx.cs" Inherits="Pages_Log"
     Title="日志查看" MasterPageFile="~/Admin/ManagerPage.master" EnableEventValidation="false" %>
 
+<%@ Import Namespace="NewLife.CommonEntity" %>
 <asp:Content ID="Content1" ContentPlaceHolderID="C" runat="server">
-    <div class="row-fluid navbar navbar-default navbar-form">
-        类别：<asp:DropDownList ID="ddlCategory" runat="server" AppendDataBoundItems="True"
-            DataSourceID="odsCategory" DataTextField="Category" DataValueField="Category">
-            <asp:ListItem>全部</asp:ListItem>
-        </asp:DropDownList>
-        &nbsp;管理员：<asp:DropDownList ID="ddlAdmin" runat="server" AppendDataBoundItems="True"
-            DataTextField="Name" DataValueField="ID">
-            <asp:ListItem Value="0">全部</asp:ListItem>
-        </asp:DropDownList>
-        &nbsp;关键字：<asp:TextBox ID="key" runat="server" CssClass="form-control" Width="70px"></asp:TextBox>
-        &nbsp;时间：<XCL:DateTimePicker ID="StartDate" runat="server" LongTime="False">
-        </XCL:DateTimePicker>
-        &nbsp;至
+    <div class="panel panel-default">
+        <div class="panel-heading">日志列表</div>
+        <div class="panel-body">
+            <p>
+                类别：<asp:DropDownList ID="ddlCategory" runat="server" AppendDataBoundItems="True"
+                    DataSourceID="odsCategory" DataTextField="Category" DataValueField="Category">
+                    <asp:ListItem>全部</asp:ListItem>
+                </asp:DropDownList>
+                &nbsp;管理员：<asp:DropDownList ID="ddlAdmin" runat="server" AppendDataBoundItems="True"
+                    DataTextField="Name" DataValueField="ID">
+                    <asp:ListItem Value="0">全部</asp:ListItem>
+                </asp:DropDownList>
+                &nbsp;关键字：<asp:TextBox ID="key" runat="server" CssClass="form-control" Width="70px"></asp:TextBox>
+                &nbsp;时间：<XCL:DateTimePicker ID="StartDate" runat="server" LongTime="False">
+                </XCL:DateTimePicker>
+                &nbsp;至
         <XCL:DateTimePicker ID="EndDate" runat="server" LongTime="False">
         </XCL:DateTimePicker>
-        &nbsp;<asp:Button ID="Button1" runat="server" Text="查询" CssClass="btn btn-primary" />
+                &nbsp;<asp:Button ID="Button1" runat="server" Text="查询" CssClass="btn btn-primary" />
+            </p>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover table-striped table-condensed">
+                <thead>
+                    <tr>
+                        <th>序号</th>
+                        <th>类别</th>
+                        <th>操作</th>
+                        <th>管理员</th>
+                        <th>IP地址</th>
+                        <th>时间</th>
+                        <th>详细信息</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <%foreach (Log entity in DataList)
+                      {
+                    %>
+                    <tr>
+                        <td><%= entity.ID %></td>
+                        <td><%= entity.Category %></td>
+                        <td><%= entity.Action %></td>
+                        <td><%= entity.UserName %></td>
+                        <td><%= entity.IP %></td>
+                        <td><%= entity.OccurTime %></td>
+                        <td><%= entity.Remark %></td>
+                    </tr>
+                    <%
+                      } %>
+                </tbody>
+            </table>
+        </div>
+        <div class="panel-footer">
+            <p>这里写分页控件</p>
+        </div>
     </div>
+
     <div class="row-fluid">
         <asp:GridView ID="GridView1" runat="server" AutoGenerateColumns="False" DataKeyNames="ID"
             DataSourceID="ods" AllowPaging="True" AllowSorting="True" CssClass="table table-hover"

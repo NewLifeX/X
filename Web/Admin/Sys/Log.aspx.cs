@@ -4,8 +4,12 @@ using XCode;
 
 public partial class Pages_Log : MyEntityList
 {
+    public EntityList<Log> DataList;
+
     protected void Page_Load(object sender, EventArgs e)
     {
+        DataList = Log.FindAll(null, null, null, 0, 10);
+
         Type type = CommonManageProvider.Provider.LogType;
         ods.TypeName = type.FullName;
         ods.DataObjectTypeName = type.FullName;
