@@ -35,7 +35,7 @@
                 </div>
                 <div class="form-group">
                     <label class="control-label" for="key">关键字：</label>
-                    <input name="key" type="text" id="key" class="form-control" />
+                    <input name="key" type="text" id="key" value="<%= Request["key"] %>" class="form-control" />
                 </div>
                 <div class="form-group">
                     <label for="<%=this.dtStart.ClientID %>" class="control-label">时间：</label>
@@ -47,7 +47,7 @@
                     <XCL:DateTimePicker ID="dtEnd" runat="server" LongTime="False" CssClass="form-control">
                     </XCL:DateTimePicker>
                 </div>
-                <input name="BtnSearch" value="查询" type="submit" class="btn btn-primary" />
+                <input name="btnSearch" value="查询" type="submit" class="btn btn-primary" />
             </div>
         </div>
         <div class="table-responsive">
