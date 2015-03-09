@@ -48,7 +48,7 @@
     <script src="<%= ResolveUrl("~/Scripts/adminstyle.js")%>" type="text/javascript"></script>
 </head>
 <body>
-    <form id="form1" runat="server" class="form-horizontal" role="form">
+    <form id="form1" runat="server">
         <%--<ul class="breadcrumb">
             <li>
                 <i class="ace-icon fa fa-home home-icon"></i>
