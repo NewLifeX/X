@@ -42,17 +42,11 @@
             <table class="table table-bordered table-hover table-striped table-condensed">
                 <thead>
                     <tr>
-                        <th>序号</th>
-                        <th>类别</th>
-                        <th>操作</th>
-                        <th>管理员</th>
-                        <th>IP地址</th>
-                        <th>时间</th>
-                        <th>详细信息</th>
+                        <%= grid.RenderHeader(false, "ID:序号","Category:类别","Action:操作","UserID:管理员","IP:IP地址","OccurTime:时间","详细信息") %>
                     </tr>
                 </thead>
                 <tbody>
-                    <%foreach (Log entity in DataList)
+                    <%foreach (Log entity in grid.DataSource)
                       {
                     %>
                     <tr>

@@ -1,14 +1,16 @@
 ﻿using System;
 using NewLife.CommonEntity;
+using NewLife.Web;
 using XCode;
 
 public partial class Pages_Log : MyEntityList
 {
-    public EntityList<Log> DataList;
+    //public EntityList<Log> DataList;
+    public Grid grid = new Grid();
 
     protected void Page_Load(object sender, EventArgs e)
     {
-        DataList = Log.FindAll(null, null, null, 0, 10);
+        //DataList = Log.FindAll(null, grid.OrderBy, null, 0, 10);
 
         Type type = CommonManageProvider.Provider.LogType;
         ods.TypeName = type.FullName;
@@ -26,5 +28,7 @@ public partial class Pages_Log : MyEntityList
                 ddlAdmin.DataBind();
             }
         }
+
+        grid.DataMethod = Log.FindAll;
     }
 }
