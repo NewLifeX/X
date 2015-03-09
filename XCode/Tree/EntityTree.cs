@@ -27,12 +27,13 @@ namespace XCode
     public abstract partial class EntityTree<TKey, TEntity> : Entity<TEntity>, IEntityTree where TEntity : EntityTree<TKey, TEntity>, new()
     {
         #region 静态构造
-        //static EntityTree()
-        //{
-        //    //Meta.OnDataChange += delegate { Root = null; };
+        static EntityTree()
+        {
+            //Meta.Session.OnDataChange += delegate { Root = null; };
 
-        //    //Operate = EntityFactory.Register(Meta.ThisType, new EntityTreeSetting<TEntity>()) as IEntityTreeOperate;
-        //}
+            // 避免实际应用中，直接调用Entity的静态方法时，没有引发TEntity的静态构造函数。
+            TEntity entity = new TEntity();
+        }
 
         /// <summary>实体树操作者</summary>
         protected static IEntityTreeSetting Setting = new EntityTreeSetting<TEntity> { Factory = Meta.Factory };
@@ -66,7 +67,10 @@ namespace XCode
         }
 
         /// <summary>父节点</summary>
-        protected virtual TEntity FindParent() { return Meta.Session.Cache.Entities.Find(Setting.Key, this[Setting.Parent]); }
+        protected virtual TEntity FindParent()
+        {
+            return Meta.Session.Cache.Entities.Find(Setting.Key, this[Setting.Parent]);
+        }
 
         /// <summary>在缓存中查找节点</summary>
         protected static TEntity FindByKeyWithCache(TKey key)
