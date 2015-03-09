@@ -42,7 +42,7 @@ namespace NewLife.CommonEntity
                 if (String.IsNullOrEmpty(_FriendName))
                 {
                     var list = AllParents.Clone();
-                    list.Add(this);
+                    list.Add(this as TEntity);
                     var sb = new StringBuilder(list.Count * 5);
                     foreach (var item in list)
                     {
