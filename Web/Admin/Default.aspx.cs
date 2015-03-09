@@ -65,7 +65,7 @@ public partial class Admin_Default : System.Web.UI.Page
             {
                 IMenu first = list[0];
                 DefaultLeft = String.Format("Frame/Left.aspx?ID={0}", first.ID);
-                DefaultMain = first.Url;
+                if (!String.IsNullOrEmpty(first.Url)) DefaultMain = first.Url;
             }
         }
 
