@@ -39,6 +39,8 @@ namespace XCode.Web
             PageSize = WebHelper.RequestInt("PageSize");
             Sort = WebHelper.Request["Sort"];
             SortDesc = WebHelper.Request["Desc"].ToInt() != 0;
+
+            if (Factory != null && Factory.Unique != null) DefaultSort = Factory.Unique.Name;
         }
         #endregion
 
@@ -98,9 +100,13 @@ namespace XCode.Web
         #endregion
 
         #region 排序
+        private String _DefaultSort;
+        /// <summary>默认排序字段</summary>
+        public String DefaultSort { get { return _DefaultSort; } set { _DefaultSort = value; } }
+
         private String _Sort;
         /// <summary>排序字段</summary>
-        public String Sort { get { return _Sort; } set { _Sort = value; } }
+        public String Sort { get { return _Sort ?? DefaultSort; } set { _Sort = value; } }
 
         private Boolean _SortDesc;
         /// <summary>是否降序</summary>
@@ -117,10 +123,11 @@ namespace XCode.Web
 
             var url = GetBaseUrl(true, false, true);
             if (url.Length > 1) url += "&";
-            if (desc)
-                return url + "Sort={0}&Desc=1".F(name);
-            else
-                return url + "Sort={0}".F(name);
+            // 默认排序不处理
+            if (!name.EqualIgnoreCase(DefaultSort)) url += "Sort=" + name;
+            if (desc) url += "&Desc=1";
+            if (url == "?") return null;
+            return url;
         }
 
         /// <summary>排序字句</summary>
