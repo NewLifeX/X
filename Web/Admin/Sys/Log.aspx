@@ -35,7 +35,7 @@
                     <XCL:DateTimePicker ID="EndDate" runat="server" LongTime="False" CssClass="form-control">
                     </XCL:DateTimePicker>
                 </div>
-                <asp:Button ID="Button1" runat="server" Text="查询" CssClass="btn btn-primary" />
+                <input name="BtnSearch" value="查询", class="btn btn-primary" />
             </div>
         </div>
         <div class="table-responsive">
@@ -70,7 +70,7 @@
             </table>
         </div>
         <div class="panel-footer">
-            <p>这里写分页控件</p>
+            <p>共<span>27</span>条&nbsp;每页<span>20</span>条&nbsp;当前第<span>1</span>页/共<span>2</span>页&nbsp;<a href="#">下一页</a>&nbsp;<a href="#">尾页</a>&nbsp;转到第<input name="PageIndex" type="text" value="1" style="width:40px;text-align:right;" />页<input type="button" name="PageJump" value="GO" /></p>
         </div>
     </div>
 
