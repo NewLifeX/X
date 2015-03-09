@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
@@ -131,6 +132,23 @@ namespace System
             }
 
             return dic;
+        }
+
+        /// <summary>把一个列表组合成为一个字符串，默认逗号分隔</summary>
+        /// <param name="value"></param>
+        /// <param name="separator">组合分隔符，默认逗号</param>
+        /// <returns></returns>
+        public static String Join(this IEnumerable value, String separator = ",")
+        {
+            var sb = new StringBuilder();
+            if (value != null)
+            {
+                foreach (var item in value)
+                {
+                    sb.Separate(separator).Append(item + "");
+                }
+            }
+            return sb.ToString();
         }
 
         /// <summary>追加分隔符字符串，忽略开头，常用于拼接</summary>

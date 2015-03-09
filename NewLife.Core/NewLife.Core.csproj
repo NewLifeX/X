@@ -149,7 +149,6 @@
     <Compile Include="Extension\Linq\EmptyEnumerable.cs" />
     <Compile Include="Extension\Linq\Enumerable.cs" />
     <Compile Include="Extension\Linq\EnumerableSorter.cs" />
-    <Compile Include="Extension\Linq\Enumerable_2.cs" />
     <Compile Include="Extension\Linq\ExtensionAttribute.cs" />
     <Compile Include="Extension\Linq\GroupedEnumerable.cs" />
     <Compile Include="Extension\Linq\IdentityFunction.cs" />
