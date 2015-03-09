@@ -21,7 +21,7 @@
                 <div class="form-group">
                     <label class="control-label" for="ddlAdmin">管理员：</label>
                     <select name="ddlAdminID" id="ddlAdminID" class="form-control">
-                        <option value="全部">全部</option>
+                        <option value="0">全部</option>
                         <%foreach (IAdministrator item in Administrator.FindAllWithCache())
                           {
                         %><option value="<%= item.ID %>"><%= item.FriendName %></option>
@@ -50,7 +50,13 @@
             <table class="table table-bordered table-hover table-striped table-condensed">
                 <thead>
                     <tr>
-                        <%= grid.RenderHeader(false, "ID:序号","Category:类别","Action:操作","UserID:管理员","IP:IP地址","OccurTime:时间","详细信息") %>
+                        <th style="width: 50px;"><a href="<%= grid.GetSortUrl("ID") %>">序号</a></th>
+                        <th style="width: 120px;"><a href="<%= grid.GetSortUrl("Category") %>">类别</a></th>
+                        <th style="width: 120px;"><a href="<%= grid.GetSortUrl("Action") %>">操作</a></th>
+                        <th style="width: 120px;"><a href="<%= grid.GetSortUrl("UserID") %>">管理员</a></th>
+                        <th style="width: 120px;"><a href="<%= grid.GetSortUrl("IP") %>">IP地址</a></th>
+                        <th style="width: 120px;"><a href="<%= grid.GetSortUrl("OccurTime") %>">时间</a></th>
+                        <th>详细信息</th>
                     </tr>
                 </thead>
                 <tbody>

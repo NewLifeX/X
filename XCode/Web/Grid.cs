@@ -49,25 +49,25 @@ namespace XCode.Web
         #endregion
 
         #region 方法
-        /// <summary>生成头部。</summary>
-        /// <param name="includeHeader">是否包含thead和tr</param>
-        /// <param name="names">冒号分割，前面是排序字段名，后面是标题名，没有冒号表示不排序</param>
-        /// <returns></returns>
-        public virtual String RenderHeader(Boolean includeHeader, params String[] names)
-        {
-            var sb = new StringBuilder();
-            if (includeHeader) sb.Append("<thead><tr>");
-            foreach (var item in names)
-            {
-                var ss = item.Split(":");
-                if (ss.Length == 2)
-                    sb.AppendFormat("<th><a href=\"{0}\">{1}</a></th> ", GetSortUrl(ss[0]), ss[1]);
-                else
-                    sb.AppendFormat("<th>{0}</th>", item);
-            }
-            if (includeHeader) sb.Append("</tr></thead>");
-            return sb.ToString();
-        }
+        ///// <summary>生成头部。</summary>
+        ///// <param name="includeHeader">是否包含thead和tr</param>
+        ///// <param name="names">冒号分割，前面是排序字段名，后面是标题名，没有冒号表示不排序</param>
+        ///// <returns></returns>
+        //public virtual String RenderHeader(Boolean includeHeader, params String[] names)
+        //{
+        //    var sb = new StringBuilder();
+        //    if (includeHeader) sb.Append("<thead><tr>");
+        //    foreach (var item in names)
+        //    {
+        //        var ss = item.Split(":");
+        //        if (ss.Length == 2)
+        //            sb.AppendFormat("<th><a href=\"{0}\">{1}</a></th> ", GetSortUrl(ss[0]), ss[1]);
+        //        else
+        //            sb.AppendFormat("<th>{0}</th>", item);
+        //    }
+        //    if (includeHeader) sb.Append("</tr></thead>");
+        //    return sb.ToString();
+        //}
 
         /// <summary>获取基础Url，用于附加参数</summary>
         /// <param name="where"></param>
