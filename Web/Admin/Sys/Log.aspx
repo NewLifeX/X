@@ -20,7 +20,7 @@
                 </div>
                 <div class="form-group">
                     <label class="control-label" for="ddlAdmin">管理员：</label>
-                    <select name="ddlAdmin" id="ddlAdmin" class="form-control">
+                    <select name="ddlAdminID" id="ddlAdminID" class="form-control">
                         <option value="全部">全部</option>
                         <%foreach (IAdministrator item in Administrator.FindAllWithCache())
                           {
@@ -34,13 +34,13 @@
                     <input name="key" type="text" id="key" class="form-control" />
                 </div>
                 <div class="form-group">
-                    <label for="<%=this.StartDate.ClientID %>" class="control-label">时间：</label>
-                    <XCL:DateTimePicker ID="StartDate" runat="server" LongTime="False" CssClass="form-control">
+                    <label for="<%=this.dtStart.ClientID %>" class="control-label">时间：</label>
+                    <XCL:DateTimePicker ID="dtStart" runat="server" LongTime="False" CssClass="form-control">
                     </XCL:DateTimePicker>
                 </div>
                 <div class="form-group">
-                    <label class="control-label" for="<%=this.EndDate.ClientID %>">至</label>
-                    <XCL:DateTimePicker ID="EndDate" runat="server" LongTime="False" CssClass="form-control">
+                    <label class="control-label" for="<%=this.dtEnd.ClientID %>">至</label>
+                    <XCL:DateTimePicker ID="dtEnd" runat="server" LongTime="False" CssClass="form-control">
                     </XCL:DateTimePicker>
                 </div>
                 <input name="BtnSearch" value="查询" type="submit" class="btn btn-primary" />
@@ -75,8 +75,4 @@
             <p><%= grid.RenderPage() %></p>
         </div>
     </div>
-    <asp:ObjectDataSource ID="odsCategory" runat="server" OldValuesParameterFormatString="original_{0}"
-        SelectMethod="FindAllCategory" TypeName=""></asp:ObjectDataSource>
-    <XCL:GridViewExtender ID="gvExt" runat="server">
-    </XCL:GridViewExtender>
 </asp:Content>
