@@ -1,29 +1,37 @@
 ﻿<%@ Page Language="C#" AutoEventWireup="true" CodeFile="Log.aspx.cs" Inherits="Pages_Log"
-    Title="日志查看" MasterPageFile="~/Admin/ManagerPage.master" EnableEventValidation="false" %>
+    Title="日志查看" MasterPageFile="~/Admin/ManagerPage.master" EnableEventValidation="false" EnableViewState="False" %>
 
 <%@ Import Namespace="NewLife.CommonEntity" %>
 <asp:Content ID="Content1" ContentPlaceHolderID="C" runat="server">
     <div class="panel panel-default">
-        <div class="panel-heading">日志列表</div>
+        <div class="panel-heading"><a href="?">日志列表</a></div>
         <div class="panel-body">
             <div class="form-inline">
                 <div class="form-group">
-                    <label for="<%=this.ddlCategory.ClientID %>" class="control-label">类别：</label>
-                    <asp:DropDownList ID="ddlCategory" runat="server" AppendDataBoundItems="True"
-                        DataSourceID="odsCategory" DataTextField="Category" CssClass="form-control" DataValueField="Category">
-                        <asp:ListItem>全部</asp:ListItem>
-                    </asp:DropDownList>
+                    <label for="ddlCategory" class="control-label">类别：</label>
+                    <select name="ddlCategory" id="ddlCategory" class="form-control">
+                        <option value="全部">全部</option>
+                        <%foreach (ILog item in Log.FindAllCategory())
+                          {
+                        %><option value="<%= item.Category %>"><%= item.Category %></option>
+                        <%
+                          } %>
+                    </select>
                 </div>
                 <div class="form-group">
-                    <label class="control-label" for="<%=this.ddlAdmin.ClientID %>">管理员：</label>
-                    <asp:DropDownList ID="ddlAdmin" runat="server" AppendDataBoundItems="True"
-                        DataTextField="Name" DataValueField="ID" CssClass="form-control">
-                        <asp:ListItem Value="0">全部</asp:ListItem>
-                    </asp:DropDownList>
+                    <label class="control-label" for="ddlAdmin">管理员：</label>
+                    <select name="ddlAdmin" id="ddlAdmin" class="form-control">
+                        <option value="全部">全部</option>
+                        <%foreach (IAdministrator item in Administrator.FindAllWithCache())
+                          {
+                        %><option value="<%= item.ID %>"><%= item.FriendName %></option>
+                        <%
+                          } %>
+                    </select>
                 </div>
                 <div class="form-group">
-                    <label class="control-label" for="<%=this.key.ClientID %>">关键字：</label>
-                    <asp:TextBox ID="key" runat="server" CssClass="form-control"></asp:TextBox>
+                    <label class="control-label" for="key">关键字：</label>
+                    <input name="key" type="text" id="key" class="form-control" />
                 </div>
                 <div class="form-group">
                     <label for="<%=this.StartDate.ClientID %>" class="control-label">时间：</label>
@@ -35,7 +43,7 @@
                     <XCL:DateTimePicker ID="EndDate" runat="server" LongTime="False" CssClass="form-control">
                     </XCL:DateTimePicker>
                 </div>
-                <input name="BtnSearch" value="查询", class="btn btn-primary" />
+                <input name="BtnSearch" value="查询" type="submit" class="btn btn-primary" />
             </div>
         </div>
         <div class="table-responsive">

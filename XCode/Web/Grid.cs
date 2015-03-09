@@ -22,6 +22,10 @@ namespace XCode.Web
             }
             set { _DataSource = value; }
         }
+
+        private ICollection<String> _Prefixs = new List<String>(new String[] { "txt", "ddl", "dt" });
+        /// <summary>Http参数前缀集合</summary>
+        public ICollection<String> Prefixs { get { return _Prefixs; } set { _Prefixs = value; } }
         #endregion
 
         #region 构造
@@ -247,6 +251,10 @@ namespace XCode.Web
         /// <summary>查询条件。由外部根据<see cref="Params"/>构造后赋值，<see cref="Select"/>将会调用该条件查询数据</summary>
         public String Where { get { return _Where; } set { _Where = value; } }
 
+        private String _WhereMethod;
+        /// <summary>查询Where条件的方法名</summary>
+        public String WhereMethod { get { return _WhereMethod; } set { _WhereMethod = value; } }
+
         /// <summary>普通查询参数，不包含分页和排序</summary>
         public virtual IDictionary<String, String> Params
         {
@@ -262,8 +270,9 @@ namespace XCode.Web
                     if (item.EqualIgnoreCase("Sort", "Desc")) continue;
                     if (item.EqualIgnoreCase("PageIndex", "PageSize")) continue;
 
-                    dic[item] = nvs[item];
-                    //var fi = Factory.Table.FindByName(item);
+                    // 过滤前缀
+                    var name = item.TrimStart(Prefixs.ToArray());
+                    dic[name] = nvs[item];
                 }
 
                 return dic;
@@ -273,6 +282,12 @@ namespace XCode.Web
         /// <summary>执行数据查询</summary>
         public virtual void Select()
         {
+            if (!WhereMethod.IsNullOrWhiteSpace())
+            {
+                var method = Factory.EntityType.GetMethodEx(WhereMethod);
+                if (method != null) Where = Reflect.InvokeWithParams(null, method, Params as IDictionary) + "";
+            }
+
             DataSource = Factory.FindAll(Where, OrderBy, null, (PageIndex - 1) * PageSize, PageSize);
             TotalCount = Factory.FindCount(Where, null, null, 0, 0);
         }
