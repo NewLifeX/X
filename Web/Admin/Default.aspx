@@ -40,7 +40,7 @@
 	<script src="../bootstrap/js/respond.min.js"></script>
 	<![endif]-->
 </head>
-<body class="no-skin">
+<body class="no-skin" style="overflow: hidden;">
     <!-- #section:basics/navbar.layout -->
     <div id="navbar" class="navbar navbar-default">
         <script type="text/javascript">
@@ -429,7 +429,8 @@
                     {
                 %>
                 <li<%if (menu == Menus[0])
-                     { %> class="active open" <%} %>>
+                     { %>
+                    class="active open" <%} %>>
                     <a href="#" class="dropdown-toggle">
                         <i class="menu-icon fa <%= GetIco() %>"></i>
                         <span class="menu-text"><%= menu.Name %></span>
@@ -544,7 +545,7 @@
                 </div>
 
                 <!-- /section:basics/content.breadcrumbs -->
-                <div class="page-content">
+                <div class="page-content" style="padding: 0px;">
                     <!-- #section:settings.box -->
                     <div class="ace-settings-container" id="ace-settings-container">
                         <div class="btn btn-app btn-xs btn-warning ace-settings-btn" id="ace-settings-btn">
@@ -639,21 +640,14 @@
                     <!-- /.ace-settings-container -->
 
                     <!-- /section:settings.box -->
-
-                    <div class="row">
-                        <div class="col-xs-12" style="height: 400px;">
-                            <iframe style="width: 100%; height: 100%" border="0" frameborder="0" id="main" name="main" src="<%=DefaultMain %>"></iframe>
-                        </div>
-                        <!-- /.col -->
-                    </div>
-                    <!-- /.row -->
+                    <iframe style="width: 100%; height: 100%; margin: 0; padding: 0; border: none;" id="main" name="main" src="<%=DefaultMain %>"></iframe>
                 </div>
                 <!-- /.page-content -->
             </div>
         </div>
         <!-- /.main-content -->
 
-        <div class="footer">
+        <%--<div class="footer">
             <div class="footer-inner">
                 <!-- #section:basics/footer -->
                 <div class="footer-content">
@@ -680,7 +674,7 @@
 
                 <!-- /section:basics/footer -->
             </div>
-        </div>
+        </div>--%>
 
         <a href="#" id="btn-scroll-up" class="btn-scroll-up btn btn-sm btn-inverse">
             <i class="ace-icon fa fa-angle-double-up icon-only bigger-110"></i>
@@ -698,7 +692,7 @@
 
     <!--[if IE]>
 <script type="text/javascript">
- window.jQuery || document.write("<script src='../js/jquery1x.min.js'>"+"<"+"/script>");
+    window.jQuery || document.write("<script src='../js/jquery1x.min.js'>"+"<"+"/script>");
 </script>
 <![endif]-->
     <script type="text/javascript">
@@ -737,29 +731,29 @@
     <script type="text/javascript">
         jQuery(function ($) {
             var oTable1 =
-            $('#sample-table-2')
-            //.wrap("<div class='dataTables_borderWrap' />")   //if you are applying horizontal scrolling (sScrollX)
-            .dataTable({
-                bAutoWidth: false,
-                "aoColumns": [
-                  { "bSortable": false },
-                  null, null, null, null, null,
-                  { "bSortable": false }
-                ],
-                "aaSorting": [],
+                $('#sample-table-2')
+                    //.wrap("<div class='dataTables_borderWrap' />")   //if you are applying horizontal scrolling (sScrollX)
+                    .dataTable({
+                        bAutoWidth: false,
+                        "aoColumns": [
+                            { "bSortable": false },
+                            null, null, null, null, null,
+                            { "bSortable": false }
+                        ],
+                        "aaSorting": [],
 
-                //,
-                //"sScrollY": "200px",
-                //"bPaginate": false,
+                        //,
+                        //"sScrollY": "200px",
+                        //"bPaginate": false,
 
-                //"sScrollX": "100%",
-                //"sScrollXInner": "120%",
-                //"bScrollCollapse": true,
-                //Note: if you are applying horizontal scrolling (sScrollX) on a ".table-bordered"
-                //you may want to wrap the table inside a "div.dataTables_borderWrap" element
+                        //"sScrollX": "100%",
+                        //"sScrollXInner": "120%",
+                        //"bScrollCollapse": true,
+                        //Note: if you are applying horizontal scrolling (sScrollX) on a ".table-bordered"
+                        //you may want to wrap the table inside a "div.dataTables_borderWrap" element
 
-                //"iDisplayLength": 50
-            });
+                        //"iDisplayLength": 50
+                    });
             /**
             var tableTools = new $.fn.dataTable.TableTools( oTable1, {
                 "sSwfPath": "../../copy_csv_xls_pdf.swf",
@@ -781,10 +775,10 @@
             $(document).on('click', 'th input:checkbox', function () {
                 var that = this;
                 $(this).closest('table').find('tr > td:first-child input:checkbox')
-                .each(function () {
-                    this.checked = that.checked;
-                    $(this).closest('tr').toggleClass('selected');
-                });
+                    .each(function () {
+                        this.checked = that.checked;
+                        $(this).closest('tr').toggleClass('selected');
+                    });
             });
 
 
@@ -817,5 +811,19 @@
     <script src="../bootstrap/js/language/html.js"></script>
     <script src="../bootstrap/js/language/css.js"></script>
     <script src="../bootstrap/js/language/javascript.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            var $frmContent = $('#main');
+            function fixFrmContentSize() {
+                var offset = $frmContent.offset();
+                var top = offset.top;
+                var height = document.documentElement.clientHeight;
+                $frmContent.height(height - top);
+            }
+            fixFrmContentSize();
+            $(window).resize(fixFrmContentSize);
+        });
+        
+    </script>
 </body>
 </html>
