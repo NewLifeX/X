@@ -436,13 +436,13 @@ namespace XCode
             return this;
         }
 
-        /// <summary>获取所有实体中指定项的值，不允许重复项</summary>
+        /// <summary>获取所有实体中指定项的值，不允许重复项。无数据时返回空列表而不是null</summary>
         /// <typeparam name="TResult">指定项的类型</typeparam>
         /// <param name="name">指定项的名称</param>
         /// <returns></returns>
         public List<TResult> GetItem<TResult>(String name) { return GetItem<TResult>(name, false); }
 
-        /// <summary>获取所有实体中指定项的值</summary>
+        /// <summary>获取所有实体中指定项的值。无数据时返回空列表而不是null</summary>
         /// <remarks>
         /// 有时候只是为了获取某个属性值的集合，可以允许重复项，而有时候是获取唯一主键，作为in操作的参数，不该允许重复项。
         /// </remarks>

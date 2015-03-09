@@ -41,7 +41,8 @@ namespace NewLife.CommonEntity
             {
                 if (String.IsNullOrEmpty(_FriendName))
                 {
-                    var list = GetFullPath(true);
+                    var list = AllParents.Clone();
+                    list.Add(this);
                     var sb = new StringBuilder(list.Count * 5);
                     foreach (var item in list)
                     {

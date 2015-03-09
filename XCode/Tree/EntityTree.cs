@@ -51,7 +51,7 @@ namespace XCode
         [XmlIgnore]
         public virtual EntityList<TEntity> Childs
         {
-            get { return Setting.EnableCaching ? GetExtend<EntityList<TEntity>>("Childs", e => FindChilds(), !IsNull((TKey)this[Setting.Key])) : FindChilds(); }
+            get { return Setting.EnableCaching ? GetExtend<EntityList<TEntity>>("Childs", e => FindChilds(), !IsNullKey) : FindChilds(); }
             set { SetExtend("Childs", value); }
         }
 
@@ -69,7 +69,7 @@ namespace XCode
         /// <summary>父节点</summary>
         protected virtual TEntity FindParent()
         {
-            return Meta.Session.Cache.Entities.Find(Setting.Key, this[Setting.Parent]);
+            return FindByKeyWithCache((TKey)this[Setting.Parent]);
         }
 
         /// <summary>在缓存中查找节点</summary>
@@ -82,7 +82,7 @@ namespace XCode
         [XmlIgnore]
         public virtual EntityList<TEntity> AllChilds
         {
-            get { return Setting.EnableCaching ? GetExtend<EntityList<TEntity>>("AllChilds", e => FindAllChilds(this), !IsNull((TKey)this[Setting.Key])) : FindAllChilds(this); }
+            get { return Setting.EnableCaching ? GetExtend<EntityList<TEntity>>("AllChilds", e => FindAllChilds(this), !IsNullKey) : FindAllChilds(this); }
             set { SetExtend("AllChilds", value); }
         }
 
@@ -100,7 +100,7 @@ namespace XCode
         {
             get
             {
-                if (IsNull((TKey)this[Setting.Key])) return 0;
+                if (IsNullKey) return 0;
 
                 Int32 _Deepth = 1;
                 var list = AllParents;
@@ -188,15 +188,15 @@ namespace XCode
 
         /// <summary>斜杠分隔的全路径</summary>
         [XmlIgnore]
-        public String FullPath { get { return GetFullPath2(true); } }
+        public String FullPath { get { return @"\" + GetFullPath(true); } }
 
         /// <summary>斜杠分隔的全父路径</summary>
         [XmlIgnore]
-        public String FullParentPath { get { return GetFullPath2(false); } }
+        public String FullParentPath { get { return @"\" + GetFullPath(false); } }
         #endregion
 
         #region 查询
-        /// <summary>根据父级查找所有子级，带排序功能</summary>
+        /// <summary>根据父级查找所有子级，带排序功能，先排序字段再主键</summary>
         /// <remarks>如果是顶级，那么包含所有无头节点，无头节点由错误数据造成</remarks>
         /// <param name="parentKey"></param>
         /// <returns></returns>
@@ -205,18 +205,7 @@ namespace XCode
         {
             var list = Meta.Session.Cache.Entities.FindAll(Setting.Parent, parentKey);
             // 如果是顶级，那么包含所有无头节点，无头节点由错误数据造成
-            if (IsNull(parentKey))
-            {
-                var noParents = FindAllNoParent();
-                if (noParents != null && noParents.Count > 0)
-                {
-                    if (list == null || list.Count < 1)
-                        list = noParents;
-                    else
-                        list.AddRange(noParents);
-                }
-            }
-            if (list == null) return new EntityList<TEntity>();
+            if (IsNull(parentKey)) list.AddRange(FindAllNoParent());
             // 一个元素不需要排序
             if (list.Count <= 1) return list;
 
@@ -238,43 +227,32 @@ namespace XCode
         /// <returns></returns>
         public static EntityList<TEntity> FindAllNoParent()
         {
-            var list = new EntityList<TEntity>();
-            foreach (var item in Meta.Session.Cache.Entities)
-            {
-                // 有父节点的跳过
-                if (item.Parent != null) continue;
-                // 父节点为空的跳过
-                if (IsNull((TKey)item[Setting.Parent])) continue;
-
-                list.Add(item);
-            }
-            return list;
+            // 有父节点的跳过，父节点为空的跳过
+            return Meta.Session.Cache.Entities.FindAll(e => !IsNull((TKey)e[Setting.Parent]) && e.Parent == null);
         }
 
-        /// <summary>查找指定键的所有子节点，以深度层次树结构输出，包括当前节点，并作为根节点</summary>
+        /// <summary>查找指定键的所有子节点，以深度层次树结构输出，包括当前节点作为根节点。空父节点返回顶级列表，无效父节点返回空列表</summary>
         /// <param name="parentKey"></param>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select)]
         public static EntityList<TEntity> FindAllChildsByParent(TKey parentKey)
         {
-            var entity = FindByKeyWithCache(parentKey);
-            if (entity == null) entity = Root;
+            var entity = IsNull(parentKey) ? Root : FindByKeyWithCache(parentKey);
+            if (entity == null) return new EntityList<TEntity>();
 
-            var list = FindAllChilds(entity);
-            list.Insert(0, entity);
-            return list;
+            return FindAllChilds(entity, true);
         }
 
-        /// <summary>查找指定键的所有子节点，以深度层次树结构输出</summary>
+        /// <summary>查找指定键的所有子节点，以深度层次树结构输出。空父节点返回顶级列表，无效父节点返回空列表</summary>
         /// <param name="parentKey"></param>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select)]
         public static EntityList<TEntity> FindAllChildsNoParent(TKey parentKey)
         {
-            var entity = FindByKeyWithCache(parentKey);
-            if (entity == null) entity = Root;
+            var entity = IsNull(parentKey) ? Root : FindByKeyWithCache(parentKey);
+            if (entity == null) return new EntityList<TEntity>();
 
-            return FindAllChilds(entity);
+            return FindAllChilds(entity, false);
         }
 
         /// <summary>查找指定键的所有父节点，从高到底以深度层次树结构输出</summary>
@@ -283,8 +261,10 @@ namespace XCode
         [DataObjectMethod(DataObjectMethodType.Select)]
         public static EntityList<TEntity> FindAllParentsByKey(TKey key)
         {
+            if (IsNull(key)) return new EntityList<TEntity>();
+
             var entity = FindByKeyWithCache(key);
-            if (entity == null) entity = Root;
+            if (entity == null) return new EntityList<TEntity>();
 
             return FindAllParents(entity);
         }
@@ -292,9 +272,10 @@ namespace XCode
 
         #region 树形计算
         /// <summary>查找指定节点的所有子节点，以深度层次树结构输出</summary>
-        /// <param name="entity"></param>
+        /// <param name="entity">根节点</param>
+        /// <param name="includeSelf">返回列表是否包含根节点，默认false</param>
         /// <returns></returns>
-        protected static EntityList<TEntity> FindAllChilds(IEntityTree entity)
+        protected static EntityList<TEntity> FindAllChilds(IEntityTree entity, Boolean includeSelf = false)
         {
             if (entity == null) return new EntityList<TEntity>();
             var childlist = entity.Childs;
@@ -310,7 +291,8 @@ namespace XCode
             {
                 var item = stack.Pop();
                 if (list.Contains(item)) continue;
-                list.Add(item);
+                // 去掉第一个，那是自身
+                if (includeSelf || item != entity) list.Add(item);
 
                 var childs = item.Childs;
                 if (childs == null || childs.Count < 1) continue;
@@ -326,18 +308,19 @@ namespace XCode
                     stack.Push(childs[i]);
                 }
             }
-            // 去掉第一个，那是自身
-            list.RemoveAt(0);
+            //// 去掉第一个，那是自身
+            //list.RemoveAt(0);
 
             return list;
         }
 
         /// <summary>查找指定节点的所有父节点，从高到底以深度层次树结构输出</summary>
         /// <param name="entity"></param>
+        /// <param name="includeSelf">返回列表是否包含根节点，默认false</param>
         /// <returns></returns>
-        protected static EntityList<TEntity> FindAllParents(IEntityTree entity)
+        protected static EntityList<TEntity> FindAllParents(IEntityTree entity, Boolean includeSelf = false)
         {
-            if (entity == null || entity.Parent == null) return new EntityList<TEntity>();
+            if (entity == null || IsNull((TKey)entity[Setting.Parent]) || entity.Parent == null) return new EntityList<TEntity>();
 
             var list = new EntityList<TEntity>();
             var item = entity as TEntity;
@@ -346,12 +329,12 @@ namespace XCode
                 // 形成了死循环，就此中断
                 if (list.Contains(item)) break;
 
-                list.Add(item);
+                if (includeSelf || item != entity) list.Add(item);
 
                 item = item.Parent;
             }
-            // 去掉第一个自己
-            list.RemoveAt(0);
+            //// 去掉第一个自己
+            //list.RemoveAt(0);
 
             // 反转
             if (list.Count > 0) list.Reverse();
@@ -426,67 +409,19 @@ namespace XCode
 
         /// <summary>子级键值集合</summary>
         [XmlIgnore]
-        public List<TKey> ChildKeys
-        {
-            get
-            {
-                var list = Childs;
-                if (list == null || list.Count < 1) return new List<TKey>();
-
-                return list.GetItem<TKey>(Setting.Key);
-            }
-        }
+        public List<TKey> ChildKeys { get { return Childs.GetItem<TKey>(Setting.Key); } }
 
         /// <summary>逗号分隔的子级键值字符串，一般可用于SQL语句中</summary>
         [XmlIgnore]
-        public String ChildKeyString
-        {
-            get
-            {
-                var list = ChildKeys;
-                if (list == null || list.Count < 1) return null;
-
-                var sb = new StringBuilder();
-                foreach (var item in list)
-                {
-                    if (sb.Length > 0) sb.Append(",");
-                    sb.Append(item.ToString());
-                }
-                return sb.ToString();
-            }
-        }
+        public String ChildKeyString { get { return ChildKeys.Join(","); } }
 
         /// <summary>子孙键值集合</summary>
         [XmlIgnore]
-        public List<TKey> AllChildKeys
-        {
-            get
-            {
-                var list = AllChilds;
-                if (list == null || list.Count < 1) return new List<TKey>();
-
-                return list.GetItem<TKey>(Setting.Key);
-            }
-        }
+        public List<TKey> AllChildKeys { get { return AllChilds.GetItem<TKey>(Setting.Key); } }
 
         /// <summary>逗号分隔的子孙键值字符串，一般可用于SQL语句中</summary>
         [XmlIgnore]
-        public String AllChildKeyString
-        {
-            get
-            {
-                var list = AllChildKeys;
-                if (list == null || list.Count < 1) return null;
-
-                var sb = new StringBuilder();
-                foreach (var item in list)
-                {
-                    if (sb.Length > 0) sb.Append(",");
-                    sb.Append(item.ToString());
-                }
-                return sb.ToString();
-            }
-        }
+        public String AllChildKeyString { get { return AllChildKeys.Join(","); } }
         #endregion
 
         #region 业务
@@ -540,23 +475,16 @@ namespace XCode
             }
         }
 
-        /// <summary>取得全路径的实体，由上向下排序</summary>
-        /// <param name="includeSelf"></param>
-        /// <returns></returns>
-        public EntityList<TEntity> GetFullPath(Boolean includeSelf)
-        {
-            var list = AllParents;
+        ///// <summary>取得全路径的实体，由上向下排序。克隆的独立列表，外部可随意修改列表</summary>
+        ///// <param name="includeSelf"></param>
+        ///// <returns></returns>
+        //public EntityList<TEntity> GetFullPath(Boolean includeSelf)
+        //{
+        //    var list = AllParents.Clone();
+        //    if (includeSelf) list.Add(this as TEntity);
 
-            if (!includeSelf) return list;
-
-            // 绝对不能让list直接等于AllParents，否则后面会加一项进去，导致改变它的值
-
-            var list2 = new EntityList<TEntity>();
-            if (list != null && list.Count > 0) list2.AddRange(list);
-            list2.Add(this as TEntity);
-
-            return list2;
-        }
+        //    return list;
+        //}
 
         /// <summary>取得全路径的实体，由上向下排序</summary>
         /// <param name="includeSelf">是否包含自己</param>
@@ -565,7 +493,7 @@ namespace XCode
         /// <returns></returns>
         public String GetFullPath(Boolean includeSelf = true, String separator = @"\", Func<TEntity, String> func = null)
         {
-            var list = GetFullPath(includeSelf);
+            var list = FindAllParents(this, includeSelf);
             if (list == null || list.Count < 1) return null;
 
             var namekey = Setting.Name;
@@ -573,31 +501,7 @@ namespace XCode
             var sb = new StringBuilder();
             foreach (var item in list)
             {
-                if (sb.Length > 0 && !String.IsNullOrEmpty(separator)) sb.Append(separator);
-                if (func != null)
-                    sb.Append(func(item));
-                else
-                {
-                    if (String.IsNullOrEmpty(namekey))
-                        sb.Append(item.ToString());
-                    else
-                        sb.Append(item[namekey]);
-                }
-            }
-            return sb.ToString();
-        }
-
-        String GetFullPath2(Boolean includeSelf = true, String separator = @"\", Func<TEntity, String> func = null)
-        {
-            var list = GetFullPath(includeSelf);
-            if (list == null || list.Count < 1) return separator;
-
-            var namekey = Setting.Name;
-
-            var sb = new StringBuilder();
-            foreach (var item in list)
-            {
-                if (!String.IsNullOrEmpty(separator)) sb.Append(separator);
+                sb.Separate(separator);
                 if (func != null)
                     sb.Append(func(item));
                 else
@@ -725,7 +629,8 @@ namespace XCode
             {
                 //if (!Meta.Cache.Entities.Exists(KeyName, pkey) && FindCount(KeyName, pkey) <= 0) throw new XException("无效上级[" + pkey + "]！");
 
-                var parent = Meta.Session.Cache.Entities.Find(Setting.Key, pkey);
+                // 先查缓存再查数据库
+                var parent = FindByKeyWithCache(pkey);
                 if (parent == null) parent = Find(Setting.Key, pkey);
                 if (parent == null) throw new XException("无效上级[" + pkey + "]！");
 
@@ -767,6 +672,8 @@ namespace XCode
 
             return false;
         }
+
+        private Boolean IsNullKey { get { return IsNull((TKey)this[Setting.Key]); } }
         #endregion
 
         #region IEntityTree 成员
