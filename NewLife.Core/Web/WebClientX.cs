@@ -2,6 +2,7 @@
 using System.IO;
 using System.Net;
 using System.Linq;
+using System.Reflection;
 
 namespace NewLife.Web
 {
@@ -59,10 +60,11 @@ namespace NewLife.Web
         {
             if (ie)
             {
-                Accept = "image/jpeg, image/gif, */*";
+                Accept = "text/html, */*";
                 AcceptLanguage = "zh-CN";
                 //Headers[HttpRequestHeader.AcceptEncoding] = "gzip, deflate";
-                UserAgent = "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.1; Trident/5.0; SLCC2; .NET CLR 2.0.50727; .NET CLR 3.5.30729; .NET CLR 3.0.30729; Media Center PC 6.0; .NET4.0C; .NET4.0E)";
+                var name = Assembly.GetEntryAssembly().GetName().Name;
+                UserAgent = "Mozilla/5.0 (compatible; MSIE 11.0; Windows NT 6.1; Trident/7.0; SLCC2; .NET CLR 2.0.50727; .NET4.0C; .NET4.0E; {0})".F(name);
             }
             if (iscompress) AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
         }
