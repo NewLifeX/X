@@ -14,7 +14,7 @@
                         <option value="全部">全部</option>
                         <%foreach (ILog item in Log.FindAllCategory())
                           {
-                        %><option value="<%= item.Category %>" <%if (Request["ddlCategory"] == item.Category)
+                        %><option value="<%= item.Category %>" <%if (WebHelper.Params["ddlCategory"] == item.Category)
                                                                  {%>
                             selected<%} %>><%= item.Category %></option>
                         <%
@@ -27,7 +27,7 @@
                         <option value="0">全部</option>
                         <%foreach (IAdministrator item in Administrator.FindAllWithCache())
                           {
-                        %><option value="<%= item.ID %>" <%if (Request["ddlAdminID"] == item.ID + "")
+                        %><option value="<%= item.ID %>" <%if (WebHelper.Params["ddlAdminID"] == item.ID + "")
                                                            {%>
                             selected<%} %>><%= item.FriendName %></option>
                         <%
@@ -40,7 +40,7 @@
                 </div>
                 <div class="form-group">
                     <label for="dtStart" class="control-label">时间：</label>
-                    <input name="dtStart" type="date" id="dtStart" value="<%= Request["dtStart"] %>" class="Wdate form-control" style="width: 86px;" onfocus="WdatePicker({autoPickDate:true,skin:'default',lang:'auto',readOnly:true})" />
+                    <input name="dtStart" type="date" id="dtStart" value="<%= WebHelper.Params["dtStart"] %>" class="Wdate form-control" style="width: 86px;" onfocus="WdatePicker({autoPickDate:true,skin:'default',lang:'auto',readOnly:true})" />
                 </div>
                 <div class="form-group">
                     <label class="control-label" for="<%=this.dtEnd.ClientID %>">至</label>
