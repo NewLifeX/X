@@ -11,7 +11,7 @@
                 <div class="form-group">
                     <label for="ddlCategory" class="control-label">类别：</label>
                     <select name="ddlCategory" id="ddlCategory" class="form-control" onchange="$(':submit').click();">
-                        <option value="全部">全部</option>
+                        <option value="">全部</option>
                         <%foreach (ILog item in Log.FindAllCategory())
                           {
                         %><option value="<%= item.Category %>" <%if (WebHelper.Params["ddlCategory"] == item.Category)
@@ -24,7 +24,7 @@
                 <div class="form-group">
                     <label class="control-label" for="ddlAdmin">管理员：</label>
                     <select name="ddlAdminID" id="ddlAdminID" class="form-control" onchange="$(':submit').click();">
-                        <option value="0">全部</option>
+                        <option value="">全部</option>
                         <%foreach (IAdministrator item in Administrator.FindAllWithCache())
                           {
                         %><option value="<%= item.ID %>" <%if (WebHelper.Params["ddlAdminID"] == item.ID + "")
