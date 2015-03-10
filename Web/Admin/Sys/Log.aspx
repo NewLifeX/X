@@ -47,7 +47,7 @@
                     <XCL:DateTimePicker ID="dtEnd" runat="server" LongTime="False" CssClass="form-control">
                     </XCL:DateTimePicker>
                 </div>
-                <input name="btnSearch" value="查询" type="submit" class="btn btn-primary" />
+                <input id="btnSearch" value="查询" type="submit" class="btn btn-primary" />
             </div>
         </div>
         <div class="table-responsive">
@@ -82,7 +82,22 @@
             </table>
         </div>
         <div class="panel-footer">
-            <p><%= grid.RenderPage() %></p>
+            <p>
+                <%= grid.RenderPage() %>
+            页大小
+                <select id="PageSize" name="PageSize" onchange="$(':submit').click();">
+                    <option value="10">10</option>
+                    <option value="20">20</option>
+                    <option value="30">30</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                </select>
+                <script type="text/javascript">
+                    $(function () {
+                        $('#PageSize').val(<%= grid.PageSize %>);
+                    });
+                </script>
+            </p>
         </div>
     </div>
 </asp:Content>
