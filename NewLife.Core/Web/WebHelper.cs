@@ -116,6 +116,9 @@ namespace NewLife.Web
                 return null;
             }
         }
+
+        /// <summary>页面文件名</summary>
+        public static String PageName { get { return Path.GetFileName(Request.FilePath); } }
         #endregion
 
         #region 导出Excel
