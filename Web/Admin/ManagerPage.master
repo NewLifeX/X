@@ -6,43 +6,43 @@
 <head runat="server">
     <title>管理平台</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 
     <!-- bootstrap & fontawesome -->
-    <link rel="stylesheet" href="../bootstrap/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="../bootstrap/css/font-awesome.min.css" />
+    <link rel="stylesheet" href="<%= ResolveUrl("~/bootstrap/css/bootstrap.min.css")%>" />
+    <link rel="stylesheet" href="<%= ResolveUrl("~/bootstrap/css/font-awesome.min.css")%>" />
 
     <!-- page specific plugin styles -->
 
     <!-- text fonts -->
-    <link rel="stylesheet" href="../bootstrap/css/ace-fonts.min.css" />
+    <link rel="stylesheet" href="<%= ResolveUrl("~/bootstrap/css/ace-fonts.min.css")%>" />
 
     <!-- ace styles -->
-    <link rel="stylesheet" href="../bootstrap/css/ace.min.css" />
+    <link rel="stylesheet" href="<%= ResolveUrl("~/bootstrap/css/ace.min.css")%>" />
 
     <!--[if lte IE 9]>
-		<link rel="stylesheet" href="../bootstrap/css/ace-part2.min.css" class="ace-main-stylesheet" />
+		<link rel="stylesheet" href="<%= ResolveUrl("~/bootstrap/css/ace-part2.min.css")%>" class="ace-main-stylesheet" />
 	<![endif]-->
 
     <!--[if lte IE 9]>
-		<link rel="stylesheet" href="../bootstrap/css/ace-ie.min.css" />
+		<link rel="stylesheet" href="<%= ResolveUrl("~/bootstrap/css/ace-ie.min.css")%>" />
 	<![endif]-->
 
     <!-- inline styles related to this page -->
 
     <!-- ace settings handler -->
-    <script src="../bootstrap/js/ace-extra.min.js"></script>
+    <script src="<%= ResolveUrl("~/bootstrap/js/ace-extra.min.js")%>"></script>
 
     <!-- HTML5shiv and Respond.js for IE8 to support HTML5 elements and media queries -->
 
     <!--[if lte IE 8]>
-	<script src="../bootstrap/js/html5shiv.min.js"></script>
-	<script src="../bootstrap/js/respond.min.js"></script>
+	<script src="<%= ResolveUrl("~/bootstrap/js/html5shiv.min.js")%>"></script>
+	<script src="<%= ResolveUrl("~/bootstrap/js/respond.min.js")%>"></script>
 	<![endif]-->
     <link rel="stylesheet" href="<%= ResolveUrl("~/bootstrap/css/bootstrap.min.css")%>" type="text/css" />
     <%--<link rel="stylesheet" href="<%= ResolveUrl("~/bootstrap/css/bootstrap-theme.min.css")%>" type="text/css" />--%>
     <link rel="stylesheet" href="<%= ResolveUrl("~/bootstrap/css/bootstrap-responsive.min.css")%>" type="text/css" />
     <link rel="stylesheet" href="<%= ResolveUrl("~/Admin/images/css.css")%>" type="text/css" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <script src="<%= ResolveUrl("~/js/jquery-2.1.3.min.js")%>" type="text/javascript"></script>
     <script src="<%= ResolveUrl("~/bootstrap/js/bootstrap.min.js")%>" type="text/javascript"></script>
     <script src="<%= ResolveUrl("~/Scripts/adminstyle.js")%>" type="text/javascript"></script>

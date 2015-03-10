@@ -1,15 +1,16 @@
 ﻿<%@ Page Language="C#" AutoEventWireup="true" CodeFile="Log.aspx.cs" Inherits="Pages_Log"
-    Title="日志查看" MasterPageFile="~/Admin/ManagerPage.master" EnableEventValidation="false" EnableViewState="False" %>
+    Title="日志查看" MasterPageFile="~/Admin/Ace.master" EnableEventValidation="false" EnableViewState="False" %>
 
+<%@ Import Namespace="NewLife.Web" %>
 <%@ Import Namespace="NewLife.CommonEntity" %>
 <asp:Content ID="Content1" ContentPlaceHolderID="C" runat="server">
     <div class="panel panel-default">
-        <div class="panel-heading"><a href="?">日志列表</a></div>
+        <div class="panel-heading"><a href="<%= WebHelper.PageName %>">日志列表</a></div>
         <div class="panel-body">
             <div class="form-inline">
                 <div class="form-group">
                     <label for="ddlCategory" class="control-label">类别：</label>
-                    <select name="ddlCategory" id="ddlCategory" class="form-control">
+                    <select name="ddlCategory" id="ddlCategory" class="form-control" onchange="$(':submit').click();">
                         <option value="全部">全部</option>
                         <%foreach (ILog item in Log.FindAllCategory())
                           {
@@ -22,7 +23,7 @@
                 </div>
                 <div class="form-group">
                     <label class="control-label" for="ddlAdmin">管理员：</label>
-                    <select name="ddlAdminID" id="ddlAdminID" class="form-control">
+                    <select name="ddlAdminID" id="ddlAdminID" class="form-control" onchange="$(':submit').click();">
                         <option value="0">全部</option>
                         <%foreach (IAdministrator item in Administrator.FindAllWithCache())
                           {
@@ -38,9 +39,8 @@
                     <input name="key" type="text" id="key" value="<%= Request["key"] %>" class="form-control" />
                 </div>
                 <div class="form-group">
-                    <label for="<%=this.dtStart.ClientID %>" class="control-label">时间：</label>
-                    <XCL:DateTimePicker ID="dtStart" runat="server" LongTime="False" CssClass="form-control">
-                    </XCL:DateTimePicker>
+                    <label for="dtStart" class="control-label">时间：</label>
+                    <input name="dtStart" type="date" id="dtStart" value="<%= Request["dtStart"] %>" class="Wdate form-control" style="width: 86px;" onfocus="WdatePicker({autoPickDate:true,skin:'default',lang:'auto',readOnly:true})" />
                 </div>
                 <div class="form-group">
                     <label class="control-label" for="<%=this.dtEnd.ClientID %>">至</label>
@@ -59,7 +59,7 @@
                         <th style="width: 120px;"><a href="<%= grid.GetSortUrl("Action") %>">操作</a></th>
                         <th style="width: 120px;"><a href="<%= grid.GetSortUrl("UserID") %>">管理员</a></th>
                         <th style="width: 120px;"><a href="<%= grid.GetSortUrl("IP") %>">IP地址</a></th>
-                        <th style="width: 120px;"><a href="<%= grid.GetSortUrl("OccurTime") %>">时间</a></th>
+                        <th style="width: 140px;"><a href="<%= grid.GetSortUrl("OccurTime") %>">时间</a></th>
                         <th>详细信息</th>
                     </tr>
                 </thead>

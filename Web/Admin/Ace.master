@@ -1,0 +1,147 @@
+﻿<%@ Master Language="C#" AutoEventWireup="true" CodeFile="Ace.master.cs"
+    Inherits="ManagerPage" %>
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head runat="server">
+    <title>管理平台</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+    <!-- bootstrap & fontawesome -->
+    <link rel="stylesheet" href="<%= ResolveUrl("~/bootstrap/css/bootstrap.min.css")%>" />
+    <link rel="stylesheet" href="<%= ResolveUrl("~/bootstrap/css/font-awesome.min.css")%>" />
+
+    <!-- page specific plugin styles -->
+
+    <!-- text fonts -->
+    <link rel="stylesheet" href="<%= ResolveUrl("~/bootstrap/css/ace-fonts.min.css")%>" />
+
+    <!-- ace styles -->
+    <link rel="stylesheet" href="<%= ResolveUrl("~/bootstrap/css/ace.min.css")%>" />
+
+    <!--[if lte IE 9]>
+		<link rel="stylesheet" href="<%= ResolveUrl("~/bootstrap/css/ace-part2.min.css")%>" class="ace-main-stylesheet" />
+	<![endif]-->
+
+    <!--[if lte IE 9]>
+		<link rel="stylesheet" href="<%= ResolveUrl("~/bootstrap/css/ace-ie.min.css")%>" />
+	<![endif]-->
+
+    <!-- inline styles related to this page -->
+
+    <!-- ace settings handler -->
+    <script src="<%= ResolveUrl("~/bootstrap/js/ace-extra.min.js")%>"></script>
+
+    <!-- HTML5shiv and Respond.js for IE8 to support HTML5 elements and media queries -->
+
+    <!--[if lte IE 8]>
+	<script src="<%= ResolveUrl("~/bootstrap/js/html5shiv.min.js")%>"></script>
+	<script src="<%= ResolveUrl("~/bootstrap/js/respond.min.js")%>"></script>
+	<![endif]-->
+    <link rel="stylesheet" href="<%= ResolveUrl("~/bootstrap/css/bootstrap.min.css")%>" type="text/css" />
+    <%--<link rel="stylesheet" href="<%= ResolveUrl("~/bootstrap/css/bootstrap-theme.min.css")%>" type="text/css" />--%>
+    <link rel="stylesheet" href="<%= ResolveUrl("~/bootstrap/css/bootstrap-responsive.min.css")%>" type="text/css" />
+</head>
+<body>
+    <form id="form1" runat="server">
+        <%--<ul class="breadcrumb">
+            <li>
+                <i class="ace-icon fa fa-home home-icon"></i>
+                <a href="#">首页</a>
+            </li>
+            <asp:Literal ID="Navigation" runat="server" EnableViewState="false"></asp:Literal>
+        </ul>--%>
+        <asp:ContentPlaceHolder ID="C" runat="server">
+        </asp:ContentPlaceHolder>
+    </form>
+    <!-- basic scripts -->
+
+    <!--[if !IE]> -->
+    <script type="text/javascript">
+        window.jQuery || document.write("<script src='<%= ResolveUrl("~/js/jquery-2.1.3.min.js")%>'>" + "<" + "/script>");
+    </script>
+
+    <!-- <![endif]-->
+
+    <!--[if IE]>
+<script type="text/javascript">
+    window.jQuery || document.write("<script src='<%= ResolveUrl("~/js/jquery1x.min.js")%>'>"+"<"+"/script>");
+</script>
+<![endif]-->
+    <script type="text/javascript">
+        if ('ontouchstart' in document.documentElement) document.write("<script src='<%= ResolveUrl("~/js/jquery.mobile.custom.min.js")%>'>" + "<" + "/script>");
+    </script>
+    <script src="<%= ResolveUrl("~/bootstrap/js/bootstrap.min.js")%>"></script>
+
+    <!-- page specific plugin scripts -->
+    <script src="<%= ResolveUrl("~/bootstrap/js/jquery.dataTables.min.js")%>"></script>
+    <script src="<%= ResolveUrl("~/bootstrap/js/jquery.dataTables.bootstrap.min.js")%>"></script>
+
+    <!-- ace scripts -->
+    <script src="<%= ResolveUrl("~/bootstrap/js/ace/elements.scroller.js")%>"></script>
+    <script src="<%= ResolveUrl("~/bootstrap/js/ace/elements.colorpicker.js")%>"></script>
+    <script src="<%= ResolveUrl("~/bootstrap/js/ace/elements.fileinput.js")%>"></script>
+    <script src="<%= ResolveUrl("~/bootstrap/js/ace/elements.typeahead.js")%>"></script>
+    <script src="<%= ResolveUrl("~/bootstrap/js/ace/elements.wysiwyg.js")%>"></script>
+    <script src="<%= ResolveUrl("~/bootstrap/js/ace/elements.spinner.js")%>"></script>
+    <script src="<%= ResolveUrl("~/bootstrap/js/ace/elements.treeview.js")%>"></script>
+    <script src="<%= ResolveUrl("~/bootstrap/js/ace/elements.wizard.js")%>"></script>
+    <script src="<%= ResolveUrl("~/bootstrap/js/ace/elements.aside.js")%>"></script>
+    <script src="<%= ResolveUrl("~/bootstrap/js/ace/ace.js")%>"></script>
+    <script src="<%= ResolveUrl("~/bootstrap/js/ace/ace.ajax-content.js")%>"></script>
+    <script src="<%= ResolveUrl("~/bootstrap/js/ace/ace.touch-drag.js")%>"></script>
+    <script src="<%= ResolveUrl("~/bootstrap/js/ace/ace.sidebar.js")%>"></script>
+    <script src="<%= ResolveUrl("~/bootstrap/js/ace/ace.sidebar-scroll-1.js")%>"></script>
+    <script src="<%= ResolveUrl("~/bootstrap/js/ace/ace.submenu-hover.js")%>"></script>
+    <script src="<%= ResolveUrl("~/bootstrap/js/ace/ace.widget-box.js")%>"></script>
+    <script src="<%= ResolveUrl("~/bootstrap/js/ace/ace.settings.js")%>"></script>
+    <script src="<%= ResolveUrl("~/bootstrap/js/ace/ace.settings-rtl.js")%>"></script>
+    <script src="<%= ResolveUrl("~/bootstrap/js/ace/ace.settings-skin.js")%>"></script>
+    <script src="<%= ResolveUrl("~/bootstrap/js/ace/ace.widget-on-reload.js")%>"></script>
+    <script src="<%= ResolveUrl("~/bootstrap/js/ace/ace.searchbox-autocomplete.js")%>"></script>
+
+    <!-- inline scripts related to this page -->
+    <script type="text/javascript">
+        jQuery(function ($) {
+            $(document).on('click', 'th input:checkbox', function () {
+                var that = this;
+                $(this).closest('table').find('tr > td:first-child input:checkbox')
+                    .each(function () {
+                        this.checked = that.checked;
+                        $(this).closest('tr').toggleClass('selected');
+                    });
+            });
+
+
+            $('[data-rel="tooltip"]').tooltip({ placement: tooltip_placement });
+            function tooltip_placement(context, source) {
+                var $source = $(source);
+                var $parent = $source.closest('table')
+                var off1 = $parent.offset();
+                var w1 = $parent.width();
+
+                var off2 = $source.offset();
+                //var w2 = $source.width();
+
+                if (parseInt(off2.left) < parseInt(off1.left) + parseInt(w1 / 2)) return 'right';
+                return 'left';
+            }
+
+        })
+    </script>
+
+    <!-- the following scripts are used in demo only for onpage help and you don't need them -->
+    <link rel="stylesheet" href="<%= ResolveUrl("~/bootstrap/css/ace.onpage-help.css")%>" />
+    <link rel="stylesheet" href="<%= ResolveUrl("~/bootstrap/css/themes/sunburst.css")%>" />
+
+    <script type="text/javascript"> ace.vars['base'] = '<%= ResolveUrl("~/")%>'; </script>
+    <script src="<%= ResolveUrl("~/bootstrap/js/ace/elements.onpage-help.js")%>"></script>
+    <script src="<%= ResolveUrl("~/bootstrap/js/ace/ace.onpage-help.js")%>"></script>
+    <script src="<%= ResolveUrl("~/bootstrap/js/rainbow.js")%>"></script>
+    <script src="<%= ResolveUrl("~/bootstrap/js/language/generic.js")%>"></script>
+    <script src="<%= ResolveUrl("~/bootstrap/js/language/html.js")%>"></script>
+    <script src="<%= ResolveUrl("~/bootstrap/js/language/css.js")%>"></script>
+    <script src="<%= ResolveUrl("~/bootstrap/js/language/javascript.js")%>"></script>
+</body>
+</html>
