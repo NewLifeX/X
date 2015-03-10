@@ -44,10 +44,10 @@ namespace XCode.Web
         /// <summary>获取参数</summary>
         public void Init()
         {
-            PageIndex = WebHelper.RequestInt("PageIndex");
-            PageSize = WebHelper.RequestInt("PageSize");
-            Sort = WebHelper.Request["Sort"];
-            SortDesc = WebHelper.Request["Desc"].ToInt() != 0;
+            PageIndex = WebHelper.Params["PageIndex"].ToInt();
+            PageSize = WebHelper.Params["PageSize"].ToInt();
+            Sort = WebHelper.Params["Sort"];
+            SortDesc = WebHelper.Params["Desc"].ToInt() != 0;
 
             if (Factory != null && Factory.Unique != null) DefaultSort = Factory.Unique.Name;
         }
@@ -62,7 +62,7 @@ namespace XCode.Web
         public virtual StringBuilder GetBaseUrl(Boolean where, Boolean order, Boolean page)
         {
             var sb = new StringBuilder();
-            var dic = WebHelper.AllParams;
+            var dic = WebHelper.Params;
             // 先构造基本条件，再排序到分页
             if (where)
             {
@@ -171,7 +171,7 @@ namespace XCode.Web
             }
         }
 
-        private String _PageTemplate = "共<span>{TotalCount}</span>条&nbsp;每页<span>{PageSize}</span>条&nbsp;当前第<span>{PageIndex}</span>页/共<span>{PageCount}</span>页&nbsp;{首页}{上一页}{下一页}{尾页}转到第<input name=\"PageIndex\" type=\"text\" value=\"{PageIndex}\" style=\"width:40px;text-align:right;\" />页<input type=\"button\" name=\"PageJump\" value=\"GO\" />";
+        private String _PageTemplate = "共<span>{TotalCount}</span>条&nbsp;每页<span>{PageSize}</span>条&nbsp;当前第<span>{PageIndex}</span>页/共<span>{PageCount}</span>页&nbsp;{首页}{上一页}{下一页}{尾页}转到第<input name=\"PageIndex\" type=\"text\" value=\"{PageIndex}\" style=\"width:40px;text-align:right;\" />页<input type=\"submit\" name=\"PageJump\" value=\"GO\" />";
         /// <summary>分页模版</summary>
         public String PageTemplate { get { return _PageTemplate; } set { _PageTemplate = value; } }
 
@@ -249,7 +249,7 @@ namespace XCode.Web
             {
                 var method = Factory.EntityType.GetMethodEx(WhereMethod);
                 // 过滤前缀
-                var ps = WebHelper.AllParams.ToDictionary(e => e.Key.TrimStart(Prefixs.ToArray()), e => e.Value, StringComparer.OrdinalIgnoreCase);
+                var ps = WebHelper.Params.ToDictionary(e => e.Key.TrimStart(Prefixs.ToArray()), e => e.Value, StringComparer.OrdinalIgnoreCase);
                 if (method != null) Where = Reflect.InvokeWithParams(null, method, ps as IDictionary) + "";
             }
 

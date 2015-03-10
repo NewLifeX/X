@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Xml;
 using System.Xml.Schema;
 using System.Xml.Serialization;
+using NewLife.Collections;
 using NewLife.Xml;
 
 namespace XCode.DataAccessLayer

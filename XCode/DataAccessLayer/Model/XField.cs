@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Xml;
 using System.Xml.Serialization;
+using NewLife.Collections;
 using NewLife.Reflection;
 
 namespace XCode.DataAccessLayer
