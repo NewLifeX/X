@@ -724,19 +724,43 @@ namespace NewLife.Reflection
             // 字符串转为货币类型，处理一下
             if (vtype == _.String)
             {
+                var str = (String)value;
                 if (Type.GetTypeCode(conversionType) == TypeCode.Decimal)
                 {
-                    String str = (String)value;
                     value = str.TrimStart(new Char[] { '$', '￥' });
                 }
                 else if (typeof(Type).IsAssignableFrom(conversionType))
                 {
                     return GetType((String)value, true);
                 }
+
+                // 字符串转为简单整型，如果长度比较小，满足32位整型要求，则先转为32位再改变类型
+                if (cx.IsInt && str.Length <= 10) return Convert.ChangeType(value.ToInt(), conversionType);
             }
 
             if (value != null)
             {
+                // 尝试基础类型转换
+                switch (Type.GetTypeCode(conversionType))
+                {
+                    case TypeCode.Boolean:
+                        return value.ToBoolean();
+                    case TypeCode.DateTime:
+                        return value.ToDateTime();
+                    case TypeCode.Double:
+                        return value.ToDouble();
+                    case TypeCode.Int16:
+                        return (Int16)value.ToInt();
+                    case TypeCode.Int32:
+                        return value.ToInt();
+                    case TypeCode.UInt16:
+                        return (UInt16)value.ToInt();
+                    case TypeCode.UInt32:
+                        return (UInt32)value.ToInt();
+                    default:
+                        break;
+                }
+
                 if (value is IConvertible)
                 {
                     // 上海石头 发现这里导致Json序列化问题
