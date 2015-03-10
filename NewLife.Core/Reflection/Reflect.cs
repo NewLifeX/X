@@ -91,7 +91,7 @@ namespace NewLife.Reflection
             return _Provider.CreateInstance(type, parameters);
         }
 
-        /// <summary>反射调用指定对象的方法</summary>
+        /// <summary>反射调用指定对象的方法。target为类型时调用其静态方法</summary>
         /// <param name="target">要调用其方法的对象，如果要调用静态方法，则target是类型</param>
         /// <param name="name">方法名</param>
         /// <param name="parameters">方法参数</param>

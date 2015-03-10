@@ -393,7 +393,58 @@ namespace NewLife.Reflection
             }
 
             var provider = CodeDomProvider.CreateProvider("CSharp");
+            //var arg = (String)provider.CreateGenerator().Invoke("CmdArgsFromParameters", options);
+            //XTrace.WriteLine(arg);
+#if !NET4
+            Check35(provider);
+#endif
             return provider.CompileAssemblyFromSource(options, classCode);
+        }
+
+        void Check35(CodeDomProvider provider)
+        {
+            // 如果是2.0，为了使用扩展方法，直接调用3.5编译器
+            if (XTrace.Debug) XTrace.WriteLine("当前环境是2.0，为了使用扩展方法等，准备调用3.5编译器");
+            // 先找到2.0路径，隔壁就是3.5，如果不存在，则下载并解压
+            var dir = System.Runtime.InteropServices.RuntimeEnvironment.GetRuntimeDirectory();
+            var fdir = dir.AsDirectory().Parent.FullName;
+            dir = fdir.CombinePath("v3.5");
+            var file = dir.CombinePath("csc.exe");
+            if (!Directory.Exists(dir) || !File.Exists(file))
+            {
+                var url = "http://www.newlifex.com/showtopic-1348.aspx";
+                XTrace.WriteLine(".Net 3.5未安装，准备下载绿色版 " + url);
+                var client = new Web.WebClientX(true, true);
+                try
+                {
+                    var zip = client.DownloadLink(url, "csc_v3.5", dir.EnsureDirectory());
+                    if (File.Exists(zip))
+                    {
+                        NewLife.Compression.ZipFile.Extract(zip, dir);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    XTrace.WriteException(ex);
+                }
+            }
+            if (File.Exists(file))
+            {
+                Environment.SetEnvironmentVariable("COMPLUS_InstallRoot", fdir);
+                Environment.SetEnvironmentVariable("COMPLUS_Version", "v3.5");
+                //Environment.SetEnvironmentVariable("COMPLUS_Version", "v4.0.30319");
+
+                //var type = TypeX.GetType("RedistVersionInfo");
+                //var dic = new Dictionary<String, String>();
+                //dic.Add("CompilerVersion", "v3.5");
+                //var path = (String)type.Invoke("GetCompilerPath", dic, "");
+                //XTrace.WriteLine(path);
+
+                //var gen = provider.CreateGenerator();
+                var gen = provider.GetValue("generator") as ICodeGenerator;
+                var provOptions = gen.GetValue("provOptions", false) as IDictionary<string, string>;
+                if (provOptions != null) provOptions["CompilerVersion"] = "v3.5";
+            }
         }
         #endregion
 

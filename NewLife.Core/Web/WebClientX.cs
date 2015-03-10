@@ -3,6 +3,7 @@ using System.IO;
 using System.Net;
 using System.Linq;
 using System.Reflection;
+using NewLife.Log;
 
 namespace NewLife.Web
 {
@@ -162,6 +163,7 @@ namespace NewLife.Web
             if (ls.Length == 0) return null;
 
             var link = ls[0];
+            if (XTrace.Debug) XTrace.WriteLine("分析得到文件 {0}，准备下载 {1}", link.Name, link.Url);
             // 开始下载文件，注意要提前建立目录，否则会报错
             var file = destdir.CombinePath(link.Name).EnsureDirectory();
             DownloadFile(link.Url, file);
