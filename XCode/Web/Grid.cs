@@ -28,6 +28,10 @@ namespace XCode.Web
         /// <summary>实体工厂</summary>
         public IEntityOperate Factory { get { return _Factory; } set { _Factory = value; } }
 
+        private String _Name;
+        /// <summary>参数前缀。一个页面有多个Grid时很必要</summary>
+        public String Name { get { return _Name; } set { _Name = value; } }
+
         private ICollection<String> _Prefixs = new List<String>(new String[] { "txt", "ddl", "dt", "btn" });
         /// <summary>Http参数前缀集合，默认txt/ddl/dt/btn</summary>
         public ICollection<String> Prefixs { get { return _Prefixs; } set { _Prefixs = value; } }
