@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.IO;
 using System.Reflection;
@@ -198,6 +199,32 @@ namespace NewLife.Web
         /// <summary>Http请求</summary>
         public static HttpRequest Request { get { return HttpContext.Current != null ? HttpContext.Current.Request : null; } }
 
+        /// <summary>返回请求字符串和表单的名值字段，过滤空值和ViewState，同名时优先表单</summary>
+        public static Dictionary<String, String> AllParams
+        {
+            get
+            {
+                var dic = new Dictionary<String, String>(StringComparer.OrdinalIgnoreCase);
+                var list = new List<String>();
+                list.AddRange(Request.QueryString.AllKeys);
+                list.AddRange(Request.Form.AllKeys);
+                foreach (var item in list)
+                {
+                    if (item.IsNullOrWhiteSpace()) continue;
+                    if (item.StartsWithIgnoreCase("__VIEWSTATE")) continue;
+
+                    // 空值不需要
+                    var value = Request[item];
+                    if (value.IsNullOrWhiteSpace()) continue;
+
+                    // 同名时有限表单
+                    dic[item] = value.Trim();
+                }
+
+                return dic;
+            }
+        }
+
         /// <summary>把Http请求的数据反射填充到目标对象</summary>
         /// <param name="target">要反射搜索的目标对象，比如页面Page</param>
         /// <returns></returns>
@@ -378,6 +405,39 @@ namespace NewLife.Web
             if (cookies[name] == null || cookies[name][key] == null) return "";
 
             return cookies[name][key] + "";
+        }
+        #endregion
+
+        #region Url扩展
+        /// <summary>追加Url参数，默认空时加问号，否则加与符号</summary>
+        /// <param name="sb"></param>
+        /// <param name="str"></param>
+        /// <returns></returns>
+        public static StringBuilder UrlParam(this StringBuilder sb, String str)
+        {
+            if (str.IsNullOrWhiteSpace()) return sb;
+
+            if (sb.Length == 0)
+                sb.Append("?");
+            else
+                sb.Append("&");
+
+            sb.Append(str);
+
+            return sb;
+        }
+
+        /// <summary>追加Url参数，默认空时加问号，否则加与符号</summary>
+        /// <param name="sb"></param>
+        /// <param name="name"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static StringBuilder UrlParam(this StringBuilder sb, String name, Object value)
+        {
+            if (name.IsNullOrWhiteSpace()) return sb;
+
+            // 必须注意，value可能是时间类型
+            return UrlParam(sb, "{0}={1}".F(name, value));
         }
         #endregion
     }
