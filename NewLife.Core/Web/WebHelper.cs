@@ -8,6 +8,7 @@ using System.Web;
 using System.Web.UI;
 using System.Web.UI.HtmlControls;
 using System.Web.UI.WebControls;
+using NewLife.Collections;
 using NewLife.Reflection;
 
 namespace NewLife.Web
@@ -203,26 +204,32 @@ namespace NewLife.Web
         public static HttpRequest Request { get { return HttpContext.Current != null ? HttpContext.Current.Request : null; } }
 
         /// <summary>返回请求字符串和表单的名值字段，过滤空值和ViewState，同名时优先表单</summary>
-        public static Dictionary<String, String> AllParams
+        public static IDictionary<String, String> Params
         {
             get
             {
-                var dic = new Dictionary<String, String>(StringComparer.OrdinalIgnoreCase);
-                var list = new List<String>();
-                list.AddRange(Request.QueryString.AllKeys);
-                list.AddRange(Request.Form.AllKeys);
-                foreach (var item in list)
+                var dic = HttpContext.Current.Items["Params"] as IDictionary<String, String>;
+                if (dic != null) return dic;
+
+                // 这里必须用可空字典，否则直接通过索引查不到数据时会抛出异常
+                dic = new NullableDictionary<String, String>(StringComparer.OrdinalIgnoreCase);
+                var nvss = new NameValueCollection[] { Request.QueryString, Request.Form };
+                foreach (var nvs in nvss)
                 {
-                    if (item.IsNullOrWhiteSpace()) continue;
-                    if (item.StartsWithIgnoreCase("__VIEWSTATE")) continue;
+                    foreach (var item in nvs.AllKeys)
+                    {
+                        if (item.IsNullOrWhiteSpace()) continue;
+                        if (item.StartsWithIgnoreCase("__VIEWSTATE")) continue;
 
-                    // 空值不需要
-                    var value = Request[item];
-                    if (value.IsNullOrWhiteSpace()) continue;
+                        // 空值不需要
+                        var value = nvs[item];
+                        if (value.IsNullOrWhiteSpace()) continue;
 
-                    // 同名时有限表单
-                    dic[item] = value.Trim();
+                        // 同名时有限表单
+                        dic[item] = value.Trim();
+                    }
                 }
+                HttpContext.Current.Items["Params"] = dic;
 
                 return dic;
             }
