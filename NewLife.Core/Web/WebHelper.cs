@@ -223,9 +223,14 @@ namespace NewLife.Web
 
                         // 空值不需要
                         var value = nvs[item];
-                        if (value.IsNullOrWhiteSpace()) continue;
+                        if (value.IsNullOrWhiteSpace())
+                        {
+                            // 如果请求字符串里面有值而后面表单为空，则抹去
+                            if (dic.ContainsKey(item)) dic.Remove(item);
+                            continue;
+                        }
 
-                        // 同名时有限表单
+                        // 同名时优先表单
                         dic[item] = value.Trim();
                     }
                 }
