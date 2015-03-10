@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using NewLife.Reflection;
 using NewLife.Web;
@@ -23,8 +24,12 @@ namespace XCode.Web
             set { _DataSource = value; }
         }
 
-        private ICollection<String> _Prefixs = new List<String>(new String[] { "txt", "ddl", "dt" });
-        /// <summary>Http参数前缀集合</summary>
+        private IEntityOperate _Factory;
+        /// <summary>实体工厂</summary>
+        public IEntityOperate Factory { get { return _Factory; } set { _Factory = value; } }
+
+        private ICollection<String> _Prefixs = new List<String>(new String[] { "txt", "ddl", "dt", "btn" });
+        /// <summary>Http参数前缀集合，默认txt/ddl/dt/btn</summary>
         public ICollection<String> Prefixs { get { return _Prefixs; } set { _Prefixs = value; } }
         #endregion
 
@@ -49,71 +54,42 @@ namespace XCode.Web
         #endregion
 
         #region 方法
-        ///// <summary>生成头部。</summary>
-        ///// <param name="includeHeader">是否包含thead和tr</param>
-        ///// <param name="names">冒号分割，前面是排序字段名，后面是标题名，没有冒号表示不排序</param>
-        ///// <returns></returns>
-        //public virtual String RenderHeader(Boolean includeHeader, params String[] names)
-        //{
-        //    var sb = new StringBuilder();
-        //    if (includeHeader) sb.Append("<thead><tr>");
-        //    foreach (var item in names)
-        //    {
-        //        var ss = item.Split(":");
-        //        if (ss.Length == 2)
-        //            sb.AppendFormat("<th><a href=\"{0}\">{1}</a></th> ", GetSortUrl(ss[0]), ss[1]);
-        //        else
-        //            sb.AppendFormat("<th>{0}</th>", item);
-        //    }
-        //    if (includeHeader) sb.Append("</tr></thead>");
-        //    return sb.ToString();
-        //}
-
         /// <summary>获取基础Url，用于附加参数</summary>
         /// <param name="where"></param>
         /// <param name="order"></param>
         /// <param name="page"></param>
         /// <returns></returns>
-        protected virtual String GetBaseUrl(Boolean where, Boolean order, Boolean page)
+        public virtual StringBuilder GetBaseUrl(Boolean where, Boolean order, Boolean page)
         {
             var sb = new StringBuilder();
-            sb.Append("?");
-            var nvs = WebHelper.Request;
-            foreach (var item in AllKeys)
+            var dic = WebHelper.AllParams;
+            // 先构造基本条件，再排序到分页
+            if (where)
             {
-                if (item.IsNullOrWhiteSpace()) continue;
-                if (item.StartsWithIgnoreCase("__VIEWSTATE")) continue;
-
-                // 过滤
-                if (item.EqualIgnoreCase("Sort", "Desc"))
+                foreach (var item in dic)
                 {
-                    if (!order) continue;
+                    // 过滤
+                    if (!item.Key.EqualIgnoreCase("Sort", "Desc", "PageIndex", "PageSize"))
+                        sb.UrlParam(item.Key, item.Value);
                 }
-                else if (item.EqualIgnoreCase("PageIndex", "PageSize"))
-                {
-                    if (!page) continue;
-                }
-                else
-                {
-                    if (!where) continue;
-                }
-
-                if (sb.Length > 1) sb.Append("&");
-                sb.AppendFormat("{0}={1}", item, nvs[item]);
             }
-            return sb.ToString();
-        }
-
-        private String[] AllKeys
-        {
-            get
+            if (order)
             {
-                var rq = WebHelper.Request;
-                var list = new List<String>();
-                list.AddRange(rq.QueryString.AllKeys);
-                list.AddRange(rq.Form.AllKeys);
-                return list.ToArray();
+                foreach (var item in dic)
+                {
+                    if (item.Key.EqualIgnoreCase("Sort", "Desc"))
+                        sb.UrlParam(item.Key, item.Value);
+                }
             }
+            if (page)
+            {
+                foreach (var item in dic)
+                {
+                    if (item.Key.EqualIgnoreCase("PageIndex", "PageSize"))
+                        sb.UrlParam(item.Key, item.Value);
+                }
+            }
+            return sb;
         }
         #endregion
 
@@ -140,12 +116,10 @@ namespace XCode.Web
             if (Sort.EqualIgnoreCase(name)) desc = !SortDesc;
 
             var url = GetBaseUrl(true, false, true);
-            if (url.Length > 1) url += "&";
             // 默认排序不处理
-            if (!name.EqualIgnoreCase(DefaultSort)) url += "Sort=" + name;
-            if (desc) url += "&Desc=1";
-            if (url == "?") return null;
-            return url;
+            if (!name.EqualIgnoreCase(DefaultSort)) url.UrlParam("Sort", name);
+            if (desc) url.UrlParam("Desc", 1);
+            return url.ToString();
         }
 
         /// <summary>排序字句</summary>
@@ -205,6 +179,8 @@ namespace XCode.Web
         /// <summary>分页链接模版</summary>
         public String PageUrlTemplate { get { return _PageUrlTemplate; } set { _PageUrlTemplate = value; } }
 
+        /// <summary>生成分页输出</summary>
+        /// <returns></returns>
         public virtual String RenderPage()
         {
             var txt = PageTemplate;
@@ -238,18 +214,18 @@ namespace XCode.Web
             return txt;
         }
 
-        String GetPageUrl(String name, Int32 index)
+        /// <summary>获取分页Url</summary>
+        /// <param name="name"></param>
+        /// <param name="index"></param>
+        /// <returns></returns>
+        public String GetPageUrl(String name, Int32 index)
         {
             var url = GetBaseUrl(true, true, false);
-            if (PageIndex != index && index > 1)
-            {
-                if (url.Length > 1) url += "&";
-                url += "PageIndex=" + index;
-            }
-            if (PageSize != DefaultPageSize) url += "&PageSize=" + PageSize;
+            if (PageIndex != index && index > 1) url.UrlParam("PageIndex", index);
+            if (PageSize != DefaultPageSize) url.UrlParam("PageSize", PageSize);
 
             var txt = PageUrlTemplate;
-            txt = txt.Replace("{链接}", url);
+            txt = txt.Replace("{链接}", url.ToString());
             txt = txt.Replace("{名称}", name);
 
             return txt;
@@ -257,10 +233,6 @@ namespace XCode.Web
         #endregion
 
         #region 查询
-        private IEntityOperate _Factory;
-        /// <summary>实体工厂</summary>
-        public IEntityOperate Factory { get { return _Factory; } set { _Factory = value; } }
-
         private String _Where;
         /// <summary>查询条件。由外部根据<see cref="Params"/>构造后赋值，<see cref="Select"/>将会调用该条件查询数据</summary>
         public String Where { get { return _Where; } set { _Where = value; } }
@@ -269,39 +241,16 @@ namespace XCode.Web
         /// <summary>查询Where条件的方法名</summary>
         public String WhereMethod { get { return _WhereMethod; } set { _WhereMethod = value; } }
 
-        /// <summary>普通查询参数，不包含分页和排序</summary>
-        public virtual IDictionary<String, String> Params
-        {
-            get
-            {
-                var dic = new Dictionary<String, String>(StringComparer.OrdinalIgnoreCase);
-                var sb = new StringBuilder();
-                var nvs = WebHelper.Request;
-                foreach (var item in AllKeys)
-                {
-                    if (item.IsNullOrWhiteSpace()) continue;
-                    if (item.StartsWithIgnoreCase("__VIEWSTATE")) continue;
-
-                    // 过滤
-                    if (item.EqualIgnoreCase("Sort", "Desc")) continue;
-                    if (item.EqualIgnoreCase("PageIndex", "PageSize")) continue;
-
-                    // 过滤前缀
-                    var name = item.TrimStart(Prefixs.ToArray());
-                    dic[name] = nvs[item];
-                }
-
-                return dic;
-            }
-        }
-
         /// <summary>执行数据查询</summary>
         public virtual void Select()
         {
+            // 如果指定了查询Where条件的方法，则根据请求参数反射调用
             if (!WhereMethod.IsNullOrWhiteSpace())
             {
                 var method = Factory.EntityType.GetMethodEx(WhereMethod);
-                if (method != null) Where = Reflect.InvokeWithParams(null, method, Params as IDictionary) + "";
+                // 过滤前缀
+                var ps = WebHelper.AllParams.ToDictionary(e => e.Key.TrimStart(Prefixs.ToArray()), e => e.Value, StringComparer.OrdinalIgnoreCase);
+                if (method != null) Where = Reflect.InvokeWithParams(null, method, ps as IDictionary) + "";
             }
 
             DataSource = Factory.FindAll(Where, OrderBy, null, (PageIndex - 1) * PageSize, PageSize);
