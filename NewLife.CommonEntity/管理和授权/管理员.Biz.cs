@@ -266,7 +266,14 @@ namespace NewLife.CommonEntity
             if (roleId > 0) exp &= _.RoleID == roleId;
             if (isEnable != null) exp &= _.IsEnable == isEnable.Value;
 
-            return exp;
+            var where = exp.ToString();
+            XTrace.WriteLine(where);
+
+            var exp2 = SearchWhereByKey(key) & _.RoleID == roleId & _.IsEnable == isEnable;
+            var where2 = exp2.SetStrict().GetString();
+            XTrace.WriteLine(where2);
+
+            return where2;
         }
         #endregion
 

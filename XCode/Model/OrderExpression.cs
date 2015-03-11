@@ -5,7 +5,7 @@ using System.Text;
 namespace XCode
 {
     /// <summary>排序表达式</summary>
-    public class OrderExpression
+    public class OrderExpression : Expression
     {
         #region 属性
         private StringBuilder _Builder = new StringBuilder();

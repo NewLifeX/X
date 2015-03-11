@@ -12,7 +12,7 @@ namespace XCode.Configuration
         /// <summary>当天范围</summary>
         /// <param name="field">字段</param>
         /// <returns></returns>
-        public static WhereExpression Today(this FieldItem field)
+        public static Expression Today(this FieldItem field)
         {
             //var fromDateStart = DateTime.Parse(String.Format("{0:yyyy-MM-dd 00:00:00}", DateTime.Now));
             //var fromDateEnd = DateTime.Parse(String.Format("{0:yyyy-MM-dd 00:00:00}", DateTime.Now));
@@ -25,7 +25,7 @@ namespace XCode.Configuration
         /// <summary>昨天范围</summary>
         /// <param name="field">字段</param>
         /// <returns></returns>
-        public static WhereExpression Yesterday(this FieldItem field)
+        public static Expression Yesterday(this FieldItem field)
         {
             //var fromDateStart = DateTime.Parse(String.Format("{0:yyyy-MM-dd 00:00:00}", DateTime.Now.AddDays(-1)));
             //var fromDateEnd = DateTime.Parse(String.Format("{0:yyyy-MM-dd 00:00:00}", DateTime.Now.AddDays(-1)));
@@ -38,7 +38,7 @@ namespace XCode.Configuration
         /// <summary>明天范围</summary>
         /// <param name="field">字段</param>
         /// <returns></returns>
-        public static WhereExpression Tomorrow(this FieldItem field)
+        public static Expression Tomorrow(this FieldItem field)
         {
             //var fromDateStart = DateTime.Parse(String.Format("{0:yyyy-MM-dd 00:00:00}", DateTime.Now.AddDays(1)));
             //var fromDateEnd = DateTime.Parse(String.Format("{0:yyyy-MM-dd 00:00:00}", DateTime.Now.AddDays(1)));
@@ -52,7 +52,7 @@ namespace XCode.Configuration
         /// <param name="field">字段</param>
         /// <param name="days"></param>
         /// <returns></returns>
-        public static WhereExpression LastDays(this FieldItem field, Int32 days)
+        public static Expression LastDays(this FieldItem field, Int32 days)
         {
             //var fromDateStart = DateTime.Parse(String.Format("{0:yyyy-MM-dd} 00:00:00", DateTime.Now.AddDays(-days)));
             //var fromDateEnd = DateTime.Parse(String.Format("{0:yyyy-MM-dd} 00:00:00", DateTime.Now.AddDays(-1)));
@@ -66,7 +66,7 @@ namespace XCode.Configuration
         /// <param name="field">字段</param>
         /// <param name="days"></param>
         /// <returns></returns>
-        public static WhereExpression NextDays(this FieldItem field, Int32 days)
+        public static Expression NextDays(this FieldItem field, Int32 days)
         {
             //var fromDateStart = DateTime.Parse(String.Format("{0:yyyy-MM-dd} 00:00:00", DateTime.Now.AddDays(1)));
             //var fromDateEnd = DateTime.Parse(String.Format("{0:yyyy-MM-dd} 00:00:00", DateTime.Now.AddDays(days)));
@@ -81,7 +81,7 @@ namespace XCode.Configuration
         /// <summary>本周范围</summary>
         /// <param name="field">字段</param>
         /// <returns></returns>
-        public static WhereExpression ThisWeek(this FieldItem field)
+        public static Expression ThisWeek(this FieldItem field)
         {
             //var fromDateStart = DateTime.Parse(String.Format("{0:yyyy-MM-dd} 00:00:00", DateTime.Now.AddDays(Convert.ToDouble((0 - Convert.ToInt16(DateTime.Now.DayOfWeek))))));
             //var fromDateEnd = DateTime.Parse(String.Format("{0:yyyy-MM-dd} 00:00:00", DateTime.Now.AddDays(Convert.ToDouble((6 - Convert.ToInt16(DateTime.Now.DayOfWeek))))));
@@ -95,7 +95,7 @@ namespace XCode.Configuration
         /// <summary>上周范围</summary>
         /// <param name="field">字段</param>
         /// <returns></returns>
-        public static WhereExpression LastWeek(this FieldItem field)
+        public static Expression LastWeek(this FieldItem field)
         {
             //var fromDateStart = DateTime.Parse(String.Format("{0:yyyy-MM-dd} 00:00:00", DateTime.Now.AddDays(Convert.ToDouble((0 - Convert.ToInt16(DateTime.Now.DayOfWeek))) - 7)));
             //var fromDateEnd = DateTime.Parse(String.Format("{0:yyyy-MM-dd} 00:00:00", DateTime.Now.AddDays(Convert.ToDouble((6 - Convert.ToInt16(DateTime.Now.DayOfWeek))) - 7)));
@@ -109,7 +109,7 @@ namespace XCode.Configuration
         /// <summary>下周范围</summary>
         /// <param name="field">字段</param>
         /// <returns></returns>
-        public static WhereExpression NextWeek(this FieldItem field)
+        public static Expression NextWeek(this FieldItem field)
         {
             //var fromDateStart = DateTime.Parse(String.Format("{0:yyyy-MM-dd} 00:00:00", DateTime.Now.AddDays(Convert.ToDouble((0 - Convert.ToInt16(DateTime.Now.DayOfWeek))) + 7)));
             //var fromDateEnd = DateTime.Parse(String.Format("{0:yyyy-MM-dd} 00:00:00", DateTime.Now.AddDays(Convert.ToDouble((6 - Convert.ToInt16(DateTime.Now.DayOfWeek))) + 7)));
@@ -125,7 +125,7 @@ namespace XCode.Configuration
         /// <summary>本月范围</summary>
         /// <param name="field">字段</param>
         /// <returns></returns>
-        public static WhereExpression ThisMonth(this FieldItem field)
+        public static Expression ThisMonth(this FieldItem field)
         {
             //var fromDateStart = DateTime.Parse(String.Format("{0:yyyy-MM}-01 00:00:00", DateTime.Now));
             //var fromDateEnd = DateTime.Parse(String.Format("{0:yyyy-MM}-01 00:00:00", DateTime.Now.AddMonths(1))).AddDays(-1);
@@ -139,7 +139,7 @@ namespace XCode.Configuration
         /// <summary>上月范围</summary>
         /// <param name="field">字段</param>
         /// <returns></returns>
-        public static WhereExpression LastMonth(this FieldItem field)
+        public static Expression LastMonth(this FieldItem field)
         {
             //var fromDateStart = DateTime.Parse(String.Format("{0:yyyy-MM}-01 00:00:00", DateTime.Now.AddMonths(-1)));
             //var fromDateEnd = DateTime.Parse(String.Format("{0:yyyy-MM}-01 00:00:00", DateTime.Now)).AddDays(-1);
@@ -153,7 +153,7 @@ namespace XCode.Configuration
         /// <summary>下月范围</summary>
         /// <param name="field">字段</param>
         /// <returns></returns>
-        public static WhereExpression NextMonth(this FieldItem field)
+        public static Expression NextMonth(this FieldItem field)
         {
             //var fromDateStart = DateTime.Parse(String.Format("{0:yyyy-MM}-01 00:00:00", DateTime.Now.AddMonths(1)));
             //var fromDateEnd = DateTime.Parse(String.Format("{0:yyyy-MM}-01 00:00:00", DateTime.Now.AddMonths(2))).AddDays(-1);
@@ -169,7 +169,7 @@ namespace XCode.Configuration
         /// <summary>本季度范围</summary>
         /// <param name="field">字段</param>
         /// <returns></returns>
-        public static WhereExpression ThisQuarter(this FieldItem field)
+        public static Expression ThisQuarter(this FieldItem field)
         {
             //var fromDateStart = DateTime.Parse(String.Format("{0:yyyy-MM}-01 00:00:00", DateTime.Now.AddMonths(0 - ((DateTime.Now.Month - 1) % 3))));
             //var fromDateEnd = DateTime.Parse(String.Format("{0:yyyy-MM-dd} 00:00:00", DateTime.Parse(DateTime.Now.AddMonths(3 - ((DateTime.Now.Month - 1) % 3)).ToString("yyyy-MM-01")))).AddDays(-1);
@@ -183,7 +183,7 @@ namespace XCode.Configuration
         /// <summary>上季度范围</summary>
         /// <param name="field">字段</param>
         /// <returns></returns>
-        public static WhereExpression LastQuarter(this FieldItem field)
+        public static Expression LastQuarter(this FieldItem field)
         {
             //var fromDateStart = DateTime.Parse(String.Format("{0:yyyy-MM}-01 00:00:00", DateTime.Now.AddMonths(-3 - ((DateTime.Now.Month - 1) % 3))));
             //var fromDateEnd = DateTime.Parse(String.Format("{0:yyyy-MM-dd} 00:00:00", DateTime.Parse(DateTime.Now.AddMonths(0 - ((DateTime.Now.Month - 1) % 3)).ToString("yyyy-MM-01")))).AddDays(-1);
@@ -197,7 +197,7 @@ namespace XCode.Configuration
         /// <summary>下季度范围</summary>
         /// <param name="field">字段</param>
         /// <returns></returns>
-        public static WhereExpression NextQuarter(this FieldItem field)
+        public static Expression NextQuarter(this FieldItem field)
         {
             //var fromDateStart = DateTime.Parse(String.Format("{0:yyyy-MM}-01 00:00:00", DateTime.Now.AddMonths(3 - ((DateTime.Now.Month - 1) % 3))));
             //var fromDateEnd = DateTime.Parse(String.Format("{0:yyyy-MM-dd} 00:00:00", DateTime.Parse(DateTime.Now.AddMonths(6 - ((DateTime.Now.Month - 1) % 3)).ToString("yyyy-MM-01")))).AddDays(-1);
@@ -208,6 +208,46 @@ namespace XCode.Configuration
             return field.Between(month, month.AddMonths(3).AddDays(-1));
         }
         #endregion
+        #endregion
+
+        #region 字符串复杂运算
+        /// <summary>包含所有关键字</summary>
+        /// <param name="field"></param>
+        /// <param name="keys"></param>
+        /// <returns></returns>
+        public static Expression ContainsAll(this FieldItem field, String keys)
+        {
+            var exp = new WhereExpression();
+            if (String.IsNullOrEmpty(keys)) return exp;
+
+            var ks = keys.Split(" ");
+
+            for (int i = 0; i < ks.Length; i++)
+            {
+                if (!ks[i].IsNullOrWhiteSpace()) exp &= field.Contains(ks[i].Trim());
+            }
+
+            return exp;
+        }
+
+        /// <summary>包含任意关键字</summary>
+        /// <param name="field"></param>
+        /// <param name="keys"></param>
+        /// <returns></returns>
+        public static Expression ContainsAny(this FieldItem field, String keys)
+        {
+            var exp = new WhereExpression();
+            if (String.IsNullOrEmpty(keys)) return exp;
+
+            var ks = keys.Split(" ");
+
+            for (int i = 0; i < ks.Length; i++)
+            {
+                if (!ks[i].IsNullOrWhiteSpace()) exp |= field.Contains(ks[i].Trim());
+            }
+
+            return exp;
+        }
         #endregion
     }
 }

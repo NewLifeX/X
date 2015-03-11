@@ -1017,20 +1017,21 @@ namespace XCode
 
             if (func == null) func = SearchWhereByKey;
 
-            var ks = keys.Split(new Char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            var ks = keys.Split(" ");
 
-            var sb = exp.Builder;
+            //var sb = exp.Builder;
             for (int i = 0; i < ks.Length; i++)
             {
-                if (sb.Length > 0) sb.Append(" And ");
+                if (!ks[i].IsNullOrWhiteSpace()) exp &= func(ks[i].Trim());
+                //if (sb.Length > 0) sb.Append(" And ");
 
-                String str = func(ks[i]);
-                if (String.IsNullOrEmpty(str)) continue;
+                //String str = func(ks[i]);
+                //if (String.IsNullOrEmpty(str)) continue;
 
-                if (str.Contains("Or") || str.ToLower().Contains("or"))
-                    sb.AppendFormat("({0})", str);
-                else
-                    sb.Append(str);
+                //if (str.Contains("Or") || str.ToLower().Contains("or"))
+                //    sb.AppendFormat("({0})", str);
+                //else
+                //    sb.Append(str);
             }
 
             return exp;
@@ -1044,13 +1045,14 @@ namespace XCode
             var exp = new WhereExpression();
             if (String.IsNullOrEmpty(key)) return exp;
 
-            var sb = exp.Builder;
+            //var sb = exp.Builder;
             foreach (var item in Meta.Fields)
             {
                 if (item.Type != typeof(String)) continue;
 
-                if (sb.Length > 0) sb.Append(" Or ");
-                sb.AppendFormat("{0} like '%{1}%'", Meta.FormatName(item.Name), key);
+                //if (sb.Length > 0) sb.Append(" Or ");
+                //sb.AppendFormat("{0} like '%{1}%'", Meta.FormatName(item.Name), key);
+                exp |= Meta.Table.FindByName(item.Name).Contains(key);
             }
 
             return exp;

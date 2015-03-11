@@ -4,7 +4,7 @@ using System.Text;
 namespace XCode
 {
     /// <summary>逗号连接表达式</summary>
-    public class ConcatExpression
+    public class ConcatExpression : Expression
     {
         #region 属性
         private StringBuilder _Builder = new StringBuilder();
