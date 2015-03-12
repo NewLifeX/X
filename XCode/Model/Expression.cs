@@ -52,9 +52,14 @@ namespace XCode
         /// <returns></returns>
         public virtual String GetString() { return Text == null ? null : Text; }
 
-        ///// <summary>输出该表达式的字符串形式</summary>
-        ///// <returns></returns>
-        //public override String ToString() { return GetString(); }
+        /// <summary>输出该表达式的字符串形式</summary>
+        /// <returns></returns>
+        public override String ToString()
+        {
+            if (this.GetType() == typeof(Expression)) return Text;
+
+            return GetString();
+        }
 
         /// <summary>类型转换</summary>
         /// <param name="obj"></param>

@@ -65,6 +65,7 @@ namespace XCode
             return this;
         }
 
+        static Regex _regOr = new Regex(@"\bOr\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
         /// <summary>输出条件表达式的字符串表示，遍历表达式集合并拼接起来</summary>
         /// <returns></returns>
         public override String GetString()
@@ -80,9 +81,32 @@ namespace XCode
                 var str = exp.GetString();
                 if (!str.IsNullOrWhiteSpace())
                 {
+                    // 括号
+                    var bracket = false;
                     // 加上前一个And/Or
-                    if (sb.Length > 0) sb.AppendFormat(" {0} ", Expressions[i].GetString());
+                    if (sb.Length > 0)
+                    {
+                        var concat = Expressions[i].GetString();
+                        // And连接，如果左右两端其中一段有Or，则必须加括号
+                        if (concat == "And" && _regOr.IsMatch(sb.ToString()))
+                        {
+                            // 有可能本身就有括号了
+                            if (!(sb[0] == '(' && sb[sb.Length - 1] == ')'))
+                            {
+                                sb.Insert(0, "(");
+                                sb.Append(")");
+                            }
+                        }
+                        sb.AppendFormat(" {0} ", concat);
+                        // 如果连接符是And，并且子条件包含Or，则增加括号
+                        if (concat == "And" && _regOr.IsMatch(str))
+                        {
+                            bracket = true;
+                            sb.Append("(");
+                        }
+                    }
                     sb.Append(str);
+                    if (bracket) sb.Append(")");
                 }
             }
             return sb.Length == 0 ? null : sb.ToString();
