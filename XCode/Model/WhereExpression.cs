@@ -17,9 +17,26 @@ namespace XCode
         ///// <summary>与或的动作集合，true表示与</summary>
         //public List<Boolean> Actions { get { return _Actions; } set { _Actions = value; } }
 
-        private List<Expression> _Expressions = new List<Expression>();
+        private List<ExpItem> _Expressions = new List<ExpItem>();
         /// <summary>表达式集合</summary>
-        public List<Expression> Expressions { get { return _Expressions; } set { _Expressions = value; } }
+        List<ExpItem> Expressions { get { return _Expressions; } set { _Expressions = value; } }
+
+        class ExpItem
+        {
+            public Boolean IsAnd;
+            public Expression Exp;
+
+            public ExpItem(Boolean isAnd, Expression exp)
+            {
+                IsAnd = isAnd;
+                Exp = exp;
+            }
+
+            public override string ToString()
+            {
+                return (IsAnd ? "And " : "Or ") + Exp;
+            }
+        }
         #endregion
 
         #region 构造
@@ -44,8 +61,7 @@ namespace XCode
         {
             if (exp != null)
             {
-                Expressions.Add(new Expression("And"));
-                Expressions.Add(exp);
+                Expressions.Add(new ExpItem(true, exp));
             }
 
             return this;
@@ -58,127 +74,187 @@ namespace XCode
         {
             if (exp != null)
             {
-                Expressions.Add(new Expression("Or"));
-                Expressions.Add(exp);
+                Expressions.Add(new ExpItem(false, exp));
             }
 
             return this;
         }
 
-        /// <summary>检查Or，当前层外部是否需要加括号</summary>
-        public override Boolean HasOr
-        {
-            get
-            {
-                // 子表达式都没有，当然空了
-                var exps = Expressions;
-                if (exps.Count == 0) return false;
+        ///// <summary>检查Or，当前层外部是否需要加括号</summary>
+        //public override Boolean HasOr
+        //{
+        //    get
+        //    {
+        //        // 子表达式都没有，当然空了
+        //        var exps = Expressions;
+        //        if (exps.Count == 0) return false;
 
-                // 第一个有效子表达式不处理
-                var valid = 0;
-                var first = 0;
-                for (int i = 0; i < exps.Count - 1; i += 2)
-                {
-                    var item = exps[i + 1];
-                    item.Strict = Strict;
-                    if (item.IsEmpty) continue;
+        //        // 第一个有效子表达式不处理
+        //        var valid = 0;
+        //        var first = 0;
+        //        for (int i = 0; i < exps.Count - 1; i += 2)
+        //        {
+        //            var item = exps[i + 1];
+        //            item.Strict = Strict;
+        //            if (item.IsEmpty) continue;
 
-                    // 如果第一个表达式都还没有过，则不检测Or
-                    if (valid > 0)
-                    {
-                        // 除第一个有效子表达式以外，其它子表达式不为空且包含Or，则这里也有Or
-                        // 注意，仅考察当前层的Or，不考察内层表达式的Or
-                        if (exps[i].Text == "Or") return true;
-                    }
-                    valid++;
-                    first = i + 1;
-                }
+        //            // 如果第一个表达式都还没有过，则不检测Or
+        //            if (valid > 0)
+        //            {
+        //                // 除第一个有效子表达式以外，其它子表达式不为空且包含Or，则这里也有Or
+        //                // 注意，仅考察当前层的Or，不考察内层表达式的Or
+        //                if (exps[i].Text == "Or") return true;
+        //            }
+        //            valid++;
+        //            first = i + 1;
+        //        }
 
-                // 如果只有一个有效，则以它内部为准
-                if (valid == 1) return exps[first].HasOr;
+        //        // 如果只有一个有效，则以它内部为准
+        //        if (valid == 1) return exps[first].HasOr;
 
-                return false;
-            }
-        }
+        //        return false;
+        //    }
+        //}
 
-        /// <summary>是否为空。构造输出时，空表达式没有输出，跟严格模式设置有很大关系</summary>
-        public override Boolean IsEmpty
-        {
-            get
-            {
-                // 子表达式都没有，当然空了
-                var exps = Expressions;
-                if (exps.Count == 0) return true;
+        ///// <summary>是否为空。构造输出时，空表达式没有输出，跟严格模式设置有很大关系</summary>
+        //public override Boolean IsEmpty
+        //{
+        //    get
+        //    {
+        //        // 子表达式都没有，当然空了
+        //        var exps = Expressions;
+        //        if (exps.Count == 0) return true;
 
-                for (int i = 0; i < exps.Count - 1; i += 2)
-                {
-                    var item = exps[i + 1];
-                    item.Strict = Strict;
-                    // 任意一个子表达式不为空，则当前表达式也不为空
-                    if (!item.IsEmpty) return false;
-                }
+        //        for (int i = 0; i < exps.Count - 1; i += 2)
+        //        {
+        //            var item = exps[i + 1];
+        //            item.Strict = Strict;
+        //            // 任意一个子表达式不为空，则当前表达式也不为空
+        //            if (!item.IsEmpty) return false;
+        //        }
 
-                return true;
-            }
-        }
+        //        return true;
+        //    }
+        //}
 
         /// <summary>当前表达式作为子表达式</summary>
         /// <returns></returns>
         public WhereExpression AsChild() { return new WhereExpression(this); }
 
         /// <summary>输出条件表达式的字符串表示，遍历表达式集合并拼接起来</summary>
+        /// <param name="needBracket">外部是否需要括号。如果外部要求括号，而内部又有Or，则加上括号</param>
         /// <returns></returns>
-        public override String GetString()
+        public override String GetString(Boolean needBracket)
         {
             var exps = Expressions;
             if (exps.Count == 0) return null;
-            if (IsEmpty) return null;
 
-            var first = false;
-            var sb = new StringBuilder();
-            // 注意：And/Or和表达式成对出现
-            for (int i = 0; i < exps.Count - 1; i += 2)
+            // 重整表达式
+            var list = new List<ExpItem>();
+            var sub = new List<ExpItem>();
+
+            var hasOr = false;
+            // 优先计算And，所有And作为一个整体表达式进入内层，处理完以后当前层要么全是And，要么全是Or
+            for (int i = 0; i < exps.Count; i++)
             {
-                // 设置严格模式
-                var exp = exps[i + 1];
-                exp.Strict = Strict;
-                if (exp.IsEmpty) continue;
+                sub.Add(exps[i]);
+                // 如果下一个是Or，或者已经是最后一个，则合并sub到list
+                if (i < exps.Count - 1 && !exps[i + 1].IsAnd || i == exps.Count - 1)
+                {
+                    // sub创建新exp加入list
+                    // 一个就不用创建了
+                    if (sub.Count == 1)
+                    {
+                        list.Add(sub[0]);
+                        if (list.Count > 0 && !sub[0].IsAnd) hasOr = true;
+                    }
+                    else if (i == exps.Count - 1 && list.Count == 0)
+                        list.AddRange(sub);
+                    else
+                    {
+                        // 这一片And凑成一个子表达式
+                        var where = new WhereExpression();
+                        where.Expressions.AddRange(sub);
+                        list.Add(new ExpItem(false, where));
+                        hasOr = true;
+                    }
 
+                    sub.Clear();
+                }
+            }
+            // 第一个表达式的And/Or必须正确代表本层所有表达式
+            list[0].IsAnd = !hasOr;
+
+            // 开始计算
+            var sb = new StringBuilder();
+            for (int i = 0; i < list.Count; i++)
+            {
+                var item = list[i];
+                var exp = item.Exp;
+                exp.Strict = Strict;
+
+                // 里面是Or的时候，外面前后任意一个And，需要括号
+                var str = exp.GetString(item.IsAnd || i < list.Count - 1 && list[i + 1].IsAnd);
                 // 跳过没有返回的表达式
-                var str = exp.GetString();
                 if (str.IsNullOrWhiteSpace()) continue;
 
-                // 括号
-                var bracket = false;
-                // 加上前一个And/Or
                 if (sb.Length > 0)
                 {
-                    var concat = exps[i].Text;
-                    //// And连接，如果前面有Or，则必须加括号
-                    //if (concat == "And" && _regOr.IsMatch(sb.ToString()))
-                    //{
-                    //    // 有可能本身就有括号了
-                    //    if (!(sb[0] == '(' && sb[sb.Length - 1] == ')'))
-                    //    {
-                    //        sb.Insert(0, "(");
-                    //        sb.Append(")");
-                    //    }
-                    //}
-                    sb.AppendFormat(" {0} ", concat);
-                    // 如果连接符是And，并且后面包含Or，则增加括号
-                    // 注意，仅考察当前层的Or，不考察内层表达式的Or
-                    if (concat == "And" && exp.HasOr)
-                    {
-                        bracket = true;
-                        sb.Append("(");
-                    }
+                    sb.AppendFormat(" {0} ", item.IsAnd ? "And" : "Or");
+                    // 不能判断第一个，控制符可能不正确
+                    if (!item.IsAnd) hasOr = true;
                 }
                 sb.Append(str);
-                if (bracket) sb.Append(")");
-
-                first = true;
             }
-            return sb.Length == 0 ? null : sb.ToString();
+
+            if (sb.Length == 0) return null;
+            if (needBracket && hasOr) return "({0})".F(sb.ToString());
+            return sb.ToString();
+
+            //var first = false;
+            //// 注意：And/Or和表达式成对出现
+            //for (int i = 0; i < exps.Count - 1; i += 2)
+            //{
+            //    // 设置严格模式
+            //    var exp = exps[i + 1];
+            //    exp.Strict = Strict;
+            //    if (exp.IsEmpty) continue;
+
+            //    // 跳过没有返回的表达式
+            //    var str = exp.GetString();
+            //    if (str.IsNullOrWhiteSpace()) continue;
+
+            //    // 括号
+            //    var bracket = false;
+            //    // 加上前一个And/Or
+            //    if (sb.Length > 0)
+            //    {
+            //        var concat = exps[i].Text;
+            //        //// And连接，如果前面有Or，则必须加括号
+            //        //if (concat == "And" && _regOr.IsMatch(sb.ToString()))
+            //        //{
+            //        //    // 有可能本身就有括号了
+            //        //    if (!(sb[0] == '(' && sb[sb.Length - 1] == ')'))
+            //        //    {
+            //        //        sb.Insert(0, "(");
+            //        //        sb.Append(")");
+            //        //    }
+            //        //}
+            //        sb.AppendFormat(" {0} ", concat);
+            //        // 如果连接符是And，并且后面包含Or，则增加括号
+            //        // 注意，仅考察当前层的Or，不考察内层表达式的Or
+            //        if (concat == "And" && exp.HasOr)
+            //        {
+            //            bracket = true;
+            //            sb.Append("(");
+            //        }
+            //    }
+            //    sb.Append(str);
+            //    if (bracket) sb.Append(")");
+
+            //    first = true;
+            //}
+            //return sb.Length == 0 ? null : sb.ToString();
         }
 
         //void Append(String action, String content)

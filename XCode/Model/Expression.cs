@@ -67,8 +67,17 @@ namespace XCode
 
 
         /// <summary>获取表达式的文本表示</summary>
+        /// <param name="needBracket">外部是否需要括号。如果外部要求括号，而内部又有Or，则加上括号</param>
         /// <returns></returns>
-        public virtual String GetString() { return Text == null ? null : Text; }
+        public virtual String GetString(Boolean needBracket = false)
+        {
+            if (Text.IsNullOrWhiteSpace()) return Text;
+
+            // 如果外部要求括号，而内部又有Or，则加上括号
+            if (needBracket && _regOr.IsMatch(Text)) return "({0})".F(Text);
+
+            return Text;
+        }
 
         /// <summary>输出该表达式的字符串形式</summary>
         /// <returns></returns>

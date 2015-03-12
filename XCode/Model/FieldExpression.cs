@@ -68,8 +68,9 @@ namespace XCode
 
         #region 输出
         /// <summary>已重载。输出字段表达式的字符串形式</summary>
+        /// <param name="needBracket">外部是否需要括号。如果外部要求括号，而内部又有Or，则加上括号</param>
         /// <returns></returns>
-        public override String GetString()
+        public override String GetString(Boolean needBracket)
         {
             if (IsEmpty) return null;
 
