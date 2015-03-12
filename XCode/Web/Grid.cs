@@ -238,7 +238,7 @@ namespace XCode.Web
 
         #region 查询
         private String _Where;
-        /// <summary>查询条件。由外部根据<see cref="Params"/>构造后赋值，<see cref="Select"/>将会调用该条件查询数据</summary>
+        /// <summary>查询条件。由外部根据<see cref="WebHelper.Params"/>构造后赋值，<see cref="Select"/>将会调用该条件查询数据</summary>
         public String Where { get { return _Where; } set { _Where = value; } }
 
         private String _WhereMethod;

@@ -18,9 +18,9 @@ namespace XCode
         /// <summary>动作</summary>
         public String Action { get { return _Action; } set { _Action = value; } }
 
-        //private Object _Value;
-        ///// <summary>值</summary>
-        //public Object Value { get { return _Value; } set { _Value = value; } }
+        private Object _Value;
+        /// <summary>值</summary>
+        public Object Value { get { return _Value; } set { _Value = value; } }
         #endregion
 
         #region 构造
@@ -34,9 +34,10 @@ namespace XCode
         {
             if (Field == null) return null;
 
-            // 严格模式
+            // 严格模式下，判断字段表达式是否有效
             if (Strict > 0)
             {
+                // 所有空值无效
                 if (Value == null) return null;
 
                 // 如果数据为空，则返回

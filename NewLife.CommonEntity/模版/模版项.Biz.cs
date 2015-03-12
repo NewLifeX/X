@@ -280,9 +280,9 @@ namespace NewLife.CommonEntity
             //    .AndIf(!String.IsNullOrEmpty(key), _.Name.Equal(key))
             //    | _.ID > 0;
 
-            exp = exp & templateid > 0 & _.TemplateID.Equal(templateid);
+            exp &= _.TemplateID == templateid;
 
-            return exp;
+            return exp.SetStrict();
         }
         #endregion
 
