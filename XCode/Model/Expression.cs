@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace XCode
 {
@@ -14,6 +15,23 @@ namespace XCode
         private Int32 _Strict;
         /// <summary>严格模式。在严格模式下将放弃一些不满足要求的表达式。默认false</summary>
         public Int32 Strict { get { return _Strict; } set { _Strict = value; } }
+        #endregion
+
+        #region 扩展属性
+        internal protected static Regex _regOr = new Regex(@"\bOr\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        /// <summary>是否有Or</summary>
+        public virtual Boolean HasOr
+        {
+            get
+            {
+                if (Text.IsNullOrWhiteSpace()) return false;
+
+                return _regOr.IsMatch(Text);
+            }
+        }
+
+        /// <summary>是否为空。构造输出时，空表达式没有输出，跟严格模式设置有很大关系</summary>
+        public virtual Boolean IsEmpty { get { return Text.IsNullOrWhiteSpace(); } }
         #endregion
 
         #region 构造
@@ -40,13 +58,13 @@ namespace XCode
             return this;
         }
 
-        ///// <summary>是否有效表达式</summary>
-        //public Boolean IsValid { get { } }
+        ///// <summary>输出</summary>
+        ///// <param name="sb"></param>
+        //public virtual void Write(StringBuilder sb)
+        //{
+        //    if (Text != null) sb.Append(Text);
+        //}
 
-        public void Write(StringBuilder sb)
-        {
-            if (Text != null) sb.Append(Text);
-        }
 
         /// <summary>获取表达式的文本表示</summary>
         /// <returns></returns>
@@ -91,6 +109,8 @@ namespace XCode
             // 左边构造条件表达式，自己是也好，新建立也好
             var where = CreateWhere(exp);
             if (value == null) return where;
+
+            // 这里必须注意，如果左边where有Or，那么需要加上括号
 
             // 如果右边为空，创建的表达式将会失败，直接返回左边
             return where.And(value);

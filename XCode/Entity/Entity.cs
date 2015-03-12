@@ -1055,7 +1055,7 @@ namespace XCode
                 exp |= Meta.Table.FindByName(item.Name).Contains(key);
             }
 
-            return exp;
+            return exp.AsChild();
         }
         #endregion
 
