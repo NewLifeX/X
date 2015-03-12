@@ -225,7 +225,10 @@ namespace XCode.Web
         public String GetPageUrl(String name, Int32 index)
         {
             var url = GetBaseUrl(true, true, false);
-            if (PageIndex != index && index > 1) url.UrlParam("PageIndex", index);
+            // 当前在非首页而要跳回首页，不写页面序号
+            //if (!(PageIndex > 1 && index == 1)) url.UrlParam("PageIndex", index);
+            // 还是写一下页面序号，因为页面Url本身就有，如果这里不写，有可能首页的href为空
+            if (PageIndex != index) url.UrlParam("PageIndex", index);
             if (PageSize != DefaultPageSize) url.UrlParam("PageSize", PageSize);
 
             var txt = PageUrlTemplate;
