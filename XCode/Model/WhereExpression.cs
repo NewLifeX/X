@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Linq;
 
 namespace XCode
 {
@@ -61,6 +62,16 @@ namespace XCode
         {
             if (exp != null)
             {
+                // 如果前面有Or，则整体推入下一层
+                if (Expressions.Any(e => !e.IsAnd))
+                {
+                    var where = new WhereExpression();
+                    where.Expressions.AddRange(Expressions);
+
+                    Expressions.Clear();
+                    Expressions.Add(new ExpItem(true, where));
+                }
+
                 Expressions.Add(new ExpItem(true, exp));
             }
 
