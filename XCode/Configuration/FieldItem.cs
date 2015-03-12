@@ -222,32 +222,11 @@ namespace XCode.Configuration
         /// <param name="action"></param>
         /// <param name="value">数值</param>
         /// <returns></returns>
-        public FieldExpression CreateExpression(String action, Object value)
+        Expression CreateFormatExpression(String action, String value) { return new FormatExpression(this, action, value); }
+
+        static Expression CreateFieldExpression(FieldItem field, String action, Object value)
         {
-            return new FieldExpression { Field = this, Action = action, Value = value };
-            //var op = Factory;
-            //String sql = null;
-            //String name = op.FormatName(ColumnName);
-            //if (!String.IsNullOrEmpty(action) && action.Contains("{0}"))
-            //{
-            //    if (action.Contains("%"))
-            //        sql = name + " Like " + op.FormatValue(this, String.Format(action, value));
-            //    else
-            //        sql = name + String.Format(action, op.FormatValue(this, value));
-            //}
-            //else
-            //{
-            //    // 右值本身就是FieldItem，属于对本表字段进行操作
-            //    //if (value is FieldItem)
-            //    //    sql = String.Format("{0}{1}{2}", name, action, op.FormatName((value as FieldItem).ColumnName));
-            //    // 减少一步类型转换
-            //    var fi = value as FieldItem;
-            //    if (fi != null)
-            //        sql = String.Format("{0}{1}{2}", name, action, op.FormatName(fi.ColumnName));
-            //    else
-            //        sql = String.Format("{0}{1}{2}", name, action, op.FormatValue(this, value));
-            //}
-            //return new WhereExpression(sql);
+            return field == null ? new Expression() : new FieldExpression(field, action, value);
         }
         #endregion
 
@@ -255,56 +234,56 @@ namespace XCode.Configuration
         /// <summary>等于</summary>
         /// <param name="value">数值</param>
         /// <returns></returns>
-        public Expression Equal(object value) { return MakeCondition(this, value, "="); }
+        public Expression Equal(object value) { return CreateFieldExpression(this, "=", value); }
 
         /// <summary>不等于</summary>
         /// <param name="value">数值</param>
         /// <returns></returns>
-        public Expression NotEqual(object value) { return MakeCondition(this, value, "<>"); }
+        public Expression NotEqual(object value) { return CreateFieldExpression(this, "<>", value); }
 
         /// <summary>以某个字符串开始,{0}%操作</summary>
         /// <remarks>空参数不参与表达式操作，不生成该部分SQL拼接</remarks>
         /// <param name="value">数值</param>
         /// <returns></returns>
-        public Expression StartsWith(Object value)
+        public Expression StartsWith(String value)
         {
             if (value == null || value + "" == "") return new Expression();
 
-            return CreateExpression("{0}%", value);
+            return CreateFormatExpression("{0} Like {1}%", value);
         }
 
         /// <summary>以某个字符串结束，%{0}操作</summary>
         /// <remarks>空参数不参与表达式操作，不生成该部分SQL拼接</remarks>
         /// <param name="value">数值</param>
         /// <returns></returns>
-        public Expression EndsWith(Object value)
+        public Expression EndsWith(String value)
         {
             if (value == null || value + "" == "") return new Expression();
 
-            return CreateExpression("%{0}", value);
+            return CreateFormatExpression("{0} Like %{1}", value);
         }
 
         /// <summary>包含某个字符串，%{0}%操作</summary>
         /// <remarks>空参数不参与表达式操作，不生成该部分SQL拼接</remarks>
         /// <param name="value">数值</param>
         /// <returns></returns>
-        public Expression Contains(Object value)
+        public Expression Contains(String value)
         {
             if (value == null || value + "" == "") return new Expression();
 
-            return CreateExpression("%{0}%", value);
+            return CreateFormatExpression("{0} Like %{1}%", value);
         }
 
-        /// <summary>In操作</summary>
+        /// <summary>In操作。直接使用字符串可能有注入风险</summary>
         /// <remarks>空参数不参与表达式操作，不生成该部分SQL拼接</remarks>
-        /// <param name="value">逗号分割的数据</param>
+        /// <param name="value">逗号分割的数据。可能有注入风险</param>
         /// <returns></returns>
+        [Obsolete("=>In(IEnumerable value)，直接使用字符串参数可能有注入风险")]
         public Expression In(String value)
         {
             if (String.IsNullOrEmpty(value)) return new Expression();
 
-            //return new WhereExpression(String.Format("{0} In({1})", Factory.FormatName(ColumnName), value));
-            return CreateExpression(" In({0})", value);
+            return CreateFormatExpression("{0} In({1})", value);
         }
 
         /// <summary>In操作</summary>
@@ -316,7 +295,6 @@ namespace XCode.Configuration
         Expression _In(IEnumerable value, Boolean flag)
         {
             if (value == null) return new Expression();
-            //if (value == null) throw new ArgumentNullException("value");
 
             var op = Factory;
             var name = op.FormatName(ColumnName);
@@ -334,34 +312,23 @@ namespace XCode.Configuration
                 list.Add(str);
             }
             if (list.Count <= 0) return new Expression();
-            //if (list.Count <= 0) throw new ArgumentNullException("value");
 
             // 如果In操作且只有一项，修改为等于
-            if (list.Count == 1)
-            {
-                if (flag)
-                    return CreateExpression("=", vs[0]);
-                else
-                    return CreateExpression("<>", vs[0]);
-            }
+            if (list.Count == 1) return CreateFieldExpression(this, flag ? "=" : "<>", vs[0]);
 
-            //return new WhereExpression(String.Format("{0}{2} In({1})", name, String.Join(",", list.ToArray()), flag ? "" : " Not"));
-            if (flag)
-                return CreateExpression(" In({0})", list.Join(","));
-            else
-                return CreateExpression(" Not In({0})", list.Join(","));
+            return CreateFormatExpression(flag ? "{0} In({1})" : "{0} Not In({1}", list.Join(","));
         }
 
-        /// <summary>NotIn操作</summary>
+        /// <summary>NotIn操作。直接使用字符串可能有注入风险</summary>
         /// <remarks>空参数不参与表达式操作，不生成该部分SQL拼接</remarks>
         /// <param name="value">数值</param>
         /// <returns></returns>
+        [Obsolete("=>NotIn(IEnumerable value)，直接使用字符串参数可能有注入风险")]
         public Expression NotIn(String value)
         {
             if (String.IsNullOrEmpty(value)) return new Expression();
 
-            //return new WhereExpression(String.Format("{0} Not In({1})", Factory.FormatName(ColumnName), value));
-            return CreateExpression(" Not In({0})", value);
+            return CreateFormatExpression("{0} Not In({1})", value);
         }
 
         /// <summary>NotIn操作</summary>
@@ -372,29 +339,21 @@ namespace XCode.Configuration
 
         /// <summary>IsNull操作，不为空，一般用于字符串，但不匹配0长度字符串</summary>
         /// <returns></returns>
-        public Expression IsNull()
-        {
-            //return new WhereExpression(String.Format("{0} Is Null", Factory.FormatName(ColumnName)));
-            return new Expression("{0} Is Null".F(Factory.FormatName(ColumnName)));
-        }
+        public Expression IsNull() { return CreateFormatExpression("{0} Is Null", null); }
 
         /// <summary>NotIn操作</summary>
         /// <returns></returns>
-        public Expression NotIsNull()
-        {
-            //return new WhereExpression(String.Format("Not {0} Is Null", Factory.FormatName(ColumnName)));
-            return new Expression("Not {0} Is Null".F(Factory.FormatName(ColumnName)));
-        }
+        public Expression NotIsNull() { return CreateFormatExpression("Not {0} Is Null", null); }
         #endregion
 
         #region 复杂运算
         /// <summary>IsNullOrEmpty操作，用于空或者0长度字符串</summary>
         /// <returns></returns>
-        public Expression IsNullOrEmpty() { return IsNull() | (Equal("")); }
+        public Expression IsNullOrEmpty() { return IsNull() | Equal(""); }
 
         /// <summary>NotIsNullOrEmpty操作</summary>
         /// <returns></returns>
-        public Expression NotIsNullOrEmpty() { return NotIsNull() & (NotEqual("")); }
+        public Expression NotIsNullOrEmpty() { return NotIsNull() & NotEqual(""); }
 
         /// <summary>是否True或者False/Null，参数决定两组之一</summary>
         /// <param name="flag"></param>
@@ -459,32 +418,25 @@ namespace XCode.Configuration
         /// <param name="field">字段</param>
         /// <param name="value">数值</param>
         /// <returns></returns>
-        public static Expression operator >(FieldItem field, Object value) { return MakeCondition(field, value, ">"); }
+        public static Expression operator >(FieldItem field, Object value) { return CreateFieldExpression(field, ">", value); }
 
         /// <summary>小于</summary>
         /// <param name="field">字段</param>
         /// <param name="value">数值</param>
         /// <returns></returns>
-        public static Expression operator <(FieldItem field, Object value) { return MakeCondition(field, value, "<"); }
+        public static Expression operator <(FieldItem field, Object value) { return CreateFieldExpression(field, "<", value); }
 
         /// <summary>大于等于</summary>
         /// <param name="field">字段</param>
         /// <param name="value">数值</param>
         /// <returns></returns>
-        public static Expression operator >=(FieldItem field, Object value) { return MakeCondition(field, value, ">="); }
+        public static Expression operator >=(FieldItem field, Object value) { return CreateFieldExpression(field, ">=", value); }
 
         /// <summary>小于等于</summary>
         /// <param name="field">字段</param>
         /// <param name="value">数值</param>
         /// <returns></returns>
-        public static Expression operator <=(FieldItem field, Object value) { return MakeCondition(field, value, "<="); }
-
-        internal static Expression MakeCondition(FieldItem field, Object value, String action)
-        {
-            //IEntityOperate op = EntityFactory.CreateOperate(field.Table.EntityType);
-            //return new WhereExpression(String.Format("{0}{1}{2}", op.FormatName(field.ColumnName), action, op.FormatValue(field, value)));
-            return field == null ? new Expression() : field.CreateExpression(action, value);
-        }
+        public static Expression operator <=(FieldItem field, Object value) { return CreateFieldExpression(field, "<=", value); }
         #endregion
 
         #region 排序
@@ -496,6 +448,11 @@ namespace XCode.Configuration
         /// <remarks>感谢 树懒（303409914）发现这里的错误</remarks>
         /// <returns></returns>
         public ConcatExpression Desc() { return new ConcatExpression(Factory.FormatName(ColumnName) + " Desc"); }
+
+        /// <summary>通过参数置顶升序降序</summary>
+        /// <param name="isdesc"></param>
+        /// <returns></returns>
+        public ConcatExpression Sort(Boolean isdesc) { return isdesc ? Desc() : Asc(); }
         #endregion
 
         #region 分组选择
@@ -503,6 +460,10 @@ namespace XCode.Configuration
         /// <returns></returns>
         public ConcatExpression GroupBy() { return new ConcatExpression(String.Format("Group By {0}", Factory.FormatName(ColumnName))); }
 
+        /// <summary>聚合</summary>
+        /// <param name="action"></param>
+        /// <param name="newName"></param>
+        /// <returns></returns>
         public ConcatExpression Aggregate(String action, String newName)
         {
             var name = Factory.FormatName(ColumnName);

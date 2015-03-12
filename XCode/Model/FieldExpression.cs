@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using XCode.Common;
 using XCode.Configuration;
 
@@ -24,7 +22,16 @@ namespace XCode
         #endregion
 
         #region 构造
-        //public FieldExpression(FieldItem field, String action, Object value) { }
+        /// <summary>构造字段表达式</summary>
+        /// <param name="field"></param>
+        /// <param name="action"></param>
+        /// <param name="value"></param>
+        public FieldExpression(FieldItem field, String action, Object value)
+        {
+            Field = field;
+            Action = action;
+            Value = value;
+        }
         #endregion
 
         #region 输出
@@ -53,28 +60,13 @@ namespace XCode
             }
 
             var op = Field.Factory;
-            String sql = null;
             var name = op.FormatName(Field.ColumnName);
-            if (!String.IsNullOrEmpty(Action) && Action.Contains("{0}"))
-            {
-                if (Action.Contains("%"))
-                    sql = name + " Like " + op.FormatValue(Field, String.Format(Action, Value));
-                else
-                    sql = name + String.Format(Action, op.FormatValue(Field, Value));
-            }
+
+            var fi = Value as FieldItem;
+            if (fi != null)
+                return String.Format("{0}{1}{2}", name, Action, op.FormatName(fi.ColumnName));
             else
-            {
-                // 右值本身就是FieldItem，属于对本表字段进行操作
-                //if (value is FieldItem)
-                //    sql = String.Format("{0}{1}{2}", name, Action, op.FormatName((value as FieldItem).ColumnName));
-                // 减少一步类型转换
-                var fi = Value as FieldItem;
-                if (fi != null)
-                    sql = String.Format("{0}{1}{2}", name, Action, op.FormatName(fi.ColumnName));
-                else
-                    sql = String.Format("{0}{1}{2}", name, Action, op.FormatValue(Field, Value));
-            }
-            return sql;
+                return String.Format("{0}{1}{2}", name, Action, op.FormatValue(Field, Value));
         }
         #endregion
     }

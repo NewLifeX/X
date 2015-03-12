@@ -113,6 +113,7 @@
     <Compile Include="Entity\SelectModes.cs" />
     <Compile Include="Model\ConcatExpression.cs" />
     <Compile Include="Model\Expression.cs" />
+    <Compile Include="Model\FormatExpression.cs" />
     <Compile Include="Model\FieldExpression.cs" />
     <Compile Include="Sync\ISyncMaster.cs" />
     <Compile Include="Sync\ISyncSlave.cs" />
