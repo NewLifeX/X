@@ -145,6 +145,9 @@ namespace XCode.Configuration
                 return EntityFactory.CreateOperate(type);
             }
         }
+
+        /// <summary>已格式化的字段名，可字节用于SQL中。主要用于处理关键字，比如MSSQL里面的[User]</summary>
+        public String FormatedName { get { return Factory.FormatName(ColumnName); } }
         #endregion
 
         #region 构造
@@ -222,9 +225,9 @@ namespace XCode.Configuration
         /// <param name="action"></param>
         /// <param name="value">数值</param>
         /// <returns></returns>
-        Expression CreateFormatExpression(String action, String value) { return new FormatExpression(this, action, value); }
+        internal Expression CreateFormatExpression(String action, String value) { return new FormatExpression(this, action, value); }
 
-        static Expression CreateFieldExpression(FieldItem field, String action, Object value)
+        internal static Expression CreateFieldExpression(FieldItem field, String action, Object value)
         {
             return field == null ? new Expression() : new FieldExpression(field, action, value);
         }
@@ -337,6 +340,28 @@ namespace XCode.Configuration
         /// <returns></returns>
         public Expression NotIn(IEnumerable value) { return _In(value, false); }
 
+        /// <summary>In操作。直接使用字符串可能有注入风险</summary>
+        /// <remarks>空参数不参与表达式操作，不生成该部分SQL拼接</remarks>
+        /// <param name="builder">逗号分割的数据。可能有注入风险</param>
+        /// <returns></returns>
+        public Expression In(SelectBuilder builder)
+        {
+            if (builder == null) return new Expression();
+
+            return CreateFormatExpression("{0} In({1})", builder);
+        }
+
+        /// <summary>NotIn操作。直接使用字符串可能有注入风险</summary>
+        /// <remarks>空参数不参与表达式操作，不生成该部分SQL拼接</remarks>
+        /// <param name="builder">数值</param>
+        /// <returns></returns>
+        public Expression NotIn(SelectBuilder builder)
+        {
+            if (builder == null) return new Expression();
+
+            return CreateFormatExpression("{0} NotIn({1})", builder);
+        }
+
         /// <summary>IsNull操作，不为空，一般用于字符串，但不匹配0长度字符串</summary>
         /// <returns></returns>
         public Expression IsNull() { return CreateFormatExpression("{0} Is Null", null); }
@@ -437,63 +462,6 @@ namespace XCode.Configuration
         /// <param name="value">数值</param>
         /// <returns></returns>
         public static Expression operator <=(FieldItem field, Object value) { return CreateFieldExpression(field, "<=", value); }
-        #endregion
-
-        #region 排序
-        /// <summary>升序</summary>
-        /// <returns></returns>
-        public ConcatExpression Asc() { return new ConcatExpression(Factory.FormatName(ColumnName)); }
-
-        /// <summary>降序</summary>
-        /// <remarks>感谢 树懒（303409914）发现这里的错误</remarks>
-        /// <returns></returns>
-        public ConcatExpression Desc() { return new ConcatExpression(Factory.FormatName(ColumnName) + " Desc"); }
-
-        /// <summary>通过参数置顶升序降序</summary>
-        /// <param name="isdesc"></param>
-        /// <returns></returns>
-        public ConcatExpression Sort(Boolean isdesc) { return isdesc ? Desc() : Asc(); }
-        #endregion
-
-        #region 分组选择
-        /// <summary>分组</summary>
-        /// <returns></returns>
-        public ConcatExpression GroupBy() { return new ConcatExpression(String.Format("Group By {0}", Factory.FormatName(ColumnName))); }
-
-        /// <summary>聚合</summary>
-        /// <param name="action"></param>
-        /// <param name="newName"></param>
-        /// <returns></returns>
-        public ConcatExpression Aggregate(String action, String newName)
-        {
-            var name = Factory.FormatName(ColumnName);
-            if (String.IsNullOrEmpty(newName))
-                newName = name;
-            else
-                newName = Factory.FormatName(newName);
-
-            return new ConcatExpression(String.Format("{2}({0}) as {1}", name, newName, action));
-        }
-
-        /// <summary>数量</summary>
-        /// <param name="newName">聚合后as的新名称，默认空，表示跟前面字段名一致</param>
-        /// <returns></returns>
-        public ConcatExpression Count(String newName = null) { return Aggregate("Count", newName); }
-
-        /// <summary>求和</summary>
-        /// <param name="newName">聚合后as的新名称，默认空，表示跟前面字段名一致</param>
-        /// <returns></returns>
-        public ConcatExpression Sum(String newName = null) { return Aggregate("Sum", newName); }
-
-        /// <summary>最小值</summary>
-        /// <param name="newName">聚合后as的新名称，默认空，表示跟前面字段名一致</param>
-        /// <returns></returns>
-        public ConcatExpression Min(String newName = null) { return Aggregate("Min", newName); }
-
-        /// <summary>最大值</summary>
-        /// <param name="newName">聚合后as的新名称，默认空，表示跟前面字段名一致</param>
-        /// <returns></returns>
-        public ConcatExpression Max(String newName = null) { return Aggregate("Max", newName); }
         #endregion
 
         #region 类型转换

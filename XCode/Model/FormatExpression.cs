@@ -48,7 +48,7 @@ namespace XCode
             }
 
             var op = Field.Factory;
-            return String.Format(Format, op.FormatName(Field.ColumnName), op.FormatValue(Field, Text));
+            return String.Format(Format, Field.FormatedName, op.FormatValue(Field, Text));
         }
         #endregion
     }

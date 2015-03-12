@@ -4,7 +4,7 @@ using System.Text;
 namespace XCode
 {
     /// <summary>逗号连接表达式</summary>
-    public class ConcatExpression : Expression
+    public class ConcatExpression //: Expression
     {
         #region 属性
         private StringBuilder _Builder = new StringBuilder();
@@ -35,36 +35,9 @@ namespace XCode
             return this;
         }
 
-        ///// <summary>数量</summary>
-        ///// <returns></returns>
-        //public ConcatExpression Count(String exp)
-        //{
-        //    if (String.IsNullOrEmpty(exp)) exp = "*";
-
-        //    return And(String.Format("Count({0}) as {0}", exp));
-        //}
-
-        ///// <summary>数量</summary>
-        ///// <returns></returns>
-        //public ConcatExpression Min(String exp)
-        //{
-        //    if (String.IsNullOrEmpty(exp)) exp = "*";
-
-        //    return And(String.Format("Min({0}) as {0}", exp));
-        //}
-
-        ///// <summary>数量</summary>
-        ///// <returns></returns>
-        //public ConcatExpression Max(String exp)
-        //{
-        //    if (String.IsNullOrEmpty(exp)) exp = "*";
-
-        //    return And(String.Format("Max({0}) as {0}", exp));
-        //}
-
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override string ToString()
+        public string GetString()
         {
             if (Builder == null || Builder.Length <= 0) return null;
 
@@ -76,7 +49,7 @@ namespace XCode
         /// <returns></returns>
         public static implicit operator String(ConcatExpression obj)
         {
-            return obj != null ? obj.ToString() : null;
+            return obj != null ? obj.GetString() : null;
         }
         #endregion
 

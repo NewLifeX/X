@@ -60,13 +60,12 @@ namespace XCode
             }
 
             var op = Field.Factory;
-            var name = op.FormatName(Field.ColumnName);
 
             var fi = Value as FieldItem;
             if (fi != null)
-                return String.Format("{0}{1}{2}", name, Action, op.FormatName(fi.ColumnName));
+                return String.Format("{0}{1}{2}", Field.FormatedName, Action, op.FormatName(fi.ColumnName));
             else
-                return String.Format("{0}{1}{2}", name, Action, op.FormatValue(Field, Value));
+                return String.Format("{0}{1}{2}", Field.FormatedName, Action, op.FormatValue(Field, Value));
         }
         #endregion
     }

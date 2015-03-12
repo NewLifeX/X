@@ -1,6 +1,8 @@
 ﻿using System;
+using XCode.Configuration;
+using XCode.DataAccessLayer;
 
-namespace XCode.Configuration
+namespace XCode
 {
     /// <summary>字段扩展</summary>
     public static class FieldExtension
@@ -246,6 +248,69 @@ namespace XCode.Configuration
 
             return exp;
         }
+        #endregion
+
+        #region 排序
+        /// <summary>升序</summary>
+        /// <param name="field">字段</param>
+        /// <returns></returns>
+        public static ConcatExpression Asc(this FieldItem field) { return field == null ? null : new ConcatExpression(field.FormatedName); }
+
+        /// <summary>降序</summary>
+        /// <param name="field">字段</param>
+        /// <remarks>感谢 树懒（303409914）发现这里的错误</remarks>
+        /// <returns></returns>
+        public static ConcatExpression Desc(this FieldItem field) { return field == null ? null : new ConcatExpression(field.FormatedName + " Desc"); }
+
+        /// <summary>通过参数置顶升序降序</summary>
+        /// <param name="field">字段</param>
+        /// <param name="isdesc">是否降序</param>
+        /// <returns></returns>
+        public static ConcatExpression Sort(this FieldItem field, Boolean isdesc) { return isdesc ? Desc(field) : Asc(field); }
+        #endregion
+
+        #region 分组选择
+        /// <summary>分组</summary>
+        /// <returns></returns>
+        public static ConcatExpression GroupBy(this FieldItem field) { return field == null ? null : new ConcatExpression(String.Format("Group By {0}", field.FormatedName)); }
+
+        /// <summary>聚合</summary>
+        /// <param name="field">字段</param>
+        /// <param name="action"></param>
+        /// <param name="newName"></param>
+        /// <returns></returns>
+        public static ConcatExpression Aggregate(this FieldItem field, String action, String newName)
+        {
+            if (field == null) return null;
+
+            var name = field.FormatedName;
+            if (String.IsNullOrEmpty(newName))
+                newName = name;
+            else
+                newName = field.Factory.FormatName(newName);
+
+            return new ConcatExpression(String.Format("{2}({0}) as {1}", name, newName, action));
+        }
+
+        /// <summary>数量</summary>
+        /// <param name="newName">聚合后as的新名称，默认空，表示跟前面字段名一致</param>
+        /// <returns></returns>
+        public static ConcatExpression Count(this FieldItem field, String newName = null) { return Aggregate(field, "Count", newName); }
+
+        /// <summary>求和</summary>
+        /// <param name="newName">聚合后as的新名称，默认空，表示跟前面字段名一致</param>
+        /// <returns></returns>
+        public static ConcatExpression Sum(this FieldItem field, String newName = null) { return Aggregate(field, "Sum", newName); }
+
+        /// <summary>最小值</summary>
+        /// <param name="newName">聚合后as的新名称，默认空，表示跟前面字段名一致</param>
+        /// <returns></returns>
+        public static ConcatExpression Min(this FieldItem field, String newName = null) { return Aggregate(field, "Min", newName); }
+
+        /// <summary>最大值</summary>
+        /// <param name="newName">聚合后as的新名称，默认空，表示跟前面字段名一致</param>
+        /// <returns></returns>
+        public static ConcatExpression Max(this FieldItem field, String newName = null) { return Aggregate(field, "Max", newName); }
         #endregion
     }
 }

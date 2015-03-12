@@ -144,17 +144,17 @@ namespace XCode
         //    return this;
         //}
 
-        ///// <summary>有条件And操作</summary>
-        ///// <param name="condition"></param>
-        ///// <param name="exp"></param>
-        ///// <returns></returns>
-        //public WhereExpression AndIf(Boolean condition, String exp) { return condition ? And(exp) : this; }
+        /// <summary>有条件And操作</summary>
+        /// <param name="condition"></param>
+        /// <param name="exp"></param>
+        /// <returns></returns>
+        public WhereExpression AndIf(Boolean condition, Expression exp) { return condition ? And(exp) : this; }
 
-        ///// <summary>有条件Or操作</summary>
-        ///// <param name="condition"></param>
-        ///// <param name="exp"></param>
-        ///// <returns></returns>
-        //public WhereExpression OrIf(Boolean condition, String exp) { return condition ? Or(exp) : this; }
+        /// <summary>有条件Or操作</summary>
+        /// <param name="condition"></param>
+        /// <param name="exp"></param>
+        /// <returns></returns>
+        public WhereExpression OrIf(Boolean condition, Expression exp) { return condition ? Or(exp) : this; }
 
         ///// <summary>左括号</summary>
         ///// <returns></returns>
