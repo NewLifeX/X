@@ -258,22 +258,22 @@ namespace NewLife.CommonEntity
         /// <returns></returns>
         private static String SearchWhere(String key, Int32 roleId, Boolean? isEnable = null)
         {
-            var exp = new WhereExpression();
+            //var exp = new WhereExpression();
 
-            // SearchWhereByKeys系列方法用于构建针对字符串字段的模糊搜索
-            if (!String.IsNullOrEmpty(key)) exp &= SearchWhereByKey(key);
+            //// SearchWhereByKeys系列方法用于构建针对字符串字段的模糊搜索
+            //if (!String.IsNullOrEmpty(key)) exp &= SearchWhereByKey(key);
 
-            if (roleId > 0) exp &= _.RoleID == roleId;
-            if (isEnable != null) exp &= _.IsEnable == isEnable.Value;
+            //if (roleId > 0) exp &= _.RoleID == roleId;
+            //if (isEnable != null) exp &= _.IsEnable == isEnable.Value;
 
-            var where = exp.ToString();
-            XTrace.WriteLine(where);
+            //var where = exp.ToString();
+            //XTrace.WriteLine(where);
 
             var exp2 = SearchWhereByKey(key) & _.RoleID == roleId & _.IsEnable == isEnable;
-            var where2 = exp2.SetStrict().GetString();
-            XTrace.WriteLine(where2);
+            //var where2 = exp2.SetStrict().GetString();
+            //XTrace.WriteLine(where2);
 
-            return where2;
+            return exp2.SetStrict();
         }
         #endregion
 

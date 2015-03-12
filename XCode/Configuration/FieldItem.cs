@@ -244,6 +244,8 @@ namespace XCode.Configuration
         /// <returns></returns>
         public Expression NotEqual(object value) { return CreateFieldExpression(this, "<>", value); }
 
+        Expression CreateLike(String value) { return CreateFormatExpression("{0} Like {1}", value); }
+
         /// <summary>以某个字符串开始,{0}%操作</summary>
         /// <remarks>空参数不参与表达式操作，不生成该部分SQL拼接</remarks>
         /// <param name="value">数值</param>
@@ -252,7 +254,7 @@ namespace XCode.Configuration
         {
             if (value == null || value + "" == "") return new Expression();
 
-            return CreateFormatExpression("{0} Like {1}%", value);
+            return CreateLike("{0}%".F(value));
         }
 
         /// <summary>以某个字符串结束，%{0}操作</summary>
@@ -263,7 +265,7 @@ namespace XCode.Configuration
         {
             if (value == null || value + "" == "") return new Expression();
 
-            return CreateFormatExpression("{0} Like %{1}", value);
+            return CreateLike("%{0}".F(value));
         }
 
         /// <summary>包含某个字符串，%{0}%操作</summary>
@@ -274,7 +276,7 @@ namespace XCode.Configuration
         {
             if (value == null || value + "" == "") return new Expression();
 
-            return CreateFormatExpression("{0} Like %{1}%", value);
+            return CreateLike("%{0}%".F(value));
         }
 
         /// <summary>In操作。直接使用字符串可能有注入风险</summary>
@@ -286,7 +288,7 @@ namespace XCode.Configuration
         {
             if (String.IsNullOrEmpty(value)) return new Expression();
 
-            return CreateFormatExpression("{0} In({1})", value);
+            return CreateFormatExpression("{0} In({1})", Factory.FormatValue(this, value));
         }
 
         /// <summary>In操作</summary>
@@ -331,7 +333,7 @@ namespace XCode.Configuration
         {
             if (String.IsNullOrEmpty(value)) return new Expression();
 
-            return CreateFormatExpression("{0} Not In({1})", value);
+            return CreateFormatExpression("{0} Not In({1})", Factory.FormatValue(this, value));
         }
 
         /// <summary>NotIn操作</summary>
