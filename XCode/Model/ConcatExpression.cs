@@ -62,7 +62,11 @@ namespace XCode
         {
             if (value == null) return exp;
 
-            exp.And(value.ToString());
+            if (value is ConcatExpression)
+                exp.And((value as ConcatExpression).GetString());
+            else
+                exp.And(value.ToString());
+
             return exp;
         }
         #endregion
