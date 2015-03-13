@@ -270,7 +270,7 @@ namespace XCode
         #endregion
 
         #region 分组选择
-        /// <summary>分组</summary>
+        /// <summary>分组。有条件的分组请使用WhereExpression.GroupBy</summary>
         /// <returns></returns>
         public static ConcatExpression GroupBy(this FieldItem field) { return field == null ? null : new ConcatExpression(String.Format("Group By {0}", field.FormatedName)); }
 
