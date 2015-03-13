@@ -48,8 +48,8 @@ namespace XCode
                 if (Strict > 1 && Text == String.Empty) return null;
             }
 
-            var op = Field.Factory;
-            return String.Format(Format, Field.FormatedName, op.FormatValue(Field, Text));
+            //var op = Field.Factory;
+            return String.Format(Format, Field.FormatedName, Text);
         }
         #endregion
     }

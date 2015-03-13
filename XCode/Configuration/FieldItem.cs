@@ -244,7 +244,7 @@ namespace XCode.Configuration
         /// <returns></returns>
         public Expression NotEqual(object value) { return CreateFieldExpression(this, "<>", value); }
 
-        Expression CreateLike(String value) { return CreateFormatExpression("{0} Like {1}", value); }
+        Expression CreateLike(String value) { return CreateFormatExpression("{0} Like {1}", Factory.FormatValue(this, value)); }
 
         /// <summary>以某个字符串开始,{0}%操作</summary>
         /// <remarks>空参数不参与表达式操作，不生成该部分SQL拼接</remarks>
