@@ -162,7 +162,7 @@ namespace System
             var sb = new StringBuilder();
             if (value != null)
             {
-                func = obj => obj + "";
+                if (func == null) func = obj => obj + "";
                 foreach (var item in value)
                 {
                     sb.Separate(separator).Append(func(item));
