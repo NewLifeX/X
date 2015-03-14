@@ -31,9 +31,11 @@ using System.Runtime.InteropServices;
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("5.2.*")]
-[assembly: AssemblyFileVersion("5.2.2015.0307")]
+[assembly: AssemblyFileVersion("5.2.2015.0314")]
 
 /*
+ * v5.2.2015.0314   如果已经打开异步接收，还要使用同步接收，则同步Receive内部不再调用底层Socket，而是等待截走异步数据。
+ * 
  * v5.2.2015.0307   增加Link，扩展WebClientX.GetLinks，用于从网页分析超链接以便于下载
  * 
  * v5.2.2015.0211   增加轻量级自动更新Upgrade，从网页自动查找更新包

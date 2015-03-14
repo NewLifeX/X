@@ -4,12 +4,16 @@ using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading;
 using NewLife.Model;
 using NewLife.Threading;
 
 namespace NewLife.Net
 {
     /// <summary>增强的UDP</summary>
+    /// <remarks>
+    /// 如果已经打开异步接收，还要使用同步接收，则同步Receive内部不再调用底层Socket，而是等待截走异步数据。
+    /// </remarks>
     public class UdpServer : SessionBase, ISocketServer, ITransport
     {
         #region 属性
@@ -26,6 +30,14 @@ namespace NewLife.Net
         /// 对于每一个会话连接，如果超过该时间仍然没有收到任何数据，则断开会话连接。
         /// 单位秒，默认30秒。时间不是太准确，建议15秒的倍数。为0表示不检查。</summary>
         public Int32 MaxNotActive { get { return _MaxNotActive; } set { _MaxNotActive = value; } }
+
+        private IPEndPoint _LastRemote;
+        /// <summary>最后一次同步接收数据得到的远程地址</summary>
+        public IPEndPoint LastRemote { get { return _LastRemote; } set { _LastRemote = value; } }
+
+        private Boolean _AllowAsyncOnSync = true;
+        /// <summary>在异步模式下，使用同步收到数据后，是否允许异步事件继续使用，默认true</summary>
+        public Boolean AllowAsyncOnSync { get { return _AllowAsyncOnSync; } set { _AllowAsyncOnSync = value; } }
         #endregion
 
         #region 构造
@@ -170,6 +182,17 @@ namespace NewLife.Net
             return buf.ReadBytes(0, count);
         }
 
+        /// <summary>同步字典，等待</summary>
+        private List<SyncItem> _sync = new List<SyncItem>();
+        /// <summary>同步对象</summary>
+        class SyncItem
+        {
+            public Int32 ThreadID;
+            public AutoResetEvent Event;
+            public IPEndPoint EndPoint;
+            public Byte[] Data;
+        }
+
         /// <summary>读取指定长度的数据，一般是一帧</summary>
         /// <param name="buffer">缓冲区</param>
         /// <param name="offset">偏移</param>
@@ -188,15 +211,23 @@ namespace NewLife.Net
 
             try
             {
-                IPEndPoint remoteEP = null;
-                var data = Client.Receive(ref remoteEP);
-                Remote.EndPoint = remoteEP;
-                if (data != null && data.Length > 0)
+                // 如果已经打开异步，这里可能永远无法同步收到数据
+                if (!UseReceiveAsync)
                 {
-                    size = data.Length;
-                    // 计算还有多少可用空间
-                    if (size > count) size = count;
-                    buffer.Write(offset, data, 0, size);
+                    IPEndPoint remoteEP = null;
+                    var data = Client.Receive(ref remoteEP);
+                    LastRemote = remoteEP;
+                    if (data != null && data.Length > 0)
+                    {
+                        size = data.Length;
+                        // 计算还有多少可用空间
+                        if (size > count) size = count;
+                        buffer.Write(offset, data, 0, size);
+                    }
+                }
+                else
+                {
+                    return ReceiveWait(buffer, offset, count);
                 }
             }
             catch (Exception ex)
@@ -216,6 +247,65 @@ namespace NewLife.Net
 
             return size;
         }
+
+        Int32 ReceiveWait(Byte[] buffer, Int32 offset = 0, Int32 count = -1)
+        {
+            //WriteLog("已使用异步接收，等待异步数据 {0}", Remote.EndPoint);
+
+            var si = new SyncItem();
+            // 当前线程
+            si.ThreadID = Thread.CurrentThread.ManagedThreadId;
+            // 要等待的地址
+            if (!Remote.EndPoint.IsAny()) si.EndPoint = Remote.EndPoint;
+            // 等待事件
+            var e = new AutoResetEvent(false);
+            si.Event = e;
+
+            // 加入同步字典，异步接收事件里面会查找
+            lock (_sync)
+            {
+                _sync.Add(si);
+            }
+
+            // 等待异步收到数据交给我
+            var time = Client.Client.ReceiveTimeout;
+            if (time <= 0) time = 1000;
+
+            try
+            {
+                // 如果超时了还没有收到数据，则返回失败
+                if (!e.WaitOne(time))
+                {
+                    //WriteLog("等待异步数据包超时 {0}毫秒", time);
+                    return -1;
+                }
+
+                //WriteLog("拿到异步数据包 [{0}]", si.Data.Length);
+
+                // 数据在Data里面
+                var data = si.Data;
+                LastRemote = si.EndPoint;
+                if (data != null && data.Length > 0)
+                {
+                    var size = data.Length;
+                    // 计算还有多少可用空间
+                    if (size > count) size = count;
+                    buffer.Write(offset, data, 0, size);
+
+                    return size;
+                }
+            }
+            finally
+            {
+                lock (_sync)
+                {
+                    _sync.Remove(si);
+                }
+                si.Event.Close();
+            }
+
+            return -1;
+        }
         #endregion
 
         #region 异步接收
@@ -230,6 +320,7 @@ namespace NewLife.Net
             if (!Open()) return false;
 
             if (_Async != null) return true;
+            if (!UseReceiveAsync) UseReceiveAsync = true;
             try
             {
                 // 开始新的监听
@@ -286,7 +377,9 @@ namespace NewLife.Net
                 return;
             }
 
-            Remote.EndPoint = ep;
+            //Remote.EndPoint = ep;
+            // 异步不要设置地址，事件里面已经包含
+            //LastRemote = ep;
 
             if (UseProcessAsync)
                 // 在用户线程池里面去处理数据
@@ -318,6 +411,31 @@ namespace NewLife.Net
         /// <param name="remote"></param>
         internal protected virtual void OnReceive(Byte[] data, IPEndPoint remote)
         {
+            // 可能有同步等待
+            if (_sync.Count > 0)
+            {
+                //WriteLog("收到异步数据包{0}，有人在等待", remote);
+                lock (_sync)
+                {
+                    if (_sync.Count > 0)
+                    {
+                        foreach (var item in _sync)
+                        {
+                            // 如果设定了只需要该地址的数据，则处理
+                            if (item.EndPoint.IsAny() || item.EndPoint.Equals(remote))
+                            {
+                                // 放好数据，告诉它，数据来了
+                                item.Data = data;
+                                item.Event.Set();
+
+                                // 如果不允许异步继续使用，跳出
+                                if (!AllowAsyncOnSync) return;
+                            }
+                        }
+                    }
+                }
+            }
+
             // 分析处理
             var e = new UdpReceivedEventArgs();
             e.Data = data;
