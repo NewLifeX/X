@@ -25,9 +25,6 @@ namespace XNet
         {
             InitializeComponent();
 
-            //var asmx = AssemblyX.Entry;
-            //this.Text = asmx.Title;
-
             this.Icon = IcoHelper.GetIcon("网络");
         }
 
@@ -51,28 +48,6 @@ namespace XNet
 
             var config = NetConfig.Current;
             if (config.Port > 0) numPort.Value = config.Port;
-
-            //var menu = spList.Menu;
-            //txtReceive.ContextMenuStrip = menu;
-
-            //// 添加清空
-            //menu.Items.Insert(0, new ToolStripSeparator());
-            ////var ti = menu.Items.Add("清空");
-            //var ti = new ToolStripMenuItem("清空");
-            //menu.Items.Insert(0, ti);
-            //ti.Click += mi清空_Click;
-
-            //ti = new ToolStripMenuItem("字体");
-            //menu.Items.Add(ti);
-            //ti.Click += mi字体_Click;
-
-            //ti = new ToolStripMenuItem("前景色");
-            //menu.Items.Add(ti);
-            //ti.Click += mi前景色_Click;
-
-            //ti = new ToolStripMenuItem("背景色");
-            //menu.Items.Add(ti);
-            //ti.Click += mi背景色_Click;
 
             // 加载保存的颜色
             var ui = UIConfig.Load();

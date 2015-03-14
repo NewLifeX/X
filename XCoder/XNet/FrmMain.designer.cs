@@ -49,12 +49,19 @@
             this.cbAddr = new System.Windows.Forms.ComboBox();
             this.numPort = new System.Windows.Forms.NumericUpDown();
             this.pnlSetting = new System.Windows.Forms.Panel();
+            this.menuReceive = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripMenuItem3 = new System.Windows.Forms.ToolStripSeparator();
+            this.字体ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.前景色ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.背景色ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.numMutilSend)).BeginInit();
             this.gbReceive.SuspendLayout();
             this.gbSend.SuspendLayout();
             this.menuSend.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numPort)).BeginInit();
             this.pnlSetting.SuspendLayout();
+            this.menuReceive.SuspendLayout();
             this.SuspendLayout();
             // 
             // numMutilSend
@@ -91,6 +98,7 @@
             // 
             // txtReceive
             // 
+            this.txtReceive.ContextMenuStrip = this.menuReceive;
             this.txtReceive.Dock = System.Windows.Forms.DockStyle.Fill;
             this.txtReceive.HideSelection = false;
             this.txtReceive.Location = new System.Drawing.Point(3, 17);
@@ -259,6 +267,50 @@
             this.pnlSetting.Size = new System.Drawing.Size(471, 31);
             this.pnlSetting.TabIndex = 13;
             // 
+            // menuReceive
+            // 
+            this.menuReceive.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.toolStripMenuItem1,
+            this.toolStripMenuItem3,
+            this.字体ToolStripMenuItem,
+            this.前景色ToolStripMenuItem,
+            this.背景色ToolStripMenuItem});
+            this.menuReceive.Name = "menuSend";
+            this.menuReceive.Size = new System.Drawing.Size(153, 120);
+            // 
+            // toolStripMenuItem1
+            // 
+            this.toolStripMenuItem1.Name = "toolStripMenuItem1";
+            this.toolStripMenuItem1.Size = new System.Drawing.Size(152, 22);
+            this.toolStripMenuItem1.Text = "清空";
+            this.toolStripMenuItem1.Click += new System.EventHandler(this.mi清空_Click);
+            // 
+            // toolStripMenuItem3
+            // 
+            this.toolStripMenuItem3.Name = "toolStripMenuItem3";
+            this.toolStripMenuItem3.Size = new System.Drawing.Size(149, 6);
+            // 
+            // 字体ToolStripMenuItem
+            // 
+            this.字体ToolStripMenuItem.Name = "字体ToolStripMenuItem";
+            this.字体ToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.字体ToolStripMenuItem.Text = "字体";
+            this.字体ToolStripMenuItem.Click += new System.EventHandler(this.mi字体_Click);
+            // 
+            // 前景色ToolStripMenuItem
+            // 
+            this.前景色ToolStripMenuItem.Name = "前景色ToolStripMenuItem";
+            this.前景色ToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.前景色ToolStripMenuItem.Text = "前景色";
+            this.前景色ToolStripMenuItem.Click += new System.EventHandler(this.mi前景色_Click);
+            // 
+            // 背景色ToolStripMenuItem
+            // 
+            this.背景色ToolStripMenuItem.Name = "背景色ToolStripMenuItem";
+            this.背景色ToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.背景色ToolStripMenuItem.Text = "背景色";
+            this.背景色ToolStripMenuItem.Click += new System.EventHandler(this.mi背景色_Click);
+            // 
             // FrmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
@@ -280,6 +332,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.numPort)).EndInit();
             this.pnlSetting.ResumeLayout(false);
             this.pnlSetting.PerformLayout();
+            this.menuReceive.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -306,6 +359,12 @@
         private System.Windows.Forms.ComboBox cbAddr;
         private System.Windows.Forms.NumericUpDown numPort;
         private System.Windows.Forms.Panel pnlSetting;
+        private System.Windows.Forms.ContextMenuStrip menuReceive;
+        private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem1;
+        private System.Windows.Forms.ToolStripSeparator toolStripMenuItem3;
+        private System.Windows.Forms.ToolStripMenuItem 字体ToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem 前景色ToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem 背景色ToolStripMenuItem;
     }
 }
 
