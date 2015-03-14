@@ -22,6 +22,7 @@ using XCode.Sync;
 using XCode.Transform;
 using NewLife;
 using NewLife.Net.IO;
+using NewLife.Net.Stun;
 
 namespace Test
 {
@@ -627,20 +628,8 @@ namespace Test
 
         static void Test15()
         {
-            XTrace.WriteLine(Environment.CurrentDirectory);
-            var up = new Upgrade();
-            up.Log = XTrace.Log;
-            up.Name = "XScript";
-            up.Server = "http://www.newlifex.com/showtopic-1334.aspx";
-            if (up.Check())
-            {
-                //Console.WriteLine(up.FileName);
-                //Console.WriteLine(up.FileUrl);
-                //Console.WriteLine(up.FileTime.ToFullString());
-
-                up.Download();
-                up.Update();
-            }
+            var server = new StunServer();
+            server.Start();
         }
     }
 }

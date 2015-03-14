@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using NewLife.Configuration;
@@ -179,9 +178,9 @@ namespace NewLife.Net.Stun
             {
                 var client = NetService.Container.Resolve<ISocketClient>(ProtocolType);
                 client.Port = Port;
+                client.Open();
                 client.Socket.SendTimeout = Timeout;
                 client.Socket.ReceiveTimeout = Timeout;
-                //client.Bind();
                 _Socket = client;
             }
         }
@@ -355,7 +354,11 @@ namespace NewLife.Net.Stun
             IPEndPoint ep = null;
             foreach (var item in Servers)
             {
-                ep = NetHelper.ParseEndPoint(item, 3478);
+                try
+                {
+                    ep = NetHelper.ParseEndPoint(item, 3478);
+                }
+                catch { continue; }
                 //Int32 p = item.IndexOf(":");
                 //if (p > 0)
                 //    ep = new IPEndPoint(NetHelper.ParseAddress(item.Substring(0, p)), Int32.Parse(item.Substring(p + 1)));
