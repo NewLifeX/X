@@ -15,10 +15,9 @@ namespace XNet
 {
     public partial class FrmMain : Form
     {
-        //TcpServer _TcpSever;
-        //UdpServer _UdpServer;
         NetServer _Server;
-        TcpSession _TcpSession;
+        TcpSession _Tcp;
+        UdpServer _Udp;
 
         #region 窗体
         public FrmMain()
@@ -75,7 +74,9 @@ namespace XNet
         #region 收发数据
         void Connect()
         {
-            _TcpSession = null;
+            _Server = null;
+            _Tcp = null;
+            _Udp = null;
 
             var port = (Int32)numPort.Value;
 
@@ -94,7 +95,7 @@ namespace XNet
                 case WorkModes.UDP_TCP:
                     _Server.Start();
                     break;
-                case WorkModes.UDP:
+                case WorkModes.UDP_Server:
                     _Server.ProtocolType = ProtocolType.Udp;
                     _Server.Start();
                     break;
@@ -103,13 +104,24 @@ namespace XNet
                     _Server.Start();
                     break;
                 case WorkModes.TCP_Client:
-                    _Server = null;
-                    _TcpSession = new TcpSession();
-                    _TcpSession.Log = XTrace.Log;
-                    _TcpSession.Received += OnReceived;
-                    _TcpSession.Remote.Port = port;
-                    _TcpSession.Remote.Host = cbAddr.Text;
-                    _TcpSession.Open();
+                    var tcp = new TcpSession();
+                    tcp.Log = XTrace.Log;
+                    tcp.Received += OnReceived;
+                    tcp.Remote.Port = port;
+                    tcp.Remote.Host = cbAddr.Text;
+                    tcp.Open();
+                    _Tcp = tcp;
+
+                    config.Address = cbAddr.Text;
+                    break;
+                case WorkModes.UDP_Client:
+                    var udp = new UdpServer();
+                    udp.Log = XTrace.Log;
+                    udp.Received += OnReceived;
+                    udp.Remote.Port = port;
+                    udp.Remote.Host = cbAddr.Text;
+                    udp.Open();
+                    _Udp = udp;
 
                     config.Address = cbAddr.Text;
                     break;
@@ -137,10 +149,17 @@ namespace XNet
 
         void Disconnect()
         {
-            if (_TcpSession != null)
+            var tcp = _Tcp;
+            if (tcp != null)
             {
-                _TcpSession.Dispose();
-                _TcpSession = null;
+                _Tcp = null;
+                tcp.Dispose();
+            }
+            var udp = _Udp;
+            if (udp != null)
+            {
+                _Udp = null;
+                udp.Dispose();
             }
             if (_Server != null)
             {
@@ -171,10 +190,11 @@ namespace XNet
                 session = ns.Session;
             }
 
-            //var line = e.Stream.ToStr();
-            var line = String.Format("{0} [{1}]: {2}\r\n", session.Remote, e.Length, e.Data.ToHex(0, e.Length));
+            var line = String.Format("{0} [{1}]: {2}", session.Remote, e.Length, e.ToHex());
             //XTrace.UseWinFormWriteLog(txtReceive, line, 100000);
-            TextControlLog.WriteLog(txtReceive, line);
+            //TextControlLog.WriteLog(txtReceive, line);
+            XTrace.WriteLine(line);
+            XTrace.WriteLine(e.ToStr());
         }
 
         Int32 _pColor = 0;
@@ -225,8 +245,10 @@ namespace XNet
             var count = (Int32)numMutilSend.Value;
             for (int i = 0; i < count; i++)
             {
-                //spList.Send(str);
-                _TcpSession.Send(str);
+                if (_Tcp != null)
+                    _Tcp.Send(str);
+                else if (_Udp != null)
+                    _Udp.Send(str);
 
                 Thread.Sleep(100);
             }
@@ -291,6 +313,7 @@ namespace XNet
             switch (mode)
             {
                 case WorkModes.TCP_Client:
+                case WorkModes.UDP_Client:
                     cbAddr.DropDownStyle = ComboBoxStyle.DropDown;
                     cbAddr.DataSource = null;
                     cbAddr.Items.Clear();
@@ -298,7 +321,7 @@ namespace XNet
                     break;
                 default:
                 case WorkModes.UDP_TCP:
-                case WorkModes.UDP:
+                case WorkModes.UDP_Server:
                 case WorkModes.TCP_Server:
                     cbAddr.DropDownStyle = ComboBoxStyle.DropDownList;
                     cbAddr.DataSource = GetIPs();

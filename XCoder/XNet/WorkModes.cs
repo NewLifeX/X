@@ -10,8 +10,10 @@ namespace XNet
     {
         [Description("TCP/UDP混合")]
         UDP_TCP = 1,
-        [Description("UDP")]
-        UDP,
+        [Description("UDP服务端")]
+        UDP_Server,
+        [Description("UDP客户端")]
+        UDP_Client,
         [Description("TCP服务端")]
         TCP_Server,
         [Description("TCP客户端")]
