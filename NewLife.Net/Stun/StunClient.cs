@@ -106,13 +106,13 @@ namespace NewLife.Net.Stun
         #endregion
 
         #region 属性
-        private ISocket _Socket;
+        private ISocketClient _Socket;
         /// <summary>套接字</summary>
-        public ISocket Socket { get { return _Socket; } set { _Socket = value; } }
+        public ISocketClient Socket { get { return _Socket; } set { _Socket = value; } }
 
-        private ISocket _Socket2;
+        private ISocketClient _Socket2;
         /// <summary>用于测试更换本地套接字的第二套接字</summary>
-        public ISocket Socket2 { get { return _Socket2; } set { _Socket2 = value; } }
+        public ISocketClient Socket2 { get { return _Socket2; } set { _Socket2 = value; } }
 
         private ProtocolType _ProtocolType = ProtocolType.Udp;
         /// <summary>协议，默认Udp</summary>
@@ -149,7 +149,18 @@ namespace NewLife.Net.Stun
         /// <summary>在指定套接字上执行查询</summary>
         /// <param name="socket"></param>
         /// <returns></returns>
-        public StunClient(ISocket socket) { Socket = socket; }
+        public StunClient(ISocket socket)
+        {
+            // UDP可以直接使用，而Tcp需要另外处理
+            Socket = socket as ISocketClient;
+            if (Socket == null)
+            {
+                //var client = NetService.Container.Resolve<ISocketClient>(socket.Local.ProtocolType);
+                var tcp = new TcpClient();
+                tcp.Client = socket.Socket;
+                Socket = new TcpSession(tcp);
+            }
+        }
 
         // 如果是外部传进来的Socket，也销毁，就麻烦大了
         ///// <summary>子类重载实现资源释放逻辑时必须首先调用基类方法</summary>
@@ -365,7 +376,7 @@ namespace NewLife.Net.Stun
                 //    ep = new IPEndPoint(NetHelper.ParseAddress(item.Substring(0, p)), Int32.Parse(item.Substring(p + 1)));
                 //else
                 //    ep = new IPEndPoint(NetHelper.ParseAddress(item), 3478);
-                var rs = Query(Socket as ISocketClient, msg, ep);
+                var rs = Query(Socket, msg, ep);
                 if (rs != null && rs.MappedAddress != null) return rs.MappedAddress;
             }
             return null;
@@ -380,7 +391,7 @@ namespace NewLife.Net.Stun
         public StunMessage Query(StunMessage request, IPEndPoint remoteEndPoint)
         {
             EnsureSocket();
-            return Query(Socket as ISocketClient, request, remoteEndPoint);
+            return Query(Socket, request, remoteEndPoint);
         }
 
         static StunMessage Query(ISocketClient client, StunMessage request, IPEndPoint remoteEndPoint)
