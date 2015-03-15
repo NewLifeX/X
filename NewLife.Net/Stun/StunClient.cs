@@ -244,28 +244,34 @@ namespace NewLife.Net.Stun
             {
                 WriteLog("使用服务器：{0}", item);
 
-                Int32 p = item.IndexOf(":");
-                if (p > 0)
-                    result = QueryWithServer(item.Substring(0, p), Int32.Parse(item.Substring(p + 1)));
-                else
-                    result = QueryWithServer(item, 3478);
+                //Int32 p = item.IndexOf(":");
+                //if (p > 0)
+                //    result = QueryWithServer(item.Substring(0, p), Int32.Parse(item.Substring(p + 1)));
+                //else
+                //    result = QueryWithServer(item, 3478);
+                var ep = NetHelper.ParseEndPoint(item, 3478);
+                try
+                {
+                    result = QueryWithServer(ep.Address, ep.Port);
+                }
+                catch { result = null; }
 
                 yield return result;
             }
         }
 
-        /// <summary>在指定服务器上执行查询</summary>
-        /// <param name="host"></param>
-        /// <param name="port"></param>
-        /// <returns></returns>
-        public StunResult QueryWithServer(String host, Int32 port = 3478)
-        {
-            try
-            {
-                return QueryWithServer(NetHelper.ParseAddress(host), port);
-            }
-            catch { return null; }
-        }
+        ///// <summary>在指定服务器上执行查询</summary>
+        ///// <param name="host"></param>
+        ///// <param name="port"></param>
+        ///// <returns></returns>
+        //public StunResult QueryWithServer(String host, Int32 port = 3478)
+        //{
+        //    try
+        //    {
+        //        return QueryWithServer(NetHelper.ParseAddress(host), port);
+        //    }
+        //    catch { return null; }
+        //}
 
         /// <summary>在指定服务器上执行查询</summary>
         /// <param name="address"></param>
