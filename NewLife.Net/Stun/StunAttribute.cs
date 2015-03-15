@@ -184,7 +184,7 @@ namespace NewLife.Net.Stun
             switch (Type)
             {
                 case AttributeType.ChangeRequest:
-                    return "ChangeIP:{0} ChangePort:{1}".F((Int & 4) != 0, (Int & 2) != 0);
+                    return "改变IP:{0} Port:{1}".F((Int & 4) >> 2, (Int & 2) >> 1);
                 case AttributeType.MappedAddress:
                 case AttributeType.ResponseAddress:
                 case AttributeType.SourceAddress:

@@ -5,6 +5,7 @@ using System.Net;
 using System.Text;
 using NewLife.Reflection;
 using NewLife.Serialization;
+using System.Linq;
 
 namespace NewLife.Net.Stun
 {
@@ -166,21 +167,11 @@ namespace NewLife.Net.Stun
         #endregion
 
         #region 扩展属性
-        //[NonSerialized]
-        //private Encoding _Encoding = Encoding.Default;
-        ///// <summary>编码</summary>
-        //public Encoding Encoding { get { return _Encoding; } set { _Encoding = value; } }
-
         /// <summary>映射地址</summary>
         public IPEndPoint MappedAddress { get { return GetAtt<IPEndPoint>(AttributeType.MappedAddress); } set { SetAtt<IPEndPoint>(AttributeType.MappedAddress, value); } }
 
         /// <summary>响应地址</summary>
         public IPEndPoint ResponseAddress { get { return GetAtt<IPEndPoint>(AttributeType.ResponseAddress); } set { SetAtt<IPEndPoint>(AttributeType.ResponseAddress, value); } }
-
-        //[NonSerialized]
-        //private ChangeRequest _Change = new ChangeRequest(false, false);
-        ///// <summary>请求改变</summary>
-        //public ChangeRequest Change { get { return _Change; } set { _Change = value; } }
 
         /// <summary>请求改变</summary>
         public Boolean ChangeIP { get { return GetAtt<Boolean>(AttributeType.ChangeRequest, 0); } set { SetAtt<Boolean>(AttributeType.ChangeRequest, value, 0); } }
@@ -199,11 +190,6 @@ namespace NewLife.Net.Stun
 
         /// <summary>密码</summary>
         public String Password { get { return GetAtt<String>(AttributeType.Password); } set { SetAtt<String>(AttributeType.Password, value); } }
-
-        //[NonSerialized]
-        //private Error _Err;
-        ///// <summary>错误</summary>
-        //public Error Err { get { return _Err; } set { _Err = value; } }
 
         /// <summary>错误</summary>
         public Int32 ErrCode { get { return GetAtt<Int32>(AttributeType.ErrorCode); } set { SetAtt<Int32>(AttributeType.ErrorCode, value); } }
@@ -235,7 +221,6 @@ namespace NewLife.Net.Stun
         {
             if (TransactionID == null || TransactionID.Length != 16) TransactionID = new Byte[16];
             var rnd = new Random();
-            //TransactionID = (UInt16)rnd.Next();
             rnd.NextBytes(TransactionID);
             TransactionID[0] = 0;
         }
@@ -254,7 +239,7 @@ namespace NewLife.Net.Stun
             reader.EncodeInt = false;
             reader.IsLittleEndian = false;
             reader.UseFieldSize = true;
-            
+
             var msg = reader.Read<StunMessage>();
 
             // 负载数据
@@ -276,7 +261,6 @@ namespace NewLife.Net.Stun
         {
             if (stream == null) throw new ArgumentNullException("stream");
 
-            // 因为写入前会预先处理Data，所以可以知道最终长度，不需要事后处理
             var writer = new Binary();
             writer.EncodeInt = false;
             writer.IsLittleEndian = false;
@@ -322,7 +306,12 @@ namespace NewLife.Net.Stun
         /// <returns></returns>
         public override string ToString()
         {
-            return "{0}[{1}]".F(Type, Atts.Count);
+            var tname = Type.ToString().TrimStart("Binding");
+            if (Atts.Count == 0) return tname;
+
+            if (Atts.Count == 1) return "{0} {1}".F(tname, Atts.FirstOrDefault().Value);
+
+            return "{0}[{1}] {2}".F(tname, Atts.Count, Atts.FirstOrDefault().Value);
         }
         #endregion
 

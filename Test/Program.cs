@@ -628,6 +628,7 @@ namespace Test
 
         static void Test15()
         {
+            //NetHelper.Debug = true;
             //var server = new StunServer();
             //server.Start();
 
@@ -637,10 +638,9 @@ namespace Test
             var rs = client.Query();
             if (rs != null)
             {
-                if (rs != null && rs.Type == StunNetType.Blocked && rs.Public != null) rs.Type = StunNetType.Symmetric;
-                WriteLog("网络类型：{0} {1}", rs.Type, rs.Type.GetDescription());
-                ep = rs.Public;
-                if (ep != null) pub = ep.Address;
+                //if (rs != null && rs.Type == StunNetType.Blocked && rs.Public != null) rs.Type = StunNetType.Symmetric;
+                XTrace.WriteLine("网络类型：{0} {1}", rs.Type, rs.Type.GetDescription());
+                XTrace.WriteLine("公网地址：{0}", rs.Public);
             }
         }
     }

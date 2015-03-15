@@ -86,7 +86,7 @@ namespace NewLife.Net.Stun
 
         #region 服务器
         //static String[] servers = new String[] { "stun.NewLifeX.com", "stun.sipgate.net:10000", "stunserver.org", "stun.xten.com", "stun.fwdnet.net", "stun.iptel.org", "220.181.126.73" };
-        static String[] servers = new String[] { "stun.sipgate.net:10000", "stun.xten.com", "stun.fwdnet.net", "stun.iptel.org", "220.181.126.73" };
+        static String[] servers = new String[] { "stun.NewLifeX.com", "stun.sipgate.net:10000", "stun.xten.com", "stun.fwdnet.net", "stun.iptel.org", "220.181.126.73" };
         private List<String> _Servers;
         /// <summary>Stun服务器</summary>
         public List<String> Servers
@@ -286,7 +286,7 @@ namespace NewLife.Net.Stun
             // UDP blocked.
             if (rs == null) return new StunResult(StunNetType.Blocked, null);
 
-            WriteLog("Stun服务器：{0}", rs.ServerName);
+            WriteLog("服务器：{0}", rs.ServerName);
             WriteLog("映射地址：{0}", rs.MappedAddress);
             WriteLog("源地址：{0}", rs.SourceAddress);
             WriteLog("新地址：{0}", rs.ChangedAddress);
@@ -395,7 +395,7 @@ namespace NewLife.Net.Stun
             return Query(Socket, request, remoteEndPoint);
         }
 
-        static StunMessage Query(ISocketClient client, StunMessage request, IPEndPoint remoteEndPoint)
+        StunMessage Query(ISocketClient client, StunMessage request, IPEndPoint remoteEndPoint)
         {
             Byte[] buffer = null;
             try
@@ -410,6 +410,9 @@ namespace NewLife.Net.Stun
                 }
                 //else
                 //    client.SendTo(request.ToArray(), remoteEndPoint);
+
+                WriteLog("查询 {0} =>{1}", request, remoteEndPoint);
+
                 client.Remote.EndPoint = remoteEndPoint;
                 client.Send(request.ToArray());
 
