@@ -24,6 +24,7 @@ using NewLife;
 using NewLife.Net.IO;
 using NewLife.Net.Stun;
 using NewLife.IP;
+using System.Net;
 
 namespace Test
 {
@@ -633,9 +634,19 @@ namespace Test
             //var server = new StunServer();
             //server.Start();
 
+            //Console.WriteLine(NetHelper.MyIP().GetAddress());
+            //Console.WriteLine(IPAddress.Any.GetAddress());
+            //Console.WriteLine(IPAddress.Loopback.GetAddress());
+
+            //var buf = NetHelper.MyIP().GetAddressBytes();
+            //buf[3] = 33;
+            //Console.WriteLine(new IPAddress(buf).GetAddress());
+
+            //var ip = NetHelper.ParseAddress("dg.newlifex.com");
+            //Console.WriteLine(ip.GetAddress());
+            //Console.WriteLine(Ip.GetAddress(ip.ToString()));
+
             var client = new StunClient();
-            //var pb = client.GetPublic();
-            //Console.WriteLine(pb);
             var rs = client.Query();
             if (rs != null)
             {

@@ -6,6 +6,7 @@ using NewLife.Threading;
 using NewLife.Web;
 using NewLife.Log;
 using System.Diagnostics;
+using System.Net;
 
 namespace NewLife.IP
 {
@@ -90,11 +91,23 @@ namespace NewLife.IP
             var ip2 = IPToUInt32(ip.Trim());
             lock (lockHelper)
             {
-                var addr = zip.GetAddress(ip2);
-                //if (String.IsNullOrEmpty(addr) || addr.IndexOf("IANA") >= 0) return "";
-                if (String.IsNullOrEmpty(addr)) return "";
+                return zip.GetAddress(ip2) + "";
+            }
+        }
 
-                return addr;
+        /// <summary>ªÒ»°IPµÿ÷∑</summary>
+        /// <param name="addr"></param>
+        /// <returns></returns>
+        public static String GetAddress(IPAddress addr)
+        {
+            if (addr == null) return "";
+
+            if (!Init()) return "";
+
+            var ip2 = (UInt32)addr.GetAddressBytes().Reverse().ToInt();
+            lock (lockHelper)
+            {
+                return zip.GetAddress(ip2) + "";
             }
         }
 
@@ -111,6 +124,14 @@ namespace NewLife.IP
                 }
             }
             return BitConverter.ToUInt32(buf, 0);
+        }
+    }
+
+    class MyIpProvider : NetHelper.IpProvider
+    {
+        public string GetAddress(IPAddress addr)
+        {
+            return Ip.GetAddress(addr);
         }
     }
 }

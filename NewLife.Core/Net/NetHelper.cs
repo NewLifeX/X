@@ -9,6 +9,7 @@ using System.Runtime.InteropServices;
 using NewLife.Collections;
 using NewLife.Configuration;
 using NewLife.Log;
+using NewLife.Model;
 using NewLife.Net;
 using NewLife.Reflection;
 
@@ -451,6 +452,55 @@ namespace System
 
             if (len != buf.Length) buf = buf.ReadBytes(0, len);
             return buf;
+        }
+        #endregion
+
+        #region IP地理位置
+        static IpProvider _IpProvider;
+        /// <summary>获取IP地址的物理地址位置</summary>
+        /// <param name="addr"></param>
+        /// <returns></returns>
+        public static String GetAddress(this IPAddress addr)
+        {
+            if (addr.IsAny())
+                return "任意地址";
+            else if (IPAddress.IsLoopback(addr))
+                return "本地环回地址";
+            else if (addr.IsLocal())
+                return "本机地址";
+
+            if (_IpProvider == null) _IpProvider = ObjectContainer.Current.AutoRegister<IpProvider, IpProviderDefault>().Resolve<IpProvider>();
+
+            return _IpProvider.GetAddress(addr);
+        }
+
+        /// <summary>IP地址提供者接口</summary>
+        public interface IpProvider
+        {
+            /// <summary>获取IP地址的物理地址位置</summary>
+            /// <param name="addr"></param>
+            /// <returns></returns>
+            String GetAddress(IPAddress addr);
+        }
+
+        class IpProviderDefault : IpProvider
+        {
+            public String GetAddress(IPAddress addr)
+            {
+                // 判断局域网地址
+                var ip = addr.ToString();
+                var myip = MyIP().ToString();
+                if (ip.CutEnd(".") == myip.CutEnd(".")) return "本地局域网";
+
+                var f = addr.GetAddressBytes()[0];
+                if ((f & 0x7F) == 0) return "A类地址";
+                if ((f & 0xC0) == 0x80) return "B类地址";
+                if ((f & 0xE0) == 0xC0) return "C类地址";
+                if ((f & 0xF0) == 0xE0) return "D类地址";
+                if ((f & 0xF8) == 0xF0) return "E类地址";
+
+                return "";
+            }
         }
         #endregion
     }
