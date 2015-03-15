@@ -45,7 +45,8 @@ namespace NewLife.IP
 
                     var sw = new Stopwatch();
                     sw.Start();
-                    var file = client.DownloadLink(url, "ip.gz", "App_Data".GetFullPath());
+                    var dir = Runtime.IsWeb ? "App_Data" : "Data";
+                    var file = client.DownloadLink(url, "ip.gz", dir.GetFullPath());
                     sw.Stop();
 
                     XTrace.WriteLine("下载IP数据库完成，共{0:n0}字节，耗时{1}毫秒", file.AsFile().Length, sw.ElapsedMilliseconds);
