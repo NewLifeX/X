@@ -33,6 +33,8 @@ namespace NewLife.Net.Stun
         /// <summary>实例化</summary>
         public StunServer()
         {
+            Name = this.GetType().Name.TrimEnd("Server");
+
             Port = 3478;
             Port2 = Port + 1;
 
@@ -157,7 +159,7 @@ namespace NewLife.Net.Stun
                 switch (request.Type)
                 {
                     case StunMessageType.BindingRequest:
-                    case StunMessageType.BindingResponse:
+                        //case StunMessageType.BindingResponse:
                         OnBind(request, session);
                         break;
                     case StunMessageType.SharedSecretRequest:
