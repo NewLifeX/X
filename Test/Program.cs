@@ -23,6 +23,7 @@ using XCode.Transform;
 using NewLife;
 using NewLife.Net.IO;
 using NewLife.Net.Stun;
+using NewLife.IP;
 
 namespace Test
 {
@@ -640,7 +641,7 @@ namespace Test
             {
                 //if (rs != null && rs.Type == StunNetType.Blocked && rs.Public != null) rs.Type = StunNetType.Symmetric;
                 XTrace.WriteLine("网络类型：{0} {1}", rs.Type, rs.Type.GetDescription());
-                XTrace.WriteLine("公网地址：{0}", rs.Public);
+                XTrace.WriteLine("公网地址：{0} {1}", rs.Public, Ip.GetAddress(rs.Public.Address.ToString()));
             }
         }
     }

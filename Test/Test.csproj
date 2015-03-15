@@ -70,6 +70,10 @@
       <Project>{5813C22E-EEB3-4DEE-A45C-BB218041193A}</Project>
       <Name>NewLife.Core</Name>
     </ProjectReference>
+    <ProjectReference Include="..\NewLife.IP\NewLife.IP.csproj">
+      <Project>{b2d1b525-2d28-405b-ae41-9d8b76d34a9f}</Project>
+      <Name>NewLife.IP</Name>
+    </ProjectReference>
     <ProjectReference Include="..\NewLife.Net\NewLife.Net.csproj">
       <Project>{5A8EF50C-3394-4C1E-99F0-33EFE8691CB0}</Project>
       <Name>NewLife.Net</Name>
