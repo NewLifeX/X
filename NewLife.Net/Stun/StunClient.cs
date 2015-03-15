@@ -85,7 +85,8 @@ namespace NewLife.Net.Stun
         #endregion
 
         #region 服务器
-        static String[] servers = new String[] { "stun.NewLifeX.com", "stun.sipgate.net:10000", "stunserver.org", "stun.xten.com", "stun.fwdnet.net", "stun.iptel.org", "220.181.126.73" };
+        //static String[] servers = new String[] { "stun.NewLifeX.com", "stun.sipgate.net:10000", "stunserver.org", "stun.xten.com", "stun.fwdnet.net", "stun.iptel.org", "220.181.126.73" };
+        static String[] servers = new String[] { "stun.sipgate.net:10000", "stun.xten.com", "stun.fwdnet.net", "stun.iptel.org", "220.181.126.73" };
         private List<String> _Servers;
         /// <summary>Stun服务器</summary>
         public List<String> Servers

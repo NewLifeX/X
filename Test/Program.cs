@@ -628,19 +628,20 @@ namespace Test
 
         static void Test15()
         {
-            var msg = new StunMessage();
-            msg.Type = StunMessageType.BindingRequest;
-            msg.ChangeIP = true;
-            msg.ChangePort = true;
-            var str = msg.ToString();
-            Console.WriteLine(str);
-
             //var server = new StunServer();
             //server.Start();
 
             var client = new StunClient();
-            var pb = client.GetPublic();
-            Console.WriteLine(pb);
+            //var pb = client.GetPublic();
+            //Console.WriteLine(pb);
+            var rs = client.Query();
+            if (rs != null)
+            {
+                if (rs != null && rs.Type == StunNetType.Blocked && rs.Public != null) rs.Type = StunNetType.Symmetric;
+                WriteLog("网络类型：{0} {1}", rs.Type, rs.Type.GetDescription());
+                ep = rs.Public;
+                if (ep != null) pub = ep.Address;
+            }
         }
     }
 }
