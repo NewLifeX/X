@@ -20,14 +20,13 @@ namespace NewLife.Net.Stun
             +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+                            
         */
 
-        //[NonSerialized]
-        //private AttributeType _Type;
-        ///// <summary>类型</summary>
-        //public AttributeType Type { get { return _Type; } set { _Type = value; } }
+        private AttributeType _Type;
+        /// <summary>类型</summary>
+        public AttributeType Type { get { return _Type; } set { _Type = value; } }
 
-        private Int16 _Length;
+        private UInt16 _Length;
         /// <summary>属性说明</summary>
-        public Int16 Length { get { return _Length; } set { _Length = value; } }
+        public UInt16 Length { get { return _Length; } set { _Length = value; } }
 
         [FieldSize("_Length")]
         private Byte[] _Data;
@@ -176,6 +175,42 @@ namespace NewLife.Net.Stun
             endPoint.Address.GetAddressBytes().CopyTo(data, 4);
 
             return data;
+        }
+        #endregion
+
+        #region 辅助
+        public override string ToString()
+        {
+            switch (Type)
+            {
+                case AttributeType.ChangeRequest:
+                    return "ChangeIP:{0} ChangePort:{1}".F((Int & 4) != 0, (Int & 2) != 0);
+                case AttributeType.MappedAddress:
+                case AttributeType.ResponseAddress:
+                case AttributeType.SourceAddress:
+                case AttributeType.ChangedAddress:
+                    return EndPoint + "";
+                case AttributeType.Username:
+                case AttributeType.Password:
+                    return Str;
+                case AttributeType.MessageIntegrity:
+                    return Str;
+                case AttributeType.ErrorCode:
+                    return Int + "";
+                case AttributeType.UnknownAttribute:
+                    break;
+                case AttributeType.ReflectedFrom:
+                    break;
+                case AttributeType.XorMappedAddress:
+                    return EndPoint + "";
+                case AttributeType.XorOnly:
+                    break;
+                case AttributeType.ServerName:
+                    return Str;
+                default:
+                    break;
+            }
+            return base.ToString();
         }
         #endregion
     }

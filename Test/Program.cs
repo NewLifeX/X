@@ -39,7 +39,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test15();
+                Test15();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -628,8 +628,19 @@ namespace Test
 
         static void Test15()
         {
-            var server = new StunServer();
-            server.Start();
+            var msg = new StunMessage();
+            msg.Type = StunMessageType.BindingRequest;
+            msg.ChangeIP = true;
+            msg.ChangePort = true;
+            var str = msg.ToString();
+            Console.WriteLine(str);
+
+            //var server = new StunServer();
+            //server.Start();
+
+            var client = new StunClient();
+            var pb = client.GetPublic();
+            Console.WriteLine(pb);
         }
     }
 }

@@ -46,17 +46,17 @@ namespace NewLife.Net.Stun
         ///// <summary>幻数。0x2112A442</summary>
         //public Int32 MagicCookie { get { return _MagicCookie; } set { _MagicCookie = value; } }
 
-        //[FieldSize(16)]
-        private Int32 _TransactionID;
+        [FieldSize(16)]
+        private Byte[] _TransactionID;
         /// <summary>会话编号</summary>
-        public Int32 TransactionID { get { return _TransactionID; } set { _TransactionID = value; } }
+        public Byte[] TransactionID { get { return _TransactionID; } set { _TransactionID = value; } }
         #endregion
 
         #region 特性集合
-        [FieldSize("_Length")]
-        private Byte[] _Data;
-        /// <summary>数据</summary>
-        private Byte[] Data { get { return _Data; } set { _Data = value; } }
+        //[FieldSize("_Length")]
+        //private Byte[] _Data;
+        ///// <summary>数据</summary>
+        //private Byte[] Data { get { return _Data; } set { _Data = value; } }
 
         [NonSerialized]
         private Dictionary<AttributeType, StunAttribute> _Atts;
@@ -73,6 +73,7 @@ namespace NewLife.Net.Stun
             lock (Atts)
             {
                 att = new StunAttribute();
+                att.Type = type;
                 Atts.Add(type, att);
                 return att;
             }
@@ -108,7 +109,7 @@ namespace NewLife.Net.Stun
 
         void SetAtt<T>(AttributeType type, T value, Int32 position = 0)
         {
-            StunAttribute att = GetAtt(type, true);
+            var att = GetAtt(type, true);
 
             switch (type)
             {
@@ -232,10 +233,11 @@ namespace NewLife.Net.Stun
         /// <summary>重置会话ID</summary>
         public void ResetTransactionID()
         {
-            //if (TransactionID == null || TransactionID.Length != 16) TransactionID = new Byte[16];
+            if (TransactionID == null || TransactionID.Length != 16) TransactionID = new Byte[16];
             var rnd = new Random();
-            TransactionID = (Int16)rnd.Next();
-            //TransactionID[0] = 0;
+            //TransactionID = (UInt16)rnd.Next();
+            rnd.NextBytes(TransactionID);
+            TransactionID[0] = 0;
         }
         #endregion
 
@@ -247,13 +249,25 @@ namespace NewLife.Net.Stun
         {
             if (stream == null) throw new ArgumentNullException("stream");
 
-            var reader = new BinaryReaderX();
+            var reader = new Binary();
             reader.Stream = stream;
-            var set = reader.Settings;
-            set.UseObjRef = false;
-            set.EncodeInt = false;
-            set.IsLittleEndian = false;
-            return reader.ReadObject<StunMessage>();
+            reader.EncodeInt = false;
+            reader.IsLittleEndian = false;
+            reader.UseFieldSize = true;
+            
+            var msg = reader.Read<StunMessage>();
+
+            // 负载数据
+            var p = stream.Position + msg.Length;
+            if (p > stream.Length) p = stream.Length;
+            while (stream.Position < p)
+            {
+                //var type = reader.Read<AttributeType>();
+                var att = reader.Read<StunAttribute>();
+                msg.Atts[att.Type] = att;
+            }
+
+            return msg;
         }
 
         /// <summary>把消息写入流中</summary>
@@ -263,13 +277,26 @@ namespace NewLife.Net.Stun
             if (stream == null) throw new ArgumentNullException("stream");
 
             // 因为写入前会预先处理Data，所以可以知道最终长度，不需要事后处理
-            var writer = new BinaryWriterX();
+            var writer = new Binary();
+            writer.EncodeInt = false;
+            writer.IsLittleEndian = false;
+            writer.UseFieldSize = true;
+
+            // 先写特性，为了取得数据长度
+            foreach (var att in Atts)
+            {
+                //writer.Write(att.Key);
+                var str = att.Value.ToString();
+                writer.Write(att.Value);
+            }
+            var ms = writer.Stream;
+            Length = (UInt16)ms.Length;
+
             writer.Stream = stream;
-            var set = writer.Settings;
-            set.UseObjRef = false;
-            set.EncodeInt = false;
-            set.IsLittleEndian = false;
-            writer.WriteObject(this);
+            writer.Write(this);
+
+            // 把特性数据写入
+            stream.Write(ms.ToArray());
         }
 
         /// <summary>获取消息的数据流</summary>
@@ -280,6 +307,22 @@ namespace NewLife.Net.Stun
             Write(ms);
             ms.Position = 0;
             return ms;
+        }
+
+        /// <summary>获取消息的字节码</summary>
+        /// <returns></returns>
+        public Byte[] ToArray()
+        {
+            var ms = new MemoryStream();
+            Write(ms);
+            return ms.ToArray();
+        }
+
+        /// <summary>已重载。</summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            return "{0}[{1}]".F(Type, Atts.Count);
         }
         #endregion
 

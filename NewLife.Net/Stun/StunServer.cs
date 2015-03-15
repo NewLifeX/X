@@ -75,7 +75,7 @@ namespace NewLife.Net.Stun
                     }
                     else
                         ep = new StunClient(item).GetPublic();
-                    if (rs != null && rs.Type > StunNetType.RestrictedCone) ep = new IPEndPoint(pub, item.Port);
+                    if (rs != null && rs.Type > StunNetType.AddressRestrictedCone) ep = new IPEndPoint(pub, item.Port);
                     WriteLog("{0}的公网地址：{1}", item.Local, ep);
                     dic.Add(item.Port, ep);
                 }
@@ -112,7 +112,7 @@ namespace NewLife.Net.Stun
                 //if (remote == null && session != null) remote = session.RemoteEndPoint;
 
                 var request = StunMessage.Read(stream);
-                WriteLog("{0} {1}{2}{3}", remote, request.Type, request.ChangeIP ? " ChangeIP" : "", request.ChangePort ? " ChangePort" : "");
+                WriteLog("{0} {1} {2}{3}", request.Type, remote, request.ChangeIP ? " ChangeIP" : "", request.ChangePort ? " ChangePort" : "");
 
                 // 如果是兄弟服务器发过来的，修正响应地址
                 switch (request.Type)
@@ -178,7 +178,7 @@ namespace NewLife.Net.Stun
         {
             var rs = new StunMessage();
             rs.Type = StunMessageType.BindingResponse;
-            rs.TransactionID = request.TransactionID;
+            rs.TransactionID = request.TransactionID.ReadBytes();
             rs.MappedAddress = session.Remote.EndPoint;
             //rs.SourceAddress = session.GetRelativeEndPoint(remote.Address);
             if (Public != null)

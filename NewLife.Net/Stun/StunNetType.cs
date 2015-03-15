@@ -29,12 +29,13 @@ namespace NewLife.Net.Stun
         FullCone,
 
         /// <summary>
-        /// 受限圆锥NAT。IP必须固定，端口可变。
+        /// 地址受限圆锥NAT。IP必须固定，端口可变。
         /// 一旦一个内部地址(iAddr:port1)映射到外部地址(eAddr:port2),所有发自iAddr:port1的包都经由eAddr:port2向外发送.
-        /// 任意外部主机(hostAddr:any)都能通过给eAddr:port2发包到达iAddr:port1的前提是：iAddr:port1之前发送过包到hostAddr:any. "any"也就是说端口不受限制
+        /// 任意外部主机(hostAddr:any)都能通过给eAddr:port2发包到达iAddr:port1的前提是：iAddr:port1之前发送过包到hostAddr:any. 
+        /// "any"也就是说端口不受限制
         /// </summary>
-        [Description("受限圆锥NAT")]
-        RestrictedCone,
+        [Description("地址受限圆锥NAT")]
+        AddressRestrictedCone,
 
         /// <summary>
         /// 端口受限圆锥NAT。IP和端口都必须固定

@@ -262,17 +262,18 @@ namespace NewLife.Net.Stun
         public StunResult QueryWithServer(IPAddress address, Int32 port)
         {
             EnsureSocket();
-            Socket socket = Socket.Socket;
+            var client = Socket as ISocketClient;
             var remote = new IPEndPoint(address, port);
 
             // Test I
             // 测试网络是否畅通
             var msg = new StunMessage();
             msg.Type = StunMessageType.BindingRequest;
-            var rs = Query(socket, msg, remote);
+            var rs = Query(client, msg, remote);
 
             // UDP blocked.
             if (rs == null) return new StunResult(StunNetType.Blocked, null);
+
             WriteLog("Stun服务器：{0}", rs.ServerName);
             WriteLog("映射地址：{0}", rs.MappedAddress);
             WriteLog("源地址：{0}", rs.SourceAddress);
@@ -288,10 +289,10 @@ namespace NewLife.Net.Stun
             // 如果本地地址就是映射地址，表示没有NAT。这里的本地地址应该有问题，永远都会是0.0.0.0
             //if (client.LocalEndPoint.Equals(test1response.MappedAddress))
             var pub = rs.MappedAddress;
-            if (pub != null && (socket.LocalEndPoint as IPEndPoint).Port == pub.Port && pub.Address.IsLocal())
+            if (pub != null && client.Local.Port == pub.Port && pub.Address.IsLocal())
             {
                 // 要求STUN服务器从另一个地址和端口向当前映射端口发送消息。如果收到，表明是完全开放网络；如果没收到，可能是防火墙阻止了。
-                rs = Query(socket, msg, remote);
+                rs = Query(client, msg, remote);
                 // Open Internet.
                 if (rs != null) return new StunResult(StunNetType.OpenInternet, pub);
 
@@ -300,7 +301,7 @@ namespace NewLife.Net.Stun
             }
             else
             {
-                rs = Query(socket, msg, remote);
+                rs = Query(client, msg, remote);
                 if (rs != null && pub == null) pub = rs.MappedAddress;
                 // Full cone NAT.
                 if (rs != null) return new StunResult(StunNetType.FullCone, pub);
@@ -311,15 +312,15 @@ namespace NewLife.Net.Stun
                 msg.ResetTransactionID();
 
                 // 如果是Tcp，这里需要准备第二个重用的Socket
-                if (socket.ProtocolType == ProtocolType.Tcp)
+                if (client.Local.ProtocolType == ProtocolType.Tcp)
                 {
                     EnsureSocket2();
-                    socket = Socket2.Socket;
+                    client = Socket2 as ISocketClient;
                 }
 
-                rs = Query(socket, msg, remote2);
+                rs = Query(client, msg, remote2);
                 // 如果第二服务器没响应，重试
-                if (rs == null) rs = Query(socket, msg, remote2);
+                if (rs == null) rs = Query(client, msg, remote2);
                 if (rs != null && pub == null) pub = rs.MappedAddress;
                 if (rs == null) return new StunResult(StunNetType.Blocked, pub);
 
@@ -331,10 +332,10 @@ namespace NewLife.Net.Stun
                 msg.ChangePort = true;
                 msg.ResetTransactionID();
 
-                rs = Query(socket, msg, remote2);
+                rs = Query(client, msg, remote2);
                 if (rs != null && pub == null) pub = rs.MappedAddress;
                 // 受限
-                if (rs != null) return new StunResult(StunNetType.RestrictedCone, pub);
+                if (rs != null) return new StunResult(StunNetType.AddressRestrictedCone, pub);
 
                 // 端口受限
                 return new StunResult(StunNetType.PortRestrictedCone, pub);
@@ -348,7 +349,7 @@ namespace NewLife.Net.Stun
         public IPEndPoint GetPublic()
         {
             EnsureSocket();
-            var socket = Socket.Socket;
+            //var socket = Socket.Socket;
             var msg = new StunMessage();
             msg.Type = StunMessageType.BindingRequest;
             IPEndPoint ep = null;
@@ -364,7 +365,7 @@ namespace NewLife.Net.Stun
                 //    ep = new IPEndPoint(NetHelper.ParseAddress(item.Substring(0, p)), Int32.Parse(item.Substring(p + 1)));
                 //else
                 //    ep = new IPEndPoint(NetHelper.ParseAddress(item), 3478);
-                var rs = Query(socket, msg, ep);
+                var rs = Query(Socket as ISocketClient, msg, ep);
                 if (rs != null && rs.MappedAddress != null) return rs.MappedAddress;
             }
             return null;
@@ -379,32 +380,29 @@ namespace NewLife.Net.Stun
         public StunMessage Query(StunMessage request, IPEndPoint remoteEndPoint)
         {
             EnsureSocket();
-            return Query(Socket.Socket, request, remoteEndPoint);
+            return Query(Socket as ISocketClient, request, remoteEndPoint);
         }
 
-        static StunMessage Query(Socket socket, StunMessage request, IPEndPoint remoteEndPoint)
+        static StunMessage Query(ISocketClient client, StunMessage request, IPEndPoint remoteEndPoint)
         {
-            var ms = new MemoryStream();
-            request.Write(ms);
-            ms.Position = 0;
             Byte[] buffer = null;
             try
             {
-                if (socket.ProtocolType == ProtocolType.Tcp)
+                if (client.Local.ProtocolType == ProtocolType.Tcp)
                 {
                     // Tcp协议不支持更换IP或者端口
                     if (request.ChangeIP || request.ChangePort) return null;
 
-                    if (!socket.Connected) socket.Connect(remoteEndPoint);
-                    socket.Send(ms.ToArray());
+                    //if (!client.Connected) client.Connect(remoteEndPoint);
+                    //client.Send(request.ToArray());
                 }
-                else
-                    socket.SendTo(ms.ToArray(), remoteEndPoint);
+                //else
+                //    client.SendTo(request.ToArray(), remoteEndPoint);
+                client.Remote.EndPoint = remoteEndPoint;
+                client.Send(request.ToArray());
 
-                var data = new Byte[150];
-                Int32 count = socket.Receive(data);
-                buffer = new Byte[count];
-                Buffer.BlockCopy(data, 0, buffer, 0, count);
+                buffer = client.Receive();
+                if (buffer == null || buffer.Length == 0) return null;
             }
             catch { return null; }
 
@@ -413,7 +411,7 @@ namespace NewLife.Net.Stun
             if (rs == null) return null;
 
             // 不是同一个会话不要
-            if (rs.TransactionID != request.TransactionID) return null;
+            if (rs.TransactionID.CompareTo(request.TransactionID) != 0) return null;
             // 不是期望的响应不要
             if (rs.Type != (StunMessageType)((UInt16)request.Type | 0x0100)) return null;
             return rs;
