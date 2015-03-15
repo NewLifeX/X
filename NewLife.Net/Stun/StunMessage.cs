@@ -10,7 +10,7 @@ namespace NewLife.Net.Stun
 {
     /// <summary>Stun消息</summary>
     /// <remarks>未测试，可能没有考虑字节序</remarks>
-    public class StunMessage : IAccessor
+    public class StunMessage //: IAccessor
     {
         #region 属性
         /* RFC 5389 6.             
@@ -46,10 +46,10 @@ namespace NewLife.Net.Stun
         ///// <summary>幻数。0x2112A442</summary>
         //public Int32 MagicCookie { get { return _MagicCookie; } set { _MagicCookie = value; } }
 
-        [FieldSize(16)]
-        private Byte[] _TransactionID;
+        //[FieldSize(16)]
+        private Int32 _TransactionID;
         /// <summary>会话编号</summary>
-        public Byte[] TransactionID { get { return _TransactionID; } set { _TransactionID = value; } }
+        public Int32 TransactionID { get { return _TransactionID; } set { _TransactionID = value; } }
         #endregion
 
         #region 特性集合
@@ -232,10 +232,10 @@ namespace NewLife.Net.Stun
         /// <summary>重置会话ID</summary>
         public void ResetTransactionID()
         {
-            if (TransactionID == null || TransactionID.Length != 16) TransactionID = new Byte[16];
-            var rnd = new Random((Int32)DateTime.Now.Ticks);
-            rnd.NextBytes(TransactionID);
-            TransactionID[0] = 0;
+            //if (TransactionID == null || TransactionID.Length != 16) TransactionID = new Byte[16];
+            var rnd = new Random();
+            TransactionID = (Int16)rnd.Next();
+            //TransactionID[0] = 0;
         }
         #endregion
 
@@ -284,47 +284,47 @@ namespace NewLife.Net.Stun
         #endregion
 
         #region IAccessor 成员
-        bool IAccessor.Read(IReader reader) { return false; }
+        //bool IAccessor.Read(IReader reader) { return false; }
 
-        bool IAccessor.ReadComplete(IReader reader, bool success)
-        {
-            // 分析属性
-            if (Data != null && Data.Length > 0)
-            {
-                reader.Stream = new MemoryStream(Data);
-                //_Atts = reader.ReadObject<Dictionary<AttributeType, StunAttribute>>();
-                while (reader.Stream.Position < reader.Stream.Length)
-                {
-                    var type = reader.ReadObject<AttributeType>();
-                    var att = reader.ReadObject<StunAttribute>();
-                    Atts[type] = att;
-                }
-            }
+        //bool IAccessor.ReadComplete(IReader reader, bool success)
+        //{
+        //    // 分析属性
+        //    if (Data != null && Data.Length > 0)
+        //    {
+        //        reader.Stream = new MemoryStream(Data);
+        //        //_Atts = reader.ReadObject<Dictionary<AttributeType, StunAttribute>>();
+        //        while (reader.Stream.Position < reader.Stream.Length)
+        //        {
+        //            var type = reader.ReadObject<AttributeType>();
+        //            var att = reader.ReadObject<StunAttribute>();
+        //            Atts[type] = att;
+        //        }
+        //    }
 
-            return success;
-        }
+        //    return success;
+        //}
 
-        bool IAccessor.Write(IWriter writer)
-        {
-            // 处理属性
-            if (Atts != null && Atts.Count > 0)
-            {
-                var wr = writer.GetType().CreateInstance() as IWriter;
-                wr.Settings = writer.Settings;
-                //wr.WriteObject(Atts);
-                foreach (var item in Atts)
-                {
-                    wr.WriteObject(item.Key);
-                    wr.WriteObject(item.Value);
-                }
-                wr.Stream.Position = 0;
-                Data = wr.Stream.ReadBytes();
-            }
+        //bool IAccessor.Write(IWriter writer)
+        //{
+        //    // 处理属性
+        //    if (Atts != null && Atts.Count > 0)
+        //    {
+        //        var wr = writer.GetType().CreateInstance() as IWriter;
+        //        wr.Settings = writer.Settings;
+        //        //wr.WriteObject(Atts);
+        //        foreach (var item in Atts)
+        //        {
+        //            wr.WriteObject(item.Key);
+        //            wr.WriteObject(item.Value);
+        //        }
+        //        wr.Stream.Position = 0;
+        //        Data = wr.Stream.ReadBytes();
+        //    }
 
-            return false;
-        }
+        //    return false;
+        //}
 
-        bool IAccessor.WriteComplete(IWriter writer, bool success) { return success; }
+        //bool IAccessor.WriteComplete(IWriter writer, bool success) { return success; }
         #endregion
     }
 }

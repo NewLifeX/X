@@ -413,7 +413,7 @@ namespace NewLife.Net.Stun
             if (rs == null) return null;
 
             // 不是同一个会话不要
-            if (rs.TransactionID.CompareTo(request.TransactionID) != 0) return null;
+            if (rs.TransactionID != request.TransactionID) return null;
             // 不是期望的响应不要
             if (rs.Type != (StunMessageType)((UInt16)request.Type | 0x0100)) return null;
             return rs;
