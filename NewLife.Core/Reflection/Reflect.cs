@@ -361,6 +361,29 @@ namespace NewLife.Reflection
             }
             return typeArray;
         }
+
+        /// <summary>获取成员的类型，字段和属性是它们的类型，方法是返回类型，类型是自身</summary>
+        /// <param name="member"></param>
+        /// <returns></returns>
+        public static Type GetMemberType(this MemberInfo member)
+        {
+            switch (member.MemberType)
+            {
+                case MemberTypes.Constructor:
+                    return (member as ConstructorInfo).DeclaringType;
+                case MemberTypes.Field:
+                    return (member as FieldInfo).FieldType;
+                case MemberTypes.Method:
+                    return (member as MethodInfo).ReturnType;
+                case MemberTypes.Property:
+                    return (member as PropertyInfo).PropertyType;
+                case MemberTypes.TypeInfo:
+                case MemberTypes.NestedType:
+                    return member as Type;
+                default:
+                    return null;
+            }
+        }
         #endregion
 
         #region 插件

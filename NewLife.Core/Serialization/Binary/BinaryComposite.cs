@@ -44,6 +44,10 @@ namespace NewLife.Serialization
 
             Host.Hosts.Push(value);
 
+            // 位域偏移
+            var offset = 0;
+            var bit = 0;
+
             // 获取成员
             foreach (var member in ms)
             {
@@ -52,6 +56,31 @@ namespace NewLife.Serialization
 
                 var v = value.GetValue(member);
                 WriteLog("    {0}.{1} {2}", type.Name, member.Name, v);
+
+                #region 处理位域支持
+                // 仅支持Byte
+                if (member.GetMemberType() == typeof(Byte))
+                {
+                    var att = member.GetCustomAttribute<BitSizeAttribute>();
+                    if (att != null)
+                    {
+                        // 合并位域数据
+                        bit = att.Set(bit, (Byte)v, offset);
+
+                        // 偏移
+                        offset += att.Size;
+
+                        // 不足8位，等下一次
+                        if (offset < 8) continue;
+
+                        // 足够8位，可以写入了，清空位移和bit给下一次使用
+                        v = (Byte)bit;
+                        offset = 0;
+                        bit = 0;
+                    }
+                }
+                #endregion
+
                 if (!Host.Write(v, mtype))
                 {
                     Host.Hosts.Pop();
@@ -59,6 +88,8 @@ namespace NewLife.Serialization
                 }
             }
             Host.Hosts.Pop();
+
+            if (offset > 0) throw new XException("类{0}的位域字段不足8位", type);
 
             return true;
         }
@@ -88,12 +119,55 @@ namespace NewLife.Serialization
 
             Host.Hosts.Push(value);
 
+            // 位域偏移
+            var offset = 0;
+            var bit = 0;
+
             // 获取成员
             foreach (var member in ms)
             {
                 var mtype = GetMemberType(member);
                 Host.Member = member;
                 WriteLog("    {0}.{1}", type.Name, member.Name);
+
+                #region 处理位域支持
+                // 仅支持Byte
+                if (member.GetMemberType() == typeof(Byte))
+                {
+                    var att = member.GetCustomAttribute<BitSizeAttribute>();
+                    if (att != null)
+                    {
+                        // 仅在第一个位移处读取
+                        if (offset == 0)
+                        {
+                            Object v2 = null;
+                            if (!Host.TryRead(mtype, ref v2))
+                            {
+                                Host.Hosts.Pop();
+                                return false;
+                            }
+                            bit = (Byte)v2;
+                        }
+
+                        // 取得当前字段所属部分
+                        var n = att.Get(bit, offset);
+
+                        value.SetValue(member, (Byte)n);
+
+                        // 偏移
+                        offset += att.Size;
+
+                        // 足够8位，可以写入了，清空位移和bit给下一次使用
+                        if (offset >= 8)
+                        {
+                            offset = 0;
+                            bit = 0;
+                        }
+
+                        continue;
+                    }
+                }
+                #endregion
 
                 Object v = null;
                 if (!Host.TryRead(mtype, ref v))
@@ -105,6 +179,8 @@ namespace NewLife.Serialization
                 value.SetValue(member, v);
             }
             Host.Hosts.Pop();
+
+            if (offset > 0) throw new XException("类{0}的位域字段不足8位", type);
 
             return true;
         }
