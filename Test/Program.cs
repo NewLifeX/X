@@ -25,6 +25,7 @@ using NewLife.Net.IO;
 using NewLife.Net.Stun;
 using NewLife.IP;
 using System.Net;
+using NewLife.Net.CoAP;
 
 namespace Test
 {
@@ -630,6 +631,17 @@ namespace Test
 
         static void Test15()
         {
+            var msg = new CoAPMessage();
+            msg.Ver = 1;
+            msg.Type = 2;
+            msg.OptionCount = 5;
+            msg.Code = 7;
+            var buf = msg.ToArray();
+            Console.WriteLine(buf.ToHex());
+
+            var msg2 = CoAPMessage.Read(buf);
+            Console.WriteLine(msg2.ToArray().ToHex());
+
             //NetHelper.Debug = true;
             //var server = new StunServer();
             //server.Start();
