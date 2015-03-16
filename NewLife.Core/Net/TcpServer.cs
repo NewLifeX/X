@@ -63,6 +63,10 @@ namespace NewLife.Net
         private IStatistics _Statistics = new Statistics();
         /// <summary>统计信息</summary>
         public IStatistics Statistics { get { return _Statistics; } private set { _Statistics = value; } }
+
+        private Boolean _MessageDgram;
+        /// <summary>使用消息报文。此时解决粘包拆包问题，每个报文前面使用7位压缩编码整数表示后面数据包长度</summary>
+        public Boolean MessageDgram { get { return _MessageDgram; } set { _MessageDgram = value; } }
         #endregion
 
         #region 构造
@@ -203,6 +207,7 @@ namespace NewLife.Net
             // 服务端不支持掉线重连
             session.AutoReconnect = false;
             session.Log = Log;
+            session.MessageDgram = MessageDgram;
             //if (Accepted != null) Accepted(this, new AcceptedEventArgs { Session = session });
 
             // 设置心跳时间

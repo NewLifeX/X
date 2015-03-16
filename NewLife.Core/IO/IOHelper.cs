@@ -601,6 +601,59 @@ namespace System
         }
         #endregion
 
+        #region 7位压缩编码整数
+        /// <summary>以压缩格式读取32位整数</summary>
+        /// <param name="stream">数据流</param>
+        /// <returns></returns>
+        public static Int32 ReadEncodedInt(this Stream stream)
+        {
+            Byte b;
+            Int32 rs = 0;
+            Byte n = 0;
+            while (true)
+            {
+                var bt = stream.ReadByte();
+                if (bt < 0) throw new Exception("数据流超出范围！");
+                b = (Byte)bt;
+
+                // 必须转为Int32，否则可能溢出
+                rs += (Int32)((b & 0x7f) << n);
+                if ((b & 0x80) == 0) break;
+
+                n += 7;
+                if (n >= 32) throw new FormatException("数字值过大，无法使用压缩格式读取！");
+            }
+            return rs;
+        }
+
+        /// <summary>
+        /// 以7位压缩格式写入32位整数，小于7位用1个字节，小于14位用2个字节。
+        /// 由每次写入的一个字节的第一位标记后面的字节是否还是当前数据，所以每个字节实际可利用存储空间只有后7位。
+        /// </summary>
+        /// <param name="stream">数据流</param>
+        /// <param name="value">数值</param>
+        /// <returns>实际写入字节数</returns>
+        public static Stream WriteEncodedInt(this Stream stream, Int32 value)
+        {
+            var list = new List<Byte>();
+
+            Int32 count = 1;
+            UInt32 num = (UInt32)value;
+            while (num >= 0x80)
+            {
+                list.Add((byte)(num | 0x80));
+                num = num >> 7;
+
+                count++;
+            }
+            list.Add((byte)num);
+
+            stream.Write(list.ToArray(), 0, list.Count);
+
+            return stream;
+        }
+        #endregion
+
         #region 数据流查找
         /// <summary>在数据流中查找字节数组的位置，流指针会移动到结尾</summary>
         /// <param name="stream">数据流</param>

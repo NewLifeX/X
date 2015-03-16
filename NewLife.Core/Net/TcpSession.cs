@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using NewLife.Threading;
@@ -32,6 +33,10 @@ namespace NewLife.Net
         private Boolean _AutoReconnect = true;
         /// <summary>是否自动重连，默认true。发生异常断开连接时，自动重连服务端。</summary>
         public Boolean AutoReconnect { get { return _AutoReconnect; } set { _AutoReconnect = value; } }
+
+        private Boolean _MessageDgram;
+        /// <summary>使用消息报文。此时解决粘包拆包问题，每个报文前面使用7位压缩编码整数表示后面数据包长度</summary>
+        public Boolean MessageDgram { get { return _MessageDgram; } set { _MessageDgram = value; } }
         #endregion
 
         #region 构造
@@ -159,7 +164,19 @@ namespace NewLife.Net
             {
                 // 修改发送缓冲区
                 if (Client.SendBufferSize < count) Client.SendBufferSize = count;
-                Client.GetStream().Write(buffer, offset, count);
+
+                // 特殊处理消息报文，增加字节长度
+                if (!MessageDgram)
+                    Client.GetStream().Write(buffer, offset, count);
+                else
+                {
+                    var ms = new MemoryStream();
+                    ms.WriteEncodedInt(count);
+                    ms.Write(buffer, offset, count);
+                    ms.Position = 0;
+
+                    Client.GetStream().Write(ms);
+                }
             }
             catch (Exception ex)
             {
