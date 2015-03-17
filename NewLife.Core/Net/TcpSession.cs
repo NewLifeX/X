@@ -92,7 +92,7 @@ namespace NewLife.Net
                 }
 
                 Client = new TcpClient(Local.EndPoint);
-                if (Port == 0) Port = (Socket.LocalEndPoint as IPEndPoint).Port;
+                CheckDynamic();
 
                 WriteLog("{0}.Open {1}", Name, this);
             }
@@ -268,7 +268,11 @@ namespace NewLife.Net
             {
                 // 开始新的监听
                 var buf = new Byte[Client.ReceiveBufferSize];
-                _Async = Client.GetStream().BeginRead(buf, 0, buf.Length, OnReceive, buf);
+                // 缓冲区大小
+                var len = buf.Length;
+                // 特殊处理消息报文，只用1字节，用于保存长度
+                if (MessageDgram) len = 0;
+                _Async = Client.GetStream().BeginRead(buf, 0, len, OnReceive, buf);
             }
             catch (Exception ex)
             {
@@ -302,7 +306,16 @@ namespace NewLife.Net
             var count = 0;
             try
             {
-                count = client.GetStream().EndRead(ar);
+                var stream = client.GetStream();
+                count = stream.EndRead(ar);
+                // 消息报文模式下，仅收到一个字节
+                if (MessageDgram && count > 0)
+                {
+                    var len = (Int32)data[0];
+                    if ((data[0] & 0x80) != 0) len = ((len & 0x7F) << 7) + stream.ReadByte();
+
+                    count = stream.Read(data, 0, len);
+                }
             }
             catch (Exception ex)
             {
@@ -324,7 +337,7 @@ namespace NewLife.Net
 
             LastTime = DateTime.Now;
 
-            if (UseProcessAsync)
+            if (!MessageDgram)
                 // 在用户线程池里面处理数据
                 ThreadPoolX.QueueUserWorkItem(() => OnReceive(data, count), ex => OnError("OnReceive", ex));
             else

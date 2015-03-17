@@ -59,6 +59,10 @@ namespace NewLife.Net
         private DateTime _LastTime;
         /// <summary>最后一次通信时间，主要表示活跃时间，包括收发</summary>
         public DateTime LastTime { get { return _LastTime; } internal protected set { _LastTime = value; } }
+
+        private Boolean _DynamicPort;
+        /// <summary>是否使用动态端口。如果Port为0则为动态端口</summary>
+        public Boolean DynamicPort { get { return _DynamicPort; } }
         #endregion
 
         #region 构造
@@ -98,7 +102,7 @@ namespace NewLife.Net
             Active = OnOpen();
             if (!Active) return false;
 
-            if (Port == 0) Port = (Socket.LocalEndPoint as IPEndPoint).Port;
+            //if (Port == 0) Port = (Socket.LocalEndPoint as IPEndPoint).Port;
             if (Timeout > 0) Socket.ReceiveTimeout = Timeout;
 
             // 触发打开完成的事件
@@ -113,6 +117,15 @@ namespace NewLife.Net
         /// <returns></returns>
         protected abstract Boolean OnOpen();
 
+        internal protected void CheckDynamic()
+        {
+            if (Port == 0)
+            {
+                _DynamicPort = true;
+                if (Port == 0) Port = (Socket.LocalEndPoint as IPEndPoint).Port;
+            }
+        }
+
         /// <summary>关闭</summary>
         /// <returns>是否成功</returns>
         public virtual Boolean Close()
@@ -123,6 +136,9 @@ namespace NewLife.Net
 
             // 触发关闭完成的事件
             if (Closed != null) Closed(this, EventArgs.Empty);
+
+            // 如果是动态端口，需要清零端口
+            if (DynamicPort) Port = 0;
 
             return !Active;
         }
@@ -164,9 +180,9 @@ namespace NewLife.Net
         /// <summary>是否异步接收数据</summary>
         public Boolean UseReceiveAsync { get { return _UseReceiveAsync; } set { _UseReceiveAsync = value; } }
 
-        private Boolean _UseProcessAsync = true;
-        /// <summary>是否异步处理接收到的数据，默认true利于提升网络吞吐量。异步处理有可能造成数据包乱序，特别是Tcp</summary>
-        public Boolean UseProcessAsync { get { return _UseProcessAsync; } set { _UseProcessAsync = value; } }
+        //private Boolean _UseProcessAsync = true;
+        ///// <summary>是否异步处理接收到的数据，默认true利于提升网络吞吐量。异步处理有可能造成数据包乱序，特别是Tcp</summary>
+        //public Boolean UseProcessAsync { get { return _UseProcessAsync; } set { _UseProcessAsync = value; } }
 
         /// <summary>开始异步接收</summary>
         /// <returns>是否成功</returns>

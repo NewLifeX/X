@@ -631,16 +631,30 @@ namespace Test
 
         static void Test15()
         {
-            var msg = new CoAPMessage();
-            msg.Ver = 1;
-            msg.Type = 2;
-            msg.OptionCount = 5;
-            msg.Code = 7;
-            var buf = msg.ToArray();
-            Console.WriteLine(buf.ToHex());
+            //var msg = new CoAPMessage();
+            //msg.Ver = 1;
+            //msg.Type = 2;
+            //msg.OptionCount = 5;
+            //msg.Code = 7;
+            //var buf = msg.ToArray();
+            //Console.WriteLine(buf.ToHex());
 
-            var msg2 = CoAPMessage.Read(buf);
-            Console.WriteLine(msg2.ToArray().ToHex());
+            //var msg2 = CoAPMessage.Read(buf);
+            //Console.WriteLine(msg2.ToArray().ToHex());
+
+            var server = new TcpServer();
+            server.Port = 8;
+            server.MessageDgram = true;
+            server.NewSession += server_NewSession;
+            server.Start();
+
+            var tcp = new TcpSession();
+            tcp.Remote = "tcp://127.0.0.1:8";
+            tcp.MessageDgram = true;
+            tcp.Send("我是大石头！");
+
+            var str = tcp.ReceiveString();
+            Console.WriteLine(str);
 
             //NetHelper.Debug = true;
             //var server = new StunServer();
@@ -666,6 +680,20 @@ namespace Test
                 XTrace.WriteLine("网络类型：{0} {1}", rs.Type, rs.Type.GetDescription());
                 XTrace.WriteLine("公网地址：{0} {1}", rs.Public, Ip.GetAddress(rs.Public.Address.ToString()));
             }
+        }
+
+        static void server_NewSession(object sender, SessionEventArgs e)
+        {
+            var session = sender as ISocketSession;
+            session.Received += session_Received;
+        }
+
+        static void session_Received(object sender, ReceivedEventArgs e)
+        {
+            var session = sender as ISocketSession;
+
+            Console.WriteLine(e.ToHex());
+            session.Send("收到" + e.ToStr());
         }
     }
 }
