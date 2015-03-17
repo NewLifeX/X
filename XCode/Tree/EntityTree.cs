@@ -33,10 +33,13 @@ namespace XCode
 
             // 避免实际应用中，直接调用Entity的静态方法时，没有引发TEntity的静态构造函数。
             TEntity entity = new TEntity();
+
+            // 更方便实体树子类重载树形设置
+            if (Setting == null) Setting = new EntityTreeSetting<TEntity> { Factory = Meta.Factory };
         }
 
         /// <summary>实体树操作者</summary>
-        protected static IEntityTreeSetting Setting = new EntityTreeSetting<TEntity> { Factory = Meta.Factory };
+        protected static IEntityTreeSetting Setting;
         #endregion
 
         #region 扩展属性
