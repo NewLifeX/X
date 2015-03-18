@@ -160,6 +160,7 @@ namespace NewLife.Net
 
             if (count < 0) count = buffer.Length - offset;
 
+            var stream = Client.GetStream();
             try
             {
                 // 修改发送缓冲区
@@ -167,7 +168,7 @@ namespace NewLife.Net
 
                 // 特殊处理消息报文，增加字节长度
                 if (!MessageDgram)
-                    Client.GetStream().Write(buffer, offset, count);
+                    stream.Write(buffer, offset, count);
                 else
                 {
                     var ms = new MemoryStream();
@@ -178,7 +179,7 @@ namespace NewLife.Net
                     ms.Write(buffer, offset, count);
                     ms.Position = 0;
 
-                    Client.GetStream().Write(ms);
+                    stream.Write(ms);
                 }
             }
             catch (Exception ex)
@@ -283,11 +284,7 @@ namespace NewLife.Net
             {
                 // 开始新的监听
                 var buf = new Byte[Client.ReceiveBufferSize];
-                // 缓冲区大小
-                var len = buf.Length;
-                // 特殊处理消息报文，使用0字节缓冲区，仅为了得到目标回调，在事件里面再读取长度
-                if (MessageDgram) len = 0;
-                _Async = Client.GetStream().BeginRead(buf, 0, len, OnReceive, buf);
+                _Async = Client.GetStream().BeginRead(buf, 0, buf.Length, OnReceive, buf);
             }
             catch (Exception ex)
             {
@@ -318,21 +315,12 @@ namespace NewLife.Net
 
             // 接收数据
             var data = (Byte[])ar.AsyncState;
+            // 数据长度，0表示收到空数据，-1表示收到部分包，后续跳过处理
             var count = 0;
             try
             {
                 var stream = client.GetStream();
                 count = stream.EndRead(ar);
-                // 消息报文模式下，仅收到一个字节
-                if (MessageDgram && count == 0)
-                {
-                    //var len = (Int32)data[0];
-                    //if ((data[0] & 0x80) != 0) len = ((len & 0x7F) << 7) + stream.ReadByte();
-                    var len = stream.ReadEncodedInt();
-                    WriteLog("读取报文数据部分{0}字节", len);
-
-                    count = stream.Read(data, 0, len);
-                }
             }
             catch (Exception ex)
             {
@@ -352,21 +340,42 @@ namespace NewLife.Net
                 Close();
             }
 
+            // 最后收到有效数据的时间
             LastTime = DateTime.Now;
 
-            if (!MessageDgram)
-                // 在用户线程池里面处理数据
-                ThreadPoolX.QueueUserWorkItem(() => OnReceive(data, count), ex => OnError("OnReceive", ex));
-            else
+            // 数据长度，0表示收到空数据，-1表示收到部分包，后续跳过处理
+            if (count >= 0)
             {
-                try
+                if (!MessageDgram)
+                    // 在用户线程池里面处理数据
+                    ThreadPoolX.QueueUserWorkItem(() => OnReceive(data, count), ex => OnError("OnReceive", ex));
+                else
                 {
-                    OnReceive(data, count);
-                }
-                catch (Exception ex)
-                {
-                    OnError("OnReceive", ex);
-                    if (Disposed) return;
+                    try
+                    {
+                        //OnReceive(data, count);
+                        WriteLog("收到数据包{0}字节", count);
+                        // 注意，很有可能一次收到多个包的数据，此时需要多次触发接收
+                        while (true)
+                        {
+                            data = CheckPacket(data, ref count);
+                            if (count <= 0) break;
+
+                            OnReceive(data, count);
+
+                            // 如果没有剩余数据，则直接退出
+                            if (PacketSize <= 0) break;
+
+                            // 为下一次调用准备数据
+                            data = null;
+                            count = 0;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        OnError("OnReceive", ex);
+                        if (Disposed) return;
+                    }
                 }
             }
 
@@ -388,6 +397,95 @@ namespace NewLife.Net
 
             // 数据发回去
             if (e.Feedback) Send(e.Data, 0, e.Length);
+        }
+        #endregion
+
+        #region 粘包处理
+        private MemoryStream _Packet;
+        /// <summary>用于粘包处理的数据流缓冲区，指针位于末端，便于附加数据。前面是7位压缩编码整数表示的报文长度</summary>
+        private MemoryStream Packet { get { return _Packet; } set { _Packet = value; } }
+
+        private Int32 _PacketSize;
+        /// <summary>所期望的报文大小</summary>
+        private Int32 PacketSize { get { return _PacketSize; } set { _PacketSize = value; } }
+
+        private Byte[] CheckPacket(Byte[] data, ref Int32 count)
+        {
+            var ms = Packet;
+
+            // 检查上一次接收数据是否有剩余
+            if (ms == null || ms.Length == 0)
+            {
+                // 空包，并且上次没有剩余
+                if (count <= 0) return data;
+
+                // 先转为数据流
+                ms = new MemoryStream(data, 0, count);
+
+                var len = ms.ReadEncodedInt();
+                // 如果长度足够整包，可以返回，剩余部分留下
+                if (len <= ms.Length - ms.Position)
+                {
+                    WriteLog("得到报文{0}字节", len);
+                    count = len;
+                    data = ReadPacket(ms, len);
+                }
+                else
+                {
+                    WriteLog("数据包大小{0}字节不能满足报文大小{1}字节", count, len);
+                    count = -1;
+
+                    PacketSize = len;
+                    Packet = new MemoryStream();
+                    Packet.Write(ms);
+                }
+            }
+            else
+            {
+                // 如果上一次有剩余，则附加data到后面
+                if (data != null && data.Length > 0 && count > 0)
+                {
+                    WriteLog("附加数据包{0}字节到上一次剩余数据包{1}字节", count, PacketSize);
+                    ms.Write(data, 0, count);
+                }
+
+                var len = PacketSize;
+                // 如果长度足够整包，可以返回，剩余部分留下
+                if (len <= ms.Length)
+                {
+                    WriteLog("凑够报文{0}字节", len);
+                    ms.Position = 0;
+                    count = len;
+                    data = ReadPacket(ms, len);
+                }
+                else
+                {
+                    WriteLog("仍然无法满足报文大小{0}字节", len);
+                    count = -1;
+                }
+            }
+
+            return data;
+        }
+
+        Byte[] ReadPacket(Stream ms, Int32 len)
+        {
+            var data = ms.ReadBytes(len);
+
+            // 剩余部分先读取长度，然后数据放到Packet里面
+            if (ms.Position < ms.Length)
+            {
+                PacketSize = ms.ReadEncodedInt();
+                Packet = new MemoryStream();
+                Packet.Write(ms);
+            }
+            else
+            {
+                PacketSize = 0;
+                Packet = null;
+            }
+
+            return data;
         }
         #endregion
 

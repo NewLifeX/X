@@ -642,7 +642,18 @@ namespace Test
             var tcp = new TcpSession();
             tcp.Remote = "tcp://127.0.0.1:8";
             tcp.MessageDgram = true;
-            tcp.Send("我是大石头！");
+            //tcp.Send("我是大石头！");
+            tcp.Open();
+            var ms = new MemoryStream();
+            for (int i = 0; i < 10; i++)
+            {
+                //tcp.Send("我是大石头{0}！".F(i + 1));
+                var buf = "我是大石头{0}！".F(i + 1).GetBytes();
+                ms.WriteEncodedInt(buf.Length);
+                ms.Write(buf);
+            }
+            ms.Position = 0;
+            tcp.Client.GetStream().Write(ms);
 
             var str = tcp.ReceiveString();
             Console.WriteLine(str);

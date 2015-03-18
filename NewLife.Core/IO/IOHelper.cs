@@ -156,7 +156,7 @@ namespace System
         /// <returns></returns>
         public static Stream Write(this Stream des, Stream src, Int32 bufferSize = 0, Int32 max = 0)
         {
-            src.CopyTo(des);
+            src.CopyTo(des, bufferSize, max);
             return des;
         }
 
