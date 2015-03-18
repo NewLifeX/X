@@ -26,23 +26,23 @@ namespace NewLife.Net.Common
         {
             var session = Session.Session;
             var s = e.Stream;
-            // 如果上次还留有数据，复制进去
-            if (session.Stream != null && session.Stream.Position < session.Stream.Length)
-            {
-                var ms = new MemoryStream();
-                session.Stream.CopyTo(ms);
-                s.CopyTo(ms);
-                s = ms;
-            }
+            //// 如果上次还留有数据，复制进去
+            //if (session.Stream != null && session.Stream.Position < session.Stream.Length)
+            //{
+            //    var ms = new MemoryStream();
+            //    session.Stream.CopyTo(ms);
+            //    s.CopyTo(ms);
+            //    s = ms;
+            //}
             try
             {
                 Process(s, session, session.Remote);
 
-                // 如果还有剩下，写入数据流，供下次使用
-                if (s.Position < s.Length)
-                    session.Stream = s;
-                else
-                    session.Stream = null;
+                //// 如果还有剩下，写入数据流，供下次使用
+                //if (s.Position < s.Length)
+                //    session.Stream = s;
+                //else
+                //    session.Stream = null;
             }
             catch (Exception ex)
             {
@@ -53,8 +53,8 @@ namespace NewLife.Net.Common
                 var msg = new ExceptionMessage() { Value = ex };
                 session.Send(msg.GetStream());
 
-                // 出错后清空数据流，避免连锁反应
-                session.Stream = null;
+                //// 出错后清空数据流，避免连锁反应
+                //session.Stream = null;
             }
         }
 

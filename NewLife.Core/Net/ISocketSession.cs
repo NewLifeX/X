@@ -19,8 +19,8 @@ namespace NewLife.Net
     public interface ISocketSession : ISocketRemote
     {
         #region 属性
-        /// <summary>会话数据流，供用户程序使用，内部不做处理。可用于解决Tcp粘包的问题，把多余的分片放入该数据流中。</summary>
-        Stream Stream { get; set; }
+        ///// <summary>会话数据流，供用户程序使用，内部不做处理。可用于解决Tcp粘包的问题，把多余的分片放入该数据流中。</summary>
+        //Stream Stream { get; set; }
 
         /// <summary>Socket服务器。当前通讯所在的Socket服务器，其实是TcpServer/UdpServer</summary>
         ISocketServer Server { get; }

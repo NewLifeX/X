@@ -48,17 +48,17 @@ namespace NewLife.Net.Common
             Session = new WeakReference<ISocketSession>(session);
 
             var stream = e.Stream;
-            // 如果上次还留有数据，复制进去
-            if (session.Stream != null && session.Stream.Position < session.Stream.Length)
-            {
-                // 这个流是上一次的完整数据，位置在最后，直接合并即可
-                var ms = session.Stream;
-                var p = ms.Position;
-                ms.Position = ms.Length;
-                stream.CopyTo(ms);
-                ms.Position = p;
-                stream = ms;
-            }
+            //// 如果上次还留有数据，复制进去
+            //if (session.Stream != null && session.Stream.Position < session.Stream.Length)
+            //{
+            //    // 这个流是上一次的完整数据，位置在最后，直接合并即可
+            //    var ms = session.Stream;
+            //    var p = ms.Position;
+            //    ms.Position = ms.Length;
+            //    stream.CopyTo(ms);
+            //    ms.Position = p;
+            //    stream = ms;
+            //}
 
             OnReceive(session, stream);
         }
@@ -72,16 +72,16 @@ namespace NewLife.Net.Common
             {
                 Process(stream, session, session.Remote);
 
-                // 如果还有剩下，写入数据流，供下次使用
-                if (stream.Position < stream.Length)
-                {
-                    var ms = new MemoryStream();
-                    stream.CopyTo(ms);
-                    ms.Position = 0;
-                    session.Stream = ms;
-                }
-                else
-                    session.Stream = null;
+                //// 如果还有剩下，写入数据流，供下次使用
+                //if (stream.Position < stream.Length)
+                //{
+                //    var ms = new MemoryStream();
+                //    stream.CopyTo(ms);
+                //    ms.Position = 0;
+                //    session.Stream = ms;
+                //}
+                //else
+                //    session.Stream = null;
             }
             catch (Exception ex)
             {
@@ -93,8 +93,8 @@ namespace NewLife.Net.Common
                 //session.Send(msg.GetStream());
                 OnSend(msg.GetStream());
 
-                // 出错后清空数据流，避免连锁反应
-                session.Stream = null;
+                //// 出错后清空数据流，避免连锁反应
+                //session.Stream = null;
             }
         }
 

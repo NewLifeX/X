@@ -33,9 +33,9 @@ namespace NewLife.Net
         /// <summary>是否活动</summary>
         public Boolean Active { get { return _Active; } set { _Active = value; } }
 
-        private Stream _Stream = new MemoryStream();
-        /// <summary>会话数据流。可用于解决Tcp粘包的问题，把多余的分片放入该数据流中。</summary>
-        public Stream Stream { get { return _Stream; } set { _Stream = value; } }
+        //private Stream _Stream = new MemoryStream();
+        ///// <summary>会话数据流。可用于解决Tcp粘包的问题，把多余的分片放入该数据流中。</summary>
+        //public Stream Stream { get { return _Stream; } set { _Stream = value; } }
 
         /// <summary>底层Socket</summary>
         public Socket Socket { get { return GetSocket(); } }
