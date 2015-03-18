@@ -8,10 +8,13 @@ using NewLife.Common;
 using NewLife.CommonEntity;
 using NewLife.Compression;
 using NewLife.IO;
+using NewLife.IP;
 using NewLife.Log;
 using NewLife.Messaging;
 using NewLife.Model;
 using NewLife.Net;
+using NewLife.Net.IO;
+using NewLife.Net.Stun;
 using NewLife.Reflection;
 using NewLife.Serialization;
 using NewLife.Threading;
@@ -20,12 +23,6 @@ using XCode.Cache;
 using XCode.DataAccessLayer;
 using XCode.Sync;
 using XCode.Transform;
-using NewLife;
-using NewLife.Net.IO;
-using NewLife.Net.Stun;
-using NewLife.IP;
-using System.Net;
-using NewLife.Net.CoAP;
 
 namespace Test
 {
@@ -642,12 +639,6 @@ namespace Test
             //var msg2 = CoAPMessage.Read(buf);
             //Console.WriteLine(msg2.ToArray().ToHex());
 
-            var server = new TcpServer();
-            server.Port = 8;
-            server.MessageDgram = true;
-            server.NewSession += server_NewSession;
-            server.Start();
-
             var tcp = new TcpSession();
             tcp.Remote = "tcp://127.0.0.1:8";
             tcp.MessageDgram = true;
@@ -672,28 +663,14 @@ namespace Test
             //Console.WriteLine(ip.GetAddress());
             //Console.WriteLine(Ip.GetAddress(ip.ToString()));
 
-            var client = new StunClient();
-            var rs = client.Query();
-            if (rs != null)
-            {
-                //if (rs != null && rs.Type == StunNetType.Blocked && rs.Public != null) rs.Type = StunNetType.Symmetric;
-                XTrace.WriteLine("网络类型：{0} {1}", rs.Type, rs.Type.GetDescription());
-                XTrace.WriteLine("公网地址：{0} {1}", rs.Public, Ip.GetAddress(rs.Public.Address.ToString()));
-            }
-        }
-
-        static void server_NewSession(object sender, SessionEventArgs e)
-        {
-            var session = sender as ISocketSession;
-            session.Received += session_Received;
-        }
-
-        static void session_Received(object sender, ReceivedEventArgs e)
-        {
-            var session = sender as ISocketSession;
-
-            Console.WriteLine(e.ToHex());
-            session.Send("收到" + e.ToStr());
+            //var client = new StunClient();
+            //var rs = client.Query();
+            //if (rs != null)
+            //{
+            //    //if (rs != null && rs.Type == StunNetType.Blocked && rs.Public != null) rs.Type = StunNetType.Symmetric;
+            //    XTrace.WriteLine("网络类型：{0} {1}", rs.Type, rs.Type.GetDescription());
+            //    XTrace.WriteLine("公网地址：{0} {1}", rs.Public, Ip.GetAddress(rs.Public.Address.ToString()));
+            //}
         }
     }
 }

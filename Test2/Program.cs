@@ -24,7 +24,7 @@ namespace Test2
                 try
                 {
 #endif
-                    Test4();
+                    Test3();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -112,16 +112,25 @@ namespace Test2
 
         static void Test3()
         {
-            var server = new NetServer();
-            server.Port = 888;
-            server.Log = XTrace.Log;
-            server.UseSession = true;
-            server.EnsureCreateServer();
-            foreach (var item in server.Servers)
-            {
-                item.MaxNotActive = 8;
-            }
+            var server = new TcpServer();
+            server.Port = 8;
+            server.MessageDgram = true;
+            server.NewSession += server_NewSession;
             server.Start();
+        }
+
+        static void server_NewSession(object sender, SessionEventArgs e)
+        {
+            var session = e.Session;
+            session.Received += session_Received;
+        }
+
+        static void session_Received(object sender, ReceivedEventArgs e)
+        {
+            var session = sender as ISocketSession;
+
+            Console.WriteLine(e.ToStr());
+            session.Send("收到：" + e.ToStr());
         }
 
         static void Test4()

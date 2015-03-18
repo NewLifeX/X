@@ -172,6 +172,9 @@ namespace NewLife.Net
                 {
                     var ms = new MemoryStream();
                     ms.WriteEncodedInt(count);
+
+                    WriteLog("发送报文{0}字节，开头附加长度占用{1}字节", count, ms.Position);
+
                     ms.Write(buffer, offset, count);
                     ms.Position = 0;
 
@@ -230,7 +233,19 @@ namespace NewLife.Net
             var rs = 0;
             try
             {
-                rs = Client.GetStream().Read(buffer, offset, count);
+                var stream = Client.GetStream();
+                if (!MessageDgram)
+                    rs = stream.Read(buffer, offset, count);
+                // 消息报文模式下，仅收到一个字节
+                else
+                {
+                    var len = stream.ReadEncodedInt();
+                    WriteLog("读取报文数据部分{0}字节", len);
+                    // 按照最小的大小来读取
+                    if (count < len) len = count;
+
+                    rs = stream.Read(buffer, offset, len);
+                }
             }
             catch (Exception ex)
             {
@@ -270,7 +285,7 @@ namespace NewLife.Net
                 var buf = new Byte[Client.ReceiveBufferSize];
                 // 缓冲区大小
                 var len = buf.Length;
-                // 特殊处理消息报文，只用1字节，用于保存长度
+                // 特殊处理消息报文，使用0字节缓冲区，仅为了得到目标回调，在事件里面再读取长度
                 if (MessageDgram) len = 0;
                 _Async = Client.GetStream().BeginRead(buf, 0, len, OnReceive, buf);
             }
@@ -309,10 +324,12 @@ namespace NewLife.Net
                 var stream = client.GetStream();
                 count = stream.EndRead(ar);
                 // 消息报文模式下，仅收到一个字节
-                if (MessageDgram && count > 0)
+                if (MessageDgram && count == 0)
                 {
-                    var len = (Int32)data[0];
-                    if ((data[0] & 0x80) != 0) len = ((len & 0x7F) << 7) + stream.ReadByte();
+                    //var len = (Int32)data[0];
+                    //if ((data[0] & 0x80) != 0) len = ((len & 0x7F) << 7) + stream.ReadByte();
+                    var len = stream.ReadEncodedInt();
+                    WriteLog("读取报文数据部分{0}字节", len);
 
                     count = stream.Read(data, 0, len);
                 }
