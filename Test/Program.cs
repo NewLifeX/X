@@ -642,6 +642,7 @@ namespace Test
             var tcp = new TcpSession();
             tcp.Remote = "tcp://127.0.0.1:8";
             tcp.MessageDgram = true;
+            tcp.AutoReconnect = false;
             //tcp.Send("我是大石头！");
             tcp.Open();
             var ms = new MemoryStream();
@@ -655,8 +656,11 @@ namespace Test
             ms.Position = 0;
             tcp.Client.GetStream().Write(ms);
 
-            var str = tcp.ReceiveString();
-            Console.WriteLine(str);
+            while (true)
+            {
+                var str = tcp.ReceiveString();
+                Console.WriteLine(str);
+            }
 
             //NetHelper.Debug = true;
             //var server = new StunServer();

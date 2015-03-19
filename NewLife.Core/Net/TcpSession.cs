@@ -209,6 +209,11 @@ namespace NewLife.Net
         {
             if (!Open()) return null;
 
+            var size = 1024 * 2;
+
+            // 报文模式调整缓冲区大小。还差这么多数据就足够一个报文
+            if (MessageDgram && PacketSize > 0) size = PacketSize - (Int32)Packet.Length;
+
             var buf = new Byte[1024 * 2];
 
             var count = Receive(buf, 0, buf.Length);
@@ -216,6 +221,8 @@ namespace NewLife.Net
             if (count == 0) return new Byte[0];
 
             LastTime = DateTime.Now;
+
+            if (count == buf.Length) return buf;
 
             return buf.ReadBytes(0, count);
         }
@@ -234,19 +241,7 @@ namespace NewLife.Net
             var rs = 0;
             try
             {
-                var stream = Client.GetStream();
-                if (!MessageDgram)
-                    rs = stream.Read(buffer, offset, count);
-                // 消息报文模式下，仅收到一个字节
-                else
-                {
-                    var len = stream.ReadEncodedInt();
-                    WriteLog("读取报文数据部分{0}字节", len);
-                    // 按照最小的大小来读取
-                    if (count < len) len = count;
-
-                    rs = stream.Read(buffer, offset, len);
-                }
+                if (count > 0) rs = Client.GetStream().Read(buffer, offset, count);
             }
             catch (Exception ex)
             {
@@ -265,6 +260,26 @@ namespace NewLife.Net
             }
 
             LastTime = DateTime.Now;
+
+            if (MessageDgram && rs >= 0)
+            {
+                WriteLog("收到数据{0}字节", rs);
+
+                var data = buffer;
+                if (offset > 0 && rs > 0) data = buffer.ReadBytes(offset, rs);
+                // 传入这次收到的数据，返回一个完整报文
+                data = CheckPacket(data, ref rs);
+
+                // 把报文写回缓冲区
+                if (rs > 0 && data != null && data != buffer)
+                {
+                    // 如果报文大于缓冲区大小
+                    //if (size > count) size = count;
+                    if (rs > count) throw new XException("报文大小{0}大于缓冲区大小{1}", rs, count);
+
+                    buffer.Write(offset, data, 0, rs);
+                }
+            }
 
             return rs;
         }
