@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading;
 using System.Windows.Forms;
 using XCoder;
+using NewLife.Log;
 
 namespace FolderInfo
 {
@@ -23,6 +24,8 @@ namespace FolderInfo
 
         private void Form1_Load(object sender, EventArgs e)
         {
+            txtLog.UseWinFormControl();
+
             foreach (var item in DriveInfo.GetDrives())
             {
                 if (item.DriveType == DriveType.Fixed)
@@ -39,6 +42,8 @@ namespace FolderInfo
         #region 构造目录树
         void MakeTree(String path, TreeNode Node)
         {
+            XTrace.WriteLine("展开目录 {0}", path);
+
             Node.Nodes.Clear();
 
             ////修正大小
@@ -260,7 +265,8 @@ namespace FolderInfo
                 if (File.Exists(path))
                     File.Delete(path);
                 else
-                    Directory.Delete(path, true);
+                    //Directory.Delete(path, true);
+                    DeleteRecursive(new DirectoryInfo(path));
 
                 treeView1.SelectedNode.Remove();
             }
@@ -268,6 +274,32 @@ namespace FolderInfo
             {
                 MessageBox.Show(ex.Message, "删除出错");
             }
+        }
+
+        /// <summary>递归删除</summary>
+        /// <param name="di"></param>
+        void DeleteRecursive(DirectoryInfo di)
+        {
+            // 删除本目录文件
+            foreach (var item in di.GetFiles())
+            {
+                XTrace.WriteLine("删除 {0}", item.FullName);
+                try
+                {
+                    item.Delete();
+                }
+                catch (Exception ex)
+                {
+                    XTrace.WriteException(ex);
+                }
+            }
+            // 递归子目录
+            foreach (var item in di.GetDirectories())
+            {
+                DeleteRecursive(item);
+            }
+            // 删除本目录
+            di.Delete(true);
         }
         #endregion
     }
