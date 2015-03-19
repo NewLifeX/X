@@ -6,7 +6,7 @@ using XCode.Web;
 
 public partial class Pages_Log : MyEntityList
 {
-    public Grid grid = new Grid(Log.Meta.Factory);
+    public EntityGrid grid = new EntityGrid(Log.Meta.Factory);
 
     protected void Page_Load(object sender, EventArgs e)
     {

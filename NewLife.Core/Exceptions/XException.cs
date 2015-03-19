@@ -44,7 +44,7 @@ namespace NewLife
     }
 
     /// <summary>异常事件参数</summary>
-    public class ExceptionEventArgs : EventArgs
+    public class ExceptionEventArgs : CancelEventArgs
     {
         private String _Action;
         /// <summary>发生异常时进行的动作</summary>

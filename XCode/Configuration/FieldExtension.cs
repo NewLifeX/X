@@ -293,21 +293,25 @@ namespace XCode
         }
 
         /// <summary>数量</summary>
+        /// <param name="field">字段</param>
         /// <param name="newName">聚合后as的新名称，默认空，表示跟前面字段名一致</param>
         /// <returns></returns>
         public static ConcatExpression Count(this FieldItem field, String newName = null) { return Aggregate(field, "Count", newName); }
 
         /// <summary>求和</summary>
+        /// <param name="field">字段</param>
         /// <param name="newName">聚合后as的新名称，默认空，表示跟前面字段名一致</param>
         /// <returns></returns>
         public static ConcatExpression Sum(this FieldItem field, String newName = null) { return Aggregate(field, "Sum", newName); }
 
         /// <summary>最小值</summary>
+        /// <param name="field">字段</param>
         /// <param name="newName">聚合后as的新名称，默认空，表示跟前面字段名一致</param>
         /// <returns></returns>
         public static ConcatExpression Min(this FieldItem field, String newName = null) { return Aggregate(field, "Min", newName); }
 
         /// <summary>最大值</summary>
+        /// <param name="field">字段</param>
         /// <param name="newName">聚合后as的新名称，默认空，表示跟前面字段名一致</param>
         /// <returns></returns>
         public static ConcatExpression Max(this FieldItem field, String newName = null) { return Aggregate(field, "Max", newName); }

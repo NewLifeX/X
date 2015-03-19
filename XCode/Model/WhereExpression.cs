@@ -35,6 +35,8 @@ namespace XCode
         /// <summary>实例化</summary>
         public WhereExpression() { }
 
+        /// <summary>把普通表达式包装为条件表达式表达式</summary>
+        /// <param name="exp"></param>
         public WhereExpression(Expression exp) { And(exp); }
         #endregion
 

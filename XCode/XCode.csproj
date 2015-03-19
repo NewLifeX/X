@@ -209,7 +209,8 @@
     <Compile Include="Model\WhereExpression.cs" />
     <Compile Include="Model\XCodeService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Web\Grid.cs" />
+    <Compile Include="Web\EntityForm.cs" />
+    <Compile Include="Web\EntityGrid.cs" />
     <None Include="Transform\DataTransform.cs" />
     <Compile Include="Transform\EntityTransform.cs" />
     <None Include="Transform\TransformBase.cs" />

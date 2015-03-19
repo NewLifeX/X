@@ -40,6 +40,7 @@ namespace XCode
             return this;
         }
 
+        /// <summary>用于匹配Or关键字的正则表达式</summary>
         internal protected static Regex _regOr = new Regex(@"\bOr\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
         /// <summary>获取表达式的文本表示</summary>
         /// <param name="needBracket">外部是否需要括号。如果外部要求括号，而内部又有Or，则加上括号</param>

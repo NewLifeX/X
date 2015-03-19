@@ -9,7 +9,7 @@ using NewLife.Web;
 namespace XCode.Web
 {
     /// <summary>用于显示数据的网格</summary>
-    public class Grid
+    public class EntityGrid
     {
         #region 属性
         private IEntityList _DataSource;
@@ -39,11 +39,11 @@ namespace XCode.Web
 
         #region 构造
         /// <summary>无参数构造</summary>
-        public Grid() { Init(); }
+        public EntityGrid() { Init(); }
 
         /// <summary>使用实体工厂构造</summary>
         /// <param name="factory"></param>
-        public Grid(IEntityOperate factory) { Factory = factory; Init(); }
+        public EntityGrid(IEntityOperate factory) { Factory = factory; Init(); }
 
         /// <summary>获取参数</summary>
         public void Init()
