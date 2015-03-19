@@ -283,6 +283,9 @@
     <Compile Include="..\NewLife.Core\Serialization\Binary\BinaryList.cs">
       <Link>Serialization\Binary\BinaryList.cs</Link>
     </Compile>
+    <Compile Include="..\NewLife.Core\Serialization\Binary\BitSizeAttribute.cs">
+      <Link>Serialization\Binary\BitSizeAttribute.cs</Link>
+    </Compile>
     <Compile Include="..\NewLife.Core\Serialization\Binary\FieldSizeAttribute.cs">
       <Link>Serialization\Binary\FieldSizeAttribute.cs</Link>
     </Compile>
