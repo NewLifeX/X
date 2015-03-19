@@ -93,7 +93,12 @@ namespace XCoder
         {
             CreateForm<XNet.FrmMain>();
         }
-        #endregion
+ 
+        private void 文件夹大小统计ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            CreateForm<FolderInfo.FrmMain>();
+        }
+       #endregion
 
         #region 菜单控制
         private void ShowNewForm(object sender, EventArgs e) { }
