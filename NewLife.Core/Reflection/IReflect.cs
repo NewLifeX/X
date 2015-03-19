@@ -195,8 +195,11 @@ namespace NewLife.Reflection
                 //var pi = type.GetProperty(name, ignoreCase ? bfic : bf);
                 var pi = type.GetProperty(name, bf);
                 if (pi != null) return pi;
-                if (ignoreCase) pi = type.GetProperty(name, bfic);
-                if (pi != null) return pi;
+                if (ignoreCase)
+                {
+                    pi = type.GetProperty(name, bfic);
+                    if (pi != null) return pi;
+                }
 
                 type = type.BaseType;
             }
@@ -216,8 +219,11 @@ namespace NewLife.Reflection
                 //var fi = type.GetField(name, ignoreCase ? bfic : bf);
                 var fi = type.GetField(name, bf);
                 if (fi != null) return fi;
-                if (ignoreCase) fi = type.GetField(name, bfic);
-                if (fi != null) return fi;
+                if (ignoreCase)
+                {
+                    fi = type.GetField(name, bfic);
+                    if (fi != null) return fi;
+                }
 
                 type = type.BaseType;
             }

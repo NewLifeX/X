@@ -98,6 +98,7 @@
     <Compile Include="Compression\ZipFile.cs" />
     <Compile Include="Configuration\CombConfig.cs" />
     <Compile Include="Extension\BitHelper.cs" />
+    <Compile Include="Extension\CaCollectionExtensions.cs" />
     <Compile Include="IO\EncodingHelper.cs" />
     <Compile Include="IO\PathHelper.cs" />
     <Compile Include="IO\StreamReaderX.cs" />
