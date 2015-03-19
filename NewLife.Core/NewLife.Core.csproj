@@ -18,7 +18,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>..\..\Bin\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;NO_RXINTERFACES;NO_VARIANCE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <DocumentationFile>..\..\Bin\NewLife.Core.XML</DocumentationFile>
@@ -29,7 +29,7 @@
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>..\..\Bin\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
+    <DefineConstants>TRACE;NO_RXINTERFACES;NO_VARIANCE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <DocumentationFile>..\..\Bin\NewLife.Core.XML</DocumentationFile>
@@ -99,6 +99,13 @@
     <Compile Include="Configuration\CombConfig.cs" />
     <Compile Include="Extension\BitHelper.cs" />
     <Compile Include="Extension\CaCollectionExtensions.cs" />
+    <Compile Include="Extension\System.Interactive\EnumerableEx.Aggregates.cs" />
+    <Compile Include="Extension\System.Interactive\EnumerableEx.Buffering.cs" />
+    <Compile Include="Extension\System.Interactive\EnumerableEx.Creation.cs" />
+    <Compile Include="Extension\System.Interactive\EnumerableEx.Exceptions.cs" />
+    <Compile Include="Extension\System.Interactive\EnumerableEx.Imperative.cs" />
+    <Compile Include="Extension\System.Interactive\EnumerableEx.Multiple.cs" />
+    <Compile Include="Extension\System.Interactive\EnumerableEx.Single.cs" />
     <Compile Include="IO\EncodingHelper.cs" />
     <Compile Include="IO\PathHelper.cs" />
     <Compile Include="IO\StreamReaderX.cs" />
