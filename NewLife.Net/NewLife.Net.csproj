@@ -122,6 +122,9 @@
     <Compile Include="Model\DataEventArgs.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="MQTT\MqttMessage.cs" />
+    <Compile Include="MQTT\MqttType.cs" />
+    <Compile Include="MQTT\QualityOfService.cs" />
     <Compile Include="NetService.cs" />
     <Compile Include="DNS\DNSClient.cs" />
     <Compile Include="DNS\DNSEntity.cs" />
