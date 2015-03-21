@@ -138,6 +138,7 @@
     <Compile Include="Net\IStatistics.cs" />
     <Compile Include="Net\NetException.cs" />
     <Compile Include="Net\NetHelper.cs" />
+    <Compile Include="Net\PacketStream.cs" />
     <Compile Include="Net\ReceivedEventArgs.cs" />
     <Compile Include="Net\ITransport.cs" />
     <Compile Include="Net\NetUri.cs" />

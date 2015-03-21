@@ -22,9 +22,9 @@ namespace NewLife.Net
         /// <summary>收到空数据时抛出异常并断开连接。</summary>
         public Boolean DisconnectWhenEmptyData { get { return _DisconnectWhenEmptyData; } set { _DisconnectWhenEmptyData = value; } }
 
-        //private Stream _Stream;
-        ///// <summary>会话数据流，供用户程序使用，内部不做处理。可用于解决Tcp粘包的问题，把多余的分片放入该数据流中。</summary>
-        //public Stream Stream { get { return _Stream; } set { _Stream = value; } }
+        private Stream _Stream;
+        /// <summary>会话数据流，供用户程序使用。可用于解决Tcp粘包的问题。</summary>
+        public Stream Stream { get { return _Stream; } set { _Stream = value; } }
 
         ISocketServer _Server;
         /// <summary>Socket服务器。当前通讯所在的Socket服务器，其实是TcpServer/UdpServer。该属性决定本会话是客户端会话还是服务的会话</summary>
@@ -93,6 +93,7 @@ namespace NewLife.Net
 
                 Client = new TcpClient(Local.EndPoint);
                 CheckDynamic();
+                Stream = Client.GetStream();
 
                 WriteLog("{0}.Open {1}", Name, this);
             }
@@ -142,6 +143,7 @@ namespace NewLife.Net
                 }
             }
             Client = null;
+            Stream = null;
 
             return true;
         }
@@ -160,27 +162,27 @@ namespace NewLife.Net
 
             if (count < 0) count = buffer.Length - offset;
 
-            var stream = Client.GetStream();
+            //var stream = Client.GetStream();
             try
             {
                 // 修改发送缓冲区
                 if (Client.SendBufferSize < count) Client.SendBufferSize = count;
 
-                // 特殊处理消息报文，增加字节长度
-                if (!MessageDgram)
-                    stream.Write(buffer, offset, count);
-                else
-                {
-                    var ms = new MemoryStream();
-                    ms.WriteEncodedInt(count);
+                //// 特殊处理消息报文，增加字节长度
+                //if (!MessageDgram)
+                Stream.Write(buffer, offset, count);
+                //else
+                //{
+                //    var ms = new MemoryStream();
+                //    ms.WriteEncodedInt(count);
 
-                    WriteLog("发送报文{0}字节，开头附加长度占用{1}字节", count, ms.Position);
+                //    WriteLog("发送报文{0}字节，开头附加长度占用{1}字节", count, ms.Position);
 
-                    ms.Write(buffer, offset, count);
-                    ms.Position = 0;
+                //    ms.Write(buffer, offset, count);
+                //    ms.Position = 0;
 
-                    stream.Write(ms);
-                }
+                //    stream.Write(ms);
+                //}
             }
             catch (Exception ex)
             {
@@ -212,9 +214,11 @@ namespace NewLife.Net
             var size = 1024 * 2;
 
             // 报文模式调整缓冲区大小。还差这么多数据就足够一个报文
-            if (MessageDgram && PacketSize > 0) size = PacketSize - (Int32)Packet.Length;
+            //if (MessageDgram && PacketSize > 0) size = PacketSize - (Int32)Packet.Length;
+            var ps = Stream as PacketStream;
+            if (ps != null && ps.Size > 0) size = ps.Size;
 
-            var buf = new Byte[1024 * 2];
+            var buf = new Byte[size];
 
             var count = Receive(buf, 0, buf.Length);
             if (count < 0) return null;
@@ -241,7 +245,7 @@ namespace NewLife.Net
             var rs = 0;
             try
             {
-                if (count > 0) rs = Client.GetStream().Read(buffer, offset, count);
+                if (count > 0) rs = Stream.Read(buffer, offset, count);
             }
             catch (Exception ex)
             {
@@ -261,25 +265,25 @@ namespace NewLife.Net
 
             LastTime = DateTime.Now;
 
-            if (MessageDgram && rs >= 0)
-            {
-                WriteLog("收到数据{0}字节", rs);
+            //if (MessageDgram && rs >= 0)
+            //{
+            //    WriteLog("收到数据{0}字节", rs);
 
-                var data = buffer;
-                if (offset > 0 && rs > 0) data = buffer.ReadBytes(offset, rs);
-                // 传入这次收到的数据，返回一个完整报文
-                data = CheckPacket(data, ref rs);
+            //    var data = buffer;
+            //    if (offset > 0 && rs > 0) data = buffer.ReadBytes(offset, rs);
+            //    // 传入这次收到的数据，返回一个完整报文
+            //    data = CheckPacket(data, ref rs);
 
-                // 把报文写回缓冲区
-                if (rs > 0 && data != null && data != buffer)
-                {
-                    // 如果报文大于缓冲区大小
-                    //if (size > count) size = count;
-                    if (rs > count) throw new XException("报文大小{0}大于缓冲区大小{1}", rs, count);
+            //    // 把报文写回缓冲区
+            //    if (rs > 0 && data != null && data != buffer)
+            //    {
+            //        // 如果报文大于缓冲区大小
+            //        //if (size > count) size = count;
+            //        if (rs > count) throw new XException("报文大小{0}大于缓冲区大小{1}", rs, count);
 
-                    buffer.Write(offset, data, 0, rs);
-                }
-            }
+            //        buffer.Write(offset, data, 0, rs);
+            //    }
+            //}
 
             return rs;
         }
@@ -299,7 +303,7 @@ namespace NewLife.Net
             {
                 // 开始新的监听
                 var buf = new Byte[Client.ReceiveBufferSize];
-                _Async = Client.GetStream().BeginRead(buf, 0, buf.Length, OnReceive, buf);
+                _Async = Stream.BeginRead(buf, 0, buf.Length, OnReceive, buf);
             }
             catch (Exception ex)
             {
@@ -334,8 +338,8 @@ namespace NewLife.Net
             var count = 0;
             try
             {
-                var stream = client.GetStream();
-                count = stream.EndRead(ar);
+                //var stream = client.GetStream();
+                count = Stream.EndRead(ar);
             }
             catch (Exception ex)
             {
@@ -361,37 +365,37 @@ namespace NewLife.Net
             // 数据长度，0表示收到空数据，-1表示收到部分包，后续跳过处理
             if (count >= 0)
             {
-                if (!MessageDgram)
-                    // 在用户线程池里面处理数据
-                    ThreadPoolX.QueueUserWorkItem(() => OnReceive(data, count), ex => OnError("OnReceive", ex));
-                else
-                {
-                    try
-                    {
-                        //OnReceive(data, count);
-                        WriteLog("收到数据包{0}字节", count);
-                        // 注意，很有可能一次收到多个包的数据，此时需要多次触发接收
-                        while (true)
-                        {
-                            data = CheckPacket(data, ref count);
-                            if (count <= 0) break;
+                //if (!MessageDgram)
+                // 在用户线程池里面处理数据
+                ThreadPoolX.QueueUserWorkItem(() => OnReceive(data, count), ex => OnError("OnReceive", ex));
+                //else
+                //{
+                //    try
+                //    {
+                //        //OnReceive(data, count);
+                //        WriteLog("收到数据包{0}字节", count);
+                //        // 注意，很有可能一次收到多个包的数据，此时需要多次触发接收
+                //        while (true)
+                //        {
+                //            data = CheckPacket(data, ref count);
+                //            if (count <= 0) break;
 
-                            OnReceive(data, count);
+                //            OnReceive(data, count);
 
-                            // 如果没有剩余数据，则直接退出
-                            if (PacketSize <= 0) break;
+                //            // 如果没有剩余数据，则直接退出
+                //            if (PacketSize <= 0) break;
 
-                            // 为下一次调用准备数据
-                            data = null;
-                            count = 0;
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        OnError("OnReceive", ex);
-                        if (Disposed) return;
-                    }
-                }
+                //            // 为下一次调用准备数据
+                //            data = null;
+                //            count = 0;
+                //        }
+                //    }
+                //    catch (Exception ex)
+                //    {
+                //        OnError("OnReceive", ex);
+                //        if (Disposed) return;
+                //    }
+                //}
             }
 
             // 开始新的监听

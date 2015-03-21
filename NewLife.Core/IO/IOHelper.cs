@@ -123,6 +123,24 @@ namespace System
         /// <returns>返回复制的总字节数</returns>
         public static Int32 CopyTo(this Stream src, Stream des, Int32 bufferSize = 0, Int32 max = 0)
         {
+            // 优化处理内存流
+            if (src is MemoryStream)
+            {
+                var ms = src as MemoryStream;
+                var count = (Int32)(ms.Length - ms.Position);
+                if (ms.Position == 0 && (max <= 0 || count <= max))
+                {
+                    ms.WriteTo(des);
+                    ms.Position = ms.Length;
+                    return count;
+                }
+                else
+                {
+                    // 一次读完
+                    bufferSize = count;
+                }
+            }
+
             if (bufferSize <= 0) bufferSize = 1024;
             var buffer = new Byte[bufferSize];
 
