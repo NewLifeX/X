@@ -122,8 +122,10 @@
     <Compile Include="Messaging\EntitiesMessage.cs" />
     <Compile Include="Messaging\HttpClientMessageProvider.cs" />
     <Compile Include="Messaging\HttpServerMessageProvider.cs" />
+    <Compile Include="Messaging\IMessage.cs" />
     <Compile Include="Messaging\IMessageProvider.cs" />
     <None Include="Messaging\MessageHeader.cs" />
+    <Compile Include="Messaging\MessageBase.cs" />
     <Compile Include="Messaging\MessageKind.cs" />
     <Compile Include="Messaging\EntityMessage.cs" />
     <Compile Include="Messaging\MethodMessage.cs" />
