@@ -1,7 +1,8 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
-using System.Net;
 using System.Linq;
+using System.Net;
 using System.Reflection;
 using NewLife.Log;
 
@@ -64,7 +65,17 @@ namespace NewLife.Web
                 Accept = "text/html, */*";
                 AcceptLanguage = "zh-CN";
                 //Headers[HttpRequestHeader.AcceptEncoding] = "gzip, deflate";
-                var name = Assembly.GetEntryAssembly().GetName().Name;
+                var name = "";
+                var asm = Assembly.GetEntryAssembly();
+                if (asm != null) name = asm.GetName().Name;
+                if (String.IsNullOrEmpty(name))
+                {
+                    try
+                    {
+                        name = Process.GetCurrentProcess().ProcessName;
+                    }
+                    catch { }
+                }
                 UserAgent = "Mozilla/5.0 (compatible; MSIE 11.0; Windows NT 6.1; Trident/7.0; SLCC2; .NET CLR 2.0.50727; .NET4.0C; .NET4.0E; {0})".F(name);
             }
             if (iscompress) AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
