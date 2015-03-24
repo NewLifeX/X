@@ -36,6 +36,7 @@ namespace XAgent
         #endregion
 
         #region 静态属性
+        /// <summary></summary>
         internal protected static AgentServiceBase _Instance;
         /// <summary>服务实例。每个应用程序域只有一个服务实例</summary>
         public static AgentServiceBase Instance
