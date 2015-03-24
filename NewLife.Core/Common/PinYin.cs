@@ -1,7 +1,14 @@
 ﻿using System;
+using System.Linq;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Text;
+using NewLife.Compression;
 using NewLife.Log;
 using NewLife.Reflection;
+using NewLife.Threading;
+using NewLife.Web;
 
 namespace NewLife.Common
 {
@@ -614,7 +621,8 @@ namespace NewLife.Common
         {
             // 多音节优先使用微软库
             var ss = GetPinYinByMS(ch);
-            if (ss != null) return ss;
+            // 去掉最后的音调
+            if (ss != null) return ss.Select(e => e.Substring(0, e.Length - 1)).ToArray();
 
             return new String[] { Get(ch) };
         }
@@ -639,30 +647,53 @@ namespace NewLife.Common
 
         static Boolean _inited = false;
         static Type _type;
-        static String[] GetPinYinByMS(Char chr)
+        /// <summary>从微软拼音库获取拼音，包括音调</summary>
+        /// <param name="chr"></param>
+        /// <returns></returns>
+        public static String[] GetPinYinByMS(Char chr)
         {
             if (_type == null)
             {
                 if (_inited) return null;
-
                 _inited = true;
-                _type = "ChineseChar".GetTypeEx(true);
 
-                if (_type == null) XTrace.WriteLine("未找到微软拼音库ChnCharInfo.dll");
+                // 微软拼音驱动文件
+                var file = "ChnCharInfo.dll";
+                if (Runtime.IsWeb) file = "Bin".CombinePath(file);
+                file = file.EnsureDirectory();
+
+                // 如果本地没有数据库，则从网络下载
+                if (!File.Exists(file))
+                {
+                    var url = "http://www.newlifex.com/showtopic-51.aspx";
+                    XTrace.WriteLine("没有找到拼音驱动库，准备联网获取 {0}", url);
+
+                    var client = new WebClientX();
+                    var dir = Path.GetDirectoryName(file);
+                    var sw = new Stopwatch();
+                    sw.Start();
+                    var file2 = client.DownloadLink(url, "PinYin", dir);
+                    sw.Stop();
+
+                    XTrace.WriteLine("下载IP数据库完成，共{0:n0}字节，耗时{1}毫秒", file2.AsFile().Length, sw.ElapsedMilliseconds);
+
+                    ZipFile.Extract(file2, dir);
+                }
+                if (!File.Exists(file))
+                {
+                    XTrace.WriteLine("未找到微软拼音库ChnCharInfo.dll");
+                    return null;
+                }
+
+                _type = "ChineseChar".GetTypeEx(true);
+                if (_type == null) XTrace.WriteLine("未找到微软拼音库ChineseChar类");
             }
             if (_type == null) return null;
 
-            //var obj = _type.CreateInstance(chr);
-            //return _pix.GetValue(obj) as String[];
+            var list = _type.CreateInstance(chr).GetValue("Pinyins", false) as IList<String>;
+            if (list == null || list.Count == 0) return null;
 
-            //try
-            //{
-            return _type.CreateInstance(chr).GetValue("Pinyins", false) as String[];
-            //}
-            //catch (Exception)
-            //{
-            //    return null;
-            //}
+            return list.Where(e => !String.IsNullOrEmpty(e)).ToArray();
         }
     }
 }

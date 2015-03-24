@@ -628,16 +628,10 @@ namespace Test
 
         static void Test15()
         {
-            //var msg = new CoAPMessage();
-            //msg.Ver = 1;
-            //msg.Type = 2;
-            //msg.OptionCount = 5;
-            //msg.Code = 7;
-            //var buf = msg.ToArray();
-            //Console.WriteLine(buf.ToHex());
-
-            //var msg2 = CoAPMessage.Read(buf);
-            //Console.WriteLine(msg2.ToArray().ToHex());
+            foreach (var item in "我是超级大石头")
+            {
+                Console.Write(PinYin.GetMulti(item).Join() + " ");
+            }
 
             var tcp = new TcpSession();
             tcp.Remote = "tcp://127.0.0.1:8";
