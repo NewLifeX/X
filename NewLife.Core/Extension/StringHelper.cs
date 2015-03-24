@@ -1,7 +1,10 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using NewLife.Extension;
+using NewLife.Log;
 using NewLife.Reflection;
 
 namespace System
@@ -711,6 +714,38 @@ namespace System
             }
 
             return result;
+        }
+        #endregion
+
+        #region 文字转语音
+        private static SpeakProvider _provider;
+        /// <summary>调用语音引擎说出指定话</summary>
+        /// <param name="value"></param>
+        public static void Speak(this String value)
+        {
+            if (_provider == null) _provider = new SpeakProvider();
+
+            _provider.SpeakAsync(value);
+        }
+        #endregion
+
+        #region 执行命令行
+        /// <summary>以隐藏窗口执行命令行</summary>
+        /// <param name="cmd">文件名</param>
+        /// <param name="arguments">命令参数</param>
+        /// <param name="msWait">等待毫秒数</param>
+        public static void RunCommand(this String cmd, String arguments = null, Int32 msWait = 0)
+        {
+            if (XTrace.Debug) XTrace.WriteLine("RunCommand {0} {1} {2}", cmd, arguments, msWait);
+
+            var p = new Process();
+            var si = p.StartInfo;
+            si.FileName = cmd;
+            si.Arguments = arguments;
+            si.WindowStyle = ProcessWindowStyle.Hidden;
+            p.Start();
+
+            if (msWait > 0) p.WaitForExit(msWait);
         }
         #endregion
     }

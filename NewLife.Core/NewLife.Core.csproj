@@ -99,6 +99,7 @@
     <Compile Include="Configuration\CombConfig.cs" />
     <Compile Include="Extension\BitHelper.cs" />
     <Compile Include="Extension\CaCollectionExtensions.cs" />
+    <Compile Include="Extension\SpeakProvider.cs" />
     <Compile Include="Extension\System.Interactive\EnumerableEx.Aggregates.cs" />
     <Compile Include="Extension\System.Interactive\EnumerableEx.Buffering.cs" />
     <Compile Include="Extension\System.Interactive\EnumerableEx.Creation.cs" />

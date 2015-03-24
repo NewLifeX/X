@@ -628,10 +628,7 @@ namespace Test
 
         static void Test15()
         {
-            foreach (var item in "我是超级大石头")
-            {
-                Console.Write(PinYin.GetMulti(item).Join() + " ");
-            }
+            "我是超级大石头！".Speak();
 
             var tcp = new TcpSession();
             tcp.Remote = "tcp://127.0.0.1:8";

@@ -675,7 +675,7 @@ namespace NewLife.Common
                     var file2 = client.DownloadLink(url, "PinYin", dir);
                     sw.Stop();
 
-                    XTrace.WriteLine("下载IP数据库完成，共{0:n0}字节，耗时{1}毫秒", file2.AsFile().Length, sw.ElapsedMilliseconds);
+                    XTrace.WriteLine("下载完成，共{0:n0}字节，耗时{1}毫秒", file2.AsFile().Length, sw.ElapsedMilliseconds);
 
                     ZipFile.Extract(file2, dir);
                 }
