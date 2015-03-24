@@ -31,7 +31,7 @@ popd
 
 :: 3，编译所有组件
 ::"D:\MS\Microsoft Visual Studio 10.0\Common7\IDE\devenv.exe" X组件.sln /Build Release
-set vs="D:\MS\Microsoft Visual Studio 11.0\Common7\IDE\devenv.com"
+set vs="B:\MS\Microsoft Visual Studio 12.0\Common7\IDE\devenv.com"
 for %%i in (NewLife.Core XCode NewLife.CommonEntity NewLife.Mvc NewLife.Net XAgent XControl XTemplate) do (
 	%vs% X组件.sln /Build Release /Project %%i
 	%vs% X组件.sln /Build Net4Release /Project %%i
@@ -61,7 +61,7 @@ svn commit -m "自动编译" ..\DLL4
 svn commit -m "自动编译" ..\XCoder
 
 :: 6，打包Src和DLL到FTP
-set zipexe="C:\Program Files\WinRAR\WinRAR.exe"
+set zipexe="B:\Pro\WinRAR\WinRAR.exe"
 set zip=%zipexe% a -m5 -s -z..\Src\Readme.txt -ibck
 ::set zipexe="D:\Pro\7-zip\7z.exe"
 ::set zip=%zipexe% a -tzip -mx9
