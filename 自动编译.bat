@@ -51,7 +51,7 @@ del ..\DLL4\*.config /f/s/q
 if not exist ..\XCoder\Zip (
 	md ..\XCoder\Zip
 )
-for %%i in (XCoder.exe XCoder.exe.config NewLife.Core.dll XCode.dll XTemplate.dll) do (
+for %%i in (XCoder.exe XCoder.exe.config NewLife.Core.dll XCode.dll XTemplate.dll NewLife.Net.dll) do (
 	copy ..\XCoder\%%i ..\XCoder\Zip\%%i /y
 )
 

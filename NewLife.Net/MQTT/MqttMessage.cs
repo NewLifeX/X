@@ -17,7 +17,6 @@ namespace NewLife.Net.MQTT
     /// “只有一次”，确保消息到达一次。这一级别可用于如下情况，在计费系统中，消息重复或丢失会导致不正确的结果。
     /// 5. 小型传输，开销很小（固定长度的头部是 2 字节），协议交换最小化，以降低网络流量。
     /// 6. 使用 Last Will 和 Testament 特性通知有关各方客户端异常中断的机制。
-
     /// </remarks>
     public class MqttMessage
     {
