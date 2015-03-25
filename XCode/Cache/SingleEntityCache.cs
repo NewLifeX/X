@@ -275,11 +275,11 @@ namespace XCode.Cache
             if (Total > 0)
             {
                 var sb = new StringBuilder();
-                sb.AppendFormat("单对象缓存<{0},{1}>", typeof(TKey).Name, typeof(TEntity).Name);
-                sb.AppendFormat("总次数{0}", Total);
-                if (Shoot > 0) sb.AppendFormat("，数据命中{0}（{1:P02}）", Shoot, (Double)Shoot / Total);
+                sb.AppendFormat("单对象缓存<{0},{1,-20}>", typeof(TKey).Name, typeof(TEntity).Name);
+                sb.AppendFormat("总次数{0,-7:n0}", Total);
+                if (Shoot > 0) sb.AppendFormat("，数据命中{0,-7:n0}（{1:P02}）", Shoot, (Double)Shoot / Total);
                 // 一级命中和总命中相等时不显示
-                if (Shoot1 > 0 && Shoot1 != Shoot) sb.AppendFormat("，一级命中{0}（{1:P02}）", Shoot1, (Double)Shoot1 / Total);
+                if (Shoot1 > 0 && Shoot1 != Shoot) sb.AppendFormat("，一级命中{0,-7:n0}（{1:P02}）", Shoot1, (Double)Shoot1 / Total);
                 if (Shoot2 > 0) sb.AppendFormat("，二级命中{0}（{1:P02}）", Shoot2, (Double)Shoot2 / Total);
                 if (Invalid > 0) sb.AppendFormat("，无效次数{0}（{1:P02}）", Invalid, (Double)Invalid / Total);
 
