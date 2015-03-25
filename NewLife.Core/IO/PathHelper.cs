@@ -89,7 +89,7 @@ namespace System.IO
             //return Path.Combine(path, path2);
             foreach (var item in ps)
             {
-                path = Path.Combine(path, item);
+                if (!item.IsNullOrEmpty()) path = Path.Combine(path, item);
             }
             return path;
         }
