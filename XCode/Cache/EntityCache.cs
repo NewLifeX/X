@@ -213,10 +213,10 @@ namespace XCode.Cache
             if (Total > 0)
             {
                 var sb = new StringBuilder();
-                sb.AppendFormat("实体缓存<{0}>", typeof(TEntity).Name);
-                sb.AppendFormat("总次数{0}", Total);
-                if (Shoot1 > 0) sb.AppendFormat("，命中{0}（{1:P02}）", Shoot1, (Double)Shoot1 / Total);
-                if (Shoot2 > 0) sb.AppendFormat("，二级命中{0}（{1:P02}）", Shoot2, (Double)Shoot2 / Total);
+                sb.AppendFormat("实体缓存<{0,-20}>", typeof(TEntity).Name);
+                sb.AppendFormat("总次数{0:n0,7}", Total);
+                if (Shoot1 > 0) sb.AppendFormat("，命中{0:n0,7}（{1:P02}）", Shoot1, (Double)Shoot1 / Total);
+                if (Shoot2 > 0) sb.AppendFormat("，二级命中{0:n0,3}（{1:P02}）", Shoot2, (Double)Shoot2 / Total);
 
                 XTrace.WriteLine(sb.ToString());
             }
