@@ -649,7 +649,7 @@ namespace Test
             //ms.Position = 0;
             //tcp.Client.GetStream().Write(ms);
 
-            while (true)
+            while (tcp.Active)
             {
                 var str = tcp.ReceiveString();
                 Console.WriteLine(str);

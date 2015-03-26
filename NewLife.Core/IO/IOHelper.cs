@@ -171,17 +171,27 @@ namespace System
                     if (count == 0)
                     {
                         count = max > 0 ? max : 256;
-                        ms.SetLength(count);
+                        ms.Capacity += count;
                     }
                     else if (max > 0 && count > max)
                         count = max;
-
+                    
                     // 其实地址不为0时，一般不能直接访问缓冲区，因为可能被限制访问
                     var buf = ms.GetValue("_buffer") as Byte[];
 
+                    // 先把长度设为较大值，为后面设定长度做准备，因为直接使用SetLength会清空缓冲区
+                    var len = ms.Length;
+                    ms.SetLength(ms.Position + count);
                     // 直接从源数据流往这个缓冲区填充数据
                     var rs = src.Read(buf, _origin, count);
-                    ms.Position += rs;
+                    if (rs > 0)
+                    {
+                        // 直接使用SetLength会清空缓冲区
+                        ms.SetLength(ms.Position + rs);
+                        ms.Position += rs;
+                    }
+                    else
+                        ms.SetLength(len);
                     // 如果得到的数据没有达到预期，说明读完了
                     if (rs < count) return rs;
 

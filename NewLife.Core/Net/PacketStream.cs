@@ -56,56 +56,69 @@ namespace NewLife.Net
         /// <returns></returns>
         public override int Read(byte[] buffer, int offset, int count)
         {
-            // 首先必须得到数据包大小，直接从内部数据流读取。这里认为表示长度的几个自己会一起过来
-            //while (Size == 0) Size = _s.ReadEncodedInt();
-            while (Size == 0)
+            var p = ReadPosition + Size;
+            // 一个全新的包，或者还没完全的包，都要从底层读取更多数据
+            if (Size == 0 || p > _ms.Length)
             {
-                var n = 0;
-                if (!_s.TryReadEncodedInt(out n)) return 0;
-                Size = n;
-            }
-
-            // 先读取本地，本地用完了再向下读取
-            if (Size > _ms.Length)
-            {
-                // 还差多少数据不够当前数据包Size - _ms.Length
-                //var buf = new Byte[count - (Size - _ms.Length)];
-                //var count2 = _s.Read(buf, 0, buf.Length);
-                //if (count2 <= 0) return 0;
-
-                //_ms.Write(buf, 0, count2);
-
                 // 检查内存流空间大小，至少能放下当前数据包
-                if (_ms.Capacity < Size) _ms.Capacity = Size;
-                // 从内部流读取数据
+                if (_ms.Capacity < p) _ms.Capacity = p;
+                // 从内部流读取数据，写到最后。这里必须移动指针，因为以前可能移动到别的地方去了
+                _ms.Position = _ms.Length;
                 _ms.Write(_s);
+
+                // 尝试读取长度
+                if (Size == 0)
+                {
+                    _ms.Position = ReadPosition;
+                    while (Size == 0)
+                    {
+                        var n = 0;
+                        if (!_ms.TryReadEncodedInt(out n)) return 0;
+                        Size = n;
+                    }
+                    // 读取长度后，指针移到新的位置
+                    ReadPosition = (Int32)_ms.Position;
+                    p = ReadPosition + Size;
+                }
             }
             // 数据还是不够一个包，走吧
-            if (Size == 0 || Size > _ms.Length) return 0;
+            if (Size == 0 || p > _ms.Length) return 0;
 
             // 这里开始，说明数据足够一个包，开始读出来
-            _ms.Position = 0;
+            _ms.Position = ReadPosition;
             // 如果缓冲区大小不够，则需要特殊处理
             var rs = _ms.Read(buffer, offset, Size <= count ? Size : count);
             // 扔掉多余部分
             if (Size > count) _ms.ReadBytes(Size - count);
+            ReadPosition += Size;
+
             // 清空包大小，准备下一次包
             Size = 0;
-            // 如果后面没有数据，直接把长度设为0，否则需要拷贝
+            // 如果后面没有数据，直接把长度设为0重用缓冲区，否则缓冲区过大时需要拷贝
             if (_ms.Position == _ms.Length)
+            {
                 _ms.SetLength(0);
+                ReadPosition = 0;
+            }
             else
             {
-                // 构造新的缓冲区
-                var ns = new MemoryStream();
-                ns.Write(_ms);
-                _ms.SetLength(0);
+                // 读取下一次大小
+                Size = _ms.ReadEncodedInt();
+                ReadPosition = (Int32)_ms.Position;
 
-                // 剩余数据先读取大小，再重新写入缓冲区
-                ns.Position = 0;
-                Size = ns.ReadEncodedInt();
-                _ms.Write(ns);
-          }
+                if (_ms.Position > 8 * 1024)
+                {
+                    // 构造新的缓冲区
+                    var ns = new MemoryStream();
+                    ns.Write(_ms);
+                    _ms.SetLength(0);
+                    ReadPosition = 0;
+
+                    // 剩余数据重新写入缓冲区
+                    ns.Position = 0;
+                    _ms.Write(ns);
+                }
+            }
             return rs;
         }
         #endregion
