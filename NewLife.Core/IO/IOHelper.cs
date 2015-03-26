@@ -143,11 +143,7 @@ namespace System
                 if (ms.TryGetValue("_origin", out obj))
                 {
                     var _origin = (Int32)obj;
-                    //Byte[] buf = null;
                     // 其实地址不为0时，一般不能直接访问缓冲区，因为可能被限制访问
-                    //if (_origin == 0)
-                    //    buf = ms.GetBuffer();
-                    //else
                     var buf = ms.GetValue("_buffer") as Byte[];
 
                     if (max > 0 && count > max) count = max;
