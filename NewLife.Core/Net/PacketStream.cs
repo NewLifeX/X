@@ -31,10 +31,12 @@ namespace NewLife.Net
         public override void Write(byte[] buffer, int offset, int count)
         {
             if (count < 0) count = buffer.Length - offset;
+
             var ms = new MemoryStream(4 + count);
             ms.WriteEncodedInt(count);
             ms.Write(buffer, offset, count);
             ms.Position = 0;
+
             _s.Write(ms);
         }
 

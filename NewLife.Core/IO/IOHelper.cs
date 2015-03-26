@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using NewLife.Reflection;
+using NewLife;
 using System.ComponentModel;
 using System.Globalization;
 using System.IO;
@@ -127,6 +129,7 @@ namespace System
             if (src is MemoryStream)
             {
                 var ms = src as MemoryStream;
+                // 如果指针位于开头，并且要读完整个缓冲区，则直接使用WriteTo
                 var count = (Int32)(ms.Length - ms.Position);
                 if (ms.Position == 0 && (max <= 0 || count <= max))
                 {
@@ -134,11 +137,27 @@ namespace System
                     ms.Position = ms.Length;
                     return count;
                 }
-                else
+
+                // 反射读取内存流中数据的原始位置，然后直接把数据拿出来用
+                Object obj = 0;
+                if (ms.TryGetValue("_origin", out obj))
                 {
-                    // 一次读完
-                    bufferSize = count;
+                    var _origin = (Int32)obj;
+                    //Byte[] buf = null;
+                    // 其实地址不为0时，一般不能直接访问缓冲区，因为可能被限制访问
+                    //if (_origin == 0)
+                    //    buf = ms.GetBuffer();
+                    //else
+                    var buf = ms.GetValue("_buffer") as Byte[];
+
+                    if (max > 0 && count > max) count = max;
+                    des.Write(buf, _origin, count);
+                    ms.Position += count;
+                    return count;
                 }
+
+                // 一次读完
+                bufferSize = count;
             }
 
             if (bufferSize <= 0) bufferSize = 1024;

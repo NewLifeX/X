@@ -93,7 +93,6 @@ namespace NewLife.Net
 
                 Client = new TcpClient(Local.EndPoint);
                 CheckDynamic();
-                Stream = Client.GetStream();
 
                 WriteLog("{0}.Open {1}", Name, this);
             }
@@ -106,6 +105,7 @@ namespace NewLife.Net
                 try
                 {
                     Client.Connect(Remote.EndPoint);
+                    Stream = Client.GetStream();
                 }
                 catch (Exception ex)
                 {

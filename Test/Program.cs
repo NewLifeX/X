@@ -628,24 +628,26 @@ namespace Test
 
         static void Test15()
         {
-            "我是超级大石头！".Speak();
+            //"我是超级大石头！".Speak();
 
             var tcp = new TcpSession();
+            tcp.Log = XTrace.Log;
             tcp.Remote = "tcp://127.0.0.1:8";
             tcp.MessageDgram = true;
             tcp.AutoReconnect = false;
             //tcp.Send("我是大石头！");
             tcp.Open();
-            var ms = new MemoryStream();
+            tcp.Stream = new PacketStream(tcp.Stream);
+            //var ms = new MemoryStream();
             for (int i = 0; i < 10; i++)
             {
-                //tcp.Send("我是大石头{0}！".F(i + 1));
-                var buf = "我是大石头{0}！".F(i + 1).GetBytes();
-                ms.WriteEncodedInt(buf.Length);
-                ms.Write(buf);
+                tcp.Send("我是大石头{0}！".F(i + 1));
+                //var buf = "我是大石头{0}！".F(i + 1).GetBytes();
+                //ms.WriteEncodedInt(buf.Length);
+                //ms.Write(buf);
             }
-            ms.Position = 0;
-            tcp.Client.GetStream().Write(ms);
+            //ms.Position = 0;
+            //tcp.Client.GetStream().Write(ms);
 
             while (true)
             {
