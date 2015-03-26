@@ -325,25 +325,25 @@ namespace NewLife.Net
             // 数据长度，0表示收到空数据，-1表示收到部分包，后续跳过处理
             if (count >= 0)
             {
-                if (Stream is NetworkStream)
-                    // 在用户线程池里面处理数据
-                    ThreadPoolX.QueueUserWorkItem(() => OnReceive(data, count), ex => OnError("OnReceive", ex));
-                else
+                // 在用户线程池里面处理数据，不要占用IO线程
+                ThreadPoolX.QueueUserWorkItem(() =>
                 {
                     try
                     {
                         OnReceive(data, count);
                     }
-                    catch (Exception ex)
+                    finally
                     {
-                        OnError("OnReceive", ex);
-                        if (Disposed) return;
+                        // 开始新的监听
+                        if (!Disposed) ReceiveAsync();
                     }
-                }
+                }, ex => OnError("OnReceive", ex));
             }
-
-            // 开始新的监听
-            ReceiveAsync();
+            else
+            {
+                // 开始新的监听
+                ReceiveAsync();
+            }
         }
 
         /// <summary>处理收到的数据</summary>

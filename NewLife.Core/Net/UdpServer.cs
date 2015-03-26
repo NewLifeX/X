@@ -381,26 +381,8 @@ namespace NewLife.Net
             // 异步不要设置地址，事件里面已经包含
             //LastRemote = ep;
 
-            //if (UseProcessAsync)
             // 在用户线程池里面去处理数据
-            ThreadPoolX.QueueUserWorkItem(() =>
-            {
-                // 日志输出放在这里，既保证和处理函数一个线程，又不会被重载覆盖
-                //Log.Debug("{0}.OnReceive {1}<={2} [{3}]", Name, this, ep, data.Length);
-
-                OnReceive(data, ep);
-            }, ex => OnError("OnReceive", ex));
-            //else
-            //{
-            //    try
-            //    {
-            //        OnReceive(data, ep);
-            //    }
-            //    catch (Exception ex)
-            //    {
-            //        OnError("OnReceive", ex);
-            //    }
-            //}
+            ThreadPoolX.QueueUserWorkItem(() => OnReceive(data, ep), ex => OnError("OnReceive", ex));
 
             // 开始新的监听
             ReceiveAsync();
