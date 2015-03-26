@@ -113,15 +113,17 @@ namespace Test2
         static void Test3()
         {
             var server = new TcpServer();
+            server.Log = XTrace.Log;
             server.Port = 8;
-            server.MessageDgram = true;
+            //server.MessageDgram = true;
             server.NewSession += server_NewSession;
             server.Start();
         }
 
         static void server_NewSession(object sender, SessionEventArgs e)
         {
-            var session = e.Session;
+            var session = e.Session as TcpSession;
+            session.Stream = new PacketStream(session.Stream);
             session.Received += session_Received;
         }
 

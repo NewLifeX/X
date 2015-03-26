@@ -34,9 +34,9 @@ namespace NewLife.Net
         /// <summary>是否自动重连，默认true。发生异常断开连接时，自动重连服务端。</summary>
         public Boolean AutoReconnect { get { return _AutoReconnect; } set { _AutoReconnect = value; } }
 
-        private Boolean _MessageDgram;
-        /// <summary>使用消息报文。此时解决粘包拆包问题，每个报文前面使用7位压缩编码整数表示后面数据包长度</summary>
-        public Boolean MessageDgram { get { return _MessageDgram; } set { _MessageDgram = value; } }
+        //private Boolean _MessageDgram;
+        ///// <summary>使用消息报文。此时解决粘包拆包问题，每个报文前面使用7位压缩编码整数表示后面数据包长度</summary>
+        //public Boolean MessageDgram { get { return _MessageDgram; } set { _MessageDgram = value; } }
         #endregion
 
         #region 构造
@@ -63,6 +63,7 @@ namespace NewLife.Net
             if (client == null) return;
 
             Client = client;
+            if (client.Connected) Stream = client.GetStream();
             var socket = client.Client;
             if (socket.LocalEndPoint != null) Local.EndPoint = (IPEndPoint)socket.LocalEndPoint;
             if (socket.RemoteEndPoint != null) Remote.EndPoint = (IPEndPoint)socket.RemoteEndPoint;

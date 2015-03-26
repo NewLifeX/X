@@ -633,7 +633,7 @@ namespace Test
             var tcp = new TcpSession();
             tcp.Log = XTrace.Log;
             tcp.Remote = "tcp://127.0.0.1:8";
-            tcp.MessageDgram = true;
+            //tcp.MessageDgram = true;
             tcp.AutoReconnect = false;
             //tcp.Send("我是大石头！");
             tcp.Open();

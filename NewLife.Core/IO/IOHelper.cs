@@ -694,6 +694,31 @@ namespace System
             return rs;
         }
 
+        /// <summary>尝试读取压缩编码整数</summary>
+        /// <param name="stream"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        internal static Boolean TryReadEncodedInt(this Stream stream, out Int32 value)
+        {
+            Byte b;
+            value = 0;
+            Byte n = 0;
+            while (true)
+            {
+                var bt = stream.ReadByte();
+                if (bt < 0) return false;
+                b = (Byte)bt;
+
+                // 必须转为Int32，否则可能溢出
+                value += (Int32)((b & 0x7f) << n);
+                if ((b & 0x80) == 0) break;
+
+                n += 7;
+                if (n >= 32) throw new FormatException("数字值过大，无法使用压缩格式读取！");
+            }
+            return true;
+        }
+
         /// <summary>
         /// 以7位压缩格式写入32位整数，小于7位用1个字节，小于14位用2个字节。
         /// 由每次写入的一个字节的第一位标记后面的字节是否还是当前数据，所以每个字节实际可利用存储空间只有后7位。
