@@ -117,6 +117,7 @@ namespace NewLife.Net
         /// <returns></returns>
         protected abstract Boolean OnOpen();
 
+        /// <summary>检查是否动态端口。如果是动态端口，则把随机得到的端口拷贝到Port</summary>
         internal protected void CheckDynamic()
         {
             if (Port == 0)

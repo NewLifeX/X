@@ -18,21 +18,36 @@ namespace NewLife.Net
         #endregion
 
         #region 构造
+        /// <summary>构造一个消息包数据流</summary>
+        /// <param name="stream"></param>
         public PacketStream(Stream stream) { _s = stream; }
         #endregion
 
-        public override bool CanRead { get { return _s.CanRead; } }
+        #region 写入
+        /// <summary>写入</summary>
+        /// <param name="buffer"></param>
+        /// <param name="offset"></param>
+        /// <param name="count"></param>
+        public override void Write(byte[] buffer, int offset, int count)
+        {
+            if (count < 0) count = buffer.Length - offset;
+            var ms = new MemoryStream(4 + count);
+            ms.WriteEncodedInt(count);
+            ms.Write(buffer, offset, count);
+            ms.Position = 0;
+            _s.Write(ms);
+        }
 
-        public override bool CanSeek { get { return _s.CanSeek; } }
-
-        public override bool CanWrite { get { return _s.CanWrite; } }
-
+        /// <summary>忽略缓存立马向下一层写入所有数据</summary>
         public override void Flush() { _s.Flush(); }
+        #endregion
 
-        public override long Length { get { return _s.Length; } }
-
-        public override long Position { get { return _s.Position; } set { _s.Position = value; } }
-
+        #region 读取
+        /// <summary>读取</summary>
+        /// <param name="buffer"></param>
+        /// <param name="offset"></param>
+        /// <param name="count"></param>
+        /// <returns></returns>
         public override int Read(byte[] buffer, int offset, int count)
         {
             // 先读取本地，本地用完了再向下读取
@@ -66,25 +81,34 @@ namespace NewLife.Net
             }
             return rs;
         }
+        #endregion
 
-        public override long Seek(long offset, SeekOrigin origin)
-        {
-            return _s.Seek(offset, origin);
-        }
+        #region 重载
+        /// <summary>是否可以读取</summary>
+        public override bool CanRead { get { return _s.CanRead; } }
 
-        public override void SetLength(long value)
-        {
-            _s.SetLength(value);
-        }
+        /// <summary>是否可以查找</summary>
+        public override bool CanSeek { get { return _s.CanSeek; } }
 
-        public override void Write(byte[] buffer, int offset, int count)
-        {
-            if (count < 0) count = buffer.Length - offset;
-            var ms = new MemoryStream(4 + count);
-            ms.WriteEncodedInt(count);
-            ms.Write(buffer, offset, count);
-            ms.Position = 0;
-            _s.Write(ms);
-        }
+        /// <summary>是否可以写入</summary>
+        public override bool CanWrite { get { return _s.CanWrite; } }
+
+        /// <summary>长度</summary>
+        public override long Length { get { return _s.Length; } }
+
+        /// <summary>位置</summary>
+        public override long Position { get { return _s.Position; } set { _s.Position = value; } }
+
+        /// <summary>设置当前流中的位置</summary>
+        /// <param name="offset"></param>
+        /// <param name="origin"></param>
+        /// <returns></returns>
+        public override long Seek(long offset, SeekOrigin origin) { return _s.Seek(offset, origin); }
+
+        /// <summary>设置长度</summary>
+        /// <param name="value"></param>
+        public override void SetLength(long value) { _s.SetLength(value); }
+
+        #endregion
     }
 }
