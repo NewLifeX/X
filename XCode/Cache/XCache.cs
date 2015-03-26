@@ -405,9 +405,11 @@ namespace XCode.Cache
             if (Total > 0)
             {
                 var sb = new StringBuilder();
-                sb.AppendFormat("一级缓存<{0}>", Kind);
-                sb.AppendFormat("总次数{0}", Total);
-                if (Shoot > 0) sb.AppendFormat("，命中{0}（{1:P02}）", Shoot, (Double)Shoot / Total);
+                // 排版需要，一个中文占两个字符位置
+                var str = Kind.ToString();
+                sb.AppendFormat("一级缓存<{0,-" + (20 - str.Length) + "}>", str);
+                sb.AppendFormat("总次数{0,7:n0}", Total);
+                if (Shoot > 0) sb.AppendFormat("，命中{0,7:n0}（{1,7:P02}）", Shoot, (Double)Shoot / Total);
 
                 XTrace.WriteLine(sb.ToString());
             }
