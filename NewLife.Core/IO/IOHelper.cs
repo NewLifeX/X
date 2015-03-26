@@ -6,6 +6,7 @@ using System.Globalization;
 using System.IO;
 using System.IO.Compression;
 using System.Text;
+using NewLife.Log;
 
 namespace System
 {
@@ -125,7 +126,7 @@ namespace System
         /// <returns>返回复制的总字节数</returns>
         public static Int32 CopyTo(this Stream src, Stream des, Int32 bufferSize = 0, Int32 max = 0)
         {
-            // 优化处理内存流
+            // 优化处理内存流，直接拿源内存流缓冲区往目标数据流里写
             if (src is MemoryStream)
             {
                 var ms = src as MemoryStream;
@@ -154,6 +155,40 @@ namespace System
 
                 // 一次读完
                 bufferSize = count;
+            }
+            // 优化处理目标内存流，直接拿目标内存流缓冲区去源数据流里面读取数据
+            if (des is MemoryStream)
+            {
+                var ms = des as MemoryStream;
+                // 
+                Object obj = 0;
+                if (ms.TryGetValue("_origin", out obj))
+                {
+                    var _origin = (Int32)obj;
+                    // 缓冲区还剩下多少空间
+                    var count = (Int32)(ms.Length - ms.Position);
+                    // 有可能是全新的内存流
+                    if (count == 0)
+                    {
+                        count = max > 0 ? max : 256;
+                        ms.SetLength(count);
+                    }
+                    else if (max > 0 && count > max)
+                        count = max;
+
+                    // 其实地址不为0时，一般不能直接访问缓冲区，因为可能被限制访问
+                    var buf = ms.GetValue("_buffer") as Byte[];
+
+                    // 直接从源数据流往这个缓冲区填充数据
+                    var rs = src.Read(buf, _origin, count);
+                    ms.Position += rs;
+                    // 如果得到的数据没有达到预期，说明读完了
+                    if (rs < count) return rs;
+
+                    // 如果还有数据，说明是目标数据流缓冲区不够大
+                    XTrace.WriteLine("目标数据流缓冲区不够大，设计上建议加大（>{0}）以提升性能！", count);
+                }
+
             }
 
             if (bufferSize <= 0) bufferSize = 1024;
