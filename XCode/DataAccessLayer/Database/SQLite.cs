@@ -8,6 +8,9 @@ using System.Threading;
 using NewLife;
 using NewLife.Log;
 using NewLife.Reflection;
+using System.IO;
+using System.Diagnostics;
+using NewLife.Compression;
 
 namespace XCode.DataAccessLayer
 {
@@ -513,6 +516,49 @@ namespace XCode.DataAccessLayer
         protected override void DropDatabase()
         {
             if (!(Database as SQLite).IsMemoryDatabase) base.DropDatabase();
+        }
+
+        /// <summary>备份文件到目标文件</summary>
+        /// <param name="bakfile"></param>
+        public void Backup(String bakfile)
+        {
+            bakfile = bakfile.GetFullPath().EnsureDirectory();
+
+            WriteLog("{0}备份SQLite数据库{1}到{2}", Database.ConnName, (Database as SQLite).FileName, bakfile);
+
+            var sw = new Stopwatch();
+            sw.Start();
+
+            // 删除已有文件
+            if (File.Exists(bakfile)) File.Delete(bakfile);
+
+            using (var session = Database.CreateSession())
+            using (var conn = Database.Factory.CreateConnection())
+            {
+                session.Open();
+
+                conn.ConnectionString = "Data Source={0}".F(bakfile);
+                conn.Open();
+
+                //var method = conn.GetType().GetMethodEx("BackupDatabase");
+                // 借助BackupDatabase函数可以实现任意两个SQLite之间倒数据，包括内存数据库
+                session.Conn.Invoke("BackupDatabase", conn, "main", "main", -1, null, 0);
+            }
+
+            // 压缩
+            WriteLog("备份文件大小：{0:n0}字节", bakfile.AsFile().Length);
+            if (bakfile.EndsWithIgnoreCase(".zip"))
+            {
+                var rnd = new Random();
+                var tmp = Path.GetDirectoryName(bakfile).CombinePath(rnd.Next() + ".tmp");
+                File.Move(bakfile, tmp);
+                ZipFile.CompressFile(tmp, bakfile);
+                File.Delete(tmp);
+                WriteLog("压缩后大小：{0:n0}字节", bakfile.AsFile().Length);
+            }
+
+            sw.Stop();
+            WriteLog("备份完成，耗时{0:n0}ms", sw.ElapsedMilliseconds);
         }
 
         public override String CreateIndexSQL(IDataIndex index)

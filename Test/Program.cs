@@ -39,7 +39,7 @@ namespace Test
                 try
                 {
 #endif
-                Test15();
+                    Test10();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -514,32 +514,12 @@ namespace Test
 
         static void Test10()
         {
-            // 扫描所有文件样本，检测编码
-            var root = @"E:\Auto\STM32F1\";
-            foreach (var fi in Directory.GetFiles(root, "*.c", SearchOption.AllDirectories))
-            {
-                Console.WriteLine(fi.TrimStart(root));
+            var entity = Area.FindByName("高埗");
+            Console.WriteLine(entity);
 
-                var encoding = fi.AsFile().ReadBytes(0, 4).DetectBOM();
-                if (encoding != null)
-                {
-                    Console.WriteLine("固定编码：{0}", encoding.EncodingName);
-                }
-                else
-                {
-                    var encoding1 = EncodingHelper.Detect(fi);
-                    var encoding2 = Encoding.UTF8;
-                    // 特殊打开，为了获取文件编码
-                    using (var reader = new StreamReader(fi, encoding2, true))
-                    {
-                        encoding2 = reader.CurrentEncoding;
-                        var txt = reader.ReadToEnd();
-                    }
-
-                    Console.WriteLine("结果：{0}\t{1} vs {2}", encoding1 == encoding2,
-                        encoding1 == null ? "" : encoding1.EncodingName, encoding2.EncodingName);
-                }
-            }
+            var file = "db.zip";
+            var md = Area.Meta.Session.Dal.Db.CreateMetaData();
+            md.Invoke("Backup", file);
         }
 
         static void Test13()
