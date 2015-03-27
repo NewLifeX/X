@@ -185,7 +185,13 @@ namespace XCode.Transform
                     }
 
                     eop.ConnName = DesConn;
-                    var rs = list.SaveWithoutValid(true);
+                    //var rs = list.Insert(true);
+                    // 为了避免干扰，必须越过Valid
+                    var rs = 0;
+                    foreach (var item in list)
+                    {
+                        rs += session.Insert(item);
+                    }
                     XTrace.WriteLine("{0} 导入 {1}/{2} {3:p}", name, index, count, (Double)index / count);
 
                     total += rs;
