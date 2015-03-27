@@ -1,5 +1,5 @@
 ﻿<%@ Page Language="C#" AutoEventWireup="true" CodeFile="WebDb.aspx.cs" Inherits="Admin_System_WebDb"
-    Title="网站数据库" MasterPageFile="~/Admin/ManagerPage.master" EnableEventValidation="false" %>
+    Title="网站数据库" MasterPageFile="~/Admin/Ace.master" EnableEventValidation="false" %>
 
 <asp:Content ID="Content1" ContentPlaceHolderID="C" runat="server">
     <div class="row-fluid navbar navbar-default navbar-form">

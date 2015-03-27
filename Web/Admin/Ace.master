@@ -39,6 +39,7 @@
 	<script src="<%= ResolveUrl("~/bootstrap/js/html5shiv.min.js")%>"></script>
 	<script src="<%= ResolveUrl("~/bootstrap/js/respond.min.js")%>"></script>
 	<![endif]-->
+
     <link rel="stylesheet" href="<%= ResolveUrl("~/bootstrap/css/bootstrap.min.css")%>" type="text/css" />
     <%--<link rel="stylesheet" href="<%= ResolveUrl("~/bootstrap/css/bootstrap-theme.min.css")%>" type="text/css" />--%>
     <link rel="stylesheet" href="<%= ResolveUrl("~/bootstrap/css/bootstrap-responsive.min.css")%>" type="text/css" />
@@ -60,11 +61,23 @@
         if ('ontouchstart' in document.documentElement) document.write("<script src='<%= ResolveUrl("~/js/jquery.mobile.custom.min.js")%>'>" + "<" + "/script>");
     </script>
     <script src="<%= ResolveUrl("~/bootstrap/js/bootstrap.min.js")%>"></script>
+
+    <!-- 下拉列表 -->
+    <link rel="stylesheet" href="<%= ResolveUrl("~/bootstrap/css/bootstrap-select.min.css")%>" type="text/css" />
+    <script src="<%= ResolveUrl("~/bootstrap/js/bootstrap-select.min.js")%>"></script>
+    <script src="<%= ResolveUrl("~/bootstrap/js/i18n/defaults-zh_CN.min.js")%>"></script>
 </head>
 <body>
     <form id="form1" runat="server">
         <asp:ContentPlaceHolder ID="C" runat="server">
         </asp:ContentPlaceHolder>
     </form>
+    <script type="text/javascript">
+        $('.selectpicker').selectpicker();
+        /*$('.selectpicker').selectpicker({
+            style: 'btn',
+            size: 4
+        });*/
+    </script>
 </body>
 </html>
