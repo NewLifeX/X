@@ -195,6 +195,10 @@ namespace XCode.DataAccessLayer
             name = CutPrefix(name);
             if (AutoFixWord) name = FixWord(name);
             if (name[0] == '_') name = name.Substring(1);
+
+            // 关键字加后缀
+            while (IsKeyWord(name)) name += "_";
+
             return name;
         }
 
@@ -338,8 +342,8 @@ namespace XCode.DataAccessLayer
         {
             if (String.IsNullOrEmpty(name)) return false;
 
-            // 特殊处理item
-            if (name.EqualIgnoreCase("item")) return true;
+            // 特殊处理item，还有NewLife和System这两个最重要的命名空间
+            if (name.EqualIgnoreCase("item", "System", "NewLife")) return true;
 
             // 只要有大写字母，就不是关键字
             if (name.Any(c => c >= 'A' && c <= 'Z')) return false;
