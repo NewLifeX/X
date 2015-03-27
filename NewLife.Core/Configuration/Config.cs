@@ -252,7 +252,6 @@ namespace NewLife.Configuration
         /// <param name="defaultValue"></param>
         public static void SetConfig<T>(String name, T defaultValue)
         {
-            //SetConfig(name, defaultValue.ToString());
             // 小心空引用
             SetConfig(name, "" + defaultValue);
         }
@@ -265,8 +264,8 @@ namespace NewLife.Configuration
             var nvs = AppSettings;
             if (nvs == null || nvs.Count < 1) return;
 
-            //nvs[name] = value;
-            UpdateConfig(name, value);
+            nvs[name] = value;
+            //UpdateConfig(name, value);
         }
 
         /// <summary>判断appSettings中是否有此项</summary>

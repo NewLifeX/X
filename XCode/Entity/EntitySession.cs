@@ -9,6 +9,7 @@ using System.Threading;
 using System.Web;
 using NewLife;
 using NewLife.Collections;
+using NewLife.Configuration;
 using NewLife.Log;
 using NewLife.Threading;
 using XCode.Cache;
@@ -160,14 +161,18 @@ namespace XCode
                 //if (DAL.Debug) DAL.WriteLog("初始化{0}数据，调用栈：{1}", name, XTrace.GetCaller());
                 //if (DAL.Debug) DAL.WriteLog("初始化{0}数据", name);
 
-                try
+                var init = Config.GetConfig<Boolean>("XCode.InitData", true);
+                if (init)
                 {
-                    var entity = Operate.Default as EntityBase;
-                    if (entity != null) entity.InitData();
-                }
-                catch (Exception ex)
-                {
-                    if (XTrace.Debug) XTrace.WriteLine("初始化数据出错！" + ex.ToString());
+                    try
+                    {
+                        var entity = Operate.Default as EntityBase;
+                        if (entity != null) entity.InitData();
+                    }
+                    catch (Exception ex)
+                    {
+                        if (XTrace.Debug) XTrace.WriteLine("初始化数据出错！" + ex.ToString());
+                    }
                 }
 
                 return true;

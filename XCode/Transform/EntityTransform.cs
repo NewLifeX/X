@@ -6,6 +6,7 @@ using NewLife.Log;
 using NewLife.Reflection;
 #endif
 using XCode.DataAccessLayer;
+using NewLife.Configuration;
 
 namespace XCode.Transform
 {
@@ -120,6 +121,9 @@ namespace XCode.Transform
         /// <returns></returns>
         public Int32 TransformTable(IEntityOperate eop, Int32 count = 0, Boolean? isDesc = null, Func<Int32, Int32, IEntityList> getData = null)
         {
+            var oldInitData = Config.GetConfig<Boolean>("XCode.InitData", true);
+            Config.SetConfig("XCode.InitData", false);
+
             var name = eop.TableName;
             eop.ConnName = SrcConn;
             if (count <= 0) count = eop.Count;
@@ -194,6 +198,8 @@ namespace XCode.Transform
                 // 在目标链接上启用事务保护
                 eop.ConnName = DesConn;
                 session.Commit();
+
+                Config.SetConfig("XCode.InitData", oldInitData);
 
                 return total;
             }
