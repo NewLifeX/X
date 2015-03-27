@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -25,6 +26,13 @@ namespace NewLife.Reflection
         /// <param name="paramTypes">参数类型数组</param>
         /// <returns></returns>
         MethodInfo GetMethod(Type type, String name, params Type[] paramTypes);
+
+        /// <summary>获取指定名称的方法集合，支持指定参数个数来匹配过滤</summary>
+        /// <param name="type"></param>
+        /// <param name="name"></param>
+        /// <param name="paramCount">参数个数，-1表示不过滤参数个数</param>
+        /// <returns></returns>
+        MethodInfo[] GetMethods(Type type, String name, Int32 paramCount = -1);
 
         /// <summary>获取属性</summary>
         /// <param name="type">类型</param>
@@ -180,6 +188,27 @@ namespace NewLife.Reflection
         public virtual MethodInfo GetMethod(Type type, String name, params Type[] paramTypes)
         {
             return type.GetMethod(name, bf, null, paramTypes, null);
+        }
+
+        /// <summary>获取指定名称的方法集合，支持指定参数个数来匹配过滤</summary>
+        /// <param name="type"></param>
+        /// <param name="name"></param>
+        /// <param name="paramCount">参数个数，-1表示不过滤参数个数</param>
+        /// <returns></returns>
+        public virtual MethodInfo[] GetMethods(Type type, String name, Int32 paramCount = -1)
+        {
+            var ms = type.GetMethods(bf);
+            if (ms == null || ms.Length == 0) return ms;
+
+            var list = new List<MethodInfo>();
+            foreach (var item in ms)
+            {
+                if (item.Name == name)
+                {
+                    if (paramCount >= 0 && item.GetParameters().Length == paramCount) list.Add(item);
+                }
+            }
+            return list.ToArray();
         }
 
         /// <summary>获取属性</summary>

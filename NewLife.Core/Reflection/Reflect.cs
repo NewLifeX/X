@@ -41,6 +41,18 @@ namespace NewLife.Reflection
             return _Provider.GetMethod(type, name, paramTypes);
         }
 
+        /// <summary>获取指定名称的方法集合，支持指定参数个数来匹配过滤</summary>
+        /// <param name="type"></param>
+        /// <param name="name"></param>
+        /// <param name="paramCount">参数个数，-1表示不过滤参数个数</param>
+        /// <returns></returns>
+        public static MethodInfo[] GetMethodsEx(this Type type, String name, Int32 paramCount = -1)
+        {
+            if (String.IsNullOrEmpty(name)) return null;
+
+            return _Provider.GetMethods(type, name, paramCount);
+        }
+
         /// <summary>获取属性。搜索私有、静态、基类，优先返回大小写精确匹配成员</summary>
         /// <param name="type">类型</param>
         /// <param name="name">名称</param>
@@ -128,13 +140,16 @@ namespace NewLife.Reflection
             {
                 Type t = null;
                 if (item != null) t = item.GetType();
+
                 list.Add(t);
             }
 
+            // 如果参数数组出现null，则无法精确匹配，可按参数个数进行匹配
             var method = GetMethodEx(type, name, list.ToArray());
             if (method == null) return false;
 
             value = Invoke(target, method, parameters);
+
             return true;
         }
 

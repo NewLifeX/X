@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -27,8 +28,35 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public override MethodInfo GetMethod(Type type, String name, params Type[] paramTypes)
         {
-            var method = base.GetMethod(type, name, paramTypes);
-            if (method != null) return method;
+            // 参数数组必须为空，或者所有参数类型都不为null，才能精确匹配
+            if (paramTypes == null || paramTypes.Length == 0 || paramTypes.All(t => t != null))
+            {
+                var method = base.GetMethod(type, name, paramTypes);
+                if (method != null) return method;
+            }
+
+            // 任意参数类型为null，换一种匹配方式
+            if (paramTypes.Any(t => t == null))
+            {
+                var ms = GetMethods(type, name, paramTypes.Length);
+                if (ms == null || ms.Length == 0) return null;
+
+                // 对比参数
+                foreach (var mi in ms)
+                {
+                    var ps = mi.GetParameters();
+                    var flag = true;
+                    for (int i = 0; i < ps.Length; i++)
+                    {
+                        if (paramTypes[i] != null && !ps[i].ParameterType.IsAssignableFrom(paramTypes[i]))
+                        {
+                            flag = false;
+                            break;
+                        }
+                    }
+                    if (flag) return mi;
+                }
+            }
 
             return TypeX.GetMethod(type, name, paramTypes);
         }
