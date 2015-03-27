@@ -27,6 +27,8 @@ public partial class Admin_System_WebDb : MyEntityList
                 ddlConn_SelectedIndexChanged(null, null);
             }
         }
+
+        txtBak.Text = String.Format("..\\Backup\\{0}_{1:yyyyMMddHHmmss}.zip", ddlConn.SelectedItem, DateTime.Now);
     }
 
     DAL GetDAL()
@@ -349,6 +351,31 @@ public partial class Admin_System_WebDb : MyEntityList
                     if (!String.IsNullOrEmpty(att.Description)) item.Text = att.Description;
                 }
             }
+        }
+    }
+
+    protected void btnBak_Click(object sender, EventArgs e)
+    {
+        String bak = txtBak.Text;
+        if (String.IsNullOrEmpty(bak)) return;
+
+        DAL dal = GetDAL();
+        if (dal.DbType != DatabaseType.SQLite)
+        {
+            WebHelper.Alert("仅支持SQLite备份！");
+            return;
+        }
+
+        try
+        {
+            IMetaData md = dal.Db.CreateMetaData();
+            Reflect.Invoke(md, "Backup", bak);
+
+            WebHelper.Alert("完成！");
+        }
+        catch (Exception ex)
+        {
+            WebHelper.Alert(ex.ToString());
         }
     }
 }

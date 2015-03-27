@@ -8,6 +8,10 @@
         &nbsp;<asp:TextBox ID="txtConnStr" runat="server" Width="803px"></asp:TextBox>
     </div>
     <div class="row-fluid navbar navbar-default navbar-form">
+        备份数据库：<asp:TextBox ID="txtBak" runat="server" Width="500px"></asp:TextBox>
+        &nbsp;<asp:Button ID="btnBak" runat="server" Text="备份" OnClick="btnBak_Click" />
+    </div>
+    <div class="row-fluid navbar navbar-default navbar-form">
         <asp:Panel ID="Panel1" runat="server">
             数据表：<asp:DropDownList ID="ddlTable" runat="server" AutoPostBack="True" OnSelectedIndexChanged="ddlTable_SelectedIndexChanged">
             </asp:DropDownList>
