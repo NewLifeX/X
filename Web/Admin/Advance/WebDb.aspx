@@ -3,19 +3,19 @@
 
 <asp:Content ID="Content1" ContentPlaceHolderID="C" runat="server">
     <div class="row-fluid navbar navbar-default navbar-form">
-        数据库链接：<asp:DropDownList ID="ddlConn" runat="server" AutoPostBack="True" OnSelectedIndexChanged="ddlConn_SelectedIndexChanged">
+        数据库链接：<asp:DropDownList ID="ddlConn" runat="server" AutoPostBack="True" CssClass="form-control" OnSelectedIndexChanged="ddlConn_SelectedIndexChanged">
         </asp:DropDownList>
         &nbsp;<asp:TextBox ID="txtConnStr" runat="server" Width="803px"></asp:TextBox>
     </div>
     <div class="row-fluid navbar navbar-default navbar-form">
-        备份数据库：<asp:TextBox ID="txtBak" runat="server" Width="500px"></asp:TextBox>
-        &nbsp;<asp:Button ID="btnBak" runat="server" Text="备份" OnClick="btnBak_Click" />
+        备份数据库：<asp:TextBox ID="txtBak" runat="server" Width="500px" CssClass="form-control"></asp:TextBox>
+        &nbsp;<asp:Button ID="btnBak" runat="server" Text="备份" OnClick="btnBak_Click" CssClass="btn btn-danger" />
     </div>
     <div class="row-fluid navbar navbar-default navbar-form">
         <asp:Panel ID="Panel1" runat="server">
-            数据表：<asp:DropDownList ID="ddlTable" runat="server" AutoPostBack="True" OnSelectedIndexChanged="ddlTable_SelectedIndexChanged">
+            数据表：<asp:DropDownList ID="ddlTable" runat="server" AutoPostBack="True" CssClass="form-control" OnSelectedIndexChanged="ddlTable_SelectedIndexChanged">
             </asp:DropDownList>
-            &nbsp;数据架构：<asp:DropDownList ID="ddlSchema" runat="server" AutoPostBack="True" OnSelectedIndexChanged="ddlSchema_SelectedIndexChanged">
+            &nbsp;数据架构：<asp:DropDownList ID="ddlSchema" runat="server" AutoPostBack="True" CssClass="form-control" OnSelectedIndexChanged="ddlSchema_SelectedIndexChanged">
             </asp:DropDownList>
         </asp:Panel>
     </div>
@@ -23,9 +23,9 @@
         GridLines="None" OnRowDataBound="gvTable_RowDataBound" EnableModelValidation="True">
     </asp:GridView>
     SQL语句：（主键，分页时用）<asp:TextBox ID="txtKey" runat="server" Width="48px">ID</asp:TextBox>
-    &nbsp;<asp:Button ID="Button1" runat="server" Text="查询" OnClick="Button1_Click" />
+    &nbsp;<asp:Button ID="Button1" runat="server" Text="查询" OnClick="Button1_Click" CssClass="btn btn-success" />
     <br />
-    <asp:TextBox ID="txtSql" runat="server" Height="138px" Width="738px" TextMode="MultiLine"></asp:TextBox>
+    <asp:TextBox ID="txtSql" runat="server" Height="138px" Width="738px" CssClass="form-control" TextMode="MultiLine"></asp:TextBox>
     &nbsp;<br />
     结果：<asp:Label ID="lbResult" runat="server" ForeColor="Red"></asp:Label>
     <br />
