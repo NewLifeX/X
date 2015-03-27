@@ -55,6 +55,10 @@ namespace XCode.Transform
         private Boolean _OnlyTransformToEmptyTable;
         /// <summary>仅迁移到空表。对于已有数据的表，不执行迁移。</summary>
         public Boolean OnlyTransformToEmptyTable { get { return _OnlyTransformToEmptyTable; } set { _OnlyTransformToEmptyTable = value; } }
+
+        private Boolean _ShowSQL;
+        /// <summary>是否显示SQL</summary>
+        public Boolean ShowSQL { get { return _ShowSQL; } set { _ShowSQL = value; } }
         #endregion
 
         #region 局部迁移
@@ -149,11 +153,9 @@ namespace XCode.Transform
                 var oldII = eop.AllowInsertIdentity;
                 if (AllowInsertIdentity) eop.AllowInsertIdentity = true;
 
-#if !DEBUG
                 // 关闭SQL日志
                 var oldShowSql = DAL.ShowSQL;
-                DAL.ShowSQL = false;
-#endif
+                DAL.ShowSQL = ShowSQL;
 
                 var total = 0;
                 var index = 0;
@@ -179,14 +181,13 @@ namespace XCode.Transform
                     }
 
                     eop.ConnName = DesConn;
-                    var rs = list.Insert(true);
+                    var rs = list.SaveWithoutValid(true);
                     XTrace.WriteLine("{0} 导入 {1}/{2} {3:p}", name, index, count, (Double)index / count);
 
                     total += rs;
                 }
-#if !DEBUG
                 DAL.ShowSQL = oldShowSql;
-#endif
+
                 // 关闭插入自增
                 if (AllowInsertIdentity) eop.AllowInsertIdentity = oldII;
 
