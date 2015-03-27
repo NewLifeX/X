@@ -35,6 +35,7 @@ using System.Runtime.InteropServices;
 
 /*
  * v5.3.2015.0327   网络库增加PacketStream，用于Tcp粘包拆包，测试通过
+ *                  增加NetHelper.GetIPsWithCache，用于带缓存的获取本机IP，解决根据字符串IP获取物理IP时带来的BUG
  * 
  * v5.2.2015.0314   如果已经打开异步接收，还要使用同步接收，则同步Receive内部不再调用底层Socket，而是等待截走异步数据。
  * 

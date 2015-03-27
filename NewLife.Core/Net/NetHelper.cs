@@ -64,8 +64,8 @@ namespace System
             socket.IOControl(IOControlCode.KeepAliveValues, inOptionValues, null);
         }
 
-        private static DictionaryCache<String, IPAddress> _dnsCache = new DictionaryCache<String, IPAddress>(StringComparer.OrdinalIgnoreCase) { Expriod = 600, Asynchronous = true };
-        /// <summary>分析地址</summary>
+        private static DictionaryCache<String, IPAddress> _dnsCache = new DictionaryCache<String, IPAddress>(StringComparer.OrdinalIgnoreCase) { Expriod = 60, Asynchronous = true };
+        /// <summary>分析地址，根据IP或者域名得到IP地址，缓存60秒，异步更新</summary>
         /// <param name="hostname"></param>
         /// <returns></returns>
         public static IPAddress ParseAddress(String hostname)
@@ -144,7 +144,7 @@ namespace System
         /// <summary>是否本地地址</summary>
         /// <param name="address"></param>
         /// <returns></returns>
-        public static Boolean IsLocal(this IPAddress address) { return IPAddress.IsLoopback(address) || GetIPs().Any(ip => ip.Equals(address)); }
+        public static Boolean IsLocal(this IPAddress address) { return IPAddress.IsLoopback(address) || GetIPsWithCache().Any(ip => ip.Equals(address)); }
 
         /// <summary>获取相对于指定远程地址的本地地址</summary>
         /// <param name="address"></param>
@@ -161,7 +161,7 @@ namespace System
                 return addr.AddressFamily == AddressFamily.InterNetwork ? IPAddress.Loopback : IPAddress.IPv6Loopback;
 
             // 否则返回本地第一个IP地址
-            foreach (var item in NetHelper.GetIPs())
+            foreach (var item in NetHelper.GetIPsWithCache())
             {
                 if (item.AddressFamily == addr.AddressFamily) return item;
             }
@@ -308,6 +308,14 @@ namespace System
             }
         }
 
+        private static DictionaryCache<Int32, IPAddress[]> _ips = new DictionaryCache<Int32, IPAddress[]> { Expriod = 60, Asynchronous = true };
+        /// <summary>获取本机可用IP地址，缓存60秒，异步更新</summary>
+        /// <returns></returns>
+        public static IPAddress[] GetIPsWithCache()
+        {
+            return _ips.GetItem(1, k => GetIPs().ToArray());
+        }
+
         /// <summary>获取可用的多播地址</summary>
         /// <returns></returns>
         public static IEnumerable<IPAddress> GetMulticasts()
@@ -332,14 +340,14 @@ namespace System
         /// <returns></returns>
         public static IPAddress MyIP()
         {
-            return GetIPs().FirstOrDefault(ip => ip.IsIPv4() && !IPAddress.IsLoopback(ip));
+            return GetIPsWithCache().FirstOrDefault(ip => ip.IsIPv4() && !IPAddress.IsLoopback(ip));
         }
 
         /// <summary>获取本地第一个IPv6地址</summary>
         /// <returns></returns>
         public static IPAddress MyIPv6()
         {
-            return GetIPs().FirstOrDefault(ip => !ip.IsIPv4() && !IPAddress.IsLoopback(ip));
+            return GetIPsWithCache().FirstOrDefault(ip => !ip.IsIPv4() && !IPAddress.IsLoopback(ip));
         }
         #endregion
 
