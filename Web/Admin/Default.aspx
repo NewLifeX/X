@@ -700,23 +700,41 @@
     </script>
     <script src="../bootstrap/js/bootstrap.js"></script>
 
-    <!-- inline scripts related to this page -->
-    <script type="text/javascript">
-        jQuery(function ($) {
-            $(document).on('click', 'th input:checkbox', function () {
-                var that = this;
-                $(this).closest('table').find('tr > td:first-child input:checkbox')
-                    .each(function () {
-                        this.checked = that.checked;
-                        $(this).closest('tr').toggleClass('selected');
-                    });
-            });
-        })
-    </script>
+    <!-- ace scripts -->
+    <script src="../bootstrap/js/ace/elements.scroller.js"></script>
+    <script src="../bootstrap/js/ace/elements.colorpicker.js"></script>
+    <script src="../bootstrap/js/ace/elements.fileinput.js"></script>
+    <script src="../bootstrap/js/ace/elements.typeahead.js"></script>
+    <script src="../bootstrap/js/ace/elements.wysiwyg.js"></script>
+    <script src="../bootstrap/js/ace/elements.spinner.js"></script>
+    <script src="../bootstrap/js/ace/elements.treeview.js"></script>
+    <script src="../bootstrap/js/ace/elements.wizard.js"></script>
+    <script src="../bootstrap/js/ace/elements.aside.js"></script>
+    <script src="../bootstrap/js/ace/ace.js"></script>
+    <script src="../bootstrap/js/ace/ace.ajax-content.js"></script>
+    <script src="../bootstrap/js/ace/ace.touch-drag.js"></script>
+    <script src="../bootstrap/js/ace/ace.sidebar.js"></script>
+    <script src="../bootstrap/js/ace/ace.sidebar-scroll-1.js"></script>
+    <script src="../bootstrap/js/ace/ace.submenu-hover.js"></script>
+    <script src="../bootstrap/js/ace/ace.widget-box.js"></script>
+    <script src="../bootstrap/js/ace/ace.settings.js"></script>
+    <script src="../bootstrap/js/ace/ace.settings-rtl.js"></script>
+    <script src="../bootstrap/js/ace/ace.settings-skin.js"></script>
+    <script src="../bootstrap/js/ace/ace.widget-on-reload.js"></script>
+    <script src="../bootstrap/js/ace/ace.searchbox-autocomplete.js"></script>
 
     <!-- the following scripts are used in demo only for onpage help and you don't need them -->
     <link rel="stylesheet" href="../bootstrap/css/ace.onpage-help.css" />
     <link rel="stylesheet" href="../bootstrap/css/themes/sunburst.css" />
+
+    <script type="text/javascript"> ace.vars['base'] = '..'; </script>
+    <script src="../bootstrap/js/ace/elements.onpage-help.js"></script>
+    <script src="../bootstrap/js/ace/ace.onpage-help.js"></script>
+    <script src="../bootstrap/js/rainbow.js"></script>
+    <script src="../bootstrap/js/language/generic.js"></script>
+    <script src="../bootstrap/js/language/html.js"></script>
+    <script src="../bootstrap/js/language/css.js"></script>
+    <script src="../bootstrap/js/language/javascript.js"></script>
     <script type="text/javascript">
         $(function () {
             var $frmContent = $('#main');
