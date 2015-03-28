@@ -409,7 +409,7 @@ namespace XCode.Cache
                 var str = Kind.ToString();
                 sb.AppendFormat("一级缓存<{0,-" + (20 - str.Length) + "}>", str);
                 sb.AppendFormat("总次数{0,7:n0}", Total);
-                if (Shoot > 0) sb.AppendFormat("，命中{0,7:n0}（{1,7:P02}）", Shoot, (Double)Shoot / Total);
+                if (Shoot > 0) sb.AppendFormat("，命中{0,7:n0}（{1,6:P02}）", Shoot, (Double)Shoot / Total);
 
                 XTrace.WriteLine(sb.ToString());
             }
