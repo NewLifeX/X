@@ -17,7 +17,7 @@ namespace XCode.Cache
     /// <typeparam name="TEntity">实体类型</typeparam>
     public class EntityCache<TEntity> : CacheBase<TEntity>, IEntityCache where TEntity : Entity<TEntity>, new()
     {
-        #region 基本
+        #region 基础属性
         private DateTime _ExpiredTime;
         /// <summary>缓存过期时间</summary>
         DateTime ExpiredTime { get { return _ExpiredTime; } set { _ExpiredTime = value; } }
@@ -37,7 +37,7 @@ namespace XCode.Cache
             set
             {
                 _HoldCache = value;
-                Asynchronous = true;
+                if (value) Asynchronous = true;
             }
         }
 
@@ -51,8 +51,8 @@ namespace XCode.Cache
 
         /// <summary>当前获得锁的线程</summary>
         private Int32 _thread = 0;
-        /// <summary>是否正在繁忙</summary>
-        internal Boolean Busy { get { return _thread > 0; } }
+        ///// <summary>是否正在繁忙</summary>
+        //internal Boolean Busy { get { return _thread > 0; } }
         #endregion
 
         #region 缓存核心
@@ -190,6 +190,28 @@ namespace XCode.Cache
 
                 // 清空后，表示不使用缓存
                 Using = false;
+            }
+        }
+
+        private IEntityOperate Operate = Entity<TEntity>.Meta.Factory;
+        internal void Update(TEntity entity)
+        {
+            //if (Busy) return;
+            // 正在更新当前缓存，跳过
+            if (!Using || _thread > 0 || _Entities == null) return;
+
+            // 尽管用了事务保护，但是仍然可能有别的地方导致实体缓存更新，这点务必要注意
+            var fi = Operate.Unique;
+            var e = fi != null ? _Entities.Find(fi.Name, entity[fi.Name]) : null;
+            if (e != null)
+            {
+                if (e != entity) e.CopyFrom(entity);
+            }
+            else
+            {
+                // 加入超级缓存的实体对象，需要标记来自数据库
+                entity.OnLoad();
+                _Entities.Add(entity);
             }
         }
         #endregion

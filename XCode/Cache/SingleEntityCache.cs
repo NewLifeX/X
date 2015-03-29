@@ -553,6 +553,7 @@ namespace XCode.Cache
         {
             if (entity == null) return false;
 
+            // 加入缓存的实体对象，需要标记来自数据库
             entity.OnLoad();
             return Add(GetKeyMethod(entity), entity);
         }

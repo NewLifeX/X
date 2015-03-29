@@ -979,7 +979,7 @@ namespace XCode
             // 如果当前在事务中，并使用了缓存，则尝试更新缓存
             if (HoldCache || UsingTrans)
             {
-                CheckAndUpdateCache(entity);
+                if (_cache != null) _cache.Update(entity as TEntity);
 
                 // 自动加入单对象缓存
                 if (_singleCache != null) _singleCache.Add(entity as TEntity);
@@ -1000,7 +1000,7 @@ namespace XCode
             // 如果当前在事务中，并使用了缓存，则尝试更新缓存
             if (HoldCache || UsingTrans)
             {
-                CheckAndUpdateCache(entity);
+                if (_cache != null) _cache.Update(entity as TEntity);
 
                 // 自动加入单对象缓存
                 if (_singleCache != null) _singleCache.Update(entity as TEntity);
@@ -1035,28 +1035,6 @@ namespace XCode
             if (_Count >= 0) { Interlocked.Decrement(ref _Count); }
 
             return rs;
-        }
-
-        /// <summary>检查或更新实体缓存</summary>
-        /// <param name="entity"></param>
-        void CheckAndUpdateCache(IEntity entity)
-        {
-            if (_cache == null || _cache.Busy) return;
-
-            // 尽管用了事务保护，但是仍然可能有别的地方导致实体缓存更新，这点务必要注意
-            var fi = Operate.Unique;
-            var e = fi != null ? Cache.Entities.Find(fi.Name, entity[fi.Name]) : null;
-            if (e != null)
-            {
-                if (e != entity) e.CopyFrom(entity);
-            }
-            else
-            {
-                // 加入超级缓存的实体对象，需要标记来自数据库
-                var entityobj = entity as TEntity;
-                entityobj.OnLoad();
-                Cache.Entities.Add(entityobj);
-            }
         }
         #endregion
     }
