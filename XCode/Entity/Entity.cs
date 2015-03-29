@@ -91,9 +91,19 @@ namespace XCode
             }
             // 减少一步类型转换
             var elist = list as EntityList<TEntity>;
-            if (elist != null) return elist;
+            if (elist != null) elist = new EntityList<TEntity>(list);
 
-            return new EntityList<TEntity>(list);
+            // 如果正在使用单对象缓存，则批量进入
+            var sc = Meta.SingleCache;
+            if (sc.Using)
+            {
+                foreach (var item in elist)
+                {
+                    sc.Add(item);
+                }
+            }
+
+            return elist;
         }
 
         ///// <summary>从一个数据行对象加载数据。不加载关联对象。</summary>

@@ -210,7 +210,7 @@ namespace XCode.Cache
             else
             {
                 // 加入超级缓存的实体对象，需要标记来自数据库
-                entity.OnLoad();
+                entity.MarkDb(true);
                 _Entities.Add(entity);
             }
         }

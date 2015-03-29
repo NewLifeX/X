@@ -1003,7 +1003,7 @@ namespace XCode
                 if (_cache != null) _cache.Update(entity as TEntity);
 
                 // 自动加入单对象缓存
-                if (_singleCache != null) _singleCache.Update(entity as TEntity);
+                if (_singleCache != null) _singleCache.Add(entity as TEntity);
             }
 
             return rs;

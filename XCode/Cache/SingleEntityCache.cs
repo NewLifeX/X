@@ -162,9 +162,9 @@ namespace XCode.Cache
                             }
                             catch { }
                         }
-                        if (!hold) { item.Entity = null; }
+                        if (!hold) item.Entity = null;
                     }
-                    if (!hold) { list.Add(item); }
+                    if (!hold) list.Add(item);
                 }
             }
             // 独占缓存不删除缓存
@@ -200,6 +200,8 @@ namespace XCode.Cache
         /// <summary>缓存对象</summary>
         class CacheItem
         {
+            public SingleEntityCache<TKey, TEntity> sc;
+
             /// <summary>键</summary>
             public TKey Key;
 
@@ -218,6 +220,15 @@ namespace XCode.Cache
 
             /// <summary>是否已经过期</summary>
             public Boolean Expired { get { return ExpireTime <= DateTime.Now; } }
+
+            public void SetEntity(TEntity entity)
+            {
+                // 如果原来有对象，则需要自动保存
+                if (Entity != null && Entity != entity) sc.AutoUpdate(this);
+
+                Entity = entity;
+                ExpireTime = DateTime.Now.AddMinutes(sc.Expriod);
+            }
         }
         #endregion
 
@@ -279,7 +290,8 @@ namespace XCode.Cache
             if (Total > 0)
             {
                 var sb = new StringBuilder();
-                sb.AppendFormat("单对象缓存<{0,-18}>", (typeof(TKey).Name + "," + typeof(TEntity).Name));
+                var name = "<{0},{1}>({2})".F(typeof(TKey).Name, typeof(TEntity).Name, Entities.Count);
+                sb.AppendFormat("单对象缓存{0,-20}", name);
                 sb.AppendFormat("总次数{0,7:n0}", Total);
                 if (Shoot > 0) sb.AppendFormat("，命中{0,7:n0}（{1,6:P02}）", Shoot, (Double)Shoot / Total);
                 // 一级命中和总命中相等时不显示
@@ -352,7 +364,7 @@ namespace XCode.Cache
         {
             Using = true;
 
-            var item = new CacheItem();
+            var item = new CacheItem { sc = this };
 
             String slaveKey = null;
             if (GetSlaveKeyMethod != null) slaveKey = GetSlaveKeyMethod(entity);
@@ -360,8 +372,7 @@ namespace XCode.Cache
             var mkey = GetKeyMethod(entity);
             item.Key = mkey;
             item.SlaveKey = slaveKey;
-            item.Entity = entity;
-            item.ExpireTime = DateTime.Now.AddSeconds(Expriod);
+            item.SetEntity(entity);
 
             var success = false;
             lock (Entities)
@@ -411,19 +422,14 @@ namespace XCode.Cache
             AutoUpdate(item);
 
             // 判断别的线程是否已更新
-            if (HoldCache || !item.Expired) { return item.Entity; }
+            if (HoldCache || !item.Expired) return item.Entity;
 
             // 更新过期缓存，在原连接名表名里面获取
             var entity = Invoke(FindKeyMethod, item.Key);
             if (entity != null || AllowNull)
-            {
-                item.Entity = entity;
-                item.ExpireTime = DateTime.Now.AddSeconds(Expriod);
-            }
+                item.SetEntity(entity);
             else
-            {
                 Interlocked.Increment(ref Invalid);
-            }
 
             return entity;
         }
@@ -504,65 +510,59 @@ namespace XCode.Cache
         /// <returns></returns>
         public Boolean ContainsSlaveKey(String key) { return SlaveEntities.ContainsKey(key); }
 
-        /// <summary>尝试从单对象缓存中获取与指定的主键关联的实体对象</summary>
-        /// <param name="key">主键</param>
-        /// <param name="entity">返回的实体对象</param>
-        /// <returns>是否查找成功</returns>
-        internal Boolean TryGetItem(TKey key, out TEntity entity)
-        {
-            CacheItem item;
-            if (Entities.TryGetValue(key, out item) && item != null)
-            {
-                entity = item.Entity;
-                return true;
-            }
-            else
-            {
-                entity = null;
-                return false;
-            }
-        }
+        ///// <summary>尝试从单对象缓存中获取与指定的主键关联的实体对象</summary>
+        ///// <param name="key">主键</param>
+        ///// <param name="entity">返回的实体对象</param>
+        ///// <returns>是否查找成功</returns>
+        //internal Boolean TryGetItem(TKey key, out TEntity entity)
+        //{
+        //    CacheItem item;
+        //    if (Entities.TryGetValue(key, out item) && item != null)
+        //    {
+        //        entity = item.Entity;
+        //        return true;
+        //    }
+        //    else
+        //    {
+        //        entity = null;
+        //        return false;
+        //    }
+        //}
 
-        /// <summary>更新一个实体对象到单对象缓存</summary>
-        /// <param name="entity"></param>
-        internal void Update(TEntity entity)
-        {
-            var key = GetKeyMethod(entity);
-            // 复制到单对象缓存
-            TEntity cacheitem;
-            var add = true;
-            if (TryGetItem(key, out cacheitem))
-            {
-                if (cacheitem != null)
-                {
-                    add = false;
-                    if (cacheitem != entity) cacheitem.CopyFrom(entity);
-                }
-                else // 存在允许存储空对象的情况
-                {
-                    Remove(entity);
-                }
-            }
-            if (add) Add(entity);
-        }
+        ///// <summary>更新一个实体对象到单对象缓存</summary>
+        ///// <param name="entity"></param>
+        //internal void Update(TEntity entity)
+        //{
+        //    var key = GetKeyMethod(entity);
+
+        //    CacheItem item;
+        //    if (Entities.TryGetValue(key, out item) && item != null)
+        //        item.SetEntity(entity);
+        //    else
+        //        Add(entity);
+        //}
 
         /// <summary>向单对象缓存添加项</summary>
         /// <param name="entity">实体对象</param>
         /// <returns></returns>
-        internal Boolean Add(TEntity entity)
+        internal void Add(TEntity entity)
         {
-            if (entity == null) return false;
+            if (entity == null) return;
 
             // 加入缓存的实体对象，需要标记来自数据库
-            entity.OnLoad();
-            return Add(GetKeyMethod(entity), entity);
+            entity.MarkDb(true);
+            CacheItem item;
+            if (Entities.TryGetValue(GetKeyMethod(entity), out item) && item != null)
+                item.SetEntity(entity);
+            else
+                Add(GetKeyMethod(entity), entity);
         }
 
         /// <summary>向单对象缓存添加项</summary>
         /// <param name="key"></param>
         /// <param name="value">数值</param>
         /// <returns></returns>
-        Boolean Add(TKey key, TEntity value)
+        Boolean Add(TKey key, TEntity entity)
         {
             // 如果找到项，返回
             CacheItem item = null;
@@ -577,18 +577,13 @@ namespace XCode.Cache
                 {
                     if (!item.Expired) return false;
 
-                    if (item.Entity != null && item.Entity != value)
-                        item.Entity.CopyFrom(value);
-                    else
-                        item.Entity = value;
-
-                    item.ExpireTime = DateTime.Now.AddSeconds(Expriod);
+                    item.SetEntity(entity);
 
                     return false;
                 }
                 else
                 {
-                    return TryAdd(value);
+                    return TryAdd(entity);
                 }
             }
         }

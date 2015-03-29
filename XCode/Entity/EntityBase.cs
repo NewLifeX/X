@@ -32,7 +32,9 @@ namespace XCode
         //public abstract void LoadDataReader(IDataReader dr);
 
         /// <summary>填充数据完成时调用。默认设定标记<see cref="_IsFromDatabase"/></summary>
-        internal protected virtual void OnLoad() { _IsFromDatabase = true; }
+        internal protected virtual void OnLoad() { MarkDb(true); }
+
+        internal void MarkDb(Boolean flag) { _IsFromDatabase = flag; }
         #endregion
 
         #region 操作
