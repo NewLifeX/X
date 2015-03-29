@@ -64,7 +64,7 @@ namespace XCode.Cache
                 {
                     _FindKeyMethod = key => Entity<TEntity>.FindByKey(key);
 
-                    if (_FindKeyMethod == null) throw new ArgumentNullException("FindKeyMethod", "没有找到FindByKey方法，请先设置查找数据的方法！");
+                    //if (_FindKeyMethod == null) throw new ArgumentNullException("FindKeyMethod", "没有找到FindByKey方法，请先设置查找数据的方法！");
                 }
                 return _FindKeyMethod;
             }
@@ -523,15 +523,38 @@ namespace XCode.Cache
             }
         }
 
-        /// <summary>向单对象缓存添加项</summary>
-        /// <param name="value">实体对象</param>
-        /// <returns></returns>
-        public Boolean Add(TEntity value)
+        /// <summary>更新一个实体对象到单对象缓存</summary>
+        /// <param name="entity"></param>
+        internal void Update(TEntity entity)
         {
-            if (value == null) return false;
+            var key = GetKeyMethod(entity);
+            // 复制到单对象缓存
+            TEntity cacheitem;
+            var add = true;
+            if (TryGetItem(key, out cacheitem))
+            {
+                if (cacheitem != null)
+                {
+                    add = false;
+                    if (cacheitem != entity) cacheitem.CopyFrom(entity);
+                }
+                else // 存在允许存储空对象的情况
+                {
+                    Remove(entity);
+                }
+            }
+            if (add) Add(entity);
+        }
 
-            var key = GetKeyMethod(value);
-            return Add(key, value);
+        /// <summary>向单对象缓存添加项</summary>
+        /// <param name="entity">实体对象</param>
+        /// <returns></returns>
+        internal Boolean Add(TEntity entity)
+        {
+            if (entity == null) return false;
+
+            entity.OnLoad();
+            return Add(GetKeyMethod(entity), entity);
         }
 
         /// <summary>向单对象缓存添加项</summary>
@@ -598,7 +621,8 @@ namespace XCode.Cache
         /// <param name="entity"></param>
         public void Remove(TEntity entity)
         {
-            if (entity == null) { return; }
+            if (entity == null) return;
+
             var key = GetKeyMethod(entity);
             RemoveKey(key);
         }

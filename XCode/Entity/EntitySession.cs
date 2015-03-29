@@ -357,22 +357,15 @@ namespace XCode
             get
             {
                 // 以连接名和表名为key，因为不同的库不同的表，缓存也不一样
-                //return _singleCache ?? (_singleCache = new SingleEntityCache<Object, TEntity> { ConnName = ConnName, TableName = TableName });
                 if (_singleCache == null)
                 {
                     var sc = new SingleEntityCache<Object, TEntity>();
                     sc.ConnName = ConnName;
                     sc.TableName = TableName;
-                    //sc.Expriod = Entity<TEntity>.Meta.SingleEntityCacheExpriod;
-                    //sc.MaxEntity = Entity<TEntity>.Meta.SingleEntityCacheMaxEntity;
-                    //sc.AutoSave = Entity<TEntity>.Meta.SingleEntityCacheAutoSave;
-                    //sc.AllowNull = Entity<TEntity>.Meta.SingleEntityCacheAllowNull;
-                    //sc.FindKeyMethodInternal = Entity<TEntity>.Meta.SingleEntityCacheFindKeyMethod;
 
                     // 从默认会话复制参数
                     if (Default != this) sc.CopySettingFrom(Default.SingleCache);
 
-                    //_singleCache = sc;
                     Interlocked.CompareExchange<SingleEntityCache<Object, TEntity>>(ref _singleCache, sc, null);
                 }
                 return _singleCache;
@@ -976,7 +969,7 @@ namespace XCode
         #region 实体操作
         private IEntityPersistence persistence { get { return XCodeService.Container.ResolveInstance<IEntityPersistence>(); } }
 
-        /// <summary>把该对象持久化到数据库，添加/更新实体缓存。</summary>
+        /// <summary>把该对象持久化到数据库，添加/更新实体缓存和单对象缓存，增加总计数</summary>
         /// <param name="entity">实体对象</param>
         /// <returns></returns>
         public virtual Int32 Insert(IEntity entity)
@@ -989,22 +982,10 @@ namespace XCode
                 CheckAndUpdateCache(entity);
 
                 // 自动加入单对象缓存
-                if (_singleCache != null)
-                {
-                    var entityobj = entity as TEntity;
-
-                    var getkeymethod = SingleCache.GetKeyMethod;
-                    if (getkeymethod != null)
-                    {
-                        // 这里也需要标记来自数据库，防止实体缓存没有使用的情况下不对新增的实体对象做标记，不再正确验证脏数据
-                        var key = getkeymethod(entityobj);
-                        entityobj.OnLoad();
-                        SingleCache[key] = entityobj;
-                    }
-                }
+                if (_singleCache != null) _singleCache.Add(entity as TEntity);
             }
 
-            if (_Count > -1L) Interlocked.Increment(ref _Count);
+            if (_Count >= 0) Interlocked.Increment(ref _Count);
 
             return rs;
         }
@@ -1022,41 +1003,13 @@ namespace XCode
                 CheckAndUpdateCache(entity);
 
                 // 自动加入单对象缓存
-                if (_singleCache != null)
-                {
-                    var entityobj = entity as TEntity;
-                    var getkeymethod = SingleCache.GetKeyMethod;
-                    if (getkeymethod != null)
-                    {
-                        var key = getkeymethod(entityobj);
-                        // 复制到单对象缓存
-                        TEntity cacheitem;
-                        if (SingleCache.TryGetItem(key, out cacheitem))
-                        {
-                            if (cacheitem != null)
-                            {
-                                if (cacheitem != entityobj) { cacheitem.CopyFrom(entityobj); }
-                            }
-                            else // 存在允许存储空对象的情况
-                            {
-                                SingleCache.RemoveKey(key);
-                                entityobj.OnLoad();
-                                SingleCache[key] = entityobj;
-                            }
-                        }
-                        else
-                        {
-                            entityobj.OnLoad();
-                            SingleCache[key] = entityobj;
-                        }
-                    }
-                }
+                if (_singleCache != null) _singleCache.Update(entity as TEntity);
             }
 
             return rs;
         }
 
-        /// <summary>从数据库中删除该对象，同时从实体缓存中删除</summary>
+        /// <summary>从数据库中删除该对象，同时从实体缓存和单对象缓存中删除，扣减总数量</summary>
         /// <param name="entity">实体对象</param>
         /// <returns></returns>
         public virtual Int32 Delete(IEntity entity)
@@ -1076,22 +1029,10 @@ namespace XCode
                     }
                 }
                 // 自动加入单对象缓存
-                if (_singleCache != null)
-                {
-                    var entityobj = entity as TEntity;
-                    if (entityobj != null)
-                    {
-                        var getkeymethod = SingleCache.GetKeyMethod;
-                        if (getkeymethod != null)
-                        {
-                            var key = getkeymethod(entityobj);
-                            SingleCache.RemoveKey(key);
-                        }
-                    }
-                }
+                if (_singleCache != null) _singleCache.Remove(entity as TEntity);
             }
 
-            if (_Count > -1L) { Interlocked.Decrement(ref _Count); }
+            if (_Count >= 0) { Interlocked.Decrement(ref _Count); }
 
             return rs;
         }
@@ -1113,11 +1054,8 @@ namespace XCode
             {
                 // 加入超级缓存的实体对象，需要标记来自数据库
                 var entityobj = entity as TEntity;
-                if (entityobj != null)
-                {
-                    entityobj.OnLoad();
-                    Cache.Entities.Add(entityobj);
-                }
+                entityobj.OnLoad();
+                Cache.Entities.Add(entityobj);
             }
         }
         #endregion
