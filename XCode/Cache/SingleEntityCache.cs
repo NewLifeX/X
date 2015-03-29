@@ -150,17 +150,18 @@ namespace XCode.Cache
             {
                 // 是否过期
                 // 单对象缓存每次缓存的时候，设定一个将来的过期时间，然后以后只需要比较过期时间和当前时间就可以了
-                if (item.ExpireTime <= DateTime.Now)
+                if (item.Expired)
                 {
                     if (item.Entity != null)
                     {
                         // 自动保存
-                        if (AutoSave)
+                        if (AutoSave && item.NextSave <= DateTime.Now)
                         {
                             // 捕获异常，不影响别人
                             try
                             {
                                 // 需要在原连接名表名里面更新对象
+                                item.NextSave = DateTime.Now.AddSeconds(Expriod);
                                 AutoUpdate(item);
                             }
                             catch { }
@@ -204,16 +205,22 @@ namespace XCode.Cache
         class CacheItem
         {
             /// <summary>键</summary>
-            internal TKey Key;
+            public TKey Key;
 
             /// <summary>从键</summary>
-            internal String SlaveKey;
+            public String SlaveKey;
 
             /// <summary>实体</summary>
-            internal TEntity Entity;
+            public TEntity Entity;
 
             /// <summary>缓存过期时间</summary>
-            internal DateTime ExpireTime;
+            public DateTime ExpireTime;
+
+            /// <summary>下一次保存的时间</summary>
+            public DateTime NextSave;
+
+            /// <summary>是否已经过期</summary>
+            public Boolean Expired { get { return ExpireTime <= DateTime.Now; } }
         }
         #endregion
 
@@ -358,6 +365,7 @@ namespace XCode.Cache
             item.SlaveKey = slaveKey;
             item.Entity = entity;
             item.ExpireTime = DateTime.Now.AddSeconds(Expriod);
+            item.NextSave = item.ExpireTime;
 
             var success = false;
             lock (Entities)
@@ -397,7 +405,7 @@ namespace XCode.Cache
             // 未过期，直接返回
             //if (HoldCache || item.ExpireTime > DateTime.Now)
             // 这里不能判断独占缓存，否则将失去自动保存的机会
-            if (item.ExpireTime > DateTime.Now)
+            if (!item.Expired)
             {
                 Interlocked.Increment(ref Shoot);
                 return item.Entity;
@@ -407,7 +415,7 @@ namespace XCode.Cache
             AutoUpdate(item);
 
             // 判断别的线程是否已更新
-            if (HoldCache || item.ExpireTime > DateTime.Now) { return item.Entity; }
+            if (HoldCache || !item.Expired) { return item.Entity; }
 
             // 更新过期缓存，在原连接名表名里面获取
             var entity = Invoke(FindKeyMethod, item.Key);
@@ -415,6 +423,7 @@ namespace XCode.Cache
             {
                 item.Entity = entity;
                 item.ExpireTime = DateTime.Now.AddSeconds(Expriod);
+                item.NextSave = item.ExpireTime;
             }
             else
             {
@@ -533,7 +542,7 @@ namespace XCode.Cache
         {
             // 如果找到项，返回
             CacheItem item = null;
-            if (Entities.TryGetValue(key, out item) && item != null && item.ExpireTime > DateTime.Now) return false;
+            if (Entities.TryGetValue(key, out item) && item != null && !item.Expired) return false;
 
             // 加锁
             lock (_SyncRoot)
@@ -542,7 +551,7 @@ namespace XCode.Cache
                 // TryGetValue获取成功，Item为空说明同一时间另外线程做了删除操作
                 if (Entities.TryGetValue(key, out item) && item != null)
                 {
-                    if (DateTime.Now <= item.ExpireTime) return false;
+                    if (item.Expired) return false;
                     var old = item.Entity;
                     if (old != null)
                     {
@@ -553,6 +562,7 @@ namespace XCode.Cache
                         item.Entity = value;
                     }
                     item.ExpireTime = DateTime.Now.AddSeconds(Expriod);
+                    item.NextSave = item.ExpireTime;
 
                     return false;
                 }
