@@ -71,7 +71,7 @@ namespace NewLife.CommonEntity
 
             var rs = base.Insert();
             // 加入到单对象缓存
-            Meta.SingleCache.Add(this.ID, this as TEntity);
+            Meta.SingleCache[ID] = this as TEntity;
 
             // 清理缓存
             ps[1] = Parent;

@@ -999,7 +999,7 @@ namespace XCode
                         // 这里也需要标记来自数据库，防止实体缓存没有使用的情况下不对新增的实体对象做标记，不再正确验证脏数据
                         var key = getkeymethod(entityobj);
                         entityobj.OnLoad();
-                        SingleCache.Add(key, entityobj);
+                        SingleCache[key] = entityobj;
                     }
                 }
             }
@@ -1041,13 +1041,13 @@ namespace XCode
                             {
                                 SingleCache.RemoveKey(key);
                                 entityobj.OnLoad();
-                                SingleCache.Add(key, entityobj);
+                                SingleCache[key] = entityobj;
                             }
                         }
                         else
                         {
                             entityobj.OnLoad();
-                            SingleCache.Add(key, entityobj);
+                            SingleCache[key] = entityobj;
                         }
                     }
                 }
@@ -1096,6 +1096,8 @@ namespace XCode
             return rs;
         }
 
+        /// <summary>检查或更新实体缓存</summary>
+        /// <param name="entity"></param>
         void CheckAndUpdateCache(IEntity entity)
         {
             if (_cache == null || _cache.Busy) return;

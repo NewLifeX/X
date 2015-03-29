@@ -37,10 +37,6 @@ namespace XCode.Cache
         public Boolean AllowNull { get { return _AllowNull; } set { _AllowNull = value; } }
 
         #region 主键
-        //private Boolean _MasterKeyUsingUniqueField = true;
-        ///// <summary>单对象缓存主键是否使用实体模型唯一键（第一个标识列或者唯一的主键）</summary>
-        //public Boolean MasterKeyUsingUniqueField { get { return _MasterKeyUsingUniqueField; } set { _MasterKeyUsingUniqueField = value; } }
-
         private Func<TEntity, TKey> _GetKeyMethod;
         /// <summary>获取缓存主键的方法，默认方法为获取实体主键值</summary>
         public Func<TEntity, TKey> GetKeyMethod
@@ -129,8 +125,9 @@ namespace XCode.Cache
         /// <summary>定期检查实体，如果过期，则触发保存</summary>
         void Check()
         {
+            var hold = HoldCache;
             // 独占缓存不删除缓存，仅判断自动保存
-            if (HoldCache && !AutoSave) return;
+            if (hold && !AutoSave) return;
 
             // 加锁后把缓存集合拷贝到数组中，避免后面遍历的时候出现多线程冲突
             CacheItem[] cs = null;
@@ -161,18 +158,17 @@ namespace XCode.Cache
                             try
                             {
                                 // 需要在原连接名表名里面更新对象
-                                item.NextSave = DateTime.Now.AddSeconds(Expriod);
                                 AutoUpdate(item);
                             }
                             catch { }
                         }
-                        if (!HoldCache) { item.Entity = null; }
+                        if (!hold) { item.Entity = null; }
                     }
-                    if (!HoldCache) { list.Add(item); }
+                    if (!hold) { list.Add(item); }
                 }
             }
             // 独占缓存不删除缓存
-            if (HoldCache) return;
+            if (hold) return;
 
             // 从缓存中删除，必须加锁
             if (list.Count > 0)
@@ -213,8 +209,9 @@ namespace XCode.Cache
             /// <summary>实体</summary>
             public TEntity Entity;
 
+            private DateTime _ExpireTime;
             /// <summary>缓存过期时间</summary>
-            public DateTime ExpireTime;
+            public DateTime ExpireTime { get { return _ExpireTime; } set { _ExpireTime = value; NextSave = value; } }
 
             /// <summary>下一次保存的时间</summary>
             public DateTime NextSave;
@@ -299,7 +296,7 @@ namespace XCode.Cache
         /// <summary>根据主键获取实体数据</summary>
         /// <param name="key"></param>
         /// <returns></returns>
-        public TEntity this[TKey key] { get { return GetItem(key); } }
+        public TEntity this[TKey key] { get { return GetItem(key); } set { Add(key, value); } }
 
         private TEntity GetItem(TKey key) { return GetItem(Entities, key); }
 
@@ -365,7 +362,6 @@ namespace XCode.Cache
             item.SlaveKey = slaveKey;
             item.Entity = entity;
             item.ExpireTime = DateTime.Now.AddSeconds(Expriod);
-            item.NextSave = item.ExpireTime;
 
             var success = false;
             lock (Entities)
@@ -423,7 +419,6 @@ namespace XCode.Cache
             {
                 item.Entity = entity;
                 item.ExpireTime = DateTime.Now.AddSeconds(Expriod);
-                item.NextSave = item.ExpireTime;
             }
             else
             {
@@ -479,7 +474,11 @@ namespace XCode.Cache
         /// <param name="item"></param>
         private void AutoUpdate(CacheItem item)
         {
-            if (item != null && AutoSave && item.Entity != null) Invoke(e => e.Entity.Update(), item);
+            if (AutoSave && item != null && item.Entity != null)
+            {
+                item.NextSave = DateTime.Now.AddSeconds(Expriod);
+                Invoke(e => e.Entity.Update(), item);
+            }
         }
         #endregion
 
@@ -529,7 +528,8 @@ namespace XCode.Cache
         /// <returns></returns>
         public Boolean Add(TEntity value)
         {
-            if (value == null) { return false; }
+            if (value == null) return false;
+
             var key = GetKeyMethod(value);
             return Add(key, value);
         }
@@ -538,7 +538,7 @@ namespace XCode.Cache
         /// <param name="key"></param>
         /// <param name="value">数值</param>
         /// <returns></returns>
-        public Boolean Add(TKey key, TEntity value)
+        Boolean Add(TKey key, TEntity value)
         {
             // 如果找到项，返回
             CacheItem item = null;
@@ -551,18 +551,14 @@ namespace XCode.Cache
                 // TryGetValue获取成功，Item为空说明同一时间另外线程做了删除操作
                 if (Entities.TryGetValue(key, out item) && item != null)
                 {
-                    if (item.Expired) return false;
-                    var old = item.Entity;
-                    if (old != null)
-                    {
-                        if (old != value) old.CopyFrom(value);
-                    }
+                    if (!item.Expired) return false;
+
+                    if (item.Entity != null && item.Entity != value)
+                        item.Entity.CopyFrom(value);
                     else
-                    {
                         item.Entity = value;
-                    }
+
                     item.ExpireTime = DateTime.Now.AddSeconds(Expriod);
-                    item.NextSave = item.ExpireTime;
 
                     return false;
                 }
@@ -620,11 +616,7 @@ namespace XCode.Cache
                 {
                     foreach (var key in Entities)
                     {
-                        var item = key.Value;
-                        if (item == null || item.Entity == null) continue;
-
-                        //item.Entity.Update();
-                        AutoUpdate(item);
+                        AutoUpdate(key.Value);
                     }
                 }
             }
@@ -698,8 +690,6 @@ namespace XCode.Cache
             this.AllowNull = ec.AllowNull;
             this.HoldCache = ec.HoldCache;
 
-            //this.MasterKeyUsingUniqueField = ec.MasterKeyUsingUniqueField;
-            //this.KeyIgnoreCase = ec.KeyIgnoreCase;
             this.GetKeyMethod = ec.GetKeyMethod;
             this.FindKeyMethod = ec.FindKeyMethod;
 
