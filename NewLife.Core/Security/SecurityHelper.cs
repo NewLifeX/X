@@ -123,5 +123,13 @@ namespace System
             }
         }
         #endregion
+
+        #region RC4
+        /// <summary>RC4对称加密算法</summary>
+        /// <param name="data"></param>
+        /// <param name="pass"></param>
+        /// <returns></returns>
+        public static Byte[] RC4(this Byte[] data, Byte[] pass) { return NewLife.Security.RC4.Encrypt(data, pass); }
+        #endregion
     }
 }
