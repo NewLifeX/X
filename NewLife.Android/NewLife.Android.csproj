@@ -165,6 +165,9 @@
     <Compile Include="..\NewLife.Core\Net\NetUri.cs">
       <Link>Net\NetUri.cs</Link>
     </Compile>
+    <Compile Include="..\NewLife.Core\Net\PacketStream.cs">
+      <Link>Net\PacketStream.cs</Link>
+    </Compile>
     <Compile Include="..\NewLife.Core\Net\ReceivedEventArgs.cs">
       <Link>Net\ReceivedEventArgs.cs</Link>
     </Compile>

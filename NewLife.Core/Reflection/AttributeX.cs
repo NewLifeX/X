@@ -2,9 +2,6 @@
 using System.Linq;
 using NewLife.Collections;
 using NewLife.Reflection;
-#if Android
-using System.Reflection;
-#endif
 
 namespace System
 {

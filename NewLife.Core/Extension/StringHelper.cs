@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
-using NewLife.Extension;
 using NewLife.Log;
 using NewLife.Reflection;
 
@@ -718,6 +717,7 @@ namespace System
         #endregion
 
         #region 文字转语音
+#if !Android
         private static SpeakProvider _provider;
         /// <summary>调用语音引擎说出指定话</summary>
         /// <param name="value"></param>
@@ -727,6 +727,7 @@ namespace System
 
             _provider.SpeakAsync(value);
         }
+#endif
         #endregion
 
         #region 执行命令行
