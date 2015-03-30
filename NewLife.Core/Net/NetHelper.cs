@@ -336,6 +336,19 @@ namespace System
             }
         }
 
+        /// <summary>获取以太网MAC地址</summary>
+        /// <returns></returns>
+        public static IEnumerable<Byte[]> GetMacs()
+        {
+            foreach (var item in NetworkInterface.GetAllNetworkInterfaces())
+            {
+                if (item.NetworkInterfaceType != NetworkInterfaceType.Ethernet) continue;
+
+                var mac = item.GetPhysicalAddress();
+                if (mac != null) yield return mac.GetAddressBytes();
+            }
+        }
+
         /// <summary>获取本地第一个IPv4地址</summary>
         /// <returns></returns>
         public static IPAddress MyIP()

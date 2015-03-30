@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.Net.NetworkInformation;
 using System.Reflection;
 using System.Text;
 using System.Threading;
@@ -514,12 +515,16 @@ namespace Test
 
         static void Test10()
         {
-            var entity = Area.FindByName("高埗");
-            Console.WriteLine(entity);
+            foreach (var item in NetworkInterface.GetAllNetworkInterfaces())
+            {
+                if (item.OperationalStatus != OperationalStatus.Up) continue;
 
-            var file = "db.zip";
-            var md = Area.Meta.Session.Dal.Db.CreateMetaData();
-            md.Invoke("Backup", file);
+                Console.WriteLine("接口：{0,-30} 地址：{1}", item.Name, item.GetPhysicalAddress().GetAddressBytes().ToHex("-"));
+            }
+            foreach (var item in NetHelper.GetMacs())
+            {
+                Console.WriteLine(item.ToHex("-"));
+            }
         }
 
         static void Test13()
