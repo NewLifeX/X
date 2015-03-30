@@ -117,7 +117,14 @@ namespace XCode.Cache
         {
             base.OnDispose(disposing);
 
-            Clear("资源释放");
+            try
+            {
+                Clear("资源释放");
+            }
+            catch (Exception ex)
+            {
+                XTrace.WriteException(ex);
+            }
 
             if (_Timer != null) _Timer.Dispose();
         }
