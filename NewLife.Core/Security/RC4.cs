@@ -19,7 +19,7 @@ namespace NewLife.Security
         /// <param name="data"></param>
         /// <param name="pass"></param>
         /// <returns></returns>
-        public Byte[] Encrypt(Byte[] data, Byte[] pass)
+        public static Byte[] Encrypt(Byte[] data, Byte[] pass)
         {
             if (data == null || pass == null) return null;
 
