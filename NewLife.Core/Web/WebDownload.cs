@@ -34,7 +34,7 @@ namespace NewLife.Web
         public bool BrowserCache { get; set; }
 
         private TimeSpan _browserCacheMaxAge = new TimeSpan(30, 0, 0, 0);
-        /// <summary>浏览器最大缓存时间 默认30天</summary>
+        /// <summary>浏览器最大缓存时间 默认30天。通过Cache-Control头控制max-age，直接使用浏览器缓存，不会发出Http请求，对F5无效</summary>
         public TimeSpan BrowserCacheMaxAge { get { return _browserCacheMaxAge; } set { _browserCacheMaxAge = value; } }
 
         private DateTime _ModifyTime;
