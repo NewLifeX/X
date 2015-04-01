@@ -130,6 +130,9 @@ namespace NewLife.Net
                     if (_Async != null && _Async.AsyncWaitHandle != null) _Async.AsyncWaitHandle.Close();
 
                     Client.Close();
+
+                    // 如果是服务端，这个时候就是销毁
+                    if (_Server != null) Dispose();
                 }
                 catch (Exception ex)
                 {
@@ -317,6 +320,7 @@ namespace NewLife.Net
             if (DisconnectWhenEmptyData && count == 0)
             {
                 Close();
+                return;
             }
 
             // 最后收到有效数据的时间

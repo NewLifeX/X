@@ -10,6 +10,7 @@ using NewLife.Net.Modbus;
 using NewLife.Net.Sockets;
 using NewLife.Net.Stress;
 using NewLife.Security;
+using NewLife.Threading;
 
 namespace Test2
 {
@@ -110,14 +111,26 @@ namespace Test2
             XTrace.WriteLine("{0} [{1}]：{2}", session.Remote, e.Stream.Length, e.Stream.ReadBytes().ToHex());
         }
 
+        static TimerX _timer;
         static void Test3()
         {
             var server = new TcpServer();
             server.Log = XTrace.Log;
             server.Port = 8;
-            //server.MessageDgram = true;
-            server.NewSession += server_NewSession;
+            server.MaxNotActive = 0;
+            //server.NewSession += server_NewSession;
             server.Start();
+
+            //ThreadPoolX.QueueUserWorkItem(ShowSessions);
+            _timer = new TimerX(ShowSessions, server, 1000, 1000);
+        }
+
+        static void ShowSessions(Object state)
+        {
+            var server = state as TcpServer;
+            if (server == null) return;
+
+            Console.Title = "会话数：{0}".F(server.Sessions.Count);
         }
 
         static void server_NewSession(object sender, SessionEventArgs e)
