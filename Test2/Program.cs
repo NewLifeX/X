@@ -115,7 +115,7 @@ namespace Test2
         static void Test3()
         {
             var server = new TcpServer();
-            server.Log = XTrace.Log;
+            //server.Log = XTrace.Log;
             server.Port = 8;
             server.MaxNotActive = 0;
             //server.NewSession += server_NewSession;

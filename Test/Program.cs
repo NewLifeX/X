@@ -41,7 +41,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test10();
+                Test10();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -242,7 +242,6 @@ namespace Test
 
         static void Test10()
         {
-            //var ts = new TcpStress();
             TcpStress.Main();
         }
 

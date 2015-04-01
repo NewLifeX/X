@@ -8,7 +8,7 @@ namespace NewLife.Net.Stress
     [XmlConfigFile("TcpStress.xml")]
     public class TcpStressConfig : XmlConfig<TcpStressConfig>
     {
-        private String _Address = "127.0.0.1";
+        private String _Address;
         /// <summary>测试地址</summary>
         [Description("测试地址")]
         public String Address { get { return _Address; } set { _Address = value; } }
@@ -47,6 +47,12 @@ namespace NewLife.Net.Stress
         /// <summary>每个连接发送数据次数</summary>
         [Description("每个连接发送数据次数")]
         public Int32 Times { get { return _Times; } set { _Times = value; } }
+
+        /// <summary>实例化</summary>
+        public TcpStressConfig()
+        {
+            Address = NetHelper.MyIP().ToString();
+        }
 
         /// <summary>显示参数</summary>
         public void Show()
