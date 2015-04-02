@@ -118,7 +118,6 @@ namespace Test2
             //server.Log = XTrace.Log;
             server.Port = 8;
             server.MaxNotActive = 0;
-            //server.NewSession += server_NewSession;
             server.Start();
 
             //ThreadPoolX.QueueUserWorkItem(ShowSessions);
@@ -131,13 +130,6 @@ namespace Test2
             if (server == null) return;
 
             Console.Title = "会话数：{0}".F(server.Sessions.Count);
-        }
-
-        static void server_NewSession(object sender, SessionEventArgs e)
-        {
-            var session = e.Session as TcpSession;
-            session.Stream = new PacketStream(session.Stream);
-            session.Received += session_Received;
         }
 
         static void session_Received(object sender, ReceivedEventArgs e)

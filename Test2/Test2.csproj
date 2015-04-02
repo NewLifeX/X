@@ -35,14 +35,14 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Net4Debug|AnyCPU'">
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <DebugSymbols>true</DebugSymbols>
-    <OutputPath>bin\Net4Debug\</OutputPath>
+    <OutputPath>..\..\Test4\</OutputPath>
     <DefineConstants>TRACE;DEBUG;NET4</DefineConstants>
     <DebugType>full</DebugType>
     <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Net4Release|AnyCPU'">
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-    <OutputPath>bin\Net4Release\</OutputPath>
+    <OutputPath>..\..\Test4\</OutputPath>
     <DefineConstants>TRACE;NET4</DefineConstants>
     <Optimize>true</Optimize>
     <DebugType>pdbonly</DebugType>
