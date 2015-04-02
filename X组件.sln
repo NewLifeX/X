@@ -27,13 +27,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test2", "Test2\Test2.csproj
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NewLife.Mvc", "NewLife.Mvc\NewLife.Mvc.csproj", "{E50FC131-90E6-4D21-8F87-84BDF4B841B7}"
 EndProject
-Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "Web", "Web\", "{AAC0A525-4C8D-4D30-B145-288E8CB5CF8A}"
+Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "Web", "http://localhost:17686", "{AAC0A525-4C8D-4D30-B145-288E8CB5CF8A}"
 	ProjectSection(WebsiteProperties) = preProject
-		SccProjectName = ""
-		SccAuxPath = ""
-		SccLocalPath = ""
-		SccProvider = ""
-		TargetFrameworkMoniker = ".NETFramework,Version%3Dv2.0"
+		UseIISExpress = "true"
+		TargetFrameworkMoniker = ".NETFramework,Version%3Dv4.0"
 		ProjectReferences = "{50D7FAE5-2304-4395-A6FA-7D35279D9D84}|NewLife.CommonEntity.dll;{5813C22E-EEB3-4DEE-A45C-BB218041193A}|NewLife.Core.dll;{B49ABA5A-C5DA-45F4-87F1-B435EC51D710}|XCode.dll;{A82E3AA8-6181-460D-A6EE-CC453B83D340}|XControl.dll;"
 		Debug.AspNetCompiler.VirtualPath = "/Web"
 		Debug.AspNetCompiler.PhysicalPath = "Web\"
@@ -49,9 +46,8 @@ Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "Web", "Web\", "{AAC0A525-4C
 		Release.AspNetCompiler.ForceOverwrite = "true"
 		Release.AspNetCompiler.FixedNames = "false"
 		Release.AspNetCompiler.Debug = "False"
-		VWDPort = "17686"
-		VWDDynamicPort = "true"
 		SlnRelativePath = "Web\"
+		DefaultWebSiteLanguage = "Visual C#"
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NewLife.Core.Test", "NewLife.Core.Test\NewLife.Core.Test.csproj", "{ADC0BECC-C59A-4A82-BFCE-02EBD2966204}"
@@ -64,32 +60,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NewLife.Net.Test", "NewLife.Net.Test\NewLife.Net.Test.csproj", "{6D5EA117-7DC7-4390-935A-97C36F0BB29C}"
-EndProject
-Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "WebBootstrap", "WebBootstrap\", "{F4EA7043-C362-4088-A706-66865026DD2C}"
-	ProjectSection(WebsiteProperties) = preProject
-		SccProjectName = ""
-		SccAuxPath = ""
-		SccLocalPath = ""
-		SccProvider = ""
-		TargetFrameworkMoniker = ".NETFramework,Version%3Dv2.0"
-		ProjectReferences = "{5813c22e-eeb3-4dee-a45c-bb218041193a}|NewLife.Core.dll;{b49aba5a-c5da-45f4-87f1-b435ec51d710}|XCode.dll;{a82e3aa8-6181-460d-a6ee-cc453b83d340}|XControl.dll;{50d7fae5-2304-4395-a6fa-7d35279d9d84}|NewLife.CommonEntity.dll;{95272f1d-5ed9-423d-ab5f-decbd89b032f}|NewLife.Bootstrap.dll;"
-		Debug.AspNetCompiler.VirtualPath = "/WebBootstrap"
-		Debug.AspNetCompiler.PhysicalPath = "WebBootstrap\"
-		Debug.AspNetCompiler.TargetPath = "PrecompiledWeb\WebBootstrap\"
-		Debug.AspNetCompiler.Updateable = "true"
-		Debug.AspNetCompiler.ForceOverwrite = "true"
-		Debug.AspNetCompiler.FixedNames = "false"
-		Debug.AspNetCompiler.Debug = "True"
-		Release.AspNetCompiler.VirtualPath = "/WebBootstrap"
-		Release.AspNetCompiler.PhysicalPath = "WebBootstrap\"
-		Release.AspNetCompiler.TargetPath = "PrecompiledWeb\WebBootstrap\"
-		Release.AspNetCompiler.Updateable = "true"
-		Release.AspNetCompiler.ForceOverwrite = "true"
-		Release.AspNetCompiler.FixedNames = "false"
-		Release.AspNetCompiler.Debug = "False"
-		VWDPort = "17689"
-		SlnRelativePath = "WebBootstrap\"
-	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NewLife.Bootstrap", "NewLife.Bootstrap\NewLife.Bootstrap.csproj", "{95272F1D-5ED9-423D-AB5F-DECBD89B032F}"
 EndProject
@@ -216,10 +186,6 @@ Global
 		{6D5EA117-7DC7-4390-935A-97C36F0BB29C}.Net4Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6D5EA117-7DC7-4390-935A-97C36F0BB29C}.Net4Release|Any CPU.Build.0 = Release|Any CPU
 		{6D5EA117-7DC7-4390-935A-97C36F0BB29C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F4EA7043-C362-4088-A706-66865026DD2C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F4EA7043-C362-4088-A706-66865026DD2C}.Net4Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F4EA7043-C362-4088-A706-66865026DD2C}.Net4Release|Any CPU.ActiveCfg = Debug|Any CPU
-		{F4EA7043-C362-4088-A706-66865026DD2C}.Release|Any CPU.ActiveCfg = Debug|Any CPU
 		{95272F1D-5ED9-423D-AB5F-DECBD89B032F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{95272F1D-5ED9-423D-AB5F-DECBD89B032F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{95272F1D-5ED9-423D-AB5F-DECBD89B032F}.Net4Debug|Any CPU.ActiveCfg = Net4Debug|Any CPU
