@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>$id$</id>
+    <version>$version$</version>
+    <title>$title$</title>
+    <authors>$author$</authors>
+    <owners>$author$</owners>
+    <licenseUrl>http://www.NewLifeX.com</licenseUrl>
+    <projectUrl>http://www.NewLifeX.com</projectUrl>
+    <iconUrl>http://www.NewLifeX.com/templates/default/images/logo.png</iconUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>$description$</description>
+    <releaseNotes>发布X组件核心库</releaseNotes>
+    <copyright>Copyright 2015</copyright>
+    <tags>新生命团队 X组件 NewLife</tags>
+  </metadata>
+</package>
