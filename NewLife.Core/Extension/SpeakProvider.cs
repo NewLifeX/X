@@ -48,11 +48,11 @@ namespace NewLife.Extension
                         // 安装语音库
                         var msi = "SpeechPlatformRuntime_x{0}.msi".F(Runtime.Is64BitOperatingSystem ? 64 : 86);
                         msi = dir.CombinePath(msi);
-                        if (File.Exists(msi)) "msiexec".RunCommand("/i \"" + msi + "\" /passive /norestart", 5000);
+                        if (File.Exists(msi)) "msiexec".Run("/i \"" + msi + "\" /passive /norestart", 5000);
 
                         msi = "MSSpeech_TTS_zh-CN_HuiHui.msi";
                         msi = dir.CombinePath(msi);
-                        if (File.Exists(msi)) "msiexec".RunCommand("/i \"" + msi + "\" /passive /norestart", 5000);
+                        if (File.Exists(msi)) "msiexec".Run("/i \"" + msi + "\" /passive /norestart", 5000);
                     }
                 }
                 if (File.Exists(file))
