@@ -77,6 +77,7 @@ namespace NewLife.Reflection
             "System.Diagnostics",
             "System.Reflection",
             "System.Text",
+            "System.Linq",
             "System.IO"};
         /// <summary>命名空间集合</summary>
         public StringCollection NameSpaces { get { return _NameSpaces; } set { _NameSpaces = value; } }
