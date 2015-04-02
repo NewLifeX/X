@@ -11,4 +11,9 @@ public class TestController : Controller
     {
         return View();
     }
+
+    public ActionResult About()
+    {
+        return View("~/About.cshtml");
+    }
 }
