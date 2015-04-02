@@ -1,7 +1,9 @@
-﻿@using System.Web.Routing;
+﻿@using System.Web.Mvc;
+@using System.Web.Routing;
 @{
-
     RouteTable.Routes.MapPageRoute("nnhy", "Stone/{category}/{id}", "~/Test.aspx");
+    RouteTable.Routes.MapRoute("22", "{controller}/{action}/{id}/{*catchall}",
+        defaults: new { controller = "Test", action = "Index", id = UrlParameter.Optional });
     RouteTable.Routes.MapPageRoute("demo", "demo/{num}", "~/demo.aspx");
     RouteTable.Routes.MapPageRoute("file", "file/{num}", "~/file.aspx");
 }
