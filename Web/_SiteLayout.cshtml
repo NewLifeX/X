@@ -20,10 +20,11 @@
             </div>
             <div class="float-right">
                 <section id="login">
-                    @if (NewLife.CommonEntity.ManageProvider.Provider.Current != null)
+                    @using NewLife.CommonEntity;
+                    @if (ManageProvider.Provider.Current != null)
                     {
                         <text>
-                            Hello, <a class="email" href="~/Account/Manage" title="Manage">@NewLife.CommonEntity.ManageProvider.Provider.Current.ToString()</a>!
+                            Hello, <a class="email" href="~/Admin/" title="Manage">@ManageProvider.Provider.Current.ToString()</a>!
                             <form id="logoutForm" action="~/Account/Logout" method="post">
                                 @AntiForgery.GetHtml()
                                 <a href="javascript:document.getElementById('logoutForm').submit()">注销</a>
