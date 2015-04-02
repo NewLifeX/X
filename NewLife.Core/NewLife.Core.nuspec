@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
-<package >
+<package>
   <metadata>
-    <id>$id$</id>
+    <id>NewLife.Core</id>
     <version>$version$</version>
     <title>$title$</title>
     <authors>$author$</authors>
@@ -12,7 +12,7 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>$description$</description>
     <releaseNotes>http://www.newlifex.com/showtopic-51.aspx</releaseNotes>
-    <copyright>Copyright 2015</copyright>
+    <copyright>Copyright 2002-2015 新生命开发团队 http://www.NewLifeX.com</copyright>
     <tags>新生命团队 X组件 NewLife</tags>
   </metadata>
 </package>
