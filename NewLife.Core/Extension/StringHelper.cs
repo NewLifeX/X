@@ -744,7 +744,20 @@ namespace System
             si.FileName = cmd;
             si.Arguments = arguments;
             si.WindowStyle = ProcessWindowStyle.Hidden;
+
+            // 对于控制台项目，这里需要捕获输出
+            if (NewLife.Runtime.IsConsole)
+            {
+                si.RedirectStandardOutput = true;
+                si.UseShellExecute = false;
+                p.OutputDataReceived += (s, e) =>
+                {
+                    XTrace.WriteLine(e.Data);
+                };
+            }
+
             p.Start();
+            if (NewLife.Runtime.IsConsole) p.BeginOutputReadLine();
 
             if (msWait > 0) p.WaitForExit(msWait);
         }
