@@ -735,9 +735,9 @@ namespace System
         /// <param name="cmd">文件名</param>
         /// <param name="arguments">命令参数</param>
         /// <param name="msWait">等待毫秒数</param>
-        public static void RunCommand(this String cmd, String arguments = null, Int32 msWait = 0)
+        public static void Run(this String cmd, String arguments = null, Int32 msWait = 0)
         {
-            if (XTrace.Debug) XTrace.WriteLine("RunCommand {0} {1} {2}", cmd, arguments, msWait);
+            if (XTrace.Debug) XTrace.WriteLine("Run {0} {1} {2}", cmd, arguments, msWait);
 
             var p = new Process();
             var si = p.StartInfo;
