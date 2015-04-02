@@ -5,13 +5,10 @@ using System.Runtime.InteropServices;
 // 有关程序集的常规信息通过以下
 // 特性集控制。更改这些特性值可修改
 // 与程序集关联的信息。
-[assembly: AssemblyTitle("NewLife.IP")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyTitle("新生命IP物理地址库")]
+[assembly: AssemblyDescription("IP物理地址库，自动下载数据库")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("新生命开发团队")]
 [assembly: AssemblyProduct("NewLife.IP")]
-[assembly: AssemblyCopyright("Copyright © 新生命开发团队 2013")]
-[assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
 // 将 ComVisible 设置为 false 使此程序集中的类型

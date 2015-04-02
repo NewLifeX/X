@@ -4,10 +4,10 @@ using System.Runtime.InteropServices;
 // 有关程序集的常规信息通过下列属性集
 // 控制。更改这些属性值可修改
 // 与程序集关联的信息。
-[assembly: AssemblyTitle("数据模型工具")]
-[assembly: AssemblyDescription("基于编译型模版引擎的代码生成器")]
+[assembly: AssemblyTitle("新生命超级码神工具")]
+[assembly: AssemblyDescription("基于编译型模版引擎的代码生成器，以及众多开发者工具")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyProduct("数据模型工具")]
+[assembly: AssemblyProduct("XCoder")]
 [assembly: AssemblyCulture("")]
 
 // 将 ComVisible 设置为 false 使此程序集中的类型
