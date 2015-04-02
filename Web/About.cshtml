@@ -9,9 +9,12 @@
 </hgroup>
 
 <article>
-    <p>
-        Use this area to provide additional information.
-    </p>
+    @foreach (var item in Request.Cookies.AllKeys)
+    {
+        <p>
+            @item = @Request.Cookies[item].Value
+        </p>
+    }
 
     <p>
         Use this area to provide additional information.
