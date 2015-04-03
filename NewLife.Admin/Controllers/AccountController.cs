@@ -1,15 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Transactions;
-using System.Web;
 using System.Web.Mvc;
 using System.Web.Security;
-using DotNetOpenAuth.AspNet;
-using Microsoft.Web.WebPages.OAuth;
-using WebMatrix.WebData;
 using NewLife.Admin.Filters;
 using NewLife.Admin.Models;
+using WebMatrix.WebData;
 
 namespace NewLife.Admin.Controllers
 {
@@ -100,24 +96,24 @@ namespace NewLife.Admin.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Disassociate(string provider, string providerUserId)
         {
-            string ownerAccount = OAuthWebSecurity.GetUserName(provider, providerUserId);
+            //string ownerAccount = OAuthWebSecurity.GetUserName(provider, providerUserId);
             ManageMessageId? message = null;
 
-            // 只有在当前登录用户是所有者时才取消关联帐户
-            if (ownerAccount == User.Identity.Name)
-            {
-                // 使用事务来防止用户删除其上次使用的登录凭据
-                using (var scope = new TransactionScope(TransactionScopeOption.Required, new TransactionOptions { IsolationLevel = IsolationLevel.Serializable }))
-                {
-                    bool hasLocalAccount = OAuthWebSecurity.HasLocalAccount(WebSecurity.GetUserId(User.Identity.Name));
-                    if (hasLocalAccount || OAuthWebSecurity.GetAccountsFromUserName(User.Identity.Name).Count > 1)
-                    {
-                        OAuthWebSecurity.DeleteAccount(provider, providerUserId);
-                        scope.Complete();
-                        message = ManageMessageId.RemoveLoginSuccess;
-                    }
-                }
-            }
+            //// 只有在当前登录用户是所有者时才取消关联帐户
+            //if (ownerAccount == User.Identity.Name)
+            //{
+            //    // 使用事务来防止用户删除其上次使用的登录凭据
+            //    using (var scope = new TransactionScope(TransactionScopeOption.Required, new TransactionOptions { IsolationLevel = IsolationLevel.Serializable }))
+            //    {
+            //        bool hasLocalAccount = OAuthWebSecurity.HasLocalAccount(WebSecurity.GetUserId(User.Identity.Name));
+            //        if (hasLocalAccount || OAuthWebSecurity.GetAccountsFromUserName(User.Identity.Name).Count > 1)
+            //        {
+            //            OAuthWebSecurity.DeleteAccount(provider, providerUserId);
+            //            scope.Complete();
+            //            message = ManageMessageId.RemoveLoginSuccess;
+            //        }
+            //    }
+            //}
 
             return RedirectToAction("Manage", new { Message = message });
         }
@@ -132,7 +128,7 @@ namespace NewLife.Admin.Controllers
                 : message == ManageMessageId.SetPasswordSuccess ? "已设置你的密码。"
                 : message == ManageMessageId.RemoveLoginSuccess ? "已删除外部登录。"
                 : "";
-            ViewBag.HasLocalPassword = OAuthWebSecurity.HasLocalAccount(WebSecurity.GetUserId(User.Identity.Name));
+            //ViewBag.HasLocalPassword = OAuthWebSecurity.HasLocalAccount(WebSecurity.GetUserId(User.Identity.Name));
             ViewBag.ReturnUrl = Url.Action("Manage");
             return View();
         }
@@ -144,10 +140,10 @@ namespace NewLife.Admin.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Manage(LocalPasswordModel model)
         {
-            bool hasLocalAccount = OAuthWebSecurity.HasLocalAccount(WebSecurity.GetUserId(User.Identity.Name));
-            ViewBag.HasLocalPassword = hasLocalAccount;
+            //bool hasLocalAccount = OAuthWebSecurity.HasLocalAccount(WebSecurity.GetUserId(User.Identity.Name));
+            //ViewBag.HasLocalPassword = hasLocalAccount;
             ViewBag.ReturnUrl = Url.Action("Manage");
-            if (hasLocalAccount)
+            //if (hasLocalAccount)
             {
                 if (ModelState.IsValid)
                 {
@@ -172,29 +168,29 @@ namespace NewLife.Admin.Controllers
                     }
                 }
             }
-            else
-            {
-                // 用户没有本地密码，因此将删除由于缺少
-                // OldPassword 字段而导致的所有验证错误
-                ModelState state = ModelState["OldPassword"];
-                if (state != null)
-                {
-                    state.Errors.Clear();
-                }
+            //else
+            //{
+            //    // 用户没有本地密码，因此将删除由于缺少
+            //    // OldPassword 字段而导致的所有验证错误
+            //    ModelState state = ModelState["OldPassword"];
+            //    if (state != null)
+            //    {
+            //        state.Errors.Clear();
+            //    }
 
-                if (ModelState.IsValid)
-                {
-                    try
-                    {
-                        WebSecurity.CreateAccount(User.Identity.Name, model.NewPassword);
-                        return RedirectToAction("Manage", new { Message = ManageMessageId.SetPasswordSuccess });
-                    }
-                    catch (Exception)
-                    {
-                        ModelState.AddModelError("", String.Format("无法创建本地帐户。可能已存在名为“{0}”的帐户。", User.Identity.Name));
-                    }
-                }
-            }
+            //    if (ModelState.IsValid)
+            //    {
+            //        try
+            //        {
+            //            WebSecurity.CreateAccount(User.Identity.Name, model.NewPassword);
+            //            return RedirectToAction("Manage", new { Message = ManageMessageId.SetPasswordSuccess });
+            //        }
+            //        catch (Exception)
+            //        {
+            //            ModelState.AddModelError("", String.Format("无法创建本地帐户。可能已存在名为“{0}”的帐户。", User.Identity.Name));
+            //        }
+            //    }
+            //}
 
             // 如果我们进行到这一步时某个地方出错，则重新显示表单
             return View(model);
@@ -217,31 +213,32 @@ namespace NewLife.Admin.Controllers
         [AllowAnonymous]
         public ActionResult ExternalLoginCallback(string returnUrl)
         {
-            AuthenticationResult result = OAuthWebSecurity.VerifyAuthentication(Url.Action("ExternalLoginCallback", new { ReturnUrl = returnUrl }));
-            if (!result.IsSuccessful)
-            {
-                return RedirectToAction("ExternalLoginFailure");
-            }
+            //AuthenticationResult result = OAuthWebSecurity.VerifyAuthentication(Url.Action("ExternalLoginCallback", new { ReturnUrl = returnUrl }));
+            //if (!result.IsSuccessful)
+            //{
+            //    return RedirectToAction("ExternalLoginFailure");
+            //}
 
-            if (OAuthWebSecurity.Login(result.Provider, result.ProviderUserId, createPersistentCookie: false))
-            {
-                return RedirectToLocal(returnUrl);
-            }
+            //if (OAuthWebSecurity.Login(result.Provider, result.ProviderUserId, createPersistentCookie: false))
+            //{
+            //    return RedirectToLocal(returnUrl);
+            //}
 
-            if (User.Identity.IsAuthenticated)
-            {
-                // 如果当前用户已登录，则添加新帐户
-                OAuthWebSecurity.CreateOrUpdateAccount(result.Provider, result.ProviderUserId, User.Identity.Name);
-                return RedirectToLocal(returnUrl);
-            }
-            else
-            {
-                // 该用户是新用户，因此将要求该用户提供所需的成员名称
-                string loginData = OAuthWebSecurity.SerializeProviderUserId(result.Provider, result.ProviderUserId);
-                ViewBag.ProviderDisplayName = OAuthWebSecurity.GetOAuthClientData(result.Provider).DisplayName;
-                ViewBag.ReturnUrl = returnUrl;
-                return View("ExternalLoginConfirmation", new RegisterExternalLoginModel { UserName = result.UserName, ExternalLoginData = loginData });
-            }
+            //if (User.Identity.IsAuthenticated)
+            //{
+            //    // 如果当前用户已登录，则添加新帐户
+            //    OAuthWebSecurity.CreateOrUpdateAccount(result.Provider, result.ProviderUserId, User.Identity.Name);
+            //    return RedirectToLocal(returnUrl);
+            //}
+            //else
+            //{
+            //    // 该用户是新用户，因此将要求该用户提供所需的成员名称
+            //    string loginData = OAuthWebSecurity.SerializeProviderUserId(result.Provider, result.ProviderUserId);
+            //    ViewBag.ProviderDisplayName = OAuthWebSecurity.GetOAuthClientData(result.Provider).DisplayName;
+            //    ViewBag.ReturnUrl = returnUrl;
+            //    return View("ExternalLoginConfirmation", new RegisterExternalLoginModel { UserName = result.UserName, ExternalLoginData = loginData });
+            //}
+            return View();
         }
 
         //
@@ -255,37 +252,37 @@ namespace NewLife.Admin.Controllers
             string provider = null;
             string providerUserId = null;
 
-            if (User.Identity.IsAuthenticated || !OAuthWebSecurity.TryDeserializeProviderUserId(model.ExternalLoginData, out provider, out providerUserId))
-            {
-                return RedirectToAction("Manage");
-            }
+            //if (User.Identity.IsAuthenticated || !OAuthWebSecurity.TryDeserializeProviderUserId(model.ExternalLoginData, out provider, out providerUserId))
+            //{
+            //    return RedirectToAction("Manage");
+            //}
 
-            if (ModelState.IsValid)
-            {
-                // 将新用户插入到数据库
-                using (UsersContext db = new UsersContext())
-                {
-                    UserProfile user = db.UserProfiles.FirstOrDefault(u => u.UserName.ToLower() == model.UserName.ToLower());
-                    // 检查用户是否已存在
-                    if (user == null)
-                    {
-                        // 将名称插入到配置文件表
-                        db.UserProfiles.Add(new UserProfile { UserName = model.UserName });
-                        db.SaveChanges();
+            //if (ModelState.IsValid)
+            //{
+            //    // 将新用户插入到数据库
+            //    using (UsersContext db = new UsersContext())
+            //    {
+            //        UserProfile user = db.UserProfiles.FirstOrDefault(u => u.UserName.ToLower() == model.UserName.ToLower());
+            //        // 检查用户是否已存在
+            //        if (user == null)
+            //        {
+            //            // 将名称插入到配置文件表
+            //            db.UserProfiles.Add(new UserProfile { UserName = model.UserName });
+            //            db.SaveChanges();
 
-                        OAuthWebSecurity.CreateOrUpdateAccount(provider, providerUserId, model.UserName);
-                        OAuthWebSecurity.Login(provider, providerUserId, createPersistentCookie: false);
+            //            OAuthWebSecurity.CreateOrUpdateAccount(provider, providerUserId, model.UserName);
+            //            OAuthWebSecurity.Login(provider, providerUserId, createPersistentCookie: false);
 
-                        return RedirectToLocal(returnUrl);
-                    }
-                    else
-                    {
-                        ModelState.AddModelError("UserName", "用户名已存在。请输入其他用户名。");
-                    }
-                }
-            }
+            //            return RedirectToLocal(returnUrl);
+            //        }
+            //        else
+            //        {
+            //            ModelState.AddModelError("UserName", "用户名已存在。请输入其他用户名。");
+            //        }
+            //    }
+            //}
 
-            ViewBag.ProviderDisplayName = OAuthWebSecurity.GetOAuthClientData(provider).DisplayName;
+            //ViewBag.ProviderDisplayName = OAuthWebSecurity.GetOAuthClientData(provider).DisplayName;
             ViewBag.ReturnUrl = returnUrl;
             return View(model);
         }
@@ -303,29 +300,31 @@ namespace NewLife.Admin.Controllers
         [ChildActionOnly]
         public ActionResult ExternalLoginsList(string returnUrl)
         {
-            ViewBag.ReturnUrl = returnUrl;
-            return PartialView("_ExternalLoginsListPartial", OAuthWebSecurity.RegisteredClientData);
+            //ViewBag.ReturnUrl = returnUrl;
+            //return PartialView("_ExternalLoginsListPartial", OAuthWebSecurity.RegisteredClientData);
+            return View();
         }
 
         [ChildActionOnly]
         public ActionResult RemoveExternalLogins()
         {
-            ICollection<OAuthAccount> accounts = OAuthWebSecurity.GetAccountsFromUserName(User.Identity.Name);
-            List<ExternalLogin> externalLogins = new List<ExternalLogin>();
-            foreach (OAuthAccount account in accounts)
-            {
-                AuthenticationClientData clientData = OAuthWebSecurity.GetOAuthClientData(account.Provider);
+            //ICollection<OAuthAccount> accounts = OAuthWebSecurity.GetAccountsFromUserName(User.Identity.Name);
+            //List<ExternalLogin> externalLogins = new List<ExternalLogin>();
+            //foreach (OAuthAccount account in accounts)
+            //{
+            //    AuthenticationClientData clientData = OAuthWebSecurity.GetOAuthClientData(account.Provider);
 
-                externalLogins.Add(new ExternalLogin
-                {
-                    Provider = account.Provider,
-                    ProviderDisplayName = clientData.DisplayName,
-                    ProviderUserId = account.ProviderUserId,
-                });
-            }
+            //    externalLogins.Add(new ExternalLogin
+            //    {
+            //        Provider = account.Provider,
+            //        ProviderDisplayName = clientData.DisplayName,
+            //        ProviderUserId = account.ProviderUserId,
+            //    });
+            //}
 
-            ViewBag.ShowRemoveButton = externalLogins.Count > 1 || OAuthWebSecurity.HasLocalAccount(WebSecurity.GetUserId(User.Identity.Name));
-            return PartialView("_RemoveExternalLoginsPartial", externalLogins);
+            //ViewBag.ShowRemoveButton = externalLogins.Count > 1 || OAuthWebSecurity.HasLocalAccount(WebSecurity.GetUserId(User.Identity.Name));
+            //return PartialView("_RemoveExternalLoginsPartial", externalLogins);
+            return View();
         }
 
         #region 帮助程序
@@ -361,7 +360,7 @@ namespace NewLife.Admin.Controllers
 
             public override void ExecuteResult(ControllerContext context)
             {
-                OAuthWebSecurity.RequestAuthentication(Provider, ReturnUrl);
+                //OAuthWebSecurity.RequestAuthentication(Provider, ReturnUrl);
             }
         }
 
