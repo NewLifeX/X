@@ -1,10 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Transactions;
 using System.Web.Mvc;
 using System.Web.Security;
 using NewLife.Admin.Filters;
 using NewLife.Admin.Models;
+using NewLife.CommonEntity;
 using WebMatrix.WebData;
 
 namespace NewLife.Admin.Controllers
@@ -31,13 +30,22 @@ namespace NewLife.Admin.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Login(LoginModel model, string returnUrl)
         {
-            if (ModelState.IsValid && WebSecurity.Login(model.UserName, model.Password, persistCookie: model.RememberMe))
+            var provider = ManageProvider.Provider;
+            try
             {
-                return RedirectToLocal(returnUrl);
+                if (ModelState.IsValid && provider.Login(model.UserName, model.Password) != null)
+                {
+                    return RedirectToLocal(returnUrl);
+                }
+
+                // 如果我们进行到这一步时某个地方出错，则重新显示表单
+                ModelState.AddModelError("", "提供的用户名或密码不正确。");
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", ex.Message);
             }
 
-            // 如果我们进行到这一步时某个地方出错，则重新显示表单
-            ModelState.AddModelError("", "提供的用户名或密码不正确。");
             return View(model);
         }
 
@@ -48,7 +56,8 @@ namespace NewLife.Admin.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult LogOff()
         {
-            WebSecurity.Logout();
+            var provider = ManageProvider.Provider;
+            provider.Logout(provider.Current);
 
             return RedirectToAction("Index", "Home");
         }
@@ -72,11 +81,12 @@ namespace NewLife.Admin.Controllers
         {
             if (ModelState.IsValid)
             {
+                var provider = ManageProvider.Provider;
                 // 尝试注册用户
                 try
                 {
                     WebSecurity.CreateUserAndAccount(model.UserName, model.Password);
-                    WebSecurity.Login(model.UserName, model.Password);
+                    provider.Login(model.UserName, model.Password);
                     return RedirectToAction("Index", "Home");
                 }
                 catch (MembershipCreateUserException e)

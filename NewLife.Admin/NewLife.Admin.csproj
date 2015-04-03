@@ -249,6 +249,20 @@
   <ItemGroup>
     <Content Include="packages.config" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\NewLife.CommonEntity\NewLife.CommonEntity.csproj">
+      <Project>{50d7fae5-2304-4395-a6fa-7d35279d9d84}</Project>
+      <Name>NewLife.CommonEntity</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\NewLife.Core\NewLife.Core.csproj">
+      <Project>{5813c22e-eeb3-4dee-a45c-bb218041193a}</Project>
+      <Name>NewLife.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\XCode\XCode.csproj">
+      <Project>{b49aba5a-c5da-45f4-87f1-b435ec51d710}</Project>
+      <Name>XCode</Name>
+    </ProjectReference>
+  </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
