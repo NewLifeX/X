@@ -372,8 +372,12 @@ namespace NewLife.CommonEntity
             //Thread.CurrentPrincipal = null;
         }
 
+        static Boolean _isInGetCookie;
         static TEntity GetCookie(String key)
         {
+            if (_isInGetCookie) return null;
+
+            _isInGetCookie = true;
             var cookie = HttpContext.Current.Request.Cookies[key];
             if (cookie == null) return null;
 
@@ -395,6 +399,7 @@ namespace NewLife.CommonEntity
                 WriteLog("登录", user + "登录失败！" + ex.Message);
                 return null;
             }
+            finally { _isInGetCookie = false; }
         }
 
         static void SetCookie(String key, TEntity entity)
