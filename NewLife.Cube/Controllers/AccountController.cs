@@ -8,7 +8,7 @@ using WebMatrix.WebData;
 
 namespace NewLife.Cube.Controllers
 {
-    [CustomAuthorizeAttribute]
+    [AuthorizeAttribute]
     [InitializeSimpleMembership]
     public class AccountController : Controller
     {
@@ -35,6 +35,7 @@ namespace NewLife.Cube.Controllers
             {
                 if (ModelState.IsValid && provider.Login(model.UserName, model.Password) != null)
                 {
+                    FormsAuthentication.RedirectFromLoginPage(provider.Current + "", true);
                     return RedirectToLocal(returnUrl);
                 }
 
@@ -58,6 +59,8 @@ namespace NewLife.Cube.Controllers
         {
             var provider = ManageProvider.Provider;
             provider.Logout(provider.Current);
+
+            FormsAuthentication.SignOut();
 
             return RedirectToAction("Index", "Home");
         }
@@ -139,6 +142,7 @@ namespace NewLife.Cube.Controllers
                 : message == ManageMessageId.RemoveLoginSuccess ? "已删除外部登录。"
                 : "";
             //ViewBag.HasLocalPassword = OAuthWebSecurity.HasLocalAccount(WebSecurity.GetUserId(User.Identity.Name));
+            ViewBag.HasLocalPassword = true;
             ViewBag.ReturnUrl = Url.Action("Manage");
             return View();
         }
