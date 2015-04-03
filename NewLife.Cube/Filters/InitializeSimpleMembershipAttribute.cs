@@ -3,7 +3,7 @@ using System.Threading;
 using System.Web.Mvc;
 using NewLife.CommonEntity;
 
-namespace NewLife.Admin.Filters
+namespace NewLife.Cube.Filters
 {
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
     public sealed class InitializeSimpleMembershipAttribute : ActionFilterAttribute

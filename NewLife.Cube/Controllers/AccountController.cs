@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Web.Mvc;
 using System.Web.Security;
-using NewLife.Admin.Filters;
-using NewLife.Admin.Models;
+using NewLife.Cube.Filters;
+using NewLife.Cube.Models;
 using NewLife.CommonEntity;
 using WebMatrix.WebData;
 
-namespace NewLife.Admin.Controllers
+namespace NewLife.Cube.Controllers
 {
     [CustomAuthorizeAttribute]
     [InitializeSimpleMembership]
