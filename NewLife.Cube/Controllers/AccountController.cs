@@ -1,10 +1,14 @@
 ﻿using System;
+using NewLife;
+using NewLife.Reflection;
+using System.Collections.Generic;
 using System.Web.Mvc;
 using System.Web.Security;
+using NewLife.CommonEntity;
 using NewLife.Cube.Filters;
 using NewLife.Cube.Models;
-using NewLife.CommonEntity;
 using WebMatrix.WebData;
+using XCode;
 
 namespace NewLife.Cube.Controllers
 {
@@ -88,13 +92,24 @@ namespace NewLife.Cube.Controllers
                 // 尝试注册用户
                 try
                 {
-                    WebSecurity.CreateUserAndAccount(model.UserName, model.Password);
+                    //WebSecurity.CreateUserAndAccount(model.UserName, model.Password);
+                    var user = provider.ManageUserType.CreateInstance() as IManageUser;
+                    user.Account = model.UserName;
+                    user.Password = model.Password.MD5();
+                    user.IsEnable = true;
+
+                    var entity = user as IEntity;
+                    entity.SetItem("RoleID", 1);
+                    entity.Insert();
+
                     provider.Login(model.UserName, model.Password);
+                    FormsAuthentication.RedirectFromLoginPage(provider.Current + "", true);
+                    
                     return RedirectToAction("Index", "Home");
                 }
-                catch (MembershipCreateUserException e)
+                catch (Exception ex)
                 {
-                    ModelState.AddModelError("", ErrorCodeToString(e.StatusCode));
+                    ModelState.AddModelError("", ex.Message);
                 }
             }
 
@@ -156,16 +171,25 @@ namespace NewLife.Cube.Controllers
         {
             //bool hasLocalAccount = OAuthWebSecurity.HasLocalAccount(WebSecurity.GetUserId(User.Identity.Name));
             //ViewBag.HasLocalPassword = hasLocalAccount;
+            ViewBag.HasLocalPassword = true;
             ViewBag.ReturnUrl = Url.Action("Manage");
             //if (hasLocalAccount)
             {
                 if (ModelState.IsValid)
                 {
                     // 在某些出错情况下，ChangePassword 将引发异常，而不是返回 false。
-                    bool changePasswordSucceeded;
+                    bool changePasswordSucceeded = false;
                     try
                     {
-                        changePasswordSucceeded = WebSecurity.ChangePassword(User.Identity.Name, model.OldPassword, model.NewPassword);
+                        //changePasswordSucceeded = WebSecurity.ChangePassword(User.Identity.Name, model.OldPassword, model.NewPassword);
+                        var user = ManageProvider.Provider.Current;
+                        if (user != null && model.OldPassword.MD5().EqualIgnoreCase(user.Password))
+                        {
+                            user.Password = model.NewPassword.MD5();
+                            (user as IEntity).Save();
+
+                            changePasswordSucceeded = true;
+                        }
                     }
                     catch (Exception)
                     {
@@ -314,16 +338,16 @@ namespace NewLife.Cube.Controllers
         [ChildActionOnly]
         public ActionResult ExternalLoginsList(string returnUrl)
         {
-            //ViewBag.ReturnUrl = returnUrl;
+            ViewBag.ReturnUrl = returnUrl;
             //return PartialView("_ExternalLoginsListPartial", OAuthWebSecurity.RegisteredClientData);
-            return View();
+            return PartialView("_ExternalLoginsListPartial", null);
         }
 
         [ChildActionOnly]
         public ActionResult RemoveExternalLogins()
         {
             //ICollection<OAuthAccount> accounts = OAuthWebSecurity.GetAccountsFromUserName(User.Identity.Name);
-            //List<ExternalLogin> externalLogins = new List<ExternalLogin>();
+            List<ExternalLogin> externalLogins = new List<ExternalLogin>();
             //foreach (OAuthAccount account in accounts)
             //{
             //    AuthenticationClientData clientData = OAuthWebSecurity.GetOAuthClientData(account.Provider);
@@ -337,8 +361,8 @@ namespace NewLife.Cube.Controllers
             //}
 
             //ViewBag.ShowRemoveButton = externalLogins.Count > 1 || OAuthWebSecurity.HasLocalAccount(WebSecurity.GetUserId(User.Identity.Name));
-            //return PartialView("_RemoveExternalLoginsPartial", externalLogins);
-            return View();
+            return PartialView("_RemoveExternalLoginsPartial", externalLogins);
+            //return View();
         }
 
         #region 帮助程序
