@@ -9,7 +9,7 @@ using XCode;
 
 namespace NewLife.Cube.Controllers
 {
-    [AuthorizeAttribute]
+    [EntityAuthorize]
     [InitializeSimpleMembership]
     public class AccountController : Controller
     {
@@ -28,7 +28,7 @@ namespace NewLife.Cube.Controllers
 
         [HttpPost]
         [AllowAnonymous]
-        //[ValidateAntiForgeryToken]
+        [ValidateAntiForgeryToken]
         public ActionResult Login(LoginModel model, string returnUrl)
         {
             var provider = ManageProvider.Provider;
