@@ -71,6 +71,9 @@ namespace XCode.Membership
 
         /// <summary>当前管理提供者</summary>
         public static IManageProvider Provider { get { return ObjectContainer.Current.ResolveInstance<IManageProvider>(); } }
+
+        /// <summary>登录登录用户</summary>
+        public static IManageUser User { get { return Provider.Current; } set { Provider.Current = value; } }
         #endregion
 
         #region IManageProvider 接口
