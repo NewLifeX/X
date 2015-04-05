@@ -143,7 +143,7 @@ namespace NewLife.Cube.Controllers
         //
         // GET: /Account/Manage
 
-        public ActionResult Manage(LocalPasswordModel model, ManageMessageId? message)
+        public ActionResult Manage(ManageMessageId? message)
         {
             ViewBag.StatusMessage =
                 message == ManageMessageId.ChangePasswordSuccess ? "你的密码已更改。"
@@ -153,9 +153,10 @@ namespace NewLife.Cube.Controllers
             ViewBag.ReturnUrl = Url.Action("Manage");
 
             var user = ManageProvider.User as IUser;
+            var model = new LocalPasswordModel();
             model.DisplayName = user.DisplayName;
 
-            return View();
+            return View(model);
         }
 
         //
