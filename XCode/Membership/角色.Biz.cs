@@ -103,8 +103,8 @@ namespace XCode.Membership
             var list = rs.ToList();
 
             // 如果某些菜单已经被删除，但是角色权限表仍然存在，则删除
-            var factory = ManageProvider.Get<IMenu>();
-            var eop = ManageProvider.GetFactory<IMenu>();
+            var factory = MemberProvider.Get<IMenu>();
+            var eop = MemberProvider.GetFactory<IMenu>();
             var ids = eop.FindAllWithCache().GetItem<Int32>("ID").ToArray();
             foreach (var role in rs)
             {
@@ -471,8 +471,9 @@ namespace XCode.Membership
         /// <param name="sender"></param>
         /// <param name="e"></param>
         /// <param name="role"></param>
+        /// <param name="resname">当前页权限名称</param>
         /// <returns></returns>
-        public static Boolean CheckedChanged(object sender, EventArgs e, IRole role)
+        public static Boolean CheckedChanged(object sender, EventArgs e, IRole role, String resname)
         {
             var cb = sender as CheckBox;
             if (cb == null) return false;
@@ -481,13 +482,14 @@ namespace XCode.Membership
             if (row == null) return false;
 
             //var menu = CommonManageProvider.Provider.MenuRoot.AllChilds[row.DataItemIndex];
-            var provider = CommonManageProvider.Provider;
+            var provider = MemberProvider.Provider;
             var menuid = (Int32)(row.NamingContainer as GridView).DataKeys[row.DataItemIndex].Value;
             //var menu = provider.MenuRoot.AllChilds.FirstOrDefault(m => m.ID == menuid);
             var menu = provider.FindByMenuID(menuid);
             if (menu == null) return false;
 
-            var Manager = cb.Page.GetValue("Manager") as IManagePage;
+            //var Manager = cb.Page.GetValue("Manager") as IManagePage;
+            var user = MemberProvider.User;
 
             // 检查权限
             var pf = role.Get(menu.ID);
@@ -497,7 +499,7 @@ namespace XCode.Membership
                 // 没有权限，增加
                 if (pf == PermissionFlags.None)
                 {
-                    if (!Manager.Acquire(PermissionFlags.Insert))
+                    if (!user.Acquire(resname, PermissionFlags.Insert))
                     {
                         WebHelper.Alert("没有添加权限！");
                         return false;
@@ -516,7 +518,7 @@ namespace XCode.Membership
                 // 如果有权限，删除
                 if (pf != PermissionFlags.None)
                 {
-                    if (!Manager.Acquire(PermissionFlags.Delete))
+                    if (!user.Acquire(resname, PermissionFlags.Delete))
                     {
                         WebHelper.Alert("没有删除权限！");
                         return false;
@@ -534,8 +536,9 @@ namespace XCode.Membership
         /// <param name="sender"></param>
         /// <param name="e"></param>
         /// <param name="role"></param>
+        /// <param name="resname">当前页权限名称</param>
         /// <returns></returns>
-        public static Boolean SelectedIndexChanged(object sender, EventArgs e, IRole role)
+        public static Boolean SelectedIndexChanged(object sender, EventArgs e, IRole role, String resname)
         {
             var cb = sender as CheckBoxList;
 
@@ -547,20 +550,21 @@ namespace XCode.Membership
             if (row == null) return false;
 
             //var menu = CommonManageProvider.Provider.MenuRoot.AllChilds[row.DataItemIndex] as IMenu;
-            var provider = CommonManageProvider.Provider;
+            var provider = MemberProvider.Provider;
             var menuid = (Int32)(row.NamingContainer as GridView).DataKeys[row.DataItemIndex].Value;
             //var menu = provider.MenuRoot.AllChilds.FirstOrDefault(m => m.ID == menuid);
             var menu = provider.FindByMenuID(menuid);
             if (menu == null) return false;
 
-            var Manager = cb.Page.GetValue("Manager") as IManagePage;
+            //var Manager = cb.Page.GetValue("Manager") as IManagePage;
+            var user = MemberProvider.User;
 
             var pf = role.Get(menu.ID);
 
             // 没有权限，增加
             if (pf == PermissionFlags.None)
             {
-                if (!Manager.Acquire(PermissionFlags.Insert))
+                if (!user.Acquire(resname, PermissionFlags.Insert))
                 {
                     WebHelper.Alert("没有添加权限！");
                     return false;
@@ -578,7 +582,7 @@ namespace XCode.Membership
 
             if (pf != flag)
             {
-                if (!Manager.Acquire(PermissionFlags.Update))
+                if (!user.Acquire(resname, PermissionFlags.Update))
                 {
                     WebHelper.Alert("没有编辑权限！");
                     return false;

@@ -566,7 +566,7 @@ namespace XCode.Membership
         /// <param name="remark">备注</param>
         public static void WriteLog(String action, String remark)
         {
-            ManageProvider.Provider.WriteLog(typeof(TEntity), action, remark);
+            //MemberProvider.Provider.WriteLog(typeof(TEntity), action, remark);
         }
         #endregion
 

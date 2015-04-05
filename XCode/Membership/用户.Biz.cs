@@ -480,7 +480,7 @@ namespace XCode.Membership
             {
                 if (RoleID <= 0) return null;
 
-                var role = ManageProvider.Get<IRole>();
+                var role = MemberProvider.Get<IRole>();
 
                 return role.FindByID(RoleID);
             }
@@ -494,7 +494,7 @@ namespace XCode.Membership
         /// <returns></returns>
         public IMenu FindPermissionMenu(string name)
         {
-            var factory = ManageProvider.Get<IMenu>();
+            var factory = MemberProvider.Get<IMenu>();
             // 优先使用当前页，除非当前页与权限名不同
             var entity = factory.Current;
             if (entity != null && entity.Permission == name) return entity;

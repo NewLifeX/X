@@ -1,4 +1,6 @@
 ﻿using System;
+using NewLife;
+using NewLife.Reflection;
 using System.Collections.Generic;
 using System.Text;
 using System.Web.Security;
@@ -12,12 +14,12 @@ namespace XCode.Membership
         #region 静态属性
         private static MembershipProvider _Provider;
         /// <summary>当前成员提供者</summary>
-        public static MembershipProvider Provider
+        public static MemberProvider Provider
         {
             get
             {
                 if (_Provider == null) _Provider = ObjectContainer.Current.Resolve<MembershipProvider>();
-                return _Provider;
+                return _Provider as MemberProvider;
             }
         }
 
@@ -28,6 +30,79 @@ namespace XCode.Membership
             {
                 return null;
             }
+        }
+        #endregion
+
+        #region 实体类扩展
+        /// <summary>根据实体类接口获取实体工厂</summary>
+        /// <typeparam name="TIEntity"></typeparam>
+        /// <returns></returns>
+        internal static IEntityOperate GetFactory<TIEntity>()
+        {
+            var type = ObjectContainer.Current.ResolveType<TIEntity>();
+            if (type == null) return null;
+
+            return EntityFactory.CreateOperate(type);
+        }
+
+        /// <summary>获取指定实体类的默认对象</summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        internal static T Get<T>()
+        {
+            var eop = GetFactory<T>();
+            if (eop == null) return default(T);
+
+            return (T)eop.Default;
+        }
+        #endregion
+
+        #region 菜单
+        private IMenu _MenuRoot;
+        /// <summary>菜单根</summary>
+        public virtual IMenu MenuRoot
+        {
+            get
+            {
+                if (_MenuRoot == null) _MenuRoot = GetFactory<IMenu>().EntityType.GetValue("Root") as IMenu;
+                return _MenuRoot;
+            }
+        }
+
+        /// <summary>根据编号找到菜单</summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public IMenu FindByMenuID(Int32 id)
+        {
+            if (id < 1) return null;
+
+            var eop = GetFactory<IMenu>();
+            return eop.FindWithCache(eop.Unique.Name, id) as IMenu;
+        }
+
+        /// <summary>获取指定菜单下，当前用户有权访问的子菜单。</summary>
+        /// <param name="menuid"></param>
+        /// <returns></returns>
+        public IList<IMenu> GetMySubMenus(Int32 menuid)
+        {
+            var root = MenuRoot;
+
+            // 当前用户
+            var admin = User as IUser;
+            if (admin == null || admin.Role == null) return null;
+
+            IMenu menu = null;
+
+            // 找到菜单
+            if (menuid > 0) menu = FindByMenuID(menuid);
+
+            if (menu == null)
+            {
+                menu = root;
+                if (menu == null || menu.Childs == null || menu.Childs.Count < 1) return null;
+            }
+
+            return menu.GetMySubMenus(admin.Role.Resources);
         }
         #endregion
 
