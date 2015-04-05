@@ -1,12 +1,12 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Data.Common;
+using System.Linq;
 using System.Web;
 using System.Xml.Serialization;
 using NewLife.Log;
 using NewLife.Security;
 using NewLife.Web;
-using System.Linq;
 
 namespace XCode.Membership
 {
@@ -411,7 +411,6 @@ namespace XCode.Membership
         {
             if (_isInGetCookie) return null;
 
-            _isInGetCookie = true;
             var cookie = HttpContext.Current.Request.Cookies[key];
             if (cookie == null) return null;
 
@@ -419,6 +418,7 @@ namespace XCode.Membership
             var pass = cookie["p"];
             if (String.IsNullOrEmpty(user) || String.IsNullOrEmpty(pass)) return null;
 
+            _isInGetCookie = true;
             try
             {
                 return Login(user, pass, -1);
@@ -438,16 +438,27 @@ namespace XCode.Membership
 
         static void SetCookie(String key, TEntity entity)
         {
-            var cookie = HttpContext.Current.Response.Cookies[key];
+            var context = HttpContext.Current;
+            var res = context.Response;
+            var reqcookie = context.Request.Cookies[key];
             if (entity != null)
             {
-                cookie["u"] = HttpUtility.UrlEncode(entity.Name);
-                cookie["p"] = !String.IsNullOrEmpty(entity.Password) ? DataHelper.Hash(entity.Password) : null;
+                var user = HttpUtility.UrlEncode(entity.Name);
+                var pass = !String.IsNullOrEmpty(entity.Password) ? DataHelper.Hash(entity.Password) : null;
+                if (reqcookie == null || user != reqcookie["u"] || pass != reqcookie["p"])
+                {
+                    // 只有需要写入Cookie时才设置，否则会清空原来的非会话Cookie
+                    var cookie = res.Cookies[key];
+                    cookie["u"] = user;
+                    cookie["p"] = pass;
+                }
             }
-            else
+            else if (res.Cookies.AllKeys.Contains(key))
             {
+                var cookie = res.Cookies[key];
                 cookie.Value = null;
-                HttpContext.Current.Response.Cookies.Remove(key);
+                cookie.Expires = DateTime.Now.AddYears(-1);
+                //HttpContext.Current.Response.Cookies.Remove(key);
             }
         }
 
