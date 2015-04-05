@@ -10,7 +10,6 @@ using System.Xml.Serialization;
 using NewLife.Configuration;
 using NewLife.Log;
 using NewLife.Reflection;
-using XCode;
 
 namespace XCode.Membership
 {
@@ -566,7 +565,7 @@ namespace XCode.Membership
         /// <param name="remark">备注</param>
         public static void WriteLog(String action, String remark)
         {
-            //MemberProvider.Provider.WriteLog(typeof(TEntity), action, remark);
+            LogProvider.Provider.WriteLog(typeof(TEntity), action, remark);
         }
         #endregion
 

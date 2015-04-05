@@ -113,6 +113,7 @@
     <Compile Include="Entity\SelectModes.cs" />
     <Compile Include="Exceptions\EntityException.cs" />
     <Compile Include="Membership\EntityBase.cs" />
+    <Compile Include="Membership\LogProvider.cs" />
     <Compile Include="Membership\MemberProvider.cs" />
     <Compile Include="Membership\日志.cs" />
     <Compile Include="Membership\日志.Biz.cs">

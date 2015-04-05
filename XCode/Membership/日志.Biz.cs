@@ -2,7 +2,6 @@
 using System.ComponentModel;
 using NewLife.Collections;
 using NewLife.Web;
-using XCode;
 using XCode.Cache;
 
 namespace XCode.Membership
