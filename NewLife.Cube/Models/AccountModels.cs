@@ -22,6 +22,7 @@ namespace NewLife.Cube.Models
         [Compare("NewPassword", ErrorMessage = "新密码和确认密码不匹配。")]
         public string ConfirmPassword { get; set; }
 
+        [Required]
         [Display(Name = "昵称")]
         public String DisplayName { get; set; }
     }

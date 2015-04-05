@@ -143,17 +143,17 @@ namespace NewLife.Cube.Controllers
         //
         // GET: /Account/Manage
 
-        public ActionResult Manage(ManageMessageId? message)
+        public ActionResult Manage(LocalPasswordModel model, ManageMessageId? message)
         {
             ViewBag.StatusMessage =
                 message == ManageMessageId.ChangePasswordSuccess ? "你的密码已更改。"
                 : message == ManageMessageId.SetPasswordSuccess ? "已设置你的密码。"
                 : message == ManageMessageId.RemoveLoginSuccess ? "已删除外部登录。"
                 : "";
-            ViewBag.HasLocalPassword = true;
             ViewBag.ReturnUrl = Url.Action("Manage");
 
-
+            var user = ManageProvider.User as IUser;
+            model.DisplayName = user.DisplayName;
 
             return View();
         }
@@ -165,7 +165,6 @@ namespace NewLife.Cube.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Manage(LocalPasswordModel model)
         {
-            ViewBag.HasLocalPassword = true;
             ViewBag.ReturnUrl = Url.Action("Manage");
 
             if (ModelState.IsValid)
@@ -188,19 +187,16 @@ namespace NewLife.Cube.Controllers
                         changePasswordSucceeded = true;
                     }
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
+                    XTrace.WriteException(ex);
                     changePasswordSucceeded = false;
                 }
 
                 if (changePasswordSucceeded)
-                {
                     return RedirectToAction("Manage", new { Message = ManageMessageId.ChangePasswordSuccess });
-                }
-                else
-                {
-                    ModelState.AddModelError("", "当前密码不正确或新密码无效。");
-                }
+
+                ModelState.AddModelError("", "当前密码不正确或新密码无效。");
             }
 
             // 如果我们进行到这一步时某个地方出错，则重新显示表单
@@ -211,13 +207,9 @@ namespace NewLife.Cube.Controllers
         private ActionResult RedirectToLocal(string returnUrl)
         {
             if (Url.IsLocalUrl(returnUrl))
-            {
                 return Redirect(returnUrl);
-            }
             else
-            {
                 return RedirectToAction("Index", "Home");
-            }
         }
 
         public enum ManageMessageId
