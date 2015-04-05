@@ -152,6 +152,9 @@ namespace NewLife.Cube.Controllers
                 : "";
             ViewBag.HasLocalPassword = true;
             ViewBag.ReturnUrl = Url.Action("Manage");
+
+
+
             return View();
         }
 
@@ -171,11 +174,16 @@ namespace NewLife.Cube.Controllers
                 bool changePasswordSucceeded = false;
                 try
                 {
-                    var user = ManageProvider.Provider.Current;
-                    if (user != null && model.OldPassword.MD5().EqualIgnoreCase(user.Password))
+                    var user = ManageProvider.User as IUser;
+                    if (user != null)
                     {
-                        user.Password = model.NewPassword.MD5();
-                        (user as IEntity).Save();
+                        if (!model.NewPassword.IsNullOrEmpty() && model.OldPassword.MD5().EqualIgnoreCase(user.Password))
+                        {
+                            user.Password = model.NewPassword.MD5();
+                        }
+                        if (!String.IsNullOrEmpty(model.DisplayName))
+                            user.DisplayName = model.DisplayName;
+                        user.Save();
 
                         changePasswordSucceeded = true;
                     }

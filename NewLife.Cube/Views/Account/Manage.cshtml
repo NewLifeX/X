@@ -1,4 +1,5 @@
 ﻿@model NewLife.Cube.Models.LocalPasswordModel
+ @using XCode.Membership;
 @{
     ViewBag.Title = "管理帐户";
 }
@@ -9,23 +10,38 @@
 
 <p class="message-success">@ViewBag.StatusMessage</p>
 
-<p>你已使用以下身份登录: <strong>@User.Identity.Name</strong>.</p>
+<p>你已使用以下身份登录: <strong>@ManageProvider.User</strong>.</p>
 
-@if (ViewBag.HasLocalPassword)
+<h3>更改密码</h3>
+
+@using (Html.BeginForm("Manage", "Account"))
 {
-    @Html.Partial("_ChangePasswordPartial")
-}
-else
-{ 
-    @Html.Partial("_SetPasswordPartial")
-}
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary()
 
-<section id="externalLogins">
-    @*@Html.Action("RemoveExternalLogins")*@
-
-    <h3>添加外部登录</h3>
-    @*@Html.Action("ExternalLoginsList", new { ReturnUrl = ViewBag.ReturnUrl })*@
-</section>
+    <fieldset>
+        <legend>修改用户资料</legend>
+        <ol>
+            <li>
+                @Html.LabelFor(m => m.DisplayName)
+                @Html.TextBoxFor(m => m.DisplayName)
+            </li>
+            <li>
+                @Html.LabelFor(m => m.OldPassword)
+                @Html.PasswordFor(m => m.OldPassword)
+            </li>
+            <li>
+                @Html.LabelFor(m => m.NewPassword)
+                @Html.PasswordFor(m => m.NewPassword)
+            </li>
+            <li>
+                @Html.LabelFor(m => m.ConfirmPassword)
+                @Html.PasswordFor(m => m.ConfirmPassword)
+            </li>
+        </ol>
+        <input type="submit" value="更改资料" />
+    </fieldset>
+}
 
 @section Scripts {
     @Scripts.Render("~/bundles/jqueryval")
