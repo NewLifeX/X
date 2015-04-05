@@ -37,8 +37,9 @@ namespace XCode.Membership
         /// <summary>登录</summary>
         /// <param name="name"></param>
         /// <param name="password"></param>
+        /// <param name="rememberme">是否记住密码</param>
         /// <returns></returns>
-        IManageUser Login(String name, String password);
+        IManageUser Login(String name, String password, Boolean rememberme = false);
 
         /// <summary>注销</summary>
         void Logout();
@@ -96,8 +97,9 @@ namespace XCode.Membership
         /// <summary>登录</summary>
         /// <param name="name"></param>
         /// <param name="password"></param>
+        /// <param name="rememberme">是否记住密码</param>
         /// <returns></returns>
-        public abstract IManageUser Login(String name, String password);
+        public abstract IManageUser Login(String name, String password, Boolean rememberme);
 
         /// <summary>注销</summary>
         public virtual void Logout() { Current = null; }
@@ -203,8 +205,9 @@ namespace XCode.Membership
         /// <summary>登录</summary>
         /// <param name="name"></param>
         /// <param name="password"></param>
+        /// <param name="rememberme">是否记住密码</param>
         /// <returns></returns>
-        public override IManageUser Login(String name, String password) { return User<TUser>.Login(name, password); }
+        public override IManageUser Login(String name, String password, Boolean rememberme) { return User<TUser>.Login(name, password,rememberme); }
 
         /// <summary>注册用户</summary>
         /// <param name="name">用户名</param>

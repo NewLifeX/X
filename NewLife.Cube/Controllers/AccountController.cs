@@ -34,7 +34,7 @@ namespace NewLife.Cube.Controllers
             try
             {
                 var provider = ManageProvider.Provider;
-                if (ModelState.IsValid && provider.Login(model.UserName, model.Password) != null)
+                if (ModelState.IsValid && provider.Login(model.UserName, model.Password, model.RememberMe) != null)
                 {
                     FormsAuthentication.SetAuthCookie(model.UserName, model.RememberMe);
                     //FormsAuthentication.RedirectFromLoginPage(provider.Current + "", true);
@@ -171,16 +171,14 @@ namespace NewLife.Cube.Controllers
                 bool changePasswordSucceeded = false;
                 try
                 {
-                    //var user = ManageProvider.Provider.Current;
-                    //if (user != null && model.OldPassword.MD5().EqualIgnoreCase(user.Password))
-                    //{
-                    //    user.Password = model.NewPassword.MD5();
-                    //    (user as IEntity).Save();
+                    var user = ManageProvider.Provider.Current;
+                    if (user != null && model.OldPassword.MD5().EqualIgnoreCase(user.Password))
+                    {
+                        user.Password = model.NewPassword.MD5();
+                        (user as IEntity).Save();
 
-                    //    changePasswordSucceeded = true;
-                    //}
-                    var user = Membership.GetUser(MemberProvider.User.Name);
-                    user.ChangePassword(model.OldPassword, model.NewPassword);
+                        changePasswordSucceeded = true;
+                    }
                 }
                 catch (Exception)
                 {

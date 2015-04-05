@@ -296,15 +296,22 @@ namespace XCode.Membership
         /// <summary>登录</summary>
         /// <param name="username"></param>
         /// <param name="password"></param>
+        /// <param name="rememberme">是否记住密码</param>
         /// <returns></returns>
-        public static TEntity Login(String username, String password)
+        public static TEntity Login(String username, String password, Boolean rememberme = false)
         {
             if (String.IsNullOrEmpty(username)) throw new ArgumentNullException("username");
             //if (String.IsNullOrEmpty(password)) throw new ArgumentNullException("password");
 
             try
             {
-                return Login(username, password, 1);
+                var user = Login(username, password, 1);
+                if (rememberme && user != null)
+                {
+                    var cookie = HttpContext.Current.Response.Cookies["Admin"];
+                    if (cookie != null) cookie.Expires = DateTime.Now.Date.AddYears(1);
+                }
+                return user;
             }
             catch (Exception ex)
             {
@@ -533,7 +540,7 @@ namespace XCode.Membership
         object IManageUser.Uid { get { return ID; } }
 
         /// <summary>密码</summary>
-        string IManageUser.Password { get { return Password; } set { Password = (value + "").MD5(); } }
+        string IManageUser.Password { get { return Password; } set { Password = value; } }
 
         /// <summary>是否管理员</summary>
         Boolean IManageUser.IsAdmin { get { return RoleName == "管理员" || RoleName == "超级管理员"; } set { } }
