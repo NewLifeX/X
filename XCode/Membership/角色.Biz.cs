@@ -103,8 +103,8 @@ namespace XCode.Membership
             var list = rs.ToList();
 
             // 如果某些菜单已经被删除，但是角色权限表仍然存在，则删除
-            var factory = MemberProvider.Get<IMenu>();
-            var eop = MemberProvider.GetFactory<IMenu>();
+            var factory = ManageProvider.Get<IMenu>();
+            var eop = ManageProvider.GetFactory<IMenu>();
             var ids = eop.FindAllWithCache().GetItem<Int32>("ID").ToArray();
             foreach (var role in rs)
             {
@@ -482,10 +482,10 @@ namespace XCode.Membership
             if (row == null) return false;
 
             //var menu = CommonManageProvider.Provider.MenuRoot.AllChilds[row.DataItemIndex];
-            var provider = MemberProvider.Provider;
+            var provider = ManageProvider.GetFactory<IMenu>() as IMenuFactory;
             var menuid = (Int32)(row.NamingContainer as GridView).DataKeys[row.DataItemIndex].Value;
             //var menu = provider.MenuRoot.AllChilds.FirstOrDefault(m => m.ID == menuid);
-            var menu = provider.FindByMenuID(menuid);
+            var menu = provider.FindByID(menuid);
             if (menu == null) return false;
 
             //var Manager = cb.Page.GetValue("Manager") as IManagePage;
@@ -550,10 +550,10 @@ namespace XCode.Membership
             if (row == null) return false;
 
             //var menu = CommonManageProvider.Provider.MenuRoot.AllChilds[row.DataItemIndex] as IMenu;
-            var provider = MemberProvider.Provider;
+            var provider = ManageProvider.GetFactory<IMenu>() as IMenuFactory;
             var menuid = (Int32)(row.NamingContainer as GridView).DataKeys[row.DataItemIndex].Value;
             //var menu = provider.MenuRoot.AllChilds.FirstOrDefault(m => m.ID == menuid);
-            var menu = provider.FindByMenuID(menuid);
+            var menu = provider.FindByID(menuid);
             if (menu == null) return false;
 
             //var Manager = cb.Page.GetValue("Manager") as IManagePage;

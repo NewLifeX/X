@@ -19,7 +19,7 @@ namespace XCode.Membership
     /// 基础实体类应该是只有一个泛型参数的，需要用到别的类型时，可以继承一个，也可以通过虚拟重载等手段让基类实现
     /// </remarks>
     /// <typeparam name="TEntity">管理员类型</typeparam>
-    public abstract partial class User<TEntity> : EntityBase<TEntity>, IUser//, IPrincipal//, IIdentity
+    public abstract partial class User<TEntity> : EntityBase<TEntity>, IUser, IManageUser//, IPrincipal//, IIdentity
         where TEntity : User<TEntity>, new()
     {
         #region 对象操作
@@ -480,7 +480,7 @@ namespace XCode.Membership
             {
                 if (RoleID <= 0) return null;
 
-                var role = MemberProvider.Get<IRole>();
+                var role = ManageProvider.Get<IRole>();
 
                 return role.FindByID(RoleID);
             }
@@ -494,7 +494,7 @@ namespace XCode.Membership
         /// <returns></returns>
         public IMenu FindPermissionMenu(string name)
         {
-            var factory = MemberProvider.Get<IMenu>();
+            var factory = ManageProvider.Get<IMenu>();
             // 优先使用当前页，除非当前页与权限名不同
             var entity = factory.Current;
             if (entity != null && entity.Permission == name) return entity;
@@ -502,6 +502,17 @@ namespace XCode.Membership
             // 根据权限名找
             return factory.FindForPerssion(name);
         }
+        #endregion
+
+        #region IManageUser 成员
+        /// <summary>编号</summary>
+        object IManageUser.Uid { get { return ID; } }
+
+        /// <summary>密码</summary>
+        string IManageUser.Password { get { return Password; } set { Password = value; } }
+
+        /// <summary>是否管理员</summary>
+        Boolean IManageUser.IsAdmin { get { return RoleName == "管理员" || RoleName == "超级管理员"; } set { } }
         #endregion
     }
 

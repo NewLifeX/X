@@ -6,8 +6,8 @@ using NewLife.Model;
 
 namespace XCode.Membership
 {
-    /// <summary>日志提供者。提供业务日志输出到数据库的功能</summary>
-    public abstract class LogProvider
+    /// <summary>菜单提供者。提供菜单相关操作的功能</summary>
+    public abstract class MenuProvider
     {
         #region 基本功能
         /// <summary>写日志</summary>
@@ -22,27 +22,27 @@ namespace XCode.Membership
         #endregion
 
         #region 静态属性
-        static LogProvider()
+        static MenuProvider()
         {
-            ObjectContainer.Current.AutoRegister<LogProvider, DefaultLogProvider>();
+            ObjectContainer.Current.AutoRegister<MenuProvider, DefaultLogProvider>();
         }
 
-        private static LogProvider _Provider;
+        private static MenuProvider _Provider;
         /// <summary>当前成员提供者</summary>
-        public static LogProvider Provider
+        public static MenuProvider Provider
         {
             get
             {
-                if (_Provider == null) _Provider = ObjectContainer.Current.Resolve<LogProvider>();
+                if (_Provider == null) _Provider = ObjectContainer.Current.Resolve<MenuProvider>();
                 return _Provider;
             }
         }
         #endregion
     }
 
-    /// <summary>泛型日志提供者，使用泛型日志实体基类作为派生</summary>
-    /// <typeparam name="TLog"></typeparam>
-    public class LogProvider<TLog> : LogProvider where TLog : Log<TLog>, new()
+    /// <summary>泛型菜单提供者，使用泛型菜单实体基类作为派生</summary>
+    /// <typeparam name="TMenu"></typeparam>
+    public class MenuProvider<TMenu> : MenuProvider where TMenu : Menu<TMenu>, new()
     {
         /// <summary>写日志</summary>
         /// <param name="type">类型</param>
@@ -54,7 +54,7 @@ namespace XCode.Membership
 
             if (type == null) throw new ArgumentNullException("type");
 
-            var factory = EntityFactory.CreateOperate(typeof(TLog));
+            var factory = EntityFactory.CreateOperate(typeof(TMenu));
             var log = (factory.Default as ILog).Create(type, action);
 
             log.Remark = remark;
@@ -62,6 +62,6 @@ namespace XCode.Membership
         }
     }
 
-    /// <summary>默认日志提供者，使用实体类<seealso cref="Log"/></summary>
-    class DefaultLogProvider : LogProvider<Log> { }
+    /// <summary>默认菜单提供者，使用实体类<seealso cref="Menu"/></summary>
+    class DefaultMenuProvider : MenuProvider<Menu> { }
 }

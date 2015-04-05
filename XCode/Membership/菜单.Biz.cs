@@ -26,7 +26,7 @@ namespace XCode.Membership
         {
             var entity = new TEntity();
 
-            //EntityFactory.Register(typeof(TEntity), new MenuFactory<TEntity>());
+            EntityFactory.Register(typeof(TEntity), new MenuFactory());
         }
 
         /// <summary>首次连接数据库时初始化数据，仅用于实体类重载，用户不应该调用该方法</summary>
@@ -651,6 +651,63 @@ namespace XCode.Membership
         /// <returns></returns>
         IMenu IMenu.FindForPerssion(String name) { return FindForPerssion(name); }
         #endregion
+
+        #region 菜单工厂
+        /// <summary>菜单工厂</summary>
+        public class MenuFactory : EntityOperate, IMenuFactory
+        {
+            #region IMenuFactory 成员
+            IMenu IMenuFactory.Root { get { return Root; } }
+
+            /// <summary>根据编号找到菜单</summary>
+            /// <param name="id"></param>
+            /// <returns></returns>
+            IMenu IMenuFactory.FindByID(Int32 id) { return FindByID(id); }
+
+            /// <summary>获取指定菜单下，当前用户有权访问的子菜单。</summary>
+            /// <param name="menuid"></param>
+            /// <returns></returns>
+            IList<IMenu> IMenuFactory.GetMySubMenus(Int32 menuid)
+            {
+                var factory = this as IMenuFactory;
+                var root = factory.Root;
+
+                // 当前用户
+                var admin = ManageProvider.Provider.Current as IUser;
+                if (admin == null || admin.Role == null) return null;
+
+                IMenu menu = null;
+
+                // 找到菜单
+                if (menuid > 0) menu = factory.FindByID(menuid);
+
+                if (menu == null)
+                {
+                    menu = root;
+                    if (menu == null || menu.Childs == null || menu.Childs.Count < 1) return null;
+                }
+
+                return menu.GetMySubMenus(admin.Role.Resources);
+            }
+            #endregion
+        }
+        #endregion
+    }
+
+    /// <summary>菜单工厂接口</summary>
+    public interface IMenuFactory
+    {
+        IMenu Root { get; }
+
+        /// <summary>根据编号找到菜单</summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        IMenu FindByID(Int32 id);
+
+        /// <summary>获取指定菜单下，当前用户有权访问的子菜单。</summary>
+        /// <param name="menuid"></param>
+        /// <returns></returns>
+        IList<IMenu> GetMySubMenus(Int32 menuid);
     }
 
     public partial interface IMenu
