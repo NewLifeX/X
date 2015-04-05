@@ -9,24 +9,49 @@ namespace XCode.Membership
     public class MemberProvider : MembershipProvider
     {
         private String _ApplicationName;
-        /// <summary>应用名称</summary>
+        /// <summary>使用自定义成员资格提供程序的应用程序的名称</summary>
         public override String ApplicationName { get { return _ApplicationName; } set { _ApplicationName = value; } }
 
+        /// <summary>处理更新成员资格用户密码的请求</summary>
+        /// <param name="username"></param>
+        /// <param name="oldPassword"></param>
+        /// <param name="newPassword"></param>
+        /// <returns></returns>
         public override bool ChangePassword(string username, string oldPassword, string newPassword)
         {
             throw new NotImplementedException();
         }
 
+        /// <summary>处理更新成员资格用户的密码提示问题和答案的请求</summary>
+        /// <param name="username"></param>
+        /// <param name="password"></param>
+        /// <param name="newPasswordQuestion"></param>
+        /// <param name="newPasswordAnswer"></param>
+        /// <returns></returns>
         public override bool ChangePasswordQuestionAndAnswer(string username, string password, string newPasswordQuestion, string newPasswordAnswer)
         {
             throw new NotImplementedException();
         }
 
+        /// <summary>将新的成员资格用户添加到数据源</summary>
+        /// <param name="username"></param>
+        /// <param name="password"></param>
+        /// <param name="email"></param>
+        /// <param name="passwordQuestion"></param>
+        /// <param name="passwordAnswer"></param>
+        /// <param name="isApproved"></param>
+        /// <param name="providerUserKey"></param>
+        /// <param name="status"></param>
+        /// <returns></returns>
         public override MembershipUser CreateUser(string username, string password, string email, string passwordQuestion, string passwordAnswer, bool isApproved, object providerUserKey, out MembershipCreateStatus status)
         {
             throw new NotImplementedException();
         }
 
+        /// <summary>从成员资格数据源删除一个用户</summary>
+        /// <param name="username"></param>
+        /// <param name="deleteAllRelatedData"></param>
+        /// <returns></returns>
         public override bool DeleteUser(string username, bool deleteAllRelatedData)
         {
             throw new NotImplementedException();
@@ -38,41 +63,75 @@ namespace XCode.Membership
         /// <summary>指示成员资格提供程序是否配置为允许用户检索其密码</summary>
         public override bool EnablePasswordRetrieval { get { return false; } }
 
+        /// <summary> 获取一个成员资格用户的集合，其中的电子邮件地址包含要匹配的指定电子邮件地址</summary>
+        /// <param name="emailToMatch"></param>
+        /// <param name="pageIndex"></param>
+        /// <param name="pageSize"></param>
+        /// <param name="totalRecords"></param>
+        /// <returns></returns>
         public override MembershipUserCollection FindUsersByEmail(string emailToMatch, int pageIndex, int pageSize, out int totalRecords)
         {
             throw new NotImplementedException();
         }
 
+        /// <summary> 获取一个成员资格用户的集合，其中的用户名包含要匹配的指定用户名</summary>
+        /// <param name="usernameToMatch"></param>
+        /// <param name="pageIndex"></param>
+        /// <param name="pageSize"></param>
+        /// <param name="totalRecords"></param>
+        /// <returns></returns>
         public override MembershipUserCollection FindUsersByName(string usernameToMatch, int pageIndex, int pageSize, out int totalRecords)
         {
             throw new NotImplementedException();
         }
 
+        /// <summary> 获取数据源中的所有用户的集合，并显示在数据页中</summary>
+        /// <param name="pageIndex"></param>
+        /// <param name="pageSize"></param>
+        /// <param name="totalRecords"></param>
+        /// <returns></returns>
         public override MembershipUserCollection GetAllUsers(int pageIndex, int pageSize, out int totalRecords)
         {
             throw new NotImplementedException();
         }
 
+        /// <summary>获取当前访问该应用程序的用户数</summary>
+        /// <returns></returns>
         public override int GetNumberOfUsersOnline()
         {
             throw new NotImplementedException();
         }
 
+        /// <summary>从数据源获取指定用户名所对应的密码</summary>
+        /// <param name="username"></param>
+        /// <param name="answer"></param>
+        /// <returns></returns>
         public override string GetPassword(string username, string answer)
         {
             throw new NotImplementedException();
         }
 
+        /// <summary>根据成员资格用户的唯一标识符从数据源获取用户信息。提供一个更新用户最近一次活动的日期/时间戳的选项</summary>
+        /// <param name="username"></param>
+        /// <param name="userIsOnline"></param>
+        /// <returns></returns>
         public override MembershipUser GetUser(string username, bool userIsOnline)
         {
             throw new NotImplementedException();
         }
 
+        /// <summary>从数据源获取用户的信息。提供一个更新用户最近一次活动的日期/时间戳的选项</summary>
+        /// <param name="providerUserKey"></param>
+        /// <param name="userIsOnline"></param>
+        /// <returns></returns>
         public override MembershipUser GetUser(object providerUserKey, bool userIsOnline)
         {
             throw new NotImplementedException();
         }
 
+        /// <summary>获取与指定的电子邮件地址关联的用户名</summary>
+        /// <param name="email"></param>
+        /// <returns></returns>
         public override string GetUserNameByEmail(string email)
         {
             throw new NotImplementedException();
@@ -105,26 +164,40 @@ namespace XCode.Membership
             get { throw new NotImplementedException(); }
         }
 
+        /// <summary>取一个值，指示成员资格提供程序是否配置为要求每个用户名具有唯一的电子邮件地址</summary>
         public override bool RequiresUniqueEmail
         {
             get { throw new NotImplementedException(); }
         }
 
+        /// <summary>  将用户密码重置为一个自动生成的新密码</summary>
+        /// <param name="username"></param>
+        /// <param name="answer"></param>
+        /// <returns></returns>
         public override string ResetPassword(string username, string answer)
         {
             throw new NotImplementedException();
         }
 
+        /// <summary>清除锁定，以便可以验证该成员资格用户</summary>
+        /// <param name="userName"></param>
+        /// <returns></returns>
         public override bool UnlockUser(string userName)
         {
             throw new NotImplementedException();
         }
 
+        /// <summary>更新数据源中有关用户的信息</summary>
+        /// <param name="user"></param>
         public override void UpdateUser(MembershipUser user)
         {
             throw new NotImplementedException();
         }
 
+        /// <summary>验证数据源中是否存在指定的用户名和密码</summary>
+        /// <param name="username"></param>
+        /// <param name="password"></param>
+        /// <returns></returns>
         public override bool ValidateUser(string username, string password)
         {
             throw new NotImplementedException();
