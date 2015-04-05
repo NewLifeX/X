@@ -383,7 +383,7 @@ namespace XCode.Membership
 
             return role;
         }
-        
+
         ///// <summary>申请指定菜单指定操作的权限</summary>
         ///// <param name="menuID"></param>
         ///// <param name="flag"></param>
@@ -507,7 +507,7 @@ namespace XCode.Membership
             if (menu == null) return false;
 
             //var Manager = cb.Page.GetValue("Manager") as IManagePage;
-            var user = MemberProvider.User;
+            var user = ManageProvider.User as IUser;
 
             // 检查权限
             var pf = role.Get(menu.ID);
@@ -575,7 +575,7 @@ namespace XCode.Membership
             if (menu == null) return false;
 
             //var Manager = cb.Page.GetValue("Manager") as IManagePage;
-            var user = MemberProvider.User;
+            var user = ManageProvider.User as IUser;
 
             var pf = role.Get(menu.ID);
 

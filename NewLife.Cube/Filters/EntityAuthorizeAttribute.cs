@@ -11,7 +11,7 @@ namespace NewLife.Cube.Filters
     {
         protected override Boolean AuthorizeCore(HttpContextBase httpContext)
         {
-            var user = MemberProvider.User;
+            var user = ManageProvider.User;
             return user != null;
         }
 
@@ -26,7 +26,7 @@ namespace NewLife.Cube.Filters
             if (act.IsDefined(typeof(AllowAnonymousAttribute), true) || act.ControllerDescriptor.IsDefined(typeof(AllowAnonymousAttribute), true)) return;
 
             // 判断当前登录用户
-            var user = MemberProvider.User;
+            var user = ManageProvider.User;
             if (user != null)
             {
                 // 控制器基类

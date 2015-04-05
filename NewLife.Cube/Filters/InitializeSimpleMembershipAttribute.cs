@@ -24,7 +24,7 @@ namespace NewLife.Cube.Filters
             {
                 try
                 {
-                    var user = MemberProvider.User;
+                    var user = ManageProvider.User;
                 }
                 catch (Exception ex)
                 {

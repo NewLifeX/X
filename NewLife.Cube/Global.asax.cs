@@ -29,7 +29,7 @@ namespace NewLife.Cube
             // 异步初始化用户权限系统
             ThreadPoolX.QueueUserWorkItem(() =>
             {
-                var user = MemberProvider.User;
+                var user = ManageProvider.User;
             });
 
         }

@@ -26,7 +26,7 @@ namespace XCode.Membership
                 // 自动设置当前登录用户
                 if (!Dirtys[__.UserID] && !Dirtys[__.UserName])
                 {
-                    var user = MemberProvider.User;
+                    var user = ManageProvider.User;
                     if (user != null)
                     {
                         if (!Dirtys[__.UserID]) UserID = (Int32)user.ID;
