@@ -825,6 +825,8 @@ namespace XCode.DataAccessLayer
         {
             if (String.IsNullOrEmpty(file)) return file;
 
+            file = file.Replace("|DataDirectory|", @"~\App_Data");
+            
             var sep = Path.DirectorySeparatorChar + "";
             var sep2 = sep == "/" ? "\\" : "/";
             var bpath = AppDomain.CurrentDomain.BaseDirectory.EnsureEnd(sep);

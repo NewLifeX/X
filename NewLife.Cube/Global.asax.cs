@@ -6,6 +6,8 @@ using System.Web.Http;
 using System.Web.Mvc;
 using System.Web.Optimization;
 using System.Web.Routing;
+using NewLife.Threading;
+using XCode.Membership;
 
 namespace NewLife.Cube
 {
@@ -23,6 +25,13 @@ namespace NewLife.Cube
             RouteConfig.RegisterRoutes(RouteTable.Routes);
             BundleConfig.RegisterBundles(BundleTable.Bundles);
             //AuthConfig.RegisterAuth();
+
+            // 异步初始化用户权限系统
+            ThreadPoolX.QueueUserWorkItem(() =>
+            {
+                var user = MemberProvider.User;
+            });
+
         }
     }
 }

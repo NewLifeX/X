@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Web.Security;
 using NewLife.Model;
+using XCode.DataAccessLayer;
 
 namespace XCode.Membership
 {
@@ -25,39 +26,38 @@ namespace XCode.Membership
 
         private static Type _UserType;
         /// <summary>用户类型</summary>
-        public static Type UserType { get { return _UserType; } set { _UserType = value; } }
+        public static Type UserType { get { return _UserType; } set { _UserType = value; _Factory = null; } }
+
+        private static IEntityOperate _Factory;
+        /// <summary>用户实体类工厂</summary>
+        private static IEntityOperate Factory { get { return _Factory ?? (_Factory = EntityFactory.CreateOperate(UserType)); } set { _Factory = value; } }
 
         /// <summary>当前登录用户</summary>
         public static IUser User
         {
             get
             {
-                return null;
+                return UserType.GetValue("Current") as IUser;
             }
             set
             {
-
+                UserType.SetValue("Current", value);
             }
         }
 
         static MemberProvider()
         {
-            Config();
-        }
-
-        private static Boolean _Config;
-        /// <summary>配置</summary>
-        public static void Config()
-        {
-            if (_Config) return;
-            _Config = true;
-
             ObjectContainer.Current
                 .AutoRegister<IUser, User>()
                 .AutoRegister<IRole, Role>()
                 .AutoRegister<IMenu, Menu>();
 
             UserType = ObjectContainer.Current.ResolveType<IUser>();
+
+            // 设置默认连接字符串
+            var eop = EntityFactory.CreateOperate(UserType);
+            var name = eop.ConnName;
+            if (!DAL.ConnStrs.ContainsKey(name)) DAL.AddConnStr(name, "Data Source=|DataDirectory|\\{0}.db".F(name), null, "SQLite");
         }
         #endregion
 
