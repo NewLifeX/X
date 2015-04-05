@@ -111,6 +111,7 @@
     <Compile Include="Entity\EntitySession.cs" />
     <Compile Include="Entity\IEntitySession.cs" />
     <Compile Include="Entity\SelectModes.cs" />
+    <Compile Include="Membership\MemberProvider.cs" />
     <Compile Include="Model\ConcatExpression.cs" />
     <Compile Include="Model\Expression.cs" />
     <Compile Include="Model\FormatExpression.cs" />
