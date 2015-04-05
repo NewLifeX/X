@@ -111,13 +111,9 @@
     <Compile Include="Entity\EntitySession.cs" />
     <Compile Include="Entity\IEntitySession.cs" />
     <Compile Include="Entity\SelectModes.cs" />
+    <Compile Include="Exceptions\EntityException.cs" />
     <Compile Include="Membership\EntityBase.cs" />
     <Compile Include="Membership\MemberProvider.cs" />
-    <Compile Include="Membership\XCoder.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>XCoder.tt</DependentUpon>
-    </Compile>
     <Compile Include="Membership\日志.cs" />
     <Compile Include="Membership\日志.Biz.cs">
     </Compile>
@@ -230,9 +226,14 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Web\EntityForm.cs" />
     <Compile Include="Web\EntityGrid.cs" />
+    <None Include="Membership\XCoder.log">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>XCoder.tt</DependentUpon>
+    </None>
     <None Include="Membership\XCoder.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>XCoder.cs</LastGenOutput>
+      <LastGenOutput>XCoder.log</LastGenOutput>
     </None>
     <None Include="Transform\DataTransform.cs" />
     <Compile Include="Transform\EntityTransform.cs" />
@@ -313,6 +314,9 @@
       <Project>{5813c22e-eeb3-4dee-a45c-bb218041193a}</Project>
       <Name>NewLife.Core</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

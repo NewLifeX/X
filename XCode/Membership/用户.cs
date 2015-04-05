@@ -6,17 +6,16 @@ using XCode;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
 
-namespace NewLife.CommonEntity
+namespace XCode.Membership
 {
-    /// <summary>管理员</summary>
+    /// <summary>用户</summary>
     [Serializable]
     [DataObject]
-    [Description("管理员")]
-    [BindIndex("IX_Administrator_Name", false, "Name")]
-    [BindIndex("IX_Administrator_RoleID", false, "RoleID")]
-    [BindRelation("RoleID", false, "Role", "ID")]
-    [BindTable("Administrator", Description = "管理员", ConnName = "Common", DbType = DatabaseType.SqlServer)]
-    public abstract partial class Administrator<TEntity> : IAdministrator
+    [Description("用户")]
+    [BindIndex("IU_User_Name", true, "Name")]
+    [BindIndex("IX_User_RoleID", false, "RoleID")]
+    [BindTable("User", Description = "用户", ConnName = "Member", DbType = DatabaseType.SqlServer)]
+    public abstract partial class User<TEntity> : IUser
     {
         #region 属性
         private Int32 _ID;
@@ -115,12 +114,24 @@ namespace NewLife.CommonEntity
             set { if (OnPropertyChanging(__.RoleID, value)) { _RoleID = value; OnPropertyChanged(__.RoleID); } }
         }
 
+        private String _Roles;
+        /// <summary>角色集合。逗号分隔的角色名称</summary>
+        [DisplayName("角色集合")]
+        [Description("角色集合。逗号分隔的角色名称")]
+        [DataObjectField(false, false, true, 50)]
+        [BindColumn(9, "Roles", "角色集合。逗号分隔的角色名称", null, "nvarchar(50)", 0, 0, true)]
+        public virtual String Roles
+        {
+            get { return _Roles; }
+            set { if (OnPropertyChanging(__.Roles, value)) { _Roles = value; OnPropertyChanged(__.Roles); } }
+        }
+
         private Int32 _Logins;
         /// <summary>登录次数</summary>
         [DisplayName("登录次数")]
         [Description("登录次数")]
         [DataObjectField(false, false, true, 10)]
-        [BindColumn(9, "Logins", "登录次数", null, "int", 10, 0, false)]
+        [BindColumn(10, "Logins", "登录次数", null, "int", 10, 0, false)]
         public virtual Int32 Logins
         {
             get { return _Logins; }
@@ -132,7 +143,7 @@ namespace NewLife.CommonEntity
         [DisplayName("最后登录")]
         [Description("最后登录")]
         [DataObjectField(false, false, true, 3)]
-        [BindColumn(10, "LastLogin", "最后登录", null, "datetime", 3, 0, false)]
+        [BindColumn(11, "LastLogin", "最后登录", null, "datetime", 3, 0, false)]
         public virtual DateTime LastLogin
         {
             get { return _LastLogin; }
@@ -140,27 +151,27 @@ namespace NewLife.CommonEntity
         }
 
         private String _LastLoginIP;
-        /// <summary>最后登陆IP</summary>
-        [DisplayName("最后登陆IP")]
-        [Description("最后登陆IP")]
+        /// <summary>最后登录IP</summary>
+        [DisplayName("最后登录IP")]
+        [Description("最后登录IP")]
         [DataObjectField(false, false, true, 50)]
-        [BindColumn(11, "LastLoginIP", "最后登陆IP", null, "nvarchar(50)", 0, 0, true)]
+        [BindColumn(12, "LastLoginIP", "最后登录IP", null, "nvarchar(50)", 0, 0, true)]
         public virtual String LastLoginIP
         {
             get { return _LastLoginIP; }
             set { if (OnPropertyChanging(__.LastLoginIP, value)) { _LastLoginIP = value; OnPropertyChanged(__.LastLoginIP); } }
         }
 
-        private Boolean _IsEnable;
-        /// <summary>是否使用</summary>
-        [DisplayName("是否使用")]
-        [Description("是否使用")]
+        private Boolean _Enable;
+        /// <summary>是否启用</summary>
+        [DisplayName("是否启用")]
+        [Description("是否启用")]
         [DataObjectField(false, false, true, 1)]
-        [BindColumn(12, "IsEnable", "是否使用", null, "bit", 0, 0, false)]
-        public virtual Boolean IsEnable
+        [BindColumn(13, "Enable", "是否启用", null, "bit", 0, 0, false)]
+        public virtual Boolean Enable
         {
-            get { return _IsEnable; }
-            set { if (OnPropertyChanging(__.IsEnable, value)) { _IsEnable = value; OnPropertyChanged(__.IsEnable); } }
+            get { return _Enable; }
+            set { if (OnPropertyChanging(__.Enable, value)) { _Enable = value; OnPropertyChanged(__.Enable); } }
         }
 
         private String _Profile;
@@ -168,7 +179,7 @@ namespace NewLife.CommonEntity
         [DisplayName("配置信息")]
         [Description("配置信息")]
         [DataObjectField(false, false, true, 500)]
-        [BindColumn(13, "Profile", "配置信息", null, "nvarchar(500)", 0, 0, true)]
+        [BindColumn(14, "Profile", "配置信息", null, "nvarchar(500)", 0, 0, true)]
         public virtual String Profile
         {
             get { return _Profile; }
@@ -198,10 +209,11 @@ namespace NewLife.CommonEntity
                     case __.Phone : return _Phone;
                     case __.Code : return _Code;
                     case __.RoleID : return _RoleID;
+                    case __.Roles : return _Roles;
                     case __.Logins : return _Logins;
                     case __.LastLogin : return _LastLogin;
                     case __.LastLoginIP : return _LastLoginIP;
-                    case __.IsEnable : return _IsEnable;
+                    case __.Enable : return _Enable;
                     case __.Profile : return _Profile;
                     default: return base[name];
                 }
@@ -218,10 +230,11 @@ namespace NewLife.CommonEntity
                     case __.Phone : _Phone = Convert.ToString(value); break;
                     case __.Code : _Code = Convert.ToString(value); break;
                     case __.RoleID : _RoleID = Convert.ToInt32(value); break;
+                    case __.Roles : _Roles = Convert.ToString(value); break;
                     case __.Logins : _Logins = Convert.ToInt32(value); break;
                     case __.LastLogin : _LastLogin = Convert.ToDateTime(value); break;
                     case __.LastLoginIP : _LastLoginIP = Convert.ToString(value); break;
-                    case __.IsEnable : _IsEnable = Convert.ToBoolean(value); break;
+                    case __.Enable : _Enable = Convert.ToBoolean(value); break;
                     case __.Profile : _Profile = Convert.ToString(value); break;
                     default: base[name] = value; break;
                 }
@@ -230,7 +243,7 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region 字段名
-        /// <summary>取得管理员字段信息的快捷方式</summary>
+        /// <summary>取得用户字段信息的快捷方式</summary>
         partial class _
         {
             ///<summary>编号</summary>
@@ -257,17 +270,20 @@ namespace NewLife.CommonEntity
             ///<summary>角色。主要角色</summary>
             public static readonly Field RoleID = FindByName(__.RoleID);
 
+            ///<summary>角色集合。逗号分隔的角色名称</summary>
+            public static readonly Field Roles = FindByName(__.Roles);
+
             ///<summary>登录次数</summary>
             public static readonly Field Logins = FindByName(__.Logins);
 
             ///<summary>最后登录</summary>
             public static readonly Field LastLogin = FindByName(__.LastLogin);
 
-            ///<summary>最后登陆IP</summary>
+            ///<summary>最后登录IP</summary>
             public static readonly Field LastLoginIP = FindByName(__.LastLoginIP);
 
-            ///<summary>是否使用</summary>
-            public static readonly Field IsEnable = FindByName(__.IsEnable);
+            ///<summary>是否启用</summary>
+            public static readonly Field Enable = FindByName(__.Enable);
 
             ///<summary>配置信息</summary>
             public static readonly Field Profile = FindByName(__.Profile);
@@ -275,7 +291,7 @@ namespace NewLife.CommonEntity
             static Field FindByName(String name) { return Meta.Table.FindByName(name); }
         }
 
-        /// <summary>取得管理员字段名称的快捷方式</summary>
+        /// <summary>取得用户字段名称的快捷方式</summary>
         partial class __
         {
             ///<summary>编号</summary>
@@ -302,17 +318,20 @@ namespace NewLife.CommonEntity
             ///<summary>角色。主要角色</summary>
             public const String RoleID = "RoleID";
 
+            ///<summary>角色集合。逗号分隔的角色名称</summary>
+            public const String Roles = "Roles";
+
             ///<summary>登录次数</summary>
             public const String Logins = "Logins";
 
             ///<summary>最后登录</summary>
             public const String LastLogin = "LastLogin";
 
-            ///<summary>最后登陆IP</summary>
+            ///<summary>最后登录IP</summary>
             public const String LastLoginIP = "LastLoginIP";
 
-            ///<summary>是否使用</summary>
-            public const String IsEnable = "IsEnable";
+            ///<summary>是否启用</summary>
+            public const String Enable = "Enable";
 
             ///<summary>配置信息</summary>
             public const String Profile = "Profile";
@@ -321,8 +340,8 @@ namespace NewLife.CommonEntity
         #endregion
     }
 
-    /// <summary>管理员接口</summary>
-    public partial interface IAdministrator
+    /// <summary>用户接口</summary>
+    public partial interface IUser
     {
         #region 属性
         /// <summary>编号</summary>
@@ -349,17 +368,20 @@ namespace NewLife.CommonEntity
         /// <summary>角色。主要角色</summary>
         Int32 RoleID { get; set; }
 
+        /// <summary>角色集合。逗号分隔的角色名称</summary>
+        String Roles { get; set; }
+
         /// <summary>登录次数</summary>
         Int32 Logins { get; set; }
 
         /// <summary>最后登录</summary>
         DateTime LastLogin { get; set; }
 
-        /// <summary>最后登陆IP</summary>
+        /// <summary>最后登录IP</summary>
         String LastLoginIP { get; set; }
 
-        /// <summary>是否使用</summary>
-        Boolean IsEnable { get; set; }
+        /// <summary>是否启用</summary>
+        Boolean Enable { get; set; }
 
         /// <summary>配置信息</summary>
         String Profile { get; set; }

@@ -34,7 +34,7 @@ namespace XCode.Membership
         /// <param name="remark">备注</param>
         public static void WriteLog(String action, String remark)
         {
-            ManageProvider.Provider.WriteLog(typeof(TEntity), action, remark);
+            //ManageProvider.Provider.WriteLog(typeof(TEntity), action, remark);
         }
 
         /// <summary>输出实体对象日志</summary>

@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Web.UI.WebControls;
+using NewLife;
 using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.Web;
@@ -55,7 +56,7 @@ namespace XCode.Membership
 
         /// <summary>首次连接数据库时初始化数据，仅用于实体类重载，用户不应该调用该方法</summary>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        protected override void InitData()
+        internal protected override void InitData()
         {
             base.InitData();
 
@@ -189,7 +190,7 @@ namespace XCode.Membership
         }
 
         /// <summary>加载权限字典</summary>
-        protected override void OnLoad()
+        internal protected override void OnLoad()
         {
             base.OnLoad();
 

@@ -6,14 +6,14 @@ using XCode;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
 
-namespace NewLife.CommonEntity
+namespace XCode.Membership
 {
     /// <summary>日志</summary>
     [Serializable]
     [DataObject]
     [Description("日志")]
     [BindIndex("IX_Log_Category", false, "Category")]
-    [BindTable("Log", Description = "日志", ConnName = "Common", DbType = DatabaseType.SqlServer)]
+    [BindTable("Log", Description = "日志", ConnName = "Member", DbType = DatabaseType.SqlServer)]
     public abstract partial class Log<TEntity> : ILog
     {
         #region 属性

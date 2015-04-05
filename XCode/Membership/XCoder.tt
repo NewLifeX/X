@@ -10,7 +10,7 @@
 <#
 	// 尽管T4模版可以直接调用XCoder内部类库进行代码生成，但是那会导致XCoder文件被锁定，所以采用启动进程来生成的方式！
 
-	var name = "Common";
+	var name = "Member";
 	
 	// 取得模版所在目录
 	var mypath = Path.GetDirectoryName(Host.TemplateFile) + "\\";
@@ -38,10 +38,10 @@
 	WriteLine("参数：" + arg);
 
 	var dic = new Dictionary<String, Object>();
-	dic["NameSpace"] = "NewLife." + name + "Entity";// 命名空间
+	dic["NameSpace"] = "XCode.Membership";// 命名空间
 	dic["EntityConnName"] = name;	// 连接名
 	
-	dic["BaseClass"] = "Entity";	// 实体基类
+	dic["BaseClass"] = "EntityBase";	// 实体基类
 	dic["RenderGenEntity"] = true;	// 生成泛型实体类
 	dic["Override"] = true;			// 是否覆盖目标文件
 	dic["UseCNFileName"] = true;	// 中文文件名

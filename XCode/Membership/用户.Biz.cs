@@ -3,12 +3,9 @@ using System.ComponentModel;
 using System.Data.Common;
 using System.Web;
 using System.Xml.Serialization;
-using NewLife.CommonEntity.Exceptions;
-using NewLife.Configuration;
 using NewLife.Log;
 using NewLife.Security;
 using NewLife.Web;
-using XCode;
 
 namespace XCode.Membership
 {
@@ -22,7 +19,7 @@ namespace XCode.Membership
     /// 基础实体类应该是只有一个泛型参数的，需要用到别的类型时，可以继承一个，也可以通过虚拟重载等手段让基类实现
     /// </remarks>
     /// <typeparam name="TEntity">管理员类型</typeparam>
-    public abstract partial class User<TEntity> : EntityBase<TEntity>, IUser, IManageUser//, IPrincipal//, IIdentity
+    public abstract partial class User<TEntity> : EntityBase<TEntity>, IUser//, IPrincipal//, IIdentity
         where TEntity : User<TEntity>, new()
     {
         #region 对象操作
@@ -41,7 +38,7 @@ namespace XCode.Membership
 
         /// <summary>首次连接数据库时初始化数据，仅用于实体类重载，用户不应该调用该方法</summary>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        protected override void InitData()
+        internal protected override void InitData()
         {
             base.InitData();
 
@@ -54,7 +51,8 @@ namespace XCode.Membership
             user.Password = DataHelper.Hash("admin");
             user.DisplayName = "管理员";
             user.RoleID = 1;
-            user.IsEnable = true;
+            user.Roles = "管理员";
+            user.Enable = true;
             user.Insert();
 
             if (XTrace.Debug) XTrace.WriteLine("完成初始化{0}管理员数据！", typeof(TEntity).Name);
@@ -274,7 +272,7 @@ namespace XCode.Membership
             //var where = exp.ToString();
             //XTrace.WriteLine(where);
 
-            var exp2 = SearchWhereByKey(key) & _.RoleID == roleId & _.IsEnable == isEnable;
+            var exp2 = SearchWhereByKey(key) & _.RoleID == roleId & _.Enable == isEnable;
             //var where2 = exp2.SetStrict().GetString();
             //XTrace.WriteLine(where2);
 
@@ -318,7 +316,7 @@ namespace XCode.Membership
             var user = FindByName(account);
             if (user == null) throw new EntityException("帐号{0}不存在！", account);
 
-            if (!user.IsEnable) throw new EntityException("账号{0}被禁用！", account);
+            if (!user.Enable) throw new EntityException("账号{0}被禁用！", account);
 
             // 数据库为空密码，任何密码均可登录
             if (!String.IsNullOrEmpty(user.Password))
@@ -504,20 +502,6 @@ namespace XCode.Membership
             // 根据权限名找
             return factory.FindForPerssion(name);
         }
-        #endregion
-
-        #region IManageUser 成员
-        /// <summary>编号</summary>
-        object IManageUser.Uid { get { return ID; } }
-
-        /// <summary>账号</summary>
-        string IManageUser.Account { get { return Name; } set { Name = value; } }
-
-        /// <summary>密码</summary>
-        string IManageUser.Password { get { return Password; } set { Password = value; } }
-
-        /// <summary>是否管理员</summary>
-        Boolean IManageUser.IsAdmin { get { return RoleName == "管理员" || RoleName == "超级管理员"; } set { } }
         #endregion
     }
 

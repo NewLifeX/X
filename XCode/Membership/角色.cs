@@ -6,14 +6,14 @@ using XCode;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
 
-namespace NewLife.CommonEntity
+namespace XCode.Membership
 {
     /// <summary>角色</summary>
     [Serializable]
     [DataObject]
     [Description("角色")]
     [BindIndex("IU_Role_Name", true, "Name")]
-    [BindTable("Role", Description = "角色", ConnName = "Common", DbType = DatabaseType.SqlServer)]
+    [BindTable("Role", Description = "角色", ConnName = "Member", DbType = DatabaseType.SqlServer)]
     public abstract partial class Role<TEntity> : IRole
     {
         #region 属性
@@ -42,11 +42,11 @@ namespace NewLife.CommonEntity
         }
 
         private Boolean _IsSystem;
-        /// <summary>是否系统角色。系统角色用于业务系统开发使用，禁止删除</summary>
+        /// <summary>是否系统角色。系统角色用于业务系统开发使用，禁止修改名称或删除</summary>
         [DisplayName("是否系统角色")]
-        [Description("是否系统角色。系统角色用于业务系统开发使用，禁止删除")]
+        [Description("是否系统角色。系统角色用于业务系统开发使用，禁止修改名称或删除")]
         [DataObjectField(false, false, true, 1)]
-        [BindColumn(3, "IsSystem", "是否系统角色。系统角色用于业务系统开发使用，禁止删除", null, "bit", 0, 0, false)]
+        [BindColumn(3, "IsSystem", "是否系统角色。系统角色用于业务系统开发使用，禁止修改名称或删除", null, "bit", 0, 0, false)]
         public virtual Boolean IsSystem
         {
             get { return _IsSystem; }
@@ -54,11 +54,11 @@ namespace NewLife.CommonEntity
         }
 
         private String _Permission;
-        /// <summary>权限</summary>
+        /// <summary>权限。对不同资源的权限，逗号分隔，每个资源的权限子项竖线分隔</summary>
         [DisplayName("权限")]
-        [Description("权限")]
+        [Description("权限。对不同资源的权限，逗号分隔，每个资源的权限子项竖线分隔")]
         [DataObjectField(false, false, true, 500)]
-        [BindColumn(4, "Permission", "权限", null, "nvarchar(500)", 0, 0, true)]
+        [BindColumn(4, "Permission", "权限。对不同资源的权限，逗号分隔，每个资源的权限子项竖线分隔", null, "nvarchar(500)", 0, 0, true)]
         public virtual String Permission
         {
             get { return _Permission; }
@@ -111,10 +111,10 @@ namespace NewLife.CommonEntity
             ///<summary>名称</summary>
             public static readonly Field Name = FindByName(__.Name);
 
-            ///<summary>是否系统角色。系统角色用于业务系统开发使用，禁止删除</summary>
+            ///<summary>是否系统角色。系统角色用于业务系统开发使用，禁止修改名称或删除</summary>
             public static readonly Field IsSystem = FindByName(__.IsSystem);
 
-            ///<summary>权限</summary>
+            ///<summary>权限。对不同资源的权限，逗号分隔，每个资源的权限子项竖线分隔</summary>
             public static readonly Field Permission = FindByName(__.Permission);
 
             static Field FindByName(String name) { return Meta.Table.FindByName(name); }
@@ -129,10 +129,10 @@ namespace NewLife.CommonEntity
             ///<summary>名称</summary>
             public const String Name = "Name";
 
-            ///<summary>是否系统角色。系统角色用于业务系统开发使用，禁止删除</summary>
+            ///<summary>是否系统角色。系统角色用于业务系统开发使用，禁止修改名称或删除</summary>
             public const String IsSystem = "IsSystem";
 
-            ///<summary>权限</summary>
+            ///<summary>权限。对不同资源的权限，逗号分隔，每个资源的权限子项竖线分隔</summary>
             public const String Permission = "Permission";
 
         }
@@ -149,10 +149,10 @@ namespace NewLife.CommonEntity
         /// <summary>名称</summary>
         String Name { get; set; }
 
-        /// <summary>是否系统角色。系统角色用于业务系统开发使用，禁止删除</summary>
+        /// <summary>是否系统角色。系统角色用于业务系统开发使用，禁止修改名称或删除</summary>
         Boolean IsSystem { get; set; }
 
-        /// <summary>权限</summary>
+        /// <summary>权限。对不同资源的权限，逗号分隔，每个资源的权限子项竖线分隔</summary>
         String Permission { get; set; }
         #endregion
 

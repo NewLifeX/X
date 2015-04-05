@@ -32,7 +32,7 @@ namespace XCode.Membership
 
         /// <summary>首次连接数据库时初始化数据，仅用于实体类重载，用户不应该调用该方法</summary>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        protected override void InitData()
+        internal protected override void InitData()
         {
             base.InitData();
 
@@ -252,7 +252,7 @@ namespace XCode.Membership
 
             //list = list.FindAll(Menu<TEntity>._.ParentID, parentID);
             //if (list == null || list.Count < 1) return null;
-            list = list.FindAll(Menu<TEntity>._.IsShow, true);
+            list = list.FindAll(Menu<TEntity>._.Visible, true);
             if (list == null || list.Count < 1) return null;
 
             return list.ToList().Where(e => filters.Contains(e.ID)).Cast<IMenu>().ToList();
@@ -330,7 +330,7 @@ namespace XCode.Membership
             entity.Permission = name;
             entity.Url = url;
             entity.Sort = sort;
-            entity.IsShow = true;
+            entity.Visible = true;
             entity.Remark = reamark ?? name;
             //entity.Save();
 

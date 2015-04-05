@@ -2,12 +2,35 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Web.Security;
+using NewLife.Model;
 
 namespace XCode.Membership
 {
     /// <summary>XCode支持的用户权限提供者</summary>
     public class MemberProvider : MembershipProvider
     {
+        #region 静态属性
+        private static MembershipProvider _Provider;
+        /// <summary>当前成员提供者</summary>
+        public static MembershipProvider Provider
+        {
+            get
+            {
+                if (_Provider == null) _Provider = ObjectContainer.Current.Resolve<MembershipProvider>();
+                return _Provider;
+            }
+        }
+
+        /// <summary>当前登录用户</summary>
+        public static IUser User
+        {
+            get
+            {
+                return null;
+            }
+        }
+        #endregion
+
         private String _ApplicationName;
         /// <summary>使用自定义成员资格提供程序的应用程序的名称</summary>
         public override String ApplicationName { get { return _ApplicationName; } set { _ApplicationName = value; } }
