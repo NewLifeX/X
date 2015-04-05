@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Web.Mvc;
 using System.Web.Security;
-using NewLife.CommonEntity;
 using NewLife.Cube.Filters;
 using NewLife.Cube.Models;
-using NewLife.Reflection;
 using XCode;
+using XCode.Membership;
 
 namespace NewLife.Cube.Controllers
 {
@@ -31,12 +30,13 @@ namespace NewLife.Cube.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Login(LoginModel model, string returnUrl)
         {
-            var provider = ManageProvider.Provider;
             try
             {
-                if (ModelState.IsValid && provider.Login(model.UserName, model.Password) != null)
+                if (ModelState.IsValid && Membership.ValidateUser(model.UserName, model.Password))
                 {
-                    FormsAuthentication.RedirectFromLoginPage(provider.Current + "", true);
+                    FormsAuthentication.SetAuthCookie(model.UserName, model.RememberMe);
+                    //FormsAuthentication.RedirectFromLoginPage(provider.Current + "", true);
+
                     return RedirectToLocal(returnUrl);
                 }
 
@@ -58,8 +58,9 @@ namespace NewLife.Cube.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult LogOff()
         {
-            var provider = ManageProvider.Provider;
-            provider.Logout(provider.Current);
+            //var provider = ManageProvider.Provider;
+            //provider.Logout(provider.Current);
+            MemberProvider.User = null;
 
             FormsAuthentication.SignOut();
 
@@ -85,23 +86,27 @@ namespace NewLife.Cube.Controllers
         {
             if (ModelState.IsValid)
             {
-                var provider = ManageProvider.Provider;
+                //var provider = ManageProvider.Provider;
                 // 尝试注册用户
                 try
                 {
-                    var user = provider.ManageUserType.CreateInstance() as IManageUser;
-                    user.Account = model.UserName;
-                    user.Password = model.Password.MD5();
-                    user.IsEnable = true;
+                    MembershipCreateStatus status;
+                    var user = MemberProvider.Provider.CreateUser(model.UserName, model.Password, null, null, null, true, null, out status);
+                    //user.Account = model.UserName;
+                    //user.Password = model.Password.MD5();
+                    //user.IsEnable = true;
 
-                    var entity = user as IEntity;
-                    entity.SetItem("RoleID", 1);
-                    entity.Insert();
+                    //var entity = user as IEntity;
+                    //entity.SetItem("RoleID", 1);
+                    //entity.Insert();
 
-                    provider.Login(model.UserName, model.Password);
-                    FormsAuthentication.RedirectFromLoginPage(provider.Current + "", true);
+                    //provider.Login(model.UserName, model.Password);
+                    //FormsAuthentication.RedirectFromLoginPage(provider.Current + "", true);
 
-                    return RedirectToAction("Index", "Home");
+                    if (status == MembershipCreateStatus.Success)
+                        return RedirectToAction("Index", "Home");
+
+                    ModelState.AddModelError("", status.ToString());
                 }
                 catch (Exception ex)
                 {
@@ -173,14 +178,16 @@ namespace NewLife.Cube.Controllers
                 bool changePasswordSucceeded = false;
                 try
                 {
-                    var user = ManageProvider.Provider.Current;
-                    if (user != null && model.OldPassword.MD5().EqualIgnoreCase(user.Password))
-                    {
-                        user.Password = model.NewPassword.MD5();
-                        (user as IEntity).Save();
+                    //var user = ManageProvider.Provider.Current;
+                    //if (user != null && model.OldPassword.MD5().EqualIgnoreCase(user.Password))
+                    //{
+                    //    user.Password = model.NewPassword.MD5();
+                    //    (user as IEntity).Save();
 
-                        changePasswordSucceeded = true;
-                    }
+                    //    changePasswordSucceeded = true;
+                    //}
+                    var user = Membership.GetUser(MemberProvider.User.Name);
+                    user.ChangePassword(model.OldPassword, model.NewPassword);
                 }
                 catch (Exception)
                 {

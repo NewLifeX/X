@@ -1,11 +1,7 @@
-﻿@using NewLife.CommonEntity;
-@{
-    var user = ManageProvider.Provider.Current;
-}
-@if (user != null)
+﻿@if (Request.IsAuthenticated)
 {
     <text>
-        你好，@Html.ActionLink(user + "", "Manage", "Account", routeValues: null, htmlAttributes: new { @class = "username", title = "管理" })!
+        你好，@Html.ActionLink(User.Identity.Name, "Manage", "Account", routeValues: null, htmlAttributes: new { @class = "username", title = "管理" })!
         @using (Html.BeginForm("LogOff", "Account", FormMethod.Post, new { id = "logoutForm" }))
         {
             @Html.AntiForgeryToken()

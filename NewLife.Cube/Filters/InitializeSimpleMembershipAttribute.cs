@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Web.Mvc;
-using NewLife.CommonEntity;
+using XCode.Membership;
 
 namespace NewLife.Cube.Filters
 {
@@ -24,7 +24,7 @@ namespace NewLife.Cube.Filters
             {
                 try
                 {
-                    var user = ManageProvider.Provider.Current;
+                    var user = MemberProvider.User;
                 }
                 catch (Exception ex)
                 {

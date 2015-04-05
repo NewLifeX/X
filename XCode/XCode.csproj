@@ -69,10 +69,12 @@
   <ItemGroup Condition="'$(Configuration)|$(Platform)' == 'Net4Debug|AnyCPU'">
     <Reference Include="System.Core" />
     <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Web.ApplicationServices" />
   </ItemGroup>
   <ItemGroup Condition="'$(Configuration)|$(Platform)' == 'Net4Release|AnyCPU'">
     <Reference Include="System.Core" />
     <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Web.ApplicationServices" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\NewLife.Core\Properties\AssemblyInfo_.cs">

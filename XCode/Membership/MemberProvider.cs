@@ -11,7 +11,7 @@ namespace XCode.Membership
     /// <summary>XCode支持的用户权限提供者</summary>
     public class MemberProvider : MembershipProvider
     {
-        #region 静态属性
+        #region 静态成员
         private static MembershipProvider _Provider;
         /// <summary>当前成员提供者</summary>
         public static MemberProvider Provider
@@ -23,6 +23,10 @@ namespace XCode.Membership
             }
         }
 
+        private static Type _UserType;
+        /// <summary>用户类型</summary>
+        public static Type UserType { get { return _UserType; } set { _UserType = value; } }
+
         /// <summary>当前登录用户</summary>
         public static IUser User
         {
@@ -30,6 +34,30 @@ namespace XCode.Membership
             {
                 return null;
             }
+            set
+            {
+
+            }
+        }
+
+        static MemberProvider()
+        {
+            Config();
+        }
+
+        private static Boolean _Config;
+        /// <summary>配置</summary>
+        public static void Config()
+        {
+            if (_Config) return;
+            _Config = true;
+
+            ObjectContainer.Current
+                .AutoRegister<IUser, User>()
+                .AutoRegister<IRole, Role>()
+                .AutoRegister<IMenu, Menu>();
+
+            UserType = ObjectContainer.Current.ResolveType<IUser>();
         }
         #endregion
 
@@ -106,10 +134,43 @@ namespace XCode.Membership
         }
         #endregion
 
-        private String _ApplicationName;
+        #region 接口属性
+        private String _ApplicationName = "/";
         /// <summary>使用自定义成员资格提供程序的应用程序的名称</summary>
         public override String ApplicationName { get { return _ApplicationName; } set { _ApplicationName = value; } }
 
+        /// <summary>指示成员资格提供程序是否配置为允许用户重置其密码</summary>
+        public override bool EnablePasswordReset { get { return false; } }
+
+        /// <summary>指示成员资格提供程序是否配置为允许用户检索其密码</summary>
+        public override bool EnablePasswordRetrieval { get { return false; } }
+
+        /// <summary>获取锁定成员资格用户前允许的无效密码或无效密码提示问题答案尝试次数</summary>
+        public override int MaxInvalidPasswordAttempts { get { return 5; } }
+
+        /// <summary>获取有效密码中必须包含的最少特殊字符数</summary>
+        public override int MinRequiredNonAlphanumericCharacters { get { return 1; } }
+
+        /// <summary>获取密码所要求的最小长度</summary>
+        public override int MinRequiredPasswordLength { get { return 7; } }
+
+        /// <summary>获取在锁定成员资格用户之前允许的最大无效密码或无效密码提示问题答案尝试次数的分钟数</summary>
+        public override int PasswordAttemptWindow { get { return 10; } }
+
+        /// <summary>获取一个值，该值指示在成员资格数据存储区中存储密码的格式</summary>
+        public override MembershipPasswordFormat PasswordFormat { get { return MembershipPasswordFormat.Hashed; } }
+
+        /// <summary>获取用于计算密码的正则表达式</summary>
+        public override string PasswordStrengthRegularExpression { get { return ""; } }
+
+        /// <summary>获取一个值，该值指示成员资格提供程序是否配置为要求用户在进行密码重置和检索时回答密码提示问题</summary>
+        public override bool RequiresQuestionAndAnswer { get { return true; } }
+
+        /// <summary>取一个值，指示成员资格提供程序是否配置为要求每个用户名具有唯一的电子邮件地址</summary>
+        public override bool RequiresUniqueEmail { get { return true; } }
+        #endregion
+
+        #region 接口方法
         /// <summary>处理更新成员资格用户密码的请求</summary>
         /// <param name="username"></param>
         /// <param name="oldPassword"></param>
@@ -154,12 +215,6 @@ namespace XCode.Membership
         {
             throw new NotImplementedException();
         }
-
-        /// <summary>指示成员资格提供程序是否配置为允许用户重置其密码</summary>
-        public override bool EnablePasswordReset { get { return false; } }
-
-        /// <summary>指示成员资格提供程序是否配置为允许用户检索其密码</summary>
-        public override bool EnablePasswordRetrieval { get { return false; } }
 
         /// <summary> 获取一个成员资格用户的集合，其中的电子邮件地址包含要匹配的指定电子邮件地址</summary>
         /// <param name="emailToMatch"></param>
@@ -235,39 +290,6 @@ namespace XCode.Membership
             throw new NotImplementedException();
         }
 
-        /// <summary>获取锁定成员资格用户前允许的无效密码或无效密码提示问题答案尝试次数</summary>
-        public override int MaxInvalidPasswordAttempts { get { return 3; } }
-
-        /// <summary>获取有效密码中必须包含的最少特殊字符数</summary>
-        public override int MinRequiredNonAlphanumericCharacters { get { return 0; } }
-
-        /// <summary>获取密码所要求的最小长度</summary>
-        public override int MinRequiredPasswordLength { get { return 6; } }
-
-        /// <summary>获取在锁定成员资格用户之前允许的最大无效密码或无效密码提示问题答案尝试次数的分钟数</summary>
-        public override int PasswordAttemptWindow { get { return 5; } }
-
-        /// <summary>获取一个值，该值指示在成员资格数据存储区中存储密码的格式</summary>
-        public override MembershipPasswordFormat PasswordFormat { get { return MembershipPasswordFormat.Hashed; } }
-
-        /// <summary>获取用于计算密码的正则表达式</summary>
-        public override string PasswordStrengthRegularExpression
-        {
-            get { throw new NotImplementedException(); }
-        }
-
-        /// <summary>获取一个值，该值指示成员资格提供程序是否配置为要求用户在进行密码重置和检索时回答密码提示问题</summary>
-        public override bool RequiresQuestionAndAnswer
-        {
-            get { throw new NotImplementedException(); }
-        }
-
-        /// <summary>取一个值，指示成员资格提供程序是否配置为要求每个用户名具有唯一的电子邮件地址</summary>
-        public override bool RequiresUniqueEmail
-        {
-            get { throw new NotImplementedException(); }
-        }
-
         /// <summary>  将用户密码重置为一个自动生成的新密码</summary>
         /// <param name="username"></param>
         /// <param name="answer"></param>
@@ -296,9 +318,12 @@ namespace XCode.Membership
         /// <param name="username"></param>
         /// <param name="password"></param>
         /// <returns></returns>
-        public override bool ValidateUser(string username, string password)
+        public override Boolean ValidateUser(string username, string password)
         {
-            throw new NotImplementedException();
+            UserType.Invoke("Login", username, password);
+
+            return true;
         }
+        #endregion
     }
 }

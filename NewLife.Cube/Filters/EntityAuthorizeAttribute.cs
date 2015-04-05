@@ -1,20 +1,17 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Principal;
 using System.Web;
 using System.Web.Mvc;
-using NewLife.CommonEntity;
 using NewLife.Cube.Controllers;
 using NewLife.Log;
+using XCode.Membership;
 
 namespace NewLife.Cube.Filters
 {
     public class EntityAuthorizeAttribute : AuthorizeAttribute
     {
-        protected override bool AuthorizeCore(HttpContextBase httpContext)
+        protected override Boolean AuthorizeCore(HttpContextBase httpContext)
         {
-            var user = ManageProvider.Provider.Current;
+            var user = MemberProvider.User;
             return user != null;
         }
 
@@ -29,7 +26,7 @@ namespace NewLife.Cube.Filters
             if (act.IsDefined(typeof(AllowAnonymousAttribute), true) || act.ControllerDescriptor.IsDefined(typeof(AllowAnonymousAttribute), true)) return;
 
             // 判断当前登录用户
-            var user = ManageProvider.Provider.Current;
+            var user = MemberProvider.User;
             if (user != null)
             {
                 // 控制器基类

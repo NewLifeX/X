@@ -243,10 +243,6 @@
     <Content Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\NewLife.CommonEntity\NewLife.CommonEntity.csproj">
-      <Project>{50d7fae5-2304-4395-a6fa-7d35279d9d84}</Project>
-      <Name>NewLife.CommonEntity</Name>
-    </ProjectReference>
     <ProjectReference Include="..\NewLife.Core\NewLife.Core.csproj">
       <Project>{5813c22e-eeb3-4dee-a45c-bb218041193a}</Project>
       <Name>NewLife.Core</Name>
