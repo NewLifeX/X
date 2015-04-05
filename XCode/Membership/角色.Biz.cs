@@ -366,6 +366,24 @@ namespace XCode.Membership
         #endregion
 
         #region 业务
+
+        /// <summary>根据名称查找角色，若不存在则创建</summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        IRole IRole.FindOrCreateByName(String name)
+        {
+            if (String.IsNullOrEmpty(name)) return null;
+
+            var role = FindByName(name);
+            if (role != null) return role;
+
+            role = new TEntity();
+            role.Name = name;
+            role.Insert();
+
+            return role;
+        }
+        
         ///// <summary>申请指定菜单指定操作的权限</summary>
         ///// <param name="menuID"></param>
         ///// <param name="flag"></param>
@@ -657,6 +675,11 @@ namespace XCode.Membership
         /// <param name="id"></param>
         /// <returns></returns>
         IRole FindByID(Int32 id);
+
+        /// <summary>根据名称查找角色，若不存在则创建</summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        IRole FindOrCreateByName(String name);
 
         /// <summary>保存</summary>
         /// <returns></returns>
