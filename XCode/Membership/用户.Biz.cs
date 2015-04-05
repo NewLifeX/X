@@ -6,6 +6,7 @@ using System.Xml.Serialization;
 using NewLife.Log;
 using NewLife.Security;
 using NewLife.Web;
+using System.Linq;
 
 namespace XCode.Membership
 {
@@ -66,6 +67,11 @@ namespace XCode.Membership
 
             if (String.IsNullOrEmpty(Name)) throw new ArgumentNullException(__.Name, "用户名不能为空！");
             if (RoleID < 1) throw new ArgumentNullException(__.RoleID, "没有指定角色！");
+
+            if (isNew)
+            {
+                if (!String.IsNullOrEmpty(Password) && Password.Length != 32) Password = Password.MD5();
+            }
         }
 
         /// <summary>已重载。</summary>
@@ -375,6 +381,24 @@ namespace XCode.Membership
             //Thread.CurrentPrincipal = null;
         }
 
+        /// <summary>注册用户。默认写日志后Insert，注册仅保存基本信息，需要扩展的同学请重载</summary>
+        public virtual void Register()
+        {
+            if (RoleID == 0)
+            {
+                // 填写角色。最后一个普通角色，如果没有，再管理员角色
+                var eop = ManageProvider.GetFactory<IRole>();
+                var list = eop.FindAllWithCache().Cast<IRole>();
+                var role = list.LastOrDefault(e => !e.IsSystem);
+                if (role == null) role = list.LastOrDefault();
+
+                RoleID = role.ID;
+                Roles = role.Name;
+            }
+
+            Insert();
+        }
+
         static Boolean _isInGetCookie;
         static TEntity GetCookie(String key)
         {
@@ -509,7 +533,7 @@ namespace XCode.Membership
         object IManageUser.Uid { get { return ID; } }
 
         /// <summary>密码</summary>
-        string IManageUser.Password { get { return Password; } set { Password = value; } }
+        string IManageUser.Password { get { return Password; } set { Password = (value + "").MD5(); } }
 
         /// <summary>是否管理员</summary>
         Boolean IManageUser.IsAdmin { get { return RoleName == "管理员" || RoleName == "超级管理员"; } set { } }

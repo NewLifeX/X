@@ -3,6 +3,7 @@ using System.Web.Mvc;
 using System.Web.Security;
 using NewLife.Cube.Filters;
 using NewLife.Cube.Models;
+using NewLife.Log;
 using XCode;
 using XCode.Membership;
 
@@ -32,7 +33,8 @@ namespace NewLife.Cube.Controllers
         {
             try
             {
-                if (ModelState.IsValid && Membership.ValidateUser(model.UserName, model.Password))
+                var provider = ManageProvider.Provider;
+                if (ModelState.IsValid && provider.Login(model.UserName, model.Password) != null)
                 {
                     FormsAuthentication.SetAuthCookie(model.UserName, model.RememberMe);
                     //FormsAuthentication.RedirectFromLoginPage(provider.Current + "", true);
@@ -58,9 +60,8 @@ namespace NewLife.Cube.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult LogOff()
         {
-            //var provider = ManageProvider.Provider;
-            //provider.Logout(provider.Current);
-            MemberProvider.User = null;
+            var provider = ManageProvider.Provider;
+            provider.Logout();
 
             FormsAuthentication.SignOut();
 
@@ -86,30 +87,22 @@ namespace NewLife.Cube.Controllers
         {
             if (ModelState.IsValid)
             {
-                //var provider = ManageProvider.Provider;
+                var provider = ManageProvider.Provider;
                 // 尝试注册用户
                 try
                 {
-                    MembershipCreateStatus status;
-                    var user = MemberProvider.Provider.CreateUser(model.UserName, model.Password, null, null, null, true, null, out status);
-                    //user.Account = model.UserName;
-                    //user.Password = model.Password.MD5();
-                    //user.IsEnable = true;
+                    var user = provider.Register(model.UserName, model.Password, null, true);
+                    if (user != null && user.Enable)
+                    {
+                        provider.Login(model.UserName, model.Password);
+                        FormsAuthentication.RedirectFromLoginPage(provider.Current + "", true);
+                    }
 
-                    //var entity = user as IEntity;
-                    //entity.SetItem("RoleID", 1);
-                    //entity.Insert();
-
-                    //provider.Login(model.UserName, model.Password);
-                    //FormsAuthentication.RedirectFromLoginPage(provider.Current + "", true);
-
-                    if (status == MembershipCreateStatus.Success)
-                        return RedirectToAction("Index", "Home");
-
-                    ModelState.AddModelError("", status.ToString());
+                    return RedirectToAction("Index", "Home");
                 }
                 catch (Exception ex)
                 {
+                    XTrace.WriteException(ex);
                     ModelState.AddModelError("", ex.Message);
                 }
             }

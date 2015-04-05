@@ -679,7 +679,7 @@ namespace XCode.Membership
                 IMenu menu = null;
 
                 // 找到菜单
-                if (menuid > 0) menu = factory.FindByID(menuid);
+                if (menuid > 0) menu = FindByID(menuid);
 
                 if (menu == null)
                 {
@@ -764,19 +764,4 @@ namespace XCode.Membership
         /// <returns></returns>
         IList<IMenu> GetMySubMenus(Int32[] filters);
     }
-
-    //public interface IMenuFactory : IEntityOperate
-    //{
-    //    IMenu Root { get; }
-
-    //    ///// <summary>必要的菜单。必须至少有角色拥有这些权限，如果没有则自动授权给系统角色</summary>
-    //    //Int32[] Necessary { get; }
-    //}
-
-    ///// <summary>菜单实体工厂</summary>
-    ///// <typeparam name="TEntity"></typeparam>
-    //public class MenuFactory<TEntity> : Menu<TEntity>.EntityOperate where TEntity : Menu<TEntity>, new()
-    //{
-    //    public IMenu Root { get { return Menu<TEntity>.Root; } }
-    //}
 }

@@ -18,7 +18,7 @@ namespace XCode.Membership
     /// </remarks>
     public interface IManageProvider : IServiceProvider
     {
-        /// <summary>管理用户类</summary>
+        /// <summary>用户实体类</summary>
         Type UserType { get; }
 
         /// <summary>当前登录用户，设为空则注销登录</summary>
@@ -41,8 +41,15 @@ namespace XCode.Membership
         IManageUser Login(String name, String password);
 
         /// <summary>注销</summary>
-        /// <param name="user"></param>
-        void Logout(IManageUser user);
+        void Logout();
+
+        /// <summary>注册用户</summary>
+        /// <param name="name">用户名</param>
+        /// <param name="password">密码</param>
+        /// <param name="rolename">角色名称</param>
+        /// <param name="enable">是否启用</param>
+        /// <returns></returns>
+        IManageUser Register(String name, String password, String rolename = "注册用户", Boolean enable = false);
 
         /// <summary>获取服务</summary>
         /// <remarks>
@@ -90,8 +97,15 @@ namespace XCode.Membership
         public abstract IManageUser Login(String name, String password);
 
         /// <summary>注销</summary>
-        /// <param name="user"></param>
-        public virtual void Logout(IManageUser user) { Current = null; }
+        public virtual void Logout() { Current = null; }
+
+        /// <summary>注册用户</summary>
+        /// <param name="name">用户名</param>
+        /// <param name="password">密码</param>
+        /// <param name="rolename">角色名称</param>
+        /// <param name="enable">是否启用。某些系统可能需要验证审核</param>
+        /// <returns></returns>
+        public abstract IManageUser Register(String name, String password, String rolename, Boolean enable);
 
         /// <summary>获取服务</summary>
         /// <typeparam name="TService"></typeparam>
@@ -109,31 +123,6 @@ namespace XCode.Membership
             //    return GetHttpCache(typeof(IEntityForm), k => CommonService.Container.Resolve<IEntityForm>());
 
             return ObjectContainer.Current.Resolve(serviceType);
-        }
-
-        /// <summary>写日志</summary>
-        /// <param name="type">类型</param>
-        /// <param name="action">操作</param>
-        /// <param name="remark">备注</param>
-        public virtual void WriteLog(Type type, String action, String remark)
-        {
-            if (!Config.GetConfig<Boolean>("NewLife.CommonEntity.WriteEntityLog", true)) return;
-
-            if (type == null) type = this.GetType();
-
-            var user = Current;
-
-            var factory = ManageProvider.Get<ILog>();
-            var log = factory.Create(type, action);
-
-            if (user != null)
-            {
-                log.UserID = user.ID;
-                log.UserName = user.ToString();
-            }
-
-            log.Remark = remark;
-            log.Save();
         }
         #endregion
 
@@ -213,6 +202,32 @@ namespace XCode.Membership
         /// <param name="password"></param>
         /// <returns></returns>
         public override IManageUser Login(String name, String password) { return User<TUser>.Login(name, password); }
+
+        /// <summary>注册用户</summary>
+        /// <param name="name">用户名</param>
+        /// <param name="password">密码</param>
+        /// <param name="rolename">角色名称</param>
+        /// <param name="enable">是否启用。某些系统可能需要验证审核</param>
+        /// <returns></returns>
+        public override IManageUser Register(String name, String password, String rolename, Boolean enable)
+        {
+            var user = new TUser();
+            user.Name = name;
+            user.Password = password;
+            user.Enable = enable;
+
+            if (!String.IsNullOrEmpty(rolename))
+            {
+                var fact = Get<IRole>();
+                var role = fact.FindOrCreateByName(rolename);
+                user.ID = role.ID;
+                user.RoleName = role.Name;
+            }
+
+            user.Register();
+
+            return user;
+        }
     }
 
     class DefaultManageProvider : ManageProvider<User> { }
