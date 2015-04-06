@@ -1,4 +1,5 @@
-﻿using System.Web.Mvc;
+﻿using System;
+using System.Web.Mvc;
 using NewLife.Cube.Filters;
 using XCode;
 
@@ -9,25 +10,45 @@ namespace NewLife.Cube.Controllers
     [EntityAuthorize]
     public class EntityController<TEntity> : Controller where TEntity : Entity<TEntity>, new()
     {
-        public ActionResult Insert(TEntity entity)
+        /// <summary>数据列表首页</summary>
+        /// <returns></returns>
+        public virtual ActionResult Index()
         {
-            ViewBag.Message = "主页面";
+            var list = Entity<TEntity>.FindAllWithCache();
 
-            return View();
+            return View(list);
         }
 
-        public ActionResult Update(TEntity entity)
+        /// <summary>删除</summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [HttpPost]
+        public virtual ActionResult Delete(Int32 id)
         {
-            ViewBag.Message = "应用程序描述";
+            var entity = Entity<TEntity>.FindByKey(id);
 
-            return View();
+            return View(entity);
         }
 
-        public ActionResult Delete(TEntity entity)
+        /// <summary>表单，添加/修改</summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public virtual ActionResult Form(Int32 id)
         {
-            ViewBag.Message = "联系我们";
+            var entity = Entity<TEntity>.FindByKeyForEdit(id);
 
-            return View();
+            return View(entity);
+        }
+
+        /// <summary>保存</summary>
+        /// <param name="entity"></param>
+        /// <returns></returns>
+        [HttpPost]
+        public virtual ActionResult Save(TEntity entity)
+        {
+            entity.Save();
+
+            return View(entity);
         }
     }
 }

@@ -1,14 +1,22 @@
 ﻿using System;
 using System.Web;
 using System.Web.Mvc;
-using NewLife.Cube.Controllers;
-using NewLife.Log;
+using NewLife.Reflection;
 using XCode.Membership;
 
 namespace NewLife.Cube.Filters
 {
+    /// <summary>实体授权特性</summary>
     public class EntityAuthorizeAttribute : AuthorizeAttribute
     {
+        private String _ResourceName;
+        /// <summary>资源名称。判断当前登录用户是否有权访问该资源</summary>
+        public String ResourceName { get { return _ResourceName; } set { _ResourceName = value; } }
+
+        private PermissionFlags _Permission;
+        /// <summary>授权项</summary>
+        public PermissionFlags Permission { get { return _Permission; } set { _Permission = value; } }
+
         protected override Boolean AuthorizeCore(HttpContextBase httpContext)
         {
             var user = ManageProvider.User;
@@ -29,18 +37,13 @@ namespace NewLife.Cube.Filters
             var user = ManageProvider.User;
             if (user != null)
             {
-                // 控制器基类
-                var type = filterContext.Controller.GetType().BaseType;
-                // 如果不是实体控制器基类，无法做更细的检查，授权通过
-                if (!type.IsGenericType) return;
+                var res = ResourceName;
+                if (res.IsNullOrEmpty()) res = act.ControllerDescriptor.ControllerName.TrimEnd("Controller");
 
-                if (typeof(EntityController<>).IsAssignableFrom(type.GetGenericTypeDefinition()))
-                {
-                    var entity = type.GetGenericArguments()[0];
-                    XTrace.WriteLine("{0}.{1}", entity.FullName, filterContext.ActionDescriptor.ActionName);
+                var eop = ManageProvider.Provider.GetService<IMenu>();
 
-                    return;
-                }
+                var role = user as IUser;
+                if (role.Acquire(0, Permission)) return;
             }
 
             HandleUnauthorizedRequest(filterContext);
