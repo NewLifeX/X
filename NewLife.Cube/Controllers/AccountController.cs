@@ -4,13 +4,11 @@ using System.Web.Security;
 using NewLife.Cube.Filters;
 using NewLife.Cube.Models;
 using NewLife.Log;
-using XCode;
 using XCode.Membership;
 
 namespace NewLife.Cube.Controllers
 {
     [EntityAuthorize]
-    [InitializeSimpleMembership]
     public class AccountController : Controller
     {
         //
