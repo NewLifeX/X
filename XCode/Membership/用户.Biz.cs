@@ -453,7 +453,7 @@ namespace XCode.Membership
                     cookie["p"] = pass;
                 }
             }
-            else if (res.Cookies.AllKeys.Contains(key))
+            else
             {
                 var cookie = res.Cookies[key];
                 cookie.Value = null;
