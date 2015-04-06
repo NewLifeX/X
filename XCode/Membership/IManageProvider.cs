@@ -236,5 +236,5 @@ namespace XCode.Membership
         }
     }
 
-    class DefaultManageProvider : ManageProvider<User> { }
+    class DefaultManageProvider : ManageProvider<UserX> { }
 }

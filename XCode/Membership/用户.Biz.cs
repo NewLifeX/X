@@ -13,7 +13,7 @@ namespace XCode.Membership
     /// <summary>管理员</summary>
     [Serializable]
     [ModelCheckMode(ModelCheckModes.CheckTableWhenFirstUse)]
-    public class User : User<User> { }
+    public class UserX : User<UserX> { }
 
     /// <summary>管理员</summary>
     /// <remarks>
