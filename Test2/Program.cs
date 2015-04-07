@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
@@ -30,7 +31,8 @@ namespace Test2
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine(ex.ToString());
+                    XTrace.WriteException(ex);
+                    //Console.WriteLine(ex.ToString());
                 }
 #endif
 
@@ -118,18 +120,39 @@ namespace Test2
             //server.Log = XTrace.Log;
             server.Port = 8;
             server.MaxNotActive = 0;
+            server.NewSession += server_NewSession;
             server.Start();
 
             //ThreadPoolX.QueueUserWorkItem(ShowSessions);
             _timer = new TimerX(ShowSessions, server, 1000, 1000);
+
+            NetHelper.ShowTcpParameters();
+            Console.Write("k键设置最优参数：");
+            var key = Console.ReadKey();
+            if (key.KeyChar == 'k') NetHelper.SetTcpMax();
         }
 
+        static HashSet<String> _ips = new HashSet<string>();
+        static void server_NewSession(object sender, SessionEventArgs e)
+        {
+            var ip = e.Session.Remote.Address;
+            if (!_ips.Contains(ip.ToString()))
+            {
+                _ips.Add(ip.ToString());
+
+                XTrace.WriteLine("{0,15} {1}", ip, ip.GetAddress());
+            }
+        }
+
+        static Int32 _max = 0;
         static void ShowSessions(Object state)
         {
             var server = state as TcpServer;
             if (server == null) return;
 
-            Console.Title = "会话数：{0}".F(server.Sessions.Count);
+            var count = server.Sessions.Count;
+            if (count > _max) _max = count;
+            Console.Title = "会话数：{0} 最大：{1}".F(count, _max);
         }
 
         static void session_Received(object sender, ReceivedEventArgs e)

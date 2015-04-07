@@ -242,6 +242,8 @@ namespace Test
 
         static void Test10()
         {
+            NetHelper.ShowTcpParameters();
+            Console.ReadKey();
             TcpStress.Main();
         }
 
