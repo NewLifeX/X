@@ -580,7 +580,7 @@ namespace System
         /// 如果系统显示大量连接处于TIME_WAIT状态，则会导致并发量与吞吐量的严重下降，通过减小该项的值，系统可以更快地释放已关闭的连接，
         /// 从而为新连接提供更多的资源，特别是对于高并发短连接的Server具有积极的意义。
         /// </remarks>
-        public static Int32 TcpTimedWaitDelay { get { return GetReg("　　TcpTimedWaitDelay", 240); } set { SetReg("　　TcpTimedWaitDelay", value); } }
+        public static Int32 TcpTimedWaitDelay { get { return GetReg("TcpTimedWaitDelay", 240); } set { SetReg("TcpTimedWaitDelay", value); } }
 
         /// <summary>控制系统尝试验证空闲连接是否仍然完好的频率。默认2小时</summary>
         /// <remarks>
@@ -595,10 +595,10 @@ namespace System
         {
             using (var rkey = Registry.LocalMachine.OpenSubKey(@"System\CurrentControlSet\Services\Tcpip\Parameters"))
             {
-                var sub = rkey.OpenSubKey(key);
-                if (sub == null) return defvalue;
+                //var sub = rkey.OpenSubKey(key);
+                //if (sub == null) return defvalue;
 
-                return sub.GetValue(key).ToInt();
+                return rkey.GetValue(key).ToInt(defvalue);
             }
         }
 
@@ -606,8 +606,8 @@ namespace System
         {
             using (var rkey = Registry.LocalMachine.OpenSubKey(@"System\CurrentControlSet\Services\Tcpip\Parameters", RegistryKeyPermissionCheck.ReadWriteSubTree, RegistryRights.FullControl))
             {
-                var sub = rkey.CreateSubKey(key);
-                sub.SetValue(key, value);
+                //var sub = rkey.CreateSubKey(key);
+                rkey.SetValue(key, value);
             }
         }
         #endregion

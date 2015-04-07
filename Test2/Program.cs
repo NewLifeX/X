@@ -127,7 +127,7 @@ namespace Test2
             _timer = new TimerX(ShowSessions, server, 1000, 1000);
 
             NetHelper.ShowTcpParameters();
-            Console.Write("k键设置最优Tcp参数：");
+            Console.WriteLine("k键设置最优Tcp参数，其它键开始测试：");
             var key = Console.ReadKey();
             if (key.KeyChar == 'k') NetHelper.SetTcpMax();
         }
