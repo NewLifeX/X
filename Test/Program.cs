@@ -243,7 +243,10 @@ namespace Test
         static void Test10()
         {
             NetHelper.ShowTcpParameters();
-            Console.ReadKey();
+            Console.Write("k键设置最优Tcp参数，其它键开始测试：");
+            var key = Console.ReadKey();
+            if (key.KeyChar == 'k') NetHelper.SetTcpMax();
+
             TcpStress.Main();
         }
 

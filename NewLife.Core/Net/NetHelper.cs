@@ -6,6 +6,7 @@ using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Security.AccessControl;
 using Microsoft.Win32;
 using NewLife.Collections;
 using NewLife.Configuration;
@@ -533,7 +534,7 @@ namespace System
             TcpNumConnections = 0x00FFFFFE;
             MaxUserPort = 65534;
             MaxFreeTcbs = 16000;
-            MaxHashTableSize = 65536; 
+            MaxHashTableSize = 65536;
             TcpTimedWaitDelay = 30;
             KeepAliveTime = 30 * 60 * 1000;
             EnableConnectionRateLimiting = 0;
@@ -603,7 +604,7 @@ namespace System
 
         private static void SetReg(String key, Int32 value)
         {
-            using (var rkey = Registry.LocalMachine.OpenSubKey(@"System\CurrentControlSet\Services\Tcpip\Parameters"))
+            using (var rkey = Registry.LocalMachine.OpenSubKey(@"System\CurrentControlSet\Services\Tcpip\Parameters", RegistryKeyPermissionCheck.ReadWriteSubTree, RegistryRights.FullControl))
             {
                 var sub = rkey.CreateSubKey(key);
                 sub.SetValue(key, value);
