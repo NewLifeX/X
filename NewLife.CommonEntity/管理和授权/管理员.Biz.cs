@@ -3,8 +3,6 @@ using System.ComponentModel;
 using System.Data.Common;
 using System.Web;
 using System.Xml.Serialization;
-using NewLife.CommonEntity.Exceptions;
-using NewLife.Configuration;
 using NewLife.Log;
 using NewLife.Security;
 using NewLife.Web;
