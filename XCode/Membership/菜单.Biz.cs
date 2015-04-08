@@ -785,7 +785,7 @@ namespace XCode.Membership
                             var flag = false;
                             foreach (var att in method.GetCustomAttributes(true))
                             {
-                                if (att != null && att.GetType().Name == "HttpPost")
+                                if (att != null && att.GetType().Name == "HttpPostAttribute")
                                 {
                                     flag = true;
                                     break;
@@ -802,6 +802,13 @@ namespace XCode.Membership
                                 list.Add(action);
                             }
                         }
+                    }
+
+                    // 如果新增了菜单，需要检查权限
+                    if (list.Count > 0)
+                    {
+                        var eop = ManageProvider.GetFactory<IRole>();
+                        eop.EntityType.Invoke("CheckRole");
                     }
 
                     dbtrans.Commit();

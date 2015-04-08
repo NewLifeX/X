@@ -132,6 +132,9 @@ namespace XCode.Membership
             {
                 XTrace.WriteLine("共有{0}个必要菜单，没有任何角色拥有权限，准备授权第一系统角色[{1}]拥有其完全管理权！", count, sys);
                 sys.Save();
+
+                // 更新缓存
+                Meta.Cache.Clear("CheckRole");
             }
         }
 
