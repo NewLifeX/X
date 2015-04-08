@@ -1,0 +1,109 @@
+﻿@using System.Reflection
+@using NewLife.Cube
+@{
+    ViewBag.Title = "Form";
+    Layout = "~/Views/Shared/_PlatformLayout.cshtml";
+}
+<!-- BEGIN HEADER -->
+@Html.Partial("_PartialHeader")
+<!-- END HEADER -->
+<!-- BEGIN CONTAINER -->
+<div id="container" class="row-fluid">
+
+    <!-- BEGIN SIDEBAR -->
+    @Html.Partial("_PartialSidebar")
+    <!-- END SIDEBAR -->
+    <!-- BEGIN PAGE -->
+    <div id="main-content">
+        <!-- BEGIN PAGE CONTAINER-->
+        <div class="container-fluid">
+            <!-- BEGIN PAGE HEADER-->
+            <div class="row-fluid">
+                <div class="span12">
+                    <!-- BEGIN THEME CUSTOMIZER-->
+                    <div id="theme-change" class="hidden-phone">
+                        <i class="icon-cogs"></i>
+                        <span class="settings">
+                            <span class="text">Theme Color:</span>
+                            <span class="colors">
+                                <span class="color-default" data-style="default"></span>
+                                <span class="color-green" data-style="green"></span>
+                                <span class="color-gray" data-style="gray"></span>
+                                <span class="color-purple" data-style="purple"></span>
+                                <span class="color-red" data-style="red"></span>
+                            </span>
+                        </span>
+                    </div>
+                    <!-- END THEME CUSTOMIZER-->
+                    <!-- BEGIN PAGE TITLE & BREADCRUMB-->
+                    <h3 class="page-title">
+                        Dynamic Table
+                    </h3>
+                    <ul class="breadcrumb">
+                        <li>
+                            <a href="#">Home</a>
+                            <span class="divider">/</span>
+                        </li>
+                        <li>
+                            <a href="#">Data Table</a>
+                            <span class="divider">/</span>
+                        </li>
+                        <li class="active">
+                            Dynamic Table
+                        </li>
+                        <li class="pull-right search-wrap">
+
+                        </li>
+                    </ul>
+                    <!-- END PAGE TITLE & BREADCRUMB-->
+                </div>
+            </div>
+            <!-- END PAGE HEADER-->
+            <!-- BEGIN ADVANCED TABLE widget-->
+            <div class="row-fluid">
+                <div class="span12">
+                    <!-- BEGIN SAMPLE FORMPORTLET-->
+                    <div class="widget green">
+                        <div class="widget-title">
+                            <h4><i class="icon-reorder"></i> Form Layouts</h4>
+                        </div>
+                        <div class="widget-body">
+                            <!-- BEGIN FORM-->
+                            <form method="post" class="form-horizontal">
+                                @foreach (var item in ViewData.ModelMetadata.ModelType.GetEntityFactory().Fields)
+                                {
+                                    if (item.PrimaryKey)
+                                    {
+
+                                    }
+                                    else
+                                    {
+                                        <div class="control-group">
+                                            <label class="control-label">@item.DisplayName</label>
+                                            <div class="controls">
+                                                @Html.Editor(item.Name)
+                                                <span class="help-inline"></span>
+                                            </div>
+                                        </div>
+                                    }
+                                }
+                                <div class="form-actions">
+                                    <button type="submit" class="btn blue"><i class="icon-ok"></i> Save</button>
+                                    <button type="button" class="btn"><i class=" icon-remove"></i> Cancel</button>
+                                </div>
+                            </form>
+
+                            <!-- END FORM-->
+                        </div>
+                    </div>
+                    <!-- END SAMPLE FORM PORTLET-->
+                </div>
+            </div>
+
+            <!-- END ADVANCED TABLE widget-->
+        </div>
+        <!-- END PAGE CONTAINER-->
+    </div>
+    <!-- END PAGE -->
+</div>
+<!-- END CONTAINER -->

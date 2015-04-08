@@ -43,7 +43,7 @@ namespace NewLife.Cube.Filters
                 var eop = ManageProvider.Provider.GetService<IMenu>();
 
                 var role = user as IUser;
-                if (role.Acquire(0, Permission)) return;
+                if (role.Acquire(1, Permission)) return;
             }
 
             HandleUnauthorizedRequest(filterContext);

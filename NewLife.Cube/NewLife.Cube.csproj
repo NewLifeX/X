@@ -101,8 +101,10 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Admin\RoleController.cs" />
-    <Compile Include="Admin\UserController.cs" />
+    <Compile Include="Admin\AdminAreaRegistration.cs" />
+    <Compile Include="Admin\Controllers\RoleController.cs" />
+    <Compile Include="Admin\Controllers\UserController.cs" />
+    <Compile Include="Admin\RazorViewEngineX.cs" />
     <Compile Include="App_Start\BundleConfig.cs" />
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
@@ -174,6 +176,12 @@
     <EmbeddedResource Include="Content\themes\base\minified\jquery.ui.theme.min.css" />
     <EmbeddedResource Include="favicon.ico" />
     <Content Include="Global.asax" />
+    <Content Include="Admin\Views\_ViewStart.cshtml" />
+    <Content Include="Admin\Views\Web.config" />
+    <Content Include="Admin\Views\User\Index.cshtml" />
+    <Content Include="Admin\Views\Role\Index.cshtml" />
+    <Content Include="Admin\Views\Role\Form.cshtml" />
+    <Content Include="Admin\Views\User\Form.cshtml" />
     <None Include="Properties\PublishProfiles\Cube.pubxml" />
     <EmbeddedResource Include="Scripts\jquery-1.8.2.intellisense.js" />
     <EmbeddedResource Include="Scripts\jquery-1.8.2.js" />
@@ -221,6 +229,9 @@
     <Content Include="Views\Shared\_LoginPartial.cshtml" />
     <Content Include="Views\Shared\_Layout.cshtml" />
     <Content Include="Views\Web.config" />
+    <Content Include="Views\Shared\_PartialHeader.cshtml" />
+    <Content Include="Views\Shared\_PartialSidebar.cshtml" />
+    <Content Include="Views\Shared\_PlatformLayout.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Views\Admin\" />
