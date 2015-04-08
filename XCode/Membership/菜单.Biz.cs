@@ -9,6 +9,7 @@ using System.Web;
 using System.Xml.Serialization;
 using NewLife.Configuration;
 using NewLife.Log;
+using NewLife.Model;
 using NewLife.Reflection;
 
 namespace XCode.Membership
@@ -27,6 +28,8 @@ namespace XCode.Membership
             var entity = new TEntity();
 
             EntityFactory.Register(typeof(TEntity), new MenuFactory());
+
+            ObjectContainer.Current.AutoRegister<IMenuFactory, MenuFactory>();
         }
 
         /// <summary>首次连接数据库时初始化数据，仅用于实体类重载，用户不应该调用该方法</summary>
@@ -674,7 +677,7 @@ namespace XCode.Membership
 
                 // 当前用户
                 var admin = ManageProvider.Provider.Current as IUser;
-                if (admin == null || admin.Role == null) return null;
+                if (admin == null || admin.Role == null) return new List<IMenu>();
 
                 IMenu menu = null;
 
@@ -684,7 +687,7 @@ namespace XCode.Membership
                 if (menu == null)
                 {
                     menu = root;
-                    if (menu == null || menu.Childs == null || menu.Childs.Count < 1) return null;
+                    if (menu == null || menu.Childs == null || menu.Childs.Count < 1) return new List<IMenu>();
                 }
 
                 return menu.GetMySubMenus(admin.Role.Resources);

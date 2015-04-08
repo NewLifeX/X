@@ -74,9 +74,9 @@ namespace NewLife.Common
         {
             var asmx = SysAssembly;
 
-            Name = asmx != null ? asmx.Name : "NewLifePlatform";
+            Name = asmx != null ? asmx.Name : "NewLife.Cube";
             Version = asmx != null ? asmx.Version : "0.1";
-            DisplayName = asmx != null ? (asmx.Title ?? asmx.Name) : "新生命管理平台";
+            DisplayName = asmx != null ? (asmx.Title ?? asmx.Name) : "新生命魔方平台";
             Company = asmx != null ? asmx.Company : "新生命开发团队";
             Address = "新生命开发团队";
 

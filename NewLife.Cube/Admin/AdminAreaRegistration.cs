@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
+using System.Web.Optimization;
 
 namespace NewLife.Cube.Admin
 {
@@ -27,6 +28,12 @@ namespace NewLife.Cube.Admin
 
             // 注册视图引擎
             RazorViewEngineX.Register(ViewEngines.Engines);
+
+            // 绑定资源
+            var bundles = BundleTable.Bundles;
+            bundles.Add(new StyleBundle("~/bootstrap/css").Include("~/bootstrap/css/*.css"));
+
+            bundles.Add(new ScriptBundle("~/bootstrap/js").Include("~/bootstrap/js/*.js"));
         }
     }
 }

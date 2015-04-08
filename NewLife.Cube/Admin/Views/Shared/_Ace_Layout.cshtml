@@ -1,0 +1,111 @@
+﻿@using NewLife.Common;
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8" />
+    <title>@ViewBag.Title - @SysConfig.Current.DisplayName</title>
+    <link href="~/favicon.ico" rel="shortcut icon" type="image/x-icon" />
+    <meta name="viewport" content="width=device-width" />
+    @Styles.Render("~/bootstrap/css")
+    @Scripts.Render("~/bootstrap/js")
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+    <!-- bootstrap & fontawesome -->
+    <link rel="stylesheet" href="~/bootstrap/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/bootstrap/css/font-awesome.min.css" />
+
+    <!-- page specific plugin styles -->
+    <!-- text fonts -->
+    <link rel="stylesheet" href="~/bootstrap/css/ace-fonts.min.css" />
+
+    <!-- ace styles -->
+    <link rel="stylesheet" href="~/bootstrap/css/ace.min.css" />
+
+    <!--[if lte IE 9]>
+        <link rel="stylesheet" href="~/bootstrap/css/ace-part2.min.css" class="ace-main-stylesheet" />
+    <![endif]-->
+    <!--[if lte IE 9]>
+        <link rel="stylesheet" href="~/bootstrap/css/ace-ie.min.css" />
+    <![endif]-->
+    <!-- inline styles related to this page -->
+    <!-- ace settings handler -->
+    <script src="~/bootstrap/js/ace-extra.min.js"></script>
+
+    <!-- HTML5shiv and Respond.js for IE8 to support HTML5 elements and media queries -->
+    <!--[if lte IE 8]>
+    <script src="~/bootstrap/js/html5shiv.min.js"></script>
+    <script src="~/bootstrap/js/respond.min.js"></script>
+    <![endif]-->
+
+    <link rel="stylesheet" href="~/bootstrap/css/bootstrap.min.css" type="text/css" />
+    <link rel="stylesheet" href="~/bootstrap/css/bootstrap-theme.min.css" type="text/css" />
+    <link rel="stylesheet" href="~/bootstrap/css/bootstrap-responsive.min.css" type="text/css" />
+
+    <!-- basic scripts -->
+    <!--[if !IE]> -->
+    <script type="text/javascript">
+        window.jQuery || document.write("<script src='~/js/jquery-2.1.3.min.js'>" + "<" + "/script>");
+    </script>
+
+    <!-- <![endif]-->
+    <!--[if IE]>
+    <script type="text/javascript">
+        window.jQuery || document.write("<script src='~/js/jquery1x.min.js'>"+"<"+"/script>");
+    </script>
+    <![endif]-->
+    <script type="text/javascript">
+        if ('ontouchstart' in document.documentElement) document.write("<script src='~/js/jquery.mobile.custom.min.js'>" + "<" + "/script>");
+    </script>
+    <script src="~/bootstrap/js/bootstrap.min.js"></script>
+
+    <!-- 下拉列表 -->
+    <link rel="stylesheet" href="~/bootstrap/css/bootstrap-select.min.css" type="text/css" />
+    <script src="~/bootstrap/js/bootstrap-select.min.js"></script>
+    <script src="~/bootstrap/js/i18n/defaults-zh_CN.min.js"></script>
+</head>
+<body>
+    <header>
+        <div class="content-wrapper">
+            <div class="float-left">
+                <p class="site-title"><a href="http://www.newlifex.com"><img src="http://www.newlifex.com/templates/default/images/logo.png" /></a></p>
+            </div>
+            <div class="float-right">
+                <section id="login">
+                    @Html.Partial("_LoginPartial")
+                </section>
+                <nav>
+                    <ul id="menu">
+                        <li>@Html.ActionLink("主页", "Index", "Home")</li>
+                        <li>@Html.ActionLink("关于", "About", "Home")</li>
+                        <li>@Html.ActionLink("联系方式", "Contact", "Home")</li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </header>
+    <div id="body">
+        @RenderSection("featured", required: false)
+        <section class="content-wrapper main-content clear-fix">
+            @RenderBody()
+        </section>
+    </div>
+    <footer>
+        <div class="content-wrapper">
+            <div class="float-left">
+                <p>&copy; @DateTime.Now.Year - @SysConfig.Current.DisplayName</p>
+            </div>
+        </div>
+    </footer>
+
+    @Scripts.Render("~/bundles/jquery")
+    @RenderSection("scripts", required: false)
+    <script type="text/javascript">
+        $('.selectpicker').selectpicker();
+        /*$('.selectpicker').selectpicker({
+            style: 'btn',
+            size: 4
+        });*/
+    </script>
+</body>
+</html>
