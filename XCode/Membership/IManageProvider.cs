@@ -67,7 +67,12 @@ namespace XCode.Membership
         #region 静态实例
         static ManageProvider()
         {
-            ObjectContainer.Current.AutoRegister<IManageProvider, DefaultManageProvider>();
+            ObjectContainer.Current
+                .AutoRegister<IManageProvider, DefaultManageProvider>()
+                .AutoRegister<IRole, Role>()
+                .AutoRegister<IMenu, Menu>()
+                .AutoRegister<ILog, Log>()
+                .AutoRegister<IUser, UserX>();
         }
 
         /// <summary>当前管理提供者</summary>
@@ -207,7 +212,7 @@ namespace XCode.Membership
         /// <param name="password"></param>
         /// <param name="rememberme">是否记住密码</param>
         /// <returns></returns>
-        public override IManageUser Login(String name, String password, Boolean rememberme) { return User<TUser>.Login(name, password,rememberme); }
+        public override IManageUser Login(String name, String password, Boolean rememberme) { return User<TUser>.Login(name, password, rememberme); }
 
         /// <summary>注册用户</summary>
         /// <param name="name">用户名</param>
