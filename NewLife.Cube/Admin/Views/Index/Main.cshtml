@@ -15,7 +15,7 @@
                 应用系统：
             </td>
             <td class="value">
-                @HttpRuntime.AppDomainAppVirtualPath&nbsp;<a href="?Act=Restart" onclick="return confirm('仅重启ASP.Net应用程序域，而不是操作系统！\n确认重启？')">重启应用系统</a>
+                @HttpRuntime.AppDomainAppVirtualPath&nbsp;<a href="@Url.Action("Main/Restart")" onclick="return confirm('仅重启ASP.Net应用程序域，而不是操作系统！\n确认重启？')">重启应用系统</a>
             </td>
             <td class="name">
                 目录：
@@ -30,8 +30,8 @@
             </td>
             <td class="value">
                 @Request.ServerVariables["SERVER_NAME"]，
-                @Request.ServerVariables["LOCAl_ADDR"] + ":" + Request.ServerVariables["Server_Port"]
-                &nbsp;<=[@Request.ServerVariables["REMOTE_HOST"]]
+                @Request.ServerVariables["LOCAl_ADDR"]:@Request.ServerVariables["Server_Port"]
+                &nbsp;[@Request.ServerVariables["REMOTE_HOST"]]
             </td>
             <td class="name">
                 计算机用户：
@@ -46,7 +46,7 @@
             </td>
             <td class="value">
                 @AppDomain.CurrentDomain.FriendlyName
-                <a href="?Act=Assembly" target="_blank" title="点击打开进程程序集列表">程序集列表</a>
+                <a href="@Url.Action("Main/Assembly")" target="_blank" title="点击打开进程程序集列表">程序集列表</a>
             </td>
             <td class="name">
                 .Net 版本：
@@ -91,16 +91,16 @@
                 内存：
             </td>
             <td class="value">
-                工作集:@(process.WorkingSet64 / 1024).ToString("n0") + "KB"
-                提交:@(process.PrivateMemorySize64 / 1024).ToString("n0") + "KB"
-                GC:@(GC.GetTotalMemory(false) / 1024).ToString("n0") + "KB"
-                <a href="?Act=ProcessModules" target="_blank" title="点击打开进程模块列表">模块列表</a>
+                工作集: @((process.WorkingSet64 / 1024).ToString("n0"))KB
+                提交: @((process.PrivateMemorySize64 / 1024).ToString("n0"))KB
+                GC: @((GC.GetTotalMemory(false) / 1024).ToString("n0"))KB
+                <a href="@Url.Action("Main/ProcessModules")" target="_blank" title="点击打开进程模块列表">模块列表</a>
             </td>
             <td class="name">
                 进程时间：
             </td>
             <td class="value">
-                @process.TotalProcessorTime.TotalSeconds.ToString("N2")秒 启动于@process.StartTime.ToString("yyyy-MM-dd HH:mm:ss")
+                @process.TotalProcessorTime.TotalSeconds.ToString("N2")秒 启动于 @process.StartTime.ToFullString()
             </td>
         </tr>
         <tr>
@@ -114,7 +114,7 @@
                 Cache：
             </td>
             <td class="value">
-                @Cache.Count 个，可用：@(Cache.EffectivePrivateBytesLimit / 1024).ToString("n0")KB
+                @Cache.Count 个，可用：@((Cache.EffectivePrivateBytesLimit / 1024).ToString("n0"))KB
             </td>
         </tr>
     </table>
@@ -153,17 +153,17 @@
         if (isAll || item.FileVersionInfo.CompanyName != "Microsoft Corporation") { list.Add(item); }
     }
 
-    <table id="Table2" border="0" class="m_table_border first" cellspacing="0" cellpadding="0" align="Center">
+    <table class="table table-bordered table-hover table-striped table-condensed">
         <tr>
             <th colspan="7">
                 进程模块(@process.ProcessName , PID=@process.Id )
                 @if (!isAll)
                 {
-                    <text>（<a href="?Act=ProcessModules&Mode=All">完整</a>，仅用户）：</text>
+                    <text>（<a href="?Mode=All">完整</a>，仅用户）：</text>
                 }
                 else
                 {
-                    <text>（完整，<a href="?Act=ProcessModules&Mode=OnlyUser">仅用户</a>）：</text>
+                    <text>（完整，<a href="?Mode=OnlyUser">仅用户</a>）：</text>
                 }
             </th>
         </tr>
@@ -220,7 +220,7 @@
 }
 @if (Act == "Assembly")
 {
-    <table id="Table1" border="0" class="tb first" cellspacing="0" cellpadding="0" align="Center">
+    <table class="table table-bordered table-hover table-striped table-condensed">
         <tr>
             <th colspan="6">
                 程序集列表(@AppDomain.CurrentDomain.FriendlyName )

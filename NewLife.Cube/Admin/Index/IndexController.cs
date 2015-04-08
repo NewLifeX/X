@@ -20,9 +20,15 @@ namespace NewLife.Cube.Admin.Controllers
             return View();
         }
 
-        public ActionResult Main(String act)
+        public ActionResult Main(String id)
         {
-            ViewBag.Act = act;
+            if (id == "Restart")
+            {
+                HttpRuntime.UnloadAppDomain();
+                id = null;
+            }
+            
+            ViewBag.Act = id;
             ViewBag.User = ManageProvider.User;
             ViewBag.Config = SysConfig.Current;
 
