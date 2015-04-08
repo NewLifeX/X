@@ -17,7 +17,7 @@ namespace NewLife.Cube.Admin
         public override void RegisterArea(AreaRegistrationContext context)
         {
             context.Routes.IgnoreRoute("bootstrap/{*relpath}");
-            
+
             context.MapRoute(
                 AreaName,
                 AreaName + "/{controller}/{action}/{id}",
@@ -30,9 +30,9 @@ namespace NewLife.Cube.Admin
 
             // 绑定资源
             var bundles = BundleTable.Bundles;
-            bundles.Add(new StyleBundle("~/bootstrap/css").Include("~/bootstrap/css/*.css"));
+            bundles.Add(new StyleBundle("~/bootstrap/css").IncludeDirectory("~/bootstrap/css", "*.css", true));
 
-            bundles.Add(new ScriptBundle("~/bootstrap/js").Include("~/bootstrap/js/*.js"));
+            bundles.Add(new ScriptBundle("~/bootstrap/js").IncludeDirectory("~/bootstrap/js", "*.js", true));
         }
     }
 }

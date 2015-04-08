@@ -5,11 +5,10 @@
     <meta charset="utf-8" />
     <title>@ViewBag.Title - @SysConfig.Current.DisplayName</title>
     <link href="~/favicon.ico" rel="shortcut icon" type="image/x-icon" />
-    <meta name="viewport" content="width=device-width" />
-    @Styles.Render("~/bootstrap/css")
-    @Scripts.Render("~/bootstrap/js")
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    @Styles.Render("~/bootstrap/css")
+
 
     <!-- bootstrap & fontawesome -->
     <link rel="stylesheet" href="~/bootstrap/css/bootstrap.min.css" />
@@ -73,5 +72,6 @@
             </section>
         </div>
     </div>
+    @Scripts.Render("~/bootstrap/js")
 </body>
 </html>
