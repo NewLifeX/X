@@ -1,0 +1,74 @@
+﻿@using XCode
+@{
+    var fact = EntityFactory.CreateOperate(ViewData.ModelMetadata.ModelType.GetGenericArguments()[0]);
+    var grid = ViewBag.Grid;
+}
+<div class="panel panel-default">
+    <div class="panel-body">
+        <div class="form-inline">
+            <div class="form-group">
+                <label class="control-label" for="key">关键字：</label>
+                <input name="key" type="text" id="key" value="@Request["key"]" class="form-control" />
+            </div>
+            <input id="btnSearch" value="查询" type="submit" class="btn btn-primary" />
+        </div>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-bordered table-hover table-striped table-condensed">
+            <thead>
+                <tr>
+                    @foreach (var item in fact.Fields)
+                    {
+                        if (item.PrimaryKey)
+                        {
+                            <th style="width: 50px;"> <a href="@Url.Action("Index/Sort/"+item.Name)">编号</a></th>
+                        }
+                        else
+                        {
+                            <th style="width: 120px;"><a href="@Url.Action("Index/Sort/" + item.Name)">@item.DisplayName</a></th>
+                        }
+                    }
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var entity in Model)
+                {
+                    <tr>
+                        @foreach (var item in fact.Fields)
+                        {
+                            if (item.PrimaryKey)
+                            {
+                                <td>@entity[item.Name]</td>
+                            }
+                            else
+                            {
+                                <td>@entity[item.Name]</td>
+                            }
+                        }
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <div class="panel-footer">
+        <p>
+            @Html.Raw(grid.RenderPage())
+            页大小
+            <select id="PageSize" name="PageSize" onchange="$(':submit').click();">
+                <option value="10">10</option>
+                <option value="20">20</option>
+                <option value="30">30</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+            </select>
+            <script type="text/javascript">
+                $(function () {
+                    $('#PageSize').val(@grid.PageSize);
+                });
+            </script>
+        </p>
+    </div>
+</div>
+@section header {
+    <a href="@Url.Action("Index")">@ViewBag.Title</a>
+}
