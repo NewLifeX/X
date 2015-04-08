@@ -263,19 +263,19 @@
     <!-- basic scripts -->
     <!--[if !IE]> -->
     <script type="text/javascript">
-        window.jQuery || document.write("<script src='../js/jquery-2.1.3.min.js'>" + "<" + "/script>");
+        window.jQuery || document.write("<script src='../../bootstrap/js/jquery-2.1.3.min.js'>" + "<" + "/script>");
     </script>
 
     <!-- <![endif]-->
     <!--[if IE]>
     <script type="text/javascript">
-        window.jQuery || document.write("<script src='../js/jquery1x.min.js'>"+"<"+"/script>");
+        window.jQuery || document.write("<script src='../../bootstrap/js/jquery1x.min.js'>"+"<"+"/script>");
     </script>
     <![endif]-->
     <script type="text/javascript">
-        if ('ontouchstart' in document.documentElement) document.write("<script src='../js/jquery.mobile.custom.min.js'>" + "<" + "/script>");
+        if ('ontouchstart' in document.documentElement) document.write("<script src='../../bootstrap/js/jquery.mobile.custom.min.js'>" + "<" + "/script>");
     </script>
-    <script src="~/bootstrap/js/bootstrap.js"></script>
+    <script src="~/bootstrap/js/bootstrap.min.js"></script>
 
     <!-- ace scripts -->
     <script src="~/bootstrap/js/ace/elements.scroller.js"></script>
@@ -300,14 +300,10 @@
     <script src="~/bootstrap/js/ace/ace.widget-on-reload.js"></script>
     <script src="~/bootstrap/js/ace/ace.searchbox-autocomplete.js"></script>
 
-    <!-- the following scripts are used in demo only for onpage help and you don't need them -->
-    <link rel="stylesheet" href="~/bootstrap/css/ace.onpage-help.css" />
-    <link rel="stylesheet" href="~/bootstrap/css/themes/sunburst.css" />
-
-    <script type="text/javascript"> ace.vars['base'] = '..'; </script>
+    <script type="text/javascript"> ace.vars['base'] = '../../'; </script>
     <script src="~/bootstrap/js/ace/elements.onpage-help.js"></script>
     <script src="~/bootstrap/js/ace/ace.onpage-help.js"></script>
-    <script src="~/bootstrap/js/rainbow.js"></script>
+    <script src="~/bootstrap/js/rainbow.min.js"></script>
     <script src="~/bootstrap/js/language/generic.js"></script>
     <script src="~/bootstrap/js/language/html.js"></script>
     <script src="~/bootstrap/js/language/css.js"></script>

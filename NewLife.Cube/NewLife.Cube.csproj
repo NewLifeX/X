@@ -232,6 +232,7 @@
     <Content Include="bootstrap\js\bootstrap.min.js" />
     <Content Include="bootstrap\js\html5shiv.min.js" />
     <Content Include="bootstrap\js\i18n\defaults-zh_CN.min.js" />
+    <Content Include="bootstrap\js\jquery-2.1.3.min.js" />
     <Content Include="bootstrap\js\jquery.dataTables.bootstrap.min.js" />
     <Content Include="bootstrap\js\jquery.dataTables.min.js" />
     <Content Include="bootstrap\js\language\css.js" />
