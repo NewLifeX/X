@@ -31,8 +31,8 @@ using System.Runtime.InteropServices;
 //
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
-[assembly: AssemblyVersion("8.16.*")]
-[assembly: AssemblyFileVersion("8.16.2015.0329")]
+[assembly: AssemblyVersion("8.17.*")]
+[assembly: AssemblyFileVersion("8.17.2015.0408")]
 
 /*
  * XCode的重大改进
@@ -49,6 +49,9 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v8.17.2015.0408  集成用户权限管理架构
+ *                  改进连接字符串设置，当某连接字符串不存在时，不再抛出异常，默认采用SQLite数据库，并在日志中输出
+ * 
  * v8.16.2015.0329  直接查数据库得到的实体对象，自动加入正在使用的单对象缓存
  * 
  * v8.15.2015.0327  SQLite增加Backup，支持数据热备
