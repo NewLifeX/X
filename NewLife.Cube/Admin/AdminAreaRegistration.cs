@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
 using System.Web.Mvc;
 using System.Web.Optimization;
 
@@ -19,6 +16,8 @@ namespace NewLife.Cube.Admin
 
         public override void RegisterArea(AreaRegistrationContext context)
         {
+            context.Routes.IgnoreRoute("bootstrap/{*relpath}");
+            
             context.MapRoute(
                 AreaName,
                 AreaName + "/{controller}/{action}/{id}",
