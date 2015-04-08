@@ -41,8 +41,9 @@ namespace NewLife.Cube.Controllers
         /// <param name="id"></param>
         /// <returns></returns>
         [DisplayName("添加数据")]
-        public virtual ActionResult Form(Int32 id)
+        public virtual ActionResult Form(String id)
         {
+            ViewBag.Title = Entity<TEntity>.Meta.Table.Description + "管理";
             var entity = Entity<TEntity>.FindByKeyForEdit(id);
 
             return View(entity);

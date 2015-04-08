@@ -88,7 +88,13 @@ namespace XCode.Configuration
                 //if (Description != null && !String.IsNullOrEmpty(Description.Description)) return Description.Description;
                 //if (_Column != null && !String.IsNullOrEmpty(_Column.Description)) return _Column.Description;
 
-                return !String.IsNullOrEmpty(Description) ? Description : Name;
+                var name = Description;
+                if (String.IsNullOrEmpty(name)) return Name;
+
+                var p = name.IndexOf("。");
+                if (p > 0) name = name.Substring(0, p);
+
+                return name;
             }
         }
 

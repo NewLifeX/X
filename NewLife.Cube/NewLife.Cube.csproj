@@ -247,7 +247,6 @@
     <Content Include="Admin\Views\Web.config" />
     <Content Include="Admin\Views\User\Index.cshtml" />
     <Content Include="Admin\Views\Role\Index.cshtml" />
-    <Content Include="Admin\Views\Role\Form.cshtml" />
     <Content Include="Admin\Views\User\Form.cshtml" />
     <Content Include="Admin\Views\Shared\_Ace_Layout.cshtml" />
     <Content Include="bootstrap\fonts\fontawesome-webfont.eot" />
@@ -265,6 +264,7 @@
     <Content Include="Admin\Views\Index\_Left.cshtml" />
     <Content Include="Admin\Views\Index\_Navbar.cshtml" />
     <Content Include="Admin\Views\Index\Main.cshtml" />
+    <Content Include="Admin\Views\Shared\Form.cshtml" />
     <None Include="Properties\PublishProfiles\Cube.pubxml" />
     <EmbeddedResource Include="Scripts\jquery-1.8.2.intellisense.js" />
     <EmbeddedResource Include="Scripts\jquery-1.8.2.js" />
