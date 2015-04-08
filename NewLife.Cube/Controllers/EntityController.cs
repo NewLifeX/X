@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Web.Mvc;
 using NewLife.Cube.Filters;
 using XCode;
+using XCode.Web;
 
 namespace NewLife.Cube.Controllers
 {
@@ -16,6 +17,9 @@ namespace NewLife.Cube.Controllers
         [DisplayName("数据列表")]
         public virtual ActionResult Index()
         {
+            ViewBag.Title = Entity<TEntity>.Meta.Table.Description + "管理";
+            ViewBag.Grid = new EntityGrid(Entity<TEntity>.Meta.Factory);
+
             var list = Entity<TEntity>.FindAllWithCache();
 
             return View(list);
@@ -26,7 +30,7 @@ namespace NewLife.Cube.Controllers
         /// <returns></returns>
         [HttpPost]
         [DisplayName("删除")]
-        public virtual ActionResult Delete(Int32 id)
+        public virtual ActionResult Delete(String id)
         {
             var entity = Entity<TEntity>.FindByKey(id);
 
