@@ -28,11 +28,10 @@ namespace NewLife.Cube.Admin
             // 注册视图引擎
             RazorViewEngineX.Register(ViewEngines.Engines);
 
-            // 绑定资源
+            // 绑定资源，绑定路径不能跟物理目录相同，否则因为上面的忽略路由而得不到处理
             var bundles = BundleTable.Bundles;
-            bundles.Add(new StyleBundle("~/bootstrap/css").IncludeDirectory("~/bootstrap/css", "*.css", true));
-
-            bundles.Add(new ScriptBundle("~/bootstrap/js").IncludeDirectory("~/bootstrap/js", "*.js", true));
+            bundles.Add(new StyleBundle("~/bootstrap_css").IncludeDirectory("~/bootstrap/css", "*.css", true));
+            bundles.Add(new ScriptBundle("~/bootstrap_js").IncludeDirectory("~/bootstrap/js", "*.js", true));
         }
     }
 }
