@@ -262,6 +262,7 @@
     <Content Include="bootstrap\js\ace\scripts.json" />
     <Content Include="Admin\Views\Index\Index.cshtml" />
     <Content Include="Admin\Views\Index\_Left.cshtml" />
+    <Content Include="Admin\Views\Index\_Navbar.cshtml" />
     <None Include="Properties\PublishProfiles\Cube.pubxml" />
     <EmbeddedResource Include="Scripts\jquery-1.8.2.intellisense.js" />
     <EmbeddedResource Include="Scripts\jquery-1.8.2.js" />
