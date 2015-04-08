@@ -498,9 +498,9 @@ namespace XCode.Membership
             var row = cb.BindingContainer as GridViewRow;
             if (row == null) return false;
 
-            var provider = ManageProvider.GetFactory<IMenu>() as IMenuFactory;
+            //var provider = ManageProvider.GetFactory<IMenu>() as IMenuFactory;
             var menuid = (Int32)(row.NamingContainer as GridView).DataKeys[row.DataItemIndex].Value;
-            var menu = provider.FindByID(menuid);
+            var menu = ManageProvider.Menu.FindByID(menuid);
             if (menu == null) return false;
 
             //var Manager = cb.Page.GetValue("Manager") as IManagePage;
@@ -564,9 +564,9 @@ namespace XCode.Membership
             var row = cb.BindingContainer as GridViewRow;
             if (row == null) return false;
 
-            var provider = ManageProvider.GetFactory<IMenu>() as IMenuFactory;
+            //var provider = ManageProvider.GetFactory<IMenu>() as IMenuFactory;
             var menuid = (Int32)(row.NamingContainer as GridView).DataKeys[row.DataItemIndex].Value;
-            var menu = provider.FindByID(menuid);
+            var menu = ManageProvider.Menu.FindByID(menuid);
             if (menu == null) return false;
 
             //var Manager = cb.Page.GetValue("Manager") as IManagePage;

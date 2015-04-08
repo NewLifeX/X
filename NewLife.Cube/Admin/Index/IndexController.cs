@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Web;
 using System.Web.Mvc;
@@ -8,6 +9,7 @@ using XCode.Membership;
 
 namespace NewLife.Cube.Admin.Controllers
 {
+    [DisplayName("首页")]
     [EntityAuthorize]
     public class IndexController : Controller
     {
@@ -20,6 +22,7 @@ namespace NewLife.Cube.Admin.Controllers
             return View();
         }
 
+        [DisplayName("服务器信息")]
         public ActionResult Main(String id)
         {
             if (id == "Restart")

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Web.Mvc;
 using NewLife.Cube.Filters;
 using XCode;
@@ -12,6 +13,7 @@ namespace NewLife.Cube.Controllers
     {
         /// <summary>数据列表首页</summary>
         /// <returns></returns>
+        [DisplayName("数据列表")]
         public virtual ActionResult Index()
         {
             var list = Entity<TEntity>.FindAllWithCache();
@@ -23,6 +25,7 @@ namespace NewLife.Cube.Controllers
         /// <param name="id"></param>
         /// <returns></returns>
         [HttpPost]
+        [DisplayName("删除")]
         public virtual ActionResult Delete(Int32 id)
         {
             var entity = Entity<TEntity>.FindByKey(id);
@@ -33,6 +36,7 @@ namespace NewLife.Cube.Controllers
         /// <summary>表单，添加/修改</summary>
         /// <param name="id"></param>
         /// <returns></returns>
+        [DisplayName("添加数据")]
         public virtual ActionResult Form(Int32 id)
         {
             var entity = Entity<TEntity>.FindByKeyForEdit(id);
@@ -44,6 +48,7 @@ namespace NewLife.Cube.Controllers
         /// <param name="entity"></param>
         /// <returns></returns>
         [HttpPost]
+        [DisplayName("保存")]
         public virtual ActionResult Save(TEntity entity)
         {
             entity.Save();

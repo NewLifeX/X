@@ -1,6 +1,9 @@
 ﻿using System;
+using System.Threading;
 using System.Web.Mvc;
 using System.Web.Optimization;
+using NewLife.Model;
+using XCode.Membership;
 
 namespace NewLife.Cube.Admin
 {
@@ -32,6 +35,14 @@ namespace NewLife.Cube.Admin
             var bundles = BundleTable.Bundles;
             bundles.Add(new StyleBundle("~/bootstrap_css").IncludeDirectory("~/bootstrap/css", "*.css", true));
             bundles.Add(new ScriptBundle("~/bootstrap_js").IncludeDirectory("~/bootstrap/js", "*.js", true));
+
+            // 自动检查并添加菜单
+            ThreadPool.QueueUserWorkItem(s =>
+            {
+                // 延迟几秒钟等其它地方初始化完成
+                Thread.Sleep(3000);
+                ManageProvider.Menu.ScanController(AreaName, this.GetType().Assembly, this.GetType().Namespace + ".Controllers");
+            });
         }
     }
 }

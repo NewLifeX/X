@@ -80,6 +80,9 @@ namespace XCode.Membership
 
         /// <summary>登录登录用户</summary>
         public static IManageUser User { get { return Provider.Current; } set { Provider.Current = value; } }
+
+        /// <summary>菜单工厂</summary>
+        public static IMenuFactory Menu { get { return GetFactory<IMenu>() as IMenuFactory; } }
         #endregion
 
         #region IManageProvider 接口

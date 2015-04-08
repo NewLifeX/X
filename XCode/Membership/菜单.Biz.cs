@@ -1,8 +1,10 @@
 ﻿using System;
+using NewLife.Reflection;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Web;
@@ -164,6 +166,9 @@ namespace XCode.Membership
                 return list.GetItem<Int32>(__.ID).ToArray();
             }
         }
+
+        /// <summary>显示名。优先显示中文备注</summary>
+        public String DisplayName { get { return !String.IsNullOrEmpty(Remark) ? Remark : Name; } }
         #endregion
 
         #region 扩展查询
@@ -262,6 +267,30 @@ namespace XCode.Membership
         #endregion
 
         #region 扩展操作
+        /// <summary>添加子菜单</summary>
+        /// <param name="name"></param>
+        /// <param name="displayName"></param>
+        /// <param name="url"></param>
+        /// <returns></returns>
+        public TEntity Add(String name, String displayName, String url)
+        {
+            //var entity = FindByPath(name);
+            //if (entity != null) return entity;
+
+            var entity = new TEntity();
+            entity.Name = name;
+            entity.Permission = name;
+            entity.Remark = displayName;
+            entity.Url = url;
+            entity.ParentID = this.ID;
+
+            entity.Visible = true;
+
+            entity.Insert();
+
+            return entity;
+        }
+
         /// <summary>已重载。</summary>
         /// <returns></returns>
         public override string ToString()
@@ -692,6 +721,94 @@ namespace XCode.Membership
 
                 return menu.GetMySubMenus(admin.Role.Resources);
             }
+
+            /// <summary>扫描命名空间下的控制器并添加为菜单</summary>
+            /// <param name="rootName"></param>
+            /// <param name="asm"></param>
+            /// <param name="nameSpace"></param>
+            /// <returns></returns>
+            public virtual IList<IMenu> ScanController(String rootName, Assembly asm, String nameSpace)
+            {
+                var list = new List<IMenu>();
+
+                using (var dbtrans = Meta.CreateTrans())
+                {
+                    var root = Root.FindByPath(rootName);
+                    if (root == null)
+                    {
+                        root = Root.Add(rootName, null, null);
+                        list.Add(root);
+                    }
+
+                    var ns = nameSpace.EnsureEnd(".");
+                    // 遍历该程序集所有类型
+                    foreach (var type in asm.GetTypes())
+                    {
+                        var name = type.Name;
+                        if (!name.EndsWith("Controller")) continue;
+                        name = name.TrimEnd("Controller");
+                        if (type.Namespace != nameSpace && !type.Namespace.StartsWith(ns)) continue;
+
+                        var url = "~/" + rootName;
+
+                        var node = root;
+                        // 要考虑命名空间里面还有层级。这种情况比较少有，所以只考虑一级关系
+                        var ns2 = type.Namespace.Substring(nameSpace.Length).TrimStart(".");
+                        if (!String.IsNullOrEmpty(ns2))
+                        {
+                            url += "/" + ns2;
+                            node = node.Add(ns2, null, url);
+                            list.Add(node);
+                        }
+
+                        // 添加Controller
+                        var controller = node.FindByPath(name);
+                        if (controller == null)
+                        {
+                            url += "/" + name;
+                            var att = type.GetCustomAttribute<DisplayNameAttribute>(true);
+                            controller = node.Add(name, att != null ? att.DisplayName : null, url);
+                            list.Add(node);
+                        }
+
+                        // 添加该类型下的所有Action
+                        foreach (var method in type.GetMethods())
+                        {
+                            if (method.IsStatic || !method.IsPublic) continue;
+                            // 为了不引用Mvc，采取字符串比较
+                            //if (!method.ReturnType.Name.EndsWith("")) continue;
+                            var rt = method.ReturnType;
+                            while (rt != null && rt.BaseType != null && rt.BaseType != typeof(Object)) rt = rt.BaseType;
+                            if (rt.Name != "ActionResult") continue;
+
+                            // 还要跳过带有HttpPost特性的方法
+                            var flag = false;
+                            foreach (var att in method.GetCustomAttributes(true))
+                            {
+                                if (att != null && att.GetType().Name == "HttpPost")
+                                {
+                                    flag = true;
+                                    break;
+                                }
+                            }
+                            if (flag) continue;
+
+                            // 查找并添加菜单
+                            var action = controller.FindByPath(method.Name);
+                            if (action == null)
+                            {
+                                var att = method.GetCustomAttribute<DisplayNameAttribute>(true);
+                                action = controller.Add(method.Name, att != null ? att.DisplayName : null, url + "/" + method.Name);
+                                list.Add(action);
+                            }
+                        }
+                    }
+
+                    dbtrans.Commit();
+                }
+
+                return list;
+            }
             #endregion
         }
         #endregion
@@ -711,6 +828,13 @@ namespace XCode.Membership
         /// <param name="menuid"></param>
         /// <returns></returns>
         IList<IMenu> GetMySubMenus(Int32 menuid);
+
+        /// <summary>扫描命名空间下的控制器并添加为菜单</summary>
+        /// <param name="rootName"></param>
+        /// <param name="asm"></param>
+        /// <param name="nameSpace"></param>
+        /// <returns></returns>
+        IList<IMenu> ScanController(String rootName, Assembly asm, String nameSpace);
     }
 
     public partial interface IMenu
@@ -738,6 +862,9 @@ namespace XCode.Membership
 
         /// <summary>子孙菜单</summary>
         new IList<IMenu> AllChilds { get; }
+
+        /// <summary>显示名。优先显示中文备注</summary>
+        String DisplayName { get; }
 
         ///// <summary>深度</summary>
         //Int32 Deepth { get; }
