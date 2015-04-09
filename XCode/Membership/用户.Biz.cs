@@ -52,7 +52,6 @@ namespace XCode.Membership
             user.Password = DataHelper.Hash("admin");
             user.DisplayName = "管理员";
             user.RoleID = 1;
-            user.Roles = "管理员";
             user.Enable = true;
             user.Insert();
 
@@ -400,7 +399,6 @@ namespace XCode.Membership
                 if (role == null) role = list.LastOrDefault();
 
                 RoleID = role.ID;
-                Roles = role.Name;
             }
 
             Insert();
@@ -461,55 +459,6 @@ namespace XCode.Membership
                 //HttpContext.Current.Response.Cookies.Remove(key);
             }
         }
-
-        /// <summary>拥有指定菜单的权限</summary>
-        /// <param name="name">名称</param>
-        /// <returns></returns>
-        public virtual Boolean HasMenu(String name)
-        {
-            if (String.IsNullOrEmpty(name)) throw new ArgumentNullException("name");
-
-            var menu = FindPermissionMenu(name);
-            if (menu == null) return false;
-
-            return Acquire(menu.ID, PermissionFlags.None);
-        }
-
-        /// <summary>申请指定菜单指定操作的权限</summary>
-        /// <param name="name">名称</param>
-        /// <param name="flag"></param>
-        /// <returns></returns>
-        public virtual Boolean Acquire(String name, PermissionFlags flag)
-        {
-            var menu = FindPermissionMenu(name);
-            if (menu == null) return false;
-
-            return Acquire(menu.ID, flag);
-        }
-
-        /// <summary>申请指定菜单指定操作的权限</summary>
-        /// <param name="name">名称</param>
-        /// <returns></returns>
-        public virtual Boolean Acquire(String name)
-        {
-            return Acquire(name, PermissionFlags.None);
-        }
-
-        /// <summary>申请指定菜单指定操作的权限</summary>
-        /// <param name="menuID"></param>
-        /// <param name="flag"></param>
-        /// <returns></returns>
-        public virtual Boolean Acquire(Int32 menuID, PermissionFlags flag)
-        {
-            if (menuID <= 0) throw new ArgumentNullException("menuID");
-
-            var entity = (this as IUser).Role;
-            if (entity == null) return false;
-
-            // 申请权限
-            //return entity.Acquire(menuID, flag);
-            return true;
-        }
         #endregion
 
         #region 权限日志
@@ -530,20 +479,6 @@ namespace XCode.Membership
 
         /// <summary>角色名</summary>
         public virtual String RoleName { get { return Role == null ? null : Role.Name; } set { } }
-
-        /// <summary>根据权限名（权限路径）找到权限菜单实体</summary>
-        /// <param name="name">名称</param>
-        /// <returns></returns>
-        public IMenu FindPermissionMenu(string name)
-        {
-            var factory = ManageProvider.Get<IMenu>();
-            // 优先使用当前页，除非当前页与权限名不同
-            var entity = factory.Current;
-            if (entity != null && entity.Permission == name) return entity;
-
-            // 根据权限名找
-            return factory.FindForPerssion(name);
-        }
         #endregion
 
         #region IManageUser 成员
@@ -568,28 +503,6 @@ namespace XCode.Membership
 
         /// <summary>角色名</summary>
         String RoleName { get; set; }
-
-        /// <summary>根据权限名（权限路径）找到权限菜单实体</summary>
-        /// <param name="name">名称</param>
-        /// <returns></returns>
-        IMenu FindPermissionMenu(String name);
-
-        /// <summary>申请指定菜单指定操作的权限</summary>
-        /// <param name="menuID"></param>
-        /// <param name="flag"></param>
-        /// <returns></returns>
-        Boolean Acquire(Int32 menuID, PermissionFlags flag);
-
-        /// <summary>申请指定菜单指定操作的权限</summary>
-        /// <param name="name">名称</param>
-        /// <param name="flag"></param>
-        /// <returns></returns>
-        Boolean Acquire(String name, PermissionFlags flag);
-
-        /// <summary>申请指定菜单指定操作的权限</summary>
-        /// <param name="name">名称</param>
-        /// <returns></returns>
-        Boolean Acquire(String name);
 
         /// <summary>注销</summary>
         void Logout();

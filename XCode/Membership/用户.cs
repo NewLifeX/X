@@ -114,24 +114,12 @@ namespace XCode.Membership
             set { if (OnPropertyChanging(__.RoleID, value)) { _RoleID = value; OnPropertyChanged(__.RoleID); } }
         }
 
-        private String _Roles;
-        /// <summary>角色集合。逗号分隔的角色名称</summary>
-        [DisplayName("角色集合")]
-        [Description("角色集合。逗号分隔的角色名称")]
-        [DataObjectField(false, false, true, 50)]
-        [BindColumn(9, "Roles", "角色集合。逗号分隔的角色名称", null, "nvarchar(50)", 0, 0, true)]
-        public virtual String Roles
-        {
-            get { return _Roles; }
-            set { if (OnPropertyChanging(__.Roles, value)) { _Roles = value; OnPropertyChanged(__.Roles); } }
-        }
-
         private Int32 _Logins;
         /// <summary>登录次数</summary>
         [DisplayName("登录次数")]
         [Description("登录次数")]
         [DataObjectField(false, false, true, 10)]
-        [BindColumn(10, "Logins", "登录次数", null, "int", 10, 0, false)]
+        [BindColumn(9, "Logins", "登录次数", null, "int", 10, 0, false)]
         public virtual Int32 Logins
         {
             get { return _Logins; }
@@ -143,7 +131,7 @@ namespace XCode.Membership
         [DisplayName("最后登录")]
         [Description("最后登录")]
         [DataObjectField(false, false, true, 3)]
-        [BindColumn(11, "LastLogin", "最后登录", null, "datetime", 3, 0, false)]
+        [BindColumn(10, "LastLogin", "最后登录", null, "datetime", 3, 0, false)]
         public virtual DateTime LastLogin
         {
             get { return _LastLogin; }
@@ -155,7 +143,7 @@ namespace XCode.Membership
         [DisplayName("最后登录IP")]
         [Description("最后登录IP")]
         [DataObjectField(false, false, true, 50)]
-        [BindColumn(12, "LastLoginIP", "最后登录IP", null, "nvarchar(50)", 0, 0, true)]
+        [BindColumn(11, "LastLoginIP", "最后登录IP", null, "nvarchar(50)", 0, 0, true)]
         public virtual String LastLoginIP
         {
             get { return _LastLoginIP; }
@@ -167,7 +155,7 @@ namespace XCode.Membership
         [DisplayName("是否启用")]
         [Description("是否启用")]
         [DataObjectField(false, false, true, 1)]
-        [BindColumn(13, "Enable", "是否启用", null, "bit", 0, 0, false)]
+        [BindColumn(12, "Enable", "是否启用", null, "bit", 0, 0, false)]
         public virtual Boolean Enable
         {
             get { return _Enable; }
@@ -179,7 +167,7 @@ namespace XCode.Membership
         [DisplayName("配置信息")]
         [Description("配置信息")]
         [DataObjectField(false, false, true, 500)]
-        [BindColumn(14, "Profile", "配置信息", null, "nvarchar(500)", 0, 0, true)]
+        [BindColumn(13, "Profile", "配置信息", null, "nvarchar(500)", 0, 0, true)]
         public virtual String Profile
         {
             get { return _Profile; }
@@ -209,7 +197,6 @@ namespace XCode.Membership
                     case __.Phone : return _Phone;
                     case __.Code : return _Code;
                     case __.RoleID : return _RoleID;
-                    case __.Roles : return _Roles;
                     case __.Logins : return _Logins;
                     case __.LastLogin : return _LastLogin;
                     case __.LastLoginIP : return _LastLoginIP;
@@ -230,7 +217,6 @@ namespace XCode.Membership
                     case __.Phone : _Phone = Convert.ToString(value); break;
                     case __.Code : _Code = Convert.ToString(value); break;
                     case __.RoleID : _RoleID = Convert.ToInt32(value); break;
-                    case __.Roles : _Roles = Convert.ToString(value); break;
                     case __.Logins : _Logins = Convert.ToInt32(value); break;
                     case __.LastLogin : _LastLogin = Convert.ToDateTime(value); break;
                     case __.LastLoginIP : _LastLoginIP = Convert.ToString(value); break;
@@ -269,9 +255,6 @@ namespace XCode.Membership
 
             ///<summary>角色。主要角色</summary>
             public static readonly Field RoleID = FindByName(__.RoleID);
-
-            ///<summary>角色集合。逗号分隔的角色名称</summary>
-            public static readonly Field Roles = FindByName(__.Roles);
 
             ///<summary>登录次数</summary>
             public static readonly Field Logins = FindByName(__.Logins);
@@ -317,9 +300,6 @@ namespace XCode.Membership
 
             ///<summary>角色。主要角色</summary>
             public const String RoleID = "RoleID";
-
-            ///<summary>角色集合。逗号分隔的角色名称</summary>
-            public const String Roles = "Roles";
 
             ///<summary>登录次数</summary>
             public const String Logins = "Logins";
@@ -367,9 +347,6 @@ namespace XCode.Membership
 
         /// <summary>角色。主要角色</summary>
         Int32 RoleID { get; set; }
-
-        /// <summary>角色集合。逗号分隔的角色名称</summary>
-        String Roles { get; set; }
 
         /// <summary>登录次数</summary>
         Int32 Logins { get; set; }

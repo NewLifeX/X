@@ -254,9 +254,7 @@ namespace XCode.Membership
             return pf.Has(flag);
         }
 
-        /// <summary>删除指定资源的权限</summary>
-        /// <param name="resid"></param>
-        public void Remove(Int32 resid)
+        void Remove(Int32 resid)
         {
             if (Permissions.ContainsKey(resid)) Permissions.Remove(resid);
         }
@@ -348,27 +346,11 @@ namespace XCode.Membership
             SetItem(__.Permission, sb.ToString());
         }
 
-        ///// <summary>设置资源权限</summary>
-        ///// <param name="resid"></param>
-        ///// <param name="ps"></param>
-        //public void SetPermission(Int32 resid, PermissionFlags ps)
-        //{
-        //    if (ps == PermissionFlags.None)
-        //    {
-        //        Permissions.Remove(resid);
-        //    }
-        //    else
-        //    {
-        //        Permissions[resid] = ps;
-        //    }
-        //}
-
         /// <summary>当前角色拥有的资源</summary>
         public Int32[] Resources { get { return Permissions.Keys.ToArray(); } }
         #endregion
 
         #region 业务
-
         /// <summary>根据名称查找角色，若不存在则创建</summary>
         /// <param name="name"></param>
         /// <returns></returns>
@@ -385,60 +367,6 @@ namespace XCode.Membership
 
             return role;
         }
-
-        ///// <summary>申请指定菜单指定操作的权限</summary>
-        ///// <param name="menuID"></param>
-        ///// <param name="flag"></param>
-        ///// <returns></returns>
-        //public abstract Boolean Acquire(Int32 menuID, PermissionFlags flag);
-
-        ///// <summary>取得当前角色的子菜单，有权限、可显示、排序</summary>
-        ///// <param name="parentID"></param>
-        ///// <returns></returns>
-        //List<IMenu> IRole.GetMySubMenus(Int32 parentID) { return GetMySubMenusInternal(parentID); }
-
-        ///// <summary>取得当前角色的子菜单，有权限、可显示、排序</summary>
-        ///// <param name="parentID"></param>
-        ///// <returns></returns>
-        //internal protected abstract List<IMenu> GetMySubMenusInternal(Int32 parentID);
-
-        ///// <summary>当前角色拥有的权限</summary>
-        //public abstract List<IRoleMenu> RoleMenus { get; }
-
-        ///// <summary>当前角色拥有的菜单</summary>
-        //List<IMenu> IRole.Menus { get { return MenusInternal; } }
-
-        ///// <summary>当前角色拥有的菜单</summary>
-        //internal protected abstract List<IMenu> MenusInternal { get; }
-
-        ///// <summary>从另一个角色上复制权限</summary>
-        ///// <param name="role"></param>
-        ///// <returns></returns>
-        //public virtual Int32 CopyRoleMenuFrom(IRole role)
-        //{
-        //    var rms = role.RoleMenus;
-        //    if (rms == null || rms.Count < 1) return 0;
-
-        //    var myrms = RoleMenus;
-
-        //    var n = 0;
-        //    foreach (var item in rms)
-        //    {
-        //        var rm = myrms.FirstOrDefault(r => r.MenuID == item.MenuID);
-        //        if (rm == null)
-        //        {
-        //            rm = (item as IEntity).CloneEntity() as IRoleMenu;
-        //            rm.ID = 0;
-        //            rm.RoleID = this.ID;
-        //        }
-        //        else
-        //            rm.Permission = item.Permission;
-        //        rm.Save();
-
-        //        n++;
-        //    }
-        //    return n;
-        //}
         #endregion
 
         #region 前端页面
@@ -505,6 +433,7 @@ namespace XCode.Membership
             var menuid = (Int32)(row.NamingContainer as GridView).DataKeys[row.DataItemIndex].Value;
             var menu = ManageProvider.Menu.FindByID(menuid);
             if (menu == null) return false;
+            var res = ManageProvider.Menu.Root.FindByPath(resname);
 
             //var Manager = cb.Page.GetValue("Manager") as IManagePage;
             var user = ManageProvider.User as IUser;
@@ -517,7 +446,7 @@ namespace XCode.Membership
                 // 没有权限，增加
                 if (pf == PermissionFlags.None)
                 {
-                    if (!user.Acquire(resname, PermissionFlags.Insert))
+                    if (!user.Role.Has(res.ID, PermissionFlags.Insert))
                     {
                         WebHelper.Alert("没有添加权限！");
                         return false;
@@ -536,13 +465,13 @@ namespace XCode.Membership
                 // 如果有权限，删除
                 if (pf != PermissionFlags.None)
                 {
-                    if (!user.Acquire(resname, PermissionFlags.Delete))
+                    if (!user.Role.Has(res.ID, PermissionFlags.Delete))
                     {
                         WebHelper.Alert("没有删除权限！");
                         return false;
                     }
 
-                    role.Remove(menu.ID);
+                    role.Permissions.Remove(menu.ID);
                     role.Save();
                 }
             }
@@ -571,6 +500,7 @@ namespace XCode.Membership
             var menuid = (Int32)(row.NamingContainer as GridView).DataKeys[row.DataItemIndex].Value;
             var menu = ManageProvider.Menu.FindByID(menuid);
             if (menu == null) return false;
+            var res = ManageProvider.Menu.Root.FindByPath(resname);
 
             //var Manager = cb.Page.GetValue("Manager") as IManagePage;
             var user = ManageProvider.User as IUser;
@@ -580,7 +510,7 @@ namespace XCode.Membership
             // 没有权限，增加
             if (pf == PermissionFlags.None)
             {
-                if (!user.Acquire(resname, PermissionFlags.Insert))
+                if (!user.Role.Has(res.ID, PermissionFlags.Insert))
                 {
                     WebHelper.Alert("没有添加权限！");
                     return false;
@@ -598,14 +528,14 @@ namespace XCode.Membership
 
             if (pf != flag)
             {
-                if (!user.Acquire(resname, PermissionFlags.Update))
+                if (!user.Role.Has(res.ID, PermissionFlags.Update))
                 {
                     WebHelper.Alert("没有编辑权限！");
                     return false;
                 }
 
                 //role.Permissions[menu.ID] = flag;
-                role.Remove(menu.ID);
+                role.Permissions.Remove(menu.ID);
                 role.Set(menu.ID, flag);
 
                 // 如果父级没有授权，则授权
@@ -629,32 +559,14 @@ namespace XCode.Membership
 
     public partial interface IRole
     {
-        ///// <summary>申请指定菜单指定操作的权限</summary>
-        ///// <param name="menuID"></param>
-        ///// <param name="flag"></param>
-        ///// <returns></returns>
-        //Boolean Acquire(Int32 menuID, PermissionFlags flag);
-
-        ///// <summary>取得当前角色的子菜单，有权限、可显示、排序</summary>
-        ///// <param name="parentID"></param>
-        ///// <returns></returns>
-        //List<IMenu> GetMySubMenus(Int32 parentID);
-
-        ///// <summary>当前角色拥有的权限</summary>
-        //List<IRoleMenu> RoleMenus { get; }
-
-        ///// <summary>当前角色拥有的菜单</summary>
-        //List<IMenu> Menus { get; }
+        /// <summary>本角色权限集合</summary>
+        Dictionary<Int32, PermissionFlags> Permissions { get; }
 
         /// <summary>是否拥有指定资源的指定权限</summary>
         /// <param name="resid"></param>
         /// <param name="flag"></param>
         /// <returns></returns>
         Boolean Has(Int32 resid, PermissionFlags flag = PermissionFlags.None);
-
-        /// <summary>删除指定资源的权限</summary>
-        /// <param name="resid"></param>
-        void Remove(Int32 resid);
 
         /// <summary>获取权限</summary>
         /// <param name="resid"></param>
@@ -682,10 +594,5 @@ namespace XCode.Membership
         /// <summary>保存</summary>
         /// <returns></returns>
         Int32 Save();
-
-        ///// <summary>从另一个角色上复制权限</summary>
-        ///// <param name="role"></param>
-        ///// <returns></returns>
-        //Int32 CopyRoleMenuFrom(IRole role);
     }
 }

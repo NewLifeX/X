@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Tables Version="8.16.5570.21327">
+<Tables Version="8.14.5560.21648">
   <Table Name="User" Description="用户" DbType="SqlServer" RenderGenEntity="true">
     <Columns>
       <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
@@ -10,7 +10,6 @@
       <Column Name="Phone" DataType="String" Description="电话" />
       <Column Name="Code" DataType="String" Description="唯一代码。比如身份证、SSOID等" />
       <Column Name="RoleID" DataType="Int32" Description="角色。主要角色" />
-      <Column Name="Roles" DataType="String" Description="角色集合。逗号分隔的角色名称" />
       <Column Name="Logins" DataType="Int32" Description="登录次数" />
       <Column Name="LastLogin" DataType="DateTime" Description="最后登录" />
       <Column Name="LastLoginIP" DataType="String" Description="最后登录IP" />
@@ -37,13 +36,12 @@
     <Columns>
       <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
       <Column Name="Name" DataType="String" Description="名称" />
-      <Column Name="Permission" DataType="String" Description="权限。用于权限识别的名称" />
+      <Column Name="DisplayName" DataType="String" Description="显示名" />
       <Column Name="ParentID" DataType="Int32" Description="父编号" />
       <Column Name="Url" DataType="String" Length="200" Description="链接" />
       <Column Name="Sort" DataType="Int32" Description="排序" />
       <Column Name="Visible" DataType="Boolean" Description="是否可见" />
       <Column Name="Necessary" DataType="Boolean" Description="必要的菜单。必须至少有角色拥有这些权限，如果没有则自动授权给系统角色" />
-      <Column Name="Remark" DataType="String" Length="200" Description="备注" />
     </Columns>
     <Indexes>
       <Index Columns="Name" />

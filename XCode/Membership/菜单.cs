@@ -42,16 +42,16 @@ namespace XCode.Membership
             set { if (OnPropertyChanging(__.Name, value)) { _Name = value; OnPropertyChanged(__.Name); } }
         }
 
-        private String _Permission;
-        /// <summary>权限。用于权限识别的名称</summary>
-        [DisplayName("权限")]
-        [Description("权限。用于权限识别的名称")]
+        private String _DisplayName;
+        /// <summary>显示名</summary>
+        [DisplayName("显示名")]
+        [Description("显示名")]
         [DataObjectField(false, false, true, 50)]
-        [BindColumn(3, "Permission", "权限。用于权限识别的名称", null, "nvarchar(50)", 0, 0, true)]
-        public virtual String Permission
+        [BindColumn(3, "DisplayName", "显示名", null, "nvarchar(50)", 0, 0, true)]
+        public virtual String DisplayName
         {
-            get { return _Permission; }
-            set { if (OnPropertyChanging(__.Permission, value)) { _Permission = value; OnPropertyChanged(__.Permission); } }
+            get { return _DisplayName; }
+            set { if (OnPropertyChanging(__.DisplayName, value)) { _DisplayName = value; OnPropertyChanged(__.DisplayName); } }
         }
 
         private Int32 _ParentID;
@@ -113,18 +113,6 @@ namespace XCode.Membership
             get { return _Necessary; }
             set { if (OnPropertyChanging(__.Necessary, value)) { _Necessary = value; OnPropertyChanged(__.Necessary); } }
         }
-
-        private String _Remark;
-        /// <summary>备注</summary>
-        [DisplayName("备注")]
-        [Description("备注")]
-        [DataObjectField(false, false, true, 200)]
-        [BindColumn(9, "Remark", "备注", null, "nvarchar(200)", 0, 0, true)]
-        public virtual String Remark
-        {
-            get { return _Remark; }
-            set { if (OnPropertyChanging(__.Remark, value)) { _Remark = value; OnPropertyChanged(__.Remark); } }
-        }
         #endregion
 
         #region 获取/设置 字段值
@@ -143,13 +131,12 @@ namespace XCode.Membership
                 {
                     case __.ID : return _ID;
                     case __.Name : return _Name;
-                    case __.Permission : return _Permission;
+                    case __.DisplayName : return _DisplayName;
                     case __.ParentID : return _ParentID;
                     case __.Url : return _Url;
                     case __.Sort : return _Sort;
                     case __.Visible : return _Visible;
                     case __.Necessary : return _Necessary;
-                    case __.Remark : return _Remark;
                     default: return base[name];
                 }
             }
@@ -159,13 +146,12 @@ namespace XCode.Membership
                 {
                     case __.ID : _ID = Convert.ToInt32(value); break;
                     case __.Name : _Name = Convert.ToString(value); break;
-                    case __.Permission : _Permission = Convert.ToString(value); break;
+                    case __.DisplayName : _DisplayName = Convert.ToString(value); break;
                     case __.ParentID : _ParentID = Convert.ToInt32(value); break;
                     case __.Url : _Url = Convert.ToString(value); break;
                     case __.Sort : _Sort = Convert.ToInt32(value); break;
                     case __.Visible : _Visible = Convert.ToBoolean(value); break;
                     case __.Necessary : _Necessary = Convert.ToBoolean(value); break;
-                    case __.Remark : _Remark = Convert.ToString(value); break;
                     default: base[name] = value; break;
                 }
             }
@@ -182,8 +168,8 @@ namespace XCode.Membership
             ///<summary>名称</summary>
             public static readonly Field Name = FindByName(__.Name);
 
-            ///<summary>权限。用于权限识别的名称</summary>
-            public static readonly Field Permission = FindByName(__.Permission);
+            ///<summary>显示名</summary>
+            public static readonly Field DisplayName = FindByName(__.DisplayName);
 
             ///<summary>父编号</summary>
             public static readonly Field ParentID = FindByName(__.ParentID);
@@ -200,9 +186,6 @@ namespace XCode.Membership
             ///<summary>必要的菜单。必须至少有角色拥有这些权限，如果没有则自动授权给系统角色</summary>
             public static readonly Field Necessary = FindByName(__.Necessary);
 
-            ///<summary>备注</summary>
-            public static readonly Field Remark = FindByName(__.Remark);
-
             static Field FindByName(String name) { return Meta.Table.FindByName(name); }
         }
 
@@ -215,8 +198,8 @@ namespace XCode.Membership
             ///<summary>名称</summary>
             public const String Name = "Name";
 
-            ///<summary>权限。用于权限识别的名称</summary>
-            public const String Permission = "Permission";
+            ///<summary>显示名</summary>
+            public const String DisplayName = "DisplayName";
 
             ///<summary>父编号</summary>
             public const String ParentID = "ParentID";
@@ -233,9 +216,6 @@ namespace XCode.Membership
             ///<summary>必要的菜单。必须至少有角色拥有这些权限，如果没有则自动授权给系统角色</summary>
             public const String Necessary = "Necessary";
 
-            ///<summary>备注</summary>
-            public const String Remark = "Remark";
-
         }
         #endregion
     }
@@ -250,8 +230,8 @@ namespace XCode.Membership
         /// <summary>名称</summary>
         String Name { get; set; }
 
-        /// <summary>权限。用于权限识别的名称</summary>
-        String Permission { get; set; }
+        ///// <summary>显示名</summary>
+        //String DisplayName { get; set; }
 
         /// <summary>父编号</summary>
         Int32 ParentID { get; set; }
@@ -267,9 +247,6 @@ namespace XCode.Membership
 
         /// <summary>必要的菜单。必须至少有角色拥有这些权限，如果没有则自动授权给系统角色</summary>
         Boolean Necessary { get; set; }
-
-        /// <summary>备注</summary>
-        String Remark { get; set; }
         #endregion
     }
 }

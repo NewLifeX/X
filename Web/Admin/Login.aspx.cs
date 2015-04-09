@@ -2,7 +2,6 @@
 using System.Threading;
 using System.Web;
 using NewLife.CommonEntity;
-using NewLife.CommonEntity.Exceptions;
 using NewLife.Log;
 using NewLife.Threading;
 using NewLife.Web;
