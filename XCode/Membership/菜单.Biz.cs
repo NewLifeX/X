@@ -1,5 +1,4 @@
 ﻿using System;
-using NewLife.Reflection;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
@@ -775,6 +774,8 @@ namespace XCode.Membership
                         foreach (var method in type.GetMethods())
                         {
                             if (method.IsStatic || !method.IsPublic) continue;
+                            // 跳过删除
+                            if (method.Name.EqualIgnoreCase("Delete")) continue;
                             // 为了不引用Mvc，采取字符串比较
                             //if (!method.ReturnType.Name.EndsWith("")) continue;
                             var rt = method.ReturnType;
