@@ -59,8 +59,8 @@ namespace NewLife.Reflection
             cfg.Save();
 
             //var pack = "pack {0} -IncludeReferencedProjects -Build -Prop Configuration={1} -Exclude **\\*.txt;**\\*.png;content\\*.xml";
-			// *\\*.*干掉下级的所有文件
-            var pack = "pack {0} -IncludeReferencedProjects -Exclude **\\*.txt;**\\*.png;*.xml;*\\*.*";
+            // *\\*.*干掉下级的所有文件
+            var pack = "pack {0} -IncludeReferencedProjects -Exclude **\\*.txt;**\\*.png;*.jpg;*.xml;*\\*.*";
             Console.WriteLine("打包：{0}", proj);
             "cmd".Run("/c del *.nupkg /f/q");
             "NuGet".Run(pack.F(proj, "Release"), 30000);
@@ -83,7 +83,7 @@ namespace NewLife.Reflection
                 mf.Source = @"..\..\Bin4\{0}.{1}".F(name, ext);
                 mf.Target = @"lib\net40\{0}.{1}".F(name, ext);
             }
-            cfg.Files.Add(mf);
+            if (File.Exists(mf.Source.GetFullPath())) cfg.Files.Add(mf);
         }
     }
 
