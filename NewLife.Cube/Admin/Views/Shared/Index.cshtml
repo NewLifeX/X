@@ -21,11 +21,11 @@
                     {
                         if (item.PrimaryKey)
                         {
-                            <th style="width: 50px;"> <a href="@Url.Action("Index/Sort/"+item.Name)">编号</a></th>
+                            <th style="width: 50px;"> <a href="@Url.Action("Index?Sort="+item.Name)">#</a></th>
                         }
                         else
                         {
-                            <th style="width: 120px;"><a href="@Url.Action("Index/Sort/" + item.Name)">@item.DisplayName</a></th>
+                            <th style="width: 120px;"><a href="@Url.Action("Index?Sort=" + item.Name)">@item.DisplayName</a></th>
                         }
                     }
                 </tr>

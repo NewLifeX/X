@@ -58,7 +58,12 @@ namespace NewLife.Cube.Controllers
         {
             entity.Save();
 
-            return View(entity);
+            return View("Form", entity);
         }
+
+        //public EntityController()
+        //{
+        //    ModelBinders.Binders.Add(typeof(TEntity), new EntityModelBinder());
+        //}
     }
 }

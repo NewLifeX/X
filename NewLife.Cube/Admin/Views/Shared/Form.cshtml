@@ -5,9 +5,11 @@
 }
 <div class="panel panel-default">
     <div class="form-horizontal">
-        <!-- BEGIN FORM-->
-        <form method="post" class="form-horizontal">
-            @foreach (var item in fact.Fields)
+        @using (Html.BeginForm("Save/" + (Object)Model[fact.Unique.Name], ViewContext.Controller.GetType().Name.TrimEnd("Controller")))
+        {
+            @Html.AntiForgeryToken()
+            @Html.ValidationSummary()
+            foreach (var item in fact.Fields)
             {
                 if (item.PrimaryKey)
                 {
@@ -18,7 +20,47 @@
                     <div class="control-group">
                         <label class="control-label">@item.DisplayName</label>
                         <div class="controls">
-                            @Html.Editor(item.Name)
+                            @switch (Type.GetTypeCode(item.Type))
+                            {
+                                case TypeCode.Boolean:
+                                    @Html.CheckBox(item.Name, (Boolean)Model[item.Name])
+                                    break;
+                                case TypeCode.DateTime:
+                                @Html.TextBox(item.Name)
+                                    break;
+                                case TypeCode.Decimal:
+                                @Html.TextBox(item.Name)
+                                    break;
+                                case TypeCode.Single:
+                                case TypeCode.Double:
+                                @Html.TextBox(item.Name)
+                                    break;
+                                case TypeCode.Int16:
+                                case TypeCode.Int32:
+                                case TypeCode.Int64:
+                                case TypeCode.UInt16:
+                                case TypeCode.UInt32:
+                                case TypeCode.UInt64:
+                                @Html.TextBox(item.Name, (Object)Model[item.Name], new { @class = "text-box single-line", @type = "number" })
+                                    break;
+                                case TypeCode.String:
+                                    if (item.Name.Contains("Pass"))
+                                    {
+                                        @Html.Password(item.Name)
+                                    }
+                                    else if (item.Length <= 0 || item.Length > 300)
+                                    {
+                                        @Html.TextArea(item.Name)
+                                    }
+                                    else
+                                    {
+                                        @Html.TextBox(item.Name)
+                                    }
+                                    break;
+                                default:
+                                @Html.Editor(item.Name)
+                                    break;
+                            }
                             <span class="help-inline">@item.Description</span>
                         </div>
                     </div>
@@ -28,8 +70,7 @@
                 <button type="submit" class="btn btn-success"><i class="icon-ok"></i>保存</button>
                 <button type="button" class="btn btn-danger"><i class=" icon-remove"></i>取消</button>
             </div>
-        </form>
-        <!-- END FORM-->
+        }
     </div>
 </div>
 @section header {
