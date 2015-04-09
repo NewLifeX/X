@@ -32,13 +32,16 @@ namespace NewLife.Cube.Controllers
         /// <summary>删除</summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        [HttpPost]
+        //[HttpPost]
         [DisplayName("删除")]
         public virtual ActionResult Delete(String id)
         {
             var entity = Entity<TEntity>.FindByKey(id);
+            entity.Delete();
 
-            return View(entity);
+            return RedirectToAction("Index");
+
+            //return View(entity);
         }
 
         /// <summary>表单，添加/修改</summary>
