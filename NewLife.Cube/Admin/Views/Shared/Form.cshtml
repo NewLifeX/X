@@ -1,7 +1,30 @@
 ﻿@using System.Reflection
 @using XCode
+@using XCode.Configuration
+
+@functions {
+
+    String GetWidth(FieldItem item)
+    {
+        switch (Type.GetTypeCode(item.Type))
+        {
+            case TypeCode.String:
+                if (item.Length <= 0 || item.Length > 300)
+                {
+                    return "col-md-12";
+                }
+                break;
+        }
+        return "col-md-5";
+    }
+}
 @{
     var fact = EntityFactory.CreateOperate(ViewData.ModelMetadata.ModelType);
+    //var funcGetWidth = Func<FieldItem, String>((field) =>
+    //{
+
+    //    return String.Empty;
+    //});
 }
 <div class="panel panel-default">
     <div class="form-horizontal">
@@ -17,23 +40,23 @@
                 }
                 else
                 {
-                    <div class="control-group">
-                        <label class="control-label">@item.DisplayName</label>
-                        <div class="controls">
+                    <div class="form-group">
+                        <label class="control-label col-md-3">@item.DisplayName</label>
+                        <div class="@GetWidth(item)">
                             @switch (Type.GetTypeCode(item.Type))
                             {
                                 case TypeCode.Boolean:
                                     @Html.CheckBox(item.Name, (Boolean)Model[item.Name])
                                     break;
                                 case TypeCode.DateTime:
-                                @Html.TextBox(item.Name)
+                                @Html.TextBox(item.Name, null, new { @class = "form-control" })
                                     break;
                                 case TypeCode.Decimal:
-                                @Html.TextBox(item.Name)
+                                @Html.TextBox(item.Name, null, new { @class = "form-control" })
                                     break;
                                 case TypeCode.Single:
                                 case TypeCode.Double:
-                                @Html.TextBox(item.Name)
+                                @Html.TextBox(item.Name, null, new { @class = "form-control" })
                                     break;
                                 case TypeCode.Int16:
                                 case TypeCode.Int32:
@@ -41,27 +64,27 @@
                                 case TypeCode.UInt16:
                                 case TypeCode.UInt32:
                                 case TypeCode.UInt64:
-                                @Html.TextBox(item.Name, (Object)Model[item.Name], new { @class = "text-box single-line", @type = "number" })
+                                @Html.TextBox(item.Name, (Object)Model[item.Name], new { @class = "text-box single-line form-control", @type = "number" })
                                     break;
                                 case TypeCode.String:
                                     if (item.Name.Contains("Pass"))
                                     {
-                                        @Html.Password(item.Name)
+                                        @Html.Password(item.Name, null, new { @class = "form-control" })
                                     }
                                     else if (item.Length <= 0 || item.Length > 300)
                                     {
-                                        @Html.TextArea(item.Name)
+                                        @Html.TextArea(item.Name, new { @class = "form-control" })
                                     }
                                     else
                                     {
-                                        @Html.TextBox(item.Name)
+                                        @Html.TextBox(item.Name, null, new { @class = "form-control" })
                                     }
                                     break;
                                 default:
                                 @Html.Editor(item.Name)
                                     break;
                             }
-                            <span class="help-inline">@item.Description</span>
+                            <p class="help-block">@item.Description</p>
                         </div>
                     </div>
                 }

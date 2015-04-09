@@ -93,6 +93,8 @@ Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "WebBootstrap", "WebBootstra
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NewLife.Bootstrap", "NewLife.Bootstrap\NewLife.Bootstrap.csproj", "{95272F1D-5ED9-423D-AB5F-DECBD89B032F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NewLife.Cube", "NewLife.Cube\NewLife.Cube.csproj", "{7AC0E99B-CFD8-4B59-8838-503EAA30523F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -207,6 +209,14 @@ Global
 		{95272F1D-5ED9-423D-AB5F-DECBD89B032F}.Net4Release|Any CPU.Build.0 = Net4Release|Any CPU
 		{95272F1D-5ED9-423D-AB5F-DECBD89B032F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{95272F1D-5ED9-423D-AB5F-DECBD89B032F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7AC0E99B-CFD8-4B59-8838-503EAA30523F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7AC0E99B-CFD8-4B59-8838-503EAA30523F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7AC0E99B-CFD8-4B59-8838-503EAA30523F}.Net4Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7AC0E99B-CFD8-4B59-8838-503EAA30523F}.Net4Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7AC0E99B-CFD8-4B59-8838-503EAA30523F}.Net4Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7AC0E99B-CFD8-4B59-8838-503EAA30523F}.Net4Release|Any CPU.Build.0 = Release|Any CPU
+		{7AC0E99B-CFD8-4B59-8838-503EAA30523F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7AC0E99B-CFD8-4B59-8838-503EAA30523F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
