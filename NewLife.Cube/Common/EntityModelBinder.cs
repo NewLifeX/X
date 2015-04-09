@@ -4,8 +4,14 @@ using XCode;
 
 namespace NewLife.Cube
 {
+    /// <summary>实体模型绑定器。特殊处理XCode实体类</summary>
     public class EntityModelBinder : DefaultModelBinder
     {
+        /// <summary>创建模型。对于有Key的请求，使用FindByKeyForEdit方法先查出来数据，而不是直接反射实例化实体对象</summary>
+        /// <param name="controllerContext"></param>
+        /// <param name="bindingContext"></param>
+        /// <param name="modelType"></param>
+        /// <returns></returns>
         protected override object CreateModel(ControllerContext controllerContext, ModelBindingContext bindingContext, Type modelType)
         {
             if (typeof(IEntity).IsAssignableFrom(modelType))
@@ -15,7 +21,7 @@ namespace NewLife.Cube
                 {
                     var rvs = controllerContext.RouteData.Values;
                     var uk = fact.Unique;
-                    if (uk != null && rvs[uk.Name] != null) return fact.FindByKeyForEdit(rvs[uk.Name]);
+                    if (uk != null && rvs[uk.Name] != null) return fact.FindByKeyForEdit(rvs[uk.Name]) ?? fact.Create();
 
                     return fact.Create();
                 }
@@ -25,6 +31,7 @@ namespace NewLife.Cube
         }
     }
 
+    /// <summary>实体模型绑定器提供者，为所有XCode实体类提供实体模型绑定器</summary>
     public class EntityModelBinderProvider : IModelBinderProvider
     {
         public IModelBinder GetBinder(Type modelType)
@@ -39,6 +46,7 @@ namespace NewLife.Cube
             ModelBinderProviders.BinderProviders.Add(new EntityModelBinderProvider());
         }
 
+        /// <summary>注册到全局模型绑定器提供者集合</summary>
         public static void Register()
         {
             // 引发静态构造，只执行一次

@@ -12,12 +12,16 @@ namespace NewLife.Cube.Controllers
     [EntityAuthorize]
     public class EntityController<TEntity> : Controller where TEntity : Entity<TEntity>, new()
     {
+        public EntityController()
+        {
+            ViewBag.Title = Entity<TEntity>.Meta.Table.Description + "管理";
+        }
+
         /// <summary>数据列表首页</summary>
         /// <returns></returns>
         [DisplayName("数据列表")]
         public virtual ActionResult Index()
         {
-            ViewBag.Title = Entity<TEntity>.Meta.Table.Description + "管理";
             ViewBag.Grid = new EntityGrid(Entity<TEntity>.Meta.Factory);
 
             var list = Entity<TEntity>.FindAllWithCache();
@@ -43,7 +47,6 @@ namespace NewLife.Cube.Controllers
         [DisplayName("添加数据")]
         public virtual ActionResult Form(String id)
         {
-            ViewBag.Title = Entity<TEntity>.Meta.Table.Description + "管理";
             var entity = Entity<TEntity>.FindByKeyForEdit(id);
 
             return View(entity);
