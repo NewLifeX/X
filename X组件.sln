@@ -52,13 +52,6 @@ Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "Web", "http://localhost:176
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NewLife.Core.Test", "NewLife.Core.Test\NewLife.Core.Test.csproj", "{ADC0BECC-C59A-4A82-BFCE-02EBD2966204}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{347DF669-C717-4500-B239-8F076AF7E2CE}"
-	ProjectSection(SolutionItems) = preProject
-		Local.testsettings = Local.testsettings
-		TraceAndTestImpact.testsettings = TraceAndTestImpact.testsettings
-		X组件.vsmdi = X组件.vsmdi
-	EndProjectSection
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NewLife.Net.Test", "NewLife.Net.Test\NewLife.Net.Test.csproj", "{6D5EA117-7DC7-4390-935A-97C36F0BB29C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NewLife.Bootstrap", "NewLife.Bootstrap\NewLife.Bootstrap.csproj", "{95272F1D-5ED9-423D-AB5F-DECBD89B032F}"
