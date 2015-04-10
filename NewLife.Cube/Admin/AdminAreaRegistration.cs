@@ -45,6 +45,13 @@ namespace NewLife.Cube.Admin
                 // 延迟几秒钟等其它地方初始化完成
                 Thread.Sleep(3000);
                 ManageProvider.Menu.ScanController(AreaName, this.GetType().Assembly, this.GetType().Namespace + ".Controllers");
+
+                var menu = ManageProvider.Menu.Root.FindByPath(AreaName);
+                if (menu != null&&menu.DisplayName.IsNullOrEmpty())
+                {
+                    menu.DisplayName = "管理平台";
+                    menu.Save();
+                }
             });
         }
     }

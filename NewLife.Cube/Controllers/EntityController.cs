@@ -45,7 +45,7 @@ namespace NewLife.Cube.Controllers
         /// <summary>表单，添加/修改</summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        [DisplayName("添加数据")]
+        [DisplayName("数据表单")]
         public virtual ActionResult Form(String id)
         {
             var entity = Entity<TEntity>.FindByKeyForEdit(id);
