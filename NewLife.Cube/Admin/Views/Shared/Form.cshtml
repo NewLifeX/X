@@ -10,12 +10,11 @@
         {
             case TypeCode.String:
                 if (item.Length <= 0 || item.Length > 300)
-                {
-                    return "col-md-9";
-                }
-                break;
+                    return "col-md-5";
+                else
+                    return "col-md-3";
         }
-        return "col-md-5";
+        return "col-md-1";
     }
 }
 @{
@@ -48,7 +47,7 @@
                 else
                 {
                     <div class="form-group">
-                        <label class="control-label col-md-3">@item.DisplayName</label>
+                        <label class="control-label col-md-1">@item.DisplayName</label>
                         <div class="@GetWidth(item)">
                             @switch (Type.GetTypeCode(item.Type))
                             {
@@ -97,7 +96,7 @@
                 }
             }
             <div class="form-actions">
-                <label class="control-label col-md-3"></label>
+                <label class="control-label col-md-2"></label>
                 <button type="submit" class="btn btn-success"><i class="glyphicon glyphicon-ok"></i><strong>保存</strong></button>
                 <button type="button" class="btn btn-danger"><i class="glyphicon glyphicon-remove"></i><strong>取消</strong></button>
             </div>
