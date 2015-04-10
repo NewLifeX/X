@@ -62,7 +62,10 @@ namespace NewLife.Cube.Controllers
         {
             entity.Save();
 
+            ViewBag.StatusMessage = "保存成功！";
+
             return View("Form", entity);
+            //return RedirectToAction("Form/" + entity[Entity<TEntity>.Meta.Unique.Name]);
         }
     }
 }

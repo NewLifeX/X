@@ -13,7 +13,7 @@ namespace XCode.Membership
     [DataObject]
     [Description("菜单")]
     [BindIndex("IX_Menu_Name", false, "Name")]
-    [BindIndex("IX_Menu_ParentID_Name", false, "ParentID,Name")]
+    [BindIndex("IU_Menu_ParentID_Name", true, "ParentID,Name")]
     [BindTable("Menu", Description = "菜单", ConnName = "Membership", DbType = DatabaseType.SqlServer)]
     public abstract partial class Menu<TEntity> : IMenu
     {

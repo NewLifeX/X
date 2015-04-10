@@ -1,0 +1,20 @@
+﻿@model System.Web.Mvc.HandleErrorInfo
+@{
+    Layout = "_Ace_Layout.cshtml";
+    ViewBag.Title = "错误";
+
+    var context = ViewBag.Context as ExceptionContext;
+}
+<div class="panel panel-default">
+    <div class="panel-body">
+        <span class="alert alert-danger" role="alert">
+            <strong>@context.Exception.Message</strong>
+        </span>
+    </div>
+    <div class="panel-footer">
+        <a href="javascript: history.go(-1);" class="btn btn-info">返回上一页</a>
+    </div>
+</div>
+@section header {
+    <strong>处理你的请求时出错 </strong>
+}

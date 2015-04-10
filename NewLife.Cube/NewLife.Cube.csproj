@@ -251,7 +251,7 @@
     <Content Include="Admin\Views\User\Index.cshtml" />
     <Content Include="Admin\Views\Role\Index.cshtml" />
     <Content Include="Admin\Views\User\Form.cshtml" />
-    <Content Include="Admin\Views\Shared\_Ace_Layout.cshtml" />
+    <Content Include="Views\Shared\_Ace_Layout.cshtml" />
     <Content Include="bootstrap\fonts\fontawesome-webfont.eot" />
     <Content Include="bootstrap\fonts\fontawesome-webfont.ttf" />
     <Content Include="bootstrap\fonts\fontawesome-webfont.woff" />
@@ -315,6 +315,7 @@
     <Content Include="Views\Shared\_LoginPartial.cshtml" />
     <Content Include="Views\Shared\_Layout.cshtml" />
     <Content Include="Views\Web.config" />
+    <Content Include="Views\Shared\Error.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Views\Admin\" />

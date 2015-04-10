@@ -45,7 +45,7 @@
     </Columns>
     <Indexes>
       <Index Columns="Name" />
-      <Index Columns="ParentID,Name" />
+      <Index Columns="ParentID,Name" Unique="True" />
     </Indexes>
   </Table>
   <Table Name="Log" Description="日志" DbType="SqlServer" RenderGenEntity="true">

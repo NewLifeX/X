@@ -28,6 +28,13 @@
 }
 <div class="panel panel-default">
     <div class="form-horizontal">
+        @if (ViewBag.StatusMessage != null)
+        {
+            <div class="alert alert-success alert-dismissible text-center" role="alert">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <strong>@ViewBag.StatusMessage</strong>
+            </div>
+        }
         @using (Html.BeginForm("Save/" + (Object)Model[fact.Unique.Name], ViewContext.Controller.GetType().Name.TrimEnd("Controller")))
         {
             @Html.AntiForgeryToken()
@@ -90,12 +97,13 @@
                 }
             }
             <div class="form-actions">
-                <button type="submit" class="btn btn-success"><i class="icon-ok"></i>保存</button>
-                <button type="button" class="btn btn-danger"><i class=" icon-remove"></i>取消</button>
+                <label class="control-label col-md-3"></label>
+                <button type="submit" class="btn btn-success"><i class="glyphicon glyphicon-ok"></i><strong>保存</strong></button>
+                <button type="button" class="btn btn-danger"><i class="glyphicon glyphicon-remove"></i><strong>取消</strong></button>
             </div>
         }
     </div>
 </div>
 @section header {
-    <a href="@Url.Action("Index")">@ViewBag.Title</a>
+    <a href="@Url.Action("Index")"><strong>@ViewBag.Title</strong></a>
 }
