@@ -1,9 +1,10 @@
 ﻿@using XCode
+@using XCode.Web
 @{
     Layout = "~/Views/Shared/_Ace_Layout.cshtml";
 
     var fact = EntityFactory.CreateOperate(ViewData.ModelMetadata.ModelType.GetGenericArguments()[0]);
-    var grid = ViewBag.Grid;
+    var grid = ViewBag.Grid as EntityGrid;
 }
 <div class="panel panel-default">
     <div class="panel-body">
@@ -21,14 +22,25 @@
                 <tr>
                     @foreach (var item in fact.Fields)
                     {
-                        if (item.PrimaryKey)
+                        // 主键降序、当前字段反序，其它升序
+                        var desc = false;
+                        if (item.Name == grid.Sort)
                         {
-                            <th style="width: 50px;"> <a href="@Html.Raw(Url.Action("Index", new { Sort = item.Name }))">#</a></th>
+                            desc = !grid.SortDesc;
                         }
-                        else
+                        else if (item.PrimaryKey)
                         {
-                            <th><a href="@Html.Raw(Url.Action("Index", new { Sort = item.Name }))">@item.DisplayName</a></th>
+                            desc = true;
                         }
+                        
+                        var att = new
+                        {
+                            Sort = item.Name,
+                            Desc = desc ? 1 : 0,
+                            page = grid.PageIndex,
+                            pageSize = grid.PageSize
+                        };
+                        <th><a href="@Html.Raw(Url.Action("Index", att))">@item.DisplayName</a></th>
                     }
                     <th style="width: 150px;">操作</th>
                 </tr>
