@@ -267,8 +267,8 @@
     <Content Include="Areas\Admin\Views\Index\_Left.cshtml" />
     <Content Include="Areas\Admin\Views\Index\_Navbar.cshtml" />
     <Content Include="Areas\Admin\Views\Index\Main.cshtml" />
-    <Content Include="Areas\Admin\Views\Shared\Form.cshtml" />
-    <Content Include="Areas\Admin\Views\Shared\Index.cshtml" />
+    <Content Include="Views\Shared\Form.cshtml" />
+    <Content Include="Views\Shared\Index.cshtml" />
     <None Include="Properties\PublishProfiles\Cube.pubxml" />
     <EmbeddedResource Include="Scripts\jquery-1.8.2.intellisense.js" />
     <EmbeddedResource Include="Scripts\jquery-1.8.2.js" />
@@ -319,6 +319,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Areas\Admin\Models\" />
+    <Folder Include="Areas\Admin\Views\Shared\" />
     <Folder Include="Views\Admin\" />
   </ItemGroup>
   <ItemGroup>

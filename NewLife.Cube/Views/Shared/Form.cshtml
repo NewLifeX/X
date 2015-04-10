@@ -1,6 +1,10 @@
 ﻿@using System.Reflection
 @using XCode
 @using XCode.Configuration
+@{
+    Layout = "~/Views/Shared/_Ace_Layout.cshtml";
+    var fact = EntityFactory.CreateOperate(ViewData.ModelMetadata.ModelType);
+}
 
 @functions {
 
@@ -8,6 +12,8 @@
     {
         switch (Type.GetTypeCode(item.Type))
         {
+            case TypeCode.Boolean:
+                return "col-md-3";
             case TypeCode.String:
                 if (item.Length <= 0 || item.Length > 300)
                     return "col-md-5";
@@ -16,14 +22,6 @@
         }
         return "col-md-1";
     }
-}
-@{
-    var fact = EntityFactory.CreateOperate(ViewData.ModelMetadata.ModelType);
-    //var funcGetWidth = Func<FieldItem, String>((field) =>
-    //{
-
-    //    return String.Empty;
-    //});
 }
 <div class="panel panel-default">
     <div class="form-horizontal">

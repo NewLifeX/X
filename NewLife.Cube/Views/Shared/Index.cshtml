@@ -1,5 +1,7 @@
 ﻿@using XCode
 @{
+    Layout = "~/Views/Shared/_Ace_Layout.cshtml";
+
     var fact = EntityFactory.CreateOperate(ViewData.ModelMetadata.ModelType.GetGenericArguments()[0]);
     var grid = ViewBag.Grid;
 }
@@ -21,11 +23,11 @@
                     {
                         if (item.PrimaryKey)
                         {
-                    <th style="width: 50px;"> <a href="@Url.Action("Index?Sort=" + item.Name)">#</a></th>
+                            <th style="width: 50px;"> <a href="@Html.Raw(Url.Action("Index", new { Sort = item.Name }))">#</a></th>
                         }
                         else
                         {
-                    <th style="width: 120px;"><a href="@Url.Action("Index?Sort=" + item.Name)">@item.DisplayName</a></th>
+                            <th><a href="@Html.Raw(Url.Action("Index", new { Sort = item.Name }))">@item.DisplayName</a></th>
                         }
                     }
                     <th style="width: 150px;">操作</th>
@@ -34,23 +36,23 @@
             <tbody>
                 @foreach (var entity in Model)
                 {
-                <tr>
-                    @foreach (var item in fact.Fields)
+                    <tr>
+                        @foreach (var item in fact.Fields)
                         {
                             if (item.PrimaryKey)
                             {
-                        <td>@entity[item.Name]</td>
+                                <td>@entity[item.Name]</td>
                             }
                             else
                             {
-                        <td>@entity[item.Name]</td>
+                                <td>@entity[item.Name]</td>
                             }
                         }
-                    <td>
-                        <a href="@Url.Action("Form/" + entity[fact.Unique])">编辑</a>
-                        <a href="@Url.Action("Delete/" + entity[fact.Unique])">删除</a>
-                    </td>
-                </tr>
+                        <td>
+                            <a href="@Url.Action("Form/" + entity[fact.Unique])">编辑</a>
+                            <a href="@Url.Action("Delete/" + entity[fact.Unique])">删除</a>
+                        </td>
+                    </tr>
                 }
             </tbody>
         </table>

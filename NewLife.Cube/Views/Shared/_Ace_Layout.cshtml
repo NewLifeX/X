@@ -2,7 +2,7 @@
 @{
     var p = Context.Request.CurrentExecutionFilePath;
     var ss = p.Split("/");
-    if (ss[ss.Length - 1].IsInt())
+    if (ss != null && ss.Length > 1 && ss[ss.Length - 1].IsInt())
     {
         p = p.Substring(0, p.LastIndexOf("/"));
     }
