@@ -42,8 +42,8 @@
                         {
                             Sort = item.Name,
                             Desc = desc ? 1 : 0,
-                            page = grid.PageIndex,
-                            pageSize = grid.PageSize
+                            PageIndex = grid.PageIndex,
+                            PageSize = grid.PageSize
                         };
                         <th><a href="@Html.Raw(Url.Action("Index", att))">@item.DisplayName</a></th>
                     }

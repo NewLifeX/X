@@ -36,9 +36,9 @@ namespace NewLife.Cube.Controllers
         /// <summary>数据列表首页</summary>
         /// <returns></returns>
         [DisplayName("数据列表")]
-        public virtual ActionResult Index(String q, String sort, Int32 desc = 0, Int32 page = 1, Int32 pageSize = 20)
+        public virtual ActionResult Index(String q, String sort, Int32 desc = 0, Int32 pageIndex = 1, Int32 pageSize = 20)
         {
-            if (page <= 0) page = 1;
+            if (pageIndex <= 0) pageIndex = 1;
             if (pageSize <= 0) pageSize = 20;
             // 验证排序字段，避免非法
             if (!sort.IsNullOrEmpty())
@@ -48,7 +48,7 @@ namespace NewLife.Cube.Controllers
             }
 
             var grid = new EntityGrid(Entity<TEntity>.Meta.Factory);
-            grid.PageIndex = page;
+            grid.PageIndex = pageIndex;
             grid.PageSize = pageSize;
             grid.Sort = sort;
             grid.SortDesc = desc != 0;
@@ -56,7 +56,7 @@ namespace NewLife.Cube.Controllers
             ViewBag.Grid = grid;
 
             if (desc != 0 && !sort.IsNullOrEmpty()) sort += " Desc";
-            var list = Entity<TEntity>.Search(q, sort, (page - 1) * pageSize, pageSize);
+            var list = Entity<TEntity>.Search(q, sort, (pageIndex - 1) * pageSize, pageSize);
 
             return View(list);
         }

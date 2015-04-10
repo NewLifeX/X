@@ -22,7 +22,7 @@
         if (grid.PageIndex > 1)
         {
             if (name == "首页") return GetPageUrl(grid, "首页", 1);
-            if (name == "首页") return GetPageUrl(grid, "上一页", grid.PageIndex - 1);
+            if (name == "上一页") return GetPageUrl(grid, "上一页", grid.PageIndex - 1);
         }
         if (grid.PageIndex < grid.PageCount)
         {
@@ -39,7 +39,7 @@
 
         var url = grid.GetBaseUrl(true, true, false);
         // 当前在非首页而要跳回首页，不写页面序号
-        if (grid.PageIndex != index) url.UrlParam("Page", index);
+        if (grid.PageIndex != index) url.UrlParam("PageIndex", index);
         if (grid.PageSize != grid.DefaultPageSize) url.UrlParam("PageSize", grid.PageSize);
 
         var txt = temp;
@@ -56,7 +56,7 @@
 @Html.Raw(GetPage(grid, "上一页"))&nbsp;
 @Html.Raw(GetPage(grid, "下一页"))&nbsp;
 @Html.Raw(GetPage(grid, "尾页")) &nbsp;
-转到第<input name="Page" type="text" value="@grid.PageIndex" style="width:40px;text-align:right;" />页
+转到第<input name="PageIndex" type="text" value="@grid.PageIndex" style="width:40px;text-align:right;" />页
 <input type="submit" name="PageJump" value="GO" />
 页大小
 <select id="PageSize" name="PageSize" onchange="$(':submit').click();">
