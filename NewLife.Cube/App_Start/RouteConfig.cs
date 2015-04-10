@@ -23,7 +23,7 @@ namespace NewLife.Cube
             );
 
             // 所有已存在文件的请求都交给Mvc处理，比如Admin目录
-            routes.RouteExistingFiles = true;
+            //routes.RouteExistingFiles = true;
         }
     }
 }

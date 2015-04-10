@@ -101,13 +101,13 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Admin\AdminAreaRegistration.cs" />
-    <Compile Include="Admin\Controllers\RoleController.cs" />
-    <Compile Include="Admin\Controllers\LogController.cs" />
-    <Compile Include="Admin\Controllers\MenuController.cs" />
-    <Compile Include="Admin\Controllers\UserController.cs" />
-    <Compile Include="Admin\Index\IndexController.cs" />
-    <Compile Include="Admin\RazorViewEngineX.cs" />
+    <Compile Include="Areas\Admin\AdminAreaRegistration.cs" />
+    <Compile Include="Areas\Admin\Controllers\RoleController.cs" />
+    <Compile Include="Areas\Admin\Controllers\LogController.cs" />
+    <Compile Include="Areas\Admin\Controllers\MenuController.cs" />
+    <Compile Include="Areas\Admin\Controllers\UserController.cs" />
+    <Compile Include="Areas\Admin\Index\IndexController.cs" />
+    <Compile Include="Areas\Admin\RazorViewEngineX.cs" />
     <Compile Include="App_Start\BundleConfig.cs" />
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
@@ -246,11 +246,11 @@
     <Content Include="bootstrap\js\rainbow.min.js" />
     <Content Include="bootstrap\js\respond.min.js" />
     <Content Include="Global.asax" />
-    <Content Include="Admin\Views\_ViewStart.cshtml" />
-    <Content Include="Admin\Views\Web.config" />
-    <Content Include="Admin\Views\User\Index.cshtml" />
-    <Content Include="Admin\Views\Role\Index.cshtml" />
-    <Content Include="Admin\Views\User\Form.cshtml" />
+    <Content Include="Areas\Admin\Views\_ViewStart.cshtml" />
+    <Content Include="Areas\Admin\Views\Web.config" />
+    <Content Include="Areas\Admin\Views\User\Index.cshtml" />
+    <Content Include="Areas\Admin\Views\Role\Index.cshtml" />
+    <Content Include="Areas\Admin\Views\User\Form.cshtml" />
     <Content Include="Views\Shared\_Ace_Layout.cshtml" />
     <Content Include="bootstrap\fonts\fontawesome-webfont.eot" />
     <Content Include="bootstrap\fonts\fontawesome-webfont.ttf" />
@@ -263,12 +263,12 @@
     <Content Include="bootstrap\font\cJZKeOuBrn4kERxqtaUH3T8E0i7KZn-EPnyo3HZu7kw.woff" />
     <Content Include="bootstrap\font\DXI1ORHCpsQm3Vp6mXoaTXhCUOGz7vYGh680lGh-uXM.woff" />
     <Content Include="bootstrap\js\ace\scripts.json" />
-    <Content Include="Admin\Views\Index\Index.cshtml" />
-    <Content Include="Admin\Views\Index\_Left.cshtml" />
-    <Content Include="Admin\Views\Index\_Navbar.cshtml" />
-    <Content Include="Admin\Views\Index\Main.cshtml" />
-    <Content Include="Admin\Views\Shared\Form.cshtml" />
-    <Content Include="Admin\Views\Shared\Index.cshtml" />
+    <Content Include="Areas\Admin\Views\Index\Index.cshtml" />
+    <Content Include="Areas\Admin\Views\Index\_Left.cshtml" />
+    <Content Include="Areas\Admin\Views\Index\_Navbar.cshtml" />
+    <Content Include="Areas\Admin\Views\Index\Main.cshtml" />
+    <Content Include="Areas\Admin\Views\Shared\Form.cshtml" />
+    <Content Include="Areas\Admin\Views\Shared\Index.cshtml" />
     <None Include="Properties\PublishProfiles\Cube.pubxml" />
     <EmbeddedResource Include="Scripts\jquery-1.8.2.intellisense.js" />
     <EmbeddedResource Include="Scripts\jquery-1.8.2.js" />
@@ -318,6 +318,7 @@
     <Content Include="Views\Shared\Error.cshtml" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="Areas\Admin\Models\" />
     <Folder Include="Views\Admin\" />
   </ItemGroup>
   <ItemGroup>
