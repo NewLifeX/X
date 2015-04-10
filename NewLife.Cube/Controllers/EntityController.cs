@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Web.Mvc;
 using NewLife.Cube.Filters;
 using XCode;
+using XCode.Configuration;
 using XCode.Web;
 
 namespace NewLife.Cube.Controllers
@@ -39,6 +40,12 @@ namespace NewLife.Cube.Controllers
         {
             if (page <= 0) page = 1;
             if (pageSize <= 0) pageSize = 20;
+            // 验证排序字段，避免非法
+            if (!sort.IsNullOrEmpty())
+            {
+                FieldItem st = Entity<TEntity>.Meta.Table.FindByName(sort);
+                sort = st != null ? st.Name : null;
+            }
 
             var grid = new EntityGrid(Entity<TEntity>.Meta.Factory);
             grid.PageIndex = page;
