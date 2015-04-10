@@ -40,8 +40,6 @@ namespace NewLife.Cube.Controllers
             entity.Delete();
 
             return RedirectToAction("Index");
-
-            //return View(entity);
         }
 
         /// <summary>表单，添加/修改</summary>
@@ -66,10 +64,5 @@ namespace NewLife.Cube.Controllers
 
             return View("Form", entity);
         }
-
-        //public EntityController()
-        //{
-        //    ModelBinders.Binders.Add(typeof(TEntity), new EntityModelBinder());
-        //}
     }
 }

@@ -478,9 +478,6 @@ namespace XCode.Membership
         /// <summary>子孙菜单</summary>
         new IList<IMenu> AllChilds { get; }
 
-        /// <summary>显示名。优先显示中文备注</summary>
-        String DisplayName { get; }
-
         /// <summary>根据层次路径查找</summary>
         /// <param name="path">层次路径</param>
         /// <returns></returns>

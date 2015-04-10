@@ -13,7 +13,7 @@ namespace XCode.Membership
     [DataObject]
     [Description("角色")]
     [BindIndex("IU_Role_Name", true, "Name")]
-    [BindTable("Role", Description = "角色", ConnName = "Member", DbType = DatabaseType.SqlServer)]
+    [BindTable("Role", Description = "角色", ConnName = "Membership", DbType = DatabaseType.SqlServer)]
     public abstract partial class Role<TEntity> : IRole
     {
         #region 属性

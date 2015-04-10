@@ -14,7 +14,7 @@ namespace XCode.Membership
     [Description("菜单")]
     [BindIndex("IX_Menu_Name", false, "Name")]
     [BindIndex("IX_Menu_ParentID_Name", false, "ParentID,Name")]
-    [BindTable("Menu", Description = "菜单", ConnName = "Member", DbType = DatabaseType.SqlServer)]
+    [BindTable("Menu", Description = "菜单", ConnName = "Membership", DbType = DatabaseType.SqlServer)]
     public abstract partial class Menu<TEntity> : IMenu
     {
         #region 属性
@@ -230,8 +230,8 @@ namespace XCode.Membership
         /// <summary>名称</summary>
         String Name { get; set; }
 
-        ///// <summary>显示名</summary>
-        //String DisplayName { get; set; }
+        /// <summary>显示名</summary>
+        String DisplayName { get; set; }
 
         /// <summary>父编号</summary>
         Int32 ParentID { get; set; }

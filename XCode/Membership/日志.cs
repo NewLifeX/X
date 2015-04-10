@@ -13,7 +13,7 @@ namespace XCode.Membership
     [DataObject]
     [Description("日志")]
     [BindIndex("IX_Log_Category", false, "Category")]
-    [BindTable("Log", Description = "日志", ConnName = "Member", DbType = DatabaseType.SqlServer)]
+    [BindTable("Log", Description = "日志", ConnName = "Membership", DbType = DatabaseType.SqlServer)]
     public abstract partial class Log<TEntity> : ILog
     {
         #region 属性
