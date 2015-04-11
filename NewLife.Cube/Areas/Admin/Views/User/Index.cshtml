@@ -33,7 +33,48 @@
         </div>
     </div>
     <div class="table-responsive">
-        @Html.Partial("_List_Data")
+        <table class="table table-bordered table-hover table-striped table-condensed">
+            <thead>
+                <tr>
+                    <th><a href="?Sort=ID">编号</a></th>
+                    <th><a href="?Sort=Name">名称</a></th>
+                    <th><a href="?Sort=DisplayName">显示名</a></th>
+                    <th><a href="?Sort=Mail">邮件</a></th>
+                    <th><a href="?Sort=Phone">电话</a></th>
+                    <th><a href="?Sort=Code">唯一代码</a></th>
+                    <th><a href="?Sort=RoleID">角色</a></th>
+                    <th><a href="?Sort=Logins">登录次数</a></th>
+                    <th><a href="?Sort=LastLogin">最后登录</a></th>
+                    <th><a href="?Sort=LastLoginIP">最后登录IP</a></th>
+                    <th><a href="?Sort=Enable">是否启用</a></th>
+                    <th style="width: 150px;">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var entity in Model)
+                {
+                    <tr>
+                        <td>@entity.ID</td>
+                        <td>@entity.Name</td>
+                        <td>@entity.DisplayName</td>
+                        <td>@entity.Mail</td>
+                        <td>@entity.Phone</td>
+                        <td>@entity.Code</td>
+                        <td>@entity.RoleName</td>
+                        <td>@entity.Logins</td>
+                        <td>@entity.LastLogin.ToFullString()</td>
+                        <td>@entity.LastLoginIP</td>
+                        <td>@entity.Enable</td>
+                        <td>
+                            <i class="glyphicon glyphicon-edit"></i>
+                            <a href="@Url.Action("Form/" + @entity.ID)">编辑</a>
+                            <i class="glyphicon glyphicon-remove"></i>
+                            <a href="@Url.Action("Delete/" + @entity.ID)">删除</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
     </div>
     <div class="panel-footer">
         <p>
