@@ -131,7 +131,7 @@ namespace NewLife.Xml
         private String _ConfigFile;
         /// <summary>配置文件</summary>
         [XmlIgnore]
-        protected String ConfigFile { get { return _ConfigFile; } set { _ConfigFile = value; } }
+        public String ConfigFile { get { return _ConfigFile; } set { _ConfigFile = value; } }
 
         /// <summary>最后写入时间</summary>
         [XmlIgnore]
@@ -255,10 +255,11 @@ namespace NewLife.Xml
         }
 
         /// <summary>保存到配置文件中去</summary>
-        public virtual void Save()
+        /// <param name="filename"></param>
+        public virtual void Save(String filename = null)
         {
             //var filename = _.ConfigFile;
-            var filename = ConfigFile;
+            if (filename.IsNullOrWhiteSpace()) filename = ConfigFile;
             if (filename.IsNullOrWhiteSpace()) throw new XException("未指定{0}的配置文件路径！", typeof(TConfig).Name);
             filename = filename.GetFullPath();
 
