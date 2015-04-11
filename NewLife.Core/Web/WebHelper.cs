@@ -432,10 +432,10 @@ namespace NewLife.Web
         {
             if (str.IsNullOrWhiteSpace()) return sb;
 
-            if (sb.Length == 0)
-                sb.Append("?");
-            else
+            if (sb.Length > 0)
                 sb.Append("&");
+            //else
+            //    sb.Append("?");
 
             sb.Append(str);
 

@@ -1,30 +1,14 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Text;
+using NewLife.Collections;
 
 namespace NewLife.Web
 {
     /// <summary>分页器</summary>
-    public class Pager
+    public class Pager : PageParameter
     {
-        #region 核心属性
-        private String _Sort;
-        /// <summary>排序字段</summary>
-        public String Sort { get { return _Sort; } set { _Sort = value; } }
-
-        private Boolean _Desc;
-        /// <summary>是否降序</summary>
-        public Boolean Desc { get { return _Desc; } set { _Desc = value; } }
-
-        private Int32 _PageIndex = 1;
-        /// <summary>页面索引</summary>
-        public Int32 PageIndex { get { return _PageIndex; } set { _PageIndex = value; } }
-
-        private Int32 _PageSize = 20;
-        /// <summary>页面大小</summary>
-        public Int32 PageSize { get { return _PageSize; } set { _PageSize = value; } }
-        #endregion
-
         #region 名称
         /// <summary>名称类。用户可根据需要修改Url参数名</summary>
         public class __
@@ -47,37 +31,68 @@ namespace NewLife.Web
         #endregion
 
         #region 扩展属性
-        private IDictionary<String, String> _Params = new Dictionary<String, String>(StringComparer.OrdinalIgnoreCase);
+        private IDictionary<String, String> _Params = new NullableDictionary<String, String>(StringComparer.OrdinalIgnoreCase);
         /// <summary>参数集合</summary>
         public IDictionary<String, String> Params { get { return _Params; } set { _Params = value; } }
-
-        private Int32 _TotalCount;
-        /// <summary>总记录数</summary>
-        public Int32 TotalCount { get { return _TotalCount; } set { _TotalCount = value; } }
-
-        /// <summary>页数</summary>
-        public Int32 PageCount
-        {
-            get
-            {
-                var count = TotalCount / PageSize;
-                if ((TotalCount % PageSize) != 0) count++;
-                return count;
-            }
-        }
 
         private String _PageUrlTemplate = "<a href=\"{链接}\">{名称}</a>";
         /// <summary>分页链接模版。内部将会替换{链接}和{名称}</summary>
         public String PageUrlTemplate { get { return _PageUrlTemplate; } set { _PageUrlTemplate = value; } }
 
-        private static Pager _def = new Pager();
+        private static PageParameter _def = new PageParameter();
 
-        private Pager _Default = _def;
+        private PageParameter _Default = _def;
         /// <summary>默认参数。如果分页参数为默认参数，则不参与构造Url</summary>
-        public Pager Default { get { return _Default; } set { _Default = value; } }
+        public PageParameter Default { get { return _Default; } set { _Default = value; } }
+
+        public String this[String key]
+        {
+            get
+            {
+                if (key.EqualIgnoreCase(_.Sort))
+                    return Sort;
+                else if (key.EqualIgnoreCase(_.Desc))
+                    return Desc + "";
+                else if (key.EqualIgnoreCase(_.PageIndex))
+                    return PageIndex + "";
+                else if (key.EqualIgnoreCase(_.PageSize))
+                    return PageSize + "";
+                else
+                    return Params[key];
+            }
+            //set { }
+        }
+        #endregion
+
+        #region 构造
+        public Pager() { }
+
+        public Pager(PageParameter pm) : base(pm) { }
+
+        public Pager(ICollection collection) { SetParams(collection); }
         #endregion
 
         #region 方法
+        public virtual void SetParams(ICollection collection)
+        {
+            foreach (var item in collection)
+            {
+                var key = item + "";
+                var value = item.GetType().FullName + "";
+
+                if (key.EqualIgnoreCase(_.Sort))
+                    Sort = value;
+                else if (key.EqualIgnoreCase(_.Desc))
+                    Desc = value.ToBoolean();
+                else if (key.EqualIgnoreCase(_.PageIndex))
+                    PageIndex = value.ToInt();
+                else if (key.EqualIgnoreCase(_.PageSize))
+                    PageSize = value.ToInt();
+                else
+                    Params.Add(key, value);
+            }
+        }
+
         /// <summary>获取基础Url，用于附加参数</summary>
         /// <param name="where">查询条件，不包含排序和分页</param>
         /// <param name="order">排序</param>
@@ -108,7 +123,7 @@ namespace NewLife.Web
             // 默认排序不处理
             if (!name.EqualIgnoreCase(Default.Sort)) url.UrlParam(_.Sort, name);
             if (desc) url.UrlParam(_.Desc, 1);
-            return url.ToString();
+            return url.Length > 0 ? "?" + url.ToString() : null;
         }
 
         /// <summary>获取分页Url</summary>

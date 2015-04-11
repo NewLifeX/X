@@ -319,6 +319,7 @@
     <Compile Include="Web\Modules\ViewStateCompressionModule.cs" />
     <Compile Include="Web\Modules\SystemStartModule.cs" />
     <Compile Include="Web\Modules\UrlRewrite.cs" />
+    <Compile Include="Web\PageParameter.cs" />
     <Compile Include="Web\Pager.cs" />
     <Compile Include="Web\WebClientX.cs">
       <SubType>Component</SubType>

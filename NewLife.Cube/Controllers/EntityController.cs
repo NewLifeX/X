@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.Web.Mvc;
 using NewLife.Cube.Filters;
+using NewLife.Web;
 using XCode;
 using XCode.Configuration;
 using XCode.Web;
@@ -36,29 +37,32 @@ namespace NewLife.Cube.Controllers
         /// <summary>数据列表首页</summary>
         /// <returns></returns>
         [DisplayName("数据列表")]
-        public virtual ActionResult Index(String q, String sort, Int32 desc = 0, Int32 pageIndex = 1, Int32 pageSize = 20)
+        //public virtual ActionResult Index(String q, String sort, Int32 desc = 0, Int32 pageIndex = 1, Int32 pageSize = 20)
+        public virtual ActionResult Index(FormCollection collection)
         {
-            if (pageIndex <= 0) pageIndex = 1;
-            if (pageSize <= 0) pageSize = 20;
+            var p = new Pager(collection);
             // 验证排序字段，避免非法
-            if (!sort.IsNullOrEmpty())
+            if (!p.Sort.IsNullOrEmpty())
             {
-                FieldItem st = Entity<TEntity>.Meta.Table.FindByName(sort);
-                sort = st != null ? st.Name : null;
+                FieldItem st = Entity<TEntity>.Meta.Table.FindByName(p.Sort);
+                p.Sort = st != null ? st.Name : null;
             }
 
+            ViewBag.Page = p;
+
             var grid = new EntityGrid(Entity<TEntity>.Meta.Factory);
-            grid.PageIndex = pageIndex;
-            grid.PageSize = pageSize;
-            grid.Sort = sort;
-            grid.SortDesc = desc != 0;
+            //grid.PageIndex = pageIndex;
+            //grid.PageSize = pageSize;
+            //grid.Sort = sort;
+            //grid.SortDesc = desc != 0;
 
             ViewBag.Grid = grid;
 
-            if (desc != 0 && !sort.IsNullOrEmpty()) sort += " Desc";
-            var where = Entity<TEntity>.SearchWhereByKeys(q);
+            //if (desc != 0 && !sort.IsNullOrEmpty()) sort += " Desc";
+            var where = Entity<TEntity>.SearchWhereByKeys(p["Q"]);
             var count = 0;
-            var list = Entity<TEntity>.FindAll(where, sort, null, (pageIndex - 1) * pageSize, pageSize, out count);
+            //var list = Entity<TEntity>.FindAll(where, sort, null, (pageIndex - 1) * pageSize, pageSize, out count);
+            var list = Entity<TEntity>.FindAll(where, p.OrderBy, null, (p.PageIndex - 1) * p.PageSize, p.PageSize, out count);
             grid.TotalCount = count;
 
             return View(list);
@@ -102,5 +106,12 @@ namespace NewLife.Cube.Controllers
             return View("Form", entity);
             //return RedirectToAction("Form/" + entity[Entity<TEntity>.Meta.Unique.Name]);
         }
+    }
+
+    public class PagerModel : Pager
+    {
+        private String _Q;
+        /// <summary>查询关键字</summary>
+        public String Q { get { return _Q; } set { _Q = value; } }
     }
 }
