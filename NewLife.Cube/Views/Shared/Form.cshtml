@@ -4,6 +4,7 @@
 @{
     Layout = "~/Views/Shared/_Ace_Layout.cshtml";
     var fact = EntityFactory.CreateOperate(ViewData.ModelMetadata.ModelType);
+    var isNew = (Model as IEntity).IsNullKey;
 }
 
 @functions {
@@ -95,7 +96,7 @@
             }
             <div class="form-actions">
                 <label class="control-label col-md-2"></label>
-                <button type="submit" class="btn btn-success"><i class="glyphicon glyphicon-ok"></i><strong>@((Model as IEntity).IsNullKey ? "新增" : "保存")</strong></button>
+                <button type="submit" class="btn btn-success"><i class="glyphicon glyphicon-@(isNew ? "plus" : "save")"></i><strong>@(isNew ? "新增" : "保存")</strong></button>
                 <button type="button" class="btn btn-danger"><i class="glyphicon glyphicon-remove"></i><strong>取消</strong></button>
             </div>
         }
