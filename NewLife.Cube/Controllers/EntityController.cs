@@ -38,9 +38,10 @@ namespace NewLife.Cube.Controllers
         /// <returns></returns>
         [DisplayName("数据列表")]
         //public virtual ActionResult Index(String q, String sort, Int32 desc = 0, Int32 pageIndex = 1, Int32 pageSize = 20)
-        public virtual ActionResult Index(FormCollection collection)
+        public virtual ActionResult Index(Pager p)
         {
-            var p = new Pager(collection);
+            //var p = new Pager(collection);
+            //p.SetParams(this.Request.Params);
             // 验证排序字段，避免非法
             if (!p.Sort.IsNullOrEmpty())
             {

@@ -31,9 +31,9 @@ namespace NewLife.Web
         #endregion
 
         #region 扩展属性
-        private IDictionary<String, String> _Params = new NullableDictionary<String, String>(StringComparer.OrdinalIgnoreCase);
+        private IDictionary<String, String> _Params;
         /// <summary>参数集合</summary>
-        public IDictionary<String, String> Params { get { return _Params; } set { _Params = value; } }
+        public IDictionary<String, String> Params { get { return _Params ?? (_Params = WebHelper.Params); } set { _Params = value; } }
 
         private String _PageUrlTemplate = "<a href=\"{链接}\">{名称}</a>";
         /// <summary>分页链接模版。内部将会替换{链接}和{名称}</summary>
@@ -122,7 +122,7 @@ namespace NewLife.Web
             var url = GetBaseUrl(true, false, true);
             // 默认排序不处理
             if (!name.EqualIgnoreCase(Default.Sort)) url.UrlParam(_.Sort, name);
-            if (desc) url.UrlParam(_.Desc, 1);
+            if (desc) url.UrlParam(_.Desc, true);
             return url.Length > 0 ? "?" + url.ToString() : null;
         }
 
