@@ -9,17 +9,17 @@
     {
         Menus = fact.GetMySubMenus(fact.Root.ID);
     }
-    
+
     // 如果顶级只有一层，并且至少有三级目录，则提升一级
-    if (Menus.Count == 1 && Menus[0].Childs.Count < Menus[0].AllChilds.Count){ Menus = Menus[0].Childs;}
+    if (Menus.Count == 1 && Menus[0].Childs.Count < Menus[0].AllChilds.Count) { Menus = Menus[0].Childs; }
 
     String[] icos = new String[] { "fa-tachometer", "fa-desktop", "fa-list", "fa-pencil-square-o", "fa-list-alt", "fa-calendar", "fa-picture-o", "fa-tag", "fa-file-o" };
     Int32 _idx = 0;
 }
 <ul class="nav nav-list">
-    @foreach (IMenu menu in Menus)
+    @foreach (IMenu menu in Menus.Where(m => m.Visible))
     {
-        if(_idx >= icos.Length) { _idx = 0; }
+        if (_idx >= icos.Length) { _idx = 0; }
         <li @(menu == Menus[0] ? "class=\"active open\"" : "")>
             <a href="#" class="dropdown-toggle">
                 <i class="menu-icon fa @icos[_idx++]"></i>
@@ -31,7 +31,7 @@
             <b class="arrow"></b>
 
             <ul class="submenu">
-                @foreach (IMenu menu2 in menu.Childs)
+                @foreach (IMenu menu2 in menu.Childs.Where(m => m.Visible))
                 {
                     <li>
                         @if (menu2.Childs.Count > 0)
@@ -51,7 +51,7 @@
 
                         <b class="arrow"></b>
                         <ul class="submenu">
-                            @foreach (IMenu menu3 in menu2.Childs)
+                            @foreach (IMenu menu3 in menu2.Childs.Where(m => m.Visible))
                             {
                                 <li>
                                     <a href="@Url.Content(menu3.Url)" target="main">
