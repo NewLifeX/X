@@ -1,62 +1,16 @@
 ﻿@using NewLife.Web;
-@using XCode;
-@using XCode.Web;
 @{
-    Layout = null;
-
-    var fact = EntityFactory.CreateOperate(ViewData.ModelMetadata.ModelType.GetGenericArguments()[0]);
-    var grid = ViewBag.Grid as EntityGrid;
+    var page = ViewBag.Page as Pager;
+    page.PageUrlTemplate = page.PageUrlTemplate.Replace("{链接}", Url.Action("Index") + "{链接}");
 }
-@functions {
-    String GetPage(EntityGrid grid, String name)
-    {
-        if (grid.PageIndex == 1)
-        {
-            if (name == "首页" || name == "上一页") return name;
-        }
-        if (grid.PageIndex >= grid.PageCount)
-        {
-            if (name == "尾页" || name == "下一页") return name;
-        }
-
-        if (grid.PageIndex > 1)
-        {
-            if (name == "首页") return GetPageUrl(grid, "首页", 1);
-            if (name == "上一页") return GetPageUrl(grid, "上一页", grid.PageIndex - 1);
-        }
-        if (grid.PageIndex < grid.PageCount)
-        {
-            if (name == "尾页") return GetPageUrl(grid, "尾页", grid.PageCount);
-            if (name == "下一页") return GetPageUrl(grid, "下一页", grid.PageIndex + 1);
-        }
-
-        return name;
-    }
-
-    String GetPageUrl(EntityGrid grid, String name, Int32 index)
-    {
-        var temp = "<a href=\"{链接}\">{名称}</a>";
-
-        var url = grid.GetBaseUrl(true, true, false);
-        // 当前在非首页而要跳回首页，不写页面序号
-        if (grid.PageIndex != index) url.UrlParam("PageIndex", index);
-        if (grid.PageSize != grid.DefaultPageSize) url.UrlParam("PageSize", grid.PageSize);
-
-        var txt = temp;
-        txt = txt.Replace("{链接}", url.ToString());
-        txt = txt.Replace("{名称}", name);
-
-        return txt;
-    }
-}
-共<span>@grid.TotalCount</span>条&nbsp;
-每页<span>@grid.PageSize</span>条&nbsp;
-当前第<span>@grid.PageIndex</span>页/共<span>@grid.PageCount</span>页&nbsp;
-@Html.Raw(GetPage(grid, "首页"))&nbsp;
-@Html.Raw(GetPage(grid, "上一页"))&nbsp;
-@Html.Raw(GetPage(grid, "下一页"))&nbsp;
-@Html.Raw(GetPage(grid, "尾页")) &nbsp;
-转到第<input name="PageIndex" type="text" value="@grid.PageIndex" style="width:40px;text-align:right;" />页
+共<span>@page.TotalCount</span>条&nbsp;
+每页<span>@page.PageSize</span>条&nbsp;
+当前第<span>@page.PageIndex</span>页/共<span>@page.PageCount</span>页&nbsp;
+@Html.Raw(page.GetPage("首页"))&nbsp;
+@Html.Raw(page.GetPage("上一页"))&nbsp;
+@Html.Raw(page.GetPage("下一页"))&nbsp;
+@Html.Raw(page.GetPage("尾页")) &nbsp;
+转到第<input name="PageIndex" type="text" value="@page.PageIndex" style="width:40px;text-align:right;" />页
 <input type="submit" name="PageJump" value="GO" />
 页大小
 <select id="PageSize" name="PageSize" onchange="$(':submit').click();">
@@ -68,6 +22,6 @@
 </select>
 <script type="text/javascript">
     $(function () {
-        $('#PageSize').val(@grid.PageSize);
+        $('#PageSize').val(@page.PageSize);
     });
 </script>

@@ -159,10 +159,39 @@ namespace NewLife.Web
             var url2 = url.Length > 0 ? "?" + url.ToString() : "";
 
             var txt = PageUrlTemplate;
-            txt = txt.Replace("{链接}", url.ToString());
+            txt = txt.Replace("{链接}", url2);
             txt = txt.Replace("{名称}", name);
 
             return txt;
+        }
+
+        /// <summary>获取分页Url</summary>
+        /// <param name="page"></param>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public virtual String GetPage(String name)
+        {
+            if (PageIndex == 1)
+            {
+                if (name == "首页" || name == "上一页") return name;
+            }
+            if (PageIndex >= PageCount)
+            {
+                if (name == "尾页" || name == "下一页") return name;
+            }
+
+            if (PageIndex > 1)
+            {
+                if (name == "首页") return GetPageUrl("首页", 1);
+                if (name == "上一页") return GetPageUrl("上一页", PageIndex - 1);
+            }
+            if (PageIndex < PageCount)
+            {
+                if (name == "尾页") return GetPageUrl("尾页", PageCount);
+                if (name == "下一页") return GetPageUrl("下一页", PageIndex + 1);
+            }
+
+            return name;
         }
         #endregion
     }
