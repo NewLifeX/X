@@ -379,7 +379,14 @@ namespace NewLife.Reflection
                     if (ts != null && ts.Count > 0)
                     {
                         // 真实加载
-                        if (XTrace.Debug) XTrace.WriteLine("AssemblyX.FindAllPlugins(\"{0}\")导致加载{1}", baseType.FullName, item.Asm.Location);
+                        if (XTrace.Debug)
+                        {
+                            // 如果是本目录的程序集，去掉目录前缀
+                            var p = item.Asm.Location;
+                            var cur = AppDomain.CurrentDomain.BaseDirectory;
+                            if (p.StartsWithIgnoreCase(cur)) p = p.Substring(cur.Length).TrimStart("\\");
+                            XTrace.WriteLine("AssemblyX.FindAllPlugins(\"{0}\")导致加载{1}", baseType.FullName, p);
+                        }
                         var asm2 = Assembly.LoadFile(item.Asm.Location);
                         ts = Create(asm2).FindPlugins(baseType);
 
