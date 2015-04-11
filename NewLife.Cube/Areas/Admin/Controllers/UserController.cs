@@ -9,10 +9,10 @@ namespace NewLife.Cube.Admin.Controllers
     [DisplayName("用户")]
     public class UserController : EntityController<UserX>
     {
-        [DisplayName("注册用户")]
-        public ActionResult Register()
-        {
-            return View();
-        }
+        //[DisplayName("注册用户")]
+        //public ActionResult Register()
+        //{
+        //    return View();
+        //}
     }
 }

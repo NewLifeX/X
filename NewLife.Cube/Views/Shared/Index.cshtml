@@ -1,7 +1,5 @@
 ﻿@using NewLife.Web;
 @using XCode;
-@using XCode.Web;
-@using NewLife.Cube.Controllers;
 @{
     Layout = "~/Views/Shared/_Ace_Layout.cshtml";
 
@@ -26,39 +24,7 @@
         </div>
     </div>
     <div class="table-responsive">
-        <table class="table table-bordered table-hover table-striped table-condensed">
-            <thead>
-                <tr>
-                    @foreach (var item in fact.Fields)
-                    {
-                        <th><a href="@Html.Raw(page.GetSortUrl(item.Name))">@item.DisplayName</a></th>
-                    }
-                    <th style="width: 150px;">操作</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var entity in Model)
-                {
-                    <tr>
-                        @foreach (var item in fact.Fields)
-                        {
-                            if (item.PrimaryKey)
-                            {
-                                <td>@entity[item.Name]</td>
-                            }
-                            else
-                            {
-                                <td>@entity[item.Name]</td>
-                            }
-                        }
-                        <td>
-                            <a href="@Url.Action("Form/" + entity[fact.Unique])">编辑</a>
-                            <a href="@Url.Action("Delete/" + entity[fact.Unique])">删除</a>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+        @Html.Partial("_List_Data")
     </div>
     <div class="panel-footer">
         <p>

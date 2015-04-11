@@ -105,6 +105,7 @@
     <Compile Include="Areas\Admin\Controllers\RoleController.cs" />
     <Compile Include="Areas\Admin\Controllers\LogController.cs" />
     <Compile Include="Areas\Admin\Controllers\MenuController.cs" />
+    <Compile Include="Areas\Admin\Controllers\SysController.cs" />
     <Compile Include="Areas\Admin\Controllers\UserController.cs" />
     <Compile Include="Areas\Admin\Index\IndexController.cs" />
     <Compile Include="Areas\Admin\RazorViewEngineX.cs" />
@@ -269,6 +270,8 @@
     <Content Include="Areas\Admin\Views\Index\Main.cshtml" />
     <Content Include="Views\Shared\Form.cshtml" />
     <Content Include="Views\Shared\Index.cshtml" />
+    <Content Include="Areas\Admin\Views\Sys\SysConfig.cshtml" />
+    <Content Include="Areas\Admin\Views\Menu\Index.cshtml" />
     <None Include="Properties\PublishProfiles\Cube.pubxml" />
     <EmbeddedResource Include="Scripts\jquery-1.8.2.intellisense.js" />
     <EmbeddedResource Include="Scripts\jquery-1.8.2.js" />
@@ -317,6 +320,7 @@
     <Content Include="Views\Web.config" />
     <Content Include="Views\Shared\Error.cshtml" />
     <Content Include="Views\Shared\_List_Pager.cshtml" />
+    <Content Include="Views\Shared\_List_Data.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Areas\Admin\Models\" />

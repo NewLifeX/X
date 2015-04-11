@@ -1,0 +1,41 @@
+﻿@using NewLife.Web;
+@using XCode;
+@{
+    var fact = EntityFactory.CreateOperate(ViewData.ModelMetadata.ModelType.GetGenericArguments()[0]);
+    var page = ViewBag.Page as Pager;
+}
+<table class="table table-bordered table-hover table-striped table-condensed">
+    <thead>
+        <tr>
+            @foreach (var item in fact.Fields)
+            {
+                <th><a href="@Html.Raw(page.GetSortUrl(item.Name))">@item.DisplayName</a></th>
+            }
+            <th style="width: 150px;">操作</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var entity in Model)
+        {
+            <tr>
+                @foreach (var item in fact.Fields)
+                {
+                    if (item.PrimaryKey)
+                    {
+                        <td>@entity[item.Name]</td>
+                    }
+                    else
+                    {
+                        <td>@entity[item.Name]</td>
+                    }
+                }
+                <td>
+                    <i class="glyphicon glyphicon-edit"></i>
+                    <a href="@Url.Action("Form/" + entity[fact.Unique])">编辑</a>
+                    <i class="glyphicon glyphicon-remove"></i>
+                    <a href="@Url.Action("Delete/" + entity[fact.Unique])">删除</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
