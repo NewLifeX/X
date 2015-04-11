@@ -443,7 +443,7 @@ namespace NewLife.Web
         }
 
         /// <summary>追加Url参数，默认空时加问号，否则加与符号</summary>
-        /// <param name="sb"></param>
+        /// <param name="sb">字符串构建</param>
         /// <param name="name"></param>
         /// <param name="value"></param>
         /// <returns></returns>
@@ -453,6 +453,36 @@ namespace NewLife.Web
 
             // 必须注意，value可能是时间类型
             return UrlParam(sb, "{0}={1}".F(name, value));
+        }
+
+        /// <summary>把一个参数字典追加Url参数，指定包含的参数</summary>
+        /// <param name="sb">字符串构建</param>
+        /// <param name="pms">参数字典</param>
+        /// <param name="includes">包含的参数</param>
+        /// <returns></returns>
+        public static StringBuilder UrlParams(this StringBuilder sb, IDictionary<String, String> pms, params String[] includes)
+        {
+            foreach (var item in pms)
+            {
+                if (item.Key.EqualIgnoreCase(includes))
+                    sb.UrlParam(item.Key, item.Value);
+            }
+            return sb;
+        }
+
+        /// <summary>把一个参数字典追加Url参数，排除一些参数</summary>
+        /// <param name="sb">字符串构建</param>
+        /// <param name="pms">参数字典</param>
+        /// <param name="excludes">要排除的参数</param>
+        /// <returns></returns>
+        public static StringBuilder UrlParamsExcept(this StringBuilder sb, IDictionary<String, String> pms, params String[] excludes)
+        {
+            foreach (var item in pms)
+            {
+                if (!item.Key.EqualIgnoreCase(excludes))
+                    sb.UrlParam(item.Key, item.Value);
+            }
+            return sb;
         }
         #endregion
     }
