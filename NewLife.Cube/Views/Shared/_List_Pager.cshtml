@@ -1,7 +1,7 @@
 ﻿@using NewLife.Web;
 @{
     var page = ViewBag.Page as Pager;
-    page.PageUrlTemplate = page.PageUrlTemplate.Replace("{链接}", Url.Action("Index") + "{链接}");
+    //page.PageUrlTemplate = page.PageUrlTemplate.Replace("{链接}", Url.Action("Index") + "{链接}");
 }
 共<span>@page.TotalCount</span>条&nbsp;
 每页<span>@page.PageSize</span>条&nbsp;

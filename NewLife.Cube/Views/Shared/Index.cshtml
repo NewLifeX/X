@@ -11,16 +11,18 @@
 <div class="panel panel-default">
     <div class="panel-body">
         <div class="form-inline">
-            @using (Html.BeginForm("?" + page.GetBaseUrl(false, true, true), null, FormMethod.Get))
-            {
-                @Html.ValidationSummary()
-
+            <form action="@Url.Action("index")@Html.Raw("?" + page.GetBaseUrl(false, true, true)) " method=" get">
+                <div class="validation-summary-valid" data-valmsg-summary="true">
+                    <ul>
+                        <li style="display:none"></li>
+                    </ul>
+                </div>
                 <div class="form-group">
                     <label class="control-label" for="q">关键字：</label>
                     <input name="q" type="text" id="q" value="@Request["q"]" class="form-control" />
                 </div>
                 <input id="btnSearch" value="查询" type="submit" class="btn btn-primary" />
-            }
+            </form>
         </div>
     </div>
     <div class="table-responsive">
@@ -29,7 +31,7 @@
                 <tr>
                     @foreach (var item in fact.Fields)
                     {
-                        <th><a href="@(Url.Action("index") + @Html.Raw(page.GetSortUrl(item.Name)))">@item.DisplayName</a></th>
+                        <th><a href="@Html.Raw(page.GetSortUrl(item.Name))">@item.DisplayName</a></th>
                     }
                     <th style="width: 150px;">操作</th>
                 </tr>

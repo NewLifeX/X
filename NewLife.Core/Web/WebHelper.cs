@@ -424,7 +424,7 @@ namespace NewLife.Web
         #endregion
 
         #region Url扩展
-        /// <summary>追加Url参数，默认空时加问号，否则加与符号</summary>
+        /// <summary>追加Url参数，不为空时加与符号</summary>
         /// <param name="sb"></param>
         /// <param name="str"></param>
         /// <returns></returns>
@@ -442,7 +442,7 @@ namespace NewLife.Web
             return sb;
         }
 
-        /// <summary>追加Url参数，默认空时加问号，否则加与符号</summary>
+        /// <summary>追加Url参数，不为空时加与符号</summary>
         /// <param name="sb">字符串构建</param>
         /// <param name="name"></param>
         /// <param name="value"></param>

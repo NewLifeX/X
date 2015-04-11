@@ -10,7 +10,7 @@ public partial class Pages_Log : MyEntityList
 
     protected void Page_Load(object sender, EventArgs e)
     {
-        grid.DefaultPageSize = 10;
+        //grid.DefaultPageSize = 10;
         grid.WhereMethod = "SearchWhere";
     }
 }
