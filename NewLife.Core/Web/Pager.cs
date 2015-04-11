@@ -2,11 +2,10 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
-using NewLife.Collections;
 
 namespace NewLife.Web
 {
-    /// <summary>分页器</summary>
+    /// <summary>分页器。包含分页排序参数，支持构造Url的功能</summary>
     public class Pager : PageParameter
     {
         #region 名称
@@ -45,6 +44,9 @@ namespace NewLife.Web
         /// <summary>默认参数。如果分页参数为默认参数，则不参与构造Url</summary>
         public PageParameter Default { get { return _Default; } set { _Default = value; } }
 
+        /// <summary>获取/设置 参数</summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
         public String this[String key]
         {
             get
@@ -60,26 +62,8 @@ namespace NewLife.Web
                 else
                     return Params[key];
             }
-            //set { }
-        }
-        #endregion
-
-        #region 构造
-        public Pager() { }
-
-        public Pager(PageParameter pm) : base(pm) { }
-
-        public Pager(ICollection collection) { SetParams(collection); }
-        #endregion
-
-        #region 方法
-        public virtual void SetParams(ICollection collection)
-        {
-            foreach (var item in collection)
+            set
             {
-                var key = item + "";
-                var value = item.GetType().FullName + "";
-
                 if (key.EqualIgnoreCase(_.Sort))
                     Sort = value;
                 else if (key.EqualIgnoreCase(_.Desc))
@@ -89,9 +73,42 @@ namespace NewLife.Web
                 else if (key.EqualIgnoreCase(_.PageSize))
                     PageSize = value.ToInt();
                 else
-                    Params.Add(key, value);
+                    Params[key] = value;
             }
         }
+        #endregion
+
+        #region 构造
+        /// <summary>实例化</summary>
+        public Pager() { }
+
+        /// <summary>用另一个分页参数实例化</summary>
+        /// <param name="pm"></param>
+        public Pager(PageParameter pm) : base(pm) { }
+
+        //public Pager(ICollection collection) { SetParams(collection); }
+        #endregion
+
+        #region 方法
+        //public virtual void SetParams(ICollection collection)
+        //{
+        //    foreach (var item in collection)
+        //    {
+        //        var key = item + "";
+        //        var value = item.GetType().FullName + "";
+
+        //        if (key.EqualIgnoreCase(_.Sort))
+        //            Sort = value;
+        //        else if (key.EqualIgnoreCase(_.Desc))
+        //            Desc = value.ToBoolean();
+        //        else if (key.EqualIgnoreCase(_.PageIndex))
+        //            PageIndex = value.ToInt();
+        //        else if (key.EqualIgnoreCase(_.PageSize))
+        //            PageSize = value.ToInt();
+        //        else
+        //            Params.Add(key, value);
+        //    }
+        //}
 
         /// <summary>获取基础Url，用于附加参数</summary>
         /// <param name="where">查询条件，不包含排序和分页</param>
@@ -123,7 +140,7 @@ namespace NewLife.Web
             // 默认排序不处理
             if (!name.EqualIgnoreCase(Default.Sort)) url.UrlParam(_.Sort, name);
             if (desc) url.UrlParam(_.Desc, true);
-            return url.Length > 0 ? "?" + url.ToString() : null;
+            return url.Length > 0 ? "?" + url.ToString() : "";
         }
 
         /// <summary>获取分页Url</summary>
@@ -138,6 +155,8 @@ namespace NewLife.Web
             // 还是写一下页面序号，因为页面Url本身就有，如果这里不写，有可能首页的href为空
             if (PageIndex != index) url.UrlParam(_.PageIndex, index);
             if (PageSize != Default.PageSize) url.UrlParam(_.PageSize, PageSize);
+
+            var url2 = url.Length > 0 ? "?" + url.ToString() : "";
 
             var txt = PageUrlTemplate;
             txt = txt.Replace("{链接}", url.ToString());

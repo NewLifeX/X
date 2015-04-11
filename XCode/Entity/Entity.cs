@@ -8,6 +8,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using NewLife.IO;
 using NewLife.Reflection;
+using NewLife.Web;
 using NewLife.Xml;
 using XCode.Common;
 using XCode.Configuration;
@@ -845,6 +846,8 @@ namespace XCode
         /// <param name="count">记录总数</param>
         /// <param name="mode">查询模式，分为记录集和记录总数两种，默认Both表示同时查询两者</param>
         /// <returns>实体集</returns>
+        [Obsolete("=>FindAll(String whereClause, PageParameter param)")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public static EntityList<TEntity> FindAll(String whereClause, String orderClause, String selects, Int32 startRowIndex, Int32 maximumRows, out Int32 count, SelectModes mode = SelectModes.Both)
         {
             count = 0;
@@ -858,6 +861,26 @@ namespace XCode
             }
 
             return FindAll(whereClause, orderClause, selects, startRowIndex, maximumRows);
+        }
+
+        /// <summary>同时查询满足条件的记录集和记录总数。没有数据时返回空集合而不是null</summary>
+        /// <param name="whereClause">条件，不带Where</param>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        public static EntityList<TEntity> FindAll(String whereClause, PageParameter param)
+        {
+            // 先查询满足条件的记录数，如果没有数据，则直接返回空集合，不再查询数据
+            param.TotalCount = FindCount(whereClause, null, null, 0, 0);
+            if (param.TotalCount <= 0) return new EntityList<TEntity>();
+
+            // 验证排序字段，避免非法
+            if (!param.Sort.IsNullOrEmpty())
+            {
+                FieldItem st = Meta.Table.FindByName(param.Sort);
+                param.Sort = st != null ? st.Name : null;
+            }
+
+            return FindAll(whereClause, param.OrderBy, null, (param.PageIndex - 1) * param.PageSize, param.PageSize);
         }
         #endregion
 
@@ -1000,6 +1023,8 @@ namespace XCode
         /// <param name="count"></param>
         /// <param name="mode"></param>
         /// <returns></returns>
+        [Obsolete("=>Search(String key, PageParameter param)")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public static EntityList<TEntity> Search(String key, String orderClause, Int32 startRowIndex, Int32 maximumRows, out Int32 count, SelectModes mode = SelectModes.Both)
         {
             count = 0;
@@ -1014,6 +1039,15 @@ namespace XCode
             }
 
             return FindAll(SearchWhereByKeys(key, null), orderClause, null, startRowIndex, maximumRows);
+        }
+
+        /// <summary>同时查询满足条件的记录集和记录总数。没有数据时返回空集合而不是null</summary>
+        /// <param name="key"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        public static EntityList<TEntity> Search(String key, PageParameter param)
+        {
+            return FindAll(SearchWhereByKeys(key), param);
         }
 
         /// <summary>根据空格分割的关键字集合构建查询条件</summary>

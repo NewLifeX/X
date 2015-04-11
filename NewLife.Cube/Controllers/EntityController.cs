@@ -40,31 +40,9 @@ namespace NewLife.Cube.Controllers
         //public virtual ActionResult Index(String q, String sort, Int32 desc = 0, Int32 pageIndex = 1, Int32 pageSize = 20)
         public virtual ActionResult Index(Pager p)
         {
-            //var p = new Pager(collection);
-            //p.SetParams(this.Request.Params);
-            // 验证排序字段，避免非法
-            if (!p.Sort.IsNullOrEmpty())
-            {
-                FieldItem st = Entity<TEntity>.Meta.Table.FindByName(p.Sort);
-                p.Sort = st != null ? st.Name : null;
-            }
-
             ViewBag.Page = p;
 
-            var grid = new EntityGrid(Entity<TEntity>.Meta.Factory);
-            //grid.PageIndex = pageIndex;
-            //grid.PageSize = pageSize;
-            //grid.Sort = sort;
-            //grid.SortDesc = desc != 0;
-
-            ViewBag.Grid = grid;
-
-            //if (desc != 0 && !sort.IsNullOrEmpty()) sort += " Desc";
-            var where = Entity<TEntity>.SearchWhereByKeys(p["Q"]);
-            var count = 0;
-            //var list = Entity<TEntity>.FindAll(where, sort, null, (pageIndex - 1) * pageSize, pageSize, out count);
-            var list = Entity<TEntity>.FindAll(where, p.OrderBy, null, (p.PageIndex - 1) * p.PageSize, p.PageSize, out count);
-            grid.TotalCount = count;
+            var list = Entity<TEntity>.Search(p["Q"], p);
 
             return View(list);
         }

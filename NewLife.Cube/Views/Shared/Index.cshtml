@@ -6,7 +6,6 @@
     Layout = "~/Views/Shared/_Ace_Layout.cshtml";
 
     var fact = EntityFactory.CreateOperate(ViewData.ModelMetadata.ModelType.GetGenericArguments()[0]);
-    var grid = ViewBag.Grid as EntityGrid;
     var page = ViewBag.Page as Pager;
 }
 <div class="panel panel-default">
