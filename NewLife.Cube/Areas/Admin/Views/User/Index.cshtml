@@ -33,53 +33,11 @@
         </div>
     </div>
     <div class="table-responsive">
-        <table class="table table-bordered table-hover table-striped table-condensed">
-            <thead>
-                <tr>
-                    <th style="width: 50px;"> <a href="@Url.Action("Index/Sort/id")">编号</a></th>
-                    <th style="width: 120px;"><a href="@Url.Action("Index/Sort/Name")">名称</a></th>
-                    <th style="width: 120px;"><a href="@Url.Action("Index/Sort/Name")"></a></th>
-                    <th style="width: 120px;"><a href="@Url.Action("Index/Sort/RoleID")">角色</a></th>
-                    <th style="width: 120px;"><a href="@Url.Action("Index/Sort/Logins")">登录次数</a></th>
-                    <th style="width: 140px;"><a href="@Url.Action("Index/Sort/LastLogin")">最后登录</a></th>
-                    <th style="width: 140px;"><a href="@Url.Action("Index/Sort/LastLoginIP")">最后IP</a></th>
-                    <th style="width: 140px;"><a href="@Url.Action("Index/Sort/Enable")">启用</a></th>
-                    <th>详细信息</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var entity in Model)
-                {
-                    <tr>
-                        <td>@entity.ID</td>
-                        <td>@entity.Name</td>
-                        <td>@entity.FriendName</td>
-                        <td>@entity.RoleName</td>
-                        <td>@entity.Logins</td>
-                        <td>@entity.LastLogin.ToFullString()</td>
-                        <td>@entity.LastLoginIP</td>
-                        <td>@entity.Enable</td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+        @Html.Partial("_List_Data")
     </div>
     <div class="panel-footer">
         <p>
-            @Html.Raw(grid.RenderPage())
-            页大小
-            <select id="PageSize" name="PageSize" onchange="$(':submit').click();">
-                <option value="10">10</option>
-                <option value="20">20</option>
-                <option value="30">30</option>
-                <option value="50">50</option>
-                <option value="100">100</option>
-            </select>
-            <script type="text/javascript">
-                $(function () {
-                    $('#PageSize').val(@grid.PageSize);
-                });
-            </script>
+            @Html.Partial("_List_Pager")
         </p>
     </div>
 </div>
