@@ -56,7 +56,10 @@ namespace NewLife.Cube.Controllers
             ViewBag.Grid = grid;
 
             if (desc != 0 && !sort.IsNullOrEmpty()) sort += " Desc";
-            var list = Entity<TEntity>.Search(q, sort, (pageIndex - 1) * pageSize, pageSize);
+            var where = Entity<TEntity>.SearchWhereByKeys(q);
+            var count = 0;
+            var list = Entity<TEntity>.FindAll(where, sort, null, (pageIndex - 1) * pageSize, pageSize, out count);
+            grid.TotalCount = count;
 
             return View(list);
         }
