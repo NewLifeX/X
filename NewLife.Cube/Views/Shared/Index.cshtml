@@ -11,7 +11,7 @@
 <div class="panel panel-default">
     <div class="panel-body">
         <div class="form-inline">
-            @using (Html.BeginForm(null, null, FormMethod.Get))
+            @using (Html.BeginForm("?" + page.GetBaseUrl(false, true, true), null, FormMethod.Get))
             {
                 @Html.ValidationSummary()
 
@@ -29,7 +29,7 @@
                 <tr>
                     @foreach (var item in fact.Fields)
                     {
-                        <th><a href="@Html.Raw(Url.Action("Index") + page.GetSortUrl(item.Name))">@item.DisplayName</a></th>
+                        <th><a href="@(Url.Action("index") + @Html.Raw(page.GetSortUrl(item.Name)))">@item.DisplayName</a></th>
                     }
                     <th style="width: 150px;">操作</th>
                 </tr>
