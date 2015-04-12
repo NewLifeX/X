@@ -1269,7 +1269,11 @@ namespace XCode
 
                 // 默认获取数据时，还是需要指定按照自增字段降序，符合使用习惯
                 // 有GroupBy也不能加排序
-                if (String.IsNullOrEmpty(builder.OrderBy) && String.IsNullOrEmpty(builder.GroupBy))
+                if (String.IsNullOrEmpty(builder.OrderBy) &&
+                    String.IsNullOrEmpty(builder.GroupBy) &&
+                    // 未指定查询字段的时候才默认加上排序，因为指定查询字段的很多时候是统计
+                    (selects.IsNullOrWhiteSpace() || selects == "*")
+                    )
                 {
                     // 数字降序，其它升序
                     var b = fi.Type.IsIntType() && fi.IsIdentity;
