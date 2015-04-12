@@ -256,7 +256,7 @@ namespace NewLife.Xml
 
         /// <summary>保存到配置文件中去</summary>
         /// <param name="filename"></param>
-        public virtual void Save(String filename = null)
+        public virtual void Save(String filename)
         {
             //var filename = _.ConfigFile;
             if (filename.IsNullOrWhiteSpace()) filename = ConfigFile;
@@ -269,6 +269,9 @@ namespace NewLife.Xml
                 this.ToXmlFile(filename, null, "", "", true, true);
             }
         }
+
+        /// <summary>保存到配置文件中去</summary>
+        public virtual void Save() { Save(null); }
         #endregion
     }
 }
