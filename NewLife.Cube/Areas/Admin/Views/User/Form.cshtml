@@ -1,23 +1,53 @@
 ﻿@using System.Reflection
 @using XCode
+@using XCode.Configuration
 @{
     var fact = EntityFactory.CreateOperate(ViewData.ModelMetadata.ModelType);
+    var isNew = (Model as IEntity).IsNullKey;
+}
+@functions {
+
+    String GetWidth(FieldItem item)
+    {
+        switch (Type.GetTypeCode(item.Type))
+        {
+            case TypeCode.Boolean:
+                return "col-md-3";
+            case TypeCode.String:
+                if (item.Length <= 0 || item.Length > 300)
+                    return "col-md-5";
+                else
+                    return "col-md-3";
+        }
+        return "col-md-1";
+    }
 }
 <div class="panel panel-default">
     <div class="form-horizontal">
-        <!-- BEGIN FORM-->
-        <form method="post" class="form-horizontal">
-            @foreach (var item in fact.Fields)
+        @if (ViewBag.StatusMessage != null)
+        {
+            <div class="alert alert-success alert-dismissible text-center" role="alert">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <strong>@ViewBag.StatusMessage</strong>
+            </div>
+        }
+        @using (Html.BeginForm("Save/" + (Object)Model[fact.Unique.Name], ViewContext.Controller.GetType().Name.TrimEnd("Controller")))
+        {
+            @Html.AntiForgeryToken()
+            @Html.ValidationSummary()
+            foreach (var item in fact.Fields)
             {
-                if (item.PrimaryKey)
+                if (!item.PrimaryKey)
                 {
-
-                }
-                else
-                {
-                    <div class="control-group">
-                        <label class="control-label">@item.DisplayName</label>
-                        <div class="controls">
+                    <div class="form-group">
+                        <label class="control-label col-md-1">@item.DisplayName</label>
+                        <div class="@GetWidth(item)">
+                            @if (item.Name.Contains("Phone"))
+                            {
+                                <span class="input-group-addon">
+                                    <span class="glyphicon glyphicon-phone-alt"></span>
+                                </span>
+                            }
                             @Html.Editor(item.Name)
                             <span class="help-inline">@item.Description</span>
                         </div>
@@ -25,10 +55,10 @@
                 }
             }
             <div class="form-actions">
-                <button type="submit" class="btn btn-success"><i class="icon-ok"></i>保存</button>
-                <button type="button" class="btn btn-danger"><i class=" icon-remove"></i>取消</button>
+                <label class="control-label col-md-2"></label>
+                <button type="submit" class="btn btn-success"><i class="glyphicon glyphicon-@(isNew ? "plus" : "save")"></i><strong>@(isNew ? "新增" : "保存")</strong></button>
+                <button type="button" class="btn btn-danger" onclick="history.go(-1);"><i class="glyphicon glyphicon-remove"></i><strong>取消</strong></button>
             </div>
-        </form>
-        <!-- END FORM-->
+        }
     </div>
 </div>

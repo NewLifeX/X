@@ -39,11 +39,7 @@
             @Html.ValidationSummary()
             foreach (var item in fact.Fields)
             {
-                if (item.PrimaryKey)
-                {
-
-                }
-                else
+                if (!item.PrimaryKey)
                 {
                     <div class="form-group">
                         <label class="control-label col-md-1">@item.DisplayName</label>
@@ -57,6 +53,7 @@
                                 @Html.TextBox(item.Name, null, new { @class = "form-control" })
                                     break;
                                 case TypeCode.Decimal:
+                                <span class="input-group-addon">￥</span>
                                 @Html.TextBox(item.Name, null, new { @class = "form-control" })
                                     break;
                                 case TypeCode.Single:
