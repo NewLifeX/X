@@ -527,7 +527,9 @@ namespace System
         }
         #endregion
 
+
         #region Tcp参数
+#if !Android
         /// <summary>设置最大Tcp连接数</summary>
         public static void SetTcpMax()
         {
@@ -610,6 +612,7 @@ namespace System
                 rkey.SetValue(key, value);
             }
         }
+#endif
         #endregion
     }
 }
