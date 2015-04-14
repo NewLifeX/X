@@ -66,7 +66,7 @@
                         <td>@entity.LastLoginIP</td>
                         <td>@entity.Enable</td>
                         <td>
-                            @Html.Partial("_List_Data_Action", new Pair(entity, entity.ID))
+                            @Html.Partial("_List_Data_Action", entity.ID)
                         </td>
                     </tr>
                 }

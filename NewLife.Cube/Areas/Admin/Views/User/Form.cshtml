@@ -49,7 +49,7 @@
                                 </span>
                             }
                             @Html.Editor(item.Name)
-                            <span class="help-inline">@item.Description</span>
+                            <p class="help-block">@(item.Description.TrimStart(item.DisplayName).TrimStart("。"))</p>
                         </div>
                     </div>
                 }

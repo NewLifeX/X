@@ -23,7 +23,7 @@
                         <td>@entity.IsSystem</td>
                         <td>@entity.Permission</td>
                         <td>
-                            @Html.Partial("_List_Data_Action", new Pair(entity, entity.ID))
+                            @Html.Partial("_List_Data_Action", entity.ID)
                         </td>
                     </tr>
                 }

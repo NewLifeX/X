@@ -33,7 +33,7 @@
                 <strong>@ViewBag.StatusMessage</strong>
             </div>
         }
-        @using (Html.BeginForm("Save/" + (Object)Model[fact.Unique.Name], ViewContext.Controller.GetType().Name.TrimEnd("Controller")))
+        @using (Html.BeginForm("Save/" + (Object)Model[fact.Unique.Name], ViewContext.Controller.GetType().Name.TrimEnd("Controller"), new { @class = "form-horizontal", role = "form" }))
         {
             @Html.AntiForgeryToken()
             @Html.ValidationSummary()
@@ -86,7 +86,7 @@
                                 @Html.Editor(item.Name)
                                     break;
                             }
-                            <p class="help-block">@item.Description</p>
+                            <p class="help-block">@(item.Description.TrimStart(item.DisplayName).TrimStart("。"))</p>
                         </div>
                     </div>
                 }

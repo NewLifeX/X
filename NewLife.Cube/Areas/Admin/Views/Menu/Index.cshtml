@@ -35,7 +35,7 @@
                         @Html.Partial("_List_Data_Item", new Pair(entity, fact.Table.FindByName("Visible")))
                         @Html.Partial("_List_Data_Item", new Pair(entity, fact.Table.FindByName("Necessary")))
                         <td>
-                            @Html.Partial("_List_Data_Action", new Pair(entity, entity[fact.Unique]))
+                            @Html.Partial("_List_Data_Action", entity.ID)
                         </td>
                     </tr>
                 }
