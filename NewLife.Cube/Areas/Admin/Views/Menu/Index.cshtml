@@ -19,7 +19,7 @@
                     <th><a href="?Sort=Sort">排序</a></th>
                     <th><a href="?Sort=Visible">是否可见</a></th>
                     <th><a href="?Sort=Necessary">必要的菜单</a></th>
-                    <th style="width: 150px;">操作</th>
+                    <th>操作</th>
                 </tr>
             </thead>
             <tbody>
@@ -32,13 +32,10 @@
                         <td>@entity.ParentMenuName</td>
                         <td>@entity.Url</td>
                         <td>@entity.Sort</td>
-                        <td>@entity.Visible</td>
-                        <td>@entity.Necessary</td>
+                        @Html.Partial("_List_Data_Item", new Pair(entity, fact.Table.FindByName("Visible")))
+                        @Html.Partial("_List_Data_Item", new Pair(entity, fact.Table.FindByName("Necessary")))
                         <td>
-                            <i class="glyphicon glyphicon-edit"></i>
-                            <a href="@Url.Action("Form/" + @entity.ID)">编辑</a>
-                            <i class="glyphicon glyphicon-remove"></i>
-                            <a href="@Url.Action("Delete/" + @entity.ID)">删除</a>
+                            @Html.Partial("_List_Data_Action", new Pair(entity, entity[fact.Unique]))
                         </td>
                     </tr>
                 }

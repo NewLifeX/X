@@ -321,6 +321,8 @@
     <Content Include="Views\Shared\Error.cshtml" />
     <Content Include="Views\Shared\_List_Pager.cshtml" />
     <Content Include="Views\Shared\_List_Data.cshtml" />
+    <Content Include="Views\Shared\_List_Data_Item.cshtml" />
+    <Content Include="Views\Shared\_List_Data_Action.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Areas\Admin\Models\" />

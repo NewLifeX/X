@@ -1,0 +1,55 @@
+﻿@using XCode;
+@using XCode.Configuration;
+@{
+    var pair = Model as Pair;
+    var entity = pair.First as IEntity;
+    var item = pair.Second as FieldItem;
+}
+@if (item.PrimaryKey)
+{
+    <td>@entity[item.Name]</td>
+}
+else
+{
+    switch (Type.GetTypeCode(item.Type))
+    {
+        case TypeCode.Boolean:
+            if ((Boolean)entity[item.Name])
+            {
+                <td>
+                    <i class="glyphicon glyphicon-ok" style="color: green;"></i>
+                </td>
+            }
+            else
+            {
+                <td>
+                    <i class="glyphicon glyphicon-remove" style="color: red;"></i>
+                </td>
+            }
+            break;
+        case TypeCode.DateTime:
+        <td>@(((DateTime)entity[item.Name]).ToFullString())</td>
+            break;
+        case TypeCode.Decimal:
+        <td>@entity[item.Name]</td>
+            break;
+        case TypeCode.Single:
+        case TypeCode.Double:
+        <td>@entity[item.Name]</td>
+            break;
+        case TypeCode.Int16:
+        case TypeCode.Int32:
+        case TypeCode.Int64:
+        case TypeCode.UInt16:
+        case TypeCode.UInt32:
+        case TypeCode.UInt64:
+        <td>@entity[item.Name]</td>
+            break;
+        case TypeCode.String:
+        <td>@entity[item.Name]</td>
+            break;
+        default:
+        <td>@entity[item.Name]</td>
+            break;
+    }
+}

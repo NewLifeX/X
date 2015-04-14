@@ -1,39 +1,32 @@
-﻿@using NewLife.Web;
+﻿@using NewLife;
+@using NewLife.Web;
 @using XCode;
 @{
     var fact = EntityFactory.CreateOperate(ViewData.ModelMetadata.ModelType.GetGenericArguments()[0]);
     var page = ViewBag.Page as Pager;
+    // 字段列表，可以排序和隐藏
+    var fields = fact.Fields;
 }
 <table class="table table-bordered table-hover table-striped table-condensed">
     <thead>
         <tr>
-            @foreach (var item in fact.Fields)
+            @foreach (var item in fields)
             {
                 <th><a href="@Html.Raw(page.GetSortUrl(item.Name))">@item.DisplayName</a></th>
             }
-            <th style="width: 150px;">操作</th>
+            <th>操作</th>
         </tr>
     </thead>
     <tbody>
         @foreach (var entity in Model)
         {
             <tr>
-                @foreach (var item in fact.Fields)
+                @foreach (var item in fields)
                 {
-                    if (item.PrimaryKey)
-                    {
-                        <td>@entity[item.Name]</td>
-                    }
-                    else
-                    {
-                        <td>@entity[item.Name]</td>
-                    }
+                    @Html.Partial("_List_Data_Item", new Pair(entity, item))
                 }
                 <td>
-                    <i class="glyphicon glyphicon-edit"></i>
-                    <a href="@Url.Action("Form/" + entity[fact.Unique])">编辑</a>
-                    <i class="glyphicon glyphicon-remove"></i>
-                    <a href="@Url.Action("Delete/" + entity[fact.Unique])">删除</a>
+                    @Html.Partial("_List_Data_Action", new Pair(entity, entity[fact.Unique]))
                 </td>
             </tr>
         }

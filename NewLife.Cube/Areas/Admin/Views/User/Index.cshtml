@@ -66,10 +66,7 @@
                         <td>@entity.LastLoginIP</td>
                         <td>@entity.Enable</td>
                         <td>
-                            <i class="glyphicon glyphicon-edit"></i>
-                            <a href="@Url.Action("Form/" + @entity.ID)">编辑</a>
-                            <i class="glyphicon glyphicon-remove"></i>
-                            <a href="@Url.Action("Delete/" + @entity.ID)">删除</a>
+                            @Html.Partial("_List_Data_Action", new Pair(entity, entity.ID))
                         </td>
                     </tr>
                 }
