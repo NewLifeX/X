@@ -48,7 +48,7 @@
                                     <span class="glyphicon glyphicon-phone-alt"></span>
                                 </span>
                             }
-                            @Html.Editor(item.Name)
+                            @Html.Partial("_Form_Item", new Pair(Model, item))
                             <p class="help-block">@(item.Description.TrimStart(item.DisplayName).TrimStart("。"))</p>
                         </div>
                     </div>

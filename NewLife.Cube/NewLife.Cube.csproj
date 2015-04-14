@@ -323,6 +323,7 @@
     <Content Include="Views\Shared\_List_Data.cshtml" />
     <Content Include="Views\Shared\_List_Data_Item.cshtml" />
     <Content Include="Views\Shared\_List_Data_Action.cshtml" />
+    <Content Include="Views\Shared\_Form_Item.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Areas\Admin\Models\" />

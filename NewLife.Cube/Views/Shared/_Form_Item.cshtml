@@ -1,0 +1,49 @@
+﻿@using XCode;
+@using XCode.Configuration;
+@{
+    var pair = Model as Pair;
+    var entity = pair.First as IEntity;
+    var item = pair.Second as FieldItem;
+}
+@switch (Type.GetTypeCode(item.Type))
+{
+    case TypeCode.Boolean:
+        @Html.CheckBox(item.Name, (Boolean)entity[item.Name])
+        break;
+    case TypeCode.DateTime:
+    @Html.TextBox(item.Name, ((DateTime)entity[item.Name]).ToFullString(), new { @class = "form-control" })
+        break;
+    case TypeCode.Decimal:
+    <span class="input-group-addon">￥</span>
+    @Html.TextBox(item.Name, entity[item.Name], new { @class = "form-control" })
+        break;
+    case TypeCode.Single:
+    case TypeCode.Double:
+    @Html.TextBox(item.Name, entity[item.Name], new { @class = "form-control" })
+        break;
+    case TypeCode.Int16:
+    case TypeCode.Int32:
+    case TypeCode.Int64:
+    case TypeCode.UInt16:
+    case TypeCode.UInt32:
+    case TypeCode.UInt64:
+    @Html.TextBox(item.Name, (Object)entity[item.Name], new { @class = "text-box single-line form-control", @type = "number" })
+        break;
+    case TypeCode.String:
+        if (item.Name.Contains("Pass"))
+        {
+            @Html.Password(item.Name, (String)entity[item.Name], new { @class = "form-control" })
+        }
+        else if (item.Length <= 0 || item.Length > 300)
+        {
+            @Html.TextArea(item.Name, (String)entity[item.Name], new { @class = "form-control" })
+        }
+        else
+        {
+            @Html.TextBox(item.Name, (String)entity[item.Name], new { @class = "form-control" })
+        }
+        break;
+    default:
+    @Html.Editor(item.Name)
+        break;
+}
