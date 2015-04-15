@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Web.Mvc;
 using System.Web.Security;
-using NewLife.Cube.Filters;
 using NewLife.Cube.Models;
 using NewLife.Log;
 using XCode.Membership;

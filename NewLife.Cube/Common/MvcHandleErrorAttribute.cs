@@ -1,7 +1,7 @@
 ﻿using System.Web.Mvc;
 using NewLife.Log;
 
-namespace NewLife.Cube.Filters
+namespace NewLife.Cube
 {
     /// <summary>拦截错误的特性</summary>
     public class MvcHandleErrorAttribute : HandleErrorAttribute

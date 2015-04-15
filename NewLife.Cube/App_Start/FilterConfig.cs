@@ -1,6 +1,4 @@
-﻿using System.Web;
-using System.Web.Mvc;
-using NewLife.Cube.Filters;
+﻿using System.Web.Mvc;
 
 namespace NewLife.Cube
 {

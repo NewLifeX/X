@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.Web;
 using System.Web.Mvc;
 using NewLife.Common;
-using NewLife.Cube.Filters;
 using XCode.Membership;
 
 namespace NewLife.Cube.Admin.Controllers
