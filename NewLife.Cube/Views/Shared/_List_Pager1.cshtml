@@ -15,7 +15,7 @@
     end = end > page.PageCount ? page.PageCount : end;
     if (page.PageIndex <= 1)
     {
-        <li class="paginItem"><a href="#"><</a></li>
+        <li class="paginItem current"><a href="#"><</a></li>
     }
     else
     {
@@ -36,7 +36,7 @@
 
     if (page.PageIndex >= page.PageCount)
     {
-        <li class="paginItem"><a href="#">></a></li>
+        <li class="paginItem current"><a href="#">></a></li>
     }
     else
     {
