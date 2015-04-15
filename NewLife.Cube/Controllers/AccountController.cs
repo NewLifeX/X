@@ -8,12 +8,13 @@ using XCode.Membership;
 
 namespace NewLife.Cube.Controllers
 {
+    /// <summary>账号控制器</summary>
     [EntityAuthorize]
     public class AccountController : Controller
     {
-        //
-        // GET: /Account/Login
-
+        /// <summary>登录页面</summary>
+        /// <param name="returnUrl"></param>
+        /// <returns></returns>
         [AllowAnonymous]
         public ActionResult Login(string returnUrl)
         {
@@ -21,9 +22,10 @@ namespace NewLife.Cube.Controllers
             return View();
         }
 
-        //
-        // POST: /Account/Login
-
+        /// <summary>登录提交</summary>
+        /// <param name="model"></param>
+        /// <param name="returnUrl"></param>
+        /// <returns></returns>
         [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
@@ -51,9 +53,8 @@ namespace NewLife.Cube.Controllers
             return View(model);
         }
 
-        //
-        // POST: /Account/LogOff
-
+        /// <summary>注销</summary>
+        /// <returns></returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult LogOff()
@@ -66,18 +67,17 @@ namespace NewLife.Cube.Controllers
             return RedirectToAction("Index", "Home");
         }
 
-        //
-        // GET: /Account/Register
-
+        /// <summary>注册</summary>
+        /// <returns></returns>
         [AllowAnonymous]
         public ActionResult Register()
         {
             return View();
         }
 
-        //
-        // POST: /Account/Register
-
+        /// <summary>注册提交</summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
         [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
@@ -109,38 +109,9 @@ namespace NewLife.Cube.Controllers
             return View(model);
         }
 
-        //
-        // POST: /Account/Disassociate
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Disassociate(string provider, string providerUserId)
-        {
-            //string ownerAccount = OAuthWebSecurity.GetUserName(provider, providerUserId);
-            ManageMessageId? message = null;
-
-            //// 只有在当前登录用户是所有者时才取消关联帐户
-            //if (ownerAccount == User.Identity.Name)
-            //{
-            //    // 使用事务来防止用户删除其上次使用的登录凭据
-            //    using (var scope = new TransactionScope(TransactionScopeOption.Required, new TransactionOptions { IsolationLevel = IsolationLevel.Serializable }))
-            //    {
-            //        bool hasLocalAccount = OAuthWebSecurity.HasLocalAccount(WebSecurity.GetUserId(User.Identity.Name));
-            //        if (hasLocalAccount || OAuthWebSecurity.GetAccountsFromUserName(User.Identity.Name).Count > 1)
-            //        {
-            //            OAuthWebSecurity.DeleteAccount(provider, providerUserId);
-            //            scope.Complete();
-            //            message = ManageMessageId.RemoveLoginSuccess;
-            //        }
-            //    }
-            //}
-
-            return RedirectToAction("Manage", new { Message = message });
-        }
-
-        //
-        // GET: /Account/Manage
-
+        /// <summary>管理页面</summary>
+        /// <param name="message"></param>
+        /// <returns></returns>
         public ActionResult Manage(ManageMessageId? message)
         {
             ViewBag.StatusMessage =
@@ -157,9 +128,9 @@ namespace NewLife.Cube.Controllers
             return View(model);
         }
 
-        //
-        // POST: /Account/Manage
-
+        /// <summary>管理提交</summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Manage(LocalPasswordModel model)
@@ -211,10 +182,14 @@ namespace NewLife.Cube.Controllers
                 return RedirectToAction("Index", "Home");
         }
 
+        /// <summary>管理消息ID</summary>
         public enum ManageMessageId
         {
+            /// <summary>修改密码成功</summary>
             ChangePasswordSuccess,
+            /// <summary>设置密码成功</summary>
             SetPasswordSuccess,
+            /// <summary>删除密码成功</summary>
             RemoveLoginSuccess,
         }
         #endregion

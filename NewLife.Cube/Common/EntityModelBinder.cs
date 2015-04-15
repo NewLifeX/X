@@ -34,6 +34,9 @@ namespace NewLife.Cube
     /// <summary>实体模型绑定器提供者，为所有XCode实体类提供实体模型绑定器</summary>
     public class EntityModelBinderProvider : IModelBinderProvider
     {
+        /// <summary>获取绑定器</summary>
+        /// <param name="modelType"></param>
+        /// <returns></returns>
         public IModelBinder GetBinder(Type modelType)
         {
             if (typeof(IEntity).IsAssignableFrom(modelType)) return new EntityModelBinder();

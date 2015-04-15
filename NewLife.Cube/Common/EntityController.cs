@@ -1,19 +1,17 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Web.Mvc;
-using NewLife.Cube.Filters;
 using NewLife.Web;
 using XCode;
-using XCode.Configuration;
-using XCode.Web;
 
-namespace NewLife.Cube.Controllers
+namespace NewLife.Cube
 {
     /// <summary>实体控制器基类</summary>
     /// <typeparam name="TEntity"></typeparam>
     [EntityAuthorize]
     public class EntityController<TEntity> : Controller where TEntity : Entity<TEntity>, new()
     {
+        /// <summary>构造函数</summary>
         public EntityController()
         {
             ViewBag.Title = Entity<TEntity>.Meta.Table.Description + "管理";
@@ -85,12 +83,5 @@ namespace NewLife.Cube.Controllers
             return View("Form", entity);
             //return RedirectToAction("Form/" + entity[Entity<TEntity>.Meta.Unique.Name]);
         }
-    }
-
-    public class PagerModel : Pager
-    {
-        private String _Q;
-        /// <summary>查询关键字</summary>
-        public String Q { get { return _Q; } set { _Q = value; } }
     }
 }

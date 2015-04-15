@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Web;
 using System.Web.Mvc;
-using NewLife.Reflection;
 using XCode.Membership;
 
-namespace NewLife.Cube.Filters
+namespace NewLife.Cube
 {
     /// <summary>实体授权特性</summary>
     public class EntityAuthorizeAttribute : AuthorizeAttribute
@@ -17,12 +16,17 @@ namespace NewLife.Cube.Filters
         /// <summary>授权项</summary>
         public PermissionFlags Permission { get { return _Permission; } set { _Permission = value; } }
 
+        /// <summary>授权核心</summary>
+        /// <param name="httpContext"></param>
+        /// <returns></returns>
         protected override Boolean AuthorizeCore(HttpContextBase httpContext)
         {
             var user = ManageProvider.User;
             return user != null;
         }
 
+        /// <summary>授权发生时触发</summary>
+        /// <param name="filterContext"></param>
         public override void OnAuthorization(AuthorizationContext filterContext)
         {
             //// 基类方法会检查AllowAnonymous

@@ -9,10 +9,13 @@ using XCode.Membership;
 
 namespace NewLife.Cube.Admin.Controllers
 {
+    /// <summary>首页</summary>
     [DisplayName("首页")]
     [EntityAuthorize]
     public class IndexController : Controller
     {
+        /// <summary>首页</summary>
+        /// <returns></returns>
         public ActionResult Index()
         {
             ViewBag.User = ManageProvider.User;
@@ -22,6 +25,9 @@ namespace NewLife.Cube.Admin.Controllers
             return View();
         }
 
+        /// <summary>服务器信息</summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         [DisplayName("服务器信息")]
         public ActionResult Main(String id)
         {

@@ -24,7 +24,7 @@ namespace NewLife.Cube.Admin
         }
 
         /// <summary>注册需要搜索的目录路径</summary>
-        /// <param name="name"></param>
+        /// <param name="engines"></param>
         public static void Register(ViewEngineCollection engines)
         {
             // 如果没有注册，则注册
