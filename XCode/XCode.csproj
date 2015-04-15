@@ -302,10 +302,10 @@
     <Content Include="..\NewLife.Core\X组件.txt">
       <Link>X组件.txt</Link>
     </Content>
-    <Content Include="Membership\Member.xml">
+    <None Include="Membership\Member.xml">
       <SubType>Designer</SubType>
-    </Content>
-    <Content Include="Test\EntityTest.xml" />
+    </None>
+    <None Include="Test\EntityTest.xml" />
     <Content Include="Sync\同步机制.txt" />
     <Content Include="说明.txt" />
   </ItemGroup>

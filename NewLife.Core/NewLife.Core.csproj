@@ -352,9 +352,9 @@
     <EmbeddedResource Include="Web\Modules\SystemStart.htm" />
     <Content Include="说明.txt" />
     <EmbeddedResource Include="UpdateInfo.txt" />
-    <Content Include="Serialization\序列化_写入器.png" />
-    <Content Include="Serialization\序列化_读取器.png" />
-    <Content Include="Serialization\说明.txt" />
+    <None Include="Serialization\序列化_写入器.png" />
+    <None Include="Serialization\序列化_读取器.png" />
+    <None Include="Serialization\说明.txt" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="App.config">
