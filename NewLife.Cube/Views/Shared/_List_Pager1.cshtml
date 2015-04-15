@@ -15,10 +15,12 @@
     end = end > page.PageCount ? page.PageCount : end;
     if (page.PageIndex <= 1)
     {
+        <li class="paginItem current"><a href="#">|<</a></li>
         <li class="paginItem current"><a href="#"><</a></li>
     }
     else
     {
+        <li class="paginItem"><a href="@page.GetPageUrl("首页", 1)">|<</a></li>
         <li class="paginItem"><a href="@page.GetPageUrl("上一页", page.PageIndex-1)"><</a></li>
     }
 
@@ -37,10 +39,12 @@
     if (page.PageIndex >= page.PageCount)
     {
         <li class="paginItem current"><a href="#">></a></li>
+        <li class="paginItem current"><a href="#">>|</a></li>
     }
     else
     {
         <li class="paginItem"><a href="@page.GetPageUrl("下一页", page.PageIndex + 1)">></a></li>
+        <li class="paginItem"><a href="@page.GetPageUrl("未页", page.PageCount)">>|</a></li>
     }
 }
 
@@ -49,9 +53,7 @@
     <div class="pagin">
         <div class="message">共<i class="blue">@page.TotalCount</i>条记录，当前显示第&nbsp;<i class="blue">@page.PageIndex&nbsp;</i>页/共&nbsp;<i class="blue">@page.PageCount&nbsp;</i>页</div>
         <ul class="paginList">
-            <li class="paginItem"><a href="@page.GetPageUrl("首页", 1)">|<</a></li>
             @GetNumericPage(page)
-            <li class="paginItem"><a href="@page.GetPageUrl("未页", page.PageCount)">>|</a></li>
         </ul>
     </div>
 }
