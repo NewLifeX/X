@@ -130,6 +130,23 @@ namespace XCoder
                 else
                     cfg.SetValue(pi, Config.GetValue(pi));
             }
+            #region 命名空间处理
+            var NameSpace = cfg.NameSpace;
+            var reg = new Regex(@"\$\((\w+)\)", RegexOptions.Compiled);
+            NameSpace = reg.Replace(NameSpace, math =>
+            {
+                var key = math.Groups[1].Value;
+                if (String.IsNullOrEmpty(key)) return null;
+
+                var pix = typeof(IDataTable).GetPropertyEx(key);
+                if (pix != null)
+                    return (String)table.GetValue(pix);
+                else
+                    return table.Properties[key];
+            });
+            NewLife.Log.XTrace.WriteLine("NameSpace" + Config.NameSpace + "@" + NameSpace);
+            cfg.NameSpace = NameSpace;
+            #endregion
             data["Config"] = cfg;
             #endregion
 
@@ -203,11 +220,11 @@ namespace XCoder
             if (tempName.StartsWith("*")) tempName = tempName.Substring(1);
             tt.AssemblyName = tempName;
             #endregion
-
+            
             #region 输出目录预处理
             var outpath = Config.OutputPath;
-            // 使用正则替换处理
-            var reg = new Regex(@"\$\((\w+)\)", RegexOptions.Compiled);
+            // 使用正则替换处理 命名空间处已经定义
+            //var reg = new Regex(@"\$\((\w+)\)", RegexOptions.Compiled);
             outpath = reg.Replace(outpath, math =>
             {
                 var key = math.Groups[1].Value;
