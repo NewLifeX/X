@@ -166,7 +166,6 @@ namespace NewLife.Web
         }
 
         /// <summary>获取分页Url</summary>
-        /// <param name="page"></param>
         /// <param name="name"></param>
         /// <returns></returns>
         public virtual String GetPage(String name)
