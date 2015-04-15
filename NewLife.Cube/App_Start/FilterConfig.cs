@@ -9,8 +9,7 @@ namespace NewLife.Cube
         /// <param name="filters"></param>
         public static void RegisterGlobalFilters(GlobalFilterCollection filters)
         {
-            filters.Add(new MvcHandleErrorAttribute());
-            filters.Add(new EntityAuthorizeAttribute());
+            filters.Add(new HandleErrorAttribute());
         }
     }
 }

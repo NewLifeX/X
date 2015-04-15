@@ -24,12 +24,6 @@ namespace NewLife.Cube
             BundleConfig.RegisterBundles(BundleTable.Bundles);
             //AuthConfig.RegisterAuth();
 
-            // 异步初始化用户权限系统
-            ThreadPoolX.QueueUserWorkItem(() =>
-            {
-                var user = ManageProvider.User;
-            });
-
         }
     }
 }
