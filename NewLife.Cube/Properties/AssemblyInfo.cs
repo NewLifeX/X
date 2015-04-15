@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 // 控制。更改这些特性值可修改
 // 与程序集关联的信息。
 [assembly: AssemblyTitle("新生命魔方平台")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("魔方平台NewLife.Cube由新生命团队开发，基于数据映射框架NewLife.XCode，集成权限管理体系，插件机制，作为Mvc项目的默认管理后台。")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyProduct("NewLife.Admin")]
 [assembly: AssemblyCompany("新生命开发团队")]

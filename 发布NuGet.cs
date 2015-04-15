@@ -64,9 +64,13 @@ namespace NewLife.Reflection
             Console.WriteLine("打包：{0}", proj);
             "cmd".Run("/c del *.nupkg /f/q");
             "NuGet".Run(pack.F(proj, "Release"), 30000);
-            var nupkg = ".".AsDirectory().GetAllFiles("*.nupkg").First().Name;
-            Console.WriteLine("发布：{0}", nupkg);
-            "NuGet".Run("push {0}".F(nupkg), 30000);
+            var fi = ".".AsDirectory().GetAllFiles("*.nupkg").FirstOrDefault();
+            if (fi != null)
+            {
+                var nupkg = fi.Name;
+                Console.WriteLine("发布：{0}", nupkg);
+                "NuGet".Run("push {0}".F(nupkg), 30000);
+            }
         }
 
         static void AddFile(Manifest cfg, String name, String ext, Boolean fx2 = true)
