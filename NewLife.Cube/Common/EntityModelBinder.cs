@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Web.Mvc;
+using NewLife.Log;
 using XCode;
 
 namespace NewLife.Cube
@@ -46,6 +47,7 @@ namespace NewLife.Cube
 
         static EntityModelBinderProvider()
         {
+            XTrace.WriteLine("注册实体模型绑定器：{0}", typeof(EntityModelBinderProvider).FullName);
             ModelBinderProviders.BinderProviders.Add(new EntityModelBinderProvider());
         }
 

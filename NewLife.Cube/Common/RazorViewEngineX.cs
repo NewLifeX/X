@@ -2,8 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Web.Mvc;
+using NewLife.Log;
 
-namespace NewLife.Cube.Admin
+namespace NewLife.Cube
 {
     /// <summary>自定义视图引擎。为了让系统优先查找当前区域目录</summary>
     public class RazorViewEngineX : RazorViewEngine
@@ -37,6 +38,8 @@ namespace NewLife.Cube.Admin
 
                 ve = new RazorViewEngineX();
                 engines.Insert(0, ve);
+
+                XTrace.WriteLine("注册视图引擎：{0}", ve.GetType().FullName);
             }
         }
     }

@@ -337,9 +337,9 @@ namespace XCode.Membership
             }
 
             /// <summary>扫描命名空间下的控制器并添加为菜单</summary>
-            /// <param name="rootName"></param>
-            /// <param name="asm"></param>
-            /// <param name="nameSpace"></param>
+            /// <param name="rootName">根菜单名称，所有菜单附属在其下</param>
+            /// <param name="asm">要扫描的程序集</param>
+            /// <param name="nameSpace">要扫描的命名空间</param>
             /// <returns></returns>
             public virtual IList<IMenu> ScanController(String rootName, Assembly asm, String nameSpace)
             {
@@ -347,6 +347,7 @@ namespace XCode.Membership
 
                 using (var dbtrans = Meta.CreateTrans())
                 {
+                    // 如果根菜单不存在，则添加
                     var root = Root.FindByPath(rootName);
                     if (root == null)
                     {
@@ -380,6 +381,7 @@ namespace XCode.Membership
                         if (controller == null)
                         {
                             url += "/" + name;
+                            // DisplayName特性作为中文名
                             var att = type.GetCustomAttribute<DisplayNameAttribute>(true);
                             controller = node.Add(name, att != null ? att.DisplayName : null, url);
                             list.Add(node);
@@ -389,8 +391,8 @@ namespace XCode.Membership
                         foreach (var method in type.GetMethods())
                         {
                             if (method.IsStatic || !method.IsPublic) continue;
-                            // 跳过删除
-                            if (method.Name.EqualIgnoreCase("Delete")) continue;
+                            // 跳过添加、修改、删除
+                            if (method.Name.EqualIgnoreCase("Insert", "Update", "Delete")) continue;
                             // 为了不引用Mvc，采取字符串比较
                             //if (!method.ReturnType.Name.EndsWith("")) continue;
                             var rt = method.ReturnType;

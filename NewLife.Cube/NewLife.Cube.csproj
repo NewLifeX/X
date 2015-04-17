@@ -110,10 +110,11 @@
     <Compile Include="Areas\Admin\Controllers\SysController.cs" />
     <Compile Include="Areas\Admin\Controllers\UserController.cs" />
     <Compile Include="Areas\Admin\Index\IndexController.cs" />
-    <Compile Include="Areas\Admin\RazorViewEngineX.cs" />
+    <Compile Include="Common\RazorViewEngineX.cs" />
     <Compile Include="App_Start\BundleConfig.cs" />
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
+    <Compile Include="Common\AreaRegistrationBase.cs" />
     <Compile Include="Common\EntityModelBinder.cs" />
     <Compile Include="Controllers\AccountController.cs" />
     <Compile Include="Common\EntityController.cs" />

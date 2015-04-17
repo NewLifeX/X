@@ -1,6 +1,6 @@
 ﻿using System;
+using System.ComponentModel;
 using System.IO;
-using System.Threading;
 using System.Web.Mvc;
 using System.Web.Optimization;
 using NewLife.Compression;
@@ -10,45 +10,16 @@ using XCode.Membership;
 namespace NewLife.Cube.Admin
 {
     /// <summary>权限管理区域注册</summary>
-    public class AdminAreaRegistration : AreaRegistration
+    [DisplayName("管理平台")]
+    public class AdminAreaRegistration : AreaRegistrationBase
     {
-        /// <summary>区域名称</summary>
-        public override string AreaName
-        {
-            get
-            {
-                return this.GetType().Name.TrimEnd("AreaRegistration");
-            }
-        }
-
         /// <summary>注册区域</summary>
         /// <param name="context"></param>
         public override void RegisterArea(AreaRegistrationContext context)
         {
-            XTrace.WriteLine("开始注册权限管理区域" + AreaName);
+            //base.RegisterArea(context);
 
             context.Routes.IgnoreRoute("bootstrap/{*relpath}");
-
-            context.MapRoute(
-                AreaName,
-                AreaName + "/{controller}/{action}/{id}",
-                new { controller = "Index", action = "Index", id = UrlParameter.Optional },
-                  new[] { this.GetType().Namespace + ".Controllers" }
-            );
-
-            // 所有已存在文件的请求都交给Mvc处理，比如Admin目录
-            //routes.RouteExistingFiles = true;
-
-            // 注册视图引擎
-            RazorViewEngineX.Register(ViewEngines.Engines);
-
-            // 注册绑定提供者
-            EntityModelBinderProvider.Register();
-
-            // 注册过滤器
-            var filters = GlobalFilters.Filters;
-            filters.Add(new MvcHandleErrorAttribute());
-            filters.Add(new EntityAuthorizeAttribute());
 
             // 自动解压Bootstrap
             var bs = "bootstrap".AsDirectory();
@@ -68,23 +39,22 @@ namespace NewLife.Cube.Admin
             bundles.Add(new ScriptBundle("~/bootstrap_js").IncludeDirectory("~/bootstrap/js", "*.js", true));
 
             // 自动检查并添加菜单
-            ThreadPool.QueueUserWorkItem(s =>
-            {
-                XTrace.WriteLine("初始化权限管理体系");
-                var user = ManageProvider.User;
-
-                // 延迟几秒钟等其它地方初始化完成
-                Thread.Sleep(3000);
-                XTrace.WriteLine("初始化菜单体系");
-                ManageProvider.Menu.ScanController(AreaName, this.GetType().Assembly, this.GetType().Namespace + ".Controllers");
-
-                var menu = ManageProvider.Menu.Root.FindByPath(AreaName);
-                if (menu != null && menu.DisplayName.IsNullOrEmpty())
-                {
-                    menu.DisplayName = "管理平台";
-                    menu.Save();
-                }
-            });
+            XTrace.WriteLine("初始化权限管理体系");
+            var user = ManageProvider.User;
         }
+
+        ///// <summary>自动扫描控制器，并添加到菜单</summary>
+        ///// <remarks>默认操作当前注册区域的下一级Controllers命名空间</remarks>
+        //protected override void ScanController()
+        //{
+        //    base.ScanController();
+
+        //    var menu = ManageProvider.Menu.Root.FindByPath(AreaName);
+        //    if (menu != null && menu.DisplayName.IsNullOrEmpty())
+        //    {
+        //        menu.DisplayName = "管理平台";
+        //        menu.Save();
+        //    }
+        //}
     }
 }
