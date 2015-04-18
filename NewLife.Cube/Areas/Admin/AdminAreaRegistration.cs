@@ -17,7 +17,7 @@ namespace NewLife.Cube.Admin
         /// <param name="context"></param>
         public override void RegisterArea(AreaRegistrationContext context)
         {
-            //base.RegisterArea(context);
+            base.RegisterArea(context);
 
             context.Routes.IgnoreRoute("bootstrap/{*relpath}");
 
