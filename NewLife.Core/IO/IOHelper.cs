@@ -175,7 +175,7 @@ namespace System
                     }
                     else if (max > 0 && count > max)
                         count = max;
-                    
+
                     // 其实地址不为0时，一般不能直接访问缓冲区，因为可能被限制访问
                     var buf = ms.GetValue("_buffer") as Byte[];
 
@@ -246,6 +246,27 @@ namespace System
         {
             if (src != null && src.Length > 0) des.Write(src, 0, src.Length);
             return des;
+        }
+
+        /// <summary>写入字节数组，先写入压缩整数表示的长度</summary>
+        /// <param name="des"></param>
+        /// <param name="src"></param>
+        /// <returns></returns>
+        public static Stream WriteArray(this Stream des, params Byte[] src)
+        {
+            des.WriteEncodedInt(src.Length);
+            return des.Write(src);
+        }
+
+        /// <summary>读取字节数组，先读取压缩整数表示的长度</summary>
+        /// <param name="des"></param>
+        /// <returns></returns>
+        public static Byte[] ReadArray(this Stream des)
+        {
+            var len = des.ReadEncodedInt();
+            if (len == 0) return new Byte[0];
+
+            return des.ReadBytes(len);
         }
 
         /// <summary>复制数组</summary>
