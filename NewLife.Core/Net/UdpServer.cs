@@ -402,13 +402,13 @@ namespace NewLife.Net
             {
                 if (!Local.Address.IsAny())
                 {
-                    if (remote.Address == Local.Address) return;
+                    if (remote.Address.Equals(Local.Address)) return;
                 }
                 else
                 {
                     foreach (var item in NetHelper.GetIPsWithCache())
                     {
-                        if (remote.Address == item) return;
+                        if (remote.Address.Equals(item)) return;
                     }
                 }
             }
