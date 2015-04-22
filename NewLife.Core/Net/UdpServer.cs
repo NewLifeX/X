@@ -38,6 +38,10 @@ namespace NewLife.Net
         private Boolean _AllowAsyncOnSync = true;
         /// <summary>在异步模式下，使用同步收到数据后，是否允许异步事件继续使用，默认true</summary>
         public Boolean AllowAsyncOnSync { get { return _AllowAsyncOnSync; } set { _AllowAsyncOnSync = value; } }
+
+        private Boolean _Loopback;
+        /// <summary>是否接收来自自己广播的环回数据。默认false</summary>
+        public Boolean Loopback { get { return _Loopback; } set { _Loopback = value; } }
         #endregion
 
         #region 构造
@@ -393,6 +397,22 @@ namespace NewLife.Net
         /// <param name="remote"></param>
         internal protected virtual void OnReceive(Byte[] data, IPEndPoint remote)
         {
+            // 过滤自己广播的环回数据。放在这里，兼容UdpSession
+            if (!Loopback && remote.Port == Port)
+            {
+                if (!Local.Address.IsAny())
+                {
+                    if (remote.Address == Local.Address) return;
+                }
+                else
+                {
+                    foreach (var item in NetHelper.GetIPsWithCache())
+                    {
+                        if (remote.Address == item) return;
+                    }
+                }
+            }
+
             // 可能有同步等待
             if (_sync.Count > 0)
             {
