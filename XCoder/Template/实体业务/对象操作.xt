@@ -10,6 +10,9 @@
         /// <param name="isNew"></param>
         public override void Valid(Boolean isNew)
         {
+			// 如果没有脏数据，则不需要进行任何处理
+			if (!hasDirtys) return;
+
             // 这里验证参数范围，建议抛出参数异常，指定参数名，前端用户界面可以捕获参数异常并聚焦到对应的参数输入框
             //if (String.IsNullOrEmpty(Name)) throw new ArgumentNullException(_.Name, _.Name.DisplayName + "无效！");
             //if (!isNew && ID < 1) throw new ArgumentOutOfRangeException(_.ID, _.ID.DisplayName + "必须大于0！");
