@@ -66,7 +66,7 @@ namespace NewLife.Threading
         {
             if (callback == null) throw new ArgumentNullException("callback");
             if (dueTime < 0) throw new ArgumentOutOfRangeException("dueTime");
-            if (period <= 0) throw new ArgumentOutOfRangeException("period");
+            if (period < 0) throw new ArgumentOutOfRangeException("period");
 
             Callback = new WeakAction<Object>(callback);
             State = state;
