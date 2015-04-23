@@ -254,6 +254,12 @@ namespace System
         /// <returns></returns>
         public static Stream WriteArray(this Stream des, params Byte[] src)
         {
+            if (src == null || src.Length == 0)
+            {
+                des.WriteByte(0);
+                return des;
+            }
+
             des.WriteEncodedInt(src.Length);
             return des.Write(src);
         }
