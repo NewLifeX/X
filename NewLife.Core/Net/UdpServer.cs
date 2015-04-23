@@ -531,8 +531,9 @@ namespace NewLife.Net
         /// <returns></returns>
         public override string ToString()
         {
-            if (Sessions.Count > 0)
-                return String.Format("{0} [{1}]", Local, Sessions.Count);
+            var ss = Sessions;
+            if (ss != null && ss.Count > 0)
+                return String.Format("{0} [{1}]", Local, ss.Count);
             else
                 return Local.ToString();
         }
