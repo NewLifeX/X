@@ -37,6 +37,13 @@ namespace XCode.Cache
             // *表示全局匹配
             if (tableName == "*") return true;
 
+            //hxw add 2015-04-23 修改
+            if (_TableNames == null)
+            {
+                //缓存时没有传入表名，等同于关联所有表，任何表的更新都会导致它失效
+                return true;
+            }
+
             // 包含完整表名，匹配
             return _TableNames.Contains(tableName);
         }
