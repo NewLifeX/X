@@ -50,10 +50,12 @@ namespace NewLife.Reflection
                 AddFile(cfg, name, "dll");
                 AddFile(cfg, name, "xml");
                 AddFile(cfg, name, "pdb");
+                AddFile(cfg, name, "exe");
 
                 AddFile(cfg, name, "dll", false);
                 AddFile(cfg, name, "xml", false);
                 AddFile(cfg, name, "pdb", false);
+                AddFile(cfg, name, "exe", false);
             }
 
             cfg.Save();
