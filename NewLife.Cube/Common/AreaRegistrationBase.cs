@@ -45,7 +45,7 @@ namespace NewLife.Cube
         /// <param name="context"></param>
         public override void RegisterArea(AreaRegistrationContext context)
         {
-            XTrace.WriteLine("开始注册权限管理区域{0}", AreaName);
+            XTrace.WriteLine("开始注册权限管理区域[{0}]", AreaName);
 
             context.MapRoute(
                 AreaName,
