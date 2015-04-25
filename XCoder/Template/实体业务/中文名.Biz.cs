@@ -55,10 +55,10 @@ if(Config.RenderGenEntity){#>
         public static EntityList<<#=myClassName#>> Search(Int32 userid, DateTime start, DateTime end, String key, PageParameter param)
         {
             // WhereExpression重载&和|运算符，作为And和Or的替代
-            // SearchWhereByKeys系列方法用于构建针对字符串字段的模糊搜索
-            var exp = SearchWhereByKeys(key, null);
+            // SearchWhereByKeys系列方法用于构建针对字符串字段的模糊搜索，第二个参数可指定要搜索的字段
+            var exp = SearchWhereByKeys(key, null, null);
 
-            // 以下仅为演示，Field（继承自FieldItem）重载了==、!=、>、<、>=、<=等运算符（第4行）
+            // 以下仅为演示，Field（继承自FieldItem）重载了==、!=、>、<、>=、<=等运算符
             //if (userid > 0) exp &= _.OperatorID == userid;
             //if (isSign != null) exp &= _.IsSign == isSign.Value;
             //exp &= _.OccurTime.Between(start, end); // 大于等于start，小于end，当start/end大于MinValue时有效
