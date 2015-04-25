@@ -11,35 +11,14 @@ namespace XCode.Configuration
     public class FieldItem
     {
         #region 属性
-        private PropertyInfo _Property;
         /// <summary>属性元数据</summary>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        [Obsolete("该成员在后续版本中将不再被支持！")]
-        public PropertyInfo Property
-        {
-            get { return _Property; }
-            set { _Property = value; }
-        }
+        private PropertyInfo _Property;
 
-        private BindColumnAttribute _Column;
         /// <summary>绑定列特性</summary>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        [Obsolete("该成员在后续版本中将不再被支持！")]
-        public BindColumnAttribute Column
-        {
-            get { return _Column; }
-            set { _Column = value; }
-        }
+        private BindColumnAttribute _Column;
 
-        private DataObjectFieldAttribute _DataObjectField;
         /// <summary>数据字段特性</summary>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        [Obsolete("该成员在后续版本中将不再被支持！")]
-        public DataObjectFieldAttribute DataObjectField
-        {
-            get { return _DataObjectField; }
-            set { _DataObjectField = value; }
-        }
+        private DataObjectFieldAttribute _DataObjectField;
 
         private DescriptionAttribute _Description;
         /// <summary>备注</summary>
@@ -80,14 +59,10 @@ namespace XCode.Configuration
         internal Boolean IsDataObjectField { get { return _DataObjectField != null; } }
 
         /// <summary>显示名。如果备注不为空则采用备注，否则采用属性名</summary>
-        //[Obsolete("请改为使用Description属性！")]
         public String DisplayName
         {
             get
             {
-                //if (Description != null && !String.IsNullOrEmpty(Description.Description)) return Description.Description;
-                //if (_Column != null && !String.IsNullOrEmpty(_Column.Description)) return _Column.Description;
-
                 var name = Description;
                 if (String.IsNullOrEmpty(name)) return Name;
 
@@ -126,19 +101,11 @@ namespace XCode.Configuration
 
         private TableItem _Table;
         /// <summary>表</summary>
-        public TableItem Table
-        {
-            get { return _Table; }
-            //set { _Field = value; }
-        }
+        public TableItem Table { get { return _Table; } }
 
         private IDataColumn _Field;
         /// <summary>字段</summary>
-        public IDataColumn Field
-        {
-            get { return _Field; }
-            //set { _Field = value; }
-        }
+        public IDataColumn Field { get { return _Field; } }
 
         /// <summary>实体操作者</summary>
         public IEntityOperate Factory
@@ -168,8 +135,8 @@ namespace XCode.Configuration
 
             _Property = property;
             _Column = BindColumnAttribute.GetCustomAttribute(_Property);
-            _DataObjectField = DataObjectAttribute.GetCustomAttribute(_Property, typeof(DataObjectFieldAttribute)) as DataObjectFieldAttribute;
-            _Description = DescriptionAttribute.GetCustomAttribute(_Property, typeof(DescriptionAttribute)) as DescriptionAttribute;
+            _DataObjectField = _Property.GetCustomAttribute<DataObjectFieldAttribute>();
+            _Description = _Property.GetCustomAttribute<DescriptionAttribute>(); ;
         }
         #endregion
 
@@ -195,35 +162,35 @@ namespace XCode.Configuration
 
             if (field == null) return;
 
-            IDataColumn xf = field;
-            if (xf == null) return;
+            IDataColumn dc = field;
+            if (dc == null) return;
 
-            xf.ColumnName = ColumnName;
-            xf.Name = Name;
-            xf.DataType = _Property.PropertyType;
-            xf.Description = Description;
+            dc.ColumnName = ColumnName;
+            dc.Name = Name;
+            dc.DataType = _Property.PropertyType;
+            dc.Description = Description;
 
             if (_Column != null)
             {
-                xf.ID = _Column.Order;
-                xf.RawType = _Column.RawType;
-                xf.Precision = _Column.Precision;
-                xf.Scale = _Column.Scale;
-                xf.IsUnicode = _Column.IsUnicode;
-                xf.Default = _Column.DefaultValue;
+                dc.ID = _Column.Order;
+                dc.RawType = _Column.RawType;
+                dc.Precision = _Column.Precision;
+                dc.Scale = _Column.Scale;
+                dc.IsUnicode = _Column.IsUnicode;
+                dc.Default = _Column.DefaultValue;
 
                 // 特别处理，兼容旧版本
-                if (xf.DataType == typeof(Decimal))
+                if (dc.DataType == typeof(Decimal))
                 {
-                    if (xf.Precision == 0) xf.Precision = 18;
+                    if (dc.Precision == 0) dc.Precision = 18;
                 }
             }
             if (_DataObjectField != null)
             {
-                xf.Length = _DataObjectField.Length;
-                xf.Identity = _DataObjectField.IsIdentity;
-                xf.PrimaryKey = _DataObjectField.PrimaryKey;
-                xf.Nullable = _DataObjectField.IsNullable;
+                dc.Length = _DataObjectField.Length;
+                dc.Identity = _DataObjectField.IsIdentity;
+                dc.PrimaryKey = _DataObjectField.PrimaryKey;
+                dc.Nullable = _DataObjectField.IsNullable;
             }
         }
 
