@@ -1052,9 +1052,10 @@ namespace XCode
 
         /// <summary>根据空格分割的关键字集合构建查询条件</summary>
         /// <param name="keys">空格分割的关键字集合</param>
-        /// <param name="func"></param>
+        /// <param name="fields">要查询的字段，默认为空表示查询所有字符串字段</param>
+        /// <param name="func">处理每一个查询关键字的回调函数</param>
         /// <returns></returns>
-        public static WhereExpression SearchWhereByKeys(String keys, Func<String, WhereExpression> func = null)
+        public static WhereExpression SearchWhereByKeys(String keys, FieldItem[] fields = null, Func<String, FieldItem[], WhereExpression> func = null)
         {
             var exp = new WhereExpression();
             if (String.IsNullOrEmpty(keys)) return exp;
@@ -1063,40 +1064,29 @@ namespace XCode
 
             var ks = keys.Split(" ");
 
-            //var sb = exp.Builder;
             for (int i = 0; i < ks.Length; i++)
             {
-                if (!ks[i].IsNullOrWhiteSpace()) exp &= func(ks[i].Trim());
-                //if (sb.Length > 0) sb.Append(" And ");
-
-                //String str = func(ks[i]);
-                //if (String.IsNullOrEmpty(str)) continue;
-
-                //if (str.Contains("Or") || str.ToLower().Contains("or"))
-                //    sb.AppendFormat("({0})", str);
-                //else
-                //    sb.Append(str);
+                if (!ks[i].IsNullOrWhiteSpace()) exp &= func(ks[i].Trim(), fields);
             }
 
             return exp;
         }
 
         /// <summary>构建关键字查询条件</summary>
-        /// <param name="key"></param>
+        /// <param name="key">关键字</param>
+        /// <param name="fields">要查询的字段，默认为空表示查询所有字符串字段</param>
         /// <returns></returns>
-        public static WhereExpression SearchWhereByKey(String key)
+        public static WhereExpression SearchWhereByKey(String key, FieldItem[] fields = null)
         {
             var exp = new WhereExpression();
             if (String.IsNullOrEmpty(key)) return exp;
 
-            //var sb = exp.Builder;
-            foreach (var item in Meta.Fields)
+            if (fields == null || fields.Length == 0) fields = Meta.Fields;
+            foreach (var item in fields)
             {
                 if (item.Type != typeof(String)) continue;
 
-                //if (sb.Length > 0) sb.Append(" Or ");
-                //sb.AppendFormat("{0} like '%{1}%'", Meta.FormatName(item.Name), key);
-                exp |= Meta.Table.FindByName(item.Name).Contains(key);
+                exp |= item.Contains(key);
             }
 
             return exp.AsChild();
