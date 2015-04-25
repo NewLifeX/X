@@ -865,7 +865,7 @@ namespace XCode
 
         /// <summary>同时查询满足条件的记录集和记录总数。没有数据时返回空集合而不是null</summary>
         /// <param name="whereClause">条件，不带Where</param>
-        /// <param name="param"></param>
+        /// <param name="param">分页排序参数，同时返回满足条件的总记录数</param>
         /// <returns></returns>
         public static EntityList<TEntity> FindAll(String whereClause, PageParameter param)
         {
@@ -1043,7 +1043,7 @@ namespace XCode
 
         /// <summary>同时查询满足条件的记录集和记录总数。没有数据时返回空集合而不是null</summary>
         /// <param name="key"></param>
-        /// <param name="param"></param>
+        /// <param name="param">分页排序参数，同时返回满足条件的总记录数</param>
         /// <returns></returns>
         public static EntityList<TEntity> Search(String key, PageParameter param)
         {
