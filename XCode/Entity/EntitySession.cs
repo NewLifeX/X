@@ -288,12 +288,13 @@ namespace XCode
                 // 输出调用者，方便调试
                 //if (DAL.Debug) DAL.WriteLog("检查实体{0}的数据表架构，模式：{1}，调用栈：{2}", ThisType.FullName, Table.ModelCheckMode, XTrace.GetCaller(1, 0, "\r\n<-"));
                 // CheckTableWhenFirstUse的实体类，在这里检查，有点意思，记下来
-                if (DAL.Debug && Table.ModelCheckMode == ModelCheckModes.CheckTableWhenFirstUse)
-                    DAL.WriteLog("检查实体{0}的数据表架构，模式：{1}", ThisType.FullName, Table.ModelCheckMode);
+                var mode = Table.ModelCheckMode;
+                if (DAL.Debug && mode == ModelCheckModes.CheckTableWhenFirstUse)
+                    DAL.WriteLog("检查实体{0}的数据表架构，模式：{1}", ThisType.FullName, mode);
 
                 // 第一次使用才检查的，此时检查
                 var ck = false;
-                if (Table.ModelCheckMode == ModelCheckModes.CheckTableWhenFirstUse) ck = true;
+                if (mode == ModelCheckModes.CheckTableWhenFirstUse) ck = true;
                 // 或者前面初始化的时候没有涉及的，也在这个时候检查
                 var dal = DAL.Create(ConnName);
                 if (!dal.HasCheckTables.Contains(TableName))
