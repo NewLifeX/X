@@ -1306,11 +1306,17 @@ namespace XCode
                 var property = this.GetType().GetPropertyEx(name, true);
                 if (property != null && property.CanRead) return this.GetValue(property);
 
-                Object obj = null;
-                if (Extends.TryGetValue(name, out obj)) return obj;
-
                 // 检查动态增加的字段，返回默认值
                 var f = Meta.Table.FindByName(name) as FieldItem;
+
+                Object obj = null;
+                if (Extends.TryGetValue(name, out obj))
+                {
+                    if (f != null && f.IsDynamic) return TypeX.ChangeType(obj, f.Type);
+
+                    return obj;
+                }
+
                 if (f != null && f.IsDynamic)
                 {
                     return f.Type.CreateInstance();
@@ -1339,10 +1345,11 @@ namespace XCode
                     return;
                 }
 
-                if (Extends.ContainsKey(name))
-                    Extends[name] = value;
-                else
-                    Extends.Add(name, value);
+                // 检查动态增加的字段，返回默认值
+                var f = Meta.Table.FindByName(name) as FieldItem;
+                if (f != null && f.IsDynamic) value = TypeX.ChangeType(value, f.Type);
+
+                Extends[name] = value;
 
                 //throw new ArgumentException("类[" + this.GetType().FullName + "]中不存在[" + name + "]属性");
             }
@@ -1390,11 +1397,13 @@ namespace XCode
                 else
                     obj[fi.Name] = this[fi.Name];
             }
-            if (Extends != null && Extends.Count > 0)
+
+            var exts = Extends;
+            if (exts != null && exts.Count > 0)
             {
-                foreach (var item in Extends.Keys)
+                foreach (var item in exts.Keys)
                 {
-                    obj.Extends[item] = Extends[item];
+                    obj.Extends[item] = exts[item];
                 }
             }
             return obj;
