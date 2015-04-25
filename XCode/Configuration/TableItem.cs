@@ -63,12 +63,13 @@ namespace XCode.Configuration
                         var dal = DAL.Create(conn);
                         if (dal != null && !str.Contains("."))
                         {
-                            if (dal.DbType == DatabaseType.Oracle)
+                            // 角色名作为点前缀来约束表名，支持所有数据库
+                            //if (dal.DbType == DatabaseType.Oracle)
                             {
                                 // 加上用户名
                                 var ocsb = dal.Db.Factory.CreateConnectionStringBuilder();
                                 ocsb.ConnectionString = dal.ConnStr;
-                                if (ocsb.ContainsKey("User ID")) str = (String)ocsb["User ID"] + "." + str;
+                                if (ocsb.ContainsKey("Role")) str = (String)ocsb["Role"] + "." + str;
                             }
                         }
                     }
