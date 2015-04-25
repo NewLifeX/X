@@ -5,8 +5,10 @@ using System.Data;
 using System.Text;
 using System.Xml.Serialization;
 using NewLife.IO;
+using NewLife.Reflection;
 using NewLife.Xml;
 using XCode.Common;
+using XCode.Configuration;
 using XCode.Model;
 
 namespace XCode
@@ -77,6 +79,11 @@ namespace XCode
         /// <returns>返回是否成功设置了数据</returns>
         public Boolean SetItem(String name, Object value)
         {
+            var fact = EntityFactory.CreateOperate(GetType());
+            FieldItem fi = fact.Table.FindByName(name);
+            // 确保数据类型一致
+            if (fi != null) value = TypeX.ChangeType(value, fi.Type);
+
             Boolean b = OnPropertyChanging(name, value);
             if (b)
             {
