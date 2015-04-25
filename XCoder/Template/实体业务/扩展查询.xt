@@ -1,6 +1,4 @@
 ﻿<#
-String myClassName=Config.RenderGenEntity?"TEntity":Table.Name;
-
 // 根据索引，增加多个方法
 if(Table.Indexes!=null&&Table.Indexes.Count>0){
     foreach (IDataIndex di in Table.Indexes){
