@@ -246,9 +246,8 @@ namespace XCode
             var fi = Meta.Table.Identity;
             if (fi != null) return Convert.ToInt64(this[fi.Name]) > 0 ? Update() : Insert();
 
-            fi = Meta.Unique;
             // 如果唯一主键不为空，应该通过后面判断，而不是直接Update
-            if (fi != null && Helper.IsNullKey(this[fi.Name])) return Insert();
+            if (IsNullKey) return Insert();
 
             return FindCount(persistence.GetPrimaryCondition(this), null, null, 0, 0) > 0 ? Update() : Insert();
         }
@@ -354,7 +353,7 @@ namespace XCode
             if (!cache.Using)
             {
                 // 如果是空主键，则采用直接判断记录数的方式，以加快速度
-                if (Helper.IsNullKey(val)) return FindCount(names, values) > 0;
+                if (IsNullKey) return FindCount(names, values) > 0;
 
                 var list = FindAll(names, values);
                 if (list == null || list.Count < 1) return false;
@@ -369,7 +368,7 @@ namespace XCode
             {
                 // 如果是空主键，则采用直接判断记录数的方式，以加快速度
                 var list = cache.Entities.FindAll(names, values, true);
-                if (Helper.IsNullKey(val)) return list.Count > 0;
+                if (IsNullKey) return list.Count > 0;
 
                 if (list == null || list.Count < 1) return false;
                 if (list.Count > 1) return true;
@@ -516,7 +515,7 @@ namespace XCode
                 if (field != null && (field.IsIdentity || field.PrimaryKey))
                 {
                     // 唯一键为自增且参数小于等于0时，返回空
-                    if (Helper.IsNullKey(values[0])) return null;
+                    if (Helper.IsNullKey(values[0], field.Type)) return null;
 
                     return FindUnique(MakeCondition(field, values[0], "="));
                 }
@@ -587,7 +586,7 @@ namespace XCode
             if (field == null) throw new ArgumentNullException("Meta.Unique", "FindByKey方法要求" + Meta.ThisType.FullName + "有唯一主键！");
 
             // 唯一键为自增且参数小于等于0时，返回空
-            if (Helper.IsNullKey(key)) return null;
+            if (Helper.IsNullKey(key, field.Type)) return null;
 
             return Find(field.Name, key);
         }
@@ -611,7 +610,7 @@ namespace XCode
             Type type = field.Type;
 
             // 唯一键为自增且参数小于等于0时，返回新实例
-            if (Helper.IsNullKey(key))
+            if (Helper.IsNullKey(key, field.Type))
             {
                 if (type.IsIntType() && !field.IsIdentity && DAL.Debug) DAL.WriteLog("{0}的{1}字段是整型主键，你是否忘记了设置自增？", Meta.TableName, field.ColumnName);
 
@@ -625,7 +624,7 @@ namespace XCode
             if (entity == null)
             {
                 String msg = null;
-                if (Helper.IsNullKey(key))
+                if (Helper.IsNullKey(key, field.Type))
                     msg = String.Format("参数错误！无法取得编号为{0}的{1}！可能未设置自增主键！", key, Meta.Table.Description);
                 else
                     msg = String.Format("参数错误！无法取得编号为{0}的{1}！", key, Meta.Table.Description);
@@ -785,7 +784,7 @@ namespace XCode
                 if (field != null && (field.IsIdentity || field.PrimaryKey))
                 {
                     // 唯一键为自增且参数小于等于0时，返回空
-                    if (Helper.IsNullKey(values[0])) return null;
+                    if (Helper.IsNullKey(values[0], field.Type)) return null;
                 }
             }
 
@@ -815,7 +814,7 @@ namespace XCode
             if (field != null && (field.IsIdentity || field.PrimaryKey))
             {
                 // 唯一键为自增且参数小于等于0时，返回空
-                if (Helper.IsNullKey(value)) return new EntityList<TEntity>();
+                if (Helper.IsNullKey(value, field.Type)) return new EntityList<TEntity>();
 
                 // 自增或者主键查询，记录集肯定是唯一的，不需要指定记录数和排序
                 return FindAll(MakeCondition(field, value, "="), null, null, 0, 0);
@@ -944,7 +943,7 @@ namespace XCode
                 if (field != null && (field.IsIdentity || field.PrimaryKey))
                 {
                     // 唯一键为自增且参数小于等于0时，返回空
-                    if (Helper.IsNullKey(values[0])) return 0;
+                    if (Helper.IsNullKey(values[0], field.Type)) return 0;
                 }
             }
 
@@ -1310,7 +1309,12 @@ namespace XCode
                 Object obj = null;
                 if (Extends.TryGetValue(name, out obj)) return obj;
 
-                //throw new ArgumentException("类[" + this.GetType().FullName + "]中不存在[" + name + "]属性");
+                // 检查动态增加的字段，返回默认值
+                var f = Meta.Table.FindByName(name) as FieldItem;
+                if (f != null && f.IsDynamic)
+                {
+                    return f.Type.CreateInstance();
+                }
 
                 return null;
             }

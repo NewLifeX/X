@@ -21,42 +21,50 @@ namespace XCode.Configuration
         private DataObjectFieldAttribute _DataObjectField;
 
         private DescriptionAttribute _Description;
+
+        private String _des;
         /// <summary>备注</summary>
-        public String Description
-        {
-            get
-            {
-                if (_Description != null && !String.IsNullOrEmpty(_Description.Description)) return _Description.Description;
-                if (_Column != null && !String.IsNullOrEmpty(_Column.Description)) return _Column.Description;
-                return null;
-            }
-        }
+        public String Description { get { return _des; } internal set { _des = value; } }
+
+        /// <summary>顺序标识</summary>
+        internal Int32 _ID;
         #endregion
 
         #region 扩展属性
+        private String _Name;
         /// <summary>属性名</summary>
-        public String Name { get { return _Property == null ? null : _Property.Name; } }
+        public String Name { get { return _Name; } internal set { _Name = value; } }
 
+        private Type _Type;
         /// <summary>属性类型</summary>
-        public Type Type { get { return _Property == null ? null : _Property.PropertyType; } }
+        public Type Type { get { return _Type; } internal set { _Type = value; } }
 
-        /// <summary>属性类型</summary>
-        internal Type DeclaringType { get { return _Property == null ? null : _Property.DeclaringType; } }
+        private Type _DeclaringType;
+        /// <summary>声明类型</summary>
+        internal Type DeclaringType { get { return _DeclaringType; } set { _DeclaringType = value; } }
 
+        private Boolean _IsIdentity;
         /// <summary>是否标识列</summary>
-        public Boolean IsIdentity { get { return _DataObjectField == null ? false : _DataObjectField.IsIdentity; } }
+        public Boolean IsIdentity { get { return _IsIdentity; } internal set { _IsIdentity = value; } }
 
+        private Boolean _PrimaryKey;
         /// <summary>是否主键</summary>
-        public Boolean PrimaryKey { get { return _DataObjectField == null ? false : _DataObjectField.PrimaryKey; } }
+        public Boolean PrimaryKey { get { return _PrimaryKey; } internal set { _PrimaryKey = value; } }
 
+        private Boolean _IsNullable;
         /// <summary>是否允许空</summary>
-        public Boolean IsNullable { get { return _DataObjectField == null ? false : _DataObjectField.IsNullable; } }
+        public Boolean IsNullable { get { return _IsNullable; } internal set { _IsNullable = value; } }
 
+        private Int32 _Length;
         /// <summary>长度</summary>
-        public Int32 Length { get { return _DataObjectField == null ? 0 : _DataObjectField.Length; } }
+        public Int32 Length { get { return _Length; } internal set { _Length = value; } }
 
+        private Boolean _IsDataObjectField;
         /// <summary>是否数据绑定列</summary>
-        internal Boolean IsDataObjectField { get { return _DataObjectField != null; } }
+        internal Boolean IsDataObjectField { get { return _IsDataObjectField; } set { _IsDataObjectField = value; } }
+
+        /// <summary>是否动态字段</summary>
+        public Boolean IsDynamic { get { return _Property == null; } }
 
         /// <summary>显示名。如果备注不为空则采用备注，否则采用属性名</summary>
         public String DisplayName
@@ -77,29 +85,18 @@ namespace XCode.Configuration
         static Char[] COLUMNNAME_FLAG = new Char[] { '[', ']', '\'', '"', '`' };
 
         private String _ColumnName;
-        /// <summary>用于数据绑定的字段名。
+        /// <summary>用于数据绑定的字段名</summary>
+        /// <remarks>
         /// 默认使用BindColumn特性中指定的字段名，如果没有指定，则使用属性名。
-        /// </summary>
-        public String ColumnName
-        {
-            get
-            {
-                if (_ColumnName != null) return _ColumnName;
+        /// 字段名可能两边带有方括号等标识符
+        /// </remarks>
+        public String ColumnName { get { return _ColumnName; } set { if (value != null) _ColumnName = value.Trim(COLUMNNAME_FLAG); } }
 
-                // 字段名可能两边带有方括号等标识符
-                if (_Column != null && !String.IsNullOrEmpty(_Column.Name))
-                    _ColumnName = _Column.Name.Trim(COLUMNNAME_FLAG);
-                else
-                    _ColumnName = _Property.Name;
-
-                return _ColumnName;
-            }
-        }
-
+        private String _DefaultValue;
         /// <summary>默认值</summary>
-        public String DefaultValue { get { return _Column == null ? null : _Column.DefaultValue; } }
+        public String DefaultValue { get { return _DefaultValue; } internal set { _DefaultValue = value; } }
 
-        private TableItem _Table;
+        internal TableItem _Table;
         /// <summary>表</summary>
         public TableItem Table { get { return _Table; } }
 
@@ -124,19 +121,51 @@ namespace XCode.Configuration
         #endregion
 
         #region 构造
+        internal FieldItem() { }
+
         /// <summary>构造函数</summary>
         /// <param name="table"></param>
         /// <param name="property">属性</param>
         public FieldItem(TableItem table, PropertyInfo property)
         {
-            if (property == null) throw new ArgumentNullException("property");
+            //if (property == null) throw new ArgumentNullException("property");
 
             _Table = table;
 
-            _Property = property;
-            _Column = BindColumnAttribute.GetCustomAttribute(_Property);
-            _DataObjectField = _Property.GetCustomAttribute<DataObjectFieldAttribute>();
-            _Description = _Property.GetCustomAttribute<DescriptionAttribute>(); ;
+            if (property != null)
+            {
+                _Property = property;
+                var dc = _Column = BindColumnAttribute.GetCustomAttribute(property);
+                var df = _DataObjectField = property.GetCustomAttribute<DataObjectFieldAttribute>();
+                var ds = _Description = property.GetCustomAttribute<DescriptionAttribute>();
+
+                Name = property.Name;
+                Type = property.PropertyType;
+                DeclaringType = property.DeclaringType;
+
+                if (df != null)
+                {
+                    IsIdentity = df.IsIdentity;
+                    PrimaryKey = df.PrimaryKey;
+                    IsNullable = df.IsNullable;
+                    Length = df.Length;
+
+                    IsDataObjectField = true;
+                }
+
+                if (dc != null) _ID = dc.Order;
+
+                if (dc != null && !dc.Name.IsNullOrWhiteSpace())
+                    ColumnName = dc.Name;
+                else
+                    ColumnName = Name;
+
+                if (ds != null && !String.IsNullOrEmpty(ds.Description))
+                    Description = ds.Description;
+                else if (dc != null && !String.IsNullOrEmpty(dc.Description))
+                    Description = dc.Description;
+
+            }
         }
         #endregion
 
@@ -165,32 +194,38 @@ namespace XCode.Configuration
             IDataColumn dc = field;
             if (dc == null) return;
 
+            dc.ID = _ID;
             dc.ColumnName = ColumnName;
             dc.Name = Name;
-            dc.DataType = _Property.PropertyType;
+            dc.DataType = Type;
             dc.Description = Description;
+            dc.Default = DefaultValue;
 
-            if (_Column != null)
+            var col = _Column;
+            if (col != null)
             {
-                dc.ID = _Column.Order;
-                dc.RawType = _Column.RawType;
-                dc.Precision = _Column.Precision;
-                dc.Scale = _Column.Scale;
-                dc.IsUnicode = _Column.IsUnicode;
-                dc.Default = _Column.DefaultValue;
-
-                // 特别处理，兼容旧版本
-                if (dc.DataType == typeof(Decimal))
-                {
-                    if (dc.Precision == 0) dc.Precision = 18;
-                }
+                dc.RawType = col.RawType;
+                dc.Precision = col.Precision;
+                dc.Scale = col.Scale;
+                dc.IsUnicode = col.IsUnicode;
             }
-            if (_DataObjectField != null)
+            else
             {
-                dc.Length = _DataObjectField.Length;
-                dc.Identity = _DataObjectField.IsIdentity;
-                dc.PrimaryKey = _DataObjectField.PrimaryKey;
-                dc.Nullable = _DataObjectField.IsNullable;
+                dc.IsUnicode = true;
+            }
+
+            // 特别处理，兼容旧版本
+            if (dc.DataType == typeof(Decimal))
+            {
+                if (dc.Precision == 0) dc.Precision = 18;
+            }
+
+            //if (_DataObjectField != null)
+            {
+                dc.Length = Length;
+                dc.Identity = IsIdentity;
+                dc.PrimaryKey = PrimaryKey;
+                dc.Nullable = IsNullable;
             }
         }
 
@@ -459,6 +494,21 @@ namespace XCode.Configuration
         /// <param name="table"></param>
         /// <param name="property">属性</param>
         public Field(TableItem table, PropertyInfo property) : base(table, property) { }
+
+        internal Field(TableItem table, String name, Type type, String description, Int32 length)
+        {
+            _Table = table;
+
+            _ID = table.Fields.Length + 1;
+
+            Name = name;
+            ColumnName = name;
+            Type = type;
+            Description = description;
+            Length = length;
+
+            IsNullable = true;
+        }
         #endregion
 
         /// <summary>等于</summary>

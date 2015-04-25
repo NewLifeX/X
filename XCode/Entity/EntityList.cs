@@ -156,7 +156,7 @@ namespace XCode
             if (field != null && (field.IsIdentity || field.PrimaryKey))
             {
                 // 唯一键为空时，比如自增且参数小于等于0时，返回空
-                if (Helper.IsNullKey(value)) return new EntityList<T>();
+                if (Helper.IsNullKey(value, field.Type)) return new EntityList<T>();
             }
 
             // 特殊处理整数类型，避免出现相同值不同整型而导致结果不同
@@ -187,7 +187,7 @@ namespace XCode
             if (field != null && (field.IsIdentity || field.PrimaryKey))
             {
                 // 唯一键为自增且参数小于等于0时，返回空
-                if (Helper.IsNullKey(values[0])) return new EntityList<T>();
+                if (Helper.IsNullKey(values[0], field.Type)) return new EntityList<T>();
             }
 
             // 特殊处理字符忽略大小写的情况

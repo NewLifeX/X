@@ -234,7 +234,7 @@ namespace XCode
 
         #region 主键为空
         /// <summary>主键是否为空</summary>
-        Boolean IEntity.IsNullKey { get { return Helper.IsEntityNullKey(this); } }
+        public Boolean IsNullKey { get { return Helper.IsEntityNullKey(this); } }
 
         /// <summary>设置主键为空。Save将调用Insert</summary>
         void IEntity.SetNullKey()
@@ -265,14 +265,14 @@ namespace XCode
             {
                 var v1 = this[item.Name];
                 var v2 = entity[item.Name];
-				//// 特殊处理整数类型，避免出现相同值不同整型而导致结果不同
-				//if (item.Type.IsIntType() && Convert.ToInt64(v1) != Convert.ToInt64(v2)) return false;
+                //// 特殊处理整数类型，避免出现相同值不同整型而导致结果不同
+                //if (item.Type.IsIntType() && Convert.ToInt64(v1) != Convert.ToInt64(v2)) return false;
 
-				//if (item.Type == typeof(String)) { v1 += ""; v2 += ""; }
+                //if (item.Type == typeof(String)) { v1 += ""; v2 += ""; }
 
-				//if (!Object.Equals(v1, v2)) return false;
-				if (!CheckEqual(v1, v2)) return false;
-			}
+                //if (!Object.Equals(v1, v2)) return false;
+                if (!CheckEqual(v1, v2)) return false;
+            }
 
             return true;
         }

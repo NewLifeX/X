@@ -397,5 +397,33 @@ namespace XCode.Configuration
                 return String.Format("{0}（{1}）", TableName, Description);
         }
         #endregion
+
+        #region 动态增加字段
+        /// <summary>动态增加字段</summary>
+        /// <param name="name"></param>
+        /// <param name="type"></param>
+        /// <param name="description"></param>
+        /// <param name="length"></param>
+        /// <returns></returns>
+        public TableItem Add(String name, Type type, String description = null, Int32 length = 0)
+        {
+            var f = new Field(this, name, type, description, length);
+
+            var list = new List<FieldItem>(Fields);
+            list.Add(f);
+            _Fields = list.ToArray();
+
+            list = new List<FieldItem>(AllFields);
+            list.Add(f);
+            _AllFields = list.ToArray();
+
+            var dc = DataTable.CreateColumn();
+            f.Fill(dc);
+
+            DataTable.Columns.Add(dc);
+
+            return this;
+        }
+        #endregion
     }
 }

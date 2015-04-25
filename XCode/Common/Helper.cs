@@ -1,4 +1,5 @@
 ﻿using System;
+using NewLife.Reflection;
 
 namespace XCode.Common
 {
@@ -25,13 +26,16 @@ namespace XCode.Common
         }
 
         /// <summary>指定键是否为空。一般业务系统设计不允许主键为空，包括自增的0和字符串的空</summary>
-        /// <param name="key"></param>
+        /// <param name="key">键值</param>
+        /// <param name="type">类型</param>
         /// <returns></returns>
-        public static Boolean IsNullKey(Object key)
+        public static Boolean IsNullKey(Object key, Type type)
         {
             if (key == null) return true;
 
-            var type = key.GetType();
+            if (type == null) type = key.GetType();
+
+            key = TypeX.ChangeType(key, type);
 
             //由于key的实际类型是由类型推倒而来，所以必须根据实际传入的参数类型分别进行装箱操作
             //如果不根据类型分别进行会导致类型转换失败抛出异常
@@ -58,28 +62,11 @@ namespace XCode.Common
         /// <returns></returns>
         public static Boolean IsEntityNullKey(IEntity entity)
         {
-            IEntityOperate eop = EntityFactory.CreateOperate(entity.GetType());
+            var eop = EntityFactory.CreateOperate(entity.GetType());
             foreach (var item in eop.Fields)
             {
-                if ((item.PrimaryKey || item.IsIdentity) && IsNullKey(entity[item.Name])) return true;
+                if ((item.PrimaryKey || item.IsIdentity) && IsNullKey(entity[item.Name], item.Type)) return true;
             }
-
-            //List<FieldItem> pks = eop.Fields.Where(e => e.PrimaryKey).ToList();
-            //if (pks != null && pks.Count > 0)
-            //{
-            //    foreach (FieldItem item in pks)
-            //    {
-            //        // 任何一个不为空，则表明整体不为空
-            //        if (!IsNullKey(entity[item.Name])) return false;
-            //    }
-            //    return true;
-            //}
-
-            //FieldItem field = eop.Fields.FirstOrDefault(e => e.IsIdentity);
-            //if (field.IsIdentity)
-            //{
-            //    return IsNullKey(entity[field.Name]);
-            //}
 
             return false;
         }
