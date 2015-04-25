@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Web.Mvc;
 using NewLife.Log;
 using XCode;
@@ -22,7 +23,20 @@ namespace NewLife.Cube
                 {
                     var rvs = controllerContext.RouteData.Values;
                     var uk = fact.Unique;
-                    if (uk != null && rvs[uk.Name] != null) return fact.FindByKeyForEdit(rvs[uk.Name]) ?? fact.Create();
+                    if (uk != null && rvs[uk.Name] != null)
+                    {
+                        // 查询实体对象用于编辑
+                        var entity = fact.FindByKeyForEdit(rvs[uk.Name]) ?? fact.Create();
+
+                        var fs = controllerContext.HttpContext.Request.Form;
+                        // 提前填充动态字段的扩展属性
+                        foreach (var item in fact.Fields)
+                        {
+                            if (item.IsDynamic && fs.AllKeys.Contains(item.Name)) entity.SetItem(item.Name, fs[item.Name]);
+                        }
+
+                        return entity;
+                    }
 
                     return fact.Create();
                 }
