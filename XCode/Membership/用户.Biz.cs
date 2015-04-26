@@ -478,6 +478,7 @@ namespace XCode.Membership
         }
 
         /// <summary>角色名</summary>
+        [DisplayName("角色")]
         public virtual String RoleName { get { return Role == null ? null : Role.Name; } set { } }
         #endregion
 
