@@ -138,6 +138,7 @@ namespace XCode.Configuration
                 var dc = _Column = BindColumnAttribute.GetCustomAttribute(property);
                 var df = _DataObjectField = property.GetCustomAttribute<DataObjectFieldAttribute>();
                 var ds = _Description = property.GetCustomAttribute<DescriptionAttribute>();
+                var di = property.GetCustomAttribute<DisplayNameAttribute>();
 
                 Name = property.Name;
                 Type = property.PropertyType;
@@ -164,6 +165,8 @@ namespace XCode.Configuration
                     Description = ds.Description;
                 else if (dc != null && !String.IsNullOrEmpty(dc.Description))
                     Description = dc.Description;
+                else if (di != null && !di.DisplayName.IsNullOrEmpty())
+                    Description = di.DisplayName;
 
             }
         }
