@@ -14,14 +14,14 @@
         switch (Type.GetTypeCode(item.Type))
         {
             case TypeCode.Boolean:
-                return "col-md-3";
+                return "col-md-6";
             case TypeCode.String:
                 if (item.Length <= 0 || item.Length > 300)
-                    return "col-md-5";
+                    return "col-md-6";
                 else
-                    return "col-md-3";
+                    return "col-md-6";
         }
-        return "col-md-1";
+        return "col-md-2";
     }
 }
 <div class="panel panel-default">
@@ -42,7 +42,7 @@
                 if (!item.PrimaryKey)
                 {
                     <div class="form-group">
-                        <label class="control-label col-md-1">@item.DisplayName</label>
+                        <label class="control-label col-md-2">@item.DisplayName</label>
                         <div class="@GetWidth(item)">
                             @Html.Partial("_Form_Item", new Pair(Model, item))
                             <p class="help-block">@(item.Description.TrimStart(item.DisplayName).TrimStart("。"))</p>
@@ -51,7 +51,7 @@
                 }
             }
             <div class="form-actions">
-                <label class="control-label col-md-2"></label>
+                <label class="control-label col-md-4"></label>
                 <button type="submit" class="btn btn-success"><i class="glyphicon glyphicon-@(isNew ? "plus" : "save")"></i><strong>@(isNew ? "新增" : "保存")</strong></button>
                 <button type="button" class="btn btn-danger" onclick="history.go(-1);"><i class="glyphicon glyphicon-remove"></i><strong>取消</strong></button>
             </div>
