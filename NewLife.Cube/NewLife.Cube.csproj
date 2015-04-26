@@ -205,6 +205,7 @@
     <Content Include="Content\themes\base\minified\jquery.ui.tabs.min.css" />
     <Content Include="Content\themes\base\minified\jquery.ui.theme.min.css" />
     <Content Include="favicon.ico" />
+    <Content Include="Areas\Admin\Views\User\_List_Toolbar.cshtml" />
     <None Include="Global.asax" />
     <Content Include="Areas\Admin\Views\_ViewStart.cshtml" />
     <Content Include="Areas\Admin\Views\Web.config" />
@@ -259,6 +260,7 @@
     <Content Include="Views\Shared\_List_Data_Item.cshtml" />
     <Content Include="Views\Shared\_List_Data_Action.cshtml" />
     <Content Include="Views\Shared\_Form_Item.cshtml" />
+    <Content Include="Views\Shared\_List_Toolbar.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Areas\Admin\Models\" />

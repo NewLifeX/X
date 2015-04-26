@@ -1,0 +1,34 @@
+﻿@using NewLife;
+@using NewLife.Web;
+@using XCode;
+@{
+    var fact = ViewBag.Factory as IEntityOperate;
+    var page = ViewBag.Page as Pager;
+}
+<div class="form-inline">
+    <div class="form-group">
+        <label for="ddlCategory" class="control-label">类别：</label>
+        <select name="ddlCategory" id="ddlCategory" class="form-control" onchange="$(':submit').click();">
+            <option value="">全部</option>
+        </select>
+    </div>
+    <div class="form-group">
+        <label class="control-label" for="ddlAdmin">管理员：</label>
+        <select name="ddlAdminID" id="ddlAdminID" class="form-control" onchange="$(':submit').click();">
+            <option value="">全部</option>
+        </select>
+    </div>
+    <div class="form-group">
+        <label class="control-label" for="q">关键字：</label>
+        <input name="q" type="text" id="q" value="@Request["q"]" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label for="dtStart" class="control-label">时间：</label>
+        <input name="dtStart" type="date" id="dtStart" class="Wdate form-control" style="width: 86px;" onfocus="WdatePicker({autoPickDate:true,skin:'default',lang:'auto',readOnly:true})" />
+    </div>
+    <div class="form-group">
+        <label class="control-label" for="dtEnd">至</label>
+        <input name="dtEnd" type="date" id="dtEnd" class="Wdate form-control" style="width: 86px;" onfocus="WdatePicker({autoPickDate:true,skin:'default',lang:'auto',readOnly:true})" />
+    </div>
+    <input id="btnSearch" value="查询" type="submit" class="btn btn-primary" />
+</div>

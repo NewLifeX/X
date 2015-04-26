@@ -28,9 +28,18 @@ namespace NewLife.Cube
 
             // 用于显示的列
             var fields = Entity<TEntity>.Meta.Fields;
-            fields = fields.Where(e => e.Type != typeof(String) || e.Length > 0 && e.Length <= 200).ToArray();
+            // 长字段和密码字段不显示
+            fields = fields.Where(e => e.Type != typeof(String) ||
+                e.Length > 0 && e.Length <= 200
+                && !e.Name.EqualIgnoreCase("password", "pass")
+                ).ToArray();
             ViewBag.Fields = fields;
 
+            return IndexView(p);
+        }
+
+        protected virtual ActionResult IndexView(Pager p)
+        {
             var list = Entity<TEntity>.Search(p["Q"], p);
 
             return View(list);

@@ -5,75 +5,14 @@
 @model XCode.EntityList<UserX>
 @{
     var fact = ViewBag.Factory as IEntityOperate;
-    var grid = ViewBag.Grid;
-    // 字段列表，可以排序和隐藏
-    //var fields = fact.Fields;
-    var fs = "ID,Name,DisplayName,Mail,Phone,Code,RoleID,Logins,LastLogin,LastLoginIP,Enable";
-    var fields = fs.Split(",").Select(f => fact.Table.FindByName(f) as FieldItem).Where(e => e != null).ToArray();
+    var page = ViewBag.Page as Pager;
 }
 <div class="panel panel-default">
     <div class="panel-body">
-        <div class="form-inline">
-            <div class="form-group">
-                <label for="ddlCategory" class="control-label">类别：</label>
-                <select name="ddlCategory" id="ddlCategory" class="form-control" onchange="$(':submit').click();">
-                    <option value="">全部</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label class="control-label" for="ddlAdmin">管理员：</label>
-                <select name="ddlAdminID" id="ddlAdminID" class="form-control" onchange="$(':submit').click();">
-                    <option value="">全部</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label class="control-label" for="q">关键字：</label>
-                <input name="q" type="text" id="q" value="@Request["q"]" class="form-control" />
-            </div>
-            <div class="form-group">
-                <label for="dtStart" class="control-label">时间：</label>
-                <input name="dtStart" type="date" id="dtStart" class="Wdate form-control" style="width: 86px;" onfocus="WdatePicker({autoPickDate:true,skin:'default',lang:'auto',readOnly:true})" />
-            </div>
-            <div class="form-group">
-                <label class="control-label" for="dtEnd">至</label>
-                <input name="dtEnd" type="date" id="dtEnd" class="Wdate form-control" style="width: 86px;" onfocus="WdatePicker({autoPickDate:true,skin:'default',lang:'auto',readOnly:true})" />
-            </div>
-            <input id="btnSearch" value="查询" type="submit" class="btn btn-primary" />
-        </div>
+        @Html.Partial("_List_Toolbar")
     </div>
     <div class="table-responsive">
-        <table class="table table-bordered table-hover table-striped table-condensed">
-            <thead>
-                <tr>
-                    <th><a href="?Sort=ID">编号</a></th>
-                    <th><a href="?Sort=Name">名称</a></th>
-                    <th><a href="?Sort=DisplayName">显示名</a></th>
-                    <th><a href="?Sort=Mail">邮件</a></th>
-                    <th><a href="?Sort=Phone">电话</a></th>
-                    <th><a href="?Sort=Code">唯一代码</a></th>
-                    <th><a href="?Sort=RoleID">角色</a></th>
-                    <th><a href="?Sort=Logins">登录次数</a></th>
-                    <th><a href="?Sort=LastLogin">最后登录</a></th>
-                    <th><a href="?Sort=LastLoginIP">最后登录IP</a></th>
-                    <th><a href="?Sort=Enable">是否启用</a></th>
-                    <th style="width: 150px;">操作</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var entity in Model)
-                {
-                    <tr>
-                        @foreach (var item in fields)
-                        {
-                            @Html.Partial("_List_Data_Item", new Pair(entity, item))
-                        }
-                        <td>
-                            @Html.Partial("_List_Data_Action", entity.ID)
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+        @Html.Partial("_List_Data")
     </div>
     <div class="panel-footer">
         <p>

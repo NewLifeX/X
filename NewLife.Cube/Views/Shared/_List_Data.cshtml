@@ -1,11 +1,11 @@
 ﻿@using NewLife;
 @using NewLife.Web;
 @using XCode;
+@using XCode.Configuration;
 @{
     var fact = ViewBag.Factory as IEntityOperate;
     var page = ViewBag.Page as Pager;
-    // 字段列表，可以排序和隐藏
-    var fields = fact.Fields;
+    var fields = ViewBag.Fields as FieldItem[];
 }
 <table class="table table-bordered table-hover table-striped table-condensed">
     <thead>
