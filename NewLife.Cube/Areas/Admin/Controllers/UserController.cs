@@ -22,7 +22,7 @@ namespace NewLife.Cube.Admin.Controllers
             for (int i = 0; i < fields.Length; i++)
             {
                 if (fields[i].Name.EqualIgnoreCase("RoleID"))
-                    fields[i] = UserX.Meta.Factory.AllFields.FirstOrDefault(e => e.Name == "RoleName");
+                    fields[i] = UserX.Meta.AllFields.FirstOrDefault(e => e.Name == "RoleName");
             }
 
             return base.IndexView(p);
