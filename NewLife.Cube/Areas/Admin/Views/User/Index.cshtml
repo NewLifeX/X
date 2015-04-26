@@ -1,6 +1,15 @@
-﻿@model XCode.EntityList<UserX>
+﻿@using NewLife;
+@using NewLife.Web;
+@using XCode;
+@using XCode.Configuration;
+@model XCode.EntityList<UserX>
 @{
+    var fact = ViewBag.Factory as IEntityOperate;
     var grid = ViewBag.Grid;
+    // 字段列表，可以排序和隐藏
+    //var fields = fact.Fields;
+    var fs = "ID,Name,DisplayName,Mail,Phone,Code,RoleID,Logins,LastLogin,LastLoginIP,Enable";
+    var fields = fs.Split(",").Select(f => fact.Table.FindByName(f) as FieldItem).Where(e => e != null).ToArray();
 }
 <div class="panel panel-default">
     <div class="panel-body">
@@ -18,8 +27,8 @@
                 </select>
             </div>
             <div class="form-group">
-                <label class="control-label" for="key">关键字：</label>
-                <input name="key" type="text" id="key" value="@Request["key"]" class="form-control" />
+                <label class="control-label" for="q">关键字：</label>
+                <input name="q" type="text" id="q" value="@Request["q"]" class="form-control" />
             </div>
             <div class="form-group">
                 <label for="dtStart" class="control-label">时间：</label>
@@ -54,17 +63,10 @@
                 @foreach (var entity in Model)
                 {
                     <tr>
-                        <td>@entity.ID</td>
-                        <td>@entity.Name</td>
-                        <td>@entity.DisplayName</td>
-                        <td>@entity.Mail</td>
-                        <td>@entity.Phone</td>
-                        <td>@entity.Code</td>
-                        <td>@entity.RoleName</td>
-                        <td>@entity.Logins</td>
-                        <td>@entity.LastLogin.ToFullString()</td>
-                        <td>@entity.LastLoginIP</td>
-                        <td>@entity.Enable</td>
+                        @foreach (var item in fields)
+                        {
+                            @Html.Partial("_List_Data_Item", new Pair(entity, item))
+                        }
                         <td>
                             @Html.Partial("_List_Data_Action", entity.ID)
                         </td>

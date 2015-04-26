@@ -2,7 +2,7 @@
 @using NewLife.Web;
 @using XCode;
 @{
-    var fact = EntityFactory.CreateOperate(ViewData.ModelMetadata.ModelType.GetGenericArguments()[0]);
+    var fact = ViewBag.Factory as IEntityOperate;
     var page = ViewBag.Page as Pager;
     // 字段列表，可以排序和隐藏
     var fields = fact.Fields;

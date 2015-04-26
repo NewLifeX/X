@@ -3,7 +3,7 @@
 @using XCode.Configuration
 @{
     Layout = "~/Views/Shared/_Ace_Layout.cshtml";
-    var fact = EntityFactory.CreateOperate(ViewData.ModelMetadata.ModelType);
+    var fact = ViewBag.Factory as IEntityOperate;
     var isNew = (Model as IEntity).IsNullKey;
 }
 

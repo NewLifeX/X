@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Web.Mvc;
 using NewLife.Web;
 using XCode;
+using System.Linq;
 
 namespace NewLife.Cube
 {
@@ -17,28 +18,18 @@ namespace NewLife.Cube
             ViewBag.Title = Entity<TEntity>.Meta.Table.Description + "管理";
         }
 
-        ///// <summary>执行操作之前</summary>
-        ///// <param name="filterContext"></param>
-        //protected override void OnActionExecuting(ActionExecutingContext filterContext)
-        //{
-        //    var methodInfo = ((ReflectedActionDescriptor)filterContext.ActionDescriptor).MethodInfo;
-        //    foreach (var p in methodInfo.GetParameters())
-        //    {
-        //        // 把所有值类型参数设为默认值，避免Int32等报null错误
-        //        if (p.ParameterType.IsValueType)
-        //        {
-        //            filterContext.ActionParameters[p.Name] = Activator.CreateInstance(p.ParameterType);
-        //        }
-        //    }
-        //}
-
         /// <summary>数据列表首页</summary>
         /// <returns></returns>
         [DisplayName("数据列表")]
-        //public virtual ActionResult Index(String q, String sort, Int32 desc = 0, Int32 pageIndex = 1, Int32 pageSize = 20)
         public virtual ActionResult Index(Pager p)
         {
             ViewBag.Page = p;
+            ViewBag.Factory = Entity<TEntity>.Meta.Factory;
+
+            // 用于显示的列
+            var fields = Entity<TEntity>.Meta.Fields;
+            fields = fields.Where(e => e.Type != typeof(String) || e.Length > 0 && e.Length <= 200).ToArray();
+            ViewBag.Fields = fields;
 
             var list = Entity<TEntity>.Search(p["Q"], p);
 
@@ -59,11 +50,15 @@ namespace NewLife.Cube
         }
 
         /// <summary>表单，添加/修改</summary>
-        /// <param name="id"></param>
+        /// <param name="id">主键。可能为空（表示添加），所以用字符串而不是整数</param>
         /// <returns></returns>
         [DisplayName("数据表单")]
         public virtual ActionResult Form(String id)
         {
+            // 用于显示的列
+            ViewBag.Fields = Entity<TEntity>.Meta.Fields;
+            ViewBag.Factory = Entity<TEntity>.Meta.Factory;
+
             var entity = Entity<TEntity>.FindByKeyForEdit(id);
 
             return View(entity);
