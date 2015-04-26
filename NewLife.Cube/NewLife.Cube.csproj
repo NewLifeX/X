@@ -128,6 +128,28 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Content\My97DatePicker\calendar.js" />
+    <Content Include="Content\My97DatePicker\lang\en.js" />
+    <Content Include="Content\My97DatePicker\lang\zh-cn.js" />
+    <Content Include="Content\My97DatePicker\lang\zh-tw.js" />
+    <Content Include="Content\My97DatePicker\skin\blue\bg.jpg" />
+    <Content Include="Content\My97DatePicker\skin\blue\btnbg.jpg" />
+    <Content Include="Content\My97DatePicker\skin\blue\datepicker.css" />
+    <Content Include="Content\My97DatePicker\skin\blue\down.jpg" />
+    <Content Include="Content\My97DatePicker\skin\blue\left.gif" />
+    <Content Include="Content\My97DatePicker\skin\blue\navLeft.gif" />
+    <Content Include="Content\My97DatePicker\skin\blue\navRight.gif" />
+    <Content Include="Content\My97DatePicker\skin\blue\qs.jpg" />
+    <Content Include="Content\My97DatePicker\skin\blue\right.gif" />
+    <Content Include="Content\My97DatePicker\skin\blue\up.jpg" />
+    <Content Include="Content\My97DatePicker\skin\datePicker.gif" />
+    <Content Include="Content\My97DatePicker\skin\default\datepicker.css" />
+    <Content Include="Content\My97DatePicker\skin\default\img.gif" />
+    <Content Include="Content\My97DatePicker\skin\WdatePicker.css" />
+    <Content Include="Content\My97DatePicker\skin\whyGreen\bg.jpg" />
+    <Content Include="Content\My97DatePicker\skin\whyGreen\datepicker.css" />
+    <Content Include="Content\My97DatePicker\skin\whyGreen\img.gif" />
+    <Content Include="Content\My97DatePicker\WdatePicker.js" />
     <Content Include="Content\themes\base\images\ui-bg_flat_0_aaaaaa_40x100.png" />
     <Content Include="Content\themes\base\images\ui-bg_flat_75_ffffff_40x100.png" />
     <Content Include="Content\themes\base\images\ui-bg_glass_55_fbf9ee_1x400.png" />
