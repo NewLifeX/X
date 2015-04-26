@@ -12,10 +12,10 @@ namespace NewLife.Cube.Admin.Controllers
     [DisplayName("菜单")]
     public class MenuController : EntityController<Menu>
     {
-        /// <summary>首页</summary>
+        /// <summary>列表页视图。子控制器可重载，以传递更多信息给视图，比如修改要显示的列</summary>
         /// <param name="p"></param>
         /// <returns></returns>
-        public override ActionResult Index(Pager p)
+        protected override ActionResult IndexView(Pager p)
         {
             // 一页显示全部菜单，取自缓存
             p.PageSize = 10000;

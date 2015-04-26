@@ -3,7 +3,7 @@
 @using XCode.Membership;
 @model EntityList<Menu>
 @{
-    var fact = EntityFactory.CreateOperate(ViewData.ModelMetadata.ModelType.GetGenericArguments()[0]);
+    var fact = ViewBag.Factory as IEntityOperate;
     var page = ViewBag.Page as Pager;
 }
 <div class="panel panel-default">
@@ -19,6 +19,8 @@
                     <th><a href="?Sort=Sort">排序</a></th>
                     <th><a href="?Sort=Visible">是否可见</a></th>
                     <th><a href="?Sort=Necessary">必要的菜单</a></th>
+                    <th>升</th>
+                    <th>降</th>
                     <th>操作</th>
                 </tr>
             </thead>
@@ -34,6 +36,8 @@
                         <td>@entity.Sort</td>
                         @Html.Partial("_List_Data_Item", new Pair(entity, fact.Table.FindByName("Visible")))
                         @Html.Partial("_List_Data_Item", new Pair(entity, fact.Table.FindByName("Necessary")))
+                        <td><span class="glyphicon glyphicon-arrow-up" style="color: green;"></span></td>
+                        <td><span class="glyphicon glyphicon-arrow-down" style="color: red;"></span></td>
                         <td>
                             @Html.Partial("_List_Data_Action", entity.ID)
                         </td>
