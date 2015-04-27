@@ -104,23 +104,15 @@
     @RenderSection("scripts", required: false)
 
     <!--日历控件支持-->
-    @*<script src="~/Content/My97DatePicker/WdatePicker.js"></script>*@
-    <script src="~/Content/DateTimePicker/bootstrap-datetimepicker.min.js"></script>
-    <script src="~/Content/DateTimePicker/locales/bootstrap-datetimepicker.zh-CN.js"></script>
+    <script src="~/Content/My97DatePicker/WdatePicker.js"></script>
+    @*<script src="~/Content/DateTimePicker/bootstrap-datetimepicker.min.js"></script>
+    <script src="~/Content/DateTimePicker/locales/bootstrap-datetimepicker.zh-CN.js"></script>*@
     <script>
         $(function () {
             // 给所有type=date的input加上事件
-            var dt = $("input[type=date]");
-            if (dt.val("data-date-format")) {
-                dt.data("data-date-format", "yyyy-mm-dd hh:ii:ss");
+            if (!dt.data("click")) {
+                dt.click(function () { WdatePicker({ skin: 'whyGreen' }); });
             }
-            dt.datetimepicker({
-                format: 'yyyy-mm-dd hh:ii:ss',
-                minView: 2,
-                autoclose: true,
-                language: 'zh-CN',
-                todayBtn: true
-            });
         });
     </script>
 </body>
