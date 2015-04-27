@@ -65,8 +65,8 @@
                 {
                     if (item.ID != 0)
                     {
-                        <a href="@(item.Url!=null? Url.Content(item.Url):"#")" class="h4">@item.DisplayName</a>
-                        <text>&nbsp;/&nbsp;</text>
+            <a href="@(item.Url!=null? Url.Content(item.Url):"#")" class="h4">@item.DisplayName</a>
+            <text>&nbsp;/&nbsp;</text>
                     }
                 }
             }
@@ -119,6 +119,17 @@
         //    }
         //});
         $(function () {
+            $('input[type=date]').each(function () {
+                var df = $(this).attr('dateformat');
+                if (!df) {
+                    $(this).attr('dateformat', 'yyyy-mm-dd hh:ii:ss');
+                }
+                else {
+                    // 把C#标准格式化替换为控件格式
+                    df = df.replace('mm', 'ii').replace('MM', 'mm').replace('HH', 'hh');
+                    $(this).attr('dateformat', df);
+                }
+            });
             $("[dateformat]").each(function () {
                 $(this).datetimepicker({
                     format: $(this).attr("dateformat"),

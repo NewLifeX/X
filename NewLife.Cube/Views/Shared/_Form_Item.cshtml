@@ -24,7 +24,7 @@
             @Html.CheckBox(item.Name, (Boolean)entity[item.Name])
             break;
         case TypeCode.DateTime:
-        <span class="input-group-addon"><i class="glyphicon glyphicon-th"></i></span>
+        <span class="input-group-addon"><i class="fa fa-calendar"></i></span>
             {
                 var dt = (DateTime)entity[item.Name];
                 @Html.TextBox(item.Name, dt == DateTime.MinValue ? null : dt.ToFullString(), new { @class = "form-control date form_datetime", @type = "date" })

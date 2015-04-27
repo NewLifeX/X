@@ -20,16 +20,15 @@
     </div>
     <div class="form-group">
         <label class="control-label" for="q">关键字：</label>
-        <input name="q" type="text" id="q" value="@Request["q"]" class="form-control" />
+        <input name="q" type="date" id="q" value="@Request["q"]" class="form-control" />
     </div>
     <div class="form-group">
         <label for="dtStart" class="control-label">时间：</label>
-
-        <input name="dtStart" type="text" id="dtStart" dateformat="yyyy-mm-dd" class="form_datetime" />
+        <input name="dtStart" type="date" id="dtStart" dateformat="yyyy-MM-dd" class="form-control form_datetime" />
     </div>
     <div class="form-group">
         <label class="control-label" for="dtEnd">至</label>
-        <input name="dtEnd" type="text" dateformat="yyyy-mm-dd" id="dtEnd" class="form_datetime" />
+        <input name="dtEnd" type="text" dateformat="yyyy-MM-dd" id="dtEnd" class="form-control form_datetime" />
     </div>
     <input id="btnSearch" value="查询" type="submit" class="btn btn-primary" />
 </div>
