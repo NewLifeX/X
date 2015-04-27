@@ -105,8 +105,8 @@
 
     <!--日历控件支持-->
     @*<script src="~/Content/My97DatePicker/WdatePicker.js"></script>*@
-    @*<script src="~/Content/DateTimePicker/bootstrap-datetimepicker.min.js"></script>
-    <script src="~/Content/DateTimePicker/locales/bootstrap-datetimepicker.zh-CN.js"></script>*@
+    <script src="~/Content/DateTimePicker/bootstrap-datetimepicker.min.js"></script>
+    <script src="~/Content/DateTimePicker/locales/bootstrap-datetimepicker.zh-CN.js"></script>
     <script>
         //$(function () {
         //    // 给所有type=date的input加上事件
@@ -118,13 +118,19 @@
         //        dt.click(function () { WdatePicker({ skin: 'whyGreen', dateFmt: dt.data('datd-date-format') }); });
         //    }
         //});
-        //$(function () {
-        //    $("[dateformat]").each(function () {
-        //        $(this).datetimepicker({
-        //            format: "yyyy - mm - dd"
-        //        })
-        //    })
-        //});
+        $(function () {
+            $("[dateformat]").each(function () {
+                $(this).datetimepicker({
+                    format: $(this).attr("dateformat"),
+                    autoclose: true,
+                    language: "zh-CN",
+                    forceParse: false,
+                    startView: 2,
+                    minView: 2,
+                })
+                console.trace($(this));
+            })
+        });
     </script>
 </body>
 </html>
