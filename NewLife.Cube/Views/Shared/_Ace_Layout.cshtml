@@ -104,20 +104,27 @@
     @RenderSection("scripts", required: false)
 
     <!--日历控件支持-->
-    <script src="~/Content/My97DatePicker/WdatePicker.js"></script>
+    @*<script src="~/Content/My97DatePicker/WdatePicker.js"></script>*@
     @*<script src="~/Content/DateTimePicker/bootstrap-datetimepicker.min.js"></script>
     <script src="~/Content/DateTimePicker/locales/bootstrap-datetimepicker.zh-CN.js"></script>*@
     <script>
-        $(function () {
-            // 给所有type=date的input加上事件
-            var dt = $('input[type=date]');
-            if (!dt.data('datd-date-format')) {
-                dt.data('datd-date-format', 'yyyy-MM-dd HH:mm:ss');
-            }
-            if (!dt.data('click')) {
-                dt.click(function () { WdatePicker({ skin: 'whyGreen', dateFmt: dt.data('datd-date-format') }); });
-            }
-        });
+        //$(function () {
+        //    // 给所有type=date的input加上事件
+        //    var dt = $('input[type=date]');
+        //    if (!dt.data('datd-date-format')) {
+        //        dt.data('datd-date-format', 'yyyy-MM-dd HH:mm:ss');
+        //    }
+        //    if (!dt.data('click')) {
+        //        dt.click(function () { WdatePicker({ skin: 'whyGreen', dateFmt: dt.data('datd-date-format') }); });
+        //    }
+        //});
+        //$(function () {
+        //    $("[dateformat]").each(function () {
+        //        $(this).datetimepicker({
+        //            format: "yyyy - mm - dd"
+        //        })
+        //    })
+        //});
     </script>
 </body>
 </html>

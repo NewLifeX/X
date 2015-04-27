@@ -24,11 +24,12 @@
     </div>
     <div class="form-group">
         <label for="dtStart" class="control-label">时间：</label>
-        <input name="dtStart" type="date" id="dtStart" class="Wdate form-control" style="width: 86px;" onfocus="WdatePicker({autoPickDate:true,skin:'default',lang:'auto',readOnly:true})" />
+
+        <input name="dtStart" type="date" id="dtStart" dateformat="yyyy-mm-dd" class="form_datetime" />
     </div>
     <div class="form-group">
         <label class="control-label" for="dtEnd">至</label>
-        <input name="dtEnd" type="date" id="dtEnd" class="Wdate form-control" style="width: 86px;" onfocus="WdatePicker({autoPickDate:true,skin:'default',lang:'auto',readOnly:true})" />
+        <input name="dtEnd" type="date" dateformat="yyyy-mm-dd" id="dtEnd" class="form_datetime"  />
     </div>
     <input id="btnSearch" value="查询" type="submit" class="btn btn-primary" />
 </div>
