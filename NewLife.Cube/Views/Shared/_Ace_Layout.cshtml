@@ -51,27 +51,7 @@
     <link rel="stylesheet" href="~/bootstrap/css/bootstrap-theme.min.css" type="text/css" />
     <link rel="stylesheet" href="~/bootstrap/css/bootstrap-responsive.min.css" type="text/css" />
 
-    <!-- basic scripts -->
-    <!--[if !IE]> -->
-    <script type="text/javascript">
-        window.jQuery || document.write("<script src='@Url.Content("~/bootstrap/js/jquery-2.1.3.min.js")'>" + "<" + "/script>");
-    </script>
-
-    <!-- <![endif]-->
-    <!--[if IE]>
-    <script type="text/javascript">
-        window.jQuery || document.write("<script src='@Url.Content("~/bootstrap/js/jquery1x.min.js")'>"+"<"+"/script>");
-    </script>
-    <![endif]-->
-    <script type="text/javascript">
-        if ('ontouchstart' in document.documentElement) document.write("<script src='~/js/jquery.mobile.custom.min.js'>" + "<" + "/script>");
-    </script>
-    <script src="~/bootstrap/js/bootstrap.min.js"></script>
-
-    <!-- 下拉列表 -->
-    <link rel="stylesheet" href="~/bootstrap/css/bootstrap-select.min.css" type="text/css" />
-    <script src="~/bootstrap/js/bootstrap-select.min.js"></script>
-    <script src="~/bootstrap/js/i18n/defaults-zh_CN.min.js"></script>
+    <link rel="stylesheet" href="~/Content/DateTimePicker/bootstrap-datetimepicker.min.css" type="text/css" />
 
     @RenderSection("css", required: false)
 </head>
@@ -98,17 +78,46 @@
             </section>
         </div>
     </div>
+    <!-- basic scripts -->
+    <!--[if !IE]> -->
+    <script type="text/javascript">
+        window.jQuery || document.write("<script src='@Url.Content("~/bootstrap/js/jquery-2.1.3.min.js")'>" + "<" + "/script>");
+    </script>
+
+    <!-- <![endif]-->
+    <!--[if IE]>
+    <script type="text/javascript">
+        window.jQuery || document.write("<script src='@Url.Content("~/bootstrap/js/jquery1x.min.js")'>"+"<"+"/script>");
+    </script>
+    <![endif]-->
+    <script type="text/javascript">
+        if ('ontouchstart' in document.documentElement) document.write("<script src='~/js/jquery.mobile.custom.min.js'>" + "<" + "/script>");
+    </script>
+    <script src="~/bootstrap/js/bootstrap.min.js"></script>
+
+    <!-- 下拉列表 -->
+    <link rel="stylesheet" href="~/bootstrap/css/bootstrap-select.min.css" type="text/css" />
+    <script src="~/bootstrap/js/bootstrap-select.min.js"></script>
+    <script src="~/bootstrap/js/i18n/defaults-zh_CN.min.js"></script>
+
     @Scripts.Render("~/bootstrap_js")
     @RenderSection("scripts", required: false)
 
     <!--日历控件支持-->
-    <script src="~/Content/My97DatePicker/WdatePicker.js"></script>
+    @*<script src="~/Content/My97DatePicker/WdatePicker.js"></script>*@
+    <script src="~/Content/DateTimePicker/bootstrap-datetimepicker.min.js"></script>
+    <script src="~/Content/DateTimePicker/locales/bootstrap-datetimepicker.zh-CN.js"></script>
     <script>
         // 给所有type=date的input加上事件
-        var dt = $("input[type=date]");
-        if (!dt.data("click")) {
-            dt.click(function () { WdatePicker({ skin: 'whyGreen' }); });
+        var dt = $(".form_datetime");
+        if (!dt.data("data-date-format")) {
+            dt.data("data-date-format", "yyyy-mm-dd hh:ii:ss");
         }
+        dt.datetimepicker({
+            format: 'yyyy-mm-dd hh:ii:ss',
+            autoclose: true,
+            language: 'zh-CN',
+        });
     </script>
 </body>
 </html>

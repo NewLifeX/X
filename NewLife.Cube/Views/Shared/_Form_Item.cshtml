@@ -11,7 +11,8 @@
         @Html.CheckBox(item.Name, (Boolean)entity[item.Name])
         break;
     case TypeCode.DateTime:
-    @Html.TextBox(item.Name, ((DateTime)entity[item.Name]).ToFullString(), new { @class = "form-control" })
+    @Html.TextBox(item.Name, ((DateTime)entity[item.Name]).ToFullString(), new { @class = "form-control date form_datetime" })
+    <span class="add-on"><i class="icon-th"></i></span>
         break;
     case TypeCode.Decimal:
     <span class="input-group-addon">￥</span>

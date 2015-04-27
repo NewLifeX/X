@@ -128,6 +128,13 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Content\DateTimePicker\bootstrap-datetimepicker.css" />
+    <Content Include="Content\DateTimePicker\bootstrap-datetimepicker.js" />
+    <Content Include="Content\DateTimePicker\bootstrap-datetimepicker.min.css" />
+    <Content Include="Content\DateTimePicker\bootstrap-datetimepicker.min.js" />
+    <Content Include="Content\DateTimePicker\locales\bootstrap-datetimepicker.es.js" />
+    <Content Include="Content\DateTimePicker\locales\bootstrap-datetimepicker.zh-CN.js" />
+    <Content Include="Content\DateTimePicker\locales\bootstrap-datetimepicker.zh-TW.js" />
     <Content Include="Content\My97DatePicker\calendar.js" />
     <Content Include="Content\My97DatePicker\lang\en.js" />
     <Content Include="Content\My97DatePicker\lang\zh-cn.js" />
