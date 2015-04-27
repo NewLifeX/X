@@ -43,7 +43,7 @@
                 {
                     <div class="form-group">
                         <label class="control-label col-md-2">@item.DisplayName</label>
-                        <div class="@GetWidth(item)">
+                        <div class="input-group @GetWidth(item)">
                             @Html.Partial("_Form_Item", new Pair(Model, item))
                             <p class="help-block">@(item.Description.TrimStart(item.DisplayName).TrimStart("。"))</p>
                         </div>

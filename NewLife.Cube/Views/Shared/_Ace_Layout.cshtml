@@ -108,15 +108,19 @@
     <script src="~/Content/DateTimePicker/bootstrap-datetimepicker.min.js"></script>
     <script src="~/Content/DateTimePicker/locales/bootstrap-datetimepicker.zh-CN.js"></script>
     <script>
-        // 给所有type=date的input加上事件
-        var dt = $(".form_datetime");
-        if (!dt.data("data-date-format")) {
-            dt.data("data-date-format", "yyyy-mm-dd hh:ii:ss");
-        }
-        dt.datetimepicker({
-            format: 'yyyy-mm-dd hh:ii:ss',
-            autoclose: true,
-            language: 'zh-CN',
+        $(function () {
+            // 给所有type=date的input加上事件
+            var dt = $("input[type=date]");
+            if (dt.val("data-date-format")) {
+                dt.data("data-date-format", "yyyy-mm-dd hh:ii:ss");
+            }
+            dt.datetimepicker({
+                format: 'yyyy-mm-dd hh:ii:ss',
+                minView: 2,
+                autoclose: true,
+                language: 'zh-CN',
+                todayBtn: true
+            });
         });
     </script>
 </body>
