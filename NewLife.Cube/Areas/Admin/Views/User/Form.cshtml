@@ -5,23 +5,6 @@
     var fact = EntityFactory.CreateOperate(ViewData.ModelMetadata.ModelType);
     var isNew = (Model as IEntity).IsNullKey;
 }
-@functions {
-
-    String GetWidth(FieldItem item)
-    {
-        switch (Type.GetTypeCode(item.Type))
-        {
-            case TypeCode.Boolean:
-                return "col-md-6";
-            case TypeCode.String:
-                if (item.Length <= 0 || item.Length > 300)
-                    return "col-md-6";
-                else
-                    return "col-md-6";
-        }
-        return "col-md-2";
-    }
-}
 <div class="panel panel-default">
     <div class="form-horizontal">
         @if (ViewBag.StatusMessage != null)
@@ -40,17 +23,7 @@
                 if (!item.PrimaryKey)
                 {
                     <div class="form-group">
-                        <label class="control-label col-md-2">@item.DisplayName</label>
-                        <div class="input-group @GetWidth(item)">
-                            @if (item.Name.Contains("Phone"))
-                            {
-                                <span class="input-group-addon">
-                                    <span class="glyphicon glyphicon-phone-alt"></span>
-                                </span>
-                            }
-                            @Html.Partial("_Form_Item", new Pair(Model, item))
-                            <p class="help-block">@(item.Description.TrimStart(item.DisplayName).TrimStart("。"))</p>
-                        </div>
+                        @Html.Partial("_Form_Item", new Pair(Model, item))
                     </div>
                 }
             }

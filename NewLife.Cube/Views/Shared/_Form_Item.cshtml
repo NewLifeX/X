@@ -4,50 +4,80 @@
     var pair = Model as Pair;
     var entity = pair.First as IEntity;
     var item = pair.Second as FieldItem;
-}
-@switch (Type.GetTypeCode(item.Type))
-{
-    case TypeCode.Boolean:
-        @Html.CheckBox(item.Name, (Boolean)entity[item.Name])
-        break;
-    case TypeCode.DateTime:
-    <span class="input-group-addon"><i class="glyphicon glyphicon-th"></i></span>
+
+    var width = 2;
+    switch (Type.GetTypeCode(item.Type))
     {
-        var dt = (DateTime)entity[item.Name];
-        @Html.TextBox(item.Name, dt == DateTime.MinValue ? null : dt.ToFullString(), new { @class = "form-control date form_datetime", @type="date" })
+        case TypeCode.Boolean:
+            width = 6;
+            break;
+        case TypeCode.String:
+            width = 6;
+            break;
     }
-        break;
-    case TypeCode.Decimal:
-    <span class="input-group-addon">￥</span>
-    @Html.TextBox(item.Name, entity[item.Name], new { @class = "form-control" })
-        break;
-    case TypeCode.Single:
-    case TypeCode.Double:
-    @Html.TextBox(item.Name, entity[item.Name], new { @class = "form-control" })
-        break;
-    case TypeCode.Int16:
-    case TypeCode.Int32:
-    case TypeCode.Int64:
-    case TypeCode.UInt16:
-    case TypeCode.UInt32:
-    case TypeCode.UInt64:
-    @Html.TextBox(item.Name, (Object)entity[item.Name], new { @class = "text-box single-line form-control", @type = "number" })
-        break;
-    case TypeCode.String:
-        if (item.Name.Contains("Pass"))
-        {
-            @Html.Password(item.Name, (String)entity[item.Name], new { @class = "form-control" })
-        }
-        else if (item.Length <= 0 || item.Length > 300)
-        {
-            @Html.TextArea(item.Name, (String)entity[item.Name], new { @class = "form-control" })
-        }
-        else
-        {
-            @Html.TextBox(item.Name, (String)entity[item.Name], new { @class = "form-control" })
-        }
-        break;
-    default:
-    @Html.Editor(item.Name)
-        break;
 }
+<label class="control-label col-md-2">@item.DisplayName</label>
+<div class="input-group col-md-@width">
+    @switch (Type.GetTypeCode(item.Type))
+    {
+        case TypeCode.Boolean:
+            @Html.CheckBox(item.Name, (Boolean)entity[item.Name])
+            break;
+        case TypeCode.DateTime:
+        <span class="input-group-addon"><i class="glyphicon glyphicon-th"></i></span>
+            {
+                var dt = (DateTime)entity[item.Name];
+                @Html.TextBox(item.Name, dt == DateTime.MinValue ? null : dt.ToFullString(), new { @class = "form-control date form_datetime", @type = "date" })
+            }
+            break;
+        case TypeCode.Decimal:
+        <span class="input-group-addon">￥</span>
+        @Html.TextBox(item.Name, entity[item.Name], new { @class = "form-control" })
+            break;
+        case TypeCode.Single:
+        case TypeCode.Double:
+        @Html.TextBox(item.Name, entity[item.Name], new { @class = "form-control" })
+            break;
+        case TypeCode.Int16:
+        case TypeCode.Int32:
+        case TypeCode.Int64:
+        case TypeCode.UInt16:
+        case TypeCode.UInt32:
+        case TypeCode.UInt64:
+        @Html.TextBox(item.Name, (Object)entity[item.Name], new { @class = "text-box single-line form-control", @type = "number" })
+            break;
+        case TypeCode.String:
+            if (item.Name.EqualIgnoreCase("Pass", "Password"))
+            {
+                @Html.Password(item.Name, (String)entity[item.Name], new { @class = "form-control" })
+            }
+            else if (item.Name.EqualIgnoreCase("Phone"))
+            {
+                <span class="input-group-addon"><i class="glyphicon glyphicon-phone-alt"></i></span>
+                @Html.TextBox(item.Name, (String)entity[item.Name], new { @class = "form-control", @type = "phone" })
+            }
+            else if (item.Name.EqualIgnoreCase("email", "mail"))
+            {
+                <span class="input-group-addon"><i class="glyphicon glyphicon-envelope"></i></span>
+                @Html.TextBox(item.Name, (String)entity[item.Name], new { @class = "form-control", @type = "email" })
+            }
+            else if (item.Name.EndsWithIgnoreCase("url"))
+            {
+                <span class="input-group-addon"><i class="glyphicon glyphicon-home"></i></span>
+                @Html.TextBox(item.Name, (String)entity[item.Name], new { @class = "form-control", @type = "url" })
+            }
+            else if (item.Length <= 0 || item.Length > 300)
+            {
+                @Html.TextArea(item.Name, (String)entity[item.Name], new { @class = "form-control" })
+            }
+            else
+            {
+                @Html.TextBox(item.Name, (String)entity[item.Name], new { @class = "form-control" })
+            }
+            break;
+        default:
+        @Html.Editor(item.Name)
+            break;
+    }
+    <p class="help-block">@(item.Description.TrimStart(item.DisplayName).TrimStart("。"))</p>
+</div>
