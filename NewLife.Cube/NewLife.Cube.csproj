@@ -128,6 +128,14 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Content\ace\css\ace-fonts.css" />
+    <Content Include="Content\ace\css\ace-fonts.min.css" />
+    <Content Include="Content\ace\css\ace-ie.min.css" />
+    <Content Include="Content\ace\css\ace-part2.min.css" />
+    <Content Include="Content\ace\css\ace.css" />
+    <Content Include="Content\ace\css\ace.min.css" />
+    <Content Include="Content\ace\js\ace-extra.js" />
+    <Content Include="Content\ace\js\ace-extra.min.js" />
     <Content Include="Content\bootstrap-switch\bootstrap-switch.css" />
     <Content Include="Content\bootstrap-switch\bootstrap-switch.js" />
     <Content Include="Content\bootstrap-switch\bootstrap-switch.min.css" />
