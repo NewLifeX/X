@@ -35,12 +35,6 @@
     <![endif]-->
     <!-- inline styles related to this page -->
 
-    <!-- bootstrap & fontawesome -->
-    <link rel="stylesheet" href="~/bootstrap/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/bootstrap/css/font-awesome.min.css" />
-
-    <link rel="stylesheet" href="~/bootstrap/css/bootstrap-theme.min.css" type="text/css" />
-    <link rel="stylesheet" href="~/bootstrap/css/bootstrap-responsive.min.css" type="text/css" />
     <!-- 下拉列表 -->
     <link rel="stylesheet" href="~/bootstrap/css/bootstrap-select.min.css" type="text/css" />
 
@@ -49,6 +43,13 @@
     <link rel="stylesheet" href="~/Content/bootstrap-switch/bootstrap-switch.min.css" type="text/css" />
 
     @RenderSection("css", required: false)
+
+    <!-- 最后引入基本样式 -->
+    <link rel="stylesheet" href="~/Content/bootstrap/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/Content/bootstrap/css/font-awesome.min.css" />
+
+    <link rel="stylesheet" href="~/Content/bootstrap/css/bootstrap-theme.min.css" type="text/css" />
+    <link rel="stylesheet" href="~/Content/bootstrap/css/bootstrap-responsive.min.css" type="text/css" />
 </head>
 <body>
     <div class="panel panel-default">
@@ -73,22 +74,17 @@
             </section>
         </div>
     </div>
-    <!-- 基本脚本 -->
-    <script src="~/bootstrap/js/jquery-2.1.3.min.js"></script>
-
-    <script type="text/javascript">
-        if ('ontouchstart' in document.documentElement) document.write("<script src='~/bootstrap/js/jquery.mobile.custom.min.js'>" + "<" + "/script>");
-    </script>
-
-    <script src="~/bootstrap/js/bootstrap.min.js"></script>
+    <!-- 最早引入基本脚本 -->
+    <script src="~/Content/js/jquery-2.1.3.min.js"></script>
+    <script src="~/Content/bootstrap/js/bootstrap.min.js"></script>
 
     <!-- ace settings handler -->
     <script src="~/bootstrap/js/ace-extra.min.js"></script>
 
     <!-- HTML5shiv and Respond.js for IE8 to support HTML5 elements and media queries -->
     <!--[if lte IE 8]>
-    <script src="~/bootstrap/js/html5shiv.min.js"></script>
-    <script src="~/bootstrap/js/respond.min.js"></script>
+    <script src="~/Content/js/html5shiv.min.js"></script>
+    <script src="~/Content/js/respond.min.js"></script>
     <![endif]-->
 
     <!-- 下拉列表 -->

@@ -132,6 +132,9 @@
     <Content Include="Content\bootstrap-switch\bootstrap-switch.js" />
     <Content Include="Content\bootstrap-switch\bootstrap-switch.min.css" />
     <Content Include="Content\bootstrap-switch\bootstrap-switch.min.js" />
+    <Content Include="Content\bootstrap\css\bootstrap-responsive.min.css" />
+    <Content Include="Content\bootstrap\css\font-awesome.min.css" />
+    <Content Include="Content\bootstrap\fonts\fontawesome-webfont.svg" />
     <Content Include="Content\DateTimePicker\bootstrap-datetimepicker.css" />
     <Content Include="Content\DateTimePicker\bootstrap-datetimepicker.js" />
     <Content Include="Content\DateTimePicker\bootstrap-datetimepicker.min.css" />
@@ -146,7 +149,9 @@
     <Content Include="Content\bootstrap\fonts\glyphicons-halflings-regular.svg" />
     <Content Include="Content\bootstrap\js\bootstrap.js" />
     <Content Include="Content\bootstrap\js\bootstrap.min.js" />
-    <Content Include="Content\bootstrap\js\npm.js" />
+    <Content Include="Content\js\html5shiv.min.js" />
+    <Content Include="Content\js\jquery-2.1.3.min.js" />
+    <Content Include="Content\js\respond.min.js" />
     <Content Include="Content\My97DatePicker\calendar.js" />
     <Content Include="Content\My97DatePicker\lang\en.js" />
     <Content Include="Content\My97DatePicker\lang\zh-cn.js" />
@@ -231,6 +236,10 @@
     <Content Include="Content\bootstrap\fonts\glyphicons-halflings-regular.ttf" />
     <Content Include="Content\bootstrap\fonts\glyphicons-halflings-regular.woff" />
     <Content Include="Content\bootstrap\fonts\glyphicons-halflings-regular.woff2" />
+    <Content Include="Content\bootstrap\fonts\fontawesome-webfont.eot" />
+    <Content Include="Content\bootstrap\fonts\fontawesome-webfont.ttf" />
+    <Content Include="Content\bootstrap\fonts\fontawesome-webfont.woff" />
+    <Content Include="Content\bootstrap\fonts\FontAwesome.otf" />
     <None Include="Global.asax" />
     <Content Include="Areas\Admin\Views\_ViewStart.cshtml" />
     <Content Include="Areas\Admin\Views\Web.config" />
