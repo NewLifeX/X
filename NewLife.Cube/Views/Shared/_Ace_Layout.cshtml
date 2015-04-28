@@ -18,16 +18,14 @@
 
     <title>@ViewBag.Title - @SysConfig.Current.DisplayName</title>
     <link href="~/favicon.ico" rel="shortcut icon" type="image/x-icon" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 
-    <!-- ace 样式 -->
-    <link rel="stylesheet" href="~/Content/ace/css/ace.min.css" class="ace-main-stylesheet" id="main-ace-style" />
-
-    <!-- 页面专用插件样式 -->
+    <!-- 页面内联样式 -->
     @RenderSection("css", required: false)
 
     <!-- 文本字体 -->
     <link rel="stylesheet" href="~/Content/ace/css/ace-fonts.min.css" />
+    <!-- ace 样式 -->
+    <link rel="stylesheet" href="~/Content/ace/css/ace.min.css" class="ace-main-stylesheet" id="main-ace-style" />
 
     <!--[if lte IE 9]>
         <link rel="stylesheet" href="~/Content/ace/css/ace-part2.min.css" class="ace-main-stylesheet" />
@@ -35,11 +33,6 @@
     <!--[if lte IE 9]>
         <link rel="stylesheet" href="~/Content/ace/css/ace-ie.min.css" />
     <![endif]-->
-
-    <!-- 页面内联样式 -->
-
-    <!-- 下拉列表 -->
-    <link rel="stylesheet" href="~/bootstrap/css/bootstrap-select.min.css" type="text/css" />
 
     <link rel="stylesheet" href="~/Content/DateTimePicker/bootstrap-datetimepicker.min.css" type="text/css" />
 
@@ -80,6 +73,8 @@
     </div>
     <!-- 最早引入基本脚本 -->
     <script src="~/Content/bootstrap/js/bootstrap.min.js"></script>
+    <script src="~/Content/js/jquery-ui.custom.min.js"></script>
+    <script src="~/Content/js/jquery.ui.touch-punch.min.js"></script>
 
     <!-- ace 设置 -->
     <script src="~/Content/ace/js/ace-extra.min.js"></script>
@@ -89,10 +84,6 @@
     <script src="~/Content/js/html5shiv.min.js"></script>
     <script src="~/Content/js/respond.min.js"></script>
     <![endif]-->
-
-    <!-- 下拉列表 -->
-    <script src="~/bootstrap/js/bootstrap-select.min.js"></script>
-    <script src="~/bootstrap/js/i18n/defaults-zh_CN.min.js"></script>
 
     @*@Scripts.Render("~/bootstrap_js")*@
     @RenderSection("scripts", required: false)

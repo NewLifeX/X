@@ -7,36 +7,43 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ -->
+
     <title>@ViewBag.Title - @Config.DisplayName</title>
     <link href="~/favicon.ico" rel="shortcut icon" type="image/x-icon" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <!-- bootstrap & fontawesome -->
-    <link rel="stylesheet" href="~/bootstrap/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/bootstrap/css/font-awesome.min.css" />
+    <link rel="stylesheet" href="~/Content/bootstrap/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/Content/bootstrap/css/font-awesome.min.css" />
 
     <!-- page specific plugin styles -->
     <!-- text fonts -->
-    <link rel="stylesheet" href="~/bootstrap/css/ace-fonts.min.css" />
+    <link rel="stylesheet" href="~/Content/ace/css/ace-fonts.min.css" />
 
     <!-- ace styles -->
-    <link rel="stylesheet" href="~/bootstrap/css/ace.min.css" class="ace-main-stylesheet" id="main-ace-style" />
+    <link rel="stylesheet" href="~/Content/ace/css/ace.min.css" class="ace-main-stylesheet" id="main-ace-style" />
 
     <!--[if lte IE 9]>
-        <link rel="stylesheet" href="~/bootstrap/css/ace-part2.min.css" class="ace-main-stylesheet" />
+        <link rel="stylesheet" href="~/Content/ace/css/ace-part2.min.css" class="ace-main-stylesheet" />
     <![endif]-->
     <!--[if lte IE 9]>
-        <link rel="stylesheet" href="~/bootstrap/css/ace-ie.min.css" />
+        <link rel="stylesheet" href="~/Content/ace/css/ace-ie.min.css" />
     <![endif]-->
     <!-- inline styles related to this page -->
     <!-- ace settings handler -->
-    <script src="~/bootstrap/js/ace-extra.min.js"></script>
+    <script src="~/Content/ace/js/ace-extra.min.js"></script>
 
     <!-- HTML5shiv and Respond.js for IE8 to support HTML5 elements and media queries -->
     <!--[if lte IE 8]>
-    <script src="~/bootstrap/js/html5shiv.min.js"></script>
-    <script src="~/bootstrap/js/respond.min.js"></script>
+    <script src="~/Content/js/html5shiv.min.js"></script>
+    <script src="~/Content/js/respond.min.js"></script>
     <![endif]-->
+
+    <!-- JQuery作为一等公民，页面内部随时可能使用 -->
+    <script src="~/Content/js/jquery-2.1.3.min.js"></script>
 </head>
 <body class="no-skin" style="overflow: hidden;">
     @Html.Partial("_Navbar")
@@ -230,53 +237,14 @@
     </div>
     <!-- /.main-container -->
     <!-- basic scripts -->
-    <!--[if !IE]> -->
-    <script type="text/javascript">
-        window.jQuery || document.write("<script src='../../bootstrap/js/jquery-2.1.3.min.js'>" + "<" + "/script>");
-    </script>
-
-    <!-- <![endif]-->
-    <!--[if IE]>
-    <script type="text/javascript">
-        window.jQuery || document.write("<script src='../../bootstrap/js/jquery1x.min.js'>"+"<"+"/script>");
-    </script>
-    <![endif]-->
-    <script type="text/javascript">
-        if ('ontouchstart' in document.documentElement) document.write("<script src='../../bootstrap/js/jquery.mobile.custom.min.js'>" + "<" + "/script>");
-    </script>
-    <script src="~/bootstrap/js/bootstrap.min.js"></script>
+    <script src="~/Content/bootstrap/js/bootstrap.min.js"></script>
+    <script src="~/Content/js/jquery-ui.custom.min.js"></script>
+    <script src="~/Content/js/jquery.ui.touch-punch.min.js"></script>
 
     <!-- ace scripts -->
-    <script src="~/bootstrap/js/ace/elements.scroller.js"></script>
-    <script src="~/bootstrap/js/ace/elements.colorpicker.js"></script>
-    <script src="~/bootstrap/js/ace/elements.fileinput.js"></script>
-    <script src="~/bootstrap/js/ace/elements.typeahead.js"></script>
-    <script src="~/bootstrap/js/ace/elements.wysiwyg.js"></script>
-    <script src="~/bootstrap/js/ace/elements.spinner.js"></script>
-    <script src="~/bootstrap/js/ace/elements.treeview.js"></script>
-    <script src="~/bootstrap/js/ace/elements.wizard.js"></script>
-    <script src="~/bootstrap/js/ace/elements.aside.js"></script>
-    <script src="~/bootstrap/js/ace/ace.js"></script>
-    <script src="~/bootstrap/js/ace/ace.ajax-content.js"></script>
-    <script src="~/bootstrap/js/ace/ace.touch-drag.js"></script>
-    <script src="~/bootstrap/js/ace/ace.sidebar.js"></script>
-    <script src="~/bootstrap/js/ace/ace.sidebar-scroll-1.js"></script>
-    <script src="~/bootstrap/js/ace/ace.submenu-hover.js"></script>
-    <script src="~/bootstrap/js/ace/ace.widget-box.js"></script>
-    <script src="~/bootstrap/js/ace/ace.settings.js"></script>
-    <script src="~/bootstrap/js/ace/ace.settings-rtl.js"></script>
-    <script src="~/bootstrap/js/ace/ace.settings-skin.js"></script>
-    <script src="~/bootstrap/js/ace/ace.widget-on-reload.js"></script>
-    <script src="~/bootstrap/js/ace/ace.searchbox-autocomplete.js"></script>
+    <script src="~/Content/ace/js/ace-elements.min.js"></script>
+    <script src="~/Content/ace/js/ace.min.js"></script>
 
-    <script type="text/javascript"> ace.vars['base'] = '../../'; </script>
-    <script src="~/bootstrap/js/ace/elements.onpage-help.js"></script>
-    <script src="~/bootstrap/js/ace/ace.onpage-help.js"></script>
-    <script src="~/bootstrap/js/rainbow.min.js"></script>
-    <script src="~/bootstrap/js/language/generic.js"></script>
-    <script src="~/bootstrap/js/language/html.js"></script>
-    <script src="~/bootstrap/js/language/css.js"></script>
-    <script src="~/bootstrap/js/language/javascript.js"></script>
     <script type="text/javascript">
         $(function () {
             var $frmContent = $('#main');
