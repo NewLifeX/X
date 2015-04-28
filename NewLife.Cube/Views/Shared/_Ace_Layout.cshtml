@@ -20,16 +20,12 @@
     <link href="~/favicon.ico" rel="shortcut icon" type="image/x-icon" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 
-    <!-- bootstrap & fontawesome -->
-    <link rel="stylesheet" href="~/bootstrap/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/bootstrap/css/font-awesome.min.css" />
+    <!-- ace styles -->
+    <link rel="stylesheet" href="~/bootstrap/css/ace.min.css" />
 
     <!-- page specific plugin styles -->
     <!-- text fonts -->
     <link rel="stylesheet" href="~/bootstrap/css/ace-fonts.min.css" />
-
-    <!-- ace styles -->
-    <link rel="stylesheet" href="~/bootstrap/css/ace.min.css" />
 
     <!--[if lte IE 9]>
         <link rel="stylesheet" href="~/bootstrap/css/ace-part2.min.css" class="ace-main-stylesheet" />
@@ -38,20 +34,19 @@
         <link rel="stylesheet" href="~/bootstrap/css/ace-ie.min.css" />
     <![endif]-->
     <!-- inline styles related to this page -->
-    <!-- ace settings handler -->
-    <script src="~/bootstrap/js/ace-extra.min.js"></script>
 
-    <!-- HTML5shiv and Respond.js for IE8 to support HTML5 elements and media queries -->
-    <!--[if lte IE 8]>
-    <script src="~/bootstrap/js/html5shiv.min.js"></script>
-    <script src="~/bootstrap/js/respond.min.js"></script>
-    <![endif]-->
+    <!-- bootstrap & fontawesome -->
+    <link rel="stylesheet" href="~/bootstrap/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/bootstrap/css/font-awesome.min.css" />
 
-    <link rel="stylesheet" href="~/bootstrap/css/bootstrap.min.css" type="text/css" />
     <link rel="stylesheet" href="~/bootstrap/css/bootstrap-theme.min.css" type="text/css" />
     <link rel="stylesheet" href="~/bootstrap/css/bootstrap-responsive.min.css" type="text/css" />
+    <!-- 下拉列表 -->
+    <link rel="stylesheet" href="~/bootstrap/css/bootstrap-select.min.css" type="text/css" />
 
     <link rel="stylesheet" href="~/Content/DateTimePicker/bootstrap-datetimepicker.min.css" type="text/css" />
+
+    <link rel="stylesheet" href="~/Content/bootstrap-switch/bootstrap-switch.min.css" type="text/css" />
 
     @RenderSection("css", required: false)
 </head>
@@ -78,29 +73,29 @@
             </section>
         </div>
     </div>
-    <!-- basic scripts -->
-    <!--[if !IE]> -->
+    <!-- 基本脚本 -->
+    <script src="~/bootstrap/js/jquery-2.1.3.min.js"></script>
+
     <script type="text/javascript">
-        window.jQuery || document.write("<script src='@Url.Content("~/bootstrap/js/jquery-2.1.3.min.js")'>" + "<" + "/script>");
+        if ('ontouchstart' in document.documentElement) document.write("<script src='~/bootstrap/js/jquery.mobile.custom.min.js'>" + "<" + "/script>");
     </script>
 
-    <!-- <![endif]-->
-    <!--[if IE]>
-    <script type="text/javascript">
-        window.jQuery || document.write("<script src='@Url.Content("~/bootstrap/js/jquery1x.min.js")'>"+"<"+"/script>");
-    </script>
-    <![endif]-->
-    <script type="text/javascript">
-        if ('ontouchstart' in document.documentElement) document.write("<script src='~/js/jquery.mobile.custom.min.js'>" + "<" + "/script>");
-    </script>
     <script src="~/bootstrap/js/bootstrap.min.js"></script>
 
+    <!-- ace settings handler -->
+    <script src="~/bootstrap/js/ace-extra.min.js"></script>
+
+    <!-- HTML5shiv and Respond.js for IE8 to support HTML5 elements and media queries -->
+    <!--[if lte IE 8]>
+    <script src="~/bootstrap/js/html5shiv.min.js"></script>
+    <script src="~/bootstrap/js/respond.min.js"></script>
+    <![endif]-->
+
     <!-- 下拉列表 -->
-    <link rel="stylesheet" href="~/bootstrap/css/bootstrap-select.min.css" type="text/css" />
     <script src="~/bootstrap/js/bootstrap-select.min.js"></script>
     <script src="~/bootstrap/js/i18n/defaults-zh_CN.min.js"></script>
 
-    @Scripts.Render("~/bootstrap_js")
+    @*@Scripts.Render("~/bootstrap_js")*@
     @RenderSection("scripts", required: false)
 
     <!--日历控件支持-->
@@ -143,5 +138,8 @@
             })
         });
     </script>
+
+    <!--开关插件-->
+    <script src="~/Content/bootstrap-switch/bootstrap-switch.min.js"></script>
 </body>
 </html>

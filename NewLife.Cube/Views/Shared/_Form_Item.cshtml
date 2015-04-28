@@ -9,7 +9,7 @@
     switch (Type.GetTypeCode(item.Type))
     {
         case TypeCode.Boolean:
-            width = 6;
+            width = 2;
             break;
         case TypeCode.String:
             width = 6;
@@ -21,7 +21,9 @@
     @switch (Type.GetTypeCode(item.Type))
     {
         case TypeCode.Boolean:
-            @Html.CheckBox(item.Name, (Boolean)entity[item.Name])
+            <div class="switch">
+                @Html.CheckBox(item.Name, (Boolean)entity[item.Name], new { @class = "form-control" })
+            </div>
             break;
         case TypeCode.DateTime:
         <span class="input-group-addon"><i class="fa fa-calendar"></i></span>
@@ -31,7 +33,7 @@
             }
             break;
         case TypeCode.Decimal:
-        <span class="input-group-addon">￥</span>
+        <span class="input-group-addon"><i class="glyphicon glyphicon-yen"></i></span>
         @Html.TextBox(item.Name, entity[item.Name], new { @class = "form-control" })
             break;
         case TypeCode.Single:

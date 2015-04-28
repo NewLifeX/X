@@ -128,6 +128,10 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Content\bootstrap-switch\bootstrap-switch.css" />
+    <Content Include="Content\bootstrap-switch\bootstrap-switch.js" />
+    <Content Include="Content\bootstrap-switch\bootstrap-switch.min.css" />
+    <Content Include="Content\bootstrap-switch\bootstrap-switch.min.js" />
     <Content Include="Content\DateTimePicker\bootstrap-datetimepicker.css" />
     <Content Include="Content\DateTimePicker\bootstrap-datetimepicker.js" />
     <Content Include="Content\DateTimePicker\bootstrap-datetimepicker.min.css" />
