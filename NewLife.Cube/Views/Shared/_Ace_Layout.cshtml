@@ -78,6 +78,7 @@
 
     <!-- ace 设置 -->
     <script src="~/Content/ace/js/ace.min.js"></script>
+    <script src="~/Content/ace/js/ace-elements.min.js"></script>
     <script src="~/Content/ace/js/ace-extra.min.js"></script>
 
     <!-- HTML5shiv and Respond.js for IE8 to support HTML5 elements and media queries -->
@@ -127,6 +128,11 @@
                 })
                 //console.trace($(this));
             })
+            $('input[role=number]').each(function () {
+                $(this).removeAttr('class');
+                $(this).addClass('spinbox-input form-control text-center');
+                $(this).ace_spinner({ on_sides: true, icon_up: 'ace-icon fa fa-plus bigger-110', icon_down: 'ace-icon fa fa-minus bigger-110', btn_up_class: 'btn-success', btn_down_class: 'btn-danger' });
+            });
         });
     </script>
 
@@ -137,5 +143,7 @@
             $("input[type=checkbox]").bootstrapSwitch();
         })
     </script>*@
+
+    <script src="~/Content/fuelux/fuelux.spinner.min.js"></script>
 </body>
 </html>

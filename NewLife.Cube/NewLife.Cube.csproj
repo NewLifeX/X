@@ -183,6 +183,9 @@
     <Content Include="Content\bootstrap\fonts\glyphicons-halflings-regular.svg" />
     <Content Include="Content\bootstrap\js\bootstrap.js" />
     <Content Include="Content\bootstrap\js\bootstrap.min.js" />
+    <Content Include="Content\fuelux\fuelux.spinner.min.js" />
+    <Content Include="Content\fuelux\fuelux.tree.min.js" />
+    <Content Include="Content\fuelux\fuelux.wizard.min.js" />
     <Content Include="Content\js\html5shiv.min.js" />
     <Content Include="Content\js\jquery-2.1.3.min.js" />
     <Content Include="Content\js\jquery-ui.custom.min.js" />

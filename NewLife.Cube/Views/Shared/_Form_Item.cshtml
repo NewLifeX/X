@@ -44,7 +44,8 @@
         case TypeCode.UInt16:
         case TypeCode.UInt32:
         case TypeCode.UInt64:
-        @Html.TextBox(item.Name, (Object)entity[item.Name], new { @class = "text-box single-line form-control", @type = "number" })
+        @Html.TextBox(item.Name, (Object)entity[item.Name], new { @class = "text-box single-line form-control", @role = "number" })
+        <div class="space-6"></div>
             break;
         case TypeCode.String:
             if (item.Name.EqualIgnoreCase("Pass", "Password"))
