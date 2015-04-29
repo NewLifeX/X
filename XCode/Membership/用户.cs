@@ -92,11 +92,11 @@ namespace XCode.Membership
         }
 
         private String _Code;
-        /// <summary>唯一代码。比如身份证、SSOID等</summary>
-        [DisplayName("唯一代码")]
-        [Description("唯一代码。比如身份证、SSOID等")]
+        /// <summary>代码。身份证、员工编号等</summary>
+        [DisplayName("代码")]
+        [Description("代码。身份证、员工编号等")]
         [DataObjectField(false, false, true, 50)]
-        [BindColumn(7, "Code", "唯一代码。比如身份证、SSOID等", null, "nvarchar(50)", 0, 0, true)]
+        [BindColumn(7, "Code", "代码。身份证、员工编号等", null, "nvarchar(50)", 0, 0, true)]
         public virtual String Code
         {
             get { return _Code; }
@@ -104,11 +104,11 @@ namespace XCode.Membership
         }
 
         private Int32 _RoleID;
-        /// <summary>角色。主要角色</summary>
+        /// <summary>角色</summary>
         [DisplayName("角色")]
-        [Description("角色。主要角色")]
+        [Description("角色")]
         [DataObjectField(false, false, true, 10)]
-        [BindColumn(8, "RoleID", "角色。主要角色", null, "int", 10, 0, false)]
+        [BindColumn(8, "RoleID", "角色", null, "int", 10, 0, false)]
         public virtual Int32 RoleID
         {
             get { return _RoleID; }
@@ -251,10 +251,10 @@ namespace XCode.Membership
             ///<summary>电话</summary>
             public static readonly Field Phone = FindByName(__.Phone);
 
-            ///<summary>唯一代码。比如身份证、SSOID等</summary>
+            ///<summary>代码。身份证、员工编号等</summary>
             public static readonly Field Code = FindByName(__.Code);
 
-            ///<summary>角色。主要角色</summary>
+            ///<summary>角色</summary>
             public static readonly Field RoleID = FindByName(__.RoleID);
 
             ///<summary>登录次数</summary>
@@ -296,10 +296,10 @@ namespace XCode.Membership
             ///<summary>电话</summary>
             public const String Phone = "Phone";
 
-            ///<summary>唯一代码。比如身份证、SSOID等</summary>
+            ///<summary>代码。身份证、员工编号等</summary>
             public const String Code = "Code";
 
-            ///<summary>角色。主要角色</summary>
+            ///<summary>角色</summary>
             public const String RoleID = "RoleID";
 
             ///<summary>登录次数</summary>
@@ -343,10 +343,10 @@ namespace XCode.Membership
         /// <summary>电话</summary>
         String Phone { get; set; }
 
-        /// <summary>唯一代码。比如身份证、SSOID等</summary>
+        /// <summary>代码。身份证、员工编号等</summary>
         String Code { get; set; }
 
-        /// <summary>角色。主要角色</summary>
+        /// <summary>角色</summary>
         Int32 RoleID { get; set; }
 
         /// <summary>登录次数</summary>
