@@ -1,16 +1,17 @@
 ﻿@model XCode.EntityList<Role>
 @{
-    var grid = ViewBag.Grid;
+    var fact = ViewBag.Factory as IEntityOperate;
+    var page = ViewBag.Page as Pager;
 }
 <div class="panel panel-default">
     <div class="table-responsive">
         <table class="table table-bordered table-hover table-striped table-condensed">
             <thead>
                 <tr>
-                    <th> <a href="@Url.Action("Index/Sort/id")">编号</a></th>
-                    <th><a href="@Url.Action("Index/Sort/Name")">名称</a></th>
-                    <th><a href="@Url.Action("Index/Sort/IsSystem")">系统角色</a></th>
-                    <th><a href="@Url.Action("Index/Sort/Permission")">权限</a></th>
+                    <th> <a href="@Html.Raw(page.GetSortUrl("ID"))">编号</a></th>
+                    <th><a href="@Html.Raw(page.GetSortUrl("Name"))">名称</a></th>
+                    <th><a href="@Html.Raw(page.GetSortUrl("IsSystem"))">系统角色</a></th>
+                    <th><a href="@Html.Raw(page.GetSortUrl("Permission"))">权限</a></th>
                     <th>操作</th>
                 </tr>
             </thead>
@@ -20,7 +21,7 @@
                     <tr>
                         <td>@entity.ID</td>
                         <td>@entity.Name</td>
-                        <td>@entity.IsSystem</td>
+                        @Html.Partial("_List_Data_Item", new Pair(entity, fact.Table.FindByName("IsSystem")))
                         <td>@entity.Permission</td>
                         <td>
                             @Html.Partial("_List_Data_Action", entity.ID)

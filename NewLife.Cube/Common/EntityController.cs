@@ -79,12 +79,18 @@ namespace NewLife.Cube
         [DisplayName("保存")]
         public virtual ActionResult Save(TEntity entity)
         {
+            var isnew = entity.IsNullKey;
+
             entity.Save();
 
             ViewBag.StatusMessage = "保存成功！";
 
-            return FormView(entity);
-            //return RedirectToAction("Form/" + entity[Entity<TEntity>.Meta.Unique.Name]);
+            // 新增完成跳到列表页，更新完成保持本页
+            if (isnew)
+                return RedirectToAction("Index");
+            else
+                return FormView(entity);
+            //return RedirectToAction("Form", new { id = entity[Entity<TEntity>.Meta.Unique.Name] });
         }
 
         /// <summary>表单页视图。子控制器可以重载，以传递更多信息给视图，比如修改要显示的列</summary>
