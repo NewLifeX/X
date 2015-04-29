@@ -14,6 +14,7 @@ namespace XCode.Membership
     [Description("用户")]
     [BindIndex("IU_User_Name", true, "Name")]
     [BindIndex("IX_User_RoleID", false, "RoleID")]
+    [BindRelation("RoleID", false, "Role", "ID")]
     [BindTable("User", Description = "用户", ConnName = "Membership", DbType = DatabaseType.SqlServer)]
     public abstract partial class User<TEntity> : IUser
     {

@@ -67,13 +67,9 @@ namespace NewLife.Cube
         [DisplayName("数据表单")]
         public virtual ActionResult Form(String id)
         {
-            // 用于显示的列
-            ViewBag.Fields = Entity<TEntity>.Meta.Fields;
-            ViewBag.Factory = Entity<TEntity>.Meta.Factory;
-
             var entity = Entity<TEntity>.FindByKeyForEdit(id);
 
-            return View(entity);
+            return FormView(entity);
         }
 
         /// <summary>保存</summary>
@@ -87,8 +83,20 @@ namespace NewLife.Cube
 
             ViewBag.StatusMessage = "保存成功！";
 
-            return View("Form", entity);
+            return FormView(entity);
             //return RedirectToAction("Form/" + entity[Entity<TEntity>.Meta.Unique.Name]);
+        }
+
+        /// <summary>表单页视图。子控制器可以重载，以传递更多信息给视图，比如修改要显示的列</summary>
+        /// <param name="entity"></param>
+        /// <returns></returns>
+        protected virtual ActionResult FormView(TEntity entity)
+        {
+            // 用于显示的列
+            ViewBag.Fields = Entity<TEntity>.Meta.Fields;
+            ViewBag.Factory = Entity<TEntity>.Meta.Factory;
+
+            return View("Form", entity);
         }
     }
 }

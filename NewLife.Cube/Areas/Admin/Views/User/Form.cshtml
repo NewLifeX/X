@@ -22,9 +22,25 @@
             {
                 if (!item.PrimaryKey)
                 {
-                    <div class="form-group">
-                        @Html.Partial("_Form_Item", new Pair(Model, item))
-                    </div>
+                    if (item.Name == "RoleID")
+                    {
+                        <div class="form-group">
+                            <label class="control-label col-md-2">@item.DisplayName</label>
+                            <div class="input-group col-md-2">
+                                @Html.DropDownList(item.Name, Role.FindAllWithCache().ToList().Select(r => new SelectListItem { Text = r.Name, Value = r.ID + "" }))
+                                @if (!item.Description.TrimStart(item.DisplayName).TrimStart("。").IsNullOrWhiteSpace())
+                                {
+                                    <p class="help-block">@(item.Description.TrimStart(item.DisplayName).TrimStart("。"))</p>
+                                }
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="form-group">
+                            @Html.Partial("_Form_Item", new Pair(Model, item))
+                        </div>
+                    }
                 }
             }
             <div class="form-actions">
