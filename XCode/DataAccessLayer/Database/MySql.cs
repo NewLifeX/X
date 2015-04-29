@@ -185,16 +185,16 @@ namespace XCode.DataAccessLayer
         {
             var code = Type.GetTypeCode(field.DataType);
             if (code == TypeCode.String)
-                if (field.DataType == typeof(String))
-                {
-                    if (value == null) return field.Nullable ? "null" : "''";
+            //if (field.DataType == typeof(String))
+            {
+                if (value == null) return field.Nullable ? "null" : "''";
 
-                    return "'" + value.ToString().Replace("'", @"\'") + "'";
-                }
-                else if (code == TypeCode.Boolean)
-                {
-                    return (Boolean)value ? "'Y'" : "'N'";
-                }
+                return "'" + value.ToString().Replace("'", @"\'") + "'";
+            }
+            else if (code == TypeCode.Boolean)
+            {
+                return (Boolean)value ? "'Y'" : "'N'";
+            }
 
             return base.FormatValue(field, value);
         }
