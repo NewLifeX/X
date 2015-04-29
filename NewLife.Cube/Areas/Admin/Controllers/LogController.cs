@@ -14,6 +14,7 @@ namespace NewLife.Cube.Admin.Controllers
         /// <summary>不允许添加修改日志</summary>
         /// <param name="entity"></param>
         /// <returns></returns>
+        [DisplayName()]
         public override ActionResult Save(XLog entity)
         {
             //return base.Save(entity);
@@ -23,6 +24,7 @@ namespace NewLife.Cube.Admin.Controllers
         /// <summary>不允许删除日志</summary>
         /// <param name="id"></param>
         /// <returns></returns>
+        [DisplayName()]
         public override ActionResult Delete(int id)
         {
             //return base.Delete(id);

@@ -136,10 +136,10 @@ namespace XCode.Membership
         public IList<IMenu> GetMySubMenus(Int32[] filters)
         {
             var list = Childs;
-            if (list == null || list.Count < 1) return null;
+            if (list == null || list.Count < 1) return new List<IMenu>();
 
             list = list.FindAll(_.Visible, true);
-            if (list == null || list.Count < 1) return null;
+            if (list == null || list.Count < 1) return new List<IMenu>();
 
             return list.ToList().Where(e => filters.Contains(e.ID)).Cast<IMenu>().ToList();
         }
@@ -159,7 +159,7 @@ namespace XCode.Membership
             entity.Url = url;
             entity.ParentID = this.ID;
 
-            entity.Visible = displayName != null;
+            entity.Visible = ID == 0 || displayName != null;
 
             entity.Insert();
 
