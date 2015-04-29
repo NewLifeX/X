@@ -163,13 +163,14 @@ namespace XCode
         {
             get
             {
-                String key = Setting.Name;
-                if (String.IsNullOrEmpty(key)) return String.Empty;
+                var key = Setting.Name;
+                var v = "";
+                if (!String.IsNullOrEmpty(key)) v = this[key] + "";
 
                 Int32 d = Deepth;
                 if (d <= 0) return String.Empty;
 
-                return new String('　', (d - 1) * 2) + this[key];
+                return new String('　', (d - 1) * 2) + v;
             }
         }
 
@@ -179,13 +180,36 @@ namespace XCode
         {
             get
             {
-                String key = Setting.Name;
-                if (String.IsNullOrEmpty(key)) return String.Empty;
+                var key = Setting.Name;
+                var v = "";
+                if (!String.IsNullOrEmpty(key)) v = this[key] + "";
 
                 Int32 d = Deepth;
                 if (d <= 0) return "|- 根";
 
-                return new String('　', d) + "|- " + this[key];
+                return new String('　', d) + "|- " + v;
+            }
+        }
+
+        /// <summary>树形节点名，根据深度带全角空格前缀</summary>
+        [XmlIgnore]
+        public virtual String TreeNodeText
+        {
+            get
+            {
+                var key = Setting.Text;
+                var v = "";
+                if (!String.IsNullOrEmpty(key)) v = this[key] + "";
+                if (String.IsNullOrEmpty(v))
+                {
+                    key = Setting.Name;
+                    if (!String.IsNullOrEmpty(key)) v = this[key] + "";
+                }
+
+                Int32 d = Deepth;
+                if (d <= 0) return "|- 根";
+
+                return new String('　', d) + "|- " + v;
             }
         }
 

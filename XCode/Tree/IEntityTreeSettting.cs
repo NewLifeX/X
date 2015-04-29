@@ -22,6 +22,9 @@ namespace XCode
         /// <remarks>影响NodeName、TreeNodeName、TreeNodeName2、FindByPath、GetFullPath、GetFullPath2等</remarks>
         String Name { get; }
 
+        /// <summary>文本键名</summary>
+        String Text { get; }
+
         /// <summary>是否缓存Childs、AllChilds、Parent等</summary>
         Boolean EnableCaching { get; }
 
@@ -89,6 +92,9 @@ namespace XCode
         /// <summary>名称键名，如Name，否则使用第一个非自增字段</summary>
         /// <remarks>影响NodeName、TreeNodeName、TreeNodeName2、FindByPath、GetFullPath、GetFullPath2等</remarks>
         public virtual String Name { get { return Factory.FieldNames.Contains("Name", StringComparer.OrdinalIgnoreCase) ? "Name" : Factory.Fields.Where(f => !f.IsIdentity).FirstOrDefault().Name; } }
+
+        /// <summary>文本键名</summary>
+        public virtual String Text { get { return Factory.FieldNames.Where(f => f.EqualIgnoreCase("Text", "Display", "DisplayName")).FirstOrDefault(); } }
 
         /// <summary>是否缓存Childs、AllChilds、Parent等</summary>
         public virtual Boolean EnableCaching { get { return true; } }
