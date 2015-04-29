@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq.Expressions;
-using System.Text;
 using System.Web.Mvc;
 using System.Web.Mvc.Html;
 using XCode;
@@ -51,28 +49,6 @@ namespace NewLife.Cube
         }
 
         #region 基础属性
-        //private static String BuildInput(InputType inputType, String name, String value, IDictionary<String, Object> atts)
-        //{
-        //    //var sb = new StringBuilder();
-        //    //sb.AppendFormat("<input id=\"{0}\" name=\"{0}\"", name);
-        //    //foreach (var item in atts)
-        //    //{
-        //    //    sb.AppendFormat(" {0}=\"{1}\"", item.Key, item.Value);
-        //    //}
-        //    //sb.AppendFormat(" value=\"{0}\"", value);
-        //    //sb.Append(" />");
-
-        //    //return sb.ToString();
-
-        //    var builder = new TagBuilder("input");
-        //    builder.MergeAttributes(atts);
-        //    builder.MergeAttribute("type", HtmlHelper.GetInputTypeString(inputType));
-        //    builder.MergeAttribute("name", name, true);
-        //    builder.GenerateId(name);
-
-        //    return builder.ToString(TagRenderMode.SelfClosing);
-        //}
-
         /// <summary>输出字符串</summary>
         /// <param name="Html"></param>
         /// <param name="name"></param>
@@ -132,12 +108,9 @@ namespace NewLife.Cube
         {
             var atts = HtmlHelper.AnonymousObjectToHtmlAttributes(htmlAttributes);
             if (!atts.ContainsKey("class")) atts.Add("class", "form-control");
+            if (!atts.ContainsKey("role")) atts.Add("role", "number");
 
-            // 首先输出图标
-            var ico = Html.Raw("<span class=\"input-group-addon\"><i class=\"fa fa-calendar\"></i></span>");
-            var txt = Html.TextBox(name, value, format, atts);
-
-            return new MvcHtmlString(ico.ToString() + txt);
+            return Html.TextBox(name, value, format, atts);
         }
 
         /// <summary>时间日期输出</summary>
