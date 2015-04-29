@@ -4,11 +4,15 @@
     ViewBag.Title = "处理你的请求时出错";
 
     var context = ViewBag.Context as ExceptionContext;
+    var error = context.Exception.Message;
+#if DEBUG
+    error = context.Exception.ToString();
+#endif
 }
 <div class="panel panel-default">
     <div class="panel-body">
         <pre class="alert alert-danger" role="alert">
-        <strong>@context.Exception.Message</strong>
+        <strong>@error</strong>
         </pre>
     </div>
     <div class="panel-footer">
