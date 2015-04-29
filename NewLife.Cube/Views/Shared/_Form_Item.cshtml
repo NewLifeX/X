@@ -21,9 +21,7 @@
     @switch (Type.GetTypeCode(item.Type))
     {
         case TypeCode.Boolean:
-            <div class="switch">
-                @Html.CheckBox(item.Name, (Boolean)entity[item.Name], new { @class = "form-control" })
-            </div>
+            @Html.CheckBox(item.Name, (Boolean)entity[item.Name], new { @class = "" })
             break;
         case TypeCode.DateTime:
         <span class="input-group-addon"><i class="fa fa-calendar"></i></span>
@@ -81,5 +79,8 @@
         @Html.Editor(item.Name)
             break;
     }
-    <p class="help-block">@(item.Description.TrimStart(item.DisplayName).TrimStart("。"))</p>
+    @if (!item.Description.TrimStart(item.DisplayName).TrimStart("。").IsNullOrWhiteSpace())
+    {
+        <p class="help-block">@(item.Description.TrimStart(item.DisplayName).TrimStart("。"))</p>
+    }
 </div>
