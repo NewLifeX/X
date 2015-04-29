@@ -19,7 +19,14 @@
 }
 <label class="control-label col-md-2">@item.DisplayName</label>
 <div class="input-group col-md-@width">
-    @Html.ForEditor(item.Name, entity[item.Name], item.Type)
+    @if (item.Type == typeof(String) && (item.Length <= 0 || item.Length > 300))
+    {
+        @Html.ForString(item.Name, (String)entity[item.Name], item.Length)
+    }
+    else
+    {
+        @Html.ForEditor(item.Name, entity[item.Name], item.Type)
+    }
     @if (!item.Description.TrimStart(item.DisplayName).TrimStart("。").IsNullOrWhiteSpace())
     {
         <p class="help-block">@(item.Description.TrimStart(item.DisplayName).TrimStart("。"))</p>

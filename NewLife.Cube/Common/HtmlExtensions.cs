@@ -44,7 +44,11 @@ namespace NewLife.Cube
                 case TypeCode.String:
                     return Html.ForString(name, (String)value);
                 default:
+#if DEBUG
+                    throw new Exception("不支持的类型" + type);
+#else
                     return Html.Editor(name);
+#endif
             }
         }
 
@@ -167,12 +171,12 @@ namespace NewLife.Cube
         /// <param name="format"></param>
         /// <param name="htmlAttributes"></param>
         /// <returns></returns>
-        public static MvcHtmlString ForBoolean(this HtmlHelper Html, String name, Boolean value, String format = null, Object htmlAttributes = null)
+        public static MvcHtmlString ForBoolean(this HtmlHelper Html, String name, Boolean value, Object htmlAttributes = null)
         {
             var atts = HtmlHelper.AnonymousObjectToHtmlAttributes(htmlAttributes);
             if (!atts.ContainsKey("class")) atts.Add("class", "form-control");
 
-            return Html.TextBox(name, value, format, atts);
+            return Html.CheckBox(name, value, atts);
         }
 
         /// <summary>输出货币类型</summary>
