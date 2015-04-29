@@ -1,15 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Web;
 using System.Xml.Serialization;
-using NewLife.Configuration;
-using NewLife.Log;
 using NewLife.Model;
 using NewLife.Reflection;
 
@@ -165,7 +159,7 @@ namespace XCode.Membership
             entity.Url = url;
             entity.ParentID = this.ID;
 
-            entity.Visible = true;
+            entity.Visible = displayName != null;
 
             entity.Insert();
 
