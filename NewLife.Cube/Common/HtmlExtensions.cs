@@ -63,8 +63,7 @@ namespace NewLife.Cube
         public static MvcHtmlString ForString(this HtmlHelper Html, String name, String value, Int32 length = 0, Object htmlAttributes = null)
         {
             var atts = HtmlHelper.AnonymousObjectToHtmlAttributes(htmlAttributes);
-            if (!atts.ContainsKey("type")) atts.Add("type", "date");
-            if (!atts.ContainsKey("class")) atts.Add("class", "form-control date form_datetime");
+            if (!atts.ContainsKey("class")) atts.Add("class", "form-control");
 
             // 首先输出图标
             var ico = "";
@@ -72,30 +71,33 @@ namespace NewLife.Cube
             MvcHtmlString txt = null;
             if (name.EqualIgnoreCase("Pass", "Password"))
             {
-                txt = Html.Password(name, (String)value, new { @class = "form-control" });
+                txt = Html.Password(name, (String)value, atts);
             }
             else if (name.EqualIgnoreCase("Phone"))
             {
                 ico = "<span class=\"input-group-addon\"><i class=\"glyphicon glyphicon-phone-alt\"></i></span>";
-                txt = Html.TextBox(name, (String)value, new { @class = "form-control", @type = "phone" });
+                if (!atts.ContainsKey("@type")) atts.Add("@type", "phone");
+                txt = Html.TextBox(name, (String)value, atts);
             }
             else if (name.EqualIgnoreCase("email", "mail"))
             {
                 ico = "<span class=\"input-group-addon\"><i class=\"glyphicon glyphicon-envelope\"></i></span>";
-                txt = Html.TextBox(name, (String)value, new { @class = "form-control", @type = "email" });
+                if (!atts.ContainsKey("@type")) atts.Add("@type", "email");
+                txt = Html.TextBox(name, (String)value, atts);
             }
             else if (name.EndsWithIgnoreCase("url"))
             {
                 ico = "<span class=\"input-group-addon\"><i class=\"glyphicon glyphicon-home\"></i></span>";
-                txt = Html.TextBox(name, (String)value, new { @class = "form-control", @type = "url" });
+                if (!atts.ContainsKey("@type")) atts.Add("@type", "url");
+                txt = Html.TextBox(name, (String)value, atts);
             }
             else if (length < 0 || length > 300)
             {
-                txt = Html.TextArea(name, (String)value, new { @class = "form-control" });
+                txt = Html.TextArea(name, (String)value, atts);
             }
             else
             {
-                txt = Html.TextBox(name, (String)value, new { @class = "form-control" });
+                txt = Html.TextBox(name, (String)value, atts);
             }
 
             return new MvcHtmlString(ico.ToString() + txt);

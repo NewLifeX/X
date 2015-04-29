@@ -16,6 +16,8 @@
             width = 6;
             break;
     }
+
+    var des = item.Description.TrimStart(item.DisplayName).TrimStart("。");
 }
 <label class="control-label col-md-2">@item.DisplayName</label>
 <div class="input-group col-md-@width">
@@ -27,8 +29,8 @@
     {
         @Html.ForEditor(item.Name, entity[item.Name], item.Type)
     }
-    @if (!item.Description.TrimStart(item.DisplayName).TrimStart("。").IsNullOrWhiteSpace())
+    @if (!des.IsNullOrWhiteSpace())
     {
-        <p class="help-block">@(item.Description.TrimStart(item.DisplayName).TrimStart("。"))</p>
+        <p class="help-block">@des</p>
     }
 </div>
