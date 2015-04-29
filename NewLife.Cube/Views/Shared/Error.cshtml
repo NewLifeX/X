@@ -8,12 +8,13 @@
 #if DEBUG
     error = context.Exception.ToString();
 #endif
+    error = error.Replace("--->", "--->" + Environment.NewLine);
 }
 <div class="panel panel-default">
     <div class="panel-body">
-        <pre class="alert alert-danger" role="alert">
-        <strong>@error</strong>
-        </pre>
+        <strong>
+            <pre class="alert alert-danger" role="alert">@error</pre>
+        </strong>
     </div>
     <div class="panel-footer">
         <a href="javascript: history.go(-1);" class="btn btn-info">返回上一页</a>

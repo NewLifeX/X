@@ -25,5 +25,27 @@ namespace NewLife.Cube.Admin.Controllers
 
             return View(list);
         }
+
+        /// <summary>上升</summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public ActionResult Up(Int32 id)
+        {
+            var menu = Menu.FindByID(id);
+            menu.Up();
+
+            return RedirectToAction("Index");
+        }
+
+        /// <summary>下降</summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public ActionResult Down(Int32 id)
+        {
+            var menu = Menu.FindByID(id);
+            menu.Down();
+
+            return RedirectToAction("Index");
+        }
     }
 }

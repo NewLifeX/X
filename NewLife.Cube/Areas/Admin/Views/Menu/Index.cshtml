@@ -36,8 +36,18 @@
                         <td>@entity.Sort</td>
                         @Html.Partial("_List_Data_Item", new Pair(entity, fact.Table.FindByName("Visible")))
                         @Html.Partial("_List_Data_Item", new Pair(entity, fact.Table.FindByName("Necessary")))
-                        <td><span class="glyphicon glyphicon-arrow-up" style="color: green;"></span></td>
-                        <td><span class="glyphicon glyphicon-arrow-down" style="color: red;"></span></td>
+                        <td>
+                            @if (entity.Parent != null && entity != entity.Parent.Childs[0])
+                            {
+                                <a href="@Url.Action("Up", new { id = entity.ID })"><span class="glyphicon glyphicon-arrow-up" style="color: green;"></span></a>
+                            }
+                        </td>
+                        <td>
+                            @if (entity.Parent != null && entity != entity.Parent.Childs[entity.Parent.Childs.Count - 1])
+                            {
+                                <a href="@Url.Action("Down", new { id = entity.ID })"><span class="glyphicon glyphicon-arrow-down" style="color: red;"></span></a>
+                            }
+                        </td>
                         <td>
                             @Html.Partial("_List_Data_Action", entity.ID)
                         </td>
