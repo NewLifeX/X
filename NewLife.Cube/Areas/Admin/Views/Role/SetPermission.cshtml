@@ -2,11 +2,13 @@
 @using XCode
 @using XCode.Configuration
 @{
+    var role = Model.Role as Role;
     var menus = Menu.Root.AllChilds;
+    var pfs = EnumHelper.GetDescriptions<PermissionFlags>().Where(e => e.Key > PermissionFlags.None);
 }
 <div class="form-group">
     <label class="control-label col-md-2">授权</label>
-    <div class="input-group col-md-4">
+    <div class="input-group col-md-6">
         <table class="table table-bordered table-hover table-striped table-condensed">
             <thead>
                 <tr>
@@ -22,8 +24,16 @@
                     <tr>
                         <td>@entity.TreeNodeName</td>
                         <td>@entity.DisplayName</td>
-                        <td>@Html.CheckBox("p" + entity.ID)</td>
-                        <td>@Html.CheckBox("pm" + entity.ID)</td>
+                        <td>@Html.CheckBox("p" + entity.ID, role.Has(entity.ID))</td>
+                        <td>
+                            @foreach (var item in pfs)
+                            {
+                                var id = "pf" + entity.ID + "_" + ((Int32)item.Key);
+                                @Html.CheckBox(id, role.Has(entity.ID, item.Key))
+                                @Html.Label(id, item.Value)
+                                <text>&nbsp;</text>
+                            }
+                        </td>
                     </tr>
                 }
             </tbody>

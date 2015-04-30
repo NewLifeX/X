@@ -278,7 +278,8 @@ namespace XCode.Membership
             var pf = PermissionFlags.None;
             if (!Permissions.TryGetValue(resid, out pf))
             {
-                Permissions.Add(resid, flag);
+                if (flag != PermissionFlags.None)
+                    Permissions.Add(resid, flag);
             }
             else
             {
