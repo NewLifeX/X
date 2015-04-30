@@ -302,6 +302,8 @@
     <Content Include="Content\ace\fonts\OpenSans-300.woff" />
     <Content Include="Content\ace\fonts\OpenSans-400.woff" />
     <Content Include="Areas\Admin\Views\Menu\Form.cshtml" />
+    <Content Include="Areas\Admin\Views\Role\Form.cshtml" />
+    <Content Include="Areas\Admin\Views\Role\SetPermission.cshtml" />
     <None Include="Global.asax" />
     <Content Include="Areas\Admin\Views\_ViewStart.cshtml" />
     <Content Include="Areas\Admin\Views\Web.config" />

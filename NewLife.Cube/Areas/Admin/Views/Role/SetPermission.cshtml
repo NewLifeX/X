@@ -1,0 +1,32 @@
+﻿@using System.Reflection
+@using XCode
+@using XCode.Configuration
+@{
+    var menus = Menu.Root.AllChilds;
+}
+<div class="form-group">
+    <label class="control-label col-md-2">授权</label>
+    <div class="input-group col-md-4">
+        <table class="table table-bordered table-hover table-striped table-condensed">
+            <thead>
+                <tr>
+                    <th>名称</th>
+                    <th>显示名</th>
+                    <th>授权</th>
+                    <th>操作权限</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var entity in menus)
+                {
+                    <tr>
+                        <td>@entity.TreeNodeName</td>
+                        <td>@entity.DisplayName</td>
+                        <td>@Html.CheckBox("p" + entity.ID)</td>
+                        <td>@Html.CheckBox("pm" + entity.ID)</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
