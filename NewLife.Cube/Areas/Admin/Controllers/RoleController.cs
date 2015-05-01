@@ -1,10 +1,9 @@
 ﻿using System;
-using System.Linq;
-using System.ComponentModel;
-using System.Web.Mvc;
-using NewLife.Cube.Controllers;
-using XCode.Membership;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Linq;
+using System.Web.Mvc;
+using XCode.Membership;
 
 namespace NewLife.Cube.Admin.Controllers
 {
@@ -25,7 +24,7 @@ namespace NewLife.Cube.Admin.Controllers
             foreach (var item in menus)
             {
                 // 是否授权该项
-                var has = Request["p" + item.ID].ToBoolean();
+                var has = GetBool("p" + item.ID);
                 if (!has)
                     dels.Add(item.ID);
                 else
@@ -34,7 +33,7 @@ namespace NewLife.Cube.Admin.Controllers
                     var any = false;
                     foreach (var pf in pfs)
                     {
-                        var has2 = Request["pf" + item.ID + "_" + ((Int32)pf.Key)].ToBoolean();
+                        var has2 = GetBool("pf" + item.ID + "_" + ((Int32)pf.Key));
 
                         entity.Set(item.ID, has2 ? pf.Key : PermissionFlags.None);
                         any |= has2;
@@ -50,6 +49,18 @@ namespace NewLife.Cube.Admin.Controllers
             }
 
             return base.Save(entity);
+        }
+
+        Boolean GetBool(String name)
+        {
+            var v = Request[name];
+            if (v.IsNullOrEmpty()) return false;
+
+            v = v.Split(",")[0];
+
+            if (!v.EqualIgnoreCase("true", "false")) throw new XException("非法布尔值Request[{0}]={1}", name, v);
+
+            return v.ToBoolean();
         }
     }
 }
