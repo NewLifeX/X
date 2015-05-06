@@ -15,8 +15,8 @@ namespace NewLife.Cube.Precompiled
         /// <param name="innerCache"></param>
 		public PrecompiledViewLocationCache(string assemblyName, IViewLocationCache innerCache)
 		{
-			this._assemblyName = assemblyName;
-			this._innerCache = innerCache;
+			_assemblyName = assemblyName;
+			_innerCache = innerCache;
 		}
 
         /// <summary>获取视图位置</summary>
@@ -25,8 +25,8 @@ namespace NewLife.Cube.Precompiled
         /// <returns></returns>
 		public string GetViewLocation(HttpContextBase httpContext, string key)
 		{
-			key = this._assemblyName + "::" + key;
-			return this._innerCache.GetViewLocation(httpContext, key);
+			key = _assemblyName + "::" + key;
+			return _innerCache.GetViewLocation(httpContext, key);
 		}
 
         /// <summary>插入视图位置</summary>
@@ -35,8 +35,8 @@ namespace NewLife.Cube.Precompiled
         /// <param name="virtualPath"></param>
 		public void InsertViewLocation(HttpContextBase httpContext, string key, string virtualPath)
 		{
-			key = this._assemblyName + "::" + key;
-			this._innerCache.InsertViewLocation(httpContext, key, virtualPath);
+			key = _assemblyName + "::" + key;
+			_innerCache.InsertViewLocation(httpContext, key, virtualPath);
 		}
 	}
 }
