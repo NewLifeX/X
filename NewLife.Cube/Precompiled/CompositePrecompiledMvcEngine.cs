@@ -20,10 +20,7 @@ namespace NewLife.Cube.Precompiled
 
         /// <summary>∏¥∫œ‘§±‡“ÎMvc“˝«Ê</summary>
         /// <param name="viewAssemblies"></param>
-        public CompositePrecompiledMvcEngine(params PrecompiledViewAssembly[] viewAssemblies)
-            : this(viewAssemblies, null)
-        {
-        }
+        public CompositePrecompiledMvcEngine(params PrecompiledViewAssembly[] viewAssemblies) : this(viewAssemblies, null) { }
 
         /// <summary>∏¥∫œ‘§±‡“ÎMvc“˝«Ê</summary>
         /// <param name="viewAssemblies"></param>

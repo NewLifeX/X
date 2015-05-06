@@ -1,9 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Web;
-using System.Web.WebPages;
 
 namespace NewLife.Cube.Precompiled
 {
@@ -69,12 +66,7 @@ namespace NewLife.Cube.Precompiled
         /// <returns></returns>
         public IDictionary<String, Type> GetTypeMappings()
         {
-            return (
-                from type in _assembly.GetTypes()
-                where typeof(WebPageRenderingBase).IsAssignableFrom(type)
-                let pageVirtualPath = type.GetCustomAttributes(false).OfType<PageVirtualPathAttribute>().FirstOrDefault<PageVirtualPathAttribute>()
-                where pageVirtualPath != null
-                select new KeyValuePair<String, Type>(PrecompiledViewAssembly.CombineVirtualPaths(_baseVirtualPath, pageVirtualPath.VirtualPath), type)).ToDictionary((KeyValuePair<String, Type> t) => t.Key, (KeyValuePair<String, Type> t) => t.Value, StringComparer.OrdinalIgnoreCase);
+            return PrecompiledMvcEngine.GetTypeMappings(_assembly, _baseVirtualPath);
         }
 
         /// <summary>物理文件是否更新</summary>
@@ -85,12 +77,5 @@ namespace NewLife.Cube.Precompiled
             return PrecompiledMvcEngine.IsPhysicalFileNewer(virtualPath, _baseVirtualPath, _assemblyLastWriteTime);
         }
 
-        private static String CombineVirtualPaths(String baseVirtualPath, String virtualPath)
-        {
-            if (!String.IsNullOrEmpty(baseVirtualPath))
-                return VirtualPathUtility.Combine(baseVirtualPath, virtualPath.Substring(2));
-            else
-                return virtualPath;
-        }
     }
 }

@@ -1,8 +1,14 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
+using System.Reflection;
 using System.Threading;
+using System.Web;
 using System.Web.Mvc;
+using System.Web.WebPages;
+using NewLife.Cube.Precompiled;
 using NewLife.Log;
+using NewLife.Reflection;
 using XCode.Membership;
 
 namespace NewLife.Cube
@@ -25,10 +31,35 @@ namespace NewLife.Cube
             }
         }
 
+        private static PrecompiledViewAssembly[] _PrecompiledEngines;
+        /// <summary>预编译引擎集合。便于外部设置属性</summary>
+        public static PrecompiledViewAssembly[] PrecompiledEngines { get { return _PrecompiledEngines; } private set { _PrecompiledEngines = value; } }
+
         static AreaRegistrationBase()
         {
             // 注册视图引擎
-            RazorViewEngineX.Register(ViewEngines.Engines);
+            //RazorViewEngineX.Register(ViewEngines.Engines);
+            // 遍历所有引用了AreaRegistrationBase的程序集
+            var list = new List<PrecompiledViewAssembly>();
+            foreach (var asm in FindAllArea())
+            {
+                //var pme = new PrecompiledMvcEngine(asm)
+                //{
+                //    UsePhysicalViewsIfNewer = HttpContext.Current.Request.IsLocal
+                //};
+                //list.Add(pme);
+                XTrace.WriteLine("注册视图程序集：{0}", asm.FullName);
+                
+                var pva = new PrecompiledViewAssembly(asm);
+                list.Add(pva);
+            }
+            PrecompiledEngines = list.ToArray();
+
+            var engine = new CompositePrecompiledMvcEngine(PrecompiledEngines);
+            ViewEngines.Engines.Insert(0, engine);
+
+            // StartPage lookups are done by WebPages. 
+            VirtualPathFactoryManager.RegisterVirtualPathFactory(engine);
 
             // 注册绑定提供者
             EntityModelBinderProvider.Register();
@@ -39,6 +70,23 @@ namespace NewLife.Cube
             var filters = GlobalFilters.Filters;
             filters.Add(new MvcHandleErrorAttribute());
             filters.Add(new EntityAuthorizeAttribute());
+        }
+
+        /// <summary>遍历所有引用了AreaRegistrationBase的程序集</summary>
+        /// <returns></returns>
+        static List<Assembly> FindAllArea()
+        {
+            var list = new List<Assembly>();
+            foreach (var item in AssemblyX.FindAllPlugins(typeof(AreaRegistrationBase), true))
+            {
+                var asm = item.Assembly;
+                if (!list.Contains(asm))
+                {
+                    list.Add(asm);
+                    //yield return asm;
+                }
+            }
+            return list;
         }
 
         /// <summary>注册区域</summary>

@@ -5,6 +5,7 @@ using System.Security;
 
 namespace NewLife.Cube.Precompiled
 {
+    /// <summary>程序集的扩展方法</summary>
 	internal static class AssemblyExtensions
 	{
 		public static DateTime GetLastWriteTimeUtc(this Assembly assembly, DateTime fallback)

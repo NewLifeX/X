@@ -77,12 +77,13 @@ namespace NewLife.Cube.Precompiled
 			{
 				"cshtml"
 			};
-            _mappings = (
-                from type in assembly.GetTypes()
-                where typeof(WebPageRenderingBase).IsAssignableFrom(type)
-                let pageVirtualPath = type.GetCustomAttributes(false).OfType<PageVirtualPathAttribute>().FirstOrDefault<PageVirtualPathAttribute>()
-                where pageVirtualPath != null
-                select new KeyValuePair<String, Type>(CombineVirtualPaths(_baseVirtualPath, pageVirtualPath.VirtualPath), type)).ToDictionary((KeyValuePair<String, Type> t) => t.Key, (KeyValuePair<String, Type> t) => t.Value, StringComparer.OrdinalIgnoreCase);
+            //_mappings = (
+            //    from type in assembly.GetTypes()
+            //    where typeof(WebPageRenderingBase).IsAssignableFrom(type)
+            //    let pageVirtualPath = type.GetCustomAttributes(false).OfType<PageVirtualPathAttribute>().FirstOrDefault()
+            //    where pageVirtualPath != null
+            //    select new KeyValuePair<String, Type>(CombineVirtualPaths(_baseVirtualPath, pageVirtualPath.VirtualPath), type)).ToDictionary(t => t.Key, t => t.Value, StringComparer.OrdinalIgnoreCase);
+            _mappings = GetTypeMappings(assembly, _baseVirtualPath);
             ViewLocationCache = new PrecompiledViewLocationCache(assembly.FullName, ViewLocationCache);
             _viewPageActivator = (viewPageActivator ?? (DependencyResolver.Current.GetService<IViewPageActivator>() ?? DefaultViewPageActivator.Current));
         }
@@ -223,16 +224,24 @@ namespace NewLife.Cube.Precompiled
 
         private static String CombineVirtualPaths(String baseVirtualPath, String virtualPath)
         {
-            String result;
             if (!String.IsNullOrEmpty(baseVirtualPath))
-            {
-                result = VirtualPathUtility.Combine(baseVirtualPath, virtualPath.Substring(2));
-            }
+                return VirtualPathUtility.Combine(baseVirtualPath, virtualPath.Substring(2));
             else
-            {
-                result = virtualPath;
-            }
-            return result;
+                return virtualPath;
+        }
+
+        /// <summary>遍历获取所有类型映射</summary>
+        /// <param name="asm"></param>
+        /// <param name="baseVirtualPath"></param>
+        /// <returns></returns>
+        public static IDictionary<String, Type> GetTypeMappings(Assembly asm, String baseVirtualPath)
+        {
+            return (
+                from type in asm.GetTypes()
+                where typeof(WebPageRenderingBase).IsAssignableFrom(type)
+                let pageVirtualPath = type.GetCustomAttributes(false).OfType<PageVirtualPathAttribute>().FirstOrDefault()
+                where pageVirtualPath != null
+                select new KeyValuePair<String, Type>(CombineVirtualPaths(baseVirtualPath, pageVirtualPath.VirtualPath), type)).ToDictionary(t => t.Key, t => t.Value, StringComparer.OrdinalIgnoreCase);
         }
     }
 }
