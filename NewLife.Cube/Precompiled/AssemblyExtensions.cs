@@ -3,7 +3,7 @@ using System.IO;
 using System.Reflection;
 using System.Security;
 
-namespace RazorGenerator.Mvc
+namespace NewLife.Cube.Precompiled
 {
 	internal static class AssemblyExtensions
 	{

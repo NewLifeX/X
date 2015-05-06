@@ -9,119 +9,143 @@ using System.Web.Hosting;
 using System.Web.Mvc;
 using System.Web.WebPages;
 
-namespace RazorGenerator.Mvc
+namespace NewLife.Cube.Precompiled
 {
+    /// <summary>预编译Mvc引擎</summary>
     public class PrecompiledMvcEngine : VirtualPathProviderViewEngine, IVirtualPathFactory
     {
         private readonly IDictionary<string, Type> _mappings;
         private readonly string _baseVirtualPath;
         private readonly Lazy<DateTime> _assemblyLastWriteTime;
         private readonly IViewPageActivator _viewPageActivator;
+
+        /// <summary>优先使用物理文件</summary>
         public bool PreemptPhysicalFiles { get; set; }
 
+        /// <summary>使用更新的物理文件</summary>
         public bool UsePhysicalViewsIfNewer { get; set; }
 
-        public PrecompiledMvcEngine(Assembly assembly)
-            : this(assembly, null)
-        {
-        }
-        public PrecompiledMvcEngine(Assembly assembly, string baseVirtualPath)
-            : this(assembly, baseVirtualPath, null)
-        {
-        }
+        /// <summary>实例化预编译Mvc引擎</summary>
+        /// <param name="assembly"></param>
+        public PrecompiledMvcEngine(Assembly assembly) : this(assembly, null) { }
+
+        /// <summary>实例化预编译Mvc引擎</summary>
+        /// <param name="assembly"></param>
+        /// <param name="baseVirtualPath"></param>
+        public PrecompiledMvcEngine(Assembly assembly, string baseVirtualPath) : this(assembly, baseVirtualPath, null) { }
+
+        /// <summary>实例化预编译Mvc引擎</summary>
+        /// <param name="assembly"></param>
+        /// <param name="baseVirtualPath"></param>
+        /// <param name="viewPageActivator"></param>
         public PrecompiledMvcEngine(Assembly assembly, string baseVirtualPath, IViewPageActivator viewPageActivator)
-		{
+        {
             //PrecompiledMvcEngine <>4__this = this;
-			this._assemblyLastWriteTime = new Lazy<DateTime>(() => assembly.GetLastWriteTimeUtc(DateTime.MaxValue));
-			this._baseVirtualPath = PrecompiledMvcEngine.NormalizeBaseVirtualPath(baseVirtualPath);
-			base.AreaViewLocationFormats = new string[]
+            _assemblyLastWriteTime = new Lazy<DateTime>(() => assembly.GetLastWriteTimeUtc(DateTime.MaxValue));
+            _baseVirtualPath = PrecompiledMvcEngine.NormalizeBaseVirtualPath(baseVirtualPath);
+            base.AreaViewLocationFormats = new string[]
 			{
 				"~/Areas/{2}/Views/{1}/{0}.cshtml",
 				"~/Areas/{2}/Views/Shared/{0}.cshtml"
 			};
-			base.AreaMasterLocationFormats = new string[]
+            base.AreaMasterLocationFormats = new string[]
 			{
 				"~/Areas/{2}/Views/{1}/{0}.cshtml",
 				"~/Areas/{2}/Views/Shared/{0}.cshtml"
 			};
-			base.AreaPartialViewLocationFormats = new string[]
+            base.AreaPartialViewLocationFormats = new string[]
 			{
 				"~/Areas/{2}/Views/{1}/{0}.cshtml",
 				"~/Areas/{2}/Views/Shared/{0}.cshtml"
 			};
-			base.ViewLocationFormats = new string[]
+            base.ViewLocationFormats = new string[]
 			{
 				"~/Views/{1}/{0}.cshtml",
 				"~/Views/Shared/{0}.cshtml"
 			};
-			base.MasterLocationFormats = new string[]
+            base.MasterLocationFormats = new string[]
 			{
 				"~/Views/{1}/{0}.cshtml",
 				"~/Views/Shared/{0}.cshtml"
 			};
-			base.PartialViewLocationFormats = new string[]
+            base.PartialViewLocationFormats = new string[]
 			{
 				"~/Views/{1}/{0}.cshtml",
 				"~/Views/Shared/{0}.cshtml"
 			};
-			base.FileExtensions = new string[]
+            base.FileExtensions = new string[]
 			{
 				"cshtml"
 			};
-			this._mappings = (
-				from type in assembly.GetTypes()
-				where typeof(WebPageRenderingBase).IsAssignableFrom(type)
-				let pageVirtualPath = type.GetCustomAttributes(false).OfType<PageVirtualPathAttribute>().FirstOrDefault<PageVirtualPathAttribute>()
-				where pageVirtualPath != null
-				select new KeyValuePair<string, Type>(PrecompiledMvcEngine.CombineVirtualPaths(this._baseVirtualPath, pageVirtualPath.VirtualPath), type)).ToDictionary((KeyValuePair<string, Type> t) => t.Key, (KeyValuePair<string, Type> t) => t.Value, StringComparer.OrdinalIgnoreCase);
-			base.ViewLocationCache = new PrecompiledViewLocationCache(assembly.FullName, base.ViewLocationCache);
-			this._viewPageActivator = (viewPageActivator ?? (DependencyResolver.Current.GetService<IViewPageActivator>() ?? DefaultViewPageActivator.Current));
-		}
+            _mappings = (
+                from type in assembly.GetTypes()
+                where typeof(WebPageRenderingBase).IsAssignableFrom(type)
+                let pageVirtualPath = type.GetCustomAttributes(false).OfType<PageVirtualPathAttribute>().FirstOrDefault<PageVirtualPathAttribute>()
+                where pageVirtualPath != null
+                select new KeyValuePair<string, Type>(PrecompiledMvcEngine.CombineVirtualPaths(_baseVirtualPath, pageVirtualPath.VirtualPath), type)).ToDictionary((KeyValuePair<string, Type> t) => t.Key, (KeyValuePair<string, Type> t) => t.Value, StringComparer.OrdinalIgnoreCase);
+            base.ViewLocationCache = new PrecompiledViewLocationCache(assembly.FullName, base.ViewLocationCache);
+            _viewPageActivator = (viewPageActivator ?? (DependencyResolver.Current.GetService<IViewPageActivator>() ?? DefaultViewPageActivator.Current));
+        }
+
+        /// <summary>文件是否存在</summary>
+        /// <param name="controllerContext"></param>
+        /// <param name="virtualPath"></param>
+        /// <returns></returns>
         protected override bool FileExists(ControllerContext controllerContext, string virtualPath)
         {
             virtualPath = PrecompiledMvcEngine.EnsureVirtualPathPrefix(virtualPath);
-            return (!this.UsePhysicalViewsIfNewer || !this.IsPhysicalFileNewer(virtualPath)) && this.Exists(virtualPath);
+            return (!UsePhysicalViewsIfNewer || !IsPhysicalFileNewer(virtualPath)) && Exists(virtualPath);
         }
+
+        /// <summary>创建分部视图</summary>
+        /// <param name="controllerContext"></param>
+        /// <param name="partialPath"></param>
+        /// <returns></returns>
         protected override IView CreatePartialView(ControllerContext controllerContext, string partialPath)
         {
             partialPath = PrecompiledMvcEngine.EnsureVirtualPathPrefix(partialPath);
-            return this.CreateViewInternal(partialPath, null, false);
+            return CreateViewInternal(partialPath, null, false);
         }
+
+        /// <summary>创建视图</summary>
+        /// <param name="controllerContext"></param>
+        /// <param name="viewPath"></param>
+        /// <param name="masterPath"></param>
+        /// <returns></returns>
         protected override IView CreateView(ControllerContext controllerContext, string viewPath, string masterPath)
         {
             viewPath = PrecompiledMvcEngine.EnsureVirtualPathPrefix(viewPath);
-            return this.CreateViewInternal(viewPath, masterPath, true);
+            return CreateViewInternal(viewPath, masterPath, true);
         }
+
         private IView CreateViewInternal(string viewPath, string masterPath, bool runViewStartPages)
         {
             Type type;
-            IView result;
-            if (this._mappings.TryGetValue(viewPath, out type))
-            {
-                result = new PrecompiledMvcView(viewPath, masterPath, type, runViewStartPages, base.FileExtensions, this._viewPageActivator);
-            }
+            if (_mappings.TryGetValue(viewPath, out type))
+                return new PrecompiledMvcView(viewPath, masterPath, type, runViewStartPages, base.FileExtensions, _viewPageActivator);
             else
-            {
-                result = null;
-            }
-            return result;
+                return null;
         }
+
+        /// <summary>创建实例</summary>
+        /// <param name="virtualPath"></param>
+        /// <returns></returns>
         public object CreateInstance(string virtualPath)
         {
             virtualPath = PrecompiledMvcEngine.EnsureVirtualPathPrefix(virtualPath);
             object result;
             Type type;
-            if (!this.PreemptPhysicalFiles && base.VirtualPathProvider.FileExists(virtualPath))
+            if (!PreemptPhysicalFiles && base.VirtualPathProvider.FileExists(virtualPath))
             {
                 result = BuildManager.CreateInstanceFromVirtualPath(virtualPath, typeof(WebPageRenderingBase));
             }
-            else if (this.UsePhysicalViewsIfNewer && this.IsPhysicalFileNewer(virtualPath))
+            else if (UsePhysicalViewsIfNewer && IsPhysicalFileNewer(virtualPath))
             {
                 result = BuildManager.CreateInstanceFromVirtualPath(virtualPath, typeof(WebViewPage));
             }
-            else if (this._mappings.TryGetValue(virtualPath, out type))
+            else if (_mappings.TryGetValue(virtualPath, out type))
             {
-                result = this._viewPageActivator.Create(null, type);
+                result = _viewPageActivator.Create(null, type);
             }
             else
             {
@@ -129,15 +153,26 @@ namespace RazorGenerator.Mvc
             }
             return result;
         }
+
+        /// <summary>是否存在</summary>
+        /// <param name="virtualPath"></param>
+        /// <returns></returns>
         public bool Exists(string virtualPath)
         {
             virtualPath = PrecompiledMvcEngine.EnsureVirtualPathPrefix(virtualPath);
-            return this._mappings.ContainsKey(virtualPath);
+            return _mappings.ContainsKey(virtualPath);
         }
+
         private bool IsPhysicalFileNewer(string virtualPath)
         {
-            return PrecompiledMvcEngine.IsPhysicalFileNewer(virtualPath, this._baseVirtualPath, this._assemblyLastWriteTime);
+            return PrecompiledMvcEngine.IsPhysicalFileNewer(virtualPath, _baseVirtualPath, _assemblyLastWriteTime);
         }
+
+        /// <summary>是否物理文件更新</summary>
+        /// <param name="virtualPath"></param>
+        /// <param name="baseVirtualPath"></param>
+        /// <param name="assemblyLastWriteTime"></param>
+        /// <returns></returns>
         internal static bool IsPhysicalFileNewer(string virtualPath, string baseVirtualPath, Lazy<DateTime> assemblyLastWriteTime)
         {
             bool result;
@@ -156,6 +191,7 @@ namespace RazorGenerator.Mvc
             }
             return result;
         }
+
         private static string EnsureVirtualPathPrefix(string virtualPath)
         {
             if (!string.IsNullOrEmpty(virtualPath))
@@ -171,6 +207,7 @@ namespace RazorGenerator.Mvc
             }
             return virtualPath;
         }
+
         internal static string NormalizeBaseVirtualPath(string virtualPath)
         {
             if (!string.IsNullOrEmpty(virtualPath))
@@ -183,6 +220,7 @@ namespace RazorGenerator.Mvc
             }
             return virtualPath;
         }
+
         private static string CombineVirtualPaths(string baseVirtualPath, string virtualPath)
         {
             string result;

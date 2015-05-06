@@ -4,8 +4,9 @@ using System.Web.Compilation;
 using System.Web.Mvc;
 using System.Web.WebPages;
 
-namespace RazorGenerator.Mvc
+namespace NewLife.Cube.Precompiled
 {
+    /// <summary>复合预编译Mvc引擎</summary>
     public class CompositePrecompiledMvcEngine : VirtualPathProviderViewEngine, IVirtualPathFactory
     {
         private struct ViewMapping
@@ -16,10 +17,17 @@ namespace RazorGenerator.Mvc
         }
         private readonly IDictionary<string, ViewMapping> _mappings = new Dictionary<string, ViewMapping>(StringComparer.OrdinalIgnoreCase);
         private readonly IViewPageActivator _viewPageActivator;
+
+        /// <summary>复合预编译Mvc引擎</summary>
+        /// <param name="viewAssemblies"></param>
         public CompositePrecompiledMvcEngine(params PrecompiledViewAssembly[] viewAssemblies)
             : this(viewAssemblies, null)
         {
         }
+
+        /// <summary>复合预编译Mvc引擎</summary>
+        /// <param name="viewAssemblies"></param>
+        /// <param name="viewPageActivator"></param>
         public CompositePrecompiledMvcEngine(IEnumerable<PrecompiledViewAssembly> viewAssemblies, IViewPageActivator viewPageActivator)
         {
             base.AreaViewLocationFormats = new string[]
@@ -60,47 +68,62 @@ namespace RazorGenerator.Mvc
             {
                 foreach (KeyValuePair<string, Type> current2 in current.GetTypeMappings())
                 {
-                    this._mappings[current2.Key] = new ViewMapping
+                    _mappings[current2.Key] = new ViewMapping
                     {
                         Type = current2.Value,
                         ViewAssembly = current
                     };
                 }
             }
-            this._viewPageActivator = (viewPageActivator ?? (DependencyResolver.Current.GetService<IViewPageActivator>() ?? DefaultViewPageActivator.Current));
+            _viewPageActivator = (viewPageActivator ?? (DependencyResolver.Current.GetService<IViewPageActivator>() ?? DefaultViewPageActivator.Current));
         }
+
+        /// <summary>文件是否存在</summary>
+        /// <param name="controllerContext"></param>
+        /// <param name="virtualPath"></param>
+        /// <returns></returns>
         protected override bool FileExists(ControllerContext controllerContext, string virtualPath)
         {
             ViewMapping viewMapping;
-            return this._mappings.TryGetValue(virtualPath, out viewMapping) && (!viewMapping.ViewAssembly.UsePhysicalViewsIfNewer || !viewMapping.ViewAssembly.IsPhysicalFileNewer(virtualPath)) && this.Exists(virtualPath);
+            return _mappings.TryGetValue(virtualPath, out viewMapping) && (!viewMapping.ViewAssembly.UsePhysicalViewsIfNewer || !viewMapping.ViewAssembly.IsPhysicalFileNewer(virtualPath)) && Exists(virtualPath);
         }
+
+        /// <summary>创建分部视图</summary>
+        /// <param name="controllerContext"></param>
+        /// <param name="partialPath"></param>
+        /// <returns></returns>
         protected override IView CreatePartialView(ControllerContext controllerContext, string partialPath)
         {
-            return this.CreateViewInternal(partialPath, null, false);
+            return CreateViewInternal(partialPath, null, false);
         }
+
+        /// <summary>创建视图</summary>
+        /// <param name="controllerContext"></param>
+        /// <param name="viewPath"></param>
+        /// <param name="masterPath"></param>
+        /// <returns></returns>
         protected override IView CreateView(ControllerContext controllerContext, string viewPath, string masterPath)
         {
-            return this.CreateViewInternal(viewPath, masterPath, true);
+            return CreateViewInternal(viewPath, masterPath, true);
         }
+
         private IView CreateViewInternal(string viewPath, string masterPath, bool runViewStartPages)
         {
             ViewMapping viewMapping;
-            IView result;
-            if (this._mappings.TryGetValue(viewPath, out viewMapping))
-            {
-                result = new PrecompiledMvcView(viewPath, masterPath, viewMapping.Type, runViewStartPages, base.FileExtensions, this._viewPageActivator);
-            }
+            if (_mappings.TryGetValue(viewPath, out viewMapping))
+            return new PrecompiledMvcView(viewPath, masterPath, viewMapping.Type, runViewStartPages, base.FileExtensions, _viewPageActivator);
             else
-            {
-                result = null;
-            }
-            return result;
+            return null;
         }
+
+        /// <summary>创建实例</summary>
+        /// <param name="virtualPath"></param>
+        /// <returns></returns>
         public object CreateInstance(string virtualPath)
         {
             ViewMapping viewMapping;
             object result;
-            if (!this._mappings.TryGetValue(virtualPath, out viewMapping))
+            if (!_mappings.TryGetValue(virtualPath, out viewMapping))
             {
                 result = null;
             }
@@ -114,13 +137,17 @@ namespace RazorGenerator.Mvc
             }
             else
             {
-                result = this._viewPageActivator.Create(null, viewMapping.Type);
+                result = _viewPageActivator.Create(null, viewMapping.Type);
             }
             return result;
         }
+
+        /// <summary>是否存在</summary>
+        /// <param name="virtualPath"></param>
+        /// <returns></returns>
         public bool Exists(string virtualPath)
         {
-            return this._mappings.ContainsKey(virtualPath);
+            return _mappings.ContainsKey(virtualPath);
         }
     }
 }

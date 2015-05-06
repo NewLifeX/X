@@ -185,7 +185,6 @@ namespace NewLife.Cube
         /// <param name="Html"></param>
         /// <param name="name"></param>
         /// <param name="value"></param>
-        /// <param name="format"></param>
         /// <param name="htmlAttributes"></param>
         /// <returns></returns>
         public static MvcHtmlString ForBoolean(this HtmlHelper Html, String name, Boolean value, Object htmlAttributes = null)
