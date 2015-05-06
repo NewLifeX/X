@@ -196,8 +196,10 @@ namespace XCode.Membership
     /// <typeparam name="TUser"></typeparam>
     public class ManageProvider<TUser> : ManageProvider where TUser : User<TUser>, new()
     {
+        /// <summary>用户类型</summary>
         public override Type UserType { get { return typeof(TUser); } }
 
+        /// <summary>当前用户</summary>
         public override IManageUser Current { get { return User<TUser>.Current; } set { User<TUser>.Current = (TUser)value; } }
 
         /// <summary>根据用户编号查找</summary>

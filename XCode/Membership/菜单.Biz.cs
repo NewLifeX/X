@@ -436,6 +436,7 @@ namespace XCode.Membership
     /// <summary>菜单工厂接口</summary>
     public interface IMenuFactory
     {
+        /// <summary>根菜单</summary>
         IMenu Root { get; }
 
         /// <summary>根据编号找到菜单</summary>
