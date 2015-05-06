@@ -5,9 +5,10 @@
 
     var context = ViewBag.Context as ExceptionContext;
     var error = context.Exception.Message;
-#if DEBUG
-    error = context.Exception.ToString();
-#endif
+    if (NewLife.Log.XTrace.Debug)
+    {
+        error = context.Exception.ToString();
+    }
     error = error.Replace("--->", "--->" + Environment.NewLine);
 }
 <div class="panel panel-default">

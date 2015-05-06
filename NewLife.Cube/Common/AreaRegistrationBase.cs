@@ -38,7 +38,8 @@ namespace NewLife.Cube
         static AreaRegistrationBase()
         {
             // 注册视图引擎
-            //RazorViewEngineX.Register(ViewEngines.Engines);
+            RazorViewEngineX.Register(ViewEngines.Engines);
+
             // 遍历所有引用了AreaRegistrationBase的程序集
             var list = new List<PrecompiledViewAssembly>();
             foreach (var asm in FindAllArea())
