@@ -131,7 +131,6 @@
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Precompiled\CompositePrecompiledMvcEngine.cs" />
-    <Compile Include="Precompiled\DefaultViewPageActivator.cs" />
     <Compile Include="Precompiled\PrecompiledMvcEngine.cs" />
     <Compile Include="Precompiled\PrecompiledMvcView.cs" />
     <Compile Include="Precompiled\PrecompiledViewAssembly.cs" />

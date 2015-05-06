@@ -7,7 +7,7 @@ using System.Web.WebPages;
 namespace NewLife.Cube.Precompiled
 {
     /// <summary>复合预编译Mvc引擎</summary>
-    public class CompositePrecompiledMvcEngine : VirtualPathProviderViewEngine, IVirtualPathFactory
+    public class CompositePrecompiledMvcEngine : BuildManagerViewEngine, IVirtualPathFactory
     {
         private struct ViewMapping
         {
@@ -16,7 +16,7 @@ namespace NewLife.Cube.Precompiled
             public PrecompiledViewAssembly ViewAssembly { get; set; }
         }
         private readonly IDictionary<String, ViewMapping> _mappings = new Dictionary<String, ViewMapping>(StringComparer.OrdinalIgnoreCase);
-        private readonly IViewPageActivator _viewPageActivator;
+        //private readonly IViewPageActivator _viewPageActivator;
 
         /// <summary>复合预编译Mvc引擎</summary>
         /// <param name="viewAssemblies"></param>
@@ -26,6 +26,7 @@ namespace NewLife.Cube.Precompiled
         /// <param name="viewAssemblies"></param>
         /// <param name="viewPageActivator"></param>
         public CompositePrecompiledMvcEngine(IEnumerable<PrecompiledViewAssembly> viewAssemblies, IViewPageActivator viewPageActivator)
+            : base(viewPageActivator)
         {
             AreaViewLocationFormats = new String[]
 			{
@@ -72,7 +73,7 @@ namespace NewLife.Cube.Precompiled
                     };
                 }
             }
-            _viewPageActivator = (viewPageActivator ?? (DependencyResolver.Current.GetService<IViewPageActivator>() ?? DefaultViewPageActivator.Current));
+            //_viewPageActivator = (viewPageActivator ?? (DependencyResolver.Current.GetService<IViewPageActivator>() ?? DefaultViewPageActivator.Current));
         }
 
         /// <summary>文件是否存在</summary>
@@ -108,7 +109,7 @@ namespace NewLife.Cube.Precompiled
         {
             ViewMapping viewMapping;
             if (_mappings.TryGetValue(viewPath, out viewMapping))
-                return new PrecompiledMvcView(viewPath, masterPath, viewMapping.Type, runViewStartPages, FileExtensions, _viewPageActivator);
+                return new PrecompiledMvcView(viewPath, masterPath, viewMapping.Type, runViewStartPages, FileExtensions, ViewPageActivator);
             else
                 return null;
         }
@@ -134,7 +135,7 @@ namespace NewLife.Cube.Precompiled
             }
             else
             {
-                result = _viewPageActivator.Create(null, viewMapping.Type);
+                result = ViewPageActivator.Create(null, viewMapping.Type);
             }
             return result;
         }

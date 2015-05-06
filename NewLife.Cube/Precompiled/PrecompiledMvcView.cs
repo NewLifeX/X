@@ -25,20 +25,20 @@ namespace NewLife.Cube.Precompiled
         /// <summary>虚拟路径</summary>
         public String VirtualPath { get { return _virtualPath; } }
 
-        /// <summary>实例化预编译视图</summary>
-        /// <param name="virtualPath"></param>
-        /// <param name="type"></param>
-        /// <param name="runViewStartPages"></param>
-        /// <param name="fileExtension"></param>
-        public PrecompiledMvcView(String virtualPath, Type type, Boolean runViewStartPages, IEnumerable<String> fileExtension) : this(virtualPath, null, type, runViewStartPages, fileExtension) { }
+        ///// <summary>实例化预编译视图</summary>
+        ///// <param name="virtualPath"></param>
+        ///// <param name="type"></param>
+        ///// <param name="runViewStartPages"></param>
+        ///// <param name="fileExtension"></param>
+        //public PrecompiledMvcView(String virtualPath, Type type, Boolean runViewStartPages, IEnumerable<String> fileExtension) : this(virtualPath, null, type, runViewStartPages, fileExtension) { }
 
-        /// <summary>实例化预编译视图</summary>
-        /// <param name="virtualPath"></param>
-        /// <param name="masterPath"></param>
-        /// <param name="type"></param>
-        /// <param name="runViewStartPages"></param>
-        /// <param name="fileExtension"></param>
-        public PrecompiledMvcView(String virtualPath, String masterPath, Type type, Boolean runViewStartPages, IEnumerable<String> fileExtension) : this(virtualPath, masterPath, type, runViewStartPages, fileExtension, null) { }
+        ///// <summary>实例化预编译视图</summary>
+        ///// <param name="virtualPath"></param>
+        ///// <param name="masterPath"></param>
+        ///// <param name="type"></param>
+        ///// <param name="runViewStartPages"></param>
+        ///// <param name="fileExtension"></param>
+        //public PrecompiledMvcView(String virtualPath, String masterPath, Type type, Boolean runViewStartPages, IEnumerable<String> fileExtension) : this(virtualPath, masterPath, type, runViewStartPages, fileExtension, null) { }
 
         /// <summary>实例化预编译视图</summary>
         /// <param name="virtualPath"></param>
@@ -54,7 +54,8 @@ namespace NewLife.Cube.Precompiled
             _masterPath = masterPath;
             RunViewStartPages = runViewStartPages;
             ViewStartFileExtensions = fileExtension;
-            _viewPageActivator = (viewPageActivator ?? (DependencyResolver.Current.GetService<IViewPageActivator>() ?? DefaultViewPageActivator.Current));
+            //_viewPageActivator = (viewPageActivator ?? (DependencyResolver.Current.GetService<IViewPageActivator>() ?? DefaultViewPageActivator.Current));
+            _viewPageActivator = viewPageActivator;
         }
 
         /// <summary>生成视图内容</summary>
