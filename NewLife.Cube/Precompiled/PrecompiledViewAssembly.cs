@@ -10,15 +10,15 @@ namespace NewLife.Cube.Precompiled
     /// <summary>预编译视图程序集</summary>
     public class PrecompiledViewAssembly
     {
-        private readonly string _baseVirtualPath;
+        private readonly String _baseVirtualPath;
         private readonly Assembly _assembly;
         private readonly Lazy<DateTime> _assemblyLastWriteTime;
 
         /// <summary>优先使用物理文件</summary>
-        public bool PreemptPhysicalFiles { get; set; }
+        public Boolean PreemptPhysicalFiles { get; set; }
 
         /// <summary>使用更新的物理文件</summary>
-        public bool UsePhysicalViewsIfNewer { get; set; }
+        public Boolean UsePhysicalViewsIfNewer { get; set; }
 
         /// <summary>实例化预编译视图程序集</summary>
         /// <param name="assembly"></param>
@@ -27,7 +27,7 @@ namespace NewLife.Cube.Precompiled
         /// <summary>实例化预编译视图程序集</summary>
         /// <param name="assembly"></param>
         /// <param name="baseVirtualPath"></param>
-        public PrecompiledViewAssembly(Assembly assembly, string baseVirtualPath)
+        public PrecompiledViewAssembly(Assembly assembly, String baseVirtualPath)
         {
             if (assembly == null) throw new ArgumentNullException("assembly");
 
@@ -42,7 +42,7 @@ namespace NewLife.Cube.Precompiled
         /// <param name="usePhysicalViewsIfNewer"></param>
         /// <param name="preemptPhysicalFiles"></param>
         /// <returns></returns>
-        public static PrecompiledViewAssembly OfType<T>(string baseVirtualPath, bool usePhysicalViewsIfNewer = false, bool preemptPhysicalFiles = false)
+        public static PrecompiledViewAssembly OfType<T>(String baseVirtualPath, Boolean usePhysicalViewsIfNewer = false, Boolean preemptPhysicalFiles = false)
         {
             return new PrecompiledViewAssembly(typeof(T).Assembly, baseVirtualPath)
             {
@@ -56,7 +56,7 @@ namespace NewLife.Cube.Precompiled
         /// <param name="usePhysicalViewsIfNewer"></param>
         /// <param name="preemptPhysicalFiles"></param>
         /// <returns></returns>
-        public static PrecompiledViewAssembly OfType<T>(bool usePhysicalViewsIfNewer = false, bool preemptPhysicalFiles = false)
+        public static PrecompiledViewAssembly OfType<T>(Boolean usePhysicalViewsIfNewer = false, Boolean preemptPhysicalFiles = false)
         {
             return new PrecompiledViewAssembly(typeof(T).Assembly)
             {
@@ -67,27 +67,27 @@ namespace NewLife.Cube.Precompiled
 
         /// <summary>遍历获取所有类型映射</summary>
         /// <returns></returns>
-        public IDictionary<string, Type> GetTypeMappings()
+        public IDictionary<String, Type> GetTypeMappings()
         {
             return (
                 from type in _assembly.GetTypes()
                 where typeof(WebPageRenderingBase).IsAssignableFrom(type)
                 let pageVirtualPath = type.GetCustomAttributes(false).OfType<PageVirtualPathAttribute>().FirstOrDefault<PageVirtualPathAttribute>()
                 where pageVirtualPath != null
-                select new KeyValuePair<string, Type>(PrecompiledViewAssembly.CombineVirtualPaths(_baseVirtualPath, pageVirtualPath.VirtualPath), type)).ToDictionary((KeyValuePair<string, Type> t) => t.Key, (KeyValuePair<string, Type> t) => t.Value, StringComparer.OrdinalIgnoreCase);
+                select new KeyValuePair<String, Type>(PrecompiledViewAssembly.CombineVirtualPaths(_baseVirtualPath, pageVirtualPath.VirtualPath), type)).ToDictionary((KeyValuePair<String, Type> t) => t.Key, (KeyValuePair<String, Type> t) => t.Value, StringComparer.OrdinalIgnoreCase);
         }
 
         /// <summary>物理文件是否更新</summary>
         /// <param name="virtualPath"></param>
         /// <returns></returns>
-        public bool IsPhysicalFileNewer(string virtualPath)
+        public Boolean IsPhysicalFileNewer(String virtualPath)
         {
             return PrecompiledMvcEngine.IsPhysicalFileNewer(virtualPath, _baseVirtualPath, _assemblyLastWriteTime);
         }
 
-        private static string CombineVirtualPaths(string baseVirtualPath, string virtualPath)
+        private static String CombineVirtualPaths(String baseVirtualPath, String virtualPath)
         {
-            if (!string.IsNullOrEmpty(baseVirtualPath))
+            if (!String.IsNullOrEmpty(baseVirtualPath))
                 return VirtualPathUtility.Combine(baseVirtualPath, virtualPath.Substring(2));
             else
                 return virtualPath;

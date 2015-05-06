@@ -15,7 +15,7 @@ namespace NewLife.Cube.Controllers
         /// <param name="returnUrl"></param>
         /// <returns></returns>
         [AllowAnonymous]
-        public ActionResult Login(string returnUrl)
+        public ActionResult Login(String returnUrl)
         {
             ViewBag.ReturnUrl = returnUrl;
             return View();
@@ -28,7 +28,7 @@ namespace NewLife.Cube.Controllers
         [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
-        public ActionResult Login(LoginModel model, string returnUrl)
+        public ActionResult Login(LoginModel model, String returnUrl)
         {
             try
             {
@@ -139,7 +139,7 @@ namespace NewLife.Cube.Controllers
             if (ModelState.IsValid)
             {
                 // 在某些出错情况下，ChangePassword 将引发异常，而不是返回 false。
-                bool changePasswordSucceeded = false;
+                Boolean changePasswordSucceeded = false;
                 try
                 {
                     var user = ManageProvider.User as IUser;
@@ -173,7 +173,7 @@ namespace NewLife.Cube.Controllers
         }
 
         #region 帮助程序
-        private ActionResult RedirectToLocal(string returnUrl)
+        private ActionResult RedirectToLocal(String returnUrl)
         {
             if (Url.IsLocalUrl(returnUrl))
                 return Redirect(returnUrl);

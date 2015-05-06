@@ -38,7 +38,7 @@ namespace NewLife.Cube.Precompiled
         /// <param name="controllerContext"></param>
         /// <param name="type"></param>
         /// <returns></returns>
-        public object Create(ControllerContext controllerContext, Type type)
+        public Object Create(ControllerContext controllerContext, Type type)
         {
             return _resolverThunk().GetService(type) ?? Activator.CreateInstance(type);
         }

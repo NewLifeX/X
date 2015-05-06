@@ -15,7 +15,7 @@ namespace NewLife.Cube.Precompiled
 
             public PrecompiledViewAssembly ViewAssembly { get; set; }
         }
-        private readonly IDictionary<string, ViewMapping> _mappings = new Dictionary<string, ViewMapping>(StringComparer.OrdinalIgnoreCase);
+        private readonly IDictionary<String, ViewMapping> _mappings = new Dictionary<String, ViewMapping>(StringComparer.OrdinalIgnoreCase);
         private readonly IViewPageActivator _viewPageActivator;
 
         /// <summary>复合预编译Mvc引擎</summary>
@@ -30,37 +30,37 @@ namespace NewLife.Cube.Precompiled
         /// <param name="viewPageActivator"></param>
         public CompositePrecompiledMvcEngine(IEnumerable<PrecompiledViewAssembly> viewAssemblies, IViewPageActivator viewPageActivator)
         {
-            AreaViewLocationFormats = new string[]
+            AreaViewLocationFormats = new String[]
 			{
 				"~/Areas/{2}/Views/{1}/{0}.cshtml",
 				"~/Areas/{2}/Views/Shared/{0}.cshtml"
 			};
-            AreaMasterLocationFormats = new string[]
+            AreaMasterLocationFormats = new String[]
 			{
 				"~/Areas/{2}/Views/{1}/{0}.cshtml",
 				"~/Areas/{2}/Views/Shared/{0}.cshtml"
 			};
-            AreaPartialViewLocationFormats = new string[]
+            AreaPartialViewLocationFormats = new String[]
 			{
 				"~/Areas/{2}/Views/{1}/{0}.cshtml",
 				"~/Areas/{2}/Views/Shared/{0}.cshtml"
 			};
-            ViewLocationFormats = new string[]
+            ViewLocationFormats = new String[]
 			{
 				"~/Views/{1}/{0}.cshtml",
 				"~/Views/Shared/{0}.cshtml"
 			};
-            MasterLocationFormats = new string[]
+            MasterLocationFormats = new String[]
 			{
 				"~/Views/{1}/{0}.cshtml",
 				"~/Views/Shared/{0}.cshtml"
 			};
-            PartialViewLocationFormats = new string[]
+            PartialViewLocationFormats = new String[]
 			{
 				"~/Views/{1}/{0}.cshtml",
 				"~/Views/Shared/{0}.cshtml"
 			};
-            FileExtensions = new string[]
+            FileExtensions = new String[]
 			{
 				"cshtml"
 			};
@@ -82,7 +82,7 @@ namespace NewLife.Cube.Precompiled
         /// <param name="controllerContext"></param>
         /// <param name="virtualPath"></param>
         /// <returns></returns>
-        protected override bool FileExists(ControllerContext controllerContext, string virtualPath)
+        protected override Boolean FileExists(ControllerContext controllerContext, String virtualPath)
         {
             ViewMapping viewMapping;
             return _mappings.TryGetValue(virtualPath, out viewMapping) && (!viewMapping.ViewAssembly.UsePhysicalViewsIfNewer || !viewMapping.ViewAssembly.IsPhysicalFileNewer(virtualPath)) && Exists(virtualPath);
@@ -92,7 +92,7 @@ namespace NewLife.Cube.Precompiled
         /// <param name="controllerContext"></param>
         /// <param name="partialPath"></param>
         /// <returns></returns>
-        protected override IView CreatePartialView(ControllerContext controllerContext, string partialPath)
+        protected override IView CreatePartialView(ControllerContext controllerContext, String partialPath)
         {
             return CreateViewInternal(partialPath, null, false);
         }
@@ -102,12 +102,12 @@ namespace NewLife.Cube.Precompiled
         /// <param name="viewPath"></param>
         /// <param name="masterPath"></param>
         /// <returns></returns>
-        protected override IView CreateView(ControllerContext controllerContext, string viewPath, string masterPath)
+        protected override IView CreateView(ControllerContext controllerContext, String viewPath, String masterPath)
         {
             return CreateViewInternal(viewPath, masterPath, true);
         }
 
-        private IView CreateViewInternal(string viewPath, string masterPath, bool runViewStartPages)
+        private IView CreateViewInternal(String viewPath, String masterPath, Boolean runViewStartPages)
         {
             ViewMapping viewMapping;
             if (_mappings.TryGetValue(viewPath, out viewMapping))
@@ -119,10 +119,10 @@ namespace NewLife.Cube.Precompiled
         /// <summary>创建实例</summary>
         /// <param name="virtualPath"></param>
         /// <returns></returns>
-        public object CreateInstance(string virtualPath)
+        public Object CreateInstance(String virtualPath)
         {
             ViewMapping viewMapping;
-            object result;
+            Object result;
             if (!_mappings.TryGetValue(virtualPath, out viewMapping))
             {
                 result = null;
@@ -145,7 +145,7 @@ namespace NewLife.Cube.Precompiled
         /// <summary>是否存在</summary>
         /// <param name="virtualPath"></param>
         /// <returns></returns>
-        public bool Exists(string virtualPath)
+        public Boolean Exists(String virtualPath)
         {
             return _mappings.ContainsKey(virtualPath);
         }

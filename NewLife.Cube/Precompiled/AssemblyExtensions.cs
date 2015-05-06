@@ -9,7 +9,7 @@ namespace NewLife.Cube.Precompiled
 	{
 		public static DateTime GetLastWriteTimeUtc(this Assembly assembly, DateTime fallback)
 		{
-			string text = null;
+			String text = null;
 			try
 			{
 				text = assembly.Location;
@@ -17,13 +17,13 @@ namespace NewLife.Cube.Precompiled
 			catch (SecurityException)
 			{
 				Uri uri;
-				if (!string.IsNullOrEmpty(assembly.CodeBase) && Uri.TryCreate(assembly.CodeBase, UriKind.Absolute, out uri) && uri.IsFile)
+				if (!String.IsNullOrEmpty(assembly.CodeBase) && Uri.TryCreate(assembly.CodeBase, UriKind.Absolute, out uri) && uri.IsFile)
 				{
 					text = uri.LocalPath;
 				}
 			}
 			DateTime result;
-			if (string.IsNullOrEmpty(text))
+			if (String.IsNullOrEmpty(text))
 			{
 				result = fallback;
 			}

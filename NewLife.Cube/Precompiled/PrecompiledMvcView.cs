@@ -10,27 +10,27 @@ namespace NewLife.Cube.Precompiled
     /// <summary>预编译视图</summary>
     public class PrecompiledMvcView : IView
     {
-        private static Lazy<Action<WebViewPage, string>> _overriddenLayoutSetter = new Lazy<Action<WebViewPage, string>>(() => CreateOverriddenLayoutSetterDelegate());
+        private static Lazy<Action<WebViewPage, String>> _overriddenLayoutSetter = new Lazy<Action<WebViewPage, String>>(() => CreateOverriddenLayoutSetterDelegate());
         private readonly Type _type;
-        private readonly string _virtualPath;
-        private readonly string _masterPath;
+        private readonly String _virtualPath;
+        private readonly String _masterPath;
         private readonly IViewPageActivator _viewPageActivator;
 
         /// <summary>是否运行视图开始页ViewStart</summary>
-        public bool RunViewStartPages { get; private set; }
+        public Boolean RunViewStartPages { get; private set; }
 
         /// <summary>视图开始页扩展</summary>
-        public IEnumerable<string> ViewStartFileExtensions { get; private set; }
+        public IEnumerable<String> ViewStartFileExtensions { get; private set; }
 
         /// <summary>虚拟路径</summary>
-        public string VirtualPath { get { return _virtualPath; } }
+        public String VirtualPath { get { return _virtualPath; } }
 
         /// <summary>实例化预编译视图</summary>
         /// <param name="virtualPath"></param>
         /// <param name="type"></param>
         /// <param name="runViewStartPages"></param>
         /// <param name="fileExtension"></param>
-        public PrecompiledMvcView(string virtualPath, Type type, bool runViewStartPages, IEnumerable<string> fileExtension) : this(virtualPath, null, type, runViewStartPages, fileExtension) { }
+        public PrecompiledMvcView(String virtualPath, Type type, Boolean runViewStartPages, IEnumerable<String> fileExtension) : this(virtualPath, null, type, runViewStartPages, fileExtension) { }
 
         /// <summary>实例化预编译视图</summary>
         /// <param name="virtualPath"></param>
@@ -38,7 +38,7 @@ namespace NewLife.Cube.Precompiled
         /// <param name="type"></param>
         /// <param name="runViewStartPages"></param>
         /// <param name="fileExtension"></param>
-        public PrecompiledMvcView(string virtualPath, string masterPath, Type type, bool runViewStartPages, IEnumerable<string> fileExtension) : this(virtualPath, masterPath, type, runViewStartPages, fileExtension, null) { }
+        public PrecompiledMvcView(String virtualPath, String masterPath, Type type, Boolean runViewStartPages, IEnumerable<String> fileExtension) : this(virtualPath, masterPath, type, runViewStartPages, fileExtension, null) { }
 
         /// <summary>实例化预编译视图</summary>
         /// <param name="virtualPath"></param>
@@ -47,7 +47,7 @@ namespace NewLife.Cube.Precompiled
         /// <param name="runViewStartPages"></param>
         /// <param name="fileExtension"></param>
         /// <param name="viewPageActivator"></param>
-        public PrecompiledMvcView(string virtualPath, string masterPath, Type type, bool runViewStartPages, IEnumerable<string> fileExtension, IViewPageActivator viewPageActivator)
+        public PrecompiledMvcView(String virtualPath, String masterPath, Type type, Boolean runViewStartPages, IEnumerable<String> fileExtension, IViewPageActivator viewPageActivator)
         {
             _type = type;
             _virtualPath = virtualPath;
@@ -65,7 +65,7 @@ namespace NewLife.Cube.Precompiled
             var webViewPage = _viewPageActivator.Create(viewContext.Controller.ControllerContext, _type) as WebViewPage;
             if (webViewPage == null) throw new InvalidOperationException("无效视图类型");
 
-            if (!string.IsNullOrEmpty(_masterPath))
+            if (!String.IsNullOrEmpty(_masterPath))
             {
                 _overriddenLayoutSetter.Value(webViewPage, _masterPath);
             }
@@ -81,7 +81,7 @@ namespace NewLife.Cube.Precompiled
             webViewPage.ExecutePageHierarchy(pageContext, writer, startPage);
         }
 
-        private static Action<WebViewPage, string> CreateOverriddenLayoutSetterDelegate()
+        private static Action<WebViewPage, String> CreateOverriddenLayoutSetterDelegate()
         {
             var property = typeof(WebViewPage).GetProperty("OverridenLayoutPath", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
             if (property == null)
@@ -91,7 +91,7 @@ namespace NewLife.Cube.Precompiled
             if (setMethod == null)
                 throw new NotSupportedException("The WebViewPage internal property \"OverridenLayoutPath\" exists but is missing a set method, probably due to an unsupported run-time version.");
 
-            return (Action<WebViewPage, string>)Delegate.CreateDelegate(typeof(Action<WebViewPage, string>), setMethod, true);
+            return (Action<WebViewPage, String>)Delegate.CreateDelegate(typeof(Action<WebViewPage, String>), setMethod, true);
         }
     }
 }

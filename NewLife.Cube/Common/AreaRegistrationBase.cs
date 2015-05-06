@@ -17,7 +17,7 @@ namespace NewLife.Cube
     public abstract class AreaRegistrationBase : AreaRegistration
     {
         /// <summary>区域名称</summary>
-        public override string AreaName
+        public override String AreaName
         {
             get
             {

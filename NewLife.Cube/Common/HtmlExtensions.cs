@@ -144,7 +144,7 @@ namespace NewLife.Cube
         public static MvcHtmlString ForDateTime(this HtmlHelper Html, String name, DateTime value, String format = null, Object htmlAttributes = null)
         {
             //var fullHtmlFieldName = Html.ViewContext.ViewData.TemplateInfo.GetFullHtmlFieldName(name);
-            //if (string.IsNullOrEmpty(fullHtmlFieldName))
+            //if (String.IsNullOrEmpty(fullHtmlFieldName))
             //    throw new ArgumentException("", "name");
 
             var atts = HtmlHelper.AnonymousObjectToHtmlAttributes(htmlAttributes);

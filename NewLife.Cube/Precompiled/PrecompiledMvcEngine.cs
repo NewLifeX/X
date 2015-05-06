@@ -14,16 +14,16 @@ namespace NewLife.Cube.Precompiled
     /// <summary>预编译Mvc引擎</summary>
     public class PrecompiledMvcEngine : VirtualPathProviderViewEngine, IVirtualPathFactory
     {
-        private readonly IDictionary<string, Type> _mappings;
-        private readonly string _baseVirtualPath;
+        private readonly IDictionary<String, Type> _mappings;
+        private readonly String _baseVirtualPath;
         private readonly Lazy<DateTime> _assemblyLastWriteTime;
         private readonly IViewPageActivator _viewPageActivator;
 
         /// <summary>优先使用物理文件</summary>
-        public bool PreemptPhysicalFiles { get; set; }
+        public Boolean PreemptPhysicalFiles { get; set; }
 
         /// <summary>使用更新的物理文件</summary>
-        public bool UsePhysicalViewsIfNewer { get; set; }
+        public Boolean UsePhysicalViewsIfNewer { get; set; }
 
         /// <summary>实例化预编译Mvc引擎</summary>
         /// <param name="assembly"></param>
@@ -32,48 +32,48 @@ namespace NewLife.Cube.Precompiled
         /// <summary>实例化预编译Mvc引擎</summary>
         /// <param name="assembly"></param>
         /// <param name="baseVirtualPath"></param>
-        public PrecompiledMvcEngine(Assembly assembly, string baseVirtualPath) : this(assembly, baseVirtualPath, null) { }
+        public PrecompiledMvcEngine(Assembly assembly, String baseVirtualPath) : this(assembly, baseVirtualPath, null) { }
 
         /// <summary>实例化预编译Mvc引擎</summary>
         /// <param name="assembly"></param>
         /// <param name="baseVirtualPath"></param>
         /// <param name="viewPageActivator"></param>
-        public PrecompiledMvcEngine(Assembly assembly, string baseVirtualPath, IViewPageActivator viewPageActivator)
+        public PrecompiledMvcEngine(Assembly assembly, String baseVirtualPath, IViewPageActivator viewPageActivator)
         {
             //PrecompiledMvcEngine <>4__this = this;
             _assemblyLastWriteTime = new Lazy<DateTime>(() => assembly.GetLastWriteTimeUtc(DateTime.MaxValue));
             _baseVirtualPath = NormalizeBaseVirtualPath(baseVirtualPath);
-            AreaViewLocationFormats = new string[]
+            AreaViewLocationFormats = new String[]
 			{
 				"~/Areas/{2}/Views/{1}/{0}.cshtml",
 				"~/Areas/{2}/Views/Shared/{0}.cshtml"
 			};
-            AreaMasterLocationFormats = new string[]
+            AreaMasterLocationFormats = new String[]
 			{
 				"~/Areas/{2}/Views/{1}/{0}.cshtml",
 				"~/Areas/{2}/Views/Shared/{0}.cshtml"
 			};
-            AreaPartialViewLocationFormats = new string[]
+            AreaPartialViewLocationFormats = new String[]
 			{
 				"~/Areas/{2}/Views/{1}/{0}.cshtml",
 				"~/Areas/{2}/Views/Shared/{0}.cshtml"
 			};
-            ViewLocationFormats = new string[]
+            ViewLocationFormats = new String[]
 			{
 				"~/Views/{1}/{0}.cshtml",
 				"~/Views/Shared/{0}.cshtml"
 			};
-            MasterLocationFormats = new string[]
+            MasterLocationFormats = new String[]
 			{
 				"~/Views/{1}/{0}.cshtml",
 				"~/Views/Shared/{0}.cshtml"
 			};
-            PartialViewLocationFormats = new string[]
+            PartialViewLocationFormats = new String[]
 			{
 				"~/Views/{1}/{0}.cshtml",
 				"~/Views/Shared/{0}.cshtml"
 			};
-            FileExtensions = new string[]
+            FileExtensions = new String[]
 			{
 				"cshtml"
 			};
@@ -82,7 +82,7 @@ namespace NewLife.Cube.Precompiled
                 where typeof(WebPageRenderingBase).IsAssignableFrom(type)
                 let pageVirtualPath = type.GetCustomAttributes(false).OfType<PageVirtualPathAttribute>().FirstOrDefault<PageVirtualPathAttribute>()
                 where pageVirtualPath != null
-                select new KeyValuePair<string, Type>(CombineVirtualPaths(_baseVirtualPath, pageVirtualPath.VirtualPath), type)).ToDictionary((KeyValuePair<string, Type> t) => t.Key, (KeyValuePair<string, Type> t) => t.Value, StringComparer.OrdinalIgnoreCase);
+                select new KeyValuePair<String, Type>(CombineVirtualPaths(_baseVirtualPath, pageVirtualPath.VirtualPath), type)).ToDictionary((KeyValuePair<String, Type> t) => t.Key, (KeyValuePair<String, Type> t) => t.Value, StringComparer.OrdinalIgnoreCase);
             ViewLocationCache = new PrecompiledViewLocationCache(assembly.FullName, ViewLocationCache);
             _viewPageActivator = (viewPageActivator ?? (DependencyResolver.Current.GetService<IViewPageActivator>() ?? DefaultViewPageActivator.Current));
         }
@@ -91,7 +91,7 @@ namespace NewLife.Cube.Precompiled
         /// <param name="controllerContext"></param>
         /// <param name="virtualPath"></param>
         /// <returns></returns>
-        protected override bool FileExists(ControllerContext controllerContext, string virtualPath)
+        protected override Boolean FileExists(ControllerContext controllerContext, String virtualPath)
         {
             virtualPath = EnsureVirtualPathPrefix(virtualPath);
             return (!UsePhysicalViewsIfNewer || !IsPhysicalFileNewer(virtualPath)) && Exists(virtualPath);
@@ -101,7 +101,7 @@ namespace NewLife.Cube.Precompiled
         /// <param name="controllerContext"></param>
         /// <param name="partialPath"></param>
         /// <returns></returns>
-        protected override IView CreatePartialView(ControllerContext controllerContext, string partialPath)
+        protected override IView CreatePartialView(ControllerContext controllerContext, String partialPath)
         {
             partialPath = EnsureVirtualPathPrefix(partialPath);
             return CreateViewInternal(partialPath, null, false);
@@ -112,13 +112,13 @@ namespace NewLife.Cube.Precompiled
         /// <param name="viewPath"></param>
         /// <param name="masterPath"></param>
         /// <returns></returns>
-        protected override IView CreateView(ControllerContext controllerContext, string viewPath, string masterPath)
+        protected override IView CreateView(ControllerContext controllerContext, String viewPath, String masterPath)
         {
             viewPath = EnsureVirtualPathPrefix(viewPath);
             return CreateViewInternal(viewPath, masterPath, true);
         }
 
-        private IView CreateViewInternal(string viewPath, string masterPath, bool runViewStartPages)
+        private IView CreateViewInternal(String viewPath, String masterPath, Boolean runViewStartPages)
         {
             Type type;
             if (_mappings.TryGetValue(viewPath, out type))
@@ -130,10 +130,10 @@ namespace NewLife.Cube.Precompiled
         /// <summary>创建实例</summary>
         /// <param name="virtualPath"></param>
         /// <returns></returns>
-        public object CreateInstance(string virtualPath)
+        public Object CreateInstance(String virtualPath)
         {
             virtualPath = EnsureVirtualPathPrefix(virtualPath);
-            object result;
+            Object result;
             Type type;
             if (!PreemptPhysicalFiles && VirtualPathProvider.FileExists(virtualPath))
             {
@@ -157,13 +157,13 @@ namespace NewLife.Cube.Precompiled
         /// <summary>是否存在</summary>
         /// <param name="virtualPath"></param>
         /// <returns></returns>
-        public bool Exists(string virtualPath)
+        public Boolean Exists(String virtualPath)
         {
             virtualPath = EnsureVirtualPathPrefix(virtualPath);
             return _mappings.ContainsKey(virtualPath);
         }
 
-        private bool IsPhysicalFileNewer(string virtualPath)
+        private Boolean IsPhysicalFileNewer(String virtualPath)
         {
             return IsPhysicalFileNewer(virtualPath, _baseVirtualPath, _assemblyLastWriteTime);
         }
@@ -173,16 +173,16 @@ namespace NewLife.Cube.Precompiled
         /// <param name="baseVirtualPath"></param>
         /// <param name="assemblyLastWriteTime"></param>
         /// <returns></returns>
-        internal static bool IsPhysicalFileNewer(string virtualPath, string baseVirtualPath, Lazy<DateTime> assemblyLastWriteTime)
+        internal static Boolean IsPhysicalFileNewer(String virtualPath, String baseVirtualPath, Lazy<DateTime> assemblyLastWriteTime)
         {
-            bool result;
-            if (virtualPath.StartsWith(baseVirtualPath ?? string.Empty, StringComparison.OrdinalIgnoreCase))
+            Boolean result;
+            if (virtualPath.StartsWith(baseVirtualPath ?? String.Empty, StringComparison.OrdinalIgnoreCase))
             {
-                if (!string.IsNullOrEmpty(baseVirtualPath))
+                if (!String.IsNullOrEmpty(baseVirtualPath))
                 {
                     virtualPath = "~/" + virtualPath.Substring(baseVirtualPath.Length);
                 }
-                string path = HostingEnvironment.MapPath(virtualPath);
+                String path = HostingEnvironment.MapPath(virtualPath);
                 result = (File.Exists(path) && File.GetLastWriteTimeUtc(path) > assemblyLastWriteTime.Value);
             }
             else
@@ -192,9 +192,9 @@ namespace NewLife.Cube.Precompiled
             return result;
         }
 
-        private static string EnsureVirtualPathPrefix(string virtualPath)
+        private static String EnsureVirtualPathPrefix(String virtualPath)
         {
-            if (!string.IsNullOrEmpty(virtualPath))
+            if (!String.IsNullOrEmpty(virtualPath))
             {
                 if (!virtualPath.StartsWith("~/", StringComparison.Ordinal))
                 {
@@ -208,9 +208,9 @@ namespace NewLife.Cube.Precompiled
             return virtualPath;
         }
 
-        internal static string NormalizeBaseVirtualPath(string virtualPath)
+        internal static String NormalizeBaseVirtualPath(String virtualPath)
         {
-            if (!string.IsNullOrEmpty(virtualPath))
+            if (!String.IsNullOrEmpty(virtualPath))
             {
                 virtualPath = EnsureVirtualPathPrefix(virtualPath);
                 if (!virtualPath.EndsWith("/", StringComparison.Ordinal))
@@ -221,10 +221,10 @@ namespace NewLife.Cube.Precompiled
             return virtualPath;
         }
 
-        private static string CombineVirtualPaths(string baseVirtualPath, string virtualPath)
+        private static String CombineVirtualPaths(String baseVirtualPath, String virtualPath)
         {
-            string result;
-            if (!string.IsNullOrEmpty(baseVirtualPath))
+            String result;
+            if (!String.IsNullOrEmpty(baseVirtualPath))
             {
                 result = VirtualPathUtility.Combine(baseVirtualPath, virtualPath.Substring(2));
             }

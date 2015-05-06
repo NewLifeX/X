@@ -11,20 +11,20 @@ namespace NewLife.Cube.Models
         //[Required]
         [DataType(DataType.Password)]
         [Display(Name = "当前密码")]
-        public string OldPassword { get; set; }
+        public String OldPassword { get; set; }
 
         /// <summary>确认新密码新密码</summary>
         //[Required]
         [StringLength(100, ErrorMessage = "{0} 必须至少包含 {2} 个字符。", MinimumLength = 6)]
         [DataType(DataType.Password)]
         [Display(Name = "新密码")]
-        public string NewPassword { get; set; }
+        public String NewPassword { get; set; }
 
         /// <summary>确认新密码</summary>
         [DataType(DataType.Password)]
         [Display(Name = "确认新密码")]
         [Compare("NewPassword", ErrorMessage = "新密码和确认密码不匹配。")]
-        public string ConfirmPassword { get; set; }
+        public String ConfirmPassword { get; set; }
 
         /// <summary>昵称</summary>
         [Required]
@@ -38,17 +38,17 @@ namespace NewLife.Cube.Models
         /// <summary>用户名</summary>
         [Required]
         [Display(Name = "用户名")]
-        public string UserName { get; set; }
+        public String UserName { get; set; }
 
         /// <summary>密码</summary>
         [Required]
         [DataType(DataType.Password)]
         [Display(Name = "密码")]
-        public string Password { get; set; }
+        public String Password { get; set; }
 
         /// <summary>记住我</summary>
         [Display(Name = "记住我?")]
-        public bool RememberMe { get; set; }
+        public Boolean RememberMe { get; set; }
     }
 
     /// <summary>注册模型</summary>
@@ -57,19 +57,19 @@ namespace NewLife.Cube.Models
         /// <summary>用户名</summary>
         [Required]
         [Display(Name = "用户名")]
-        public string UserName { get; set; }
+        public String UserName { get; set; }
 
         /// <summary>密码</summary>
         [Required]
         [StringLength(100, ErrorMessage = "{0} 必须至少包含 {2} 个字符。", MinimumLength = 6)]
         [DataType(DataType.Password)]
         [Display(Name = "密码")]
-        public string Password { get; set; }
+        public String Password { get; set; }
 
         /// <summary>确认密码</summary>
         [DataType(DataType.Password)]
         [Display(Name = "确认密码")]
         [Compare("Password", ErrorMessage = "密码和确认密码不匹配。")]
-        public string ConfirmPassword { get; set; }
+        public String ConfirmPassword { get; set; }
     }
 }

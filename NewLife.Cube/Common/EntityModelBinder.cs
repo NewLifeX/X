@@ -14,7 +14,7 @@ namespace NewLife.Cube
         /// <param name="bindingContext"></param>
         /// <param name="modelType"></param>
         /// <returns></returns>
-        protected override object CreateModel(ControllerContext controllerContext, ModelBindingContext bindingContext, Type modelType)
+        protected override Object CreateModel(ControllerContext controllerContext, ModelBindingContext bindingContext, Type modelType)
         {
             if (typeof(IEntity).IsAssignableFrom(modelType))
             {

@@ -7,13 +7,13 @@ namespace NewLife.Cube.Precompiled
     /// <summary>‘§±‡“Î ”Õº≥Ã–ÚºØª∫¥Ê</summary>
 	public class PrecompiledViewLocationCache : IViewLocationCache
 	{
-		private readonly string _assemblyName;
+		private readonly String _assemblyName;
 		private readonly IViewLocationCache _innerCache;
 
         /// <summary> µ¿˝ªØ</summary>
         /// <param name="assemblyName"></param>
         /// <param name="innerCache"></param>
-		public PrecompiledViewLocationCache(string assemblyName, IViewLocationCache innerCache)
+		public PrecompiledViewLocationCache(String assemblyName, IViewLocationCache innerCache)
 		{
 			_assemblyName = assemblyName;
 			_innerCache = innerCache;
@@ -23,7 +23,7 @@ namespace NewLife.Cube.Precompiled
         /// <param name="httpContext"></param>
         /// <param name="key"></param>
         /// <returns></returns>
-		public string GetViewLocation(HttpContextBase httpContext, string key)
+		public String GetViewLocation(HttpContextBase httpContext, String key)
 		{
 			key = _assemblyName + "::" + key;
 			return _innerCache.GetViewLocation(httpContext, key);
@@ -33,7 +33,7 @@ namespace NewLife.Cube.Precompiled
         /// <param name="httpContext"></param>
         /// <param name="key"></param>
         /// <param name="virtualPath"></param>
-		public void InsertViewLocation(HttpContextBase httpContext, string key, string virtualPath)
+		public void InsertViewLocation(HttpContextBase httpContext, String key, String virtualPath)
 		{
 			key = _assemblyName + "::" + key;
 			_innerCache.InsertViewLocation(httpContext, key, virtualPath);
