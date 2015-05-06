@@ -1,103 +1,97 @@
 ﻿@model NewLife.Common.SysConfig
 
 @{
-    ViewBag.Title = "SysConfig";
+    Layout = "~/Views/Shared/_Ace_Layout.cshtml";
+    ViewBag.Title = "系统配置";
+
+    var isNew = false;
 }
+<div class="panel panel-default">
+    <div class="form-horizontal">
+        @using (Html.BeginForm())
+        {
+            @Html.AntiForgeryToken()
+            @Html.ValidationSummary(true)
 
-<h2>SysConfig</h2>
+            <div class="form-group">
+                @Html.LabelFor(model => model.Name, new { @class = "control-label col-md-2" })
+                <div class="input-group col-md-4">
+                    @Html.ForEditor(model => model.Name)
+                    @Html.ValidationMessageFor(model => model.Name)
+                </div>
+            </div>
+            <div class="form-group">
+                @Html.LabelFor(model => model.Version, new { @class = "control-label col-md-2" })
+                <div class="input-group col-md-4">
+                    @Html.ForEditor(model => model.Version)
+                    @Html.ValidationMessageFor(model => model.Version)
+                </div>
+            </div>
+            <div class="form-group">
+                @Html.LabelFor(model => model.DisplayName, new { @class = "control-label col-md-2" })
+                <div class="input-group col-md-4">
+                    @Html.ForEditor(model => model.DisplayName)
+                    @Html.ValidationMessageFor(model => model.DisplayName)
+                </div>
+            </div>
+            <div class="form-group">
+                @Html.LabelFor(model => model.Company, new { @class = "control-label col-md-2" })
+                <div class="input-group col-md-4">
+                    @Html.ForEditor(model => model.Company)
+                    @Html.ValidationMessageFor(model => model.Company)
+                </div>
+            </div>
+            <div class="form-group">
+                @Html.LabelFor(model => model.Address, new { @class = "control-label col-md-2" })
+                <div class="input-group col-md-4">
+                    @Html.ForEditor(model => model.Address)
+                    @Html.ValidationMessageFor(model => model.Address)
+                </div>
+            </div>
+            <div class="form-group">
+                @Html.LabelFor(model => model.Tel, new { @class = "control-label col-md-2" })
+                <div class="input-group col-md-4">
+                    @Html.ForEditor(model => model.Tel)
+                    @Html.ValidationMessageFor(model => model.Tel)
+                </div>
+            </div>
+            <div class="form-group">
+                @Html.LabelFor(model => model.Fax, new { @class = "control-label col-md-2" })
+                <div class="input-group col-md-4">
+                    @Html.ForEditor(model => model.Fax)
+                    @Html.ValidationMessageFor(model => model.Fax)
+                </div>
+            </div>
 
-@using (Html.BeginForm()) {
-    @Html.AntiForgeryToken()
-    @Html.ValidationSummary(true)
-
-    <fieldset>
-        <legend>SysConfig</legend>
-
-        <div class="editor-label">
-            @Html.LabelFor(model => model.Name)
-        </div>
-        <div class="editor-field">
-            @Html.EditorFor(model => model.Name)
-            @Html.ValidationMessageFor(model => model.Name)
-        </div>
-
-        <div class="editor-label">
-            @Html.LabelFor(model => model.Version)
-        </div>
-        <div class="editor-field">
-            @Html.EditorFor(model => model.Version)
-            @Html.ValidationMessageFor(model => model.Version)
-        </div>
-
-        <div class="editor-label">
-            @Html.LabelFor(model => model.DisplayName)
-        </div>
-        <div class="editor-field">
-            @Html.EditorFor(model => model.DisplayName)
-            @Html.ValidationMessageFor(model => model.DisplayName)
-        </div>
-
-        <div class="editor-label">
-            @Html.LabelFor(model => model.Company)
-        </div>
-        <div class="editor-field">
-            @Html.EditorFor(model => model.Company)
-            @Html.ValidationMessageFor(model => model.Company)
-        </div>
-
-        <div class="editor-label">
-            @Html.LabelFor(model => model.Address)
-        </div>
-        <div class="editor-field">
-            @Html.EditorFor(model => model.Address)
-            @Html.ValidationMessageFor(model => model.Address)
-        </div>
-
-        <div class="editor-label">
-            @Html.LabelFor(model => model.Tel)
-        </div>
-        <div class="editor-field">
-            @Html.EditorFor(model => model.Tel)
-            @Html.ValidationMessageFor(model => model.Tel)
-        </div>
-
-        <div class="editor-label">
-            @Html.LabelFor(model => model.Fax)
-        </div>
-        <div class="editor-field">
-            @Html.EditorFor(model => model.Fax)
-            @Html.ValidationMessageFor(model => model.Fax)
-        </div>
-
-        <div class="editor-label">
-            @Html.LabelFor(model => model.EMail)
-        </div>
-        <div class="editor-field">
-            @Html.EditorFor(model => model.EMail)
-            @Html.ValidationMessageFor(model => model.EMail)
-        </div>
-
-        <div class="editor-label">
-            @Html.LabelFor(model => model.IsEnable)
-        </div>
-        <div class="editor-field">
-            @Html.EditorFor(model => model.IsEnable)
-            @Html.ValidationMessageFor(model => model.IsEnable)
-        </div>
-
-        <div class="editor-label">
-            @Html.LabelFor(model => model.InstallTime)
-        </div>
-        <div class="editor-field">
-            @Html.EditorFor(model => model.InstallTime)
-            @Html.ValidationMessageFor(model => model.InstallTime)
-        </div>
-
-        <p>
-            <input type="submit" value="Save" />
-        </p>
-    </fieldset>
-}
+            <div class="form-group">
+                @Html.LabelFor(model => model.EMail, new { @class = "control-label col-md-2" })
+                <div class="input-group col-md-4">
+                    @Html.ForEditor(model => model.EMail)
+                    @Html.ValidationMessageFor(model => model.EMail)
+                </div>
+            </div>
+            <div class="form-group">
+                @Html.LabelFor(model => model.IsEnable, new { @class = "control-label col-md-2" })
+                <div class="input-group col-md-2">
+                    @Html.ForEditor(model => model.IsEnable)
+                    @Html.ValidationMessageFor(model => model.IsEnable)
+                </div>
+            </div>
+            <div class="form-group">
+                @Html.LabelFor(model => model.InstallTime, new { @class = "control-label col-md-2" })
+                <div class="input-group col-md-2">
+                    @Html.ForEditor(model => model.InstallTime)
+                    @Html.ValidationMessageFor(model => model.InstallTime)
+                </div>
+            </div>
+            <div class="form-actions">
+                <label class="control-label col-md-4"></label>
+                <button type="submit" class="btn btn-success"><i class="glyphicon glyphicon-@(isNew ? "plus" : "save")"></i><strong>@(isNew ? "新增" : "保存")</strong></button>
+                <button type="button" class="btn btn-danger" onclick="history.go(-1);"><i class="glyphicon glyphicon-remove"></i><strong>取消</strong></button>
+            </div>
+        }
+    </div>
+</div>
 
 @section Scripts {
     @Scripts.Render("~/bundles/jqueryval")

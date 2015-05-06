@@ -3,6 +3,7 @@ using System.Linq.Expressions;
 using System.Web.Mvc;
 using System.Web.Mvc.Html;
 using XCode;
+using NewLife.Reflection;
 
 namespace NewLife.Cube
 {
@@ -24,14 +25,14 @@ namespace NewLife.Cube
             switch (Type.GetTypeCode(type))
             {
                 case TypeCode.Boolean:
-                    return Html.ForBoolean(name, (Boolean)value);
+                    return Html.ForBoolean(name, value.ToBoolean());
                 case TypeCode.DateTime:
-                    return Html.ForDateTime(name, (DateTime)value);
+                    return Html.ForDateTime(name, value.ToDateTime());
                 case TypeCode.Decimal:
-                    return Html.ForDecimal(name, (Decimal)value);
+                    return Html.ForDecimal(name, Convert.ToDecimal(value));
                 case TypeCode.Single:
                 case TypeCode.Double:
-                    return Html.ForDouble(name, (Double)value);
+                    return Html.ForDouble(name, value.ToDouble());
                 case TypeCode.Byte:
                 case TypeCode.SByte:
                 case TypeCode.Int16:
@@ -42,7 +43,7 @@ namespace NewLife.Cube
                 case TypeCode.UInt64:
                     return Html.ForInt(name, Convert.ToInt64(value));
                 case TypeCode.String:
-                    return Html.ForString(name, (String)value);
+                    return Html.ForString(name, value + "");
                 default:
 #if DEBUG
                     throw new Exception("不支持的类型" + type);
@@ -50,6 +51,20 @@ namespace NewLife.Cube
                     return Html.Editor(name);
 #endif
             }
+        }
+
+        /// <summary>输出编辑框</summary>
+        /// <param name="Html"></param>
+        /// <param name="expression"></param>
+        /// <param name="htmlAttributes"></param>
+        /// <returns></returns>
+        public static MvcHtmlString ForEditor<TModel, TProperty>(this HtmlHelper<TModel> Html, Expression<Func<TModel, TProperty>> expression, Object htmlAttributes = null)
+        {
+            var meta = ModelMetadata.FromLambdaExpression(expression, Html.ViewData);
+            var name = meta.PropertyName;
+            var pi = typeof(TModel).GetProperty(name);
+
+            return Html.ForEditor(name, Html.ViewData.Model.GetValue(pi), pi.PropertyType, null, htmlAttributes);
         }
 
         #region 基础属性
