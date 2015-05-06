@@ -30,48 +30,48 @@ namespace NewLife.Cube.Precompiled
         /// <param name="viewPageActivator"></param>
         public CompositePrecompiledMvcEngine(IEnumerable<PrecompiledViewAssembly> viewAssemblies, IViewPageActivator viewPageActivator)
         {
-            base.AreaViewLocationFormats = new string[]
+            AreaViewLocationFormats = new string[]
 			{
 				"~/Areas/{2}/Views/{1}/{0}.cshtml",
 				"~/Areas/{2}/Views/Shared/{0}.cshtml"
 			};
-            base.AreaMasterLocationFormats = new string[]
+            AreaMasterLocationFormats = new string[]
 			{
 				"~/Areas/{2}/Views/{1}/{0}.cshtml",
 				"~/Areas/{2}/Views/Shared/{0}.cshtml"
 			};
-            base.AreaPartialViewLocationFormats = new string[]
+            AreaPartialViewLocationFormats = new string[]
 			{
 				"~/Areas/{2}/Views/{1}/{0}.cshtml",
 				"~/Areas/{2}/Views/Shared/{0}.cshtml"
 			};
-            base.ViewLocationFormats = new string[]
+            ViewLocationFormats = new string[]
 			{
 				"~/Views/{1}/{0}.cshtml",
 				"~/Views/Shared/{0}.cshtml"
 			};
-            base.MasterLocationFormats = new string[]
+            MasterLocationFormats = new string[]
 			{
 				"~/Views/{1}/{0}.cshtml",
 				"~/Views/Shared/{0}.cshtml"
 			};
-            base.PartialViewLocationFormats = new string[]
+            PartialViewLocationFormats = new string[]
 			{
 				"~/Views/{1}/{0}.cshtml",
 				"~/Views/Shared/{0}.cshtml"
 			};
-            base.FileExtensions = new string[]
+            FileExtensions = new string[]
 			{
 				"cshtml"
 			};
-            foreach (PrecompiledViewAssembly current in viewAssemblies)
+            foreach (var asm in viewAssemblies)
             {
-                foreach (KeyValuePair<string, Type> current2 in current.GetTypeMappings())
+                foreach (var type in asm.GetTypeMappings())
                 {
-                    _mappings[current2.Key] = new ViewMapping
+                    _mappings[type.Key] = new ViewMapping
                     {
-                        Type = current2.Value,
-                        ViewAssembly = current
+                        Type = type.Value,
+                        ViewAssembly = asm
                     };
                 }
             }
@@ -111,9 +111,9 @@ namespace NewLife.Cube.Precompiled
         {
             ViewMapping viewMapping;
             if (_mappings.TryGetValue(viewPath, out viewMapping))
-            return new PrecompiledMvcView(viewPath, masterPath, viewMapping.Type, runViewStartPages, base.FileExtensions, _viewPageActivator);
+                return new PrecompiledMvcView(viewPath, masterPath, viewMapping.Type, runViewStartPages, FileExtensions, _viewPageActivator);
             else
-            return null;
+                return null;
         }
 
         /// <summary>´´½¨ÊµÀý</summary>
@@ -127,7 +127,7 @@ namespace NewLife.Cube.Precompiled
             {
                 result = null;
             }
-            else if (!viewMapping.ViewAssembly.PreemptPhysicalFiles && base.VirtualPathProvider.FileExists(virtualPath))
+            else if (!viewMapping.ViewAssembly.PreemptPhysicalFiles && VirtualPathProvider.FileExists(virtualPath))
             {
                 result = BuildManager.CreateInstanceFromVirtualPath(virtualPath, typeof(WebPageRenderingBase));
             }

@@ -23,7 +23,7 @@ namespace NewLife.Cube.Precompiled
         public IEnumerable<string> ViewStartFileExtensions { get; private set; }
 
         /// <summary>虚拟路径</summary>
-        public string VirtualPath { get { return this._virtualPath; } }
+        public string VirtualPath { get { return _virtualPath; } }
 
         /// <summary>实例化预编译视图</summary>
         /// <param name="virtualPath"></param>
@@ -49,12 +49,12 @@ namespace NewLife.Cube.Precompiled
         /// <param name="viewPageActivator"></param>
         public PrecompiledMvcView(string virtualPath, string masterPath, Type type, bool runViewStartPages, IEnumerable<string> fileExtension, IViewPageActivator viewPageActivator)
         {
-            this._type = type;
-            this._virtualPath = virtualPath;
-            this._masterPath = masterPath;
-            this.RunViewStartPages = runViewStartPages;
-            this.ViewStartFileExtensions = fileExtension;
-            this._viewPageActivator = (viewPageActivator ?? (DependencyResolver.Current.GetService<IViewPageActivator>() ?? DefaultViewPageActivator.Current));
+            _type = type;
+            _virtualPath = virtualPath;
+            _masterPath = masterPath;
+            RunViewStartPages = runViewStartPages;
+            ViewStartFileExtensions = fileExtension;
+            _viewPageActivator = (viewPageActivator ?? (DependencyResolver.Current.GetService<IViewPageActivator>() ?? DefaultViewPageActivator.Current));
         }
 
         /// <summary>生成视图内容</summary>
@@ -62,20 +62,20 @@ namespace NewLife.Cube.Precompiled
         /// <param name="writer"></param>
         public void Render(ViewContext viewContext, TextWriter writer)
         {
-            var webViewPage = this._viewPageActivator.Create(viewContext.Controller.ControllerContext, this._type) as WebViewPage;
+            var webViewPage = _viewPageActivator.Create(viewContext.Controller.ControllerContext, _type) as WebViewPage;
             if (webViewPage == null) throw new InvalidOperationException("无效视图类型");
 
-            if (!string.IsNullOrEmpty(this._masterPath))
+            if (!string.IsNullOrEmpty(_masterPath))
             {
-                _overriddenLayoutSetter.Value(webViewPage, this._masterPath);
+                _overriddenLayoutSetter.Value(webViewPage, _masterPath);
             }
-            webViewPage.VirtualPath = this._virtualPath;
+            webViewPage.VirtualPath = _virtualPath;
             webViewPage.ViewContext = viewContext;
             webViewPage.ViewData = viewContext.ViewData;
             webViewPage.InitHelpers();
 
             WebPageRenderingBase startPage = null;
-            if (this.RunViewStartPages) startPage = StartPage.GetStartPage(webViewPage, "_ViewStart", this.ViewStartFileExtensions);
+            if (RunViewStartPages) startPage = StartPage.GetStartPage(webViewPage, "_ViewStart", ViewStartFileExtensions);
 
             var pageContext = new WebPageContext(viewContext.HttpContext, webViewPage, null);
             webViewPage.ExecutePageHierarchy(pageContext, writer, startPage);
