@@ -4,7 +4,9 @@ using System.ComponentModel;
 using System.Reflection;
 using System.Threading;
 using System.Web;
+using System.Web.Hosting;
 using System.Web.Mvc;
+using System.Web.Routing;
 using System.Web.WebPages;
 using NewLife.Cube.Precompiled;
 using NewLife.Log;
@@ -50,7 +52,7 @@ namespace NewLife.Cube
                 //};
                 //list.Add(pme);
                 XTrace.WriteLine("注册视图程序集：{0}", asm.FullName);
-                
+
                 var pva = new PrecompiledViewAssembly(asm);
                 list.Add(pva);
             }
@@ -71,6 +73,19 @@ namespace NewLife.Cube
             var filters = GlobalFilters.Filters;
             filters.Add(new MvcHandleErrorAttribute());
             filters.Add(new EntityAuthorizeAttribute());
+
+            // 从数据库或者资源问价加载模版页面的例子
+            //HostingEnvironment.RegisterVirtualPathProvider(new ViewPathProvider());
+
+            //var routes = RouteTable.Routes;
+            //routes.IgnoreRoute("{resource}.axd/{*pathInfo}");
+
+            //routes.MapRoute(
+            //    name: "Virtual",
+            //    url: "{*viewName}",
+            //    defaults: new { controller = "Frontend", action = "Default" },
+            //    constraints: new { controller = "Frontend", action = "Default" }
+            //);
         }
 
         /// <summary>遍历所有引用了AreaRegistrationBase的程序集</summary>
