@@ -700,7 +700,7 @@ namespace XCode
             return false;
         }
 
-        private Boolean IsNullKey { get { return IsNull((TKey)this[Setting.Key]); } }
+        //private Boolean IsNullKey { get { return IsNull((TKey)this[Setting.Key]); } }
         #endregion
 
         #region IEntityTree 成员
