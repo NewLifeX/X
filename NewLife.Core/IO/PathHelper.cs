@@ -175,16 +175,20 @@ namespace System.IO
         /// <param name="fi">源文件</param>
         /// <param name="destFileName">目标文件</param>
         /// <returns></returns>
-        public static FileInfo CopyToIfNewer(this FileInfo fi, String destFileName)
+        public static Boolean CopyToIfNewer(this FileInfo fi, String destFileName)
         {
             // 源文件必须存在
-            if (fi == null || !fi.Exists) return fi;
+            if (fi == null || !fi.Exists) return false;
 
             var dest = destFileName.AsFile();
             // 目标文件必须存在且源文件较新
-            if (dest.Exists && fi.LastWriteTime > dest.LastWriteTime) fi.CopyTo(destFileName, true);
+            if (dest.Exists && fi.LastWriteTime > dest.LastWriteTime)
+            {
+                fi.CopyTo(destFileName, true);
+                return true;
+            }
 
-            return fi;
+            return false;
         }
         #endregion
 
@@ -267,23 +271,31 @@ namespace System.IO
         /// <param name="destDirName">目标目录</param>
         /// <param name="exts">文件扩展列表。比如*.exe;*.dll;*.config</param>
         /// <param name="allSub">是否包含所有子孙目录文件</param>
+        /// <param name="callback">复制每一个文件之前的回调</param>
         /// <returns></returns>
-        public static DirectoryInfo CopyToIfNewer(this DirectoryInfo di, String destDirName, String exts = null, Boolean allSub = false)
+        public static Int32 CopyToIfNewer(this DirectoryInfo di, String destDirName, String exts = null, Boolean allSub = false, Action<String> callback = null)
         {
             var dest = destDirName.AsDirectory();
-            if (dest.Exists)
+            if (!dest.Exists) return 0;
+
+            var count = 0;
+
+            // 目标目录根，用于截断
+            var root = dest.FullName.EnsureEnd(Path.DirectorySeparatorChar.ToString());
+            foreach (var item in dest.GetAllFiles(exts, allSub))
             {
-                // 目标目录根，用于截断
-                var root = dest.FullName.EnsureEnd(Path.PathSeparator.ToString());
-                foreach (var item in dest.GetAllFiles(exts, allSub))
+                var name = item.FullName.TrimStart(root);
+                var fi = di.FullName.CombinePath(name).AsFile();
+                //fi.CopyToIfNewer(item.FullName);
+                if (fi.Exists && item.Exists && fi.LastWriteTime > item.LastWriteTime)
                 {
-                    var name = item.FullName.TrimStart(root);
-                    var fi = di.FullName.CombinePath(name).AsFile();
-                    fi.CopyToIfNewer(item.FullName);
+                    if (callback != null) callback(name);
+                    fi.CopyTo(item.FullName, true);
+                    count++;
                 }
             }
 
-            return di;
+            return count;
         }
         #endregion
     }
