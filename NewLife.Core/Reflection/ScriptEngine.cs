@@ -89,6 +89,10 @@ namespace NewLife.Reflection
         private ILog _Log;
         /// <summary>日志</summary>
         public ILog Log { get { return _Log; } set { _Log = value; } }
+
+        private String _WorkingDirectory;
+        /// <summary>工作目录。执行时，将会作为环境变量的当前目录和PathHelper目录，执行后还原</summary>
+        public String WorkingDirectory { get { return _WorkingDirectory; } set { _WorkingDirectory = value; } }
         #endregion
 
         #region 创建
@@ -466,7 +470,30 @@ namespace NewLife.Reflection
                     parameters = new Object[] { new String[] { "" } };
                 }
             }
-            return "".Invoke(Method, parameters);
+
+            // 处理工作目录
+            var flag = false;
+            var _cur = Environment.CurrentDirectory;
+            var _my = PathHelper.BaseDirectory;
+            if (!WorkingDirectory.IsNullOrEmpty())
+            {
+                flag = true;
+                Environment.CurrentDirectory = WorkingDirectory;
+                PathHelper.BaseDirectory = WorkingDirectory;
+            }
+
+            try
+            {
+                return "".Invoke(Method, parameters);
+            }
+            finally
+            {
+                if (flag)
+                {
+                    Environment.CurrentDirectory = _cur;
+                    PathHelper.BaseDirectory = _my;
+                }
+            }
         }
         #endregion
 
