@@ -170,6 +170,22 @@ namespace System.IO
 
             return file;
         }
+
+        /// <summary>复制到目标文件，目标文件必须已存在，且源文件较新</summary>
+        /// <param name="fi">源文件</param>
+        /// <param name="destFileName">目标文件</param>
+        /// <returns></returns>
+        public static FileInfo CopyToIfNewer(this FileInfo fi, String destFileName)
+        {
+            // 源文件必须存在
+            if (fi == null || !fi.Exists) return fi;
+
+            var dest = destFileName.AsFile();
+            // 目标文件必须存在且源文件较新
+            if (dest.Exists && fi.LastWriteTime > dest.LastWriteTime) fi.CopyTo(destFileName, true);
+
+            return fi;
+        }
         #endregion
 
         #region 目录扩展
@@ -180,7 +196,7 @@ namespace System.IO
 
         /// <summary>获取目录内所有符合条件的文件，支持多文件扩展匹配</summary>
         /// <param name="di">目录</param>
-        /// <param name="exts">文件扩展列表。比如*.exe|*.dll|*.config</param>
+        /// <param name="exts">文件扩展列表。比如*.exe;*.dll;*.config</param>
         /// <param name="allSub">是否包含所有子孙目录文件</param>
         /// <returns></returns>
         public static IEnumerable<FileInfo> GetAllFiles(this DirectoryInfo di, String exts = null, Boolean allSub = false)
@@ -245,6 +261,30 @@ namespace System.IO
         //    }
         //    return count;
         //}
+
+        /// <summary>对比源目录和目标目录，复制双方都存在且源目录较新的文件</summary>
+        /// <param name="di">源目录</param>
+        /// <param name="destDirName">目标目录</param>
+        /// <param name="exts">文件扩展列表。比如*.exe;*.dll;*.config</param>
+        /// <param name="allSub">是否包含所有子孙目录文件</param>
+        /// <returns></returns>
+        public static DirectoryInfo CopyToIfNewer(this DirectoryInfo di, String destDirName, String exts = null, Boolean allSub = false)
+        {
+            var dest = destDirName.AsDirectory();
+            if (dest.Exists)
+            {
+                // 目标目录根，用于截断
+                var root = dest.FullName.EnsureEnd(Path.PathSeparator.ToString());
+                foreach (var item in dest.GetAllFiles(exts, allSub))
+                {
+                    var name = item.FullName.TrimStart(root);
+                    var fi = di.FullName.CombinePath(name).AsFile();
+                    fi.CopyToIfNewer(item.FullName);
+                }
+            }
+
+            return di;
+        }
         #endregion
     }
 }
