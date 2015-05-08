@@ -489,6 +489,7 @@ namespace XCode.Cache
 
         /// <summary>自动更新，最主要是在原连接名和表名里面更新对象</summary>
         /// <param name="item"></param>
+        /// <param name="reason"></param>
         private void AutoUpdate(CacheItem item, String reason)
         {
             if (AutoSave && item != null && item.Entity != null)
