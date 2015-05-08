@@ -490,7 +490,14 @@ namespace XCode.Cache
             if (AutoSave && item != null && item.Entity != null)
             {
                 item.NextSave = DateTime.Now.AddSeconds(Expriod);
-                Invoke(e => e.Entity.Update(), item);
+                Invoke<CacheItem, Object>(e =>
+                {
+                    if (Debug) DAL.WriteLog("单对象缓存自动保存：{0}/{1}", Entity<TEntity>.Meta.TableName, Entity<TEntity>.Meta.ConnName);
+
+                    e.Entity.Update();
+
+                    return null;
+                }, item);
             }
         }
         #endregion
