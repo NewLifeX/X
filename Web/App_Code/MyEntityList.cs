@@ -5,15 +5,13 @@
  * 版权：版权所有 (C) 新生命开发团队 2011
 */
 ﻿using System;
+using System.Collections.Generic;
 using System.Text;
 using System.Web.UI;
-using NewLife.Collections;
 using NewLife.CommonEntity;
 using NewLife.Web;
 using XCode;
 using XControl;
-using System.Collections.Generic;
-using XCode.Membership;
 
 /// <summary>实体列表页面基类</summary>
 public abstract class MyEntityList : Page
@@ -28,7 +26,7 @@ public abstract class MyEntityList : Page
 
     protected override void OnPreInit(EventArgs e)
     {
-        Manager = ManageProvider.Provider.GetService<IManagePage>().Init(this, EntityType);
+        Manager = CommonService.Container.Resolve<IManagePage>().Init(this, EntityType);
 
         base.OnPreInit(e);
     }

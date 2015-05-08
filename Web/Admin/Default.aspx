@@ -434,7 +434,7 @@
                     class="active open" <%} %>>
                     <a href="#" class="dropdown-toggle">
                         <i class="menu-icon fa <%= GetIco() %>"></i>
-                        <span class="menu-text"><%= menu.Name %></span>
+                        <span class="menu-text"><%= menu.DisplayName??menu.Name %></span>
 
                         <b class="arrow fa fa-angle-down"></b>
                     </a>
@@ -443,26 +443,26 @@
 
                     <ul class="submenu">
 <%
-    foreach (IMenu menu2 in menu.Childs)
-    {
+                        foreach (IMenu menu2 in menu.Childs)
+                        {
 %>
                         <li>
 <%
-        if (menu2.Childs.Count > 0)
-        {
+                            if (menu2.Childs.Count > 0)
+                            {
 %>
                             <a href="#" class="dropdown-toggle">
                                 <i class="menu-icon fa fa-caret-right"></i>
-                                <%= menu2.Name %>
+                                <%= menu2.DisplayName??menu2.Name %>
                             </a>
 <%
-        }
-        else
-        { 
+                            }
+                            else
+                            { 
 %>
                             <a href="<%= menu2.Url %>" target="main">
                                 <i class="menu-icon fa fa-caret-right"></i>
-                                <%= menu2.Name %>
+                                <%= menu2.DisplayName??menu2.Name %>
                             </a>
 <%
         }
@@ -471,29 +471,29 @@
                             <b class="arrow"></b>
                     <ul class="submenu">
 <%
-        foreach (IMenu menu3 in menu2.Childs)
-        {
+                            foreach (IMenu menu3 in menu2.Childs)
+                            {
 %>
                         <li>
                             <a href="<%= menu3.Url %>" target="main">
                                 <i class="menu-icon fa fa-caret-right"></i>
-                                <%= menu3.Name %>
+                                <%= menu3.DisplayName??menu3.Name %>
                             </a>
 
                             <b class="arrow"></b>
                         </li>
 <%
-        }
+                            }
 %>
                     </ul>
                         </li>
 <%
-    }
+                        }
 %>
                     </ul>
                 </li>
 <%
-}
+                    }
 %>
             </ul>
             <!-- /.nav-list -->
@@ -748,7 +748,7 @@
             fixFrmContentSize();
             $(window).resize(fixFrmContentSize);
         });
-        
+
     </script>
 </body>
 </html>

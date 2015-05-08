@@ -5,7 +5,8 @@ using NewLife.Web;
 
 namespace NewLife.CommonEntity
 {
-    class CommonService //: ServiceContainer<CommonService>
+    /// <summary>通用服务</summary>
+    public class CommonService //: ServiceContainer<CommonService>
     {
         #region 当前静态服务容器
         /// <summary>当前对象容器</summary>

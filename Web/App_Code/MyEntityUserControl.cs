@@ -7,6 +7,7 @@
 ﻿using System;
 using System.Web.UI;
 using NewLife.CommonEntity;
+using NewLife.Model;
 using XCode;
 using XCode.Membership;
 
@@ -23,7 +24,7 @@ public class MyEntityUserControl : UserControl
 
     protected override void OnInit(EventArgs e)
     {
-        EntityForm = ManageProvider.Provider.GetService<IEntityForm>().Init(this, EntityType);
+        EntityForm = ObjectContainer.Current.Resolve<IEntityForm>().Init(this, EntityType);
 
         base.OnInit(e);
     }

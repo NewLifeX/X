@@ -168,7 +168,6 @@
     <EmbeddedResource Include="附件\nopic.jpg" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="mssql_Common.xml" />
     <EmbeddedResource Include="实体\AreaCode.txt">
       <!--       <DependentUpon>地区.cs</DependentUpon> -->
     </EmbeddedResource>
@@ -180,9 +179,7 @@
     </Content>
     <Content Include="说明.txt" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="任务\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>

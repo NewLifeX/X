@@ -7,6 +7,7 @@
 ﻿using System;
 using System.Web.UI;
 using NewLife.CommonEntity;
+using NewLife.Model;
 using XCode;
 using XCode.Membership;
 
@@ -27,8 +28,8 @@ public class MyEntityForm : Page
     protected override void OnPreInit(EventArgs e)
     {
         // 让页面管理器先注册，因为页面管理器要控制权限
-        Manager = ManageProvider.Provider.GetService<IManagePage>().Init(this, EntityType);
-        EntityForm = ManageProvider.Provider.GetService<IEntityForm>().Init(this, EntityType);
+        Manager = ObjectContainer.Current.Resolve<IManagePage>().Init(this, EntityType);
+        EntityForm = ObjectContainer.Current.Resolve<IEntityForm>().Init(this, EntityType);
 
         base.OnPreInit(e);
     }

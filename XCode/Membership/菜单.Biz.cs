@@ -1,9 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text;
+using System.Text.RegularExpressions;
 using System.Xml.Serialization;
+using NewLife.Configuration;
+using NewLife.Log;
 using NewLife.Model;
 using NewLife.Reflection;
 
@@ -34,6 +39,17 @@ namespace XCode.Membership
             base.InitData();
 
             if (Meta.Count > 0) return;
+
+            if (XTrace.Debug) XTrace.WriteLine("开始初始化{0}菜单数据……", typeof(TEntity).Name);
+
+            using (var trans = new EntityTransaction<TEntity>())
+            {
+                // 准备增加Admin目录下的所有页面
+                ScanAndAdd();
+
+                trans.Commit();
+                if (XTrace.Debug) XTrace.WriteLine("完成初始化{0}菜单数据！", typeof(TEntity).Name);
+            }
         }
 
         /// <summary>已重载。调用Save时写日志，而调用Insert和Update时不写日志</summary>
@@ -178,7 +194,255 @@ namespace XCode.Membership
         }
         #endregion
 
-        #region 业务
+        #region 扫描菜单Aspx
+        /// <summary>扫描配置文件中指定的目录，仅为兼容旧版本，将来不做功能更新</summary>
+        /// <returns></returns>
+        public static Int32 ScanAndAdd()
+        {
+            // 扫描目录
+            var appDirs = new List<String>(Config.GetConfigSplit<String>("NewLife.CommonEntity.AppDirs", null));
+            // 过滤文件
+            var appDirsFileFilter = Config.GetConfigSplit<String>("NewLife.CommonEntity.AppDirsFileFilter", null);
+            // 是否在子目中过滤
+            var appDirsIsAllFilter = Config.GetConfig<Boolean>("NewLife.CommonEntity.AppDirsIsAllDirs", false);
+
+            var filters = new HashSet<String>(appDirsFileFilter, StringComparer.OrdinalIgnoreCase);
+
+            // 如果不包含Admin，以它开头
+            //if (!appDirs.Contains("Admin")) appDirs.Insert(0, "Admin");
+            if (appDirs.Count == 0 || appDirs.Count == 1 && appDirs[0] == "Admin")
+            {
+                var dis = Directory.GetDirectories(".".GetFullPath());
+                appDirs.AddRange(dis.Select(e => Path.GetFileName(e)));
+            }
+
+            Int32 total = 0;
+            foreach (var item in appDirs)
+            {
+                // 如果目录不存在，就没必要扫描了
+                var p = item.GetFullPath();
+                if (!Directory.Exists(p))
+                {
+                    // 有些旧版本系统，会把目录放到Admin目录之下
+                    p = "Admin".CombinePath(item);
+                    if (!Directory.Exists(p)) continue;
+                }
+
+                XTrace.WriteLine("扫描目录生成菜单 {0}", p);
+
+                // 根据目录找菜单，它将作为顶级菜单
+                var top = FindForName(item);
+                //if (top == null) top = Meta.Cache.Entities.Find(__.DisplayName, item);
+                if (top == null)
+                {
+                    if (!IsBizDir(p)) continue;
+
+                    top = Root.Add(item, null, null);
+                    // 内层用到了再保存
+                    //top.Save();
+                }
+                total += ScanAndAdd(p, top, filters, appDirsIsAllFilter);
+            }
+            XTrace.WriteLine("扫描目录共生成菜单 {0} 个", total);
+
+            return total;
+        }
+
+        /// <summary>扫描指定目录并添加文件到顶级菜单之下</summary>
+        /// <param name="dir">扫描目录</param>
+        /// <param name="parent">父级</param>
+        /// <param name="fileFilter">过滤文件名</param>
+        /// <param name="isFilterChildDir">是否在子目录中过滤</param>
+        /// <returns></returns>
+        static Int32 ScanAndAdd(String dir, TEntity parent, ICollection<String> fileFilter = null, Boolean isFilterChildDir = false)
+        {
+            if (String.IsNullOrEmpty(dir)) throw new ArgumentNullException("dir");
+
+            // 要扫描的目录
+            var p = dir.GetFullPath();
+            if (!Directory.Exists(p)) return 0;
+
+            // 本目录aspx页面
+            var fs = Directory.GetFiles(p, "*.aspx", SearchOption.TopDirectoryOnly);
+            // 本目录子子录
+            var dis = Directory.GetDirectories(p);
+            // 如没有页面和子目录
+            if ((fs == null || fs.Length < 1) && (dis == null || dis.Length < 1)) return 0;
+
+            // 添加
+            var num = 0;
+
+            XTrace.WriteLine("分析菜单 {0} 下的页面 {1} 共有文件{2}个 子目录{3}个", parent.Name, dir, fs.Length, dis.Length);
+
+            //aspx
+            if (fs != null && fs.Length > 0)
+            {
+                var currentPath = GetPathForScan(p);
+                foreach (var elm in fs)
+                {
+                    // 获取页面标题，如果没有标题则认定不是业务页面
+                    var title = GetPageTitle(elm);
+                    if (title.IsNullOrWhiteSpace()) continue;
+
+                    // 修正上一级添加的菜单信息
+                    var file = Path.GetFileName(elm);
+                    if (file.EqualIgnoreCase("Default.aspx"))
+                    {
+                        if (parent.ID == 0) num++;
+                        parent.Url = currentPath.CombinePath("Default.aspx");
+                        parent.DisplayName = title;
+                        parent.Save();
+                        continue;
+                    }
+
+                    // 过滤特定文件名文件
+                    // 采用哈希集合查询字符串更快
+                    if (fileFilter != null && fileFilter.Contains(file)) continue;
+
+                    var name = Path.GetFileNameWithoutExtension(elm);
+                    // 过滤掉表单页面
+                    if (name.EndsWithIgnoreCase("Form")) continue;
+                    // 过滤掉选择页面
+                    if (name.StartsWithIgnoreCase("Select")) continue;
+
+                    // 全部使用全路径
+                    var url = currentPath.CombinePath(file);
+                    var entity = FindByUrl(url);
+                    if (entity != null) continue;
+
+                    if (parent.ID == 0) { parent.Save(); num++; }
+                    entity = parent.Add(name, title, url);
+
+                    num++;
+                }
+            }
+
+            // 子级目录
+            if (dis == null || dis.Length > 0)
+            {
+                if (!isFilterChildDir) fileFilter = null;
+                foreach (var item in dis)
+                {
+                    if (!IsBizDir(item)) continue;
+
+                    var dirname = Path.GetFileName(item);
+                    var menu = parent.Add(dirname, null, null);
+                    // 内层用到了再保存
+                    //menu.Save(); 
+                    //num++;
+
+                    num += ScanAndAdd(item, menu, fileFilter, isFilterChildDir);
+                }
+            }
+
+            return num;
+        }
+
+        /// <summary>获取目录层级</summary>
+        /// <param name="dir"></param>
+        /// <returns></returns>
+        static String GetPathForScan(String dir)
+        {
+            if (String.IsNullOrEmpty(dir)) throw new ArgumentNullException("dir");
+
+            // 要扫描的目录
+            var p = dir.GetFullPath();
+            if (!Directory.Exists(dir)) return "";
+
+            var dirPath = p.Replace(AppDomain.CurrentDomain.BaseDirectory, null);
+            //获取层级
+            var ss = dirPath.Split("\\");
+            var sb = new StringBuilder();
+            for (int i = 0; i < ss.Length; i++)
+            {
+                sb.Append("../");
+            }
+            var currentPath = sb.ToString();
+            currentPath = currentPath.CombinePath(dirPath);
+
+            return currentPath.Replace("\\", "/").EnsureEnd("/");
+        }
+
+        /// <summary>非业务的目录列表</summary>
+        static HashSet<String> _NotBizDirs = new HashSet<string>(
+            new String[] { 
+                "Frame", "Asc", "Ascx", "images", "js", "css", "scripts" ,
+                "Bin","App_Code","App_Data","Config","Log"
+            },
+            StringComparer.OrdinalIgnoreCase);
+        /// <summary>是否业务目录</summary>
+        /// <param name="dir"></param>
+        /// <returns></returns>
+        static Boolean IsBizDir(String dir)
+        {
+            var dirName = new DirectoryInfo(dir).Name;
+
+            if (_NotBizDirs.Contains(dirName)) return false;
+            if (dirName.StartsWithIgnoreCase("img")) return false;
+
+            // 判断是否存在aspx文件
+            var fs = Directory.GetFiles(dir, "*.aspx", SearchOption.AllDirectories);
+            return fs != null && fs.Length > 0;
+        }
+
+        static Regex reg_PageTitle = new Regex("\\bTitle=\"([^\"]*)\"", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        static Regex reg_PageTitle2 = new Regex("<title>([^<]*)</title>", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        static String GetPageTitle(String pagefile)
+        {
+            if (String.IsNullOrEmpty(pagefile) || !".aspx".EqualIgnoreCase(Path.GetExtension(pagefile)) || !File.Exists(pagefile)) return null;
+
+            // 读取aspx的第一行，里面有Title=""
+            String line = null;
+            using (var reader = new StreamReader(pagefile))
+            {
+                while (!reader.EndOfStream && line.IsNullOrWhiteSpace()) line = reader.ReadLine();
+                // 有时候Title跑到第二第三行去了
+                if (!reader.EndOfStream) line += Environment.NewLine + reader.ReadLine();
+                if (!reader.EndOfStream) line += Environment.NewLine + reader.ReadLine();
+            }
+            if (!String.IsNullOrEmpty(line))
+            {
+                // 正则
+                Match m = reg_PageTitle.Match(line);
+                if (m != null && m.Success) return m.Groups[1].Value;
+            }
+
+            // 第二正则
+            String content = File.ReadAllText(pagefile);
+            Match m2 = reg_PageTitle2.Match(content);
+            if (m2 != null && m2.Success) return m2.Groups[1].Value;
+
+            return null;
+        }
+        #endregion
+
+        #region 日志
+        /// <summary>写日志</summary>
+        /// <param name="action">操作</param>
+        /// <param name="remark">备注</param>
+        public static void WriteLog(String action, String remark)
+        {
+            LogProvider.Provider.WriteLog(typeof(TEntity), action, remark);
+        }
+        #endregion
+
+        #region 导入导出
+        /// <summary>导出</summary>
+        /// <param name="list"></param>
+        /// <returns></returns>
+        public static String Export(IList<IMenu> list)
+        {
+            return Export(new EntityList<TEntity>(list));
+        }
+
+        /// <summary>导出</summary>
+        /// <param name="list"></param>
+        /// <returns></returns>
+        public static String Export(EntityList<TEntity> list)
+        {
+            return list.ToXml();
+        }
+
         /// <summary>导入</summary>
         public virtual void Import()
         {
@@ -220,34 +484,6 @@ namespace XCode.Membership
 
                 trans.Commit();
             }
-        }
-        #endregion
-
-        #region 日志
-        /// <summary>写日志</summary>
-        /// <param name="action">操作</param>
-        /// <param name="remark">备注</param>
-        public static void WriteLog(String action, String remark)
-        {
-            LogProvider.Provider.WriteLog(typeof(TEntity), action, remark);
-        }
-        #endregion
-
-        #region 导入导出
-        /// <summary>导出</summary>
-        /// <param name="list"></param>
-        /// <returns></returns>
-        public static String Export(IList<IMenu> list)
-        {
-            return Export(new EntityList<TEntity>(list));
-        }
-
-        /// <summary>导出</summary>
-        /// <param name="list"></param>
-        /// <returns></returns>
-        public static String Export(EntityList<TEntity> list)
-        {
-            return list.ToXml();
         }
 
         /// <summary>导入</summary>
