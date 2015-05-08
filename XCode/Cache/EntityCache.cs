@@ -205,12 +205,18 @@ namespace XCode.Cache
             var e = fi != null ? _Entities.Find(fi.Name, entity[fi.Name]) : null;
             if (e != null)
             {
-                if (e != entity) e.CopyFrom(entity);
+                //if (e != entity) e.CopyFrom(entity);
+                // 更新实体缓存时，不做拷贝，避免产生脏数据，如果恰巧又使用单对象缓存，那会导致自动保存
+                lock (_Entities)
+                {
+                    _Entities.Remove(e);
+                }
             }
-            else
+
+            // 加入超级缓存的实体对象，需要标记来自数据库
+            entity.MarkDb(true);
+            lock (_Entities)
             {
-                // 加入超级缓存的实体对象，需要标记来自数据库
-                entity.MarkDb(true);
                 _Entities.Add(entity);
             }
         }
