@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using NewLife.Data;
 using NewLife.Reflection;
 using NewLife.Web;
 
@@ -52,16 +52,22 @@ namespace XCode.Web
         /// <summary>获取参数</summary>
         public void Init()
         {
-            //PageIndex = WebHelper.Params["PageIndex"].ToInt();
-            //PageSize = WebHelper.Params["PageSize"].ToInt();
-            //Sort = WebHelper.Params["Sort"];
-            //SortDesc = WebHelper.Params["Desc"].ToInt() != 0;
+            GetParam();
 
             if (Factory != null && Factory.Unique != null) Default = new PageParameter { Sort = Factory.Unique.Name };
         }
         #endregion
 
         #region 方法
+        /// <summary>获取参数</summary>
+        public void GetParam()
+        {
+            PageIndex = WebHelper.Params[_.PageIndex].ToInt();
+            PageSize = WebHelper.Params[_.PageSize].ToInt();
+            Sort = WebHelper.Params[_.Sort];
+            Desc = WebHelper.Params[_.Desc].ToBoolean();
+        }
+
         ///// <summary>获取基础Url，用于附加参数</summary>
         ///// <param name="where"></param>
         ///// <param name="order"></param>

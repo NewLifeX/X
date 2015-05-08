@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace NewLife.Web
+namespace NewLife.Data
 {
     /// <summary>分页参数信息</summary>
     public class PageParameter
