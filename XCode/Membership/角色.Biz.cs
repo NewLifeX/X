@@ -251,7 +251,7 @@ namespace XCode.Membership
             var pf = PermissionFlags.None;
             if (!Permissions.TryGetValue(resid, out pf)) return false;
 
-            return pf.Has(flag);
+            return pf == PermissionFlags.All || pf.Has(flag);
         }
 
         void Remove(Int32 resid)

@@ -31,7 +31,7 @@
         </tr>
 <tr>
             <td align="right">是否使用：</td>
-            <td><asp:CheckBox ID="frmIsEnable" runat="server" Text="是否使用" /></td>
+            <td><asp:CheckBox ID="frmEnable" runat="server" Text="是否使用" /></td>
         </tr>
         <tr>
             <td align="right">

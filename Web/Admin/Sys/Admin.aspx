@@ -3,6 +3,7 @@
 
 <asp:Content ID="C" ContentPlaceHolderID="C" runat="server">
     <div class="row-fluid navbar navbar-default navbar-form">
+        <a href="AdminForm.aspx" class="btn btn-success">添加管理员</a>
         <label class="control-label">角色：</label>
         <XCL:DropDownList ID="ddlRole" runat="server" DataSourceID="odsRole" AppendDataBoundItems="true"
             DataTextField="Name" DataValueField="ID" AutoPostBack="True" CssClass="form-control">
@@ -32,9 +33,7 @@
     </div>
     <div class="row-fluid">
         <asp:GridView ID="gv" runat="server" AutoGenerateColumns="False" DataKeyNames="ID"
-            DataSourceID="ods" CssClass="table table-hover" CellPadding="0" GridLines="None"
-            EnableModelValidation="True" AllowPaging="True" AllowSorting="True" Width="100%"
-            PageSize="10">
+            DataSourceID="ods" CssClass="table table-hover" CellPadding="0" GridLines="None" AllowPaging="True" AllowSorting="True" Width="100%">
             <Columns>
                 <asp:TemplateField>
                     <ItemTemplate>
@@ -68,10 +67,7 @@
                         <asp:CheckBox ID="checkbox2" runat="server" Checked='<%# Bind("Enable")%>' />
                     </EditItemTemplate>
                 </asp:TemplateField>
-                <XCL:LinkBoxField HeaderText="编辑" DataNavigateUrlFields="ID" DataNavigateUrlFormatString="AdminForm.aspx?ID={0}"
-                    Height="400px" Text="编辑" Width="370px" Title="编辑管理员">
-                    <ItemStyle HorizontalAlign="Center" />
-                </XCL:LinkBoxField>
+                <asp:HyperLinkField HeaderText="编辑" DataNavigateUrlFields="ID" DataNavigateUrlFormatString="AdminForm.aspx?ID={0}" Text="编辑" />
                 <asp:TemplateField HeaderText="删除" ShowHeader="False">
                     <ItemTemplate>
                         <asp:LinkButton ID="LinkButton1" runat="server" CausesValidation="False" CommandName="Delete"

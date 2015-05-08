@@ -22,16 +22,15 @@
                     <ItemStyle HorizontalAlign="Center" />
                 </asp:BoundField>
                 <asp:BoundField DataField="TreeNodeName" HeaderText="名称" SortExpression="Name" />
+                <asp:BoundField DataField="DisplayName" HeaderText="显示名" SortExpression="DisplayName" />
                 <asp:BoundField DataField="Url" HeaderText="链接" SortExpression="Url" />
                 <asp:BoundField DataField="ParentMenuName" HeaderText="父菜单" SortExpression="ParentID" />
                 <asp:BoundField DataField="Sort" HeaderText="序号" SortExpression="Sort" />
-                <asp:BoundField DataField="Permission" HeaderText="权限" SortExpression="Permission" />
                 <asp:TemplateField HeaderText="显示">
                     <ItemTemplate>
-                        <asp:CheckBox ID="checkebox1" runat="server" Enabled="false" Checked='<%# Bind("IsShow") %>' />
+                        <asp:CheckBox ID="checkebox1" runat="server" Enabled="false" Checked='<%# Bind("Visible") %>' />
                     </ItemTemplate>
                 </asp:TemplateField>
-                <asp:BoundField DataField="Remark" HeaderText="备注" SortExpression="Remark" />
                 <asp:TemplateField HeaderText="升" ShowHeader="False">
                     <ItemTemplate>
                         <asp:LinkButton ID="LinkButton2" runat="server" CausesValidation="False" CommandArgument='<%# Eval("ID") %>'
