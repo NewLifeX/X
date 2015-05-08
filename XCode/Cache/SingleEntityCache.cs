@@ -165,7 +165,7 @@ namespace XCode.Cache
                             try
                             {
                                 // 需要在原连接名表名里面更新对象
-                                AutoUpdate(item);
+                                AutoUpdate(item, "定时检查过期");
                             }
                             catch { }
                         }
@@ -187,7 +187,7 @@ namespace XCode.Cache
                         if (Entities.ContainsKey(item.Key)) Entities.Remove(item.Key);
                     }
 
-                    Using = Entities.Count > 0;
+                    //Using = Entities.Count > 0;
                 }
                 if (SlaveEntities.Count > 0)
                 {
@@ -231,7 +231,7 @@ namespace XCode.Cache
             public void SetEntity(TEntity entity)
             {
                 // 如果原来有对象，则需要自动保存
-                if (Entity != null && Entity != entity) sc.AutoUpdate(this);
+                if (Entity != null && Entity != entity) sc.AutoUpdate(this, "设置新的缓存对象");
 
                 Entity = entity;
                 ExpireTime = DateTime.Now.AddMinutes(sc.Expriod);
@@ -426,7 +426,7 @@ namespace XCode.Cache
             }
 
             // 自动保存
-            AutoUpdate(item);
+            AutoUpdate(item, "获取缓存过期");
 
             // 判断别的线程是否已更新
             if (HoldCache || !item.Expired) return item.Entity;
@@ -478,23 +478,23 @@ namespace XCode.Cache
             Entities.Remove(keyFirst);
 
             //自动保存
-            if (item != null) AutoUpdate(item);
+            if (item != null) AutoUpdate(item, "缓存达到最大数移除第一项");
 
             return item;
         }
 
         /// <summary>自动更新，最主要是在原连接名和表名里面更新对象</summary>
         /// <param name="item"></param>
-        private void AutoUpdate(CacheItem item)
+        private void AutoUpdate(CacheItem item, String reason)
         {
             if (AutoSave && item != null && item.Entity != null)
             {
                 item.NextSave = DateTime.Now.AddSeconds(Expriod);
                 Invoke<CacheItem, Object>(e =>
                 {
-                    if (Debug) DAL.WriteLog("单对象缓存自动保存：{0}/{1}", Entity<TEntity>.Meta.TableName, Entity<TEntity>.Meta.ConnName);
+                    var rs = e.Entity.Update();
 
-                    e.Entity.Update();
+                    if (Debug && rs > 0) DAL.WriteLog("单对象缓存AutoSave {0}/{1} {2}", Entity<TEntity>.Meta.TableName, Entity<TEntity>.Meta.ConnName, reason);
 
                     return null;
                 }, item);
@@ -612,11 +612,11 @@ namespace XCode.Cache
             {
                 if (!Entities.TryGetValue(key, out item)) return;
 
-                AutoUpdate(item);
+                AutoUpdate(item, "移除缓存" + key);
 
                 Entities.Remove(key);
 
-                Using = Entities.Count > 0;
+                //Using = Entities.Count > 0;
             }
             if (item != null && !item.SlaveKey.IsNullOrWhiteSpace())
             {
@@ -650,7 +650,7 @@ namespace XCode.Cache
                 {
                     foreach (var key in Entities)
                     {
-                        AutoUpdate(key.Value);
+                        AutoUpdate(key.Value, "清空缓存 " + reason);
                     }
                 }
             }
