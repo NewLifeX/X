@@ -369,7 +369,11 @@ namespace XCode.Cache
         /// <returns></returns>
         private Boolean TryAdd(TEntity entity)
         {
-            Using = true;
+            if (!Using)
+            {
+                Using = true;
+                if (Debug) DAL.WriteLog("单对象缓存首次使用 {0} {1}", typeof(TEntity).FullName, XTrace.GetCaller(1, 16));
+            }
 
             var item = new CacheItem { sc = this };
 
@@ -641,7 +645,7 @@ namespace XCode.Cache
         /// <param name="reason">清除缓存原因</param>
         public void Clear(String reason = null)
         {
-            if (Debug) DAL.WriteLog("清空单对象缓存：{0} 原因：{1}", typeof(TEntity).FullName, reason);
+            if (Debug) DAL.WriteLog("清空单对象缓存：{0} 原因：{1} Using = false", typeof(TEntity).FullName, reason);
 
             if (AutoSave)
             {

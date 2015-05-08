@@ -983,7 +983,7 @@ namespace XCode
                 if (_cache != null) _cache.Update(entity as TEntity);
 
                 // 自动加入单对象缓存
-                if (_singleCache != null) _singleCache.Add(entity as TEntity);
+                if (_singleCache != null && _singleCache.Using) _singleCache.Add(entity as TEntity);
             }
 
             if (_Count >= 0) Interlocked.Increment(ref _Count);
@@ -1004,7 +1004,7 @@ namespace XCode
                 if (_cache != null) _cache.Update(entity as TEntity);
 
                 // 自动加入单对象缓存
-                if (_singleCache != null) _singleCache.Add(entity as TEntity);
+                if (_singleCache != null && _singleCache.Using) _singleCache.Add(entity as TEntity);
             }
 
             return rs;
