@@ -4,6 +4,7 @@ using System.Web.UI.WebControls;
 using NewLife.CommonEntity;
 using NewLife.Web;
 using XCode;
+using XCode.Membership;
 
 /*
  * 该页面极为复杂，如无特殊需求，不建议修改。
@@ -13,7 +14,7 @@ using XCode;
 public partial class Pages_RoleMenu : MyEntityList
 {
     /// <summary>实体类型</summary>
-    public override Type EntityType { get { return CommonManageProvider.Provider.MenuType; } set { base.EntityType = value; } }
+    public override Type EntityType { get { return ManageProvider.Menu.Root.GetType(); } set { base.EntityType = value; } }
 
     IEntityOperate Factory { get { return EntityFactory.CreateOperate(EntityType); } }
 
@@ -21,8 +22,8 @@ public partial class Pages_RoleMenu : MyEntityList
     {
         base.OnInit(e);
 
-        ods.DataObjectTypeName = ods.TypeName = CommonManageProvider.Provider.MenuType.FullName;
-        odsRole.DataObjectTypeName = odsRole.TypeName = CommonManageProvider.Provider.RoleType.FullName;
+        ods.DataObjectTypeName = ods.TypeName = ManageProvider.Menu.Root.GetType().FullName;
+        odsRole.DataObjectTypeName = odsRole.TypeName = ManageProvider.Provider.GetService<IRole>().GetType().FullName;
 
         //if (!IsPostBack)
         {
@@ -34,7 +35,7 @@ public partial class Pages_RoleMenu : MyEntityList
                 ddlRole.SelectedValue = roleID.ToString();
             }
 
-            IMenu root = CommonManageProvider.Provider.MenuRoot;
+            IMenu root = ManageProvider.Menu.Root;
             if (root != null)
             {
                 ddlCategory.DataSource = root.Childs;

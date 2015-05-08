@@ -15,16 +15,16 @@ namespace NewLife.CommonEntity
         static CommonService()
         {
             Container
-                .AutoRegister(typeof(IManageProvider), typeof(CommonManageProvider), typeof(ManageProvider))
-                .AutoRegister(typeof(IErrorInfoProvider), typeof(CommonManageProvider), typeof(ManageProvider))
+                //.AutoRegister(typeof(IManageProvider), typeof(CommonManageProvider), typeof(ManageProvider))
+                //.AutoRegister(typeof(IErrorInfoProvider), typeof(CommonManageProvider), typeof(ManageProvider))
                 .AutoRegister<IEntityForm, EntityForm2>()
                 .AutoRegister<IManagePage, ManagePage>();
 
-            Container
-                .AutoRegister<IAdministrator, Administrator>()
-                .AutoRegister<IRole, Role>()
-                .AutoRegister<IMenu, Menu>()
-                .AutoRegister<ILog, Log>();
+            //Container
+            //    .AutoRegister<IAdministrator, Administrator>()
+            //    .AutoRegister<IRole, Role>()
+            //    .AutoRegister<IMenu, Menu>()
+            //    .AutoRegister<ILog, Log>();
         }
     }
 }

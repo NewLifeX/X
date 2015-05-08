@@ -3,11 +3,12 @@ using NewLife.CommonEntity;
 using NewLife.Reflection;
 using NewLife.Web;
 using XCode;
+using XCode.Membership;
 
 public partial class Pages_Role : MyEntityList
 {
     /// <summary>实体类型</summary>
-    public override Type EntityType { get { return CommonManageProvider.Provider.RoleType; } set { base.EntityType = value; } }
+    public override Type EntityType { get { return ManageProvider.Provider.GetService<IRole>().GetType(); } set { base.EntityType = value; } }
 
     IEntityOperate Factory { get { return EntityFactory.CreateOperate(EntityType); } }
 

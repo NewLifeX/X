@@ -6,13 +6,14 @@ using NewLife.Log;
 using NewLife.Threading;
 using NewLife.Web;
 using XCode;
+using XCode.Membership;
 
 public partial class Admin_Login : System.Web.UI.Page
 {
     static Admin_Login()
     {
         // 引发反向工程
-        ThreadPoolX.QueueUserWorkItem(delegate() { Int32 count = EntityFactory.CreateOperate(Provider.ManageUserType).Cache.Entities.Count; });
+        ThreadPoolX.QueueUserWorkItem(delegate() { Int32 count = EntityFactory.CreateOperate(Provider.UserType).Cache.Entities.Count; });
     }
 
     public static IManageProvider Provider { get { return ManageProvider.Provider; } }

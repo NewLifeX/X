@@ -5,13 +5,14 @@ using NewLife.CommonEntity;
 using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.Web;
+using XCode.Membership;
 
 public partial class Pages_Menu : MyEntityList
 {
-    ICommonManageProvider Provider { get { return CommonManageProvider.Provider; } }
+    IManageProvider Provider { get { return ManageProvider.Provider; } }
 
     /// <summary>实体类型</summary>
-    public override Type EntityType { get { return Provider.MenuType; } set { base.EntityType = value; } }
+    public override Type EntityType { get { return ManageProvider.Menu.Root.GetType(); } set { base.EntityType = value; } }
 
     protected void Page_Load(object sender, EventArgs e) { }
 
@@ -31,7 +32,7 @@ public partial class Pages_Menu : MyEntityList
 
     protected void Button2_Click(object sender, EventArgs e)
     {
-        String xml = Reflect.Invoke(EntityType, "Export", null, Provider.MenuRoot.Childs) as String;
+        String xml = Reflect.Invoke(EntityType, "Export", null, ManageProvider.Menu.Root.Childs) as String;
 
         Response.Clear();
         Response.Buffer = true;
@@ -69,7 +70,7 @@ public partial class Pages_Menu : MyEntityList
     {
         if (e.CommandName == "Up")
         {
-            IMenu entity = Provider.FindByMenuID(Convert.ToInt32(e.CommandArgument));
+            IMenu entity = ManageProvider.Menu.FindByID(Convert.ToInt32(e.CommandArgument));
             if (entity != null)
             {
                 entity.Up();
@@ -78,7 +79,7 @@ public partial class Pages_Menu : MyEntityList
         }
         else if (e.CommandName == "Down")
         {
-            IMenu entity = Provider.FindByMenuID(Convert.ToInt32(e.CommandArgument));
+            IMenu entity = ManageProvider.Menu.FindByID(Convert.ToInt32(e.CommandArgument));
             if (entity != null)
             {
                 entity.Down();
@@ -91,7 +92,7 @@ public partial class Pages_Menu : MyEntityList
     {
         IMenu menu = dataItem as IMenu;
         if (menu == null) return true;
-        IMenu parent = menu.Parent ?? Provider.MenuRoot;
+        IMenu parent = menu.Parent ?? ManageProvider.Menu.Root;
         return menu.ID == parent.Childs[0].ID;
     }
 
@@ -99,7 +100,7 @@ public partial class Pages_Menu : MyEntityList
     {
         IMenu menu = dataItem as IMenu;
         if (menu == null) return true;
-        IMenu parent = menu.Parent ?? Provider.MenuRoot;
+        IMenu parent = menu.Parent ?? ManageProvider.Menu.Root;
         return menu.ID == parent.Childs[parent.Childs.Count - 1].ID;
     }
 }

@@ -8,6 +8,7 @@
 using System.Web.UI;
 using NewLife.CommonEntity;
 using XCode;
+using XCode.Membership;
 
 /// <summary>实体用户控件基类</summary>
 public class MyEntityUserControl : UserControl

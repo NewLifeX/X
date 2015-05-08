@@ -2,6 +2,7 @@
 using NewLife.CommonEntity;
 using NewLife.Web;
 using XCode;
+using XCode.Membership;
 using XCode.Web;
 
 public partial class Pages_Log : MyEntityList

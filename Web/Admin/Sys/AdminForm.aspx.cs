@@ -1,11 +1,12 @@
 ﻿using System;
 using NewLife.CommonEntity;
 using NewLife.Security;
+using XCode.Membership;
 
 public partial class Pages_AdminForm : MyEntityForm
 {
     /// <summary>实体类型</summary>
-    public override Type EntityType { get { return CommonManageProvider.Provider.AdminstratorType; } set { base.EntityType = value; } }
+    public override Type EntityType { get { return ManageProvider.Provider.UserType; } set { base.EntityType = value; } }
 
     protected override void OnInit(EventArgs e)
     {
@@ -24,11 +25,11 @@ public partial class Pages_AdminForm : MyEntityForm
     {
         if (!String.IsNullOrEmpty(frmPassword_.Text)) EntityForm.Entity.SetItem("Password", DataHelper.Hash(frmPassword_.Text));
     }
-    
+
     protected override void OnInitComplete(EventArgs e)
     {
         base.OnInitComplete(e);
-        ods.DataObjectTypeName = ods.TypeName = CommonManageProvider.Provider.RoleType.FullName;
+        ods.DataObjectTypeName = ods.TypeName = ManageProvider.Provider.GetService<IRole>().GetType().FullName;
     }
 
     protected void Page_Load(object sender, EventArgs e)

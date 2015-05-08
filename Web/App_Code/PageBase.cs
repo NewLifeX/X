@@ -8,6 +8,7 @@ using NewLife.CommonEntity.Web;
 using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.Web;
+using XCode.Membership;
 
 /// <summary>页面基类</summary>
 /// <typeparam name="TAdminEntity"></typeparam>
@@ -111,7 +112,7 @@ public abstract class PageBase : WebPageBase
                 if (gv.Columns[i] is XControl.LinkBoxField || gv.Columns[i] is HyperLinkField)
                     gv.Columns[i].Visible = false;
             }
-            String name = MyMenu.Remark;
+            String name = MyMenu.DisplayName;
             if (String.IsNullOrEmpty(name)) name = MyMenu.Name;
             WebHelper.ExportExcel(gv, name + ".xls", 10000, Encoding.UTF8);
             return;

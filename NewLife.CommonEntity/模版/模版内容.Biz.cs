@@ -9,6 +9,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Xml.Serialization;
 using XCode;
+using XCode.Membership;
 
 namespace NewLife.CommonEntity
 {

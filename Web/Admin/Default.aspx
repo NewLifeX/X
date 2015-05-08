@@ -2,6 +2,7 @@
 
 <%@ Import Namespace="NewLife.Common" %>
 <%@ Import Namespace="NewLife.CommonEntity" %>
+<%@ Import Namespace="XCode.Membership" %>
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>

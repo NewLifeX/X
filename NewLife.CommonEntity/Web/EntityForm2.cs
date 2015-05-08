@@ -10,6 +10,7 @@ using XCode;
 using XCode.Accessors;
 using XCode.Configuration;
 using XCode.Exceptions;
+using XCode.Membership;
 
 namespace NewLife.CommonEntity.Web
 {

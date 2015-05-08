@@ -13,6 +13,7 @@ using System.Text;
 using System.Xml.Serialization;
 using XCode;
 using XCode.DataAccessLayer;
+using XCode.Membership;
 
 namespace NewLife.CommonEntity
 {

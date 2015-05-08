@@ -1,6 +1,7 @@
 ﻿using System;
 using NewLife.CommonEntity;
 using NewLife.Web;
+using XCode.Membership;
 
 public partial class Admin_Ascx_SelectAdmin : System.Web.UI.UserControl
 {
@@ -35,16 +36,16 @@ public partial class Admin_Ascx_SelectAdmin : System.Web.UI.UserControl
         }
     }
 
-    private IAdministrator _Admin;
+    private IUser _Admin;
     /// <summary>产品</summary>
-    public IAdministrator Admin
+    public IUser Admin
     {
         get
         {
             if (_Admin == null && Value > 0)
             {
                 //_Admin = Admin.Meta.Cache.Entities.Find(Admin._.ID, Value);
-                _Admin = ManageProvider.Provider.FindByID(Value) as IAdministrator;
+                _Admin = ManageProvider.Provider.FindByID(Value) as IUser;
             }
             return _Admin;
         }

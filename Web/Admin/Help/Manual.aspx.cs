@@ -11,7 +11,7 @@ using System.Web.UI;
 using System.Web.UI.WebControls;
 using NewLife.CommonEntity;
 
-public partial class Manual_Manual : MyEntityList<CommonManual>
+public partial class Manual_Manual : MyEntityList<Manual>
 {
     protected void Page_Load(object sender, EventArgs e)
     {

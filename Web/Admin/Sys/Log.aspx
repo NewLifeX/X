@@ -3,6 +3,7 @@
 
 <%@ Import Namespace="NewLife.Web" %>
 <%@ Import Namespace="NewLife.CommonEntity" %>
+<%@ Import Namespace="XCode.Membership" %>
 <asp:Content ID="Content1" ContentPlaceHolderID="C" runat="server">
     <div class="panel panel-default">
         <div class="panel-heading"><a href="<%= WebHelper.PageName %>">日志列表</a></div>
@@ -25,7 +26,7 @@
                     <label class="control-label" for="ddlAdmin">管理员：</label>
                     <select name="ddlAdminID" id="ddlAdminID" class="form-control" onchange="$(':submit').click();">
                         <option value="">全部</option>
-                        <%foreach (IAdministrator item in Administrator.FindAllWithCache())
+                        <%foreach (IUser item in UserX.FindAllWithCache())
                           {
                         %><option value="<%= item.ID %>" <%if (WebHelper.Params["ddlAdminID"] == item.ID + "")
                                                            {%>

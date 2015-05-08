@@ -475,7 +475,7 @@ namespace XCode.Membership
         /// <summary>子孙菜单</summary>
         new IList<IMenu> AllChilds { get; }
 
-        /// <summary>根据层次路径查找</summary>
+        /// <summary>根据层次路径查找。因为需要指定在某个菜单子级查找路径，所以是成员方法而不是静态方法</summary>
         /// <param name="path">层次路径</param>
         /// <returns></returns>
         IMenu FindByPath(String path);

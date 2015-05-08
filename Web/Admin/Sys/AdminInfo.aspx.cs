@@ -4,11 +4,12 @@ using NewLife;
 using NewLife.CommonEntity;
 using NewLife.Security;
 using XCode;
+using XCode.Membership;
 
 public partial class Pages_AdminInfo : MyEntityForm
 {
     /// <summary>实体类型</summary>
-    public override Type EntityType { get { return CommonManageProvider.Provider.AdminstratorType; } set { base.EntityType = value; } }
+    public override Type EntityType { get { return ManageProvider.Provider.UserType; } set { base.EntityType = value; } }
 
     protected override void OnInit(EventArgs e)
     {

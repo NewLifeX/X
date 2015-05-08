@@ -10,36 +10,37 @@ using System.Web.UI.WebControls;
 using NewLife.Configuration;
 using NewLife.Log;
 using XCode.DataAccessLayer;
+using XCode.Membership;
 
 namespace NewLife.CommonEntity.Web
 {
-    /// <summary>指定具体管理员类和菜单类的页面基类</summary>
-    /// <typeparam name="TAdminEntity"></typeparam>
-    /// <typeparam name="TMenuEntity"></typeparam>
-    [EditorBrowsable(EditorBrowsableState.Never)]
-    [Obsolete("不再需要指定管理员类和菜单类，请改用WebPageBase类替代！")]
-    public class WebPageBase<TAdminEntity, TMenuEntity> : WebPageBase<TAdminEntity>
-        where TAdminEntity : Administrator<TAdminEntity>, new()
-        where TMenuEntity : Menu<TMenuEntity>, new()
-    {
-    }
+    ///// <summary>指定具体管理员类和菜单类的页面基类</summary>
+    ///// <typeparam name="TAdminEntity"></typeparam>
+    ///// <typeparam name="TMenuEntity"></typeparam>
+    //[EditorBrowsable(EditorBrowsableState.Never)]
+    //[Obsolete("不再需要指定管理员类和菜单类，请改用WebPageBase类替代！")]
+    //public class WebPageBase<TAdminEntity, TMenuEntity> : WebPageBase<TAdminEntity>
+    //    where TAdminEntity : Administrator<TAdminEntity>, new()
+    //    where TMenuEntity : Menu<TMenuEntity>, new()
+    //{
+    //}
 
-    /// <summary>指定具体管理员类的页面基类</summary>
-    /// <typeparam name="TAdminEntity"></typeparam>
-    [EditorBrowsable(EditorBrowsableState.Never)]
-    [Obsolete("不再需要指定管理员类和菜单类，请改用WebPageBase类替代！")]
-    public class WebPageBase<TAdminEntity> : WebPageBase
-        where TAdminEntity : Administrator<TAdminEntity>, new()
-    {
-        /// <summary>当前管理员</summary>
-        public override IAdministrator Current
-        {
-            get
-            {
-                return Administrator<TAdminEntity>.Current;
-            }
-        }
-    }
+    ///// <summary>指定具体管理员类的页面基类</summary>
+    ///// <typeparam name="TAdminEntity"></typeparam>
+    //[EditorBrowsable(EditorBrowsableState.Never)]
+    //[Obsolete("不再需要指定管理员类和菜单类，请改用WebPageBase类替代！")]
+    //public class WebPageBase<TAdminEntity> : WebPageBase
+    //    where TAdminEntity : Administrator<TAdminEntity>, new()
+    //{
+    //    /// <summary>当前管理员</summary>
+    //    public override IAdministrator Current
+    //    {
+    //        get
+    //        {
+    //            return Administrator<TAdminEntity>.Current;
+    //        }
+    //    }
+    //}
 
     /// <summary>页面基类</summary>
     public class WebPageBase : System.Web.UI.Page
@@ -65,7 +66,7 @@ namespace NewLife.CommonEntity.Web
             {
                 if (_MyMenu == null && !hasLoaded.Contains("MyMenu"))
                 {
-                    _MyMenu = Current.FindPermissionMenu(PermissionName);
+                    _MyMenu = ManageProvider.Menu.Root.FindByPath(PermissionName);
                     hasLoaded.Add("MyMenu");
                 }
                 return _MyMenu;
@@ -107,7 +108,7 @@ namespace NewLife.CommonEntity.Web
         public virtual Boolean CheckLogin()
         {
             // 当前管理员
-            IAdministrator entity = Current;
+            var entity = Current;
             if (entity == null) return false;
 
             return true;
@@ -126,10 +127,10 @@ namespace NewLife.CommonEntity.Web
         public virtual Boolean Acquire(PermissionFlags flag)
         {
             // 当前管理员
-            IAdministrator admin = Current;
+            var admin = Current;
             if (admin == null) return false;
 
-            IMenu menu = MyMenu;
+            var menu = MyMenu;
             //if (menu == null)
             //{
             //    String name = PermissionName;
@@ -141,7 +142,7 @@ namespace NewLife.CommonEntity.Web
 
             if (menu == null) return false;
 
-            return admin.Acquire(menu.ID, flag);
+            return admin.Role.Has(menu.ID, flag);
         }
 
         /// <summary>申请指定操作的权限</summary>
@@ -151,7 +152,7 @@ namespace NewLife.CommonEntity.Web
         public virtual Boolean Acquire(String name, PermissionFlags flag)
         {
             // 当前管理员
-            IAdministrator admin = Current;
+            var admin = Current;
             if (admin == null) return false;
 
             //IMenu menu = admin.FindPermissionMenu(name);
@@ -159,7 +160,10 @@ namespace NewLife.CommonEntity.Web
 
             //return admin.Acquire(menu.ID, flag);
 
-            return admin.Acquire(name, flag);
+            var mi = ManageProvider.Menu.Root.FindByPath(name);
+            if (mi == null) return false;
+
+            return admin.Role.Has(mi.ID, flag);
         }
 
         /// <summary>申请指定操作的权限</summary>
@@ -173,11 +177,11 @@ namespace NewLife.CommonEntity.Web
 
         #region 登录用户控制
         /// <summary>当前管理员</summary>
-        public virtual IAdministrator Current
+        public virtual IUser Current
         {
             get
             {
-                return ManageProvider.Provider.Current as IAdministrator;
+                return ManageProvider.Provider.Current as IUser;
             }
         }
 

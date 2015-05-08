@@ -13,7 +13,7 @@ using NewLife.Log;
 using NewLife.Web;
 using NewLife.CommonEntity;
 
-public partial class Manual_ManualForm : MyEntityForm<CommonManual>
+public partial class Manual_ManualForm : MyEntityForm<Manual>
 {
     protected void Page_Load(object sender, EventArgs e)
     {

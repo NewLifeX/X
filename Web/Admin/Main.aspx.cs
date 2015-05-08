@@ -6,6 +6,7 @@ using System.Web;
 using System.Web.UI.WebControls;
 using NewLife.CommonEntity;
 using NewLife.Reflection;
+using XCode.Membership;
 
 public partial class Pages_Main : System.Web.UI.Page
 {

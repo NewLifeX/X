@@ -8,22 +8,23 @@ using NewLife.Web;
 using XCode;
 using XCode.Configuration;
 using System.Reflection;
+using XCode.Membership;
 
 namespace NewLife.CommonEntity.Web
 {
-    /// <summary>实体表单基类</summary>
-    /// <typeparam name="TKey">主键类型</typeparam>
-    /// <typeparam name="TEntity">表单实体类</typeparam>
-    /// <typeparam name="TAdminEntity">管理员类</typeparam>
-    /// <typeparam name="TMenuEntity">菜单类</typeparam>
-    [Obsolete("不再需要指定管理员类和菜单类，请改用EntityForm<TKey, TEntity>类替代！")]
-    [EditorBrowsable(EditorBrowsableState.Never)]
-    public class EntityForm<TKey, TEntity, TAdminEntity, TMenuEntity> : EntityForm<TKey, TEntity>
-        where TEntity : Entity<TEntity>, new()
-        where TAdminEntity : Administrator<TAdminEntity>, new()
-        where TMenuEntity : Menu<TMenuEntity>, new()
-    {
-    }
+    ///// <summary>实体表单基类</summary>
+    ///// <typeparam name="TKey">主键类型</typeparam>
+    ///// <typeparam name="TEntity">表单实体类</typeparam>
+    ///// <typeparam name="TAdminEntity">管理员类</typeparam>
+    ///// <typeparam name="TMenuEntity">菜单类</typeparam>
+    //[Obsolete("不再需要指定管理员类和菜单类，请改用EntityForm<TKey, TEntity>类替代！")]
+    //[EditorBrowsable(EditorBrowsableState.Never)]
+    //public class EntityForm<TKey, TEntity, TAdminEntity, TMenuEntity> : EntityForm<TKey, TEntity>
+    //    where TEntity : Entity<TEntity>, new()
+    //    where TAdminEntity : Administrator<TAdminEntity>, new()
+    //    where TMenuEntity : Menu<TMenuEntity>, new()
+    //{
+    //}
 
     /// <summary>实体表单基类</summary>
     /// <typeparam name="TKey">主键类型</typeparam>

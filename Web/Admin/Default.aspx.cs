@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using NewLife.Common;
 using NewLife.CommonEntity;
 using XCode;
+using XCode.Membership;
 
 public partial class Admin_Default : System.Web.UI.Page
 {
@@ -14,7 +15,7 @@ public partial class Admin_Default : System.Web.UI.Page
     /// <summary>默认内容页</summary>
     public String DefaultMain { get { return _DefaultMain; } set { _DefaultMain = value; } }
 
-    protected IAdministrator Current { get { return CommonManageProvider.Provider.Current as IAdministrator; } }
+    protected IUser Current { get { return ManageProvider.Provider.Current as IUser; } }
 
     /// <summary>系统配置。如果重载，修改这里即可。</summary>
     public static SysConfig Config { get { return SysConfig.Current; } }
@@ -30,11 +31,10 @@ public partial class Admin_Default : System.Web.UI.Page
         IManageUser user = ManageProvider.Provider.Current;
         if (user == null) Response.Redirect("Login.aspx");
 
-        ICommonManageProvider provider = CommonManageProvider.Provider;
-        IMenu root = null;
-        if (provider != null) root = provider.MenuRoot;
+        IManageProvider provider = ManageProvider.Provider;
+        IMenu root = ManageProvider.Menu.Root;
 
-        IAdministrator admin = user as IAdministrator;
+        IUser admin = user as IUser;
         if (admin == null)
         {
             if (root != null)
@@ -56,7 +56,7 @@ public partial class Admin_Default : System.Web.UI.Page
         if (admin.Role != null)
         {
             //List<IMenu> list = admin.Role.GetMySubMenus(root.ID);
-            IList<IMenu> list = provider.GetMySubMenus(root.ID);
+            IList<IMenu> list = ManageProvider.Menu.GetMySubMenus(root.ID);
             Menus = list;
             //menuItem.DataSource = list;
             //menuItem.DataBind();
@@ -75,10 +75,10 @@ public partial class Admin_Default : System.Web.UI.Page
         {
             using (EntityTransaction trans = new EntityTransaction(EntityFactory.CreateOperate(root.GetType())))
             {
-                root.CheckMenuName("Admin", "管理平台")
-                    .CheckMenuName(@"Admin\Sys", "系统管理")
-                    .CheckMenuName(@"Admin\Advance", "高级设置")
-                    .CheckMenuName(@"Admin\Help", "帮助手册");
+                //root.CheckMenuName("Admin", "管理平台")
+                //    .CheckMenuName(@"Admin\Sys", "系统管理")
+                //    .CheckMenuName(@"Admin\Advance", "高级设置")
+                //    .CheckMenuName(@"Admin\Help", "帮助手册");
 
                 // 自动挂载Main.aspx
                 IMenu menu = root.FindByPath("Admin");

@@ -8,6 +8,7 @@
 using System.Web.UI;
 using NewLife.CommonEntity;
 using XCode;
+using XCode.Membership;
 
 /// <summary>实体表单页面基类</summary>
 public class MyEntityForm : Page

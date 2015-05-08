@@ -8,6 +8,7 @@ using System.Web.UI;
 using System.Web.UI.WebControls;
 using NewLife.Log;
 using NewLife.Web;
+using XCode.Membership;
 
 namespace NewLife.CommonEntity
 {
@@ -154,7 +155,7 @@ namespace NewLife.CommonEntity
         public virtual IManageUser Current { get { return ManageProvider.Provider.Current; } }
 
         /// <summary>当前管理员</summary>
-        protected virtual IAdministrator CurrentAdmin { get { return Current as IAdministrator; } }
+        protected virtual IUser CurrentAdmin { get { return Current as IUser; } }
 
         /// <summary>导航 分为三级：栏目－子栏目－页面</summary>
         public virtual String Navigation
@@ -176,7 +177,7 @@ namespace NewLife.CommonEntity
             {
                 if (_CurrentMenu == null && !hasLoaded.Contains("CurrentMenu"))
                 {
-                    if (CurrentAdmin != null) _CurrentMenu = CurrentAdmin.FindPermissionMenu(PermissionName);
+                    _CurrentMenu = ManageProvider.Menu.Root.FindByPath(PermissionName);
                     hasLoaded.Add("CurrentMenu");
                 }
                 return _CurrentMenu;
@@ -212,7 +213,7 @@ namespace NewLife.CommonEntity
         public virtual Boolean CheckLogin()
         {
             // 当前管理员
-            IAdministrator entity = CurrentAdmin;
+            var entity = CurrentAdmin;
             if (entity == null) return false;
 
             return true;
@@ -233,13 +234,13 @@ namespace NewLife.CommonEntity
         public virtual Boolean Acquire(PermissionFlags flag)
         {
             // 当前管理员
-            IAdministrator admin = CurrentAdmin;
+            var admin = CurrentAdmin;
             if (admin == null) return false;
 
-            IMenu menu = CurrentMenu;
+            var menu = CurrentMenu;
             if (menu == null) return false;
 
-            return admin.Acquire(menu.ID, flag);
+            return admin.Role.Has(menu.ID, flag);
         }
 
         /// <summary>申请指定操作的权限</summary>
@@ -249,10 +250,13 @@ namespace NewLife.CommonEntity
         public virtual Boolean Acquire(String name, PermissionFlags flag)
         {
             // 当前管理员
-            IAdministrator admin = CurrentAdmin;
+            var admin = CurrentAdmin;
             if (admin == null) return false;
 
-            return admin.Acquire(name, flag);
+            var mi = ManageProvider.Menu.Root.FindByPath(name);
+            if (mi == null) return false;
+
+            return admin.Role.Has(mi.ID, flag);
         }
 
         /// <summary>申请指定操作的权限</summary>

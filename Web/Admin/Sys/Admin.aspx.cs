@@ -5,17 +5,18 @@ using NewLife.Reflection;
 using NewLife.Security;
 using NewLife.Web;
 using XCode;
+using XCode.Membership;
 
 public partial class Pages_Admin : MyEntityList
 {
     /// <summary>实体类型</summary>
-    public override Type EntityType { get { return CommonManageProvider.Provider.AdminstratorType; } set { base.EntityType = value; } }
+    public override Type EntityType { get { return ManageProvider.Provider.UserType; } set { base.EntityType = value; } }
 
-    IEntityOperate RoleFactory { get { return EntityFactory.CreateOperate(CommonManageProvider.Provider.RoleType); } }
+    IEntityOperate RoleFactory { get { return EntityFactory.CreateOperate(ManageProvider.Provider.GetService<IRole>().GetType()); } }
 
     protected void Page_Load(object sender, EventArgs e)
     {
-        Type type = CommonManageProvider.Provider.RoleType;
+        Type type = ManageProvider.Provider.GetService<IRole>().GetType();
         odsRole.TypeName = type.FullName;
         odsRole.DataObjectTypeName = type.FullName;
     }
@@ -26,18 +27,18 @@ public partial class Pages_Admin : MyEntityList
 
     void EnableOrDisable(Boolean isenable)
     {
-        DoBatch(isenable ? "启用" : "禁用", delegate(IAdministrator admin)
+        DoBatch(isenable ? "启用" : "禁用", delegate(IUser admin)
         {
-            if (admin.IsEnable != isenable)
+            if (admin.Enable != isenable)
             {
-                admin.IsEnable = isenable;
+                admin.Enable = isenable;
                 return true;
             }
             return false;
         });
     }
 
-    void DoBatch(String action, Func<IAdministrator, Boolean> callback)
+    void DoBatch(String action, Func<IUser, Boolean> callback)
     {
         Int32[] vs = gvExt.SelectedIntValues;
         if (vs == null || vs.Length < 1) return;
@@ -50,7 +51,7 @@ public partial class Pages_Admin : MyEntityList
             foreach (Int32 item in vs)
             {
                 IEntity entity = eop.FindByKey(item);
-                IAdministrator admin = entity as IAdministrator;
+                IUser admin = entity as IUser;
                 if (admin != null && callback(admin))
                 {
                     entity.Save();
@@ -74,7 +75,7 @@ public partial class Pages_Admin : MyEntityList
 
     protected void btnUpgradeToRole_Click(object sender, EventArgs e)
     {
-        DoBatch("升级", delegate(IAdministrator admin)
+        DoBatch("升级", delegate(IUser admin)
         {
             if (admin.RoleName != "管理员" || admin.Name == "admin") return false;
 
@@ -95,12 +96,12 @@ public partial class Pages_Admin : MyEntityList
     IRole FindByRoleName(String name)
     {
         return RoleFactory.FindWithCache("Name", name) as IRole;
-        //return MethodInfoX.Create(CommonManageProvider.Provider.RoleType, "Find", new Type[] { typeof(String), typeof(Object) }).Invoke(null, "Name", name) as IRole;
+        //return MethodInfoX.Create(ManageProvider.Provider.RoleType, "Find", new Type[] { typeof(String), typeof(Object) }).Invoke(null, "Name", name) as IRole;
     }
 
     protected void btnDelete_Click(object sender, EventArgs e)
     {
-        DoBatch("删除", delegate(IAdministrator admin)
+        DoBatch("删除", delegate(IUser admin)
         {
             if (admin.Name == "admin") return false;
 
@@ -118,7 +119,7 @@ public partial class Pages_Admin : MyEntityList
 
         Random rnd = new Random((Int32)DateTime.Now.Ticks);
 
-        DoBatch("修改密码", delegate(IAdministrator admin)
+        DoBatch("修改密码", delegate(IUser admin)
         {
             if (admin.Name == "admin") return false;
 

@@ -10,13 +10,14 @@ using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 using XCode;
+using XCode.Membership;
 
 namespace NewLife.CommonEntity
 {
     // 禁止直接使用，要求各个模块自己实现
-    ///// <summary>手册</summary>
-    //[ModelCheckMode(ModelCheckModes.CheckTableWhenFirstUse)]
-    //public class Manual : Manual<Manual> { }
+    /// <summary>手册</summary>
+    [ModelCheckMode(ModelCheckModes.CheckTableWhenFirstUse)]
+    public class Manual : Manual<Manual> { }
 
     /// <summary>手册</summary>
     /// <remarks>
@@ -47,7 +48,8 @@ namespace NewLife.CommonEntity
             //if (isNew || Dirtys[_.Name]) CheckExist(_.Name);
 
             // 处理当前已登录用户信息
-            if (!Dirtys[_.UserName] && ManageProvider.Provider.Current != null) UserName = ManageProvider.Provider.Current.Account;
+            var user = ManageProvider.User;
+            if (!Dirtys[_.UserName] && user != null) UserName = user.Name;
             if (isNew && !Dirtys[_.CreateTime]) CreateTime = DateTime.Now;
             if (!Dirtys[_.UpdateTime]) UpdateTime = DateTime.Now;
 

@@ -2,6 +2,7 @@
 using System.Web.UI.WebControls;
 using NewLife.CommonEntity;
 using NewLife.Web;
+using XCode.Membership;
 
 public partial class Center_Frame_Left : System.Web.UI.Page
 {
@@ -9,14 +10,12 @@ public partial class Center_Frame_Left : System.Web.UI.Page
     {
         if (!IsPostBack)
         {
-            ICommonManageProvider provider = CommonManageProvider.Provider;
-
             Int32 id = WebHelper.RequestInt("ID");
 
-            IMenu m = provider.FindByMenuID(id);
+            IMenu m = ManageProvider.Menu.FindByID(id);
             if (m != null) Literal1.Text = m.Name;
 
-            menu.DataSource = provider.GetMySubMenus(id);
+            menu.DataSource = ManageProvider.Menu.GetMySubMenus(id);
             menu.DataBind();
         }
     }
@@ -30,7 +29,7 @@ public partial class Center_Frame_Left : System.Web.UI.Page
         Repeater rp = e.Item.FindControl("menuItem") as Repeater;
         if (rp == null) return;
 
-        rp.DataSource = CommonManageProvider.Provider.GetMySubMenus(m.ID);
+        rp.DataSource = ManageProvider.Menu.GetMySubMenus(m.ID);
         rp.DataBind();
     }
 }

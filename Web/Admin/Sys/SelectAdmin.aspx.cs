@@ -4,6 +4,7 @@ using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 using NewLife.CommonEntity;
+using XCode.Membership;
 
 public partial class Admin_SelectAdmin : MyEntityList
 {
@@ -21,11 +22,11 @@ public partial class Admin_SelectAdmin : MyEntityList
             lblmsg.Text = Request["Name"];
         }
 
-        Type type = CommonManageProvider.Provider.AdminstratorType;
+        Type type = ManageProvider.Provider.UserType;
         ods.TypeName = type.FullName;
         ods.DataObjectTypeName = type.FullName;
 
-        type = CommonManageProvider.Provider.RoleType;
+        type = ManageProvider.Provider.GetService<IRole>().GetType();
         odsRole.TypeName = type.FullName;
         odsRole.DataObjectTypeName = type.FullName;
     }

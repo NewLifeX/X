@@ -4,6 +4,7 @@ using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 using NewLife.CommonEntity;
+using XCode.Membership;
 
 public partial class Template_Default : System.Web.UI.Page
 {
@@ -11,12 +12,12 @@ public partial class Template_Default : System.Web.UI.Page
     {
         if (!IsPostBack)
         {
-            IMenu root = CommonManageProvider.Provider.MenuRoot;
-            if (root != null)
-            {
-                root.CheckMenuName("Template", "模版子系统")
-                    .CheckMenuName(@"Template\TemplateManage", "管理模版");
-            }
+            //IMenu root = ManageProvider.Menu.Root;
+            //if (root != null)
+            //{
+            //    root.CheckMenuName("Template", "模版子系统")
+            //        .CheckMenuName(@"Template\TemplateManage", "管理模版");
+            //}
         }
     }
 }
