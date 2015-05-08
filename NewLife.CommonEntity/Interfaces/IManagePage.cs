@@ -177,7 +177,9 @@ namespace NewLife.CommonEntity
             {
                 if (_CurrentMenu == null && !hasLoaded.Contains("CurrentMenu"))
                 {
-                    _CurrentMenu = ManageProvider.Menu.Root.FindByPath(PermissionName);
+                    //_CurrentMenu = ManageProvider.Menu.Root.FindByPath(PermissionName);
+                    var res = Request.FilePath.TrimStart('/').TrimEnd(".aspx");
+                    _CurrentMenu = ManageProvider.Menu.Root.FindByPath(res);
                     hasLoaded.Add("CurrentMenu");
                 }
                 return _CurrentMenu;

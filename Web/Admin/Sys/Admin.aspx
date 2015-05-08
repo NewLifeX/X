@@ -60,12 +60,12 @@
                 <asp:BoundField DataField="LastLogin" HeaderText="最后登录" SortExpression="LastLogin"
                     DataFormatString="{0:yyyy-MM-dd HH:mm:ss}" />
                 <asp:BoundField DataField="LastLoginIP" HeaderText="最后登陆IP" SortExpression="LastLoginIP" />
-                <asp:TemplateField HeaderText="是否启用" SortExpression="IsEnable">
+                <asp:TemplateField HeaderText="是否启用" SortExpression="Enable">
                     <ItemTemplate>
-                        <asp:CheckBox ID="checkbox1" runat="server" Enabled="false" Checked='<%# Bind("IsEnable")%>' />
+                        <asp:CheckBox ID="checkbox1" runat="server" Enabled="false" Checked='<%# Bind("Enable")%>' />
                     </ItemTemplate>
                     <EditItemTemplate>
-                        <asp:CheckBox ID="checkbox2" runat="server" Checked='<%# Bind("IsEnable")%>' />
+                        <asp:CheckBox ID="checkbox2" runat="server" Checked='<%# Bind("Enable")%>' />
                     </EditItemTemplate>
                 </asp:TemplateField>
                 <XCL:LinkBoxField HeaderText="编辑" DataNavigateUrlFields="ID" DataNavigateUrlFormatString="AdminForm.aspx?ID={0}"
