@@ -409,9 +409,9 @@ namespace NewLife.Log
         }
 
         /// <summary>获取调用栈</summary>
-        /// <param name="start"></param>
-        /// <param name="maxNum"></param>
-        /// <param name="split"></param>
+        /// <param name="start">要跳过的方法数，默认1，也就是跳过GetCaller</param>
+        /// <param name="maxNum">最大层数</param>
+        /// <param name="split">分割符号，默认左箭头加上换行</param>
         /// <returns></returns>
         public static String GetCaller(int start = 1, int maxNum = 0, String split = null)
         {
@@ -419,7 +419,7 @@ namespace NewLife.Log
             if (start < 1) start = 1;
             var st = new StackTrace(start, true);
 
-            if (String.IsNullOrEmpty(split)) split = "<-";
+            if (String.IsNullOrEmpty(split)) split = "<-" + Environment.NewLine;
 
             Type last = null;
             var asm = Assembly.GetEntryAssembly();
