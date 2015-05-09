@@ -72,7 +72,7 @@ namespace NewLife.Cube
             XTrace.WriteLine("注册过滤器：{0}", typeof(EntityAuthorizeAttribute).FullName);
             var filters = GlobalFilters.Filters;
             filters.Add(new MvcHandleErrorAttribute());
-            filters.Add(new EntityAuthorizeAttribute());
+            filters.Add(new EntityAuthorizeAttribute() { IsGlobal = true });
 
             // 从数据库或者资源问价加载模版页面的例子
             //HostingEnvironment.RegisterVirtualPathProvider(new ViewPathProvider());

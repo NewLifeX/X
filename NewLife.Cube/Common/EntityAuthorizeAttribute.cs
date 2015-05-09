@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Web;
 using System.Web.Mvc;
+using NewLife.Log;
 using XCode.Membership;
 
 namespace NewLife.Cube
@@ -8,14 +9,34 @@ namespace NewLife.Cube
     /// <summary>实体授权特性</summary>
     public class EntityAuthorizeAttribute : AuthorizeAttribute
     {
+        #region 属性
         private String _ResourceName;
-        /// <summary>资源名称。判断当前登录用户是否有权访问该资源</summary>
+        /// <summary>资源名称。判断当前登录用户是否有权访问该资源，资源由 区域/控制器/动作 三部分组成，左斜杠分割，若不完整则自动补上区域和控制器</summary>
         public String ResourceName { get { return _ResourceName; } set { _ResourceName = value; } }
 
         private PermissionFlags _Permission;
         /// <summary>授权项</summary>
         public PermissionFlags Permission { get { return _Permission; } set { _Permission = value; } }
 
+        /// <summary>是否全局特性</summary>
+        internal Boolean IsGlobal;
+        #endregion
+
+        #region 构造
+        /// <summary>实例化实体授权特性</summary>
+        public EntityAuthorizeAttribute() { }
+
+        /// <summary>实例化实体授权特性</summary>
+        /// <param name="resourceName"></param>
+        /// <param name="permission"></param>
+        public EntityAuthorizeAttribute(String resourceName, PermissionFlags permission = PermissionFlags.None)
+        {
+            ResourceName = resourceName;
+            Permission = permission;
+        }
+        #endregion
+
+        #region 方法
         /// <summary>授权核心</summary>
         /// <param name="httpContext"></param>
         /// <returns></returns>
@@ -33,24 +54,51 @@ namespace NewLife.Cube
             //base.OnAuthorization(filterContext);
             //if (filterContext.Result == null) return;
 
-            // 允许匿名访问时，直接跳过检查
             var act = filterContext.ActionDescriptor;
+
+            // 如果控制器或者Action放有该特性，则跳过全局
+            if (IsGlobal)
+            {
+                if (act.IsDefined(typeof(EntityAuthorizeAttribute), true) || act.ControllerDescriptor.IsDefined(typeof(EntityAuthorizeAttribute), true)) return;
+            }
+
+            // 允许匿名访问时，直接跳过检查
             if (act.IsDefined(typeof(AllowAnonymousAttribute), true) || act.ControllerDescriptor.IsDefined(typeof(AllowAnonymousAttribute), true)) return;
 
             // 判断当前登录用户
             var user = ManageProvider.User;
             if (user != null)
             {
+                // 控制权限的资源由 区域、控制器、动作 三部分组成
+                // 资源名
                 var res = ResourceName;
-                if (res.IsNullOrEmpty()) res = act.ControllerDescriptor.ControllerName.TrimEnd("Controller");
+                var ss = res.Split("/", "\\", ".");
 
-                var eop = ManageProvider.Provider.GetService<IMenu>();
+                var area = ss.Length >= 3 ? ss[ss.Length - 3] : null;
+                var controller = ss.Length >= 2 ? ss[ss.Length - 2] : null;
+                var action = ss.Length >= 1 ? ss[ss.Length - 1] : null;
 
-                var role = (user as IUser).Role;
-                if (role.Has(1, Permission)) return;
+                if (area.IsNullOrEmpty()) area = filterContext.RouteData.DataTokens["Area"] + "";
+                if (controller.IsNullOrEmpty()) controller = act.ControllerDescriptor.ControllerName;
+                if (action.IsNullOrEmpty()) action = act.ActionName;
+
+                // 如果不足三部分，则需要在前面加上区域名
+                res = "{0}/{1}/{2}".F(area, controller, action);
+
+                var menu = ManageProvider.Menu.Root.FindByPath(res);
+                if (menu != null)
+                {
+                    var role = (user as IUser).Role;
+                    if (role.Has(menu.ID, Permission)) return;
+                }
+                else
+                {
+                    XTrace.WriteLine("设计错误！验证权限时无法找到[{0}]的菜单", res);
+                }
             }
 
             HandleUnauthorizedRequest(filterContext);
         }
+        #endregion
     }
 }
