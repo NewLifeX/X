@@ -456,6 +456,19 @@ namespace NewLife.Reflection
 
             return false;
         }
+
+        /// <summary>把一个方法转为泛型委托，便于快速反射调用</summary>
+        /// <typeparam name="TFunc"></typeparam>
+        /// <param name="method"></param>
+        /// <param name="target"></param>
+        /// <returns></returns>
+        public static TFunc As<TFunc>(this MethodInfo method, Object target = null)
+        {
+            if (target == null)
+                return (TFunc)(Object)Delegate.CreateDelegate(typeof(TFunc), method, true);
+            else
+                return (TFunc)(Object)Delegate.CreateDelegate(typeof(TFunc), target, method, true);
+        }
         #endregion
     }
 }
