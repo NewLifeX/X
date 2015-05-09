@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Linq;
+using System.Collections.Generic;
 using System.ComponentModel;
+using System.Reflection;
 using System.Web.Mvc;
 using NewLife.Cube.Controllers;
 using XCode.Membership;
@@ -35,10 +38,21 @@ namespace NewLife.Cube.Admin.Controllers
         /// <param name="id"></param>
         /// <returns></returns>
         [DisplayName()]
-        public override ActionResult Delete(int id)
+        public override ActionResult Delete(Int32 id)
         {
             //return base.Delete(id);
             throw new Exception("不允许删除日志");
+        }
+
+        /// <summary>获取可用于生成权限菜单的Action集合</summary>
+        /// <returns></returns>
+        protected override IDictionary<MethodInfo, Int32> GetActions()
+        {
+            var dic = base.GetActions();
+
+            dic = dic.Where(e => !e.Key.Name.EqualIgnoreCase("Add", "Edit", "Delete")).ToDictionary(e => e.Key, e => e.Value);
+
+            return dic;
         }
     }
 }

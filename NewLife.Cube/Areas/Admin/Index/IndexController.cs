@@ -10,11 +10,11 @@ namespace NewLife.Cube.Admin.Controllers
 {
     /// <summary>首页</summary>
     [DisplayName("首页")]
-    [EntityAuthorize]
     public class IndexController : ControllerBaseX
     {
         /// <summary>首页</summary>
         /// <returns></returns>
+        [EntityAuthorize(null, PermissionFlags.Detail)]
         public ActionResult Index()
         {
             ViewBag.User = ManageProvider.User;
@@ -36,7 +36,7 @@ namespace NewLife.Cube.Admin.Controllers
                 HttpRuntime.UnloadAppDomain();
                 id = null;
             }
-            
+
             ViewBag.Act = id;
             ViewBag.User = ManageProvider.User;
             ViewBag.Config = SysConfig.Current;

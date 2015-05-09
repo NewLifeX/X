@@ -26,7 +26,7 @@ namespace NewLife.Cube
         #region 默认Action
         /// <summary>数据列表首页</summary>
         /// <returns></returns>
-        [EntityAuthorize("Index", PermissionFlags.Detail)]
+        [EntityAuthorize(null, PermissionFlags.Detail)]
         [DisplayName("{type}管理")]
         public virtual ActionResult Index(Pager p)
         {
@@ -58,7 +58,7 @@ namespace NewLife.Cube
         /// <summary>删除</summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        [EntityAuthorize("Index", PermissionFlags.Delete)]
+        [EntityAuthorize(null, PermissionFlags.Delete)]
         [DisplayName("删除{type}")]
         public virtual ActionResult Delete(Int32 id)
         {
@@ -70,7 +70,7 @@ namespace NewLife.Cube
 
         /// <summary>表单，添加/修改</summary>
         /// <returns></returns>
-        [EntityAuthorize("Index", PermissionFlags.Insert)]
+        [EntityAuthorize(null, PermissionFlags.Insert)]
         [DisplayName("添加{type}")]
         public virtual ActionResult Add()
         {
@@ -82,7 +82,7 @@ namespace NewLife.Cube
         /// <summary>保存</summary>
         /// <param name="entity"></param>
         /// <returns></returns>
-        [EntityAuthorize("Index", PermissionFlags.Insert)]
+        [EntityAuthorize(null, PermissionFlags.Insert)]
         [HttpPost]
         public virtual ActionResult Add(TEntity entity)
         {
@@ -97,7 +97,7 @@ namespace NewLife.Cube
         /// <summary>表单，添加/修改</summary>
         /// <param name="id">主键。可能为空（表示添加），所以用字符串而不是整数</param>
         /// <returns></returns>
-        [EntityAuthorize("Index", PermissionFlags.Update)]
+        [EntityAuthorize(null, PermissionFlags.Update)]
         [DisplayName("更新{type}")]
         public virtual ActionResult Edit(String id)
         {
@@ -110,7 +110,7 @@ namespace NewLife.Cube
         /// <summary>保存</summary>
         /// <param name="entity"></param>
         /// <returns></returns>
-        [EntityAuthorize("Index", PermissionFlags.Update)]
+        [EntityAuthorize(null, PermissionFlags.Update)]
         [HttpPost]
         public virtual ActionResult Edit(TEntity entity)
         {

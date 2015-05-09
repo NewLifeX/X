@@ -693,6 +693,7 @@ namespace XCode.Membership
                     if (acts == null || acts.Count == 0) continue;
 
                     // 可选权限子项
+                    controller.Permissions.Clear();
                     var dic = new Dictionary<String, Int32>();
                     var mask = 0;
 
