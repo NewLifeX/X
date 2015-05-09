@@ -580,94 +580,89 @@ namespace XCode.Membership
             {
                 var list = new List<IMenu>();
 
-                using (var dbtrans = Meta.CreateTrans())
+                // 如果根菜单不存在，则添加
+                var root = Root.FindByPath(rootName);
+                if (root == null)
                 {
-                    // 如果根菜单不存在，则添加
-                    var root = Root.FindByPath(rootName);
-                    if (root == null)
+                    root = Root.Add(rootName, null, null);
+                    list.Add(root);
+                }
+
+                var ns = nameSpace.EnsureEnd(".");
+                // 遍历该程序集所有类型
+                foreach (var type in asm.GetTypes())
+                {
+                    var name = type.Name;
+                    if (!name.EndsWith("Controller")) continue;
+                    name = name.TrimEnd("Controller");
+                    if (type.Namespace != nameSpace && !type.Namespace.StartsWith(ns)) continue;
+
+                    var url = "~/" + rootName;
+
+                    var node = root;
+                    // 要考虑命名空间里面还有层级。这种情况比较少有，所以只考虑一级关系
+                    var ns2 = type.Namespace.Substring(nameSpace.Length).TrimStart(".");
+                    if (!String.IsNullOrEmpty(ns2))
                     {
-                        root = Root.Add(rootName, null, null);
-                        list.Add(root);
-                    }
-
-                    var ns = nameSpace.EnsureEnd(".");
-                    // 遍历该程序集所有类型
-                    foreach (var type in asm.GetTypes())
-                    {
-                        var name = type.Name;
-                        if (!name.EndsWith("Controller")) continue;
-                        name = name.TrimEnd("Controller");
-                        if (type.Namespace != nameSpace && !type.Namespace.StartsWith(ns)) continue;
-
-                        var url = "~/" + rootName;
-
-                        var node = root;
-                        // 要考虑命名空间里面还有层级。这种情况比较少有，所以只考虑一级关系
-                        var ns2 = type.Namespace.Substring(nameSpace.Length).TrimStart(".");
-                        if (!String.IsNullOrEmpty(ns2))
+                        var ss = ns2.Split('.');
+                        for (int i = 0; i < ss.Length; i++)
                         {
-                            var ss = ns2.Split('.');
-                            for (int i = 0; i < ss.Length; i++)
+                            if (ss[i].EqualIgnoreCase("Controllers")) continue;
+
+                            var node2 = node.FindByPath(ss[i]);
+                            if (node2 != null)
+                                node = node2;
+                            else
                             {
-                                if (ss[i].EqualIgnoreCase("Controllers")) continue;
-
-                                var node2 = node.FindByPath(ss[i]);
-                                if (node2 != null)
-                                    node = node2;
-                                else
-                                {
-                                    url += "/" + ss[i];
-                                    node = node.Add(ss[i], null, url);
-                                    list.Add(node);
-                                }
-                            }
-                        }
-
-                        // 添加Controller
-                        var controller = node.FindByPath(name);
-                        if (controller == null)
-                        {
-                            url += "/" + name;
-                            // DisplayName特性作为中文名
-                            controller = node.Add(name, type.GetDisplayName(), url);
-                            list.Add(node);
-                        }
-
-                        // 反射调用控制器的GetActions方法来获取动作
-                        var func = type.GetMethodEx("GetActions");
-                        if (func == null) continue;
-
-                        //var acts = type.Invoke(func) as MethodInfo[];
-                        var acts = func.As<Func<MethodInfo[]>>(type.CreateInstance()).Invoke();
-                        if (acts == null || acts.Length == 0) continue;
-
-                        // 如果只有一个Index，也不列出来
-                        if (acts.Length == 1 && acts[0].Name == "Index") continue;
-
-                        // 添加该类型下的所有Action
-                        foreach (var method in acts)
-                        {
-                            // 查找并添加菜单
-                            var action = controller.FindByPath(method.Name);
-                            if (action == null)
-                            {
-                                var dn = method.GetDisplayName();
-                                if (!dn.IsNullOrEmpty()) dn = dn.Replace("{type}", controller.FriendName);
-
-                                action = controller.Add(method.Name, dn, url + "/" + method.Name);
-                                list.Add(action);
+                                url += "/" + ss[i];
+                                node = node.Add(ss[i], null, url);
+                                list.Add(node);
                             }
                         }
                     }
 
-                    // 如果新增了菜单，需要检查权限
-                    if (list.Count > 0)
+                    // 添加Controller
+                    var controller = node.FindByPath(name);
+                    if (controller == null)
                     {
-                        var eop = ManageProvider.GetFactory<IRole>();
-                        eop.EntityType.Invoke("CheckRole");
+                        url += "/" + name;
+                        // DisplayName特性作为中文名
+                        controller = node.Add(name, type.GetDisplayName(), url);
+                        list.Add(node);
                     }
 
-                    dbtrans.Commit();
+                    // 反射调用控制器的GetActions方法来获取动作
+                    var func = type.GetMethodEx("GetActions");
+                    if (func == null) continue;
+
+                    //var acts = type.Invoke(func) as MethodInfo[];
+                    var acts = func.As<Func<MethodInfo[]>>(type.CreateInstance()).Invoke();
+                    if (acts == null || acts.Length == 0) continue;
+
+                    // 如果只有一个Index，也不列出来
+                    if (acts.Length == 1 && acts[0].Name == "Index") continue;
+
+                    // 添加该类型下的所有Action
+                    foreach (var method in acts)
+                    {
+                        // 查找并添加菜单
+                        var action = controller.FindByPath(method.Name);
+                        if (action == null)
+                        {
+                            var dn = method.GetDisplayName();
+                            if (!dn.IsNullOrEmpty()) dn = dn.Replace("{type}", controller.FriendName);
+
+                            action = controller.Add(method.Name, dn, url + "/" + method.Name);
+                            list.Add(action);
+                        }
+                    }
+                }
+
+                // 如果新增了菜单，需要检查权限
+                if (list.Count > 0)
+                {
+                    var eop = ManageProvider.GetFactory<IRole>();
+                    eop.EntityType.Invoke("CheckRole");
                 }
 
                 return list;
