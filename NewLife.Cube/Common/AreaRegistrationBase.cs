@@ -39,6 +39,8 @@ namespace NewLife.Cube
 
         static AreaRegistrationBase()
         {
+            XTrace.WriteLine("{0} Start 初始化魔方 {0}", new String('=', 32));
+
             // 注册视图引擎
             RazorViewEngineX.Register(ViewEngines.Engines);
 
@@ -86,6 +88,8 @@ namespace NewLife.Cube
             //    defaults: new { controller = "Frontend", action = "Default" },
             //    constraints: new { controller = "Frontend", action = "Default" }
             //);
+
+            XTrace.WriteLine("{0} End  初始化魔方 {0}", new String('=', 32));
         }
 
         /// <summary>遍历所有引用了AreaRegistrationBase的程序集</summary>

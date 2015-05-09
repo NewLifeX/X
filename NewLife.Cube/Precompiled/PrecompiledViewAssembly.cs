@@ -28,6 +28,9 @@ namespace NewLife.Cube.Precompiled
         {
             if (assembly == null) throw new ArgumentNullException("assembly");
 
+            PreemptPhysicalFiles = true;
+            UsePhysicalViewsIfNewer = true;
+
             _baseVirtualPath = PrecompiledMvcEngine.NormalizeBaseVirtualPath(baseVirtualPath);
             _assembly = assembly;
             _assemblyLastWriteTime = new Lazy<DateTime>(() => _assembly.GetLastWriteTimeUtc(DateTime.MaxValue));
