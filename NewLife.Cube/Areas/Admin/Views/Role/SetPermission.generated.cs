@@ -65,7 +65,7 @@ namespace ASP
   
     var role = Model.Role as Role;
     var menus = Menu.Root.AllChilds;
-    var pfs = EnumHelper.GetDescriptions<PermissionFlags>().Where(e => e.Key > PermissionFlags.None);
+    //var pfs = EnumHelper.GetDescriptions<PermissionFlags>().Where(e => e.Key > PermissionFlags.None);
 
             
             #line default
@@ -144,7 +144,7 @@ WriteLiteral("</td>\r\n                        <td>\r\n");
             #line 29 "..\..\Areas\Admin\Views\Role\SetPermission.cshtml"
                              if (entity.ChildKeys.Count == 0 && entity.Visible)
                             {
-                                foreach (var item in pfs)
+                                foreach (var item in entity.Permissions)
                                 {
                                     var id = "pf" + entity.ID + "_" + ((Int32)item.Key);
                                     
@@ -153,14 +153,14 @@ WriteLiteral("</td>\r\n                        <td>\r\n");
             #line hidden
             
             #line 34 "..\..\Areas\Admin\Views\Role\SetPermission.cshtml"
-                               Write(Html.CheckBox(id, role.Has(entity.ID, item.Key)));
+                               Write(Html.CheckBox(id, role.Has(entity.ID, (PermissionFlags)item.Key)));
 
             
             #line default
             #line hidden
             
             #line 34 "..\..\Areas\Admin\Views\Role\SetPermission.cshtml"
-                                                                                     
+                                                                                                      
                                     
             
             #line default

@@ -4,7 +4,7 @@
 @{
     var role = Model.Role as Role;
     var menus = Menu.Root.AllChilds;
-    var pfs = EnumHelper.GetDescriptions<PermissionFlags>().Where(e => e.Key > PermissionFlags.None);
+    //var pfs = EnumHelper.GetDescriptions<PermissionFlags>().Where(e => e.Key > PermissionFlags.None);
 }
 <div class="form-group">
     <label class="control-label col-md-2">授权</label>
@@ -28,10 +28,10 @@
                         <td>
                             @if (entity.ChildKeys.Count == 0 && entity.Visible)
                             {
-                                foreach (var item in pfs)
+                                foreach (var item in entity.Permissions)
                                 {
                                     var id = "pf" + entity.ID + "_" + ((Int32)item.Key);
-                                    @Html.CheckBox(id, role.Has(entity.ID, item.Key))
+                                    @Html.CheckBox(id, role.Has(entity.ID, (PermissionFlags)item.Key))
                                     @Html.Label(id, item.Value)
                                     <text>&nbsp;</text>
                                 }

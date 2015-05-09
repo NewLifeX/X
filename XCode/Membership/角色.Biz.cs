@@ -35,6 +35,10 @@ namespace XCode.Membership
         /// <summary>删除权限</summary>
         [Description("删除")]
         Delete = 8,
+
+        /// <summary>所有权限</summary>
+        [Description("所有")]
+        All = 0xFF,
     }
 
     /// <summary>角色</summary>
@@ -125,7 +129,7 @@ namespace XCode.Membership
                 if (!list.Any(e => e.Has(item, PermissionFlags.Detail)))
                 {
                     count++;
-                    sys.Set(item, PermissionFlags.Detail);
+                    sys.Set(item, PermissionFlags.All);
                 }
             }
             if (count > 0)
@@ -251,6 +255,7 @@ namespace XCode.Membership
         {
             var pf = PermissionFlags.None;
             if (!Permissions.TryGetValue(resid, out pf)) return false;
+            if (flag == PermissionFlags.None) return true;
 
             return pf.Has(flag);
         }
@@ -274,7 +279,7 @@ namespace XCode.Membership
         /// <summary>设置该角色拥有指定资源的指定权限</summary>
         /// <param name="resid"></param>
         /// <param name="flag"></param>
-        public void Set(Int32 resid, PermissionFlags flag = PermissionFlags.Detail)
+        public void Set(Int32 resid, PermissionFlags flag = PermissionFlags.All)
         {
             var pf = PermissionFlags.None;
             if (!Permissions.TryGetValue(resid, out pf))
@@ -285,6 +290,18 @@ namespace XCode.Membership
             else
             {
                 Permissions[resid] = pf | flag;
+            }
+        }
+
+        /// <summary>重置该角色指定的权限</summary>
+        /// <param name="resid"></param>
+        /// <param name="flag"></param>
+        public void Reset(Int32 resid, PermissionFlags flag)
+        {
+            var pf = PermissionFlags.None;
+            if (Permissions.TryGetValue(resid, out pf))
+            {
+                Permissions[resid] = pf & ~flag;
             }
         }
 
@@ -579,6 +596,11 @@ namespace XCode.Membership
         /// <param name="resid"></param>
         /// <param name="flag"></param>
         void Set(Int32 resid, PermissionFlags flag = PermissionFlags.Detail);
+
+        /// <summary>重置该角色指定的权限</summary>
+        /// <param name="resid"></param>
+        /// <param name="flag"></param>
+        void Reset(Int32 resid, PermissionFlags flag);
 
         /// <summary>当前角色拥有的资源</summary>
         Int32[] Resources { get; }

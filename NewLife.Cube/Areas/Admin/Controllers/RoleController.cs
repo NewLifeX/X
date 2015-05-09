@@ -18,7 +18,7 @@ namespace NewLife.Cube.Admin.Controllers
         {
             // 保存权限项
             var menus = Menu.Root.AllChilds;
-            var pfs = EnumHelper.GetDescriptions<PermissionFlags>().Where(e => e.Key > PermissionFlags.None);
+            //var pfs = EnumHelper.GetDescriptions<PermissionFlags>().Where(e => e.Key > PermissionFlags.None);
             var dels = new List<Int32>();
             // 遍历所有权限资源
             foreach (var item in menus)
@@ -31,11 +31,14 @@ namespace NewLife.Cube.Admin.Controllers
                 {
                     // 遍历所有权限子项
                     var any = false;
-                    foreach (var pf in pfs)
+                    foreach (var pf in item.Permissions)
                     {
                         var has2 = GetBool("pf" + item.ID + "_" + ((Int32)pf.Key));
 
-                        entity.Set(item.ID, has2 ? pf.Key : PermissionFlags.None);
+                        if (has2)
+                            entity.Set(item.ID, (PermissionFlags)pf.Key);
+                        else
+                            entity.Reset(item.ID, (PermissionFlags)pf.Key);
                         any |= has2;
                     }
                     // 如果原来没有权限，这是首次授权，且右边没有勾选任何子项，则授权全部
