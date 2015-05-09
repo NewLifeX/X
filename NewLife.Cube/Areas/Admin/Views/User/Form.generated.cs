@@ -135,7 +135,7 @@ WriteLiteral("        ");
 
             
             #line 17 "..\..\Areas\Admin\Views\User\Form.cshtml"
-         using (Html.BeginForm("Save/" + (Object)Model[fact.Unique.Name], ViewContext.Controller.GetType().Name.TrimEnd("Controller")))
+         using (Html.BeginForm((isNew ? "Add" : "Edit"), null, new { id = Model[fact.Unique.Name] }))
         {
             
             
@@ -298,16 +298,16 @@ WriteLiteral(" class=\"btn btn-success\"");
 
 WriteLiteral("><i");
 
-WriteAttribute("class", Tuple.Create(" class=\"", 2280), Tuple.Create("\"", 2334)
-, Tuple.Create(Tuple.Create("", 2288), Tuple.Create("glyphicon", 2288), true)
-, Tuple.Create(Tuple.Create(" ", 2297), Tuple.Create("glyphicon-", 2298), true)
+WriteAttribute("class", Tuple.Create(" class=\"", 2246), Tuple.Create("\"", 2300)
+, Tuple.Create(Tuple.Create("", 2254), Tuple.Create("glyphicon", 2254), true)
+, Tuple.Create(Tuple.Create(" ", 2263), Tuple.Create("glyphicon-", 2264), true)
             
             #line 48 "..\..\Areas\Admin\Views\User\Form.cshtml"
-             , Tuple.Create(Tuple.Create("", 2308), Tuple.Create<System.Object, System.Int32>(isNew ? "plus" : "save"
+             , Tuple.Create(Tuple.Create("", 2274), Tuple.Create<System.Object, System.Int32>(isNew ? "plus" : "save"
             
             #line default
             #line hidden
-, 2308), false)
+, 2274), false)
 );
 
 WriteLiteral("></i><strong>");

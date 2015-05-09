@@ -14,7 +14,7 @@
                 <strong>@ViewBag.StatusMessage</strong>
             </div>
         }
-        @using (Html.BeginForm("Save/" + (Object)Model[fact.Unique.Name], ViewContext.Controller.GetType().Name.TrimEnd("Controller")))
+        @using (Html.BeginForm((isNew ? "Add" : "Edit"), null, new { id = Model[fact.Unique.Name] }))
         {
             @Html.AntiForgeryToken()
             @Html.ValidationSummary()
