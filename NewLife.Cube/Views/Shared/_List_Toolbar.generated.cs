@@ -111,16 +111,36 @@ WriteLiteral(" class=\"form-group\"");
 
 WriteLiteral(">\r\n");
 
-WriteLiteral("            ");
-
             
             #line 16 "..\..\Views\Shared\_List_Toolbar.cshtml"
-       Write(Html.ActionLink("添加" + ViewContext.Controller.GetType().GetDisplayName(), "Add", null, new { @class = "btn btn-success" }));
+            
+            
+            #line default
+            #line hidden
+            
+            #line 16 "..\..\Views\Shared\_List_Toolbar.cshtml"
+             if (ManageProvider.User.Role.Has(0, PermissionFlags.Insert))
+            {
+                
+            
+            #line default
+            #line hidden
+            
+            #line 18 "..\..\Views\Shared\_List_Toolbar.cshtml"
+           Write(Html.ActionLink("添加" + ViewContext.Controller.GetType().GetDisplayName(), "Add", null, new { @class = "btn btn-success" }));
 
             
             #line default
             #line hidden
-WriteLiteral("\r\n            <div");
+            
+            #line 18 "..\..\Views\Shared\_List_Toolbar.cshtml"
+                                                                                                                                           
+            }
+
+            
+            #line default
+            #line hidden
+WriteLiteral("            <div");
 
 WriteLiteral(" class=\"input-group\"");
 
@@ -140,14 +160,14 @@ WriteLiteral(" type=\"search\"");
 
 WriteLiteral(" id=\"q\"");
 
-WriteAttribute("value", Tuple.Create(" value=\"", 868), Tuple.Create("\"", 889)
+WriteAttribute("value", Tuple.Create(" value=\"", 977), Tuple.Create("\"", 998)
             
-            #line 21 "..\..\Views\Shared\_List_Toolbar.cshtml"
-, Tuple.Create(Tuple.Create("", 876), Tuple.Create<System.Object, System.Int32>(Request["q"]
+            #line 24 "..\..\Views\Shared\_List_Toolbar.cshtml"
+, Tuple.Create(Tuple.Create("", 985), Tuple.Create<System.Object, System.Int32>(Request["q"]
             
             #line default
             #line hidden
-, 876), false)
+, 985), false)
 );
 
 WriteLiteral(" class=\"form-control\"");

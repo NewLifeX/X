@@ -78,8 +78,8 @@ namespace XCode.Membership
         /// <summary>当前管理提供者</summary>
         public static IManageProvider Provider { get { return ObjectContainer.Current.ResolveInstance<IManageProvider>(); } }
 
-        /// <summary>登录登录用户</summary>
-        public static IManageUser User { get { return Provider.Current; } set { Provider.Current = value; } }
+        /// <summary>当前登录用户</summary>
+        public static IUser User { get { return Provider.Current as IUser; } set { Provider.Current = value as IManageUser; } }
 
         /// <summary>菜单工厂</summary>
         public static IMenuFactory Menu { get { return GetFactory<IMenu>() as IMenuFactory; } }
