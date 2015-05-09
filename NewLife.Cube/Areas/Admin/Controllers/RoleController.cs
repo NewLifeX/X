@@ -14,7 +14,7 @@ namespace NewLife.Cube.Admin.Controllers
         /// <summary>保存</summary>
         /// <param name="entity"></param>
         /// <returns></returns>
-        public override ActionResult Save(Role entity)
+        public override ActionResult Edit(Role entity)
         {
             // 保存权限项
             var menus = Menu.Root.AllChilds;
@@ -48,7 +48,7 @@ namespace NewLife.Cube.Admin.Controllers
                 if (entity.Has(item)) entity.Permissions.Remove(item);
             }
 
-            return base.Save(entity);
+            return base.Edit(entity);
         }
 
         Boolean GetBool(String name)

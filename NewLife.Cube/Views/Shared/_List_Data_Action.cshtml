@@ -1,4 +1,4 @@
 ﻿<i class="glyphicon glyphicon-edit" style="color: blue;"></i>
-@Html.ActionLink("编辑", "Form", new { id = @Model })
+@Html.ActionLink("编辑", "Edit", new { id = @Model })
 <i class="glyphicon glyphicon-remove" style="color: red;"></i>
 @Html.ActionLink("删除", "Delete", new { id = @Model }, new { onclick = "return confirm('确认删除？');" })

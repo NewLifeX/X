@@ -4,6 +4,7 @@ using System.Linq;
 using System.Web.Mvc;
 using NewLife.Web;
 using XCode;
+using XCode.Membership;
 
 namespace NewLife.Cube
 {
@@ -20,7 +21,7 @@ namespace NewLife.Cube
 
         /// <summary>数据列表首页</summary>
         /// <returns></returns>
-        [DisplayName("数据列表")]
+        [DisplayName("{type}管理")]
         public virtual ActionResult Index(Pager p)
         {
             ViewBag.Page = p;
@@ -51,8 +52,8 @@ namespace NewLife.Cube
         /// <summary>删除</summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        //[HttpPost]
-        [DisplayName("删除")]
+        [EntityAuthorize("Index", PermissionFlags.Delete)]
+        [DisplayName("删除{type}")]
         public virtual ActionResult Delete(Int32 id)
         {
             var entity = Entity<TEntity>.FindByKey(id);
@@ -62,10 +63,37 @@ namespace NewLife.Cube
         }
 
         /// <summary>表单，添加/修改</summary>
+        /// <returns></returns>
+        [EntityAuthorize("Index", PermissionFlags.Insert)]
+        [DisplayName("添加{type}")]
+        public virtual ActionResult Add()
+        {
+            var entity = Entity<TEntity>.Meta.Factory.Create() as TEntity;
+
+            return FormView(entity);
+        }
+
+        /// <summary>保存</summary>
+        /// <param name="entity"></param>
+        /// <returns></returns>
+        [EntityAuthorize("Index", PermissionFlags.Insert)]
+        [HttpPost]
+        public virtual ActionResult Add(TEntity entity)
+        {
+            entity.Insert();
+
+            ViewBag.StatusMessage = "保存成功！";
+
+            // 新增完成跳到列表页，更新完成保持本页
+            return RedirectToAction("Index");
+        }
+
+        /// <summary>表单，添加/修改</summary>
         /// <param name="id">主键。可能为空（表示添加），所以用字符串而不是整数</param>
         /// <returns></returns>
-        [DisplayName("数据表单")]
-        public virtual ActionResult Form(String id)
+        [EntityAuthorize("Index", PermissionFlags.Update)]
+        [DisplayName("更新{type}")]
+        public virtual ActionResult Edit(String id)
         {
             var entity = Entity<TEntity>.FindByKeyForEdit(id);
 
@@ -75,9 +103,9 @@ namespace NewLife.Cube
         /// <summary>保存</summary>
         /// <param name="entity"></param>
         /// <returns></returns>
+        [EntityAuthorize("Index", PermissionFlags.Update)]
         [HttpPost]
-        [DisplayName("保存")]
-        public virtual ActionResult Save(TEntity entity)
+        public virtual ActionResult Edit(TEntity entity)
         {
             var isnew = entity.IsNullKey;
 

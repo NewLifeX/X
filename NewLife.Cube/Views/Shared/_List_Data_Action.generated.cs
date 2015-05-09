@@ -53,7 +53,7 @@ WriteLiteral("></i>\r\n");
 
             
             #line 2 "..\..\Views\Shared\_List_Data_Action.cshtml"
-Write(Html.ActionLink("编辑", "Form", new { id = @Model }));
+Write(Html.ActionLink("编辑", "Edit", new { id = @Model }));
 
             
             #line default

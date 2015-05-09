@@ -15,7 +15,17 @@ namespace NewLife.Cube.Admin.Controllers
         /// <param name="entity"></param>
         /// <returns></returns>
         [DisplayName()]
-        public override ActionResult Save(XLog entity)
+        public override ActionResult Add(XLog entity)
+        {
+            //return base.Save(entity);
+            throw new Exception("不允许添加/修改日志");
+        }
+
+        /// <summary>不允许添加修改日志</summary>
+        /// <param name="entity"></param>
+        /// <returns></returns>
+        [DisplayName()]
+        public override ActionResult Edit(XLog entity)
         {
             //return base.Save(entity);
             throw new Exception("不允许添加/修改日志");
