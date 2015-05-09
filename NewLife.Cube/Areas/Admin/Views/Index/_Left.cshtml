@@ -11,7 +11,7 @@
     }
 
     // 如果顶级只有一层，并且至少有三级目录，则提升一级
-    if (Menus.Count == 1 && Menus[0].Childs.Count < Menus[0].AllChilds.Count) { Menus = Menus[0].Childs; }
+    if (Menus.Count == 1 && Menus[0].Childs.All(m => m.Childs.Count > 0)) { Menus = Menus[0].Childs; }
 
     String[] icos = new String[] { "fa-tachometer", "fa-desktop", "fa-list", "fa-pencil-square-o", "fa-list-alt", "fa-calendar", "fa-picture-o", "fa-tag", "fa-file-o" };
     Int32 _idx = 0;
