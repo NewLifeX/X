@@ -630,42 +630,27 @@ namespace XCode.Membership
                             list.Add(node);
                         }
 
-                        //// 添加该类型下的所有Action
-                        //foreach (var method in type.GetMethods())
-                        //{
-                        //    if (method.IsStatic || !method.IsPublic) continue;
-                        //    // 跳过添加、修改、删除
-                        //    if (method.Name.EqualIgnoreCase("Insert", "Add", "Update", "Edit", "Delete")) continue;
-                        //    // 为了不引用Mvc，采取字符串比较
-                        //    //if (!method.ReturnType.Name.EndsWith("")) continue;
-                        //    var rt = method.ReturnType;
-                        //    while (rt != null && rt.BaseType != null && rt.BaseType != typeof(Object)) rt = rt.BaseType;
-                        //    if (rt.Name != "ActionResult") continue;
+                        var acts = GetActions(type);
+                        if (acts == null || acts.Length == 0) continue;
 
-                        //    // 还要跳过带有HttpPost特性的方法
-                        //    var flag = false;
-                        //    foreach (var att in method.GetCustomAttributes(true))
-                        //    {
-                        //        if (att != null && att.GetType().Name == "HttpPostAttribute")
-                        //        {
-                        //            flag = true;
-                        //            break;
-                        //        }
-                        //    }
-                        //    if (flag) continue;
+                        // 如果只有一个Index，也不列出来
+                        if (acts.Length == 1 && acts[0].Name == "Index") continue;
 
-                        //    // 查找并添加菜单
-                        //    var action = controller.FindByPath(method.Name);
-                        //    if (action == null)
-                        //    {
-                        //        var att = method.GetCustomAttribute<DisplayNameAttribute>(true);
-                        //        var dn = att != null ? att.DisplayName.Replace("{type}", controller.FriendName) : null;
+                        // 添加该类型下的所有Action
+                        foreach (var method in acts)
+                        {
+                            // 查找并添加菜单
+                            var action = controller.FindByPath(method.Name);
+                            if (action == null)
+                            {
+                                var att = method.GetCustomAttribute<DisplayNameAttribute>(true);
+                                var dn = att != null ? att.DisplayName.Replace("{type}", controller.FriendName) : null;
 
 
-                        //        action = controller.Add(method.Name, dn, url + "/" + method.Name);
-                        //        list.Add(action);
-                        //    }
-                        //}
+                                action = controller.Add(method.Name, dn, url + "/" + method.Name);
+                                list.Add(action);
+                            }
+                        }
                     }
 
                     // 如果新增了菜单，需要检查权限
@@ -679,6 +664,40 @@ namespace XCode.Membership
                 }
 
                 return list;
+            }
+
+            static MethodInfo[] GetActions(Type type)
+            {
+                var list = new List<MethodInfo>();
+
+                // 添加该类型下的所有Action
+                foreach (var method in type.GetMethods())
+                {
+                    if (method.IsStatic || !method.IsPublic) continue;
+                    // 跳过添加、修改、删除
+                    if (method.Name.EqualIgnoreCase("Insert", "Add", "Update", "Edit", "Delete")) continue;
+                    // 为了不引用Mvc，采取字符串比较
+                    //if (!method.ReturnType.Name.EndsWith("")) continue;
+                    var rt = method.ReturnType;
+                    while (rt != null && rt.BaseType != null && rt.BaseType != typeof(Object)) rt = rt.BaseType;
+                    if (rt.Name != "ActionResult") continue;
+
+                    // 还要跳过带有HttpPost特性的方法
+                    var flag = false;
+                    foreach (var att in method.GetCustomAttributes(true))
+                    {
+                        if (att != null && att.GetType().Name == "HttpPostAttribute")
+                        {
+                            flag = true;
+                            break;
+                        }
+                    }
+                    if (flag) continue;
+
+                    list.Add(method);
+                }
+
+                return list.ToArray();
             }
             #endregion
         }
