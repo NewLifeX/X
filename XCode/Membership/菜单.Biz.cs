@@ -611,7 +611,10 @@ namespace XCode.Membership
                             {
                                 if (ss[i].EqualIgnoreCase("Controllers")) continue;
 
-                                if (node.FindByPath(ss[i]) == null)
+                                var node2 = node.FindByPath(ss[i]);
+                                if (node2 != null)
+                                    node = node2;
+                                else
                                 {
                                     url += "/" + ss[i];
                                     node = node.Add(ss[i], null, url);
@@ -630,7 +633,12 @@ namespace XCode.Membership
                             list.Add(node);
                         }
 
-                        var acts = GetActions(type);
+                        // 反射调用控制器的GetActions方法来获取动作
+                        var func = type.GetMethodEx("GetActions");
+                        if (func == null) continue;
+
+                        //var acts = type.Invoke(func) as MethodInfo[];
+                        var acts = func.As<Func<MethodInfo[]>>(type.CreateInstance()).Invoke();
                         if (acts == null || acts.Length == 0) continue;
 
                         // 如果只有一个Index，也不列出来
@@ -643,9 +651,8 @@ namespace XCode.Membership
                             var action = controller.FindByPath(method.Name);
                             if (action == null)
                             {
-                                var att = method.GetCustomAttribute<DisplayNameAttribute>(true);
-                                var dn = att != null ? att.DisplayName.Replace("{type}", controller.FriendName) : null;
-
+                                var dn = method.GetDisplayName();
+                                if (!dn.IsNullOrEmpty()) dn = dn.Replace("{type}", controller.FriendName);
 
                                 action = controller.Add(method.Name, dn, url + "/" + method.Name);
                                 list.Add(action);
@@ -666,39 +673,39 @@ namespace XCode.Membership
                 return list;
             }
 
-            static MethodInfo[] GetActions(Type type)
-            {
-                var list = new List<MethodInfo>();
+            //static MethodInfo[] GetActions(Type type)
+            //{
+            //    var list = new List<MethodInfo>();
 
-                // 添加该类型下的所有Action
-                foreach (var method in type.GetMethods())
-                {
-                    if (method.IsStatic || !method.IsPublic) continue;
-                    // 跳过添加、修改、删除
-                    if (method.Name.EqualIgnoreCase("Insert", "Add", "Update", "Edit", "Delete")) continue;
-                    // 为了不引用Mvc，采取字符串比较
-                    //if (!method.ReturnType.Name.EndsWith("")) continue;
-                    var rt = method.ReturnType;
-                    while (rt != null && rt.BaseType != null && rt.BaseType != typeof(Object)) rt = rt.BaseType;
-                    if (rt.Name != "ActionResult") continue;
+            //    // 添加该类型下的所有Action
+            //    foreach (var method in type.GetMethods())
+            //    {
+            //        if (method.IsStatic || !method.IsPublic) continue;
+            //        // 跳过添加、修改、删除
+            //        if (method.Name.EqualIgnoreCase("Insert", "Add", "Update", "Edit", "Delete")) continue;
+            //        // 为了不引用Mvc，采取字符串比较
+            //        //if (!method.ReturnType.Name.EndsWith("")) continue;
+            //        var rt = method.ReturnType;
+            //        while (rt != null && rt.BaseType != null && rt.BaseType != typeof(Object)) rt = rt.BaseType;
+            //        if (rt.Name != "ActionResult") continue;
 
-                    // 还要跳过带有HttpPost特性的方法
-                    var flag = false;
-                    foreach (var att in method.GetCustomAttributes(true))
-                    {
-                        if (att != null && att.GetType().Name == "HttpPostAttribute")
-                        {
-                            flag = true;
-                            break;
-                        }
-                    }
-                    if (flag) continue;
+            //        // 还要跳过带有HttpPost特性的方法
+            //        var flag = false;
+            //        foreach (var att in method.GetCustomAttributes(true))
+            //        {
+            //            if (att != null && att.GetType().Name == "HttpPostAttribute")
+            //            {
+            //                flag = true;
+            //                break;
+            //            }
+            //        }
+            //        if (flag) continue;
 
-                    list.Add(method);
-                }
+            //        list.Add(method);
+            //    }
 
-                return list.ToArray();
-            }
+            //    return list.ToArray();
+            //}
             #endregion
         }
         #endregion

@@ -7,6 +7,9 @@
     var page = ViewBag.Page as Pager;
 }
 <div class="panel panel-default">
+    <div class="panel-body">
+        @Html.Partial("_List_Toolbar")
+    </div>
     <div class="table-responsive">
         <table class="table table-bordered table-hover table-striped table-condensed">
             <thead>
@@ -14,7 +17,6 @@
                     <th>编号</th>
                     <th>名称</th>
                     <th>显示名</th>
-                    <th>父编号</th>
                     <th>链接</th>
                     <th>排序</th>
                     <th>是否可见</th>
@@ -31,7 +33,6 @@
                         <td>@entity.ID</td>
                         <td>@entity.TreeNodeName</td>
                         <td>@entity.DisplayName</td>
-                        <td>@entity.ParentMenuName</td>
                         <td>@entity.Url</td>
                         <td>@entity.Sort</td>
                         @Html.Partial("_List_Data_Item", new Pair(entity, fact.Table.FindByName("Visible")))

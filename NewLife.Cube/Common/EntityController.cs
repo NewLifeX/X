@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Reflection;
 using System.Web.Mvc;
 using NewLife.Web;
 using XCode;
@@ -11,14 +13,17 @@ namespace NewLife.Cube
     /// <summary>实体控制器基类</summary>
     /// <typeparam name="TEntity"></typeparam>
     [EntityAuthorize]
-    public class EntityController<TEntity> : Controller where TEntity : Entity<TEntity>, new()
+    public class EntityController<TEntity> : ControllerBaseX where TEntity : Entity<TEntity>, new()
     {
+        #region 构造
         /// <summary>构造函数</summary>
         public EntityController()
         {
             ViewBag.Title = Entity<TEntity>.Meta.Table.Description + "管理";
         }
+        #endregion
 
+        #region 默认Action
         /// <summary>数据列表首页</summary>
         /// <returns></returns>
         [DisplayName("{type}管理")]
@@ -133,5 +138,16 @@ namespace NewLife.Cube
 
             return View("Form", entity);
         }
+        #endregion
+
+        #region 权限菜单
+        /// <summary>获取可用于生成权限菜单的Action集合</summary>
+        /// <returns></returns>
+        protected override MethodInfo[] GetActions()
+        {
+            var mis = base.GetActions();
+            return mis.Where(m => !m.Name.EqualIgnoreCase("Insert", "Add", "Update", "Edit", "Delete")).ToArray();
+        }
+        #endregion
     }
 }

@@ -10,7 +10,7 @@ namespace NewLife.Cube.Admin.Controllers
 {
     /// <summary>系统设置控制器</summary>
     [DisplayName("高级设置")]
-    public class SysController : Controller
+    public class SysController : ControllerBaseX
     {
         /// <summary>系统设置</summary>
         /// <param name="config"></param>

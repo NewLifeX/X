@@ -11,7 +11,7 @@ namespace NewLife.Cube.Admin.Controllers
     /// <summary>首页</summary>
     [DisplayName("首页")]
     [EntityAuthorize]
-    public class IndexController : Controller
+    public class IndexController : ControllerBaseX
     {
         /// <summary>首页</summary>
         /// <returns></returns>
