@@ -606,17 +606,17 @@ namespace XCode.Membership
                         var ns2 = type.Namespace.Substring(nameSpace.Length).TrimStart(".");
                         if (!String.IsNullOrEmpty(ns2))
                         {
-                            //url += "/" + ns2;
-                            //node = node.Add(ns2, null, url);
-                            //list.Add(node);
                             var ss = ns2.Split('.');
                             for (int i = 0; i < ss.Length; i++)
                             {
                                 if (ss[i].EqualIgnoreCase("Controllers")) continue;
 
-                                url += "/" + ss[i];
-                                node = node.Add(ss[i], null, url);
-                                list.Add(node);
+                                if (node.FindByPath(ss[i]) == null)
+                                {
+                                    url += "/" + ss[i];
+                                    node = node.Add(ss[i], null, url);
+                                    list.Add(node);
+                                }
                             }
                         }
 
