@@ -1,30 +1,24 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
-using System.Net.NetworkInformation;
 using System.Reflection;
-using System.Text;
 using System.Threading;
 using NewLife.Common;
-using NewLife.CommonEntity;
 using NewLife.Compression;
-using NewLife.IO;
-using NewLife.IP;
 using NewLife.Log;
 using NewLife.Messaging;
 using NewLife.Model;
 using NewLife.Net;
 using NewLife.Net.IO;
 using NewLife.Net.Stress;
-using NewLife.Net.Stun;
 using NewLife.Reflection;
 using NewLife.Serialization;
 using NewLife.Threading;
 using NewLife.Xml;
-using XCode.Cache;
 using XCode.DataAccessLayer;
+using XCode.Membership;
 using XCode.Sync;
-using XCode.Transform;
+using XCode.Transform; 
 
 namespace Test
 {
@@ -207,7 +201,7 @@ namespace Test
 
         static void Test9()
         {
-            var tb = Administrator.Meta.Table.DataTable;
+            var tb = UserX.Meta.Table.DataTable;
             var table = ObjectContainer.Current.Resolve<IDataTable>();
             table = table.CopyAllFrom(tb);
 
@@ -230,7 +224,7 @@ namespace Test
             sl.Factory = dal.CreateOperate(table.TableName);
 
             var mt = new SyncMaster();
-            mt.Facotry = Administrator.Meta.Factory;
+            mt.Facotry = UserX.Meta.Factory;
             //mt.LastUpdateName = Administrator._.LastLogin;
 
             var sm = new SyncManager();
