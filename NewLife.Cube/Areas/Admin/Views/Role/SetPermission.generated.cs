@@ -142,49 +142,52 @@ WriteLiteral("</td>\r\n                        <td>\r\n");
             #line hidden
             
             #line 29 "..\..\Areas\Admin\Views\Role\SetPermission.cshtml"
-                             foreach (var item in pfs)
+                             if (entity.ChildKeys.Count == 0 && entity.Visible)
                             {
-                                var id = "pf" + entity.ID + "_" + ((Int32)item.Key);
-                                
+                                foreach (var item in pfs)
+                                {
+                                    var id = "pf" + entity.ID + "_" + ((Int32)item.Key);
+                                    
             
             #line default
             #line hidden
             
-            #line 32 "..\..\Areas\Admin\Views\Role\SetPermission.cshtml"
-                           Write(Html.CheckBox(id, role.Has(entity.ID, item.Key)));
+            #line 34 "..\..\Areas\Admin\Views\Role\SetPermission.cshtml"
+                               Write(Html.CheckBox(id, role.Has(entity.ID, item.Key)));
 
             
             #line default
             #line hidden
             
-            #line 32 "..\..\Areas\Admin\Views\Role\SetPermission.cshtml"
-                                                                                 
-                                
+            #line 34 "..\..\Areas\Admin\Views\Role\SetPermission.cshtml"
+                                                                                     
+                                    
             
             #line default
             #line hidden
             
-            #line 33 "..\..\Areas\Admin\Views\Role\SetPermission.cshtml"
-                           Write(Html.Label(id, item.Value));
+            #line 35 "..\..\Areas\Admin\Views\Role\SetPermission.cshtml"
+                               Write(Html.Label(id, item.Value));
 
             
             #line default
             #line hidden
             
-            #line 33 "..\..\Areas\Admin\Views\Role\SetPermission.cshtml"
-                                                           
+            #line 35 "..\..\Areas\Admin\Views\Role\SetPermission.cshtml"
+                                                               
 
             
             #line default
             #line hidden
-WriteLiteral("                                ");
+WriteLiteral("                                    ");
 
 WriteLiteral("&nbsp;");
 
 WriteLiteral("\r\n");
 
             
-            #line 35 "..\..\Areas\Admin\Views\Role\SetPermission.cshtml"
+            #line 37 "..\..\Areas\Admin\Views\Role\SetPermission.cshtml"
+                                }
                             }
 
             
@@ -193,7 +196,7 @@ WriteLiteral("\r\n");
 WriteLiteral("                        </td>\r\n                    </tr>\r\n");
 
             
-            #line 38 "..\..\Areas\Admin\Views\Role\SetPermission.cshtml"
+            #line 41 "..\..\Areas\Admin\Views\Role\SetPermission.cshtml"
                 }
 
             

@@ -26,12 +26,15 @@
                         <td>@entity.DisplayName</td>
                         <td>@Html.CheckBox("p" + entity.ID, role.Has(entity.ID))</td>
                         <td>
-                            @foreach (var item in pfs)
+                            @if (entity.ChildKeys.Count == 0 && entity.Visible)
                             {
-                                var id = "pf" + entity.ID + "_" + ((Int32)item.Key);
-                                @Html.CheckBox(id, role.Has(entity.ID, item.Key))
-                                @Html.Label(id, item.Value)
-                                <text>&nbsp;</text>
+                                foreach (var item in pfs)
+                                {
+                                    var id = "pf" + entity.ID + "_" + ((Int32)item.Key);
+                                    @Html.CheckBox(id, role.Has(entity.ID, item.Key))
+                                    @Html.Label(id, item.Value)
+                                    <text>&nbsp;</text>
+                                }
                             }
                         </td>
                     </tr>
