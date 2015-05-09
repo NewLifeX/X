@@ -13,6 +13,7 @@
             </ul>
         </div>
         <div class="form-group">
+            @Html.ActionLink("添加" + ViewContext.Controller.GetType().GetDisplayName(), "Add", null, new { @class = "btn btn-success" })
             <div class="input-group">
                 <span class="input-group-addon">
                     <i class="ace-icon fa fa-check"></i>

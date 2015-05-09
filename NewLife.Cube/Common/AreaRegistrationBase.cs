@@ -89,7 +89,7 @@ namespace NewLife.Cube
             //    constraints: new { controller = "Frontend", action = "Default" }
             //);
 
-            XTrace.WriteLine("{0} End  初始化魔方 {0}", new String('=', 32));
+            XTrace.WriteLine("{0} End   初始化魔方 {0}", new String('=', 32));
         }
 
         /// <summary>遍历所有引用了AreaRegistrationBase的程序集</summary>
@@ -138,6 +138,7 @@ namespace NewLife.Cube
             XTrace.WriteLine("初始化[{0}]的菜单体系", AreaName);
             ManageProvider.Menu.ScanController(AreaName, this.GetType().Assembly, this.GetType().Namespace + ".Controllers");
 
+            // 更新区域名称为友好中文名
             var menu = ManageProvider.Menu.Root.FindByPath(AreaName);
             if (menu != null && menu.DisplayName.IsNullOrEmpty())
             {

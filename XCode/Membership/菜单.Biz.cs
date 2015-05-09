@@ -103,6 +103,9 @@ namespace XCode.Membership
                 return list.GetItem<Int32>(__.ID).ToArray();
             }
         }
+
+        /// <summary>友好名称。优先显示名</summary>
+        public String FriendName { get { return DisplayName.IsNullOrWhiteSpace() ? Name : DisplayName; } }
         #endregion
 
         #region 扩展查询
@@ -180,17 +183,6 @@ namespace XCode.Membership
             entity.Insert();
 
             return entity;
-        }
-
-        /// <summary>已重载。</summary>
-        /// <returns></returns>
-        public override string ToString()
-        {
-            var path = FullPath;
-            if (!String.IsNullOrEmpty(path))
-                return path;
-            else
-                return base.ToString();
         }
         #endregion
 
@@ -499,6 +491,19 @@ namespace XCode.Membership
         }
         #endregion
 
+        #region 辅助
+        /// <summary>已重载。</summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            var path = GetFullPath(true, "\\", e => e.FriendName);
+            if (!String.IsNullOrEmpty(path))
+                return path;
+            else
+                return FriendName;
+        }
+        #endregion
+
         #region IMenu 成员
         /// <summary>取得全路径的实体，由上向下排序</summary>
         /// <param name="includeSelf">是否包含自己</param>
@@ -622,7 +627,7 @@ namespace XCode.Membership
                         {
                             if (method.IsStatic || !method.IsPublic) continue;
                             // 跳过添加、修改、删除
-                            if (method.Name.EqualIgnoreCase("Insert", "Update", "Delete")) continue;
+                            if (method.Name.EqualIgnoreCase("Insert", "Add", "Update", "Edit", "Delete")) continue;
                             // 为了不引用Mvc，采取字符串比较
                             //if (!method.ReturnType.Name.EndsWith("")) continue;
                             var rt = method.ReturnType;
@@ -646,7 +651,10 @@ namespace XCode.Membership
                             if (action == null)
                             {
                                 var att = method.GetCustomAttribute<DisplayNameAttribute>(true);
-                                action = controller.Add(method.Name, att != null ? att.DisplayName : null, url + "/" + method.Name);
+                                var dn = att != null ? att.DisplayName.Replace("{type}", controller.FriendName) : null;
+
+
+                                action = controller.Add(method.Name, dn, url + "/" + method.Name);
                                 list.Add(action);
                             }
                         }

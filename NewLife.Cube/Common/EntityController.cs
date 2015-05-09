@@ -96,6 +96,7 @@ namespace NewLife.Cube
         public virtual ActionResult Edit(String id)
         {
             var entity = Entity<TEntity>.FindByKeyForEdit(id);
+            if (entity.IsNullKey) throw new XException("要编辑的数据[{0}]不存在！", id);
 
             return FormView(entity);
         }

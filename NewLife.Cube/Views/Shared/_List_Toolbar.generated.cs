@@ -109,7 +109,18 @@ WriteLiteral("></li>\r\n            </ul>\r\n        </div>\r\n        <div");
 
 WriteLiteral(" class=\"form-group\"");
 
-WriteLiteral(">\r\n            <div");
+WriteLiteral(">\r\n");
+
+WriteLiteral("            ");
+
+            
+            #line 16 "..\..\Views\Shared\_List_Toolbar.cshtml"
+       Write(Html.ActionLink("添加" + ViewContext.Controller.GetType().GetDisplayName(), "Add", null, new { @class = "btn btn-success" }));
+
+            
+            #line default
+            #line hidden
+WriteLiteral("\r\n            <div");
 
 WriteLiteral(" class=\"input-group\"");
 
@@ -129,14 +140,14 @@ WriteLiteral(" type=\"search\"");
 
 WriteLiteral(" id=\"q\"");
 
-WriteAttribute("value", Tuple.Create(" value=\"", 731), Tuple.Create("\"", 752)
+WriteAttribute("value", Tuple.Create(" value=\"", 868), Tuple.Create("\"", 889)
             
-            #line 20 "..\..\Views\Shared\_List_Toolbar.cshtml"
-, Tuple.Create(Tuple.Create("", 739), Tuple.Create<System.Object, System.Int32>(Request["q"]
+            #line 21 "..\..\Views\Shared\_List_Toolbar.cshtml"
+, Tuple.Create(Tuple.Create("", 876), Tuple.Create<System.Object, System.Int32>(Request["q"]
             
             #line default
             #line hidden
-, 739), false)
+, 876), false)
 );
 
 WriteLiteral(" class=\"form-control\"");
