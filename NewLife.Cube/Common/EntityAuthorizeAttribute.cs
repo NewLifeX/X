@@ -67,37 +67,47 @@ namespace NewLife.Cube
 
             // 判断当前登录用户
             var user = ManageProvider.User;
-            if (user != null)
+            if (user == null)
             {
-                // 控制权限的资源由 区域、控制器、动作 三部分组成
-                // 资源名
-                var res = ResourceName;
-                var ss = res.Split("/", "\\", ".");
-
-                var area = ss.Length >= 3 ? ss[ss.Length - 3] : null;
-                var controller = ss.Length >= 2 ? ss[ss.Length - 2] : null;
-                var action = ss.Length >= 1 ? ss[ss.Length - 1] : null;
-
-                if (area.IsNullOrEmpty()) area = filterContext.RouteData.DataTokens["Area"] + "";
-                if (controller.IsNullOrEmpty()) controller = act.ControllerDescriptor.ControllerName;
-                if (action.IsNullOrEmpty()) action = act.ActionName;
-
-                // 如果不足三部分，则需要在前面加上区域名
-                res = "{0}/{1}/{2}".F(area, controller, action);
-
-                var menu = ManageProvider.Menu.Root.FindByPath(res);
-                if (menu != null)
-                {
-                    var role = (user as IUser).Role;
-                    if (role.Has(menu.ID, Permission)) return;
-                }
-                else
-                {
-                    XTrace.WriteLine("设计错误！验证权限时无法找到[{0}]的菜单", res);
-                }
+                HandleUnauthorizedRequest(filterContext);
+                return;
             }
 
-            HandleUnauthorizedRequest(filterContext);
+            // 控制权限的资源由 区域、控制器、动作 三部分组成
+            // 资源名
+            var res = ResourceName;
+            var ss = res.Split("/", "\\", ".");
+
+            var area = ss.Length >= 3 ? ss[ss.Length - 3] : null;
+            var controller = ss.Length >= 2 ? ss[ss.Length - 2] : null;
+            var action = ss.Length >= 1 ? ss[ss.Length - 1] : null;
+
+            if (area.IsNullOrEmpty()) area = filterContext.RouteData.DataTokens["Area"] + "";
+            if (controller.IsNullOrEmpty()) controller = act.ControllerDescriptor.ControllerName;
+            if (action.IsNullOrEmpty()) action = act.ActionName;
+
+            // 如果不足三部分，则需要在前面加上区域名
+            res = "{0}/{1}/{2}".F(area, controller, action);
+
+            var menu = ManageProvider.Menu.Root.FindByPath(res);
+            if (menu != null)
+            {
+                var role = (user as IUser).Role;
+                if (role.Has(menu.ID, Permission)) return;
+            }
+            else
+            {
+                XTrace.WriteLine("设计错误！验证权限时无法找到[{0}]的菜单", res);
+            }
+
+            var vr = new ViewResult();
+            vr.ViewName = "NoPermission";
+            vr.ViewBag.Context = filterContext;
+            vr.ViewBag.Resource = menu != null ? (menu + "") : res;
+            vr.ViewBag.Permission = Permission;
+
+            filterContext.Result = vr;
+
         }
         #endregion
     }

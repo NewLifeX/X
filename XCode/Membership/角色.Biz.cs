@@ -17,7 +17,7 @@ namespace XCode.Membership
     public enum PermissionFlags
     {
         /// <summary>无权限</summary>
-        [Description("无")]
+        [Description("查看")]
         None = 0,
 
         /// <summary>所有权限</summary>
