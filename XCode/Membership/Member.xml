@@ -45,6 +45,7 @@
       <Column Name="Sort" DataType="Int32" Description="排序" />
       <Column Name="Visible" DataType="Boolean" Description="是否可见" />
       <Column Name="Necessary" DataType="Boolean" Description="必要的菜单。必须至少有角色拥有这些权限，如果没有则自动授权给系统角色" />
+      <Column Name="Permission" DataType="String" Length="200" Description="权限子项。逗号分隔，每个权限子项名值竖线分隔" />
     </Columns>
     <Indexes>
       <Index Columns="Name" />

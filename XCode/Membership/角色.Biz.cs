@@ -17,12 +17,12 @@ namespace XCode.Membership
     public enum PermissionFlags
     {
         /// <summary>无权限</summary>
-        [Description("查看")]
+        [Description("无权限")]
         None = 0,
 
-        /// <summary>所有权限</summary>
-        [Description("所有")]
-        All = 1,
+        /// <summary>查看权限</summary>
+        [Description("查看")]
+        Detail = 1,
 
         /// <summary>添加权限</summary>
         [Description("添加")]
@@ -122,10 +122,10 @@ namespace XCode.Membership
             var nes = eop.EntityType.GetValue("Necessaries", false) as Int32[];
             foreach (var item in nes)
             {
-                if (!list.Any(e => e.Has(item, PermissionFlags.All)))
+                if (!list.Any(e => e.Has(item, PermissionFlags.Detail)))
                 {
                     count++;
-                    sys.Set(item, PermissionFlags.All);
+                    sys.Set(item, PermissionFlags.Detail);
                 }
             }
             if (count > 0)
@@ -186,6 +186,7 @@ namespace XCode.Membership
         /// <returns></returns>
         public override int Save()
         {
+            // 先处理一次，否则可能因为别的字段没有修改而没有脏数据
             SavePermission();
 
             return base.Save();
@@ -251,7 +252,7 @@ namespace XCode.Membership
             var pf = PermissionFlags.None;
             if (!Permissions.TryGetValue(resid, out pf)) return false;
 
-            return pf == PermissionFlags.All || pf.Has(flag);
+            return pf == PermissionFlags.Detail || pf.Has(flag);
         }
 
         void Remove(Int32 resid)
@@ -273,7 +274,7 @@ namespace XCode.Membership
         /// <summary>设置该角色拥有指定资源的指定权限</summary>
         /// <param name="resid"></param>
         /// <param name="flag"></param>
-        public void Set(Int32 resid, PermissionFlags flag = PermissionFlags.All)
+        public void Set(Int32 resid, PermissionFlags flag = PermissionFlags.Detail)
         {
             var pf = PermissionFlags.None;
             if (!Permissions.TryGetValue(resid, out pf))
@@ -453,7 +454,7 @@ namespace XCode.Membership
                         return false;
                     }
 
-                    role.Set(menu.ID, PermissionFlags.All);
+                    role.Set(menu.ID, PermissionFlags.Detail);
 
                     // 如果父级没有授权，则授权
                     CheckAndAddParent(role, menu);
@@ -552,7 +553,7 @@ namespace XCode.Membership
             // 如果父级没有授权，则授权
             while ((menu = menu.Parent) != null && menu.ID != 0)
             {
-                role.Set(menu.ID, PermissionFlags.All);
+                role.Set(menu.ID, PermissionFlags.Detail);
             }
         }
         #endregion
@@ -577,7 +578,7 @@ namespace XCode.Membership
         /// <summary>设置该角色拥有指定资源的指定权限</summary>
         /// <param name="resid"></param>
         /// <param name="flag"></param>
-        void Set(Int32 resid, PermissionFlags flag = PermissionFlags.All);
+        void Set(Int32 resid, PermissionFlags flag = PermissionFlags.Detail);
 
         /// <summary>当前角色拥有的资源</summary>
         Int32[] Resources { get; }

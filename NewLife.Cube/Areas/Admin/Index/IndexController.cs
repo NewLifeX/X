@@ -28,6 +28,7 @@ namespace NewLife.Cube.Admin.Controllers
         /// <param name="id"></param>
         /// <returns></returns>
         [DisplayName("服务器信息")]
+        [EntityAuthorize("Main", PermissionFlags.Detail)]
         public ActionResult Main(String id)
         {
             if (id == "Restart")

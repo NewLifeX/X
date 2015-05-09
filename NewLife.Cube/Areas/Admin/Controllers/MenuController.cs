@@ -29,6 +29,7 @@ namespace NewLife.Cube.Admin.Controllers
         /// <summary>上升</summary>
         /// <param name="id"></param>
         /// <returns></returns>
+        [DisplayName("上升")]
         public ActionResult Up(Int32 id)
         {
             var menu = Menu.FindByID(id);
@@ -40,6 +41,7 @@ namespace NewLife.Cube.Admin.Controllers
         /// <summary>下降</summary>
         /// <param name="id"></param>
         /// <returns></returns>
+        [DisplayName("下降")]
         public ActionResult Down(Int32 id)
         {
             var menu = Menu.FindByID(id);

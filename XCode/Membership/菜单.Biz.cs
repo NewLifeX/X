@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml.Serialization;
+using NewLife;
 using NewLife.Configuration;
 using NewLife.Log;
 using NewLife.Model;
@@ -52,10 +53,24 @@ namespace XCode.Membership
             }
         }
 
+        /// <summary>验证数据，通过抛出异常的方式提示验证失败。</summary>
+        /// <param name="isNew">是否新数据</param>
+        public override void Valid(bool isNew)
+        {
+            if (String.IsNullOrEmpty(Name)) throw new ArgumentNullException(__.Name, _.Name.DisplayName + "不能为空！");
+
+            base.Valid(isNew);
+
+            SavePermission();
+        }
+
         /// <summary>已重载。调用Save时写日志，而调用Insert和Update时不写日志</summary>
         /// <returns></returns>
         public override int Save()
         {
+            // 先处理一次，否则可能因为别的字段没有修改而没有脏数据
+            SavePermission();
+
             if (!String.IsNullOrEmpty(Url))
             {
                 // 删除两端空白
@@ -83,6 +98,24 @@ namespace XCode.Membership
             WriteLog("删除", name + " " + Url);
 
             return base.Delete();
+        }
+
+        /// <summary>加载权限字典</summary>
+        internal protected override void OnLoad()
+        {
+            base.OnLoad();
+
+            // 构造权限字典
+            LoadPermission();
+        }
+
+        /// <summary>如果Permission被修改，则重新加载</summary>
+        /// <param name="fieldName"></param>
+        protected override void OnPropertyChanged(string fieldName)
+        {
+            base.OnPropertyChanged(fieldName);
+
+            if (fieldName == __.Permission) LoadPermission();
         }
         #endregion
 
@@ -183,6 +216,46 @@ namespace XCode.Membership
             entity.Insert();
 
             return entity;
+        }
+        #endregion
+
+        #region 扩展权限
+        private Dictionary<Int32, String> _Permissions = new Dictionary<Int32, String>();
+        /// <summary>可选权限子项</summary>
+        public Dictionary<Int32, String> Permissions { get { return _Permissions; } set { _Permissions = value; } }
+
+        void LoadPermission()
+        {
+            Permissions.Clear();
+            if (String.IsNullOrEmpty(Permission)) return;
+
+            var dic = Permission.SplitAsDictionary("#", ",");
+            foreach (var item in dic)
+            {
+                var resid = item.Key.ToInt();
+                Permissions[resid] = item.Value;
+            }
+        }
+
+        void SavePermission()
+        {
+            // 不能这样子直接清空，因为可能没有任何改变，而这么做会两次改变脏数据，让系统以为有改变
+            //Permission = null;
+            if (Permissions.Count <= 0)
+            {
+                //Permission = null;
+                SetItem(__.Permission, null);
+                return;
+            }
+
+            var sb = new StringBuilder();
+            // 根据资源按照从小到大排序一下
+            foreach (var item in Permissions.OrderBy(e => e.Key))
+            {
+                if (sb.Length > 0) sb.Append(",");
+                sb.AppendFormat("{0}#{1}", item.Key, item.Value);
+            }
+            SetItem(__.Permission, sb.ToString());
         }
         #endregion
 
@@ -588,38 +661,18 @@ namespace XCode.Membership
                     list.Add(root);
                 }
 
-                var ns = nameSpace.EnsureEnd(".");
                 // 遍历该程序集所有类型
                 foreach (var type in asm.GetTypes())
                 {
                     var name = type.Name;
                     if (!name.EndsWith("Controller")) continue;
+
                     name = name.TrimEnd("Controller");
-                    if (type.Namespace != nameSpace && !type.Namespace.StartsWith(ns)) continue;
+                    if (type.Namespace != nameSpace) continue;
 
                     var url = "~/" + rootName;
 
                     var node = root;
-                    // 要考虑命名空间里面还有层级。这种情况比较少有，所以只考虑一级关系
-                    var ns2 = type.Namespace.Substring(nameSpace.Length).TrimStart(".");
-                    if (!String.IsNullOrEmpty(ns2))
-                    {
-                        var ss = ns2.Split('.');
-                        for (int i = 0; i < ss.Length; i++)
-                        {
-                            if (ss[i].EqualIgnoreCase("Controllers")) continue;
-
-                            var node2 = node.FindByPath(ss[i]);
-                            if (node2 != null)
-                                node = node2;
-                            else
-                            {
-                                url += "/" + ss[i];
-                                node = node.Add(ss[i], null, url);
-                                list.Add(node);
-                            }
-                        }
-                    }
 
                     // 添加Controller
                     var controller = node.FindByPath(name);
@@ -636,26 +689,45 @@ namespace XCode.Membership
                     if (func == null) continue;
 
                     //var acts = type.Invoke(func) as MethodInfo[];
-                    var acts = func.As<Func<MethodInfo[]>>(type.CreateInstance()).Invoke();
-                    if (acts == null || acts.Length == 0) continue;
+                    var acts = func.As<Func<IDictionary<MethodInfo, Int32>>>(type.CreateInstance()).Invoke();
+                    if (acts == null || acts.Count == 0) continue;
 
-                    // 如果只有一个Index，也不列出来
-                    if (acts.Length == 1 && acts[0].Name == "Index") continue;
+                    // 可选权限子项
+                    var dic = new Dictionary<String, Int32>();
+                    var mask = 0;
 
-                    // 添加该类型下的所有Action
-                    foreach (var method in acts)
+                    // 添加该类型下的所有Action作为可选权限子项
+                    foreach (var item in acts)
                     {
-                        // 查找并添加菜单
-                        var action = controller.FindByPath(method.Name);
-                        if (action == null)
-                        {
-                            var dn = method.GetDisplayName();
-                            if (!dn.IsNullOrEmpty()) dn = dn.Replace("{type}", controller.FriendName);
+                        var method = item.Key;
 
-                            action = controller.Add(method.Name, dn, url + "/" + method.Name);
-                            list.Add(action);
+                        var dn = method.GetDisplayName();
+                        if (!dn.IsNullOrEmpty()) dn = dn.Replace("{type}", controller.FriendName);
+
+                        var pmName = !dn.IsNullOrEmpty() ? dn : method.Name;
+                        if (item.Value == 0)
+                            dic.Add(pmName, item.Value);
+                        else
+                        {
+                            if (item.Value < 0x10) pmName = ((PermissionFlags)item.Value).GetDescription();
+                            mask |= item.Value;
+                            controller.Permissions[item.Value] = pmName;
                         }
                     }
+
+                    // 分配权限位
+                    var idx = 0x10;
+                    foreach (var item in dic)
+                    {
+                        while ((mask & idx) != 0)
+                        {
+                            if (idx >= 0x80) throw new XException("控制器{0}的Action过多，不够分配权限位", type.Name);
+                            idx <<= 1;
+                        }
+                        mask |= idx;
+                        controller.Permissions[idx] = item.Key;
+                    }
+                    controller.Save();
                 }
 
                 // 如果新增了菜单，需要检查权限
@@ -763,5 +835,8 @@ namespace XCode.Membership
         /// <param name="filters"></param>
         /// <returns></returns>
         IList<IMenu> GetMySubMenus(Int32[] filters);
+
+        /// <summary>可选权限子项</summary>
+        Dictionary<Int32, String> Permissions { get; }
     }
 }

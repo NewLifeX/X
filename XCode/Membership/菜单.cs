@@ -113,6 +113,18 @@ namespace XCode.Membership
             get { return _Necessary; }
             set { if (OnPropertyChanging(__.Necessary, value)) { _Necessary = value; OnPropertyChanged(__.Necessary); } }
         }
+
+        private String _Permission;
+        /// <summary>权限子项。逗号分隔，每个权限子项名值竖线分隔</summary>
+        [DisplayName("权限子项")]
+        [Description("权限子项。逗号分隔，每个权限子项名值竖线分隔")]
+        [DataObjectField(false, false, true, 200)]
+        [BindColumn(9, "Permission", "权限子项。逗号分隔，每个权限子项名值竖线分隔", null, "nvarchar(200)", 0, 0, true)]
+        public virtual String Permission
+        {
+            get { return _Permission; }
+            set { if (OnPropertyChanging(__.Permission, value)) { _Permission = value; OnPropertyChanged(__.Permission); } }
+        }
         #endregion
 
         #region 获取/设置 字段值
@@ -137,6 +149,7 @@ namespace XCode.Membership
                     case __.Sort : return _Sort;
                     case __.Visible : return _Visible;
                     case __.Necessary : return _Necessary;
+                    case __.Permission : return _Permission;
                     default: return base[name];
                 }
             }
@@ -152,6 +165,7 @@ namespace XCode.Membership
                     case __.Sort : _Sort = Convert.ToInt32(value); break;
                     case __.Visible : _Visible = Convert.ToBoolean(value); break;
                     case __.Necessary : _Necessary = Convert.ToBoolean(value); break;
+                    case __.Permission : _Permission = Convert.ToString(value); break;
                     default: base[name] = value; break;
                 }
             }
@@ -186,6 +200,9 @@ namespace XCode.Membership
             ///<summary>必要的菜单。必须至少有角色拥有这些权限，如果没有则自动授权给系统角色</summary>
             public static readonly Field Necessary = FindByName(__.Necessary);
 
+            ///<summary>权限子项。逗号分隔，每个权限子项名值竖线分隔</summary>
+            public static readonly Field Permission = FindByName(__.Permission);
+
             static Field FindByName(String name) { return Meta.Table.FindByName(name); }
         }
 
@@ -215,6 +232,9 @@ namespace XCode.Membership
 
             ///<summary>必要的菜单。必须至少有角色拥有这些权限，如果没有则自动授权给系统角色</summary>
             public const String Necessary = "Necessary";
+
+            ///<summary>权限子项。逗号分隔，每个权限子项名值竖线分隔</summary>
+            public const String Permission = "Permission";
 
         }
         #endregion
@@ -247,6 +267,9 @@ namespace XCode.Membership
 
         /// <summary>必要的菜单。必须至少有角色拥有这些权限，如果没有则自动授权给系统角色</summary>
         Boolean Necessary { get; set; }
+
+        /// <summary>权限子项。逗号分隔，每个权限子项名值竖线分隔</summary>
+        String Permission { get; set; }
         #endregion
     }
 }

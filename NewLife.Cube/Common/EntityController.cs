@@ -26,6 +26,7 @@ namespace NewLife.Cube
         #region 默认Action
         /// <summary>数据列表首页</summary>
         /// <returns></returns>
+        [EntityAuthorize("Index", PermissionFlags.Detail)]
         [DisplayName("{type}管理")]
         public virtual ActionResult Index(Pager p)
         {
@@ -141,13 +142,13 @@ namespace NewLife.Cube
         #endregion
 
         #region 权限菜单
-        /// <summary>获取可用于生成权限菜单的Action集合</summary>
-        /// <returns></returns>
-        protected override MethodInfo[] GetActions()
-        {
-            var mis = base.GetActions();
-            return mis.Where(m => !m.Name.EqualIgnoreCase("Insert", "Add", "Update", "Edit", "Delete")).ToArray();
-        }
+        ///// <summary>获取可用于生成权限菜单的Action集合</summary>
+        ///// <returns></returns>
+        //protected override IDictionary<MethodInfo, Int32> GetActions()
+        //{
+        //    var mis = base.GetActions();
+        //    return mis.Where(m => !m.Key.Name.EqualIgnoreCase("Insert", "Add", "Update", "Edit", "Delete")).ToArray();
+        //}
         #endregion
     }
 }

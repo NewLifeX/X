@@ -11,9 +11,9 @@ namespace NewLife.Cube
         #region 权限菜单
         /// <summary>获取可用于生成权限菜单的Action集合</summary>
         /// <returns></returns>
-        protected virtual MethodInfo[] GetActions()
+        protected virtual IDictionary<MethodInfo, Int32> GetActions()
         {
-            var list = new List<MethodInfo>();
+            var dic = new Dictionary<MethodInfo, Int32>();
 
             var type = this.GetType();
             // 添加该类型下的所有Action
@@ -25,10 +25,13 @@ namespace NewLife.Cube
 
                 if (method.GetCustomAttribute<HttpPostAttribute>() != null) continue;
 
-                list.Add(method);
+                var att = method.GetCustomAttribute<EntityAuthorizeAttribute>();
+                var pm = att != null ? (Int32)att.Permission : 0;
+
+                dic.Add(method, pm);
             }
 
-            return list.ToArray();
+            return dic;
         }
         #endregion
     }
