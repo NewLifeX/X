@@ -518,10 +518,10 @@
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>Form.generated.cs</LastGenOutput>
     </None>
-    <Content Include="Views\Shared\NoPermission.cshtml">
+    <None Include="Views\Shared\NoPermission.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>NoPermission.generated.cs</LastGenOutput>
-    </Content>
+    </None>
     <None Include="Views\Shared\_Ace_Layout.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_Ace_Layout.generated.cs</LastGenOutput>
@@ -581,10 +581,10 @@
     </Content>
     <Content Include="Content\Site.css" />
     <Content Include="Scripts\_references.js" />
-    <Content Include="Views\Shared\_Form_Action.cshtml">
+    <None Include="Views\Shared\_Form_Action.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_Form_Action.generated.cs</LastGenOutput>
-    </Content>
+    </None>
     <None Include="Views\_ViewStart.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_ViewStart.generated.cs</LastGenOutput>

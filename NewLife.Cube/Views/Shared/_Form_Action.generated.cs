@@ -32,7 +32,12 @@ namespace ASP
     using NewLife.Reflection;
     using NewLife.Web;
     using XCode;
+    
+    #line 1 "..\..\Views\Shared\_Form_Action.cshtml"
     using XCode.Membership;
+    
+    #line default
+    #line hidden
     
     [System.CodeDom.Compiler.GeneratedCodeAttribute("RazorGenerator", "2.0.0.0")]
     [System.Web.WebPages.PageVirtualPathAttribute("~/Views/Shared/_Form_Action.cshtml")]
@@ -44,7 +49,7 @@ namespace ASP
         public override void Execute()
         {
             
-            #line 1 "..\..\Views\Shared\_Form_Action.cshtml"
+            #line 2 "..\..\Views\Shared\_Form_Action.cshtml"
   
     var isNew = (Boolean)Model;
 
@@ -54,7 +59,7 @@ namespace ASP
 WriteLiteral("\r\n");
 
             
-            #line 4 "..\..\Views\Shared\_Form_Action.cshtml"
+            #line 5 "..\..\Views\Shared\_Form_Action.cshtml"
  if (ManageProvider.User.Has(PermissionFlags.Insert, PermissionFlags.Update))
 {
 
@@ -77,22 +82,22 @@ WriteLiteral(" class=\"btn btn-success\"");
 
 WriteLiteral("><i");
 
-WriteAttribute("class", Tuple.Create(" class=\"", 266), Tuple.Create("\"", 320)
-, Tuple.Create(Tuple.Create("", 274), Tuple.Create("glyphicon", 274), true)
-, Tuple.Create(Tuple.Create(" ", 283), Tuple.Create("glyphicon-", 284), true)
+WriteAttribute("class", Tuple.Create(" class=\"", 292), Tuple.Create("\"", 346)
+, Tuple.Create(Tuple.Create("", 300), Tuple.Create("glyphicon", 300), true)
+, Tuple.Create(Tuple.Create(" ", 309), Tuple.Create("glyphicon-", 310), true)
             
-            #line 8 "..\..\Views\Shared\_Form_Action.cshtml"
-      , Tuple.Create(Tuple.Create("", 294), Tuple.Create<System.Object, System.Int32>(isNew ? "plus" : "save"
+            #line 9 "..\..\Views\Shared\_Form_Action.cshtml"
+      , Tuple.Create(Tuple.Create("", 320), Tuple.Create<System.Object, System.Int32>(isNew ? "plus" : "save"
             
             #line default
             #line hidden
-, 294), false)
+, 320), false)
 );
 
 WriteLiteral("></i><strong>");
 
             
-            #line 8 "..\..\Views\Shared\_Form_Action.cshtml"
+            #line 9 "..\..\Views\Shared\_Form_Action.cshtml"
                                                                                                                         Write(isNew ? "新增" : "保存");
 
             
@@ -113,7 +118,7 @@ WriteLiteral(" class=\"glyphicon glyphicon-remove\"");
 WriteLiteral("></i><strong>取消</strong></button>\r\n    </div>\r\n");
 
             
-            #line 11 "..\..\Views\Shared\_Form_Action.cshtml"
+            #line 12 "..\..\Views\Shared\_Form_Action.cshtml"
 }
             
             #line default
