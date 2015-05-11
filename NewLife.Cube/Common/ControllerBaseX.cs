@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Reflection;
 using System.Web.Mvc;
+using XCode.Membership;
 
 namespace NewLife.Cube
 {
@@ -10,8 +11,9 @@ namespace NewLife.Cube
     {
         #region 权限菜单
         /// <summary>获取可用于生成权限菜单的Action集合</summary>
+        /// <param name="menu">该控制器所在菜单</param>
         /// <returns></returns>
-        protected virtual IDictionary<MethodInfo, Int32> GetActions()
+        protected virtual IDictionary<MethodInfo, Int32> ScanActionMenu(IMenu menu)
         {
             var dic = new Dictionary<MethodInfo, Int32>();
 
@@ -26,9 +28,33 @@ namespace NewLife.Cube
                 if (method.GetCustomAttribute<HttpPostAttribute>() != null) continue;
 
                 var att = method.GetCustomAttribute<EntityAuthorizeAttribute>();
-                var pm = att != null ? (Int32)att.Permission : 0;
+                if (att == null)
+                {
+                    dic.Add(method, 0);
+                }
+                else
+                {
+                    var name = att.ResourceName;
+                    if (name.IsNullOrEmpty() || name == type.Name.TrimEnd("Controller"))
+                    {
+                        dic.Add(method, (Int32)att.Permission);
+                    }
+                    else
+                    {
+                        // 权限名
+                        var pm = att.Permission.GetDescription();
+                        if ((Int32)att.Permission >= 0x10) pm = method.GetDisplayName() ?? method.Name;
 
-                dic.Add(method, pm);
+                        // 指定了资源名称，也就是专有菜单
+                        var node = menu.Parent.FindByPath(name);
+                        if (node == null)
+                        {
+                            node = menu.Parent.Add(name, method.GetDisplayName(), menu.Url + "/" + name);
+                        }
+                        node.Permissions[(Int32)att.Permission] = pm;
+                        node.Save();
+                    }
+                }
             }
 
             return dic;

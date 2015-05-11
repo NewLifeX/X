@@ -12,7 +12,7 @@ namespace NewLife.Cube
     {
         #region 属性
         private String _ResourceName;
-        /// <summary>资源名称。判断当前登录用户是否有权访问该资源，资源由 区域/控制器 两部分组成，左斜杠分割，若不完整则自动补上区域和控制器</summary>
+        /// <summary>资源名称。需要增加新菜单而不需要控制器名称时，指定资源名称</summary>
         public String ResourceName { get { return _ResourceName; } set { _ResourceName = value; } }
 
         private PermissionFlags _Permission;
@@ -28,11 +28,10 @@ namespace NewLife.Cube
         public EntityAuthorizeAttribute() { }
 
         /// <summary>实例化实体授权特性</summary>
-        /// <param name="resourceName"></param>
         /// <param name="permission"></param>
-        public EntityAuthorizeAttribute(String resourceName, PermissionFlags permission = PermissionFlags.None)
+        public EntityAuthorizeAttribute(PermissionFlags permission = PermissionFlags.None)
         {
-            ResourceName = resourceName;
+            //ResourceName = resourceName;
             Permission = permission;
         }
         #endregion

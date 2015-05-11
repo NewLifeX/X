@@ -591,6 +591,8 @@ namespace XCode.Membership
             return GetFullPath(includeSelf, separator, d);
         }
 
+        IMenu IMenu.Add(String name, String displayName, String url) { return Add(name, displayName, url); }
+
         /// <summary>父菜单</summary>
         IMenu IMenu.Parent { get { return Parent; } }
 
@@ -657,7 +659,7 @@ namespace XCode.Membership
                 var root = Root.FindByPath(rootName);
                 if (root == null)
                 {
-                    root = Root.Add(rootName, null, null);
+                    root = Root.Add(rootName, null, "~/" + rootName);
                     list.Add(root);
                 }
 
@@ -670,7 +672,7 @@ namespace XCode.Membership
                     name = name.TrimEnd("Controller");
                     if (type.Namespace != nameSpace) continue;
 
-                    var url = "~/" + rootName;
+                    var url = root.Url;
 
                     var node = root;
 
@@ -685,11 +687,11 @@ namespace XCode.Membership
                     }
 
                     // 反射调用控制器的GetActions方法来获取动作
-                    var func = type.GetMethodEx("GetActions");
+                    var func = type.GetMethodEx("ScanActionMenu");
                     if (func == null) continue;
 
                     //var acts = type.Invoke(func) as MethodInfo[];
-                    var acts = func.As<Func<IDictionary<MethodInfo, Int32>>>(type.CreateInstance()).Invoke();
+                    var acts = func.As<Func<IMenu, IDictionary<MethodInfo, Int32>>>(type.CreateInstance()).Invoke(controller);
                     if (acts == null || acts.Count == 0) continue;
 
                     // 可选权限子项
@@ -740,40 +742,6 @@ namespace XCode.Membership
 
                 return list;
             }
-
-            //static MethodInfo[] GetActions(Type type)
-            //{
-            //    var list = new List<MethodInfo>();
-
-            //    // 添加该类型下的所有Action
-            //    foreach (var method in type.GetMethods())
-            //    {
-            //        if (method.IsStatic || !method.IsPublic) continue;
-            //        // 跳过添加、修改、删除
-            //        if (method.Name.EqualIgnoreCase("Insert", "Add", "Update", "Edit", "Delete")) continue;
-            //        // 为了不引用Mvc，采取字符串比较
-            //        //if (!method.ReturnType.Name.EndsWith("")) continue;
-            //        var rt = method.ReturnType;
-            //        while (rt != null && rt.BaseType != null && rt.BaseType != typeof(Object)) rt = rt.BaseType;
-            //        if (rt.Name != "ActionResult") continue;
-
-            //        // 还要跳过带有HttpPost特性的方法
-            //        var flag = false;
-            //        foreach (var att in method.GetCustomAttributes(true))
-            //        {
-            //            if (att != null && att.GetType().Name == "HttpPostAttribute")
-            //            {
-            //                flag = true;
-            //                break;
-            //            }
-            //        }
-            //        if (flag) continue;
-
-            //        list.Add(method);
-            //    }
-
-            //    return list.ToArray();
-            //}
             #endregion
         }
         #endregion
@@ -811,6 +779,13 @@ namespace XCode.Membership
         /// <param name="func">回调</param>
         /// <returns></returns>
         String GetFullPath(Boolean includeSelf, String separator, Func<IMenu, String> func);
+
+        /// <summary>添加子菜单</summary>
+        /// <param name="name"></param>
+        /// <param name="displayName"></param>
+        /// <param name="url"></param>
+        /// <returns></returns>
+        IMenu Add(String name, String displayName, String url);
 
         /// <summary>父菜单</summary>
         new IMenu Parent { get; }

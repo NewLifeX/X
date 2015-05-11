@@ -26,7 +26,7 @@ namespace NewLife.Cube
         #region 默认Action
         /// <summary>数据列表首页</summary>
         /// <returns></returns>
-        [EntityAuthorize(null, PermissionFlags.Detail)]
+        [EntityAuthorize(PermissionFlags.Detail)]
         [DisplayName("{type}管理")]
         public virtual ActionResult Index(Pager p)
         {
@@ -58,7 +58,7 @@ namespace NewLife.Cube
         /// <summary>删除</summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        [EntityAuthorize(null, PermissionFlags.Delete)]
+        [EntityAuthorize(PermissionFlags.Delete)]
         [DisplayName("删除{type}")]
         public virtual ActionResult Delete(Int32 id)
         {
@@ -70,7 +70,7 @@ namespace NewLife.Cube
 
         /// <summary>表单，添加/修改</summary>
         /// <returns></returns>
-        [EntityAuthorize(null, PermissionFlags.Insert)]
+        [EntityAuthorize(PermissionFlags.Insert)]
         [DisplayName("添加{type}")]
         public virtual ActionResult Add()
         {
@@ -82,7 +82,7 @@ namespace NewLife.Cube
         /// <summary>保存</summary>
         /// <param name="entity"></param>
         /// <returns></returns>
-        [EntityAuthorize(null, PermissionFlags.Insert)]
+        [EntityAuthorize(PermissionFlags.Insert)]
         [HttpPost]
         public virtual ActionResult Add(TEntity entity)
         {
@@ -97,7 +97,7 @@ namespace NewLife.Cube
         /// <summary>表单，添加/修改</summary>
         /// <param name="id">主键。可能为空（表示添加），所以用字符串而不是整数</param>
         /// <returns></returns>
-        [EntityAuthorize(null, PermissionFlags.Update)]
+        [EntityAuthorize(PermissionFlags.Update)]
         [DisplayName("更新{type}")]
         public virtual ActionResult Edit(String id)
         {
@@ -110,7 +110,7 @@ namespace NewLife.Cube
         /// <summary>保存</summary>
         /// <param name="entity"></param>
         /// <returns></returns>
-        [EntityAuthorize(null, PermissionFlags.Update)]
+        [EntityAuthorize(PermissionFlags.Update)]
         [HttpPost]
         public virtual ActionResult Edit(TEntity entity)
         {
@@ -139,16 +139,6 @@ namespace NewLife.Cube
 
             return View("Form", entity);
         }
-        #endregion
-
-        #region 权限菜单
-        ///// <summary>获取可用于生成权限菜单的Action集合</summary>
-        ///// <returns></returns>
-        //protected override IDictionary<MethodInfo, Int32> GetActions()
-        //{
-        //    var mis = base.GetActions();
-        //    return mis.Where(m => !m.Key.Name.EqualIgnoreCase("Insert", "Add", "Update", "Edit", "Delete")).ToArray();
-        //}
         #endregion
     }
 }

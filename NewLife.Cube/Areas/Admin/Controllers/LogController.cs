@@ -45,10 +45,11 @@ namespace NewLife.Cube.Admin.Controllers
         }
 
         /// <summary>获取可用于生成权限菜单的Action集合</summary>
+        /// <param name="menu"></param>
         /// <returns></returns>
-        protected override IDictionary<MethodInfo, Int32> GetActions()
+        protected override IDictionary<MethodInfo, Int32> ScanActionMenu(IMenu menu)
         {
-            var dic = base.GetActions();
+            var dic = base.ScanActionMenu(menu);
 
             dic = dic.Where(e => !e.Key.Name.EqualIgnoreCase("Add", "Edit", "Delete")).ToDictionary(e => e.Key, e => e.Value);
 
