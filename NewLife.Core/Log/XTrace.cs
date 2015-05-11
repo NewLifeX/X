@@ -96,7 +96,7 @@ namespace NewLife.Log
             {
                 if (_Log != null) return;
 
-#if Android
+#if !Android
                 _Log = TextFileLog.Create(LogPath);
 #else
                 _Log = new NetworkLog();
