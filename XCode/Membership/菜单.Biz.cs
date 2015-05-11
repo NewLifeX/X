@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Web;
 using System.Xml.Serialization;
 using NewLife;
 using NewLife.Configuration;
@@ -615,10 +616,34 @@ namespace XCode.Membership
             #region IMenuFactory 成员
             IMenu IMenuFactory.Root { get { return Root; } }
 
+            /// <summary>当前请求所在菜单。自动根据当前请求的文件路径定位</summary>
+            IMenu IMenuFactory.Current
+            {
+                get
+                {
+                    var context = HttpContext.Current;
+                    if (context == null) return null;
+
+                    var menu = context.Items["CurrentMenu"] as IMenu;
+                    if (menu == null && !context.Items.Contains("CurrentMenu"))
+                    {
+                        menu = FindByUrl(context.Request.FilePath);
+                        context.Items["CurrentMenu"] = menu;
+                    }
+                    return menu;
+                }
+                set { HttpContext.Current.Items["CurrentMenu"] = value; }
+            }
+
             /// <summary>根据编号找到菜单</summary>
             /// <param name="id"></param>
             /// <returns></returns>
             IMenu IMenuFactory.FindByID(Int32 id) { return FindByID(id); }
+
+            /// <summary>根据Url找到菜单</summary>
+            /// <param name="url"></param>
+            /// <returns></returns>
+            IMenu IMenuFactory.FindByUrl(String url) { return FindByUrl(url); }
 
             /// <summary>获取指定菜单下，当前用户有权访问的子菜单。</summary>
             /// <param name="menuid"></param>
@@ -753,10 +778,18 @@ namespace XCode.Membership
         /// <summary>根菜单</summary>
         IMenu Root { get; }
 
+        /// <summary>当前请求所在菜单。自动根据当前请求的文件路径定位</summary>
+        IMenu Current { get; set; }
+
         /// <summary>根据编号找到菜单</summary>
         /// <param name="id"></param>
         /// <returns></returns>
         IMenu FindByID(Int32 id);
+
+        /// <summary>根据Url找到菜单</summary>
+        /// <param name="url"></param>
+        /// <returns></returns>
+        IMenu FindByUrl(String url);
 
         /// <summary>获取指定菜单下，当前用户有权访问的子菜单。</summary>
         /// <param name="menuid"></param>

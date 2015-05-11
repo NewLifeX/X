@@ -73,8 +73,15 @@ namespace NewLife.Cube
                 return;
             }
 
-            var res = GetRes(filterContext.Controller as Controller, ResourceName);
-            var menu = ManageProvider.Menu.Root.FindByPath(res);
+            // 根据请求Url定位资源菜单
+            var url = filterContext.HttpContext.Request.FilePath;
+            var menu = ManageProvider.Menu.FindByUrl(url);
+            if (menu == null)
+            {
+                var res = GetRes(filterContext.Controller as Controller, ResourceName);
+                menu = ManageProvider.Menu.Root.FindByPath(res);
+                if (menu != null) url = res;
+            }
             if (menu != null)
             {
                 var role = (user as IUser).Role;
@@ -82,13 +89,13 @@ namespace NewLife.Cube
             }
             else
             {
-                XTrace.WriteLine("设计错误！验证权限时无法找到[{0}]的菜单", res);
+                XTrace.WriteLine("设计错误！验证权限时无法找到[{0}]的菜单", url);
             }
 
             var vr = new ViewResult();
             vr.ViewName = "NoPermission";
             vr.ViewBag.Context = filterContext;
-            vr.ViewBag.Resource = menu != null ? (menu + "") : res;
+            vr.ViewBag.Resource = menu != null ? (menu + "") : url;
             vr.ViewBag.Permission = Permission;
 
             filterContext.Result = vr;
