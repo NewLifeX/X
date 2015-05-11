@@ -119,7 +119,7 @@ WriteLiteral(">\r\n");
             #line hidden
             
             #line 16 "..\..\Views\Shared\_List_Toolbar.cshtml"
-             if (ManageProvider.User.Role.Has(0, PermissionFlags.Insert))
+             if (ManageProvider.User.Has(PermissionFlags.Insert))
             {
                 
             
@@ -160,14 +160,14 @@ WriteLiteral(" type=\"search\"");
 
 WriteLiteral(" id=\"q\"");
 
-WriteAttribute("value", Tuple.Create(" value=\"", 977), Tuple.Create("\"", 998)
+WriteAttribute("value", Tuple.Create(" value=\"", 969), Tuple.Create("\"", 990)
             
             #line 24 "..\..\Views\Shared\_List_Toolbar.cshtml"
-, Tuple.Create(Tuple.Create("", 985), Tuple.Create<System.Object, System.Int32>(Request["q"]
+, Tuple.Create(Tuple.Create("", 977), Tuple.Create<System.Object, System.Int32>(Request["q"]
             
             #line default
             #line hidden
-, 985), false)
+, 977), false)
 );
 
 WriteLiteral(" class=\"form-control\"");

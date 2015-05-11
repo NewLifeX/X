@@ -4,7 +4,7 @@ using System.Linq;
 using System.Web;
 using XCode.Membership;
 
-namespace NewLife.Cube.Common
+namespace NewLife.Cube
 {
     /// <summary>用户扩展</summary>
     public static class MembershipExtensions

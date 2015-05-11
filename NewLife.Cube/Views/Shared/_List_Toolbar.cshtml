@@ -13,7 +13,7 @@
             </ul>
         </div>
         <div class="form-group">
-            @if (ManageProvider.User.Role.Has(0, PermissionFlags.Insert))
+            @if (ManageProvider.User.Has(PermissionFlags.Insert))
             {
                 @Html.ActionLink("添加" + ViewContext.Controller.GetType().GetDisplayName(), "Add", null, new { @class = "btn btn-success" })
             }

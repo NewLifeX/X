@@ -627,7 +627,13 @@ namespace XCode.Membership
                     var menu = context.Items["CurrentMenu"] as IMenu;
                     if (menu == null && !context.Items.Contains("CurrentMenu"))
                     {
-                        menu = FindByUrl(context.Request.FilePath);
+                        var ss = context.Request.AppRelativeCurrentExecutionFilePath.Split("/");
+                        // 默认路由包括区域、控制器、动作，Url有时候会省略动作，再往后的就是参数了，动作和参数不参与菜单匹配
+                        var max = 2;
+                        if (ss[0] == "~") max++;
+                        var url = ss.Take(max).Join("/");
+
+                        menu = FindByUrl(url);
                         context.Items["CurrentMenu"] = menu;
                     }
                     return menu;

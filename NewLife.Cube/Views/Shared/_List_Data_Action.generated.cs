@@ -43,7 +43,15 @@ namespace ASP
         }
         public override void Execute()
         {
-WriteLiteral("<i");
+            
+            #line 1 "..\..\Views\Shared\_List_Data_Action.cshtml"
+ if (ManageProvider.User.Has(PermissionFlags.Update))
+{
+
+            
+            #line default
+            #line hidden
+WriteLiteral("    <i");
 
 WriteLiteral(" class=\"glyphicon glyphicon-edit\"");
 
@@ -52,13 +60,66 @@ WriteLiteral(" style=\"color: blue;\"");
 WriteLiteral("></i>\r\n");
 
             
-            #line 2 "..\..\Views\Shared\_List_Data_Action.cshtml"
+            #line 4 "..\..\Views\Shared\_List_Data_Action.cshtml"
+    
+            
+            #line default
+            #line hidden
+            
+            #line 4 "..\..\Views\Shared\_List_Data_Action.cshtml"
 Write(Html.ActionLink("编辑", "Edit", new { id = @Model }));
 
             
             #line default
             #line hidden
-WriteLiteral("\r\n<i");
+            
+            #line 4 "..\..\Views\Shared\_List_Data_Action.cshtml"
+                                                       
+}
+else if (ManageProvider.User.Has(PermissionFlags.Detail))
+{
+
+            
+            #line default
+            #line hidden
+WriteLiteral("    <i");
+
+WriteLiteral(" class=\"glyphicon glyphicon-edit\"");
+
+WriteLiteral(" style=\"color: blue;\"");
+
+WriteLiteral("></i>\r\n");
+
+            
+            #line 9 "..\..\Views\Shared\_List_Data_Action.cshtml"
+    
+            
+            #line default
+            #line hidden
+            
+            #line 9 "..\..\Views\Shared\_List_Data_Action.cshtml"
+Write(Html.ActionLink("查看", "Edit", new { id = @Model }));
+
+            
+            #line default
+            #line hidden
+            
+            #line 9 "..\..\Views\Shared\_List_Data_Action.cshtml"
+                                                       
+}
+
+            
+            #line default
+            #line hidden
+            
+            #line 11 "..\..\Views\Shared\_List_Data_Action.cshtml"
+ if (ManageProvider.User.Has(PermissionFlags.Delete))
+{
+
+            
+            #line default
+            #line hidden
+WriteLiteral("    <i");
 
 WriteLiteral(" class=\"glyphicon glyphicon-remove\"");
 
@@ -67,14 +128,25 @@ WriteLiteral(" style=\"color: red;\"");
 WriteLiteral("></i>\r\n");
 
             
-            #line 4 "..\..\Views\Shared\_List_Data_Action.cshtml"
+            #line 14 "..\..\Views\Shared\_List_Data_Action.cshtml"
+    
+            
+            #line default
+            #line hidden
+            
+            #line 14 "..\..\Views\Shared\_List_Data_Action.cshtml"
 Write(Html.ActionLink("删除", "Delete", new { id = @Model }, new { onclick = "return confirm('确认删除？');" }));
 
             
             #line default
             #line hidden
-WriteLiteral("\r\n");
-
+            
+            #line 14 "..\..\Views\Shared\_List_Data_Action.cshtml"
+                                                                                                       
+}
+            
+            #line default
+            #line hidden
         }
     }
 }

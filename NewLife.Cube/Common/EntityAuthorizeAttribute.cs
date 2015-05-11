@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 using NewLife.Log;
@@ -74,14 +73,8 @@ namespace NewLife.Cube
             }
 
             // 根据请求Url定位资源菜单
-            var url = filterContext.HttpContext.Request.FilePath;
-            var menu = ManageProvider.Menu.FindByUrl(url);
-            if (menu == null)
-            {
-                var res = GetRes(filterContext.Controller as Controller, ResourceName);
-                menu = ManageProvider.Menu.Root.FindByPath(res);
-                if (menu != null) url = res;
-            }
+            var url = filterContext.HttpContext.Request.AppRelativeCurrentExecutionFilePath;
+            var menu = ManageProvider.Menu.Current;
             if (menu != null)
             {
                 var role = (user as IUser).Role;
@@ -99,32 +92,6 @@ namespace NewLife.Cube
             vr.ViewBag.Permission = Permission;
 
             filterContext.Result = vr;
-
-        }
-
-        /// <summary>获取资源名称</summary>
-        /// <param name="controller"></param>
-        /// <param name="resname"></param>
-        /// <returns></returns>
-        static String GetRes(Controller controller, String resname)
-        {
-            // 区域名称
-            var areaName = controller.RouteData.DataTokens["Area"] + "";
-            var ctrlName = controller.GetType().Name.TrimEnd("Controller");
-
-            // 控制权限的资源由 区域、控制器 两部分组成
-
-            // 资源名
-            var res = resname;
-            var ss = res.Split("/", "\\", ".");
-
-            // 如果不足两部分，则需要在前面加上区域名
-            if (ss.Length >= 2 && !ss[ss.Length - 2].IsNullOrEmpty()) areaName = ss[ss.Length - 2];
-            if (ss.Length >= 1 && !ss[ss.Length - 1].IsNullOrEmpty()) ctrlName = ss[ss.Length - 1];
-
-            res = "{0}/{1}".F(areaName, ctrlName);
-
-            return res;
 
         }
         #endregion

@@ -1,4 +1,15 @@
-﻿<i class="glyphicon glyphicon-edit" style="color: blue;"></i>
-@Html.ActionLink("编辑", "Edit", new { id = @Model })
-<i class="glyphicon glyphicon-remove" style="color: red;"></i>
-@Html.ActionLink("删除", "Delete", new { id = @Model }, new { onclick = "return confirm('确认删除？');" })
+﻿@if (ManageProvider.User.Has(PermissionFlags.Update))
+{
+    <i class="glyphicon glyphicon-edit" style="color: blue;"></i>
+    @Html.ActionLink("编辑", "Edit", new { id = @Model })
+}
+else if (ManageProvider.User.Has(PermissionFlags.Detail))
+{
+    <i class="glyphicon glyphicon-edit" style="color: blue;"></i>
+    @Html.ActionLink("查看", "Edit", new { id = @Model })
+}
+@if (ManageProvider.User.Has(PermissionFlags.Delete))
+{
+    <i class="glyphicon glyphicon-remove" style="color: red;"></i>
+    @Html.ActionLink("删除", "Delete", new { id = @Model }, new { onclick = "return confirm('确认删除？');" })
+}
