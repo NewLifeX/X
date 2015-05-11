@@ -25,9 +25,12 @@
                 {
                     @Html.Partial("_List_Data_Item", new Pair(entity, item))
                 }
-                <td>
-                    @Html.Partial("_List_Data_Action", (Object)entity[fact.Unique])
-                </td>
+                @if (ManageProvider.User.Has(PermissionFlags.Detail, PermissionFlags.Update, PermissionFlags.Delete))
+                {
+                    <td>
+                        @Html.Partial("_List_Data_Action", (Object)entity[fact.Unique])
+                    </td>
+                }
             </tr>
         }
     </tbody>

@@ -9,6 +9,7 @@ using XCode.Membership;
 namespace NewLife.Cube.Admin.Controllers
 {
     /// <summary>首页</summary>
+    [DisplayName("首页")]
     public class IndexController : ControllerBaseX
     {
         /// <summary>首页</summary>

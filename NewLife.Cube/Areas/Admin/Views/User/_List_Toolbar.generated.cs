@@ -71,7 +71,38 @@ WriteLiteral("\r\n<div");
 
 WriteLiteral(" class=\"form-inline\"");
 
-WriteLiteral(">\r\n    <div");
+WriteLiteral(">\r\n");
+
+            
+            #line 9 "..\..\Areas\Admin\Views\User\_List_Toolbar.cshtml"
+    
+            
+            #line default
+            #line hidden
+            
+            #line 9 "..\..\Areas\Admin\Views\User\_List_Toolbar.cshtml"
+     if (ManageProvider.User.Has(PermissionFlags.Insert))
+    {
+        
+            
+            #line default
+            #line hidden
+            
+            #line 11 "..\..\Areas\Admin\Views\User\_List_Toolbar.cshtml"
+   Write(Html.ActionLink("添加" + ViewContext.Controller.GetType().GetDisplayName(), "Add", null, new { @class = "btn btn-success" }));
+
+            
+            #line default
+            #line hidden
+            
+            #line 11 "..\..\Areas\Admin\Views\User\_List_Toolbar.cshtml"
+                                                                                                                                   
+    }
+
+            
+            #line default
+            #line hidden
+WriteLiteral("    <div");
 
 WriteLiteral(" class=\"form-group\"");
 
@@ -125,36 +156,6 @@ WriteLiteral(" class=\"form-group\"");
 
 WriteLiteral(">\r\n        <label");
 
-WriteLiteral(" class=\"control-label\"");
-
-WriteLiteral(" for=\"q\"");
-
-WriteLiteral(">关键字：</label>\r\n        <input");
-
-WriteLiteral(" name=\"q\"");
-
-WriteLiteral(" type=\"date\"");
-
-WriteLiteral(" id=\"q\"");
-
-WriteAttribute("value", Tuple.Create(" value=\"", 862), Tuple.Create("\"", 883)
-            
-            #line 23 "..\..\Areas\Admin\Views\User\_List_Toolbar.cshtml"
-, Tuple.Create(Tuple.Create("", 870), Tuple.Create<System.Object, System.Int32>(Request["q"]
-            
-            #line default
-            #line hidden
-, 870), false)
-);
-
-WriteLiteral(" class=\"form-control\"");
-
-WriteLiteral(" />\r\n    </div>\r\n    <div");
-
-WriteLiteral(" class=\"form-group\"");
-
-WriteLiteral(">\r\n        <label");
-
 WriteLiteral(" for=\"dtStart\"");
 
 WriteLiteral(" class=\"control-label\"");
@@ -177,33 +178,76 @@ WriteLiteral(" class=\"form-group\"");
 
 WriteLiteral(">\r\n        <label");
 
-WriteLiteral(" class=\"control-label\"");
-
 WriteLiteral(" for=\"dtEnd\"");
+
+WriteLiteral(" class=\"control-label\"");
 
 WriteLiteral(">至</label>\r\n        <input");
 
 WriteLiteral(" name=\"dtEnd\"");
 
-WriteLiteral(" type=\"text\"");
-
-WriteLiteral(" dateformat=\"yyyy-MM-dd\"");
+WriteLiteral(" type=\"date\"");
 
 WriteLiteral(" id=\"dtEnd\"");
 
+WriteLiteral(" dateformat=\"yyyy-MM-dd\"");
+
 WriteLiteral(" class=\"form-control form_datetime\"");
 
-WriteLiteral(" />\r\n    </div>\r\n    <input");
+WriteLiteral(" />\r\n    </div>\r\n    <div");
 
-WriteLiteral(" id=\"btnSearch\"");
+WriteLiteral(" class=\"form-group\"");
 
-WriteLiteral(" value=\"查询\"");
+WriteLiteral(">\r\n        <div");
+
+WriteLiteral(" class=\"input-group\"");
+
+WriteLiteral(">\r\n            <span");
+
+WriteLiteral(" class=\"input-group-addon\"");
+
+WriteLiteral(">\r\n                <i");
+
+WriteLiteral(" class=\"ace-icon fa fa-check\"");
+
+WriteLiteral("></i>\r\n            </span>\r\n            <input");
+
+WriteLiteral(" name=\"q\"");
+
+WriteLiteral(" type=\"search\"");
+
+WriteLiteral(" id=\"q\"");
+
+WriteAttribute("value", Tuple.Create(" value=\"", 1611), Tuple.Create("\"", 1632)
+            
+            #line 38 "..\..\Areas\Admin\Views\User\_List_Toolbar.cshtml"
+, Tuple.Create(Tuple.Create("", 1619), Tuple.Create<System.Object, System.Int32>(Request["q"]
+            
+            #line default
+            #line hidden
+, 1619), false)
+);
+
+WriteLiteral(" class=\"form-control\"");
+
+WriteLiteral(" placeholder=\"搜索关键字\"");
+
+WriteLiteral(" />\r\n            <span");
+
+WriteLiteral(" class=\"input-group-btn\"");
+
+WriteLiteral(">\r\n                <button");
 
 WriteLiteral(" type=\"submit\"");
 
-WriteLiteral(" class=\"btn btn-primary\"");
+WriteLiteral(" class=\"btn btn-purple btn-sm\"");
 
-WriteLiteral(" />\r\n</div>\r\n");
+WriteLiteral(">\r\n                    <span");
+
+WriteLiteral(" class=\"ace-icon fa fa-search icon-on-right bigger-110\"");
+
+WriteLiteral("></span>\r\n                    查询\r\n                </button>\r\n            </span>\r" +
+"\n        </div>\r\n    </div>\r\n</div>\r\n");
 
         }
     }

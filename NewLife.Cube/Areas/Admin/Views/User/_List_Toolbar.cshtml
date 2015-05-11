@@ -6,6 +6,10 @@
     var page = ViewBag.Page as Pager;
 }
 <div class="form-inline">
+    @if (ManageProvider.User.Has(PermissionFlags.Insert))
+    {
+        @Html.ActionLink("添加" + ViewContext.Controller.GetType().GetDisplayName(), "Add", null, new { @class = "btn btn-success" })
+    }
     <div class="form-group">
         <label for="ddlCategory" class="control-label">类别：</label>
         <select name="ddlCategory" id="ddlCategory" class="form-control" onchange="$(':submit').click();">
@@ -19,16 +23,25 @@
         </select>
     </div>
     <div class="form-group">
-        <label class="control-label" for="q">关键字：</label>
-        <input name="q" type="date" id="q" value="@Request["q"]" class="form-control" />
-    </div>
-    <div class="form-group">
         <label for="dtStart" class="control-label">时间：</label>
         <input name="dtStart" type="date" id="dtStart" dateformat="yyyy-MM-dd" class="form-control form_datetime" />
     </div>
     <div class="form-group">
-        <label class="control-label" for="dtEnd">至</label>
-        <input name="dtEnd" type="text" dateformat="yyyy-MM-dd" id="dtEnd" class="form-control form_datetime" />
+        <label for="dtEnd" class="control-label">至</label>
+        <input name="dtEnd" type="date" id="dtEnd" dateformat="yyyy-MM-dd" class="form-control form_datetime" />
     </div>
-    <input id="btnSearch" value="查询" type="submit" class="btn btn-primary" />
+    <div class="form-group">
+        <div class="input-group">
+            <span class="input-group-addon">
+                <i class="ace-icon fa fa-check"></i>
+            </span>
+            <input name="q" type="search" id="q" value="@Request["q"]" class="form-control" placeholder="搜索关键字" />
+            <span class="input-group-btn">
+                <button type="submit" class="btn btn-purple btn-sm">
+                    <span class="ace-icon fa fa-search icon-on-right bigger-110"></span>
+                    查询
+                </button>
+            </span>
+        </div>
+    </div>
 </div>
