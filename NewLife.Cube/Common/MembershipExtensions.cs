@@ -23,7 +23,11 @@ namespace NewLife.Cube
             //return user.Role.Has(menu.ID, flag);
             foreach (var item in flags)
             {
-                if (user.Role.Has(menu.ID, item)) return true;
+                // 菜单必须拥有这些权限位才行
+                if (menu.Permissions.ContainsKey((Int32)item))
+                {
+                    if (user.Role.Has(menu.ID, item)) return true;
+                }
             }
             return false;
         }
