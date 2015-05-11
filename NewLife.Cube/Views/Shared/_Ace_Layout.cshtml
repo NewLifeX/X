@@ -1,12 +1,6 @@
 ﻿@using NewLife.Common;
 @{
-    var p = Context.Request.CurrentExecutionFilePath;
-    var ss = p.Split("/");
-    if (ss != null && ss.Length > 1 && ss[ss.Length - 1].IsInt())
-    {
-        p = p.Substring(0, p.LastIndexOf("/"));
-    }
-    var menu = ManageProvider.Menu.Root.FindByPath(p);
+    var menu = ManageProvider.Menu.Current;
 }
 <!DOCTYPE html>
 <html lang="zh-CN">

@@ -4,6 +4,9 @@
     var page = ViewBag.Page as Pager;
 }
 <div class="panel panel-default">
+    <div class="panel-body">
+        @Html.Partial("_List_Toolbar")
+    </div>
     <div class="table-responsive">
         <table class="table table-bordered table-hover table-striped table-condensed">
             <thead>
