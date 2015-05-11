@@ -123,13 +123,28 @@ namespace NewLife.Net.Sockets
         #endregion
 
         #region 辅助
+        private String _LogPrefix;
+        /// <summary>日志前缀</summary>
+        public String LogPrefix
+        {
+            get
+            {
+                if (_LogPrefix == null)
+                {
+                    var name = _Host == null ? "" : _Host.Name;
+                    _LogPrefix = "{0}[{1}] ".F(name, ID);
+                }
+                return _LogPrefix;
+            }
+            set { _LogPrefix = value; }
+        }
+
         /// <summary>已重载。日志加上前缀</summary>
         /// <param name="format"></param>
         /// <param name="args"></param>
         public override void WriteLog(string format, params object[] args)
         {
-            var name = _Host == null ? "" : _Host.Name;
-            base.WriteLog("{0}[{1}] {2}".F(name, ID, format), args);
+            base.WriteLog(LogPrefix + format, args);
         }
 
         /// <summary>输出错误日志</summary>
@@ -138,7 +153,7 @@ namespace NewLife.Net.Sockets
         public virtual void WriteError(String format, params Object[] args)
         {
             var name = _Host == null ? "" : _Host.Name;
-            Log.Error("{0}[{1}] {2}".F(name, ID, format), args);
+            Log.Error(LogPrefix + format, args);
         }
 
         /// <summary>已重载。</summary>
