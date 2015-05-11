@@ -26,6 +26,7 @@ namespace Test
     {
         private static void Main(string[] args)
         {
+            XTrace.Log = new NetworkLog();
             XTrace.UseConsole();
             while (true)
             {
@@ -35,7 +36,7 @@ namespace Test
                 try
                 {
 #endif
-                Test10();
+                Test9();
 #if !DEBUG
                 }
                 catch (Exception ex)

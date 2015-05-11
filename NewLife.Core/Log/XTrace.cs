@@ -95,7 +95,12 @@ namespace NewLife.Log
             lock (_lock)
             {
                 if (_Log != null) return;
+
+#if Android
                 _Log = TextFileLog.Create(LogPath);
+#else
+                _Log = new NetworkLog();
+#endif
             }
 
             var asmx = AssemblyX.Create(Assembly.GetExecutingAssembly());
@@ -130,13 +135,32 @@ namespace NewLife.Log
 
             if (!useFileLog)
             {
-                Log = clg;
-                if (ftl != null) ftl.Dispose();
+                // 如果原有提供者是文本日志，则直接替换
+                if (ftl != null)
+                {
+                    Log = clg;
+                    ftl.Dispose();
+                }
+                // 否则组件复合日志
+                else
+                {
+                    cmp = new CompositeLog();
+                    cmp.Add(clg);
+                    cmp.Add(_Log);
+                    Log = cmp;
+                }
             }
             else
             {
-                if (ftl == null) ftl = TextFileLog.Create(null);
-                Log = new CompositeLog(clg, ftl);
+                cmp = new CompositeLog();
+                cmp.Add(clg);
+                if (ftl == null)
+                {
+                    cmp.Add(_Log);
+                    ftl = TextFileLog.Create(null);
+                    cmp.Add(ftl);
+                }
+                Log = cmp;
             }
         }
 #endif
