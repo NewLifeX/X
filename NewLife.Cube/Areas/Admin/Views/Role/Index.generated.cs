@@ -115,29 +115,17 @@ WriteAttribute("href", Tuple.Create(" href=\"", 601), Tuple.Create("\"", 646)
 , 608), false)
 );
 
-WriteLiteral(">系统角色</a></th>\r\n                    <th><a");
-
-WriteAttribute("href", Tuple.Create(" href=\"", 689), Tuple.Create("\"", 736)
-            
-            #line 17 "..\..\Areas\Admin\Views\Role\Index.cshtml"
-, Tuple.Create(Tuple.Create("", 696), Tuple.Create<System.Object, System.Int32>(Html.Raw(page.GetSortUrl("Permission"))
-            
-            #line default
-            #line hidden
-, 696), false)
-);
-
-WriteLiteral(">权限</a></th>\r\n                    <th>操作</th>\r\n                </tr>\r\n           " +
-" </thead>\r\n            <tbody>\r\n");
+WriteLiteral(">系统角色</a></th>\r\n                    <th>操作</th>\r\n                </tr>\r\n         " +
+"   </thead>\r\n            <tbody>\r\n");
 
             
-            #line 22 "..\..\Areas\Admin\Views\Role\Index.cshtml"
+            #line 21 "..\..\Areas\Admin\Views\Role\Index.cshtml"
                 
             
             #line default
             #line hidden
             
-            #line 22 "..\..\Areas\Admin\Views\Role\Index.cshtml"
+            #line 21 "..\..\Areas\Admin\Views\Role\Index.cshtml"
                  foreach (var entity in Model)
                 {
 
@@ -147,7 +135,7 @@ WriteLiteral(">权限</a></th>\r\n                    <th>操作</th>\r\n       
 WriteLiteral("                    <tr>\r\n                        <td>");
 
             
-            #line 25 "..\..\Areas\Admin\Views\Role\Index.cshtml"
+            #line 24 "..\..\Areas\Admin\Views\Role\Index.cshtml"
                        Write(entity.ID);
 
             
@@ -156,7 +144,7 @@ WriteLiteral("                    <tr>\r\n                        <td>");
 WriteLiteral("</td>\r\n                        <td>");
 
             
-            #line 26 "..\..\Areas\Admin\Views\Role\Index.cshtml"
+            #line 25 "..\..\Areas\Admin\Views\Role\Index.cshtml"
                        Write(entity.Name);
 
             
@@ -167,27 +155,18 @@ WriteLiteral("</td>\r\n");
 WriteLiteral("                        ");
 
             
-            #line 27 "..\..\Areas\Admin\Views\Role\Index.cshtml"
+            #line 26 "..\..\Areas\Admin\Views\Role\Index.cshtml"
                    Write(Html.Partial("_List_Data_Item", new Pair(entity, fact.Table.FindByName("IsSystem"))));
 
             
             #line default
             #line hidden
-WriteLiteral("\r\n                        <td>");
-
-            
-            #line 28 "..\..\Areas\Admin\Views\Role\Index.cshtml"
-                       Write(entity.Permission);
-
-            
-            #line default
-            #line hidden
-WriteLiteral("</td>\r\n                        <td>\r\n");
+WriteLiteral("\r\n                        <td>\r\n");
 
 WriteLiteral("                            ");
 
             
-            #line 30 "..\..\Areas\Admin\Views\Role\Index.cshtml"
+            #line 28 "..\..\Areas\Admin\Views\Role\Index.cshtml"
                        Write(Html.Partial("_List_Data_Action", entity.ID));
 
             
@@ -196,7 +175,7 @@ WriteLiteral("                            ");
 WriteLiteral("\r\n                        </td>\r\n                    </tr>\r\n");
 
             
-            #line 33 "..\..\Areas\Admin\Views\Role\Index.cshtml"
+            #line 31 "..\..\Areas\Admin\Views\Role\Index.cshtml"
                 }
 
             
@@ -211,7 +190,7 @@ WriteLiteral(">\r\n        <p>\r\n");
 WriteLiteral("            ");
 
             
-            #line 39 "..\..\Areas\Admin\Views\Role\Index.cshtml"
+            #line 37 "..\..\Areas\Admin\Views\Role\Index.cshtml"
        Write(Html.Partial("_List_Pager"));
 
             

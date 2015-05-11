@@ -153,5 +153,23 @@ namespace NewLife.Cube
             return View("Form", entity);
         }
         #endregion
+
+        #region 权限菜单
+        /// <summary>自动从实体类拿到显示名</summary>
+        /// <param name="menu"></param>
+        /// <returns></returns>
+        protected override IDictionary<MethodInfo, Int32> ScanActionMenu(IMenu menu)
+        {
+            // 设置显示名
+            if (menu.DisplayName.IsNullOrEmpty())
+            {
+                menu.DisplayName = Entity<TEntity>.Meta.Table.DataTable.DisplayName;
+                menu.Visible = true;
+                menu.Save();
+            }
+
+            return base.ScanActionMenu(menu);
+        }
+        #endregion
     }
 }

@@ -14,7 +14,6 @@
                     <th> <a href="@Html.Raw(page.GetSortUrl("ID"))">编号</a></th>
                     <th><a href="@Html.Raw(page.GetSortUrl("Name"))">名称</a></th>
                     <th><a href="@Html.Raw(page.GetSortUrl("IsSystem"))">系统角色</a></th>
-                    <th><a href="@Html.Raw(page.GetSortUrl("Permission"))">权限</a></th>
                     <th>操作</th>
                 </tr>
             </thead>
@@ -25,7 +24,6 @@
                         <td>@entity.ID</td>
                         <td>@entity.Name</td>
                         @Html.Partial("_List_Data_Item", new Pair(entity, fact.Table.FindByName("IsSystem")))
-                        <td>@entity.Permission</td>
                         <td>
                             @Html.Partial("_List_Data_Action", entity.ID)
                         </td>
