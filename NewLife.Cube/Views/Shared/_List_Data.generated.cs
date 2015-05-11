@@ -69,7 +69,7 @@ namespace ASP
   
     var fact = ViewBag.Factory as IEntityOperate;
     var page = ViewBag.Page as Pager;
-    var fields = ViewBag.Fields as FieldItem[];
+    var fields = ViewBag.Fields as List<FieldItem>;
 
             
             #line default
@@ -96,14 +96,14 @@ WriteLiteral(">\r\n    <thead>\r\n        <tr>\r\n");
             #line hidden
 WriteLiteral("                <th><a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 415), Tuple.Create("\"", 459)
+WriteAttribute("href", Tuple.Create(" href=\"", 419), Tuple.Create("\"", 463)
             
             #line 15 "..\..\Views\Shared\_List_Data.cshtml"
-, Tuple.Create(Tuple.Create("", 422), Tuple.Create<System.Object, System.Int32>(Html.Raw(page.GetSortUrl(item.Name))
+, Tuple.Create(Tuple.Create("", 426), Tuple.Create<System.Object, System.Int32>(Html.Raw(page.GetSortUrl(item.Name))
             
             #line default
             #line hidden
-, 422), false)
+, 426), false)
 );
 
 WriteLiteral(">");

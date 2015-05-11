@@ -34,12 +34,12 @@ namespace NewLife.Cube
             ViewBag.Factory = Entity<TEntity>.Meta.Factory;
 
             // 用于显示的列
-            var fields = Entity<TEntity>.Meta.Fields;
+            var fields = Entity<TEntity>.Meta.Fields.ToList();
             // 长字段和密码字段不显示
             fields = fields.Where(e => e.Type != typeof(String) ||
                 e.Length > 0 && e.Length <= 200
                 && !e.Name.EqualIgnoreCase("password", "pass")
-                ).ToArray();
+                ).ToList();
             ViewBag.Fields = fields;
 
             return IndexView(p);

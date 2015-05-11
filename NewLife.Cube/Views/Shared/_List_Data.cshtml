@@ -5,7 +5,7 @@
 @{
     var fact = ViewBag.Factory as IEntityOperate;
     var page = ViewBag.Page as Pager;
-    var fields = ViewBag.Fields as FieldItem[];
+    var fields = ViewBag.Fields as List<FieldItem>;
 }
 <table class="table table-bordered table-hover table-striped table-condensed">
     <thead>

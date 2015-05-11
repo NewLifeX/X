@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Web.Mvc;
@@ -18,8 +19,8 @@ namespace NewLife.Cube.Admin.Controllers
         protected override ActionResult IndexView(Pager p)
         {
             // 让角色ID字段变为角色名字段，友好显示
-            var fields = ViewBag.Fields as FieldItem[];
-            for (int i = 0; i < fields.Length; i++)
+            var fields = ViewBag.Fields as List<FieldItem>;
+            for (int i = 0; i < fields.Count; i++)
             {
                 if (fields[i].Name.EqualIgnoreCase("RoleID"))
                     fields[i] = UserX.Meta.AllFields.FirstOrDefault(e => e.Name == "RoleName");
