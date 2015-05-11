@@ -165,7 +165,7 @@ namespace NewLife.Cube
             {
                 menu.DisplayName = Entity<TEntity>.Meta.Table.DataTable.DisplayName;
                 menu.Visible = true;
-                menu.Save();
+                //menu.Save();
             }
 
             return base.ScanActionMenu(menu);
