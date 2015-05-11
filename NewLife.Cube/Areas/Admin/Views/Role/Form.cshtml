@@ -37,11 +37,7 @@
                     }
                 }
             }
-            <div class="form-actions">
-                <label class="control-label col-md-4"></label>
-                <button type="submit" class="btn btn-success"><i class="glyphicon glyphicon-@(isNew ? "plus" : "save")"></i><strong>@(isNew ? "新增" : "保存")</strong></button>
-                <button type="button" class="btn btn-danger" onclick="history.go(-1);"><i class="glyphicon glyphicon-remove"></i><strong>取消</strong></button>
-            </div>
+            @Html.Partial("_Form_Action", isNew)
         }
     </div>
 </div>

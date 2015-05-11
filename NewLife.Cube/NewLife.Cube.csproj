@@ -256,6 +256,11 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>_Ace_Layout.cshtml</DependentUpon>
     </Compile>
+    <Compile Include="Views\Shared\_Form_Action.generated.cs">
+      <DependentUpon>_Form_Action.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
     <Compile Include="Views\Shared\_Form_Item.generated.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -576,6 +581,10 @@
     </Content>
     <Content Include="Content\Site.css" />
     <Content Include="Scripts\_references.js" />
+    <Content Include="Views\Shared\_Form_Action.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>_Form_Action.generated.cs</LastGenOutput>
+    </Content>
     <None Include="Views\_ViewStart.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_ViewStart.generated.cs</LastGenOutput>

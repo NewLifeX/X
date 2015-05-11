@@ -131,10 +131,12 @@ WriteLiteral("</strong>\r\n            </div>\r\n");
             
             #line default
             #line hidden
+WriteLiteral("        ");
+
             
             #line 17 "..\..\Areas\Admin\Views\Menu\Form.cshtml"
- using (Html.BeginForm((isNew ? "Add" : "Edit"), null, new { id = Model[fact.Unique.Name] }))
-{
+         using (Html.BeginForm((isNew ? "Add" : "Edit"), null, new { id = Model[fact.Unique.Name] }))
+        {
             
             
             #line default
@@ -276,63 +278,20 @@ WriteLiteral("\r\n                        </div>\r\n");
                     }
                 }
             }
+            
+            
+            #line default
+            #line hidden
+            
+            #line 46 "..\..\Areas\Admin\Views\Menu\Form.cshtml"
+       Write(Html.Partial("_Form_Action", isNew));
 
             
             #line default
             #line hidden
-WriteLiteral("            <div");
-
-WriteLiteral(" class=\"form-actions\"");
-
-WriteLiteral(">\r\n                <label");
-
-WriteLiteral(" class=\"control-label col-md-4\"");
-
-WriteLiteral("></label>\r\n                <button");
-
-WriteLiteral(" type=\"submit\"");
-
-WriteLiteral(" class=\"btn btn-success\"");
-
-WriteLiteral("><i");
-
-WriteAttribute("class", Tuple.Create(" class=\"", 2236), Tuple.Create("\"", 2290)
-, Tuple.Create(Tuple.Create("", 2244), Tuple.Create("glyphicon", 2244), true)
-, Tuple.Create(Tuple.Create(" ", 2253), Tuple.Create("glyphicon-", 2254), true)
             
-            #line 48 "..\..\Areas\Admin\Views\Menu\Form.cshtml"
-             , Tuple.Create(Tuple.Create("", 2264), Tuple.Create<System.Object, System.Int32>(isNew ? "plus" : "save"
-            
-            #line default
-            #line hidden
-, 2264), false)
-);
-
-WriteLiteral("></i><strong>");
-
-            
-            #line 48 "..\..\Areas\Admin\Views\Menu\Form.cshtml"
-                                                                                                                                Write(isNew ? "新增" : "保存");
-
-            
-            #line default
-            #line hidden
-WriteLiteral("</strong></button>\r\n                <button");
-
-WriteLiteral(" type=\"button\"");
-
-WriteLiteral(" class=\"btn btn-danger\"");
-
-WriteLiteral(" onclick=\"history.go(-1);\"");
-
-WriteLiteral("><i");
-
-WriteLiteral(" class=\"glyphicon glyphicon-remove\"");
-
-WriteLiteral("></i><strong>取消</strong></button>\r\n            </div>\r\n");
-
-            
-            #line 51 "..\..\Areas\Admin\Views\Menu\Form.cshtml"
+            #line 46 "..\..\Areas\Admin\Views\Menu\Form.cshtml"
+                                                
         }
 
             

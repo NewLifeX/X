@@ -55,6 +55,19 @@ namespace NewLife.Cube
             return View(list);
         }
 
+        /// <summary>表单，查看</summary>
+        /// <param name="id">主键。可能为空（表示添加），所以用字符串而不是整数</param>
+        /// <returns></returns>
+        [EntityAuthorize(PermissionFlags.Detail)]
+        [DisplayName("查看{type}")]
+        public virtual ActionResult Detail(String id)
+        {
+            var entity = Entity<TEntity>.FindByKeyForEdit(id);
+            if (entity.IsNullKey) throw new XException("要查看的数据[{0}]不存在！", id);
+
+            return FormView(entity);
+        }
+
         /// <summary>删除</summary>
         /// <param name="id"></param>
         /// <returns></returns>

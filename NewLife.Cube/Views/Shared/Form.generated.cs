@@ -195,63 +195,20 @@ WriteLiteral("\r\n                    </div>\r\n");
             #line 29 "..\..\Views\Shared\Form.cshtml"
                 }
             }
+            
+            
+            #line default
+            #line hidden
+            
+            #line 31 "..\..\Views\Shared\Form.cshtml"
+       Write(Html.Partial("_Form_Action", isNew));
 
             
             #line default
             #line hidden
-WriteLiteral("            <div");
-
-WriteLiteral(" class=\"form-actions\"");
-
-WriteLiteral(">\r\n                <label");
-
-WriteLiteral(" class=\"control-label col-md-4\"");
-
-WriteLiteral("></label>\r\n                <button");
-
-WriteLiteral(" type=\"submit\"");
-
-WriteLiteral(" class=\"btn btn-success\"");
-
-WriteLiteral("><i");
-
-WriteAttribute("class", Tuple.Create(" class=\"", 1333), Tuple.Create("\"", 1387)
-, Tuple.Create(Tuple.Create("", 1341), Tuple.Create("glyphicon", 1341), true)
-, Tuple.Create(Tuple.Create(" ", 1350), Tuple.Create("glyphicon-", 1351), true)
             
-            #line 33 "..\..\Views\Shared\Form.cshtml"
-             , Tuple.Create(Tuple.Create("", 1361), Tuple.Create<System.Object, System.Int32>(isNew ? "plus" : "save"
-            
-            #line default
-            #line hidden
-, 1361), false)
-);
-
-WriteLiteral("></i><strong>");
-
-            
-            #line 33 "..\..\Views\Shared\Form.cshtml"
-                                                                                                                                Write(isNew ? "新增" : "保存");
-
-            
-            #line default
-            #line hidden
-WriteLiteral("</strong></button>\r\n                <button");
-
-WriteLiteral(" type=\"button\"");
-
-WriteLiteral(" class=\"btn btn-danger\"");
-
-WriteLiteral(" onclick=\"history.go(-1);\"");
-
-WriteLiteral("><i");
-
-WriteLiteral(" class=\"glyphicon glyphicon-remove\"");
-
-WriteLiteral("></i><strong>取消</strong></button>\r\n            </div>\r\n");
-
-            
-            #line 36 "..\..\Views\Shared\Form.cshtml"
+            #line 31 "..\..\Views\Shared\Form.cshtml"
+                                                
         }
 
             

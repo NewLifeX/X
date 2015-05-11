@@ -98,14 +98,14 @@ WriteLiteral("></i>\r\n");
             #line hidden
             
             #line 9 "..\..\Views\Shared\_List_Data_Action.cshtml"
-Write(Html.ActionLink("查看", "Edit", new { id = @Model }));
+Write(Html.ActionLink("查看", "Detail", new { id = @Model }));
 
             
             #line default
             #line hidden
             
             #line 9 "..\..\Views\Shared\_List_Data_Action.cshtml"
-                                                       
+                                                         
 }
 
             
