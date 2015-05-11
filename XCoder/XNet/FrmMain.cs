@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -39,7 +40,12 @@ namespace XNet
             gbReceive.Tag = gbReceive.Text;
             gbSend.Tag = gbSend.Text;
 
-            cbMode.DataSource = EnumHelper.GetDescriptions<WorkModes>().Select(kv => kv.Value).ToList();
+            var list = EnumHelper.GetDescriptions<WorkModes>().Select(kv => kv.Value).ToList();
+            foreach (var item in GetNetServers())
+            {
+                list.Add(item.Name);
+            }
+            cbMode.DataSource = list;
             cbMode.SelectedIndex = 0;
 
             cbAddr.DropDownStyle = ComboBoxStyle.DropDownList;
@@ -128,13 +134,14 @@ namespace XNet
                 default:
                     if ((Int32)mode > 0)
                     {
-                        var type = TypeX.GetType(mode.ToString() + "Server");
-                        if (type == null) throw new XException("未识别服务[{0}]", mode);
+                        var ns = GetNetServers().Where(n => n.Name == cbMode.Text).FirstOrDefault();
+                        if (ns == null) throw new XException("未识别服务[{0}]", mode);
 
-                        var ns = type.CreateInstance() as NetServer;
+                        ns = ns.GetType().CreateInstance() as NetServer;
+                        ns.Local.Port = port;
                         ns.Local.Host = _Server.Local.Host;
-                        config.Port = ns.Port;
-                        numPort.Value = ns.Port;
+                        //config.Port = ns.Port;
+                        //numPort.Value = ns.Port;
                         _Server = ns;
                         _Server.Start();
                     }
@@ -326,6 +333,15 @@ namespace XNet
                     cbAddr.DropDownStyle = ComboBoxStyle.DropDownList;
                     cbAddr.DataSource = GetIPs();
                     break;
+                case (WorkModes)0xFF:
+                    cbAddr.DropDownStyle = ComboBoxStyle.DropDownList;
+                    cbAddr.DataSource = GetIPs();
+
+                    // 端口
+                    var ns = GetNetServers().Where(n => n.Name == cbMode.Text).FirstOrDefault();
+                    if (ns != null) numPort.Value = ns.Port;
+
+                    break;
             }
         }
 
@@ -334,11 +350,13 @@ namespace XNet
             var mode = cbMode.Text;
             if (String.IsNullOrEmpty(mode)) return (WorkModes)0;
 
-            var wm = EnumHelper.GetDescriptions<WorkModes>().Where(kv => kv.Value == mode).Select(kv => kv.Key).First();
-            return wm;
+            var list = EnumHelper.GetDescriptions<WorkModes>().Where(kv => kv.Value == mode).ToList();
+            if (list.Count == 0) return (WorkModes)0xFF;
+
+            return (WorkModes)list[0].Key;
         }
 
-        String[] GetIPs()
+        static String[] GetIPs()
         {
             var list = NetHelper.GetIPs().Select(e => e.ToString()).ToList();
             list.Insert(0, "所有本地IPv4/IPv6");
@@ -346,6 +364,21 @@ namespace XNet
             list.Insert(2, IPAddress.IPv6Any.ToString());
 
             return list.ToArray();
+        }
+
+        static NetServer[] _ns;
+        static NetServer[] GetNetServers()
+        {
+            if (_ns != null) return _ns;
+
+            var list = new List<NetServer>();
+            foreach (var item in typeof(NetServer).GetAllSubclasses(true))
+            {
+                var ns = item.CreateInstance() as NetServer;
+                if (ns != null) list.Add(ns);
+            }
+
+            return _ns = list.ToArray();
         }
     }
 }
