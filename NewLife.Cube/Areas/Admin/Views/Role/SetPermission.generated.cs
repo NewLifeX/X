@@ -142,7 +142,7 @@ WriteLiteral("</td>\r\n                        <td>\r\n");
             #line hidden
             
             #line 29 "..\..\Areas\Admin\Views\Role\SetPermission.cshtml"
-                             if (entity.ChildKeys.Count == 0 && entity.Visible)
+                             if (entity.ChildKeys.Count == 0)
                             {
                                 foreach (var item in entity.Permissions)
                                 {

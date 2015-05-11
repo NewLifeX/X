@@ -96,7 +96,7 @@ WriteLiteral("        <li ");
 
             
             #line 23 "..\..\Areas\Admin\Views\Index\_Left.cshtml"
-        Write(menu == Menus[0] ? "class=\"active open\"" : "");
+       Write(Html.Raw(menu == Menus[0] ? "class=\"active open\"" : ""));
 
             
             #line default
@@ -109,16 +109,16 @@ WriteLiteral(" class=\"dropdown-toggle\"");
 
 WriteLiteral(">\r\n                <i");
 
-WriteAttribute("class", Tuple.Create(" class=\"", 907), Tuple.Create("\"", 941)
-, Tuple.Create(Tuple.Create("", 915), Tuple.Create("menu-icon", 915), true)
-, Tuple.Create(Tuple.Create(" ", 924), Tuple.Create("fa", 925), true)
+WriteAttribute("class", Tuple.Create(" class=\"", 915), Tuple.Create("\"", 949)
+, Tuple.Create(Tuple.Create("", 923), Tuple.Create("menu-icon", 923), true)
+, Tuple.Create(Tuple.Create(" ", 932), Tuple.Create("fa", 933), true)
             
             #line 25 "..\..\Areas\Admin\Views\Index\_Left.cshtml"
-, Tuple.Create(Tuple.Create(" ", 927), Tuple.Create<System.Object, System.Int32>(icos[_idx++]
+, Tuple.Create(Tuple.Create(" ", 935), Tuple.Create<System.Object, System.Int32>(icos[_idx++]
             
             #line default
             #line hidden
-, 928), false)
+, 936), false)
 );
 
 WriteLiteral("></i>\r\n                <span");
@@ -212,14 +212,14 @@ WriteLiteral("\r\n                            </a>\r\n");
             #line hidden
 WriteLiteral("                            <a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 1710), Tuple.Create("\"", 1740)
+WriteAttribute("href", Tuple.Create(" href=\"", 1718), Tuple.Create("\"", 1748)
             
             #line 46 "..\..\Areas\Admin\Views\Index\_Left.cshtml"
-, Tuple.Create(Tuple.Create("", 1717), Tuple.Create<System.Object, System.Int32>(Url.Content(menu2.Url)
+, Tuple.Create(Tuple.Create("", 1725), Tuple.Create<System.Object, System.Int32>(Url.Content(menu2.Url)
             
             #line default
             #line hidden
-, 1717), false)
+, 1725), false)
 );
 
 WriteLiteral(" target=\"main\"");
@@ -274,14 +274,14 @@ WriteLiteral(">\r\n");
             #line hidden
 WriteLiteral("                                <li>\r\n                                    <a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 2240), Tuple.Create("\"", 2270)
+WriteAttribute("href", Tuple.Create(" href=\"", 2248), Tuple.Create("\"", 2278)
             
             #line 57 "..\..\Areas\Admin\Views\Index\_Left.cshtml"
-, Tuple.Create(Tuple.Create("", 2247), Tuple.Create<System.Object, System.Int32>(Url.Content(menu3.Url)
+, Tuple.Create(Tuple.Create("", 2255), Tuple.Create<System.Object, System.Int32>(Url.Content(menu3.Url)
             
             #line default
             #line hidden
-, 2247), false)
+, 2255), false)
 );
 
 WriteLiteral(" target=\"main\"");

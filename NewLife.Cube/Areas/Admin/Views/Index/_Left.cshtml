@@ -20,7 +20,7 @@
     @foreach (IMenu menu in Menus.Where(m => m.Visible))
     {
         if (_idx >= icos.Length) { _idx = 0; }
-        <li @(menu == Menus[0] ? "class=\"active open\"" : "")>
+        <li @Html.Raw(menu == Menus[0] ? "class=\"active open\"" : "")>
             <a href="#" class="dropdown-toggle">
                 <i class="menu-icon fa @icos[_idx++]"></i>
                 <span class="menu-text">@menu.DisplayName</span>

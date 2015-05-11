@@ -26,7 +26,7 @@
                         <td>@entity.DisplayName</td>
                         <td>@Html.CheckBox("p" + entity.ID, role.Has(entity.ID))</td>
                         <td>
-                            @if (entity.ChildKeys.Count == 0 && entity.Visible)
+                            @if (entity.ChildKeys.Count == 0)
                             {
                                 foreach (var item in entity.Permissions)
                                 {
