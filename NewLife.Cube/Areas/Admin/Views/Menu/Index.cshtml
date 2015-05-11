@@ -29,6 +29,8 @@
             <tbody>
                 @foreach (var entity in Model)
                 {
+                    var p = entity.Parent;
+                    if (p == null) p = Menu.Root;
                     <tr>
                         <td>@entity.ID</td>
                         <td>@entity.TreeNodeName</td>
@@ -38,13 +40,13 @@
                         @Html.Partial("_List_Data_Item", new Pair(entity, fact.Table.FindByName("Visible")))
                         @Html.Partial("_List_Data_Item", new Pair(entity, fact.Table.FindByName("Necessary")))
                         <td>
-                            @if (entity.Parent != null && entity != entity.Parent.Childs[0])
+                            @if (p != null && entity != p.Childs[0])
                             {
                                 <a href="@Url.Action("Up", new { id = entity.ID })"><span class="glyphicon glyphicon-arrow-up" style="color: green;"></span></a>
                             }
                         </td>
                         <td>
-                            @if (entity.Parent != null && entity != entity.Parent.Childs[entity.Parent.Childs.Count - 1])
+                            @if (p != null && entity != p.Childs[p.Childs.Count - 1])
                             {
                                 <a href="@Url.Action("Down", new { id = entity.ID })"><span class="glyphicon glyphicon-arrow-down" style="color: red;"></span></a>
                             }
