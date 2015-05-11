@@ -489,7 +489,8 @@ namespace System
             if (buf == null || buf.Length < 1 || offset >= buf.Length) return null;
             if (encoding == null) encoding = Encoding.UTF8;
 
-            if (count < 0) count = buf.Length - offset;
+            var size = buf.Length - offset;
+            if (count < 0 || count > size) count = size;
 
             // 可能数据流前面有编码字节序列，需要先去掉
             var idx = 0;
