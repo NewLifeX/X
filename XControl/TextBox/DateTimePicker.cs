@@ -289,7 +289,7 @@ namespace XControl
                 sb.Append("})");
 
                 Attributes.Add("onFocus", sb.ToString());
-                CssClass = "Wdate";
+                CssClass += "Wdate";
 
                 if (LongTime && !MinTime)
                     Width = new Unit(152);
