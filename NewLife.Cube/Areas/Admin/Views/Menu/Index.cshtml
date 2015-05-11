@@ -30,7 +30,10 @@
                 @foreach (var entity in Model)
                 {
                     var p = entity.Parent;
-                    if (p == null) p = Menu.Root;
+                    if (p == null)
+                    {
+                        p = Menu.Root;
+                    }
                     <tr>
                         <td>@entity.ID</td>
                         <td>@entity.TreeNodeName</td>

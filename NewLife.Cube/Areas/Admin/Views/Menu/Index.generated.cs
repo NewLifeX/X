@@ -123,7 +123,10 @@ WriteLiteral(@">
                  foreach (var entity in Model)
                 {
                     var p = entity.Parent;
-                    if (p == null) p = Menu.Root;
+                    if (p == null)
+                    {
+                        p = Menu.Root;
+                    }
 
             
             #line default
@@ -131,7 +134,7 @@ WriteLiteral(@">
 WriteLiteral("                    <tr>\r\n                        <td>");
 
             
-            #line 35 "..\..\Areas\Admin\Views\Menu\Index.cshtml"
+            #line 38 "..\..\Areas\Admin\Views\Menu\Index.cshtml"
                        Write(entity.ID);
 
             
@@ -140,7 +143,7 @@ WriteLiteral("                    <tr>\r\n                        <td>");
 WriteLiteral("</td>\r\n                        <td>");
 
             
-            #line 36 "..\..\Areas\Admin\Views\Menu\Index.cshtml"
+            #line 39 "..\..\Areas\Admin\Views\Menu\Index.cshtml"
                        Write(entity.TreeNodeName);
 
             
@@ -149,7 +152,7 @@ WriteLiteral("</td>\r\n                        <td>");
 WriteLiteral("</td>\r\n                        <td>");
 
             
-            #line 37 "..\..\Areas\Admin\Views\Menu\Index.cshtml"
+            #line 40 "..\..\Areas\Admin\Views\Menu\Index.cshtml"
                        Write(entity.DisplayName);
 
             
@@ -158,7 +161,7 @@ WriteLiteral("</td>\r\n                        <td>");
 WriteLiteral("</td>\r\n                        <td>");
 
             
-            #line 38 "..\..\Areas\Admin\Views\Menu\Index.cshtml"
+            #line 41 "..\..\Areas\Admin\Views\Menu\Index.cshtml"
                        Write(entity.Url);
 
             
@@ -167,7 +170,7 @@ WriteLiteral("</td>\r\n                        <td>");
 WriteLiteral("</td>\r\n                        <td>");
 
             
-            #line 39 "..\..\Areas\Admin\Views\Menu\Index.cshtml"
+            #line 42 "..\..\Areas\Admin\Views\Menu\Index.cshtml"
                        Write(entity.Sort);
 
             
@@ -178,7 +181,7 @@ WriteLiteral("</td>\r\n");
 WriteLiteral("                        ");
 
             
-            #line 40 "..\..\Areas\Admin\Views\Menu\Index.cshtml"
+            #line 43 "..\..\Areas\Admin\Views\Menu\Index.cshtml"
                    Write(Html.Partial("_List_Data_Item", new Pair(entity, fact.Table.FindByName("Visible"))));
 
             
@@ -189,7 +192,7 @@ WriteLiteral("\r\n");
 WriteLiteral("                        ");
 
             
-            #line 41 "..\..\Areas\Admin\Views\Menu\Index.cshtml"
+            #line 44 "..\..\Areas\Admin\Views\Menu\Index.cshtml"
                    Write(Html.Partial("_List_Data_Item", new Pair(entity, fact.Table.FindByName("Necessary"))));
 
             
@@ -198,13 +201,13 @@ WriteLiteral("                        ");
 WriteLiteral("\r\n                        <td>\r\n");
 
             
-            #line 43 "..\..\Areas\Admin\Views\Menu\Index.cshtml"
+            #line 46 "..\..\Areas\Admin\Views\Menu\Index.cshtml"
                             
             
             #line default
             #line hidden
             
-            #line 43 "..\..\Areas\Admin\Views\Menu\Index.cshtml"
+            #line 46 "..\..\Areas\Admin\Views\Menu\Index.cshtml"
                              if (p != null && entity != p.Childs[0])
                             {
 
@@ -213,14 +216,14 @@ WriteLiteral("\r\n                        <td>\r\n");
             #line hidden
 WriteLiteral("                                <a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 1690), Tuple.Create("\"", 1738)
+WriteAttribute("href", Tuple.Create(" href=\"", 1761), Tuple.Create("\"", 1809)
             
-            #line 45 "..\..\Areas\Admin\Views\Menu\Index.cshtml"
-, Tuple.Create(Tuple.Create("", 1697), Tuple.Create<System.Object, System.Int32>(Url.Action("Up", new { id = entity.ID })
+            #line 48 "..\..\Areas\Admin\Views\Menu\Index.cshtml"
+, Tuple.Create(Tuple.Create("", 1768), Tuple.Create<System.Object, System.Int32>(Url.Action("Up", new { id = entity.ID })
             
             #line default
             #line hidden
-, 1697), false)
+, 1768), false)
 );
 
 WriteLiteral("><span");
@@ -232,7 +235,7 @@ WriteLiteral(" style=\"color: green;\"");
 WriteLiteral("></span></a>\r\n");
 
             
-            #line 46 "..\..\Areas\Admin\Views\Menu\Index.cshtml"
+            #line 49 "..\..\Areas\Admin\Views\Menu\Index.cshtml"
                             }
 
             
@@ -241,13 +244,13 @@ WriteLiteral("></span></a>\r\n");
 WriteLiteral("                        </td>\r\n                        <td>\r\n");
 
             
-            #line 49 "..\..\Areas\Admin\Views\Menu\Index.cshtml"
+            #line 52 "..\..\Areas\Admin\Views\Menu\Index.cshtml"
                             
             
             #line default
             #line hidden
             
-            #line 49 "..\..\Areas\Admin\Views\Menu\Index.cshtml"
+            #line 52 "..\..\Areas\Admin\Views\Menu\Index.cshtml"
                              if (p != null && entity != p.Childs[p.Childs.Count - 1])
                             {
 
@@ -256,14 +259,14 @@ WriteLiteral("                        </td>\r\n                        <td>\r\n"
             #line hidden
 WriteLiteral("                                <a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 2062), Tuple.Create("\"", 2112)
+WriteAttribute("href", Tuple.Create(" href=\"", 2133), Tuple.Create("\"", 2183)
             
-            #line 51 "..\..\Areas\Admin\Views\Menu\Index.cshtml"
-, Tuple.Create(Tuple.Create("", 2069), Tuple.Create<System.Object, System.Int32>(Url.Action("Down", new { id = entity.ID })
+            #line 54 "..\..\Areas\Admin\Views\Menu\Index.cshtml"
+, Tuple.Create(Tuple.Create("", 2140), Tuple.Create<System.Object, System.Int32>(Url.Action("Down", new { id = entity.ID })
             
             #line default
             #line hidden
-, 2069), false)
+, 2140), false)
 );
 
 WriteLiteral("><span");
@@ -275,7 +278,7 @@ WriteLiteral(" style=\"color: red;\"");
 WriteLiteral("></span></a>\r\n");
 
             
-            #line 52 "..\..\Areas\Admin\Views\Menu\Index.cshtml"
+            #line 55 "..\..\Areas\Admin\Views\Menu\Index.cshtml"
                             }
 
             
@@ -286,7 +289,7 @@ WriteLiteral("                        </td>\r\n                        <td>\r\n"
 WriteLiteral("                            ");
 
             
-            #line 55 "..\..\Areas\Admin\Views\Menu\Index.cshtml"
+            #line 58 "..\..\Areas\Admin\Views\Menu\Index.cshtml"
                        Write(Html.Partial("_List_Data_Action", entity.ID));
 
             
@@ -295,7 +298,7 @@ WriteLiteral("                            ");
 WriteLiteral("\r\n                        </td>\r\n                    </tr>\r\n");
 
             
-            #line 58 "..\..\Areas\Admin\Views\Menu\Index.cshtml"
+            #line 61 "..\..\Areas\Admin\Views\Menu\Index.cshtml"
                 }
 
             
@@ -310,7 +313,7 @@ WriteLiteral(">\r\n        <p>\r\n");
 WriteLiteral("            ");
 
             
-            #line 64 "..\..\Areas\Admin\Views\Menu\Index.cshtml"
+            #line 67 "..\..\Areas\Admin\Views\Menu\Index.cshtml"
        Write(Html.Partial("_List_Pager"));
 
             
