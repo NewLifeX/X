@@ -157,10 +157,10 @@ namespace NewLife.Cube
 
         #region 辅助
         /// <summary>列表字段过滤</summary>
-        protected String[] ListFields;
+        protected static String[] ListFields;
 
         /// <summary>表单字段过滤</summary>
-        protected String[] FormFields;
+        protected static String[] FormFields;
 
         /// <summary>获取要显示的字段列表</summary>
         /// <param name="isForm">是否是表单</param>
