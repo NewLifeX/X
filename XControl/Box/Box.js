@@ -512,12 +512,12 @@ Dialog.prototype.show = function() {
                 bgIframeDoc.write("<body style='background-color:#333' oncontextmenu='return false;'></body>");
                 bgIframeDoc.close();
             }
-            bgdiv.style.cssText = "background-color:#333;position:absolute;left:0px;top:0px;opacity:0.4;filter:alpha(opacity=40);width:100%;height:" + sh + "px;z-index:991";
+            bgdiv.style.cssText = "background-color:#333;position:absolute;left:0px;top:0px;opacity:0.4;filter:alpha(opacity=40);width:100%;height:" + sh + "px;z-index:1991";
         }
         $E.show(bgdiv);
         this.bgdivID = "_AlertBGDiv";
     }
-    this.DialogDiv.style.cssText = "position:absolute; display:block;z-index:" + (this.AlertFlag ? 992 : 990) + ";left:" + this.Left + "px;top:" + this.Top + "px";
+    this.DialogDiv.style.cssText = "position:absolute; display:block;z-index:" + (this.AlertFlag ? 1992 : 1990) + ";left:" + this.Left + "px;top:" + this.Top + "px";
 
     //判断当前窗口是否是对话框，如果是，则将其置在bgdiv之后
     if (!this.AlertFlag) {
@@ -532,7 +532,7 @@ Dialog.prototype.show = function() {
             win = win.parent;
         }
         if (!flag) {
-            bgdiv.style.cssText = "background-color:#333;position:absolute;left:0px;top:0px;opacity:0.4;filter:alpha(opacity=40);width:100%;height:" + sh + "px;z-index:960";
+            bgdiv.style.cssText = "background-color:#333;position:absolute;left:0px;top:0px;opacity:0.4;filter:alpha(opacity=40);width:100%;height:" + sh + "px;z-index:1960";
         }
         //this.ParentWindow.$D = this;
     }
