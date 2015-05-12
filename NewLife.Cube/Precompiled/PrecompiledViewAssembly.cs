@@ -11,10 +11,10 @@ namespace NewLife.Cube.Precompiled
         private readonly Assembly _assembly;
         private readonly Lazy<DateTime> _assemblyLastWriteTime;
 
-        /// <summary>优先使用物理文件</summary>
+        /// <summary>取代物理文件，优先内嵌类</summary>
         public Boolean PreemptPhysicalFiles { get; set; }
 
-        /// <summary>使用更新的物理文件</summary>
+        /// <summary>仅在物理文件较新时使用物理文件</summary>
         public Boolean UsePhysicalViewsIfNewer { get; set; }
 
         /// <summary>实例化预编译视图程序集</summary>
@@ -28,8 +28,9 @@ namespace NewLife.Cube.Precompiled
         {
             if (assembly == null) throw new ArgumentNullException("assembly");
 
-            PreemptPhysicalFiles = true;
-            UsePhysicalViewsIfNewer = true;
+            // 为了实现物理文件“重载覆盖”的效果，强制使用物理文件
+            PreemptPhysicalFiles = false;
+            UsePhysicalViewsIfNewer = false;
 
             _baseVirtualPath = PrecompiledMvcEngine.NormalizeBaseVirtualPath(baseVirtualPath);
             _assembly = assembly;

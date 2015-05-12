@@ -19,7 +19,7 @@ namespace NewLife.Cube.Precompiled
         private readonly Lazy<DateTime> _assemblyLastWriteTime;
         //private readonly IViewPageActivator _viewPageActivator;
 
-        /// <summary>优先使用物理文件</summary>
+        /// <summary>取代物理文件，优先内嵌类</summary>
         public Boolean PreemptPhysicalFiles { get; set; }
 
         /// <summary>使用更新的物理文件</summary>
@@ -41,7 +41,10 @@ namespace NewLife.Cube.Precompiled
         public PrecompiledMvcEngine(Assembly assembly, String baseVirtualPath, IViewPageActivator viewPageActivator)
             : base(viewPageActivator)
         {
-            //PrecompiledMvcEngine <>4__this = this;
+            // 为了实现物理文件“重载覆盖”的效果，强制使用物理文件
+            PreemptPhysicalFiles = false;
+            UsePhysicalViewsIfNewer = false;
+
             _assemblyLastWriteTime = new Lazy<DateTime>(() => assembly.GetLastWriteTimeUtc(DateTime.MaxValue));
             _baseVirtualPath = NormalizeBaseVirtualPath(baseVirtualPath);
             AreaViewLocationFormats = new String[]
@@ -89,14 +92,25 @@ namespace NewLife.Cube.Precompiled
             //_viewPageActivator = (viewPageActivator ?? (DependencyResolver.Current.GetService<IViewPageActivator>() ?? DefaultViewPageActivator.Current));
         }
 
-        /// <summary>文件是否存在</summary>
+        /// <summary>文件是否存在。如果存在，则由当前引擎创建视图</summary>
         /// <param name="controllerContext"></param>
         /// <param name="virtualPath"></param>
         /// <returns></returns>
         protected override Boolean FileExists(ControllerContext controllerContext, String virtualPath)
         {
             virtualPath = EnsureVirtualPathPrefix(virtualPath);
-            return (!UsePhysicalViewsIfNewer || !IsPhysicalFileNewer(virtualPath)) && Exists(virtualPath);
+
+            // 如果映射表不存在，就不要掺合啦
+            if (!Exists(virtualPath)) return false;
+
+            // 两个条件任意一个满足即可使用物理文件
+            // 如果不要求取代物理文件，并且虚拟文件存在，则使用物理文件创建
+            if (!PreemptPhysicalFiles && VirtualPathProvider.FileExists(virtualPath)) return false;
+
+            // 如果使用较新的物理文件，且物理文件的确较新，则使用物理文件创建
+            if (UsePhysicalViewsIfNewer && IsPhysicalFileNewer(virtualPath)) return false;
+
+            return true;
         }
 
         /// <summary>创建分部视图</summary>
@@ -123,37 +137,33 @@ namespace NewLife.Cube.Precompiled
         private IView CreateViewInternal(String viewPath, String masterPath, Boolean runViewStartPages)
         {
             Type type;
-            if (_mappings.TryGetValue(viewPath, out type))
-                return new PrecompiledMvcView(viewPath, masterPath, type, runViewStartPages, FileExtensions, ViewPageActivator);
-            else
-                return null;
+            if (!_mappings.TryGetValue(viewPath, out type)) return null;
+
+            return new PrecompiledMvcView(viewPath, masterPath, type, runViewStartPages, FileExtensions, ViewPageActivator);
         }
 
-        /// <summary>创建实例</summary>
+        /// <summary>创建实例。Start和Layout会调用这里</summary>
         /// <param name="virtualPath"></param>
         /// <returns></returns>
         public Object CreateInstance(String virtualPath)
         {
             virtualPath = EnsureVirtualPathPrefix(virtualPath);
-            Object result;
-            Type type;
+
+            // 两个条件任意一个满足即可使用物理文件
+            // 如果不要求取代物理文件，并且虚拟文件存在，则使用物理文件创建
             if (!PreemptPhysicalFiles && VirtualPathProvider.FileExists(virtualPath))
-            {
-                result = BuildManager.CreateInstanceFromVirtualPath(virtualPath, typeof(WebPageRenderingBase));
-            }
-            else if (UsePhysicalViewsIfNewer && IsPhysicalFileNewer(virtualPath))
-            {
-                result = BuildManager.CreateInstanceFromVirtualPath(virtualPath, typeof(WebViewPage));
-            }
-            else if (_mappings.TryGetValue(virtualPath, out type))
-            {
-                result = ViewPageActivator.Create(null, type);
-            }
-            else
-            {
-                result = null;
-            }
-            return result;
+                return BuildManager.CreateInstanceFromVirtualPath(virtualPath, typeof(WebPageRenderingBase));
+
+            // 如果使用较新的物理文件，且物理文件的确较新，则使用物理文件创建
+            if (UsePhysicalViewsIfNewer && IsPhysicalFileNewer(virtualPath))
+                return BuildManager.CreateInstanceFromVirtualPath(virtualPath, typeof(WebViewPage));
+
+            // 最后使用内嵌类创建
+            Type type;
+            if (_mappings.TryGetValue(virtualPath, out type))
+                return ViewPageActivator.Create(null, type);
+
+            return null;
         }
 
         /// <summary>是否存在</summary>
@@ -177,21 +187,12 @@ namespace NewLife.Cube.Precompiled
         /// <returns></returns>
         internal static Boolean IsPhysicalFileNewer(String virtualPath, String baseVirtualPath, Lazy<DateTime> assemblyLastWriteTime)
         {
-            Boolean result;
-            if (virtualPath.StartsWith(baseVirtualPath ?? String.Empty, StringComparison.OrdinalIgnoreCase))
-            {
-                if (!String.IsNullOrEmpty(baseVirtualPath))
-                {
-                    virtualPath = "~/" + virtualPath.Substring(baseVirtualPath.Length);
-                }
-                String path = HostingEnvironment.MapPath(virtualPath);
-                result = (File.Exists(path) && File.GetLastWriteTimeUtc(path) > assemblyLastWriteTime.Value);
-            }
-            else
-            {
-                result = false;
-            }
-            return result;
+            if (!virtualPath.StartsWithIgnoreCase(baseVirtualPath + "")) return false;
+
+            if (!String.IsNullOrEmpty(baseVirtualPath)) virtualPath = "~/" + virtualPath.Substring(baseVirtualPath.Length);
+
+            var path = HostingEnvironment.MapPath(virtualPath);
+            return File.Exists(path) && File.GetLastWriteTimeUtc(path) > assemblyLastWriteTime.Value;
         }
 
         private static String EnsureVirtualPathPrefix(String virtualPath)
@@ -199,13 +200,7 @@ namespace NewLife.Cube.Precompiled
             if (!String.IsNullOrEmpty(virtualPath))
             {
                 if (!virtualPath.StartsWith("~/", StringComparison.Ordinal))
-                {
-                    virtualPath = "~/" + virtualPath.TrimStart(new char[]
-					{
-						'/',
-						'~'
-					});
-                }
+                    virtualPath = "~/" + virtualPath.TrimStart('/', '~');
             }
             return virtualPath;
         }
@@ -213,13 +208,8 @@ namespace NewLife.Cube.Precompiled
         internal static String NormalizeBaseVirtualPath(String virtualPath)
         {
             if (!String.IsNullOrEmpty(virtualPath))
-            {
-                virtualPath = EnsureVirtualPathPrefix(virtualPath);
-                if (!virtualPath.EndsWith("/", StringComparison.Ordinal))
-                {
-                    virtualPath += "/";
-                }
-            }
+                virtualPath = EnsureVirtualPathPrefix(virtualPath).EnsureEnd("/");
+
             return virtualPath;
         }
 

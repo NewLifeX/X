@@ -76,14 +76,27 @@ namespace NewLife.Cube.Precompiled
             //_viewPageActivator = (viewPageActivator ?? (DependencyResolver.Current.GetService<IViewPageActivator>() ?? DefaultViewPageActivator.Current));
         }
 
-        /// <summary>文件是否存在</summary>
+        /// <summary>文件是否存在。如果存在，则由当前引擎创建视图</summary>
         /// <param name="controllerContext"></param>
         /// <param name="virtualPath"></param>
         /// <returns></returns>
         protected override Boolean FileExists(ControllerContext controllerContext, String virtualPath)
         {
             ViewMapping viewMapping;
-            return _mappings.TryGetValue(virtualPath, out viewMapping) && (!viewMapping.ViewAssembly.UsePhysicalViewsIfNewer || !viewMapping.ViewAssembly.IsPhysicalFileNewer(virtualPath)) && Exists(virtualPath);
+            if (!_mappings.TryGetValue(virtualPath, out viewMapping)) return false;
+
+            // 如果映射表不存在，就不要掺合啦
+            if (!Exists(virtualPath)) return false;
+
+            var asm = viewMapping.ViewAssembly;
+            // 两个条件任意一个满足即可使用物理文件
+            // 如果不要求取代物理文件，并且虚拟文件存在，则使用物理文件创建
+            if (!asm.PreemptPhysicalFiles && VirtualPathProvider.FileExists(virtualPath)) return false;
+
+            // 如果使用较新的物理文件，且物理文件的确较新，则使用物理文件创建
+            if (asm.UsePhysicalViewsIfNewer && asm.IsPhysicalFileNewer(virtualPath)) return false;
+
+            return true;
         }
 
         /// <summary>创建分部视图</summary>
@@ -108,36 +121,33 @@ namespace NewLife.Cube.Precompiled
         private IView CreateViewInternal(String viewPath, String masterPath, Boolean runViewStartPages)
         {
             ViewMapping viewMapping;
-            if (_mappings.TryGetValue(viewPath, out viewMapping))
-                return new PrecompiledMvcView(viewPath, masterPath, viewMapping.Type, runViewStartPages, FileExtensions, ViewPageActivator);
-            else
-                return null;
+            if (!_mappings.TryGetValue(viewPath, out viewMapping)) return null;
+
+            return new PrecompiledMvcView(viewPath, masterPath, viewMapping.Type, runViewStartPages, FileExtensions, ViewPageActivator);
         }
 
-        /// <summary>创建实例</summary>
+        /// <summary>创建实例。Start和Layout会调用这里</summary>
         /// <param name="virtualPath"></param>
         /// <returns></returns>
         public Object CreateInstance(String virtualPath)
         {
             ViewMapping viewMapping;
-            Object result;
-            if (!_mappings.TryGetValue(virtualPath, out viewMapping))
-            {
-                result = null;
-            }
-            else if (!viewMapping.ViewAssembly.PreemptPhysicalFiles && VirtualPathProvider.FileExists(virtualPath))
-            {
-                result = BuildManager.CreateInstanceFromVirtualPath(virtualPath, typeof(WebPageRenderingBase));
-            }
-            else if (viewMapping.ViewAssembly.UsePhysicalViewsIfNewer && viewMapping.ViewAssembly.IsPhysicalFileNewer(virtualPath))
-            {
-                result = BuildManager.CreateInstanceFromVirtualPath(virtualPath, typeof(WebViewPage));
-            }
-            else
-            {
-                result = ViewPageActivator.Create(null, viewMapping.Type);
-            }
-            return result;
+
+            // 如果没有该映射，则直接返回空
+            if (!_mappings.TryGetValue(virtualPath, out viewMapping)) return null;
+
+            var asm = viewMapping.ViewAssembly;
+            // 两个条件任意一个满足即可使用物理文件
+            // 如果不要求取代物理文件，并且虚拟文件存在，则使用物理文件创建
+            if (!asm.PreemptPhysicalFiles && VirtualPathProvider.FileExists(virtualPath))
+                return BuildManager.CreateInstanceFromVirtualPath(virtualPath, typeof(WebPageRenderingBase));
+
+            // 如果使用较新的物理文件，且物理文件的确较新，则使用物理文件创建
+            if (asm.UsePhysicalViewsIfNewer && asm.IsPhysicalFileNewer(virtualPath))
+                return BuildManager.CreateInstanceFromVirtualPath(virtualPath, typeof(WebViewPage));
+
+            // 最后使用内嵌类创建
+            return ViewPageActivator.Create(null, viewMapping.Type);
         }
 
         /// <summary>是否存在</summary>

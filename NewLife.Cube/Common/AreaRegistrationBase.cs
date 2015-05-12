@@ -3,10 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Reflection;
 using System.Threading;
-using System.Web;
-using System.Web.Hosting;
 using System.Web.Mvc;
-using System.Web.Routing;
 using System.Web.WebPages;
 using NewLife.Cube.Precompiled;
 using NewLife.Log;
@@ -41,8 +38,8 @@ namespace NewLife.Cube
         {
             XTrace.WriteLine("{0} Start 初始化魔方 {0}", new String('=', 32));
 
-            // 注册视图引擎
-            RazorViewEngineX.Register(ViewEngines.Engines);
+            //// 注册视图引擎
+            //RazorViewEngineX.Register(ViewEngines.Engines);
 
             // 遍历所有引用了AreaRegistrationBase的程序集
             var list = new List<PrecompiledViewAssembly>();
@@ -53,7 +50,7 @@ namespace NewLife.Cube
                 //    UsePhysicalViewsIfNewer = HttpContext.Current.Request.IsLocal
                 //};
                 //list.Add(pme);
-                XTrace.WriteLine("注册视图程序集：{0}", asm.FullName);
+                XTrace.WriteLine("注册区域视图程序集：{0}", asm.FullName);
 
                 var pva = new PrecompiledViewAssembly(asm);
                 list.Add(pva);
