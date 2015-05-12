@@ -273,6 +273,17 @@ namespace NewLife.Cube
         #endregion
 
         #region 专有属性
+        /// <summary>输出描述</summary>
+        /// <param name="Html"></param>
+        /// <param name="field"></param>
+        /// <returns></returns>
+        public static MvcHtmlString ForDescription(this HtmlHelper Html, FieldItem field)
+        {
+            var des = field.Description.TrimStart(field.DisplayName).TrimStart("。");
+            if (des.IsNullOrWhiteSpace()) return new MvcHtmlString(null);
+
+            return new MvcHtmlString("<p class=\"help-block\">{0}</p>".F(des));
+        }
         #endregion
     }
 }

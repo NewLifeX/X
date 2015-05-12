@@ -77,8 +77,6 @@ namespace ASP
             break;
     }
 
-    var des = item.Description.TrimStart(item.DisplayName).TrimStart("。");
-
             
             #line default
             #line hidden
@@ -89,7 +87,7 @@ WriteLiteral(" class=\"control-label col-md-2\"");
 WriteLiteral(">");
 
             
-            #line 22 "..\..\Views\Shared\_Form_Item.cshtml"
+            #line 20 "..\..\Views\Shared\_Form_Item.cshtml"
                                  Write(item.DisplayName);
 
             
@@ -97,16 +95,16 @@ WriteLiteral(">");
             #line hidden
 WriteLiteral("</label>\r\n<div");
 
-WriteAttribute("class", Tuple.Create(" class=\"", 558), Tuple.Create("\"", 591)
-, Tuple.Create(Tuple.Create("", 566), Tuple.Create("input-group", 566), true)
-, Tuple.Create(Tuple.Create(" ", 577), Tuple.Create("col-md-", 578), true)
+WriteAttribute("class", Tuple.Create(" class=\"", 480), Tuple.Create("\"", 513)
+, Tuple.Create(Tuple.Create("", 488), Tuple.Create("input-group", 488), true)
+, Tuple.Create(Tuple.Create(" ", 499), Tuple.Create("col-md-", 500), true)
             
-            #line 23 "..\..\Views\Shared\_Form_Item.cshtml"
-, Tuple.Create(Tuple.Create("", 585), Tuple.Create<System.Object, System.Int32>(width
+            #line 21 "..\..\Views\Shared\_Form_Item.cshtml"
+, Tuple.Create(Tuple.Create("", 507), Tuple.Create<System.Object, System.Int32>(width
             
             #line default
             #line hidden
-, 585), false)
+, 507), false)
 );
 
 WriteLiteral(">\r\n");
@@ -114,7 +112,7 @@ WriteLiteral(">\r\n");
 WriteLiteral("    ");
 
             
-            #line 24 "..\..\Views\Shared\_Form_Item.cshtml"
+            #line 22 "..\..\Views\Shared\_Form_Item.cshtml"
 Write(Html.ForEditor(item, entity));
 
             
@@ -122,43 +120,16 @@ Write(Html.ForEditor(item, entity));
             #line hidden
 WriteLiteral("\r\n");
 
+WriteLiteral("    ");
+
             
-            #line 25 "..\..\Views\Shared\_Form_Item.cshtml"
-    
-            
-            #line default
-            #line hidden
-            
-            #line 25 "..\..\Views\Shared\_Form_Item.cshtml"
-     if (!des.IsNullOrWhiteSpace())
-    {
+            #line 23 "..\..\Views\Shared\_Form_Item.cshtml"
+Write(Html.ForDescription(item));
 
             
             #line default
             #line hidden
-WriteLiteral("        <p");
-
-WriteLiteral(" class=\"help-block\"");
-
-WriteLiteral(">");
-
-            
-            #line 27 "..\..\Views\Shared\_Form_Item.cshtml"
-                         Write(des);
-
-            
-            #line default
-            #line hidden
-WriteLiteral("</p>\r\n");
-
-            
-            #line 28 "..\..\Views\Shared\_Form_Item.cshtml"
-    }
-
-            
-            #line default
-            #line hidden
-WriteLiteral("</div>");
+WriteLiteral("\r\n</div>");
 
         }
     }
