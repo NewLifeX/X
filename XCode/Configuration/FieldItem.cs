@@ -96,6 +96,10 @@ namespace XCode.Configuration
         /// <summary>默认值</summary>
         public String DefaultValue { get { return _DefaultValue; } internal set { _DefaultValue = value; } }
 
+        private Boolean _ReadOnly;
+        /// <summary>是否只读</summary>
+        public Boolean ReadOnly { get { return _ReadOnly; } }
+
         internal TableItem _Table;
         /// <summary>表</summary>
         public TableItem Table { get { return _Table; } }
@@ -168,6 +172,9 @@ namespace XCode.Configuration
                 else if (di != null && !di.DisplayName.IsNullOrEmpty())
                     Description = di.DisplayName;
 
+                _ReadOnly = !property.CanWrite;
+                var ra = property.GetCustomAttribute<ReadOnlyAttribute>();
+                if (ra != null) _ReadOnly = ra.IsReadOnly;
             }
         }
         #endregion
