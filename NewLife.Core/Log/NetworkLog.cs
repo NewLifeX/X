@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Net;
 using System.Net.Sockets;
-using System.Windows.Forms;
+//using System.Windows.Forms;
 
 namespace NewLife.Log
 {
