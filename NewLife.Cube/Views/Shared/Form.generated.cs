@@ -65,6 +65,7 @@ namespace ASP
   
     Layout = "~/Views/Shared/_Ace_Layout.cshtml";
     var fact = ViewBag.Factory as IEntityOperate;
+    var fields = ViewBag.Fields as List<FieldItem>;
     var isNew = (Model as IEntity).IsNullKey;
 
             
@@ -81,13 +82,13 @@ WriteLiteral(" class=\"form-horizontal\"");
 WriteLiteral(">\r\n");
 
             
-            #line 11 "..\..\Views\Shared\Form.cshtml"
+            #line 12 "..\..\Views\Shared\Form.cshtml"
         
             
             #line default
             #line hidden
             
-            #line 11 "..\..\Views\Shared\Form.cshtml"
+            #line 12 "..\..\Views\Shared\Form.cshtml"
          if (ViewBag.StatusMessage != null)
         {
 
@@ -117,7 +118,7 @@ WriteLiteral(" aria-hidden=\"true\"");
 WriteLiteral(">&times;</span></button>\r\n                <strong>");
 
             
-            #line 15 "..\..\Views\Shared\Form.cshtml"
+            #line 16 "..\..\Views\Shared\Form.cshtml"
                    Write(ViewBag.StatusMessage);
 
             
@@ -126,7 +127,7 @@ WriteLiteral(">&times;</span></button>\r\n                <strong>");
 WriteLiteral("</strong>\r\n            </div>\r\n");
 
             
-            #line 17 "..\..\Views\Shared\Form.cshtml"
+            #line 18 "..\..\Views\Shared\Form.cshtml"
         }
 
             
@@ -135,7 +136,7 @@ WriteLiteral("</strong>\r\n            </div>\r\n");
 WriteLiteral("        ");
 
             
-            #line 18 "..\..\Views\Shared\Form.cshtml"
+            #line 19 "..\..\Views\Shared\Form.cshtml"
          using (Html.BeginForm((isNew ? "Add" : "Edit"), null, new { id = Model[fact.Unique.Name] }))
         {
             
@@ -143,30 +144,30 @@ WriteLiteral("        ");
             #line default
             #line hidden
             
-            #line 20 "..\..\Views\Shared\Form.cshtml"
+            #line 21 "..\..\Views\Shared\Form.cshtml"
        Write(Html.AntiForgeryToken());
 
             
             #line default
             #line hidden
             
-            #line 20 "..\..\Views\Shared\Form.cshtml"
+            #line 21 "..\..\Views\Shared\Form.cshtml"
                                     
             
             
             #line default
             #line hidden
             
-            #line 21 "..\..\Views\Shared\Form.cshtml"
+            #line 22 "..\..\Views\Shared\Form.cshtml"
        Write(Html.ValidationSummary());
 
             
             #line default
             #line hidden
             
-            #line 21 "..\..\Views\Shared\Form.cshtml"
+            #line 22 "..\..\Views\Shared\Form.cshtml"
                                      
-            foreach (var item in fact.Fields)
+            foreach (var item in fields)
             {
                 if (!item.PrimaryKey)
                 {
@@ -183,7 +184,7 @@ WriteLiteral(">\r\n");
 WriteLiteral("                        ");
 
             
-            #line 27 "..\..\Views\Shared\Form.cshtml"
+            #line 28 "..\..\Views\Shared\Form.cshtml"
                    Write(Html.Partial("_Form_Item", new Pair(Model, item)));
 
             
@@ -192,7 +193,7 @@ WriteLiteral("                        ");
 WriteLiteral("\r\n                    </div>\r\n");
 
             
-            #line 29 "..\..\Views\Shared\Form.cshtml"
+            #line 30 "..\..\Views\Shared\Form.cshtml"
                 }
             }
             
@@ -200,14 +201,14 @@ WriteLiteral("\r\n                    </div>\r\n");
             #line default
             #line hidden
             
-            #line 31 "..\..\Views\Shared\Form.cshtml"
+            #line 32 "..\..\Views\Shared\Form.cshtml"
        Write(Html.Partial("_Form_Action", isNew));
 
             
             #line default
             #line hidden
             
-            #line 31 "..\..\Views\Shared\Form.cshtml"
+            #line 32 "..\..\Views\Shared\Form.cshtml"
                                                 
         }
 

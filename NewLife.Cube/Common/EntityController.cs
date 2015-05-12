@@ -147,7 +147,8 @@ namespace NewLife.Cube
         protected virtual ActionResult FormView(TEntity entity)
         {
             // 用于显示的列
-            ViewBag.Fields = Entity<TEntity>.Meta.Fields;
+            if (ViewBag.Fields == null)
+                ViewBag.Fields = Entity<TEntity>.Meta.Fields.ToList();
             ViewBag.Factory = Entity<TEntity>.Meta.Factory;
 
             return View("Form", entity);
