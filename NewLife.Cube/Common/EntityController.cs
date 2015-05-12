@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Web.Mvc;
 using NewLife.Web;
 using XCode;
+using XCode.Configuration;
 using XCode.Membership;
 
 namespace NewLife.Cube
@@ -34,7 +35,7 @@ namespace NewLife.Cube
             ViewBag.Factory = Entity<TEntity>.Meta.Factory;
 
             // 用于显示的列
-            var fields = Entity<TEntity>.Meta.Fields.ToList();
+            var fields = GetFields(false);
             // 长字段和密码字段不显示
             fields = fields.Where(e => e.Type != typeof(String) ||
                 e.Length > 0 && e.Length <= 200
@@ -147,11 +148,32 @@ namespace NewLife.Cube
         protected virtual ActionResult FormView(TEntity entity)
         {
             // 用于显示的列
-            if (ViewBag.Fields == null)
-                ViewBag.Fields = Entity<TEntity>.Meta.Fields.ToList();
+            if (ViewBag.Fields == null) ViewBag.Fields = GetFields(true);
             ViewBag.Factory = Entity<TEntity>.Meta.Factory;
 
             return View("Form", entity);
+        }
+        #endregion
+
+        #region 辅助
+        /// <summary>列表字段过滤</summary>
+        protected String[] ListFields;
+
+        /// <summary>表单字段过滤</summary>
+        protected String[] FormFields;
+
+        /// <summary>获取要显示的字段列表</summary>
+        /// <param name="isForm">是否是表单</param>
+        /// <returns></returns>
+        protected virtual List<FieldItem> GetFields(Boolean isForm)
+        {
+            var fs = Entity<TEntity>.Meta.Fields.ToList();
+
+            var filter = isForm ? FormFields : ListFields;
+            if (filter == null || filter.Length == 0) return fs;
+
+            fs = Entity<TEntity>.Meta.AllFields.ToList();
+            return fs.Where(e => filter.Contains(e.Name)).ToList();
         }
         #endregion
 
