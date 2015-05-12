@@ -4,6 +4,7 @@ using System.Web.Mvc;
 using System.Web.Mvc.Html;
 using XCode;
 using NewLife.Reflection;
+using XCode.Configuration;
 
 namespace NewLife.Cube
 {
@@ -65,6 +66,43 @@ namespace NewLife.Cube
             var pi = typeof(TModel).GetProperty(name);
 
             return Html.ForEditor(name, Html.ViewData.Model.GetValue(pi), pi.PropertyType, null, htmlAttributes);
+        }
+
+        /// <summary>输出编辑框</summary>
+        /// <param name="Html"></param>
+        /// <param name="field"></param>
+        /// <param name="entity"></param>
+        /// <returns></returns>
+        public static MvcHtmlString ForEditor(this HtmlHelper Html, FieldItem field, IEntity entity = null)
+        {
+            if (entity == null) entity = Html.ViewData.Model as IEntity;
+
+            MvcHtmlString txt = null;
+            if (field.ReadOnly)
+            {
+                var label = "<label class=\"control-label\">{0}</label>".F(entity[field.Name]);
+                txt = new MvcHtmlString(label);
+            }
+            else if (field.Type == typeof(String) && (field.Length <= 0 || field.Length > 300))
+            {
+                txt = Html.ForString(field.Name, (String)entity[field.Name], field.Length);
+            }
+            else
+            {
+                txt = Html.ForEditor(field.Name, entity[field.Name], field.Type);
+            }
+
+            //if (showDescription)
+            //{
+            //    var des = field.Description.TrimStart(field.DisplayName).TrimStart("。");
+            //    if (!des.IsNullOrWhiteSpace())
+            //    {
+            //        des = "<p class=\"help-block\">{0}</p>".F(des);
+            //        txt = new MvcHtmlString(txt.ToString() + des);
+            //    }
+            //}
+
+            return txt;
         }
 
         #region 基础属性

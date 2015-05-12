@@ -111,56 +111,25 @@ WriteAttribute("class", Tuple.Create(" class=\"", 558), Tuple.Create("\"", 591)
 
 WriteLiteral(">\r\n");
 
+WriteLiteral("    ");
+
             
             #line 24 "..\..\Views\Shared\_Form_Item.cshtml"
+Write(Html.ForEditor(item, entity));
+
+            
+            #line default
+            #line hidden
+WriteLiteral("\r\n");
+
+            
+            #line 25 "..\..\Views\Shared\_Form_Item.cshtml"
     
             
             #line default
             #line hidden
             
-            #line 24 "..\..\Views\Shared\_Form_Item.cshtml"
-     if (item.Type == typeof(String) && (item.Length <= 0 || item.Length > 300))
-    {
-        
-            
-            #line default
-            #line hidden
-            
-            #line 26 "..\..\Views\Shared\_Form_Item.cshtml"
-   Write(Html.ForString(item.Name, (String)entity[item.Name], item.Length));
-
-            
-            #line default
-            #line hidden
-            
-            #line 26 "..\..\Views\Shared\_Form_Item.cshtml"
-                                                                          
-    }
-    else
-    {
-        
-            
-            #line default
-            #line hidden
-            
-            #line 30 "..\..\Views\Shared\_Form_Item.cshtml"
-   Write(Html.ForEditor(item.Name, entity[item.Name], item.Type));
-
-            
-            #line default
-            #line hidden
-            
-            #line 30 "..\..\Views\Shared\_Form_Item.cshtml"
-                                                                
-    }
-
-            
-            #line default
-            #line hidden
-WriteLiteral("    ");
-
-            
-            #line 32 "..\..\Views\Shared\_Form_Item.cshtml"
+            #line 25 "..\..\Views\Shared\_Form_Item.cshtml"
      if (!des.IsNullOrWhiteSpace())
     {
 
@@ -174,7 +143,7 @@ WriteLiteral(" class=\"help-block\"");
 WriteLiteral(">");
 
             
-            #line 34 "..\..\Views\Shared\_Form_Item.cshtml"
+            #line 27 "..\..\Views\Shared\_Form_Item.cshtml"
                          Write(des);
 
             
@@ -183,7 +152,7 @@ WriteLiteral(">");
 WriteLiteral("</p>\r\n");
 
             
-            #line 35 "..\..\Views\Shared\_Form_Item.cshtml"
+            #line 28 "..\..\Views\Shared\_Form_Item.cshtml"
     }
 
             
