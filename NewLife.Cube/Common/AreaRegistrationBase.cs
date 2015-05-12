@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Reflection;
@@ -103,6 +104,10 @@ namespace NewLife.Cube
                     //yield return asm;
                 }
             }
+
+            // 为了能够实现模板覆盖，程序集相互引用需要排序，父程序集在前
+            list.Sort((x, y) => x.GetReferencedAssemblies().Any(e => e.FullName == y.FullName) ? 1 : -1);
+
             return list;
         }
 
