@@ -83,10 +83,10 @@ namespace NewLife.Cube.Precompiled
         protected override Boolean FileExists(ControllerContext controllerContext, String virtualPath)
         {
             ViewMapping viewMapping;
+            // 如果映射表不存在，就不要掺合啦
             if (!_mappings.TryGetValue(virtualPath, out viewMapping)) return false;
 
-            // 如果映射表不存在，就不要掺合啦
-            if (!Exists(virtualPath)) return false;
+            //if (!Exists(virtualPath)) return false;
 
             var asm = viewMapping.ViewAssembly;
             // 两个条件任意一个满足即可使用物理文件
