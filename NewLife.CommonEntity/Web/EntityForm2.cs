@@ -713,6 +713,8 @@ namespace NewLife.CommonEntity.Web
 
             Container = container;
             EntityType = entityType;
+            //获取到的ManagePage.Container为空，需要重新赋值
+            ManagePage.Container = container;
 
             Init();
 
