@@ -20,6 +20,9 @@ using System.Web.UI.WebControls;
 [assembly: WebResource("XControl.TextBox.DateTimePicker.skin.default.datepicker.css", "text/css", PerformSubstitution = true)]
 [assembly: WebResource("XControl.TextBox.DateTimePicker.skin.default.img.gif", "image/gif")]
 
+[assembly: WebResource("XControl.TextBox.DateTimePicker.skin.tint.datepicker.css", "text/css", PerformSubstitution = true)]
+[assembly: WebResource("XControl.TextBox.DateTimePicker.skin.tint.img.gif", "image/gif")]
+
 [assembly: WebResource("XControl.TextBox.DateTimePicker.skin.whyGreen.bg.jpg", "image/jpeg")]
 [assembly: WebResource("XControl.TextBox.DateTimePicker.skin.whyGreen.datepicker.css", "text/css", PerformSubstitution = true)]
 [assembly: WebResource("XControl.TextBox.DateTimePicker.skin.whyGreen.img.gif", "image/gif")]
@@ -289,7 +292,7 @@ namespace XControl
                 sb.Append("})");
 
                 Attributes.Add("onFocus", sb.ToString());
-                CssClass += "Wdate";
+                CssClass = "Wdate " + CssClass;
 
                 if (LongTime && !MinTime)
                     Width = new Unit(152);
@@ -307,7 +310,9 @@ namespace XControl
         /// <param name="writer"></param>
         protected override void Render(HtmlTextWriter writer)
         {
-            DateTime v = Value;
+            //如果时间为最小值，则设置Text为空
+            if (Value.Equals(DateTime.MinValue))
+                Text = String.Empty;
             base.Render(writer);
         }
 
@@ -317,6 +322,8 @@ namespace XControl
             {
                 case Skins.默认:
                     return "default";
+                case Skins.浅色:
+                    return "tint";
                 case Skins.绿色:
                     return "whyGreen";
                 default:
@@ -347,6 +354,9 @@ namespace XControl
     {
         /// <summary>默认</summary>
         默认,
+
+        /// <summary>浅色</summary>
+        浅色,
 
         /// <summary>绿色</summary>
         绿色

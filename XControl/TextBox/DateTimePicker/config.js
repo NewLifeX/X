@@ -9,6 +9,7 @@ var skinList =
 [
 	{ name: 'default', charset: 'UTF-8', css: '<%= WebResource("XControl.TextBox.DateTimePicker.skin.default.datepicker.css") %>' }
 	, { name: 'whyGreen', charset: 'UTF-8', css: '<%= WebResource("XControl.TextBox.DateTimePicker.skin.whyGreen.datepicker.css") %>' }
+	, { name: 'tint', charset: 'UTF-8', css: '<%= WebResource("XControl.TextBox.DateTimePicker.skin.tint.datepicker.css") %>' }
 /*注释不需要的皮肤可以减少网络请求
 */
 ];
