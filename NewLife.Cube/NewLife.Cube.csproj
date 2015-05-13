@@ -172,7 +172,6 @@
     <Compile Include="Common\HtmlExtensions.cs" />
     <Compile Include="Common\RazorViewEngineX.cs" />
     <Compile Include="App_Start\BundleConfig.cs" />
-    <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="Common\AreaRegistrationBase.cs" />
     <Compile Include="Common\EntityModelBinder.cs" />
