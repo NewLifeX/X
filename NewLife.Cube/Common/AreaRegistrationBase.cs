@@ -59,7 +59,9 @@ namespace NewLife.Cube
             PrecompiledEngines = list.ToArray();
 
             var engine = new CompositePrecompiledMvcEngine(PrecompiledEngines);
-            ViewEngines.Engines.Insert(0, engine);
+            //ViewEngines.Engines.Insert(0, engine);
+            // 预编译引擎滞后，让其它引擎先工作
+            ViewEngines.Engines.Add(engine);
 
             // StartPage lookups are done by WebPages. 
             VirtualPathFactoryManager.RegisterVirtualPathFactory(engine);
