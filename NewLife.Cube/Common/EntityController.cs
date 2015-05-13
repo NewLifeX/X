@@ -157,23 +157,25 @@ namespace NewLife.Cube
 
         #region 辅助
         /// <summary>列表字段过滤</summary>
-        protected static String[] ListFields;
+        protected static List<FieldItem> ListFields;
 
         /// <summary>表单字段过滤</summary>
-        protected static String[] FormFields;
+        protected static List<FieldItem> FormFields;
 
         /// <summary>获取要显示的字段列表</summary>
         /// <param name="isForm">是否是表单</param>
         /// <returns></returns>
         protected virtual List<FieldItem> GetFields(Boolean isForm)
         {
-            var fs = Entity<TEntity>.Meta.Fields.ToList();
+            //var fs = Entity<TEntity>.Meta.Fields.ToList();
 
-            var filter = isForm ? FormFields : ListFields;
-            if (filter == null || filter.Length == 0) return fs;
+            //var filter = isForm ? FormFields : ListFields;
+            //if (filter == null || filter.Length == 0) return fs;
 
-            fs = Entity<TEntity>.Meta.AllFields.ToList();
-            return fs.Where(e => filter.Contains(e.Name)).ToList();
+            //fs = Entity<TEntity>.Meta.AllFields.ToList();
+            //return fs.Where(e => filter.Contains(e.Name)).ToList();
+
+            return (isForm ? FormFields : ListFields) ?? Entity<TEntity>.Meta.Fields.ToList();
         }
         #endregion
 
