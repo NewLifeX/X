@@ -294,6 +294,13 @@ namespace XCode.DataAccessLayer
                             table.Columns.Add(dc);
                         }
                         reader.ReadEndElement();
+
+                        // 修正可能的主字段
+                        if (!table.Columns.Any(e => e.Master))
+                        {
+                            var f = table.Columns.FirstOrDefault(e => e.Name.EqualIgnoreCase("Name", "Title"));
+                            if (f != null) f.Master = true;
+                        }
                         break;
                     case "Indexes":
                         reader.ReadStartElement();
