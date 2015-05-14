@@ -43,6 +43,9 @@ namespace XCode
             /// <summary>唯一键，返回第一个标识列或者唯一的主键</summary>
             public virtual FieldItem Unique { get { return Meta.Unique; } }
 
+            /// <summary>主字段。主字段作为业务主要字段，代表当前数据行意义</summary>
+            public virtual FieldItem Master { get { return Meta.Master; } }
+
             /// <summary>连接名</summary>
             public virtual String ConnName { get { return Meta.ConnName; } set { Meta.ConnName = value; } }
 

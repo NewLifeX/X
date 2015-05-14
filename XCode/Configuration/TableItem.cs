@@ -168,6 +168,10 @@ namespace XCode.Configuration
         [XmlIgnore]
         public FieldItem[] PrimaryKeys { get { return _PrimaryKeys; } }
 
+        private FieldItem _Master;
+        /// <summary>主字段。主字段作为业务主要字段，代表当前数据行意义</summary>
+        public FieldItem Master { get { return _Master; } }
+
         private ICollection<String> _FieldNames;
         /// <summary>字段名集合，不区分大小写的哈希表存储，外部不要修改元素数据</summary>
         [XmlIgnore]
@@ -263,6 +267,7 @@ namespace XCode.Configuration
 
                 if (fi.PrimaryKey) pkeys.Add(fi);
                 if (fi.IsIdentity) _Identity = fi;
+                if (fi.Master) _Master = fi;
             }
             if (_Indexes != null && _Indexes.Length > 0)
             {

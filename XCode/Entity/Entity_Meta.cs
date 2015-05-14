@@ -86,6 +86,9 @@ namespace XCode
                     return null;
                 }
             }
+
+            /// <summary>主字段。主字段作为业务主要字段，代表当前数据行意义</summary>
+            public static FieldItem Master { get { return Table.Master ?? Unique; } }
             #endregion
 
             #region 单实体对象缓存属性
