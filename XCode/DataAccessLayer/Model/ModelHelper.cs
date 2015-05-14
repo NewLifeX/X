@@ -242,6 +242,11 @@ namespace XCode.DataAccessLayer
                     }
                     reader.ReadEndElement();
                 }
+                else
+                {   
+                    // 这里必须处理，否则加载特殊Xml文件时将会导致死循环
+                    reader.Read();
+                }
             }
             return list;
         }
