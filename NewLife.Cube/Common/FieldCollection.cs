@@ -114,6 +114,12 @@ namespace NewLife.Cube
                 RemoveAt(idx);
                 return this;
             }
+            // 如果本身就存在目标项，则删除旧项
+            if (Contains(fi))
+            {
+                RemoveAt(idx);
+                return this;
+            }
 
             this[idx] = fi;
 
