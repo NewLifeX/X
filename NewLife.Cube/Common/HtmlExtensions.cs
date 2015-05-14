@@ -98,6 +98,7 @@ namespace NewLife.Cube
                     if (set != null && set.Parent == field.Name)
                     {
                         var root = entity.GetType().GetValue("Root") as IEntityTree;
+                        // 找到完整菜单树，但是排除当前节点这个分支
                         var list = root.FindAllChildsExcept(entity as IEntityTree);
                         return Html.DropDownList(field.Name, list.Cast<IEntityTree>().Select(r => new SelectListItem { Text = r.TreeNodeText, Value = r[set.Key] + "" }));
                     }
