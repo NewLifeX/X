@@ -1,11 +1,11 @@
 ﻿using System;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Web.Mvc;
 using System.Web.Mvc.Html;
-using XCode;
 using NewLife.Reflection;
+using XCode;
 using XCode.Configuration;
-using System.Linq;
 
 namespace NewLife.Cube
 {
@@ -100,7 +100,19 @@ namespace NewLife.Cube
                         var root = entity.GetType().GetValue("Root") as IEntityTree;
                         // 找到完整菜单树，但是排除当前节点这个分支
                         var list = root.FindAllChildsExcept(entity as IEntityTree);
-                        return Html.DropDownList(field.Name, list.Cast<IEntityTree>().Select(r => new SelectListItem { Text = r.TreeNodeText, Value = r[set.Key] + "" }));
+                        return Html.DropDownList(field.Name, list.Cast<IEntityTree>().Select(e => new SelectListItem { Text = e.TreeNodeText, Value = e[set.Key] + "" }));
+                    }
+                }
+                // 如果有表间关系，且是当前字段
+                if (field.Table.DataTable.Relations.Count > 0)
+                {
+                    var dr = field.Table.DataTable.Relations.FirstOrDefault(e => e.Column.EqualIgnoreCase(field.Name));
+                    // 为该字段创建下拉菜单
+                    if (dr != null)
+                    {
+                        var rt = EntityFactory.CreateOperate(dr.RelationTable);
+                        var list = rt.FindAllWithCache();
+                        return Html.DropDownList(field.Name, list.Select(e => new SelectListItem { Text = e[rt.Master.Name] + "", Value = e[dr.RelationColumn] + "" }));
                     }
                 }
 
