@@ -5,6 +5,7 @@ using System.Web.Mvc.Html;
 using XCode;
 using NewLife.Reflection;
 using XCode.Configuration;
+using System.Linq;
 
 namespace NewLife.Cube
 {
@@ -89,6 +90,19 @@ namespace NewLife.Cube
             }
             else
             {
+                // 如果是实体树，并且当前是父级字段，则生产下拉
+                if (entity is IEntityTree)
+                {
+                    var fact = EntityFactory.CreateOperate(entity.GetType());
+                    var set = entity.GetType().GetValue("Setting") as IEntityTreeSetting;
+                    if (set != null && set.Parent == field.Name)
+                    {
+                        var root = entity.GetType().GetValue("Root") as IEntityTree;
+                        var list = root.FindAllChildsExcept(entity as IEntityTree);
+                        return Html.DropDownList(field.Name, list.Cast<IEntityTree>().Select(r => new SelectListItem { Text = r.TreeNodeText, Value = r[set.Key] + "" }));
+                    }
+                }
+
                 txt = Html.ForEditor(field.Name, entity[field.Name], field.Type);
             }
 

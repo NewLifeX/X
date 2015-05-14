@@ -118,11 +118,6 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>_Navbar.cshtml</DependentUpon>
     </Compile>
-    <Compile Include="Areas\Admin\Views\Menu\Form.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Form.cshtml</DependentUpon>
-    </Compile>
     <Compile Include="Areas\Admin\Views\Menu\Index.generated.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -487,10 +482,6 @@
     <Content Include="Content\bootstrap\fonts\FontAwesome.otf" />
     <Content Include="Content\ace\fonts\OpenSans-300.woff" />
     <Content Include="Content\ace\fonts\OpenSans-400.woff" />
-    <None Include="Areas\Admin\Views\Menu\Form.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>Form.generated.cs</LastGenOutput>
-    </None>
     <None Include="Areas\Admin\Views\Role\Form.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>Form.generated.cs</LastGenOutput>

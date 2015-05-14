@@ -726,6 +726,11 @@ namespace XCode
 
         /// <summary>父亲实体集合。以深度层次树结构输出</summary>
         IEntityList IEntityTree.AllParents { get { return AllParents; } }
+
+        /// <summary>获取完整树，包含根节点，排除指定分支。多用于树节点父级选择</summary>
+        /// <param name="exclude"></param>
+        /// <returns></returns>
+        IEntityList IEntityTree.FindAllChildsExcept(IEntityTree exclude) { return FindAllChildsExcept(exclude); }
         #endregion
     }
 }

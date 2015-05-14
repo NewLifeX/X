@@ -20,6 +20,14 @@ namespace XCode
 
         /// <summary>深度</summary>
         Int32 Deepth { get; }
+
+        /// <summary>树形节点名，根据深度带全角空格前缀</summary>
+        String TreeNodeText { get; }
+
+        /// <summary>获取完整树，包含根节点，排除指定分支。多用于树节点父级选择</summary>
+        /// <param name="exclude"></param>
+        /// <returns></returns>
+        IEntityList FindAllChildsExcept(IEntityTree exclude);
         #endregion
     }
 }
