@@ -197,4 +197,56 @@ namespace NewLife.Cube
         }
         #endregion
     }
+
+    /// <summary>实体树控制器基类</summary>
+    /// <typeparam name="TEntity"></typeparam>
+    public class EntityTreeController<TEntity> : EntityController<TEntity> where TEntity : EntityTree<TEntity>, new()
+    {
+        /// <summary>列表页视图。子控制器可重载，以传递更多信息给视图，比如修改要显示的列</summary>
+        /// <param name="p"></param>
+        /// <returns></returns>
+        protected override ActionResult IndexView(Pager p)
+        {
+            // 一页显示全部菜单，取自缓存
+            p.PageSize = 10000;
+            ViewBag.Page = p;
+
+            var list = EntityTree<TEntity>.Root.AllChilds;
+
+            return View(list);
+        }
+
+        /// <summary>上升</summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [DisplayName("上升")]
+        public ActionResult Up(Int32 id)
+        {
+            var menu = FindByID(id);
+            menu.Up();
+
+            return RedirectToAction("Index");
+        }
+
+        /// <summary>下降</summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [DisplayName("下降")]
+        public ActionResult Down(Int32 id)
+        {
+            var menu = FindByID(id);
+            menu.Down();
+
+            return RedirectToAction("Index");
+        }
+
+        /// <summary>根据ID查找节点</summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        protected static TEntity FindByID(Int32 id)
+        {
+            var key = EntityTree<TEntity>.Meta.Unique.Name;
+            return EntityTree<TEntity>.Meta.Cache.Entities.ToList().FirstOrDefault(e => (Int32)e[key] == id);
+        }
+    }
 }

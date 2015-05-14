@@ -28,10 +28,7 @@
                             <label class="control-label col-md-2">@item.DisplayName</label>
                             <div class="input-group col-md-2">
                                 @Html.DropDownList(item.Name, Menu.Root.AllChilds.ToList().Select(r => new SelectListItem { Text = r.TreeNodeText, Value = r.ID + "" }))
-                                @if (!item.Description.TrimStart(item.DisplayName).TrimStart("。").IsNullOrWhiteSpace())
-                                {
-                                    <p class="help-block">@(item.Description.TrimStart(item.DisplayName).TrimStart("。"))</p>
-                                }
+                                @Html.ForDescription(item)
                             </div>
                         </div>
                     }

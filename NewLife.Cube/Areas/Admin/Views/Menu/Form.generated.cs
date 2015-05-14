@@ -209,46 +209,19 @@ WriteLiteral("                                ");
             #line hidden
 WriteLiteral("\r\n");
 
+WriteLiteral("                                ");
+
             
             #line 31 "..\..\Areas\Admin\Views\Menu\Form.cshtml"
-                                
-            
-            #line default
-            #line hidden
-            
-            #line 31 "..\..\Areas\Admin\Views\Menu\Form.cshtml"
-                                 if (!item.Description.TrimStart(item.DisplayName).TrimStart("。").IsNullOrWhiteSpace())
-                                {
+                           Write(Html.ForDescription(item));
 
             
             #line default
             #line hidden
-WriteLiteral("                                    <p");
-
-WriteLiteral(" class=\"help-block\"");
-
-WriteLiteral(">");
-
-            
-            #line 33 "..\..\Areas\Admin\Views\Menu\Form.cshtml"
-                                                      Write(item.Description.TrimStart(item.DisplayName).TrimStart("。"));
-
-            
-            #line default
-            #line hidden
-WriteLiteral("</p>\r\n");
+WriteLiteral("\r\n                            </div>\r\n                        </div>\r\n");
 
             
             #line 34 "..\..\Areas\Admin\Views\Menu\Form.cshtml"
-                                }
-
-            
-            #line default
-            #line hidden
-WriteLiteral("                            </div>\r\n                        </div>\r\n");
-
-            
-            #line 37 "..\..\Areas\Admin\Views\Menu\Form.cshtml"
                     }
                     else
                     {
@@ -265,7 +238,7 @@ WriteLiteral(">\r\n");
 WriteLiteral("                            ");
 
             
-            #line 41 "..\..\Areas\Admin\Views\Menu\Form.cshtml"
+            #line 38 "..\..\Areas\Admin\Views\Menu\Form.cshtml"
                        Write(Html.Partial("_Form_Item", new Pair(Model, item)));
 
             
@@ -274,7 +247,7 @@ WriteLiteral("                            ");
 WriteLiteral("\r\n                        </div>\r\n");
 
             
-            #line 43 "..\..\Areas\Admin\Views\Menu\Form.cshtml"
+            #line 40 "..\..\Areas\Admin\Views\Menu\Form.cshtml"
                     }
                 }
             }
@@ -283,14 +256,14 @@ WriteLiteral("\r\n                        </div>\r\n");
             #line default
             #line hidden
             
-            #line 46 "..\..\Areas\Admin\Views\Menu\Form.cshtml"
+            #line 43 "..\..\Areas\Admin\Views\Menu\Form.cshtml"
        Write(Html.Partial("_Form_Action", isNew));
 
             
             #line default
             #line hidden
             
-            #line 46 "..\..\Areas\Admin\Views\Menu\Form.cshtml"
+            #line 43 "..\..\Areas\Admin\Views\Menu\Form.cshtml"
                                                 
         }
 
