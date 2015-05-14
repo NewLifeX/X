@@ -27,7 +27,7 @@
                         <div class="form-group">
                             <label class="control-label col-md-2">@item.DisplayName</label>
                             <div class="input-group col-md-2">
-                                @Html.DropDownList(item.Name, Menu.Root.AllChilds.ToList().Select(r => new SelectListItem { Text = r.TreeNodeText, Value = r.ID + "" }))
+                                @Html.DropDownList(item.Name, Menu.Root.FindAllChildsExcept((IEntityTree)Model).ToList().Select(r => new SelectListItem { Text = r.TreeNodeText, Value = r.ID + "" }))
                                 @Html.ForDescription(item)
                             </div>
                         </div>

@@ -282,6 +282,14 @@ namespace XCode
             return FindAllChilds(entity, false);
         }
 
+        /// <summary>获取完整树，包含根节点，排除指定分支。多用于树节点父级选择</summary>
+        /// <param name="exclude"></param>
+        /// <returns></returns>
+        public EntityList<TEntity> FindAllChildsExcept(IEntityTree exclude)
+        {
+            return FindAllChilds(Root, true, exclude);
+        }
+
         /// <summary>查找指定键的所有父节点，从高到底以深度层次树结构输出</summary>
         /// <param name="key"></param>
         /// <returns></returns>
@@ -301,8 +309,9 @@ namespace XCode
         /// <summary>查找指定节点的所有子节点，以深度层次树结构输出</summary>
         /// <param name="entity">根节点</param>
         /// <param name="includeSelf">返回列表是否包含根节点，默认false</param>
+        /// <param name="exclude">要排除的节点</param>
         /// <returns></returns>
-        protected static EntityList<TEntity> FindAllChilds(IEntityTree entity, Boolean includeSelf = false)
+        protected static EntityList<TEntity> FindAllChilds(IEntityTree entity, Boolean includeSelf = false, IEntityTree exclude = null)
         {
             if (entity == null) return new EntityList<TEntity>();
             var childlist = entity.Childs;
@@ -318,6 +327,8 @@ namespace XCode
             {
                 var item = stack.Pop();
                 if (list.Contains(item)) continue;
+                // 排除某节点以及它的子孙节点。不能直接判断对象相等，因为其中一边可能来自缓存
+                if (exclude != null && !exclude.IsNullKey && item.EqualTo(exclude)) continue;
                 // 去掉第一个，那是自身
                 if (includeSelf || item != entity) list.Add(item);
 
@@ -624,7 +635,7 @@ namespace XCode
             list.Save();
         }
 
-        Boolean EqualTo(TEntity entity)
+        Boolean EqualTo(IEntity entity)
         {
             if (entity == null) return false;
 

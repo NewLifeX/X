@@ -202,7 +202,7 @@ WriteLiteral("                                ");
 
             
             #line 30 "..\..\Areas\Admin\Views\Menu\Form.cshtml"
-                           Write(Html.DropDownList(item.Name, Menu.Root.AllChilds.ToList().Select(r => new SelectListItem { Text = r.TreeNodeText, Value = r.ID + "" })));
+                           Write(Html.DropDownList(item.Name, Menu.Root.FindAllChildsExcept((IEntityTree)Model).ToList().Select(r => new SelectListItem { Text = r.TreeNodeText, Value = r.ID + "" })));
 
             
             #line default
