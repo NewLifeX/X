@@ -164,6 +164,7 @@
       <DependentUpon>_ViewStart.cshtml</DependentUpon>
     </Compile>
     <Compile Include="Common\ControllerBaseX.cs" />
+    <Compile Include="Common\FieldCollection.cs" />
     <Compile Include="Common\HtmlExtensions.cs" />
     <Compile Include="Common\RazorViewEngineX.cs" />
     <Compile Include="App_Start\BundleConfig.cs" />

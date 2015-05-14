@@ -65,7 +65,7 @@ namespace XCode.Configuration
 
         private Boolean _IsDataObjectField;
         /// <summary>是否数据绑定列</summary>
-        internal Boolean IsDataObjectField { get { return _IsDataObjectField; } set { _IsDataObjectField = value; } }
+        public Boolean IsDataObjectField { get { return _IsDataObjectField; } set { _IsDataObjectField = value; } }
 
         /// <summary>是否动态字段</summary>
         public Boolean IsDynamic { get { return _Property == null; } }
