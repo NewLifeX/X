@@ -59,6 +59,7 @@ namespace NewLife.Cube
             PrecompiledEngines = list.ToArray();
 
             var engine = new CompositePrecompiledMvcEngine(PrecompiledEngines);
+            XTrace.WriteLine("注册复合预编译引擎，共有视图程序集{0}个", list.Count);
             //ViewEngines.Engines.Insert(0, engine);
             // 预编译引擎滞后，让其它引擎先工作
             ViewEngines.Engines.Add(engine);
